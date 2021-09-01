@@ -14,9 +14,8 @@ type (
 	frameBuffer struct {
 		sourceName string
 
-		chunkSize uint
-		loader    func(keyFilter *Filter, cap uint) ([]*Frame, error)
-		closer    Closer
+		loader func(keyFilter *Filter, cap uint) ([]*Frame, error)
+		closer Closer
 
 		localFrames   []*Frame
 		foreignFrames []*Frame
@@ -38,18 +37,14 @@ type (
 )
 
 // load loads the next chunk into the buffer based on the provided loader
-func (bl *frameBuffer) load(keyFilter *Filter, paged bool) (more bool, err error) {
+func (bl *frameBuffer) load(cap uint, keyFilter *Filter) (more bool, err error) {
 	var ff []*Frame
 	auxLocal := make([]*Frame, 0, 32)
 	auxForeign := make([]*Frame, 0, 32)
 
 	for {
 		// Load
-		if paged {
-			ff, err = bl.loader(keyFilter, bl.chunkSize+1)
-		} else {
-			ff, err = bl.loader(keyFilter, bl.chunkSize)
-		}
+		ff, err = bl.loader(keyFilter, cap)
 		if err != nil {
 			return false, err
 		}
@@ -107,7 +102,7 @@ func (bl *frameBuffer) load(keyFilter *Filter, paged bool) (more bool, err error
 
 		// Do we need to fetch more?
 		// When chunk size is 0, we are fetching all
-		if bl.chunkSize == 0 || !bl.more(bl.localFrames, bl.sortColumns) {
+		if cap == 0 || !bl.more(bl.localFrames, bl.sortColumns) {
 			return true, nil
 		}
 	}
@@ -303,6 +298,7 @@ func (bl *frameBuffer) calculatePagingCursor(r FrameRow, cols FrameColumnSet, in
 	// A unique value is also assured at way before.
 	cursor := &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 	var foreignFrames []*Frame
+	var v interface{}
 
 	for _, c := range cc {
 		foreignFrames = nil
@@ -320,9 +316,15 @@ func (bl *frameBuffer) calculatePagingCursor(r FrameRow, cols FrameColumnSet, in
 				r = f.FirstRow()
 			}
 
-			cursor.Set(c.Column, r[f.Columns.Find(pts[1])].Get(), c.Descending)
+			if r[f.Columns.Find(pts[1])] != nil {
+				v = r[f.Columns.Find(pts[1])].Get()
+			}
+			cursor.Set(c.Column, v, c.Descending)
 		} else {
-			cursor.Set(c.Column, r[cols.Find(c.Column)].Get(), c.Descending)
+			if r[cols.Find(c.Column)] != nil {
+				v = r[cols.Find(c.Column)].Get()
+			}
+			cursor.Set(c.Column, v, c.Descending)
 		}
 	}
 
@@ -330,7 +332,7 @@ func (bl *frameBuffer) calculatePagingCursor(r FrameRow, cols FrameColumnSet, in
 }
 
 // prepareResponse takes the provided buffers, metadata and prepares the result of the step
-func prepareResponse(main, sub *frameBuffer, inverted bool, lfd *FrameDefinition, keyColumn string, dscr FrameDescriptionSet) (oo []*Frame, err error) {
+func prepareResponse(main, sub *frameBuffer, inverted, processed bool, lfd *FrameDefinition, keyColumn string, dscr FrameDescriptionSet) (oo []*Frame, err error) {
 	var local, foreign *frameBuffer
 
 	// Determine which one was local/foreign
@@ -342,22 +344,41 @@ func prepareResponse(main, sub *frameBuffer, inverted bool, lfd *FrameDefinition
 		foreign = sub
 	}
 
-	// cut
-	// - things from local take priority
 	more := false
-	oo, more = local.cutLocal(int(lfd.Paging.Limit))
-	oo = append(oo, local.cutForeign(int(lfd.Paging.Limit))...)
+	if processed {
+		// cut
+		// - things from local take priority
+		oo, more = local.cutLocal(int(lfd.Paging.Limit))
+		oo = append(oo, local.cutForeign(int(lfd.Paging.Limit))...)
 
-	// - followed by things in foreign
-	aux, _ := foreign.cutLocal(int(lfd.Paging.Limit))
-	for _, a := range aux {
-		a.RelSource = oo[0].Ref
+		// - followed by things in foreign
+		aux, _ := foreign.cutLocal(int(lfd.Paging.Limit))
+		for _, a := range aux {
+			a.RelSource = oo[0].Ref
+		}
+		oo = append(oo, aux...)
+		oo = append(oo, foreign.cutForeign(int(lfd.Paging.Limit))...)
+
+		// paging
+		oo = local.calculatePagingCursors(oo, lfd.Sort, lfd.Paging.PageCursor, more)
+	} else {
+		// whole
+		// - things from local take priority
+		oo = local.localFrames
+		local.localFrames = []*Frame{}
+		oo = append(oo, local.foreignFrames...)
+		local.foreignFrames = []*Frame{}
+
+		// - followed by things in foreign
+		aux := foreign.localFrames
+		for _, a := range aux {
+			a.RelSource = oo[0].Ref
+		}
+		oo = append(oo, aux...)
+		foreign.localFrames = []*Frame{}
+		oo = append(oo, foreign.foreignFrames...)
+		foreign.foreignFrames = []*Frame{}
 	}
-	oo = append(oo, aux...)
-	oo = append(oo, foreign.cutForeign(int(lfd.Paging.Limit))...)
-
-	// paging
-	oo = local.calculatePagingCursors(oo, lfd.Sort, lfd.Paging.PageCursor, more)
 
 	if len(oo) == 0 {
 		return prepareResponseEmpty(lfd, dscr), nil

@@ -85,6 +85,7 @@ func (r *recordDatasource) Describe() report.FrameDescriptionSet {
 	return report.FrameDescriptionSet{
 		&report.FrameDescription{
 			Source:  r.Name(),
+			Ref:     r.Name(),
 			Columns: r.cols,
 		},
 	}
@@ -314,6 +315,12 @@ func (r *recordDatasource) load(ctx context.Context, def *report.FrameDefinition
 		}
 	}
 
+	// Make sure results are always sorted at least by primary keys
+	var canPage bool
+	if canPage, err = r.validateSort(def); err != nil {
+		return
+	}
+
 	// Cloned sorting instructions for the actual sorting
 	// Original must be kept for cursor creation
 	sort = def.Sort.Clone()
@@ -380,7 +387,7 @@ func (r *recordDatasource) load(ctx context.Context, def *report.FrameDefinition
 					}
 					i = 0
 					if processed {
-						return r.calculatePaging(out, def.Sort, uint(cap), def.Paging.PageCursor), nil
+						return r.calculatePaging(out, def.Sort, uint(cap), def.Paging.PageCursor, canPage), nil
 					}
 					return out, nil
 				}
@@ -388,7 +395,7 @@ func (r *recordDatasource) load(ctx context.Context, def *report.FrameDefinition
 
 			if i > 0 {
 				if processed {
-					return r.calculatePaging([]*report.Frame{f}, def.Sort, uint(cap), def.Paging.PageCursor), nil
+					return r.calculatePaging([]*report.Frame{f}, def.Sort, uint(cap), def.Paging.PageCursor, canPage), nil
 				} else {
 					return []*report.Frame{f}, nil
 				}
@@ -484,7 +491,7 @@ func (r *recordDatasource) baseQuery(f *report.Filter) (sqb squirrel.SelectBuild
 	return sqb, nil
 }
 
-func (b *recordDatasource) calculatePaging(out []*report.Frame, sorting filter.SortExprSet, limit uint, cursor *filter.PagingCursor) []*report.Frame {
+func (b *recordDatasource) calculatePaging(out []*report.Frame, sorting filter.SortExprSet, limit uint, cursor *filter.PagingCursor, canPage bool) []*report.Frame {
 	for _, o := range out {
 		var (
 			hasPrev       = cursor != nil
@@ -508,7 +515,7 @@ func (b *recordDatasource) calculatePaging(out []*report.Frame, sorting filter.S
 			hasPrev, hasNext = hasNext, hasPrev
 		}
 
-		if ignoreLimit {
+		if ignoreLimit || !canPage {
 			return out
 		}
 
@@ -618,4 +625,26 @@ func (r *recordDatasource) sortExpr(sorting filter.SortExprSet) ([]string, error
 	}
 
 	return ss, nil
+}
+
+func (r *recordDatasource) validateSort(def *report.FrameDefinition) (canPage bool, err error) {
+	unique := ""
+	def.Sort = func() filter.SortExprSet {
+		for _, c := range r.cols {
+			if c.Primary || c.Unique {
+				if unique == "" {
+					unique = c.Name
+				}
+				if def.Sort.Get(c.Name) != nil {
+					unique = c.Name
+					return def.Sort
+				}
+			}
+		}
+		if unique != "" {
+			return append(def.Sort, &filter.SortExpr{Column: unique, Descending: def.Sort.LastDescending()})
+		}
+		return def.Sort
+	}()
+	return unique != "", nil
 }

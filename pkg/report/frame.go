@@ -290,13 +290,15 @@ func (f *Frame) String() string {
 }
 
 func (f *Frame) CollectCursorValues(r FrameRow, cc ...*filter.SortExpr) *filter.PagingCursor {
-	// @todo pk and unique things; how should we do it?
-
 	cursor := &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
 	for _, c := range cc {
+		var v interface{}
+		if r[f.Columns.Find(c.Column)] != nil {
+			v = r[f.Columns.Find(c.Column)].Get()
+		}
 		// the check for existence should be performed way in advanced so we won't bother here
-		cursor.Set(c.Column, r[f.Columns.Find(c.Column)].Get(), c.Descending)
+		cursor.Set(c.Column, v, c.Descending)
 	}
 
 	return cursor
@@ -309,6 +311,7 @@ func (f *Frame) CloneMeta() *Frame {
 		Ref:       f.Ref,
 		RefValue:  f.RefValue,
 		RelColumn: f.RelColumn,
+		RelSource: f.RelSource,
 		Columns:   f.Columns.Clone(),
 		Paging:    f.Paging.Clone(),
 		Sort:      f.Sort.Clone(),

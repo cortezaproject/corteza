@@ -8,7 +8,6 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/qlng"
 	"github.com/spf13/cast"
 )
 
@@ -102,24 +101,20 @@ func (d *joinedDataset) Describe() FrameDescriptionSet {
 
 	local := d.local.Describe()
 	for _, l := range local {
-		out = append(out,
-			&FrameDescription{
-				Source:  d.Name(),
-				Ref:     l.Source,
-				Columns: l.Columns,
-			},
-		)
+		l.Source = d.Name()
+		if l.Ref == "" {
+			l.Ref = l.Source
+		}
+		out = append(out, l)
 	}
 
 	foreign := d.foreign.Describe()
 	for _, f := range foreign {
-		out = append(out,
-			&FrameDescription{
-				Source:  d.Name(),
-				Ref:     f.Source,
-				Columns: f.Columns,
-			},
-		)
+		f.Source = d.Name()
+		if f.Ref == "" {
+			f.Ref = f.Source
+		}
+		out = append(out, f)
 	}
 
 	return out
@@ -145,17 +140,18 @@ func (d *joinedDataset) Partition(partitionSize uint, partitionCol string) (bool
 }
 
 func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (l Loader, c Closer, err error) {
+	dscr := d.Describe()
+
 	// Preparation
 	// - Assure sort columns for paging purposes
 	// - Assure local/foreign definitions
 	//   Keep a cloned original version so we don't overwrite the initial definition.
-	oLocalDef, oForeignDef, err := d.prepareDefinitions(FrameDefinitionSet(dd))
+	oLocalDef, oForeignDef, err := d.prepareDefinitions(FrameDefinitionSet(dd), dscr)
 	if err != nil {
 		return
 	}
 
 	// - Validate the sort of the local frame for paging purposes
-	dscr := d.Describe()
 	err = d.validateSort(oLocalDef, dscr)
 	if err != nil {
 		return
@@ -172,12 +168,12 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (l Loa
 	}
 
 	// - Preprocess additional paging filtering
-	var cndMain, apxx, cndSub *qlng.ASTNode
+	var pp []partialPagingCnd
 	if oLocalDef.Paging.PageCursor != nil {
-		cndMain, apxx, cndSub, err = d.calculatePagingFilters(localDef, inverted)
-
-		localDef.Filter = merger(&Filter{cndMain}, localDef.Filter, "and")
-		localDef.Paging.PageCursor = nil
+		pp, err = d.strategizePaging(localDef, foreignDef, inverted)
+		if err != nil {
+			return
+		}
 	}
 
 	// - Determine the join strategy to use.
@@ -202,10 +198,13 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (l Loa
 	//   .. apply additional filtering based on page cursors
 	//   . prepare response
 	isEmpty := false
-	return func(cap int, paged bool) (oo []*Frame, err error) {
+	return func(cap int, processed bool) (oo []*Frame, err error) {
 			var keys []string
 			if isEmpty {
 				return
+			}
+			if processed {
+				cap++
 			}
 
 			// The modified flag will help us determine if we need another iteration or not.
@@ -223,7 +222,7 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (l Loa
 				modified = false
 
 				// . Pull data from the main source
-				more, err = mainLoader.load(nil, paged)
+				more, err = mainLoader.load(uint(cap), nil)
 				if err != nil {
 					return
 				}
@@ -240,7 +239,7 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (l Loa
 				keyFilter := subLoader.keyFilter(keys)
 
 				// . Pull data from the sub source
-				more, err = subLoader.load(keyFilter, paged)
+				more, err = subLoader.load(uint(cap), keyFilter)
 				if err != nil {
 					return nil, err
 				}
@@ -266,7 +265,7 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (l Loa
 
 				// .. Additional filters based on page cursors
 				if !pagingSatisfied {
-					m, pagingSatisfied = d.pagingFilter(mainLoader, subLoader, apxx, cndSub)
+					m, pagingSatisfied = d.pagingFilter(mainLoader, subLoader, pp)
 					modified = modified || m
 				}
 
@@ -279,13 +278,18 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (l Loa
 				}
 			}
 
-			return prepareResponse(mainLoader, subLoader, inverted, oLocalDef, d.def.LocalColumn, dscr)
+			return prepareResponse(mainLoader, subLoader, inverted, processed, oLocalDef, d.def.LocalColumn, dscr)
 		}, func() {
-			return
+			if mainLoader.closer != nil {
+				mainLoader.closer()
+			}
+			if subLoader.closer != nil {
+				subLoader.closer()
+			}
 		}, nil
 }
 
-func (d *joinedDataset) prepareDefinitions(dd FrameDefinitionSet) (localDef *FrameDefinition, foreignDef *FrameDefinition, err error) {
+func (d *joinedDataset) prepareDefinitions(dd FrameDefinitionSet, dscr FrameDescriptionSet) (localDef *FrameDefinition, foreignDef *FrameDefinition, err error) {
 	if len(dd) == 0 {
 		err = errors.New("joining requires at least one frame definition")
 		return
@@ -301,6 +305,7 @@ func (d *joinedDataset) prepareDefinitions(dd FrameDefinitionSet) (localDef *Fra
 			Ref:    d.def.LocalSource,
 			Paging: dd[0].Paging,
 			Sort:   dd[0].Sort,
+			Filter: dd[0].Filter,
 		}
 	}
 
@@ -314,6 +319,18 @@ func (d *joinedDataset) prepareDefinitions(dd FrameDefinitionSet) (localDef *Fra
 			},
 			Sort: filter.SortExprSet{},
 		}
+	}
+
+	if len(localDef.Columns) == 0 {
+		dscr = d.local.Describe()
+		sc := dscr.FilterBySource(localDef.Ref)[0]
+		localDef.Columns = sc.Columns
+	}
+
+	if len(foreignDef.Columns) == 0 {
+		dscr = d.foreign.Describe()
+		sc := dscr.FilterBySource(foreignDef.Ref)[0]
+		foreignDef.Columns = sc.Columns
 	}
 
 	return
@@ -363,313 +380,41 @@ func (d *joinedDataset) sliceFrames(ff []*Frame, selfCol, relCol string) (out []
 	return out, nil
 }
 
-// pagingFilter applies additional filtering based on the given page cursor
-func (d *joinedDataset) pagingFilter(main, sub *frameBuffer, cndMain, cndSub *qlng.ASTNode) (modified, satisfied bool) {
-	cutSize := 0
-	done := false
-	if cndMain == nil {
-		return false, true
-	}
-	main.walkRowsLocal(func(i int, r FrameRow) error {
-		if done {
-			return nil
-		}
-
-		// Firstly we evaluate if the local row falls in the "danger zone"
-		// (if the row was right on the edge of where the paging cursor filter applied)
-		if d.eval(cndMain, r, main.localFrames[0].Columns) {
-
-			// If we are in the "danger zone", we check what foreign frames don't pass
-			// the cursor filter.
-			//
-			// If the foreign frame does not pass it, we should remove it along with the local row.
-			if cndSub != nil && !d.eval(cndSub, sub.getByRefValue(r[main.keyColIndex]).FirstRow(), sub.localFrames[0].Columns) {
-				cutSize++
-			} else {
-				done = true
-				return nil
-			}
-		} else {
-			done = true
-			return nil
-		}
-
-		return nil
-	})
-
-	if cutSize > 0 {
-		main.removeLocal(cutSize)
-		sub.removeLocal(cutSize)
-
-		if main.sizeLocal() <= cutSize {
-			// We removed all of the local buffer so the paging is not yet satisfied
-			return true, false
-		}
-
-		// We removed the portion of the local buffer, so the paging is satisfied
-		return true, true
-	}
-
-	return false, true
-}
-
-// calculatePagingFilters produces additional filtering that should be done
-// on the datasource level and/or in the join logic.
-//
-// The core logic is extracted from store/rdbms/builders/cursor.go
-func (d *joinedDataset) calculatePagingFilters(local *FrameDefinition, inverted bool) (localCondition, localAppendix, foreignCondition *qlng.ASTNode, err error) {
-	if len(local.Paging.PageCursor.Keys()) == 0 {
-		return
-	}
-
-	var (
-		cur = local.Paging.PageCursor
-
-		// baseCndAppx is the initial AST for finding rows that match the sort column
-		// It's basically the second part of the wrap condition (if the value equals)
-		//
-		// The correlated string version is: (%s OR ((%s IS NULL AND %s) OR %s = %s))
-		baseCndAppx = func(field string, checkNull bool, value interface{}) *qlng.ASTNode {
-			return &qlng.ASTNode{
-				Ref: "or",
-				Args: qlng.ASTNodeSet{
-					&qlng.ASTNode{
-						Ref: "and",
-						Args: qlng.ASTNodeSet{
-							&qlng.ASTNode{
-								Ref: "is",
-								Args: qlng.ASTNodeSet{
-									&qlng.ASTNode{
-										Symbol: field,
-									},
-									&qlng.ASTNode{
-										Ref: "null",
-									},
-								},
-							}, &qlng.ASTNode{
-								Value: qlng.MakeValueOf("Boolean", checkNull),
-							},
-						},
-					},
-					&qlng.ASTNode{
-						Ref: "eq",
-						Args: qlng.ASTNodeSet{{
-							Symbol: field,
-						}, {
-							// @todo type
-							Value: qlng.MakeValueOf("String", value),
-						}},
-					},
-				},
-			}
-		}
-
-		// baseCnd is the initial AST for filtering over the given sort column
-		//
-		// The correlated string version is: ((%s IS %s AND %s) OR (%s %s %s))
-		baseCnd = func(field string, nullVal *qlng.ASTNode, checkNull bool, compOp string, value interface{}, appendix bool) *qlng.ASTNode {
-			pp := strings.Split(field, ".")
-			field = pp[len(pp)-1]
-
-			out := &qlng.ASTNode{
-				Ref: "or",
-				Args: qlng.ASTNodeSet{&qlng.ASTNode{
-					Ref: "and",
-					Args: qlng.ASTNodeSet{&qlng.ASTNode{
-						Ref: "is",
-						Args: qlng.ASTNodeSet{{
-							Symbol: field,
-						}, nullVal},
-					}, &qlng.ASTNode{
-						Value: qlng.MakeValueOf("Boolean", checkNull),
-					}},
-				}, &qlng.ASTNode{
-					Ref: compOp,
-					Args: qlng.ASTNodeSet{{
-						Symbol: field,
-					}, {
-						// @todo type
-						Value: qlng.MakeValueOf("String", value),
-					}},
-				},
-				},
-			}
-
-			if appendix {
-				localAppendix = baseCndAppx(field, checkNull, value)
-
-				return &qlng.ASTNode{
-					Ref: "or",
-					Args: qlng.ASTNodeSet{
-						out,
-						localAppendix,
-					},
-				}
-			}
-
-			return out
-		}
-
-		// wrapCnd is the conjunction between two paging cursor columns
-		//
-		// The correlated string version is: (%s OR (((%s IS NULL AND %s) OR %s = %s) AND %s))
-		wrapCnd = func(base *qlng.ASTNode, field string, value interface{}, checkNull bool, condition *qlng.ASTNode) *qlng.ASTNode {
-			pp := strings.Split(field, ".")
-			field = pp[len(pp)-1]
-
-			return &qlng.ASTNode{
-				Ref: "or",
-				Args: qlng.ASTNodeSet{
-					base,
-					&qlng.ASTNode{
-						Ref: "and",
-						Args: qlng.ASTNodeSet{
-							&qlng.ASTNode{
-								Ref: "or",
-								Args: qlng.ASTNodeSet{
-									&qlng.ASTNode{
-										Ref: "and",
-										Args: qlng.ASTNodeSet{
-											&qlng.ASTNode{
-												Ref: "is",
-												Args: qlng.ASTNodeSet{
-													&qlng.ASTNode{
-														Symbol: field,
-													},
-													&qlng.ASTNode{
-														Ref: "null",
-													},
-												},
-											}, &qlng.ASTNode{
-												Value: qlng.MakeValueOf("Boolean", checkNull),
-											},
-										},
-									},
-									&qlng.ASTNode{
-										Ref: "eq",
-										Args: qlng.ASTNodeSet{
-											&qlng.ASTNode{
-												Symbol: field,
-											},
-											&qlng.ASTNode{
-												// @todo type
-												Value: qlng.MakeValueOf("String", value),
-											},
-										},
-									},
-								},
-							},
-							condition,
-						},
-					},
-				},
-			}
-		}
-	)
-
-	var (
-		cc = cur.Keys()
-		vv = cur.Values()
-
-		ltOp = map[bool]string{
-			true:  "lt",
-			false: "gt",
-		}
-
-		notOp = map[bool]*qlng.ASTNode{
-			true:  {Ref: "nnull"},
-			false: {Ref: "null"},
-		}
-
-		isNull = func(i int, neg bool) bool {
-			if (isNil(vv[i]) && !neg) || (!isNil(vv[i]) && neg) {
-				return true
-			}
-
-			return false
-		}
-	)
-
-	// Determine the point at which we switch local sorts and foreign sorts
-	sourceDelimiter := len(cc) - 1
-	for j := range cc {
-		if j > 0 {
-			if strings.Contains(cc[j-1], ".") != strings.Contains(cc[j], ".") {
-				sourceDelimiter = j
-				break
-			}
-		}
-	}
-
-	// Some temporary variables to avoid initialization
-	var tmp []string
-	var field string
-
-	calculateAST := func(cc []string, vv []interface{}, dsc []bool, cut bool) (cnd *qlng.ASTNode) {
-		// going from the last key/column to the 1st one
-		for i := len(cc) - 1; i >= 0; i-- {
-			// We need to cut off the values that are before the cursor (when ascending)
-			// and vice-versa for descending.
-			lt := dsc[i]
-			if cut && cur.IsROrder() {
-				lt = !lt
-			}
-			op := ltOp[lt]
-
-			tmp = strings.Split(cc[i], ".")
-			field = tmp[len(tmp)-1]
-
-			base := baseCnd(field, notOp[!lt], isNull(i, lt), op, vv[i], cut && i == len(cc)-1)
-
-			if cnd == nil {
-				cnd = base
-			} else {
-				cnd = wrapCnd(base, field, vv[i], isNull(i, false), cnd)
-			}
-		}
-
-		return
-	}
-
-	// when there is no delimiter we can fully filter the ds
-	if sourceDelimiter == len(cc)-1 {
-		localCondition = calculateAST(cc, vv, cur.Desc(), false)
-	} else {
-		localCondition = calculateAST(cc[0:sourceDelimiter], vv[0:sourceDelimiter], cur.Desc()[0:sourceDelimiter], true)
-		foreignCondition = calculateAST(cc[sourceDelimiter:], vv[sourceDelimiter:], cur.Desc()[sourceDelimiter:], false)
-	}
-
-	return
-}
-
 func (d *joinedDataset) validateSort(def *FrameDefinition, dd FrameDescriptionSet) (err error) {
 	sortDS := ""
 	auxSS := make(filter.SortExprSet, 0, len(def.Sort))
 
-	// Get the last sorting delimiter
-	for i := len(def.Sort) - 1; i >= 0; i-- {
-		s := def.Sort[i]
+	for i := len(def.Sort) - 2; i >= 0; i-- {
+		aa := strings.Split(def.Sort[i].Column, ".")
+		bb := strings.Split(def.Sort[i+1].Column, ".")
 
-		spts := strings.Split(s.Column, ".")
-		if len(spts) == 1 && sortDS != "" {
+		if len(aa) != len(bb) || (len(aa) > 1 && aa[0] != aa[1]) {
+			auxSS = append(auxSS, def.Sort[i+1])
 			break
 		}
-		if len(spts) > 1 {
-			if sortDS == "" {
-				sortDS = spts[0]
-			} else if sortDS != spts[0] {
-				break
-			}
+
+		auxSS = append(auxSS, def.Sort[i+1])
+		if len(aa) > 1 {
+			sortDS = aa[0]
 		}
-		auxSS = append(auxSS, s)
+	}
+
+	// The first one is always local so this is ok
+	localDscr := dd[0]
+	var dscr *FrameDescription
+
+	// When local, ref is omitted
+	if sortDS == "" {
+		// Do this to avoid extra work afterwords
+		auxSS = def.Sort
+
+		dscr = localDscr
+		sortDS = dscr.Ref
+	} else {
+		dscr = dd.FilterByRef(sortDS)[0]
 	}
 
 	// Check if we're sorting by a unique value
-	if sortDS == "" {
-		sortDS = def.Ref
-	}
-
-	dscr := dd.FilterByRef(sortDS)[0]
 	def.Sort = func() filter.SortExprSet {
 		unique := ""
 		for _, c := range dscr.Columns {
@@ -682,7 +427,8 @@ func (d *joinedDataset) validateSort(def *FrameDefinition, dd FrameDescriptionSe
 				}
 			}
 		}
-		if sortDS == def.Ref {
+
+		if sortDS == localDscr.Ref {
 			return append(def.Sort, &filter.SortExpr{Column: unique, Descending: auxSS.LastDescending()})
 		} else {
 			return append(def.Sort, &filter.SortExpr{Column: fmt.Sprintf("%s.%s", sortDS, unique), Descending: auxSS.LastDescending()})
@@ -718,10 +464,6 @@ func (d *joinedDataset) prepareSorting(local, foreign *FrameDefinition) (inverte
 		} else {
 			localSS = append(localSS, s)
 		}
-	}
-
-	if foreignDS != "" && foreignDS != foreign.Ref {
-		return false, fmt.Errorf("foreign datasource in sort expression not found: %s", foreignDS)
 	}
 
 	local.Sort = localSS
