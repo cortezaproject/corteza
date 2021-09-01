@@ -281,7 +281,7 @@ func (m mockNotificationService) PasswordReset(ctx context.Context, emailAddress
 	return nil
 }
 
-func (m mockNotificationService) PasswordCreate(ctx context.Context, emailAddress string, token string) (string, error) {
+func (m mockNotificationService) PasswordCreate(token string) (string, error) {
 	return "", nil
 }
 
