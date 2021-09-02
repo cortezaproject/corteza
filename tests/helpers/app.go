@@ -14,7 +14,8 @@ import (
 )
 
 func NewIntegrationTestApp(ctx context.Context, initTestServices func(*app.CortezaApp) error) *app.CortezaApp {
-	logger.Init()
+	// Enforce debug logger for tests
+	logger.SetDefault(logger.MakeDebugLogger())
 
 	var (
 		a = app.New()

@@ -46,7 +46,7 @@ func init() {
 
 func InitTestApp() {
 	if testApp == nil {
-		ctx := logger.ContextWithValue(cli.Context(), logger.MakeDebugLogger())
+		ctx := cli.Context()
 
 		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
 			app.Opt.Federation.Enabled = true
