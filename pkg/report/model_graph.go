@@ -18,8 +18,8 @@ type (
 func (m *model) buildStepGraph(ss stepSet) (map[string]*modelGraphNode, error) {
 	mp := make(map[string]*modelGraphNode)
 
-	for _, s := range ss {
-		s := s
+	for _, _s := range ss {
+		s := _s
 
 		// make sure that the step is in the graph
 		n, ok := mp[s.Name()]
@@ -74,15 +74,19 @@ func (m *model) datasource(ctx context.Context, def *FrameDefinition) (ds Dataso
 }
 
 func (m *model) validateBranch(n *modelGraphNode) (err error) {
+	if n.step == nil {
+		return fmt.Errorf("step not defined")
+	}
+
 	err = n.step.Validate()
 	if err != nil {
-		return err
+		return fmt.Errorf("%s: %w", n.step.Name(), err)
 	}
 
 	for _, c := range n.cc {
 		err = m.validateBranch(c)
 		if err != nil {
-			return err
+			return fmt.Errorf("%s: %w", n.step.Name(), err)
 		}
 	}
 

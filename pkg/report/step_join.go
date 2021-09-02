@@ -254,6 +254,12 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (l Loa
 					break
 				}
 
+				// Cut out any local rows that do not have any foreign rows
+				modified = d.validateRows(mainLoader, subLoader, inverted)
+				if modified {
+					continue
+				}
+
 				// . Sort the collected data
 				//
 				// @todo Most of the sorting has already been done by the datasource,
@@ -482,4 +488,39 @@ func (d *joinedDataset) prepareSorting(local, foreign *FrameDefinition) (inverte
 	foreign.Sort = append(foreignSS, foreign.Sort...)
 
 	return
+}
+
+func (d *joinedDataset) validateRows(local, foreign *frameBuffer, inverted bool) (modified bool) {
+	keyCol := foreign.localFrames[0].RelColumn
+	cols := local.localFrames[0].Columns
+	keyColIx := cols.Find(keyCol)
+
+	// - index foreign frames into buckets; here the foreign sort must be respected
+	buckets := make(map[string]int)
+	for i, mf := range foreign.localFrames {
+		buckets[mf.RefValue] = i
+	}
+
+	var k string
+	aux := make([]FrameRow, 0, 100)
+	local.walkRowsLocal(func(i int, r FrameRow) error {
+		v := r[keyColIx]
+		if v == nil {
+			k = ""
+		} else {
+			k = cast.ToString(v.Get())
+		}
+
+		if _, ok := buckets[k]; ok {
+			aux = append(aux, r)
+		}
+
+		return nil
+	})
+
+	modified = len(local.localFrames[0].Rows) != len(aux)
+	local.localFrames[0].Rows = aux
+
+	return
+
 }

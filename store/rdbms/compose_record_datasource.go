@@ -169,6 +169,11 @@ func (r *recordDatasource) Group(d report.GroupDefinition, name string) (bool, e
 
 	// secondly handle column definitions
 	for _, k := range d.Columns {
+		// - make sure the column results with an aggregated value
+		if !r.isAggregated(k.Def.ASTNode) {
+			return false, fmt.Errorf("group column %s does not aggregate data", k.Name)
+		}
+
 		// - validate columns & functions
 		err = k.Def.Traverse(func(n *qlng.ASTNode) (bool, *qlng.ASTNode, error) {
 			if n.Symbol != "" {
@@ -647,4 +652,16 @@ func (r *recordDatasource) validateSort(def *report.FrameDefinition) (canPage bo
 		return def.Sort
 	}()
 	return unique != "", nil
+}
+
+func (r *recordDatasource) isAggregated(n *qlng.ASTNode) bool {
+	switch strings.ToLower(n.Ref) {
+	case "count",
+		"sum",
+		"max",
+		"min",
+		"avg":
+		return true
+	}
+	return false
 }
