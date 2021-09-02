@@ -76,7 +76,10 @@ func (s *apigw) Reload(ctx context.Context) {
 }
 
 func (s *apigw) loadRoutes(ctx context.Context) (rr []*route, err error) {
-	routes, _, err := s.storer.SearchApigwRoutes(ctx, st.ApigwRouteFilter{Enabled: true, Deleted: f.StateExcluded})
+	routes, _, err := s.storer.SearchApigwRoutes(ctx, st.ApigwRouteFilter{
+		Enabled: true,
+		Deleted: f.StateExcluded,
+	})
 
 	if err != nil {
 		return
@@ -100,7 +103,11 @@ func (s *apigw) loadRoutes(ctx context.Context) (rr []*route, err error) {
 }
 
 func (s *apigw) loadFilters(ctx context.Context, route uint64) (ff []*st.ApigwFilter, err error) {
-	ff, _, err = s.storer.SearchApigwFilters(ctx, st.ApigwFilterFilter{RouteID: route})
+	ff, _, err = s.storer.SearchApigwFilters(ctx, st.ApigwFilterFilter{
+		RouteID: route,
+		Deleted: f.StateExcluded,
+	})
+
 	return
 }
 
