@@ -313,7 +313,7 @@ func (h AuthHandlers) loadRequestedClient(req *request.AuthReq) (client *types.A
 		h.Log.Debug("loading client", zap.String("info", id))
 
 		if clientID, err = strconv.ParseUint(id, 10, 64); err != nil {
-			return errors.InvalidData("failed to parse client ID from params: %v", err)
+			return errors.InvalidData("failed to parse client ID")
 
 		} else if clientID == 0 {
 			return errors.InvalidData("invalid client ID")
