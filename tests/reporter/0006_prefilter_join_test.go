@@ -14,12 +14,10 @@ func Test0006_prefilter_join(t *testing.T) {
 	h.a.Len(ff, 2)
 	f := ff[0]
 
-	h.a.Equal(3, f.Size())
+	h.a.Equal(1, f.Size())
 	h.a.Equal("id<Record>, join_key<String>, first_name<String>, last_name<String>", f.Columns.String())
 	checkRows(h, f,
-		", Maria_Königsmann, Maria, Königsmann",
-		", Maria_Spannagel, Maria, Spannagel",
-		", Maria_Krüger, Maria, Krüger")
+		", Maria_Königsmann, Maria, Königsmann")
 
 	f = ff[1]
 

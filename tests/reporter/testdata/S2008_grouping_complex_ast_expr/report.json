@@ -27,7 +27,7 @@
         },
         {
           "name": "total",
-          "def": "sum(number_of_numbers)/float(10)"
+          "def": "sum(number_of_numbers)"
         }
       ]
     }}}
