@@ -133,6 +133,12 @@ var (
 			Handler: makeGenericCompHandler("NOT LIKE"),
 		},
 
+		"is": {
+			Args:    collectParams(true, "Any", "Any"),
+			Result:  wrapRes("Boolean"),
+			Handler: makeGenericCompHandler("IS"),
+		},
+
 		// functions
 		// - aggregation
 		"count": {
@@ -192,6 +198,12 @@ var (
 			Result: wrapRes("Null"),
 			Handler: func(aa ...FormattedASTArgs) (string, []interface{}, bool, error) {
 				return "NULL", nil, true, nil
+			},
+		},
+		"nnull": {
+			Result: wrapRes("Null"),
+			Handler: func(aa ...FormattedASTArgs) (string, []interface{}, bool, error) {
+				return "NOT NULL", nil, true, nil
 			},
 		},
 

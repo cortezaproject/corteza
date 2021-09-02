@@ -343,8 +343,19 @@ func modelReport(ctx context.Context, h helper, pp map[string]report.DatasourceP
 }
 
 func checkRows(h helper, f *report.Frame, req ...string) {
+	h.a.Equal(len(req), f.Size())
 	f.WalkRows(func(i int, r report.FrameRow) error {
 		h.a.Contains(r.String(), req[i])
 		return nil
 	})
+}
+
+func indexJoinedResult(ff []*report.Frame) map[string]*report.Frame {
+	out := make(map[string]*report.Frame)
+	// the first one is the local ds
+	for _, f := range ff[1:] {
+		out[fmt.Sprintf("%s/%s/%s", f.Ref, f.RelSource, f.RefValue)] = f
+	}
+
+	return out
 }

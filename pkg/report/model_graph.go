@@ -65,7 +65,28 @@ func (m *model) datasource(ctx context.Context, def *FrameDefinition) (ds Dataso
 		return nil, fmt.Errorf("unresolved source: %s", def.Source)
 	}
 
+	err = m.validateBranch(start)
+	if err != nil {
+		return
+	}
+
 	return m.reduceBranch(ctx, start)
+}
+
+func (m *model) validateBranch(n *modelGraphNode) (err error) {
+	err = n.step.Validate()
+	if err != nil {
+		return err
+	}
+
+	for _, c := range n.cc {
+		err = m.validateBranch(c)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (m *model) reduceBranch(ctx context.Context, n *modelGraphNode) (out Datasource, err error) {
