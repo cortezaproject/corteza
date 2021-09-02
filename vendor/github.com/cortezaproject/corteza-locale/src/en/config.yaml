@@ -1,0 +1,14 @@
+name: English
+
+#extends: base
+
+
+# Language defaults, can be overwritten in the configuration
+#formats:
+#  datetime:
+#  full:  'YYYY-MM-DD hh:mm:ss'
+#  short: 'YYYY-MM-DD'
+#  time:  'hh:mm'
+#
+#  currency: '$'
+

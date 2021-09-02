@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -17,58 +16,61 @@ import (
 
 const serverApplication = "corteza-server"
 
-var defaultLanguage = language.English
+var (
+	defaultLanguage = language.English
+)
 
-// Load all configs that are reachable in the given paths
-func loadConfigs(pp ...string) (ll []*Language, err error) {
+func loadConfigs(fsys fs.FS) (ll []*Language, err error) {
 	var (
-		pattern string
-		f       *os.File
-		configs []string
+		sub     fs.FS
+		lang    *Language
+		configs = make([]string, 0)
 	)
 
-	// @todo reads language files from all paths
-	for _, p := range pp {
-		pattern = filepath.Join(p, "*", "config.yaml")
-		configs, err = filepath.Glob(pattern)
-		if err != nil {
-			return nil, fmt.Errorf("%s glob failed under: %v", pattern, err)
+	configs, err = fs.Glob(fsys, "*/config.yaml")
+	if err != nil {
+		return nil, err
+	}
+
+	for _, config := range configs {
+		if sub, err = fs.Sub(fsys, filepath.Dir(config)); err != nil {
+			return nil, err
 		}
 
-		for _, c := range configs {
-			tag := language.Make(filepath.Base(filepath.Dir(c)))
-
-			lang := &Language{
-				Tag: tag,
-				src: filepath.Dir(c),
-			}
-
-			err = func() error {
-				f, err = os.Open(c)
-				if err != nil {
-					return fmt.Errorf("could not read %s: %v", p, err)
-				}
-
-				defer f.Close()
-				if err = yaml.NewDecoder(f).Decode(&lang); err != nil {
-					return fmt.Errorf("could not decode %s: %v", p, err)
-				}
-
-				return nil
-			}()
-
-			if err != nil {
-				return nil, err
-			}
-
-			ll = append(ll, lang)
+		if lang, err = loadConfig(sub, filepath.Base(config)); err != nil {
+			return nil, err
 		}
+
+		lang.Tag = language.Make(filepath.Base(filepath.Dir(config)))
+		lang.src = filepath.Dir(config)
+
+		ll = append(ll, lang)
+	}
+
+	return ll, nil
+}
+
+func loadConfig(fsys fs.FS, p string) (lang *Language, err error) {
+	var f fs.File
+	lang = &Language{
+		Tag: language.Make(filepath.Base(filepath.Dir(p))),
+		fs:  fsys,
+	}
+
+	f, err = fsys.Open(p)
+	if err != nil {
+		return nil, fmt.Errorf("could not read %s: %v", p, err)
+	}
+
+	defer f.Close()
+	if err = yaml.NewDecoder(f).Decode(&lang); err != nil {
+		return nil, fmt.Errorf("could not decode %s: %v", p, err)
 	}
 
 	return
 }
 
-func loadTranslations(lang *Language, dir string) (err error) {
+func loadTranslations(lang *Language) (err error) {
 	lang.internal = make(internal)
 	lang.external = make(external)
 
@@ -78,15 +80,14 @@ func loadTranslations(lang *Language, dir string) (err error) {
 		auxExternal = make(map[string]map[string]map[string]interface{})
 	)
 
-	err = filepath.Walk(dir, func(p string, finfo fs.FileInfo, err error) error {
-		if err != nil || finfo.IsDir() {
+	err = fs.WalkDir(lang.fs, ".", func(p string, entry fs.DirEntry, err error) error {
+		if err != nil || entry.IsDir() {
 			return err
 		}
 
 		var (
-			f        *os.File
-			relPath  = p[len(dir)+1:]
-			firstSep = strings.Index(relPath, string(filepath.Separator))
+			f        fs.File
+			firstSep = strings.Index(p, string(filepath.Separator))
 		)
 
 		if firstSep == -1 {
@@ -100,9 +101,9 @@ func loadTranslations(lang *Language, dir string) (err error) {
 			namespace string
 			keyPath   string
 
-			ext        = path.Ext(relPath)
-			appDir     = relPath[:strings.Index(relPath, string(filepath.Separator))]
-			subpath    = relPath[len(appDir)+1:]
+			ext        = path.Ext(p)
+			appDir     = p[:firstSep]
+			subpath    = p[len(appDir)+1:]
 			nsDirIndex = strings.Index(subpath, string(filepath.Separator))
 			nsDotIndex = strings.LastIndex(subpath, ".")
 
@@ -130,8 +131,7 @@ func loadTranslations(lang *Language, dir string) (err error) {
 			namespace = subpath[:nsDotIndex]
 		}
 
-		f, err = os.Open(p)
-		if err != nil {
+		if f, err = lang.fs.Open(p); err != nil {
 			return fmt.Errorf("could not open %s: %w", p, err)
 		}
 
@@ -143,7 +143,7 @@ func loadTranslations(lang *Language, dir string) (err error) {
 			}
 
 			if err = procInternal(lang.internal[namespace], keyPath, f); err != nil {
-				return fmt.Errorf("could not process %s: %v", relPath, err)
+				return fmt.Errorf("could not process %s: %v", p, err)
 			}
 		} else {
 			if isJSON {
@@ -166,7 +166,7 @@ func loadTranslations(lang *Language, dir string) (err error) {
 				}
 
 				if err = procExternal(auxExternal[appDir][namespace], keyPath, f); err != nil {
-					return fmt.Errorf("could not process %s: %v", relPath, err)
+					return fmt.Errorf("could not process %s: %v", p, err)
 				}
 			}
 		}

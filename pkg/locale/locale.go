@@ -3,6 +3,7 @@ package locale
 import (
 	"fmt"
 	"io"
+	"io/fs"
 	"strings"
 	"sync"
 
@@ -23,7 +24,14 @@ type (
 		l sync.RWMutex
 
 		// location of the language files
+		// this is mainly for logging/debugging purposes
+		//
+		// This value is empty when loading
+		// embedded languages
 		src string
+
+		// pointer to the place we loaded files from
+		fs fs.FS
 
 		Tag  language.Tag
 		Name string
