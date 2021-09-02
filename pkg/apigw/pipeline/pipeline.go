@@ -1,11 +1,14 @@
 package pipeline
 
 import (
+	"context"
 	"net/http"
 	"sort"
 	"time"
 
+	actx "github.com/cortezaproject/corteza-server/pkg/apigw/ctx"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"go.uber.org/zap"
 )
 
@@ -100,6 +103,18 @@ func (pp *Pl) makeHandler(hh Worker) func(next http.Handler) http.Handler {
 
 			if hh.Async {
 				go func() {
+					var (
+						newCtx = context.Background()
+
+						ident = auth.GetIdentityFromContext(r.Context())
+						scope = actx.ScopeFromContext(r.Context())
+					)
+
+					newCtx = actx.ScopeToContext(context.Background(), scope)
+					newCtx = auth.SetIdentityToContext(newCtx, ident)
+
+					r = r.WithContext(newCtx)
+
 					// only log error, do not call error handler,
 					// since we do not reply back the response (it was already sent)
 					if err = fn(); err != nil {
