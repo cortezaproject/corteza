@@ -18,8 +18,12 @@ type (
 		Source string `json:"source"`
 		Ref    string `json:"ref,omitempty"`
 
-		RefValue  string `json:"refValue,omitempty"`
+		// RefValue is the common value between the two datasources
+		RefValue string `json:"refValue,omitempty"`
+		// RelColumn is what column in the local ds was used
 		RelColumn string `json:"relColumn,omitempty"`
+		// RelSource is the ds that this frame is related to
+		RelSource string `json:"relSource,omitempty"`
 
 		Columns FrameColumnSet `json:"columns"`
 		Rows    FrameRowSet    `json:"rows"`
@@ -45,6 +49,7 @@ type (
 		Kind    string `json:"kind"`
 		Primary bool   `json:"primary"`
 		Unique  bool   `json:"unique"`
+		System  bool   `json:"system"`
 
 		Caster frameCellCaster `json:"-"`
 	}
@@ -225,6 +230,14 @@ func (f *Frame) LastRow() FrameRow {
 	return f.Rows[f.Size()-1]
 }
 
+func (f *Frame) LastLastRow() FrameRow {
+	if f.Size() == 0 {
+		return nil
+	}
+
+	return f.Rows[f.Size()-2]
+}
+
 // @todo nicer formatting and alignment
 func (f *Frame) String() string {
 	if f == nil {
@@ -234,6 +247,10 @@ func (f *Frame) String() string {
 
 	if f.Ref != "" {
 		out += fmt.Sprintf("ref: %10s; col: %10s\n; key: %10s\n", f.Ref, f.RelColumn, f.RefValue)
+	}
+
+	if f.RelSource != "" {
+		out += fmt.Sprintf("Rel source: %10s;\n", f.RelSource)
 	}
 
 	for _, c := range f.Columns {
@@ -273,16 +290,33 @@ func (f *Frame) String() string {
 }
 
 func (f *Frame) CollectCursorValues(r FrameRow, cc ...*filter.SortExpr) *filter.PagingCursor {
-	// @todo pk and unique things; how should we do it?
-
 	cursor := &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
 	for _, c := range cc {
+		var v interface{}
+		if r[f.Columns.Find(c.Column)] != nil {
+			v = r[f.Columns.Find(c.Column)].Get()
+		}
 		// the check for existence should be performed way in advanced so we won't bother here
-		cursor.Set(c.Column, r[f.Columns.Find(c.Column)].Get(), c.Descending)
+		cursor.Set(c.Column, v, c.Descending)
 	}
 
 	return cursor
+}
+
+func (f *Frame) CloneMeta() *Frame {
+	return &Frame{
+		Name:      f.Name,
+		Source:    f.Source,
+		Ref:       f.Ref,
+		RefValue:  f.RefValue,
+		RelColumn: f.RelColumn,
+		RelSource: f.RelSource,
+		Columns:   f.Columns.Clone(),
+		Paging:    f.Paging.Clone(),
+		Sort:      f.Sort.Clone(),
+		Filter:    f.Filter.Clone(),
+	}
 }
 
 func (cc FrameColumnSet) Clone() (out FrameColumnSet) {
@@ -293,6 +327,10 @@ func (cc FrameColumnSet) Clone() (out FrameColumnSet) {
 			Label:  c.Label,
 			Kind:   c.Kind,
 			Caster: c.Caster,
+
+			Primary: c.Primary,
+			Unique:  c.Unique,
+			System:  c.System,
 		}
 	}
 
@@ -315,6 +353,18 @@ func (cc FrameColumnSet) String() string {
 		out += fmt.Sprintf("%s<%s>, ", c.Name, c.Kind)
 	}
 	return strings.TrimRight(out, " ,")
+}
+
+// OmitSys returns the columns that are not system defined
+func (cc FrameColumnSet) OmitSys() FrameColumnSet {
+	out := make(FrameColumnSet, 0, len(cc))
+	for _, c := range cc {
+		if !c.System {
+			out = append(out, c)
+		}
+	}
+
+	return out
 }
 
 // Receivers to conform to rdbms field matcher
@@ -413,15 +463,29 @@ func (r FrameRow) String() string {
 	var s string
 	var err error
 	for _, c := range r {
-		s, err = cast.ToStringE(c.Get())
-		if err != nil {
-			out = fmt.Sprintf("%s, [STRING CAST ERROR]%s", out, err.Error())
+		if c == nil {
+			out += "<N/A>, "
 		} else {
-			out = fmt.Sprintf("%s, %s", out, s)
+			s, err = cast.ToStringE(c.Get())
+			if err != nil {
+				out = fmt.Sprintf("%s, [STRING CAST ERROR]%s", out, err.Error())
+			} else {
+				out = fmt.Sprintf("%s, %s", out, s)
+			}
 		}
 	}
 
 	return strings.Trim(out, ", ")
+}
+
+func (a FrameRow) Compare(b FrameRow, cols ...int) int {
+	for _, col := range cols {
+		if cmp, _ := a[col].(expr.Comparable).Compare(b[col]); cmp != 0 {
+			return cmp
+		}
+	}
+
+	return 0
 }
 
 func (dd FrameDescriptionSet) FilterBySource(source string) FrameDescriptionSet {

@@ -108,13 +108,6 @@ func (m *model) Run(ctx context.Context) (err error) {
 			return errors.New("no model steps defined")
 		}
 
-		for _, s := range m.steps {
-			err = s.Validate()
-			if err != nil {
-				return err
-			}
-		}
-
 		return nil
 	}()
 	if err != nil {
@@ -239,7 +232,7 @@ func (m *model) Load(ctx context.Context, dd ...*FrameDefinition) (ff []*Frame, 
 		}
 		defer c()
 
-		ff, err = l(int(def.Paging.Limit))
+		ff, err = l(int(def.Paging.Limit), true)
 		if err != nil {
 			return err
 		}

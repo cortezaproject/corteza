@@ -17,7 +17,7 @@
         "namespace": "ns"
       }
     }}},
-
+  
     { "step": { "join": {
       "name": "joined",
 
@@ -30,11 +30,6 @@
 
   "frames": [{
     "name": "result",
-    "source": "joined",
-
-    "sort": "label DESC",
-    "paging": {
-      "limit": 2
-    }
+    "source": "joined"
   }]
 }

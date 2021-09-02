@@ -4,12 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/qlng"
 	"github.com/spf13/cast"
 )
 
@@ -21,8 +19,12 @@ type (
 	joinedDataset struct {
 		def *JoinStepDefinition
 
-		base    Datasource
+		local   Datasource
 		foreign Datasource
+
+		partitioned   bool
+		partitionSize uint
+		partitionCol  string
 	}
 
 	JoinStepDefinition struct {
@@ -48,10 +50,17 @@ func (j *stepJoin) Run(ctx context.Context, dd ...Datasource) (Datasource, error
 		return nil, fmt.Errorf("foreign join datasources not defined: %s", j.def.LocalSource)
 	}
 
+	// @todo temporarily disabled
+	for _, d := range dd {
+		if _, ok := d.(*joinedDataset); ok {
+			return nil, fmt.Errorf("unable to join a joined source: %s", d.Name())
+		}
+	}
+
 	// @todo multiple joins
 	return &joinedDataset{
 		def:     j.def,
-		base:    dd[0],
+		local:   dd[0],
 		foreign: dd[1],
 	}, nil
 }
@@ -97,399 +106,244 @@ func (d *joinedDataset) Name() string {
 func (d *joinedDataset) Describe() FrameDescriptionSet {
 	out := make(FrameDescriptionSet, 0, 2)
 
-	local := d.base.Describe()
+	local := d.local.Describe()
 	for _, l := range local {
-		out = append(out,
-			&FrameDescription{
-				Source:  d.Name(),
-				Ref:     l.Source,
-				Columns: l.Columns,
-			},
-		)
+		l.Source = d.Name()
+		if l.Ref == "" {
+			l.Ref = l.Source
+		}
+		out = append(out, l)
 	}
 
 	foreign := d.foreign.Describe()
 	for _, f := range foreign {
-		out = append(out,
-			&FrameDescription{
-				Source:  d.Name(),
-				Ref:     f.Source,
-				Columns: f.Columns,
-			},
-		)
+		f.Source = d.Name()
+		if f.Ref == "" {
+			f.Ref = f.Source
+		}
+		out = append(out, f)
 	}
 
 	return out
 }
 
-// @todo allow x-join filtering
-func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loader, Closer, error) {
-	// to hold closer references for all underlying datasources
-	closers := make([]Closer, 0, 10)
+// Partition marks the DS to partition the response over the given column
+func (d *joinedDataset) Partition(partitionSize uint, partitionCol string) (bool, error) {
+	if _, ok := d.local.(PartitionableDatasource); !ok {
+		return false, fmt.Errorf("local datasource is not partitionable")
+	}
 
-	return func(cap int) ([]*Frame, error) {
-			// determine local and foreign frame definitions
-			localDef := FrameDefinitionSet(dd).FindBySourceRef(d.Name(), d.def.LocalSource)
-			foreignDef := FrameDefinitionSet(dd).FindBySourceRef(d.Name(), d.def.ForeignSource)
+	if d.partitioned {
+		return true, nil
+	}
+	if partitionCol == "" {
+		return false, errors.New("unable to partition: partition column not defined")
+	}
 
-			// basic pre-run validation
-			// - definitions
-			if localDef == nil {
-				return nil, fmt.Errorf("definition for local datasource not found: %s", d.def.LocalSource)
+	d.partitioned = true
+	d.partitionCol = partitionCol
+	d.partitionSize = partitionSize
+	return true, nil
+}
+
+func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (l Loader, c Closer, err error) {
+	dscr := d.Describe()
+
+	// Preparation
+	// - Assure sort columns for paging purposes
+	// - Assure local/foreign definitions
+	//   Keep a cloned original version so we don't overwrite the initial definition.
+	oLocalDef, oForeignDef, err := d.prepareDefinitions(FrameDefinitionSet(dd), dscr)
+	if err != nil {
+		return
+	}
+
+	// - Validate the sort of the local frame for paging purposes
+	err = d.validateSort(oLocalDef, dscr)
+	if err != nil {
+		return
+	}
+
+	localDef := oLocalDef.Clone()
+	foreignDef := oForeignDef.Clone()
+
+	// - Preprocess sorting definitions for additional context.
+	//   The join is inverted when the foreign DS governs the initial sort.
+	inverted, err := d.prepareSorting(localDef, foreignDef)
+	if err != nil {
+		return
+	}
+
+	// - Preprocess additional paging filtering
+	var pp []partialPagingCnd
+	if oLocalDef.Paging.PageCursor != nil {
+		pp, err = d.strategizePaging(localDef, foreignDef, inverted)
+		if err != nil {
+			return
+		}
+	}
+
+	// - Determine the join strategy to use.
+	//   For now the strategy is the combination of the following parameters, in the
+	//   future we can have a wrapper struct as well.
+	mainLoader, subLoader, err := d.strategizeLoad(ctx, inverted, localDef, foreignDef)
+	if err != nil {
+		return
+	}
+
+	// Load and join data
+	//
+	// The loader function will iterate indefinitely until the requested frame
+	// definition is satisfied.
+	//
+	// Outline:
+	//   . prepare additional (partial) filters based on the paging cursor
+	//   . pull data from the main source
+	//   . prepare an additional key-based filter for sub source
+	//   . pull data from the sub source
+	//   . additional processing
+	//   .. apply additional filtering based on page cursors
+	//   . prepare response
+	isEmpty := false
+	return func(cap int, processed bool) (oo []*Frame, err error) {
+			var keys []string
+			if isEmpty {
+				return
 			}
-			if foreignDef == nil {
-				return nil, fmt.Errorf("definition for foreign datasource not found: %s", d.def.ForeignSource)
+			if processed {
+				cap++
 			}
 
-			// - page cursor on foreign datasource is not allowed
-			if foreignDef.Paging.PageCursor != nil {
-				return nil, fmt.Errorf("definition for foreign datasource may not define a page cursor")
-			}
-
-			// - key columns
-			if len(localDef.Columns) > 0 && localDef.Columns.Find(d.def.LocalColumn) < 0 {
-				return nil, fmt.Errorf("local frame definition must include the key column: %s", d.def.LocalColumn)
-			}
-			if len(foreignDef.Columns) > 0 && foreignDef.Columns.Find(d.def.ForeignColumn) < 0 {
-				return nil, fmt.Errorf("foreign frame definition must include the key column: %s", d.def.ForeignColumn)
-			}
-
-			// based on the passed sort, determine main/sub datasources
+			// The modified flag will help us determine if we need another iteration or not.
+			// The flag is only set to true if we do any additional modifications in here.
 			//
-			// if the local datasource is being initially sorted by the foreign
-			// datasource, we need to resolve the foreign datasource first and
-			// adjust the local sorting based on that
-			localSort, foreignSort, foreignDS, err := d.splitSort(localDef.Sort)
-			localDef.Sort = localSort
-			useSubSort := foreignDS != ""
-			if err != nil {
-				return nil, err
-			}
+			// Underlying loaders must be able to provide all of the requested data, so if
+			// we don't do any modifications here, the iteration should not repeat.
+			modified := false
+			// m is defined here so we don't re initialize it every time later on
+			m := false
 
-			// @todo support this
-			if useSubSort && localDef.Paging.PageCursor != nil {
-				return nil, fmt.Errorf("paging not supported when the foreign datasource defines base sort")
-			}
+			pagingSatisfied := oLocalDef.Paging.PageCursor == nil
+			more := false
+			for {
+				modified = false
 
-			if foreignDS != "" {
-				if foreignDS != d.foreign.Name() {
-					return nil, fmt.Errorf("foreign sort datasource not part of the join: %s", foreignDS)
+				// . Pull data from the main source
+				more, err = mainLoader.load(uint(cap), nil)
+				if err != nil {
+					return
+				}
+				if !more {
+					isEmpty = true
+					break
 				}
 
-				foreignDef.Sort = append(foreignSort, foreignDef.Sort...)
-			}
-
-			// pull frames from the datasource that defines the initial sort
-			var mainLoader Loader
-			var mainCloser Closer
-			var mainPageCap uint
-			// - when using foreign for base sort, firstly pull frames from the foreign datasource
-			if useSubSort {
-				prtDS, ok := d.foreign.(PartitionableDatasource)
-				if !ok {
-					// @todo allow alternatives also
-					return nil, fmt.Errorf("foreign datasource is not partitionable")
+				// . Prepare an additional key-based filter for sub sources
+				keys, err = mainLoader.keys()
+				if err != nil {
+					return
 				}
+				keyFilter := subLoader.keyFilter(keys)
 
-				// - determine partition size
-				partitionSize := defaultPartitionSize
-				if foreignDef.Paging != nil && foreignDef.Paging.Limit > 0 {
-					partitionSize = foreignDef.Paging.Limit
-				}
-
-				// - determine local limit
-				localLimit := defaultPageSize
-				if localDef.Paging != nil && localDef.Paging.Limit > 0 {
-					localLimit = localDef.Paging.Limit
-				}
-
-				// - determine maximum foreign page size after partitioning
-				//   +1 because we are going one over for paging stuff
-				mainPageCap = (partitionSize + 1) * (localLimit + 1)
-				foreignDef.Paging.Limit = mainPageCap
-
-				// - prepare loader, closer
-				mainLoader, mainCloser, err = prtDS.Partition(ctx, partitionSize, d.def.ForeignColumn, foreignDef)
-			} else {
-				mainPageCap = localDef.Paging.Limit
-
-				// nothing special needed
-				mainLoader, mainCloser, err = d.base.Load(ctx, localDef)
-			}
-			if mainCloser != nil {
-				defer mainCloser()
-			}
-			if err != nil {
-				return nil, err
-			}
-
-			// pull rows from the main datasource
-			mainFrames, err := mainLoader(int(mainPageCap))
-			if err != nil {
-				return nil, err
-			}
-
-			if useSubSort {
-				// here we need to slice the partitioned datasource
-				// @todo should this be layed off to the lowe level?
-				mainFrames, err = d.sliceFramesFurther(mainFrames, d.def.ForeignColumn, d.def.LocalColumn)
+				// . Pull data from the sub source
+				more, err = subLoader.load(uint(cap), keyFilter)
 				if err != nil {
 					return nil, err
 				}
+				if !more {
+					break
+				}
 
-				for i := range mainFrames {
-					mainFrames[i].Name = foreignDef.Name
-					mainFrames[i].Source = foreignDef.Source
-					mainFrames[i].Ref = foreignDef.Ref
-				}
-			} else {
-				for i := range mainFrames {
-					mainFrames[i].Name = localDef.Name
-					mainFrames[i].Source = localDef.Source
-					mainFrames[i].Ref = localDef.Ref
-				}
-			}
-
-			// determine keys to filter over sub datasource
-			var mainKeyColIndex int
-			keys := make([]string, 0, defaultPageSize)
-			keySet := make(map[string]bool)
-			if useSubSort {
-				mainKeyColIndex = mainFrames[0].Columns.Find(d.def.ForeignColumn)
-				if mainKeyColIndex < 0 {
-					return nil, fmt.Errorf("key column on foreign datasource does not exist: %s", d.def.ForeignColumn)
-				}
-			} else {
-				mainKeyColIndex = mainFrames[0].Columns.Find(d.def.LocalColumn)
-				if mainKeyColIndex < 0 {
-					return nil, fmt.Errorf("key column on local datasource does not exist: %s", d.def.LocalColumn)
-				}
-			}
-			var k string
-			if useSubSort {
-				// since these frames are grouped by the ref value, we can use any one of the rows
-				// and we don't have to look at all of the rows
-
-				for _, mf := range mainFrames {
-					r := mf.FirstRow()
-					k, err = cast.ToStringE(r[mainKeyColIndex].Get())
-					if ok := keySet[k]; !ok {
-						keys = append(keys, k)
-						keySet[k] = true
-					}
-					if err != nil {
-						return nil, err
-					}
-				}
-			} else {
-				for _, mf := range mainFrames {
-					err = mf.WalkRows(func(i int, r FrameRow) error {
-						k, err = cast.ToStringE(r[mainKeyColIndex].Get())
-						if ok := keySet[k]; !ok {
-							keys = append(keys, k)
-							keySet[k] = true
-						}
-						return err
-					})
-					if err != nil {
-						return nil, err
-					}
-				}
-			}
-
-			// filter over sub datasource
-			var subFrames []*Frame
-			if useSubSort && len(keys) > 0 {
-				// here we use the LOCAL datasource, because it's flipped
-				// - prepare key pre-filter
-				localDef.Filter = d.keySliceToFilter(d.def.LocalColumn, keys).mergeAnd(localDef.Filter)
-
-				// - go!
-				loader, closer, err := d.base.Load(ctx, localDef)
-				if closer != nil {
-					defer closer()
-				}
-				if err != nil {
-					return nil, err
-				}
-				subFrames, err = loader(0)
-
-				// -- slice keys based on mainFrames and their sort key matching
+				// . Sort the collected data
 				//
-				// Each key from mainFrames points to a bucket where all of the
-				// sort columns match.
-				// Later used for easier sorting.
-				// @todo join with above mainFrames traversal?
-				var (
-					prevSortBucketKey = ""
-					sortBucketKey     = ""
-					buckets           = make(map[string]int)
-					bucketIndex       = 0
-				)
-
-				sortKeyColIndexes := make([]int, 0, len(foreignDef.Sort))
-				for _, s := range foreignDef.Sort {
-					sortKeyColIndexes = append(sortKeyColIndexes, mainFrames[0].Columns.Find(s.Column))
-				}
-
-				for _, mf := range mainFrames {
-					// since these frames are grouped by the ref value, we can use any one of the rows
-					// and we don't have to look at all of the rows
-					r := mf.FirstRow()
-
-					// get key value
-					k = mf.RefValue
-
-					// get sort value
-					sortBucketKey, err = d.cellsToString(r, sortKeyColIndexes)
-					if err != nil {
-						return nil, err
-					}
-
-					// initial bucket
-					if prevSortBucketKey == "" {
-						buckets[k] = bucketIndex
-						prevSortBucketKey = sortBucketKey
-						continue
-					}
-
-					// falls into the same bucket
-					if prevSortBucketKey == sortBucketKey {
-						buckets[k] = bucketIndex
-						continue
-					}
-
-					// falls into another bucket
-					bucketIndex++
-					buckets[k] = bucketIndex
-					prevSortBucketKey = sortBucketKey
-				}
-
-				localColIndex := subFrames[0].Columns.Find(d.def.LocalColumn)
-				for i := range subFrames {
-					subFrames[i], err = d.bucketSort(subFrames[i], buckets, localColIndex, localDef.Sort...)
-					if err != nil {
-						return nil, err
-					}
-
-					subFrames[i].Name = localDef.Name
-					subFrames[i].Source = localDef.Source
-					subFrames[i].Ref = localDef.Ref
-				}
-			} else if !useSubSort && len(keys) > 0 {
-				prtDS, ok := d.foreign.(PartitionableDatasource)
-				if !ok {
-					// @todo allow alternatives also
-					return nil, fmt.Errorf("foreign datasource is not partitionable")
-				}
-
-				// - determine partition size
-				//   +1 for paging reasons
-				partitionSize := foreignDef.Paging.Limit + 1
-
-				// - prepare key pre-filter
-				foreignDef.Filter = d.keySliceToFilter(d.def.ForeignColumn, keys).mergeAnd(foreignDef.Filter)
-
-				// - go!
-				loader, closer, err := prtDS.Partition(ctx, partitionSize, d.def.ForeignColumn, foreignDef)
-				if closer != nil {
-					defer closer()
-				}
-				if err != nil {
-					return nil, err
-				}
-				subFrames, err = loader(0)
-				subFrames, err = d.sliceFramesFurther(subFrames, d.def.ForeignColumn, d.def.LocalColumn)
+				// @todo Most of the sorting has already been done by the datasource,
+				//       so we can get away with a lot of partial processing.
+				// if d.shouldSort(oLocalDef.Sort) {
+				// }
+				err = d.strategizeSort(mainLoader, subLoader, inverted, oLocalDef, d.def.LocalColumn)
 				if err != nil {
 					return nil, err
 				}
 
-				for i := range subFrames {
-					// meta
-					subFrames[i].Name = foreignDef.Name
-					subFrames[i].Source = foreignDef.Source
-					subFrames[i].Ref = foreignDef.Ref
+				// . Additional processing
+				//
+				// Any additional filtering and goes here.
+				// Transformations and other bits should reside in the buffers when loading data.
 
-					// paging
-					if uint(len(subFrames[i].Rows)) >= partitionSize {
-						subFrames[i].Rows = subFrames[i].Rows[0 : partitionSize-1]
+				// .. Additional filters based on page cursors
+				if !pagingSatisfied {
+					m, pagingSatisfied = d.pagingFilter(mainLoader, subLoader, pp)
+					modified = modified || m
+				}
 
-						if subFrames[i].Paging == nil {
-							subFrames[i].Paging = &filter.Paging{}
-						}
-						subFrames[i].Paging.NextPage = subFrames[i].CollectCursorValues(subFrames[i].LastRow(), foreignDef.Sort...)
-						subFrames[i].Paging.NextPage.LThen = foreignDef.Sort.Reversed()
-					}
+				// . Prepare response
+				//
+				// If there were no modifications to what we pulled, we can safely
+				// assume that we can produce a response.
+				if !modified {
+					break
 				}
 			}
 
-			if err != nil {
-				return nil, err
-			}
-
-			// just to make sure the local frames are always before foreign frames
-			if useSubSort {
-				return append(subFrames, mainFrames...), nil
-			} else {
-				return append(mainFrames, subFrames...), nil
-			}
+			return prepareResponse(mainLoader, subLoader, inverted, processed, oLocalDef, d.def.LocalColumn, dscr)
 		}, func() {
-			for _, c := range closers {
-				c()
+			if mainLoader.closer != nil {
+				mainLoader.closer()
+			}
+			if subLoader.closer != nil {
+				subLoader.closer()
 			}
 		}, nil
 }
 
-func (d *joinedDataset) splitSort(ss filter.SortExprSet) (local filter.SortExprSet, foreign filter.SortExprSet, foreignDS string, err error) {
-	for _, s := range ss {
-		spts := strings.Split(s.Column, ".")
-		if len(spts) > 1 {
-			if foreignDS != "" {
-				if foreignDS != spts[0] {
-					// @todo allow this also
-					err = fmt.Errorf("cannot sort local datasource by multiple foreign datasources: %s, %s", foreignDS, spts[0])
-					return
-				}
-			} else {
-				foreignDS = spts[0]
-			}
+func (d *joinedDataset) prepareDefinitions(dd FrameDefinitionSet, dscr FrameDescriptionSet) (localDef *FrameDefinition, foreignDef *FrameDefinition, err error) {
+	if len(dd) == 0 {
+		err = errors.New("joining requires at least one frame definition")
+		return
+	}
 
-			foreign = append(foreign, &filter.SortExpr{Column: spts[1], Descending: s.Descending})
-		} else {
-			local = append(local, s)
+	localDef = FrameDefinitionSet(dd).FindBySourceRef(d.Name(), d.def.LocalSource)
+	foreignDef = FrameDefinitionSet(dd).FindBySourceRef(d.Name(), d.def.ForeignSource)
+
+	if localDef == nil {
+		localDef = &FrameDefinition{
+			Name:   dd[0].Name,
+			Source: d.Name(),
+			Ref:    d.def.LocalSource,
+			Paging: dd[0].Paging,
+			Sort:   dd[0].Sort,
+			Filter: dd[0].Filter,
 		}
+	}
+
+	if foreignDef == nil {
+		foreignDef = &FrameDefinition{
+			Name:   dd[0].Name,
+			Source: d.Name(),
+			Ref:    d.def.ForeignSource,
+			Paging: &filter.Paging{
+				Limit: localDef.Paging.Limit,
+			},
+			Sort: filter.SortExprSet{},
+		}
+	}
+
+	if len(localDef.Columns) == 0 {
+		dscr = d.local.Describe()
+		sc := dscr.FilterBySource(localDef.Ref)[0]
+		localDef.Columns = sc.Columns
+	}
+
+	if len(foreignDef.Columns) == 0 {
+		dscr = d.foreign.Describe()
+		sc := dscr.FilterBySource(foreignDef.Ref)[0]
+		foreignDef.Columns = sc.Columns
 	}
 
 	return
 }
 
-func (d *joinedDataset) keySliceToFilter(col string, keys []string) *Filter {
-	aa := make(qlng.ASTNodeSet, len(keys))
-
-	for i, k := range keys {
-		aa[i] = &qlng.ASTNode{
-			Ref: "eq",
-			Args: qlng.ASTNodeSet{
-				&qlng.ASTNode{Symbol: col},
-				&qlng.ASTNode{Value: qlng.MakeValueOf("String", k)},
-			},
-		}
-	}
-
-	return &Filter{
-		ASTNode: &qlng.ASTNode{
-			Ref: "group",
-			Args: qlng.ASTNodeSet{
-				&qlng.ASTNode{
-					Ref:  "or",
-					Args: aa,
-				},
-			},
-		},
-	}
-}
-
-func (d *joinedDataset) sliceFramesFurther(ff []*Frame, selfCol, relCol string) (out []*Frame, err error) {
+func (d *joinedDataset) sliceFrames(ff []*Frame, selfCol, relCol string) (out []*Frame, err error) {
 	outMap := make(map[string]int)
 
 	cellToString := func(t expr.TypedValue) (string, error) {
@@ -509,6 +363,7 @@ func (d *joinedDataset) sliceFramesFurther(ff []*Frame, selfCol, relCol string) 
 				Paging:    ff[0].Paging,
 				Sort:      ff[0].Sort,
 				Filter:    ff[0].Filter,
+				Ref:       ff[0].Ref,
 			})
 		}
 
@@ -532,70 +387,99 @@ func (d *joinedDataset) sliceFramesFurther(ff []*Frame, selfCol, relCol string) 
 	return out, nil
 }
 
-// @todo make in place
-func (d *joinedDataset) bucketSort(f *Frame, buckets map[string]int, bucketColIndex int, ss ...*filter.SortExpr) (*Frame, error) {
-	// - prepare sort col indexes
-	sortColIndexes := make([]int, len(ss))
-	for i, s := range ss {
-		sortColIndexes[i] = f.Columns.Find(s.Column)
+func (d *joinedDataset) validateSort(def *FrameDefinition, dd FrameDescriptionSet) (err error) {
+	sortDS := ""
+	auxSS := make(filter.SortExprSet, 0, len(def.Sort))
+
+	for i := len(def.Sort) - 2; i >= 0; i-- {
+		aa := strings.Split(def.Sort[i].Column, ".")
+		bb := strings.Split(def.Sort[i+1].Column, ".")
+
+		if len(aa) != len(bb) || (len(aa) > 1 && aa[0] != aa[1]) {
+			auxSS = append(auxSS, def.Sort[i+1])
+			break
+		}
+
+		auxSS = append(auxSS, def.Sort[i+1])
+		if len(aa) > 1 {
+			sortDS = aa[0]
+		}
 	}
 
-	// - sort #1 based on key sub-slice order to place common rows together
-	//   ordered determined by corresponding bucket index
-	var ri FrameRow
-	var rj FrameRow
+	// @todo temporarily disabled
+	if sortDS != "" {
+		return fmt.Errorf("[temporary] initial sort can not by by a foreign column: %s", sortDS)
+	}
 
-	var bi int
-	var bj int
+	// The first one is always local so this is ok
+	localDscr := dd[0]
+	var dscr *FrameDescription
 
-	var ci expr.Comparable
-	var ok bool
-	sort.SliceStable(f.Rows, func(i, j int) bool {
-		ri = f.Rows[i]
-		rj = f.Rows[j]
-		bi = buckets[cast.ToString(ri[bucketColIndex].Get())]
-		bj = buckets[cast.ToString(rj[bucketColIndex].Get())]
+	// When local, ref is omitted
+	if sortDS == "" {
+		// Do this to avoid extra work afterwords
+		auxSS = def.Sort
 
-		// if bi is before bj, the row bellongs to a complitely different bucket
-		// so we shouldn't do anything extra
-		if bi < bj {
-			return true
-		}
+		dscr = localDscr
+		sortDS = dscr.Ref
+	} else {
+		dscr = dd.FilterByRef(sortDS)[0]
+	}
 
-		// go through the sort definitions and sort based on that
-		for si, s := range ss {
-			ci, ok = ri[sortColIndexes[si]].(expr.Comparable)
-			if !ok {
-				return true
-			}
-
-			r, err := ci.Compare(rj[sortColIndexes[si]])
-			if err != nil {
-				return false
-			}
-
-			if r != 0 {
-				if s.Descending {
-					return r > 0
+	// Check if we're sorting by a unique value
+	def.Sort = func() filter.SortExprSet {
+		unique := ""
+		for _, c := range dscr.Columns {
+			if c.Primary || c.Unique {
+				if unique == "" {
+					unique = c.Name
 				}
-				return r < 0
+				if auxSS.Get(c.Name) != nil {
+					return def.Sort
+				}
 			}
 		}
 
-		return bi < bj
-	})
-	return f, nil
+		if sortDS == localDscr.Ref {
+			return append(def.Sort, &filter.SortExpr{Column: unique, Descending: auxSS.LastDescending()})
+		} else {
+			return append(def.Sort, &filter.SortExpr{Column: fmt.Sprintf("%s.%s", sortDS, unique), Descending: auxSS.LastDescending()})
+		}
+
+	}()
+	return nil
 }
 
-func (d *joinedDataset) cellsToString(row FrameRow, indexes []int) (out string, err error) {
-	var k string
-	for _, i := range indexes {
-		k, err = cast.ToStringE(row[i].Get())
-		if err != nil {
-			return
+func (d *joinedDataset) prepareSorting(local, foreign *FrameDefinition) (inverted bool, err error) {
+	var (
+		localSS   filter.SortExprSet
+		foreignSS filter.SortExprSet
+	)
+
+	foreignDS := ""
+
+	for i, s := range local.Sort {
+		spts := strings.Split(s.Column, ".")
+		if len(spts) > 1 {
+			inverted = i == 0
+			if foreignDS != "" {
+				if foreignDS != spts[0] {
+					// @todo allow this also
+					err = fmt.Errorf("cannot sort local datasource by multiple foreign datasources: %s, %s", foreignDS, spts[0])
+					return
+				}
+			} else {
+				foreignDS = spts[0]
+			}
+
+			foreignSS = append(foreignSS, &filter.SortExpr{Column: spts[1], Descending: s.Descending})
+		} else {
+			localSS = append(localSS, s)
 		}
-		out += k
 	}
+
+	local.Sort = localSS
+	foreign.Sort = append(foreignSS, foreign.Sort...)
 
 	return
 }

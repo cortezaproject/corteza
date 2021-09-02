@@ -17,24 +17,35 @@
         "namespace": "ns"
       }
     }}},
-
+    { "step": { "load": {
+      "name": "cc",
+      "source": "composeRecords",
+      "definition": {
+        "module": "cc",
+        "namespace": "ns"
+      }
+    }}},
     { "step": { "join": {
-      "name": "joined",
+      "name": "joined_aux",
 
       "localSource": "aa",
       "localColumn": "pk",
       "foreignSource": "bb",
+      "foreignColumn": "fk_a"
+    }}},
+
+    { "step": { "join": {
+      "name": "joined",
+
+      "localSource": "joined_aux",
+      "localColumn": "pk",
+      "foreignSource": "cc",
       "foreignColumn": "fk_a"
     }}}
   ],
 
   "frames": [{
     "name": "result",
-    "source": "joined",
-
-    "sort": "label DESC",
-    "paging": {
-      "limit": 2
-    }
+    "source": "joined"
   }]
 }
