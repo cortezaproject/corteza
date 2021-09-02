@@ -37,17 +37,9 @@
         {
           "name": "total",
           "def": {
-            "ref": "div",
+            "ref": "sum",
             "args": [{
-              "ref": "sum",
-              "args": [{
-                "symbol": "number_of_numbers"
-              }]
-            }, {
-              "value": {
-                "@value": 10,
-                "@type": "Float"
-              }
+              "symbol": "number_of_numbers"
             }]
           }
         }
