@@ -82,7 +82,7 @@ func rs(a ...int) string {
 
 func InitTestApp() {
 	if testApp == nil {
-		ctx := logger.ContextWithValue(cli.Context(), logger.MakeDebugLogger())
+		ctx := cli.Context()
 
 		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
 			service.DefaultStore = app.Store

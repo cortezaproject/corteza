@@ -20,6 +20,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/store"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
@@ -36,6 +37,7 @@ func init() {
 }
 
 func TestMain(m *testing.M) {
+	logger.SetDefault(logger.MakeDebugLogger())
 	ctx := context.Background()
 
 	defApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {

@@ -15,14 +15,14 @@ var (
 )
 
 func Default() *zap.Logger {
+	if defaultLogger == nil {
+		return zap.NewNop()
+	}
+
 	return defaultLogger
 }
 
 func SetDefault(logger *zap.Logger) {
-	if logger == nil {
-		logger = zap.NewNop()
-	}
-
 	defaultLogger = logger
 }
 
@@ -50,8 +50,12 @@ func Init() {
 }
 
 func MakeDebugLogger() *zap.Logger {
+	dbgOpt := *opt
+	dbgOpt.Debug = true
+	dbgOpt.Level = "debug"
+
 	var (
-		conf = applyOptions(zap.NewDevelopmentConfig(), opt)
+		conf = applyOptions(zap.NewDevelopmentConfig(), &dbgOpt)
 	)
 
 	// Print log level in colors
@@ -67,7 +71,7 @@ func MakeDebugLogger() *zap.Logger {
 		panic(err)
 	}
 
-	return applySpecials(logger, opt)
+	return applySpecials(logger, &dbgOpt)
 }
 
 // Applies options from environment variables
