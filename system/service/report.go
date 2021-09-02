@@ -368,7 +368,7 @@ func (svc *report) RunFresh(ctx context.Context, src types.ReportDataSourceSet, 
 
 			// if the current source matches the prev. source, and they both define references,
 			// they fall into the same chunk.
-			if stp.Def().Join != nil && (d.Source == dd[i-1].Source) && (d.Ref != "" && dd[i-1].Ref != "") {
+			if stp.Def().Join != nil && (d.Source == dd[i-1].Source) && (d.Ref != "" && dd[i-1].Ref != "") && (d.Name == dd[i-1].Name) {
 				auxdd = append(auxdd, d)
 				continue
 			}
