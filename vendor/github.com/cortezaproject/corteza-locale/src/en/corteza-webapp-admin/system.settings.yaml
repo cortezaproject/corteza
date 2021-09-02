@@ -1,0 +1,71 @@
+editor:
+  auth:
+    internal:
+      enabled: Internal authentication enabled
+      password-reset:
+        enabled: Password reset enabled
+      signup:
+        email-confirmation-required: Signup email confirmation required
+        enabled: Signup enabled
+        split-credentials-check:
+          description: 'Split login into two steps: collect the email input first and show the input for the password on the 2nd screen. Automatically forward user to external identity provider when user does not have his password set and there is only one IdP present'
+          label: Enable split-credentials check
+      title: Internal
+    mail:
+      from-address: Sender's address
+      from-name: Sender's name
+      title: Authentication email sender mail
+      validate-email: Please enter valid email address.
+    mfa:
+      TOTP:
+        enabled: Allow users to use time based one-time-password (using mobile application)
+        enforced: Force users to use time based one-time-password (using mobile application)
+        issuer:
+          description: Issuer name will be send to authenticator app when user configures it.
+          label: Issuer
+      emailOTP:
+        enabled: Allow users to use one-time-password over email
+        enforced: Force users to use one-time-password over email
+        expires:
+          description: How long will password be valid before it expires.
+          label: Valid for
+      title: Multi-factor authentication
+    title: Authentication
+    url: URL
+  external:
+    addOidcProvider: Add OIDC provider
+    certificate: Certificate
+    clientKey: Client key
+    clientSecret: Secret
+    enabled: Enable external authentication
+    facebook: Facebook
+    github: GitHub
+    google: Google
+    handle: Handle
+    issuer: OIDC Issuer URL
+    issuerHint: Where to find the /.well-known/openid-configuration (without the /.well-known/openid-configuration part)
+    issuerPlaceholder: https://issuer.tld
+    linkedin: LinkedIn
+    oidc: OpenID Connect
+    providerEnabled: Enable
+    saml:
+      cert: Certificate public key
+      cert-key: Certificate private key
+      desc:
+        cert: Content will be minimized
+        cert-key: Content will be minimized
+        idp:
+          ident-handle: Handle field coming from idp
+          ident-identifier: Determines by which field do we match, usually email
+          ident-name: Name field coming from idp
+      idp:
+        ident-handle: Identity payload handle
+        ident-identifier: Identity payload default identifier
+        ident-name: Identity payload name
+        title: Identity provider
+        url: URL
+      title: SAML
+    title: External Authentication Providers
+  title: System settings
+navItem:
+  label: Settings

@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 	"sync"
 
+	locale "github.com/cortezaproject/corteza-locale"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"go.uber.org/zap"
 	"golang.org/x/text/language"
@@ -86,9 +88,17 @@ func (svc *service) Tags() (tt []language.Tag) {
 	return
 }
 
-// Reload all language configurations (as configured via path options) and
-// all translation files
-func (svc *service) Reload() error {
+// Reload all embedded (via github.com/cortezaproject/corteza-locale package)
+// and imported (from one or more paths found in LOCALE_PATH) translations
+func (svc *service) Reload() (err error) {
+	var (
+		i       int
+		lang    *Language
+		ll, aux []*Language
+
+		logFields = make([]zap.Field, 0)
+	)
+
 	svc.l.RLock()
 	defer svc.l.RUnlock()
 
@@ -98,42 +108,82 @@ func (svc *service) Reload() error {
 	)
 
 	svc.set = make(map[language.Tag]*Language)
-	configs, err := loadConfigs(svc.src...)
-	if err != nil {
-		return err
+
+	// load embedded locales from the corteza-locale package
+	if ll, err = loadConfigs(locale.Languages()); err != nil {
+		return fmt.Errorf("could not load embedded locales: %w", err)
+	} else {
+		// cleanup src and effectively mark the
+		// loaded languages as embedded
+		for _, l := range ll {
+			l.src = ""
+		}
 	}
 
-	for i, lang := range configs {
+	// load imported locales from the configured (LOCALE_PATH) paths
+	for _, p := range svc.src {
+		aux, err = loadConfigs(os.DirFS(p))
+		if err != nil {
+			return fmt.Errorf("could not load imported locales: %w", err)
+		}
+
+		for _, l := range aux {
+			l.src = p + "/" + l.src
+		}
+
+		ll = append(ll, aux...)
+	}
+
+	for i, lang = range ll {
+		logFields = []zap.Field{
+			zap.Stringer("tag", lang.Tag),
+		}
+
 		if !hasTag(lang.Tag, svc.tags) {
-			svc.log.Info(
-				"language skipped (see LOCALE_LANGUAGES and LOCALE_PATH)",
+			svc.log.Debug(
+				"language skipped (not in LOCALE_LANGUAGES)",
 				zap.Stringer("tag", lang.Tag),
 			)
 
 			continue
 		}
 
-		if err = loadTranslations(lang, lang.src); err != nil {
-			return err
+		if !lang.Extends.IsRoot() {
+			logFields = append(logFields, zap.Stringer("extends", lang.Extends))
 		}
 
-		svc.log.Info(
-			"language loaded",
-			zap.Stringer("tag", lang.Tag),
-			zap.String("src", lang.src),
-			zap.Stringer("extends", lang.Extends),
-		)
+		if lang.src != "" {
+			logFields = append(logFields, zap.String("imported", lang.src))
+		} else {
+			logFields = append(logFields, zap.Bool("embedded", true))
+		}
+
+		if err = loadTranslations(lang); err != nil {
+			return err
+		}
 
 		if i == 0 && svc.def == nil {
 			// set first one as default
 			svc.def = lang
 		}
 
+		if svc.set[lang.Tag] != nil {
+			svc.log.Info(
+				"language overloaded",
+				logFields...,
+			)
+		} else {
+			svc.log.Info(
+				"language loaded",
+				logFields...,
+			)
+		}
+
 		svc.set[lang.Tag] = lang
 	}
 
 	// Do another pass and link all extended languages
-	for _, lang := range svc.set {
+	for _, lang = range svc.set {
 		if lang.Extends.IsRoot() {
 			continue
 		}

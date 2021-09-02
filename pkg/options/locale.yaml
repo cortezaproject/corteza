@@ -25,4 +25,4 @@ props:
     type: bool
     description: |-
       When enabled, Corteza reloads language files on every request
-      Enable this for debugging or developing
+      Enable this for debugging or developing.

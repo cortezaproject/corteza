@@ -1,0 +1,40 @@
+version: '3.5'
+
+# This is a working sample docker compose configuration file
+# that should speed-up your migration to new centralized i18n setup
+
+services:
+  server:
+    # image tag (i18n-dev-temp) is temporary and will change in the future!
+    image: cortezaproject/corteza-server:i18n-dev-temp
+    restart: on-failure
+    depends_on: [ db ]
+    ports: [ "127.0.0.1:1818:80" ]
+    environment:
+      HTTP_WEBAPP_ENABLED: 'true'
+      DOMAIN: localhost:1818
+      DB_DSN: mysql://dbuser:dbpass@tcp(db:3306)/corteza_i18n?collation=utf8mb4_general_ci
+
+      # The two important settings (for i18n dev)
+      LOCALE_PATH: /corteza-locale/src
+      LOCALE_LOG: 'true'
+    volumes:
+      - .:/corteza-locale:ro
+
+  db:
+    # MySQL Database
+    # See https://hub.docker.com/r/percona/percona-server for details
+    image: percona:8.0
+    restart: on-failure
+    environment:
+      # To be picked up by percona image when creating the database
+      # Must match with DB_DSN settings inside .env
+      #
+      # Warning: these are values that are only used on 1st start
+      #          if you want to change it later, you need to do that
+      #          manually inside db container
+      MYSQL_DATABASE: corteza_i18n
+      MYSQL_USER:     dbuser
+      MYSQL_PASSWORD: dbpass
+      MYSQL_ROOT_PASSWORD: dbpass
+    healthcheck: { test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"], timeout: 20s, retries: 10 }
