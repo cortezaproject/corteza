@@ -54,7 +54,7 @@ func (k kind) httpStatus() int {
 		return http.StatusBadRequest
 
 	case KindNotFound:
-		return http.StatusBadRequest
+		return http.StatusNotFound
 
 	case KindStaleData:
 		return http.StatusConflict
