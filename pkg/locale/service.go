@@ -225,6 +225,7 @@ func (svc *service) EncodeExternal(w io.Writer, lang language.Tag, app string) (
 	defer svc.l.RUnlock()
 
 	if svc.HasApplication(lang, app) {
+		svc.set[lang].external[app].Seek(0, 0)
 		_, err = io.Copy(w, svc.set[lang].external[app])
 	} else {
 		err = fmt.Errorf("application or language missing")
