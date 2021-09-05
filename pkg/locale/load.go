@@ -156,7 +156,7 @@ func loadTranslations(lang *Language) (err error) {
 					return fmt.Errorf("could not copy buffer: %v", err)
 				}
 
-				lang.external[appDir] = buf
+				lang.external[appDir] = bytes.NewReader(buf.Bytes())
 			} else {
 				if auxExternal[appDir] == nil {
 					auxExternal[appDir] = make(map[string]map[string]interface{})
@@ -194,7 +194,7 @@ func loadTranslations(lang *Language) (err error) {
 		if err = json.NewEncoder(buf).Encode(aux); err != nil {
 			return
 		}
-		lang.external[app] = buf
+		lang.external[app] = bytes.NewReader(buf.Bytes())
 	}
 
 	return

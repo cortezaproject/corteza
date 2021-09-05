@@ -18,7 +18,7 @@ type (
 	// External translations (webapps)
 	// map structure:
 	//   application => namespace => buffered JSON docs
-	external map[string]io.Reader
+	external map[string]io.ReadSeeker
 
 	Language struct {
 		l sync.RWMutex
