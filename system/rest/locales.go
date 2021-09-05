@@ -48,6 +48,11 @@ func (ctrl Locale) Get(ctx context.Context, r *request.LocaleGet) (interface{}, 
 
 	return func(w http.ResponseWriter, req *http.Request) {
 		if !svc.HasLanguage(language.Make(r.Lang)) {
+			// @todo temp workaround until frontend knows what languages it can use
+			r.Lang = svc.List()[0].Tag.String()
+		}
+
+		if !svc.HasLanguage(language.Make(r.Lang)) {
 			errors.ProperlyServeHTTP(w, req, errors.New(
 				errors.KindNotFound,
 				"no such language",
