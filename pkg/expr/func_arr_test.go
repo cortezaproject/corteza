@@ -264,6 +264,36 @@ func Test_count(t *testing.T) {
 			val:    []interface{}{0.1, 1.1},
 			expect: 0,
 		},
+		{
+			arr:    "foo",
+			val:    nil,
+			expect: 3,
+		},
+		{
+			arr:    "foo",
+			val:    []interface{}{},
+			expect: 3,
+		},
+		{
+			arr:    "foo bar",
+			val:    []interface{}{},
+			expect: 7,
+		},
+		{
+			arr:    []bool{true, true},
+			val:    []interface{}{},
+			expect: 2,
+		},
+		{
+			arr:    "foo",
+			val:    []interface{}{"bar", "baz"},
+			expect: 0,
+		},
+		{
+			arr:    "foo",
+			val:    []interface{}{"o", 12},
+			expect: 2,
+		},
 	}
 
 	for p, tc := range tcc {
