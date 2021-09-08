@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
@@ -46,31 +47,52 @@ func (ctrl Locale) List(ctx context.Context, r *request.LocaleList) (interface{}
 func (ctrl Locale) Get(ctx context.Context, r *request.LocaleGet) (interface{}, error) {
 	svc := locale.Global()
 
+	// We're using + as a language delimiter
+	// because webapp client i18n lib does this by default
+	// (url encoded space becomes a +)
+	const langSplit = "+"
+
 	return func(w http.ResponseWriter, req *http.Request) {
-		if !svc.HasLanguage(language.Make(r.Lang)) {
-			// @todo temp workaround until frontend knows what languages it can use
-			r.Lang = svc.List()[0].Tag.String()
-		}
-
-		if !svc.HasLanguage(language.Make(r.Lang)) {
+		if len(svc.List()) == 0 {
 			errors.ProperlyServeHTTP(w, req, errors.New(
 				errors.KindNotFound,
-				"no such language",
+				"no languages found",
 				errors.StackTrimAtFn("http.HandlerFunc.ServeHTTP"),
 			), true)
 			return
 		}
 
-		if !svc.HasApplication(language.Make(r.Lang), r.Application) {
-			errors.ProperlyServeHTTP(w, req, errors.New(
-				errors.KindNotFound,
-				"no such application",
-				errors.StackTrimAtFn("http.HandlerFunc.ServeHTTP"),
-			), true)
-			return
+		// default to 1st language
+		//var def = svc.List()[0].Tag
+		var ll = []language.Tag{}
+
+		for _, candidate := range strings.Split(r.Lang, langSplit) {
+			ll = append(ll, language.Make(candidate))
+			//if svc.HasLanguage(tmp) {
+			//	ll = append(ll, lang)
+			//	break
+			//}
 		}
 
-		if err := locale.Global().EncodeExternal(w, language.Make(r.Lang), r.Application); err != nil {
+		//if !svc.HasLanguage(lang) {
+		//	errors.ProperlyServeHTTP(w, req, errors.New(
+		//		errors.KindNotFound,
+		//		"no such language",
+		//		errors.StackTrimAtFn("http.HandlerFunc.ServeHTTP"),
+		//	), true)
+		//	return
+		//}
+
+		//if !svc.HasApplication(lang, r.Application) {
+		//	errors.ProperlyServeHTTP(w, req, errors.New(
+		//		errors.KindNotFound,
+		//		"no such application",
+		//		errors.StackTrimAtFn("http.HandlerFunc.ServeHTTP"),
+		//	), true)
+		//	return
+		//}
+
+		if err := locale.Global().EncodeExternal(w, r.Application, ll...); err != nil {
 			errors.ProperlyServeHTTP(w, req, err, true)
 		}
 

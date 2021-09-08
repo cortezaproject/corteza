@@ -178,20 +178,14 @@ func loadTranslations(lang *Language) (err error) {
 		return
 	}
 
-	// wraps JSON with namespaces under each app with a language tag:
-	// { <lang>: { namespace ..., namespace ... } }
-	//
-	// This simplifies and unifies the output and makes it compatible
-	// with the frontend libs
+	// encode all external (for webapps, clientS) translations
+	// into buffers that will be copied directly into responses
 	for app, nss := range auxExternal {
 		var (
 			buf = &bytes.Buffer{}
-			aux = make(map[string]interface{})
 		)
 
-		aux[lang.Tag.String()] = nss
-
-		if err = json.NewEncoder(buf).Encode(aux); err != nil {
+		if err = json.NewEncoder(buf).Encode(nss); err != nil {
 			return
 		}
 		lang.external[app] = bytes.NewReader(buf.Bytes())
