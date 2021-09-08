@@ -15,6 +15,6 @@ func GetLanguageFromContext(ctx context.Context) language.Tag {
 	if tag, ok := ctx.Value(language.Tag{}).(language.Tag); ok {
 		return tag
 	} else {
-		return language.Tag{}
+		return defaultLanguage
 	}
 }
