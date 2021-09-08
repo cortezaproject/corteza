@@ -64,7 +64,7 @@ func Service(log *zap.Logger, opt options.LocaleOpt) (*service, error) {
 		lang = strings.TrimSpace(lang)
 		tag := language.Make(lang)
 		if tag.IsRoot() {
-			return nil, fmt.Errorf("failed to parse language '%s'", lang)
+			return nil, fmt.Errorf("failed to parse language '%s' (did you use comma to separate them?)", lang)
 		}
 
 		svc.tags = append(svc.tags, tag)
@@ -220,16 +220,23 @@ func (svc *service) HasApplication(lang language.Tag, app string) bool {
 }
 
 // EncodeExternal writes into
-func (svc *service) EncodeExternal(w io.Writer, lang language.Tag, app string) (err error) {
+func (svc *service) EncodeExternal(w io.Writer, app string, ll ...language.Tag) (err error) {
 	svc.l.RLock()
 	defer svc.l.RUnlock()
 
-	if svc.HasApplication(lang, app) {
-		svc.set[lang].external[app].Seek(0, 0)
-		_, err = io.Copy(w, svc.set[lang].external[app])
-	} else {
-		err = fmt.Errorf("application or language missing")
+	fmt.Fprint(w, "{")
+	for i, lang := range ll {
+		if i > 0 {
+			fmt.Fprint(w, ",")
+		}
+
+		if svc.HasApplication(lang, app) {
+			fmt.Fprintf(w, "%q:", lang)
+			svc.set[lang].external[app].Seek(0, 0)
+			_, _ = io.Copy(w, svc.set[lang].external[app])
+		}
 	}
+	fmt.Fprint(w, "}")
 
 	return err
 }
