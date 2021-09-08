@@ -2,9 +2,9 @@ package expr
 
 import (
 	"fmt"
-	"reflect"
-
 	"github.com/PaesslerAG/gval"
+	"reflect"
+	"strings"
 )
 
 func ArrayFunctions() []gval.Language {
@@ -94,15 +94,29 @@ func shift(arr interface{}) (out interface{}, err error) {
 	return c.Index(0).Interface(), nil
 }
 
-// count gets the count of occurrences in the slice
+// count gets the count of occurrences in the first params(can be string, slice)
+// If given only one parameter then it returns length as count
 func count(arr interface{}, v ...interface{}) (count int, err error) {
+	var (
+		occ int
+		c   = reflect.ValueOf(arr)
+	)
+
+	if len(v) == 0 {
+		return c.Len(), nil
+	}
+
+	if c.Kind() == reflect.String {
+		for _, ww := range v {
+			count += strings.Count(c.String(), reflect.ValueOf(ww).String())
+		}
+		return
+	}
+
 	if arr, err = toSlice(arr); err != nil {
 		return
 	}
 
-	var (
-		occ int
-	)
 	for _, vv := range v {
 		if occ, err = find(arr, vv); err != nil {
 			return 0, err
