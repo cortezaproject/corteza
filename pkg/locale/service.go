@@ -224,19 +224,21 @@ func (svc *service) EncodeExternal(w io.Writer, app string, ll ...language.Tag) 
 	svc.l.RLock()
 	defer svc.l.RUnlock()
 
-	fmt.Fprint(w, "{")
+	_, _ = fmt.Fprint(w, "{")
 	for i, lang := range ll {
 		if i > 0 {
-			fmt.Fprint(w, ",")
+			_, _ = fmt.Fprint(w, ",")
 		}
 
+		_, _ = fmt.Fprintf(w, "%q:", lang)
 		if svc.HasApplication(lang, app) {
-			fmt.Fprintf(w, "%q:", lang)
 			svc.set[lang].external[app].Seek(0, 0)
 			_, _ = io.Copy(w, svc.set[lang].external[app])
+		} else {
+			_, _ = fmt.Fprint(w, "null")
 		}
 	}
-	fmt.Fprint(w, "}")
+	_, _ = fmt.Fprint(w, "}")
 
 	return err
 }
