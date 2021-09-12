@@ -29,7 +29,7 @@ type (
 		// valid grant for this client (only one)
 		//  - authorization_code
 		//  - client_credentials
-		ValidGrant string `json:"grant"`
+		ValidGrant string `json:"validGrant"`
 
 		// Valid redirection URIs
 		RedirectURI string `json:"redirectURI"`
@@ -132,7 +132,7 @@ func (r AuthClient) Dict() map[string]interface{} {
 		"ID":          r.ID,
 		"labels":      r.Labels,
 		"scope":       r.Scope,
-		"grant":       r.ValidGrant,
+		"validGrant":  r.ValidGrant,
 		"redirectURI": r.RedirectURI,
 		"trusted":     r.Trusted,
 		"enabled":     r.Enabled,
