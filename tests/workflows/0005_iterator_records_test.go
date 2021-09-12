@@ -19,7 +19,7 @@ func Test0005_iterator_records(t *testing.T) {
 	}()
 
 	var (
-		ctx = superUser(context.Background())
+		ctx = bypassRBAC(context.Background())
 		req = require.New(t)
 	)
 
@@ -63,7 +63,7 @@ func Test0005_iterator_records_chunked(t *testing.T) {
 	}()
 
 	var (
-		ctx = superUser(context.Background())
+		ctx = bypassRBAC(context.Background())
 		req = require.New(t)
 	)
 

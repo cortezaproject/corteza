@@ -19,7 +19,7 @@ func Test0007_iterator_roles(t *testing.T) {
 	}()
 
 	var (
-		ctx = superUser(context.Background())
+		ctx = bypassRBAC(context.Background())
 		req = require.New(t)
 	)
 
@@ -60,7 +60,7 @@ func Test0008_iterator_roles_chunked(t *testing.T) {
 	}()
 
 	var (
-		ctx = superUser(context.Background())
+		ctx = bypassRBAC(context.Background())
 		req = require.New(t)
 	)
 
