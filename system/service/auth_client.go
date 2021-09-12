@@ -236,7 +236,7 @@ func (svc *authClient) Create(ctx context.Context, new *types.AuthClient) (app *
 	return app, svc.recordAction(ctx, aaProps, AuthClientActionCreate, err)
 }
 
-func (svc *authClient) Update(ctx context.Context, upd *types.AuthClient) (app *types.AuthClient, err error) {
+func (svc *authClient) Update(ctx context.Context, upd *types.AuthClient) (res *types.AuthClient, err error) {
 	var (
 		aaProps                = &authClientActionProps{update: upd}
 		defaultClientValidator = func(old, upd *types.AuthClient) error {
@@ -263,72 +263,72 @@ func (svc *authClient) Update(ctx context.Context, upd *types.AuthClient) (app *
 			return AuthClientErrInvalidID()
 		}
 
-		if app, err = store.LookupAuthClientByID(ctx, svc.store, upd.ID); err != nil {
+		if res, err = store.LookupAuthClientByID(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
 
+		aaProps.setAuthClient(res)
+
+		if !svc.ac.CanUpdateAuthClient(ctx, res) {
+			return AuthClientErrNotAllowedToUpdate()
+		}
+
+		// Firstly validate default clients before the automation occurs
+		if err = defaultClientValidator(res, upd); err != nil {
+			return err
+		}
+
 		// Validate impersonated user
-		if app.ValidGrant == oauth2def.ClientCredentials.String() {
-			if app.Security == nil || app.Security.ImpersonateUser == 0 {
+		if upd.ValidGrant == oauth2def.ClientCredentials.String() {
+			if upd.Security == nil || upd.Security.ImpersonateUser == 0 {
 				return errors.Internal("auth client security configuration invalid")
 			}
 		}
 
-		aaProps.setAuthClient(app)
-
-		if !svc.ac.CanUpdateAuthClient(ctx, app) {
-			return AuthClientErrNotAllowedToUpdate()
-		}
-
-		// Firstly validate before the automation occurs
-		if err = defaultClientValidator(app, upd); err != nil {
-			return err
-		}
-
-		if err = svc.eventbus.WaitFor(ctx, event.AuthClientBeforeUpdate(upd, app)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.AuthClientBeforeUpdate(upd, res)); err != nil {
 			return
 		}
 
-		// Next validate after the automation occurs
-		if err = defaultClientValidator(app, upd); err != nil {
+		// Next validate default clients after the automation occurs
+		if err = defaultClientValidator(res, upd); err != nil {
 			return err
 		}
 
 		// Assign changed values after afterUpdate events are emitted
-		app.Handle = upd.Handle
-		app.ValidGrant = upd.ValidGrant
-		app.RedirectURI = upd.RedirectURI
-		app.Scope = upd.Scope
-		app.Enabled = upd.Enabled
-		app.Trusted = upd.Trusted
-		app.ValidFrom = upd.ValidFrom
-		app.ExpiresAt = upd.ExpiresAt
-		app.UpdatedAt = now()
+		res.Handle = upd.Handle
+		res.ValidGrant = upd.ValidGrant
+		res.RedirectURI = upd.RedirectURI
+		res.Scope = upd.Scope
+		res.Enabled = upd.Enabled
+		res.Trusted = upd.Trusted
+		res.ValidFrom = upd.ValidFrom
+		res.ExpiresAt = upd.ExpiresAt
+		res.UpdatedAt = now()
 
 		if upd.Meta != nil {
-			app.Meta = upd.Meta
+			res.Meta = upd.Meta
 		}
 
 		if upd.Security != nil {
-			app.Security = upd.Security
+			res.Security = upd.Security
 		}
 
-		if err = store.UpdateAuthClient(ctx, svc.store, app); err != nil {
+		if err = store.UpdateAuthClient(ctx, svc.store, res); err != nil {
 			return err
 		}
 
-		if label.Changed(app.Labels, upd.Labels) {
+		if label.Changed(res.Labels, upd.Labels) {
 			if err = label.Update(ctx, svc.store, upd); err != nil {
 				return
 			}
-			app.Labels = upd.Labels
+			res.Labels = upd.Labels
 		}
 
-		_ = svc.eventbus.WaitFor(ctx, event.AuthClientAfterUpdate(upd, app))
+		_ = svc.eventbus.WaitFor(ctx, event.AuthClientAfterUpdate(upd, res))
 		return nil
 	}()
 
-	return app, svc.recordAction(ctx, aaProps, AuthClientActionUpdate, err)
+	return res, svc.recordAction(ctx, aaProps, AuthClientActionUpdate, err)
 }
 
 func (svc *authClient) Delete(ctx context.Context, ID uint64) (err error) {
