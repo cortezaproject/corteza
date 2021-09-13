@@ -31,6 +31,7 @@ func Run(ctx context.Context, log *zap.Logger, s store.Storer, provisionOpt opti
 		func() error { return migratePre202109Roles(ctx, log.Named("pre-202109-roles"), s) },
 		func() error { return migratePre202109RbacRules(ctx, log.Named("pre-202109-rbac-rules"), s) },
 		func() error { return cleanupPre202109Settings(ctx, log.Named("pre-202109-settings"), s) },
+		func() error { return migrateResourceTranslations(ctx, log.Named("resource-translations"), s) },
 
 		// Config (full & partial)
 		func() error { return importConfig(ctx, log.Named("config"), s, provisionOpt.Path) },
