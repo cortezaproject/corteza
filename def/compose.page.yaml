@@ -20,4 +20,4 @@ locale:
     - description
     - { name: blockTitle,                 path: "pageBlock.{{blockID}}.title",                         custom: true }
     - { name: blockDescription,           path: "pageBlock.{{blockID}}.description",                   custom: true }
-    - { name: blockAutomationButtonlabel, path: "pageBlock.{{blockID}}.automation.{{buttonID}}.label", custom: true }
+    - { name: blockAutomationButtonlabel, path: "pageBlock.{{blockID}}.button.{{buttonID}}.label", custom: true }

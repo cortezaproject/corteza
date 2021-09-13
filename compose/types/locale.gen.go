@@ -90,7 +90,7 @@ var (
 	LocaleKeyPageBlockAutomationButtonlabel = LocaleKey{
 		Name:     "blockAutomationButtonlabel",
 		Resource: PageResourceTranslationType,
-		Path:     "pageBlock.{{blockID}}.automation.{{buttonID}}.label",
+		Path:     "pageBlock.{{blockID}}.button.{{buttonID}}.label",
 	}
 )
 
