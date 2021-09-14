@@ -65,6 +65,11 @@ type (
 	// This type is auto-generated.
 	ReportSet []*Report
 
+	// ResourceTranslationSet slice of ResourceTranslation
+	//
+	// This type is auto-generated.
+	ResourceTranslationSet []*ResourceTranslation
+
 	// RoleSet slice of Role
 	//
 	// This type is auto-generated.
@@ -646,6 +651,62 @@ func (set ReportSet) FindByID(ID uint64) *Report {
 //
 // This function is auto-generated.
 func (set ReportSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(ResourceTranslation) err
+//
+// This function is auto-generated.
+func (set ResourceTranslationSet) Walk(w func(*ResourceTranslation) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(ResourceTranslation) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set ResourceTranslationSet) Filter(f func(*ResourceTranslation) (bool, error)) (out ResourceTranslationSet, err error) {
+	var ok bool
+	out = ResourceTranslationSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set ResourceTranslationSet) FindByID(ID uint64) *ResourceTranslation {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set ResourceTranslationSet) IDs() (IDs []uint64) {
 	IDs = make([]uint64, len(set))
 
 	for i := range set {

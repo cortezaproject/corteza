@@ -1,0 +1,69 @@
+# List of loggable service actions
+
+resource: system:resource-translation
+service: resourceTranslation
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+props:
+  - name: resourceTranslation
+    type: "*types.ResourceTranslation"
+    fields: [ lang, resource, K, ID ]
+  - name: new
+    type: "*types.ResourceTranslation"
+    fields: [ lang, resource, K, ID ]
+  - name: update
+    type: "*types.ResourceTranslation"
+    fields: [ lang, resource, K, ID ]
+  - name: filter
+    type: "*types.ResourceTranslationFilter"
+    fields: [ translationID, lang, resource, resourceType, ownerID, deleted, sort ]
+
+actions:
+  - action: search
+    log: "searched for resourceTranslations"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{resourceTranslation}}"
+    severity: info
+
+  - action: create
+    log: "created {{resourceTranslation}}"
+
+  - action: update
+    log: "updated {{resourceTranslation}}"
+
+  - action: delete
+    log: "deleted {{resourceTranslation}}"
+
+  - action: undelete
+    log: "undeleted {{resourceTranslation}}"
+
+errors:
+  - error: notFound
+    message: "resource translation not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: notAllowedToRead
+    message: "not allowed to read this resource translation"
+    log: "failed to read {{resourceTranslation}}; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to search or list resource translations"
+    log: "failed to search or list resource translations; insufficient permissions"
+
+  - error: notAllowedToManage
+    message: "not allowed to manage resource translations"
+    log: "failed to manage resource translation; insufficient permissions"

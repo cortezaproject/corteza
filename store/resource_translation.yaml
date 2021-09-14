@@ -1,0 +1,50 @@
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+types:
+  type: types.ResourceTranslation
+
+fields:
+  - { field: ID               }
+
+  - { field: Lang             }
+  - { field: Resource         }
+  - { field: K                }
+  - { field: Message          }
+
+  - { field: OwnedBy,   sortable: true }
+  - { field: CreatedBy, sortable: true }
+  - { field: UpdatedBy, sortable: true }
+  - { field: DeletedBy, sortable: true }
+
+  - { field: CreatedAt,                              sortable: true }
+  - { field: UpdatedAt,                              sortable: true }
+  - { field: DeletedAt,                              sortable: true }
+
+rdbms:
+  alias: rt
+  table: resource_translations
+  customFilterConverter: true
+
+lookups:
+  - fields: [ ID ]
+    description: |-
+      searches for resource translation by ID
+      It also returns deleted resource translations.
+
+functions:
+  - name: TransformResource
+    import:
+    - golang.org/x/text/language
+    - github.com/cortezaproject/corteza-server/pkg/locale
+    return: [ "map[string]map[string]*locale.ResourceTranslation", error ]
+    arguments:
+    - { name: lang, type: "language.Tag" }
+
+search:
+  enablePaging: true
+  enableSorting: true
+  enableFilterCheckFunction: false
+
+upsert:
+  enable: true
