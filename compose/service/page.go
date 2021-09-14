@@ -11,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/label"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -20,6 +21,7 @@ type (
 		ac        pageAccessController
 		eventbus  eventDispatcher
 		store     store.Storer
+		locale    ResourceTranslationService
 	}
 
 	pageAccessController interface {
@@ -47,6 +49,7 @@ func Page() *page {
 		ac:        DefaultAccessControl,
 		eventbus:  eventbus.Service(),
 		store:     DefaultStore,
+		locale:    DefaultResourceTranslation,
 	}
 }
 
@@ -139,6 +142,13 @@ func (svc page) search(ctx context.Context, filter types.PageFilter) (set types.
 		if err = label.Load(ctx, svc.store, toLabeledPages(set)...); err != nil {
 			return err
 		}
+
+		// i18n
+		tag := locale.GetLanguageFromContext(ctx)
+		set.Walk(func(p *types.Page) error {
+			p.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, p.ResourceTranslation()))
+			return nil
+		})
 
 		return nil
 	}()
@@ -350,6 +360,14 @@ func (svc page) updater(ctx context.Context, namespaceID, pageID uint64, action 
 			}
 		}
 
+		// i18n
+		tt := p.EncodeTranslations()
+		tt.SetLanguage(locale.GetLanguageFromContext(ctx))
+		err = svc.locale.Upsert(ctx, tt)
+		if err != nil {
+			return err
+		}
+
 		if changes&pageLabelsChanged > 0 {
 			if err = label.Update(ctx, s, p); err != nil {
 				return
@@ -384,6 +402,8 @@ func (svc page) lookup(ctx context.Context, namespaceID uint64, lookup func(*pag
 		} else if err != nil {
 			return err
 		}
+
+		p.DecodeTranslations(svc.locale.Locale().ResourceTranslations(locale.GetLanguageFromContext(ctx), p.ResourceTranslation()))
 
 		aProps.setPage(p)
 
