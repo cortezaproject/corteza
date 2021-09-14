@@ -14,3 +14,11 @@ rbac:
       description: Create record
     records.search:
       description: List, search or filter records
+
+locale:
+  resource:
+    references: [ namespace, ID ]
+
+  extended: true
+  keys:
+    - name
