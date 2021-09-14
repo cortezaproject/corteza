@@ -161,6 +161,13 @@ type (
 			}
 		} `kv:"compose" json:"compose"`
 
+		// Federation settings
+		Federation struct {
+			// This only holds the value of FEDERATION_ENABLED for now
+			//
+			Enabled bool `kv:"-" json:"enabled"`
+		} `kv:"federation" json:"federation"`
+
 		// UserInterface settings
 		UI struct {
 			MainLogo string `kv:"main-logo" json:"mainLogo"`

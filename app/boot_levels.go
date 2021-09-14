@@ -474,6 +474,7 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 		return fmt.Errorf("failed to init auth service: %w", err)
 	}
 
+	updateFederationSettings(app.Opt.Federation, sysService.CurrentSettings)
 	updateAuthSettings(app.AuthService, sysService.CurrentSettings)
 	sysService.DefaultSettings.Register("auth.", func(ctx context.Context, current interface{}, set types.SettingValueSet) {
 		appSettings, is := current.(*types.AppSettings)
@@ -576,4 +577,9 @@ func updateAuthSettings(svc authServicer, current *types.AppSettings) {
 	saml.UpdateSettings(current, as)
 
 	svc.UpdateSettings(as)
+}
+
+// Checks if federation is enabled in the options
+func updateFederationSettings(opt options.FederationOpt, current *types.AppSettings) {
+	current.Federation.Enabled = opt.Enabled
 }
