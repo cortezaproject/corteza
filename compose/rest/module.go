@@ -99,7 +99,7 @@ func (ctrl *Module) ListTranslations(ctx context.Context, r *request.ModuleListT
 }
 
 func (ctrl *Module) UpdateTranslations(ctx context.Context, r *request.ModuleUpdateTranslations) (interface{}, error) {
-	return api.OK(), ctrl.locale.Upsert(ctx, r.Translation)
+	return api.OK(), ctrl.locale.Upsert(ctx, r.Translations)
 }
 
 func (ctrl *Module) Create(ctx context.Context, r *request.ModuleCreate) (interface{}, error) {

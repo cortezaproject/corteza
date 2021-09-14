@@ -179,10 +179,10 @@ type (
 		// ID
 		NamespaceID uint64 `json:",string"`
 
-		// Translation POST parameter
+		// Translations POST parameter
 		//
 		// Resource translation to upsert
-		Translation locale.ResourceTranslationSet
+		Translations locale.ResourceTranslationSet
 	}
 )
 
@@ -756,8 +756,8 @@ func NewNamespaceUpdateTranslations() *NamespaceUpdateTranslations {
 // Auditable returns all auditable/loggable parameters
 func (r NamespaceUpdateTranslations) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"namespaceID": r.NamespaceID,
-		"translation": r.Translation,
+		"namespaceID":  r.NamespaceID,
+		"translations": r.Translations,
 	}
 }
 
@@ -767,8 +767,8 @@ func (r NamespaceUpdateTranslations) GetNamespaceID() uint64 {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r NamespaceUpdateTranslations) GetTranslation() locale.ResourceTranslationSet {
-	return r.Translation
+func (r NamespaceUpdateTranslations) GetTranslations() locale.ResourceTranslationSet {
+	return r.Translations
 }
 
 // Fill processes request and fills internal variables
@@ -792,8 +792,8 @@ func (r *NamespaceUpdateTranslations) Fill(req *http.Request) (err error) {
 
 		// POST params
 
-		//if val, ok := req.Form["translation[]"]; ok && len(val) > 0  {
-		//    r.Translation, err = locale.ResourceTranslationSet(val), nil
+		//if val, ok := req.Form["translations[]"]; ok && len(val) > 0  {
+		//    r.Translations, err = locale.ResourceTranslationSet(val), nil
 		//    if err != nil {
 		//        return err
 		//    }

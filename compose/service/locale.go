@@ -21,10 +21,10 @@ func (svc resourceTranslation) moduleExtended(ctx context.Context, res *types.Mo
 		for _, f := range res.Fields {
 			k = types.LocaleKeyModuleFieldLabel
 			out = append(out, &locale.ResourceTranslation{
-				Resource: res.ResourceTranslation(),
+				Resource: f.ResourceTranslation(),
 				Lang:     tag.String(),
 				Key:      k.Path,
-				Msg:      svc.locale.TRFor(tag, res.ResourceTranslation(), k.Path),
+				Msg:      svc.locale.TRFor(tag, f.ResourceTranslation(), k.Path),
 			})
 
 			// Extra field bits

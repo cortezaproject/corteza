@@ -170,7 +170,7 @@ endpoints:
         required: true
         title: ID
       post:
-      - name: translation
+      - name: translations
         type: locale.ResourceTranslationSet
         title: Resource translation to upsert
         required: true
@@ -407,7 +407,7 @@ endpoints:
         required: true
         title: ID
       post:
-      - name: translation
+      - name: translations
         type: locale.ResourceTranslationSet
         title: Resource translation to upsert
         required: true
@@ -578,7 +578,7 @@ endpoints:
         required: true
         title: ID
       post:
-      - name: translation
+      - name: translations
         type: locale.ResourceTranslationSet
         title: Resource translation to upsert
         required: true

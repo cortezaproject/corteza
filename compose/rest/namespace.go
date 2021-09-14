@@ -110,7 +110,7 @@ func (ctrl Namespace) ListTranslations(ctx context.Context, r *request.Namespace
 }
 
 func (ctrl Namespace) UpdateTranslations(ctx context.Context, r *request.NamespaceUpdateTranslations) (interface{}, error) {
-	return api.OK(), ctrl.locale.Upsert(ctx, r.Translation)
+	return api.OK(), ctrl.locale.Upsert(ctx, r.Translations)
 }
 
 func (ctrl Namespace) Update(ctx context.Context, r *request.NamespaceUpdate) (interface{}, error) {

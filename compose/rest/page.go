@@ -134,7 +134,7 @@ func (ctrl *Page) ListTranslations(ctx context.Context, r *request.PageListTrans
 }
 
 func (ctrl *Page) UpdateTranslations(ctx context.Context, r *request.PageUpdateTranslations) (interface{}, error) {
-	return api.OK(), ctrl.locale.Upsert(ctx, r.Translation)
+	return api.OK(), ctrl.locale.Upsert(ctx, r.Translations)
 }
 
 func (ctrl *Page) Reorder(ctx context.Context, r *request.PageReorder) (interface{}, error) {
