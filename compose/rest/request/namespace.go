@@ -166,23 +166,23 @@ type (
 		Script string
 	}
 
-	NamespaceListLocale struct {
+	NamespaceListTranslations struct {
 		// NamespaceID PATH parameter
 		//
 		// ID
 		NamespaceID uint64 `json:",string"`
 	}
 
-	NamespaceUpdateLocale struct {
+	NamespaceUpdateTranslations struct {
 		// NamespaceID PATH parameter
 		//
 		// ID
 		NamespaceID uint64 `json:",string"`
 
-		// Locale POST parameter
+		// Translation POST parameter
 		//
-		// ...
-		Locale locale.ResourceTranslationSet
+		// Resource translation to upsert
+		Translation locale.ResourceTranslationSet
 	}
 )
 
@@ -713,25 +713,25 @@ func (r *NamespaceTriggerScript) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewNamespaceListLocale request
-func NewNamespaceListLocale() *NamespaceListLocale {
-	return &NamespaceListLocale{}
+// NewNamespaceListTranslations request
+func NewNamespaceListTranslations() *NamespaceListTranslations {
+	return &NamespaceListTranslations{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r NamespaceListLocale) Auditable() map[string]interface{} {
+func (r NamespaceListTranslations) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"namespaceID": r.NamespaceID,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r NamespaceListLocale) GetNamespaceID() uint64 {
+func (r NamespaceListTranslations) GetNamespaceID() uint64 {
 	return r.NamespaceID
 }
 
 // Fill processes request and fills internal variables
-func (r *NamespaceListLocale) Fill(req *http.Request) (err error) {
+func (r *NamespaceListTranslations) Fill(req *http.Request) (err error) {
 
 	{
 		var val string
@@ -748,31 +748,31 @@ func (r *NamespaceListLocale) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewNamespaceUpdateLocale request
-func NewNamespaceUpdateLocale() *NamespaceUpdateLocale {
-	return &NamespaceUpdateLocale{}
+// NewNamespaceUpdateTranslations request
+func NewNamespaceUpdateTranslations() *NamespaceUpdateTranslations {
+	return &NamespaceUpdateTranslations{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r NamespaceUpdateLocale) Auditable() map[string]interface{} {
+func (r NamespaceUpdateTranslations) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"namespaceID": r.NamespaceID,
-		"locale":      r.Locale,
+		"translation": r.Translation,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r NamespaceUpdateLocale) GetNamespaceID() uint64 {
+func (r NamespaceUpdateTranslations) GetNamespaceID() uint64 {
 	return r.NamespaceID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r NamespaceUpdateLocale) GetLocale() locale.ResourceTranslationSet {
-	return r.Locale
+func (r NamespaceUpdateTranslations) GetTranslation() locale.ResourceTranslationSet {
+	return r.Translation
 }
 
 // Fill processes request and fills internal variables
-func (r *NamespaceUpdateLocale) Fill(req *http.Request) (err error) {
+func (r *NamespaceUpdateTranslations) Fill(req *http.Request) (err error) {
 
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -792,8 +792,8 @@ func (r *NamespaceUpdateLocale) Fill(req *http.Request) (err error) {
 
 		// POST params
 
-		//if val, ok := req.Form["locale[]"]; ok && len(val) > 0  {
-		//    r.Locale, err = locale.ResourceTranslationSet(val), nil
+		//if val, ok := req.Form["translation[]"]; ok && len(val) > 0  {
+		//    r.Translation, err = locale.ResourceTranslationSet(val), nil
 		//    if err != nil {
 		//        return err
 		//    }

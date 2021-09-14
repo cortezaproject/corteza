@@ -195,7 +195,7 @@ type (
 		Script string
 	}
 
-	ModuleListLocale struct {
+	ModuleListTranslations struct {
 		// NamespaceID PATH parameter
 		//
 		// Namespace ID
@@ -207,7 +207,7 @@ type (
 		ModuleID uint64 `json:",string"`
 	}
 
-	ModuleUpdateLocale struct {
+	ModuleUpdateTranslations struct {
 		// NamespaceID PATH parameter
 		//
 		// Namespace ID
@@ -218,10 +218,10 @@ type (
 		// ID
 		ModuleID uint64 `json:",string"`
 
-		// Locale POST parameter
+		// Translation POST parameter
 		//
-		// ...
-		Locale locale.ResourceTranslationSet
+		// Resource translation to upsert
+		Translation locale.ResourceTranslationSet
 	}
 )
 
@@ -801,13 +801,13 @@ func (r *ModuleTriggerScript) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewModuleListLocale request
-func NewModuleListLocale() *ModuleListLocale {
-	return &ModuleListLocale{}
+// NewModuleListTranslations request
+func NewModuleListTranslations() *ModuleListTranslations {
+	return &ModuleListTranslations{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ModuleListLocale) Auditable() map[string]interface{} {
+func (r ModuleListTranslations) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"namespaceID": r.NamespaceID,
 		"moduleID":    r.ModuleID,
@@ -815,17 +815,17 @@ func (r ModuleListLocale) Auditable() map[string]interface{} {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ModuleListLocale) GetNamespaceID() uint64 {
+func (r ModuleListTranslations) GetNamespaceID() uint64 {
 	return r.NamespaceID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ModuleListLocale) GetModuleID() uint64 {
+func (r ModuleListTranslations) GetModuleID() uint64 {
 	return r.ModuleID
 }
 
 // Fill processes request and fills internal variables
-func (r *ModuleListLocale) Fill(req *http.Request) (err error) {
+func (r *ModuleListTranslations) Fill(req *http.Request) (err error) {
 
 	{
 		var val string
@@ -848,37 +848,37 @@ func (r *ModuleListLocale) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewModuleUpdateLocale request
-func NewModuleUpdateLocale() *ModuleUpdateLocale {
-	return &ModuleUpdateLocale{}
+// NewModuleUpdateTranslations request
+func NewModuleUpdateTranslations() *ModuleUpdateTranslations {
+	return &ModuleUpdateTranslations{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ModuleUpdateLocale) Auditable() map[string]interface{} {
+func (r ModuleUpdateTranslations) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"namespaceID": r.NamespaceID,
 		"moduleID":    r.ModuleID,
-		"locale":      r.Locale,
+		"translation": r.Translation,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ModuleUpdateLocale) GetNamespaceID() uint64 {
+func (r ModuleUpdateTranslations) GetNamespaceID() uint64 {
 	return r.NamespaceID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ModuleUpdateLocale) GetModuleID() uint64 {
+func (r ModuleUpdateTranslations) GetModuleID() uint64 {
 	return r.ModuleID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ModuleUpdateLocale) GetLocale() locale.ResourceTranslationSet {
-	return r.Locale
+func (r ModuleUpdateTranslations) GetTranslation() locale.ResourceTranslationSet {
+	return r.Translation
 }
 
 // Fill processes request and fills internal variables
-func (r *ModuleUpdateLocale) Fill(req *http.Request) (err error) {
+func (r *ModuleUpdateTranslations) Fill(req *http.Request) (err error) {
 
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -898,8 +898,8 @@ func (r *ModuleUpdateLocale) Fill(req *http.Request) (err error) {
 
 		// POST params
 
-		//if val, ok := req.Form["locale[]"]; ok && len(val) > 0  {
-		//    r.Locale, err = locale.ResourceTranslationSet(val), nil
+		//if val, ok := req.Form["translation[]"]; ok && len(val) > 0  {
+		//    r.Translation, err = locale.ResourceTranslationSet(val), nil
 		//    if err != nil {
 		//        return err
 		//    }

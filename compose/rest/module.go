@@ -94,12 +94,12 @@ func (ctrl *Module) Read(ctx context.Context, r *request.ModuleRead) (interface{
 	return ctrl.makePayload(ctx, mod, err)
 }
 
-func (ctrl *Module) ListLocale(ctx context.Context, r *request.ModuleListLocale) (interface{}, error) {
+func (ctrl *Module) ListTranslations(ctx context.Context, r *request.ModuleListTranslations) (interface{}, error) {
 	return ctrl.locale.Module(ctx, r.NamespaceID, r.ModuleID)
 }
 
-func (ctrl *Module) UpdateLocale(ctx context.Context, r *request.ModuleUpdateLocale) (interface{}, error) {
-	return api.OK(), ctrl.locale.Upsert(ctx, r.Locale)
+func (ctrl *Module) UpdateTranslations(ctx context.Context, r *request.ModuleUpdateTranslations) (interface{}, error) {
+	return api.OK(), ctrl.locale.Upsert(ctx, r.Translation)
 }
 
 func (ctrl *Module) Create(ctx context.Context, r *request.ModuleCreate) (interface{}, error) {

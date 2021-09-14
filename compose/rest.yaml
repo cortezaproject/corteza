@@ -149,20 +149,20 @@ endpoints:
         type: string
         title: Script to execute
         required: true
-  - name: list resource
+  - name: listTranslations
     method: GET
-    title: List resource translations
-    path: "/{namespaceID}/locale"
+    title: List translation
+    path: "/{namespaceID}/translation"
     parameters:
       path:
       - type: uint64
         name: namespaceID
         required: true
         title: ID
-  - name: update resource
+  - name: updateTranslations
     method: PATCH
-    title: Update resource translations
-    path: "/{namespaceID}/locale"
+    title: Update translation
+    path: "/{namespaceID}/translation"
     parameters:
       path:
       - type: uint64
@@ -170,9 +170,9 @@ endpoints:
         required: true
         title: ID
       post:
-      - name: locale
+      - name: translation
         type: locale.ResourceTranslationSet
-        title: Resource translations to upsert
+        title: Resource translation to upsert
         required: true
 
 - title: Pages
@@ -386,20 +386,20 @@ endpoints:
         title: Script to execute
         required: true
 
-  - name: list resource
+  - name: listTranslations
     method: GET
-    title: List resource translations
-    path: "/{pageID}/locale"
+    title: List page translation
+    path: "/{pageID}/translation"
     parameters:
       path:
       - type: uint64
         name: pageID
         required: true
         title: ID
-  - name: update resource
+  - name: updateTranslations
     method: PATCH
-    title: Update resource translations
-    path: "/{pageID}/locale"
+    title: Update page translation
+    path: "/{pageID}/translation"
     parameters:
       path:
       - type: uint64
@@ -407,9 +407,9 @@ endpoints:
         required: true
         title: ID
       post:
-      - name: locale
+      - name: translation
         type: locale.ResourceTranslationSet
-        title: Resource translations to upsert
+        title: Resource translation to upsert
         required: true
 
 - title: Modules
@@ -557,20 +557,20 @@ endpoints:
         type: string
         title: Script to execute
         required: true
-  - name: list resource
+  - name: listTranslations
     method: GET
-    title: List resource translations
-    path: "/{moduleID}/locale"
+    title: List moudle translation
+    path: "/{moduleID}/translation"
     parameters:
       path:
       - type: uint64
         name: moduleID
         required: true
         title: ID
-  - name: update resource
+  - name: updateTranslations
     method: PATCH
-    title: Update resource translations
-    path: "/{moduleID}/locale"
+    title: Update module translation
+    path: "/{moduleID}/translation"
     parameters:
       path:
       - type: uint64
@@ -578,9 +578,9 @@ endpoints:
         required: true
         title: ID
       post:
-      - name: locale
+      - name: translation
         type: locale.ResourceTranslationSet
-        title: Resource translations to upsert
+        title: Resource translation to upsert
         required: true
 
 - title: Records

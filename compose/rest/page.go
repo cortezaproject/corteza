@@ -129,12 +129,12 @@ func (ctrl *Page) Read(ctx context.Context, r *request.PageRead) (interface{}, e
 	return ctrl.makePayload(ctx, mod, err)
 }
 
-func (ctrl *Page) ListLocale(ctx context.Context, r *request.PageListLocale) (interface{}, error) {
+func (ctrl *Page) ListTranslations(ctx context.Context, r *request.PageListTranslations) (interface{}, error) {
 	return ctrl.locale.Page(ctx, r.NamespaceID, r.PageID)
 }
 
-func (ctrl *Page) UpdateLocale(ctx context.Context, r *request.PageUpdateLocale) (interface{}, error) {
-	return api.OK(), ctrl.locale.Upsert(ctx, r.Locale)
+func (ctrl *Page) UpdateTranslations(ctx context.Context, r *request.PageUpdateTranslations) (interface{}, error) {
+	return api.OK(), ctrl.locale.Upsert(ctx, r.Translation)
 }
 
 func (ctrl *Page) Reorder(ctx context.Context, r *request.PageReorder) (interface{}, error) {

@@ -274,7 +274,7 @@ type (
 		Script string
 	}
 
-	PageListLocale struct {
+	PageListTranslations struct {
 		// NamespaceID PATH parameter
 		//
 		// Namespace ID
@@ -286,7 +286,7 @@ type (
 		PageID uint64 `json:",string"`
 	}
 
-	PageUpdateLocale struct {
+	PageUpdateTranslations struct {
 		// NamespaceID PATH parameter
 		//
 		// Namespace ID
@@ -297,10 +297,10 @@ type (
 		// ID
 		PageID uint64 `json:",string"`
 
-		// Locale POST parameter
+		// Translation POST parameter
 		//
-		// ...
-		Locale locale.ResourceTranslationSet
+		// Resource translation to upsert
+		Translation locale.ResourceTranslationSet
 	}
 )
 
@@ -1174,13 +1174,13 @@ func (r *PageTriggerScript) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewPageListLocale request
-func NewPageListLocale() *PageListLocale {
-	return &PageListLocale{}
+// NewPageListTranslations request
+func NewPageListTranslations() *PageListTranslations {
+	return &PageListTranslations{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PageListLocale) Auditable() map[string]interface{} {
+func (r PageListTranslations) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"namespaceID": r.NamespaceID,
 		"pageID":      r.PageID,
@@ -1188,17 +1188,17 @@ func (r PageListLocale) Auditable() map[string]interface{} {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PageListLocale) GetNamespaceID() uint64 {
+func (r PageListTranslations) GetNamespaceID() uint64 {
 	return r.NamespaceID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PageListLocale) GetPageID() uint64 {
+func (r PageListTranslations) GetPageID() uint64 {
 	return r.PageID
 }
 
 // Fill processes request and fills internal variables
-func (r *PageListLocale) Fill(req *http.Request) (err error) {
+func (r *PageListTranslations) Fill(req *http.Request) (err error) {
 
 	{
 		var val string
@@ -1221,37 +1221,37 @@ func (r *PageListLocale) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewPageUpdateLocale request
-func NewPageUpdateLocale() *PageUpdateLocale {
-	return &PageUpdateLocale{}
+// NewPageUpdateTranslations request
+func NewPageUpdateTranslations() *PageUpdateTranslations {
+	return &PageUpdateTranslations{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PageUpdateLocale) Auditable() map[string]interface{} {
+func (r PageUpdateTranslations) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"namespaceID": r.NamespaceID,
 		"pageID":      r.PageID,
-		"locale":      r.Locale,
+		"translation": r.Translation,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PageUpdateLocale) GetNamespaceID() uint64 {
+func (r PageUpdateTranslations) GetNamespaceID() uint64 {
 	return r.NamespaceID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PageUpdateLocale) GetPageID() uint64 {
+func (r PageUpdateTranslations) GetPageID() uint64 {
 	return r.PageID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PageUpdateLocale) GetLocale() locale.ResourceTranslationSet {
-	return r.Locale
+func (r PageUpdateTranslations) GetTranslation() locale.ResourceTranslationSet {
+	return r.Translation
 }
 
 // Fill processes request and fills internal variables
-func (r *PageUpdateLocale) Fill(req *http.Request) (err error) {
+func (r *PageUpdateTranslations) Fill(req *http.Request) (err error) {
 
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -1271,8 +1271,8 @@ func (r *PageUpdateLocale) Fill(req *http.Request) (err error) {
 
 		// POST params
 
-		//if val, ok := req.Form["locale[]"]; ok && len(val) > 0  {
-		//    r.Locale, err = locale.ResourceTranslationSet(val), nil
+		//if val, ok := req.Form["translation[]"]; ok && len(val) > 0  {
+		//    r.Translation, err = locale.ResourceTranslationSet(val), nil
 		//    if err != nil {
 		//        return err
 		//    }
