@@ -25,3 +25,4 @@ types:
   ApigwFilter: {}
   Report:
     labelResourceType: report
+  ResourceTranslation: {}

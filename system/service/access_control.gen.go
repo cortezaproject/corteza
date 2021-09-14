@@ -20,13 +20,11 @@ package service
 import (
 	"context"
 	"fmt"
-	"strings"
-
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/pkg/messagebus"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/spf13/cast"
+	"strings"
 )
 
 type (
@@ -355,6 +353,11 @@ func (svc accessControl) List() (out []map[string]string) {
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "apigw-filters.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "resource-translation.Manage",
 		},
 	}
 
@@ -824,6 +827,13 @@ func (svc accessControl) CanSearchApigwFilters(ctx context.Context) bool {
 	return svc.can(ctx, "apigw-filters.search", &types.Component{})
 }
 
+// CanManageResourceTranslation checks if current user can list, search, create, or update resource translations
+//
+// This function is auto-generated
+func (svc accessControl) CanManageResourceTranslation(ctx context.Context) bool {
+	return svc.can(ctx, "resource-translation.Manage", &types.Component{})
+}
+
 // rbacResourceValidator validates known component's resource by routing it to the appropriate validator
 //
 // This function is auto-generated
@@ -847,10 +857,6 @@ func rbacResourceValidator(r string, oo ...string) error {
 		return rbacUserResourceValidator(r, oo...)
 	case types.ComponentResourceType:
 		return rbacComponentResourceValidator(r, oo...)
-	// added as an exception, will be fixed in the next
-	// queues refactoring
-	case messagebus.QueueResourceType:
-		return rbacQueueResourceValidator(r, oo...)
 	}
 
 	return fmt.Errorf("unknown resource type '%q'", r)
@@ -920,31 +926,32 @@ func rbacResourceOperations(r string) map[string]bool {
 		}
 	case types.ComponentResourceType:
 		return map[string]bool{
-			"grant":                   true,
-			"action-log.read":         true,
-			"settings.read":           true,
-			"settings.manage":         true,
-			"auth-client.create":      true,
-			"auth-clients.search":     true,
-			"role.create":             true,
-			"roles.search":            true,
-			"user.create":             true,
-			"users.search":            true,
-			"application.create":      true,
-			"applications.search":     true,
-			"application.flag.self":   true,
-			"application.flag.global": true,
-			"template.create":         true,
-			"templates.search":        true,
-			"report.create":           true,
-			"reports.search":          true,
-			"reminder.assign":         true,
-			"queue.create":            true,
-			"queues.search":           true,
-			"apigw-route.create":      true,
-			"apigw-routes.search":     true,
-			"apigw-filter.create":     true,
-			"apigw-filters.search":    true,
+			"grant":                       true,
+			"action-log.read":             true,
+			"settings.read":               true,
+			"settings.manage":             true,
+			"auth-client.create":          true,
+			"auth-clients.search":         true,
+			"role.create":                 true,
+			"roles.search":                true,
+			"user.create":                 true,
+			"users.search":                true,
+			"application.create":          true,
+			"applications.search":         true,
+			"application.flag.self":       true,
+			"application.flag.global":     true,
+			"template.create":             true,
+			"templates.search":            true,
+			"report.create":               true,
+			"reports.search":              true,
+			"reminder.assign":             true,
+			"queue.create":                true,
+			"queues.search":               true,
+			"apigw-route.create":          true,
+			"apigw-routes.search":         true,
+			"apigw-filter.create":         true,
+			"apigw-filters.search":        true,
+			"resource-translation.Manage": true,
 		}
 	}
 
@@ -1147,8 +1154,6 @@ func rbacReportResourceValidator(r string, oo ...string) error {
 
 	const sep = "/"
 	var (
-		specIdUsed = true
-
 		pp  = strings.Split(strings.Trim(r[len(types.ReportResourceType):], sep), sep)
 		prc = []string{
 			"ID",
@@ -1159,22 +1164,17 @@ func rbacReportResourceValidator(r string, oo ...string) error {
 		return fmt.Errorf("invalid resource path structure")
 	}
 
-	for i, p := range pp {
-		if p == "*" {
-			if !specIdUsed {
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid resource path wildcard level (%d) for Report", i)
 			}
 
-			specIdUsed = false
-			continue
-		}
-
-		specIdUsed = true
-		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
 		}
 	}
-
 	return nil
 }
 
