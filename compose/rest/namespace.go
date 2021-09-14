@@ -105,12 +105,12 @@ func (ctrl Namespace) Read(ctx context.Context, r *request.NamespaceRead) (inter
 	return ctrl.makePayload(ctx, ns, err)
 }
 
-func (ctrl Namespace) ListLocale(ctx context.Context, r *request.NamespaceListLocale) (interface{}, error) {
+func (ctrl Namespace) ListTranslations(ctx context.Context, r *request.NamespaceListTranslations) (interface{}, error) {
 	return ctrl.locale.Namespace(ctx, r.NamespaceID)
 }
 
-func (ctrl Namespace) UpdateLocale(ctx context.Context, r *request.NamespaceUpdateLocale) (interface{}, error) {
-	return api.OK(), ctrl.locale.Upsert(ctx, r.Locale)
+func (ctrl Namespace) UpdateTranslations(ctx context.Context, r *request.NamespaceUpdateTranslations) (interface{}, error) {
+	return api.OK(), ctrl.locale.Upsert(ctx, r.Translation)
 }
 
 func (ctrl Namespace) Update(ctx context.Context, r *request.NamespaceUpdate) (interface{}, error) {

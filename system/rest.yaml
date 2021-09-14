@@ -1780,7 +1780,7 @@ endpoints:
       - { name: resource,     type: string,       title: Resource }
       - { name: resourceType, type: string,       title: Resource type }
       - { name: ownerID,      type: uint64,       title: OwnerID }
-      - { name: deleted,      type: "uint64",     title: "Exclude (0, default), include (1) or return only (2) deleted routes" }
+      - { name: deleted,      type: "uint64",     title: "Exclude (0, default), include (1) or return only (2) deleted resource translations" }
       - { name: limit,        type: "uint",       title: "Limit" }
       - { name: pageCursor,   type: "string",     title: "Page cursor" }
       - { name: sort,         type: "string",     title: "Sort items" }

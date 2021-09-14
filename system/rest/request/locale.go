@@ -56,7 +56,7 @@ type (
 
 		// Deleted GET parameter
 		//
-		// Exclude (0, default), include (1) or return only (2) deleted routes
+		// Exclude (0, default), include (1) or return only (2) deleted resource translations
 		Deleted uint64 `json:",string"`
 
 		// Limit GET parameter
