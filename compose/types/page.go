@@ -3,9 +3,13 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
+	"github.com/spf13/cast"
 
 	"github.com/pkg/errors"
 )
@@ -41,6 +45,7 @@ type (
 	PageBlocks []PageBlock
 
 	PageBlock struct {
+		BlockID     uint64                 `json:"blockID,string,omitempty"`
 		Title       string                 `json:"title,omitempty"`
 		Description string                 `json:"description,omitempty"`
 		Options     map[string]interface{} `json:"options,omitempty"`
@@ -82,6 +87,104 @@ type (
 func (m Page) Clone() *Page {
 	c := &m
 	return c
+}
+
+func (p *Page) decodeTranslations(tt locale.ResourceTranslationIndex) {
+	var aux *locale.ResourceTranslation
+
+	for i, block := range p.Blocks {
+		blockID := locale.ContentID(block.BlockID, i)
+		rpl := strings.NewReplacer(
+			"{{blockID}}", strconv.FormatUint(blockID, 10),
+		)
+
+		// - generic page block stuff
+		if aux = tt.FindByKey(rpl.Replace(LocaleKeyPageBlockTitle.Path)); aux != nil {
+			p.Blocks[i].Title = aux.Msg
+		}
+		if aux = tt.FindByKey(rpl.Replace(LocaleKeyPageBlockDescription.Path)); aux != nil {
+			p.Blocks[i].Description = aux.Msg
+		}
+
+		// - automation page block stuff
+		if block.Kind == "Automation" {
+			bb, _ := block.Options["buttons"].([]interface{})
+			for j, auxBtn := range bb {
+				btn := auxBtn.(map[string]interface{})
+
+				buttonID := uint64(0)
+				if aux, ok := btn["buttonID"]; ok {
+					buttonID = cast.ToUint64(aux)
+				}
+				buttonID = locale.ContentID(buttonID, j)
+
+				rpl := strings.NewReplacer(
+					"{{blockID}}", strconv.FormatUint(blockID, 10),
+					"{{buttonID}}", strconv.FormatUint(buttonID, 10),
+				)
+
+				if aux = tt.FindByKey(rpl.Replace(LocaleKeyPageBlockAutomationButtonlabel.Path)); aux != nil {
+					btn["label"] = aux.Msg
+				}
+			}
+		}
+	}
+}
+
+func (p *Page) encodeTranslations() (out locale.ResourceTranslationSet) {
+	out = make(locale.ResourceTranslationSet, 0, 3)
+
+	// Page blocks
+	for i, block := range p.Blocks {
+		blockID := locale.ContentID(block.BlockID, i)
+		rpl := strings.NewReplacer(
+			"{{blockID}}", strconv.FormatUint(uint64(blockID), 10),
+		)
+
+		// - generic page block stuff
+		out = append(out, &locale.ResourceTranslation{
+			Resource: p.ResourceTranslation(),
+			Key:      rpl.Replace(LocaleKeyPageBlockTitle.Path),
+			Msg:      block.Title,
+		})
+
+		out = append(out, &locale.ResourceTranslation{
+			Resource: p.ResourceTranslation(),
+			Key:      rpl.Replace(LocaleKeyPageBlockDescription.Path),
+			Msg:      block.Description,
+		})
+
+		// - automation page block stuff
+		if block.Kind == "Automation" {
+			bb, _ := block.Options["buttons"].([]interface{})
+			for j, auxBtn := range bb {
+				btn := auxBtn.(map[string]interface{})
+
+				if _, ok := btn["label"]; !ok {
+					continue
+				}
+
+				buttonID := uint64(0)
+				if aux, ok := btn["buttonID"]; ok {
+					buttonID = cast.ToUint64(aux)
+				}
+				buttonID = locale.ContentID(buttonID, j)
+
+				rpl := strings.NewReplacer(
+					"{{blockID}}", strconv.FormatUint(blockID, 10),
+					"{{buttonID}}", strconv.FormatUint(buttonID, 10),
+				)
+
+				out = append(out, &locale.ResourceTranslation{
+					Resource: p.ResourceTranslation(),
+					Key:      rpl.Replace(LocaleKeyPageBlockAutomationButtonlabel.Path),
+					Msg:      btn["label"].(string),
+				})
+			}
+		}
+	}
+
+	return
 }
 
 // FindByHandle finds page by it's handle

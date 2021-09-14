@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/label"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/go-chi/chi"
 	sqlxTypes "github.com/jmoiron/sqlx/types"
@@ -163,6 +164,25 @@ type (
 		//
 		// Script to execute
 		Script string
+	}
+
+	NamespaceListLocale struct {
+		// NamespaceID PATH parameter
+		//
+		// ID
+		NamespaceID uint64 `json:",string"`
+	}
+
+	NamespaceUpdateLocale struct {
+		// NamespaceID PATH parameter
+		//
+		// ID
+		NamespaceID uint64 `json:",string"`
+
+		// Locale POST parameter
+		//
+		// ...
+		Locale locale.ResourceTranslationSet
 	}
 )
 
@@ -676,6 +696,108 @@ func (r *NamespaceTriggerScript) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "namespaceID")
+		r.NamespaceID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewNamespaceListLocale request
+func NewNamespaceListLocale() *NamespaceListLocale {
+	return &NamespaceListLocale{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceListLocale) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"namespaceID": r.NamespaceID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceListLocale) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
+
+// Fill processes request and fills internal variables
+func (r *NamespaceListLocale) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "namespaceID")
+		r.NamespaceID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewNamespaceUpdateLocale request
+func NewNamespaceUpdateLocale() *NamespaceUpdateLocale {
+	return &NamespaceUpdateLocale{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceUpdateLocale) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"namespaceID": r.NamespaceID,
+		"locale":      r.Locale,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceUpdateLocale) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceUpdateLocale) GetLocale() locale.ResourceTranslationSet {
+	return r.Locale
+}
+
+// Fill processes request and fills internal variables
+func (r *NamespaceUpdateLocale) Fill(req *http.Request) (err error) {
+
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		//if val, ok := req.Form["locale[]"]; ok && len(val) > 0  {
+		//    r.Locale, err = locale.ResourceTranslationSet(val), nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
 	}
 
 	{

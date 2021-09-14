@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/label"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/go-chi/chi"
 	sqlxTypes "github.com/jmoiron/sqlx/types"
@@ -192,6 +193,35 @@ type (
 		//
 		// Script to execute
 		Script string
+	}
+
+	ModuleListLocale struct {
+		// NamespaceID PATH parameter
+		//
+		// Namespace ID
+		NamespaceID uint64 `json:",string"`
+
+		// ModuleID PATH parameter
+		//
+		// ID
+		ModuleID uint64 `json:",string"`
+	}
+
+	ModuleUpdateLocale struct {
+		// NamespaceID PATH parameter
+		//
+		// Namespace ID
+		NamespaceID uint64 `json:",string"`
+
+		// ModuleID PATH parameter
+		//
+		// ID
+		ModuleID uint64 `json:",string"`
+
+		// Locale POST parameter
+		//
+		// ...
+		Locale locale.ResourceTranslationSet
 	}
 )
 
@@ -748,6 +778,132 @@ func (r *ModuleTriggerScript) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "namespaceID")
+		r.NamespaceID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "moduleID")
+		r.ModuleID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewModuleListLocale request
+func NewModuleListLocale() *ModuleListLocale {
+	return &ModuleListLocale{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ModuleListLocale) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"namespaceID": r.NamespaceID,
+		"moduleID":    r.ModuleID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ModuleListLocale) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ModuleListLocale) GetModuleID() uint64 {
+	return r.ModuleID
+}
+
+// Fill processes request and fills internal variables
+func (r *ModuleListLocale) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "namespaceID")
+		r.NamespaceID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "moduleID")
+		r.ModuleID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewModuleUpdateLocale request
+func NewModuleUpdateLocale() *ModuleUpdateLocale {
+	return &ModuleUpdateLocale{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ModuleUpdateLocale) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"namespaceID": r.NamespaceID,
+		"moduleID":    r.ModuleID,
+		"locale":      r.Locale,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ModuleUpdateLocale) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ModuleUpdateLocale) GetModuleID() uint64 {
+	return r.ModuleID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ModuleUpdateLocale) GetLocale() locale.ResourceTranslationSet {
+	return r.Locale
+}
+
+// Fill processes request and fills internal variables
+func (r *ModuleUpdateLocale) Fill(req *http.Request) (err error) {
+
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		//if val, ok := req.Form["locale[]"]; ok && len(val) > 0  {
+		//    r.Locale, err = locale.ResourceTranslationSet(val), nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
 	}
 
 	{

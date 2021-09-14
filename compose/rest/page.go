@@ -44,6 +44,7 @@ type (
 
 			Reorder(ctx context.Context, namespaceID, selfID uint64, pageIDs []uint64) error
 		}
+		locale     service.ResourceTranslationService
 		namespace  service.NamespaceService
 		attachment service.AttachmentService
 		ac         pageAccessController
@@ -60,6 +61,7 @@ type (
 func (Page) New() *Page {
 	return &Page{
 		page:       service.DefaultPage,
+		locale:     service.DefaultResourceTranslation,
 		namespace:  service.DefaultNamespace,
 		attachment: service.DefaultAttachment,
 		ac:         service.DefaultAccessControl,
@@ -125,7 +127,14 @@ func (ctrl *Page) Create(ctx context.Context, r *request.PageCreate) (interface{
 func (ctrl *Page) Read(ctx context.Context, r *request.PageRead) (interface{}, error) {
 	mod, err := ctrl.page.FindByID(ctx, r.NamespaceID, r.PageID)
 	return ctrl.makePayload(ctx, mod, err)
+}
 
+func (ctrl *Page) ListLocale(ctx context.Context, r *request.PageListLocale) (interface{}, error) {
+	return ctrl.locale.Page(ctx, r.NamespaceID, r.PageID)
+}
+
+func (ctrl *Page) UpdateLocale(ctx context.Context, r *request.PageUpdateLocale) (interface{}, error) {
+	return api.OK(), ctrl.locale.Upsert(ctx, r.Locale)
 }
 
 func (ctrl *Page) Reorder(ctx context.Context, r *request.PageReorder) (interface{}, error) {

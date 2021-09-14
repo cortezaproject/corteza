@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/jmoiron/sqlx/types"
 )
 
@@ -52,6 +53,16 @@ func (m Module) Clone() *Module {
 	c := &m
 	c.Fields = m.Fields.Clone()
 	return c
+}
+
+// We won't worry about fields at this point
+func (m *Module) decodeTranslations(tt locale.ResourceTranslationIndex) {
+	return
+}
+
+// We won't worry about fields at this point
+func (m *Module) encodeTranslations() (out locale.ResourceTranslationSet) {
+	return
 }
 
 // FindByHandle finds module by it's handle
