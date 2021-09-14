@@ -9,3 +9,12 @@ rbac:
     record.value.update:
       canFnName: CanUpdateRecordValue
       description: Update field value on records
+
+locale:
+  resource:
+    references: [ namespace, module, ID ]
+
+  skipSvc: true
+  keys:
+    - label
+    - { name: validatorError, path: "expression.validator.{{validatorID}}.error", custom: true, customHandler: validatorError }
