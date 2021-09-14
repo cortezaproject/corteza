@@ -10,6 +10,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/objstore"
 	"github.com/cortezaproject/corteza-server/pkg/objstore/minio"
@@ -67,18 +68,19 @@ var (
 
 	DefaultSink *sink
 
-	DefaultAuth        *auth
-	DefaultAuthClient  *authClient
-	DefaultUser        *user
-	DefaultRole        *role
-	DefaultApplication *application
-	DefaultReminder    ReminderService
-	DefaultAttachment  AttachmentService
-	DefaultRenderer    TemplateService
-	DefaultQueue       *queue
-	DefaultApigwRoute  *apigwRoute
-	DefaultApigwFilter *apigwFilter
-	DefaultReport      *report
+	DefaultAuth                *auth
+	DefaultAuthClient          *authClient
+	DefaultUser                *user
+	DefaultRole                *role
+	DefaultApplication         *application
+	DefaultReminder            ReminderService
+	DefaultAttachment          AttachmentService
+	DefaultRenderer            TemplateService
+	DefaultResourceTranslation ResourceTranslationService
+	DefaultQueue               *queue
+	DefaultApigwRoute          *apigwRoute
+	DefaultApigwFilter         *apigwFilter
+	DefaultReport              *report
 
 	DefaultStatistics *statistics
 
@@ -161,6 +163,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	hcd.Add(objstore.Healthcheck(DefaultObjectStore), "ObjectStore/System")
 
 	DefaultRenderer = Renderer(c.Template)
+	DefaultResourceTranslation = ResourceTranslation()
 	DefaultReport = Report(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
 	DefaultAuthNotification = AuthNotification(CurrentSettings, DefaultRenderer, c.Auth)
 	DefaultAuth = Auth(AuthOptions{LimitUsers: c.Limit.SystemUsers})
@@ -177,6 +180,11 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultApigwFilter = Filter()
 
 	if err = initRoles(ctx, log.Named("rbac.roles"), c.RBAC, eventbus.Service(), rbac.Global()); err != nil {
+		return err
+	}
+
+	locale.Global().BindStore(DefaultStore)
+	if err = locale.Global().ReloadResourceTranslations(ctx); err != nil {
 		return err
 	}
 
