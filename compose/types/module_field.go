@@ -3,9 +3,13 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"sort"
+	"strconv"
+	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 )
 
 type (
@@ -46,6 +50,41 @@ type (
 var (
 	_ sort.Interface = &ModuleFieldSet{}
 )
+
+func (f *ModuleField) decodeTranslationsValidatorError(tt locale.ResourceTranslationIndex) {
+	var aux *locale.ResourceTranslation
+
+	for i, e := range f.Expressions.Validators {
+		validatorID := locale.ContentID(e.ValidatorID, i)
+		rpl := strings.NewReplacer(
+			"{{validatorID}}", strconv.FormatUint(validatorID, 10),
+		)
+
+		if aux = tt.FindByKey(rpl.Replace(LocaleKeyModuleFieldValidatorError.Path)); aux != nil {
+			f.Expressions.Validators[i].Error = aux.Msg
+		}
+	}
+}
+
+func (m *ModuleField) encodeTranslationsValidatorError() (out locale.ResourceTranslationSet) {
+	out = make(locale.ResourceTranslationSet, 0, 3)
+
+	// Module field expressions
+	for i, e := range m.Expressions.Validators {
+		validatorID := locale.ContentID(e.ValidatorID, i)
+		rpl := strings.NewReplacer(
+			"{{validatorID}}", strconv.FormatUint(validatorID, 10),
+		)
+
+		out = append(out, &locale.ResourceTranslation{
+			Resource: m.ResourceTranslation(),
+			Key:      rpl.Replace(LocaleKeyModuleFieldValidatorError.Path),
+			Msg:      e.Error,
+		})
+	}
+
+	return
+}
 
 func (m ModuleField) Clone() *ModuleField {
 	return &m

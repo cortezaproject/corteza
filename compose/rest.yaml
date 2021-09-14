@@ -12,6 +12,7 @@ endpoints:
   authentication: []
   imports:
     - github.com/cortezaproject/corteza-server/pkg/label
+    - github.com/cortezaproject/corteza-server/pkg/locale
     - sqlxTypes github.com/jmoiron/sqlx/types
     - time
   apis:
@@ -148,6 +149,32 @@ endpoints:
         type: string
         title: Script to execute
         required: true
+  - name: list resource
+    method: GET
+    title: List resource translations
+    path: "/{namespaceID}/locale"
+    parameters:
+      path:
+      - type: uint64
+        name: namespaceID
+        required: true
+        title: ID
+  - name: update resource
+    method: PATCH
+    title: Update resource translations
+    path: "/{namespaceID}/locale"
+    parameters:
+      path:
+      - type: uint64
+        name: namespaceID
+        required: true
+        title: ID
+      post:
+      - name: locale
+        type: locale.ResourceTranslationSet
+        title: Resource translations to upsert
+        required: true
+
 - title: Pages
   description: Compose pages
   entrypoint: page
@@ -155,6 +182,7 @@ endpoints:
   authentication: []
   imports:
     - sqlxTypes github.com/jmoiron/sqlx/types
+    - github.com/cortezaproject/corteza-server/pkg/locale
     - github.com/cortezaproject/corteza-server/pkg/label
   parameters:
     path:
@@ -357,6 +385,33 @@ endpoints:
         type: string
         title: Script to execute
         required: true
+
+  - name: list resource
+    method: GET
+    title: List resource translations
+    path: "/{pageID}/locale"
+    parameters:
+      path:
+      - type: uint64
+        name: pageID
+        required: true
+        title: ID
+  - name: update resource
+    method: PATCH
+    title: Update resource translations
+    path: "/{pageID}/locale"
+    parameters:
+      path:
+      - type: uint64
+        name: pageID
+        required: true
+        title: ID
+      post:
+      - name: locale
+        type: locale.ResourceTranslationSet
+        title: Resource translations to upsert
+        required: true
+
 - title: Modules
   description: Compose module definitions
   entrypoint: module
@@ -371,6 +426,7 @@ endpoints:
   imports:
     - sqlxTypes github.com/jmoiron/sqlx/types
     - github.com/cortezaproject/corteza-server/compose/types
+    - github.com/cortezaproject/corteza-server/pkg/locale
     - github.com/cortezaproject/corteza-server/pkg/label
     - time
   apis:
@@ -501,6 +557,32 @@ endpoints:
         type: string
         title: Script to execute
         required: true
+  - name: list resource
+    method: GET
+    title: List resource translations
+    path: "/{moduleID}/locale"
+    parameters:
+      path:
+      - type: uint64
+        name: moduleID
+        required: true
+        title: ID
+  - name: update resource
+    method: PATCH
+    title: Update resource translations
+    path: "/{moduleID}/locale"
+    parameters:
+      path:
+      - type: uint64
+        name: moduleID
+        required: true
+        title: ID
+      post:
+      - name: locale
+        type: locale.ResourceTranslationSet
+        title: Resource translations to upsert
+        required: true
+
 - title: Records
   description: Compose records
   entrypoint: record

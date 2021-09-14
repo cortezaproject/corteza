@@ -12,6 +12,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/label"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 )
@@ -22,6 +23,7 @@ type (
 		ac        namespaceAccessController
 		eventbus  eventDispatcher
 		store     store.Storer
+		locale    ResourceTranslationService
 	}
 
 	namespaceAccessController interface {
@@ -61,6 +63,7 @@ func Namespace() *namespace {
 		eventbus:  eventbus.Service(),
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
+		locale:    DefaultResourceTranslation,
 	}
 }
 
@@ -105,6 +108,13 @@ func (svc namespace) Find(ctx context.Context, filter types.NamespaceFilter) (se
 		if set, f, err = store.SearchComposeNamespaces(ctx, svc.store, filter); err != nil {
 			return err
 		}
+
+		// i18n
+		tag := locale.GetLanguageFromContext(ctx)
+		set.Walk(func(n *types.Namespace) error {
+			n.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, n.ResourceTranslation()))
+			return nil
+		})
 
 		if err = label.Load(ctx, svc.store, toLabeledNamespaces(set)...); err != nil {
 			return err
@@ -263,6 +273,14 @@ func (svc namespace) updater(ctx context.Context, namespaceID uint64, action fun
 			if err = store.UpdateComposeNamespace(ctx, svc.store, ns); err != nil {
 				return err
 			}
+		}
+
+		// i18n
+		tt := ns.EncodeTranslations()
+		tt.SetLanguage(locale.GetLanguageFromContext(ctx))
+		err = DefaultResourceTranslation.Upsert(ctx, tt)
+		if err != nil {
+			return err
 		}
 
 		if changes&namespaceLabelsChanged > 0 {
