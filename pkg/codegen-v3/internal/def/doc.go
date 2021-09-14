@@ -18,6 +18,7 @@ type (
 		Resource            string
 		Source              string
 		RBAC                *rbac
+		Locale              *locale
 		Envoy               bool `yaml:"envoy"`
 	}
 )
@@ -64,6 +65,10 @@ func (doc *Document) Proc(filename string) error {
 	doc.Imports = normalizeImport(doc.Imports...)
 
 	if err := doc.RBAC.proc(doc.Component, doc.Resource); err != nil {
+		return err
+	}
+
+	if err := doc.Locale.proc(doc.Component, doc.Resource); err != nil {
 		return err
 	}
 

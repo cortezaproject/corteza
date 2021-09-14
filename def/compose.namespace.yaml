@@ -23,3 +23,9 @@ rbac:
       description: Create page on namespace
     pages.search:
       description: List, search or filter pages on namespace
+
+locale:
+  keys:
+    - name
+    - { path: subtitle,    field: "Meta.Subtitle" }
+    - { path: description, field: "Meta.Description" }
