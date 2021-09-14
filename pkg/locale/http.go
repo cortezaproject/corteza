@@ -23,7 +23,7 @@ func upgradeRequest(ll *service, r *http.Request) *http.Request {
 
 func detectLanguage(ll *service, r *http.Request) (tag language.Tag) {
 	if ll.opt.DevelopmentMode {
-		if err := ll.Reload(); err != nil {
+		if err := ll.ReloadStatic(); err != nil {
 			// when in development mode, refresh languages for every request
 			ll.log.Error("failed to load locales", zap.Error(err))
 			return

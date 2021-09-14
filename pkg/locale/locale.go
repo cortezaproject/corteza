@@ -20,6 +20,9 @@ type (
 	//   application => namespace => buffered JSON docs
 	external map[string]io.ReadSeeker
 
+	// resource => key => ResourceTranslation
+	resources map[string]map[string]*ResourceTranslation
+
 	Language struct {
 		l sync.RWMutex
 
@@ -49,13 +52,15 @@ type (
 		internal internal
 
 		// External translations (webapps)
-		external external
+		external  external
+		resources resources
 	}
 
 	ErrorMetaNamespace struct{}
 	ErrorMetaKey       struct{}
 )
 
+// t returns the translated string for internal content
 func (l *Language) t(ns, key string, rr ...string) string {
 	l.l.RLock()
 	defer l.l.RUnlock()
@@ -74,4 +79,39 @@ func (l *Language) t(ns, key string, rr ...string) string {
 	}
 
 	return key
+}
+
+// tr returns the translated string for resource translations
+func (l *Language) tr(ns, key string, rr ...string) string {
+	l.l.RLock()
+	defer l.l.RUnlock()
+
+	for r := 0; r < len(rr); r += 2 {
+		rr[r] = fmt.Sprintf("{{%s}}", rr[r])
+	}
+
+	rt, has := l.resources[ns][key]
+	if has {
+		return strings.NewReplacer(rr...).Replace(rt.Msg)
+	}
+
+	if l.extends != nil {
+		return l.extends.tr(ns, key, rr...)
+	}
+
+	return key
+}
+
+// resourceTranslations returns all resource translations for the specified resource
+func (l *Language) resourceTranslations(resource string) ResourceTranslationIndex {
+	out := make(ResourceTranslationIndex)
+	if l.resources == nil {
+		return out
+	}
+
+	for k, rt := range l.resources[resource] {
+		out[k] = rt
+	}
+
+	return out
 }
