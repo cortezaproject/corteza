@@ -218,10 +218,10 @@ type (
 		// ID
 		ModuleID uint64 `json:",string"`
 
-		// Translation POST parameter
+		// Translations POST parameter
 		//
 		// Resource translation to upsert
-		Translation locale.ResourceTranslationSet
+		Translations locale.ResourceTranslationSet
 	}
 )
 
@@ -856,9 +856,9 @@ func NewModuleUpdateTranslations() *ModuleUpdateTranslations {
 // Auditable returns all auditable/loggable parameters
 func (r ModuleUpdateTranslations) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"namespaceID": r.NamespaceID,
-		"moduleID":    r.ModuleID,
-		"translation": r.Translation,
+		"namespaceID":  r.NamespaceID,
+		"moduleID":     r.ModuleID,
+		"translations": r.Translations,
 	}
 }
 
@@ -873,8 +873,8 @@ func (r ModuleUpdateTranslations) GetModuleID() uint64 {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ModuleUpdateTranslations) GetTranslation() locale.ResourceTranslationSet {
-	return r.Translation
+func (r ModuleUpdateTranslations) GetTranslations() locale.ResourceTranslationSet {
+	return r.Translations
 }
 
 // Fill processes request and fills internal variables
@@ -898,8 +898,8 @@ func (r *ModuleUpdateTranslations) Fill(req *http.Request) (err error) {
 
 		// POST params
 
-		//if val, ok := req.Form["translation[]"]; ok && len(val) > 0  {
-		//    r.Translation, err = locale.ResourceTranslationSet(val), nil
+		//if val, ok := req.Form["translations[]"]; ok && len(val) > 0  {
+		//    r.Translations, err = locale.ResourceTranslationSet(val), nil
 		//    if err != nil {
 		//        return err
 		//    }

@@ -297,10 +297,10 @@ type (
 		// ID
 		PageID uint64 `json:",string"`
 
-		// Translation POST parameter
+		// Translations POST parameter
 		//
 		// Resource translation to upsert
-		Translation locale.ResourceTranslationSet
+		Translations locale.ResourceTranslationSet
 	}
 )
 
@@ -1229,9 +1229,9 @@ func NewPageUpdateTranslations() *PageUpdateTranslations {
 // Auditable returns all auditable/loggable parameters
 func (r PageUpdateTranslations) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"namespaceID": r.NamespaceID,
-		"pageID":      r.PageID,
-		"translation": r.Translation,
+		"namespaceID":  r.NamespaceID,
+		"pageID":       r.PageID,
+		"translations": r.Translations,
 	}
 }
 
@@ -1246,8 +1246,8 @@ func (r PageUpdateTranslations) GetPageID() uint64 {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PageUpdateTranslations) GetTranslation() locale.ResourceTranslationSet {
-	return r.Translation
+func (r PageUpdateTranslations) GetTranslations() locale.ResourceTranslationSet {
+	return r.Translations
 }
 
 // Fill processes request and fills internal variables
@@ -1271,8 +1271,8 @@ func (r *PageUpdateTranslations) Fill(req *http.Request) (err error) {
 
 		// POST params
 
-		//if val, ok := req.Form["translation[]"]; ok && len(val) > 0  {
-		//    r.Translation, err = locale.ResourceTranslationSet(val), nil
+		//if val, ok := req.Form["translations[]"]; ok && len(val) > 0  {
+		//    r.Translations, err = locale.ResourceTranslationSet(val), nil
 		//    if err != nil {
 		//        return err
 		//    }
