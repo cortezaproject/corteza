@@ -228,6 +228,10 @@ func (svc *service) ReloadStatic() (err error) {
 // ReloadResourceTranslations all language configurations (as configured via path options) and
 // all translation files
 func (svc *service) ReloadResourceTranslations(ctx context.Context) (err error) {
+	if svc.s == nil {
+		return fmt.Errorf("store for locale service not set")
+	}
+
 	svc.l.RLock()
 	defer svc.l.RUnlock()
 
@@ -235,11 +239,13 @@ func (svc *service) ReloadResourceTranslations(ctx context.Context) (err error) 
 		zap.Strings("tags", tagsToStrings(svc.tags)),
 	)
 
-	for i, tag := range svc.tags {
+	for _, tag := range svc.tags {
 		lang, ok := svc.set[tag]
 		if !ok {
 			lang = &Language{
 				Tag: tag,
+				// @todo find a better name for this, because it's not the
+				//       language that it's loaded from the store, the resource translations are
 				src: "store",
 			}
 
@@ -251,29 +257,11 @@ func (svc *service) ReloadResourceTranslations(ctx context.Context) (err error) 
 		}
 
 		svc.log.Info(
-			"language loaded",
+			"resource translations loaded",
 			zap.Stringer("tag", lang.Tag),
 			zap.String("src", lang.src),
-			zap.Stringer("extends", lang.Extends),
+			zap.Int("translations", len(lang.resources)),
 		)
-
-		if i == 0 && svc.def == nil {
-			// set first one as default
-			svc.def = lang
-		}
-	}
-
-	// Do another pass and link all extended languages
-	for _, lang := range svc.set {
-		if lang.Extends.IsRoot() {
-			continue
-		}
-
-		if svc.set[lang.Extends] == nil {
-			return fmt.Errorf("could not extend langage %q from an unknown language %q", lang.Tag, lang.Extends)
-		}
-
-		lang.extends = svc.set[lang.Extends]
 	}
 
 	return nil
@@ -365,11 +353,11 @@ func (svc *service) EncodeExternal(w io.Writer, app string, ll ...language.Tag) 
 // Language is picked from the context
 func (svc *service) NS(ctx context.Context, ns string) func(key string, rr ...string) string {
 	var (
-		code = GetLanguageFromContext(ctx)
+		tag = GetLanguageFromContext(ctx)
 	)
 
 	return func(key string, rr ...string) string {
-		return svc.t(code, ns, key, rr...)
+		return svc.t(tag, ns, key, rr...)
 	}
 }
 
@@ -391,6 +379,7 @@ func (svc *service) TFor(tag language.Tag, ns, key string, rr ...string) string 
 //
 // Language is picked from the context
 func (svc *service) TResource(ctx context.Context, ns, key string, rr ...string) string {
+
 	return svc.tResource(GetLanguageFromContext(ctx), ns, key, rr...)
 }
 
@@ -405,11 +394,11 @@ func (svc *service) TResourceFor(tag language.Tag, ns, key string, rr ...string)
 // given resource.
 //
 // The response is indexed by translation key for nicer lookups.
-func (svc *service) ResourceTranslations(code language.Tag, resource string) ResourceTranslationIndex {
+func (svc *service) ResourceTranslations(tag language.Tag, resource string) ResourceTranslationIndex {
 	out := make(ResourceTranslationIndex)
 
 	if svc != nil && svc.set != nil {
-		if l, has := svc.set[code]; has {
+		if l, has := svc.set[tag]; has {
 			return l.resourceTranslations(resource)
 		}
 	}
@@ -418,9 +407,9 @@ func (svc *service) ResourceTranslations(code language.Tag, resource string) Res
 }
 
 // Finds language and uses it to translate the given key
-func (svc *service) t(code language.Tag, ns, key string, rr ...string) string {
+func (svc *service) t(tag language.Tag, ns, key string, rr ...string) string {
 	if svc != nil && svc.set != nil {
-		if l, has := svc.set[code]; has {
+		if l, has := svc.set[tag]; has {
 			return l.t(ns, key, rr...)
 		}
 	}
@@ -429,9 +418,9 @@ func (svc *service) t(code language.Tag, ns, key string, rr ...string) string {
 }
 
 // Finds language and uses it to translate the given key for resource
-func (svc *service) tResource(code language.Tag, ns, key string, rr ...string) string {
+func (svc *service) tResource(tag language.Tag, ns, key string, rr ...string) string {
 	if svc != nil && svc.set != nil {
-		if l, has := svc.set[code]; has {
+		if l, has := svc.set[tag]; has {
 			return l.tResource(ns, key, rr...)
 		}
 	}
