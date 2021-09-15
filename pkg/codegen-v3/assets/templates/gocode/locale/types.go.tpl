@@ -88,8 +88,6 @@ func (r *{{ .Resource }}) DecodeTranslations(tt locale.ResourceTranslationIndex)
 {{- if not .Custom }}
 	if aux = tt.FindByKey(LocaleKey{{ $Resource }}{{coalesce (export .Name) (export .Path) }}.Path); aux != nil {
 		r.{{ .Field }} = aux.Msg
-	} else {
-		r.{{ .Field }} = LocaleKey{{ $Resource }}{{coalesce (export .Name) (export .Path) }}.Path
 	}
 {{- end}}
 {{- end}}
@@ -107,17 +105,20 @@ func (r *{{ .Resource }}) DecodeTranslations(tt locale.ResourceTranslationIndex)
 }
 
 func (r *{{ .Resource }}) EncodeTranslations() (out locale.ResourceTranslationSet) {
-	out = locale.ResourceTranslationSet{
+	out = locale.ResourceTranslationSet{}
 {{- range .Locale.Keys}}
 {{- if not .Custom }}
-		{
+	if r.{{ .Field }} != "" {
+		out = append(out, &locale.ResourceTranslation{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKey{{ $Resource }}{{coalesce (export .Name) (export .Path) }}.Path,
-			Msg:      firstOkString(r.{{ .Field }}, LocaleKey{{ $Resource }}{{coalesce (export .Name) (export .Path) }}.Path),
-		},
-{{- end}}
-{{- end}}
+			Msg:      r.{{ .Field }},
+		})
 	}
+
+{{- end}}
+{{- end}}
+
 {{range .Locale.Keys}}
 {{- if and .Custom .CustomHandler }}
 	out = append(out, r.encodeTranslations{{export .CustomHandler}}()...)
@@ -132,12 +133,3 @@ func (r *{{ .Resource }}) EncodeTranslations() (out locale.ResourceTranslationSe
 }
 
 {{- end }}
-
-func firstOkString(ss ...string) string {
-	for _, s := range ss {
-		if s != "" {
-			return s
-		}
-	}
-	return ""
-}

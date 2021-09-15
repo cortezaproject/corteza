@@ -72,38 +72,28 @@ func (r *Workflow) DecodeTranslations(tt locale.ResourceTranslationIndex) {
 	var aux *locale.ResourceTranslation
 	if aux = tt.FindByKey(LocaleKeyWorkflowName.Path); aux != nil {
 		r.Meta.Name = aux.Msg
-	} else {
-		r.Meta.Name = LocaleKeyWorkflowName.Path
 	}
 	if aux = tt.FindByKey(LocaleKeyWorkflowDescription.Path); aux != nil {
 		r.Meta.Description = aux.Msg
-	} else {
-		r.Meta.Description = LocaleKeyWorkflowDescription.Path
 	}
 }
 
 func (r *Workflow) EncodeTranslations() (out locale.ResourceTranslationSet) {
-	out = locale.ResourceTranslationSet{
-		{
+	out = locale.ResourceTranslationSet{}
+	if r.Meta.Name != "" {
+		out = append(out, &locale.ResourceTranslation{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKeyWorkflowName.Path,
-			Msg:      firstOkString(r.Meta.Name, LocaleKeyWorkflowName.Path),
-		},
-		{
+			Msg:      r.Meta.Name,
+		})
+	}
+	if r.Meta.Description != "" {
+		out = append(out, &locale.ResourceTranslation{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKeyWorkflowDescription.Path,
-			Msg:      firstOkString(r.Meta.Description, LocaleKeyWorkflowDescription.Path),
-		},
+			Msg:      r.Meta.Description,
+		})
 	}
 
 	return out
-}
-
-func firstOkString(ss ...string) string {
-	for _, s := range ss {
-		if s != "" {
-			return s
-		}
-	}
-	return ""
 }
