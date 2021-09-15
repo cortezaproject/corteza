@@ -15,6 +15,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
+	"golang.org/x/text/language"
 )
 
 type (
@@ -209,6 +210,15 @@ func (svc namespace) Create(ctx context.Context, new *types.Namespace) (*types.N
 			return err
 		}
 
+		if contentLang := locale.GetContentLanguageFromContext(ctx); contentLang != language.Und {
+			tt := new.EncodeTranslations()
+			tt.SetLanguage(contentLang)
+			err = DefaultResourceTranslation.Upsert(ctx, tt)
+			if err != nil {
+				return err
+			}
+		}
+
 		if err = label.Create(ctx, s, new); err != nil {
 			return
 		}
@@ -275,12 +285,13 @@ func (svc namespace) updater(ctx context.Context, namespaceID uint64, action fun
 			}
 		}
 
-		// i18n
-		tt := ns.EncodeTranslations()
-		tt.SetLanguage(locale.GetLanguageFromContext(ctx))
-		err = DefaultResourceTranslation.Upsert(ctx, tt)
-		if err != nil {
-			return err
+		if contentLang := locale.GetContentLanguageFromContext(ctx); contentLang != language.Und {
+			tt := ns.EncodeTranslations()
+			tt.SetLanguage(contentLang)
+			err = DefaultResourceTranslation.Upsert(ctx, tt)
+			if err != nil {
+				return err
+			}
 		}
 
 		if changes&namespaceLabelsChanged > 0 {
