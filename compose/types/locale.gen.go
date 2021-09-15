@@ -131,18 +131,17 @@ func (r *Chart) DecodeTranslations(tt locale.ResourceTranslationIndex) {
 	var aux *locale.ResourceTranslation
 	if aux = tt.FindByKey(LocaleKeyChartName.Path); aux != nil {
 		r.Name = aux.Msg
-	} else {
-		r.Name = LocaleKeyChartName.Path
 	}
 }
 
 func (r *Chart) EncodeTranslations() (out locale.ResourceTranslationSet) {
-	out = locale.ResourceTranslationSet{
-		{
+	out = locale.ResourceTranslationSet{}
+	if r.Name != "" {
+		out = append(out, &locale.ResourceTranslation{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKeyChartName.Path,
-			Msg:      firstOkString(r.Name, LocaleKeyChartName.Path),
-		},
+			Msg:      r.Name,
+		})
 	}
 
 	return out
@@ -178,19 +177,18 @@ func (r *ModuleField) DecodeTranslations(tt locale.ResourceTranslationIndex) {
 	var aux *locale.ResourceTranslation
 	if aux = tt.FindByKey(LocaleKeyModuleFieldLabel.Path); aux != nil {
 		r.Label = aux.Msg
-	} else {
-		r.Label = LocaleKeyModuleFieldLabel.Path
 	}
 	r.decodeTranslationsValidatorError(tt)
 }
 
 func (r *ModuleField) EncodeTranslations() (out locale.ResourceTranslationSet) {
-	out = locale.ResourceTranslationSet{
-		{
+	out = locale.ResourceTranslationSet{}
+	if r.Label != "" {
+		out = append(out, &locale.ResourceTranslation{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKeyModuleFieldLabel.Path,
-			Msg:      firstOkString(r.Label, LocaleKeyModuleFieldLabel.Path),
-		},
+			Msg:      r.Label,
+		})
 	}
 
 	out = append(out, r.encodeTranslationsValidatorError()...)
@@ -228,20 +226,19 @@ func (r *Module) DecodeTranslations(tt locale.ResourceTranslationIndex) {
 	var aux *locale.ResourceTranslation
 	if aux = tt.FindByKey(LocaleKeyModuleName.Path); aux != nil {
 		r.Name = aux.Msg
-	} else {
-		r.Name = LocaleKeyModuleName.Path
 	}
 
 	r.decodeTranslations(tt)
 }
 
 func (r *Module) EncodeTranslations() (out locale.ResourceTranslationSet) {
-	out = locale.ResourceTranslationSet{
-		{
+	out = locale.ResourceTranslationSet{}
+	if r.Name != "" {
+		out = append(out, &locale.ResourceTranslation{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKeyModuleName.Path,
-			Msg:      firstOkString(r.Name, LocaleKeyModuleName.Path),
-		},
+			Msg:      r.Name,
+		})
 	}
 
 	out = append(out, r.encodeTranslations()...)
@@ -279,38 +276,37 @@ func (r *Namespace) DecodeTranslations(tt locale.ResourceTranslationIndex) {
 	var aux *locale.ResourceTranslation
 	if aux = tt.FindByKey(LocaleKeyNamespaceName.Path); aux != nil {
 		r.Name = aux.Msg
-	} else {
-		r.Name = LocaleKeyNamespaceName.Path
 	}
 	if aux = tt.FindByKey(LocaleKeyNamespaceSubtitle.Path); aux != nil {
 		r.Meta.Subtitle = aux.Msg
-	} else {
-		r.Meta.Subtitle = LocaleKeyNamespaceSubtitle.Path
 	}
 	if aux = tt.FindByKey(LocaleKeyNamespaceDescription.Path); aux != nil {
 		r.Meta.Description = aux.Msg
-	} else {
-		r.Meta.Description = LocaleKeyNamespaceDescription.Path
 	}
 }
 
 func (r *Namespace) EncodeTranslations() (out locale.ResourceTranslationSet) {
-	out = locale.ResourceTranslationSet{
-		{
+	out = locale.ResourceTranslationSet{}
+	if r.Name != "" {
+		out = append(out, &locale.ResourceTranslation{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKeyNamespaceName.Path,
-			Msg:      firstOkString(r.Name, LocaleKeyNamespaceName.Path),
-		},
-		{
+			Msg:      r.Name,
+		})
+	}
+	if r.Meta.Subtitle != "" {
+		out = append(out, &locale.ResourceTranslation{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKeyNamespaceSubtitle.Path,
-			Msg:      firstOkString(r.Meta.Subtitle, LocaleKeyNamespaceSubtitle.Path),
-		},
-		{
+			Msg:      r.Meta.Subtitle,
+		})
+	}
+	if r.Meta.Description != "" {
+		out = append(out, &locale.ResourceTranslation{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKeyNamespaceDescription.Path,
-			Msg:      firstOkString(r.Meta.Description, LocaleKeyNamespaceDescription.Path),
-		},
+			Msg:      r.Meta.Description,
+		})
 	}
 
 	return out
@@ -346,42 +342,32 @@ func (r *Page) DecodeTranslations(tt locale.ResourceTranslationIndex) {
 	var aux *locale.ResourceTranslation
 	if aux = tt.FindByKey(LocaleKeyPageTitle.Path); aux != nil {
 		r.Title = aux.Msg
-	} else {
-		r.Title = LocaleKeyPageTitle.Path
 	}
 	if aux = tt.FindByKey(LocaleKeyPageDescription.Path); aux != nil {
 		r.Description = aux.Msg
-	} else {
-		r.Description = LocaleKeyPageDescription.Path
 	}
 
 	r.decodeTranslations(tt)
 }
 
 func (r *Page) EncodeTranslations() (out locale.ResourceTranslationSet) {
-	out = locale.ResourceTranslationSet{
-		{
+	out = locale.ResourceTranslationSet{}
+	if r.Title != "" {
+		out = append(out, &locale.ResourceTranslation{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKeyPageTitle.Path,
-			Msg:      firstOkString(r.Title, LocaleKeyPageTitle.Path),
-		},
-		{
+			Msg:      r.Title,
+		})
+	}
+	if r.Description != "" {
+		out = append(out, &locale.ResourceTranslation{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKeyPageDescription.Path,
-			Msg:      firstOkString(r.Description, LocaleKeyPageDescription.Path),
-		},
+			Msg:      r.Description,
+		})
 	}
 
 	out = append(out, r.encodeTranslations()...)
 
 	return out
-}
-
-func firstOkString(ss ...string) string {
-	for _, s := range ss {
-		if s != "" {
-			return s
-		}
-	}
-	return ""
 }

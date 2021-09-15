@@ -99,7 +99,7 @@ func (l *Language) tResource(ns, key string, rr ...string) string {
 		return l.extends.tResource(ns, key, rr...)
 	}
 
-	return key
+	return ""
 }
 
 // resourceTranslations returns all resource translations for the specified resource
