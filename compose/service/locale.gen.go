@@ -48,15 +48,19 @@ func ResourceTranslation(ls locale.Resource) *resourceTranslation {
 	return &resourceTranslation{
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
+		ac:        DefaultAccessControl,
 		locale:    ls,
 	}
 }
 
 func (svc resourceTranslation) Upsert(ctx context.Context, rr locale.ResourceTranslationSet) (err error) {
 	// @todo AC
+	//if (!svc.ac.CanManageResourceTranslation(ctx)) {
+	//	return *****ErrNotAllowedToCreate()
+	//}
+
 	// @todo validation
 
-	defer locale.Global().ReloadResourceTranslations(ctx)
 	me := auth.GetIdentityFromContext(ctx)
 
 	// - group by resource
@@ -99,6 +103,11 @@ func (svc resourceTranslation) Upsert(ctx context.Context, rr locale.ResourceTra
 	if err != nil {
 		return err
 	}
+
+	// Reload ALL resource translations
+	// @todo we could probably do this more selectively and refresh only updated resources?
+	_ = locale.Global().ReloadResourceTranslations(ctx)
+
 	return nil
 }
 

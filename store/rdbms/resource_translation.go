@@ -36,6 +36,8 @@ func (s Store) convertResourceTranslationFilter(f types.ResourceTranslationFilte
 
 // TransformResource converts raw resource translations into the format used by
 // the locale package.
+//
+// @todo this function knows too much (locale pkg), move it out of store
 func (s *Store) TransformResource(ctx context.Context, lang language.Tag) (out map[string]map[string]*locale.ResourceTranslation, err error) {
 	out = make(map[string]map[string]*locale.ResourceTranslation)
 	var cc types.ResourceTranslationSet

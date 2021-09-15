@@ -104,6 +104,9 @@ func (l *Language) tResource(ns, key string, rr ...string) string {
 
 // resourceTranslations returns all resource translations for the specified resource
 func (l *Language) resourceTranslations(resource string) ResourceTranslationIndex {
+	l.l.RLock()
+	defer l.l.RUnlock()
+
 	out := make(ResourceTranslationIndex)
 	if l.resources == nil {
 		return out
