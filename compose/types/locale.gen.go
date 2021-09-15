@@ -124,6 +124,8 @@ func (r *ModuleField) DecodeTranslations(tt locale.ResourceTranslationIndex) {
 	var aux *locale.ResourceTranslation
 	if aux = tt.FindByKey(LocaleKeyModuleFieldLabel.Path); aux != nil {
 		r.Label = aux.Msg
+	} else {
+		r.Label = LocaleKeyModuleFieldLabel.Path
 	}
 	r.decodeTranslationsValidatorError(tt)
 }
@@ -172,6 +174,8 @@ func (r *Module) DecodeTranslations(tt locale.ResourceTranslationIndex) {
 	var aux *locale.ResourceTranslation
 	if aux = tt.FindByKey(LocaleKeyModuleName.Path); aux != nil {
 		r.Name = aux.Msg
+	} else {
+		r.Name = LocaleKeyModuleName.Path
 	}
 
 	r.decodeTranslations(tt)
@@ -221,12 +225,18 @@ func (r *Namespace) DecodeTranslations(tt locale.ResourceTranslationIndex) {
 	var aux *locale.ResourceTranslation
 	if aux = tt.FindByKey(LocaleKeyNamespaceName.Path); aux != nil {
 		r.Name = aux.Msg
+	} else {
+		r.Name = LocaleKeyNamespaceName.Path
 	}
 	if aux = tt.FindByKey(LocaleKeyNamespaceSubtitle.Path); aux != nil {
 		r.Meta.Subtitle = aux.Msg
+	} else {
+		r.Meta.Subtitle = LocaleKeyNamespaceSubtitle.Path
 	}
 	if aux = tt.FindByKey(LocaleKeyNamespaceDescription.Path); aux != nil {
 		r.Meta.Description = aux.Msg
+	} else {
+		r.Meta.Description = LocaleKeyNamespaceDescription.Path
 	}
 }
 
@@ -282,9 +292,13 @@ func (r *Page) DecodeTranslations(tt locale.ResourceTranslationIndex) {
 	var aux *locale.ResourceTranslation
 	if aux = tt.FindByKey(LocaleKeyPageTitle.Path); aux != nil {
 		r.Title = aux.Msg
+	} else {
+		r.Title = LocaleKeyPageTitle.Path
 	}
 	if aux = tt.FindByKey(LocaleKeyPageDescription.Path); aux != nil {
 		r.Description = aux.Msg
+	} else {
+		r.Description = LocaleKeyPageDescription.Path
 	}
 
 	r.decodeTranslations(tt)
