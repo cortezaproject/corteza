@@ -125,7 +125,7 @@ func (svc resourceTranslation) Module(ctx context.Context, namespaceID uint64, I
 			Resource: res.ResourceTranslation(),
 			Lang:     tag.String(),
 			Key:      k.Path,
-			Msg:      svc.locale.TRFor(tag, res.ResourceTranslation(), k.Path),
+			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), k.Path),
 		})
 
 	}
@@ -153,7 +153,7 @@ func (svc resourceTranslation) Namespace(ctx context.Context, ID uint64) (locale
 			Resource: res.ResourceTranslation(),
 			Lang:     tag.String(),
 			Key:      k.Path,
-			Msg:      svc.locale.TRFor(tag, res.ResourceTranslation(), k.Path),
+			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), k.Path),
 		})
 
 		k = types.LocaleKeyNamespaceSubtitle
@@ -161,7 +161,7 @@ func (svc resourceTranslation) Namespace(ctx context.Context, ID uint64) (locale
 			Resource: res.ResourceTranslation(),
 			Lang:     tag.String(),
 			Key:      k.Path,
-			Msg:      svc.locale.TRFor(tag, res.ResourceTranslation(), k.Path),
+			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), k.Path),
 		})
 
 		k = types.LocaleKeyNamespaceDescription
@@ -169,7 +169,7 @@ func (svc resourceTranslation) Namespace(ctx context.Context, ID uint64) (locale
 			Resource: res.ResourceTranslation(),
 			Lang:     tag.String(),
 			Key:      k.Path,
-			Msg:      svc.locale.TRFor(tag, res.ResourceTranslation(), k.Path),
+			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), k.Path),
 		})
 
 	}
@@ -195,7 +195,7 @@ func (svc resourceTranslation) Page(ctx context.Context, namespaceID uint64, ID 
 			Resource: res.ResourceTranslation(),
 			Lang:     tag.String(),
 			Key:      k.Path,
-			Msg:      svc.locale.TRFor(tag, res.ResourceTranslation(), k.Path),
+			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), k.Path),
 		})
 
 		k = types.LocaleKeyPageDescription
@@ -203,7 +203,7 @@ func (svc resourceTranslation) Page(ctx context.Context, namespaceID uint64, ID 
 			Resource: res.ResourceTranslation(),
 			Lang:     tag.String(),
 			Key:      k.Path,
-			Msg:      svc.locale.TRFor(tag, res.ResourceTranslation(), k.Path),
+			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), k.Path),
 		})
 
 	}
