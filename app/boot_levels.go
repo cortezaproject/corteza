@@ -32,6 +32,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/scheduler"
 	"github.com/cortezaproject/corteza-server/pkg/seeder"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
+	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"github.com/cortezaproject/corteza-server/pkg/websocket"
 	"github.com/cortezaproject/corteza-server/store"
 	sysService "github.com/cortezaproject/corteza-server/system/service"
@@ -491,6 +492,8 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 		updateAuthSettings(app.AuthService, appSettings)
 	})
 
+	updateLocaleSettings()
+
 	app.AuthService.Watch(ctx)
 
 	// messagebus reloader and consumer listeners
@@ -588,4 +591,61 @@ func updateAuthSettings(svc authServicer, current *types.AppSettings) {
 // Checks if federation is enabled in the options
 func updateFederationSettings(opt options.FederationOpt, current *types.AppSettings) {
 	current.Federation.Enabled = opt.Enabled
+}
+
+// Sanitizes application (current) settings with languages from options
+//
+// It updates ui.languages and resource-translations.languages slices
+//
+// # ui.languages
+// These need to be a subset of LOCALE_LANGUAGES (we'll use the list of parsed languages)
+//
+// # resource-translations.languages
+// These do not need to be subset of LOCALE_LANGUAGES but need to be valid language tags!
+func updateLocaleSettings() {
+	configuredLanguages := func() []string {
+		tt := locale.Global().Tags()
+		out := make([]string, len(tt))
+		for t := range tt {
+			out[t] = tt[t].String()
+		}
+
+		return out
+	}
+
+	updateUILanguages := func(appSettings *types.AppSettings) {
+		if len(appSettings.UI.Languages) == 0 {
+			appSettings.UI.Languages = configuredLanguages()
+		} else {
+			appSettings.UI.Languages = slice.IntersectStrings(configuredLanguages(), appSettings.UI.Languages)
+		}
+	}
+
+	updateResourceLanguages := func(appSettings *types.AppSettings) {
+		if len(appSettings.UI.Languages) == 0 {
+			appSettings.ResourceTranslations.Languages = configuredLanguages()
+		} else {
+			appSettings.ResourceTranslations.Languages = slice.IntersectStrings(configuredLanguages(), appSettings.UI.Languages)
+		}
+	}
+
+	updateUILanguages(sysService.CurrentSettings)
+	sysService.DefaultSettings.Register("ui.languages", func(ctx context.Context, current interface{}, _ types.SettingValueSet) {
+		appSettings, is := current.(*types.AppSettings)
+		if !is {
+			return
+		}
+
+		updateUILanguages(appSettings)
+	})
+
+	updateResourceLanguages(sysService.CurrentSettings)
+	sysService.DefaultSettings.Register("resource-translations.languages", func(ctx context.Context, current interface{}, _ types.SettingValueSet) {
+		appSettings, is := current.(*types.AppSettings)
+		if !is {
+			return
+		}
+
+		updateResourceLanguages(appSettings)
+	})
 }
