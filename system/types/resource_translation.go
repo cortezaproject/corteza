@@ -15,7 +15,7 @@ type (
 
 		Lang     Lang   `json:"lang"`
 		Resource string `json:"resource"`
-		K        string `json:"k"`
+		K        string `json:"key"`
 		Message  string `json:"message"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
