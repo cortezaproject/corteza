@@ -2,7 +2,6 @@ package resource
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -30,10 +29,6 @@ func NewRole(rl *types.Role) *Role {
 
 func (r *Role) SysID() uint64 {
 	return r.Res.ID
-}
-
-func (r *Role) Ref() string {
-	return firstOkString(r.Res.Handle, r.Res.Name, strconv.FormatUint(r.Res.ID, 10))
 }
 
 // FindRole looks for the role in the resources

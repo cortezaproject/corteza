@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
+	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -188,6 +189,14 @@ func (t *base) Refs() RefSet {
 	return t.rr
 }
 
+func (t *base) Ref() *Ref {
+	return &Ref{ResourceType: t.rt, Identifiers: t.ii}
+}
+
 func (t *base) HasRefs() bool {
 	return t.rr == nil || len(t.rr) == 0
+}
+
+func IgnoreDepResolution(ref *Ref) bool {
+	return ref.ResourceType == composeTypes.ModuleFieldResourceType
 }

@@ -73,6 +73,14 @@ func (r *AutomationWorkflow) AddAutomationTrigger(res *types.Trigger) *Automatio
 	return t
 }
 
+func (r *AutomationWorkflow) ResourceTranslationParts() (resource string, ref *Ref, path []*Ref) {
+	ref = r.Ref()
+	path = nil
+	resource = fmt.Sprintf(types.WorkflowResourceTranslationTpl(), types.WorkflowResourceTranslationType, firstOkString(strconv.FormatUint(r.Res.ID, 10), r.Res.Handle))
+
+	return
+}
+
 func (r *AutomationWorkflow) AddAutomationWorkflowStep(res *types.WorkflowStep) *AutomationWorkflowStep {
 	s := &AutomationWorkflowStep{
 		base: &base{},
@@ -105,10 +113,6 @@ func (r *AutomationWorkflow) AddAutomationWorkflowPath(res *types.WorkflowPath) 
 
 func (r *AutomationWorkflow) SysID() uint64 {
 	return r.Res.ID
-}
-
-func (r *AutomationWorkflow) Ref() string {
-	return firstOkString(r.Res.Handle, r.Res.Meta.Name, strconv.FormatUint(r.Res.ID, 10))
 }
 
 // FindAutomationWorkflow looks for the workflow in the resource set

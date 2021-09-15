@@ -141,6 +141,8 @@ func (se *storeEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState)
 			err = f(NewSettingFromResource(res, se.cfg), ers)
 		case *resource.RbacRule:
 			err = f(newRbacRuleFromResource(res, se.cfg), ers)
+		case *resource.ResourceTranslation:
+			err = f(newResourceTranslationFromResource(res, se.cfg), ers)
 
 		// Automation resources
 		case *resource.AutomationWorkflow:

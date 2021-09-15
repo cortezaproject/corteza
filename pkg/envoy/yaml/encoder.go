@@ -134,6 +134,8 @@ func (ye *yamlEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState) 
 			err = f(settingFromResource(res, ye.cfg), e)
 		case *resource.RbacRule:
 			err = f(rbacRuleFromResource(res, ye.cfg), e)
+		case *resource.ResourceTranslation:
+			err = f(resourceTranslationFromResource(res, ye.cfg), e)
 
 		// Automation resources
 		case *resource.AutomationWorkflow:

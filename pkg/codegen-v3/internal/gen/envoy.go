@@ -13,6 +13,10 @@ func Envoy(t *template.Template, dd []*def.Document) error {
 	return List{
 		"resource rbac parse":      envoyResourceRbacUnmarshal,
 		"resource rbac references": envoyResourceRbacReferences,
+
+		"resource translation":            envoyResourceTranslation,
+		"resource translation parse":      envoyResourceTranslationUnmarshal,
+		"resource translation references": envoyResourceTranslationReferences,
 	}.Generate(t, dd)
 }
 
@@ -62,6 +66,88 @@ func envoyResourceRbacReferences(t *template.Template, dd []*def.Document) (err 
 	)
 
 	dd = filter(dd, func(d *def.Document) bool { return d.Envoy })
+
+	for component, perComponent := range partByComponent(dd) {
+
+		w := tpl.Wrap{
+			Package:   "resource",
+			Component: component,
+			Def:       perComponent,
+			Imports:   append(collectImports(perComponent...), cImport(component, "types")),
+		}
+
+		err = tpl.GoTemplate(fmt.Sprintf(outputPathTpl, component), t.Lookup(templateName), w)
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func envoyResourceTranslation(t *template.Template, dd []*def.Document) (err error) {
+	const (
+		templateName  = "envoy/resource-resource_translation.go.tpl"
+		outputPathTpl = "pkg/envoy/resource/resource_translation.gen.go"
+	)
+
+	dd = filter(dd, func(d *def.Document) bool { return d.Envoy && d.Locale != nil })
+
+	// build list of component type imports
+	ctImports := make([]string, 0)
+
+	w := tpl.Wrap{
+		Package: "resource",
+		Def:     dd,
+		Imports: append(collectImports(dd...), ctImports...),
+	}
+
+	err = tpl.GoTemplate(outputPathTpl, t.Lookup(templateName), w)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func envoyResourceTranslationUnmarshal(t *template.Template, dd []*def.Document) (err error) {
+	const (
+		templateName  = "envoy/resource-resource_translation_parse.go.tpl"
+		outputPathTpl = "pkg/envoy/resource/resource_translation_parse.gen.go"
+	)
+
+	dd = filter(dd, func(d *def.Document) bool { return d.Envoy && d.Locale != nil })
+
+	// build list of component type imports
+	ctImports := make([]string, 0)
+	for _, d := range dd {
+		imp := d.Component + "Types " + cImport(d.Component, "types")
+		if !slice.HasString(ctImports, imp) {
+			ctImports = append(ctImports, imp)
+		}
+	}
+
+	w := tpl.Wrap{
+		Package: "resource",
+		Def:     dd,
+		Imports: append(collectImports(dd...), ctImports...),
+	}
+
+	err = tpl.GoTemplate(outputPathTpl, t.Lookup(templateName), w)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func envoyResourceTranslationReferences(t *template.Template, dd []*def.Document) (err error) {
+	const (
+		templateName  = "envoy/resource-resource_translation_references.go.tpl"
+		outputPathTpl = "pkg/envoy/resource/resource_translation_references_%s.gen.go"
+	)
+
+	dd = filter(dd, func(d *def.Document) bool { return d.Envoy && d.Locale != nil })
 
 	for component, perComponent := range partByComponent(dd) {
 
