@@ -98,8 +98,6 @@ func (ctrl *Settings) Set(ctx context.Context, r *request.SettingsSet) (interfac
 // Current settings, structured
 //
 // This is available to all authenticated users
-//
-// @todo selectively apply subset of user's own settings (like ui.one.panes.*)
 func (ctrl *Settings) Current(ctx context.Context, r *request.SettingsCurrent) (interface{}, error) {
 	return service.CurrentSettings, nil
 }
