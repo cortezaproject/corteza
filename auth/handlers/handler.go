@@ -239,7 +239,7 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 			// because we need request's context to detect the language from!
 			ttf = func(t *template.Template) *template.Template {
 				return t.Funcs(map[string]interface{}{
-					"language": func() string { return locale.GetLanguageFromContext(req.Context()).String() },
+					"language": func() string { return locale.GetAcceptLanguageFromContext(req.Context()).String() },
 					"tr": func(key string, pp ...interface{}) template.HTML {
 						ss := make([]string, len(pp))
 						for i := range pp {

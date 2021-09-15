@@ -144,7 +144,7 @@ func (svc page) search(ctx context.Context, filter types.PageFilter) (set types.
 		}
 
 		// i18n
-		tag := locale.GetLanguageFromContext(ctx)
+		tag := locale.GetAcceptLanguageFromContext(ctx)
 		set.Walk(func(p *types.Page) error {
 			p.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, p.ResourceTranslation()))
 			return nil
@@ -362,7 +362,7 @@ func (svc page) updater(ctx context.Context, namespaceID, pageID uint64, action 
 
 		// i18n
 		tt := p.EncodeTranslations()
-		tt.SetLanguage(locale.GetLanguageFromContext(ctx))
+		tt.SetLanguage(locale.GetAcceptLanguageFromContext(ctx))
 		err = svc.locale.Upsert(ctx, tt)
 		if err != nil {
 			return err
@@ -403,7 +403,7 @@ func (svc page) lookup(ctx context.Context, namespaceID uint64, lookup func(*pag
 			return err
 		}
 
-		p.DecodeTranslations(svc.locale.Locale().ResourceTranslations(locale.GetLanguageFromContext(ctx), p.ResourceTranslation()))
+		p.DecodeTranslations(svc.locale.Locale().ResourceTranslations(locale.GetAcceptLanguageFromContext(ctx), p.ResourceTranslation()))
 
 		aProps.setPage(p)
 
