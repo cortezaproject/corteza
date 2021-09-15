@@ -134,7 +134,12 @@ func (svc *service) ReloadStatic() (err error) {
 		zap.Strings("tags", tagsToStrings(svc.tags)),
 	)
 
-	svc.set = make(map[language.Tag]*Language)
+	// In case where this is already initialized, we need to make sure to
+	// preserve any resource translations.
+	// The preservation is handled below, before we update svc.set.
+	if svc.set == nil {
+		svc.set = make(map[language.Tag]*Language)
+	}
 
 	// load embedded locales from the corteza-locale package
 	if ll, err = loadConfigs(locale.Languages()); err != nil {
@@ -204,6 +209,13 @@ func (svc *service) ReloadStatic() (err error) {
 				"language loaded",
 				logFields...,
 			)
+		}
+
+		// Preserve current resource translations.
+		// Resource translations are updated when they change so these are
+		// already up to date.
+		if existing, ok := svc.set[lang.Tag]; ok {
+			lang.resources = existing.resources
 		}
 
 		svc.set[lang.Tag] = lang
