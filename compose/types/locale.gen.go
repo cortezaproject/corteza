@@ -7,6 +7,7 @@ package types
 //
 
 // Definitions file that controls how this file is generated:
+// - compose.chart.yaml
 // - compose.module-field.yaml
 // - compose.module.yaml
 // - compose.namespace.yaml
@@ -29,6 +30,7 @@ type (
 
 // Types and stuff
 const (
+	ChartResourceTranslationType       = "compose:chart"
 	ModuleFieldResourceTranslationType = "compose:module-field"
 	ModuleResourceTranslationType      = "compose:module"
 	NamespaceResourceTranslationType   = "compose:namespace"
@@ -36,6 +38,11 @@ const (
 )
 
 var (
+	LocaleKeyChartName = LocaleKey{
+		Name:     "name",
+		Resource: ChartResourceTranslationType,
+		Path:     "name",
+	}
 	LocaleKeyModuleFieldLabel = LocaleKey{
 		Name:     "label",
 		Resource: ModuleFieldResourceTranslationType,
@@ -94,6 +101,53 @@ var (
 	}
 )
 
+// ResourceTranslation returns string representation of Locale resource for Chart by calling ChartResourceTranslation fn
+//
+// Locale resource is in the compose:chart/... format
+//
+// This function is auto-generated
+func (r Chart) ResourceTranslation() string {
+	return ChartResourceTranslation(r.NamespaceID, r.ID)
+}
+
+// ChartResourceTranslation returns string representation of Locale resource for Chart
+//
+// Locale resource is in the compose:chart/... format
+//
+// This function is auto-generated
+func ChartResourceTranslation(namespaceID uint64, id uint64) string {
+	cpts := []interface{}{ChartResourceTranslationType}
+	cpts = append(cpts, strconv.FormatUint(namespaceID, 10), strconv.FormatUint(id, 10))
+
+	return fmt.Sprintf(ChartResourceTranslationTpl(), cpts...)
+}
+
+// @todo template
+func ChartResourceTranslationTpl() string {
+	return "%s/%s/%s"
+}
+
+func (r *Chart) DecodeTranslations(tt locale.ResourceTranslationIndex) {
+	var aux *locale.ResourceTranslation
+	if aux = tt.FindByKey(LocaleKeyChartName.Path); aux != nil {
+		r.Name = aux.Msg
+	} else {
+		r.Name = LocaleKeyChartName.Path
+	}
+}
+
+func (r *Chart) EncodeTranslations() (out locale.ResourceTranslationSet) {
+	out = locale.ResourceTranslationSet{
+		{
+			Resource: r.ResourceTranslation(),
+			Key:      LocaleKeyChartName.Path,
+			Msg:      firstOkString(r.Name, LocaleKeyChartName.Path),
+		},
+	}
+
+	return out
+}
+
 // ResourceTranslation returns string representation of Locale resource for ModuleField by calling ModuleFieldResourceTranslation fn
 //
 // Locale resource is in the compose:module-field/... format
@@ -135,7 +189,7 @@ func (r *ModuleField) EncodeTranslations() (out locale.ResourceTranslationSet) {
 		{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKeyModuleFieldLabel.Path,
-			Msg:      r.Label,
+			Msg:      firstOkString(r.Label, LocaleKeyModuleFieldLabel.Path),
 		},
 	}
 
@@ -186,7 +240,7 @@ func (r *Module) EncodeTranslations() (out locale.ResourceTranslationSet) {
 		{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKeyModuleName.Path,
-			Msg:      r.Name,
+			Msg:      firstOkString(r.Name, LocaleKeyModuleName.Path),
 		},
 	}
 
@@ -245,17 +299,17 @@ func (r *Namespace) EncodeTranslations() (out locale.ResourceTranslationSet) {
 		{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKeyNamespaceName.Path,
-			Msg:      r.Name,
+			Msg:      firstOkString(r.Name, LocaleKeyNamespaceName.Path),
 		},
 		{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKeyNamespaceSubtitle.Path,
-			Msg:      r.Meta.Subtitle,
+			Msg:      firstOkString(r.Meta.Subtitle, LocaleKeyNamespaceSubtitle.Path),
 		},
 		{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKeyNamespaceDescription.Path,
-			Msg:      r.Meta.Description,
+			Msg:      firstOkString(r.Meta.Description, LocaleKeyNamespaceDescription.Path),
 		},
 	}
 
@@ -309,16 +363,25 @@ func (r *Page) EncodeTranslations() (out locale.ResourceTranslationSet) {
 		{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKeyPageTitle.Path,
-			Msg:      r.Title,
+			Msg:      firstOkString(r.Title, LocaleKeyPageTitle.Path),
 		},
 		{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKeyPageDescription.Path,
-			Msg:      r.Description,
+			Msg:      firstOkString(r.Description, LocaleKeyPageDescription.Path),
 		},
 	}
 
 	out = append(out, r.encodeTranslations()...)
 
 	return out
+}
+
+func firstOkString(ss ...string) string {
+	for _, s := range ss {
+		if s != "" {
+			return s
+		}
+	}
+	return ""
 }

@@ -52,6 +52,7 @@ func localeServices(t *template.Template, dd []*def.Document) (err error) {
 			Package:   "service",
 			Component: component,
 			Def:       perComponent,
+			Imports:   append(collectImports(perComponent...), cImport(component, "types")),
 		}
 
 		err = tpl.GoTemplate(fmt.Sprintf(outputPathTpl, component), t.Lookup(templateName), w)

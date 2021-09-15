@@ -148,3 +148,8 @@ func (svc resourceTranslation) loadPage(ctx context.Context, s store.Storer, nam
 	_, m, err = loadPage(ctx, s, namespaceID, pageID)
 	return m, err
 }
+
+func (svc resourceTranslation) loadChart(ctx context.Context, s store.Storer, namespaceID, chartID uint64) (m *types.Chart, err error) {
+	_, m, err = loadChart(ctx, s, namespaceID, chartID)
+	return m, err
+}
