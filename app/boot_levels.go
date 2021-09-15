@@ -351,6 +351,11 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		rbac.SetGlobal(ac)
 	}
 
+	locale.Global().BindStore(app.Store)
+	if err = locale.Global().ReloadResourceTranslations(ctx); err != nil {
+		return err
+	}
+
 	if app.Opt.Messagebus.Enabled {
 		// initialize all the queue handlers
 		messagebus.Service().Init(ctx, app.Store)
