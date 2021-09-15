@@ -6,7 +6,10 @@ package {{ .Package }}
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza-server/compose/types"
+{{- range .Imports }}
+    {{ . }}
+{{- end }}
+
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/locale"

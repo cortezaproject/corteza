@@ -113,7 +113,7 @@ func (r *{{ .Resource }}) EncodeTranslations() (out locale.ResourceTranslationSe
 		{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKey{{ $Resource }}{{coalesce (export .Name) (export .Path) }}.Path,
-			Msg:      r.{{ .Field }},
+			Msg:      firstOkString(r.{{ .Field }}, LocaleKey{{ $Resource }}{{coalesce (export .Name) (export .Path) }}.Path),
 		},
 {{- end}}
 {{- end}}
@@ -132,3 +132,12 @@ func (r *{{ .Resource }}) EncodeTranslations() (out locale.ResourceTranslationSe
 }
 
 {{- end }}
+
+func firstOkString(ss ...string) string {
+	for _, s := range ss {
+		if s != "" {
+			return s
+		}
+	}
+	return ""
+}
