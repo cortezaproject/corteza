@@ -88,6 +88,8 @@ func (r *{{ .Resource }}) DecodeTranslations(tt locale.ResourceTranslationIndex)
 {{- if not .Custom }}
 	if aux = tt.FindByKey(LocaleKey{{ $Resource }}{{coalesce (export .Name) (export .Path) }}.Path); aux != nil {
 		r.{{ .Field }} = aux.Msg
+	} else {
+		r.{{ .Field }} = LocaleKey{{ $Resource }}{{coalesce (export .Name) (export .Path) }}.Path
 	}
 {{- end}}
 {{- end}}
