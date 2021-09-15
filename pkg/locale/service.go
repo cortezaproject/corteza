@@ -27,8 +27,8 @@ type (
 	}
 
 	Resource interface {
-		TR(ctx context.Context, ns, key string, rr ...string) string
-		TRFor(tag language.Tag, ns, key string, rr ...string) string
+		TResource(ctx context.Context, ns, key string, rr ...string) string
+		TResourceFor(tag language.Tag, ns, key string, rr ...string) string
 		Tags() []language.Tag
 		ResourceTranslations(code language.Tag, resource string) ResourceTranslationIndex
 	}
@@ -387,18 +387,18 @@ func (svc *service) TFor(tag language.Tag, ns, key string, rr ...string) string 
 	return svc.t(tag, ns, key, rr...)
 }
 
-// TR returns translated key for resource using list of replacement pairs
+// TResource returns translated key for resource using list of replacement pairs
 //
 // Language is picked from the context
-func (svc *service) TR(ctx context.Context, ns, key string, rr ...string) string {
-	return svc.tr(GetLanguageFromContext(ctx), ns, key, rr...)
+func (svc *service) TResource(ctx context.Context, ns, key string, rr ...string) string {
+	return svc.tResource(GetLanguageFromContext(ctx), ns, key, rr...)
 }
 
-// TRFor returns translated key for resource using list of replacement pairs
+// TResourceFor returns translated key for resource using list of replacement pairs
 //
 // Language is picked from the context
-func (svc *service) TRFor(tag language.Tag, ns, key string, rr ...string) string {
-	return svc.tr(tag, ns, key, rr...)
+func (svc *service) TResourceFor(tag language.Tag, ns, key string, rr ...string) string {
+	return svc.tResource(tag, ns, key, rr...)
 }
 
 // ResourceTranslations returns all translations for the given language for the
@@ -429,10 +429,10 @@ func (svc *service) t(code language.Tag, ns, key string, rr ...string) string {
 }
 
 // Finds language and uses it to translate the given key for resource
-func (svc *service) tr(code language.Tag, ns, key string, rr ...string) string {
+func (svc *service) tResource(code language.Tag, ns, key string, rr ...string) string {
 	if svc != nil && svc.set != nil {
 		if l, has := svc.set[code]; has {
-			return l.tr(ns, key, rr...)
+			return l.tResource(ns, key, rr...)
 		}
 	}
 

@@ -81,8 +81,8 @@ func (l *Language) t(ns, key string, rr ...string) string {
 	return key
 }
 
-// tr returns the translated string for resource translations
-func (l *Language) tr(ns, key string, rr ...string) string {
+// tResource returns the translated string for resource translations
+func (l *Language) tResource(ns, key string, rr ...string) string {
 	l.l.RLock()
 	defer l.l.RUnlock()
 
@@ -96,10 +96,10 @@ func (l *Language) tr(ns, key string, rr ...string) string {
 	}
 
 	if l.extends != nil {
-		return l.extends.tr(ns, key, rr...)
+		return l.extends.tResource(ns, key, rr...)
 	}
 
-	return key
+	return ""
 }
 
 // resourceTranslations returns all resource translations for the specified resource

@@ -24,7 +24,7 @@ func (svc resourceTranslation) moduleExtended(ctx context.Context, res *types.Mo
 				Resource: f.ResourceTranslation(),
 				Lang:     tag.String(),
 				Key:      k.Path,
-				Msg:      svc.locale.TRFor(tag, f.ResourceTranslation(), k.Path),
+				Msg:      svc.locale.TResourceFor(tag, f.ResourceTranslation(), k.Path),
 			})
 
 			// Extra field bits
@@ -53,7 +53,7 @@ func (svc resourceTranslation) moduleFieldValidatorErrorHandler(ctx context.Cont
 			Resource: f.ResourceTranslation(),
 			Lang:     tag.String(),
 			Key:      tKey,
-			Msg:      svc.locale.TRFor(tag, f.ResourceTranslation(), tKey),
+			Msg:      svc.locale.TResourceFor(tag, f.ResourceTranslation(), tKey),
 		})
 	}
 
@@ -78,7 +78,7 @@ func (svc resourceTranslation) pageExtended(ctx context.Context, res *types.Page
 				Resource: res.ResourceTranslation(),
 				Lang:     tag.String(),
 				Key:      rpl.Replace(k.Path),
-				Msg:      svc.locale.TRFor(tag, res.ResourceTranslation(), rpl.Replace(k.Path)),
+				Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), rpl.Replace(k.Path)),
 			})
 
 			k = types.LocaleKeyPageBlockDescription
@@ -86,7 +86,7 @@ func (svc resourceTranslation) pageExtended(ctx context.Context, res *types.Page
 				Resource: res.ResourceTranslation(),
 				Lang:     tag.String(),
 				Key:      rpl.Replace(k.Path),
-				Msg:      svc.locale.TRFor(tag, res.ResourceTranslation(), rpl.Replace(k.Path)),
+				Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), rpl.Replace(k.Path)),
 			})
 
 			switch block.Kind {
@@ -127,7 +127,7 @@ func (svc resourceTranslation) pageExtendedAutomatinBlock(tag language.Tag, res 
 			Resource: res.ResourceTranslation(),
 			Lang:     tag.String(),
 			Key:      rpl.Replace(k.Path),
-			Msg:      svc.locale.TRFor(tag, res.ResourceTranslation(), rpl.Replace(k.Path)),
+			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), rpl.Replace(k.Path)),
 		})
 	}
 

@@ -123,7 +123,7 @@ func (svc resourceTranslation) {{ .Resource }}(ctx context.Context, {{ if .Local
 			Resource: res.ResourceTranslation(),
 			Lang:     tag.String(),
 			Key:      k.Path,
-			Msg:      svc.locale.TRFor(tag, res.ResourceTranslation(), k.Path),
+			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), k.Path),
 		})
 	{{ end }}
 {{- end}}

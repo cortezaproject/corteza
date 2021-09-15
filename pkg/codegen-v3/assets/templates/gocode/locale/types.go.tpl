@@ -65,7 +65,7 @@ func {{ .Resource }}ResourceTranslation({{ if .Locale.Resource }}{{ range .Local
 	cpts = append(cpts, {{range .Locale.Resource.References -}}
 		strconv.FormatUint({{ unexport .Field }}, 10),
 		{{- end }})
-	
+
 	return fmt.Sprintf({{ .Resource }}ResourceTranslationTpl(), cpts...)
 	{{- end }}
 }
