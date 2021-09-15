@@ -7,7 +7,7 @@ type (
 		Resource string `json:"resource"`
 		Lang     string `json:"lang"`
 		Key      string `json:"key"`
-		Msg      string `json:"msg"`
+		Msg      string `json:"message"`
 	}
 
 	ResourceTranslationIndex map[string]*ResourceTranslation
