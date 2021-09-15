@@ -142,12 +142,20 @@ func (r *ComposePage) SysID() uint64 {
 	return r.Res.ID
 }
 
-func (r *ComposePage) Ref() string {
-	return firstOkString(r.Res.Handle, r.Res.Title, strconv.FormatUint(r.Res.ID, 10))
-}
-
 func (r *ComposePage) RBACPath() []*Ref {
 	return []*Ref{r.RefNs}
+}
+
+func (r *ComposePage) ResourceTranslationParts() (resource string, ref *Ref, path []*Ref) {
+	ref = r.Ref()
+	path = []*Ref{r.RefNs}
+	resource = fmt.Sprintf(types.PageResourceTranslationTpl(), types.PageResourceTranslationType, r.RefNs.Identifiers.First(), firstOkString(strconv.FormatUint(r.Res.ID, 10), r.Res.Handle))
+
+	return
+}
+
+func (r *ComposePage) encodeTranslations() ([]*ResourceTranslation, error) {
+	return nil, nil
 }
 
 // FindComposePage looks for the page in the resources

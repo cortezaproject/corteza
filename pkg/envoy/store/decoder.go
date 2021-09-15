@@ -24,12 +24,13 @@ type (
 		composeChart     []*composeChartFilter
 
 		// System stuff
-		roles        []*roleFilter
-		users        []*userFilter
-		templates    []*templateFilter
-		applications []*applicationFilter
-		settings     []*settingFilter
-		rbac         []*rbacFilter
+		roles                []*roleFilter
+		users                []*userFilter
+		templates            []*templateFilter
+		applications         []*applicationFilter
+		settings             []*settingFilter
+		rbac                 []*rbacFilter
+		resourceTranslations []*resourceTranslationFilter
 
 		// Automation stuff
 		automationWorkflow []*automationWorkflowFilter
@@ -72,6 +73,22 @@ func (aum auxMarshaller) MarshalEnvoy() ([]resource.Interface, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		// Default locales for applicable resources
+		for _, t := range tmp {
+			if li, ok := t.(resource.LocaleInterface); ok {
+				ll, err := li.EncodeTranslations()
+				if err != nil {
+					return nil, err
+				}
+
+				for _, l := range ll {
+					l.MarkDefault()
+					ii = append(ii, l)
+				}
+			}
+		}
+
 		ii = append(ii, tmp...)
 	}
 
@@ -122,6 +139,7 @@ func (d *decoder) Decode(ctx context.Context, s store.Storer, f *DecodeFilter) (
 		system.decodeTemplates(ctx, s, f.templates),
 		system.decodeApplications(ctx, s, f.applications),
 		system.decodeSettings(ctx, s, f.settings),
+		system.decodeResourceTranslation(ctx, s, f.resourceTranslations),
 
 		automation.decodeWorkflows(ctx, s, f.automationWorkflow),
 	)

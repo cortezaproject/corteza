@@ -61,6 +61,10 @@ func (wrap *composeNamespace) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
+	if wrap.locale, err = decodeLocale(n); err != nil {
+		return
+	}
+
 	if wrap.envoyConfig, err = decodeEnvoyConfig(n); err != nil {
 		return
 	}
@@ -113,12 +117,24 @@ func (wrap composeNamespace) MarshalEnvoy() ([]resource.Interface, error) {
 	nsr.SetTimestamps(wrap.ts)
 	nsr.SetConfig(wrap.envoyConfig)
 
+	var defaultNsTranslations []resource.Interface
+	dft, err := nsr.EncodeTranslations()
+	if err != nil {
+		return nil, err
+	}
+	for _, t := range dft {
+		t.MarkDefault()
+		defaultNsTranslations = append(defaultNsTranslations, t)
+	}
+
 	return envoy.CollectNodes(
 		nsr,
+		defaultNsTranslations,
 		wrap.modules,
 		wrap.pages,
 		wrap.records,
 		wrap.charts,
 		wrap.rbac.bindResource(nsr),
+		wrap.locale.bindResource(nsr),
 	)
 }

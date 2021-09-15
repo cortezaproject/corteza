@@ -1,5 +1,7 @@
 package resource
 
+import "strconv"
+
 type (
 	Interface interface {
 		Identifiers() Identifiers
@@ -27,6 +29,13 @@ type (
 		RBACPath() []*Ref
 	}
 
+	LocaleInterface interface {
+		Interface
+
+		ResourceTranslationParts() (string, *Ref, []*Ref)
+		EncodeTranslations() ([]*ResourceTranslation, error)
+	}
+
 	RefSet []*Ref
 	Ref    struct {
 		// @todo check with Denis regarding strings here (the cdocs comment)
@@ -40,9 +49,10 @@ type (
 )
 
 var (
-	DataSourceResourceType = "data:raw"
-	SettingsResourceType   = "setting"
-	RbacResourceType       = "rbac-rule"
+	DataSourceResourceType  = "data:raw"
+	SettingsResourceType    = "setting"
+	RbacResourceType        = "rbac-rule"
+	ResourceTranslationType = "resource-translation"
 )
 
 func MakeIdentifiers(ss ...string) Identifiers {
@@ -85,6 +95,23 @@ func (ri Identifiers) First() string {
 		return ""
 	}
 	return ss[0]
+}
+
+func (ri Identifiers) FirstID() uint64 {
+	ss := ri.StringSlice()
+	if len(ss) <= 0 {
+		return 0
+	}
+
+	for _, s := range ss {
+		if v, err := strconv.ParseUint(s, 10, 64); err != nil {
+			continue
+		} else {
+			return v
+		}
+	}
+
+	return 0
 }
 
 func (rr InterfaceSet) Walk(f func(r Interface) error) (err error) {

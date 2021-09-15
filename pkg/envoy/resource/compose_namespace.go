@@ -27,12 +27,16 @@ func NewComposeNamespace(ns *types.Namespace) *ComposeNamespace {
 	return r
 }
 
-func (r *ComposeNamespace) SysID() uint64 {
-	return r.Res.ID
+func (r *ComposeNamespace) ResourceTranslationParts() (resource string, ref *Ref, path []*Ref) {
+	ref = r.Ref()
+	path = nil
+	resource = fmt.Sprintf(types.NamespaceResourceTranslationTpl(), types.NamespaceResourceTranslationType, firstOkString(strconv.FormatUint(r.Res.ID, 10), r.Res.Slug))
+
+	return
 }
 
-func (r *ComposeNamespace) Ref() string {
-	return firstOkString(r.Res.Slug, r.Res.Name, strconv.FormatUint(r.Res.ID, 10))
+func (r *ComposeNamespace) SysID() uint64 {
+	return r.Res.ID
 }
 
 // FindComposeNamespace looks for the namespace in the resource set
