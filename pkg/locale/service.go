@@ -302,7 +302,7 @@ func (svc *service) LocalizedList(ctx context.Context) []*Language {
 	var (
 		l       *Language
 		ll      = make([]*Language, 0, len(svc.set))
-		reqLang = GetLanguageFromContext(ctx)
+		reqLang = GetAcceptLanguageFromContext(ctx)
 	)
 
 	for _, tag := range svc.tags {
@@ -365,7 +365,7 @@ func (svc *service) EncodeExternal(w io.Writer, app string, ll ...language.Tag) 
 // Language is picked from the context
 func (svc *service) NS(ctx context.Context, ns string) func(key string, rr ...string) string {
 	var (
-		tag = GetLanguageFromContext(ctx)
+		tag = GetAcceptLanguageFromContext(ctx)
 	)
 
 	return func(key string, rr ...string) string {
@@ -377,7 +377,7 @@ func (svc *service) NS(ctx context.Context, ns string) func(key string, rr ...st
 //
 // Language is picked from the context
 func (svc *service) T(ctx context.Context, ns, key string, rr ...string) string {
-	return svc.t(GetLanguageFromContext(ctx), ns, key, rr...)
+	return svc.t(GetAcceptLanguageFromContext(ctx), ns, key, rr...)
 }
 
 // T returns translated key from namespaces using list of replacement pairs
@@ -392,7 +392,7 @@ func (svc *service) TFor(tag language.Tag, ns, key string, rr ...string) string 
 // Language is picked from the context
 func (svc *service) TResource(ctx context.Context, ns, key string, rr ...string) string {
 
-	return svc.tResource(GetLanguageFromContext(ctx), ns, key, rr...)
+	return svc.tResource(GetAcceptLanguageFromContext(ctx), ns, key, rr...)
 }
 
 // TResourceFor returns translated key for resource using list of replacement pairs

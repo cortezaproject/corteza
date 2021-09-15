@@ -110,7 +110,7 @@ func (svc namespace) Find(ctx context.Context, filter types.NamespaceFilter) (se
 		}
 
 		// i18n
-		tag := locale.GetLanguageFromContext(ctx)
+		tag := locale.GetAcceptLanguageFromContext(ctx)
 		set.Walk(func(n *types.Namespace) error {
 			n.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, n.ResourceTranslation()))
 			return nil

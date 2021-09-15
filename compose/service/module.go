@@ -131,7 +131,7 @@ func (svc module) Find(ctx context.Context, filter types.ModuleFilter) (set type
 		}
 
 		// i18n
-		tag := locale.GetLanguageFromContext(ctx)
+		tag := locale.GetAcceptLanguageFromContext(ctx)
 		set.Walk(func(m *types.Module) error {
 			m.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, m.ResourceTranslation()))
 
@@ -353,7 +353,7 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 			tt = append(tt, f.EncodeTranslations()...)
 		}
 
-		tt.SetLanguage(locale.GetLanguageFromContext(ctx))
+		tt.SetLanguage(locale.GetAcceptLanguageFromContext(ctx))
 		err = svc.locale.Upsert(ctx, tt)
 		if err != nil {
 			return err
