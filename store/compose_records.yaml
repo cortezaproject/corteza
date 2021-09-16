@@ -56,6 +56,7 @@ rdbms:
   customFilterConverter: true
   customSortConverter: true
   customCursorCollector: true
+  customPreLoadProcessor: true
   customPostLoadProcessor: true
   mapFields:
     ModuleID:  { column: module_id }

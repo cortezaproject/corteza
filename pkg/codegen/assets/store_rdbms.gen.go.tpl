@@ -198,6 +198,11 @@ func (s Store) {{ unexport "fetchFullPageOf" $.Types.Plural  }} (
 		} else {
 			tryQuery = q
 		}
+		{{ if .RDBMS.CustomPreLoadProcessor }}
+		if tryQuery, err = s.{{ unexport $.Types.Singular }}PreLoadProcessor(tryQuery); err != nil {
+			return
+		}
+		{{- end}}
 
 		if limit > 0 {
 			// fetching + 1 so we know if there are more items
