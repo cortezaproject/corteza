@@ -86,6 +86,7 @@ type (
 		CustomFilterConverter   bool `yaml:"customFilterConverter"`
 		CustomSortConverter     bool `yaml:"customSortConverter"`
 		CustomCursorCollector   bool `yaml:"customCursorCollector"`
+		CustomPreLoadProcessor  bool `yaml:"customPreLoadProcessor"`
 		CustomPostLoadProcessor bool `yaml:"customPostLoadProcessor"`
 		CustomEncoder           bool `yaml:"customEncoder"`
 
