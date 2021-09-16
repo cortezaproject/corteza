@@ -194,6 +194,34 @@ func TestRecordList(t *testing.T) {
 		End()
 }
 
+func TestRecordList_multiValueFilter(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	module := h.repoMakeRecordModuleWithFields("record testing module")
+
+	h.makeRecord(module, &types.RecordValue{Name: "options", Value: "a", Place: 0}, &types.RecordValue{Name: "options", Value: "b", Place: 1})
+	h.makeRecord(module, &types.RecordValue{Name: "options", Value: "a", Place: 0})
+	h.makeRecord(module, &types.RecordValue{Name: "options", Value: "c", Place: 0})
+	h.makeRecord(module, &types.RecordValue{Name: "options", Value: "a", Place: 0}, &types.RecordValue{Name: "options", Value: "b", Place: 1}, &types.RecordValue{Name: "options", Value: "c", Place: 2})
+
+	h.apiInit().
+		Get(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
+		Query("query", "options LIKE 'a' OR options LIKE 'b'").
+		Query("incTotal", "true").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Equal(`$.response.filter.total`, float64(3))).
+		Assert(jsonpath.Equal(`$.response.set[0].values[0].value`, "a")).
+		Assert(jsonpath.Equal(`$.response.set[0].values[1].value`, "b")).
+		Assert(jsonpath.Equal(`$.response.set[1].values[0].value`, "a")).
+		Assert(jsonpath.Equal(`$.response.set[2].values[0].value`, "a")).
+		Assert(jsonpath.Equal(`$.response.set[2].values[1].value`, "b")).
+		Assert(jsonpath.Equal(`$.response.set[2].values[2].value`, "c")).
+		End()
+}
+
 func TestRecordListForbidenRecords(t *testing.T) {
 	h := newHelper(t)
 	h.clearRecords()

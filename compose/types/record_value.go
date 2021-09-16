@@ -4,11 +4,12 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
-	"strconv"
-	"time"
 )
 
 type (
