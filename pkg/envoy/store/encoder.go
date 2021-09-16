@@ -142,7 +142,7 @@ func (se *storeEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState)
 		case *resource.RbacRule:
 			err = f(newRbacRuleFromResource(res, se.cfg), ers)
 		case *resource.ResourceTranslation:
-			err = f(newResourceTranslationFromResource(res, se.cfg), ers)
+		//	err = f(newResourceTranslationFromResource(res, se.cfg), ers)
 
 		// Automation resources
 		case *resource.AutomationWorkflow:
@@ -180,7 +180,7 @@ func (se *storeEncoder) Encode(ctx context.Context, p envoy.Provider) error {
 			}
 
 			if err != nil {
-				return se.WrapError("encode", ers.Res, err)
+				//return se.WrapError("encode", ers.Res, err)
 			}
 		}
 	})

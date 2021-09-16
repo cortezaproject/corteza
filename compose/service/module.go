@@ -18,6 +18,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/store"
+	"golang.org/x/text/language"
 )
 
 type (
@@ -262,6 +263,19 @@ func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module,
 			return err
 		}
 
+		if contentLang := locale.GetContentLanguageFromContext(ctx); contentLang != language.Und {
+			tt := new.EncodeTranslations()
+			for _, f := range new.Fields {
+				tt = append(tt, f.EncodeTranslations()...)
+			}
+
+			tt.SetLanguage(contentLang)
+			err = DefaultResourceTranslation.Upsert(ctx, tt)
+			if err != nil {
+				return err
+			}
+		}
+
 		if err = label.Create(ctx, s, new); err != nil {
 			return
 		}
@@ -348,15 +362,17 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 		}
 
 		// i18n
-		tt := m.EncodeTranslations()
-		for _, f := range m.Fields {
-			tt = append(tt, f.EncodeTranslations()...)
-		}
+		if contentLang := locale.GetContentLanguageFromContext(ctx); contentLang != language.Und {
+			tt := m.EncodeTranslations()
+			for _, f := range m.Fields {
+				tt = append(tt, f.EncodeTranslations()...)
+			}
 
-		tt.SetLanguage(locale.GetAcceptLanguageFromContext(ctx))
-		err = svc.locale.Upsert(ctx, tt)
-		if err != nil {
-			return err
+			tt.SetLanguage(locale.GetAcceptLanguageFromContext(ctx))
+			err = svc.locale.Upsert(ctx, tt)
+			if err != nil {
+				return err
+			}
 		}
 
 		if changes&moduleLabelsChanged > 0 {

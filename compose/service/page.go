@@ -13,6 +13,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/store"
+	"golang.org/x/text/language"
 )
 
 type (
@@ -292,6 +293,16 @@ func (svc page) Create(ctx context.Context, new *types.Page) (*types.Page, error
 			return err
 		}
 
+		// i18n
+		if contentLang := locale.GetContentLanguageFromContext(ctx); contentLang != language.Und {
+			tt := new.EncodeTranslations()
+			tt.SetLanguage(locale.GetAcceptLanguageFromContext(ctx))
+			err = svc.locale.Upsert(ctx, tt)
+			if err != nil {
+				return err
+			}
+		}
+
 		if err = label.Create(ctx, s, new); err != nil {
 			return
 		}
@@ -361,11 +372,13 @@ func (svc page) updater(ctx context.Context, namespaceID, pageID uint64, action 
 		}
 
 		// i18n
-		tt := p.EncodeTranslations()
-		tt.SetLanguage(locale.GetAcceptLanguageFromContext(ctx))
-		err = svc.locale.Upsert(ctx, tt)
-		if err != nil {
-			return err
+		if contentLang := locale.GetContentLanguageFromContext(ctx); contentLang != language.Und {
+			tt := p.EncodeTranslations()
+			tt.SetLanguage(locale.GetAcceptLanguageFromContext(ctx))
+			err = svc.locale.Upsert(ctx, tt)
+			if err != nil {
+				return err
+			}
 		}
 
 		if changes&pageLabelsChanged > 0 {
