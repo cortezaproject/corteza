@@ -152,6 +152,7 @@ func (svc *settings) UpdateCurrent(ctx context.Context) error {
 }
 
 func (svc *settings) updateCurrent(ctx context.Context, vv types.SettingValueSet) (err error) {
+
 	// update current settings with new values
 	if err = vv.KV().Decode(svc.current); err != nil {
 		return
