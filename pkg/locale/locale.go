@@ -33,12 +33,13 @@ type (
 		// pointer to the place we loaded files from
 		fs fs.FS
 
-		Tag  language.Tag
-		Name string
+		Tag           language.Tag `json:"tag,string"`
+		Name          string       `json:"name"`
+		LocalizedName string       `json:"localizedName"`
 
 		// Language (tag) that this language is extending
 		// @todo
-		Extends language.Tag
+		Extends language.Tag `json:"-"`
 
 		// Points to extended language
 		// @todo

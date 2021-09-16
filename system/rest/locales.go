@@ -9,7 +9,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"golang.org/x/text/language"
-	"golang.org/x/text/language/display"
 )
 
 type (
@@ -28,20 +27,7 @@ func (Locale) New() *Locale {
 }
 
 func (ctrl Locale) List(ctx context.Context, r *request.LocaleList) (interface{}, error) {
-	var (
-		rval        = make([]*localeResponse, 0, 16)
-		currentLang = locale.GetLanguageFromContext(ctx)
-	)
-
-	for _, l := range locale.Global().List() {
-		rval = append(rval, &localeResponse{
-			Name: display.Languages(l.Tag).Name(l.Tag),
-			Self: display.Languages(currentLang).Name(l.Tag),
-			Tag:  l.Tag,
-		})
-	}
-
-	return rval, nil
+	return locale.Global().LocalizedList(ctx), nil
 }
 
 func (ctrl Locale) Get(ctx context.Context, r *request.LocaleGet) (interface{}, error) {

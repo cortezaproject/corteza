@@ -93,6 +93,10 @@ a:hover {
   padding: 1.25rem 0.75rem;
 }
 
+select.form-control {
+  padding: 0 0.5rem;
+}
+
 .form-control:focus {
   box-shadow: none;
   border-color: var(--primary);

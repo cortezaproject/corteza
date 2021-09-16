@@ -61,6 +61,28 @@
                 aria-label="{{ tr "profile.template.form.handle.label" }}">
 		</div>
 
+
+		<div class="mb-3">
+			<label for="profileFormPreferredLanguage">{{ tr "profile.template.form.preferred-language.label" }}</label>
+			<select
+                class="form-control"
+				name="preferredLanguage"
+                id="profileFormPreferredLanguage"
+                aria-label="{{ tr "profile.template.form.preferred-language.label" }}"
+                value="{{ .form.preferredLanguage }}"
+			>
+			{{ $prefLang := .form.preferredLanguage }}
+			{{ range .languages }}
+				<option
+					value="{{ .Tag }}"
+					{{ if eq $prefLang .Tag.String }}selected{{ end }}
+				>
+					{{ .LocalizedName }} ({{ .Name }})
+				</option>
+			{{ end }}
+			</select>
+		</div>
+
         <div>
             <button
                 type="submit"
