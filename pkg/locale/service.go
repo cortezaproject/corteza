@@ -12,6 +12,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"go.uber.org/zap"
 	"golang.org/x/text/language"
+	"golang.org/x/text/language/display"
 )
 
 type (
@@ -205,7 +206,43 @@ func (svc *service) List() []*Language {
 
 	ll := make([]*Language, 0, len(svc.set))
 	for _, tag := range svc.tags {
-		ll = append(ll, svc.set[tag])
+		if svc.set[tag] != nil {
+			ll = append(ll, svc.set[tag])
+		}
+	}
+
+	return ll
+}
+
+// List localized list of all languages
+func (svc *service) LocalizedList(ctx context.Context) []*Language {
+	svc.l.RLock()
+	defer svc.l.RUnlock()
+
+	var (
+		l       *Language
+		ll      = make([]*Language, 0, len(svc.set))
+		reqLang = GetLanguageFromContext(ctx)
+	)
+
+	for _, tag := range svc.tags {
+		l = svc.set[tag]
+		if l == nil {
+			continue
+		}
+
+		l = &Language{
+			Tag:           l.Tag,
+			Name:          l.Name,
+			LocalizedName: display.Languages(reqLang).Name(l.Tag),
+		}
+
+		if l.Name == "" {
+			// for cases when language name is not configured
+			l.Name = display.Languages(l.Tag).Name(l.Tag)
+		}
+
+		ll = append(ll, l)
 	}
 
 	return ll

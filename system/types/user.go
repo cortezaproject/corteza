@@ -41,6 +41,8 @@ type (
 		// @todo remove, obsolete.
 		Avatar string `json:"avatar,omitempty"`
 
+		PreferredLanguage string `json:"preferredLanguage"`
+
 		// User's security policy settings
 		SecurityPolicy struct {
 			// settings for multi-factor authentication

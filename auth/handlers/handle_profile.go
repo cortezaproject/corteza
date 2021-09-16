@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"github.com/cortezaproject/corteza-server/auth/request"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/system/service"
+	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
 )
 
@@ -10,14 +12,23 @@ func (h *AuthHandlers) profileForm(req *request.AuthReq) error {
 	req.Template = TmplProfile
 	u := req.AuthUser.User
 
+	req.Data["languages"] = locale.Global().LocalizedList(req.Context())
+
 	if form := req.PopKV(); len(form) > 0 {
 		req.Data["form"] = form
 	} else {
-		req.Data["form"] = map[string]string{
-			"email":  u.Email,
-			"handle": u.Handle,
-			"name":   u.Name,
+		var preferredLanguage = locale.Global().Default().Tag.String()
+		if u.Meta != nil && u.Meta.PreferredLanguage != "" {
+			preferredLanguage = u.Meta.PreferredLanguage
 		}
+
+		req.Data["form"] = map[string]string{
+			"email":             u.Email,
+			"handle":            u.Handle,
+			"name":              u.Name,
+			"preferredLanguage": preferredLanguage,
+		}
+
 	}
 
 	req.Data["emailConfirmationRequired"] = !u.EmailConfirmed && h.Settings.EmailConfirmationRequired
@@ -31,6 +42,14 @@ func (h *AuthHandlers) profileProc(req *request.AuthReq) error {
 
 	u.Handle = req.Request.PostFormValue("handle")
 	u.Name = req.Request.PostFormValue("name")
+
+	if pl := req.Request.PostFormValue("preferredLanguage"); pl != "" {
+		if u.Meta == nil {
+			u.Meta = &types.UserMeta{}
+		}
+
+		u.Meta.PreferredLanguage = pl
+	}
 
 	// a little workaround to inject current user as authenticated identity into context
 	// this way user service will pass us through.

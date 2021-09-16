@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -14,7 +16,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
-	"net/http"
 )
 
 var _ = errors.Wrap
@@ -140,6 +141,9 @@ func (ctrl User) PartialUpdate(ctx context.Context, r *request.UserPartialUpdate
 				err = json.Unmarshal(p.Value, &aux)
 
 				switch p.Path {
+				case "/meta/preferredLanguage":
+					u.Meta.PreferredLanguage, err = cast.ToStringE(aux)
+
 				case "/meta/securityPolicy/mfa/enforcedEmailOTP":
 					u.Meta.SecurityPolicy.MFA.EnforcedEmailOTP, err = cast.ToBoolE(aux)
 
