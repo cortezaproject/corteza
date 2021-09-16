@@ -35,14 +35,21 @@ func TestDecode(t *testing.T) {
 
 			Map map[string]string `kv:"sub.map"`
 			S2I map[string]int    `kv:"sub.s2i"`
+
+			PrefilledString1 string
+			PrefilledString2 string
 		}
 	)
 
 	var (
 		ptr = "point-me"
 
-		aux = dst{}
-		kv  = SettingsKV{
+		aux = dst{
+			PrefilledString1: "values",
+			PrefilledString2: "values",
+		}
+
+		kv = SettingsKV{
 			"s":           types.JSONText(`"string"`),
 			"b":           types.JSONText("true"),
 			"n":           types.JSONText("42"),
@@ -60,6 +67,9 @@ func TestDecode(t *testing.T) {
 
 			"sub.s2i.one": types.JSONText(`1`),
 			"sub.s2i.two": types.JSONText(`2`),
+
+			"prefilledString1": nil,
+			"prefilledString2": types.JSONText(`""`),
 		}
 
 		eq = dst{
@@ -85,10 +95,13 @@ func TestDecode(t *testing.T) {
 				"one": 1,
 				"two": 2,
 			},
+
+			PrefilledString1: "",
+			PrefilledString2: "",
 		}
 	)
 
-	// setting this externaly (embedded structs)
+	// setting this externally (embedded structs)
 	eq.Sub.Bar.Foo = "foobar"
 
 	require.NoError(t, DecodeKV(kv, &aux))
