@@ -407,7 +407,7 @@ func SubSplit(ti oauth2def.TokenInfo, data map[string]interface{}) {
 // Profile fills map with user's data
 //
 // If scope supports it (contains "profile") user is loaded and
-// map is sfilled with username (handle), email and name
+// map is filled with username (handle), email and name
 func Profile(ctx context.Context, ti oauth2def.TokenInfo, data map[string]interface{}) error {
 	if !auth.CheckScope(ti.GetScope(), "profile") {
 		return nil
@@ -432,6 +432,10 @@ func Profile(ctx context.Context, ti oauth2def.TokenInfo, data map[string]interf
 	data["handle"] = user.Handle
 	data["name"] = user.Name
 	data["email"] = user.Email
+
+	if user.Meta != nil && user.Meta.PreferredLanguage != "" {
+		data["preferred_language"] = user.Meta.PreferredLanguage
+	}
 
 	return nil
 }
