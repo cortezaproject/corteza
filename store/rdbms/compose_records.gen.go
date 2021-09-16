@@ -73,6 +73,10 @@ func (s Store) fetchFullPageOfComposeRecords(
 			tryQuery = q
 		}
 
+		if tryQuery, err = s.composeRecordPreLoadProcessor(tryQuery); err != nil {
+			return
+		}
+
 		if limit > 0 {
 			// fetching + 1 so we know if there are more items
 			// we can fetch (next-page cursor)

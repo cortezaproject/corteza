@@ -220,6 +220,10 @@ func (s Store) composeRecordsPageNavigation(
 				q = supPageQuery.Where(cursorCond(cursor))
 			}
 
+			if q, err = s.composeRecordPreLoadProcessor(q); err != nil {
+				return
+			}
+
 			rows, err = s.Query(ctx, q)
 			if err != nil {
 				return err
@@ -613,6 +617,16 @@ func (s Store) composeRecordPostLoadProcessor(ctx context.Context, m *types.Modu
 	}
 
 	return nil
+}
+
+func (s Store) composeRecordPreLoadProcessor(q squirrel.SelectBuilder) (squirrel.SelectBuilder, error) {
+	// When filtering over multi value record values we can get multiple rows of the same record
+	// causing it to show as a duplicate in the output.
+	// This partitioning removes any duplicate rows (rows where the index is not 1).
+	return squirrel.Select(s.composeRecordColumns()...).
+		PlaceholderFormat(s.config.PlaceholderFormat).
+		FromSelect(q.Column("row_number() over (partition by id) as pp_rn"), "base").
+		Where("pp_rn = 1"), nil
 }
 
 func (s Store) composeRecordsSorter(m *types.Module, q squirrel.SelectBuilder, sort filter.SortExprSet) (squirrel.SelectBuilder, error) {
