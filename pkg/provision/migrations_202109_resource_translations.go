@@ -32,7 +32,7 @@ func migrateResourceTranslations(ctx context.Context, log *zap.Logger, s store.S
 	)
 
 	// might be useful when developing or debugging migration
-	//_ = store.TruncateResourceTranslations(ctx, s)
+	_ = store.TruncateResourceTranslations(ctx, s)
 
 	set, _, err := store.SearchResourceTranslations(ctx, s, sysTypes.ResourceTranslationFilter{})
 	set.Walk(func(r *sysTypes.ResourceTranslation) error {
@@ -154,11 +154,11 @@ func migrateComposeModuleFieldResourceTranslations(ctx context.Context, s store.
 				tt = append(tt, makeResourceTranslation(res, fmt.Sprintf("expression.validator.%d.error", validatorID), res.Name))
 			}
 
-			if update {
-				if err = store.CreateResourceTranslation(ctx, s, tt...); err != nil {
-					return
-				}
+			if err = store.CreateResourceTranslation(ctx, s, tt...); err != nil {
+				return
+			}
 
+			if update {
 				if err = store.UpdateComposeModuleField(ctx, s, res); err != nil {
 					return
 				}

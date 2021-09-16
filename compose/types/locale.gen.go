@@ -15,8 +15,9 @@ package types
 
 import (
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"strconv"
+
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 )
 
 type (
@@ -47,6 +48,26 @@ var (
 		Name:     "label",
 		Resource: ModuleFieldResourceTranslationType,
 		Path:     "label",
+	}
+	LocaleKeyModuleFieldDescriptionView = LocaleKey{
+		Name:     "descriptionView",
+		Resource: ModuleFieldResourceTranslationType,
+		Path:     "meta.description.view",
+	}
+	LocaleKeyModuleFieldDescriptionEdit = LocaleKey{
+		Name:     "descriptionEdit",
+		Resource: ModuleFieldResourceTranslationType,
+		Path:     "meta.description.edit",
+	}
+	LocaleKeyModuleFieldHintView = LocaleKey{
+		Name:     "hintView",
+		Resource: ModuleFieldResourceTranslationType,
+		Path:     "meta.hint.view",
+	}
+	LocaleKeyModuleFieldHintEdit = LocaleKey{
+		Name:     "hintEdit",
+		Resource: ModuleFieldResourceTranslationType,
+		Path:     "meta.hint.edit",
 	}
 	LocaleKeyModuleFieldValidatorError = LocaleKey{
 		Name:          "validatorError",
