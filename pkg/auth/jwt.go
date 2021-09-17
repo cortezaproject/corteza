@@ -2,7 +2,10 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/system/types"
 	"net/http"
 	"strconv"
 	"strings"
@@ -20,17 +23,27 @@ type (
 		expiry    time.Duration
 		tokenAuth *jwtauth.JWTAuth
 	}
+
+	tokenStore interface {
+		CreateAuthOa2token(ctx context.Context, rr ...*types.AuthOa2token) error
+		UpsertAuthConfirmedClient(ctx context.Context, rr ...*types.AuthConfirmedClient) error
+	}
+
+	ExtraReqInfo struct {
+		RemoteAddr string
+		UserAgent  string
+	}
 )
 
 var (
 	DefaultJwtHandler TokenHandler
+	DefaultJwtStore   tokenStore
 )
 
 func SetupDefault(secret string, expiry time.Duration) {
 	// Use JWT secret for hmac signer for now
 	DefaultSigner = HmacSigner(secret)
 	DefaultJwtHandler, _ = JWT(secret, expiry)
-
 }
 
 func JWT(secret string, expiry time.Duration) (tkn *token, err error) {
@@ -44,6 +57,13 @@ func JWT(secret string, expiry time.Duration) (tkn *token, err error) {
 	}
 
 	return tkn, nil
+}
+
+// SetJWTStore set store for JWT
+// @todo find better way to initiate store,
+// 			it mainly used for generating and storing accessToken for impersonate and corredor, Ref: j.Generate()
+func SetJWTStore(store tokenStore) {
+	DefaultJwtStore = store
 }
 
 func (t *token) Authenticate(token string) (jwt.MapClaims, error) {
@@ -88,7 +108,6 @@ func (t *token) Encode(i Identifiable, scope ...string) string {
 }
 
 func (t *token) encode(i Identifiable, clientID uint64, scope ...string) string {
-
 	roles := ""
 	for _, r := range i.Roles() {
 		roles += fmt.Sprintf(" %d", r)
@@ -129,6 +148,59 @@ func (t *token) HttpAuthenticator() func(http.Handler) http.Handler {
 
 			next.ServeHTTP(w, r)
 		})
+	}
+}
+
+func (t *token) Generate(ctx context.Context, i Identifiable) (tokenString string, err error) {
+	var (
+		eti  = GetExtraReqInfoFromContext(ctx)
+		oa2t = &types.AuthOa2token{
+			ID:         id.Next(),
+			CreatedAt:  time.Now().Round(time.Second),
+			RemoteAddr: eti.RemoteAddr,
+			UserAgent:  eti.UserAgent,
+		}
+
+		acc = &types.AuthConfirmedClient{
+			ConfirmedAt: oa2t.CreatedAt,
+		}
+	)
+
+	tokenString = t.Encode(i)
+	oa2t.Access = tokenString
+	oa2t.ExpiresAt = oa2t.CreatedAt.Add(t.expiry)
+
+	if oa2t.Data, err = json.Marshal(oa2t); err != nil {
+		return
+	}
+
+	// extend this with the client
+	oa2t.ClientID = 0
+
+	// copy client id to auth client confirmation
+	acc.ClientID = oa2t.ClientID
+
+	if oa2t.UserID, _ = ExtractFromSubClaim(i.String()); oa2t.UserID == 0 {
+		// UserID stores collection of IDs: user's ID and set of all roles' user is member of
+		return "", fmt.Errorf("could not parse user ID from token")
+	}
+
+	// copy user id to auth client confirmation
+	acc.UserID = oa2t.UserID
+
+	if err = DefaultJwtStore.UpsertAuthConfirmedClient(ctx, acc); err != nil {
+		return
+	}
+
+	return tokenString, DefaultJwtStore.CreateAuthOa2token(ctx, oa2t)
+}
+
+func GetExtraReqInfoFromContext(ctx context.Context) ExtraReqInfo {
+	eti := ctx.Value(ExtraReqInfo{})
+	if eti != nil {
+		return eti.(ExtraReqInfo)
+	} else {
+		return ExtraReqInfo{}
 	}
 }
 

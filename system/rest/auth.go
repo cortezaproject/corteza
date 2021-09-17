@@ -14,7 +14,7 @@ var _ = errors.Wrap
 
 type (
 	Auth struct {
-		tokenEncoder auth.TokenEncoder
+		tokenHandler auth.TokenGenerator
 		settings     *types.AppSettings
 		authSvc      authUserService
 	}
@@ -46,7 +46,7 @@ type (
 
 func (Auth) New() *Auth {
 	return &Auth{
-		tokenEncoder: auth.DefaultJwtHandler,
+		tokenHandler: auth.DefaultJwtHandler,
 		settings:     service.CurrentSettings,
 		authSvc:      service.DefaultAuth,
 	}
@@ -69,8 +69,14 @@ func (ctrl *Auth) makePayload(ctx context.Context, user *types.User) (*authUserR
 		return nil, err
 	}
 
+	// Generate and save the token
+	t, err := ctrl.tokenHandler.Generate(ctx, user)
+	if err != nil {
+		return nil, nil
+	}
+
 	return &authUserResponse{
-		JWT: ctrl.tokenEncoder.Encode(user),
+		JWT: t,
 		User: &authUserPayload{
 			userPayload: &userPayload{
 				ID:       user.ID,
