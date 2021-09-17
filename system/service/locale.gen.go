@@ -7,14 +7,11 @@ package service
 //
 
 // Definitions file that controls how this file is generated:
-// - compose.chart.yaml
-// - compose.module.yaml
-// - compose.namespace.yaml
-// - compose.page.yaml
+// - system.report.yaml
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/system/types"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
@@ -36,10 +33,7 @@ type (
 	}
 
 	ResourceTranslationsManagerService interface {
-		Chart(ctx context.Context, namespaceID uint64, ID uint64) (locale.ResourceTranslationSet, error)
-		Module(ctx context.Context, namespaceID uint64, ID uint64) (locale.ResourceTranslationSet, error)
-		Namespace(ctx context.Context, ID uint64) (locale.ResourceTranslationSet, error)
-		Page(ctx context.Context, namespaceID uint64, ID uint64) (locale.ResourceTranslationSet, error)
+		Report(ctx context.Context, ID uint64) (locale.ResourceTranslationSet, error)
 
 		Upsert(context.Context, locale.ResourceTranslationSet) error
 		Locale() locale.Resource
@@ -117,21 +111,21 @@ func (svc resourceTranslationsManager) Locale() locale.Resource {
 	return svc.locale
 }
 
-func (svc resourceTranslationsManager) Chart(ctx context.Context, namespaceID uint64, ID uint64) (locale.ResourceTranslationSet, error) {
+func (svc resourceTranslationsManager) Report(ctx context.Context, ID uint64) (locale.ResourceTranslationSet, error) {
 	var (
 		err error
 		out locale.ResourceTranslationSet
-		res *types.Chart
+		res *types.Report
 		k   types.LocaleKey
 	)
 
-	res, err = svc.loadChart(ctx, svc.store, namespaceID, ID)
+	res, err = svc.loadReport(ctx, svc.store, ID)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, tag := range svc.locale.Tags() {
-		k = types.LocaleKeyChartName
+		k = types.LocaleKeyReportName
 		out = append(out, &locale.ResourceTranslation{
 			Resource: res.ResourceTranslation(),
 			Lang:     tag.String(),
@@ -139,25 +133,7 @@ func (svc resourceTranslationsManager) Chart(ctx context.Context, namespaceID ui
 			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), k.Path),
 		})
 
-	}
-	return out, nil
-}
-
-func (svc resourceTranslationsManager) Module(ctx context.Context, namespaceID uint64, ID uint64) (locale.ResourceTranslationSet, error) {
-	var (
-		err error
-		out locale.ResourceTranslationSet
-		res *types.Module
-		k   types.LocaleKey
-	)
-
-	res, err = svc.loadModule(ctx, svc.store, namespaceID, ID)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, tag := range svc.locale.Tags() {
-		k = types.LocaleKeyModuleName
+		k = types.LocaleKeyReportDescription
 		out = append(out, &locale.ResourceTranslation{
 			Resource: res.ResourceTranslation(),
 			Lang:     tag.String(),
@@ -167,84 +143,6 @@ func (svc resourceTranslationsManager) Module(ctx context.Context, namespaceID u
 
 	}
 
-	tmp, err := svc.moduleExtended(ctx, res)
-	return append(out, tmp...), err
-}
-
-func (svc resourceTranslationsManager) Namespace(ctx context.Context, ID uint64) (locale.ResourceTranslationSet, error) {
-	var (
-		err error
-		out locale.ResourceTranslationSet
-		res *types.Namespace
-		k   types.LocaleKey
-	)
-
-	res, err = svc.loadNamespace(ctx, svc.store, ID)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, tag := range svc.locale.Tags() {
-		k = types.LocaleKeyNamespaceName
-		out = append(out, &locale.ResourceTranslation{
-			Resource: res.ResourceTranslation(),
-			Lang:     tag.String(),
-			Key:      k.Path,
-			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), k.Path),
-		})
-
-		k = types.LocaleKeyNamespaceSubtitle
-		out = append(out, &locale.ResourceTranslation{
-			Resource: res.ResourceTranslation(),
-			Lang:     tag.String(),
-			Key:      k.Path,
-			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), k.Path),
-		})
-
-		k = types.LocaleKeyNamespaceDescription
-		out = append(out, &locale.ResourceTranslation{
-			Resource: res.ResourceTranslation(),
-			Lang:     tag.String(),
-			Key:      k.Path,
-			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), k.Path),
-		})
-
-	}
-	return out, nil
-}
-
-func (svc resourceTranslationsManager) Page(ctx context.Context, namespaceID uint64, ID uint64) (locale.ResourceTranslationSet, error) {
-	var (
-		err error
-		out locale.ResourceTranslationSet
-		res *types.Page
-		k   types.LocaleKey
-	)
-
-	res, err = svc.loadPage(ctx, svc.store, namespaceID, ID)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, tag := range svc.locale.Tags() {
-		k = types.LocaleKeyPageTitle
-		out = append(out, &locale.ResourceTranslation{
-			Resource: res.ResourceTranslation(),
-			Lang:     tag.String(),
-			Key:      k.Path,
-			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), k.Path),
-		})
-
-		k = types.LocaleKeyPageDescription
-		out = append(out, &locale.ResourceTranslation{
-			Resource: res.ResourceTranslation(),
-			Lang:     tag.String(),
-			Key:      k.Path,
-			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), k.Path),
-		})
-
-	}
-
-	tmp, err := svc.pageExtended(ctx, res)
+	tmp, err := svc.reportExtended(ctx, res)
 	return append(out, tmp...), err
 }

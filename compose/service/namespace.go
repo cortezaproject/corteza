@@ -24,7 +24,7 @@ type (
 		ac        namespaceAccessController
 		eventbus  eventDispatcher
 		store     store.Storer
-		locale    ResourceTranslationService
+		locale    ResourceTranslationsManagerService
 	}
 
 	namespaceAccessController interface {

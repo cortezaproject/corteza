@@ -4,9 +4,12 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/report"
 )
 
@@ -43,15 +46,16 @@ type (
 	}
 
 	ReportProjection struct {
-		Title       string                   `json:"title"`
-		Description string                   `json:"description"`
-		Key         string                   `json:"key"`
-		Kind        string                   `json:"kind"`
-		Options     map[string]interface{}   `json:"options,omitempty"`
-		Elements    []interface{}            `json:"elements"`
-		Sources     report.StepDefinitionSet `json:"sources"`
-		XYWH        [4]int                   `json:"xywh"`
-		Layout      string                   `json:"layout"`
+		ProjectionID uint64                   `json:"projectionID"`
+		Title        string                   `json:"title"`
+		Description  string                   `json:"description"`
+		Key          string                   `json:"key"`
+		Kind         string                   `json:"kind"`
+		Options      map[string]interface{}   `json:"options,omitempty"`
+		Elements     []interface{}            `json:"elements"`
+		Sources      report.StepDefinitionSet `json:"sources"`
+		XYWH         [4]int                   `json:"xywh"`
+		Layout       string                   `json:"layout"`
 	}
 	ReportProjectionSet []*ReportProjection
 
@@ -152,4 +156,50 @@ func (vv *ReportDataSourceSet) Scan(value interface{}) error {
 	}
 
 	return nil
+}
+
+func (r *Report) decodeTranslations(tt locale.ResourceTranslationIndex) {
+	var aux *locale.ResourceTranslation
+
+	for i, p := range r.Projections {
+		projectionID := locale.ContentID(p.ProjectionID, i)
+		rpl := strings.NewReplacer(
+			"{{projectionID}}", strconv.FormatUint(projectionID, 10),
+		)
+
+		// - generic page block stuff
+		if aux = tt.FindByKey(rpl.Replace(LocaleKeyReportProjectionTitle.Path)); aux != nil {
+			p.Title = aux.Msg
+		}
+		if aux = tt.FindByKey(rpl.Replace(LocaleKeyReportProjectionDescription.Path)); aux != nil {
+			p.Description = aux.Msg
+		}
+	}
+}
+
+func (r *Report) encodeTranslations() (out locale.ResourceTranslationSet) {
+	out = make(locale.ResourceTranslationSet, 0, 3)
+
+	// Page blocks
+	for i, projection := range r.Projections {
+		projectionID := locale.ContentID(projection.ProjectionID, i)
+		rpl := strings.NewReplacer(
+			"{{projectionID}}", strconv.FormatUint(projectionID, 10),
+		)
+
+		// - generic page block stuff
+		out = append(out, &locale.ResourceTranslation{
+			Resource: r.ResourceTranslation(),
+			Key:      rpl.Replace(rpl.Replace(LocaleKeyReportProjectionTitle.Path)),
+			Msg:      projection.Title,
+		})
+
+		out = append(out, &locale.ResourceTranslation{
+			Resource: r.ResourceTranslation(),
+			Key:      rpl.Replace(rpl.Replace(LocaleKeyReportProjectionDescription.Path)),
+			Msg:      projection.Description,
+		})
+	}
+
+	return
 }

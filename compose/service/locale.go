@@ -12,7 +12,7 @@ import (
 	"golang.org/x/text/language"
 )
 
-func (svc resourceTranslation) moduleExtended(ctx context.Context, res *types.Module) (out locale.ResourceTranslationSet, err error) {
+func (svc resourceTranslationsManager) moduleExtended(ctx context.Context, res *types.Module) (out locale.ResourceTranslationSet, err error) {
 	var (
 		k types.LocaleKey
 	)
@@ -39,7 +39,7 @@ func (svc resourceTranslation) moduleExtended(ctx context.Context, res *types.Mo
 	return out, nil
 }
 
-func (svc resourceTranslation) moduleFieldValidatorErrorHandler(ctx context.Context, tag language.Tag, f *types.ModuleField, k string) (locale.ResourceTranslationSet, error) {
+func (svc resourceTranslationsManager) moduleFieldValidatorErrorHandler(ctx context.Context, tag language.Tag, f *types.ModuleField, k string) (locale.ResourceTranslationSet, error) {
 	out := make(locale.ResourceTranslationSet, 0, 10)
 
 	for i, v := range f.Expressions.Validators {
@@ -60,7 +60,7 @@ func (svc resourceTranslation) moduleFieldValidatorErrorHandler(ctx context.Cont
 	return out, nil
 }
 
-func (svc resourceTranslation) pageExtended(ctx context.Context, res *types.Page) (out locale.ResourceTranslationSet, err error) {
+func (svc resourceTranslationsManager) pageExtended(ctx context.Context, res *types.Page) (out locale.ResourceTranslationSet, err error) {
 	var (
 		k types.LocaleKey
 	)
@@ -104,7 +104,7 @@ func (svc resourceTranslation) pageExtended(ctx context.Context, res *types.Page
 	return
 }
 
-func (svc resourceTranslation) pageExtendedAutomatinBlock(tag language.Tag, res *types.Page, block types.PageBlock, blockID uint64, k types.LocaleKey) (locale.ResourceTranslationSet, error) {
+func (svc resourceTranslationsManager) pageExtendedAutomatinBlock(tag language.Tag, res *types.Page, block types.PageBlock, blockID uint64, k types.LocaleKey) (locale.ResourceTranslationSet, error) {
 	out := make(locale.ResourceTranslationSet, 0, 10)
 
 	bb, _ := block.Options["buttons"].([]interface{})
@@ -136,20 +136,20 @@ func (svc resourceTranslation) pageExtendedAutomatinBlock(tag language.Tag, res 
 
 // Helper loaders
 
-func (svc resourceTranslation) loadModule(ctx context.Context, s store.Storer, namespaceID, moduleID uint64) (m *types.Module, err error) {
+func (svc resourceTranslationsManager) loadModule(ctx context.Context, s store.Storer, namespaceID, moduleID uint64) (m *types.Module, err error) {
 	return loadModule(ctx, s, moduleID)
 }
 
-func (svc resourceTranslation) loadNamespace(ctx context.Context, s store.Storer, namespaceID uint64) (m *types.Namespace, err error) {
+func (svc resourceTranslationsManager) loadNamespace(ctx context.Context, s store.Storer, namespaceID uint64) (m *types.Namespace, err error) {
 	return loadNamespace(ctx, s, namespaceID)
 }
 
-func (svc resourceTranslation) loadPage(ctx context.Context, s store.Storer, namespaceID, pageID uint64) (m *types.Page, err error) {
+func (svc resourceTranslationsManager) loadPage(ctx context.Context, s store.Storer, namespaceID, pageID uint64) (m *types.Page, err error) {
 	_, m, err = loadPage(ctx, s, namespaceID, pageID)
 	return m, err
 }
 
-func (svc resourceTranslation) loadChart(ctx context.Context, s store.Storer, namespaceID, chartID uint64) (m *types.Chart, err error) {
+func (svc resourceTranslationsManager) loadChart(ctx context.Context, s store.Storer, namespaceID, chartID uint64) (m *types.Chart, err error) {
 	_, m, err = loadChart(ctx, s, namespaceID, chartID)
 	return m, err
 }

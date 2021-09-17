@@ -38,7 +38,7 @@ type (
 
 	Module struct {
 		module    service.ModuleService
-		locale    service.ResourceTranslationService
+		locale    service.ResourceTranslationsManagerService
 		namespace service.NamespaceService
 		ac        moduleAccessController
 	}

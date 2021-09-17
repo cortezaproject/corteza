@@ -44,7 +44,7 @@ type (
 
 			Reorder(ctx context.Context, namespaceID, selfID uint64, pageIDs []uint64) error
 		}
-		locale     service.ResourceTranslationService
+		locale     service.ResourceTranslationsManagerService
 		namespace  service.NamespaceService
 		attachment service.AttachmentService
 		ac         pageAccessController
