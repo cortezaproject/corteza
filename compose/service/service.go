@@ -61,7 +61,7 @@ var (
 	DefaultPage                *page
 	DefaultAttachment          AttachmentService
 	DefaultNotification        *notification
-	DefaultResourceTranslation ResourceTranslationService
+	DefaultResourceTranslation ResourceTranslationsManagerService
 
 	// wrapper around time.Now() that will aid service testing
 	now = func() *time.Time {
@@ -99,7 +99,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
 	}
 
-	DefaultResourceTranslation = ResourceTranslation(locale.Global())
+	DefaultResourceTranslation = ResourceTranslationsManager(locale.Global())
 	DefaultAccessControl = AccessControl()
 
 	if DefaultObjectStore == nil {

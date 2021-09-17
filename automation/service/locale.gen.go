@@ -14,14 +14,14 @@ import (
 	"github.com/cortezaproject/corteza-server/automation/types"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
+	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/store"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
-	resourceTranslation struct {
+	resourceTranslationsManager struct {
 		actionlog actionlog.Recorder
 		locale    locale.Resource
 		store     store.Storer
@@ -32,7 +32,7 @@ type (
 		// CanManageResourceTranslation(context.Context) bool
 	}
 
-	ResourceTranslationService interface {
+	ResourceTranslationsManagerService interface {
 		Workflow(ctx context.Context, ID uint64) (locale.ResourceTranslationSet, error)
 
 		Upsert(context.Context, locale.ResourceTranslationSet) error
@@ -40,8 +40,8 @@ type (
 	}
 )
 
-func ResourceTranslation(ls locale.Resource) *resourceTranslation {
-	return &resourceTranslation{
+func ResourceTranslationsManager(ls locale.Resource) *resourceTranslationsManager {
+	return &resourceTranslationsManager{
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
 		ac:        DefaultAccessControl,
@@ -49,7 +49,7 @@ func ResourceTranslation(ls locale.Resource) *resourceTranslation {
 	}
 }
 
-func (svc resourceTranslation) Upsert(ctx context.Context, rr locale.ResourceTranslationSet) (err error) {
+func (svc resourceTranslationsManager) Upsert(ctx context.Context, rr locale.ResourceTranslationSet) (err error) {
 	// @todo AC
 	//if (!svc.ac.CanManageResourceTranslation(ctx)) {
 	//	return *****ErrNotAllowedToCreate()
@@ -57,7 +57,7 @@ func (svc resourceTranslation) Upsert(ctx context.Context, rr locale.ResourceTra
 
 	// @todo validation
 
-	me := auth.GetIdentityFromContext(ctx)
+	me := intAuth.GetIdentityFromContext(ctx)
 
 	// - group by resource
 	localeByRes := make(map[string]locale.ResourceTranslationSet)
@@ -107,11 +107,11 @@ func (svc resourceTranslation) Upsert(ctx context.Context, rr locale.ResourceTra
 	return nil
 }
 
-func (svc resourceTranslation) Locale() locale.Resource {
+func (svc resourceTranslationsManager) Locale() locale.Resource {
 	return svc.locale
 }
 
-func (svc resourceTranslation) Workflow(ctx context.Context, ID uint64) (locale.ResourceTranslationSet, error) {
+func (svc resourceTranslationsManager) Workflow(ctx context.Context, ID uint64) (locale.ResourceTranslationSet, error) {
 	var (
 		err error
 		out locale.ResourceTranslationSet

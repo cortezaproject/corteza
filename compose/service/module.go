@@ -27,7 +27,7 @@ type (
 		ac        moduleAccessController
 		eventbus  eventDispatcher
 		store     store.Storer
-		locale    ResourceTranslationService
+		locale    ResourceTranslationsManagerService
 	}
 
 	moduleAccessController interface {

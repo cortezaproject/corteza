@@ -22,7 +22,7 @@ type (
 		ac        pageAccessController
 		eventbus  eventDispatcher
 		store     store.Storer
-		locale    ResourceTranslationService
+		locale    ResourceTranslationsManagerService
 	}
 
 	pageAccessController interface {

@@ -32,7 +32,7 @@ type (
 
 	Namespace struct {
 		namespace  service.NamespaceService
-		locale     service.ResourceTranslationService
+		locale     service.ResourceTranslationsManagerService
 		attachment service.AttachmentService
 		ac         namespaceAccessController
 	}
