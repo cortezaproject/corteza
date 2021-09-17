@@ -12,6 +12,7 @@ import (
 	su "github.com/cortezaproject/corteza-server/pkg/envoy/store"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/yaml"
 	"github.com/cortezaproject/corteza-server/store"
+	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -41,6 +42,75 @@ func TestStoreYaml_moduleFieldRefs(t *testing.T) {
 	}
 
 	cases := []*tc{
+		{
+			name: "user field; role filter",
+			pre: func(ctx context.Context, s store.Storer) (error, *su.DecodeFilter) {
+				ns := sTestComposeNamespace(ctx, t, s, "base")
+				rl := sTestRole(ctx, t, s, "base")
+
+				modID := su.NextID()
+				mod := &types.Module{
+					ID:          modID,
+					Name:        "usr_rl",
+					Handle:      "usr_rl",
+					NamespaceID: ns.ID,
+					Fields: types.ModuleFieldSet{
+						&types.ModuleField{
+							ID:       su.NextID(),
+							ModuleID: modID,
+							Kind:     "User",
+							Place:    0,
+							Name:     "usr_rl",
+							Options: types.ModuleFieldOptions{
+								"roles": []string{strconv.FormatUint(rl.ID, 10)},
+							},
+						},
+					},
+				}
+
+				err := store.CreateComposeModule(ctx, s, mod)
+				if err != nil {
+					t.Fatal(err)
+				}
+				err = store.CreateComposeModuleField(ctx, s, mod.Fields...)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				df := su.NewDecodeFilter().
+					ComposeNamespace(&types.NamespaceFilter{
+						Slug: "base_namespace",
+					}).
+					Roles(&systemTypes.RoleFilter{}).
+					ComposeModule(&types.ModuleFilter{
+						NamespaceID: ns.ID,
+					})
+				return nil, df
+			},
+			check: func(ctx context.Context, s store.Storer, req *require.Assertions) {
+				n, err := store.LookupComposeNamespaceBySlug(ctx, s, "base_namespace")
+				req.NoError(err)
+				mod, err := store.LookupComposeModuleByNamespaceIDHandle(ctx, s, n.ID, "usr_rl")
+				req.NoError(err)
+				role, err := store.LookupRoleByHandle(ctx, s, "base_role")
+				req.NoError(err)
+				req.NotNil(role)
+
+				mff, _, err := store.SearchComposeModuleFields(ctx, s, types.ModuleFieldFilter{
+					ModuleID: []uint64{mod.ID},
+				})
+				req.NoError(err)
+
+				// Check module relations for Options.module variant
+				f := mff.FindByName("usr_rl")
+				req.NotNil(f)
+
+				rr := f.Options["roles"].([]interface{})
+				req.Len(rr, 1)
+				req.Equal(strconv.FormatUint(role.ID, 10), rr[0])
+			},
+		},
+
 		{
 			name: "external module ref",
 			pre: func(ctx context.Context, s store.Storer) (error, *su.DecodeFilter) {

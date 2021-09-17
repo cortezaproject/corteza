@@ -329,6 +329,18 @@ func (n *composePage) Encode(ctx context.Context, pl *payload) (err error) {
 				delete(mops, "module")
 
 			}
+
+		case "Comment":
+			id := ss(b.Options, "module", "moduleID")
+			if id == "" {
+				continue
+			}
+			mID := getModID(id)
+			if mID <= 0 {
+				return resource.ComposeModuleErrUnresolved(resource.MakeIdentifiers(id))
+			}
+			b.Options["moduleID"] = strconv.FormatUint(mID, 10)
+			delete(b.Options, "module")
 		}
 	}
 

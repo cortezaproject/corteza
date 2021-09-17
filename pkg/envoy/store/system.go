@@ -18,6 +18,8 @@ type (
 	userFilter        types.UserFilter
 	templateFilter    types.TemplateFilter
 	applicationFilter types.ApplicationFilter
+	apiGwRouteFilter  types.ApigwRouteFilter
+	reportFilter      types.ReportFilter
 	settingFilter     types.SettingsFilter
 	rbacFilter        struct {
 		rbac.RuleFilter
@@ -159,6 +161,104 @@ func (d *systemDecoder) decodeTemplates(ctx context.Context, s store.Storer, ff 
 
 			for _, n := range nn {
 				mm = append(mm, newTemplate(n))
+				d.resourceID = append(d.resourceID, n.ID)
+			}
+
+			if fn.NextPage != nil {
+				aux.PageCursor = fn.NextPage
+			} else {
+				break
+			}
+		}
+	}
+
+	return &auxRsp{
+		mm: mm,
+	}
+}
+
+func (d *systemDecoder) decodeAPIGWRoutes(ctx context.Context, s store.Storer, ff []*apiGwRouteFilter) *auxRsp {
+	mm := make([]envoy.Marshaller, 0, 100)
+	if ff == nil {
+		return &auxRsp{
+			mm: mm,
+		}
+	}
+
+	var nn types.ApigwRouteSet
+	var fn types.ApigwRouteFilter
+	var err error
+
+	for _, f := range ff {
+		aux := *f
+
+		if aux.Limit == 0 {
+			aux.Limit = 1000
+		}
+
+		for {
+			nn, fn, err = s.SearchApigwRoutes(ctx, types.ApigwRouteFilter(aux))
+			if err != nil {
+				return &auxRsp{
+					err: err,
+				}
+			}
+
+			// filters
+			for _, n := range nn {
+				gwf, _, err := s.SearchApigwFilters(ctx, types.ApigwFilterFilter{RouteID: n.ID})
+				if err != nil {
+					return &auxRsp{
+						err: err,
+					}
+				}
+
+				mm = append(mm, newAPIGateway(n, gwf, d.ux))
+				d.resourceID = append(d.resourceID, n.ID)
+			}
+
+			if fn.NextPage != nil {
+				aux.PageCursor = fn.NextPage
+			} else {
+				break
+			}
+		}
+	}
+
+	return &auxRsp{
+		mm: mm,
+	}
+}
+
+func (d *systemDecoder) decodeReports(ctx context.Context, s store.Storer, ff []*reportFilter) *auxRsp {
+	mm := make([]envoy.Marshaller, 0, 100)
+	if ff == nil {
+		return &auxRsp{
+			mm: mm,
+		}
+	}
+
+	var nn types.ReportSet
+	var fn types.ReportFilter
+	var err error
+
+	for _, f := range ff {
+		aux := *f
+
+		if aux.Limit == 0 {
+			aux.Limit = 1000
+		}
+
+		for {
+			nn, fn, err = s.SearchReports(ctx, types.ReportFilter(aux))
+			if err != nil {
+				return &auxRsp{
+					err: err,
+				}
+			}
+
+			for _, n := range nn {
+				mm = append(mm, newReport(n, d.ux))
 				d.resourceID = append(d.resourceID, n.ID)
 			}
 
@@ -467,6 +567,21 @@ func (df *DecodeFilter) systemFromResource(rr ...string) *DecodeFilter {
 					TemplateID: []uint64{templateID},
 				})
 			}
+		case "system:apigw-route":
+			df = df.APIGWRoutes(&types.ApigwRouteFilter{
+				Route: id,
+			})
+		case "system:report":
+			df = df.Reports(&types.ReportFilter{
+				Handle: id,
+			})
+			reportID, err := cast.ToUint64E(id)
+			if err == nil && reportID > 0 {
+				df = df.Reports(&types.ReportFilter{
+					ReportID: []uint64{reportID},
+				})
+			}
+
 		case "system:application":
 			df = df.Applications(&types.ApplicationFilter{
 				Query: id,
@@ -551,6 +666,22 @@ func (df *DecodeFilter) Templates(f *types.TemplateFilter) *DecodeFilter {
 		df.templates = make([]*templateFilter, 0, 1)
 	}
 	df.templates = append(df.templates, (*templateFilter)(f))
+	return df
+}
+
+func (df *DecodeFilter) APIGWRoutes(f *types.ApigwRouteFilter) *DecodeFilter {
+	if df.apiGwRoutes == nil {
+		df.apiGwRoutes = make([]*apiGwRouteFilter, 0, 1)
+	}
+	df.apiGwRoutes = append(df.apiGwRoutes, (*apiGwRouteFilter)(f))
+	return df
+}
+
+func (df *DecodeFilter) Reports(f *types.ReportFilter) *DecodeFilter {
+	if df.reports == nil {
+		df.reports = make([]*reportFilter, 0, 1)
+	}
+	df.reports = append(df.reports, (*reportFilter)(f))
 	return df
 }
 

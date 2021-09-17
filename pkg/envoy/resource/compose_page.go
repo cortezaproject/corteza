@@ -129,6 +129,14 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 					r.ModRefs = append(r.ModRefs, ref)
 				}
 			}
+
+		case "Comment":
+			id := ss(b.Options, "module", "moduleID")
+			if id != "" {
+				ref := r.AddRef(types.ModuleResourceType, id).Constraint(r.RefNs)
+				r.BlockRefs[i] = add(r.BlockRefs[i], ref)
+				r.ModRefs = append(r.ModRefs, ref)
+			}
 		}
 	}
 

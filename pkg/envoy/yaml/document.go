@@ -19,9 +19,13 @@ type (
 		users        userSet
 		templates    templateSet
 		applications applicationSet
-		settings     settingSet
-		rbac         rbacRuleSet
-		locale       resourceTranslationSet
+
+		apiGateway apiGatewaySet
+		reports    reportSet
+
+		settings settingSet
+		rbac     rbacRuleSet
+		locale   resourceTranslationSet
 
 		cfg *EncoderConfig
 	}
@@ -54,6 +58,12 @@ func (doc *Document) UnmarshalYAML(n *yaml.Node) (err error) {
 
 		case "templates":
 			return v.Decode(&doc.templates)
+
+		case "apigateway", "apigw":
+			return v.Decode(&doc.apiGateway)
+
+		case "reports":
+			return v.Decode(&doc.reports)
 
 		case "applications":
 			return v.Decode(&doc.applications)
@@ -115,6 +125,28 @@ func (doc *Document) MarshalYAML() (interface{}, error) {
 		doc.templates.configureEncoder(doc.cfg)
 
 		dn, err = encodeResource(dn, "templates", doc.templates, doc.cfg.MappedOutput, "handle")
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if doc.reports != nil && len(doc.reports) > 0 {
+		doc.reports.configureEncoder(doc.cfg)
+
+		dn, err = encodeResource(dn, "reports", doc.reports, doc.cfg.MappedOutput, "handle")
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if doc.apiGateway != nil && len(doc.apiGateway) > 0 {
+		doc.apiGateway.configureEncoder(doc.cfg)
+
+		// API GW don't support map representation
+		// @todo use path+proto?
+		dn, err = addMap(dn,
+			"apigateway", doc.apiGateway,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -185,6 +217,12 @@ func (doc *Document) Decode(ctx context.Context) ([]resource.Interface, error) {
 	}
 	if doc.applications != nil {
 		mm = append(mm, doc.applications)
+	}
+	if doc.reports != nil {
+		mm = append(mm, doc.reports)
+	}
+	if doc.apiGateway != nil {
+		mm = append(mm, doc.apiGateway)
 	}
 	if doc.settings != nil {
 		for _, s := range doc.settings {
@@ -273,6 +311,14 @@ func (doc *Document) addAutomationWorkflow(m *automationWorkflow) {
 	}
 
 	doc.automation.Workflows = append(doc.automation.Workflows, m)
+}
+
+func (doc *Document) addApiGateway(a *apiGateway) {
+	doc.apiGateway = append(doc.apiGateway, a)
+}
+
+func (doc *Document) addReport(a *report) {
+	doc.reports = append(doc.reports, a)
 }
 
 func (doc *Document) addRole(r *role) {

@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/minions"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/spf13/cast"
 )
@@ -24,8 +25,9 @@ type (
 		ResFields []*ComposeModuleField
 
 		// Might keep track of related NS
-		RefNs   *Ref
-		RefMods RefSet
+		RefNs    *Ref
+		RefMods  RefSet
+		RefRoles RefSet
 	}
 )
 
@@ -51,6 +53,19 @@ func NewComposeModule(res *types.Module, nsRef string) *ComposeModule {
 			}
 			if refMod != "" && refMod != "0" {
 				r.RefMods = append(r.RefMods, r.AddRef(types.ModuleResourceType, refMod).Constraint(r.RefNs))
+			}
+
+		case "User":
+			refRoles := ComposeModuleFieldExtractUserFieldRoles(f.Options["roles"])
+			if len(refRoles) == 0 {
+				refRoles = ComposeModuleFieldExtractUserFieldRoles(f.Options["role"])
+			}
+			if len(refRoles) == 0 {
+				refRoles = ComposeModuleFieldExtractUserFieldRoles(f.Options["roleID"])
+			}
+
+			for _, refRole := range refRoles {
+				r.RefRoles = append(r.RefRoles, r.AddRef(systemTypes.RoleResourceType, refRole))
 			}
 		}
 	}
@@ -203,4 +218,68 @@ func NewComposeModuleField(res *types.ModuleField, nsRef, modRef string) *Compos
 	r.SetTimestamps(MakeTimestampsCUDA(&res.CreatedAt, res.UpdatedAt, res.DeletedAt, nil))
 
 	return r
+}
+
+// ComposeModuleFieldExtractUserFieldRoles is a helper to extract roles
+// from the given filer options.
+func ComposeModuleFieldExtractUserFieldRoles(i interface{}) []string {
+	if minions.IsNil(i) {
+		return nil
+	}
+
+	out := make([]string, 0, 1)
+
+	isOk := func(v string) bool {
+		return v != "" && v != "0"
+	}
+
+	switch v := i.(type) {
+	case uint64:
+		aux := strconv.FormatUint(v, 10)
+		if !isOk(aux) {
+			return nil
+		}
+		return []string{aux}
+	case []uint64:
+		for _, i := range v {
+			aux := strconv.FormatUint(i, 10)
+			if !isOk(aux) {
+				continue
+			}
+			out = append(out, aux)
+		}
+		return out
+
+	case string:
+		if !isOk(v) {
+			return nil
+		}
+		return []string{v}
+	case []string:
+		for _, aux := range v {
+			if !isOk(aux) {
+				continue
+			}
+			out = append(out, aux)
+		}
+		return out
+
+	case []interface{}:
+		for _, i := range v {
+			aux := cast.ToString(i)
+			if !isOk(aux) {
+				continue
+			}
+			out = append(out, aux)
+		}
+		return out
+	case interface{}:
+		aux := cast.ToString(v)
+		if !isOk(aux) {
+			return nil
+		}
+		return []string{aux}
+	}
+
+	return nil
 }

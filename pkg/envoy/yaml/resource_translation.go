@@ -46,7 +46,6 @@ func resourceTranslationFromResource(r *resource.ResourceTranslation, cfg *Encod
 	if len(r.Res) == 0 {
 		return nil
 	}
-
 	return &resourceTranslation{
 		locales: r.Res,
 

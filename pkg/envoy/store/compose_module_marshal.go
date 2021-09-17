@@ -7,6 +7,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/store"
+	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 func NewComposeModuleFromResource(res *resource.ComposeModule, cfg *EncoderConfig) resourceState {
@@ -15,7 +16,8 @@ func NewComposeModuleFromResource(res *resource.ComposeModule, cfg *EncoderConfi
 
 		res: res,
 
-		recFields: make(map[string]uint64),
+		recFields:  make(map[string]uint64),
+		userFields: make(map[string]uint64),
 	}
 }
 
@@ -54,6 +56,25 @@ func (n *composeModule) Prepare(ctx context.Context, pl *payload) (err error) {
 
 		for i := range refMod.Identifiers {
 			n.recFields[i] = mod.ID
+		}
+	}
+
+	// Get related user field roles
+	for _, refRole := range n.res.RefRoles {
+		var rl *systemTypes.Role
+		rl, err = findRoleStore(ctx, pl.s, makeGenericFilter(refRole.Identifiers))
+		if err != nil {
+			return err
+		}
+		if rl == nil {
+			rl = resource.FindRole(pl.state.ParentResources, refRole.Identifiers)
+		}
+		if rl == nil {
+			return composeModuleErrUnresolvedUserField(refRole.Identifiers)
+		}
+
+		for i := range refRole.Identifiers {
+			n.userFields[i] = rl.ID
 		}
 	}
 
@@ -163,6 +184,35 @@ func (n *composeModule) Encode(ctx context.Context, pl *payload) (err error) {
 
 			f.Options["moduleID"] = strconv.FormatUint(modID, 10)
 			delete(f.Options, "module")
+		}
+
+		if f.Kind == "User" {
+			roles := resource.ComposeModuleFieldExtractUserFieldRoles(f.Options["roles"])
+			if len(roles) == 0 {
+				roles = resource.ComposeModuleFieldExtractUserFieldRoles(f.Options["role"])
+			}
+			if len(roles) == 0 {
+				roles = resource.ComposeModuleFieldExtractUserFieldRoles(f.Options["roleID"])
+			}
+
+			var out []string
+			for _, r := range roles {
+				roleID := n.userFields[r]
+				if roleID <= 0 {
+					ii := resource.MakeIdentifiers(r)
+					role := resource.FindRole(pl.state.ParentResources, ii)
+					if role == nil || role.ID == 0 {
+						return composeModuleErrUnresolvedUserField(ii)
+					}
+					roleID = role.ID
+				}
+
+				out = append(out, strconv.FormatUint(roleID, 10))
+			}
+
+			f.Options["roles"] = out
+			delete(f.Options, "role")
+			delete(f.Options, "roleID")
 		}
 	}
 

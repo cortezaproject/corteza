@@ -146,6 +146,10 @@ func (se *storeEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState)
 			err = f(NewRoleFromResource(res, se.cfg), ers)
 		case *resource.Application:
 			err = f(NewApplicationFromResource(res, se.cfg), ers)
+		case *resource.APIGateway:
+			err = f(newAPIGatewayFromResource(res, se.cfg), ers)
+		case *resource.Report:
+			err = f(newReportFromResource(res, se.cfg), ers)
 		case *resource.Setting:
 			err = f(NewSettingFromResource(res, se.cfg), ers)
 		case *resource.RbacRule:

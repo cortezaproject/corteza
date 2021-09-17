@@ -6,6 +6,7 @@ import (
 
 	su "github.com/cortezaproject/corteza-server/pkg/envoy/store"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
+	"github.com/cortezaproject/corteza-server/pkg/report"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -160,4 +161,89 @@ func sTestRbac(ctx context.Context, t *testing.T, s store.Storer, roleID uint64)
 	}
 
 	return rr
+}
+
+func sTestReport(ctx context.Context, t *testing.T, s store.Storer, pfx string) *types.Report {
+	r := &types.Report{
+		ID:     su.NextID(),
+		Handle: pfx + "_report",
+		Meta:   &types.ReportMeta{Name: pfx + " report", Description: "testing"},
+
+		Sources: types.ReportDataSourceSet{{
+			Meta: map[string]interface{}{"key1": "value1"},
+			Step: &report.StepDefinition{
+				Kind: "Load",
+				Load: &report.LoadStepDefinition{
+					Name:   "Test",
+					Source: "test",
+					Definition: map[string]interface{}{
+						"k1": "v1",
+					},
+					Columns: report.FrameColumnSet{{Name: "col1", Label: "col1 label"}},
+				},
+			},
+		}},
+		Projections: types.ReportProjectionSet{{
+			Title:       "title",
+			Description: "description",
+			Key:         "key",
+			Kind:        "kind",
+			Options: map[string]interface{}{
+				"k1": "v1",
+			},
+			Elements: []interface{}{
+				map[string]interface{}{"k1": "v1"},
+			},
+			XYWH:   [4]int{1, 2, 3, 4},
+			Layout: "layout",
+		}},
+	}
+
+	err := store.CreateReport(ctx, s, r)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return r
+}
+
+func sTestAPIGatewayRoute(ctx context.Context, t *testing.T, s store.Storer, r string) *types.ApigwRoute {
+	gwr := &types.ApigwRoute{
+		ID:       su.NextID(),
+		Endpoint: "/testing/" + r,
+		Method:   "POST",
+		Enabled:  true,
+		Group:    0,
+		Meta: types.ApigwRouteMeta{
+			Debug: true,
+			Async: true,
+		},
+	}
+
+	err := store.CreateApigwRoute(ctx, s, gwr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return gwr
+}
+
+func sTestAPIGatewayFilter(ctx context.Context, t *testing.T, s store.Storer, routeID uint64, pfx string) *types.ApigwFilter {
+	gwf := &types.ApigwFilter{
+		ID:     su.NextID(),
+		Route:  routeID,
+		Weight: 0,
+		Ref:    pfx + "_ref",
+		Kind:   pfx + "_kind",
+		Params: map[string]interface{}{
+			"param1": "value1",
+		},
+	}
+
+	err := store.CreateApigwFilter(ctx, s, gwf)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return gwf
 }
