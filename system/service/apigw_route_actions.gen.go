@@ -635,6 +635,42 @@ func ApigwRouteErrNotAllowedToRead(mm ...*apigwRouteActionProps) *errors.Error {
 	return e
 }
 
+// ApigwRouteErrNotAllowedToSearch returns "system:apigw-route.notAllowedToSearch" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func ApigwRouteErrNotAllowedToSearch(mm ...*apigwRouteActionProps) *errors.Error {
+	var p = &apigwRouteActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to list or search routes", nil),
+
+		errors.Meta("type", "notAllowedToSearch"),
+		errors.Meta("resource", "system:apigw-route"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(apigwRouteLogMetaKey{}, "failed to search for routes; insufficient permissions"),
+		errors.Meta(apigwRoutePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.notAllowedToSearch"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ApigwRouteErrNotAllowedToUpdate returns "system:apigw-route.notAllowedToUpdate" as *errors.Error
 //
 //

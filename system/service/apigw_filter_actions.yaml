@@ -54,26 +54,6 @@ errors:
     message: "invalid route"
     severity: warning
 
-  - error: notAllowedToCreate
-    message: "not allowed to create a filter"
-    log: "failed to create a route; insufficient permissions"
-
-  - error: notAllowedToRead
-    message: "not allowed to read this filter"
-    log: "failed to read {{filter}}; insufficient permissions"
-
-  - error: notAllowedToUpdate
-    message: "not allowed to update this filter"
-    log: "failed to update {{filter}}; insufficient permissions"
-
-  - error: notAllowedToDelete
-    message: "not allowed to delete this filter"
-    log: "failed to delete {{filter}}; insufficient permissions"
-
-  - error: notAllowedToUndelete
-    message: "not allowed to undelete this filter"
-    log: "failed to undelete {{filter}}; insufficient permissions"
-
   - error: asyncRouteTooManyProcessers
     message: "processer already exists for this async route"
     log: "failed to add {{filter}}; too many processers, async route"

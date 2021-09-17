@@ -77,10 +77,10 @@ func (h workflow) Meta() types.FilterMeta {
 	return h.FilterMeta
 }
 
-func (f *workflow) Merge(params []byte) (types.Handler, error) {
-	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&f.params)
+func (h *workflow) Merge(params []byte) (types.Handler, error) {
+	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&h.params)
 
-	return f, err
+	return h, err
 }
 
 func (h workflow) Handler() types.HandlerFunc {

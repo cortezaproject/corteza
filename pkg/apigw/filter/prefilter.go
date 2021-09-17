@@ -68,21 +68,21 @@ func (h header) Meta() types.FilterMeta {
 	return h.FilterMeta
 }
 
-func (v *header) Merge(params []byte) (types.Handler, error) {
-	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&v.params)
+func (h *header) Merge(params []byte) (types.Handler, error) {
+	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&h.params)
 
 	if err != nil {
 		return nil, err
 	}
 
 	parser := expr.NewParser()
-	v.eval, err = parser.Parse(v.params.Expr)
+	h.eval, err = parser.Parse(h.params.Expr)
 
 	if err != nil {
 		return nil, fmt.Errorf("could not validate origin parameters: %s", err)
 	}
 
-	return v, err
+	return h, err
 }
 
 func (h header) Handler() types.HandlerFunc {
@@ -137,36 +137,36 @@ func NewQueryParam() (v *queryParam) {
 	return
 }
 
-func (h queryParam) New() types.Handler {
+func (qp queryParam) New() types.Handler {
 	return NewQueryParam()
 }
 
-func (h queryParam) String() string {
-	return fmt.Sprintf("apigw filter %s (%s)", h.Name, h.Label)
+func (qp queryParam) String() string {
+	return fmt.Sprintf("apigw filter %s (%s)", qp.Name, qp.Label)
 }
 
-func (h queryParam) Meta() types.FilterMeta {
-	return h.FilterMeta
+func (qp queryParam) Meta() types.FilterMeta {
+	return qp.FilterMeta
 }
 
-func (v *queryParam) Merge(params []byte) (types.Handler, error) {
-	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&v.params)
+func (qp *queryParam) Merge(params []byte) (types.Handler, error) {
+	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&qp.params)
 
 	if err != nil {
 		return nil, err
 	}
 
 	parser := expr.NewParser()
-	v.eval, err = parser.Parse(v.params.Expr)
+	qp.eval, err = parser.Parse(qp.params.Expr)
 
 	if err != nil {
 		return nil, fmt.Errorf("could not validate query parameters: %s", err)
 	}
 
-	return v, err
+	return qp, err
 }
 
-func (h *queryParam) Handler() types.HandlerFunc {
+func (qp *queryParam) Handler() types.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) error {
 		var (
 			ctx = r.Context()
@@ -183,17 +183,17 @@ func (h *queryParam) Handler() types.HandlerFunc {
 		out, err := expr.NewVars(vv)
 
 		if err != nil {
-			return pe.Internal("could not validate query parameters: (%v) (%s)", err, h.params.Expr)
+			return pe.Internal("could not validate query parameters: (%v) (%s)", err, qp.params.Expr)
 		}
 
-		b, err := h.eval.Test(ctx, out)
+		b, err := qp.eval.Test(ctx, out)
 
 		if err != nil {
-			return pe.InvalidData("could not validate query parameters: (%v) (%s)", err, h.params.Expr)
+			return pe.InvalidData("could not validate query parameters: (%v) (%s)", err, qp.params.Expr)
 		}
 
 		if !b {
-			return pe.InvalidData("could not validate query parameters: (%v) (%s)", errors.New("validation failed"), h.params.Expr)
+			return pe.InvalidData("could not validate query parameters: (%v) (%s)", errors.New("validation failed"), qp.params.Expr)
 		}
 
 		return nil

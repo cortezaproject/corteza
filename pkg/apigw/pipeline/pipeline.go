@@ -50,7 +50,7 @@ func (pp *Pl) Error() types.ErrorHandlerFunc {
 	return pp.err
 }
 
-// add error handler
+// ErrorHandler adds error handler
 func (pp *Pl) ErrorHandler(ff types.ErrorHandlerFunc) {
 	pp.err = ff
 }

@@ -29,10 +29,8 @@ type (
 	}
 
 	ApigwFilterFilter struct {
-		RouteID  uint64 `json:"routeID,string"`
-		Endpoint string `json:"endpoint"`
-		Group    string `json:"group"`
-		Enabled  bool   `json:"enabled"`
+		RouteID uint64 `json:"routeID,string"`
+		Enabled bool   `json:"enabled"`
 
 		Deleted filter.State `json:"deleted"`
 

@@ -15,48 +15,45 @@ type (
 	apigwFilter struct {
 		actionlog actionlog.Recorder
 		store     store.Storer
-		ac        functionAccessController
+		ac        routeAccessController
 		route     *apigwRoute
-	}
-
-	functionAccessController interface {
-		CanSearchApigwFilters(context.Context) bool
-
-		CanCreateApigwFilter(context.Context) bool
-		CanReadApigwFilter(context.Context, *types.ApigwFilter) bool
-		CanUpdateApigwFilter(context.Context, *types.ApigwFilter) bool
-		CanDeleteApigwFilter(context.Context, *types.ApigwFilter) bool
 	}
 )
 
 func Filter() *apigwFilter {
-	return (&apigwFilter{
+	return &apigwFilter{
 		route:     DefaultApigwRoute,
 		ac:        DefaultAccessControl,
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
-	})
+	}
 }
 
-func (svc *apigwFilter) FindByID(ctx context.Context, ID uint64) (q *types.ApigwFilter, err error) {
+func (svc *apigwFilter) FindByID(ctx context.Context, filterID uint64) (q *types.ApigwFilter, err error) {
 	var (
 		rProps = &apigwFilterActionProps{}
+		r      *types.ApigwRoute
 	)
 
 	err = func() error {
-		if ID == 0 {
+		if filterID == 0 {
 			return ApigwFilterErrInvalidID()
 		}
 
-		if !svc.ac.CanSearchApigwFilters(ctx) {
-			return ApigwFilterErrNotAllowedToRead(rProps)
-		}
-
-		if q, err = store.LookupApigwFilterByID(ctx, svc.store, ID); err != nil {
+		if q, err = store.LookupApigwFilterByID(ctx, svc.store, filterID); err != nil {
 			return TemplateErrInvalidID().Wrap(err)
 		}
 
 		rProps.setFilter(q)
+
+		// Get route
+		if r, err = svc.route.FindByID(ctx, q.Route); err != nil {
+			return err
+		}
+
+		if !svc.ac.CanReadApigwRoute(ctx, r) {
+			return ApigwRouteErrNotAllowedToRead()
+		}
 
 		return nil
 	}()
@@ -71,17 +68,17 @@ func (svc *apigwFilter) Create(ctx context.Context, new *types.ApigwFilter) (q *
 	)
 
 	err = func() (err error) {
-		if !svc.ac.CanCreateApigwFilter(ctx) {
-			return ApigwFilterErrNotAllowedToCreate(qProps)
-		}
-
 		// Set new values after beforeCreate events are emitted
 		new.ID = nextID()
 		new.CreatedAt = *now()
 		new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-		if r, err = svc.route.FindByID(ctx, new.Route); err != nil {
-			return ApigwFilterErrNotFound(qProps)
+		if r, err = store.LookupApigwRouteByID(ctx, svc.store, new.Route); err != nil {
+			return
+		}
+
+		if !svc.ac.CanUpdateApigwRoute(ctx, r) {
+			return ApigwRouteErrNotAllowedToUpdate()
 		}
 
 		// check for existing filters if route is async
@@ -148,12 +145,12 @@ func (svc *apigwFilter) Update(ctx context.Context, upd *types.ApigwFilter) (q *
 			return ApigwFilterErrNotFound(qProps)
 		}
 
-		if !svc.ac.CanUpdateApigwFilter(ctx, qq) {
-			return ApigwFilterErrNotAllowedToUpdate(qProps)
-		}
-
 		if r, err = svc.route.FindByID(ctx, upd.Route); err != nil {
 			return err
+		}
+
+		if !svc.ac.CanUpdateApigwRoute(ctx, r) {
+			return ApigwRouteErrNotAllowedToUpdate()
 		}
 
 		if qq, e = store.LookupApigwFilterByID(ctx, svc.store, upd.ID); e == nil && qq == nil {
@@ -193,12 +190,14 @@ func (svc *apigwFilter) DeleteByID(ctx context.Context, ID uint64) (err error) {
 			return ApigwFilterErrNotFound(qProps)
 		}
 
-		if !svc.ac.CanDeleteApigwFilter(ctx, q) {
-			return ApigwFilterErrNotAllowedToDelete(qProps)
+		if r, err = store.LookupApigwRouteByID(ctx, svc.store, q.Route); err == store.ErrNotFound {
+			return ApigwRouteErrNotFound()
+		} else if err != nil {
+			return
 		}
 
-		if r, err = svc.route.FindByID(ctx, q.Route); err != nil {
-			return err
+		if !svc.ac.CanDeleteApigwRoute(ctx, r) {
+			return ApigwRouteErrNotAllowedToDelete()
 		}
 
 		qProps.setFilter(q)
@@ -233,12 +232,14 @@ func (svc *apigwFilter) UndeleteByID(ctx context.Context, ID uint64) (err error)
 			return ApigwFilterErrNotFound(qProps)
 		}
 
-		if !svc.ac.CanDeleteApigwFilter(ctx, q) {
-			return ApigwFilterErrNotAllowedToDelete(qProps)
+		if r, err = store.LookupApigwRouteByID(ctx, svc.store, q.Route); err == store.ErrNotFound {
+			return ApigwRouteErrNotFound()
+		} else if err != nil {
+			return
 		}
 
-		if r, err = svc.route.FindByID(ctx, q.Route); err != nil {
-			return err
+		if !svc.ac.CanDeleteApigwRoute(ctx, r) {
+			return ApigwRouteErrNotAllowedToUndelete()
 		}
 
 		qProps.setFilter(q)
@@ -264,18 +265,32 @@ func (svc *apigwFilter) UndeleteByID(ctx context.Context, ID uint64) (err error)
 func (svc *apigwFilter) Search(ctx context.Context, filter types.ApigwFilterFilter) (r types.ApigwFilterSet, f types.ApigwFilterFilter, err error) {
 	var (
 		aProps = &apigwFilterActionProps{search: &filter}
+		route  *types.ApigwRoute
 	)
 
-	// For each fetched item, store backend will check if it is valid or not
-	filter.Check = func(res *types.ApigwFilter) (bool, error) {
-		if !svc.ac.CanReadApigwFilter(ctx, res) {
-			return false, nil
+	err = func() error {
+		// Preload the corresponding API GW route for access control
+		if filter.RouteID == 0 {
+			return ApigwRouteErrInvalidID()
 		}
 
-		return true, nil
-	}
+		if route, err = store.LookupApigwRouteByID(ctx, svc.store, filter.RouteID); err != nil {
+			return ApigwRouteErrNotFound()
+		}
 
-	err = func() error {
+		if !svc.ac.CanReadApigwRoute(ctx, route) {
+			return ApigwRouteErrNotAllowedToRead()
+		}
+
+		// Prepare the filter checker so we can evaluate access to specific filters
+		filter.Check = func(res *types.ApigwFilter) (bool, error) {
+			if !svc.ac.CanReadApigwRoute(ctx, route) {
+				return false, nil
+			}
+			return true, nil
+		}
+
+		// Go!
 		if r, f, err = store.SearchApigwFilters(ctx, svc.store, filter); err != nil {
 			return err
 		}
@@ -292,10 +307,9 @@ func (svc *apigwFilter) DefFilter(ctx context.Context, kind string) (l interface
 	)
 
 	err = func() error {
-		if !svc.ac.CanSearchApigwFilters(ctx) {
-			return ApigwFilterErrNotAllowedToRead(qProps)
+		if !svc.ac.CanSearchApigwRoutes(ctx) {
+			return ApigwRouteErrNotAllowedToRead()
 		}
-
 		// get the definitions from registry
 		l = apigw.Service().Funcs(kind)
 
@@ -312,10 +326,9 @@ func (svc *apigwFilter) DefProxyAuth(ctx context.Context) (l interface{}, err er
 	)
 
 	err = func() error {
-		if !svc.ac.CanSearchApigwFilters(ctx) {
-			return ApigwFilterErrNotAllowedToRead(qProps)
+		if !svc.ac.CanSearchApigwRoutes(ctx) {
+			return ApigwRouteErrNotAllowedToRead()
 		}
-
 		// get the definitions from registry
 		l = apigw.Service().ProxyAuthDef()
 

@@ -166,7 +166,7 @@ func (s *apigw) Router(r chi.Router) {
 	}()
 }
 
-// init all the routes
+// Init all the routes
 func (s *apigw) Init(ctx context.Context, route ...*route) {
 	var (
 		defaultPostFilter types.Handler
@@ -240,7 +240,7 @@ func (s *apigw) Init(ctx context.Context, route ...*route) {
 		r.handler = pipe.Handler()
 		r.errHandler = pipe.Error()
 
-		log.Debug("successfuly registered route")
+		log.Debug("successfully registered route")
 	}
 }
 
