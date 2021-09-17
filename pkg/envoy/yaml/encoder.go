@@ -98,6 +98,10 @@ func NewYamlEncoder(cfg *EncoderConfig) envoy.PrepareEncodeStreamer {
 // It initializes and prepares the resource state for each provided resource
 func (ye *yamlEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState) (err error) {
 	f := func(rs resourceState, es *envoy.ResourceState) error {
+		if rs == nil {
+			return nil
+		}
+
 		err = rs.Prepare(ctx, es)
 		if err != nil {
 			return err
@@ -135,6 +139,10 @@ func (ye *yamlEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState) 
 			err = f(templateFromResource(res, ye.cfg), e)
 		case *resource.Application:
 			err = f(applicationFromResource(res, ye.cfg), e)
+		case *resource.APIGateway:
+			err = f(apiGatewayFromResource(res, ye.cfg), e)
+		case *resource.Report:
+			err = f(reportFromResource(res, ye.cfg), e)
 		case *resource.Setting:
 			err = f(settingFromResource(res, ye.cfg), e)
 		case *resource.RbacRule:

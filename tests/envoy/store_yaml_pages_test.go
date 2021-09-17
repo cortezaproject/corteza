@@ -113,6 +113,72 @@ func TestStoreYaml_pageRefs(t *testing.T) {
 		},
 
 		{
+			name: "pageblock comment",
+			pre: func(ctx context.Context, s store.Storer) (error, *su.DecodeFilter) {
+				ns := sTestComposeNamespace(ctx, t, s, "base")
+				mod := sTestComposeModule(ctx, t, s, ns.ID, "base")
+
+				pg := &types.Page{
+					ID:          su.NextID(),
+					NamespaceID: ns.ID,
+					Handle:      "page",
+					Title:       "page",
+					Blocks: types.PageBlocks{
+						{
+							Title: "comment_1",
+							Kind:  "Comment",
+							Options: map[string]interface{}{
+								"module": strconv.FormatUint(mod.ID, 10),
+							},
+						},
+						{
+							Title: "comment_2",
+							Kind:  "Comment",
+							Options: map[string]interface{}{
+								"moduleID": strconv.FormatUint(mod.ID, 10),
+							},
+						},
+					},
+				}
+
+				err := store.CreateComposePage(ctx, s, pg)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				df := su.NewDecodeFilter().
+					ComposeNamespace(&types.NamespaceFilter{
+						Slug: "base_namespace",
+					}).
+					ComposeModule(&types.ModuleFilter{
+						NamespaceID: ns.ID,
+					}).
+					ComposePage(&types.PageFilter{
+						NamespaceID: ns.ID,
+					})
+				return nil, df
+			},
+			check: func(ctx context.Context, s store.Storer, req *require.Assertions) {
+				n, err := store.LookupComposeNamespaceBySlug(ctx, s, "base_namespace")
+				req.NoError(err)
+				mod, err := store.LookupComposeModuleByNamespaceIDHandle(ctx, s, n.ID, "base_module")
+				req.NoError(err)
+
+				pg, err := store.LookupComposePageByNamespaceIDHandle(ctx, s, n.ID, "page")
+				req.NoError(err)
+				req.Len(pg.Blocks, 2)
+
+				// provided as module
+				b := pg.Blocks[0]
+				req.Equal(strconv.FormatUint(mod.ID, 10), b.Options["moduleID"])
+
+				// provided as moduleID
+				b = pg.Blocks[1]
+				req.Equal(strconv.FormatUint(mod.ID, 10), b.Options["moduleID"])
+			},
+		},
+
+		{
 			name: "pageblock; automation",
 			pre: func(ctx context.Context, s store.Storer) (error, *su.DecodeFilter) {
 				ns := sTestComposeNamespace(ctx, t, s, "base")

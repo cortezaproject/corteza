@@ -17,8 +17,9 @@ type (
 		res *resource.ComposeModule
 		mod *types.Module
 
-		relNS     *types.Namespace
-		recFields map[string]uint64
+		relNS      *types.Namespace
+		recFields  map[string]uint64
+		userFields map[string]uint64
 	}
 )
 
@@ -202,4 +203,8 @@ func findComposeModuleFieldsStore(ctx context.Context, s store.Storer, mod *type
 
 func composeModuleErrUnresolvedRecordField(ii resource.Identifiers) error {
 	return fmt.Errorf("record module field unresolved %v", ii.StringSlice())
+}
+
+func composeModuleErrUnresolvedUserField(ii resource.Identifiers) error {
+	return fmt.Errorf("user module field unresolved %v", ii.StringSlice())
 }

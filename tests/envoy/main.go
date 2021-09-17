@@ -106,6 +106,9 @@ func truncateStore(ctx context.Context, s store.Storer, t *testing.T) {
 		s.TruncateUsers(ctx),
 		s.TruncateTemplates(ctx),
 		s.TruncateApplications(ctx),
+		s.TruncateApigwRoutes(ctx),
+		s.TruncateApigwFilters(ctx),
+		s.TruncateReports(ctx),
 		s.TruncateSettings(ctx),
 		s.TruncateRbacRules(ctx),
 

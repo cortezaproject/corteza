@@ -24,10 +24,13 @@ type (
 		composeChart     []*composeChartFilter
 
 		// System stuff
-		roles                []*roleFilter
-		users                []*userFilter
-		templates            []*templateFilter
-		applications         []*applicationFilter
+		roles        []*roleFilter
+		users        []*userFilter
+		templates    []*templateFilter
+		applications []*applicationFilter
+		apiGwRoutes  []*apiGwRouteFilter
+		reports      []*reportFilter
+
 		settings             []*settingFilter
 		rbac                 []*rbacFilter
 		resourceTranslations []*resourceTranslationFilter
@@ -146,6 +149,8 @@ func (d *decoder) Decode(ctx context.Context, s store.Storer, f *DecodeFilter) (
 		system.decodeUsers(ctx, s, f.users),
 		system.decodeTemplates(ctx, s, f.templates),
 		system.decodeApplications(ctx, s, f.applications),
+		system.decodeAPIGWRoutes(ctx, s, f.apiGwRoutes),
+		system.decodeReports(ctx, s, f.reports),
 		system.decodeSettings(ctx, s, f.settings),
 		system.decodeResourceTranslation(ctx, s, f.resourceTranslations),
 

@@ -3,6 +3,7 @@ package yaml
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
@@ -38,7 +39,8 @@ func (n *composeModule) Prepare(ctx context.Context, state *envoy.ResourceState)
 			expr: composeModuleFieldExpr(f.Expressions),
 		}
 
-		if f.Kind == "Record" {
+		switch f.Kind {
+		case "Record":
 			refMod := f.Options.String("module")
 			if refMod == "" {
 				refMod = f.Options.String("moduleID")
@@ -46,6 +48,23 @@ func (n *composeModule) Prepare(ctx context.Context, state *envoy.ResourceState)
 			cmf.relMod = resource.FindComposeModule(state.ParentResources, resource.MakeIdentifiers(refMod))
 			if cmf.relMod == nil {
 				return resource.ComposeModuleErrUnresolved(resource.MakeIdentifiers(refMod))
+			}
+
+		case "User":
+			refRoles := resource.ComposeModuleFieldExtractUserFieldRoles(f.Options["roles"])
+			if len(refRoles) == 0 {
+				refRoles = resource.ComposeModuleFieldExtractUserFieldRoles(f.Options["role"])
+			}
+			if len(refRoles) == 0 {
+				refRoles = resource.ComposeModuleFieldExtractUserFieldRoles(f.Options["roleID"])
+			}
+
+			for _, ref := range refRoles {
+				aux := resource.FindRole(state.ParentResources, resource.MakeIdentifiers(ref))
+				if aux == nil {
+					return resource.RoleErrUnresolved(resource.MakeIdentifiers(ref))
+				}
+				cmf.relRoles = append(cmf.relRoles, aux)
 			}
 		}
 
@@ -136,7 +155,8 @@ func (c *composeModule) MarshalYAML() (interface{}, error) {
 func (c *composeModuleField) MarshalYAML() (interface{}, error) {
 
 	auxOpt := c.res.Options
-	if c.res.Kind == "Record" {
+	switch c.res.Kind {
+	case "Record":
 		ref := c.relMod.Handle
 		if ref == "" {
 			ref = c.relMod.Name
@@ -144,6 +164,16 @@ func (c *composeModuleField) MarshalYAML() (interface{}, error) {
 
 		auxOpt["module"] = ref
 		delete(auxOpt, "moduleID")
+
+	case "User":
+		aux := make([]string, 0, len(c.relRoles))
+		for _, r := range c.relRoles {
+			aux = append(aux, firstOkString(r.Handle, strconv.FormatUint(r.ID, 10)))
+		}
+
+		auxOpt["roles"] = aux
+		delete(auxOpt, "role")
+		delete(auxOpt, "roleID")
 	}
 
 	if _, has := auxOpt["multiDelimiter"]; has {

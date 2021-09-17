@@ -3,6 +3,7 @@ package yaml
 import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -42,7 +43,8 @@ type (
 		cfg  *EncoderConfig
 		expr composeModuleFieldExpr
 
-		relMod *types.Module
+		relMod   *types.Module
+		relRoles systemTypes.RoleSet
 
 		rbac   rbacRuleSet
 		locale resourceTranslationSet

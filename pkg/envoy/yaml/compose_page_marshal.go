@@ -228,6 +228,11 @@ func (c *composePageBlock) MarshalYAML() (interface{}, error) {
 		}
 		break
 
+	case "Comment":
+		opt["moduleID"] = c.refMod[0]
+		delete(opt, "module")
+		break
+
 	}
 
 	return makeMap(

@@ -209,6 +209,15 @@ func (n *resourceTranslation) makeResourceTranslation(pl *payload) (string, erro
 
 		return composeTypes.ModuleFieldResourceTranslation(p0ID, p1ID, p2ID), nil
 
+	case types.ReportResourceType:
+		p1 := resource.FindReport(pl.state.ParentResources, n.refLocaleRes.Identifiers)
+		if p1 == nil {
+			return "", resource.ReportErrUnresolved(n.refLocaleRes.Identifiers)
+		}
+		p1ID = p1.ID
+
+		return types.ReportResourceTranslation(p1ID), nil
+
 	default:
 		// @todo if we wish to support res. trans. for external stuff, this needs to pass through.
 		//       this also requires some tweaks in the path ID thing.

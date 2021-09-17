@@ -10,6 +10,7 @@ import (
 	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 	"golang.org/x/text/language"
 )
 
@@ -191,6 +192,17 @@ func (r *resourceTranslation) makeResourceTranslationResource(state *envoy.Resou
 	// 	}
 
 	// 	return fmt.Sprintf(automationTypes.WorkflowResourceTranslationTpl(), automationTypes.WorkflowResourceTranslationType, p0ID), nil
+
+	case systemTypes.ReportResourceType:
+		if res.RefRes != nil {
+			p0 := resource.FindReport(state.ParentResources, res.RefRes.Identifiers)
+			if p0 == nil {
+				return "", resource.ReportErrUnresolved(res.RefRes.Identifiers)
+			}
+			p0ID = p0.Handle
+		}
+
+		return fmt.Sprintf(systemTypes.ReportResourceTranslationTpl(), systemTypes.ReportResourceTranslationType, p0ID), nil
 
 	default:
 		return "", fmt.Errorf("unsupported resource type '%s' for locale resource YAML encode", r.refLocaleRes.ResourceType)
