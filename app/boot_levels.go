@@ -406,6 +406,8 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return
 	}
 
+	auth.SetJWTStore(app.Store)
+
 	corredor.Service().SetUserFinder(sysService.DefaultUser)
 	corredor.Service().SetRoleFinder(sysService.DefaultRole)
 
