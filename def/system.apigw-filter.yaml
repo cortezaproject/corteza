@@ -1,8 +1,0 @@
-rbac:
-  operations:
-    read:
-      description: Read API Gateway filter
-    update:
-      description: Update API Gateway filter
-    delete:
-      description: Delete API Gateway filter

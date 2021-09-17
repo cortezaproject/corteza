@@ -175,7 +175,8 @@ func Test_proxy(t *testing.T) {
 			}
 
 			proxy := New(zap.NewNop(), c, struct{}{})
-			proxy.Merge([]byte(tc.params))
+			_, err := proxy.Merge([]byte(tc.params))
+			req.NoError(err)
 
 			scope := &types.Scp{
 				"opts": options.Apigw(),
@@ -185,7 +186,7 @@ func Test_proxy(t *testing.T) {
 			rq = rq.WithContext(ctx)
 
 			hn := proxy.Handler()
-			err := hn(rc, rq)
+			err = hn(rc, rq)
 
 			if tc.err != "" {
 				req.EqualError(err, tc.err)

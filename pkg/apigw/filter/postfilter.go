@@ -113,23 +113,23 @@ func NewDefaultJsonResponse() (e *defaultJsonResponse) {
 	return
 }
 
-func (h defaultJsonResponse) New() types.Handler {
+func (j defaultJsonResponse) New() types.Handler {
 	return NewDefaultJsonResponse()
 }
 
-func (h defaultJsonResponse) String() string {
-	return fmt.Sprintf("apigw filter %s (%s)", h.Name, h.Label)
+func (j defaultJsonResponse) String() string {
+	return fmt.Sprintf("apigw filter %s (%s)", j.Name, j.Label)
 }
 
-func (h defaultJsonResponse) Meta() types.FilterMeta {
-	return h.FilterMeta
+func (j defaultJsonResponse) Meta() types.FilterMeta {
+	return j.FilterMeta
 }
 
-func (f *defaultJsonResponse) Merge(params []byte) (h types.Handler, err error) {
-	return f, err
+func (j *defaultJsonResponse) Merge(params []byte) (h types.Handler, err error) {
+	return j, err
 }
 
-func (h defaultJsonResponse) Handler() types.HandlerFunc {
+func (j defaultJsonResponse) Handler() types.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) error {
 		rw.Header().Set("Content-Type", "application/json")
 		rw.WriteHeader(http.StatusAccepted)

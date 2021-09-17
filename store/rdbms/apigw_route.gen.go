@@ -81,7 +81,7 @@ func (s Store) SearchApigwRoutes(ctx context.Context, f types.ApigwRouteFilter) 
 			ctx,
 			q, f.Sort, f.PageCursor,
 			f.Limit,
-			nil,
+			f.Check,
 			func(cur *filter.PagingCursor) squirrel.Sqlizer {
 				return builders.CursorCondition(cur, nil)
 			},
@@ -264,6 +264,16 @@ func (s Store) QueryApigwRoutes(
 	}
 
 	for _, res = range tmp {
+
+		// check fn set, call it and see if it passed the test
+		// if not, skip the item
+		if check != nil {
+			if chk, err := check(res); err != nil {
+				return nil, err
+			} else if !chk {
+				continue
+			}
+		}
 
 		set = append(set, res)
 	}
@@ -465,7 +475,7 @@ func (Store) apigwRouteColumns(aa ...string) []string {
 	}
 }
 
-// {true true false true true false}
+// {true true false true true true}
 
 // sortableApigwRouteColumns returns all ApigwRoute columns flagged as sortable
 //
