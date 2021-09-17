@@ -76,6 +76,10 @@ errors:
     message: "not allowed to read this route"
     log: "failed to read {{route.endpoint}}; insufficient permissions"
 
+  - error: notAllowedToSearch
+    message: "not allowed to list or search routes"
+    log: "failed to search for routes; insufficient permissions"
+
   - error: notAllowedToUpdate
     message: "not allowed to update this route"
     log: "failed to update {{route.endpoint}}; insufficient permissions"

@@ -30,11 +30,11 @@ type (
 )
 
 func Route() *apigwRoute {
-	return (&apigwRoute{
+	return &apigwRoute{
 		ac:        DefaultAccessControl,
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
-	})
+	}
 }
 
 func (svc *apigwRoute) FindByID(ctx context.Context, ID uint64) (q *types.ApigwRoute, err error) {
@@ -45,10 +45,6 @@ func (svc *apigwRoute) FindByID(ctx context.Context, ID uint64) (q *types.ApigwR
 	err = func() error {
 		if ID == 0 {
 			return ApigwRouteErrInvalidID()
-		}
-
-		if !svc.ac.CanSearchApigwRoutes(ctx) {
-			return ApigwRouteErrNotAllowedToRead(rProps)
 		}
 
 		if q, err = store.LookupApigwRouteByID(ctx, svc.store, ID); err != nil {
@@ -133,7 +129,9 @@ func (svc *apigwRoute) Update(ctx context.Context, upd *types.ApigwRoute) (q *ty
 		q = upd
 
 		// send the signal to reload all route
-		apigw.Service().Reload(ctx)
+		if qq.Enabled != upd.Enabled {
+			apigw.Service().Reload(ctx)
+		}
 
 		return nil
 	}()
@@ -170,7 +168,9 @@ func (svc *apigwRoute) DeleteByID(ctx context.Context, ID uint64) (err error) {
 		}
 
 		// send the signal to reload all queues
-		apigw.Service().Reload(ctx)
+		if q.Enabled {
+			apigw.Service().Reload(ctx)
+		}
 
 		return nil
 	}()
@@ -194,7 +194,7 @@ func (svc *apigwRoute) UndeleteByID(ctx context.Context, ID uint64) (err error) 
 		}
 
 		if !svc.ac.CanDeleteApigwRoute(ctx, q) {
-			return ApigwRouteErrNotAllowedToDelete(qProps)
+			return ApigwRouteErrNotAllowedToUndelete(qProps)
 		}
 
 		qProps.setRoute(q)
@@ -207,7 +207,9 @@ func (svc *apigwRoute) UndeleteByID(ctx context.Context, ID uint64) (err error) 
 		}
 
 		// send the signal to reload all queues
-		apigw.Service().Reload(ctx)
+		if q.Enabled {
+			apigw.Service().Reload(ctx)
+		}
 
 		return nil
 	}()
@@ -230,6 +232,10 @@ func (svc *apigwRoute) Search(ctx context.Context, filter types.ApigwRouteFilter
 	}
 
 	err = func() error {
+		if !svc.ac.CanSearchApigwRoutes(ctx) {
+			return ApigwRouteErrNotAllowedToSearch()
+		}
+
 		if r, f, err = store.SearchApigwRoutes(ctx, svc.store, filter); err != nil {
 			return err
 		}

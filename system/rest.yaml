@@ -1699,8 +1699,7 @@ endpoints:
     path: "/"
     parameters:
       get:
-      - { name: routeID,    type: "uint64",   title: "Filter by route ID" }
-      - { name: query,      type: "string",   title: "Filter filters" }
+      - { name: routeID,    type: "uint64",   title: "Filter by route ID", required: true }
       - { name: deleted,    type: "uint64",   title: "Exclude (0, default), include (1) or return only (2) deleted filters" }
       - { name: disabled,   type: "uint64",   title: "Exclude (0, default), include (1) or return only (2) disabled filters" }
       - { name: limit,      type: "uint",     title: "Limit" }

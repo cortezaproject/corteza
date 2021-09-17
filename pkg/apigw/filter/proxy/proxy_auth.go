@@ -80,21 +80,21 @@ type (
 func NewProxyAuthServicer(c *http.Client, p ProxyAuthParams, s types.SecureStorager) (ProxyAuthServicer, error) {
 	switch p.Type {
 	case proxyAuthTypeHeader:
-		return NewProxyAuthHeader(p)
+		return newProxyAuthHeader(p)
 	case proxyAuthTypeQuery:
-		return NewProxyAuthQuery(p)
+		return newProxyAuthQuery(p)
 	case proxyAuthTypeBasic:
-		return NewProxyAuthBasic(p)
+		return newProxyAuthBasic(p)
 	case proxyAuthTypeOauth2:
-		return NewProxyAuthOauth2(p, c, s)
+		return newProxyAuthOauth2(p, c, s)
 	case proxyAuthTypeJWT:
-		return NewProxyAuthJWT(p)
+		return newProxyAuthJWT(p)
 	default:
 		return proxyAuthServicerNoop{}, nil
 	}
 }
 
-func NewProxyAuthHeader(p ProxyAuthParams) (s proxyAuthServicerHeader, err error) {
+func newProxyAuthHeader(p ProxyAuthParams) (s proxyAuthServicerHeader, err error) {
 	s = proxyAuthServicerHeader{
 		params: p.Params,
 	}
@@ -102,7 +102,7 @@ func NewProxyAuthHeader(p ProxyAuthParams) (s proxyAuthServicerHeader, err error
 	return
 }
 
-func NewProxyAuthQuery(p ProxyAuthParams) (s proxyAuthServicerQuery, err error) {
+func newProxyAuthQuery(p ProxyAuthParams) (s proxyAuthServicerQuery, err error) {
 	s = proxyAuthServicerQuery{
 		params: p.Params,
 	}
@@ -110,7 +110,7 @@ func NewProxyAuthQuery(p ProxyAuthParams) (s proxyAuthServicerQuery, err error) 
 	return
 }
 
-func NewProxyAuthBasic(p ProxyAuthParams) (s proxyAuthServicerBasic, err error) {
+func newProxyAuthBasic(p ProxyAuthParams) (s proxyAuthServicerBasic, err error) {
 	var (
 		ok         bool
 		user, pass string
@@ -136,7 +136,7 @@ func NewProxyAuthBasic(p ProxyAuthParams) (s proxyAuthServicerBasic, err error) 
 	return
 }
 
-func NewProxyAuthOauth2(p ProxyAuthParams, c *http.Client, s types.SecureStorager) (ss proxyAuthServicerOauth2, err error) {
+func newProxyAuthOauth2(p ProxyAuthParams, c *http.Client, s types.SecureStorager) (ss proxyAuthServicerOauth2, err error) {
 	var (
 		u                        *url.URL
 		ok                       bool
@@ -182,7 +182,7 @@ func NewProxyAuthOauth2(p ProxyAuthParams, c *http.Client, s types.SecureStorage
 	return
 }
 
-func NewProxyAuthJWT(p ProxyAuthParams) (ss proxyAuthServicerJWT, err error) {
+func newProxyAuthJWT(p ProxyAuthParams) (ss proxyAuthServicerJWT, err error) {
 	var (
 		ok  bool
 		jwt string

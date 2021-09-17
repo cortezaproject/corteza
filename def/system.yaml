@@ -60,10 +60,5 @@ rbac:
     apigw-routes.search:
       description: List search or filter API gateway routes
 
-    apigw-filter.create:
-      description: Add API gateway filter to route
-    apigw-filters.search:
-      description: List, search or filter API gateway filters
-
     resource-translations.manage:
       description: List, search, create, or update resource translations

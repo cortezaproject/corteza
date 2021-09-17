@@ -79,21 +79,21 @@ func (h proxy) Meta() types.FilterMeta {
 	return h.FilterMeta
 }
 
-func (f *proxy) Merge(params []byte) (types.Handler, error) {
-	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&f.params)
+func (h *proxy) Merge(params []byte) (types.Handler, error) {
+	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&h.params)
 
 	if err != nil {
 		return nil, err
 	}
 
 	// get the auth mechanism
-	f.a, err = NewProxyAuthServicer(f.c, f.params.Auth, f.s)
+	h.a, err = NewProxyAuthServicer(h.c, h.params.Auth, h.s)
 
 	if err != nil {
 		return nil, fmt.Errorf("could not load auth servicer for proxying: %s", err)
 	}
 
-	return f, err
+	return h, err
 }
 
 func (h proxy) Handler() types.HandlerFunc {

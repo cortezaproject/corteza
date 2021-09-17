@@ -40,11 +40,6 @@ type (
 		// Filter by route ID
 		RouteID uint64 `json:",string"`
 
-		// Query GET parameter
-		//
-		// Filter filters
-		Query string
-
 		// Deleted GET parameter
 		//
 		// Exclude (0, default), include (1) or return only (2) deleted filters
@@ -171,7 +166,6 @@ func NewApigwFilterList() *ApigwFilterList {
 func (r ApigwFilterList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"routeID":    r.RouteID,
-		"query":      r.Query,
 		"deleted":    r.Deleted,
 		"disabled":   r.Disabled,
 		"limit":      r.Limit,
@@ -183,11 +177,6 @@ func (r ApigwFilterList) Auditable() map[string]interface{} {
 // Auditable returns all auditable/loggable parameters
 func (r ApigwFilterList) GetRouteID() uint64 {
 	return r.RouteID
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ApigwFilterList) GetQuery() string {
-	return r.Query
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -224,12 +213,6 @@ func (r *ApigwFilterList) Fill(req *http.Request) (err error) {
 
 		if val, ok := tmp["routeID"]; ok && len(val) > 0 {
 			r.RouteID, err = payload.ParseUint64(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["query"]; ok && len(val) > 0 {
-			r.Query, err = val[0], nil
 			if err != nil {
 				return err
 			}

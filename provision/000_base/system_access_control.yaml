@@ -37,8 +37,6 @@ allow:
       - application.flag.global
       - apigw-route.create
       - apigw-routes.search
-      - apigw-filter.create
-      - apigw-filters.search
       - report.create
       - reports.search
 
