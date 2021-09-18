@@ -16,12 +16,6 @@ import (
 )
 
 type (
-	localeResponse struct {
-		Name string       `json:"name"`
-		Self string       `json:"self"`
-		Tag  language.Tag `json:"code"`
-	}
-
 	Locale struct {
 		svc service.ResourceTranslationService
 	}
@@ -43,7 +37,9 @@ func (Locale) New() *Locale {
 }
 
 func (ctrl Locale) List(ctx context.Context, r *request.LocaleList) (interface{}, error) {
-	return locale.Global().LocalizedList(ctx), nil
+	return struct {
+		Set []*locale.Language `json:"set"`
+	}{locale.Global().LocalizedList(ctx)}, nil
 }
 
 func (ctrl Locale) Get(ctx context.Context, r *request.LocaleGet) (interface{}, error) {
