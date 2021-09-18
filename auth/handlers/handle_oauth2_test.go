@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"net/url"
@@ -15,8 +14,7 @@ import (
 
 func Test_oauth2AuthorizeSuccess(t *testing.T) {
 	var (
-		ctx  = context.Background()
-		user = makeMockUser(ctx)
+		user = makeMockUser()
 
 		req = &http.Request{
 			Form:     url.Values{},
@@ -66,13 +64,13 @@ func Test_oauth2AuthorizeSuccess(t *testing.T) {
 
 			tc.fn(authSettings)
 
-			authReq = prepareClientAuthReq(ctx, req, user)
 			authHandlers = &AuthHandlers{
 				Log:         zap.NewNop(),
 				AuthService: authService,
 				Settings:    authSettings,
 				OAuth2:      oauthService,
 			}
+			authReq = prepareClientAuthReq(authHandlers, req, user)
 
 			err := authHandlers.oauth2Authorize(authReq)
 
@@ -89,8 +87,7 @@ func Test_oauth2AuthorizeSuccess(t *testing.T) {
 
 func Test_oauth2AuthorizeSuccessSetParams(t *testing.T) {
 	var (
-		ctx  = context.Background()
-		user = makeMockUser(ctx)
+		user = makeMockUser()
 
 		req = &http.Request{
 			Form:     url.Values{},
@@ -112,15 +109,14 @@ func Test_oauth2AuthorizeSuccessSetParams(t *testing.T) {
 		},
 	}
 
-	authReq = prepareClientAuthReq(ctx, req, user)
-	authReq.Session.Values["oauth2AuthParams"] = url.Values{"foo": []string{"bar"}}
-
 	authHandlers = &AuthHandlers{
 		Log:         zap.NewNop(),
 		AuthService: authService,
 		Settings:    authSettings,
 		OAuth2:      oauthService,
 	}
+	authReq = prepareClientAuthReq(authHandlers, req, user)
+	authReq.Session.Values["oauth2AuthParams"] = url.Values{"foo": []string{"bar"}}
 
 	err := authHandlers.oauth2Authorize(authReq)
 

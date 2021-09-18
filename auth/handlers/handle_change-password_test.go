@@ -15,8 +15,7 @@ import (
 
 func Test_changePasswordForm_setValues(t *testing.T) {
 	var (
-		ctx  = context.Background()
-		user = makeMockUser(ctx)
+		user = makeMockUser()
 
 		req = &http.Request{}
 
@@ -32,9 +31,9 @@ func Test_changePasswordForm_setValues(t *testing.T) {
 
 	authSettings := &settings.Settings{}
 
-	authService = prepareClientAuthService(ctx, user)
-	authReq = prepareClientAuthReq(ctx, req, user)
-	authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
+	authService = prepareClientAuthService()
+	authHandlers = prepareClientAuthHandlers(authService, authSettings)
+	authReq = prepareClientAuthReq(authHandlers, req, user)
 
 	payload := map[string]string{"key": "value"}
 	authReq.SetKV(payload)
@@ -48,8 +47,7 @@ func Test_changePasswordForm_setValues(t *testing.T) {
 
 func Test_changePasswordProc(t *testing.T) {
 	var (
-		ctx  = context.Background()
-		user = makeMockUser(ctx)
+		user = makeMockUser()
 
 		req = &http.Request{}
 
@@ -133,8 +131,8 @@ func Test_changePasswordProc(t *testing.T) {
 
 			tc.fn(authSettings)
 
-			authReq = prepareClientAuthReq(ctx, req, user)
-			authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
+			authHandlers = prepareClientAuthHandlers(authService, authSettings)
+			authReq = prepareClientAuthReq(authHandlers, req, user)
 
 			err := authHandlers.changePasswordProc(authReq)
 

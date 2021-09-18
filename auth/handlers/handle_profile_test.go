@@ -15,8 +15,7 @@ import (
 
 func Test_profileForm(t *testing.T) {
 	var (
-		ctx  = context.Background()
-		user = makeMockUser(ctx)
+		user = makeMockUser()
 
 		req = &http.Request{
 			URL: &url.URL{},
@@ -33,8 +32,8 @@ func Test_profileForm(t *testing.T) {
 		rq = require.New(t)
 	)
 
-	authReq = prepareClientAuthReq(ctx, req, user)
-	authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
+	authHandlers = prepareClientAuthHandlers(authService, authSettings)
+	authReq = prepareClientAuthReq(authHandlers, req, user)
 
 	userForm := map[string]string{
 		"email":             user.Email,
@@ -55,8 +54,7 @@ func Test_profileForm(t *testing.T) {
 
 func Test_profileFormProc(t *testing.T) {
 	var (
-		ctx  = context.Background()
-		user = makeMockUser(ctx)
+		user = makeMockUser()
 
 		req = &http.Request{
 			PostForm: url.Values{},
@@ -81,7 +79,7 @@ func Test_profileFormProc(t *testing.T) {
 
 				userService = &userServiceMocked{
 					update: func(c context.Context, u *types.User) (*types.User, error) {
-						u = makeMockUser(ctx)
+						u = makeMockUser()
 						u.SetRoles()
 
 						return u, nil
@@ -188,9 +186,9 @@ func Test_profileFormProc(t *testing.T) {
 
 			tc.fn(authSettings)
 
-			authReq = prepareClientAuthReq(ctx, req, user)
-			authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
+			authHandlers = prepareClientAuthHandlers(authService, authSettings)
 			authHandlers.UserService = userService
+			authReq = prepareClientAuthReq(authHandlers, req, user)
 
 			err := authHandlers.profileProc(authReq)
 

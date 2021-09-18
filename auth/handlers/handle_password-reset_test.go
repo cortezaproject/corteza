@@ -16,8 +16,7 @@ import (
 
 func Test_requestPasswordResetForm(t *testing.T) {
 	var (
-		ctx  = context.Background()
-		user = makeMockUser(ctx)
+		user = makeMockUser()
 
 		req = &http.Request{
 			URL: &url.URL{},
@@ -32,8 +31,8 @@ func Test_requestPasswordResetForm(t *testing.T) {
 		rq = require.New(t)
 	)
 
-	authReq = prepareClientAuthReq(ctx, req, user)
-	authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
+	authHandlers = prepareClientAuthHandlers(authService, authSettings)
+	authReq = prepareClientAuthReq(authHandlers, req, user)
 
 	payload := map[string]string{"foo": "bar"}
 	authReq.SetKV(payload)
@@ -47,7 +46,6 @@ func Test_requestPasswordResetForm(t *testing.T) {
 
 func Test_resetPasswordForm(t *testing.T) {
 	var (
-		ctx = context.Background()
 		req = &http.Request{
 			URL: &url.URL{},
 		}
@@ -69,7 +67,7 @@ func Test_resetPasswordForm(t *testing.T) {
 
 				authService = &authServiceMocked{
 					validatePasswordResetToken: func(ctx context.Context, token string) (user *types.User, err error) {
-						u := makeMockUser(ctx)
+						u := makeMockUser()
 						u.SetRoles()
 
 						return u, nil
@@ -107,8 +105,8 @@ func Test_resetPasswordForm(t *testing.T) {
 
 			tc.fn(authSettings)
 
-			authReq = prepareClientAuthReq(ctx, req, nil)
-			authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
+			authHandlers = prepareClientAuthHandlers(authService, authSettings)
+			authReq = prepareClientAuthReq(authHandlers, req, nil)
 
 			// unset so we get to the main functionality
 			authReq.AuthUser = nil
@@ -126,8 +124,7 @@ func Test_resetPasswordForm(t *testing.T) {
 
 func Test_requestPasswordReset(t *testing.T) {
 	var (
-		ctx  = context.Background()
-		user = makeMockUser(ctx)
+		user = makeMockUser()
 
 		req = &http.Request{}
 
@@ -178,8 +175,8 @@ func Test_requestPasswordReset(t *testing.T) {
 
 			tc.fn(authSettings)
 
-			authReq = prepareClientAuthReq(ctx, req, user)
-			authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
+			authHandlers = prepareClientAuthHandlers(authService, authSettings)
+			authReq = prepareClientAuthReq(authHandlers, req, user)
 
 			err := authHandlers.requestPasswordResetProc(authReq)
 
@@ -193,8 +190,7 @@ func Test_requestPasswordReset(t *testing.T) {
 
 func Test_requestPasswordProc(t *testing.T) {
 	var (
-		ctx  = context.Background()
-		user = makeMockUser(ctx)
+		user = makeMockUser()
 
 		req = &http.Request{}
 
@@ -240,8 +236,8 @@ func Test_requestPasswordProc(t *testing.T) {
 
 			tc.fn(authSettings)
 
-			authReq = prepareClientAuthReq(ctx, req, user)
-			authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
+			authHandlers = prepareClientAuthHandlers(authService, authSettings)
+			authReq = prepareClientAuthReq(authHandlers, req, user)
 
 			err := authHandlers.resetPasswordProc(authReq)
 

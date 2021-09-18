@@ -15,8 +15,7 @@ import (
 
 func Test_mfaProc(t *testing.T) {
 	var (
-		ctx  = context.Background()
-		user = makeMockUser(ctx)
+		user = makeMockUser()
 
 		req = &http.Request{}
 
@@ -199,8 +198,8 @@ func Test_mfaProc(t *testing.T) {
 
 			tc.fn(authSettings)
 
-			authReq = prepareClientAuthReq(ctx, req, user)
-			authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
+			authHandlers = prepareClientAuthHandlers(authService, authSettings)
+			authReq = prepareClientAuthReq(authHandlers, req, user)
 
 			err := authHandlers.mfaProc(authReq)
 

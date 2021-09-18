@@ -15,8 +15,7 @@ import (
 
 func Test_securityForm(t *testing.T) {
 	var (
-		ctx  = context.Background()
-		user = makeMockUser(ctx)
+		user = makeMockUser()
 
 		req = &http.Request{
 			URL: &url.URL{},
@@ -31,8 +30,8 @@ func Test_securityForm(t *testing.T) {
 		rq = require.New(t)
 	)
 
-	authReq = prepareClientAuthReq(ctx, req, user)
-	authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
+	authHandlers = prepareClientAuthHandlers(authService, authSettings)
+	authReq = prepareClientAuthReq(authHandlers, req, user)
 
 	err := authHandlers.securityForm(authReq)
 
@@ -44,8 +43,7 @@ func Test_securityForm(t *testing.T) {
 
 func Test_securityProc(t *testing.T) {
 	var (
-		ctx  = context.Background()
-		user = makeMockUser(ctx)
+		user = makeMockUser()
 
 		req = &http.Request{
 			PostForm: url.Values{},
@@ -102,8 +100,8 @@ func Test_securityProc(t *testing.T) {
 
 			tc.fn(authSettings)
 
-			authReq = prepareClientAuthReq(ctx, req, user)
-			authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
+			authHandlers = prepareClientAuthHandlers(authService, authSettings)
+			authReq = prepareClientAuthReq(authHandlers, req, user)
 
 			authReq.Session.Values = map[interface{}]interface{}{"totpSecret": "SECRET_VALUE"}
 
@@ -125,8 +123,7 @@ func Test_securityProc(t *testing.T) {
 
 func Test_securityProcDisableEmailOTPSuccess(t *testing.T) {
 	var (
-		ctx  = context.Background()
-		user = makeMockUser(ctx)
+		user = makeMockUser()
 
 		req = &http.Request{
 			Form:     url.Values{},
@@ -150,8 +147,8 @@ func Test_securityProcDisableEmailOTPSuccess(t *testing.T) {
 		},
 	}
 
-	authReq = prepareClientAuthReq(ctx, req, user)
-	authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
+	authHandlers = prepareClientAuthHandlers(authService, authSettings)
+	authReq = prepareClientAuthReq(authHandlers, req, user)
 
 	authReq.Session.Values = map[interface{}]interface{}{"totpSecret": "SECRET_VALUE"}
 
