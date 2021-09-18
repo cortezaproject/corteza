@@ -49,7 +49,7 @@ func TestRBACRules_MarshalEnvoy(t *testing.T) {
 	)
 
 	req.NoError(err)
-	req.Len(nn, 1)
+	req.Len(nn, 2) // namespace + resource translation
 	// req.IsType(&node.ComposeNamespace{}, nn[0])
 	// req.Equal(uint64(42), nn[0].(*node.ComposeNamespace).Res.ID)
 }
