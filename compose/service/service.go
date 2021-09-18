@@ -99,8 +99,8 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
 	}
 
-	DefaultResourceTranslation = ResourceTranslationsManager(locale.Global())
 	DefaultAccessControl = AccessControl()
+	DefaultResourceTranslation = ResourceTranslationsManager(locale.Global())
 
 	if DefaultObjectStore == nil {
 		const svcPath = "compose"

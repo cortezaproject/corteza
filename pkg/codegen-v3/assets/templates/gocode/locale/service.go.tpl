@@ -12,6 +12,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/store"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
@@ -26,7 +27,7 @@ type (
 	}
 
 	localeAccessController interface {
-		// CanManageResourceTranslation(context.Context) bool
+		CanManageResourceTranslations(context.Context) bool
 	}
 
 	ResourceTranslationsManagerService interface {
@@ -39,6 +40,8 @@ type (
 	}
 )
 
+var ErrNotAllowedToManageResourceTranslations = errors.Unauthorized("not allowed to manage resource translations")
+
 func ResourceTranslationsManager(ls locale.Resource) *resourceTranslationsManager {
 	return &resourceTranslationsManager{
 		actionlog: DefaultActionlog,
@@ -49,10 +52,15 @@ func ResourceTranslationsManager(ls locale.Resource) *resourceTranslationsManage
 }
 
 func (svc resourceTranslationsManager) Upsert(ctx context.Context, rr locale.ResourceTranslationSet) (err error) {
-	// @todo AC
-	//if (!svc.ac.CanManageResourceTranslation(ctx)) {
-	//	return *****ErrNotAllowedToCreate()
-	//}
+	// User is allowed to manage resource translations when:
+	//  - managed resource translation strings are all for default language
+	//  or
+	//  - user is allowed to manage resource translations
+	if rr.ContainsForeign(svc.Locale().Default().Tag) {
+		if !svc.ac.CanManageResourceTranslations(ctx) {
+			return ErrNotAllowedToManageResourceTranslations
+		}
+	}
 
 	// @todo validation
 

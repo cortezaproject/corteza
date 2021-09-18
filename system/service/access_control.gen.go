@@ -357,7 +357,7 @@ func (svc accessControl) List() (out []map[string]string) {
 		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
-			"op":   "resource-translation.Manage",
+			"op":   "resource-translations.manage",
 		},
 	}
 
@@ -827,11 +827,11 @@ func (svc accessControl) CanSearchApigwFilters(ctx context.Context) bool {
 	return svc.can(ctx, "apigw-filters.search", &types.Component{})
 }
 
-// CanManageResourceTranslation checks if current user can list, search, create, or update resource translations
+// CanManageResourceTranslations checks if current user can list, search, create, or update resource translations
 //
 // This function is auto-generated
-func (svc accessControl) CanManageResourceTranslation(ctx context.Context) bool {
-	return svc.can(ctx, "resource-translation.Manage", &types.Component{})
+func (svc accessControl) CanManageResourceTranslations(ctx context.Context) bool {
+	return svc.can(ctx, "resource-translations.manage", &types.Component{})
 }
 
 // rbacResourceValidator validates known component's resource by routing it to the appropriate validator
@@ -926,32 +926,32 @@ func rbacResourceOperations(r string) map[string]bool {
 		}
 	case types.ComponentResourceType:
 		return map[string]bool{
-			"grant":                       true,
-			"action-log.read":             true,
-			"settings.read":               true,
-			"settings.manage":             true,
-			"auth-client.create":          true,
-			"auth-clients.search":         true,
-			"role.create":                 true,
-			"roles.search":                true,
-			"user.create":                 true,
-			"users.search":                true,
-			"application.create":          true,
-			"applications.search":         true,
-			"application.flag.self":       true,
-			"application.flag.global":     true,
-			"template.create":             true,
-			"templates.search":            true,
-			"report.create":               true,
-			"reports.search":              true,
-			"reminder.assign":             true,
-			"queue.create":                true,
-			"queues.search":               true,
-			"apigw-route.create":          true,
-			"apigw-routes.search":         true,
-			"apigw-filter.create":         true,
-			"apigw-filters.search":        true,
-			"resource-translation.Manage": true,
+			"grant":                        true,
+			"action-log.read":              true,
+			"settings.read":                true,
+			"settings.manage":              true,
+			"auth-client.create":           true,
+			"auth-clients.search":          true,
+			"role.create":                  true,
+			"roles.search":                 true,
+			"user.create":                  true,
+			"users.search":                 true,
+			"application.create":           true,
+			"applications.search":          true,
+			"application.flag.self":        true,
+			"application.flag.global":      true,
+			"template.create":              true,
+			"templates.search":             true,
+			"report.create":                true,
+			"reports.search":               true,
+			"reminder.assign":              true,
+			"queue.create":                 true,
+			"queues.search":                true,
+			"apigw-route.create":           true,
+			"apigw-routes.search":          true,
+			"apigw-filter.create":          true,
+			"apigw-filters.search":         true,
+			"resource-translations.manage": true,
 		}
 	}
 

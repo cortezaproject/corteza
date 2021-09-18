@@ -117,6 +117,11 @@ func (svc accessControl) List() (out []map[string]string) {
 			"any":  types.ComponentRbacResource(),
 			"op":   "workflows.search",
 		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "resource-translations.manage",
+		},
 	}
 
 	func(svc interface{}) {
@@ -263,6 +268,13 @@ func (svc accessControl) CanSearchWorkflows(ctx context.Context) bool {
 	return svc.can(ctx, "workflows.search", &types.Component{})
 }
 
+// CanManageResourceTranslations checks if current user can list, search, create, or update resource translations
+//
+// This function is auto-generated
+func (svc accessControl) CanManageResourceTranslations(ctx context.Context) bool {
+	return svc.can(ctx, "resource-translations.manage", &types.Component{})
+}
+
 // rbacResourceValidator validates known component's resource by routing it to the appropriate validator
 //
 // This function is auto-generated
@@ -294,11 +306,12 @@ func rbacResourceOperations(r string) map[string]bool {
 		}
 	case types.ComponentResourceType:
 		return map[string]bool{
-			"grant":            true,
-			"workflow.create":  true,
-			"triggers.search":  true,
-			"sessions.search":  true,
-			"workflows.search": true,
+			"grant":                        true,
+			"workflow.create":              true,
+			"triggers.search":              true,
+			"sessions.search":              true,
+			"workflows.search":             true,
+			"resource-translations.manage": true,
 		}
 	}
 
