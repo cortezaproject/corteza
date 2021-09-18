@@ -30,8 +30,6 @@ type (
 		providerValidator func(string) error
 	}
 
-	prepareFn func()
-
 	mockNotificationService struct {
 		settings *types.AppSettings
 		opt      options.AuthOpt
@@ -263,7 +261,7 @@ func (ma mockAuthService) SendEmailOTP(ctx context.Context) error {
 	return nil
 }
 
-func (ma mockedAuthService) ValidateTOTP(ctx context.Context, code string) (err error) {
+func (ma mockAuthService) ValidateTOTP(ctx context.Context, code string) (err error) {
 	err = nil
 	return
 }
@@ -303,7 +301,7 @@ func (ms mockSession) Save(r *http.Request, w http.ResponseWriter, s *sessions.S
 //
 // Helpers
 //
-func makeMockAuthService(ctx context.Context) *mockAuthService {
+func makeMockAuthService() *mockAuthService {
 	service.DefaultAuthNotification = mockNotificationService{
 		settings: service.CurrentSettings,
 		opt:      options.AuthOpt{},
@@ -322,7 +320,7 @@ func makeMockAuthService(ctx context.Context) *mockAuthService {
 	return &svc
 }
 
-func makeMockUser(ctx context.Context) *types.User {
+func makeMockUser() *types.User {
 	u := &types.User{ID: 1, Username: "mock.user", Email: "mockuser@example.tld", Meta: &types.UserMeta{}}
 	u.Meta.SecurityPolicy.MFA.EnforcedEmailOTP = true
 	u.Meta.SecurityPolicy.MFA.EnforcedTOTP = false
@@ -330,7 +328,7 @@ func makeMockUser(ctx context.Context) *types.User {
 	return u
 }
 
-func prepareClientAuthReq(ctx context.Context, req *http.Request, user *types.User) *request.AuthReq {
+func prepareClientAuthReq(h *AuthHandlers, req *http.Request, user *types.User) *request.AuthReq {
 	s := &settings.Settings{}
 	s.MultiFactor.EmailOTP.Enabled = true
 	s.MultiFactor.EmailOTP.Enforced = true
@@ -358,23 +356,16 @@ func prepareClientAuthReq(ctx context.Context, req *http.Request, user *types.Us
 	return authReq
 }
 
-func prepareClientAuthService(ctx context.Context, user *types.User) *mockAuthService {
-	authService := makeMockAuthService(ctx)
+func prepareClientAuthService() *mockAuthService {
+	authService := makeMockAuthService()
 	return authService
 }
 
-func prepareClientAuthHandlers(ctx context.Context, authService authService, s *settings.Settings) *AuthHandlers {
+func prepareClientAuthHandlers(authService authService, s *settings.Settings) *AuthHandlers {
 	return &AuthHandlers{
 		Log:         zap.NewNop(),
 		Locale:      locale.Static(),
 		AuthService: authService,
 		Settings:    s,
 	}
-}
-
-// wrapper around time.Now() that will aid service testing
-func now() *time.Time {
-	c := time.Now()
-	// c := time.Now().Round(time.Second)
-	return &c
 }

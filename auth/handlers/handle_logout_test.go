@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"net/http"
 	"net/url"
 	"testing"
@@ -15,8 +14,7 @@ import (
 
 func Test_logoutProc(t *testing.T) {
 	var (
-		ctx  = context.Background()
-		user = makeMockUser(ctx)
+		user = makeMockUser()
 
 		req = &http.Request{}
 
@@ -33,8 +31,8 @@ func Test_logoutProc(t *testing.T) {
 	service.CurrentSettings.Auth.Internal.Enabled = true
 
 	authService = &authServiceMocked{}
-	authReq = prepareClientAuthReq(ctx, req, user)
-	authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
+	authHandlers = prepareClientAuthHandlers(authService, authSettings)
+	authReq = prepareClientAuthReq(authHandlers, req, user)
 
 	req.PostForm = url.Values{}
 	req.PostForm.Add("back", "/back")

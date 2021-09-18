@@ -3,10 +3,11 @@ package handlers
 import (
 	"context"
 	"errors"
-	"github.com/cortezaproject/corteza-server/system/service"
 	"net/http"
 	"net/url"
 	"testing"
+
+	"github.com/cortezaproject/corteza-server/system/service"
 
 	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/auth/settings"
@@ -16,7 +17,6 @@ import (
 
 func Test_createPasswordForm(t *testing.T) {
 	var (
-		ctx = context.Background()
 		req = &http.Request{
 			URL: &url.URL{},
 		}
@@ -42,7 +42,7 @@ func Test_createPasswordForm(t *testing.T) {
 						return false
 					},
 					validatePasswordCreateToken: func(ctx context.Context, token string) (user *types.User, err error) {
-						u := makeMockUser(ctx)
+						u := makeMockUser()
 						u.SetRoles()
 
 						return u, nil
@@ -77,7 +77,7 @@ func Test_createPasswordForm(t *testing.T) {
 			template: TmplCreatePassword,
 			fn: func(_ *settings.Settings) {
 				req.URL = &url.URL{RawQuery: "token=NOT_EMPTY"}
-				user = makeMockUser(ctx)
+				user = makeMockUser()
 				authService = &authServiceMocked{
 					passwordSet: func(ctx context.Context, s string) bool {
 						return false
@@ -102,8 +102,8 @@ func Test_createPasswordForm(t *testing.T) {
 
 			tc.fn(authSettings)
 
-			authReq = prepareClientAuthReq(ctx, req, user)
-			authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
+			authHandlers = prepareClientAuthHandlers(authService, authSettings)
+			authReq = prepareClientAuthReq(authHandlers, req, user)
 
 			// unset so we get to the main functionality
 			authReq.AuthUser = nil
@@ -121,8 +121,7 @@ func Test_createPasswordForm(t *testing.T) {
 
 func Test_createPasswordProc(t *testing.T) {
 	var (
-		ctx  = context.Background()
-		user = makeMockUser(ctx)
+		user = makeMockUser()
 
 		req = &http.Request{}
 
@@ -168,8 +167,8 @@ func Test_createPasswordProc(t *testing.T) {
 
 			tc.fn(authSettings)
 
-			authReq = prepareClientAuthReq(ctx, req, user)
-			authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
+			authHandlers = prepareClientAuthHandlers(authService, authSettings)
+			authReq = prepareClientAuthReq(authHandlers, req, user)
 
 			err := authHandlers.createPasswordProc(authReq)
 
