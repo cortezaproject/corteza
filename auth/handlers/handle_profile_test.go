@@ -37,9 +37,10 @@ func Test_profileForm(t *testing.T) {
 	authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
 
 	userForm := map[string]string{
-		"email":  user.Email,
-		"handle": user.Handle,
-		"name":   user.Name,
+		"email":             user.Email,
+		"handle":            user.Handle,
+		"name":              user.Name,
+		"preferredLanguage": user.Meta.PreferredLanguage,
 	}
 
 	authReq.SetKV(map[string]string{})

@@ -88,9 +88,16 @@ type (
 		ValidationBearerToken(r *http.Request) (oauth2.TokenInfo, error)
 	}
 
+	localeService interface {
+		NS(ctx context.Context, ns string) func(key string, rr ...string) string
+		T(ctx context.Context, ns, key string, rr ...string) string
+		LocalizedList(ctx context.Context) []*locale.Language
+	}
+
 	AuthHandlers struct {
 		Log *zap.Logger
 
+		Locale         localeService
 		Templates      templateExecutor
 		OAuth2         oauth2Service
 		SessionManager *request.SessionManager
@@ -139,7 +146,6 @@ func init() {
 func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
-			loc = locale.Global()
 			req = &request.AuthReq{
 				Response:   w,
 				Request:    r,
@@ -147,6 +153,7 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 				NewAlerts:  make([]request.Alert, 0),
 				PrevAlerts: make([]request.Alert, 0),
 				Session:    h.SessionManager.Get(r),
+				Locale:     h.Locale,
 			}
 		)
 
@@ -239,7 +246,7 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 							ss[i] = cast.ToString(pp[i])
 						}
 
-						return template.HTML(loc.T(req.Context(), "auth", key, ss...))
+						return template.HTML(h.Locale.T(req.Context(), "auth", key, ss...))
 					},
 				})
 			}
@@ -403,5 +410,5 @@ func anonyOnly(fn handlerFn) handlerFn {
 }
 
 func translator(req *request.AuthReq, ns string) func(key string, rr ...string) string {
-	return locale.Global().NS(req.Context(), ns)
+	return req.Locale.NS(req.Context(), ns)
 }
