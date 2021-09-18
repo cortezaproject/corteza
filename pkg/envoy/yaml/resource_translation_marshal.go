@@ -155,7 +155,7 @@ func (r *resourceTranslation) makeResourceTranslationResource(state *envoy.Resou
 		p1ID = p1.Handle
 
 		// field
-		f := resource.FindComposeModuleField(p1, res.RefRes.Identifiers)
+		f := resource.FindComposeModuleField(state.ParentResources, res.RefPath[1].Identifiers, res.RefRes.Identifiers)
 		if f == nil {
 			return "", resource.ComposeModuleFieldErrUnresolved(res.RefRes.Identifiers)
 		}

@@ -54,6 +54,14 @@ func (r *Report) AddReportSource(res *types.ReportDataSource) *ReportSource {
 	return s
 }
 
+func (r *Report) RBACParts() (resource string, ref *Ref, path []*Ref) {
+	ref = r.Ref()
+	path = nil
+	resource = fmt.Sprintf(types.ReportRbacResourceTpl(), types.ReportResourceType, firstOkString(strconv.FormatUint(r.Res.ID, 10), r.Res.Handle))
+
+	return
+}
+
 func (r *Report) ResourceTranslationParts() (resource string, ref *Ref, path []*Ref) {
 	ref = r.Ref()
 	path = nil

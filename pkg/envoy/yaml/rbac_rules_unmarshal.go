@@ -6,6 +6,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/y7s"
+	"github.com/cortezaproject/corteza-server/system/types"
 	"gopkg.in/yaml.v3"
 )
 
@@ -46,7 +47,7 @@ func (rr rbacRuleSet) decodeRbac(a rbac.Access, rules *yaml.Node) (oo rbacRuleSe
 					Access:    a,
 					Operation: op.Value,
 				},
-				refRole: roleRef,
+				refRole: resource.MakeRef(types.RoleResourceType, resource.MakeIdentifiers(roleRef)),
 			}
 
 			if res != "" {
@@ -75,21 +76,13 @@ func (rr rbacRuleSet) decodeRbac(a rbac.Access, rules *yaml.Node) (oo rbacRuleSe
 }
 
 func (rr rbacRuleSet) bindResource(resI resource.Interface) rbacRuleSet {
-	ref := &resource.Ref{
-		ResourceType: resI.ResourceType(),
-		Identifiers:  resI.Identifiers(),
-	}
-
-	var path []*resource.Ref
-	if resRbac, ok := resI.(resource.RBACInterface); ok {
-		path = resRbac.RBACPath()
-	}
+	res, ref, pp := resI.(resource.RBACInterface).RBACParts()
 
 	rtr := make(rbacRuleSet, 0, len(rr))
 	for _, r := range rr {
-		_ = r.SetResource(ref.ResourceType)
-		r.refRes = ref
-		r.refPathRes = path
+		r.refRbacResource = res
+		r.refRbacRes = ref
+		r.refPathRes = pp
 		rtr = append(rtr, r)
 	}
 
@@ -100,20 +93,19 @@ func (rr rbacRuleSet) MarshalEnvoy() ([]resource.Interface, error) {
 	var nn = make([]resource.Interface, 0, len(rr))
 
 	for _, r := range rr {
-		nn = append(nn, resource.NewRbacRule(r.res, r.refRole, r.refRes, r.refPathRes...))
+		nn = append(nn, resource.NewRbacRule(r.res, r.refRole.Identifiers.First(), r.refRbacRes, r.refRbacResource, r.refPathRes...))
 	}
 	return nn, nil
 }
 
 func (r *rbacRule) SetResource(res string) error {
-	res, ref, pp, err := resource.ParseRule(res)
+	_, ref, pp, err := resource.ParseRule(res)
 	if err != nil {
 		return err
 	}
 
-	if res != "" {
-		r.res.Resource = res
-	}
-
-	return r.bindRefs(ref, pp, err)
+	r.refRbacResource = res
+	r.refRbacRes = ref
+	r.refPathRes = pp
+	return nil
 }

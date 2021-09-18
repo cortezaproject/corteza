@@ -2,6 +2,7 @@ package resource
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -29,6 +30,14 @@ func NewTemplate(t *types.Template) *Template {
 
 func (r *Template) SysID() uint64 {
 	return r.Res.ID
+}
+
+func (r *Template) RBACParts() (resource string, ref *Ref, path []*Ref) {
+	ref = r.Ref()
+	path = nil
+	resource = fmt.Sprintf(types.TemplateRbacResourceTpl(), types.TemplateResourceType, firstOkString(strconv.FormatUint(r.Res.ID, 10), r.Res.Handle))
+
+	return
 }
 
 // FindTemplate looks for the template in the resources

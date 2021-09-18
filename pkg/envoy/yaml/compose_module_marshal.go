@@ -155,6 +155,9 @@ func (c *composeModule) MarshalYAML() (interface{}, error) {
 func (c *composeModuleField) MarshalYAML() (interface{}, error) {
 
 	auxOpt := c.res.Options
+	if auxOpt == nil {
+		auxOpt = make(types.ModuleFieldOptions)
+	}
 	switch c.res.Kind {
 	case "Record":
 		ref := c.relMod.Handle

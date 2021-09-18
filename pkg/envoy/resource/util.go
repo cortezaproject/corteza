@@ -6,7 +6,7 @@ import (
 
 func firstOkString(ss ...string) string {
 	for _, s := range ss {
-		if s != "" {
+		if s != "" && s != "0" {
 			return s
 		}
 	}

@@ -2,6 +2,7 @@ package resource
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -35,6 +36,14 @@ func NewApplication(res *types.Application) *Application {
 
 func (r *Application) SysID() uint64 {
 	return r.Res.ID
+}
+
+func (r *Application) RBACParts() (resource string, ref *Ref, path []*Ref) {
+	ref = r.Ref()
+	path = nil
+	resource = fmt.Sprintf(types.ApplicationRbacResourceTpl(), types.ApplicationResourceType, firstOkString(strconv.FormatUint(r.Res.ID, 10), r.Res.Name))
+
+	return
 }
 
 // FindApplication looks for the app in the resource set

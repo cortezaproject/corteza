@@ -3,6 +3,7 @@ package resource
 import (
 	"fmt"
 
+	"github.com/cortezaproject/corteza-server/compose/types"
 	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 )
@@ -71,8 +72,13 @@ func (r *ComposeRecord) SetUserFlakes(uu UserstampIndex) {
 	r.AddRef(systemTypes.UserResourceType, "*")
 }
 
-func (r *ComposeRecord) RBACPath() []*Ref {
-	return []*Ref{r.RefNs, r.RefMod}
+func (r *ComposeRecord) RBACParts() (resource string, ref *Ref, path []*Ref) {
+	ref = r.Ref()
+	path = []*Ref{r.RefNs, r.RefMod}
+	// @todo specific records
+	resource = fmt.Sprintf(types.RecordRbacResourceTpl(), types.RecordResourceType, r.RefNs.Identifiers.First(), r.RefMod.Identifiers.First(), "*")
+
+	return
 }
 
 func FindComposeRecordResource(rr InterfaceSet, ii Identifiers) (rec *ComposeRecord) {

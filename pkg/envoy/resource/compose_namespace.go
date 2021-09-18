@@ -27,6 +27,14 @@ func NewComposeNamespace(ns *types.Namespace) *ComposeNamespace {
 	return r
 }
 
+func (r *ComposeNamespace) RBACParts() (resource string, ref *Ref, path []*Ref) {
+	ref = r.Ref()
+	path = nil
+	resource = fmt.Sprintf(types.NamespaceRbacResourceTpl(), types.NamespaceResourceType, firstOkString(strconv.FormatUint(r.Res.ID, 10), r.Res.Slug))
+
+	return
+}
+
 func (r *ComposeNamespace) ResourceTranslationParts() (resource string, ref *Ref, path []*Ref) {
 	ref = r.Ref()
 	path = nil

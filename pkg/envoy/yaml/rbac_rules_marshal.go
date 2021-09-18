@@ -3,6 +3,7 @@ package yaml
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	automationTypes "github.com/cortezaproject/corteza-server/automation/types"
 	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
@@ -19,26 +20,32 @@ func (n *rbacRule) Prepare(ctx context.Context, state *envoy.ResourceState) (err
 	}
 
 	// Get the related role
-	n.relRole = resource.FindRole(state.ParentResources, rl.RefRole.Identifiers)
-	if n.relRole == nil {
+	n.role = resource.FindRole(state.ParentResources, rl.RefRole.Identifiers)
+	if n.role == nil {
 		return resource.RoleErrUnresolved(rl.RefRole.Identifiers)
 	}
-	if n.relRole == nil {
-		return resource.RoleErrUnresolved(rl.RefRole.Identifiers)
+
+	refRes := n.refRbacRes
+	if refRes == nil {
+		return
 	}
 
 	// For now we will only allow resource specific RBAC rules if that resource is
 	// also present.
 	// Here we check if we can find it in case we're handling a resource specific rule.
-	res := state.Res.(*resource.RbacRule)
-	refRes := res.RefResource
-	if refRes != nil && refRes.ResourceType == composeTypes.RecordResourceType {
-		for _, r := range state.ParentResources {
-			if r.ResourceType() == composeTypes.RecordResourceType && r.Identifiers().HasAny(res.RefPath[1].Identifiers) {
-				return
-			}
+	found := false
+	switch refRes.ResourceType {
+	case composeTypes.RecordResourceType:
+		if found = n.handleComposeRecord(state.ParentResources); !found {
+			return resource.RbacResourceErrNotFound(refRes.Identifiers)
 		}
-	} else if refRes != nil && len(refRes.Identifiers) > 0 {
+
+	case composeTypes.ModuleFieldResourceType:
+		if found = n.handleComposeModuleField(state.ParentResources); !found {
+			return resource.RbacResourceErrNotFound(refRes.Identifiers)
+		}
+
+	default:
 		for _, r := range state.ParentResources {
 			if refRes.ResourceType == r.ResourceType() && r.Identifiers().HasAny(refRes.Identifiers) {
 				return
@@ -58,186 +65,225 @@ func (r *rbacRule) Encode(ctx context.Context, doc *Document, state *envoy.Resou
 	// under the related namespace.
 	// For now all rules will be nested under a root node for simplicity sake.
 
+	refResource, err := r.makeRBACResource(state)
+	if err != nil {
+		return err
+	}
+
+	r.refRbacResource = refResource
+	r.res.Resource = refResource
+
+	doc.addRbacRule(r)
+
+	return nil
+}
+
+func (r *rbacRule) makeRBACResource(state *envoy.ResourceState) (string, error) {
 	res := state.Res.(*resource.RbacRule)
 
 	p0ID := "*"
 	p1ID := "*"
 	p2ID := "*"
 
-	switch r.res.Resource {
+	rt := strings.Split(r.refRbacResource, "/")[0]
+
+	switch rt {
 	case composeTypes.ComponentResourceType,
 		systemTypes.ComponentResourceType,
 		automationTypes.ComponentResourceType,
 		federationTypes.ComponentResourceType:
-		r.res.Resource += "/"
-		goto next
+
+		return rt, nil
 	}
 
-	// @todo the following stuff I'm not too sure about
-	switch r.res.Resource {
+	switch rt {
 	case composeTypes.NamespaceResourceType:
-		if res.RefResource != nil {
-			p1 := resource.FindComposeNamespace(state.ParentResources, res.RefResource.Identifiers)
+		if res.RefRes != nil {
+			p1 := resource.FindComposeNamespace(state.ParentResources, res.RefRes.Identifiers)
 			if p1 == nil {
-				return resource.ComposeNamespaceErrUnresolved(res.RefResource.Identifiers)
+				return "", resource.ComposeNamespaceErrUnresolved(res.RefRes.Identifiers)
 			}
 			p1ID = p1.Slug
 		}
 
-		r.res.Resource = fmt.Sprintf(composeTypes.NamespaceRbacResourceTpl(), composeTypes.NamespaceResourceType, p1ID)
+		return fmt.Sprintf(composeTypes.NamespaceRbacResourceTpl(), composeTypes.NamespaceResourceType, p1ID), nil
 	case composeTypes.ModuleResourceType:
 		if len(res.RefPath) > 0 {
 			p0 := resource.FindComposeNamespace(state.ParentResources, res.RefPath[0].Identifiers)
 			if p0 == nil {
-				return resource.ComposeNamespaceErrUnresolved(res.RefPath[0].Identifiers)
+				return "", resource.ComposeNamespaceErrUnresolved(res.RefPath[0].Identifiers)
 			}
 			p0ID = p0.Slug
 		}
 
-		if res.RefResource != nil {
-			p1 := resource.FindComposeModule(state.ParentResources, res.RefResource.Identifiers)
+		if res.RefRes != nil {
+			p1 := resource.FindComposeModule(state.ParentResources, res.RefRes.Identifiers)
 			if p1 == nil {
-				return resource.ComposeModuleErrUnresolved(res.RefResource.Identifiers)
+				return "", resource.ComposeModuleErrUnresolved(res.RefRes.Identifiers)
 			}
 			p1ID = p1.Handle
 		}
 
-		r.res.Resource = fmt.Sprintf(composeTypes.ModuleRbacResourceTpl(), composeTypes.ModuleResourceType, p0ID, p1ID)
+		return fmt.Sprintf(composeTypes.ModuleRbacResourceTpl(), composeTypes.ModuleResourceType, p0ID, p1ID), nil
 	case composeTypes.ChartResourceType:
 		if len(res.RefPath) > 0 {
 			p0 := resource.FindComposeNamespace(state.ParentResources, res.RefPath[0].Identifiers)
 			if p0 == nil {
-				return resource.ComposeNamespaceErrUnresolved(res.RefPath[0].Identifiers)
+				return "", resource.ComposeNamespaceErrUnresolved(res.RefPath[0].Identifiers)
 			}
 			p0ID = p0.Slug
 		}
 
-		if res.RefResource != nil {
-			p1 := resource.FindComposeChart(state.ParentResources, res.RefResource.Identifiers)
+		if res.RefRes != nil {
+			p1 := resource.FindComposeChart(state.ParentResources, res.RefRes.Identifiers)
 			if p1 == nil {
-				return resource.ComposeChartErrUnresolved(res.RefResource.Identifiers)
+				return "", resource.ComposeChartErrUnresolved(res.RefRes.Identifiers)
 			}
 			p1ID = p1.Handle
 		}
 
-		r.res.Resource = fmt.Sprintf(composeTypes.ChartRbacResourceTpl(), composeTypes.ChartResourceType, p0ID, p1ID)
+		return fmt.Sprintf(composeTypes.ChartRbacResourceTpl(), composeTypes.ChartResourceType, p0ID, p1ID), nil
 	case composeTypes.PageResourceType:
 		if len(res.RefPath) > 0 {
 			p0 := resource.FindComposeNamespace(state.ParentResources, res.RefPath[0].Identifiers)
 			if p0 == nil {
-				return resource.ComposeNamespaceErrUnresolved(res.RefPath[0].Identifiers)
+				return "", resource.ComposeNamespaceErrUnresolved(res.RefPath[0].Identifiers)
 			}
 			p0ID = p0.Slug
 		}
 
-		if res.RefResource != nil {
-			p1 := resource.FindComposePage(state.ParentResources, res.RefResource.Identifiers)
+		if res.RefRes != nil {
+			p1 := resource.FindComposePage(state.ParentResources, res.RefRes.Identifiers)
 			if p1 == nil {
-				return resource.ComposePageErrUnresolved(res.RefResource.Identifiers)
+				return "", resource.ComposePageErrUnresolved(res.RefRes.Identifiers)
 			}
 			p1ID = p1.Handle
 		}
 
-		r.res.Resource = fmt.Sprintf(composeTypes.PageRbacResourceTpl(), composeTypes.PageResourceType, p0ID, p1ID)
+		return fmt.Sprintf(composeTypes.PageRbacResourceTpl(), composeTypes.PageResourceType, p0ID, p1ID), nil
 	case composeTypes.RecordResourceType:
 		if len(res.RefPath) > 0 {
 			p0 := resource.FindComposeNamespace(state.ParentResources, res.RefPath[0].Identifiers)
 			if p0 == nil {
-				return resource.ComposeNamespaceErrUnresolved(res.RefPath[0].Identifiers)
+				return "", resource.ComposeNamespaceErrUnresolved(res.RefPath[0].Identifiers)
 			}
 			p0ID = p0.Slug
 		}
 		if len(res.RefPath) > 1 {
 			p1 := resource.FindComposeModule(state.ParentResources, res.RefPath[1].Identifiers)
 			if p1 == nil {
-				return resource.ComposeModuleErrUnresolved(res.RefPath[1].Identifiers)
+				return "", resource.ComposeModuleErrUnresolved(res.RefPath[1].Identifiers)
 			}
 			p1ID = p1.Handle
 		}
 
-		if res.RefResource != nil {
+		if res.RefRes != nil {
 			ref := res.RefPath[1]
 
 			p2 := resource.FindComposeRecordResource(state.ParentResources, ref.Identifiers)
 			if p2 == nil {
-				return resource.ComposeRecordErrUnresolved(res.RefResource.Identifiers)
+				return "", resource.ComposeRecordErrUnresolved(res.RefRes.Identifiers)
 			}
 
-			for i := range res.RefResource.Identifiers {
+			for i := range res.RefRes.Identifiers {
 				if _, ok := p2.IDMap[i]; ok {
-					p2ID = res.RefResource.Identifiers.First()
+					p2ID = res.RefRes.Identifiers.First()
 					break
 				}
 			}
 
 			if p2ID == "" {
-				return resource.ComposeRecordErrUnresolved(res.RefResource.Identifiers)
+				return "", resource.ComposeRecordErrUnresolved(res.RefRes.Identifiers)
 			}
 		}
 
-		r.res.Resource = fmt.Sprintf(composeTypes.RecordRbacResourceTpl(), composeTypes.RecordResourceType, p0ID, p1ID, p2ID)
+		return fmt.Sprintf(composeTypes.RecordRbacResourceTpl(), composeTypes.RecordResourceType, p0ID, p1ID, p2ID), nil
 
 	case composeTypes.ModuleFieldResourceType:
 		if len(res.RefPath) > 0 {
 			p0 := resource.FindComposeNamespace(state.ParentResources, res.RefPath[0].Identifiers)
 			if p0 == nil {
-				return resource.ComposeNamespaceErrUnresolved(res.RefPath[0].Identifiers)
+				return "", resource.ComposeNamespaceErrUnresolved(res.RefPath[0].Identifiers)
 			}
 			p0ID = p0.Slug
 		}
 		if len(res.RefPath) > 1 {
 			p1 := resource.FindComposeModule(state.ParentResources, res.RefPath[1].Identifiers)
 			if p1 == nil {
-				return resource.ComposeModuleErrUnresolved(res.RefPath[1].Identifiers)
+				return "", resource.ComposeModuleErrUnresolved(res.RefPath[1].Identifiers)
 			}
 			p1ID = p1.Handle
+		}
+
+		if r.refRbacRes != nil {
+			modRef := r.refPathRes[1]
+			p2 := resource.FindComposeModuleField(state.ParentResources, modRef.Identifiers, r.refRbacRes.Identifiers)
+			if p2 == nil {
+				return "", resource.ComposeModuleFieldErrUnresolved(r.refRbacRes.Identifiers)
+			}
+
+			p2ID = p2.Name
 		}
 
 		// @todo specific module field RBAC
-		r.res.Resource = fmt.Sprintf(composeTypes.ModuleFieldRbacResourceTpl(), composeTypes.ModuleFieldResourceType, p0ID, p1ID, p2ID)
+		return fmt.Sprintf(composeTypes.ModuleFieldRbacResourceTpl(), composeTypes.ModuleFieldResourceType, p0ID, p1ID, p2ID), nil
 	case systemTypes.UserResourceType:
-		if res.RefResource != nil {
-			p1 := resource.FindUser(state.ParentResources, res.RefResource.Identifiers)
+		if res.RefRes != nil {
+			p1 := resource.FindUser(state.ParentResources, res.RefRes.Identifiers)
 			if p1 == nil {
-				return resource.UserErrUnresolved(res.RefResource.Identifiers)
+				return "", resource.UserErrUnresolved(res.RefRes.Identifiers)
 			}
 			p1ID = p1.Handle
 		}
 
-		r.res.Resource = fmt.Sprintf(systemTypes.UserRbacResourceTpl(), systemTypes.UserResourceType, p1ID)
+		return fmt.Sprintf(systemTypes.UserRbacResourceTpl(), systemTypes.UserResourceType, p1ID), nil
 	case systemTypes.RoleResourceType:
-		if res.RefResource != nil {
-			p1 := resource.FindRole(state.ParentResources, res.RefResource.Identifiers)
+		if res.RefRes != nil {
+			p1 := resource.FindRole(state.ParentResources, res.RefRes.Identifiers)
 			if p1 == nil {
-				return resource.RoleErrUnresolved(res.RefResource.Identifiers)
+				return "", resource.RoleErrUnresolved(res.RefRes.Identifiers)
 			}
 			p1ID = p1.Handle
 		}
 
-		r.res.Resource = fmt.Sprintf(systemTypes.RoleRbacResourceTpl(), systemTypes.RoleResourceType, p1ID)
+		return fmt.Sprintf(systemTypes.RoleRbacResourceTpl(), systemTypes.RoleResourceType, p1ID), nil
 	case systemTypes.ApplicationResourceType:
-		if res.RefResource != nil {
-			p1 := resource.FindApplication(state.ParentResources, res.RefResource.Identifiers)
+		if res.RefRes != nil {
+			p1 := resource.FindApplication(state.ParentResources, res.RefRes.Identifiers)
 			if p1 == nil {
-				return resource.ApplicationErrUnresolved(res.RefResource.Identifiers)
+				return "", resource.ApplicationErrUnresolved(res.RefRes.Identifiers)
 			}
 			p1ID = p1.Name
 		}
 
-		r.res.Resource = fmt.Sprintf(systemTypes.ApplicationRbacResourceTpl(), systemTypes.ApplicationResourceType, p1ID)
+		return fmt.Sprintf(systemTypes.ApplicationRbacResourceTpl(), systemTypes.ApplicationResourceType, p1ID), nil
 
-	// // @todo
-	// case systemTypes.ApigwRouteResourceType:
-	// case systemTypes.ApigwFilterResourceType:
-
-	default:
-		return fmt.Errorf("unsupported resource type '%s' for RBAC YAML encode", r.res.Resource)
+		// // @todo
+		// case systemTypes.ApigwRouteResourceType:
+		// case systemTypes.ApigwFilterResourceType:
 	}
 
-next:
-	doc.addRbacRule(r)
+	return "", fmt.Errorf("unsupported resource type '%s' for RBAC YAML encode", r.res.Resource)
+}
 
-	return nil
+func (n *rbacRule) handleComposeRecord(pp []resource.Interface) bool {
+	for _, p := range pp {
+		if p.ResourceType() == composeTypes.RecordResourceType && p.Identifiers().HasAny(n.refPathRes[1].Identifiers) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (n *rbacRule) handleComposeModuleField(pp []resource.Interface) bool {
+	for _, p := range pp {
+		if p.ResourceType() == composeTypes.ModuleResourceType && p.Identifiers().HasAny(n.refPathRes[1].Identifiers) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (rr rbacRuleSet) MarshalYAML() (interface{}, error) {
@@ -272,13 +318,8 @@ func (rr rbacRuleSet) MarshalYAML() (interface{}, error) {
 				}
 			}
 
-			rr := roleRules[0].relRole
-			rk := rr.Handle
-			if rk == "" {
-				rk = rr.Name
-			}
 			roleNode, err = addMap(roleNode,
-				rk, resNode,
+				roleRules[0].getRoleKey(), resNode,
 			)
 			if err != nil {
 				return nil, err

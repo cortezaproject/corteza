@@ -150,8 +150,12 @@ func (r *ComposePage) SysID() uint64 {
 	return r.Res.ID
 }
 
-func (r *ComposePage) RBACPath() []*Ref {
-	return []*Ref{r.RefNs}
+func (r *ComposePage) RBACParts() (resource string, ref *Ref, path []*Ref) {
+	ref = r.Ref()
+	path = []*Ref{r.RefNs}
+	resource = fmt.Sprintf(types.PageRbacResourceTpl(), types.PageResourceType, r.RefNs.Identifiers.First(), firstOkString(strconv.FormatUint(r.Res.ID, 10), r.Res.Handle))
+
+	return
 }
 
 func (r *ComposePage) ResourceTranslationParts() (resource string, ref *Ref, path []*Ref) {
