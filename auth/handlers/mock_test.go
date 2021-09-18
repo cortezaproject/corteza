@@ -8,6 +8,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/auth/settings"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service"
@@ -19,9 +20,6 @@ import (
 )
 
 type (
-	mockedAuthService struct {
-		authService
-	}
 	mockAuthService struct {
 		authService
 
@@ -347,6 +345,7 @@ func prepareClientAuthReq(ctx context.Context, req *http.Request, user *types.Us
 
 	authReq := &request.AuthReq{
 		Request:  req,
+		Locale:   h.Locale,
 		Session:  session,
 		Response: httptest.NewRecorder(),
 		Data:     make(map[string]interface{}),
@@ -367,6 +366,7 @@ func prepareClientAuthService(ctx context.Context, user *types.User) *mockAuthSe
 func prepareClientAuthHandlers(ctx context.Context, authService authService, s *settings.Settings) *AuthHandlers {
 	return &AuthHandlers{
 		Log:         zap.NewNop(),
+		Locale:      locale.Static(),
 		AuthService: authService,
 		Settings:    s,
 	}

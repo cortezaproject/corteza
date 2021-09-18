@@ -2,13 +2,18 @@ package request
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/system/types"
-	"github.com/gorilla/sessions"
 	"html/template"
 	"net/http"
+
+	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/gorilla/sessions"
 )
 
 type (
+	localeService interface {
+		NS(ctx context.Context, ns string) func(key string, rr ...string) string
+	}
+
 	// auth context simplifies auth request & response handling
 	AuthReq struct {
 		// HTTP request sent
@@ -24,6 +29,8 @@ type (
 
 		// Current client (when in oauth2 flow)
 		Client *types.AuthClient
+
+		Locale localeService
 
 		// Redirect to
 		RedirectTo string

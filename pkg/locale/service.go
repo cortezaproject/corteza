@@ -54,6 +54,10 @@ func SetGlobal(ll *service) {
 	global = ll
 }
 
+func Static(ll ...*Language) *service {
+	return &service{}
+}
+
 func Service(log *zap.Logger, opt options.LocaleOpt) (*service, error) {
 	svc := &service{
 		opt: opt,

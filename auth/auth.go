@@ -21,6 +21,7 @@ import (
 	"github.com/cortezaproject/corteza-server/auth/settings"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/version"
 	"github.com/cortezaproject/corteza-server/store"
@@ -211,6 +212,7 @@ func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthO
 	}
 
 	svc.handlers = &handlers.AuthHandlers{
+		Locale:         locale.Global(),
 		Log:            log,
 		Templates:      tpls,
 		SessionManager: sesManager,
