@@ -217,6 +217,11 @@ func (svc accessControl) List() (out []map[string]string) {
 			"any":  types.ComponentRbacResource(),
 			"op":   "namespaces.search",
 		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "resource-translations.manage",
+		},
 	}
 
 	func(svc interface{}) {
@@ -496,6 +501,13 @@ func (svc accessControl) CanSearchNamespaces(ctx context.Context) bool {
 	return svc.can(ctx, "namespaces.search", &types.Component{})
 }
 
+// CanManageResourceTranslations checks if current user can list, search, create, or update resource translations
+//
+// This function is auto-generated
+func (svc accessControl) CanManageResourceTranslations(ctx context.Context) bool {
+	return svc.can(ctx, "resource-translations.manage", &types.Component{})
+}
+
 // rbacResourceValidator validates known component's resource by routing it to the appropriate validator
 //
 // This function is auto-generated
@@ -571,11 +583,12 @@ func rbacResourceOperations(r string) map[string]bool {
 		}
 	case types.ComponentResourceType:
 		return map[string]bool{
-			"grant":             true,
-			"settings.read":     true,
-			"settings.manage":   true,
-			"namespace.create":  true,
-			"namespaces.search": true,
+			"grant":                        true,
+			"settings.read":                true,
+			"settings.manage":              true,
+			"namespace.create":             true,
+			"namespaces.search":            true,
+			"resource-translations.manage": true,
 		}
 	}
 

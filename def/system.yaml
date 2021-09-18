@@ -65,5 +65,5 @@ rbac:
     apigw-filters.search:
       description: List, search or filter API gateway filters
 
-    resource-translation.Manage:
+    resource-translations.manage:
       description: List, search, create, or update resource translations

@@ -31,6 +31,7 @@ type (
 		TResourceFor(tag language.Tag, ns, key string, rr ...string) string
 		Tags() []language.Tag
 		ResourceTranslations(code language.Tag, resource string) ResourceTranslationIndex
+		Default() *Language
 	}
 
 	service struct {

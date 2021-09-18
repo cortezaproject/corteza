@@ -17,7 +17,7 @@ type (
 	}
 
 	resourceTranslationAccessController interface {
-		CanManageResourceTranslation(context.Context) bool
+		CanManageResourceTranslations(context.Context) bool
 	}
 
 	ResourceTranslationService interface {
@@ -48,7 +48,7 @@ func (svc resourceTranslation) Read(ctx context.Context, ID uint64) (cc *types.R
 			return TemplateErrInvalidID()
 		}
 
-		if !svc.ac.CanManageResourceTranslation(ctx) {
+		if !svc.ac.CanManageResourceTranslations(ctx) {
 			return ResourceTranslationErrNotAllowedToManage()
 		}
 
@@ -70,7 +70,7 @@ func (svc resourceTranslation) List(ctx context.Context, filter types.ResourceTr
 	)
 
 	err = func() error {
-		if !svc.ac.CanManageResourceTranslation(ctx) {
+		if !svc.ac.CanManageResourceTranslations(ctx) {
 			return ResourceTranslationErrNotAllowedToManage()
 		}
 
@@ -90,7 +90,7 @@ func (svc resourceTranslation) Create(ctx context.Context, new *types.ResourceTr
 	)
 
 	err = func() (err error) {
-		if !svc.ac.CanManageResourceTranslation(ctx) {
+		if !svc.ac.CanManageResourceTranslations(ctx) {
 			return ResourceTranslationErrNotAllowedToManage()
 		}
 
@@ -123,7 +123,7 @@ func (svc resourceTranslation) Update(ctx context.Context, upd *types.ResourceTr
 			return ResourceTranslationErrInvalidID()
 		}
 
-		if !svc.ac.CanManageResourceTranslation(ctx) {
+		if !svc.ac.CanManageResourceTranslations(ctx) {
 			return ResourceTranslationErrNotAllowedToManage()
 		}
 
@@ -164,7 +164,7 @@ func (svc resourceTranslation) Delete(ctx context.Context, ID uint64) (err error
 			return ResourceTranslationErrInvalidID()
 		}
 
-		if !svc.ac.CanManageResourceTranslation(ctx) {
+		if !svc.ac.CanManageResourceTranslations(ctx) {
 			return ResourceTranslationErrNotAllowedToManage()
 		}
 
@@ -198,7 +198,7 @@ func (svc resourceTranslation) Undelete(ctx context.Context, ID uint64) (err err
 			return ResourceTranslationErrInvalidID()
 		}
 
-		if !svc.ac.CanManageResourceTranslation(ctx) {
+		if !svc.ac.CanManageResourceTranslations(ctx) {
 			return ResourceTranslationErrNotAllowedToManage()
 		}
 

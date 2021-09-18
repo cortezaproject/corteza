@@ -23,9 +23,23 @@ func ContentID(cID uint64, i int) uint64 {
 }
 
 func (rr ResourceTranslationSet) SetLanguage(tag language.Tag) {
+	str := tag.String()
 	for _, r := range rr {
-		r.Lang = tag.String()
+		r.Lang = str
 	}
+}
+
+// Returns true if resource translation set  contains foreign (non-native) languages
+func (rr ResourceTranslationSet) ContainsForeign(native language.Tag) bool {
+	str := native.String()
+
+	for _, r := range rr {
+		if r.Lang != str {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (rx ResourceTranslationIndex) FindByKey(k string) *ResourceTranslation {
