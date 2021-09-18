@@ -379,7 +379,7 @@ func (d *systemDecoder) decodeRbac(ctx context.Context, s store.Storer, ff []*rb
 	var nn rbac.RuleSet
 	var err error
 
-	c := func(r *resource.Ref, f *rbacFilter) (bool, error) {
+	c := func(r *resource.Ref, f *rbacFilter, path ...*resource.Ref) (bool, error) {
 		if r == nil {
 			return true, nil
 		}
@@ -388,6 +388,13 @@ func (d *systemDecoder) decodeRbac(ctx context.Context, s store.Storer, ff []*rb
 		id, err := cast.ToUint64E(r.Identifiers.First())
 		if err != nil {
 			return false, err
+		}
+
+		if r.ResourceType == composeTypes.ModuleFieldResourceType {
+			id, err = cast.ToUint64E(path[1].Identifiers.First())
+			if err != nil {
+				return false, err
+			}
 		}
 
 		return f.resourceID[id], nil
@@ -405,12 +412,8 @@ func (d *systemDecoder) decodeRbac(ctx context.Context, s store.Storer, ff []*rb
 			}
 
 			for _, n := range nn {
-				r := newRbacRule(n)
-
-				// parse the resource wo we can define relations/check if we can unmarshal it
-				rt, ref, pp, err := resource.ParseRule(n.Resource)
-				r.refRes = ref
-				r.refPathRes = pp
+				r, err := newRbacRule(n)
+				rt := strings.Split(r.refRbacResource, "/")[0]
 				if err != nil {
 					return &auxRsp{
 						err: err,
@@ -419,13 +422,13 @@ func (d *systemDecoder) decodeRbac(ctx context.Context, s store.Storer, ff []*rb
 
 				// somesort of a generic rule; no specifc resource
 				// @todo check for pp inclusion!!
-				if ref == nil && len(pp) == 0 {
+				if r.refRbacRes == nil && len(r.refPathRes) == 0 {
 					mm = append(mm, r)
 				} else {
 					// Check the resource ref and the path refs for validity.
 					// ComposeRecords are fetched in chunks so this check is not valid here.
 					if rt != composeTypes.RecordResourceType {
-						if ok, err := c(ref, f); err != nil {
+						if ok, err := c(r.refRbacRes, f, r.refPathRes...); err != nil {
 							return &auxRsp{
 								err: err,
 							}
@@ -434,7 +437,7 @@ func (d *systemDecoder) decodeRbac(ctx context.Context, s store.Storer, ff []*rb
 						}
 					}
 
-					for _, p := range pp {
+					for _, p := range r.refPathRes {
 						if ok, err := c(p, f); err != nil {
 							return &auxRsp{
 								err: err,

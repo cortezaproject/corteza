@@ -2,6 +2,7 @@ package resource
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -29,6 +30,14 @@ func NewUser(u *types.User) *User {
 
 func (r *User) SysID() uint64 {
 	return r.Res.ID
+}
+
+func (r *User) RBACParts() (resource string, ref *Ref, path []*Ref) {
+	ref = r.Ref()
+	path = nil
+	resource = fmt.Sprintf(types.UserRbacResourceTpl(), types.UserResourceType, firstOkString(strconv.FormatUint(r.Res.ID, 10), r.Res.Handle, r.Res.Username))
+
+	return
 }
 
 // FindUser looks for the user in the resources

@@ -167,7 +167,7 @@ func (n *composeModule) Encode(ctx context.Context, pl *payload) (err error) {
 		f.DeletedAt = nil
 		f.CreatedAt = *now()
 
-		if f.Kind == "Record" {
+		if f.Options != nil && f.Kind == "Record" {
 			refMod := f.Options.String("module")
 			if refMod == "" {
 				refMod = f.Options.String("moduleID")
@@ -186,7 +186,7 @@ func (n *composeModule) Encode(ctx context.Context, pl *payload) (err error) {
 			delete(f.Options, "module")
 		}
 
-		if f.Kind == "User" {
+		if f.Options != nil && f.Kind == "User" {
 			roles := resource.ComposeModuleFieldExtractUserFieldRoles(f.Options["roles"])
 			if len(roles) == 0 {
 				roles = resource.ComposeModuleFieldExtractUserFieldRoles(f.Options["role"])

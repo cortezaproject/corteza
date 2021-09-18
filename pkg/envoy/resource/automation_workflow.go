@@ -73,6 +73,14 @@ func (r *AutomationWorkflow) AddAutomationTrigger(res *types.Trigger) *Automatio
 	return t
 }
 
+func (r *AutomationWorkflow) RBACParts() (resource string, ref *Ref, path []*Ref) {
+	ref = r.Ref()
+	path = nil
+	resource = fmt.Sprintf(types.WorkflowRbacResourceTpl(), types.WorkflowResourceType, firstOkString(strconv.FormatUint(r.Res.ID, 10), r.Res.Handle))
+
+	return
+}
+
 func (r *AutomationWorkflow) ResourceTranslationParts() (resource string, ref *Ref, path []*Ref) {
 	ref = r.Ref()
 	path = nil

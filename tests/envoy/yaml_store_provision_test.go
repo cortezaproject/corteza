@@ -73,7 +73,7 @@ func TestYamlStore_provision(t *testing.T) {
 			rrls, _, err = store.SearchRbacRules(ctx, s, rbac.RuleFilter{})
 			req.NoError(err)
 			req.NotNil(rrls)
-			req.Len(rrls, 15)
+			req.Len(rrls, 14)
 		})
 
 		t.Run("namespaces", func(t *testing.T) {

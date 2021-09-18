@@ -1,6 +1,7 @@
 package yaml
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
@@ -12,18 +13,16 @@ type (
 	rbacRule struct {
 		res *rbac.Rule
 
-		// To help us construct the resource
-		resource string
+		// The resource in question
+		refRbacResource string
+		refRbacRes      *resource.Ref
 
-		refResource string
-		refRes      *resource.Ref
+		// The path items
+		refPathRes []*resource.Ref
 
-		// PathRes and PathResource slices hold parent resources we should nest the rule by
-		refPathRes      []*resource.Ref
-		relPathResource []resource.Interface
-
-		refRole string
-		relRole *types.Role
+		// The role
+		refRole *resource.Ref
+		role    *types.Role
 	}
 	rbacRuleSet []*rbacRule
 )
@@ -32,15 +31,19 @@ func rbacRuleFromResource(r *resource.RbacRule, cfg *EncoderConfig) *rbacRule {
 	rr := r.Res.Resource
 	rr = strings.Trim(rr, ":")
 
-	if !strings.Contains(rr, ";") {
+	if !strings.Contains(rr, ":") {
 		rr = "corteza::" + rr
 	}
 
 	return &rbacRule{
-		res:         r.Res,
-		refRes:      r.RefResource,
-		refResource: rr,
-		refRole:     r.RefRole.Identifiers.First(),
+		res: r.Res,
+
+		refRbacResource: rr,
+		refRbacRes:      r.RefRes,
+
+		refPathRes: r.RefPath,
+
+		refRole: r.RefRole,
 	}
 }
 
@@ -62,11 +65,13 @@ func (rr rbacRuleSet) groupByRole() []rbacRuleSet {
 	rolx := make(map[string]rbacRuleSet)
 
 	for _, r := range rr {
-		if _, has := rolx[r.refRole]; !has {
-			rolx[r.refRole] = make(rbacRuleSet, 0, 100)
+		roleKey := r.getRoleKey()
+
+		if _, has := rolx[roleKey]; !has {
+			rolx[roleKey] = make(rbacRuleSet, 0, 100)
 		}
 
-		rolx[r.refRole] = append(rolx[r.refRole], r)
+		rolx[roleKey] = append(rolx[roleKey], r)
 	}
 
 	rtr := make([]rbacRuleSet, 0, len(rolx))
@@ -97,13 +102,12 @@ func (rr rbacRuleSet) groupByResource() []rbacRuleSet {
 	return rtr
 }
 
-// Just a helper to make the above code shorter
-func (r *rbacRule) bindRefs(res *resource.Ref, path []*resource.Ref, err error) error {
-	if err != nil {
-		return err
+func (r *rbacRule) getRoleKey() string {
+	if r.role == nil {
+		return ""
 	}
-
-	r.refRes = res
-	r.refPathRes = path
-	return nil
+	if r.role.Handle != "" {
+		return r.role.Handle
+	}
+	return strconv.FormatUint(r.res.RoleID, 10)
 }

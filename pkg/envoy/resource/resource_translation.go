@@ -12,7 +12,6 @@ type (
 		*base
 		Res types.ResourceTranslationSet
 
-		// RelResource string
 		RefResource string
 		RefRes      *Ref
 		RefPath     []*Ref

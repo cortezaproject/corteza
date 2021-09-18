@@ -1,12 +1,88 @@
+# Setup so we don't need any boilerplate code
+roles:
+  r1:
+    name: test role 1
+  r2:
+    name: test role 2
+
+namespaces:
+  ns1:
+    name: test namespace 1
+
+modules:
+  mod1:
+    name: test module 1
+    fields:
+      f1:
+        label: test module field 1
+
+charts:
+  chr1:
+    name: test chart 1
+
+# Access control
 allow:
   r1:
-    corteza::compose/:
-      - access
+    corteza::compose:
+      - allow;r1;compose;op1
+
+    corteza::compose:namespace/*:
+      - allow;r1;compose:namespace/*;op1
+    corteza::compose:namespace/ns1:
+      - allow;r1;compose:namespace/ns1;op1
+
+    corteza::compose:module/*/*:
+      - allow;r1;compose:module/*/*;op1
+    corteza::compose:module/ns1/*:
+      - allow;r1;compose:module/ns1/*;op1
+    corteza::compose:module/ns1/mod1:
+      - allow;r1;compose:module/ns1/mod1;op1
+
+    corteza::compose:module-field/*/*/*:
+      - allow;r1;compose:module-field/*/*/*;op1
+    corteza::compose:module-field/ns1/*/*:
+      - allow;r1;compose:module-field/ns1/*/*;op1
+    corteza::compose:module-field/ns1/mod1/*:
+      - allow;r1;compose:module-field/ns1/mod1/*;op1
+    corteza::compose:module-field/ns1/mod1/f1:
+      - allow;r1;compose:module-field/ns1/mod1/f1;op1
+
+    corteza::compose:chart/*/*:
+      - allow;r1;compose:chart/*/*;op1
+    corteza::compose:chart/ns1/*:
+      - allow;r1;compose:chart/ns1/*;op1
+    corteza::compose:chart/ns1/chr1:
+      - allow;r1;compose:chart/ns1/chr1;op1
 
 deny:
   r1:
+    corteza::compose:
+      - deny;r1;compose;op1
+
     corteza::compose:namespace/*:
-      - access
-    # @todo see comment for rbac store marshal if I forget to mention this to you
-    corteza::system/:
-      - access
+      - deny;r1;compose:namespace/*;op1
+    corteza::compose:namespace/ns1:
+      - deny;r1;compose:namespace/ns1;op1
+
+    corteza::compose:module/*/*:
+      - deny;r1;compose:module/*/*;op1
+    corteza::compose:module/ns1/*:
+      - deny;r1;compose:module/ns1/*;op1
+    corteza::compose:module/ns1/mod1:
+      - deny;r1;compose:module/ns1/mod1;op1
+
+    corteza::compose:module-field/*/*/*:
+      - deny;r1;compose:module-field/*/*/*;op1
+    corteza::compose:module-field/ns1/*/*:
+      - deny;r1;compose:module-field/ns1/*/*;op1
+    corteza::compose:module-field/ns1/mod1/*:
+      - deny;r1;compose:module-field/ns1/mod1/*;op1
+    corteza::compose:module-field/ns1/mod1/f1:
+      - deny;r1;compose:module-field/ns1/mod1/f1;op1
+
+    corteza::compose:chart/*/*:
+      - deny;r1;compose:chart/*/*;op1
+    corteza::compose:chart/ns1/*:
+      - deny;r1;compose:chart/ns1/*;op1
+    corteza::compose:chart/ns1/chr1:
+      - deny;r1;compose:chart/ns1/chr1;op1

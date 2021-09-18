@@ -86,7 +86,6 @@ func (rr resourceTranslationSet) bindResource(resI resource.Interface) resourceT
 
 	rtr := make(resourceTranslationSet, 0, len(rr))
 	for _, r := range rr {
-
 		r.refResourceTranslation = res
 		r.refLocaleRes = ref
 		r.refPathRes = pp

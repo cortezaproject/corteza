@@ -2,6 +2,7 @@ package resource
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -35,6 +36,14 @@ func NewAPIGateway(res *types.ApigwRoute) *APIGateway {
 	r.SetUserstamps(us)
 
 	return r
+}
+
+func (r *APIGateway) RBACParts() (resource string, ref *Ref, path []*Ref) {
+	ref = r.Ref()
+	path = nil
+	resource = fmt.Sprintf(types.ApigwRouteRbacResourceTpl(), types.ApigwRouteResourceType, firstOkString(strconv.FormatUint(r.Res.ID, 10)))
+
+	return
 }
 
 func (r *APIGateway) AddGatewayFilter(res *types.ApigwFilter) *APIGatewayFilter {

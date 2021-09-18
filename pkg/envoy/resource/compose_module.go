@@ -80,9 +80,12 @@ func (r *ComposeModule) SysID() uint64 {
 	return r.Res.ID
 }
 
-// @todo name
-func (r *ComposeModule) RBACPath() []*Ref {
-	return []*Ref{r.RefNs}
+func (r *ComposeModule) RBACParts() (resource string, ref *Ref, path []*Ref) {
+	ref = r.Ref()
+	path = []*Ref{r.RefNs}
+	resource = fmt.Sprintf(types.ModuleRbacResourceTpl(), types.ModuleResourceType, r.RefNs.Identifiers.First(), firstOkString(strconv.FormatUint(r.Res.ID, 10), r.Res.Handle))
+
+	return
 }
 
 func (r *ComposeModule) ResourceTranslationParts() (resource string, ref *Ref, path []*Ref) {
@@ -133,46 +136,33 @@ func (r *ComposeModule) AddField(f *ComposeModuleField) {
 	r.ResFields = append(r.ResFields, f)
 }
 
-// func FindComposeModuleField(mod *ComposeModule, ii Identifiers) (f *ComposeModuleField) {
-// 	for _, f := range mod.ResFields {
-// 		if f.Identifiers().HasAny(ii) {
-// 			return f
-// 		}
-// 	}
+// FindComposeModule looks for the module in the resource set
+func FindComposeModuleField(rr InterfaceSet, mod, ii Identifiers) (field *types.ModuleField) {
+	var fieldRes *ComposeModuleField
 
-// 	return nil
-// }
-
-// FindComposeModuleField looks for the module field in the given module
-func FindComposeModuleField(mod *types.Module, ii Identifiers) (f *types.ModuleField) {
-	ids := make(map[uint64]bool)
-	handles := make(map[string]bool)
-	for i := range ii {
-		auxID, err := cast.ToUint64E(i)
-		if err == nil {
-			ids[auxID] = true
-			continue
+	rr.Walk(func(r Interface) error {
+		mr, ok := r.(*ComposeModule)
+		if !ok {
+			return nil
 		}
 
-		handles[i] = true
-	}
-
-	var ok bool
-	ff, _ := mod.Fields.Filter(func(mf *types.ModuleField) (bool, error) {
-		if _, ok = ids[mf.ID]; ok {
-			return true, nil
-		}
-		if _, ok = handles[mf.Name]; ok {
-			return true, nil
+		if !mr.Identifiers().HasAny(mod) {
+			return nil
 		}
 
-		return false, nil
+		for _, rf := range mr.ResFields {
+			if rf.Identifiers().HasAny(ii) {
+				fieldRes = rf
+			}
+		}
+		return nil
 	})
 
-	if len(ff) == 0 {
-		return nil
+	// Found it
+	if fieldRes != nil {
+		return fieldRes.Res
 	}
-	return ff[0]
+	return nil
 }
 
 func (r *ComposeModuleField) ResourceTranslationParts() (resource string, ref *Ref, path []*Ref) {
@@ -216,6 +206,10 @@ func NewComposeModuleField(res *types.ModuleField, nsRef, modRef string) *Compos
 
 	// Initial timestamps
 	r.SetTimestamps(MakeTimestampsCUDA(&res.CreatedAt, res.UpdatedAt, res.DeletedAt, nil))
+
+	res.ID = 0
+	res.NamespaceID = 0
+	res.ModuleID = 0
 
 	return r
 }

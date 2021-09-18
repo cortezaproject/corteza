@@ -13,21 +13,23 @@ type (
 		*base
 		Res *rbac.Rule
 
+		RefResource string
+		RefRes      *Ref
 		RefRole     *Ref
-		RefResource *Ref
 		RefPath     []*Ref
 	}
 )
 
-func NewRbacRule(res *rbac.Rule, refRole string, resRef *Ref, refPath ...*Ref) *RbacRule {
+func NewRbacRule(res *rbac.Rule, refRole string, refRes *Ref, refResource string, refPath ...*Ref) *RbacRule {
 	r := &RbacRule{base: &base{}}
 	r.SetResourceType(RbacResourceType)
 	r.Res = res
 
 	r.RefRole = r.AddRef(types.RoleResourceType, refRole)
 
-	if resRef != nil {
-		r.RefResource = r.AddRef(resRef.ResourceType, resRef.Identifiers.StringSlice()...)
+	r.RefResource = refResource
+	if refRes != nil {
+		r.RefRes = r.AddRef(refRes.ResourceType, refRes.Identifiers.StringSlice()...)
 	}
 
 	// any additional constraints
@@ -35,12 +37,39 @@ func NewRbacRule(res *rbac.Rule, refRole string, resRef *Ref, refPath ...*Ref) *
 		r.RefPath = append(r.RefPath, r.AddRef(rp.ResourceType, rp.Identifiers.StringSlice()...))
 	}
 
-	// ComposeRecords are internally grouped and identified with the module identifier.
-	if res.Resource == composeTypes.RecordResourceType && resRef != nil && len(refPath) == 2 {
-		r.AddRef(res.Resource, refPath[1].Identifiers.StringSlice()...)
+	// Handle cases for nested resources
+	if refRes != nil {
+		switch refRes.ResourceType {
+		case composeTypes.RecordResourceType:
+			r.handleComposeRecord(res, refPath)
+		case composeTypes.ModuleFieldResourceType:
+			r.handleComposeModuleField(res, refPath)
+		}
 	}
 
 	return r
+}
+
+func (r *RbacRule) handleComposeRecord(res *rbac.Rule, refPath []*Ref) {
+
+	// records are grouped under module
+
+	if len(refPath) < 2 {
+		return
+	}
+
+	r.AddRef(composeTypes.RecordResourceType, refPath[1].Identifiers.StringSlice()...)
+}
+
+func (r *RbacRule) handleComposeModuleField(res *rbac.Rule, refPath []*Ref) {
+
+	// module fields are grouped under module
+
+	if len(refPath) < 2 {
+		return
+	}
+
+	r.AddRef(composeTypes.ModuleFieldResourceTranslationType, refPath[1].Identifiers.StringSlice()...)
 }
 
 func RbacResourceErrNotFound(ii Identifiers) error {

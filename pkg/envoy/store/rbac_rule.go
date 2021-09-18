@@ -12,13 +12,16 @@ type (
 	rbacRule struct {
 		cfg *EncoderConfig
 
-		res  *resource.RbacRule
 		rule *rbac.Rule
 
-		refRes     *resource.Ref
+		// point to the rbac rule
+		refRbacResource string
+		refRbacRes      *resource.Ref
+
 		refPathRes []*resource.Ref
 
-		relRole *types.Role
+		refRole *resource.Ref
+		role    *types.Role
 	}
 )
 

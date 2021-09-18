@@ -406,22 +406,6 @@ func TestYamlStore_base(t *testing.T) {
 		},
 
 		{
-			name: "rbac rules",
-			file: "rbac_rules",
-			pre: func() (err error) {
-				return collect(
-					storeRole(ctx, s, 100, "r1"),
-				)
-			},
-			check: func(req *require.Assertions) {
-				rr, _, err := store.SearchRbacRules(ctx, s, rbac.RuleFilter{})
-				req.NoError(err)
-				req.NotNil(rr)
-				req.Len(rr, 3)
-			},
-		},
-
-		{
 			name: "records; no namespace",
 			file: "records_no_ns",
 			post: func(req *require.Assertions, err error) {
@@ -552,54 +536,6 @@ func TestYamlStore_base(t *testing.T) {
 			},
 		},
 
-		{
-			name: "base access control",
-			file: "access_control_base",
-			check: func(req *require.Assertions) {
-				role, err := store.LookupRoleByHandle(ctx, s, "authenticated")
-				req.NoError(err)
-				req.NotNil(role)
-
-				rr, _, err := store.SearchRbacRules(ctx, s, rbac.RuleFilter{})
-				req.NoError(err)
-				req.Len(rr, 16)
-
-				// Check that the role is ok
-				for _, r := range rr {
-					req.Equal(role.ID, r.RoleID)
-				}
-
-				resources := []string{
-					"corteza::compose:namespace/11",
-					"corteza::compose:namespace/11",
-					"corteza::compose:module/11/12",
-					"corteza::compose:module/11/12",
-					"corteza::compose:page/11/13",
-					"corteza::compose:page/11/13",
-					"corteza::compose:chart/11/14",
-					"corteza::compose:chart/11/14",
-					"corteza::system:role/16",
-					"corteza::system:role/16",
-					"corteza::system:user/17",
-					"corteza::system:user/17",
-					"corteza::system:application/18",
-					"corteza::system:application/18",
-					"corteza::compose/",
-					"corteza::compose/",
-				}
-
-				for i, res := range resources {
-					req.Equal(res, rr[i].Resource)
-					if i%2 == 0 {
-						req.Equal("op1", rr[i].Operation)
-						req.Equal(rbac.Allow, rr[i].Access)
-					} else {
-						req.Equal("op2", rr[i].Operation)
-						req.Equal(rbac.Deny, rr[i].Access)
-					}
-				}
-			},
-		},
 		{
 			name:  "settings",
 			file:  "settings",

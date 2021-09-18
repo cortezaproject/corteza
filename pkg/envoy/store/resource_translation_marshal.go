@@ -201,7 +201,7 @@ func (n *resourceTranslation) makeResourceTranslation(pl *payload) (string, erro
 		p1ID = p1.ID
 
 		// field
-		f := resource.FindComposeModuleField(p1, n.refLocaleRes.Identifiers)
+		f := resource.FindComposeModuleField(pl.state.ParentResources, n.refPathRes[1].Identifiers, n.refLocaleRes.Identifiers)
 		if f == nil {
 			return "", resource.ComposeModuleFieldErrUnresolved(n.refLocaleRes.Identifiers)
 		}

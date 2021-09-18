@@ -29,7 +29,7 @@ type (
 	RBACInterface interface {
 		Interface
 
-		RBACPath() []*Ref
+		RBACParts() (string, *Ref, []*Ref)
 	}
 
 	LocaleInterface interface {
