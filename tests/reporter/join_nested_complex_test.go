@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func Test3003_joining_base_nested_complex(t *testing.T) {
+func Test_join_nested_complex(t *testing.T) {
 
 	t.Skip("@todo temporarily disabled")
 

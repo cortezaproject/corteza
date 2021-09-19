@@ -6,7 +6,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/report"
 )
 
-func Test3004_filtering(t *testing.T) {
+func Test_join_filtering(t *testing.T) {
 	var (
 		ctx, h, s      = setup(t)
 		m, _, dd       = loadScenario(ctx, s, t, h)

@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func Test3006_joining_paging_nested(t *testing.T) {
+func Test_join_paging_nested(t *testing.T) {
 
 	t.Skip("@todo temporarily disabled")
 

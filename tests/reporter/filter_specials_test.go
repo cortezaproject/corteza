@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func Test9007_filtering_specials(t *testing.T) {
+func Test_filter_specials(t *testing.T) {
 	var (
 		ctx, h, s = setup(t)
 		m, _, dd  = loadScenario(ctx, s, t, h)
