@@ -25,6 +25,13 @@ type (
 		partitioned   bool
 		partitionSize uint
 		partitionCol  string
+
+		// localFrames contains the pulled local frames
+		localFrames []*Frame
+		// foreignFrames contains the pulled foreign frames grouped by ds
+		foreignFrames [][]*Frame
+		// foreignSourceIndex maps the ds to the ds index of foreignFrames slice
+		foreignSourceIndex map[string]int
 	}
 
 	JoinStepDefinition struct {
@@ -159,7 +166,7 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (l Loa
 	}
 
 	// - Validate the sort of the local frame for paging purposes
-	err = d.validateSort(oLocalDef, dscr)
+	err = d.validatePagingSort(oLocalDef, dscr)
 	if err != nil {
 		return
 	}
@@ -183,35 +190,36 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (l Loa
 		}
 	}
 
-	// - Determine the join strategy to use.
-	//   For now the strategy is the combination of the following parameters, in the
-	//   future we can have a wrapper struct as well.
-	mainLoader, subLoader, err := d.strategizeLoad(ctx, inverted, localDef, foreignDef)
+	// - Do some preparation tasks before the loading occurs
+	localLoader, foreignLoader, err := d.strategizeLoading(ctx, inverted, localDef, foreignDef)
 	if err != nil {
 		return
 	}
 
-	// Load and join data
+	// Loading and joining data
 	//
 	// The loader function will iterate indefinitely until the requested frame
 	// definition is satisfied.
 	//
 	// Outline:
-	//   . prepare additional (partial) filters based on the paging cursor
-	//   . pull data from the main source
-	//   . prepare an additional key-based filter for sub source
-	//   . pull data from the sub source
-	//   . additional processing
-	//   .. apply additional filtering based on page cursors
-	//   . prepare response
+	//   . load data from the two sources (local, foreign)
+	//   . remove rows that don't have any related data
+	//   . sort the pulled chunk
+	//   . apply additional processing
+	//   .. apply additional paging cursor based filtering
+	//   . update buffers
+	//
+	// When preparing the response, the paging cursor is calculated.
 	isEmpty := false
 	return func(cap int, processed bool) (oo []*Frame, err error) {
-			var keys []string
 			if isEmpty {
 				return
 			}
+
+			// We need to go 1 over to see if we can calculate paging cursors
+			loadCap := cap
 			if processed {
-				cap++
+				loadCap++
 			}
 
 			// The modified flag will help us determine if we need another iteration or not.
@@ -220,70 +228,72 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (l Loa
 			// Underlying loaders must be able to provide all of the requested data, so if
 			// we don't do any modifications here, the iteration should not repeat.
 			modified := false
-			// m is defined here so we don't re initialize it every time later on
 			m := false
 
 			pagingSatisfied := oLocalDef.Paging.PageCursor == nil
-			more := false
+			var buffLocal []*Frame
+			var buffForeign []*Frame
 			for {
 				modified = false
 
-				// . Pull data from the main source
-				more, err = mainLoader.load(uint(cap), nil)
-				if err != nil {
-					return
-				}
-				if !more {
-					isEmpty = true
-					break
-				}
-
-				// . Prepare an additional key-based filter for sub sources
-				keys, err = mainLoader.keys()
-				if err != nil {
-					return
-				}
-				keyFilter := subLoader.keyFilter(keys)
-
-				// . Pull data from the sub source
-				more, err = subLoader.load(uint(cap), keyFilter)
-				if err != nil {
-					return nil, err
-				}
-				if !more {
-					break
-				}
-
-				// Cut out any local rows that do not have any foreign rows
-				modified = d.validateRows(mainLoader, subLoader, inverted)
-				if modified {
-					continue
-				}
-
-				// . Sort the collected data
+				// . load data from the two sources (local, foreign)
 				//
-				// @todo Most of the sorting has already been done by the datasource,
-				//       so we can get away with a lot of partial processing.
-				// if d.shouldSort(oLocalDef.Sort) {
-				// }
-				err = d.strategizeSort(mainLoader, subLoader, inverted, oLocalDef, d.def.LocalColumn)
+				// The loading order differs a bit based on the provided sort.
+				if !inverted {
+					buffLocal, buffForeign, err = d.localBasedLoad(ctx, loadCap, localLoader, foreignLoader, localDef, foreignDef)
+				} else {
+					buffLocal, buffForeign, err = d.foreignBasedLoad(ctx, loadCap, localLoader, foreignLoader, localDef, foreignDef)
+				}
 				if err != nil {
-					return nil, err
+					return
 				}
 
-				// . Additional processing
+				// .. if both pulled buffersare empty, there is nothing left to do
+				if d.sizeOfBuffer(buffLocal, d.partitioned)+d.sizeOfBuffer(buffForeign, true) == 0 {
+					break
+				}
+
+				// . remove rows that don't have any related data
+				buffLocal, buffForeign, modified = d.removeOrphanRows(buffLocal, buffForeign)
+
+				// . sort the pulled chunk
+				//
+				// The way we are fetching data, most of the sorting is already done.
+				// We need to assure the sort based on both local and foreign data sources.
+				buffLocal, buffForeign = d.sortFrameBuffers(localLoader, foreignLoader, buffLocal, buffForeign, localDef.Sort, inverted)
+
+				// . apply additional processing
 				//
 				// Any additional filtering and goes here.
-				// Transformations and other bits should reside in the buffers when loading data.
+				// Any processing should only occur based on the provided buffer to simplify
+				// the entire algorithm.
 
-				// .. Additional filters based on page cursors
+				// .. apply additional paging cursor based filtering
+				//
+				// As we're combining data from N sources, the paging cursors are also
+				// based on the combination of sources and we can't do the "classical"
+				// "cut the data and call it a day" as we do with records.
+				//
+				// The "primary" DS (the one that defines the initial order) may strictly
+				// cut off unneeded rows on the DS level, but the rest need to be calculated
+				// manually here.
+				//
+				// This evaluation must only occur while the paging filter is not yet
+				// satisfied.
 				if !pagingSatisfied {
-					m, pagingSatisfied = d.pagingFilter(mainLoader, subLoader, pp)
+					buffLocal, buffForeign, m, pagingSatisfied, err = d.applyPagingFilter(buffLocal, buffForeign, pp)
 					modified = modified || m
+					if err != nil {
+						return
+					}
 				}
 
-				// . Prepare response
+				// . Update buffers
 				//
+				// As we're fetching and providing sorted data, the buffer
+				// merging algorithm may be a simple concatenation.
+				d.updateBuffers(buffLocal, buffForeign)
+
 				// If there were no modifications to what we pulled, we can safely
 				// assume that we can produce a response.
 				if !modified {
@@ -291,13 +301,17 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (l Loa
 				}
 			}
 
-			return prepareResponse(mainLoader, subLoader, inverted, processed, oLocalDef, d.def.LocalColumn, dscr)
-		}, func() {
-			if mainLoader.closer != nil {
-				mainLoader.closer()
+			if d.bufferSize() == 0 {
+				return d.prepareResponseGeneric(oLocalDef, dscr), nil
 			}
-			if subLoader.closer != nil {
-				subLoader.closer()
+
+			return d.prepareResponse(oLocalDef, oForeignDef, dscr, cap, processed)
+		}, func() {
+			if localLoader.closer != nil {
+				localLoader.closer()
+			}
+			if foreignLoader.closer != nil {
+				foreignLoader.closer()
 			}
 		}, nil
 }
@@ -393,16 +407,27 @@ func (d *joinedDataset) sliceFrames(ff []*Frame, selfCol, relCol string) (out []
 	return out, nil
 }
 
-func (d *joinedDataset) validateSort(def *FrameDefinition, dd FrameDescriptionSet) (err error) {
+// validatePagingSort assures that we can apply paging to the provided sort
+//
+// The final datasource that is defined in the given sort must be sorted by
+// a primary key or a unique value.
+func (d *joinedDataset) validatePagingSort(def *FrameDefinition, dd FrameDescriptionSet) (err error) {
+	// The first one is always local so this is ok
+	localDscr := dd[0]
+	var dscr *FrameDescription
+
+	// - determine the last ds of the given sort definition
 	sortDS := ""
 	auxSS := make(filter.SortExprSet, 0, len(def.Sort))
-
 	for i := len(def.Sort) - 2; i >= 0; i-- {
-		aa := strings.Split(def.Sort[i].Column, ".")
-		bb := strings.Split(def.Sort[i+1].Column, ".")
+		aa := strings.Split(def.Sort[i+1].Column, ".")
+		bb := strings.Split(def.Sort[i].Column, ".")
 
 		if len(aa) != len(bb) || (len(aa) > 1 && aa[0] != aa[1]) {
 			auxSS = append(auxSS, def.Sort[i+1])
+			if len(aa) > 1 {
+				sortDS = aa[0]
+			}
 			break
 		}
 
@@ -412,16 +437,7 @@ func (d *joinedDataset) validateSort(def *FrameDefinition, dd FrameDescriptionSe
 		}
 	}
 
-	// @todo temporarily disabled
-	if sortDS != "" {
-		return fmt.Errorf("[temporary] initial sort can not by by a foreign column: %s", sortDS)
-	}
-
-	// The first one is always local so this is ok
-	localDscr := dd[0]
-	var dscr *FrameDescription
-
-	// When local, ref is omitted
+	// when local, ref is omitted
 	if sortDS == "" {
 		// Do this to avoid extra work afterwords
 		auxSS = def.Sort
@@ -432,7 +448,7 @@ func (d *joinedDataset) validateSort(def *FrameDefinition, dd FrameDescriptionSe
 		dscr = dd.FilterByRef(sortDS)[0]
 	}
 
-	// Check if we're sorting by a unique value
+	// - check if we're sorting by a unique value
 	def.Sort = func() filter.SortExprSet {
 		unique := ""
 		for _, c := range dscr.Columns {
@@ -451,11 +467,14 @@ func (d *joinedDataset) validateSort(def *FrameDefinition, dd FrameDescriptionSe
 		} else {
 			return append(def.Sort, &filter.SortExpr{Column: fmt.Sprintf("%s.%s", sortDS, unique), Descending: auxSS.LastDescending()})
 		}
-
 	}()
 	return nil
 }
 
+// prepareSorting parses the provided local sort definition and applies it to
+// the local and foreign definition
+//
+// This allows the store to provide the ordered data, simplifying our lives.
 func (d *joinedDataset) prepareSorting(local, foreign *FrameDefinition) (inverted bool, err error) {
 	var (
 		localSS   filter.SortExprSet
@@ -490,37 +509,435 @@ func (d *joinedDataset) prepareSorting(local, foreign *FrameDefinition) (inverte
 	return
 }
 
-func (d *joinedDataset) validateRows(local, foreign *frameBuffer, inverted bool) (modified bool) {
-	keyCol := foreign.localFrames[0].RelColumn
-	cols := local.localFrames[0].Columns
-	keyColIx := cols.Find(keyCol)
+// localBasedLoad primary loads from local source then foreign one
+func (d *joinedDataset) localBasedLoad(ctx context.Context, cap int, local, foreign *frameLoadCtx, localDef, foreignDef *FrameDefinition) (buffLocal, buffForeign []*Frame, err error) {
+	// Fetch data from local ds
+	var localPost func(ff []*Frame) ([]*Frame, error)
+	if d.partitioned {
+		localPost = func(ff []*Frame) ([]*Frame, error) {
+			var err error
 
-	// - index foreign frames into buckets; here the foreign sort must be respected
-	buckets := make(map[string]int)
-	for i, mf := range foreign.localFrames {
-		buckets[mf.RefValue] = i
+			ff, err = d.sliceFrames(ff, d.def.LocalColumn, d.def.ForeignColumn)
+			for _, f := range ff {
+				f.RefValue = ""
+				f.RelColumn = ""
+			}
+			return ff, err
+		}
 	}
 
-	var k string
-	aux := make([]FrameRow, 0, 100)
-	local.walkRowsLocal(func(i int, r FrameRow) error {
-		v := r[keyColIx]
-		if v == nil {
-			k = ""
-		} else {
-			k = cast.ToString(v.Get())
+	buffLocal, err = d.frameLoader(local.loader, local, cap, d.partitioned, localPost)
+	if err != nil {
+		return
+	}
+	if len(buffLocal) == 0 {
+		return
+	}
+
+	// Init local frame loader metadata
+	if !local.metaInitialized {
+		local.metaInitialized = true
+		local.sortColumns = make([]int, len(local.sorting))
+		for i, s := range local.sorting {
+			local.sortColumns[i] = buffLocal[0].Columns.Find(s.Column)
 		}
 
-		if _, ok := buckets[k]; ok {
-			aux = append(aux, r)
+		local.keyColIndex = buffLocal[0].Columns.Find(local.keyCol)
+	}
+
+	// Prepare filtering for foreign DS
+	keys, err := local.keys(buffLocal)
+	if err != nil {
+		return
+	}
+	if len(keys) == 0 {
+		return
+	}
+	keyFilter := foreign.keyFilter(keys)
+
+	// Fetch data from foreign ds
+	foreignPost := func(ff []*Frame) ([]*Frame, error) {
+		ff, err = d.sliceFrames(ff, d.def.ForeignColumn, d.def.LocalColumn)
+		if err != nil {
+			return nil, err
 		}
 
-		return nil
-	})
+		for i := range ff {
+			if ff[i].Name == "" {
+				ff[i].Name = foreignDef.Name
+			}
+			if ff[i].Source == "" {
+				ff[i].Source = foreignDef.Source
+			}
+			if ff[i].Ref == "" {
+				ff[i].Ref = foreignDef.Ref
+			}
+		}
 
-	modified = len(local.localFrames[0].Rows) != len(aux)
-	local.localFrames[0].Rows = aux
+		return ff, nil
+	}
+
+	fLdr, fClsr, err := foreign.initLoader(cap, keyFilter)
+	if err != nil {
+		return
+	}
+	defer fClsr()
+	buffForeign, err = d.frameLoader(fLdr, foreign, 0, true, foreignPost)
+
+	if len(buffForeign) == 0 {
+		return
+	}
+
+	// Init foreign frame loader metadata
+	if !foreign.metaInitialized {
+		foreign.metaInitialized = true
+		foreign.sortColumns = make([]int, len(foreign.sorting))
+		for i, s := range foreign.sorting {
+			foreign.sortColumns[i] = buffLocal[0].Columns.Find(s.Column)
+		}
+
+		foreign.keyColIndex = buffLocal[0].Columns.Find(foreign.keyCol)
+	}
 
 	return
+}
 
+// foreignBasedLoad primary loads from foreign source and then the local one
+func (d *joinedDataset) foreignBasedLoad(ctx context.Context, cap int, local, foreign *frameLoadCtx, localDef, foreignDef *FrameDefinition) (buffLocal, buffForeign []*Frame, err error) {
+	// Fetch data from foreign ds
+	foreignPost := func(ff []*Frame) ([]*Frame, error) {
+		ff, err = d.sliceFrames(ff, d.def.ForeignColumn, d.def.LocalColumn)
+		if err != nil {
+			return nil, err
+		}
+
+		for i := range ff {
+			if ff[i].Name == "" {
+				ff[i].Name = foreignDef.Name
+			}
+			if ff[i].Source == "" {
+				ff[i].Source = foreignDef.Source
+			}
+			if ff[i].Ref == "" {
+				ff[i].Ref = foreignDef.Ref
+			}
+		}
+
+		return ff, nil
+	}
+
+	buffForeign, err = d.frameLoader(foreign.loader, foreign, 0, true, foreignPost)
+	if err != nil {
+		return
+	}
+
+	// Init foreign frame loader metadata
+	if !foreign.metaInitialized {
+		foreign.metaInitialized = true
+		foreign.sortColumns = make([]int, len(foreign.sorting))
+		for i, s := range foreign.sorting {
+			foreign.sortColumns[i] = buffForeign[0].Columns.Find(s.Column)
+		}
+
+		foreign.keyColIndex = buffForeign[0].Columns.Find(foreign.keyCol)
+	}
+
+	// Prepare filtering for foreign DS
+	keys, err := foreign.keys(buffForeign)
+	if err != nil {
+		return
+	}
+	if len(keys) == 0 {
+		return
+	}
+	keyFilter := local.keyFilter(keys)
+
+	// Fetch data from local ds
+	var localPost func(ff []*Frame) ([]*Frame, error)
+	if d.partitioned {
+		localPost = func(ff []*Frame) ([]*Frame, error) {
+			var err error
+
+			ff, err = d.sliceFrames(ff, d.def.LocalColumn, d.def.ForeignColumn)
+			for _, f := range ff {
+				f.RefValue = ""
+				f.RelColumn = ""
+			}
+			return ff, err
+		}
+	}
+
+	lLdr, lClsr, err := local.initLoader(cap, keyFilter)
+	if err != nil {
+		return
+	}
+	defer lClsr()
+
+	buffLocal, err = d.frameLoader(lLdr, local, 0, true, localPost)
+	if err != nil {
+		return
+	}
+
+	// Init local frame loader metadata
+	if !local.metaInitialized {
+		local.metaInitialized = true
+		local.sortColumns = make([]int, len(local.sorting))
+		for i, s := range local.sorting {
+			local.sortColumns[i] = buffLocal[0].Columns.Find(s.Column)
+		}
+
+		local.keyColIndex = buffLocal[0].Columns.Find(local.keyCol)
+	}
+
+	return
+}
+
+// updateBuffers updates existing frame buffers with newly provided ones
+func (d *joinedDataset) updateBuffers(local, foreign []*Frame) {
+	// - local
+	if len(d.localFrames) == 0 {
+		d.localFrames = local
+	} else {
+		if d.partitioned {
+			d.localFrames = append(d.localFrames, local...)
+		} else {
+			d.localFrames[0].Rows = append(d.localFrames[0].Rows, local[0].Rows...)
+		}
+	}
+
+	// - foreign
+	if d.foreignSourceIndex == nil {
+		d.foreignSourceIndex = make(map[string]int)
+	}
+	if ix, ok := d.foreignSourceIndex[foreign[0].Ref]; !ok {
+		d.foreignSourceIndex[foreign[0].Ref] = len(d.foreignFrames)
+		d.foreignFrames = append(d.foreignFrames, foreign)
+	} else {
+		d.foreignFrames[ix] = append(d.foreignFrames[ix], foreign...)
+	}
+}
+
+// removeOrphanRows removes all local rows with no related foreign frame
+func (d *joinedDataset) removeOrphanRows(local, foreign []*Frame) ([]*Frame, []*Frame, bool) {
+	// - index foreign frames based on ref value so that we have an easier time validating
+	fIndex := make(map[string]bool)
+	for _, ff := range foreign {
+		fIndex[ff.RefValue] = true
+	}
+
+	// - go over local frame rows and see which ones need to be removed
+	var k string
+	var modified bool
+
+	cols := local[0].Columns
+	keyColIx := cols.Find(foreign[0].RelColumn)
+	for _, lf := range local {
+		aux := make([]FrameRow, 0, len(lf.Rows))
+
+		lf.WalkRows(func(i int, r FrameRow) error {
+			if r[keyColIx] == nil {
+				return nil
+			} else {
+				k = cast.ToString(r[keyColIx].Get())
+				if k == "" {
+					return nil
+				}
+			}
+
+			if fIndex[k] {
+				aux = append(aux, r)
+			}
+			return nil
+		})
+
+		modified = modified || len(aux) != len(lf.Rows)
+		lf.Rows = aux
+	}
+
+	return local, foreign, modified
+}
+
+func (d *joinedDataset) prepareResponse(localDef, foreignDef *FrameDefinition, dd FrameDescriptionSet, cap int, applyPaging bool) (oo []*Frame, err error) {
+	// - Use the requested size of the two buffers
+	// -- first come local frames
+	oo = append(oo, d.cutLocalFrameBuffer(cap)...)
+	localDelimiter := len(oo)
+	//
+	// -- followed by foreign
+	aux := d.cutForeignFrameBuffer(cap)
+	for _, a := range aux {
+		a.RelSource = oo[0].Ref
+	}
+	oo = append(oo, aux...)
+
+	// - Default for empty response
+	if len(oo) == 0 {
+		return d.prepareResponseGeneric(localDef, dd), nil
+	}
+
+	// - Optionally calculate paging
+	if applyPaging {
+		// when the buffer is empty, the isn't anything else to pull -- no next page
+		if d.bufferSize() == 0 {
+			return
+		}
+
+		// Paging can only be applied to non-partitioned local frames
+		// @todo generalize?
+		if localDelimiter != 1 {
+			return
+		}
+
+		// @todo calculate prev page cursor; for now only next page is provided
+
+		if oo[0].Paging == nil {
+			oo[0].Paging = &filter.Paging{}
+		}
+		oo[0].Paging.NextPage = d.calculatePagingCursor(oo[0], oo[1:], true, localDef.Sort)
+		oo[0].Paging.NextPage.LThen = localDef.Sort.Reversed()
+	}
+
+	return
+}
+
+// prepareResponseGeneric constructs an empty response in case where no data would be provided
+func (d *joinedDataset) prepareResponseGeneric(lfd *FrameDefinition, dd FrameDescriptionSet) (oo []*Frame) {
+	dscr := dd.FilterByRef(lfd.Ref)[0]
+
+	f := &Frame{
+		Name:    lfd.Name,
+		Ref:     lfd.Ref,
+		Source:  lfd.Source,
+		Columns: make(FrameColumnSet, 0, len(lfd.Columns)),
+	}
+
+	if len(lfd.Columns) == 0 {
+		f.Columns = dscr.Columns
+	} else {
+		for _, c := range lfd.Columns {
+			f.Columns = append(f.Columns, dscr.Columns[dscr.Columns.Find(c.Name)])
+		}
+	}
+	return []*Frame{f}
+}
+
+// calculatePagingCursor calculates the paging cursor for the given frame
+//
+// The check for existence should be performed way in advanced so we won't bother here.
+// A unique value is also assured at way before.
+func (d *joinedDataset) calculatePagingCursor(local *Frame, foreign []*Frame, desc bool, ss filter.SortExprSet) *filter.PagingCursor {
+	cursor := &filter.PagingCursor{LThen: ss.Reversed()}
+	var foreignFrames []*Frame
+	var v interface{}
+	var localRow FrameRow
+
+	if desc {
+		localRow = local.LastRow()
+	} else {
+		localRow = local.FirstRow()
+	}
+
+	// Index foreign frames by ref for nicer lookups
+	foreignIndex := make(map[string][]*Frame)
+	for _, f := range foreign {
+		foreignIndex[f.Ref] = append(foreignIndex[f.Ref], f)
+	}
+
+	// Go over sorting and construct the cursor
+	for _, s := range ss {
+		foreignFrames = nil
+
+		if strings.Contains(s.Column, ".") {
+			pts := strings.Split(s.Column, ".")
+			foreignFrames = foreignIndex[pts[0]]
+			var r FrameRow
+			var f *Frame
+			if desc {
+				f = foreignFrames[len(foreignFrames)-1]
+				r = f.FirstRow()
+			} else {
+				f = foreignFrames[0]
+				r = f.FirstRow()
+			}
+
+			if r[f.Columns.Find(pts[1])] != nil {
+				v = r[f.Columns.Find(pts[1])].Get()
+			}
+			cursor.Set(s.Column, v, s.Descending)
+		} else {
+			if localRow[local.Columns.Find(s.Column)] != nil {
+				v = localRow[local.Columns.Find(s.Column)].Get()
+			}
+			cursor.Set(s.Column, v, s.Descending)
+		}
+	}
+
+	return cursor
+}
+
+func (d *joinedDataset) cutLocalFrameBuffer(cap int) (oo []*Frame) {
+	// When partitioned, extract frames
+	if d.partitioned {
+		// We can use everything
+		if len(d.localFrames) <= cap {
+			oo = d.localFrames
+			d.localFrames = nil
+			return
+		}
+
+		oo = d.localFrames[0:cap]
+		d.localFrames = d.localFrames[cap:]
+		return
+	}
+
+	// When not partitioned, extract rows
+	aux := d.localFrames[0].CloneMeta()
+	if d.localFrames[0].Size() <= cap {
+		aux.Rows = d.localFrames[0].Rows
+		d.localFrames = nil
+		return []*Frame{aux}
+	}
+
+	aux.Rows = d.localFrames[0].Rows[0:cap]
+	d.localFrames[0].Rows = d.localFrames[0].Rows[cap:]
+	return []*Frame{aux}
+}
+
+func (d *joinedDataset) cutForeignFrameBuffer(cap int) (oo []*Frame) {
+	for i, dsFrames := range d.foreignFrames {
+		// We can use everything
+		if len(dsFrames) <= cap {
+			oo = append(oo, dsFrames...)
+			d.foreignFrames[i] = nil
+			continue
+		}
+
+		oo = append(oo, dsFrames[0:cap]...)
+		d.foreignFrames[i] = dsFrames[cap:]
+	}
+
+	return
+}
+
+func (d *joinedDataset) bufferSize() int {
+	if len(d.localFrames) == 0 {
+		return 0
+	}
+
+	if d.partitioned {
+		return len(d.localFrames)
+	}
+
+	return d.localFrames[0].Size()
+}
+
+func (d *joinedDataset) sizeOfBuffer(b []*Frame, partitioned bool) int {
+	if partitioned {
+		return len(b)
+	}
+
+	if len(b) == 0 {
+		return 0
+	}
+	return b[0].Size()
 }

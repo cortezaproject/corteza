@@ -22,379 +22,395 @@ type (
 	}
 )
 
-// strategizeLoad uses the given context to determine what join strategy we should
-// use to achieve the correct result as optimally as possible
-func (d *joinedDataset) strategizeLoad(ctx context.Context, inverted bool, local, foreign *FrameDefinition) (ml *frameBuffer, sl *frameBuffer, err error) {
+// strategizeLoading initializes and prepares a set of load contexts based on the provided state
+func (d *joinedDataset) strategizeLoading(ctx context.Context, inverted bool, local, foreign *FrameDefinition) (localLoader *frameLoadCtx, foreignLoader *frameLoadCtx, err error) {
 	if !inverted {
-		return d.stratLocalMain(ctx, local, foreign)
+		return d.stratLoadPrimary(ctx, inverted, local, foreign)
 	}
-
-	return d.stratForeignMain(ctx, local, foreign)
+	return d.stratLoadInverted(ctx, inverted, local, foreign)
 }
 
-// stratLocalMain uses the local datasource for the main loader
+// stratLoadPrimary is the generic strategy where the local DS dictates the output
 //
-// The strategy is used always, except for when the initial sort is controlled
-// by the foreign datasource.
-//
-// In this strategy, the local datasource controlls the initial sort and the
-// filter that should be applied when pulling data from the foreign source.
-func (d *joinedDataset) stratLocalMain(ctx context.Context, local, foreign *FrameDefinition) (ml *frameBuffer, sl *frameBuffer, err error) {
-	var ok bool
+// The strategy should be always be used, except when the foreign DS defines the initial sort.
+func (d *joinedDataset) stratLoadPrimary(ctx context.Context, inverted bool, local, foreign *FrameDefinition) (localLoader *frameLoadCtx, foreignLoader *frameLoadCtx, err error) {
+	// @todo partitioned local when needed
 
-	// Prepare the main loader from the local source
-	// Local source can be partitioned to support nested joining.
-	if d.partitioned {
-		ok, err = (d.local.(PartitionableDatasource)).Partition(d.partitionSize, d.partitionCol)
-		if err != nil {
-			return
-		}
-		if !ok {
-			err = fmt.Errorf("local datasource is not partitionable: %s", d.local.Name())
-			return
-		}
-	}
-
+	// - local
 	ldr, clsr, err := d.local.Load(ctx, local)
 	if err != nil {
 		return
 	}
+	localLoader = &frameLoadCtx{
+		loader: ldr,
+		closer: clsr,
 
-	ml = &frameBuffer{
-		sourceName:  d.Name(),
+		sorting:     local.Sort,
 		keyCol:      d.def.LocalColumn,
 		keyColIndex: -1,
-
-		loader: func(_ *Filter, cap uint) ([]*Frame, error) {
-			return ldr(int(cap), false)
-		},
-		closer:  clsr,
-		sorting: local.Sort,
-
-		// Overfetch frames when the last two entries define the same sort.
-		// This is required to support paging.
-		more: func(ff []*Frame, sc []int) bool {
-			// No sorting, we don't care
-			if len(local.Sort) == 0 {
-				return false
-			}
-
-			// With sorting and using primary/unique columns, we don't care
-			for _, s := range local.Sort {
-				c := local.Columns[local.Columns.Find(s.Column)]
-				if c.Primary || c.Unique {
-					return false
-				}
-			}
-
-			// This is the last frame we can pull out, we don't care
-			if uint(ff[len(ff)-1].Size()) < local.Paging.Limit {
-				return false
-			}
-
-			// With sorting and regular'ol columns, we care only if the over-fetched row
-			// is the same as the last requested row.
-			//
-			// If we have multiple frames that means that it is partitioned; check whole frames
-			if len(ff) > 1 {
-				tmpl := len(ff)
-				return ff[tmpl-1].FirstRow().Compare(ff[tmpl-2].FirstRow(), sc...) == 0
-			}
-
-			// Else it is a regular'ol regular'ol frame; check rows
-			return ff[0].LastRow().Compare(ff[0].LastLastRow(), sc...) == 0
-		},
 	}
 
-	// Partitioned sources need to be sliced
-	if d.partitioned {
-		ml.postFetch = func(f []*Frame) ([]*Frame, error) {
-			ff, err := d.sliceFrames(f, d.def.LocalColumn, d.def.ForeignColumn)
-			for _, f := range ff {
-				f.RefValue = ""
-				f.RelColumn = ""
-			}
-			return ff, err
-		}
-	}
-
+	// - foreign
 	//
-	//
-
-	// Prepare the sub loader from the foreign source
-	subDS, ok := d.foreign.(PartitionableDatasource)
+	// -- only allow partitionable datasources
+	pForeignDS, ok := d.foreign.(PartitionableDatasource)
 	if !ok {
 		// @todo allow alternatives also
 		err = fmt.Errorf("foreign datasource is not partitionable")
 		return
 	}
-
+	//
+	// Clone foreign filter so that we don't corrupt the initial one
 	ffilter := foreign.Filter.Clone()
-	sl = &frameBuffer{
-		sourceName: d.Name(),
-		// meta...
-		keyCol:      d.def.ForeignColumn,
-		keyColIndex: -1,
+	//
+	foreignLoader = &frameLoadCtx{
+		initLoader: func(cap int, f *Filter) (Loader, Closer, error) {
+			foreign.Filter = merger(ffilter.Clone(), f, "and")
 
-		loader: func(keyFilter *Filter, cap uint) ([]*Frame, error) {
-			foreign.Filter = merger(ffilter.Clone(), keyFilter, "and")
-
-			ok, err := subDS.Partition(cap, d.def.ForeignColumn)
+			// - partition
+			ok, err := pForeignDS.Partition(uint(cap), d.def.ForeignColumn)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			if !ok {
-				return nil, fmt.Errorf("foreign datasource is not partitionable: %s", d.foreign.Name())
+				return nil, nil, fmt.Errorf("foreign datasource is not partitionable: %s", d.foreign.Name())
 			}
-			loader, closer, err := subDS.Load(ctx, foreign)
-			if closer != nil {
-				defer closer()
-			}
-			if err != nil {
-				return nil, err
-			}
-			return loader(0, false)
-		},
-		sorting: foreign.Sort,
 
-		more: func(_ []*Frame, _ []int) bool {
-			return false
+			return pForeignDS.Load(ctx, foreign)
 		},
 
-		postFetch: func(ff []*Frame) ([]*Frame, error) {
-			ff, err = d.sliceFrames(ff, d.def.ForeignColumn, d.def.LocalColumn)
-			if err != nil {
-				return nil, err
-			}
-
-			for i := range ff {
-				if ff[i].Name == "" {
-					ff[i].Name = foreign.Name
-				}
-				if ff[i].Source == "" {
-					ff[i].Source = foreign.Source
-				}
-				if ff[i].Ref == "" {
-					ff[i].Ref = foreign.Ref
-				}
-			}
-
-			return ff, nil
-		},
+		sorting:     foreign.Sort,
+		keyCol:      d.def.ForeignColumn,
+		keyColIndex: -1,
 	}
 
 	return
 }
 
-func (d *joinedDataset) stratForeignMain(ctx context.Context, local, foreign *FrameDefinition) (ml *frameBuffer, sl *frameBuffer, err error) {
-	// @todo this will be added at the very and as it's an inverse of the above strategy
-	return nil, nil, fmt.Errorf("unable to sort by a joined column")
+// stratLoadInverted makes the foreign DS dictate the output
+//
+// This strategy should only be used for cases where the foreign DS defines the initial sort.
+// When we're using inverted sort, the foreign DS should define the initial sort.
+func (d *joinedDataset) stratLoadInverted(ctx context.Context, inverted bool, local, foreign *FrameDefinition) (localLoader *frameLoadCtx, foreignLoader *frameLoadCtx, err error) {
+	// - foreign
+	//
+	// -- only allow partitionable datasources
+	pForeignDS, ok := d.foreign.(PartitionableDatasource)
+	if !ok {
+		// @todo allow alternatives also
+		err = fmt.Errorf("foreign datasource is not partitionable")
+		return
+	}
+	//
+	// - partition
+	ok, err = pForeignDS.Partition(uint(foreign.Paging.Limit), d.def.ForeignColumn)
+	if err != nil {
+		return nil, nil, err
+	}
+	if !ok {
+		return nil, nil, fmt.Errorf("foreign datasource is not partitionable: %s", d.foreign.Name())
+	}
+	//
+	// - init laoder
+	ldr, clsr, err := d.foreign.Load(ctx, foreign)
+	if err != nil {
+		return
+	}
+	foreignLoader = &frameLoadCtx{
+		loader: ldr,
+		closer: clsr,
+
+		sorting:     foreign.Sort,
+		keyCol:      d.def.ForeignColumn,
+		keyColIndex: -1,
+	}
+
+	// - local
+	//
+	// Clone foreign filter so that we don't corrupt the initial one
+	// @todo partitioned local when needed
+	lfilter := local.Filter.Clone()
+	localLoader = &frameLoadCtx{
+		initLoader: func(cap int, f *Filter) (Loader, Closer, error) {
+			local.Filter = merger(lfilter.Clone(), f, "and")
+
+			return d.local.Load(ctx, local)
+		},
+
+		sorting:     local.Sort,
+		keyCol:      d.def.LocalColumn,
+		keyColIndex: -1,
+	}
+
+	return
+}
+
+// frameLoader is a utility function to load the appropriate data from the given source
+//
+// Outline:
+//  . load a chunk of data
+//  . post processing
+//  . overfetch rows when required
+func (d *joinedDataset) frameLoader(loader Loader, loadCtx *frameLoadCtx, cap int, partitioned bool, post func(ff []*Frame) ([]*Frame, error)) (out []*Frame, err error) {
+	var ff []*Frame
+	out = make([]*Frame, 0, 32)
+
+	for {
+		// . load a chunk of data
+		ff, err = loader(cap, false)
+		if err != nil || ff == nil {
+			return
+		}
+
+		// . post processing
+		// .. update metadata
+		for _, f := range ff {
+			f.Source = d.Name()
+		}
+		//
+		// .. additional provided post processing
+		if post != nil {
+			ff, err = post(ff)
+			if err != nil {
+				return
+			}
+		}
+		//
+		// .. update the output buffer
+		if len(out) == 0 {
+			out = append(out, ff...)
+		} else {
+			if !partitioned {
+				// When not partitioned, we always pull one frame
+				out[0].Rows = append(out[0].Rows, ff[0].Rows...)
+			} else {
+				// - Append to existing buffer when partitioned.
+				//   Pulled chunks can be considered complete so we don't have to worry about that
+				out = append(out, ff...)
+			}
+		}
+
+		// . overfetch rows when required
+		if cap == 0 || !d.overfetch(ff, partitioned, ff[0].Columns, loadCtx.sorting) {
+			return out, nil
+		}
+	}
+}
+
+// overfetch checks if we need to overfetch data based on the provided sort
+//
+// We're overfetching when the last rows of the given buffer define the same values
+// for the sort columns.
+// If we don't overfetch, we may experience issues when applying paging.
+func (d *joinedDataset) overfetch(ff []*Frame, partitioned bool, cc FrameColumnSet, ss filter.SortExprSet) bool {
+	// No sorting, we don't care
+	if len(ss) == 0 {
+		return false
+	}
+
+	// When sorting over primary/unique columns, we don't care
+	for _, s := range ss {
+		c := cc[cc.Find(s.Column)]
+		if c.Primary || c.Unique {
+			return false
+		}
+	}
+
+	// When the last two things have the same sort column values, we need to overfetch
+	var (
+		a, b FrameRow
+	)
+
+	if !partitioned {
+		if ff[0].Size() < 2 {
+			return true
+		}
+
+		a = ff[0].LastLastRow()
+		b = ff[0].LastRow()
+	} else {
+		if len(ff) < 2 {
+			return true
+		}
+
+		a = ff[len(ff)-2].FirstRow()
+		b = ff[len(ff)-1].FirstRow()
+	}
+
+	sci := make([]int, 0, len(ss))
+	for _, s := range ss {
+		sci = append(sci, cc.Find(s.Column))
+	}
+
+	return a.Compare(b, sci...) == 0
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // //
 // Sorting
 
-// shouldSort determines if we need to perform additional sorting based on the
-// provided frame definition sorting.
+// sortFrameBuffers sorts the provided local, foreign frame buffers
 //
-// * If no sort was requested; consider it sorted.
-// * If all sort expressions use only the local source; consider it sorted.
-// * If at least one sort expression references a foreign source; consider it NOT sorted.
-func (d *joinedDataset) shouldSort(ss filter.SortExprSet) bool {
-	if len(ss) == 0 {
-		return false
-	}
-
+// Outline:
+//  . bucket foreign frames based on their ref value
+//  . sort entire local frames when more then one is proviced (covers partitioned local ds)
+//  . sort rows for each local frame
+//  . assure correct foreign frame order to match local frame rows
+func (d *joinedDataset) sortFrameBuffers(localLoader, foreignLoader *frameLoadCtx, localBuffer, foreignBuffer []*Frame, ss filter.SortExprSet, inverted bool) ([]*Frame, []*Frame) {
+	// - extract sort expressions for local
+	//
+	// Foreign frames are chunked and those are already sorted as they should be.
+	localSS := make(filter.SortExprSet, 0, len(ss))
 	for _, s := range ss {
-		if strings.Contains(s.Column, ".") {
-			return true
+		if !strings.Contains(s.Column, ".") {
+			localSS = append(localSS, s)
 		}
 	}
 
-	return false
-}
-
-func (d *joinedDataset) strategizeSort(main, sub *frameBuffer, inverted bool, lfd *FrameDefinition, keyColumn string) (err error) {
-	var local, foreign *frameBuffer
-
-	// Determine which one was local/foreign
-	if inverted {
-		local = sub
-		foreign = main
-	} else {
-		local = main
-		foreign = sub
-	}
-
-	// - index foreign frames into buckets; here the foreign sort must be respected
+	// . bucket foreign frames based on their ref value
+	//
+	// This will speed up later processing
 	buckets := make(map[string]int)
-	for i, mf := range foreign.localFrames {
+	for i, mf := range foreignBuffer {
 		buckets[mf.RefValue] = i
 	}
 
-	localSort := make(filter.SortExprSet, 0, len(lfd.Sort))
-	for _, s := range lfd.Sort {
-		if !strings.Contains(s.Column, ".") {
-			localSort = append(localSort, s)
+	// . sort entire local frames when more then one is proviced (covers partitioned local ds)
+	sort.SliceStable(localBuffer, func(i, j int) bool {
+		frameI := localBuffer[i]
+		frameDelimiterI := frameI.FirstRow()
+		frameJ := localBuffer[j]
+		frameDelimiterJ := frameJ.FirstRow()
+
+		// what bucket the frame corresponds to
+		bucketI := buckets[cast.ToString(frameDelimiterI[localLoader.keyColIndex].Get())]
+		bucketJ := buckets[cast.ToString(frameDelimiterJ[localLoader.keyColIndex].Get())]
+
+		// when inverted, use foreign frames to determine initial sort
+		if inverted {
+			if bucketI < bucketJ {
+				return !ss.Reversed()
+			}
 		}
+
+		// go through the sort definitions and sort based on that
+		for si, s := range localSS {
+			ci, ok := frameDelimiterI[localLoader.sortColumns[si]].(expr.Comparable)
+			if !ok {
+				return !s.Descending
+			}
+
+			r, err := ci.Compare(frameDelimiterJ[localLoader.sortColumns[si]])
+			if err != nil {
+				return s.Descending
+			}
+
+			if r != 0 {
+				if s.Descending {
+					return r > 0
+				}
+				return r < 0
+			}
+		}
+
+		return bucketI < bucketJ
+	})
+
+	// . sort rows for each local frame
+	for _, l := range localBuffer {
+		sort.SliceStable(l.Rows, func(i, j int) bool {
+			rowI := l.Rows[i]
+			rowJ := l.Rows[j]
+
+			// what bucket the frame corresponds to
+			bucketI := buckets[cast.ToString(rowI[localLoader.keyColIndex].Get())]
+			bucketJ := buckets[cast.ToString(rowJ[localLoader.keyColIndex].Get())]
+
+			// when inverted, use foreign frames to determine initial sort
+			if inverted {
+				if bucketI < bucketJ {
+					return !ss.Reversed()
+				}
+			}
+
+			// go through the sort definitions and sort based on that
+			for si, s := range localSS {
+				ci, ok := rowI[localLoader.sortColumns[si]].(expr.Comparable)
+				if !ok {
+					return !s.Descending
+				}
+
+				r, err := ci.Compare(rowJ[localLoader.sortColumns[si]])
+				if err != nil {
+					return s.Descending
+				}
+
+				if r != 0 {
+					if s.Descending {
+						return r > 0
+					}
+					return r < 0
+				}
+			}
+
+			return bucketI < bucketJ
+		})
 	}
 
-	if len(local.localFrames) == 1 {
-		err = d.sortFrameRows(local, localSort, buckets, inverted)
-	} else {
-		err = d.sortBufferFrames(local, localSort, buckets, inverted)
+	// . assure correct foreign frame order to match local frame rows
+	//
+	// Each foreign frame is on the same index as the corresponding local row.
+	// This simplifies later algorithms and removes the need for additional
+	// mapping structures.
+	for _, l := range localBuffer {
+		l.WalkRows(func(i int, r FrameRow) error {
+			buckets[cast.ToString(r[localLoader.keyColIndex].Get())] = i
+			return nil
+		})
 	}
-
-	if err != nil {
-		return
-	}
-
-	// - assure bucket's order
-	// @todo can we do this in one go alongside the original sort?
-	aux := make([]*Frame, len(foreign.localFrames))
-	for _, f := range foreign.localFrames {
+	//
+	// Update foreign frame order based on reordered buckets
+	aux := make([]*Frame, len(foreignBuffer))
+	for _, f := range foreignBuffer {
 		aux[buckets[f.RefValue]] = f
 	}
-	foreign.localFrames = aux
 
-	return
-}
-
-func (d *joinedDataset) sortFrameRows(local *frameBuffer, ss filter.SortExprSet, buckets map[string]int, inverted bool) error {
-	f := local.localFrames[0]
-
-	// - sort based on bucket index
-	var ri FrameRow
-	var rj FrameRow
-
-	var bi int
-	var bj int
-
-	var ci expr.Comparable
-	var ok bool
-
-	sort.SliceStable(f.Rows, func(i, j int) bool {
-		ri = f.Rows[i]
-		rj = f.Rows[j]
-		bi = buckets[cast.ToString(ri[local.keyColIndex].Get())]
-		bj = buckets[cast.ToString(rj[local.keyColIndex].Get())]
-
-		if inverted {
-			// if bi is before bj, the row bellongs to a complitely different bucket
-			// so we shouldn't do anything extra
-			if bi < bj {
-				return !ss.Reversed()
-			}
-		}
-
-		// go through the sort definitions and sort based on that
-		for si, s := range ss {
-			ci, ok = ri[local.sortColumns[si]].(expr.Comparable)
-			if !ok {
-				return !s.Descending
-			}
-
-			r, err := ci.Compare(rj[local.sortColumns[si]])
-			if err != nil {
-				return s.Descending
-			}
-
-			if r != 0 {
-				if s.Descending {
-					return r > 0
-				}
-				return r < 0
-			}
-		}
-
-		return bi < bj
-	})
-
-	f.WalkRows(func(i int, r FrameRow) error {
-		buckets[cast.ToString(r[local.keyColIndex].Get())] = i
-		return nil
-	})
-
-	return nil
-}
-
-func (d *joinedDataset) sortBufferFrames(local *frameBuffer, ss filter.SortExprSet, buckets map[string]int, inverted bool) error {
-	f := local.localFrames[0]
-
-	var ri *Frame
-	var rj *Frame
-
-	var bi int
-	var bj int
-
-	var ci expr.Comparable
-	var ok bool
-
-	sort.SliceStable(local.localFrames, func(i, j int) bool {
-		ri = local.localFrames[i]
-		rj = local.localFrames[j]
-		bi = buckets[cast.ToString(ri.Rows[0][local.keyColIndex].Get())]
-		bj = buckets[cast.ToString(rj.Rows[0][local.keyColIndex].Get())]
-
-		if inverted {
-			// if bi is before bj, the row bellongs to a complitely different bucket
-			// so we shouldn't do anything extra
-			if bi < bj {
-				return !ss.Reversed()
-			}
-		}
-
-		// go through the sort definitions and sort based on that
-		for si, s := range ss {
-			ci, ok = ri.Rows[0][local.sortColumns[si]].(expr.Comparable)
-			if !ok {
-				return !s.Descending
-			}
-
-			r, err := ci.Compare(rj.Rows[0][local.sortColumns[si]])
-			if err != nil {
-				return s.Descending
-			}
-
-			if r != 0 {
-				if s.Descending {
-					return r > 0
-				}
-				return r < 0
-			}
-		}
-
-		return bi < bj
-	})
-
-	f.WalkRows(func(i int, r FrameRow) error {
-		buckets[cast.ToString(r[local.keyColIndex].Get())] = i
-		return nil
-	})
-
-	return nil
+	return localBuffer, aux
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // //
 // Paging
 
+// strategizePaging breaks down the given paging cursor into partial conditions and
+// applies it to the frame definitions.
 func (d *joinedDataset) strategizePaging(local, foreign *FrameDefinition, inverted bool) (pp []partialPagingCnd, err error) {
-	pp, err = d.calculatePagingFilters(local, inverted)
+	// break down the cursor
+	pp, err = d.calcualteCursorConditions(local, inverted)
 	if err != nil {
 		return
 	}
 
-	local.Filter = merger(&Filter{pp[0].filterCut}, local.Filter, "and")
 	local.Paging.PageCursor = nil
+
+	// apply the "cut" filter to the appropriate DS; foreign when inverted,
+	// local otherwise.
+	switch pp[0].ref {
+	case local.Ref, "":
+		local.Filter = merger(&Filter{pp[0].filterCut}, local.Filter, "and")
+	case foreign.Ref:
+		foreign.Filter = merger(&Filter{pp[0].filterCut}, foreign.Filter, "and")
+	}
 
 	return
 }
 
-// calculatePagingFilters produces additional filtering that should be done
-// on the datasource level and/or in the join logic.
+// calcualteCursorConditions processes the given paging cursor and returns a set
+// of partial conditions
 //
 // The core logic is extracted from store/rdbms/builders/cursor.go
-func (d *joinedDataset) calculatePagingFilters(local *FrameDefinition, inverted bool) (partials []partialPagingCnd, err error) {
+//
+// Partial cursor conditions are to be used for additional DS filtering and
+// additional post filtering when processing the data.
+func (d *joinedDataset) calcualteCursorConditions(local *FrameDefinition, inverted bool) (partials []partialPagingCnd, err error) {
 	if len(local.Paging.PageCursor.Keys()) == 0 {
 		return
 	}
@@ -662,60 +678,99 @@ out:
 	return
 }
 
-// pagingFilter applies additional filtering based on the given page cursor
-func (d *joinedDataset) pagingFilter(main, sub *frameBuffer, pp []partialPagingCnd) (modified, satisfied bool) {
-	cutSize := 0
-	done := false
+// applyPagingFilter performs additional filtering based on the provided paging partials
+func (d *joinedDataset) applyPagingFilter(buffLocal, buffForeign []*Frame, pp []partialPagingCnd) ([]*Frame, []*Frame, bool, bool, error) {
+	var (
+		err                 error
+		modified, satisfied bool
+		cutIndex            int
+	)
 
+	// When there is only one partial, it was already handled by the DS.
+	// Sorting assures a unique column when working with cursors.
 	if len(pp) <= 1 {
-		// Already satisfied by the DS
-		return false, true
+		return buffLocal, buffForeign, false, true, nil
 	}
 
-	inclCondition := pp[0]
-	fCondition := pp[1]
+	colIndex := make(map[string]FrameColumnSet)
+	colIndex[""] = buffLocal[0].Columns
+	colIndex[buffLocal[0].Ref] = buffLocal[0].Columns
+	colIndex[buffForeign[0].Ref] = buffForeign[0].Columns
 
-	main.walkRowsLocal(func(i int, r FrameRow) error {
-		if done {
-			return nil
-		}
+	rowIndex := 0
+	nextRows := func() (map[string]FrameRow, bool) {
+		out := make(map[string]FrameRow)
+		more := true
 
-		// Firstly we evaluate if the local row falls in the "danger zone"
-		// (if the row was right on the edge of where the paging cursor filter applied)
-		if d.eval(inclCondition.filterInclude, r, main.localFrames[0].Columns) {
-
-			// If we are in the "danger zone", we check what foreign frames don't pass
-			// the cursor filter.
-			//
-			// If the foreign frame does not pass it, we should remove it along with the local row.
-			if fCondition.filterCut != nil && !d.eval(fCondition.filterCut, sub.getByRefValue(r[main.keyColIndex]).FirstRow(), sub.localFrames[0].Columns) {
-				cutSize++
-			} else {
-				done = true
-				return nil
-			}
+		// local
+		if d.partitioned {
+			// local can just be ""
+			out[""] = buffLocal[rowIndex].FirstRow()
+			out[buffLocal[0].Ref] = buffLocal[rowIndex].FirstRow()
 		} else {
-			done = true
-			return nil
+			// local can just be ""
+			out[""] = buffLocal[0].PeekRow(rowIndex)
+			out[buffLocal[0].Ref] = buffLocal[0].PeekRow(rowIndex)
 		}
 
-		return nil
-	})
+		// foreign
+		out[buffForeign[0].Ref] = buffForeign[rowIndex].FirstRow()
 
-	if cutSize > 0 {
-		main.removeLocal(cutSize)
-		main.removeForeign(cutSize)
-		sub.removeLocal(cutSize)
-		sub.removeForeign(cutSize)
+		rowIndex++
+		more = rowIndex < len(buffForeign)
 
-		if main.sizeLocal() <= cutSize {
-			// We removed all of the local buffer so the paging is not yet satisfied
-			return true, false
-		}
-
-		// We removed the portion of the local buffer, so the paging is satisfied
-		return true, true
+		return out, more
 	}
 
-	return false, true
+outer:
+	for {
+		// peek next rows and break if no more
+		rr, more := nextRows()
+
+		// check paging partials; break if cursor passes, continue if it does not
+		pass := true
+		for i, p := range pp {
+			n := p.filterInclude
+			if i > 0 {
+				n = p.filterCut
+			}
+			tmp := d.eval(n, rr[p.ref], colIndex[p.ref])
+			// the first partial is less strict so it only matches the rows that
+			// can potentially be included.
+			if !tmp && i == 0 {
+				break outer
+			}
+
+			pass = pass && tmp
+			if !pass {
+				break
+			}
+		}
+
+		// if all conditions passed, this is the delimiter for what is included
+		if pass {
+			break
+		}
+
+		cutIndex++
+		if !more {
+			break
+		}
+	}
+
+	// cut based on cut index; satisfied when we don't remove everything due to paging
+	modified = cutIndex > 0
+	satisfied = cutIndex < len(buffForeign)-1
+	//
+	// - local
+	if d.partitioned {
+		buffLocal = buffLocal[cutIndex:]
+	} else {
+		buffLocal[0].Rows = buffLocal[0].Rows[cutIndex:]
+	}
+	//
+	// - foreign
+	buffForeign = buffForeign[cutIndex:]
+
+	return buffLocal, buffForeign, modified, satisfied, err
 }
