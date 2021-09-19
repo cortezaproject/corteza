@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func Test9009_filtering_validation(t *testing.T) {
+func Test_filter_validation(t *testing.T) {
 	var (
 		ctx, h, s = setup(t)
 		m, _, dd  = loadScenario(ctx, s, t, h)

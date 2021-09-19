@@ -6,7 +6,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/report"
 )
 
-func Test3005_joining_paging(t *testing.T) {
+func Test_join_paging(t *testing.T) {
 	var (
 		ctx, h, s      = setup(t)
 		m, _, dd       = loadScenario(ctx, s, t, h)

@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func Test0006_prefilter_join(t *testing.T) {
+func Test_join_prefilter(t *testing.T) {
 	var (
 		ctx, h, s = setup(t)
 		m, _, dd  = loadScenario(ctx, s, t, h)

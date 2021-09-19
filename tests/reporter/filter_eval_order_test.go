@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func Test9008_filtering_eval_order(t *testing.T) {
+func Test_filter_eval_order(t *testing.T) {
 	var (
 		ctx, h, s = setup(t)
 		m, _, dd  = loadScenarioOwnDM(ctx, s, t, h)

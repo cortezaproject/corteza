@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func Test0001_describe_basic(t *testing.T) {
+func Test_model_describe_basic(t *testing.T) {
 	var (
 		ctx, h, s = setup(t)
 		m, r, _   = loadScenario(ctx, s, t, h)

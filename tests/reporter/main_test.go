@@ -249,7 +249,7 @@ func describeNoErr(ctx context.Context, h helper, m report.M, dd ...string) (ff 
 }
 
 func loadScenario(ctx context.Context, s store.Storer, t *testing.T, h helper) (report.M, *auxReport, report.FrameDefinitionSet) {
-	return loadScenarioWithName(ctx, s, t, h, "S"+t.Name()[4:])
+	return loadScenarioWithName(ctx, s, t, h, t.Name()[5:])
 }
 
 func loadScenarioWithName(ctx context.Context, s store.Storer, t *testing.T, h helper, scenario string) (report.M, *auxReport, report.FrameDefinitionSet) {
@@ -268,7 +268,7 @@ func loadScenarioWithName(ctx context.Context, s store.Storer, t *testing.T, h h
 }
 
 func loadScenarioOwnDM(ctx context.Context, s store.Storer, t *testing.T, h helper) (report.M, *auxReport, report.FrameDefinitionSet) {
-	return loadScenarioOwnDMWithName(ctx, s, t, h, "S"+t.Name()[4:])
+	return loadScenarioOwnDMWithName(ctx, s, t, h, t.Name()[5:])
 }
 
 func loadScenarioOwnDMWithName(ctx context.Context, s store.Storer, t *testing.T, h helper, scenario string) (report.M, *auxReport, report.FrameDefinitionSet) {

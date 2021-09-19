@@ -6,7 +6,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/report"
 )
 
-func Test7001_modeling_multi(t *testing.T) {
+func Test_model_multi(t *testing.T) {
 	var (
 		ctx, h, s = setup(t)
 		m, _, dd  = loadScenario(ctx, s, t, h)
