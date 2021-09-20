@@ -616,12 +616,24 @@ func (svc *trigger) unregisterTriggers(tt ...*types.Trigger) {
 	}
 }
 
-func loadTrigger(ctx context.Context, s store.Storer, workflowID uint64) (res *types.Trigger, err error) {
+func loadTrigger(ctx context.Context, s store.Storer, triggerID uint64) (res *types.Trigger, err error) {
+	if triggerID == 0 {
+		return nil, TriggerErrInvalidID()
+	}
+
+	if res, err = store.LookupAutomationTriggerByID(ctx, s, triggerID); errors.IsNotFound(err) {
+		return nil, TriggerErrNotFound()
+	}
+
+	return
+}
+
+func loadWorkflowTriggers(ctx context.Context, s store.Storer, workflowID uint64) (tt types.TriggerSet, err error) {
 	if workflowID == 0 {
 		return nil, TriggerErrInvalidID()
 	}
 
-	if res, err = store.LookupAutomationTriggerByID(ctx, s, workflowID); errors.IsNotFound(err) {
+	if tt, _, err = store.SearchAutomationTriggers(ctx, s, types.TriggerFilter{WorkflowID: []uint64{workflowID}}); errors.IsNotFound(err) {
 		return nil, TriggerErrNotFound()
 	}
 
