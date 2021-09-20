@@ -26,10 +26,6 @@ func (n *apiGateway) Prepare(ctx context.Context, pl *payload) (err error) {
 }
 
 func (n *apiGateway) prepareRoute(ctx context.Context, pl *payload) (err error) {
-	if n.cfg.IgnoreStore {
-		n.res.Res.ID = 0
-		return nil
-	}
 
 	// Try to get the original workflow
 	n.gwr, err = findAPIGatewayStore(ctx, pl.s, makeGenericFilter(n.res.Identifiers()))
@@ -45,13 +41,6 @@ func (n *apiGateway) prepareRoute(ctx context.Context, pl *payload) (err error) 
 
 func (n *apiGateway) prepareFilters(ctx context.Context, pl *payload) (err error) {
 	if n.gwr == nil || n.gwr.ID == 0 {
-		return nil
-	}
-
-	if n.cfg.IgnoreStore {
-		for _, t := range n.ff {
-			t.ID = 0
-		}
 		return nil
 	}
 
