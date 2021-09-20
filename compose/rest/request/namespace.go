@@ -154,6 +154,47 @@ type (
 		Upload *multipart.FileHeader
 	}
 
+	NamespaceClone struct {
+		// NamespaceID PATH parameter
+		//
+		// ID
+		NamespaceID uint64 `json:",string"`
+
+		// Name POST parameter
+		//
+		// Duplicate name
+		Name string
+
+		// Slug POST parameter
+		//
+		// Duplicate slug
+		Slug string
+	}
+
+	NamespaceExport struct {
+		// NamespaceID PATH parameter
+		//
+		// ID
+		NamespaceID uint64 `json:",string"`
+
+		// Filename PATH parameter
+		//
+		// Output file name
+		Filename string
+
+		// Ext PATH parameter
+		//
+		// Output file ext
+		Ext string
+	}
+
+	NamespaceImport struct {
+		// Upload POST parameter
+		//
+		// Namespace import
+		Upload *multipart.FileHeader
+	}
+
 	NamespaceTriggerScript struct {
 		// NamespaceID PATH parameter
 		//
@@ -618,6 +659,192 @@ func (r NamespaceUpload) GetUpload() *multipart.FileHeader {
 
 // Fill processes request and fills internal variables
 func (r *NamespaceUpload) Fill(req *http.Request) (err error) {
+
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if _, r.Upload, err = req.FormFile("upload"); err != nil {
+			return fmt.Errorf("error processing uploaded file: %w", err)
+		}
+
+	}
+
+	return err
+}
+
+// NewNamespaceClone request
+func NewNamespaceClone() *NamespaceClone {
+	return &NamespaceClone{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceClone) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"namespaceID": r.NamespaceID,
+		"name":        r.Name,
+		"slug":        r.Slug,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceClone) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceClone) GetName() string {
+	return r.Name
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceClone) GetSlug() string {
+	return r.Slug
+}
+
+// Fill processes request and fills internal variables
+func (r *NamespaceClone) Fill(req *http.Request) (err error) {
+
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if val, ok := req.Form["name"]; ok && len(val) > 0 {
+			r.Name, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["slug"]; ok && len(val) > 0 {
+			r.Slug, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "namespaceID")
+		r.NamespaceID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewNamespaceExport request
+func NewNamespaceExport() *NamespaceExport {
+	return &NamespaceExport{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceExport) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"namespaceID": r.NamespaceID,
+		"filename":    r.Filename,
+		"ext":         r.Ext,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceExport) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceExport) GetFilename() string {
+	return r.Filename
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceExport) GetExt() string {
+	return r.Ext
+}
+
+// Fill processes request and fills internal variables
+func (r *NamespaceExport) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "namespaceID")
+		r.NamespaceID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "filename")
+		r.Filename, err = val, nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "ext")
+		r.Ext, err = val, nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewNamespaceImport request
+func NewNamespaceImport() *NamespaceImport {
+	return &NamespaceImport{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceImport) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"upload": r.Upload,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceImport) GetUpload() *multipart.FileHeader {
+	return r.Upload
+}
+
+// Fill processes request and fills internal variables
+func (r *NamespaceImport) Fill(req *http.Request) (err error) {
 
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)

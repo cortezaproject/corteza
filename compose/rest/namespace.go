@@ -2,6 +2,10 @@ package rest
 
 import (
 	"context"
+	"fmt"
+	"io"
+	"net/http"
+	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
@@ -9,6 +13,10 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
+	"github.com/cortezaproject/corteza-server/pkg/envoy"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	envoyStore "github.com/cortezaproject/corteza-server/pkg/envoy/store"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/yaml"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 )
 
@@ -161,6 +169,133 @@ func (ctrl Namespace) Upload(ctx context.Context, r *request.NamespaceUpload) (i
 	}
 
 	return makeAttachmentPayload(ctx, a, err)
+}
+
+func (ctrl Namespace) Clone(ctx context.Context, r *request.NamespaceClone) (interface{}, error) {
+	dup := &types.Namespace{
+		Name: r.Name,
+		Slug: r.Slug,
+	}
+
+	// prepare filters
+	df := envoyStore.NewDecodeFilter()
+
+	// - compose resources
+	df = df.ComposeNamespace(&types.NamespaceFilter{
+		NamespaceID: []uint64{r.NamespaceID},
+	}).
+		ComposeModule(&types.ModuleFilter{}).
+		ComposePage(&types.PageFilter{}).
+		ComposeChart(&types.ChartFilter{})
+
+	// - workflow
+	// @todo how do we want to handle these ones?
+	//       do we handle these ones?
+
+	decoder := func() (resource.InterfaceSet, error) {
+		// get from store
+		return envoyStore.Decoder().Decode(ctx, service.DefaultStore, df)
+	}
+
+	encoder := func(nn resource.InterfaceSet) error {
+		// prepare for encoding
+		se := envoyStore.NewStoreEncoder(service.DefaultStore, &envoyStore.EncoderConfig{})
+		bld := envoy.NewBuilder(se)
+		g, err := bld.Build(ctx, nn...)
+		if err != nil {
+			return err
+		}
+
+		return envoy.Encode(ctx, g, se)
+	}
+
+	ns, err := ctrl.namespace.Clone(ctx, r.NamespaceID, dup, decoder, encoder)
+	return ctrl.makePayload(ctx, ns, err)
+}
+
+func (ctrl Namespace) Export(ctx context.Context, r *request.NamespaceExport) (interface{}, error) {
+	var (
+		// @todo support multiple archive types
+		ext  = "zip"
+		file = fmt.Sprintf("%s.%s", r.Filename, ext)
+	)
+
+	// prepare filters
+	df := envoyStore.NewDecodeFilter()
+
+	// - compose resources
+	df = df.ComposeNamespace(&types.NamespaceFilter{
+		NamespaceID: []uint64{r.NamespaceID},
+	}).
+		ComposeModule(&types.ModuleFilter{}).
+		ComposePage(&types.PageFilter{}).
+		ComposeChart(&types.ChartFilter{})
+
+	// - workflow
+	// @todo how do we want to handle these ones?
+	//       do we handle these ones?
+
+	decoder := func() (resource.InterfaceSet, error) {
+		// get from store
+		sd := envoyStore.Decoder()
+		return sd.Decode(ctx, service.DefaultStore, df)
+	}
+
+	encoder := func(nn resource.InterfaceSet) (envoy.Streamer, error) {
+		// prepare for encoding
+		ye := yaml.NewYamlEncoder(&yaml.EncoderConfig{})
+		bld := envoy.NewBuilder(ye)
+		g, err := bld.Build(ctx, nn...)
+		if err != nil {
+			return nil, err
+		}
+
+		err = envoy.Encode(ctx, g, ye)
+		return ye, err
+	}
+
+	rs, err := ctrl.namespace.Export(ctx, r.NamespaceID, ext, decoder, encoder)
+	return ctrl.serveExport(ctx, file, rs, err)
+}
+
+func (ctrl Namespace) Import(ctx context.Context, r *request.NamespaceImport) (interface{}, error) {
+	f, err := r.Upload.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	encoder := func(nn resource.InterfaceSet) error {
+		se := envoyStore.NewStoreEncoder(service.DefaultStore, &envoyStore.EncoderConfig{})
+
+		bld := envoy.NewBuilder(se)
+		g, err := bld.Build(ctx, nn...)
+		if err != nil {
+			return err
+		}
+
+		err = envoy.Encode(ctx, g, se)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	ns, err := ctrl.namespace.Import(ctx, f, r.Upload.Size, encoder)
+	return ctrl.makePayload(ctx, ns, err)
+}
+
+func (ctrl Namespace) serveExport(ctx context.Context, fn string, archive io.ReadSeeker, err error) (interface{}, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	return func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Add("Content-Disposition", "attachment; filename="+fn)
+
+		http.ServeContent(w, req, fn, time.Now(), archive)
+	}, nil
 }
 
 func (ctrl *Namespace) TriggerScript(ctx context.Context, r *request.NamespaceTriggerScript) (rsp interface{}, err error) {

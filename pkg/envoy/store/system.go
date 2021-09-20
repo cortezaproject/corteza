@@ -743,7 +743,7 @@ func (df *DecodeFilter) RbacStrict(f *rbac.RuleFilter) *DecodeFilter {
 		return df
 	}
 
-	df.rbac = append(df.rbac, &rbacFilter{RuleFilter: *f, strict: true})
+	df.rbac = append(df.rbac, &rbacFilter{RuleFilter: *f})
 	return df
 }
 

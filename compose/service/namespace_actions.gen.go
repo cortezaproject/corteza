@@ -21,9 +21,10 @@ import (
 
 type (
 	namespaceActionProps struct {
-		namespace *types.Namespace
-		changed   *types.Namespace
-		filter    *types.NamespaceFilter
+		namespace     *types.Namespace
+		changed       *types.Namespace
+		archiveFormat string
+		filter        *types.NamespaceFilter
 	}
 
 	namespaceAction struct {
@@ -73,6 +74,17 @@ func (p *namespaceActionProps) setChanged(changed *types.Namespace) *namespaceAc
 	return p
 }
 
+// setArchiveFormat updates namespaceActionProps's archiveFormat
+//
+// Allows method chaining
+//
+// This function is auto-generated.
+//
+func (p *namespaceActionProps) setArchiveFormat(archiveFormat string) *namespaceActionProps {
+	p.archiveFormat = archiveFormat
+	return p
+}
+
 // setFilter updates namespaceActionProps's filter
 //
 // Allows method chaining
@@ -106,6 +118,7 @@ func (p namespaceActionProps) Serialize() actionlog.Meta {
 		m.Set("changed.meta", p.changed.Meta, true)
 		m.Set("changed.enabled", p.changed.Enabled, true)
 	}
+	m.Set("archiveFormat", p.archiveFormat, true)
 	if p.filter != nil {
 		m.Set("filter.query", p.filter.Query, true)
 		m.Set("filter.slug", p.filter.Slug, true)
@@ -178,6 +191,7 @@ func (p namespaceActionProps) Format(in string, err error) string {
 		pairs = append(pairs, "{{changed.meta}}", fns(p.changed.Meta))
 		pairs = append(pairs, "{{changed.enabled}}", fns(p.changed.Enabled))
 	}
+	pairs = append(pairs, "{{archiveFormat}}", fns(p.archiveFormat))
 
 	if p.filter != nil {
 		// replacement for "{{filter}}" (in order how fields are defined)
@@ -301,6 +315,66 @@ func NamespaceActionUpdate(props ...*namespaceActionProps) *namespaceAction {
 		resource:  "compose:namespace",
 		action:    "update",
 		log:       "updated {{namespace}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// NamespaceActionClone returns "compose:namespace.clone" action
+//
+// This function is auto-generated.
+//
+func NamespaceActionClone(props ...*namespaceActionProps) *namespaceAction {
+	a := &namespaceAction{
+		timestamp: time.Now(),
+		resource:  "compose:namespace",
+		action:    "clone",
+		log:       "cloned {namespace}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// NamespaceActionExport returns "compose:namespace.export" action
+//
+// This function is auto-generated.
+//
+func NamespaceActionExport(props ...*namespaceActionProps) *namespaceAction {
+	a := &namespaceAction{
+		timestamp: time.Now(),
+		resource:  "compose:namespace",
+		action:    "export",
+		log:       "exported {namespace}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// NamespaceActionImport returns "compose:namespace.import" action
+//
+// This function is auto-generated.
+//
+func NamespaceActionImport(props ...*namespaceActionProps) *namespaceAction {
+	a := &namespaceAction{
+		timestamp: time.Now(),
+		resource:  "compose:namespace",
+		action:    "import",
+		log:       "imported {namespace}",
 		severity:  actionlog.Notice,
 	}
 
@@ -573,6 +647,114 @@ func NamespaceErrStaleData(mm ...*namespaceActionProps) *errors.Error {
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
 		errors.Meta(locale.ErrorMetaKey{}, "namespace.errors.staleData"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// NamespaceErrUnsupportedExportFormat returns "compose:namespace.unsupportedExportFormat" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func NamespaceErrUnsupportedExportFormat(mm ...*namespaceActionProps) *errors.Error {
+	var p = &namespaceActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("unsupported export format", nil),
+
+		errors.Meta("type", "unsupportedExportFormat"),
+		errors.Meta("resource", "compose:namespace"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(namespaceLogMetaKey{}, "could not export namespace {{namespace}}; unsupported format {{archiveFormat}}"),
+		errors.Meta(namespacePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "namespace.errors.unsupportedExportFormat"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// NamespaceErrUnsupportedImportFormat returns "compose:namespace.unsupportedImportFormat" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func NamespaceErrUnsupportedImportFormat(mm ...*namespaceActionProps) *errors.Error {
+	var p = &namespaceActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("unsupported import format", nil),
+
+		errors.Meta("type", "unsupportedImportFormat"),
+		errors.Meta("resource", "compose:namespace"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(namespaceLogMetaKey{}, "could not import namespace {{namespace}}; unsupported format {{archiveFormat}}"),
+		errors.Meta(namespacePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "namespace.errors.unsupportedImportFormat"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// NamespaceErrCloneMultiple returns "compose:namespace.cloneMultiple" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func NamespaceErrCloneMultiple(mm ...*namespaceActionProps) *errors.Error {
+	var p = &namespaceActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to clone multiple namespaces at once", nil),
+
+		errors.Meta("type", "cloneMultiple"),
+		errors.Meta("resource", "compose:namespace"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(namespaceLogMetaKey{}, "could not clone namespaces; multiple duplications requested at once"),
+		errors.Meta(namespacePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "namespace.errors.cloneMultiple"),
 
 		errors.StackSkip(1),
 	)

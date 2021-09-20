@@ -114,10 +114,10 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 			}
 
 		case "Comment":
-			id := ss(b.Options, "module", "moduleID")
-			if id != "" {
-				ref := r.AddRef(types.ModuleResourceType, id).Constraint(r.RefNs)
-				r.BlockRefs[i] = add(r.BlockRefs[i], ref)
+			ref = r.pbComment(b.Options)
+			if ref != nil {
+				r.addRef(ref.Constraint(r.RefNs))
+				r.BlockRefs[i] = append(r.BlockRefs[i], ref)
 				r.ModRefs = append(r.ModRefs, ref)
 			}
 		}
@@ -249,6 +249,15 @@ func (r *ComposePage) optString(opt map[string]interface{}, kk ...string) string
 }
 
 func (r *ComposePage) pbRecordList(opt map[string]interface{}) (out *Ref) {
+	id := r.optString(opt, "module", "moduleID")
+	if id == "" {
+		return
+	}
+
+	return MakeRef(types.ModuleResourceType, MakeIdentifiers(id)).Constraint(r.RefNs)
+}
+
+func (r *ComposePage) pbComment(opt map[string]interface{}) (out *Ref) {
 	id := r.optString(opt, "module", "moduleID")
 	if id == "" {
 		return
