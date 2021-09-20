@@ -69,6 +69,13 @@ func loadScenario(ctx context.Context, t *testing.T) {
 	loadScenarioWithName(ctx, t, "S"+t.Name()[4:])
 }
 
+// 1st step in migration to workflow testdata w/o number prefix
+//
+// When all old scenarios are renamed, replace it with loadScenario.
+func loadNewScenario(ctx context.Context, t *testing.T) {
+	loadScenarioWithName(ctx, t, t.Name()[5:])
+}
+
 func loadScenarioWithName(ctx context.Context, t *testing.T, scenario string) {
 	var (
 		err error
@@ -110,6 +117,10 @@ func bypassRBAC(ctx context.Context) context.Context {
 		ID: id.Next(),
 	}
 
+	if err := defStore.CreateUser(ctx, u); err != nil {
+		panic(err)
+	}
+
 	u.SetRoles(auth.BypassRoles().IDs()...)
 
 	return auth.SetIdentityToContext(ctx, u)
@@ -135,7 +146,11 @@ func mustExecWorkflow(ctx context.Context, t *testing.T, name string, p autTypes
 			}
 		}
 
-		t.Fatalf("could not exec %q: %v", name, errors.Unwrap(err))
+		if unw := errors.Unwrap(err); unw != nil {
+			err = unw
+		}
+
+		t.Fatalf("could not exec %q: %v", name, err)
 
 	}
 

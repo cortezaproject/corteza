@@ -1,0 +1,33 @@
+workflows:
+  invoker:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: termination
+
+    paths: []
+    allow:
+      wf-invokers:
+        - execute
+
+  runner:
+    enabled: true
+    trace: true
+    runAs: wf-runner
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: termination
+
+    paths: []
+    allow:
+      wf-invokers:
+        - execute
