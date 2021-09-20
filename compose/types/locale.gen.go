@@ -48,6 +48,30 @@ var (
 		Resource: ModuleFieldResourceTranslationType,
 		Path:     "label",
 	}
+	LocaleKeyModuleFieldDescriptionView = LocaleKey{
+		Name:          "descriptionView",
+		Resource:      ModuleFieldResourceTranslationType,
+		Path:          "meta.description.view",
+		CustomHandler: "descriptionView",
+	}
+	LocaleKeyModuleFieldDescriptionEdit = LocaleKey{
+		Name:          "descriptionEdit",
+		Resource:      ModuleFieldResourceTranslationType,
+		Path:          "meta.description.edit",
+		CustomHandler: "descriptionEdit",
+	}
+	LocaleKeyModuleFieldHintView = LocaleKey{
+		Name:          "hintView",
+		Resource:      ModuleFieldResourceTranslationType,
+		Path:          "meta.hint.view",
+		CustomHandler: "hintView",
+	}
+	LocaleKeyModuleFieldHintEdit = LocaleKey{
+		Name:          "hintEdit",
+		Resource:      ModuleFieldResourceTranslationType,
+		Path:          "meta.hint.edit",
+		CustomHandler: "hintEdit",
+	}
 	LocaleKeyModuleFieldValidatorError = LocaleKey{
 		Name:          "validatorError",
 		Resource:      ModuleFieldResourceTranslationType,
@@ -178,6 +202,10 @@ func (r *ModuleField) DecodeTranslations(tt locale.ResourceTranslationIndex) {
 	if aux = tt.FindByKey(LocaleKeyModuleFieldLabel.Path); aux != nil {
 		r.Label = aux.Msg
 	}
+	r.decodeTranslationsDescriptionView(tt)
+	r.decodeTranslationsDescriptionEdit(tt)
+	r.decodeTranslationsHintView(tt)
+	r.decodeTranslationsHintEdit(tt)
 	r.decodeTranslationsValidatorError(tt)
 }
 
@@ -191,6 +219,10 @@ func (r *ModuleField) EncodeTranslations() (out locale.ResourceTranslationSet) {
 		})
 	}
 
+	out = append(out, r.encodeTranslationsDescriptionView()...)
+	out = append(out, r.encodeTranslationsDescriptionEdit()...)
+	out = append(out, r.encodeTranslationsHintView()...)
+	out = append(out, r.encodeTranslationsHintEdit()...)
 	out = append(out, r.encodeTranslationsValidatorError()...)
 
 	return out
