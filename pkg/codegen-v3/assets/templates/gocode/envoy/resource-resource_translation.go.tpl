@@ -14,7 +14,7 @@ import (
 {{ $Component := .Component }}
 {{ $Resource := .Resource }}
 {{ $GoType   := printf "types.%s" .Resource }}
-func (r *{{export $Component}}{{$Resource}}) EncodeTranslations() ([]*ResourceTranslation, error) {
+func (r *{{if not (eq $Component "system")}}{{export $Component}}{{ end }}{{$Resource}}) EncodeTranslations() ([]*ResourceTranslation, error) {
 	out := make([]*ResourceTranslation, 0, 10)
 
 	rr := r.Res.EncodeTranslations()
