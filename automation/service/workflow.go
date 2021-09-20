@@ -525,7 +525,9 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 		// Find the trigger.
 		t, err = func() (*types.Trigger, error) {
 			var tt types.TriggerSet
-			tt, _, err = svc.triggers.Search(ctx, types.TriggerFilter{WorkflowID: []uint64{workflowID}})
+			// Load triggers directly from the store. At this point we do not care
+			// about trigger search or read permissions
+			tt, err = loadWorkflowTriggers(ctx, svc.store, workflowID)
 			if err != nil {
 				return nil, err
 			}
@@ -542,6 +544,10 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 
 			return nil, nil
 		}()
+
+		if err != nil {
+			return
+		}
 
 		// Start with workflow scope
 		scope := wf.Scope.Merge()
