@@ -795,7 +795,7 @@ func (svc user) DeleteAuthSessionsByUserID(ctx context.Context, userID uint64) (
 	return svc.recordAction(ctx, uaProps, UserActionDeleteAuthSessions, err)
 }
 
-// UniqueCheck verifies user's email, username and handle
+// uniqueUserCheck verifies user's email, username and handle
 func uniqueUserCheck(ctx context.Context, s store.Storer, u *types.User) (err error) {
 	isUnique := func(field string) bool {
 		f := types.UserFilter{
