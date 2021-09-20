@@ -373,14 +373,10 @@ func assignToComposeRecordValues(res *types.Record, pp []string, val interface{}
 				return fmt.Errorf("can not assign array of values to a single value in a record value set")
 			}
 
-			for p, v := range vv {
-				rv = &types.RecordValue{Name: k, Place: uint(p)}
-				rv.Value, err = cast.ToStringE(v)
-				if err != nil {
-					return err
-				}
-
-				res.Values = res.Values.Set(rv)
+			if ss, err := cast.ToStringSliceE(vv); err != nil {
+				return err
+			} else {
+				res.Values = res.Values.Replace(k, ss...)
 			}
 
 			return nil
