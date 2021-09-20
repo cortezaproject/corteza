@@ -13,11 +13,13 @@ package resource
 // - compose.module.yaml
 // - compose.namespace.yaml
 // - compose.page.yaml
+// - system.report.yaml
 
 import (
 	"fmt"
 	automationTypes "github.com/cortezaproject/corteza-server/automation/types"
 	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
+	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 	"strings"
 )
 
@@ -130,6 +132,16 @@ func ParseResourceTranslation(res string) (string, *Ref, []*Ref, error) {
 			path[1],
 		)
 		return composeTypes.PageResourceTranslationType, ref, pp, err
+
+	case systemTypes.ReportResourceTranslationType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := SystemReportResourceTranslationReferences(
+			// report
+			path[0],
+		)
+		return systemTypes.ReportResourceTranslationType, ref, pp, err
 
 	}
 

@@ -13,6 +13,7 @@ package resource
 // - compose.module.yaml
 // - compose.namespace.yaml
 // - compose.page.yaml
+// - system.report.yaml
 
 import (
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
@@ -76,6 +77,19 @@ func (r *ComposeNamespace) EncodeTranslations() ([]*ResourceTranslation, error) 
 }
 
 func (r *ComposePage) EncodeTranslations() ([]*ResourceTranslation, error) {
+	out := make([]*ResourceTranslation, 0, 10)
+
+	rr := r.Res.EncodeTranslations()
+	rr.SetLanguage(defaultLanguage)
+	res, ref, pp := r.ResourceTranslationParts()
+	out = append(out, NewResourceTranslation(systemTypes.FromLocale(rr), res, ref, pp...))
+
+	tmp, err := r.encodeTranslations()
+	return append(out, tmp...), err
+
+}
+
+func (r *Report) EncodeTranslations() ([]*ResourceTranslation, error) {
 	out := make([]*ResourceTranslation, 0, 10)
 
 	rr := r.Res.EncodeTranslations()
