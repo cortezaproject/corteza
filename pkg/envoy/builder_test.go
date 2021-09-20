@@ -13,6 +13,7 @@ type (
 		resType     string
 		identifiers resource.Identifiers
 		refs        resource.RefSet
+		ph          bool
 	}
 )
 
@@ -26,6 +27,14 @@ func (t *testResource) ResourceType() string {
 
 func (t *testResource) Refs() resource.RefSet {
 	return t.refs
+}
+
+func (t *testResource) MarkPlaceholder() {
+	t.ph = true
+}
+
+func (t *testResource) Placeholder() bool {
+	return t.ph
 }
 
 func TestGraphBuilder_Rel(t *testing.T) {

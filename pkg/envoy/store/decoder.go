@@ -66,6 +66,14 @@ func (df *DecodeFilter) FromResource(rr ...string) *DecodeFilter {
 	return df
 }
 
+func (df *DecodeFilter) FromRef(rr ...*resource.Ref) *DecodeFilter {
+	df = df.systemFromRef(rr...)
+	df = df.automationFromRef(rr...)
+	df = df.composeFromRef(rr...)
+
+	return df
+}
+
 func (aum auxMarshaller) MarshalEnvoy() ([]resource.Interface, error) {
 	ii := make([]resource.Interface, 0, len(aum))
 	for _, m := range aum {

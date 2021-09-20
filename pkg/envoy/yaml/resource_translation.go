@@ -43,6 +43,10 @@ func (ll resourceTranslationSet) groupByResourceTranslation() (out resourceTrans
 }
 
 func resourceTranslationFromResource(r *resource.ResourceTranslation, cfg *EncoderConfig) *resourceTranslation {
+	if len(r.Res) == 0 {
+		return nil
+	}
+
 	return &resourceTranslation{
 		locales: r.Res,
 

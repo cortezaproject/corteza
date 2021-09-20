@@ -63,10 +63,29 @@ func decodeDirectory(ctx context.Context, suite string) ([]resource.Interface, e
 
 func encode(ctx context.Context, s store.Storer, nn []resource.Interface) error {
 	se := es.NewStoreEncoder(s, nil)
-	bld := envoy.NewBuilder(se)
-	g, err := bld.Build(ctx, nn...)
-	if err != nil {
+	g, err := envoy.NewSafeBuilder(se).Build(ctx, nn...)
+	if err != nil && err != envoy.BuilderErrUnresolvedReferences {
 		return err
+	}
+
+	if err == envoy.BuilderErrUnresolvedReferences {
+		md := g.MissingDeps().Unique()
+		df := es.NewDecodeFilter().FromRef(md...)
+
+		sd := es.Decoder()
+		mm, err := sd.Decode(ctx, s, df)
+		if err != nil {
+			return err
+		}
+
+		for _, m := range mm {
+			m.MarkPlaceholder()
+		}
+
+		g, err = envoy.NewBuilder(se).Build(ctx, append(nn, mm...)...)
+		if err != nil {
+			return err
+		}
 	}
 
 	return envoy.Encode(ctx, g, se)

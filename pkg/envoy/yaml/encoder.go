@@ -108,6 +108,11 @@ func (ye *yamlEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState) 
 	}
 
 	for _, e := range ee {
+		// Skip placeholders
+		if e.Res.Placeholder() {
+			continue
+		}
+
 		switch res := e.Res.(type) {
 		// Compose resources
 		case *resource.ComposeNamespace:
@@ -174,6 +179,11 @@ func (ye *yamlEncoder) Encode(ctx context.Context, p envoy.Provider) error {
 		}
 		if e == nil {
 			break
+		}
+
+		// Skip placeholders
+		if e.Res.Placeholder() {
+			continue
 		}
 
 		state := ye.resState[e.Res]

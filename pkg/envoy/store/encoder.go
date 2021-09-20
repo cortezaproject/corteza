@@ -105,6 +105,10 @@ func NewStoreEncoder(s store.Storer, cfg *EncoderConfig) envoy.PrepareEncoder {
 // It initializes and prepares the resource state for each provided resource
 func (se *storeEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState) (err error) {
 	f := func(rs resourceState, ers *envoy.ResourceState) error {
+		if rs == nil {
+			return nil
+		}
+
 		err = rs.Prepare(ctx, se.makePayload(ctx, se.s, ers))
 		if err != nil {
 			return err
@@ -115,6 +119,11 @@ func (se *storeEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState)
 	}
 
 	for _, ers := range ee {
+		// Skip placeholders
+		if ers.Res.Placeholder() {
+			continue
+		}
+
 		switch res := ers.Res.(type) {
 		// Compose resources
 		case *resource.ComposeNamespace:
@@ -142,7 +151,7 @@ func (se *storeEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState)
 		case *resource.RbacRule:
 			err = f(newRbacRuleFromResource(res, se.cfg), ers)
 		case *resource.ResourceTranslation:
-		//	err = f(newResourceTranslationFromResource(res, se.cfg), ers)
+			err = f(newResourceTranslationFromResource(res, se.cfg), ers)
 
 		// Automation resources
 		case *resource.AutomationWorkflow:
@@ -172,15 +181,22 @@ func (se *storeEncoder) Encode(ctx context.Context, p envoy.Provider) error {
 				return nil
 			}
 
+			// Skip placeholders
+			if ers.Res.Placeholder() {
+				continue
+			}
+
 			state := se.state[ers.Res]
 			if state == nil {
 				err = ErrResourceStateUndefined
 			} else {
-				err = state.Encode(ctx, se.makePayload(ctx, s, ers))
+				if state != nil {
+					err = state.Encode(ctx, se.makePayload(ctx, s, ers))
+				}
 			}
 
 			if err != nil {
-				//return se.WrapError("encode", ers.Res, err)
+				return se.WrapError("encode", ers.Res, err)
 			}
 		}
 	})

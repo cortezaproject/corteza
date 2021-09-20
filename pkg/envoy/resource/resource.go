@@ -13,6 +13,7 @@ type (
 		rt string
 		ii Identifiers
 		rr RefSet
+		ph bool
 
 		ts    *Timestamps
 		us    *Userstamps
@@ -195,6 +196,20 @@ func (t *base) Ref() *Ref {
 
 func (t *base) HasRefs() bool {
 	return t.rr == nil || len(t.rr) == 0
+}
+
+// MarkPlaceholder denotes that the given resource should be treated as a placeholder
+//
+// Placeholder resources should not be encoded but should only provide additional
+// context to resources that depend on it
+func (t *base) MarkPlaceholder() {
+	t.ph = true
+}
+
+// Placeholder resources should not be encoded but should only provide additional
+// context to resources that depend on it
+func (t *base) Placeholder() bool {
+	return t.ph
 }
 
 func IgnoreDepResolution(ref *Ref) bool {
