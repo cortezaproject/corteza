@@ -1,0 +1,8 @@
+users:
+  wf-runner: workflow-runner@cortezaproject.org
+  wf-invoker: workflow-invoker@cortezaproject.org
+
+roles:
+  wf-invokers:
+    members:
+      - wf-invoker

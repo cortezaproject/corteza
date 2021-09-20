@@ -13,7 +13,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/system/types"
+	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
 )
 
@@ -30,7 +30,7 @@ type (
 	}
 
 	userService interface {
-		FindByAny(ctx context.Context, identifier interface{}) (*types.User, error)
+		FindByAny(ctx context.Context, identifier interface{}) (*sysTypes.User, error)
 	}
 )
 
