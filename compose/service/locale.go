@@ -27,6 +27,36 @@ func (svc resourceTranslationsManager) moduleExtended(ctx context.Context, res *
 				Msg:      svc.locale.TResourceFor(tag, f.ResourceTranslation(), k.Path),
 			})
 
+			k = types.LocaleKeyModuleFieldDescriptionView
+			out = append(out, &locale.ResourceTranslation{
+				Resource: f.ResourceTranslation(),
+				Lang:     tag.String(),
+				Key:      k.Path,
+				Msg:      svc.locale.TResourceFor(tag, f.ResourceTranslation(), k.Path),
+			})
+			k = types.LocaleKeyModuleFieldDescriptionEdit
+			out = append(out, &locale.ResourceTranslation{
+				Resource: f.ResourceTranslation(),
+				Lang:     tag.String(),
+				Key:      k.Path,
+				Msg:      svc.locale.TResourceFor(tag, f.ResourceTranslation(), k.Path),
+			})
+
+			k = types.LocaleKeyModuleFieldHintView
+			out = append(out, &locale.ResourceTranslation{
+				Resource: f.ResourceTranslation(),
+				Lang:     tag.String(),
+				Key:      k.Path,
+				Msg:      svc.locale.TResourceFor(tag, f.ResourceTranslation(), k.Path),
+			})
+			k = types.LocaleKeyModuleFieldHintEdit
+			out = append(out, &locale.ResourceTranslation{
+				Resource: f.ResourceTranslation(),
+				Lang:     tag.String(),
+				Key:      k.Path,
+				Msg:      svc.locale.TResourceFor(tag, f.ResourceTranslation(), k.Path),
+			})
+
 			// Extra field bits
 			converted, err := svc.moduleFieldValidatorErrorHandler(ctx, tag, f, k.Path)
 			if err != nil {

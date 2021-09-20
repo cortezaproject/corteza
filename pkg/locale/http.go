@@ -16,9 +16,11 @@ func DetectLanguage(ll *service) func(next http.Handler) http.Handler {
 			var ctx = r.Context()
 
 			// resolve accept-language header
+			// Accept-Language specifies the language of the response payload.
 			ctx = SetAcceptLanguageToContext(ctx, resolveAcceptLanguageHeaders(ll, r))
 
 			// resolve content-language header
+			// Content-Language specifies the language of the request payload.
 			ctx = SetContentLanguageToContext(ctx, resolveContentLanguageHeaders(r.Header, ll.Default().Tag))
 
 			next.ServeHTTP(w, r.WithContext(ctx))
@@ -37,7 +39,11 @@ func DetectLanguage(ll *service) func(next http.Handler) http.Handler {
 func resolveContentLanguageHeaders(h http.Header, def language.Tag) language.Tag {
 	var cLang = h.Get(ContentLanguageHeader)
 
-	if cLang == "skip" || cLang == "" {
+	if cLang == "" {
+		return def
+	}
+
+	if cLang == "skip" {
 		// more than 1 header or value equal to skip
 		return language.Und
 	}

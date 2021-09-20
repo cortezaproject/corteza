@@ -296,7 +296,7 @@ func (svc page) Create(ctx context.Context, new *types.Page) (*types.Page, error
 		// i18n
 		if contentLang := locale.GetContentLanguageFromContext(ctx); contentLang != language.Und {
 			tt := new.EncodeTranslations()
-			tt.SetLanguage(locale.GetAcceptLanguageFromContext(ctx))
+			tt.SetLanguage(contentLang)
 			err = svc.locale.Upsert(ctx, tt)
 			if err != nil {
 				return err
@@ -374,7 +374,7 @@ func (svc page) updater(ctx context.Context, namespaceID, pageID uint64, action 
 		// i18n
 		if contentLang := locale.GetContentLanguageFromContext(ctx); contentLang != language.Und {
 			tt := p.EncodeTranslations()
-			tt.SetLanguage(locale.GetAcceptLanguageFromContext(ctx))
+			tt.SetLanguage(contentLang)
 			err = svc.locale.Upsert(ctx, tt)
 			if err != nil {
 				return err

@@ -368,7 +368,7 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 				tt = append(tt, f.EncodeTranslations()...)
 			}
 
-			tt.SetLanguage(locale.GetAcceptLanguageFromContext(ctx))
+			tt.SetLanguage(contentLang)
 			err = svc.locale.Upsert(ctx, tt)
 			if err != nil {
 				return err
