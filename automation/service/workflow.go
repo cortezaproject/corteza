@@ -18,6 +18,8 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 	"github.com/cortezaproject/corteza-server/store"
+	sysAutoTypes "github.com/cortezaproject/corteza-server/system/automation"
+	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
 )
 
@@ -489,6 +491,8 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 		wait    WaitFn
 
 		stacktrace types.Stacktrace
+
+		runner, invoker *sysTypes.User
 	)
 
 	err := func() (err error) {
@@ -579,11 +583,19 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 			ssp.ResourceType = ""
 		}
 
-		// Finally, assign input values
-		ssp.Input = scope.MustMerge(p.Input)
+		if invokerId := intAuth.GetIdentityFromContext(ctx).Identity(); invokerId > 0 {
+			var is bool
+			if invoker, is = intAuth.GetIdentityFromContext(ctx).(*sysTypes.User); !is {
+				if invoker, err = DefaultUser.FindByAny(ctx, invokerId); err != nil {
+					return
+				}
+			}
+
+			runner = invoker
+		}
 
 		if wf.RunAs > 0 {
-			if runAs, err = DefaultUser.FindByAny(ctx, wf.RunAs); err != nil {
+			if runner, err = DefaultUser.FindByAny(ctx, wf.RunAs); err != nil {
 				return
 			}
 		}
@@ -592,6 +604,14 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 			// Default to current user
 			runAs = intAuth.GetIdentityFromContext(ctx)
 		}
+
+		// @todo find a better way to typify expression values
+		//       so that we do not have to import automation types from the system component
+		_ = scope.AssignFieldValue("invoker", expr.Must(sysAutoTypes.NewUser(invoker)))
+		_ = scope.AssignFieldValue("runner", expr.Must(sysAutoTypes.NewUser(runner)))
+
+		// Finally, assign input values
+		ssp.Input = scope.MustMerge(p.Input)
 
 		wait, err = svc.session.Start(g, runAs, ssp)
 
