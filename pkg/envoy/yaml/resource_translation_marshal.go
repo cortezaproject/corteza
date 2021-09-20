@@ -62,6 +62,11 @@ func (r *resourceTranslation) Encode(ctx context.Context, doc *Document, state *
 	// under the related namespace.
 	// For now all rules will be nested under a root node for simplicity sake.
 
+	// @todo move out of the encoding logic
+	if r == nil {
+		return
+	}
+
 	refResource, err := r.makeResourceTranslationResource(state)
 	if err != nil {
 		return err

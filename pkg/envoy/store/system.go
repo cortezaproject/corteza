@@ -483,6 +483,50 @@ func (df *DecodeFilter) systemFromResource(rr ...string) *DecodeFilter {
 	return df
 }
 
+func (df *DecodeFilter) systemFromRef(rr ...*resource.Ref) *DecodeFilter {
+	for _, r := range rr {
+		if strings.Index(r.ResourceType, "system") < 0 {
+			continue
+		}
+
+		switch r.ResourceType {
+		case types.RoleResourceType:
+			for _, i := range r.Identifiers.StringSlice() {
+				df = df.Roles(&types.RoleFilter{
+					Query: i,
+				})
+			}
+		case types.UserResourceType:
+			for _, i := range r.Identifiers.StringSlice() {
+				df = df.Users(&types.UserFilter{
+					Query:    i,
+					AllKinds: true,
+				})
+			}
+		case types.TemplateResourceType:
+			for _, i := range r.Identifiers.StringSlice() {
+				df = df.Templates(&types.TemplateFilter{
+					Handle: i,
+				})
+				templateID, err := cast.ToUint64E(i)
+				if err == nil && templateID > 0 {
+					df = df.Templates(&types.TemplateFilter{
+						TemplateID: []uint64{templateID},
+					})
+				}
+			}
+		case types.ApplicationResourceType:
+			for _, i := range r.Identifiers.StringSlice() {
+				df = df.Applications(&types.ApplicationFilter{
+					Query: i,
+				})
+			}
+		}
+	}
+
+	return df
+}
+
 // Roles adds a new RoleFilter
 func (df *DecodeFilter) Roles(f *types.RoleFilter) *DecodeFilter {
 	if df.roles == nil {

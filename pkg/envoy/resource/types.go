@@ -7,6 +7,9 @@ type (
 		Identifiers() Identifiers
 		ResourceType() string
 		Refs() RefSet
+
+		MarkPlaceholder()
+		Placeholder() bool
 	}
 
 	InterfaceSet []Interface
@@ -142,4 +145,34 @@ func (r *Ref) Constraint(c *Ref) *Ref {
 // IsWildcard checks if this Ref points to all resources of a specific resource type
 func (r *Ref) IsWildcard() bool {
 	return r.Identifiers["*"]
+}
+
+// Unique returns only unique references
+//
+// Uniqueness is defined as "two references may not define
+// the same resource type and identifier" combinations.
+func (rr RefSet) Unique() RefSet {
+	out := make(RefSet, 0, len(rr))
+	seen := make(map[string]Identifiers)
+
+	for _, r := range rr {
+		ii, ok := seen[r.ResourceType]
+
+		// type not seen at all, unique
+		if !ok {
+			out = append(out, r)
+			seen[r.ResourceType] = r.Identifiers
+			continue
+		}
+
+		// not yet seen
+		if !ii.HasAny(r.Identifiers) {
+			out = append(out, r)
+			for i := range r.Identifiers {
+				seen[r.ResourceType][i] = true
+			}
+		}
+	}
+
+	return out
 }

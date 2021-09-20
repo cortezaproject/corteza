@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	automationTypes "github.com/cortezaproject/corteza-server/automation/types"
 	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/store"
@@ -65,6 +66,12 @@ func (n *resourceTranslation) Prepare(ctx context.Context, pl *payload) (err err
 }
 
 func (n *resourceTranslation) Encode(ctx context.Context, pl *payload) (err error) {
+
+	// @todo move out of the encoding logic
+	if n == nil {
+		return
+	}
+
 	localeRes, err := n.makeResourceTranslation(pl)
 	if err != nil {
 		return err
@@ -118,6 +125,15 @@ func (n *resourceTranslation) makeResourceTranslation(pl *payload) (string, erro
 	_ = localeRes
 
 	switch n.refLocaleRes.ResourceType {
+	case automationTypes.WorkflowResourceType:
+		p1 := resource.FindAutomationWorkflow(pl.state.ParentResources, n.refLocaleRes.Identifiers)
+		if p1 == nil {
+			return "", resource.AutomationWorkflowErrUnresolved(n.refLocaleRes.Identifiers)
+		}
+		p1ID = p1.ID
+
+		return automationTypes.WorkflowResourceTranslation(p1ID), nil
+
 	case composeTypes.NamespaceResourceType:
 		p1 := resource.FindComposeNamespace(pl.state.ParentResources, n.refLocaleRes.Identifiers)
 		if p1 == nil {
@@ -126,6 +142,7 @@ func (n *resourceTranslation) makeResourceTranslation(pl *payload) (string, erro
 		p1ID = p1.ID
 
 		return composeTypes.NamespaceResourceTranslation(p1ID), nil
+
 	case composeTypes.ModuleResourceType:
 		p0 := resource.FindComposeNamespace(pl.state.ParentResources, n.refPathRes[0].Identifiers)
 		if p0 == nil {
@@ -156,6 +173,21 @@ func (n *resourceTranslation) makeResourceTranslation(pl *payload) (string, erro
 
 		return composeTypes.PageResourceTranslation(p0ID, p1ID), nil
 
+	case composeTypes.ChartResourceType:
+		p0 := resource.FindComposeNamespace(pl.state.ParentResources, n.refPathRes[0].Identifiers)
+		if p0 == nil {
+			return "", resource.ComposeNamespaceErrUnresolved(n.refPathRes[0].Identifiers)
+		}
+		p0ID = p0.ID
+
+		p1 := resource.FindComposeChart(pl.state.ParentResources, n.refLocaleRes.Identifiers)
+		if p1 == nil {
+			return "", resource.ComposeChartErrUnresolved(n.refLocaleRes.Identifiers)
+		}
+		p1ID = p1.ID
+
+		return composeTypes.ChartResourceTranslation(p0ID, p1ID), nil
+
 	case composeTypes.ModuleFieldResourceType:
 		p0 := resource.FindComposeNamespace(pl.state.ParentResources, n.refPathRes[0].Identifiers)
 		if p0 == nil {
@@ -181,7 +213,7 @@ func (n *resourceTranslation) makeResourceTranslation(pl *payload) (string, erro
 	default:
 		// @todo if we wish to support res. trans. for external stuff, this needs to pass through.
 		//       this also requires some tweaks in the path ID thing.
-		return "", fmt.Errorf("unsupported resource type '%s' for RBAC store encode", n.refLocaleRes.ResourceType)
+		return "", fmt.Errorf("unsupported resource type '%s' for resource translation store encode", n.refLocaleRes.ResourceType)
 	}
 }
 
