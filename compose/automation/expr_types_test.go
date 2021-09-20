@@ -329,6 +329,40 @@ func TestAssignToComposeRecordValues(t *testing.T) {
 		req.NoError(assignToComposeRecordValues(target, []string{"a"}, expr.Must(expr.NewAny([]string{"1", "2"}))))
 		req.Len(target.Values, 2)
 	})
+
+	t.Run("overwrite multiple values", func(t *testing.T) {
+		var (
+			req    = require.New(t)
+			target = &types.Record{Values: types.RecordValueSet{
+				&types.RecordValue{Name: "mval", Value: "203221389712893", Place: 0},
+				&types.RecordValue{Name: "mval", Value: "203221389712893", Place: 1},
+			}}
+
+			scope, _ = expr.NewVars(map[string]interface{}{
+				"rec": expr.Must(NewComposeRecord(target)),
+			})
+
+			ee = aTypes.ExprSet{
+				&aTypes.Expr{Target: "rec.values.mval", Type: "Array", Expr: "[1,2,3,4]"},
+			}
+		)
+
+		// convert all types
+		req.NoError(ee[0].SetType(func(_ string) (expr.Type, error) { return expr.Array{}, nil }))
+
+		// init expression handler
+		evaluable, err := expr.NewParser().Parse(ee[0].GetExpr())
+		req.NoError(err)
+		ee[0].SetEval(evaluable)
+
+		_, err = ee.Eval(context.Background(), scope)
+		req.NoError(err)
+		req.Len(target.Values, 4)
+		req.Equal(target.Values.Get("mval", 0).Value, "1")
+		req.Equal(target.Values.Get("mval", 1).Value, "2")
+		req.Equal(target.Values.Get("mval", 2).Value, "3")
+		req.Equal(target.Values.Get("mval", 3).Value, "4")
+	})
 }
 
 func TestCastToComposeRecordValues(t *testing.T) {
