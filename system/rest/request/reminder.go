@@ -71,6 +71,11 @@ type (
 		// Filter out dismissed reminders
 		ExcludeDismissed bool
 
+		// IncludeDeleted GET parameter
+		//
+		// Includes deleted reminders
+		IncludeDeleted bool
+
 		// Limit GET parameter
 		//
 		// Limit
@@ -185,6 +190,7 @@ func (r ReminderList) Auditable() map[string]interface{} {
 		"scheduledUntil":   r.ScheduledUntil,
 		"scheduledOnly":    r.ScheduledOnly,
 		"excludeDismissed": r.ExcludeDismissed,
+		"includeDeleted":   r.IncludeDeleted,
 		"limit":            r.Limit,
 		"pageCursor":       r.PageCursor,
 		"sort":             r.Sort,
@@ -224,6 +230,11 @@ func (r ReminderList) GetScheduledOnly() bool {
 // Auditable returns all auditable/loggable parameters
 func (r ReminderList) GetExcludeDismissed() bool {
 	return r.ExcludeDismissed
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ReminderList) GetIncludeDeleted() bool {
+	return r.IncludeDeleted
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -291,6 +302,12 @@ func (r *ReminderList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["excludeDismissed"]; ok && len(val) > 0 {
 			r.ExcludeDismissed, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["includeDeleted"]; ok && len(val) > 0 {
+			r.IncludeDeleted, err = payload.ParseBool(val[0]), nil
 			if err != nil {
 				return err
 			}

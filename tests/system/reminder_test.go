@@ -21,13 +21,26 @@ func (h helper) clearReminders() {
 }
 
 func (h helper) makeReminder() *types.Reminder {
-	return h.makeReminderByUserID(h.cUser.ID)
+	return h.reminder(h.cUser.ID, false)
 }
 
 func (h helper) makeReminderByUserID(userID uint64) *types.Reminder {
+	return h.reminder(userID, false)
+}
+
+func (h helper) makeDeletedReminder() *types.Reminder {
+	return h.reminder(h.cUser.ID, true)
+}
+
+func (h helper) reminder(userID uint64, deleted bool) *types.Reminder {
 	rm := &types.Reminder{Resource: "test:resource", AssignedTo: userID}
 	rm.ID = id.Next()
 	rm.CreatedAt = time.Now()
+	if deleted {
+		now := time.Now()
+		rm.DeletedAt = &now
+	}
+
 	h.noError(store.CreateReminder(context.Background(), service.DefaultStore, rm))
 	return rm
 }
@@ -123,14 +136,33 @@ func TestReminderList(t *testing.T) {
 	h.clearReminders()
 
 	h.makeReminder()
-	h.makeReminder()
+	h.makeDeletedReminder()
+	h.makeDeletedReminder()
 
 	h.apiInit().
 		Get("/reminder/").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
-		Assert(jsonpath.Len("$.response.set", 2)).
+		Assert(jsonpath.Len("$.response.set", 1)).
+		End()
+}
+
+func TestReminderListIncludeDeleted(t *testing.T) {
+	h := newHelper(t)
+	h.clearReminders()
+
+	h.makeReminder()
+	h.makeDeletedReminder()
+	h.makeDeletedReminder()
+
+	h.apiInit().
+		Get("/reminder/").
+		Query("includeDeleted", "true").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Len("$.response.set", 3)).
 		End()
 }
 

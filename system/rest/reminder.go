@@ -40,6 +40,7 @@ func (ctrl *Reminder) List(ctx context.Context, r *request.ReminderList) (interf
 			ScheduledFrom:    r.ScheduledFrom,
 			ScheduledUntil:   r.ScheduledUntil,
 			ExcludeDismissed: r.ExcludeDismissed,
+			IncludeDeleted:   r.IncludeDeleted,
 			ScheduledOnly:    r.ScheduledOnly,
 		}
 	)
@@ -52,8 +53,8 @@ func (ctrl *Reminder) List(ctx context.Context, r *request.ReminderList) (interf
 		return nil, err
 	}
 
-	set, filter, err := ctrl.reminder.Find(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, filter, err)
+	set, f, err := ctrl.reminder.Find(ctx, f)
+	return ctrl.makeFilterPayload(ctx, set, f, err)
 }
 
 func (ctrl *Reminder) Create(ctx context.Context, r *request.ReminderCreate) (interface{}, error) {

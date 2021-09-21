@@ -35,6 +35,7 @@ type (
 		ScheduledFrom    *time.Time `json:"scheduledFrom"`
 		ScheduledUntil   *time.Time `json:"scheduledUntil"`
 		ExcludeDismissed bool       `json:"excludeDismissed"`
+		IncludeDeleted   bool       `json:"includeDeleted"`
 		ScheduledOnly    bool       `json:"scheduledOnly"`
 
 		// Check fn is called by store backend for each resource found function can
