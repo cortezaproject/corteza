@@ -95,7 +95,7 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 			ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
 
 			var (
-				authSvc = service.Auth()
+				authSvc = service.Auth(service.AuthOptions{})
 
 				// @todo email validation
 				user = &types.User{Email: args[0]}

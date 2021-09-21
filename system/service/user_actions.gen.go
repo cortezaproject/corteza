@@ -1266,16 +1266,45 @@ func UserErrPasswordNotSecure(mm ...*userActionProps) *errors.Error {
 		errors.Meta("type", "passwordNotSecure"),
 		errors.Meta("resource", "system:user"),
 
-		// link to documentation; formatting applies in case we need some special link formatting
-		errors.Meta("documentation", p.Format("foo", nil)),
-
-		// details, used in detailed eror reporting
-		errors.Meta("details", p.Format("foo bar", nil)),
 		errors.Meta(userPropsMetaKey{}, p),
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
 		errors.Meta(locale.ErrorMetaKey{}, "user.errors.passwordNotSecure"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// UserErrMaxUserLimitReached returns "system:user.maxUserLimitReached" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func UserErrMaxUserLimitReached(mm ...*userActionProps) *errors.Error {
+	var p = &userActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("you have reached your user limit, contact your Corteza  administrator", nil),
+
+		errors.Meta("type", "maxUserLimitReached"),
+		errors.Meta("resource", "system:user"),
+
+		errors.Meta(userPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user.errors.maxUserLimitReached"),
 
 		errors.StackSkip(1),
 	)

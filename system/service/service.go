@@ -33,6 +33,7 @@ type (
 		Template  options.TemplateOpt
 		Auth      options.AuthOpt
 		RBAC      options.RBACOpt
+		Limit     options.LimitOpt
 	}
 
 	eventDispatcher interface {
@@ -162,9 +163,9 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultRenderer = Renderer(c.Template)
 	DefaultReport = Report(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
 	DefaultAuthNotification = AuthNotification(CurrentSettings, DefaultRenderer, c.Auth)
-	DefaultAuth = Auth()
+	DefaultAuth = Auth(AuthOptions{LimitUsers: c.Limit.SystemUsers})
 	DefaultAuthClient = AuthClient(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service(), c.Auth)
-	DefaultUser = User()
+	DefaultUser = User(UserOptions{LimitUsers: c.Limit.SystemUsers})
 	DefaultRole = Role()
 	DefaultApplication = Application(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
 	DefaultReminder = Reminder(ctx, DefaultLogger.Named("reminder"), ws)

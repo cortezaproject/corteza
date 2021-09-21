@@ -177,7 +177,7 @@ func TestScimUserPassword(t *testing.T) {
 	h.clearUsers()
 
 	service.CurrentSettings.Auth.Internal.Enabled = true
-	auth := service.Auth()
+	auth := service.Auth(service.AuthOptions{})
 
 	h.scimApiInit().
 		Post("/Users").

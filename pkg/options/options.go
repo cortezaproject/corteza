@@ -25,6 +25,7 @@ type (
 		Workflow    WorkflowOpt
 		RBAC        RBACOpt
 		Locale      LocaleOpt
+		Limit       LimitOpt
 	}
 )
 
@@ -53,5 +54,6 @@ func Init() *Options {
 		Workflow:    *Workflow(),
 		RBAC:        *RBAC(),
 		Locale:      *Locale(),
+		Limit:       *Limit(),
 	}
 }
