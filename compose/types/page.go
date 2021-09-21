@@ -15,7 +15,6 @@ import (
 )
 
 type (
-	// Page - page structure
 	Page struct {
 		ID     uint64 `json:"pageID,string"`
 		SelfID uint64 `json:"selfID,string"`
@@ -24,9 +23,7 @@ type (
 
 		ModuleID uint64 `json:"moduleID,string"`
 
-		Handle      string `json:"handle"`
-		Title       string `json:"title"`
-		Description string `json:"description"`
+		Handle string `json:"handle"`
 
 		Blocks PageBlocks `json:"blocks"`
 
@@ -40,18 +37,37 @@ type (
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `json:"deletedAt,omitempty"`
+
+		// Warning: value of this field is now handled via resource-translation facility
+		//          struct field is kept for the convenience for now since it allows us
+		//          easy encoding/decoding of the outgoing/incoming values
+		Title string `json:"title"`
+
+		// Warning: value of this field is now handled via resource-translation facility
+		//          struct field is kept for the convenience for now since it allows us
+		//          easy encoding/decoding of the outgoing/incoming values
+		Description string `json:"description"`
 	}
 
 	PageBlocks []PageBlock
 
 	PageBlock struct {
-		BlockID     uint64                 `json:"blockID,string,omitempty"`
-		Title       string                 `json:"title,omitempty"`
-		Description string                 `json:"description,omitempty"`
-		Options     map[string]interface{} `json:"options,omitempty"`
-		Style       PageBlockStyle         `json:"style,omitempty"`
-		Kind        string                 `json:"kind"`
-		XYWH        [4]int                 `json:"xywh"` // x,y,w,h
+		BlockID uint64 `json:"blockID,string,omitempty"`
+
+		Options map[string]interface{} `json:"options,omitempty"`
+		Style   PageBlockStyle         `json:"style,omitempty"`
+		Kind    string                 `json:"kind"`
+		XYWH    [4]int                 `json:"xywh"` // x,y,w,h
+
+		// Warning: value of this field is now handled via resource-translation facility
+		//          struct field is kept for the convenience for now since it allows us
+		//          easy encoding/decoding of the outgoing/incoming values
+		Title string `json:"title,omitempty"`
+
+		// Warning: value of this field is now handled via resource-translation facility
+		//          struct field is kept for the convenience for now since it allows us
+		//          easy encoding/decoding of the outgoing/incoming values
+		Description string `json:"description,omitempty"`
 	}
 
 	PageBlockStyle struct {
