@@ -146,6 +146,7 @@ errors:
 
   - error: passwordNotSecure
     message: "provided password is not secure; use longer password with more non-alphanumeric character"
-    documentation: foo
-    details: foo bar
 
+  - error: maxUserLimitReached
+    message: "you have reached your user limit, contact your Corteza  administrator"
+    severity: warning

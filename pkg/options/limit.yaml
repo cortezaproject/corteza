@@ -1,0 +1,50 @@
+docs:
+  title: Limits
+
+props:
+  - name: systemUsers
+    type: int
+    description: |-
+      Maximum number of valid (not deleted, not suspended) users
+
+#  @todo to be implemented
+#  - name: systemRoles
+#    type: int
+#    description: |-
+#      Maximum number of valid (not deleted, not archived) roles
+#
+#  @todo to be implemented
+#  - name: systemGatewayRouts
+#    type: int
+#    description: |-
+#      Maximum number of valid (not deleted) gateway routes
+#
+#  @todo to be implemented
+#  - name: systemTemplates
+#    type: int
+#    description: |-
+#      Maximum number of valid (not deleted) templates
+#
+#  @todo to be implemented
+#  - name: composeNamespaces
+#    type: int
+#    description: |-
+#      Maximum number of valid (not deleted) compose namespaces
+#
+#  @todo to be implemented
+#  - name: composeModules
+#    type: int
+#    description: |-
+#      Maximum number of valid (not deleted) compose modules accross all namespaces
+#
+#  @todo to be implemented
+#  - name: composeRecords
+#    type: int
+#    description: |-
+#      Maximum number of valid (not deleted) compose records accross all namespaces and modules
+#
+#  @todo to be implemented
+#  - name: automationWorkflows
+#    type: int
+#    description: |-
+#      Maximum number of valid (not deleted) automation workflows

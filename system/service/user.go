@@ -38,10 +38,16 @@ type (
 
 		store store.Storer
 
+		opt UserOptions
+
 		// List (cache) of preloaded users, accessible by handle
 		//
 		// It also does negative caching by assigning empty User structs
 		preloaded map[string]*types.User
+	}
+
+	UserOptions struct {
+		LimitUsers int
 	}
 
 	userAuth interface {
@@ -89,7 +95,7 @@ type (
 	}
 )
 
-func User() *user {
+func User(opt UserOptions) *user {
 	return &user{
 		eventbus: eventbus.Service(),
 		ac:       DefaultAccessControl,
@@ -99,6 +105,8 @@ func User() *user {
 		store: DefaultStore,
 
 		actionlog: DefaultActionlog,
+
+		opt: opt,
 
 		preloaded: make(map[string]*types.User),
 	}
@@ -362,6 +370,10 @@ func (svc user) Create(ctx context.Context, new *types.User) (u *types.User, err
 			return UserErrInvalidEmail()
 		}
 
+		if err = svc.checkLimits(ctx); err != nil {
+			return err
+		}
+
 		if err = svc.eventbus.WaitFor(ctx, event.UserBeforeCreate(new, u)); err != nil {
 			return
 		}
@@ -577,6 +589,10 @@ func (svc user) Undelete(ctx context.Context, userID uint64) (err error) {
 			return UserErrNotAllowedToDelete()
 		}
 
+		if err = svc.checkLimits(ctx); err != nil {
+			return err
+		}
+
 		if !svc.ac.CanDeleteUser(ctx, u) {
 			return UserErrNotAllowedToDelete()
 		}
@@ -661,6 +677,10 @@ func (svc user) Unsuspend(ctx context.Context, userID uint64) (err error) {
 
 		if !svc.ac.CanUnsuspendUser(ctx, u) {
 			return UserErrNotAllowedToUnsuspend()
+		}
+
+		if err = svc.checkLimits(ctx); err != nil {
+			return err
 		}
 
 		u.SuspendedAt = nil
@@ -793,6 +813,24 @@ func (svc user) DeleteAuthSessionsByUserID(ctx context.Context, userID uint64) (
 	}()
 
 	return svc.recordAction(ctx, uaProps, UserActionDeleteAuthSessions, err)
+}
+
+func (svc user) checkLimits(ctx context.Context) error {
+	if svc.opt.LimitUsers == 0 {
+		return nil
+	}
+
+	if c, err := countValidUsers(ctx, svc.store); err != nil {
+		return err
+	} else if c >= uint(svc.opt.LimitUsers) {
+		return UserErrMaxUserLimitReached()
+	}
+
+	return nil
+}
+
+func countValidUsers(ctx context.Context, s store.Users) (c uint, err error) {
+	return store.CountUsers(ctx, s, types.UserFilter{Kind: types.NormalUser})
 }
 
 // UniqueCheck verifies user's email, username and handle

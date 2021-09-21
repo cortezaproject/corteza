@@ -307,7 +307,7 @@ func makeMockAuthService() *mockAuthService {
 		opt:      options.AuthOpt{},
 	}
 
-	serviceAuth := service.Auth()
+	serviceAuth := service.Auth(service.AuthOptions{})
 
 	svc := mockAuthService{
 		authService: serviceAuth,

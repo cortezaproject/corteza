@@ -366,6 +366,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		Template:  app.Opt.Template,
 		Auth:      app.Opt.Auth,
 		RBAC:      app.Opt.RBAC,
+		Limit:     app.Opt.Limit,
 	})
 
 	if err != nil {

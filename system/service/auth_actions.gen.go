@@ -1728,6 +1728,40 @@ func AuthErrInvalidEmailOTP(mm ...*authActionProps) *errors.Error {
 	return e
 }
 
+// AuthErrMaxUserLimitReached returns "system:auth.maxUserLimitReached" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func AuthErrMaxUserLimitReached(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("you have reached your user limit, contact your Corteza administrator", nil),
+
+		errors.Meta("type", "maxUserLimitReached"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.maxUserLimitReached"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 

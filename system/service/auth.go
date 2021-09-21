@@ -33,7 +33,13 @@ type (
 		settings      *types.AppSettings
 		notifications AuthNotificationService
 
+		opt AuthOptions
+
 		providerValidator func(string) error
+	}
+
+	AuthOptions struct {
+		LimitUsers int
 	}
 
 	authAccessController interface {
@@ -69,7 +75,7 @@ func defaultProviderValidator(provider string) error {
 	}
 }
 
-func Auth() *auth {
+func Auth(opt AuthOptions) *auth {
 	return &auth{
 		eventbus:      eventbus.Service(),
 		ac:            DefaultAccessControl,
@@ -80,6 +86,8 @@ func Auth() *auth {
 		store:     DefaultStore,
 
 		providerValidator: defaultProviderValidator,
+
+		opt: opt,
 	}
 }
 
@@ -217,6 +225,10 @@ func (svc auth) External(ctx context.Context, profile types.ExternalAuthUser) (u
 			}
 
 			if err = uniqueUserCheck(ctx, svc.store, u); err != nil {
+				return err
+			}
+
+			if err = svc.checkLimits(ctx); err != nil {
 				return err
 			}
 
@@ -375,6 +387,10 @@ func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password 
 		}
 
 		if err = uniqueUserCheck(ctx, svc.store, nUser); err != nil {
+			return err
+		}
+
+		if err = svc.checkLimits(ctx); err != nil {
 			return err
 		}
 
@@ -1060,7 +1076,7 @@ func (svc auth) autoPromote(ctx context.Context, u *types.User) (err error) {
 		aam = &authActionProps{user: u, role: &types.Role{}}
 	)
 
-	if c, err = store.CountUsers(ctx, svc.store, types.UserFilter{Kind: types.NormalUser}); err != nil {
+	if c, err = countValidUsers(ctx, svc.store); err != nil {
 		return err
 	}
 
@@ -1427,4 +1443,18 @@ func (svc auth) LoadRoleMemberships(ctx context.Context, u *types.User) error {
 
 func (svc auth) GetProviders() types.ExternalAuthProviderSet {
 	return CurrentSettings.Auth.External.Providers
+}
+
+func (svc auth) checkLimits(ctx context.Context) error {
+	if svc.opt.LimitUsers == 0 {
+		return nil
+	}
+
+	if c, err := countValidUsers(ctx, svc.store); err != nil {
+		return err
+	} else if c >= uint(svc.opt.LimitUsers) {
+		return AuthErrMaxUserLimitReached()
+	}
+
+	return nil
 }

@@ -200,3 +200,7 @@ errors:
   - error: invalidEmailOTP
     message: "invalid code"
     severity: warning
+
+  - error: maxUserLimitReached
+    message: "you have reached your user limit, contact your Corteza administrator"
+    severity: warning
