@@ -21,9 +21,8 @@ type (
 		ModuleID    uint64 `json:"moduleID,string"`
 		Place       int    `json:"-"`
 
-		Kind  string `json:"kind"`
-		Name  string `json:"name"`
-		Label string `json:"label"`
+		Kind string `json:"kind"`
+		Name string `json:"name"`
 
 		Options ModuleFieldOptions `json:"options"`
 
@@ -40,6 +39,11 @@ type (
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `json:"deletedAt,omitempty"`
+
+		// Warning: value of this field is now handled via resource-translation facility
+		//          struct field is kept for the convenience for now since it allows us
+		//          easy encoding/decoding of the outgoing/incoming values
+		Label string `json:"label"`
 	}
 
 	ModuleFieldFilter struct {
