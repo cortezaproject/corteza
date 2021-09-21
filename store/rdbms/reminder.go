@@ -17,6 +17,10 @@ func (s Store) convertReminderFilter(f types.ReminderFilter) (query squirrel.Sel
 		query = query.Where("rmd.dismissed_at IS NULL")
 	}
 
+	if !f.IncludeDeleted {
+		query = query.Where("rmd.deleted_at IS NULL")
+	}
+
 	if f.ScheduledOnly {
 		query = query.Where("rmd.remind_at IS NOT NULL")
 	}

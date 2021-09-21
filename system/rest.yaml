@@ -987,6 +987,10 @@ endpoints:
         required: false
         title: Filter out dismissed reminders
         type: bool
+      - name: includeDeleted
+        required: false
+        title: Includes deleted reminders
+        type: bool
       - type: uint
         name: limit
         title: Limit
