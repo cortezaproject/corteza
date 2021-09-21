@@ -25,7 +25,13 @@ type (
 	}
 
 	tokenStore interface {
+		LookupUserByID(ctx context.Context, id uint64) (*types.User, error)
+		LookupAuthOa2tokenByAccess(ctx context.Context, access string) (*types.AuthOa2token, error)
+		SearchRoleMembers(ctx context.Context, f types.RoleMemberFilter) (types.RoleMemberSet, types.RoleMemberFilter, error)
+
 		CreateAuthOa2token(ctx context.Context, rr ...*types.AuthOa2token) error
+		DeleteAuthOA2TokenByUserID(ctx context.Context, _userID uint64) error
+
 		UpsertAuthConfirmedClient(ctx context.Context, rr ...*types.AuthConfirmedClient) error
 	}
 
