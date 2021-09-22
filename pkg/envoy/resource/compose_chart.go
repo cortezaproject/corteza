@@ -2,7 +2,6 @@ package resource
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
@@ -48,13 +47,13 @@ func (r *ComposeChart) RBACPath() []*Ref {
 	return []*Ref{r.RefNs}
 }
 
-func (r *ComposeChart) ResourceTranslationParts() (resource string, ref *Ref, path []*Ref) {
-	ref = r.Ref()
-	path = []*Ref{r.RefNs}
-	resource = fmt.Sprintf(types.ChartResourceTranslationTpl(), types.ChartResourceTranslationType, r.RefNs.Identifiers.First(), firstOkString(strconv.FormatUint(r.Res.ID, 10), r.Res.Handle))
+// func (r *ComposeChart) ResourceTranslationParts() (resource string, ref *Ref, path []*Ref) {
+// 	ref = r.Ref()
+// 	path = []*Ref{r.RefNs}
+// 	resource = fmt.Sprintf(types.ChartResourceTranslationTpl(), types.ChartResourceTranslationType, r.RefNs.Identifiers.First(), firstOkString(strconv.FormatUint(r.Res.ID, 10), r.Res.Handle))
 
-	return
-}
+// 	return
+// }
 
 // FindComposeChart looks for the chart in the resources
 func FindComposeChart(rr InterfaceSet, ii Identifiers) (ch *types.Chart) {
