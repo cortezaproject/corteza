@@ -11,12 +11,13 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"strings"
-	"time"
 )
 
 type (
@@ -626,6 +627,26 @@ func AuthActionEmailOtpVerify(props ...*authActionProps) *authAction {
 		resource:  "system:auth",
 		action:    "emailOtpVerify",
 		log:       "email one-time-password for {{user}} verified",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// AuthActionAccessTokensRemoved returns "system:auth.accessTokensRemoved" action
+//
+// This function is auto-generated.
+//
+func AuthActionAccessTokensRemoved(props ...*authActionProps) *authAction {
+	a := &authAction{
+		timestamp: time.Now(),
+		resource:  "system:auth",
+		action:    "accessTokensRemoved",
+		log:       "access tokens for {{user}} removed",
 		severity:  actionlog.Notice,
 	}
 
