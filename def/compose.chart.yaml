@@ -10,8 +10,8 @@ rbac:
     delete:
       description: Delete chart
 
-locale:
-  resource:
-    references: [ namespace, ID ]
-  keys:
-    - name
+# locale:
+#   resource:
+#     references: [ namespace, ID ]
+#   keys:
+#     - name

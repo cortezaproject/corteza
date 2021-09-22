@@ -7,7 +7,6 @@ package types
 //
 
 // Definitions file that controls how this file is generated:
-// - compose.chart.yaml
 // - compose.module-field.yaml
 // - compose.module.yaml
 // - compose.namespace.yaml
@@ -30,7 +29,6 @@ type (
 
 // Types and stuff
 const (
-	ChartResourceTranslationType       = "compose:chart"
 	ModuleFieldResourceTranslationType = "compose:module-field"
 	ModuleResourceTranslationType      = "compose:module"
 	NamespaceResourceTranslationType   = "compose:namespace"
@@ -38,11 +36,6 @@ const (
 )
 
 var (
-	LocaleKeyChartName = LocaleKey{
-		Name:     "name",
-		Resource: ChartResourceTranslationType,
-		Path:     "name",
-	}
 	LocaleKeyModuleFieldLabel = LocaleKey{
 		Name:     "label",
 		Resource: ModuleFieldResourceTranslationType,
@@ -124,52 +117,6 @@ var (
 		Path:     "pageBlock.{{blockID}}.button.{{buttonID}}.label",
 	}
 )
-
-// ResourceTranslation returns string representation of Locale resource for Chart by calling ChartResourceTranslation fn
-//
-// Locale resource is in the compose:chart/... format
-//
-// This function is auto-generated
-func (r Chart) ResourceTranslation() string {
-	return ChartResourceTranslation(r.NamespaceID, r.ID)
-}
-
-// ChartResourceTranslation returns string representation of Locale resource for Chart
-//
-// Locale resource is in the compose:chart/... format
-//
-// This function is auto-generated
-func ChartResourceTranslation(namespaceID uint64, id uint64) string {
-	cpts := []interface{}{ChartResourceTranslationType}
-	cpts = append(cpts, strconv.FormatUint(namespaceID, 10), strconv.FormatUint(id, 10))
-
-	return fmt.Sprintf(ChartResourceTranslationTpl(), cpts...)
-}
-
-// @todo template
-func ChartResourceTranslationTpl() string {
-	return "%s/%s/%s"
-}
-
-func (r *Chart) DecodeTranslations(tt locale.ResourceTranslationIndex) {
-	var aux *locale.ResourceTranslation
-	if aux = tt.FindByKey(LocaleKeyChartName.Path); aux != nil {
-		r.Name = aux.Msg
-	}
-}
-
-func (r *Chart) EncodeTranslations() (out locale.ResourceTranslationSet) {
-	out = locale.ResourceTranslationSet{}
-	if r.Name != "" {
-		out = append(out, &locale.ResourceTranslation{
-			Resource: r.ResourceTranslation(),
-			Key:      LocaleKeyChartName.Path,
-			Msg:      r.Name,
-		})
-	}
-
-	return out
-}
 
 // ResourceTranslation returns string representation of Locale resource for ModuleField by calling ModuleFieldResourceTranslation fn
 //

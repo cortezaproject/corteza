@@ -7,7 +7,6 @@ package resource
 //
 
 // Definitions file that controls how this file is generated:
-// - compose.chart.yaml
 // - compose.module-field.yaml
 // - compose.module.yaml
 // - compose.namespace.yaml
@@ -16,18 +15,6 @@ package resource
 import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
-
-// ComposeChartResourceTranslationReferences generates Locale references
-//
-// Resources with "envoy: false" are skipped
-//
-// This function is auto-generated
-func ComposeChartResourceTranslationReferences(namespace string, chart string) (res *Ref, pp []*Ref, err error) {
-	pp = append(pp, &Ref{ResourceType: types.NamespaceResourceType, Identifiers: MakeIdentifiers(namespace)})
-	res = &Ref{ResourceType: types.ChartResourceType, Identifiers: MakeIdentifiers(chart)}
-
-	return
-}
 
 // ComposeModuleFieldResourceTranslationReferences generates Locale references
 //

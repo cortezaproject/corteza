@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	automationTypes "github.com/cortezaproject/corteza-server/automation/types"
 	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
@@ -163,35 +162,35 @@ func (r *resourceTranslation) makeResourceTranslationResource(state *envoy.Resou
 
 		return fmt.Sprintf(composeTypes.ModuleFieldResourceTranslationTpl(), composeTypes.ModuleFieldResourceTranslationType, p0ID, p1ID, p2ID), nil
 
-	case composeTypes.ChartResourceType:
-		if len(res.RefPath) > 0 {
-			p0 := resource.FindComposeNamespace(state.ParentResources, res.RefPath[0].Identifiers)
-			if p0 == nil {
-				return "", resource.ComposeNamespaceErrUnresolved(res.RefPath[0].Identifiers)
-			}
-			p0ID = p0.Slug
-		}
+	// case composeTypes.ChartResourceType:
+	// 	if len(res.RefPath) > 0 {
+	// 		p0 := resource.FindComposeNamespace(state.ParentResources, res.RefPath[0].Identifiers)
+	// 		if p0 == nil {
+	// 			return "", resource.ComposeNamespaceErrUnresolved(res.RefPath[0].Identifiers)
+	// 		}
+	// 		p0ID = p0.Slug
+	// 	}
 
-		if res.RefRes != nil {
-			p1 := resource.FindComposeChart(state.ParentResources, res.RefRes.Identifiers)
-			if p1 == nil {
-				return "", resource.ComposeChartErrUnresolved(res.RefRes.Identifiers)
-			}
-			p1ID = p1.Handle
-		}
+	// 	if res.RefRes != nil {
+	// 		p1 := resource.FindComposeChart(state.ParentResources, res.RefRes.Identifiers)
+	// 		if p1 == nil {
+	// 			return "", resource.ComposeChartErrUnresolved(res.RefRes.Identifiers)
+	// 		}
+	// 		p1ID = p1.Handle
+	// 	}
 
-		return fmt.Sprintf(composeTypes.ChartResourceTranslationTpl(), composeTypes.ChartResourceTranslationType, p0ID, p1ID), nil
+	// 	return fmt.Sprintf(composeTypes.ChartResourceTranslationTpl(), composeTypes.ChartResourceTranslationType, p0ID, p1ID), nil
 
-	case automationTypes.WorkflowResourceType:
-		if res.RefRes != nil {
-			p0 := resource.FindAutomationWorkflow(state.ParentResources, res.RefRes.Identifiers)
-			if p0 == nil {
-				return "", resource.AutomationWorkflowErrUnresolved(res.RefRes.Identifiers)
-			}
-			p0ID = p0.Handle
-		}
+	// case automationTypes.WorkflowResourceType:
+	// 	if res.RefRes != nil {
+	// 		p0 := resource.FindAutomationWorkflow(state.ParentResources, res.RefRes.Identifiers)
+	// 		if p0 == nil {
+	// 			return "", resource.AutomationWorkflowErrUnresolved(res.RefRes.Identifiers)
+	// 		}
+	// 		p0ID = p0.Handle
+	// 	}
 
-		return fmt.Sprintf(automationTypes.WorkflowResourceTranslationTpl(), automationTypes.WorkflowResourceTranslationType, p0ID), nil
+	// 	return fmt.Sprintf(automationTypes.WorkflowResourceTranslationTpl(), automationTypes.WorkflowResourceTranslationType, p0ID), nil
 
 	default:
 		return "", fmt.Errorf("unsupported resource type '%s' for locale resource YAML encode", r.refLocaleRes.ResourceType)

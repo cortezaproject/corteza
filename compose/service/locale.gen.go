@@ -7,7 +7,6 @@ package service
 //
 
 // Definitions file that controls how this file is generated:
-// - compose.chart.yaml
 // - compose.module.yaml
 // - compose.namespace.yaml
 // - compose.page.yaml
@@ -37,7 +36,6 @@ type (
 	}
 
 	ResourceTranslationsManagerService interface {
-		Chart(ctx context.Context, namespaceID uint64, ID uint64) (locale.ResourceTranslationSet, error)
 		Module(ctx context.Context, namespaceID uint64, ID uint64) (locale.ResourceTranslationSet, error)
 		Namespace(ctx context.Context, ID uint64) (locale.ResourceTranslationSet, error)
 		Page(ctx context.Context, namespaceID uint64, ID uint64) (locale.ResourceTranslationSet, error)
@@ -123,32 +121,6 @@ func (svc resourceTranslationsManager) Upsert(ctx context.Context, rr locale.Res
 
 func (svc resourceTranslationsManager) Locale() locale.Resource {
 	return svc.locale
-}
-
-func (svc resourceTranslationsManager) Chart(ctx context.Context, namespaceID uint64, ID uint64) (locale.ResourceTranslationSet, error) {
-	var (
-		err error
-		out locale.ResourceTranslationSet
-		res *types.Chart
-		k   types.LocaleKey
-	)
-
-	res, err = svc.loadChart(ctx, svc.store, namespaceID, ID)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, tag := range svc.locale.Tags() {
-		k = types.LocaleKeyChartName
-		out = append(out, &locale.ResourceTranslation{
-			Resource: res.ResourceTranslation(),
-			Lang:     tag.String(),
-			Key:      k.Path,
-			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), k.Path),
-		})
-
-	}
-	return out, nil
 }
 
 func (svc resourceTranslationsManager) Module(ctx context.Context, namespaceID uint64, ID uint64) (locale.ResourceTranslationSet, error) {

@@ -7,19 +7,14 @@ package resource
 //
 
 // Definitions file that controls how this file is generated:
-// - automation.workflow.yaml
-// - compose.chart.yaml
 // - compose.module-field.yaml
 // - compose.module.yaml
 // - compose.namespace.yaml
 // - compose.page.yaml
-// - system.report.yaml
 
 import (
 	"fmt"
-	automationTypes "github.com/cortezaproject/corteza-server/automation/types"
 	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
-	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 	"strings"
 )
 
@@ -58,29 +53,6 @@ func ParseResourceTranslation(res string) (string, *Ref, []*Ref, error) {
 
 	// make the resource provide the slice of parent resources we should nest under
 	switch resourceType {
-	case automationTypes.WorkflowResourceTranslationType:
-		if len(path) != 1 {
-			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
-		}
-		ref, pp, err := AutomationWorkflowResourceTranslationReferences(
-			// workflow
-			path[0],
-		)
-		return automationTypes.WorkflowResourceTranslationType, ref, pp, err
-
-	case composeTypes.ChartResourceTranslationType:
-		if len(path) != 2 {
-			return "", nil, nil, fmt.Errorf("expecting 2 reference components in path, got %d", len(path))
-		}
-		ref, pp, err := ComposeChartResourceTranslationReferences(
-			// namespace
-			path[0],
-
-			// chart
-			path[1],
-		)
-		return composeTypes.ChartResourceTranslationType, ref, pp, err
-
 	case composeTypes.ModuleFieldResourceTranslationType:
 		if len(path) != 3 {
 			return "", nil, nil, fmt.Errorf("expecting 3 reference components in path, got %d", len(path))
@@ -132,16 +104,6 @@ func ParseResourceTranslation(res string) (string, *Ref, []*Ref, error) {
 			path[1],
 		)
 		return composeTypes.PageResourceTranslationType, ref, pp, err
-
-	case systemTypes.ReportResourceTranslationType:
-		if len(path) != 1 {
-			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
-		}
-		ref, pp, err := SystemReportResourceTranslationReferences(
-			// report
-			path[0],
-		)
-		return systemTypes.ReportResourceTranslationType, ref, pp, err
 
 	}
 
