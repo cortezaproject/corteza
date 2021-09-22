@@ -104,7 +104,8 @@ type (
 	}
 
 	authTokenMaker interface {
-		Encode(auth.Identifiable, ...string) string
+		auth.TokenEncoder
+		auth.TokenGenerator
 	}
 )
 
@@ -653,6 +654,8 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 			zap.String("eventType", args.EventType()),
 			zap.String("resourceType", args.ResourceType()),
 		)
+
+		token string
 	)
 
 	log.Debug("triggered")
@@ -716,7 +719,13 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 			return
 		}
 
-		if err = encodeArguments(req.Args, "authToken", svc.authTokenMaker.Encode(definer)); err != nil {
+		// Generate and save the token
+		token, err = svc.authTokenMaker.Generate(ctx, definer)
+		if err != nil {
+			return
+		}
+
+		if err = encodeArguments(req.Args, "authToken", token); err != nil {
 			return
 		}
 
@@ -728,7 +737,13 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 			return
 		}
 
-		if err = encodeArguments(req.Args, "authToken", svc.authTokenMaker.Encode(invoker)); err != nil {
+		// Generate and save the token
+		token, err = svc.authTokenMaker.Generate(ctx, invoker)
+		if err != nil {
+			return
+		}
+
+		if err = encodeArguments(req.Args, "authToken", token); err != nil {
 			return
 		}
 	}

@@ -30,6 +30,7 @@ type (
 		eventbus eventDispatcher
 
 		user UserService
+		auth roleAuth
 
 		store store.Storer
 
@@ -80,6 +81,10 @@ type (
 	rbacRoleUpdater interface {
 		UpdateRoles(rr ...*rbac.Role)
 	}
+
+	roleAuth interface {
+		RemoveAccessTokens(context.Context, *types.User) error
+	}
 )
 
 func Role() *role {
@@ -90,6 +95,7 @@ func Role() *role {
 		actionlog: DefaultActionlog,
 
 		user:  DefaultUser,
+		auth:  DefaultAuth,
 		store: DefaultStore,
 
 		system: make(map[string]bool),
@@ -713,6 +719,10 @@ func (svc role) MemberRemove(ctx context.Context, roleID, memberID uint64) (err 
 		}
 
 		if err = store.DeleteRoleMember(ctx, svc.store, &types.RoleMember{RoleID: r.ID, UserID: m.ID}); err != nil {
+			return
+		}
+
+		if err = svc.auth.RemoveAccessTokens(ctx, m); err != nil {
 			return
 		}
 

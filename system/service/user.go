@@ -54,6 +54,7 @@ type (
 		CheckPasswordStrength(string) bool
 		SetPasswordCredentials(context.Context, uint64, string) error
 		RemovePasswordCredentials(context.Context, uint64) error
+		RemoveAccessTokens(context.Context, *types.User) error
 	}
 
 	userAccessController interface {
@@ -557,6 +558,10 @@ func (svc user) Delete(ctx context.Context, userID uint64) (err error) {
 			return
 		}
 
+		if err = svc.auth.RemoveAccessTokens(ctx, u); err != nil {
+			return
+		}
+
 		_ = svc.eventbus.WaitFor(ctx, event.UserAfterDelete(nil, u))
 		return nil
 	}()
@@ -643,6 +648,10 @@ func (svc user) Suspend(ctx context.Context, userID uint64) (err error) {
 		}
 
 		if err = store.UpdateUser(ctx, svc.store, u); err != nil {
+			return
+		}
+
+		if err = svc.auth.RemoveAccessTokens(ctx, u); err != nil {
 			return
 		}
 

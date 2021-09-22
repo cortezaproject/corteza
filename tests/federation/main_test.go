@@ -99,13 +99,17 @@ func (h helper) secCtx() context.Context {
 
 // apitest basics, initialize, set handler, add auth
 func (h helper) apiInit() *apitest.APITest {
-	// InitTestApp()
+	InitTestApp()
+
+	tkn, err := auth.DefaultJwtHandler.Generate(context.Background(), h.cUser)
+	if err != nil {
+		panic(err)
+	}
 
 	return apitest.
 		New().
 		Handler(r).
-		Intercept(helpers.ReqHeaderAuthBearer(h.cUser))
-
+		Intercept(helpers.ReqHeaderRawAuthBearer(tkn))
 }
 
 // Unwraps error before it passes it to the tester
