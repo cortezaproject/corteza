@@ -258,7 +258,14 @@ func (svc *service) LoadSamlService(ctx context.Context, s *settings.Settings) (
 	// idp metadata needs to be loaded before
 	// the internal samlsp package
 	md, err := saml.FetchIDPMetadata(ctx, *idpUrl)
+	if err != nil {
+		return
+	}
+
 	ru, err := url.Parse(svc.opt.BaseURL)
+	if err != nil {
+		return
+	}
 
 	rootURL := &url.URL{
 		Scheme: ru.Scheme,
@@ -266,11 +273,9 @@ func (svc *service) LoadSamlService(ctx context.Context, s *settings.Settings) (
 		Host:   ru.Host,
 	}
 
-	if err != nil {
-		return
-	}
-
 	srvc, err = saml.NewSamlSPService(saml.SamlSPArgs{
+		Enabled: s.Saml.Enabled,
+
 		AcsURL:  links.SamlCallback,
 		MetaURL: links.SamlMetadata,
 		SloURL:  links.SamlLogout,

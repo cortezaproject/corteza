@@ -51,6 +51,8 @@ func loadSAMLService(ctx context.Context) (srvc *saml.SamlSPService, err error) 
 	}
 
 	srvc, err = saml.NewSamlSPService(saml.SamlSPArgs{
+		Enabled: true,
+
 		AcsURL:  links.SamlCallback,
 		MetaURL: links.SamlMetadata,
 		SloURL:  links.SamlLogout,
