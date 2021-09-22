@@ -150,11 +150,15 @@ func (h helper) secCtx() context.Context {
 func (h helper) apiInit() *apitest.APITest {
 	InitTestApp()
 
+	tkn, err := auth.DefaultJwtHandler.Generate(context.Background(), h.cUser)
+	if err != nil {
+		panic(err)
+	}
+
 	return apitest.
 		New().
 		Handler(r).
-		Intercept(helpers.ReqHeaderAuthBearer(h.cUser))
-
+		Intercept(helpers.ReqHeaderRawAuthBearer(tkn))
 }
 
 func (h helper) mockPermissions(rules ...*rbac.Rule) {
