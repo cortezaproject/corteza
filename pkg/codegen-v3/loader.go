@@ -26,8 +26,9 @@ func main() {
 	}
 
 	cli.HandleError(gen.List{
-		"RBAC":  gen.RBAC,
-		"Envoy": gen.Envoy,
+		"RBAC":   gen.RBAC,
+		"Envoy":  gen.Envoy,
+		"Locale": gen.Locale,
 	}.Generate(tpls, dd))
 }
 

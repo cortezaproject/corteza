@@ -14,6 +14,8 @@ type (
 		nn       nodeSet
 		resIndex map[resource.Interface]*node
 
+		missingRefs resource.RefSet
+
 		// Config flags
 		inverted bool
 
@@ -37,6 +39,10 @@ func newGraph() *graph {
 		processed:   make(nodeMap),
 		conflicting: make(nodeMap),
 	}
+}
+
+func (g *graph) MissingDeps() resource.RefSet {
+	return g.missingRefs
 }
 
 func (g *graph) addNode(nn ...*node) {

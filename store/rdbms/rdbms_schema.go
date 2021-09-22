@@ -27,6 +27,16 @@ const (
 
 	// Enough for IPv6, ports, delimiters, IPv4-mapped IPV6 addresses...
 	ipAddrLength = 64
+
+	// IETF language tag doesn't specify a hard limit (there can be a lot of modifiers)
+	// so I can't put a strict limit.
+	// Omiting the bits of the specs that don't have a limited length a size of 32 would suffice.
+	// Going a bit extra for future proofing
+	languageTagLength = 128
+
+	// Some keys may introduce generated identifiers which may cause the size
+	// to inflate.
+	languageKeyLength = 256
 )
 
 // Upgrades schema
@@ -68,6 +78,7 @@ func (s Schema) Tables() []*Table {
 		s.Flags(),
 		s.Templates(),
 		s.Reports(),
+		s.ResourceTranslations(),
 		s.ComposeAttachment(),
 		s.ComposeChart(),
 		s.ComposeModule(),
@@ -365,6 +376,23 @@ func (Schema) Reports() *Table {
 		CUDUsers,
 
 		AddIndex("unique_handle", IExpr("LOWER(handle)"), IWhere("LENGTH(handle) > 0 AND deleted_at IS NULL")),
+	)
+}
+
+func (Schema) ResourceTranslations() *Table {
+	return TableDef("resource_translations",
+		ID,
+
+		ColumnDef("lang", ColumnTypeVarchar, ColumnTypeLength(languageTagLength)),
+		ColumnDef("resource", ColumnTypeVarchar, ColumnTypeLength(resourceLength)),
+		ColumnDef("k", ColumnTypeVarchar, ColumnTypeLength(languageKeyLength)),
+		ColumnDef("message", ColumnTypeText),
+
+		CUDTimestamps,
+		ColumnDef("owned_by", ColumnTypeIdentifier),
+		CUDUsers,
+
+		AddIndex("unique_translation", IExpr("LOWER(lang)"), IExpr("LOWER(resource)"), IExpr("LOWER(k)")),
 	)
 }
 

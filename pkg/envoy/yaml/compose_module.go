@@ -30,6 +30,7 @@ type (
 		relNs        *types.Namespace
 		refNamespace string
 		rbac         rbacRuleSet
+		locale       resourceTranslationSet
 
 		recTpl *composeRecordTpl
 	}
@@ -43,7 +44,8 @@ type (
 
 		relMod *types.Module
 
-		rbac rbacRuleSet
+		rbac   rbacRuleSet
+		locale resourceTranslationSet
 	}
 	composeModuleFieldSet []*composeModuleField
 

@@ -9,3 +9,15 @@ rbac:
       description: Update page
     delete:
       description: Delete page
+
+locale:
+  resource:
+    references: [ namespace, ID ]
+
+  extended: true
+  keys:
+    - title
+    - description
+    - { name: blockTitle,                 path: "pageBlock.{{blockID}}.title",                         custom: true }
+    - { name: blockDescription,           path: "pageBlock.{{blockID}}.description",                   custom: true }
+    - { name: blockAutomationButtonlabel, path: "pageBlock.{{blockID}}.button.{{buttonID}}.label", custom: true }

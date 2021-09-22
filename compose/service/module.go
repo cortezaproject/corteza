@@ -16,7 +16,9 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/label"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/store"
+	"golang.org/x/text/language"
 )
 
 type (
@@ -25,6 +27,7 @@ type (
 		ac        moduleAccessController
 		eventbus  eventDispatcher
 		store     store.Storer
+		locale    ResourceTranslationsManagerService
 	}
 
 	moduleAccessController interface {
@@ -66,6 +69,7 @@ func Module() *module {
 		eventbus:  eventbus.Service(),
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
+		locale:    DefaultResourceTranslation,
 	}
 }
 
@@ -122,7 +126,23 @@ func (svc module) Find(ctx context.Context, filter types.ModuleFilter) (set type
 			return err
 		}
 
-		return loadModuleFields(ctx, svc.store, set...)
+		err = loadModuleFields(ctx, svc.store, set...)
+		if err != nil {
+			return err
+		}
+
+		// i18n
+		tag := locale.GetAcceptLanguageFromContext(ctx)
+		set.Walk(func(m *types.Module) error {
+			m.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, m.ResourceTranslation()))
+
+			m.Fields.Walk(func(mf *types.ModuleField) error {
+				mf.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, mf.ResourceTranslation()))
+				return nil
+			})
+			return nil
+		})
+		return nil
 	}()
 
 	return set, f, svc.recordAction(ctx, aProps, ModuleActionSearch, err)
@@ -243,6 +263,19 @@ func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module,
 			return err
 		}
 
+		if contentLang := locale.GetContentLanguageFromContext(ctx); contentLang != language.Und {
+			tt := new.EncodeTranslations()
+			for _, f := range new.Fields {
+				tt = append(tt, f.EncodeTranslations()...)
+			}
+
+			tt.SetLanguage(contentLang)
+			err = DefaultResourceTranslation.Upsert(ctx, tt)
+			if err != nil {
+				return err
+			}
+		}
+
 		if err = label.Create(ctx, s, new); err != nil {
 			return
 		}
@@ -324,6 +357,20 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 			hasRecords = len(set) > 0
 
 			if err = updateModuleFields(ctx, s, m, old, hasRecords); err != nil {
+				return err
+			}
+		}
+
+		// i18n
+		if contentLang := locale.GetContentLanguageFromContext(ctx); contentLang != language.Und {
+			tt := m.EncodeTranslations()
+			for _, f := range m.Fields {
+				tt = append(tt, f.EncodeTranslations()...)
+			}
+
+			tt.SetLanguage(contentLang)
+			err = svc.locale.Upsert(ctx, tt)
+			if err != nil {
 				return err
 			}
 		}

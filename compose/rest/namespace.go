@@ -32,6 +32,7 @@ type (
 
 	Namespace struct {
 		namespace  service.NamespaceService
+		locale     service.ResourceTranslationsManagerService
 		attachment service.AttachmentService
 		ac         namespaceAccessController
 	}
@@ -52,6 +53,7 @@ type (
 func (Namespace) New() *Namespace {
 	return &Namespace{
 		namespace:  service.DefaultNamespace,
+		locale:     service.DefaultResourceTranslation,
 		attachment: service.DefaultAttachment,
 		ac:         service.DefaultAccessControl,
 	}
@@ -101,6 +103,14 @@ func (ctrl Namespace) Create(ctx context.Context, r *request.NamespaceCreate) (i
 func (ctrl Namespace) Read(ctx context.Context, r *request.NamespaceRead) (interface{}, error) {
 	ns, err := ctrl.namespace.FindByID(ctx, r.NamespaceID)
 	return ctrl.makePayload(ctx, ns, err)
+}
+
+func (ctrl Namespace) ListTranslations(ctx context.Context, r *request.NamespaceListTranslations) (interface{}, error) {
+	return ctrl.locale.Namespace(ctx, r.NamespaceID)
+}
+
+func (ctrl Namespace) UpdateTranslations(ctx context.Context, r *request.NamespaceUpdateTranslations) (interface{}, error) {
+	return api.OK(), ctrl.locale.Upsert(ctx, r.Translations)
 }
 
 func (ctrl Namespace) Update(ctx context.Context, r *request.NamespaceUpdate) (interface{}, error) {

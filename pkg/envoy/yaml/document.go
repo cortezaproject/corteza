@@ -21,6 +21,7 @@ type (
 		applications applicationSet
 		settings     settingSet
 		rbac         rbacRuleSet
+		locale       resourceTranslationSet
 
 		cfg *EncoderConfig
 	}
@@ -36,6 +37,10 @@ func (doc *Document) UnmarshalYAML(n *yaml.Node) (err error) {
 	}
 
 	if doc.rbac, err = decodeRbac(n); err != nil {
+		return
+	}
+
+	if doc.locale, err = decodeLocale(n); err != nil {
 		return
 	}
 
@@ -134,6 +139,15 @@ func (doc *Document) MarshalYAML() (interface{}, error) {
 		}
 	}
 
+	if doc.locale != nil {
+		doc.templates.configureEncoder(doc.cfg)
+
+		dn, err = encodeResource(dn, "locale", doc.locale, doc.cfg.MappedOutput, "lang")
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if doc.rbac != nil && len(doc.rbac) > 0 {
 		// rbac doesn't support map representation
 		m, err := encodeNode(doc.rbac)
@@ -176,6 +190,9 @@ func (doc *Document) Decode(ctx context.Context) ([]resource.Interface, error) {
 		for _, s := range doc.settings {
 			mm = append(mm, s)
 		}
+	}
+	if doc.locale != nil {
+		mm = append(mm, doc.locale)
 	}
 	if doc.rbac != nil {
 		mm = append(mm, doc.rbac)
@@ -304,6 +321,14 @@ func (doc *Document) addRbacRule(r *rbacRule) {
 	}
 
 	doc.rbac = append(doc.rbac, r)
+}
+
+func (doc *Document) addResourceTranslation(l *resourceTranslation) {
+	if doc.locale == nil {
+		doc.locale = make(resourceTranslationSet, 0, 100)
+	}
+
+	doc.locale = append(doc.locale, l)
 }
 
 func (doc *Document) nestComposeModule(ns string, m *composeModule) error {

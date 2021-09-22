@@ -12,7 +12,7 @@ const (
 type (
 	// AppSettings type is structured representation of all application settings
 	//
-	// Raw settings keys are hypen (kebab) case, separated with a dot (.) that indicates sub-level
+	// Raw settings keys are hyphen (kebab) case, separated with a dot (.) that indicates sub-level
 	// JSON properties for settings are NOT converted (lower-cased, etc...)
 	// Use `json:"-"` tag to hide settings on REST endpoint
 	AppSettings struct {
@@ -172,7 +172,34 @@ type (
 		UI struct {
 			MainLogo string `kv:"main-logo" json:"mainLogo"`
 			IconLogo string `kv:"icon-logo" json:"iconLogo"`
+
+			// List of all languages (UI translations) enabled and available
+			//
+			// Always a subset of all languages available
+			// in Corteza instance (LOCALE_LANGUAGES)
+			//
+			// 1st language in the set is also a default one
+			//
+			// Empty slice defaults to LOCALE_LANGUAGES
+			Languages []string `kv:"languages" json:"languages"`
 		} `kv:"ui" json:"ui"`
+
+		ResourceTranslations struct {
+			// List of all languages (resource translations) enabled and
+			// available for resource translations (these are module names,
+			// field labels, descriptions, ...)
+
+			// Always a subset of all languages available
+			// in Corteza instance (LOCALE_LANGUAGES)
+			//
+			// Note: later, we will enable this to contain languages
+			//       that are not part of LOCALE_LANGUAGES
+			//
+			// 1st language in the set is also a default one
+			//
+			// Empty slice defaults to LOCALE_LANGUAGES
+			Languages []string `kv:"languages" json:"languages"`
+		} `kv:"resource-translations" json:"resourceTranslations"`
 	}
 
 	ExternalAuthProviderSet []*ExternalAuthProvider

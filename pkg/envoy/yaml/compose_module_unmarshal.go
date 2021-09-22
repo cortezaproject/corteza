@@ -49,6 +49,10 @@ func (wrap *composeModule) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
+	if wrap.locale, err = decodeLocale(n); err != nil {
+		return
+	}
+
 	if wrap.envoyConfig, err = decodeEnvoyConfig(n); err != nil {
 		return
 	}
@@ -70,15 +74,11 @@ func (wrap *composeModule) UnmarshalYAML(n *yaml.Node) (err error) {
 				return y7s.NodeErr(n, "field definition must be a map")
 			}
 
-			var (
-				aux = composeModuleFieldSet{}
-			)
-
-			if err = v.Decode(&aux); err != nil {
+			if err = v.Decode(&wrap.fields); err != nil {
 				return err
 			}
 
-			wrap.res.Fields = aux.set()
+			wrap.res.Fields = wrap.fields.set()
 			return nil
 
 		case "records":
@@ -137,10 +137,47 @@ func (wrap composeModule) MarshalEnvoy() ([]resource.Interface, error) {
 		crs = resource.NewComposeRecordTemplate(rs.Identifiers().First(), wrap.refNamespace, s.Source, s.Defaultable, mtt, s.Key...)
 	}
 
+	// process module fields
+	// - update field-defined locale
+	// - collect default field locale
+	fieldTranslations := make(resourceTranslationSet, 0, len(wrap.fields))
+	defaultFieldTranslations := make([]resource.Interface, 0)
+	for _, wrapField := range wrap.fields {
+		// generic field things
+		f := resource.NewComposeModuleField(wrapField.res, wrap.refNamespace, rs.Ref().Identifiers.First())
+		rs.AddField(f)
+		fieldTranslations = append(fieldTranslations, wrapField.locale.bindResource(f)...)
+
+		// default translations
+		dft, err := f.EncodeTranslations()
+		if err != nil {
+			return nil, err
+		}
+		for _, d := range dft {
+			d.MarkDefault()
+			defaultFieldTranslations = append(defaultFieldTranslations, d)
+		}
+	}
+
+	// default module translations
+	var defaultModuleTranslations []resource.Interface
+	dft, err := rs.EncodeTranslations()
+	if err != nil {
+		return nil, err
+	}
+	for _, d := range dft {
+		d.MarkDefault()
+		defaultModuleTranslations = append(defaultModuleTranslations, d)
+	}
+
 	return envoy.CollectNodes(
 		rs,
 		crs,
+		defaultModuleTranslations,
+		defaultFieldTranslations,
 		wrap.rbac.bindResource(rs),
+		wrap.locale.bindResource(rs),
+		fieldTranslations,
 	)
 }
 
@@ -254,6 +291,10 @@ func (wrap *composeModuleField) UnmarshalYAML(n *yaml.Node) (err error) {
 	}
 
 	if wrap.rbac, err = decodeRbac(n); err != nil {
+		return
+	}
+
+	if wrap.locale, err = decodeLocale(n); err != nil {
 		return
 	}
 

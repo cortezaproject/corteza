@@ -3,9 +3,14 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"sort"
+	"strconv"
+	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
+	"github.com/spf13/cast"
 )
 
 type (
@@ -16,9 +21,8 @@ type (
 		ModuleID    uint64 `json:"moduleID,string"`
 		Place       int    `json:"-"`
 
-		Kind  string `json:"kind"`
-		Name  string `json:"name"`
-		Label string `json:"label"`
+		Kind string `json:"kind"`
+		Name string `json:"name"`
 
 		Options ModuleFieldOptions `json:"options"`
 
@@ -35,6 +39,11 @@ type (
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `json:"deletedAt,omitempty"`
+
+		// Warning: value of this field is now handled via resource-translation facility
+		//          struct field is kept for the convenience for now since it allows us
+		//          easy encoding/decoding of the outgoing/incoming values
+		Label string `json:"label"`
 	}
 
 	ModuleFieldFilter struct {
@@ -47,8 +56,164 @@ var (
 	_ sort.Interface = &ModuleFieldSet{}
 )
 
+func (f *ModuleField) decodeTranslationsValidatorError(tt locale.ResourceTranslationIndex) {
+	var aux *locale.ResourceTranslation
+
+	for i, e := range f.Expressions.Validators {
+		validatorID := locale.ContentID(e.ValidatorID, i)
+		rpl := strings.NewReplacer(
+			"{{validatorID}}", strconv.FormatUint(validatorID, 10),
+		)
+
+		if aux = tt.FindByKey(rpl.Replace(LocaleKeyModuleFieldValidatorError.Path)); aux != nil {
+			f.Expressions.Validators[i].Error = aux.Msg
+		}
+	}
+}
+
+func (f *ModuleField) decodeTranslationsDescriptionView(tt locale.ResourceTranslationIndex) {
+	var aux *locale.ResourceTranslation
+
+	if aux = tt.FindByKey(LocaleKeyModuleFieldDescriptionView.Path); aux != nil {
+		f.setOptionKey(aux.Msg, "description", "edit")
+	}
+}
+
+func (f *ModuleField) decodeTranslationsDescriptionEdit(tt locale.ResourceTranslationIndex) {
+	var aux *locale.ResourceTranslation
+
+	if aux = tt.FindByKey(LocaleKeyModuleFieldDescriptionEdit.Path); aux != nil {
+		f.setOptionKey(aux.Msg, "description", "view")
+	}
+}
+
+func (f *ModuleField) decodeTranslationsHintView(tt locale.ResourceTranslationIndex) {
+	var aux *locale.ResourceTranslation
+
+	if aux = tt.FindByKey(LocaleKeyModuleFieldHintView.Path); aux != nil {
+		f.setOptionKey(aux.Msg, "hint", "edit")
+	}
+}
+
+func (f *ModuleField) decodeTranslationsHintEdit(tt locale.ResourceTranslationIndex) {
+	var aux *locale.ResourceTranslation
+
+	if aux = tt.FindByKey(LocaleKeyModuleFieldHintEdit.Path); aux != nil {
+		f.setOptionKey(aux.Msg, "hint", "view")
+	}
+}
+
+func (m *ModuleField) encodeTranslationsValidatorError() (out locale.ResourceTranslationSet) {
+	out = make(locale.ResourceTranslationSet, 0, 3)
+
+	// Module field expressions
+	for i, e := range m.Expressions.Validators {
+		validatorID := locale.ContentID(e.ValidatorID, i)
+		rpl := strings.NewReplacer(
+			"{{validatorID}}", strconv.FormatUint(validatorID, 10),
+		)
+
+		out = append(out, &locale.ResourceTranslation{
+			Resource: m.ResourceTranslation(),
+			Key:      rpl.Replace(LocaleKeyModuleFieldValidatorError.Path),
+			Msg:      e.Error,
+		})
+	}
+
+	return
+}
+
+func (f *ModuleField) encodeTranslationsDescriptionView() (out locale.ResourceTranslationSet) {
+	out = locale.ResourceTranslationSet{}
+	v := f.getOptionKey("description", "edit")
+	aux := cast.ToString(v)
+	if aux != "" {
+		out = append(out, &locale.ResourceTranslation{
+			Resource: f.ResourceTranslation(),
+			Key:      LocaleKeyModuleFieldDescriptionView.Path,
+			Msg:      aux,
+		})
+	}
+	return out
+}
+
+func (f *ModuleField) encodeTranslationsDescriptionEdit() (out locale.ResourceTranslationSet) {
+	out = locale.ResourceTranslationSet{}
+	v := f.getOptionKey("description", "view")
+	aux := cast.ToString(v)
+	if aux != "" {
+		out = append(out, &locale.ResourceTranslation{
+			Resource: f.ResourceTranslation(),
+			Key:      LocaleKeyModuleFieldDescriptionEdit.Path,
+			Msg:      aux,
+		})
+	}
+	return out
+}
+
+func (f *ModuleField) encodeTranslationsHintView() (out locale.ResourceTranslationSet) {
+	out = locale.ResourceTranslationSet{}
+	v := f.getOptionKey("hint", "edit")
+	aux := cast.ToString(v)
+	if aux != "" {
+		out = append(out, &locale.ResourceTranslation{
+			Resource: f.ResourceTranslation(),
+			Key:      LocaleKeyModuleFieldHintView.Path,
+			Msg:      aux,
+		})
+	}
+	return out
+}
+
+func (f *ModuleField) encodeTranslationsHintEdit() (out locale.ResourceTranslationSet) {
+	out = locale.ResourceTranslationSet{}
+	v := f.getOptionKey("hint", "view")
+	aux := cast.ToString(v)
+	if aux != "" {
+		out = append(out, &locale.ResourceTranslation{
+			Resource: f.ResourceTranslation(),
+			Key:      LocaleKeyModuleFieldHintEdit.Path,
+			Msg:      aux,
+		})
+	}
+	return out
+}
+
 func (m ModuleField) Clone() *ModuleField {
 	return &m
+}
+
+func (m ModuleField) setOptionKey(v interface{}, kk ...string) {
+	opt := m.Options
+
+	for _, k := range kk[0 : len(kk)-1] {
+		_, ok := opt[k]
+		if !ok {
+			opt = map[string]interface{}{k: make(map[string]interface{})}
+		}
+		aux := opt[k].(map[string]interface{})
+
+		opt = aux
+	}
+
+	k := kk[len(kk)-1]
+	opt[k] = v
+}
+
+func (m ModuleField) getOptionKey(kk ...string) interface{} {
+	opt := m.Options
+
+	for _, k := range kk[0 : len(kk)-1] {
+		_, ok := opt[k]
+		if !ok {
+			opt = map[string]interface{}{k: make(map[string]interface{})}
+		}
+		aux := opt[k].(map[string]interface{})
+
+		opt = aux
+	}
+
+	return opt[kk[len(kk)-1]]
 }
 
 func (set ModuleFieldSet) Clone() (out ModuleFieldSet) {

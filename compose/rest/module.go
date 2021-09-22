@@ -38,6 +38,7 @@ type (
 
 	Module struct {
 		module    service.ModuleService
+		locale    service.ResourceTranslationsManagerService
 		namespace service.NamespaceService
 		ac        moduleAccessController
 	}
@@ -60,6 +61,7 @@ func (Module) New() *Module {
 		module:    service.DefaultModule,
 		namespace: service.DefaultNamespace,
 		ac:        service.DefaultAccessControl,
+		locale:    service.DefaultResourceTranslation,
 	}
 }
 
@@ -90,6 +92,14 @@ func (ctrl *Module) List(ctx context.Context, r *request.ModuleList) (interface{
 func (ctrl *Module) Read(ctx context.Context, r *request.ModuleRead) (interface{}, error) {
 	mod, err := ctrl.module.FindByID(ctx, r.NamespaceID, r.ModuleID)
 	return ctrl.makePayload(ctx, mod, err)
+}
+
+func (ctrl *Module) ListTranslations(ctx context.Context, r *request.ModuleListTranslations) (interface{}, error) {
+	return ctrl.locale.Module(ctx, r.NamespaceID, r.ModuleID)
+}
+
+func (ctrl *Module) UpdateTranslations(ctx context.Context, r *request.ModuleUpdateTranslations) (interface{}, error) {
+	return api.OK(), ctrl.locale.Upsert(ctx, r.Translations)
 }
 
 func (ctrl *Module) Create(ctx context.Context, r *request.ModuleCreate) (interface{}, error) {

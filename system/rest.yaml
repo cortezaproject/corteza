@@ -1770,6 +1770,64 @@ endpoints:
   entrypoint: locale
   path: "/locale"
   apis:
+  - name: list resource
+    method: GET
+    title: List resources translations
+    path: "/resource"
+    parameters:
+      get:
+      - { name: lang,         type: string,       title: Language }
+      - { name: resource,     type: string,       title: Resource }
+      - { name: resourceType, type: string,       title: Resource type }
+      - { name: ownerID,      type: uint64,       title: OwnerID }
+      - { name: deleted,      type: "uint64",     title: "Exclude (0, default), include (1) or return only (2) deleted resource translations" }
+      - { name: limit,        type: "uint",       title: "Limit" }
+      - { name: pageCursor,   type: "string",     title: "Page cursor" }
+      - { name: sort,         type: "string",     title: "Sort items" }
+
+  - name: create resource
+    method: POST
+    title: Create resource translation
+    path: "/resource"
+    parameters:
+      post:
+      - { name: lang,     type: string, required: true,   title: Lang }
+      - { name: resource, type: string, required: true,   title: Resource }
+      - { name: key,      type: string, required: true,   title: Key }
+      - { name: place,    type: int,    required: false,  title: place }
+      - { name: message,  type: string, required: true,   title: Message }
+      - { name: ownerID,  type: uint64,                   title: OwnerID }
+
+  - name: update resource
+    method: PUT
+    title: Update resource translation
+    path: "/resource/{translationID}"
+    parameters:
+      path: [ { name: translationID, type: uint64, required: true, title: "ID" } ]
+      post:
+      - { name: lang,     type: string, title: Lang }
+      - { name: resource, type: string, title: Resource }
+      - { name: key,      type: string, title: Key }
+      - { name: place,    type: int,    title: place }
+      - { name: message,  type: string, title: Message }
+      - { name: ownerID,  type: uint64, title: OwnerID }
+
+  - name: read resource
+    method: GET
+    title: Read resource translation details
+    path: "/resource/{translationID}"
+    parameters: { path: [ { name: translationID, type: uint64, required: true, title: "ID" } ] }
+  - name: delete resource
+    method: DELETE
+    title: Remove resource translation
+    path: "/resource/{translationID}"
+    parameters: { path: [ { name: translationID, type: uint64, required: true, title: "ID" } ] }
+  - name: undelete resource
+    method: POST
+    title: Undelete resource translation
+    path: "/resource/{translationID}/undelete"
+    parameters: { path: [ { name: translationID, type: uint64, required: true, title: "ID" } ] }
+
   - name: list
     method: GET
     title: List all available languages

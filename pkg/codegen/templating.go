@@ -89,6 +89,8 @@ func export(pp ...string) (out string) {
 	for _, p := range pp {
 		if len(p) > 1 {
 			p = strings.ToUpper(p[:1]) + p[1:]
+		} else {
+			p = strings.ToUpper(p)
 		}
 
 		if ss := nonIdentChars.Split(p, -1); len(ss) > 1 {

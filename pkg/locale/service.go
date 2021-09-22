@@ -16,8 +16,27 @@ import (
 )
 
 type (
+	resourceStore interface {
+		TransformResource(context.Context, language.Tag) (map[string]map[string]*ResourceTranslation, error)
+	}
+
+	Locale interface {
+		T(ctx context.Context, ns, key string, rr ...string) string
+		TFor(tag language.Tag, ns, key string, rr ...string) string
+		Tags() []language.Tag
+	}
+
+	Resource interface {
+		TResource(ctx context.Context, ns, key string, rr ...string) string
+		TResourceFor(tag language.Tag, ns, key string, rr ...string) string
+		Tags() []language.Tag
+		ResourceTranslations(code language.Tag, resource string) ResourceTranslationIndex
+		Default() *Language
+	}
+
 	service struct {
 		l sync.RWMutex
+		s resourceStore
 
 		// logger facility for the locale service
 		log *zap.Logger
@@ -75,7 +94,11 @@ func Service(log *zap.Logger, opt options.LocaleOpt) (*service, error) {
 		svc.tags = append(svc.tags, tag)
 	}
 
-	return svc, svc.Reload()
+	return svc, svc.ReloadStatic()
+}
+
+func (svc *service) BindStore(s resourceStore) {
+	svc.s = s
 }
 
 // Default language
@@ -93,9 +116,9 @@ func (svc *service) Tags() (tt []language.Tag) {
 	return
 }
 
-// Reload all embedded (via github.com/cortezaproject/corteza-locale package)
-// and imported (from one or more paths found in LOCALE_PATH) translations
-func (svc *service) Reload() (err error) {
+// ReloadStatic all language configurations (as configured via path options) and
+// all translation files
+func (svc *service) ReloadStatic() (err error) {
 	var (
 		i       int
 		lang    *Language
@@ -107,12 +130,17 @@ func (svc *service) Reload() (err error) {
 	svc.l.RLock()
 	defer svc.l.RUnlock()
 
-	svc.log.Info("reloading",
+	svc.log.Info("reloading static",
 		zap.Strings("path", svc.src),
 		zap.Strings("tags", tagsToStrings(svc.tags)),
 	)
 
-	svc.set = make(map[language.Tag]*Language)
+	// In case where this is already initialized, we need to make sure to
+	// preserve any resource translations.
+	// The preservation is handled below, before we update svc.set.
+	if svc.set == nil {
+		svc.set = make(map[language.Tag]*Language)
+	}
 
 	// load embedded locales from the corteza-locale package
 	if ll, err = loadConfigs(locale.Languages()); err != nil {
@@ -184,6 +212,13 @@ func (svc *service) Reload() (err error) {
 			)
 		}
 
+		// Preserve current resource translations.
+		// Resource translations are updated when they change so these are
+		// already up to date.
+		if existing, ok := svc.set[lang.Tag]; ok {
+			lang.resources = existing.resources
+		}
+
 		svc.set[lang.Tag] = lang
 	}
 
@@ -198,6 +233,48 @@ func (svc *service) Reload() (err error) {
 		}
 
 		lang.extends = svc.set[lang.Extends]
+	}
+
+	return nil
+}
+
+// ReloadResourceTranslations all language configurations (as configured via path options) and
+// all translation files
+func (svc *service) ReloadResourceTranslations(ctx context.Context) (err error) {
+	if svc.s == nil {
+		return fmt.Errorf("store for locale service not set")
+	}
+
+	svc.l.RLock()
+	defer svc.l.RUnlock()
+
+	svc.log.Info("reloading resource translations",
+		zap.Strings("tags", tagsToStrings(svc.tags)),
+	)
+
+	for _, tag := range svc.tags {
+		lang, ok := svc.set[tag]
+		if !ok {
+			lang = &Language{
+				Tag: tag,
+				// @todo find a better name for this, because it's not the
+				//       language that it's loaded from the store, the resource translations are
+				src: "store",
+			}
+
+			svc.set[tag] = lang
+		}
+
+		if err = svc.loadResourceTranslations(ctx, lang, lang.Tag); err != nil {
+			return err
+		}
+
+		svc.log.Info(
+			"resource translations loaded",
+			zap.Stringer("tag", lang.Tag),
+			zap.String("src", lang.src),
+			zap.Int("translations", len(lang.resources)),
+		)
 	}
 
 	return nil
@@ -226,7 +303,7 @@ func (svc *service) LocalizedList(ctx context.Context) []*Language {
 	var (
 		l       *Language
 		ll      = make([]*Language, 0, len(svc.set))
-		reqLang = GetLanguageFromContext(ctx)
+		reqLang = GetAcceptLanguageFromContext(ctx)
 	)
 
 	for _, tag := range svc.tags {
@@ -289,11 +366,11 @@ func (svc *service) EncodeExternal(w io.Writer, app string, ll ...language.Tag) 
 // Language is picked from the context
 func (svc *service) NS(ctx context.Context, ns string) func(key string, rr ...string) string {
 	var (
-		code = GetLanguageFromContext(ctx)
+		tag = GetAcceptLanguageFromContext(ctx)
 	)
 
 	return func(key string, rr ...string) string {
-		return svc.t(code, ns, key, rr...)
+		return svc.t(tag, ns, key, rr...)
 	}
 }
 
@@ -301,14 +378,63 @@ func (svc *service) NS(ctx context.Context, ns string) func(key string, rr ...st
 //
 // Language is picked from the context
 func (svc *service) T(ctx context.Context, ns, key string, rr ...string) string {
-	return svc.t(GetLanguageFromContext(ctx), ns, key, rr...)
+	return svc.t(GetAcceptLanguageFromContext(ctx), ns, key, rr...)
+}
+
+// T returns translated key from namespaces using list of replacement pairs
+//
+// Language is specified
+func (svc *service) TFor(tag language.Tag, ns, key string, rr ...string) string {
+	return svc.t(tag, ns, key, rr...)
+}
+
+// TResource returns translated key for resource using list of replacement pairs
+//
+// Language is picked from the context
+func (svc *service) TResource(ctx context.Context, ns, key string, rr ...string) string {
+
+	return svc.tResource(GetAcceptLanguageFromContext(ctx), ns, key, rr...)
+}
+
+// TResourceFor returns translated key for resource using list of replacement pairs
+//
+// Language is picked from the context
+func (svc *service) TResourceFor(tag language.Tag, ns, key string, rr ...string) string {
+	return svc.tResource(tag, ns, key, rr...)
+}
+
+// ResourceTranslations returns all translations for the given language for the
+// given resource.
+//
+// The response is indexed by translation key for nicer lookups.
+func (svc *service) ResourceTranslations(tag language.Tag, resource string) ResourceTranslationIndex {
+	out := make(ResourceTranslationIndex)
+
+	if svc != nil && svc.set != nil {
+		if l, has := svc.set[tag]; has {
+			return l.resourceTranslations(resource)
+		}
+	}
+
+	return out
 }
 
 // Finds language and uses it to translate the given key
-func (svc *service) t(code language.Tag, ns, key string, rr ...string) string {
+func (svc *service) t(tag language.Tag, ns, key string, rr ...string) string {
 	if svc != nil && svc.set != nil {
-		if l, has := svc.set[code]; has {
+		if l, has := svc.set[tag]; has {
 			return l.t(ns, key, rr...)
+		}
+	}
+
+	return key
+}
+
+// Finds language and uses it to translate the given key for resource
+func (svc *service) tResource(tag language.Tag, ns, key string, rr ...string) string {
+	if svc != nil && svc.set != nil {
+		if l, has := svc.set[tag]; has {
+			return l.tResource(ns, key, rr...)
 		}
 	}
 

@@ -6,7 +6,8 @@ type (
 	// the node struct is used for nicer graph state management
 	nodeSet []*node
 	node    struct {
-		res resource.Interface
+		res     resource.Interface
+		missing resource.RefSet
 
 		pp nodeSet
 		cc nodeSet

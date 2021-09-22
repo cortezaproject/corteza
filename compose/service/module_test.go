@@ -6,6 +6,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/sqlite3"
@@ -95,6 +96,7 @@ func TestModules(t *testing.T) {
 				store:    s,
 				ac:       &accessControl{rbac: &rbac.ServiceAllowAll{}},
 				eventbus: eventbus.New(),
+				locale:   ResourceTranslationsManager(locale.Static()),
 			}
 
 			makeModule := func(n ...string) *types.Module {

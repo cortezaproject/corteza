@@ -2,6 +2,7 @@ package envoy
 
 import (
 	"context"
+	"errors"
 	"io"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
@@ -10,6 +11,8 @@ import (
 type (
 	builder struct {
 		pp []Preparer
+
+		reportMissingRefs bool
 	}
 
 	Stream struct {
@@ -45,9 +48,20 @@ type (
 	}
 )
 
+var (
+	BuilderErrUnresolvedReferences = errors.New("builder error: unresolved references")
+)
+
 func NewBuilder(pp ...Preparer) *builder {
 	return &builder{
 		pp: pp,
+	}
+}
+
+func NewSafeBuilder(pp ...Preparer) *builder {
+	return &builder{
+		pp:                pp,
+		reportMissingRefs: true,
 	}
 }
 
@@ -63,6 +77,9 @@ func (b *builder) Build(ctx context.Context, rr ...resource.Interface) (*graph, 
 	var err error
 
 	g := b.buildGraph(rr)
+	if len(g.missingRefs) > 0 {
+		return g, BuilderErrUnresolvedReferences
+	}
 
 	// Do any dep. related preprocessing
 	var state *ResourceState
@@ -89,6 +106,9 @@ func (b *builder) Build(ctx context.Context, rr ...resource.Interface) (*graph, 
 	}
 
 	g = b.buildGraph(rr)
+	if len(g.missingRefs) > 0 {
+		return g, BuilderErrUnresolvedReferences
+	}
 	return g, nil
 }
 
@@ -108,7 +128,6 @@ func (b *builder) buildGraph(rr []resource.Interface) *graph {
 	// Build the graph
 	for _, cNode := range nn {
 		refs := cNode.res.Refs()
-		missingRefs := make(resource.RefSet, 0, len(refs))
 
 		// Attempt to connect all available nodes
 		for _, ref := range refs {
@@ -125,7 +144,9 @@ func (b *builder) buildGraph(rr []resource.Interface) *graph {
 				rNode := nIndex.GetRef(ref)
 
 				if rNode == nil {
-					missingRefs = append(missingRefs, ref)
+					if !resource.IgnoreDepResolution(ref) {
+						cNode.missing = append(cNode.missing, ref)
+					}
 					continue
 				}
 
@@ -136,6 +157,17 @@ func (b *builder) buildGraph(rr []resource.Interface) *graph {
 		}
 
 		g.addNode(cNode)
+	}
+
+	if b.reportMissingRefs {
+		missing := make(resource.RefSet, 0, 10)
+		for _, n := range g.nn {
+			missing = append(missing, n.missing...)
+		}
+
+		if len(missing) > 0 {
+			g.missingRefs = missing
+		}
 	}
 
 	return g
