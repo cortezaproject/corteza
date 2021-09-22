@@ -1458,3 +1458,14 @@ func (svc auth) checkLimits(ctx context.Context) error {
 
 	return nil
 }
+
+// RemoveAccessTokens removes all user's access tokens when suspended,
+// deleted or security context changes
+func (svc auth) RemoveAccessTokens(ctx context.Context, user *types.User) error {
+	return svc.recordAction(
+		ctx,
+		&authActionProps{user: user},
+		AuthActionAccessTokensRemoved,
+		svc.store.DeleteAuthOA2TokenByUserID(ctx, user.ID),
+	)
+}
