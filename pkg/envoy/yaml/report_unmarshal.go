@@ -178,15 +178,15 @@ func (wrap report) MarshalEnvoy() ([]resource.Interface, error) {
 
 	// default report translations
 	// includes translations for nested resources also
-	var defaultReportTranslations []resource.Interface
-	dft, err := rs.EncodeTranslations()
-	if err != nil {
-		return nil, err
-	}
-	for _, d := range dft {
-		d.MarkDefault()
-		defaultReportTranslations = append(defaultReportTranslations, d)
-	}
+	// var defaultReportTranslations []resource.Interface
+	// dft, err := rs.EncodeTranslations()
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// for _, d := range dft {
+	// 	d.MarkDefault()
+	// 	defaultReportTranslations = append(defaultReportTranslations, d)
+	// }
 
 	for _, s := range wrap.sources {
 		rs.AddReportSource(s.res)
@@ -198,7 +198,7 @@ func (wrap report) MarshalEnvoy() ([]resource.Interface, error) {
 
 	return envoy.CollectNodes(
 		rs,
-		defaultReportTranslations,
+		// defaultReportTranslations,
 		wrap.rbac.bindResource(rs),
 	)
 }
