@@ -350,7 +350,7 @@ func (svc user) Find(ctx context.Context, filter types.UserFilter) (uu types.Use
 
 func (svc user) Create(ctx context.Context, new *types.User) (u *types.User, err error) {
 	var (
-		uaProps = &userActionProps{new: new}
+		uaProps = &userActionProps{user: new}
 	)
 
 	err = func() (err error) {
