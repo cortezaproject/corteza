@@ -9,7 +9,19 @@ import (
 
 func (h AuthHandlers) samlInit(w http.ResponseWriter, r *http.Request) {
 	r = copyProviderToContext(r)
-	h.Log.Info("starting saml authentication flow")
+	h.Log.Info("starting SAML authentication flow")
+
+	if h.SamlSPService.Handler() == nil {
+		h.Log.Error("SAML service not initialized")
+		w.WriteHeader(http.StatusServiceUnavailable)
+		return
+	}
+
+	if !h.SamlSPService.Enabled {
+		h.Log.Warn("failed to start SAML authentication flow: disabled")
+		w.WriteHeader(http.StatusServiceUnavailable)
+		return
+	}
 
 	ex := external.NewSamlExternalHandler(h.SamlSPService)
 	beginUserAuth(w, r, ex)

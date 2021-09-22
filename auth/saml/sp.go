@@ -17,6 +17,8 @@ const defaultNameIdentifier = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAd
 
 type (
 	SamlSPService struct {
+		Enabled bool
+
 		IdpURL      url.URL
 		Host        url.URL
 		IDPUserMeta *IdpIdentityPayload
@@ -27,6 +29,8 @@ type (
 	}
 
 	SamlSPArgs struct {
+		Enabled bool
+
 		AcsURL  string
 		MetaURL string
 		SloURL  string
@@ -49,7 +53,6 @@ func NewSamlSPService(args SamlSPArgs) (s *SamlSPService, err error) {
 	)
 
 	keyPair.Leaf, err = x509.ParseCertificate(keyPair.Certificate[0])
-
 	if err != nil {
 		return
 	}
@@ -77,7 +80,6 @@ func NewSamlSPService(args SamlSPArgs) (s *SamlSPService, err error) {
 
 	// internal samlsp service
 	handler, err := samlsp.New(opts)
-
 	if err != nil {
 		err = errors.Wrap(err, "could not init SAML SP handler")
 		return
@@ -87,6 +89,8 @@ func NewSamlSPService(args SamlSPArgs) (s *SamlSPService, err error) {
 	handler.ServiceProvider = sp
 
 	s = &SamlSPService{
+		Enabled: args.Enabled,
+
 		sp:      sp,
 		handler: handler,
 
@@ -130,5 +134,10 @@ func (ssp *SamlSPService) Handler() *samlsp.Middleware {
 // ServeHTTP enables us to use the service directly
 // in the router
 func (ssp SamlSPService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if ssp.handler == nil || !ssp.Enabled {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		return
+	}
+
 	ssp.handler.ServeHTTP(w, r)
 }

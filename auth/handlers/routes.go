@@ -100,10 +100,21 @@ func (h *AuthHandlers) MountHttpRoutes(r chi.Router) {
 			r.Post(tbp(l.OAuth2DefaultClient), h.handle(h.oauth2authorizeDefaultClientProc))
 		})
 
+		// Wrapping SAML structs so we assure that fresh ones are always used in case
+		// of settings changes.
+		//
+		// @todo refactor this with a wrapping struct to handle serve HTTPS and pass
+		// calls to internal SAML service.
 		r.Group(func(r chi.Router) {
-			r.Handle(tbp(l.SamlMetadata), h.SamlSPService)
-			r.Handle(tbp(l.SamlCallback), h.SamlSPService)
-			r.HandleFunc(tbp(l.SamlInit), h.samlInit)
+			r.HandleFunc(tbp(l.SamlMetadata), func(rw http.ResponseWriter, r *http.Request) {
+				h.SamlSPService.ServeHTTP(rw, r)
+			})
+			r.HandleFunc(tbp(l.SamlCallback), func(rw http.ResponseWriter, r *http.Request) {
+				h.SamlSPService.ServeHTTP(rw, r)
+			})
+			r.HandleFunc(tbp(l.SamlInit), func(rw http.ResponseWriter, r *http.Request) {
+				h.samlInit(rw, r)
+			})
 		})
 
 		r.Route(tbp(l.External)+"/{provider}", func(r chi.Router) {
