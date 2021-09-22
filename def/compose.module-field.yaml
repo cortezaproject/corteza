@@ -9,3 +9,16 @@ rbac:
     record.value.update:
       canFnName: CanUpdateRecordValue
       description: Update field value on records
+
+locale:
+  resource:
+    references: [ namespace, module, ID ]
+
+  skipSvc: true
+  keys:
+    - label
+    - { name: descriptionView, path: meta.description.view, custom: true, customHandler: descriptionView }
+    - { name: descriptionEdit, path: meta.description.edit, custom: true, customHandler: descriptionEdit }
+    - { name: hintView,        path: meta.hint.view,        custom: true, customHandler: hintView }
+    - { name: hintEdit,        path: meta.hint.edit,        custom: true, customHandler: hintEdit }
+    - { name: validatorError, path: "expression.validator.{{validatorID}}.error", custom: true, customHandler: validatorError }

@@ -2,7 +2,6 @@ package resource
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -36,10 +35,6 @@ func NewApplication(res *types.Application) *Application {
 
 func (r *Application) SysID() uint64 {
 	return r.Res.ID
-}
-
-func (r *Application) Ref() string {
-	return firstOkString(r.Res.Name, strconv.FormatUint(r.Res.ID, 10))
 }
 
 // FindApplication looks for the app in the resource set

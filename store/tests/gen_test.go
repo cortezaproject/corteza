@@ -35,6 +35,7 @@ package tests
 //  - store/rbac_rules.yaml
 //  - store/reminders.yaml
 //  - store/reports.yaml
+//  - store/resource_translation.yaml
 //  - store/role_members.yaml
 //  - store/roles.yaml
 //  - store/settings.yaml
@@ -215,6 +216,11 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	// Run generated tests for Reports
 	t.Run("Reports", func(t *testing.T) {
 		testReports(t, s)
+	})
+
+	// Run generated tests for ResourceTranslation
+	t.Run("ResourceTranslation", func(t *testing.T) {
+		testResourceTranslation(t, s)
 	})
 
 	// Run generated tests for RoleMembers

@@ -20,8 +20,9 @@ type (
 	}
 
 	ModuleFieldValidator struct {
-		Test  string `json:"test,omitempty"`
-		Error string `json:"error,omitempty"`
+		ValidatorID uint64 `json:"validatorID,string,omitempty"`
+		Test        string `json:"test,omitempty"`
+		Error       string `json:"error,omitempty"`
 	}
 )
 

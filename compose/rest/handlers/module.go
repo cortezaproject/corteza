@@ -25,16 +25,20 @@ type (
 		Update(context.Context, *request.ModuleUpdate) (interface{}, error)
 		Delete(context.Context, *request.ModuleDelete) (interface{}, error)
 		TriggerScript(context.Context, *request.ModuleTriggerScript) (interface{}, error)
+		ListTranslations(context.Context, *request.ModuleListTranslations) (interface{}, error)
+		UpdateTranslations(context.Context, *request.ModuleUpdateTranslations) (interface{}, error)
 	}
 
 	// HTTP API interface
 	Module struct {
-		List          func(http.ResponseWriter, *http.Request)
-		Create        func(http.ResponseWriter, *http.Request)
-		Read          func(http.ResponseWriter, *http.Request)
-		Update        func(http.ResponseWriter, *http.Request)
-		Delete        func(http.ResponseWriter, *http.Request)
-		TriggerScript func(http.ResponseWriter, *http.Request)
+		List               func(http.ResponseWriter, *http.Request)
+		Create             func(http.ResponseWriter, *http.Request)
+		Read               func(http.ResponseWriter, *http.Request)
+		Update             func(http.ResponseWriter, *http.Request)
+		Delete             func(http.ResponseWriter, *http.Request)
+		TriggerScript      func(http.ResponseWriter, *http.Request)
+		ListTranslations   func(http.ResponseWriter, *http.Request)
+		UpdateTranslations func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -136,6 +140,38 @@ func NewModule(h ModuleAPI) *Module {
 
 			api.Send(w, r, value)
 		},
+		ListTranslations: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewModuleListTranslations()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.ListTranslations(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		UpdateTranslations: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewModuleUpdateTranslations()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.UpdateTranslations(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -148,5 +184,7 @@ func (h Module) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 		r.Post("/namespace/{namespaceID}/module/{moduleID}", h.Update)
 		r.Delete("/namespace/{namespaceID}/module/{moduleID}", h.Delete)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/trigger", h.TriggerScript)
+		r.Get("/namespace/{namespaceID}/module/{moduleID}/translation", h.ListTranslations)
+		r.Patch("/namespace/{namespaceID}/module/{moduleID}/translation", h.UpdateTranslations)
 	})
 }

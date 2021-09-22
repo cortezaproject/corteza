@@ -25,6 +25,7 @@ type (
 		resourceID map[uint64]bool
 		strict     bool
 	}
+	resourceTranslationFilter types.ResourceTranslationFilter
 
 	systemDecoder struct {
 		resourceID []uint64
@@ -266,6 +267,7 @@ func (d *systemDecoder) decodeSettings(ctx context.Context, s store.Storer, ff [
 		mm: mm,
 	}
 }
+
 func (d *systemDecoder) decodeRbac(ctx context.Context, s store.Storer, ff []*rbacFilter) *auxRsp {
 	mm := make([]envoy.Marshaller, 0, 100)
 	if ff == nil {
@@ -355,6 +357,81 @@ func (d *systemDecoder) decodeRbac(ctx context.Context, s store.Storer, ff []*rb
 	}
 }
 
+func (d *systemDecoder) decodeResourceTranslation(ctx context.Context, s store.Storer, ff []*resourceTranslationFilter) *auxRsp {
+	mm := make([]envoy.Marshaller, 0, 100)
+	if ff == nil {
+		return &auxRsp{
+			mm: mm,
+		}
+	}
+
+	var (
+		resMap = make(map[string]*resourceTranslation)
+
+		nn  types.ResourceTranslationSet
+		fn  types.ResourceTranslationFilter
+		err error
+	)
+
+	for _, f := range ff {
+		aux := *f
+
+		if aux.Limit == 0 {
+			aux.Limit = 1000
+		}
+
+		for {
+			nn, fn, err = s.SearchResourceTranslations(ctx, types.ResourceTranslationFilter(aux))
+			if err != nil {
+				return &auxRsp{
+					err: err,
+				}
+			}
+
+			for _, n := range nn {
+				if _, ok := resMap[n.Resource]; !ok {
+					resMap[n.Resource], err = newResourceTranslation(types.ResourceTranslationSet{n})
+					if err != nil {
+						return &auxRsp{
+							err: err,
+						}
+					}
+
+					// parse the resource wo we can define relations/check if we can unmarshal it
+					_, ref, pp, err := resource.ParseResourceTranslation(n.Resource)
+					resMap[n.Resource].refLocaleRes = ref
+					resMap[n.Resource].refPathRes = pp
+					if err != nil {
+						return &auxRsp{
+							err: err,
+						}
+					}
+
+					continue
+				}
+
+				resMap[n.Resource].locales = append(resMap[n.Resource].locales, n)
+			}
+
+			if fn.NextPage != nil {
+				aux.PageCursor = fn.NextPage
+			} else {
+				break
+			}
+
+			break
+		}
+	}
+
+	for _, lr := range resMap {
+		mm = append(mm, lr)
+	}
+
+	return &auxRsp{
+		mm: mm,
+	}
+}
+
 func (df *DecodeFilter) systemFromResource(rr ...string) *DecodeFilter {
 	for _, r := range rr {
 		if !strings.HasPrefix(r, "system") {
@@ -377,7 +454,8 @@ func (df *DecodeFilter) systemFromResource(rr ...string) *DecodeFilter {
 			})
 		case "system:user":
 			df = df.Users(&types.UserFilter{
-				Query: id,
+				Query:    id,
+				AllKinds: true,
 			})
 		case "system:template":
 			df = df.Templates(&types.TemplateFilter{
@@ -397,6 +475,52 @@ func (df *DecodeFilter) systemFromResource(rr ...string) *DecodeFilter {
 			df = df.Settings(&types.SettingsFilter{})
 		case "system:rbac":
 			df = df.Rbac(&rbac.RuleFilter{})
+		case "system:resource-translation":
+			df = df.Rbac(&rbac.RuleFilter{})
+		}
+	}
+
+	return df
+}
+
+func (df *DecodeFilter) systemFromRef(rr ...*resource.Ref) *DecodeFilter {
+	for _, r := range rr {
+		if strings.Index(r.ResourceType, "system") < 0 {
+			continue
+		}
+
+		switch r.ResourceType {
+		case types.RoleResourceType:
+			for _, i := range r.Identifiers.StringSlice() {
+				df = df.Roles(&types.RoleFilter{
+					Query: i,
+				})
+			}
+		case types.UserResourceType:
+			for _, i := range r.Identifiers.StringSlice() {
+				df = df.Users(&types.UserFilter{
+					Query:    i,
+					AllKinds: true,
+				})
+			}
+		case types.TemplateResourceType:
+			for _, i := range r.Identifiers.StringSlice() {
+				df = df.Templates(&types.TemplateFilter{
+					Handle: i,
+				})
+				templateID, err := cast.ToUint64E(i)
+				if err == nil && templateID > 0 {
+					df = df.Templates(&types.TemplateFilter{
+						TemplateID: []uint64{templateID},
+					})
+				}
+			}
+		case types.ApplicationResourceType:
+			for _, i := range r.Identifiers.StringSlice() {
+				df = df.Applications(&types.ApplicationFilter{
+					Query: i,
+				})
+			}
 		}
 	}
 
@@ -459,6 +583,20 @@ func (df *DecodeFilter) Rbac(f *rbac.RuleFilter) *DecodeFilter {
 	}
 
 	df.rbac = append(df.rbac, &rbacFilter{RuleFilter: *f})
+	return df
+}
+
+// ResourceTranslation adds a new ResourceTranslationFilter
+func (df *DecodeFilter) ResourceTranslation(f *types.ResourceTranslationFilter) *DecodeFilter {
+	if df.resourceTranslations == nil {
+		df.resourceTranslations = make([]*resourceTranslationFilter, 0, 1)
+	} else {
+		// There can only be a single resourceTranslations filter
+		// since it makes no sense to have multiple of
+		return df
+	}
+
+	df.resourceTranslations = append(df.resourceTranslations, (*resourceTranslationFilter)(f))
 	return df
 }
 

@@ -450,6 +450,43 @@ func (df *DecodeFilter) composeFromResource(rr ...string) *DecodeFilter {
 	return df
 }
 
+func (df *DecodeFilter) composeFromRef(rr ...*resource.Ref) *DecodeFilter {
+	for _, r := range rr {
+		if strings.Index(r.ResourceType, "compose") < 0 {
+			continue
+		}
+
+		switch r.ResourceType {
+		case types.NamespaceResourceType:
+			for _, i := range r.Identifiers.StringSlice() {
+				df = df.ComposeNamespace(&types.NamespaceFilter{
+					Query: i,
+				})
+			}
+		case types.ModuleResourceType:
+			for _, i := range r.Identifiers.StringSlice() {
+				df = df.ComposeModule(&types.ModuleFilter{
+					Query: i,
+				})
+			}
+		case types.PageResourceType:
+			for _, i := range r.Identifiers.StringSlice() {
+				df = df.ComposePage(&types.PageFilter{
+					Query: i,
+				})
+			}
+		case types.ChartResourceType:
+			for _, i := range r.Identifiers.StringSlice() {
+				df = df.ComposeChart(&types.ChartFilter{
+					Query: i,
+				})
+			}
+		}
+	}
+
+	return df
+}
+
 // ComposeNamespace adds a new compose NamespaceFilter
 func (df *DecodeFilter) ComposeNamespace(f *types.NamespaceFilter) *DecodeFilter {
 	if df.composeNamespace == nil {

@@ -32,6 +32,8 @@ type (
 
 		// module's RBAC rules
 		rbac rbacRuleSet
+
+		locale resourceTranslationSet
 	}
 	composeNamespaceSet []*composeNamespace
 

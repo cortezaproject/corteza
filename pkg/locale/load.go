@@ -2,6 +2,7 @@ package locale
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -189,6 +190,15 @@ func loadTranslations(lang *Language) (err error) {
 			return
 		}
 		lang.external[app] = bytes.NewReader(buf.Bytes())
+	}
+
+	return
+}
+
+func (svc *service) loadResourceTranslations(ctx context.Context, lang *Language, tg language.Tag) (err error) {
+	lang.resources, err = svc.s.TransformResource(ctx, tg)
+	if err != nil {
+		return err
 	}
 
 	return

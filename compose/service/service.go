@@ -15,6 +15,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/objstore"
 	"github.com/cortezaproject/corteza-server/pkg/objstore/minio"
@@ -52,14 +53,15 @@ var (
 	// DefaultAccessControl Access control checking
 	DefaultAccessControl *accessControl
 
-	DefaultNamespace     NamespaceService
-	DefaultImportSession ImportSessionService
-	DefaultRecord        RecordService
-	DefaultModule        ModuleService
-	DefaultChart         *chart
-	DefaultPage          *page
-	DefaultAttachment    AttachmentService
-	DefaultNotification  *notification
+	DefaultNamespace           NamespaceService
+	DefaultImportSession       ImportSessionService
+	DefaultRecord              RecordService
+	DefaultModule              ModuleService
+	DefaultChart               *chart
+	DefaultPage                *page
+	DefaultAttachment          AttachmentService
+	DefaultNotification        *notification
+	DefaultResourceTranslation ResourceTranslationsManagerService
 
 	// wrapper around time.Now() that will aid service testing
 	now = func() *time.Time {
@@ -98,6 +100,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	}
 
 	DefaultAccessControl = AccessControl()
+	DefaultResourceTranslation = ResourceTranslationsManager(locale.Global())
 
 	if DefaultObjectStore == nil {
 		const svcPath = "compose"

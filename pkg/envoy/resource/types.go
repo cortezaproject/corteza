@@ -1,10 +1,15 @@
 package resource
 
+import "strconv"
+
 type (
 	Interface interface {
 		Identifiers() Identifiers
 		ResourceType() string
 		Refs() RefSet
+
+		MarkPlaceholder()
+		Placeholder() bool
 	}
 
 	InterfaceSet []Interface
@@ -27,6 +32,13 @@ type (
 		RBACPath() []*Ref
 	}
 
+	LocaleInterface interface {
+		Interface
+
+		ResourceTranslationParts() (string, *Ref, []*Ref)
+		EncodeTranslations() ([]*ResourceTranslation, error)
+	}
+
 	RefSet []*Ref
 	Ref    struct {
 		// @todo check with Denis regarding strings here (the cdocs comment)
@@ -40,9 +52,10 @@ type (
 )
 
 var (
-	DataSourceResourceType = "data:raw"
-	SettingsResourceType   = "setting"
-	RbacResourceType       = "rbac-rule"
+	DataSourceResourceType  = "data:raw"
+	SettingsResourceType    = "setting"
+	RbacResourceType        = "rbac-rule"
+	ResourceTranslationType = "resource-translation"
 )
 
 func MakeIdentifiers(ss ...string) Identifiers {
@@ -87,6 +100,23 @@ func (ri Identifiers) First() string {
 	return ss[0]
 }
 
+func (ri Identifiers) FirstID() uint64 {
+	ss := ri.StringSlice()
+	if len(ss) <= 0 {
+		return 0
+	}
+
+	for _, s := range ss {
+		if v, err := strconv.ParseUint(s, 10, 64); err != nil {
+			continue
+		} else {
+			return v
+		}
+	}
+
+	return 0
+}
+
 func (rr InterfaceSet) Walk(f func(r Interface) error) (err error) {
 	for _, r := range rr {
 		err = f(r)
@@ -115,4 +145,34 @@ func (r *Ref) Constraint(c *Ref) *Ref {
 // IsWildcard checks if this Ref points to all resources of a specific resource type
 func (r *Ref) IsWildcard() bool {
 	return r.Identifiers["*"]
+}
+
+// Unique returns only unique references
+//
+// Uniqueness is defined as "two references may not define
+// the same resource type and identifier" combinations.
+func (rr RefSet) Unique() RefSet {
+	out := make(RefSet, 0, len(rr))
+	seen := make(map[string]Identifiers)
+
+	for _, r := range rr {
+		ii, ok := seen[r.ResourceType]
+
+		// type not seen at all, unique
+		if !ok {
+			out = append(out, r)
+			seen[r.ResourceType] = r.Identifiers
+			continue
+		}
+
+		// not yet seen
+		if !ii.HasAny(r.Identifiers) {
+			out = append(out, r)
+			for i := range r.Identifiers {
+				seen[r.ResourceType][i] = true
+			}
+		}
+	}
+
+	return out
 }

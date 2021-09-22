@@ -2,7 +2,6 @@ package resource
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -30,10 +29,6 @@ func NewUser(u *types.User) *User {
 
 func (r *User) SysID() uint64 {
 	return r.Res.ID
-}
-
-func (r *User) Ref() string {
-	return firstOkString(r.Res.Handle, r.Res.Username, r.Res.Email, r.Res.Name, strconv.FormatUint(r.Res.ID, 10))
 }
 
 // FindUser looks for the user in the resources

@@ -28,19 +28,23 @@ type (
 		Delete(context.Context, *request.PageDelete) (interface{}, error)
 		Upload(context.Context, *request.PageUpload) (interface{}, error)
 		TriggerScript(context.Context, *request.PageTriggerScript) (interface{}, error)
+		ListTranslations(context.Context, *request.PageListTranslations) (interface{}, error)
+		UpdateTranslations(context.Context, *request.PageUpdateTranslations) (interface{}, error)
 	}
 
 	// HTTP API interface
 	Page struct {
-		List          func(http.ResponseWriter, *http.Request)
-		Create        func(http.ResponseWriter, *http.Request)
-		Read          func(http.ResponseWriter, *http.Request)
-		Tree          func(http.ResponseWriter, *http.Request)
-		Update        func(http.ResponseWriter, *http.Request)
-		Reorder       func(http.ResponseWriter, *http.Request)
-		Delete        func(http.ResponseWriter, *http.Request)
-		Upload        func(http.ResponseWriter, *http.Request)
-		TriggerScript func(http.ResponseWriter, *http.Request)
+		List               func(http.ResponseWriter, *http.Request)
+		Create             func(http.ResponseWriter, *http.Request)
+		Read               func(http.ResponseWriter, *http.Request)
+		Tree               func(http.ResponseWriter, *http.Request)
+		Update             func(http.ResponseWriter, *http.Request)
+		Reorder            func(http.ResponseWriter, *http.Request)
+		Delete             func(http.ResponseWriter, *http.Request)
+		Upload             func(http.ResponseWriter, *http.Request)
+		TriggerScript      func(http.ResponseWriter, *http.Request)
+		ListTranslations   func(http.ResponseWriter, *http.Request)
+		UpdateTranslations func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -190,6 +194,38 @@ func NewPage(h PageAPI) *Page {
 
 			api.Send(w, r, value)
 		},
+		ListTranslations: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewPageListTranslations()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.ListTranslations(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		UpdateTranslations: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewPageUpdateTranslations()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.UpdateTranslations(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -205,5 +241,7 @@ func (h Page) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.H
 		r.Delete("/namespace/{namespaceID}/page/{pageID}", h.Delete)
 		r.Post("/namespace/{namespaceID}/page/{pageID}/attachment", h.Upload)
 		r.Post("/namespace/{namespaceID}/page/{pageID}/trigger", h.TriggerScript)
+		r.Get("/namespace/{namespaceID}/page/{pageID}/translation", h.ListTranslations)
+		r.Patch("/namespace/{namespaceID}/page/{pageID}/translation", h.UpdateTranslations)
 	})
 }

@@ -8,22 +8,56 @@ import (
 )
 
 const AcceptLanguageHeader = "Accept-Language"
+const ContentLanguageHeader = "Content-Language"
 
 func DetectLanguage(ll *service) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			next.ServeHTTP(w, upgradeRequest(ll, r))
+			var ctx = r.Context()
+
+			// resolve accept-language header
+			// Accept-Language specifies the language of the response payload.
+			ctx = SetAcceptLanguageToContext(ctx, resolveAcceptLanguageHeaders(ll, r))
+
+			// resolve content-language header
+			// Content-Language specifies the language of the request payload.
+			ctx = SetContentLanguageToContext(ctx, resolveContentLanguageHeaders(r.Header, ll.Default().Tag))
+
+			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }
 
-func upgradeRequest(ll *service, r *http.Request) *http.Request {
-	return r.WithContext(SetLanguageToContext(r.Context(), detectLanguage(ll, r)))
+// reads Content-Language headers from the request and returns
+// parsed value as language.Tag
+//
+// There are 4 valid scenarios for :
+//  - lang == 'skip':   returns und & services will (likely) ignore all translatable content
+//  - invalid language: (same as skip)
+//  - valid language:   returns valid language; services will treat translatable content from the payload as translations
+//  - no header:        returns default language; (same as valid language)
+func resolveContentLanguageHeaders(h http.Header, def language.Tag) language.Tag {
+	var cLang = h.Get(ContentLanguageHeader)
+
+	if cLang == "" {
+		return def
+	}
+
+	if cLang == "skip" {
+		// more than 1 header or value equal to skip
+		return language.Und
+	}
+
+	if tag, err := language.Parse(cLang); err != nil {
+		return language.Und
+	} else {
+		return tag
+	}
 }
 
-func detectLanguage(ll *service, r *http.Request) (tag language.Tag) {
+func resolveAcceptLanguageHeaders(ll *service, r *http.Request) (tag language.Tag) {
 	if ll.opt.DevelopmentMode {
-		if err := ll.Reload(); err != nil {
+		if err := ll.ReloadStatic(); err != nil {
 			// when in development mode, refresh languages for every request
 			ll.log.Error("failed to load locales", zap.Error(err))
 			return

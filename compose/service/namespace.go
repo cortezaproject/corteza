@@ -12,8 +12,10 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/label"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
+	"golang.org/x/text/language"
 )
 
 type (
@@ -22,6 +24,7 @@ type (
 		ac        namespaceAccessController
 		eventbus  eventDispatcher
 		store     store.Storer
+		locale    ResourceTranslationsManagerService
 	}
 
 	namespaceAccessController interface {
@@ -61,6 +64,7 @@ func Namespace() *namespace {
 		eventbus:  eventbus.Service(),
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
+		locale:    DefaultResourceTranslation,
 	}
 }
 
@@ -105,6 +109,13 @@ func (svc namespace) Find(ctx context.Context, filter types.NamespaceFilter) (se
 		if set, f, err = store.SearchComposeNamespaces(ctx, svc.store, filter); err != nil {
 			return err
 		}
+
+		// i18n
+		tag := locale.GetAcceptLanguageFromContext(ctx)
+		set.Walk(func(n *types.Namespace) error {
+			n.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, n.ResourceTranslation()))
+			return nil
+		})
 
 		if err = label.Load(ctx, svc.store, toLabeledNamespaces(set)...); err != nil {
 			return err
@@ -199,6 +210,15 @@ func (svc namespace) Create(ctx context.Context, new *types.Namespace) (*types.N
 			return err
 		}
 
+		if contentLang := locale.GetContentLanguageFromContext(ctx); contentLang != language.Und {
+			tt := new.EncodeTranslations()
+			tt.SetLanguage(contentLang)
+			err = DefaultResourceTranslation.Upsert(ctx, tt)
+			if err != nil {
+				return err
+			}
+		}
+
 		if err = label.Create(ctx, s, new); err != nil {
 			return
 		}
@@ -261,6 +281,15 @@ func (svc namespace) updater(ctx context.Context, namespaceID uint64, action fun
 
 		if changes&namespaceChanged > 0 {
 			if err = store.UpdateComposeNamespace(ctx, svc.store, ns); err != nil {
+				return err
+			}
+		}
+
+		if contentLang := locale.GetContentLanguageFromContext(ctx); contentLang != language.Und {
+			tt := ns.EncodeTranslations()
+			tt.SetLanguage(contentLang)
+			err = DefaultResourceTranslation.Upsert(ctx, tt)
+			if err != nil {
 				return err
 			}
 		}

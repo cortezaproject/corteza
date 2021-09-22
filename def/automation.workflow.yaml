@@ -14,3 +14,10 @@ rbac:
       description: Manage workflow triggers
     sessions.manage:
       description: Manage workflow sessions
+
+# locale:
+#   resource:
+#     references: [ ID ]
+#   keys:
+#     - { path: name,    field: "Meta.Name" }
+#     - { path: description, field: "Meta.Description" }

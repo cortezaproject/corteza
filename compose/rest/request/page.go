@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/label"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/go-chi/chi"
 	sqlxTypes "github.com/jmoiron/sqlx/types"
@@ -271,6 +272,35 @@ type (
 		//
 		// Script to execute
 		Script string
+	}
+
+	PageListTranslations struct {
+		// NamespaceID PATH parameter
+		//
+		// Namespace ID
+		NamespaceID uint64 `json:",string"`
+
+		// PageID PATH parameter
+		//
+		// ID
+		PageID uint64 `json:",string"`
+	}
+
+	PageUpdateTranslations struct {
+		// NamespaceID PATH parameter
+		//
+		// Namespace ID
+		NamespaceID uint64 `json:",string"`
+
+		// PageID PATH parameter
+		//
+		// ID
+		PageID uint64 `json:",string"`
+
+		// Translations POST parameter
+		//
+		// Resource translation to upsert
+		Translations locale.ResourceTranslationSet
 	}
 )
 
@@ -1121,6 +1151,132 @@ func (r *PageTriggerScript) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "namespaceID")
+		r.NamespaceID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "pageID")
+		r.PageID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewPageListTranslations request
+func NewPageListTranslations() *PageListTranslations {
+	return &PageListTranslations{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageListTranslations) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"namespaceID": r.NamespaceID,
+		"pageID":      r.PageID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageListTranslations) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageListTranslations) GetPageID() uint64 {
+	return r.PageID
+}
+
+// Fill processes request and fills internal variables
+func (r *PageListTranslations) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "namespaceID")
+		r.NamespaceID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "pageID")
+		r.PageID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewPageUpdateTranslations request
+func NewPageUpdateTranslations() *PageUpdateTranslations {
+	return &PageUpdateTranslations{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageUpdateTranslations) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"namespaceID":  r.NamespaceID,
+		"pageID":       r.PageID,
+		"translations": r.Translations,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageUpdateTranslations) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageUpdateTranslations) GetPageID() uint64 {
+	return r.PageID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageUpdateTranslations) GetTranslations() locale.ResourceTranslationSet {
+	return r.Translations
+}
+
+// Fill processes request and fills internal variables
+func (r *PageUpdateTranslations) Fill(req *http.Request) (err error) {
+
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		//if val, ok := req.Form["translations[]"]; ok && len(val) > 0  {
+		//    r.Translations, err = locale.ResourceTranslationSet(val), nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
 	}
 
 	{

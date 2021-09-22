@@ -6,6 +6,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 )
@@ -138,6 +139,26 @@ func (df *DecodeFilter) automationFromResource(rr ...string) *DecodeFilter {
 				Query:    id,
 				Disabled: filter.StateInclusive,
 			})
+		}
+	}
+
+	return df
+}
+
+func (df *DecodeFilter) automationFromRef(rr ...*resource.Ref) *DecodeFilter {
+	for _, r := range rr {
+		if strings.Index(r.ResourceType, "automation") < 0 {
+			continue
+		}
+
+		switch r.ResourceType {
+		case types.WorkflowResourceType:
+			for _, i := range r.Identifiers.StringSlice() {
+				df = df.AutomationWorkflows(&types.WorkflowFilter{
+					Query:    i,
+					Disabled: filter.StateInclusive,
+				})
+			}
 		}
 	}
 
