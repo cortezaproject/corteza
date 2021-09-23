@@ -17,15 +17,14 @@ func newComposeChartFromResource(res *resource.ComposeChart, cfg *EncoderConfig)
 }
 
 func (n *composeChart) Prepare(ctx context.Context, pl *payload) (err error) {
+	// Reset old identifiers
+	n.res.Res.ID = 0
+	n.res.Res.NamespaceID = 0
+
 	// Get related namespace
-	if !n.cfg.IgnoreStore {
-		n.relNS, err = findComposeNamespace(ctx, pl.s, pl.state.ParentResources, n.res.RefNs.Identifiers)
-		if err != nil {
-			return err
-		}
-	} else {
-		n.res.Res.ID = 0
-		n.relNS = resource.FindComposeNamespace(pl.state.ParentResources, n.res.RefNs.Identifiers)
+	n.relNS, err = findComposeNamespace(ctx, pl.s, pl.state.ParentResources, n.res.RefNs.Identifiers)
+	if err != nil {
+		return err
 	}
 	if n.relNS == nil {
 		return resource.ComposeNamespaceErrUnresolved(n.res.RefNs.Identifiers)
@@ -34,21 +33,13 @@ func (n *composeChart) Prepare(ctx context.Context, pl *payload) (err error) {
 	// Get related modules
 	n.relMods = make(types.ModuleSet, len(n.res.RefMods))
 	for i, rMod := range n.res.RefMods {
-		if !n.cfg.IgnoreStore {
-			n.relMods[i], err = findComposeModule(ctx, pl.s, n.relNS.ID, pl.state.ParentResources, rMod.Identifiers)
-			if err != nil {
-				return err
-			}
-		} else {
-			n.relMods[i] = resource.FindComposeModule(pl.state.ParentResources, rMod.Identifiers)
+		n.relMods[i], err = findComposeModule(ctx, pl.s, n.relNS.ID, pl.state.ParentResources, rMod.Identifiers)
+		if err != nil {
+			return err
 		}
 		if n.relMods[i] == nil {
 			return resource.ComposeModuleErrUnresolved(rMod.Identifiers)
 		}
-	}
-
-	if n.cfg.IgnoreStore {
-		return nil
 	}
 
 	// Try to get the original chart

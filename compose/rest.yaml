@@ -134,6 +134,53 @@ endpoints:
         type: "*multipart.FileHeader"
         required: true
         title: File to upload
+  - name: clone
+    path: "/{namespaceID}/clone"
+    method: POST
+    title: Clone compose namespace
+    parameters:
+      path:
+      - type: uint64
+        name: namespaceID
+        required: true
+        title: ID
+      post:
+      - type: string
+        name: name
+        required: true
+        title: Duplicate name
+      - type: string
+        name: slug
+        required: true
+        title: Duplicate slug
+  - name: export
+    path: "/{namespaceID}/export/{filename}.zip"
+    method: GET
+    title: Export compose namespace
+    parameters:
+      path:
+      - type: uint64
+        name: namespaceID
+        required: true
+        title: ID
+      - type: string
+        name: filename
+        required: true
+        title: Output file name
+      - type: string
+        name: ext
+        required: true
+        title: Output file ext
+  - name: import
+    path: "/import"
+    method: POST
+    title: Import namespace
+    parameters:
+      post:
+      - name: upload
+        type: "*multipart.FileHeader"
+        required: true
+        title: Namespace import
   - name: triggerScript
     method: POST
     title: Fire compose:namespace trigger

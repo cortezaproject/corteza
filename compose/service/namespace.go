@@ -1,13 +1,23 @@
 package service
 
 import (
+	"archive/zip"
+	"bytes"
 	"context"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"mime/multipart"
 	"reflect"
 	"strconv"
 
+	automationTypes "github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/envoy"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/yaml"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
@@ -15,6 +25,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
+	"github.com/gabriel-vasile/mimetype"
 	"golang.org/x/text/language"
 )
 
@@ -22,9 +33,13 @@ type (
 	namespace struct {
 		actionlog actionlog.Recorder
 		ac        namespaceAccessController
-		eventbus  eventDispatcher
-		store     store.Storer
-		locale    ResourceTranslationsManagerService
+		modAc     moduleAccessController
+		pageAc    pageAccessController
+		chartAc   chartAccessController
+
+		eventbus eventDispatcher
+		store    store.Storer
+		locale   ResourceTranslationsManagerService
 	}
 
 	namespaceAccessController interface {
@@ -45,6 +60,9 @@ type (
 
 		Create(ctx context.Context, namespace *types.Namespace) (*types.Namespace, error)
 		Update(ctx context.Context, namespace *types.Namespace) (*types.Namespace, error)
+		Clone(ctx context.Context, namespaceID uint64, dup *types.Namespace, decoder func() (resource.InterfaceSet, error), encoder func(resource.InterfaceSet) error) (ns *types.Namespace, err error)
+		Export(ctx context.Context, namespaceID uint64, archive string, decoder func() (resource.InterfaceSet, error), encoder func(resource.InterfaceSet) (envoy.Streamer, error)) (r io.ReadSeeker, err error)
+		Import(ctx context.Context, f multipart.File, size int64, encoder func(resource.InterfaceSet) error) (ns *types.Namespace, err error)
 		DeleteByID(ctx context.Context, namespaceID uint64) error
 	}
 
@@ -60,7 +78,11 @@ const (
 
 func Namespace() *namespace {
 	return &namespace{
-		ac:        DefaultAccessControl,
+		ac:      DefaultAccessControl,
+		modAc:   DefaultAccessControl,
+		pageAc:  DefaultAccessControl,
+		chartAc: DefaultAccessControl,
+
 		eventbus:  eventbus.Service(),
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
@@ -232,6 +254,245 @@ func (svc namespace) Create(ctx context.Context, new *types.Namespace) (*types.N
 
 func (svc namespace) Update(ctx context.Context, upd *types.Namespace) (c *types.Namespace, err error) {
 	return svc.updater(ctx, upd.ID, NamespaceActionUpdate, svc.handleUpdate(ctx, upd))
+}
+
+func (svc namespace) Clone(ctx context.Context, namespaceID uint64, dup *types.Namespace, decoder func() (resource.InterfaceSet, error), encoder func(resource.InterfaceSet) error) (ns *types.Namespace, err error) {
+	var (
+		aProps = &namespaceActionProps{namespace: dup}
+	)
+
+	err = func() error {
+		// Preparation
+		// - target namespace
+		targetNs, err := loadNamespace(ctx, svc.store, namespaceID)
+		if errors.IsNotFound(err) {
+			return NamespaceErrNotFound()
+		} else if err != nil {
+			return err
+		}
+		aProps.setNamespace(targetNs)
+
+		// - destination namespace
+		dstNs, err := store.LookupComposeNamespaceBySlug(ctx, svc.store, dup.Slug)
+		if err != nil && err != store.ErrNotFound {
+			return err
+		}
+		if dstNs != nil {
+			return NamespaceErrHandleNotUnique()
+		}
+
+		// Access control
+		if err = svc.canExport(ctx, targetNs); err != nil {
+			return err
+		}
+
+		// get namespace resources
+		nn, err := decoder()
+		if err != nil {
+			return err
+		}
+
+		// some meta bits
+		sNsID := strconv.FormatUint(namespaceID, 10)
+		oldNsRef := resource.MakeRef(types.NamespaceResourceType, resource.MakeIdentifiers(sNsID))
+		newNsRef := resource.MakeRef(types.NamespaceResourceType, resource.MakeIdentifiers(dup.Slug, dup.Name))
+		prune := resource.RefSet{resource.MakeWildRef(automationTypes.WorkflowResourceType)}
+
+		// rename the namespace
+		//
+		// For now we will find the namespace in set and change it's name, handle.
+		// The rest of the resources can stay as are.
+		//
+		// @todo add a more flexible system for such modifications
+		auxNs := resource.FindComposeNamespace(nn, oldNsRef.Identifiers)
+		auxNs.ID = 0
+		auxNs.Name = dup.Name
+		auxNs.Slug = dup.Slug
+		dup = auxNs
+		aProps.setNamespace(dup)
+
+		// Correct internal references
+		// - namespace identifiers
+		nn.SearchForIdentifiers(oldNsRef.Identifiers).Walk(func(r resource.Interface) error {
+			r.ReID(newNsRef.Identifiers)
+			return nil
+		})
+
+		// - relations
+		nn.SearchForReferences(oldNsRef).Walk(func(r resource.Interface) error {
+			r.ReRef(resource.RefSet{oldNsRef}, resource.RefSet{newNsRef})
+
+			// - additional pruning
+			pp, ok := r.(resource.PrunableInterface)
+			if !ok {
+				return nil
+			}
+
+			for _, p := range prune {
+				pp.Prune(p)
+			}
+			return nil
+		})
+
+		// encode
+		return encoder(nn)
+	}()
+
+	return dup, svc.recordAction(ctx, aProps, NamespaceActionClone, err)
+}
+
+func (svc namespace) Export(ctx context.Context, namespaceID uint64, archive string, decoder func() (resource.InterfaceSet, error), encoder func(resource.InterfaceSet) (envoy.Streamer, error)) (r io.ReadSeeker, err error) {
+	var (
+		aProps = &namespaceActionProps{archiveFormat: archive}
+	)
+
+	// make archive
+	buf := bytes.NewBuffer(nil)
+	w := zip.NewWriter(buf)
+
+	err = func() error {
+		if archive != "zip" {
+			return NamespaceErrUnsupportedExportFormat()
+		}
+
+		// initial validation
+		// - target namespace
+		targetNs, err := store.LookupComposeNamespaceByID(ctx, svc.store, namespaceID)
+		if err != nil && err != store.ErrNotFound {
+			return err
+		}
+		aProps.setNamespace(targetNs)
+
+		// - ac
+		if err = svc.canExport(ctx, targetNs); err != nil {
+			return err
+		}
+
+		// get namespace resources
+		nn, err := decoder()
+		if err != nil {
+			return err
+		}
+
+		// some meta bits
+		sNsID := strconv.FormatUint(namespaceID, 10)
+		oldNsRef := resource.MakeRef(types.NamespaceResourceType, resource.MakeIdentifiers(sNsID))
+		prune := resource.RefSet{resource.MakeWildRef(automationTypes.WorkflowResourceType)}
+
+		// - prune resources we won't preserve
+		nn.SearchForReferences(oldNsRef).Walk(func(r resource.Interface) error {
+			pp, ok := r.(resource.PrunableInterface)
+			if !ok {
+				return nil
+			}
+
+			for _, p := range prune {
+				pp.Prune(p)
+			}
+			return nil
+		})
+
+		// encode
+		ss, err := encoder(nn)
+		if err != nil {
+			return err
+		}
+
+		// create archive
+		for _, s := range ss.Stream() {
+			// @todo generalize when needed
+			f, err := w.Create(fmt.Sprintf("%s.yaml", s.Resource))
+			if err != nil {
+				return err
+			}
+
+			bb, err := ioutil.ReadAll(s.Source)
+			if err != nil {
+				return err
+			}
+
+			_, err = f.Write(bb)
+			if err != nil {
+				return err
+			}
+		}
+
+		return w.Close()
+	}()
+
+	return bytes.NewReader(buf.Bytes()), svc.recordAction(ctx, aProps, NamespaceActionExport, err)
+}
+
+func (svc namespace) Import(ctx context.Context, f multipart.File, size int64, encoder func(resource.InterfaceSet) error) (ns *types.Namespace, err error) {
+	var (
+		aProps = &namespaceActionProps{}
+	)
+
+	err = func() error {
+		// access control
+		if err := svc.canImport(ctx); err != nil {
+			return err
+		}
+
+		// archive type check
+		mt, err := mimetype.DetectReader(f)
+		if err != nil {
+			return err
+		}
+		aProps.setArchiveFormat(mt.Extension())
+		if !mt.Is("application/zip") {
+			return NamespaceErrUnsupportedImportFormat()
+		}
+
+		_, err = f.Seek(0, 0)
+		if err != nil {
+			return err
+		}
+
+		// un-archive
+		archive, err := zip.NewReader(f, size)
+		if err != nil {
+			return err
+		}
+
+		// decode with Envoy
+		yd := yaml.Decoder()
+		nn := make([]resource.Interface, 0, 10)
+
+		for _, f := range archive.File {
+			a, err := f.Open()
+			if err != nil {
+				return err
+			}
+			defer a.Close()
+
+			mm, err := yd.Decode(ctx, a, nil)
+			if err != nil {
+				return err
+			}
+			nn = append(nn, mm...)
+		}
+
+		// encode
+		err = encoder(nn)
+		if err != nil {
+			return err
+		}
+
+		// find the ns node
+		for _, n := range nn {
+			if nsn, ok := n.(*resource.ComposeNamespace); ok {
+				ns = nsn.Res
+				break
+			}
+		}
+
+		aProps.setNamespace(ns)
+
+		return nil
+	}()
+
+	return ns, svc.recordAction(ctx, aProps, NamespaceActionImport, err)
 }
 
 func (svc namespace) DeleteByID(ctx context.Context, namespaceID uint64) error {
@@ -428,6 +689,64 @@ func (svc namespace) handleUndelete(ctx context.Context, ns *types.Namespace) (n
 
 	ns.DeletedAt = nil
 	return namespaceChanged, nil
+}
+
+func (svc namespace) canExport(ctx context.Context, namespace *types.Namespace) error {
+	// Preload all of the relevant stuff for access control
+	// - modules
+	//   no need to load fields
+	mm, _, err := store.SearchComposeModules(ctx, svc.store, types.ModuleFilter{NamespaceID: namespace.ID})
+	if err != nil {
+		return err
+	}
+	// - pages
+	pp, _, err := store.SearchComposePages(ctx, svc.store, types.PageFilter{NamespaceID: namespace.ID})
+	if err != nil {
+		return err
+	}
+	// - charts
+	cc, _, err := store.SearchComposeCharts(ctx, svc.store, types.ChartFilter{NamespaceID: namespace.ID})
+	if err != nil {
+		return err
+	}
+
+	// access control
+	// - namespace
+	if !svc.ac.CanReadNamespace(ctx, namespace) {
+		return NamespaceErrNotAllowedToRead()
+	}
+	// - modules
+	for _, m := range mm {
+		if !svc.modAc.CanReadModule(ctx, m) {
+			return ModuleErrNotAllowedToRead()
+		}
+	}
+	// - pages
+	for _, p := range pp {
+		if !svc.pageAc.CanReadPage(ctx, p) {
+			return PageErrNotAllowedToRead()
+		}
+	}
+	// - charts
+	for _, c := range cc {
+		if !svc.chartAc.CanReadChart(ctx, c) {
+			return ChartErrNotAllowedToRead()
+		}
+	}
+	return nil
+}
+
+func (svc namespace) canImport(ctx context.Context) error {
+
+	// If a user is allowed to create a namespace, they are considered to be allowed
+	// to create any underlying resource when it comes to importing.
+	//
+	// This was agreed upon internally and may change in the future.
+
+	if !svc.ac.CanCreateNamespace(ctx) {
+		return NamespaceErrNotAllowedToCreate()
+	}
+	return nil
 }
 
 func loadNamespace(ctx context.Context, s store.Storer, namespaceID uint64) (ns *types.Namespace, err error) {

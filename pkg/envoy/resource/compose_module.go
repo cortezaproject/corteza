@@ -76,6 +76,23 @@ func NewComposeModule(res *types.Module, nsRef string) *ComposeModule {
 	return r
 }
 
+func (r *ComposeModule) ReRef(old RefSet, new RefSet) {
+	r.base.ReRef(old, new)
+
+	// Additional references
+	for _, n := range new {
+		if n.ResourceType == types.NamespaceResourceType {
+			r.RefNs = MakeRef(types.NamespaceResourceType, n.Identifiers)
+		}
+	}
+
+	for i, o := range old {
+		if o.ResourceType == types.ModuleResourceType {
+			r.RefMods = r.RefMods.replaceRef(o, new[i])
+		}
+	}
+}
+
 func (r *ComposeModule) SysID() uint64 {
 	return r.Res.ID
 }
@@ -206,10 +223,6 @@ func NewComposeModuleField(res *types.ModuleField, nsRef, modRef string) *Compos
 
 	// Initial timestamps
 	r.SetTimestamps(MakeTimestampsCUDA(&res.CreatedAt, res.UpdatedAt, res.DeletedAt, nil))
-
-	res.ID = 0
-	res.NamespaceID = 0
-	res.ModuleID = 0
 
 	return r
 }

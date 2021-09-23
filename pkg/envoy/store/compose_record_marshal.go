@@ -33,11 +33,6 @@ func NewComposeRecordFromResource(res *resource.ComposeRecord, cfg *EncoderConfi
 }
 
 func (n *composeRecord) Prepare(ctx context.Context, pl *payload) (err error) {
-	// @todo add this
-	if n.cfg.IgnoreStore {
-		return fmt.Errorf("IgnoreStore not supported for compose records")
-	}
-
 	// Get related namespace
 	n.relNS, err = findComposeNamespace(ctx, pl.s, pl.state.ParentResources, n.res.RefNs.Identifiers)
 	if err != nil {

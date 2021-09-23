@@ -191,7 +191,13 @@ func (m ModuleField) setOptionKey(v interface{}, kk ...string) {
 		if !ok {
 			opt = map[string]interface{}{k: make(map[string]interface{})}
 		}
-		aux := opt[k].(map[string]interface{})
+		var aux ModuleFieldOptions
+		switch c := opt[k].(type) {
+		case map[string]interface{}:
+			aux = ModuleFieldOptions(c)
+		case ModuleFieldOptions:
+			aux = c
+		}
 
 		opt = aux
 	}
@@ -208,7 +214,14 @@ func (m ModuleField) getOptionKey(kk ...string) interface{} {
 		if !ok {
 			opt = map[string]interface{}{k: make(map[string]interface{})}
 		}
-		aux := opt[k].(map[string]interface{})
+
+		var aux ModuleFieldOptions
+		switch c := opt[k].(type) {
+		case map[string]interface{}:
+			aux = ModuleFieldOptions(c)
+		case ModuleFieldOptions:
+			aux = c
+		}
 
 		opt = aux
 	}

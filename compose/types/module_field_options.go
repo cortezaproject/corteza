@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/pkg/errors"
+	"github.com/spf13/cast"
 )
 
 type (
@@ -53,6 +54,21 @@ func (opt ModuleFieldOptions) Bool(key string) bool {
 	}
 
 	return false
+}
+
+func (opt ModuleFieldOptions) UInt64(key string) uint64 {
+	return opt.UInt64Def(key, 0)
+}
+
+func (opt ModuleFieldOptions) UInt64Def(key string, def uint64) uint64 {
+	if val, has := opt[key]; has {
+		v, err := cast.ToUint64E(val)
+		if err != nil {
+			return def
+		}
+		return v
+	}
+	return def
 }
 
 func (opt ModuleFieldOptions) Int64(key string) int64 {

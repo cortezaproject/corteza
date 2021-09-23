@@ -2,6 +2,7 @@ package yaml
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
@@ -71,7 +72,10 @@ func (wrap *composePage) UnmarshalYAML(n *yaml.Node) (err error) {
 	}
 
 	return y7s.EachMap(n, func(k, v *yaml.Node) (err error) {
-		switch k.Value {
+		switch strings.ToLower(k.Value) {
+		case "id", "pageid":
+			return y7s.DecodeScalar(v, "page ID", &wrap.res.ID)
+
 		case "title":
 			return y7s.DecodeScalar(v, "page title", &wrap.res.Title)
 
