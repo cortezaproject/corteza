@@ -56,5 +56,3 @@ list:
   permissions: Permissions
   title: Applications
   yaml: YAML
-navItem:
-  label: Applications

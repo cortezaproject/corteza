@@ -49,6 +49,10 @@ editor:
     validFrom:
       description: If not defined the client is valid until expiration
       label: Valid from
+    generateCurl: Generate cURL snippet
+    hideCurl: Hide cURL snippet
+    cUrl: Generated cURL
+    testCurl: Test auth
   new: New
   permissions: Permissions
   title:
@@ -81,5 +85,3 @@ list:
   permissions: Permissions
   title: Auth Clients
   yaml: YAML
-navItem:
-  label: Auth Clients

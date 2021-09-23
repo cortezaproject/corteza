@@ -64,33 +64,62 @@ calendar:
     listMonth: Agenda
     timeGridDay: Day
     timeGridWeek: Week
-  viewLabel: $t(block.calendar.label)
+  viewLabel: Calendar
 chart:
   add: New Chart
   addFunnel: Funnel chart
   addGauge: Gauge chart
   addGeneric: Generic chart
+  createFailed: Could not create a chart
   configure:
     label: Configure chart
     reportLabel: Report {{l}}
     reportsLabel: Reports
   display: 'Chart to display inside this block:'
-  edit: Edit chart
+  edit:
+    label: Edit chart
+    dimension:
+      function:
+        date: DATE
+        label: Function
+        month: MONTH
+        none: (no grouping / buckets)
+        placeholder: Select dimension modifier (bucket size)
+        quarter: QUARTER
+        week: WEEK
+        year: YEAR
   label: Chart
+  noChart: No charts
   pick: Pick a chart
   preview:
     chartId: Chart preview (ID {{0}})
+  searchPlaceholder: Type here to search all charts in this namespace
 content:
   label: Content
+  ok: Ok
+  urlPlaceholder: https://example.tld
 file:
   label: File
   preview:
     label: File block
 general:
   changeBlock: Change existing block
-  descriptionLabel: $t(general.label.description)
+  descriptionLabel: Description
   descriptionPlaceholder: Block description
   headerStyle: Block header style (color)
+  label:
+    add: Add
+    back: Back
+    edit: Edit
+    general: General
+    import: Import
+    next: Next
+    none: None
+    ok: Ok
+    permissions: Permissions
+    remove: Remove
+    save: Save
+    search: Search
   module: Module
   style:
     danger: Danger variant
@@ -100,8 +129,10 @@ general:
     success: Success variant
     warning: Warning variant
   title: Add new block
-  titleLabel: $t(general.label.title)
+  titleLabel: Title
   titlePlaceholder: Block title
+  tooltip:
+    dragAndDrop: Drag and drop to change order
 iframe:
   label: IFrame
   pickURLField: Pick an URL field
@@ -149,10 +180,19 @@ metric:
     labelLabel: Label style
     valueLabel: Value style
   label: Metric
+notification:
+  record:
+    loadFailed: Could not load record
 record:
   confirmDelete: Are you sure you want to delete this record?
+  deleteFailed: Could not delete record
   deleteRecord: Delete record
+  invalidOwnerVar: Can not use ${ownerID} variable in non-record pages
+  invalidRecordVar: Can not use ${record...} variable in non-record pages
   label: Record
+  listLoadFailed: Could not load record list
+  moduleOrPageNotSet: 'RecordList block error: module or page option not set'
+  moduleMismatch: Module incompatible, module mismatch
   preview:
     blockNoRecord: Can not render this block without a record
     fieldsFromModule: Single record block, displaying fields ({{0}}) from module {{1}}
@@ -226,7 +266,7 @@ recordList:
     dropzoneLabel: Click or drop file here to upload (.csv or JSON)
     failed: 'Something went wrong during the import. Please try again: {{failReason}}'
     fileColumns: File columns
-    hasRequiredFileFields: This module has required file upload fields that are not yet supported via the importer
+    hasRequiredFileFields: 'This module has required file upload fields'
     matchFields: 'Match imported columns with existing ones:'
     moduleFields: Module fields
     onError: 'If any record fails to import:'
@@ -252,6 +292,7 @@ recordList:
     uploadFile: Upload the file you want to import (.csv or JSON format)
   label: Record list
   moduleFootnote: Modules without a {{0}} can only be used in a record list as an inline editor
+  noRecords: There are no records matching your request
   pagination:
     next: Next
     prev: Previous
@@ -335,3 +376,30 @@ socialFeed:
     socialFeed: Twitterblo feed
   twitterProfileField: Field that contains Twitter Profile URL for a record
   twitterProfileLabel: Twitter Profile URL for list pages i.e (https://twitter.com/bloomberg)
+selectBlockFootnote: Some types might be disabled for non-record pages
+field:
+  noPermission: No permission to read field value
+  selector:
+    available: Fields available
+    systemField: (system field)
+comment:
+  label: 'Comments'
+  titleField:
+    label: 'Title field'
+    footnote: 'Field value will be used as record title'
+  contentField:
+    label: 'Content field'
+    footnote: 'Field value will be used as record content'
+  titleInput: 'Enter comment title'
+  contentInput: 'Enter comment content'
+  submit: 'Submit'
+  sortDirection:
+    label: 'Sort direction'
+    footnote: 'Field value will be used as sorting direction reference'
+    asc: 'ASC'
+    desc: 'DESC'
+  referenceField:
+    label: 'Reference field'
+    footnote: 'Field value will be used as reference'
+navigation:
+  chart: Charts

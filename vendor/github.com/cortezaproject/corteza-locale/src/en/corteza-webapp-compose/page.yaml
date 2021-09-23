@@ -1,6 +1,18 @@
+block:
+  general:
+    changeBlock: Change existing block
+    label:
+      cancel: Cancel
+      noHandle: No handle
+      pageBuilder: Page builder
+      saveAndClose: Save and close
+    placeholder:
+      handle: handle (a - z, 0 - 9, underscore, dash)
+      sample: Sample
+    title: Add new block
+changeBlock: Change existing block
 build:
   addBlock: Add block
-  selectBlockFootnote: Some types might be disabled for non-record pages
   selectBlockTitle: Select type of the new block
 createLabel: Create page
 edit:
@@ -11,9 +23,29 @@ edit:
 import: 'Import page(s):'
 instructions: Drag and drop pages to adjust the order and hierarchy.
 invalid: Invalid configuration
+label:
+  cancel: Cancel
+  description: Description
+  handle: Handle
+  pageBuilder: Page builder
+  permissions: Permissions
+  saveAndClose: Save and close
+moduleEdit: Edit module
+navigation:
+  page: Pages
+  viewPage: View Page
 newPlaceholder: Page title
 noBlock: No block added yet
+noPages: No pages
+notification:
+  deleteFailed: Could not delete this page
+  loadFailed: Could not load the page tree
+  saved: Page saved
+  saveFailed: Could not save this page
+  saveFailedRequired: Could not save this page, all required module fields must be present
 notVisible: Hidden
+pageMoveFailed: Could not move this page
+reordered: Page reordered
 title: List of Pages
 view: View
 visible: Visible

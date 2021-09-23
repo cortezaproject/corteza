@@ -89,5 +89,3 @@ list:
   permissions: Permissions
   title: Users
   yaml: YAML
-navItem:
-  label: Users
