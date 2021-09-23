@@ -37,9 +37,6 @@ func NewComposeChart(res *types.Chart, nsRef string, mmRef []string) *ComposeCha
 	// Initial timestamps
 	r.SetTimestamps(MakeTimestampsCUDA(&res.CreatedAt, res.UpdatedAt, res.DeletedAt, nil))
 
-	res.ID = 0
-	res.NamespaceID = 0
-
 	return r
 }
 

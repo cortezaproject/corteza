@@ -24,8 +24,6 @@ func NewComposeNamespace(ns *types.Namespace) *ComposeNamespace {
 	// Initial timestamps
 	r.SetTimestamps(MakeTimestampsCUDA(&ns.CreatedAt, ns.UpdatedAt, ns.DeletedAt, nil))
 
-	ns.ID = 0
-
 	return r
 }
 

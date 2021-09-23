@@ -27,10 +27,8 @@ func (n *automationWorkflow) Prepare(ctx context.Context, pl *payload) (err erro
 }
 
 func (n *automationWorkflow) prepareWorkflows(ctx context.Context, pl *payload) (err error) {
-	if n.cfg.IgnoreStore {
-		n.res.Res.ID = 0
-		return nil
-	}
+	// Reset old identifiers
+	n.res.Res.ID = 0
 
 	// Try to get the original workflow
 	n.wf, err = findAutomationWorkflowStore(ctx, pl.s, makeGenericFilter(n.res.Identifiers()))
@@ -49,11 +47,10 @@ func (n *automationWorkflow) prepareTriggers(ctx context.Context, pl *payload) (
 		return nil
 	}
 
-	if n.cfg.IgnoreStore {
-		for _, t := range n.tt {
-			t.ID = 0
-		}
-		return nil
+	// Reset old identifiers
+	for _, t := range n.res.Triggers {
+		t.Res.ID = 0
+		t.Res.WorkflowID = 0
 	}
 
 	// Try to find any related triggers for this workflow

@@ -17,6 +17,9 @@ func newReportFromResource(res *resource.Report, cfg *EncoderConfig) resourceSta
 }
 
 func (n *report) Prepare(ctx context.Context, pl *payload) (err error) {
+	// Reset old identifiers
+	n.res.Res.ID = 0
+
 	// Try to get the original report
 	n.rp, err = findReportStore(ctx, pl.s, makeGenericFilter(n.res.Identifiers()))
 	if err != nil {

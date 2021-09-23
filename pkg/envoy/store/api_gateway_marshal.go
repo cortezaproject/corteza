@@ -26,6 +26,8 @@ func (n *apiGateway) Prepare(ctx context.Context, pl *payload) (err error) {
 }
 
 func (n *apiGateway) prepareRoute(ctx context.Context, pl *payload) (err error) {
+	// Reset old identifiers
+	n.res.Res.ID = 0
 
 	// Try to get the original workflow
 	n.gwr, err = findAPIGatewayStore(ctx, pl.s, makeGenericFilter(n.res.Identifiers()))
@@ -42,6 +44,11 @@ func (n *apiGateway) prepareRoute(ctx context.Context, pl *payload) (err error) 
 func (n *apiGateway) prepareFilters(ctx context.Context, pl *payload) (err error) {
 	if n.gwr == nil || n.gwr.ID == 0 {
 		return nil
+	}
+
+	// Reset old identifiers
+	for _, rf := range n.res.Filters {
+		rf.Res.ID = 0
 	}
 
 	// Try to find any related filters for this route

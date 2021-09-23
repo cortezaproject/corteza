@@ -221,10 +221,6 @@ func (t *base) Placeholder() bool {
 	return t.ph
 }
 
-func MakeRef(rt string, ii Identifiers) *Ref {
-	return &Ref{ResourceType: rt, Identifiers: ii}
-}
-
 func IgnoreDepResolution(ref *Ref) bool {
 	return ref.ResourceType == composeTypes.ModuleFieldResourceType
 }

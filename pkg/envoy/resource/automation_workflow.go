@@ -51,8 +51,6 @@ func NewAutomationWorkflow(res *types.Workflow) *AutomationWorkflow {
 	us.RunAs = MakeUserstampFromID(res.RunAs)
 	r.SetUserstamps(us)
 
-	res.ID = 0
-
 	return r
 }
 
