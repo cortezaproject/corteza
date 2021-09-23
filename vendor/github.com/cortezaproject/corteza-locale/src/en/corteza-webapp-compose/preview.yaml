@@ -1,3 +1,9 @@
+general:
+  label:
+    attachmentFileInfo: '(File size: {{0}}, uploaded {{1}})'
+    download: Download
+  tooltip:
+    dragAndDrop: Drag and drop to change order
 pdf:
   clickToRetry: Click to retry
   downloadForAll: Download to see all pages
@@ -5,4 +11,4 @@ pdf:
   loading: Loading
   noPages: This document is empty
   pageLoadFailed: Page failed to load
-  pageLoading: $t(preview.pdf.loading)
+  pageLoading: Loading

@@ -68,5 +68,3 @@ list:
   permissions: Permissions
   title: Templates
   yaml: YAML
-navItem:
-  label: Templates

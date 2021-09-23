@@ -3,8 +3,6 @@ applications:
   deleted: Deleted
   title: Active application(s)
   total: Total
-navItem:
-  label: Dashboard
 roles:
   archived: Archived
   deleted: Deleted

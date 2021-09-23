@@ -49,5 +49,3 @@ list:
   numFound: '{{count}} session found'
   numFound_plural: '{{count}} sessions found'
   title: Sessions
-navItem:
-  label: Sessions

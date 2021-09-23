@@ -43,6 +43,7 @@ kind:
     formatLabel: Format
     formatPlaceholder: Format
     label: Number
+    liveExample: 'Live example:'
     precisionLabel: Precision
     precisionPlaceholder: Precision
     prefixLabel: Prefix
@@ -131,10 +132,9 @@ sanitizers:
     placeholder: trim(value)
   label: Value sanitization
 selector:
-  available: Columns available
-  footnote: Add fields by dragging or double-clicking on them. Selected fields can also be reordered
+  available: Fields available
   selectAll: Select all
-  selected: Columns selected
+  selected: Fields selected
   systemField: (system field)
   unselectAll: Unselect all
 system:
@@ -157,3 +157,6 @@ valueExpr:
   description: Insert a formula or expression that calculates numeric values or combines and manipulates text values
   label: Field value expression
   placeholder: ((floor(numField1) + numField2) / 10) + 0.5
+label:
+  required: Required
+  multi: Multi value

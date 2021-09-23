@@ -67,5 +67,3 @@ editor:
       title: SAML
     title: External Authentication Providers
   title: System settings
-navItem:
-  label: Settings

@@ -14,5 +14,3 @@ list:
     triggers: Triggers
   labelMissing: <label missing>
   title: Corredor Scripts
-navItem:
-  label: Corredor Scripts

@@ -1,4 +1,3 @@
-adminPanel: Admin panel
 automation: Automation
 chart: Charts
 configuration: Configuration
@@ -13,7 +12,6 @@ more: More
 namespace: Namespaces
 noPageTitle: No page title
 page: Pages
-publicPages: Public pages
 userSettings:
   changePassword: Change password
   loggedInAs: Logged in as {{user}}

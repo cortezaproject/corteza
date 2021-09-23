@@ -48,5 +48,3 @@ list:
   permissions: Permissions
   title: Workflows
   yaml: YAML
-navItem:
-  label: Workflows

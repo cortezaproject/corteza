@@ -51,5 +51,3 @@ list:
   permissions: Permissions
   title: Roles
   yaml: YAML
-navItem:
-  label: Roles
