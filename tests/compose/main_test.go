@@ -42,6 +42,7 @@ type (
 
 		cUser  *sysTypes.User
 		roleID uint64
+		token  string
 	}
 )
 
@@ -108,6 +109,12 @@ func newHelper(t *testing.T) helper {
 		},
 	}
 
+	var err error
+	h.token, err = auth.DefaultJwtHandler.Generate(context.Background(), h.cUser)
+	if err != nil {
+		panic(err)
+	}
+
 	h.cUser.SetRoles(h.roleID)
 	helpers.UpdateRBAC(h.roleID)
 
@@ -127,15 +134,10 @@ func (h helper) secCtx() context.Context {
 func (h helper) apiInit() *apitest.APITest {
 	InitTestApp()
 
-	tkn, err := auth.DefaultJwtHandler.Generate(context.Background(), h.cUser)
-	if err != nil {
-		panic(err)
-	}
-
 	return apitest.
 		New().
 		Handler(r).
-		Intercept(helpers.ReqHeaderRawAuthBearer(tkn))
+		Intercept(helpers.ReqHeaderRawAuthBearer(h.token))
 }
 
 func (h helper) mockPermissions(rules ...*rbac.Rule) {
