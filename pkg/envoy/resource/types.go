@@ -89,6 +89,15 @@ func (ri Identifiers) Add(ii ...string) Identifiers {
 	return ri
 }
 
+func (ri Identifiers) Clone() Identifiers {
+	out := make(Identifiers)
+	for i := range ri {
+		out[i] = true
+	}
+
+	return out
+}
+
 func (ri Identifiers) HasAny(ii Identifiers) bool {
 	for i := range ii {
 		if ri[i] {
@@ -268,7 +277,7 @@ func (rr RefSet) Unique() RefSet {
 		// type not seen at all, unique
 		if !ok {
 			out = append(out, r)
-			seen[r.ResourceType] = r.Identifiers
+			seen[r.ResourceType] = r.Identifiers.Clone()
 			continue
 		}
 
