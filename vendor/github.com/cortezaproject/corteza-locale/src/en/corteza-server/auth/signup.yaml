@@ -2,10 +2,10 @@ template:
   title: Sign up
   form:
     email:
-      label: E-mail *
+      label: E-mail
       placeholder: email@domain.ltd
     password:
-      label: Password *
+      label: Password
       placeholder: Password
     name:
       label: Full name
@@ -20,5 +20,5 @@ template:
 alerts:
   signup-successful: Sign-up successful.
   email-confirmed-logged-in: Email address confirmed, you're now logged-in.
-  inv-or-exp-token: Invalid or expired email confirmation token, please resend confirmation request.
+  invalid-expired-token: Invalid or expired email confirmation token, please resend confirmation request.
   signup-disabled: Signup disabled

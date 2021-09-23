@@ -32,11 +32,6 @@ general:
   error: Error
   success: Success
   warning: Warning
-import:
-  failed: Import failed
-  readingError: Error reading file
-  successful: Import successful
-  typeMissmatch: 'Import error: trying to import object of type "{{type1}}" into a list of objects of type "{{type2}}"'
 module:
   createFailed: Could not create a module
   deleteFailed: Could not delete this module
@@ -59,8 +54,6 @@ page:
   deleteFailed: Could not delete this page
   loadFailed: Could not load the page tree
   noPages: No pages found
-  pageMoveFailed: Could not move this page
-  reordered: Page reordered
   saveFailed: Could not save this page
   saveFailedRequired: Could not save this page, all required module fields must be present
   saved: Page saved

@@ -6,10 +6,15 @@ allRecords:
   label: All records
   list:
     title: All records for module "{{name}}"
-  selectFields:
+  columns:
     title: Configure columns
+    description: The columns picked won't be saved after you refresh the page
   view:
     title: View record for module "{{name}}"
+block:
+  record:
+    recordDeleted: This record was deleted
+    loadFailed: Could not load record
 createLabel: New Module
 edit:
   create: Create module
@@ -54,34 +59,35 @@ edit:
     required: Required field
     title: The name displayed in form input / data lists
 federated: Federated
-fieldKinds:
-  Bool:
-    label: Checkbox (Y/N)
-  DateTime:
-    label: Date and time
-  Email:
-    label: Email input
-  File:
-    label: File upload
-  Number:
-    label: Number input
-  Record:
-    label: Record selector
-  Select:
-    label: Select / dropdown
-  String:
-    label: Text input (string)
-  Url:
-    label: URL input
-  User:
-    label: User selector
 forModule:
   recordList: Record List for module
   recordListPage: Record List page for module
   recordPage: Record page for module
+general:
+  label:
+    attributes: Attributes
+    handle: Handle
+    name: Name
+    permissions: Permissions
+    title: Title
+    type: Type
+    saveAndClose: Save and close
+  placeholder:
+    handle: handle (a - z, 0 - 9, underscore, dash)
+    sample: Sample
 import: Module import
+navigation:
+  module: Modules
 newLabel: Module Name *
 newPlaceholder: Name used on the list of modules
+noModule: No modules
+notification:
+  deleteFailed: Could not delete this module
+  deleted: Module deleted
+  saveFailed: Could not save this module
+  saved: Module saved
+  page:
+    createFailed: Could not create a page
 recordPage:
   create: Create record page
   edit: Page builder

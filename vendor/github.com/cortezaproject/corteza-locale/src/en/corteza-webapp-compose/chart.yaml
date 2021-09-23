@@ -1,5 +1,14 @@
 colorLabel: '{{count}} colors'
 colorScheme: Color scheme
+configure:
+  reportsLabel: Reports
+general:
+  label:
+    title: Label
+    add: Add
+  value: Value
+  placeholder:
+    handle: handle (a - z, 0 - 9, underscore, dash)
 edit:
   dimension:
     calculateLabelCount: Calculate how many labels can be shown
@@ -93,5 +102,11 @@ edit:
 import: 'Import chart(s):'
 newLabel: 'Create a new chart:'
 newPlaceholder: Chart name
+notification:
+  loadFailed: Could not load chart
+  saveFailed: Could not save this chart
+  saved: Chart saved
+  deleteFailed: Could not delete this chart
+  deleted: Chart deleted
 searchPlaceholder: Type here to search all charts in this namespace
 title: List of Charts

@@ -43,5 +43,3 @@ list:
     today: Today
   loadOlder: Load older actions
   title: Action log
-navItem:
-  label: Action log

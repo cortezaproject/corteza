@@ -62,5 +62,3 @@ list:
         description: Pairing successful, pending final confirmation by administrator
   title: Federated Networks
   yaml: YAML
-navItem:
-  label: Nodes
