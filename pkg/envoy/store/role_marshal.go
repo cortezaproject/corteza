@@ -16,10 +16,8 @@ func NewRoleFromResource(res *resource.Role, cfg *EncoderConfig) resourceState {
 }
 
 func (n *role) Prepare(ctx context.Context, pl *payload) (err error) {
-	if n.cfg.IgnoreStore {
-		n.res.Res.ID = 0
-		return nil
-	}
+	// Reset old identifiers
+	n.res.Res.ID = 0
 
 	n.rl, err = findRoleStore(ctx, pl.s, makeGenericFilter(n.res.Identifiers()))
 	if err != nil {

@@ -126,11 +126,6 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 	// Initial timestamps
 	r.SetTimestamps(MakeTimestampsCUDA(&pg.CreatedAt, pg.UpdatedAt, pg.DeletedAt, nil))
 
-	pg.ID = 0
-	pg.SelfID = 0
-	pg.NamespaceID = 0
-	pg.ModuleID = 0
-
 	return r
 }
 

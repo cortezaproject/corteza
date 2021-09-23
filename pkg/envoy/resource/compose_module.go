@@ -68,17 +68,10 @@ func NewComposeModule(res *types.Module, nsRef string) *ComposeModule {
 				r.RefRoles = append(r.RefRoles, r.AddRef(systemTypes.RoleResourceType, refRole))
 			}
 		}
-
-		f.ID = 0
-		f.NamespaceID = 0
-		f.ModuleID = 0
 	}
 
 	// Initial timestamps
 	r.SetTimestamps(MakeTimestampsCUDA(&res.CreatedAt, res.UpdatedAt, res.DeletedAt, nil))
-
-	res.ID = 0
-	res.NamespaceID = 0
 
 	return r
 }
@@ -230,10 +223,6 @@ func NewComposeModuleField(res *types.ModuleField, nsRef, modRef string) *Compos
 
 	// Initial timestamps
 	r.SetTimestamps(MakeTimestampsCUDA(&res.CreatedAt, res.UpdatedAt, res.DeletedAt, nil))
-
-	res.ID = 0
-	res.NamespaceID = 0
-	res.ModuleID = 0
 
 	return r
 }

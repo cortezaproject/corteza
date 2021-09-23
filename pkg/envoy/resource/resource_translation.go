@@ -40,6 +40,23 @@ func NewResourceTranslation(res types.ResourceTranslationSet, refResource string
 	return r
 }
 
+func (r *ResourceTranslation) ReRef(old RefSet, new RefSet) {
+	r.base.ReRef(old, new)
+
+	for i, o := range old {
+		if o.equals(r.RefRes) {
+			r.RefRes = new[i]
+			break
+		}
+	}
+
+	for i, o := range old {
+		if RefSet(r.RefPath).findRef(o) > -1 {
+			r.RefPath = RefSet(r.RefPath).replaceRef(o, new[i])
+		}
+	}
+}
+
 func (l *ResourceTranslation) MarkDefault() {
 	l.Priority = 1
 }
