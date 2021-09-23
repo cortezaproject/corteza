@@ -109,6 +109,32 @@ select.form-control {
   padding: 0 20px;
 }
 
+@media (max-width: 649px) {
+  .custom-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  .custom-col {
+    display: flex;
+    flex-direction: column;
+    width: 48%;
+  }
+}
+
+@media (max-width: 564px) {
+  .margin-auto {
+    margin: auto;
+  }
+}
+
+.text-truncate {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
 .footer {
   bottom: 0;
   z-index: -1;
