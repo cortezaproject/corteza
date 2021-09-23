@@ -16,10 +16,8 @@ func NewTemplateFromResource(res *resource.Template, cfg *EncoderConfig) resourc
 }
 
 func (n *template) Prepare(ctx context.Context, pl *payload) (err error) {
-	if n.cfg.IgnoreStore {
-		n.res.Res.ID = 0
-		return nil
-	}
+	// Reset old identifiers
+	n.res.Res.ID = 0
 
 	// Try to get the original template
 	n.t, err = findTemplateStore(ctx, pl.s, makeGenericFilter(n.res.Identifiers()))

@@ -19,6 +19,8 @@ props:
   - name: changed
     type: "*types.Namespace"
     fields: [ name, slug, ID, meta, enabled ]
+  - name: archiveFormat
+    type: string
   - name: filter
     type: "*types.NamespaceFilter"
     fields: [ query, slug, sort, limit ]
@@ -37,6 +39,15 @@ actions:
 
   - action: update
     log: "updated {{namespace}}"
+
+  - action: clone
+    log: "cloned {namespace}"
+
+  - action: export
+    log: "exported {namespace}"
+
+  - action: import
+    log: "imported {namespace}"
 
   - action: delete
     log: "deleted {{namespace}}"
@@ -68,6 +79,18 @@ errors:
   - error: staleData
     message: "stale data"
     severity: warning
+
+  - error: unsupportedExportFormat
+    message: "unsupported export format"
+    log: "could not export namespace {{namespace}}; unsupported format {{archiveFormat}}"
+
+  - error: unsupportedImportFormat
+    message: "unsupported import format"
+    log: "could not import namespace {{namespace}}; unsupported format {{archiveFormat}}"
+
+  - error: cloneMultiple
+    message: "not allowed to clone multiple namespaces at once"
+    log: "could not clone namespaces; multiple duplications requested at once"
 
   - error: notAllowedToRead
     message: "not allowed to read this namespace"

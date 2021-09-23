@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"path"
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/app"
@@ -12,12 +13,19 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/api/server"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
+	"github.com/cortezaproject/corteza-server/pkg/envoy"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/csv"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/directory"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	envoyStore "github.com/cortezaproject/corteza-server/pkg/envoy/store"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/yaml"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/objstore/plain"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
+	"github.com/cortezaproject/corteza-server/store"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	"github.com/go-chi/chi"
@@ -42,6 +50,7 @@ var (
 	r       chi.Router
 
 	eventBus = eventbus.New()
+	defStore store.Storer
 )
 
 func init() {
@@ -64,6 +73,7 @@ func InitTestApp() {
 
 		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
 			service.DefaultStore = app.Store
+			defStore = app.Store
 			service.DefaultObjectStore, err = plain.NewWithAfero(afero.NewMemMapFs(), "test")
 			if err != nil {
 				return err
@@ -143,4 +153,87 @@ func (h helper) noError(err error) {
 	}
 
 	h.a.NoError(err)
+}
+
+func collect(ee ...error) error {
+	for _, e := range ee {
+		if e != nil {
+			return e
+		}
+	}
+	return nil
+}
+
+func cleanup(t *testing.T) {
+	var (
+		ctx = context.Background()
+	)
+
+	err := collect(
+		defStore.TruncateComposeNamespaces(ctx),
+		defStore.TruncateComposePages(ctx),
+		defStore.TruncateComposeModuleFields(ctx),
+		defStore.TruncateComposeModules(ctx),
+		defStore.TruncateComposeRecords(ctx, nil),
+	)
+	if err != nil {
+		t.Fatalf("failed to decode scenario data: %v", err)
+	}
+}
+
+func loadScenario(ctx context.Context, s store.Storer, t *testing.T, h helper) {
+	loadScenarioWithName(ctx, s, t, h, "S"+t.Name()[4:])
+}
+
+func loadScenarioWithName(ctx context.Context, s store.Storer, t *testing.T, h helper, scenario string) {
+	cleanup(t)
+	parseEnvoy(ctx, s, h, path.Join("testdata", scenario, "data_model"))
+}
+
+func parseEnvoy(ctx context.Context, s store.Storer, h helper, path string) {
+	nn, err := directory.Decode(
+		ctx,
+		path,
+		yaml.Decoder(),
+		csv.Decoder(),
+	)
+	if err != nil {
+		h.t.Fatalf("failed to decode scenario data: %v", err)
+	}
+
+	crs := resource.ComposeRecordShaper()
+	nn, err = resource.Shape(nn, crs)
+	h.a.NoError(err)
+
+	// import into the store
+	se := envoyStore.NewStoreEncoder(s, nil)
+	bld := envoy.NewBuilder(se)
+	g, err := bld.Build(ctx, nn...)
+	h.a.NoError(err)
+	err = envoy.Encode(ctx, g, se)
+	h.a.NoError(err)
+}
+
+func bypassRBAC(ctx context.Context) context.Context {
+	u := &sysTypes.User{
+		ID: id.Next(),
+	}
+
+	u.SetRoles(auth.BypassRoles().IDs()...)
+
+	return auth.SetIdentityToContext(ctx, u)
+}
+
+func setup(t *testing.T) (context.Context, helper, store.Storer) {
+	h := newHelper(t)
+	s := service.DefaultStore
+
+	u := &sysTypes.User{
+		ID: id.Next(),
+	}
+	u.SetRoles(auth.BypassRoles().IDs()...)
+
+	ctx := auth.SetIdentityToContext(context.Background(), u)
+
+	return ctx, h, s
 }

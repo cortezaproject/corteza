@@ -40,6 +40,23 @@ func NewComposeChart(res *types.Chart, nsRef string, mmRef []string) *ComposeCha
 	return r
 }
 
+func (r *ComposeChart) ReRef(old RefSet, new RefSet) {
+	r.base.ReRef(old, new)
+
+	// Additional references
+	for _, n := range new {
+		if n.ResourceType == types.NamespaceResourceType {
+			r.RefNs = MakeRef(types.NamespaceResourceType, n.Identifiers)
+		}
+	}
+
+	for i, o := range old {
+		if o.ResourceType == types.ModuleResourceType {
+			r.RefMods = r.RefMods.replaceRef(o, new[i])
+		}
+	}
+}
+
 func (r *ComposeChart) SysID() uint64 {
 	return r.Res.ID
 }

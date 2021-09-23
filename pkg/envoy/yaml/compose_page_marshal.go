@@ -142,6 +142,7 @@ func (p *composePage) MarshalYAML() (interface{}, error) {
 	}
 
 	nn, err = addMap(nn,
+		"pageID", p.res.ID,
 		"handle", p.res.Handle,
 		"title", p.res.Title,
 		"description", p.res.Description,
