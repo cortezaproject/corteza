@@ -92,7 +92,7 @@
 	{{ range .providers }}
 		<a href="{{ links.External }}/{{ .Handle }}" class="btn btn-light btn-block btn-lg mb-2 mt-1 text-dark">
 			<i class="bi bi-{{ .Icon }} mr-1"></i>
-			{{ tr "login.template.external.login-with" "idp" (coalesce .Label .Handle) }}
+			{{ tr "login.template.links.external.login-with" "idp" (coalesce .Label .Handle) }}
 		</a>
 	{{ end }}
 	</div>

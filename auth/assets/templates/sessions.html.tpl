@@ -1,18 +1,25 @@
 {{ template "inc_header.html.tpl" set . "activeNav" "sessions" }}
 <div class="card-body p-0">
-	<div class="card-title p-3 border-bottom">
-		<h4 class="card-title d-inline">{{ tr "sessions.template.title" }}</h4>
-		{{ if .sessions}}
-		<button
-			type="submit"
-			name="delete-all-but-current"
-			value="true"
-			class="btn btn-sm btn-danger float-right"
-		>
-			{{ tr "sessions.template.delete-all" }}
-		</button>
+	<form
+		method="POST"
+		action="{{ links.Sessions }}"
+		class="p-3"
+	>
+		{{ .csrfField }}
+		<div class="card-title p-3 border-bottom">
+			<h4 class="card-title d-inline">{{ tr "sessions.template.title" }}</h4>
+			{{- if and .sessions (gt (len .sessions) 1) }}
+			<button
+				type="submit"
+				name="delete-all-but-current"
+				value="true"
+				class="btn btn-sm btn-danger float-right"
+			>
+				{{ tr "sessions.template.delete-all" }}
+			</button>
 		{{ end }}
-	</div>
+		</div>
+	</form>
 	<form
 		method="POST"
 		action="{{ links.Sessions }}"
