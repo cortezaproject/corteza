@@ -96,6 +96,21 @@ func makeGenericCompHandler(comp string) HandlerSig {
 	}
 }
 
+func makeGenericModifierHandler(mdf string) HandlerSig {
+	return func(aa ...FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
+		selfEnclosed = true
+
+		if len(aa) != 1 {
+			err = fmt.Errorf("expecting 1 arguments, got %d", len(aa))
+			return
+		}
+
+		out = fmt.Sprintf("%s %s", mdf, aa[0].S)
+		args = aa[0].Args
+		return
+	}
+}
+
 func makeGenericAggFncHandler(fnc string) HandlerSig {
 	return func(aa ...FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
 		selfEnclosed = true

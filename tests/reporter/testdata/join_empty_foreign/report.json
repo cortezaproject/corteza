@@ -1,0 +1,37 @@
+{
+  "handle": "testing_report",
+  "sources": [
+    { "step": { "load": {
+      "name": "aa",
+      "source": "composeRecords",
+      "definition": {
+        "module": "aa",
+        "namespace": "ns"
+      }
+    }}},
+    { "step": { "load": {
+      "name": "bb",
+      "source": "composeRecords",
+      "definition": {
+        "module": "bb",
+        "namespace": "ns"
+      },
+
+      "filter": "false"
+    }}},
+  
+    { "step": { "join": {
+      "name": "joined",
+
+      "localSource": "aa",
+      "localColumn": "pk",
+      "foreignSource": "bb",
+      "foreignColumn": "fk_a"
+    }}}
+  ],
+
+  "frames": [{
+    "name": "result",
+    "source": "joined"
+  }]
+}

@@ -695,30 +695,39 @@ func (d *joinedDataset) foreignBasedLoad(ctx context.Context, cap int, local, fo
 // updateBuffers updates existing frame buffers with newly provided ones
 func (d *joinedDataset) updateBuffers(local, foreign []*Frame) {
 	// - local
-	if len(d.localFrames) == 0 {
-		d.localFrames = local
-	} else {
-		if d.partitioned {
-			d.localFrames = append(d.localFrames, local...)
+	if len(local) != 0 {
+		if len(d.localFrames) == 0 {
+			d.localFrames = local
 		} else {
-			d.localFrames[0].Rows = append(d.localFrames[0].Rows, local[0].Rows...)
+			if d.partitioned {
+				d.localFrames = append(d.localFrames, local...)
+			} else {
+				d.localFrames[0].Rows = append(d.localFrames[0].Rows, local[0].Rows...)
+			}
 		}
 	}
 
 	// - foreign
-	if d.foreignSourceIndex == nil {
-		d.foreignSourceIndex = make(map[string]int)
-	}
-	if ix, ok := d.foreignSourceIndex[foreign[0].Ref]; !ok {
-		d.foreignSourceIndex[foreign[0].Ref] = len(d.foreignFrames)
-		d.foreignFrames = append(d.foreignFrames, foreign)
-	} else {
-		d.foreignFrames[ix] = append(d.foreignFrames[ix], foreign...)
+	if len(foreign) != 0 {
+		if d.foreignSourceIndex == nil {
+			d.foreignSourceIndex = make(map[string]int)
+		}
+		if ix, ok := d.foreignSourceIndex[foreign[0].Ref]; !ok {
+			d.foreignSourceIndex[foreign[0].Ref] = len(d.foreignFrames)
+			d.foreignFrames = append(d.foreignFrames, foreign)
+		} else {
+			d.foreignFrames[ix] = append(d.foreignFrames[ix], foreign...)
+		}
 	}
 }
 
 // removeOrphanRows removes all local rows with no related foreign frame
 func (d *joinedDataset) removeOrphanRows(local, foreign []*Frame) ([]*Frame, []*Frame, bool) {
+	// special edgecase where either of the buffers are empty
+	if len(local) == 0 || len(foreign) == 0 {
+		return nil, nil, true
+	}
+
 	// - index foreign frames based on ref value so that we have an easier time validating
 	fIndex := make(map[string]bool)
 	for _, ff := range foreign {

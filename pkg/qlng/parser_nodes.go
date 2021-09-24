@@ -87,11 +87,18 @@ var (
 		`*`: {name: `mult`, weight: 10},
 		`/`: {name: `div`, weight: 10},
 
+		// modifiers
+		`!`: {name: `not`, weight: 0},
+
 		// str comp.
 		`LIKE`:     {name: `like`, weight: 40},
 		`NOT LIKE`: {name: `nlike`, weight: 40},
 	}
 )
+
+func isUnary(s string) bool {
+	return s == "!" || s == "not"
+}
 
 func getOp(op string) *opDef {
 	o, ok := ops[strings.ToUpper(op)]
@@ -149,7 +156,7 @@ func (nn parserNodes) Validate() (err error) {
 		return fmt.Errorf("empty set")
 	}
 
-	if op, ok := nn[0].(operator); ok {
+	if op, ok := nn[0].(operator); ok && !isUnary(op.kind) {
 		return fmt.Errorf("malformed expression, unexpected operator '%s' at first node", op)
 	}
 
