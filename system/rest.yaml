@@ -1441,7 +1441,7 @@ endpoints:
         title: Report ID
   - name: describe
     method: POST
-    title: Describe report (fresh)
+    title: Describe report
     path: "/describe"
     parameters:
       post:
@@ -1449,16 +1449,6 @@ endpoints:
       - { name: steps,    type: "report.StepDefinitionSet",   title: Report steps definition  }
       - { name: describe, type: "[]string",                   title: The source descriptions to generate }
 
-    # @todo better name
-  - name: runFresh
-    method: POST
-    title: Run report (fresh)
-    path: "/run"
-    parameters:
-      post:
-      - { name: sources,      type: "types.ReportDataSourceSet",  title: Report steps definition }
-      - { name: steps,        type: "report.StepDefinitionSet",   title: Report steps definition  }
-      - { name: frames,       type: "report.FrameDefinitionSet",  title: Report data frame definitions }
   - name: run
     method: POST
     title: Run report
