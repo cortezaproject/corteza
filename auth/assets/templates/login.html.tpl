@@ -76,21 +76,21 @@
 	</form>
 	<div class="row text-center">
         {{ if .settings.PasswordResetEnabled }}
-        <div class="col cols-6 mb-5">
+        <div class="col cols-6">
             <a href="{{ links.RequestPasswordReset }}">{{ tr "login.template.links.request-password-reset" }}</a>
         </div>
         {{ end }}
         {{ if .settings.SignupEnabled }}
-        <div class="col cols-6 mb-5">
+        <div class="col cols-6">
             <a href="{{ links.Signup }}">{{ tr "login.template.links.signup" }}</a>
         </div>
         {{ end }}
 	</div>
 	{{ end }}
 	{{ if .settings.ExternalEnabled }}
-	<div class="p-3">
+	<div class="p-2">
 	{{ range .providers }}
-		<a href="{{ links.External }}/{{ .Handle }}" class="btn btn-light btn-block btn-lg mb-2 text-dark">
+		<a href="{{ links.External }}/{{ .Handle }}" class="btn btn-light btn-block btn-lg mb-2 mt-1 text-dark">
 			<i class="bi bi-{{ .Icon }} mr-1"></i>
 			{{ tr "login.template.external.login-with" "idp" (coalesce .Label .Handle) }}
 		</a>

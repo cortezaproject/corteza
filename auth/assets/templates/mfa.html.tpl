@@ -98,7 +98,7 @@
 		</button>
 	</form>
 	{{ else if not .totpDisabled }}
-		<p class="p-3 mb-0">
+		<p class="px-3 pt-3 pb-2 mb-0">
 			<i class="bi bi-check-circle text-success h5 mr-1"></i> {{ tr "mfa.template.totp.confirmed" }}
 		</p>
 	{{ end }}
