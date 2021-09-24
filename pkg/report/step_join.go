@@ -184,7 +184,7 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (l Loa
 	// - Preprocess additional paging filtering
 	var pp []partialPagingCnd
 	if oLocalDef.Paging.PageCursor != nil {
-		pp, err = d.strategizePaging(localDef, foreignDef, inverted)
+		pp, err = d.strategizePaging(localDef, foreignDef, inverted, dscr)
 		if err != nil {
 			return
 		}
