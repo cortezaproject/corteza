@@ -92,7 +92,7 @@ func (svc record) Datasource(ctx context.Context, ld *report.LoadStepDefinition)
 		}
 
 		// Sys fields
-		c = report.MakeColumnOfKind("Date")
+		c = report.MakeColumnOfKind("DateTime")
 		c.System = true
 		c.Name = "createdAt"
 		c.Label = "Created at"
@@ -104,7 +104,7 @@ func (svc record) Datasource(ctx context.Context, ld *report.LoadStepDefinition)
 		c.Label = "Created by"
 		cols = append(cols, c)
 
-		c = report.MakeColumnOfKind("Date")
+		c = report.MakeColumnOfKind("DateTime")
 		c.System = true
 		c.Name = "updatedAt"
 		c.Label = "Updated at"
@@ -116,7 +116,7 @@ func (svc record) Datasource(ctx context.Context, ld *report.LoadStepDefinition)
 		c.Label = "Updated by"
 		cols = append(cols, c)
 
-		c = report.MakeColumnOfKind("Date")
+		c = report.MakeColumnOfKind("DateTime")
 		c.System = true
 		c.Name = "deletedAt"
 		c.Label = "Deleted at"

@@ -43,6 +43,12 @@ var (
 	// @todo IS and IS NOT; should this be calculated with eq operators?
 	sqlExprRegistry = map[string]exprHandler{
 		// operators
+		"not": {
+			Args:    collectParams(true, "Boolean"),
+			Result:  wrapRes("Boolean"),
+			Handler: makeGenericModifierHandler("NOT"),
+		},
+
 		// - bool
 		"and": {
 			Args:    collectParams(true, "Boolean"),
@@ -190,7 +196,7 @@ var (
 		"date": {
 			Args:    collectParams(true, "DateTime"),
 			Result:  wrapRes("Number"),
-			Handler: makeGenericFilterFncHandler("DATE"),
+			Handler: makeGenericFilterFncHandler("DateTime"),
 		},
 
 		// generic stuff
@@ -204,6 +210,22 @@ var (
 			Result: wrapRes("Null"),
 			Handler: func(aa ...FormattedASTArgs) (string, []interface{}, bool, error) {
 				return "NOT NULL", nil, true, nil
+			},
+		},
+
+		"exists": {
+			Args:   collectParams(false, "Any"),
+			Result: wrapRes("Boolean"),
+			Handler: func(aa ...FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
+				if len(aa) != 1 {
+					err = fmt.Errorf("expecting 1 arguments, got %d", len(aa))
+					return
+				}
+
+				out = fmt.Sprintf("(%s IS NOT NULL)", aa[0].S)
+				selfEnclosed = true
+
+				return
 			},
 		},
 

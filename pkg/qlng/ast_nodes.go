@@ -279,18 +279,30 @@ func (nn parserNodes) ToAST() (out *ASTNode) {
 		}
 
 		// Have the op consume what it needs.
-		// Currently we only have binary operators (the !unary ones) so this is fine.
 		arg := auxArgs[bestOpIx]
-		arg.Args = append(arg.Args, auxArgs[bestOpIx-1], auxArgs[bestOpIx+1])
-		// this is not needed anymore so we can remove it
-		arg.pMeta = nil
+		if !isUnary(arg.Ref) {
+			arg.Args = append(arg.Args, auxArgs[bestOpIx-1], auxArgs[bestOpIx+1])
+			// this is not needed anymore so we can remove it
+			arg.pMeta = nil
 
-		// Remove the consumed bits and replace it with the new bit
-		aux := auxArgs[0 : bestOpIx-1]
-		aux = append(aux, arg)
-		// +1 for right side, +1 because the left index is inclusive
-		aux = append(aux, auxArgs[bestOpIx+2:]...)
-		auxArgs = aux
+			// Remove the consumed bits and replace it with the new bit
+			aux := auxArgs[0 : bestOpIx-1]
+			aux = append(aux, arg)
+			// +1 for right side, +1 because the left index is inclusive
+			aux = append(aux, auxArgs[bestOpIx+2:]...)
+			auxArgs = aux
+		} else {
+			arg.Args = append(arg.Args, auxArgs[bestOpIx+1])
+			// this is not needed anymore so we can remove it
+			arg.pMeta = nil
+
+			// Remove the consumed bits and replace it with the new bit
+			aux := auxArgs[0:bestOpIx]
+			aux = append(aux, arg)
+			// +1 because the left index is inclusive
+			aux = append(aux, auxArgs[bestOpIx+2:]...)
+			auxArgs = aux
+		}
 	}
 
 	if len(auxArgs) > 1 {

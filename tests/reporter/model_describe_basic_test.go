@@ -16,7 +16,7 @@ func Test_model_describe_basic(t *testing.T) {
 		h.a.Len(ff, 1)
 
 		h.a.Equal(
-			"id<Record>, join_key<String>, first_name<String>, last_name<String>, email<String>, number_of_numbers<Number>, dob<DateTime>, createdAt<Date>, createdBy<User>, updatedAt<Date>, updatedBy<User>, deletedAt<Date>, deletedBy<User>",
+			"id<Record>, join_key<String>, first_name<String>, last_name<String>, email<String>, number_of_numbers<Number>, dob<DateTime>, createdAt<DateTime>, createdBy<User>, updatedAt<DateTime>, updatedBy<User>, deletedAt<DateTime>, deletedBy<User>",
 			ff[0].Columns.String(),
 		)
 	})
@@ -26,7 +26,7 @@ func Test_model_describe_basic(t *testing.T) {
 		h.a.Len(ff, 1)
 
 		h.a.Equal(
-			"id<Record>, name<String>, type<Select>, cost<Number>, time_spent<Number>, usr<String>, createdAt<Date>, createdBy<User>, updatedAt<Date>, updatedBy<User>, deletedAt<Date>, deletedBy<User>",
+			"id<Record>, name<String>, type<Select>, cost<Number>, time_spent<Number>, usr<String>, createdAt<DateTime>, createdBy<User>, updatedAt<DateTime>, updatedBy<User>, deletedAt<DateTime>, deletedBy<User>",
 			ff[0].Columns.String(),
 		)
 	})
@@ -36,12 +36,12 @@ func Test_model_describe_basic(t *testing.T) {
 		h.a.Len(ff, 2)
 
 		h.a.Equal(
-			"id<Record>, join_key<String>, first_name<String>, last_name<String>, email<String>, number_of_numbers<Number>, dob<DateTime>, createdAt<Date>, createdBy<User>, updatedAt<Date>, updatedBy<User>, deletedAt<Date>, deletedBy<User>",
+			"id<Record>, join_key<String>, first_name<String>, last_name<String>, email<String>, number_of_numbers<Number>, dob<DateTime>, createdAt<DateTime>, createdBy<User>, updatedAt<DateTime>, updatedBy<User>, deletedAt<DateTime>, deletedBy<User>",
 			ff.FilterByRef("users")[0].Columns.String(),
 		)
 
 		h.a.Equal(
-			"id<Record>, name<String>, type<Select>, cost<Number>, time_spent<Number>, usr<String>, createdAt<Date>, createdBy<User>, updatedAt<Date>, updatedBy<User>, deletedAt<Date>, deletedBy<User>",
+			"id<Record>, name<String>, type<Select>, cost<Number>, time_spent<Number>, usr<String>, createdAt<DateTime>, createdBy<User>, updatedAt<DateTime>, updatedBy<User>, deletedAt<DateTime>, deletedBy<User>",
 			ff.FilterByRef("jobs")[0].Columns.String(),
 		)
 	})
