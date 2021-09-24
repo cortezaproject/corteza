@@ -31,9 +31,6 @@ func migrateResourceTranslations(ctx context.Context, log *zap.Logger, s store.S
 		migrated = make(map[string]bool)
 	)
 
-	// might be useful when developing or debugging migration
-	_ = store.TruncateResourceTranslations(ctx, s)
-
 	set, _, err := store.SearchResourceTranslations(ctx, s, sysTypes.ResourceTranslationFilter{})
 	set.Walk(func(r *sysTypes.ResourceTranslation) error {
 		var pos = strings.Index(r.Resource, "/")
@@ -144,14 +141,14 @@ func migrateComposeModuleFieldResourceTranslations(ctx context.Context, s store.
 			// store does not contain this info,
 			// but we need it to generate  resource id
 			res.NamespaceID = namespaceID
-			tt = append(tt, makeResourceTranslation(res, "label", res.Name))
+			tt = append(tt, makeResourceTranslation(res, "label", res.Label))
 
 			var update = len(res.Expressions.Validators) > 0
 
 			for i := range res.Expressions.Validators {
 				validatorID := i + 1
 				res.Expressions.Validators[i].ValidatorID = uint64(validatorID)
-				tt = append(tt, makeResourceTranslation(res, fmt.Sprintf("expression.validator.%d.error", validatorID), res.Name))
+				tt = append(tt, makeResourceTranslation(res, fmt.Sprintf("expression.validator.%d.error", validatorID), res.Expressions.Validators[i].Error))
 			}
 
 			if err = store.CreateResourceTranslation(ctx, s, tt...); err != nil {
