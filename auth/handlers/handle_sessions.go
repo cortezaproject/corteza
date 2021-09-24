@@ -78,7 +78,7 @@ func (h *AuthHandlers) sessionsProc(req *request.AuthReq) error {
 		t := translator(req, "auth")
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "primary",
-			Text: t("session.alerts.delete-sessions-but-current"),
+			Text: t("sessions.alerts.delete-sessions-but-current"),
 		})
 	case len(req.Request.PostFormValue("delete")) > 0:
 		for _, s := range ss {
@@ -94,7 +94,7 @@ func (h *AuthHandlers) sessionsProc(req *request.AuthReq) error {
 		t := translator(req, "auth")
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "primary",
-			Text: t("session.alerts.session-deleted"),
+			Text: t("sessions.alerts.session-deleted"),
 		})
 	}
 
