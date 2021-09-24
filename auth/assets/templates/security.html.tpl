@@ -48,7 +48,7 @@
 			{{ end }}
 
 			{{ if .settings.MultiFactor.EmailOTP.Enabled }}
-			<div class="py-4">
+			<div class="pt-4 pb-1">
 				<h6>{{ tr "security.template.mfa.email.title" }}</h6>
 				<div class="row">
 					<div class="col-10 pt-2">
@@ -77,7 +77,7 @@
 			</div>
 			{{ end }}
 		{{ else }}
-			<div class="mb-4 font-italic" role="alert">
+			<div class="mb-1 font-italic" role="alert">
 				{{ tr "security.template.mfa.all-disabled" }}
 			</div>
 		{{ end }}

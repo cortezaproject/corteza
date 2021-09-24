@@ -31,7 +31,7 @@
             </button>
         </div>
 	{{ else }}
-		<div class="text-center m-3 mb-5">
+		<div class="text-center m-3 mb-3">
 			<i>{{ tr "authorized-clients.template.list.empty" }}</i>
 		</div>
 	{{ end }}

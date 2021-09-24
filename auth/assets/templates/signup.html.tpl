@@ -74,7 +74,7 @@
 			>{{ tr "signup.template.form.button.sign-up" }}</button>
 		</div>
 	</form>
-	<div class="text-center my-3">
+	<div class="text-center mt-2 mb-3">
 		{{ tr "signup.template.log-in" "link" links.Login }}
 	</div>
 </div>

@@ -6,12 +6,7 @@
   --body-margin: 50px;
 }
 
-html {
-  overflow: hidden;
-}
-
 body {
-  overflow: auto;
   margin: var(--body-margin) 0;
   font-family: 'Nunito', sans-serif;
   height: calc(100vh - 2 * var(--body-margin));
