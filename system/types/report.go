@@ -81,12 +81,21 @@ type (
 	}
 )
 
-// @todo make better
 func (ss ReportDataSourceSet) ModelSteps() report.StepDefinitionSet {
 	out := make(report.StepDefinitionSet, 0, 124)
 
 	for _, s := range ss {
 		out = append(out, s.Step)
+	}
+
+	return out
+}
+
+func (pp ReportProjectionSet) ModelSteps() report.StepDefinitionSet {
+	out := make(report.StepDefinitionSet, 0, 124)
+
+	for _, p := range pp {
+		out = append(out, p.Sources...)
 	}
 
 	return out

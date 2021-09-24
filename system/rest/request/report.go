@@ -165,23 +165,6 @@ type (
 		Describe []string
 	}
 
-	ReportRunFresh struct {
-		// Sources POST parameter
-		//
-		// Report steps definition
-		Sources types.ReportDataSourceSet
-
-		// Steps POST parameter
-		//
-		// Report steps definition
-		Steps report.StepDefinitionSet
-
-		// Frames POST parameter
-		//
-		// Report data frame definitions
-		Frames report.FrameDefinitionSet
-	}
-
 	ReportRun struct {
 		// ReportID PATH parameter
 		//
@@ -706,81 +689,6 @@ func (r *ReportDescribe) Fill(req *http.Request) (err error) {
 
 		//if val, ok := req.Form["describe[]"]; ok && len(val) > 0  {
 		//    r.Describe, err = val, nil
-		//    if err != nil {
-		//        return err
-		//    }
-		//}
-	}
-
-	return err
-}
-
-// NewReportRunFresh request
-func NewReportRunFresh() *ReportRunFresh {
-	return &ReportRunFresh{}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ReportRunFresh) Auditable() map[string]interface{} {
-	return map[string]interface{}{
-		"sources": r.Sources,
-		"steps":   r.Steps,
-		"frames":  r.Frames,
-	}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ReportRunFresh) GetSources() types.ReportDataSourceSet {
-	return r.Sources
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ReportRunFresh) GetSteps() report.StepDefinitionSet {
-	return r.Steps
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ReportRunFresh) GetFrames() report.FrameDefinitionSet {
-	return r.Frames
-}
-
-// Fill processes request and fills internal variables
-func (r *ReportRunFresh) Fill(req *http.Request) (err error) {
-
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
-
-	{
-		if err = req.ParseForm(); err != nil {
-			return err
-		}
-
-		// POST params
-
-		//if val, ok := req.Form["sources[]"]; ok && len(val) > 0  {
-		//    r.Sources, err = types.ReportDataSourceSet(val), nil
-		//    if err != nil {
-		//        return err
-		//    }
-		//}
-
-		//if val, ok := req.Form["steps[]"]; ok && len(val) > 0  {
-		//    r.Steps, err = report.StepDefinitionSet(val), nil
-		//    if err != nil {
-		//        return err
-		//    }
-		//}
-
-		//if val, ok := req.Form["frames[]"]; ok && len(val) > 0  {
-		//    r.Frames, err = report.FrameDefinitionSet(val), nil
 		//    if err != nil {
 		//        return err
 		//    }

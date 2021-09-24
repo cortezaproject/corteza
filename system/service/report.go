@@ -284,11 +284,6 @@ func (svc *report) Undelete(ctx context.Context, ID uint64) (err error) {
 	return svc.recordAction(ctx, aaProps, ReportActionUndelete, err)
 }
 
-func (svc *report) Run(ctx context.Context, ID uint64, dd rep.FrameDefinitionSet) (rr interface{}, err error) {
-	// @todo follow the RunFresh definition here
-	return nil, nil
-}
-
 // actionlog?
 func (svc *report) DescribeFresh(ctx context.Context, src types.ReportDataSourceSet, st rep.StepDefinitionSet, sources ...string) (out rep.FrameDescriptionSet, err error) {
 	// var (
@@ -328,19 +323,34 @@ func (svc *report) DescribeFresh(ctx context.Context, src types.ReportDataSource
 	return out, err
 }
 
-func (svc *report) RunFresh(ctx context.Context, src types.ReportDataSourceSet, st rep.StepDefinitionSet, dd rep.FrameDefinitionSet) (out []*rep.Frame, err error) {
+func (svc *report) Run(ctx context.Context, reportID uint64, dd rep.FrameDefinitionSet) (out []*rep.Frame, err error) {
 	var (
 		aaProps = &reportActionProps{}
 	)
 	out = make([]*rep.Frame, 0, 4)
 
 	err = func() (err error) {
+		// @todo evt bus?
 		// if err = svc.eventbus.WaitFor(ctx, event.ReportBeforeUpdate(upd, report)); err != nil {
 		// 	return
 		// }
 
-		ss := src.ModelSteps()
-		ss = append(ss, st...)
+		if reportID == 0 {
+			return ReportErrInvalidID()
+		}
+
+		r, err := store.LookupReportByID(ctx, svc.store, reportID)
+		if err != nil {
+			return err
+		}
+
+		// - ac
+		if !svc.ac.CanRunReport(ctx, r) {
+			return ReportErrNotAllowedToRun()
+		}
+
+		ss := r.Sources.ModelSteps()
+		ss = append(ss, r.Projections.ModelSteps()...)
 
 		// Model the report
 		model, err := rep.Model(ctx, reporters, ss...)

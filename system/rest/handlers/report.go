@@ -26,7 +26,6 @@ type (
 		Delete(context.Context, *request.ReportDelete) (interface{}, error)
 		Undelete(context.Context, *request.ReportUndelete) (interface{}, error)
 		Describe(context.Context, *request.ReportDescribe) (interface{}, error)
-		RunFresh(context.Context, *request.ReportRunFresh) (interface{}, error)
 		Run(context.Context, *request.ReportRun) (interface{}, error)
 	}
 
@@ -39,7 +38,6 @@ type (
 		Delete   func(http.ResponseWriter, *http.Request)
 		Undelete func(http.ResponseWriter, *http.Request)
 		Describe func(http.ResponseWriter, *http.Request)
-		RunFresh func(http.ResponseWriter, *http.Request)
 		Run      func(http.ResponseWriter, *http.Request)
 	}
 )
@@ -158,22 +156,6 @@ func NewReport(h ReportAPI) *Report {
 
 			api.Send(w, r, value)
 		},
-		RunFresh: func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			params := request.NewReportRunFresh()
-			if err := params.Fill(r); err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			value, err := h.RunFresh(r.Context(), params)
-			if err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			api.Send(w, r, value)
-		},
 		Run: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewReportRun()
@@ -203,7 +185,6 @@ func (h Report) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 		r.Delete("/reports/{reportID}", h.Delete)
 		r.Post("/reports/{reportID}/undelete", h.Undelete)
 		r.Post("/reports/describe", h.Describe)
-		r.Post("/reports/run", h.RunFresh)
 		r.Post("/reports/{reportID}/run", h.Run)
 	})
 }

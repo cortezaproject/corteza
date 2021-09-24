@@ -27,9 +27,7 @@ type (
 		Update(ctx context.Context, upd *types.Report) (app *types.Report, err error)
 		Delete(ctx context.Context, ID uint64) (err error)
 		Undelete(ctx context.Context, ID uint64) (err error)
-		// @todo
-		// Run(ctx context.Context, ID uint64, dd report.DatasetDefinitionSet) (rr *report.Matrix, err error)
-		RunFresh(ctx context.Context, src types.ReportDataSourceSet, st report.StepDefinitionSet, dd report.FrameDefinitionSet) (rr []*report.Frame, err error)
+		Run(ctx context.Context, ID uint64, dd report.FrameDefinitionSet) (rr []*report.Frame, err error)
 		DescribeFresh(ctx context.Context, src types.ReportDataSourceSet, st report.StepDefinitionSet, sources ...string) (out report.FrameDescriptionSet, err error)
 	}
 
@@ -135,17 +133,12 @@ func (ctrl *Report) Undelete(ctx context.Context, r *request.ReportUndelete) (in
 	return api.OK(), ctrl.report.Undelete(ctx, r.ReportID)
 }
 
-func (ctrl *Report) Run(ctx context.Context, r *request.ReportRun) (interface{}, error) {
-	// @todo...
-	return nil, nil
-}
-
 func (ctrl *Report) Describe(ctx context.Context, r *request.ReportDescribe) (interface{}, error) {
 	return ctrl.report.DescribeFresh(ctx, r.Sources, r.Steps, r.Describe...)
 }
 
-func (ctrl *Report) RunFresh(ctx context.Context, r *request.ReportRunFresh) (interface{}, error) {
-	rr, err := ctrl.report.RunFresh(ctx, r.Sources, r.Steps, r.Frames)
+func (ctrl *Report) Run(ctx context.Context, r *request.ReportRun) (interface{}, error) {
+	rr, err := ctrl.report.Run(ctx, r.ReportID, r.Frames)
 	return ctrl.makeReportFramePayload(ctx, rr, err)
 }
 
