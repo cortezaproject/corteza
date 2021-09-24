@@ -382,9 +382,9 @@ func (d *joinedDataset) sortFrameBuffers(localLoader, foreignLoader *frameLoadCt
 
 // strategizePaging breaks down the given paging cursor into partial conditions and
 // applies it to the frame definitions.
-func (d *joinedDataset) strategizePaging(local, foreign *FrameDefinition, inverted bool) (pp []partialPagingCnd, err error) {
+func (d *joinedDataset) strategizePaging(local, foreign *FrameDefinition, inverted bool, dscr FrameDescriptionSet) (pp []partialPagingCnd, err error) {
 	// break down the cursor
-	pp, err = d.calcualteCursorConditions(local, inverted)
+	pp, err = d.calcualteCursorConditions(local, inverted, dscr)
 	if err != nil {
 		return
 	}
@@ -410,9 +410,27 @@ func (d *joinedDataset) strategizePaging(local, foreign *FrameDefinition, invert
 //
 // Partial cursor conditions are to be used for additional DS filtering and
 // additional post filtering when processing the data.
-func (d *joinedDataset) calcualteCursorConditions(local *FrameDefinition, inverted bool) (partials []partialPagingCnd, err error) {
+func (d *joinedDataset) calcualteCursorConditions(local *FrameDefinition, inverted bool, dscr FrameDescriptionSet) (partials []partialPagingCnd, err error) {
 	if len(local.Paging.PageCursor.Keys()) == 0 {
 		return
+	}
+
+	// - build typecast index
+	tcIx := make(map[string]map[string]frameCellCaster)
+	for i, d := range dscr {
+		if _, ok := tcIx[d.Ref]; !ok {
+			tcIx[d.Ref] = make(map[string]frameCellCaster)
+		}
+		if i == 0 {
+			tcIx[""] = make(map[string]frameCellCaster)
+		}
+		for _, c := range d.Columns {
+			tcIx[d.Ref][c.Name] = c.Caster
+			if i == 0 {
+				tcIx[""][c.Name] = c.Caster
+			}
+		}
+
 	}
 
 	var localAppendix *qlng.ASTNode
@@ -424,7 +442,7 @@ func (d *joinedDataset) calcualteCursorConditions(local *FrameDefinition, invert
 		// It's basically the second part of the wrap condition (if the value equals)
 		//
 		// The correlated string version is: (%s OR ((%s IS NULL AND %s) OR %s = %s))
-		baseCndAppx = func(field string, checkNull bool, value interface{}) *qlng.ASTNode {
+		baseCndAppx = func(field string, checkNull bool, value expr.TypedValue) *qlng.ASTNode {
 			return &qlng.ASTNode{
 				Ref: "or",
 				Args: qlng.ASTNodeSet{
@@ -452,7 +470,7 @@ func (d *joinedDataset) calcualteCursorConditions(local *FrameDefinition, invert
 							Symbol: field,
 						}, {
 							// @todo type
-							Value: qlng.MakeValueOf("String", value),
+							Value: qlng.WrapValue(value),
 						}},
 					},
 				},
@@ -462,7 +480,7 @@ func (d *joinedDataset) calcualteCursorConditions(local *FrameDefinition, invert
 		// baseCnd is the initial AST for filtering over the given sort column
 		//
 		// The correlated string version is: ((%s IS %s AND %s) OR (%s %s %s))
-		baseCnd = func(field string, nullVal *qlng.ASTNode, checkNull bool, compOp string, value interface{}, appendix bool) *qlng.ASTNode {
+		baseCnd = func(field string, nullVal *qlng.ASTNode, checkNull bool, compOp string, value expr.TypedValue, appendix bool) *qlng.ASTNode {
 			pp := strings.Split(field, ".")
 			field = pp[len(pp)-1]
 
@@ -484,7 +502,7 @@ func (d *joinedDataset) calcualteCursorConditions(local *FrameDefinition, invert
 						Symbol: field,
 					}, {
 						// @todo type
-						Value: qlng.MakeValueOf("String", value),
+						Value: qlng.WrapValue(value),
 					}},
 				},
 				},
@@ -508,7 +526,7 @@ func (d *joinedDataset) calcualteCursorConditions(local *FrameDefinition, invert
 		// wrapCnd is the conjunction between two paging cursor columns
 		//
 		// The correlated string version is: (%s OR (((%s IS NULL AND %s) OR %s = %s) AND %s))
-		wrapCnd = func(base *qlng.ASTNode, field string, value interface{}, checkNull bool, condition *qlng.ASTNode) *qlng.ASTNode {
+		wrapCnd = func(base *qlng.ASTNode, field string, value expr.TypedValue, checkNull bool, condition *qlng.ASTNode) *qlng.ASTNode {
 			pp := strings.Split(field, ".")
 			field = pp[len(pp)-1]
 
@@ -548,7 +566,7 @@ func (d *joinedDataset) calcualteCursorConditions(local *FrameDefinition, invert
 											},
 											&qlng.ASTNode{
 												// @todo type
-												Value: qlng.MakeValueOf("String", value),
+												Value: qlng.WrapValue(value),
 											},
 										},
 									},
@@ -589,7 +607,7 @@ func (d *joinedDataset) calcualteCursorConditions(local *FrameDefinition, invert
 	var tmp []string
 	var field string
 
-	calculateAST := func(cc []string, vv []interface{}, dsc []bool, cut bool) (cnd *qlng.ASTNode) {
+	calculateAST := func(ref string, cc []string, vv []interface{}, dsc []bool, cut bool) (cnd *qlng.ASTNode, err error) {
 		// going from the last key/column to the 1st one
 		for i := len(cc) - 1; i >= 0; i-- {
 			// We need to cut off the values that are before the cursor (when ascending)
@@ -602,18 +620,24 @@ func (d *joinedDataset) calcualteCursorConditions(local *FrameDefinition, invert
 
 			tmp = strings.Split(cc[i], ".")
 			field = tmp[len(tmp)-1]
+			casted, err := (tcIx[ref][field])(vv[i])
+			if err != nil {
+				return nil, err
+			}
 
-			base := baseCnd(field, notOp[!lt], isNull(i, lt), op, vv[i], cut && i == len(cc)-1)
+			base := baseCnd(field, notOp[!lt], isNull(i, lt), op, casted, cut && i == len(cc)-1)
 
 			if cnd == nil {
 				cnd = base
 			} else {
-				cnd = wrapCnd(base, field, vv[i], isNull(i, false), cnd)
+				cnd = wrapCnd(base, field, casted, isNull(i, false), cnd)
 			}
 		}
 
 		return
 	}
+
+	var fc *qlng.ASTNode
 
 	// Edge case where only 1 source is used
 	ref := ""
@@ -629,8 +653,13 @@ func (d *joinedDataset) calcualteCursorConditions(local *FrameDefinition, invert
 			}
 		}
 	}
+
+	fc, err = calculateAST(ref, cc, vv, cur.Desc(), false)
+	if err != nil {
+		return nil, err
+	}
 	partials = append(partials, partialPagingCnd{
-		filterCut: calculateAST(cc, vv, cur.Desc(), false),
+		filterCut: fc,
 		ref:       ref,
 	})
 	return
@@ -645,9 +674,17 @@ out:
 
 		aa := strings.Split(cc[startIndex], ".")
 		bb := strings.Split(cc[j], ".")
+		ref := ""
+		if len(aa) > 1 {
+			ref = aa[0]
+		}
 		if len(aa) != len(bb) || aa[0] != bb[0] {
+			fc, err = calculateAST(ref, cc[startIndex:j], vv[startIndex:j], cur.Desc()[startIndex:j], startIndex == 0)
+			if err != nil {
+				return nil, err
+			}
 			aux := partialPagingCnd{
-				filterCut: calculateAST(cc[startIndex:j], vv[startIndex:j], cur.Desc()[startIndex:j], startIndex == 0),
+				filterCut: fc,
 			}
 			if len(aa) > 1 {
 				aux.ref = aa[0]
@@ -662,8 +699,12 @@ out:
 		}
 
 		if j == len(cc)-1 {
+			fc, err = calculateAST(ref, cc[startIndex:], vv[startIndex:], cur.Desc()[startIndex:], startIndex == 0)
+			if err != nil {
+				return nil, err
+			}
 			aux := partialPagingCnd{
-				filterCut: calculateAST(cc[startIndex:], vv[startIndex:], cur.Desc()[startIndex:], startIndex == 0),
+				filterCut: fc,
 			}
 			if len(aa) > 1 {
 				aux.ref = aa[0]

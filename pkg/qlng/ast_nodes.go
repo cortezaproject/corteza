@@ -59,6 +59,12 @@ func MakeValueOf(t string, v interface{}) *typedValue {
 	}
 }
 
+func WrapValue(v expr.TypedValue) *typedValue {
+	return &typedValue{
+		V: v,
+	}
+}
+
 func (t *typedValue) UnmarshalJSON(in []byte) (err error) {
 	var (
 		aux = struct {

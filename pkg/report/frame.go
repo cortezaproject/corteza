@@ -51,7 +51,7 @@ type (
 		Unique  bool   `json:"unique"`
 		System  bool   `json:"system"`
 
-		Caster frameCellCaster `json:"-" yaml:"-"`
+		Caster frameCellCaster `json:"-"`
 	}
 
 	FrameDefinitionSet []*FrameDefinition
