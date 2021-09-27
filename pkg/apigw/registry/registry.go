@@ -45,7 +45,7 @@ func (r *Registry) Get(identifier string) (types.Handler, error) {
 		return nil, fmt.Errorf("could not get element from registry: %s", identifier)
 	}
 
-	return f, nil
+	return f.New(), nil
 }
 
 func (r *Registry) All() (list types.FilterMetaList) {

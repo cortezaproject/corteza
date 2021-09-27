@@ -66,6 +66,10 @@ func NewWorkflow(wf WfExecer) (p *workflow) {
 	return
 }
 
+func (h workflow) New() types.Handler {
+	return NewWorkflow(h.d)
+}
+
 func (h workflow) String() string {
 	return fmt.Sprintf("apigw filter %s (%s)", h.Name, h.Label)
 }
@@ -183,6 +187,10 @@ func NewPayload(l *zap.Logger) (p *processerPayload) {
 	})
 
 	return
+}
+
+func (h processerPayload) New() types.Handler {
+	return NewPayload(h.log)
 }
 
 func (h processerPayload) String() string {
