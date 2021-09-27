@@ -13,7 +13,7 @@ import (
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
-	"github.com/steinfletcher/apitest-jsonpath"
+	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 	"github.com/stretchr/testify/require"
 )
 
@@ -81,6 +81,34 @@ func TestUserRead(t *testing.T) {
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Equal(`$.response.email`, u.Email)).
+		End()
+}
+
+func TestUserRead_forbiden(t *testing.T) {
+	h := newHelper(t)
+	h.clearUsers()
+
+	service.CurrentSettings.Privacy.Mask.Email = true
+	service.CurrentSettings.Privacy.Mask.Name = true
+	defer func() {
+		service.CurrentSettings.Privacy.Mask.Email = false
+		service.CurrentSettings.Privacy.Mask.Name = false
+	}()
+
+	u := h.createUser(&types.User{
+		Username:       "test",
+		Email:          "test@domain.tld",
+		Name:           "Name Here",
+		Handle:         "test_handle",
+		EmailConfirmed: true,
+	})
+
+	h.apiInit().
+		Get(fmt.Sprintf("/users/%d", u.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("user.errors.notAllowedToRead")).
 		End()
 }
 

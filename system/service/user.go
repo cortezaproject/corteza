@@ -130,6 +130,10 @@ func (svc user) FindByID(ctx context.Context, userID uint64) (u *types.User, err
 
 		uaProps.setUser(u)
 
+		if !svc.ac.CanReadUser(ctx, u) {
+			return UserErrNotAllowedToRead()
+		}
+
 		if err = label.Load(ctx, svc.store, u); err != nil {
 			return err
 		}
@@ -146,9 +150,6 @@ func (svc user) FindByEmail(ctx context.Context, email string) (u *types.User, e
 	)
 
 	err = func() error {
-		if !svc.ac.CanSearchUsers(ctx) {
-			return UserErrNotAllowedToSearch()
-		}
 
 		u, err = store.LookupUserByEmail(ctx, svc.store, email)
 		if u, err = svc.proc(ctx, u, err); err != nil {
@@ -156,6 +157,10 @@ func (svc user) FindByEmail(ctx context.Context, email string) (u *types.User, e
 		}
 
 		uaProps.setUser(u)
+
+		if !svc.ac.CanReadUser(ctx, u) {
+			return UserErrNotAllowedToRead()
+		}
 
 		if err = label.Load(ctx, svc.store, u); err != nil {
 			return err
@@ -180,6 +185,10 @@ func (svc user) FindByUsername(ctx context.Context, username string) (u *types.U
 
 		uaProps.setUser(u)
 
+		if !svc.ac.CanReadUser(ctx, u) {
+			return UserErrNotAllowedToRead()
+		}
+
 		if err = label.Load(ctx, svc.store, u); err != nil {
 			return err
 		}
@@ -202,6 +211,10 @@ func (svc user) FindByHandle(ctx context.Context, handle string) (u *types.User,
 		}
 
 		uaProps.setUser(u)
+
+		if !svc.ac.CanReadUser(ctx, u) {
+			return UserErrNotAllowedToRead()
+		}
 
 		if err = label.Load(ctx, svc.store, u); err != nil {
 			return err
