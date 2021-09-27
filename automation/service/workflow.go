@@ -329,7 +329,7 @@ func (svc *workflow) updater(ctx context.Context, workflowID uint64, action func
 			}
 		}
 
-		if changes&workflowChanged > 0 {
+		if changes&workflowChanged > 0 || len(res.Issues) > 0 {
 			if err = store.UpdateAutomationWorkflow(ctx, svc.store, res); err != nil {
 				return err
 			}

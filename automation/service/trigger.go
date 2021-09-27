@@ -228,8 +228,12 @@ func (svc *trigger) Create(ctx context.Context, new *types.Trigger) (res *types.
 			return
 		}
 
+		// Ignore workflow issues as those are defined by the workflow itself.
+		// Internal errors should still be reported.
 		if err = svc.registerWorkflow(ctx, wf, res); err != nil {
-			return
+			if _, ok := err.(types.WorkflowIssueSet); ok {
+				err = nil
+			}
 		}
 
 		return
