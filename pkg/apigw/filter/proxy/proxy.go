@@ -67,6 +67,10 @@ func New(l *zap.Logger, c *http.Client, s types.SecureStorager) (p *proxy) {
 	return
 }
 
+func (h proxy) New() types.Handler {
+	return New(h.log, h.c, h.s)
+}
+
 func (h proxy) String() string {
 	return fmt.Sprintf("apigw filter %s (%s)", h.Name, h.Label)
 }

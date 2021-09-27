@@ -61,6 +61,10 @@ func NewRedirection() (e *redirection) {
 	return
 }
 
+func (h redirection) New() types.Handler {
+	return NewRedirection()
+}
+
 func (h redirection) String() string {
 	return fmt.Sprintf("apigw filter %s (%s)", h.Name, h.Label)
 }
@@ -107,6 +111,10 @@ func NewDefaultJsonResponse() (e *defaultJsonResponse) {
 	e.Kind = types.PostFilter
 
 	return
+}
+
+func (h defaultJsonResponse) New() types.Handler {
+	return NewDefaultJsonResponse()
 }
 
 func (h defaultJsonResponse) String() string {

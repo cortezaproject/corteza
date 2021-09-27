@@ -32,6 +32,10 @@ type (
 	MockRoundTripper func(*http.Request) (*http.Response, error)
 )
 
+func (h MockHandler) New() Handler {
+	return MockHandler{}
+}
+
 func (h MockHandler) String() string {
 	return "MockHandler"
 }

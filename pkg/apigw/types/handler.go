@@ -18,6 +18,7 @@ type (
 		HTTPHandler
 		fmt.Stringer
 
+		New() Handler
 		Merge([]byte) (Handler, error)
 		Meta() FilterMeta
 	}

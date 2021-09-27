@@ -142,6 +142,7 @@ func Test_serviceInit(t *testing.T) {
 					},
 				},
 				reg: map[string]types.Handler{"testExistingFilter": &mockExistingHandler{
+					MockHandler: &types.MockHandler{},
 					merge: func(params []byte) (types.Handler, error) {
 						return nil, errors.New("testttt")
 					},

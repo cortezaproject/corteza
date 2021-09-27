@@ -56,6 +56,10 @@ func NewHeader() (v *header) {
 	return
 }
 
+func (h header) New() types.Handler {
+	return NewHeader()
+}
+
 func (h header) String() string {
 	return fmt.Sprintf("apigw filter %s (%s)", h.Name, h.Label)
 }
@@ -131,6 +135,10 @@ func NewQueryParam() (v *queryParam) {
 	}
 
 	return
+}
+
+func (h queryParam) New() types.Handler {
+	return NewQueryParam()
 }
 
 func (h queryParam) String() string {
