@@ -29,6 +29,7 @@ type (
 		log    *zap.Logger
 		reg    *registry.Registry
 		routes []*route
+		router chi.Router
 		storer storer
 		reload chan bool
 	}
@@ -75,6 +76,24 @@ func (s *apigw) Reload(ctx context.Context) {
 	}()
 }
 
+// ReloadHandler is a wrapper for route reloading logic, primarily needed for testing
+func (s *apigw) ReloadHandler(ctx context.Context) {
+	routes, err := s.loadRoutes(ctx)
+
+	if err != nil {
+		s.log.Error("could not reload API Gateway routes", zap.Error(err))
+		return
+	}
+
+	s.log.Debug("reloading API Gateway routes and functions", zap.Int("count", len(routes)))
+
+	s.Init(ctx, routes...)
+
+	for _, route := range s.routes {
+		s.router.Handle(route.endpoint, route)
+	}
+}
+
 func (s *apigw) loadRoutes(ctx context.Context) (rr []*route, err error) {
 	routes, _, err := s.storer.SearchApigwRoutes(ctx, st.ApigwRouteFilter{
 		Enabled: true,
@@ -116,7 +135,9 @@ func (s *apigw) Router(r chi.Router) {
 		ctx = context.Background()
 	)
 
-	r.HandleFunc("/", helperDefaultResponse(s.opts))
+	s.router = r
+
+	s.router.HandleFunc("/", helperDefaultResponse(s.opts))
 
 	routes, err := s.loadRoutes(ctx)
 
@@ -128,27 +149,14 @@ func (s *apigw) Router(r chi.Router) {
 	s.Init(ctx, routes...)
 
 	for _, route := range s.routes {
-		r.Handle(route.endpoint, route)
+		s.router.Handle(route.endpoint, route)
 	}
 
 	go func() {
 		for {
 			select {
 			case <-s.reload:
-				routes, err := s.loadRoutes(ctx)
-
-				if err != nil {
-					s.log.Error("could not reload API Gateway routes", zap.Error(err))
-					return
-				}
-
-				s.log.Debug("reloading API Gateway routes and functions", zap.Int("count", len(routes)))
-
-				s.Init(ctx, routes...)
-
-				for _, route := range s.routes {
-					r.Handle(route.endpoint, route)
-				}
+				s.ReloadHandler(ctx)
 
 			case <-ctx.Done():
 				s.log.Debug("shutting down API Gateway service")
