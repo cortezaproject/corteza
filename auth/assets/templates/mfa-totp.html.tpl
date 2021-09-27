@@ -1,6 +1,6 @@
 {{ template "inc_header.html.tpl"  set . "hideNav" true }}
 <div class="card-body p-0">
-	<h1 class="h4 card-title p-3 border-bottom">{{ tr "mfa-totp.template.title" }}</h1>
+	<h4 class="card-title p-3 border-bottom">{{ tr "mfa-totp.template.title" }}</h4>
 
 	{{ if .enforced }}
 	<p class="p-3 text-danger mb-0 font-weight-bold">

@@ -1,6 +1,6 @@
 {{ template "inc_header.html.tpl" . }}
 <div class="card-body p-0">
-	<h1 class="h4 card-title p-3 border-bottom">{{ tr "login.template.title" }}</h1>
+	<h4 class="card-title p-3 border-bottom">{{ tr "login.template.title" }}</h4>
 	{{ if .settings.LocalEnabled }}
 	<form
 		method="POST"

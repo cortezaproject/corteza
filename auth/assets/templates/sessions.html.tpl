@@ -3,7 +3,6 @@
 	<form
 		method="POST"
 		action="{{ links.Sessions }}"
-		class="p-3"
 	>
 		{{ .csrfField }}
 		<div class="card-title p-3 border-bottom">

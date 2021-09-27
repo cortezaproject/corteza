@@ -1,6 +1,6 @@
 {{ template "inc_header.html.tpl" . }}
 <div class="card-body p-0">
-	<h1 class="h4 card-title p-3 border-bottom">{{ tr "request-password-reset.template.title" }}</h1>
+	<h4 class="card-title p-3 border-bottom">{{ tr "request-password-reset.template.title" }}</h4>
 	<form
 		method="POST"
 		action="{{ links.RequestPasswordReset }}"
