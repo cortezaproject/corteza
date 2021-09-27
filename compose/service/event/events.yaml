@@ -26,6 +26,9 @@ compose:page:
     - name: 'namespace'
       type: '*types.Namespace'
       immutable: true
+    - name: 'selected'
+      type: '[]interface{}'
+      immutable: true
   constraints:
     - name: namespace.handle
     - name: namespace.name
@@ -67,6 +70,9 @@ compose:record:
       immutable: true
     - name: 'recordValueErrors'
       type: '*types.RecordValueErrorSet'
+    - name: 'selected'
+      type: '[]interface{}'
+      immutable: true
 
   constraints:
     - name: namespace.handle
