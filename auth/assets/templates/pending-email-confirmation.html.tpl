@@ -1,6 +1,6 @@
 {{ template "inc_header.html.tpl" . }}
 <div class="card-body p-0">
-	<h1 class="h4 card-title p-3 border-bottom">{{ tr "pending-email-confirmation.template.title" }}</h1>
+	<h4 class="card-title p-3 border-bottom">{{ tr "pending-email-confirmation.template.title" }}</h4>
 	<div class="p-3" role="alert">
 		{{ tr "pending-email-confirmation.template.instructions" }}
 	</div>

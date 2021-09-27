@@ -1,14 +1,47 @@
 :root {
-  --primary: #4D7281;
-  --primary-hover: #497689;
+  --primary: #0B344E;
+  --primary-hover: #061E2C;
   --light: #E4E9EF;
-  --danger: #E54122;
+  --danger: #E24646;
   --body-margin: 50px;
 }
 
+@font-face {
+  font-family: 'Poppins-Bold';
+  src: url('./fonts/poppins/Poppins-Bold.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins-SemiBold';
+  src: url('./fonts/poppins/Poppins-SemiBold.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins-Regular';
+  src: url('./fonts/poppins/Poppins-Regular.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins-Medium';
+  src: url('./fonts/poppins/Poppins-Medium.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+
 body {
   margin: var(--body-margin) 0;
-  font-family: 'Nunito', sans-serif;
+  font-family: 'Poppins-Regular';
   height: calc(100vh - 2 * var(--body-margin));
 }
 
@@ -27,8 +60,22 @@ body {
   right: 0;
 }
 
-.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6, label, .btn, a {
-  font-weight: 600;
+.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins-SemiBold';
+}
+
+thead th,
+legend,
+label,
+a,
+.btn {
+  font-family: 'Poppins-Medium';
+}
+
+strong,
+b,
+.font-weight-bold {
+  font-family: 'Poppins-SemiBold';
 }
 
 /* over-ride default variables colors */
