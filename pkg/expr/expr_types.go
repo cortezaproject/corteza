@@ -140,21 +140,35 @@ func CastToArray(val interface{}) (out []TypedValue, err error) {
 		return val.value, nil
 	}
 
-	ref := reflect.ValueOf(val)
-	if ref.Kind() == reflect.Slice {
-		out = make([]TypedValue, ref.Len())
-		for i := 0; i < ref.Len(); i++ {
-			item := ref.Index(i).Interface()
-			out[i], err = Typify(item)
-			if err != nil {
-				return
+	cast := func(val interface{}) (out []TypedValue, err error) {
+		ref := reflect.ValueOf(val)
+		if ref.Kind() == reflect.Slice {
+			out = make([]TypedValue, ref.Len())
+			for i := 0; i < ref.Len(); i++ {
+				item := ref.Index(i).Interface()
+				out[i], err = Typify(item)
+				if err != nil {
+					return
+				}
 			}
 		}
-
 		return
 	}
 
-	return nil, fmt.Errorf("unable to cast %T to []TypedValue", val)
+	if c, ok := val.(TypedValue); ok {
+		out, err = cast(c.Get())
+	} else {
+		out, err = cast(val)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	if val == nil {
+		return nil, fmt.Errorf("unable to cast %T to []TypedValue", val)
+	}
+
+	return
 }
 
 var _ TypeValueDecoder = &Array{}

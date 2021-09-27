@@ -489,7 +489,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 			return nil, RecordErrValueInput().Wrap(rve)
 		}
 
-		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeCreate(new, nil, m, ns, rve)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeCreate(new, nil, m, ns, rve, nil)); err != nil {
 			return
 		} else if !rve.IsValid() {
 			return nil, RecordErrValueInput().Wrap(rve)
@@ -523,7 +523,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 
 	if svc.optEmitEvents {
 		new.Values = svc.formatter.Run(m, new.Values)
-		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterCreateImmutable(new, nil, m, ns, nil))
+		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterCreateImmutable(new, nil, m, ns, nil, nil))
 	}
 
 	return
@@ -759,7 +759,7 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 		//
 		// rve (record-validation-errorset) struct is passed so it can be
 		// used & filled by automation scripts
-		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeUpdate(upd, old, m, ns, rve)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeUpdate(upd, old, m, ns, rve, nil)); err != nil {
 			return
 		} else if !rve.IsValid() {
 			return nil, RecordErrValueInput().Wrap(rve)
@@ -799,7 +799,7 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 	if svc.optEmitEvents {
 		// Before we pass values to automation scripts, they should be formatted
 		upd.Values = svc.formatter.Run(m, upd.Values)
-		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterUpdateImmutable(upd, old, m, ns, nil))
+		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterUpdateImmutable(upd, old, m, ns, nil, nil))
 	}
 	return
 }
@@ -954,7 +954,7 @@ func (svc record) delete(ctx context.Context, namespaceID, moduleID, recordID ui
 
 	if svc.optEmitEvents {
 		// Calling before-record-delete scripts
-		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeDelete(nil, del, m, ns, nil)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeDelete(nil, del, m, ns, nil, nil)); err != nil {
 			return nil, err
 		}
 	}
@@ -974,7 +974,7 @@ func (svc record) delete(ctx context.Context, namespaceID, moduleID, recordID ui
 	del.SetModule(m)
 
 	if svc.optEmitEvents {
-		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterDeleteImmutable(nil, del, m, ns, nil))
+		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterDeleteImmutable(nil, del, m, ns, nil, nil))
 	}
 
 	return del, nil
@@ -1226,7 +1226,7 @@ func (svc record) TriggerScript(ctx context.Context, namespaceID, moduleID, reco
 	r.Values = values.Sanitizer().Run(m, rvs)
 	validated := values.Validator().Run(ctx, svc.store, m, r)
 
-	err = corredor.Service().Exec(ctx, script, event.RecordOnManual(r, original, m, ns, validated))
+	err = corredor.Service().Exec(ctx, script, event.RecordOnManual(r, original, m, ns, validated, nil))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1320,7 +1320,7 @@ func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbu
 			recordableAction := RecordActionIteratorIteration
 
 			err = func() error {
-				if err = fn(ctx, event.RecordOnIteration(rec, nil, m, ns, nil)); err != nil {
+				if err = fn(ctx, event.RecordOnIteration(rec, nil, m, ns, nil, nil)); err != nil {
 					if errors.Is(err, corredor.ScriptExecAborted) {
 						// When script was softly aborted (return false),
 						// proceed with iteration but do not clone, update or delete

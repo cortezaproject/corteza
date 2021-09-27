@@ -177,6 +177,7 @@ type (
 		page      *types.Page
 		oldPage   *types.Page
 		namespace *types.Namespace
+		selected  []interface{}
 		invoker   auth.Identifiable
 	}
 
@@ -239,6 +240,7 @@ type (
 		module            *types.Module
 		namespace         *types.Namespace
 		recordValueErrors *types.RecordValueErrorSet
+		selected          []interface{}
 		invoker           auth.Identifiable
 	}
 
@@ -1432,6 +1434,7 @@ func PageOnManual(
 	argPage *types.Page,
 	argOldPage *types.Page,
 	argNamespace *types.Namespace,
+	argSelected []interface{},
 ) *pageOnManual {
 	return &pageOnManual{
 		pageBase: &pageBase{
@@ -1439,6 +1442,7 @@ func PageOnManual(
 			page:      argPage,
 			oldPage:   argOldPage,
 			namespace: argNamespace,
+			selected:  argSelected,
 		},
 	}
 }
@@ -1452,6 +1456,7 @@ func PageOnManualImmutable(
 	argPage *types.Page,
 	argOldPage *types.Page,
 	argNamespace *types.Namespace,
+	argSelected []interface{},
 ) *pageOnManual {
 	return &pageOnManual{
 		pageBase: &pageBase{
@@ -1459,6 +1464,7 @@ func PageOnManualImmutable(
 			page:      argPage,
 			oldPage:   argOldPage,
 			namespace: argNamespace,
+			selected:  argSelected,
 		},
 	}
 }
@@ -1470,6 +1476,7 @@ func PageBeforeCreate(
 	argPage *types.Page,
 	argOldPage *types.Page,
 	argNamespace *types.Namespace,
+	argSelected []interface{},
 ) *pageBeforeCreate {
 	return &pageBeforeCreate{
 		pageBase: &pageBase{
@@ -1477,6 +1484,7 @@ func PageBeforeCreate(
 			page:      argPage,
 			oldPage:   argOldPage,
 			namespace: argNamespace,
+			selected:  argSelected,
 		},
 	}
 }
@@ -1490,6 +1498,7 @@ func PageBeforeCreateImmutable(
 	argPage *types.Page,
 	argOldPage *types.Page,
 	argNamespace *types.Namespace,
+	argSelected []interface{},
 ) *pageBeforeCreate {
 	return &pageBeforeCreate{
 		pageBase: &pageBase{
@@ -1497,6 +1506,7 @@ func PageBeforeCreateImmutable(
 			page:      argPage,
 			oldPage:   argOldPage,
 			namespace: argNamespace,
+			selected:  argSelected,
 		},
 	}
 }
@@ -1508,6 +1518,7 @@ func PageBeforeUpdate(
 	argPage *types.Page,
 	argOldPage *types.Page,
 	argNamespace *types.Namespace,
+	argSelected []interface{},
 ) *pageBeforeUpdate {
 	return &pageBeforeUpdate{
 		pageBase: &pageBase{
@@ -1515,6 +1526,7 @@ func PageBeforeUpdate(
 			page:      argPage,
 			oldPage:   argOldPage,
 			namespace: argNamespace,
+			selected:  argSelected,
 		},
 	}
 }
@@ -1528,6 +1540,7 @@ func PageBeforeUpdateImmutable(
 	argPage *types.Page,
 	argOldPage *types.Page,
 	argNamespace *types.Namespace,
+	argSelected []interface{},
 ) *pageBeforeUpdate {
 	return &pageBeforeUpdate{
 		pageBase: &pageBase{
@@ -1535,6 +1548,7 @@ func PageBeforeUpdateImmutable(
 			page:      argPage,
 			oldPage:   argOldPage,
 			namespace: argNamespace,
+			selected:  argSelected,
 		},
 	}
 }
@@ -1546,6 +1560,7 @@ func PageBeforeDelete(
 	argPage *types.Page,
 	argOldPage *types.Page,
 	argNamespace *types.Namespace,
+	argSelected []interface{},
 ) *pageBeforeDelete {
 	return &pageBeforeDelete{
 		pageBase: &pageBase{
@@ -1553,6 +1568,7 @@ func PageBeforeDelete(
 			page:      argPage,
 			oldPage:   argOldPage,
 			namespace: argNamespace,
+			selected:  argSelected,
 		},
 	}
 }
@@ -1566,6 +1582,7 @@ func PageBeforeDeleteImmutable(
 	argPage *types.Page,
 	argOldPage *types.Page,
 	argNamespace *types.Namespace,
+	argSelected []interface{},
 ) *pageBeforeDelete {
 	return &pageBeforeDelete{
 		pageBase: &pageBase{
@@ -1573,6 +1590,7 @@ func PageBeforeDeleteImmutable(
 			page:      argPage,
 			oldPage:   argOldPage,
 			namespace: argNamespace,
+			selected:  argSelected,
 		},
 	}
 }
@@ -1584,6 +1602,7 @@ func PageAfterCreate(
 	argPage *types.Page,
 	argOldPage *types.Page,
 	argNamespace *types.Namespace,
+	argSelected []interface{},
 ) *pageAfterCreate {
 	return &pageAfterCreate{
 		pageBase: &pageBase{
@@ -1591,6 +1610,7 @@ func PageAfterCreate(
 			page:      argPage,
 			oldPage:   argOldPage,
 			namespace: argNamespace,
+			selected:  argSelected,
 		},
 	}
 }
@@ -1604,6 +1624,7 @@ func PageAfterCreateImmutable(
 	argPage *types.Page,
 	argOldPage *types.Page,
 	argNamespace *types.Namespace,
+	argSelected []interface{},
 ) *pageAfterCreate {
 	return &pageAfterCreate{
 		pageBase: &pageBase{
@@ -1611,6 +1632,7 @@ func PageAfterCreateImmutable(
 			page:      argPage,
 			oldPage:   argOldPage,
 			namespace: argNamespace,
+			selected:  argSelected,
 		},
 	}
 }
@@ -1622,6 +1644,7 @@ func PageAfterUpdate(
 	argPage *types.Page,
 	argOldPage *types.Page,
 	argNamespace *types.Namespace,
+	argSelected []interface{},
 ) *pageAfterUpdate {
 	return &pageAfterUpdate{
 		pageBase: &pageBase{
@@ -1629,6 +1652,7 @@ func PageAfterUpdate(
 			page:      argPage,
 			oldPage:   argOldPage,
 			namespace: argNamespace,
+			selected:  argSelected,
 		},
 	}
 }
@@ -1642,6 +1666,7 @@ func PageAfterUpdateImmutable(
 	argPage *types.Page,
 	argOldPage *types.Page,
 	argNamespace *types.Namespace,
+	argSelected []interface{},
 ) *pageAfterUpdate {
 	return &pageAfterUpdate{
 		pageBase: &pageBase{
@@ -1649,6 +1674,7 @@ func PageAfterUpdateImmutable(
 			page:      argPage,
 			oldPage:   argOldPage,
 			namespace: argNamespace,
+			selected:  argSelected,
 		},
 	}
 }
@@ -1660,6 +1686,7 @@ func PageAfterDelete(
 	argPage *types.Page,
 	argOldPage *types.Page,
 	argNamespace *types.Namespace,
+	argSelected []interface{},
 ) *pageAfterDelete {
 	return &pageAfterDelete{
 		pageBase: &pageBase{
@@ -1667,6 +1694,7 @@ func PageAfterDelete(
 			page:      argPage,
 			oldPage:   argOldPage,
 			namespace: argNamespace,
+			selected:  argSelected,
 		},
 	}
 }
@@ -1680,6 +1708,7 @@ func PageAfterDeleteImmutable(
 	argPage *types.Page,
 	argOldPage *types.Page,
 	argNamespace *types.Namespace,
+	argSelected []interface{},
 ) *pageAfterDelete {
 	return &pageAfterDelete{
 		pageBase: &pageBase{
@@ -1687,6 +1716,7 @@ func PageAfterDeleteImmutable(
 			page:      argPage,
 			oldPage:   argOldPage,
 			namespace: argNamespace,
+			selected:  argSelected,
 		},
 	}
 }
@@ -1719,6 +1749,13 @@ func (res pageBase) Namespace() *types.Namespace {
 	return res.namespace
 }
 
+// Selected returns selected
+//
+// This function is auto-generated.
+func (res pageBase) Selected() []interface{} {
+	return res.selected
+}
+
 // SetInvoker sets new invoker value
 //
 // This function is auto-generated.
@@ -1749,6 +1786,10 @@ func (res pageBase) Encode() (args map[string][]byte, err error) {
 		return nil, err
 	}
 
+	if args["selected"], err = json.Marshal(res.selected); err != nil {
+		return nil, err
+	}
+
 	if args["invoker"], err = json.Marshal(res.invoker); err != nil {
 		return nil, err
 	}
@@ -1772,6 +1813,8 @@ func (res pageBase) EncodeVars() (out *expr.Vars, err error) {
 	if err != nil {
 		return
 	}
+
+	// Could not found expression-type counterpart for []interface{}
 
 	// Could not found expression-type counterpart for auth.Identifiable
 
@@ -1805,6 +1848,8 @@ func (res *pageBase) Decode(results map[string][]byte) (err error) {
 
 	// Do not decode namespace; marked as immutable
 
+	// Do not decode selected; marked as immutable
+
 	if res.invoker != nil {
 		if r, ok := results["invoker"]; ok {
 			if err = json.Unmarshal(r, res.invoker); err != nil {
@@ -1823,6 +1868,7 @@ func (res *pageBase) DecodeVars(vars *expr.Vars) (err error) {
 	// Could not find expression-type counterpart for *types.Page
 	// oldPage marked as immutable
 	// namespace marked as immutable
+	// selected marked as immutable
 	// Could not find expression-type counterpart for auth.Identifiable
 
 	return
@@ -1900,6 +1946,7 @@ func RecordOnManual(
 	argModule *types.Module,
 	argNamespace *types.Namespace,
 	argRecordValueErrors *types.RecordValueErrorSet,
+	argSelected []interface{},
 ) *recordOnManual {
 	return &recordOnManual{
 		recordBase: &recordBase{
@@ -1909,6 +1956,7 @@ func RecordOnManual(
 			module:            argModule,
 			namespace:         argNamespace,
 			recordValueErrors: argRecordValueErrors,
+			selected:          argSelected,
 		},
 	}
 }
@@ -1924,6 +1972,7 @@ func RecordOnManualImmutable(
 	argModule *types.Module,
 	argNamespace *types.Namespace,
 	argRecordValueErrors *types.RecordValueErrorSet,
+	argSelected []interface{},
 ) *recordOnManual {
 	return &recordOnManual{
 		recordBase: &recordBase{
@@ -1933,6 +1982,7 @@ func RecordOnManualImmutable(
 			module:            argModule,
 			namespace:         argNamespace,
 			recordValueErrors: argRecordValueErrors,
+			selected:          argSelected,
 		},
 	}
 }
@@ -1946,6 +1996,7 @@ func RecordOnIteration(
 	argModule *types.Module,
 	argNamespace *types.Namespace,
 	argRecordValueErrors *types.RecordValueErrorSet,
+	argSelected []interface{},
 ) *recordOnIteration {
 	return &recordOnIteration{
 		recordBase: &recordBase{
@@ -1955,6 +2006,7 @@ func RecordOnIteration(
 			module:            argModule,
 			namespace:         argNamespace,
 			recordValueErrors: argRecordValueErrors,
+			selected:          argSelected,
 		},
 	}
 }
@@ -1970,6 +2022,7 @@ func RecordOnIterationImmutable(
 	argModule *types.Module,
 	argNamespace *types.Namespace,
 	argRecordValueErrors *types.RecordValueErrorSet,
+	argSelected []interface{},
 ) *recordOnIteration {
 	return &recordOnIteration{
 		recordBase: &recordBase{
@@ -1979,6 +2032,7 @@ func RecordOnIterationImmutable(
 			module:            argModule,
 			namespace:         argNamespace,
 			recordValueErrors: argRecordValueErrors,
+			selected:          argSelected,
 		},
 	}
 }
@@ -1992,6 +2046,7 @@ func RecordBeforeCreate(
 	argModule *types.Module,
 	argNamespace *types.Namespace,
 	argRecordValueErrors *types.RecordValueErrorSet,
+	argSelected []interface{},
 ) *recordBeforeCreate {
 	return &recordBeforeCreate{
 		recordBase: &recordBase{
@@ -2001,6 +2056,7 @@ func RecordBeforeCreate(
 			module:            argModule,
 			namespace:         argNamespace,
 			recordValueErrors: argRecordValueErrors,
+			selected:          argSelected,
 		},
 	}
 }
@@ -2016,6 +2072,7 @@ func RecordBeforeCreateImmutable(
 	argModule *types.Module,
 	argNamespace *types.Namespace,
 	argRecordValueErrors *types.RecordValueErrorSet,
+	argSelected []interface{},
 ) *recordBeforeCreate {
 	return &recordBeforeCreate{
 		recordBase: &recordBase{
@@ -2025,6 +2082,7 @@ func RecordBeforeCreateImmutable(
 			module:            argModule,
 			namespace:         argNamespace,
 			recordValueErrors: argRecordValueErrors,
+			selected:          argSelected,
 		},
 	}
 }
@@ -2038,6 +2096,7 @@ func RecordBeforeUpdate(
 	argModule *types.Module,
 	argNamespace *types.Namespace,
 	argRecordValueErrors *types.RecordValueErrorSet,
+	argSelected []interface{},
 ) *recordBeforeUpdate {
 	return &recordBeforeUpdate{
 		recordBase: &recordBase{
@@ -2047,6 +2106,7 @@ func RecordBeforeUpdate(
 			module:            argModule,
 			namespace:         argNamespace,
 			recordValueErrors: argRecordValueErrors,
+			selected:          argSelected,
 		},
 	}
 }
@@ -2062,6 +2122,7 @@ func RecordBeforeUpdateImmutable(
 	argModule *types.Module,
 	argNamespace *types.Namespace,
 	argRecordValueErrors *types.RecordValueErrorSet,
+	argSelected []interface{},
 ) *recordBeforeUpdate {
 	return &recordBeforeUpdate{
 		recordBase: &recordBase{
@@ -2071,6 +2132,7 @@ func RecordBeforeUpdateImmutable(
 			module:            argModule,
 			namespace:         argNamespace,
 			recordValueErrors: argRecordValueErrors,
+			selected:          argSelected,
 		},
 	}
 }
@@ -2084,6 +2146,7 @@ func RecordBeforeDelete(
 	argModule *types.Module,
 	argNamespace *types.Namespace,
 	argRecordValueErrors *types.RecordValueErrorSet,
+	argSelected []interface{},
 ) *recordBeforeDelete {
 	return &recordBeforeDelete{
 		recordBase: &recordBase{
@@ -2093,6 +2156,7 @@ func RecordBeforeDelete(
 			module:            argModule,
 			namespace:         argNamespace,
 			recordValueErrors: argRecordValueErrors,
+			selected:          argSelected,
 		},
 	}
 }
@@ -2108,6 +2172,7 @@ func RecordBeforeDeleteImmutable(
 	argModule *types.Module,
 	argNamespace *types.Namespace,
 	argRecordValueErrors *types.RecordValueErrorSet,
+	argSelected []interface{},
 ) *recordBeforeDelete {
 	return &recordBeforeDelete{
 		recordBase: &recordBase{
@@ -2117,6 +2182,7 @@ func RecordBeforeDeleteImmutable(
 			module:            argModule,
 			namespace:         argNamespace,
 			recordValueErrors: argRecordValueErrors,
+			selected:          argSelected,
 		},
 	}
 }
@@ -2130,6 +2196,7 @@ func RecordAfterCreate(
 	argModule *types.Module,
 	argNamespace *types.Namespace,
 	argRecordValueErrors *types.RecordValueErrorSet,
+	argSelected []interface{},
 ) *recordAfterCreate {
 	return &recordAfterCreate{
 		recordBase: &recordBase{
@@ -2139,6 +2206,7 @@ func RecordAfterCreate(
 			module:            argModule,
 			namespace:         argNamespace,
 			recordValueErrors: argRecordValueErrors,
+			selected:          argSelected,
 		},
 	}
 }
@@ -2154,6 +2222,7 @@ func RecordAfterCreateImmutable(
 	argModule *types.Module,
 	argNamespace *types.Namespace,
 	argRecordValueErrors *types.RecordValueErrorSet,
+	argSelected []interface{},
 ) *recordAfterCreate {
 	return &recordAfterCreate{
 		recordBase: &recordBase{
@@ -2163,6 +2232,7 @@ func RecordAfterCreateImmutable(
 			module:            argModule,
 			namespace:         argNamespace,
 			recordValueErrors: argRecordValueErrors,
+			selected:          argSelected,
 		},
 	}
 }
@@ -2176,6 +2246,7 @@ func RecordAfterUpdate(
 	argModule *types.Module,
 	argNamespace *types.Namespace,
 	argRecordValueErrors *types.RecordValueErrorSet,
+	argSelected []interface{},
 ) *recordAfterUpdate {
 	return &recordAfterUpdate{
 		recordBase: &recordBase{
@@ -2185,6 +2256,7 @@ func RecordAfterUpdate(
 			module:            argModule,
 			namespace:         argNamespace,
 			recordValueErrors: argRecordValueErrors,
+			selected:          argSelected,
 		},
 	}
 }
@@ -2200,6 +2272,7 @@ func RecordAfterUpdateImmutable(
 	argModule *types.Module,
 	argNamespace *types.Namespace,
 	argRecordValueErrors *types.RecordValueErrorSet,
+	argSelected []interface{},
 ) *recordAfterUpdate {
 	return &recordAfterUpdate{
 		recordBase: &recordBase{
@@ -2209,6 +2282,7 @@ func RecordAfterUpdateImmutable(
 			module:            argModule,
 			namespace:         argNamespace,
 			recordValueErrors: argRecordValueErrors,
+			selected:          argSelected,
 		},
 	}
 }
@@ -2222,6 +2296,7 @@ func RecordAfterDelete(
 	argModule *types.Module,
 	argNamespace *types.Namespace,
 	argRecordValueErrors *types.RecordValueErrorSet,
+	argSelected []interface{},
 ) *recordAfterDelete {
 	return &recordAfterDelete{
 		recordBase: &recordBase{
@@ -2231,6 +2306,7 @@ func RecordAfterDelete(
 			module:            argModule,
 			namespace:         argNamespace,
 			recordValueErrors: argRecordValueErrors,
+			selected:          argSelected,
 		},
 	}
 }
@@ -2246,6 +2322,7 @@ func RecordAfterDeleteImmutable(
 	argModule *types.Module,
 	argNamespace *types.Namespace,
 	argRecordValueErrors *types.RecordValueErrorSet,
+	argSelected []interface{},
 ) *recordAfterDelete {
 	return &recordAfterDelete{
 		recordBase: &recordBase{
@@ -2255,6 +2332,7 @@ func RecordAfterDeleteImmutable(
 			module:            argModule,
 			namespace:         argNamespace,
 			recordValueErrors: argRecordValueErrors,
+			selected:          argSelected,
 		},
 	}
 }
@@ -2308,6 +2386,13 @@ func (res recordBase) RecordValueErrors() *types.RecordValueErrorSet {
 	return res.recordValueErrors
 }
 
+// Selected returns selected
+//
+// This function is auto-generated.
+func (res recordBase) Selected() []interface{} {
+	return res.selected
+}
+
 // SetInvoker sets new invoker value
 //
 // This function is auto-generated.
@@ -2343,6 +2428,10 @@ func (res recordBase) Encode() (args map[string][]byte, err error) {
 	}
 
 	if args["recordValueErrors"], err = json.Marshal(res.recordValueErrors); err != nil {
+		return nil, err
+	}
+
+	if args["selected"], err = json.Marshal(res.selected); err != nil {
 		return nil, err
 	}
 
@@ -2398,6 +2487,8 @@ func (res recordBase) EncodeVars() (out *expr.Vars, err error) {
 		return
 	}
 
+	// Could not found expression-type counterpart for []interface{}
+
 	// Could not found expression-type counterpart for auth.Identifiable
 
 	_ = v
@@ -2440,6 +2531,8 @@ func (res *recordBase) Decode(results map[string][]byte) (err error) {
 		}
 	}
 
+	// Do not decode selected; marked as immutable
+
 	if res.invoker != nil {
 		if r, ok := results["invoker"]; ok {
 			if err = json.Unmarshal(r, res.invoker); err != nil {
@@ -2476,6 +2569,7 @@ func (res *recordBase) DecodeVars(vars *expr.Vars) (err error) {
 
 		res.recordValueErrors = aux.GetValue()
 	}
+	// selected marked as immutable
 	// Could not find expression-type counterpart for auth.Identifiable
 
 	return

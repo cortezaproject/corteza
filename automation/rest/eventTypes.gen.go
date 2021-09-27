@@ -555,6 +555,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Type:      "ComposeNamespace",
 					Immutable: true,
 				},
+
+				{
+					Name:      "selected",
+					Type:      "",
+					Immutable: true,
+				},
 			},
 			Constraints: []eventTypeConstraintDef{
 
@@ -596,6 +602,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 				{
 					Name:      "namespace",
 					Type:      "ComposeNamespace",
+					Immutable: true,
+				},
+
+				{
+					Name:      "selected",
+					Type:      "",
 					Immutable: true,
 				},
 			},
@@ -641,6 +653,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Type:      "ComposeNamespace",
 					Immutable: true,
 				},
+
+				{
+					Name:      "selected",
+					Type:      "",
+					Immutable: true,
+				},
 			},
 			Constraints: []eventTypeConstraintDef{
 
@@ -682,6 +700,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 				{
 					Name:      "namespace",
 					Type:      "ComposeNamespace",
+					Immutable: true,
+				},
+
+				{
+					Name:      "selected",
+					Type:      "",
 					Immutable: true,
 				},
 			},
@@ -727,6 +751,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Type:      "ComposeNamespace",
 					Immutable: true,
 				},
+
+				{
+					Name:      "selected",
+					Type:      "",
+					Immutable: true,
+				},
 			},
 			Constraints: []eventTypeConstraintDef{
 
@@ -770,6 +800,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Type:      "ComposeNamespace",
 					Immutable: true,
 				},
+
+				{
+					Name:      "selected",
+					Type:      "",
+					Immutable: true,
+				},
 			},
 			Constraints: []eventTypeConstraintDef{
 
@@ -811,6 +847,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 				{
 					Name:      "namespace",
 					Type:      "ComposeNamespace",
+					Immutable: true,
+				},
+
+				{
+					Name:      "selected",
+					Type:      "",
 					Immutable: true,
 				},
 			},
@@ -867,6 +909,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "recordValueErrors",
 					Type:      "ComposeRecordValueErrorSet",
 					Immutable: false,
+				},
+
+				{
+					Name:      "selected",
+					Type:      "",
+					Immutable: true,
 				},
 			},
 			Constraints: []eventTypeConstraintDef{
@@ -939,6 +987,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Type:      "ComposeRecordValueErrorSet",
 					Immutable: false,
 				},
+
+				{
+					Name:      "selected",
+					Type:      "",
+					Immutable: true,
+				},
 			},
 			Constraints: []eventTypeConstraintDef{
 
@@ -1009,6 +1063,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "recordValueErrors",
 					Type:      "ComposeRecordValueErrorSet",
 					Immutable: false,
+				},
+
+				{
+					Name:      "selected",
+					Type:      "",
+					Immutable: true,
 				},
 			},
 			Constraints: []eventTypeConstraintDef{
@@ -1081,6 +1141,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Type:      "ComposeRecordValueErrorSet",
 					Immutable: false,
 				},
+
+				{
+					Name:      "selected",
+					Type:      "",
+					Immutable: true,
+				},
 			},
 			Constraints: []eventTypeConstraintDef{
 
@@ -1151,6 +1217,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "recordValueErrors",
 					Type:      "ComposeRecordValueErrorSet",
 					Immutable: false,
+				},
+
+				{
+					Name:      "selected",
+					Type:      "",
+					Immutable: true,
 				},
 			},
 			Constraints: []eventTypeConstraintDef{
@@ -1223,6 +1295,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Type:      "ComposeRecordValueErrorSet",
 					Immutable: false,
 				},
+
+				{
+					Name:      "selected",
+					Type:      "",
+					Immutable: true,
+				},
 			},
 			Constraints: []eventTypeConstraintDef{
 
@@ -1294,6 +1372,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Type:      "ComposeRecordValueErrorSet",
 					Immutable: false,
 				},
+
+				{
+					Name:      "selected",
+					Type:      "",
+					Immutable: true,
+				},
 			},
 			Constraints: []eventTypeConstraintDef{
 
@@ -1364,6 +1448,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "recordValueErrors",
 					Type:      "ComposeRecordValueErrorSet",
 					Immutable: false,
+				},
+
+				{
+					Name:      "selected",
+					Type:      "",
+					Immutable: true,
 				},
 			},
 			Constraints: []eventTypeConstraintDef{
