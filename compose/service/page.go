@@ -276,7 +276,7 @@ func (svc page) Create(ctx context.Context, new *types.Page) (*types.Page, error
 
 		aProps.setNamespace(ns)
 
-		if err = svc.eventbus.WaitFor(ctx, event.PageBeforeCreate(new, nil, ns)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.PageBeforeCreate(new, nil, ns, nil)); err != nil {
 			return err
 		}
 
@@ -307,7 +307,7 @@ func (svc page) Create(ctx context.Context, new *types.Page) (*types.Page, error
 			return
 		}
 
-		_ = svc.eventbus.WaitFor(ctx, event.PageAfterCreate(new, nil, ns))
+		_ = svc.eventbus.WaitFor(ctx, event.PageAfterCreate(new, nil, ns, nil))
 		return err
 	})
 
@@ -352,9 +352,9 @@ func (svc page) updater(ctx context.Context, namespaceID, pageID uint64, action 
 		aProps.setChanged(p)
 
 		if p.DeletedAt == nil {
-			err = svc.eventbus.WaitFor(ctx, event.PageBeforeUpdate(p, old, ns))
+			err = svc.eventbus.WaitFor(ctx, event.PageBeforeUpdate(p, old, ns, nil))
 		} else {
-			err = svc.eventbus.WaitFor(ctx, event.PageBeforeDelete(p, old, ns))
+			err = svc.eventbus.WaitFor(ctx, event.PageBeforeDelete(p, old, ns, nil))
 		}
 
 		if err != nil {
@@ -388,9 +388,9 @@ func (svc page) updater(ctx context.Context, namespaceID, pageID uint64, action 
 		}
 
 		if p.DeletedAt == nil {
-			err = svc.eventbus.WaitFor(ctx, event.PageAfterUpdate(p, old, ns))
+			err = svc.eventbus.WaitFor(ctx, event.PageAfterUpdate(p, old, ns, nil))
 		} else {
-			err = svc.eventbus.WaitFor(ctx, event.PageAfterDelete(nil, old, ns))
+			err = svc.eventbus.WaitFor(ctx, event.PageAfterDelete(nil, old, ns, nil))
 		}
 
 		return err
