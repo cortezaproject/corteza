@@ -1,0 +1,9 @@
+apigateway:
+  - endpoint: /test
+    method: GET
+    enabled: true
+    filters:
+      - ref: "header"
+        kind: "prefilter"
+        params:
+          expr: "Token == \"super-secret-token\""

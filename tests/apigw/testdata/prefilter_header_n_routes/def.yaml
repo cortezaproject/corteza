@@ -1,0 +1,18 @@
+apigateway:
+  - endpoint: /a
+    method: GET
+    enabled: true
+    filters:
+      - ref: "header"
+        kind: "prefilter"
+        params:
+          expr: "P == \"a\""
+
+  - endpoint: /b
+    method: GET
+    enabled: true
+    filters:
+      - ref: "header"
+        kind: "prefilter"
+        params:
+          expr: "P == \"b\""
