@@ -3,7 +3,6 @@ package filter
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -207,14 +206,6 @@ func (h *processerPayload) Merge(params []byte) (types.Handler, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	fn, err := base64.StdEncoding.DecodeString(h.params.Func)
-
-	if err != nil {
-		return nil, fmt.Errorf("could not decode js func: %s", err)
-	}
-
-	h.params.Func = string(fn)
 
 	if h.params.Func == "" {
 		return nil, errors.New("could not register function, body empty")
