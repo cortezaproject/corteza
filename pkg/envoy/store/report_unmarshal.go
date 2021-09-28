@@ -10,7 +10,7 @@ func newReport(wf *types.Report, ux *userIndex) *report {
 	return &report{
 		rp: wf,
 		ss: wf.Sources,
-		pp: wf.Projections,
+		pp: wf.Blocks,
 
 		ux: ux,
 	}
@@ -25,7 +25,7 @@ func (awf *report) MarshalEnvoy() ([]resource.Interface, error) {
 	}
 
 	for _, p := range awf.pp {
-		rs.AddReportProjection(p)
+		rs.AddReportBlock(p)
 	}
 
 	return envoy.CollectNodes(

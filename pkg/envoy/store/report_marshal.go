@@ -86,9 +86,9 @@ func (n *report) Encode(ctx context.Context, pl *payload) (err error) {
 		res.Sources = append(res.Sources, rp.Res)
 	}
 
-	res.Projections = make(types.ReportProjectionSet, 0, 10)
-	for _, rp := range n.res.Projections {
-		res.Projections = append(res.Projections, rp.Res)
+	res.Blocks = make(types.ReportBlockSet, 0, 10)
+	for _, rp := range n.res.Blocks {
+		res.Blocks = append(res.Blocks, rp.Res)
 	}
 
 	// Evaluate the resource skip expression

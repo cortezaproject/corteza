@@ -369,7 +369,7 @@ func (Schema) Reports() *Table {
 		ColumnDef("handle", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
 		ColumnDef("meta", ColumnTypeJson),
 		ColumnDef("sources", ColumnTypeJson),
-		ColumnDef("projections", ColumnTypeJson),
+		ColumnDef("blocks", ColumnTypeJson),
 
 		ColumnDef("owned_by", ColumnTypeIdentifier),
 		CUDTimestamps,

@@ -1,49 +1,39 @@
 package service
 
-import (
-	"context"
-	"strconv"
-	"strings"
+// func (svc resourceTranslationsManager) loadReport(ctx context.Context, s store.Storer, reportID uint64) (*types.Report, error) {
+// 	return store.LookupReportByID(ctx, s, reportID)
+// }
 
-	"github.com/cortezaproject/corteza-server/pkg/locale"
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/system/types"
-)
+// func (svc resourceTranslationsManager) reportExtended(ctx context.Context, res *types.Report) (out locale.ResourceTranslationSet, er error) {
+// 	var (
+// 		k types.LocaleKey
+// 	)
 
-func (svc resourceTranslationsManager) loadReport(ctx context.Context, s store.Storer, reportID uint64) (*types.Report, error) {
-	return store.LookupReportByID(ctx, s, reportID)
-}
+// 	for _, tag := range svc.locale.Tags() {
+// 		for i, block := range res.Blocks {
+// 			blockID := locale.ContentID(block.BlockID, i)
+// 			rpl := strings.NewReplacer(
+// 				"{{blockID}}", strconv.FormatUint(blockID, 10),
+// 			)
 
-func (svc resourceTranslationsManager) reportExtended(ctx context.Context, res *types.Report) (out locale.ResourceTranslationSet, er error) {
-	var (
-		k types.LocaleKey
-	)
+// 			// base stuff
+// 			k = types.LocaleKeyReportBlockTitle
+// 			out = append(out, &locale.ResourceTranslation{
+// 				Resource: res.ResourceTranslation(),
+// 				Lang:     tag.String(),
+// 				Key:      rpl.Replace(k.Path),
+// 				Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), rpl.Replace(k.Path)),
+// 			})
 
-	for _, tag := range svc.locale.Tags() {
-		for i, projection := range res.Projections {
-			projectionID := locale.ContentID(projection.ProjectionID, i)
-			rpl := strings.NewReplacer(
-				"{{projectionID}}", strconv.FormatUint(projectionID, 10),
-			)
+// 			k = types.LocaleKeyReportBlockDescription
+// 			out = append(out, &locale.ResourceTranslation{
+// 				Resource: res.ResourceTranslation(),
+// 				Lang:     tag.String(),
+// 				Key:      rpl.Replace(k.Path),
+// 				Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), rpl.Replace(k.Path)),
+// 			})
+// 		}
+// 	}
 
-			// base stuff
-			k = types.LocaleKeyReportProjectionTitle
-			out = append(out, &locale.ResourceTranslation{
-				Resource: res.ResourceTranslation(),
-				Lang:     tag.String(),
-				Key:      rpl.Replace(k.Path),
-				Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), rpl.Replace(k.Path)),
-			})
-
-			k = types.LocaleKeyReportProjectionDescription
-			out = append(out, &locale.ResourceTranslation{
-				Resource: res.ResourceTranslation(),
-				Lang:     tag.String(),
-				Key:      rpl.Replace(k.Path),
-				Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), rpl.Replace(k.Path)),
-			})
-		}
-	}
-
-	return
-}
+// 	return
+// }
