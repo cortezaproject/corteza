@@ -351,6 +351,7 @@ func (h AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.Aut
 		r   = req.Request
 		w   = req.Response
 		ctx = req.Context()
+		ti  oauth2def.TokenInfo
 	)
 
 	req.Status = -1
@@ -383,9 +384,15 @@ func (h AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.Aut
 		), " ")
 	}
 
-	ti, err := h.OAuth2.GetAccessToken(ctx, gt, tgr)
-	if err != nil {
-		return h.tokenError(w, err)
+	if gt == oauth2def.Refreshing {
+		ti, err = h.OAuth2Manager.LoadRefreshToken(ctx, tgr.Refresh)
+	}
+
+	if gt != oauth2def.Refreshing || err != nil {
+		ti, err = h.OAuth2.GetAccessToken(ctx, gt, tgr)
+		if err != nil {
+			return h.tokenError(w, err)
+		}
 	}
 
 	return token(w, h.OAuth2.GetTokenData(ti), nil)

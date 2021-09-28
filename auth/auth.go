@@ -217,6 +217,7 @@ func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthO
 		Templates:      tpls,
 		SessionManager: sesManager,
 		OAuth2:         oauth2Server,
+		OAuth2Manager:  oauth2Manager,
 		AuthService:    systemService.DefaultAuth,
 		UserService:    systemService.DefaultUser,
 		ClientService:  &clientService{s},

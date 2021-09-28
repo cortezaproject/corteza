@@ -88,6 +88,10 @@ type (
 		ValidationBearerToken(r *http.Request) (oauth2.TokenInfo, error)
 	}
 
+	oauth2Manager interface {
+		LoadRefreshToken(ctx context.Context, refresh string) (oauth2.TokenInfo, error)
+	}
+
 	localeService interface {
 		NS(ctx context.Context, ns string) func(key string, rr ...string) string
 		T(ctx context.Context, ns, key string, rr ...string) string
@@ -100,6 +104,7 @@ type (
 		Locale         localeService
 		Templates      templateExecutor
 		OAuth2         oauth2Service
+		OAuth2Manager  oauth2Manager
 		SessionManager *request.SessionManager
 		AuthService    authService
 		UserService    userService
