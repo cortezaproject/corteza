@@ -262,19 +262,14 @@ func (c *composePageBlock) cleanupModuleFields(opt map[string]interface{}) {
 
 	retFF := make([]interface{}, 0, len(ff))
 	for _, rawF := range ff {
-		f, ok := rawF.(map[string]interface{})
-		if !ok {
+		switch c := rawF.(type) {
+		case string:
+			retFF = append(retFF, map[string]interface{}{"name": c})
+		case map[string]interface{}, map[string]string:
+			retFF = append(retFF, c)
+		default:
 			retFF = append(retFF, rawF)
-			continue
 		}
-
-		fn, has := f["name"]
-		if !has {
-			retFF = append(retFF, rawF)
-			continue
-		}
-
-		retFF = append(retFF, fn)
 	}
 
 	opt["fields"] = retFF
