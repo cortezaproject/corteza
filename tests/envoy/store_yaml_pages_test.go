@@ -2,6 +2,7 @@ package envoy
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"testing"
 
@@ -255,6 +256,10 @@ func TestStoreYaml_pageRefs(t *testing.T) {
 							Kind:  "RecordList",
 							Options: map[string]interface{}{
 								"module": strconv.FormatUint(mod.ID, 10),
+								"fields": []map[string]interface{}{
+									{"name": "f1"},
+									{"name": "f2"},
+								},
 							},
 						},
 						{
@@ -262,6 +267,10 @@ func TestStoreYaml_pageRefs(t *testing.T) {
 							Kind:  "RecordList",
 							Options: map[string]interface{}{
 								"moduleID": strconv.FormatUint(mod.ID, 10),
+								"fields": []map[string]interface{}{
+									{"name": "f1"},
+									{"name": "f2"},
+								},
 							},
 						},
 					},
@@ -296,10 +305,20 @@ func TestStoreYaml_pageRefs(t *testing.T) {
 				// provided as module
 				b := pg.Blocks[0]
 				req.Equal(strconv.FormatUint(mod.ID, 10), b.Options["moduleID"])
+				casted := b.Options["fields"].([]interface{})
+				for i, c := range casted {
+					cc := c.(map[string]interface{})
+					req.Equal(fmt.Sprintf("f%d", i+1), cc["name"].(string))
+				}
 
 				// provided as moduleID
 				b = pg.Blocks[1]
 				req.Equal(strconv.FormatUint(mod.ID, 10), b.Options["moduleID"])
+				casted = b.Options["fields"].([]interface{})
+				for i, c := range casted {
+					cc := c.(map[string]interface{})
+					req.Equal(fmt.Sprintf("f%d", i+1), cc["name"].(string))
+				}
 			},
 		},
 
