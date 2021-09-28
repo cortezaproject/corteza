@@ -3,6 +3,7 @@ package yaml
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	automationTypes "github.com/cortezaproject/corteza-server/automation/types"
@@ -258,9 +259,47 @@ func (r *rbacRule) makeRBACResource(state *envoy.ResourceState) (string, error) 
 
 		return fmt.Sprintf(systemTypes.ApplicationRbacResourceTpl(), systemTypes.ApplicationResourceType, p1ID), nil
 
-		// // @todo
-		// case systemTypes.ApigwRouteResourceType:
-		// case systemTypes.ApigwFilterResourceType:
+	case systemTypes.ApigwRouteResourceType:
+		if res.RefRes != nil {
+			p1 := resource.FindAPIGateway(state.ParentResources, res.RefRes.Identifiers)
+			if p1 == nil {
+				return "", resource.APIGatewayErrUnresolved(res.RefRes.Identifiers)
+			}
+			p1ID = strconv.FormatUint(p1.ID, 10)
+		}
+
+		return fmt.Sprintf(systemTypes.ApigwRouteRbacResourceTpl(), systemTypes.ApigwRouteResourceType, p1ID), nil
+
+	case systemTypes.TemplateResourceType:
+		if res.RefRes != nil {
+			p1 := resource.FindTemplate(state.ParentResources, res.RefRes.Identifiers)
+			if p1 == nil {
+				return "", resource.TemplateErrUnresolved(res.RefRes.Identifiers)
+			}
+			p1ID = p1.Handle
+		}
+
+		return fmt.Sprintf(systemTypes.TemplateRbacResourceTpl(), systemTypes.TemplateResourceType, p1ID), nil
+
+	case systemTypes.ReportResourceType:
+		if res.RefRes != nil {
+			p1 := resource.FindReport(state.ParentResources, res.RefRes.Identifiers)
+			if p1 == nil {
+				return "", resource.ReportErrUnresolved(res.RefRes.Identifiers)
+			}
+			p1ID = p1.Handle
+		}
+
+		return fmt.Sprintf(systemTypes.ReportRbacResourceTpl(), systemTypes.ReportResourceType, p1ID), nil
+
+	case federationTypes.NodeResourceType:
+		return fmt.Sprintf(federationTypes.NodeRbacResourceTpl(), federationTypes.NodeResourceType, p1ID), nil
+
+	case federationTypes.SharedModuleResourceType:
+		return fmt.Sprintf(federationTypes.SharedModuleRbacResourceTpl(), federationTypes.SharedModuleResourceType, p1ID), nil
+
+	case federationTypes.ExposedModuleResourceType:
+		return fmt.Sprintf(federationTypes.ExposedModuleRbacResourceTpl(), federationTypes.ExposedModuleResourceType, p1ID), nil
 	}
 
 	return "", fmt.Errorf("unsupported resource type '%s' for RBAC YAML encode", r.res.Resource)
