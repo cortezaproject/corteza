@@ -131,15 +131,15 @@ func newHelper(t *testing.T) helper {
 		data: mockData,
 	}
 
+	h.cUser.SetRoles(h.roleID)
+	helpers.UpdateRBAC(h.roleID)
+	h.mockPermissionsWithAccess()
+
 	var err error
 	h.token, err = auth.DefaultJwtHandler.Generate(context.Background(), h.cUser)
 	if err != nil {
 		panic(err)
 	}
-
-	h.cUser.SetRoles(h.roleID)
-	helpers.UpdateRBAC(h.roleID)
-	h.mockPermissionsWithAccess()
 
 	return h
 }
