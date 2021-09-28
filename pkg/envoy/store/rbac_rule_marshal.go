@@ -324,31 +324,48 @@ func (n *rbacRule) makeRBACResource(pl *payload) (string, error) {
 		return systemTypes.ApplicationRbacResource(p1ID), nil
 
 	case systemTypes.ApigwRouteResourceType:
+		if n.refRbacRes != nil {
+			p1 := resource.FindAPIGateway(pl.state.ParentResources, n.refRbacRes.Identifiers)
+			if p1 == nil {
+				return "", resource.APIGatewayErrUnresolved(n.refRbacRes.Identifiers)
+			}
+			p1ID = p1.ID
+		}
 		return systemTypes.ApigwRouteRbacResource(p1ID), nil
-	case systemTypes.ApigwFilterResourceType:
-		return systemTypes.ApigwFilterRbacResource(p1ID), nil
+
 	case systemTypes.AuthClientResourceType:
 		// @todo add support for importing rbac rules for specific client
 		return systemTypes.AuthClientRbacResource(p1ID), nil
+
 	case systemTypes.TemplateResourceType:
-		// @todo add support for importing rbac rules for specific template
+		if n.refRbacRes != nil {
+			p1 := resource.FindTemplate(pl.state.ParentResources, n.refRbacRes.Identifiers)
+			if p1 == nil {
+				return "", resource.TemplateErrUnresolved(n.refRbacRes.Identifiers)
+			}
+			p1ID = p1.ID
+		}
 		return systemTypes.TemplateRbacResource(p1ID), nil
+
 	case systemTypes.ReportResourceType:
+		if n.refRbacRes != nil {
+			p1 := resource.FindReport(pl.state.ParentResources, n.refRbacRes.Identifiers)
+			if p1 == nil {
+				return "", resource.ReportErrUnresolved(n.refRbacRes.Identifiers)
+			}
+			p1ID = p1.ID
+		}
 		return systemTypes.ReportRbacResource(p1ID), nil
+
 	case messagebus.QueueResourceType:
 		// @todo add support for importing rbac rules for specific queue
 		return messagebus.QueueRbacResource(p1ID), nil
 
 	case federationTypes.NodeResourceType:
-		// @todo add support for importing rbac rules for specific queue
 		return federationTypes.NodeRbacResource(p1ID), nil
-
 	case federationTypes.SharedModuleResourceType:
-		// @todo add support for importing rbac rules for specific queue
 		return federationTypes.SharedModuleRbacResource(p0ID, p1ID), nil
-
 	case federationTypes.ExposedModuleResourceType:
-		// @todo add support for importing rbac rules for specific queue
 		return federationTypes.ExposedModuleRbacResource(p0ID, p1ID), nil
 	}
 

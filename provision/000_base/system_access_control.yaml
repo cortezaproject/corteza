@@ -86,11 +86,6 @@ allow:
       - update
       - delete
 
-    corteza::system:apigw-filter/*:
-      - read
-      - update
-      - delete
-
     corteza::system:report/*:
       - read
       - update
