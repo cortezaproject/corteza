@@ -2,8 +2,7 @@ package filter
 
 import (
 	"context"
-	"encoding/base64"
-	"fmt"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -38,7 +37,7 @@ func Test_processerPayload(t *testing.T) {
 					Body:   ioutil.NopCloser(strings.NewReader(`[1,2,3]`)),
 				},
 				exp: "2\n",
-				params: prepareFuncPayload(`
+				params: prepareFuncPayload(t, `
 				var b = JSON.parse(readRequestBody(input.Get('request').Body));
 				return b[1];
 				`),
@@ -50,7 +49,7 @@ func Test_processerPayload(t *testing.T) {
 					Body:   ioutil.NopCloser(strings.NewReader(`[{"name":"johnny", "surname":"mnemonic"},{"name":"johnny", "surname":"knoxville"}]`)),
 				},
 				exp: "{\"count\":2,\"results\":[{\"fullname\":\"Johnny Mnemonic\"},{\"fullname\":\"Johnny Knoxville\"}]}\n",
-				params: prepareFuncPayload(`
+				params: prepareFuncPayload(t, `
 				var b = JSON.parse(readRequestBody(input.Get('request').Body));
 
 				return {
@@ -70,7 +69,7 @@ func Test_processerPayload(t *testing.T) {
 					Method: "POST",
 					Body:   ioutil.NopCloser(strings.NewReader(`[{"name":"johnny", "surname":"mnemonic"},{"name":"johnny", "surname":"knoxville"}]`)),
 				},
-				params: prepareFuncPayload(``),
+				params: prepareFuncPayload(t, ``),
 				errv:   `could not register function, body empty`,
 			},
 		}
@@ -112,6 +111,10 @@ func Test_processerPayload(t *testing.T) {
 	}
 }
 
-func prepareFuncPayload(s string) string {
-	return fmt.Sprintf(`{"jsfunc": "%s"}`, base64.StdEncoding.EncodeToString([]byte(s)))
+func prepareFuncPayload(t *testing.T, s string) string {
+	aux, err := json.Marshal(map[string]string{"jsfunc": s})
+	if err != nil {
+		t.Error(err)
+	}
+	return string(aux)
 }
