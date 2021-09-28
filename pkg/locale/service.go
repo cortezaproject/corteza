@@ -108,6 +108,9 @@ func (svc *service) Default() *Language {
 
 // Tags of all loaded languages
 func (svc *service) Tags() (tt []language.Tag) {
+	svc.l.RLock()
+	defer svc.l.RUnlock()
+
 	tt = make([]language.Tag, 0, len(svc.set))
 	for t := range svc.set {
 		tt = append(tt, t)
@@ -127,8 +130,8 @@ func (svc *service) ReloadStatic() (err error) {
 		logFields = make([]zap.Field, 0)
 	)
 
-	svc.l.RLock()
-	defer svc.l.RUnlock()
+	svc.l.Lock()
+	defer svc.l.Unlock()
 
 	svc.log.Info("reloading static",
 		zap.Strings("path", svc.src),
