@@ -83,10 +83,10 @@ func (wrap *report) UnmarshalYAML(n *yaml.Node) (err error) {
 				return err
 			}
 
-		case "projections":
-			wrap.projections = make(reportProjectionSet, 0, 10)
+		case "blocks":
+			wrap.blocks = make(reportBlockSet, 0, 10)
 
-			err = v.Decode(&wrap.projections)
+			err = v.Decode(&wrap.blocks)
 			if err != nil {
 				return err
 			}
@@ -117,9 +117,9 @@ func (wrap *reportSource) UnmarshalYAML(n *yaml.Node) (err error) {
 	})
 }
 
-func (wrap *reportProjection) UnmarshalYAML(n *yaml.Node) (err error) {
+func (wrap *reportBlock) UnmarshalYAML(n *yaml.Node) (err error) {
 	if wrap.res == nil {
-		wrap.res = &types.ReportProjection{}
+		wrap.res = &types.ReportBlock{}
 	}
 
 	if wrap.envoyConfig, err = decodeEnvoyConfig(n); err != nil {
@@ -192,8 +192,8 @@ func (wrap report) MarshalEnvoy() ([]resource.Interface, error) {
 		rs.AddReportSource(s.res)
 	}
 
-	for _, p := range wrap.projections {
-		rs.AddReportProjection(p.res)
+	for _, p := range wrap.blocks {
+		rs.AddReportBlock(p.res)
 	}
 
 	return envoy.CollectNodes(

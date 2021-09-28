@@ -452,7 +452,7 @@ func (s Store) internalReportRowScanner(row rowScanner) (res *types.Report, err 
 			&res.Handle,
 			&res.Meta,
 			&res.Sources,
-			&res.Projections,
+			&res.Blocks,
 			&res.OwnedBy,
 			&res.CreatedBy,
 			&res.UpdatedBy,
@@ -503,7 +503,7 @@ func (Store) reportColumns(aa ...string) []string {
 		alias + "handle",
 		alias + "meta",
 		alias + "sources",
-		alias + "projections",
+		alias + "blocks",
 		alias + "owned_by",
 		alias + "created_by",
 		alias + "updated_by",
@@ -536,18 +536,18 @@ func (Store) sortableReportColumns() map[string]string {
 // func when rdbms.customEncoder=true
 func (s Store) internalReportEncoder(res *types.Report) store.Payload {
 	return store.Payload{
-		"id":          res.ID,
-		"handle":      res.Handle,
-		"meta":        res.Meta,
-		"sources":     res.Sources,
-		"projections": res.Projections,
-		"owned_by":    res.OwnedBy,
-		"created_by":  res.CreatedBy,
-		"updated_by":  res.UpdatedBy,
-		"deleted_by":  res.DeletedBy,
-		"created_at":  res.CreatedAt,
-		"updated_at":  res.UpdatedAt,
-		"deleted_at":  res.DeletedAt,
+		"id":         res.ID,
+		"handle":     res.Handle,
+		"meta":       res.Meta,
+		"sources":    res.Sources,
+		"blocks":     res.Blocks,
+		"owned_by":   res.OwnedBy,
+		"created_by": res.CreatedBy,
+		"updated_by": res.UpdatedBy,
+		"deleted_by": res.DeletedBy,
+		"created_at": res.CreatedAt,
+		"updated_at": res.UpdatedAt,
+		"deleted_at": res.DeletedAt,
 	}
 }
 
