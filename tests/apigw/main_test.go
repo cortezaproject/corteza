@@ -98,14 +98,14 @@ func newHelper(t *testing.T) helper {
 		},
 	}
 
+	h.cUser.SetRoles(h.roleID)
+	helpers.UpdateRBAC(h.roleID)
+
 	var err error
 	h.token, err = auth.DefaultJwtHandler.Generate(context.Background(), h.cUser)
 	if err != nil {
 		panic(err)
 	}
-
-	h.cUser.SetRoles(h.roleID)
-	helpers.UpdateRBAC(h.roleID)
 
 	return h
 }
