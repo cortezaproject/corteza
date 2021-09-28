@@ -12,8 +12,8 @@ type (
 		*base
 		Res *types.Report
 
-		Sources     []*ReportSource
-		Projections []*ReportProjection
+		Sources []*ReportSource
+		Blocks  []*ReportBlock
 	}
 
 	ReportSource struct {
@@ -21,9 +21,9 @@ type (
 		Res *types.ReportDataSource
 	}
 
-	ReportProjection struct {
+	ReportBlock struct {
 		*base
-		Res *types.ReportProjection
+		Res *types.ReportBlock
 	}
 )
 
@@ -62,21 +62,21 @@ func (r *Report) RBACParts() (resource string, ref *Ref, path []*Ref) {
 	return
 }
 
-func (r *Report) ResourceTranslationParts() (resource string, ref *Ref, path []*Ref) {
-	ref = r.Ref()
-	path = nil
-	resource = fmt.Sprintf(types.ReportResourceTranslationTpl(), types.ReportResourceTranslationType, firstOkString(strconv.FormatUint(r.Res.ID, 10), r.Res.Handle))
+// func (r *Report) ResourceTranslationParts() (resource string, ref *Ref, path []*Ref) {
+// 	ref = r.Ref()
+// 	path = nil
+// 	resource = fmt.Sprintf(types.ReportResourceTranslationTpl(), types.ReportResourceTranslationType, firstOkString(strconv.FormatUint(r.Res.ID, 10), r.Res.Handle))
 
-	return
-}
+// 	return
+// }
 
-func (r *Report) AddReportProjection(res *types.ReportProjection) *ReportProjection {
-	p := &ReportProjection{
+func (r *Report) AddReportBlock(res *types.ReportBlock) *ReportBlock {
+	p := &ReportBlock{
 		base: &base{},
 	}
 
 	p.Res = res
-	r.Projections = append(r.Projections, p)
+	r.Blocks = append(r.Blocks, p)
 
 	return p
 }

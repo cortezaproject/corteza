@@ -14,5 +14,5 @@ rbac:
 #   keys:
 #     - { path: name,    field: "Meta.Name" }
 #     - { path: description, field: "Meta.Description" }
-#     - { name: projection title, path: "projection.{{projectionID}}.title", custom: true }
-#     - { name: projection description, path: "projection.{{projectionID}}.description", custom: true }
+#     - { name: block title, path: "block.{{blockID}}.title", custom: true }
+#     - { name: block description, path: "block.{{blockID}}.description", custom: true }

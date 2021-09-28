@@ -185,7 +185,7 @@ func (svc *report) Update(ctx context.Context, upd *types.Report) (report *types
 		report.Handle = upd.Handle
 		report.Meta = upd.Meta
 		report.Sources = upd.Sources
-		report.Projections = upd.Projections
+		report.Blocks = upd.Blocks
 		report.UpdatedAt = now()
 
 		if upd.Meta != nil {
@@ -350,7 +350,7 @@ func (svc *report) Run(ctx context.Context, reportID uint64, dd rep.FrameDefinit
 		}
 
 		ss := r.Sources.ModelSteps()
-		ss = append(ss, r.Projections.ModelSteps()...)
+		ss = append(ss, r.Blocks.ModelSteps()...)
 
 		// Model the report
 		model, err := rep.Model(ctx, reporters, ss...)

@@ -6,7 +6,7 @@ fields:
   - { field: Handle, sortable: true }
   - { field: Meta, type: '*ReportMeta' }
   - { field: Sources, type: 'ReportDataSourceSet' }
-  - { field: Projections, type: 'ReportProjectionSet' }
+  - { field: Blocks, type: 'ReportBlockSet' }
   - { field: OwnedBy }
   - { field: CreatedBy }
   - { field: UpdatedBy }

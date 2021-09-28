@@ -7,9 +7,9 @@ import (
 
 type (
 	report struct {
-		res         *types.Report
-		sources     reportSourceSet
-		projections reportProjectionSet
+		res     *types.Report
+		sources reportSourceSet
+		blocks  reportBlockSet
 
 		ts *resource.Timestamps
 		us *resource.Userstamps
@@ -30,15 +30,15 @@ type (
 	}
 	reportSourceSet []*reportSource
 
-	reportProjection struct {
-		res *types.ReportProjection
+	reportBlock struct {
+		res *types.ReportBlock
 
 		envoyConfig   *resource.EnvoyConfig
 		encoderConfig *EncoderConfig
 
 		locale resourceTranslationSet
 	}
-	reportProjectionSet []*reportProjection
+	reportBlockSet []*reportBlock
 )
 
 func (nn reportSet) configureEncoder(cfg *EncoderConfig) {

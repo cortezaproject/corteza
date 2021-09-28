@@ -4,12 +4,9 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/report"
 )
 
@@ -19,8 +16,8 @@ type (
 		Handle string      `json:"handle"`
 		Meta   *ReportMeta `json:"meta,omitempty"`
 
-		Sources     ReportDataSourceSet `json:"sources"`
-		Projections ReportProjectionSet `json:"projections"`
+		Sources ReportDataSourceSet `json:"sources"`
+		Blocks  ReportBlockSet      `json:"blocks"`
 
 		// Report labels
 		Labels map[string]string `json:"labels,omitempty"`
@@ -45,19 +42,19 @@ type (
 		Description string `json:"description"`
 	}
 
-	ReportProjection struct {
-		ProjectionID uint64                   `json:"projectionID"`
-		Title        string                   `json:"title"`
-		Description  string                   `json:"description"`
-		Key          string                   `json:"key"`
-		Kind         string                   `json:"kind"`
-		Options      map[string]interface{}   `json:"options,omitempty"`
-		Elements     []interface{}            `json:"elements"`
-		Sources      report.StepDefinitionSet `json:"sources"`
-		XYWH         [4]int                   `json:"xywh"`
-		Layout       string                   `json:"layout"`
+	ReportBlock struct {
+		BlockID     uint64                   `json:"blockID"`
+		Title       string                   `json:"title"`
+		Description string                   `json:"description"`
+		Key         string                   `json:"key"`
+		Kind        string                   `json:"kind"`
+		Options     map[string]interface{}   `json:"options,omitempty"`
+		Elements    []interface{}            `json:"elements"`
+		Sources     report.StepDefinitionSet `json:"sources"`
+		XYWH        [4]int                   `json:"xywh"`
+		Layout      string                   `json:"layout"`
 	}
-	ReportProjectionSet []*ReportProjection
+	ReportBlockSet []*ReportBlock
 
 	ReportFilter struct {
 		ReportID []uint64 `json:"reportID"`
@@ -91,7 +88,7 @@ func (ss ReportDataSourceSet) ModelSteps() report.StepDefinitionSet {
 	return out
 }
 
-func (pp ReportProjectionSet) ModelSteps() report.StepDefinitionSet {
+func (pp ReportBlockSet) ModelSteps() report.StepDefinitionSet {
 	out := make(report.StepDefinitionSet, 0, 124)
 
 	for _, p := range pp {
@@ -127,20 +124,20 @@ func (vv *ReportMeta) Value() (driver.Value, error) {
 	return json.Marshal(vv)
 }
 
-// Scan on ReportProjectionSet gracefully handles conversion from NULL
-func (vv ReportProjectionSet) Value() (driver.Value, error) {
+// Scan on ReportBlockSet gracefully handles conversion from NULL
+func (vv ReportBlockSet) Value() (driver.Value, error) {
 	return json.Marshal(vv)
 }
 
-func (vv *ReportProjectionSet) Scan(value interface{}) error {
+func (vv *ReportBlockSet) Scan(value interface{}) error {
 	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
 	switch value.(type) {
 	case nil:
-		*vv = ReportProjectionSet{}
+		*vv = ReportBlockSet{}
 	case []uint8:
 		b := value.([]byte)
 		if err := json.Unmarshal(b, vv); err != nil {
-			return fmt.Errorf("cannot scan '%v' into ReportProjectionSet: %w", string(b), err)
+			return fmt.Errorf("cannot scan '%v' into ReportBlockSet: %w", string(b), err)
 		}
 	}
 
@@ -167,48 +164,48 @@ func (vv *ReportDataSourceSet) Scan(value interface{}) error {
 	return nil
 }
 
-func (r *Report) decodeTranslations(tt locale.ResourceTranslationIndex) {
-	var aux *locale.ResourceTranslation
+// func (r *Report) decodeTranslations(tt locale.ResourceTranslationIndex) {
+// 	var aux *locale.ResourceTranslation
 
-	for i, p := range r.Projections {
-		projectionID := locale.ContentID(p.ProjectionID, i)
-		rpl := strings.NewReplacer(
-			"{{projectionID}}", strconv.FormatUint(projectionID, 10),
-		)
+// 	for i, p := range r.Blocks {
+// 		blockID := locale.ContentID(p.BlockID, i)
+// 		rpl := strings.NewReplacer(
+// 			"{{blockID}}", strconv.FormatUint(blockID, 10),
+// 		)
 
-		// - generic page block stuff
-		if aux = tt.FindByKey(rpl.Replace(LocaleKeyReportProjectionTitle.Path)); aux != nil {
-			p.Title = aux.Msg
-		}
-		if aux = tt.FindByKey(rpl.Replace(LocaleKeyReportProjectionDescription.Path)); aux != nil {
-			p.Description = aux.Msg
-		}
-	}
-}
+// 		// - generic page block stuff
+// 		if aux = tt.FindByKey(rpl.Replace(LocaleKeyReportBlockTitle.Path)); aux != nil {
+// 			p.Title = aux.Msg
+// 		}
+// 		if aux = tt.FindByKey(rpl.Replace(LocaleKeyReportBlockDescription.Path)); aux != nil {
+// 			p.Description = aux.Msg
+// 		}
+// 	}
+// }
 
-func (r *Report) encodeTranslations() (out locale.ResourceTranslationSet) {
-	out = make(locale.ResourceTranslationSet, 0, 3)
+// func (r *Report) encodeTranslations() (out locale.ResourceTranslationSet) {
+// 	out = make(locale.ResourceTranslationSet, 0, 3)
 
-	// Page blocks
-	for i, projection := range r.Projections {
-		projectionID := locale.ContentID(projection.ProjectionID, i)
-		rpl := strings.NewReplacer(
-			"{{projectionID}}", strconv.FormatUint(projectionID, 10),
-		)
+// 	// Page blocks
+// 	for i, block := range r.Blocks {
+// 		blockID := locale.ContentID(block.BlockID, i)
+// 		rpl := strings.NewReplacer(
+// 			"{{blockID}}", strconv.FormatUint(blockID, 10),
+// 		)
 
-		// - generic page block stuff
-		out = append(out, &locale.ResourceTranslation{
-			Resource: r.ResourceTranslation(),
-			Key:      rpl.Replace(rpl.Replace(LocaleKeyReportProjectionTitle.Path)),
-			Msg:      projection.Title,
-		})
+// 		// - generic page block stuff
+// 		out = append(out, &locale.ResourceTranslation{
+// 			Resource: r.ResourceTranslation(),
+// 			Key:      rpl.Replace(rpl.Replace(LocaleKeyReportBlockTitle.Path)),
+// 			Msg:      block.Title,
+// 		})
 
-		out = append(out, &locale.ResourceTranslation{
-			Resource: r.ResourceTranslation(),
-			Key:      rpl.Replace(rpl.Replace(LocaleKeyReportProjectionDescription.Path)),
-			Msg:      projection.Description,
-		})
-	}
+// 		out = append(out, &locale.ResourceTranslation{
+// 			Resource: r.ResourceTranslation(),
+// 			Key:      rpl.Replace(rpl.Replace(LocaleKeyReportBlockDescription.Path)),
+// 			Msg:      block.Description,
+// 		})
+// 	}
 
-	return
-}
+// 	return
+// }

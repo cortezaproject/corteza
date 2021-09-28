@@ -17,18 +17,18 @@ func reportFromResource(r *resource.Report, cfg *EncoderConfig) *report {
 		}
 	}
 
-	pp := make(reportProjectionSet, len(r.Projections))
-	for i, p := range r.Projections {
-		pp[i] = &reportProjection{
+	pp := make(reportBlockSet, len(r.Blocks))
+	for i, p := range r.Blocks {
+		pp[i] = &reportBlock{
 			res:           p.Res,
 			encoderConfig: cfg,
 		}
 	}
 
 	return &report{
-		res:         r.Res,
-		sources:     ss,
-		projections: pp,
+		res:     r.Res,
+		sources: ss,
+		blocks:  pp,
 
 		encoderConfig: cfg,
 	}
@@ -76,7 +76,7 @@ func (wf *report) MarshalYAML() (interface{}, error) {
 		"meta", wf.res.Meta,
 
 		"sources", wf.sources,
-		"projections", wf.projections,
+		"blocks", wf.blocks,
 	)
 	if err != nil {
 		return nil, err
@@ -109,7 +109,7 @@ func (t *reportSource) MarshalYAML() (interface{}, error) {
 	return nn, nil
 }
 
-func (t *reportProjection) MarshalYAML() (interface{}, error) {
+func (t *reportBlock) MarshalYAML() (interface{}, error) {
 	var err error
 
 	nn, err := makeMap(

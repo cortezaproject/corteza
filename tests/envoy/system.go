@@ -183,7 +183,7 @@ func sTestReport(ctx context.Context, t *testing.T, s store.Storer, pfx string) 
 				},
 			},
 		}},
-		Projections: types.ReportProjectionSet{{
+		Blocks: types.ReportBlockSet{{
 			Title:       "title",
 			Description: "description",
 			Key:         "key",

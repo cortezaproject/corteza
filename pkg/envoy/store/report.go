@@ -15,7 +15,7 @@ type (
 		res *resource.Report
 		rp  *types.Report
 		ss  types.ReportDataSourceSet
-		pp  types.ReportProjectionSet
+		pp  types.ReportBlockSet
 
 		ux *userIndex
 	}
@@ -43,8 +43,8 @@ func mergeReports(a, b *types.Report) *types.Report {
 	if c.Sources == nil {
 		c.Sources = b.Sources
 	}
-	if c.Projections == nil {
-		c.Projections = b.Projections
+	if c.Blocks == nil {
+		c.Blocks = b.Blocks
 	}
 
 	if c.OwnedBy == 0 {

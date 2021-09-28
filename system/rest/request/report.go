@@ -84,10 +84,10 @@ type (
 		// Report source definitions
 		Sources types.ReportDataSourceSet
 
-		// Projections POST parameter
+		// Blocks POST parameter
 		//
-		// Report projections definition
-		Projections types.ReportProjectionSet
+		// Report blocks definition
+		Blocks types.ReportBlockSet
 
 		// Labels POST parameter
 		//
@@ -116,10 +116,10 @@ type (
 		// Report sources definition
 		Sources types.ReportDataSourceSet
 
-		// Projections POST parameter
+		// Blocks POST parameter
 		//
-		// Report projections definition
-		Projections types.ReportProjectionSet
+		// Report blocks definition
+		Blocks types.ReportBlockSet
 
 		// Labels POST parameter
 		//
@@ -286,11 +286,11 @@ func NewReportCreate() *ReportCreate {
 // Auditable returns all auditable/loggable parameters
 func (r ReportCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"handle":      r.Handle,
-		"meta":        r.Meta,
-		"sources":     r.Sources,
-		"projections": r.Projections,
-		"labels":      r.Labels,
+		"handle":  r.Handle,
+		"meta":    r.Meta,
+		"sources": r.Sources,
+		"blocks":  r.Blocks,
+		"labels":  r.Labels,
 	}
 }
 
@@ -310,8 +310,8 @@ func (r ReportCreate) GetSources() types.ReportDataSourceSet {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ReportCreate) GetProjections() types.ReportProjectionSet {
-	return r.Projections
+func (r ReportCreate) GetBlocks() types.ReportBlockSet {
+	return r.Blocks
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -366,8 +366,8 @@ func (r *ReportCreate) Fill(req *http.Request) (err error) {
 		//    }
 		//}
 
-		//if val, ok := req.Form["projections[]"]; ok && len(val) > 0  {
-		//    r.Projections, err = types.ReportProjectionSet(val), nil
+		//if val, ok := req.Form["blocks[]"]; ok && len(val) > 0  {
+		//    r.Blocks, err = types.ReportBlockSet(val), nil
 		//    if err != nil {
 		//        return err
 		//    }
@@ -397,12 +397,12 @@ func NewReportUpdate() *ReportUpdate {
 // Auditable returns all auditable/loggable parameters
 func (r ReportUpdate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"reportID":    r.ReportID,
-		"handle":      r.Handle,
-		"meta":        r.Meta,
-		"sources":     r.Sources,
-		"projections": r.Projections,
-		"labels":      r.Labels,
+		"reportID": r.ReportID,
+		"handle":   r.Handle,
+		"meta":     r.Meta,
+		"sources":  r.Sources,
+		"blocks":   r.Blocks,
+		"labels":   r.Labels,
 	}
 }
 
@@ -427,8 +427,8 @@ func (r ReportUpdate) GetSources() types.ReportDataSourceSet {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ReportUpdate) GetProjections() types.ReportProjectionSet {
-	return r.Projections
+func (r ReportUpdate) GetBlocks() types.ReportBlockSet {
+	return r.Blocks
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -483,8 +483,8 @@ func (r *ReportUpdate) Fill(req *http.Request) (err error) {
 		//    }
 		//}
 
-		//if val, ok := req.Form["projections[]"]; ok && len(val) > 0  {
-		//    r.Projections, err = types.ReportProjectionSet(val), nil
+		//if val, ok := req.Form["blocks[]"]; ok && len(val) > 0  {
+		//    r.Blocks, err = types.ReportBlockSet(val), nil
 		//    if err != nil {
 		//        return err
 		//    }
