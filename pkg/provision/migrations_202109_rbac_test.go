@@ -3,11 +3,22 @@ package provision
 import (
 	"testing"
 
+	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
+	federationTypes "github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_migratePre202109RbacRule(t *testing.T) {
+	rx := &resourceIndex{
+		fields:         make(map[uint64]*composeTypes.ModuleField),
+		modules:        make(map[uint64]*composeTypes.Module),
+		charts:         make(map[uint64]*composeTypes.Chart),
+		pages:          make(map[uint64]*composeTypes.Page),
+		exposedModules: make(map[uint64]*federationTypes.ExposedModule),
+		sharedModules:  make(map[uint64]*federationTypes.SharedModule),
+	}
+
 	tcc := []struct {
 		wantOp   int
 		rule     *rbac.Rule
@@ -23,7 +34,7 @@ func Test_migratePre202109RbacRule(t *testing.T) {
 	}
 	for _, tc := range tcc {
 		t.Run(tc.rule.String(), func(t *testing.T) {
-			require.Equal(t, tc.wantOp, migratePre202109RbacRule(tc.rule))
+			require.Equal(t, tc.wantOp, migratePre202109RbacRule(tc.rule, rx))
 			if tc.wantRule != nil {
 				require.Equal(t, tc.wantRule.String(), tc.rule.String())
 			}
