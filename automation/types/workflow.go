@@ -105,6 +105,21 @@ func (r Workflow) CheckDeferred() bool {
 	return r.Steps.HasDeferred()
 }
 
+func (r Workflow) Dict() map[string]interface{} {
+	return map[string]interface{}{
+		"ID":         r.ID,
+		"workflowID": r.ID,
+		"labels":     r.Labels,
+		"ownedBy":    r.OwnedBy,
+		"createdAt":  r.CreatedAt,
+		"createdBy":  r.CreatedBy,
+		"updatedAt":  r.UpdatedAt,
+		"updatedBy":  r.UpdatedBy,
+		"deletedAt":  r.DeletedAt,
+		"deletedBy":  r.DeletedBy,
+	}
+}
+
 func (vv *WorkflowMeta) Scan(value interface{}) error {
 	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
 	switch value.(type) {
