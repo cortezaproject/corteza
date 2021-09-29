@@ -102,17 +102,17 @@ func (h header) Handler() types.HandlerFunc {
 		out, err := expr.NewVars(vv)
 
 		if err != nil {
-			return pe.Internal("could not validate headers: (%v) (%s)", err, h.params.Expr)
+			return pe.Internal("could not validate headers: %v", err)
 		}
 
 		b, err := h.eval.Test(ctx, out)
 
 		if err != nil {
-			return pe.InvalidData("could not validate headers: (%v) (%s)", err, h.params.Expr)
+			return pe.InvalidData("could not validate headers: %v", err)
 		}
 
 		if !b {
-			return pe.InvalidData("could not validate headers: (%v) (%s)", errors.New("validation failed"), h.params.Expr)
+			return pe.InvalidData("could not validate headers: %v", errors.New("validation failed"))
 		}
 
 		return nil
@@ -183,17 +183,17 @@ func (qp *queryParam) Handler() types.HandlerFunc {
 		out, err := expr.NewVars(vv)
 
 		if err != nil {
-			return pe.Internal("could not validate query parameters: (%v) (%s)", err, qp.params.Expr)
+			return pe.Internal("could not validate query parameters: %v", err)
 		}
 
 		b, err := qp.eval.Test(ctx, out)
 
 		if err != nil {
-			return pe.InvalidData("could not validate query parameters: (%v) (%s)", err, qp.params.Expr)
+			return pe.InvalidData("could not validate query parameters: %v", err)
 		}
 
 		if !b {
-			return pe.InvalidData("could not validate query parameters: (%v) (%s)", errors.New("validation failed"), qp.params.Expr)
+			return pe.InvalidData("could not validate query parameters: %v", errors.New("validation failed"))
 		}
 
 		return nil
