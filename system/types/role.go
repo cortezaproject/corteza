@@ -30,7 +30,7 @@ type (
 	}
 
 	RoleContext struct {
-		Resource []string `json:"resourceTypes,omitempty"`
+		Resource []string `json:"resourceTypes,omitempty" yaml:"resourceType"`
 		Expr     string   `json:"expr,omitempty"`
 	}
 
