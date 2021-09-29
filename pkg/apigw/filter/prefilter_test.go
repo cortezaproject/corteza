@@ -54,13 +54,13 @@ func Test_headerHandle(t *testing.T) {
 				name:    "non matching value",
 				expr:    `{"expr":"Foo == \"bar1\""}`,
 				headers: map[string][]string{"Foo": {"bar"}},
-				err:     `could not validate headers: (validation failed) (Foo == "bar1")`,
+				err:     `could not validate headers: validation failed`,
 			},
 			{
 				name:    "non matching key",
 				expr:    `{"expr":"Foo1 == \"bar\""}`,
 				headers: map[string][]string{"Foo": {"bar"}},
-				err:     `could not validate headers: (failed to select 'Foo1' on *expr.Vars: no such key 'Foo1') (Foo1 == "bar")`,
+				err:     `could not validate headers: failed to select 'Foo1' on *expr.Vars: no such key 'Foo1'`,
 			},
 			{
 				name:    "regex matching key",
@@ -127,7 +127,7 @@ func Test_queryParamHandle(t *testing.T) {
 				name: "matching simple query parameter - missing value",
 				expr: `{"expr":"foo == \"bar\""}`,
 				url:  "https://examp.le?foo=bar1",
-				err:  `could not validate query parameters: (validation failed) (foo == "bar")`,
+				err:  `could not validate query parameters: validation failed`,
 			},
 			{
 				name: "matching query parameter",

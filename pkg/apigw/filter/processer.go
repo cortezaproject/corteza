@@ -94,7 +94,7 @@ func (h workflow) Handler() types.HandlerFunc {
 		payload, err := scope.Get("payload")
 
 		if err != nil {
-			return pe.Internal("could not get payload: (%v)", err)
+			return pe.Internal("could not get payload: %v", err)
 		}
 
 		// setup scope for workflow
@@ -107,7 +107,7 @@ func (h workflow) Handler() types.HandlerFunc {
 		in, err := expr.NewVars(vv)
 
 		if err != nil {
-			return pe.Internal("could not validate request data: (%v)", err)
+			return pe.Internal("could not validate request data: %v", err)
 		}
 
 		wp := atypes.WorkflowExecParams{
@@ -122,20 +122,20 @@ func (h workflow) Handler() types.HandlerFunc {
 		out, _, err := h.d.Exec(ctx, h.params.Workflow, wp)
 
 		if err != nil {
-			return pe.Internal("could not exec workflow: (%v)", err)
+			return pe.Internal("could not exec workflow: %v", err)
 		}
 
 		// merge out with scope
 		merged, err := in.Merge(out)
 
 		if err != nil {
-			return pe.Internal("could not receive workflow results: (%v)", err)
+			return pe.Internal("could not receive workflow results: %v", err)
 		}
 
 		mm, err := expr.CastToVars(merged)
 
 		if err != nil {
-			return pe.Internal("could not receive workflow results: (%v)", err)
+			return pe.Internal("could not receive workflow results: %v", err)
 		}
 
 		for k, v := range mm {
@@ -226,13 +226,13 @@ func (h processerPayload) Handler() types.HandlerFunc {
 		fn, err := h.vm.RegisterFunction(h.params.Func)
 
 		if err != nil {
-			return pe.InvalidData("could not register function: (%v)", err)
+			return pe.InvalidData("could not register function: %v", err)
 		}
 
 		out, err := fn.Exec(h.vm.New(scope))
 
 		if err != nil {
-			return pe.Internal("could not exec payload function: (%v)", err)
+			return pe.Internal("could not exec payload function: %v", err)
 		}
 
 		// add to scope, so next steps can get the structure
@@ -249,7 +249,7 @@ func (h processerPayload) Handler() types.HandlerFunc {
 		}
 
 		if err != nil {
-			return pe.Internal("could not write to response body: (%v)", err)
+			return pe.Internal("could not write to response body: %v", err)
 		}
 
 		return

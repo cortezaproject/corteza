@@ -135,7 +135,7 @@ func (j defaultJsonResponse) Handler() types.HandlerFunc {
 		rw.WriteHeader(http.StatusAccepted)
 
 		if _, err := rw.Write([]byte(`{}`)); err != nil {
-			return pe.Internal("could not write to body: (%v)", err)
+			return pe.Internal("could not write to body: %v", err)
 		}
 
 		return nil
