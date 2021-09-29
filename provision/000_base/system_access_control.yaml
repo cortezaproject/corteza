@@ -1,5 +1,11 @@
 allow:
   authenticated:
+    corteza::system/:
+      - applications.search
+      - auth-clients.search
+      - users.search
+      - roles.search
+
     corteza::system:user/*:
       - read
       - email.unmask
