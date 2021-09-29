@@ -33,6 +33,7 @@ type (
 		Records types.RecordSet `json:"records,omitempty"`
 
 		CanUpdateRecord bool `json:"canUpdateRecord"`
+		CanReadRecord   bool `json:"canReadRecord"`
 		CanDeleteRecord bool `json:"canDeleteRecord"`
 		CanGrant        bool `json:"canGrant"`
 	}
@@ -56,6 +57,7 @@ type (
 		CanGrant(context.Context) bool
 
 		CanUpdateRecord(context.Context, *types.Record) bool
+		CanReadRecord(context.Context, *types.Record) bool
 		CanDeleteRecord(context.Context, *types.Record) bool
 	}
 )
@@ -562,6 +564,7 @@ func (ctrl Record) makeBulkPayload(ctx context.Context, m *types.Module, err err
 		Records: rr[1:],
 
 		CanUpdateRecord: ctrl.ac.CanUpdateRecord(ctx, rr[0]),
+		CanReadRecord:   ctrl.ac.CanReadRecord(ctx, rr[0]),
 		CanDeleteRecord: ctrl.ac.CanDeleteRecord(ctx, rr[0]),
 	}, nil
 }
@@ -577,6 +580,7 @@ func (ctrl Record) makePayload(ctx context.Context, m *types.Module, r *types.Re
 		CanGrant: ctrl.ac.CanGrant(ctx),
 
 		CanUpdateRecord: ctrl.ac.CanUpdateRecord(ctx, r),
+		CanReadRecord:   ctrl.ac.CanReadRecord(ctx, r),
 		CanDeleteRecord: ctrl.ac.CanDeleteRecord(ctx, r),
 	}, nil
 }

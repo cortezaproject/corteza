@@ -723,7 +723,7 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 	aProps.setModule(m)
 	aProps.setRecord(old)
 
-	if !svc.ac.CanUpdateRecord(ctx, upd) {
+	if !svc.ac.CanUpdateRecord(ctx, old) {
 		return nil, RecordErrNotAllowedToUpdate()
 	}
 
