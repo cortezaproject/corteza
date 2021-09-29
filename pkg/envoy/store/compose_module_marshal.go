@@ -159,6 +159,17 @@ func (n *composeModule) Encode(ctx context.Context, pl *payload) (err error) {
 	} else {
 		originalFields = make(types.ModuleFieldSet, 0)
 	}
+
+	// Get max validatorID for later use
+	vvID := make([]uint64, len(res.Fields))
+	for i, f := range res.Fields {
+		for _, v := range f.Expressions.Validators {
+			if vvID[i] < v.ValidatorID {
+				vvID[i] = v.ValidatorID
+			}
+		}
+	}
+
 	for i, f := range res.Fields {
 		of := originalFields.FindByName(f.Name)
 		if of != nil {
@@ -170,6 +181,16 @@ func (n *composeModule) Encode(ctx context.Context, pl *payload) (err error) {
 		f.Place = i
 		f.DeletedAt = nil
 		f.CreatedAt = *now()
+
+		// Assure validatorIDs
+		for j, v := range f.Expressions.Validators {
+			if v.ValidatorID == 0 {
+				vvID[i] += 1
+				v.ValidatorID = vvID[i]
+
+				f.Expressions.Validators[j] = v
+			}
+		}
 
 		if f.Options != nil && f.Kind == "Record" {
 			refMod := f.Options.String("module")

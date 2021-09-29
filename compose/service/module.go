@@ -249,6 +249,13 @@ func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module,
 				f.CreatedAt = *now()
 				f.UpdatedAt = nil
 				f.DeletedAt = nil
+
+				// Assure validatorID
+				for i, v := range f.Expressions.Validators {
+					v.ValidatorID = uint64(i) + 1
+					f.Expressions.Validators[i] = v
+				}
+
 				return nil
 			})
 		}
@@ -461,6 +468,16 @@ func (svc module) handleUpdate(ctx context.Context, upd *types.Module) moduleUpd
 			return moduleUnchanged, ModuleErrNotAllowedToUpdate()
 		}
 
+		// Get max validatorID for later use
+		vvID := make([]uint64, len(res.Fields))
+		for i, f := range res.Fields {
+			for _, v := range f.Expressions.Validators {
+				if vvID[i] < v.ValidatorID {
+					vvID[i] = v.ValidatorID
+				}
+			}
+		}
+
 		if res.Name != upd.Name {
 			changes |= moduleChanged
 			res.Name = upd.Name
@@ -493,6 +510,19 @@ func (svc module) handleUpdate(ctx context.Context, upd *types.Module) moduleUpd
 		if !reflect.DeepEqual(res.Fields, upd.Fields) {
 			changes |= moduleFieldsChanged
 			res.Fields = upd.Fields
+		}
+
+		// Assure validatorIDs
+		for i, f := range res.Fields {
+			for j, v := range f.Expressions.Validators {
+				if v.ValidatorID == 0 {
+					vvID[i] += 1
+					v.ValidatorID = vvID[i]
+					f.Expressions.Validators[j] = v
+
+					changes |= moduleFieldsChanged
+				}
+			}
 		}
 
 		if upd.Labels != nil {

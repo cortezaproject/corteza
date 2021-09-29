@@ -289,6 +289,11 @@ func (svc page) Create(ctx context.Context, new *types.Page) (*types.Page, error
 		new.UpdatedAt = nil
 		new.DeletedAt = nil
 
+		// Assure pageblock IDs
+		for i, b := range new.Blocks {
+			b.BlockID = uint64(i) + 1
+		}
+
 		if err = store.CreateComposePage(ctx, s, new); err != nil {
 			return err
 		}
@@ -344,6 +349,14 @@ func (svc page) updater(ctx context.Context, namespaceID, pageID uint64, action 
 
 		if err = label.Load(ctx, svc.store, p); err != nil {
 			return err
+		}
+
+		// Get max blockID for later use
+		blockID := uint64(0)
+		for _, b := range p.Blocks {
+			if b.BlockID > blockID {
+				blockID = b.BlockID
+			}
 		}
 
 		old = p.Clone()
@@ -468,6 +481,14 @@ func (svc page) handleUpdate(ctx context.Context, upd *types.Page) pageUpdateHan
 			return pageUnchanged, PageErrNotAllowedToUpdate()
 		}
 
+		// Get max blockID for later use
+		blockID := uint64(0)
+		for _, b := range res.Blocks {
+			if b.BlockID > blockID {
+				blockID = b.BlockID
+			}
+		}
+
 		if res.ID != upd.ID {
 			res.ID = upd.ID
 			changes |= pageChanged
@@ -481,6 +502,17 @@ func (svc page) handleUpdate(ctx context.Context, upd *types.Page) pageUpdateHan
 		if !reflect.DeepEqual(res.Blocks, upd.Blocks) {
 			res.Blocks = upd.Blocks
 			changes |= pageChanged
+		}
+
+		// Assure blockIDs
+		for i, b := range res.Blocks {
+			if b.BlockID == 0 {
+				blockID++
+				b.BlockID = blockID
+				res.Blocks[i] = b
+
+				changes |= pageChanged
+			}
 		}
 
 		if res.Title != upd.Title {
