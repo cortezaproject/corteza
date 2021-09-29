@@ -216,7 +216,23 @@ func (n *composePage) Encode(ctx context.Context, pl *payload) (err error) {
 		return ""
 	}
 
+	// Get max blockID for later use
+	blockID := uint64(0)
 	for _, b := range res.Blocks {
+		if b.BlockID > blockID {
+			blockID = b.BlockID
+		}
+	}
+
+	for i, b := range res.Blocks {
+
+		// Assure blockIDs
+		if b.BlockID == 0 {
+			blockID++
+			b.BlockID = blockID
+			res.Blocks[i] = b
+		}
+
 		switch b.Kind {
 		case "RecordList":
 			id := ss(b.Options, "module", "moduleID")

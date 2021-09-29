@@ -237,6 +237,7 @@ func (c *composePageBlock) MarshalYAML() (interface{}, error) {
 	}
 
 	return makeMap(
+		"blockID", c.res.BlockID,
 		"title", c.res.Title,
 		"description", c.res.Description,
 		"options", c.res.Options,
