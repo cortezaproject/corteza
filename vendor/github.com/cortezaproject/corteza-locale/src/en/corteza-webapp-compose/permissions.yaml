@@ -55,15 +55,18 @@ resources:
     module-field:
       all: all module fields
       specific: field "{{target}}"
+      all-specific: all module fields of module "{{ target }}"
       operations:
         record.value.read:
           description: 'Default: deny'
           specific: 'Read "{{target}}" record fields '
           title: Read record fields of any module
+          all-specific: Read record fields of module "{{ target }}"
         record.value.update:
           description: 'Default: deny'
           specific: 'Update "{{target}}" record fields '
           title: Update record fields of any module
+          all-specific: Update record fields of module "{{ target }}"
 
     namespace:
       all: all namespaces
@@ -130,16 +133,20 @@ resources:
     record:
       all: all records
       specific: record
+      all-specific: all records of module "{{ target }}"
       operations:
         delete:
           description: 'Default: deny'
           specific: Delete record
           title: Delete records of any module
+          all-specific: Delete records of module "{{ target }}"
         read:
           description: 'Default: deny'
           specific: Read record
           title: Read records of any module
+          all-specific: Read records of module "{{ target }}"
         update:
           description: 'Default: deny'
           specific: Update record
           title: Update records of any module
+          all-specific: Update records of module "{{ target }}"
