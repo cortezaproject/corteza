@@ -26,7 +26,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/gabriel-vasile/mimetype"
-	"golang.org/x/text/language"
 )
 
 type (
@@ -43,6 +42,7 @@ type (
 	}
 
 	namespaceAccessController interface {
+		CanManageResourceTranslations(ctx context.Context) bool
 		CanSearchNamespaces(context.Context) bool
 		CanCreateNamespace(context.Context) bool
 		CanReadNamespace(context.Context, *types.Namespace) bool
@@ -232,13 +232,8 @@ func (svc namespace) Create(ctx context.Context, new *types.Namespace) (*types.N
 			return err
 		}
 
-		if contentLang := locale.GetContentLanguageFromContext(ctx); contentLang != language.Und {
-			tt := new.EncodeTranslations()
-			tt.SetLanguage(contentLang)
-			err = DefaultResourceTranslation.Upsert(ctx, tt)
-			if err != nil {
-				return err
-			}
+		if err = updateTranslations(ctx, svc.ac, svc.locale, new.EncodeTranslations()...); err != nil {
+			return
 		}
 
 		if err = label.Create(ctx, s, new); err != nil {
@@ -546,13 +541,8 @@ func (svc namespace) updater(ctx context.Context, namespaceID uint64, action fun
 			}
 		}
 
-		if contentLang := locale.GetContentLanguageFromContext(ctx); contentLang != language.Und {
-			tt := ns.EncodeTranslations()
-			tt.SetLanguage(contentLang)
-			err = DefaultResourceTranslation.Upsert(ctx, tt)
-			if err != nil {
-				return err
-			}
+		if err = updateTranslations(ctx, svc.ac, svc.locale, ns.EncodeTranslations()...); err != nil {
+			return
 		}
 
 		if changes&namespaceLabelsChanged > 0 {

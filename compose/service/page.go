@@ -13,7 +13,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/store"
-	"golang.org/x/text/language"
 )
 
 type (
@@ -26,6 +25,7 @@ type (
 	}
 
 	pageAccessController interface {
+		CanManageResourceTranslations(ctx context.Context) bool
 		CanSearchPagesOnNamespace(context.Context, *types.Namespace) bool
 		CanReadNamespace(context.Context, *types.Namespace) bool
 		CanCreatePageOnNamespace(context.Context, *types.Namespace) bool
@@ -289,7 +289,7 @@ func (svc page) Create(ctx context.Context, new *types.Page) (*types.Page, error
 		new.UpdatedAt = nil
 		new.DeletedAt = nil
 
-		// Assure pageblock IDs
+		// Ensure page-block IDs
 		for i, b := range new.Blocks {
 			b.BlockID = uint64(i) + 1
 		}
@@ -298,14 +298,8 @@ func (svc page) Create(ctx context.Context, new *types.Page) (*types.Page, error
 			return err
 		}
 
-		// i18n
-		if contentLang := locale.GetContentLanguageFromContext(ctx); contentLang != language.Und {
-			tt := new.EncodeTranslations()
-			tt.SetLanguage(contentLang)
-			err = svc.locale.Upsert(ctx, tt)
-			if err != nil {
-				return err
-			}
+		if err = updateTranslations(ctx, svc.ac, svc.locale, new.EncodeTranslations()...); err != nil {
+			return
 		}
 
 		if err = label.Create(ctx, s, new); err != nil {
@@ -384,14 +378,8 @@ func (svc page) updater(ctx context.Context, namespaceID, pageID uint64, action 
 			}
 		}
 
-		// i18n
-		if contentLang := locale.GetContentLanguageFromContext(ctx); contentLang != language.Und {
-			tt := p.EncodeTranslations()
-			tt.SetLanguage(contentLang)
-			err = svc.locale.Upsert(ctx, tt)
-			if err != nil {
-				return err
-			}
+		if err = updateTranslations(ctx, svc.ac, svc.locale, p.EncodeTranslations()...); err != nil {
+			return
 		}
 
 		if changes&pageLabelsChanged > 0 {
