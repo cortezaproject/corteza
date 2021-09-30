@@ -43,6 +43,7 @@ notification:
   cloneFailed: Could not clone this namespace
   saved: Namespace saved
   imported: Namespace imported
+  importFailed: Namespace failed to import
 searchPlaceholder: Type here to search among all namespaces...
 setPermissions: Set namespace permissions
 slug:
