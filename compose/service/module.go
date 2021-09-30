@@ -18,7 +18,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/store"
-	"golang.org/x/text/language"
 )
 
 type (
@@ -31,6 +30,7 @@ type (
 	}
 
 	moduleAccessController interface {
+		CanManageResourceTranslations(ctx context.Context) bool
 		CanSearchModulesOnNamespace(context.Context, *types.Namespace) bool
 		CanReadNamespace(context.Context, *types.Namespace) bool
 		CanCreateModuleOnNamespace(context.Context, *types.Namespace) bool
@@ -270,17 +270,13 @@ func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module,
 			return err
 		}
 
-		if contentLang := locale.GetContentLanguageFromContext(ctx); contentLang != language.Und {
-			tt := new.EncodeTranslations()
-			for _, f := range new.Fields {
-				tt = append(tt, f.EncodeTranslations()...)
-			}
+		tt := new.EncodeTranslations()
+		for _, f := range new.Fields {
+			tt = append(tt, f.EncodeTranslations()...)
+		}
 
-			tt.SetLanguage(contentLang)
-			err = DefaultResourceTranslation.Upsert(ctx, tt)
-			if err != nil {
-				return err
-			}
+		if err = updateTranslations(ctx, svc.ac, svc.locale, tt...); err != nil {
+			return
 		}
 
 		if err = label.Create(ctx, s, new); err != nil {
@@ -369,17 +365,13 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 		}
 
 		// i18n
-		if contentLang := locale.GetContentLanguageFromContext(ctx); contentLang != language.Und {
-			tt := m.EncodeTranslations()
-			for _, f := range m.Fields {
-				tt = append(tt, f.EncodeTranslations()...)
-			}
+		tt := m.EncodeTranslations()
+		for _, f := range m.Fields {
+			tt = append(tt, f.EncodeTranslations()...)
+		}
 
-			tt.SetLanguage(contentLang)
-			err = svc.locale.Upsert(ctx, tt)
-			if err != nil {
-				return err
-			}
+		if err = updateTranslations(ctx, svc.ac, svc.locale, tt...); err != nil {
+			return
 		}
 
 		if changes&moduleLabelsChanged > 0 {

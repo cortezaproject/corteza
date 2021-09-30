@@ -17,6 +17,11 @@ props:
       This parameter is ignored if only one language is enabled
     default: "lng"
 
+  - name: resourceTranslationsEnabled
+    type: bool
+    description: |-
+      When enabled, Corteza all
+
   - name: log
     type: bool
     description: Log locale related events and actions

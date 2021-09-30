@@ -10,11 +10,12 @@ package options
 
 type (
 	LocaleOpt struct {
-		Languages        string `env:"LOCALE_LANGUAGES"`
-		Path             string `env:"LOCALE_PATH"`
-		QueryStringParam string `env:"LOCALE_QUERY_STRING_PARAM"`
-		Log              bool   `env:"LOCALE_LOG"`
-		DevelopmentMode  bool   `env:"LOCALE_DEVELOPMENT_MODE"`
+		Languages                   string `env:"LOCALE_LANGUAGES"`
+		Path                        string `env:"LOCALE_PATH"`
+		QueryStringParam            string `env:"LOCALE_QUERY_STRING_PARAM"`
+		ResourceTranslationsEnabled bool   `env:"LOCALE_RESOURCE_TRANSLATIONS_ENABLED"`
+		Log                         bool   `env:"LOCALE_LOG"`
+		DevelopmentMode             bool   `env:"LOCALE_DEVELOPMENT_MODE"`
 	}
 )
 

@@ -30,6 +30,7 @@ type (
 		TResource(ctx context.Context, ns, key string, rr ...string) string
 		TResourceFor(tag language.Tag, ns, key string, rr ...string) string
 		Tags() []language.Tag
+		SupportedLang(language.Tag) bool
 		ResourceTranslations(code language.Tag, resource string) ResourceTranslationIndex
 		Default() *Language
 	}
@@ -117,6 +118,10 @@ func (svc *service) Tags() (tt []language.Tag) {
 	}
 
 	return
+}
+
+func (svc *service) SupportedLang(tag language.Tag) bool {
+	return svc.set[tag] != nil
 }
 
 // ReloadStatic all language configurations (as configured via path options) and
