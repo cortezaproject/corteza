@@ -17,4 +17,12 @@ func Test_prefilter_query_failing(t *testing.T) {
 		Expect(t).
 		Status(http.StatusBadRequest).
 		End()
+
+	h.apiInit().
+		Get("/test-hyphen").
+		Query("foo-bar", "encrypted-string").
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusBadRequest).
+		End()
 }

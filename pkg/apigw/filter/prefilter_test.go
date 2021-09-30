@@ -67,11 +67,11 @@ func Test_headerHandle(t *testing.T) {
 				expr:    `{"expr":"match(Foo, \"^b\\\\wr\\\\s.*$\")"}`,
 				headers: map[string][]string{"Foo": {"bar "}},
 			},
-			// {
-			// 	name:    "matching header with hyphen - TODO",
-			// 	expr:    `{"expr":"Content-type == \"application/json\""}`,
-			// 	headers: map[string][]string{"Content-type": {"application/json"}},
-			// },
+			{
+				name:    "matching header with hyphen",
+				expr:    `{"expr":"headers[\"Content-type\"] == \"application/json\""}`,
+				headers: map[string][]string{"Content-type": {"application/json"}},
+			},
 		}
 	)
 
@@ -133,6 +133,11 @@ func Test_queryParamHandle(t *testing.T) {
 				name: "matching query parameter",
 				expr: `{"expr":"foo == \"bar-baz\""}`,
 				url:  "https://examp.le?foo=bar-baz",
+			},
+			{
+				name: "matching query parameter",
+				expr: `{"expr":"params[\"foo-bar\"] == \"bar-baz\""}`,
+				url:  "https://examp.le?foo-bar=bar-baz",
 			},
 		}
 	)

@@ -17,4 +17,12 @@ func Test_prefilter_header_failing(t *testing.T) {
 		Expect(t).
 		Status(http.StatusBadRequest).
 		End()
+
+	h.apiInit().
+		Get("/test-hyphen").
+		Header("Accept-Language", "fr-CH, fr;q=0.9").
+		Header("Token", "brute-force-guess").
+		Expect(t).
+		Status(http.StatusBadRequest).
+		End()
 }
