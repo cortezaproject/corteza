@@ -100,13 +100,16 @@ func (h header) Handler() types.HandlerFunc {
 
 		// get the request data and put it into vars
 		out, err := expr.NewVars(vv)
-
 		if err != nil {
 			return pe.Internal("could not validate headers: %v", err)
 		}
 
-		b, err := h.eval.Test(ctx, out)
+		err = out.Set("headers", vv)
+		if err != nil {
+			return pe.Internal("could not set headers: %v", err)
+		}
 
+		b, err := h.eval.Test(ctx, out)
 		if err != nil {
 			return pe.InvalidData("could not validate headers: %v", err)
 		}
@@ -181,13 +184,16 @@ func (qp *queryParam) Handler() types.HandlerFunc {
 
 		// get the request data and put it into vars
 		out, err := expr.NewVars(vv)
-
 		if err != nil {
 			return pe.Internal("could not validate query parameters: %v", err)
 		}
 
-		b, err := qp.eval.Test(ctx, out)
+		err = out.Set("params", vv)
+		if err != nil {
+			return pe.Internal("could not set params: %v", err)
+		}
 
+		b, err := qp.eval.Test(ctx, out)
 		if err != nil {
 			return pe.InvalidData("could not validate query parameters: %v", err)
 		}

@@ -17,4 +17,12 @@ func Test_prefilter_header_passing(t *testing.T) {
 		Expect(t).
 		Status(http.StatusOK).
 		End()
+
+	h.apiInit().
+		Get("/test-hyphen").
+		Header("Accept-Language", "fr-CH, fr;q=0.9").
+		Header("Token", "super-secret-token").
+		Expect(t).
+		Status(http.StatusOK).
+		End()
 }

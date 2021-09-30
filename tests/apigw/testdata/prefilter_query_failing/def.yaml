@@ -7,3 +7,13 @@ apigateway:
         kind: "prefilter"
         params:
           expr: "token == \"super-secret-token\""
+
+  - endpoint: /test-hyphen
+    method: GET
+    enabled: true
+    filters:
+      - ref: "queryParam"
+        kind: "prefilter"
+        params:
+          expr: "foo-bar == \"encrypted-string\""
+
