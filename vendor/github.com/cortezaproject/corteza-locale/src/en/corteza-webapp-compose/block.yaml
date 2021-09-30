@@ -380,7 +380,7 @@ selectBlockFootnote: Some types might be disabled for non-record pages
 field:
   noPermission: No permission to read field value
   selector:
-    available: Fields available
+    available: Available fields
     systemField: (system field)
 comment:
   label: 'Comments'

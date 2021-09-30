@@ -29,7 +29,9 @@ label:
   importPlaceholder: Upload files to import
   loading: Loading
   makeDefault: Make default
+  module: Module
   moduleName: Module name
+
   multi: Multi value
   name: Name
   next: Next
@@ -42,7 +44,9 @@ label:
   permissions: Permissions
   private: Private
   processing: Processing...
+  record: Record
   recordPage: Record page
+  field: Field
   remove: Remove
   removeDefault: Remove default
   required: Required
