@@ -1,0 +1,30 @@
+namespaces:
+  ns1:
+    name: ns1 name
+
+modules:
+  mod1:
+    name: mod1 name
+    fields:
+      f1:
+        label: f1 label
+        kind: String
+        required: true
+      f2:
+        label: f2 label
+        kind: Select
+        options:
+          options:
+          - f2 opt 1
+          - f2 opt 2
+          - f2 opt 3
+
+records:
+  mod1:
+    - createdBy: user_createdby
+      updatedBy: user_updatedby
+      deletedBy: user_deletedby
+      ownedBy: user_ownedby
+      values:
+        f1: "mod1 f1 v1"
+        f2: "f2 opt 1"
