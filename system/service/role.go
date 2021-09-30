@@ -837,7 +837,7 @@ func initRoles(ctx context.Context, log *zap.Logger, opt options.RBACOpt, eb eve
 	DefaultRole.SetClosed(tmp...)
 
 	// Initial RBAC update
-	if err = updateRbacRoles(ctx, log, ru, bypass, authenticated, anonymous); err != nil {
+	if err = UpdateRbacRoles(ctx, log, ru, bypass, authenticated, anonymous); err != nil {
 		return
 	}
 
@@ -846,7 +846,7 @@ func initRoles(ctx context.Context, log *zap.Logger, opt options.RBACOpt, eb eve
 	eb.Register(
 		func(_ context.Context, ev eventbus.Event) error {
 			log.Debug("role changed, updating RBAC")
-			return updateRbacRoles(ctx, log, ru, bypass, authenticated, anonymous)
+			return UpdateRbacRoles(ctx, log, ru, bypass, authenticated, anonymous)
 		},
 		eventbus.For("system:role"),
 		eventbus.On("afterUpdate", "afterCreate", "afterDelete"),
@@ -855,7 +855,7 @@ func initRoles(ctx context.Context, log *zap.Logger, opt options.RBACOpt, eb eve
 	return nil
 }
 
-func updateRbacRoles(ctx context.Context, log *zap.Logger, ru rbacRoleUpdater, bypass, authenticated, anonymous map[string]bool) error {
+func UpdateRbacRoles(ctx context.Context, log *zap.Logger, ru rbacRoleUpdater, bypass, authenticated, anonymous map[string]bool) error {
 	var (
 		p  = expr.NewParser()
 		f  = types.RoleFilter{}

@@ -1,0 +1,49 @@
+users:
+  user_createdby:
+    email: user_createdby@test.tld
+    name: creator
+
+  user_updatedby:
+    email: user_updatedby@test.tld
+    name: updater
+
+  user_deletedby:
+    email: user_deletedby@test.tld
+    name: deleter
+
+  user_ownedby:
+    email: user_ownedby@test.tld
+    name: owner
+
+roles:
+  owner:
+    name: Owner
+    meta:
+      context:
+        expr: resource.ownedBy == userID
+        resourceType:
+          - corteza::compose:record
+
+  creator:
+    name: Creator
+    meta:
+      context:
+        expr: resource.createdBy == userID
+        resourceType:
+          - corteza::compose:record
+
+  updater:
+    name: Updater
+    meta:
+      context:
+        expr: resource.updatedBy == userID
+        resourceType:
+          - corteza::compose:record
+
+  deleter:
+    name: Deleter
+    meta:
+      context:
+        expr: resource.deletedBy == userID
+        resourceType:
+          - corteza::compose:record

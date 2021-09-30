@@ -111,14 +111,18 @@ func newHelper(t *testing.T) helper {
 
 	h.cUser.SetRoles(h.roleID)
 	helpers.UpdateRBAC(h.roleID)
+	h.identityToHelper(h.cUser)
 
+	return h
+}
+
+func (h *helper) identityToHelper(u *sysTypes.User) {
 	var err error
-	h.token, err = auth.DefaultJwtHandler.Generate(context.Background(), h.cUser)
+	h.cUser = u
+	h.token, err = auth.DefaultJwtHandler.Generate(context.Background(), u)
 	if err != nil {
 		panic(err)
 	}
-
-	return h
 }
 
 func (h helper) MyRole() uint64 {
@@ -184,7 +188,7 @@ func cleanup(t *testing.T) {
 }
 
 func loadScenario(ctx context.Context, s store.Storer, t *testing.T, h helper) {
-	loadScenarioWithName(ctx, s, t, h, "S"+t.Name()[4:])
+	loadScenarioWithName(ctx, s, t, h, t.Name()[5:])
 }
 
 func loadScenarioWithName(ctx context.Context, s store.Storer, t *testing.T, h helper, scenario string) {
