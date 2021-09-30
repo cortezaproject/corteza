@@ -7,6 +7,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -41,9 +42,21 @@ func AllowMe(mrg myRoleGetter, r string, oo ...string) {
 	}
 }
 
+func Allow(role *types.Role, r string, oo ...string) {
+	for _, o := range oo {
+		Grant(rbac.AllowRule(role.ID, r, o))
+	}
+}
+
 func DenyMe(mrg myRoleGetter, r string, oo ...string) {
 	for _, o := range oo {
 		Grant(rbac.DenyRule(mrg.MyRole(), r, o))
+	}
+}
+
+func Deny(role *types.Role, r string, oo ...string) {
+	for _, o := range oo {
+		Grant(rbac.DenyRule(role.ID, r, o))
 	}
 }
 

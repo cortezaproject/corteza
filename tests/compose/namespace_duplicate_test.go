@@ -72,7 +72,7 @@ func findPageByHandle(pp types.PageSet, h string) *types.Page {
 	return nil
 }
 
-func Test0001_namespace_duplicate(t *testing.T) {
+func Test_namespace_duplicate(t *testing.T) {
 	ctx, h, s := setup(t)
 	loadScenario(ctx, defStore, t, h)
 	ns, _, _, _, _, err := fetchEntireNamespace(ctx, s, "ns1")
