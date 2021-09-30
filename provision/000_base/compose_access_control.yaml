@@ -13,6 +13,9 @@ allow:
       - read
       - records.search
 
+    corteza::compose:module-field/*/*/*:
+      - record.value.read
+
     corteza::compose:page/*/*:
       - read
 
