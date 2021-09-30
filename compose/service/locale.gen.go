@@ -13,17 +13,24 @@ package service
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/store"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
+	"golang.org/x/text/language"
 )
 
 type (
+	localeAccessControl interface {
+		CanManageResourceTranslations(ctx context.Context) bool
+	}
+
 	resourceTranslationsManager struct {
 		actionlog actionlog.Recorder
 		locale    locale.Resource
@@ -227,4 +234,43 @@ func (svc resourceTranslationsManager) Page(ctx context.Context, namespaceID uin
 
 	tmp, err := svc.pageExtended(ctx, res)
 	return append(out, tmp...), err
+}
+
+func updateTranslations(ctx context.Context, ac localeAccessControl, lsvc ResourceTranslationsManagerService, tt ...*locale.ResourceTranslation) error {
+	if lsvc == nil || lsvc.Locale() == nil || lsvc.Locale().Default() == nil {
+		// gracefully handle partial initializations
+		return nil
+	}
+
+	var (
+		// assuming options will not change after start
+		contentLang = lsvc.Locale().Default().Tag
+	)
+
+	if options.Locale().ResourceTranslationsEnabled {
+		contentLang = locale.GetContentLanguageFromContext(ctx)
+		// Resource translations enabled
+		if contentLang == language.Und {
+			// If no content-language meta (HTTP header) info was
+			// used, do not run update translations - we do not know
+			// what is the language that we're sending in
+			return nil
+		}
+
+		if !lsvc.Locale().SupportedLang(contentLang) {
+			// unsupported language
+			return errors.InvalidData("unsupported language")
+		}
+
+		if !ac.CanManageResourceTranslations(ctx) {
+			return errors.Unauthorized("not allowed to manage resource translations")
+		}
+	}
+
+	locale.ResourceTranslationSet(tt).SetLanguage(contentLang)
+	if err := lsvc.Upsert(ctx, tt); err != nil {
+		return err
+	}
+
+	return nil
 }

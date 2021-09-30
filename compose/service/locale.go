@@ -6,18 +6,10 @@ import (
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
-	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/spf13/cast"
 	"golang.org/x/text/language"
-)
-
-type (
-	localeAccessControl interface {
-		CanManageResourceTranslations(ctx context.Context) bool
-	}
 )
 
 func (svc resourceTranslationsManager) moduleExtended(ctx context.Context, res *types.Module) (out locale.ResourceTranslationSet, err error) {
@@ -190,43 +182,4 @@ func (svc resourceTranslationsManager) loadPage(ctx context.Context, s store.Sto
 func (svc resourceTranslationsManager) loadChart(ctx context.Context, s store.Storer, namespaceID, chartID uint64) (m *types.Chart, err error) {
 	_, m, err = loadChart(ctx, s, namespaceID, chartID)
 	return m, err
-}
-
-func updateTranslations(ctx context.Context, ac localeAccessControl, lsvc ResourceTranslationsManagerService, tt ...*locale.ResourceTranslation) error {
-	if lsvc == nil || lsvc.Locale() == nil || lsvc.Locale().Default() == nil {
-		// gracefully handle partial initializations
-		return nil
-	}
-
-	var (
-		// assuming options will not change after start
-		contentLang = lsvc.Locale().Default().Tag
-	)
-
-	if options.Locale().ResourceTranslationsEnabled {
-		contentLang = locale.GetContentLanguageFromContext(ctx)
-		// Resource translations enabled
-		if contentLang == language.Und {
-			// If no content-language meta (HTTP header) info was
-			// used, do not run update translations - we do not know
-			// what is the language that we're sending in
-			return nil
-		}
-
-		if !lsvc.Locale().SupportedLang(contentLang) {
-			// unsupported language
-			return errors.InvalidData("unsupported language")
-		}
-
-		if !ac.CanManageResourceTranslations(ctx) {
-			return errors.Unauthorized("resource translation not supported")
-		}
-	}
-
-	locale.ResourceTranslationSet(tt).SetLanguage(contentLang)
-	if err := lsvc.Upsert(ctx, tt); err != nil {
-		return err
-	}
-
-	return nil
 }
