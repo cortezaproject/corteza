@@ -2,6 +2,9 @@ package auth
 
 import (
 	"context"
+	"crypto/rsa"
+	"crypto/tls"
+	"crypto/x509"
 	"embed"
 	"fmt"
 	"html/template"
@@ -240,31 +243,37 @@ func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthO
 // LoadSamlService takes care of certificate preloading, fetching of the
 // IDP metadata once the auth settings are loaded and registers the
 // SAML middleware
-func (svc *service) LoadSamlService(ctx context.Context, s *settings.Settings) (srvc *saml.SamlSPService, err error) {
-	links := handlers.GetLinks()
+func (svc *service) LoadSamlService(ctx context.Context, s *settings.Settings) (*saml.SamlSPService, error) {
+	var (
+		log     = svc.log.Named("saml")
+		links   = handlers.GetLinks()
+		keyPair tls.Certificate
+		err     error
+	)
 
-	certManager := saml.NewCertManager(&saml.CertStoreLoader{Storer: svc.store})
+	if keyPair, err = tls.X509KeyPair([]byte(s.Saml.Cert), []byte(s.Saml.Key)); err != nil {
+		return nil, err
+	}
 
-	cert, err := certManager.Parse([]byte(s.Saml.Cert), []byte(s.Saml.Key))
-	if err != nil {
-		return
+	if keyPair.Leaf, err = x509.ParseCertificate(keyPair.Certificate[0]); err != nil {
+		return nil, err
 	}
 
 	idpUrl, err := url.Parse(s.Saml.IDP.URL)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	// idp metadata needs to be loaded before
 	// the internal samlsp package
 	md, err := saml.FetchIDPMetadata(ctx, *idpUrl)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	ru, err := url.Parse(svc.opt.BaseURL)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	rootURL := &url.URL{
@@ -273,7 +282,7 @@ func (svc *service) LoadSamlService(ctx context.Context, s *settings.Settings) (
 		Host:   ru.Host,
 	}
 
-	srvc, err = saml.NewSamlSPService(saml.SamlSPArgs{
+	return saml.NewSamlSPService(log, saml.SamlSPArgs{
 		Enabled: s.Saml.Enabled,
 
 		AcsURL:  links.SamlCallback,
@@ -283,8 +292,9 @@ func (svc *service) LoadSamlService(ctx context.Context, s *settings.Settings) (
 		IdpURL: *idpUrl,
 		Host:   *rootURL,
 
-		Cert:    cert,
-		IdpMeta: md,
+		Certificate: keyPair.Leaf,
+		PrivateKey:  keyPair.PrivateKey.(*rsa.PrivateKey),
+		IdpMeta:     md,
 
 		IdentityPayload: saml.IdpIdentityPayload{
 			Name:       s.Saml.IDP.IdentName,
@@ -292,8 +302,6 @@ func (svc *service) LoadSamlService(ctx context.Context, s *settings.Settings) (
 			Identifier: s.Saml.IDP.IdentIdentifier,
 		},
 	})
-
-	return
 }
 
 func (svc *service) UpdateSettings(s *settings.Settings) {
@@ -332,6 +340,7 @@ func (svc *service) UpdateSettings(s *settings.Settings) {
 			err error
 		)
 
+		log.Debug("setting updated")
 		switch true {
 		case s.Saml.Cert == "", s.Saml.Key == "":
 			log.Warn("certificate private/public keys empty (see 'auth.external.saml' settings)")
@@ -350,8 +359,8 @@ func (svc *service) UpdateSettings(s *settings.Settings) {
 		}
 
 		if ss != nil {
-			log.Debug("settings changed, reloading")
-			svc.handlers.SamlSPService = *ss
+			log.Info("reloading service")
+			svc.handlers.SamlSPService = ss
 		}
 	}
 

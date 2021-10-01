@@ -2,7 +2,6 @@ package saml
 
 import (
 	"crypto/rsa"
-	"crypto/tls"
 	"crypto/x509"
 	"net/http"
 	"net/url"
@@ -11,12 +10,15 @@ import (
 	"github.com/crewjam/saml"
 	"github.com/crewjam/saml/samlsp"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 )
 
 const defaultNameIdentifier = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
 
 type (
 	SamlSPService struct {
+		log *zap.Logger
+
 		Enabled bool
 
 		IdpURL      url.URL
@@ -38,32 +40,24 @@ type (
 		// user meta from idp
 		IdentityPayload IdpIdentityPayload
 
-		IdpURL  url.URL
-		Host    url.URL
-		Cert    tls.Certificate
-		IdpMeta *saml.EntityDescriptor
+		IdpURL      url.URL
+		Host        url.URL
+		Certificate *x509.Certificate
+		PrivateKey  *rsa.PrivateKey
+		IdpMeta     *saml.EntityDescriptor
 	}
 )
 
 // NewSamlSPService loads the certificates and registers the
 // already fetched IDP metadata into the SAML middleware
-func NewSamlSPService(args SamlSPArgs) (s *SamlSPService, err error) {
-	var (
-		keyPair = args.Cert
-	)
-
-	keyPair.Leaf, err = x509.ParseCertificate(keyPair.Certificate[0])
-	if err != nil {
-		return
-	}
-
+func NewSamlSPService(log *zap.Logger, args SamlSPArgs) (s *SamlSPService, err error) {
 	metadataURL, _ := url.Parse(args.MetaURL)
 	acsURL, _ := url.Parse(args.AcsURL)
 	logoutURL, _ := url.Parse(args.SloURL)
 
 	sp := saml.ServiceProvider{
-		Key:         keyPair.PrivateKey.(*rsa.PrivateKey),
-		Certificate: keyPair.Leaf,
+		Key:         args.PrivateKey,
+		Certificate: args.Certificate,
 		IDPMetadata: args.IdpMeta,
 
 		MetadataURL: *args.Host.ResolveReference(metadataURL),
@@ -89,6 +83,8 @@ func NewSamlSPService(args SamlSPArgs) (s *SamlSPService, err error) {
 	handler.ServiceProvider = sp
 
 	s = &SamlSPService{
+		log: log,
+
 		Enabled: args.Enabled,
 
 		sp:      sp,
@@ -133,8 +129,8 @@ func (ssp *SamlSPService) Handler() *samlsp.Middleware {
 
 // ServeHTTP enables us to use the service directly
 // in the router
-func (ssp SamlSPService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if ssp.handler == nil || !ssp.Enabled {
+func (ssp *SamlSPService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if ssp.handler == nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
 		return
 	}

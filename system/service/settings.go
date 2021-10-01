@@ -94,15 +94,21 @@ func (svc *settings) notify(ctx context.Context, vv types.SettingValueSet) {
 	defer svc.m.RUnlock()
 
 	for _, l := range svc.listeners {
-		go func(l registeredSettingsListener) {
+		go func(l registeredSettingsListener, vv types.SettingValueSet) {
 			if len(l.prefix) > 0 {
 				vv = vv.FilterByPrefix(l.prefix)
 			}
 
+			svc.logger.Debug(
+				"notifying listener",
+				zap.String("prefix", l.prefix),
+				zap.Int("changes", len(vv)),
+			)
+
 			if len(vv) > 0 {
 				l.fn(ctx, svc.current, vv)
 			}
-		}(l)
+		}(l, vv)
 	}
 }
 

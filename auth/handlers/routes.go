@@ -109,9 +109,19 @@ func (h *AuthHandlers) MountHttpRoutes(r chi.Router) {
 		// calls to internal SAML service.
 		r.Group(func(r chi.Router) {
 			r.HandleFunc(tbp(l.SamlMetadata), func(rw http.ResponseWriter, r *http.Request) {
+				if h.SamlSPService == nil || !h.SamlSPService.Enabled {
+					rw.WriteHeader(http.StatusServiceUnavailable)
+					return
+				}
+
 				h.SamlSPService.ServeHTTP(rw, r)
 			})
 			r.HandleFunc(tbp(l.SamlCallback), func(rw http.ResponseWriter, r *http.Request) {
+				if h.SamlSPService == nil || !h.SamlSPService.Enabled {
+					rw.WriteHeader(http.StatusServiceUnavailable)
+					return
+				}
+
 				h.SamlSPService.ServeHTTP(rw, r)
 			})
 			r.HandleFunc(tbp(l.SamlInit), func(rw http.ResponseWriter, r *http.Request) {
