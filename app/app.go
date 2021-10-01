@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/cortezaproject/corteza-server/auth/settings"
 	"github.com/cortezaproject/corteza-server/pkg/options"
@@ -34,6 +35,10 @@ type (
 		Watch(ctx context.Context)
 	}
 
+	apigwServicer interface {
+		http.Handler
+	}
+
 	CortezaApp struct {
 		Opt *options.Options
 		lvl int
@@ -56,7 +61,8 @@ type (
 		GrpcServer grpcServer
 		WsServer   wsServer
 
-		AuthService authServicer
+		AuthService  authServicer
+		ApigwService apigwServicer
 
 		systemEntitiesInitialized bool
 	}
