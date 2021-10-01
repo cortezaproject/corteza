@@ -108,7 +108,7 @@ type (
 		DefaultClient  *types.AuthClient
 		Opt            options.AuthOpt
 		Settings       *settings.Settings
-		SamlSPService  saml.SamlSPService
+		SamlSPService  *saml.SamlSPService
 	}
 
 	handlerFn func(req *request.AuthReq) error

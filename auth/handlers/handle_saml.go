@@ -11,7 +11,7 @@ func (h AuthHandlers) samlInit(w http.ResponseWriter, r *http.Request) {
 	r = copyProviderToContext(r)
 	h.Log.Info("starting SAML authentication flow")
 
-	if h.SamlSPService.Handler() == nil {
+	if h.SamlSPService == nil || h.SamlSPService.Handler() == nil {
 		h.Log.Error("SAML service not initialized")
 		w.WriteHeader(http.StatusServiceUnavailable)
 		return

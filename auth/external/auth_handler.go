@@ -16,7 +16,7 @@ type (
 	}
 
 	externalSamlAuthHandler struct {
-		service saml.SamlSPService
+		service *saml.SamlSPService
 	}
 
 	externalDefaultAuthHandler struct{}
@@ -51,7 +51,7 @@ func (eh *externalSamlAuthHandler) CompleteUserAuth(w http.ResponseWriter, r *ht
 	}
 
 	if session != nil {
-		sess := (session.(samlsp.JWTSessionClaims))
+		sess := session.(samlsp.JWTSessionClaims)
 
 		if sess.StandardClaims.Valid() != nil {
 			return nil, sess.StandardClaims.Valid()
@@ -79,7 +79,7 @@ func (eh *externalSamlAuthHandler) CompleteUserAuth(w http.ResponseWriter, r *ht
 	return
 }
 
-func NewSamlExternalHandler(s saml.SamlSPService) *externalSamlAuthHandler {
+func NewSamlExternalHandler(s *saml.SamlSPService) *externalSamlAuthHandler {
 	return &externalSamlAuthHandler{
 		service: s,
 	}

@@ -96,10 +96,10 @@ func InitTestApp() {
 		})
 	}
 
-	sp, _ := loadSAMLService(context.Background())
+	sp, _ := loadSAMLService()
 
 	hh = &handlers.AuthHandlers{
-		SamlSPService:  *sp,
+		SamlSPService:  sp,
 		Log:            zap.NewNop(),
 		AuthService:    service.DefaultAuth,
 		SessionManager: sm,

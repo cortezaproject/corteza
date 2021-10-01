@@ -2,6 +2,9 @@ package system
 
 import (
 	"context"
+	"crypto/rsa"
+	"crypto/tls"
+	"crypto/x509"
 	"net/http"
 	"net/url"
 	"testing"
@@ -13,21 +16,23 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 	s "github.com/crewjam/saml"
 	"github.com/crewjam/saml/samlsp"
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/steinfletcher/apitest"
+	"go.uber.org/zap"
 )
 
-func loadSAMLService(ctx context.Context) (srvc *saml.SamlSPService, err error) {
-	links := handlers.GetLinks()
+func loadSAMLService() (srvc *saml.SamlSPService, err error) {
+	var (
+		links   = handlers.GetLinks()
+		keyPair tls.Certificate
+	)
 
-	certManager := saml.NewCertManager(&saml.CertStoreLoader{})
+	if keyPair, err = tls.X509KeyPair(readStaticFile("static/spCert.cert"), readStaticFile("static/spCert.key")); err != nil {
+		return nil, err
+	}
 
-	cert, err := certManager.Parse(
-		readStaticFile("static/spCert.cert"),
-		readStaticFile("static/spCert.key"))
-
-	if err != nil {
-		return
+	if keyPair.Leaf, err = x509.ParseCertificate(keyPair.Certificate[0]); err != nil {
+		return nil, err
 	}
 
 	idpUrl, err := url.Parse("")
@@ -50,7 +55,7 @@ func loadSAMLService(ctx context.Context) (srvc *saml.SamlSPService, err error) 
 		return
 	}
 
-	srvc, err = saml.NewSamlSPService(saml.SamlSPArgs{
+	srvc, err = saml.NewSamlSPService(zap.NewNop(), saml.SamlSPArgs{
 		Enabled: true,
 
 		AcsURL:  links.SamlCallback,
@@ -60,7 +65,9 @@ func loadSAMLService(ctx context.Context) (srvc *saml.SamlSPService, err error) 
 		IdpURL: *idpUrl,
 		Host:   *rootURL,
 
-		Cert:    cert,
+		Certificate: keyPair.Leaf,
+		PrivateKey:  keyPair.PrivateKey.(*rsa.PrivateKey),
+
 		IdpMeta: md,
 	})
 
