@@ -1715,6 +1715,7 @@ endpoints:
       - { name: weight,  type: uint64,                  title: "Filter priority" }
       - { name: kind,    type: string,                  title: "Filter kind" }
       - { name: ref,     type: string,                  title: "Filter ref" }
+      - { name: enabled, type: bool,                    title: "Is Filter enabled" }
       - { name: params,  type: "types.ApigwFilterParams", title: "Filter parameters", parser: "types.ParseApigwfFilterParams" }
   - name: update
     method: POST
@@ -1727,6 +1728,7 @@ endpoints:
       - { name: weight,   type: uint64,                  title: "Filter priority" }
       - { name: kind,     type: string,                  title: "Filter kind" }
       - { name: ref,      type: string,                  title: "Filter ref" }
+      - { name: enabled,  type: bool,                    title: "Is Filter enabled" }
       - { name: params,   type: "types.ApigwFilterParams", title: "Filter parameters", parser: "types.ParseApigwfFilterParams" }
   - name: read
     method: GET

@@ -5,6 +5,7 @@ apigateway:
     filters:
       - ref: "queryParam"
         kind: "prefilter"
+        enabled: true
         params:
           expr: "token == \"super-secret-token\""
 
@@ -14,6 +15,7 @@ apigateway:
     filters:
       - ref: "queryParam"
         kind: "prefilter"
+        enabled: true
         params:
           expr: "foo-bar == \"encrypted-string\""
 

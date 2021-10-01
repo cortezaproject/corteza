@@ -49,8 +49,9 @@ func (ctrl *ApigwFilter) List(ctx context.Context, r *request.ApigwFilterList) (
 	var (
 		err error
 		f   = types.ApigwFilterFilter{
-			RouteID: r.RouteID,
-			Deleted: filter.State(r.Deleted),
+			RouteID:  r.RouteID,
+			Deleted:  filter.State(r.Deleted),
+			Disabled: filter.State(r.Disabled),
 		}
 	)
 
@@ -62,20 +63,21 @@ func (ctrl *ApigwFilter) List(ctx context.Context, r *request.ApigwFilterList) (
 		return nil, err
 	}
 
-	set, filter, err := ctrl.svc.Search(ctx, f)
+	set, f, err := ctrl.svc.Search(ctx, f)
 
-	return ctrl.makeFilterPayload(ctx, set, filter, err)
+	return ctrl.makeFilterPayload(ctx, set, f, err)
 }
 
 func (ctrl *ApigwFilter) Create(ctx context.Context, r *request.ApigwFilterCreate) (interface{}, error) {
 	var (
 		err error
 		q   = &types.ApigwFilter{
-			Route:  r.RouteID,
-			Weight: r.Weight,
-			Kind:   r.Kind,
-			Ref:    r.Ref,
-			Params: r.Params,
+			Route:   r.RouteID,
+			Weight:  r.Weight,
+			Kind:    r.Kind,
+			Ref:     r.Ref,
+			Enabled: r.Enabled,
+			Params:  r.Params,
 		}
 	)
 
@@ -92,12 +94,13 @@ func (ctrl *ApigwFilter) Update(ctx context.Context, r *request.ApigwFilterUpdat
 	var (
 		err error
 		q   = &types.ApigwFilter{
-			ID:     r.FilterID,
-			Route:  r.RouteID,
-			Weight: r.Weight,
-			Kind:   r.Kind,
-			Ref:    r.Ref,
-			Params: r.Params,
+			ID:      r.FilterID,
+			Route:   r.RouteID,
+			Weight:  r.Weight,
+			Kind:    r.Kind,
+			Ref:     r.Ref,
+			Enabled: r.Enabled,
+			Params:  r.Params,
 		}
 	)
 

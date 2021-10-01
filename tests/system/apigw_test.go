@@ -17,8 +17,16 @@ import (
 )
 
 func (h helper) createRouteWithFilter(s string, fkind string) (*types.ApigwRoute, *types.ApigwFilter) {
-	r := h.createRoute(&types.ApigwRoute{Endpoint: "/" + s, Method: "GET"})
-	f := h.createFilters(&types.ApigwFilter{Kind: fkind}, r.ID)
+	return h.createRouteAndFilterWithEnabled(s, fkind, true, true)
+}
+
+func (h helper) createRouteWithFilterEnabled(s string, fkind string, enable bool) (*types.ApigwRoute, *types.ApigwFilter) {
+	return h.createRouteAndFilterWithEnabled(s, fkind, true, enable)
+}
+
+func (h helper) createRouteAndFilterWithEnabled(s string, fkind string, rEnable, fEnable bool) (*types.ApigwRoute, *types.ApigwFilter) {
+	r := h.createRoute(&types.ApigwRoute{Endpoint: "/" + s, Method: "GET", Enabled: rEnable})
+	f := h.createFilters(&types.ApigwFilter{Kind: fkind, Enabled: fEnable}, r.ID)
 
 	return r, f
 }
@@ -96,6 +104,7 @@ func TestApigwRouteSearch(t *testing.T) {
 
 	h.createRouteWithFilter("test1", "")
 	h.createRouteWithFilter("test2", "")
+	h.createRouteAndFilterWithEnabled("test3", "", false, true)
 
 	helpers.AllowMe(h, types.ComponentRbacResource(), "apigw-routes.search")
 	helpers.AllowMe(h, types.ApigwRouteRbacResource(0), "read")
@@ -107,6 +116,31 @@ func TestApigwRouteSearch(t *testing.T) {
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Len(`$.response.set`, 2)).
+		Assert(jsonpath.Equal(`$.response.set[0].endpoint`, "/test1")).
+		Assert(jsonpath.Equal(`$.response.set[1].endpoint`, "/test2")).
+		End()
+}
+
+func TestApigwRouteSearch_includeDisabled(t *testing.T) {
+	h := newHelper(t)
+	h.clearRoutes()
+
+	h.createRouteWithFilter("test1", "")
+	h.createRouteWithFilter("test2", "")
+	h.createRouteAndFilterWithEnabled("test3", "", false, true)
+	h.createRouteAndFilterWithEnabled("test4", "", false, false)
+
+	helpers.AllowMe(h, types.ComponentRbacResource(), "apigw-routes.search")
+	helpers.AllowMe(h, types.ApigwRouteRbacResource(0), "read")
+
+	h.apiInit().
+		Get(fmt.Sprintf("/apigw/route/")).
+		Query("disabled", "1").
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Len(`$.response.set`, 4)).
 		Assert(jsonpath.Equal(`$.response.set[0].endpoint`, "/test1")).
 		Assert(jsonpath.Equal(`$.response.set[1].endpoint`, "/test2")).
 		End()
@@ -168,6 +202,7 @@ func TestApigwRouteCreate(t *testing.T) {
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Present(`$.response.routeID`)).
 		Assert(jsonpath.Equal(`$.response.endpoint`, "/test")).
+		Assert(jsonpath.Equal(`$.response.enabled`, false)).
 		End()
 }
 
@@ -206,6 +241,7 @@ func TestApigwRouteUpdate(t *testing.T) {
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Present(`$.response.routeID`)).
 		Assert(jsonpath.Equal(`$.response.endpoint`, "/test-edited")).
+		Assert(jsonpath.Equal(`$.response.enabled`, false)).
 		End()
 }
 
@@ -348,6 +384,29 @@ func TestApigwFilterSearch(t *testing.T) {
 		End()
 }
 
+func TestApigwFilterSearch_includeDisabled(t *testing.T) {
+	h := newHelper(t)
+	h.clearRoutes()
+
+	r, f := h.createRouteWithFilterEnabled("test1", "", false)
+
+	helpers.AllowMe(h, types.ComponentRbacResource(), "apigw-routes.search")
+	helpers.AllowMe(h, types.ApigwRouteRbacResource(0), "read")
+
+	h.apiInit().
+		Get(fmt.Sprintf("/apigw/filter/")).
+		Query("routeID", strconv.FormatUint(r.ID, 10)).
+		Query("disabled", "1").
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Len(`$.response.set`, 1)).
+		Assert(jsonpath.Equal(`$.response.set[0].filterID`, strconv.FormatUint(f.ID, 10))).
+		Assert(jsonpath.Equal(`$.response.set[0].routeID`, strconv.FormatUint(r.ID, 10))).
+		End()
+}
+
 func TestApigwFilterSearch_forbiden(t *testing.T) {
 	h := newHelper(t)
 	h.clearRoutes()
@@ -381,6 +440,50 @@ func TestApigwFilterCreate(t *testing.T) {
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Present(`$.response.filterID`)).
 		Assert(jsonpath.Equal(`$.response.routeID`, strconv.FormatUint(r.ID, 10))).
+		End()
+}
+
+func TestApigwFilterCreate_enabled(t *testing.T) {
+	h := newHelper(t)
+	h.clearRoutes()
+
+	r, _ := h.createRouteWithFilter("test1", "")
+	helpers.AllowMe(h, types.ApigwRouteRbacResource(r.ID), "read")
+	helpers.AllowMe(h, types.ApigwRouteRbacResource(r.ID), "update")
+
+	h.apiInit().
+		Put(fmt.Sprintf("/apigw/filter")).
+		Header("Accept", "application/json").
+		FormData("routeID", strconv.FormatUint(r.ID, 10)).
+		FormData("enabled", strconv.FormatBool(true)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Present(`$.response.filterID`)).
+		Assert(jsonpath.Equal(`$.response.routeID`, strconv.FormatUint(r.ID, 10))).
+		Assert(jsonpath.Equal(`$.response.enabled`, true)).
+		End()
+}
+
+func TestApigwFilterCreate_disabled(t *testing.T) {
+	h := newHelper(t)
+	h.clearRoutes()
+
+	r, _ := h.createRouteWithFilter("test1", "")
+	helpers.AllowMe(h, types.ApigwRouteRbacResource(r.ID), "read")
+	helpers.AllowMe(h, types.ApigwRouteRbacResource(r.ID), "update")
+
+	h.apiInit().
+		Put(fmt.Sprintf("/apigw/filter")).
+		Header("Accept", "application/json").
+		FormData("routeID", strconv.FormatUint(r.ID, 10)).
+		FormData("enabled", strconv.FormatBool(false)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Present(`$.response.filterID`)).
+		Assert(jsonpath.Equal(`$.response.routeID`, strconv.FormatUint(r.ID, 10))).
+		Assert(jsonpath.NotPresent(`$.response.enabled`)).
 		End()
 }
 
@@ -418,6 +521,50 @@ func TestApigwFilterUpdate(t *testing.T) {
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Equal(`$.response.filterID`, strconv.FormatUint(f.ID, 10))).
 		Assert(jsonpath.Equal(`$.response.routeID`, strconv.FormatUint(r.ID, 10))).
+		End()
+}
+
+func TestApigwFilterUpdate_enabled(t *testing.T) {
+	h := newHelper(t)
+	h.clearRoutes()
+
+	r, f := h.createRouteWithFilterEnabled("test1", "", false)
+	helpers.AllowMe(h, types.ApigwRouteRbacResource(r.ID), "read")
+	helpers.AllowMe(h, types.ApigwRouteRbacResource(r.ID), "update")
+
+	h.apiInit().
+		Post(fmt.Sprintf("/apigw/filter/%d", f.ID)).
+		Header("Accept", "application/json").
+		FormData("routeID", strconv.FormatUint(r.ID, 10)).
+		FormData("enabled", strconv.FormatBool(true)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Equal(`$.response.filterID`, strconv.FormatUint(f.ID, 10))).
+		Assert(jsonpath.Equal(`$.response.routeID`, strconv.FormatUint(r.ID, 10))).
+		Assert(jsonpath.Equal(`$.response.enabled`, true)).
+		End()
+}
+
+func TestApigwFilterUpdate_disabled(t *testing.T) {
+	h := newHelper(t)
+	h.clearRoutes()
+
+	r, f := h.createRouteWithFilterEnabled("test1", "", true)
+	helpers.AllowMe(h, types.ApigwRouteRbacResource(r.ID), "read")
+	helpers.AllowMe(h, types.ApigwRouteRbacResource(r.ID), "update")
+
+	h.apiInit().
+		Post(fmt.Sprintf("/apigw/filter/%d", f.ID)).
+		Header("Accept", "application/json").
+		FormData("routeID", strconv.FormatUint(r.ID, 10)).
+		FormData("enabled", strconv.FormatBool(false)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Equal(`$.response.filterID`, strconv.FormatUint(f.ID, 10))).
+		Assert(jsonpath.Equal(`$.response.routeID`, strconv.FormatUint(r.ID, 10))).
+		Assert(jsonpath.NotPresent(`$.response.enabled`)).
 		End()
 }
 

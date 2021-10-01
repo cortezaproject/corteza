@@ -46,7 +46,8 @@ func (ctrl *ApigwRoute) List(ctx context.Context, r *request.ApigwRouteList) (in
 	var (
 		err error
 		f   = types.ApigwRouteFilter{
-			Deleted: filter.State(r.Deleted),
+			Deleted:  filter.State(r.Deleted),
+			Disabled: filter.State(r.Disabled),
 		}
 	)
 
@@ -58,9 +59,9 @@ func (ctrl *ApigwRoute) List(ctx context.Context, r *request.ApigwRouteList) (in
 		return nil, err
 	}
 
-	set, filter, err := ctrl.svc.Search(ctx, f)
+	set, f, err := ctrl.svc.Search(ctx, f)
 
-	return ctrl.makeFilterPayload(ctx, set, filter, err)
+	return ctrl.makeFilterPayload(ctx, set, f, err)
 }
 
 func (ctrl *ApigwRoute) Create(ctx context.Context, r *request.ApigwRouteCreate) (interface{}, error) {

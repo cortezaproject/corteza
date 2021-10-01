@@ -32,11 +32,11 @@ type (
 	}
 
 	ApigwRouteFilter struct {
-		Route   string `json:"route"`
-		Group   string `json:"group"`
-		Enabled bool   `json:"enabled"`
+		Route string `json:"route"`
+		Group string `json:"group"`
 
-		Deleted filter.State `json:"deleted"`
+		Deleted  filter.State `json:"deleted"`
+		Disabled filter.State `json:"disabled"`
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it
