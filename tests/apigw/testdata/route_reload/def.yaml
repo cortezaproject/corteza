@@ -1,0 +1,14 @@
+apigateway:
+  - endpoint: /test
+    method: GET
+    enabled: true
+    filters:
+      - ref: "payload"
+        kind: "processer"
+        params:
+          jsfunc: |
+            const x = 10;
+            const y = 20;
+            const z = x + y;
+
+            return x + y + z

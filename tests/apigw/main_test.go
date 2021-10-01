@@ -26,6 +26,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/sqlite3"
+	"github.com/cortezaproject/corteza-server/system/rest"
 	"github.com/cortezaproject/corteza-server/system/service"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
@@ -58,8 +59,8 @@ func init() {
 }
 
 func InitTestApp() {
+	ctx := cli.Context()
 	if testApp == nil {
-		ctx := cli.Context()
 
 		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
 			service.DefaultStore, err = sqlite3.ConnectInMemory(ctx)
@@ -77,9 +78,17 @@ func InitTestApp() {
 		r.Use(server.BaseMiddleware(false, logger.Default())...)
 		helpers.BindAuthMiddleware(r)
 
-		// setup API GW routes
+		// Sys routes for route management tests
+		rest.MountRoutes(r)
+
+		// API gw routes
 		apigw.Setup(options.Apigw(), service.DefaultLogger, service.DefaultStore)
-		r.Route("/", apigw.Service().Router)
+		err := apigw.Service().Reload(ctx)
+		if err != nil {
+			panic(err)
+		}
+
+		r.Handle("/*", apigw.Service())
 	}
 }
 
@@ -133,7 +142,7 @@ func (h helper) apiInit() *apitest.APITest {
 func setupScenario(t *testing.T) (context.Context, helper, store.Storer) {
 	ctx, h, s := setup(t)
 	loadScenario(ctx, s, t, h)
-	reloadRoutes(ctx)
+	apigw.Service().Reload(ctx)
 
 	return ctx, h, s
 }
@@ -150,10 +159,6 @@ func setup(t *testing.T) (context.Context, helper, store.Storer) {
 	ctx := auth.SetIdentityToContext(context.Background(), u)
 
 	return ctx, h, s
-}
-
-func reloadRoutes(ctx context.Context) {
-	apigw.Service().ReloadHandler(ctx)
 }
 
 // Unwraps error before it passes it to the tester
