@@ -7,6 +7,12 @@ import (
 	"github.com/PaesslerAG/gval"
 )
 
+type (
+	empty interface {
+		IsEmpty() bool
+	}
+)
+
 func GenericFunctions() []gval.Language {
 	return []gval.Language{
 		gval.Function("coalesce", coalesce),
@@ -55,6 +61,10 @@ func isNil(i interface{}) bool {
 func isEmpty(i interface{}) bool {
 	if isNil(i) {
 		return true
+	}
+
+	if c, ok := i.(empty); ok {
+		return c.IsEmpty()
 	}
 
 	switch reflect.TypeOf(i).Kind() {

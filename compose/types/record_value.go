@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
@@ -73,7 +74,7 @@ func (v RecordValue) Cast(f *ModuleField) (interface{}, error) {
 		return cast.ToTimeE(v.Value)
 
 	case f.IsBoolean():
-		return cast.ToBoolE(v.Value)
+		return expr.CastToBoolean(v.Value)
 
 	case f.IsNumeric():
 		if f.Options.Precision() == 0 {

@@ -75,9 +75,6 @@ func CastToComposeRecord(val interface{}) (out *types.Record, err error) {
 			val = &types.Record{}
 		}
 
-		if val.Values == nil {
-			val.Values = types.RecordValueSet{}
-		}
 		return val, nil
 	case map[string]interface{}:
 		out = &types.Record{}
@@ -125,10 +122,6 @@ func (t *ComposeRecord) SelectGVal(_ context.Context, k string) (interface{}, er
 	if t.value != nil && k == "values" {
 		if t.value.Values == nil {
 			t.value.Values = types.RecordValueSet{}
-		}
-
-		if t.value.Values.Len() == 0 {
-			return nil, nil
 		}
 
 		return &ComposeRecordValues{t.value}, nil
@@ -252,6 +245,15 @@ func (t *ComposeRecordValues) AssignFieldValue(pp []string, val expr.TypedValue)
 //
 func (t *ComposeRecordValues) SelectGVal(_ context.Context, k string) (interface{}, error) {
 	return composeRecordValuesGValSelector(t.value, k)
+}
+
+// IsEmpty implements pkg/expr.empty requirements to be able to determine if
+// the value is empty.
+//
+// This is needed cor cases when we are working with empty records, but are trying
+// to access their values.
+func (t *ComposeRecordValues) IsEmpty() bool {
+	return t == nil || t.value == nil || len(t.value.Values) == 0
 }
 
 // Select is field accessor for *types.Record
