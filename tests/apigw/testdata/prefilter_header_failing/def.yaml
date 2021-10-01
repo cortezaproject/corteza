@@ -5,6 +5,7 @@ apigateway:
     filters:
       - ref: "header"
         kind: "prefilter"
+        enabled: true
         params:
           expr: "Token == \"super-secret-token\""
 
@@ -14,5 +15,6 @@ apigateway:
     filters:
       - ref: "header"
         kind: "prefilter"
+        enabled: true
         params:
           expr: "Accept-Language == \"fr-CH, fr;q=0.9\""

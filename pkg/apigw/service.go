@@ -248,8 +248,8 @@ func (s *apigw) ProxyAuthDef() (list []*proxy.ProxyAuthDefinition) {
 
 func (s *apigw) loadRoutes(ctx context.Context) (rr []*route, err error) {
 	routes, _, err := s.storer.SearchApigwRoutes(ctx, st.ApigwRouteFilter{
-		Enabled: true,
-		Deleted: f.StateExcluded,
+		Deleted:  f.StateExcluded,
+		Disabled: f.StateExcluded,
 	})
 
 	if err != nil {
@@ -275,9 +275,9 @@ func (s *apigw) loadRoutes(ctx context.Context) (rr []*route, err error) {
 
 func (s *apigw) loadFilters(ctx context.Context, route uint64) (ff []*st.ApigwFilter, err error) {
 	ff, _, err = s.storer.SearchApigwFilters(ctx, st.ApigwFilterFilter{
-		RouteID: route,
-		Deleted: f.StateExcluded,
-		Enabled: true,
+		RouteID:  route,
+		Deleted:  f.StateExcluded,
+		Disabled: f.StateExcluded,
 	})
 
 	return

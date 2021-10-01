@@ -142,7 +142,7 @@ func (h helper) apiInit() *apitest.APITest {
 func setupScenario(t *testing.T) (context.Context, helper, store.Storer) {
 	ctx, h, s := setup(t)
 	loadScenario(ctx, s, t, h)
-	apigw.Service().Reload(ctx)
+	_ = apigw.Service().Reload(ctx)
 
 	return ctx, h, s
 }

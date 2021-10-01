@@ -10,6 +10,7 @@ func (s Store) convertApigwFilterFilter(f types.ApigwFilterFilter) (query squirr
 	query = s.apigwFiltersSelectBuilder()
 
 	query = filter.StateCondition(query, "af.deleted_at", f.Deleted)
+	query = filter.StateConditionNegBool(query, "af.enabled", f.Disabled)
 
 	if f.RouteID > 0 {
 		query = query.Where(squirrel.Eq{"af.rel_route": f.RouteID})

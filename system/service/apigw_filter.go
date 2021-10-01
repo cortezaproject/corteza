@@ -7,6 +7,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/apigw"
 	agtypes "github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	a "github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -107,8 +108,8 @@ func (svc *apigwFilter) Create(ctx context.Context, new *types.ApigwFilter) (q *
 
 func (svc *apigwFilter) validateAsyncRoute(ctx context.Context, r *types.ApigwRoute, f *types.ApigwFilter, props *apigwFilterActionProps) (err error) {
 	filters, _, err := svc.Search(ctx, types.ApigwFilterFilter{
-		RouteID: r.ID,
-		Enabled: true,
+		RouteID:  r.ID,
+		Disabled: filter.StateExcluded,
 	})
 
 	if err != nil {

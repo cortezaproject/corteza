@@ -5,6 +5,7 @@ apigateway:
     filters:
       - ref: "payload"
         kind: "processer"
+        enabled: true
         params:
           jsfunc: |
             const x = 10;

@@ -733,6 +733,7 @@ func (Schema) ApigwFilter() *Table {
 		ColumnDef("weight", ColumnTypeInteger),
 		ColumnDef("kind", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
 		ColumnDef("ref", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
+		ColumnDef("enabled", ColumnTypeBoolean),
 		ColumnDef("params", ColumnTypeJson),
 		CUDTimestamps,
 		CUDUsers,

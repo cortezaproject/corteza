@@ -18,6 +18,7 @@ func Test_pl(t *testing.T) {
 		tf struct {
 			name       string
 			method     string
+			endpoint   string
 			expError   string
 			expStatus  int
 			handler    *types.MockHandler
@@ -91,6 +92,7 @@ func Test_pl(t *testing.T) {
 
 			route := &route{
 				method:     tc.method,
+				endpoint:   tc.endpoint,
 				log:        zap.NewNop(),
 				opts:       options.Apigw(),
 				handler:    pipe.Handler(),

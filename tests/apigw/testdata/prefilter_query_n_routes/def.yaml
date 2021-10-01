@@ -5,6 +5,7 @@ apigateway:
     filters:
       - ref: "queryParam"
         kind: "prefilter"
+        enabled: true
         params:
           expr: "p == \"a\""
 
@@ -14,5 +15,6 @@ apigateway:
     filters:
       - ref: "queryParam"
         kind: "prefilter"
+        enabled: true
         params:
           expr: "p == \"b\""

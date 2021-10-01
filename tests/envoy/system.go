@@ -230,11 +230,12 @@ func sTestAPIGatewayRoute(ctx context.Context, t *testing.T, s store.Storer, r s
 
 func sTestAPIGatewayFilter(ctx context.Context, t *testing.T, s store.Storer, routeID uint64, pfx string) *types.ApigwFilter {
 	gwf := &types.ApigwFilter{
-		ID:     su.NextID(),
-		Route:  routeID,
-		Weight: 0,
-		Ref:    pfx + "_ref",
-		Kind:   pfx + "_kind",
+		ID:      su.NextID(),
+		Route:   routeID,
+		Weight:  0,
+		Ref:     pfx + "_ref",
+		Kind:    pfx + "_kind",
+		Enabled: true,
 		Params: map[string]interface{}{
 			"param1": "value1",
 		},

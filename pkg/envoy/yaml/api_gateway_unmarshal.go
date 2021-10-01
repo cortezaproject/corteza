@@ -112,6 +112,9 @@ func (wrap *apiGwFilter) UnmarshalYAML(n *yaml.Node) (err error) {
 		case "kind":
 			return y7s.DecodeScalar(v, "route filter kind", &wrap.res.Kind)
 
+		case "enabled":
+			return y7s.DecodeScalar(v, "route filter enabled", &wrap.res.Enabled)
+
 		case "params":
 			return v.Decode(&wrap.res.Params)
 		}

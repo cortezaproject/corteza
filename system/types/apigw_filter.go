@@ -13,12 +13,13 @@ type (
 	ApigwFilterParams map[string]interface{}
 
 	ApigwFilter struct {
-		ID     uint64            `json:"filterID,string"`
-		Route  uint64            `json:"routeID,string"`
-		Weight uint64            `json:"weight,string"`
-		Ref    string            `json:"ref,omitempty"`
-		Kind   string            `json:"kind,omitempty"`
-		Params ApigwFilterParams `json:"params"`
+		ID      uint64            `json:"filterID,string"`
+		Route   uint64            `json:"routeID,string"`
+		Weight  uint64            `json:"weight,string"`
+		Ref     string            `json:"ref,omitempty"`
+		Kind    string            `json:"kind,omitempty"`
+		Enabled bool              `json:"enabled,omitempty"`
+		Params  ApigwFilterParams `json:"params"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		CreatedBy uint64     `json:"createdBy,string" `
@@ -30,9 +31,9 @@ type (
 
 	ApigwFilterFilter struct {
 		RouteID uint64 `json:"routeID,string"`
-		Enabled bool   `json:"enabled"`
 
-		Deleted filter.State `json:"deleted"`
+		Deleted  filter.State `json:"deleted"`
+		Disabled filter.State `json:"disabled"`
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it

@@ -9,10 +9,7 @@ import (
 func (s Store) convertApigwRouteFilter(f types.ApigwRouteFilter) (query squirrel.SelectBuilder, err error) {
 	query = s.apigwRoutesSelectBuilder()
 	query = filter.StateCondition(query, "ar.deleted_at", f.Deleted)
-
-	if f.Enabled {
-		query = query.Where(squirrel.Eq{"ar.enabled": f.Enabled})
-	}
+	query = filter.StateConditionNegBool(query, "ar.enabled", f.Disabled)
 
 	return
 }

@@ -47,7 +47,7 @@ func TestStoreYaml_APIGateway(t *testing.T) {
 				_ = sTestAPIGatewayFilter(ctx, t, s, gwr.ID, "test")
 
 				df := su.NewDecodeFilter().
-					APIGWRoutes(&types.ApigwRouteFilter{Enabled: true})
+					APIGWRoutes(&types.ApigwRouteFilter{})
 
 				return nil, df
 			},

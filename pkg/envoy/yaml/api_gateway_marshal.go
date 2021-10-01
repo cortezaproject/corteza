@@ -95,6 +95,7 @@ func (f *apiGwFilter) MarshalYAML() (interface{}, error) {
 		"weight", f.res.Weight,
 		"ref", f.res.Ref,
 		"kind", f.res.Kind,
+		"enabled", f.res.Enabled,
 		"params", f.res.Params,
 	)
 	if err != nil {

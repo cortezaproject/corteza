@@ -12,6 +12,7 @@ fields:
   - { field: Weight }
   - { field: Kind }
   - { field: Ref }
+  - { field: Enabled }
   - { field: Params, type: "map[string]interface{}" }
   - { field: CreatedBy }
   - { field: UpdatedBy }

@@ -87,6 +87,11 @@ type (
 		// Filter ref
 		Ref string
 
+		// Enabled POST parameter
+		//
+		// Is Filter enabled
+		Enabled bool
+
 		// Params POST parameter
 		//
 		// Filter parameters
@@ -118,6 +123,11 @@ type (
 		//
 		// Filter ref
 		Ref string
+
+		// Enabled POST parameter
+		//
+		// Is Filter enabled
+		Enabled bool
 
 		// Params POST parameter
 		//
@@ -264,6 +274,7 @@ func (r ApigwFilterCreate) Auditable() map[string]interface{} {
 		"weight":  r.Weight,
 		"kind":    r.Kind,
 		"ref":     r.Ref,
+		"enabled": r.Enabled,
 		"params":  r.Params,
 	}
 }
@@ -286,6 +297,11 @@ func (r ApigwFilterCreate) GetKind() string {
 // Auditable returns all auditable/loggable parameters
 func (r ApigwFilterCreate) GetRef() string {
 	return r.Ref
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApigwFilterCreate) GetEnabled() bool {
+	return r.Enabled
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -342,6 +358,13 @@ func (r *ApigwFilterCreate) Fill(req *http.Request) (err error) {
 			}
 		}
 
+		if val, ok := req.Form["enabled"]; ok && len(val) > 0 {
+			r.Enabled, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
 		if val, ok := req.Form["params[]"]; ok {
 			r.Params, err = types.ParseApigwfFilterParams(val)
 			if err != nil {
@@ -371,6 +394,7 @@ func (r ApigwFilterUpdate) Auditable() map[string]interface{} {
 		"weight":   r.Weight,
 		"kind":     r.Kind,
 		"ref":      r.Ref,
+		"enabled":  r.Enabled,
 		"params":   r.Params,
 	}
 }
@@ -398,6 +422,11 @@ func (r ApigwFilterUpdate) GetKind() string {
 // Auditable returns all auditable/loggable parameters
 func (r ApigwFilterUpdate) GetRef() string {
 	return r.Ref
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApigwFilterUpdate) GetEnabled() bool {
+	return r.Enabled
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -449,6 +478,13 @@ func (r *ApigwFilterUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["ref"]; ok && len(val) > 0 {
 			r.Ref, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["enabled"]; ok && len(val) > 0 {
+			r.Enabled, err = payload.ParseBool(val[0]), nil
 			if err != nil {
 				return err
 			}
