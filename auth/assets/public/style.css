@@ -152,6 +152,7 @@ select.form-control {
 }
 
 .footer {
+  position: fixed;
   bottom: 0;
   z-index: -1;
 }
