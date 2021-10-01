@@ -88,7 +88,9 @@ func (svc *apigwRoute) Create(ctx context.Context, new *types.ApigwRoute) (q *ty
 
 		// send the signal to reload all routes
 		if new.Enabled {
-			apigw.Service().Reload(ctx)
+			if err = apigw.Service().Reload(ctx); err != nil {
+				return err
+			}
 		}
 
 		return nil
@@ -129,8 +131,10 @@ func (svc *apigwRoute) Update(ctx context.Context, upd *types.ApigwRoute) (q *ty
 		q = upd
 
 		// send the signal to reload all route
-		if qq.Enabled != upd.Enabled {
-			apigw.Service().Reload(ctx)
+		if qq.Enabled != upd.Enabled || qq.Enabled && upd.Enabled {
+			if err = apigw.Service().Reload(ctx); err != nil {
+				return err
+			}
 		}
 
 		return nil
@@ -169,7 +173,9 @@ func (svc *apigwRoute) DeleteByID(ctx context.Context, ID uint64) (err error) {
 
 		// send the signal to reload all queues
 		if q.Enabled {
-			apigw.Service().Reload(ctx)
+			if err = apigw.Service().Reload(ctx); err != nil {
+				return err
+			}
 		}
 
 		return nil
@@ -208,7 +214,9 @@ func (svc *apigwRoute) UndeleteByID(ctx context.Context, ID uint64) (err error) 
 
 		// send the signal to reload all queues
 		if q.Enabled {
-			apigw.Service().Reload(ctx)
+			if err = apigw.Service().Reload(ctx); err != nil {
+				return err
+			}
 		}
 
 		return nil

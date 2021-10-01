@@ -16,6 +16,7 @@ import (
 	fdrService "github.com/cortezaproject/corteza-server/federation/service"
 	fedService "github.com/cortezaproject/corteza-server/federation/service"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/apigw"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
@@ -351,8 +352,15 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		rbac.SetGlobal(ac)
 	}
 
+	// Initialize resource translation stuff
 	locale.Global().BindStore(app.Store)
 	if err = locale.Global().ReloadResourceTranslations(ctx); err != nil {
+		return err
+	}
+
+	// Initialize API GW bits
+	apigw.Setup(options.Apigw(), app.Log, app.Store)
+	if err = apigw.Service().Reload(ctx); err != nil {
 		return err
 	}
 
@@ -481,6 +489,8 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 	if app.AuthService, err = authService.New(ctx, app.Log, app.Store, app.Opt.Auth); err != nil {
 		return fmt.Errorf("failed to init auth service: %w", err)
 	}
+
+	app.ApigwService = apigw.Service()
 
 	updateFederationSettings(app.Opt.Federation, sysService.CurrentSettings)
 	updateAuthSettings(app.AuthService, sysService.CurrentSettings)

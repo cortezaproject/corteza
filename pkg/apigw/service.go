@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"net/http"
 
 	"github.com/cortezaproject/corteza-server/pkg/apigw/filter"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/filter/proxy"
@@ -29,9 +30,8 @@ type (
 		log    *zap.Logger
 		reg    *registry.Registry
 		routes []*route
-		router chi.Router
+		mx     *chi.Mux
 		storer storer
-		reload chan bool
 	}
 )
 
@@ -66,18 +66,21 @@ func New(opts *options.ApigwOpt, logger *zap.Logger, storer storer) *apigw {
 		log:    logger,
 		storer: storer,
 		reg:    reg,
-		reload: make(chan bool),
 	}
 }
 
-func (s *apigw) Reload(ctx context.Context) {
-	go func() {
-		s.reload <- true
-	}()
+// ServeHTTP forwards the given HTTP request to the underlying chi mux which
+// then handles the heavy lifting
+//
+// When reloading routes, make sure to replace the original mux
+func (s *apigw) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.mx.ServeHTTP(w, r)
 }
 
-// ReloadHandler is a wrapper for route reloading logic, primarily needed for testing
-func (s *apigw) ReloadHandler(ctx context.Context) {
+// Reload reloads routes and their filters
+//
+// The procedure constructs a new chi mux
+func (s *apigw) Reload(ctx context.Context) (err error) {
 	routes, err := s.loadRoutes(ctx)
 
 	if err != nil {
@@ -89,81 +92,14 @@ func (s *apigw) ReloadHandler(ctx context.Context) {
 
 	s.Init(ctx, routes...)
 
-	for _, route := range s.routes {
-		s.router.Handle(route.endpoint, route)
-	}
-}
-
-func (s *apigw) loadRoutes(ctx context.Context) (rr []*route, err error) {
-	routes, _, err := s.storer.SearchApigwRoutes(ctx, st.ApigwRouteFilter{
-		Enabled: true,
-		Deleted: f.StateExcluded,
-	})
-
-	if err != nil {
-		return
+	// Rebuild the mux
+	s.mx = chi.NewMux()
+	s.mx.HandleFunc("/", helperDefaultResponse(s.opts))
+	for _, r := range s.routes {
+		s.mx.Handle(r.endpoint, r)
 	}
 
-	for _, r := range routes {
-		route := &route{
-			ID:       r.ID,
-			endpoint: r.Endpoint,
-			method:   r.Method,
-			meta: routeMeta{
-				debug: r.Meta.Debug,
-				async: r.Meta.Async,
-			},
-		}
-
-		rr = append(rr, route)
-	}
-
-	return
-}
-
-func (s *apigw) loadFilters(ctx context.Context, route uint64) (ff []*st.ApigwFilter, err error) {
-	ff, _, err = s.storer.SearchApigwFilters(ctx, st.ApigwFilterFilter{
-		RouteID: route,
-		Deleted: f.StateExcluded,
-	})
-
-	return
-}
-
-func (s *apigw) Router(r chi.Router) {
-	var (
-		ctx = context.Background()
-	)
-
-	s.router = r
-
-	s.router.HandleFunc("/", helperDefaultResponse(s.opts))
-
-	routes, err := s.loadRoutes(ctx)
-
-	if err != nil {
-		s.log.Error("could not load routes", zap.Error(err))
-		return
-	}
-
-	s.Init(ctx, routes...)
-
-	for _, route := range s.routes {
-		s.router.Handle(route.endpoint, route)
-	}
-
-	go func() {
-		for {
-			select {
-			case <-s.reload:
-				s.ReloadHandler(ctx)
-
-			case <-ctx.Done():
-				s.log.Debug("shutting down API Gateway service")
-				return
-			}
-		}
-	}()
+	return nil
 }
 
 // Init all the routes
@@ -290,5 +226,42 @@ func (s *apigw) Funcs(kind string) (list types.FilterMetaList) {
 
 func (s *apigw) ProxyAuthDef() (list []*proxy.ProxyAuthDefinition) {
 	list = proxy.ProxyAuthDef()
+	return
+}
+
+func (s *apigw) loadRoutes(ctx context.Context) (rr []*route, err error) {
+	routes, _, err := s.storer.SearchApigwRoutes(ctx, st.ApigwRouteFilter{
+		Enabled: true,
+		Deleted: f.StateExcluded,
+	})
+
+	if err != nil {
+		return
+	}
+
+	for _, r := range routes {
+		route := &route{
+			ID:       r.ID,
+			endpoint: r.Endpoint,
+			method:   r.Method,
+			meta: routeMeta{
+				debug: r.Meta.Debug,
+				async: r.Meta.Async,
+			},
+		}
+
+		rr = append(rr, route)
+	}
+
+	return
+}
+
+func (s *apigw) loadFilters(ctx context.Context, route uint64) (ff []*st.ApigwFilter, err error) {
+	ff, _, err = s.storer.SearchApigwFilters(ctx, st.ApigwFilterFilter{
+		RouteID: route,
+		Deleted: f.StateExcluded,
+		Enabled: true,
+	})
+
 	return
 }
