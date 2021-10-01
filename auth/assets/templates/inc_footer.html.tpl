@@ -1,11 +1,7 @@
 		</main>
 		{{ template "inc_toasts.html.tpl" .alerts }}
-        <div class="footer col text-center mb-4 py-4">
-            <a href="https://cortezaproject.org/" target="_blank" class="text-white mr-2">cortezaproject.org</a>
-            <a href="https://github.com/cortezaproject/" target="_blank" class="text-white ml-2">GitHub</a>
-						<i class="p-1 small text-white position-absolute version mr-3 mb-3">
-							{{ tr "inc_footer.version" "version" version }}
-						</i>
+        <div class="footer col text-center mb-4 py-4 text-white">
+            Access source code on <a href="https://github.com/cortezaproject/" target="_blank" class="text-white ml-2">GitHub</a>
         </div>
 	</body>
 	<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
