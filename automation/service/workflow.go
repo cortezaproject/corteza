@@ -84,7 +84,7 @@ const (
 func Workflow(log *zap.Logger, corredorOpt options.CorredorOpt, opt options.WorkflowOpt) *workflow {
 	return &workflow{
 		log:         log,
-		opt:       opt,
+		opt:         opt,
 		actionlog:   DefaultActionlog,
 		store:       DefaultStore,
 		ac:          DefaultAccessControl,
