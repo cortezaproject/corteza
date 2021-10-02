@@ -65,12 +65,12 @@ func (l *Language) t(ns, key string, rr ...string) string {
 	l.l.RLock()
 	defer l.l.RUnlock()
 
-	for r := 0; r < len(rr); r += 2 {
-		rr[r] = fmt.Sprintf("{{%s}}", rr[r])
-	}
-
 	msg, has := l.internal[ns][key]
 	if has {
+		for r := 0; r < len(rr); r += 2 {
+			rr[r] = fmt.Sprintf("{{%s}}", rr[r])
+		}
+
 		return strings.NewReplacer(rr...).Replace(msg)
 	}
 
@@ -86,12 +86,12 @@ func (l *Language) tResource(ns, key string, rr ...string) string {
 	l.l.RLock()
 	defer l.l.RUnlock()
 
-	for r := 0; r < len(rr); r += 2 {
-		rr[r] = fmt.Sprintf("{{%s}}", rr[r])
-	}
-
 	rt, has := l.resources[ns][key]
 	if has {
+		for r := 0; r < len(rr); r += 2 {
+			rr[r] = fmt.Sprintf("{{%s}}", rr[r])
+		}
+
 		return strings.NewReplacer(rr...).Replace(rt.Msg)
 	}
 
