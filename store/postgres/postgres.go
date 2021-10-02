@@ -4,6 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/url"
+	"strings"
+
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/cortezaproject/corteza-server/store"
@@ -12,8 +15,6 @@ import (
 	"github.com/lib/pq"
 	"github.com/ngrok/sqlmw"
 	"go.uber.org/zap"
-	"net/url"
-	"strings"
 )
 
 type (
@@ -42,6 +43,7 @@ func Connect(ctx context.Context, dsn string) (store.Storer, error) {
 	cfg.PlaceholderFormat = squirrel.Dollar
 	cfg.ErrorHandler = errorHandler
 	cfg.SqlFunctionHandler = sqlFunctionHandler
+	cfg.ASTFormatter = sqlASTFormatter
 	cfg.CastModuleFieldToColumnType = fieldToColumnTypeCaster
 
 	if s.Store, err = rdbms.Connect(ctx, cfg); err != nil {
