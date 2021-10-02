@@ -114,7 +114,7 @@ func (r *recordDatasource) Group(d report.GroupDefinition, name string) (bool, e
 	}()
 
 	var (
-		q   = squirrel.Select()
+		q   = squirrel.Select().PlaceholderFormat(r.store.config.PlaceholderFormat)
 		err error
 	)
 
@@ -258,14 +258,17 @@ func (r *recordDatasource) partition(ctx context.Context, partitionSize uint, pa
 	var prt squirrel.SelectBuilder
 	if len(ss) > 0 {
 		prt = squirrel.Select(fmt.Sprintf("*, row_number() over(partition by %s order by %s) as pp_rank", partitionCol, strings.Join(ss, ","))).
+			PlaceholderFormat(r.store.config.PlaceholderFormat).
 			FromSelect(q, "partition_base")
 	} else {
 		prt = squirrel.Select(fmt.Sprintf("*, row_number() over(partition by %s) as pp_rank", partitionCol)).
+			PlaceholderFormat(r.store.config.PlaceholderFormat).
 			FromSelect(q, "partition_base")
 	}
 
 	// the sort is already defined when partitioning so it's unneeded here
 	q = squirrel.Select("*").
+		PlaceholderFormat(r.store.config.PlaceholderFormat).
 		FromSelect(prt, "partition_wrap").
 		Where(fmt.Sprintf("pp_rank <= %d", partitionSize))
 
@@ -295,7 +298,7 @@ func (r *recordDatasource) preloadQuery(def *report.FrameDefinition) (squirrel.S
 	// when filtering/sorting, wrap the base query in a sub-select, so we don't need to
 	// worry about exact column names.
 	if def.Filter != nil && def.Filter.ASTNode != nil || def.Sort != nil {
-		q = squirrel.Select("*").FromSelect(q, "w_base")
+		q = squirrel.Select("*").PlaceholderFormat(r.store.config.PlaceholderFormat).FromSelect(q, "w_base")
 	}
 
 	// - filtering
@@ -468,7 +471,9 @@ func (r *recordDatasource) baseQuery(f *report.Filter) (sqb squirrel.SelectBuild
 	}
 
 	// @todo this is temporary!!
-	sqb = squirrel.Select("*").FromSelect(sqb, "q_base")
+	sqb = squirrel.Select("*").
+		PlaceholderFormat(r.store.config.PlaceholderFormat).
+		FromSelect(sqb, "q_base")
 
 	// - any initial filtering we may need to do
 	//
