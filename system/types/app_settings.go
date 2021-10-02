@@ -74,6 +74,9 @@ type (
 				Saml struct {
 					Enabled bool
 
+					// IdP name used on the login form
+					Name string `kv:"name"`
+
 					// SAML certificate
 					Cert string `kv:"cert"`
 
@@ -82,8 +85,7 @@ type (
 
 					// Identity provider settings
 					IDP struct {
-						URL  string `kv:"url"`
-						Name string
+						URL string `kv:"url"`
 
 						// identifier payload from idp
 						IdentName       string `kv:"ident-name"`

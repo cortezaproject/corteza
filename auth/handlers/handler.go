@@ -314,7 +314,7 @@ func (h *AuthHandlers) enrichTmplData(req *request.AuthReq) interface{} {
 	var pp = make([]provider, 0, len(dSettings.Providers))
 
 	if h.Settings.Saml.Enabled {
-		pp = append(pp, provider(saml.TemplateProvider(h.Settings.Saml.IDP.URL, h.Settings.Saml.IDP.Name)))
+		pp = append(pp, provider(saml.TemplateProvider(h.Settings.Saml.IDP.URL, h.Settings.Saml.Name)))
 	}
 
 	for _, p := range dSettings.Providers {

@@ -17,6 +17,9 @@ type (
 	SAML struct {
 		Enabled bool
 
+		// IdP name used on a login form
+		Name string
+
 		// SAML certificate
 		Cert string
 
@@ -25,8 +28,7 @@ type (
 
 		// Identity provider hostname
 		IDP struct {
-			URL  string
-			Name string
+			URL string
 
 			// identifier payload from idp
 			IdentName       string

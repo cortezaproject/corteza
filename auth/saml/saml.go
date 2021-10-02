@@ -40,15 +40,15 @@ func TemplateProvider(url, name string) templateProvider {
 // UpdateSettings applies the app settings to the
 // auth specific settings
 func UpdateSettings(source *types.AppSettings, dest *settings.Settings) {
-	cas := source.Auth
+	saml := source.Auth.External.Saml
 
-	dest.Saml.Enabled = cas.External.Saml.Enabled
-	dest.Saml.Cert = cas.External.Saml.Cert
-	dest.Saml.Key = cas.External.Saml.Key
+	dest.Saml.Enabled = saml.Enabled
+	dest.Saml.Name = saml.Name
+	dest.Saml.Cert = saml.Cert
+	dest.Saml.Key = saml.Key
 
-	dest.Saml.IDP.URL = cas.External.Saml.IDP.URL
-	dest.Saml.IDP.Name = cas.External.Saml.IDP.Name
-	dest.Saml.IDP.IdentName = cas.External.Saml.IDP.IdentName
-	dest.Saml.IDP.IdentHandle = cas.External.Saml.IDP.IdentHandle
-	dest.Saml.IDP.IdentIdentifier = cas.External.Saml.IDP.IdentIdentifier
+	dest.Saml.IDP.URL = saml.IDP.URL
+	dest.Saml.IDP.IdentName = saml.IDP.IdentName
+	dest.Saml.IDP.IdentHandle = saml.IDP.IdentHandle
+	dest.Saml.IDP.IdentIdentifier = saml.IDP.IdentIdentifier
 }
