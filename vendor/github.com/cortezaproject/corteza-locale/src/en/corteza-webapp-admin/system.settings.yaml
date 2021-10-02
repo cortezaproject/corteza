@@ -1,6 +1,10 @@
 editor:
+  title: System settings
   auth:
+    title: Authentication
+    url: URL
     internal:
+      title: Internal
       enabled: Internal authentication enabled
       password-reset:
         enabled: Password reset enabled
@@ -10,13 +14,13 @@ editor:
         split-credentials-check:
           description: 'Split login into two steps: collect the email input first and show the input for the password on the 2nd screen. Automatically forward user to external identity provider when user does not have his password set and there is only one IdP present'
           label: Enable split-credentials check
-      title: Internal
     mail:
+      title: Authentication email sender mail
       from-address: Sender's address
       from-name: Sender's name
-      title: Authentication email sender mail
       validate-email: Please enter valid email address.
     mfa:
+      title: Multi-factor authentication
       TOTP:
         enabled: Allow users to use time based one-time-password (using mobile application)
         enforced: Force users to use time based one-time-password (using mobile application)
@@ -29,10 +33,8 @@ editor:
         expires:
           description: How long will password be valid before it expires.
           label: Valid for
-      title: Multi-factor authentication
-    title: Authentication
-    url: URL
   external:
+    title: External Authentication Providers
     addOidcProvider: Add OIDC provider
     certificate: Certificate
     clientKey: Client key
@@ -48,22 +50,21 @@ editor:
     linkedin: LinkedIn
     oidc: OpenID Connect
     providerEnabled: Enable
+
     saml:
-      cert: Certificate public key
-      cert-key: Certificate private key
+      title: SAML
+      cert: Public key
+      cert-key: Private key
       desc:
         cert: Content will be minimized
         cert-key: Content will be minimized
         idp:
-          ident-handle: Handle field coming from idp
-          ident-identifier: Determines by which field do we match, usually email
-          ident-name: Name field coming from idp
+          ident-handle: IdP field used for filling Corteza user handle or nickname
+          ident-identifier: Idp field used for filling and matching Corteza user email
+          ident-name: IdP field used for filling Corteza user full name
       idp:
-        ident-handle: Identity payload handle
-        ident-identifier: Identity payload default identifier
-        ident-name: Identity payload name
         title: Identity provider
+        ident-handle: Handle
+        ident-identifier: Identifier
+        ident-name: Name
         url: URL
-      title: SAML
-    title: External Authentication Providers
-  title: System settings
