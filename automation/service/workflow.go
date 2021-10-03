@@ -593,10 +593,18 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 			ssp.ResourceType = ""
 		}
 
+		// Returns context with identity set to service user
+		//
+		// Current user (identity in the context) might not have
+		// sufficient privileges to load info about invoker and runner
+		sysUserCtx := func() context.Context {
+			return intAuth.SetIdentityToContext(ctx, intAuth.ServiceUser())
+		}
+
 		if invokerId := intAuth.GetIdentityFromContext(ctx).Identity(); invokerId > 0 {
 			var is bool
 			if invoker, is = intAuth.GetIdentityFromContext(ctx).(*sysTypes.User); !is {
-				if invoker, err = DefaultUser.FindByAny(ctx, invokerId); err != nil {
+				if invoker, err = DefaultUser.FindByAny(sysUserCtx(), invokerId); err != nil {
 					return
 				}
 			}
@@ -605,7 +613,7 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 		}
 
 		if wf.RunAs > 0 {
-			if runner, err = DefaultUser.FindByAny(ctx, wf.RunAs); err != nil {
+			if runner, err = DefaultUser.FindByAny(sysUserCtx(), wf.RunAs); err != nil {
 				return
 			}
 		}

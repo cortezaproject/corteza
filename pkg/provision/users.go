@@ -43,7 +43,6 @@ func SystemUsers(ctx context.Context, log *zap.Logger, s store.Users) (uu []*typ
 	for i := range uu {
 		u := uu[i]
 		if m[u.Handle] == nil {
-			log.Info("creating user", zap.String("handle", u.Handle))
 			// this is a new user
 			u.ID = id.Next()
 			u.CreatedAt = *now()
@@ -51,7 +50,10 @@ func SystemUsers(ctx context.Context, log *zap.Logger, s store.Users) (uu []*typ
 			if err := store.UpsertUser(ctx, s, u); err != nil {
 				return nil, fmt.Errorf("failed to provision system user %s: %w", u.Handle, err)
 			}
+
+			log.Info("creating system user", zap.String("handle", u.Handle), zap.Uint64("ID", u.ID))
 		} else {
+
 			u.ID = m[u.Handle].ID
 
 			// There is no need to update system users if they are unchanged
@@ -73,6 +75,7 @@ func SystemUsers(ctx context.Context, log *zap.Logger, s store.Users) (uu []*typ
 				return nil, fmt.Errorf("failed to provision system user %s: %w", u.Handle, err)
 			}
 
+			log.Info("updating system user", zap.String("handle", u.Handle), zap.Uint64("ID", u.ID))
 		}
 	}
 

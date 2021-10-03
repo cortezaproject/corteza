@@ -122,7 +122,6 @@ func bypassRBAC(ctx context.Context) context.Context {
 	}
 
 	u.SetRoles(auth.BypassRoles().IDs()...)
-
 	return auth.SetIdentityToContext(ctx, u)
 }
 

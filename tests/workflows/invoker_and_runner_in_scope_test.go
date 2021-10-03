@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza-server/tests/helpers"
 	"github.com/stretchr/testify/require"
 )
 
@@ -41,7 +42,10 @@ func Test_invoker_and_runner_in_scope(t *testing.T) {
 	wfInvoker.SetRoles(wfInvokers.ID)
 	ctx = auth.SetIdentityToContext(ctx, wfInvoker)
 
-	rbac.Global().UpdateRoles(rbac.CommonRole.Make(wfInvokers.ID, wfInvokers.Handle))
+	helpers.UpdateRBAC(
+		wfInvokers.ID,
+	)
+
 	rbac.Global().Reload(ctx)
 
 	t.Run("invoker set in scope", func(t *testing.T) {

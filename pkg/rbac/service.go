@@ -199,6 +199,8 @@ func (svc *service) reloadRules(ctx context.Context) {
 }
 
 // UpdateRoles updates RBAC roles
+//
+// Warning: this REPLACES all existing roles that are recognized by RBAC subsystem
 func (svc *service) UpdateRoles(rr ...*Role) {
 	svc.l.Lock()
 	defer svc.l.Unlock()

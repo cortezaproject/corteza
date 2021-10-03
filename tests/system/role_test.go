@@ -479,6 +479,7 @@ func TestMemberList(t *testing.T) {
 
 	h.apiInit().
 		Get(fmt.Sprintf("/roles/%d/members", r.ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -488,6 +489,7 @@ func TestMemberList(t *testing.T) {
 
 func TestMemberAdd(t *testing.T) {
 	h := newHelper(t)
+	helpers.AllowMe(h, types.UserRbacResource(0), "read")
 	helpers.AllowMe(h, types.RoleRbacResource(0), "members.manage")
 
 	r := h.repoMakeRole(h.randEmail())
@@ -495,6 +497,7 @@ func TestMemberAdd(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/roles/%d/member/%d", r.ID, u.ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -503,6 +506,7 @@ func TestMemberAdd(t *testing.T) {
 
 func TestMemberRemove(t *testing.T) {
 	h := newHelper(t)
+	helpers.AllowMe(h, types.UserRbacResource(0), "read")
 	helpers.AllowMe(h, types.RoleRbacResource(0), "members.manage")
 
 	r := h.repoMakeRole(h.randEmail())
@@ -510,6 +514,7 @@ func TestMemberRemove(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/roles/%d/member/%d", r.ID, u.ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
