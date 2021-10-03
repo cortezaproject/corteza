@@ -842,7 +842,7 @@ func countValidUsers(ctx context.Context, s store.Users) (c uint, err error) {
 	return store.CountUsers(ctx, s, types.UserFilter{Kind: types.NormalUser})
 }
 
-// UniqueCheck verifies user's email, username and handle
+// uniqueUserCheck verifies user's email, username and handle
 func uniqueUserCheck(ctx context.Context, s store.Storer, u *types.User) (err error) {
 	isUnique := func(field string) bool {
 		f := types.UserFilter{
