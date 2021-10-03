@@ -70,7 +70,6 @@ type (
 	}
 
 	UserService interface {
-		FindByUsername(ctx context.Context, username string) (*types.User, error)
 		FindByEmail(ctx context.Context, email string) (*types.User, error)
 		FindByHandle(ctx context.Context, handle string) (*types.User, error)
 		FindByID(ctx context.Context, id uint64) (*types.User, error)
@@ -152,33 +151,6 @@ func (svc user) FindByEmail(ctx context.Context, email string) (u *types.User, e
 	err = func() error {
 
 		u, err = store.LookupUserByEmail(ctx, svc.store, email)
-		if u, err = svc.proc(ctx, u, err); err != nil {
-			return err
-		}
-
-		uaProps.setUser(u)
-
-		if !svc.ac.CanReadUser(ctx, u) {
-			return UserErrNotAllowedToRead()
-		}
-
-		if err = label.Load(ctx, svc.store, u); err != nil {
-			return err
-		}
-
-		return nil
-	}()
-
-	return u, svc.recordAction(ctx, uaProps, UserActionLookup, err)
-}
-
-func (svc user) FindByUsername(ctx context.Context, username string) (u *types.User, err error) {
-	var (
-		uaProps = &userActionProps{user: &types.User{Username: username}}
-	)
-
-	err = func() error {
-		u, err = store.LookupUserByUsername(ctx, svc.store, username)
 		if u, err = svc.proc(ctx, u, err); err != nil {
 			return err
 		}

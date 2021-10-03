@@ -52,6 +52,8 @@ func TestUserRead(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
 
+	helpers.AllowMe(h, types.UserRbacResource(0), "read")
+
 	service.CurrentSettings.Privacy.Mask.Email = true
 	service.CurrentSettings.Privacy.Mask.Name = true
 	defer func() {
@@ -602,6 +604,7 @@ func TestUserLabels(t *testing.T) {
 func TestUserMemberList(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
+	helpers.AllowMe(h, types.UserRbacResource(0), "read")
 	helpers.AllowMe(h, types.RoleRbacResource(0), "read")
 
 	u := h.createUserWithEmail(h.randEmail())
@@ -623,6 +626,7 @@ func TestUserMemberList(t *testing.T) {
 func TestUserMemberAdd(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
+	helpers.AllowMe(h, types.UserRbacResource(0), "read")
 	helpers.AllowMe(h, types.RoleRbacResource(0), "members.manage")
 
 	u := h.createUserWithEmail(h.randEmail())
@@ -641,6 +645,7 @@ func TestUserMemberAdd(t *testing.T) {
 func TestUserMemberRemove(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
+	helpers.AllowMe(h, types.UserRbacResource(0), "read")
 	helpers.AllowMe(h, types.RoleRbacResource(0), "members.manage")
 
 	u := h.createUserWithEmail(h.randEmail())
