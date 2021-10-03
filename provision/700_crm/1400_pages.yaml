@@ -803,7 +803,7 @@ pages:
               label: Create new Case from this Account
               resourceType: compose:record
               workflow: CRM-Account-CreateNewCase
-              stepID: 14
+              stepID: 56
           sealed: false
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
