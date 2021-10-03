@@ -54,12 +54,6 @@ func (r route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	scope.Set("opts", r.opts)
 	scope.Set("payload", body)
 
-	if err := r.validate(req); err != nil {
-		r.log.Debug("error validating request on route", zap.Error(err))
-		r.errHandler(w, req, err)
-		return
-	}
-
 	if r.opts.LogEnabled {
 		o, _ := httputil.DumpRequest(req, r.opts.LogRequestBody)
 		r.log.Debug("incoming request", zap.Any("request", string(o)))
@@ -72,14 +66,6 @@ func (r route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	r.log.Debug("finished serving route",
 		zap.Duration("duration", time.Since(start)),
 	)
-}
-
-func (r route) validate(req *http.Request) (err error) {
-	if req.Method != r.method {
-		err = fmt.Errorf("invalid method %s", req.Method)
-	}
-
-	return
 }
 
 func (r route) String() string {

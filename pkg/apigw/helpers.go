@@ -13,9 +13,11 @@ const (
 func helperDefaultResponse(opt *options.ApigwOpt) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if opt.LogEnabled {
+			// Say something friendly when logging is enabled
 			http.Error(w, devHelperResponseBody, http.StatusTeapot)
 		} else {
-			http.Error(w, ``, http.StatusFound)
+			// Default 404 response
+			http.Error(w, "", http.StatusNotFound)
 		}
 	}
 }

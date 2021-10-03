@@ -112,6 +112,9 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 
 			r.Handle("/docs", http.RedirectHandler(fullpathDocs+"/", http.StatusPermanentRedirect))
 			r.Handle("/docs*", http.StripPrefix(fullpathDocs, http.FileServer(docs.GetFS())))
+
+			var fullpathGateway = options.CleanBase(ho.BaseUrl, ho.ApiBaseUrl, "gateway")
+			r.Handle("/gateway*", http.StripPrefix(fullpathGateway, app.ApigwService))
 		})
 	}()
 
