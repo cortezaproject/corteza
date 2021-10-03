@@ -1,4 +1,4 @@
 namespaces:
   service-solution:
     (envoy): { onExisting: "skip" }
-    name: Service Solution
+    name: Case management

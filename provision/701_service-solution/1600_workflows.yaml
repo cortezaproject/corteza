@@ -1,7 +1,7 @@
 workflows:
     ServiceSolution-Contact-SetLabel:
         meta:
-            name: Service Solution - Contact - Set Label
+            name: Case management - Contact - Set Label
             description: Set label for contact record
         enabled: true
         keepSessions: 0
@@ -428,7 +428,7 @@ workflows:
                     value: null
     ServiceSolution-Case-Prepare:
         meta:
-            name: Service Solution - Case - Prepare
+            name: Case management - Case - Prepare
             description: Inserts default case values
         enabled: true
         keepSessions: 0
@@ -501,7 +501,7 @@ workflows:
               labels: {}
     ServiceSolution-Update-SendNotifications:
         meta:
-            name: Service Solution - Update - Send Notifications
+            name: Case management - Update - Send Notifications
             description: Sends notification about case update
         enabled: true
         keepSessions: 0
@@ -1226,7 +1226,7 @@ workflows:
                     value: null
     ServiceSolution-Case-AddUpdate:
         meta:
-            name: Service Solution - Case - Add Update
+            name: Case management - Case - Add Update
             description: Create update record in CaseUpdate module
         enabled: true
         keepSessions: 0
@@ -1558,7 +1558,7 @@ workflows:
                     value: null
     ServiceSolution-Case-Statuschange:
         meta:
-            name: Service Solution - Case - StatusChange
+            name: Case management - Case - StatusChange
             description: Changes status of case record if previous status is differs from current status
         enabled: true
         keepSessions: 0
@@ -1908,7 +1908,7 @@ workflows:
                     value: null
     ServiceSolution-KnowledgeBase-InsertNumber:
         meta:
-            name: Service Solution - Knowledge Base - Insert Number
+            name: Case management - Knowledge Base - Insert Number
             description: Inserts next Knowledge base number
         enabled: true
         keepSessions: 0
@@ -2167,7 +2167,7 @@ workflows:
                     value: '#2 - Has number'
     ServiceSolution-Update-SetCaseTimeAndCost:
         meta:
-            name: Service Solution - Update - Set Case Time And Cost
+            name: Case management - Update - Set Case Time And Cost
             description: Sets time and cost of a case by summing up the cost of all case updates
         enabled: true
         keepSessions: 0
@@ -3954,7 +3954,7 @@ workflows:
                     value: null
     ServiceSolution-Case-SendEmail:
         meta:
-            name: Service Solution - Case - Send Email
+            name: Case management - Case - Send Email
             description: Sends Case update Email based on prompted reason and selected template
         enabled: true
         keepSessions: 0
@@ -4427,7 +4427,7 @@ workflows:
                   tests: []
                 - target: update.values.From
                   source: ""
-                  expr: '"Service Solution"'
+                  expr: '"Case management"'
                   value: null
                   type: String
                   tests: []
