@@ -68,18 +68,6 @@ func Test_pl(t *testing.T) {
 				expStatus: http.StatusTemporaryRedirect,
 				expError:  "{\"error\":{\"message\":\"test error\"}}\n",
 			},
-			{
-				name: "request method validation fail",
-				handler: &types.MockHandler{
-					Handler_: func(rw http.ResponseWriter, r *http.Request) error {
-						rw.WriteHeader(http.StatusTemporaryRedirect)
-						return errors.New("test error")
-					},
-				},
-				method:    "GET",
-				expStatus: http.StatusInternalServerError,
-				expError:  "{\"error\":{\"message\":\"invalid method POST\"}}\n",
-			},
 		}
 	)
 

@@ -44,10 +44,6 @@ func Service() *apigw {
 	return apiGw
 }
 
-func Set(a *apigw) {
-	apiGw = a
-}
-
 // Setup handles the singleton service
 func Setup(opts *options.ApigwOpt, log *zap.Logger, storer storer) {
 	if apiGw != nil {
@@ -74,6 +70,23 @@ func New(opts *options.ApigwOpt, logger *zap.Logger, storer storer) *apigw {
 //
 // When reloading routes, make sure to replace the original mux
 func (s *apigw) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if s.mx == nil {
+		http.Error(w, "API Gateway not initialized", http.StatusInternalServerError)
+		return
+	}
+
+	if len(s.routes) == 0 {
+		helperDefaultResponse(s.opts)(w, r)
+		return
+	}
+
+	// Remove route context for chi
+	//
+	// Without this, chi can not properly handle requests
+	// in API gateway's sub-router
+	r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, nil))
+
+	// Handle api-gw request
 	s.mx.ServeHTTP(w, r)
 }
 
@@ -94,21 +107,25 @@ func (s *apigw) Reload(ctx context.Context) (err error) {
 
 	// Rebuild the mux
 	s.mx = chi.NewMux()
-	s.mx.HandleFunc("/", helperDefaultResponse(s.opts))
+
 	for _, r := range s.routes {
-		s.mx.Handle(r.endpoint, r)
+		// Register route handler on endpoint & method
+		s.mx.Method(r.method, r.endpoint, r)
 	}
+
+	// API GW 404 handler
+	s.mx.NotFound(helperDefaultResponse(s.opts))
 
 	return nil
 }
 
-// Init all the routes
-func (s *apigw) Init(ctx context.Context, route ...*route) {
+// Init all routes
+func (s *apigw) Init(ctx context.Context, routes ...*route) {
 	var (
 		defaultPostFilter types.Handler
 	)
 
-	s.routes = route
+	s.routes = routes
 
 	s.log.Debug("registering routes", zap.Int("count", len(s.routes)))
 
@@ -138,17 +155,17 @@ func (s *apigw) Init(ctx context.Context, route ...*route) {
 			continue
 		}
 
-		for _, f := range regFilters {
-			flog := log.With(zap.String("ref", f.Ref))
+		for _, rf := range regFilters {
+			flog := log.With(zap.String("ref", rf.Ref))
 
 			// make sure there is only one postfilter
 			// on async routes
-			if r.meta.async && f.Kind == string(types.PostFilter) {
+			if r.meta.async && rf.Kind == string(types.PostFilter) {
 				flog.Debug("not registering filter for async route")
 				continue
 			}
 
-			ff, err := s.registerFilter(f, r)
+			ff, err := s.registerFilter(rf, r)
 
 			if err != nil {
 				flog.Error("could not register filter", zap.Error(err))
