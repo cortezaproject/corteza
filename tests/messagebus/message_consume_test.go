@@ -79,7 +79,7 @@ func TestMessageWrite(t *testing.T) {
 				set := h.checkPersistedMessages(ctx, messagebus.QueueMessageFilter{})
 
 				// success, will eventually get persisted
-				if len(set) == 2 {
+				if len(set) >= 2 {
 					h.a.NotEmpty(set)
 					h.a.Equal([]byte(`this is a test`), set[0].Payload)
 					h.a.Equal([]byte(`foo bar`), set[1].Payload)
