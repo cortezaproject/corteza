@@ -167,7 +167,18 @@ func (h AuthHandlers) oauth2Token(req *request.AuthReq) (err error) {
 
 func (h AuthHandlers) oauth2Info(w http.ResponseWriter, r *http.Request) {
 	ti, err := h.OAuth2.ValidationBearerToken(r)
+
 	if err != nil {
+		if errors.Is(err, context.Canceled) {
+			// Gracefully handle request cancellation
+			//
+			// This happens during the login procedure when browser is
+			// sent through a couple of quick redirects that can
+			// terminate requests
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
 		var (
 			data   = make(map[string]interface{})
 			code   int
