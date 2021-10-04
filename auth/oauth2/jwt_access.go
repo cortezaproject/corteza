@@ -2,11 +2,12 @@ package oauth2
 
 import (
 	"context"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-oauth2/oauth2/v4"
 	"github.com/go-oauth2/oauth2/v4/errors"
-	"strings"
 )
 
 // NewJWTAccessGenerate create to generate the jwt access token instance
@@ -43,6 +44,7 @@ func (a *JWTAccessGenerate) Token(ctx context.Context, data *oauth2.GenerateBasi
 	}
 
 	token := jwt.NewWithClaims(a.SignedMethod, claims)
+	token.Header["salt"] = string(rand.Bytes(32))
 	if a.SignedKeyID != "" {
 		token.Header["kid"] = a.SignedKeyID
 	}
