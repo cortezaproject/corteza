@@ -136,7 +136,7 @@ func (m *model) Describe(ctx context.Context, source string) (out FrameDescripti
 
 		ds, err = m.datasource(ctx, &FrameDefinition{Source: source})
 		if err != nil {
-			return fmt.Errorf("model does not contain the datasource: %s", source)
+			return fmt.Errorf("model does not contain the datasource %s", source)
 		}
 
 		return nil
