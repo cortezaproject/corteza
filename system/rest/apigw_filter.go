@@ -49,9 +49,12 @@ func (ctrl *ApigwFilter) List(ctx context.Context, r *request.ApigwFilterList) (
 	var (
 		err error
 		f   = types.ApigwFilterFilter{
-			RouteID:  r.RouteID,
-			Deleted:  filter.State(r.Deleted),
-			Disabled: filter.State(r.Disabled),
+			RouteID: r.RouteID,
+			Deleted: filter.State(r.Deleted),
+
+			// todo: this should dynamic as Delete
+			//		but making it default to `1`, until UI is aligned with this
+			Disabled: filter.StateInclusive,
 		}
 	)
 
