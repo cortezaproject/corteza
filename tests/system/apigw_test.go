@@ -104,7 +104,6 @@ func TestApigwRouteSearch(t *testing.T) {
 
 	h.createRouteWithFilter("test1", "")
 	h.createRouteWithFilter("test2", "")
-	h.createRouteAndFilterWithEnabled("test3", "", false, true)
 
 	helpers.AllowMe(h, types.ComponentRbacResource(), "apigw-routes.search")
 	helpers.AllowMe(h, types.ApigwRouteRbacResource(0), "read")
