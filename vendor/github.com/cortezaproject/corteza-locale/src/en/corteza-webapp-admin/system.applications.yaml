@@ -27,7 +27,7 @@ editor:
       description: Name used in the application selector
       label: Name
     pinned: Pinned
-    title: Unify app selector
+    title: App selector
     url:
       description: Application URL
       label: URL
@@ -37,6 +37,7 @@ list:
     createdAt: Created
     enabled: Enabled
     name: Name
+    appListName: App selector name
   filterForm:
     deleted:
       label: deleted applications

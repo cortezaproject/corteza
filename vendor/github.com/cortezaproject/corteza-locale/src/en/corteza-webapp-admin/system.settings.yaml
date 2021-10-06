@@ -55,16 +55,19 @@ editor:
       title: SAML
       cert: Public key
       cert-key: Private key
+      name: Name
       desc:
+        name: IdP name used on the login screen (Login with <name>)
         cert: Content will be minimized
         cert-key: Content will be minimized
         idp:
-          ident-handle: IdP field used for filling Corteza user handle or nickname
-          ident-identifier: Idp field used for filling and matching Corteza user email
-          ident-name: IdP field used for filling Corteza user full name
+          url: Location of IdP metadata
+          ident-handle: Name of the IdP field used for filling Corteza user handle or nickname
+          ident-identifier: Name of the IdP field used for filling and matching Corteza user email
+          ident-name: Name of the IdP field used for filling Corteza user full name
       idp:
         title: Identity provider
-        ident-handle: Handle
-        ident-identifier: Identifier
-        ident-name: Name
+        ident-handle: Handle field
+        ident-identifier: Identifier field
+        ident-name: Name field
         url: URL
