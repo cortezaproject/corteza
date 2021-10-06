@@ -127,6 +127,10 @@ func (svc role) IsClosed(r *types.Role) bool {
 	return len(r.Handle) > 0 && svc.closed[r.Handle]
 }
 
+func (svc role) IsContextual(r *types.Role) bool {
+	return r.Meta != nil && r.Meta.Context != nil && len(r.Meta.Context.Expr) > 0
+}
+
 func (svc role) Find(ctx context.Context, filter types.RoleFilter) (rr types.RoleSet, f types.RoleFilter, err error) {
 	var (
 		raProps = &roleActionProps{filter: &filter}
@@ -611,7 +615,7 @@ func (svc role) MemberList(ctx context.Context, roleID uint64) (mm types.RoleMem
 			return err
 		}
 
-		if svc.IsClosed(r) {
+		if svc.IsClosed(r) || svc.IsContextual(r) {
 			return RoleErrNotAllowedToManageMembers()
 		}
 
@@ -649,7 +653,7 @@ func (svc role) MemberAdd(ctx context.Context, roleID, memberID uint64) (err err
 
 		raProps.setRole(r)
 
-		if svc.IsClosed(r) {
+		if svc.IsClosed(r) || svc.IsContextual(r) {
 			return RoleErrNotAllowedToManageMembers()
 		}
 
@@ -698,7 +702,7 @@ func (svc role) MemberRemove(ctx context.Context, roleID, memberID uint64) (err 
 			return
 		}
 
-		if svc.IsClosed(r) {
+		if svc.IsClosed(r) || svc.IsContextual(r) {
 			return RoleErrNotAllowedToManageMembers()
 		}
 
