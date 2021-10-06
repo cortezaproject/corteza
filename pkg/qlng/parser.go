@@ -65,9 +65,17 @@ func (p *Parser) Parse(s string) (*ASTNode, error) {
 	if set, err := p.parse(p.nextToken()); err != nil {
 		return nil, err
 	} else if len(set) == 1 {
-		return set[0].ToAST(), set[0].Validate()
+		err := set[0].Validate()
+		if err != nil {
+			return nil, err
+		}
+		return set[0].ToAST(), nil
 	} else {
-		return set.ToAST(), set.Validate()
+		err := set.Validate()
+		if err != nil {
+			return nil, err
+		}
+		return set.ToAST(), nil
 	}
 
 }
