@@ -6,38 +6,6 @@
   --body-margin: 2.6vw;
 }
 
-@font-face {
-  font-family: 'Poppins-Bold';
-  src: url('./fonts/poppins/Poppins-Bold.ttf') format('truetype');
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Poppins-SemiBold';
-  src: url('./fonts/poppins/Poppins-SemiBold.ttf') format('truetype');
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Poppins-Regular';
-  src: url('./fonts/poppins/Poppins-Regular.ttf') format('truetype');
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Poppins-Medium';
-  src: url('./fonts/poppins/Poppins-Medium.ttf') format('truetype');
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
-
 html {
   height: 100%;
 }
@@ -45,7 +13,7 @@ html {
 
 body {
   margin-top: var(--body-margin);
-  font-family: 'Poppins-Regular';
+  font-family: 'Poppins', sans-serif;
   min-height: calc(100% - var(--body-margin));
   display: grid;
   grid-template-rows: auto;
@@ -67,7 +35,8 @@ body {
 }
 
 .h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
-  font-family: 'Poppins-SemiBold';
+  font-family: 'Poppins';
+  font-weight: 600;
 }
 
 thead th,
@@ -75,13 +44,14 @@ legend,
 label,
 a,
 .btn {
-  font-family: 'Poppins-Medium';
+  font-family: 'Poppins';
 }
 
 strong,
 b,
 .font-weight-bold {
-  font-family: 'Poppins-SemiBold';
+  font-family: 'Poppins';
+  font-weight: 600;
 }
 
 /* over-ride default variables colors */
