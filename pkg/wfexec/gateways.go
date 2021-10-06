@@ -100,12 +100,12 @@ type inclGateway struct {
 // InclGateway fn initializes inclusive gateway
 func InclGateway(pp ...*GatewayPath) (*inclGateway, error) {
 	if len(pp) < 2 {
-		return nil, fmt.Errorf("expecting at least two paths for incusive gateway")
+		return &inclGateway{}, fmt.Errorf("expecting at least two paths for incusive gateway")
 	}
 
 	for _, p := range pp {
 		if p.test == nil {
-			return nil, fmt.Errorf("all inclusve gateway paths must have valid test Expression")
+			return &inclGateway{}, fmt.Errorf("all inclusve gateway paths must have valid test Expression")
 		}
 	}
 
@@ -142,12 +142,12 @@ type exclGateway struct {
 func ExclGateway(pp ...*GatewayPath) (*exclGateway, error) {
 	t := len(pp)
 	if t < 2 {
-		return nil, fmt.Errorf("expecting at least two paths for exclusive gateway")
+		return &exclGateway{}, fmt.Errorf("expecting at least two paths for exclusive gateway")
 	}
 
 	for i, p := range pp {
 		if p.test == nil && i != t-1 {
-			return nil, fmt.Errorf("all exclusive gateway paths must have valid test Expression")
+			return &exclGateway{}, fmt.Errorf("all exclusive gateway paths must have valid test Expression")
 		}
 	}
 
