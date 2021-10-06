@@ -17,7 +17,7 @@ applications:
       logo: applications/low-code-crm-app.png
       url: compose/ns/crm/pages
 
-  - name: Service Solution
+  - name: Case Management
     (envoy): { skipIf: "!missing" }
     enabled: true
     unify:
