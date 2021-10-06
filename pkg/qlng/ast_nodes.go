@@ -324,6 +324,8 @@ func (nn parserNodes) ToAST() (out *ASTNode) {
 // A simplified type registry for the types that QL needs to understand
 func qlTypeRegistry(ref string) expr.Type {
 	switch ref {
+	case "ID", "Record", "User":
+		return &expr.ID{}
 	case "Boolean", "Bool":
 		return &expr.Boolean{}
 	case "Integer":
