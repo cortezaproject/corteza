@@ -116,6 +116,10 @@ func (h *AuthHandlers) loginProc(req *request.AuthReq) (err error) {
 		return
 	}()
 
+	if err == nil {
+		return nil
+	}
+
 	switch {
 	case service.AuthErrInternalLoginDisabledByConfig().Is(err):
 		h.localDisabledAlert(req)
