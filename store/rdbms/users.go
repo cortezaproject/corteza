@@ -86,7 +86,8 @@ func (s Store) UserMetrics(ctx context.Context) (*types.UserMetrics, error) {
 				"SUM(CASE WHEN deleted_at   IS NULL AND suspended_at IS NULL THEN 1 ELSE 0 END) as valid",
 			).
 			PlaceholderFormat(s.config.PlaceholderFormat).
-			From(s.userTable("u"))
+			From(s.userTable("u")).
+			Where(squirrel.Eq{"kind": ""})
 
 		row, err = s.QueryRow(ctx, counters)
 		rval     = &types.UserMetrics{}
@@ -107,7 +108,8 @@ func (s Store) UserMetrics(ctx context.Context) (*types.UserMetrics, error) {
 		squirrel.
 			Select().
 			PlaceholderFormat(s.config.PlaceholderFormat).
-			From(s.userTable("u")),
+			From(s.userTable("u")).
+			Where(squirrel.Eq{"kind": ""}),
 		[]string{
 			"created_at",
 			"updated_at",
