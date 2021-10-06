@@ -358,12 +358,6 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return err
 	}
 
-	// Initialize API GW bits
-	apigw.Setup(options.Apigw(), app.Log, app.Store)
-	if err = apigw.Service().Reload(ctx); err != nil {
-		return err
-	}
-
 	if app.Opt.Messagebus.Enabled {
 		// initialize all the queue handlers
 		messagebus.Service().Init(ctx, app.Store)
@@ -417,6 +411,12 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 
 	corredor.Service().SetUserFinder(sysService.DefaultUser)
 	corredor.Service().SetRoleFinder(sysService.DefaultRole)
+
+	// Initialize API GW bits
+	apigw.Setup(options.Apigw(), app.Log, app.Store)
+	if err = apigw.Service().Reload(ctx); err != nil {
+		return err
+	}
 
 	if app.Opt.Federation.Enabled {
 		// Initializes federation services
