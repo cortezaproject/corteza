@@ -34,6 +34,7 @@ type (
 	reportAccessController interface {
 		CanGrant(context.Context) bool
 
+		CanReadReport(context.Context, *types.Report) bool
 		CanUpdateReport(context.Context, *types.Report) bool
 		CanDeleteReport(context.Context, *types.Report) bool
 		CanRunReport(context.Context, *types.Report) bool
@@ -43,6 +44,7 @@ type (
 		*types.Report
 
 		CanGrant        bool `json:"canGrant"`
+		CanReadReport   bool `json:"canReadReport"`
 		CanUpdateReport bool `json:"canUpdateReport"`
 		CanDeleteReport bool `json:"canDeleteReport"`
 		CanRunReport    bool `json:"canRunReport"`
@@ -152,8 +154,10 @@ func (ctrl Report) makePayload(ctx context.Context, m *types.Report, err error) 
 
 		CanGrant: ctrl.ac.CanGrant(ctx),
 
+		CanReadReport:   ctrl.ac.CanReadReport(ctx, m),
 		CanUpdateReport: ctrl.ac.CanUpdateReport(ctx, m),
 		CanDeleteReport: ctrl.ac.CanDeleteReport(ctx, m),
+		CanRunReport:    ctrl.ac.CanRunReport(ctx, m),
 	}, nil
 }
 
