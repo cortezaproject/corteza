@@ -159,10 +159,10 @@ func (f *Filter) UnmarshalJSON(data []byte) (err error) {
 		}
 
 		aux, err := p.Parse(n.Raw)
-		aux.Raw = n.Raw
 		if err != nil {
 			return false, n, err
 		}
+		aux.Raw = n.Raw
 
 		return false, aux, nil
 	})
