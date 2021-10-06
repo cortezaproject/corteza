@@ -11,6 +11,14 @@ editor:
     unarchive: Unarchive
     undelete: Undelete
     updatedAt: Updated at
+
+    description: Description
+
+    context:
+      label: Contextual role
+      expression-label: Expression
+      resource-types-label: Resource type
+
   members:
     add: Add
     count: Members ({{count}})

@@ -57,11 +57,12 @@ editor:
     validEndpoint: 'Invalid endpoint format'
   filters:
     title: 'Filter list'
+    enabled: 'Enabled'
+    disabled: 'Disabled'
+
     modal:
       title: 'Query parameters verifier'
       ok: 'Save & Close'
-      statusActive: 'Active'
-      statusDisabled: 'Disabled'
 
     step_title:
       prefilter: 'Prefiltering'
@@ -78,11 +79,21 @@ editor:
 
     labels:
       expr: 'Expression'
-      location: 'Location'
+      location: 'URL'
       workflow: 'Workflow'
       status: 'HTTP Status'
       jsfunc: 'Function'
-    
+
+    httpStatus:
+      none: No Status
+      '300': 300 - Multiple Choices
+      '301': 301 - Moved Permanently
+      '302': 302 - Found
+      '303': 303 - See Other
+      '304': 304 - Not Modified
+      '307': 307 - Temporary Redirect
+      '308': 308 - Permanent Redirect
+
     placeholders:
       workflow: 'Select a workflow'
 

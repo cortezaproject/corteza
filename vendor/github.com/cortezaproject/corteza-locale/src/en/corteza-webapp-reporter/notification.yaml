@@ -11,3 +11,5 @@ report:
   listFetchFailed: Failed to fetch reports
   updateFailed: Failed to update report
   updated: Report updated
+  notAllowed:
+    read: Not allowed to read report

@@ -26,7 +26,7 @@ edit:
       week: WEEK
       year: YEAR
     gaugeSteps: Steps
-    label: Dimensions (datetime & select fields)
+    label: Dimensions
     skipMissingValues: Skip missing values
   filter:
     customize: Customize filter
@@ -84,7 +84,7 @@ edit:
       placeholder: Select metric output
     relative: Show relative value
     relativePrecision: 'Precision:'
-    title: Metrics (numeric fields)
+    title: Metrics
   modulePick: Pick a module
   title: Chart builder
   unconfiguredReport: Unconfigured report
