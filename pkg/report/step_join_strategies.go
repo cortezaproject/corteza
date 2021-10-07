@@ -361,17 +361,30 @@ func (d *joinedDataset) sortFrameBuffers(localLoader, foreignLoader *frameLoadCt
 	// Each foreign frame is on the same index as the corresponding local row.
 	// This simplifies later algorithms and removes the need for additional
 	// mapping structures.
+	//
+	// We need to use a slice of indexes as we don't pull duplicated data; we need
+	// to do this here.
+	bucketsN := make(map[string][]int)
+	//
+	// use maxI for an easier determination of the maximum index.
+	maxI := -1
 	for _, l := range localBuffer {
 		l.WalkRows(func(i int, r FrameRow) error {
-			buckets[cast.ToString(r[localLoader.keyColIndex].Get())] = i
+			k := cast.ToString(r[localLoader.keyColIndex].Get())
+			bucketsN[k] = append(bucketsN[k], i)
+			if i > maxI {
+				maxI = i
+			}
 			return nil
 		})
 	}
 	//
 	// Update foreign frame order based on reordered buckets
-	aux := make([]*Frame, len(foreignBuffer))
+	aux := make([]*Frame, maxI+1)
 	for _, f := range foreignBuffer {
-		aux[buckets[f.RefValue]] = f
+		for _, i := range bucketsN[f.RefValue] {
+			aux[i] = f
+		}
 	}
 
 	return localBuffer, aux
