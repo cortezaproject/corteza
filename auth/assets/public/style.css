@@ -131,6 +131,12 @@ select.form-control {
   margin-top: auto;
 }
 
+input:-webkit-autofill::first-line {
+  font-family: 'Poppins';
+  font-size: 1rem;
+  color: #495057;
+}
+
 /* position bootstrap icons on buttons centrally */
 [class^="bi-"]::before, [class*=" bi-"]::before {
   vertical-align: middle;
