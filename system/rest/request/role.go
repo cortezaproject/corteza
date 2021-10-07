@@ -41,6 +41,11 @@ type (
 		// Search query
 		Query string
 
+		// MemberID GET parameter
+		//
+		// Search roles for member
+		MemberID uint64 `json:",string"`
+
 		// Deleted GET parameter
 		//
 		// Exclude (0, default), include (1) or return only (2) deleted roles
@@ -243,6 +248,7 @@ func NewRoleList() *RoleList {
 func (r RoleList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"query":      r.Query,
+		"memberID":   r.MemberID,
 		"deleted":    r.Deleted,
 		"archived":   r.Archived,
 		"labels":     r.Labels,
@@ -255,6 +261,11 @@ func (r RoleList) Auditable() map[string]interface{} {
 // Auditable returns all auditable/loggable parameters
 func (r RoleList) GetQuery() string {
 	return r.Query
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RoleList) GetMemberID() uint64 {
+	return r.MemberID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -296,6 +307,12 @@ func (r *RoleList) Fill(req *http.Request) (err error) {
 
 		if val, ok := tmp["query"]; ok && len(val) > 0 {
 			r.Query, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["memberID"]; ok && len(val) > 0 {
+			r.MemberID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}
