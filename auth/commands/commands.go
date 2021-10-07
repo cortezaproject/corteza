@@ -89,6 +89,7 @@ func Command(ctx context.Context, app serviceInitializer, storeInit func(ctx con
 		Args:    cobra.MinimumNArgs(1),
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
+			ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
 			var (
 				user *types.User
 				err  error
