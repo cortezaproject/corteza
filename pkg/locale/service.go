@@ -74,8 +74,18 @@ func SetGlobal(ll *service) {
 	global = ll
 }
 
-func Static(ll ...*Language) *service {
-	return &service{}
+func Static(ll ...*Language) (svc *service) {
+	svc = &service{
+		log: zap.NewNop(),
+		set: make(map[language.Tag]*Language),
+	}
+
+	for _, l := range ll {
+		svc.set[l.Tag] = l
+		svc.tags = append(svc.tags, l.Tag)
+	}
+
+	return svc
 }
 
 func Service(log *zap.Logger, opt options.LocaleOpt) (*service, error) {
@@ -84,7 +94,6 @@ func Service(log *zap.Logger, opt options.LocaleOpt) (*service, error) {
 		src: strings.Split(opt.Path, ":"),
 		log: log.Named("locale"),
 	}
-
 	for _, lang := range strings.Split(opt.Languages, ",") {
 		lang = strings.TrimSpace(lang)
 		tag := language.Make(lang)

@@ -18,6 +18,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	ltype "github.com/cortezaproject/corteza-server/pkg/label/types"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/objstore/plain"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
@@ -34,6 +35,7 @@ import (
 	"github.com/steinfletcher/apitest"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"golang.org/x/text/language"
 )
 
 //go:embed static
@@ -90,10 +92,14 @@ func InitTestApp() {
 				return err
 			}
 
+			// Tests should be executed w/o any locales
+			locale.SetGlobal(locale.Static(&locale.Language{Tag: language.Und}))
+
 			sm = request.NewSessionManager(service.DefaultStore, app.Opt.Auth, service.DefaultLogger)
 
 			return nil
 		})
+
 	}
 
 	sp, _ := loadSAMLService()
