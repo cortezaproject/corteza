@@ -2,6 +2,7 @@ package types
 
 import (
 	"database/sql/driver"
+	"strings"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -47,7 +48,7 @@ type (
 	}
 )
 
-// Scan on ReportDataSourceSet gracefully handles conversion from NULL
+// Value scan on ReportDataSourceSet gracefully handles conversion from NULL
 func (l Lang) Value() (driver.Value, error) {
 	return l.String(), nil
 }
@@ -68,13 +69,13 @@ func (l *Lang) Scan(value interface{}) error {
 }
 
 func (a *ResourceTranslation) Compare(b *locale.ResourceTranslation) bool {
-	return a.K == b.Key && a.Lang.Tag.String() == b.Lang
+	return strings.EqualFold(a.K, b.Key) && a.Lang.Tag.String() == b.Lang
 }
 
-func (aa ResourceTranslationSet) New(bb locale.ResourceTranslationSet) (out ResourceTranslationSet) {
+func (set ResourceTranslationSet) New(bb locale.ResourceTranslationSet) (out ResourceTranslationSet) {
 outer:
 	for _, b := range bb {
-		for _, a := range aa {
+		for _, a := range set {
 			// It's not new
 			if a.Compare(b) {
 				continue outer
@@ -91,9 +92,9 @@ outer:
 	return
 }
 
-func (aa ResourceTranslationSet) Old(bb locale.ResourceTranslationSet) (out ResourceTranslationSet) {
+func (set ResourceTranslationSet) Old(bb locale.ResourceTranslationSet) (out ResourceTranslationSet) {
 	for _, b := range bb {
-		for _, a := range aa {
+		for _, a := range set {
 			// It's not new
 			if a.Compare(b) {
 				a.Message = b.Msg
