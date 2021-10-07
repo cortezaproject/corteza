@@ -228,6 +228,7 @@ endpoints:
     parameters:
       get:
       - { type: "string",            name: "query",      title: "Search query" }
+      - { type: "uint64",            name: "memberID",   title: "Search roles for member"}
       - { type: "uint",              name: "deleted",    title: "Exclude (0, default), include (1) or return only (2) deleted roles" }
       - { type: "uint",              name: "archived",   title: "Exclude (0, default), include (1) or return only (2) archived roles" }
       - { type: "map[string]string", name: "labels",     title: "Labels", parser: "label.ParseStrings" }
