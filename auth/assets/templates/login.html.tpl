@@ -39,7 +39,7 @@
 				name="password"
 				placeholder="{{ tr "login.template.form.password.placeholder" }}"
 				autocomplete="current-password"
-				aria-label="{{ tr "login.template.form.password.labels" }}">
+				aria-label="{{ tr "login.template.form.password.label" }}">
 		</div>
 		<div class="row">
 			<div class="col text-right">
