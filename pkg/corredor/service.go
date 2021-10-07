@@ -658,6 +658,14 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 		token string
 	)
 
+	// Returns context with identity set to service user
+	//
+	// Current user (identity in the context) might not have
+	// sufficient privileges to load info about invoker and runner
+	sysUserCtx := func() context.Context {
+		return auth.SetIdentityToContext(ctx, auth.ServiceUser())
+	}
+
 	log.Debug("triggered")
 
 	if encodedEvent, err = args.Encode(); err != nil {
@@ -683,7 +691,7 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 			return fmt.Errorf("could not run automation script without configured user service")
 		}
 
-		invoker, err = svc.users.FindByAny(ctx, i)
+		invoker, err = svc.users.FindByAny(sysUserCtx(), i)
 		if err != nil {
 			return err
 		}
@@ -707,7 +715,7 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 		// We search for the defined (run-as) user,
 		// assign it to authUser argument and make an
 		// authentication token for it
-		definer, err = svc.users.FindByAny(ctx, runAs)
+		definer, err = svc.users.FindByAny(sysUserCtx(), runAs)
 		if err != nil {
 			return err
 		}
