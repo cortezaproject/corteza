@@ -459,8 +459,11 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 	}
 
 	// Load corredor scripts & init watcher (script reloader)
-	corredor.Service().Load(ctx)
-	corredor.Service().Watch(ctx)
+	{
+		ctx := auth.SetIdentityToContext(ctx, auth.ServiceUser())
+		corredor.Service().Load(ctx)
+		corredor.Service().Watch(ctx)
+	}
 
 	sysService.Watchers(ctx)
 	autService.Watchers(ctx)
