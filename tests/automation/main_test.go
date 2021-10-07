@@ -16,6 +16,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	ltype "github.com/cortezaproject/corteza-server/pkg/label/types"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/store"
@@ -26,6 +27,7 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/steinfletcher/apitest"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/text/language"
 )
 
 type (
@@ -69,6 +71,9 @@ func InitTestApp() {
 			if err != nil {
 				return err
 			}
+
+			// Tests should be executed w/o any locales
+			locale.SetGlobal(locale.Static(&locale.Language{Tag: language.Und}))
 
 			eventbus.Set(eventBus)
 			return nil

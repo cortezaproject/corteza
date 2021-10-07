@@ -17,11 +17,11 @@ func DetectLanguage(ll *service) func(next http.Handler) http.Handler {
 
 			// resolve accept-language header
 			// Accept-Language specifies the language of the response payload.
-			ctx = SetAcceptLanguageToContext(ctx, resolveAcceptLanguageHeaders(ll, r))
+			ctx = SetAcceptLanguageToContext(ctx, resolveAcceptLanguageHeaders(r, ll))
 
 			// resolve content-language header
 			// Content-Language specifies the language of the request payload.
-			ctx = SetContentLanguageToContext(ctx, resolveContentLanguageHeaders(r.Header, ll.Default().Tag))
+			ctx = SetContentLanguageToContext(ctx, resolveContentLanguageHeaders(r.Header, ll))
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
@@ -36,11 +36,15 @@ func DetectLanguage(ll *service) func(next http.Handler) http.Handler {
 //  - invalid language: (same as skip)
 //  - valid language:   returns valid language; services will treat translatable content from the payload as translations
 //  - no header:        returns default language; (same as valid language)
-func resolveContentLanguageHeaders(h http.Header, def language.Tag) language.Tag {
+func resolveContentLanguageHeaders(h http.Header, ll *service) language.Tag {
+	if ll == nil || ll.Default() == nil {
+		return language.Und
+	}
+
 	var cLang = h.Get(ContentLanguageHeader)
 
 	if cLang == "" {
-		return def
+		return ll.Default().Tag
 	}
 
 	if cLang == "skip" {
@@ -55,18 +59,18 @@ func resolveContentLanguageHeaders(h http.Header, def language.Tag) language.Tag
 	}
 }
 
-func resolveAcceptLanguageHeaders(ll *service, r *http.Request) (tag language.Tag) {
+func resolveAcceptLanguageHeaders(r *http.Request, ll *service) (tag language.Tag) {
+	if ll == nil || ll.Default() == nil {
+		// locale service does not have anything loaded...
+		return language.Und
+	}
+
 	if ll.opt.DevelopmentMode {
 		if err := ll.ReloadStatic(); err != nil {
 			// when in development mode, refresh languages for every request
 			ll.log.Error("failed to load locales", zap.Error(err))
 			return
 		}
-	}
-
-	if ll.Default() == nil {
-		// locale service does not have anything loaded...
-		return
 	}
 
 	var (
@@ -85,7 +89,7 @@ func resolveAcceptLanguageHeaders(ll *service, r *http.Request) (tag language.Ta
 
 	if len(raw) == 0 {
 		// no need for lang detection
-		return
+		return ll.Default().Tag
 	}
 
 	// parse & ignore errors
