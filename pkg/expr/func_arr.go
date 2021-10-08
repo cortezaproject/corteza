@@ -2,9 +2,10 @@ package expr
 
 import (
 	"fmt"
-	"github.com/PaesslerAG/gval"
 	"reflect"
 	"strings"
+
+	"github.com/PaesslerAG/gval"
 )
 
 func ArrayFunctions() []gval.Language {
@@ -97,32 +98,40 @@ func shift(arr interface{}) (out interface{}, err error) {
 // count gets the count of occurrences in the first params(can be string, slice)
 // If given only one parameter then it returns length as count
 func count(arr interface{}, v ...interface{}) (count int, err error) {
+	typeErr := fmt.Errorf("unexpected type: %T, expecting slice", arr)
+	arr = UntypedValue(arr)
+
 	var (
 		occ int
 		c   = reflect.ValueOf(arr)
 	)
 
-	if len(v) == 0 {
-		return c.Len(), nil
-	}
+	switch c.Kind() {
+	case reflect.String:
+		if len(v) == 0 {
+			return len(c.String()), nil
+		}
 
-	if c.Kind() == reflect.String {
 		for _, ww := range v {
 			count += strings.Count(c.String(), reflect.ValueOf(ww).String())
 		}
 		return
-	}
 
-	if arr, err = toSlice(arr); err != nil {
-		return
-	}
-
-	for _, vv := range v {
-		if occ, err = find(arr, vv); err != nil {
-			return 0, err
-		} else if occ != -1 {
-			count++
+	case reflect.Slice:
+		if len(v) == 0 {
+			return c.Len(), nil
 		}
+
+		for _, vv := range v {
+			if occ, err = find(arr, vv); err != nil {
+				return 0, err
+			} else if occ != -1 {
+				count++
+			}
+		}
+
+	default:
+		return 0, typeErr
 	}
 
 	return
