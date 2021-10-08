@@ -23,5 +23,5 @@ func (s Store) convertRoleMemberFilter(f types.RoleMemberFilter) (query squirrel
 }
 
 func (s Store) TransferRoleMembers(ctx context.Context, src, dst uint64) (err error) {
-	return s.execUpdateRbacRules(ctx, squirrel.Eq{"rel_role": src}, store.Payload{"rel_role": dst})
+	return s.execUpdateRoleMembers(ctx, squirrel.Eq{"rel_role": src}, store.Payload{"rel_role": dst})
 }
