@@ -295,6 +295,14 @@ func (svc service) ExecIterator(ctx context.Context, scriptName string) error {
 		runAs  string
 	)
 
+	// Returns context with identity set to service user
+	//
+	// Current user (identity in the context) might not have
+	// sufficient privileges to load info about invoker and runner
+	sysUserCtx := func() context.Context {
+		return auth.SetIdentityToContext(ctx, auth.ServiceUser())
+	}
+
 	if script = svc.sScripts.FindByName(scriptName); script == nil {
 		return fmt.Errorf("nonexistent script (%q)", scriptName)
 	}
@@ -320,7 +328,7 @@ func (svc service) ExecIterator(ctx context.Context, scriptName string) error {
 			}
 
 			// Run this iterator as defined user
-			definer, err := svc.users.FindByAny(ctx, runAs)
+			definer, err := svc.users.FindByAny(sysUserCtx(), runAs)
 			if err != nil {
 				return err
 			}
@@ -947,6 +955,14 @@ func (svc *service) serverScriptSecurity(ctx context.Context, script *ServerScri
 		return
 	}
 
+	// Returns context with identity set to service user
+	//
+	// Current user (identity in the context) might not have
+	// sufficient privileges to load info about invoker and runner
+	sysUserCtx := func() context.Context {
+		return auth.SetIdentityToContext(ctx, auth.ServiceUser())
+	}
+
 	sec := &ScriptSecurity{Security: script.Security}
 
 	if sec.RunAs != "" {
@@ -963,7 +979,7 @@ func (svc *service) serverScriptSecurity(ctx context.Context, script *ServerScri
 
 	denyExec := make(map[uint64]bool)
 	for _, role := range script.Security.Deny {
-		if r, err := svc.roles.FindByAny(ctx, role); err != nil {
+		if r, err := svc.roles.FindByAny(sysUserCtx(), role); err != nil {
 			return fmt.Errorf("could not load security role: %s: %w", role, err)
 		} else {
 			denyExec[r.ID] = true
