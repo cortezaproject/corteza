@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/qlng"
@@ -78,6 +79,7 @@ type (
 	// Filter is a qlng.ASTNode wrapper to get some unmarshal/marshal features
 	Filter struct {
 		*qlng.ASTNode
+		Error string `json:"error,omitempty"`
 	}
 )
 
@@ -91,6 +93,7 @@ func (f *Filter) Clone() *Filter {
 
 	return &Filter{
 		ASTNode: f.ASTNode.Clone(),
+		Error:   f.Error,
 	}
 }
 
@@ -130,11 +133,12 @@ func (f *Filter) UnmarshalJSON(data []byte) (err error) {
 			return
 		}
 
-		if f.ASTNode, err = p.Parse(v); err != nil {
-			return
-		}
+		f.ASTNode, err = p.Parse(v)
 		f.ASTNode.Raw = v
-		return
+		if err != nil {
+			f.Error = err.Error()
+		}
+		return nil
 	}
 
 	// special case for empty JSON
@@ -144,16 +148,17 @@ func (f *Filter) UnmarshalJSON(data []byte) (err error) {
 
 	// non-string is considered an AST and we parse that
 	if err = json.Unmarshal(data, &f.ASTNode); err != nil {
-		return
+		f.Error = err.Error()
+		return nil
 	}
 
 	// traverse the AST to parse any raw exprs.
 	if f.ASTNode == nil {
-		return
+		return nil
 	}
 
 	// A raw expression takes priority and replaces the original AST sub-tree
-	return f.ASTNode.Traverse(func(n *qlng.ASTNode) (bool, *qlng.ASTNode, error) {
+	err = f.ASTNode.Traverse(func(n *qlng.ASTNode) (bool, *qlng.ASTNode, error) {
 		if n.Raw == "" {
 			return true, n, nil
 		}
@@ -166,6 +171,14 @@ func (f *Filter) UnmarshalJSON(data []byte) (err error) {
 
 		return false, aux, nil
 	})
+
+	if err != nil {
+		f.Error = err.Error()
+	} else {
+		f.Error = ""
+	}
+
+	return nil
 }
 
 // With guard element
@@ -416,6 +429,13 @@ func (f *FrameDefinition) Clone() (out *FrameDefinition) {
 		Sort:    f.Sort.Clone(),
 		Filter:  f.Filter.Clone(),
 	}
+}
+
+func (d FrameDefinition) Validate() error {
+	if d.Filter != nil && d.Filter.Error != "" {
+		return errors.InvalidData(d.Filter.Error)
+	}
+	return nil
 }
 
 func (dd FrameDefinitionSet) Find(name string) *FrameDefinition {

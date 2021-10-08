@@ -90,3 +90,7 @@ errors:
   - error: notAllowedToRun
     message: "not allowed to run this report"
     log: "failed to run {{report}}; insufficient permissions"
+
+  - error: invalidConfiguration
+    message: "invalid report configuration"
+    log: "failed to run {{report}}; invalid configuration"

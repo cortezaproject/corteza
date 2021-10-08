@@ -779,6 +779,42 @@ func ReportErrNotAllowedToRun(mm ...*reportActionProps) *errors.Error {
 	return e
 }
 
+// ReportErrInvalidConfiguration returns "system:report.invalidConfiguration" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func ReportErrInvalidConfiguration(mm ...*reportActionProps) *errors.Error {
+	var p = &reportActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid report configuration", nil),
+
+		errors.Meta("type", "invalidConfiguration"),
+		errors.Meta("resource", "system:report"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(reportLogMetaKey{}, "failed to run {{report}}; invalid configuration"),
+		errors.Meta(reportPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "report.errors.invalidConfiguration"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 
