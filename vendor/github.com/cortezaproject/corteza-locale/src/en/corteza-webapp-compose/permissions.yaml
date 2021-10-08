@@ -132,21 +132,21 @@ resources:
 
     record:
       all: all records
-      specific: record
+      specific: record "{{target}}"
       all-specific: all records of module "{{ target }}"
       operations:
         delete:
           description: 'Default: deny'
-          specific: Delete record
+          specific: Delete record "{{target}}"
           title: Delete records of any module
           all-specific: Delete records of module "{{ target }}"
         read:
           description: 'Default: deny'
-          specific: Read record
+          specific: Read record "{{target}}"
           title: Read records of any module
           all-specific: Read records of module "{{ target }}"
         update:
           description: 'Default: deny'
-          specific: Update record
+          specific: Update record "{{target}}"
           title: Update records of any module
           all-specific: Update records of module "{{ target }}"
