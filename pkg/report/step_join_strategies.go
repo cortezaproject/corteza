@@ -408,9 +408,9 @@ func (d *joinedDataset) strategizePaging(local, foreign *FrameDefinition, invert
 	// local otherwise.
 	switch pp[0].ref {
 	case local.Ref, "":
-		local.Filter = merger(&Filter{pp[0].filterCut}, local.Filter, "and")
+		local.Filter = merger(&Filter{pp[0].filterCut, ""}, local.Filter, "and")
 	case foreign.Ref:
-		foreign.Filter = merger(&Filter{pp[0].filterCut}, foreign.Filter, "and")
+		foreign.Filter = merger(&Filter{pp[0].filterCut, ""}, foreign.Filter, "and")
 	}
 
 	return

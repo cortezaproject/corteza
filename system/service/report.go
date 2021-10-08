@@ -293,6 +293,10 @@ func (svc *report) DescribeFresh(ctx context.Context, src types.ReportDataSource
 	out = make(rep.FrameDescriptionSet, 0, len(sources)*2)
 
 	err = func() (err error) {
+		if !svc.ac.CanCreateReport(ctx) {
+			return ReportErrNotAllowedToCreate()
+		}
+
 		ss := src.ModelSteps()
 		ss = append(ss, st...)
 
@@ -351,6 +355,16 @@ func (svc *report) Run(ctx context.Context, reportID uint64, dd rep.FrameDefinit
 
 		ss := r.Sources.ModelSteps()
 		ss = append(ss, r.Blocks.ModelSteps()...)
+
+		if err = ss.Validate(); err != nil {
+			return ReportErrInvalidConfiguration().Wrap(err)
+		}
+
+		for _, d := range dd {
+			if err = d.Validate(); err != nil {
+				return ReportErrInvalidConfiguration().Wrap(err)
+			}
+		}
 
 		// Model the report
 		model, err := rep.Model(ctx, reporters, ss...)

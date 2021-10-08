@@ -2,9 +2,9 @@ package report
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 )
 
@@ -57,7 +57,7 @@ func Model(ctx context.Context, sources map[string]DatasourceProvider, dd ...*St
 			switch {
 			case d.Load != nil:
 				if sources == nil {
-					return errors.New("no datasource providers defined")
+					return fmt.Errorf("no datasource providers defined")
 				}
 				steps = append(steps, &stepLoad{def: d.Load, dsp: sources[d.Load.Source]})
 
@@ -70,7 +70,7 @@ func Model(ctx context.Context, sources map[string]DatasourceProvider, dd ...*St
 			// @todo Transform
 
 			default:
-				return errors.New("malformed step definition: unsupported step kind")
+				return fmt.Errorf("malformed step definition: unsupported step kind")
 			}
 		}
 		return nil
@@ -83,6 +83,24 @@ func Model(ctx context.Context, sources map[string]DatasourceProvider, dd ...*St
 	return &model{
 		steps: steps,
 	}, nil
+}
+
+func (ss StepDefinitionSet) Validate() error {
+	var f *Filter
+	for _, s := range ss {
+		switch {
+		case s.Load != nil:
+			f = s.Load.Filter
+		case s.Join != nil:
+			f = s.Join.Filter
+		case s.Group != nil:
+			f = s.Group.Filter
+		}
+		if f != nil && f.Error != "" {
+			return errors.InvalidData(f.Error)
+		}
+	}
+	return nil
 }
 
 // Add adds additional steps to the model
@@ -101,11 +119,11 @@ func (m *model) Run(ctx context.Context) (err error) {
 	// initial validation
 	err = func() (err error) {
 		if m.ran {
-			return errors.New("model already ran")
+			return fmt.Errorf("model already ran")
 		}
 
 		if len(m.steps) == 0 {
-			return errors.New("no model steps defined")
+			return fmt.Errorf("no model steps defined")
 		}
 
 		return nil
