@@ -2,6 +2,7 @@ general:
   error: Error
   success: Success
   warning: Warning
+notAllowed: Not allowed to access Admin Area. Redirecting
 list: 
   load:
     error: 'Failed to load resource list'
