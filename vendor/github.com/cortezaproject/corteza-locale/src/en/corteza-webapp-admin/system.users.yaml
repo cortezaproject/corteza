@@ -7,7 +7,7 @@ editor:
     email: Email
     handle: Handle
     name: Full name
-    revokeAllSession: Revoke all active session
+    revokeAllSession: Revoke all active sessions
     suspend: Suspend
     suspendedAt: Suspended at
     title: Basic information
