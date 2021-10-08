@@ -203,16 +203,16 @@ func (svc workflowConverter) workflowStepDefConv(g *wfexec.Graph, s *types.Workf
 		}
 	}()
 
-	if err == nil && conv == nil {
+	if err != nil {
+		return false, err
+	} else if conv != nil {
+		conv.SetID(s.ID)
+		g.AddStep(conv)
+		return true, err
+	} else {
 		// signal caller that we were unable to
 		// resolve definition at the moment
 		return false, nil
-	} else {
-		if conv != nil {
-			conv.SetID(s.ID)
-			g.AddStep(conv)
-		}
-		return err == nil, err
 	}
 }
 
@@ -276,9 +276,6 @@ func (svc workflowConverter) convGateway(g *wfexec.Graph, s *types.WorkflowStep,
 			}
 		}
 
-		// return empty struct even if we get an error,
-		// so step definitions converted into workflow.Step instances
-		// and this step don't go through verification more than one time
 		if s.Ref == "excl" {
 			return wfexec.ExclGateway(pp...)
 		} else {
