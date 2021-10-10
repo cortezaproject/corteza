@@ -188,11 +188,28 @@ type (
 		Ext string
 	}
 
-	NamespaceImport struct {
+	NamespaceImportInit struct {
 		// Upload POST parameter
 		//
-		// Namespace import
+		// File import
 		Upload *multipart.FileHeader
+	}
+
+	NamespaceImportRun struct {
+		// SessionID PATH parameter
+		//
+		// Import session
+		SessionID uint64 `json:",string"`
+
+		// Name POST parameter
+		//
+		// Imported namespace name
+		Name string
+
+		// Slug POST parameter
+		//
+		// Imported namespace slug
+		Slug string
 	}
 
 	NamespaceTriggerScript struct {
@@ -826,25 +843,25 @@ func (r *NamespaceExport) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewNamespaceImport request
-func NewNamespaceImport() *NamespaceImport {
-	return &NamespaceImport{}
+// NewNamespaceImportInit request
+func NewNamespaceImportInit() *NamespaceImportInit {
+	return &NamespaceImportInit{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r NamespaceImport) Auditable() map[string]interface{} {
+func (r NamespaceImportInit) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"upload": r.Upload,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r NamespaceImport) GetUpload() *multipart.FileHeader {
+func (r NamespaceImportInit) GetUpload() *multipart.FileHeader {
 	return r.Upload
 }
 
 // Fill processes request and fills internal variables
-func (r *NamespaceImport) Fill(req *http.Request) (err error) {
+func (r *NamespaceImportInit) Fill(req *http.Request) (err error) {
 
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -866,6 +883,86 @@ func (r *NamespaceImport) Fill(req *http.Request) (err error) {
 
 		if _, r.Upload, err = req.FormFile("upload"); err != nil {
 			return fmt.Errorf("error processing uploaded file: %w", err)
+		}
+
+	}
+
+	return err
+}
+
+// NewNamespaceImportRun request
+func NewNamespaceImportRun() *NamespaceImportRun {
+	return &NamespaceImportRun{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceImportRun) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"sessionID": r.SessionID,
+		"name":      r.Name,
+		"slug":      r.Slug,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceImportRun) GetSessionID() uint64 {
+	return r.SessionID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceImportRun) GetName() string {
+	return r.Name
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceImportRun) GetSlug() string {
+	return r.Slug
+}
+
+// Fill processes request and fills internal variables
+func (r *NamespaceImportRun) Fill(req *http.Request) (err error) {
+
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if val, ok := req.Form["name"]; ok && len(val) > 0 {
+			r.Name, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["slug"]; ok && len(val) > 0 {
+			r.Slug, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "sessionID")
+		r.SessionID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
 		}
 
 	}

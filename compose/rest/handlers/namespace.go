@@ -27,7 +27,8 @@ type (
 		Upload(context.Context, *request.NamespaceUpload) (interface{}, error)
 		Clone(context.Context, *request.NamespaceClone) (interface{}, error)
 		Export(context.Context, *request.NamespaceExport) (interface{}, error)
-		Import(context.Context, *request.NamespaceImport) (interface{}, error)
+		ImportInit(context.Context, *request.NamespaceImportInit) (interface{}, error)
+		ImportRun(context.Context, *request.NamespaceImportRun) (interface{}, error)
 		TriggerScript(context.Context, *request.NamespaceTriggerScript) (interface{}, error)
 		ListTranslations(context.Context, *request.NamespaceListTranslations) (interface{}, error)
 		UpdateTranslations(context.Context, *request.NamespaceUpdateTranslations) (interface{}, error)
@@ -43,7 +44,8 @@ type (
 		Upload             func(http.ResponseWriter, *http.Request)
 		Clone              func(http.ResponseWriter, *http.Request)
 		Export             func(http.ResponseWriter, *http.Request)
-		Import             func(http.ResponseWriter, *http.Request)
+		ImportInit         func(http.ResponseWriter, *http.Request)
+		ImportRun          func(http.ResponseWriter, *http.Request)
 		TriggerScript      func(http.ResponseWriter, *http.Request)
 		ListTranslations   func(http.ResponseWriter, *http.Request)
 		UpdateTranslations func(http.ResponseWriter, *http.Request)
@@ -180,15 +182,31 @@ func NewNamespace(h NamespaceAPI) *Namespace {
 
 			api.Send(w, r, value)
 		},
-		Import: func(w http.ResponseWriter, r *http.Request) {
+		ImportInit: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewNamespaceImport()
+			params := request.NewNamespaceImportInit()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
 			}
 
-			value, err := h.Import(r.Context(), params)
+			value, err := h.ImportInit(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		ImportRun: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewNamespaceImportRun()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.ImportRun(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
@@ -258,7 +276,8 @@ func (h Namespace) MountRoutes(r chi.Router, middlewares ...func(http.Handler) h
 		r.Post("/namespace/upload", h.Upload)
 		r.Post("/namespace/{namespaceID}/clone", h.Clone)
 		r.Get("/namespace/{namespaceID}/export/{filename}.zip", h.Export)
-		r.Post("/namespace/import", h.Import)
+		r.Post("/namespace/import", h.ImportInit)
+		r.Post("/namespace/import/{sessionID}", h.ImportRun)
 		r.Post("/namespace/{namespaceID}/trigger", h.TriggerScript)
 		r.Get("/namespace/{namespaceID}/translation", h.ListTranslations)
 		r.Patch("/namespace/{namespaceID}/translation", h.UpdateTranslations)

@@ -46,7 +46,10 @@ actions:
   - action: export
     log: "exported {namespace}"
 
-  - action: import
+  - action: importInit
+    log: "import initialized for {namespace}"
+
+  - action: importRun
     log: "imported {namespace}"
 
   - action: delete
@@ -87,6 +90,10 @@ errors:
   - error: unsupportedImportFormat
     message: "unsupported import format"
     log: "could not import namespace {{namespace}}; unsupported format {{archiveFormat}}"
+
+  - error: importSessionNotFound
+    message: "the import session does not exist"
+    log: "could not import namespace {{namespace}}; the import session does not exist"
 
   - error: cloneMultiple
     message: "not allowed to clone multiple namespaces at once"

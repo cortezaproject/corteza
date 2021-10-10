@@ -171,16 +171,35 @@ endpoints:
         name: ext
         required: true
         title: Output file ext
-  - name: import
+  - name: importInit
     path: "/import"
     method: POST
-    title: Import namespace
+    title: Initiate namespace import session
     parameters:
       post:
       - name: upload
         type: "*multipart.FileHeader"
         required: true
-        title: Namespace import
+        title: File import
+  - name: importRun
+    path: "/import/{sessionID}"
+    method: POST
+    title: Run namespace import
+    parameters:
+      path:
+      - name: sessionID
+        type: uint64
+        required: true
+        title: Import session
+      post:
+      - type: string
+        name: name
+        required: true
+        title: Imported namespace name
+      - type: string
+        name: slug
+        required: true
+        title: Imported namespace slug
   - name: triggerScript
     method: POST
     title: Fire compose:namespace trigger
