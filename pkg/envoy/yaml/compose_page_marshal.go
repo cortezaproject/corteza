@@ -141,6 +141,13 @@ func (p *composePage) MarshalYAML() (interface{}, error) {
 		}
 	}
 
+	if p.relParent != nil {
+		nn, err = addMap(nn, "parent", firstOkString(p.relParent.Handle, p.relParent.Title))
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	nn, err = addMap(nn,
 		"pageID", p.res.ID,
 		"handle", p.res.Handle,
