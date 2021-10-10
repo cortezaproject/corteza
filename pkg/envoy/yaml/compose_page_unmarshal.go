@@ -85,6 +85,9 @@ func (wrap *composePage) UnmarshalYAML(n *yaml.Node) (err error) {
 		case "module":
 			return decodeRef(v, "page module", &wrap.refModule)
 
+		case "parent", "selfid":
+			return decodeRef(v, "page parent", &wrap.refParent)
+
 		case "visible":
 			return y7s.DecodeScalar(v, "page visible", &wrap.res.Visible)
 

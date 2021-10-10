@@ -44,6 +44,57 @@ func TestStoreYaml_pageRefs(t *testing.T) {
 
 	cases := []*tc{
 		{
+			name: "nested pages",
+			pre: func(ctx context.Context, s store.Storer) (error, *su.DecodeFilter) {
+				ns := sTestComposeNamespace(ctx, t, s, "base")
+
+				parent := &types.Page{
+					ID:          su.NextID(),
+					NamespaceID: ns.ID,
+					Handle:      "parent",
+					Title:       "parent",
+				}
+				child := &types.Page{
+					ID:          su.NextID(),
+					NamespaceID: ns.ID,
+					Handle:      "child",
+					Title:       "child",
+					SelfID:      parent.ID,
+				}
+
+				err := store.CreateComposePage(ctx, s, parent)
+				if err != nil {
+					t.Fatal(err)
+				}
+				err = store.CreateComposePage(ctx, s, child)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				df := su.NewDecodeFilter().
+					ComposeNamespace(&types.NamespaceFilter{
+						Slug: "base_namespace",
+					}).
+					ComposePage(&types.PageFilter{
+						NamespaceID: ns.ID,
+					})
+				return nil, df
+			},
+			check: func(ctx context.Context, s store.Storer, req *require.Assertions) {
+				n, err := store.LookupComposeNamespaceBySlug(ctx, s, "base_namespace")
+				req.NoError(err)
+
+				parent, err := store.LookupComposePageByNamespaceIDHandle(ctx, s, n.ID, "parent")
+				req.NoError(err)
+
+				child, err := store.LookupComposePageByNamespaceIDHandle(ctx, s, n.ID, "child")
+				req.NoError(err)
+
+				req.Equal(parent.ID, child.SelfID)
+			},
+		},
+
+		{
 			name: "pageblock chart",
 			pre: func(ctx context.Context, s store.Storer) (error, *su.DecodeFilter) {
 				ns := sTestComposeNamespace(ctx, t, s, "base")
