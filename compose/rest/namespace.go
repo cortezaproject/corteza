@@ -258,31 +258,42 @@ func (ctrl Namespace) Export(ctx context.Context, r *request.NamespaceExport) (i
 	return ctrl.serveExport(ctx, file, rs, err)
 }
 
-func (ctrl Namespace) Import(ctx context.Context, r *request.NamespaceImport) (interface{}, error) {
+func (ctrl Namespace) ImportInit(ctx context.Context, r *request.NamespaceImportInit) (interface{}, error) {
 	f, err := r.Upload.Open()
 	if err != nil {
 		return nil, err
 	}
 	defer f.Close()
 
-	encoder := func(nn resource.InterfaceSet) error {
-		se := envoyStore.NewStoreEncoder(service.DefaultStore, &envoyStore.EncoderConfig{})
+	return ctrl.namespace.ImportInit(ctx, f, r.Upload.Size)
+}
 
-		bld := envoy.NewBuilder(se)
-		g, err := bld.Build(ctx, nn...)
-		if err != nil {
-			return err
+func (ctrl Namespace) ImportRun(ctx context.Context, r *request.NamespaceImportRun) (interface{}, error) {
+	var (
+		dup = &types.Namespace{
+			Name: r.Name,
+			Slug: r.Slug,
 		}
 
-		err = envoy.Encode(ctx, g, se)
-		if err != nil {
-			return err
+		encoder = func(nn resource.InterfaceSet) error {
+			se := envoyStore.NewStoreEncoder(service.DefaultStore, &envoyStore.EncoderConfig{})
+
+			bld := envoy.NewBuilder(se)
+			g, err := bld.Build(ctx, nn...)
+			if err != nil {
+				return err
+			}
+
+			err = envoy.Encode(ctx, g, se)
+			if err != nil {
+				return err
+			}
+
+			return nil
 		}
+	)
 
-		return nil
-	}
-
-	ns, err := ctrl.namespace.Import(ctx, f, r.Upload.Size, encoder)
+	ns, err := ctrl.namespace.ImportRun(ctx, r.SessionID, dup, encoder)
 	return ctrl.makePayload(ctx, ns, err)
 }
 

@@ -365,15 +365,35 @@ func NamespaceActionExport(props ...*namespaceActionProps) *namespaceAction {
 	return a
 }
 
-// NamespaceActionImport returns "compose:namespace.import" action
+// NamespaceActionImportInit returns "compose:namespace.importInit" action
 //
 // This function is auto-generated.
 //
-func NamespaceActionImport(props ...*namespaceActionProps) *namespaceAction {
+func NamespaceActionImportInit(props ...*namespaceActionProps) *namespaceAction {
 	a := &namespaceAction{
 		timestamp: time.Now(),
 		resource:  "compose:namespace",
-		action:    "import",
+		action:    "importInit",
+		log:       "import initialized for {namespace}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// NamespaceActionImportRun returns "compose:namespace.importRun" action
+//
+// This function is auto-generated.
+//
+func NamespaceActionImportRun(props ...*namespaceActionProps) *namespaceAction {
+	a := &namespaceAction{
+		timestamp: time.Now(),
+		resource:  "compose:namespace",
+		action:    "importRun",
 		log:       "imported {namespace}",
 		severity:  actionlog.Notice,
 	}
@@ -719,6 +739,42 @@ func NamespaceErrUnsupportedImportFormat(mm ...*namespaceActionProps) *errors.Er
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
 		errors.Meta(locale.ErrorMetaKey{}, "namespace.errors.unsupportedImportFormat"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// NamespaceErrImportSessionNotFound returns "compose:namespace.importSessionNotFound" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func NamespaceErrImportSessionNotFound(mm ...*namespaceActionProps) *errors.Error {
+	var p = &namespaceActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("the import session does not exist", nil),
+
+		errors.Meta("type", "importSessionNotFound"),
+		errors.Meta("resource", "compose:namespace"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(namespaceLogMetaKey{}, "could not import namespace {{namespace}}; the import session does not exist"),
+		errors.Meta(namespacePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "namespace.errors.importSessionNotFound"),
 
 		errors.StackSkip(1),
 	)

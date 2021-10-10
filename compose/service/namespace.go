@@ -10,11 +10,13 @@ import (
 	"mime/multipart"
 	"reflect"
 	"strconv"
+	"time"
 
 	automationTypes "github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/yaml"
@@ -41,6 +43,18 @@ type (
 		locale   ResourceTranslationsManagerService
 	}
 
+	namespaceImportSession struct {
+		Name      string `json:"name"`
+		Slug      string `json:"handle"`
+		SessionID uint64 `json:"sessionID,string"`
+		UserID    uint64 `json:"userID,string"`
+
+		CreatedAt time.Time `json:"createdAt"`
+		UpdatedAt time.Time `json:"updatedAt"`
+
+		Resources resource.InterfaceSet `json:"-"`
+	}
+
 	namespaceAccessController interface {
 		CanManageResourceTranslations(ctx context.Context) bool
 		CanSearchNamespaces(context.Context) bool
@@ -62,7 +76,8 @@ type (
 		Update(ctx context.Context, namespace *types.Namespace) (*types.Namespace, error)
 		Clone(ctx context.Context, namespaceID uint64, dup *types.Namespace, decoder func() (resource.InterfaceSet, error), encoder func(resource.InterfaceSet) error) (ns *types.Namespace, err error)
 		Export(ctx context.Context, namespaceID uint64, archive string, decoder func() (resource.InterfaceSet, error), encoder func(resource.InterfaceSet) (envoy.Streamer, error)) (r io.ReadSeeker, err error)
-		Import(ctx context.Context, f multipart.File, size int64, encoder func(resource.InterfaceSet) error) (ns *types.Namespace, err error)
+		ImportInit(ctx context.Context, f multipart.File, size int64) (namespaceImportSession, error)
+		ImportRun(ctx context.Context, sessionID uint64, dup *types.Namespace, encoder func(resource.InterfaceSet) error) (ns *types.Namespace, err error)
 		DeleteByID(ctx context.Context, namespaceID uint64) error
 	}
 
@@ -74,6 +89,12 @@ const (
 	namespaceUnchanged     namespaceChanges = 0
 	namespaceChanged       namespaceChanges = 1
 	namespaceLabelsChanged namespaceChanges = 2
+)
+
+var (
+	// @todo this is a temporary implementation; we will rework resource import/export
+	//       in the following versions
+	namespaceSessionStore = make(map[uint64]namespaceImportSession)
 )
 
 func Namespace() *namespace {
@@ -418,9 +439,12 @@ func (svc namespace) Export(ctx context.Context, namespaceID uint64, archive str
 	return bytes.NewReader(buf.Bytes()), svc.recordAction(ctx, aProps, NamespaceActionExport, err)
 }
 
-func (svc namespace) Import(ctx context.Context, f multipart.File, size int64, encoder func(resource.InterfaceSet) error) (ns *types.Namespace, err error) {
+func (svc namespace) ImportInit(ctx context.Context, f multipart.File, size int64) (namespaceImportSession, error) {
 	var (
-		aProps = &namespaceActionProps{}
+		aProps  = &namespaceActionProps{}
+		err     error
+		ns      *types.Namespace
+		session namespaceImportSession
 	)
 
 	err = func() error {
@@ -468,10 +492,13 @@ func (svc namespace) Import(ctx context.Context, f multipart.File, size int64, e
 			nn = append(nn, mm...)
 		}
 
-		// encode
-		err = encoder(nn)
-		if err != nil {
-			return err
+		// store a session for later
+		session = namespaceImportSession{
+			SessionID: nextID(),
+			UserID:    auth.GetIdentityFromContext(ctx).Identity(),
+
+			CreatedAt: *now(),
+			Resources: nn,
 		}
 
 		// find the ns node
@@ -482,12 +509,87 @@ func (svc namespace) Import(ctx context.Context, f multipart.File, size int64, e
 			}
 		}
 
-		aProps.setNamespace(ns)
+		session.Name = ns.Name
+		session.Slug = ns.Slug
+		namespaceSessionStore[session.SessionID] = session
 
+		aProps.setNamespace(ns)
 		return nil
 	}()
 
-	return ns, svc.recordAction(ctx, aProps, NamespaceActionImport, err)
+	return session, svc.recordAction(ctx, aProps, NamespaceActionImportInit, err)
+}
+
+func (svc namespace) ImportRun(ctx context.Context, sessionID uint64, dup *types.Namespace, encoder func(resource.InterfaceSet) error) (ns *types.Namespace, err error) {
+	var (
+		aProps = &namespaceActionProps{namespace: dup}
+	)
+
+	err = func() error {
+		// access control
+		if err := svc.canImport(ctx); err != nil {
+			return err
+		}
+
+		if dup.Slug == "" || !handle.IsValid(dup.Slug) {
+			return NamespaceErrInvalidHandle()
+		}
+
+		// check for duplicate
+		dstNs, err := store.LookupComposeNamespaceBySlug(ctx, svc.store, dup.Slug)
+		if err != nil && err != store.ErrNotFound {
+			return err
+		}
+		if dstNs != nil {
+			return NamespaceErrHandleNotUnique()
+		}
+
+		// session
+		var (
+			session namespaceImportSession
+			ok      bool
+		)
+		if session, ok = namespaceSessionStore[sessionID]; !ok {
+			return NamespaceErrImportSessionNotFound()
+		}
+		defer func() {
+			delete(namespaceSessionStore, sessionID)
+		}()
+
+		// Handle renames and references
+		oldNsRef := resource.MakeRef(types.NamespaceResourceType, resource.MakeIdentifiers(session.Slug, session.Name))
+		newNsRef := resource.MakeRef(types.NamespaceResourceType, resource.MakeIdentifiers(dup.Slug, dup.Name))
+
+		auxNs := resource.FindComposeNamespace(session.Resources, oldNsRef.Identifiers)
+		auxNs.ID = 0
+		auxNs.Name = dup.Name
+		auxNs.Slug = dup.Slug
+		dup = auxNs
+		aProps.setNamespace(dup)
+
+		// Correct internal references
+		// - namespace identifiers
+		session.Resources.SearchForIdentifiers(oldNsRef.Identifiers).Walk(func(r resource.Interface) error {
+			r.ReID(newNsRef.Identifiers)
+			return nil
+		})
+		// - relations
+		session.Resources.SearchForReferences(oldNsRef).Walk(func(r resource.Interface) error {
+			r.ReRef(resource.RefSet{oldNsRef}, resource.RefSet{newNsRef})
+			return nil
+		})
+
+		// run the import
+		err = encoder(session.Resources)
+		if err != nil {
+			return err
+		}
+
+		aProps.setNamespace(dup)
+		return nil
+	}()
+
+	return dup, svc.recordAction(ctx, aProps, NamespaceActionImportRun, err)
 }
 
 func (svc namespace) DeleteByID(ctx context.Context, namespaceID uint64) error {
