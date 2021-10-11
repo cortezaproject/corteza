@@ -2,7 +2,13 @@ application:
   label: Enable on application list
 clickOpen: Click to open
 create: Create new namespace
-import: Import namespace
+import:
+  buttonLabel: Import namespace
+  title: Import namespace
+  uploadFileLabel: Upload the file you want to import (.zip format)
+  uploadFilePlaceholder: Click or drop file here to upload (.zip format)
+  back: Back
+  import: Import
 description:
   label: Namespace description
   placeholder: Enter namespace description
