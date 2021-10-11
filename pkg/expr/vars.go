@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"reflect"
 	"strings"
 
@@ -362,10 +363,37 @@ func (t *Vars) MarshalJSON() ([]byte, error) {
 
 		aux[k] = &typedValueWrap{Type: v.Type()}
 
-		if _, is := v.(json.Marshaler); is {
-			aux[k].Value = v
+		rv := v.Get()
+		// @todo this is a temporary solution.
+		// The JSON marshling failed due to some receiver functions on the
+		// HTTP request struct.
+		if hv, ok := rv.(*http.Request); ok {
+			aux[k].Value = map[string]interface{}{
+				"Method":           hv.Method,
+				"URL":              hv.URL,
+				"Proto":            hv.Proto,
+				"ProtoMajor":       hv.ProtoMajor,
+				"ProtoMinor":       hv.ProtoMinor,
+				"Header":           hv.Header,
+				"ContentLength":    hv.ContentLength,
+				"TransferEncoding": hv.TransferEncoding,
+				"Close":            hv.Close,
+				"Host":             hv.Host,
+				"Form":             hv.Form,
+				"PostForm":         hv.PostForm,
+				"MultipartForm":    hv.MultipartForm,
+				"Trailer":          hv.Trailer,
+				"RemoteAddr":       hv.RemoteAddr,
+				"RequestURI":       hv.RequestURI,
+				"TLS":              hv.TLS,
+				"Response":         hv.Response,
+			}
 		} else {
-			aux[k].Value = v.Get()
+			if _, is := v.(json.Marshaler); is {
+				aux[k].Value = v
+			} else {
+				aux[k].Value = v.Get()
+			}
 		}
 	}
 
