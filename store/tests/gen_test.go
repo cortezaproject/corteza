@@ -48,9 +48,8 @@ package tests
 //
 
 import (
-	"testing"
-
 	"github.com/cortezaproject/corteza-server/store"
+	"testing"
 )
 
 func testAllGenerated(t *testing.T, s store.Storer) {
