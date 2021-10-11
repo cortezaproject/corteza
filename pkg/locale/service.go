@@ -120,13 +120,7 @@ func (svc *service) Default() *Language {
 func (svc *service) Tags() (tt []language.Tag) {
 	svc.l.RLock()
 	defer svc.l.RUnlock()
-
-	tt = make([]language.Tag, 0, len(svc.set))
-	for t := range svc.set {
-		tt = append(tt, t)
-	}
-
-	return
+	return svc.tags
 }
 
 func (svc *service) SupportedLang(tag language.Tag) bool {
