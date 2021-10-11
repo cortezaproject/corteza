@@ -12,7 +12,7 @@ import (
 )
 
 func (wset *composePageSet) UnmarshalYAML(n *yaml.Node) error {
-	wx := make(map[uint64]int)
+	wx := make(map[string]int)
 
 	return y7s.Each(n, func(k, v *yaml.Node) (err error) {
 		var (
@@ -41,9 +41,9 @@ func (wset *composePageSet) UnmarshalYAML(n *yaml.Node) error {
 		}
 
 		if wrap.res.Weight < 0 {
-			wrap.res.Weight = wx[wrap.res.SelfID]
+			wrap.res.Weight = wx[wrap.refParent]
 		}
-		wx[wrap.res.SelfID]++
+		wx[wrap.refParent]++
 
 		*wset = append(*wset, wrap)
 		return
@@ -87,6 +87,9 @@ func (wrap *composePage) UnmarshalYAML(n *yaml.Node) (err error) {
 
 		case "parent", "selfid":
 			return decodeRef(v, "page parent", &wrap.refParent)
+
+		case "weight", "order":
+			return y7s.DecodeScalar(v, "page weight", &wrap.res.Weight)
 
 		case "visible":
 			return y7s.DecodeScalar(v, "page visible", &wrap.res.Visible)
