@@ -180,6 +180,11 @@ func (s authServiceMocked) ValidateEmailOTP(ctx context.Context, code string) (e
 	return s.validateEmailOTP(ctx, code)
 }
 
+func (s authServiceMocked) LoadRoleMemberships(ctx context.Context, u *types.User) error {
+	// no-op for now
+	return nil
+}
+
 //
 // Mocking oauth2Service
 //

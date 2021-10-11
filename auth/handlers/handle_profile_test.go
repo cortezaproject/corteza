@@ -77,6 +77,8 @@ func Test_profileFormProc(t *testing.T) {
 				req.PostForm.Add("handle", "handle")
 				req.PostForm.Add("name", "name")
 
+				authService = &authServiceMocked{}
+
 				userService = &userServiceMocked{
 					update: func(c context.Context, u *types.User) (*types.User, error) {
 						u = makeMockUser()
