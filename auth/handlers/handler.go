@@ -43,6 +43,7 @@ type (
 		ValidateTOTP(ctx context.Context, code string) (err error)
 		ConfigureTOTP(ctx context.Context, secret string, code string) (u *types.User, err error)
 		RemoveTOTP(ctx context.Context, userID uint64, code string) (u *types.User, err error)
+		LoadRoleMemberships(ctx context.Context, u *types.User) error
 
 		SendEmailOTP(ctx context.Context) (err error)
 		ConfigureEmailOTP(ctx context.Context, userID uint64, enable bool) (u *types.User, err error)

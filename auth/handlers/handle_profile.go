@@ -61,6 +61,10 @@ func (h *AuthHandlers) profileProc(req *request.AuthReq) error {
 	user, err := h.UserService.Update(req.Context(), u)
 
 	if err == nil {
+		err = h.AuthService.LoadRoleMemberships(req.Context(), user)
+	}
+
+	if err == nil {
 		req.AuthUser.User = user
 		req.AuthUser.Save(req.Session)
 
