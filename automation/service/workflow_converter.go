@@ -34,10 +34,10 @@ func Convert(wfService *workflow, wf *types.Workflow) (*wfexec.Graph, types.Work
 // Converts workflow definition to wf execution graph
 func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, types.WorkflowIssueSet) {
 	var (
-		g           = wfexec.NewGraph()
-		wfii        = types.WorkflowIssueSet{}
-		IDs         = make(map[uint64]int)
-		lastResStep *types.WorkflowStep
+		g              = wfexec.NewGraph()
+		wfii           = types.WorkflowIssueSet{}
+		IDs            = make(map[uint64]int)
+		makeGraphSteps func(types.WorkflowStepSet)
 	)
 
 	// Basic step verification
@@ -68,17 +68,9 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 		return true, nil
 	})
 
-	for g.Len() < len(ss) {
-		progress := false
-		lastResStep = nil
-
-		for _, step := range ss {
-			lastResStep = step
-			if g.StepByID(step.ID) != nil {
-				// resolved
-				continue
-			}
-
+	makeGraphSteps = func(steps types.WorkflowStepSet) {
+		pendingSteps := types.WorkflowStepSet{}
+		for i, step := range steps {
 			// Collect all incoming and outgoing paths
 			inPaths := make([]*types.WorkflowPath, 0, 8)
 			outPaths := make([]*types.WorkflowPath, 0, 8)
@@ -91,8 +83,8 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 			}
 
 			stepIssues := verifyStep(step, inPaths, outPaths)
-
-			if resolved, err := svc.workflowStepDefConv(g, step, inPaths, outPaths); err != nil {
+			resolved, err := svc.workflowStepDefConv(g, step, inPaths, outPaths)
+			if err != nil {
 				switch aux := err.(type) {
 				case types.WorkflowIssueSet:
 					stepIssues = append(stepIssues, aux...)
@@ -100,24 +92,28 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 				case error:
 					stepIssues = stepIssues.Append(err, nil)
 				}
-			} else if resolved {
-				progress = true
+			}
+
+			if !resolved && err == nil {
+				pendingSteps = append(pendingSteps, step)
 			}
 
 			wfii = append(wfii, stepIssues.SetCulprit("step", IDs[step.ID])...)
-		}
-
-		if !progress {
-			var culprit = make(map[string]int)
-			if lastResStep != nil {
-				culprit = map[string]int{"step": IDs[lastResStep.ID]}
+			if i+1 == len(steps) && len(wfii) > 0 {
+				var culprit = make(map[string]int)
+				if step != nil {
+					culprit = map[string]int{"step": IDs[step.ID]}
+				}
+				wfii = wfii.Append(fmt.Errorf("failed to resolve workflow step dependencies"), culprit)
 			}
-
-			// nothing resolved for 1 cycle
-			wfii = wfii.Append(fmt.Errorf("failed to resolve workflow step dependencies"), culprit)
-			break
 		}
+
+		if len(pendingSteps) > 0 && g.Len() < len(ss) {
+			makeGraphSteps(pendingSteps)
+		}
+		return
 	}
+	makeGraphSteps(ss)
 
 	for pos, path := range def.Paths {
 		if g.StepByID(path.ChildID) == nil {
@@ -162,9 +158,6 @@ func (svc workflowConverter) workflowStepDefConv(g *wfexec.Graph, s *types.Workf
 
 	conv, err := func() (wfexec.Step, error) {
 		switch s.Kind {
-		case types.WorkflowStepKindVisual:
-			return nil, nil
-
 		case types.WorkflowStepKindDebug:
 			return svc.convDebugStep(s)
 

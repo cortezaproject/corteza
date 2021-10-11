@@ -1,0 +1,83 @@
+workflows:
+  case1:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: expressions
+        arguments: [ { target: foo, type: Integer, expr: "40" } ]
+      - stepID: 2
+        kind: expressions
+        arguments: [ { target: bar, type: Integer, expr: "50" } ]
+      - stepID: 3
+        kind: gateway
+        ref: excl
+
+    paths:
+      - { parentID: 1, childID: 2 }
+
+  case2:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: expressions
+        arguments: [ { target: foo, type: Integer, expr: "40" } ]
+      - stepID: 2
+        kind: expressions
+        arguments: [ { target: bar, type: Integer, expr: "50" } ]
+      - stepID: 3
+        kind: gateway
+        ref: incl
+
+    paths:
+      - { parentID: 1, childID: 2 }
+
+  case3:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: expressions
+        arguments: [ { target: foo, type: Integer, expr: "40" } ]
+      - stepID: 2
+        kind: expressions
+        arguments: [ { target: bar, type: Integer, expr: "50" } ]
+      - stepID: 3
+        kind: function
+        ref: logInfo
+
+    paths:
+      - { parentID: 1, childID: 2 }
+
+  case4:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: expressions
+        arguments: [ { target: foo, type: Integer, expr: "40" } ]
+      - stepID: 2
+        kind: expressions
+        arguments: [ { target: bar, type: Integer, expr: "50" } ]
+      - stepID: 3
+        kind: iterator
+
+    paths:
+      - { parentID: 1, childID: 2 }
