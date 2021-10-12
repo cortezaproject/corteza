@@ -332,11 +332,23 @@ func (s *Store) checkAuthSessionConstraints(ctx context.Context, res *types.Auth
 		return nil
 	}
 
-	{
+	var checks = make([]func() error, 0)
+
+	checks = append(checks, func() error {
+		// Skip lookup by ID if AuthSession does not match filters
+
 		ex, err := s.LookupAuthSessionByID(ctx, res.ID)
 		if err == nil && ex != nil && ex.ID != res.ID {
 			return store.ErrNotUnique.Stack(1)
 		} else if !errors.IsNotFound(err) {
+			return err
+		}
+
+		return nil
+	})
+
+	for _, check := range checks {
+		if err := check(); err != nil {
 			return err
 		}
 	}

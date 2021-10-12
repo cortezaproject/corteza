@@ -297,29 +297,49 @@ func (s *Store) checkAuthOa2tokenConstraints(ctx context.Context, res *types.Aut
 		return nil
 	}
 
-	{
+	var checks = make([]func() error, 0)
+
+	checks = append(checks, func() error {
+		// Skip lookup by Code if AuthOa2token does not match filters
+
 		ex, err := s.LookupAuthOa2tokenByCode(ctx, res.Code)
 		if err == nil && ex != nil && ex.ID != res.ID {
 			return store.ErrNotUnique.Stack(1)
 		} else if !errors.IsNotFound(err) {
 			return err
 		}
-	}
 
-	{
+		return nil
+	})
+
+	checks = append(checks, func() error {
+		// Skip lookup by Access if AuthOa2token does not match filters
+
 		ex, err := s.LookupAuthOa2tokenByAccess(ctx, res.Access)
 		if err == nil && ex != nil && ex.ID != res.ID {
 			return store.ErrNotUnique.Stack(1)
 		} else if !errors.IsNotFound(err) {
 			return err
 		}
-	}
 
-	{
+		return nil
+	})
+
+	checks = append(checks, func() error {
+		// Skip lookup by Refresh if AuthOa2token does not match filters
+
 		ex, err := s.LookupAuthOa2tokenByRefresh(ctx, res.Refresh)
 		if err == nil && ex != nil && ex.ID != res.ID {
 			return store.ErrNotUnique.Stack(1)
 		} else if !errors.IsNotFound(err) {
+			return err
+		}
+
+		return nil
+	})
+
+	for _, check := range checks {
+		if err := check(); err != nil {
 			return err
 		}
 	}

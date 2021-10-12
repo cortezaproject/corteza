@@ -588,5 +588,13 @@ func (s *Store) checkFederationNodesSyncConstraints(ctx context.Context, res *ty
 		return nil
 	}
 
+	var checks = make([]func() error, 0)
+
+	for _, check := range checks {
+		if err := check(); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
