@@ -315,5 +315,13 @@ func (s *Store) checkRbacRuleConstraints(ctx context.Context, res *rbac.Rule) er
 		return nil
 	}
 
+	var checks = make([]func() error, 0)
+
+	for _, check := range checks {
+		if err := check(); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

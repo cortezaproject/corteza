@@ -2,6 +2,10 @@ package tests
 
 import (
 	"context"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
@@ -9,9 +13,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/stretchr/testify/require"
-	"strings"
-	"testing"
-	"time"
 )
 
 func testRoles(t *testing.T, s store.Roles) {
@@ -71,6 +72,15 @@ func testRoles(t *testing.T, s store.Roles) {
 	t.Run("update", func(t *testing.T) {
 		req, role := truncAndCreate(t)
 		req.NoError(s.UpdateRole(ctx, role))
+	})
+
+	t.Run("create and update deleted with existing handle", func(t *testing.T) {
+		req, role := truncAndCreate(t)
+		deletedRole := makeNew("copy")
+		deletedRole.DeletedAt = now()
+		deletedRole.Handle = role.Handle
+		req.NoError(store.CreateRole(ctx, s, deletedRole))
+		req.NoError(store.UpdateRole(ctx, s, deletedRole))
 	})
 
 	t.Run("lookup by handle", func(t *testing.T) {

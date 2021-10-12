@@ -3,6 +3,10 @@ package tests
 import (
 	"context"
 	"fmt"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
@@ -10,9 +14,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/stretchr/testify/require"
-	"strings"
-	"testing"
-	"time"
 )
 
 func testUsers(t *testing.T, s store.Users) {
@@ -142,6 +143,15 @@ func testUsers(t *testing.T, s store.Users) {
 		fetched, err := store.LookupUserByUsername(ctx, s, user.Username)
 		req.NoError(err)
 		req.Equal(user.ID, fetched.ID)
+	})
+
+	t.Run("create and update deleted with existing email", func(t *testing.T) {
+		req, user := truncAndCreate(t)
+		deletedUser := makeNew("copy")
+		deletedUser.DeletedAt = now()
+		deletedUser.Email = user.Email
+		req.NoError(store.CreateUser(ctx, s, deletedUser))
+		req.NoError(store.UpdateUser(ctx, s, deletedUser))
 	})
 
 	t.Run("search", func(t *testing.T) {

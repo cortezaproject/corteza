@@ -220,5 +220,13 @@ func (s *Store) checkActionlogConstraints(ctx context.Context, res *actionlog.Ac
 		return nil
 	}
 
+	var checks = make([]func() error, 0)
+
+	for _, check := range checks {
+		if err := check(); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

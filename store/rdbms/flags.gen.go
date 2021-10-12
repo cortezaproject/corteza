@@ -383,38 +383,62 @@ func (s *Store) checkFlagConstraints(ctx context.Context, res *types.Flag) error
 		return nil
 	}
 
-	{
+	var checks = make([]func() error, 0)
+
+	checks = append(checks, func() error {
+		// Skip lookup by KindResourceIDName if Flag does not match filters
+
 		ex, err := s.LookupFlagByKindResourceIDName(ctx, res.Kind, res.ResourceID, res.Name)
 		if err == nil && ex != nil && ex.Kind != res.Kind && ex.ResourceID != res.ResourceID && ex.OwnedBy != res.OwnedBy && ex.Name != res.Name {
 			return store.ErrNotUnique.Stack(1)
 		} else if !errors.IsNotFound(err) {
 			return err
 		}
-	}
 
-	{
+		return nil
+	})
+
+	checks = append(checks, func() error {
+		// Skip lookup by KindResourceID if Flag does not match filters
+
 		ex, err := s.LookupFlagByKindResourceID(ctx, res.Kind, res.ResourceID)
 		if err == nil && ex != nil && ex.Kind != res.Kind && ex.ResourceID != res.ResourceID && ex.OwnedBy != res.OwnedBy && ex.Name != res.Name {
 			return store.ErrNotUnique.Stack(1)
 		} else if !errors.IsNotFound(err) {
 			return err
 		}
-	}
 
-	{
+		return nil
+	})
+
+	checks = append(checks, func() error {
+		// Skip lookup by KindResourceIDOwnedBy if Flag does not match filters
+
 		ex, err := s.LookupFlagByKindResourceIDOwnedBy(ctx, res.Kind, res.ResourceID, res.OwnedBy)
 		if err == nil && ex != nil && ex.Kind != res.Kind && ex.ResourceID != res.ResourceID && ex.OwnedBy != res.OwnedBy && ex.Name != res.Name {
 			return store.ErrNotUnique.Stack(1)
 		} else if !errors.IsNotFound(err) {
 			return err
 		}
-	}
 
-	{
+		return nil
+	})
+
+	checks = append(checks, func() error {
+		// Skip lookup by KindResourceIDOwnedByName if Flag does not match filters
+
 		ex, err := s.LookupFlagByKindResourceIDOwnedByName(ctx, res.Kind, res.ResourceID, res.OwnedBy, res.Name)
 		if err == nil && ex != nil && ex.Kind != res.Kind && ex.ResourceID != res.ResourceID && ex.OwnedBy != res.OwnedBy && ex.Name != res.Name {
 			return store.ErrNotUnique.Stack(1)
 		} else if !errors.IsNotFound(err) {
+			return err
+		}
+
+		return nil
+	})
+
+	for _, check := range checks {
+		if err := check(); err != nil {
 			return err
 		}
 	}
