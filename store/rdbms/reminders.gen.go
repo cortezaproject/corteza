@@ -613,5 +613,13 @@ func (s *Store) checkReminderConstraints(ctx context.Context, res *types.Reminde
 		return nil
 	}
 
+	var checks = make([]func() error, 0)
+
+	for _, check := range checks {
+		if err := check(); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

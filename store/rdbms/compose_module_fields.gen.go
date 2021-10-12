@@ -364,11 +364,26 @@ func (s *Store) checkComposeModuleFieldConstraints(ctx context.Context, res *typ
 		return nil
 	}
 
-	{
+	var checks = make([]func() error, 0)
+
+	checks = append(checks, func() error {
+		// Skip lookup by ModuleIDName if ComposeModuleField does not match filters
+		if res.DeletedAt != nil {
+			return nil
+		}
+
 		ex, err := s.LookupComposeModuleFieldByModuleIDName(ctx, res.ModuleID, res.Name)
 		if err == nil && ex != nil && ex.ID != res.ID {
 			return store.ErrNotUnique.Stack(1)
 		} else if !errors.IsNotFound(err) {
+			return err
+		}
+
+		return nil
+	})
+
+	for _, check := range checks {
+		if err := check(); err != nil {
 			return err
 		}
 	}

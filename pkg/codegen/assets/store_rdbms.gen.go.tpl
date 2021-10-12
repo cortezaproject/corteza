@@ -729,19 +729,35 @@ func (s *Store) check{{ export $.Types.Singular }}Constraints(ctx context.Contex
 		return nil
 	}
 
-
+	var checks = make([]func () error, 0)
 {{- range $.Lookups }}
 	{{ if .UniqueConstraintCheck }}
-	{
+	checks = append(checks, func () error {
+		// Skip lookup by {{ .Suffix }} if {{ export $.Types.Singular }} does not match filters
+		{{- range $field, $value := .Filter }}
+		if res.{{ $field }} != {{ $value }} {
+			return nil
+		}
+		{{ end }}
+
 		ex, err := s.{{ toggleExport .Export "Lookup" $.Types.Singular "By" .Suffix }}(ctx{{ template "extraArgsCall" $ }}{{- range .RDBMSColumns }}, res.{{ .Field }} {{- end }})
 		if err == nil && ex != nil {{- range $.RDBMS.Columns.PrimaryKeyFields }} && ex.{{ .Field }} != res.{{ .Field }} {{ end }} {
 			return store.ErrNotUnique.Stack(1)
 		} else if !errors.IsNotFound(err) {
 			return err
 		}
-	}
+
+		return nil
+	})
 	{{ end }}
 {{ end }}
+
+	for _, check := range checks {
+		if err := check(); err != nil {
+			return err
+		}
+	}
+
 
 	return nil
 }

@@ -337,5 +337,13 @@ func (s *Store) checkSettingConstraints(ctx context.Context, res *types.SettingV
 		return nil
 	}
 
+	var checks = make([]func() error, 0)
+
+	for _, check := range checks {
+		if err := check(); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

@@ -333,11 +333,23 @@ func (s *Store) checkLabelConstraints(ctx context.Context, res *types.Label) err
 		return nil
 	}
 
-	{
+	var checks = make([]func() error, 0)
+
+	checks = append(checks, func() error {
+		// Skip lookup by KindResourceIDName if Label does not match filters
+
 		ex, err := s.LookupLabelByKindResourceIDName(ctx, res.Kind, res.ResourceID, res.Name)
 		if err == nil && ex != nil && ex.Kind != res.Kind && ex.ResourceID != res.ResourceID && ex.Name != res.Name {
 			return store.ErrNotUnique.Stack(1)
 		} else if !errors.IsNotFound(err) {
+			return err
+		}
+
+		return nil
+	})
+
+	for _, check := range checks {
+		if err := check(); err != nil {
 			return err
 		}
 	}

@@ -631,5 +631,13 @@ func (s *Store) checkComposePageConstraints(ctx context.Context, res *types.Page
 		return nil
 	}
 
+	var checks = make([]func() error, 0)
+
+	for _, check := range checks {
+		if err := check(); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

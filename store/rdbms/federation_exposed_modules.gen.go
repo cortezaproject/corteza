@@ -595,5 +595,13 @@ func (s *Store) checkFederationExposedModuleConstraints(ctx context.Context, res
 		return nil
 	}
 
+	var checks = make([]func() error, 0)
+
+	for _, check := range checks {
+		if err := check(); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

@@ -325,11 +325,23 @@ func (s *Store) checkAuthConfirmedClientConstraints(ctx context.Context, res *ty
 		return nil
 	}
 
-	{
+	var checks = make([]func() error, 0)
+
+	checks = append(checks, func() error {
+		// Skip lookup by UserIDClientID if AuthConfirmedClient does not match filters
+
 		ex, err := s.LookupAuthConfirmedClientByUserIDClientID(ctx, res.UserID, res.ClientID)
 		if err == nil && ex != nil && ex.UserID != res.UserID && ex.ClientID != res.ClientID {
 			return store.ErrNotUnique.Stack(1)
 		} else if !errors.IsNotFound(err) {
+			return err
+		}
+
+		return nil
+	})
+
+	for _, check := range checks {
+		if err := check(); err != nil {
 			return err
 		}
 	}
