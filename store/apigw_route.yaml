@@ -8,17 +8,17 @@ types:
 
 fields:
   - { field: ID,        sortable: false }
-  - { field: Endpoint }
-  - { field: Method }
+  - { field: Endpoint,  sortable: true }
+  - { field: Method,    sortable: true }
   - { field: Enabled }
   - { field: Group }
   - { field: Meta, type: "types.ApigwRouteMeta" }
   - { field: CreatedBy }
   - { field: UpdatedBy }
   - { field: DeletedBy }
-  - { field: CreatedAt }
-  - { field: UpdatedAt }
-  - { field: DeletedAt }
+  - { field: CreatedAt, sortable: true }
+  - { field: UpdatedAt, sortable: true }
+  - { field: DeletedAt, sortable: true }
 
 lookups:
   - fields: [ ID ]

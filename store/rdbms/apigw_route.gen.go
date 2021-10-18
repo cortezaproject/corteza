@@ -482,7 +482,12 @@ func (Store) apigwRouteColumns(aa ...string) []string {
 // With optional string arg, all columns are returned aliased
 func (Store) sortableApigwRouteColumns() map[string]string {
 	return map[string]string{
-		"id": "id",
+		"id": "id", "endpoint": "endpoint", "method": "method", "created_at": "created_at",
+		"createdat":  "created_at",
+		"updated_at": "updated_at",
+		"updatedat":  "updated_at",
+		"deleted_at": "deleted_at",
+		"deletedat":  "deleted_at",
 	}
 }
 
@@ -533,6 +538,20 @@ func (s Store) collectApigwRouteCursorValues(res *types.ApigwRoute, cc ...*filte
 					cursor.Set(c.Column, res.ID, c.Descending)
 
 					pkId = true
+				case "endpoint":
+					cursor.Set(c.Column, res.Endpoint, c.Descending)
+
+				case "method":
+					cursor.Set(c.Column, res.Method, c.Descending)
+
+				case "created_at":
+					cursor.Set(c.Column, res.CreatedAt, c.Descending)
+
+				case "updated_at":
+					cursor.Set(c.Column, res.UpdatedAt, c.Descending)
+
+				case "deleted_at":
+					cursor.Set(c.Column, res.DeletedAt, c.Descending)
 
 				}
 			}
