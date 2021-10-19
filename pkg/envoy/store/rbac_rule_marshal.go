@@ -9,7 +9,6 @@ import (
 	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
 	federationTypes "github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
-	"github.com/cortezaproject/corteza-server/pkg/messagebus"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
@@ -357,9 +356,9 @@ func (n *rbacRule) makeRBACResource(pl *payload) (string, error) {
 		}
 		return systemTypes.ReportRbacResource(p1ID), nil
 
-	case messagebus.QueueResourceType:
+	case systemTypes.QueueResourceType:
 		// @todo add support for importing rbac rules for specific queue
-		return messagebus.QueueRbacResource(p1ID), nil
+		return systemTypes.QueueRbacResource(p1ID), nil
 
 	case federationTypes.NodeResourceType:
 		return federationTypes.NodeRbacResource(p1ID), nil

@@ -96,8 +96,8 @@ func (s Schema) Tables() []*Table {
 		s.AutomationTriggers(),
 		s.AutomationSessions(),
 		//s.AutomationState(),
+		s.MessagebusQueue(),
 		s.MessagebusQueuemessage(),
-		s.MessagebusQueueSettings(),
 		s.ApigwRoute(),
 		s.ApigwFilter(),
 	}
@@ -702,7 +702,7 @@ func (Schema) MessagebusQueuemessage() *Table {
 	)
 }
 
-func (Schema) MessagebusQueueSettings() *Table {
+func (Schema) MessagebusQueue() *Table {
 	return TableDef("queue_settings",
 		ID,
 		ColumnDef("consumer", ColumnTypeText, ColumnTypeLength(handleLength)),

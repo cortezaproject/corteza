@@ -180,7 +180,7 @@ func queueMessageTypedValueSelector(res *types.QueueMessage, k string) (TypedVal
 	case "Queue":
 		return NewString(res.Queue)
 	case "Payload":
-		return NewString(res.Payload)
+		return NewBytes(res.Payload)
 	}
 
 	return nil, fmt.Errorf("unknown field '%s'", k)
@@ -198,7 +198,7 @@ func assignToQueueMessage(res *types.QueueMessage, k string, val interface{}) er
 		res.Queue = aux
 		return nil
 	case "Payload":
-		aux, err := CastToString(val)
+		aux, err := CastToBytes(val)
 		if err != nil {
 			return err
 		}

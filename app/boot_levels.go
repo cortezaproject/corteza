@@ -35,6 +35,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 	"github.com/cortezaproject/corteza-server/pkg/websocket"
 	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/system/service"
 	sysService "github.com/cortezaproject/corteza-server/system/service"
 	sysEvent "github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -358,11 +359,6 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return err
 	}
 
-	if app.Opt.Messagebus.Enabled {
-		// initialize all the queue handlers
-		messagebus.Service().Init(ctx, app.Store)
-	}
-
 	// Initializes system services
 	//
 	// Note: this is a legacy approach, all services from all 3 apps
@@ -378,6 +374,11 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 
 	if err != nil {
 		return
+	}
+
+	if app.Opt.Messagebus.Enabled {
+		// initialize all the queue handlers
+		messagebus.Service().Init(ctx, service.DefaultQueue)
 	}
 
 	// Initializes automation services
@@ -517,7 +518,7 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 		messagebus.Service().Listen(ctx)
 
 		// watch for queue changes and restart on update
-		messagebus.Service().Watch(ctx, app.Store)
+		messagebus.Service().Watch(ctx, service.DefaultQueue)
 	}
 
 	app.lvl = bootLevelActivated

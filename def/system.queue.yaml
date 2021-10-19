@@ -1,5 +1,3 @@
-(skip): true
-
 rbac:
   operations:
     read:

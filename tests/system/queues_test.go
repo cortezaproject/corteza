@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/pkg/messagebus"
+	mtypes "github.com/cortezaproject/corteza-server/pkg/messagebus/types"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -16,49 +16,49 @@ import (
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 )
 
-func (h helper) clearMessagebusQueueSettings() {
-	h.noError(store.TruncateMessagebusQueueSettings(context.Background(), service.DefaultStore))
+func (h helper) clearMessagebusQueues() {
+	h.noError(store.TruncateQueues(context.Background(), service.DefaultStore))
 }
 
-func (h helper) repoMakeMessagebusQueueSetting(consumer ...string) *messagebus.QueueSettings {
-	res := &messagebus.QueueSettings{
+func (h helper) repoMakeMessagebusQueue(consumer ...string) *types.Queue {
+	res := &types.Queue{
 		ID:        id.Next(),
 		Queue:     rs(),
 		CreatedAt: time.Now(),
 	}
 
 	if len(consumer) == 0 {
-		res.Consumer = string(messagebus.ConsumerCorteza)
+		res.Consumer = string(mtypes.ConsumerCorteza)
 	} else {
 		res.Consumer = consumer[0]
 	}
 
-	h.a.NoError(store.CreateMessagebusQueueSetting(context.Background(), service.DefaultStore, res))
+	h.a.NoError(store.CreateQueue(context.Background(), service.DefaultStore, res))
 
 	return res
 }
 
-func (h helper) lookupByID(id uint64) *messagebus.QueueSettings {
-	res, err := store.LookupMessagebusQueueSettingByID(context.Background(), service.DefaultStore, id)
+func (h helper) lookupByID(id uint64) *types.Queue {
+	res, err := store.LookupQueueByID(context.Background(), service.DefaultStore, id)
 	h.noError(err)
 	return res
 }
 
-func (h helper) lookupByQueue(queue string) *messagebus.QueueSettings {
-	res, err := store.LookupMessagebusQueueSettingByQueue(context.Background(), service.DefaultStore, queue)
+func (h helper) lookupByQueue(queue string) *types.Queue {
+	res, err := store.LookupQueueByQueue(context.Background(), service.DefaultStore, queue)
 	h.noError(err)
 	return res
 }
 
 func TestQueueList(t *testing.T) {
 	h := newHelper(t)
-	h.clearMessagebusQueueSettings()
+	h.clearMessagebusQueues()
 
-	h.repoMakeMessagebusQueueSetting()
-	h.repoMakeMessagebusQueueSetting()
+	h.repoMakeMessagebusQueue()
+	h.repoMakeMessagebusQueue()
 
 	helpers.AllowMe(h, types.ComponentRbacResource(), "queues.search")
-	helpers.AllowMe(h, messagebus.QueueRbacResource(0), "read")
+	helpers.AllowMe(h, types.QueueRbacResource(0), "read")
 
 	h.apiInit().
 		Get("/queues/").
@@ -71,12 +71,12 @@ func TestQueueList(t *testing.T) {
 
 func TestQueueRead(t *testing.T) {
 	h := newHelper(t)
-	h.clearMessagebusQueueSettings()
+	h.clearMessagebusQueues()
 
-	res := h.repoMakeMessagebusQueueSetting()
+	res := h.repoMakeMessagebusQueue()
 
 	helpers.AllowMe(h, types.ComponentRbacResource(), "queues.search")
-	helpers.AllowMe(h, messagebus.QueueRbacResource(0), "read")
+	helpers.AllowMe(h, types.QueueRbacResource(0), "read")
 
 	h.apiInit().
 		Get(fmt.Sprintf("/queues/%d", res.ID)).
@@ -88,11 +88,11 @@ func TestQueueRead(t *testing.T) {
 
 func TestQueueCreate(t *testing.T) {
 	h := newHelper(t)
-	h.clearMessagebusQueueSettings()
+	h.clearMessagebusQueues()
 
 	helpers.AllowMe(h, types.ComponentRbacResource(), "queue.create")
 
-	consumer := string(messagebus.ConsumerStore)
+	consumer := string(mtypes.ConsumerStore)
 	queue := rs()
 
 	h.apiInit().
@@ -111,13 +111,13 @@ func TestQueueCreate(t *testing.T) {
 
 func TestQueueUpdate(t *testing.T) {
 	h := newHelper(t)
-	h.clearMessagebusQueueSettings()
+	h.clearMessagebusQueues()
 
-	consumer := string(messagebus.ConsumerRedis)
-	res := h.repoMakeMessagebusQueueSetting()
+	consumer := string(mtypes.ConsumerRedis)
+	res := h.repoMakeMessagebusQueue()
 	res.Consumer = consumer
 
-	helpers.AllowMe(h, messagebus.QueueRbacResource(0), "update")
+	helpers.AllowMe(h, types.QueueRbacResource(0), "update")
 
 	h.apiInit().
 		Put(fmt.Sprintf("/queues/%d", res.ID)).
@@ -135,11 +135,11 @@ func TestQueueUpdate(t *testing.T) {
 
 func TestQueueDelete(t *testing.T) {
 	h := newHelper(t)
-	h.clearMessagebusQueueSettings()
+	h.clearMessagebusQueues()
 
-	res := h.repoMakeMessagebusQueueSetting()
+	res := h.repoMakeMessagebusQueue()
 
-	helpers.AllowMe(h, messagebus.QueueRbacResource(0), "delete")
+	helpers.AllowMe(h, types.QueueRbacResource(0), "delete")
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/queues/%d", res.ID)).
@@ -156,11 +156,11 @@ func TestQueueDelete(t *testing.T) {
 
 func TestQueueUnDelete(t *testing.T) {
 	h := newHelper(t)
-	h.clearMessagebusQueueSettings()
+	h.clearMessagebusQueues()
 
-	res := h.repoMakeMessagebusQueueSetting()
+	res := h.repoMakeMessagebusQueue()
 
-	helpers.AllowMe(h, messagebus.QueueRbacResource(0), "delete")
+	helpers.AllowMe(h, types.QueueRbacResource(0), "delete")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/queues/%d/undelete", res.ID)).

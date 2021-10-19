@@ -1,10 +1,5 @@
 import:
-  - github.com/cortezaproject/corteza-server/pkg/messagebus
-
-types:
-  package: messagebus
-  type: messagebus.QueueMessage
-  filterType: messagebus.QueueMessageFilter
+  - github.com/cortezaproject/corteza-server/system/types
 
 fields:
   - { field: ID,        sortable: false }
