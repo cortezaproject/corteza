@@ -16,6 +16,11 @@ RUN make release-clean release
 # deploy stage
 FROM ubuntu:20.04
 
+RUN apt-get -y update \
+ && apt-get -y install \
+    ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+
 ENV STORAGE_PATH "/data"
 ENV CORREDOR_ADDR "corredor:80"
 ENV HTTP_ADDR "0.0.0.0:80"
