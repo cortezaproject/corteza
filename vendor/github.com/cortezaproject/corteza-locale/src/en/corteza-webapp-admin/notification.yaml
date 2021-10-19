@@ -140,14 +140,8 @@ gateway:
     fetch:
       error: Filter fetch failed
     update:
-      success: Filter updated
-      error: Filter update failed
-    create:
-      success: Filter created
-      error: Filter create failed
-    delete:
-      success: Filter deleted
-      error: Filter delete failed
+      success: Filters updated
+      error: Filters update failed
   delete:
     success: Route deleted
     error: Route delete failed

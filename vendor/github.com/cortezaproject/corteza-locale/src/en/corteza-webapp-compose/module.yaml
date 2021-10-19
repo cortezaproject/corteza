@@ -76,6 +76,7 @@ general:
   placeholder:
     handle: handle (a - z, 0 - 9, underscore, dash)
     sample: Sample
+  invalid-handle-characters: Should be al least 2 characters long and start with a letter. Can contains only letters, numbers, dash, underscore and dot
 import: Module import
 navigation:
   module: Modules
