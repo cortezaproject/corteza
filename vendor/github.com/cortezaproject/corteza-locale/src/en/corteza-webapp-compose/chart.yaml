@@ -1,5 +1,7 @@
 colorLabel: '{{count}} colors'
-colorScheme: Color scheme
+colorScheme:
+  label: Color scheme
+  placeholder: Pick a color scheme
 configure:
   reportsLabel: Reports
 general:
@@ -9,6 +11,7 @@ general:
   value: Value
   placeholder:
     handle: handle (a - z, 0 - 9, underscore, dash)
+  invalid-handle-characters: Should be al least 2 characters long and start with a letter. Can contains only letters, numbers, dash, underscore and dot
 edit:
   dimension:
     calculateLabelCount: Calculate how many labels can be shown
@@ -85,7 +88,9 @@ edit:
     relative: Show relative value
     relativePrecision: 'Precision:'
     title: Metrics
-  modulePick: Pick a module
+  module:
+    label: Module
+    placeholder: Pick a module
   title: Chart builder
   unconfiguredReport: Unconfigured report
   yAxis:
@@ -101,7 +106,8 @@ edit:
     minPlaceholder: Minimum value
 import: 'Import chart(s):'
 newLabel: 'Create a new chart:'
-newPlaceholder: Chart name
+name: Chart name *
+handle: Handle *
 notification:
   loadFailed: Could not load chart
   saveFailed: Could not save this chart

@@ -207,7 +207,13 @@ recordList:
     allow: Allow records export
     csv: CSV Export
     dateRange: 'Select date range:'
+    query:
+      label: Search query
+      placeholder: Search...
     filter:
+      label: Filter records
+      placeholder: field1 = 1 AND field2 = 232
+      footnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {{0}}, {{1}} and {{2}} are evaluated (when available)
       createdAt: Record created
       custom: Custom
       lastMonth: Last month
@@ -220,7 +226,6 @@ recordList:
     includeQuery: Filter by search query
     json: JSON Export
     limitations: 'CSV export limitation: only the first value in the multi value fields will be exported'
-    query: Search query
     rangeBy: 'Set range by:'
     recordCount: '{{count}} records ready for export'
     selectFields: 'Select fields you want to export:'

@@ -54,7 +54,12 @@ editor:
 
     updatedAt: 'Updated at'
     createdAt: 'Created at'
-    validEndpoint: 'Invalid endpoint format'
+
+    tooltip: 'Endpoint must begin with a slash "/" and can not contain any special characters except for the unserscore "_" and hyphen "-"'
+    validation:
+      slash: 'Endpoint must begin with a slash "/"'
+      minLength: 'Endpoint must contain at least one character'
+      invalidCharacters: 'Endpoint contains invalid characters'
   filters:
     title: 'Filter list'
     enabled: 'Enabled'
