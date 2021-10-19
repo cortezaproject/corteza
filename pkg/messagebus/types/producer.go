@@ -1,4 +1,4 @@
-package messagebus
+package types
 
 import (
 	"context"
@@ -10,7 +10,6 @@ type (
 		Reader
 		Subscriber
 		Poller
-		Storer
 	}
 
 	Subscriber interface {
@@ -22,6 +21,6 @@ type (
 	}
 
 	Reader interface {
-		Read(ctx context.Context) (QueueMessageSet, error)
+		Read(ctx context.Context) ([]QueueMessage, error)
 	}
 )

@@ -26,3 +26,6 @@ types:
   Report:
     labelResourceType: report
   ResourceTranslation: {}
+  Queue: {}
+  QueueMessage:
+    noIdField: true

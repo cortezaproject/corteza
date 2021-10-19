@@ -10,6 +10,7 @@ package types
 // - system.apigw-route.yaml
 // - system.application.yaml
 // - system.auth-client.yaml
+// - system.queue.yaml
 // - system.report.yaml
 // - system.role.yaml
 // - system.template.yaml
@@ -32,6 +33,7 @@ const (
 	ApigwRouteResourceType  = "corteza::system:apigw-route"
 	ApplicationResourceType = "corteza::system:application"
 	AuthClientResourceType  = "corteza::system:auth-client"
+	QueueResourceType       = "corteza::system:queue"
 	ReportResourceType      = "corteza::system:report"
 	RoleResourceType        = "corteza::system:role"
 	TemplateResourceType    = "corteza::system:template"
@@ -129,6 +131,37 @@ func AuthClientRbacResource(id uint64) string {
 
 // @todo template
 func AuthClientRbacResourceTpl() string {
+	return "%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for Queue by calling QueueRbacResource fn
+//
+// RBAC resource is in the corteza::system:queue/... format
+//
+// This function is auto-generated
+func (r Queue) RbacResource() string {
+	return QueueRbacResource(r.ID)
+}
+
+// QueueRbacResource returns string representation of RBAC resource for Queue
+//
+// RBAC resource is in the corteza::system:queue/... format
+//
+// This function is auto-generated
+func QueueRbacResource(id uint64) string {
+	cpts := []interface{}{QueueResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(QueueRbacResourceTpl(), cpts...)
+
+}
+
+// @todo template
+func QueueRbacResourceTpl() string {
 	return "%s/%s"
 }
 

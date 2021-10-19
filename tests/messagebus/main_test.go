@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/app"
-	"github.com/cortezaproject/corteza-server/automation/service"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
@@ -18,6 +17,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/store/sqlite3"
+	"github.com/cortezaproject/corteza-server/system/service"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	"github.com/go-chi/chi"
@@ -112,17 +112,17 @@ func (h helper) noError(err error) {
 	h.a.NoError(err)
 }
 
-func (h helper) prepareQueues(ctx context.Context, qs ...*messagebus.QueueSettings) {
-	h.noError(testApp.Store.TruncateMessagebusQueueSettings(ctx))
-	h.noError(testApp.Store.CreateMessagebusQueueSetting(ctx, qs...))
+func (h helper) prepareQueues(ctx context.Context, qs ...*sysTypes.Queue) {
+	h.noError(testApp.Store.TruncateQueues(ctx))
+	h.noError(testApp.Store.CreateQueue(ctx, qs...))
 }
 
-func (h helper) prepareMessages(ctx context.Context, qs ...*messagebus.QueueSettings) {
-	h.noError(testApp.Store.TruncateMessagebusQueueMessages(ctx))
+func (h helper) prepareMessages(ctx context.Context, qs ...*sysTypes.Queue) {
+	h.noError(testApp.Store.TruncateQueueMessages(ctx))
 }
 
-func (h helper) checkPersistedMessages(ctx context.Context, f messagebus.QueueMessageFilter) messagebus.QueueMessageSet {
-	s, f, err := service.DefaultStore.SearchMessagebusQueueMessages(ctx, f)
+func (h helper) checkPersistedMessages(ctx context.Context, f sysTypes.QueueMessageFilter) sysTypes.QueueMessageSet {
+	s, f, err := service.DefaultStore.SearchQueueMessages(ctx, f)
 	h.noError(err)
 
 	return s
@@ -130,7 +130,7 @@ func (h helper) checkPersistedMessages(ctx context.Context, f messagebus.QueueMe
 
 func (h helper) initMessagebus(ctx context.Context) {
 	// re-init
-	messagebus.Service().Init(ctx, service.DefaultStore)
+	messagebus.Service().Init(ctx, service.DefaultQueue)
 
 	// set messagebus watchers again
 	messagebus.Service().Listen(ctx)

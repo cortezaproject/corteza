@@ -171,6 +171,55 @@ func (t Boolean) Compare(to TypedValue) (int, error) {
 	return compareToBoolean(t, to)
 }
 
+// Bytes is an expression type, wrapper for []byte type
+type Bytes struct {
+	value []byte
+	mux   sync.RWMutex
+}
+
+// NewBytes creates new instance of Bytes expression type
+func NewBytes(val interface{}) (*Bytes, error) {
+	if c, err := CastToBytes(val); err != nil {
+		return nil, fmt.Errorf("unable to create Bytes: %w", err)
+	} else {
+		return &Bytes{value: c}, nil
+	}
+}
+
+// Get return underlying value on Bytes
+func (t *Bytes) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// GetValue returns underlying value on Bytes
+func (t *Bytes) GetValue() []byte {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// Type return type name
+func (Bytes) Type() string { return "Bytes" }
+
+// Cast converts value to []byte
+func (Bytes) Cast(val interface{}) (TypedValue, error) {
+	return NewBytes(val)
+}
+
+// Assign new value to Bytes
+//
+// value is first passed through CastToBytes
+func (t *Bytes) Assign(val interface{}) error {
+	if c, err := CastToBytes(val); err != nil {
+		return err
+	} else {
+		t.value = c
+		return nil
+	}
+}
+
 // DateTime is an expression type, wrapper for *time.Time type
 type DateTime struct {
 	value *time.Time

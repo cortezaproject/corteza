@@ -1,4 +1,4 @@
-package messagebus
+package types
 
 import (
 	"database/sql/driver"
@@ -12,16 +12,11 @@ import (
 )
 
 type (
-	QueueSettingsMeta struct {
-		PollDelay      *time.Duration `json:"poll_delay"`
-		DispatchEvents bool           `json:"dispatch_events"`
-	}
-
-	QueueSettings struct {
-		ID       uint64            `json:"queueID,string"`
-		Consumer string            `json:"consumer"`
-		Queue    string            `json:"queue"`
-		Meta     QueueSettingsMeta `json:"meta"`
+	Queue struct {
+		ID       uint64    `json:"queueID,string"`
+		Consumer string    `json:"consumer"`
+		Queue    string    `json:"queue"`
+		Meta     QueueMeta `json:"meta"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		CreatedBy uint64     `json:"createdBy,string" `
@@ -31,9 +26,9 @@ type (
 		DeletedBy uint64     `json:"deletedBy,string,omitempty" `
 	}
 
-	QueueSettingsFilter struct {
-		Queue    string       `json:"queue"`
-		Consumer ConsumerType `json:"handler"`
+	QueueFilter struct {
+		Queue    string `json:"queue"`
+		Consumer string `json:"handler"`
 
 		Deleted filter.State `json:"deleted"`
 
@@ -41,15 +36,37 @@ type (
 		// modify the resource and return false if store should not return it
 		//
 		// Store then loads additional resources to satisfy the paging parameters
-		Check func(*QueueSettings) (bool, error) `json:"-"`
+		Check func(*Queue) (bool, error) `json:"-"`
 
 		filter.Sorting
 		filter.Paging
 	}
+
+	QueueMessage struct {
+		ID        uint64     `json:"messageID"`
+		Queue     string     `json:"queue"`
+		Payload   []byte     `json:"payload"`
+		Created   *time.Time `json:"created"`
+		Processed *time.Time `json:"processed"`
+	}
+
+	QueueMessageFilter struct {
+		Queue string
+
+		Processed filter.State `json:"processed"`
+
+		filter.Sorting
+		filter.Paging
+	}
+
+	QueueMeta struct {
+		PollDelay      *time.Duration `json:"poll_delay"`
+		DispatchEvents bool           `json:"dispatch_events"`
+	}
 )
 
-func (h *QueueSettingsMeta) UnmarshalJSON(s []byte) error {
-	type Alias QueueSettingsMeta
+func (h *QueueMeta) UnmarshalJSON(s []byte) error {
+	type Alias QueueMeta
 
 	aux := &struct {
 		PollDelay string `json:"poll_delay"`
@@ -72,11 +89,11 @@ func (h *QueueSettingsMeta) UnmarshalJSON(s []byte) error {
 	return nil
 }
 
-func (m QueueSettingsMeta) Value() (driver.Value, error) {
+func (m QueueMeta) Value() (driver.Value, error) {
 	return json.Marshal(m)
 }
 
-func (m QueueSettingsMeta) MarshalJSON() ([]byte, error) {
+func (m QueueMeta) MarshalJSON() ([]byte, error) {
 
 	pollDelay := ""
 	if m.PollDelay != nil {
@@ -92,25 +109,25 @@ func (m QueueSettingsMeta) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (m *QueueSettingsMeta) Scan(value interface{}) error {
+func (m *QueueMeta) Scan(value interface{}) error {
 	switch value.(type) {
 	case nil:
-		*m = QueueSettingsMeta{}
+		*m = QueueMeta{}
 	case []uint8:
 		if err := json.Unmarshal(value.([]byte), m); err != nil {
-			return errors.New(fmt.Sprintf("cannot scan '%v' into QueueSettingsMeta", value))
+			return errors.New(fmt.Sprintf("cannot scan '%v' into QueueMeta", value))
 		}
 	}
 
 	return nil
 }
 
-func (s *QueueSettings) CanDispatch() bool {
+func (s *Queue) CanDispatch() bool {
 	return s.Meta.DispatchEvents
 }
 
-func ParseQueueSettingsMeta(ss []string) (p QueueSettingsMeta, err error) {
-	p = QueueSettingsMeta{}
+func ParseQueueMeta(ss []string) (p QueueMeta, err error) {
+	p = QueueMeta{}
 
 	if len(ss) == 0 {
 		return

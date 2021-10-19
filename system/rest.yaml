@@ -1571,7 +1571,7 @@ endpoints:
   entrypoint: queues
   path: "/queues"
   imports:
-    - github.com/cortezaproject/corteza-server/pkg/messagebus
+    - github.com/cortezaproject/corteza-server/system/types
   apis:
   - name: list
     method: GET
@@ -1579,45 +1579,45 @@ endpoints:
     path: "/"
     parameters:
       get:
-      - { type: string, name: query,      required: false, title: Search query }
-      - { type: uint,   name: limit,      required: false, title: Limit }
-      - { type: string, name: pageCursor, required: false, title: Page cursor }
-      - { type: string, name: sort,       required: false, title: Sort items }
-      - { type: uint,   name: deleted,    required: false, title: Exclude (0, default), include (1) or return only (2) deleted queues }
+      - { type: string,            name: query,      required: false, title: Search query }
+      - { type: uint,              name: limit,      required: false, title: Limit }
+      - { type: string,            name: pageCursor, required: false, title: Page cursor }
+      - { type: string,            name: sort,       required: false, title: Sort items }
+      - { type: uint,              name: deleted,    required: false, title: Exclude (0, default), include (1) or return only (2) deleted queues }
   - name: create
     method: POST
     title: Create messaging queue
     path: ""
     parameters:
       post:
-      - { type: string,                         name: queue,    required: true,  title: Name of queue }
-      - { type: string,                         name: consumer, required: true,  title: Queue consumer }
-      - { type: "messagebus.QueueSettingsMeta", name: meta,     required: false, title: Meta data for queue, parser: "messagebus.ParseQueueSettingsMeta" }
+      - { type: string,            name: queue,      required: true,  title: Name of queue }
+      - { type: string,            name: consumer,   required: true,  title: Queue consumer }
+      - { type: "types.QueueMeta", name: meta,       required: false, title: Meta data for queue, parser: "types.ParseQueueMeta" }
   - name: read
     method: GET
     title: Messaging queue details
     path: "/{queueID}"
     parameters:
       path:
-      - { type: uint64, name: queueID, required: true, title: Queue ID }
+      - { type: uint64,             name: queueID,   required: true, title: Queue ID }
   - name: update
     method: PUT
     title: Update queue details
     path: "/{queueID}"
     parameters:
       path:
-      - { type: uint64, name: queueID, required: true, title: Queue ID }
+      - { type: uint64,             name: queueID,   required: true, title: Queue ID }
       post:
-      - { type: string, name: queue,            required: true,  title: Name of queue  }
-      - { type: string, name: consumer,         required: true,  title: Queue consumer }
-      - { type: "messagebus.QueueSettingsMeta", required: false, title: Meta data for queue, parser: "messagebus.ParseQueueSettingsMeta", name: meta }
+      - { type: string,             name: queue,     required: true,  title: Name of queue  }
+      - { type: string,             name: consumer,  required: true,  title: Queue consumer }
+      - { type: "types.QueueMeta",  name: meta,      required: false, title: Meta data for queue, parser: "types.ParseQueueMeta" }
   - name: delete
     method: DELETE
     title: Messaging queue delete
     path: "/{queueID}"
     parameters:
       path:
-      - { type: uint64, name: queueID, required: true, title: Queue ID }
+      - { type: uint64,             name: queueID,   required: true,  title: Queue ID }
   - name: undelete
     method: POST
     title: Messaging queue undelete

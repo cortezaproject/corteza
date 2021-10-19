@@ -371,6 +371,17 @@ func CastToString(val interface{}) (out string, err error) {
 	}
 }
 
+func CastToBytes(val interface{}) (out []byte, err error) {
+	s, err := CastToString(val)
+
+	if err != nil {
+		return
+	}
+
+	out = []byte(s)
+	return
+}
+
 func CastToStringSlice(val interface{}) (out []string, err error) {
 	return cast.ToStringSliceE(UntypedValue(val))
 }

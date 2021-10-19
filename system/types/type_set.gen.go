@@ -55,6 +55,16 @@ type (
 	// This type is auto-generated.
 	CredentialsSet []*Credentials
 
+	// QueueSet slice of Queue
+	//
+	// This type is auto-generated.
+	QueueSet []*Queue
+
+	// QueueMessageSet slice of QueueMessage
+	//
+	// This type is auto-generated.
+	QueueMessageSet []*QueueMessage
+
 	// ReminderSet slice of Reminder
 	//
 	// This type is auto-generated.
@@ -543,6 +553,92 @@ func (set CredentialsSet) IDs() (IDs []uint64) {
 
 	for i := range set {
 		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(Queue) err
+//
+// This function is auto-generated.
+func (set QueueSet) Walk(w func(*Queue) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(Queue) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set QueueSet) Filter(f func(*Queue) (bool, error)) (out QueueSet, err error) {
+	var ok bool
+	out = QueueSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set QueueSet) FindByID(ID uint64) *Queue {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set QueueSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(QueueMessage) err
+//
+// This function is auto-generated.
+func (set QueueMessageSet) Walk(w func(*QueueMessage) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(QueueMessage) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set QueueMessageSet) Filter(f func(*QueueMessage) (bool, error)) (out QueueMessageSet, err error) {
+	var ok bool
+	out = QueueMessageSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
 	}
 
 	return

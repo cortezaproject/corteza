@@ -8,6 +8,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/messagebus"
+	mtypes "github.com/cortezaproject/corteza-server/pkg/messagebus/types"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -20,27 +21,27 @@ type (
 )
 
 var (
-	testQueueDispatched = &messagebus.QueueSettings{
+	testQueueDispatched = &types.Queue{
 		ID:       1,
 		Queue:    "test",
-		Consumer: string(messagebus.ConsumerStore),
-		Meta: messagebus.QueueSettingsMeta{
+		Consumer: string(mtypes.ConsumerStore),
+		Meta: types.QueueMeta{
 			PollDelay:      makeDelay(time.Second),
 			DispatchEvents: true,
 		},
 	}
 
-	testQueueEb = &messagebus.QueueSettings{
+	testQueueEb = &types.Queue{
 		ID:       1,
 		Queue:    "test_eb",
-		Consumer: string(messagebus.ConsumerEventbus),
-		Meta: messagebus.QueueSettingsMeta{
+		Consumer: string(mtypes.ConsumerEventbus),
+		Meta: types.QueueMeta{
 			PollDelay:      makeDelay(time.Second),
 			DispatchEvents: true,
 		},
 	}
 
-	testQueueMessage = messagebus.QueueMessage{
+	testQueueMessage = types.QueueMessage{
 		ID:      1,
 		Queue:   "test",
 		Payload: []byte(`{"foo": "bar"}`),
@@ -76,7 +77,7 @@ func TestMessageWrite(t *testing.T) {
 				return
 
 			default:
-				set := h.checkPersistedMessages(ctx, messagebus.QueueMessageFilter{})
+				set := h.checkPersistedMessages(ctx, types.QueueMessageFilter{})
 
 				// success, will eventually get persisted
 				if len(set) >= 2 {

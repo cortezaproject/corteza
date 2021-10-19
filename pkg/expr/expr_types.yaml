@@ -44,6 +44,11 @@ types:
     default: '""'
     comparable: true
 
+  Bytes:
+    as: '[]byte'
+    default: 'nil'
+    comparable: false
+
   Handle:
     as: 'string'
     default: '""'

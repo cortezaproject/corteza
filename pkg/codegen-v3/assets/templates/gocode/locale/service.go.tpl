@@ -9,8 +9,6 @@ import (
 {{- range .Imports }}
     {{ . }}
 {{- end }}
-
-	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
