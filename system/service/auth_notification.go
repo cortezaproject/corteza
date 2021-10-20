@@ -137,11 +137,24 @@ func (svc authNotification) send(ctx context.Context, name, sendTo string, paylo
 	}
 	ntf.SetBody("text/html", string(tmp))
 
+	err = mail.Send(ntf)
+
+	if err != nil {
+		svc.log(ctx).Error(
+			"auth notification send failed",
+			zap.String("name", name),
+			zap.String("email", sendTo),
+			zap.Error(err),
+		)
+
+		return fmt.Errorf("could not send email, contact your administrator")
+	}
+
 	svc.log(ctx).Debug(
-		"sending auth notification",
+		"auth notification sent",
 		zap.String("name", name),
 		zap.String("email", sendTo),
 	)
 
-	return mail.Send(ntf)
+	return nil
 }

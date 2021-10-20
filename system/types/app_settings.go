@@ -34,6 +34,10 @@ type (
 			}
 		} `json:"-"`
 
+		SMTP struct {
+			Servers []SmtpServers `json:"-" kv:"servers,final"`
+		} `json:"-" kv:"smtp"`
+
 		Auth struct {
 			Internal struct {
 				// Is internal authentication (username + password) enabled
@@ -205,6 +209,16 @@ type (
 		RedirectUrl string `json:"-" kv:"redirect"`
 		IssuerUrl   string `json:"-" kv:"issuer"`
 		Weight      int    `json:"-"`
+	}
+
+	SmtpServers struct {
+		Host          string `json:"host"`
+		Port          int    `json:"port,string"`
+		User          string `json:"user"`
+		Pass          string `json:"pass"`
+		From          string `json:"from"`
+		TlsInsecure   bool   `json:"tlsInsecure"`
+		TlsServerName string `json:"tlsServerName"`
 	}
 )
 
