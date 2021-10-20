@@ -221,7 +221,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 }
 
 func Activate(ctx context.Context) (err error) {
-	// Run initial update of current settings with super-user credentials
+	// Run initial update of current settings
 	err = DefaultSettings.UpdateCurrent(ctx)
 	if err != nil {
 		return

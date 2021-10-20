@@ -2,10 +2,11 @@ package mail
 
 import (
 	"fmt"
-	gomail "gopkg.in/mail.v2"
 	"regexp"
 	"strconv"
 	"strings"
+
+	gomail "gopkg.in/mail.v2"
 )
 
 type (
@@ -36,7 +37,7 @@ func init() {
 // Host variable can contain "<host>:<port>" that will override port value
 func SetupDialer(host string, port int, user, pass, from string, ff ...applyCfg) {
 	if host == "" {
-		defaultDialerError = fmt.Errorf("No hostname provided for SMTP")
+		defaultDialerError = fmt.Errorf("no hostname provided for SMTP")
 		return
 	}
 
@@ -47,7 +48,7 @@ func SetupDialer(host string, port int, user, pass, from string, ff ...applyCfg)
 	}
 
 	if port == 0 {
-		defaultDialerError = fmt.Errorf("No port provided for SMTP")
+		defaultDialerError = fmt.Errorf("no port provided for SMTP")
 		return
 	}
 
