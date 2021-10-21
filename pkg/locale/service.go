@@ -438,6 +438,8 @@ func (svc *service) t(tag language.Tag, ns, key string, rr ...string) string {
 		}
 	}
 
+	// In case of a missing language, translation
+	// key is returned
 	return key
 }
 
@@ -449,7 +451,10 @@ func (svc *service) tResource(tag language.Tag, ns, key string, rr ...string) st
 		}
 	}
 
-	return key
+	// In case of a missing language, only empty string is
+	// returned (in contrast to static translations
+	// where a string with key is returned)
+	return ""
 }
 
 func hasTag(t language.Tag, tt []language.Tag) bool {
