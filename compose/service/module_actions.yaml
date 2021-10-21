@@ -71,8 +71,11 @@ errors:
 
   - error: nameNotUnique
     message: "name not unique"
-    log: "used duplicate username ({{module.name}}) for module"
+    log: "used duplicate name ({{module.name}}) for module"
     severity: warning
+
+  - error: fieldNameReserved
+    message: "field name is reserved for system fields"
 
   - error: staleData
     message: "stale data"

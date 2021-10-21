@@ -266,6 +266,57 @@ func TestModuleFieldsUpdate(t *testing.T) {
 	h.a.Equal(m.Fields[1].Kind, "DateTime")
 }
 
+func TestModuleUpdateWithReservedFieldName(t *testing.T) {
+	h := newHelper(t)
+	h.clearModules()
+
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
+	ns := h.makeNamespace("some-namespace")
+	m := h.makeModule(ns, "some-module", &types.ModuleField{ID: id.Next(), Kind: "String", Name: "ownedBy"})
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "update")
+
+	f := m.Fields[0]
+	fjs := fmt.Sprintf(`{ "name": "%s", "fields": [{ "fieldID": "%d", "name": "ownedBy", "kind": "Number" }]}`, m.Name, f.ID)
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
+		Header("Accept", "application/json").
+		JSON(fjs).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	f = m.Fields[0]
+	fjs = fmt.Sprintf(`{ "name": "%s", "fields": [{ "fieldID": "%d", "name": "updatedBy", "kind": "Number" }]}`, m.Name, f.ID)
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
+		Header("Accept", "application/json").
+		JSON(fjs).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("module.errors.fieldNameReserved")).
+		End()
+}
+
+func TestModuleCreateWithReservedFieldName(t *testing.T) {
+	h := newHelper(t)
+	h.clearModules()
+
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
+	ns := h.makeNamespace("some-namespace")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "update")
+
+	fjs := fmt.Sprintf(`{ "name": "foo", "fields": [{ "name": "ownedBy", "kind": "Number" }]}`)
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/module/", ns.ID)).
+		Header("Accept", "application/json").
+		JSON(fjs).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("module.errors.fieldNameReserved")).
+		End()
+}
+
 func TestModuleFieldsUpdate_defaults(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()

@@ -628,12 +628,46 @@ func ModuleErrNameNotUnique(mm ...*moduleActionProps) *errors.Error {
 		errors.Meta("resource", "compose:module"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(moduleLogMetaKey{}, "used duplicate username ({{module.name}}) for module"),
+		errors.Meta(moduleLogMetaKey{}, "used duplicate name ({{module.name}}) for module"),
 		errors.Meta(modulePropsMetaKey{}, p),
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
 		errors.Meta(locale.ErrorMetaKey{}, "module.errors.nameNotUnique"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ModuleErrFieldNameReserved returns "compose:module.fieldNameReserved" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func ModuleErrFieldNameReserved(mm ...*moduleActionProps) *errors.Error {
+	var p = &moduleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("field name is reserved for system fields", nil),
+
+		errors.Meta("type", "fieldNameReserved"),
+		errors.Meta("resource", "compose:module"),
+
+		errors.Meta(modulePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "module.errors.fieldNameReserved"),
 
 		errors.StackSkip(1),
 	)
