@@ -17,6 +17,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
+	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -61,6 +62,19 @@ const (
 	moduleChanged       moduleChanges = 1
 	moduleLabelsChanged moduleChanges = 2
 	moduleFieldsChanged moduleChanges = 4
+)
+
+var (
+	systemFields = slice.ToStringBoolMap([]string{
+		"recordID",
+		"ownedBy",
+		"createdBy",
+		"createdAt",
+		"updatedBy",
+		"updatedAt",
+		"deletedBy",
+		"deletedAt",
+	})
 )
 
 func Module() *module {
@@ -215,6 +229,16 @@ func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module,
 	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if !handle.IsValid(new.Handle) {
 			return ModuleErrInvalidHandle()
+		}
+
+		for _, f := range new.Fields {
+			if systemFields[f.Name] {
+				return ModuleErrFieldNameReserved()
+			}
+		}
+
+		if err != nil {
+
 		}
 
 		if ns, err = loadNamespace(ctx, s, new.NamespaceID); err != nil {
@@ -572,6 +596,13 @@ func updateModuleFields(ctx context.Context, s store.Storer, new, old *types.Mod
 		}
 		if f.NamespaceID == 0 {
 			f.NamespaceID = new.NamespaceID
+		}
+
+		if systemFields[f.Name] && !old.Fields.HasName(f.Name) {
+			// make sure we're backward compatible, or better:
+			// if, by some weird case, someone managed to get invalid field name into
+			// the store, we'll turn a blind eye.
+			return ModuleErrFieldNameReserved()
 		}
 
 		if f.ModuleID != new.ID {
