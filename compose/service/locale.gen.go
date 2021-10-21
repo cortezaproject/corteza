@@ -72,6 +72,10 @@ func (svc resourceTranslationsManager) Upsert(ctx context.Context, rr locale.Res
 		}
 	}
 
+	for _, r := range rr {
+		r.Msg = locale.SanitizeMessage(r.Msg)
+	}
+
 	// @todo validation
 
 	me := intAuth.GetIdentityFromContext(ctx)

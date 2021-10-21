@@ -47,7 +47,7 @@ var (
 
 // ResourceTranslation returns string representation of Locale resource for {{ .Resource }} by calling {{ .Resource }}ResourceTranslation fn
 //
-// Locale resource is in the {{ .Locale.ResourceType }}/... format
+// Locale resource is in "{{ .Locale.ResourceType }}/..." format
 //
 // This function is auto-generated
 func (r {{ .Resource }}) ResourceTranslation() string {
@@ -112,7 +112,7 @@ func (r *{{ .Resource }}) EncodeTranslations() (out locale.ResourceTranslationSe
 		out = append(out, &locale.ResourceTranslation{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKey{{ $Resource }}{{coalesce (export .Name) (export .Path) }}.Path,
-			Msg:      r.{{ .Field }},
+			Msg:      locale.SanitizeMessage(r.{{ .Field }}),
 		})
 	}
 

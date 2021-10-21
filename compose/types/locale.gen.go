@@ -120,7 +120,7 @@ var (
 
 // ResourceTranslation returns string representation of Locale resource for ModuleField by calling ModuleFieldResourceTranslation fn
 //
-// Locale resource is in the compose:module-field/... format
+// Locale resource is in "compose:module-field/..." format
 //
 // This function is auto-generated
 func (r ModuleField) ResourceTranslation() string {
@@ -162,7 +162,7 @@ func (r *ModuleField) EncodeTranslations() (out locale.ResourceTranslationSet) {
 		out = append(out, &locale.ResourceTranslation{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKeyModuleFieldLabel.Path,
-			Msg:      r.Label,
+			Msg:      locale.SanitizeMessage(r.Label),
 		})
 	}
 
@@ -177,7 +177,7 @@ func (r *ModuleField) EncodeTranslations() (out locale.ResourceTranslationSet) {
 
 // ResourceTranslation returns string representation of Locale resource for Module by calling ModuleResourceTranslation fn
 //
-// Locale resource is in the compose:module/... format
+// Locale resource is in "compose:module/..." format
 //
 // This function is auto-generated
 func (r Module) ResourceTranslation() string {
@@ -216,7 +216,7 @@ func (r *Module) EncodeTranslations() (out locale.ResourceTranslationSet) {
 		out = append(out, &locale.ResourceTranslation{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKeyModuleName.Path,
-			Msg:      r.Name,
+			Msg:      locale.SanitizeMessage(r.Name),
 		})
 	}
 
@@ -227,7 +227,7 @@ func (r *Module) EncodeTranslations() (out locale.ResourceTranslationSet) {
 
 // ResourceTranslation returns string representation of Locale resource for Namespace by calling NamespaceResourceTranslation fn
 //
-// Locale resource is in the compose:namespace/... format
+// Locale resource is in "compose:namespace/..." format
 //
 // This function is auto-generated
 func (r Namespace) ResourceTranslation() string {
@@ -270,21 +270,21 @@ func (r *Namespace) EncodeTranslations() (out locale.ResourceTranslationSet) {
 		out = append(out, &locale.ResourceTranslation{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKeyNamespaceName.Path,
-			Msg:      r.Name,
+			Msg:      locale.SanitizeMessage(r.Name),
 		})
 	}
 	if r.Meta.Subtitle != "" {
 		out = append(out, &locale.ResourceTranslation{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKeyNamespaceSubtitle.Path,
-			Msg:      r.Meta.Subtitle,
+			Msg:      locale.SanitizeMessage(r.Meta.Subtitle),
 		})
 	}
 	if r.Meta.Description != "" {
 		out = append(out, &locale.ResourceTranslation{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKeyNamespaceDescription.Path,
-			Msg:      r.Meta.Description,
+			Msg:      locale.SanitizeMessage(r.Meta.Description),
 		})
 	}
 
@@ -293,7 +293,7 @@ func (r *Namespace) EncodeTranslations() (out locale.ResourceTranslationSet) {
 
 // ResourceTranslation returns string representation of Locale resource for Page by calling PageResourceTranslation fn
 //
-// Locale resource is in the compose:page/... format
+// Locale resource is in "compose:page/..." format
 //
 // This function is auto-generated
 func (r Page) ResourceTranslation() string {
@@ -335,14 +335,14 @@ func (r *Page) EncodeTranslations() (out locale.ResourceTranslationSet) {
 		out = append(out, &locale.ResourceTranslation{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKeyPageTitle.Path,
-			Msg:      r.Title,
+			Msg:      locale.SanitizeMessage(r.Title),
 		})
 	}
 	if r.Description != "" {
 		out = append(out, &locale.ResourceTranslation{
 			Resource: r.ResourceTranslation(),
 			Key:      LocaleKeyPageDescription.Path,
-			Msg:      r.Description,
+			Msg:      locale.SanitizeMessage(r.Description),
 		})
 	}
 
