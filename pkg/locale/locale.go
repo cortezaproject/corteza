@@ -74,10 +74,14 @@ func (l *Language) t(ns, key string, rr ...string) string {
 		return strings.NewReplacer(rr...).Replace(msg)
 	}
 
+	// If translation is not found, try with language
+	// this language extends
 	if l.extends != nil {
 		return l.extends.t(ns, key, rr...)
 	}
 
+	// In case of untranslated string / missing translations,
+	// translation key is returned
 	return key
 }
 
@@ -95,10 +99,12 @@ func (l *Language) tResource(ns, key string, rr ...string) string {
 		return strings.NewReplacer(rr...).Replace(rt.Msg)
 	}
 
-	if l.extends != nil {
-		return l.extends.tResource(ns, key, rr...)
-	}
+	// When translating resources we do not utilize
+	// language extensions like with static translations
 
+	// In case of untranslated string / missing translations,
+	// only empty string is returned (in contrast to static translations
+	// where a string with key is returned
 	return ""
 }
 
