@@ -138,17 +138,17 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 			}
 
 			// generate the create password link of user
-			if !flagNoPassword && len(password) == 0 && flagMakePasswordLink {
+			if flagNoPassword && len(password) == 0 && flagMakePasswordLink {
 				url, err = authSvc.GeneratePasswordCreateToken(ctx, user.Email)
 				if err != nil {
 					cli.HandleError(err)
 				}
 			}
 
-			cmd.Printf("User created [%d].\n", user.ID)
+			fmt.Fprintf(cmd.OutOrStdout(), "User created [%d].\n", user.ID)
+
 			if flagMakePasswordLink && len(url) > 0 {
-				cmd.Println("Set password by clicking here:")
-				cmd.Printf("%s\n", url)
+				fmt.Fprintf(cmd.OutOrStdout(), "Set password by clicking here:\n%s\n", url)
 			}
 
 			if len(mm) > 0 {
