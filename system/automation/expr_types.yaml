@@ -2,6 +2,7 @@ package: automation
 imports:
   - github.com/cortezaproject/corteza-server/system/types
   - github.com/cortezaproject/corteza-server/pkg/rbac
+  - github.com/cortezaproject/corteza-server/pkg/actionlog
 
 types:
   Template:
@@ -73,3 +74,6 @@ types:
 
   RbacResource:
     as: 'rbac.Resource'
+
+  Action:
+    as: '*actionlog.Action'

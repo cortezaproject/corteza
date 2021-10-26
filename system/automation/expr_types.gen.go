@@ -11,6 +11,7 @@ package automation
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	. "github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -19,6 +20,55 @@ import (
 
 var _ = context.Background
 var _ = fmt.Errorf
+
+// Action is an expression type, wrapper for *actionlog.Action type
+type Action struct {
+	value *actionlog.Action
+	mux   sync.RWMutex
+}
+
+// NewAction creates new instance of Action expression type
+func NewAction(val interface{}) (*Action, error) {
+	if c, err := CastToAction(val); err != nil {
+		return nil, fmt.Errorf("unable to create Action: %w", err)
+	} else {
+		return &Action{value: c}, nil
+	}
+}
+
+// Get return underlying value on Action
+func (t *Action) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// GetValue returns underlying value on Action
+func (t *Action) GetValue() *actionlog.Action {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// Type return type name
+func (Action) Type() string { return "Action" }
+
+// Cast converts value to *actionlog.Action
+func (Action) Cast(val interface{}) (TypedValue, error) {
+	return NewAction(val)
+}
+
+// Assign new value to Action
+//
+// value is first passed through CastToAction
+func (t *Action) Assign(val interface{}) error {
+	if c, err := CastToAction(val); err != nil {
+		return err
+	} else {
+		t.value = c
+		return nil
+	}
+}
 
 // DocumentType is an expression type, wrapper for types.DocumentType type
 type DocumentType struct {

@@ -6,8 +6,13 @@ func MakeDebugPolicy() policyMatcher {
 
 func MakeProductionPolicy() policyMatcher {
 	return NewPolicyAll(
-		// Ignore debug actions
-		NewPolicyNegate(NewPolicyMatchSeverity(Debug, Info)),
+		NewPolicyAny(
+			// Match all actions from automation
+			NewPolicyMatchRequestOrigin(RequestOrigin_Automation),
+
+			// Ignore debug actions
+			NewPolicyNegate(NewPolicyMatchSeverity(Debug, Info)),
+		),
 	)
 }
 

@@ -1,0 +1,59 @@
+workflows:
+  logger:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 10
+
+    steps:
+      - stepID: 10
+        kind: function
+        ref: actionlogRecord
+        arguments:
+          - { target: action,      type: String, value: "action" }
+          - { target: resource,    type: String, value: "resource" }
+          - { target: error,       type: String, value: "error" }
+          - { target: severity,    type: String, value: "severity" }
+          - { target: description, type: String, value: "description" }
+      - stepID: 11
+        kind: function
+        ref: actionlogRecord
+        arguments:
+          - { target: action,      type: String, value: "action" }
+          - { target: resource,    type: String, value: "resource" }
+          - { target: error,       type: String, value: "error" }
+          - { target: severity,    type: String, value: "severity" }
+          - { target: description, type: String, value: "description" }
+      - stepID: 12
+        kind: function
+        ref: actionlogRecord
+        arguments:
+          - { target: action,      type: String, value: "action" }
+          - { target: resource,    type: String, value: "find-me" }
+          - { target: error,       type: String, value: "error" }
+          - { target: severity,    type: String, value: "severity" }
+          - { target: description, type: String, value: "description" }
+      - stepID: 13
+        kind: function
+        ref: actionlogRecord
+        arguments:
+          - { target: action,      type: String, value: "action" }
+          - { target: resource,    type: String, value: "find-me" }
+          - { target: error,       type: String, value: "error" }
+          - { target: severity,    type: String, value: "severity" }
+          - { target: description, type: String, value: "description" }
+
+      - stepID: 20
+        kind: function
+        ref: actionlogSearch
+        arguments:
+          - { target: resource, type: String, value: "find-me" }
+        results:
+          - { target: actions, expr: "actions" }
+
+    paths:
+      - { parentID: 10, childID: 11 }
+      - { parentID: 11, childID: 12 }
+      - { parentID: 12, childID: 13 }
+      - { parentID: 13, childID: 20 }

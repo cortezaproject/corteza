@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -194,6 +195,15 @@ func CastToRbacResource(val interface{}) (out rbac.Resource, err error) {
 		return val, nil
 	case RbacResource:
 		return val.value, nil
+	default:
+		return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
+	}
+}
+
+func CastToAction(val interface{}) (out *actionlog.Action, err error) {
+	switch val := expr.UntypedValue(val).(type) {
+	case *actionlog.Action:
+		return val, nil
 	default:
 		return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
 	}
