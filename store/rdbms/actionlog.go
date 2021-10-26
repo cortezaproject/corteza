@@ -2,6 +2,7 @@ package rdbms
 
 import (
 	"encoding/json"
+
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/store"
@@ -27,6 +28,10 @@ func (s Store) convertActionlogFilter(f actionlog.Filter) (query squirrel.Select
 
 	if len(f.ActorID) > 0 {
 		query = query.Where(squirrel.Eq{"actor_id": f.ActorID})
+	}
+
+	if f.Origin != "" {
+		query = query.Where(squirrel.Eq{"origin": f.Origin})
 	}
 
 	if f.Resource != "" {

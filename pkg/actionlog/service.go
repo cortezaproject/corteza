@@ -2,10 +2,10 @@ package actionlog
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/id"
 	"strings"
 	"time"
 
+	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/go-chi/chi/middleware"
 	"go.uber.org/zap"
 
@@ -65,7 +65,6 @@ func (svc service) Record(ctx context.Context, a *Action) {
 	a.ID = id.Next()
 
 	svc.log(a)
-
 	if !svc.policy.Match(a) {
 		// policy does not allow us to record this
 		return
