@@ -10,16 +10,18 @@ package options
 
 type (
 	ActionLogOpt struct {
-		Enabled bool `env:"ACTIONLOG_ENABLED"`
-		Debug   bool `env:"ACTIONLOG_DEBUG"`
+		Enabled                 bool `env:"ACTIONLOG_ENABLED"`
+		Debug                   bool `env:"ACTIONLOG_DEBUG"`
+		EnableWorkflowFunctions bool `env:"ACTIONLOG_ENABLE_WORKFLOW_FUNCTIONS"`
 	}
 )
 
 // ActionLog initializes and returns a ActionLogOpt with default values
 func ActionLog() (o *ActionLogOpt) {
 	o = &ActionLogOpt{
-		Enabled: true,
-		Debug:   false,
+		Enabled:                 true,
+		Debug:                   false,
+		EnableWorkflowFunctions: false,
 	}
 
 	fill(o)

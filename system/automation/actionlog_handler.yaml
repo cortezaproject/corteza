@@ -1,0 +1,71 @@
+imports:
+  - time
+  - github.com/cortezaproject/corteza-server/pkg/actionlog
+
+snippets:
+  filterParams: &filterParams
+    fromTimestamp:     { types: [ { wf: DateTime } ] }
+    toTimestamp:       { types: [ { wf: DateTime } ] }
+    beforeActionID:    { types: [ { wf: ID } ] }
+    actorID:           { types: [ { wf: ID } ] }
+    resource:          { types: [ { wf: String } ] }
+    action:            { types: [ { wf: String } ] }
+    limit:             { types: [ { wf: UnsignedInteger } ] }
+
+  rvAction: &rvAction
+    wf: Action
+
+labels: &labels
+  actionlog:  "step,workflow"
+
+functions:
+  search:
+    meta:
+      short: Action log search
+    params: *filterParams
+    labels:
+      <<: *labels
+    results:
+      actions:
+        <<: *rvAction
+        isArray: true
+
+  each:
+    kind: iterator
+    meta:
+      short: Action log
+    params: *filterParams
+    labels:
+      <<: *labels
+    results:
+      action: *rvAction
+
+  record:
+    meta:
+      short: Record action into action log
+    labels:
+      <<: *labels
+    params:
+      action:
+        types: [ { wf: String } ]
+      resource:
+        types: [ { wf: String } ]
+      error:
+        types: [ { wf: String } ]
+      severity:
+        types: [ { wf: String } ]
+        meta:
+          visual:
+            options:
+              - "emergency"
+              - "alert"
+              - "critical"
+              - "err"
+              - "warning"
+              - "notice"
+              - "info"
+              - "debug"
+      description:
+        types: [ { wf: String } ]
+      meta:
+        types: [ { wf: Vars, go: '*expr.Vars' } ]

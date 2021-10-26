@@ -13,3 +13,9 @@ props:
     default: false
     docs:
       description: Enable debug action logging.
+
+  - name: enableWorkflowFunctions
+    type: bool
+    default: false
+    docs:
+      description: Enable workflow function for recording searching actionlogs

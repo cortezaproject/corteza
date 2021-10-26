@@ -69,9 +69,11 @@ type (
 	}
 )
 
+// Severity constants
+//
+// not using log/syslog LOG_* constants as they are only
+// available outside windows env.
 const (
-	// Not using log/syslog LOG_* constants as they are only
-	// available outside windows env.
 	Emergency Severity = iota
 	Alert
 	Critical
@@ -202,4 +204,25 @@ func (s Severity) String() string {
 	}
 
 	return ""
+}
+
+func NewSeverity(s string) Severity {
+	switch s {
+	case "emergency":
+		return Emergency
+	case "alert":
+		return Alert
+	case "critical":
+		return Critical
+	case "err":
+		return Error
+	case "warning":
+		return Warning
+	case "notice":
+		return Notice
+	case "info":
+		return Info
+	}
+
+	return Debug
 }
