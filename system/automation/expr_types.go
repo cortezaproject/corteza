@@ -154,6 +154,16 @@ func CastToRenderOptions(val interface{}) (out map[string]string, err error) {
 	}
 }
 
+func (t *RenderOptions) AssignFieldValue(key string, val expr.TypedValue) error {
+	if t.value == nil {
+		t.value = make(map[string]string)
+	}
+
+	str, err := cast.ToStringE(expr.UntypedValue(val))
+	t.value[key] = str
+	return err
+}
+
 func CastToQueueMessage(val interface{}) (out *types.QueueMessage, err error) {
 	switch val := val.(type) {
 	case expr.Iterator:
