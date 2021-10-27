@@ -74,7 +74,7 @@
 		</div>
 		{{ end }}
 	</form>
-	<div class="row text-center">
+	<div class="row text-center pb-3">
         {{ if .settings.PasswordResetEnabled }}
         <div class="col cols-6">
             <a href="{{ links.RequestPasswordReset }}">{{ tr "login.template.links.request-password-reset" }}</a>
@@ -87,8 +87,9 @@
         {{ end }}
 	</div>
 	{{ end }}
+
 	{{ if .settings.ExternalEnabled }}
-	<div class="p-2">
+	<div class="pb-3">
 	{{ range .providers }}
 		<a href="{{ links.External }}/{{ .Handle }}" class="btn btn-light btn-block btn-lg mb-2 mt-1 text-dark">
 			<i class="bi bi-{{ .Icon }} mr-1"></i>
