@@ -761,7 +761,7 @@ func (a templatesRenderArgs) GetLookup() (bool, uint64, string, *types.Template)
 	return a.hasLookup, a.lookupID, a.lookupHandle, a.lookupRes
 }
 
-// Render function Render template
+// Render function Template render
 //
 // expects implementation of render function:
 // func (h templatesHandler) render(ctx context.Context, args *templatesRenderArgs) (results *templatesRenderResults, err error) {
@@ -773,7 +773,7 @@ func (h templatesHandler) Render() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"render": "step", "templates": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Render template",
+			Short: "Template render",
 		},
 
 		Parameters: []*atypes.Param{
