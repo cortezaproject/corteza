@@ -1,8 +1,11 @@
 package expr
 
 import (
+	"bytes"
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"io"
 	"reflect"
 	"regexp"
 	"strings"
@@ -39,6 +42,7 @@ func StringFunctions() []gval.Language {
 		gval.Function("camelize", camelize),
 		gval.Function("snakify", snakify),
 		gval.Function("match", match),
+		gval.Function("base64encode", base64encode),
 	}
 }
 
@@ -199,6 +203,37 @@ func camelize(s string) string {
 
 func snakify(s string) string {
 	return strings.ToLower(strings.Replace(strings.Title(s), " ", "_", -1))
+}
+
+func base64encode(s interface{}) string {
+	var (
+		buf bytes.Buffer
+	)
+
+	switch s.(type) {
+	case string:
+		s = []byte(s.(string))
+	case []byte:
+		s = s.([]byte)
+	case io.Reader:
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(s.(io.Reader))
+		s = buf.Bytes()
+	default:
+		return ""
+	}
+
+	encoder := base64.NewEncoder(base64.StdEncoding, &buf)
+
+	if _, err := encoder.Write(s.([]byte)); err != nil {
+		return ""
+	}
+
+	if err := encoder.Close(); err != nil {
+		return ""
+	}
+
+	return buf.String()
 }
 
 func match(s string, regex interface{}) (b bool, err error) {

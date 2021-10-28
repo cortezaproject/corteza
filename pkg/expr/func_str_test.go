@@ -196,3 +196,10 @@ func Example_match() {
 	// output:
 	// true
 }
+
+func Example_base64encode() {
+	eval(`base64encode("foo bar baz_test")`, nil)
+
+	// output:
+	// Zm9vIGJhciBiYXpfdGVzdA==
+}
