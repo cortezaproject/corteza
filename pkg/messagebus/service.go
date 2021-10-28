@@ -150,6 +150,8 @@ func (mb *messageBus) Push(q string, p []byte) {
 		return
 	}
 
+	mb.logger.Debug("pushing message", zap.String("queue", q))
+
 	mb.in <- types.Message{P: p, Q: q}
 }
 

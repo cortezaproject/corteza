@@ -11,6 +11,7 @@ import (
 type (
 	Dispatcher interface {
 		Dispatch(ctx context.Context, ev eventbus.Event)
+		WaitFor(ctx context.Context, ev eventbus.Event) (err error)
 	}
 
 	EventbusConsumer struct {
