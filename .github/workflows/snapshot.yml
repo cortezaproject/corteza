@@ -34,7 +34,6 @@ jobs:
     needs:
       - test
     env:
-      GOFLAGS: -mod=readonly
       BUILD_OS: linux
       BUILD_ARCH: amd64
       BUILD_VERSION_SHA: ${GITHUB_SHA}
