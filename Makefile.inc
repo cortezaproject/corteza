@@ -1,6 +1,6 @@
 GO         = go
 GOGET      = $(GO) get -u
-GOFLAGS   ?= -mod=vendor
+GOFLAGS   ?= -trimpath
 GOPATH    ?= $(HOME)/go
 
 CGO_ENABLED = 1
