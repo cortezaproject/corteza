@@ -58,7 +58,7 @@ require (
 	github.com/lib/pq v1.1.0
 	github.com/markbates/goth v1.67.1
 	github.com/mattn/go-sqlite3 v1.14.0
-	github.com/microcosm-cc/bluemonday v1.0.10
+	github.com/microcosm-cc/bluemonday v1.0.16
 	github.com/minio/minio-go/v6 v6.0.39
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/ngrok/sqlmw v0.0.0-20200129213757-d5c93a81bec6
