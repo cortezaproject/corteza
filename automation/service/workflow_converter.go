@@ -68,6 +68,7 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 		return true, nil
 	})
 
+	counter := 0
 	makeGraphSteps = func(steps types.WorkflowStepSet) {
 		pendingSteps := types.WorkflowStepSet{}
 		for i, step := range steps {
@@ -99,7 +100,7 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 			}
 
 			wfii = append(wfii, stepIssues.SetCulprit("step", IDs[step.ID])...)
-			if i+1 == len(steps) && len(wfii) > 0 {
+			if i+1 == len(steps) && len(wfii) > 0 && counter == len(pendingSteps) {
 				var culprit = make(map[string]int)
 				if step != nil {
 					culprit = map[string]int{"step": IDs[step.ID]}
@@ -108,7 +109,8 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 			}
 		}
 
-		if len(pendingSteps) > 0 && g.Len() < len(ss) {
+		if len(pendingSteps) > 0 && counter < len(pendingSteps) && g.Len() < len(ss) {
+			counter++
 			makeGraphSteps(pendingSteps)
 		}
 		return

@@ -81,3 +81,111 @@ workflows:
 
     paths:
       - { parentID: 1, childID: 2 }
+
+  case5:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: expressions
+        arguments: [ { target: foo, type: Integer, expr: "40" } ]
+      - stepID: 2
+        kind: expressions
+        arguments: [ { target: bar, type: Integer, expr: "50" } ]
+      - stepID: 3
+        kind: gateway
+        ref: incl
+      - stepID: 4
+        kind: gateway
+        ref: excl
+      - stepID: 5
+        kind: gateway
+        ref: incl
+      - stepID: 6
+        kind: gateway
+        ref: excl
+      - stepID: 7
+        kind: gateway
+        ref: incl
+      - stepID: 8
+        kind: function
+        ref: logInfo
+
+    paths:
+      - { parentID: 1, childID: 2 }
+
+  case6:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: gateway
+        ref: excl
+      - stepID: 2
+        kind: gateway
+        ref: excl
+      - stepID: 3
+        kind: function
+
+    paths:
+      - { parentID: 1, childID: 2 }
+      - { parentID: 1, childID: 3 }
+
+  case7:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: expressions
+        arguments: [ { target: foo, type: Integer, expr: "40" } ]
+      - stepID: 2
+        kind: expressions
+        arguments: [ { target: bar, type: Integer, expr: "50" } ]
+      - stepID: 3
+        kind: error-handler
+
+    paths:
+      - { parentID: 1, childID: 2 }
+
+  case8:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: expressions
+        arguments: [ { target: foo, type: Integer, expr: "40" } ]
+      - stepID: 2
+        kind: expressions
+        arguments: [ { target: bar, type: Integer, expr: "50" } ]
+      - stepID: 3
+        kind: gateway
+        ref: incl
+      - stepID: 4
+        kind: error-handler
+      - stepID: 5
+        kind: gateway
+        ref: excl
+      - stepID: 6
+        kind: error-handler
+      - stepID: 7
+        kind: function
+        ref: logInfo
+
+    paths:
+      - { parentID: 1, childID: 2 }
