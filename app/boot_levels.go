@@ -54,8 +54,6 @@ const (
 
 // Setup configures all required services
 func (app *CortezaApp) Setup() (err error) {
-	app.Log = logger.Default()
-
 	if app.lvl >= bootLevelSetup {
 		// Are basics already set-up?
 		return nil
@@ -145,6 +143,10 @@ func (app *CortezaApp) Setup() (err error) {
 		if !app.Opt.Messagebus.Enabled {
 			app.Log.Debug("messagebus disabled (MESSAGEBUS_ENABLED=false)")
 		}
+	}
+
+	if err = app.plugins.Setup(app.Log.Named("plugin")); err != nil {
+		return
 	}
 
 	app.lvl = bootLevelSetup
@@ -413,6 +415,14 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 
 	// Initializing seeder
 	_ = seeder.Seeder(ctx, app.Store, seeder.Faker())
+
+	if err = app.plugins.Initialize(ctx, app.Log); err != nil {
+		return
+	}
+
+	if err = app.plugins.RegisterAutomation(autService.Registry()); err != nil {
+		return
+	}
 
 	app.lvl = bootLevelServicesInitialized
 	return

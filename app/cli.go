@@ -8,9 +8,11 @@ import (
 	federationCommands "github.com/cortezaproject/corteza-server/federation/commands"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/cortezaproject/corteza-server/pkg/plugin"
 	fakerCommands "github.com/cortezaproject/corteza-server/pkg/seeder/commands"
 	"github.com/cortezaproject/corteza-server/store"
 	systemCommands "github.com/cortezaproject/corteza-server/system/commands"
+	"go.uber.org/zap"
 )
 
 // InitCLI function initializes basic Corteza subsystems
@@ -24,7 +26,7 @@ func (app *CortezaApp) InitCLI() {
 		envs []string
 	)
 
-	app.Command = cli.RootCommand(func() error {
+	app.Command = cli.RootCommand(func() (err error) {
 		if len(envs) == 0 {
 			envs = []string{"."}
 		}
@@ -37,7 +39,23 @@ func (app *CortezaApp) InitCLI() {
 		// loaded at this point!
 		app.Opt = options.Init()
 
-		return nil
+		app.Log.Warn("loading plugins", zap.String("paths", app.Opt.Plugins.Paths))
+		if app.Opt.Plugins.Enabled {
+			var paths []string
+			paths, err = plugin.Resolve(app.Opt.Plugins.Paths)
+
+			app.Log.Warn("loading plugins", zap.Strings("paths", paths))
+
+			app.plugins, err = plugin.Load(paths...)
+			if err != nil {
+				return err
+			}
+		} else {
+			// Empty set of plugins
+			app.plugins = plugin.Set{}
+		}
+
+		return err
 	})
 
 	app.Command.Flags().StringSliceVar(&envs, "env-file", nil,
