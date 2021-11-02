@@ -43,7 +43,7 @@ require (
 	github.com/golang/protobuf v1.4.2
 	github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75
 	github.com/gorilla/csrf v1.7.0
-	github.com/gorilla/mux v1.7.1 // indirect
+	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/securecookie v1.1.1
 	github.com/gorilla/sessions v1.2.1
 	github.com/gorilla/websocket v1.4.2
@@ -77,7 +77,7 @@ require (
 	github.com/tebeka/strftime v0.1.5 // indirect
 	go.uber.org/atomic v1.7.0
 	go.uber.org/zap v1.19.0
-	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 	golang.org/x/image v0.0.0-20190910094157-69e4b8554b2a // indirect
 	golang.org/x/oauth2 v0.0.0-20210628180205-a41e5a781914
 	golang.org/x/text v0.3.7
