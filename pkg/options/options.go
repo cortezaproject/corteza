@@ -26,6 +26,7 @@ type (
 		RBAC        RBACOpt
 		Locale      LocaleOpt
 		Limit       LimitOpt
+		Plugins     PluginsOpt
 	}
 )
 
@@ -55,5 +56,6 @@ func Init() *Options {
 		RBAC:        *RBAC(),
 		Locale:      *Locale(),
 		Limit:       *Limit(),
+		Plugins:     *Plugins(),
 	}
 }

@@ -5,7 +5,9 @@ import (
 	"net/http"
 
 	"github.com/cortezaproject/corteza-server/auth/settings"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/cortezaproject/corteza-server/pkg/plugin"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/go-chi/chi"
 	"github.com/spf13/cobra"
@@ -44,6 +46,9 @@ type (
 		lvl int
 		Log *zap.Logger
 
+		// Available plugins
+		plugins plugin.Set
+
 		// Store interface
 		//
 		// Just a blank interface{} because we want to avoid generating
@@ -71,7 +76,7 @@ type (
 func New() *CortezaApp {
 	app := &CortezaApp{
 		lvl: bootLevelWaiting,
-		Log: zap.NewNop(),
+		Log: logger.Default(),
 	}
 
 	app.InitCLI()
