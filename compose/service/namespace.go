@@ -394,6 +394,15 @@ func (svc namespace) Export(ctx context.Context, namespaceID uint64, archive str
 		sNsID := strconv.FormatUint(namespaceID, 10)
 		oldNsRef := resource.MakeRef(types.NamespaceResourceType, resource.MakeIdentifiers(sNsID))
 		prune := resource.RefSet{resource.MakeWildRef(automationTypes.WorkflowResourceType)}
+		ns := resource.FindComposeNamespace(nn, resource.MakeIdentifiers(sNsID))
+
+		// - remove logo and icon references as attachments are not exported by default
+		// @todo code in attachment exporting, most likely when we do attachment handling rework
+		ns.Meta.Icon = ""
+		ns.Meta.IconID = 0
+		ns.Meta.Logo = ""
+		ns.Meta.LogoID = 0
+		ns.Meta.LogoEnabled = false
 
 		// - prune resources we won't preserve
 		nn.SearchForReferences(oldNsRef).Walk(func(r resource.Interface) error {
