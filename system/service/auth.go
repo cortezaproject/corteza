@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service/event"
@@ -924,6 +925,39 @@ func (svc auth) procLogin(ctx context.Context, s store.Storer, u *types.User, c 
 
 	if err = svc.LoadRoleMemberships(ctx, u); err != nil {
 		return
+	}
+
+	{
+		var eapSec *types.ExternalAuthProviderSecurity
+
+		switch p.Provider {
+		case credentialsTypePassword:
+			// nothing to do with password provider
+
+		case "saml":
+			// we need to fetch SAML security settings from different part of settings
+			eapSec = &CurrentSettings.Auth.External.Saml.Security
+
+		default:
+			eap := CurrentSettings.Auth.External.Providers.FindByHandle(p.Provider)
+
+			if eap != nil {
+				eapSec = &eap.Security
+			}
+
+		}
+
+		if eapSec != nil {
+			// if authenticated with external auth provider
+			// there might be additional roles that need to be
+			// set to this security session
+			u.SetRoles(internalAuth.ApplyRoleSecurity(
+				payload.ParseUint64s(eapSec.PermittedRoles),
+				payload.ParseUint64s(eapSec.ProhibitedRoles),
+				payload.ParseUint64s(eapSec.ForcedRoles),
+				u.Roles()...,
+			)...)
+		}
 	}
 
 	if c != nil {

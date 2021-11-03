@@ -96,6 +96,8 @@ type (
 						IdentHandle     string `kv:"ident-handle"`
 						IdentIdentifier string `kv:"ident-identifier"`
 					} `kv:"idp"`
+
+					Security ExternalAuthProviderSecurity `json:"-" kv:"security,final"`
 				}
 
 				// all external providers we know
@@ -209,6 +211,38 @@ type (
 		RedirectUrl string `json:"-" kv:"redirect"`
 		IssuerUrl   string `json:"-" kv:"issuer"`
 		Weight      int    `json:"-"`
+
+		Security ExternalAuthProviderSecurity `json:"-" kv:"security,final"`
+	}
+
+	ExternalAuthProviderSecurity struct {
+		// Subset of roles, permitted to be used with this client
+		// when authorizing via this auth provider.
+		//
+		// IDs are intentionally stored as strings to support JS (int64 only)
+		//
+		PermittedRoles []string `json:"permittedRoles,omitempty"`
+
+		// Subset of roles, prohibited to be used with this client
+		// when authorizing via this auth provider.
+		//
+		// IDs are intentionally stored as strings to support JS (int64 only)
+		//
+		ProhibitedRoles []string `json:"prohibitedRoles,omitempty"`
+
+		// Set of additional roles that are forced on this user
+		// when authorizing via this auth provider.
+		//
+		// IDs are intentionally stored as strings to support JS (int64 only)
+		ForcedRoles []string `json:"forcedRoles,omitempty"`
+
+		// Map external roles or groups to internal
+		//
+		// If IdP provides a list of roles (groups) along side authenticated user
+		// these roles can be mapped to the valid local roles
+		//
+		// @todo implement mapped roles
+		// MappedRoles map[string]string `json:"mappedRoles,omitempty"`
 	}
 
 	SmtpServers struct {
