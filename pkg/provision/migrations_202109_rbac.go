@@ -2,6 +2,7 @@ package provision
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -40,6 +41,11 @@ func migratePre202109RbacRules(ctx context.Context, log *zap.Logger, s store.Sto
 			return err
 		}
 
+		var uniq = make(map[string]bool)
+		var uniqID = func(r *rbac.Rule) string {
+			return fmt.Sprintf("%s|%s|%d", r.Resource, r.Operation, r.RoleID)
+		}
+
 		for _, r := range rr {
 			var (
 				cr     = *r
@@ -49,15 +55,26 @@ func migratePre202109RbacRules(ctx context.Context, log *zap.Logger, s store.Sto
 			if action != 0 {
 				err = store.DeleteRbacRule(ctx, s, &cr)
 				if err != nil {
-					return err
+					return fmt.Errorf("could not delete RBAC rule %s: %v", r, err)
+				}
+
+				if action == -1 {
+					log.Debug("removed obsolete RBAC rule", zap.Stringer("rule", r))
 				}
 			}
 
 			if action == 1 {
+				if uniq[uniqID(r)] {
+					log.Warn("skipping duplicate RBAC rule", zap.Stringer("rule", r))
+					continue
+				}
+
 				err = store.CreateRbacRule(ctx, s, r)
 				if err != nil {
-					return err
+					return fmt.Errorf("could not create RBAC rule %s: %v", r, err)
 				}
+
+				uniq[uniqID(r)] = true
 			}
 		}
 
