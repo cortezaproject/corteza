@@ -1,0 +1,17 @@
+---
+list:
+  columns:
+    updatedAt: Last update
+  filter:
+    absoluteTime: Show absolute time
+    incScriptsWithErrors: Errors ({{ count }})
+    incScriptsWithIterator: Iterator ({{ count }})
+    incScriptsWithSecurity: Security ({{ count }})
+    incScriptsWithTriggers: Triggers ({{ count }})
+    searchQuery: Search query
+  flags:
+    iterator: Iterator
+    security: Security
+    triggers: Triggers
+  labelMissing: <label missing>
+  title: Corredor Scripts

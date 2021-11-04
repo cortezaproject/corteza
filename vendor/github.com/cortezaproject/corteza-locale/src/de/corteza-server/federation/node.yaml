@@ -1,0 +1,11 @@
+---
+errors:
+  notAllowedToCreate: Erstellen von Knoten ist nicht zulässig
+  notAllowedToManage: dieser Knoten kann nicht verwaltet werden
+  notAllowedToPair: dieser Knoten kann nicht gekoppelt werden
+  notAllowedToSearch: Knoten können nicht gesucht oder aufgelistet werden
+  notFound: Knoten nicht vorhanden
+  pairingTokenInvalid: Kopplungs-Token ist ungültig
+  pairingURIInvalid: 'Verbindungs-URI ist ungültig: {err}'
+  pairingURISourceIDInvalid: "Verbindungs-URI ohne Quellknoten-ID\n"
+  pairingURITokenInvalid: "Verbindungs-URI mit ungültigem Kopplungs-Token\n\n"

@@ -1,0 +1,13 @@
+---
+errors:
+  handleNotUnique: Handle nicht eindeutig
+  invalidHandle: ungültiger Handle
+  invalidID: ungültige ID
+  notAllowedToCreate: Erstellen von Namespaces ist nicht zulässig
+  notAllowedToDelete: dieser Namespace kann nicht gelöscht werden
+  notAllowedToRead: dieser Namespace kann nicht gelesen werden
+  notAllowedToSearch: Namespaces können nicht gesucht oder aufgelistet werden
+  notAllowedToUndelete: dieser Namespace kann nicht wiederhergestellt werden
+  notAllowedToUpdate: dieser Namespace kann nicht aktualisiert werden
+  notFound: Namespace nicht vorhanden
+  staleData: alte Daten

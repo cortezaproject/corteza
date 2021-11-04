@@ -1,0 +1,11 @@
+---
+help:
+  documentation: Documentație
+  feedback: Trimite părere
+  forum: Ajutor
+  version: 'Versiune:'
+userSettings:
+  changePassword: Modificare parolă
+  loggedInAs: Conectat ca și {{user}}
+  logout: Deconectare
+  profile: Profil

@@ -1,0 +1,33 @@
+---
+list:
+  rules:
+    add: Add role
+    addRole: Add new role
+    component:
+      operations:
+        grant: Grant permissions on automation
+        sessionsSearch: Search sessions
+        triggersSearch: Search triggers
+        workflowCreate: Create new workflow
+        workflowsSearch: Search workflows
+      type:
+        label: Automation
+    loading: Loading permissions
+    noRole: No role selected
+    notAllowed: Not allowed to set permissions
+    submit: Submit
+    tip1: Click on permission/role cell to allow a specific operation
+    tip2: Use Alt-Click to set explicit deny on operation
+    title: List of rules
+    workflow:
+      operations:
+        delete: Delete workflow
+        execute: Execute workflow
+        read: Read workflow
+        sessionsManage: Manage workflow sessions
+        triggersManage: Manage workflow triggers
+        undelete: Undelete workflow
+        update: Update workflow
+      type:
+        label: Workflow
+  title: Automation permissions

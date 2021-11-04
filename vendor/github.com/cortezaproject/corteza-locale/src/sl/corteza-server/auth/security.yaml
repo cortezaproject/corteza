@@ -1,0 +1,23 @@
+---
+template:
+  title: Varnost
+  password:
+    title: Geslo
+    change-link: Spremeni geslo
+  mfa:
+    title: Multi-factor authentication
+    totp:
+      title: Additional security with mobile app (time-based one-time-password)
+      enforced: Configured and required on login.
+      disabled: Trenutno onemogočeno.
+      configure: Nastavi
+      disable: Onemogoči
+    email:
+      title: Additional security with one-time-password over email
+      enforced: Enabled and required on login.
+      disabled: Trenutno onemogočeno.
+      enable: Nastavi
+      disable: Onemogoči
+    all-disabled: All MFA methods are currently disabled. Ask your administrator to enable them.
+alerts:
+  topt-disabled: Two factor authentication with TOTP disabled

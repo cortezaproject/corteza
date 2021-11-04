@@ -1,0 +1,16 @@
+---
+errors:
+  handleNotUnique: Rollenalias ist nicht eindeutig
+  invalidHandle: ungültiger Alias
+  invalidID: ungültige ID
+  nameNotUnique: Rollenname ist nicht eindeutig
+  notAllowedToArchive: diese Rolle kann nicht archiviert werden
+  notAllowedToCreate: Erstellen von Rollen ist nicht zulässig
+  notAllowedToDelete: diese Rolle kann nicht gelöscht werden
+  notAllowedToManageMembers: Rollenmitglieder können nicht verwaltet werden
+  notAllowedToRead: diese Rolle kann nicht gelesen werden
+  notAllowedToSearch: Rollen können nicht gesucht oder aufgelistet werden
+  notAllowedToUnarchive: diese Rolle kann nicht aufgehoben werden
+  notAllowedToUndelete: diese Rolle kann nicht wiederhergestellt werden
+  notAllowedToUpdate: diese Rolle kann nicht aktualisiert werden
+  notFound: Rolle nicht gefunden

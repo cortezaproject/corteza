@@ -1,0 +1,7 @@
+---
+jitsi:
+  create: Erstellen
+  defaultLocalDisplayName: Anonym
+  defaultRemoteDisplayName: Weitere Cortezer
+  roomName: Raumname
+  toStart: Erstellen Sie zum Starten eines Videoanrufs einen neuen Raum

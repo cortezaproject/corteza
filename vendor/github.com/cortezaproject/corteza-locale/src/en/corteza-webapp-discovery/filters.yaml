@@ -1,0 +1,7 @@
+title: Filter
+types:
+  title: Types
+  namespace: Namespace
+  module: Module
+  user: User
+  record: Record

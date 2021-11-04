@@ -1,0 +1,87 @@
+---
+label:
+  actions: Actions
+  active: Active
+  add: Add
+  addNew: Add new
+  addValue: Neue Variable hinzufügen
+  attachmentFileInfo: '(Dateigöße {{0}}, hochgeladen am {{1}})'
+  attributes: Attributes
+  back: Back
+  backWithoutSave: Back (without saving changes)
+  browse: Browse
+  buttons: Buttons
+  cancel: Cancel
+  clone: Clone
+  close: Close
+  create: Create
+  delete: Delete
+  description: Beschreibung
+  download: Download
+  dropFiles: Click or drop files here to upload
+  edit: Edit
+  enabled: Aktiviert
+  export: Export
+  fileTypeNotAllowed: File type not allowed
+  uploadError: 'Issue with file upload: "{{message}}"'
+  general: General
+  handle: Handle
+  here: here
+  import: Import
+  importPlaceholder: Upload files to import
+  label: Label
+  loading: Loading
+  makeDefault: Make default
+  moduleName: Module name
+  multi: Multi value
+  name: Name
+  next: Next
+  "no": "No"
+  noHandle: No handle
+  none: None
+  ok: Ok
+  openBookmarks: Open bookmarks
+  pageBuilder: Page builder
+  permissions: Permissions
+  private: Private
+  processing: Processing...
+  recordPage: Record page
+  remove: Remove
+  removeDefault: Remove default
+  required: Required
+  save: Save
+  saveAndClose: Save and close
+  search: Search
+  status: Status
+  timeHour: '{{t}}h'
+  timeMinute: '{{t}}min'
+  title: Title
+  type: Type
+  updatedAt: '$t(field.system.updatedAt)'
+  uploading: Uploading
+  urlPlaceholder: https://example.tld
+  validation: Validation
+  value: Value
+  view: View
+  welcome: Welcome!
+  "yes": "Yes"
+placeholder:
+  handle: handle (a - z, 0 - 9, underscore, dash)
+  sample: Sample
+reminder:
+  add: Add a new reminder
+  dismiss: Dismiss
+  edit:
+    assigneeLabel: Assignee
+    assigneePlaceholder: Myself (default)
+    notesLabel: Notes
+    notesPlaceholder: Notes
+    remindAtLabel: Notify me
+    remindAtNone: Never
+    titleLabel: Title
+    titlePlaceholder: Title
+  listLabel: Reminders
+  routesTo: 'Includes link to:'
+  snooze: Snooze
+tooltip:
+  dragAndDrop: Drag and drop to change order

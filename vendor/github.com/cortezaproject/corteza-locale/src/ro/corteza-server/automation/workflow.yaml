@@ -1,0 +1,17 @@
+---
+errors:
+  disabled: dezactivare flux de lucru sau declanșator
+  handleNotUnique: identificatorul fluxului de lucru nu este unic
+  invalidHandle: identificator invalid
+  invalidID: ID invalid
+  notAllowedToCreate: nu ai permisiunea pentru a crea fluxuri de lucru
+  notAllowedToDelete: nu ai permisiunea pentru a șterge acest flux de lucru
+  notAllowedToExecute: nu ai permisiunea pentru a executa acest flux de lucru
+  notAllowedToExecuteCorredorStep: nu ai permisiunea pentru a executa funcția corredorExec, corredor a fost dezactivat
+  notAllowedToRead: nu ai permisiunea pentru a citi acest flux de lucru
+  notAllowedToSearch: nu ai permisiunea pentru a căuta sau afișa fluxuri de lucru
+  notAllowedToUndelete: nu ai permisiunea pentru a recupera acest flux de lucru
+  notAllowedToUpdate: nu ai permisiunea pentru a actualiza acest flux de lucru
+  notFound: fluxul de lucru nu a putut fi găsit
+  staleData: date învechite
+  unknownWorkflowStep: pas necunoscut în fluxul de lucru

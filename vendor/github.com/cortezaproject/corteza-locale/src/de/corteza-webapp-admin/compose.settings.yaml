@@ -1,0 +1,12 @@
+---
+editor:
+  basic:
+    attachments:
+      max-size: Maximale Größe (MB)
+      page: Seitenanhänge
+      record: Datensatzanhänge
+      type:
+        description: 'MIME-Typen, voneinander getrennt mit „,“. Beispiel: „text/plain,text/csv“'
+        whitelist: Dateityp-Whitelist
+    title: Standard
+  title: Compose Einstellungen

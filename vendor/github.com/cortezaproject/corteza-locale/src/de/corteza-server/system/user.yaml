@@ -1,0 +1,21 @@
+---
+errors:
+  emailNotUnique: E-Mail ist nicht eindeutig
+  handleNotUnique: Handle ist nicht eindeutig
+  invalidEmail: Ungültige E-Mail! {{resource}}
+  invalidHandle: ungültiger Handle
+  invalidID: ungültige ID
+  notAllowedToCreate: Erstellen von Benutzern ist nicht zulässig
+  notAllowedToCreateSystem: Systembenutzer können nicht erstellt werden
+  notAllowedToDelete: dieser Benutzer kann nicht gelöscht werden
+  notAllowedToListUsers: diese Benutzer können nicht aufgelistet werden
+  notAllowedToRead: auf diesen Benutzer kann nicht zugegriffen werden
+  notAllowedToSearch: Benutzer können nicht aufgelistet oder gesucht werden
+  notAllowedToSuspend: dieser Benutzer kann nicht gesperrt werden
+  notAllowedToUndelete: dieser Benutzer kann nicht wiederhergestellt werden
+  notAllowedToUnsuspend: dieser Benutzer kann nicht entsperrt werden
+  notAllowedToUpdate: dieser Benutzer kann nicht aktualisiert werden
+  notAllowedToUpdateSystem: Systembenutzer können nicht aktualisiert werden
+  notFound: Benutzer nicht gefunden
+  passwordNotSecure: Das angegebene Passwort ist nicht sicher; verwenden Sie ein längeres Passwort mit mehr nicht alphanumerischen Zeichen.
+  usernameNotUnique: Benutzername ist nicht eindeutig

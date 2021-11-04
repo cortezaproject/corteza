@@ -1,0 +1,22 @@
+---
+template:
+  title: Conectare
+  form:
+    email:
+      label: E-mail
+      placeholder: email@domeniu.tld
+    password:
+      label: Parolă
+      placeholder: parolă
+    button:
+      login-and-remember: Conectează-mă și ține-mă minte
+      login: Conectare
+      continue: Continuare
+  links:
+    request-password-reset: Parolă uitată?
+    signup: Înregistrare cont nou
+    external:
+    login-with: Conectare cu {{idp}}
+alerts:
+  logged-in: Conectare realizată cu succes.
+  local-disabled: Conturile locale sunt dezactivate

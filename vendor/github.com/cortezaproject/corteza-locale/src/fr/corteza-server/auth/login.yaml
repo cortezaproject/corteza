@@ -1,0 +1,22 @@
+---
+template:
+  title: Log in
+  form:
+    email:
+      label: E-mail
+      placeholder: email@domain.ltd
+    password:
+      label: Password
+      placeholder: password
+    button:
+      login-and-remember: Log in and remember me
+      login: Log in
+      continue: Continue
+  links:
+    request-password-reset: Forgot your password?
+    signup: Create a new account
+    external:
+    login-with: Login with {{idp}}
+alerts:
+  logged-in: You are now logged-in.
+  local-disabled: Local accounts disabled

@@ -1,0 +1,272 @@
+---
+automation:
+  add: Skript hinzufügen
+  edit:
+    asyncHelp: Warten Sie nicht auf Ergebnisse und ignorieren Sie Fehler. Nicht kompatibel mit kritischem Flag.
+    asyncLabel: Dieses Skript asynchron ausführen
+    codeTabLabel: Code
+    criticalHelp: Wait until this script is executed. In case of errors, abort execution of other scripts and before* trigger
+    criticalLabel: Kritisches Skript
+    delete: Skript löschen
+    enabledHelp: Deaktivierte Skripte werden ignoriert
+    enabledLabel: Aktiviert
+    mailAutomationTriggers:
+      addMatcher: Bedingung hinzufügen
+      addTrigger: Trigger hinzufügen
+      delete: Trigger löschen
+      deleteTrigger: Löschen
+      enable: Trigger aktivieren
+      matchAll: Muss alle Bedingungen erfüllen
+      matcher:
+        fields:
+          bcc: BCC
+          cc: CC
+          from: Von
+          placeholder: E-Mail-Kopfzeilenfeld
+          replyTo: Antworten an
+          subject: Betreff
+          to: An
+        match: Value to match
+        operators:
+          equal-ci: Match full
+          placeholder: Operator
+          prefix-ci: Match prefix
+          regex: Regex
+          suffix-ci: Match suffix
+          user: Existing user
+      tabLabel: Mail triggers
+    nameLabel: Name
+    namePlaceholder: Automation script name
+    runAsCurrentUser: Run as "{{ user }}"
+    runAsHelp: Script runner
+    scheduledTriggers:
+      tabLabel: Scheduled
+    securityLabel: Security
+    settingsTabLabel: Settings
+    timeoutHelp: How much time do we wait before aborting the script? Value in milliseconds (1000ms = 1s). It defaults (when 0) to 2s with 30s as maximum. Consult with your administrator for exact numbers and limitations.
+    timeoutLabel: Script execution timeout
+    timeoutPlaceholder: "1500"
+    title: Automation script
+    userPickerPlaceholder: Select user
+  import: Import automation script(s)
+  list:
+    column:
+      label:
+        async: Async.
+        critical: Kritisch
+        enabled: Aktiviert
+        runAs: Run As
+        runInUA: In browser
+    unnamed: (Unnamed script)
+  manage: Manage automation scripts ({{count}})
+  manage-id-permissions: Berechtigungen für dieses Skript verwalten
+  manage-wc-permissions: Berechtigungen für alle Skripte verwalten
+  newLabel: Neues Skript anlegen
+  newPlaceholder: Script name
+  testing:
+    load: Load
+    parametersHeadline: 'Parameters & payload:'
+    resultsHeadline: 'Results:'
+    testInBrowser: Test in Browser
+    testInCorredor: Test in Corredor
+    warning: ""
+  title: List of automation script
+general:
+  notFound: 'Not found'
+  label:
+    "no": "No"
+    submit: Submit
+    "yes": "Yes"
+  logout: Logout
+  noAccess: You do not have permissions to access Admin panel
+  pagination:
+    next: Next
+    prev: Prev
+navigation:
+  adminPanel: Admin Panel
+  automation: Automation
+  chart: Charts
+  configuration: Configuration
+  help:
+    documentation: Documentation
+    feedback: Send feedback
+    forum: Help
+    version: 'Version:'
+  module: Modules
+  more: More
+  namespace: Namespaces
+  noPageTitle: No page title
+  page: Pages
+  publicPages: Public pages
+  userSettings:
+    changePassword: Change password
+    loggedInAs: Logged in as {{user}}
+    logout: Logout
+    profile: Profile
+permission:
+  automationWorkflow:
+    all: all workflows
+    operations:
+      delete:
+        description: 'Standard: verweigern'
+        specific: Delete this workflow
+        title: Delete any workflow
+      execute:
+        description: 'Standard: verweigern'
+        specific: Execute this workflow
+        title: Execute any workflow
+      read:
+        description: 'Standard: verweigern'
+        specific: Read this workflow
+        title: Read any workflow
+      sessionsManage:
+        description: 'Standard: verweigern'
+        specific: Manage sessions for this workflow
+        title: Manage all sessions
+      triggersManage:
+        description: 'Standard: verweigern'
+        specific: Manage triggers for this workflow
+        title: Manage all triggers
+      undelete:
+        description: 'Standard: verweigern'
+        specific: Undelete this workflow
+        title: Undelete any workflow
+      update:
+        description: 'Standard: verweigern'
+        specific: Update this workflow
+        title: Update any workflow
+    specific: workflow "{{target}}"
+  base:
+    compose: Compose
+    system: System
+  resetBack: Reset back to "{{current}}"
+  saveChanges: Save changes
+  setFor: Set permissions for {{target}}
+  systemApplication:
+    all: all applications
+    operations:
+      delete:
+        description: 'Standard: verweigern'
+        specific: Delete {{target}}
+        title: Delete any application
+      read:
+        description: 'Standard: verweigern'
+        specific: Read {{target}}
+        title: Read any application
+      update:
+        description: 'Standard: verweigern'
+        specific: Update {{target}}
+        title: Update any application
+    specific: application "{{target}}"
+  systemApigwRoute:
+    all: all routes
+    operations:
+      delete:
+        description: 'Standard: verweigern'
+        specific: Delete {{target}}
+        title: Delete any route
+      read:
+        description: 'Standard: verweigern'
+        specific: Read {{target}}
+        title: Read any route
+      update:
+        description: 'Standard: verweigern'
+        specific: Update {{target}}
+        title: Update any route
+    specific: route "{{target}}"
+  systemAuthClient:
+    all: all auth clients
+    operations:
+      authorize:
+        description: 'User can authorize (use) this client. Default: deny'
+        specific: Authorize client "{{target}}
+        title: Authorize any client
+      delete:
+        description: 'Standard: verweigern'
+        specific: Delete client "{{target}}
+        title: Delete any client
+      read:
+        description: 'Standard: verweigern'
+        specific: Read client "{{target}}
+        title: Read any client
+      update:
+        description: 'Standard: verweigern'
+        specific: Update client "{{target}}
+        title: Update any client
+    specific: auth client "{{target}}"
+  systemRole:
+    all: all roles
+    operations:
+      delete:
+        description: 'Standard: verweigern'
+        specific: Delete {{target}}
+        title: Delete any role
+      membersManage:
+        description: 'Standard: verweigern'
+        specific: Manage members for {{target}}
+        title: Manage members for any role
+      read:
+        description: 'Standard: verweigern'
+        specific: Read {{target}}
+        title: Read any role
+      update:
+        description: 'Standard: verweigern'
+        specific: Update {{target}}
+        title: Update any role
+    specific: role "{{target}}"
+  systemTemplate:
+    all: all templates
+    operations:
+      delete:
+        description: 'Standard: verweigern'
+        specific: Delete {{target}}
+        title: Delete any template
+      read:
+        description: 'Standard: verweigern'
+        specific: Read {{target}}
+        title: Read any template
+      render:
+        description: 'Standard: verweigern'
+        specific: Render {{target}}
+        title: Render any template
+      update:
+        description: 'Standard: verweigern'
+        specific: Update {{target}}
+        title: Update any template
+    specific: template "{{target}}"
+  systemUser:
+    all: all users
+    operations:
+      delete:
+        description: 'Standard: verweigern'
+        specific: Delete {{target}}
+        title: Delete any user
+      emailUnmask:
+        description: 'Standard: verweigern'
+        specific: Show email details for {{target}}
+        title: Show email details for any user
+      impersonate:
+        description: 'Standard: verweigern'
+        specific: Impersonate this user {{target}}
+        title: Impersonate any user
+      nameUnmask:
+        description: 'Standard: verweigern'
+        specific: Show name details for {{target}}
+        title: Show name details for any user
+      read:
+        description: 'Standard: verweigern'
+        specific: Read {{target}}
+        title: Read any user
+      suspend:
+        description: 'Standard: verweigern'
+        specific: Suspend {{target}}
+        title: Suspend any user
+      unsuspend:
+        description: 'Standard: verweigern'
+        specific: Unsuspend {{target}}
+        title: Unsuspend any user
+      update:
+        description: 'Standard: verweigern'
+        specific: Update {{target}}
+        title: Update any user
+    specific: user "{{target}}"

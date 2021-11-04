@@ -1,0 +1,8 @@
+---
+template:
+  authorize-client: Zaključi avtorizacijo
+  class:
+    your-profile: Tvoj profil
+    security: Varnost
+    login-session: Aktivne seje
+    authorized-clients: Avtorizirani klienti
