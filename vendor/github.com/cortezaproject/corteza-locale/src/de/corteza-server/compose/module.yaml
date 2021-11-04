@@ -1,0 +1,18 @@
+---
+errors:
+  handleNotUnique: Alias nicht eindeutig
+  invalidHandle: ungültiger Alias
+  invalidID: ungültige ID
+  invalidNamespaceID: ungültige oder fehlende Namespace-ID
+  nameNotUnique: Name nicht eindeutig
+  namespaceNotFound: Namespace nicht vorhanden
+  notAllowedToCreate: Erstellen von Modulen ist nicht zulässig
+  notAllowedToDelete: dieses Modul kann nicht gelöscht werden
+  notAllowedToListModules: Module können nicht aufgelistet werden
+  notAllowedToRead: auf dieses Modul kann nicht zugegriffen werden
+  notAllowedToReadNamespace: dieser Namespace kann nicht gelesen werden
+  notAllowedToSearch: Module können nicht gesucht oder aufgelistet werden
+  notAllowedToUndelete: dieses Modul kann nicht wiederhergestellt werden
+  notAllowedToUpdate: dieses Modul kann nicht aktualisiert werden
+  notFound: Modul nicht vorhanden
+  staleData: alte Daten

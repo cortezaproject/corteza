@@ -1,0 +1,11 @@
+---
+help:
+  documentation: Documentation
+  feedback: Send feedback
+  forum: Help
+  version: 'Version:'
+userSettings:
+  changePassword: Change password
+  loggedInAs: Logged in as {{user}}
+  logout: Logout
+  profile: Profile

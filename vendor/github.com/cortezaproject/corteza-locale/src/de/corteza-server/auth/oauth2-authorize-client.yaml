@@ -1,0 +1,15 @@
+---
+template:
+  title: Autorisieren
+  form:
+    greeting-paragraph: Hallo
+    question-for-client: möchte in Ihrem Namen Aktionen auf diesem Corteza Server durchführen.
+    buttons:
+      allow: Erlauben
+      deny: Nicht Erlauben
+  links:
+    mistake: Falls es sich um einen Fehler handelt, <a href="{{link}}">melden Sie sich bitte ab</a>.
+  errors:
+    invalid-user: Mit einer nicht autorisierten E-Mail können Sie nicht fortfahren, gehen Sie zu  <a href="{{link}}">Ihrem Profil</a> und beheben Sie das Problem.
+alerts:
+  denied: '{{client}} kann nicht autorisiert werden, keine Berechtigungen.'

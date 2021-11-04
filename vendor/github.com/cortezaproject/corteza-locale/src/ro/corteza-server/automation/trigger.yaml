@@ -1,0 +1,11 @@
+---
+errors:
+  invalidID: ID invalid
+  notAllowedToCreate: nu ai permisiunea pentu a crea declanșatoare
+  notAllowedToDelete: nu ai permisiunea pentru a șterge acest declanșator
+  notAllowedToRead: nu ai permisiunea pentru a citi acest declanșator
+  notAllowedToSearch: nu ai permisiunea pentru a căuta sau afișa declanșatoare
+  notAllowedToUndelete: nu ai permisiunea pentru a recupera acest declanșator
+  notAllowedToUpdate: nu ai permisiunea pentru a actualiza acest declanșator
+  notFound: declanșatorul nu a putut fi identificat
+  staleData: date învechite

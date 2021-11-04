@@ -1,0 +1,19 @@
+---
+applications:
+  applications: Application(s)
+  deleted: Deleted
+  title: Active application(s)
+  total: Total
+roles:
+  archived: Archived
+  deleted: Deleted
+  roles: Role(s)
+  title: Active role(s)
+  total: Total
+title: Dashboard
+users:
+  deleted: Deleted
+  suspended: Suspended
+  title: Active user(s)
+  total: Total
+  users: User(s)

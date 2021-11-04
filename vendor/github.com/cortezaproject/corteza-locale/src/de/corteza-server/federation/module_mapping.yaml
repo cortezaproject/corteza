@@ -1,0 +1,9 @@
+---
+errors:
+  composeModuleNotFound: Modul compose nicht gefunden
+  composeNamespaceNotFound: Namespace compose nicht gefunden
+  federationModuleNotFound: Modul Verbund nicht gefunden
+  moduleMappingExists: Modulzuordnung ist bereits vorhanden
+  nodeNotFound: Knoten nicht vorhanden
+  notAllowedToMap: dieses Modul kann nicht zugeordnet werden
+  notFound: Modulzuordnung ist nicht vorhanden

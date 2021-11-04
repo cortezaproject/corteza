@@ -1,0 +1,124 @@
+---
+calculate: Field expressions provide a way to calculate field values based on the defined expression.
+categories:
+  dateTime:
+    earliest: Returns earliest DateTime
+    label: Date and Time
+    latest: Returns latest DateTime
+    modTime: Returns modified DateTime string
+    parseDuration: Returns parsed duration
+    parseISOTime: Returns parsed ISO DateTime string
+    strftime: Returns DateTime string for the specified date and format
+  general:
+    description: Returns the first non null value
+    label: General
+  number:
+    ceil: Rounds number up to the nearest integer
+    floor: Rounds number down to the nearest integer
+    label: Number
+    max: Returns item with the highest value
+    min: Returns item with the lowest value
+    rounds: Rounds a floating point number to the specified number of digits
+  string:
+    format: Returns the formatted string
+    label: String
+    longest: Returns the longest string
+    shortest: Returns the shortest string
+    toLower: Converts all characters to lowercase
+    toUpper: Converts all characters to uppercase
+    trim: Removes spaces at the beginning and at the end of the string
+    trimLeft: Removes character from the beginning of the string
+    trimRight: Removes character from the end of the string
+example-description: Below are a few examples of different use cases of field expressions.
+examples: Examples
+field: Field Expressions
+formatCategories:
+  dateTime:
+    A: Returns the full national weekday name
+    B: Returns the full national month name
+    C: Returns year / 100 as a decimal number; single digits are preceded by a zero
+    D: Equivalent to %m/%d/%y
+    F: Equivalent to %Y-%m-%d
+    H: Returns the hour (24-hour clock) as a decimal number (00-23)
+    I: Returns the hour (12-hour clock) as a decimal number (01-12)
+    M: Returns the minute as a decimal number (00-59)
+    R: Equivalent to %H:%M
+    S-middle: Returns the millisecond as a decimal number (000-999)
+    S-second: Returns the second as a decimal number (00-60)
+    T: Equivalent to %H:%M:%S
+    U: Returns the week number of the year (Sunday as the first day of the week) as a decimal number (00-53)
+    V: Returns the week number of the year (Monday as the first day of the week) as a decimal number (01-53)
+    W: Returns the week number of the year (Monday as the first day of the week) as a decimal number (00-53)
+    X: Returns the national representation of the time
+    "Y": Returns the year with century as a decimal number
+    Z: Returns the time zone name
+    a: Returns the abbreviated national weekday name
+    b: Returns the abbreviated national month name
+    c: Returns the national representation of time and date
+    d: Returns the day of the month as a decimal number (01-31)
+    e: Returns the day of the month as a decimal number (1-31)
+    j: Returns the day of the year as a decimal number (001-366)
+    k: Returns the hour (24-hour clock) as a decimal number (0-23)
+    l: Returns the hour (12-hour clock) as a decimal number (1-12)
+    label: Date and Time formatting
+    m: Returns the month as a decimal number (01-12)
+    "n": |-
+      Returns a newline (
+      )
+    p: Returns the national representation of either "ante meridiem" (a.m.)  or "post meridiem" (p.m.)
+    percent: Returns a %
+    r: Equivalent to %I:%M:%S %p
+    t: Returns a tab
+    u: Returns the weekday (Monday as the first day of the week) as a decimal number (1-7)
+    v: Equivalent to %e-%b-%Y
+    w: Returns the weekday (Sunday as the first day of the week) as a decimal number (0-6)
+    x: Returns the national representation of the date
+    "y": Returns the year without century as a decimal number (00-99)
+    z: Returns the time zone offset from UTC
+  string:
+    E: Returns the floating point number in scientific notation; upper-case E
+    O: Returns the number in base 8 with 0o prefix
+    X: Returns the number in base 16; upper-case A-F
+    b: Returns the number in base 2 (in the binary format)
+    binary: Returns the floating point number in scientific notation with binary exponent
+    d: Returns the number in base 10
+    e: Returns the floating point number in scientific notation; lower-case e
+    f: Returns the floating point number with a decimal point
+    label: String formatting
+    o: Returns the number in base 8
+    t: Returns the boolean value as true/false
+    v: Returns the raw value
+    x: Returns the number in base 16; lower-case a-f
+formatting-parameters:
+  description: Here is a complete list of available formatting options.
+  label: Formatting parameters
+helper-functions:
+  description: We provide a set of helper functions that extend the capabilites of field expressions.
+  label: Helper functions
+  note: 'NOTE: Only the "General" functions can be used on all types of fields. The other functions are limited to their respective field type.'
+instructions: 'To write the expression you can use the following operators:'
+operators:
+  all-new-values: (Alle neuen Variablen)
+  comparators: 'Comparators: '
+  control-order: 'Control order of evaluation: '
+  field-name: field-name
+  location: 'Depending on where the field expression is used it has access to different variables:'
+  logical: 'Logical: '
+  modifiers: 'Modifiers: '
+  more: 'More: '
+  new: new
+  new-value: (neuer-Wert)
+  new-value-with-comma: '(neuer-Wert), '
+  old: old
+  old-value: oldValue
+  old-value-brackets: '(old value), '
+  record: '(record), '
+  sanitizer: Sanitizer
+  sanitizers: 'Sanitizers: '
+  validator: Validator
+  validators: 'Validators: '
+  value: value
+  value-expression: Value expression
+  value-expressions: 'Value expressions: '
+  values: values
+write: Writing field expressions is like writing an equation. Instead of only using constants, you can pass in the field name, and it will be evaluated as the field value for that record.

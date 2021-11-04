@@ -1,0 +1,51 @@
+---
+editor:
+  info:
+    createdAt: Erstellt am
+    delete: Löschen
+    deletedAt: Gelöscht am
+    enabled: Aktiviert
+    handle: Handle
+    id: ID
+    name: Name
+    openBuilder: Builder öffnen
+    title: Grundlegende Informationen
+    undelete: Wiederherstellen
+    updatedAt: Aktualisiert am
+  new: Neu
+  permissions: Berechtigungen
+  title:
+    create: Workflow erstellen
+    edit: Workflow bearbeiten
+  triggers:
+    and: und
+    columns:
+      constraints: Einschränkungen
+      eventType: Ereignis
+      resourceType: Ressource
+    title: Trigger
+list:
+  columns:
+    actions: ""
+    createdAt: Erstellt
+    enabled: Aktiviert
+    handle: Name
+  filterForm:
+    deleted:
+      label: gelöschte Workflows
+    excluded:
+      label: Ohne
+    exclusive:
+      label: Nur
+    inclusive:
+      label: Einschließlich
+    query:
+      label: Filter workflows list
+      placeholder: Workflows nach Name filtern
+  loading: Workflows werden geladen
+  new: Neu
+  numFound: '{{count}} Workflow gefunden'
+  numFound_plural: '{{count}} Workflows gefunden'
+  permissions: Berechtigungen
+  title: Workflows
+  yaml: YAML

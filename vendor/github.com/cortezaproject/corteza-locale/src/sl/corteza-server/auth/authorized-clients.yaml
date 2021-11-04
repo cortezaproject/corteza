@@ -1,0 +1,10 @@
+---
+template:
+  title: Avtorizirani klienti
+  list:
+    authorized-on: Avtoriziran
+    buttons:
+      revoke: Odvzemi dostop
+    empty: No authorized clients found
+alerts:
+  removed: Client authorization removed

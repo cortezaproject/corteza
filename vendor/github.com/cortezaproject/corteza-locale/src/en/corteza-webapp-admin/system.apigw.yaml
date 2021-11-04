@@ -55,7 +55,7 @@ editor:
     updatedAt: 'Updated at'
     createdAt: 'Created at'
 
-    tooltip: 'Endpoint must begin with a slash "/" and can not contain any special characters except for the unserscore "_" and hyphen "-"'
+    tooltip: 'Endpoint must begin with a slash "/" and can not contain any special characters except for the underscore "_" and hyphen "-"'
     validation:
       slash: 'Endpoint must begin with a slash "/"'
       minLength: 'Endpoint must contain at least one character'
@@ -106,3 +106,8 @@ editor:
     addFilter: 'Add filter'
     params: 'Params'
     filterListEmpty: 'Filter list is empty!'
+
+    headerExamples:
+      first: Connection == "keep-alive"
+      second: (Content-Type == "application/x-www-form-urlencoded") AND (Accept-Encoding == "gzip, deflate, br")
+      more:  More examples..

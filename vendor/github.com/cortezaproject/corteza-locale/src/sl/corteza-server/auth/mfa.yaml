@@ -1,0 +1,19 @@
+---
+template:
+  title: Multi-factor authentication
+  email:
+    instructions: Check your inbox and enter the received code
+    code: Code
+    verify: Potrdi
+    resend: Pošlji ponovno
+    confirmed: Email OTP confirmed
+  totp:
+    instructions: Check your TOTP application and enter the code you received
+    code: Koda
+    confirmed: TOTP confirmed
+    verify: Verify
+alerts:
+  email:
+    resent: Email OTP resent
+  topt:
+    valid: TOTP valid

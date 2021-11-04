@@ -1,0 +1,4 @@
+---
+template:
+  log-out: Logout successful.
+  log-in: Click here to <a href="{{link}}">log in</a>.

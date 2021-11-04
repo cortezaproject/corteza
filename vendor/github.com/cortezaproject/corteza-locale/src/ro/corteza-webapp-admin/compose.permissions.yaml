@@ -1,0 +1,72 @@
+---
+list:
+  rules:
+    add: Add role
+    addRole: Add new role
+    chart:
+      operations:
+        delete: Delete any chart
+        read: Read any chart
+        update: Update any chart
+      type:
+        label: Charts
+    component:
+      operations:
+        grant: Grant permissions on compose service
+        namespaceCreate: Create namespaces
+        namespacesSearch: List and search namespaces
+        settingsManage: Manage all settings
+        settingsRead: Access all settings
+      type:
+        label: Compose service
+    loading: Loading permissions
+    module:
+      operations:
+        delete: Delete any module
+        read: Read any module
+        recordCreate: Create record under any module
+        recordsSearch: List and search records under any module
+        update: Update any module
+      type:
+        label: Modules
+    moduleField:
+      operations:
+        recordValueRead: Read any module field
+        recordValueUpdate: Update any module field
+      type:
+        label: Module fields
+    namespace:
+      operations:
+        chartCreate: Create charts under any namespace
+        chartsSearch: List and search charts under any namespace
+        delete: Delete any namespace
+        manage: Manage any namespace
+        moduleCreate: Create modules under any namespace
+        modulesSearch: List and search modules under any namespace
+        pageCreate: Create pages under any namespace
+        pagesSearch: List and search pages under any namespace
+        read: Access any namespace
+        update: Update any namespace
+      type:
+        label: Namespaces
+    noRole: No role selected
+    notAllowed: Not allowed to set permissions
+    page:
+      operations:
+        delete: Delete any page
+        read: Read any page
+        update: Update any page
+      type:
+        label: Pages
+    record:
+      operations:
+        delete: Delete any record
+        read: Read any record
+        update: Update any record
+      type:
+        label: Records
+    submit: Submit
+    tip1: Click on permission/role cell to allow a specific operation
+    tip2: Use Alt-Click to set explicit deny on operation
+    title: List of rules
+  title: Compose permissions

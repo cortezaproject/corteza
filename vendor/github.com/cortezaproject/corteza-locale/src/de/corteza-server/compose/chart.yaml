@@ -1,0 +1,17 @@
+---
+errors:
+  handleNotUnique: Alias nicht eindeutig
+  invalidHandle: ungültiger Alias
+  invalidID: ungültige ID
+  invalidNamespaceID: ungültige oder fehlende Namespace-ID
+  moduleNotFound: Modul nicht vorhanden
+  namespaceNotFound: Namespace nicht vorhanden
+  notAllowedToCreate: Erstellen von Charts ist nicht zulässig
+  notAllowedToDelete: dieser Chart kann nicht gelöscht werden
+  notAllowedToRead: dieser Chart kann nicht gelesen werden
+  notAllowedToReadNamespace: dieser Namespace kann nicht gelesen werden
+  notAllowedToSearch: Charts können nicht gesucht oder aufgelistet werden
+  notAllowedToUndelete: dieser Chart kann nicht wiederhergestellt werden
+  notAllowedToUpdate: dieser Chart kann nicht aktualisiert werden
+  notFound: Chart nicht vorhanden
+  staleData: alte Daten

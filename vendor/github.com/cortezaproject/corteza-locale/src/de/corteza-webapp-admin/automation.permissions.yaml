@@ -1,0 +1,33 @@
+---
+list:
+  rules:
+    add: Rolle hinzufügen
+    addRole: Neue Rolle hinzufügen
+    component:
+      operations:
+        grant: Berechtigung für Automatisierung erteilen
+        sessionsSearch: Sitzungen durchsuchen
+        triggersSearch: Trigger durchsuchen
+        workflowCreate: Neuen Workflow erstellen
+        workflowsSearch: Workflows durchsuchen
+      type:
+        label: Automatisierung
+    loading: Berechtigungen werden geladen
+    noRole: Keine Rolle ausgewählt
+    notAllowed: Festlegen von Berechtigungen ist nicht zulässig
+    submit: Übermitteln
+    tip1: Click on permission/role cell to allow a specific operation
+    tip2: Use Alt-Click to set explicit deny on operation
+    title: Regelliste
+    workflow:
+      operations:
+        delete: Workflow löschen
+        execute: Workflow ausführen
+        read: Workflow lesen
+        sessionsManage: Workflow-Sitzungen verwalten
+        triggersManage: Workflow-Trigger verwalten
+        undelete: Workflow wiederherstellen
+        update: Workflow aktualisieren
+      type:
+        label: Workflow
+  title: Automatisierungsberechtigungen

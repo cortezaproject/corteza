@@ -1,0 +1,10 @@
+---
+template:
+  title: Autorisierte Clients
+  list:
+    authorized-on: Autorisiert am
+    buttons:
+      revoke: Zugriff widerrufen
+    empty: Keine autorisierten Clients gefunden
+alerts:
+  removed: Client-Autorisierung wurde entfernt

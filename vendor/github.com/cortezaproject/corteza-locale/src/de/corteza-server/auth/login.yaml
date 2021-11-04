@@ -1,0 +1,22 @@
+---
+template:
+  title: Anmelden
+  form:
+    email:
+      label: E-Mail
+      placeholder: email@domain.tld
+    password:
+      label: Passwort
+      placeholder: Passwort
+    button:
+      login-and-remember: Anmelden und Anmeldeinformationen speichern
+      login: Anmelden
+      continue: Fortfahren
+  links:
+    request-password-reset: Passwort vergessen?
+    signup: Neuen Account anlegen
+    external:
+    login-with: Mit {{idp}} anmelden
+alerts:
+  logged-in: Sie sind nun angemeldet.
+  local-disabled: Lokale Accounts deaktiviert
