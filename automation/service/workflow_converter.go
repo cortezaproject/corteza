@@ -142,7 +142,7 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 	}
 
 	if len(wfii) > 0 {
-		return nil, wfii
+		return nil, wfii.Distinct()
 	}
 
 	return g, nil
