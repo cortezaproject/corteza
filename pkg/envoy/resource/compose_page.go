@@ -245,7 +245,7 @@ func (r *ComposePage) optString(opt map[string]interface{}, kk ...string) string
 
 func (r *ComposePage) pbRecordList(opt map[string]interface{}) (out *Ref) {
 	id := r.optString(opt, "module", "moduleID")
-	if id == "" {
+	if id == "" || id == "0" {
 		return
 	}
 
@@ -254,7 +254,7 @@ func (r *ComposePage) pbRecordList(opt map[string]interface{}) (out *Ref) {
 
 func (r *ComposePage) pbComment(opt map[string]interface{}) (out *Ref) {
 	id := r.optString(opt, "module", "moduleID")
-	if id == "" {
+	if id == "" || id == "0" {
 		return
 	}
 
@@ -263,7 +263,7 @@ func (r *ComposePage) pbComment(opt map[string]interface{}) (out *Ref) {
 
 func (r *ComposePage) pbAutomation(opt map[string]interface{}) (out *Ref) {
 	id := r.optString(opt, "workflow", "workflowID")
-	if id == "" {
+	if id == "" || id == "0" {
 		return
 	}
 
@@ -272,7 +272,7 @@ func (r *ComposePage) pbAutomation(opt map[string]interface{}) (out *Ref) {
 
 func (r *ComposePage) pbRecordOrganizer(opt map[string]interface{}) (out *Ref) {
 	id := r.optString(opt, "module", "moduleID")
-	if id == "" {
+	if id == "" || id == "0" {
 		return
 	}
 
@@ -281,7 +281,7 @@ func (r *ComposePage) pbRecordOrganizer(opt map[string]interface{}) (out *Ref) {
 
 func (r *ComposePage) pbChart(opt map[string]interface{}) (out *Ref) {
 	id := r.optString(opt, "chart", "chartID")
-	if id == "" {
+	if id == "" || id == "0" {
 		return
 	}
 
@@ -290,7 +290,7 @@ func (r *ComposePage) pbChart(opt map[string]interface{}) (out *Ref) {
 
 func (r *ComposePage) pbCalendar(opt map[string]interface{}) (out *Ref) {
 	id := r.optString(opt, "module", "moduleID")
-	if id == "" {
+	if id == "" || id == "0" {
 		return
 	}
 
@@ -299,7 +299,7 @@ func (r *ComposePage) pbCalendar(opt map[string]interface{}) (out *Ref) {
 
 func (r *ComposePage) pbMetric(opt map[string]interface{}) (out *Ref) {
 	id := r.optString(opt, "module", "moduleID")
-	if id == "" {
+	if id == "" || id == "0" {
 		return
 	}
 

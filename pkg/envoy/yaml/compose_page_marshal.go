@@ -188,17 +188,26 @@ func (c *composePageBlock) MarshalYAML() (interface{}, error) {
 	opt := c.res.Options
 	switch c.res.Kind {
 	case "RecordList":
-		opt["moduleID"] = c.refMod[0]
+		delete(opt, "moduleID")
+		if len(c.refMod) > 0 {
+			opt["moduleID"] = c.refMod[0]
+		}
 		delete(opt, "module")
 		break
 
 	case "RecordOrganizer":
-		opt["moduleID"] = c.refMod[0]
+		delete(opt, "moduleID")
+		if len(c.refMod) > 0 {
+			opt["moduleID"] = c.refMod[0]
+		}
 		delete(opt, "module")
 		break
 
 	case "Chart":
-		opt["chartID"] = c.refChart[0]
+		delete(opt, "chartID")
+		if len(c.refChart) > 0 {
+			opt["chartID"] = c.refChart[0]
+		}
 		delete(opt, "chart")
 		break
 
@@ -237,7 +246,10 @@ func (c *composePageBlock) MarshalYAML() (interface{}, error) {
 		break
 
 	case "Comment":
-		opt["moduleID"] = c.refMod[0]
+		delete(opt, "moduleID")
+		if len(c.refMod) > 0 {
+			opt["moduleID"] = c.refMod[0]
+		}
 		delete(opt, "module")
 		break
 
