@@ -40,12 +40,6 @@ jobs:
       - uses: actions/setup-go@v1
         with:
           go-version: 1.16
-      - uses: actions/cache@v2
-        if: ${{ !env.ACT }}
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: ${{ runner.os }}-go-
       - run: make release-clean release
       - run: make upload
         if: ${{ !env.ACT }}
@@ -91,7 +85,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - run: docker build -t cortezaproject/corteza-server:${{ env.BUILD_VERSION }} .
+      - run: docker build --build-arg "BUILD_VERSION=${BUILD_VERSION}" -t cortezaproject/corteza-server:${{ env.BUILD_VERSION }} .
         if: ${{ !env.ACT }}
       - run: docker push cortezaproject/corteza-server:${{ env.BUILD_VERSION }}
         if: ${{ !env.ACT }}
