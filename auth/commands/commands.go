@@ -130,7 +130,7 @@ func Command(ctx context.Context, app serviceInitializer, storeInit func(ctx con
 		autoDiscoverCmd,
 		testEmails,
 		jwtCmd,
-		assets(app.Options()),
+		assets(app),
 	)
 
 	return cmd

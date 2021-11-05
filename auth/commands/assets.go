@@ -7,11 +7,10 @@ import (
 
 	"github.com/cortezaproject/corteza-server/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
-	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/spf13/cobra"
 )
 
-func assets(opt *options.Options) *cobra.Command {
+func assets(app serviceInitializer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "assets",
 		Short: "Authentication flow assets (styling, images) and templates",
@@ -22,7 +21,7 @@ func assets(opt *options.Options) *cobra.Command {
 		Short: "Exports embedded assets into provided path (must exists)",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			assetsRoot := opt.Auth.AssetsPath
+			assetsRoot := app.Options().Auth.AssetsPath
 			if len(args) > 0 {
 				assetsRoot = args[0]
 			}
