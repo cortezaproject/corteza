@@ -56,7 +56,7 @@ slug:
   description: The short name will be used in the URL
   label: Short name *
   placeholder: Enter a short name for the namespace
-  invalid-handle-characters: Should be al least 2 characters long and start with a letter. Can contains only letters, numbers, dash, underscore and dot
+  invalid-handle-characters: Should be at least 2 characters long and start with a letter. Can contains only letters, numbers, dash, underscore and dot
 subtitle:
   label: Subtitle
   placeholder: Enter namespace subtitle
