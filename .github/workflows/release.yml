@@ -74,6 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - test
+      - release-linux
     env:
       BUILD_OS: linux
       BUILD_ARCH: amd64
@@ -85,7 +86,9 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - run: docker build --build-arg "BUILD_VERSION=${BUILD_VERSION}" -t cortezaproject/corteza-server:${{ env.BUILD_VERSION }} .
+      - run: | 
+          docker build --build-arg "VERSION=${{ env.BUILD_VERSION }}" \
+                       -t cortezaproject/corteza-server:${{ env.BUILD_VERSION }} .
         if: ${{ !env.ACT }}
       - run: docker push cortezaproject/corteza-server:${{ env.BUILD_VERSION }}
         if: ${{ !env.ACT }}

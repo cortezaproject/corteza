@@ -52,7 +52,8 @@ jobs:
           username: ${{ secrets.GH_USERNAME }}
           password: ${{ secrets.GH_TOKEN }}
       - run: |
-          docker build -t ghcr.io/cortezaproject/corteza-server:${{ env.BUILD_VERSION_SHA }} \
+          docker build --build-arg "VERSION=${{ env.BUILD_VERSION }}" \
+                       -t ghcr.io/cortezaproject/corteza-server:${{ env.BUILD_VERSION_SHA }} \
                        -t ghcr.io/cortezaproject/corteza-server:${{ env.BUILD_VERSION_REF }} .
         if: ${{ !env.ACT }}
       - run: docker push ghcr.io/cortezaproject/corteza-server:${{ env.BUILD_VERSION_SHA }}
