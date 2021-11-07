@@ -12,6 +12,7 @@ system:
     queues: Messaging Queues
     roles: Roles
     settings: Settings
+    email: Email settings
     stats: Stats
     templates: Templates
 

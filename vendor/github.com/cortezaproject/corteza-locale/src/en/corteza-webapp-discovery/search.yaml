@@ -11,4 +11,5 @@ card:
   user: User
   email: Email
   record: Record
+  fields: Fields
 

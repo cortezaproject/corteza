@@ -6,6 +6,8 @@ editor:
     deletedAt: Deleted at
     email: Email
     handle: Handle
+    placeholder-handle: handle (a - z, 0 - 9, underscore, dash)
+    invalid-handle-characters: Should be at least 2 characters long and start with a letter. Can contains only letters, numbers, dash, underscore and dot
     name: Full name
     revokeAllSession: Revoke all active sessions
     suspend: Suspend
