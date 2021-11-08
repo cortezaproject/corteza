@@ -59,26 +59,29 @@ func (n *composePage) Prepare(ctx context.Context, state *envoy.ResourceState) (
 				switch ref.ResourceType {
 				case composeTypes.ModuleResourceType:
 					relMod := resource.FindComposeModule(state.ParentResources, ref.Identifiers)
-					cpb.relMod = append(cpb.relMod, relMod)
-					if cpb.relMod == nil {
+					if relMod == nil {
 						return resource.ComposeModuleErrUnresolved(ref.Identifiers)
 					}
+
+					cpb.relMod = append(cpb.relMod, relMod)
 					cpb.refMod = append(cpb.refMod, relModToRef(relMod))
 
 				case automationTypes.WorkflowResourceType:
 					relWf := resource.FindAutomationWorkflow(state.ParentResources, ref.Identifiers)
-					cpb.relWf = append(cpb.relWf, relWf)
-					if cpb.relWf == nil {
+					if relWf == nil {
 						return resource.AutomationWorkflowErrUnresolved(ref.Identifiers)
 					}
+
+					cpb.relWf = append(cpb.relWf, relWf)
 					cpb.refWf = append(cpb.refWf, relWfToRef(relWf))
 
 				case composeTypes.ChartResourceType:
 					relChart := resource.FindComposeChart(state.ParentResources, ref.Identifiers)
-					cpb.relChart = append(cpb.relChart, relChart)
-					if cpb.relChart == nil {
+					if relChart == nil {
 						return resource.ComposeChartErrUnresolved(ref.Identifiers)
 					}
+
+					cpb.relChart = append(cpb.relChart, relChart)
 					cpb.refChart = append(cpb.refChart, relChartToRef(relChart))
 
 				default:
