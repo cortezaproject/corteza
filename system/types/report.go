@@ -16,8 +16,9 @@ type (
 		Handle string      `json:"handle"`
 		Meta   *ReportMeta `json:"meta,omitempty"`
 
-		Sources ReportDataSourceSet `json:"sources"`
-		Blocks  ReportBlockSet      `json:"blocks"`
+		Scenarios ReportScenarioSet   `json:"scenarios,omitempty"`
+		Sources   ReportDataSourceSet `json:"sources"`
+		Blocks    ReportBlockSet      `json:"blocks"`
 
 		// Report labels
 		Labels map[string]string `json:"labels,omitempty"`
@@ -29,6 +30,14 @@ type (
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedBy uint64     `json:"deletedBy,omitempty"`
 		DeletedAt *time.Time `json:"deletedAt,omitempty"`
+	}
+
+	ReportScenarioSet []*ReportScenario
+	ScenarioFilterMap map[string]*report.Filter
+	ReportScenario    struct {
+		// ScenarioID uint64 `json:"scenarioID,string,omitempty"`
+		Label   string            `json:"label"`
+		Filters ScenarioFilterMap `json:"filters,omitempty"`
 	}
 
 	ReportDataSource struct {
@@ -154,6 +163,26 @@ func (vv *ReportDataSourceSet) Scan(value interface{}) error {
 	switch value.(type) {
 	case nil:
 		*vv = ReportDataSourceSet{}
+	case []uint8:
+		b := value.([]byte)
+		if err := json.Unmarshal(b, vv); err != nil {
+			return fmt.Errorf("cannot scan '%v' into ReportDataSourceSet: %w", string(b), err)
+		}
+	}
+
+	return nil
+}
+
+// Scan on ReportScenarioSet gracefully handles conversion from NULL
+func (vv ReportScenarioSet) Value() (driver.Value, error) {
+	return json.Marshal(vv)
+}
+
+func (vv *ReportScenarioSet) Scan(value interface{}) error {
+	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
+	switch value.(type) {
+	case nil:
+		*vv = ReportScenarioSet{}
 	case []uint8:
 		b := value.([]byte)
 		if err := json.Unmarshal(b, vv); err != nil {

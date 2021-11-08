@@ -1391,6 +1391,7 @@ endpoints:
       post:
       - { name: handle,       type: string,                       title: Client handle }
       - { name: meta,         type: '*types.ReportMeta',          title: Additional info,         parser: types.ParseReportMeta }
+      - { name: scenarios,    type: "types.ReportScenarioSet",    title: Report scenarios }
       - { name: sources,      type: "types.ReportDataSourceSet",  title: Report source definitions }
       - { name: blocks,       type: "types.ReportBlockSet",       title: Report blocks definition }
       - { name: labels,       type: 'map[string]string',          title: Labels,                  parser: label.ParseStrings }
@@ -1407,6 +1408,7 @@ endpoints:
       post:
       - { name: handle,       type: string,                       title: Client handle }
       - { name: meta,         type: '*types.ReportMeta',          title: Additional info,         parser: types.ParseReportMeta }
+      - { name: scenarios,    type: "types.ReportScenarioSet",    title: Report scenarios }
       - { name: sources,      type: "types.ReportDataSourceSet",  title: Report sources definition }
       - { name: blocks,       type: "types.ReportBlockSet",       title: Report blocks definition }
       - { name: labels,       type: 'map[string]string',          title: Labels,                  parser: label.ParseStrings }

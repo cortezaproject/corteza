@@ -368,6 +368,7 @@ func (Schema) Reports() *Table {
 		ID,
 		ColumnDef("handle", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
 		ColumnDef("meta", ColumnTypeJson),
+		ColumnDef("scenarios", ColumnTypeJson),
 		ColumnDef("sources", ColumnTypeJson),
 		ColumnDef("blocks", ColumnTypeJson),
 
