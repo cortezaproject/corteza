@@ -5,6 +5,7 @@ fields:
   - { field: ID }
   - { field: Handle, sortable: true }
   - { field: Meta, type: '*ReportMeta' }
+  - { field: Scenarios, type: 'ReportScenarioSet' }
   - { field: Sources, type: 'ReportDataSourceSet' }
   - { field: Blocks, type: 'ReportBlockSet' }
   - { field: OwnedBy }

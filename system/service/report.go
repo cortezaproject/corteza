@@ -184,6 +184,7 @@ func (svc *report) Update(ctx context.Context, upd *types.Report) (report *types
 		// Assign changed values after afterUpdate events are emitted
 		report.Handle = upd.Handle
 		report.Meta = upd.Meta
+		report.Scenarios = upd.Scenarios
 		report.Sources = upd.Sources
 		report.Blocks = upd.Blocks
 		report.UpdatedAt = now()

@@ -79,6 +79,11 @@ type (
 		// Additional info
 		Meta *types.ReportMeta
 
+		// Scenarios POST parameter
+		//
+		// Report scenarios
+		Scenarios types.ReportScenarioSet
+
 		// Sources POST parameter
 		//
 		// Report source definitions
@@ -110,6 +115,11 @@ type (
 		//
 		// Additional info
 		Meta *types.ReportMeta
+
+		// Scenarios POST parameter
+		//
+		// Report scenarios
+		Scenarios types.ReportScenarioSet
 
 		// Sources POST parameter
 		//
@@ -286,11 +296,12 @@ func NewReportCreate() *ReportCreate {
 // Auditable returns all auditable/loggable parameters
 func (r ReportCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"handle":  r.Handle,
-		"meta":    r.Meta,
-		"sources": r.Sources,
-		"blocks":  r.Blocks,
-		"labels":  r.Labels,
+		"handle":    r.Handle,
+		"meta":      r.Meta,
+		"scenarios": r.Scenarios,
+		"sources":   r.Sources,
+		"blocks":    r.Blocks,
+		"labels":    r.Labels,
 	}
 }
 
@@ -302,6 +313,11 @@ func (r ReportCreate) GetHandle() string {
 // Auditable returns all auditable/loggable parameters
 func (r ReportCreate) GetMeta() *types.ReportMeta {
 	return r.Meta
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ReportCreate) GetScenarios() types.ReportScenarioSet {
+	return r.Scenarios
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -359,6 +375,13 @@ func (r *ReportCreate) Fill(req *http.Request) (err error) {
 			}
 		}
 
+		//if val, ok := req.Form["scenarios[]"]; ok && len(val) > 0  {
+		//    r.Scenarios, err = types.ReportScenarioSet(val), nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
+
 		//if val, ok := req.Form["sources[]"]; ok && len(val) > 0  {
 		//    r.Sources, err = types.ReportDataSourceSet(val), nil
 		//    if err != nil {
@@ -397,12 +420,13 @@ func NewReportUpdate() *ReportUpdate {
 // Auditable returns all auditable/loggable parameters
 func (r ReportUpdate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"reportID": r.ReportID,
-		"handle":   r.Handle,
-		"meta":     r.Meta,
-		"sources":  r.Sources,
-		"blocks":   r.Blocks,
-		"labels":   r.Labels,
+		"reportID":  r.ReportID,
+		"handle":    r.Handle,
+		"meta":      r.Meta,
+		"scenarios": r.Scenarios,
+		"sources":   r.Sources,
+		"blocks":    r.Blocks,
+		"labels":    r.Labels,
 	}
 }
 
@@ -419,6 +443,11 @@ func (r ReportUpdate) GetHandle() string {
 // Auditable returns all auditable/loggable parameters
 func (r ReportUpdate) GetMeta() *types.ReportMeta {
 	return r.Meta
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ReportUpdate) GetScenarios() types.ReportScenarioSet {
+	return r.Scenarios
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -475,6 +504,13 @@ func (r *ReportUpdate) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+
+		//if val, ok := req.Form["scenarios[]"]; ok && len(val) > 0  {
+		//    r.Scenarios, err = types.ReportScenarioSet(val), nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
 
 		//if val, ok := req.Form["sources[]"]; ok && len(val) > 0  {
 		//    r.Sources, err = types.ReportDataSourceSet(val), nil

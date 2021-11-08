@@ -93,11 +93,12 @@ func (ctrl *Report) Create(ctx context.Context, r *request.ReportCreate) (interf
 	var (
 		err error
 		app = &types.Report{
-			Handle:  r.Handle,
-			Meta:    r.Meta,
-			Sources: r.Sources,
-			Blocks:  r.Blocks,
-			Labels:  r.Labels,
+			Handle:    r.Handle,
+			Meta:      r.Meta,
+			Scenarios: r.Scenarios,
+			Sources:   r.Sources,
+			Blocks:    r.Blocks,
+			Labels:    r.Labels,
 		}
 	)
 
@@ -109,12 +110,13 @@ func (ctrl *Report) Update(ctx context.Context, r *request.ReportUpdate) (interf
 	var (
 		err error
 		app = &types.Report{
-			ID:      r.ReportID,
-			Handle:  r.Handle,
-			Meta:    r.Meta,
-			Sources: r.Sources,
-			Blocks:  r.Blocks,
-			Labels:  r.Labels,
+			ID:        r.ReportID,
+			Handle:    r.Handle,
+			Meta:      r.Meta,
+			Scenarios: r.Scenarios,
+			Sources:   r.Sources,
+			Blocks:    r.Blocks,
+			Labels:    r.Labels,
 		}
 	)
 

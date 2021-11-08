@@ -86,10 +86,15 @@ func (g genericUpgrades) Upgrade(ctx context.Context, t *ddl.Table) error {
 		return g.all(ctx,
 			g.CreateAutomationSessionIndexes,
 		)
-		//case "compose_attachment_binds":
-		//	return g.all(ctx,
-		//		g.MigrateComposeAttachmentsToBindsTable,
-		//	)
+	//case "compose_attachment_binds":
+	//	return g.all(ctx,
+	//		g.MigrateComposeAttachmentsToBindsTable,
+	//	)
+
+	case "reports":
+		return g.all(ctx,
+			g.AddScenariosField,
+		)
 	}
 
 	return nil
@@ -275,6 +280,20 @@ func (g genericUpgrades) RenameReminders(ctx context.Context) error {
 
 func (g genericUpgrades) DropOrganisationTable(ctx context.Context) error {
 	_, err := g.u.DropTable(ctx, "organization")
+	return err
+}
+
+func (g genericUpgrades) AddScenariosField(ctx context.Context) error {
+	var (
+		col = &ddl.Column{
+			Name:         "scenarios",
+			Type:         ddl.ColumnType{Type: ddl.ColumnTypeJson},
+			IsNull:       false,
+			DefaultValue: "NULL",
+		}
+	)
+
+	_, err := g.u.AddColumn(ctx, "reports", col)
 	return err
 }
 
