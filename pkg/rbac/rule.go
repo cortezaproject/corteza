@@ -2,7 +2,6 @@ package rbac
 
 import (
 	"fmt"
-	"sort"
 )
 
 type (
@@ -38,13 +37,6 @@ func indexRules(rules []*Rule) OptRuleSet {
 		}
 
 		i[r.Operation][r.RoleID] = append(i[r.Operation][r.RoleID], r)
-	}
-
-	// sort rules
-	for op := range i {
-		for roleID := range i[op] {
-			sort.Sort(i[op][roleID])
-		}
 	}
 
 	return i
