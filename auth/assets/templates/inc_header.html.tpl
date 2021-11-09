@@ -11,8 +11,9 @@
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 		<!-- Custom CSS -->
+	    <link rel="icon" id="favicon" href="{{ links.Assets }}/favicon32x32.png">
 		<link href="{{ links.Assets }}/style.css?{{ buildtime }}" rel="stylesheet">
-        <title>Corteza</title>
+        <title>PlanetCrust</title>
 	</head>
 	<body style="background: url({{ links.Assets }}/background.jpeg) no-repeat top;background-size: cover;background-attachment: fixed;">
         {{ if .user }}
