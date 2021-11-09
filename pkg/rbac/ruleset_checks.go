@@ -1,5 +1,9 @@
 package rbac
 
+import (
+	"sort"
+)
+
 func check(indexedRules OptRuleSet, rolesByKind partRoles, op, res string) Access {
 	if member(rolesByKind, AnonymousRole) && len(rolesByKind) > 1 {
 		// Integrity check; when user is member of anonymous role
@@ -17,7 +21,7 @@ func check(indexedRules OptRuleSet, rolesByKind partRoles, op, res string) Acces
 		return Inherit
 	}
 
-	var rules []*Rule
+	var rules RuleSet
 
 	// Priority is important here. We want to have
 	// stable RBAC check behaviour and ability
@@ -53,9 +57,11 @@ func check(indexedRules OptRuleSet, rolesByKind partRoles, op, res string) Acces
 }
 
 // Check given resource match and operation on all given rules
-//
-// Function expects rules, sorted by level!
-func checkRulesByResource(set []*Rule, op, res string) Access {
+func checkRulesByResource(set RuleSet, op, res string) Access {
+	// Make sure rules are always sorted (by level)
+	// to avoid any kind of unstable behaviour
+	sort.Sort(set)
+
 	for _, r := range set {
 		if !matchResource(r.Resource, res) {
 			continue

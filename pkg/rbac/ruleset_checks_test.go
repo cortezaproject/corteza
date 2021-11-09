@@ -56,6 +56,22 @@ func Test_check(t *testing.T) {
 					{RoleID: 2, Access: Deny},
 				},
 			},
+			{
+				"complex inheritance",
+				Deny,
+				"test::test:test/1/2/3",
+				"",
+				[]*Role{
+					{id: 1, kind: CommonRole},
+					{id: 2, kind: CommonRole},
+				},
+				[]*Rule{
+					{RoleID: 1, Operation: "", Resource: "test::test:test/1/*/*", Access: Allow},
+					{RoleID: 2, Operation: "", Resource: "test::test:test/*/*/3", Access: Allow},
+					{RoleID: 2, Operation: "", Resource: "test::test:test/1/2/3", Access: Deny},
+					{RoleID: 1, Operation: "", Resource: "test::test:test/*/2/3", Access: Allow},
+				},
+			},
 		}
 	)
 
