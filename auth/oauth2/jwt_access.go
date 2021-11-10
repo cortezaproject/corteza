@@ -11,6 +11,8 @@ import (
 )
 
 // NewJWTAccessGenerate create to generate the jwt access token instance
+//
+// @todo move this to pkg/auth (??) so it can be re-used
 func NewJWTAccessGenerate(kid string, key []byte, method jwt.SigningMethod) *JWTAccessGenerate {
 	return &JWTAccessGenerate{
 		SignedKeyID:  kid,

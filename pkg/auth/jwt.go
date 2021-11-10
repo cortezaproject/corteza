@@ -4,12 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/system/types"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/pkg/rand"
+	"github.com/cortezaproject/corteza-server/system/types"
 
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/dgrijalva/jwt-go"
@@ -22,6 +24,7 @@ type (
 		// Expiration time in minutes
 		expiry    time.Duration
 		tokenAuth *jwtauth.JWTAuth
+		secret    []byte
 	}
 
 	tokenStore interface {
@@ -60,6 +63,7 @@ func JWT(secret string, expiry time.Duration) (tkn *token, err error) {
 	tkn = &token{
 		expiry:    expiry,
 		tokenAuth: jwtauth.New(jwt.SigningMethodHS512.Alg(), []byte(secret), nil),
+		secret:    []byte(secret),
 	}
 
 	return tkn, nil
@@ -113,21 +117,29 @@ func (t *token) Encode(i Identifiable, scope ...string) string {
 	return t.encode(i, clientID, scope...)
 }
 
+// encode give identity, clientID & scope into JWT access token (that can be use for API requests)
+//
+// @todo this follows implementation in auth/oauth2/jwt_access.go
+//       and should be refactored accordingly (move both into the same location/pkg => here)
 func (t *token) encode(i Identifiable, clientID uint64, scope ...string) string {
 	roles := ""
 	for _, r := range i.Roles() {
 		roles += fmt.Sprintf(" %d", r)
 	}
 
-	_, tkn, _ := t.tokenAuth.Encode(jwt.MapClaims{
+	claims := jwt.MapClaims{
 		"sub":   i.String(),
 		"exp":   time.Now().Add(t.expiry).Unix(),
 		"aud":   fmt.Sprintf("%d", clientID),
 		"scope": strings.Join(scope, " "),
 		"roles": strings.TrimSpace(roles),
-	})
+	}
 
-	return tkn
+	newToken := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
+	newToken.Header["salt"] = string(rand.Bytes(32))
+	access, _ := newToken.SignedString(t.secret)
+
+	return access
 }
 
 // HttpAuthenticator converts JWT claims into identity and stores it into context

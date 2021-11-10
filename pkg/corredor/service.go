@@ -104,7 +104,6 @@ type (
 	}
 
 	authTokenMaker interface {
-		auth.TokenEncoder
 		auth.TokenGenerator
 	}
 )
