@@ -91,6 +91,7 @@ func Command(ctx context.Context, app serviceInitializer, storeInit func(ctx con
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
 			var (
+				at   string
 				user *types.User
 				err  error
 
@@ -103,7 +104,9 @@ func Command(ctx context.Context, app serviceInitializer, storeInit func(ctx con
 			err = service.DefaultAuth.LoadRoleMemberships(ctx, user)
 			cli.HandleError(err)
 
-			cmd.Println(auth.DefaultJwtHandler.Encode(user))
+			at, err = auth.DefaultJwtHandler.Generate(ctx, user)
+			cli.HandleError(err)
+			cmd.Println(at)
 		},
 	}
 
