@@ -697,7 +697,7 @@ func (svc user) SetPassword(ctx context.Context, userID uint64, newPassword stri
 		a       = UserActionSetPassword
 	)
 
-	err = func() error {
+	err = func() (err error) {
 		if u, err = store.LookupUserByID(ctx, svc.store, userID); err != nil {
 			return err
 		}
@@ -712,6 +712,10 @@ func (svc user) SetPassword(ctx context.Context, userID uint64, newPassword stri
 			return UserErrNotAllowedToUpdate()
 		}
 
+		if err = svc.auth.RemoveAccessTokens(ctx, u); err != nil {
+			return
+		}
+
 		if newPassword == "" {
 			a = UserActionRemovePassword
 			return svc.auth.RemovePasswordCredentials(ctx, userID)
@@ -721,8 +725,8 @@ func (svc user) SetPassword(ctx context.Context, userID uint64, newPassword stri
 			return UserErrPasswordNotSecure()
 		}
 
-		if err := svc.auth.SetPasswordCredentials(ctx, userID, newPassword); err != nil {
-			return err
+		if err = svc.auth.SetPasswordCredentials(ctx, userID, newPassword); err != nil {
+			return
 		}
 
 		return nil

@@ -607,6 +607,10 @@ func (svc auth) ChangePassword(ctx context.Context, userID uint64, oldPassword, 
 			return err
 		}
 
+		if err = svc.RemoveAccessTokens(ctx, u); err != nil {
+			return err
+		}
+
 		return nil
 	}()
 
