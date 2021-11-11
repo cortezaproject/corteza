@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 )
 
@@ -70,6 +71,7 @@ const (
 	WorkflowStepKindDebug       WorkflowStepKind = "debug"         // ref = <*>
 	WorkflowStepKindBreak       WorkflowStepKind = "break"         // ref = <*>
 	WorkflowStepKindContinue    WorkflowStepKind = "continue"      // ref = <*>
+	WorkflowStepKindSubWorkflow WorkflowStepKind = "sub-workflow"  // ref = <id>
 )
 
 // IsDeferred fn returns true if type of step is delay or prompt

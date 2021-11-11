@@ -79,8 +79,20 @@ type (
 	}
 
 	WorkflowExecParams struct {
+		// When executed as a sub-workflow
+		CallerWorkflowID uint64
+
+		// When executed as a sub-workflow
+		CallerSessionID uint64
+
+		// When executed as a sub-workflow
+		CallerStepID uint64
+
 		// Start with this specific step
 		StepID uint64
+
+		EventType    string
+		ResourceType string
 
 		// Enable execution tracing
 		Trace bool
@@ -103,6 +115,11 @@ type (
 // @todo add flag on workflow to explicitly mark workflow as deferred even when there are no delay or prompt steps
 func (r Workflow) CheckDeferred() bool {
 	return r.Steps.HasDeferred()
+}
+
+// Executable returns true if workflow is valid and enabled
+func (r Workflow) Executable() bool {
+	return r.DeletedAt == nil && r.Enabled
 }
 
 func (r Workflow) Dict() map[string]interface{} {

@@ -3,13 +3,14 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 	"go.uber.org/zap"
-	"strings"
 )
 
 type (
@@ -18,6 +19,11 @@ type (
 		reg    *registry
 		parser expr.Parsable
 		log    *zap.Logger
+
+		graphs interface {
+			handleToID(string) uint64
+			//exec(ctx context.Context, workflowID uint64, p types.WorkflowExecParams) (*expr.Vars, types.Stacktrace, error)
+		}
 	}
 )
 
@@ -26,6 +32,7 @@ func Convert(wfService *workflow, wf *types.Workflow) (*wfexec.Graph, types.Work
 		reg:    wfService.reg,
 		parser: wfService.parser,
 		log:    wfService.log,
+		graphs: wfService,
 	}
 
 	return conv.makeGraph(wf)
@@ -92,7 +99,7 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 
 			stepIssues := verifyStep(step, inPaths, outPaths)
 
-			if resolved, err := svc.workflowStepDefConv(g, step, inPaths, outPaths); err != nil {
+			if resolved, err := svc.workflowStepDefConv(g, def, step, inPaths, outPaths); err != nil {
 				switch aux := err.(type) {
 				case types.WorkflowIssueSet:
 					stepIssues = append(stepIssues, aux...)
@@ -151,7 +158,7 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 // converts all step definitions into workflow.Step instances
 //
 // if this func returns nil for step and error, assume unresolved dependencies
-func (svc workflowConverter) workflowStepDefConv(g *wfexec.Graph, s *types.WorkflowStep, in, out []*types.WorkflowPath) (bool, error) {
+func (svc workflowConverter) workflowStepDefConv(g *wfexec.Graph, def *types.Workflow, s *types.WorkflowStep, in, out []*types.WorkflowPath) (bool, error) {
 	if err := svc.parseExpressions(s.Arguments...); err != nil {
 		return false, errors.Internal("failed to parse step arguments expressions for %s: %s", s.Kind, err).Wrap(err)
 	}
@@ -197,6 +204,9 @@ func (svc workflowConverter) workflowStepDefConv(g *wfexec.Graph, s *types.Workf
 
 		case types.WorkflowStepKindContinue:
 			return svc.convContinueStep()
+
+		case types.WorkflowStepKindSubWorkflow:
+			return svc.convSubWorkflowStep(s, def.ID)
 
 		default:
 			return nil, errors.Internal("unsupported step kind %q", s.Kind)
@@ -314,7 +324,7 @@ func (svc workflowConverter) convExpressionStep(s *types.WorkflowStep) (wfexec.S
 }
 
 // internal debug step that can log entire
-func (svc workflowConverter) convDebugStep(s *types.WorkflowStep) (wfexec.Step, error) {
+func (svc workflowConverter) convDebugStep(_ *types.WorkflowStep) (wfexec.Step, error) {
 	return types.DebugStep(svc.log), nil
 }
 
@@ -443,7 +453,7 @@ func (svc workflowConverter) convPromptStep(s *types.WorkflowStep) (wfexec.Step,
 			}
 
 			var ownerId uint64 = 0
-			if i := auth.GetIdentityFromContext(ctx); i != nil {
+			if i := auth.GetIdentityFromContextWithKey(ctx, workflowInvokerCtxKey{}); i != nil {
 				ownerId = i.Identity()
 			}
 
@@ -474,6 +484,31 @@ func (svc workflowConverter) convBreakStep() (wfexec.Step, error) {
 func (svc workflowConverter) convContinueStep() (wfexec.Step, error) {
 	return wfexec.NewGenericStep(func(ctx context.Context, r *wfexec.ExecRequest) (wfexec.ExecResponse, error) {
 		return wfexec.LoopContinue(), nil
+	}), nil
+
+}
+
+func (svc workflowConverter) convSubWorkflowStep(s *types.WorkflowStep, workflowID uint64) (wfexec.Step, error) {
+	println("preparing sub workflow step")
+	if svc.graphs.handleToID(s.Ref) == 0 {
+		return nil, errors.Internal("non existing or invalid workflow referenced")
+	}
+
+	return wfexec.NewGenericStep(func(ctx context.Context, r *wfexec.ExecRequest) (wfexec.ExecResponse, error) {
+		println("executing sub workflow step", s.Ref)
+		//out, stacktrace, err := svc.graphs.execSubWorkflow(ctx, svc.graphs.handleToID(s.Ref), types.WorkflowExecParams{
+		//	// Execute only orphaned step (if there are more, it throws an error)
+		//	StepID:           0,
+		//	CallerWorkflowID: workflowID,
+		//	CallerSessionID:  r.SessionID,
+		//	CallerStepID:     s.ID,
+		//})
+		//
+		//// @todo vv do something with this
+		//_ = stacktrace
+
+		//return out, err
+		return nil, nil
 	}), nil
 
 }
@@ -554,6 +589,16 @@ func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.Work
 			if s.Ref == "" {
 				return errors.Internal("%s step expects reference", s.Kind)
 			}
+
+			return nil
+		}
+
+		// check if reference is set on the step
+		numericRef = func() error {
+			// @todo SUBWF enable this back
+			//if 0 == cast.ToUint64(s.Ref) {
+			//	return errors.Internal("%s step expects workflow reference ID", s.Kind)
+			//}
 
 			return nil
 		}
@@ -672,6 +717,7 @@ func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.Work
 	case types.WorkflowStepKindFunction:
 		checks = append(checks,
 			requiredRef,
+			numericRef,
 			checkDisabledFunc,
 			count(0, 1, outbound),
 		)
@@ -713,6 +759,12 @@ func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.Work
 			zero(results),
 			count(0, 1, outbound),
 			last,
+		)
+
+	case types.WorkflowStepKindSubWorkflow:
+		checks = append(checks,
+			requiredRef,
+			count(0, 1, outbound),
 		)
 
 	case "":
