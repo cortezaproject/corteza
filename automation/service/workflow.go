@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"sync"
 
@@ -18,8 +19,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 	"github.com/cortezaproject/corteza-server/store"
-	sysAutoTypes "github.com/cortezaproject/corteza-server/system/automation"
-	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
 )
 
@@ -36,8 +35,11 @@ type (
 
 		log *zap.Logger
 
-		// maps resolved workflow graphs to workflow ID (key, uint64)
-		wfgs map[uint64]*wfexec.Graph
+		// cache of workflows, graphs to workflow ID (key, uint64)
+		cache map[uint64]*wfCacheItem
+
+		// handle to workflow index
+		wIndex map[string]uint64
 
 		// workflow function registry
 		reg         *registry
@@ -45,6 +47,16 @@ type (
 
 		mux    *sync.RWMutex
 		parser expr.Parsable
+	}
+
+	wfCacheItem struct {
+		wf *types.Workflow
+
+		// caching exec graph
+		g *wfexec.Graph
+
+		// caching user we'll executing workflow with
+		runAs intAuth.Identifiable
 	}
 
 	workflowAccessController interface {
@@ -72,6 +84,8 @@ type (
 
 	workflowUpdateHandler func(ctx context.Context, ns *types.Workflow) (workflowChanges, error)
 	workflowChanges       uint8
+
+	workflowInvokerCtxKey struct{}
 )
 
 const (
@@ -91,7 +105,8 @@ func Workflow(log *zap.Logger, corredorOpt options.CorredorOpt, opt options.Work
 		triggers:    DefaultTrigger,
 		session:     DefaultSession,
 		eventbus:    eventbus.Service(),
-		wfgs:        make(map[uint64]*wfexec.Graph),
+		cache:       make(map[uint64]*wfCacheItem),
+		wIndex:      make(map[string]uint64),
 		mux:         &sync.RWMutex{},
 		parser:      expr.NewParser(),
 		reg:         Registry(),
@@ -180,6 +195,8 @@ func (svc *workflow) Create(ctx context.Context, new *types.Workflow) (wf *types
 	var (
 		wap   = &workflowActionProps{new: new}
 		cUser = intAuth.GetIdentityFromContext(ctx).Identity()
+		g     *wfexec.Graph
+		runAs intAuth.Identifiable
 	)
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
@@ -215,9 +232,15 @@ func (svc *workflow) Create(ctx context.Context, new *types.Workflow) (wf *types
 			CreatedBy: cUser,
 		}
 
-		if wf.Issues, err = svc.validateWorkflow(ctx, wf); err != nil {
+		if g, runAs, err = svc.validateWorkflow(ctx, wf); err != nil {
 			return
-		} else if len(wf.Issues) == 0 {
+		}
+
+		if err = svc.updateCache(wf, runAs, g); err != nil {
+			return
+		}
+
+		if len(wf.Issues) == 0 {
 			if err = svc.triggers.registerWorkflows(ctx, wf); err != nil {
 				return err
 			}
@@ -256,32 +279,18 @@ func (svc *workflow) DeleteByID(ctx context.Context, workflowID uint64) error {
 			return workflowUnchanged, err
 		}
 
-		if res.Issues, err = svc.validateWorkflow(ctx, res); err != nil {
-			return workflowUnchanged, err
-		} else if len(res.Issues) == 0 {
-			if err := svc.triggers.registerWorkflows(ctx, res); err != nil {
-				return workflowUnchanged, err
-			}
-		}
-
 		return changes, err
-
 	}))
 }
 
 func (svc *workflow) UndeleteByID(ctx context.Context, workflowID uint64) error {
 	return trim1st(svc.updater(ctx, workflowID, WorkflowActionUndelete, func(ctx context.Context, res *types.Workflow) (workflowChanges, error) {
-		changes, err := svc.handleUndelete(ctx, res)
+		var (
+			changes, err = svc.handleUndelete(ctx, res)
+		)
+
 		if err != nil {
 			return workflowUnchanged, err
-		}
-
-		if res.Issues, err = svc.validateWorkflow(ctx, res); err != nil {
-			return workflowUnchanged, err
-		} else if len(res.Issues) == 0 {
-			if err := svc.triggers.registerWorkflows(ctx, res); err != nil {
-				return workflowUnchanged, err
-			}
 		}
 
 		return changes, err
@@ -305,6 +314,8 @@ func (svc *workflow) updater(ctx context.Context, workflowID uint64, action func
 		res     *types.Workflow
 		aProps  = &workflowActionProps{workflow: &types.Workflow{ID: workflowID}}
 		err     error
+		g       *wfexec.Graph
+		runAs   intAuth.Identifiable
 	)
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
@@ -324,9 +335,15 @@ func (svc *workflow) updater(ctx context.Context, workflowID uint64, action func
 			return err
 		}
 
-		if res.Issues, err = svc.validateWorkflow(ctx, res); err != nil {
+		if g, runAs, err = svc.validateWorkflow(ctx, res); err != nil {
 			return
-		} else if len(res.Issues) == 0 {
+		}
+
+		if err = svc.updateCache(res, runAs, g); err != nil {
+			return
+		}
+
+		if len(res.Issues) == 0 {
 			if err = svc.triggers.registerWorkflows(ctx, res); err != nil {
 				return err
 			}
@@ -344,10 +361,14 @@ func (svc *workflow) updater(ctx context.Context, workflowID uint64, action func
 			}
 		}
 
-		return err
+		return
 	})
 
 	return res, svc.recordAction(ctx, aProps, action, err)
+}
+
+func (svc *workflow) handleToID(h string) uint64 {
+	return svc.wIndex[h]
 }
 
 func (svc workflow) handleUpdate(upd *types.Workflow) workflowUpdateHandler {
@@ -472,60 +493,78 @@ func (svc workflow) handleUndelete(ctx context.Context, res *types.Workflow) (wo
 }
 
 func (svc *workflow) Load(ctx context.Context) error {
-	wwf, _, err := store.SearchAutomationWorkflows(ctx, svc.store, types.WorkflowFilter{
-		Deleted:  filter.StateInclusive,
-		Disabled: filter.StateExcluded,
-	})
+	var (
+		wwf, _, err = store.SearchAutomationWorkflows(ctx, svc.store, types.WorkflowFilter{
+			Deleted:  filter.StateInclusive,
+			Disabled: filter.StateExcluded,
+		})
+		g     *wfexec.Graph
+		runAs intAuth.Identifiable
+	)
 
 	if err != nil {
 		return err
 	}
 
+	_ = wwf.Walk(func(wf *types.Workflow) error {
+		svc.wIndex[wf.Handle] = wf.ID
+
+		if g, runAs, err = svc.validateWorkflow(ctx, wf); err != nil {
+			return err
+		}
+
+		if err = svc.updateCache(wf, runAs, g); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
 	return svc.triggers.registerWorkflows(ctx, wwf...)
+}
+
+// updateCache
+func (svc *workflow) updateCache(wf *types.Workflow, runAs intAuth.Identifiable, g *wfexec.Graph) (err error) {
+	defer svc.mux.Unlock()
+	svc.mux.Lock()
+	if wf.Executable() {
+		svc.cache[wf.ID] = &wfCacheItem{g: g, wf: wf, runAs: runAs}
+	} else {
+		// remove deleted
+		delete(svc.cache, wf.ID)
+	}
+
+	return
 }
 
 func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.WorkflowExecParams) (*expr.Vars, types.Stacktrace, error) {
 	var (
-		runAs   intAuth.Identifiable
 		wap     = &workflowActionProps{}
-		wf      *types.Workflow
 		t       *types.Trigger
 		results *expr.Vars
 		wait    WaitFn
 
 		stacktrace types.Stacktrace
-
-		runner, invoker *sysTypes.User
 	)
 
 	err := func() (err error) {
-		wf, err = loadWorkflow(ctx, svc.store, workflowID)
-		if err != nil {
-			return
+		svc.mux.Lock()
+		if nil == svc.cache[workflowID] || nil == svc.cache[workflowID].wf {
+			svc.mux.Unlock()
+			return WorkflowErrNotFound()
 		}
+
+		wf := svc.cache[workflowID].wf
+		svc.mux.Unlock()
 
 		wap.setWorkflow(wf)
-		if !svc.ac.CanExecuteWorkflow(ctx, wf) {
-			return WorkflowErrNotAllowedToExecute()
-		}
-
-		// User wants to trace workflow execution
-		// This means we'll allow him to specify any (orphaned) step
-		// even if it's not linked to onManual trigger
-		if p.Trace && !svc.ac.CanManageSessionsOnWorkflow(ctx, wf) {
-			return WorkflowErrNotAllowedToExecute()
-		}
 
 		if !wf.Enabled && !p.Trace {
 			return WorkflowErrDisabled()
 		}
 
-		g, convErr := Convert(svc, wf)
-		if len(convErr) > 0 {
-			return convErr
-		}
-
 		// Find the trigger.
+		// @todo can we cache this as well?
 		t, err = func() (*types.Trigger, error) {
 			var tt types.TriggerSet
 			// Load triggers directly from the store. At this point we do not care
@@ -552,23 +591,6 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 			return
 		}
 
-		// Start with workflow scope
-		scope := wf.Scope.MustMerge()
-
-		callStack := wfexec.GetContextCallStack(ctx)
-		if len(callStack) > svc.opt.CallStackSize {
-			return WorkflowErrMaximumCallStackSizeExceeded()
-		}
-
-		ssp := types.SessionStartParams{
-			WorkflowID: wf.ID,
-			KeepFor:    wf.KeepSessions,
-			Trace:      wf.Trace || p.Trace,
-			StepID:     p.StepID,
-
-			CallStack: callStack,
-		}
-
 		if !p.Trace {
 			if t == nil {
 				return WorkflowErrUnknownWorkflowStep()
@@ -579,59 +601,19 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 
 		if t != nil {
 			wap.setTrigger(t)
+			p.StepID = t.StepID
+			p.EventType = t.EventType
+			p.ResourceType = t.ResourceType
 
-			// Add trigger's input to scope
-			scope = scope.MustMerge(t.Input)
-			_ = scope.AssignFieldValue("eventType", expr.Must(expr.NewString(t.EventType)))
-			_ = scope.AssignFieldValue("resourceType", expr.Must(expr.NewString(t.ResourceType)))
-
-			ssp.StepID = t.StepID
-			ssp.EventType = t.EventType
-			ssp.ResourceType = t.ResourceType
+			// merge with input from trigger
+			// with trigger input vars are overwritten by input vars
+			p.Input = t.Input.MustMerge(p.Input)
 		} else {
-			ssp.EventType = "onTrace"
-			ssp.ResourceType = ""
+			p.EventType = "onTrace"
 		}
 
-		// Returns context with identity set to service user
-		//
-		// Current user (identity in the context) might not have
-		// sufficient privileges to load info about invoker and runner
-		sysUserCtx := func() context.Context {
-			return intAuth.SetIdentityToContext(ctx, intAuth.ServiceUser())
-		}
-
-		if invokerId := intAuth.GetIdentityFromContext(ctx).Identity(); invokerId > 0 {
-			var is bool
-			if invoker, is = intAuth.GetIdentityFromContext(ctx).(*sysTypes.User); !is {
-				if invoker, err = DefaultUser.FindByAny(sysUserCtx(), invokerId); err != nil {
-					return
-				}
-			}
-
-			runner = invoker
-		}
-
-		if wf.RunAs > 0 {
-			if runner, err = DefaultUser.FindByAny(sysUserCtx(), wf.RunAs); err != nil {
-				return
-			}
-		}
-
-		if runAs == nil {
-			// Default to current user
-			runAs = intAuth.GetIdentityFromContext(ctx)
-		}
-
-		// @todo find a better way to typify expression values
-		//       so that we do not have to import automation types from the system component
-		_ = scope.AssignFieldValue("invoker", expr.Must(sysAutoTypes.NewUser(invoker)))
-		_ = scope.AssignFieldValue("runner", expr.Must(sysAutoTypes.NewUser(runner)))
-
-		// Finally, assign input values
-		ssp.Input = scope.MustMerge(p.Input)
-
-		wait, err = svc.session.Start(g, runAs, ssp)
+		//wait, err = svc.session.Start(g, ssp)
+		wait, err = svc.exec(ctx, wf, p)
 
 		if err != nil {
 			return err
@@ -649,87 +631,118 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 		// reuse scope for results
 		// this will be decoded back to event properties
 		results, _, stacktrace, err = wait(ctx)
-		return
+		return err
 	}()
 
 	return results, stacktrace, svc.recordAction(ctx, wap, WorkflowActionExecute, err)
 }
 
 // validates workflow by trying to convert it to graph and checking assigned triggers
-func (svc *workflow) validateWorkflow(ctx context.Context, wf *types.Workflow) (types.WorkflowIssueSet, error) {
-	_, wis := Convert(svc, wf)
+func (svc *workflow) validateWorkflow(ctx context.Context, wf *types.Workflow) (g *wfexec.Graph, runAs intAuth.Identifiable, err error) {
+	var (
+		tt []*types.Trigger
+	)
 
-	tt, _, err := store.SearchAutomationTriggers(ctx, svc.store, types.TriggerFilter{
+	g, wf.Issues = Convert(svc, wf)
+
+	tt, _, err = store.SearchAutomationTriggers(ctx, svc.store, types.TriggerFilter{
 		WorkflowID: types.WorkflowSet{wf}.IDs(),
 		Deleted:    filter.StateExcluded,
 		Disabled:   filter.StateExcluded,
 	})
 
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	wis = append(wis, validateWorkflowTriggers(wf, tt...)...)
+	wf.Issues = append(wf.Issues, validateWorkflowTriggers(wf, tt...)...)
 
-	return wis, nil
+	// Returns context with identity set to service user
+	//
+	// Current user (identity in the context) might not have
+	// sufficient privileges to load info about invoker and runner
+	sysUserCtx := func() context.Context {
+		return intAuth.SetIdentityToContext(ctx, intAuth.ServiceUser())
+	}
+
+	// @todo this might not be the smartest thing, users might get invalidated after
+	//       we add cache them as workflow runners
+	if wf.RunAs > 0 {
+		if runAs, err = DefaultUser.FindByAny(sysUserCtx(), wf.RunAs); err != nil {
+			wf.Issues = wf.Issues.Append(fmt.Errorf("failed to load run-as user %d: %w", wf.RunAs, err), nil)
+		} else if !runAs.Valid() {
+			wf.Issues = wf.Issues.Append(fmt.Errorf("invalid user %d used for workflow run-as", wf.RunAs), nil)
+		}
+	}
+
+	return
 }
 
-func makeWorkflowHandler(ac workflowExecController, s *session, t *types.Trigger, wf *types.Workflow, g *wfexec.Graph, _runAs intAuth.Identifiable) eventbus.HandlerFn {
+func (svc *workflow) exec(ctx context.Context, wf *types.Workflow, p types.WorkflowExecParams) (WaitFn, error) {
+	if wf.Issues != nil {
+		return nil, wf.Issues
+	}
+
+	defer svc.mux.Unlock()
+	svc.mux.Lock()
+
+	if svc.cache[wf.ID] == nil {
+		return nil, WorkflowErrInvalidID()
+	}
+
+	var (
+		g     = svc.cache[wf.ID].g
+		runAs = svc.cache[wf.ID].runAs
+
+		scope *expr.Vars
+	)
+
+	// merge workflow scope with the input
+	scope = wf.Scope.MustMerge(p.Input)
+
+	// User (either invoker or one set in the security descriptor) MUST have
+	// permissions to execute this workflow
+	if !svc.ac.CanExecuteWorkflow(ctx, wf) {
+		return nil, WorkflowErrNotAllowedToExecute()
+	}
+
+	return svc.session.Start(ctx, g, types.SessionStartParams{
+		Invoker: intAuth.GetIdentityFromContext(ctx),
+		Runner:  runAs,
+
+		WorkflowID:   wf.ID,
+		KeepFor:      wf.KeepSessions,
+		Trace:        wf.Trace,
+		Input:        scope,
+		StepID:       p.StepID,
+		EventType:    p.EventType,
+		ResourceType: p.ResourceType,
+
+		CallStack: wfexec.GetContextCallStack(ctx),
+	})
+}
+
+func makeWorkflowHandler(svc *workflow, wf *types.Workflow, t *types.Trigger) eventbus.HandlerFn {
 	return func(ctx context.Context, ev eventbus.Event) (err error) {
 		var (
-			// create session scope from predefined workflow scope and trigger input
-			scope   = wf.Scope.MustMerge(t.Input)
-			evScope *expr.Vars
-			wait    WaitFn
-
-			// The returned closure needs to have its own instance, so it doesn't
-			// affect the instance bound to the workflow handler
-			runAs = _runAs
+			scope *expr.Vars
 		)
 
-		if enc, is := ev.(varsEncoder); is {
-			if evScope, err = enc.EncodeVars(); err != nil {
+		if dec, is := ev.(varsEncoder); is {
+			scope, err = dec.EncodeVars()
+			if err != nil {
 				return
 			}
-
-			scope = scope.MustMerge(evScope)
 		}
 
-		_ = scope.AssignFieldValue("eventType", expr.Must(expr.NewString(ev.EventType())))
-		_ = scope.AssignFieldValue("resourceType", expr.Must(expr.NewString(ev.ResourceType())))
-
-		if runAs == nil {
-			// @todo can/should we get alternative identity from Event?
-			//       for example:
-			//         - use http auth header and get username
-			//         - use from/to/replyTo and use that as an identifier
-			runAs = intAuth.GetIdentityFromContext(ctx)
-		} else {
-			// Running workflow with a different security context
-			ctx = intAuth.SetIdentityToContext(ctx, runAs)
-		}
-
-		// User (either invoker or one set in the security descriptor) MUST have
-		// permissions to execute this workflow
-		if !ac.CanExecuteWorkflow(ctx, wf) {
-			return WorkflowErrNotAllowedToExecute()
-		}
-
-		callStack := wfexec.GetContextCallStack(ctx)
-		if len(callStack) > s.opt.CallStackSize {
-			return WorkflowErrMaximumCallStackSizeExceeded()
-		}
-
-		wait, err = s.Start(g, runAs, types.SessionStartParams{
-			WorkflowID:   wf.ID,
-			KeepFor:      wf.KeepSessions,
-			Trace:        wf.Trace,
-			Input:        scope,
+		wait, err := svc.exec(ctx, wf, types.WorkflowExecParams{
 			StepID:       t.StepID,
 			EventType:    t.EventType,
 			ResourceType: t.ResourceType,
+			Input:        t.Input.MustMerge(scope),
 
-			CallStack: callStack,
+			Trace: wf.Trace,
+			Async: false,
 		})
 
 		if err != nil {
