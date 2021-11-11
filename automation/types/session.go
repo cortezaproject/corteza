@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
@@ -53,6 +54,12 @@ type (
 	}
 
 	SessionStartParams struct {
+		// Always set, users that invoked/started the workflow session
+		Invoker auth.Identifiable
+
+		// Optional, (alternative) user that is running the workflow
+		Runner auth.Identifiable
+
 		WorkflowID   uint64
 		KeepFor      int
 		Trace        bool
@@ -192,6 +199,42 @@ func (set *Stacktrace) Scan(value interface{}) error {
 // Scan on WorkflowStepSet gracefully handles conversion from NULL
 func (set Stacktrace) Value() (driver.Value, error) {
 	return json.Marshal(set)
+}
+
+func (set Stacktrace) String() (str string) {
+	for i, f := range set {
+		str += fmt.Sprintf(
+			"[%3d] %-14s %d (",
+			i,
+			f.CreatedAt.Format("15:04:05.00000"),
+			f.StepID,
+		)
+
+		if f.Input.Len() == 0 {
+			str += "no input, "
+		}
+
+		if f.Scope.Len() == 0 {
+			str += "no scope, "
+		}
+
+		if f.Results.Len() == 0 {
+			str += "no results, "
+		}
+		str += ")"
+
+		if f.Scope.Len() > 0 {
+			str += fmt.Sprintf("   Scope:\n")
+			f.Scope.Each(func(k string, v expr.TypedValue) error {
+				str += fmt.Sprintf("     [%s]: %v\n", k, v)
+				return nil
+			})
+		}
+
+		str += "\n"
+	}
+
+	return
 }
 
 func (s SessionStatus) String() string {
