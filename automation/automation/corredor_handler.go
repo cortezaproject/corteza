@@ -93,15 +93,26 @@ func (a *scriptArgs) Decode(enc map[string][]byte) (err error) {
 
 // Sanitizing all uint64 values that are encoded into JSON
 func sanitizeMapStringInterface(m map[string]interface{}) {
-	for k := range m {
-		switch v := m[k].(type) {
+	var sw func(interface{}) string
+	sw = func(i interface{}) (s string) {
+		switch v := i.(type) {
 		case uint64:
 			// make sure uint64 values on fields ending with ID
 			// are properly encoded as strings
-			m[k] = strconv.FormatUint(v, 10)
+			s = strconv.FormatUint(v, 10)
 
 		case map[string]interface{}:
 			sanitizeMapStringInterface(v)
+		case []interface{}:
+			for _, vv := range i.([]interface{}) {
+				sw(vv)
+			}
+		}
+		return
+	}
+	for k := range m {
+		if s := sw(m[k]); len(s) > 0 {
+			m[k] = sw(m[k])
 		}
 	}
 }
