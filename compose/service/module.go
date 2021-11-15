@@ -729,7 +729,7 @@ func moduleFieldDefaultPreparer(ctx context.Context, s store.Storer, m *types.Mo
 			Values: vv,
 		}
 
-		rve := defaultValidator(nil).Run(ctx, s, auxm, r)
+		rve := defaultValidator(DefaultRecord).Run(ctx, s, auxm, r)
 		if !rve.IsValid() {
 			return nil, rve
 		}

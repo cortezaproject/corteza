@@ -163,7 +163,7 @@ func Record() RecordService {
 	return svc
 }
 
-func defaultValidator(svc *record) recordValuesValidator {
+func defaultValidator(svc RecordService) recordValuesValidator {
 	// Initialize validator and setup all checkers it needs
 	validator := values.Validator()
 
