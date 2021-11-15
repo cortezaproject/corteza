@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/expr"
@@ -103,6 +104,13 @@ func (t *typedValue) MarshalJSON() ([]byte, error) {
 
 	aux.Type = t.V.Type()
 	aux.Value = t.V.Get()
+
+	switch aux.Type {
+	case "ID", "Record", "User":
+		v := aux.Value.(uint64)
+		aux.Value = strconv.FormatUint(v, 10)
+	}
+
 	return json.Marshal(aux)
 }
 

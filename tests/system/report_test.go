@@ -12,6 +12,7 @@ import (
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
+	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 )
 
 func (h helper) createReport(report *types.Report) *types.Report {
@@ -35,6 +36,72 @@ func (h helper) lookupReportByHandle(handle string) *types.Report {
 	res, err := store.LookupReportByHandle(context.Background(), service.DefaultStore, handle)
 	h.noError(err)
 	return res
+}
+
+func TestReportFilterCasting(t *testing.T) {
+	h := newHelper(t)
+	h.clearReports()
+	helpers.AllowMe(h, types.ComponentRbacResource(), "report.create")
+
+	baseAssertPath := "$.response.sources[0].step.load.filter"
+
+	h.apiInit().
+		Post("/reports/").
+		Header("Accept", "application/json").
+		JSON(`{
+			"handle": "test_report",
+			"meta": { "name": "Test Report", "description": "" },
+			"sources": [
+				{
+					"meta": {},
+					"step": {
+						"load": {
+							"name": "Load",
+							"source": "composeRecords",
+							"definition": {
+								"module": "test",
+								"namespace": "test"
+							},
+							"columns": null,
+							"filter": {
+								"ref": "or",
+								"args": [
+									{
+										"ref": "eq",
+										"args": [
+											{ "symbol": "id_str" },
+											{
+												"value": { "@type": "ID", "@value": "123123123" }
+											}
+										]
+									},
+									{
+										"ref": "eq",
+										"args": [
+											{ "symbol": "id_uint" },
+											{
+												"value": { "@type": "ID", "@value": 123123123 }
+											}
+										]
+									}
+								]
+							}
+						}
+					}
+				}
+			],
+			"blocks": []
+		}`).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		// Strings handled
+		Assert(jsonpath.Equal(baseAssertPath+`.args[0].args[1].value["@value"]`, "123123123")).
+		Assert(jsonpath.Equal(baseAssertPath+`.args[0].args[0].symbol`, "id_str")).
+		// uint handled
+		Assert(jsonpath.Equal(baseAssertPath+`.args[1].args[1].value["@value"]`, "123123123")).
+		Assert(jsonpath.Equal(baseAssertPath+`.args[1].args[0].symbol`, "id_uint")).
+		End()
 }
 
 func TestReportScenarios_create(t *testing.T) {
