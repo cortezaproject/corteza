@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"testing"
 	"time"
 
@@ -463,6 +464,51 @@ func TestModuleFieldsDefaultValue(t *testing.T) {
 		h.a.NotNil(m.Fields[0].DefaultValue)
 		h.a.Len(m.Fields[0].DefaultValue, 1)
 		h.a.Equal("1", m.Fields[0].DefaultValue[0].Value)
+	})
+
+	t.Run("record; valid", func(t *testing.T) {
+		prep()
+
+		// Prep the related module
+		refM := h.makeModule(ns, "ref-mod", &types.ModuleField{
+			ID:   id.Next(),
+			Kind: "String",
+			Name: "string",
+		})
+		rec := h.makeRecord(refM, &types.RecordValue{
+			Name:  "string",
+			Value: "val",
+		})
+
+		// Prep the module and a field
+		m := h.makeModule(ns, "some-module", &types.ModuleField{
+			ID:   id.Next(),
+			Kind: "String",
+			Name: "string",
+		})
+
+		// RBAC (make sure to allow record read)
+		helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "update")
+		helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "read")
+
+		f := m.Fields[0]
+		fjs := fmt.Sprintf(`{ "name": "%s", "fields": [{ "fieldID": "%d", "name": "record", "kind": "Record", "options": {"moduleID": "%d"}, "defaultValue": [{"value": "%d"}] }] }`, m.Name, f.ID, refM.ID, rec.ID)
+		h.apiInit().
+			Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
+			JSON(fjs).
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			End()
+
+		m = h.lookupModuleByID(m.ID)
+		h.a.NotNil(m)
+		h.a.NotNil(m.Fields)
+		h.a.Len(m.Fields, 1)
+
+		h.a.NotNil(m.Fields[0].DefaultValue)
+		h.a.Len(m.Fields[0].DefaultValue, 1)
+		h.a.Equal(strconv.FormatUint(rec.ID, 10), m.Fields[0].DefaultValue[0].Value)
 	})
 }
 
