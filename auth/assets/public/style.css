@@ -142,3 +142,39 @@ input:-webkit-autofill::first-line {
   vertical-align: middle;
   line-height: 1.6;
 }
+
+html[dir="rtl"] body,
+html[dir="rtl"] .h1, 
+html[dir="rtl"] .h2, 
+html[dir="rtl"] .h3,
+html[dir="rtl"] .h4,
+html[dir="rtl"] .h5,
+html[dir="rtl"] .h6,
+html[dir="rtl"] h1,
+html[dir="rtl"] h2,
+html[dir="rtl"] h3,
+html[dir="rtl"] h4,
+html[dir="rtl"] h5,
+html[dir="rtl"] h6 
+html[dir="rtl"] thead th,
+html[dir="rtl"] legend,
+html[dir="rtl"] label,
+html[dir="rtl"] a,
+html[dir="rtl"] .btn 
+html[dir="rtl"] strong,
+html[dir="rtl"] b,
+html[dir="rtl"] .font-weight-bold
+html[dir="rtl"] input:-webkit-autofill::first-line {
+  font-family: 'Assistant', sans-serif;;
+
+}
+html[dir="rtl"] body {
+  direction: rtl;
+  text-align: right;
+}
+html[dir="rtl"] body .float-right {
+  float: left !important
+}
+html[dir="rtl"] body .float-left {
+  float: right !important
+}
