@@ -19,7 +19,14 @@ const (
 
 func NewManager(opt options.AuthOpt, log *zap.Logger, cs oauth2.ClientStore, ts oauth2.TokenStore) *manage.Manager {
 	manager := manage.NewDefaultManager()
-	manager.SetAuthorizeCodeTokenCfg(manage.DefaultAuthorizeCodeTokenCfg)
+
+	// Here we are cloning the internal package variable as I do not think
+	// it is sane to overwrite it directly.
+	cfg := *manage.DefaultAuthorizeCodeTokenCfg
+	cfg.AccessTokenExp = opt.AccessTokenLifetime
+	cfg.RefreshTokenExp = opt.RefreshTokenLifetime
+
+	manager.SetAuthorizeCodeTokenCfg(&cfg)
 
 	// token store
 	manager.MapTokenStorage(ts)

@@ -22,6 +22,18 @@ props:
       Generated secret will change if you change any of these variables.
       ====
 
+  - name: accessTokenLifetime
+    type: time.Duration
+    env: AUTH_OAUTH2_ACCESS_TOKEN_LIFETIME
+    default: time.Hour * 2
+    description: Access token lifetime
+
+  - name: refreshTokenLifetime
+    type: time.Duration
+    env: AUTH_OAUTH2_REFRESH_TOKEN_LIFETIME
+    default: time.Hour * 24 * 3
+    description: Refresh token lifetime
+
   - name: expiry
     type: time.Duration
     env: AUTH_JWT_EXPIRY

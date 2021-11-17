@@ -16,6 +16,8 @@ type (
 	AuthOpt struct {
 		LogEnabled               bool          `env:"AUTH_LOG_ENABLED"`
 		Secret                   string        `env:"AUTH_JWT_SECRET"`
+		AccessTokenLifetime      time.Duration `env:"AUTH_OAUTH2_ACCESS_TOKEN_LIFETIME"`
+		RefreshTokenLifetime     time.Duration `env:"AUTH_OAUTH2_REFRESH_TOKEN_LIFETIME"`
 		Expiry                   time.Duration `env:"AUTH_JWT_EXPIRY"`
 		ExternalRedirectURL      string        `env:"AUTH_EXTERNAL_REDIRECT_URL"`
 		ExternalCookieSecret     string        `env:"AUTH_EXTERNAL_COOKIE_SECRET"`
@@ -43,6 +45,8 @@ type (
 func Auth() (o *AuthOpt) {
 	o = &AuthOpt{
 		Secret:                   getSecretFromEnv("jwt secret"),
+		AccessTokenLifetime:      time.Hour * 2,
+		RefreshTokenLifetime:     time.Hour * 24 * 3,
 		Expiry:                   time.Hour * 24 * 30,
 		ExternalRedirectURL:      fullURL("/auth/external/{provider}/callback"),
 		ExternalCookieSecret:     getSecretFromEnv("external cookie secret"),
