@@ -10,16 +10,18 @@ package options
 
 type (
 	DiscoveryOpt struct {
-		Enabled bool `env:"DISCOVERY_ENABLED"`
-		Debug   bool `env:"DISCOVERY_DEBUG"`
+		Enabled       bool   `env:"DISCOVERY_ENABLED"`
+		Debug         bool   `env:"DISCOVERY_DEBUG"`
+		CortezaDomain string `env:"DISCOVERY_CORTEZA_DOMAIN"`
 	}
 )
 
 // Discovery initializes and returns a DiscoveryOpt with default values
 func Discovery() (o *DiscoveryOpt) {
 	o = &DiscoveryOpt{
-		Enabled: false,
-		Debug:   false,
+		Enabled:       false,
+		Debug:         false,
+		CortezaDomain: "",
 	}
 
 	fill(o)
