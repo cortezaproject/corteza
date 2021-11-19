@@ -21,7 +21,6 @@ expressions:
     'add-expression': + Add Expression
     expression: Expression
     'expression-placeholder': Expression...
-    type: Type
   label: Expressions
   tooltip: Define and mutate scope variables
 function:
@@ -36,8 +35,6 @@ function:
     'select-function': Select function
     type: Type
     'type*': 'Type*'
-    value: Value
-    'value-type': Value type
   label: Function
   tooltip: Execute the chosen predefined function
 gatewayExclusive:
