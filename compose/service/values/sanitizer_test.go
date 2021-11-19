@@ -68,13 +68,13 @@ func Test_sanitizer_Run(t *testing.T) {
 			name:   "booleans should be converted (false)",
 			kind:   "Bool",
 			input:  "false",
-			output: "0",
+			output: "",
 		},
 		{
 			name:   "booleans should be converted (garbage)",
 			kind:   "Bool",
 			input:  "%%#)%)')$)'",
-			output: "0",
+			output: "",
 		},
 		{
 			name:   "dates should be converted to ISO",

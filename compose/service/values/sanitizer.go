@@ -188,7 +188,8 @@ func sBool(v interface{}) string {
 		}
 	}
 
-	return strBoolFalse
+	// Returning empty string here to align false value with everything else
+	return strBoolFalseAlt
 }
 
 func sDatetime(v interface{}, onlyDate, onlyTime bool) string {
