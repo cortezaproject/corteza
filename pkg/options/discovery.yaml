@@ -9,3 +9,9 @@ props:
     default: false
     docs:
       description: Enable debug activity logging.
+
+  - name: CortezaDomain
+    type: string
+    default: ""
+    docs:
+      description: Provides host of corteza compose webapp.

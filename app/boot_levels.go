@@ -14,6 +14,7 @@ import (
 	autService "github.com/cortezaproject/corteza-server/automation/service"
 	cmpService "github.com/cortezaproject/corteza-server/compose/service"
 	cmpEvent "github.com/cortezaproject/corteza-server/compose/service/event"
+	discoveryService "github.com/cortezaproject/corteza-server/discovery/service"
 	fdrService "github.com/cortezaproject/corteza-server/federation/service"
 	fedService "github.com/cortezaproject/corteza-server/federation/service"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
@@ -425,6 +426,14 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 
 		if err != nil {
 			return
+		}
+	}
+
+	// Initializing discovery
+	if app.Opt.Discovery.Enabled {
+		err = discoveryService.Initialize(ctx, app.Opt.Discovery)
+		if err != nil {
+			return err
 		}
 	}
 
