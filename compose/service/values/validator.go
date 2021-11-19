@@ -250,7 +250,7 @@ func (vldtr validator) vBool(v *types.RecordValue, f *types.ModuleField, r *type
 		return nil
 	}
 
-	if v.Value != strBoolTrue && v.Value != strBoolFalse {
+	if v.Value != strBoolTrue && v.Value != strBoolFalse && v.Value != strBoolFalseAlt {
 		return e2s(makeInvalidValueErr(f, v.Value))
 	}
 

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/service"
+	"github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
@@ -149,7 +150,11 @@ func (h helper) makeRecord(module *types.Module, rvs ...*types.RecordValue) *typ
 		CreatedAt:   time.Now(),
 		ModuleID:    module.ID,
 		NamespaceID: module.NamespaceID,
-		Values:      rvs,
+
+		// We are directly storing the record values here, so ensure
+		// everything is formatted in the same manner as it would be
+		// when stored through the service
+		Values: values.Formatter().Run(module, rvs),
 	}
 
 	h.noError(store.CreateComposeRecord(context.Background(), service.DefaultStore, module, rec))
@@ -542,24 +547,53 @@ func TestRecordUpdate_forbiddenFields(t *testing.T) {
 	module := h.repoMakeRecordModuleWithFields("record testing module",
 		&types.ModuleField{Name: "f1", Kind: "String"},
 		&types.ModuleField{Name: "f2", Kind: "String"},
+
+		// we'll test all kinds of boolean inputs
+		&types.ModuleField{Name: "f-b-f-n", Kind: "Bool"},
+		&types.ModuleField{Name: "f-b-f-m", Kind: "Bool"},
+		&types.ModuleField{Name: "f-b-f-e", Kind: "Bool"},
+		&types.ModuleField{Name: "f-b-f-z", Kind: "Bool"},
+		&types.ModuleField{Name: "f-b-t-n", Kind: "Bool"},
+		&types.ModuleField{Name: "f-b-t-m", Kind: "Bool"},
+		&types.ModuleField{Name: "f-b-t-v", Kind: "Bool"},
 	)
 	record := h.makeRecord(module,
 		&types.RecordValue{Name: "f1", Value: "f1.v1"},
 		&types.RecordValue{Name: "f2", Value: "f2.v1"},
+		&types.RecordValue{Name: "f-b-f-n", Value: "0"}, // no-value
+		&types.RecordValue{Name: "f-b-f-e", Value: "0"}, // empty
+		&types.RecordValue{Name: "f-b-f-z", Value: "0"}, // zero
+		&types.RecordValue{Name: "f-b-t-n", Value: "1"}, // no-value
+		&types.RecordValue{Name: "f-b-t-v", Value: "1"}, // value
 	)
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "record.update")
-	helpers.DenyMe(h, module.Fields[1].RbacResource(), "record.value.update")
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, record.ID), "update")
+	helpers.AllowMe(h, module.Fields[0].RbacResource(), "record.value.update")
+	helpers.DenyMe(h, types.ModuleFieldRbacResource(0, record.ModuleID, 0), "record.value.update")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
-		JSON(fmt.Sprintf(`{"values": [{"name": "f1", "value": "f1.v1"}, {"name": "f2", "value": "f2.v1"}]}`)).
+		JSON(fmt.Sprintf(`{"values": [
+			{"name": "f1", "value": "f1.v1"},
+			{"name": "f2", "value": "f2.v1"},
+			{"name": "f-b-f-n"},
+			{"name": "f-b-f-e", "value": ""},
+			{"name": "f-b-f-z", "value": "0"},
+			{"name": "f-b-t-v", "value": "1"}
+		]}`)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
 		End()
 
 	r := h.lookupRecordByID(module, record.ID)
 	h.a.NotNil(r)
 	h.a.Equal("f2.v1", r.Values.FilterByName("f2")[0].Value)
+	h.a.Equal("", r.Values.FilterByName("f-b-f-n")[0].Value)
+	h.a.Equal("", r.Values.FilterByName("f-b-f-e")[0].Value)
+	h.a.Equal("", r.Values.FilterByName("f-b-f-z")[0].Value)
+	h.a.Equal("1", r.Values.FilterByName("f-b-t-n")[0].Value)
+	h.a.Equal("1", r.Values.FilterByName("f-b-t-v")[0].Value)
 }
 
 func TestRecordUpdate_refUnchanged(t *testing.T) {
@@ -1063,7 +1097,7 @@ func TestRecordFieldModulePermissionCheck(t *testing.T) {
 		Assert(jsonpath.Present(`$.response.values[? @.name=="email"]`)).
 		End()
 
-		// Searching records should work as before but without read-protected fields
+	// Searching records should work as before but without read-protected fields
 	h.apiInit().
 		Get(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
 		Header("Accept", "application/json").

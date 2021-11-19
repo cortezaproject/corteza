@@ -6,8 +6,9 @@ import (
 )
 
 const (
-	strBoolTrue  = "1"
-	strBoolFalse = "0"
+	strBoolTrue     = "1"
+	strBoolFalse    = "0"
+	strBoolFalseAlt = ""
 
 	datetimeInternalFormatDate = "2006-01-02"
 	datetimeIntenralFormatTime = "15:04:05"
