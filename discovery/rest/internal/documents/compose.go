@@ -5,8 +5,10 @@ import (
 	"fmt"
 	cmpService "github.com/cortezaproject/corteza-server/compose/service"
 	cmpTypes "github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/discovery/service"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	sysService "github.com/cortezaproject/corteza-server/system/service"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
@@ -14,6 +16,7 @@ import (
 
 type (
 	composeResources struct {
+		opt      options.DiscoveryOpt
 		settings *sysTypes.AppSettings
 
 		rbac interface {
@@ -62,6 +65,7 @@ var (
 
 func ComposeResources() *composeResources {
 	return &composeResources{
+		opt:      service.DefaultOption,
 		settings: sysService.CurrentSettings,
 		rbac:     rbac.Global(),
 		ac:       cmpService.DefaultAccessControl,
@@ -372,24 +376,28 @@ func (d composeResources) UpdateModuleMeta(ctx context.Context) (rsp interface{}
 // getUrlToResource construct page url for compose resources
 func (d composeResources) getUrlToResource(page pageDetail) (url string) {
 	var (
+		host          = d.opt.CortezaDomain
 		validNsSlung  = len(page.namespaceSlug) > 0
 		validModuleID = page.moduleID > 0
 		validRecord   = page.recordID > 0
 		validPageID   = page.pageID > 0
 	)
 
+	if len(host) == 0 {
+		return
+	}
 	if validModuleID && validRecord {
 		// For record, take moduleID & recordID from params(page) then construct url from modulePages map
 		if p, is := modulePages[page.moduleID]; is {
-			url = fmt.Sprintf("/compose/ns/%s/pages/%d/records/%d", p.namespaceSlug, p.pageID, page.recordID)
+			url = fmt.Sprintf("%s/compose/ns/%s/pages/%d/records/%d", host, p.namespaceSlug, p.pageID, page.recordID)
 		}
 	} else if validNsSlung && validPageID {
 		// for module? @todo, we need moduleID ref for module home page
 		// we can check page.self_id is 0 that is modules home pages, but ref_module is also 0
-		url = fmt.Sprintf("/compose/ns/%s/pages/%d", page.namespaceSlug, page.pageID)
+		url = fmt.Sprintf("%s/compose/ns/%s/pages/%d", host, page.namespaceSlug, page.pageID)
 	} else if validNsSlung {
 		// For namespace, just send to /pages FE handles fallback to home(default) page
-		url = fmt.Sprintf("/compose/ns/%s/pages", page.namespaceSlug)
+		url = fmt.Sprintf("%s/compose/ns/%s/pages", host, page.namespaceSlug)
 	}
 	return
 }
