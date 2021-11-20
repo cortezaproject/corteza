@@ -20,7 +20,7 @@ errors:
   notAllowedToRemoveTOTP: not allowed to remove TOTP
   passwodResetFailedOldPasswordCheckFailed: failed to change password, old password does not match
   passwordChangeFailedForUnknownUser: failed to change password for the unknown user
-  passwordNotSecure: provided password is not secure; use longer password with more non-alphanumeric character
+  passwordNotSecure: provided password is not secure; use longer password with more special characters
   passwordResetDisabledByConfig: password reset is disabled
   profileWithoutValidEmail: external authentication provider returned profile without valid email
   unconfiguredTOTP: TOTP not configured

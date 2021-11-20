@@ -491,6 +491,7 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 
 	updateFederationSettings(app.Opt.Federation, sysService.CurrentSettings)
 	updateAuthSettings(app.AuthService, sysService.CurrentSettings)
+	updatePasswdSettings(app.Opt.Auth, sysService.CurrentSettings)
 	sysService.DefaultSettings.Register("auth.", func(ctx context.Context, current interface{}, set types.SettingValueSet) {
 		appSettings, is := current.(*types.AppSettings)
 		if !is {
@@ -498,6 +499,7 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 		}
 
 		updateAuthSettings(app.AuthService, appSettings)
+		updatePasswdSettings(app.Opt.Auth, sysService.CurrentSettings)
 	})
 
 	updateLocaleSettings(app.Opt.Locale)
@@ -599,6 +601,11 @@ func updateAuthSettings(svc authServicer, current *types.AppSettings) {
 // Checks if federation is enabled in the options
 func updateFederationSettings(opt options.FederationOpt, current *types.AppSettings) {
 	current.Federation.Enabled = opt.Enabled
+}
+
+// Checks if password security is enabled in the options
+func updatePasswdSettings(opt options.AuthOpt, current *types.AppSettings) {
+	current.Auth.Internal.PasswordConstraints.PasswordSecurity = opt.PasswordSecurity
 }
 
 // Sanitizes application (current) settings with languages from options

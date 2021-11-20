@@ -15,6 +15,7 @@ import (
 type (
 	AuthOpt struct {
 		LogEnabled               bool          `env:"AUTH_LOG_ENABLED"`
+		PasswordSecurity         bool          `env:"AUTH_PASSWORD_SECURITY"`
 		Secret                   string        `env:"AUTH_JWT_SECRET"`
 		AccessTokenLifetime      time.Duration `env:"AUTH_OAUTH2_ACCESS_TOKEN_LIFETIME"`
 		RefreshTokenLifetime     time.Duration `env:"AUTH_OAUTH2_REFRESH_TOKEN_LIFETIME"`
@@ -44,6 +45,7 @@ type (
 // Auth initializes and returns a AuthOpt with default values
 func Auth() (o *AuthOpt) {
 	o = &AuthOpt{
+		PasswordSecurity:         true,
 		Secret:                   getSecretFromEnv("jwt secret"),
 		AccessTokenLifetime:      time.Hour * 2,
 		RefreshTokenLifetime:     time.Hour * 24 * 3,

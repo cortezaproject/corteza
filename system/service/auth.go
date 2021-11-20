@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"math"
 	rand2 "math/rand"
 	"regexp"
 	"strconv"
@@ -59,6 +60,9 @@ const (
 	credentialsTypeMFAEmailOTP                 = "mfa-email-otp"
 
 	credentialsTokenLength = 32
+
+	passwordMinLength = 8
+	passwordMaxLength = 256
 )
 
 var (
@@ -622,8 +626,36 @@ func (svc auth) hashPassword(password string) (hash []byte, err error) {
 }
 
 func (svc auth) CheckPasswordStrength(password string) bool {
-	if len(password) <= 4 {
+	pwdL := len(password)
+
+	// Ignore defined password constraints
+	if !svc.settings.Auth.Internal.PasswordConstraints.PasswordSecurity {
+		return true
+	}
+
+	// Check the password length
+	minL := math.Max(float64(passwordMinLength), float64(svc.settings.Auth.Internal.PasswordConstraints.MinLength))
+	if pwdL < int(minL) || pwdL > passwordMaxLength {
 		return false
+	}
+
+	// Check special constraints
+	// - numeric characters
+	count := svc.settings.Auth.Internal.PasswordConstraints.MinNumCount
+	if count > 0 {
+		rr := regexp.MustCompile("[0-9]")
+		if uint(len(rr.FindAllStringIndex(password, -1))) < count {
+			return false
+		}
+	}
+
+	// - special characters
+	count = svc.settings.Auth.Internal.PasswordConstraints.MinSpecialCount
+	if count > 0 {
+		rr := regexp.MustCompile("[^0-9a-zA-Z]")
+		if uint(len(rr.FindAllStringIndex(password, -1))) < count {
+			return false
+		}
 	}
 
 	return true

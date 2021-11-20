@@ -10,6 +10,17 @@ props:
     description: |-
       Enable extra logging for authentication flows
 
+  - name: passwordSecurity
+    type: bool
+    default: true
+    description: |-
+      Password security allows you to disable constraints to which passwords must conform to.
+      
+      [CAUTION]
+      ====
+      Password security should not be disabled on production environments as it is insecure.
+      ====
+
   - name: secret
     env: AUTH_JWT_SECRET
     default: getSecretFromEnv("jwt secret")

@@ -16,5 +16,5 @@ errors:
   notAllowedToUpdate: not allowed to update this user
   notAllowedToUpdateSystem: not allowed to update system users
   notFound: user not found
-  passwordNotSecure: provided password is not secure; use longer password with more non-alphanumeric character
+  passwordNotSecure: provided password is not secure; use longer password with more special characters
   usernameNotUnique: username not unique

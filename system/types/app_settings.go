@@ -41,7 +41,7 @@ type (
 		Auth struct {
 			Internal struct {
 				// Is internal authentication (username + password) enabled
-				Enabled bool
+				Enabled bool `json:"-"`
 
 				Signup struct {
 					// Can users register
@@ -49,10 +49,10 @@ type (
 
 					// Users must confirm their emails when signing-up
 					EmailConfirmationRequired bool `kv:"email-confirmation-required"`
-				}
+				} `json:"-"`
 
 				// Can users reset their passwords
-				PasswordReset struct{ Enabled bool } `kv:"password-reset"`
+				PasswordReset struct{ Enabled bool } `json:"-" kv:"password-reset"`
 
 				// PasswordCreate setting for create password for user via generated link with token
 				// If user has no password then link redirects to create password page
@@ -61,14 +61,28 @@ type (
 				PasswordCreate struct {
 					Enabled bool
 					Expires uint
-				} `kv:"password-create"`
+				} `json:"-" kv:"password-create"`
 
 				// Splits credentials check into 2 parts
 				// If user has password credentials it offers him to enter the password
 				// Otherwise we offer the user to choose among the enabled external providers
 				// If only one ext. provider is enabled, user is automatically redirected there
-				SplitCredentialsCheck bool `kv:"split-credentials-check"`
-			}
+				SplitCredentialsCheck bool `json:"-" kv:"split-credentials-check"`
+
+				PasswordConstraints struct {
+					// Should the environment not enforce the constraints
+					PasswordSecurity bool `kv:"-" json:"passwordSecurity"`
+
+					// The min password length
+					MinLength uint `kv:"min-length"`
+
+					// The min number of numeric characters
+					MinNumCount uint `kv:"min-num-count"`
+
+					// The min number of special characters
+					MinSpecialCount uint `kv:"min-special-count"`
+				} `kv:"password-constraints" json:"passwordConstraints"`
+			} `json:"internal"`
 
 			External struct {
 				// Is external authentication
@@ -100,7 +114,7 @@ type (
 
 				// all external providers we know
 				Providers ExternalAuthProviderSet
-			}
+			} `json:"-"`
 
 			MultiFactor struct {
 				EmailOTP struct {
@@ -129,13 +143,13 @@ type (
 					// TOTP issuer, defaults to "Corteza"
 					Issuer string
 				} `kv:"totp"`
-			} `kv:"multi-factor"`
+			} `json:"-" kv:"multi-factor"`
 
 			Mail struct {
 				FromAddress string `kv:"from-address"`
 				FromName    string `kv:"from-name"`
 			} `json:"-"`
-		} `json:"-"`
+		} `json:"auth"`
 
 		Compose struct {
 			// UI related settings
