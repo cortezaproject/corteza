@@ -11,12 +11,13 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"strings"
-	"time"
 )
 
 type (
@@ -1261,7 +1262,7 @@ func UserErrPasswordNotSecure(mm ...*userActionProps) *errors.Error {
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("provided password is not secure; use longer password with more non-alphanumeric character", nil),
+		p.Format("provided password is not secure; use longer password with more special characters", nil),
 
 		errors.Meta("type", "passwordNotSecure"),
 		errors.Meta("resource", "system:user"),
