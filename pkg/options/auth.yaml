@@ -18,7 +18,8 @@ props:
       
       [CAUTION]
       ====
-      Password security should not be disabled on production environments as it is insecure.
+      Disabling password security can be useful for development environments as it removes the need for complex passwords.
+      Password security *should be enabled* on production environments to avoid security incidents
       ====
 
   - name: secret
