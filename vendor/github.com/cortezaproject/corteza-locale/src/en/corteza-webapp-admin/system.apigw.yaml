@@ -107,7 +107,7 @@ editor:
     params: 'Params'
     filterListEmpty: 'Filter list is empty!'
 
-    headerExamples:
-      first: Connection == "keep-alive"
-      second: (Content-Type == "application/x-www-form-urlencoded") AND (Accept-Encoding == "gzip, deflate, br")
-      more:  More examples..
+    help:
+      expression:
+        example: Example == "match string" && match(SecondParam, "^foo\\s.*$")
+        link: Documentation

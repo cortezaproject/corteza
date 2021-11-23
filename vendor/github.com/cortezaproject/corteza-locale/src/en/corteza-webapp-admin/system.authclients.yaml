@@ -55,6 +55,7 @@ editor:
     hideCurl: Hide cURL snippet
     cUrl: Generated cURL
     testCurl: Test auth
+    discovery: Allow client access to Corteza Discovery API on behalf of user
   new: New
   permissions: Permissions
   title:
