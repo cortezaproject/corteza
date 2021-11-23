@@ -88,6 +88,10 @@ func (v *SettingValue) Bool() (out bool) {
 	return
 }
 
+func (v *SettingValue) IsNull() (out bool) {
+	return v == nil || string(v.Value) == "null" || string(v.Value) == ""
+}
+
 func (v *SettingValue) NormalizeValue() {
 
 }
@@ -232,7 +236,7 @@ func (set SettingValueSet) New(in SettingValueSet) (out SettingValueSet) {
 	org := set.KV()
 
 	for _, v := range in {
-		if !org.Has(v.Name) {
+		if !org.Has(v.Name) && !v.IsNull() {
 			out = append(out, v)
 		}
 	}
@@ -240,12 +244,23 @@ func (set SettingValueSet) New(in SettingValueSet) (out SettingValueSet) {
 	return
 }
 
-// New returns all new values (that do not exist in the original set)
+// New returns all old values (that exist in the original set)
 func (set SettingValueSet) Old(in SettingValueSet) (out SettingValueSet) {
 	org := set.KV()
 
 	for _, v := range in {
-		if org.Has(v.Name) {
+		if org.Has(v.Name) && !v.IsNull() {
+			out = append(out, v)
+		}
+	}
+
+	return
+}
+
+// Trash returns values from the set that were set ti nil
+func (set SettingValueSet) Trash() (out SettingValueSet) {
+	for _, v := range set {
+		if v.IsNull() {
 			out = append(out, v)
 		}
 	}
