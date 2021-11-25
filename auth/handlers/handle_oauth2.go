@@ -2,8 +2,11 @@ package handlers
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"encoding/json"
 	"fmt"
+	"github.com/lestrrat-go/jwx/jwk"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -405,6 +408,43 @@ func (h AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.Aut
 func (h AuthHandlers) tokenError(w http.ResponseWriter, err error) error {
 	data, statusCode, header := h.OAuth2.GetErrorData(err)
 	return token(w, data, header, statusCode)
+}
+
+func (h AuthHandlers) oauth2PublicKeys(w http.ResponseWriter, r *http.Request) {
+	// handle error
+	handleErr := func(code int, err error) {
+		var (
+			data   = make(map[string]interface{})
+			header http.Header
+		)
+
+		data["error"] = err.Error()
+
+		_ = header.Write(w)
+		w.WriteHeader(code)
+		_ = json.NewEncoder(w).Encode(data)
+	}
+
+	// @todo determine weather to get it form user and save it in settings
+	raw, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		handleErr(http.StatusBadRequest, fmt.Errorf("failed to generate new RSA privatre key: %w", err))
+		return
+	}
+
+	key, err := jwk.New(raw)
+	if err != nil {
+		handleErr(http.StatusInternalServerError, fmt.Errorf("failed to create symmetric key: %w", err))
+		return
+	}
+
+	publicKey, err := key.PublicKey()
+	if err != nil {
+		handleErr(http.StatusInternalServerError, fmt.Errorf("failed to create public key: %w", err))
+		return
+	}
+
+	_ = json.NewEncoder(w).Encode(publicKey)
 }
 
 func SubSplit(ti oauth2def.TokenInfo, data map[string]interface{}) {

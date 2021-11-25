@@ -54,7 +54,8 @@ require (
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/joho/godotenv v1.3.0
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
-	github.com/lestrrat-go/strftime v1.0.3
+	github.com/lestrrat-go/jwx v1.2.11
+    github.com/lestrrat-go/strftime v1.0.5
 	github.com/lib/pq v1.1.0
 	github.com/markbates/goth v1.67.1
 	github.com/mattn/go-sqlite3 v1.14.0
