@@ -222,6 +222,7 @@ type (
 		Label       string `json:"label"`
 		Key         string `json:"-"`
 		Secret      string `json:"-"`
+		Scope       string `json:"scope"`
 		RedirectUrl string `json:"-" kv:"redirect"`
 		IssuerUrl   string `json:"-" kv:"issuer"`
 		Weight      int    `json:"-"`
@@ -313,7 +314,7 @@ func (set *ExternalAuthProviderSet) DecodeKV(kv SettingsKV, prefix string) (err 
 		p := (*set).FindByHandle(handle)
 		if p == nil {
 			p = &ExternalAuthProvider{Handle: handle}
-			(*set) = append((*set), p)
+			*set = append(*set, p)
 		}
 
 		err = DecodeKV(kv.CutPrefix(handle+"."), p)
@@ -385,20 +386,21 @@ func (set ExternalAuthProviderSet) Valid() (out ExternalAuthProviderSet) {
 
 var _ KVDecoder = &ExternalAuthProviderSet{}
 
-func (p ExternalAuthProvider) EncodeKV() (vv SettingValueSet, err error) {
-	if p.Handle == "" {
+func (set ExternalAuthProvider) EncodeKV() (vv SettingValueSet, err error) {
+	if set.Handle == "" {
 		return nil, errors.New("cannot encode external auth provider without handle")
 	}
 	var (
-		prefix = "auth.external.providers." + p.Handle + "."
+		prefix = "auth.external.providers." + set.Handle + "."
 		pairs  = map[string]interface{}{
-			"enabled":  p.Enabled,
-			"label":    p.Label,
-			"key":      p.Key,
-			"secret":   p.Secret,
-			"issuer":   p.IssuerUrl,
-			"redirect": p.RedirectUrl,
-			"weight":   p.Weight,
+			"enabled":  set.Enabled,
+			"label":    set.Label,
+			"key":      set.Key,
+			"secret":   set.Secret,
+			"scope":    set.Scope,
+			"issuer":   set.IssuerUrl,
+			"redirect": set.RedirectUrl,
+			"weight":   set.Weight,
 		}
 	)
 

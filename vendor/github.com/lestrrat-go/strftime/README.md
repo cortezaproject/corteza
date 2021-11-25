@@ -9,7 +9,7 @@ Fast strftime for Go
 # SYNOPSIS
 
 ```go
-f := strftime.New(`.... pattern ...`)
+f, err := strftime.New(`.... pattern ...`)
 if err := f.Format(buf, time.Now()); err != nil {
     log.Println(err.Error())
 }

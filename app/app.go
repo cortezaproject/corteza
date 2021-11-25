@@ -33,6 +33,7 @@ type (
 
 	authServicer interface {
 		MountHttpRoutes(string, chi.Router)
+		WellKnownOpenIDConfiguration() http.HandlerFunc
 		UpdateSettings(*settings.Settings)
 		Watch(ctx context.Context)
 	}

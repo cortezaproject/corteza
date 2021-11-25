@@ -26,6 +26,7 @@ type (
 		OAuth2Token,
 		OAuth2Info,
 		OAuth2DefaultClient,
+		OAuth2PublicKeys,
 
 		Mfa,
 
@@ -72,6 +73,7 @@ func GetLinks() Links {
 		OAuth2Token:           b + "auth/oauth2/token",
 		OAuth2Info:            b + "auth/oauth2/info",
 		OAuth2DefaultClient:   b + "auth/oauth2/default-client",
+		OAuth2PublicKeys:      b + "auth/oauth2/public-keys",
 
 		Mfa:              b + "auth/mfa",
 		MfaTotpNewSecret: b + "auth/mfa/totp/setup",
@@ -86,7 +88,7 @@ func GetLinks() Links {
 		SamlLogout:   b + "auth/external/saml/slo",
 
 		Assets: b + "auth/assets/public",
-		Base: b,
+		Base:   b,
 	}
 }
 

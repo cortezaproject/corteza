@@ -160,4 +160,8 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 			})
 		})
 	}()
+
+	func() {
+		r.Handle("/.well-known/openid-configuration", app.AuthService.WellKnownOpenIDConfiguration())
+	}()
 }
