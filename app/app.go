@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/cortezaproject/corteza-server/auth/settings"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/go-chi/chi"
@@ -23,6 +25,7 @@ type (
 
 	authServicer interface {
 		MountHttpRoutes(chi.Router)
+		WellKnownOpenIDConfiguration() http.HandlerFunc
 		UpdateSettings(*settings.Settings)
 		Watch(ctx context.Context)
 	}

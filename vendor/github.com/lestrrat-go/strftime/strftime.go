@@ -191,6 +191,13 @@ func (f *Strftime) Format(dst io.Writer, t time.Time) error {
 	return nil
 }
 
+// FormatBuffer is equivalent to Format, but appends the result directly to
+// supplied slice dst, returning the updated slice. This avoids any internal
+// memory allocation.
+func (f *Strftime) FormatBuffer(dst []byte, t time.Time) []byte {
+	return f.format(dst, t)
+}
+
 // Dump outputs the internal structure of the formatter, for debugging purposes.
 // Please do NOT assume the output format to be fixed: it is expected to change
 // in the future.

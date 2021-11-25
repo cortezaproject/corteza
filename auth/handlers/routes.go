@@ -104,5 +104,6 @@ func (h *AuthHandlers) MountHttpRoutes(r chi.Router) {
 
 		r.HandleFunc("/auth/oauth2/token", h.handle(h.oauth2Token))
 		r.HandleFunc("/auth/oauth2/info", h.oauth2Info)
+		r.HandleFunc("/auth/oauth2/public-keys", h.oauth2PublicKeys)
 	})
 }

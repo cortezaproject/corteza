@@ -23,6 +23,7 @@ type (
 		OAuth2Token,
 		OAuth2Info,
 		OAuth2DefaultClient,
+		OAuth2PublicKeys,
 
 		Mfa,
 
@@ -57,6 +58,7 @@ func GetLinks() Links {
 		OAuth2Token:           "/auth/oauth2/token",
 		OAuth2Info:            "/auth/oauth2/info",
 		OAuth2DefaultClient:   "/auth/oauth2/default-client",
+		OAuth2PublicKeys:      "/auth/oauth2/public-keys",
 
 		Mfa:              "/auth/mfa",
 		MfaTotpNewSecret: "/auth/mfa/totp/setup",

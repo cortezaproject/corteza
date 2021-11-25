@@ -43,5 +43,6 @@ type (
 		Key         string
 		RedirectUrl string
 		Secret      string
+		Scope       string
 	}
 )

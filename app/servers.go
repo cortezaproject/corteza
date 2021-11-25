@@ -140,4 +140,8 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 	} else {
 		app.Log.Info("client web applications disabled")
 	}
+
+	func() {
+		r.Handle("/.well-known/openid-configuration", app.AuthService.WellKnownOpenIDConfiguration())
+	}()
 }
