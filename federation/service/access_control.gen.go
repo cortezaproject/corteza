@@ -30,6 +30,7 @@ type (
 			Can(rbac.Session, string, rbac.Resource) bool
 			Grant(context.Context, ...*rbac.Rule) error
 			FindRulesByRoleID(roleID uint64) (rr rbac.RuleSet)
+			CloneRulesByRoleID(ctx context.Context, fromRoleID uint64, toRoleID ...uint64) error
 		}
 	}
 )
@@ -169,6 +170,17 @@ func (svc accessControl) FindRulesByRoleID(ctx context.Context, roleID uint64) (
 	}
 
 	return svc.rbac.FindRulesByRoleID(roleID), nil
+}
+
+// CloneRulesByRoleID clone all rules of a Role S to a specific Role T
+//
+// This function is auto-generated
+func (svc accessControl) CloneRulesByRoleID(ctx context.Context, fromRoleID uint64, toRoleID ...uint64) error {
+	if !svc.CanGrant(ctx) {
+		return AccessControlErrNotAllowedToSetPermissions()
+	}
+
+	return svc.rbac.CloneRulesByRoleID(ctx, fromRoleID, toRoleID...)
 }
 
 // CanManageExposedModule checks if current user can manage shared module
