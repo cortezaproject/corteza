@@ -266,14 +266,14 @@ func (ctrl *Record) Upload(ctx context.Context, r *request.RecordUpload) (interf
 
 	defer file.Close()
 
-	a, err := ctrl.attachment.With(ctx).CreateRecordAttachment(
+	a, err := ctrl.attachment.CreateRecordAttachment(
+		ctx,
 		r.NamespaceID,
 		r.Upload.Filename,
 		r.Upload.Size,
 		file,
 		r.ModuleID,
 		r.RecordID,
-		r.FieldName,
 	)
 
 	return makeAttachmentPayload(ctx, a, err)

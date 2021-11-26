@@ -158,7 +158,7 @@ func (ctrl Namespace) Upload(ctx context.Context, r *request.NamespaceUpload) (i
 	}
 	defer file.Close()
 
-	a, err := ctrl.attachment.With(ctx).CreateNamespaceAttachment(
+	a, err := ctrl.attachment.CreateNamespaceAttachment(
 		ctx,
 		r.Upload.Filename,
 		r.Upload.Size,
