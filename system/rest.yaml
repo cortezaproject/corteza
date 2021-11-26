@@ -944,6 +944,21 @@ endpoints:
         type: rbac.RuleSet
         required: true
         title: List of permission rules to set
+  - name: clone
+    path: "/{roleID}/rules/clone"
+    method: POST
+    title: Clone permission settings to a role
+    parameters:
+      path:
+        - name: roleID
+          type: uint64
+          required: true
+          title: Role ID
+      get:
+        - name: cloneToRoleID
+          type: "[]string"
+          required: true
+          title: Clone set of rules to roleID
 - title: Reminders
   entrypoint: reminder
   path: "/reminder"

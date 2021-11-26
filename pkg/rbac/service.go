@@ -289,3 +289,33 @@ func (svc service) String() (out string) {
 
 	return
 }
+
+// CloneRulesByRoleID clone all rules of a Role S to a specific Role T by removing its existing rules
+func (svc *service) CloneRulesByRoleID(ctx context.Context, fromRoleID uint64, toRoleID ...uint64) (err error) {
+	var (
+		updatedRules RuleSet
+	)
+
+	// Make sure rules of fromRoleID stays intact
+	rr := svc.FindRulesByRoleID(fromRoleID)
+
+	for _, roleID := range toRoleID {
+		// Remove existing rules
+		existingRules := svc.FindRulesByRoleID(roleID)
+		for _, rule := range existingRules {
+			// Make sure to remove existing rules
+			rule.Access = Inherit
+		}
+		updatedRules = append(updatedRules, existingRules...)
+
+		// Clone rules from role S to role T
+		for _, rule := range rr {
+			// Make sure everything is properly set
+			r := *rule
+			r.RoleID = roleID
+			updatedRules = append(updatedRules, &r)
+		}
+	}
+
+	return svc.Grant(ctx, updatedRules...)
+}
