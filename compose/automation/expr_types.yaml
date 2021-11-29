@@ -51,8 +51,14 @@ types:
   ComposeRecordValueErrorSet:
     as:     '*types.RecordValueErrorSet'
 
-#
-#  Page:
-#    as: '*types.Page'
-#  Chart:
-#    as: '*types.Chart'
+  Attachment:
+    as: '*types.Attachment'
+    struct:
+      - { name: 'ID',              exprType: 'ID',           goType: 'uint64', mode: ro}
+      - { name: 'kind',            exprType: 'String',       goType: 'string' }
+      - { name: 'url',             exprType: 'Handle',       goType: 'string' }
+      - { name: 'previewUrl',      exprType: 'Handle',       goType: 'string' }
+      - { name: 'name',            exprType: 'Handle',       goType: 'string' }
+      - { name: 'createdAt',       exprType: 'DateTime',     goType: 'time.Time',   mode: ro }
+      - { name: 'updatedAt',       exprType: 'DateTime',     goType: '*time.Time',  mode: ro }
+      - { name: 'deletedAt',       exprType: 'DateTime',     goType: '*time.Time',  mode: ro }

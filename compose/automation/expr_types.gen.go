@@ -19,6 +19,207 @@ import (
 var _ = context.Background
 var _ = fmt.Errorf
 
+// Attachment is an expression type, wrapper for *types.Attachment type
+type Attachment struct {
+	value *types.Attachment
+	mux   sync.RWMutex
+}
+
+// NewAttachment creates new instance of Attachment expression type
+func NewAttachment(val interface{}) (*Attachment, error) {
+	if c, err := CastToAttachment(val); err != nil {
+		return nil, fmt.Errorf("unable to create Attachment: %w", err)
+	} else {
+		return &Attachment{value: c}, nil
+	}
+}
+
+// Get return underlying value on Attachment
+func (t *Attachment) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// GetValue returns underlying value on Attachment
+func (t *Attachment) GetValue() *types.Attachment {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// Type return type name
+func (Attachment) Type() string { return "Attachment" }
+
+// Cast converts value to *types.Attachment
+func (Attachment) Cast(val interface{}) (TypedValue, error) {
+	return NewAttachment(val)
+}
+
+// Assign new value to Attachment
+//
+// value is first passed through CastToAttachment
+func (t *Attachment) Assign(val interface{}) error {
+	if c, err := CastToAttachment(val); err != nil {
+		return err
+	} else {
+		t.value = c
+		return nil
+	}
+}
+
+func (t *Attachment) AssignFieldValue(key string, val TypedValue) error {
+	t.mux.Lock()
+	defer t.mux.Unlock()
+	return assignToAttachment(t.value, key, val)
+}
+
+// SelectGVal implements gval.Selector requirements
+//
+// It allows gval lib to access Attachment's underlying value (*types.Attachment)
+// and it's fields
+//
+func (t *Attachment) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return attachmentGValSelector(t.value, k)
+}
+
+// Select is field accessor for *types.Attachment
+//
+// Similar to SelectGVal but returns typed values
+func (t *Attachment) Select(k string) (TypedValue, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return attachmentTypedValueSelector(t.value, k)
+}
+
+func (t *Attachment) Has(k string) bool {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	switch k {
+	case "ID":
+		return true
+	case "kind":
+		return true
+	case "url":
+		return true
+	case "previewUrl":
+		return true
+	case "name":
+		return true
+	case "createdAt":
+		return true
+	case "updatedAt":
+		return true
+	case "deletedAt":
+		return true
+	}
+	return false
+}
+
+// attachmentGValSelector is field accessor for *types.Attachment
+func attachmentGValSelector(res *types.Attachment, k string) (interface{}, error) {
+	if res == nil {
+		return nil, nil
+	}
+	switch k {
+	case "ID":
+		return res.ID, nil
+	case "kind":
+		return res.Kind, nil
+	case "url":
+		return res.Url, nil
+	case "previewUrl":
+		return res.PreviewUrl, nil
+	case "name":
+		return res.Name, nil
+	case "createdAt":
+		return res.CreatedAt, nil
+	case "updatedAt":
+		return res.UpdatedAt, nil
+	case "deletedAt":
+		return res.DeletedAt, nil
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// attachmentTypedValueSelector is field accessor for *types.Attachment
+func attachmentTypedValueSelector(res *types.Attachment, k string) (TypedValue, error) {
+	if res == nil {
+		return nil, nil
+	}
+	switch k {
+	case "ID":
+		return NewID(res.ID)
+	case "kind":
+		return NewString(res.Kind)
+	case "url":
+		return NewHandle(res.Url)
+	case "previewUrl":
+		return NewHandle(res.PreviewUrl)
+	case "name":
+		return NewHandle(res.Name)
+	case "createdAt":
+		return NewDateTime(res.CreatedAt)
+	case "updatedAt":
+		return NewDateTime(res.UpdatedAt)
+	case "deletedAt":
+		return NewDateTime(res.DeletedAt)
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// assignToAttachment is field value setter for *types.Attachment
+func assignToAttachment(res *types.Attachment, k string, val interface{}) error {
+	switch k {
+	case "ID":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "kind":
+		aux, err := CastToString(val)
+		if err != nil {
+			return err
+		}
+
+		res.Kind = aux
+		return nil
+	case "url":
+		aux, err := CastToHandle(val)
+		if err != nil {
+			return err
+		}
+
+		res.Url = aux
+		return nil
+	case "previewUrl":
+		aux, err := CastToHandle(val)
+		if err != nil {
+			return err
+		}
+
+		res.PreviewUrl = aux
+		return nil
+	case "name":
+		aux, err := CastToHandle(val)
+		if err != nil {
+			return err
+		}
+
+		res.Name = aux
+		return nil
+	case "createdAt":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "updatedAt":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "deletedAt":
+		return fmt.Errorf("field '%s' is read-only", k)
+	}
+
+	return fmt.Errorf("unknown field '%s'", k)
+}
+
 // ComposeModule is an expression type, wrapper for *types.Module type
 type ComposeModule struct {
 	value *types.Module
