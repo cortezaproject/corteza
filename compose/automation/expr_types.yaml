@@ -51,6 +51,38 @@ types:
   ComposeRecordValueErrorSet:
     as:     '*types.RecordValueErrorSet'
 
+
+  Attachment:
+    as: '*types.Attachment'
+    struct:
+      - { name: 'ID',              exprType: 'ID',           goType: 'uint64', mode: ro}
+      - { name: 'kind',            exprType: 'String',       goType: 'string' }
+      - { name: 'url',             exprType: 'Handle',       goType: 'string' }
+      - { name: 'previewUrl',      exprType: 'Handle',       goType: 'string' }
+      - { name: 'name',            exprType: 'Handle',       goType: 'string' }
+#      - { name: 'meta',            exprType: 'AttachmentMeta',       goType: 'string' }
+      - { name: 'createdAt',       exprType: 'DateTime',     goType: 'time.Time',   mode: ro }
+      - { name: 'updatedAt',       exprType: 'DateTime',     goType: '*time.Time',  mode: ro }
+      - { name: 'deletedAt',       exprType: 'DateTime',     goType: '*time.Time',  mode: ro }
+
+#  AttachmentMeta:
+#    as: '*types.Attachment'
+#    struct:
+#      - { name: 'size',            exprType: 'Integer',      goType: 'int64' }
+#      - { name: 'extension',       exprType: 'String',       goType: 'string' }
+#      - { name: 'mimetype',        exprType: 'String',       goType: 'string' }
+#      - { name: 'previewUrl',      exprType: 'Handle',       goType: 'string' }
+#      - { name: 'name',            exprType: 'Handle',       goType: 'string' }
+#      - { name: 'image',  exprType: 'AttachmentMetaImage',       goType: 'string' }
+#
+#  AttachmentMetaImage:
+#    as: '*types.AttachmentImageMeta'
+#    struct:
+#      - { name: 'weight',          exprType: 'Integer',      goType: 'int',  mode: ro }
+#      - { name: 'height',          exprType: 'Integer',      goType: 'int',  mode: ro }
+#      - { name: 'animated',        exprType: 'Boolean',      goType: 'bool', mode: ro }
+
+
 #
 #  Page:
 #    as: '*types.Page'
