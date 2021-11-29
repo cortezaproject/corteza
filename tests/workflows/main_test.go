@@ -145,10 +145,6 @@ func mustExecWorkflow(ctx context.Context, t *testing.T, name string, p autTypes
 			}
 		}
 
-		if unw := errors.Unwrap(err); unw != nil {
-			err = unw
-		}
-
 		t.Fatalf("could not exec %q: %v", name, err)
 
 	}
