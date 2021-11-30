@@ -91,16 +91,17 @@ func (h workflow) Handler() types.HandlerFunc {
 			scope = agctx.ScopeFromContext(ctx)
 		)
 
-		payload, err := scope.Get("payload")
+		// original request with body as io.Reader
+		// read-only
+		ar, err := scope.Get("request")
 
 		if err != nil {
-			return pe.Internal("could not get payload: %v", err)
+			return err
 		}
 
 		// setup scope for workflow
 		vv := map[string]interface{}{
-			"payload": payload,
-			"request": r,
+			"request": ar,
 		}
 
 		// get the request data and put it into vars
@@ -152,8 +153,7 @@ func (h workflow) Handler() types.HandlerFunc {
 
 		scope = ss
 
-		scope.Set("request", r)
-		scope.Set("payload", payload)
+		scope.Set("request", ar)
 
 		return nil
 	}
