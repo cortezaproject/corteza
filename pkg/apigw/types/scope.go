@@ -65,6 +65,10 @@ func (s Scp) Get(k string) (v interface{}, err error) {
 	return
 }
 
+func (s *Scp) Dict() map[string]interface{} {
+	return *s
+}
+
 func (s *Scp) Filter(fn func(k string, v interface{}) bool) *Scp {
 	ss := Scp{}
 
@@ -77,4 +81,9 @@ func (s *Scp) Filter(fn func(k string, v interface{}) bool) *Scp {
 	}
 
 	return &ss
+}
+
+func (s Scp) Has(k string) (has bool) {
+	_, has = s[k]
+	return
 }
