@@ -24,7 +24,9 @@ type (
 	}
 
 	store struct {
-		bucket string
+		bucket   string
+		separator string
+		path      string
 
 		mc  *minio.Client
 		sse encrypt.ServerSide
@@ -44,10 +46,12 @@ var (
 	}
 )
 
-func New(bucket string, opt Options) (s *store, err error) {
+func New(bucket string, separator string, path string, opt Options) (s *store, err error) {
 	s = &store{
-		bucket: bucket,
-		mc:     nil,
+		bucket:   bucket,
+		separator: separator,
+		path:      path,
+		mc:        nil,
 
 		originalFn: defOriginalFn,
 		previewFn:  defPreviewFn,
@@ -92,6 +96,10 @@ func (s *store) check(name string) error {
 	return nil
 }
 
+func (s *store) withPrefix(name string) string {
+	return s.path + s.separator + name
+}
+
 func (s store) Original(id uint64, ext string) string {
 	// @todo presigned URL
 	return s.originalFn(id, ext)
@@ -104,7 +112,7 @@ func (s store) Preview(id uint64, ext string) string {
 }
 
 func (s store) Save(name string, f io.Reader) (err error) {
-	_, err = s.mc.PutObject(s.bucket, name, f, -1, minio.PutObjectOptions{
+	_, err = s.mc.PutObject(s.bucket, s.withPrefix(name), f, -1, minio.PutObjectOptions{
 		ServerSideEncryption: s.sse,
 	})
 
@@ -112,11 +120,11 @@ func (s store) Save(name string, f io.Reader) (err error) {
 }
 
 func (s store) Remove(name string) error {
-	return s.mc.RemoveObject(s.bucket, name)
+	return s.mc.RemoveObject(s.bucket, s.withPrefix(name))
 }
 
 func (s store) Open(name string) (io.ReadSeeker, error) {
-	return s.mc.GetObject(s.bucket, name, minio.GetObjectOptions{
+	return s.mc.GetObject(s.bucket, s.withPrefix(name), minio.GetObjectOptions{
 		ServerSideEncryption: s.sse,
 	})
 }

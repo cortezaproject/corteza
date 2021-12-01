@@ -127,12 +127,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	if DefaultObjectStore == nil {
 		const svcPath = "system"
 		if c.Storage.MinioEndpoint != "" {
-			var bucket = svcPath
-			if c.Storage.MinioBucket != "" {
-				bucket = c.Storage.MinioBucket + c.Storage.MinioBucketSep + svcPath
-			}
-
-			DefaultObjectStore, err = minio.New(bucket, minio.Options{
+			DefaultObjectStore, err = minio.New(c.Storage.MinioBucket, c.Storage.MinioBucketSep, svcPath , minio.Options{
 				Endpoint:        c.Storage.MinioEndpoint,
 				Secure:          c.Storage.MinioSecure,
 				Strict:          c.Storage.MinioStrict,
@@ -143,7 +138,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 			})
 
 			log.Info("initializing minio",
-				zap.String("bucket", bucket),
+				zap.String("bucket", c.Storage.MinioBucket),
 				zap.String("endpoint", c.Storage.MinioEndpoint),
 				zap.Error(err))
 		} else {
