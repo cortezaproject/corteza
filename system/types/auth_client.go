@@ -4,11 +4,9 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/slice"
 )
 
 type (
@@ -220,33 +218,4 @@ func (vv *AuthClientSecurity) Value() (driver.Value, error) {
 	}
 
 	return json.Marshal(vv)
-}
-
-// Takes user's roles, filter out only allowed roles (when set), remove denied and add all forced
-func (vv *AuthClientSecurity) ProcessRoles(rr ...uint64) (out []uint64) {
-	var (
-		permitted  = slice.ToStringBoolMap(vv.PermittedRoles)
-		prohibited = slice.ToStringBoolMap(vv.ProhibitedRoles)
-		forced     = slice.ToStringBoolMap(vv.ForcedRoles)
-		aux        string
-		roleID     uint64
-	)
-
-	// iterate over user's roles and just append them (obeying allow&deny rules)
-	// to list of forced roles
-	for _, r := range rr {
-		aux = strconv.FormatUint(r, 10)
-		if (len(vv.PermittedRoles) == 0 || permitted[aux]) && !prohibited[aux] {
-			forced[aux] = true
-		}
-	}
-
-	out = make([]uint64, 0, len(forced))
-	for i := range forced {
-		if roleID, _ = strconv.ParseUint(i, 10, 64); roleID > 0 {
-			out = append(out, roleID)
-		}
-	}
-
-	return
 }
