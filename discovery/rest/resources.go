@@ -16,9 +16,6 @@ type (
 			Namespaces(ctx context.Context, limit uint, cur string) (*documents.Response, error)
 			Modules(ctx context.Context, namespaceID uint64, limit uint, cur string) (*documents.Response, error)
 			Records(ctx context.Context, namespaceID, moduleID uint64, limit uint, cur string) (*documents.Response, error)
-
-			UpdateNamespacesMeta(ctx context.Context) (interface{}, error)
-			UpdateModuleMeta(ctx context.Context) (interface{}, error)
 		}
 	}
 )
@@ -44,12 +41,4 @@ func (ctrl resources) ComposeModules(ctx context.Context, r *request.ResourcesCo
 
 func (ctrl resources) ComposeRecords(ctx context.Context, r *request.ResourcesComposeRecords) (interface{}, error) {
 	return ctrl.cmp.Records(ctx, r.NamespaceID, r.ModuleID, r.Limit, r.PageCursor)
-}
-
-func (ctrl resources) ComposeNamespacesMeta(ctx context.Context, r *request.ResourcesComposeNamespacesMeta) (interface{}, error) {
-	return ctrl.cmp.UpdateNamespacesMeta(ctx)
-}
-
-func (ctrl resources) ComposeModuleMeta(ctx context.Context, r *request.ResourcesComposeModuleMeta) (interface{}, error) {
-	return ctrl.cmp.UpdateModuleMeta(ctx)
 }

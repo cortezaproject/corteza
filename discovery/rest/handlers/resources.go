@@ -23,18 +23,14 @@ type (
 		ComposeNamespaces(context.Context, *request.ResourcesComposeNamespaces) (interface{}, error)
 		ComposeModules(context.Context, *request.ResourcesComposeModules) (interface{}, error)
 		ComposeRecords(context.Context, *request.ResourcesComposeRecords) (interface{}, error)
-		ComposeNamespacesMeta(context.Context, *request.ResourcesComposeNamespacesMeta) (interface{}, error)
-		ComposeModuleMeta(context.Context, *request.ResourcesComposeModuleMeta) (interface{}, error)
 	}
 
 	// HTTP API interface
 	Resources struct {
-		SystemUsers           func(http.ResponseWriter, *http.Request)
-		ComposeNamespaces     func(http.ResponseWriter, *http.Request)
-		ComposeModules        func(http.ResponseWriter, *http.Request)
-		ComposeRecords        func(http.ResponseWriter, *http.Request)
-		ComposeNamespacesMeta func(http.ResponseWriter, *http.Request)
-		ComposeModuleMeta     func(http.ResponseWriter, *http.Request)
+		SystemUsers       func(http.ResponseWriter, *http.Request)
+		ComposeNamespaces func(http.ResponseWriter, *http.Request)
+		ComposeModules    func(http.ResponseWriter, *http.Request)
+		ComposeRecords    func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -104,38 +100,6 @@ func NewResources(h ResourcesAPI) *Resources {
 
 			api.Send(w, r, value)
 		},
-		ComposeNamespacesMeta: func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			params := request.NewResourcesComposeNamespacesMeta()
-			if err := params.Fill(r); err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			value, err := h.ComposeNamespacesMeta(r.Context(), params)
-			if err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			api.Send(w, r, value)
-		},
-		ComposeModuleMeta: func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			params := request.NewResourcesComposeModuleMeta()
-			if err := params.Fill(r); err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			value, err := h.ComposeModuleMeta(r.Context(), params)
-			if err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			api.Send(w, r, value)
-		},
 	}
 }
 
@@ -146,7 +110,5 @@ func (h Resources) MountRoutes(r chi.Router, middlewares ...func(http.Handler) h
 		r.Get("/resources/compose/namespaces", h.ComposeNamespaces)
 		r.Get("/resources/compose/namespaces/{namespaceID}/modules", h.ComposeModules)
 		r.Get("/resources/compose/namespaces/{namespaceID}/modules/{moduleID}/records", h.ComposeRecords)
-		r.Post("/resources/compose/namespaces/{namespaceID}/meta", h.ComposeNamespacesMeta)
-		r.Post("/resources/compose/namespaces/{namespaceID}/modules/{moduleID}/meta", h.ComposeModuleMeta)
 	})
 }
