@@ -22,4 +22,37 @@ type (
 		Title  string `json:"title"`
 		Weight int    `json:"weight"`
 	}
+
+	/*
+		"discovery": {
+		    "public": {
+		      "result": [
+		          {
+		            lang: "", // en, fr
+		            fields: [] // “names”, ..
+		          }
+		        ]
+		      } // struct
+		    },
+		    "private": {
+		      "response": []
+		    }
+		  }
+	*/
+	ModuleMeta struct {
+		Public    AccessJson `json:"public"`
+		Private   AccessJson `json:"private"`
+		Protected AccessJson `json:"protected"`
+	}
+
+	AccessJson struct {
+		Result Result `json:"result"`
+	}
+
+	Result struct {
+		Lang   string   `json:"lang"`
+		Fields []string `json:"fields"`
+
+		// @todo? TBD? excludeModuleFields, includeModuleFields <- if passed filter module field accordingly.
+	}
 )
