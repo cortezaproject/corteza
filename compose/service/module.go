@@ -145,15 +145,8 @@ func (svc module) Find(ctx context.Context, filter types.ModuleFilter) (set type
 			return err
 		}
 
-		// i18n
-		tag := locale.GetAcceptLanguageFromContext(ctx)
 		set.Walk(func(m *types.Module) error {
-			m.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, m.ResourceTranslation()))
-
-			m.Fields.Walk(func(mf *types.ModuleField) error {
-				mf.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, mf.ResourceTranslation()))
-				return nil
-			})
+			svc.proc(ctx, m)
 			return nil
 		})
 		return nil
@@ -218,6 +211,20 @@ func (svc module) FindByAny(ctx context.Context, namespaceID uint64, identifier 
 	}
 
 	return m, nil
+}
+
+func (svc module) proc(ctx context.Context, m *types.Module) {
+	if svc.locale == nil || svc.locale.Locale() == nil {
+		return
+	}
+
+	tag := locale.GetAcceptLanguageFromContext(ctx)
+	m.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, m.ResourceTranslation()))
+
+	m.Fields.Walk(func(mf *types.ModuleField) error {
+		mf.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, mf.ResourceTranslation()))
+		return nil
+	})
 }
 
 func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module, error) {
@@ -444,8 +451,9 @@ func (svc module) lookup(ctx context.Context, namespaceID uint64, lookup func(*m
 		}
 
 		return loadModuleFields(ctx, svc.store, m)
-
 	}()
+
+	svc.proc(ctx, m)
 
 	return m, svc.recordAction(ctx, aProps, ModuleActionLookup, err)
 }
