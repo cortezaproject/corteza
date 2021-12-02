@@ -46,24 +46,6 @@ endpoints:
           - { name: namespaceID, type: uint64, title: Namespace ID }
           - { name: moduleID,    type: uint64, title: Module ID }
 
-    - name: composeNamespacesMeta
-      method: POST
-      title: ModuleMeta
-      path: "/compose/namespaces/{namespaceID}/meta"
-      parameters:
-        path:
-          - { name: namespaceID, type: uint64, title: Namespace ID }
-          - { name: moduleID,    type: uint64, title: Module ID }
-
-    - name: composeModuleMeta
-      method: POST
-      title: ModuleMeta
-      path: "/compose/namespaces/{namespaceID}/modules/{moduleID}/meta"
-      parameters:
-        path:
-          - { name: namespaceID, type: uint64, title: Namespace ID }
-          - { name: moduleID,    type: uint64, title: Module ID }
-
 - path: "/feed"
   entrypoint: feed
   title: Change feed

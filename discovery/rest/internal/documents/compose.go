@@ -365,14 +365,6 @@ func (d composeResources) recordValues(ctx context.Context, rec *cmpTypes.Record
 	return rval
 }
 
-func (d composeResources) UpdateNamespacesMeta(ctx context.Context) (rsp interface{}, err error) {
-	return
-}
-
-func (d composeResources) UpdateModuleMeta(ctx context.Context) (rsp interface{}, err error) {
-	return
-}
-
 // getUrlToResource construct page url for compose resources
 func (d composeResources) getUrlToResource(page pageDetail) (url string) {
 	var (

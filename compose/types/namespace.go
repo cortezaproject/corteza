@@ -51,10 +51,6 @@ type (
 	}
 
 	NamespaceMeta struct {
-		Discovery struct {
-			//ResponseMeta discovery.ResponseMeta `json:"response_meta"`
-		} `json:"discovery"`
-
 		// Temporary icon & logo URLs
 		// @todo rework this when we rework attachment management
 		Icon        string `json:"icon,omitempty"`

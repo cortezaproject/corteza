@@ -3,6 +3,7 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	discovery "github.com/cortezaproject/corteza-server/discovery/types"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/jmoiron/sqlx/types"
@@ -32,9 +33,7 @@ type (
 	}
 
 	ModuleMeta struct {
-		Discovery struct {
-			//ResponseMeta discovery.ResponseMeta `json:"response_meta"`
-		} `json:"discovery"`
+		Discovery discovery.ModuleMeta `json:"discovery"`
 	}
 
 	ModuleFilter struct {
