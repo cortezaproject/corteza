@@ -1,0 +1,9 @@
+namespaces:
+  ns1:
+    name: Namespace#1
+
+modules:
+  mod1:
+    name: Module#1
+    fields:
+      f1: { label: 'Field1' }

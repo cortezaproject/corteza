@@ -1,0 +1,87 @@
+# Note: we're intentionally not prefixing this with "compose"
+#       due to plans in the (near) future to refactor attachments
+#       from system & compose components into one single service
+
+imports:
+  - github.com/cortezaproject/corteza-server/compose/types
+  - io
+
+labels: &labels
+  attachment: "step,workflow"
+
+functions:
+  lookup:
+    meta:
+      short: Compose record lookup
+      description: Find specific record by ID
+    labels:
+      <<: *labels
+    params:
+      attachment:
+        required: true
+        types: [ { wf: ID } ]
+    results:
+      attachment: { wf: Attachment }
+
+  create:
+    meta:
+      short: Create file and attach it to a resource
+    labels:
+      <<: *labels
+      create: "step"
+    params:
+      name:
+        types:
+          - { wf: String }
+
+      resource:
+        required: true
+        types:
+          - { wf: ComposeRecord }
+
+      content:
+        required: true
+        types:
+          - { wf: String, suffix: String }
+          - { wf: Reader, suffix: Stream }
+          - { wf: Bytes,  suffix: Bytes }
+
+    results:
+      attachment: { wf: Attachment }
+
+  delete:
+    meta:
+      short: Delete attachment
+    labels:
+      <<: *labels
+      delete: "step"
+    params:
+      attachment:
+        required: true
+        types: [ { wf: ID } ]
+
+  openOriginal:
+    meta:
+      short: Open original attachment
+    labels:
+      <<: *labels
+      original-attachment: "step"
+    params:
+      attachment:
+        required: true
+        types: [ { wf: ID }, { wf: Attachment } ]
+    results:
+      content: { wf: Reader }
+
+  openPreview:
+    meta:
+      short: Open attachment preview
+    labels:
+      <<: *labels
+      preview-attachment: "step"
+    params:
+      attachment:
+        required: true
+        types: [ { wf: ID }, { wf: Attachment } ]
+    results:
+      content: { wf: Reader }
