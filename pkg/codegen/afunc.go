@@ -3,12 +3,13 @@ package codegen
 import (
 	"encoding/json"
 	"fmt"
-	. "github.com/cortezaproject/corteza-server/pkg/y7s"
-	"gopkg.in/yaml.v3"
 	"os"
 	"path"
 	"strings"
 	"text/template"
+
+	. "github.com/cortezaproject/corteza-server/pkg/y7s"
+	"gopkg.in/yaml.v3"
 )
 
 type (
@@ -164,6 +165,7 @@ func expandAutomationFunctionTypes(ff []*aFuncDefs, tt []*exprTypesDef) {
 				for _, t := range p.Types {
 					if ti[t.WorkflowType] == nil {
 						fmt.Printf("%s/%s(): unknown type %q used for param %q\n", f.Prefix, fn.Name, t.WorkflowType, p.Name)
+						continue
 					}
 
 					if t.GoType == "" {
@@ -182,6 +184,7 @@ func expandAutomationFunctionTypes(ff []*aFuncDefs, tt []*exprTypesDef) {
 			for _, r := range fn.Results {
 				if ti[r.WorkflowType] == nil {
 					fmt.Printf("%s/%s(): unknown type %q used for result %q\n", f.Prefix, fn.Name, r.WorkflowType, r.Name)
+					continue
 				}
 
 				if r.GoType == "" {

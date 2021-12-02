@@ -1,0 +1,58 @@
+workflows:
+  attachments:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 10
+
+    steps:
+      - stepID: 10
+        kind: expressions
+        arguments:
+          - { target: base64blackGif, value: "R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=" }
+
+      - stepID: 11
+        kind: function
+        ref: composeRecordsNew
+        arguments:
+          - { target: module,    type: Handle, value: "mod1" }
+          - { target: namespace, type: Handle, value: "ns1" }
+        results:
+          - { target: attachable, expr: "record"  }
+
+
+      # Store attachment from given string
+      - stepID: 20
+        kind: function
+        ref: attachmentCreate
+        arguments:
+          - { target: content,  type: String,        expr:  "base64blackGif" }
+          - { target: name,     type: String,        value: "black-from-base64-string.gif" }
+          - { target: resource, type: ComposeRecord, expr:  "attachable" }
+        results:
+          - { target: storedAttBlackGif, expr: "attachment"  }
+
+      # Load attachment
+      - stepID: 30
+        kind: function
+        ref: attachmentLookup
+        arguments:
+          - { target: attachment, type: ID,      expr:  "storedAttBlackGif.ID" }
+        results:
+          - { target: loadedAttBlackGif, expr: "attachment"  }
+
+      # Open attachment
+      - stepID: 31
+        kind: function
+        ref: attachmentOpenOriginal
+        arguments:
+          - { target: attachment, type: "Attachment", expr: "storedAttBlackGif" }
+        results:
+          - { target: loadedContent, expr: "content"  }
+
+    paths:
+      - { parentID: 10, childID: 11 }
+      - { parentID: 11, childID: 20 }
+      - { parentID: 20, childID: 30 }
+      - { parentID: 30, childID: 31 }

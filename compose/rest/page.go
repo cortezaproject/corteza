@@ -180,7 +180,8 @@ func (ctrl *Page) Upload(ctx context.Context, r *request.PageUpload) (interface{
 
 	defer file.Close()
 
-	a, err := ctrl.attachment.With(ctx).CreatePageAttachment(
+	a, err := ctrl.attachment.CreatePageAttachment(
+		ctx,
 		r.NamespaceID,
 		r.Upload.Filename,
 		r.Upload.Size,

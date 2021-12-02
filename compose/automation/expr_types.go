@@ -509,3 +509,12 @@ func isNil(i interface{}) bool {
 
 	return false
 }
+
+func CastToAttachment(val interface{}) (out *types.Attachment, err error) {
+	switch val := expr.UntypedValue(val).(type) {
+	case *types.Attachment:
+		return val, nil
+	default:
+		return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
+	}
+}

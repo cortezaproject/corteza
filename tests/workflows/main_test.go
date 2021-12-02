@@ -16,7 +16,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/envoy/json"
 	envoyStore "github.com/cortezaproject/corteza-server/pkg/envoy/store"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/yaml"
-	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/id"
@@ -144,10 +143,6 @@ func mustExecWorkflow(ctx context.Context, t *testing.T, name string, p autTypes
 				t.Logf("issue: %s", i.Description)
 				t.Logf("       %v", i.Culprit)
 			}
-		}
-
-		if unw := errors.Unwrap(err); unw != nil {
-			err = unw
 		}
 
 		t.Fatalf("could not exec %q: %v", name, err)
