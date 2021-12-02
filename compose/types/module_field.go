@@ -103,6 +103,58 @@ func (f *ModuleField) decodeTranslationsHintEdit(tt locale.ResourceTranslationIn
 	}
 }
 
+// Decodes translations and modifies options
+//
+// Why "options-option-texts"? Because we're translating option txts under options key-value
+func (f *ModuleField) decodeTranslationsOptionsOptionTexts(tt locale.ResourceTranslationIndex) {
+	var (
+		tr *locale.ResourceTranslation
+	)
+
+	optsUnknown, has := f.Options["options"]
+	if !has {
+		return
+	}
+
+	optsSlice, is := optsUnknown.([]interface{})
+	if !is {
+		return
+	}
+
+	for i, optUnknown := range optsSlice {
+		outOpt := map[string]string{}
+
+		// what is this we're dealing with? slice of strings (values) or map (value+text)
+		switch opt := optUnknown.(type) {
+		case string:
+			// cast string (value) into map (value+text)
+			// and use value as text (as a fallback in case
+			// of missing translation)
+			outOpt["value"] = opt
+			outOpt["text"] = opt
+
+		case map[string]interface{}:
+			outOpt["value"], is = opt["value"].(string)
+			if !is {
+				continue
+			}
+
+			outOpt["text"], _ = opt["text"].(string)
+		}
+
+		// find the translation for that value
+		// and update the option (effectively overwriting
+		// the original text value (in case of map option)
+		trKey := strings.NewReplacer("{{value}}", outOpt["value"]).Replace(LocaleKeyModuleFieldOptionsOptionTexts.Path)
+		if tr = tt.FindByKey(trKey); tr != nil {
+			outOpt["text"] = tr.Msg
+		}
+
+		// Update slice item with translated option
+		optsSlice[i] = outOpt
+	}
+}
+
 func (m *ModuleField) encodeTranslationsValidatorError() (out locale.ResourceTranslationSet) {
 	out = make(locale.ResourceTranslationSet, 0, 3)
 
@@ -179,12 +231,45 @@ func (f *ModuleField) encodeTranslationsHintEdit() (out locale.ResourceTranslati
 	return out
 }
 
-func (m ModuleField) Clone() *ModuleField {
-	return &m
+// extracts option texts and converts (encodes) them to translations
+func (f *ModuleField) encodeTranslationsOptionsOptionTexts() (out locale.ResourceTranslationSet) {
+	out = make(locale.ResourceTranslationSet, 0, 3)
+
+	optsUnknown, has := f.Options["options"]
+	if !has {
+		return
+	}
+
+	optsSlice, is := optsUnknown.([]interface{})
+	if !is {
+		return
+	}
+
+	for _, optUnknown := range optsSlice {
+		// we only care about maps (items with value & text)
+		switch opt := optUnknown.(type) {
+		case map[string]interface{}:
+			value, _ := opt["value"].(string)
+			text, _ := opt["text"].(string)
+
+			out = append(out, &locale.ResourceTranslation{
+				Resource: f.ResourceTranslation(),
+				Key: strings.NewReplacer("{{value}}", value).
+					Replace(LocaleKeyModuleFieldOptionsOptionTexts.Path),
+				Msg: text,
+			})
+		}
+	}
+
+	return
 }
 
-func (m ModuleField) setOptionKey(v interface{}, kk ...string) {
-	opt := m.Options
+func (f ModuleField) Clone() *ModuleField {
+	return &f
+}
+
+func (f ModuleField) setOptionKey(v interface{}, kk ...string) {
+	opt := f.Options
 
 	for _, k := range kk[0 : len(kk)-1] {
 		_, ok := opt[k]
@@ -206,8 +291,8 @@ func (m ModuleField) setOptionKey(v interface{}, kk ...string) {
 	opt[k] = v
 }
 
-func (m ModuleField) getOptionKey(kk ...string) interface{} {
-	opt := m.Options
+func (f ModuleField) getOptionKey(kk ...string) interface{} {
+	opt := f.Options
 
 	for _, k := range kk[0 : len(kk)-1] {
 		_, ok := opt[k]
