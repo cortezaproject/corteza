@@ -57,17 +57,17 @@ func (m Module) LabelResourceID() uint64 {
 }
 
 // SetLabel adds new label to label map
-func (m *ModuleField) SetLabel(key string, value string) {
-	if m.Labels == nil {
-		m.Labels = make(map[string]string)
+func (f *ModuleField) SetLabel(key string, value string) {
+	if f.Labels == nil {
+		f.Labels = make(map[string]string)
 	}
 
-	m.Labels[key] = value
+	f.Labels[key] = value
 }
 
 // GetLabels adds new label to label map
-func (m ModuleField) GetLabels() map[string]string {
-	return m.Labels
+func (f ModuleField) GetLabels() map[string]string {
+	return f.Labels
 }
 
 // GetLabels adds new label to label map
@@ -76,8 +76,8 @@ func (ModuleField) LabelResourceKind() string {
 }
 
 // GetLabels adds new label to label map
-func (m ModuleField) LabelResourceID() uint64 {
-	return m.ID
+func (f ModuleField) LabelResourceID() uint64 {
+	return f.ID
 }
 
 // SetLabel adds new label to label map
