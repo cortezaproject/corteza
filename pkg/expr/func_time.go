@@ -190,10 +190,15 @@ func prepMod(base interface{}, mod interface{}) (*time.Time, int, error) {
 // https://github.com/lestrrat-go/strftime#supported-conversion-specifications
 func strfTime(base interface{}, f string) (string, error) {
 	t, _, err := prepMod(base, 0)
+
 	if err != nil {
 		return "", err
 	}
-	o, _ := strftime.Format(f, *t, strftime.WithMilliseconds('b'))
+
+	o, _ := strftime.Format(f, *t,
+		strftime.WithMilliseconds('b'),
+		strftime.WithUnixSeconds('L'))
+
 	return o, nil
 }
 
