@@ -72,6 +72,29 @@ types:
       - { name: 'Queue',   exprType: 'String', goType: 'string' }
       - { name: 'Payload', exprType: 'Bytes',  goType: '[]byte' }
 
+  HttpRequest:
+    as: '*types.HttpRequest'
+    struct:
+      - { name: 'Method',   exprType: 'String', goType: 'string' }
+      - { name: 'URL',      exprType: 'Url',    goType: 'url.Url' }
+      - { name: 'Header',   exprType: 'KVV',    goType: 'map[string][]string' }
+      - { name: 'Body',     exprType: 'Reader', goType: 'io.Reader' }
+      - { name: 'Form',     exprType: 'KVV',    goType: 'map[string][]string' }
+      - { name: 'PostForm', exprType: 'KVV',    goType: 'map[string][]string' }
+
+  Url:
+    as: '*types.Url'
+    struct:
+      - { name: 'Scheme',      exprType: 'String',  goType: 'string' }
+      - { name: 'Opaque',      exprType: 'String',  goType: 'string' }
+      - { name: 'Host',        exprType: 'String',  goType: 'string' }
+      - { name: 'Path',        exprType: 'String',  goType: 'string' }
+      - { name: 'RawPath',     exprType: 'String',  goType: 'string' }
+      - { name: 'ForceQuery',  exprType: 'Boolean', goType: 'bool' }
+      - { name: 'RawQuery',    exprType: 'String',  goType: 'string' }
+      - { name: 'Fragment',    exprType: 'String',  goType: 'string' }
+      - { name: 'RawFragment', exprType: 'String',  goType: 'string' }
+
   RbacResource:
     as: 'rbac.Resource'
 

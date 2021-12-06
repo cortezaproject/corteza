@@ -1,18 +1,15 @@
 package apigw
 
 import (
-	"bytes"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
-	"net/http/httputil"
 	"time"
 
 	actx "github.com/cortezaproject/corteza-server/pkg/apigw/ctx"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/cortezaproject/corteza-server/system/automation"
 	"go.uber.org/zap"
 )
 
@@ -45,19 +42,16 @@ func (r route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	r.log.Debug("started serving route")
 
-	b, _ := io.ReadAll(req.Body)
-	body := string(b)
+	// create a new automation HttpRequest
+	ar, err := automation.NewHttpRequest(req)
 
-	// write again
-	req.Body = ioutil.NopCloser(bytes.NewBuffer(b))
+	if err != nil {
+		r.log.Error("could not prepare a request holder", zap.Error(err))
+		return
+	}
 
 	scope.Set("opts", r.opts)
-	scope.Set("payload", body)
-
-	if r.opts.LogEnabled {
-		o, _ := httputil.DumpRequest(req, r.opts.LogRequestBody)
-		r.log.Debug("incoming request", zap.Any("request", string(o)))
-	}
+	scope.Set("request", ar)
 
 	req = req.WithContext(actx.ScopeToContext(ctx, &scope))
 
