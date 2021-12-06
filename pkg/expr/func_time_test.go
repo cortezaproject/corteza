@@ -134,3 +134,10 @@ func Example_subErrorCheck() {
 	// output:
 	// error: can not evaluate sub(ghd, hgp): expecting 2nd input to be less than 1st input
 }
+
+func Example_unix() {
+	eval(`strftime(ghd, "%L")`, exampleTimeParams)
+
+	// output:
+	// 728650800
+}
