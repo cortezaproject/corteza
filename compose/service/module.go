@@ -493,11 +493,11 @@ func (svc module) handleUpdate(ctx context.Context, upd *types.Module) moduleUpd
 		}
 
 		// Get max validatorID for later use
-		vvID := make([]uint64, len(res.Fields))
-		for i, f := range res.Fields {
+		vvID := make(map[uint64]uint64)
+		for _, f := range res.Fields {
 			for _, v := range f.Expressions.Validators {
-				if vvID[i] < v.ValidatorID {
-					vvID[i] = v.ValidatorID
+				if vvID[f.ID] < v.ValidatorID {
+					vvID[f.ID] = v.ValidatorID
 				}
 			}
 		}
@@ -537,11 +537,11 @@ func (svc module) handleUpdate(ctx context.Context, upd *types.Module) moduleUpd
 		}
 
 		// Assure validatorIDs
-		for i, f := range res.Fields {
+		for _, f := range res.Fields {
 			for j, v := range f.Expressions.Validators {
 				if v.ValidatorID == 0 {
-					vvID[i] += 1
-					v.ValidatorID = vvID[i]
+					vvID[f.ID] += 1
+					v.ValidatorID = vvID[f.ID]
 					f.Expressions.Validators[j] = v
 
 					changes |= moduleFieldsChanged
