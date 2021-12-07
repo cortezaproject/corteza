@@ -121,7 +121,7 @@ func (svc resourceTranslationsManager) pageExtended(ctx context.Context, res *ty
 
 			switch block.Kind {
 			case "Automation":
-				aux, err := svc.pageExtendedAutomatinBlock(tag, res, block, pbContentID, k)
+				aux, err := svc.pageExtendedAutomationBlock(tag, res, block, pbContentID, k)
 				if err != nil {
 					return nil, err
 				}
@@ -134,7 +134,7 @@ func (svc resourceTranslationsManager) pageExtended(ctx context.Context, res *ty
 	return
 }
 
-func (svc resourceTranslationsManager) pageExtendedAutomatinBlock(tag language.Tag, res *types.Page, block types.PageBlock, blockID uint64, k types.LocaleKey) (locale.ResourceTranslationSet, error) {
+func (svc resourceTranslationsManager) pageExtendedAutomationBlock(tag language.Tag, res *types.Page, block types.PageBlock, blockID uint64, k types.LocaleKey) (locale.ResourceTranslationSet, error) {
 	out := make(locale.ResourceTranslationSet, 0, 10)
 
 	bb, _ := block.Options["buttons"].([]interface{})
