@@ -14,7 +14,8 @@ import (
 
 func (svc resourceTranslationsManager) moduleExtended(ctx context.Context, res *types.Module) (out locale.ResourceTranslationSet, err error) {
 	var (
-		k types.LocaleKey
+		k   types.LocaleKey
+		set locale.ResourceTranslationSet
 	)
 
 	for _, tag := range svc.locale.Tags() {
@@ -57,19 +58,26 @@ func (svc resourceTranslationsManager) moduleExtended(ctx context.Context, res *
 				Msg:      svc.locale.TResourceFor(tag, f.ResourceTranslation(), k.Path),
 			})
 
-			// Extra field bits
-			converted, err := svc.moduleFieldValidatorErrorHandler(ctx, tag, f, k.Path)
+			// Expressions
+			set, err = svc.moduleFieldExpressionsHandler(ctx, tag, f)
 			if err != nil {
 				return nil, err
 			}
-			out = append(out, converted...)
+			out = append(out, set...)
+
+			// Extra field bits
+			set, err = svc.moduleFieldOptionsHandler(ctx, tag, f)
+			if err != nil {
+				return nil, err
+			}
+			out = append(out, set...)
 		}
 	}
 
 	return out, nil
 }
 
-func (svc resourceTranslationsManager) moduleFieldValidatorErrorHandler(ctx context.Context, tag language.Tag, f *types.ModuleField, k string) (locale.ResourceTranslationSet, error) {
+func (svc resourceTranslationsManager) moduleFieldExpressionsHandler(ctx context.Context, tag language.Tag, f *types.ModuleField) (locale.ResourceTranslationSet, error) {
 	out := make(locale.ResourceTranslationSet, 0, 10)
 
 	for i, v := range f.Expressions.Validators {
@@ -77,13 +85,56 @@ func (svc resourceTranslationsManager) moduleFieldValidatorErrorHandler(ctx cont
 		rpl := strings.NewReplacer(
 			"{{validatorID}}", strconv.FormatUint(vContentID, 10),
 		)
-		tKey := rpl.Replace(k)
+
+		tKey := rpl.Replace(types.LocaleKeyModuleFieldValidatorError.Path)
 
 		out = append(out, &locale.ResourceTranslation{
 			Resource: f.ResourceTranslation(),
 			Lang:     tag.String(),
 			Key:      tKey,
 			Msg:      svc.locale.TResourceFor(tag, f.ResourceTranslation(), tKey),
+		})
+	}
+
+	return out, nil
+}
+
+func (svc resourceTranslationsManager) moduleFieldOptionsHandler(ctx context.Context, tag language.Tag, f *types.ModuleField) (locale.ResourceTranslationSet, error) {
+	out := make(locale.ResourceTranslationSet, 0, 10)
+
+	optsUnknown, has := f.Options["options"]
+	if !has {
+		return nil, nil
+	}
+
+	optsSlice, is := optsUnknown.([]interface{})
+	if !is {
+		return nil, nil
+	}
+
+	for _, optUnknown := range optsSlice {
+		var value string
+
+		// what is this we're dealing with?
+		// slice of strings (values) or map (value+text)
+		switch opt := optUnknown.(type) {
+		case string:
+			value = opt
+
+		case map[string]interface{}:
+			value, is = opt["value"].(string)
+			if !is {
+				continue
+			}
+		}
+
+		trKey := strings.NewReplacer("{{value}}", value).Replace(types.LocaleKeyModuleFieldOptionsOptionTexts.Path)
+
+		out = append(out, &locale.ResourceTranslation{
+			Resource: f.ResourceTranslation(),
+			Lang:     tag.String(),
+			Key:      trKey,
+			Msg:      svc.locale.TResourceFor(tag, f.ResourceTranslation(), trKey),
 		})
 	}
 
