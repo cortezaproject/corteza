@@ -65,7 +65,7 @@ Quick references:
 
 ## Upgrading Corteza
 
-[![Latest Version Card](https://img.shields.io/github/v/tag/cortezaproject/corteza-server?label=latest%20stable%20version)](https://img.shields.io/github/v/tag/cortezaproject/corteza-server?label=latest%20stable%20version)
+[![Latest Version Card](https://img.shields.io/github/v/tag/cortezaproject/corteza-js?label=latest%20stable%20version)](https://img.shields.io/github/v/tag/cortezaproject/corteza-js?label=latest%20stable%20version)
 
 Refer to the [changelog](https://docs.cortezaproject.org/corteza-docs/2021.9/changelog/index.html) and the [upgrade guide](https://docs.cortezaproject.org/corteza-docs/2021.9/upgrade-guide/index.html) to upgrade your Corteza instance.
 
@@ -76,7 +76,7 @@ Refer to the [End-User Guide](https://docs.cortezaproject.org/corteza-docs/2021.
 Quick references:
 
 * [Corteza CRM](https://docs.cortezaproject.org/corteza-docs/2021.9/end-user-guide/crm/index.html)
-* [Corteza Service Solution](https://docs.cortezaproject.org/corteza-docs/2021.9/end-user-guide/service-solution/index.html)
+* [Corteza Case Management](https://docs.cortezaproject.org/corteza-docs/2021.9/end-user-guide/case-management/index.html)
 
 ## Create with Corteza
 
@@ -85,12 +85,12 @@ Refer to the [Integrator Guide](https://docs.cortezaproject.org/corteza-docs/202
 Quick references:
 
 * [Corteza Compose configuration](https://docs.cortezaproject.org/corteza-docs/2021.9/integrator-guide/compose-configuration/index.html)
-* automation using [workflows](https://docs.cortezaproject.org/corteza-docs/2021.9/integrator-guide/workflows/index.html) and [automation scripts](https://docs.cortezaproject.org/corteza-docs/2021.9/integrator-guide/automation-scripts/index.html)
+* automation using [workflows](https://docs.cortezaproject.org/corteza-docs/2021.9/integrator-guide/automation/workflows/index.html) and [automation scripts](https://docs.cortezaproject.org/corteza-docs/2021.9/integrator-guide/automation-scripts/index.html)
 * [using the REST API](https://docs.cortezaproject.org/corteza-docs/2021.9/integrator-guide/accessing-corteza/index.html),
 
 ## Contributing
 
-Refer to the [Developer Guide/Corteza Server](https://docs.cortezaproject.org/corteza-docs/2021.9/developer-guide/corteza-server/index.html) document for details regarding the [development setup](https://docs.cortezaproject.org/corteza-docs/2021.9/developer-guide/corteza-server/index.html#_development_setup), the [project structure](https://docs.cortezaproject.org/corteza-docs/2021.9/developer-guide/corteza-server/structure.html), and the feature insight documents.
+Refer to the [Developer Guide/Corteza JS](https://docs.cortezaproject.org/corteza-docs/2021.9/developer-guide/corteza-js/index.html) document for details regarding the [development setup](https://docs.cortezaproject.org/corteza-docs/2021.9/developer-guide/corteza-js/index.html#_development_setup), the [project structure](https://docs.cortezaproject.org/corteza-docs/2021.9/developer-guide/corteza-js/structure.html), and the feature insight documents.
 
 Refer to the [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines and code of conduct.
 
