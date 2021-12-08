@@ -90,3 +90,24 @@ func Example_randomWithTwoInput() {
 	// output:
 	// 1
 }
+
+func Example_castStringToInt() {
+	eval(`int("abc")`, nil)
+
+	// output:
+	// 0
+}
+
+func Example_castStringNumberToInt() {
+	eval(`int("42690")`, nil)
+
+	// output:
+	// 42690
+}
+
+func Example_castFloatToInt() {
+	eval(`int("42.690")`, nil)
+
+	// output:
+	// 0
+}
