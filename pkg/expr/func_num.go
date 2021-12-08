@@ -1,10 +1,12 @@
 package expr
 
 import (
-	"github.com/PaesslerAG/gval"
-	"github.com/pkg/errors"
 	"math"
 	"math/rand"
+
+	"github.com/PaesslerAG/gval"
+	"github.com/pkg/errors"
+	"github.com/spf13/cast"
 )
 
 func NumericFunctions() []gval.Language {
@@ -21,6 +23,7 @@ func NumericFunctions() []gval.Language {
 		gval.Function("sum", sum),
 		gval.Function("average", average),
 		gval.Function("random", random),
+		gval.Function("int", toInt64),
 	}
 }
 
@@ -140,4 +143,8 @@ func random(v ...float64) (out float64, err error) {
 
 	out = from + rand.Float64()*(to-from)
 	return
+}
+
+func toInt64(aa interface{}) (i int64) {
+	return cast.ToInt64(aa)
 }
