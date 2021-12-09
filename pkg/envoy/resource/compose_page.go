@@ -159,6 +159,13 @@ outer:
 				button, _ := b.(map[string]interface{})
 				auxRef = r.pbAutomation(button)
 
+				// In case the block isn't connected to a workflow (placeholder, script)
+				if auxRef == nil {
+					r.removeBlock(i)
+					continue outer
+				}
+
+				// In case we are removing it
 				if auxRef.equals(ref) {
 					r.ReplaceRef(ref, nil)
 					r.WfRefs = r.WfRefs.replaceRef(ref, nil)
