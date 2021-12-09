@@ -342,7 +342,7 @@ func qlTypeRegistry(ref string) expr.Type {
 		return &expr.UnsignedInteger{}
 	case "Float", "Number":
 		return &expr.Float{}
-	case "String":
+	case "String", "Select":
 		return &expr.String{}
 	case "DateTime":
 		return &expr.DateTime{}
