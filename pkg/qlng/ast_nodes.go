@@ -99,7 +99,7 @@ func (t *typedValue) MarshalJSON() ([]byte, error) {
 	)
 
 	if t.V == nil {
-		return nil, nil
+		return json.Marshal(aux)
 	}
 
 	aux.Type = t.V.Type()
