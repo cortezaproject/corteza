@@ -104,6 +104,55 @@ func TestReportFilterCasting(t *testing.T) {
 		End()
 }
 
+func TestReportCreate_invalidFilter(t *testing.T) {
+	h := newHelper(t)
+	h.clearReports()
+	helpers.AllowMe(h, types.ComponentRbacResource(), "report.create")
+
+	h.apiInit().
+		Post("/reports/").
+		Header("Accept", "application/json").
+		JSON(`{
+			"handle": "test_report",
+			"meta": { "name": "Test Report", "description": "" },
+			"sources": [
+				{
+					"meta": {},
+					"step": {
+						"load": {
+							"name": "Load",
+							"source": "composeRecords",
+							"definition": {
+								"module": "test",
+								"namespace": "test"
+							},
+							"columns": null,
+							"filter": {
+								"ref": "or",
+								"args": [
+									{
+										"ref": "eq",
+										"args": [
+											{ "symbol": "id_str" },
+											{
+												"value": { "@type": "", "@value": "" }
+											}
+										]
+									}
+								]
+							}
+						}
+					}
+				}
+			],
+			"blocks": []
+		}`).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+}
+
 func TestReportScenarios_create(t *testing.T) {
 	h := newHelper(t)
 	h.clearReports()
