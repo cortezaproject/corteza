@@ -58,7 +58,7 @@ var (
 				return
 			}
 
-			out = fmt.Sprintf("STRFTIME('%%Y-%%m-%%dT00:00:00Z', %s)", aa[0].S)
+			out = fmt.Sprintf("STRFTIME('%%d', %s)", aa[0].S)
 			args = aa[0].Args
 			return
 		},

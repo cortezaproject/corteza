@@ -196,7 +196,7 @@ var (
 		"date": {
 			Args:    collectParams(true, "DateTime"),
 			Result:  wrapRes("Number"),
-			Handler: makeGenericFilterFncHandler("DateTime"),
+			Handler: makeGenericFilterFncHandler("DAY"),
 		},
 
 		// generic stuff
