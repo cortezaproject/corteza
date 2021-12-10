@@ -219,6 +219,9 @@ permissions:
   update:
     success: Permissions updated
     error: Permissions update failed
+  clone:
+    success: Permissions cloned
+    error: Permissions clone failed
   role:
     error: Failed to add role
 

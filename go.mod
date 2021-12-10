@@ -18,7 +18,7 @@ require (
 	github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/brianvoe/gofakeit/v6 v6.5.0
-	github.com/cortezaproject/corteza-locale v0.0.0-20211122123708-d5c179b9eb73
+	github.com/cortezaproject/corteza-locale v0.0.0-20211209194516-5c1ac47046ad
 	github.com/crewjam/saml v0.4.5
 	github.com/crusttech/go-oidc v0.0.0-20180918092017-982855dad3e1
 	github.com/davecgh/go-spew v1.1.1
@@ -55,7 +55,7 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
 	github.com/lestrrat-go/jwx v1.2.11
-    github.com/lestrrat-go/strftime v1.0.5
+	github.com/lestrrat-go/strftime v1.0.5
 	github.com/lib/pq v1.1.0
 	github.com/markbates/goth v1.67.1
 	github.com/mattn/go-sqlite3 v1.14.0
