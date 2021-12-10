@@ -222,6 +222,7 @@ func (d composeResources) Modules(ctx context.Context, namespaceID uint64, limit
 					}
 					return out
 				}(),
+				Labels:  mod.Labels,
 				Created: makePartialChange(&mod.CreatedAt),
 				Updated: makePartialChange(mod.UpdatedAt),
 				Deleted: makePartialChange(mod.DeletedAt),
@@ -302,6 +303,7 @@ func (d composeResources) Records(ctx context.Context, namespaceID, moduleID uin
 				Namespace:    nsPartial,
 				Module:       modPartial,
 				Url:          d.getUrlToResource(pageDetail{moduleID: moduleID, recordID: recordID}),
+				Labels:       rec.Labels,
 				Values:       d.recordValues(ctx, rec),
 				Created:      makePartialChange(&rec.CreatedAt),
 				Updated:      makePartialChange(rec.UpdatedAt),

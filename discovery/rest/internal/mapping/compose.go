@@ -82,6 +82,9 @@ func (m composeMapping) Modules(ctx context.Context) ([]*Mapping, error) {
 			"name":   {Type: "text", Boost: 2},
 			"handle": {Type: "keyword", Boost: 2},
 			"url":    {Type: "text"},
+			"labels": {
+				Type: "object",
+			},
 			"fields": {
 				Type: "object",
 				Properties: map[string]*property{
@@ -152,6 +155,9 @@ func (m composeMapping) records(ctx context.Context, mod *types.Module, mm types
 	mapping.Mapping["deleted"] = change()
 	mapping.Mapping["security"] = security()
 
+	mapping.Mapping["labels"] = &property{
+		Type: "object",
+	}
 	mapping.Mapping["values"] = &property{
 		Type:       "nested",
 		Properties: props,
