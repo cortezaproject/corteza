@@ -383,7 +383,7 @@ func (d composeResources) getUrlToResource(page pageDetail) (url string) {
 	if validModuleID && validRecord {
 		// For record, take moduleID & recordID from params(page) then construct url from modulePages map
 		if p, is := modulePages[page.moduleID]; is {
-			url = fmt.Sprintf("%s/compose/ns/%s/pages/%d/records/%d", host, p.namespaceSlug, p.pageID, page.recordID)
+			url = fmt.Sprintf("%s/compose/ns/%s/pages/%d/record/%d", host, p.namespaceSlug, p.pageID, page.recordID)
 		}
 	} else if validNsSlung && validPageID {
 		// for module? @todo, we need moduleID ref for module home page
