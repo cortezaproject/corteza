@@ -566,7 +566,7 @@ func (Schema) FederationModuleShared() *Table {
 		ColumnDef("name", ColumnTypeText),
 		ColumnDef("rel_node", ColumnTypeIdentifier),
 		ColumnDef("xref_module", ColumnTypeIdentifier),
-		ColumnDef("fields", ColumnTypeText),
+		ColumnDef("fields", ColumnTypeJson),
 		CUDTimestamps,
 		CUDUsers,
 	)
@@ -580,7 +580,7 @@ func (Schema) FederationModuleExposed() *Table {
 		ColumnDef("rel_node", ColumnTypeIdentifier),
 		ColumnDef("rel_compose_module", ColumnTypeIdentifier),
 		ColumnDef("rel_compose_namespace", ColumnTypeIdentifier),
-		ColumnDef("fields", ColumnTypeText),
+		ColumnDef("fields", ColumnTypeJson),
 		CUDTimestamps,
 		CUDUsers,
 
@@ -593,7 +593,7 @@ func (Schema) FederationModuleMapping() *Table {
 		ColumnDef("rel_federation_module", ColumnTypeIdentifier),
 		ColumnDef("rel_compose_module", ColumnTypeIdentifier),
 		ColumnDef("rel_compose_namespace", ColumnTypeIdentifier),
-		ColumnDef("field_mapping", ColumnTypeText),
+		ColumnDef("field_mapping", ColumnTypeJson),
 
 		AddIndex("unique_module_compose_module", IColumn("rel_federation_module", "rel_compose_module", "rel_compose_namespace")),
 	)
