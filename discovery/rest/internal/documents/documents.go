@@ -79,6 +79,7 @@ type (
 		Name         string                          `json:"name,omitempty"`
 		Handle       string                          `json:"handle,omitempty"`
 		Url          string                          `json:"url,omitempty"`
+		Labels       map[string]string               `json:"labels,omitempty"`
 		Fields       []*docPartialComposeModuleField `json:"fields"`
 		Namespace    docPartialComposeNamespace      `json:"namespace"`
 		Updated      *docPartialChange               `json:"updated,omitempty"`
@@ -104,6 +105,7 @@ type (
 		Url          string                     `json:"url,omitempty"`
 		Namespace    docPartialComposeNamespace `json:"namespace"`
 		Module       docPartialComposeModule    `json:"module"`
+		Labels       map[string]string          `json:"labels,omitempty"`
 		Values       map[string][]interface{}   `json:"values"`
 		Updated      *docPartialChange          `json:"updated,omitempty"`
 		Created      *docPartialChange          `json:"created,omitempty"`
