@@ -131,6 +131,21 @@ func makeGenericAggFncHandler(fnc string) HandlerSig {
 	}
 }
 
+func makeGenericFncHandler(fnc string) HandlerSig {
+	return func(aa ...FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
+		selfEnclosed = true
+
+		params := make([]string, len(aa))
+		for i, a := range aa {
+			params[i] = a.S
+			args = append(args, a.Args...)
+		}
+
+		out = fmt.Sprintf("%s(%s)", fnc, strings.Join(params, ", "))
+		return
+	}
+}
+
 func makeGenericTypecastHandler(t string) HandlerSig {
 	return func(aa ...FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
 		selfEnclosed = true

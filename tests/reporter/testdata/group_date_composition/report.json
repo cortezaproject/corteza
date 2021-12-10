@@ -1,0 +1,38 @@
+{
+  "handle": "testing_report",
+  "sources": [
+    { "step": { "load": {
+      "name": "users",
+      "source": "composeRecords",
+      "definition": {
+        "module": "user",
+        "namespace": "ns"
+      }
+    }}},
+
+    { "step": { "group": {
+      "name": "grouped",
+      "source": "users",
+      "keys": [
+        { "name": "by_dob", "def": "concat(string(year(dob)), '-', string(month(dob)))" }
+      ],
+      "columns": [
+        {
+          "name": "count",
+          "def": {
+            "ref": "count"
+          }
+        }
+      ]
+    }}}
+  ],
+  "frames": [{
+    "name":   "result",
+    "source": "grouped",
+    "columns": [
+      { "name": "by_dob", "label": "by_dob" },
+      { "name": "count", "label": "count" }
+    ],
+    "sort": "by_dob ASC"
+  }]
+}
