@@ -1,4 +1,5 @@
 errors:
+  invalidConfiguration: Invalid report configuration
   invalidID: invalid ID
   notAllowedToCreate: not allowed to create reports
   notAllowedToDelete: not allowed to delete this report

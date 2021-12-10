@@ -24,7 +24,17 @@ edit:
       allFields: All Fields
       description: 'Match federated fields with existing ones:'
       title: Map
-    errorFetchingData: Error fetching server data
+    error:
+      fetch:
+        data: Error fetching server data
+        exposed: Error fetching exposed module info
+        shared: Error fetching shared module info
+        mmap: Error fetching module mapping info
+        node: Error fetching nodes info
+      persist:
+        exposed: Error persisting exposed module info
+        shared: Error persisting shared module info
+        mmap: Error persisting module mapping info
     general:
       receive: Receive new records from another organization (downstream)
       send: Send new records to the federated network (upstream)

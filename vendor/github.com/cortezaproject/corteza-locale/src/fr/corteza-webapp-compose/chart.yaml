@@ -39,7 +39,6 @@ edit:
     fixTooltips: Always show tooltips
     function:
       avg: AVG
-      countd: COUNTD
       label: Function
       max: MAX
       min: MIN
