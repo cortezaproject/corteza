@@ -224,56 +224,56 @@ type (
 
 		Discovery struct {
 			// Enable indexing
-			Enabled bool `kv:"-" json:"enabled"`
+			Enabled bool `kv:"enabled" json:"enabled"`
 
 			SystemUsers struct {
 				// Enable indexing of users
-				Enabled bool `kv:"-" json:"enabled"`
+				Enabled bool `kv:"enabled" json:"enabled"`
 			} `kv:"system-users" json:"system-users"`
 
 			SystemApplications struct {
 				// Enable indexing of applications
-				Enabled bool `kv:"-" json:"enabled"`
+				Enabled bool `kv:"enabled" json:"enabled"`
 			} `kv:"system-applications" json:"system-applications"`
 
 			SystemRoles struct {
 				// Enable indexing of roles
-				Enabled bool `kv:"-" json:"enabled"`
+				Enabled bool `kv:"enabled" json:"enabled"`
 			} `kv:"system-roles" json:"system-roles"`
 
 			SystemTemplates struct {
 				// Enable indexing of templates
-				Enabled bool `kv:"-" json:"enabled"`
+				Enabled bool `kv:"enabled" json:"enabled"`
 			} `kv:"system-templates" json:"system-templates"`
 
 			AutomationWorkflows struct {
 				// Enable indexing of workflows
-				Enabled bool `kv:"-" json:"enabled"`
+				Enabled bool `kv:"enabled" json:"enabled"`
 			} `kv:"automation-workflows" json:"automation-workflows"`
 
 			ComposeNamespaces struct {
 				// Enable indexing of compose namespaces
-				Enabled bool `kv:"-" json:"enabled"`
+				Enabled bool `kv:"enabled" json:"enabled"`
 			} `kv:"compose-namespaces" json:"compose-namespaces"`
 
 			ComposeCharts struct {
 				// Enable indexing of compose charts
-				Enabled bool `kv:"-" json:"enabled"`
+				Enabled bool `kv:"enabled" json:"enabled"`
 			} `kv:"compose-charts" json:"compose-charts"`
 
 			ComposePages struct {
 				// Enable indexing of compose pages
-				Enabled bool `kv:"-" json:"enabled"`
+				Enabled bool `kv:"enabled" json:"enabled"`
 			} `kv:"compose-pages" json:"compose-pages"`
 
 			ComposeModules struct {
 				// Enable indexing of compose modules
-				Enabled bool `kv:"-" json:"enabled"`
+				Enabled bool `kv:"enabled" json:"enabled"`
 			} `kv:"compose-modules" json:"compose-modules"`
 
 			ComposeRecords struct {
 				// Enable indexing of compose records
-				Enabled bool `kv:"-" json:"enabled"`
+				Enabled bool `kv:"enabled" json:"enabled"`
 			} `kv:"compose-records" json:"compose-records"`
 		} `kv:"discovery"`
 	}
