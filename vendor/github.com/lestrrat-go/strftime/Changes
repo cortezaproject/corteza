@@ -1,0 +1,14 @@
+Changes
+=======
+
+v1.0.5
+[New features]
+  * `(strftime.Strftime).FormatBuffer([]byte, time.Time) []byte` has been added.
+    This allows the user to provide the same underlying `[]byte` buffer for each
+    call to `FormatBuffer`, which avoid allocation per call. 
+  * `%I` formatted midnight as `00`, where it should have been using `01`
+
+
+before v1.0.4
+
+Apparently we have failed to provide Changes prior to v1.0.5 :(

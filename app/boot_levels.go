@@ -588,6 +588,7 @@ func updateAuthSettings(svc authServicer, current *types.AppSettings) {
 				Key:         p.Key,
 				RedirectUrl: p.RedirectUrl,
 				Secret:      p.Secret,
+				Scope:       p.Scope,
 			})
 		}
 	}

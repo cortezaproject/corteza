@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
+	"net/url"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
@@ -181,6 +183,54 @@ func CastToQueueMessage(val interface{}) (out *types.QueueMessage, err error) {
 		return &types.QueueMessage{}, nil
 	default:
 		return &types.QueueMessage{}, fmt.Errorf("unable to cast type %T to %T", val, out)
+	}
+}
+
+func CastToHttpRequest(val interface{}) (out *types.HttpRequest, err error) {
+	switch val := val.(type) {
+	case expr.Iterator:
+		out = &types.HttpRequest{}
+		return out, val.Each(func(k string, v expr.TypedValue) error {
+			return assignToHttpRequest(out, k, v)
+		})
+	}
+
+	switch val := expr.UntypedValue(val).(type) {
+	case *http.Request:
+		rr := &types.HttpRequest{}
+
+		assignToHttpRequest(rr, "Method", val.Method)
+		assignToHttpRequest(rr, "URL", val.URL)
+		assignToHttpRequest(rr, "Header", val.Header)
+		assignToHttpRequest(rr, "Body", val.Body)
+		assignToHttpRequest(rr, "Form", val.Form)
+		assignToHttpRequest(rr, "PostForm", val.PostForm)
+
+		return rr, nil
+	case *types.HttpRequest:
+		return val, nil
+	case nil:
+		return &types.HttpRequest{}, nil
+	default:
+		return &types.HttpRequest{}, fmt.Errorf("unable to cast type %T to %T", val, out)
+	}
+}
+
+func CastToUrl(val interface{}) (out *types.Url, err error) {
+	switch val := expr.UntypedValue(val).(type) {
+	case *url.URL:
+		u := &types.Url{}
+
+		m, _ := json.Marshal(val)
+		_ = json.Unmarshal(m, u)
+
+		return u, nil
+	case *types.Url:
+		return val, nil
+	case nil:
+		return &types.Url{}, nil
+	default:
+		return &types.Url{}, fmt.Errorf("unable to cast type %T to %T", val, out)
 	}
 }
 

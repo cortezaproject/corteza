@@ -8,6 +8,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/csv"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/directory"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	es "github.com/cortezaproject/corteza-server/pkg/envoy/store"
@@ -20,6 +21,7 @@ func Import(ctx context.Context, storeInit func(ctx context.Context) (store.Stor
 		replaceOnExisting    bool
 		mergeLeftOnExisting  bool
 		mergeRightOnExisting bool
+		defaultResTr         bool
 	)
 
 	cmd := &cobra.Command{
@@ -31,11 +33,12 @@ func Import(ctx context.Context, storeInit func(ctx context.Context) (store.Stor
 			cli.HandleError(err)
 
 			yd := yaml.Decoder()
+			cd := csv.Decoder()
 			nn := make([]resource.Interface, 0, 200)
 
 			if len(args) > 0 {
 				for _, fn := range args {
-					mm, err := directory.Decode(ctx, fn, yd)
+					mm, err := directory.Decode(ctx, fn, yd, cd)
 					cli.HandleError(err)
 					nn = append(nn, mm...)
 				}
@@ -47,6 +50,16 @@ func Import(ctx context.Context, storeInit func(ctx context.Context) (store.Stor
 				mm, err := yd.Decode(ctx, os.Stdin, do)
 				cli.HandleError(err)
 				nn = append(nn, mm...)
+			}
+
+			if !defaultResTr {
+				nn = pruneResTr(nn)
+			}
+
+			nn, err = resource.Shape(nn, resource.ComposeRecordShaper())
+			if err != nil {
+				cli.HandleError(err)
+				return
 			}
 
 			opt := &es.EncoderConfig{
@@ -90,6 +103,29 @@ func Import(ctx context.Context, storeInit func(ctx context.Context) (store.Stor
 		false,
 		"Update any existing values; new data takes priority. Default skips.",
 	)
+	cmd.Flags().BoolVar(
+		&defaultResTr,
+		"resource-translationsDefaults",
+		false,
+		"Automatically extract and determine resource translations for the provided resources.",
+	)
 
 	return cmd
+}
+
+func pruneResTr(nn []resource.Interface) (mm []resource.Interface) {
+	mm = make([]resource.Interface, 0, len(nn))
+	for _, n := range nn {
+		if n.ResourceType() != resource.ResourceTranslationType {
+			mm = append(mm, n)
+			continue
+		}
+
+		r := n.(*resource.ResourceTranslation)
+		if !r.IsDefault() {
+			mm = append(mm, n)
+			continue
+		}
+	}
+	return mm
 }

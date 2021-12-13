@@ -110,6 +110,8 @@ type (
 						IdentHandle     string `kv:"ident-handle"`
 						IdentIdentifier string `kv:"ident-identifier"`
 					} `kv:"idp"`
+
+					Security ExternalAuthProviderSecurity `json:"-" kv:"security,final"`
 				}
 
 				// all external providers we know
@@ -220,9 +222,42 @@ type (
 		Label       string `json:"label"`
 		Key         string `json:"-"`
 		Secret      string `json:"-"`
+		Scope       string `json:"scope"`
 		RedirectUrl string `json:"-" kv:"redirect"`
 		IssuerUrl   string `json:"-" kv:"issuer"`
 		Weight      int    `json:"-"`
+
+		Security ExternalAuthProviderSecurity `json:"-" kv:"security,final"`
+	}
+
+	ExternalAuthProviderSecurity struct {
+		// Subset of roles, permitted to be used with this client
+		// when authorizing via this auth provider.
+		//
+		// IDs are intentionally stored as strings to support JS (int64 only)
+		//
+		PermittedRoles []string `json:"permittedRoles,omitempty"`
+
+		// Subset of roles, prohibited to be used with this client
+		// when authorizing via this auth provider.
+		//
+		// IDs are intentionally stored as strings to support JS (int64 only)
+		//
+		ProhibitedRoles []string `json:"prohibitedRoles,omitempty"`
+
+		// Set of additional roles that are forced on this user
+		// when authorizing via this auth provider.
+		//
+		// IDs are intentionally stored as strings to support JS (int64 only)
+		ForcedRoles []string `json:"forcedRoles,omitempty"`
+
+		// Map external roles or groups to internal
+		//
+		// If IdP provides a list of roles (groups) along side authenticated user
+		// these roles can be mapped to the valid local roles
+		//
+		// @todo implement mapped roles
+		// MappedRoles map[string]string `json:"mappedRoles,omitempty"`
 	}
 
 	SmtpServers struct {
@@ -279,7 +314,7 @@ func (set *ExternalAuthProviderSet) DecodeKV(kv SettingsKV, prefix string) (err 
 		p := (*set).FindByHandle(handle)
 		if p == nil {
 			p = &ExternalAuthProvider{Handle: handle}
-			(*set) = append((*set), p)
+			*set = append(*set, p)
 		}
 
 		err = DecodeKV(kv.CutPrefix(handle+"."), p)
@@ -351,20 +386,21 @@ func (set ExternalAuthProviderSet) Valid() (out ExternalAuthProviderSet) {
 
 var _ KVDecoder = &ExternalAuthProviderSet{}
 
-func (p ExternalAuthProvider) EncodeKV() (vv SettingValueSet, err error) {
-	if p.Handle == "" {
+func (set ExternalAuthProvider) EncodeKV() (vv SettingValueSet, err error) {
+	if set.Handle == "" {
 		return nil, errors.New("cannot encode external auth provider without handle")
 	}
 	var (
-		prefix = "auth.external.providers." + p.Handle + "."
+		prefix = "auth.external.providers." + set.Handle + "."
 		pairs  = map[string]interface{}{
-			"enabled":  p.Enabled,
-			"label":    p.Label,
-			"key":      p.Key,
-			"secret":   p.Secret,
-			"issuer":   p.IssuerUrl,
-			"redirect": p.RedirectUrl,
-			"weight":   p.Weight,
+			"enabled":  set.Enabled,
+			"label":    set.Label,
+			"key":      set.Key,
+			"secret":   set.Secret,
+			"scope":    set.Scope,
+			"issuer":   set.IssuerUrl,
+			"redirect": set.RedirectUrl,
+			"weight":   set.Weight,
 		}
 	)
 

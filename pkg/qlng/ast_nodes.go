@@ -99,7 +99,7 @@ func (t *typedValue) MarshalJSON() ([]byte, error) {
 	)
 
 	if t.V == nil {
-		return nil, nil
+		return json.Marshal(aux)
 	}
 
 	aux.Type = t.V.Type()
@@ -342,7 +342,7 @@ func qlTypeRegistry(ref string) expr.Type {
 		return &expr.UnsignedInteger{}
 	case "Float", "Number":
 		return &expr.Float{}
-	case "String":
+	case "String", "Select":
 		return &expr.String{}
 	case "DateTime":
 		return &expr.DateTime{}

@@ -31,6 +31,12 @@ ui:
     compose: Compose permissions
     federation: Federation permissions
 
+  clone:
+    clone: Clone
+    label: Clone permissions
+    title: Clone permissions to
+    description: This will clone all the permissions of the current role and apply them  to the selected
+
 resources:
   automation:
     component:

@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
@@ -18,6 +19,7 @@ type (
 		Effective(context.Context, ...rbac.Resource) rbac.EffectiveSet
 		List() []map[string]string
 		FindRulesByRoleID(context.Context, uint64) (rbac.RuleSet, error)
+		CloneRulesByRoleID(ctx context.Context, roleID uint64, toRoleID ...uint64) error
 		Grant(ctx context.Context, rr ...*rbac.Rule) error
 	}
 )
@@ -60,4 +62,9 @@ func (ctrl Permissions) Update(ctx context.Context, r *request.PermissionsUpdate
 	}
 
 	return api.OK(), ctrl.ac.Grant(ctx, r.Rules...)
+}
+
+func (ctrl Permissions) Clone(ctx context.Context, r *request.PermissionsClone) (interface{}, error) {
+	// Clone rules from role S to role T
+	return api.OK(), ctrl.ac.CloneRulesByRoleID(ctx, r.RoleID, payload.ParseUint64s(r.CloneToRoleID)...)
 }

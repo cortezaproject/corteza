@@ -127,6 +127,14 @@ var (
 			Handler: makeGenericCompHandler("/"),
 		},
 
+		// - strings
+		"concat": {
+			Args:    collectParams(true, "String"),
+			RArgs:   true,
+			Result:  wrapRes("String"),
+			Handler: makeGenericFncHandler("CONCAT"),
+		},
+
 		// @todo better negation?
 		"like": {
 			Args:    collectParams(true, "String", "String"),
@@ -196,7 +204,7 @@ var (
 		"date": {
 			Args:    collectParams(true, "DateTime"),
 			Result:  wrapRes("Number"),
-			Handler: makeGenericFilterFncHandler("DateTime"),
+			Handler: makeGenericFilterFncHandler("DAY"),
 		},
 
 		// generic stuff
@@ -239,6 +247,13 @@ var (
 			Args:    collectParams(true, "Any"),
 			Result:  wrapRes("Float"),
 			Handler: makeGenericTypecastHandler("SIGNED"),
+		},
+		// @todo some better way of casting to string?
+		//       MySQL does not support casting to longtext so I decided on doing this for now
+		"string": {
+			Args:    collectParams(true, "Any"),
+			Result:  wrapRes("String"),
+			Handler: makeGenericTypecastHandler("CHAR(8192)"),
 		},
 	}
 )

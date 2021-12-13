@@ -232,6 +232,10 @@ func (svc *settings) BulkSet(ctx context.Context, vv types.SettingValueSet) (err
 		return
 	}
 
+	if err = store.DeleteSetting(ctx, svc.store, vv.Trash()...); err != nil {
+		return
+	}
+
 	svc.logChange(ctx, vv)
 
 	return svc.updateCurrent(ctx, vv)

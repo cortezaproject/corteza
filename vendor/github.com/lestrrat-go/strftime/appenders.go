@@ -291,6 +291,9 @@ func (v hourPadded) Append(b []byte, t time.Time) []byte {
 	if v.twelveHour && h > 12 {
 		h = h - 12
 	}
+	if v.twelveHour && h == 0 {
+		h = 12
+	}
 
 	if h < 10 {
 		b = append(b, v.pad)
@@ -322,7 +325,7 @@ func (v hmsWAMPM) Append(b []byte, t time.Time) []byte {
 		case h == 12:
 			// no op
 		case h > 12:
-			h = h -12
+			h = h - 12
 		default:
 			am = true
 		}
@@ -343,4 +346,3 @@ func (v hmsWAMPM) Append(b []byte, t time.Time) []byte {
 
 	return b
 }
-

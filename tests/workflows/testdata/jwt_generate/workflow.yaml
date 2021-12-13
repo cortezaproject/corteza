@@ -1,0 +1,93 @@
+workflows:
+  jwt_generate:
+    enabled: true
+    trace: true
+
+    triggers:
+      - enabled: true
+        stepID: 5
+
+    steps:
+      - stepID: 5
+        kind: function
+        ref: jwtGenerate
+
+        arguments:
+        - target: scope
+          type: String
+
+        - target: header
+          value: |-
+            {
+              "foo": "bar"
+            }
+          type: String
+
+        - target: payload
+          expr: |-
+            {
+                "sub": "1234567890",
+                "iat": int(strftime(date("1993-02-02T06:00:00-05:00"), "%L")),
+                "exp": int(strftime(modTime(date("1993-02-02T06:00:00-05:00"), "+1h"), "%L"))
+            }
+          type: Vars
+
+        - target: secret
+          value: |-
+            -----BEGIN PRIVATE KEY-----
+            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
+            C/p2c759krBsxv/zOxJJsWDEF1AolQI=
+            -----END PRIVATE KEY-----
+          type: String
+
+        results:
+          - target: token
+            expr: token

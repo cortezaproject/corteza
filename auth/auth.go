@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"embed"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -452,18 +453,18 @@ func dirCheck(path string) (err error) {
 	return
 }
 
-//func (svc service) WellKnownOpenIDConfiguration() http.HandlerFunc {
-//	return func(w http.ResponseWriter, r *http.Request) {
-//		json.NewEncoder(w).Encode(map[string]interface{}{
-//			"issuer":                                svc.opt.BaseURL,
-//			"authorization_endpoint":                svc.opt.BaseURL + "/oauth2/authorize",
-//			"token_endpoint":                        svc.opt.BaseURL + "/oauth2/token",
-//			"jwks_uri":                              svc.opt.BaseURL + "/oauth2/public-keys", // @todo
-//			"subject_types_supported":               []string{"public"},
-//			"response_types_supported":              []string{"public"},
-//			"id_token_signing_alg_values_supported": []string{"RS256", "HS512"},
-//		})
-//
-//		w.Header().Set("Content-Type", "application/json")
-//	}
-//}
+func (svc service) WellKnownOpenIDConfiguration() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"issuer":                                svc.opt.BaseURL,
+			"authorization_endpoint":                svc.opt.BaseURL + "/oauth2/authorize",
+			"token_endpoint":                        svc.opt.BaseURL + "/oauth2/token",
+			"jwks_uri":                              svc.opt.BaseURL + "/oauth2/public-keys",
+			"scope_supported":                       []string{"profile", "api"},
+			"id_token_signing_alg_values_supported": []string{"RS256", "HS512"},
+			"response_types_supported":              []string{"code", "token"},
+		})
+
+		w.Header().Set("Content-Type", "application/json")
+	}
+}

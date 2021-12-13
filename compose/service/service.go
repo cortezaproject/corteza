@@ -152,6 +152,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 		automation.ComposeModule{},
 		automation.ComposeRecord{},
 		automation.ComposeRecordValues{},
+		automation.Attachment{},
 	)
 
 	automation.RecordsHandler(
@@ -170,6 +171,11 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	automation.NamespacesHandler(
 		automationService.Registry(),
 		DefaultNamespace,
+	)
+
+	automation.AttachmentHandler(
+		automationService.Registry(),
+		DefaultAttachment,
 	)
 
 	// Register reporters
