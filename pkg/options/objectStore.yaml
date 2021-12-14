@@ -29,11 +29,14 @@ props:
 
   - name: minioBucket
     env: MINIO_BUCKET
+    default: "{component}"
+    description: |-
+      `component` placeholder is replaced with service name (e.g system).
 
-  - name: minioBucketSep
-    env: MINIO_BUCKET_SEP
-    default: "/"
-    description: Used between MINIO_BUCKET and the service name (e.g system). Ignored if MINIO_BUCKET is not set. Required in latest versions of min.io since "/" is not accepted anymore in bucket names.
+  - name: minioPathPrefix
+    env: MINIO_PATH_PREFIX
+    description: |-
+      `component` placeholder is replaced with service name (e.g system).
 
   - name: minioStrict
     type: bool

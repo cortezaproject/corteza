@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 
 	minio "github.com/minio/minio-go/v6"
 	"github.com/minio/minio-go/v6/pkg/encrypt"
@@ -23,10 +24,20 @@ type (
 		ServerSideEncryptKey []byte
 	}
 
-	store struct {
-		bucket string
+	minioClient interface {
+		BucketExists(bucketName string) (bool, error)
+		MakeBucket(bucketName string, location string) (err error)
+		PutObject(bucketName, objectName string, reader io.Reader, objectSize int64, opts minio.PutObjectOptions) (n int64, err error)
+		RemoveObject(bucketName, objectName string) error
+		GetObject(bucketName, objectName string, opts minio.GetObjectOptions) (*minio.Object, error)
+	}
 
-		mc  *minio.Client
+	store struct {
+		bucket     string
+		pathPrefix string
+		component  string
+
+		mc  minioClient
 		sse encrypt.ServerSide
 
 		originalFn func(id uint64, ext string) string
@@ -44,20 +55,26 @@ var (
 	}
 )
 
-func New(bucket string, opt Options) (s *store, err error) {
+func New(bucket, pathPrefix, component string, opt Options) (s *store, err error) {
+	client, err := minio.New(opt.Endpoint, opt.AccessKeyID, opt.SecretAccessKey, opt.Secure)
+	if err != nil {
+		return nil, err
+	}
+	return newWithClient(client, bucket, pathPrefix, component, opt)
+}
+
+func newWithClient(mc minioClient, bucket, pathPrefix, component string, opt Options) (s *store, err error) {
 	s = &store{
-		bucket: bucket,
-		mc:     nil,
+		bucket:     bucket,
+		pathPrefix: pathPrefix,
+		component:  component,
+		mc:         mc,
 
 		originalFn: defOriginalFn,
 		previewFn:  defPreviewFn,
 	}
 
 	if err = s3utils.CheckValidBucketName(s.bucket); err != nil {
-		return nil, err
-	}
-
-	if s.mc, err = minio.New(opt.Endpoint, opt.AccessKeyID, opt.SecretAccessKey, opt.Secure); err != nil {
 		return nil, err
 	}
 
@@ -104,7 +121,7 @@ func (s store) Preview(id uint64, ext string) string {
 }
 
 func (s store) Save(name string, f io.Reader) (err error) {
-	_, err = s.mc.PutObject(s.bucket, name, f, -1, minio.PutObjectOptions{
+	_, err = s.mc.PutObject(s.bucket, s.getObjectName(name), f, -1, minio.PutObjectOptions{
 		ServerSideEncryption: s.sse,
 	})
 
@@ -112,15 +129,26 @@ func (s store) Save(name string, f io.Reader) (err error) {
 }
 
 func (s store) Remove(name string) error {
-	return s.mc.RemoveObject(s.bucket, name)
+	return s.mc.RemoveObject(s.bucket, s.getObjectName(name))
 }
 
 func (s store) Open(name string) (io.ReadSeeker, error) {
-	return s.mc.GetObject(s.bucket, name, minio.GetObjectOptions{
+	return s.mc.GetObject(s.bucket, s.getObjectName(name), minio.GetObjectOptions{
 		ServerSideEncryption: s.sse,
 	})
 }
 
-func (s *store) Healthcheck(ctx context.Context) error {
+func (s *store) Healthcheck(_ context.Context) error {
 	return nil
+}
+
+// getObjectName prefix path to object name
+func (s *store) getObjectName(name string) (out string) {
+	path := strings.Replace(s.pathPrefix, "{component}", s.component, 1)
+	return fmt.Sprintf("%s%s", path, name)
+}
+
+// GetBucket return bucket name based on storage option bucket, separator or bucketName
+func GetBucket(bucket, component string) string {
+	return strings.Replace(bucket, "{component}", component, 1)
 }

@@ -125,29 +125,30 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultSettings = Settings(ctx, DefaultStore, DefaultLogger, DefaultAccessControl, CurrentSettings)
 
 	if DefaultObjectStore == nil {
+		var (
+			opt    = c.Storage
+			bucket string
+		)
 		const svcPath = "system"
-		if c.Storage.MinioEndpoint != "" {
-			var bucket = svcPath
-			if c.Storage.MinioBucket != "" {
-				bucket = c.Storage.MinioBucket + c.Storage.MinioBucketSep + svcPath
-			}
+		if opt.MinioEndpoint != "" {
+			bucket = minio.GetBucket(opt.MinioBucket, svcPath)
 
-			DefaultObjectStore, err = minio.New(bucket, minio.Options{
-				Endpoint:        c.Storage.MinioEndpoint,
-				Secure:          c.Storage.MinioSecure,
-				Strict:          c.Storage.MinioStrict,
-				AccessKeyID:     c.Storage.MinioAccessKey,
-				SecretAccessKey: c.Storage.MinioSecretKey,
+			DefaultObjectStore, err = minio.New(bucket, opt.MinioPathPrefix, svcPath, minio.Options{
+				Endpoint:        opt.MinioEndpoint,
+				Secure:          opt.MinioSecure,
+				Strict:          opt.MinioStrict,
+				AccessKeyID:     opt.MinioAccessKey,
+				SecretAccessKey: opt.MinioSecretKey,
 
-				ServerSideEncryptKey: []byte(c.Storage.MinioSSECKey),
+				ServerSideEncryptKey: []byte(opt.MinioSSECKey),
 			})
 
 			log.Info("initializing minio",
 				zap.String("bucket", bucket),
-				zap.String("endpoint", c.Storage.MinioEndpoint),
+				zap.String("endpoint", opt.MinioEndpoint),
 				zap.Error(err))
 		} else {
-			path := c.Storage.Path + "/" + svcPath
+			path := opt.Path + "/" + svcPath
 			DefaultObjectStore, err = plain.New(path)
 			log.Info("initializing store",
 				zap.String("path", path),
