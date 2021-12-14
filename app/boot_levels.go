@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"os"
 	"strings"
 
 	authService "github.com/cortezaproject/corteza-server/auth"
@@ -75,6 +76,18 @@ func (app *CortezaApp) Setup() (err error) {
 			log.Warn("You're using SQLite as a storage backend")
 			log.Warn("Should be used only for testing")
 			log.Warn("You may experience unstability and data loss")
+		}
+
+		if _, is := os.LookupEnv("MINIO_BUCKET_SEP"); is {
+			log.Warn("Found MINIO_BUCKET_SEP in environment variables, it has been removed")
+
+			return fmt.Errorf(
+				"invalid minio configurtion: " +
+					"found MINIO_BUCKET_SEP in environment variables, " +
+					"which is removed due to latest versions of min.io " +
+					"bucket names can only consist of lowercase letters, numbers, dots (.), and hyphens (-). " +
+					"so instead use environment variable MINIO_BUCKET, " +
+					"we have extended it to have more flexibility over minio bucket name")
 		}
 	}
 
