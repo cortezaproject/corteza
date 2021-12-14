@@ -208,7 +208,7 @@ func (ctrl *Role) TriggerScript(ctx context.Context, r *request.RoleTriggerScrip
 	}
 
 	// @todo implement same behaviour as we have on record - role+oldRole
-	err = corredor.Service().Exec(ctx, r.Script, event.RoleOnManual(role, role))
+	err = corredor.Service().Exec(ctx, r.Script, corredor.ExtendScriptArgs(event.RoleOnManual(role, role), r.Args))
 	return role, err
 }
 

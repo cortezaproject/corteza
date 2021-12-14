@@ -392,6 +392,10 @@ endpoints:
         type: string
         title: Script to execute
         required: true
+      - name: args
+        type: map[string]interface{}
+        parser: parseMapStringInterface
+        title: Arguments to pass to the script
 - title: Users
   path: "/users"
   entrypoint: user
@@ -652,6 +656,10 @@ endpoints:
         type: string
         title: Script to execute
         required: true
+      - name: args
+        type: map[string]interface{}
+        parser: parseMapStringInterface
+        title: Arguments to pass to the script
   - name: sessionsRemove
     method: DELETE
     title: Remove all auth sessions of user
@@ -873,6 +881,10 @@ endpoints:
         type: string
         title: Script to execute
         required: true
+      - name: args
+        type: map[string]interface{}
+        parser: parseMapStringInterface
+        title: Arguments to pass to the script
   - name: reorder
     method: POST
     title: Reorder applications
@@ -1544,6 +1556,10 @@ endpoints:
         type: string
         title: Script to execute
         required: true
+      - name: args
+        type: map[string]interface{}
+        parser: parseMapStringInterface
+        title: Arguments to pass to the script
 - title: Action log
   entrypoint: actionlog
   path: "/actionlog"

@@ -3,6 +3,7 @@ package request
 //lint:file-ignore U1000 Ignore unused code, part of request pkg toolset
 
 import (
+	"encoding/json"
 	"strconv"
 	"strings"
 )
@@ -30,4 +31,14 @@ func (args ProcedureArgs) Get(name string) string {
 	}
 
 	return ""
+}
+
+func parseMapStringInterface(ss []string) (map[string]interface{}, error) {
+	if len(ss) == 0 {
+		return nil, nil
+	}
+
+	out := make(map[string]interface{})
+
+	return out, json.Unmarshal([]byte(ss[0]), out)
 }

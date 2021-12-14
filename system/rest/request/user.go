@@ -266,6 +266,11 @@ type (
 		//
 		// Script to execute
 		Script string
+
+		// Args POST parameter
+		//
+		// Arguments to pass to the script
+		Args map[string]interface{}
 	}
 
 	UserSessionsRemove struct {
@@ -1139,6 +1144,7 @@ func (r UserTriggerScript) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"userID": r.UserID,
 		"script": r.Script,
+		"args":   r.Args,
 	}
 }
 
@@ -1150,6 +1156,11 @@ func (r UserTriggerScript) GetUserID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r UserTriggerScript) GetScript() string {
 	return r.Script
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r UserTriggerScript) GetArgs() map[string]interface{} {
+	return r.Args
 }
 
 // Fill processes request and fills internal variables
@@ -1175,6 +1186,18 @@ func (r *UserTriggerScript) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["script"]; ok && len(val) > 0 {
 			r.Script, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["args[]"]; ok {
+			r.Args, err = parseMapStringInterface(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["args"]; ok {
+			r.Args, err = parseMapStringInterface(val)
 			if err != nil {
 				return err
 			}
