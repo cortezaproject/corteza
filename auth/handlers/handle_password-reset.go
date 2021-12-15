@@ -70,7 +70,7 @@ func (h *AuthHandlers) resetPasswordForm(req *request.AuthReq) (err error) {
 		t := translator(req, "auth")
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "warning",
-			Text: t("password-reset-requested.alerts.invalid-expired-password-token"),
+			Text: t("password-reset-requested.alert.invalid-expired-password-token"),
 		})
 	}
 
@@ -87,7 +87,7 @@ func (h *AuthHandlers) resetPasswordProc(req *request.AuthReq) (err error) {
 		t := translator(req, "auth")
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "primary",
-			Text: t("password-reset-requested.alerts.password-reset-success"),
+			Text: t("password-reset-requested.alert.password-reset-success"),
 		})
 
 		req.RedirectTo = GetLinks().Profile
@@ -121,6 +121,6 @@ func (h *AuthHandlers) passwordResetDisabledAlert(req *request.AuthReq) {
 	t := translator(req, "auth")
 	req.NewAlerts = append(req.NewAlerts, request.Alert{
 		Type: "danger",
-		Text: t("password-reset-requested.alerts.password-reset-disabled"),
+		Text: t("password-reset-requested.alert.password-reset-disabled"),
 	})
 }
