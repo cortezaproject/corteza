@@ -699,7 +699,7 @@ func validateWorkflowTriggers(wf *types.Workflow, tt ...*types.Trigger) (wis typ
 	)
 
 	for i, t := range tt {
-		if !t.Enabled {
+		if !t.Enabled || t.DeletedAt != nil {
 			continue
 		}
 
