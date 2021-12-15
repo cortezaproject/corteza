@@ -661,7 +661,7 @@ func (svc *workflow) validateWorkflow(ctx context.Context, wf *types.Workflow) (
 
 	tt, _, err := store.SearchAutomationTriggers(ctx, svc.store, types.TriggerFilter{
 		WorkflowID: types.WorkflowSet{wf}.IDs(),
-		Deleted:    filter.StateInclusive,
+		Deleted:    filter.StateExcluded,
 		Disabled:   filter.StateExcluded,
 	})
 
