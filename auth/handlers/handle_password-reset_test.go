@@ -78,7 +78,7 @@ func Test_resetPasswordForm(t *testing.T) {
 		{
 			name:     "invalid password reset token",
 			payload:  map[string]string(nil),
-			alerts:   []request.Alert{{Type: "warning", Text: "password-reset-requested.alerts.invalid-expired-password-token"}},
+			alerts:   []request.Alert{{Type: "warning", Text: "password-reset-requested.alert.invalid-expired-password-token"}},
 			link:     GetLinks().RequestPasswordReset,
 			template: TmplResetPassword,
 			fn: func(_ *settings.Settings) {
@@ -150,7 +150,7 @@ func Test_requestPasswordReset(t *testing.T) {
 		{
 			name:    "request reset disabled",
 			payload: map[string]string(nil),
-			alerts:  []request.Alert{{Type: "danger", Text: "password-reset-requested.alerts.password-reset-disabled"}},
+			alerts:  []request.Alert{{Type: "danger", Text: "password-reset-requested.alert.password-reset-disabled"}},
 			link:    GetLinks().Login,
 			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
@@ -203,7 +203,7 @@ func Test_requestPasswordProc(t *testing.T) {
 		{
 			name:    "reset password success",
 			payload: map[string]string(nil),
-			alerts:  []request.Alert{{Type: "primary", Text: "password-reset-requested.alerts.password-reset-success", Html: ""}},
+			alerts:  []request.Alert{{Type: "primary", Text: "password-reset-requested.alert.password-reset-success", Html: ""}},
 			link:    GetLinks().Profile,
 			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
@@ -216,7 +216,7 @@ func Test_requestPasswordProc(t *testing.T) {
 		{
 			name:    "reset password disabled",
 			payload: map[string]string(nil),
-			alerts:  []request.Alert{{Type: "danger", Text: "password-reset-requested.alerts.password-reset-disabled", Html: ""}},
+			alerts:  []request.Alert{{Type: "danger", Text: "password-reset-requested.alert.password-reset-disabled", Html: ""}},
 			link:    GetLinks().Login,
 			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
