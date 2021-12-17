@@ -14,8 +14,9 @@ package types
 
 import (
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"strconv"
+
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 )
 
 type (
@@ -70,6 +71,12 @@ var (
 		Resource:      ModuleFieldResourceTranslationType,
 		Path:          "expression.validator.{{validatorID}}.error",
 		CustomHandler: "validatorError",
+	}
+	LocaleKeyModuleFieldOptionsOptionTexts = LocaleKey{
+		Name:          "optionsOptionTexts",
+		Resource:      ModuleFieldResourceTranslationType,
+		Path:          "meta.options.{{value}}.text",
+		CustomHandler: "optionsOptionTexts",
 	}
 	LocaleKeyModuleName = LocaleKey{
 		Name:     "name",
@@ -154,6 +161,7 @@ func (r *ModuleField) DecodeTranslations(tt locale.ResourceTranslationIndex) {
 	r.decodeTranslationsHintView(tt)
 	r.decodeTranslationsHintEdit(tt)
 	r.decodeTranslationsValidatorError(tt)
+	r.decodeTranslationsOptionsOptionTexts(tt)
 }
 
 func (r *ModuleField) EncodeTranslations() (out locale.ResourceTranslationSet) {
@@ -171,6 +179,7 @@ func (r *ModuleField) EncodeTranslations() (out locale.ResourceTranslationSet) {
 	out = append(out, r.encodeTranslationsHintView()...)
 	out = append(out, r.encodeTranslationsHintEdit()...)
 	out = append(out, r.encodeTranslationsValidatorError()...)
+	out = append(out, r.encodeTranslationsOptionsOptionTexts()...)
 
 	return out
 }

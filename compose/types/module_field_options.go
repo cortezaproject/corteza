@@ -19,6 +19,8 @@ const (
 	moduleFieldOptionIsUnique           = "isUnique"
 	moduleFieldOptionIsUniqueMultiValue = "isUniqueMultiValue"
 
+	moduleFieldOptionOptions = "options"
+
 	moduleFieldNumberOptionPrecision         = "precision"
 	moduleFieldNumberOptionPrecisionMin uint = 0
 	moduleFieldNumberOptionPrecisionMax uint = 6
