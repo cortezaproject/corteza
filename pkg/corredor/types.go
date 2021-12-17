@@ -1,8 +1,11 @@
 package corredor
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 )
 
 type (
@@ -34,6 +37,12 @@ type (
 		Bundle string `json:"bundle,omitempty"`
 		Type   string `json:"type,omitempty"`
 	}
+
+	// allows passing extra kv with event arguments
+	scriptArgs struct {
+		event ScriptArgs
+		extra map[string]interface{}
+	}
 )
 
 // FindByName returns script from the set if it exists
@@ -59,4 +68,63 @@ func (ss *ScriptSecurity) String() (o string) {
 		strings.Join(ss.Allow, ","),
 		strings.Join(ss.Deny, ","),
 	)
+}
+
+func ExtendScriptArgs(ev ScriptArgs, args map[string]interface{}) ScriptArgs {
+	return &scriptArgs{
+		event: ev,
+		extra: args,
+	}
+}
+
+func (s *scriptArgs) ResourceType() string {
+	return s.event.ResourceType()
+
+}
+
+func (s *scriptArgs) EventType() string {
+	return s.event.EventType()
+}
+
+func (s *scriptArgs) Match(matcher eventbus.ConstraintMatcher) bool {
+	return s.event.Match(matcher)
+}
+
+func (s *scriptArgs) Encode() (enc map[string][]byte, err error) {
+	if enc, err = s.event.Encode(); err != nil {
+		return nil, err
+	}
+
+	if enc == nil {
+		enc = make(map[string][]byte)
+	}
+
+	for k, v := range s.extra {
+		if enc[k] != nil {
+			// skip all that were encoded
+			// by event encoder
+			continue
+		}
+
+		if enc[k], err = json.Marshal(v); err != nil {
+			return nil, err
+		}
+	}
+
+	return
+}
+
+func (s *scriptArgs) Decode(dec map[string][]byte) (err error) {
+	if err = s.event.Decode(dec); err != nil {
+		return
+	}
+
+	for k := range s.extra {
+		// @todo how do we omit one decoded by event?
+		if err = json.Unmarshal(dec[k], s.extra[k]); err != nil {
+			return
+		}
+	}
+
+	return
 }
