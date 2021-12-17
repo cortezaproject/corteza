@@ -1,13 +1,15 @@
 package request
 
-//lint:file-ignore U1000 Ignore unused code, part of request pkg toolset
+import (
+	"encoding/json"
+)
 
-// is checks if string s is contained in matches
-func is(s string, matches ...string) bool {
-	for _, v := range matches {
-		if s == v {
-			return true
-		}
+func parseMapStringInterface(ss []string) (map[string]interface{}, error) {
+	if len(ss) == 0 {
+		return nil, nil
 	}
-	return false
+
+	out := make(map[string]interface{})
+
+	return out, json.Unmarshal([]byte(ss[0]), out)
 }

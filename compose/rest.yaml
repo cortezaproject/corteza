@@ -215,6 +215,10 @@ endpoints:
         type: string
         title: Script to execute
         required: true
+      - name: args
+        type: map[string]interface{}
+        parser: parseMapStringInterface
+        title: Arguments to pass to the script
   - name: listTranslations
     method: GET
     title: List translation
@@ -451,6 +455,10 @@ endpoints:
         type: string
         title: Script to execute
         required: true
+      - name: args
+        type: map[string]interface{}
+        parser: parseMapStringInterface
+        title: Arguments to pass to the script
 
   - name: listTranslations
     method: GET
@@ -623,6 +631,10 @@ endpoints:
         type: string
         title: Script to execute
         required: true
+      - name: args
+        type: map[string]interface{}
+        parser: parseMapStringInterface
+        title: Arguments to pass to the script
   - name: listTranslations
     method: GET
     title: List moudle translation
@@ -922,6 +934,10 @@ endpoints:
         type: string
         title: Script to execute
         required: true
+      - name: args
+        type: map[string]interface{}
+        parser: parseMapStringInterface
+        title: Arguments to pass to the script
 - title: Charts
   path: "/namespace/{namespaceID}/chart"
   entrypoint: chart
@@ -1293,3 +1309,7 @@ endpoints:
         type: string
         title: Script to execute
         required: true
+      - name: args
+        type: map[string]interface{}
+        parser: parseMapStringInterface
+        title: Arguments to pass to the script

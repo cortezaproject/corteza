@@ -418,6 +418,11 @@ type (
 		//
 		// Script to execute
 		Script string
+
+		// Args POST parameter
+		//
+		// Arguments to pass to the script
+		Args map[string]interface{}
 	}
 )
 
@@ -1773,6 +1778,7 @@ func (r RecordTriggerScriptOnList) Auditable() map[string]interface{} {
 		"namespaceID": r.NamespaceID,
 		"moduleID":    r.ModuleID,
 		"script":      r.Script,
+		"args":        r.Args,
 	}
 }
 
@@ -1789,6 +1795,11 @@ func (r RecordTriggerScriptOnList) GetModuleID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r RecordTriggerScriptOnList) GetScript() string {
 	return r.Script
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordTriggerScriptOnList) GetArgs() map[string]interface{} {
+	return r.Args
 }
 
 // Fill processes request and fills internal variables
@@ -1814,6 +1825,18 @@ func (r *RecordTriggerScriptOnList) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["script"]; ok && len(val) > 0 {
 			r.Script, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["args[]"]; ok {
+			r.Args, err = parseMapStringInterface(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["args"]; ok {
+			r.Args, err = parseMapStringInterface(val)
 			if err != nil {
 				return err
 			}
