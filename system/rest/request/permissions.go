@@ -242,6 +242,16 @@ func (r *PermissionsUpdate) Fill(req *http.Request) (err error) {
 	}
 
 	{
+		// Caching 32MB to memory, the rest to disk
+		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
+			return err
+		} else if err == nil {
+			// Multipart params
+
+		}
+	}
+
+	{
 		if err = req.ParseForm(); err != nil {
 			return err
 		}
