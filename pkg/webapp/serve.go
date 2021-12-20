@@ -20,10 +20,11 @@ var (
 	baseHrefMatcher = regexp.MustCompile(`<base\s+href="?.+?"?\s*\/?>`)
 )
 
-func MakeWebappServer(log *zap.Logger, httpSrvOpt options.HTTPServerOpt, authOpt options.AuthOpt) func(r chi.Router) {
+func MakeWebappServer(log *zap.Logger, httpSrvOpt options.HTTPServerOpt, authOpt options.AuthOpt, discoveryOpt options.DiscoveryOpt) func(r chi.Router) {
 	var (
-		apiBaseUrl = options.CleanBase(httpSrvOpt.BaseUrl, httpSrvOpt.ApiBaseUrl)
-		apps       = strings.Split(httpSrvOpt.WebappList, ",")
+		apiBaseUrl          = options.CleanBase(httpSrvOpt.BaseUrl, httpSrvOpt.ApiBaseUrl)
+		discoveryApiBaseUrl = options.CleanBase(discoveryOpt.BaseUrl)
+		apps                = strings.Split(httpSrvOpt.WebappList, ",")
 
 		appIndexHTMLs = make(map[string][]byte)
 
@@ -48,12 +49,12 @@ func MakeWebappServer(log *zap.Logger, httpSrvOpt options.HTTPServerOpt, authOpt
 
 		for _, app := range apps {
 			webBaseUrl = options.CleanBase(httpSrvOpt.WebappBaseUrl, app)
-			serveConfig(r, webBaseUrl, apiBaseUrl, authOpt.BaseURL, httpSrvOpt.BaseUrl)
+			serveConfig(r, webBaseUrl, apiBaseUrl, authOpt.BaseURL, httpSrvOpt.BaseUrl, discoveryApiBaseUrl)
 			r.Get(webBaseUrl+"*", serveIndex(httpSrvOpt, appIndexHTMLs[app], fs))
 		}
 
 		webBaseUrl = options.CleanBase(httpSrvOpt.WebappBaseUrl)
-		serveConfig(r, webBaseUrl, apiBaseUrl, authOpt.BaseURL, httpSrvOpt.BaseUrl)
+		serveConfig(r, webBaseUrl, apiBaseUrl, authOpt.BaseURL, httpSrvOpt.BaseUrl, discoveryApiBaseUrl)
 		r.Get(webBaseUrl+"*", serveIndex(httpSrvOpt, appIndexHTMLs[""], fs))
 	}
 }
@@ -94,12 +95,13 @@ func serveIndex(opt options.HTTPServerOpt, indexHTML []byte, serve http.Handler)
 	}
 }
 
-func serveConfig(r chi.Router, appUrl, apiBaseUrl, authBaseUrl, webappBaseUrl string) {
+func serveConfig(r chi.Router, appUrl, apiBaseUrl, authBaseUrl, webappBaseUrl, discoveryApiBaseUrl string) {
 	r.Get(options.CleanBase(appUrl, "config.js"), func(w http.ResponseWriter, r *http.Request) {
 		const line = "window.%s = '%s';\n"
 		_, _ = fmt.Fprintf(w, line, "CortezaAPI", apiBaseUrl)
 		_, _ = fmt.Fprintf(w, line, "CortezaAuth", authBaseUrl)
 		_, _ = fmt.Fprintf(w, line, "CortezaWebapp", webappBaseUrl)
+		_, _ = fmt.Fprintf(w, line, "CortezaDiscoveryAPI", discoveryApiBaseUrl)
 	})
 }
 
