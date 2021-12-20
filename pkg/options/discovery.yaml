@@ -1,5 +1,5 @@
 props:
-  - name: Enabled
+  - name: enabled
     type: bool
     default: false
     description: Enable discovery endpoints
@@ -10,8 +10,14 @@ props:
     docs:
       description: Enable debug activity logging.
 
-  - name: CortezaDomain
+  - name: cortezaDomain
     type: string
     default: ""
     docs:
       description: Provides host of corteza compose webapp.
+
+  - name: baseUrl
+    type: string
+    default: ""
+    docs:
+      description: Provides host of corteza server discovery.
