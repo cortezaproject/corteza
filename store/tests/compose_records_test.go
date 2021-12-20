@@ -1567,35 +1567,48 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 			report []map[string]interface{}
 		)
 
-		report, err = s.ComposeRecordReport(ctx, mod, "MAX(num1)", "QUARTER(dt1)", "")
-		req.NoError(err)
-		req.Len(report, 3)
+		t.Run("base", func(t *testing.T) {
+			report, err = s.ComposeRecordReport(ctx, mod, "MAX(num1)", "QUARTER(dt1)", "")
+			req.NoError(err)
+			req.Len(report, 3)
 
-		// @todo find a way to compare the results
+			// @todo find a way to compare the results
 
-		//expected := []map[string]interface{}{
-		//	{"count": 3, "dimension_0": 1, "metric_0": 3},
-		//	{"count": 2, "dimension_0": 2, "metric_0": 5},
-		//	{"count": 1, "dimension_0": nil, "metric_0": nil},
-		//}
-		//
-		//req.True(
-		//	reflect.DeepEqual(report, expected),
-		//	"report does not match expected results:\n%#v\n%#v", report, expected)
+			//expected := []map[string]interface{}{
+			//	{"count": 3, "dimension_0": 1, "metric_0": 3},
+			//	{"count": 2, "dimension_0": 2, "metric_0": 5},
+			//	{"count": 1, "dimension_0": nil, "metric_0": nil},
+			//}
+			//
+			//req.True(
+			//	reflect.DeepEqual(report, expected),
+			//	"report does not match expected results:\n%#v\n%#v", report, expected)
 
-		report, err = s.ComposeRecordReport(ctx, mod, "COUNT(num1)", "YEAR(dt1)", "")
-		req.NoError(err)
+			report, err = s.ComposeRecordReport(ctx, mod, "COUNT(num1)", "YEAR(dt1)", "")
+			req.NoError(err)
 
-		report, err = s.ComposeRecordReport(ctx, mod, "SUM(num1)", "DATE(dt1)", "")
-		req.NoError(err)
+			report, err = s.ComposeRecordReport(ctx, mod, "SUM(num1)", "DATE(dt1)", "")
+			req.NoError(err)
 
-		report, err = s.ComposeRecordReport(ctx, mod, "MIN(num1)", "DATE(NOW())", "")
-		req.NoError(err)
+			report, err = s.ComposeRecordReport(ctx, mod, "MIN(num1)", "DATE(NOW())", "")
+			req.NoError(err)
 
-		report, err = s.ComposeRecordReport(ctx, mod, "AVG(num1)", "DATE(NOW())", "")
-		req.NoError(err)
+			report, err = s.ComposeRecordReport(ctx, mod, "AVG(num1)", "DATE(NOW())", "")
+			req.NoError(err)
 
-		// Note that not all functions are compatible across all backends
+			// Note that not all functions are compatible across all backends
+		})
+
+		t.Run("date formatting", func(t *testing.T) {
+			report, err = s.ComposeRecordReport(ctx, mod, "MAX(num1)", "DATE_FORMAT(dt1, '%Y-%m-01')", "")
+			req.NoError(err)
+			req.Len(report, 3)
+
+			report, err = s.ComposeRecordReport(ctx, mod, "MAX(num1)", "DATE_FORMAT(dt1, '%y; %j @ %H %i %p')", "")
+			req.NoError(err)
+			req.Len(report, 3)
+		})
+
 	})
 
 	t.Run("partial value update", func(t *testing.T) {

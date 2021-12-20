@@ -127,7 +127,18 @@ func (n NodeF) ToSql() (string, []interface{}, error) {
 		adtArgs []interface{}
 	)
 
-	for _, s := range n.Arguments {
+	for i, s := range n.Arguments {
+		// When provided, apply the replacer over the arguments of the node.
+		// We can skip any node other then LString as thats the only one we can apply it to (currently)
+		if n.replacer != nil {
+			if c, ok := s.(LString); ok {
+				c.Value = n.replacer(c.Value)
+				// Updating the originals as we're dealing with values
+				n.Arguments[i] = c
+				s = c
+			}
+		}
+
 		if fa, aa, err := s.ToSql(); err != nil {
 			return "", nil, err
 		} else {
