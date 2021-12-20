@@ -13,6 +13,7 @@ type (
 		Enabled       bool   `env:"DISCOVERY_ENABLED"`
 		Debug         bool   `env:"DISCOVERY_DEBUG"`
 		CortezaDomain string `env:"DISCOVERY_CORTEZA_DOMAIN"`
+		BaseUrl       string `env:"DISCOVERY_BASE_URL"`
 	}
 )
 
@@ -22,6 +23,7 @@ func Discovery() (o *DiscoveryOpt) {
 		Enabled:       false,
 		Debug:         false,
 		CortezaDomain: "",
+		BaseUrl:       "",
 	}
 
 	fill(o)
