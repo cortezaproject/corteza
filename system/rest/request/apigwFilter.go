@@ -324,6 +324,62 @@ func (r *ApigwFilterCreate) Fill(req *http.Request) (err error) {
 	}
 
 	{
+		// Caching 32MB to memory, the rest to disk
+		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
+			return err
+		} else if err == nil {
+			// Multipart params
+
+			if val, ok := req.MultipartForm.Value["routeID"]; ok && len(val) > 0 {
+				r.RouteID, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["weight"]; ok && len(val) > 0 {
+				r.Weight, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["kind"]; ok && len(val) > 0 {
+				r.Kind, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["ref"]; ok && len(val) > 0 {
+				r.Ref, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["enabled"]; ok && len(val) > 0 {
+				r.Enabled, err = payload.ParseBool(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["params[]"]; ok {
+				r.Params, err = types.ParseApigwfFilterParams(val)
+				if err != nil {
+					return err
+				}
+			} else if val, ok := req.MultipartForm.Value["params"]; ok {
+				r.Params, err = types.ParseApigwfFilterParams(val)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	{
 		if err = req.ParseForm(); err != nil {
 			return err
 		}
@@ -445,6 +501,62 @@ func (r *ApigwFilterUpdate) Fill(req *http.Request) (err error) {
 			err = nil
 		case err != nil:
 			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		// Caching 32MB to memory, the rest to disk
+		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
+			return err
+		} else if err == nil {
+			// Multipart params
+
+			if val, ok := req.MultipartForm.Value["routeID"]; ok && len(val) > 0 {
+				r.RouteID, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["weight"]; ok && len(val) > 0 {
+				r.Weight, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["kind"]; ok && len(val) > 0 {
+				r.Kind, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["ref"]; ok && len(val) > 0 {
+				r.Ref, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["enabled"]; ok && len(val) > 0 {
+				r.Enabled, err = payload.ParseBool(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["params[]"]; ok {
+				r.Params, err = types.ParseApigwfFilterParams(val)
+				if err != nil {
+					return err
+				}
+			} else if val, ok := req.MultipartForm.Value["params"]; ok {
+				r.Params, err = types.ParseApigwfFilterParams(val)
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 

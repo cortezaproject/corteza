@@ -106,6 +106,36 @@ func (r *NodeHandshakeInitialize) Fill(req *http.Request) (err error) {
 	}
 
 	{
+		// Caching 32MB to memory, the rest to disk
+		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
+			return err
+		} else if err == nil {
+			// Multipart params
+
+			if val, ok := req.MultipartForm.Value["pairToken"]; ok && len(val) > 0 {
+				r.PairToken, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["sharedNodeID"]; ok && len(val) > 0 {
+				r.SharedNodeID, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["authToken"]; ok && len(val) > 0 {
+				r.AuthToken, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	{
 		if err = req.ParseForm(); err != nil {
 			return err
 		}
