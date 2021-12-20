@@ -1,27 +1,27 @@
-# Corteza Server integration and e2e tests
+# Corteza Server integration tests
 
 Main goal of these integration tests is to test entire system with the database
-and without any other external services.
+and without any external services.
 
 What, how and why we test:
 
- - Handling input:
+ - Handling input
  
    How HTTP traffic is handled (standard HTTP requests, websocket communication),
    to ensure proper response on valid, invalid or harmful input.
    
- - Configuration:
+ - Configuration
  
    How system behaves under different settings to cover as much different 
    configuration scenarios as possible.
    
- - Security:
+ - Security
  
    Are we handling access control and log events (audit log) properly?
    All services and data should be protected to prevent unwanted access
    and modifications.
    
- - Scenarios:
+ - Scenarios
  
    Are complex scenarios executed as designed (e.g. is password recovery email 
    sent and can link from the email be used)
@@ -33,12 +33,10 @@ What, how and why we test:
 
  - Database schema & data migrations
  
-   Database migration is executed as one of the first steps in automation tests.
-   This can be turned off to enable running tests on live/testing database.
+   Tests can be executed on SQLite in-memory database for performance and isolation
+   purpuses 
    
-   Entire test suite is ran inside transaction so we can rollback all changes
-   that occurred while testing 
-
+   
 
 # Running tests
 
@@ -84,6 +82,10 @@ GOTEST=$GOPATH/bin/gotest make watch.test.integration
 ```
 
 ### Fine-tune test execution with `TEST_FLAGS`
-Examples:
- - `TEST_FLAGS="-v" make ....`
- - `TEST_FLAGS="-v -run testName" make ....`
+
+```shell script
+make watch.test.integration.workflow TEST_FLAGS="-v -run Test0011_termination"
+```
+
+This will watch for file changes and run workflow tests in verbose mode. 
+Only tests starting with Test0011_termination will be executed.  
