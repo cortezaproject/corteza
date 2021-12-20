@@ -101,7 +101,9 @@ func serveConfig(r chi.Router, appUrl, apiBaseUrl, authBaseUrl, webappBaseUrl, d
 		_, _ = fmt.Fprintf(w, line, "CortezaAPI", apiBaseUrl)
 		_, _ = fmt.Fprintf(w, line, "CortezaAuth", authBaseUrl)
 		_, _ = fmt.Fprintf(w, line, "CortezaWebapp", webappBaseUrl)
-		_, _ = fmt.Fprintf(w, line, "CortezaDiscoveryAPI", discoveryApiBaseUrl)
+		if len(discoveryApiBaseUrl) > 0 {
+			_, _ = fmt.Fprintf(w, line, "CortezaDiscoveryAPI", discoveryApiBaseUrl)
+		}
 	})
 }
 
