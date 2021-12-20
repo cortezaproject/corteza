@@ -31,7 +31,7 @@
 		</div>
 	</form>
 	<div class="text-center my-3">
-		{{ tr "request-password-reset.template.links" "signup" links.Signup "login" links.Login }}</a>
+		{{ tr "request-password-reset.template.links" "login" links.Login }}</a>
 	</div>
 </div>
 {{ template "inc_footer.html.tpl" . }}
