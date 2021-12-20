@@ -2,8 +2,9 @@ package ql
 
 import (
 	"fmt"
-	"github.com/Masterminds/squirrel"
 	"strings"
+
+	"github.com/Masterminds/squirrel"
 )
 
 // SelectStatement represents a SQL SELECT statement.
@@ -14,6 +15,8 @@ type (
 
 		Validate() error
 	}
+
+	replacer func(string) string
 
 	ASTSet   []ASTNode // Stream of comma delimited nodes
 	ASTNodes []ASTNode // Stream of space delimited nodes
@@ -63,6 +66,7 @@ type (
 	NodeF struct {
 		Expr      string
 		Arguments []ASTNode
+		replacer  replacer
 	}
 )
 
@@ -217,6 +221,11 @@ func (nn Columns) Strings() (out []string) {
 	}
 
 	return
+}
+
+// MakeReplacedFormattedNode also accepts the replacer to apply to the arguments
+func MakeReplacedFormattedNode(expr string, r replacer, nn ...ASTNode) *NodeF {
+	return &NodeF{Expr: expr, Arguments: nn, replacer: r}
 }
 
 func MakeFormattedNode(expr string, nn ...ASTNode) *NodeF {
