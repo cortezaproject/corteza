@@ -19,7 +19,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 	"github.com/cortezaproject/corteza-server/store"
 	sysEvent "github.com/cortezaproject/corteza-server/system/service/event"
-	"github.com/davecgh/go-spew/spew"
 	"go.uber.org/zap"
 )
 
@@ -702,8 +701,6 @@ func validateWorkflowTriggers(wf *types.Workflow, tt ...*types.Trigger) (wis typ
 			cmpEvent.ComposeOnTimestamp(),
 		}
 	)
-
-	spew.Dump(tt)
 
 	for i, t := range tt {
 		if !t.Enabled || t.DeletedAt != nil {
