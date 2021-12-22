@@ -326,7 +326,7 @@ github.com/russellhaering/goxmldsig/types
 ## explicit
 github.com/rwcarlsen/goexif/exif
 github.com/rwcarlsen/goexif/tiff
-# github.com/sony/sonyflake v0.0.0-20181109022403-6d5bd6181009
+# github.com/sony/sonyflake v1.0.0
 ## explicit
 github.com/sony/sonyflake
 # github.com/spf13/afero v1.2.2
