@@ -16,6 +16,7 @@ func ArrayFunctions() []gval.Language {
 		gval.Function("count", count),
 		gval.Function("has", has),
 		gval.Function("hasAll", hasAll),
+		gval.Function("find", find),
 	}
 }
 
@@ -101,6 +102,18 @@ func count(arr interface{}, v ...interface{}) (count int, err error) {
 	typeErr := fmt.Errorf("unexpected type: %T, expecting slice", arr)
 	arr = UntypedValue(arr)
 
+	if stv, is := arr.([]TypedValue); is {
+		for _, vv := range v {
+			if occ, err := find(stv, vv); err != nil {
+				return 0, err
+			} else if occ != -1 {
+				count++
+			}
+		}
+
+		return count, nil
+	}
+
 	var (
 		occ int
 		c   = reflect.ValueOf(arr)
@@ -183,7 +196,7 @@ func find(arr interface{}, v interface{}) (p int, err error) {
 	for p = 0; p < reflect.ValueOf(arr).Len(); p++ {
 		c := reflect.ValueOf(arr)
 
-		if c.Index(p).Interface() == v {
+		if UntypedValue(c.Index(p).Interface()) == v {
 			return
 		}
 	}

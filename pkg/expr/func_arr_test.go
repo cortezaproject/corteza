@@ -189,6 +189,11 @@ func Test_find(t *testing.T) {
 		val    interface{}
 	}{
 		{
+			arr:    must(CastToArray([]string{"123", "456"})),
+			val:    "456",
+			expect: 1,
+		},
+		{
 			arr:    []string{"1", "2", "3"},
 			val:    "3",
 			expect: 2,
@@ -239,6 +244,11 @@ func Test_count(t *testing.T) {
 		arr    interface{}
 		val    []interface{}
 	}{
+		{
+			arr:    must(CastToArray([]string{"123"})),
+			val:    []interface{}{"123", "567"},
+			expect: 1,
+		},
 		{
 			arr:    []string{"1", "2", "3"},
 			val:    []interface{}{"0", "3"},
@@ -464,4 +474,11 @@ func Test_slice(t *testing.T) {
 			req.Equal(tc.expect, ss)
 		})
 	}
+}
+
+func must(v []TypedValue, err error) []TypedValue {
+	if err != nil {
+		panic(err)
+	}
+	return v
 }
