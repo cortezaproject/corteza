@@ -101,6 +101,12 @@ type (
 					// SAML certificate private key
 					Key string `kv:"key"`
 
+					// Sign AuthNRequest and assertion
+					SignRequests bool `kv:"sign-requests"`
+
+					// Signature method for signing
+					SignMethod string `kv:"sign-method"`
+
 					// Identity provider settings
 					IDP struct {
 						URL string `kv:"url"`

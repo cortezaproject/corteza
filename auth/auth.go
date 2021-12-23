@@ -297,6 +297,9 @@ func (svc *service) LoadSamlService(ctx context.Context, s *settings.Settings) (
 		PrivateKey:  keyPair.PrivateKey.(*rsa.PrivateKey),
 		IdpMeta:     md,
 
+		SignRequests:    s.Saml.SignRequests,
+		SignatureMethod: s.Saml.SignMethod,
+
 		IdentityPayload: saml.IdpIdentityPayload{
 			Name:       s.Saml.IDP.IdentName,
 			Handle:     s.Saml.IDP.IdentHandle,
