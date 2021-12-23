@@ -37,6 +37,9 @@ type (
 		MetaURL string
 		SloURL  string
 
+		SignRequests    bool
+		SignatureMethod string
+
 		// user meta from idp
 		IdentityPayload IdpIdentityPayload
 
@@ -63,6 +66,10 @@ func NewSamlSPService(log *zap.Logger, args SamlSPArgs) (s *SamlSPService, err e
 		MetadataURL: *args.Host.ResolveReference(metadataURL),
 		AcsURL:      *args.Host.ResolveReference(acsURL),
 		SloURL:      *args.Host.ResolveReference(logoutURL),
+	}
+
+	if args.SignRequests {
+		sp.SignatureMethod = args.SignatureMethod
 	}
 
 	opts := samlsp.Options{

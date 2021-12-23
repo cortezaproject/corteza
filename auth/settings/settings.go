@@ -26,6 +26,12 @@ type (
 		// SAML certificate private key
 		Key string
 
+		// Sign AuthNRequest and assertion
+		SignRequests bool
+
+		// Signature method for signing
+		SignMethod string
+
 		// Identity provider hostname
 		IDP struct {
 			URL string
