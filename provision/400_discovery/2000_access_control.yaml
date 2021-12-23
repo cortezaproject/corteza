@@ -1,24 +1,24 @@
 deny:
   indexer_private:
-    system:
-      - application.search
-      - auth-client.search
-      - user.search
-      - template.search
-      - role.search
+    corteza::system/:
+      - applications.search
+      - auth-clients.search
+      - users.search
+      - templates.search
+      - roles.search
 
   indexer_protected:
-    system:
-      - application.search
-      - auth-client.search
-      - user.search
-      - template.search
-      - role.search
+    corteza::system/:
+      - applications.search
+      - auth-clients.search
+      - users.search
+      - templates.search
+      - roles.search
 
   indexer_public:
-    system:
-      - application.search
-      - auth-client.search
-      - user.search
-      - template.search
-      - role.search
+    corteza::system/:
+      - applications.search
+      - auth-clients.search
+      - users.search
+      - templates.search
+      - roles.search
