@@ -6,15 +6,6 @@ package types
 // the code is regenerated.
 //
 
-// Definitions file that controls how this file is generated:
-// - compose.chart.yaml
-// - compose.module-field.yaml
-// - compose.module.yaml
-// - compose.namespace.yaml
-// - compose.page.yaml
-// - compose.record.yaml
-// - compose.yaml
-
 import (
 	"fmt"
 	"strconv"
@@ -27,50 +18,84 @@ type (
 	Component struct{}
 )
 
+var (
+	_ = fmt.Printf
+	_ = strconv.FormatUint
+)
+
 const (
-	ChartResourceType       = "corteza::compose:chart"
-	ModuleFieldResourceType = "corteza::compose:module-field"
-	ModuleResourceType      = "corteza::compose:module"
 	NamespaceResourceType   = "corteza::compose:namespace"
-	PageResourceType        = "corteza::compose:page"
+	ModuleResourceType      = "corteza::compose:module"
+	ModuleFieldResourceType = "corteza::compose:module-field"
 	RecordResourceType      = "corteza::compose:record"
+	PageResourceType        = "corteza::compose:page"
+	ChartResourceType       = "corteza::compose:chart"
 	ComponentResourceType   = "corteza::compose"
 )
 
-// RbacResource returns string representation of RBAC resource for Chart by calling ChartRbacResource fn
+// RbacResource returns string representation of RBAC resource for Namespace by calling NamespaceRbacResource fn
 //
-// RBAC resource is in the corteza::compose:chart/... format
+// RBAC resource is in the corteza::compose:namespace/... format
 //
 // This function is auto-generated
-func (r Chart) RbacResource() string {
-	return ChartRbacResource(r.NamespaceID, r.ID)
+func (r Namespace) RbacResource() string {
+	return NamespaceRbacResource(r.ID)
 }
 
-// ChartRbacResource returns string representation of RBAC resource for Chart
+// NamespaceRbacResource returns string representation of RBAC resource for Namespace
 //
-// RBAC resource is in the corteza::compose:chart/... format
+// RBAC resource is in the corteza::compose:namespace/... format
 //
 // This function is auto-generated
-func ChartRbacResource(namespaceID uint64, id uint64) string {
-	cpts := []interface{}{ChartResourceType}
-	if namespaceID != 0 {
-		cpts = append(cpts, strconv.FormatUint(namespaceID, 10))
+func NamespaceRbacResource(ID uint64) string {
+	cpts := []interface{}{NamespaceResourceType}
+	if ID != 0 {
+		cpts = append(cpts, strconv.FormatUint(ID, 10))
 	} else {
 		cpts = append(cpts, "*")
 	}
 
-	if id != 0 {
-		cpts = append(cpts, strconv.FormatUint(id, 10))
+	return fmt.Sprintf(NamespaceRbacResourceTpl(), cpts...)
+
+}
+
+func NamespaceRbacResourceTpl() string {
+	return "%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for Module by calling ModuleRbacResource fn
+//
+// RBAC resource is in the corteza::compose:module/... format
+//
+// This function is auto-generated
+func (r Module) RbacResource() string {
+	return ModuleRbacResource(r.NamespaceID, r.ID)
+}
+
+// ModuleRbacResource returns string representation of RBAC resource for Module
+//
+// RBAC resource is in the corteza::compose:module/... format
+//
+// This function is auto-generated
+func ModuleRbacResource(NamespaceID uint64, ID uint64) string {
+	cpts := []interface{}{ModuleResourceType}
+	if NamespaceID != 0 {
+		cpts = append(cpts, strconv.FormatUint(NamespaceID, 10))
 	} else {
 		cpts = append(cpts, "*")
 	}
 
-	return fmt.Sprintf(ChartRbacResourceTpl(), cpts...)
+	if ID != 0 {
+		cpts = append(cpts, strconv.FormatUint(ID, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(ModuleRbacResourceTpl(), cpts...)
 
 }
 
-// @todo template
-func ChartRbacResourceTpl() string {
+func ModuleRbacResourceTpl() string {
 	return "%s/%s/%s"
 }
 
@@ -88,22 +113,22 @@ func (r ModuleField) RbacResource() string {
 // RBAC resource is in the corteza::compose:module-field/... format
 //
 // This function is auto-generated
-func ModuleFieldRbacResource(namespaceID uint64, moduleID uint64, id uint64) string {
+func ModuleFieldRbacResource(NamespaceID uint64, ModuleID uint64, ID uint64) string {
 	cpts := []interface{}{ModuleFieldResourceType}
-	if namespaceID != 0 {
-		cpts = append(cpts, strconv.FormatUint(namespaceID, 10))
+	if NamespaceID != 0 {
+		cpts = append(cpts, strconv.FormatUint(NamespaceID, 10))
 	} else {
 		cpts = append(cpts, "*")
 	}
 
-	if moduleID != 0 {
-		cpts = append(cpts, strconv.FormatUint(moduleID, 10))
+	if ModuleID != 0 {
+		cpts = append(cpts, strconv.FormatUint(ModuleID, 10))
 	} else {
 		cpts = append(cpts, "*")
 	}
 
-	if id != 0 {
-		cpts = append(cpts, strconv.FormatUint(id, 10))
+	if ID != 0 {
+		cpts = append(cpts, strconv.FormatUint(ID, 10))
 	} else {
 		cpts = append(cpts, "*")
 	}
@@ -112,114 +137,8 @@ func ModuleFieldRbacResource(namespaceID uint64, moduleID uint64, id uint64) str
 
 }
 
-// @todo template
 func ModuleFieldRbacResourceTpl() string {
 	return "%s/%s/%s/%s"
-}
-
-// RbacResource returns string representation of RBAC resource for Module by calling ModuleRbacResource fn
-//
-// RBAC resource is in the corteza::compose:module/... format
-//
-// This function is auto-generated
-func (r Module) RbacResource() string {
-	return ModuleRbacResource(r.NamespaceID, r.ID)
-}
-
-// ModuleRbacResource returns string representation of RBAC resource for Module
-//
-// RBAC resource is in the corteza::compose:module/... format
-//
-// This function is auto-generated
-func ModuleRbacResource(namespaceID uint64, id uint64) string {
-	cpts := []interface{}{ModuleResourceType}
-	if namespaceID != 0 {
-		cpts = append(cpts, strconv.FormatUint(namespaceID, 10))
-	} else {
-		cpts = append(cpts, "*")
-	}
-
-	if id != 0 {
-		cpts = append(cpts, strconv.FormatUint(id, 10))
-	} else {
-		cpts = append(cpts, "*")
-	}
-
-	return fmt.Sprintf(ModuleRbacResourceTpl(), cpts...)
-
-}
-
-// @todo template
-func ModuleRbacResourceTpl() string {
-	return "%s/%s/%s"
-}
-
-// RbacResource returns string representation of RBAC resource for Namespace by calling NamespaceRbacResource fn
-//
-// RBAC resource is in the corteza::compose:namespace/... format
-//
-// This function is auto-generated
-func (r Namespace) RbacResource() string {
-	return NamespaceRbacResource(r.ID)
-}
-
-// NamespaceRbacResource returns string representation of RBAC resource for Namespace
-//
-// RBAC resource is in the corteza::compose:namespace/... format
-//
-// This function is auto-generated
-func NamespaceRbacResource(id uint64) string {
-	cpts := []interface{}{NamespaceResourceType}
-	if id != 0 {
-		cpts = append(cpts, strconv.FormatUint(id, 10))
-	} else {
-		cpts = append(cpts, "*")
-	}
-
-	return fmt.Sprintf(NamespaceRbacResourceTpl(), cpts...)
-
-}
-
-// @todo template
-func NamespaceRbacResourceTpl() string {
-	return "%s/%s"
-}
-
-// RbacResource returns string representation of RBAC resource for Page by calling PageRbacResource fn
-//
-// RBAC resource is in the corteza::compose:page/... format
-//
-// This function is auto-generated
-func (r Page) RbacResource() string {
-	return PageRbacResource(r.NamespaceID, r.ID)
-}
-
-// PageRbacResource returns string representation of RBAC resource for Page
-//
-// RBAC resource is in the corteza::compose:page/... format
-//
-// This function is auto-generated
-func PageRbacResource(namespaceID uint64, id uint64) string {
-	cpts := []interface{}{PageResourceType}
-	if namespaceID != 0 {
-		cpts = append(cpts, strconv.FormatUint(namespaceID, 10))
-	} else {
-		cpts = append(cpts, "*")
-	}
-
-	if id != 0 {
-		cpts = append(cpts, strconv.FormatUint(id, 10))
-	} else {
-		cpts = append(cpts, "*")
-	}
-
-	return fmt.Sprintf(PageRbacResourceTpl(), cpts...)
-
-}
-
-// @todo template
-func PageRbacResourceTpl() string {
-	return "%s/%s/%s"
 }
 
 // RbacResource returns string representation of RBAC resource for Record by calling RecordRbacResource fn
@@ -236,22 +155,22 @@ func (r Record) RbacResource() string {
 // RBAC resource is in the corteza::compose:record/... format
 //
 // This function is auto-generated
-func RecordRbacResource(namespaceID uint64, moduleID uint64, id uint64) string {
+func RecordRbacResource(NamespaceID uint64, ModuleID uint64, ID uint64) string {
 	cpts := []interface{}{RecordResourceType}
-	if namespaceID != 0 {
-		cpts = append(cpts, strconv.FormatUint(namespaceID, 10))
+	if NamespaceID != 0 {
+		cpts = append(cpts, strconv.FormatUint(NamespaceID, 10))
 	} else {
 		cpts = append(cpts, "*")
 	}
 
-	if moduleID != 0 {
-		cpts = append(cpts, strconv.FormatUint(moduleID, 10))
+	if ModuleID != 0 {
+		cpts = append(cpts, strconv.FormatUint(ModuleID, 10))
 	} else {
 		cpts = append(cpts, "*")
 	}
 
-	if id != 0 {
-		cpts = append(cpts, strconv.FormatUint(id, 10))
+	if ID != 0 {
+		cpts = append(cpts, strconv.FormatUint(ID, 10))
 	} else {
 		cpts = append(cpts, "*")
 	}
@@ -260,9 +179,80 @@ func RecordRbacResource(namespaceID uint64, moduleID uint64, id uint64) string {
 
 }
 
-// @todo template
 func RecordRbacResourceTpl() string {
 	return "%s/%s/%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for Page by calling PageRbacResource fn
+//
+// RBAC resource is in the corteza::compose:page/... format
+//
+// This function is auto-generated
+func (r Page) RbacResource() string {
+	return PageRbacResource(r.NamespaceID, r.ID)
+}
+
+// PageRbacResource returns string representation of RBAC resource for Page
+//
+// RBAC resource is in the corteza::compose:page/... format
+//
+// This function is auto-generated
+func PageRbacResource(NamespaceID uint64, ID uint64) string {
+	cpts := []interface{}{PageResourceType}
+	if NamespaceID != 0 {
+		cpts = append(cpts, strconv.FormatUint(NamespaceID, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	if ID != 0 {
+		cpts = append(cpts, strconv.FormatUint(ID, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(PageRbacResourceTpl(), cpts...)
+
+}
+
+func PageRbacResourceTpl() string {
+	return "%s/%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for Chart by calling ChartRbacResource fn
+//
+// RBAC resource is in the corteza::compose:chart/... format
+//
+// This function is auto-generated
+func (r Chart) RbacResource() string {
+	return ChartRbacResource(r.NamespaceID, r.ID)
+}
+
+// ChartRbacResource returns string representation of RBAC resource for Chart
+//
+// RBAC resource is in the corteza::compose:chart/... format
+//
+// This function is auto-generated
+func ChartRbacResource(NamespaceID uint64, ID uint64) string {
+	cpts := []interface{}{ChartResourceType}
+	if NamespaceID != 0 {
+		cpts = append(cpts, strconv.FormatUint(NamespaceID, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	if ID != 0 {
+		cpts = append(cpts, strconv.FormatUint(ID, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(ChartRbacResourceTpl(), cpts...)
+
+}
+
+func ChartRbacResourceTpl() string {
+	return "%s/%s/%s"
 }
 
 // RbacResource returns string representation of RBAC resource for Component by calling ComponentRbacResource fn
@@ -284,7 +274,6 @@ func ComponentRbacResource() string {
 
 }
 
-// @todo template
 func ComponentRbacResourceTpl() string {
 	return "%s"
 }

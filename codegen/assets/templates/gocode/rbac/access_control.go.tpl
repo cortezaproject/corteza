@@ -1,7 +1,6 @@
-package {{ .Package }}
+package {{ .package }}
 
-{{ template "header-gentext.tpl" }}
-{{ template "header-definitions.tpl" . }}
+{{ template "gocode/header-gentext.tpl" }}
 
 import (
 	"fmt"
@@ -10,8 +9,8 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-{{- range .Imports }}
-    {{ . }}
+{{- range .imports }}
+    "{{ . }}"
 {{- end }}
 )
 
@@ -26,7 +25,6 @@ type (
 			FindRulesByRoleID(roleID uint64) (rr rbac.RuleSet)
 			CloneRulesByRoleID(ctx context.Context, fromRoleID uint64, toRoleID ...uint64) error
 		}
-
 	}
 )
 
@@ -56,16 +54,12 @@ func (svc accessControl) Effective(ctx context.Context, rr ... rbac.Resource) (e
 
 func (svc accessControl) List() (out []map[string]string) {
 	def := []map[string]string{
-	{{- range .Def }}
-	{{- $Resource := .Resource }}
-	{{- $RbacResource := .RBAC.Resource }}
-	{{- range .RBAC.Operations }}
+	{{- range .operations }}
 		{
-			"type": types.{{ coalesce $Resource }}ResourceType,
-			"any": types.{{ coalesce $Resource }}RbacResource({{ range $RbacResource.References }}0,{{ end }}),
-			"op": {{ printf "%q" .Operation }},
+			"type": {{ .const }},
+			"any": {{ .ctor }},
+			"op": {{ printf "%q" .op }},
 		},
-	{{- end }}
 	{{- end }}
 	}
 
@@ -143,42 +137,24 @@ func (svc accessControl) CloneRulesByRoleID(ctx context.Context, fromRoleID uint
 	return svc.rbac.CloneRulesByRoleID(ctx, fromRoleID, toRoleID...)
 }
 
-{{- range .Def }}
-	{{ $GoType   := printf "types.%s" (.Resource) }}
-
-	{{ if .IsComponentResource }}
-
-		{{- range .RBAC.Operations }}
-		// {{ export .CanFnName }} checks if current user can {{ lower .Description }}
-		//
-		// This function is auto-generated
-		func (svc accessControl) {{ export .CanFnName }}(ctx context.Context) bool {
-			return svc.can(ctx, {{ printf "%q" .Operation }}, &types.Component{})
-		}
-		{{- end }}
-
-	{{ else }}
-		{{- range .RBAC.Operations }}
-		// {{ export .CanFnName }} checks if current user can {{ lower .Description }}
-		//
-		// This function is auto-generated
-		func (svc accessControl) {{ export .CanFnName }}(ctx context.Context, r * {{ $GoType }}) bool {
-			return svc.can(ctx, {{ printf "%q" .Operation }}, r)
-		}
-		{{- end }}
-
-{{ end }}
+{{- range .operations }}
+	// {{ .checkFuncName }} checks if current user can {{ lower .description }}
+	//
+	// This function is auto-generated
+	func (svc accessControl) {{ .checkFuncName }}(ctx context.Context{{ if not .component }}, r *{{ .goType }}{{ end }}) bool {
+		{{- if .component }}r := &{{ .goType }}{}{{ end }}
+		return svc.can(ctx, {{ printf "%q" .op }}, r)
+	}
 {{- end }}
-
 
 // rbacResourceValidator validates known component's resource by routing it to the appropriate validator
 //
 // This function is auto-generated
 func rbacResourceValidator(r string, oo ...string) error {
 	switch rbac.ResourceType(r) {
-	{{- range .Def }}
-		case types.{{ coalesce .Resource }}ResourceType:
-		return rbac{{ .Resource }}ResourceValidator(r, oo...)
+	{{- range .validation }}
+		case {{ .const }}:
+		  return {{ .funcName }}(r, oo...)
 	{{- end }}
 	}
 
@@ -190,11 +166,11 @@ func rbacResourceValidator(r string, oo ...string) error {
 // This function is auto-generated
 func rbacResourceOperations(r string) map[string]bool {
 	switch rbac.ResourceType(r) {
-	{{- range .Def }}
-	case types.{{ coalesce .Resource }}ResourceType:
+	{{- range .validation }}
+	case {{ .const }}:
 		return map[string]bool{
-		{{- range .RBAC.Operations }}
-			{{ printf "%q" .Operation }}:  true,
+		{{- range .operations }}
+			{{ printf "%q" . }}: true,
 		{{- end }}
 		}
 	{{- end }}
@@ -203,57 +179,53 @@ func rbacResourceOperations(r string) map[string]bool {
 	return nil
 }
 
-{{- range .Def }}
+{{- range .validation }}
 
-{{ $Resource := .Resource }}
-{{ $GoType   := printf "types.%s" (.Resource) }}
-
-// rbac{{ .Resource }}ResourceValidator checks validity of rbac resource and operations
+// {{ .funcName }} checks validity of RBAC resource and operations
 //
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
-func rbac{{ .Resource }}ResourceValidator(r string, oo ...string) error {
-	defOps := rbacResourceOperations(r)
-	for _, o := range oo {
-		if !defOps[o] {
-			return fmt.Errorf("invalid operation '%s' for {{ .Component }}{{ if not .IsComponentResource }} {{ .Resource }}{{end }} resource", o)
-		}
-	}
-
-	if !strings.HasPrefix(r, {{ $GoType }}ResourceType) {
+func {{ .funcName }}(r string, oo ...string) error {
+	if !strings.HasPrefix(r, {{ .const }}) {
 		// expecting resource to always include path
 		return fmt.Errorf("invalid resource type")
 	}
 
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for {{ .label }} resource", o)
+		}
+	}
 
-{{ if .RBAC.Resource.References }}
-	const sep = "/"
-	var (
-		pp = strings.Split(strings.Trim(r[len({{ $GoType }}ResourceType):], sep), sep)
-		prc = []string{
-	{{- range .RBAC.Resource.References }}
-		{{ printf "%q" .Field }},
+	{{ if .references }}
+		const sep = "/"
+		var (
+			pp = strings.Split(strings.Trim(r[len({{ .const }}):], sep), sep)
+			prc = []string{
+		{{- range .references }}
+			{{ printf "%q" . }},
+		{{- end }}
+			}
+		)
+
+		if len(pp) != len(prc) {
+			return fmt.Errorf("invalid resource path structure")
+		}
+
+		for i := 0; i < len(pp); i++ {
+			if pp[i] != "*" {
+				if i > 0 && pp[i-1] == "*" {
+					return fmt.Errorf("invalid path wildcard level (%d) for {{ .label }} resource", i)
+				}
+
+				if _, err := cast.ToUint64E(pp[i]); err != nil {
+					return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+				}
+			}
+		}
 	{{- end }}
-		}
-	)
-
-	if len(pp) != len(prc) {
-		return fmt.Errorf("invalid resource path structure")
-	}
-
-	for i := 0; i < len(pp); i++ {
-		if pp[i] != "*" {
-			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid resource path wildcard level (%d) for {{ .Resource }}", i)
-			}
-
-			if _, err := cast.ToUint64E(pp[i]); err != nil {
-				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
-			}
-		}
-	}
-{{- end }}
 	return nil
 }
 {{- end }}
