@@ -1,0 +1,3 @@
+module github.com/cortezaproject/corteza-server
+
+cue v0.4.0
