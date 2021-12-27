@@ -6,17 +6,6 @@ package types
 // the code is regenerated.
 //
 
-// Definitions file that controls how this file is generated:
-// - system.apigw-route.yaml
-// - system.application.yaml
-// - system.auth-client.yaml
-// - system.queue.yaml
-// - system.report.yaml
-// - system.role.yaml
-// - system.template.yaml
-// - system.user.yaml
-// - system.yaml
-
 import (
 	"fmt"
 	"strconv"
@@ -27,6 +16,11 @@ type (
 	//
 	// This struct is auto-generated
 	Component struct{}
+)
+
+var (
+	_ = fmt.Printf
+	_ = strconv.FormatUint
 )
 
 const (
@@ -55,10 +49,10 @@ func (r ApigwRoute) RbacResource() string {
 // RBAC resource is in the corteza::system:apigw-route/... format
 //
 // This function is auto-generated
-func ApigwRouteRbacResource(id uint64) string {
+func ApigwRouteRbacResource(ID uint64) string {
 	cpts := []interface{}{ApigwRouteResourceType}
-	if id != 0 {
-		cpts = append(cpts, strconv.FormatUint(id, 10))
+	if ID != 0 {
+		cpts = append(cpts, strconv.FormatUint(ID, 10))
 	} else {
 		cpts = append(cpts, "*")
 	}
@@ -67,7 +61,6 @@ func ApigwRouteRbacResource(id uint64) string {
 
 }
 
-// @todo template
 func ApigwRouteRbacResourceTpl() string {
 	return "%s/%s"
 }
@@ -86,10 +79,10 @@ func (r Application) RbacResource() string {
 // RBAC resource is in the corteza::system:application/... format
 //
 // This function is auto-generated
-func ApplicationRbacResource(id uint64) string {
+func ApplicationRbacResource(ID uint64) string {
 	cpts := []interface{}{ApplicationResourceType}
-	if id != 0 {
-		cpts = append(cpts, strconv.FormatUint(id, 10))
+	if ID != 0 {
+		cpts = append(cpts, strconv.FormatUint(ID, 10))
 	} else {
 		cpts = append(cpts, "*")
 	}
@@ -98,7 +91,6 @@ func ApplicationRbacResource(id uint64) string {
 
 }
 
-// @todo template
 func ApplicationRbacResourceTpl() string {
 	return "%s/%s"
 }
@@ -117,10 +109,10 @@ func (r AuthClient) RbacResource() string {
 // RBAC resource is in the corteza::system:auth-client/... format
 //
 // This function is auto-generated
-func AuthClientRbacResource(id uint64) string {
+func AuthClientRbacResource(ID uint64) string {
 	cpts := []interface{}{AuthClientResourceType}
-	if id != 0 {
-		cpts = append(cpts, strconv.FormatUint(id, 10))
+	if ID != 0 {
+		cpts = append(cpts, strconv.FormatUint(ID, 10))
 	} else {
 		cpts = append(cpts, "*")
 	}
@@ -129,7 +121,6 @@ func AuthClientRbacResource(id uint64) string {
 
 }
 
-// @todo template
 func AuthClientRbacResourceTpl() string {
 	return "%s/%s"
 }
@@ -148,10 +139,10 @@ func (r Queue) RbacResource() string {
 // RBAC resource is in the corteza::system:queue/... format
 //
 // This function is auto-generated
-func QueueRbacResource(id uint64) string {
+func QueueRbacResource(ID uint64) string {
 	cpts := []interface{}{QueueResourceType}
-	if id != 0 {
-		cpts = append(cpts, strconv.FormatUint(id, 10))
+	if ID != 0 {
+		cpts = append(cpts, strconv.FormatUint(ID, 10))
 	} else {
 		cpts = append(cpts, "*")
 	}
@@ -160,7 +151,6 @@ func QueueRbacResource(id uint64) string {
 
 }
 
-// @todo template
 func QueueRbacResourceTpl() string {
 	return "%s/%s"
 }
@@ -179,10 +169,10 @@ func (r Report) RbacResource() string {
 // RBAC resource is in the corteza::system:report/... format
 //
 // This function is auto-generated
-func ReportRbacResource(id uint64) string {
+func ReportRbacResource(ID uint64) string {
 	cpts := []interface{}{ReportResourceType}
-	if id != 0 {
-		cpts = append(cpts, strconv.FormatUint(id, 10))
+	if ID != 0 {
+		cpts = append(cpts, strconv.FormatUint(ID, 10))
 	} else {
 		cpts = append(cpts, "*")
 	}
@@ -191,7 +181,6 @@ func ReportRbacResource(id uint64) string {
 
 }
 
-// @todo template
 func ReportRbacResourceTpl() string {
 	return "%s/%s"
 }
@@ -210,10 +199,10 @@ func (r Role) RbacResource() string {
 // RBAC resource is in the corteza::system:role/... format
 //
 // This function is auto-generated
-func RoleRbacResource(id uint64) string {
+func RoleRbacResource(ID uint64) string {
 	cpts := []interface{}{RoleResourceType}
-	if id != 0 {
-		cpts = append(cpts, strconv.FormatUint(id, 10))
+	if ID != 0 {
+		cpts = append(cpts, strconv.FormatUint(ID, 10))
 	} else {
 		cpts = append(cpts, "*")
 	}
@@ -222,7 +211,6 @@ func RoleRbacResource(id uint64) string {
 
 }
 
-// @todo template
 func RoleRbacResourceTpl() string {
 	return "%s/%s"
 }
@@ -241,10 +229,10 @@ func (r Template) RbacResource() string {
 // RBAC resource is in the corteza::system:template/... format
 //
 // This function is auto-generated
-func TemplateRbacResource(id uint64) string {
+func TemplateRbacResource(ID uint64) string {
 	cpts := []interface{}{TemplateResourceType}
-	if id != 0 {
-		cpts = append(cpts, strconv.FormatUint(id, 10))
+	if ID != 0 {
+		cpts = append(cpts, strconv.FormatUint(ID, 10))
 	} else {
 		cpts = append(cpts, "*")
 	}
@@ -253,7 +241,6 @@ func TemplateRbacResource(id uint64) string {
 
 }
 
-// @todo template
 func TemplateRbacResourceTpl() string {
 	return "%s/%s"
 }
@@ -272,10 +259,10 @@ func (r User) RbacResource() string {
 // RBAC resource is in the corteza::system:user/... format
 //
 // This function is auto-generated
-func UserRbacResource(id uint64) string {
+func UserRbacResource(ID uint64) string {
 	cpts := []interface{}{UserResourceType}
-	if id != 0 {
-		cpts = append(cpts, strconv.FormatUint(id, 10))
+	if ID != 0 {
+		cpts = append(cpts, strconv.FormatUint(ID, 10))
 	} else {
 		cpts = append(cpts, "*")
 	}
@@ -284,7 +271,6 @@ func UserRbacResource(id uint64) string {
 
 }
 
-// @todo template
 func UserRbacResourceTpl() string {
 	return "%s/%s"
 }
@@ -308,7 +294,6 @@ func ComponentRbacResource() string {
 
 }
 
-// @todo template
 func ComponentRbacResourceTpl() string {
 	return "%s"
 }
