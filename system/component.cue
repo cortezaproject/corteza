@@ -5,7 +5,7 @@ import (
 )
 
 component: schema.#component & {
-	ident: "system"
+	handle: "system"
 
 	resources: {
 		"apigw-route": apigwRoute

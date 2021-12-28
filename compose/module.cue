@@ -5,15 +5,24 @@ import (
 )
 
 module: schema.#resource & {
-	rbac: {
-		resource: references: [ "namespaceID", "ID"]
+	handle: "module"
+	parents: [
+		{handle: "namespace"},
+	]
 
+	rbac: {
 		operations: {
 			"read": {}
 			"update": {}
 			"delete": {}
 			"record.create": description:  "Create record"
 			"records.search": description: "List, search or filter records"
+		}
+	}
+
+	locale: {
+		keys: {
+			"name": {}
 		}
 	}
 

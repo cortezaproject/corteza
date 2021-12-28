@@ -56,182 +56,182 @@ func (svc accessControl) List() (out []map[string]string) {
 	def := []map[string]string{
 		{
 			"type": types.ApigwRouteResourceType,
-			"any":  types.ApigwRouteRbacResource(0),
+			"any":  types.ApigwRouteRbacResource(),
 			"op":   "read",
 		},
 		{
 			"type": types.ApigwRouteResourceType,
-			"any":  types.ApigwRouteRbacResource(0),
+			"any":  types.ApigwRouteRbacResource(),
 			"op":   "update",
 		},
 		{
 			"type": types.ApigwRouteResourceType,
-			"any":  types.ApigwRouteRbacResource(0),
+			"any":  types.ApigwRouteRbacResource(),
 			"op":   "delete",
 		},
 		{
 			"type": types.ApplicationResourceType,
-			"any":  types.ApplicationRbacResource(0),
+			"any":  types.ApplicationRbacResource(),
 			"op":   "read",
 		},
 		{
 			"type": types.ApplicationResourceType,
-			"any":  types.ApplicationRbacResource(0),
+			"any":  types.ApplicationRbacResource(),
 			"op":   "update",
 		},
 		{
 			"type": types.ApplicationResourceType,
-			"any":  types.ApplicationRbacResource(0),
+			"any":  types.ApplicationRbacResource(),
 			"op":   "delete",
 		},
 		{
 			"type": types.AuthClientResourceType,
-			"any":  types.AuthClientRbacResource(0),
+			"any":  types.AuthClientRbacResource(),
 			"op":   "read",
 		},
 		{
 			"type": types.AuthClientResourceType,
-			"any":  types.AuthClientRbacResource(0),
+			"any":  types.AuthClientRbacResource(),
 			"op":   "update",
 		},
 		{
 			"type": types.AuthClientResourceType,
-			"any":  types.AuthClientRbacResource(0),
+			"any":  types.AuthClientRbacResource(),
 			"op":   "delete",
 		},
 		{
 			"type": types.AuthClientResourceType,
-			"any":  types.AuthClientRbacResource(0),
+			"any":  types.AuthClientRbacResource(),
 			"op":   "authorize",
 		},
 		{
 			"type": types.QueueResourceType,
-			"any":  types.QueueRbacResource(0),
+			"any":  types.QueueRbacResource(),
 			"op":   "render",
 		},
 		{
 			"type": types.QueueResourceType,
-			"any":  types.QueueRbacResource(0),
+			"any":  types.QueueRbacResource(),
 			"op":   "read",
 		},
 		{
 			"type": types.QueueResourceType,
-			"any":  types.QueueRbacResource(0),
+			"any":  types.QueueRbacResource(),
 			"op":   "update",
 		},
 		{
 			"type": types.QueueResourceType,
-			"any":  types.QueueRbacResource(0),
+			"any":  types.QueueRbacResource(),
 			"op":   "delete",
 		},
 		{
 			"type": types.QueueResourceType,
-			"any":  types.QueueRbacResource(0),
+			"any":  types.QueueRbacResource(),
 			"op":   "queue.read",
 		},
 		{
 			"type": types.QueueResourceType,
-			"any":  types.QueueRbacResource(0),
+			"any":  types.QueueRbacResource(),
 			"op":   "queue.write",
 		},
 		{
 			"type": types.ReportResourceType,
-			"any":  types.ReportRbacResource(0),
+			"any":  types.ReportRbacResource(),
 			"op":   "read",
 		},
 		{
 			"type": types.ReportResourceType,
-			"any":  types.ReportRbacResource(0),
+			"any":  types.ReportRbacResource(),
 			"op":   "update",
 		},
 		{
 			"type": types.ReportResourceType,
-			"any":  types.ReportRbacResource(0),
+			"any":  types.ReportRbacResource(),
 			"op":   "delete",
 		},
 		{
 			"type": types.ReportResourceType,
-			"any":  types.ReportRbacResource(0),
+			"any":  types.ReportRbacResource(),
 			"op":   "run",
 		},
 		{
 			"type": types.RoleResourceType,
-			"any":  types.RoleRbacResource(0),
+			"any":  types.RoleRbacResource(),
 			"op":   "read",
 		},
 		{
 			"type": types.RoleResourceType,
-			"any":  types.RoleRbacResource(0),
+			"any":  types.RoleRbacResource(),
 			"op":   "update",
 		},
 		{
 			"type": types.RoleResourceType,
-			"any":  types.RoleRbacResource(0),
+			"any":  types.RoleRbacResource(),
 			"op":   "delete",
 		},
 		{
 			"type": types.RoleResourceType,
-			"any":  types.RoleRbacResource(0),
+			"any":  types.RoleRbacResource(),
 			"op":   "members.manage",
 		},
 		{
 			"type": types.TemplateResourceType,
-			"any":  types.TemplateRbacResource(0),
+			"any":  types.TemplateRbacResource(),
 			"op":   "read",
 		},
 		{
 			"type": types.TemplateResourceType,
-			"any":  types.TemplateRbacResource(0),
+			"any":  types.TemplateRbacResource(),
 			"op":   "update",
 		},
 		{
 			"type": types.TemplateResourceType,
-			"any":  types.TemplateRbacResource(0),
+			"any":  types.TemplateRbacResource(),
 			"op":   "delete",
 		},
 		{
 			"type": types.TemplateResourceType,
-			"any":  types.TemplateRbacResource(0),
+			"any":  types.TemplateRbacResource(),
 			"op":   "render",
 		},
 		{
 			"type": types.UserResourceType,
-			"any":  types.UserRbacResource(0),
+			"any":  types.UserRbacResource(),
 			"op":   "read",
 		},
 		{
 			"type": types.UserResourceType,
-			"any":  types.UserRbacResource(0),
+			"any":  types.UserRbacResource(),
 			"op":   "update",
 		},
 		{
 			"type": types.UserResourceType,
-			"any":  types.UserRbacResource(0),
+			"any":  types.UserRbacResource(),
 			"op":   "delete",
 		},
 		{
 			"type": types.UserResourceType,
-			"any":  types.UserRbacResource(0),
+			"any":  types.UserRbacResource(),
 			"op":   "suspend",
 		},
 		{
 			"type": types.UserResourceType,
-			"any":  types.UserRbacResource(0),
+			"any":  types.UserRbacResource(),
 			"op":   "unsuspend",
 		},
 		{
 			"type": types.UserResourceType,
-			"any":  types.UserRbacResource(0),
+			"any":  types.UserRbacResource(),
 			"op":   "email.unmask",
 		},
 		{
 			"type": types.UserResourceType,
-			"any":  types.UserRbacResource(0),
+			"any":  types.UserRbacResource(),
 			"op":   "name.unmask",
 		},
 		{
 			"type": types.UserResourceType,
-			"any":  types.UserRbacResource(0),
+			"any":  types.UserRbacResource(),
 			"op":   "impersonate",
 		},
 		{
@@ -1014,29 +1014,6 @@ func rbacApigwRouteResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	const sep = "/"
-	var (
-		pp  = strings.Split(strings.Trim(r[len(types.ApigwRouteResourceType):], sep), sep)
-		prc = []string{
-			"ID",
-		}
-	)
-
-	if len(pp) != len(prc) {
-		return fmt.Errorf("invalid resource path structure")
-	}
-
-	for i := 0; i < len(pp); i++ {
-		if pp[i] != "*" {
-			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid path wildcard level (%d) for apigwRoute resource", i)
-			}
-
-			if _, err := cast.ToUint64E(pp[i]); err != nil {
-				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
-			}
-		}
-	}
 	return nil
 }
 
@@ -1058,29 +1035,6 @@ func rbacApplicationResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	const sep = "/"
-	var (
-		pp  = strings.Split(strings.Trim(r[len(types.ApplicationResourceType):], sep), sep)
-		prc = []string{
-			"ID",
-		}
-	)
-
-	if len(pp) != len(prc) {
-		return fmt.Errorf("invalid resource path structure")
-	}
-
-	for i := 0; i < len(pp); i++ {
-		if pp[i] != "*" {
-			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid path wildcard level (%d) for application resource", i)
-			}
-
-			if _, err := cast.ToUint64E(pp[i]); err != nil {
-				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
-			}
-		}
-	}
 	return nil
 }
 
@@ -1102,29 +1056,6 @@ func rbacAuthClientResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	const sep = "/"
-	var (
-		pp  = strings.Split(strings.Trim(r[len(types.AuthClientResourceType):], sep), sep)
-		prc = []string{
-			"ID",
-		}
-	)
-
-	if len(pp) != len(prc) {
-		return fmt.Errorf("invalid resource path structure")
-	}
-
-	for i := 0; i < len(pp); i++ {
-		if pp[i] != "*" {
-			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid path wildcard level (%d) for authClient resource", i)
-			}
-
-			if _, err := cast.ToUint64E(pp[i]); err != nil {
-				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
-			}
-		}
-	}
 	return nil
 }
 
@@ -1146,29 +1077,6 @@ func rbacQueueResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	const sep = "/"
-	var (
-		pp  = strings.Split(strings.Trim(r[len(types.QueueResourceType):], sep), sep)
-		prc = []string{
-			"ID",
-		}
-	)
-
-	if len(pp) != len(prc) {
-		return fmt.Errorf("invalid resource path structure")
-	}
-
-	for i := 0; i < len(pp); i++ {
-		if pp[i] != "*" {
-			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid path wildcard level (%d) for queue resource", i)
-			}
-
-			if _, err := cast.ToUint64E(pp[i]); err != nil {
-				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
-			}
-		}
-	}
 	return nil
 }
 
@@ -1190,29 +1098,6 @@ func rbacReportResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	const sep = "/"
-	var (
-		pp  = strings.Split(strings.Trim(r[len(types.ReportResourceType):], sep), sep)
-		prc = []string{
-			"ID",
-		}
-	)
-
-	if len(pp) != len(prc) {
-		return fmt.Errorf("invalid resource path structure")
-	}
-
-	for i := 0; i < len(pp); i++ {
-		if pp[i] != "*" {
-			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid path wildcard level (%d) for report resource", i)
-			}
-
-			if _, err := cast.ToUint64E(pp[i]); err != nil {
-				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
-			}
-		}
-	}
 	return nil
 }
 
@@ -1234,29 +1119,6 @@ func rbacRoleResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	const sep = "/"
-	var (
-		pp  = strings.Split(strings.Trim(r[len(types.RoleResourceType):], sep), sep)
-		prc = []string{
-			"ID",
-		}
-	)
-
-	if len(pp) != len(prc) {
-		return fmt.Errorf("invalid resource path structure")
-	}
-
-	for i := 0; i < len(pp); i++ {
-		if pp[i] != "*" {
-			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid path wildcard level (%d) for role resource", i)
-			}
-
-			if _, err := cast.ToUint64E(pp[i]); err != nil {
-				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
-			}
-		}
-	}
 	return nil
 }
 
@@ -1278,29 +1140,6 @@ func rbacTemplateResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	const sep = "/"
-	var (
-		pp  = strings.Split(strings.Trim(r[len(types.TemplateResourceType):], sep), sep)
-		prc = []string{
-			"ID",
-		}
-	)
-
-	if len(pp) != len(prc) {
-		return fmt.Errorf("invalid resource path structure")
-	}
-
-	for i := 0; i < len(pp); i++ {
-		if pp[i] != "*" {
-			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid path wildcard level (%d) for template resource", i)
-			}
-
-			if _, err := cast.ToUint64E(pp[i]); err != nil {
-				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
-			}
-		}
-	}
 	return nil
 }
 
@@ -1322,29 +1161,6 @@ func rbacUserResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	const sep = "/"
-	var (
-		pp  = strings.Split(strings.Trim(r[len(types.UserResourceType):], sep), sep)
-		prc = []string{
-			"ID",
-		}
-	)
-
-	if len(pp) != len(prc) {
-		return fmt.Errorf("invalid resource path structure")
-	}
-
-	for i := 0; i < len(pp); i++ {
-		if pp[i] != "*" {
-			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid path wildcard level (%d) for user resource", i)
-			}
-
-			if _, err := cast.ToUint64E(pp[i]); err != nil {
-				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
-			}
-		}
-	}
 	return nil
 }
 

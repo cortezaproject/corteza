@@ -1,7 +1,7 @@
 package schema
 
 #platform: {
-	ident: #baseHandle
+	ident: #baseHandle | *"corteza"
 
 	components: [...{platform: ident} & #component]
 

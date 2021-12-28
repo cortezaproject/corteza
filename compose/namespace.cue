@@ -20,10 +20,17 @@ namespace: schema.#resource & {
 		}
 	}
 
-	//
-	//locale:
-	//  keys:
-	//    - name
-	//    - { path: subtitle,    field: "Meta.Subtitle" }
-	//    - { path: description, field: "Meta.Description" }
+	locale: {
+		resource: references: [ "ID"]
+
+		keys: {
+			name: {}
+			metaSubtitle: {
+				path: ["meta", "subtitle"]
+			}
+			metaDescription: {
+				path: ["meta", "description"]
+			}
+		}
+	}
 }

@@ -56,7 +56,7 @@ var (
 	_ sort.Interface = &ModuleFieldSet{}
 )
 
-func (f *ModuleField) decodeTranslationsValidatorError(tt locale.ResourceTranslationIndex) {
+func (f *ModuleField) decodeTranslationsExpressionValidatorValidatorIDError(tt locale.ResourceTranslationIndex) {
 	var aux *locale.ResourceTranslation
 
 	for i, e := range f.Expressions.Validators {
@@ -65,40 +65,40 @@ func (f *ModuleField) decodeTranslationsValidatorError(tt locale.ResourceTransla
 			"{{validatorID}}", strconv.FormatUint(validatorID, 10),
 		)
 
-		if aux = tt.FindByKey(rpl.Replace(LocaleKeyModuleFieldValidatorError.Path)); aux != nil {
+		if aux = tt.FindByKey(rpl.Replace(LocaleKeyModuleFieldExpressionValidatorValidatorIDError.Path)); aux != nil {
 			f.Expressions.Validators[i].Error = aux.Msg
 		}
 	}
 }
 
-func (f *ModuleField) decodeTranslationsDescriptionView(tt locale.ResourceTranslationIndex) {
+func (f *ModuleField) decodeTranslationsMetaDescriptionView(tt locale.ResourceTranslationIndex) {
 	var aux *locale.ResourceTranslation
 
-	if aux = tt.FindByKey(LocaleKeyModuleFieldDescriptionView.Path); aux != nil {
+	if aux = tt.FindByKey(LocaleKeyModuleFieldMetaDescriptionView.Path); aux != nil {
 		f.setOptionKey(aux.Msg, "description", "edit")
 	}
 }
 
-func (f *ModuleField) decodeTranslationsDescriptionEdit(tt locale.ResourceTranslationIndex) {
+func (f *ModuleField) decodeTranslationsMetaDescriptionEdit(tt locale.ResourceTranslationIndex) {
 	var aux *locale.ResourceTranslation
 
-	if aux = tt.FindByKey(LocaleKeyModuleFieldDescriptionEdit.Path); aux != nil {
+	if aux = tt.FindByKey(LocaleKeyModuleFieldMetaDescriptionEdit.Path); aux != nil {
 		f.setOptionKey(aux.Msg, "description", "view")
 	}
 }
 
-func (f *ModuleField) decodeTranslationsHintView(tt locale.ResourceTranslationIndex) {
+func (f *ModuleField) decodeTranslationsMetaHintView(tt locale.ResourceTranslationIndex) {
 	var aux *locale.ResourceTranslation
 
-	if aux = tt.FindByKey(LocaleKeyModuleFieldHintView.Path); aux != nil {
+	if aux = tt.FindByKey(LocaleKeyModuleFieldMetaHintView.Path); aux != nil {
 		f.setOptionKey(aux.Msg, "hint", "edit")
 	}
 }
 
-func (f *ModuleField) decodeTranslationsHintEdit(tt locale.ResourceTranslationIndex) {
+func (f *ModuleField) decodeTranslationsMetaHintEdit(tt locale.ResourceTranslationIndex) {
 	var aux *locale.ResourceTranslation
 
-	if aux = tt.FindByKey(LocaleKeyModuleFieldHintEdit.Path); aux != nil {
+	if aux = tt.FindByKey(LocaleKeyModuleFieldMetaHintEdit.Path); aux != nil {
 		f.setOptionKey(aux.Msg, "hint", "view")
 	}
 }
@@ -106,7 +106,7 @@ func (f *ModuleField) decodeTranslationsHintEdit(tt locale.ResourceTranslationIn
 // Decodes translations and modifies options
 //
 // Why "options-option-texts"? Because we're translating option txts under options key-value
-func (f *ModuleField) decodeTranslationsOptionsOptionTexts(tt locale.ResourceTranslationIndex) {
+func (f *ModuleField) decodeTranslationsMetaOptionsValueText(tt locale.ResourceTranslationIndex) {
 	var (
 		tr *locale.ResourceTranslation
 	)
@@ -145,7 +145,7 @@ func (f *ModuleField) decodeTranslationsOptionsOptionTexts(tt locale.ResourceTra
 		// find the translation for that value
 		// and update the option (effectively overwriting
 		// the original text value (in case of map option)
-		trKey := strings.NewReplacer("{{value}}", outOpt["value"]).Replace(LocaleKeyModuleFieldOptionsOptionTexts.Path)
+		trKey := strings.NewReplacer("{{value}}", outOpt["value"]).Replace(LocaleKeyModuleFieldMetaOptionsValueText.Path)
 		if tr = tt.FindByKey(trKey); tr != nil {
 			outOpt["text"] = tr.Msg
 		}
@@ -155,7 +155,7 @@ func (f *ModuleField) decodeTranslationsOptionsOptionTexts(tt locale.ResourceTra
 	}
 }
 
-func (m *ModuleField) encodeTranslationsValidatorError() (out locale.ResourceTranslationSet) {
+func (m *ModuleField) encodeTranslationsExpressionValidatorValidatorIDError() (out locale.ResourceTranslationSet) {
 	out = make(locale.ResourceTranslationSet, 0, 3)
 
 	// Module field expressions
@@ -167,7 +167,7 @@ func (m *ModuleField) encodeTranslationsValidatorError() (out locale.ResourceTra
 
 		out = append(out, &locale.ResourceTranslation{
 			Resource: m.ResourceTranslation(),
-			Key:      rpl.Replace(LocaleKeyModuleFieldValidatorError.Path),
+			Key:      rpl.Replace(LocaleKeyModuleFieldExpressionValidatorValidatorIDError.Path),
 			Msg:      e.Error,
 		})
 	}
@@ -175,56 +175,56 @@ func (m *ModuleField) encodeTranslationsValidatorError() (out locale.ResourceTra
 	return
 }
 
-func (f *ModuleField) encodeTranslationsDescriptionView() (out locale.ResourceTranslationSet) {
+func (f *ModuleField) encodeTranslationsMetaDescriptionView() (out locale.ResourceTranslationSet) {
 	out = locale.ResourceTranslationSet{}
 	v := f.getOptionKey("description", "edit")
 	aux := cast.ToString(v)
 	if aux != "" {
 		out = append(out, &locale.ResourceTranslation{
 			Resource: f.ResourceTranslation(),
-			Key:      LocaleKeyModuleFieldDescriptionView.Path,
+			Key:      LocaleKeyModuleFieldMetaDescriptionView.Path,
 			Msg:      aux,
 		})
 	}
 	return out
 }
 
-func (f *ModuleField) encodeTranslationsDescriptionEdit() (out locale.ResourceTranslationSet) {
+func (f *ModuleField) encodeTranslationsMetaDescriptionEdit() (out locale.ResourceTranslationSet) {
 	out = locale.ResourceTranslationSet{}
 	v := f.getOptionKey("description", "view")
 	aux := cast.ToString(v)
 	if aux != "" {
 		out = append(out, &locale.ResourceTranslation{
 			Resource: f.ResourceTranslation(),
-			Key:      LocaleKeyModuleFieldDescriptionEdit.Path,
+			Key:      LocaleKeyModuleFieldMetaDescriptionEdit.Path,
 			Msg:      aux,
 		})
 	}
 	return out
 }
 
-func (f *ModuleField) encodeTranslationsHintView() (out locale.ResourceTranslationSet) {
+func (f *ModuleField) encodeTranslationsMetaHintView() (out locale.ResourceTranslationSet) {
 	out = locale.ResourceTranslationSet{}
 	v := f.getOptionKey("hint", "edit")
 	aux := cast.ToString(v)
 	if aux != "" {
 		out = append(out, &locale.ResourceTranslation{
 			Resource: f.ResourceTranslation(),
-			Key:      LocaleKeyModuleFieldHintView.Path,
+			Key:      LocaleKeyModuleFieldMetaHintView.Path,
 			Msg:      aux,
 		})
 	}
 	return out
 }
 
-func (f *ModuleField) encodeTranslationsHintEdit() (out locale.ResourceTranslationSet) {
+func (f *ModuleField) encodeTranslationsMetaHintEdit() (out locale.ResourceTranslationSet) {
 	out = locale.ResourceTranslationSet{}
 	v := f.getOptionKey("hint", "view")
 	aux := cast.ToString(v)
 	if aux != "" {
 		out = append(out, &locale.ResourceTranslation{
 			Resource: f.ResourceTranslation(),
-			Key:      LocaleKeyModuleFieldHintEdit.Path,
+			Key:      LocaleKeyModuleFieldMetaHintEdit.Path,
 			Msg:      aux,
 		})
 	}
@@ -232,7 +232,7 @@ func (f *ModuleField) encodeTranslationsHintEdit() (out locale.ResourceTranslati
 }
 
 // extracts option texts and converts (encodes) them to translations
-func (f *ModuleField) encodeTranslationsOptionsOptionTexts() (out locale.ResourceTranslationSet) {
+func (f *ModuleField) encodeTranslationsMetaOptionsValueText() (out locale.ResourceTranslationSet) {
 	out = make(locale.ResourceTranslationSet, 0, 3)
 
 	optsUnknown, has := f.Options["options"]
@@ -255,7 +255,7 @@ func (f *ModuleField) encodeTranslationsOptionsOptionTexts() (out locale.Resourc
 			out = append(out, &locale.ResourceTranslation{
 				Resource: f.ResourceTranslation(),
 				Key: strings.NewReplacer("{{value}}", value).
-					Replace(LocaleKeyModuleFieldOptionsOptionTexts.Path),
+					Replace(LocaleKeyModuleFieldMetaOptionsValueText.Path),
 				Msg: text,
 			})
 		}

@@ -5,15 +5,15 @@ import (
 )
 
 component: schema.#component & {
-	ident: "compose"
+	handle: "compose"
 
 	resources: {
-		"namespace":    namespace
+		"chart":        chart
 		"module":       module
 		"module-field": moduleField
-		"record":       record
+		"namespace":    namespace
 		"page":         page
-		"chart":        chart
+		"record":       record
 	}
 
 	rbac: operations: {

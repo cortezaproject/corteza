@@ -5,9 +5,12 @@ import (
 )
 
 record: schema.#resource & {
-	rbac: {
-		resource: references: [ "namespaceID", "moduleID", "ID"]
+	parents: [
+		{handle: "namespace"},
+		{handle: "module"},
+	]
 
+	rbac: {
 		operations: {
 			"read": {}
 			"update": {}
