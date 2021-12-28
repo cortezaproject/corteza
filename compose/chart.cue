@@ -5,19 +5,15 @@ import (
 )
 
 chart: schema.#resource & {
-	rbac: {
-		resource: references: [ "namespaceID", "ID"]
+	parents: [
+		{handle: "namespace"},
+	]
 
+	rbac: {
 		operations: {
 			"read": {}
-		  "update": {}
-		  "delete": {}
+			"update": {}
+			"delete": {}
 		}
 	}
-
-	// locale:
-	//   resource:
-	//     references: [ namespace, ID ]
-	//   keys:
-	//     - name
 }

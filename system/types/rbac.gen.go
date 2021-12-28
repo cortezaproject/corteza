@@ -41,28 +41,21 @@ const (
 //
 // This function is auto-generated
 func (r ApigwRoute) RbacResource() string {
-	return ApigwRouteRbacResource(r.ID)
+	return ApigwRouteRbacResource()
 }
 
 // ApigwRouteRbacResource returns string representation of RBAC resource for ApigwRoute
 //
-// RBAC resource is in the corteza::system:apigw-route/... format
+// RBAC resource is in the corteza::system:apigw-route/ format
 //
 // This function is auto-generated
-func ApigwRouteRbacResource(ID uint64) string {
-	cpts := []interface{}{ApigwRouteResourceType}
-	if ID != 0 {
-		cpts = append(cpts, strconv.FormatUint(ID, 10))
-	} else {
-		cpts = append(cpts, "*")
-	}
-
-	return fmt.Sprintf(ApigwRouteRbacResourceTpl(), cpts...)
+func ApigwRouteRbacResource() string {
+	return ApigwRouteResourceType + "/"
 
 }
 
 func ApigwRouteRbacResourceTpl() string {
-	return "%s/%s"
+	return "%s"
 }
 
 // RbacResource returns string representation of RBAC resource for Application by calling ApplicationRbacResource fn
@@ -71,28 +64,21 @@ func ApigwRouteRbacResourceTpl() string {
 //
 // This function is auto-generated
 func (r Application) RbacResource() string {
-	return ApplicationRbacResource(r.ID)
+	return ApplicationRbacResource()
 }
 
 // ApplicationRbacResource returns string representation of RBAC resource for Application
 //
-// RBAC resource is in the corteza::system:application/... format
+// RBAC resource is in the corteza::system:application/ format
 //
 // This function is auto-generated
-func ApplicationRbacResource(ID uint64) string {
-	cpts := []interface{}{ApplicationResourceType}
-	if ID != 0 {
-		cpts = append(cpts, strconv.FormatUint(ID, 10))
-	} else {
-		cpts = append(cpts, "*")
-	}
-
-	return fmt.Sprintf(ApplicationRbacResourceTpl(), cpts...)
+func ApplicationRbacResource() string {
+	return ApplicationResourceType + "/"
 
 }
 
 func ApplicationRbacResourceTpl() string {
-	return "%s/%s"
+	return "%s"
 }
 
 // RbacResource returns string representation of RBAC resource for AuthClient by calling AuthClientRbacResource fn
@@ -101,28 +87,21 @@ func ApplicationRbacResourceTpl() string {
 //
 // This function is auto-generated
 func (r AuthClient) RbacResource() string {
-	return AuthClientRbacResource(r.ID)
+	return AuthClientRbacResource()
 }
 
 // AuthClientRbacResource returns string representation of RBAC resource for AuthClient
 //
-// RBAC resource is in the corteza::system:auth-client/... format
+// RBAC resource is in the corteza::system:auth-client/ format
 //
 // This function is auto-generated
-func AuthClientRbacResource(ID uint64) string {
-	cpts := []interface{}{AuthClientResourceType}
-	if ID != 0 {
-		cpts = append(cpts, strconv.FormatUint(ID, 10))
-	} else {
-		cpts = append(cpts, "*")
-	}
-
-	return fmt.Sprintf(AuthClientRbacResourceTpl(), cpts...)
+func AuthClientRbacResource() string {
+	return AuthClientResourceType + "/"
 
 }
 
 func AuthClientRbacResourceTpl() string {
-	return "%s/%s"
+	return "%s"
 }
 
 // RbacResource returns string representation of RBAC resource for Queue by calling QueueRbacResource fn
@@ -131,28 +110,21 @@ func AuthClientRbacResourceTpl() string {
 //
 // This function is auto-generated
 func (r Queue) RbacResource() string {
-	return QueueRbacResource(r.ID)
+	return QueueRbacResource()
 }
 
 // QueueRbacResource returns string representation of RBAC resource for Queue
 //
-// RBAC resource is in the corteza::system:queue/... format
+// RBAC resource is in the corteza::system:queue/ format
 //
 // This function is auto-generated
-func QueueRbacResource(ID uint64) string {
-	cpts := []interface{}{QueueResourceType}
-	if ID != 0 {
-		cpts = append(cpts, strconv.FormatUint(ID, 10))
-	} else {
-		cpts = append(cpts, "*")
-	}
-
-	return fmt.Sprintf(QueueRbacResourceTpl(), cpts...)
+func QueueRbacResource() string {
+	return QueueResourceType + "/"
 
 }
 
 func QueueRbacResourceTpl() string {
-	return "%s/%s"
+	return "%s"
 }
 
 // RbacResource returns string representation of RBAC resource for Report by calling ReportRbacResource fn
@@ -161,28 +133,21 @@ func QueueRbacResourceTpl() string {
 //
 // This function is auto-generated
 func (r Report) RbacResource() string {
-	return ReportRbacResource(r.ID)
+	return ReportRbacResource()
 }
 
 // ReportRbacResource returns string representation of RBAC resource for Report
 //
-// RBAC resource is in the corteza::system:report/... format
+// RBAC resource is in the corteza::system:report/ format
 //
 // This function is auto-generated
-func ReportRbacResource(ID uint64) string {
-	cpts := []interface{}{ReportResourceType}
-	if ID != 0 {
-		cpts = append(cpts, strconv.FormatUint(ID, 10))
-	} else {
-		cpts = append(cpts, "*")
-	}
-
-	return fmt.Sprintf(ReportRbacResourceTpl(), cpts...)
+func ReportRbacResource() string {
+	return ReportResourceType + "/"
 
 }
 
 func ReportRbacResourceTpl() string {
-	return "%s/%s"
+	return "%s"
 }
 
 // RbacResource returns string representation of RBAC resource for Role by calling RoleRbacResource fn
@@ -191,28 +156,21 @@ func ReportRbacResourceTpl() string {
 //
 // This function is auto-generated
 func (r Role) RbacResource() string {
-	return RoleRbacResource(r.ID)
+	return RoleRbacResource()
 }
 
 // RoleRbacResource returns string representation of RBAC resource for Role
 //
-// RBAC resource is in the corteza::system:role/... format
+// RBAC resource is in the corteza::system:role/ format
 //
 // This function is auto-generated
-func RoleRbacResource(ID uint64) string {
-	cpts := []interface{}{RoleResourceType}
-	if ID != 0 {
-		cpts = append(cpts, strconv.FormatUint(ID, 10))
-	} else {
-		cpts = append(cpts, "*")
-	}
-
-	return fmt.Sprintf(RoleRbacResourceTpl(), cpts...)
+func RoleRbacResource() string {
+	return RoleResourceType + "/"
 
 }
 
 func RoleRbacResourceTpl() string {
-	return "%s/%s"
+	return "%s"
 }
 
 // RbacResource returns string representation of RBAC resource for Template by calling TemplateRbacResource fn
@@ -221,28 +179,21 @@ func RoleRbacResourceTpl() string {
 //
 // This function is auto-generated
 func (r Template) RbacResource() string {
-	return TemplateRbacResource(r.ID)
+	return TemplateRbacResource()
 }
 
 // TemplateRbacResource returns string representation of RBAC resource for Template
 //
-// RBAC resource is in the corteza::system:template/... format
+// RBAC resource is in the corteza::system:template/ format
 //
 // This function is auto-generated
-func TemplateRbacResource(ID uint64) string {
-	cpts := []interface{}{TemplateResourceType}
-	if ID != 0 {
-		cpts = append(cpts, strconv.FormatUint(ID, 10))
-	} else {
-		cpts = append(cpts, "*")
-	}
-
-	return fmt.Sprintf(TemplateRbacResourceTpl(), cpts...)
+func TemplateRbacResource() string {
+	return TemplateResourceType + "/"
 
 }
 
 func TemplateRbacResourceTpl() string {
-	return "%s/%s"
+	return "%s"
 }
 
 // RbacResource returns string representation of RBAC resource for User by calling UserRbacResource fn
@@ -251,28 +202,21 @@ func TemplateRbacResourceTpl() string {
 //
 // This function is auto-generated
 func (r User) RbacResource() string {
-	return UserRbacResource(r.ID)
+	return UserRbacResource()
 }
 
 // UserRbacResource returns string representation of RBAC resource for User
 //
-// RBAC resource is in the corteza::system:user/... format
+// RBAC resource is in the corteza::system:user/ format
 //
 // This function is auto-generated
-func UserRbacResource(ID uint64) string {
-	cpts := []interface{}{UserResourceType}
-	if ID != 0 {
-		cpts = append(cpts, strconv.FormatUint(ID, 10))
-	} else {
-		cpts = append(cpts, "*")
-	}
-
-	return fmt.Sprintf(UserRbacResourceTpl(), cpts...)
+func UserRbacResource() string {
+	return UserResourceType + "/"
 
 }
 
 func UserRbacResourceTpl() string {
-	return "%s/%s"
+	return "%s"
 }
 
 // RbacResource returns string representation of RBAC resource for Component by calling ComponentRbacResource fn

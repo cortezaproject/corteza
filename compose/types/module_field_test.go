@@ -68,7 +68,7 @@ func TestModuleField_decodeTranslationsOptionsOptionTexts(t *testing.T) {
 				f   = &ModuleField{Options: tt.opts}
 			)
 
-			f.decodeTranslationsOptionsOptionTexts(rti)
+			f.decodeTranslationsMetaOptionsValueText(rti)
 
 			if tt.out != nil {
 				req.Equal(tt.out, f.Options["options"])

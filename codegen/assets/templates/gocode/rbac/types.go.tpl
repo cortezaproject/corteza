@@ -38,7 +38,7 @@ const (
 //
 // This function is auto-generated
 func (r {{ .goType }}) RbacResource() string {
-	return {{ .resFunc }}({{ if not .component }}{{ range .references }}r.{{ . }},{{ end }}{{ end }})
+	return {{ .resFunc }}({{ if not .component }}{{ range .references }}r.{{ .refField }},{{ end }}{{ end }})
 }
 
 // {{ .resFunc }} returns string representation of RBAC resource for {{ .goType }}
@@ -46,12 +46,12 @@ func (r {{ .goType }}) RbacResource() string {
 // RBAC resource is in the {{ .type }}/{{- if .references }}...{{ end }} format
 //
 // This function is auto-generated
-func {{ .resFunc }}({{ if not .component }}{{ range .references }}{{ . }} uint64,{{ end }}{{ end }}) string {
+func {{ .resFunc }}({{ if not .component }}{{ range .references }}{{ .param }} uint64,{{ end }}{{ end }}) string {
 	{{- if .references }}
 	cpts := []interface{{"{}"}}{{"{"}}{{ .goType }}ResourceType{{"}"}}
 	{{- range .references }}
-		if {{  . }} != 0 {
-			cpts = append(cpts, strconv.FormatUint({{ . }}, 10))
+		if {{ .param }} != 0 {
+			cpts = append(cpts, strconv.FormatUint({{ .param }}, 10))
 		} else {
 			cpts = append(cpts, "*")
 		}

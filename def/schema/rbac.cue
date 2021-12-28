@@ -10,32 +10,27 @@ import (
 	}
 
 	operations: {
-		[key=_]: #rbacOperation & {handle: key}
+		[key=_]: #rbacOperation & {
+			handle: key
+	  }
 	}
 }
 
 #rbacResource: {
-	resource: {
-		type:       string
-		expIdent:   #expIdent
-		references: [ ...string] | *["ID"]
-	}
+	resourceExpIdent: #expIdent
 
 	operations: {
 		[key=_]: #rbacOperation & {
 			handle:           key
-			resourceExpIdent: resource.expIdent
-			description:      string | *(strings.ToTitle(key) + " " + resource.type)
+			_resourceExpIdent: resourceExpIdent
 		}
 	}
 }
 
 #rbacOperation: {
-	handle:            #handle
-	description:       string
-	resourceExpIdent?: string
-
-	_isComponent: resourceExpIdent == _|_
+	handle:             #handle
+	description:        string | *handle
+	_resourceExpIdent?: string
 
 	// Some string manipulation that will result in
 	// more pronouncable access-control check function name
@@ -51,11 +46,11 @@ import (
 	_opFlip:    [_opSplit[len(_opSplit)-1]] + _opSplit[0:len(_opSplit)-1]
 	_opFinal:   strings.Replace(strings.ToTitle(strings.Join(_opFlip, " ")), " ", "", -1)
 
-	if _isComponent {
+	if _resourceExpIdent == _|_ {
 		checkFuncName: #expIdent | *("Can" + _opFinal)
 	}
 
-	if !_isComponent {
-		checkFuncName: #expIdent | *("Can" + _opFinal + resourceExpIdent)
+	if _resourceExpIdent != _|_ {
+		checkFuncName: #expIdent | *("Can" + _opFinal + _resourceExpIdent)
 	}
 }
