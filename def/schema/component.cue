@@ -4,23 +4,24 @@ import (
 	"strings"
 )
 
-#component: {
-	ident:    #baseHandle
-	expIdent: #expIdent | *strings.ToTitle(ident)
+#component: #_base & {
+	// copy field values from #_base
+	handle: handle, ident: ident, expIdent: expIdent
+
 	label:    strings.ToTitle(ident)
 	platform: #baseHandle
 
 	resources: {
-		[key=_]: {handle: key, "component": ident, "platform": platform} & #resource
+		[key=_]: {"handle": key, "component": handle, "platform": platform} & #resource
 	}
+
+	fqrn: platform + "::" + handle
 
 	// All known RBAC operations for this component
 	rbac: #rbacComponent & {
-		resource: type: platform + "::" + ident
-
 		operations: {
 			grant: {
-				description: "Manage \(ident) permissions"
+				description: "Manage \(handle) permissions"
 			}
 		}
 	}

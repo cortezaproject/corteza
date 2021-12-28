@@ -10,7 +10,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 {{- range .imports }}
-    "{{ . }}"
+    {{ . }}
 {{- end }}
 )
 
@@ -57,7 +57,7 @@ func (svc accessControl) List() (out []map[string]string) {
 	{{- range .operations }}
 		{
 			"type": {{ .const }},
-			"any": {{ .ctor }},
+			"any": {{ .resFunc }}({{ range .references }}0,{{ end }}),
 			"op": {{ printf "%q" .op }},
 		},
 	{{- end }}

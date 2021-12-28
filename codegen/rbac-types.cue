@@ -3,7 +3,6 @@ package codegen
 import (
 	"github.com/cortezaproject/corteza-server/app"
 	"github.com/cortezaproject/corteza-server/codegen/schema"
-	"strings"
 )
 
 rbacTypes:
@@ -19,23 +18,25 @@ rbacTypes:
 				// Operation/resource validators, grouped by resource
 				types: [
 					for res in cmp.resources {
-						"const":   "\(res.expIdent)ResourceType"
-						"type":    res.rbac.resource.type
-						"resFunc": "\(res.expIdent)RbacResource"
-						"tplFunc": "\(res.expIdent)RbacResourceTpl"
-						"attFunc": "\(res.expIdent)RbacAttributes"
-						"goType":  res.expIdent
+						const:   "\(res.expIdent)ResourceType"
+						type:    res.fqrn
+						resFunc: "\(res.expIdent)RbacResource"
+						tplFunc: "\(res.expIdent)RbacResourceTpl"
+						attFunc: "\(res.expIdent)RbacAttributes"
+						goType:  res.expIdent
 
-						"references": [ for field in res.rbac.resource.references { strings.ToTitle(field) } ]
+						if len(res.parents) > 0 {
+							references: [ for p in res.parents {p}, {param: "id", refField: "ID"}]
+						}
 					},
 					{
-						"const":     "ComponentResourceType"
-						"type":      cmp.rbac.resource.type
-						"resFunc":   "ComponentRbacResource"
-						"tplFunc":   "ComponentRbacResourceTpl"
-						"attFunc":   "ComponentRbacAttributes"
-						"goType":    "Component"
-						"component": true
+						const:     "ComponentResourceType"
+						type:      cmp.fqrn
+						resFunc:   "ComponentRbacResource"
+						tplFunc:   "ComponentRbacResourceTpl"
+						attFunc:   "ComponentRbacAttributes"
+						goType:    "Component"
+						component: true
 					},
 				]
 			}

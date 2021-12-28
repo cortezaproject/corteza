@@ -1,32 +1,38 @@
 package schema
 
-import (
-	"strings"
-)
+#resource: #_base & {
+	// copy field values from #_base
+	handle: handle, ident: ident, expIdent: expIdent
 
-#resource: {
-	handle:    #baseHandle | *"unknown-resource"
+	component: #baseHandle | *"component"
+	platform:  #baseHandle | *"corteza"
 
-	_words:   strings.Replace(strings.Replace(strings.Replace(handle, "-", " ", -1), "_", " ", -1), ".", " ", -1)
-
-	ident:     #ident    | *strings.ToCamel(strings.Replace(strings.ToTitle(_words), " ", "", -1))
-	expIdent:  #expIdent | *strings.Replace(strings.ToTitle(_words), " ", "", -1)
-	platform:  #baseHandle | *"unknown-platform"
-	component: string | *"unknown-component"
 
 	// Fully qualified resource name
 	fqrn: string | *(platform + "::" + component + ":" + handle)
 
-	goType: string | *("types." + expIdent)
-
 	// fields: #Fields
 	// operations: #Operations
 
+	// All parent resources
+	parents: [... #_base & {
+   	// copy field values from #_base
+  	handle: handle, ident: ident, expIdent: expIdent
+
+		refField: #expIdent | *(expIdent + "ID")
+		param:    #ident    | *(ident + "ID")
+	}]
+
 	// All known RBAC operations for this resource
 	rbac: #rbacResource & {
+		resourceExpIdent: expIdent
+	}
+
+	locale?: #locale & {
+	  resourceExpIdent: expIdent
 		resource: {
-			type:       fqrn
-			"expIdent": expIdent
+			// @todo can we merge this with RBAC type (FQRN?)
+			type: component + ":" + handle
 		}
 	}
 
@@ -40,25 +46,25 @@ import (
 	// }
 }
 
-#fields: {
-	// Each field can be
-	[key=_]: #fields | *({name: key} & #field)
-}
-
-#field: {
-	name:   #expIdent
-	unique: bool | *false
-
-	// Golang type (built-in or other)
-	type: string | *"string"
-
-	// System fields,
-	system: bool | *false
-
-	if name =~ "At$" {
-		type: string | *"*time.Time"
-	}
-}
+//#fields: {
+//	// Each field can be
+//	[key=_]: #fields | *({name: key} & #field)
+//}
+//
+//#field: {
+//	name:   #expIdent
+//	unique: bool | *false
+//
+//	// Golang type (built-in or other)
+//	type: string | *"string"
+//
+//	// System fields,
+//	system: bool | *false
+//
+//	if name =~ "At$" {
+//		type: string | *"*time.Time"
+//	}
+//}
 
 //#Operations: {
 // [Operation=_]: {operation: Operation} & #Operation
@@ -70,24 +76,24 @@ import (
 // can: string | false | *"\(name)"
 //}
 
-idField: {
-	// Expecting ID field to allways have name ID
-	name:   "ID"
-	unique: true
-
-	// Service fields,
-	// @todo We might want to have a better name for this
-	// service: true
-
-	// @todo someday we'll replace this with the "ID" type
-	type: "uint64"
-}
-
-handleField: {
-	// Expecting ID field to allways have name ID
-	name:   "handle"
-	unique: true
-
-	// @todo someday we'll replace this with the "ID" type
-	type: "string" & #handle
-}
+//idField: {
+//	// Expecting ID field to allways have name ID
+//	name:   "ID"
+//	unique: true
+//
+//	// Service fields,
+//	// @todo We might want to have a better name for this
+//	// service: true
+//
+//	// @todo someday we'll replace this with the "ID" type
+//	type: "uint64"
+//}
+//
+//handleField: {
+//	// Expecting ID field to allways have name ID
+//	name:   "handle"
+//	unique: true
+//
+//	// @todo someday we'll replace this with the "ID" type
+//	type: "string" & #handle
+//}

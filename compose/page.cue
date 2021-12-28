@@ -5,9 +5,11 @@ import (
 )
 
 page: schema.#resource & {
-	rbac: {
-		resource: references: [ "namespaceID", "ID"]
+	parents: [
+		{handle: "namespace"},
+	]
 
+	rbac: {
 		operations: {
 			"read": {}
 			"update": {}
@@ -15,15 +17,24 @@ page: schema.#resource & {
 		}
 	}
 
-	//locale:
-	//  resource:
-	//    references: [ namespace, ID ]
-	//
-	//  extended: true
-	//  keys:
-	//    - title
-	//    - description
-	//    - { name: blockTitle,                 path: "pageBlock.{{blockID}}.title",                         custom: true }
-	//    - { name: blockDescription,           path: "pageBlock.{{blockID}}.description",                   custom: true }
-	//    - { name: blockAutomationButtonlabel, path: "pageBlock.{{blockID}}.button.{{buttonID}}.label", custom: true }
+	locale: {
+		extended: true
+
+		keys: {
+			title: {}
+			description: {}
+			blockTitle: {
+				path: ["pageBlock", {part: "blockID", var: true}, "title"]
+				customHandler: true
+			}
+			blockDescription: {
+				path: ["pageBlock", {part: "blockID", var: true}, "description"]
+				customHandler: true
+			}
+			blockAutomationButtonLabel: {
+				path: ["pageBlock", {part: "blockID", var: true}, "button", {part: "buttonID", var: true}, "label"]
+				customHandler: true
+			}
+		}
+	}
 }
