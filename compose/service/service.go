@@ -22,14 +22,19 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/objstore/plain"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/store"
-	systemService "github.com/cortezaproject/corteza-server/system/service"
+	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
 )
 
 type (
+	userFinder interface {
+		FindByID(context.Context, uint64) (*systemTypes.User, error)
+	}
+
 	Config struct {
-		ActionLog options.ActionLogOpt
-		Storage   options.ObjectStoreOpt
+		ActionLog  options.ActionLogOpt
+		Storage    options.ObjectStoreOpt
+		UserFinder userFinder
 	}
 
 	eventDispatcher interface {
@@ -148,7 +153,7 @@ func Initialize(_ context.Context, log *zap.Logger, s store.Storer, c Config) (e
 	DefaultRecord = Record()
 	DefaultPage = Page()
 	DefaultChart = Chart()
-	DefaultNotification = Notification()
+	DefaultNotification = Notification(c.UserFinder)
 	DefaultAttachment = Attachment(DefaultObjectStore)
 
 	RegisterIteratorProviders()
@@ -183,10 +188,6 @@ func Initialize(_ context.Context, log *zap.Logger, s store.Storer, c Config) (e
 		automationService.Registry(),
 		DefaultAttachment,
 	)
-
-	// Register reporters
-	// @todo additional datasource providers; generate?
-	systemService.DefaultReport.RegisterReporter("composeRecords", DefaultRecord)
 
 	return nil
 }

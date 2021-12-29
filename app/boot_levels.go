@@ -475,8 +475,9 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	// Note: this is a legacy approach, all services from all 3 apps
 	// will most likely be merged in the future
 	err = cmpService.Initialize(ctx, app.Log, app.Store, cmpService.Config{
-		ActionLog: app.Opt.ActionLog,
-		Storage:   app.Opt.ObjStore,
+		ActionLog:  app.Opt.ActionLog,
+		Storage:    app.Opt.ObjStore,
+		UserFinder: sysService.DefaultUser,
 	})
 
 	if err != nil {
@@ -506,6 +507,10 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 			return
 		}
 	}
+
+	// Register reporters
+	// @todo additional datasource providers; generate?
+	sysService.DefaultReport.RegisterReporter("composeRecords", cmpService.DefaultRecord)
 
 	// Initializing seeder
 	_ = seeder.Seeder(ctx, app.Store, seeder.Faker())
