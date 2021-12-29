@@ -34,6 +34,10 @@ func NewApplication(res *types.Application) *Application {
 	return r
 }
 
+func (r *Application) Resource() interface{} {
+	return r.Res
+}
+
 func (r *Application) SysID() uint64 {
 	return r.Res.ID
 }

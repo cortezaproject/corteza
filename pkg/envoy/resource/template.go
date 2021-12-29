@@ -28,6 +28,10 @@ func NewTemplate(t *types.Template) *Template {
 	return r
 }
 
+func (r *Template) Resource() interface{} {
+	return r.Res
+}
+
 func (r *Template) SysID() uint64 {
 	return r.Res.ID
 }

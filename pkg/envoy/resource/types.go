@@ -6,6 +6,7 @@ type (
 	Interface interface {
 		Identifiers() Identifiers
 		ResourceType() string
+		Resource() interface{}
 		Refs() RefSet
 		MarkPlaceholder()
 		Placeholder() bool

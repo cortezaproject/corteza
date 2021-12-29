@@ -28,6 +28,10 @@ func NewRole(rl *types.Role) *Role {
 	return r
 }
 
+func (r *Role) Resource() interface{} {
+	return r.Res
+}
+
 func (r *Role) SysID() uint64 {
 	return r.Res.ID
 }

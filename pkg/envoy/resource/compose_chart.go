@@ -40,6 +40,10 @@ func NewComposeChart(res *types.Chart, nsRef string, mmRef []string) *ComposeCha
 	return r
 }
 
+func (r *ComposeChart) Resource() interface{} {
+	return r.Res
+}
+
 func (r *ComposeChart) ReRef(old RefSet, new RefSet) {
 	r.base.ReRef(old, new)
 

@@ -37,6 +37,10 @@ func (t *testResource) Placeholder() bool {
 	return t.ph
 }
 
+func (r *testResource) Resource() interface{} {
+	return nil
+}
+
 func (t *testResource) ReID(ii resource.Identifiers) {
 	// no need for implementation
 	panic("not implemented")
