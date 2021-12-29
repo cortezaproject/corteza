@@ -15,7 +15,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	httpClient "github.com/cortezaproject/corteza-server/pkg/http"
 	"github.com/cortezaproject/corteza-server/pkg/mail"
-	systemService "github.com/cortezaproject/corteza-server/system/service"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -28,7 +27,7 @@ type (
 	//       Warning: API endpoints on compose should be kept so that we do not break backward compatibility)
 	notification struct {
 		actionlog actionlog.Recorder
-		users     systemService.UserService
+		users     userFinder
 	}
 
 	notificationUserFinder interface {
@@ -36,10 +35,10 @@ type (
 	}
 )
 
-func Notification() *notification {
+func Notification(uf userFinder) *notification {
 	return &notification{
 		actionlog: DefaultActionlog,
-		users:     systemService.DefaultUser,
+		users:     uf,
 	}
 }
 
