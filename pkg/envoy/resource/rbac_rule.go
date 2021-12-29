@@ -50,6 +50,10 @@ func NewRbacRule(res *rbac.Rule, refRole string, refRes *Ref, refResource string
 	return r
 }
 
+func (r *RbacRule) Resource() interface{} {
+	return r.Res
+}
+
 func (r *RbacRule) handleComposeRecord(res *rbac.Rule, refPath []*Ref) {
 
 	// records are grouped under module

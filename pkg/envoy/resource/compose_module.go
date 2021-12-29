@@ -76,6 +76,10 @@ func NewComposeModule(res *types.Module, nsRef string) *ComposeModule {
 	return r
 }
 
+func (r *ComposeModule) Resource() interface{} {
+	return r.Res
+}
+
 func (r *ComposeModule) ReRef(old RefSet, new RefSet) {
 	r.base.ReRef(old, new)
 
@@ -225,6 +229,10 @@ func NewComposeModuleField(res *types.ModuleField, nsRef, modRef string) *Compos
 	r.SetTimestamps(MakeTimestampsCUDA(&res.CreatedAt, res.UpdatedAt, res.DeletedAt, nil))
 
 	return r
+}
+
+func (r *ComposeModuleField) Resource() interface{} {
+	return r.Res
 }
 
 // ComposeModuleFieldExtractUserFieldRoles is a helper to extract roles

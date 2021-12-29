@@ -48,6 +48,10 @@ func NewResourceTranslation(res types.ResourceTranslationSet, refResource string
 	return r
 }
 
+func (r *ResourceTranslation) Resource() interface{} {
+	return r.Res
+}
+
 func (r *ResourceTranslation) ReRef(old RefSet, new RefSet) {
 	r.base.ReRef(old, new)
 
