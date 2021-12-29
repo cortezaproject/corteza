@@ -3,6 +3,7 @@ package expr
 import (
 	"fmt"
 	"reflect"
+	"sort"
 	"strings"
 
 	"github.com/PaesslerAG/gval"
@@ -17,6 +18,7 @@ func ArrayFunctions() []gval.Language {
 		gval.Function("has", has),
 		gval.Function("hasAll", hasAll),
 		gval.Function("find", find),
+		gval.Function("sort", sortSlice),
 	}
 }
 
@@ -219,4 +221,75 @@ func slice(arr interface{}, start, end int) interface{} {
 	}
 
 	return v.Slice(start, end).Interface()
+}
+
+// sortSlice sorts slice
+func sortSlice(arr interface{}, desc bool) (out interface{}, err error) {
+	if arr, err = toSlice(arr); err != nil {
+		return
+	}
+
+	// sort slice of native type values
+	var (
+		v  = reflect.ValueOf(arr)
+		vi = v.Interface()
+	)
+
+	// sortStable sorts the slice x using the provided less
+	// function, keeping equal elements in their original order
+	//
+	// sort the array if error is nil;
+	// we trap the error(s) in the outer scope from the less function,
+	// and returning the last error at a time since all error will the same in almost every scenario.
+	sort.SliceStable(vi, func(i, j int) bool {
+		if err != nil {
+			return false
+		}
+
+		var (
+			nVal = v.Index(i)
+			mVal = v.Index(j)
+		)
+		if desc {
+			nVal = v.Index(j)
+			mVal = v.Index(i)
+		}
+
+		switch getKind(vi) {
+		case reflect.String:
+			return nVal.String() < mVal.String()
+		case reflect.Int, reflect.Int32, reflect.Int64:
+			return nVal.Int() < mVal.Int()
+		case reflect.Float32, reflect.Float64:
+			return nVal.Float() < mVal.Float()
+		default:
+			// sort slice of typed values
+			if stv, is := arr.([]TypedValue); is {
+				if casted, ok := stv[i].(Comparable); ok {
+					var c int
+					c, err = casted.Compare(stv[j])
+					if err != nil {
+						return false
+					}
+					if desc {
+						return c > 0
+					} else {
+						return c < 0
+					}
+				} else {
+					err = fmt.Errorf("cannot compare %s and %s: unknown state", stv[i].Type(), stv[j].Type())
+					return false
+				}
+			}
+			err = fmt.Errorf("cannot compare %s and %s: unknown state", getKind(nVal), getKind(mVal))
+			return false
+		}
+	})
+
+	// returns error from less function
+	if err != nil {
+		return arr, err
+	}
+
+	return vi, nil
 }
