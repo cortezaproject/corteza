@@ -129,6 +129,10 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 	return r
 }
 
+func (r *ComposePage) Resource() interface{} {
+	return r.Res
+}
+
 func (r *ComposePage) ReRef(old RefSet, new RefSet) {
 	r.base.ReRef(old, new)
 

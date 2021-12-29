@@ -24,3 +24,7 @@ func NewResourceDataset(name string, p provider) *ResourceDataset {
 
 	return r
 }
+
+func (r *ResourceDataset) Resource() interface{} {
+	return nil
+}

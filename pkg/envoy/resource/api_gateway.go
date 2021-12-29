@@ -38,6 +38,10 @@ func NewAPIGateway(res *types.ApigwRoute) *APIGateway {
 	return r
 }
 
+func (r *APIGateway) Resource() interface{} {
+	return r.Res
+}
+
 func (r *APIGateway) RBACParts() (resource string, ref *Ref, path []*Ref) {
 	ref = r.Ref()
 	path = nil

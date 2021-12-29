@@ -27,6 +27,10 @@ func NewComposeNamespace(ns *types.Namespace) *ComposeNamespace {
 	return r
 }
 
+func (r *ComposeNamespace) Resource() interface{} {
+	return r.Res
+}
+
 func (r *ComposeNamespace) RBACParts() (resource string, ref *Ref, path []*Ref) {
 	ref = r.Ref()
 	path = nil

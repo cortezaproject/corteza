@@ -54,6 +54,10 @@ func NewAutomationWorkflow(res *types.Workflow) *AutomationWorkflow {
 	return r
 }
 
+func (r *AutomationWorkflow) Resource() interface{} {
+	return r.Res
+}
+
 func (r *AutomationWorkflow) AddAutomationTrigger(res *types.Trigger) *AutomationTrigger {
 	t := &AutomationTrigger{
 		base: &base{},
