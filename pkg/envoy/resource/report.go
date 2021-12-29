@@ -43,6 +43,10 @@ func NewReport(res *types.Report) *Report {
 	return r
 }
 
+func (r *Report) Resource() interface{} {
+	return r.Res
+}
+
 func (r *Report) AddReportSource(res *types.ReportDataSource) *ReportSource {
 	s := &ReportSource{
 		base: &base{},

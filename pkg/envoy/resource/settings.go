@@ -47,3 +47,11 @@ func NewSetting(s *types.SettingValue) *Setting {
 
 	return r
 }
+
+func (r *Setting) Resource() interface{} {
+	return r.Res
+}
+
+func (r *Settings) Resource() interface{} {
+	return r.Res
+}

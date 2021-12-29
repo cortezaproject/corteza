@@ -28,6 +28,10 @@ func NewUser(u *types.User) *User {
 	return r
 }
 
+func (r *User) Resource() interface{} {
+	return r.Res
+}
+
 func (r *User) SysID() uint64 {
 	return r.Res.ID
 }
