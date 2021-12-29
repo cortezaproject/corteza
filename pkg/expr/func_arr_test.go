@@ -12,12 +12,14 @@ var (
 	stringArr = []string{"first"}
 	boolArr   = []bool{true, true, false}
 	floatArr  = []float64{69.420}
+	strArr    = []string{"5", "3", "1", "2"}
 
 	vals = map[string]interface{}{
 		"intArr":    intArr,
 		"stringArr": stringArr,
 		"boolArr":   boolArr,
 		"floatArr":  floatArr,
+		"strArr":    strArr,
 		"intVal":    42,
 		"stringVal": "foobar",
 		"boolVal":   false,
@@ -71,6 +73,20 @@ func Example_pop_float() {
 
 	// output:
 	// 69.42
+}
+
+func Example_sort_string_asc() {
+	eval(`sort(strArr, false)`, vals)
+
+	// output:
+	// [1 2 3 5]
+}
+
+func Example_sort_string_desc() {
+	eval(`sort(strArr, true)`, vals)
+
+	// output:
+	// [5 3 2 1]
 }
 
 func Test_push(t *testing.T) {
@@ -472,6 +488,212 @@ func Test_slice(t *testing.T) {
 			)
 
 			req.Equal(tc.expect, ss)
+		})
+	}
+}
+
+func Test_sortSlice(t *testing.T) {
+	var (
+		s1 = Must(NewString("1"))
+		s2 = Must(NewString("2"))
+		s3 = Must(NewString("3"))
+		s5 = Must(NewString("5"))
+
+		f1 = Must(NewFloat(11.1))
+		f2 = Must(NewString(22.2))
+		f3 = Must(NewString(33.3))
+		f5 = Must(NewString(55.5))
+
+		a1 = Must(NewAny("1"))
+		a2 = Must(NewAny("2"))
+		a3 = Must(NewAny("3"))
+		a5 = Must(NewAny("5"))
+
+		tcc = []struct {
+			name      string
+			desc      bool
+			arr       interface{}
+			cloneArr  interface{}
+			expect    interface{}
+			expectErr error
+		}{
+			{
+				name:     "ascending sorting for string array",
+				arr:      []string{"3", "1", "2", "5"},
+				cloneArr: []string{"3", "1", "2", "5"},
+				expect:   []string{"1", "2", "3", "5"},
+			},
+			{
+				name:     "ascending sorting for string array with multiple identical element",
+				arr:      []string{"1", "3", "2", "2"},
+				cloneArr: []string{"1", "3", "2", "2"},
+				expect:   []string{"1", "2", "2", "3"},
+			},
+			{
+				name:     "descending sorting for string array",
+				desc:     true,
+				arr:      []string{"3", "1", "2", "5"},
+				cloneArr: []string{"3", "1", "2", "5"},
+				expect:   []string{"5", "3", "2", "1"},
+			},
+			{
+				name:     "ascending sorting for int array",
+				arr:      []int{1, 3, 5, 2},
+				cloneArr: []int{1, 3, 5, 2},
+				expect:   []int{1, 2, 3, 5},
+			},
+			{
+				name:     "descending sorting for int array",
+				desc:     true,
+				arr:      []int{1, 3, 5, 2},
+				cloneArr: []int{1, 3, 5, 2},
+				expect:   []int{5, 3, 2, 1},
+			},
+			{
+				name:     "ascending sorting for float32 array",
+				arr:      []float32{11.1, 33.3, 55.5, 22.2},
+				cloneArr: []float32{11.1, 33.3, 55.5, 22.2},
+				expect:   []float32{11.1, 22.2, 33.3, 55.5},
+			},
+			{
+				name:     "descending sorting for float32 array",
+				desc:     true,
+				arr:      []float32{11.1, 33.3, 55.5, 22.2},
+				cloneArr: []float32{11.1, 33.3, 55.5, 22.2},
+				expect:   []float32{55.5, 33.3, 22.2, 11.1},
+			},
+			{
+				name:     "ascending sorting for float64 array",
+				arr:      []float64{11.1, 33.3, 55.5, 22.2},
+				cloneArr: []float64{11.1, 33.3, 55.5, 22.2},
+				expect:   []float64{11.1, 22.2, 33.3, 55.5},
+			},
+			{
+				name:     "descending sorting for float64 array",
+				desc:     true,
+				arr:      []float64{11.1, 33.3, 55.5, 22.2},
+				cloneArr: []float64{11.1, 33.3, 55.5, 22.2},
+				expect:   []float64{55.5, 33.3, 22.2, 11.1},
+			},
+			{
+				name: "ascending sorting for typedValue array of string",
+				arr: []TypedValue{
+					s5,
+					s3,
+					s2,
+					s1,
+				},
+				cloneArr: []TypedValue{
+					s5,
+					s3,
+					s2,
+					s1,
+				},
+				expect: []TypedValue{
+					s1,
+					s2,
+					s3,
+					s5,
+				},
+			},
+			{
+				name: "descending sorting for typedValue array of string",
+				desc: true,
+				arr: []TypedValue{
+					s3,
+					s1,
+					s2,
+					s5,
+				},
+				cloneArr: []TypedValue{
+					s3,
+					s1,
+					s2,
+					s5,
+				},
+				expect: []TypedValue{
+					s5,
+					s3,
+					s2,
+					s1,
+				},
+			},
+			{
+				name: "ascending sorting for typedValue array of float",
+				arr: []TypedValue{
+					f5,
+					f3,
+					f2,
+					f1,
+				},
+				cloneArr: []TypedValue{
+					f5,
+					f3,
+					f2,
+					f1,
+				},
+				expect: []TypedValue{
+					f1,
+					f2,
+					f3,
+					f5,
+				},
+			},
+			{
+				name: "descending sorting for typedValue array of float",
+				desc: true,
+				arr: []TypedValue{
+					f3,
+					f1,
+					f2,
+					f5,
+				},
+				cloneArr: []TypedValue{
+					f3,
+					f1,
+					f2,
+					f5,
+				},
+				expect: []TypedValue{
+					f5,
+					f3,
+					f2,
+					f1,
+				},
+			},
+			{
+				name: "expect error due to sorting for typedValue array of Any(Not Comparable)",
+				arr: []TypedValue{
+					a5,
+					a3,
+					a2,
+					a1,
+				},
+				cloneArr: []TypedValue{
+					a5,
+					a3,
+					a2,
+					a1,
+				},
+				expectErr: fmt.Errorf("cannot compare Any and Any: unknown state"),
+			},
+		}
+	)
+
+	for _, tc := range tcc {
+		t.Run(tc.name, func(t *testing.T) {
+			var (
+				req = require.New(t)
+			)
+
+			ss, err := sortSlice(tc.arr, tc.desc)
+			if tc.expectErr != nil {
+				req.Equal(tc.expectErr, err)
+				return
+			}
+			req.NoError(err)
+			req.Equal(tc.expect, ss)
+			req.Equal(tc.cloneArr, tc.arr)
 		})
 	}
 }
