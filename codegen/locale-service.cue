@@ -32,7 +32,7 @@ localeService:
 							keys: [ for key in res.locale.keys if key.handlerFunc == _|_ {
 								struct: key.struct
 
-								extended:      extended
+								"extended":    extended
 								customHandler: key.customHandler
 								if key.serviceFunc != _|_ {serviceFunc: key.serviceFunc}
 							}]

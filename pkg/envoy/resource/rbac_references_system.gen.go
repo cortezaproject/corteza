@@ -6,17 +6,6 @@ package resource
 // the code is regenerated.
 //
 
-// Definitions file that controls how this file is generated:
-// - system.apigw-route.yaml
-// - system.application.yaml
-// - system.auth-client.yaml
-// - system.queue.yaml
-// - system.report.yaml
-// - system.role.yaml
-// - system.template.yaml
-// - system.user.yaml
-// - system.yaml
-
 import (
 	"github.com/cortezaproject/corteza-server/system/types"
 )
