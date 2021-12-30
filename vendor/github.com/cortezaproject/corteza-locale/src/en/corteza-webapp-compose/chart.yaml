@@ -113,6 +113,7 @@ notification:
   saved: Chart saved
   deleteFailed: Could not delete this chart
   deleted: Chart deleted
+not-defined: Not defined
 searchPlaceholder: Type here to search all charts in this namespace
 title: List of Charts
 undefined: undefined
