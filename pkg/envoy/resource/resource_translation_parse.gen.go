@@ -6,19 +6,14 @@ package resource
 // the code is regenerated.
 //
 
-// Definitions file that controls how this file is generated:
-// - compose.module-field.yaml
-// - compose.module.yaml
-// - compose.namespace.yaml
-// - compose.page.yaml
-
 import (
 	"fmt"
 	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
+	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 	"strings"
 )
 
-// Parse generates resource setting logic for each resource
+// ParseResourceTranslation generates resource setting logic for each resource
 //
 // Resources with "envoy: false" are skipped
 //
@@ -53,41 +48,32 @@ func ParseResourceTranslation(res string) (string, *Ref, []*Ref, error) {
 
 	// make the resource provide the slice of parent resources we should nest under
 	switch resourceType {
-	case composeTypes.ModuleFieldResourceTranslationType:
-		if len(path) != 3 {
-			return "", nil, nil, fmt.Errorf("expecting 3 reference components in path, got %d", len(path))
-		}
-		ref, pp, err := ComposeModuleFieldResourceTranslationReferences(
-			// namespace
-			path[0],
-
-			// module
-			path[1],
-
-			// moduleField
-			path[2],
-		)
-		return composeTypes.ModuleFieldResourceTranslationType, ref, pp, err
-
 	case composeTypes.ModuleResourceTranslationType:
 		if len(path) != 2 {
 			return "", nil, nil, fmt.Errorf("expecting 2 reference components in path, got %d", len(path))
 		}
 		ref, pp, err := ComposeModuleResourceTranslationReferences(
-			// namespace
 			path[0],
-
-			// module
 			path[1],
 		)
 		return composeTypes.ModuleResourceTranslationType, ref, pp, err
+
+	case composeTypes.ModuleFieldResourceTranslationType:
+		if len(path) != 3 {
+			return "", nil, nil, fmt.Errorf("expecting 3 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := ComposeModuleFieldResourceTranslationReferences(
+			path[0],
+			path[1],
+			path[2],
+		)
+		return composeTypes.ModuleFieldResourceTranslationType, ref, pp, err
 
 	case composeTypes.NamespaceResourceTranslationType:
 		if len(path) != 1 {
 			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
 		}
 		ref, pp, err := ComposeNamespaceResourceTranslationReferences(
-			// namespace
 			path[0],
 		)
 		return composeTypes.NamespaceResourceTranslationType, ref, pp, err
@@ -97,10 +83,7 @@ func ParseResourceTranslation(res string) (string, *Ref, []*Ref, error) {
 			return "", nil, nil, fmt.Errorf("expecting 2 reference components in path, got %d", len(path))
 		}
 		ref, pp, err := ComposePageResourceTranslationReferences(
-			// namespace
 			path[0],
-
-			// page
 			path[1],
 		)
 		return composeTypes.PageResourceTranslationType, ref, pp, err

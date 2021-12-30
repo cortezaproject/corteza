@@ -1,27 +1,20 @@
-package {{ .Package }}
+package {{ .package }}
 
-{{ template "header-gentext.tpl" }}
-{{ template "header-definitions.tpl" . }}
+{{ template "gocode/header-gentext.tpl" }}
 
 import (
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
-{{- range .Imports }}
-    {{ . }}
-{{- end }}
 )
 
-{{- range .Def }}
-{{ $Component := .Component }}
-{{ $Resource := .Resource }}
-{{ $GoType   := printf "types.%s" .Resource }}
-func (r *{{if not (eq $Component "system")}}{{export $Component}}{{ end }}{{$Resource}}) EncodeTranslations() ([]*ResourceTranslation, error) {
+{{- range .resources }}
+func (r *{{ .expIdent }}) EncodeTranslations() ([]*ResourceTranslation, error) {
 	out := make([]*ResourceTranslation, 0, 10)
 
 	rr := r.Res.EncodeTranslations()
 	rr.SetLanguage(defaultLanguage)
 	res, ref, pp := r.ResourceTranslationParts()
 	out = append(out, NewResourceTranslation(systemTypes.FromLocale(rr), res, ref, pp...))
-{{ if .Locale.Extended }}
+{{ if .extended }}
 	tmp, err := r.encodeTranslations()
 	return append(out, tmp...), err
 {{ else }}
@@ -29,3 +22,4 @@ func (r *{{if not (eq $Component "system")}}{{export $Component}}{{ end }}{{$Res
 {{- end }}
 }
 {{- end }}
+
