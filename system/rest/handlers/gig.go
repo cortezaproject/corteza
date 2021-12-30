@@ -1,0 +1,228 @@
+package handlers
+
+// This file is auto-generated.
+//
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+// Definitions file that controls how this file is generated:
+//
+
+import (
+	"context"
+	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/cortezaproject/corteza-server/system/rest/request"
+	"github.com/go-chi/chi"
+	"net/http"
+)
+
+type (
+	// Internal API interface
+	GigAPI interface {
+		Create(context.Context, *request.GigCreate) (interface{}, error)
+		Read(context.Context, *request.GigRead) (interface{}, error)
+		Update(context.Context, *request.GigUpdate) (interface{}, error)
+		AddSource(context.Context, *request.GigAddSource) (interface{}, error)
+		Output(context.Context, *request.GigOutput) (interface{}, error)
+		Prepare(context.Context, *request.GigPrepare) (interface{}, error)
+		Exec(context.Context, *request.GigExec) (interface{}, error)
+		Status(context.Context, *request.GigStatus) (interface{}, error)
+		Complete(context.Context, *request.GigComplete) (interface{}, error)
+		Tasks(context.Context, *request.GigTasks) (interface{}, error)
+	}
+
+	// HTTP API interface
+	Gig struct {
+		Create    func(http.ResponseWriter, *http.Request)
+		Read      func(http.ResponseWriter, *http.Request)
+		Update    func(http.ResponseWriter, *http.Request)
+		AddSource func(http.ResponseWriter, *http.Request)
+		Output    func(http.ResponseWriter, *http.Request)
+		Prepare   func(http.ResponseWriter, *http.Request)
+		Exec      func(http.ResponseWriter, *http.Request)
+		Status    func(http.ResponseWriter, *http.Request)
+		Complete  func(http.ResponseWriter, *http.Request)
+		Tasks     func(http.ResponseWriter, *http.Request)
+	}
+)
+
+func NewGig(h GigAPI) *Gig {
+	return &Gig{
+		Create: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewGigCreate()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Create(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		Read: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewGigRead()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Read(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		Update: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewGigUpdate()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Update(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		AddSource: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewGigAddSource()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.AddSource(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		Output: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewGigOutput()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Output(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		Prepare: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewGigPrepare()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Prepare(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		Exec: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewGigExec()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Exec(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		Status: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewGigStatus()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Status(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		Complete: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewGigComplete()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Complete(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		Tasks: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewGigTasks()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Tasks(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+	}
+}
+
+func (h Gig) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+	r.Group(func(r chi.Router) {
+		r.Use(middlewares...)
+		r.Post("/gig/", h.Create)
+		r.Get("/gig/{gigID}", h.Read)
+		r.Put("/gig/{gigID}", h.Update)
+		r.Patch("/gig/{gigID}/sources", h.AddSource)
+		r.Get("/gig/{gigID}/output", h.Output)
+		r.Patch("/gig/{gigID}/prepare", h.Prepare)
+		r.Patch("/gig/{gigID}/exec", h.Exec)
+		r.Get("/gig/{gigID}/status", h.Status)
+		r.Patch("/gig/{gigID}/complete", h.Complete)
+		r.Get("/gig/tasks", h.Tasks)
+	})
+}

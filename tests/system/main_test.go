@@ -1,11 +1,15 @@
 package system
 
 import (
+	"bytes"
 	"context"
 	"embed"
 	"errors"
 	"io"
+	"io/ioutil"
+	"mime/multipart"
 	"os"
+	"path"
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/app"
@@ -148,6 +152,38 @@ func newHelper(t *testing.T) helper {
 	}
 
 	return h
+}
+
+func (h helper) apiInitRecordImport(file, name string, mp ...string) (string, string) {
+	f, err := os.Open(path.Join("testdata", "gig", name))
+	h.a.NoError(err)
+	defer f.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	{
+		part, err := writer.CreateFormFile("upload", file)
+		h.noError(err)
+
+		bb, err := ioutil.ReadAll(f)
+		h.a.NoError(err)
+
+		_, err = part.Write(bb)
+		h.noError(err)
+	}
+
+	{
+		for i := 0; i < len(mp); i += 2 {
+			part, err := writer.CreateFormField(mp[i])
+			h.noError(err)
+			_, err = part.Write([]byte(mp[i+1]))
+			h.noError(err)
+		}
+	}
+
+	h.noError(writer.Close())
+	return body.String(), writer.FormDataContentType()
 }
 
 func (h helper) MyRole() uint64 {

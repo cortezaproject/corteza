@@ -1197,6 +1197,149 @@ endpoints:
         type: string
         required: true
         title: Preview extension/format
+- title: Gig
+  path: "/gig"
+  entrypoint: gig
+  imports:
+    - github.com/cortezaproject/corteza-server/pkg/gig
+  authentication:
+  - Client ID
+  - SessionID
+  apis:
+  - name: create
+    method: POST
+    title: Create new gig
+    path: "/"
+    parameters:
+      post:
+      - name: worker
+        type: string
+        title: Gig worker
+      - name: preprocessors
+        type: gig.PreprocessorWrapSet
+        title: Worker preprocessing to do
+        parser: gig.ParsePreprocessorWrap
+      - name: postprocessors
+        type: gig.PostprocessorWrapSet
+        title: Output postprocessing to do
+        parser: gig.ParsePostprocessorWrap
+
+  - name: read
+    method: GET
+    title: Read gig details
+    path: "/{gigID}"
+    parameters:
+      path:
+      - type: uint64
+        name: gigID
+        required: true
+        title: ID
+
+  - name: update
+    method: PUT
+    title: Update the gig parameters
+    path: "/{gigID}"
+    parameters:
+      path:
+      - type: uint64
+        name: gigID
+        required: true
+        title: ID
+      post:
+      - name: decoders
+        type: gig.DecoderWrapSet
+        title: Decoders to apply to the sources
+      - name: preprocessors
+        type: gig.PreprocessorWrapSet
+        title: Worker preprocessing to do
+        parser: gig.ParsePreprocessorWrap
+      - name: postprocessors
+        type: gig.PostprocessorWrapSet
+        title: Output postprocessing to do
+        parser: gig.ParsePostprocessorWrap
+
+  - name: addSource
+    method: PATCH
+    title: Update the gig parameters
+    path: "/{gigID}/sources"
+    parameters:
+      path:
+      - type: uint64
+        name: gigID
+        required: true
+        title: ID
+      post:
+      - name: upload
+        type: "*multipart.FileHeader"
+        title: File source to add
+      - name: uri
+        type: string
+        title: Source location to add
+      - name: decoders
+        type: gig.DecoderWrapSet
+        title: Decoders to apply to the sources
+        parser: gig.ParseDecoderWrap
+
+  - name: output
+    method: GET
+    title: Get output of the gig
+    path: "/{gigID}/output"
+    parameters:
+      path:
+      - name: gigID
+        type: uint64
+        required: true
+        title: ID
+
+  - name: prepare
+    method: PATCH
+    title: Prepare the gig for execution
+    path: "/{gigID}/prepare"
+    parameters:
+      path:
+      - name: gigID
+        type: uint64
+        required: true
+        title: ID
+
+  - name: exec
+    method: PATCH
+    title: Execute the gig
+    path: "/{gigID}/exec"
+    parameters:
+      path:
+      - name: gigID
+        type: uint64
+        required: true
+        title: ID
+
+  - name: status
+    method: GET
+    title: Get status of the gig
+    path: "/{gigID}/status"
+    parameters:
+      path:
+      - name: gigID
+        type: uint64
+        required: true
+        title: ID
+
+  - name: complete
+    method: PATCH
+    title: Complete the gig
+    path: "/{gigID}/complete"
+    parameters:
+      path:
+      - name: gigID
+        type: uint64
+        required: true
+        title: ID
+
+  - name: tasks
+    method: GET
+    title: Available gig tasks
+    path: "/tasks"
+
 - title: Template
   path: "/template"
   entrypoint: template

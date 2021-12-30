@@ -42,5 +42,6 @@ func MountRoutes(r chi.Router) {
 		handlers.NewQueues(Queue{}.New()).MountRoutes(r)
 		handlers.NewApigwRoute(ApigwRoute{}.New()).MountRoutes(r)
 		handlers.NewApigwFilter(ApigwFilter{}.New()).MountRoutes(r)
+		handlers.NewGig(Gig{}.New()).MountRoutes(r)
 	})
 }
