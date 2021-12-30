@@ -329,6 +329,7 @@ recordList:
     draggable: Can drag & drop records to order them
     fullPageNavigation: Full page navigation
     hideAddButton: Hide add record button
+    hideImportButton: Hide import record button
     hidePaging: Hide paging
     inlineEditor: Inline editor
     inlineEditorAllow: Allow inline record editing
