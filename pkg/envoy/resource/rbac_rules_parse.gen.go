@@ -8,10 +8,9 @@ package resource
 
 import (
 	"fmt"
-	"strings"
-
 	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
+	"strings"
 )
 
 // Parse generates resource setting logic for each resource

@@ -1,18 +1,17 @@
-package {{ .Package }}
+package {{ .package }}
 
-{{ template "header-gentext.tpl" }}
-{{ template "header-definitions.tpl" . }}
+{{ template "gocode/header-gentext.tpl" }}
 
 import (
 	"fmt"
 	"strings"
-{{- range .Imports }}
+{{- range .imports }}
     {{ . }}
 {{- end }}
 )
 
 
-// Parse generates resource setting logic for each resource
+// ParseResourceTranslation generates resource setting logic for each resource
 //
 // Resources with "envoy: false" are skipped
 //
@@ -47,25 +46,22 @@ func ParseResourceTranslation(res string) (string, *Ref, []*Ref, error) {
 
 	// make the resource provide the slice of parent resources we should nest under
 	switch resourceType {
-	{{- range .Def }}
-	case {{ unexport .Component "types" }}.{{ export .Resource }}ResourceTranslationType:
-		if len(path) != {{ len .Locale.Resource.References }} {
-			return "", nil, nil, fmt.Errorf("expecting {{ len .Locale.Resource.References }} reference components in path, got %d", len(path))
+	{{- range .resources }}
+	case {{ .typeConst }}:
+		if len(path) != {{ len .references }} {
+			return "", nil, nil, fmt.Errorf("expecting {{ len .references }} reference components in path, got %d", len(path))
 		}
-		{{- if gt (len .Locale.Resource.References) 0 }}
-		ref, pp, err := {{ export .Component .Resource }}ResourceTranslationReferences(
-			{{- range $i, $r := .Locale.Resource.References }}
-				// {{ unexport $r.Resource }}
+		ref, pp, err := {{ .resTrRefFunc }}(
+			{{- range $i, $r := .references }}
 				path[{{ $i }}],
-			{{ end }}
+			{{- end }}
 		)
-		return {{ unexport .Component "types" }}.{{ export .Resource }}ResourceTranslationType, ref, pp, err
+		return {{ .typeConst }}, ref, pp, err
 		{{ else }}
 
 		// Component resource, no path
-		return {{ unexport .Component "types" }}.{{ export .Resource }}ResourceTranslationType, nil, nil, nil
+		return {{ .typeConst }}, nil, nil, nil
 		{{- end }}
-	{{- end}}
 	}
 
 	// return unhandled resource as-is

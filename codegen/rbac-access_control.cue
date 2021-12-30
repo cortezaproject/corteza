@@ -9,7 +9,7 @@ rbacAccessControl:
 	[...schema.#codegen] &
 	[
 		for cmp in app.corteza.components {
-			template: "gocode/rbac/access_control.go.tpl"
+			template: "gocode/rbac/$component_access_control.go.tpl"
 			output:   "\(cmp.ident)/service/access_control.gen.go"
 			payload: {
 				package: "service"

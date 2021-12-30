@@ -12,7 +12,7 @@ localeTypes:
 		// wrapped with additional for loop to trim out templates with empty types list
 		for tpl in [
 			for cmp in app.corteza.components {
-				template: "gocode/locale/types.go.tpl"
+				template: "gocode/locale/$component_types.go.tpl"
 				output:   "\(cmp.ident)/types/locale.gen.go"
 				payload: {
 					package: "types"
