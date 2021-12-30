@@ -11,7 +11,7 @@ delay:
   label: Delay
   tooltip: Delays workflow execution
 error:
-  label: Error
+  label: Error 
   tooltip: Throws error and stops workflow execution, also prevents saving of records triggered with before trigger
 'error-handler':
   label: Error Handler
