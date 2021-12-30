@@ -23,7 +23,7 @@ var (
 func MakeWebappServer(log *zap.Logger, httpSrvOpt options.HTTPServerOpt, authOpt options.AuthOpt, discoveryOpt options.DiscoveryOpt) func(r chi.Router) {
 	var (
 		apiBaseUrl          = options.CleanBase(httpSrvOpt.BaseUrl, httpSrvOpt.ApiBaseUrl)
-		discoveryApiBaseUrl = options.CleanBase(discoveryOpt.BaseUrl)
+		discoveryApiBaseUrl = discoveryOpt.BaseUrl
 		apps                = strings.Split(httpSrvOpt.WebappList, ",")
 
 		appIndexHTMLs = make(map[string][]byte)
