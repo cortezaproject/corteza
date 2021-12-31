@@ -296,10 +296,7 @@ func (svc *service) Complete(ctx context.Context, old Gig) (g Gig, err error) {
 		return
 	}
 
-	g = old
-
-	g.CompletedAt = now()
-	g, err = svc.cleanup(ctx, g)
+	g, err = svc.cleanup(ctx, old)
 	if err != nil {
 		return
 	}
