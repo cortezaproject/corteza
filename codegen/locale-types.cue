@@ -23,7 +23,7 @@ localeTypes:
 							const:    res.locale.resource.const
 							type:     res.locale.resource.type
 
-							references: [ for field in res.locale.resource.references {strings.ToTitle(field)}]
+  					  references: [ for p in res.parents {p}, {param: "id", refField: "ID"}]
 
 							extended: res.locale.extended
 

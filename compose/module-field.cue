@@ -12,8 +12,8 @@ moduleField: schema.#resource & {
 
 	rbac: {
 		operations: {
-			"recod.value.read": description:   "Read field value on records"
-			"recod.value.update": description: "Update field value on records"
+			"record.value.read": description:   "Read field value on records"
+			"record.value.update": description: "Update field value on records"
 		}
 	}
 

@@ -97,61 +97,61 @@ func (svc accessControl) List() (out []map[string]string) {
 		{
 			"type": types.ModuleFieldResourceType,
 			"any":  types.ModuleFieldRbacResource(0, 0, 0),
-			"op":   "recod.value.read",
+			"op":   "record.value.read",
 		},
 		{
 			"type": types.ModuleFieldResourceType,
 			"any":  types.ModuleFieldRbacResource(0, 0, 0),
-			"op":   "recod.value.update",
+			"op":   "record.value.update",
 		},
 		{
 			"type": types.NamespaceResourceType,
-			"any":  types.NamespaceRbacResource(),
+			"any":  types.NamespaceRbacResource(0),
 			"op":   "read",
 		},
 		{
 			"type": types.NamespaceResourceType,
-			"any":  types.NamespaceRbacResource(),
+			"any":  types.NamespaceRbacResource(0),
 			"op":   "update",
 		},
 		{
 			"type": types.NamespaceResourceType,
-			"any":  types.NamespaceRbacResource(),
+			"any":  types.NamespaceRbacResource(0),
 			"op":   "delete",
 		},
 		{
 			"type": types.NamespaceResourceType,
-			"any":  types.NamespaceRbacResource(),
+			"any":  types.NamespaceRbacResource(0),
 			"op":   "manage",
 		},
 		{
 			"type": types.NamespaceResourceType,
-			"any":  types.NamespaceRbacResource(),
+			"any":  types.NamespaceRbacResource(0),
 			"op":   "module.create",
 		},
 		{
 			"type": types.NamespaceResourceType,
-			"any":  types.NamespaceRbacResource(),
+			"any":  types.NamespaceRbacResource(0),
 			"op":   "modules.search",
 		},
 		{
 			"type": types.NamespaceResourceType,
-			"any":  types.NamespaceRbacResource(),
+			"any":  types.NamespaceRbacResource(0),
 			"op":   "chart.create",
 		},
 		{
 			"type": types.NamespaceResourceType,
-			"any":  types.NamespaceRbacResource(),
+			"any":  types.NamespaceRbacResource(0),
 			"op":   "charts.search",
 		},
 		{
 			"type": types.NamespaceResourceType,
-			"any":  types.NamespaceRbacResource(),
+			"any":  types.NamespaceRbacResource(0),
 			"op":   "page.create",
 		},
 		{
 			"type": types.NamespaceResourceType,
-			"any":  types.NamespaceRbacResource(),
+			"any":  types.NamespaceRbacResource(0),
 			"op":   "pages.search",
 		},
 		{
@@ -329,32 +329,32 @@ func (svc accessControl) CanDeleteModule(ctx context.Context, r *types.Module) b
 	return svc.can(ctx, "delete", r)
 }
 
-// CanCreateRecordModule checks if current user can create record
+// CanCreateRecordOnModule checks if current user can create record
 //
 // This function is auto-generated
-func (svc accessControl) CanCreateRecordModule(ctx context.Context, r *types.Module) bool {
+func (svc accessControl) CanCreateRecordOnModule(ctx context.Context, r *types.Module) bool {
 	return svc.can(ctx, "record.create", r)
 }
 
-// CanSearchRecordsModule checks if current user can list, search or filter records
+// CanSearchRecordsOnModule checks if current user can list, search or filter records
 //
 // This function is auto-generated
-func (svc accessControl) CanSearchRecordsModule(ctx context.Context, r *types.Module) bool {
+func (svc accessControl) CanSearchRecordsOnModule(ctx context.Context, r *types.Module) bool {
 	return svc.can(ctx, "records.search", r)
 }
 
-// CanReadRecodValueModuleField checks if current user can read field value on records
+// CanReadRecordValueOnModuleField checks if current user can read field value on records
 //
 // This function is auto-generated
-func (svc accessControl) CanReadRecodValueModuleField(ctx context.Context, r *types.ModuleField) bool {
-	return svc.can(ctx, "recod.value.read", r)
+func (svc accessControl) CanReadRecordValueOnModuleField(ctx context.Context, r *types.ModuleField) bool {
+	return svc.can(ctx, "record.value.read", r)
 }
 
-// CanUpdateRecodValueModuleField checks if current user can update field value on records
+// CanUpdateRecordValueOnModuleField checks if current user can update field value on records
 //
 // This function is auto-generated
-func (svc accessControl) CanUpdateRecodValueModuleField(ctx context.Context, r *types.ModuleField) bool {
-	return svc.can(ctx, "recod.value.update", r)
+func (svc accessControl) CanUpdateRecordValueOnModuleField(ctx context.Context, r *types.ModuleField) bool {
+	return svc.can(ctx, "record.value.update", r)
 }
 
 // CanReadNamespace checks if current user can read
@@ -385,45 +385,45 @@ func (svc accessControl) CanManageNamespace(ctx context.Context, r *types.Namesp
 	return svc.can(ctx, "manage", r)
 }
 
-// CanCreateModuleNamespace checks if current user can create module on namespace
+// CanCreateModuleOnNamespace checks if current user can create module on namespace
 //
 // This function is auto-generated
-func (svc accessControl) CanCreateModuleNamespace(ctx context.Context, r *types.Namespace) bool {
+func (svc accessControl) CanCreateModuleOnNamespace(ctx context.Context, r *types.Namespace) bool {
 	return svc.can(ctx, "module.create", r)
 }
 
-// CanSearchModulesNamespace checks if current user can list, search or filter module on namespace
+// CanSearchModulesOnNamespace checks if current user can list, search or filter module on namespace
 //
 // This function is auto-generated
-func (svc accessControl) CanSearchModulesNamespace(ctx context.Context, r *types.Namespace) bool {
+func (svc accessControl) CanSearchModulesOnNamespace(ctx context.Context, r *types.Namespace) bool {
 	return svc.can(ctx, "modules.search", r)
 }
 
-// CanCreateChartNamespace checks if current user can create chart on namespace
+// CanCreateChartOnNamespace checks if current user can create chart on namespace
 //
 // This function is auto-generated
-func (svc accessControl) CanCreateChartNamespace(ctx context.Context, r *types.Namespace) bool {
+func (svc accessControl) CanCreateChartOnNamespace(ctx context.Context, r *types.Namespace) bool {
 	return svc.can(ctx, "chart.create", r)
 }
 
-// CanSearchChartsNamespace checks if current user can list, search or filter chart on namespace
+// CanSearchChartsOnNamespace checks if current user can list, search or filter chart on namespace
 //
 // This function is auto-generated
-func (svc accessControl) CanSearchChartsNamespace(ctx context.Context, r *types.Namespace) bool {
+func (svc accessControl) CanSearchChartsOnNamespace(ctx context.Context, r *types.Namespace) bool {
 	return svc.can(ctx, "charts.search", r)
 }
 
-// CanCreatePageNamespace checks if current user can create page on namespace
+// CanCreatePageOnNamespace checks if current user can create page on namespace
 //
 // This function is auto-generated
-func (svc accessControl) CanCreatePageNamespace(ctx context.Context, r *types.Namespace) bool {
+func (svc accessControl) CanCreatePageOnNamespace(ctx context.Context, r *types.Namespace) bool {
 	return svc.can(ctx, "page.create", r)
 }
 
-// CanSearchPagesNamespace checks if current user can list, search or filter pages on namespace
+// CanSearchPagesOnNamespace checks if current user can list, search or filter pages on namespace
 //
 // This function is auto-generated
-func (svc accessControl) CanSearchPagesNamespace(ctx context.Context, r *types.Namespace) bool {
+func (svc accessControl) CanSearchPagesOnNamespace(ctx context.Context, r *types.Namespace) bool {
 	return svc.can(ctx, "pages.search", r)
 }
 
@@ -562,8 +562,8 @@ func rbacResourceOperations(r string) map[string]bool {
 		}
 	case types.ModuleFieldResourceType:
 		return map[string]bool{
-			"recod.value.read":   true,
-			"recod.value.update": true,
+			"record.value.read":   true,
+			"record.value.update": true,
 		}
 	case types.NamespaceResourceType:
 		return map[string]bool{
@@ -758,6 +758,29 @@ func rbacNamespaceResourceValidator(r string, oo ...string) error {
 		}
 	}
 
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.NamespaceResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for namespace resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
 	return nil
 }
 

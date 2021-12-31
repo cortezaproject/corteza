@@ -41,7 +41,7 @@ var (
 //
 // This function is auto-generated
 func (r {{ .expIdent }}) ResourceTranslation() string {
-	return {{ .expIdent }}ResourceTranslation({{ if .references }}{{ range .references }}r.{{ . }},{{ end }}{{ end }})
+	return {{ .expIdent }}ResourceTranslation({{ range .references }}r.{{ .refField }},{{ end }})
 }
 
 // {{ .expIdent }}ResourceTranslation returns string representation of Locale resource for {{ .expIdent }}
@@ -49,12 +49,12 @@ func (r {{ .expIdent }}) ResourceTranslation() string {
 // Locale resource is in the {{ .type }}/{{- if .references }}...{{ end }} format
 //
 // This function is auto-generated
-func {{ .expIdent }}ResourceTranslation({{ if .references }}{{ range .references }}{{ . }} uint64,{{ end }}{{ end }}) string {
+func {{ .expIdent }}ResourceTranslation({{ range .references }}{{ .refField }} uint64,{{ end }}) string {
 	{{- if .references }}
 	cpts := []interface{{"{}"}}{
 		{{ .expIdent }}ResourceTranslationType,
 	  {{- range .references }}
-		strconv.FormatUint({{ . }}, 10),
+		strconv.FormatUint({{ .refField }}, 10),
 		{{- end }}
 	}
 

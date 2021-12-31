@@ -3,7 +3,6 @@ package codegen
 import (
 	"github.com/cortezaproject/corteza-server/app"
 	"github.com/cortezaproject/corteza-server/codegen/schema"
-	"strings"
 )
 
 localeService:
@@ -25,7 +24,7 @@ localeService:
 							expIdent: res.expIdent
 							ident:    res.ident
 
-							references: [ for field in res.locale.resource.references {strings.ToTitle(field)}]
+  					  references: [ for p in res.parents {p}, {param: "id", refField: "ID"}]
 
 							extended: res.locale.extended
 
