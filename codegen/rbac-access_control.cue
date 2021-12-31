@@ -28,9 +28,7 @@ rbacAccessControl:
 						description:   op.description
 						checkFuncName: op.checkFuncName
 
-						if len(res.parents) > 0 {
-							references: [ for p in res.parents {p}, {param: "id", refField: "ID"}]
-						}
+					  references: [ for p in res.parents {p}, {param: "id", refField: "ID"}]
 					},
 					for op in cmp.rbac.operations {
 						"op":          op.handle
@@ -49,9 +47,7 @@ rbacAccessControl:
 						label:    res.ident
 						const:    "types.\(res.expIdent)ResourceType"
 						funcName: "rbac\(res.expIdent)ResourceValidator"
-						if len(res.parents) > 0 {
-							references: [ for p in res.parents {p.refField}, "ID"]
-						}
+						references: [ for p in res.parents {p.refField}, "ID"]
 						operations: [ for op in res.rbac.operations {op.handle}]
 					},
 					{

@@ -43,14 +43,19 @@ import (
 
 	_operation: strings.Replace(strings.Replace(handle, "-", " ", -1), "_", " ", -1)
 	_opSplit:   strings.Split(_operation, ".")
+
 	_opFlip:    [_opSplit[len(_opSplit)-1]] + _opSplit[0:len(_opSplit)-1]
 	_opFinal:   strings.Replace(strings.ToTitle(strings.Join(_opFlip, " ")), " ", "", -1)
 
 	if _resourceExpIdent == _|_ {
-		checkFuncName: #expIdent | *("Can" + _opFinal)
+		checkFuncName: #expIdent | *"Can\(_opFinal)"
 	}
 
-	if _resourceExpIdent != _|_ {
-		checkFuncName: #expIdent | *("Can" + _opFinal + _resourceExpIdent)
+	if len(_opSplit) > 1 && _resourceExpIdent != _|_ {
+		checkFuncName: #expIdent | *"Can\(_opFinal)On\(_resourceExpIdent)"
+	}
+
+	if len(_opSplit) <= 1 && _resourceExpIdent != _|_ {
+		checkFuncName: #expIdent | *"Can\(_opFinal)\(_resourceExpIdent)"
 	}
 }

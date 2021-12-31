@@ -62,8 +62,8 @@ type (
 	}
 
 	recordValueAccessController interface {
-		CanReadRecordValue(context.Context, *types.ModuleField) bool
-		CanUpdateRecordValue(context.Context, *types.ModuleField) bool
+		CanReadRecordValueOnModuleField(context.Context, *types.ModuleField) bool
+		CanUpdateRecordValueOnModuleField(context.Context, *types.ModuleField) bool
 	}
 
 	recordAccessController interface {
@@ -637,7 +637,7 @@ func RecordValueUpdateOpCheck(ctx context.Context, ac recordValueAccessControlle
 			return nil
 		}
 
-		if v.IsUpdated() && !ac.CanUpdateRecordValue(ctx, f) {
+		if v.IsUpdated() && !ac.CanUpdateRecordValueOnModuleField(ctx, f) {
 			rve.Push(types.RecordValueError{Kind: "updateDenied", Meta: map[string]interface{}{"field": v.Name, "value": v.Value}})
 		}
 
@@ -908,7 +908,7 @@ func (svc record) procUpdate(ctx context.Context, invokerID uint64, m *types.Mod
 	upd = RecordUpdateOwner(invokerID, upd, old)
 
 	upd.Values = old.Values.Merge(m.Fields, upd.Values, func(f *types.ModuleField) bool {
-		return svc.ac.CanUpdateRecordValue(ctx, m.Fields.FindByName(f.Name))
+		return svc.ac.CanUpdateRecordValueOnModuleField(ctx, m.Fields.FindByName(f.Name))
 	})
 
 	if rve = RecordValueUpdateOpCheck(ctx, svc.ac, m, upd.Values); !rve.IsValid() {
@@ -1095,7 +1095,7 @@ func (svc record) Organize(ctx context.Context, namespaceID, moduleID, recordID 
 				return fmt.Errorf("cannot reorder on multi-value field %q", posField)
 			}
 
-			if !svc.ac.CanUpdateRecordValue(ctx, sf) {
+			if !svc.ac.CanUpdateRecordValueOnModuleField(ctx, sf) {
 				return RecordErrNotAllowedToUpdate()
 			}
 
@@ -1119,7 +1119,7 @@ func (svc record) Organize(ctx context.Context, namespaceID, moduleID, recordID 
 				return fmt.Errorf("cannot update multi-value field %q", posField)
 			}
 
-			if !svc.ac.CanUpdateRecordValue(ctx, vf) {
+			if !svc.ac.CanUpdateRecordValueOnModuleField(ctx, vf) {
 				return RecordErrNotAllowedToUpdate()
 			}
 
@@ -1404,7 +1404,7 @@ func ComposeRecordFilterAC(ctx context.Context, ac recordValueAccessController, 
 	)
 
 	for _, f := range m.Fields {
-		readableFields[f.Name] = ac.CanReadRecordValue(ctx, f)
+		readableFields[f.Name] = ac.CanReadRecordValueOnModuleField(ctx, f)
 	}
 
 	for _, r := range rr {

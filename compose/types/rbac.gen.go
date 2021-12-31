@@ -153,21 +153,28 @@ func ModuleFieldRbacResourceTpl() string {
 //
 // This function is auto-generated
 func (r Namespace) RbacResource() string {
-	return NamespaceRbacResource()
+	return NamespaceRbacResource(r.ID)
 }
 
 // NamespaceRbacResource returns string representation of RBAC resource for Namespace
 //
-// RBAC resource is in the corteza::compose:namespace/ format
+// RBAC resource is in the corteza::compose:namespace/... format
 //
 // This function is auto-generated
-func NamespaceRbacResource() string {
-	return NamespaceResourceType + "/"
+func NamespaceRbacResource(id uint64) string {
+	cpts := []interface{}{NamespaceResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(NamespaceRbacResourceTpl(), cpts...)
 
 }
 
 func NamespaceRbacResourceTpl() string {
-	return "%s"
+	return "%s/%s"
 }
 
 // RbacResource returns string representation of RBAC resource for Page by calling PageRbacResource fn

@@ -49,8 +49,8 @@ type (
 		composeRecordAccessController
 	}
 	composeRecordValueAccessController interface {
-		CanReadRecordValue(context.Context, *types.ModuleField) bool
-		CanUpdateRecordValue(context.Context, *types.ModuleField) bool
+		CanReadRecordValueOnModuleField(context.Context, *types.ModuleField) bool
+		CanUpdateRecordValueOnModuleField(context.Context, *types.ModuleField) bool
 	}
 
 	composeRecordAccessController interface {
