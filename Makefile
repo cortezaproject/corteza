@@ -130,14 +130,29 @@ watch.test.%: $(FSWATCH)
 
 watch.test: watch.test.unit
 
-# codegen: $(PROTOGEN)
-codegen: $(CODEGEN)
+# See codegen/README.md for details
+codegen: $(CUE) $(JSONTPLEXEC)
+	$(CUE) eval codegen/*.cue --out json -e platform | $(JSONTPLEXEC) -v
+
+test.codegen: $(CUE) $(JSONTPLEXEC)
+	$(CUE) eval codegen/*.cue --out json -e platform
+
+cue.fmt: $(CUE)
+	$(CUE) fmt -v codegen/*.cue
+	$(CUE) fmt -v codegen/schema/*.cue
+	$(CUE) fmt -v app/*.cue
+	$(CUE) fmt system/*.cue
+	$(CUE) fmt compose/*.cue
+	# $(CUE) fmt automation/*.cue
+	# $(CUE) fmt federation/*.cue
+
+codegen-legacy: $(CODEGEN)
 	@ $(CODEGEN) -v
 
-watch.codegen: $(CODEGEN)
+watch.codegen-legacy: $(CODEGEN)
 	@ $(CODEGEN) -w -v
 
-clean.codegen:
+clean.codegen-legacy:
 	rm -f $(CODEGEN)
 
 provision:

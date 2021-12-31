@@ -1,1 +1,4 @@
-See `pkg/codegen-v3/README.md`
+Obsolete and pending removal.
+
+All automation.* & federation.* yamls need to be converted
+to cue and moved to automation/ 

@@ -18,7 +18,9 @@ PROTOGEN      = $(GOPATH)/bin/protoc-gen-go
 PROTOGEN_GRPC = $(GOPATH)/bin/protoc-gen-go-grpc
 GIN           = $(GOPATH)/bin/gin
 STATIK        = $(GOPATH)/bin/statik
+CUE           = $(GOPATH)/bin/cue
 CODEGEN       = build/codegen
+JSONTPLEXEC   = build/json-tpl-exec
 
 PROTOC      = /usr/local/bin/protoc
 FSWATCH     = /usr/local/bin/fswatch
@@ -56,5 +58,13 @@ $(STATIK):
 $(CODEGEN):
 	$(GO) build -o $@ cmd/codegen/main.go
 
+$(CUE):
+	go install cuelang.org/go/cmd/cue@latest
+
+$(JSONTPLEXEC):
+	$(GO) build -o $@ ./codegen/tool
+
 clean-tools:
 	rm -f $(BINS)
+
+#

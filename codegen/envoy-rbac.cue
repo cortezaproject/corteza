@@ -95,8 +95,8 @@ envoyRBAC:
 
 				resources: [
 					for cmp in app.corteza.components for res in cmp.resources if res.locale != _|_ {
-						importAlias: "\(cmp.ident)Types"
-						typeConst:   "\(importAlias).\(res.expIdent)ResourceTranslationType"
+						importAlias:  "\(cmp.ident)Types"
+						typeConst:    "\(importAlias).\(res.expIdent)ResourceTranslationType"
 						resTrRefFunc: "\(cmp.expIdent)\(res.expIdent)ResourceTranslationReferences"
 						references: [
 							for p in res.parents {p},
@@ -110,25 +110,25 @@ envoyRBAC:
 	[
 		// wrapped with additional for loop to trim out templates with empty types list
 		for tpl in [
-		for cmp in app.corteza.components {
-			template: "gocode/envoy/resource_translation_references_$component.go.tpl"
-			output:   "pkg/envoy/resource/resource_translation_references_\(cmp.ident).gen.go"
-			payload: {
-				package: "resource"
-				imports: [
-					"\"github.com/cortezaproject/corteza-server/\(cmp.ident)/types\"",
-				]
+			for cmp in app.corteza.components {
+				template: "gocode/envoy/resource_translation_references_$component.go.tpl"
+				output:   "pkg/envoy/resource/resource_translation_references_\(cmp.ident).gen.go"
+				payload: {
+					package: "resource"
+					imports: [
+						"\"github.com/cortezaproject/corteza-server/\(cmp.ident)/types\"",
+					]
 
-				resources: [
-					for res in cmp.resources if res.locale != _|_ {
-						resTrRefFunc: "\(cmp.expIdent)\(res.expIdent)ResourceTranslationReferences"
-						expIdent: res.expIdent
-						references: [
-							for p in res.parents {p},
-						]
-					},
-				]
-			}
-		},
-	]  if len(tpl.payload.resources) > 0 {tpl}]+
+					resources: [
+						for res in cmp.resources if res.locale != _|_ {
+							resTrRefFunc: "\(cmp.expIdent)\(res.expIdent)ResourceTranslationReferences"
+							expIdent:     res.expIdent
+							references: [
+								for p in res.parents {p},
+							]
+						},
+					]
+				}
+			},
+		] if len(tpl.payload.resources) > 0 {tpl}]+
 	[]
