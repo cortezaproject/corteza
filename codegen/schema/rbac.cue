@@ -12,7 +12,7 @@ import (
 	operations: {
 		[key=_]: #rbacOperation & {
 			handle: key
-	  }
+		}
 	}
 }
 
@@ -21,7 +21,7 @@ import (
 
 	operations: {
 		[key=_]: #rbacOperation & {
-			handle:           key
+			handle:            key
 			_resourceExpIdent: resourceExpIdent
 		}
 	}
