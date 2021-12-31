@@ -88,7 +88,7 @@ envoyRBAC:
 			payload: {
 				package: "resource"
 				imports: [
-					for cmp in app.corteza.components {
+					for cmp in app.corteza.components for res in cmp.resources if res.locale != _|_ {
 						"\(cmp.ident)Types \"github.com/cortezaproject/corteza-server/\(cmp.ident)/types\""
 					},
 				]

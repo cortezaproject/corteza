@@ -14,8 +14,6 @@ import (
 	extended: bool | *false
 
 	resource: {
-		// @todo merge with RBAC res-ref and move 2 levels lower.
-		references: [ ...string] | *["ID"]
 		type:       string
 		const:      string | *("\(resourceExpIdent)ResourceTranslationType")
 	}

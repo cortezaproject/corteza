@@ -55,7 +55,7 @@ var (
 //
 // This function is auto-generated
 func (r Module) ResourceTranslation() string {
-	return ModuleResourceTranslation(r.ID)
+	return ModuleResourceTranslation(r.NamespaceID, r.ID)
 }
 
 // ModuleResourceTranslation returns string representation of Locale resource for Module
@@ -63,9 +63,10 @@ func (r Module) ResourceTranslation() string {
 // Locale resource is in the compose:module/... format
 //
 // This function is auto-generated
-func ModuleResourceTranslation(ID uint64) string {
+func ModuleResourceTranslation(NamespaceID uint64, ID uint64) string {
 	cpts := []interface{}{
 		ModuleResourceTranslationType,
+		strconv.FormatUint(NamespaceID, 10),
 		strconv.FormatUint(ID, 10),
 	}
 
@@ -73,7 +74,7 @@ func ModuleResourceTranslation(ID uint64) string {
 }
 
 func ModuleResourceTranslationTpl() string {
-	return "%s/%s"
+	return "%s/%s/%s"
 }
 
 func (r *Module) DecodeTranslations(tt locale.ResourceTranslationIndex) {
@@ -104,7 +105,7 @@ func (r *Module) EncodeTranslations() (out locale.ResourceTranslationSet) {
 //
 // This function is auto-generated
 func (r ModuleField) ResourceTranslation() string {
-	return ModuleFieldResourceTranslation(r.ID)
+	return ModuleFieldResourceTranslation(r.NamespaceID, r.ModuleID, r.ID)
 }
 
 // ModuleFieldResourceTranslation returns string representation of Locale resource for ModuleField
@@ -112,9 +113,11 @@ func (r ModuleField) ResourceTranslation() string {
 // Locale resource is in the compose:module-field/... format
 //
 // This function is auto-generated
-func ModuleFieldResourceTranslation(ID uint64) string {
+func ModuleFieldResourceTranslation(NamespaceID uint64, ModuleID uint64, ID uint64) string {
 	cpts := []interface{}{
 		ModuleFieldResourceTranslationType,
+		strconv.FormatUint(NamespaceID, 10),
+		strconv.FormatUint(ModuleID, 10),
 		strconv.FormatUint(ID, 10),
 	}
 
@@ -122,7 +125,7 @@ func ModuleFieldResourceTranslation(ID uint64) string {
 }
 
 func ModuleFieldResourceTranslationTpl() string {
-	return "%s/%s"
+	return "%s/%s/%s/%s"
 }
 
 func (r *ModuleField) DecodeTranslations(tt locale.ResourceTranslationIndex) {
@@ -251,7 +254,7 @@ func (r *Namespace) EncodeTranslations() (out locale.ResourceTranslationSet) {
 //
 // This function is auto-generated
 func (r Page) ResourceTranslation() string {
-	return PageResourceTranslation(r.ID)
+	return PageResourceTranslation(r.NamespaceID, r.ID)
 }
 
 // PageResourceTranslation returns string representation of Locale resource for Page
@@ -259,9 +262,10 @@ func (r Page) ResourceTranslation() string {
 // Locale resource is in the compose:page/... format
 //
 // This function is auto-generated
-func PageResourceTranslation(ID uint64) string {
+func PageResourceTranslation(NamespaceID uint64, ID uint64) string {
 	cpts := []interface{}{
 		PageResourceTranslationType,
+		strconv.FormatUint(NamespaceID, 10),
 		strconv.FormatUint(ID, 10),
 	}
 
@@ -269,7 +273,7 @@ func PageResourceTranslation(ID uint64) string {
 }
 
 func PageResourceTranslationTpl() string {
-	return "%s/%s"
+	return "%s/%s/%s"
 }
 
 func (r *Page) DecodeTranslations(tt locale.ResourceTranslationIndex) {
