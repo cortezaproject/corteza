@@ -24,6 +24,10 @@ func LoadTemplates(rTpl *template.Template, rootDir string) (*template.Template,
 	pfx := len(cleanRoot) + 1
 
 	return rTpl, filepath.Walk(cleanRoot, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
 		if info.IsDir() || !strings.HasSuffix(path, ".tpl") || err != nil {
 			return err
 		}

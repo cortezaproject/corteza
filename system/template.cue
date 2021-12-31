@@ -1,7 +1,7 @@
 package system
 
 import (
-	"github.com/cortezaproject/corteza-server/def/schema"
+	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
 template: schema.#resource & {
