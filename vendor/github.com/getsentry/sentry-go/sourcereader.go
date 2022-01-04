@@ -36,12 +36,13 @@ func (sr *sourceReader) readContextLines(filename string, line, context int) ([]
 	return sr.calculateContextLines(lines, line, context)
 }
 
-// `initial` points to a line that's the `context_line` itself in relation to returned slice
 func (sr *sourceReader) calculateContextLines(lines [][]byte, line, context int) ([][]byte, int) {
 	// Stacktrace lines are 1-indexed, slices are 0-indexed
 	line--
 
-	initial := context
+	// contextLine points to a line that caused an issue itself, in relation to
+	// returned slice.
+	contextLine := context
 
 	if lines == nil || line >= len(lines) || line < 0 {
 		return nil, 0
@@ -49,13 +50,13 @@ func (sr *sourceReader) calculateContextLines(lines [][]byte, line, context int)
 
 	if context < 0 {
 		context = 0
-		initial = 0
+		contextLine = 0
 	}
 
 	start := line - context
 
 	if start < 0 {
-		initial += start
+		contextLine += start
 		start = 0
 	}
 
@@ -65,5 +66,5 @@ func (sr *sourceReader) calculateContextLines(lines [][]byte, line, context int)
 		end = len(lines)
 	}
 
-	return lines[start:end], initial
+	return lines[start:end], contextLine
 }

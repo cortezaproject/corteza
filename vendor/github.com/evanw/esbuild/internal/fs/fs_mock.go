@@ -29,7 +29,7 @@ func MockFS(input map[string]string) FS {
 			kDir := path.Dir(k)
 			dir, ok := dirs[kDir]
 			if !ok {
-				dir = DirEntries{kDir, make(map[string]*Entry)}
+				dir = DirEntries{kDir, make(map[string]*Entry), nil}
 				dirs[kDir] = dir
 			}
 			if kDir == k {
@@ -60,6 +60,13 @@ func (fs *mockFS) ReadFile(path string) (string, error, error) {
 		return contents, nil, nil
 	}
 	return "", syscall.ENOENT, syscall.ENOENT
+}
+
+func (fs *mockFS) OpenFile(path string) (OpenedFile, error, error) {
+	if contents, ok := fs.files[path]; ok {
+		return &InMemoryOpenedFile{Contents: []byte(contents)}, nil, nil
+	}
+	return nil, syscall.ENOENT, syscall.ENOENT
 }
 
 func (fs *mockFS) ModKey(path string) (ModKey, error) {

@@ -42,6 +42,7 @@ type Middleware struct {
 	ServiceProvider saml.ServiceProvider
 	OnError         func(w http.ResponseWriter, r *http.Request, err error)
 	Binding         string // either saml.HTTPPostBinding or saml.HTTPRedirectBinding
+	ResponseBinding string // either saml.HTTPPostBinding or saml.HTTPArtifactBinding
 	RequestTracker  RequestTracker
 	Session         SessionProvider
 }
@@ -51,26 +52,28 @@ type Middleware struct {
 // m.ServiceProvider.AcsURL.
 func (m *Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == m.ServiceProvider.MetadataURL.Path {
-		m.serveMetadata(w, r)
+		m.ServeMetadata(w, r)
 		return
 	}
 
 	if r.URL.Path == m.ServiceProvider.AcsURL.Path {
-		m.serveACS(w, r)
+		m.ServeACS(w, r)
 		return
 	}
 
 	http.NotFoundHandler().ServeHTTP(w, r)
 }
 
-func (m *Middleware) serveMetadata(w http.ResponseWriter, r *http.Request) {
+// ServeMetadata handles requests for the SAML metadata endpoint.
+func (m *Middleware) ServeMetadata(w http.ResponseWriter, r *http.Request) {
 	buf, _ := xml.MarshalIndent(m.ServiceProvider.Metadata(), "", "  ")
 	w.Header().Set("Content-Type", "application/samlmetadata+xml")
 	w.Write(buf)
 	return
 }
 
-func (m *Middleware) serveACS(w http.ResponseWriter, r *http.Request) {
+// ServeACS handles requests for the SAML ACS endpoint.
+func (m *Middleware) ServeACS(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	possibleRequestIDs := []string{}
@@ -89,7 +92,7 @@ func (m *Middleware) serveACS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m.CreateSessionFromAssertion(w, r, assertion)
+	m.CreateSessionFromAssertion(w, r, assertion, m.ServiceProvider.DefaultRedirectURI)
 	return
 }
 
@@ -138,7 +141,7 @@ func (m *Middleware) HandleStartAuthFlow(w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	authReq, err := m.ServiceProvider.MakeAuthenticationRequest(bindingLocation)
+	authReq, err := m.ServiceProvider.MakeAuthenticationRequest(bindingLocation, binding, m.ResponseBinding)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -155,7 +158,11 @@ func (m *Middleware) HandleStartAuthFlow(w http.ResponseWriter, r *http.Request)
 	}
 
 	if binding == saml.HTTPRedirectBinding {
-		redirectURL := authReq.Redirect(relayState)
+		redirectURL, err := authReq.Redirect(relayState, &m.ServiceProvider)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		w.Header().Add("Location", redirectURL.String())
 		w.WriteHeader(http.StatusFound)
 		return
@@ -175,8 +182,7 @@ func (m *Middleware) HandleStartAuthFlow(w http.ResponseWriter, r *http.Request)
 }
 
 // CreateSessionFromAssertion is invoked by ServeHTTP when we have a new, valid SAML assertion.
-func (m *Middleware) CreateSessionFromAssertion(w http.ResponseWriter, r *http.Request, assertion *saml.Assertion) {
-	redirectURI := "/"
+func (m *Middleware) CreateSessionFromAssertion(w http.ResponseWriter, r *http.Request, assertion *saml.Assertion, redirectURI string) {
 	if trackedRequestIndex := r.Form.Get("RelayState"); trackedRequestIndex != "" {
 		trackedRequest, err := m.RequestTracker.GetTrackedRequest(r, trackedRequestIndex)
 		if err != nil {

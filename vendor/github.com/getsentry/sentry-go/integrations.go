@@ -1,23 +1,22 @@
 package sentry
 
 import (
-	"bufio"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"os"
 	"regexp"
 	"runtime"
+	"runtime/debug"
 	"strings"
+	"sync"
 )
 
 // ================================
 // Modules Integration
 // ================================
 
-type modulesIntegration struct{}
-
-var _modulesCache map[string]string // nolint: gochecknoglobals
+type modulesIntegration struct {
+	once    sync.Once
+	modules map[string]string
+}
 
 func (mi *modulesIntegration) Name() string {
 	return "Modules"
@@ -28,140 +27,32 @@ func (mi *modulesIntegration) SetupOnce(client *Client) {
 }
 
 func (mi *modulesIntegration) processor(event *Event, hint *EventHint) *Event {
-	if event.Modules == nil {
-		event.Modules = extractModules()
+	if len(event.Modules) == 0 {
+		mi.once.Do(func() {
+			info, ok := debug.ReadBuildInfo()
+			if !ok {
+				Logger.Print("The Modules integration is not available in binaries built without module support.")
+				return
+			}
+			mi.modules = extractModules(info)
+		})
 	}
-
+	event.Modules = mi.modules
 	return event
 }
 
-func extractModules() map[string]string {
-	if _modulesCache != nil {
-		return _modulesCache
+func extractModules(info *debug.BuildInfo) map[string]string {
+	modules := map[string]string{
+		info.Main.Path: info.Main.Version,
 	}
-
-	extractedModules, err := getModules()
-	if err != nil {
-		Logger.Printf("ModuleIntegration wasn't able to extract modules: %v\n", err)
-		return nil
-	}
-
-	_modulesCache = extractedModules
-
-	return extractedModules
-}
-
-func getModules() (map[string]string, error) {
-	if fileExists("go.mod") {
-		return getModulesFromMod()
-	}
-
-	if fileExists("vendor") {
-		// Priority given to vendor created by modules
-		if fileExists("vendor/modules.txt") {
-			return getModulesFromVendorTxt()
+	for _, dep := range info.Deps {
+		ver := dep.Version
+		if dep.Replace != nil {
+			ver += fmt.Sprintf(" => %s %s", dep.Replace.Path, dep.Replace.Version)
 		}
-
-		if fileExists("vendor/vendor.json") {
-			return getModulesFromVendorJSON()
-		}
+		modules[dep.Path] = strings.TrimSuffix(ver, " ")
 	}
-
-	return nil, fmt.Errorf("module integration failed")
-}
-
-func getModulesFromMod() (map[string]string, error) {
-	modules := make(map[string]string)
-
-	file, err := os.Open("go.mod")
-	if err != nil {
-		return nil, fmt.Errorf("unable to open mod file")
-	}
-
-	defer file.Close()
-
-	areModulesPresent := false
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		splits := strings.Split(scanner.Text(), " ")
-
-		if splits[0] == "require" {
-			areModulesPresent = true
-
-			// Mod file has only 1 dependency
-			if len(splits) > 2 {
-				modules[strings.TrimSpace(splits[1])] = splits[2]
-				return modules, nil
-			}
-		} else if areModulesPresent && splits[0] != ")" {
-			modules[strings.TrimSpace(splits[0])] = splits[1]
-		}
-	}
-
-	if scannerErr := scanner.Err(); scannerErr != nil {
-		return nil, scannerErr
-	}
-
-	return modules, nil
-}
-
-func getModulesFromVendorTxt() (map[string]string, error) {
-	modules := make(map[string]string)
-
-	file, err := os.Open("vendor/modules.txt")
-	if err != nil {
-		return nil, fmt.Errorf("unable to open vendor/modules.txt")
-	}
-
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		splits := strings.Split(scanner.Text(), " ")
-
-		if splits[0] == "#" {
-			modules[splits[1]] = splits[2]
-		}
-	}
-
-	if scannerErr := scanner.Err(); scannerErr != nil {
-		return nil, scannerErr
-	}
-
-	return modules, nil
-}
-
-func getModulesFromVendorJSON() (map[string]string, error) {
-	modules := make(map[string]string)
-
-	file, err := ioutil.ReadFile("vendor/vendor.json")
-
-	if err != nil {
-		return nil, fmt.Errorf("unable to open vendor/vendor.json")
-	}
-
-	var vendor map[string]interface{}
-	if unmarshalErr := json.Unmarshal(file, &vendor); unmarshalErr != nil {
-		return nil, unmarshalErr
-	}
-
-	packages := vendor["package"].([]interface{})
-
-	// To avoid iterative dependencies, TODO: Change of default value
-	lastPath := "\n"
-
-	for _, value := range packages {
-		path := value.(map[string]interface{})["path"].(string)
-
-		if !strings.Contains(path, lastPath) {
-			// No versions are available through vendor.json
-			modules[path] = ""
-			lastPath = path
-		}
-	}
-
-	return modules, nil
+	return modules
 }
 
 // ================================
@@ -179,24 +70,49 @@ func (ei *environmentIntegration) SetupOnce(client *Client) {
 }
 
 func (ei *environmentIntegration) processor(event *Event, hint *EventHint) *Event {
+	// Initialize maps as necessary.
 	if event.Contexts == nil {
 		event.Contexts = make(map[string]interface{})
 	}
-
-	event.Contexts["device"] = map[string]interface{}{
-		"arch":    runtime.GOARCH,
-		"num_cpu": runtime.NumCPU(),
+	for _, name := range []string{"device", "os", "runtime"} {
+		if event.Contexts[name] == nil {
+			event.Contexts[name] = make(map[string]interface{})
+		}
 	}
 
-	event.Contexts["os"] = map[string]interface{}{
-		"name": runtime.GOOS,
+	// Set contextual information preserving existing data. For each context, if
+	// the existing value is not of type map[string]interface{}, then no
+	// additional information is added.
+	if deviceContext, ok := event.Contexts["device"].(map[string]interface{}); ok {
+		if _, ok := deviceContext["arch"]; !ok {
+			deviceContext["arch"] = runtime.GOARCH
+		}
+		if _, ok := deviceContext["num_cpu"]; !ok {
+			deviceContext["num_cpu"] = runtime.NumCPU()
+		}
 	}
-
-	event.Contexts["runtime"] = map[string]interface{}{
-		"name":    "go",
-		"version": runtime.Version(),
+	if osContext, ok := event.Contexts["os"].(map[string]interface{}); ok {
+		if _, ok := osContext["name"]; !ok {
+			osContext["name"] = runtime.GOOS
+		}
 	}
-
+	if runtimeContext, ok := event.Contexts["runtime"].(map[string]interface{}); ok {
+		if _, ok := runtimeContext["name"]; !ok {
+			runtimeContext["name"] = "go"
+		}
+		if _, ok := runtimeContext["version"]; !ok {
+			runtimeContext["version"] = runtime.Version()
+		}
+		if _, ok := runtimeContext["go_numroutines"]; !ok {
+			runtimeContext["go_numroutines"] = runtime.NumGoroutine()
+		}
+		if _, ok := runtimeContext["go_maxprocs"]; !ok {
+			runtimeContext["go_maxprocs"] = runtime.GOMAXPROCS(0)
+		}
+		if _, ok := runtimeContext["go_numcgocalls"]; !ok {
+			runtimeContext["go_numcgocalls"] = runtime.NumCgoCall()
+		}
+	}
 	return event
 }
 
@@ -254,9 +170,123 @@ func getIgnoreErrorsSuspects(event *Event) []string {
 	}
 
 	for _, ex := range event.Exception {
-		suspects = append(suspects, ex.Type)
-		suspects = append(suspects, ex.Value)
+		suspects = append(suspects, ex.Type, ex.Value)
 	}
 
 	return suspects
+}
+
+// ================================
+// Contextify Frames Integration
+// ================================
+
+type contextifyFramesIntegration struct {
+	sr              sourceReader
+	contextLines    int
+	cachedLocations sync.Map
+}
+
+func (cfi *contextifyFramesIntegration) Name() string {
+	return "ContextifyFrames"
+}
+
+func (cfi *contextifyFramesIntegration) SetupOnce(client *Client) {
+	cfi.sr = newSourceReader()
+	cfi.contextLines = 5
+
+	client.AddEventProcessor(cfi.processor)
+}
+
+func (cfi *contextifyFramesIntegration) processor(event *Event, hint *EventHint) *Event {
+	// Range over all exceptions
+	for _, ex := range event.Exception {
+		// If it has no stacktrace, just bail out
+		if ex.Stacktrace == nil {
+			continue
+		}
+
+		// If it does, it should have frames, so try to contextify them
+		ex.Stacktrace.Frames = cfi.contextify(ex.Stacktrace.Frames)
+	}
+
+	// Range over all threads
+	for _, th := range event.Threads {
+		// If it has no stacktrace, just bail out
+		if th.Stacktrace == nil {
+			continue
+		}
+
+		// If it does, it should have frames, so try to contextify them
+		th.Stacktrace.Frames = cfi.contextify(th.Stacktrace.Frames)
+	}
+
+	return event
+}
+
+func (cfi *contextifyFramesIntegration) contextify(frames []Frame) []Frame {
+	contextifiedFrames := make([]Frame, 0, len(frames))
+
+	for _, frame := range frames {
+		if !frame.InApp {
+			contextifiedFrames = append(contextifiedFrames, frame)
+			continue
+		}
+
+		var path string
+
+		if cachedPath, ok := cfi.cachedLocations.Load(frame.AbsPath); ok {
+			if p, ok := cachedPath.(string); ok {
+				path = p
+			}
+		} else {
+			// Optimize for happy path here
+			if fileExists(frame.AbsPath) {
+				path = frame.AbsPath
+			} else {
+				path = cfi.findNearbySourceCodeLocation(frame.AbsPath)
+			}
+		}
+
+		if path == "" {
+			contextifiedFrames = append(contextifiedFrames, frame)
+			continue
+		}
+
+		lines, contextLine := cfi.sr.readContextLines(path, frame.Lineno, cfi.contextLines)
+		contextifiedFrames = append(contextifiedFrames, cfi.addContextLinesToFrame(frame, lines, contextLine))
+	}
+
+	return contextifiedFrames
+}
+
+func (cfi *contextifyFramesIntegration) findNearbySourceCodeLocation(originalPath string) string {
+	trimmedPath := strings.TrimPrefix(originalPath, "/")
+	components := strings.Split(trimmedPath, "/")
+
+	for len(components) > 0 {
+		components = components[1:]
+		possibleLocation := strings.Join(components, "/")
+
+		if fileExists(possibleLocation) {
+			cfi.cachedLocations.Store(originalPath, possibleLocation)
+			return possibleLocation
+		}
+	}
+
+	cfi.cachedLocations.Store(originalPath, "")
+	return ""
+}
+
+func (cfi *contextifyFramesIntegration) addContextLinesToFrame(frame Frame, lines [][]byte, contextLine int) Frame {
+	for i, line := range lines {
+		switch {
+		case i < contextLine:
+			frame.PreContext = append(frame.PreContext, string(line))
+		case i == contextLine:
+			frame.ContextLine = string(line)
+		default:
+			frame.PostContext = append(frame.PostContext, string(line))
+		}
+	}
+	return frame
 }

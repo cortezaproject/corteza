@@ -6,15 +6,15 @@
   A package for detecting MIME types and extensions based on magic numbers
 </h4>
 <h6 align="center">
-  No C bindings, zero dependencies and thread safe
+  Goroutine safe, extensible, no C bindings
 </h6>
 
 <p align="center">
   <a href="https://travis-ci.org/gabriel-vasile/mimetype">
     <img alt="Build Status" src="https://travis-ci.org/gabriel-vasile/mimetype.svg?branch=master">
   </a>
-  <a href="https://godoc.org/github.com/gabriel-vasile/mimetype">
-    <img alt="Documentation" src="https://godoc.org/github.com/gabriel-vasile/mimetype?status.svg">
+  <a href="https://pkg.go.dev/github.com/gabriel-vasile/mimetype">
+    <img src="https://pkg.go.dev/badge/github.com/gabriel-vasile/mimetype.svg" alt="Go Reference">
   </a>
   <a href="https://goreportcard.com/report/github.com/gabriel-vasile/mimetype">
     <img alt="Go report card" src="https://goreportcard.com/badge/github.com/gabriel-vasile/mimetype">
@@ -30,11 +30,9 @@
 ## Features
 - fast and precise MIME type and file extension detection
 - long list of [supported MIME types](supported_mimes.md)
+- posibility to [extend](https://pkg.go.dev/github.com/gabriel-vasile/mimetype#example-package-Extend) with other file formats
 - common file formats are prioritized
-- small and simple API
-- handles MIME type aliases
-- thread safe
-- low memory usage, besides the file header
+- safe for concurrent usage
 
 ## Install
 ```bash
@@ -42,25 +40,37 @@ go get github.com/gabriel-vasile/mimetype
 ```
 
 ## Usage
-There are quick [examples](EXAMPLES.md) and
-[GoDoc](https://godoc.org/github.com/gabriel-vasile/mimetype) for full reference.
+```go
+mtype := mimetype.Detect([]byte)
+// OR
+mtype, err := mimetype.DetectReader(io.Reader)
+// OR
+mtype, err := mimetype.DetectFile("/path/to/file")
+fmt.Println(mtype.String(), mtype.Extension())
+```
+See the [runnable Go Playground examples](https://pkg.go.dev/github.com/gabriel-vasile/mimetype#pkg-overview).
 
+## Usage'
+Only use libraries like **mimetype** as a last resort. Content type detection
+using magic numbers is slow, inaccurate, and non-standard. Most of the times
+protocols have methods for specifying such metadata; e.g., `Content-Type` header
+in HTTP and SMTP.
 
 ## Structure
-**mimetype** uses an hierarchical structure to keep the MIME type detection logic.
+**mimetype** uses a hierarchical structure to keep the MIME type detection logic.
 This reduces the number of calls needed for detecting the file type. The reason
 behind this choice is that there are file formats used as containers for other
 file formats. For example, Microsoft Office files are just zip archives,
-containing specific metadata files. Once a file a file has been identified as a
+containing specific metadata files. Once a file has been identified as a
 zip, there is no need to check if it is a text file, but it is worth checking if
 it is an Microsoft Office file.
 
 To prevent loading entire files into memory, when detecting from a
-[reader](https://godoc.org/github.com/gabriel-vasile/mimetype#DetectReader)
-or from a [file](https://godoc.org/github.com/gabriel-vasile/mimetype#DetectFile)
+[reader](https://pkg.go.dev/github.com/gabriel-vasile/mimetype#DetectReader)
+or from a [file](https://pkg.go.dev/github.com/gabriel-vasile/mimetype#DetectFile)
 **mimetype** limits itself to reading only the header of the input.
 <div align="center">
-  <img alt="structure" src="https://github.com/gabriel-vasile/mimetype/blob/33abbe6cb78fe1a8486c92f95008a9e0fcef10a1/mimetype.gif?raw=true" width="88%">
+  <img alt="structure" src="https://github.com/gabriel-vasile/mimetype/blob/420a05228c6a6efbb6e6f080168a25663414ff36/mimetype.gif?raw=true" width="88%">
 </div>
 
 ## Performance
@@ -68,8 +78,6 @@ Thanks to the hierarchical structure, searching for common formats first,
 and limiting itself to file headers, **mimetype** matches the performance of
 stdlib `http.DetectContentType` while outperforming the alternative package.
 
-[Benchmarks](https://github.com/gabriel-vasile/mimetype/blob/d8628c314b5e59259afc7b0f4f84e6b31931b316/mimetype_test.go#L267)
-were run on an Intel Xeon Gold 6136 24 core CPU @ 3.00GHz. Lower is better.
 ```bash
                             mimetype  http.DetectContentType      filetype
 BenchmarkMatchTar-24       250 ns/op         400 ns/op           3778 ns/op

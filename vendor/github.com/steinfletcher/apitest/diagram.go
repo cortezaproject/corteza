@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -49,6 +50,7 @@ type (
 	webSequenceDiagramDSL struct {
 		data  bytes.Buffer
 		count int
+		meta  map[string]interface{}
 	}
 )
 
@@ -69,13 +71,26 @@ func (r *webSequenceDiagramDSL) addResponseRow(source string, target string, des
 }
 
 func (r *webSequenceDiagramDSL) addRow(operation, source string, target string, description string) {
+	if name, ok := r.meta["consumerName"]; ok {
+		if n, ok := name.(string); ok {
+			source = strings.ReplaceAll(source, ConsumerDefaultName, n)
+			target = strings.ReplaceAll(target, ConsumerDefaultName, n)
+		}
+	}
+	if name, ok := r.meta["systemUnderTestName"]; ok {
+		if n, ok := name.(string); ok {
+			source = strings.ReplaceAll(source, SystemUnderTestDefaultName, n)
+			target = strings.ReplaceAll(target, SystemUnderTestDefaultName, n)
+		}
+	}
 	r.count++
 	r.data.WriteString(fmt.Sprintf("%s%s%s: (%d) %s\n",
-		source,
+		quoted(source),
 		operation,
-		target,
+		quoted(target),
 		r.count,
-		description))
+		description),
+	)
 }
 
 func (r *webSequenceDiagramDSL) toString() string {
@@ -165,7 +180,7 @@ func newHTMLTemplateModel(r *Recorder) (htmlTemplateModel, error) {
 		return htmlTemplateModel{}, errors.New("no events are defined")
 	}
 	var logs []logEntry
-	webSequenceDiagram := &webSequenceDiagramDSL{}
+	webSequenceDiagram := &webSequenceDiagramDSL{meta: r.Meta}
 
 	for _, event := range r.Events {
 		switch v := event.(type) {
@@ -273,4 +288,8 @@ func formatBodyContent(bodyReadCloser io.ReadCloser, replaceBody func(replacemen
 		return "", err
 	}
 	return buf.String(), nil
+}
+
+func quoted(in string) string {
+	return fmt.Sprintf("%q", in)
 }

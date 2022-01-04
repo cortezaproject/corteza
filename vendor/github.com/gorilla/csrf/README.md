@@ -29,6 +29,18 @@ gorilla/csrf is designed to work with any Go web framework, including:
 gorilla/csrf is also compatible with middleware 'helper' libraries like
 [Alice](https://github.com/justinas/alice) and [Negroni](https://github.com/codegangsta/negroni).
 
+## Contents
+
+  * [Install](#install)
+  * [Examples](#examples)
+    + [HTML Forms](#html-forms)
+    + [JavaScript Applications](#javascript-applications)
+    + [Google App Engine](#google-app-engine)
+    + [Setting SameSite](#setting-samesite)
+    + [Setting Options](#setting-options)
+  * [Design Notes](#design-notes)
+  * [License](#license)
+
 ## Install
 
 With a properly configured Go toolchain:
@@ -56,9 +68,12 @@ http.ListenAndServe(":8000", CSRF(r))
 ...and then collect the token with `csrf.Token(r)` in your handlers before
 passing it to the template, JSON body or HTTP header (see below).
 
-Note that the authentication key passed to `csrf.Protect([]byte(key))` should be
-32-bytes long and persist across application restarts. Generating a random key
-won't allow you to authenticate existing cookies and will break your CSRF
+Note that the authentication key passed to `csrf.Protect([]byte(key))` should:
+- be 32-bytes long
+- persist across application restarts.
+- kept secret from potential malicious users - do not hardcode it into the source code, especially not in open-source applications.
+
+Generating a random key won't allow you to authenticate existing cookies and will break your CSRF
 validation.
 
 gorilla/csrf inspects the HTTP headers (first) and form body (second) on
@@ -214,7 +229,7 @@ import (
 
 func main() {
     r := mux.NewRouter()
-    csrfMiddleware := csrf.Protect([]byte("32-byte-long-auth-key"), csrf.TrustedOrigin([]string{"ui.domain.com"}))
+    csrfMiddleware := csrf.Protect([]byte("32-byte-long-auth-key"), csrf.TrustedOrigins([]string{"ui.domain.com"}))
 
     api := r.PathPrefix("/api").Subrouter()
     api.Use(csrfMiddleware)
@@ -290,6 +305,21 @@ func main() {
 
     http.ListenAndServe(":8000", CSRF(r))
 }
+```
+
+### Cookie path
+
+By default, CSRF cookies are set on the path of the request.
+
+This can create issues, if the request is done from one path to a different path.
+
+You might want to set up a root path for all the cookies; that way, the CSRF will always work across all your paths.
+
+```
+    CSRF := csrf.Protect(
+      []byte("a-32-byte-long-key-goes-here"),
+      csrf.Path("/"),
+    )
 ```
 
 ### Setting Options

@@ -105,7 +105,7 @@ func unmask(issued []byte) []byte {
 
 // requestToken returns the issued token (pad + masked token) from the HTTP POST
 // body or HTTP header. It will return nil if the token fails to decode.
-func (cs *csrf) requestToken(r *http.Request) []byte {
+func (cs *csrf) requestToken(r *http.Request) ([]byte, error) {
 	// 1. Check the HTTP header first.
 	issued := r.Header.Get(cs.opts.RequestHeader)
 
@@ -123,14 +123,19 @@ func (cs *csrf) requestToken(r *http.Request) []byte {
 		}
 	}
 
+	// Return nil (equivalent to empty byte slice) if no token was found
+	if issued == "" {
+		return nil, nil
+	}
+
 	// Decode the "issued" (pad + masked) token sent in the request. Return a
 	// nil byte slice on a decoding error (this will fail upstream).
 	decoded, err := base64.StdEncoding.DecodeString(issued)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
-	return decoded
+	return decoded, nil
 }
 
 // generateRandomBytes returns securely generated random bytes.

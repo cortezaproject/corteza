@@ -48,11 +48,12 @@ type AuthnRequest struct {
 type LogoutRequest struct {
 	XMLName xml.Name `xml:"urn:oasis:names:tc:SAML:2.0:protocol LogoutRequest"`
 
-	ID           string    `xml:",attr"`
-	Version      string    `xml:",attr"`
-	IssueInstant time.Time `xml:",attr"`
-	Destination  string    `xml:",attr"`
-	Issuer       *Issuer   `xml:"urn:oasis:names:tc:SAML:2.0:assertion Issuer"`
+	ID           string     `xml:",attr"`
+	Version      string     `xml:",attr"`
+	IssueInstant time.Time  `xml:",attr"`
+	NotOnOrAfter *time.Time `xml:",attr"`
+	Destination  string     `xml:",attr"`
+	Issuer       *Issuer    `xml:"urn:oasis:names:tc:SAML:2.0:assertion Issuer"`
 	NameID       *NameID
 	Signature    *etree.Element
 
@@ -67,6 +68,9 @@ func (r *LogoutRequest) Element() *etree.Element {
 	el.CreateAttr("ID", r.ID)
 	el.CreateAttr("Version", r.Version)
 	el.CreateAttr("IssueInstant", r.IssueInstant.Format(timeFormat))
+	if r.NotOnOrAfter != nil {
+		el.CreateAttr("NotOnOrAfter", r.NotOnOrAfter.Format(timeFormat))
+	}
 	if r.Destination != "" {
 		el.CreateAttr("Destination", r.Destination)
 	}
@@ -89,10 +93,12 @@ func (r *LogoutRequest) Element() *etree.Element {
 func (r *LogoutRequest) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	type Alias LogoutRequest
 	aux := &struct {
-		IssueInstant RelaxedTime `xml:",attr"`
+		IssueInstant RelaxedTime  `xml:",attr"`
+		NotOnOrAfter *RelaxedTime `xml:",attr"`
 		*Alias
 	}{
 		IssueInstant: RelaxedTime(r.IssueInstant),
+		NotOnOrAfter: (*RelaxedTime)(r.NotOnOrAfter),
 		Alias:        (*Alias)(r),
 	}
 	return e.Encode(aux)
@@ -102,7 +108,8 @@ func (r *LogoutRequest) MarshalXML(e *xml.Encoder, start xml.StartElement) error
 func (r *LogoutRequest) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	type Alias LogoutRequest
 	aux := &struct {
-		IssueInstant RelaxedTime `xml:",attr"`
+		IssueInstant RelaxedTime  `xml:",attr"`
+		NotOnOrAfter *RelaxedTime `xml:",attr"`
 		*Alias
 	}{
 		Alias: (*Alias)(r),
@@ -111,6 +118,7 @@ func (r *LogoutRequest) UnmarshalXML(d *xml.Decoder, start xml.StartElement) err
 		return err
 	}
 	r.IssueInstant = time.Time(aux.IssueInstant)
+	r.NotOnOrAfter = (*time.Time)(aux.NotOnOrAfter)
 	return nil
 }
 
@@ -294,6 +302,161 @@ func (a *NameIDPolicy) Element() *etree.Element {
 		el.CreateAttr("AllowCreate", strconv.FormatBool(*a.AllowCreate))
 	}
 	return el
+}
+
+// ArtifactResolve represents the SAML object of the same name.
+type ArtifactResolve struct {
+	XMLName      xml.Name  `xml:"urn:oasis:names:tc:SAML:2.0:protocol ArtifactResponse"`
+	ID           string    `xml:",attr"`
+	Version      string    `xml:",attr"`
+	IssueInstant time.Time `xml:",attr"`
+	Issuer       *Issuer   `xml:"urn:oasis:names:tc:SAML:2.0:assertion Issuer"`
+	Signature    *etree.Element
+	Artifact     string `xml:"urn:oasis:names:tc:SAML:2.0:protocol Artifact"`
+}
+
+// Element returns an etree.Element representing the object in XML form.
+func (r *ArtifactResolve) Element() *etree.Element {
+	el := etree.NewElement("samlp:ArtifactResolve")
+	el.CreateAttr("xmlns:saml", "urn:oasis:names:tc:SAML:2.0:assertion")
+	el.CreateAttr("xmlns:samlp", "urn:oasis:names:tc:SAML:2.0:protocol")
+
+	// Note: This namespace is not used by any element or attribute name, but
+	// is required so that the AttributeValue type element can have a value like
+	// "xs:string". If we don't declare it here, then it will be stripped by the
+	// cannonicalizer. This could be avoided by providing a prefix list to the
+	// cannonicalizer, but prefix lists do not appear to be implemented correctly
+	// in some libraries, so the safest action is to always produce XML that is
+	// (a) in canonical form and (b) does not require prefix lists.
+	el.CreateAttr("xmlns:xs", "http://www.w3.org/2001/XMLSchema")
+
+	el.CreateAttr("ID", r.ID)
+	el.CreateAttr("Version", r.Version)
+	el.CreateAttr("IssueInstant", r.IssueInstant.Format(timeFormat))
+	if r.Issuer != nil {
+		el.AddChild(r.Issuer.Element())
+	}
+	artifact := etree.NewElement("samlp:Artifact")
+	artifact.SetText(r.Artifact)
+	el.AddChild(artifact)
+	if r.Signature != nil {
+		el.AddChild(r.Signature)
+	}
+	return el
+}
+
+// SoapRequest returns a SOAP Envelope contining the ArtifactResolve request
+func (r *ArtifactResolve) SoapRequest() *etree.Element {
+	envelope := etree.NewElement("soapenv:Envelope")
+	envelope.CreateAttr("xmlns:soapenv", "http://schemas.xmlsoap.org/soap/envelope/")
+	envelope.CreateAttr("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
+	body := etree.NewElement("soapenv:Body")
+	envelope.AddChild(body)
+	body.AddChild(r.Element())
+	return envelope
+}
+
+// MarshalXML implements xml.Marshaler
+func (r *ArtifactResolve) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	type Alias ArtifactResolve
+	aux := &struct {
+		IssueInstant RelaxedTime `xml:",attr"`
+		*Alias
+	}{
+		IssueInstant: RelaxedTime(r.IssueInstant),
+		Alias:        (*Alias)(r),
+	}
+	return e.Encode(aux)
+}
+
+// UnmarshalXML implements xml.Unmarshaler
+func (r *ArtifactResolve) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	type Alias ArtifactResolve
+	aux := &struct {
+		IssueInstant RelaxedTime `xml:",attr"`
+		*Alias
+	}{
+		Alias: (*Alias)(r),
+	}
+	if err := d.DecodeElement(&aux, &start); err != nil {
+		return err
+	}
+	r.IssueInstant = time.Time(aux.IssueInstant)
+	return nil
+}
+
+// ArtifactResponse represents the SAML object of the same name.
+type ArtifactResponse struct {
+	XMLName      xml.Name  `xml:"urn:oasis:names:tc:SAML:2.0:protocol ArtifactResponse"`
+	ID           string    `xml:",attr"`
+	InResponseTo string    `xml:",attr"`
+	Version      string    `xml:",attr"`
+	IssueInstant time.Time `xml:",attr"`
+	Issuer       *Issuer   `xml:"urn:oasis:names:tc:SAML:2.0:assertion Issuer"`
+	Signature    *etree.Element
+	Status       Status   `xml:"urn:oasis:names:tc:SAML:2.0:protocol Status"`
+	Response     Response `xml:"urn:oasis:names:tc:SAML:2.0:protocol Response"`
+}
+
+// Element returns an etree.Element representing the object in XML form.
+func (r *ArtifactResponse) Element() *etree.Element {
+	el := etree.NewElement("samlp:ArtifactResponse")
+	el.CreateAttr("xmlns:saml", "urn:oasis:names:tc:SAML:2.0:assertion")
+	el.CreateAttr("xmlns:samlp", "urn:oasis:names:tc:SAML:2.0:protocol")
+
+	// Note: This namespace is not used by any element or attribute name, but
+	// is required so that the AttributeValue type element can have a value like
+	// "xs:string". If we don't declare it here, then it will be stripped by the
+	// cannonicalizer. This could be avoided by providing a prefix list to the
+	// cannonicalizer, but prefix lists do not appear to be implemented correctly
+	// in some libraries, so the safest action is to always produce XML that is
+	// (a) in canonical form and (b) does not require prefix lists.
+	el.CreateAttr("xmlns:xs", "http://www.w3.org/2001/XMLSchema")
+
+	el.CreateAttr("ID", r.ID)
+	if r.InResponseTo != "" {
+		el.CreateAttr("InResponseTo", r.InResponseTo)
+	}
+	el.CreateAttr("Version", r.Version)
+	el.CreateAttr("IssueInstant", r.IssueInstant.Format(timeFormat))
+	if r.Issuer != nil {
+		el.AddChild(r.Issuer.Element())
+	}
+	if r.Signature != nil {
+		el.AddChild(r.Signature)
+	}
+	el.AddChild(r.Status.Element())
+	el.AddChild(r.Response.Element())
+	return el
+}
+
+// MarshalXML implements xml.Marshaler
+func (r *ArtifactResponse) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	type Alias ArtifactResponse
+	aux := &struct {
+		IssueInstant RelaxedTime `xml:",attr"`
+		*Alias
+	}{
+		IssueInstant: RelaxedTime(r.IssueInstant),
+		Alias:        (*Alias)(r),
+	}
+	return e.Encode(aux)
+}
+
+// UnmarshalXML implements xml.Unmarshaler
+func (r *ArtifactResponse) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	type Alias ArtifactResponse
+	aux := &struct {
+		IssueInstant RelaxedTime `xml:",attr"`
+		*Alias
+	}{
+		Alias: (*Alias)(r),
+	}
+	if err := d.DecodeElement(&aux, &start); err != nil {
+		return err
+	}
+	r.IssueInstant = time.Time(aux.IssueInstant)
+	return nil
 }
 
 // Response represents the SAML object of the same name.
@@ -515,7 +678,8 @@ const (
 //
 // See http://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf §3.2.2.3
 type StatusMessage struct {
-	Value string
+	XMLName xml.Name `xml:"urn:oasis:names:tc:SAML:2.0:protocol StatusMessage"`
+	Value   string   `xml:",chardata"`
 }
 
 // Element returns an etree.Element representing the object in XML form.

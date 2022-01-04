@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 type stage struct {
@@ -51,6 +52,15 @@ type infixBuilder func(a, b Evaluable) (Evaluable, error)
 func (l Language) isSymbolOperation(r rune) bool {
 	_, in := l.operatorSymbols[r]
 	return in
+}
+
+func (l Language) isOperatorPrefix(op string) bool {
+	for k := range l.operators {
+		if strings.HasPrefix(k, op) {
+			return true
+		}
+	}
+	return false
 }
 
 func (op *infix) initiate(name string) {
@@ -104,7 +114,6 @@ func (op *infix) initiate(name string) {
 			return f(a, b)
 		}, nil
 	}
-	return
 }
 
 type opFunc func(a, b interface{}) (interface{}, error)
@@ -134,6 +143,9 @@ func convertToBool(o interface{}) (bool, bool) {
 	v := reflect.ValueOf(o)
 	for o != nil && v.Kind() == reflect.Ptr {
 		v = v.Elem()
+		if !v.IsValid() {
+			return false, false
+		}
 		o = v.Interface()
 	}
 	if o == false || o == nil || o == "false" || o == "FALSE" {
@@ -174,6 +186,9 @@ func convertToFloat(o interface{}) (float64, bool) {
 	v := reflect.ValueOf(o)
 	for o != nil && v.Kind() == reflect.Ptr {
 		v = v.Elem()
+		if !v.IsValid() {
+			return 0, false
+		}
 		o = v.Interface()
 	}
 	switch v.Kind() {
@@ -255,19 +270,19 @@ type infix struct {
 func (op infix) merge(op2 operator) operator {
 	switch op2 := op2.(type) {
 	case *infix:
-		if op2.number != nil {
+		if op.number == nil {
 			op.number = op2.number
 		}
-		if op2.boolean != nil {
+		if op.boolean == nil {
 			op.boolean = op2.boolean
 		}
-		if op2.text != nil {
+		if op.text == nil {
 			op.text = op2.text
 		}
-		if op2.arbitrary != nil {
+		if op.arbitrary == nil {
 			op.arbitrary = op2.arbitrary
 		}
-		if op2.shortCircuit != nil {
+		if op.shortCircuit == nil {
 			op.shortCircuit = op2.shortCircuit
 		}
 	}
@@ -293,7 +308,7 @@ func (op directInfix) merge(op2 operator) operator {
 	return op
 }
 
-type prefix func(context.Context, *Parser) (Evaluable, error)
+type extension func(context.Context, *Parser) (Evaluable, error)
 
 type postfix struct {
 	operatorPrecedence

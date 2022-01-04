@@ -1,15 +1,17 @@
+[![Stability: Maintenance](https://masterminds.github.io/stability/maintenance.svg)](https://masterminds.github.io/stability/maintenance.html)
+### Squirrel is "complete".
+Bug fixes will still be merged (slowly). Bug reports are welcome, but I will not necessarily respond to them. If another fork (or substantially similar project) actively improves on what Squirrel does, let me know and I may link to it here.
+
+
 # Squirrel - fluent SQL generator for Go
 
 ```go
 import "github.com/Masterminds/squirrel"
 ```
 
+
 [![GoDoc](https://godoc.org/github.com/Masterminds/squirrel?status.png)](https://godoc.org/github.com/Masterminds/squirrel)
 [![Build Status](https://api.travis-ci.org/Masterminds/squirrel.svg?branch=master)](https://travis-ci.org/Masterminds/squirrel)
-
-_**Note:** This project has moved from `github.com/lann/squirrel` to
-`github.com/Masterminds/squirrel`. Lann remains the architect of the
-project, but we're helping him curate.
 
 **Squirrel is not an ORM.** For an application of Squirrel, check out
 [structable, a table-struct mapper](https://github.com/Masterminds/structable)
@@ -62,7 +64,7 @@ Squirrel wants to make your life easier:
 
 ```go
 // StmtCache caches Prepared Stmts for you
-dbCache := sq.NewStmtCacher(db)
+dbCache := sq.NewStmtCache(db)
 
 // StatementBuilder keeps your syntax neat
 mydb := sq.StatementBuilder.RunWith(dbCache)
@@ -92,7 +94,7 @@ query := sq.Insert("nodes").
 query.QueryRow().Scan(&node.id)
 ```
 
-You can escape question mask by inserting two question marks:
+You can escape question marks by inserting two question marks:
 
 ```sql
 SELECT * FROM nodes WHERE meta->'format' ??| array[?,?]

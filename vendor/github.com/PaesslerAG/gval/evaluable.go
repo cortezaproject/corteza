@@ -75,6 +75,7 @@ func (*Parser) Const(value interface{}) Evaluable {
 	return constant(value)
 }
 
+//go:noinline
 func constant(value interface{}) Evaluable {
 	return func(c context.Context, v interface{}) (interface{}, error) {
 		return value, nil
@@ -91,10 +92,10 @@ func constant(value interface{}) Evaluable {
 //	slices and
 //  map with int or string key.
 func (p *Parser) Var(path ...Evaluable) Evaluable {
-	if p.Language.selector == nil {
+	if p.selector == nil {
 		return variable(path)
 	}
-	return p.Language.selector(path)
+	return p.selector(path)
 }
 
 // Evaluables is a slice of Evaluable.
@@ -297,7 +298,7 @@ func regEx(a, b Evaluable) (Evaluable, error) {
 			return matched, err
 		}, nil
 	}
-	s, err := b.EvalString(nil, nil)
+	s, err := b.EvalString(context.TODO(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -329,7 +330,7 @@ func notRegEx(a, b Evaluable) (Evaluable, error) {
 			return !matched, err
 		}, nil
 	}
-	s, err := b.EvalString(nil, nil)
+	s, err := b.EvalString(context.TODO(), nil)
 	if err != nil {
 		return nil, err
 	}

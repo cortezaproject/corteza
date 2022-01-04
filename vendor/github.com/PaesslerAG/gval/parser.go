@@ -19,10 +19,41 @@ type Parser struct {
 func newParser(expression string, l Language) *Parser {
 	sc := scanner.Scanner{}
 	sc.Init(strings.NewReader(expression))
-	sc.Error = func(*scanner.Scanner, string) { return }
-	sc.IsIdentRune = func(r rune, pos int) bool { return unicode.IsLetter(r) || r == '_' || (pos > 0 && unicode.IsDigit(r)) }
+	sc.Error = func(*scanner.Scanner, string) {}
 	sc.Filename = expression + "\t"
-	return &Parser{scanner: sc, Language: l}
+	p := &Parser{scanner: sc, Language: l}
+	p.resetScannerProperties()
+	return p
+}
+
+func (p *Parser) resetScannerProperties() {
+	p.scanner.Whitespace = scanner.GoWhitespace
+	p.scanner.Mode = scanner.GoTokens
+	p.scanner.IsIdentRune = func(r rune, pos int) bool {
+		return unicode.IsLetter(r) || r == '_' || (pos > 0 && unicode.IsDigit(r))
+	}
+}
+
+// SetWhitespace sets the behavior of the whitespace matcher. The given
+// characters must be less than or equal to 0x20 (' ').
+func (p *Parser) SetWhitespace(chars ...rune) {
+	var mask uint64
+	for _, char := range chars {
+		mask |= 1 << char
+	}
+
+	p.scanner.Whitespace = mask
+}
+
+// SetMode sets the tokens that the underlying scanner will match.
+func (p *Parser) SetMode(mode uint) {
+	p.scanner.Mode = mode
+}
+
+// SetIsIdentRuneFunc sets the function that matches ident characters in the
+// underlying scanner.
+func (p *Parser) SetIsIdentRuneFunc(fn func(ch rune, i int) bool) {
+	p.scanner.IsIdentRune = fn
 }
 
 // Scan reads the next token or Unicode character from source and returns it.
@@ -50,7 +81,6 @@ func (p *Parser) Camouflage(unit string, expected ...rune) {
 		panic(fmt.Errorf("can only Camouflage() after Scan(): %v", p.camouflage))
 	}
 	p.camouflage = p.Expected(unit, expected...)
-	return
 }
 
 // Peek returns the next Unicode character in the source without advancing

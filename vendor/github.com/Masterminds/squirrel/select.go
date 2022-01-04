@@ -12,7 +12,7 @@ import (
 type selectData struct {
 	PlaceholderFormat PlaceholderFormat
 	RunWith           BaseRunner
-	Prefixes          exprs
+	Prefixes          []Sqlizer
 	Options           []string
 	Columns           []Sqlizer
 	From              Sqlizer
@@ -23,7 +23,7 @@ type selectData struct {
 	OrderByParts      []Sqlizer
 	Limit             string
 	Offset            string
-	Suffixes          exprs
+	Suffixes          []Sqlizer
 }
 
 func (d *selectData) Exec() (sql.Result, error) {
@@ -52,7 +52,7 @@ func (d *selectData) QueryRow() RowScanner {
 }
 
 func (d *selectData) ToSql() (sqlStr string, args []interface{}, err error) {
-	sqlStr, args, err = d.toSql()
+	sqlStr, args, err = d.toSqlRaw()
 	if err != nil {
 		return
 	}
@@ -62,10 +62,6 @@ func (d *selectData) ToSql() (sqlStr string, args []interface{}, err error) {
 }
 
 func (d *selectData) toSqlRaw() (sqlStr string, args []interface{}, err error) {
-	return d.toSql()
-}
-
-func (d *selectData) toSql() (sqlStr string, args []interface{}, err error) {
 	if len(d.Columns) == 0 {
 		err = fmt.Errorf("select statements must have at least one result column")
 		return
@@ -74,7 +70,11 @@ func (d *selectData) toSql() (sqlStr string, args []interface{}, err error) {
 	sql := &bytes.Buffer{}
 
 	if len(d.Prefixes) > 0 {
-		args, _ = d.Prefixes.AppendToSql(sql, " ", args)
+		args, err = appendToSql(d.Prefixes, sql, " ", args)
+		if err != nil {
+			return
+		}
+
 		sql.WriteString(" ")
 	}
 
@@ -149,7 +149,11 @@ func (d *selectData) toSql() (sqlStr string, args []interface{}, err error) {
 
 	if len(d.Suffixes) > 0 {
 		sql.WriteString(" ")
-		args, _ = d.Suffixes.AppendToSql(sql, " ", args)
+
+		args, err = appendToSql(d.Suffixes, sql, " ", args)
+		if err != nil {
+			return
+		}
 	}
 
 	sqlStr = sql.String()
@@ -176,6 +180,9 @@ func (b SelectBuilder) PlaceholderFormat(f PlaceholderFormat) SelectBuilder {
 // Runner methods
 
 // RunWith sets a Runner (like database/sql.DB) to be used with e.g. Exec.
+// For most cases runner will be a database connection.
+//
+// Internally we use this to mock out the database connection for testing.
 func (b SelectBuilder) RunWith(runner BaseRunner) SelectBuilder {
 	return setRunWith(b, runner).(SelectBuilder)
 }
@@ -211,6 +218,13 @@ func (b SelectBuilder) ToSql() (string, []interface{}, error) {
 	return data.ToSql()
 }
 
+func (b SelectBuilder) toSqlRaw() (string, []interface{}, error) {
+	data := builder.GetStruct(b).(selectData)
+	return data.toSqlRaw()
+}
+
+// MustSql builds the query into a SQL string and bound args.
+// It panics if there are any errors.
 func (b SelectBuilder) MustSql() (string, []interface{}) {
 	sql, args, err := b.ToSql()
 	if err != nil {
@@ -219,14 +233,14 @@ func (b SelectBuilder) MustSql() (string, []interface{}) {
 	return sql, args
 }
 
-func (b SelectBuilder) toSqlRaw() (string, []interface{}, error) {
-	data := builder.GetStruct(b).(selectData)
-	return data.toSqlRaw()
-}
-
 // Prefix adds an expression to the beginning of the query
 func (b SelectBuilder) Prefix(sql string, args ...interface{}) SelectBuilder {
-	return builder.Append(b, "Prefixes", Expr(sql, args...)).(SelectBuilder)
+	return b.PrefixExpr(Expr(sql, args...))
+}
+
+// PrefixExpr adds an expression to the very beginning of the query
+func (b SelectBuilder) PrefixExpr(expr Sqlizer) SelectBuilder {
+	return builder.Append(b, "Prefixes", expr).(SelectBuilder)
 }
 
 // Distinct adds a DISTINCT clause to the query.
@@ -286,6 +300,16 @@ func (b SelectBuilder) LeftJoin(join string, rest ...interface{}) SelectBuilder 
 // RightJoin adds a RIGHT JOIN clause to the query.
 func (b SelectBuilder) RightJoin(join string, rest ...interface{}) SelectBuilder {
 	return b.JoinClause("RIGHT JOIN "+join, rest...)
+}
+
+// InnerJoin adds a INNER JOIN clause to the query.
+func (b SelectBuilder) InnerJoin(join string, rest ...interface{}) SelectBuilder {
+	return b.JoinClause("INNER JOIN "+join, rest...)
+}
+
+// CrossJoin adds a CROSS JOIN clause to the query.
+func (b SelectBuilder) CrossJoin(join string, rest ...interface{}) SelectBuilder {
+	return b.JoinClause("CROSS JOIN "+join, rest...)
 }
 
 // Where adds an expression to the WHERE clause of the query.
@@ -363,5 +387,10 @@ func (b SelectBuilder) RemoveOffset() SelectBuilder {
 
 // Suffix adds an expression to the end of the query
 func (b SelectBuilder) Suffix(sql string, args ...interface{}) SelectBuilder {
-	return builder.Append(b, "Suffixes", Expr(sql, args...)).(SelectBuilder)
+	return b.SuffixExpr(Expr(sql, args...))
+}
+
+// SuffixExpr adds an expression to the end of the query
+func (b SelectBuilder) SuffixExpr(expr Sqlizer) SelectBuilder {
+	return builder.Append(b, "Suffixes", expr).(SelectBuilder)
 }

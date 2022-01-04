@@ -19,6 +19,7 @@ type CookieRequestTracker struct {
 	NamePrefix      string
 	Codec           TrackedRequestCodec
 	MaxAge          time.Duration
+	RelayStateFunc  func(w http.ResponseWriter, r *http.Request) string
 	SameSite        http.SameSite
 }
 
@@ -30,6 +31,14 @@ func (t CookieRequestTracker) TrackRequest(w http.ResponseWriter, r *http.Reques
 		SAMLRequestID: samlRequestID,
 		URI:           r.URL.String(),
 	}
+
+	if t.RelayStateFunc != nil {
+		relayState := t.RelayStateFunc(w, r)
+		if relayState != "" {
+			trackedRequest.Index = relayState
+		}
+	}
+
 	signedTrackedRequest, err := t.Codec.Encode(trackedRequest)
 	if err != nil {
 		return "", err
