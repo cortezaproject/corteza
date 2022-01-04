@@ -9,7 +9,7 @@ package sqlite3
 
 /*
 #ifndef USE_LIBSQLITE3
-#include <sqlite3-binding.h>
+#include "sqlite3-binding.h"
 #else
 #include <sqlite3.h>
 #endif
@@ -68,7 +68,7 @@ func (c *SQLiteConn) loadExtension(lib string, entry *string) error {
 
 	var centry *C.char
 	if entry != nil {
-		centry := C.CString(*entry)
+		centry = C.CString(*entry)
 		defer C.free(unsafe.Pointer(centry))
 	}
 
