@@ -20,11 +20,11 @@ func Decode(reader io.ReadSeeker) (image.Image, string, error) {
 	switch orientation {
 	case "1":
 	case "2":
-		img = imaging.FlipV(img)
+		img = imaging.FlipH(img)
 	case "3":
 		img = imaging.Rotate180(img)
 	case "4":
-		img = imaging.Rotate180(imaging.FlipV(img))
+		img = imaging.Rotate180(imaging.FlipH(img))
 	case "5":
 		img = imaging.Rotate270(imaging.FlipV(img))
 	case "6":

@@ -7,7 +7,7 @@ go 1.16
 // replace github.com/cortezaproject/corteza-locale => ../locale
 
 require (
-	github.com/766b/chi-prometheus v0.0.0-20180509160047-46ac2b31aa30
+	github.com/766b/chi-prometheus v0.0.0-20211217152057-87afa9aa2ca8
 	github.com/99designs/basicauth-go v0.0.0-20160802081356-2a93ba0f464d
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
@@ -26,8 +26,8 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
 	github.com/disintegration/imaging v1.6.0
-	github.com/dop251/goja v0.0.0-20210726224656-a55e4cfac4cf
-	github.com/edwvee/exiffix v0.0.0-20180602190213-b57537c92a6b
+	github.com/dop251/goja v0.0.0-20220102113305-2298ace6d09d
+	github.com/edwvee/exiffix v0.0.0-20210922235313-0f6cbda5e58f
 	github.com/evanw/esbuild v0.12.16
 	github.com/fastly/go-utils v0.0.0-20180712184237-d95a45783239 // indirect
 	github.com/fsnotify/fsnotify v1.4.9
@@ -62,7 +62,7 @@ require (
 	github.com/microcosm-cc/bluemonday v1.0.16
 	github.com/minio/minio-go/v6 v6.0.39
 	github.com/mitchellh/copystructure v1.0.0 // indirect
-	github.com/ngrok/sqlmw v0.0.0-20200129213757-d5c93a81bec6
+	github.com/ngrok/sqlmw v0.0.0-20211220175533-9d16fdc47b31
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/prometheus/client_golang v0.9.3
@@ -78,9 +78,9 @@ require (
 	github.com/tebeka/strftime v0.1.5 // indirect
 	go.uber.org/atomic v1.7.0
 	go.uber.org/zap v1.19.0
-	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
+	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
 	golang.org/x/image v0.0.0-20190910094157-69e4b8554b2a // indirect
-	golang.org/x/oauth2 v0.0.0-20210628180205-a41e5a781914
+	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 	golang.org/x/text v0.3.7
 	google.golang.org/grpc v1.32.0
 	google.golang.org/protobuf v1.25.0

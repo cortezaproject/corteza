@@ -18,6 +18,7 @@ PROTOGEN      = $(GOPATH)/bin/protoc-gen-go
 PROTOGEN_GRPC = $(GOPATH)/bin/protoc-gen-go-grpc
 GIN           = $(GOPATH)/bin/gin
 STATIK        = $(GOPATH)/bin/statik
+MODOUTDATED   = $(GOPATH)/bin/go-mod-outdated
 CODEGEN       = build/codegen
 
 PROTOC      = /usr/local/bin/protoc
@@ -53,8 +54,12 @@ $(GOTEST):
 $(STATIK):
 	$(GOGET) github.com/goware/statik
 
+$(MODOUTDATED):
+	$(GOGET) github.com/psampaz/go-mod-outdated
+
 $(CODEGEN):
 	$(GO) build -o $@ cmd/codegen/main.go
+
 
 clean-tools:
 	rm -f $(BINS)

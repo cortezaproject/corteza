@@ -248,6 +248,8 @@ type scope struct {
 
 	// is a function or a top-level lexical environment
 	function bool
+	// is an arrow function's top-level lexical environment (functions only)
+	arrow bool
 	// is a variable environment, i.e. the target for dynamically created var bindings
 	variable bool
 	// a function scope that has at least one direct eval() and non-strict, so the variables can be added dynamically
@@ -365,6 +367,8 @@ func (p *Program) _dumpCode(indent string, logger func(format string, args ...in
 		logger("%s %d: %T(%v)", indent, pc, ins, ins)
 		if f, ok := ins.(*newFunc); ok {
 			f.prg._dumpCode(indent+">", logger)
+		} else if f, ok := ins.(*newArrowFunc); ok {
+			f.prg._dumpCode(indent+">", logger)
 		}
 	}
 }
@@ -378,6 +382,13 @@ func (p *Program) sourceOffset(pc int) int {
 	}
 
 	return 0
+}
+
+func (p *Program) addSrcMap(srcPos int) {
+	if len(p.srcMap) > 0 && p.srcMap[len(p.srcMap)-1].srcPos == srcPos {
+		return
+	}
+	p.srcMap = append(p.srcMap, srcMapItem{pc: len(p.code), srcPos: srcPos})
 }
 
 func (s *scope) lookupName(name unistring.String) (binding *binding, noDynamics bool) {
@@ -395,7 +406,7 @@ func (s *scope) lookupName(name unistring.String) (binding *binding, noDynamics 
 				return
 			}
 		}
-		if name == "arguments" && curScope.function {
+		if name == "arguments" && curScope.function && !curScope.arrow {
 			curScope.argsNeeded = true
 			binding, _ = curScope.bindName(name)
 			return
@@ -819,9 +830,13 @@ func (c *compiler) compileFunctionsGlobal(list []*ast.FunctionDeclaration) {
 			m[name] = i
 		}
 	}
+	idx := 0
 	for i, decl := range list {
-		if m[decl.Function.Name.Name] == i {
+		name := decl.Function.Name.Name
+		if m[name] == i {
 			c.compileFunctionLiteral(decl.Function, false).emitGetter(true)
+			c.scope.bindings[idx] = c.scope.boundNames[name]
+			idx++
 		} else {
 			leave := c.enterDummyMode()
 			c.compileFunctionLiteral(decl.Function, false).emitGetter(false)

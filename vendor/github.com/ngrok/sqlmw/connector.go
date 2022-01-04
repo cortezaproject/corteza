@@ -25,14 +25,6 @@ func (c wrappedConnector) Connect(ctx context.Context) (conn driver.Conn, err er
 	return wrappedConn{intr: c.driverRef.intr, parent: conn}, nil
 }
 
-func (c wrappedConnector) connect(ctx context.Context) (driver.Conn, error) {
-	conn, err := c.parent.Connect(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return wrappedConn{intr: c.driverRef.intr, parent: conn}, err
-}
-
 func (c wrappedConnector) Driver() driver.Driver {
 	return c.driverRef
 }

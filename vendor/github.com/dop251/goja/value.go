@@ -767,7 +767,8 @@ func (o *Object) GetSymbol(sym *Symbol) Value {
 // This method will panic with an *Exception if a JavaScript exception is thrown in the process.
 func (o *Object) Keys() (keys []string) {
 	iter := &enumerableIter{
-		wrapped: o.self.enumerateOwnKeys(),
+		o:       o,
+		wrapped: o.self.iterateStringKeys(),
 	}
 	for item, next := iter.next(); next != nil; item, next = next() {
 		keys = append(keys, item.name.String())
@@ -779,7 +780,7 @@ func (o *Object) Keys() (keys []string) {
 // Symbols returns a list of Object's enumerable symbol properties.
 // This method will panic with an *Exception if a JavaScript exception is thrown in the process.
 func (o *Object) Symbols() []*Symbol {
-	symbols := o.self.ownSymbols(false, nil)
+	symbols := o.self.symbols(false, nil)
 	ret := make([]*Symbol, len(symbols))
 	for i, sym := range symbols {
 		ret[i], _ = sym.(*Symbol)
@@ -996,11 +997,17 @@ func (s *Symbol) ToString() Value {
 }
 
 func (s *Symbol) String() string {
-	return s.desc.String()
+	if s.desc != nil {
+		return s.desc.String()
+	}
+	return ""
 }
 
 func (s *Symbol) string() unistring.String {
-	return s.desc.string()
+	if s.desc != nil {
+		return s.desc.string()
+	}
+	return ""
 }
 
 func (s *Symbol) ToFloat() float64 {
@@ -1078,10 +1085,26 @@ func NewSymbol(s string) *Symbol {
 }
 
 func (s *Symbol) descriptiveString() valueString {
-	if s.desc == nil {
-		return stringEmpty
+	desc := s.desc
+	if desc == nil {
+		desc = stringEmpty
 	}
-	return asciiString("Symbol(").concat(s.desc).concat(asciiString(")"))
+	return asciiString("Symbol(").concat(desc).concat(asciiString(")"))
+}
+
+func funcName(prefix string, n Value) valueString {
+	var b valueStringBuilder
+	b.WriteString(asciiString(prefix))
+	if sym, ok := n.(*Symbol); ok {
+		if sym.desc != nil {
+			b.WriteRune('[')
+			b.WriteString(sym.desc)
+			b.WriteRune(']')
+		}
+	} else {
+		b.WriteString(n.toString())
+	}
+	return b.String()
 }
 
 func init() {

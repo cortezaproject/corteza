@@ -22,6 +22,7 @@ type Interceptor interface {
 
 	// Rows interceptors
 	RowsNext(context.Context, driver.Rows, []driver.Value) error
+	RowsClose(context.Context, driver.Rows) error
 
 	// Stmt interceptors
 	StmtExecContext(context.Context, driver.StmtExecContext, string, []driver.NamedValue) (driver.Result, error)
@@ -74,6 +75,10 @@ func (NullInterceptor) ResultRowsAffected(res driver.Result) (int64, error) {
 
 func (NullInterceptor) RowsNext(ctx context.Context, rows driver.Rows, dest []driver.Value) error {
 	return rows.Next(dest)
+}
+
+func (NullInterceptor) RowsClose(ctx context.Context, rows driver.Rows) error {
+	return rows.Close()
 }
 
 func (NullInterceptor) StmtExecContext(ctx context.Context, stmt driver.StmtExecContext, _ string, args []driver.NamedValue) (driver.Result, error) {
