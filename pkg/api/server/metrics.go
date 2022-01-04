@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/766b/chi-prometheus"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 

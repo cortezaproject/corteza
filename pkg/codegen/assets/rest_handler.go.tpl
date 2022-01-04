@@ -11,7 +11,7 @@ package handlers
 import (
 	"context"
 	"net/http"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/cortezaproject/corteza-server/{{ .App }}/rest/request"
 	"github.com/cortezaproject/corteza-server/pkg/api"
 )

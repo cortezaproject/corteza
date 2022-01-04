@@ -19,7 +19,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/webapp"
 	systemRest "github.com/cortezaproject/corteza-server/system/rest"
 	"github.com/cortezaproject/corteza-server/system/scim"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 )
 

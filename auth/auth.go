@@ -31,7 +31,7 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 	systemService "github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	oauth2def "github.com/go-oauth2/oauth2/v4"
 	"go.uber.org/zap"
 	"golang.org/x/text/language"
