@@ -56,6 +56,8 @@ metric:
     suffix: Suffix
 table:
   configurator:
+    general: General
+    data: Data
     columns: Columns
     dark: Dark
     head-variant: Head Variant

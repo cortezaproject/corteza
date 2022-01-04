@@ -47,6 +47,7 @@ edit:
     specificTitle: Federation Settings ({{handle}})
     title: Federation Settings
     upstream:
+      copyFrom: Copy settings from
       allFields: All Fields
       description: Select the fields you want to share with the selected network
       title: Expose

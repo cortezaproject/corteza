@@ -24,21 +24,20 @@ editor:
     profile: Allow client access to user's profile
     redirectURI: Redirect URI's
     remove: Remove
-    searchRoles: Search roles
     secret: Secret
     security:
       forbiddenRoles:
         description: Roles from this list will be removed from security context when user authorizes this client
-        label: Forbidden roles ({{count}})
+        label: Forbidden roles
       forcedRoles:
         description: Roles from this list will be always added to security context when user authorizes this client
-        label: Forced roles ({{count}})
+        label: Forced roles
       impersonateUser:
         description: When authenticating with client credentials, act in the name of the impersonated user
         label: Impersonate user
       permittedRoles:
         description: Only roles in this list will be added into security context when user authorizes this client
-        label: Permitted roles ({{count}})
+        label: Permitted roles
     title: Grundlegende Informationen
     trusted:
       description: When client is trusted users do not see authorization step

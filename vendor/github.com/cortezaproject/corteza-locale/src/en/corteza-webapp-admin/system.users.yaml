@@ -49,9 +49,8 @@ editor:
   permissions: Permissions
   roles:
     add: Add
-    count: Roles ({{count}})
+    count: roles
     remove: Remove
-    searchRoles: Search roles
     title: Role membership
     unnamed: Unnamed role
   title:
