@@ -240,6 +240,10 @@ func PublicRawKeyOf(v interface{}) (interface{}, error) {
 // contents of the object with the data at the remote resource,
 // consider using `jwk.AutoRefresh`, which automatically refreshes
 // jwk.Set objects asynchronously.
+//
+// See the list of `jwk.FetchOption`s for various options to tweak the
+// behavior, including providing alternate HTTP Clients, setting a backoff,
+// and using whitelists.
 func Fetch(ctx context.Context, urlstring string, options ...FetchOption) (Set, error) {
 	res, err := fetch(ctx, urlstring, options...)
 	if err != nil {
@@ -255,6 +259,7 @@ func Fetch(ctx context.Context, urlstring string, options ...FetchOption) (Set, 
 }
 
 func fetch(ctx context.Context, urlstring string, options ...FetchOption) (*http.Response, error) {
+	var wl Whitelist
 	var httpcl HTTPClient = http.DefaultClient
 	bo := backoff.Null()
 	for _, option := range options {
@@ -264,6 +269,14 @@ func fetch(ctx context.Context, urlstring string, options ...FetchOption) (*http
 			httpcl = option.Value().(HTTPClient)
 		case identFetchBackoff{}:
 			bo = option.Value().(backoff.Policy)
+		case identFetchWhitelist{}:
+			wl = option.Value().(Whitelist)
+		}
+	}
+
+	if wl != nil {
+		if !wl.IsAllowed(urlstring) {
+			return nil, errors.New(`url rejected by whitelist`)
 		}
 	}
 
@@ -466,7 +479,7 @@ func ParseKey(data []byte, options ...ParseOption) (Key, error) {
 // call `json.Unmarshal` against an empty set created by `jwk.NewSet()`
 // to parse a JSON buffer into a `jwk.Set`.
 //
-// This method exists because many times the user does not know before hand
+// This function exists because many times the user does not know before hand
 // if a JWK(s) resource at a remote location contains a single JWK key or
 // a JWK set, and `jwk.Parse()` can handle either case, returning a JWK Set
 // even if the data only contains a single JWK key

@@ -38,7 +38,7 @@ require (
 	github.com/go-chi/cors v1.0.0
 	github.com/go-chi/httprate v0.4.0
 	github.com/go-chi/jwtauth v0.0.0-20190109153619-47840abb19b3
-	github.com/go-oauth2/oauth2/v4 v4.3.0
+	github.com/go-oauth2/oauth2/v4 v4.4.2
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.2
@@ -55,10 +55,10 @@ require (
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/joho/godotenv v1.4.0
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
-	github.com/lestrrat-go/jwx v1.2.11
+	github.com/lestrrat-go/jwx v1.2.14
 	github.com/lestrrat-go/strftime v1.0.5
 	github.com/lib/pq v1.10.4
-	github.com/markbates/goth v1.67.1
+	github.com/markbates/goth v1.68.0
 	github.com/mattn/go-sqlite3 v1.14.10
 	github.com/microcosm-cc/bluemonday v1.0.17
 	github.com/minio/minio-go/v6 v6.0.57
