@@ -149,7 +149,7 @@ github.com/go-chi/httprate
 # github.com/go-chi/jwtauth v0.0.0-20190109153619-47840abb19b3
 ## explicit
 github.com/go-chi/jwtauth
-# github.com/go-oauth2/oauth2/v4 v4.3.0
+# github.com/go-oauth2/oauth2/v4 v4.4.2
 ## explicit
 github.com/go-oauth2/oauth2/v4
 github.com/go-oauth2/oauth2/v4/errors
@@ -163,7 +163,7 @@ github.com/go-sourcemap/sourcemap/internal/base64vlq
 # github.com/go-sql-driver/mysql v1.6.0
 ## explicit
 github.com/go-sql-driver/mysql
-# github.com/goccy/go-json v0.7.10
+# github.com/goccy/go-json v0.8.1
 github.com/goccy/go-json
 github.com/goccy/go-json/internal/decoder
 github.com/goccy/go-json/internal/encoder
@@ -173,6 +173,8 @@ github.com/goccy/go-json/internal/encoder/vm_color_indent
 github.com/goccy/go-json/internal/encoder/vm_indent
 github.com/goccy/go-json/internal/errors
 github.com/goccy/go-json/internal/runtime
+# github.com/golang-jwt/jwt v3.2.2+incompatible
+github.com/golang-jwt/jwt
 # github.com/golang-jwt/jwt/v4 v4.1.0
 github.com/golang-jwt/jwt/v4
 # github.com/golang/mock v1.6.0
@@ -247,7 +249,7 @@ github.com/lestrrat-go/httpcc
 # github.com/lestrrat-go/iter v1.0.1
 github.com/lestrrat-go/iter/arrayiter
 github.com/lestrrat-go/iter/mapiter
-# github.com/lestrrat-go/jwx v1.2.11
+# github.com/lestrrat-go/jwx v1.2.14
 ## explicit
 github.com/lestrrat-go/jwx/internal/base64
 github.com/lestrrat-go/jwx/internal/ecutil
@@ -267,7 +269,7 @@ github.com/lestrrat-go/strftime
 github.com/lib/pq
 github.com/lib/pq/oid
 github.com/lib/pq/scram
-# github.com/markbates/goth v1.67.1
+# github.com/markbates/goth v1.68.0
 ## explicit
 github.com/markbates/goth
 github.com/markbates/goth/gothic

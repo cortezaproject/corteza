@@ -85,6 +85,8 @@ type target struct {
 	// for debugging, snapshoting
 	lastRefresh time.Time
 	nextRefresh time.Time
+
+	wl Whitelist
 }
 
 type resetTimerReq struct {
@@ -150,6 +152,7 @@ func (af *AutoRefresh) Configure(url string, options ...AutoRefreshOption) {
 	var httpcl HTTPClient = http.DefaultClient
 	var hasRefreshInterval bool
 	var refreshInterval time.Duration
+	var wl Whitelist
 	minRefreshInterval := time.Hour
 	bo := backoff.Null()
 	for _, option := range options {
@@ -164,6 +167,8 @@ func (af *AutoRefresh) Configure(url string, options ...AutoRefreshOption) {
 			minRefreshInterval = option.Value().(time.Duration)
 		case identHTTPClient{}:
 			httpcl = option.Value().(HTTPClient)
+		case identFetchWhitelist{}:
+			wl = option.Value().(Whitelist)
 		}
 	}
 
@@ -195,6 +200,11 @@ func (af *AutoRefresh) Configure(url string, options ...AutoRefreshOption) {
 				doReconfigure = true
 			}
 		}
+
+		if t.wl != wl {
+			t.wl = wl
+			doReconfigure = true
+		}
 	} else {
 		t = &target{
 			backoff:            bo,
@@ -206,6 +216,7 @@ func (af *AutoRefresh) Configure(url string, options ...AutoRefreshOption) {
 			// Make it sufficiently in the future so that we don't have bogus
 			// events firing
 			timer: time.NewTimer(24 * time.Hour),
+			wl:    wl,
 		}
 		if hasRefreshInterval {
 			t.refreshInterval = &refreshInterval
@@ -238,6 +249,13 @@ func (af *AutoRefresh) releaseFetching(url string) {
 	af.muFetching.Unlock()
 }
 
+// IsRegistered checks if `url` is registered already.
+func (af *AutoRefresh) IsRegistered(url string) bool {
+	_, ok := af.getRegistered(url)
+	return ok
+}
+
+// Fetch returns a jwk.Set from the given url.
 func (af *AutoRefresh) getRegistered(url string) (*target, bool) {
 	af.muRegistry.RLock()
 	t, ok := af.registry[url]
@@ -443,6 +461,9 @@ func (af *AutoRefresh) doRefreshRequest(ctx context.Context, url string, enableB
 	options := []FetchOption{WithHTTPClient(t.httpcl)}
 	if enableBackoff {
 		options = append(options, WithFetchBackoff(t.backoff))
+	}
+	if t.wl != nil {
+		options = append(options, WithFetchWhitelist(t.wl))
 	}
 
 	res, err := fetch(ctx, url, options...)

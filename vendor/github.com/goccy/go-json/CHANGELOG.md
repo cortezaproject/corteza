@@ -1,3 +1,12 @@
+# v0.8.1 - 2021/12/05
+
+* Fix operation conversion from PtrHead to Head in Recursive type ( #305 )
+
+# v0.8.0 - 2021/12/02
+
+* Fix embedded field conflict behavior ( #300 )
+* Refactor compiler for encoder ( #301 #302 )
+
 # v0.7.10 - 2021/10/16
 
 * Fix conversion from pointer to uint64  ( #294 )
