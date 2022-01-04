@@ -3,6 +3,9 @@ package store
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
+	"os"
+	"regexp"
 	"strings"
 )
 
@@ -14,7 +17,27 @@ var (
 	registered = make(map[string]ConnectorFn)
 )
 
-func Connect(ctx context.Context, dsn string) (s Storer, err error) {
+// Connect returns store based on dsn from environment.
+//
+// If you are in development environment,
+// you can use {version} with database name, that will be replaced with build version
+// suppose build version is `20xx.x.x-dev-1` then database_name_{version} will be `database_name_20xx_x_x_dev_1`,
+//
+// IE. `BUILD_VERSION=20xx.x.x-dev-1` and
+// `DB_DSN=corteza:corteza@tcp(localhost:3306)/corteza_{version}?collation=utf8mb4_general_ci`
+// will be `DB_DSN=corteza:corteza@tcp(localhost:3306)/corteza_20xx_x_x_dev_1?collation=utf8mb4_general_ci`
+func Connect(ctx context.Context, log *zap.Logger, dsn string, isDevelopment bool) (s Storer, err error) {
+	if isDevelopment {
+		if strings.Contains(dsn, "{version}") {
+			log.Warn("You're using DB_DSN with {version}, It is still in EXPERIMENTAL phase")
+			log.Warn("Should be used only for development mode")
+			log.Warn("You may experience instability")
+		}
+		expr := regexp.MustCompile(`[.\-]+`)
+		version := expr.ReplaceAllString(os.Getenv("BUILD_VERSION"), "_")
+		dsn = strings.Replace(dsn, "{version}", version, 1)
+	}
+
 	var storeType = strings.SplitN(dsn, "://", 2)[0]
 	if storeType == "" {
 		// Backward compatibility
