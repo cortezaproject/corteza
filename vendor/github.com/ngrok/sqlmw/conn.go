@@ -94,7 +94,7 @@ func (c wrappedConn) Query(query string, args []driver.Value) (driver.Rows, erro
 		if err != nil {
 			return nil, err
 		}
-		return wrappedRows{intr: c.intr, parent: rows}, nil
+		return wrapRows(context.Background(), c.intr, rows), nil //nolint
 	}
 	return nil, driver.ErrSkip
 }
@@ -113,7 +113,7 @@ func (c wrappedConn) QueryContext(ctx context.Context, query string, args []driv
 		return nil, err
 	}
 
-	return wrappedRows{intr: c.intr, ctx: ctx, parent: rows}, nil
+	return wrapRows(ctx, c.intr, rows), nil
 }
 
 type wrappedParentConn struct {

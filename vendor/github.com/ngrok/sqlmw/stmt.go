@@ -42,7 +42,7 @@ func (s wrappedStmt) Query(args []driver.Value) (rows driver.Rows, err error) {
 	if err != nil {
 		return nil, err
 	}
-	return wrappedRows{intr: s.intr, ctx: s.ctx, parent: rows}, nil
+	return wrapRows(s.ctx, s.intr, rows), nil
 }
 
 func (s wrappedStmt) ExecContext(ctx context.Context, args []driver.NamedValue) (res driver.Result, err error) {
@@ -60,7 +60,7 @@ func (s wrappedStmt) QueryContext(ctx context.Context, args []driver.NamedValue)
 	if err != nil {
 		return nil, err
 	}
-	return wrappedRows{intr: s.intr, ctx: ctx, parent: rows}, nil
+	return wrapRows(ctx, s.intr, rows), nil
 }
 
 func (s wrappedStmt) ColumnConverter(idx int) driver.ValueConverter {

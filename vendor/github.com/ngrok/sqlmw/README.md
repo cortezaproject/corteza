@@ -19,7 +19,7 @@ in a reuseable way, and more.
 
 Here's a complete example:
 
-```
+```go
 func run(dsn string) {
         // install the wrapped driver
         sql.Register("postgres-mw", sqlmw.Driver(pq.Driver{}, new(sqlInterceptor)))
@@ -41,7 +41,7 @@ func (in *sqlInterceptor) StmtQueryContext(ctx context.Context, conn driver.Stmt
 
 You may override any subset of methods to intercept in the `Interceptor` interface (https://godoc.org/github.com/ngrok/sqlmw#Interceptor):
 
-```
+```go
 type Interceptor interface {
     // Connection interceptors
     ConnBeginTx(context.Context, driver.ConnBeginTx, driver.TxOptions) (driver.Tx, error)
@@ -74,52 +74,60 @@ type Interceptor interface {
 Bear in mind that because you are intercepting the calls entirely, that you are responsible for passing control up to the wrapped
 driver in any function that you override, like so:
 
-    func (in *sqlInterceptor) ConnPing(ctx context.Context, conn driver.Pinger) error {
-            return conn.Ping(ctx)
-    }
+```go
+func (in *sqlInterceptor) ConnPing(ctx context.Context, conn driver.Pinger) error {
+    return conn.Ping(ctx)
+}
+```
 
 ## Examples
 
 ### Logging
 
-    func (in *sqlInterceptor) StmtQueryContext(ctx context.Context, conn driver.StmtQueryContext, query string, args []driver.NamedValue) (driver.Rows, error) {
-            startedAt := time.Now()
-            rows, err := conn.QueryContext(ctx, args)
-            log.Debug("executed sql query", "duration", time.Since(startedAt), "query", query, "args", args, "err", err)
-            return rows, err
-    }
+```go
+func (in *sqlInterceptor) StmtQueryContext(ctx context.Context, conn driver.StmtQueryContext, query string, args []driver.NamedValue) (driver.Rows, error) {
+    startedAt := time.Now()
+    rows, err := conn.QueryContext(ctx, args)
+    log.Debug("executed sql query", "duration", time.Since(startedAt), "query", query, "args", args, "err", err)
+    return rows, err
+}
+```
 
 ### Tracing
 
-    func (in *sqlInterceptor) StmtQueryContext(ctx context.Context, conn driver.StmtQueryContext, query string, args []driver.NamedValue) (driver.Rows, error) {
-            span := trace.FromContext(ctx).NewSpan(ctx, "StmtQueryContext")
-            span.Tags["query"] = query
-            defer span.Finish()
-            rows, err := conn.QueryContext(ctx, args)
-            if err != nil {
-                    span.Error(err)
-            }
-            return rows, err
+```go
+func (in *sqlInterceptor) StmtQueryContext(ctx context.Context, conn driver.StmtQueryContext, query string, args []driver.NamedValue) (driver.Rows, error) {
+    span := trace.FromContext(ctx).NewSpan(ctx, "StmtQueryContext")
+    span.Tags["query"] = query
+    defer span.Finish()
+    rows, err := conn.QueryContext(ctx, args)
+    if err != nil {
+            span.Error(err)
     }
+    return rows, err
+}
+```
 
 ### Retries
 
-    func (in *sqlInterceptor) StmtQueryContext(ctx context.Context, conn driver.StmtQueryContext, query string, args []driver.NamedValue) (driver.Rows, error) {
-            for {
-                    rows, err := conn.QueryContext(ctx, args)
-                    if err == nil {
-                            return rows, nil
-                    }
-                    if err != nil && !isIdempotent(query) {
-                            return nil, err
-                    }
-                    select {
-                    case <-ctx.Done():
-                            return nil, ctx.Err()
-                    case <-time.After(time.Second):
-                    }
+```go
+func (in *sqlInterceptor) StmtQueryContext(ctx context.Context, conn driver.StmtQueryContext, query string, args []driver.NamedValue) (driver.Rows, error) {
+    for {
+            rows, err := conn.QueryContext(ctx, args)
+            if err == nil {
+                    return rows, nil
+            }
+            if err != nil && !isIdempotent(query) {
+                    return nil, err
+            }
+            select {
+            case <-ctx.Done():
+                    return nil, ctx.Err()
+            case <-time.After(time.Second):
             }
     }
+}
+```
 
 
 ## Comparison with similar projects

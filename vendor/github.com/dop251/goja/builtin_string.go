@@ -377,7 +377,7 @@ func (r *Runtime) stringproto_matchAll(call FunctionCall) Value {
 	if regexp != _undefined && regexp != _null {
 		if isRegexp(regexp) {
 			if o, ok := regexp.(*Object); ok {
-				flags := o.self.getStr("flags", nil)
+				flags := nilSafe(o.self.getStr("flags", nil))
 				r.checkObjectCoercible(flags)
 				if !strings.Contains(flags.toString().String(), "g") {
 					panic(r.NewTypeError("RegExp doesn't have global flag set"))
@@ -930,7 +930,7 @@ func (r *Runtime) stringIterProto_next(call FunctionCall) Value {
 	if iter, ok := thisObj.self.(*stringIterObject); ok {
 		return iter.next()
 	}
-	panic(r.NewTypeError("Method String Iterator.prototype.next called on incompatible receiver %s", thisObj.String()))
+	panic(r.NewTypeError("Method String Iterator.prototype.next called on incompatible receiver %s", r.objectproto_toString(FunctionCall{This: thisObj})))
 }
 
 func (r *Runtime) createStringIterProto(val *Object) objectImpl {
