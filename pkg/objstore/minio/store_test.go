@@ -3,11 +3,12 @@ package minio
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"testing"
+
 	"github.com/minio/minio-go/v6"
 	"github.com/minio/minio-go/v6/pkg/s3utils"
 	"github.com/stretchr/testify/require"
-	"io"
-	"testing"
 )
 
 type (
@@ -72,7 +73,7 @@ func TestBucketName(t *testing.T) {
 
 			{
 				bucketName: "te",
-				errMsg:     "Bucket name cannot be smaller than 3 characters",
+				errMsg:     "Bucket name cannot be shorter than 3 characters",
 				valid:      false,
 			},
 			{

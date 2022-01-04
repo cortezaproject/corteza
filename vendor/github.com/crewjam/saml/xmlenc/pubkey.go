@@ -29,7 +29,7 @@ func (e RSA) Algorithm() string {
 
 // Encrypt implements encrypter. certificate must be a []byte containing the ASN.1 bytes
 // of certificate containing an RSA public key.
-func (e RSA) Encrypt(certificate interface{}, plaintext []byte) (*etree.Element, error) {
+func (e RSA) Encrypt(certificate interface{}, plaintext []byte, nonce []byte) (*etree.Element, error) {
 	cert, ok := certificate.(*x509.Certificate)
 	if !ok {
 		return nil, ErrIncorrectKeyType("*x.509 certificate")
@@ -83,11 +83,11 @@ func (e RSA) Encrypt(certificate interface{}, plaintext []byte) (*etree.Element,
 	cd := encryptedKey.CreateElement("xenc:CipherData")
 	cd.CreateAttr("xmlns:xenc", "http://www.w3.org/2001/04/xmlenc#")
 	cd.CreateElement("xenc:CipherValue").SetText(base64.StdEncoding.EncodeToString(buf))
-	encryptedDataEl, err := e.BlockCipher.Encrypt(key, plaintext)
+	encryptedDataEl, err := e.BlockCipher.Encrypt(key, plaintext, nonce)
 	if err != nil {
 		return nil, err
 	}
-	encryptedDataEl.InsertChild(encryptedDataEl.FindElement("./CipherData"), keyInfoEl)
+	encryptedDataEl.InsertChildAt(encryptedDataEl.FindElement("./CipherData").Index(), keyInfoEl)
 
 	return encryptedDataEl, nil
 }

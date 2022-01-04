@@ -18,7 +18,7 @@ var RandReader = rand.Reader
 // XML EncryptedData or EncryptedKey element. The required type of `key` varies
 // depending on the implementation.
 type Encrypter interface {
-	Encrypt(key interface{}, plaintext []byte) (*etree.Element, error)
+	Encrypt(key interface{}, plaintext []byte, nonce []byte) (*etree.Element, error)
 }
 
 // Decrypter is an interface that decrypts things. The Decrypt() method returns the

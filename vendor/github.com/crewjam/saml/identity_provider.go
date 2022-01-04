@@ -131,13 +131,21 @@ func (idp *IdentityProvider) Metadata() *EntityDescriptor {
 							{
 								Use: "signing",
 								KeyInfo: KeyInfo{
-									Certificate: certStr,
+									X509Data: X509Data{
+										X509Certificates: []X509Certificate{
+											{Data: certStr},
+										},
+									},
 								},
 							},
 							{
 								Use: "encryption",
 								KeyInfo: KeyInfo{
-									Certificate: certStr,
+									X509Data: X509Data{
+										X509Certificates: []X509Certificate{
+											{Data: certStr},
+										},
+									},
 								},
 								EncryptionMethods: []EncryptionMethod{
 									{Algorithm: "http://www.w3.org/2001/04/xmlenc#aes128-cbc"},
@@ -281,6 +289,14 @@ func (idp *IdentityProvider) ServeIDPInitiated(w http.ResponseWriter, r *http.Re
 	for _, spssoDescriptor := range req.ServiceProviderMetadata.SPSSODescriptors {
 		for _, endpoint := range spssoDescriptor.AssertionConsumerServices {
 			if endpoint.Binding == HTTPPostBinding {
+				// explicitly copy loop iterator variables
+				//
+				// c.f. https://github.com/golang/go/wiki/CommonMistakes#using-reference-to-loop-iterator-variable
+				//
+				// (note that I'm pretty sure this isn't strictly necessary because we break out of the loop immediately,
+				// but it certainly doesn't hurt anything and may prevent bugs in the future.)
+				endpoint, spssoDescriptor := endpoint, spssoDescriptor
+
 				req.ACSEndpoint = &endpoint
 				req.SPSSODescriptor = &spssoDescriptor
 				break
@@ -441,6 +457,14 @@ func (req *IdpAuthnRequest) getACSEndpoint() error {
 		for _, spssoDescriptor := range req.ServiceProviderMetadata.SPSSODescriptors {
 			for _, spAssertionConsumerService := range spssoDescriptor.AssertionConsumerServices {
 				if strconv.Itoa(spAssertionConsumerService.Index) == req.Request.AssertionConsumerServiceIndex {
+					// explicitly copy loop iterator variables
+					//
+					// c.f. https://github.com/golang/go/wiki/CommonMistakes#using-reference-to-loop-iterator-variable
+					//
+					// (note that I'm pretty sure this isn't strictly necessary because we break out of the loop immediately,
+					// but it certainly doesn't hurt anything and may prevent bugs in the future.)
+					spssoDescriptor, spAssertionConsumerService := spssoDescriptor, spAssertionConsumerService
+
 					req.SPSSODescriptor = &spssoDescriptor
 					req.ACSEndpoint = &spAssertionConsumerService
 					return nil
@@ -453,6 +477,14 @@ func (req *IdpAuthnRequest) getACSEndpoint() error {
 		for _, spssoDescriptor := range req.ServiceProviderMetadata.SPSSODescriptors {
 			for _, spAssertionConsumerService := range spssoDescriptor.AssertionConsumerServices {
 				if spAssertionConsumerService.Location == req.Request.AssertionConsumerServiceURL {
+					// explicitly copy loop iterator variables
+					//
+					// c.f. https://github.com/golang/go/wiki/CommonMistakes#using-reference-to-loop-iterator-variable
+					//
+					// (note that I'm pretty sure this isn't strictly necessary because we break out of the loop immediately,
+					// but it certainly doesn't hurt anything and may prevent bugs in the future.)
+					spssoDescriptor, spAssertionConsumerService := spssoDescriptor, spAssertionConsumerService
+
 					req.SPSSODescriptor = &spssoDescriptor
 					req.ACSEndpoint = &spAssertionConsumerService
 					return nil
@@ -470,6 +502,14 @@ func (req *IdpAuthnRequest) getACSEndpoint() error {
 				if spAssertionConsumerService.IsDefault != nil && *spAssertionConsumerService.IsDefault {
 					switch spAssertionConsumerService.Binding {
 					case HTTPPostBinding, HTTPRedirectBinding:
+						// explicitly copy loop iterator variables
+						//
+						// c.f. https://github.com/golang/go/wiki/CommonMistakes#using-reference-to-loop-iterator-variable
+						//
+						// (note that I'm pretty sure this isn't strictly necessary because we break out of the loop immediately,
+						// but it certainly doesn't hurt anything and may prevent bugs in the future.)
+						spssoDescriptor, spAssertionConsumerService := spssoDescriptor, spAssertionConsumerService
+
 						req.SPSSODescriptor = &spssoDescriptor
 						req.ACSEndpoint = &spAssertionConsumerService
 						return nil
@@ -483,6 +523,14 @@ func (req *IdpAuthnRequest) getACSEndpoint() error {
 			for _, spAssertionConsumerService := range spssoDescriptor.AssertionConsumerServices {
 				switch spAssertionConsumerService.Binding {
 				case HTTPPostBinding, HTTPRedirectBinding:
+					// explicitly copy loop iterator variables
+					//
+					// c.f. https://github.com/golang/go/wiki/CommonMistakes#using-reference-to-loop-iterator-variable
+					//
+					// (note that I'm pretty sure this isn't strictly necessary because we break out of the loop immediately,
+					// but it certainly doesn't hurt anything and may prevent bugs in the future.)
+					spssoDescriptor, spAssertionConsumerService := spssoDescriptor, spAssertionConsumerService
+
 					req.SPSSODescriptor = &spssoDescriptor
 					req.ACSEndpoint = &spAssertionConsumerService
 					return nil
@@ -507,12 +555,28 @@ func (DefaultAssertionMaker) MakeAssertion(req *IdpAuthnRequest, session *Sessio
 	var attributeConsumingService *AttributeConsumingService
 	for _, acs := range req.SPSSODescriptor.AttributeConsumingServices {
 		if acs.IsDefault != nil && *acs.IsDefault {
+			// explicitly copy loop iterator variables
+			//
+			// c.f. https://github.com/golang/go/wiki/CommonMistakes#using-reference-to-loop-iterator-variable
+			//
+			// (note that I'm pretty sure this isn't strictly necessary because we break out of the loop immediately,
+			// but it certainly doesn't hurt anything and may prevent bugs in the future.)
+			acs := acs
+
 			attributeConsumingService = &acs
 			break
 		}
 	}
 	if attributeConsumingService == nil {
 		for _, acs := range req.SPSSODescriptor.AttributeConsumingServices {
+			// explicitly copy loop iterator variables
+			//
+			// c.f. https://github.com/golang/go/wiki/CommonMistakes#using-reference-to-loop-iterator-variable
+			//
+			// (note that I'm pretty sure this isn't strictly necessary because we break out of the loop immediately,
+			// but it certainly doesn't hurt anything and may prevent bugs in the future.)
+			acs := acs
+
 			attributeConsumingService = &acs
 			break
 		}
@@ -798,7 +862,7 @@ func (req *IdpAuthnRequest) MakeAssertionEl() error {
 	encryptor := xmlenc.OAEP()
 	encryptor.BlockCipher = xmlenc.AES128CBC
 	encryptor.DigestMethod = &xmlenc.SHA1
-	encryptedDataEl, err := encryptor.Encrypt(certBuf, signedAssertionBuf)
+	encryptedDataEl, err := encryptor.Encrypt(certBuf, signedAssertionBuf, nil)
 	if err != nil {
 		return err
 	}
@@ -871,7 +935,7 @@ func (req *IdpAuthnRequest) getSPEncryptionCert() (*x509.Certificate, error) {
 	certStr := ""
 	for _, keyDescriptor := range req.SPSSODescriptor.KeyDescriptors {
 		if keyDescriptor.Use == "encryption" {
-			certStr = keyDescriptor.KeyInfo.Certificate
+			certStr = keyDescriptor.KeyInfo.X509Data.X509Certificates[0].Data
 			break
 		}
 	}
@@ -880,8 +944,8 @@ func (req *IdpAuthnRequest) getSPEncryptionCert() (*x509.Certificate, error) {
 	// non-empty cert we find.
 	if certStr == "" {
 		for _, keyDescriptor := range req.SPSSODescriptor.KeyDescriptors {
-			if keyDescriptor.Use == "" && keyDescriptor.KeyInfo.Certificate != "" {
-				certStr = keyDescriptor.KeyInfo.Certificate
+			if keyDescriptor.Use == "" && len(keyDescriptor.KeyInfo.X509Data.X509Certificates) != 0 && keyDescriptor.KeyInfo.X509Data.X509Certificates[0].Data != "" {
+				certStr = keyDescriptor.KeyInfo.X509Data.X509Certificates[0].Data
 				break
 			}
 		}

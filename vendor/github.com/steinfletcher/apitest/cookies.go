@@ -106,6 +106,18 @@ func (cookie *Cookie) ToHttpCookie() *http.Cookie {
 	return &httpCookie
 }
 
+// FromHTTPCookie transforms an http cookie into a Cookie
+func FromHTTPCookie(httpCookie *http.Cookie) *Cookie {
+	return NewCookie(httpCookie.Name).
+		Value(httpCookie.Value).
+		Path(httpCookie.Path).
+		Domain(httpCookie.Domain).
+		Expires(httpCookie.Expires).
+		MaxAge(httpCookie.MaxAge).
+		Secure(httpCookie.Secure).
+		HttpOnly(httpCookie.HttpOnly)
+}
+
 // Compares cookies based on only the provided fields from Cookie.
 // Supported fields are Name, Value, Domain, Path, Expires, MaxAge, Secure and HttpOnly
 func compareCookies(expectedCookie *Cookie, actualCookie *http.Cookie) (bool, []string) {

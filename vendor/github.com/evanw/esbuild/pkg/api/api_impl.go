@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"io/ioutil"
+	"math"
 	"math/rand"
 	"os"
 	"regexp"
@@ -12,6 +13,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+	"unicode/utf8"
 
 	"github.com/evanw/esbuild/internal/api_helpers"
 	"github.com/evanw/esbuild/internal/ast"
@@ -62,6 +64,10 @@ func validatePathTemplate(template string) []config.PathTemplate {
 		case strings.HasPrefix(tail, "[hash]"):
 			placeholder = config.HashPlaceholder
 			search += len("[hash]")
+
+		case strings.HasPrefix(tail, "[ext]"):
+			placeholder = config.ExtPlaceholder
+			search += len("[ext]")
 
 		default:
 			// Skip past the "[" so we don't find it again
@@ -202,11 +208,19 @@ func validateASCIIOnly(value Charset) bool {
 	}
 }
 
-func validateIgnoreDCEAnnotations(value TreeShaking) bool {
+func validateTreeShaking(value TreeShaking, bundle bool, format Format) bool {
 	switch value {
 	case TreeShakingDefault:
+		// If we're in an IIFE then there's no way to concatenate additional code
+		// to the end of our output so we assume tree shaking is safe. And when
+		// bundling we assume that tree shaking is safe because if you want to add
+		// code to the bundle, you should be doing that by including it in the
+		// bundle instead of concatenating it afterward, so we also assume tree
+		// shaking is safe then. Otherwise we assume tree shaking is not safe.
+		return bundle || format == FormatIIFE
+	case TreeShakingFalse:
 		return false
-	case TreeShakingIgnoreAnnotations:
+	case TreeShakingTrue:
 		return true
 	default:
 		panic("Invalid tree shaking")
@@ -267,13 +281,14 @@ func validateEngine(value EngineName) compat.Engine {
 
 var versionRegex = regexp.MustCompile(`^([0-9]+)(?:\.([0-9]+))?(?:\.([0-9]+))?$`)
 
-func validateFeatures(log logger.Log, target Target, engines []Engine) (bool, compat.JSFeature, compat.CSSFeature, string) {
+func validateFeatures(log logger.Log, target Target, engines []Engine) (config.TargetFromAPI, compat.JSFeature, compat.CSSFeature, string) {
 	if target == DefaultTarget && len(engines) == 0 {
-		return true, 0, 0, ""
+		return config.TargetWasUnconfigured, 0, 0, ""
 	}
 
 	constraints := make(map[compat.Engine][]int)
 	targets := make([]string, 0, 1+len(engines))
+	targetFromAPI := config.TargetWasConfigured
 
 	switch target {
 	case ES5:
@@ -292,7 +307,9 @@ func validateFeatures(log logger.Log, target Target, engines []Engine) (bool, co
 		constraints[compat.ES] = []int{2020}
 	case ES2021:
 		constraints[compat.ES] = []int{2021}
-	case ESNext, DefaultTarget:
+	case ESNext:
+		targetFromAPI = config.TargetWasConfiguredIncludingESNext
+	case DefaultTarget:
 	default:
 		panic("Invalid target")
 	}
@@ -327,7 +344,7 @@ func validateFeatures(log logger.Log, target Target, engines []Engine) (bool, co
 			}
 		}
 
-		log.AddError(nil, logger.Loc{}, fmt.Sprintf("Invalid version: %q", engine.Version))
+		log.Add(logger.Error, nil, logger.Range{}, fmt.Sprintf("Invalid version: %q", engine.Version))
 	}
 
 	for engine, version := range constraints {
@@ -346,7 +363,7 @@ func validateFeatures(log logger.Log, target Target, engines []Engine) (bool, co
 	sort.Strings(targets)
 	targetEnv := strings.Join(targets, ", ")
 
-	return false, compat.UnsupportedJSFeatures(constraints), compat.UnsupportedCSSFeatures(constraints), targetEnv
+	return targetFromAPI, compat.UnsupportedJSFeatures(constraints), compat.UnsupportedCSSFeatures(constraints), targetEnv
 }
 
 func validateGlobalName(log logger.Log, text string) []string {
@@ -373,7 +390,7 @@ func validateExternals(log logger.Log, fs fs.FS, paths []string) config.External
 	for _, path := range paths {
 		if index := strings.IndexByte(path, '*'); index != -1 {
 			if strings.ContainsRune(path[index+1:], '*') {
-				log.AddError(nil, logger.Loc{}, fmt.Sprintf("External path %q cannot have more than one \"*\" wildcard", path))
+				log.Add(logger.Error, nil, logger.Range{}, fmt.Sprintf("External path %q cannot have more than one \"*\" wildcard", path))
 			} else {
 				result.Patterns = append(result.Patterns, config.WildcardPattern{
 					Prefix: path[:index],
@@ -399,7 +416,7 @@ func validateResolveExtensions(log logger.Log, order []string) []string {
 	}
 	for _, ext := range order {
 		if !isValidExtension(ext) {
-			log.AddError(nil, logger.Loc{}, fmt.Sprintf("Invalid file extension: %q", ext))
+			log.Add(logger.Error, nil, logger.Range{}, fmt.Sprintf("Invalid file extension: %q", ext))
 		}
 	}
 	return order
@@ -410,7 +427,7 @@ func validateLoaders(log logger.Log, loaders map[string]Loader) map[string]confi
 	if loaders != nil {
 		for ext, loader := range loaders {
 			if !isValidExtension(ext) {
-				log.AddError(nil, logger.Loc{}, fmt.Sprintf("Invalid file extension: %q", ext))
+				log.Add(logger.Error, nil, logger.Range{}, fmt.Sprintf("Invalid file extension: %q", ext))
 			}
 			result[ext] = validateLoader(loader)
 		}
@@ -422,7 +439,7 @@ func validateJSXExpr(log logger.Log, text string, name string, kind js_parser.JS
 	if expr, ok := js_parser.ParseJSXExpr(text, kind); ok {
 		return expr
 	}
-	log.AddError(nil, logger.Loc{}, fmt.Sprintf("Invalid JSX %s: %q", name, text))
+	log.Add(logger.Error, nil, logger.Range{}, fmt.Sprintf("Invalid JSX %s: %q", name, text))
 	return config.JSXExpr{}
 }
 
@@ -432,6 +449,7 @@ func validateDefines(
 	pureFns []string,
 	platform Platform,
 	minify bool,
+	drop Drop,
 ) (*config.ProcessedDefines, []config.InjectedDefine) {
 	rawDefines := make(map[string]config.DefineData)
 	var valueToInject map[string]config.InjectedDefine
@@ -442,9 +460,9 @@ func validateDefines(
 		for _, part := range strings.Split(key, ".") {
 			if !js_lexer.IsIdentifier(part) {
 				if part == key {
-					log.AddError(nil, logger.Loc{}, fmt.Sprintf("The define key %q must be a valid identifier", key))
+					log.Add(logger.Error, nil, logger.Range{}, fmt.Sprintf("The define key %q must be a valid identifier", key))
 				} else {
-					log.AddError(nil, logger.Loc{}, fmt.Sprintf("The define key %q contains invalid identifier %q", key, part))
+					log.Add(logger.Error, nil, logger.Range{}, fmt.Sprintf("The define key %q contains invalid identifier %q", key, part))
 				}
 				continue
 			}
@@ -453,11 +471,26 @@ func validateDefines(
 		// Allow substituting for an identifier
 		if js_lexer.IsIdentifier(value) {
 			if _, ok := js_lexer.Keywords[value]; !ok {
-				name := value // The closure must close over a variable inside the loop
-				rawDefines[key] = config.DefineData{
-					DefineFunc: func(args config.DefineArgs) js_ast.E {
-						return &js_ast.EIdentifier{Ref: args.FindSymbol(args.Loc, name)}
-					},
+				switch value {
+				case "undefined":
+					rawDefines[key] = config.DefineData{
+						DefineFunc: func(config.DefineArgs) js_ast.E { return js_ast.EUndefinedShared },
+					}
+				case "NaN":
+					rawDefines[key] = config.DefineData{
+						DefineFunc: func(config.DefineArgs) js_ast.E { return &js_ast.ENumber{Value: math.NaN()} },
+					}
+				case "Infinity":
+					rawDefines[key] = config.DefineData{
+						DefineFunc: func(config.DefineArgs) js_ast.E { return &js_ast.ENumber{Value: math.Inf(1)} },
+					}
+				default:
+					name := value // The closure must close over a variable inside the loop
+					rawDefines[key] = config.DefineData{
+						DefineFunc: func(args config.DefineArgs) js_ast.E {
+							return &js_ast.EIdentifier{Ref: args.FindSymbol(args.Loc, name)}
+						},
+					}
 				}
 				continue
 			}
@@ -467,7 +500,7 @@ func validateDefines(
 		source := logger.Source{Contents: value}
 		expr, ok := js_parser.ParseJSON(logger.NewDeferLog(logger.DeferLogAll), source, js_parser.JSONOptions{})
 		if !ok {
-			log.AddError(nil, logger.Loc{}, fmt.Sprintf("Invalid define value (must be valid JSON syntax or a single identifier): %s", value))
+			log.Add(logger.Error, nil, logger.Range{}, fmt.Sprintf("Invalid define value (must be valid JSON syntax or a single identifier): %s", value))
 			continue
 		}
 
@@ -537,11 +570,18 @@ func validateDefines(
 		}
 	}
 
+	// If we're dropping all console API calls, replace each one with undefined
+	if (drop & DropConsole) != 0 {
+		define := rawDefines["console"]
+		define.MethodCallsMustBeReplacedWithUndefined = true
+		rawDefines["console"] = define
+	}
+
 	for _, key := range pureFns {
 		// The key must be a dot-separated identifier list
 		for _, part := range strings.Split(key, ".") {
 			if !js_lexer.IsIdentifier(part) {
-				log.AddError(nil, logger.Loc{}, fmt.Sprintf("Invalid pure function: %q", key))
+				log.Add(logger.Error, nil, logger.Range{}, fmt.Sprintf("Invalid pure function: %q", key))
 				continue
 			}
 		}
@@ -564,7 +604,7 @@ func validatePath(log logger.Log, fs fs.FS, relPath string, pathKind string) str
 	}
 	absPath, ok := fs.Abs(relPath)
 	if !ok {
-		log.AddError(nil, logger.Loc{}, fmt.Sprintf("Invalid %s: %s", pathKind, relPath))
+		log.Add(logger.Error, nil, logger.Range{}, fmt.Sprintf("Invalid %s: %s", pathKind, relPath))
 	}
 	return absPath
 }
@@ -572,7 +612,7 @@ func validatePath(log logger.Log, fs fs.FS, relPath string, pathKind string) str
 func validateOutputExtensions(log logger.Log, outExtensions map[string]string) (js string, css string) {
 	for key, value := range outExtensions {
 		if !isValidExtension(value) {
-			log.AddError(nil, logger.Loc{}, fmt.Sprintf("Invalid output extension: %q", value))
+			log.Add(logger.Error, nil, logger.Range{}, fmt.Sprintf("Invalid output extension: %q", value))
 		}
 		switch key {
 		case ".js":
@@ -580,7 +620,7 @@ func validateOutputExtensions(log logger.Log, outExtensions map[string]string) (
 		case ".css":
 			css = value
 		default:
-			log.AddError(nil, logger.Loc{}, fmt.Sprintf("Invalid output extension: %q (valid: .css, .js)", key))
+			log.Add(logger.Error, nil, logger.Range{}, fmt.Sprintf("Invalid output extension: %q (valid: .css, .js)", key))
 		}
 	}
 	return
@@ -594,7 +634,7 @@ func validateBannerOrFooter(log logger.Log, name string, values map[string]strin
 		case "css":
 			css = value
 		default:
-			log.AddError(nil, logger.Loc{}, fmt.Sprintf("Invalid %s file type: %q (valid: css, js)", name, key))
+			log.Add(logger.Error, nil, logger.Range{}, fmt.Sprintf("Invalid %s file type: %q (valid: css, js)", name, key))
 		}
 	}
 	return
@@ -702,22 +742,28 @@ func buildImpl(buildOpts BuildOptions) internalBuildResult {
 	// Validate that the current working directory is an absolute path
 	realFS, err := fs.RealFS(fs.RealFSOptions{
 		AbsWorkingDir: buildOpts.AbsWorkingDir,
+
+		// This is a long-lived file system object so do not cache calls to
+		// ReadDirectory() (they are normally cached for the duration of a build
+		// for performance).
+		DoNotCache: true,
 	})
 	if err != nil {
-		log.AddError(nil, logger.Loc{}, err.Error())
+		log.Add(logger.Error, nil, logger.Range{}, err.Error())
 		return internalBuildResult{result: BuildResult{Errors: convertMessagesToPublic(logger.Error, log.Done())}}
 	}
 
 	// Do not re-evaluate plugins when rebuilding. Also make sure the working
 	// directory doesn't change, since breaking that invariant would break the
 	// validation that we just did above.
+	caches := cache.MakeCacheSet()
 	oldAbsWorkingDir := buildOpts.AbsWorkingDir
-	plugins, onEndCallbacks := loadPlugins(&buildOpts, realFS, log)
+	plugins, onEndCallbacks, finalizeBuildOptions := loadPlugins(&buildOpts, realFS, log, caches)
 	if buildOpts.AbsWorkingDir != oldAbsWorkingDir {
 		panic("Mutating \"AbsWorkingDir\" is not allowed")
 	}
 
-	internalResult := rebuildImpl(buildOpts, cache.MakeCacheSet(), plugins, onEndCallbacks, logOptions, log, false /* isRebuild */)
+	internalResult := rebuildImpl(buildOpts, caches, plugins, finalizeBuildOptions, onEndCallbacks, logOptions, log, false /* isRebuild */)
 
 	// Print a summary of the generated files to stderr. Except don't do
 	// this if the terminal is already being used for something else.
@@ -727,6 +773,20 @@ func buildImpl(buildOpts BuildOptions) internalBuildResult {
 	}
 
 	return internalResult
+}
+
+func prettyPrintByteCount(n int) string {
+	var size string
+	if n < 1024 {
+		size = fmt.Sprintf("%db ", n)
+	} else if n < 1024*1024 {
+		size = fmt.Sprintf("%.1fkb", float64(n)/(1024))
+	} else if n < 1024*1024*1024 {
+		size = fmt.Sprintf("%.1fmb", float64(n)/(1024*1024))
+	} else {
+		size = fmt.Sprintf("%.1fgb", float64(n)/(1024*1024*1024))
+	}
+	return size
 }
 
 func printSummary(logOptions logger.OutputOptions, outputFiles []OutputFile, start time.Time) {
@@ -742,20 +802,10 @@ func printSummary(logOptions logger.OutputOptions, outputFiles []OutputFile, sta
 					}
 					base := realFS.Base(path)
 					n := len(file.Contents)
-					var size string
-					if n < 1024 {
-						size = fmt.Sprintf("%db ", n)
-					} else if n < 1024*1024 {
-						size = fmt.Sprintf("%.1fkb", float64(n)/(1024))
-					} else if n < 1024*1024*1024 {
-						size = fmt.Sprintf("%.1fmb", float64(n)/(1024*1024))
-					} else {
-						size = fmt.Sprintf("%.1fgb", float64(n)/(1024*1024*1024))
-					}
 					table[i] = logger.SummaryTableEntry{
 						Dir:         path[:len(path)-len(base)],
 						Base:        base,
-						Size:        size,
+						Size:        prettyPrintByteCount(n),
 						Bytes:       n,
 						IsSourceMap: strings.HasSuffix(base, ".map"),
 					}
@@ -780,6 +830,7 @@ func rebuildImpl(
 	buildOpts BuildOptions,
 	caches *cache.CacheSet,
 	plugins []config.Plugin,
+	finalizeBuildOptions func(*config.Options),
 	onEndCallbacks []func(*BuildResult),
 	logOptions logger.OutputOptions,
 	log logger.Log,
@@ -794,14 +845,14 @@ func rebuildImpl(
 		// This should already have been checked above
 		panic(err.Error())
 	}
-	isTargetUnconfigured, jsFeatures, cssFeatures, targetEnv := validateFeatures(log, buildOpts.Target, buildOpts.Engines)
+	targetFromAPI, jsFeatures, cssFeatures, targetEnv := validateFeatures(log, buildOpts.Target, buildOpts.Engines)
 	outJS, outCSS := validateOutputExtensions(log, buildOpts.OutExtensions)
 	bannerJS, bannerCSS := validateBannerOrFooter(log, "banner", buildOpts.Banner)
 	footerJS, footerCSS := validateBannerOrFooter(log, "footer", buildOpts.Footer)
 	minify := buildOpts.MinifyWhitespace && buildOpts.MinifyIdentifiers && buildOpts.MinifySyntax
-	defines, injectedDefines := validateDefines(log, buildOpts.Define, buildOpts.Pure, buildOpts.Platform, minify)
+	defines, injectedDefines := validateDefines(log, buildOpts.Define, buildOpts.Pure, buildOpts.Platform, minify, buildOpts.Drop)
 	options := config.Options{
-		IsTargetUnconfigured:   isTargetUnconfigured,
+		TargetFromAPI:          targetFromAPI,
 		UnsupportedJSFeatures:  jsFeatures,
 		UnsupportedCSSFeatures: cssFeatures,
 		OriginalTargetEnv:      targetEnv,
@@ -820,9 +871,11 @@ func rebuildImpl(
 		MangleSyntax:          buildOpts.MinifySyntax,
 		RemoveWhitespace:      buildOpts.MinifyWhitespace,
 		MinifyIdentifiers:     buildOpts.MinifyIdentifiers,
+		DropDebugger:          (buildOpts.Drop & DropDebugger) != 0,
 		AllowOverwrite:        buildOpts.AllowOverwrite,
 		ASCIIOnly:             validateASCIIOnly(buildOpts.Charset),
-		IgnoreDCEAnnotations:  validateIgnoreDCEAnnotations(buildOpts.TreeShaking),
+		IgnoreDCEAnnotations:  buildOpts.IgnoreAnnotations,
+		TreeShaking:           validateTreeShaking(buildOpts.TreeShaking, buildOpts.Bundle, buildOpts.Format),
 		GlobalName:            validateGlobalName(log, buildOpts.GlobalName),
 		CodeSplitting:         buildOpts.Splitting,
 		OutputFormat:          validateFormat(buildOpts.Format),
@@ -881,13 +934,13 @@ func rebuildImpl(
 	}
 
 	if options.AbsOutputDir == "" && entryPointCount > 1 {
-		log.AddError(nil, logger.Loc{},
+		log.Add(logger.Error, nil, logger.Range{},
 			"Must use \"outdir\" when there are multiple input files")
 	} else if options.AbsOutputDir == "" && options.CodeSplitting {
-		log.AddError(nil, logger.Loc{},
+		log.Add(logger.Error, nil, logger.Range{},
 			"Must use \"outdir\" when code splitting is enabled")
 	} else if options.AbsOutputFile != "" && options.AbsOutputDir != "" {
-		log.AddError(nil, logger.Loc{}, "Cannot use both \"outfile\" and \"outdir\"")
+		log.Add(logger.Error, nil, logger.Range{}, "Cannot use both \"outfile\" and \"outdir\"")
 	} else if options.AbsOutputFile != "" {
 		// If the output file is specified, use it to derive the output directory
 		options.AbsOutputDir = realFS.Dir(options.AbsOutputFile)
@@ -896,14 +949,14 @@ func rebuildImpl(
 
 		// Forbid certain features when writing to stdout
 		if options.SourceMap != config.SourceMapNone && options.SourceMap != config.SourceMapInline {
-			log.AddError(nil, logger.Loc{}, "Cannot use an external source map without an output path")
+			log.Add(logger.Error, nil, logger.Range{}, "Cannot use an external source map without an output path")
 		}
 		if options.LegalComments.HasExternalFile() {
-			log.AddError(nil, logger.Loc{}, "Cannot use linked or external legal comments without an output path")
+			log.Add(logger.Error, nil, logger.Range{}, "Cannot use linked or external legal comments without an output path")
 		}
 		for _, loader := range options.ExtensionToLoader {
 			if loader == config.LoaderFile {
-				log.AddError(nil, logger.Loc{}, "Cannot use the \"file\" loader without an output path")
+				log.Add(logger.Error, nil, logger.Range{}, "Cannot use the \"file\" loader without an output path")
 				break
 			}
 		}
@@ -916,7 +969,7 @@ func rebuildImpl(
 	if !buildOpts.Bundle {
 		// Disallow bundle-only options when not bundling
 		if len(options.ExternalModules.NodeModules) > 0 || len(options.ExternalModules.AbsPaths) > 0 {
-			log.AddError(nil, logger.Loc{}, "Cannot use \"external\" without \"bundle\"")
+			log.Add(logger.Error, nil, logger.Range{}, "Cannot use \"external\" without \"bundle\"")
 		}
 	} else if options.OutputFormat == config.FormatPreserve {
 		// If the format isn't specified, set the default format using the platform
@@ -939,7 +992,7 @@ func rebuildImpl(
 
 	// Code splitting is experimental and currently only enabled for ES6 modules
 	if options.CodeSplitting && options.OutputFormat != config.FormatESModule {
-		log.AddError(nil, logger.Loc{}, "Splitting currently only works with the \"esm\" format")
+		log.Add(logger.Error, nil, logger.Range{}, "Splitting currently only works with the \"esm\" format")
 	}
 
 	var outputFiles []OutputFile
@@ -952,6 +1005,11 @@ func rebuildImpl(
 		var timer *helpers.Timer
 		if api_helpers.UseTimer {
 			timer = &helpers.Timer{}
+		}
+
+		// Finalize the build options, which will enable API methods that need them such as the "resolve" API
+		if finalizeBuildOptions != nil {
+			finalizeBuildOptions(&options)
 		}
 
 		// Scan over the bundle
@@ -975,10 +1033,10 @@ func rebuildImpl(
 					if options.WriteToStdout {
 						// Special-case writing to stdout
 						if len(results) != 1 {
-							log.AddError(nil, logger.Loc{}, fmt.Sprintf(
+							log.Add(logger.Error, nil, logger.Range{}, fmt.Sprintf(
 								"Internal error: did not expect to generate %d files when writing to stdout", len(results)))
 						} else if _, err := os.Stdout.Write(results[0].Contents); err != nil {
-							log.AddError(nil, logger.Loc{}, fmt.Sprintf(
+							log.Add(logger.Error, nil, logger.Range{}, fmt.Sprintf(
 								"Failed to write to stdout: %s", err.Error()))
 						}
 					} else {
@@ -990,7 +1048,7 @@ func rebuildImpl(
 								fs.BeforeFileOpen()
 								defer fs.AfterFileClose()
 								if err := fs.MkdirAll(realFS, realFS.Dir(result.AbsPath), 0755); err != nil {
-									log.AddError(nil, logger.Loc{}, fmt.Sprintf(
+									log.Add(logger.Error, nil, logger.Range{}, fmt.Sprintf(
 										"Failed to create output directory: %s", err.Error()))
 								} else {
 									var mode os.FileMode = 0644
@@ -998,7 +1056,7 @@ func rebuildImpl(
 										mode = 0755
 									}
 									if err := ioutil.WriteFile(result.AbsPath, result.Contents, mode); err != nil {
-										log.AddError(nil, logger.Loc{}, fmt.Sprintf(
+										log.Add(logger.Error, nil, logger.Range{}, fmt.Sprintf(
 											"Failed to write to output file: %s", err.Error()))
 									}
 								}
@@ -1039,7 +1097,7 @@ func rebuildImpl(
 			data:     watchData,
 			resolver: resolver,
 			rebuild: func() fs.WatchData {
-				value := rebuildImpl(buildOpts, caches, plugins, onEndCallbacks, logOptions, logger.NewStderrLog(logOptions), true /* isRebuild */)
+				value := rebuildImpl(buildOpts, caches, plugins, nil, onEndCallbacks, logOptions, logger.NewStderrLog(logOptions), true /* isRebuild */)
 				if onRebuild != nil {
 					go onRebuild(value.result)
 				}
@@ -1056,7 +1114,7 @@ func rebuildImpl(
 	var rebuild func() BuildResult
 	if buildOpts.Incremental {
 		rebuild = func() BuildResult {
-			value := rebuildImpl(buildOpts, caches, plugins, onEndCallbacks, logOptions, logger.NewStderrLog(logOptions), true /* isRebuild */)
+			value := rebuildImpl(buildOpts, caches, plugins, nil, onEndCallbacks, logOptions, logger.NewStderrLog(logOptions), true /* isRebuild */)
 			if watch != nil {
 				watch.setWatchData(value.watchData)
 			}
@@ -1181,7 +1239,7 @@ func (w *watcher) tryToFindDirtyPath() string {
 			items = append(items, path)
 		}
 		rand.Seed(time.Now().UnixNano())
-		for i := int32(len(items) - 1); i > 0; i-- { // Fisher–Yates shuffle
+		for i := int32(len(items) - 1); i > 0; i-- { // Fisher-Yates shuffle
 			j := rand.Int31n(i + 1)
 			items[i], items[j] = items[j], items[i]
 		}
@@ -1197,11 +1255,11 @@ func (w *watcher) tryToFindDirtyPath() string {
 
 	// Always check all recent items every iteration
 	for i, path := range w.recentItems {
-		if w.data.Paths[path]() {
+		if dirtyPath := w.data.Paths[path](); dirtyPath != "" {
 			// Move this path to the back of the list (i.e. the "most recent" position)
 			copy(w.recentItems[i:], w.recentItems[i+1:])
 			w.recentItems[len(w.recentItems)-1] = path
-			return path
+			return dirtyPath
 		}
 	}
 
@@ -1215,7 +1273,7 @@ func (w *watcher) tryToFindDirtyPath() string {
 
 	// Check if any of the entries in this iteration have been modified
 	for _, path := range toCheck {
-		if w.data.Paths[path]() {
+		if dirtyPath := w.data.Paths[path](); dirtyPath != "" {
 			// Mark this item as recent by adding it to the back of the list
 			w.recentItems = append(w.recentItems, path)
 			if len(w.recentItems) > maxRecentItemCount {
@@ -1223,7 +1281,7 @@ func (w *watcher) tryToFindDirtyPath() string {
 				copy(w.recentItems, w.recentItems[1:])
 				w.recentItems = w.recentItems[:maxRecentItemCount]
 			}
-			return path
+			return dirtyPath
 		}
 	}
 	return ""
@@ -1241,7 +1299,7 @@ func transformImpl(input string, transformOpts TransformOptions) TransformResult
 	})
 
 	// Settings from the user come first
-	preserveUnusedImportsTS := false
+	unusedImportsTS := config.UnusedImportsRemoveStmt
 	useDefineForClassFieldsTS := config.Unspecified
 	jsx := config.JSXOptions{
 		Preserve: transformOpts.JSXMode == JSXModePreserve,
@@ -1268,9 +1326,10 @@ func transformImpl(input string, transformOpts TransformOptions) TransformResult
 			if result.UseDefineForClassFields != config.Unspecified {
 				useDefineForClassFieldsTS = result.UseDefineForClassFields
 			}
-			if result.PreserveImportsNotUsedAsValues {
-				preserveUnusedImportsTS = true
-			}
+			unusedImportsTS = config.UnusedImportsFromTsconfigValues(
+				result.PreserveImportsNotUsedAsValues,
+				result.PreserveValueImports,
+			)
 			tsTarget = result.TSTarget
 		}
 	}
@@ -1284,10 +1343,10 @@ func transformImpl(input string, transformOpts TransformOptions) TransformResult
 	}
 
 	// Convert and validate the transformOpts
-	isTargetUnconfigured, jsFeatures, cssFeatures, targetEnv := validateFeatures(log, transformOpts.Target, transformOpts.Engines)
-	defines, injectedDefines := validateDefines(log, transformOpts.Define, transformOpts.Pure, PlatformNeutral, false /* minify */)
+	targetFromAPI, jsFeatures, cssFeatures, targetEnv := validateFeatures(log, transformOpts.Target, transformOpts.Engines)
+	defines, injectedDefines := validateDefines(log, transformOpts.Define, transformOpts.Pure, PlatformNeutral, false /* minify */, transformOpts.Drop)
 	options := config.Options{
-		IsTargetUnconfigured:    isTargetUnconfigured,
+		TargetFromAPI:           targetFromAPI,
 		UnsupportedJSFeatures:   jsFeatures,
 		UnsupportedCSSFeatures:  cssFeatures,
 		OriginalTargetEnv:       targetEnv,
@@ -1304,12 +1363,14 @@ func transformImpl(input string, transformOpts TransformOptions) TransformResult
 		MangleSyntax:            transformOpts.MinifySyntax,
 		RemoveWhitespace:        transformOpts.MinifyWhitespace,
 		MinifyIdentifiers:       transformOpts.MinifyIdentifiers,
+		DropDebugger:            (transformOpts.Drop & DropDebugger) != 0,
 		ASCIIOnly:               validateASCIIOnly(transformOpts.Charset),
-		IgnoreDCEAnnotations:    validateIgnoreDCEAnnotations(transformOpts.TreeShaking),
+		IgnoreDCEAnnotations:    transformOpts.IgnoreAnnotations,
+		TreeShaking:             validateTreeShaking(transformOpts.TreeShaking, false /* bundle */, transformOpts.Format),
 		AbsOutputFile:           transformOpts.Sourcefile + "-out",
 		KeepNames:               transformOpts.KeepNames,
 		UseDefineForClassFields: useDefineForClassFieldsTS,
-		PreserveUnusedImportsTS: preserveUnusedImportsTS,
+		UnusedImportsTS:         unusedImportsTS,
 		Stdin: &config.StdinInfo{
 			Loader:     validateLoader(transformOpts.Loader),
 			Contents:   input,
@@ -1325,14 +1386,14 @@ func transformImpl(input string, transformOpts TransformOptions) TransformResult
 	}
 	if options.SourceMap == config.SourceMapLinkedWithComment {
 		// Linked source maps don't make sense because there's no output file name
-		log.AddError(nil, logger.Loc{}, "Cannot transform with linked source maps")
+		log.Add(logger.Error, nil, logger.Range{}, "Cannot transform with linked source maps")
 	}
 	if options.SourceMap != config.SourceMapNone && options.Stdin.SourceFile == "" {
-		log.AddError(nil, logger.Loc{},
+		log.Add(logger.Error, nil, logger.Range{},
 			"Must use \"sourcefile\" with \"sourcemap\" to set the original file name")
 	}
 	if options.LegalComments.HasExternalFile() {
-		log.AddError(nil, logger.Loc{}, "Cannot transform with linked or external legal comments")
+		log.Add(logger.Error, nil, logger.Range{}, "Cannot transform with linked or external legal comments")
 	}
 
 	// Set the output mode using other settings
@@ -1397,7 +1458,7 @@ type pluginImpl struct {
 	plugin config.Plugin
 }
 
-func (impl *pluginImpl) OnStart(callback func() (OnStartResult, error)) {
+func (impl *pluginImpl) onStart(callback func() (OnStartResult, error)) {
 	impl.plugin.OnStart = append(impl.plugin.OnStart, config.OnStart{
 		Name: impl.plugin.Name,
 		Callback: func() (result config.OnStartResult) {
@@ -1421,10 +1482,52 @@ func (impl *pluginImpl) OnStart(callback func() (OnStartResult, error)) {
 	})
 }
 
-func (impl *pluginImpl) OnResolve(options OnResolveOptions, callback func(OnResolveArgs) (OnResolveResult, error)) {
+func importKindToResolveKind(kind ast.ImportKind) ResolveKind {
+	switch kind {
+	case ast.ImportEntryPoint:
+		return ResolveEntryPoint
+	case ast.ImportStmt:
+		return ResolveJSImportStatement
+	case ast.ImportRequire:
+		return ResolveJSRequireCall
+	case ast.ImportDynamic:
+		return ResolveJSDynamicImport
+	case ast.ImportRequireResolve:
+		return ResolveJSRequireResolve
+	case ast.ImportAt, ast.ImportAtConditional:
+		return ResolveCSSImportRule
+	case ast.ImportURL:
+		return ResolveCSSURLToken
+	default:
+		panic("Internal error")
+	}
+}
+
+func resolveKindToImportKind(kind ResolveKind) ast.ImportKind {
+	switch kind {
+	case ResolveEntryPoint:
+		return ast.ImportEntryPoint
+	case ResolveJSImportStatement:
+		return ast.ImportStmt
+	case ResolveJSRequireCall:
+		return ast.ImportRequire
+	case ResolveJSDynamicImport:
+		return ast.ImportDynamic
+	case ResolveJSRequireResolve:
+		return ast.ImportRequireResolve
+	case ResolveCSSImportRule:
+		return ast.ImportAt
+	case ResolveCSSURLToken:
+		return ast.ImportURL
+	default:
+		panic("Internal error")
+	}
+}
+
+func (impl *pluginImpl) onResolve(options OnResolveOptions, callback func(OnResolveArgs) (OnResolveResult, error)) {
 	filter, err := config.CompileFilterForPlugin(impl.plugin.Name, "OnResolve", options.Filter)
 	if filter == nil {
-		impl.log.AddError(nil, logger.Loc{}, err.Error())
+		impl.log.Add(logger.Error, nil, logger.Range{}, err.Error())
 		return
 	}
 
@@ -1433,44 +1536,33 @@ func (impl *pluginImpl) OnResolve(options OnResolveOptions, callback func(OnReso
 		Filter:    filter,
 		Namespace: options.Namespace,
 		Callback: func(args config.OnResolveArgs) (result config.OnResolveResult) {
-			var kind ResolveKind
-			switch args.Kind {
-			case ast.ImportEntryPoint:
-				kind = ResolveEntryPoint
-			case ast.ImportStmt:
-				kind = ResolveJSImportStatement
-			case ast.ImportRequire:
-				kind = ResolveJSRequireCall
-			case ast.ImportDynamic:
-				kind = ResolveJSDynamicImport
-			case ast.ImportRequireResolve:
-				kind = ResolveJSRequireResolve
-			case ast.ImportAt, ast.ImportAtConditional:
-				kind = ResolveCSSImportRule
-			case ast.ImportURL:
-				kind = ResolveCSSURLToken
-			default:
-				panic("Internal error")
-			}
-
 			response, err := callback(OnResolveArgs{
 				Path:       args.Path,
 				Importer:   args.Importer.Text,
 				Namespace:  args.Importer.Namespace,
 				ResolveDir: args.ResolveDir,
-				Kind:       kind,
+				Kind:       importKindToResolveKind(args.Kind),
 				PluginData: args.PluginData,
 			})
 			result.PluginName = response.PluginName
 			result.AbsWatchFiles = impl.validatePathsArray(response.WatchFiles, "watch file")
 			result.AbsWatchDirs = impl.validatePathsArray(response.WatchDirs, "watch directory")
 
+			// Restrict the suffix to start with "?" or "#" for now to match esbuild's behavior
+			if err == nil && response.Suffix != "" && response.Suffix[0] != '?' && response.Suffix[0] != '#' {
+				err = fmt.Errorf("Invalid path suffix %q returned from plugin (must start with \"?\" or \"#\")", response.Suffix)
+			}
+
 			if err != nil {
 				result.ThrownError = err
 				return
 			}
 
-			result.Path = logger.Path{Text: response.Path, Namespace: response.Namespace}
+			result.Path = logger.Path{
+				Text:          response.Path,
+				Namespace:     response.Namespace,
+				IgnoredSuffix: response.Suffix,
+			}
 			result.External = response.External
 			result.IsSideEffectFree = response.SideEffects == SideEffectsFalse
 			result.PluginData = response.PluginData
@@ -1488,10 +1580,10 @@ func (impl *pluginImpl) OnResolve(options OnResolveOptions, callback func(OnReso
 	})
 }
 
-func (impl *pluginImpl) OnLoad(options OnLoadOptions, callback func(OnLoadArgs) (OnLoadResult, error)) {
+func (impl *pluginImpl) onLoad(options OnLoadOptions, callback func(OnLoadArgs) (OnLoadResult, error)) {
 	filter, err := config.CompileFilterForPlugin(impl.plugin.Name, "OnLoad", options.Filter)
 	if filter == nil {
-		impl.log.AddError(nil, logger.Loc{}, err.Error())
+		impl.log.Add(logger.Error, nil, logger.Range{}, err.Error())
 		return
 	}
 
@@ -1503,6 +1595,7 @@ func (impl *pluginImpl) OnLoad(options OnLoadOptions, callback func(OnLoadArgs) 
 				Path:       args.Path.Text,
 				Namespace:  args.Path.Namespace,
 				PluginData: args.PluginData,
+				Suffix:     args.Path.IgnoredSuffix,
 			})
 			result.PluginName = response.PluginName
 			result.AbsWatchFiles = impl.validatePathsArray(response.WatchFiles, "watch file")
@@ -1546,7 +1639,11 @@ func (impl *pluginImpl) validatePathsArray(pathsIn []string, name string) (paths
 	return
 }
 
-func loadPlugins(initialOptions *BuildOptions, fs fs.FS, log logger.Log) (plugins []config.Plugin, onEndCallbacks []func(*BuildResult)) {
+func loadPlugins(initialOptions *BuildOptions, fs fs.FS, log logger.Log, caches *cache.CacheSet) (
+	plugins []config.Plugin,
+	onEndCallbacks []func(*BuildResult),
+	finalizeBuildOptions func(*config.Options),
+) {
 	onEnd := func(callback func(*BuildResult)) {
 		onEndCallbacks = append(onEndCallbacks, callback)
 	}
@@ -1554,9 +1651,21 @@ func loadPlugins(initialOptions *BuildOptions, fs fs.FS, log logger.Log) (plugin
 	// Clone the plugin array to guard against mutation during iteration
 	clone := append(make([]Plugin, 0, len(initialOptions.Plugins)), initialOptions.Plugins...)
 
+	var resolveMutex sync.Mutex
+	var optionsForResolve *config.Options
+
+	// This is called when the build options are finalized
+	finalizeBuildOptions = func(options *config.Options) {
+		resolveMutex.Lock()
+		if optionsForResolve == nil {
+			optionsForResolve = options
+		}
+		resolveMutex.Unlock()
+	}
+
 	for i, item := range clone {
 		if item.Name == "" {
-			log.AddError(nil, logger.Loc{}, fmt.Sprintf("Plugin at index %d is missing a name", i))
+			log.Add(logger.Error, nil, logger.Range{}, fmt.Sprintf("Plugin at index %d is missing a name", i))
 			continue
 		}
 
@@ -1566,16 +1675,87 @@ func loadPlugins(initialOptions *BuildOptions, fs fs.FS, log logger.Log) (plugin
 			plugin: config.Plugin{Name: item.Name},
 		}
 
+		resolve := func(path string, options ResolveOptions) (result ResolveResult) {
+			// Try to grab the resolver options
+			resolveMutex.Lock()
+			buildOptions := optionsForResolve
+			resolveMutex.Unlock()
+
+			// If we couldn't grab them, then this is being called before plugin setup
+			// has finished. That isn't allowed because plugin setup is allowed to
+			// change the initial options object, which can affect path resolution.
+			if buildOptions == nil {
+				return ResolveResult{Errors: []Message{{Text: "Cannot call \"resolve\" before plugin setup has completed"}}}
+			}
+
+			// Make a new resolver so it has its own log
+			log := logger.NewDeferLog(logger.DeferLogNoVerboseOrDebug)
+			resolver := resolver.NewResolver(fs, log, caches, *buildOptions)
+
+			// Make sure the resolve directory is an absolute path, which can fail
+			absResolveDir := validatePath(log, fs, options.ResolveDir, "resolve directory")
+			if log.HasErrors() {
+				msgs := log.Done()
+				result.Errors = convertMessagesToPublic(logger.Error, msgs)
+				result.Warnings = convertMessagesToPublic(logger.Warning, msgs)
+				return
+			}
+
+			// Run path resolution
+			kind := resolveKindToImportKind(options.Kind)
+			resolveResult, _, _ := bundler.RunOnResolvePlugins(
+				plugins,
+				resolver,
+				log,
+				fs,
+				&caches.FSCache,
+				nil,            // importSource
+				logger.Range{}, // importPathRange
+				logger.Path{Text: options.Importer, Namespace: options.Namespace},
+				path,
+				kind,
+				absResolveDir,
+				options.PluginData,
+			)
+			msgs := log.Done()
+
+			// Populate the result
+			result.Errors = convertMessagesToPublic(logger.Error, msgs)
+			result.Warnings = convertMessagesToPublic(logger.Warning, msgs)
+			if resolveResult != nil {
+				result.Path = resolveResult.PathPair.Primary.Text
+				result.External = resolveResult.IsExternal
+				result.SideEffects = resolveResult.PrimarySideEffectsData == nil
+				result.Namespace = resolveResult.PathPair.Primary.Namespace
+				result.Suffix = resolveResult.PathPair.Primary.IgnoredSuffix
+				result.PluginData = resolveResult.PluginData
+			} else if len(result.Errors) == 0 {
+				// Always fail with at least one error
+				pluginName := item.Name
+				if options.PluginName != "" {
+					pluginName = options.PluginName
+				}
+				text, notes := bundler.ResolveFailureErrorTextAndNotes(resolver, path, kind, pluginName, fs, absResolveDir, buildOptions.Platform, "")
+				result.Errors = append(result.Errors, convertMessagesToPublic(logger.Error, []logger.Msg{{
+					Data:  logger.MsgData{Text: text},
+					Notes: notes,
+				}})...)
+			}
+			return
+		}
+
 		item.Setup(PluginBuild{
 			InitialOptions: initialOptions,
-			OnStart:        impl.OnStart,
+			Resolve:        resolve,
+			OnStart:        impl.onStart,
 			OnEnd:          onEnd,
-			OnResolve:      impl.OnResolve,
-			OnLoad:         impl.OnLoad,
+			OnResolve:      impl.onResolve,
+			OnLoad:         impl.onLoad,
 		})
 
 		plugins = append(plugins, impl.plugin)
 	}
+
 	return
 }
 
@@ -1601,4 +1781,315 @@ func formatMsgsImpl(msgs []Message, opts FormatMessagesOptions) []string {
 		)
 	}
 	return strings
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// AnalyzeMetafile API
+
+type metafileEntry struct {
+	name       string
+	entryPoint string
+	entries    []metafileEntry
+	size       int
+}
+
+type metafileArray []metafileEntry
+
+func (a metafileArray) Len() int          { return len(a) }
+func (a metafileArray) Swap(i int, j int) { a[i], a[j] = a[j], a[i] }
+
+func (a metafileArray) Less(i int, j int) bool {
+	ai := a[i]
+	aj := a[j]
+	return ai.size > aj.size || (ai.size == aj.size && ai.name < aj.name)
+}
+
+func getObjectProperty(expr js_ast.Expr, key string) js_ast.Expr {
+	if obj, ok := expr.Data.(*js_ast.EObject); ok {
+		for _, prop := range obj.Properties {
+			if js_lexer.UTF16EqualsString(prop.Key.Data.(*js_ast.EString).Value, key) {
+				return prop.ValueOrNil
+			}
+		}
+	}
+	return js_ast.Expr{}
+}
+
+func getObjectPropertyNumber(expr js_ast.Expr, key string) *js_ast.ENumber {
+	value, _ := getObjectProperty(expr, key).Data.(*js_ast.ENumber)
+	return value
+}
+
+func getObjectPropertyString(expr js_ast.Expr, key string) *js_ast.EString {
+	value, _ := getObjectProperty(expr, key).Data.(*js_ast.EString)
+	return value
+}
+
+func getObjectPropertyObject(expr js_ast.Expr, key string) *js_ast.EObject {
+	value, _ := getObjectProperty(expr, key).Data.(*js_ast.EObject)
+	return value
+}
+
+func getObjectPropertyArray(expr js_ast.Expr, key string) *js_ast.EArray {
+	value, _ := getObjectProperty(expr, key).Data.(*js_ast.EArray)
+	return value
+}
+
+func analyzeMetafileImpl(metafile string, opts AnalyzeMetafileOptions) string {
+	log := logger.NewDeferLog(logger.DeferLogNoVerboseOrDebug)
+	source := logger.Source{Contents: metafile}
+
+	if result, ok := js_parser.ParseJSON(log, source, js_parser.JSONOptions{}); ok {
+		if outputs := getObjectPropertyObject(result, "outputs"); outputs != nil {
+			var entries metafileArray
+			var entryPoints []string
+
+			// Scan over the "outputs" object
+			for _, output := range outputs.Properties {
+				if key := js_lexer.UTF16ToString(output.Key.Data.(*js_ast.EString).Value); !strings.HasSuffix(key, ".map") {
+					entryPointPath := ""
+					if entryPoint := getObjectPropertyString(output.ValueOrNil, "entryPoint"); entryPoint != nil {
+						entryPointPath = js_lexer.UTF16ToString(entryPoint.Value)
+						entryPoints = append(entryPoints, entryPointPath)
+					}
+
+					if bytes := getObjectPropertyNumber(output.ValueOrNil, "bytes"); bytes != nil {
+						if inputs := getObjectPropertyObject(output.ValueOrNil, "inputs"); inputs != nil {
+							var children metafileArray
+
+							for _, input := range inputs.Properties {
+								if bytesInOutput := getObjectPropertyNumber(input.ValueOrNil, "bytesInOutput"); bytesInOutput != nil && bytesInOutput.Value > 0 {
+									children = append(children, metafileEntry{
+										name: js_lexer.UTF16ToString(input.Key.Data.(*js_ast.EString).Value),
+										size: int(bytesInOutput.Value),
+									})
+								}
+							}
+
+							sort.Sort(children)
+
+							entries = append(entries, metafileEntry{
+								name:       key,
+								size:       int(bytes.Value),
+								entries:    children,
+								entryPoint: entryPointPath,
+							})
+						}
+					}
+				}
+			}
+
+			sort.Sort(entries)
+
+			type importData struct {
+				imports []string
+			}
+
+			type graphData struct {
+				parent string
+				depth  uint32
+			}
+
+			importsForPath := make(map[string]importData)
+
+			// Scan over the "inputs" object
+			if inputs := getObjectPropertyObject(result, "inputs"); inputs != nil {
+				for _, prop := range inputs.Properties {
+					if imports := getObjectPropertyArray(prop.ValueOrNil, "imports"); imports != nil {
+						var data importData
+
+						for _, item := range imports.Items {
+							if path := getObjectPropertyString(item, "path"); path != nil {
+								data.imports = append(data.imports, js_lexer.UTF16ToString(path.Value))
+							}
+						}
+
+						importsForPath[js_lexer.UTF16ToString(prop.Key.Data.(*js_ast.EString).Value)] = data
+					}
+				}
+			}
+
+			// Returns a graph with links pointing from imports to importers
+			graphForEntryPoints := func(worklist []string) map[string]graphData {
+				if !opts.Verbose {
+					return nil
+				}
+
+				graph := make(map[string]graphData)
+
+				for _, entryPoint := range worklist {
+					graph[entryPoint] = graphData{}
+				}
+
+				for len(worklist) > 0 {
+					top := worklist[len(worklist)-1]
+					worklist = worklist[:len(worklist)-1]
+					childDepth := graph[top].depth + 1
+
+					for _, importPath := range importsForPath[top].imports {
+						imported, ok := graph[importPath]
+						if !ok {
+							imported.depth = math.MaxUint32
+						}
+
+						if imported.depth > childDepth {
+							imported.depth = childDepth
+							imported.parent = top
+							graph[importPath] = imported
+							worklist = append(worklist, importPath)
+						}
+					}
+				}
+
+				return graph
+			}
+
+			graphForAllEntryPoints := graphForEntryPoints(entryPoints)
+
+			type tableEntry struct {
+				first      string
+				second     string
+				third      string
+				firstLen   int
+				secondLen  int
+				thirdLen   int
+				isTopLevel bool
+			}
+
+			var table []tableEntry
+			var colors logger.Colors
+
+			if opts.Color {
+				colors = logger.TerminalColors
+			}
+
+			// Build up the table with an entry for each output file (other than ".map" files)
+			for _, entry := range entries {
+				second := prettyPrintByteCount(entry.size)
+				third := "100.0%"
+
+				table = append(table, tableEntry{
+					first:      fmt.Sprintf("%s%s%s", colors.Bold, entry.name, colors.Reset),
+					firstLen:   utf8.RuneCountInString(entry.name),
+					second:     fmt.Sprintf("%s%s%s", colors.Bold, second, colors.Reset),
+					secondLen:  len(second),
+					third:      fmt.Sprintf("%s%s%s", colors.Bold, third, colors.Reset),
+					thirdLen:   len(third),
+					isTopLevel: true,
+				})
+
+				graph := graphForAllEntryPoints
+				if entry.entryPoint != "" {
+					// If there are multiple entry points and this output file is from an
+					// entry point, prefer import paths for this entry point. This is less
+					// confusing than showing import paths for another entry point.
+					graph = graphForEntryPoints([]string{entry.entryPoint})
+				}
+
+				// Add a sub-entry for each input file in this output file
+				for j, child := range entry.entries {
+					indent := " ├ "
+					if j+1 == len(entry.entries) {
+						indent = " └ "
+					}
+					percent := 100.0 * float64(child.size) / float64(entry.size)
+
+					first := indent + child.name
+					second := prettyPrintByteCount(child.size)
+					third := fmt.Sprintf("%.1f%%", percent)
+
+					table = append(table, tableEntry{
+						first:     first,
+						firstLen:  utf8.RuneCountInString(first),
+						second:    second,
+						secondLen: len(second),
+						third:     third,
+						thirdLen:  len(third),
+					})
+
+					// If we're in verbose mode, also print the import chain from this file
+					// up toward an entry point to show why this file is in the bundle
+					if opts.Verbose {
+						indent = " │ "
+						if j+1 == len(entry.entries) {
+							indent = "   "
+						}
+						data := graph[child.name]
+						depth := 0
+
+						for data.depth != 0 {
+							table = append(table, tableEntry{
+								first: fmt.Sprintf("%s%s%s └ %s%s", indent, colors.Dim, strings.Repeat(" ", depth), data.parent, colors.Reset),
+							})
+							data = graph[data.parent]
+							depth += 3
+						}
+					}
+				}
+			}
+
+			maxFirstLen := 0
+			maxSecondLen := 0
+			maxThirdLen := 0
+
+			// Calculate column widths
+			for _, entry := range table {
+				if maxFirstLen < entry.firstLen {
+					maxFirstLen = entry.firstLen
+				}
+				if maxSecondLen < entry.secondLen {
+					maxSecondLen = entry.secondLen
+				}
+				if maxThirdLen < entry.thirdLen {
+					maxThirdLen = entry.thirdLen
+				}
+			}
+
+			sb := strings.Builder{}
+
+			// Render the columns now that we know the widths
+			for _, entry := range table {
+				prefix := "\n"
+				if !entry.isTopLevel {
+					prefix = ""
+				}
+
+				// Import paths don't have second and third columns
+				if entry.second == "" && entry.third == "" {
+					sb.WriteString(fmt.Sprintf("%s  %s\n",
+						prefix,
+						entry.first,
+					))
+					continue
+				}
+
+				second := entry.second
+				secondTrimmed := strings.TrimRight(second, " ")
+				lineChar := " "
+				extraSpace := 0
+
+				if opts.Verbose {
+					lineChar = "─"
+					extraSpace = 1
+				}
+
+				sb.WriteString(fmt.Sprintf("%s  %s %s%s%s %s %s%s%s %s\n",
+					prefix,
+					entry.first,
+					colors.Dim,
+					strings.Repeat(lineChar, extraSpace+maxFirstLen-entry.firstLen+maxSecondLen-entry.secondLen),
+					colors.Reset,
+					secondTrimmed,
+					colors.Dim,
+					strings.Repeat(lineChar, extraSpace+maxThirdLen-entry.thirdLen+len(second)-len(secondTrimmed)),
+					colors.Reset,
+					entry.third,
+				))
+			}
+
+			return sb.String()
+		}
+	}
+
+	return ""
 }

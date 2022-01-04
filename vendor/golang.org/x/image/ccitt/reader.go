@@ -158,13 +158,13 @@ func (b *bitReader) alignToByteBoundary() {
 // bitReader.nBits value above nextBitMaxNBits.
 const nextBitMaxNBits = 31
 
-func (b *bitReader) nextBit() (uint32, error) {
+func (b *bitReader) nextBit() (uint64, error) {
 	for {
 		if b.nBits > 0 {
-			bit := (b.bits >> 63) & 1
+			bit := b.bits >> 63
 			b.bits <<= 1
 			b.nBits--
-			return uint32(bit), nil
+			return bit, nil
 		}
 
 		if available := b.bw - b.br; available >= 4 {
@@ -207,7 +207,7 @@ func decode(b *bitReader, decodeTable [][2]int16) (uint32, error) {
 		if err != nil {
 			return 0, err
 		}
-		bitsRead |= uint64(bit) << (63 - nBitsRead)
+		bitsRead |= bit << (63 - nBitsRead)
 		nBitsRead++
 		// The "&1" is redundant, but can eliminate a bounds check.
 		state = int32(decodeTable[state][bit&1])

@@ -16,11 +16,16 @@ import (
 
 //Evaluate given parameter with given expression in gval full language
 func Evaluate(expression string, parameter interface{}, opts ...Language) (interface{}, error) {
+	return EvaluateWithContext(context.Background(), expression, parameter, opts...)
+}
+
+//Evaluate given parameter with given expression in gval full language using a context
+func EvaluateWithContext(c context.Context, expression string, parameter interface{}, opts ...Language) (interface{}, error) {
 	l := full
 	if len(opts) > 0 {
 		l = NewLanguage(append([]Language{l}, opts...)...)
 	}
-	return l.Evaluate(expression, parameter)
+	return l.EvaluateWithContext(c, expression, parameter)
 }
 
 // Full is the union of Arithmetic, Bitmask, Text, PropositionalLogic, and Json
@@ -98,10 +103,11 @@ var full = NewLanguage(arithmetic, bitmask, text, propositionalLogic, ljson,
 	InfixOperator("in", inArray),
 
 	InfixShortCircuit("??", func(a interface{}) (interface{}, bool) {
-		return a, a != false && a != nil
+		v := reflect.ValueOf(a)
+		return a, a != nil && !v.IsZero()
 	}),
 	InfixOperator("??", func(a, b interface{}) (interface{}, error) {
-		if a == false || a == nil {
+		if v := reflect.ValueOf(a); a == nil || v.IsZero() {
 			return b, nil
 		}
 		return a, nil

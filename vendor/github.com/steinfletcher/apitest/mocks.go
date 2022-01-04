@@ -14,31 +14,39 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
+	"time"
+
+	"github.com/davecgh/go-spew/spew"
+	"github.com/steinfletcher/apitest/difflib"
 )
 
 // Transport wraps components used to observe and manipulate the real request and response objects
 type Transport struct {
-	debugEnabled    bool
-	mocks           []*Mock
-	nativeTransport http.RoundTripper
-	httpClient      *http.Client
-	observers       []Observe
-	apiTest         *APITest
+	debugEnabled             bool
+	mockResponseDelayEnabled bool
+	mocks                    []*Mock
+	nativeTransport          http.RoundTripper
+	httpClient               *http.Client
+	observers                []Observe
+	apiTest                  *APITest
 }
 
 func newTransport(
 	mocks []*Mock,
 	httpClient *http.Client,
 	debugEnabled bool,
+	mockResponseDelayEnabled bool,
 	observers []Observe,
 	apiTest *APITest) *Transport {
 
 	t := &Transport{
-		mocks:        mocks,
-		httpClient:   httpClient,
-		debugEnabled: debugEnabled,
-		observers:    observers,
-		apiTest:      apiTest,
+		mocks:                    mocks,
+		httpClient:               httpClient,
+		debugEnabled:             debugEnabled,
+		mockResponseDelayEnabled: mockResponseDelayEnabled,
+		observers:                observers,
+		apiTest:                  apiTest,
 	}
 	if httpClient != nil {
 		t.nativeTransport = httpClient.Transport
@@ -106,7 +114,18 @@ func (r *Transport) RoundTrip(req *http.Request) (mockResponse *http.Response, m
 
 	matchedResponse, matchErrors := matches(req, r.mocks)
 	if matchErrors == nil {
-		return buildResponseFromMock(matchedResponse), nil
+		res := buildResponseFromMock(matchedResponse)
+		res.Request = req
+
+		if matchedResponse.timeout {
+			return nil, timeoutError{}
+		}
+
+		if r.mockResponseDelayEnabled && matchedResponse.fixedDelayMillis > 0 {
+			time.Sleep(time.Duration(matchedResponse.fixedDelayMillis) * time.Millisecond)
+		}
+
+		return res, nil
 	}
 
 	if r.debugEnabled {
@@ -195,6 +214,7 @@ func buildResponseFromMock(mockResponse *MockResponse) *http.Response {
 
 // Mock represents the entire interaction for a mock to be used for testing
 type Mock struct {
+	m               *sync.Mutex
 	isUsed          bool
 	request         *MockRequest
 	response        *MockResponse
@@ -215,12 +235,28 @@ func (m *Mock) Matches(req *http.Request) []error {
 	return errs
 }
 
+func (m *Mock) copy() *Mock {
+	newMock := *m
+
+	newMock.m = &sync.Mutex{}
+
+	req := *m.request
+	newMock.request = &req
+
+	res := *m.response
+	newMock.response = &res
+
+	return &newMock
+}
+
 // MockRequest represents the http request side of a mock interaction
 type MockRequest struct {
 	mock               *Mock
 	url                *url.URL
 	method             string
 	headers            map[string][]string
+	basicAuthUsername  string
+	basicAuthPassword  string
 	headerPresent      []string
 	headerNotPresent   []string
 	formData           map[string][]string
@@ -233,16 +269,24 @@ type MockRequest struct {
 	cookiePresent      []string
 	cookieNotPresent   []string
 	body               string
+	bodyRegexp         string
 	matchers           []Matcher
+}
+
+// UnmatchedMock exposes some information about mocks that failed to match a request
+type UnmatchedMock struct {
+	URL url.URL
 }
 
 // MockResponse represents the http response side of a mock interaction
 type MockResponse struct {
-	mock       *Mock
-	headers    map[string][]string
-	cookies    []*Cookie
-	body       string
-	statusCode int
+	mock             *Mock
+	timeout          bool
+	headers          map[string][]string
+	cookies          []*Cookie
+	body             string
+	statusCode       int
+	fixedDelayMillis int64
 }
 
 // StandaloneMocks for using mocks outside of API tests context
@@ -277,6 +321,7 @@ func (r *StandaloneMocks) End() func() {
 		r.mocks,
 		r.httpClient,
 		r.debug,
+		false,
 		nil,
 		nil,
 	)
@@ -287,21 +332,21 @@ func (r *StandaloneMocks) End() func() {
 
 // NewMock create a new mock, ready for configuration using the builder pattern
 func NewMock() *Mock {
-	mock := &Mock{}
-	req := &MockRequest{
+	mock := &Mock{
+		m:     &sync.Mutex{},
+		times: 1,
+	}
+	mock.request = &MockRequest{
 		mock:     mock,
 		headers:  map[string][]string{},
 		formData: map[string][]string{},
 		query:    map[string][]string{},
 		matchers: defaultMatchers,
 	}
-	res := &MockResponse{
+	mock.response = &MockResponse{
 		mock:    mock,
 		headers: map[string][]string{},
 	}
-	mock.request = req
-	mock.response = res
-	mock.times = 1
 	return mock
 }
 
@@ -325,11 +370,28 @@ func (m *Mock) Get(u string) *MockRequest {
 	return m.request
 }
 
+// Getf configures the mock to match http method GET and supports formatting
+func (m *Mock) Getf(format string, args ...interface{}) *MockRequest {
+	return m.Get(fmt.Sprintf(format, args...))
+}
+
+// Head configures the mock to match http method HEAD
+func (m *Mock) Head(u string) *MockRequest {
+	m.parseUrl(u)
+	m.request.method = http.MethodHead
+	return m.request
+}
+
 // Put configures the mock to match http method PUT
 func (m *Mock) Put(u string) *MockRequest {
 	m.parseUrl(u)
 	m.request.method = http.MethodPut
 	return m.request
+}
+
+// Putf configures the mock to match http method PUT and supports formatting
+func (m *Mock) Putf(format string, args ...interface{}) *MockRequest {
+	return m.Put(fmt.Sprintf(format, args...))
 }
 
 // Post configures the mock to match http method POST
@@ -339,6 +401,11 @@ func (m *Mock) Post(u string) *MockRequest {
 	return m.request
 }
 
+// Postf configures the mock to match http method POST and supports formatting
+func (m *Mock) Postf(format string, args ...interface{}) *MockRequest {
+	return m.Post(fmt.Sprintf(format, args...))
+}
+
 // Delete configures the mock to match http method DELETE
 func (m *Mock) Delete(u string) *MockRequest {
 	m.parseUrl(u)
@@ -346,11 +413,21 @@ func (m *Mock) Delete(u string) *MockRequest {
 	return m.request
 }
 
+// Deletef configures the mock to match http method DELETE and supports formatting
+func (m *Mock) Deletef(format string, args ...interface{}) *MockRequest {
+	return m.Delete(fmt.Sprintf(format, args...))
+}
+
 // Patch configures the mock to match http method PATCH
 func (m *Mock) Patch(u string) *MockRequest {
 	m.parseUrl(u)
 	m.request.method = http.MethodPatch
 	return m.request
+}
+
+// Patchf configures the mock to match http method PATCH and supports formatting
+func (m *Mock) Patchf(format string, args ...interface{}) *MockRequest {
+	return m.Patch(fmt.Sprintf(format, args...))
 }
 
 func (m *Mock) parseUrl(u string) {
@@ -370,17 +447,21 @@ func (m *Mock) Method(method string) *MockRequest {
 func matches(req *http.Request, mocks []*Mock) (*MockResponse, error) {
 	mockError := newUnmatchedMockError()
 	for mockNumber, mock := range mocks {
+		mock.m.Lock() // lock is for isUsed when matches is called concurrently by RoundTripper
 		if mock.isUsed {
+			mock.m.Unlock()
 			continue
 		}
 
 		errs := mock.Matches(req)
 		if len(errs) == 0 {
 			mock.isUsed = true
+			mock.m.Unlock()
 			return mock.response, nil
 		}
 
 		mockError = mockError.addErrors(mockNumber+1, errs...)
+		mock.m.Unlock()
 	}
 
 	return nil, mockError
@@ -389,6 +470,41 @@ func matches(req *http.Request, mocks []*Mock) (*MockResponse, error) {
 // Body configures the mock request to match the given body
 func (r *MockRequest) Body(b string) *MockRequest {
 	r.body = b
+	return r
+}
+
+// BodyRegexp configures the mock request to match the given body using the regexp matcher
+func (r *MockRequest) BodyRegexp(b string) *MockRequest {
+	r.body = b
+	return r
+}
+
+// Bodyf configures the mock request to match the given body. Supports formatting the body
+func (r *MockRequest) Bodyf(format string, args ...interface{}) *MockRequest {
+	return r.Body(fmt.Sprintf(format, args...))
+}
+
+// BodyFromFile configures the mock request to match the given body from a file
+func (r *MockRequest) BodyFromFile(f string) *MockRequest {
+	b, err := ioutil.ReadFile(f)
+	if err != nil {
+		panic(err)
+	}
+	r.body = string(b)
+	return r
+}
+
+// JSON is a convenience method for setting the mock request body
+func (r *MockRequest) JSON(v interface{}) *MockRequest {
+	switch x := v.(type) {
+	case string:
+		r.body = x
+	case []byte:
+		r.body = string(x)
+	default:
+		asJSON, _ := json.Marshal(x)
+		r.body = string(asJSON)
+	}
 	return r
 }
 
@@ -420,6 +536,13 @@ func (r *MockRequest) HeaderNotPresent(key string) *MockRequest {
 	return r
 }
 
+// BasicAuth configures the mock request to match the given basic auth parameters
+func (r *MockRequest) BasicAuth(username, password string) *MockRequest {
+	r.basicAuthUsername = username
+	r.basicAuthPassword = password
+	return r
+}
+
 // FormData configures the mock request to math the given form data
 func (r *MockRequest) FormData(key string, values ...string) *MockRequest {
 	r.formData[key] = append(r.formData[key], values...)
@@ -448,6 +571,16 @@ func (r *MockRequest) Query(key, value string) *MockRequest {
 func (r *MockRequest) QueryParams(queryParams map[string]string) *MockRequest {
 	for k, v := range queryParams {
 		r.query[k] = append(r.query[k], v)
+	}
+	return r
+}
+
+// QueryCollection configures the mock request to match a number of repeating query params, e.g. ?a=1&a=2&a=3
+func (r *MockRequest) QueryCollection(queryParams map[string][]string) *MockRequest {
+	for k, v := range queryParams {
+		for _, val := range v {
+			r.query[k] = append(r.query[k], val)
+		}
 	}
 	return r
 }
@@ -493,6 +626,12 @@ func (r *MockRequest) RespondWith() *MockResponse {
 	return r.mock.response
 }
 
+// Timeout forces the mock to return a http timeout
+func (r *MockResponse) Timeout() *MockResponse {
+	r.timeout = true
+	return r
+}
+
 // Header respond with the given header
 func (r *MockResponse) Header(key string, value string) *MockResponse {
 	normalizedKey := textproto.CanonicalMIMEHeaderKey(key)
@@ -521,15 +660,52 @@ func (r *MockResponse) Cookie(name, value string) *MockResponse {
 	return r
 }
 
-// Body respond with the given body
+// Body sets the mock response body
 func (r *MockResponse) Body(body string) *MockResponse {
 	r.body = body
+	return r
+}
+
+// Bodyf sets the mock response body. Supports formatting
+func (r *MockResponse) Bodyf(format string, args ...interface{}) *MockResponse {
+	return r.Body(fmt.Sprintf(format, args...))
+}
+
+// BodyFromFile defines the mock response body from a file
+func (r *MockResponse) BodyFromFile(f string) *MockResponse {
+	b, err := ioutil.ReadFile(f)
+	if err != nil {
+		panic(err)
+	}
+	r.body = string(b)
+	return r
+}
+
+// JSON is a convenience method for setting the mock response body
+func (r *MockResponse) JSON(v interface{}) *MockResponse {
+	switch x := v.(type) {
+	case string:
+		r.body = x
+	case []byte:
+		r.body = string(x)
+	default:
+		asJSON, _ := json.Marshal(x)
+		r.body = string(asJSON)
+	}
 	return r
 }
 
 // Status respond with the given status
 func (r *MockResponse) Status(statusCode int) *MockResponse {
 	r.statusCode = statusCode
+	return r
+}
+
+// FixedDelay will return the response after the given number of milliseconds.
+// APITest::EnableMockResponseDelay must be set for this to take effect.
+// If Timeout is set this has no effect.
+func (r *MockResponse) FixedDelay(delay int64) *MockResponse {
+	r.fixedDelayMillis = delay
 	return r
 }
 
@@ -551,6 +727,7 @@ func (r *MockResponse) EndStandalone(other ...*Mock) func() {
 		append([]*Mock{r.mock}, other...),
 		r.mock.httpClient,
 		r.mock.debugStandalone,
+		false,
 		nil,
 		nil,
 	)
@@ -642,6 +819,29 @@ var headerMatcher = func(req *http.Request, spec *MockRequest) error {
 			return fmt.Errorf("not all of received headers %s matched expected mock headers %s", receivedHeaders, mockHeaders)
 		}
 	}
+	return nil
+}
+
+var basicAuthMatcher = func(req *http.Request, spec *MockRequest) error {
+	if spec.basicAuthUsername == "" {
+		return nil
+	}
+
+	username, password, ok := req.BasicAuth()
+	if !ok {
+		return errors.New("request did not contain valid HTTP Basic Authentication string")
+	}
+
+	if spec.basicAuthUsername != username {
+		return fmt.Errorf("basic auth request username '%s' did not match mock username '%s'",
+			username, spec.basicAuthUsername)
+	}
+
+	if spec.basicAuthPassword != password {
+		return fmt.Errorf("basic auth request password '%s' did not match mock password '%s'",
+			password, spec.basicAuthPassword)
+	}
+
 	return nil
 }
 
@@ -846,17 +1046,11 @@ var bodyMatcher = func(req *http.Request, spec *MockRequest) error {
 		return nil
 	}
 
-	// Perform regexp match
-	match, _ := regexp.MatchString(mockBody, bodyStr)
-	if match {
-		return nil
-	}
-
 	// Perform JSON match
-	var reqJSON map[string]interface{}
+	var reqJSON interface{}
 	reqJSONErr := json.Unmarshal(body, &reqJSON)
 
-	var matchJSON map[string]interface{}
+	var matchJSON interface{}
 	specJSONErr := json.Unmarshal([]byte(mockBody), &matchJSON)
 
 	isJSON := reqJSONErr == nil && specJSONErr == nil
@@ -864,7 +1058,43 @@ var bodyMatcher = func(req *http.Request, spec *MockRequest) error {
 		return nil
 	}
 
-	return fmt.Errorf("received body %s did not match expected mock body %s", bodyStr, mockBody)
+	if isJSON {
+		return fmt.Errorf("received body did not match expected mock body\n%s", diff(matchJSON, reqJSON))
+	}
+
+	return fmt.Errorf("received body did not match expected mock body\n%s", diff(mockBody, bodyStr))
+}
+
+var bodyRegexpMatcher = func(req *http.Request, spec *MockRequest) error {
+	expression := spec.bodyRegexp
+
+	if len(expression) == 0 {
+		return nil
+	}
+
+	if req.Body == nil {
+		return errors.New("expected a body but received none")
+	}
+
+	body, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		return err
+	}
+	if len(body) == 0 {
+		return errors.New("expected a body but received none")
+	}
+
+	// replace body so it can be read again
+	req.Body = ioutil.NopCloser(bytes.NewReader(body))
+
+	// Perform regexp match
+	bodyStr := string(body)
+	match, _ := regexp.MatchString(expression, bodyStr)
+	if match {
+		return nil
+	}
+
+	return fmt.Errorf("received body did not match expected mock body\n%s", diff(expression, bodyStr))
 }
 
 func errorOrNil(statement bool, errorMessage func() string) error {
@@ -880,6 +1110,7 @@ var defaultMatchers = []Matcher{
 	schemeMatcher,
 	methodMatcher,
 	headerMatcher,
+	basicAuthMatcher,
 	headerPresentMatcher,
 	headerNotPresentMatcher,
 	queryParamMatcher,
@@ -889,7 +1120,71 @@ var defaultMatchers = []Matcher{
 	formDataPresentMatcher,
 	formDataNotPresentMatcher,
 	bodyMatcher,
+	bodyRegexpMatcher,
 	cookieMatcher,
 	cookiePresentMatcher,
 	cookieNotPresentMatcher,
+}
+
+type timeoutError struct{}
+
+func (timeoutError) Error() string   { return "deadline exceeded" }
+func (timeoutError) Timeout() bool   { return true }
+func (timeoutError) Temporary() bool { return true }
+
+var spewConfig = spew.ConfigState{
+	Indent:                  " ",
+	DisablePointerAddresses: true,
+	DisableCapacities:       true,
+	SortKeys:                true,
+	DisableMethods:          true,
+}
+
+func diff(expected interface{}, actual interface{}) string {
+	if expected == nil || actual == nil {
+		return ""
+	}
+
+	et, ek := typeAndKind(expected)
+	at, _ := typeAndKind(actual)
+
+	if et != at {
+		return ""
+	}
+
+	if ek != reflect.Struct && ek != reflect.Map && ek != reflect.Slice && ek != reflect.Array && ek != reflect.String {
+		return ""
+	}
+
+	var e, a string
+	if et != reflect.TypeOf("") {
+		e = spewConfig.Sdump(expected)
+		a = spewConfig.Sdump(actual)
+	} else {
+		e = reflect.ValueOf(expected).String()
+		a = reflect.ValueOf(actual).String()
+	}
+
+	diff, _ := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
+		A:        difflib.SplitLines(e),
+		B:        difflib.SplitLines(a),
+		FromFile: "Expected",
+		FromDate: "",
+		ToFile:   "Actual",
+		ToDate:   "",
+		Context:  2,
+	})
+
+	return "\n\nDiff:\n" + diff
+}
+
+func typeAndKind(v interface{}) (reflect.Type, reflect.Kind) {
+	t := reflect.TypeOf(v)
+	k := t.Kind()
+
+	if k == reflect.Ptr {
+		t = t.Elem()
+		k = t.Kind()
+	}
+	return t, k
 }

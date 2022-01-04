@@ -14,25 +14,28 @@ const (
 )
 
 type borderRadiusCorner struct {
-	firstToken  css_ast.Token
-	secondToken css_ast.Token
-	index       uint32
-	single      bool
+	firstToken    css_ast.Token
+	secondToken   css_ast.Token
+	unitSafety    unitSafetyTracker
+	ruleIndex     uint32 // The index of the originating rule in the rules array
+	wasSingleRule bool   // True if the originating rule was just for this side
 }
 
 type borderRadiusTracker struct {
 	corners   [4]borderRadiusCorner
-	important bool
+	important bool // True if all active rules were flagged as "!important"
 }
 
-func (borderRadius *borderRadiusTracker) updateCorner(rules []css_ast.R, corner int, new borderRadiusCorner) {
-	if old := borderRadius.corners[corner]; old.firstToken.Kind != css_lexer.TEndOfFile && (!new.single || old.single) {
-		rules[old.index] = nil
+func (borderRadius *borderRadiusTracker) updateCorner(rules []css_ast.Rule, corner int, new borderRadiusCorner) {
+	if old := borderRadius.corners[corner]; old.firstToken.Kind != css_lexer.TEndOfFile &&
+		(!new.wasSingleRule || old.wasSingleRule) &&
+		old.unitSafety.status == unitSafe && new.unitSafety.status == unitSafe {
+		rules[old.ruleIndex] = css_ast.Rule{}
 	}
 	borderRadius.corners[corner] = new
 }
 
-func (borderRadius *borderRadiusTracker) mangleCorners(rules []css_ast.R, decl *css_ast.RDeclaration, index int, removeWhitespace bool) {
+func (borderRadius *borderRadiusTracker) mangleCorners(rules []css_ast.Rule, decl *css_ast.RDeclaration, index int, removeWhitespace bool) {
 	// Reset if we see a change in the "!important" flag
 	if borderRadius.important != decl.Important {
 		borderRadius.corners = [4]borderRadiusCorner{}
@@ -57,8 +60,17 @@ func (borderRadius *borderRadiusTracker) mangleCorners(rules []css_ast.R, decl *
 		}
 	}
 
-	firstRadii, firstRadiiOk := expandTokenQuad(tokens[:beforeSplit])
-	lastRadii, lastRadiiOk := expandTokenQuad(tokens[afterSplit:])
+	// Use a single tracker for the whole rule
+	unitSafety := unitSafetyTracker{}
+	for _, t := range tokens[:beforeSplit] {
+		unitSafety.includeUnitOf(t)
+	}
+	for _, t := range tokens[afterSplit:] {
+		unitSafety.includeUnitOf(t)
+	}
+
+	firstRadii, firstRadiiOk := expandTokenQuad(tokens[:beforeSplit], "")
+	lastRadii, lastRadiiOk := expandTokenQuad(tokens[afterSplit:], "")
 
 	// Stop now if the pattern wasn't matched
 	if !firstRadiiOk || (beforeSplit < afterSplit && !lastRadiiOk) {
@@ -68,18 +80,23 @@ func (borderRadius *borderRadiusTracker) mangleCorners(rules []css_ast.R, decl *
 
 	// Handle the first radii
 	for corner, t := range firstRadii {
-		t.TurnLengthIntoNumberIfZero()
+		if unitSafety.status == unitSafe {
+			t.TurnLengthIntoNumberIfZero()
+		}
 		borderRadius.updateCorner(rules, corner, borderRadiusCorner{
 			firstToken:  t,
 			secondToken: t,
-			index:       uint32(index),
+			unitSafety:  unitSafety,
+			ruleIndex:   uint32(index),
 		})
 	}
 
 	// Handle the last radii
 	if lastRadiiOk {
 		for corner, t := range lastRadii {
-			t.TurnLengthIntoNumberIfZero()
+			if unitSafety.status == unitSafe {
+				t.TurnLengthIntoNumberIfZero()
+			}
 			borderRadius.corners[corner].secondToken = t
 		}
 	}
@@ -88,35 +105,48 @@ func (borderRadius *borderRadiusTracker) mangleCorners(rules []css_ast.R, decl *
 	borderRadius.compactRules(rules, decl.KeyRange, removeWhitespace)
 }
 
-func (borderRadius *borderRadiusTracker) mangleCorner(rules []css_ast.R, decl *css_ast.RDeclaration, index int, removeWhitespace bool, corner int) {
+func (borderRadius *borderRadiusTracker) mangleCorner(rules []css_ast.Rule, decl *css_ast.RDeclaration, index int, removeWhitespace bool, corner int) {
 	// Reset if we see a change in the "!important" flag
 	if borderRadius.important != decl.Important {
 		borderRadius.corners = [4]borderRadiusCorner{}
 		borderRadius.important = decl.Important
 	}
 
-	if tokens := decl.Value; (len(tokens) == 1 && tokens[0].Kind.IsNumericOrIdent()) ||
-		(len(tokens) == 2 && tokens[0].Kind.IsNumericOrIdent() && tokens[1].Kind.IsNumericOrIdent()) {
+	if tokens := decl.Value; (len(tokens) == 1 && tokens[0].Kind.IsNumeric()) ||
+		(len(tokens) == 2 && tokens[0].Kind.IsNumeric() && tokens[1].Kind.IsNumeric()) {
 		firstToken := tokens[0]
-		if firstToken.TurnLengthIntoNumberIfZero() {
-			tokens[0] = firstToken
-		}
 		secondToken := firstToken
 		if len(tokens) == 2 {
 			secondToken = tokens[1]
-			if secondToken.TurnLengthIntoNumberIfZero() {
+		}
+
+		// Check to see if these units are safe to use in every browser
+		unitSafety := unitSafetyTracker{}
+		unitSafety.includeUnitOf(firstToken)
+		unitSafety.includeUnitOf(secondToken)
+
+		// Only collapse "0unit" into "0" if the unit is safe
+		if unitSafety.status == unitSafe && firstToken.TurnLengthIntoNumberIfZero() {
+			tokens[0] = firstToken
+		}
+		if len(tokens) == 2 {
+			if unitSafety.status == unitSafe && secondToken.TurnLengthIntoNumberIfZero() {
 				tokens[1] = secondToken
 			}
+
+			// If both tokens are equal, merge them into one
 			if firstToken.EqualIgnoringWhitespace(secondToken) {
 				tokens[0].Whitespace &= ^css_ast.WhitespaceAfter
 				decl.Value = tokens[:1]
 			}
 		}
+
 		borderRadius.updateCorner(rules, corner, borderRadiusCorner{
-			firstToken:  firstToken,
-			secondToken: secondToken,
-			index:       uint32(index),
-			single:      true,
+			firstToken:    firstToken,
+			secondToken:   secondToken,
+			unitSafety:    unitSafety,
+			ruleIndex:     uint32(index),
+			wasSingleRule: true,
 		})
 		borderRadius.compactRules(rules, decl.KeyRange, removeWhitespace)
 	} else {
@@ -124,11 +154,18 @@ func (borderRadius *borderRadiusTracker) mangleCorner(rules []css_ast.R, decl *c
 	}
 }
 
-func (borderRadius *borderRadiusTracker) compactRules(rules []css_ast.R, keyRange logger.Range, removeWhitespace bool) {
+func (borderRadius *borderRadiusTracker) compactRules(rules []css_ast.Rule, keyRange logger.Range, removeWhitespace bool) {
 	// All tokens must be present
 	if eof := css_lexer.TEndOfFile; borderRadius.corners[0].firstToken.Kind == eof || borderRadius.corners[1].firstToken.Kind == eof ||
 		borderRadius.corners[2].firstToken.Kind == eof || borderRadius.corners[3].firstToken.Kind == eof {
 		return
+	}
+
+	// All tokens must have the same unit
+	for _, side := range borderRadius.corners[1:] {
+		if !side.unitSafety.isSafeWith(borderRadius.corners[0].unitSafety) {
+			return
+		}
 	}
 
 	// Generate the most minimal representation
@@ -160,13 +197,13 @@ func (borderRadius *borderRadiusTracker) compactRules(rules []css_ast.R, keyRang
 	}
 
 	// Remove all of the existing declarations
-	rules[borderRadius.corners[0].index] = nil
-	rules[borderRadius.corners[1].index] = nil
-	rules[borderRadius.corners[2].index] = nil
-	rules[borderRadius.corners[3].index] = nil
+	rules[borderRadius.corners[0].ruleIndex] = css_ast.Rule{}
+	rules[borderRadius.corners[1].ruleIndex] = css_ast.Rule{}
+	rules[borderRadius.corners[2].ruleIndex] = css_ast.Rule{}
+	rules[borderRadius.corners[3].ruleIndex] = css_ast.Rule{}
 
 	// Insert the combined declaration where the last rule was
-	rules[borderRadius.corners[3].index] = &css_ast.RDeclaration{
+	rules[borderRadius.corners[3].ruleIndex].Data = &css_ast.RDeclaration{
 		Key:       css_ast.DBorderRadius,
 		KeyText:   "border-radius",
 		Value:     tokens,

@@ -13,31 +13,6 @@ In SAML parlance an **Identity Provider** (IDP) is a service that knows how to a
 
 The core package contains the implementation of SAML. The package samlsp provides helper middleware suitable for use in Service Provider applications. The package samlidp provides a rudimentary IDP service that is useful for testing or as a starting point for other integrations.
 
-## Breaking Changes
-
-**Version 0.4.0** introduces a few breaking changes to the _samlsp_ package in order to make the package more extensible, and to clean up the interfaces a bit. The default behavior remains the same, but you can now provide interface implementations of _RequestTracker_ (which tracks pending requests), _Session_ (which handles maintaining a session) and _OnError_ which handles reporting errors.
-
-Public fields of _samlsp.Middleware_ have changed, so some usages may require adjustment. See [issue 231](https://github.com/crewjam/saml/issues/231) for details.
-
-The option to provide an IDP metadata **URL** has been deprecated. Instead, we recommend that you use the `FetchMetadata()` function, or fetch the metadata yourself and use the new `ParseMetadata()` function, and pass the metadata in _samlsp.Options.IDPMetadata_.
-
-Similarly, the _HTTPClient_ field is now deprecated because it was only used for fetching metdata, which is no longer directly implemented.
-
-The fields that manage how cookies are set are deprecated as well. To customize how cookies are managed, provide custom implementation of _RequestTracker_ and/or _Session_, perhaps by extending the default implementations.
-
-The deprecated fields have not been removed from the Options structure, but will be in future.
-
-In particular we have deprecated the following fields in
-_samlsp.Options_:
-
-- `Logger` - This was used to emit errors while validating, which is an anti-pattern.
-- `IDPMetadataURL` - Instead use `FetchMetadata()`
-- `HTTPClient` - Instead pass httpClient to FetchMetadata
-- `CookieMaxAge` - Instead assign a custom CookieRequestTracker or CookieSessionProvider
-- `CookieName` - Instead assign a custom CookieRequestTracker or CookieSessionProvider
-- `CookieDomain` - Instead assign a custom CookieRequestTracker or CookieSessionProvider
-- `CookieDomain` - Instead assign a custom CookieRequestTracker or CookieSessionProvider
-
 ## Getting Started as a Service Provider
 
 Let us assume we have a simple web application to protect. We'll modify this application so it uses SAML to authenticate users.
@@ -71,6 +46,7 @@ We will use `samlsp.Middleware` to wrap the endpoint we want to protect. Middlew
 package main
 
 import (
+	"context"
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
@@ -99,6 +75,11 @@ func main() {
 	if err != nil {
 		panic(err) // TODO handle error
 	}
+	idpMetadata, err := samlsp.FetchMetadata(context.Background(), http.DefaultClient,
+		*idpMetadataURL)
+	if err != nil {
+		panic(err) // TODO handle error
+	}
 
 	rootURL, err := url.Parse("http://localhost:8000")
 	if err != nil {
@@ -109,7 +90,7 @@ func main() {
 		URL:            *rootURL,
 		Key:            keyPair.PrivateKey.(*rsa.PrivateKey),
 		Certificate:    keyPair.Leaf,
-		IDPMetadataURL: idpMetadataURL,
+		IDPMetadata: idpMetadata,
 	})
 	app := http.HandlerFunc(hello)
 	http.Handle("/hello", samlSP.RequireAccount(app))
@@ -145,7 +126,7 @@ Please see `example/idp/` for a substantially complete example of how to use the
 
 ## Support
 
-The SAML standard is huge and complex with many dark corners and strange, unused features. This package implements the most commonly used subset of these features required to provide a single sign on experience. The package supports at least the subset of SAML known as [interoperable SAML](http://saml2int.org).
+The SAML standard is huge and complex with many dark corners and strange, unused features. This package implements the most commonly used subset of these features required to provide a single sign on experience. The package supports at least the subset of SAML known as [interoperable SAML](https://kantarainitiative.github.io/SAMLprofiles/saml2int.html).
 
 This package supports the **Web SSO** profile. Message flows from the service provider to the IDP are supported using the **HTTP Redirect** binding and the **HTTP POST** binding. Message flows from the IDP to the service provider are supported via the **HTTP POST** binding.
 

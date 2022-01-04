@@ -13,6 +13,12 @@ const HTTPPostBinding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
 // HTTPRedirectBinding is the official URN for the HTTP-Redirect binding (transport)
 const HTTPRedirectBinding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
 
+// HTTPArtifactBinding is the official URN for the HTTP-Artifact binding (transport)
+const HTTPArtifactBinding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact"
+
+// SOAPBinding is the official URN for the SOAP binding (transport)
+const SOAPBinding = "urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
+
 // EntitiesDescriptor represents the SAML object of the same name.
 //
 // See http://docs.oasis-open.org/security/saml/v2.0/saml-metadata-2.0-os.pdf §2.3.1
@@ -156,11 +162,21 @@ type EncryptionMethod struct {
 }
 
 // KeyInfo represents the XMLSEC object of the same name
-//
-// TODO(ross): revisit xmldsig and make this type more complete
 type KeyInfo struct {
-	XMLName     xml.Name `xml:"http://www.w3.org/2000/09/xmldsig# KeyInfo"`
-	Certificate string   `xml:"X509Data>X509Certificate"`
+	XMLName  xml.Name `xml:"http://www.w3.org/2000/09/xmldsig# KeyInfo"`
+	X509Data X509Data `xml:"X509Data"`
+}
+
+// X509Data represents the XMLSEC object of the same name
+type X509Data struct {
+	XMLName          xml.Name          `xml:"http://www.w3.org/2000/09/xmldsig# X509Data"`
+	X509Certificates []X509Certificate `xml:"X509Certificate"`
+}
+
+// X509Certificate represents the XMLSEC object of the same name
+type X509Certificate struct {
+	XMLName xml.Name `xml:"http://www.w3.org/2000/09/xmldsig# X509Certificate"`
+	Data    string   `xml:",chardata"`
 }
 
 // Endpoint represents the SAML EndpointType object.
@@ -203,6 +219,7 @@ type IDPSSODescriptor struct {
 	WantAuthnRequestsSigned *bool `xml:",attr"`
 
 	SingleSignOnServices       []Endpoint  `xml:"SingleSignOnService"`
+	ArtifactResolutionServices []Endpoint  `xml:"ArtifactResolutionService"`
 	NameIDMappingServices      []Endpoint  `xml:"NameIDMappingService"`
 	AssertionIDRequestServices []Endpoint  `xml:"AssertionIDRequestService"`
 	AttributeProfiles          []string    `xml:"AttributeProfile"`

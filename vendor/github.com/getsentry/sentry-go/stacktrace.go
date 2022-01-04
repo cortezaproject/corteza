@@ -1,15 +1,14 @@
 package sentry
 
 import (
+	"go/build"
 	"path/filepath"
 	"reflect"
-	"regexp"
 	"runtime"
 	"strings"
 )
 
 const unknown string = "unknown"
-const contextLines int = 5
 
 // The module download is split into two parts: downloading the go.mod and downloading the actual code.
 // If you have dependencies only needed for tests, then they will show up in your go.mod,
@@ -24,7 +23,7 @@ type Stacktrace struct {
 	FramesOmitted []uint  `json:"frames_omitted,omitempty"`
 }
 
-// NewStacktrace creates a stacktrace using `runtime.Callers`.
+// NewStacktrace creates a stacktrace using runtime.Callers.
 func NewStacktrace() *Stacktrace {
 	pcs := make([]uintptr, 100)
 	n := runtime.Callers(1, pcs)
@@ -35,7 +34,6 @@ func NewStacktrace() *Stacktrace {
 
 	frames := extractFrames(pcs[:n])
 	frames = filterFrames(frames)
-	frames = contextifyFrames(frames)
 
 	stacktrace := Stacktrace{
 		Frames: frames,
@@ -44,17 +42,21 @@ func NewStacktrace() *Stacktrace {
 	return &stacktrace
 }
 
-// ExtractStacktrace creates a new `Stacktrace` based on the given `error` object.
 // TODO: Make it configurable so that anyone can provide their own implementation?
-// Use of reflection allows us to not have a hard dependency on any given package, so we don't have to import it
+// Use of reflection allows us to not have a hard dependency on any given
+// package, so we don't have to import it.
+
+// ExtractStacktrace creates a new Stacktrace based on the given error.
 func ExtractStacktrace(err error) *Stacktrace {
 	method := extractReflectedStacktraceMethod(err)
 
-	if !method.IsValid() {
-		return nil
-	}
+	var pcs []uintptr
 
-	pcs := extractPcs(method)
+	if method.IsValid() {
+		pcs = extractPcs(method)
+	} else {
+		pcs = extractXErrorsPC(err)
+	}
 
 	if len(pcs) == 0 {
 		return nil
@@ -62,7 +64,6 @@ func ExtractStacktrace(err error) *Stacktrace {
 
 	frames := extractFrames(pcs)
 	frames = filterFrames(frames)
-	frames = contextifyFrames(frames)
 
 	stacktrace := Stacktrace{
 		Frames: frames,
@@ -130,11 +131,45 @@ func extractPcs(method reflect.Value) []uintptr {
 	return pcs
 }
 
-// https://docs.sentry.io/development/sdk-dev/interfaces/stacktrace/
+// extractXErrorsPC extracts program counters from error values compatible with
+// the error types from golang.org/x/xerrors.
+//
+// It returns nil if err is not compatible with errors from that package or if
+// no program counters are stored in err.
+func extractXErrorsPC(err error) []uintptr {
+	// This implementation uses the reflect package to avoid a hard dependency
+	// on third-party packages.
+
+	// We don't know if err matches the expected type. For simplicity, instead
+	// of trying to account for all possible ways things can go wrong, some
+	// assumptions are made and if they are violated the code will panic. We
+	// recover from any panic and ignore it, returning nil.
+	//nolint: errcheck
+	defer func() { recover() }()
+
+	field := reflect.ValueOf(err).Elem().FieldByName("frame") // type Frame struct{ frames [3]uintptr }
+	field = field.FieldByName("frames")
+	field = field.Slice(1, field.Len()) // drop first pc pointing to xerrors.New
+	pc := make([]uintptr, field.Len())
+	for i := 0; i < field.Len(); i++ {
+		pc[i] = uintptr(field.Index(i).Uint())
+	}
+	return pc
+}
+
+// Frame represents a function call and it's metadata. Frames are associated
+// with a Stacktrace.
 type Frame struct {
-	Function    string                 `json:"function,omitempty"`
-	Symbol      string                 `json:"symbol,omitempty"`
-	Module      string                 `json:"module,omitempty"`
+	Function string `json:"function,omitempty"`
+	Symbol   string `json:"symbol,omitempty"`
+	// Module is, despite the name, the Sentry protocol equivalent of a Go
+	// package's import path.
+	Module string `json:"module,omitempty"`
+	// Package is not used for Go stack trace frames. In other platforms it
+	// refers to a container where the Module can be found. For example, a
+	// Java JAR, a .NET Assembly, or a native dynamic library.
+	// It exists for completeness, allowing the construction and reporting
+	// of custom event payloads.
 	Package     string                 `json:"package,omitempty"`
 	Filename    string                 `json:"filename,omitempty"`
 	AbsPath     string                 `json:"abs_path,omitempty"`
@@ -147,38 +182,63 @@ type Frame struct {
 	Vars        map[string]interface{} `json:"vars,omitempty"`
 }
 
-// NewFrame assembles a stacktrace frame out of `runtime.Frame`.
+// NewFrame assembles a stacktrace frame out of runtime.Frame.
 func NewFrame(f runtime.Frame) Frame {
-	abspath := f.File
-	filename := f.File
+	var abspath, relpath string
+	// NOTE: f.File paths historically use forward slash as path separator even
+	// on Windows, though this is not yet documented, see
+	// https://golang.org/issues/3335. In any case, filepath.IsAbs can work with
+	// paths with either slash or backslash on Windows.
+	switch {
+	case f.File == "":
+		relpath = unknown
+		// Leave abspath as the empty string to be omitted when serializing
+		// event as JSON.
+		abspath = ""
+	case filepath.IsAbs(f.File):
+		abspath = f.File
+		// TODO: in the general case, it is not trivial to come up with a
+		// "project relative" path with the data we have in run time.
+		// We shall not use filepath.Base because it creates ambiguous paths and
+		// affects the "Suspect Commits" feature.
+		// For now, leave relpath empty to be omitted when serializing the event
+		// as JSON. Improve this later.
+		relpath = ""
+	default:
+		// f.File is a relative path. This may happen when the binary is built
+		// with the -trimpath flag.
+		relpath = f.File
+		// Omit abspath when serializing the event as JSON.
+		abspath = ""
+	}
+
 	function := f.Function
-	var module string
-
-	if filename != "" {
-		filename = extractFilename(filename)
-	} else {
-		filename = unknown
-	}
-
-	if abspath == "" {
-		abspath = unknown
-	}
+	var pkg string
 
 	if function != "" {
-		module, function = deconstructFunctionName(function)
+		pkg, function = splitQualifiedFunctionName(function)
 	}
 
 	frame := Frame{
 		AbsPath:  abspath,
-		Filename: filename,
+		Filename: relpath,
 		Lineno:   f.Line,
-		Module:   module,
+		Module:   pkg,
 		Function: function,
 	}
 
 	frame.InApp = isInAppFrame(frame)
 
 	return frame
+}
+
+// splitQualifiedFunctionName splits a package path-qualified function name into
+// package name and function name. Such qualified names are found in
+// runtime.Frame.Function values.
+func splitQualifiedFunctionName(name string) (pkg string, fun string) {
+	pkg = packageName(name)
+	fun = strings.TrimPrefix(name, pkg+".")
+	return
 }
 
 func extractFrames(pcs []uintptr) []Frame {
@@ -200,22 +260,24 @@ func extractFrames(pcs []uintptr) []Frame {
 	return frames
 }
 
+// filterFrames filters out stack frames that are not meant to be reported to
+// Sentry. Those are frames internal to the SDK or Go.
 func filterFrames(frames []Frame) []Frame {
-	isTestFileRegexp := regexp.MustCompile(`getsentry/sentry-go/.+_test.go`)
-	isExampleFileRegexp := regexp.MustCompile(`getsentry/sentry-go/example/`)
+	if len(frames) == 0 {
+		return nil
+	}
+
 	filteredFrames := make([]Frame, 0, len(frames))
 
 	for _, frame := range frames {
-		// go runtime frames
+		// Skip Go internal frames.
 		if frame.Module == "runtime" || frame.Module == "testing" {
 			continue
 		}
-		// sentry internal frames
-		isTestFile := isTestFileRegexp.MatchString(frame.AbsPath)
-		isExampleFile := isExampleFileRegexp.MatchString(frame.AbsPath)
-		if strings.Contains(frame.AbsPath, "github.com/getsentry/sentry-go") &&
-			!isTestFile &&
-			!isExampleFile {
+		// Skip Sentry internal frames, except for frames in _test packages (for
+		// testing).
+		if strings.HasPrefix(frame.Module, "github.com/getsentry/sentry-go") &&
+			!strings.HasSuffix(frame.Module, "_test") {
 			continue
 		}
 		filteredFrames = append(filteredFrames, frame)
@@ -224,70 +286,14 @@ func filterFrames(frames []Frame) []Frame {
 	return filteredFrames
 }
 
-var sr = newSourceReader() // nolint: gochecknoglobals
-
-func contextifyFrames(frames []Frame) []Frame {
-	contextifiedFrames := make([]Frame, 0, len(frames))
-
-	for _, frame := range frames {
-		var path string
-
-		// If we are not able to read the source code from either absolute or relative path (root dir only)
-		// Skip this part and return the original frame
-		switch {
-		case fileExists(frame.AbsPath):
-			path = frame.AbsPath
-		case fileExists(frame.Filename):
-			path = frame.Filename
-		default:
-			contextifiedFrames = append(contextifiedFrames, frame)
-			continue
-		}
-
-		lines, initial := sr.readContextLines(path, frame.Lineno, contextLines)
-
-		for i, line := range lines {
-			switch {
-			case i < initial:
-				frame.PreContext = append(frame.PreContext, string(line))
-			case i == initial:
-				frame.ContextLine = string(line)
-			default:
-				frame.PostContext = append(frame.PostContext, string(line))
-			}
-		}
-
-		contextifiedFrames = append(contextifiedFrames, frame)
-	}
-
-	return contextifiedFrames
-}
-
-func extractFilename(path string) string {
-	_, file := filepath.Split(path)
-	return file
-}
-
 func isInAppFrame(frame Frame) bool {
-	if frame.Module == "main" {
-		return true
+	if strings.HasPrefix(frame.AbsPath, build.Default.GOROOT) ||
+		strings.Contains(frame.Module, "vendor") ||
+		strings.Contains(frame.Module, "third_party") {
+		return false
 	}
 
-	if !strings.Contains(frame.Module, "vendor") && !strings.Contains(frame.Module, "third_party") {
-		return true
-	}
-
-	return false
-}
-
-// Transform `runtime/debug.*T·ptrmethod` into `{ module: runtime/debug, function: *T.ptrmethod }`
-func deconstructFunctionName(name string) (module string, function string) {
-	if idx := strings.LastIndex(name, "."); idx != -1 {
-		module = name[:idx]
-		function = name[idx+1:]
-	}
-	function = strings.Replace(function, "·", ".", -1)
-	return module, function
+	return true
 }
 
 func callerFunctionName() string {
@@ -295,6 +301,37 @@ func callerFunctionName() string {
 	runtime.Callers(3, pcs)
 	callersFrames := runtime.CallersFrames(pcs)
 	callerFrame, _ := callersFrames.Next()
-	_, function := deconstructFunctionName(callerFrame.Function)
-	return function
+	return baseName(callerFrame.Function)
+}
+
+// packageName returns the package part of the symbol name, or the empty string
+// if there is none.
+// It replicates https://golang.org/pkg/debug/gosym/#Sym.PackageName, avoiding a
+// dependency on debug/gosym.
+func packageName(name string) string {
+	// A prefix of "type." and "go." is a compiler-generated symbol that doesn't belong to any package.
+	// See variable reservedimports in cmd/compile/internal/gc/subr.go
+	if strings.HasPrefix(name, "go.") || strings.HasPrefix(name, "type.") {
+		return ""
+	}
+
+	pathend := strings.LastIndex(name, "/")
+	if pathend < 0 {
+		pathend = 0
+	}
+
+	if i := strings.Index(name[pathend:], "."); i != -1 {
+		return name[:pathend+i]
+	}
+	return ""
+}
+
+// baseName returns the symbol name without the package or receiver name.
+// It replicates https://golang.org/pkg/debug/gosym/#Sym.BaseName, avoiding a
+// dependency on debug/gosym.
+func baseName(name string) string {
+	if i := strings.LastIndex(name, "."); i != -1 {
+		return name[i+1:]
+	}
+	return name
 }

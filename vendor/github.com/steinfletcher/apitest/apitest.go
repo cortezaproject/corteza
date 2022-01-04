@@ -14,15 +14,14 @@ import (
 	"runtime/debug"
 	"sort"
 	"strings"
-	"testing"
 	"time"
 )
 
 // SystemUnderTestDefaultName default name for system under test
 const SystemUnderTestDefaultName = "sut"
 
-// ConsumerName default consumer name
-const ConsumerName = "cli"
+// ConsumerDefaultName default consumer name
+const ConsumerDefaultName = "cli"
 
 var divider = strings.Repeat("-", 10)
 var requestDebugPrefix = fmt.Sprintf("%s>", divider)
@@ -30,26 +29,28 @@ var responseDebugPrefix = fmt.Sprintf("<%s", divider)
 
 // APITest is the top level struct holding the test spec
 type APITest struct {
-	debugEnabled         bool
-	networkingEnabled    bool
-	networkingHTTPClient *http.Client
-	reporter             ReportFormatter
-	verifier             Verifier
-	recorder             *Recorder
-	handler              http.Handler
-	name                 string
-	request              *Request
-	response             *Response
-	observers            []Observe
-	mocksObservers       []Observe
-	recorderHook         RecorderHook
-	mocks                []*Mock
-	t                    *testing.T
-	httpClient           *http.Client
-	transport            *Transport
-	meta                 map[string]interface{}
-	started              time.Time
-	finished             time.Time
+	debugEnabled             bool
+	mockResponseDelayEnabled bool
+	networkingEnabled        bool
+	networkingHTTPClient     *http.Client
+	reporter                 ReportFormatter
+	verifier                 Verifier
+	recorder                 *Recorder
+	handler                  http.Handler
+	name                     string
+	request                  *Request
+	response                 *Response
+	observers                []Observe
+	mocksObservers           []Observe
+	recorderHook             RecorderHook
+	mocks                    []*Mock
+	t                        TestingT
+	httpClient               *http.Client
+	httpRequest              *http.Request
+	transport                *Transport
+	meta                     map[string]interface{}
+	started                  time.Time
+	finished                 time.Time
 }
 
 // InboundRequest used to wrap the incoming request with a timestamp
@@ -96,6 +97,16 @@ func New(name ...string) *APITest {
 	return apiTest
 }
 
+// Handler is a convenience method for creating a new apitest with a handler
+func Handler(handler http.Handler) *APITest {
+	return New().Handler(handler)
+}
+
+// HandlerFunc is a convenience method for creating a new apitest with a handler func
+func HandlerFunc(handlerFunc http.HandlerFunc) *APITest {
+	return New().HandlerFunc(handlerFunc)
+}
+
 // EnableNetworking will enable networking for provided clients
 func (a *APITest) EnableNetworking(cli ...*http.Client) *APITest {
 	a.networkingEnabled = true
@@ -104,6 +115,12 @@ func (a *APITest) EnableNetworking(cli ...*http.Client) *APITest {
 		return a
 	}
 	a.networkingHTTPClient = http.DefaultClient
+	return a
+}
+
+// EnableMockResponseDelay turns on mock response delays (defaults to OFF)
+func (a *APITest) EnableMockResponseDelay() *APITest {
+	a.mockResponseDelayEnabled = true
 	return a
 }
 
@@ -137,14 +154,21 @@ func (a *APITest) Handler(handler http.Handler) *APITest {
 	return a
 }
 
+// HandlerFunc defines the http handler that is invoked when the test is run
+func (a *APITest) HandlerFunc(handlerFunc http.HandlerFunc) *APITest {
+	a.handler = handlerFunc
+	return a
+}
+
 // Mocks is a builder method for setting the mocks
 func (a *APITest) Mocks(mocks ...*Mock) *APITest {
 	var m []*Mock
 	for i := range mocks {
 		times := mocks[i].response.mock.times
 		for j := 1; j <= times; j++ {
-			mockCopy := *mocks[i]
-			m = append(m, &mockCopy)
+			mockCpy := mocks[i].copy()
+			mockCpy.times = 1
+			m = append(m, mockCpy)
 		}
 	}
 	a.mocks = m
@@ -217,7 +241,6 @@ func (a *APITest) Intercept(interceptor Intercept) *APITest {
 }
 
 // Verifier allows consumers to override the verification implementation.
-// By default testify is used to perform assertions
 func (a *APITest) Verifier(v Verifier) *APITest {
 	a.verifier = v
 	return a
@@ -229,11 +252,22 @@ func (a *APITest) Method(method string) *Request {
 	return a.request
 }
 
+// HttpRequest defines the native `http.Request`
+func (a *APITest) HttpRequest(req *http.Request) *Request {
+	a.httpRequest = req
+	return a.request
+}
+
 // Get is a convenience method for setting the request as http.MethodGet
 func (a *APITest) Get(url string) *Request {
 	a.request.method = http.MethodGet
 	a.request.url = url
 	return a.request
+}
+
+// Getf is a convenience method that adds formatting support to Get
+func (a *APITest) Getf(format string, args ...interface{}) *Request {
+	return a.Get(fmt.Sprintf(format, args...))
 }
 
 // Post is a convenience method for setting the request as http.MethodPost
@@ -244,12 +278,22 @@ func (a *APITest) Post(url string) *Request {
 	return r
 }
 
+// Postf is a convenience method that adds formatting support to Post
+func (a *APITest) Postf(format string, args ...interface{}) *Request {
+	return a.Post(fmt.Sprintf(format, args...))
+}
+
 // Put is a convenience method for setting the request as http.MethodPut
 func (a *APITest) Put(url string) *Request {
 	r := a.request
 	r.method = http.MethodPut
 	r.url = url
 	return r
+}
+
+// Putf is a convenience method that adds formatting support to Put
+func (a *APITest) Putf(format string, args ...interface{}) *Request {
+	return a.Put(fmt.Sprintf(format, args...))
 }
 
 // Delete is a convenience method for setting the request as http.MethodDelete
@@ -259,6 +303,11 @@ func (a *APITest) Delete(url string) *Request {
 	return a.request
 }
 
+// Deletef is a convenience method that adds formatting support to Delete
+func (a *APITest) Deletef(format string, args ...interface{}) *Request {
+	return a.Delete(fmt.Sprintf(format, args...))
+}
+
 // Patch is a convenience method for setting the request as http.MethodPatch
 func (a *APITest) Patch(url string) *Request {
 	a.request.method = http.MethodPatch
@@ -266,9 +315,20 @@ func (a *APITest) Patch(url string) *Request {
 	return a.request
 }
 
+// Patchf is a convenience method that adds formatting support to Patch
+func (a *APITest) Patchf(format string, args ...interface{}) *Request {
+	return a.Patch(fmt.Sprintf(format, args...))
+}
+
 // URL is a builder method for setting the url of the request
 func (r *Request) URL(url string) *Request {
 	r.url = url
+	return r
+}
+
+// URLf is a builder method for setting the url of the request and supports a formatter
+func (r *Request) URLf(format string, args ...interface{}) *Request {
+	r.url = fmt.Sprintf(format, args...)
 	return r
 }
 
@@ -278,11 +338,81 @@ func (r *Request) Body(b string) *Request {
 	return r
 }
 
-// JSON is a convenience method for setting the request body and content type header as "application/json"
-func (r *Request) JSON(b string) *Request {
-	r.body = b
+// Bodyf sets the request body and supports a formatter
+func (r *Request) Bodyf(format string, args ...interface{}) *Request {
+	r.body = fmt.Sprintf(format, args...)
+	return r
+}
+
+// BodyFromFile is a builder method to set the request body
+func (r *Request) BodyFromFile(f string) *Request {
+	b, err := ioutil.ReadFile(f)
+	if err != nil {
+		r.apiTest.t.Fatal(err)
+	}
+	r.body = string(b)
+	return r
+}
+
+// JSON is a convenience method for setting the request body and content type header as "application/json".
+// If v is not a string or []byte it will marshall the provided variable as json
+func (r *Request) JSON(v interface{}) *Request {
+	switch x := v.(type) {
+	case string:
+		r.body = x
+	case []byte:
+		r.body = string(x)
+	default:
+		asJSON, err := json.Marshal(x)
+		if err != nil {
+			r.apiTest.t.Fatal(err)
+			return nil
+		}
+		r.body = string(asJSON)
+	}
 	r.ContentType("application/json")
 	return r
+}
+
+// JSONFromFile is a convenience method for setting the request body and content type header as "application/json"
+func (r *Request) JSONFromFile(f string) *Request {
+	r.BodyFromFile(f)
+	r.ContentType("application/json")
+	return r
+}
+
+// GraphQLQuery is a convenience method for building a graphql POST request
+func (r *Request) GraphQLQuery(query string, variables ...map[string]interface{}) *Request {
+	q := GraphQLRequestBody{
+		Query: query,
+	}
+
+	if len(variables) > 0 {
+		q.Variables = variables[0]
+	}
+
+	return r.GraphQLRequest(q)
+}
+
+// GraphQLRequest builds a graphql POST request
+func (r *Request) GraphQLRequest(body GraphQLRequestBody) *Request {
+	r.ContentType("application/json")
+
+	data, err := json.Marshal(body)
+	if err != nil {
+		r.apiTest.t.Fatal(err)
+	}
+
+	r.body = string(data)
+
+	return r
+}
+
+// GraphQLRequestBody represents the POST request body as per the GraphQL spec
+type GraphQLRequestBody struct {
+	Query         string                 `json:"query"`
+	Variables     map[string]interface{} `json:"variables,omitempty"`
+	OperationName string                 `json:"operationName,omitempty"`
 }
 
 // Query is a convenience method to add a query parameter to the request.
@@ -357,25 +487,23 @@ func (r *Request) FormData(name string, values ...string) *Request {
 }
 
 // Expect marks the request spec as complete and following code will define the expected response
-func (r *Request) Expect(t *testing.T) *Response {
+func (r *Request) Expect(t TestingT) *Response {
 	r.apiTest.t = t
 	return r.apiTest.response
 }
 
 // Response is the user defined expected response from the application under test
 type Response struct {
-	status             int
-	body               string
-	headers            map[string][]string
-	headersPresent     []string
-	headersNotPresent  []string
-	cookies            []*Cookie
-	cookiesPresent     []string
-	cookiesNotPresent  []string
-	jsonPathExpression string
-	jsonPathAssert     func(interface{})
-	apiTest            *APITest
-	assert             []Assert
+	status            int
+	body              string
+	headers           map[string][]string
+	headersPresent    []string
+	headersNotPresent []string
+	cookies           []*Cookie
+	cookiesPresent    []string
+	cookiesNotPresent []string
+	apiTest           *APITest
+	assert            []Assert
 }
 
 // Assert is a user defined custom assertion function
@@ -384,6 +512,22 @@ type Assert func(*http.Response, *http.Request) error
 // Body is the expected response body
 func (r *Response) Body(b string) *Response {
 	r.body = b
+	return r
+}
+
+// Bodyf is the expected response body that supports a formatter
+func (r *Response) Bodyf(format string, args ...interface{}) *Response {
+	r.body = fmt.Sprintf(format, args...)
+	return r
+}
+
+// BodyFromFile reads the given file and uses the content as the expected response body
+func (r *Response) BodyFromFile(f string) *Response {
+	b, err := ioutil.ReadFile(f)
+	if err != nil {
+		r.apiTest.t.Fatal(err)
+	}
+	r.body = string(b)
 	return r
 }
 
@@ -460,6 +604,7 @@ func (r *Response) End() Result {
 	apiTest := r.apiTest
 	defer func() {
 		if apiTest.debugEnabled {
+			apiTest.finished = time.Now()
 			fmt.Println(fmt.Sprintf("Duration: %s\n", apiTest.finished.Sub(apiTest.started)))
 		}
 	}()
@@ -468,21 +613,39 @@ func (r *Response) End() Result {
 		apiTest.t.Fatal("either define a http.Handler or enable networking")
 	}
 
+	apiTest.started = time.Now()
+	var res *http.Response
 	if apiTest.reporter != nil {
-		res := apiTest.report()
-		return Result{Response: res}
+		res = apiTest.report()
+	} else {
+		res = r.runTest()
 	}
 
-	apiTest.started = time.Now()
-	res := r.runTest()
-	apiTest.finished = time.Now()
+	var unmatchedMocks []UnmatchedMock
+	for _, m := range r.apiTest.mocks {
+		if m.isUsed == false {
+			unmatchedMocks = append(unmatchedMocks, UnmatchedMock{
+				URL: *m.request.url,
+			})
+			break
+		}
+	}
 
-	return Result{Response: res}
+	return Result{
+		Response:       res,
+		unmatchedMocks: unmatchedMocks,
+	}
 }
 
 // Result provides the final result
 type Result struct {
-	Response *http.Response
+	Response       *http.Response
+	unmatchedMocks []UnmatchedMock
+}
+
+// UnmatchedMocks returns any mocks that were not used, e.g. there was not a matching http Request for the mock
+func (r Result) UnmatchedMocks() []UnmatchedMock {
+	return r.unmatchedMocks
 }
 
 // JSON unmarshal the result response body to a valid struct
@@ -546,23 +709,23 @@ func (a *APITest) report() *http.Response {
 		AddTitle(fmt.Sprintf("%s %s", capturedInboundReq.Method, capturedInboundReq.URL.String())).
 		AddSubTitle(a.name).
 		AddHttpRequest(HttpRequest{
-			Source:    quoted(ConsumerName),
-			Target:    quoted(SystemUnderTestDefaultName),
+			Source:    ConsumerDefaultName,
+			Target:    SystemUnderTestDefaultName,
 			Value:     capturedInboundReq,
 			Timestamp: a.started,
 		})
 
 	for _, interaction := range capturedMockInteractions {
 		a.recorder.AddHttpRequest(HttpRequest{
-			Source:    quoted(SystemUnderTestDefaultName),
-			Target:    quoted(interaction.GetRequestHost()),
+			Source:    SystemUnderTestDefaultName,
+			Target:    interaction.GetRequestHost(),
 			Value:     interaction.request,
 			Timestamp: interaction.timestamp,
 		})
 		if interaction.response != nil {
 			a.recorder.AddHttpResponse(HttpResponse{
-				Source:    quoted(interaction.GetRequestHost()),
-				Target:    quoted(SystemUnderTestDefaultName),
+				Source:    interaction.GetRequestHost(),
+				Target:    SystemUnderTestDefaultName,
 				Value:     interaction.response,
 				Timestamp: interaction.timestamp,
 			})
@@ -570,8 +733,8 @@ func (a *APITest) report() *http.Response {
 	}
 
 	a.recorder.AddHttpResponse(HttpResponse{
-		Source:    quoted(SystemUnderTestDefaultName),
-		Target:    quoted(ConsumerName),
+		Source:    SystemUnderTestDefaultName,
+		Target:    ConsumerDefaultName,
 		Value:     capturedFinalRes,
 		Timestamp: a.finished,
 	})
@@ -626,6 +789,7 @@ func (r *Response) runTest() *http.Response {
 			a.mocks,
 			a.httpClient,
 			a.debugEnabled,
+			a.mockResponseDelayEnabled,
 			a.mocksObservers,
 			r.apiTest,
 		)
@@ -643,17 +807,14 @@ func (r *Response) runTest() *http.Response {
 	}()
 
 	if a.verifier == nil {
-		a.verifier = newTestifyVerifier()
+		a.verifier = DefaultVerifier{}
 	}
 
 	a.assertMocks()
 	a.assertResponse(res)
 	a.assertHeaders(res)
 	a.assertCookies(res)
-	err := a.assertFunc(res, req)
-	if err != nil {
-		a.t.Fatal(err.Error())
-	}
+	a.assertFunc(res, req)
 
 	return copyHttpResponse(res)
 }
@@ -661,21 +822,20 @@ func (r *Response) runTest() *http.Response {
 func (a *APITest) assertMocks() {
 	for _, mock := range a.mocks {
 		if mock.isUsed == false && mock.timesSet {
-			a.verifier.Fail(a.t, fmt.Sprintf("mock was not invoked expected times: '%d'", mock.times))
+			a.verifier.Fail(a.t, "mock was not invoked expected times")
 		}
 	}
 }
 
-func (a *APITest) assertFunc(res *http.Response, req *http.Request) error {
+func (a *APITest) assertFunc(res *http.Response, req *http.Request) {
 	if len(a.response.assert) > 0 {
 		for _, assertFn := range a.response.assert {
 			err := assertFn(copyHttpResponse(res), copyHttpRequest(req))
 			if err != nil {
-				return err
+				a.verifier.NoError(a.t, err)
 			}
 		}
 	}
-	return nil
 }
 
 func (a *APITest) doRequest() (*http.Response, *http.Request) {
@@ -698,9 +858,9 @@ func (a *APITest) doRequest() (*http.Response, *http.Request) {
 		a.serveHttp(resRecorder, copyHttpRequest(req))
 		res = resRecorder.Result()
 	} else {
-		res, err = a.networkingHTTPClient.Do(req)
+		res, err = a.networkingHTTPClient.Do(copyHttpRequest(req))
 		if err != nil {
-			panic(err)
+			a.t.Fatal(err)
 		}
 	}
 
@@ -725,6 +885,10 @@ func (a *APITest) serveHttp(res *httptest.ResponseRecorder, req *http.Request) {
 }
 
 func (a *APITest) buildRequest() *http.Request {
+	if a.httpRequest != nil {
+		return a.httpRequest
+	}
+
 	if len(a.request.formData) > 0 {
 		form := url.Values{}
 		for k := range a.request.formData {
@@ -737,7 +901,10 @@ func (a *APITest) buildRequest() *http.Request {
 
 	req, _ := http.NewRequest(a.request.method, a.request.url, bytes.NewBufferString(a.request.body))
 	req.URL.RawQuery = formatQuery(a.request)
-	req.Host = "application"
+	req.Host = SystemUnderTestDefaultName
+	if a.networkingEnabled {
+		req.Host = req.URL.Host
+	}
 
 	for k, v := range a.request.headers {
 		for _, headerValue := range v {
@@ -858,16 +1025,19 @@ func (a *APITest) assertCookies(response *http.Response) {
 
 func (a *APITest) assertHeaders(res *http.Response) {
 	for expectedHeader, expectedValues := range a.response.headers {
-		for _, expectedValue := range expectedValues {
-			found := false
-			for _, resValue := range res.Header[expectedHeader] {
-				if expectedValue == resValue {
-					found = true
-					break
+		resHeaderValues, foundHeader := res.Header[expectedHeader]
+		a.verifier.Equal(a.t, true, foundHeader, fmt.Sprintf("expected header '%s' not present in response", expectedHeader))
+
+		if foundHeader {
+			for _, expectedValue := range expectedValues {
+				foundValue := false
+				for _, resValue := range resHeaderValues {
+					if expectedValue == resValue {
+						foundValue = true
+						break
+					}
 				}
-			}
-			if !found {
-				a.t.Fatalf("could not match header=%s", expectedHeader)
+				a.verifier.Equal(a.t, true, foundValue, fmt.Sprintf("mismatched values for header '%s'. Expected %s but received %s", expectedHeader, expectedValue, strings.Join(resHeaderValues, ",")))
 			}
 		}
 	}
@@ -930,7 +1100,9 @@ func copyHttpRequest(request *http.Request) *http.Request {
 		ProtoMinor:    request.ProtoMinor,
 		ProtoMajor:    request.ProtoMajor,
 		ContentLength: request.ContentLength,
+		RemoteAddr:    request.RemoteAddr,
 	}
+	resCopy = resCopy.WithContext(request.Context())
 
 	if request.Body != nil {
 		bodyBytes, _ := ioutil.ReadAll(request.Body)
@@ -953,8 +1125,4 @@ func copyHttpRequest(request *http.Request) *http.Request {
 	resCopy.Header = headers
 
 	return resCopy
-}
-
-func quoted(in string) string {
-	return fmt.Sprintf("%q", in)
 }

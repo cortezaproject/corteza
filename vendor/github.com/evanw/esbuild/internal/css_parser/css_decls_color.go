@@ -230,7 +230,7 @@ func hexG(v uint32) int { return int((v >> 16) & 255) }
 func hexB(v uint32) int { return int((v >> 8) & 255) }
 func hexA(v uint32) int { return int(v & 255) }
 
-func floatToString(a float64) string {
+func floatToStringForColor(a float64) string {
 	text := fmt.Sprintf("%.03f", a)
 	for text[len(text)-1] == '0' {
 		text = text[:len(text)-1]
@@ -269,7 +269,7 @@ func lowerAlphaPercentageToNumber(token css_ast.Token) css_ast.Token {
 	if token.Kind == css_lexer.TPercentage {
 		if value, err := strconv.ParseFloat(token.Text[:len(token.Text)-1], 64); err == nil {
 			token.Kind = css_lexer.TNumber
-			token.Text = floatToString(value / 100.0)
+			token.Text = floatToStringForColor(value / 100.0)
 		}
 	}
 	return token
@@ -294,7 +294,7 @@ func (p *parser) lowerColor(token css_ast.Token) css_ast.Token {
 						{Kind: css_lexer.TNumber, Text: strconv.Itoa(hexR(hex))}, commaToken,
 						{Kind: css_lexer.TNumber, Text: strconv.Itoa(hexG(hex))}, commaToken,
 						{Kind: css_lexer.TNumber, Text: strconv.Itoa(hexB(hex))}, commaToken,
-						{Kind: css_lexer.TNumber, Text: floatToString(float64(hexA(hex)) / 255)},
+						{Kind: css_lexer.TNumber, Text: floatToStringForColor(float64(hexA(hex)) / 255)},
 					}
 				}
 
@@ -308,7 +308,7 @@ func (p *parser) lowerColor(token css_ast.Token) css_ast.Token {
 						{Kind: css_lexer.TNumber, Text: strconv.Itoa(hexR(hex))}, commaToken,
 						{Kind: css_lexer.TNumber, Text: strconv.Itoa(hexG(hex))}, commaToken,
 						{Kind: css_lexer.TNumber, Text: strconv.Itoa(hexB(hex))}, commaToken,
-						{Kind: css_lexer.TNumber, Text: floatToString(float64(hexA(hex)) / 255)},
+						{Kind: css_lexer.TNumber, Text: floatToStringForColor(float64(hexA(hex)) / 255)},
 					}
 				}
 			}
@@ -332,7 +332,7 @@ func (p *parser) lowerColor(token css_ast.Token) css_ast.Token {
 				if (text == "hsl" || text == "hsla") && len(args) > 0 {
 					if degrees, ok := degreesForAngle(args[0]); ok {
 						args[0].Kind = css_lexer.TNumber
-						args[0].Text = floatToString(degrees)
+						args[0].Text = floatToStringForColor(degrees)
 					}
 				}
 
@@ -600,54 +600,70 @@ func parseColorByte(token css_ast.Token, scale float64) (uint32, bool) {
 	return uint32(i), ok
 }
 
-func (p *parser) mangleColor(token css_ast.Token) css_ast.Token {
+func (p *parser) mangleColor(token css_ast.Token, hex uint32) css_ast.Token {
 	// Note: Do NOT remove color information from fully transparent colors.
 	// Safari behaves differently than other browsers for color interpolation:
 	// https://css-tricks.com/thing-know-gradients-transparent-black/
 
-	if hex, ok := parseColor(token); ok {
-		if hexA(hex) == 255 {
-			token.Children = nil
-			if name, ok := shortColorName[hex]; ok {
-				token.Kind = css_lexer.TIdent
-				token.Text = name
-			} else {
-				token.Kind = css_lexer.THash
-				hex >>= 8
-				compact := compactHex(hex)
-				if hex == expandHex(compact) {
-					token.Text = fmt.Sprintf("%03x", compact)
-				} else {
-					token.Text = fmt.Sprintf("%06x", hex)
-				}
-			}
-		} else if !p.options.UnsupportedCSSFeatures.Has(compat.HexRGBA) {
-			token.Children = nil
+	if hexA(hex) == 255 {
+		token.Children = nil
+		if name, ok := shortColorName[hex]; ok {
+			token.Kind = css_lexer.TIdent
+			token.Text = name
+		} else {
 			token.Kind = css_lexer.THash
+			hex >>= 8
 			compact := compactHex(hex)
 			if hex == expandHex(compact) {
-				token.Text = fmt.Sprintf("%04x", compact)
+				token.Text = fmt.Sprintf("%03x", compact)
 			} else {
-				token.Text = fmt.Sprintf("%08x", hex)
+				token.Text = fmt.Sprintf("%06x", hex)
 			}
+		}
+	} else if !p.options.UnsupportedCSSFeatures.Has(compat.HexRGBA) {
+		token.Children = nil
+		token.Kind = css_lexer.THash
+		compact := compactHex(hex)
+		if hex == expandHex(compact) {
+			token.Text = fmt.Sprintf("%04x", compact)
 		} else {
-			token.Kind = css_lexer.TFunction
-			token.Text = "rgba"
-			commaToken := p.commaToken()
-			alpha := floatToString(float64(hexA(hex)) / 255)
-			if p.options.MangleSyntax {
-				if text, ok := mangleNumber(alpha); ok {
-					alpha = text
-				}
-			}
-			token.Children = &[]css_ast.Token{
-				{Kind: css_lexer.TNumber, Text: strconv.Itoa(hexR(hex))}, commaToken,
-				{Kind: css_lexer.TNumber, Text: strconv.Itoa(hexG(hex))}, commaToken,
-				{Kind: css_lexer.TNumber, Text: strconv.Itoa(hexB(hex))}, commaToken,
-				{Kind: css_lexer.TNumber, Text: alpha},
-			}
+			token.Text = fmt.Sprintf("%08x", hex)
+		}
+	} else {
+		token.Kind = css_lexer.TFunction
+		token.Text = "rgba"
+		commaToken := p.commaToken()
+		index := hexA(hex) * 4
+		alpha := alphaFractionTable[index : index+4]
+		if space := strings.IndexByte(alpha, ' '); space != -1 {
+			alpha = alpha[:space]
+		}
+		token.Children = &[]css_ast.Token{
+			{Kind: css_lexer.TNumber, Text: strconv.Itoa(hexR(hex))}, commaToken,
+			{Kind: css_lexer.TNumber, Text: strconv.Itoa(hexG(hex))}, commaToken,
+			{Kind: css_lexer.TNumber, Text: strconv.Itoa(hexB(hex))}, commaToken,
+			{Kind: css_lexer.TNumber, Text: alpha},
 		}
 	}
 
 	return token
 }
+
+// Every four characters in this table is the fraction for that index
+const alphaFractionTable string = "" +
+	"0   .004.008.01 .016.02 .024.027.03 .035.04 .043.047.05 .055.06 " +
+	".063.067.07 .075.08 .082.086.09 .094.098.1  .106.11 .114.118.12 " +
+	".125.13 .133.137.14 .145.15 .153.157.16 .165.17 .173.176.18 .184" +
+	".19 .192.196.2  .204.208.21 .216.22 .224.227.23 .235.24 .243.247" +
+	".25 .255.26 .263.267.27 .275.28 .282.286.29 .294.298.3  .306.31 " +
+	".314.318.32 .325.33 .333.337.34 .345.35 .353.357.36 .365.37 .373" +
+	".376.38 .384.39 .392.396.4  .404.408.41 .416.42 .424.427.43 .435" +
+	".44 .443.447.45 .455.46 .463.467.47 .475.48 .482.486.49 .494.498" +
+	".5  .506.51 .514.518.52 .525.53 .533.537.54 .545.55 .553.557.56 " +
+	".565.57 .573.576.58 .584.59 .592.596.6  .604.608.61 .616.62 .624" +
+	".627.63 .635.64 .643.647.65 .655.66 .663.667.67 .675.68 .682.686" +
+	".69 .694.698.7  .706.71 .714.718.72 .725.73 .733.737.74 .745.75 " +
+	".753.757.76 .765.77 .773.776.78 .784.79 .792.796.8  .804.808.81 " +
+	".816.82 .824.827.83 .835.84 .843.847.85 .855.86 .863.867.87 .875" +
+	".88 .882.886.89 .894.898.9  .906.91 .914.918.92 .925.93 .933.937" +
+	".94 .945.95 .953.957.96 .965.97 .973.976.98 .984.99 .992.9961   "

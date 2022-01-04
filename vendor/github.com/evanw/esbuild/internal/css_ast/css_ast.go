@@ -24,8 +24,10 @@ import (
 // representation that helps provide good parsing and printing performance.
 
 type AST struct {
-	ImportRecords []ast.ImportRecord
-	Rules         []R
+	ImportRecords        []ast.ImportRecord
+	Rules                []Rule
+	SourceMapComment     logger.Span
+	ApproximateLineCount int32
 }
 
 // We create a lot of tokens, so make sure this layout is memory-efficient.
@@ -203,6 +205,16 @@ func (t Token) DimensionUnit() string {
 	return t.Text[t.UnitOffset:]
 }
 
+func (t Token) DimensionUnitIsSafeLength() bool {
+	switch t.DimensionUnit() {
+	// These units can be reasonably expected to be supported everywhere.
+	// Information used: https://developer.mozilla.org/en-US/docs/Web/CSS/length
+	case "cm", "em", "in", "mm", "pc", "pt", "px":
+		return true
+	}
+	return false
+}
+
 func (t Token) IsZero() bool {
 	return t.Kind == css_lexer.TNumber && t.Text == "0"
 }
@@ -211,27 +223,65 @@ func (t Token) IsOne() bool {
 	return t.Kind == css_lexer.TNumber && t.Text == "1"
 }
 
+func (t Token) IsAngle() bool {
+	if t.Kind == css_lexer.TDimension {
+		unit := t.DimensionUnit()
+		return unit == "deg" || unit == "grad" || unit == "rad" || unit == "turn"
+	}
+	return false
+}
+
+func CloneTokensWithImportRecords(
+	tokensIn []Token, importRecordsIn []ast.ImportRecord,
+	tokensOut []Token, importRecordsOut []ast.ImportRecord,
+) ([]Token, []ast.ImportRecord) {
+	for _, t := range tokensIn {
+		// If this is a URL token, also clone the import record
+		if t.Kind == css_lexer.TURL {
+			importRecordIndex := uint32(len(importRecordsOut))
+			importRecordsOut = append(importRecordsOut, importRecordsIn[t.ImportRecordIndex])
+			t.ImportRecordIndex = importRecordIndex
+		}
+
+		// Also search for URL tokens in this token's children
+		if t.Children != nil {
+			var children []Token
+			children, importRecordsOut = CloneTokensWithImportRecords(*t.Children, importRecordsIn, children, importRecordsOut)
+			t.Children = &children
+		}
+
+		tokensOut = append(tokensOut, t)
+	}
+
+	return tokensOut, importRecordsOut
+}
+
+type Rule struct {
+	Loc  logger.Loc
+	Data R
+}
+
 type R interface {
 	Equal(rule R) bool
 	Hash() (uint32, bool)
 }
 
-func RulesEqual(a []R, b []R) bool {
+func RulesEqual(a []Rule, b []Rule) bool {
 	if len(a) != len(b) {
 		return false
 	}
 	for i, c := range a {
-		if !c.Equal(b[i]) {
+		if !c.Data.Equal(b[i].Data) {
 			return false
 		}
 	}
 	return true
 }
 
-func HashRules(hash uint32, rules []R) uint32 {
+func HashRules(hash uint32, rules []Rule) uint32 {
 	hash = helpers.HashCombine(hash, uint32(len(rules)))
 	for _, child := range rules {
-		if childHash, ok := child.Hash(); ok {
+		if childHash, ok := child.Data.Hash(); ok {
 			hash = helpers.HashCombine(hash, childHash)
 		} else {
 			hash = helpers.HashCombine(hash, 0)
@@ -276,7 +326,7 @@ type RAtKeyframes struct {
 
 type KeyframeBlock struct {
 	Selectors []string
-	Rules     []R
+	Rules     []Rule
 }
 
 func (a *RAtKeyframes) Equal(rule R) bool {
@@ -319,7 +369,7 @@ func (r *RAtKeyframes) Hash() (uint32, bool) {
 type RKnownAt struct {
 	AtToken string
 	Prelude []Token
-	Rules   []R
+	Rules   []Rule
 }
 
 func (a *RKnownAt) Equal(rule R) bool {
@@ -356,41 +406,17 @@ func (r *RUnknownAt) Hash() (uint32, bool) {
 
 type RSelector struct {
 	Selectors []ComplexSelector
-	Rules     []R
+	Rules     []Rule
 }
 
 func (a *RSelector) Equal(rule R) bool {
 	b, ok := rule.(*RSelector)
 	if ok && len(a.Selectors) == len(b.Selectors) {
-		for i, ai := range a.Selectors {
-			bi := b.Selectors[i]
-			if len(ai.Selectors) != len(bi.Selectors) {
+		for i, sel := range a.Selectors {
+			if !sel.Equal(b.Selectors[i]) {
 				return false
 			}
-
-			for j, aj := range ai.Selectors {
-				bj := bi.Selectors[j]
-				if aj.HasNestPrefix != bj.HasNestPrefix || aj.Combinator != bj.Combinator {
-					return false
-				}
-
-				if ats, bts := aj.TypeSelector, bj.TypeSelector; (ats == nil) != (bts == nil) {
-					return false
-				} else if ats != nil && bts != nil && !ats.Equal(*bts) {
-					return false
-				}
-
-				if len(aj.SubclassSelectors) != len(bj.SubclassSelectors) {
-					return false
-				}
-				for k, ak := range aj.SubclassSelectors {
-					if !ak.Equal(bj.SubclassSelectors[k]) {
-						return false
-					}
-				}
-			}
 		}
-
 		return RulesEqual(a.Rules, b.Rules)
 	}
 
@@ -421,7 +447,7 @@ func (r *RSelector) Hash() (uint32, bool) {
 
 type RQualified struct {
 	Prelude []Token
-	Rules   []R
+	Rules   []Rule
 }
 
 func (a *RQualified) Equal(rule R) bool {
@@ -471,8 +497,53 @@ func (r *RBadDeclaration) Hash() (uint32, bool) {
 	return hash, true
 }
 
+type RComment struct {
+	Text string
+}
+
+func (a *RComment) Equal(rule R) bool {
+	b, ok := rule.(*RComment)
+	return ok && a.Text == b.Text
+}
+
+func (r *RComment) Hash() (uint32, bool) {
+	hash := uint32(9)
+	hash = helpers.HashCombineString(hash, r.Text)
+	return hash, true
+}
+
 type ComplexSelector struct {
 	Selectors []CompoundSelector
+}
+
+func (a ComplexSelector) Equal(b ComplexSelector) bool {
+	if len(a.Selectors) != len(b.Selectors) {
+		return false
+	}
+
+	for i, ai := range a.Selectors {
+		bi := b.Selectors[i]
+		if ai.HasNestPrefix != bi.HasNestPrefix || ai.Combinator != bi.Combinator {
+			return false
+		}
+
+		if ats, bts := ai.TypeSelector, bi.TypeSelector; (ats == nil) != (bts == nil) {
+			return false
+		} else if ats != nil && bts != nil && !ats.Equal(*bts) {
+			return false
+		}
+
+		if len(ai.SubclassSelectors) != len(bi.SubclassSelectors) {
+			return false
+		}
+		for j, aj := range ai.SubclassSelectors {
+			if !aj.Equal(bi.SubclassSelectors[j]) {
+				return false
+			}
+		}
+	}
+
+	return true
 }
 
 type CompoundSelector struct {
@@ -491,7 +562,7 @@ type NamespacedName struct {
 	// If present, this is an identifier or "*" and is followed by a "|" character
 	NamespacePrefix *NameToken
 
-	// This is an identifier or "*" or "&"
+	// This is an identifier or "*"
 	Name NameToken
 }
 
@@ -537,9 +608,9 @@ func (ss *SSClass) Hash() uint32 {
 
 type SSAttribute struct {
 	NamespacedName  NamespacedName
-	MatcherOp       string
+	MatcherOp       string // Either "" or one of: "=" "~=" "|=" "^=" "$=" "*="
 	MatcherValue    string
-	MatcherModifier byte
+	MatcherModifier byte // Either 0 or one of: 'i' 'I' 's' 'S'
 }
 
 func (a *SSAttribute) Equal(ss SS) bool {

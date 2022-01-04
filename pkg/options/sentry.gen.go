@@ -17,7 +17,7 @@ type (
 		DSN              string  `env:"SENTRY_DSN"`
 		Debug            bool    `env:"SENTRY_DEBUG"`
 		AttachStacktrace bool    `env:"SENTRY_ATTACH_STACKTRACE"`
-		SampleRate       float32 `env:"SENTRY_SAMPLE_RATE"`
+		SampleRate       float64 `env:"SENTRY_SAMPLE_RATE"`
 		MaxBreadcrumbs   int     `env:"SENTRY_MAX_BREADCRUMBS"`
 		ServerName       string  `env:"SENTRY_SERVERNAME"`
 		Release          string  `env:"SENTRY_RELEASE"`

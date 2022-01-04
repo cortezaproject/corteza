@@ -59,7 +59,13 @@ func (c CookieSessionProvider) CreateSession(w http.ResponseWriter, r *http.Requ
 // DeleteSession is called to modify the response such that it removed the current
 // session, e.g. by deleting a cookie.
 func (c CookieSessionProvider) DeleteSession(w http.ResponseWriter, r *http.Request) error {
+	// Cookies should not have the port attached to them so strip it off
+	if domain, _, err := net.SplitHostPort(c.Domain); err == nil {
+		c.Domain = domain
+	}
+
 	cookie, err := r.Cookie(c.Name)
+
 	if err == http.ErrNoCookie {
 		return nil
 	}

@@ -1,9 +1,9 @@
 package squirrel
 
 import (
+	"bytes"
 	"database/sql/driver"
 	"fmt"
-	"io"
 	"reflect"
 	"sort"
 	"strings"
@@ -24,12 +24,61 @@ type expr struct {
 //
 // Ex:
 //     Expr("FROM_UNIXTIME(?)", t)
-func Expr(sql string, args ...interface{}) expr {
+func Expr(sql string, args ...interface{}) Sqlizer {
 	return expr{sql: sql, args: args}
 }
 
 func (e expr) ToSql() (sql string, args []interface{}, err error) {
-	return e.sql, e.args, nil
+	simple := true
+	for _, arg := range e.args {
+		if _, ok := arg.(Sqlizer); ok {
+			simple = false
+		}
+	}
+	if simple {
+		return e.sql, e.args, nil
+	}
+
+	buf := &bytes.Buffer{}
+	ap := e.args
+	sp := e.sql
+
+	var isql string
+	var iargs []interface{}
+
+	for err == nil && len(ap) > 0 && len(sp) > 0 {
+		i := strings.Index(sp, "?")
+		if i < 0 {
+			// no more placeholders
+			break
+		}
+		if len(sp) > i+1 && sp[i+1:i+2] == "?" {
+			// escaped "??"; append it and step past
+			buf.WriteString(sp[:i+2])
+			sp = sp[i+2:]
+			continue
+		}
+
+		if as, ok := ap[0].(Sqlizer); ok {
+			// sqlizer argument; expand it and append the result
+			isql, iargs, err = as.ToSql()
+			buf.WriteString(sp[:i])
+			buf.WriteString(isql)
+			args = append(args, iargs...)
+		} else {
+			// normal argument; append it and the placeholder
+			buf.WriteString(sp[:i+1])
+			args = append(args, ap[0])
+		}
+
+		// step past the argument and placeholder
+		ap = ap[1:]
+		sp = sp[i+1:]
+	}
+
+	// append the remaining sql and arguments
+	buf.WriteString(sp)
+	return buf.String(), append(args, ap...), err
 }
 
 type concatExpr []interface{}
@@ -62,25 +111,6 @@ func ConcatExpr(parts ...interface{}) concatExpr {
 	return concatExpr(parts)
 }
 
-type exprs []expr
-
-func (es exprs) AppendToSql(w io.Writer, sep string, args []interface{}) ([]interface{}, error) {
-	for i, e := range es {
-		if i > 0 {
-			_, err := io.WriteString(w, sep)
-			if err != nil {
-				return nil, err
-			}
-		}
-		_, err := io.WriteString(w, e.sql)
-		if err != nil {
-			return nil, err
-		}
-		args = append(args, e.args...)
-	}
-	return args, nil
-}
-
 // aliasExpr helps to alias part of SQL query generated with underlying "expr"
 type aliasExpr struct {
 	expr  Sqlizer
@@ -104,8 +134,6 @@ func (e aliasExpr) ToSql() (sql string, args []interface{}, err error) {
 }
 
 // Eq is syntactic sugar for use with Where/Having/Set methods.
-// Ex:
-//     .Where(Eq{"id": 1})
 type Eq map[string]interface{}
 
 func (eq Eq) toSQL(useNotOpr bool) (sql string, args []interface{}, err error) {
@@ -196,16 +224,8 @@ func (neq NotEq) ToSql() (sql string, args []interface{}, err error) {
 //     .Where(Like{"name": "%irrel"})
 type Like map[string]interface{}
 
-func (lk Like) toSql(opposite bool) (sql string, args []interface{}, err error) {
-	var (
-		exprs []string
-		opr   = "LIKE"
-	)
-
-	if opposite {
-		opr = "NOT LIKE"
-	}
-
+func (lk Like) toSql(opr string) (sql string, args []interface{}, err error) {
+	var exprs []string
 	for key, val := range lk {
 		expr := ""
 
@@ -235,7 +255,7 @@ func (lk Like) toSql(opposite bool) (sql string, args []interface{}, err error) 
 }
 
 func (lk Like) ToSql() (sql string, args []interface{}, err error) {
-	return lk.toSql(false)
+	return lk.toSql("LIKE")
 }
 
 // NotLike is syntactic sugar for use with LIKE conditions.
@@ -244,7 +264,25 @@ func (lk Like) ToSql() (sql string, args []interface{}, err error) {
 type NotLike Like
 
 func (nlk NotLike) ToSql() (sql string, args []interface{}, err error) {
-	return Like(nlk).toSql(true)
+	return Like(nlk).toSql("NOT LIKE")
+}
+
+// ILike is syntactic sugar for use with ILIKE conditions.
+// Ex:
+//    .Where(ILike{"name": "sq%"})
+type ILike Like
+
+func (ilk ILike) ToSql() (sql string, args []interface{}, err error) {
+	return Like(ilk).toSql("ILIKE")
+}
+
+// NotILike is syntactic sugar for use with ILIKE conditions.
+// Ex:
+//    .Where(NotILike{"name": "sq%"})
+type NotILike Like
+
+func (nilk NotILike) ToSql() (sql string, args []interface{}, err error) {
+	return Like(nilk).toSql("NOT ILIKE")
 }
 
 // Lt is syntactic sugar for use with Where/Having/Set methods.
@@ -334,7 +372,7 @@ func (c conj) join(sep, defaultExpr string) (sql string, args []interface{}, err
 	}
 	var sqlParts []string
 	for _, sqlizer := range c {
-		partSQL, partArgs, err := sqlizer.ToSql()
+		partSQL, partArgs, err := nestedToSql(sqlizer)
 		if err != nil {
 			return "", nil, err
 		}
