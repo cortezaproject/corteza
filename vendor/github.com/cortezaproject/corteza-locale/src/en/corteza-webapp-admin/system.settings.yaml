@@ -42,41 +42,71 @@ editor:
         expires:
           description: How long will password be valid before it expires.
           label: Valid for
+
   external:
     title: External Authentication Providers
-    addOidcProvider: Add OIDC provider
-    certificate: Certificate
-    clientKey: Client key
-    clientSecret: Secret
     enabled: Enable external authentication
-    facebook: Facebook
-    github: GitHub
-    google: Google
-    handle: Handle
-    issuer: OIDC Issuer URL
-    issuerHint: Where to find the /.well-known/openid-configuration (without the /.well-known/openid-configuration part)
-    issuerPlaceholder: https://issuer.tld
-    linkedin: LinkedIn
-    oidc: OpenID Connect
-    providerEnabled: Enable
+
+    table:
+      header:
+        provider: Provider
+        info: Issuer, client ID
+
+
+    standard:
+      enabled: Enabled
+      clientKey: Client key
+      clientSecret: Secret
+
+    oidc:
+      add: Add an OIDC provider
+      enabled: Enabled
+      handle: Handle
+      title: OpenID Connect
+      issuer: OIDC Issuer URL
+      issuerHint: Where to find the /.well-known/openid-configuration (without the /.well-known/openid-configuration part)
+      clientKey: Client key
+      clientSecret: Secret
+      scope: Scope
+      scopePlaceholder: List out supported OAuth scope values, use space delimited string
 
     saml:
+      enabled: Enabled
       title: SAML
-      cert: Public key
-      cert-key: Private key
+      cert:
+        public: Public key
+        private: Private key
+        sign-requests: Sign requests
+        sign-method: Signature method
       name: Name
-      desc:
-        name: IdP name used on the login screen (Login with <name>)
-        cert: Content will be minimized
-        cert-key: Content will be minimized
-        idp:
-          url: Location of IdP metadata
-          ident-handle: Name of the IdP field used for filling Corteza user handle or nickname
-          ident-identifier: Name of the IdP field used for filling and matching Corteza user email
-          ident-name: Name of the IdP field used for filling Corteza user full name
+      certificate: Certificate
       idp:
         title: Identity provider
         ident-handle: Handle field
         ident-identifier: Identifier field
         ident-name: Name field
         url: URL
+      desc:
+        name: IdP name used on the login screen (Login with <name>)
+        cert:
+          public: Content will be minimized
+          private: Content will be minimized
+          sign-requests: Sign AuthNRequest and assertion
+          sign-method: Method to use on signed requests
+        idp:
+          url: Location of IdP metadata
+          ident-handle: Name of the IdP field used for filling Corteza user handle or nickname
+          ident-identifier: Name of the IdP field used for filling and matching Corteza user email
+          ident-name: Name of the IdP field used for filling Corteza user full name
+
+
+    security:
+      forbidden-roles:
+        description: Roles from this list will be removed from security context when authenticates with this provider
+        label: Forbidden roles
+      forced-roles:
+        description: Roles from this list will be always added to security context when authenticates with this provider
+        label: Forced roles
+      permitted-roles:
+        description: Only roles in this list will be added into security context when authenticates with this provider
+        label: Permitted roles

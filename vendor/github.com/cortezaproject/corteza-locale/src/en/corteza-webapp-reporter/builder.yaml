@@ -58,6 +58,9 @@ scenarios:
   label: Scenarios
   save: Save Scenarios
 title: Title
+available-columns: Available columns
+selected-columns: Selected columns
+type-to-search: Type here to search among columns
 selected: Selected
 select-all: Select all
 unselect-all: Unselect all
