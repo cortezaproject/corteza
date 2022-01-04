@@ -10,22 +10,24 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/gig"
+	"github.com/cortezaproject/corteza-server/system/rest/conv"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
 )
 
 type (
 	Gig struct {
-		svc service.GigService
+		svc  service.GigService
+		conv conv.Gig
 	}
 
 	gigSourcePayload struct {
-		ID       uint64             `json:"sourceID,string"`
-		Name     string             `json:"name"`
-		Size     int64              `json:"size"`
-		MimeType string             `json:"mimeType"`
-		Checksum string             `json:"checksum"`
-		Decoders gig.DecoderWrapSet `json:"decoders"`
+		ID       uint64            `json:"sourceID,string"`
+		Name     string            `json:"name"`
+		Size     int64             `json:"size"`
+		MimeType string            `json:"mimeType"`
+		Checksum string            `json:"checksum"`
+		Decoders conv.ParamWrapSet `json:"decoders"`
 	}
 	gigWorkerPayload struct {
 		Ref string `json:"ref"`
@@ -37,8 +39,8 @@ type (
 		Sources   []gigSourcePayload `json:"sources"`
 		Worker    gigWorkerPayload   `json:"worker"`
 
-		Preprocess  gig.PreprocessorWrapSet  `json:"preprocess"`
-		Postprocess gig.PostprocessorWrapSet `json:"postprocess"`
+		Preprocess  conv.ParamWrapSet `json:"preprocess"`
+		Postprocess conv.ParamWrapSet `json:"postprocess"`
 
 		State gig.WorkerState `json:"state,omitempty"`
 	}
@@ -50,14 +52,24 @@ type (
 
 func (Gig) New() *Gig {
 	return &Gig{
-		svc: service.DefaultGig,
+		svc:  service.DefaultGig,
+		conv: conv.Gig{},
 	}
 }
 
 func (ctrl Gig) Create(ctx context.Context, r *request.GigCreate) (interface{}, error) {
+	pre, err := ctrl.conv.UnwrapPreprocessorSet(r.Preprocessors)
+	if err != nil {
+		return nil, err
+	}
+	post, err := ctrl.conv.UnwrapPostprocessorSet(r.Postprocessors)
+	if err != nil {
+		return nil, err
+	}
+
 	g, err := ctrl.svc.Create(ctx, r.Worker, gig.UpdatePayload{
-		Preprocess:  r.Preprocessors,
-		Postprocess: r.Postprocessors,
+		Preprocess:  pre,
+		Postprocess: post,
 	})
 	return ctrl.makeGigPayload(ctx, g, err)
 }
@@ -68,24 +80,46 @@ func (ctrl Gig) Read(ctx context.Context, r *request.GigRead) (interface{}, erro
 }
 
 func (ctrl Gig) Update(ctx context.Context, r *request.GigUpdate) (interface{}, error) {
+	decode, err := ctrl.conv.UnwrapDecoderSet(r.Decoders)
+	if err != nil {
+		return nil, err
+	}
+	pre, err := ctrl.conv.UnwrapPreprocessorSet(r.Preprocessors)
+	if err != nil {
+		return nil, err
+	}
+	post, err := ctrl.conv.UnwrapPostprocessorSet(r.Postprocessors)
+	if err != nil {
+		return nil, err
+	}
+
 	g, err := ctrl.svc.Update(ctx, r.GigID, gig.UpdatePayload{
-		Decode:      r.Decoders,
-		Preprocess:  r.Preprocessors,
-		Postprocess: r.Postprocessors,
+		Decode:      decode,
+		Preprocess:  pre,
+		Postprocess: post,
 	})
 	return ctrl.makeGigPayload(ctx, g, err)
 }
 
 func (ctrl Gig) AddSource(ctx context.Context, r *request.GigAddSource) (interface{}, error) {
+	decode, err := ctrl.conv.UnwrapDecoderSet(r.Decoders)
+	if err != nil {
+		return nil, err
+	}
 	src, err := ctrl.prepareSources(r.Upload, r.Uri)
 	if err != nil {
 		return nil, err
 	}
 
-	g, err := ctrl.svc.AddSource(ctx, r.GigID, gig.UpdatePayload{
-		Decode:  r.Decoders,
+	g, err := ctrl.svc.AddSources(ctx, r.GigID, gig.UpdatePayload{
+		Decode:  decode,
 		Sources: src,
 	})
+	return ctrl.makeGigPayload(ctx, g, err)
+}
+
+func (ctrl Gig) RemoveSource(ctx context.Context, r *request.GigRemoveSource) (interface{}, error) {
+	g, err := ctrl.svc.RemoveSources(ctx, r.GigID, r.SourceID)
 	return ctrl.makeGigPayload(ctx, g, err)
 }
 
@@ -151,9 +185,9 @@ func (ctrl Gig) makeGigPayload(ctx context.Context, g *gig.Gig, err error) (*gig
 	sources := make([]gigSourcePayload, len(g.Sources))
 	for i, src := range g.Sources {
 		dd := src.Decoders()
-		decoders := make(gig.DecoderWrapSet, len(dd))
+		decoders := make(conv.ParamWrapSet, len(dd))
 		for j, d := range dd {
-			decoders[j], err = gig.WrapDecoder(d)
+			decoders[j], err = ctrl.conv.WrapDecoder(d)
 			if err != nil {
 				return nil, err
 			}
@@ -168,17 +202,17 @@ func (ctrl Gig) makeGigPayload(ctx context.Context, g *gig.Gig, err error) (*gig
 		}
 	}
 
-	pre := make([]gig.PreprocessorWrap, len(g.Preprocess))
+	pre := make(conv.ParamWrapSet, len(g.Preprocess))
 	for i, t := range g.Preprocess {
-		pre[i], err = gig.WrapPreprocessor(t)
+		pre[i], err = ctrl.conv.WrapPreprocessor(t)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	post := make([]gig.PostprocessorWrap, len(g.Postprocess))
+	post := make(conv.ParamWrapSet, len(g.Postprocess))
 	for i, t := range g.Postprocess {
-		post[i], err = gig.WrapPostprocessTask(t)
+		post[i], err = ctrl.conv.WrapPostprocessor(t)
 		if err != nil {
 			return nil, err
 		}

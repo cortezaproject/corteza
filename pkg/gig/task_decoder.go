@@ -2,39 +2,41 @@ package gig
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+
+	"github.com/spf13/cast"
 )
 
 type (
 	Decoder interface {
-		RelSource() uint64
+		Source() uint64
 		Clone(uint64) Decoder
 		CanDecode(Source) bool
 		Decode(context.Context, Source) (SourceSet, error)
+		Ref() string
+		Params() map[string]interface{}
 	}
-
-	DecoderWrap struct {
-		Ref    decoder `json:"ref"`
-		Params json.RawMessage
-	}
-	DecoderWrapSet []DecoderWrap
-
-	decoder string
+	DecoderSet []Decoder
 )
 
 // Noop
 
-func DecoderNoop(rel uint64) Decoder {
-	return decoderNoop{Source: rel}
+func DecoderNoopParams(params map[string]interface{}) decoderNoop {
+	return DecoderNoop(cast.ToUint64(params["rel"]))
+}
+
+func DecoderNoop(rel uint64) decoderNoop {
+	return decoderNoop{source: rel}
 }
 
 func (d decoderNoop) Clone(rel uint64) Decoder {
-	return DecoderNoop(rel)
+	return decoderNoop{
+		source: rel,
+	}
 }
 
-func (d decoderNoop) RelSource() uint64 {
-	return d.Source
+func (d decoderNoop) Source() uint64 {
+	return d.source
 }
 
 func (d decoderNoop) CanDecode(src Source) bool {
@@ -45,18 +47,32 @@ func (d decoderNoop) Decode(ctx context.Context, in Source) (out SourceSet, err 
 	return SourceSet{in}, nil
 }
 
+func (d decoderNoop) Ref() string {
+	return DecoderHandleNoop
+}
+
+func (d decoderNoop) Params() map[string]interface{} {
+	return nil
+}
+
 // Archive
 
-func DecoderArchive(rel uint64) Decoder {
-	return decoderArchive{Source: rel}
+func DecoderArchiveParams(params map[string]interface{}) decoderArchive {
+	return DecoderArchive(cast.ToUint64(params["rel"]))
+}
+
+func DecoderArchive(rel uint64) decoderArchive {
+	return decoderArchive{source: rel}
 }
 
 func (d decoderArchive) Clone(rel uint64) Decoder {
-	return DecoderArchive(rel)
+	return decoderArchive{
+		source: rel,
+	}
 }
 
-func (d decoderArchive) RelSource() uint64 {
-	return d.Source
+func (d decoderArchive) Source() uint64 {
+	return d.source
 }
 
 func (d decoderArchive) CanDecode(src Source) bool {
@@ -74,15 +90,12 @@ func (d decoderArchive) Decode(ctx context.Context, in Source) (out SourceSet, e
 	return
 }
 
-func ParseDecoderWrap(ss []string) (out DecoderWrapSet, err error) {
-	for _, s := range ss {
-		aux := make(DecoderWrapSet, 0, 2)
-		err = json.Unmarshal([]byte(s), &aux)
-		if err != nil {
-			return
-		}
+func (d decoderArchive) Ref() string {
+	return DecoderHandleArchive
+}
 
-		out = append(out, aux...)
+func (d decoderArchive) Params() map[string]interface{} {
+	return map[string]interface{}{
+		"rel": d.source,
 	}
-	return
 }

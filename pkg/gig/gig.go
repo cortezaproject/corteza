@@ -33,9 +33,9 @@ type (
 
 	UpdatePayload struct {
 		Worker      Worker
-		Decode      DecoderWrapSet
-		Preprocess  PreprocessorWrapSet
-		Postprocess PostprocessorWrapSet
+		Decode      DecoderSet
+		Preprocess  PreprocessorSet
+		Postprocess PostprocessorSet
 		Sources     []SourceWrap
 	}
 )

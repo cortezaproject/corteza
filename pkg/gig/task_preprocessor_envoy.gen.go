@@ -11,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/store"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
+	"github.com/spf13/cast"
 )
 
 type (
@@ -35,9 +36,9 @@ type (
 var (
 	EnvoyWorkerName = "envoy"
 
-	PreprocessorHandleResourceRemove preprocessor = "resourceRemove"
-	PreprocessorHandleResourceLoad   preprocessor = "resourceLoad"
-	PreprocessorHandleNamespaceLoad  preprocessor = "namespaceLoad"
+	PreprocessorHandleResourceRemove = "resourceRemove"
+	PreprocessorHandleResourceLoad   = "resourceLoad"
+	PreprocessorHandleNamespaceLoad  = "namespaceLoad"
 )
 
 var (
@@ -158,20 +159,25 @@ func (w *workerEnvoy) filterComposePage(base *store.DecodeFilter, defs preproces
 
 // Preprocessors
 
-func PreprocessorResourceRemove(resourceType, identifier string) (out preprocessorResourceRemove) {
-	if identifier == "" {
-		identifier = "*"
-	}
+func PreprocessorResourceRemoveParams(params map[string]interface{}) (out preprocessorResourceRemove) {
+	rt := cast.ToString(params["resourceType"])
+	idf := cast.ToString(params["identifier"])
 
-	out = preprocessorResourceRemove{
-		Resource:   resourceType,
-		Identifier: identifier,
+	return PreprocessorResourceRemove(rt, idf)
+}
+
+func PreprocessorResourceRemove(resource, identifier string) (out preprocessorResourceRemove) {
+	out.Resource = resource
+	out.Identifier = identifier
+
+	if out.Identifier == "" {
+		out.Identifier = "*"
 	}
 
 	return
 }
 
-func (t preprocessorResourceRemove) Ref() preprocessor {
+func (t preprocessorResourceRemove) Ref() string {
 	return PreprocessorHandleResourceRemove
 }
 
@@ -179,35 +185,49 @@ func (t preprocessorResourceRemove) Worker() []string {
 	return []string{EnvoyWorkerName}
 }
 
-func (t preprocessorResourceRemove) Params() interface{} {
-	return t
+func (t preprocessorResourceRemove) Params() map[string]interface{} {
+	return map[string]interface{}{
+		"resource":   t.Resource,
+		"identifier": t.Identifier,
+	}
 }
 
-func PreprocessorResourceLoadByID(resourceType string, id uint64) (out preprocessorResourceLoad) {
-	out = preprocessorResourceLoad{
-		Resource: resourceType,
-		ID:       id,
+func PreprocessorResourceLoadParams(params map[string]interface{}) (out preprocessorResourceLoad) {
+	out.Resource = cast.ToString(params["resource"])
+
+	if id, ok := params["id"]; ok {
+		out.ID = cast.ToUint64(id)
+	} else if handle, ok := params["handle"]; ok {
+		out.Handle = cast.ToString(handle)
+	} else if query, ok := params["query"]; ok {
+		out.Query = cast.ToString(query)
 	}
+
 	return
 }
 
-func PreprocessorResourceLoadByHandle(resourceType, handle string) (out preprocessorResourceLoad) {
-	out = preprocessorResourceLoad{
-		Resource: resourceType,
-		Handle:   handle,
-	}
+func PreprocessorResourceLoadID(resource string, id uint64) (out preprocessorResourceLoad) {
+	out.Resource = resource
+	out.ID = id
+
 	return
 }
 
-func PreprocessorResourceLoadByQuery(resourceType, query string) (out preprocessorResourceLoad) {
-	out = preprocessorResourceLoad{
-		Resource: resourceType,
-		Query:    query,
-	}
+func PreprocessorResourceLoadHandle(resource, handle string) (out preprocessorResourceLoad) {
+	out.Resource = resource
+	out.Handle = handle
+
 	return
 }
 
-func (t preprocessorResourceLoad) Ref() preprocessor {
+func PreprocessorResourceLoadQuery(resource, query string) (out preprocessorResourceLoad) {
+	out.Resource = resource
+	out.Query = query
+
+	return
+}
+
+func (t preprocessorResourceLoad) Ref() string {
 	return PreprocessorHandleResourceLoad
 }
 
@@ -215,27 +235,35 @@ func (t preprocessorResourceLoad) Worker() []string {
 	return []string{EnvoyWorkerName}
 }
 
-func (t preprocessorResourceLoad) Params() interface{} {
-	return t
+func (t preprocessorResourceLoad) Params() map[string]interface{} {
+	return map[string]interface{}{
+		"resource": t.Resource,
+		"id":       cast.ToString(t.ID),
+		"handle":   t.Handle,
+		"query":    t.Query,
+	}
 }
 
-func PreprocessorNamespaceLoadByID(id uint64) (out preprocessorNamespaceLoad) {
-	out = preprocessorNamespaceLoad{
-		ID: id,
+func PreprocessorNamespaceLoadParams(params map[string]interface{}) (out preprocessorNamespaceLoad) {
+	if id, ok := params["id"]; ok {
+		return PreprocessorNamespaceLoadID(cast.ToUint64(id))
+	} else if handle, ok := params["handle"]; ok {
+		return PreprocessorNamespaceLoadHandle(cast.ToString(handle))
 	}
-
 	return
 }
 
-func PreprocessorNamespaceLoadByHandle(handle string) (out preprocessorNamespaceLoad) {
-	out = preprocessorNamespaceLoad{
-		Handle: handle,
-	}
-
+func PreprocessorNamespaceLoadID(id uint64) (out preprocessorNamespaceLoad) {
+	out.ID = id
 	return
 }
 
-func (t preprocessorNamespaceLoad) Ref() preprocessor {
+func PreprocessorNamespaceLoadHandle(handle string) (out preprocessorNamespaceLoad) {
+	out.Handle = handle
+	return
+}
+
+func (t preprocessorNamespaceLoad) Ref() string {
 	return PreprocessorHandleNamespaceLoad
 }
 
@@ -243,6 +271,9 @@ func (t preprocessorNamespaceLoad) Worker() []string {
 	return []string{EnvoyWorkerName}
 }
 
-func (t preprocessorNamespaceLoad) Params() interface{} {
-	return t
+func (t preprocessorNamespaceLoad) Params() map[string]interface{} {
+	return map[string]interface{}{
+		"id":     cast.ToString(t.ID),
+		"handle": t.Handle,
+	}
 }

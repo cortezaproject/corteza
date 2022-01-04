@@ -15,7 +15,8 @@ type (
 		Create(context.Context, string, gig.UpdatePayload) (*gig.Gig, error)
 		Read(context.Context, uint64) (*gig.Gig, error)
 		Update(context.Context, uint64, gig.UpdatePayload) (*gig.Gig, error)
-		AddSource(context.Context, uint64, gig.UpdatePayload) (*gig.Gig, error)
+		AddSources(context.Context, uint64, gig.UpdatePayload) (*gig.Gig, error)
+		RemoveSources(context.Context, uint64, uint64) (*gig.Gig, error)
 
 		Prepare(context.Context, uint64) error
 		Exec(context.Context, uint64) error
@@ -129,7 +130,7 @@ func (svc gigService) Update(ctx context.Context, gigID uint64, pl gig.UpdatePay
 	return g, err // svc.recordAction(ctx, uaProps, UserActionLookup, err)
 }
 
-func (svc gigService) AddSource(ctx context.Context, gigID uint64, pl gig.UpdatePayload) (g *gig.Gig, err error) {
+func (svc gigService) AddSources(ctx context.Context, gigID uint64, pl gig.UpdatePayload) (g *gig.Gig, err error) {
 	// var (
 	// 	uaProps = &userActionProps{user: &types.User{ID: userID}}
 	// )
@@ -142,13 +143,29 @@ func (svc gigService) AddSource(ctx context.Context, gigID uint64, pl gig.Update
 		// @todo access control
 		// @todo actionlog?
 
-		decoders, err := gig.UnwrapDecoderSet(pl.Decode)
-		if err != nil {
-			return err
-		}
+		old, err := svc.findByID(ctx, gigID)
+		g, err = svc.wrapResponse(svc.manager.AddSources(ctx, *old, pl.Sources, pl.Decode...))
+		return
+	}()
+
+	return g, err // svc.recordAction(ctx, uaProps, UserActionLookup, err)
+}
+
+func (svc gigService) RemoveSources(ctx context.Context, gigID, sourceID uint64) (g *gig.Gig, err error) {
+	// var (
+	// 	uaProps = &userActionProps{user: &types.User{ID: userID}}
+	// )
+
+	err = func() (err error) {
+		// if !svc.ac.CanUpdateGig(ctx, u) {
+		// 	return UserErrNotAllowedToUpdate()
+		// }
+
+		// @todo access control
+		// @todo actionlog?
 
 		old, err := svc.findByID(ctx, gigID)
-		g, err = svc.wrapResponse(svc.manager.AddSources(ctx, *old, pl.Sources, decoders...))
+		g, err = svc.wrapResponse(svc.manager.RemoveSources(ctx, *old, sourceID))
 		return
 	}()
 

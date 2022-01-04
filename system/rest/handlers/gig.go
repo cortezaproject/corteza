@@ -23,6 +23,7 @@ type (
 		Read(context.Context, *request.GigRead) (interface{}, error)
 		Update(context.Context, *request.GigUpdate) (interface{}, error)
 		AddSource(context.Context, *request.GigAddSource) (interface{}, error)
+		RemoveSource(context.Context, *request.GigRemoveSource) (interface{}, error)
 		Output(context.Context, *request.GigOutput) (interface{}, error)
 		Prepare(context.Context, *request.GigPrepare) (interface{}, error)
 		Exec(context.Context, *request.GigExec) (interface{}, error)
@@ -33,16 +34,17 @@ type (
 
 	// HTTP API interface
 	Gig struct {
-		Create    func(http.ResponseWriter, *http.Request)
-		Read      func(http.ResponseWriter, *http.Request)
-		Update    func(http.ResponseWriter, *http.Request)
-		AddSource func(http.ResponseWriter, *http.Request)
-		Output    func(http.ResponseWriter, *http.Request)
-		Prepare   func(http.ResponseWriter, *http.Request)
-		Exec      func(http.ResponseWriter, *http.Request)
-		Status    func(http.ResponseWriter, *http.Request)
-		Complete  func(http.ResponseWriter, *http.Request)
-		Tasks     func(http.ResponseWriter, *http.Request)
+		Create       func(http.ResponseWriter, *http.Request)
+		Read         func(http.ResponseWriter, *http.Request)
+		Update       func(http.ResponseWriter, *http.Request)
+		AddSource    func(http.ResponseWriter, *http.Request)
+		RemoveSource func(http.ResponseWriter, *http.Request)
+		Output       func(http.ResponseWriter, *http.Request)
+		Prepare      func(http.ResponseWriter, *http.Request)
+		Exec         func(http.ResponseWriter, *http.Request)
+		Status       func(http.ResponseWriter, *http.Request)
+		Complete     func(http.ResponseWriter, *http.Request)
+		Tasks        func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -105,6 +107,22 @@ func NewGig(h GigAPI) *Gig {
 			}
 
 			value, err := h.AddSource(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		RemoveSource: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewGigRemoveSource()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.RemoveSource(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
@@ -218,9 +236,10 @@ func (h Gig) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Ha
 		r.Get("/gig/{gigID}", h.Read)
 		r.Put("/gig/{gigID}", h.Update)
 		r.Patch("/gig/{gigID}/sources", h.AddSource)
+		r.Delete("/gig/{gigID}/sources/{sourceID}", h.RemoveSource)
 		r.Get("/gig/{gigID}/output", h.Output)
-		r.Patch("/gig/{gigID}/prepare", h.Prepare)
-		r.Patch("/gig/{gigID}/exec", h.Exec)
+		r.Put("/gig/{gigID}/prepare", h.Prepare)
+		r.Put("/gig/{gigID}/exec", h.Exec)
 		r.Get("/gig/{gigID}/status", h.Status)
 		r.Patch("/gig/{gigID}/complete", h.Complete)
 		r.Get("/gig/tasks", h.Tasks)

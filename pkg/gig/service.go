@@ -38,7 +38,7 @@ type (
 
 		SetSources(context.Context, Gig, SourceWrapSet, ...Decoder) (Gig, error)
 		AddSources(context.Context, Gig, SourceWrapSet, ...Decoder) (Gig, error)
-		RemoveSources(context.Context, Gig) (Gig, error)
+		RemoveSources(context.Context, Gig, ...uint64) (Gig, error)
 		SetDecoders(context.Context, Gig, ...Decoder) (Gig, error)
 		SetPreprocessors(context.Context, Gig, ...Preprocessor) (Gig, error)
 		SetPostprocessors(context.Context, Gig, ...Postprocessor) (Gig, error)
@@ -74,14 +74,7 @@ func (svc *service) Create(ctx context.Context, pl UpdatePayload) (g Gig, err er
 
 	g = newGig(pl.Worker)
 
-	var decoders []Decoder
-	if len(pl.Decode) > 0 {
-		decoders, err = UnwrapDecoderSet(pl.Decode)
-		if err != nil {
-			return
-		}
-	}
-
+	decoders := pl.Decode
 	if len(pl.Sources) > 0 {
 		g, err = setSources(ctx, g, pl.Sources, decoders...)
 		if err != nil {
@@ -90,26 +83,14 @@ func (svc *service) Create(ctx context.Context, pl UpdatePayload) (g Gig, err er
 	}
 
 	if len(pl.Preprocess) > 0 {
-		var tt []Preprocessor
-		tt, err = UnwrapPreprocessorSet(pl.Preprocess)
-		if err != nil {
-			return
-		}
-
-		g, err = setPreprocessors(ctx, g, tt)
+		g, err = setPreprocessors(ctx, g, pl.Preprocess)
 		if err != nil {
 			return
 		}
 	}
 
 	if len(pl.Postprocess) > 0 {
-		var tt []Postprocessor
-		tt, err = UnwrapPostprocessorSet(pl.Postprocess)
-		if err != nil {
-			return
-		}
-
-		g, err = setPostprocessors(ctx, g, tt)
+		g, err = setPostprocessors(ctx, g, pl.Postprocess)
 		if err != nil {
 			return
 		}
@@ -134,17 +115,11 @@ func (svc *service) Update(ctx context.Context, old Gig, pl UpdatePayload) (g Gi
 
 	var implicit []Decoder
 	if len(pl.Decode) > 0 {
-		var tt []Decoder
 		var explicit []Decoder
-		tt, err = UnwrapDecoderSet(pl.Decode)
-		if err != nil {
-			return
-		}
-
-		for _, _d := range tt {
+		for _, _d := range pl.Decode {
 			d := _d
 
-			if d.RelSource() != 0 {
+			if d.Source() != 0 {
 				explicit = append(explicit, d)
 			} else {
 				implicit = append(implicit, d)
@@ -165,23 +140,17 @@ func (svc *service) Update(ctx context.Context, old Gig, pl UpdatePayload) (g Gi
 	}
 
 	if len(pl.Preprocess) > 0 {
-		var tt []Preprocessor
-		tt, err = UnwrapPreprocessorSet(pl.Preprocess)
+		g, err = setPreprocessors(ctx, g, pl.Preprocess)
 		if err != nil {
 			return
 		}
-
-		g, err = setPreprocessors(ctx, g, tt)
 	}
 
 	if len(pl.Postprocess) > 0 {
-		var tt []Postprocessor
-		tt, err = UnwrapPostprocessorSet(pl.Postprocess)
+		g, err = setPostprocessors(ctx, g, pl.Postprocess)
 		if err != nil {
 			return
 		}
-
-		g, err = setPostprocessors(ctx, g, tt)
 	}
 
 	g.UpdatedAt = now()
@@ -221,19 +190,40 @@ func (svc *service) SetSources(ctx context.Context, old Gig, sources SourceWrapS
 	return updateGig(ctx, g)
 }
 
-func (svc *service) RemoveSources(ctx context.Context, old Gig) (g Gig, err error) {
+func (svc *service) RemoveSources(ctx context.Context, old Gig, sources ...uint64) (g Gig, err error) {
 	err = wrapValidationErr(old, baseChangeValidation)
 	if err != nil {
 		return
 	}
 
 	g = old
-	err = cleanupSources(ctx, g.Sources...)
+
+	var rm SourceSet
+	var keep SourceSet
+
+	if len(sources) > 0 {
+		rmSet := make(map[uint64]bool)
+		for _, sID := range sources {
+			rmSet[sID] = true
+		}
+
+		for _, src := range g.Sources {
+			if rmSet[src.ID()] {
+				rm = append(rm, src)
+			} else {
+				keep = append(keep, src)
+			}
+		}
+	} else {
+		rm = g.Sources
+	}
+
+	err = cleanupSources(ctx, rm...)
 	if err != nil {
 		return
 	}
 
-	g.Sources = nil
+	g.Sources = keep
 	return
 }
 
@@ -424,9 +414,9 @@ func (svc *service) State(ctx context.Context, old Gig) (out interface{}, err er
 }
 
 func (svc *service) Tasks(_ context.Context) (out TaskDefSet) {
-	out = append(out, DecoderDefinitions()...)
-	out = append(out, PreprocessorDefinitions()...)
-	out = append(out, PostprocessorDefinitions()...)
+	out = append(out, decoderDefinitions()...)
+	out = append(out, preprocessorDefinitions()...)
+	out = append(out, postprocessorDefinitions()...)
 
 	return
 }
@@ -457,13 +447,13 @@ func setDecoders(ctx context.Context, old Gig, decoders []Decoder) (g Gig, err e
 	for _, _d := range decoders {
 		d := _d
 
-		src := g.Sources.GetByID(d.RelSource())
+		src := g.Sources.GetByID(d.Source())
 		if src == nil {
-			err = fmt.Errorf("unknown source: %d", d.RelSource())
+			err = fmt.Errorf("unknown source: %d", d.Source())
 			return
 		}
 
-		sourceMap[d.RelSource()] = append(sourceMap[d.RelSource()], d)
+		sourceMap[d.Source()] = append(sourceMap[d.Source()], d)
 	}
 
 	for _, src := range g.Sources {
@@ -543,7 +533,7 @@ func setSources(ctx context.Context, old Gig, wraps SourceWrapSet, decoders ...D
 		for _, _d := range decoders {
 			d := _d
 
-			if d.RelSource() != 0 {
+			if d.Source() != 0 {
 				explicit = append(explicit, d)
 			} else {
 				for _, src := range defaultSrc {

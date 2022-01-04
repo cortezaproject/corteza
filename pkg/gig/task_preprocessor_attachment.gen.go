@@ -18,8 +18,8 @@ type (
 var (
 	AttachmentWorkerName = "attachment"
 
-	PreprocessorHandleAttachmentRemove    preprocessor = "attachmentRemove"
-	PreprocessorHandleAttachmentTransform preprocessor = "attachmentTransform"
+	PreprocessorHandleAttachmentRemove    = "attachmentRemove"
+	PreprocessorHandleAttachmentTransform = "attachmentTransform"
 )
 
 // Utilities
@@ -43,7 +43,7 @@ func (w *workerAttachment) preprocess(ctx context.Context, tasks ...Preprocessor
 
 // Preprocessors
 
-func (t preprocessorAttachmentRemove) Ref() preprocessor {
+func (t preprocessorAttachmentRemove) Ref() string {
 	return PreprocessorHandleAttachmentRemove
 }
 
@@ -51,13 +51,15 @@ func (t preprocessorAttachmentRemove) Worker() []string {
 	return []string{AttachmentWorkerName}
 }
 
-func (t preprocessorAttachmentRemove) Params() interface{} {
-	return t
+func (t preprocessorAttachmentRemove) Params() map[string]interface{} {
+	return map[string]interface{}{
+		"mimeType": t.MimeType,
+	}
 }
 
 // ...
 
-func (t preprocessorAttachmentTransform) Ref() preprocessor {
+func (t preprocessorAttachmentTransform) Ref() string {
 	return PreprocessorHandleAttachmentTransform
 }
 
@@ -65,6 +67,9 @@ func (t preprocessorAttachmentTransform) Worker() []string {
 	return []string{AttachmentWorkerName}
 }
 
-func (t preprocessorAttachmentTransform) Params() interface{} {
-	return t
+func (t preprocessorAttachmentTransform) Params() map[string]interface{} {
+	return map[string]interface{}{
+		"width":  t.Width,
+		"height": t.Height,
+	}
 }

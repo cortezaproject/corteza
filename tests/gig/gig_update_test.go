@@ -1,7 +1,6 @@
 package gig
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/pkg/gig"
@@ -46,10 +45,8 @@ func Test_gig_update(t *testing.T) {
 			_ = ng
 
 			ng, err = svc.Update(ctx, g, gig.UpdatePayload{
-				Decode: gig.DecoderWrapSet{
-					gig.DecoderWrap{
-						Ref: gig.DecoderHandleNoop,
-					},
+				Decode: gig.DecoderSet{
+					gig.DecoderNoop(0),
 				},
 				Sources: []gig.SourceWrap{
 					{
@@ -83,11 +80,8 @@ func Test_gig_update(t *testing.T) {
 
 			ng, err = svc.Update(ctx, g, gig.UpdatePayload{
 				Sources: gig.ToSourceWrap(g.Sources...),
-				Decode: gig.DecoderWrapSet{
-					gig.DecoderWrap{
-						Ref:    gig.DecoderHandleNoop,
-						Params: []byte(fmt.Sprintf("{\"Source\": \"%d\"}", sourceID)),
-					},
+				Decode: gig.DecoderSet{
+					gig.DecoderNoop(sourceID),
 				},
 			})
 			h.a.NoError(err)
@@ -103,10 +97,8 @@ func Test_gig_update(t *testing.T) {
 		_ = ng
 
 		ng, err = svc.Update(ctx, g, gig.UpdatePayload{
-			Preprocess: gig.PreprocessorWrapSet{
-				gig.PreprocessorWrap{
-					Ref: gig.PreprocessorHandleNoop,
-				},
+			Preprocess: gig.PreprocessorSet{
+				gig.PreprocessorNoop(),
 			},
 		})
 		h.a.NoError(err)
@@ -119,10 +111,8 @@ func Test_gig_update(t *testing.T) {
 		_ = ng
 
 		ng, err = svc.Update(ctx, g, gig.UpdatePayload{
-			Postprocess: gig.PostprocessorWrapSet{
-				gig.PostprocessorWrap{
-					Ref: gig.PostprocessorHandleNoop,
-				},
+			Postprocess: gig.PostprocessorSet{
+				gig.PostprocessorNoop(),
 			},
 		})
 		h.a.NoError(err)

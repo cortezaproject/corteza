@@ -13,7 +13,7 @@ func Test_envoy_worker_export(t *testing.T) {
 	)
 	loadScenario(ctx, s, t, h)
 
-	p1 := gig.PreprocessorResourceLoadByHandle(gig.ComposeNamespaceResourceType, "ns1")
+	p1 := gig.PreprocessorResourceLoadHandle(gig.ComposeNamespaceResourceType, "ns1")
 	p2 := gig.PreprocessorResourceRemove(gig.ResourceTranslationResourceType, "*")
 
 	g, err = svc.SetPreprocessors(ctx, g, p1, p2)

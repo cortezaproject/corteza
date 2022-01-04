@@ -1201,7 +1201,7 @@ endpoints:
   path: "/gig"
   entrypoint: gig
   imports:
-    - github.com/cortezaproject/corteza-server/pkg/gig
+    - github.com/cortezaproject/corteza-server/system/rest/conv
   authentication:
   - Client ID
   - SessionID
@@ -1216,13 +1216,13 @@ endpoints:
         type: string
         title: Gig worker
       - name: preprocessors
-        type: gig.PreprocessorWrapSet
+        type: conv.ParamWrapSet
         title: Worker preprocessing to do
-        parser: gig.ParsePreprocessorWrap
+        parser: conv.ParseParamWrap
       - name: postprocessors
-        type: gig.PostprocessorWrapSet
+        type: conv.ParamWrapSet
         title: Output postprocessing to do
-        parser: gig.ParsePostprocessorWrap
+        parser: conv.ParseParamWrap
 
   - name: read
     method: GET
@@ -1247,16 +1247,17 @@ endpoints:
         title: ID
       post:
       - name: decoders
-        type: gig.DecoderWrapSet
+        type: conv.ParamWrapSet
         title: Decoders to apply to the sources
+        parser: conv.ParseParamWrap
       - name: preprocessors
-        type: gig.PreprocessorWrapSet
+        type: conv.ParamWrapSet
         title: Worker preprocessing to do
-        parser: gig.ParsePreprocessorWrap
+        parser: conv.ParseParamWrap
       - name: postprocessors
-        type: gig.PostprocessorWrapSet
+        type: conv.ParamWrapSet
         title: Output postprocessing to do
-        parser: gig.ParsePostprocessorWrap
+        parser: conv.ParseParamWrap
 
   - name: addSource
     method: PATCH
@@ -1276,9 +1277,24 @@ endpoints:
         type: string
         title: Source location to add
       - name: decoders
-        type: gig.DecoderWrapSet
+        type: conv.ParamWrapSet
         title: Decoders to apply to the sources
-        parser: gig.ParseDecoderWrap
+        parser: conv.ParseParamWrap
+
+  - name: removeSource
+    method: DELETE
+    title: Remove source from the gig
+    path: "/{gigID}/sources/{sourceID}"
+    parameters:
+      path:
+      - type: uint64
+        name: gigID
+        required: true
+        title: Gig ID
+      - type: uint64
+        name: sourceID
+        required: true
+        title: Source ID
 
   - name: output
     method: GET
@@ -1292,7 +1308,7 @@ endpoints:
         title: ID
 
   - name: prepare
-    method: PATCH
+    method: PUT
     title: Prepare the gig for execution
     path: "/{gigID}/prepare"
     parameters:
@@ -1303,7 +1319,7 @@ endpoints:
         title: ID
 
   - name: exec
-    method: PATCH
+    method: PUT
     title: Execute the gig
     path: "/{gigID}/exec"
     parameters:

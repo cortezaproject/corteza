@@ -24,20 +24,14 @@ func Test_gig_create(t *testing.T) {
 	t.Run("complete payload", func(_ *testing.T) {
 		g, err = svc.Create(ctx, gig.UpdatePayload{
 			Worker: gig.WorkerNoop(),
-			Decode: gig.DecoderWrapSet{
-				gig.DecoderWrap{
-					Ref: gig.DecoderHandleNoop,
-				},
+			Decode: gig.DecoderSet{
+				gig.DecoderNoop(0),
 			},
-			Preprocess: gig.PreprocessorWrapSet{
-				gig.PreprocessorWrap{
-					Ref: gig.PreprocessorHandleNoop,
-				},
+			Preprocess: gig.PreprocessorSet{
+				gig.PreprocessorNoop(),
 			},
-			Postprocess: gig.PostprocessorWrapSet{
-				gig.PostprocessorWrap{
-					Ref: gig.PostprocessorHandleNoop,
-				},
+			Postprocess: gig.PostprocessorSet{
+				gig.PostprocessorNoop(),
 			},
 			Sources: []gig.SourceWrap{
 				{
@@ -56,11 +50,11 @@ func Test_gig_create(t *testing.T) {
 		h.a.IsType(gig.DecoderNoop(0), g.Sources[0].Decoders()[0])
 
 		h.a.Len(g.Preprocess, 1)
-		pre, _ := gig.PreprocessorNoop()
+		pre := gig.PreprocessorNoop()
 		h.a.IsType(pre, g.Preprocess[0])
 
 		h.a.Len(g.Postprocess, 1)
-		post, _ := gig.PostprocessorNoop()
+		post := gig.PostprocessorNoop()
 		h.a.IsType(post, g.Postprocess[0])
 	})
 }

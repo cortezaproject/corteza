@@ -11,8 +11,8 @@ package request
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/gig"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/cortezaproject/corteza-server/system/rest/conv"
 	"github.com/go-chi/chi"
 	"io"
 	"mime/multipart"
@@ -43,12 +43,12 @@ type (
 		// Preprocessors POST parameter
 		//
 		// Worker preprocessing to do
-		Preprocessors gig.PreprocessorWrapSet
+		Preprocessors conv.ParamWrapSet
 
 		// Postprocessors POST parameter
 		//
 		// Output postprocessing to do
-		Postprocessors gig.PostprocessorWrapSet
+		Postprocessors conv.ParamWrapSet
 	}
 
 	GigRead struct {
@@ -67,17 +67,17 @@ type (
 		// Decoders POST parameter
 		//
 		// Decoders to apply to the sources
-		Decoders gig.DecoderWrapSet
+		Decoders conv.ParamWrapSet
 
 		// Preprocessors POST parameter
 		//
 		// Worker preprocessing to do
-		Preprocessors gig.PreprocessorWrapSet
+		Preprocessors conv.ParamWrapSet
 
 		// Postprocessors POST parameter
 		//
 		// Output postprocessing to do
-		Postprocessors gig.PostprocessorWrapSet
+		Postprocessors conv.ParamWrapSet
 	}
 
 	GigAddSource struct {
@@ -99,7 +99,19 @@ type (
 		// Decoders POST parameter
 		//
 		// Decoders to apply to the sources
-		Decoders gig.DecoderWrapSet
+		Decoders conv.ParamWrapSet
+	}
+
+	GigRemoveSource struct {
+		// GigID PATH parameter
+		//
+		// Gig ID
+		GigID uint64 `json:",string"`
+
+		// SourceID PATH parameter
+		//
+		// Source ID
+		SourceID uint64 `json:",string"`
 	}
 
 	GigOutput struct {
@@ -161,12 +173,12 @@ func (r GigCreate) GetWorker() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r GigCreate) GetPreprocessors() gig.PreprocessorWrapSet {
+func (r GigCreate) GetPreprocessors() conv.ParamWrapSet {
 	return r.Preprocessors
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r GigCreate) GetPostprocessors() gig.PostprocessorWrapSet {
+func (r GigCreate) GetPostprocessors() conv.ParamWrapSet {
 	return r.Postprocessors
 }
 
@@ -199,24 +211,24 @@ func (r *GigCreate) Fill(req *http.Request) (err error) {
 			}
 
 			if val, ok := req.MultipartForm.Value["preprocessors[]"]; ok {
-				r.Preprocessors, err = gig.ParsePreprocessorWrap(val)
+				r.Preprocessors, err = conv.ParseParamWrap(val)
 				if err != nil {
 					return err
 				}
 			} else if val, ok := req.MultipartForm.Value["preprocessors"]; ok {
-				r.Preprocessors, err = gig.ParsePreprocessorWrap(val)
+				r.Preprocessors, err = conv.ParseParamWrap(val)
 				if err != nil {
 					return err
 				}
 			}
 
 			if val, ok := req.MultipartForm.Value["postprocessors[]"]; ok {
-				r.Postprocessors, err = gig.ParsePostprocessorWrap(val)
+				r.Postprocessors, err = conv.ParseParamWrap(val)
 				if err != nil {
 					return err
 				}
 			} else if val, ok := req.MultipartForm.Value["postprocessors"]; ok {
-				r.Postprocessors, err = gig.ParsePostprocessorWrap(val)
+				r.Postprocessors, err = conv.ParseParamWrap(val)
 				if err != nil {
 					return err
 				}
@@ -239,24 +251,24 @@ func (r *GigCreate) Fill(req *http.Request) (err error) {
 		}
 
 		if val, ok := req.Form["preprocessors[]"]; ok {
-			r.Preprocessors, err = gig.ParsePreprocessorWrap(val)
+			r.Preprocessors, err = conv.ParseParamWrap(val)
 			if err != nil {
 				return err
 			}
 		} else if val, ok := req.Form["preprocessors"]; ok {
-			r.Preprocessors, err = gig.ParsePreprocessorWrap(val)
+			r.Preprocessors, err = conv.ParseParamWrap(val)
 			if err != nil {
 				return err
 			}
 		}
 
 		if val, ok := req.Form["postprocessors[]"]; ok {
-			r.Postprocessors, err = gig.ParsePostprocessorWrap(val)
+			r.Postprocessors, err = conv.ParseParamWrap(val)
 			if err != nil {
 				return err
 			}
 		} else if val, ok := req.Form["postprocessors"]; ok {
-			r.Postprocessors, err = gig.ParsePostprocessorWrap(val)
+			r.Postprocessors, err = conv.ParseParamWrap(val)
 			if err != nil {
 				return err
 			}
@@ -322,17 +334,17 @@ func (r GigUpdate) GetGigID() uint64 {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r GigUpdate) GetDecoders() gig.DecoderWrapSet {
+func (r GigUpdate) GetDecoders() conv.ParamWrapSet {
 	return r.Decoders
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r GigUpdate) GetPreprocessors() gig.PreprocessorWrapSet {
+func (r GigUpdate) GetPreprocessors() conv.ParamWrapSet {
 	return r.Preprocessors
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r GigUpdate) GetPostprocessors() gig.PostprocessorWrapSet {
+func (r GigUpdate) GetPostprocessors() conv.ParamWrapSet {
 	return r.Postprocessors
 }
 
@@ -357,25 +369,37 @@ func (r *GigUpdate) Fill(req *http.Request) (err error) {
 		} else if err == nil {
 			// Multipart params
 
+			if val, ok := req.MultipartForm.Value["decoders[]"]; ok {
+				r.Decoders, err = conv.ParseParamWrap(val)
+				if err != nil {
+					return err
+				}
+			} else if val, ok := req.MultipartForm.Value["decoders"]; ok {
+				r.Decoders, err = conv.ParseParamWrap(val)
+				if err != nil {
+					return err
+				}
+			}
+
 			if val, ok := req.MultipartForm.Value["preprocessors[]"]; ok {
-				r.Preprocessors, err = gig.ParsePreprocessorWrap(val)
+				r.Preprocessors, err = conv.ParseParamWrap(val)
 				if err != nil {
 					return err
 				}
 			} else if val, ok := req.MultipartForm.Value["preprocessors"]; ok {
-				r.Preprocessors, err = gig.ParsePreprocessorWrap(val)
+				r.Preprocessors, err = conv.ParseParamWrap(val)
 				if err != nil {
 					return err
 				}
 			}
 
 			if val, ok := req.MultipartForm.Value["postprocessors[]"]; ok {
-				r.Postprocessors, err = gig.ParsePostprocessorWrap(val)
+				r.Postprocessors, err = conv.ParseParamWrap(val)
 				if err != nil {
 					return err
 				}
 			} else if val, ok := req.MultipartForm.Value["postprocessors"]; ok {
-				r.Postprocessors, err = gig.ParsePostprocessorWrap(val)
+				r.Postprocessors, err = conv.ParseParamWrap(val)
 				if err != nil {
 					return err
 				}
@@ -390,32 +414,37 @@ func (r *GigUpdate) Fill(req *http.Request) (err error) {
 
 		// POST params
 
-		//if val, ok := req.Form["decoders[]"]; ok && len(val) > 0  {
-		//    r.Decoders, err = gig.DecoderWrapSet(val), nil
-		//    if err != nil {
-		//        return err
-		//    }
-		//}
+		if val, ok := req.Form["decoders[]"]; ok {
+			r.Decoders, err = conv.ParseParamWrap(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["decoders"]; ok {
+			r.Decoders, err = conv.ParseParamWrap(val)
+			if err != nil {
+				return err
+			}
+		}
 
 		if val, ok := req.Form["preprocessors[]"]; ok {
-			r.Preprocessors, err = gig.ParsePreprocessorWrap(val)
+			r.Preprocessors, err = conv.ParseParamWrap(val)
 			if err != nil {
 				return err
 			}
 		} else if val, ok := req.Form["preprocessors"]; ok {
-			r.Preprocessors, err = gig.ParsePreprocessorWrap(val)
+			r.Preprocessors, err = conv.ParseParamWrap(val)
 			if err != nil {
 				return err
 			}
 		}
 
 		if val, ok := req.Form["postprocessors[]"]; ok {
-			r.Postprocessors, err = gig.ParsePostprocessorWrap(val)
+			r.Postprocessors, err = conv.ParseParamWrap(val)
 			if err != nil {
 				return err
 			}
 		} else if val, ok := req.Form["postprocessors"]; ok {
-			r.Postprocessors, err = gig.ParsePostprocessorWrap(val)
+			r.Postprocessors, err = conv.ParseParamWrap(val)
 			if err != nil {
 				return err
 			}
@@ -468,7 +497,7 @@ func (r GigAddSource) GetUri() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r GigAddSource) GetDecoders() gig.DecoderWrapSet {
+func (r GigAddSource) GetDecoders() conv.ParamWrapSet {
 	return r.Decoders
 }
 
@@ -503,12 +532,12 @@ func (r *GigAddSource) Fill(req *http.Request) (err error) {
 			}
 
 			if val, ok := req.MultipartForm.Value["decoders[]"]; ok {
-				r.Decoders, err = gig.ParseDecoderWrap(val)
+				r.Decoders, err = conv.ParseParamWrap(val)
 				if err != nil {
 					return err
 				}
 			} else if val, ok := req.MultipartForm.Value["decoders"]; ok {
-				r.Decoders, err = gig.ParseDecoderWrap(val)
+				r.Decoders, err = conv.ParseParamWrap(val)
 				if err != nil {
 					return err
 				}
@@ -535,12 +564,12 @@ func (r *GigAddSource) Fill(req *http.Request) (err error) {
 		}
 
 		if val, ok := req.Form["decoders[]"]; ok {
-			r.Decoders, err = gig.ParseDecoderWrap(val)
+			r.Decoders, err = conv.ParseParamWrap(val)
 			if err != nil {
 				return err
 			}
 		} else if val, ok := req.Form["decoders"]; ok {
-			r.Decoders, err = gig.ParseDecoderWrap(val)
+			r.Decoders, err = conv.ParseParamWrap(val)
 			if err != nil {
 				return err
 			}
@@ -553,6 +582,53 @@ func (r *GigAddSource) Fill(req *http.Request) (err error) {
 
 		val = chi.URLParam(req, "gigID")
 		r.GigID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewGigRemoveSource request
+func NewGigRemoveSource() *GigRemoveSource {
+	return &GigRemoveSource{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r GigRemoveSource) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"gigID":    r.GigID,
+		"sourceID": r.SourceID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r GigRemoveSource) GetGigID() uint64 {
+	return r.GigID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r GigRemoveSource) GetSourceID() uint64 {
+	return r.SourceID
+}
+
+// Fill processes request and fills internal variables
+func (r *GigRemoveSource) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "gigID")
+		r.GigID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "sourceID")
+		r.SourceID, err = payload.ParseUint64(val), nil
 		if err != nil {
 			return err
 		}

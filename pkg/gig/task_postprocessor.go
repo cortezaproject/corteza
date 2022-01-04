@@ -2,33 +2,33 @@ package gig
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
+
+	"github.com/spf13/cast"
 )
 
 type (
 	Postprocessor interface {
 		Postprocess(context.Context, WorkMeta, SourceSet) (SourceSet, WorkMeta, error)
+		Ref() string
+		Params() map[string]interface{}
 	}
-
-	PostprocessorWrap struct {
-		Ref    postprocessor   `json:"ref"`
-		Params json.RawMessage `json:"params"`
-	}
-	PostprocessorWrapSet []PostprocessorWrap
+	PostprocessorSet []Postprocessor
 
 	savedSource struct {
 		Name string
 		Size int64
 		URI  string
 	}
-
-	postprocessor string
 )
 
-func PostprocessorNoop() (Postprocessor, error) {
-	return postprocessorNoop{}, nil
+func PostprocessorNoopParams(_ map[string]interface{}) postprocessorNoop {
+	return PostprocessorNoop()
+}
+
+func PostprocessorNoop() postprocessorNoop {
+	return postprocessorNoop{}
 }
 
 func (t postprocessorNoop) Postprocess(ctx context.Context, baseMeta WorkMeta, ss SourceSet) (out SourceSet, meta WorkMeta, err error) {
@@ -37,8 +37,20 @@ func (t postprocessorNoop) Postprocess(ctx context.Context, baseMeta WorkMeta, s
 	return
 }
 
-func PostprocessorDiscard() (Postprocessor, error) {
-	return postprocessorDiscard{}, nil
+func (d postprocessorNoop) Ref() string {
+	return PostprocessorHandleNoop
+}
+
+func (d postprocessorNoop) Params() map[string]interface{} {
+	return nil
+}
+
+func PostprocessorDiscardParams(_ map[string]interface{}) postprocessorDiscard {
+	return PostprocessorDiscard()
+}
+
+func PostprocessorDiscard() postprocessorDiscard {
+	return postprocessorDiscard{}
 }
 
 func (t postprocessorDiscard) Postprocess(ctx context.Context, baseMeta WorkMeta, ss SourceSet) (out SourceSet, meta WorkMeta, err error) {
@@ -46,9 +58,20 @@ func (t postprocessorDiscard) Postprocess(ctx context.Context, baseMeta WorkMeta
 	return
 }
 
-func PostprocessorSave() (Postprocessor, error) {
-	return nil, fmt.Errorf("postprocessor not yet defined: %s", PostprocessorHandleSave)
-	// return postprocessorSave{}, nil
+func (d postprocessorDiscard) Ref() string {
+	return PostprocessorHandleDiscard
+}
+
+func (d postprocessorDiscard) Params() map[string]interface{} {
+	return nil
+}
+
+func PostprocessorSaveParams(_ map[string]interface{}) postprocessorSave {
+	return PostprocessorSave()
+}
+
+func PostprocessorSave() postprocessorSave {
+	return postprocessorSave{}
 }
 
 func (t postprocessorSave) Postprocess(ctx context.Context, baseMeta WorkMeta, ss SourceSet) (out SourceSet, meta WorkMeta, err error) {
@@ -69,19 +92,39 @@ func (t postprocessorSave) Postprocess(ctx context.Context, baseMeta WorkMeta, s
 	return
 }
 
-func PostprocessorArchive(format archive, name string) (out postprocessorArchive, err error) {
-	out.Encoding = format
-	out.Name = name
+func (d postprocessorSave) Ref() string {
+	return PostprocessorHandleSave
+}
 
-	if out.Name == "" {
-		out.Name = "archive"
+func (d postprocessorSave) Params() map[string]interface{} {
+	return nil
+}
+
+func PostprocessorArchiveParams(params map[string]interface{}) (out postprocessorArchive) {
+	name := cast.ToString(params["name"])
+	format := ArchiveZIP
+
+	if f := cast.ToString(params["format"]); f != "" {
+		// ignire error; default to zip
+		format, _ = archiveFromString(f)
+	}
+
+	return PostprocessorArchive(name, format)
+}
+
+func PostprocessorArchive(name string, format archive) (out postprocessorArchive) {
+	out.name = name
+	out.encoding = format
+
+	if out.name == "" {
+		out.name = "archive"
 	}
 
 	return
 }
 
 func (t postprocessorArchive) Postprocess(ctx context.Context, baseMeta WorkMeta, ss SourceSet) (out SourceSet, meta WorkMeta, err error) {
-	p, name, err := compressTarGz(ctx, ss, t.Name)
+	p, name, err := compressTarGz(ctx, ss, t.name)
 	if err != nil {
 		return
 	}
@@ -100,15 +143,13 @@ func (t postprocessorArchive) Postprocess(ctx context.Context, baseMeta WorkMeta
 	return
 }
 
-func ParsePostprocessorWrap(ss []string) (out PostprocessorWrapSet, err error) {
-	for _, s := range ss {
-		aux := make(PostprocessorWrapSet, 0, 2)
-		err = json.Unmarshal([]byte(s), &aux)
-		if err != nil {
-			return
-		}
+func (d postprocessorArchive) Ref() string {
+	return PostprocessorHandleArchive
+}
 
-		out = append(out, aux...)
+func (d postprocessorArchive) Params() map[string]interface{} {
+	return map[string]interface{}{
+		"format": d.encoding.String(),
+		"name":   d.name,
 	}
-	return
 }

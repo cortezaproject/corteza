@@ -1,28 +1,23 @@
 package gig
 
-import "encoding/json"
-
 type (
 	Preprocessor interface {
-		Ref() preprocessor
 		Worker() []string
-		Params() interface{}
+		Ref() string
+		Params() map[string]interface{}
 	}
-
-	PreprocessorWrap struct {
-		Ref    preprocessor    `json:"ref"`
-		Params json.RawMessage `json:"params"`
-	}
-	PreprocessorWrapSet []PreprocessorWrap
-
-	preprocessor string
+	PreprocessorSet []Preprocessor
 )
 
-func PreprocessorNoop() (out preprocessorNoop, err error) {
-	return preprocessorNoop{}, nil
+func PreprocessorNoopParams(_ map[string]interface{}) (out preprocessorNoop) {
+	return PreprocessorNoop()
 }
 
-func (p preprocessorNoop) Ref() preprocessor {
+func PreprocessorNoop() (out preprocessorNoop) {
+	return preprocessorNoop{}
+}
+
+func (p preprocessorNoop) Ref() string {
 	return PreprocessorHandleNoop
 }
 
@@ -30,19 +25,6 @@ func (p preprocessorNoop) Worker() []string {
 	return nil
 }
 
-func (p preprocessorNoop) Params() interface{} {
+func (p preprocessorNoop) Params() map[string]interface{} {
 	return nil
-}
-
-func ParsePreprocessorWrap(ss []string) (out PreprocessorWrapSet, err error) {
-	for _, s := range ss {
-		aux := make(PreprocessorWrapSet, 0, 2)
-		err = json.Unmarshal([]byte(s), &aux)
-		if err != nil {
-			return
-		}
-
-		out = append(out, aux...)
-	}
-	return
 }
