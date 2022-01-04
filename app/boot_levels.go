@@ -181,7 +181,7 @@ func (app *CortezaApp) InitStore(ctx context.Context) (err error) {
 	if app.Store == nil {
 		defer sentry.Recover()
 
-		app.Store, err = store.Connect(ctx, app.Opt.DB.DSN)
+		app.Store, err = store.Connect(ctx, app.Log, app.Opt.DB.DSN, app.Opt.Environment.IsDevelopment())
 		if err != nil {
 			return err
 		}
