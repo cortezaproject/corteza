@@ -1,4 +1,4 @@
-# jwtauth - JWT authentication middleware for Go HTTP services
+# jwtauth - JWT authentication middleware for HTTP services
 
 [![GoDoc Widget]][godoc]
 
@@ -7,9 +7,7 @@ from a http request and send the result down the request context (`context.Conte
 
 Please note, `jwtauth` works with any Go http router, but resides under the go-chi group
 for maintenance and organization - its only 3rd party dependency is the underlying jwt library
-"github.com/dgrijalva/jwt-go".
-
-This package uses the new `context` package in Go 1.7 stdlib and [net/http#Request.Context](https://golang.org/pkg/net/http/#Request.Context) to pass values between handler chains.
+"github.com/lestrrat-go/jwx".
 
 In a complete JWT-authentication flow, you'll first capture the token from a http
 request, decode it, verify it and then validate that its correctly signed and hasn't
@@ -25,12 +23,11 @@ your flow (ie. with a JSON error response body).
 
 By default, the `Verifier` will search for a JWT token in a http request, in the order:
 
-1.  'jwt' URI query parameter
-2.  'Authorization: BEARER T' request header
-3.  'jwt' Cookie value
+1.  'Authorization: BEARER T' request header
+2.  'jwt' Cookie value
 
-The first JWT string that is found as a query parameter, authorization header
-or cookie header is then decoded by the `jwt-go` library and a \*jwt.Token
+The first JWT string that is found as an authorization header
+or cookie header is then decoded by the `lestrrat-go/jwx` library and a jwt.Token
 object is set on the request context. In the case of a signature decoding error
 the Verifier will also set the error on the request context.
 
@@ -41,7 +38,7 @@ http response.
 
 Note: jwtauth supports custom verification sequences for finding a token
 from a request by using the `Verify` middleware instantiator directly. The default
-`Verifier` is instantiated by calling `Verify(ja, TokenFromQuery, TokenFromHeader, TokenFromCookie)`.
+`Verifier` is instantiated by calling `Verify(ja, TokenFromHeader, TokenFromCookie)`.
 
 # Usage
 
@@ -65,7 +62,7 @@ func init() {
 
 	// For debugging/example purposes, we generate and print
 	// a sample jwt token with claims `user_id:123` here:
-	_, tokenString, _ := tokenAuth.Encode(jwt.MapClaims{"user_id": 123})
+	_, tokenString, _ := tokenAuth.Encode(map[string]interface{}{"user_id": 123})
 	fmt.Printf("DEBUG: a sample jwt is %s\n\n", tokenString)
 }
 

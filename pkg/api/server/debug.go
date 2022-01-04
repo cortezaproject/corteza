@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"runtime"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 )
 
 func debugRoutes(r chi.Routes) http.HandlerFunc {

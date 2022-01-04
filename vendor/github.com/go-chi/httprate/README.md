@@ -47,6 +47,41 @@ func main() {
 }
 ```
 
+## Common use cases
+
+### Rate limit by IP and URL path (aka endpoint)
+```go
+  r.Use(httprate.Limit(
+  	10,             // requests
+  	10*time.Second, // per duration
+  	httprate.WithKeyFuncs(httprate.KeyByIP, httprate.KeyByEndpoint),
+  ))
+```
+
+### Rate limit by arbitrary keys
+```go
+  r.Use(httprate.Limit(
+    100,           // requests
+    1*time.Minute, // per duration
+    // an oversimplified example of rate limiting by a custom header
+    httprate.WithKeyFuncs(func(r *http.Request) (string, error) {
+    	return r.Header.Get("X-Access-Token"), nil
+    }),
+  ))
+```
+
+### Send specific response for rate limited requests
+
+```go
+  r.Use(httprate.Limit(
+    10,            // requests
+    1*time.Second, // per duration
+    httprate.WithLimitHandler(func(w http.ResponseWriter, r *http.Request) {
+      http.Error(w, "some specific response here", http.StatusTooManyRequests)
+    }),
+  ))
+```
+
 ## LICENSE
 
 MIT

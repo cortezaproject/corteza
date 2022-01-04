@@ -34,10 +34,11 @@ require (
 	github.com/fsnotify/fsnotify v1.5.1
 	github.com/gabriel-vasile/mimetype v1.4.0
 	github.com/getsentry/sentry-go v0.12.0
-	github.com/go-chi/chi v3.3.4+incompatible
-	github.com/go-chi/cors v1.0.0
-	github.com/go-chi/httprate v0.4.0
-	github.com/go-chi/jwtauth v0.0.0-20190109153619-47840abb19b3
+	github.com/go-chi/chi v3.3.4+incompatible // indirect
+	github.com/go-chi/chi/v5 v5.0.7
+	github.com/go-chi/cors v1.2.0
+	github.com/go-chi/httprate v0.5.2
+	github.com/go-chi/jwtauth v1.2.0
 	github.com/go-oauth2/oauth2/v4 v4.4.2
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/golang/mock v1.6.0
