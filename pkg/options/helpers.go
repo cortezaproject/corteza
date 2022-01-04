@@ -51,7 +51,7 @@ func fill(opt interface{}) {
 				continue
 			}
 
-			if f.Kind() == reflect.Float32 {
+			if f.Kind() == reflect.Float32 || f.Kind() == reflect.Float64 {
 				v.FieldByName(t.Name).SetFloat(float64(EnvFloat32(tag, float32(f.Float()))))
 				continue
 			}

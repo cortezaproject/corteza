@@ -149,10 +149,6 @@ func TestPermissionsCloneToMultipleRole(t *testing.T) {
 	roleT := h.roleID + 2
 	roleY := h.roleID + 3
 
-	fmt.Println("roleS: ", roleS)
-	fmt.Println("roleS: ", roleT)
-	fmt.Println("roleS: ", roleY)
-
 	h.a.Len(rbac.Global().FindRulesByRoleID(roleS), 0)
 	h.a.Len(rbac.Global().FindRulesByRoleID(roleT), 0)
 	h.a.Len(rbac.Global().FindRulesByRoleID(roleY), 0)
