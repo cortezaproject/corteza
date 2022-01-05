@@ -5,13 +5,24 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/slice"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
+)
+
+type (
+	server struct {
+		config options.WebsocketOpt
+		logger *zap.Logger
+
+		// user id => session id => session
+		sessions map[uint64]map[uint64]io.Writer
+
+		// keep lock on session map changes
+		l sync.RWMutex
+	}
 )
 
 var (
@@ -25,33 +36,15 @@ var (
 	}
 )
 
-type (
-	server struct {
-		config options.WebsocketOpt
-		logger *zap.Logger
-
-		// user id => session id => session
-		sessions map[uint64]map[uint64]io.Writer
-
-		accessToken interface {
-			Authenticate(string) (jwt.MapClaims, error)
-		}
-
-		// keep lock on session map changes
-		l sync.RWMutex
-	}
-)
-
 func Server(logger *zap.Logger, config options.WebsocketOpt) *server {
 	if !config.LogEnabled {
 		logger = zap.NewNop()
 	}
 
 	return &server{
-		config:      config,
-		logger:      logger.Named("websocket"),
-		accessToken: auth.DefaultJwtHandler,
-		sessions:    make(map[uint64]map[uint64]io.Writer),
+		config:   config,
+		logger:   logger.Named("websocket"),
+		sessions: make(map[uint64]map[uint64]io.Writer),
 	}
 }
 

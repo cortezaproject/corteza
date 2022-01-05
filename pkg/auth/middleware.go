@@ -16,6 +16,8 @@ func AccessTokenCheck(scope ...string) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var ctx = r.Context()
 
+			jwtauth.Authenticator()
+
 			// retrieve token and claims from context
 			tkn, _, err := jwtauth.FromContext(ctx)
 			if err != nil || !tkn.Valid {

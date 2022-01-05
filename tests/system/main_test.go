@@ -142,7 +142,7 @@ func newHelper(t *testing.T) helper {
 	h.mockPermissionsWithAccess()
 
 	var err error
-	h.token, err = auth.DefaultJwtHandler.Generate(context.Background(), h.cUser)
+	h.token, err = auth.DefaultJwtHandler.Generate(context.Background(), h.cUser, 0)
 	if err != nil {
 		panic(err)
 	}

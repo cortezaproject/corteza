@@ -662,7 +662,7 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 			zap.String("resourceType", args.ResourceType()),
 		)
 
-		token string
+		token []byte
 	)
 
 	// Returns context with identity set to service user
@@ -735,12 +735,12 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 		}
 
 		// Generate and save the token
-		token, err = svc.authTokenMaker.Generate(ctx, definer)
+		token, err = svc.authTokenMaker.Generate(ctx, definer, 0)
 		if err != nil {
 			return
 		}
 
-		if err = encodeArguments(req.Args, "authToken", token); err != nil {
+		if err = encodeArguments(req.Args, "authToken", string(token)); err != nil {
 			return
 		}
 
@@ -753,12 +753,12 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 		}
 
 		// Generate and save the token
-		token, err = svc.authTokenMaker.Generate(ctx, invoker)
+		token, err = svc.authTokenMaker.Generate(ctx, invoker, 0)
 		if err != nil {
 			return
 		}
 
-		if err = encodeArguments(req.Args, "authToken", token); err != nil {
+		if err = encodeArguments(req.Args, "authToken", string(token)); err != nil {
 			return
 		}
 	}

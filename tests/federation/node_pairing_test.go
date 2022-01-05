@@ -171,7 +171,7 @@ func TestSuccessfulNodePairing(t *testing.T) {
 					//Debug().
 					// make sure we do not use test auth-token for authentication but
 					// we do it with pairing token
-					Intercept(helpers.ReqHeaderRawAuthBearer(n.AuthToken)).
+					Intercept(helpers.ReqHeaderRawAuthBearer([]byte(n.AuthToken))).
 					Post(fmt.Sprintf("/nodes/%d/handshake", n.SharedNodeID)).
 					FormData("pairToken", n.PairToken).
 					FormData("authToken", authToken).
@@ -207,7 +207,7 @@ func TestSuccessfulNodePairing(t *testing.T) {
 					//Debug().
 					// make sure we do not use test auth-token but
 					// one provided to us in the initial handshake step
-					Intercept(helpers.ReqHeaderRawAuthBearer(n.AuthToken)).
+					Intercept(helpers.ReqHeaderRawAuthBearer([]byte(n.AuthToken))).
 					Post(fmt.Sprintf("/nodes/%d/handshake-complete", n.SharedNodeID)).
 					FormData("authToken", authToken).
 					Expect(t).
@@ -221,7 +221,7 @@ func TestSuccessfulNodePairing(t *testing.T) {
 
 		h.apiInit().
 			//Debug().
-			Intercept(helpers.ReqHeaderRawAuthBearer(getNodeAuthToken(aNodeID))).
+			Intercept(helpers.ReqHeaderRawAuthBearer([]byte(getNodeAuthToken(aNodeID)))).
 			Post(fmt.Sprintf("/nodes/%d/handshake-confirm", aNodeID)).
 			Expect(t).
 			Status(http.StatusOK).

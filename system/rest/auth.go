@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
@@ -70,13 +71,13 @@ func (ctrl *Auth) makePayload(ctx context.Context, user *types.User) (*authUserR
 	}
 
 	// Generate and save the token
-	t, err := ctrl.tokenHandler.Generate(ctx, user)
+	t, err := ctrl.tokenHandler.Generate(ctx, user, 0)
 	if err != nil {
 		return nil, nil
 	}
 
 	return &authUserResponse{
-		JWT: t,
+		JWT: string(t),
 		User: &authUserPayload{
 			userPayload: &userPayload{
 				ID:       user.ID,

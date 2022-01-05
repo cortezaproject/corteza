@@ -2,13 +2,13 @@ package automation
 
 import (
 	"context"
-	"crypto/x509"
 	"encoding/json"
-	"encoding/pem"
 	"fmt"
 	"strings"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/lestrrat-go/jwx/jwa"
+	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/jwt"
 )
 
 type (
@@ -28,8 +28,6 @@ func JwtHandler(reg jwtHandlerRegistry) *jwtHandler {
 
 func (h jwtHandler) generate(ctx context.Context, args *jwtGenerateArgs) (res *jwtGenerateResults, err error) {
 	var (
-		secret interface{}
-
 		auxp = make(map[string]interface{})
 		auxh = make(map[string]interface{})
 	)
@@ -69,28 +67,40 @@ func (h jwtHandler) generate(ctx context.Context, args *jwtGenerateArgs) (res *j
 		return r == ' ' || r == ','
 	})
 
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims(auxp))
+	var (
+		tkn        = jwt.New()
+		keySet     jwk.Set
+		tokenBytes []byte
+	)
 
-	// merge header with user-provided header
-	for k, v := range auxh {
-		token.Header[k] = v
-	}
-
-	// check if we use cert
-	{
-		pemBlock, _ := pem.Decode([]byte(args.secretString))
-
-		if pemBlock != nil {
-			if secret, err = x509.ParsePKCS8PrivateKey(pemBlock.Bytes); err != nil {
-				return
-			}
-		} else {
-			secret = []byte(args.secretString)
+	for k, v := range auxp {
+		if err = tkn.Set(k, v); err != nil {
+			return
 		}
 	}
 
-	res = &jwtGenerateResults{}
-	res.Token, err = token.SignedString(secret)
+	//< HEAD
+	//	// check if we use cert
+	//	{
+	//		pemBlock, _ := pem.Decode([]byte(args.secretString))
+	//
+	//		if pemBlock != nil {
+	//			if secret, err = x509.ParsePKCS8PrivateKey(pemBlock.Bytes); err != nil {
+	//				return
+	//			}
+	//		} else {
+	//			secret = []byte(args.secretString)
+	//		}
+	//=
+	// @todo check if jwk.Parse provides the same logic as before with pem.Decode and x59.ParsePkC8PrivateKey
+	if keySet, err = jwk.Parse([]byte(args.secretString)); err != nil {
+		return
+		//> e3a304d5... Replacing dgrijalva/jwt-go with lestrrat-go/jwx
+	}
 
-	return
+	if tokenBytes, err = jwt.Sign(tkn, jwa.HS512, keySet); err != nil {
+		return
+	}
+
+	return &jwtGenerateResults{Token: string(tokenBytes)}, nil
 }

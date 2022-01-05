@@ -16,7 +16,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 	s "github.com/crewjam/saml"
 	"github.com/crewjam/saml/samlsp"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/steinfletcher/apitest"
 	"go.uber.org/zap"
 )
@@ -92,10 +91,10 @@ func TestAuthExternalSAMLSuccess(t *testing.T) {
 	s.MaxClockSkew = time.Hour
 	s.MaxIssueDelay = time.Hour
 
-	jwt.TimeFunc = func() time.Time {
-		tm, _ := time.Parse("2006-01-2 15:04:05", "2021-05-17 09:17:10")
-		return tm
-	}
+	//jwt.TimeFunc = func() time.Time {
+	//	tm, _ := time.Parse("2006-01-2 15:04:05", "2021-05-17 09:17:10")
+	//	return tm
+	//}
 
 	s.TimeNow = func() time.Time {
 		tm, _ := time.Parse("2006-01-2 15:04:05", "2021-05-17 09:17:10")
