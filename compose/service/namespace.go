@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"time"
 
+	automationService "github.com/cortezaproject/corteza-server/automation/service"
 	automationTypes "github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -534,9 +535,9 @@ func (svc namespace) ImportRun(ctx context.Context, sessionID uint64, dup *types
 		aProps = &namespaceActionProps{namespace: dup}
 	)
 
-	err = func() error {
+	err = func() (err error) {
 		// access control
-		if err := svc.canImport(ctx); err != nil {
+		if err = svc.canImport(ctx); err != nil {
 			return err
 		}
 
@@ -592,6 +593,15 @@ func (svc namespace) ImportRun(ctx context.Context, sessionID uint64, dup *types
 		err = encoder(session.Resources)
 		if err != nil {
 			return err
+		}
+
+		// Reload RBAC rules (in case import brought in something new)
+		rbac.Global().Reload(ctx)
+
+		// Reload workflow-triggers (in case import brought in something new)
+		if err = automationService.DefaultWorkflow.Load(ctx); err != nil {
+			// should not be a fatal error
+			err = nil
 		}
 
 		aProps.setNamespace(dup)
