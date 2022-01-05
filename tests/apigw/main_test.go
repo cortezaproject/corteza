@@ -43,7 +43,7 @@ type (
 
 		cUser  *sysTypes.User
 		roleID uint64
-		token  string
+		token  []byte
 	}
 )
 
@@ -111,7 +111,7 @@ func newHelper(t *testing.T) helper {
 	helpers.UpdateRBAC(h.roleID)
 
 	var err error
-	h.token, err = auth.DefaultJwtHandler.Generate(context.Background(), h.cUser)
+	h.token, err = auth.DefaultJwtHandler.Generate(context.Background(), h.cUser, 0)
 	if err != nil {
 		panic(err)
 	}

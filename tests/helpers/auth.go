@@ -16,8 +16,8 @@ func BindAuthMiddleware(r chi.Router) {
 	)
 }
 
-func ReqHeaderRawAuthBearer(token string) apitest.Intercept {
+func ReqHeaderRawAuthBearer(token []byte) apitest.Intercept {
 	return func(req *http.Request) {
-		req.Header.Set("Authorization", "Bearer "+token)
+		req.Header.Set("Authorization", "Bearer "+string(token))
 	}
 }

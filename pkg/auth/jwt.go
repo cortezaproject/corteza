@@ -4,27 +4,25 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/pkg/rand"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/system/types"
-
-	"github.com/cortezaproject/corteza-server/pkg/api"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/go-chi/jwtauth"
-	"github.com/pkg/errors"
+	"github.com/lestrrat-go/jwx/jwa"
+	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/spf13/cast"
 )
 
 type (
-	token struct {
+	tokenManager struct {
 		// Expiration time in minutes
-		expiry    time.Duration
-		tokenAuth *jwtauth.JWTAuth
-		secret    []byte
+		expiry time.Duration
+
+		signAlgo jwa.SignatureAlgorithm
+		signKey  jwk.Set
 	}
 
 	tokenStore interface {
@@ -52,21 +50,50 @@ var (
 func SetupDefault(secret string, expiry time.Duration) {
 	// Use JWT secret for hmac signer for now
 	DefaultSigner = HmacSigner(secret)
-	DefaultJwtHandler, _ = JWT(secret, expiry)
+	DefaultJwtHandler, _ = TokenManager(secret, expiry)
 }
 
-func JWT(secret string, expiry time.Duration) (tkn *token, err error) {
+func TokenManager(secret string, expiry time.Duration) (*tokenManager, error) {
+	var (
+		err error
+		set jwk.Set
+	)
+
 	if len(secret) == 0 {
-		return nil, errors.New("JWT secret missing")
+		return nil, fmt.Errorf("JWT secret missing")
 	}
 
-	tkn = &token{
-		expiry:    expiry,
-		tokenAuth: jwtauth.New(jwt.SigningMethodHS512.Alg(), []byte(secret), nil),
-		secret:    []byte(secret),
+	// @todo jwk.Parse can accept other input types beside byte-slice
+	//       we could use it to strength Corteza's security
+	if set, err = jwk.Parse([]byte(secret)); err != nil {
+		return nil, err
 	}
 
-	return tkn, nil
+	return &tokenManager{
+		expiry:   expiry,
+		signAlgo: jwa.HS512,
+		signKey:  set,
+	}, nil
+
+	//
+	//var (
+	//	//	tuukn  = jwt.New()
+	//	//	signed []byte
+	//	//)
+	//	//
+	//	//if err = tuukn.Set(jwt.ExpirationKey, expiry); err != nil {
+	//	//	return
+	//	//}
+	//	//
+	//	signed, err = jwt.Sign(tuukn, jwa.HS512, []byte(secret))
+	//
+	//	tkn = &tokenManager{
+	//		expiry:    expiry,
+	//		tokenAuth: jwtauth.New(jwt.SigningMethodHS512.Alg(), []byte(secret), nil),
+	//		secret:    []byte(secret),
+	//	}, nil
+	//
+	//return tkn, nil
 }
 
 // SetJWTStore set store for JWT
@@ -76,36 +103,43 @@ func SetJWTStore(store tokenStore) {
 	DefaultJwtStore = store
 }
 
-func (t *token) Authenticate(token string) (jwt.MapClaims, error) {
-	dt, err := t.tokenAuth.Decode(token)
-	if err != nil {
-		return nil, err
+// Authenticate the tokej from the given string and return parsed token or error
+func (tm *tokenManager) Authenticate(token string) (pToken jwt.Token, err error) {
+	if pToken, err = jwt.Parse([]byte(token), jwt.WithKeySet(tm.signKey)); err != nil {
+		return
 	}
 
-	if dt == nil || !dt.Valid {
-		return nil, jwtauth.ErrUnauthorized
+	if err = jwt.Validate(pToken); err != nil {
+		return
 	}
 
-	if dt.Method != jwt.SigningMethodHS512 {
-		return nil, jwtauth.ErrAlgoInvalid
-	}
-
-	if mc, is := dt.Claims.(jwt.MapClaims); is {
-		return mc, nil
-	}
-
-	return nil, nil
+	return
 }
 
-// HttpVerifier returns a HTTP handler that verifies JWT and stores it into context
-func (t *token) HttpVerifier() func(http.Handler) http.Handler {
-	return jwtauth.Verifier(t.tokenAuth)
-}
+//// Encode identity into a
+//func (tm *tokenManager) Encode(identity Identifiable, scope ...string) ([]byte, error) {
+//	var (
+//		// when possible, extend this with the client
+//		clientID uint64 = 0
+//	)
+//
+//	if len(scope) == 0 {
+//		// for backward compatibility we default
+//		// unset scope to profile & api
+//		scope = []string{"profile", "api"}
+//	}
+//
+//	return tm.Encode(identity, clientID, scope...)
+//}
 
-func (t *token) Encode(i Identifiable, scope ...string) string {
+// Encode give identity, clientID & scope into JWT access token (that can be use for API requests)
+//
+// @todo this follows implementation in auth/oauth2/jwt_access.go
+//       and should be refactored accordingly (move both into the same location/pkg => here)
+func (tm *tokenManager) Encode(identity Identifiable, clientID uint64, scope ...string) (_ []byte, err error) {
 	var (
-		// when possible, extend this with the client
-		clientID uint64 = 0
+		token = jwt.New()
+		roles = ""
 	)
 
 	if len(scope) == 0 {
@@ -114,62 +148,98 @@ func (t *token) Encode(i Identifiable, scope ...string) string {
 		scope = []string{"profile", "api"}
 	}
 
-	return t.encode(i, clientID, scope...)
-}
-
-// encode give identity, clientID & scope into JWT access token (that can be use for API requests)
-//
-// @todo this follows implementation in auth/oauth2/jwt_access.go
-//       and should be refactored accordingly (move both into the same location/pkg => here)
-func (t *token) encode(i Identifiable, clientID uint64, scope ...string) string {
-	roles := ""
-	for _, r := range i.Roles() {
+	for _, r := range identity.Roles() {
 		roles += fmt.Sprintf(" %d", r)
 	}
 
-	claims := jwt.MapClaims{
-		"sub":   i.String(),
-		"exp":   time.Now().Add(t.expiry).Unix(),
-		"aud":   fmt.Sprintf("%d", clientID),
-		"scope": strings.Join(scope, " "),
-		"roles": strings.TrimSpace(roles),
+	// previous implementation had special a "salt" claim that ensured JWT uniquness
+	// we're using more standard approach with JWT ID now.
+	if err = token.Set(jwt.JwtIDKey, id.Next()); err != nil {
+		return
 	}
 
-	newToken := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
-	newToken.Header["salt"] = string(rand.Bytes(32))
-	access, _ := newToken.SignedString(t.secret)
-
-	return access
-}
-
-// HttpAuthenticator converts JWT claims into identity and stores it into context
-func (t *token) HttpAuthenticator() func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := r.Context()
-
-			tkn, claims, err := jwtauth.FromContext(ctx)
-
-			// When token is present, expect no errors and valid claims!
-			if tkn != nil {
-				if err != nil {
-					// But if token is present, the shouldn't be an error
-					api.Send(w, r, err)
-					return
-				}
-
-				ctx = SetIdentityToContext(ctx, ClaimsToIdentity(claims))
-				ctx = context.WithValue(ctx, scopeCtxKey{}, claims["scope"])
-
-				r = r.WithContext(ctx)
-			}
-
-			next.ServeHTTP(w, r)
-		})
+	if err = token.Set(jwt.SubjectKey, identity.String()); err != nil {
+		return
 	}
+
+	if err = token.Set(jwt.ExpirationKey, time.Now().Add(tm.expiry).Unix()); err != nil {
+		return
+	}
+
+	if err = token.Set(jwt.AudienceKey, fmt.Sprintf("%d", clientID)); err != nil {
+		return
+	}
+
+	if err = token.Set("scope", strings.Join(scope, " ")); err != nil {
+		return
+	}
+
+	if err = token.Set("roles", strings.TrimSpace(roles)); err != nil {
+		return
+	}
+
+	return jwt.Sign(token, tm.signAlgo, tm.signKey)
+
+	//claims := jwt.MapClaims{
+	//	"sub":   identity.String(),
+	//	"exp":   time.Now().Add(tm.expiry).Unix(),
+	//	"aud":   fmt.Sprintf("%d", clientID),
+	//	"scope": strings.Join(scope, " "),
+	//	"roles": strings.TrimSpace(roles),
+	//}
+	//
+	//newToken := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
+	//newToken.Header["salt"] = string(rand.Bytes(32))
+	//access, _ := newToken.SignedString(tm.secret)
+	//return access
 }
 
-func (t *token) Generate(ctx context.Context, i Identifiable) (tokenString string, err error) {
+//// HttpVerifier returns a HTTP handler that verifies JWT and stores it into context
+//func (t *tokenManager) HttpVerifier() func(http.Handler) http.Handler {
+//	//jwt.WithHTTPClient()
+//	return func(next http.Handler) http.Handler {
+//		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+//			token, err := jwt.ParseRequest(req)
+//			if  err != nil {
+//
+//			}
+//
+//			next.ServeHTTP(w, req)
+//		})
+//	}
+//
+//	return jwtauth.Verifier(t.tokenAuth)
+//}
+
+//// HttpAuthenticator converts JWT claims into identity and stores it into context
+//func (tm *tokenManager) HttpAuthenticator() func(http.Handler) http.Handler {
+//	return func(next http.Handler) http.Handler {
+//		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//			ctx := r.Context()
+//
+//			tkn, claims, err := jwtauth.FromContext(ctx)
+//
+//			// When token is present, expect no errors and valid claims!
+//			if tkn != nil {
+//				if err != nil {
+//					// But if token is present, the shouldn't be an error
+//					api.Send(w, r, err)
+//					return
+//				}
+//
+//				ctx = SetIdentityToContext(ctx, ClaimsToIdentity(claims))
+//				ctx = context.WithValue(ctx, scopeCtxKey{}, claims["scope"])
+//
+//				r = r.WithContext(ctx)
+//			}
+//
+//			next.ServeHTTP(w, r)
+//		})
+//	}
+//}
+
+// Generates JWT and stores alongside with client-confirmation entry,
+func (tm *tokenManager) Generate(ctx context.Context, i Identifiable, clientID uint64, scope ...string) (token []byte, err error) {
 	var (
 		eti  = GetExtraReqInfoFromContext(ctx)
 		oa2t = &types.AuthOa2token{
@@ -177,30 +247,31 @@ func (t *token) Generate(ctx context.Context, i Identifiable) (tokenString strin
 			CreatedAt:  time.Now().Round(time.Second),
 			RemoteAddr: eti.RemoteAddr,
 			UserAgent:  eti.UserAgent,
+			ClientID:   clientID,
 		}
 
 		acc = &types.AuthConfirmedClient{
 			ConfirmedAt: oa2t.CreatedAt,
+			ClientID:    clientID,
 		}
 	)
 
-	tokenString = t.Encode(i)
-	oa2t.Access = tokenString
-	oa2t.ExpiresAt = oa2t.CreatedAt.Add(t.expiry)
+	if token, err = tm.Encode(i, clientID, scope...); err != nil {
+		return
+	}
+
+	oa2t.Access = string(token)
+
+	// use the same expiration as on token
+	oa2t.ExpiresAt = oa2t.CreatedAt.Add(tm.expiry)
 
 	if oa2t.Data, err = json.Marshal(oa2t); err != nil {
 		return
 	}
 
-	// extend this with the client
-	oa2t.ClientID = 0
-
-	// copy client id to auth client confirmation
-	acc.ClientID = oa2t.ClientID
-
 	if oa2t.UserID, _ = ExtractFromSubClaim(i.String()); oa2t.UserID == 0 {
 		// UserID stores collection of IDs: user's ID and set of all roles' user is member of
-		return "", fmt.Errorf("could not parse user ID from token")
+		return nil, fmt.Errorf("could not parse user ID from token")
 	}
 
 	// copy user id to auth client confirmation
@@ -210,7 +281,7 @@ func (t *token) Generate(ctx context.Context, i Identifiable) (tokenString strin
 		return
 	}
 
-	return tokenString, DefaultJwtStore.CreateAuthOa2token(ctx, oa2t)
+	return token, DefaultJwtStore.CreateAuthOa2token(ctx, oa2t)
 }
 
 func GetExtraReqInfoFromContext(ctx context.Context) ExtraReqInfo {
@@ -223,40 +294,13 @@ func GetExtraReqInfoFromContext(ctx context.Context) ExtraReqInfo {
 }
 
 // ClaimsToIdentity decodes sub & roles claims into identity
-func ClaimsToIdentity(c jwt.MapClaims) (i *identity) {
+func IdentityFromToken(token jwt.Token) *identity {
 	var (
-		aux       interface{}
-		ok        bool
-		id, roles string
+		roles, _ = token.Get("roles")
 	)
 
-	if aux, ok = c["sub"]; !ok {
-		return
-	}
-
-	i = &identity{}
-	if id, ok = aux.(string); ok {
-		i.id, _ = strconv.ParseUint(id, 10, 64)
-	}
-
-	if i.id == 0 {
-		// pointless to decode roles if id is 0
-		return nil
-	}
-
-	if aux, ok = c["roles"]; !ok {
-		return
-	}
-
-	if roles, ok = aux.(string); !ok {
-		return
-	}
-
-	for _, role := range strings.Split(roles, " ") {
-		if roleID, _ := strconv.ParseUint(role, 10, 64); roleID != 0 {
-			i.memberOf = append(i.memberOf, roleID)
-		}
-	}
-
-	return Authenticated(i.id, i.memberOf...)
+	return Authenticated(
+		cast.ToUint64(token.Subject()),
+		payload.ParseUint64s(strings.Split(cast.ToString(roles), " "))...,
+	)
 }

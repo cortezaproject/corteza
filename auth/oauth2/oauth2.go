@@ -3,9 +3,9 @@ package oauth2
 import (
 	"strings"
 
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/options"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/go-oauth2/oauth2/v4"
 	"github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/manage"
@@ -32,7 +32,7 @@ func NewManager(opt options.AuthOpt, log *zap.Logger, cs oauth2.ClientStore, ts 
 	manager.MapTokenStorage(ts)
 
 	// generate jwt access token
-	manager.MapAccessGenerate(NewJWTAccessGenerate("", []byte(opt.Secret), jwt.SigningMethodHS512))
+	manager.MapAccessGenerate(NewJWTAccessGenerate(auth.DefaultJwtHandler))
 	manager.MapClientStorage(cs)
 
 	manager.SetValidateURIHandler(func(baseURI, redirectURI string) (err error) {

@@ -3,8 +3,6 @@ package auth
 import (
 	"context"
 	"net/http"
-
-	"github.com/dgrijalva/jwt-go"
 )
 
 type (
@@ -16,12 +14,12 @@ type (
 	}
 
 	TokenGenerator interface {
-		Generate(ctx context.Context, identity Identifiable) (string, error)
+		Encode(i Identifiable, clientID uint64, scope ...string) (token []byte, err error)
+		Generate(ctx context.Context, i Identifiable, clientID uint64, scope ...string) (token []byte, err error)
 	}
 
 	TokenHandler interface {
 		TokenGenerator
-		Authenticate(token string) (jwt.MapClaims, error)
 		HttpVerifier() func(http.Handler) http.Handler
 		HttpAuthenticator() func(http.Handler) http.Handler
 	}

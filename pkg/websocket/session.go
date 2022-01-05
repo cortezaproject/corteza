@@ -4,15 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
+	"sync"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/gorilla/websocket"
+	"github.com/lestrrat-go/jwx/jwt"
 	"go.uber.org/zap"
-	"net"
-	"sync"
-	"time"
 )
 
 // active sessions of users
@@ -285,17 +287,21 @@ func (s *session) writeLoop() error {
 }
 
 func (s *session) authenticate(p *payloadAuth) error {
-	claims, err := s.server.accessToken.Authenticate(p.AccessToken)
+	token, err := jwt.Parse([]byte(p.AccessToken))
 	if err != nil {
 		return err
 	}
 
-	if !auth.CheckScope(claims["scope"], "api") {
+	if err = jwt.Validate(token); err != nil {
+		return err
+	}
+
+	if scope, has := token.Get("scope"); !has || !auth.CheckScope(scope, "api") {
 		return fmt.Errorf("client does not allow use of websockets (missing 'api' scope)")
 	}
 
 	// Get identity using JWT claims
-	identity := auth.ClaimsToIdentity(claims)
+	identity := auth.IdentityFromToken(token)
 
 	if s.identity != nil {
 		if s.identity.Identity() != identity.Identity() {
@@ -308,7 +314,7 @@ func (s *session) authenticate(p *payloadAuth) error {
 	}
 
 	s.identity = identity
-	s.Write([]byte(ok))
+	_, _ = s.Write(ok)
 	return nil
 }
 

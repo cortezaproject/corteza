@@ -290,9 +290,9 @@ func (svc node) Pair(ctx context.Context, nodeID uint64) error {
 				return err
 			}
 
-			var accessToken string
+			var accessToken []byte
 			// Generate JWT token for the federated user
-			accessToken, err = svc.tokenEncoder.Generate(ctx, u)
+			accessToken, err = svc.tokenEncoder.Generate(ctx, u, 0)
 			if err != nil {
 				return err
 			}
@@ -301,7 +301,7 @@ func (svc node) Pair(ctx context.Context, nodeID uint64) error {
 			n.UpdatedAt = now()
 
 			// Start handshake initialization remote node
-			if err = svc.handshaker.Init(ctx, n, accessToken); err != nil {
+			if err = svc.handshaker.Init(ctx, n, string(accessToken)); err != nil {
 				return err
 			}
 
@@ -361,15 +361,15 @@ func (svc node) HandshakeConfirm(ctx context.Context, nodeID uint64) error {
 			return err
 		}
 
-		var accessToken string
+		var accessToken []byte
 		// Generate JWT token for the federated user
-		accessToken, err = svc.tokenEncoder.Generate(ctx, u)
+		accessToken, err = svc.tokenEncoder.Generate(ctx, u, 0)
 
 		n.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
 		n.UpdatedAt = now()
 
 		// Complete handshake on remote node
-		if err = svc.handshaker.Complete(ctx, n, accessToken); err != nil {
+		if err = svc.handshaker.Complete(ctx, n, string(accessToken)); err != nil {
 			return err
 		}
 
