@@ -235,6 +235,31 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "impersonate",
 		},
 		{
+			"type": types.GigResourceType,
+			"any":  types.GigRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.GigResourceType,
+			"any":  types.GigRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.GigResourceType,
+			"any":  types.GigRbacResource(0),
+			"op":   "delete",
+		},
+		{
+			"type": types.GigResourceType,
+			"any":  types.GigRbacResource(0),
+			"op":   "undelete",
+		},
+		{
+			"type": types.GigResourceType,
+			"any":  types.GigRbacResource(0),
+			"op":   "exec",
+		},
+		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "grant",
@@ -353,6 +378,16 @@ func (svc accessControl) List() (out []map[string]string) {
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "resource-translations.manage",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "gig.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "gigs.search",
 		},
 	}
 
@@ -679,6 +714,41 @@ func (svc accessControl) CanImpersonateUser(ctx context.Context, r *types.User) 
 	return svc.can(ctx, "impersonate", r)
 }
 
+// CanReadGig checks if current user can read gig
+//
+// This function is auto-generated
+func (svc accessControl) CanReadGig(ctx context.Context, r *types.Gig) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateGig checks if current user can update gig
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateGig(ctx context.Context, r *types.Gig) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteGig checks if current user can delete gig
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteGig(ctx context.Context, r *types.Gig) bool {
+	return svc.can(ctx, "delete", r)
+}
+
+// CanUndeleteGig checks if current user can undelete gig
+//
+// This function is auto-generated
+func (svc accessControl) CanUndeleteGig(ctx context.Context, r *types.Gig) bool {
+	return svc.can(ctx, "undelete", r)
+}
+
+// CanExecGig checks if current user can execute gig
+//
+// This function is auto-generated
+func (svc accessControl) CanExecGig(ctx context.Context, r *types.Gig) bool {
+	return svc.can(ctx, "exec", r)
+}
+
 // CanGrant checks if current user can manage system permissions
 //
 // This function is auto-generated
@@ -871,6 +941,22 @@ func (svc accessControl) CanManageResourceTranslations(ctx context.Context) bool
 	return svc.can(ctx, "resource-translations.manage", r)
 }
 
+// CanCreateGig checks if current user can create gigs
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateGig(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "gig.create", r)
+}
+
+// CanSearchGigs checks if current user can list, search or filter gigs
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchGigs(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "gigs.search", r)
+}
+
 // rbacResourceValidator validates known component's resource by routing it to the appropriate validator
 //
 // This function is auto-generated
@@ -892,6 +978,8 @@ func rbacResourceValidator(r string, oo ...string) error {
 		return rbacTemplateResourceValidator(r, oo...)
 	case types.UserResourceType:
 		return rbacUserResourceValidator(r, oo...)
+	case types.GigResourceType:
+		return rbacGigResourceValidator(r, oo...)
 	case types.ComponentResourceType:
 		return rbacComponentResourceValidator(r, oo...)
 	}
@@ -964,6 +1052,14 @@ func rbacResourceOperations(r string) map[string]bool {
 			"name.unmask":  true,
 			"impersonate":  true,
 		}
+	case types.GigResourceType:
+		return map[string]bool{
+			"read":     true,
+			"update":   true,
+			"delete":   true,
+			"undelete": true,
+			"exec":     true,
+		}
 	case types.ComponentResourceType:
 		return map[string]bool{
 			"grant":                        true,
@@ -990,6 +1086,8 @@ func rbacResourceOperations(r string) map[string]bool {
 			"apigw-route.create":           true,
 			"apigw-routes.search":          true,
 			"resource-translations.manage": true,
+			"gig.create":                   true,
+			"gigs.search":                  true,
 		}
 	}
 
@@ -1338,6 +1436,50 @@ func rbacUserResourceValidator(r string, oo ...string) error {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid path wildcard level (%d) for user resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacGigResourceValidator checks validity of RBAC resource and operations
+//
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacGigResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.GigResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for gig resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.GigResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for gig resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {

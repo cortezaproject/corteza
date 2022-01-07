@@ -32,6 +32,7 @@ const (
 	RoleResourceType        = "corteza::system:role"
 	TemplateResourceType    = "corteza::system:template"
 	UserResourceType        = "corteza::system:user"
+	GigResourceType         = "corteza::system:gig"
 	ComponentResourceType   = "corteza::system"
 )
 
@@ -272,6 +273,36 @@ func UserRbacResource(id uint64) string {
 }
 
 func UserRbacResourceTpl() string {
+	return "%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for Gig by calling GigRbacResource fn
+//
+// RBAC resource is in the corteza::system:gig/... format
+//
+// This function is auto-generated
+func (r Gig) RbacResource() string {
+	return GigRbacResource(r.ID)
+}
+
+// GigRbacResource returns string representation of RBAC resource for Gig
+//
+// RBAC resource is in the corteza::system:gig/... format
+//
+// This function is auto-generated
+func GigRbacResource(id uint64) string {
+	cpts := []interface{}{GigResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(GigRbacResourceTpl(), cpts...)
+
+}
+
+func GigRbacResourceTpl() string {
 	return "%s/%s"
 }
 
