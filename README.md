@@ -85,7 +85,7 @@ Refer to the [Integrator Guide](https://docs.cortezaproject.org/corteza-docs/202
 Quick references:
 
 * [Corteza Compose configuration](https://docs.cortezaproject.org/corteza-docs/2021.9/integrator-guide/compose-configuration/index.html)
-* automation using [workflows](https://docs.cortezaproject.org/corteza-docs/2021.9/integrator-guide/automation/workflows/index.html) and [automation scripts](https://docs.cortezaproject.org/corteza-docs/2021.9/integrator-guide/automation-scripts/index.html)
+* automation using [workflows](https://docs.cortezaproject.org/corteza-docs/2021.9/integrator-guide/automation/workflows/index.html) and [automation scripts](https://docs.cortezaproject.org/corteza-docs/2021.9/integrator-guide/automation/automation-scripts/index.html)
 * [using the REST API](https://docs.cortezaproject.org/corteza-docs/2021.9/integrator-guide/accessing-corteza/index.html),
 
 ## Contributing
