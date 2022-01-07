@@ -1,0 +1,74 @@
+# List of loggable service actions
+
+resource: system:gig
+service: gigService
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+props:
+  - name: gig
+    type: "*types.Gig"
+    fields: [ ID ]
+  - name: new
+    type: "*types.Gig"
+    fields: [ ID ]
+
+actions:
+  - action: lookup
+    log: "looked-up for a {{gig}}"
+    severity: info
+
+  - action: create
+    log: "created {{gig}}"
+
+  - action: update
+    log: "updated {{gig}}"
+
+  - action: delete
+    log: "deleted {{gig}}"
+
+  - action: undelete
+    log: "undeleted {{gig}}"
+
+  - action: exec
+    log: "exec {{gig}}"
+
+errors:
+  - error: notFound
+    message: "gig not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: notAllowedToCreate
+    message: "not allowed to create a gig"
+    log: "failed to create a gig; insufficient permissions"
+
+  - error: notAllowedToRead
+    message: "not allowed to read this gig"
+    log: "failed to read {{gig.ID}}; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this gig"
+    log: "failed to update {{gig.ID}}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this gig"
+    log: "failed to delete {{gig.ID}}; insufficient permissions"
+
+  - error: notAllowedToUndelete
+    message: "not allowed to undelete this gig"
+    log: "failed to undelete {{gig.ID}}; insufficient permissions"
+
+  - error: notAllowedToExec
+    message: "not allowed to execute this gig"
+    log: "failed to exec {{gig.ID}}; insufficient permissions"

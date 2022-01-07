@@ -8,6 +8,7 @@ import (
 	automationService "github.com/cortezaproject/corteza-server/automation/service"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza-server/pkg/gig"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
@@ -80,6 +81,7 @@ var (
 	DefaultApigwRoute          *apigwRoute
 	DefaultApigwFilter         *apigwFilter
 	DefaultReport              *report
+	DefaultGig                 *gigService
 
 	DefaultStatistics *statistics
 
@@ -165,6 +167,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultRenderer = Renderer(c.Template)
 	DefaultResourceTranslation = ResourceTranslation()
 	DefaultReport = Report(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
+	DefaultGig = Gig(gig.NewService(nil))
 	DefaultAuthNotification = AuthNotification(CurrentSettings, DefaultRenderer, c.Auth)
 	DefaultAuth = Auth(AuthOptions{LimitUsers: c.Limit.SystemUsers})
 	DefaultAuthClient = AuthClient(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service(), c.Auth)
