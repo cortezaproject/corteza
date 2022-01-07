@@ -113,3 +113,16 @@ func SystemUserRbacReferences(user string) (res *Ref, pp []*Ref, err error) {
 
 	return
 }
+
+// SystemGigRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemGigRbacReferences(gig string) (res *Ref, pp []*Ref, err error) {
+	if gig != "*" {
+		res = &Ref{ResourceType: types.GigResourceType, Identifiers: MakeIdentifiers(gig)}
+	}
+
+	return
+}
