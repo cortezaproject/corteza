@@ -49,4 +49,21 @@ corteza: schema.#platform & {
 		automation.component,
 		federation.component,
 	]
+
+	gig: {
+		decoders: _decoders
+
+		preprocessors: _noopPreprocessors +
+			_attachmentPreprocessors +
+			_envoyPreprocessors +
+			[]
+
+		postprocessors: _postprocessors
+
+		workers: [
+			{ident: "noop", tasks:       _noopPreprocessors},
+			{ident: "attachment", tasks: _attachmentPreprocessors + _noopPreprocessors},
+			{ident: "envoy", tasks:      _envoyPreprocessors + _noopPreprocessors},
+		]
+	}
 }
