@@ -16,6 +16,7 @@ component: schema.#component & {
 		"role":        role
 		"template":    template
 		"user":        user
+		"gig":         gig
 	}
 
 	rbac: operations: {
@@ -52,5 +53,8 @@ component: schema.#component & {
 		"apigw-routes.search": description: "List search or filter API gateway routes"
 
 		"resource-translations.manage": description: "List, search, create, or update resource translations"
+
+		"gig.create": description:  "Create gigs"
+		"gigs.search": description: "List, search or filter gigs"
 	}
 }
