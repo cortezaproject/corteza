@@ -44,7 +44,7 @@ type (
 
 		cUser  *sysTypes.User
 		roleID uint64
-		token  string
+		token  []byte
 	}
 )
 
@@ -124,7 +124,7 @@ func newHelper(t *testing.T) helper {
 func (h *helper) identityToHelper(u *sysTypes.User) {
 	var err error
 	h.cUser = u
-	h.token, err = auth.DefaultJwtHandler.Generate(context.Background(), u)
+	h.token, err = auth.DefaultJwtHandler.Generate(context.Background(), u, 0)
 	if err != nil {
 		panic(err)
 	}

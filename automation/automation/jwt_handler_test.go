@@ -9,75 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestJwtHandler(t *testing.T) {
-	type (
-		tf struct {
-			name   string
-			exp    string
-			err    error
-			params *jwtGenerateArgs
-		}
-	)
-
-	var (
-		handler = &jwtHandler{}
-		tcc     = []tf{
-			{
-				name: "proxy processer with auth headers",
-				exp:  "eyJhbGciOiJSUzI1NiIsImtleSI6InZhbHVlIiwidHlwIjoiSldUIn0.eyJrZXkiOiJ2YWx1ZSIsInNjb3BlIjpbInNjb3BlIiwic2NvcGUyIl19.OnnLBsJdrZwAPeMjYIJPlZPW7bZdp-JbgNKFrRPnPXcuQVAUxK-R69-kDZbdsRZFOaU-AC52Tz4Ft3-SzADgFroSpoNjpEdJwbaKANlG_pm2b8-1pXSc0YzhY7DqBs4iae2pI0FGpeT_dza6kp9TL3NQfgqjx05Q3Gz5-3Kk32MD3zIvpUXgwkPbb4XLJxiY2Ra1dRWVI5Guk4GyLA19b7Z-DrHg1GE9mDy_NwZZD994Iri9e5zmcAikRtfHO7guPtBKVwhvt3u37wXtRgEYMyFQAn2ZSZaTytK8161Y-TOcdLVlqy4OfasaVt1pP0aNI9GGz5R-OVCOghW7TqZ6YQ",
-				err:  nil,
-				params: &jwtGenerateArgs{
-					Scope:        `scope scope2`,
-					headerVars:   must(expr.CastToVars(map[string]interface{}{"key": "value"})),
-					payloadVars:  must(expr.CastToVars(map[string]interface{}{"key": "value"})),
-					secretString: prKey,
-					hasHeader:    true,
-					hasPayload:   true,
-					hasSecret:    true},
-			},
-			{
-				name: "proxy processer with auth headers",
-				exp:  "",
-				err:  errors.New("could not generate JWT, payload missing"),
-				params: &jwtGenerateArgs{
-					hasHeader:  true,
-					hasPayload: false,
-					hasSecret:  true},
-			},
-			{
-				name: "proxy processer with auth headers",
-				exp:  "",
-				err:  errors.New("could not generate JWT, secret or cert missing"),
-				params: &jwtGenerateArgs{
-					hasHeader:  true,
-					hasPayload: true,
-					hasSecret:  false},
-			},
-		}
-	)
-
-	for _, tc := range tcc {
-		t.Run(tc.name, func(t *testing.T) {
-			var (
-				req = require.New(t)
-				ctx = context.Background()
-			)
-
-			res, err := handler.generate(ctx, tc.params)
-
-			if tc.err == nil {
-				req.NoError(err)
-			} else {
-				req.EqualError(err, tc.err.Error())
-			}
-
-			if res != nil {
-				req.Equal(tc.exp, res.Token)
-			}
-		})
-	}
-}
-
 const prKey string = `-----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCn2MSVSyMzdZ5Q
 cD0KMZAuhAmWE06qS/agpkG9OmvxsBAXjS8/2oaLCtmpF7Sx7XEJOaVUz8caty0L
@@ -106,6 +37,90 @@ bTT+/eXc4LUzgHvFG6HW40PI8T2TfMTUGQH+90zkraryUF5PNoUF58tooDAcMWXm
 DPEHFHeWn8T4obfuUjTw1mwj7Xjzr40HDitjIQa0bvBVwdYyEgiEw1CaeaUpq9Z8
 ElGWoRHT87pfoZjbdPz7a4Y=
 -----END PRIVATE KEY-----`
+
+func TestJwtHandler(t *testing.T) {
+	type (
+		tf struct {
+			name   string
+			exp    string
+			err    error
+			params *jwtGenerateArgs
+		}
+	)
+
+	var (
+		handler = &jwtHandler{}
+		tcc     = []tf{
+			{
+				name: "proxy processer with auth headers",
+				exp:  "eyJhbGciOiJSUzI1NiIsImtleSI6InZhbHVlIiwidHlwIjoiSldUIn0.eyJrZXkiOiJ2YWx1ZSIsInNjb3BlIjpbInNjb3BlIiwic2NvcGUyIl19.OnnLBsJdrZwAPeMjYIJPlZPW7bZdp-JbgNKFrRPnPXcuQVAUxK-R69-kDZbdsRZFOaU-AC52Tz4Ft3-SzADgFroSpoNjpEdJwbaKANlG_pm2b8-1pXSc0YzhY7DqBs4iae2pI0FGpeT_dza6kp9TL3NQfgqjx05Q3Gz5-3Kk32MD3zIvpUXgwkPbb4XLJxiY2Ra1dRWVI5Guk4GyLA19b7Z-DrHg1GE9mDy_NwZZD994Iri9e5zmcAikRtfHO7guPtBKVwhvt3u37wXtRgEYMyFQAn2ZSZaTytK8161Y-TOcdLVlqy4OfasaVt1pP0aNI9GGz5R-OVCOghW7TqZ6YQ",
+				err:  nil,
+				params: &jwtGenerateArgs{
+					Scope:        `scope scope2`,
+					headerVars:   must(expr.CastToVars(map[string]interface{}{"key": "value"})),
+					payloadVars:  must(expr.CastToVars(map[string]interface{}{"key": "value"})),
+					secretString: prKey,
+					hasHeader:    true,
+					hasPayload:   true,
+					hasSecret:    true,
+				},
+			},
+			{
+				name: "sign with secret",
+				exp:  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXkiOiJ2YWx1ZSIsInNjb3BlIjpbInNjb3BlIiwic2NvcGUyIl19.hvdRtewS0d8wPHF-oNHj0BaeOhgmmJkmerzg_qUI1Uo",
+				params: &jwtGenerateArgs{
+					Scope:        `scope scope2`,
+					hasHeader:    true,
+					payloadVars:  must(expr.CastToVars(map[string]interface{}{"key": "value"})),
+					hasPayload:   true,
+					hasSecret:    true,
+					secretString: "*silly-secret*",
+				},
+			},
+			{
+				name: "proxy processer with auth headers",
+				exp:  "",
+				err:  errors.New("could not generate JWT, payload missing"),
+				params: &jwtGenerateArgs{
+					hasHeader:  true,
+					hasPayload: false,
+					hasSecret:  true,
+				},
+			},
+			{
+				name: "proxy processer with auth headers",
+				exp:  "",
+				err:  errors.New("could not generate JWT, secret or cert missing"),
+				params: &jwtGenerateArgs{
+					hasHeader:  true,
+					hasPayload: true,
+					hasSecret:  false,
+				},
+			},
+		}
+	)
+
+	for _, tc := range tcc {
+		t.Run(tc.name, func(t *testing.T) {
+			var (
+				req = require.New(t)
+				ctx = context.Background()
+			)
+
+			res, err := handler.generate(ctx, tc.params)
+
+			if tc.err == nil {
+				req.NoError(err)
+			} else {
+				req.EqualError(err, tc.err.Error())
+			}
+
+			if res != nil {
+				req.Equal(tc.exp, res.Token)
+			}
+		})
+	}
+}
 
 func must(v map[string]expr.TypedValue, err error) map[string]expr.TypedValue {
 	if err != nil {

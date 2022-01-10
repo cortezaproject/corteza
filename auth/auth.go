@@ -135,10 +135,8 @@ func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthO
 		}
 
 		// ensure all requested scopes are allowed on a client
-		for _, scope := range strings.Split(tgr.Scope, " ") {
-			if !auth.CheckScope(client.Scope, scope) {
-				return false, fmt.Errorf("client does not allow use of '%s' scope", scope)
-			}
+		if !auth.CheckScope(client.Scope, strings.Split(tgr.Scope, " ")...) {
+			return false, fmt.Errorf("client does not allow use of '%s' scope", client.Scope)
 		}
 
 		return true, nil

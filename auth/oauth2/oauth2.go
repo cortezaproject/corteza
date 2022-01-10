@@ -97,8 +97,7 @@ func NewServer(manager *manage.Manager) *server.Server {
 			msg = re.Error.Error()
 		}
 
-		logger.Default().
-			Warn(msg)
+		logger.Default().Warn(msg)
 	})
 
 	return srv

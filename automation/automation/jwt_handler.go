@@ -2,12 +2,14 @@ package automation
 
 import (
 	"context"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"strings"
 
 	"github.com/lestrrat-go/jwx/jwa"
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/jws"
 	"github.com/lestrrat-go/jwx/jwt"
 )
 
@@ -68,10 +70,16 @@ func (h jwtHandler) generate(ctx context.Context, args *jwtGenerateArgs) (res *j
 	})
 
 	var (
+		key interface{}
+
 		tkn        = jwt.New()
-		keySet     jwk.Set
 		tokenBytes []byte
+		headers    = jws.NewHeaders()
 	)
+
+	for k, v := range auxh {
+		_ = headers.Set(k, v)
+	}
 
 	for k, v := range auxp {
 		if err = tkn.Set(k, v); err != nil {
@@ -79,27 +87,19 @@ func (h jwtHandler) generate(ctx context.Context, args *jwtGenerateArgs) (res *j
 		}
 	}
 
-	//< HEAD
-	//	// check if we use cert
-	//	{
-	//		pemBlock, _ := pem.Decode([]byte(args.secretString))
-	//
-	//		if pemBlock != nil {
-	//			if secret, err = x509.ParsePKCS8PrivateKey(pemBlock.Bytes); err != nil {
-	//				return
-	//			}
-	//		} else {
-	//			secret = []byte(args.secretString)
-	//		}
-	//=
-	// @todo check if jwk.Parse provides the same logic as before with pem.Decode and x59.ParsePkC8PrivateKey
-	if keySet, err = jwk.Parse([]byte(args.secretString)); err != nil {
-		return
-		//> e3a304d5... Replacing dgrijalva/jwt-go with lestrrat-go/jwx
+	if decodedKey, _ := pem.Decode([]byte(args.secretString)); decodedKey != nil {
+		if key, err = x509.ParsePKCS8PrivateKey(decodedKey.Bytes); err != nil {
+			return nil, err
+		}
+
+		tokenBytes, err = jwt.Sign(tkn, jwa.RS256, key, jwt.WithHeaders(headers))
+	} else {
+		key = []byte(args.secretString)
+		tokenBytes, err = jwt.Sign(tkn, jwa.HS256, key, jwt.WithHeaders(headers))
 	}
 
-	if tokenBytes, err = jwt.Sign(tkn, jwa.HS512, keySet); err != nil {
-		return
+	if err != nil {
+		return nil, fmt.Errorf("could not sign token: %w", err)
 	}
 
 	return &jwtGenerateResults{Token: string(tokenBytes)}, nil

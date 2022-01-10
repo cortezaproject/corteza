@@ -49,7 +49,7 @@ type (
 
 		cUser  *types.User
 		roleID uint64
-		token  string
+		token  []byte
 		data   embed.FS
 	}
 )
