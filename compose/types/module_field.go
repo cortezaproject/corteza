@@ -177,9 +177,9 @@ func (m *ModuleField) encodeTranslationsValidatorError() (out locale.ResourceTra
 
 func (f *ModuleField) encodeTranslationsDescriptionView() (out locale.ResourceTranslationSet) {
 	out = locale.ResourceTranslationSet{}
-	v := f.getOptionKey("description", "edit")
-	aux := cast.ToString(v)
-	if aux != "" {
+	if v := f.getOptionKey("description", "edit"); v != nil {
+		aux := cast.ToString(v)
+
 		out = append(out, &locale.ResourceTranslation{
 			Resource: f.ResourceTranslation(),
 			Key:      LocaleKeyModuleFieldDescriptionView.Path,
@@ -191,9 +191,8 @@ func (f *ModuleField) encodeTranslationsDescriptionView() (out locale.ResourceTr
 
 func (f *ModuleField) encodeTranslationsDescriptionEdit() (out locale.ResourceTranslationSet) {
 	out = locale.ResourceTranslationSet{}
-	v := f.getOptionKey("description", "view")
-	aux := cast.ToString(v)
-	if aux != "" {
+	if v := f.getOptionKey("description", "view"); v != nil {
+		aux := cast.ToString(v)
 		out = append(out, &locale.ResourceTranslation{
 			Resource: f.ResourceTranslation(),
 			Key:      LocaleKeyModuleFieldDescriptionEdit.Path,
@@ -205,9 +204,8 @@ func (f *ModuleField) encodeTranslationsDescriptionEdit() (out locale.ResourceTr
 
 func (f *ModuleField) encodeTranslationsHintView() (out locale.ResourceTranslationSet) {
 	out = locale.ResourceTranslationSet{}
-	v := f.getOptionKey("hint", "edit")
-	aux := cast.ToString(v)
-	if aux != "" {
+	if v := f.getOptionKey("hint", "edit"); v != nil {
+		aux := cast.ToString(v)
 		out = append(out, &locale.ResourceTranslation{
 			Resource: f.ResourceTranslation(),
 			Key:      LocaleKeyModuleFieldHintView.Path,
@@ -219,9 +217,8 @@ func (f *ModuleField) encodeTranslationsHintView() (out locale.ResourceTranslati
 
 func (f *ModuleField) encodeTranslationsHintEdit() (out locale.ResourceTranslationSet) {
 	out = locale.ResourceTranslationSet{}
-	v := f.getOptionKey("hint", "view")
-	aux := cast.ToString(v)
-	if aux != "" {
+	if v := f.getOptionKey("hint", "view"); v != nil {
+		aux := cast.ToString(v)
 		out = append(out, &locale.ResourceTranslation{
 			Resource: f.ResourceTranslation(),
 			Key:      LocaleKeyModuleFieldHintEdit.Path,
