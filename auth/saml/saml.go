@@ -48,6 +48,7 @@ func UpdateSettings(source *types.AppSettings, dest *settings.Settings) {
 	dest.Saml.Key = saml.Key
 	dest.Saml.SignRequests = saml.SignRequests
 	dest.Saml.SignMethod = saml.SignMethod
+	dest.Saml.Binding = saml.Binding
 
 	dest.Saml.IDP.URL = saml.IDP.URL
 	dest.Saml.IDP.IdentName = saml.IDP.IdentName

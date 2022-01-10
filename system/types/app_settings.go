@@ -107,6 +107,9 @@ type (
 					// Signature method for signing
 					SignMethod string `kv:"sign-method"`
 
+					// Post or redirect binding
+					Binding string `kv:"binding"`
+
 					// Identity provider settings
 					IDP struct {
 						URL string `kv:"url"`

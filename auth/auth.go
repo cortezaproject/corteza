@@ -300,6 +300,8 @@ func (svc *service) LoadSamlService(ctx context.Context, s *settings.Settings) (
 		SignRequests:    s.Saml.SignRequests,
 		SignatureMethod: s.Saml.SignMethod,
 
+		Binding: s.Saml.Binding,
+
 		IdentityPayload: saml.IdpIdentityPayload{
 			Name:       s.Saml.IDP.IdentName,
 			Handle:     s.Saml.IDP.IdentHandle,
