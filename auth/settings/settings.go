@@ -32,6 +32,9 @@ type (
 		// Signature method for signing
 		SignMethod string
 
+		// Post or redirect binding
+		Binding string
+
 		// Identity provider hostname
 		IDP struct {
 			URL string
