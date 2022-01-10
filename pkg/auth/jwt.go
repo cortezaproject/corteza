@@ -4,12 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
+	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/go-chi/jwtauth"
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jwt"
@@ -22,7 +25,7 @@ type (
 		expiry time.Duration
 
 		signAlgo jwa.SignatureAlgorithm
-		signKey  jwk.Set
+		signKey  jwk.Key
 	}
 
 	tokenStore interface {
@@ -47,33 +50,30 @@ var (
 	DefaultJwtStore   tokenStore
 )
 
-func SetupDefault(secret string, expiry time.Duration) {
+func SetupDefault(secret string, expiry time.Duration) (err error) {
 	// Use JWT secret for hmac signer for now
 	DefaultSigner = HmacSigner(secret)
-	DefaultJwtHandler, _ = TokenManager(secret, expiry)
+	DefaultJwtHandler, err = TokenManager(secret, expiry)
+	return
 }
 
-func TokenManager(secret string, expiry time.Duration) (*tokenManager, error) {
-	var (
-		err error
-		set jwk.Set
-	)
-
-	if len(secret) == 0 {
-		return nil, fmt.Errorf("JWT secret missing")
-	}
-
-	// @todo jwk.Parse can accept other input types beside byte-slice
-	//       we could use it to strength Corteza's security
-	if set, err = jwk.Parse([]byte(secret)); err != nil {
-		return nil, err
-	}
-
-	return &tokenManager{
+// TokenManager returns token management facility
+// @todo should be extended to accept different kinds of algorythms, private-keys etc.
+func TokenManager(secret string, expiry time.Duration) (tm *tokenManager, err error) {
+	tm = &tokenManager{
 		expiry:   expiry,
 		signAlgo: jwa.HS512,
-		signKey:  set,
-	}, nil
+	}
+
+	if len(secret) == 0 {
+		return nil, fmt.Errorf("JWK missing")
+	}
+
+	if tm.signKey, err = jwk.New([]byte(secret)); err != nil {
+		return nil, fmt.Errorf("could not parse JWK: %w", err)
+	}
+
+	return
 
 	//
 	//var (
@@ -103,9 +103,9 @@ func SetJWTStore(store tokenStore) {
 	DefaultJwtStore = store
 }
 
-// Authenticate the tokej from the given string and return parsed token or error
+// Authenticate the token from the given string and return parsed token or error
 func (tm *tokenManager) Authenticate(token string) (pToken jwt.Token, err error) {
-	if pToken, err = jwt.Parse([]byte(token), jwt.WithKeySet(tm.signKey)); err != nil {
+	if pToken, err = jwt.Parse([]byte(token), jwt.WithVerify(tm.signAlgo, tm.signKey)); err != nil {
 		return
 	}
 
@@ -154,7 +154,7 @@ func (tm *tokenManager) Encode(identity Identifiable, clientID uint64, scope ...
 
 	// previous implementation had special a "salt" claim that ensured JWT uniquness
 	// we're using more standard approach with JWT ID now.
-	if err = token.Set(jwt.JwtIDKey, id.Next()); err != nil {
+	if err = token.Set(jwt.JwtIDKey, fmt.Sprintf("%d", id.Next())); err != nil {
 		return
 	}
 
@@ -194,49 +194,47 @@ func (tm *tokenManager) Encode(identity Identifiable, clientID uint64, scope ...
 	//return access
 }
 
-//// HttpVerifier returns a HTTP handler that verifies JWT and stores it into context
-//func (t *tokenManager) HttpVerifier() func(http.Handler) http.Handler {
-//	//jwt.WithHTTPClient()
-//	return func(next http.Handler) http.Handler {
-//		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-//			token, err := jwt.ParseRequest(req)
-//			if  err != nil {
-//
-//			}
-//
-//			next.ServeHTTP(w, req)
-//		})
-//	}
-//
-//	return jwtauth.Verifier(t.tokenAuth)
-//}
+// HttpVerifier returns a HTTP handler that verifies JWT and stores it into context
+func (tm *tokenManager) HttpVerifier() func(http.Handler) http.Handler {
+	////jwt.WithHTTPClient()
+	//return func(next http.Handler) http.Handler {
+	//	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+	//		token, err := jwt.ParseRequest(req)
+	//		if err != nil {
+	//
+	//		}
+	//
+	//		next.ServeHTTP(w, req)
+	//	})
+	//}
 
-//// HttpAuthenticator converts JWT claims into identity and stores it into context
-//func (tm *tokenManager) HttpAuthenticator() func(http.Handler) http.Handler {
-//	return func(next http.Handler) http.Handler {
-//		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//			ctx := r.Context()
-//
-//			tkn, claims, err := jwtauth.FromContext(ctx)
-//
-//			// When token is present, expect no errors and valid claims!
-//			if tkn != nil {
-//				if err != nil {
-//					// But if token is present, the shouldn't be an error
-//					api.Send(w, r, err)
-//					return
-//				}
-//
-//				ctx = SetIdentityToContext(ctx, ClaimsToIdentity(claims))
-//				ctx = context.WithValue(ctx, scopeCtxKey{}, claims["scope"])
-//
-//				r = r.WithContext(ctx)
-//			}
-//
-//			next.ServeHTTP(w, r)
-//		})
-//	}
-//}
+	return jwtauth.Verifier(jwtauth.New(tm.signAlgo.String(), tm.signKey, nil))
+}
+
+// HttpAuthenticator converts JWT claims into identity and stores it into context
+func (tm *tokenManager) HttpAuthenticator() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+
+			tkn, _, err := jwtauth.FromContext(ctx)
+
+			// When token is present, expect no errors and valid claims!
+			if tkn != nil {
+				if err != nil {
+					// But if token is present, there shouldn't be an error
+					api.Send(w, r, err)
+					return
+				}
+
+				ctx = SetIdentityToContext(ctx, IdentityFromToken(tkn))
+				r = r.WithContext(ctx)
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
 
 // Generates JWT and stores alongside with client-confirmation entry,
 func (tm *tokenManager) Generate(ctx context.Context, i Identifiable, clientID uint64, scope ...string) (token []byte, err error) {

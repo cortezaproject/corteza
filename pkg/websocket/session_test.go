@@ -15,9 +15,17 @@ func TestSession_procRawMessage(t *testing.T) {
 	var (
 		req             = require.New(t)
 		s               = session{server: Server(nil, options.WebsocketOpt{})}
-		jwtHandler, err = auth.JWT("secret", time.Minute)
+		jwtHandler, err = auth.TokenManager("secret", time.Minute)
 
 		userID uint64 = 123
+		token  []byte
+
+		mockResponse = func(token []byte) (out []byte) {
+			out = []byte(`{"@type": "credentials", "@value": {"accessToken": "`)
+			out = append(out, token...)
+			out = append(out, []byte(`"}}`)...)
+			return
+		}
 	)
 
 	if testing.Verbose() {
@@ -27,17 +35,17 @@ func TestSession_procRawMessage(t *testing.T) {
 	}
 
 	req.NoError(err)
-	s.server.accessToken = jwtHandler
 
-	jwt := jwtHandler.Encode(auth.Authenticated(userID, 456, 789))
+	token, err = jwtHandler.Encode(auth.Authenticated(userID, 456, 789), 0, "api")
+	req.NoError(err)
 
 	req.EqualError(s.procRawMessage([]byte("{}")), "unauthenticated session")
 	req.Nil(s.identity)
 
-	req.EqualError(s.procRawMessage([]byte(`{"@type": "credentials", "@value": {"accessToken": ""}}`)), "unauthorized: token contains an invalid number of segments")
+	req.EqualError(s.procRawMessage(mockResponse(nil)), "unauthorized: failed to parse token: EOF")
 	req.Nil(s.identity)
 
-	req.NoError(s.procRawMessage([]byte(`{"@type": "credentials", "@value": {"accessToken": "` + jwt + `"}}`)))
+	req.NoError(s.procRawMessage(mockResponse(token)))
 	req.NotNil(s.identity)
 	req.Equal(userID, s.identity.Identity())
 
@@ -45,15 +53,17 @@ func TestSession_procRawMessage(t *testing.T) {
 	req.Equal(userID, s.identity.Identity())
 
 	// Repeat with the same user
-	jwt = jwtHandler.Encode(auth.Authenticated(userID, 456, 789))
+	token, err = jwtHandler.Encode(auth.Authenticated(userID, 456, 789), 0, "api")
+	req.NoError(err)
 
-	req.NoError(s.procRawMessage([]byte(`{"@type": "credentials", "@value": {"accessToken": "` + jwt + `"}}`)))
+	req.NoError(s.procRawMessage(mockResponse(token)))
 	req.NotNil(s.identity)
 	req.Equal(userID, s.identity.Identity())
 
 	// Try to authenticate on an existing authenticated session as a different user
-	jwt = jwtHandler.Encode(auth.Authenticated(userID+1, 456, 789))
+	token, err = jwtHandler.Encode(auth.Authenticated(userID+1, 456, 789), 0, "api")
+	req.NoError(err)
 
-	req.EqualError(s.procRawMessage([]byte(`{"@type": "credentials", "@value": {"accessToken": "`+jwt+`"}}`)), "unauthorized: identity does not match")
+	req.EqualError(s.procRawMessage(mockResponse(token)), "unauthorized: identity does not match")
 
 }

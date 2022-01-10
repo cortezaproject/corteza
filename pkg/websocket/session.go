@@ -296,7 +296,7 @@ func (s *session) authenticate(p *payloadAuth) error {
 		return err
 	}
 
-	if scope, has := token.Get("scope"); !has || !auth.CheckScope(scope, "api") {
+	if !auth.CheckJwtScope(token, "api") {
 		return fmt.Errorf("client does not allow use of websockets (missing 'api' scope)")
 	}
 

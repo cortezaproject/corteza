@@ -85,6 +85,8 @@ func (s server) Serve(ctx context.Context) {
 			r.Use(LogResponse)
 		}
 
+		println("using up DefaultJwtHandler", auth.DefaultJwtHandler != nil)
+
 		r.Use(
 			auth.DefaultJwtHandler.HttpVerifier(),
 			auth.DefaultJwtHandler.HttpAuthenticator(),

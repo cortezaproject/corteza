@@ -123,7 +123,9 @@ func (app *CortezaApp) Setup() (err error) {
 	// set base path for links&routes in auth server
 	authHandlers.BasePath = app.Opt.HTTPServer.BaseUrl
 
-	auth.SetupDefault(app.Opt.Auth.Secret, app.Opt.Auth.Expiry)
+	if err = auth.SetupDefault(app.Opt.Auth.Secret, app.Opt.Auth.Expiry); err != nil {
+		return
+	}
 
 	http.SetupDefaults(
 		app.Opt.HTTPClient.HttpClientTimeout,

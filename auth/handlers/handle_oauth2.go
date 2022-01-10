@@ -6,12 +6,13 @@ import (
 	"crypto/rsa"
 	"encoding/json"
 	"fmt"
-	"github.com/lestrrat-go/jwx/jwk"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/lestrrat-go/jwx/jwk"
 
 	"github.com/cortezaproject/corteza-server/auth/oauth2"
 	"github.com/cortezaproject/corteza-server/auth/request"

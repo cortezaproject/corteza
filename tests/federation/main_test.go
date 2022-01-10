@@ -30,7 +30,7 @@ type (
 
 		cUser  *sysTypes.User
 		roleID uint64
-		token  string
+		token  []byte
 	}
 )
 
