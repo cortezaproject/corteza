@@ -45,7 +45,7 @@ func (h jwtHandler) generate(ctx context.Context, args *jwtGenerateArgs) (res *j
 	}
 
 	for k, v := range args.headerVars {
-		auxp[k] = v.Get()
+		auxh[k] = v.Get()
 	}
 
 	for k, v := range args.payloadVars {
@@ -85,7 +85,7 @@ func (h jwtHandler) generate(ctx context.Context, args *jwtGenerateArgs) (res *j
 				return
 			}
 		} else {
-			secret = args.secretString
+			secret = []byte(args.secretString)
 		}
 	}
 
