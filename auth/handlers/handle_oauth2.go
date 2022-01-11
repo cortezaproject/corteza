@@ -12,6 +12,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	systemService "github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/dgrijalva/jwt-go"
 	oauth2def "github.com/go-oauth2/oauth2/v4"
 	oauth2errors "github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/lestrrat-go/jwx/jwk"
@@ -392,7 +393,41 @@ func (h AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.Aut
 		return h.tokenError(w, err)
 	}
 
-	return token(w, h.OAuth2.GetTokenData(ti), nil)
+	td := h.OAuth2.GetTokenData(ti)
+
+	if td != nil && strings.Contains(client.Scope, "openid") {
+		userID, roles := auth.ExtractFromSubClaim(ti.GetUserID())
+		if userID == 0 {
+			return fmt.Errorf("invalid user ID in 'sub' claim")
+		}
+
+		var user *types.User
+		user, err = systemService.DefaultUser.FindByID(
+			// inject ad-hoc identity into context so that user service is aware who is
+			// doing the lookup
+			auth.SetIdentityToContext(ctx, auth.NewIdentity(userID, roles...)),
+			userID,
+		)
+		if user.ID == 0 {
+			return fmt.Errorf("invalid user in 'sub' claim")
+		}
+
+		idTokenGen := oauth2.JWTIDGenerate([]byte(client.Secret), jwt.SigningMethodHS512)
+		idTokenClaims := oauth2.JWTIDTokenClaims{
+			Issuer:   h.Opt.BaseURL,
+			ClientID: ti.GetClientID(),
+			UserID:   ti.GetUserID(),
+			Email:    user.Email,
+			Expiry:   time.Now().Add(ti.GetAccessExpiresIn()).Unix(),
+		}
+
+		td["id_token"], err = idTokenGen.Token(ctx, idTokenClaims)
+		if err != nil {
+			return h.tokenError(w, err)
+		}
+	}
+
+	return token(w, td, nil)
 }
 
 func (h AuthHandlers) tokenError(w http.ResponseWriter, err error) error {
