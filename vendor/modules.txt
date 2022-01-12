@@ -40,13 +40,13 @@ github.com/aymerick/douceur/parser
 github.com/beevik/etree
 # github.com/beorn7/perks v1.0.1
 github.com/beorn7/perks/quantile
-# github.com/brianvoe/gofakeit/v6 v6.11.1
+# github.com/brianvoe/gofakeit/v6 v6.12.1
 ## explicit
 github.com/brianvoe/gofakeit/v6
 github.com/brianvoe/gofakeit/v6/data
 # github.com/cespare/xxhash/v2 v2.1.2
 github.com/cespare/xxhash/v2
-# github.com/cortezaproject/corteza-locale v0.0.0-20220103124542-5d327f93f42c
+# github.com/cortezaproject/corteza-locale v0.0.0-20220111135803-4fb0db6196bc
 ## explicit
 github.com/cortezaproject/corteza-locale
 # github.com/crewjam/httperr v0.2.0
@@ -69,7 +69,6 @@ github.com/davecgh/go-spew/spew
 github.com/decred/dcrd/dcrec/secp256k1/v4
 # github.com/dgrijalva/jwt-go v3.2.0+incompatible
 ## explicit
-github.com/dgrijalva/jwt-go
 # github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
 ## explicit
 github.com/dgryski/dgoogauth
@@ -79,7 +78,7 @@ github.com/disintegration/imaging
 # github.com/dlclark/regexp2 v1.4.1-0.20201116162257-a2a8dda75c91
 github.com/dlclark/regexp2
 github.com/dlclark/regexp2/syntax
-# github.com/dop251/goja v0.0.0-20220102113305-2298ace6d09d
+# github.com/dop251/goja v0.0.0-20220110113543-261677941f3c
 ## explicit
 github.com/dop251/goja
 github.com/dop251/goja/ast
@@ -92,7 +91,7 @@ github.com/dop251/goja/unistring
 # github.com/edwvee/exiffix v0.0.0-20210922235313-0f6cbda5e58f
 ## explicit
 github.com/edwvee/exiffix
-# github.com/evanw/esbuild v0.14.10
+# github.com/evanw/esbuild v0.14.11
 ## explicit
 github.com/evanw/esbuild/internal/api_helpers
 github.com/evanw/esbuild/internal/ast
@@ -167,7 +166,7 @@ github.com/go-sourcemap/sourcemap/internal/base64vlq
 # github.com/go-sql-driver/mysql v1.6.0
 ## explicit
 github.com/go-sql-driver/mysql
-# github.com/goccy/go-json v0.8.1
+# github.com/goccy/go-json v0.9.0
 github.com/goccy/go-json
 github.com/goccy/go-json/internal/decoder
 github.com/goccy/go-json/internal/encoder
@@ -253,7 +252,7 @@ github.com/lestrrat-go/httpcc
 # github.com/lestrrat-go/iter v1.0.1
 github.com/lestrrat-go/iter/arrayiter
 github.com/lestrrat-go/iter/mapiter
-# github.com/lestrrat-go/jwx v1.2.14
+# github.com/lestrrat-go/jwx v1.2.15
 ## explicit
 github.com/lestrrat-go/jwx
 github.com/lestrrat-go/jwx/internal/base64
@@ -369,7 +368,7 @@ github.com/rwcarlsen/goexif/tiff
 # github.com/sony/sonyflake v1.0.0
 ## explicit
 github.com/sony/sonyflake
-# github.com/spf13/afero v1.7.1
+# github.com/spf13/afero v1.8.0
 ## explicit
 github.com/spf13/afero
 github.com/spf13/afero/mem
@@ -401,7 +400,7 @@ github.com/stretchr/testify/require
 go.uber.org/atomic
 # go.uber.org/multierr v1.6.0
 go.uber.org/multierr
-# go.uber.org/zap v1.19.1
+# go.uber.org/zap v1.20.0
 ## explicit
 go.uber.org/zap
 go.uber.org/zap/buffer

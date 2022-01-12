@@ -55,27 +55,6 @@ edit:
     required: Required field
     title: The name displayed in form input / data lists
 federated: Federated
-fieldKinds:
-  Bool:
-    label: Checkbox (Y/N)
-  DateTime:
-    label: Date and time
-  Email:
-    label: Email input
-  File:
-    label: File upload
-  Number:
-    label: Number input
-  Record:
-    label: Record selector
-  Select:
-    label: Select / dropdown
-  String:
-    label: Text input (string)
-  Url:
-    label: URL input
-  User:
-    label: User selector
 forModule:
   recordList: Record List for module
   recordListPage: Record List page for module
