@@ -31,7 +31,6 @@ label:
   makeDefault: Make default
   module: Module
   moduleName: Module name
-
   multi: Multi value
   name: Name
   next: Next
@@ -110,6 +109,8 @@ fieldKinds:
     label: URL input
   User:
     label: User selector
+  Geometry:
+    label: Geometry
 field:
   selectAll: Select all
   unselectAll: Unselect all

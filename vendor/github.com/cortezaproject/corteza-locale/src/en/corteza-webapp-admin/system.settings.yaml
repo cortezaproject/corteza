@@ -68,16 +68,22 @@ editor:
       clientKey: Client key
       clientSecret: Secret
       scope: Scope
-      scopePlaceholder: List out supported OAuth scope values, use space delimited string
+      scopePlaceholder: List out supported OAuth scope values
+      scopeHint: Use space delimited string
 
     saml:
       enabled: Enabled
       title: SAML
+      requests:
+        title: Requests
+        sign-requests: Sign requests
+        sign-method: Signature method
+        binding: Binding
+        binding-redirect: HTTP Redirect
+        binding-post: HTTP POST
       cert:
         public: Public key
         private: Private key
-        sign-requests: Sign requests
-        sign-method: Signature method
       name: Name
       certificate: Certificate
       idp:
@@ -91,8 +97,10 @@ editor:
         cert:
           public: Content will be minimized
           private: Content will be minimized
+        requests:
           sign-requests: Sign AuthNRequest and assertion
           sign-method: Method to use on signed requests
+          binding: The type of HTTP binding to use on AuthNRequest, defaults to HTTP Redirect (GET)
         idp:
           url: Location of IdP metadata
           ident-handle: Name of the IdP field used for filling Corteza user handle or nickname

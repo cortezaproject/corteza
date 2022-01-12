@@ -85,3 +85,39 @@ reminder:
   snooze: Snooze
 tooltip:
   dragAndDrop: Drag and drop to change order
+fieldKinds:
+  Bool:
+    label: Checkbox (Y/N)
+  DateTime:
+    label: Date and time
+  Email:
+    label: Email input
+  File:
+    label: File upload
+  Number:
+    label: Number input
+  Record:
+    label: Record selector
+  Select:
+    label: Select / dropdown
+  String:
+    label: Text input (string)
+  Url:
+    label: URL input
+  User:
+    label: User selector
+  Geometry:
+    label: Geometry
+field:
+  selectAll: Select all
+  unselectAll: Unselect all
+  kind:
+    user:
+      suggestionPlaceholder: Start typing to search for users by email or name
+notification:
+  composeAccessNotAllowed: Not allowed to access Compose
+  import:
+    failed: Import failed
+    readingError: Error reading file
+    successful: Import successful
+    typeMissmatch: 'Import error: trying to import object of type "{{type1}}" into a list of objects of type "{{type2}}"'
