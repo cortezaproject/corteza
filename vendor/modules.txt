@@ -44,7 +44,7 @@ github.com/brianvoe/gofakeit/v6
 github.com/brianvoe/gofakeit/v6/data
 # github.com/cespare/xxhash/v2 v2.1.1
 github.com/cespare/xxhash/v2
-# github.com/cortezaproject/corteza-locale v0.0.0-20220103124542-5d327f93f42c
+# github.com/cortezaproject/corteza-locale v0.0.0-20220111142345-b53bc6baba9e
 ## explicit
 github.com/cortezaproject/corteza-locale
 # github.com/crewjam/httperr v0.0.0-20190612203328-a946449404da
@@ -65,6 +65,9 @@ github.com/davecgh/go-spew/spew
 ## explicit
 # github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.0-20210816181553-5444fa50b93d
 github.com/decred/dcrd/dcrec/secp256k1/v4
+# github.com/deepmap/oapi-codegen v1.6.1
+github.com/deepmap/oapi-codegen/pkg/runtime
+github.com/deepmap/oapi-codegen/pkg/types
 # github.com/dgrijalva/jwt-go v3.2.0+incompatible
 ## explicit
 github.com/dgrijalva/jwt-go
@@ -116,6 +119,13 @@ github.com/evanw/esbuild/internal/runtime
 github.com/evanw/esbuild/internal/sourcemap
 github.com/evanw/esbuild/internal/xxhash
 github.com/evanw/esbuild/pkg/api
+# github.com/exoscale/egoscale v0.80.1
+## explicit
+github.com/exoscale/egoscale
+github.com/exoscale/egoscale/v2
+github.com/exoscale/egoscale/v2/api
+github.com/exoscale/egoscale/v2/oapi
+github.com/exoscale/egoscale/version
 # github.com/fastly/go-utils v0.0.0-20180712184237-d95a45783239
 ## explicit
 # github.com/fsnotify/fsnotify v1.4.9
@@ -167,6 +177,9 @@ github.com/goccy/go-json/internal/encoder/vm_color_indent
 github.com/goccy/go-json/internal/encoder/vm_indent
 github.com/goccy/go-json/internal/errors
 github.com/goccy/go-json/internal/runtime
+# github.com/gofrs/uuid v3.2.0+incompatible
+## explicit
+github.com/gofrs/uuid
 # github.com/golang/mock v1.4.4
 ## explicit
 github.com/golang/mock/gomock
@@ -208,6 +221,8 @@ github.com/imdario/mergo
 # github.com/inconshreveable/mousetrap v1.0.0
 ## explicit
 github.com/inconshreveable/mousetrap
+# github.com/jarcoal/httpmock v1.0.6
+github.com/jarcoal/httpmock
 # github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869
 ## explicit
 # github.com/jmoiron/sqlx v1.2.0
@@ -348,9 +363,12 @@ github.com/steinfletcher/apitest
 # github.com/steinfletcher/apitest-jsonpath v1.3.0
 ## explicit
 github.com/steinfletcher/apitest-jsonpath
+# github.com/stretchr/objx v0.3.0
+github.com/stretchr/objx
 # github.com/stretchr/testify v1.7.0
 ## explicit
 github.com/stretchr/testify/assert
+github.com/stretchr/testify/mock
 github.com/stretchr/testify/require
 # github.com/tebeka/strftime v0.1.5
 ## explicit
