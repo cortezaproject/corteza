@@ -55,6 +55,7 @@ editor:
     cUrl: Generated cURL
     testCurl: Test auth
     discovery: Allow client access to Corteza Discovery API on behalf of user
+    openid: Allow client to use OIDC and verify the user's identity
   new: New
   permissions: Permissions
   title:

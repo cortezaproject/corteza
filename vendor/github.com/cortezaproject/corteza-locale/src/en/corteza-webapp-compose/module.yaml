@@ -96,6 +96,9 @@ newPlaceholder: Name used on the list of modules
 noModule: No modules
 noModuleFilter: No module matches your search
 notification:
+  columns:
+    saved: Columns saved
+    saveFailed: Could not save columns
   deleteFailed: Could not delete this module
   deleted: Module deleted
   saveFailed: Could not save this module
