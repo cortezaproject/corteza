@@ -749,6 +749,42 @@ func NamespaceErrUnsupportedImportFormat(mm ...*namespaceActionProps) *errors.Er
 	return e
 }
 
+// NamespaceErrImportMissingNamespace returns "compose:namespace.importMissingNamespace" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func NamespaceErrImportMissingNamespace(mm ...*namespaceActionProps) *errors.Error {
+	var p = &namespaceActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("import source does not contain a namespace", nil),
+
+		errors.Meta("type", "importMissingNamespace"),
+		errors.Meta("resource", "compose:namespace"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(namespaceLogMetaKey{}, "could not import namespace; import source does not contain a namespace"),
+		errors.Meta(namespacePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "namespace.errors.importMissingNamespace"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // NamespaceErrImportSessionNotFound returns "compose:namespace.importSessionNotFound" as *errors.Error
 //
 //
