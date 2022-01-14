@@ -519,6 +519,10 @@ func (svc namespace) ImportInit(ctx context.Context, f multipart.File, size int6
 			}
 		}
 
+		if ns == nil {
+			return NamespaceErrImportMissingNamespace()
+		}
+
 		session.Name = ns.Name
 		session.Slug = ns.Slug
 		namespaceSessionStore[session.SessionID] = session
