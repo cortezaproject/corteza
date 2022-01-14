@@ -1,0 +1,36 @@
+workflows:
+  wf1:
+    meta:
+      name: wf1
+    enabled: true
+    keepSessions: 0
+    triggers:
+      - resourceType: compose:record
+        eventType: beforeCreate
+        constraints:
+          - name: namespace.handle
+            op: =
+            values:
+              - ns1
+        enabled: true
+        stepID: 4
+    steps:
+      - id: 4
+        kind: prompt
+        ref: alert
+        arguments:
+          - target: message
+            source: ""
+            expr: ""
+            value: Test
+            type: String
+            tests: []
+        results: []
+        meta:
+          name: ""
+          description: ""
+          visual:
+            id: "4"
+            parent: "1"
+            value: null
+            xywh: [0, 0, 0, 0]
