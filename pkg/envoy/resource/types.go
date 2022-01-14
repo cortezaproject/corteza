@@ -260,7 +260,7 @@ func (rr RefSet) replaceRef(old, new *Ref) RefSet {
 		}
 	}
 
-	if !found {
+	if !found && new != nil {
 		return append(rr, new)
 	}
 
