@@ -293,7 +293,7 @@ func (svc reminder) Delete(ctx context.Context, ID uint64) (err error) {
 func (svc reminder) Watch(ctx context.Context) {
 	if svc.reminderSender != nil {
 		var (
-			interval = time.Second
+			interval = time.Minute
 			rTicker  = time.NewTicker(interval)
 		)
 
@@ -319,7 +319,7 @@ func (svc reminder) Watch(ctx context.Context) {
 
 					// Send scheduled reminders to users
 					_ = rr.Walk(func(r *types.Reminder) error {
-						if r.RemindAt != nil && now().Round(interval) == r.RemindAt.Round(interval) {
+						if r.RemindAt != nil && r.DismissedAt == nil && now().Add(interval).After(*r.RemindAt) {
 							if err := svc.reminderSender.Send("reminder", r, r.AssignedTo); err != nil {
 								svc.log.Error("failed to send reminder to user", zap.Error(err))
 							}
