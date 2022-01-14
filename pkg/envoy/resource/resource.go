@@ -97,11 +97,7 @@ func Check(a string, ii ...interface{}) bool {
 
 // AddIdentifier adds a set of identifiers to the current resource
 func (t *base) AddIdentifier(ss ...string) {
-	if t.ii == nil {
-		t.ii = make(Identifiers)
-	}
-
-	t.ii.Add(ss...)
+	t.ii = t.ii.Add(ss...)
 }
 
 // SetIdentifier sets the identifiers to whatever was provided

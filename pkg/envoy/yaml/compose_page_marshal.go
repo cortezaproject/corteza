@@ -2,6 +2,7 @@ package yaml
 
 import (
 	"context"
+	"strconv"
 
 	automationTypes "github.com/cortezaproject/corteza-server/automation/types"
 	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
@@ -138,14 +139,14 @@ func (p *composePage) MarshalYAML() (interface{}, error) {
 	nn, _ := makeMap()
 
 	if p.relMod != nil {
-		nn, err = addMap(nn, "module", firstOkString(p.relMod.Handle, p.relMod.Name))
+		nn, err = addMap(nn, "module", firstOkString(p.relMod.Handle, strconv.FormatUint(p.relMod.ID, 10)))
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	if p.relParent != nil {
-		nn, err = addMap(nn, "parent", firstOkString(p.relParent.Handle, p.relParent.Title))
+		nn, err = addMap(nn, "parent", firstOkString(p.relParent.Handle, strconv.FormatUint(p.relParent.ID, 10)))
 		if err != nil {
 			return nil, err
 		}

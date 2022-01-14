@@ -2,6 +2,7 @@ package yaml
 
 import (
 	"context"
+	"strconv"
 
 	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
@@ -116,7 +117,7 @@ func (c *composeChartConfig) MarshalYAML() (interface{}, error) {
 func (c *composeChartConfigReport) MarshalYAML() (interface{}, error) {
 	nn, err := makeMap(
 		"filter", c.report.Filter,
-		"module", firstOkString(c.relModule.Handle, c.relModule.Name),
+		"module", firstOkString(c.relModule.Handle, strconv.FormatUint(c.relModule.ID, 10)),
 		"metrics", c.report.Metrics,
 		"dimensions", c.report.Dimensions,
 		"yAxis", c.report.YAxis,

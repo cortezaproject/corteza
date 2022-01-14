@@ -111,7 +111,7 @@ func (n *composeRecord) Prepare(ctx context.Context, pl *payload) (err error) {
 			return err
 		}
 		auxMap := make(map[string]uint64)
-		for i := range ref.Identifiers {
+		for _, i := range ref.Identifiers {
 			n.externalRef[i] = auxMap
 		}
 
@@ -153,7 +153,7 @@ func (n *composeRecord) Prepare(ctx context.Context, pl *payload) (err error) {
 	// Map existing records so we can perform updates
 	// Map to xref map for easier use later
 	auxMap := make(map[string]uint64)
-	for i := range n.res.RefMod.Identifiers {
+	for _, i := range n.res.RefMod.Identifiers {
 		n.externalRef[i] = auxMap
 	}
 	for _, r := range rr {
@@ -206,7 +206,7 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 	for _, ref := range pl.state.ParentResources {
 		if ref.ResourceType() == systemTypes.UserResourceType {
 			refUsr := ref.(*resource.User)
-			for i := range refUsr.Identifiers() {
+			for _, i := range refUsr.Identifiers() {
 				ux[i] = refUsr.SysID()
 			}
 		}
@@ -226,7 +226,7 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 
 	checkXRef := func(ii resource.Identifiers, ref string) (uint64, error) {
 		var auxMap map[string]uint64
-		for ri := range ii {
+		for _, ri := range ii {
 			if mp, ok := n.externalRef[ri]; ok {
 				auxMap = mp
 				break

@@ -17,13 +17,13 @@ func TestGraph_Walk(t *testing.T) {
 
 		a := &testResource{
 			resType:     "test:resource:1:",
-			identifiers: resource.Identifiers{"id1": true},
-			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2": true}}},
+			identifiers: resource.Identifiers{"id1"},
+			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2"}}},
 		}
 
 		b := &testResource{
 			resType:     "test:resource:1:",
-			identifiers: resource.Identifiers{"id2": true},
+			identifiers: resource.Identifiers{"id2"},
 			refs:        nil,
 		}
 
@@ -50,14 +50,14 @@ func TestGraph_Walk(t *testing.T) {
 
 		a := &testResource{
 			resType:     "test:resource:1:",
-			identifiers: resource.Identifiers{"id1": true},
-			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2": true}}},
+			identifiers: resource.Identifiers{"id1"},
+			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2"}}},
 		}
 
 		b := &testResource{
 			resType:     "test:resource:1:",
-			identifiers: resource.Identifiers{"id2": true},
-			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id1": true}}},
+			identifiers: resource.Identifiers{"id2"},
+			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id1"}}},
 		}
 
 		rr := []resource.Interface{
@@ -87,8 +87,8 @@ func TestGraph_Walk(t *testing.T) {
 
 		a := &testResource{
 			resType:     "test:resource:1:",
-			identifiers: resource.Identifiers{"id1": true},
-			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id1": true}}},
+			identifiers: resource.Identifiers{"id1"},
+			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id1"}}},
 		}
 
 		rr := []resource.Interface{
@@ -118,19 +118,19 @@ func TestGraph_WalkFlags(t *testing.T) {
 
 		a := &testResource{
 			resType:     "test:resource:1:",
-			identifiers: resource.Identifiers{"id1": true},
-			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2": true}}},
+			identifiers: resource.Identifiers{"id1"},
+			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2"}}},
 		}
 
 		b := &testResource{
 			resType:     "test:resource:1:",
-			identifiers: resource.Identifiers{"id2": true},
-			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id3": true}}},
+			identifiers: resource.Identifiers{"id2"},
+			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id3"}}},
 		}
 		c := &testResource{
 			resType:     "test:resource:1:",
-			identifiers: resource.Identifiers{"id3": true},
-			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id3": true}}},
+			identifiers: resource.Identifiers{"id3"},
+			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id3"}}},
 		}
 
 		rr := []resource.Interface{
@@ -172,28 +172,28 @@ func TestGraph_WalkFlags(t *testing.T) {
 
 		a := &testResource{
 			resType:     "test:resource:1:",
-			identifiers: resource.Identifiers{"id1": true},
-			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2": true}}},
+			identifiers: resource.Identifiers{"id1"},
+			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2"}}},
 		}
 
 		b := &testResource{
 			resType:     "test:resource:1:",
-			identifiers: resource.Identifiers{"id2": true},
-			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id3": true}}, &resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id5": true}}},
+			identifiers: resource.Identifiers{"id2"},
+			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id3"}}, &resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id5"}}},
 		}
 		c := &testResource{
 			resType:     "test:resource:1:",
-			identifiers: resource.Identifiers{"id3": true},
-			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id4": true}}},
+			identifiers: resource.Identifiers{"id3"},
+			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id4"}}},
 		}
 		d := &testResource{
 			resType:     "test:resource:1:",
-			identifiers: resource.Identifiers{"id4": true},
-			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2": true}}},
+			identifiers: resource.Identifiers{"id4"},
+			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2"}}},
 		}
 		e := &testResource{
 			resType:     "test:resource:1:",
-			identifiers: resource.Identifiers{"id5": true},
+			identifiers: resource.Identifiers{"id5"},
 			refs:        nil,
 		}
 
@@ -248,29 +248,29 @@ func TestGraph_WalkFlags(t *testing.T) {
 
 		a := &testResource{
 			resType:     "test:resource:1:",
-			identifiers: resource.Identifiers{"id1": true},
-			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2": true}}},
+			identifiers: resource.Identifiers{"id1"},
+			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2"}}},
 		}
 
 		b := &testResource{
 			resType:     "test:resource:1:",
-			identifiers: resource.Identifiers{"id2": true},
-			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id3": true}}},
+			identifiers: resource.Identifiers{"id2"},
+			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id3"}}},
 		}
 		c := &testResource{
 			resType:     "test:resource:1:",
-			identifiers: resource.Identifiers{"id3": true},
-			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id4": true}}, &resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id5": true}}},
+			identifiers: resource.Identifiers{"id3"},
+			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id4"}}, &resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id5"}}},
 		}
 		d := &testResource{
 			resType:     "test:resource:1:",
-			identifiers: resource.Identifiers{"id4": true},
-			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2": true}}},
+			identifiers: resource.Identifiers{"id4"},
+			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2"}}},
 		}
 		e := &testResource{
 			resType:     "test:resource:1:",
-			identifiers: resource.Identifiers{"id5": true},
-			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2": true}}},
+			identifiers: resource.Identifiers{"id5"},
+			refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2"}}},
 		}
 
 		rr := []resource.Interface{

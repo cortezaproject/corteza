@@ -142,19 +142,15 @@ func (c composeNamespaceMeta) empty() bool {
 }
 
 func relNsToRef(ns *types.Namespace) string {
-	return firstOkString(ns.Slug, ns.Name, strconv.FormatUint(ns.ID, 10))
+	return firstOkString(ns.Slug, strconv.FormatUint(ns.ID, 10))
 }
 
 func relModToRef(mod *types.Module) string {
-	return firstOkString(mod.Handle, mod.Name, strconv.FormatUint(mod.ID, 10))
+	return firstOkString(mod.Handle, strconv.FormatUint(mod.ID, 10))
 }
 
 func relWfToRef(mod *atypes.Workflow) string {
-	name := ""
-	if mod.Meta != nil {
-		name = mod.Meta.Name
-	}
-	return firstOkString(mod.Handle, name, strconv.FormatUint(mod.ID, 10))
+	return firstOkString(mod.Handle, strconv.FormatUint(mod.ID, 10))
 }
 
 func composeNamespaceErrNotFound(i string) error {
