@@ -91,6 +91,10 @@ errors:
     message: "unsupported import format"
     log: "could not import namespace {{namespace}}; unsupported format {{archiveFormat}}"
 
+  - error: importMissingNamespace
+    message: "import source does not contain a namespace"
+    log: "could not import namespace; import source does not contain a namespace"
+
   - error: importSessionNotFound
     message: "the import session does not exist"
     log: "could not import namespace {{namespace}}; the import session does not exist"
