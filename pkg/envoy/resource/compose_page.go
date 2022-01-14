@@ -154,23 +154,31 @@ outer:
 		switch b.Kind {
 		// Implement the rest when support is needed
 		case "Automation":
-			bb, _ := b.Options["buttons"].([]interface{})
-			for _, b := range bb {
-				button, _ := b.(map[string]interface{})
-				auxRef = r.pbAutomation(button)
-
+			if b.Options["buttons"] == nil {
 				// In case the block isn't connected to a workflow (placeholder, script)
 				if auxRef == nil {
 					r.removeBlock(i)
 					continue outer
 				}
+			} else {
+				bb, _ := b.Options["buttons"].([]interface{})
+				for _, b := range bb {
+					button, _ := b.(map[string]interface{})
+					auxRef = r.pbAutomation(button)
 
-				// In case we are removing it
-				if auxRef.equals(ref) {
-					r.ReplaceRef(ref, nil)
-					r.WfRefs = r.WfRefs.replaceRef(ref, nil)
-					r.removeBlock(i)
-					continue outer
+					// In case the block isn't connected to a workflow (placeholder, script)
+					if auxRef == nil {
+						r.removeBlock(i)
+						continue outer
+					}
+
+					// In case we are removing it
+					if auxRef.equals(ref) {
+						r.ReplaceRef(ref, nil)
+						r.WfRefs = r.WfRefs.replaceRef(ref, nil)
+						r.removeBlock(i)
+						continue outer
+					}
 				}
 			}
 		}

@@ -1,0 +1,60 @@
+namespace: ns1
+pages:
+  pg1:
+    title: pg1 title
+    blocks:
+    - title: pg1 b1
+      kind: Content
+      xywh: [0, 0, 1, 1]
+      options:
+        body: pg1 b1 content body
+
+    - title: pg1 b2
+      kind: RecordList
+      xywh: [0, 1, 1, 1]
+      options:
+        module: mod1
+        fields:
+        - name: f1
+        - name: f2
+
+    - title: pg1 b3 automation 1
+      kind: Automation
+      xywh: [0, 0, 0, 0]
+      options:
+        buttons:
+        - label: workflow button
+          resourceType: compose:record
+          workflow: wf1
+          stepID: 4
+
+    - title: pg1 b3 automation 2
+      kind: Automation
+      xywh: [0, 0, 0, 0]
+      options:
+        buttons:
+        - label: script button
+          script: /client-scripts/compose/test.js:default
+
+    - title: pg1 b3 automation 3
+      kind: Automation
+      xywh: [0, 0, 0, 0]
+      options:
+        buttons:
+        - label: placeholder button
+
+    - title: pg1 b3 automation 4
+      kind: Automation
+      xywh: [0, 0, 0, 0]
+
+  rpg2:
+    handle: rpg2
+    module: mod1
+    title: Record page for module "mod1"
+    blocks:
+    - title: rpg2 b1 title
+      kind: Record
+      options:
+        fields:
+        - name: f1
+        - name: f2

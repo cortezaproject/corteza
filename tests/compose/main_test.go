@@ -1,15 +1,23 @@
 package compose
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io/ioutil"
+	"mime/multipart"
+	"net/http"
 	"os"
 	"path"
+	"strings"
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/app"
 	"github.com/cortezaproject/corteza-server/compose/rest"
 	"github.com/cortezaproject/corteza-server/compose/service"
+	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/api/server"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
@@ -192,8 +200,12 @@ func cleanup(t *testing.T) {
 	}
 }
 
+func scenario(t *testing.T) string {
+	return t.Name()[5:]
+}
+
 func loadScenario(ctx context.Context, s store.Storer, t *testing.T, h helper) {
-	loadScenarioWithName(ctx, s, t, h, t.Name()[5:])
+	loadScenarioWithName(ctx, s, t, h, scenario(t))
 }
 
 func loadScenarioWithName(ctx context.Context, s store.Storer, t *testing.T, h helper, scenario string) {
@@ -247,4 +259,133 @@ func setup(t *testing.T) (context.Context, helper, store.Storer) {
 	ctx := auth.SetIdentityToContext(context.Background(), u)
 
 	return ctx, h, s
+}
+
+func grantImportExport(h helper) {
+	helpers.AllowMe(h, types.ComponentRbacResource(), "namespace.create")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "module.create")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "page.create")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "chart.create")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read")
+	helpers.AllowMe(h, types.PageRbacResource(0, 0), "read")
+	helpers.AllowMe(h, types.ChartRbacResource(0, 0), "read")
+}
+
+func namespaceExportSafe(t *testing.T, h helper, namespaceID uint64) []byte {
+	bb, err := namespaceExport(t, h, namespaceID)
+	h.a.NoError(err)
+
+	return bb
+}
+
+func namespaceExport(t *testing.T, h helper, namespaceID uint64) ([]byte, error) {
+	out := h.apiInit().
+		Get(fmt.Sprintf("/namespace/%d/export/out.zip?jwt=%s", namespaceID, h.token)).
+		Expect(t).
+		Status(http.StatusOK).
+		End()
+
+	defer out.Response.Body.Close()
+
+	bb, err := ioutil.ReadAll(out.Response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if strings.HasPrefix(string(bb), "Error:") {
+		return nil, errors.New(string(bb))
+	}
+
+	return bb, nil
+}
+
+func namespaceImportInitPathSafe(t *testing.T, h helper, pp ...string) uint64 {
+	sessionID, err := namespaceImportInitPath(t, h, pp...)
+	h.a.NoError(err)
+
+	return sessionID
+}
+
+func namespaceImportInitPath(t *testing.T, h helper, pp ...string) (uint64, error) {
+	f, err := os.Open(testSource(t, pp...))
+	if err != nil {
+		return 0, err
+	}
+
+	defer f.Close()
+	bb, err := ioutil.ReadAll(f)
+	if err != nil {
+		return 0, err
+	}
+
+	return namespaceImportInit(t, h, bb)
+}
+
+func namespaceImportInitSafe(t *testing.T, h helper, arch []byte) uint64 {
+	sessionID, err := namespaceImportInit(t, h, arch)
+	h.a.NoError(err)
+
+	return sessionID
+}
+
+func namespaceImportInit(t *testing.T, h helper, arch []byte) (uint64, error) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("upload", "archive.zip")
+	h.noError(err)
+
+	_, err = part.Write(arch)
+	h.noError(err)
+	h.noError(writer.Close())
+
+	out := h.apiInit().
+		Post("/namespace/import").
+		Header("Accept", "application/json").
+		Body(body.String()).
+		ContentType(writer.FormDataContentType()).
+		Expect(h.t).
+		Status(http.StatusOK).
+		End()
+
+	defer out.Response.Body.Close()
+	bb, err := ioutil.ReadAll(out.Response.Body)
+	h.a.NoError(err)
+
+	var aux struct {
+		Error struct {
+			Message string
+		}
+		Response struct {
+			ID uint64 `json:"sessionID,string"`
+		}
+	}
+	h.a.NoError(json.Unmarshal(bb, &aux))
+
+	if aux.Error.Message != "" {
+		return 0, errors.New(aux.Error.Message)
+	}
+
+	return aux.Response.ID, nil
+}
+
+func namespaceImportRun(ctx context.Context, s store.Storer, t *testing.T, h helper, sessionID uint64, name, slug string) (*types.Namespace, types.ModuleSet, types.PageSet, types.ChartSet) {
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/import/%d", sessionID)).
+		Header("Accept", "application/json").
+		FormData("name", name).
+		FormData("slug", slug).
+		Expect(h.t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	ns, mm, pp, cc, _, err := fetchEntireNamespace(ctx, s, slug)
+	h.a.NoError(err)
+
+	return ns, mm, pp, cc
+}
+
+func testSource(t *testing.T, pp ...string) string {
+	return path.Join(append([]string{"testdata", scenario(t)}, pp...)...)
 }

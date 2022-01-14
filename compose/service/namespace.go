@@ -375,7 +375,9 @@ func (svc namespace) Export(ctx context.Context, namespaceID uint64, archive str
 		// initial validation
 		// - target namespace
 		targetNs, err := store.LookupComposeNamespaceByID(ctx, svc.store, namespaceID)
-		if err != nil && err != store.ErrNotFound {
+		if errors.IsNotFound(err) {
+			return NamespaceErrNotFound()
+		} else if err != nil {
 			return err
 		}
 		aProps.setNamespace(targetNs)
@@ -489,6 +491,10 @@ func (svc namespace) ImportInit(ctx context.Context, f multipart.File, size int6
 		nn := make([]resource.Interface, 0, 10)
 
 		for _, f := range archive.File {
+			if f.FileInfo().IsDir() {
+				continue
+			}
+
 			a, err := f.Open()
 			if err != nil {
 				return err
