@@ -48,5 +48,5 @@ func (nn composeChartSet) configureEncoder(cfg *EncoderConfig) {
 }
 
 func relChartToRef(chr *types.Chart) string {
-	return firstOkString(chr.Handle, chr.Name, strconv.FormatUint(chr.ID, 10))
+	return firstOkString(chr.Handle, strconv.FormatUint(chr.ID, 10))
 }

@@ -41,7 +41,7 @@ var (
 )
 
 func makeGenericFilter(ii resource.Identifiers) (f genericFilter) {
-	for i := range ii {
+	for _, i := range ii {
 		if i == "" {
 			continue
 		}

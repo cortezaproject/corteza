@@ -57,7 +57,7 @@ func TestGraphBuilder_Rel(t *testing.T) {
 		rr := []resource.Interface{
 			&testResource{
 				resType:     "test:resource:1:",
-				identifiers: resource.Identifiers{"id1": true},
+				identifiers: resource.Identifiers{"id1"},
 				refs:        nil,
 			},
 		}
@@ -78,12 +78,12 @@ func TestGraphBuilder_Rel(t *testing.T) {
 		rr := []resource.Interface{
 			&testResource{
 				resType:     "test:resource:1:",
-				identifiers: resource.Identifiers{"id1": true},
-				refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2": true}}},
+				identifiers: resource.Identifiers{"id1"},
+				refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2"}}},
 			},
 			&testResource{
 				resType:     "test:resource:1:",
-				identifiers: resource.Identifiers{"id2": true},
+				identifiers: resource.Identifiers{"id2"},
 				refs:        nil,
 			},
 		}
@@ -108,13 +108,13 @@ func TestGraphBuilder_Rel(t *testing.T) {
 		rr := []resource.Interface{
 			&testResource{
 				resType:     "test:resource:1:",
-				identifiers: resource.Identifiers{"id1": true},
-				refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2": true}}},
+				identifiers: resource.Identifiers{"id1"},
+				refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2"}}},
 			},
 			&testResource{
 				resType:     "test:resource:1:",
-				identifiers: resource.Identifiers{"id2": true},
-				refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id1": true}}},
+				identifiers: resource.Identifiers{"id2"},
+				refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id1"}}},
 			},
 		}
 
@@ -142,8 +142,8 @@ func TestGraphBuilder_Rel(t *testing.T) {
 		rr := []resource.Interface{
 			&testResource{
 				resType:     "test:resource:1:",
-				identifiers: resource.Identifiers{"id1": true},
-				refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2": true}}},
+				identifiers: resource.Identifiers{"id1"},
+				refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2"}}},
 			},
 		}
 
@@ -163,8 +163,8 @@ func TestGraphBuilder_Rel(t *testing.T) {
 		rr := []resource.Interface{
 			&testResource{
 				resType:     "test:resource:1:",
-				identifiers: resource.Identifiers{"id1": true},
-				refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id1": true}}},
+				identifiers: resource.Identifiers{"id1"},
+				refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id1"}}},
 			},
 		}
 

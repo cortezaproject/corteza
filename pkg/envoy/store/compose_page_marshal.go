@@ -70,7 +70,7 @@ func (n *composePage) Prepare(ctx context.Context, pl *payload) (err error) {
 		if wf == nil {
 			return resource.AutomationWorkflowErrUnresolved(wfr.Identifiers)
 		}
-		for id := range wfr.Identifiers {
+		for _, id := range wfr.Identifiers {
 			n.relWfs[id] = wf
 		}
 	}
@@ -84,7 +84,7 @@ func (n *composePage) Prepare(ctx context.Context, pl *payload) (err error) {
 		if mod == nil {
 			return resource.ComposeModuleErrUnresolved(mr.Identifiers)
 		}
-		for id := range mr.Identifiers {
+		for _, id := range mr.Identifiers {
 			n.relMods[id] = mod
 		}
 	}
@@ -98,7 +98,7 @@ func (n *composePage) Prepare(ctx context.Context, pl *payload) (err error) {
 		if chr == nil {
 			return resource.ComposeChartErrUnresolved(refChart.Identifiers)
 		}
-		for id := range refChart.Identifiers {
+		for _, id := range refChart.Identifiers {
 			n.relCharts[id] = chr
 		}
 	}
