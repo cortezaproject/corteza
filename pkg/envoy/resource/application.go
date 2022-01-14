@@ -41,7 +41,7 @@ func (r *Application) SysID() uint64 {
 func (r *Application) RBACParts() (resource string, ref *Ref, path []*Ref) {
 	ref = r.Ref()
 	path = nil
-	resource = fmt.Sprintf(types.ApplicationRbacResourceTpl(), types.ApplicationResourceType, firstOkString(strconv.FormatUint(r.Res.ID, 10), r.Res.Name))
+	resource = fmt.Sprintf(types.ApplicationRbacResourceTpl(), types.ApplicationResourceType, firstOkString(strconv.FormatUint(r.Res.ID, 10)))
 
 	return
 }

@@ -253,7 +253,7 @@ func (n *rbacRule) makeRBACResource(pl *payload) (string, error) {
 				return "", resource.ComposeRecordErrUnresolved(n.refRbacRes.Identifiers)
 			}
 
-			for i := range n.refRbacRes.Identifiers {
+			for _, i := range n.refRbacRes.Identifiers {
 				if p2ID = p2.IDMap[i]; p2ID > 0 {
 					break
 				}

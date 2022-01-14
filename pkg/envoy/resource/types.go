@@ -1,6 +1,8 @@
 package resource
 
-import "strconv"
+import (
+	"strconv"
+)
 
 type (
 	Interface interface {
@@ -55,7 +57,7 @@ type (
 		Constraints  RefSet
 	}
 
-	Identifiers map[string]bool
+	Identifiers []string
 )
 
 var (
@@ -74,15 +76,15 @@ func MakeWildRef(rt string) *Ref {
 }
 
 func MakeIdentifiers(ss ...string) Identifiers {
-	ii := make(Identifiers)
-	ii.Add(ss...)
+	ii := make(Identifiers, 0, len(ss))
+	ii = ii.Add(ss...)
 	return ii
 }
 
 func (ri Identifiers) Add(ii ...string) Identifiers {
 	for _, i := range ii {
 		if len(i) > 0 {
-			ri[i] = true
+			ri = append(ri, i)
 		}
 	}
 
@@ -90,18 +92,21 @@ func (ri Identifiers) Add(ii ...string) Identifiers {
 }
 
 func (ri Identifiers) Clone() Identifiers {
-	out := make(Identifiers)
-	for i := range ri {
-		out[i] = true
+	out := make(Identifiers, 0, len(ri))
+	for _, i := range ri {
+		out = append(out, i)
 	}
 
 	return out
 }
 
-func (ri Identifiers) HasAny(ii Identifiers) bool {
-	for i := range ii {
-		if ri[i] {
-			return true
+func (ri Identifiers) HasAny(check Identifiers) bool {
+	// The size of these will be tiny so no need for hashmaps
+	for _, i := range ri {
+		for _, j := range check {
+			if i == j {
+				return true
+			}
 		}
 	}
 
@@ -109,28 +114,22 @@ func (ri Identifiers) HasAny(ii Identifiers) bool {
 }
 
 func (ri Identifiers) StringSlice() []string {
-	ss := make([]string, 0, len(ri))
-	for k := range ri {
-		ss = append(ss, k)
-	}
-	return ss
+	return ri
 }
 
 func (ri Identifiers) First() string {
-	ss := ri.StringSlice()
-	if len(ss) <= 0 {
+	if len(ri) == 0 {
 		return ""
 	}
-	return ss[0]
+	return ri[0]
 }
 
 func (ri Identifiers) FirstID() uint64 {
-	ss := ri.StringSlice()
-	if len(ss) <= 0 {
+	if len(ri) <= 0 {
 		return 0
 	}
 
-	for _, s := range ss {
+	for _, s := range ri {
 		if v, err := strconv.ParseUint(s, 10, 64); err != nil {
 			continue
 		} else {
@@ -198,7 +197,16 @@ func (r *Ref) Constraint(c *Ref) *Ref {
 
 // IsWildcard checks if this Ref points to all resources of a specific resource type
 func (r *Ref) IsWildcard() bool {
-	return r.Identifiers != nil && r.Identifiers["*"]
+	if len(r.Identifiers) == 0 {
+		return false
+	}
+
+	for _, i := range r.Identifiers {
+		if i == "*" {
+			return true
+		}
+	}
+	return false
 }
 
 func (a *Ref) equals(b *Ref) bool {
@@ -284,9 +292,7 @@ func (rr RefSet) Unique() RefSet {
 		// not yet seen
 		if !ii.HasAny(r.Identifiers) {
 			out = append(out, r)
-			for i := range r.Identifiers {
-				seen[r.ResourceType][i] = true
-			}
+			seen[r.ResourceType] = seen[r.ResourceType].Add(r.Identifiers...)
 		}
 	}
 

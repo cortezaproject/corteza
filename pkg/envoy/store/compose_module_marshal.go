@@ -58,7 +58,7 @@ func (n *composeModule) Prepare(ctx context.Context, pl *payload) (err error) {
 			return composeModuleErrUnresolvedRecordField(refMod.Identifiers)
 		}
 
-		for i := range refMod.Identifiers {
+		for _, i := range refMod.Identifiers {
 			n.recFields[i] = mod.ID
 		}
 	}
@@ -77,7 +77,7 @@ func (n *composeModule) Prepare(ctx context.Context, pl *payload) (err error) {
 			return composeModuleErrUnresolvedUserField(refRole.Identifiers)
 		}
 
-		for i := range refRole.Identifiers {
+		for _, i := range refRole.Identifiers {
 			n.userFields[i] = rl.ID
 		}
 	}

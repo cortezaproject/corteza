@@ -66,7 +66,7 @@ func (ri nodeIndex) Add(nn ...*node) {
 			ri[rt] = make(map[string]nodeSet)
 		}
 
-		for i := range n.res.Identifiers() {
+		for _, i := range n.res.Identifiers() {
 			if ri[rt][i] == nil {
 				ri[rt][i] = make(nodeSet, 0, 5)
 			}
@@ -81,7 +81,7 @@ func (ri nodeIndex) GetRef(ref *resource.Ref) *node {
 		return nil
 	}
 
-	for i := range ref.Identifiers {
+	for _, i := range ref.Identifiers {
 		rr, has := refIi[i]
 		if !has || len(rr) == 0 {
 			continue

@@ -186,7 +186,7 @@ func (r *rbacRule) makeRBACResource(state *envoy.ResourceState) (string, error) 
 				return "", resource.ComposeRecordErrUnresolved(res.RefRes.Identifiers)
 			}
 
-			for i := range res.RefRes.Identifiers {
+			for _, i := range res.RefRes.Identifiers {
 				if _, ok := p2.IDMap[i]; ok {
 					p2ID = res.RefRes.Identifiers.First()
 					break
