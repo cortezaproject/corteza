@@ -102,7 +102,7 @@ func InitTestApp() {
 		r = chi.NewRouter()
 		r.Use(server.BaseMiddleware(false, logger.Default())...)
 		helpers.BindAuthMiddleware(r)
-		rest.MountRoutes(r)
+		r.Group(rest.MountRoutes(auth.JWT()))
 	}
 }
 
@@ -125,7 +125,7 @@ func newHelper(t *testing.T) helper {
 	helpers.UpdateRBAC(h.roleID)
 
 	var err error
-	h.token, err = auth.DefaultJwtHandler.Generate(context.Background(), h.cUser, 0)
+	h.token, err = auth.JWT().Generate(context.Background(), h.cUser, 0)
 	if err != nil {
 		panic(err)
 	}

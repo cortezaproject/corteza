@@ -9,6 +9,7 @@ import (
 
 	authService "github.com/cortezaproject/corteza-server/auth"
 	authHandlers "github.com/cortezaproject/corteza-server/auth/handlers"
+	"github.com/cortezaproject/corteza-server/auth/oauth2"
 	"github.com/cortezaproject/corteza-server/auth/saml"
 	authSettings "github.com/cortezaproject/corteza-server/auth/settings"
 	autService "github.com/cortezaproject/corteza-server/automation/service"
@@ -118,13 +119,6 @@ func (app *CortezaApp) Setup() (err error) {
 		} else {
 			locale.SetGlobal(languages)
 		}
-	}
-
-	// set base path for links&routes in auth server
-	authHandlers.BasePath = app.Opt.HTTPServer.BaseUrl
-
-	if err = auth.SetupDefault(app.Opt.Auth.Secret, app.Opt.Auth.Expiry); err != nil {
-		return
 	}
 
 	http.SetupDefaults(
@@ -323,6 +317,24 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return
 	}
 
+	{
+		app.oa2m = oauth2.NewManager(
+			app.Opt.Auth,
+			app.Log,
+			&oauth2.ContextClientStore{},
+			&oauth2.CortezaTokenStore{Store: app.Store},
+		)
+
+		// set base path for links&routes in auth server
+		authHandlers.BasePath = app.Opt.HTTPServer.BaseUrl
+
+		if err = auth.SetupDefault(app.oa2m, app.Opt.Auth.Secret, app.Opt.Auth.Expiry); err != nil {
+			return
+		}
+
+		app.jwt = auth.JWT()
+	}
+
 	app.WsServer = websocket.Server(app.Log, app.Opt.Websocket)
 
 	ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Init)
@@ -402,7 +414,8 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return
 	}
 
-	auth.SetJWTStore(app.Store)
+	//@todo remove vv
+	//auth.SetJWTStore(app.Store)
 
 	corredor.Service().SetUserFinder(sysService.DefaultUser)
 	corredor.Service().SetRoleFinder(sysService.DefaultRole)
@@ -498,7 +511,7 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 
 	updateSmtpSettings(app.Log, sysService.CurrentSettings)
 
-	if app.AuthService, err = authService.New(ctx, app.Log, app.Store, app.Opt.Auth); err != nil {
+	if app.AuthService, err = authService.New(ctx, app.Log, app.oa2m, app.Store, app.Opt.Auth); err != nil {
 		return fmt.Errorf("failed to init auth service: %w", err)
 	}
 

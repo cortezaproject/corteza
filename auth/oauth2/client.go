@@ -19,7 +19,8 @@ var _ oauth2.ClientStore = &ContextClientStore{}
 //
 // This requires that client is put in context before oauth2 procedures are executed!
 func (s ContextClientStore) GetByID(ctx context.Context, id string) (oauth2.ClientInfo, error) {
-	return &clientInfo{ctx.Value(&ContextClientStore{}).(*types.AuthClient)}, nil
+	return &clientInfo{&types.AuthClient{}}, nil
+	//return &clientInfo{ctx.Value(&ContextClientStore{}).(*types.AuthClient)}, nil
 }
 
 type (

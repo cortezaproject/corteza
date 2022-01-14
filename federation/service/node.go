@@ -24,13 +24,17 @@ const (
 )
 
 type (
+	tokenGenerator interface {
+		Generate(ctx context.Context, i auth.Identifiable, clientID uint64, scope ...string) (token []byte, err error)
+	}
+
 	node struct {
 		store   store.Storer
 		sysUser service.UserService
 
 		actionlog actionlog.Recorder
 
-		tokenEncoder auth.TokenGenerator
+		tokenEncoder tokenGenerator
 
 		name    string
 		host    string
@@ -56,7 +60,7 @@ type (
 	}
 )
 
-func Node(s store.Storer, u service.UserService, al actionlog.Recorder, th auth.TokenHandler, options options.FederationOpt, ac nodeAccessController) *node {
+func Node(s store.Storer, u service.UserService, al actionlog.Recorder, th tokenGenerator, options options.FederationOpt, ac nodeAccessController) *node {
 	return &node{
 		store:        s,
 		sysUser:      u,

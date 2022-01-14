@@ -18,18 +18,18 @@ require (
 	github.com/PuerkitoBio/goquery v1.5.1 // indirect
 	github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
-	github.com/brianvoe/gofakeit/v6 v6.11.1
-	github.com/cortezaproject/corteza-locale v0.0.0-20220103124542-5d327f93f42c
+	github.com/brianvoe/gofakeit/v6 v6.12.1
+	github.com/cortezaproject/corteza-locale v0.0.0-20220111135803-4fb0db6196bc
 	github.com/crewjam/saml v0.4.6
 	github.com/crusttech/go-oidc v0.0.0-20180918092017-982855dad3e1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/deckarep/golang-set v1.7.1 // indirect
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
 	github.com/disintegration/imaging v1.6.2
-	github.com/dop251/goja v0.0.0-20220102113305-2298ace6d09d
+	github.com/dop251/goja v0.0.0-20220110113543-261677941f3c
 	github.com/edwvee/exiffix v0.0.0-20210922235313-0f6cbda5e58f
-	github.com/evanw/esbuild v0.14.10
+	github.com/evanw/esbuild v0.14.11
 	github.com/fastly/go-utils v0.0.0-20180712184237-d95a45783239 // indirect
 	github.com/fsnotify/fsnotify v1.5.1
 	github.com/gabriel-vasile/mimetype v1.4.0
@@ -56,7 +56,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/joho/godotenv v1.4.0
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
-	github.com/lestrrat-go/jwx v1.2.14
+	github.com/lestrrat-go/jwx v1.2.15
 	github.com/lestrrat-go/strftime v1.0.5
 	github.com/lib/pq v1.10.4
 	github.com/markbates/goth v1.68.0
@@ -71,7 +71,7 @@ require (
 	github.com/prometheus/tsdb v0.7.1 // indirect
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd // indirect
 	github.com/sony/sonyflake v1.0.0
-	github.com/spf13/afero v1.7.1
+	github.com/spf13/afero v1.8.0
 	github.com/spf13/cast v1.4.1
 	github.com/spf13/cobra v1.3.0
 	github.com/steinfletcher/apitest v1.5.11
@@ -79,7 +79,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/tebeka/strftime v0.1.5 // indirect
 	go.uber.org/atomic v1.9.0
-	go.uber.org/zap v1.19.1
+	go.uber.org/zap v1.20.0
 	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 	golang.org/x/text v0.3.7

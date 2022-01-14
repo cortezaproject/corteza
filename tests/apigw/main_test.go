@@ -79,7 +79,7 @@ func InitTestApp() {
 		helpers.BindAuthMiddleware(r)
 
 		// Sys routes for route management tests
-		rest.MountRoutes(r)
+		r.Group(rest.MountRoutes(auth.JWT()))
 
 		// API gw routes
 		apigw.Setup(options.Apigw(), service.DefaultLogger, service.DefaultStore)
@@ -111,7 +111,7 @@ func newHelper(t *testing.T) helper {
 	helpers.UpdateRBAC(h.roleID)
 
 	var err error
-	h.token, err = auth.DefaultJwtHandler.Generate(context.Background(), h.cUser, 0)
+	h.token, err = auth.JWT().Generate(context.Background(), h.cUser, 0)
 	if err != nil {
 		panic(err)
 	}

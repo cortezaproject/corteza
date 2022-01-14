@@ -7,17 +7,19 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 )
 
-func MountRoutes(r chi.Router) {
-	// Protect all _private_ routes
-	r.Group(func(r chi.Router) {
-		r.Use(auth.MiddlewareValidOnly)
+func MountRoutes(mv auth.MiddlewareValidator) func(r chi.Router) {
+	return func(r chi.Router) {
+		// Protect all _private_ routes
+		r.Group(func(r chi.Router) {
+			r.Use(mv.HttpValidator("api"))
 
-		handlers.NewWorkflow(Workflow{}.New()).MountRoutes(r)
-		handlers.NewTrigger(Trigger{}.New()).MountRoutes(r)
-		handlers.NewSession(Session{}.New()).MountRoutes(r)
-		handlers.NewFunction(Function{}.New()).MountRoutes(r)
-		handlers.NewType(Type{}.New()).MountRoutes(r)
-		handlers.NewPermissions(Permissions{}.New()).MountRoutes(r)
-		handlers.NewEventTypes(EventTypes{}.New()).MountRoutes(r)
-	})
+			handlers.NewWorkflow(Workflow{}.New()).MountRoutes(r)
+			handlers.NewTrigger(Trigger{}.New()).MountRoutes(r)
+			handlers.NewSession(Session{}.New()).MountRoutes(r)
+			handlers.NewFunction(Function{}.New()).MountRoutes(r)
+			handlers.NewType(Type{}.New()).MountRoutes(r)
+			handlers.NewPermissions(Permissions{}.New()).MountRoutes(r)
+			handlers.NewEventTypes(EventTypes{}.New()).MountRoutes(r)
+		})
+	}
 }

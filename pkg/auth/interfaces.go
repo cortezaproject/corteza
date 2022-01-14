@@ -1,10 +1,5 @@
 package auth
 
-import (
-	"context"
-	"net/http"
-)
-
 type (
 	Identifiable interface {
 		Identity() uint64
@@ -13,16 +8,16 @@ type (
 		String() string
 	}
 
-	TokenGenerator interface {
-		Encode(i Identifiable, clientID uint64, scope ...string) (token []byte, err error)
-		Generate(ctx context.Context, i Identifiable, clientID uint64, scope ...string) (token []byte, err error)
-	}
+	//TokenGenerator interface {
+	//	Encode(i Identifiable, clientID uint64, scope ...string) (token []byte, err error)
+	//	Generate(ctx context.Context, i Identifiable, clientID uint64, scope ...string) (token []byte, err error)
+	//}
 
-	TokenHandler interface {
-		TokenGenerator
-		HttpVerifier() func(http.Handler) http.Handler
-		HttpAuthenticator() func(http.Handler) http.Handler
-	}
+	//TokenHandler interface {
+	//	TokenGenerator
+	//	HttpVerifier() func(http.Handler) http.Handler
+	//	HttpAuthenticator() func(http.Handler) http.Handler
+	//}
 
 	Signer interface {
 		Sign(userID uint64, pp ...interface{}) string

@@ -14,9 +14,8 @@ package types
 
 import (
 	"fmt"
-	"strconv"
-
 	"github.com/cortezaproject/corteza-server/pkg/locale"
+	"strconv"
 )
 
 type (

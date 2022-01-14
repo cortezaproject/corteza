@@ -3,7 +3,6 @@ package oauth2
 import (
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/go-oauth2/oauth2/v4"
@@ -30,9 +29,6 @@ func NewManager(opt options.AuthOpt, log *zap.Logger, cs oauth2.ClientStore, ts 
 
 	// token store
 	manager.MapTokenStorage(ts)
-
-	// generate jwt access token
-	manager.MapAccessGenerate(NewJWTAccessGenerate(auth.DefaultJwtHandler))
 	manager.MapClientStorage(cs)
 
 	manager.SetValidateURIHandler(func(baseURI, redirectURI string) (err error) {
@@ -67,7 +63,7 @@ func NewManager(opt options.AuthOpt, log *zap.Logger, cs oauth2.ClientStore, ts 
 	return manager
 }
 
-func NewServer(manager *manage.Manager) *server.Server {
+func NewServer(manager oauth2.Manager) *server.Server {
 	srv := server.NewServer(&server.Config{
 		TokenType:             "Bearer",
 		AllowGetAccessRequest: false,

@@ -49,8 +49,7 @@ func (h AuthHandlers) oauth2Authorize(req *request.AuthReq) (err error) {
 		return err
 	}
 
-	// add client to context so we can reach it from client store via context.Value() fn
-	//
+	// add client to context, now we can reach it from client store via context.Value() fn
 	// this way we work around the limitations we have with the oauth2 lib.
 	ctx = context.WithValue(req.Context(), &oauth2.ContextClientStore{}, client)
 
@@ -60,7 +59,7 @@ func (h AuthHandlers) oauth2Authorize(req *request.AuthReq) (err error) {
 		request.SetOauth2Client(req.Session, client)
 	}
 
-	// set to -1 to make sure that wrapping request handler
+	// set to -1 to make sure wrapping request handler
 	// does not send status code!
 	req.Status = -1
 

@@ -38,3 +38,20 @@ func ErrUnauthorizedScope() error {
 		errors.StackTrimAtFn("http.HandlerFunc.ServeHTTP"),
 	)
 }
+
+func ErrMalformedToken(details string) error {
+	return errors.New(
+		errors.KindUnauthorized,
+
+		"malformed token: "+details,
+
+		errors.Meta("type", "malformedToken"),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "internal"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.malformedToken"),
+
+		errors.StackSkip(1),
+		errors.StackTrimAtFn("http.HandlerFunc.ServeHTTP"),
+	)
+}

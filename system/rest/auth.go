@@ -14,8 +14,12 @@ import (
 var _ = errors.Wrap
 
 type (
+	tokenGenerator interface {
+		Generate(ctx context.Context, i auth.Identifiable, clientID uint64, scope ...string) (token []byte, err error)
+	}
+
 	Auth struct {
-		tokenHandler auth.TokenGenerator
+		tokenHandler tokenGenerator
 		settings     *types.AppSettings
 		authSvc      authUserService
 	}
@@ -47,7 +51,7 @@ type (
 
 func (Auth) New() *Auth {
 	return &Auth{
-		tokenHandler: auth.DefaultJwtHandler,
+		tokenHandler: auth.JWT(),
 		settings:     service.CurrentSettings,
 		authSvc:      service.DefaultAuth,
 	}
