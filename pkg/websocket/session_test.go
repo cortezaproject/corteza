@@ -7,15 +7,15 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
 func TestSession_procRawMessage(t *testing.T) {
 	var (
-		req             = require.New(t)
-		s               = session{server: Server(nil, options.WebsocketOpt{})}
-		jwtHandler, err = auth.TokenManager("secret", time.Minute)
+		req = require.New(t)
+		s   = session{server: Server(nil, options.WebsocketOpt{})}
 
 		userID uint64 = 123
 		token  []byte
@@ -28,6 +28,9 @@ func TestSession_procRawMessage(t *testing.T) {
 		}
 	)
 
+	jwtManager, err := auth.NewJWTManager(nil, jwa.HS512, "secret", time.Minute)
+	req.NoError(err)
+
 	if testing.Verbose() {
 		s.logger = logger.MakeDebugLogger()
 	} else {
@@ -36,7 +39,7 @@ func TestSession_procRawMessage(t *testing.T) {
 
 	req.NoError(err)
 
-	token, err = jwtHandler.Encode(auth.Authenticated(userID, 456, 789), 0, "api")
+	token, err = jwtManager.Sign("access-token", auth.Authenticated(userID, 456, 789), 0, "api")
 	req.NoError(err)
 
 	req.EqualError(s.procRawMessage([]byte("{}")), "unauthenticated session")
@@ -53,7 +56,7 @@ func TestSession_procRawMessage(t *testing.T) {
 	req.Equal(userID, s.identity.Identity())
 
 	// Repeat with the same user
-	token, err = jwtHandler.Encode(auth.Authenticated(userID, 456, 789), 0, "api")
+	token, err = jwtManager.Sign("access-token", auth.Authenticated(userID, 456, 789), 0, "api")
 	req.NoError(err)
 
 	req.NoError(s.procRawMessage(mockResponse(token)))
@@ -61,9 +64,10 @@ func TestSession_procRawMessage(t *testing.T) {
 	req.Equal(userID, s.identity.Identity())
 
 	// Try to authenticate on an existing authenticated session as a different user
-	token, err = jwtHandler.Encode(auth.Authenticated(userID+1, 456, 789), 0, "api")
+	token, err = jwtManager.Sign("access-token", auth.Authenticated(userID+1, 456, 789), 0, "api")
 	req.NoError(err)
 
 	req.EqualError(s.procRawMessage(mockResponse(token)), "unauthorized: identity does not match")
 
+	t.Error("are we actually checking if access token exists?")
 }

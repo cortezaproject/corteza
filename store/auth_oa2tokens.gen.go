@@ -10,12 +10,14 @@ package store
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
 	AuthOa2tokens interface {
 		SearchAuthOa2tokens(ctx context.Context, f types.AuthOa2tokenFilter) (types.AuthOa2tokenSet, types.AuthOa2tokenFilter, error)
+		LookupAuthOa2tokenByID(ctx context.Context, id uint64) (*types.AuthOa2token, error)
 		LookupAuthOa2tokenByCode(ctx context.Context, code string) (*types.AuthOa2token, error)
 		LookupAuthOa2tokenByAccess(ctx context.Context, access string) (*types.AuthOa2token, error)
 		LookupAuthOa2tokenByRefresh(ctx context.Context, refresh string) (*types.AuthOa2token, error)
@@ -52,6 +54,11 @@ var _ context.Context
 // SearchAuthOa2tokens returns all matching AuthOa2tokens from store
 func SearchAuthOa2tokens(ctx context.Context, s AuthOa2tokens, f types.AuthOa2tokenFilter) (types.AuthOa2tokenSet, types.AuthOa2tokenFilter, error) {
 	return s.SearchAuthOa2tokens(ctx, f)
+}
+
+// LookupAuthOa2tokenByID
+func LookupAuthOa2tokenByID(ctx context.Context, s AuthOa2tokens, id uint64) (*types.AuthOa2token, error) {
+	return s.LookupAuthOa2tokenByID(ctx, id)
 }
 
 // LookupAuthOa2tokenByCode

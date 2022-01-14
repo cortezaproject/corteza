@@ -1,8 +1,9 @@
 package types
 
 import (
-	sqlxTypes "github.com/jmoiron/sqlx/types"
 	"time"
+
+	sqlxTypes "github.com/jmoiron/sqlx/types"
 )
 
 type (

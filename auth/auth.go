@@ -51,7 +51,7 @@ type (
 var PublicAssets embed.FS
 
 // New initializes Auth service that orchestrates session manager, oauth2 manager and http request handlers
-func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthOpt) (svc *service, err error) {
+func New(ctx context.Context, log *zap.Logger, oa2m oauth2def.Manager, s store.Storer, opt options.AuthOpt) (svc *service, err error) {
 	var (
 		tpls      templateExecutor
 		defClient *types.AuthClient
@@ -73,14 +73,7 @@ func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthO
 
 	sesManager := request.NewSessionManager(s, opt, log)
 
-	oauth2Manager := oauth2.NewManager(
-		opt,
-		log,
-		&oauth2.ContextClientStore{},
-		&oauth2.CortezaTokenStore{Store: s},
-	)
-
-	oauth2Server := oauth2.NewServer(oauth2Manager)
+	oauth2Server := oauth2.NewServer(oa2m)
 
 	// Called after oauth2 authorization request is validated
 	// We'll try to get valid user out of the session or redirect user to login page

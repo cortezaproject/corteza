@@ -11,6 +11,7 @@ package rdbms
 import (
 	"context"
 	"database/sql"
+
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store"
@@ -83,6 +84,13 @@ func (s Store) QueryAuthOa2tokens(
 	}
 
 	return set, nil
+}
+
+// LookupAuthOa2tokenByID
+func (s Store) LookupAuthOa2tokenByID(ctx context.Context, id uint64) (*types.AuthOa2token, error) {
+	return s.execLookupAuthOa2token(ctx, squirrel.Eq{
+		s.preprocessColumn("tkn.id", ""): store.PreprocessValue(id, ""),
+	})
 }
 
 // LookupAuthOa2tokenByCode

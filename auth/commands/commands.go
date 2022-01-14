@@ -91,9 +91,9 @@ func Command(ctx context.Context, app serviceInitializer, storeInit func(ctx con
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
 			var (
-				at   []byte
-				user *types.User
-				err  error
+				signedToken []byte
+				user        *types.User
+				err         error
 
 				userStr = args[0]
 			)
@@ -104,15 +104,15 @@ func Command(ctx context.Context, app serviceInitializer, storeInit func(ctx con
 			err = service.DefaultAuth.LoadRoleMemberships(ctx, user)
 			cli.HandleError(err)
 
-			at, err = auth.DefaultJwtHandler.Generate(ctx, user, 0)
+			signedToken, err = auth.JWT().Generate(ctx, user, 0, "api", "profile")
 			cli.HandleError(err)
-			cmd.Println(string(at))
+			cmd.Println(string(signedToken))
 		},
 	}
 
 	testEmails := &cobra.Command{
 		Use:     "test-notifications [recipient]",
-		Short:   "Sends samples of all authentication notification to receipient",
+		Short:   "Sends samples of all authentication notification to recipient",
 		Args:    cobra.ExactArgs(1),
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {

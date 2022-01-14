@@ -104,7 +104,7 @@ type (
 	}
 
 	authTokenMaker interface {
-		auth.TokenGenerator
+		Generate(ctx context.Context, i auth.Identifiable, clientID uint64, scope ...string) (token []byte, err error)
 	}
 )
 
@@ -168,7 +168,7 @@ func NewService(logger *zap.Logger, opt options.CorredorOpt) *service {
 
 		iteratorProviders: make(map[string]IteratorResourceFinder),
 
-		authTokenMaker: auth.DefaultJwtHandler,
+		authTokenMaker: auth.JWT(),
 		eventRegistry:  eventbus.Service(),
 
 		denyExec: make(map[string]map[uint64]bool),

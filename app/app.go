@@ -5,11 +5,13 @@ import (
 	"net/http"
 
 	"github.com/cortezaproject/corteza-server/auth/settings"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/plugin"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-oauth2/oauth2/v4"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -61,6 +63,10 @@ type (
 
 		// CLI Commands
 		Command *cobra.Command
+
+		jwt auth.MiddlewareValidator
+
+		oa2m oauth2.Manager
 
 		// Servers
 		HttpServer httpApiServer

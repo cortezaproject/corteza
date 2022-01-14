@@ -5,15 +5,17 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
-	"net/http"
-	"strings"
-	"time"
 )
 
 // cortezaSessionStore implements the session store and bridge to corteza store
@@ -186,7 +188,7 @@ func (s cortezaSessionStore) save(ctx context.Context, ses *sessions.Session) (e
 			cortezaSession.UserID = au.User.ID
 		}
 
-		extra := GetExtraReqInfoFromContext(ctx)
+		extra := auth.GetExtraReqInfoFromContext(ctx)
 		cortezaSession.UserAgent = extra.UserAgent
 		cortezaSession.RemoteAddr = extra.RemoteAddr
 

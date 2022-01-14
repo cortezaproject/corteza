@@ -86,7 +86,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 
 	DefaultAccessControl = AccessControl()
 
-	DefaultNode = Node(DefaultStore, service.DefaultUser, DefaultActionlog, auth.DefaultJwtHandler, c.Federation, DefaultAccessControl)
+	DefaultNode = Node(DefaultStore, service.DefaultUser, DefaultActionlog, auth.JWT(), c.Federation, DefaultAccessControl)
 	DefaultNodeSync = NodeSync()
 	DefaultExposedModule = ExposedModule()
 	DefaultSharedModule = SharedModule()

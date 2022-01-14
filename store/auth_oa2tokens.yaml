@@ -20,6 +20,7 @@ rdbms:
   customFilterConverter: true
 
 lookups:
+  - fields: [ ID ]
   - fields: [ Code ]
     uniqueConstraintCheck: true
   - fields: [ Access ]

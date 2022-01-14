@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/id"
@@ -44,23 +43,36 @@ var (
 
 func (c CortezaTokenStore) Create(ctx context.Context, info oauth2.TokenInfo) (err error) {
 	var (
-		eti  = request.GetExtraReqInfoFromContext(ctx)
-		oa2t = &types.AuthOa2token{
-			ID:         nextID(),
-			CreatedAt:  *now(),
-			RemoteAddr: eti.RemoteAddr,
-			UserAgent:  eti.UserAgent,
-		}
+		oa2t *types.AuthOa2token
+		acc  *types.AuthConfirmedClient
 
-		acc = &types.AuthConfirmedClient{
-			ConfirmedAt: oa2t.CreatedAt,
-		}
+		userID   uint64
+		clientID uint64
+
+		jwtID = id.Next()
 	)
 
+	if clientID, err = strconv.ParseUint(info.GetClientID(), 10, 64); err != nil {
+		return fmt.Errorf("could not parse client ID from token info: %w", err)
+	}
+
+	if userID, _ = auth.ExtractFromSubClaim(info.GetUserID()); userID == 0 {
+		return fmt.Errorf("could not parse user ID from token info")
+	}
+
+	// Make oauth2 token and auth confirmation structs from user and client IDs
+	if oa2t, acc, err = makeAuthStructs(ctx, jwtID, userID, clientID, info, info.GetCodeExpiresIn()); err != nil {
+		return
+	}
+
+	// this is oauth2 specific go-code and there is no
+	// need for it to be moved to MakeAuthStructs fn in auth pkg
 	if code := info.GetCode(); code != "" {
 		oa2t.Code = code
-		oa2t.ExpiresAt = info.GetCodeCreateAt().Add(info.GetCodeExpiresIn())
 	} else {
+		// When creating non-access-code tokens,
+		// we need to overwrite expiration time
+		// with custom values for access or refresh token
 		oa2t.Access = info.GetAccess()
 		oa2t.ExpiresAt = info.GetAccessCreateAt().Add(info.GetAccessExpiresIn())
 
@@ -70,32 +82,28 @@ func (c CortezaTokenStore) Create(ctx context.Context, info oauth2.TokenInfo) (e
 		}
 	}
 
-	if oa2t.Data, err = json.Marshal(info); err != nil {
-		return
-	}
+	//if oa2t.ClientID, err = strconv.ParseUint(info.GetClientID(), 10, 64); err != nil {
+	//	return fmt.Errorf("could not parse client ID from token info: %w", err)
+	//}
 
-	if oa2t.ClientID, err = strconv.ParseUint(info.GetClientID(), 10, 64); err != nil {
-		return fmt.Errorf("could not parse client ID from token info: %w", err)
-	}
-
-	// copy client id to auth client confirmation
-	acc.ClientID = oa2t.ClientID
-
-	if info.GetUserID() != "" {
-		if oa2t.UserID, _ = auth.ExtractFromSubClaim(info.GetUserID()); oa2t.UserID == 0 {
-			// UserID stores collection of IDs: user's ID and set of all roles user is member of
-			return fmt.Errorf("could not parse user ID from token info")
-		}
-	}
-
-	// copy user id to auth client confirmation
-	acc.UserID = oa2t.UserID
-
+	//if info.GetUserID() != "" {
+	//	if oa2t.UserID, _ = auth.ExtractFromSubClaim(info.GetUserID()); oa2t.UserID == 0 {
+	//		// UserID stores collection of IDs: user's ID and set of all roles user is member of
+	//		return fmt.Errorf("could not parse user ID from token info")
+	//	}
+	//}
+	//
+	//// copy user id to auth client confirmation
+	//acc.UserID = oa2t.UserID
 	if err = store.UpsertAuthConfirmedClient(ctx, c.Store, acc); err != nil {
 		return
 	}
 
-	return store.CreateAuthOa2token(ctx, c.Store, oa2t)
+	if err = store.CreateAuthOa2token(ctx, c.Store, oa2t); err != nil {
+		return
+	}
+
+	return nil
 }
 
 func (c CortezaTokenStore) RemoveByCode(ctx context.Context, code string) error {
@@ -115,8 +123,8 @@ func (c CortezaTokenStore) GetByCode(ctx context.Context, code string) (oauth2.T
 		internal = &oauth2models.Token{}
 		t, err   = store.LookupAuthOa2tokenByCode(ctx, c.Store, code)
 	)
-	if err != nil {
 
+	if err != nil {
 		if errors.IsNotFound(err) {
 			return nil, oauth2errors.ErrInvalidAuthorizeCode
 		}
@@ -132,6 +140,7 @@ func (c CortezaTokenStore) GetByAccess(ctx context.Context, access string) (oaut
 		internal = &oauth2models.Token{}
 		t, err   = store.LookupAuthOa2tokenByAccess(ctx, c.Store, access)
 	)
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to get access token: %w", err)
 	}
@@ -144,6 +153,7 @@ func (c CortezaTokenStore) GetByRefresh(ctx context.Context, refresh string) (oa
 		internal = &oauth2models.Token{}
 		t, err   = store.LookupAuthOa2tokenByRefresh(ctx, c.Store, refresh)
 	)
+
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return nil, oauth2errors.ErrInvalidRefreshToken
@@ -157,4 +167,33 @@ func (c CortezaTokenStore) GetByRefresh(ctx context.Context, refresh string) (oa
 	}
 
 	return internal, t.Data.Unmarshal(internal)
+}
+
+func makeAuthStructs(ctx context.Context, jwtID, userID, clientID uint64, data oauth2.TokenInfo, expiresAt time.Duration) (oa2t *types.AuthOa2token, acc *types.AuthConfirmedClient, err error) {
+	var (
+		eti       = auth.GetExtraReqInfoFromContext(ctx)
+		createdAt = time.Now().Round(time.Second)
+	)
+
+	oa2t = &types.AuthOa2token{
+		ID:         jwtID,
+		CreatedAt:  createdAt,
+		RemoteAddr: eti.RemoteAddr,
+		UserAgent:  eti.UserAgent,
+		ClientID:   clientID,
+		UserID:     userID,
+		ExpiresAt:  createdAt.Add(expiresAt),
+	}
+
+	acc = &types.AuthConfirmedClient{
+		ClientID:    clientID,
+		UserID:      userID,
+		ConfirmedAt: createdAt,
+	}
+
+	if oa2t.Data, err = json.Marshal(data); err != nil {
+		return nil, nil, err
+	}
+
+	return
 }

@@ -95,13 +95,13 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 				zap.String("baseUrl", fullpathAPI),
 			)
 
-			r.Route("/system", systemRest.MountRoutes)
-			r.Route("/automation", automationRest.MountRoutes)
-			r.Route("/compose", composeRest.MountRoutes)
+			r.Route("/system", systemRest.MountRoutes(app.jwt))
+			r.Route("/automation", automationRest.MountRoutes(app.jwt))
+			r.Route("/compose", composeRest.MountRoutes(app.jwt))
 			r.Route("/websocket", app.WsServer.MountRoutes)
 
 			if app.Opt.Federation.Enabled {
-				r.Route("/federation", federationRest.MountRoutes)
+				r.Route("/federation", federationRest.MountRoutes(app.jwt))
 			}
 
 			var fullpathDocs = options.CleanBase(ho.BaseUrl, ho.ApiBaseUrl, "docs")
