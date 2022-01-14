@@ -169,7 +169,7 @@ func (wrap *composeChartConfigReport) UnmarshalYAML(n *yaml.Node) error {
 			// custom decoder for referenced module
 			// we'll copy this to the dedicated prop of the wrapping structure
 			// so that the parent decoder can collect it
-			return decodeRef(v, "chart report module", &wrap.refModule)
+			return y7s.DecodeScalar(v, "chart report module", &wrap.refModule)
 
 		}
 

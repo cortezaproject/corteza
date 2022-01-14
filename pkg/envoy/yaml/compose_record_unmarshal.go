@@ -23,7 +23,7 @@ func (wset *composeRecordSet) UnmarshalYAML(n *yaml.Node) error {
 			return y7s.NodeErr(n, "malformed record definition")
 		}
 
-		if err = decodeRef(k, "module", &moduleRef); err != nil {
+		if err = y7s.DecodeScalar(k, "module", &moduleRef); err != nil {
 			return
 		}
 
@@ -77,7 +77,7 @@ func (wrap *composeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
 			return y7s.DecodeScalar(v, "recordID", &wrap.id)
 
 		case "module":
-			return decodeRef(v, "module", &wrap.refModule)
+			return y7s.DecodeScalar(v, "module", &wrap.refModule)
 
 		case "allow", "deny":
 			return errors.New("compose record RBAC rules not supported on resource level")

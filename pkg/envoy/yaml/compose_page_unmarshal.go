@@ -83,10 +83,10 @@ func (wrap *composePage) UnmarshalYAML(n *yaml.Node) (err error) {
 			return y7s.DecodeScalar(v, "page handle", &wrap.res.Handle)
 
 		case "module":
-			return decodeRef(v, "page module", &wrap.refModule)
+			return y7s.DecodeScalar(v, "page module", &wrap.refModule)
 
 		case "parent", "selfid":
-			return decodeRef(v, "page parent", &wrap.refParent)
+			return y7s.DecodeScalar(v, "page parent", &wrap.refParent)
 
 		case "weight", "order":
 			return y7s.DecodeScalar(v, "page weight", &wrap.res.Weight)
