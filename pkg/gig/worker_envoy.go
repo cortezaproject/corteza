@@ -16,7 +16,13 @@ import (
 
 type (
 	WorkerStateEnvoy struct {
-		Resources []interface{}
+		Resources []envoyResourceWrap
+	}
+	envoyResourceWrap struct {
+		ResourceType string
+		Identifier   string
+		Identifiers  []string
+		Raw          interface{}
 	}
 
 	envoyDirection int
@@ -60,6 +66,12 @@ var (
 	ResourceTranslationResourceType = resource.ResourceTranslationType
 )
 
+func WorkerEnvoy(s store.Storer) Worker {
+	return &workerEnvoy{
+		store: s,
+	}
+}
+
 func WorkerImport(s store.Storer) Worker {
 	return &workerEnvoy{
 		direction: envoyDirectionIn,
@@ -72,6 +84,14 @@ func WorkerExport(s store.Storer) Worker {
 		store:     s,
 		direction: envoyDirectionOut,
 	}
+}
+
+func (w *workerEnvoy) MarkImport() {
+	w.direction = envoyDirectionIn
+}
+
+func (w *workerEnvoy) MarkExport() {
+	w.direction = envoyDirectionOut
 }
 
 func (w *workerEnvoy) Ref() string {
@@ -105,10 +125,13 @@ func (w *workerEnvoy) collectMeta() (meta WorkMeta) {
 
 func (w *workerEnvoy) State(context.Context) (WorkerState, error) {
 	out := WorkerStateEnvoy{
-		Resources: make([]interface{}, len(w.resources)),
+		Resources: make([]envoyResourceWrap, len(w.resources)),
 	}
 	for i, r := range w.resources {
-		out.Resources[i] = r.Resource()
+		out.Resources[i].ResourceType = r.ResourceType()
+		out.Resources[i].Identifier = r.Identifiers().First()
+		out.Resources[i].Identifiers = r.Identifiers().StringSlice()
+		out.Resources[i].Raw = r.Resource()
 	}
 
 	return out, nil
