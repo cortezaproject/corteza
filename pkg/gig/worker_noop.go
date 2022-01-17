@@ -5,7 +5,9 @@ import (
 )
 
 type (
-	WorkerNoopState map[string]interface{}
+	WorkerNoopState struct {
+		Sources SourceWrapSet
+	}
 
 	workerNoop struct {
 		sources SourceSet
@@ -46,15 +48,16 @@ func (w *workerNoop) State(context.Context) (WorkerState, error) {
 	sources := make([]SourceWrap, 0, len(w.sources))
 	for _, src := range w.sources {
 		sources = append(sources, SourceWrap{
+			ID:       src.ID(),
 			Name:     src.FileName(),
-			Size:     src.Size(),
 			Mime:     src.MimeType(),
+			Size:     src.Size(),
 			Checksum: src.Checksum(),
 		})
 	}
 
 	out := WorkerNoopState{
-		"sources": sources,
+		Sources: sources,
 	}
 
 	return out, nil

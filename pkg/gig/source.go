@@ -101,6 +101,15 @@ func (set SourceWrapSet) Has(id uint64) bool {
 	return false
 }
 
+func (set SourceWrapSet) HasByName(name string) bool {
+	for _, s := range set {
+		if s.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
 func (set SourceSet) GetByID(id uint64) (out *Source) {
 	for _, s := range set {
 		if s.ID() == id {
