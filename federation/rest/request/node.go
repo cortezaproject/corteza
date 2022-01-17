@@ -229,7 +229,7 @@ func (r NodeCreate) GetPairingURI() string {
 // Fill processes request and fills internal variables
 func (r *NodeCreate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -424,7 +424,7 @@ func (r NodeUpdate) GetBaseURL() string {
 // Fill processes request and fills internal variables
 func (r *NodeUpdate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -675,7 +675,7 @@ func (r NodeHandshakeComplete) GetAuthToken() string {
 // Fill processes request and fills internal variables
 func (r *NodeHandshakeComplete) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {

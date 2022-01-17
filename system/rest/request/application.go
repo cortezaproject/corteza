@@ -434,7 +434,7 @@ func (r ApplicationCreate) GetLabels() map[string]string {
 // Fill processes request and fills internal variables
 func (r *ApplicationCreate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -615,7 +615,7 @@ func (r ApplicationUpdate) GetLabels() map[string]string {
 // Fill processes request and fills internal variables
 func (r *ApplicationUpdate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -772,7 +772,7 @@ func (r ApplicationUpload) GetUpload() *multipart.FileHeader {
 // Fill processes request and fills internal variables
 func (r *ApplicationUpload) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -1083,7 +1083,7 @@ func (r ApplicationTriggerScript) GetArgs() map[string]interface{} {
 // Fill processes request and fills internal variables
 func (r *ApplicationTriggerScript) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -1184,7 +1184,7 @@ func (r ApplicationReorder) GetApplicationIDs() []string {
 // Fill processes request and fills internal variables
 func (r *ApplicationReorder) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {

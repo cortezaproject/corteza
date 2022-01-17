@@ -403,7 +403,7 @@ func (r AuthClientCreate) GetLabels() map[string]string {
 // Fill processes request and fills internal variables
 func (r *AuthClientCreate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -704,7 +704,7 @@ func (r AuthClientUpdate) GetLabels() map[string]string {
 // Fill processes request and fills internal variables
 func (r *AuthClientUpdate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {

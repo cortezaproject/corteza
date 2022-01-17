@@ -290,7 +290,7 @@ func (r AutomationTriggerScript) GetArgs() map[string]interface{} {
 // Fill processes request and fills internal variables
 func (r *AutomationTriggerScript) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {

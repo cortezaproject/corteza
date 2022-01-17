@@ -477,7 +477,7 @@ func (r WorkflowCreate) GetOwnedBy() uint64 {
 // Fill processes request and fills internal variables
 func (r *WorkflowCreate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -798,7 +798,7 @@ func (r WorkflowUpdate) GetOwnedBy() uint64 {
 // Fill processes request and fills internal variables
 func (r *WorkflowUpdate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -1182,7 +1182,7 @@ func (r WorkflowTest) GetRunAs() bool {
 // Fill processes request and fills internal variables
 func (r *WorkflowTest) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -1313,7 +1313,7 @@ func (r WorkflowExec) GetAsync() bool {
 // Fill processes request and fills internal variables
 func (r *WorkflowExec) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {

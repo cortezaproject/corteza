@@ -312,7 +312,7 @@ func (r ApigwFilterCreate) GetParams() types.ApigwFilterParams {
 // Fill processes request and fills internal variables
 func (r *ApigwFilterCreate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -493,7 +493,7 @@ func (r ApigwFilterUpdate) GetParams() types.ApigwFilterParams {
 // Fill processes request and fills internal variables
 func (r *ApigwFilterUpdate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {

@@ -393,7 +393,7 @@ func (r NamespaceCreate) GetMeta() sqlxTypes.JSONText {
 // Fill processes request and fills internal variables
 func (r *NamespaceCreate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -595,7 +595,7 @@ func (r NamespaceUpdate) GetUpdatedAt() *time.Time {
 // Fill processes request and fills internal variables
 func (r *NamespaceUpdate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -787,7 +787,7 @@ func (r NamespaceUpload) GetUpload() *multipart.FileHeader {
 // Fill processes request and fills internal variables
 func (r *NamespaceUpload) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -857,7 +857,7 @@ func (r NamespaceClone) GetSlug() string {
 // Fill processes request and fills internal variables
 func (r *NamespaceClone) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -1007,7 +1007,7 @@ func (r NamespaceImportInit) GetUpload() *multipart.FileHeader {
 // Fill processes request and fills internal variables
 func (r *NamespaceImportInit) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -1077,7 +1077,7 @@ func (r NamespaceImportRun) GetSlug() string {
 // Fill processes request and fills internal variables
 func (r *NamespaceImportRun) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -1180,7 +1180,7 @@ func (r NamespaceTriggerScript) GetArgs() map[string]interface{} {
 // Fill processes request and fills internal variables
 func (r *NamespaceTriggerScript) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -1322,7 +1322,7 @@ func (r NamespaceUpdateTranslations) GetTranslations() locale.ResourceTranslatio
 // Fill processes request and fills internal variables
 func (r *NamespaceUpdateTranslations) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
