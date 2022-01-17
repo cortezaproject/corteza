@@ -468,7 +468,7 @@ func (r TriggerCreate) GetOwnedBy() uint64 {
 // Fill processes request and fills internal variables
 func (r *TriggerCreate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -759,7 +759,7 @@ func (r TriggerUpdate) GetOwnedBy() uint64 {
 // Fill processes request and fills internal variables
 func (r *TriggerUpdate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {

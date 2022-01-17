@@ -701,7 +701,7 @@ func (r RecordImportInit) GetUpload() *multipart.FileHeader {
 // Fill processes request and fills internal variables
 func (r *RecordImportInit) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -801,7 +801,7 @@ func (r RecordImportRun) GetOnError() string {
 // Fill processes request and fills internal variables
 func (r *RecordImportRun) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -1099,7 +1099,7 @@ func (r RecordExec) GetArgs() []ProcedureArg {
 // Fill processes request and fills internal variables
 func (r *RecordExec) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -1206,7 +1206,7 @@ func (r RecordCreate) GetLabels() map[string]string {
 // Fill processes request and fills internal variables
 func (r *RecordCreate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -1402,7 +1402,7 @@ func (r RecordUpdate) GetLabels() map[string]string {
 // Fill processes request and fills internal variables
 func (r *RecordUpdate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -1533,7 +1533,7 @@ func (r RecordBulkDelete) GetTruncate() bool {
 // Fill processes request and fills internal variables
 func (r *RecordBulkDelete) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -1706,7 +1706,7 @@ func (r RecordUpload) GetUpload() *multipart.FileHeader {
 // Fill processes request and fills internal variables
 func (r *RecordUpload) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -1834,7 +1834,7 @@ func (r RecordTriggerScript) GetValues() types.RecordValueSet {
 // Fill processes request and fills internal variables
 func (r *RecordTriggerScript) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -1949,7 +1949,7 @@ func (r RecordTriggerScriptOnList) GetArgs() map[string]interface{} {
 // Fill processes request and fills internal variables
 func (r *RecordTriggerScriptOnList) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
