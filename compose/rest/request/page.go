@@ -525,7 +525,7 @@ func (r PageCreate) GetBlocks() sqlxTypes.JSONText {
 // Fill processes request and fills internal variables
 func (r *PageCreate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -866,7 +866,7 @@ func (r PageUpdate) GetBlocks() sqlxTypes.JSONText {
 // Fill processes request and fills internal variables
 func (r *PageUpdate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -1083,7 +1083,7 @@ func (r PageReorder) GetPageIDs() []string {
 // Fill processes request and fills internal variables
 func (r *PageReorder) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -1219,7 +1219,7 @@ func (r PageUpload) GetUpload() *multipart.FileHeader {
 // Fill processes request and fills internal variables
 func (r *PageUpload) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -1313,7 +1313,7 @@ func (r PageTriggerScript) GetArgs() map[string]interface{} {
 // Fill processes request and fills internal variables
 func (r *PageTriggerScript) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -1479,7 +1479,7 @@ func (r PageUpdateTranslations) GetTranslations() locale.ResourceTranslationSet 
 // Fill processes request and fills internal variables
 func (r *PageUpdateTranslations) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {

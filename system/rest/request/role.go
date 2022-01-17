@@ -412,7 +412,7 @@ func (r RoleCreate) GetLabels() map[string]string {
 // Fill processes request and fills internal variables
 func (r *RoleCreate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -576,7 +576,7 @@ func (r RoleUpdate) GetLabels() map[string]string {
 // Fill processes request and fills internal variables
 func (r *RoleUpdate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -903,7 +903,7 @@ func (r RoleMove) GetOrganisationID() uint64 {
 // Fill processes request and fills internal variables
 func (r *RoleMove) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -986,7 +986,7 @@ func (r RoleMerge) GetDestination() uint64 {
 // Fill processes request and fills internal variables
 func (r *RoleMerge) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -1204,7 +1204,7 @@ func (r RoleTriggerScript) GetArgs() map[string]interface{} {
 // Fill processes request and fills internal variables
 func (r *RoleTriggerScript) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {

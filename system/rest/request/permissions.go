@@ -230,7 +230,7 @@ func (r PermissionsUpdate) GetRules() rbac.RuleSet {
 // Fill processes request and fills internal variables
 func (r *PermissionsUpdate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {

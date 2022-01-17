@@ -421,7 +421,7 @@ func (r TemplateCreate) GetLabels() map[string]string {
 // Fill processes request and fills internal variables
 func (r *TemplateCreate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -687,7 +687,7 @@ func (r TemplateUpdate) GetLabels() map[string]string {
 // Fill processes request and fills internal variables
 func (r *TemplateUpdate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -992,7 +992,7 @@ func (r TemplateRender) GetOptions() json.RawMessage {
 // Fill processes request and fills internal variables
 func (r *TemplateRender) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {

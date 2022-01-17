@@ -117,7 +117,7 @@ func (r NotificationEmailSend) GetRemoteAttachments() []string {
 // Fill processes request and fills internal variables
 func (r *NotificationEmailSend) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {

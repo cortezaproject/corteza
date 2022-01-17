@@ -77,7 +77,7 @@ func (r {{ export $.Endpoint.Entrypoint $a.Name }}) Get{{ export $p.Name }}() {{
 // Fill processes request and fills internal variables
 func (r *{{ export $.Endpoint.Entrypoint $a.Name }}) Fill(req *http.Request) (err error) {
     {{ if $a.Params.Post }}
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {

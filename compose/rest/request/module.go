@@ -410,7 +410,7 @@ func (r ModuleCreate) GetLabels() map[string]string {
 // Fill processes request and fills internal variables
 func (r *ModuleCreate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -635,7 +635,7 @@ func (r ModuleUpdate) GetLabels() map[string]string {
 // Fill processes request and fills internal variables
 func (r *ModuleUpdate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -856,7 +856,7 @@ func (r ModuleTriggerScript) GetArgs() map[string]interface{} {
 // Fill processes request and fills internal variables
 func (r *ModuleTriggerScript) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -1022,7 +1022,7 @@ func (r ModuleUpdateTranslations) GetTranslations() locale.ResourceTranslationSe
 // Fill processes request and fills internal variables
 func (r *ModuleUpdateTranslations) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {

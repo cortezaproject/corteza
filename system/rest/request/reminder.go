@@ -373,7 +373,7 @@ func (r ReminderCreate) GetRemindAt() *time.Time {
 // Fill processes request and fills internal variables
 func (r *ReminderCreate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -504,7 +504,7 @@ func (r ReminderUpdate) GetRemindAt() *time.Time {
 // Fill processes request and fills internal variables
 func (r *ReminderUpdate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -734,7 +734,7 @@ func (r ReminderSnooze) GetRemindAt() *time.Time {
 // Fill processes request and fills internal variables
 func (r *ReminderSnooze) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {

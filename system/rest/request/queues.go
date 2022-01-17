@@ -237,7 +237,7 @@ func (r QueuesCreate) GetMeta() types.QueueMeta {
 // Fill processes request and fills internal variables
 func (r *QueuesCreate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -393,7 +393,7 @@ func (r QueuesUpdate) GetMeta() types.QueueMeta {
 // Fill processes request and fills internal variables
 func (r *QueuesUpdate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {

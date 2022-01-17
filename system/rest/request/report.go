@@ -338,7 +338,7 @@ func (r ReportCreate) GetLabels() map[string]string {
 // Fill processes request and fills internal variables
 func (r *ReportCreate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -508,7 +508,7 @@ func (r ReportUpdate) GetLabels() map[string]string {
 // Fill processes request and fills internal variables
 func (r *ReportUpdate) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -771,7 +771,7 @@ func (r ReportDescribe) GetDescribe() []string {
 // Fill processes request and fills internal variables
 func (r *ReportDescribe) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -850,7 +850,7 @@ func (r ReportRun) GetFrames() report.FrameDefinitionSet {
 // Fill processes request and fills internal variables
 func (r *ReportRun) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {

@@ -303,7 +303,7 @@ func (r ManageStructureCreateExposed) GetFields() types.ModuleFieldSet {
 // Fill processes request and fills internal variables
 func (r *ManageStructureCreateExposed) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -466,7 +466,7 @@ func (r ManageStructureUpdateExposed) GetFields() types.ModuleFieldSet {
 // Fill processes request and fills internal variables
 func (r *ManageStructureUpdateExposed) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
@@ -717,7 +717,7 @@ func (r ManageStructureCreateMappings) GetFields() types.ModuleFieldMappingSet {
 // Fill processes request and fills internal variables
 func (r *ManageStructureCreateMappings) Fill(req *http.Request) (err error) {
 
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
