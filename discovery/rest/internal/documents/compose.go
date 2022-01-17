@@ -304,11 +304,14 @@ func (d composeResources) Records(ctx context.Context, namespaceID, moduleID uin
 				Module:       modPartial,
 				Url:          d.getUrlToResource(pageDetail{moduleID: moduleID, recordID: recordID}),
 				Labels:       rec.Labels,
-				Values:       d.recordValues(ctx, rec),
+				//Values:       d.recordValues(ctx, rec, nil),
 				Created:      makePartialChange(&rec.CreatedAt),
 				Updated:      makePartialChange(rec.UpdatedAt),
 				Deleted:      makePartialChange(rec.DeletedAt),
 			}
+
+			// Values and value labels
+			doc.Values, doc.ValueLabels = d.recordValues(ctx, rec, mod.Fields)
 
 			doc.Security.AllowedRoles, doc.Security.DeniedRoles = d.rbac.SignificantRoles(rec, "read")
 
@@ -319,13 +322,14 @@ func (d composeResources) Records(ctx context.Context, namespaceID, moduleID uin
 	}()
 }
 
-func (d composeResources) recordValues(ctx context.Context, rec *cmpTypes.Record) map[string][]interface{} {
+func (d composeResources) recordValues(ctx context.Context, rec *cmpTypes.Record, ff cmpTypes.ModuleFieldSet) (map[string][]interface{}, map[string]string) {
 	var (
-		rval = make(map[string][]interface{})
+		rval   = make(map[string][]interface{})
+		fields = make(map[string]string)
 	)
 
 	if rec.GetModule() == nil {
-		return nil
+		return nil, nil
 	}
 
 	_ = rec.GetModule().Fields.Walk(func(f *cmpTypes.ModuleField) error {
@@ -334,8 +338,9 @@ func (d composeResources) recordValues(ctx context.Context, rec *cmpTypes.Record
 		}
 
 		var (
-			rv = rec.Values.FilterByName(f.Name)
-			vv = make([]interface{}, 0, len(rv))
+			rv    = rec.Values.FilterByName(f.Name)
+			vv    = make([]interface{}, 0, len(rv))
+			field = ff.FindByName(f.Name)
 		)
 
 		if len(rv) == 0 {
@@ -360,11 +365,14 @@ func (d composeResources) recordValues(ctx context.Context, rec *cmpTypes.Record
 		}
 
 		rval[f.Name] = vv
+		if field != nil {
+			fields[f.Name] = field.Label
+		}
 
 		return nil
 	})
 
-	return rval
+	return rval, fields
 }
 
 // getUrlToResource construct page url for compose resources

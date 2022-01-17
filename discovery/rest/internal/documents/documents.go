@@ -106,6 +106,7 @@ type (
 		Namespace    docPartialComposeNamespace `json:"namespace"`
 		Module       docPartialComposeModule    `json:"module"`
 		Labels       map[string]string          `json:"labels,omitempty"`
+		ValueLabels  map[string]string          `json:"valueLabels,omitempty"`
 		Values       map[string][]interface{}   `json:"values"`
 		Updated      *docPartialChange          `json:"updated,omitempty"`
 		Created      *docPartialChange          `json:"created,omitempty"`
