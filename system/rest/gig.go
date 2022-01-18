@@ -58,20 +58,26 @@ func (Gig) New() *Gig {
 }
 
 func (ctrl Gig) Create(ctx context.Context, r *request.GigCreate) (interface{}, error) {
-	pre, err := ctrl.conv.UnwrapPreprocessorSet(r.Preprocessors)
-	if err != nil {
-		return nil, err
-	}
-	post, err := ctrl.conv.UnwrapPostprocessorSet(r.Postprocessors)
+	g, err := ctrl.create(ctx, r.Worker, r.Preprocessors, r.Postprocessors)
+	return ctrl.makeGigPayload(ctx, g, err)
+}
+
+func (ctrl Gig) Go(ctx context.Context, r *request.GigGo) (interface{}, error) {
+	g, err := ctrl.create(ctx, r.Worker, r.Preprocessors, r.Postprocessors)
 	if err != nil {
 		return nil, err
 	}
 
-	g, err := ctrl.svc.Create(ctx, r.Worker, gig.UpdatePayload{
-		Preprocess:  pre,
-		Postprocess: post,
-	})
-	return ctrl.makeGigPayload(ctx, g, err)
+	err = ctrl.svc.Exec(ctx, g.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	out, err := ctrl.svc.Output(ctx, g.ID)
+	if err != nil {
+		return nil, err
+	}
+	return ctrl.serve(ctx, out, err)
 }
 
 func (ctrl Gig) Read(ctx context.Context, r *request.GigRead) (interface{}, error) {
@@ -276,4 +282,20 @@ func (ctrl Gig) serve(ctx context.Context, sources gig.SourceSet, err error) (in
 		w.Header().Add("Content-Disposition", "attachment; filename="+name)
 		http.ServeContent(w, req, name, time.Now(), f)
 	}, nil
+}
+
+func (ctrl Gig) create(ctx context.Context, worker string, preWrap conv.ParamWrapSet, postWrap conv.ParamWrapSet) (*gig.Gig, error) {
+	pre, err := ctrl.conv.UnwrapPreprocessorSet(preWrap)
+	if err != nil {
+		return nil, err
+	}
+	post, err := ctrl.conv.UnwrapPostprocessorSet(postWrap)
+	if err != nil {
+		return nil, err
+	}
+
+	return ctrl.svc.Create(ctx, worker, gig.UpdatePayload{
+		Preprocess:  pre,
+		Postprocess: post,
+	})
 }

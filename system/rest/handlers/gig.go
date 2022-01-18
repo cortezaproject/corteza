@@ -20,16 +20,17 @@ type (
 	// Internal API interface
 	GigAPI interface {
 		Create(context.Context, *request.GigCreate) (interface{}, error)
+		Go(context.Context, *request.GigGo) (interface{}, error)
 		Read(context.Context, *request.GigRead) (interface{}, error)
 		Update(context.Context, *request.GigUpdate) (interface{}, error)
 		Delete(context.Context, *request.GigDelete) (interface{}, error)
 		Undelete(context.Context, *request.GigUndelete) (interface{}, error)
 		AddSource(context.Context, *request.GigAddSource) (interface{}, error)
 		RemoveSource(context.Context, *request.GigRemoveSource) (interface{}, error)
-		Output(context.Context, *request.GigOutput) (interface{}, error)
-		State(context.Context, *request.GigState) (interface{}, error)
 		Prepare(context.Context, *request.GigPrepare) (interface{}, error)
 		Exec(context.Context, *request.GigExec) (interface{}, error)
+		Output(context.Context, *request.GigOutput) (interface{}, error)
+		State(context.Context, *request.GigState) (interface{}, error)
 		Status(context.Context, *request.GigStatus) (interface{}, error)
 		Complete(context.Context, *request.GigComplete) (interface{}, error)
 		Tasks(context.Context, *request.GigTasks) (interface{}, error)
@@ -38,16 +39,17 @@ type (
 	// HTTP API interface
 	Gig struct {
 		Create       func(http.ResponseWriter, *http.Request)
+		Go           func(http.ResponseWriter, *http.Request)
 		Read         func(http.ResponseWriter, *http.Request)
 		Update       func(http.ResponseWriter, *http.Request)
 		Delete       func(http.ResponseWriter, *http.Request)
 		Undelete     func(http.ResponseWriter, *http.Request)
 		AddSource    func(http.ResponseWriter, *http.Request)
 		RemoveSource func(http.ResponseWriter, *http.Request)
-		Output       func(http.ResponseWriter, *http.Request)
-		State        func(http.ResponseWriter, *http.Request)
 		Prepare      func(http.ResponseWriter, *http.Request)
 		Exec         func(http.ResponseWriter, *http.Request)
+		Output       func(http.ResponseWriter, *http.Request)
+		State        func(http.ResponseWriter, *http.Request)
 		Status       func(http.ResponseWriter, *http.Request)
 		Complete     func(http.ResponseWriter, *http.Request)
 		Tasks        func(http.ResponseWriter, *http.Request)
@@ -65,6 +67,22 @@ func NewGig(h GigAPI) *Gig {
 			}
 
 			value, err := h.Create(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		Go: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewGigGo()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Go(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
@@ -168,38 +186,6 @@ func NewGig(h GigAPI) *Gig {
 
 			api.Send(w, r, value)
 		},
-		Output: func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			params := request.NewGigOutput()
-			if err := params.Fill(r); err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			value, err := h.Output(r.Context(), params)
-			if err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			api.Send(w, r, value)
-		},
-		State: func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			params := request.NewGigState()
-			if err := params.Fill(r); err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			value, err := h.State(r.Context(), params)
-			if err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			api.Send(w, r, value)
-		},
 		Prepare: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewGigPrepare()
@@ -225,6 +211,38 @@ func NewGig(h GigAPI) *Gig {
 			}
 
 			value, err := h.Exec(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		Output: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewGigOutput()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Output(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		State: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewGigState()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.State(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
@@ -287,16 +305,17 @@ func (h Gig) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Ha
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
 		r.Post("/gig/", h.Create)
+		r.Post("/gig/go", h.Go)
 		r.Get("/gig/{gigID}", h.Read)
 		r.Put("/gig/{gigID}", h.Update)
 		r.Delete("/gig/{gigID}", h.Delete)
 		r.Post("/gig/{gigID}/undelete", h.Undelete)
 		r.Patch("/gig/{gigID}/sources", h.AddSource)
 		r.Delete("/gig/{gigID}/sources/{sourceID}", h.RemoveSource)
-		r.Get("/gig/{gigID}/output", h.Output)
-		r.Get("/gig/{gigID}/state", h.State)
 		r.Put("/gig/{gigID}/prepare", h.Prepare)
 		r.Put("/gig/{gigID}/exec", h.Exec)
+		r.Get("/gig/{gigID}/output", h.Output)
+		r.Get("/gig/{gigID}/state", h.State)
 		r.Get("/gig/{gigID}/status", h.Status)
 		r.Patch("/gig/{gigID}/complete", h.Complete)
 		r.Get("/gig/tasks", h.Tasks)
