@@ -51,13 +51,16 @@ func (d decoderArchive) Source() uint64 {
 
 func (d decoderArchive) CanDecode(src Source) bool {
 	// @todo others...
-	return isTarGz(src)
+	return isTarGz(src) ||
+		isZip(src)
 }
 
 func (d decoderArchive) Decode(ctx context.Context, in Source) (out SourceSet, err error) {
 	switch {
 	case isTarGz(in):
 		return extractTarGz(ctx, in)
+	case isZip(in):
+		return extractZip(ctx, in)
 	}
 
 	err = fmt.Errorf("unknown archive: %s", in.MimeType())

@@ -71,7 +71,17 @@ func postprocessorArchiveTransformer(base postprocessorArchive) (postprocessorAr
 }
 
 func (t postprocessorArchive) Postprocess(ctx context.Context, baseMeta WorkMeta, ss SourceSet) (out SourceSet, meta WorkMeta, err error) {
-	p, name, err := compressTarGz(ctx, ss, t.name)
+	var (
+		p, name string
+	)
+	switch t.encoding {
+	case ArchiveTar:
+		p, name, err = compressTarGz(ctx, ss, t.name)
+	case ArchiveZIP:
+		p, name, err = compressZip(ctx, ss, t.name)
+	default:
+		err = fmt.Errorf("unknown archive: %s", t.encoding)
+	}
 	if err != nil {
 		return
 	}
