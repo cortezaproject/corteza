@@ -17,7 +17,7 @@ func Test_decoder_archive(t *testing.T) {
 	_ = g
 
 	t.Run(".tar.gz", func(_ *testing.T) {
-		dc := gig.DecoderArchive(0)
+		dc := decoderSafe(gig.DecoderArchiveSource(0))
 
 		g, err = svc.AddSources(ctx, g, gig.SourceWrapSet{{
 			Uri: testSource(t, "archive.tar.gz"),

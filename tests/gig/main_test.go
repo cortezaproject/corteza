@@ -275,3 +275,15 @@ func makeRemoteServer(t *testing.T, pp ...string) (*httptest.Server, string) {
 	url := srv.URL + "/" + path.Join(pp...)
 	return srv, url
 }
+
+func decoderSafe(d gig.Decoder, err error) gig.Decoder {
+	return d
+}
+
+func preprocessorSafe(d gig.Preprocessor, err error) gig.Preprocessor {
+	return d
+}
+
+func postprocessorSafe(d gig.Postprocessor, err error) gig.Postprocessor {
+	return d
+}

@@ -55,7 +55,7 @@ func test_postprocessor_tasks_save(ctx context.Context, t *testing.T, h helper, 
 }
 
 func test_postprocessor_tasks_archive(ctx context.Context, t *testing.T, h helper, svc gig.Service, s store.Storer, g gig.Gig, tc string) {
-	g, err := svc.SetPostprocessors(ctx, g, gig.PostprocessorArchive(gig.ArchiveTar))
+	g, err := svc.SetPostprocessors(ctx, g, postprocessorSafe(gig.PostprocessorArchive(gig.ArchiveTar)))
 	h.a.NoError(err)
 
 	ss, err := gig.PrepareSourceFromDirectory(ctx, testSource(t, "_base"))
