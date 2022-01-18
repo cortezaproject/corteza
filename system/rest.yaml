@@ -1224,6 +1224,24 @@ endpoints:
         title: Output postprocessing to do
         parser: conv.ParseParamWrap
 
+  - name: go
+    method: POST
+    title: Run the entire lifecycle of a gig
+    path: "/go"
+    parameters:
+      post:
+      - name: worker
+        type: string
+        title: Gig worker
+      - name: preprocessors
+        type: conv.ParamWrapSet
+        title: Worker preprocessing to do
+        parser: conv.ParseParamWrap
+      - name: postprocessors
+        type: conv.ParamWrapSet
+        title: Output postprocessing to do
+        parser: conv.ParseParamWrap
+
   - name: read
     method: GET
     title: Read gig details
