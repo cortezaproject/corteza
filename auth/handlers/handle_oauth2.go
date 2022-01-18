@@ -10,9 +10,11 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
 
+	"github.com/go-chi/jwtauth"
+	oauth2errors "github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/jwt"
 
 	"github.com/cortezaproject/corteza-server/auth/oauth2"
 	"github.com/cortezaproject/corteza-server/auth/request"
@@ -21,7 +23,6 @@ import (
 	systemService "github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	oauth2def "github.com/go-oauth2/oauth2/v4"
-	oauth2errors "github.com/go-oauth2/oauth2/v4/errors"
 	"go.uber.org/zap"
 )
 
@@ -168,8 +169,27 @@ func (h AuthHandlers) oauth2Token(req *request.AuthReq) (err error) {
 	return h.handleTokenRequest(req, client)
 }
 
+// oauth2Info handler validates token and responds with decoded claims
 func (h AuthHandlers) oauth2Info(w http.ResponseWriter, r *http.Request) {
-	ti, err := h.OAuth2.ValidationBearerToken(r)
+	var (
+		jt     jwt.Token
+		claims map[string]interface{}
+
+		// scope is intentionally left empty
+		scope = make([]string, 0)
+	)
+
+	err := func() (err error) {
+		if jt, claims, err = jwtauth.FromContext(r.Context()); err != nil {
+			return
+		}
+
+		if err = auth.JWT().Validate(r.Context(), jt, scope...); err != nil {
+			return
+		}
+
+		return nil
+	}()
 
 	if err != nil {
 		if errors.Is(err, context.Canceled) {
@@ -203,20 +223,7 @@ func (h AuthHandlers) oauth2Info(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := map[string]interface{}{
-		"active":    true,
-		"scope":     ti.GetScope(),
-		"client_id": ti.GetClientID(),
-		"exp":       int64(ti.GetAccessCreateAt().Add(ti.GetAccessExpiresIn()).Sub(time.Now()).Seconds()),
-		"aud":       ti.GetClientID(),
-	}
-
-	SubSplit(ti, data)
-	if err = Profile(r.Context(), ti, data); err != nil {
-		h.Log.Error("failed to add profile data", zap.Error(err))
-	}
-
-	_ = json.NewEncoder(w).Encode(data)
+	_ = json.NewEncoder(w).Encode(claims)
 }
 
 // oauth2authorizeDefaultClient acts as a proxy for default client
@@ -359,8 +366,6 @@ func (h AuthHandlers) loadRequestedClient(req *request.AuthReq) (client *types.A
 }
 
 func (h AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.AuthClient) error {
-	req.Status = -1
-
 	var (
 		r   = req.Request
 		w   = req.Response
@@ -401,6 +406,14 @@ func (h AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.Aut
 	if err != nil {
 		return h.tokenError(w, err)
 	}
+
+	var (
+		user   = req.AuthUser.User.Clone()
+		signed []byte
+	)
+
+	signed, err = auth.JWT().Sign(ti.GetAccess(), user, client.ID, strings.Split(ti.GetScope(), " ")...)
+	ti.SetAccess(string(signed))
 
 	return token(w, h.OAuth2.GetTokenData(ti), nil)
 }

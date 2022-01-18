@@ -12,7 +12,6 @@ import (
 
 func NewUserAuthorizer(sm *request.SessionManager, loginURL, clientAuthURL string) server.UserAuthorizationHandler {
 	return func(w http.ResponseWriter, r *http.Request) (identity string, err error) {
-
 		var (
 			ses    = sm.Get(r)
 			au     = request.GetAuthUser(ses)
@@ -40,7 +39,7 @@ func NewUserAuthorizer(sm *request.SessionManager, loginURL, clientAuthURL strin
 			}
 		}
 
-		var roles = request.GetRoleMemberships(ses)
+		roles := au.User.Roles()
 		if client.Security != nil {
 			// filter user's roles with client security settings
 			roles = internalAuth.ApplyRoleSecurity(

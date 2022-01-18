@@ -11,7 +11,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
-	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/go-chi/jwtauth"
 	"github.com/go-oauth2/oauth2/v4"
 	"github.com/lestrrat-go/jwx/jwa"
@@ -22,12 +21,9 @@ import (
 )
 
 type (
-	signer interface {
-		Sign(accessToken string, identity Identifiable, clientID uint64, scope ...string) (signed []byte, err error)
-	}
-
 	MiddlewareValidator interface {
 		HttpValidator(scope ...string) func(http.Handler) http.Handler
+		Generate(ctx context.Context, i Identifiable, clientID uint64, scope ...string) (signed []byte, err error)
 	}
 
 	oauth2manager interface {
@@ -48,27 +44,10 @@ type (
 
 		issuerClaim string
 	}
-
-	// @todo remove
-	tokenStore interface {
-		CreateAuthOa2token(ctx context.Context, rr ...*types.AuthOa2token) error
-		UpsertAuthConfirmedClient(ctx context.Context, rr ...*types.AuthConfirmedClient) error
-	}
-
-	// @todo remove
-	//tokenLookup interface {
-	//	LookupAuthOa2tokenByID(ctx context.Context, id uint64) (*types.AuthOa2token, error)
-	//}
-	//
-	//tokenStoreWithLookup interface {
-	//	tokenStore
-	//	tokenLookup
-	//}
 )
 
 var (
 	defaultJWTManager *jwtManager
-	//DefaultJwtStore   tokenStoreWithLookup
 )
 
 // JWT returns d
@@ -105,31 +84,13 @@ func NewJWTManager(oa2m oauth2manager, algo jwa.SignatureAlgorithm, secret strin
 	return
 }
 
-//// @todo remove
-////// SetJWTStore set store for JWT
-////// @todo find better way to initiate store,
-////// 			it mainly used for generating and storing accessToken for impersonate and corredor, Ref: j.Generate()
-////func SetJWTStore(store tokenStoreWithLookup) {
-////	DefaultJwtStore = store
-////}
-//
-//// Authenticate the token from the given string and return parsed token or error
-//func (m *jwtManager) Authenticate(s string) (pToken jwt.Token, err error) {
-//	if pToken, err = jwt.Parse([]byte(s), jwt.WithVerify(m.signAlgo, m.signKey)); err != nil {
-//		return
-//	}
-//
-//	if err = jwt.Validate(pToken); err != nil {
-//		return
-//	}
-//
-//	return
-//}
-
 // Sign takes security information and returns signed JWT
 //
-// Access token is expected to be issued by OAuth2 token manager
-// without it, we can only do static (JWT itself) validation
+// Access token is expected to be issued by OAuth2 token manager and we want to
+// transport access-token one of the JWT claims (JWT ID!).
+//
+// This way we can perform static checks (origin, validity, expiration)
+// before doing any storage lookups.
 //f
 // Identity holds user ID and all roles that go into this security context
 // Client ID represents the auth client that was used
@@ -190,6 +151,13 @@ func (m *jwtManager) Sign(accessToken string, identity Identifiable, clientID ui
 	return signed, nil
 }
 
+// Generate new access-token and JWT
+//
+// Why so much effort and not just return the access token?
+// We want to transport access-token one of the JWT claims (JWT ID!).
+//
+// This way we can perform static checks (origin, validity, expiration)
+// before doing any storage lookups.
 func (m *jwtManager) Generate(ctx context.Context, i Identifiable, clientID uint64, scope ...string) (signed []byte, err error) {
 	var (
 		ti oauth2.TokenInfo
@@ -199,7 +167,7 @@ func (m *jwtManager) Generate(ctx context.Context, i Identifiable, clientID uint
 		ClientID:       strconv.FormatUint(clientID, 10),
 		UserID:         i.String(),
 		Scope:          strings.Join(scope, " "),
-		Refresh:        "cli?",
+		Refresh:        "??????????",
 		AccessTokenExp: m.expiry,
 	})
 
@@ -207,42 +175,7 @@ func (m *jwtManager) Generate(ctx context.Context, i Identifiable, clientID uint
 		return
 	}
 
-	return m.Sign(ti.GetAccess(), i, 0, scope...)
-}
-
-func ValidateContext(ctx context.Context, oa2m oauth2manager, scope ...string) (err error) {
-	var (
-		token jwt.Token
-	)
-
-	if token, _, err = jwtauth.FromContext(ctx); err != nil {
-		return ErrUnauthorized()
-	}
-
-	return Validate(ctx, token, oa2m, scope...)
-}
-
-func Validate(ctx context.Context, token jwt.Token, oa2m oauth2manager, scope ...string) (err error) {
-	if !CheckJwtScope(token, scope...) {
-		return ErrUnauthorizedScope()
-	}
-
-	// Extract the JWT id from the token (string) and convert it to uint64
-	// to be compatible with the lookup function
-	if len(token.JwtID()) < 10 {
-		return ErrMalformedToken("missing or malformed JWT ID")
-	}
-
-	// @todo we could use a simple caching mechanism here
-	//       1. if lookup is successful, add a JWT ID to the list
-	//       2. add short exp time (that should not last longer than token's exp time)
-	//       3. check against the list first; if JWT ID is not present there check in storage
-	//
-	if _, err = oa2m.LoadAccessToken(ctx, token.JwtID()); err != nil {
-		return ErrUnauthorized()
-	}
-
-	return nil
+	return m.Sign(ti.GetAccess(), i, clientID, scope...)
 }
 
 // HttpVerifier http middleware handler will verify a JWT string from a http request.
@@ -271,85 +204,59 @@ func (m *jwtManager) HttpValidator(scope ...string) func(http.Handler) http.Hand
 	}
 }
 
-//// HttpAuthenticator converts JWT claims into identity and stores it into context
-//func (m *jwtManager) HttpAuthenticator(next http.Handler) http.Handler {
-//	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//		ctx := r.Context()
-//
-//		tkn, _, err := jwtauth.FromContext(ctx)
-//
-//		// Requests w/o token should not yield an error
-//		// there are parts of the system that can be access without it
-//		// and/or handle such situation internally
-//		if err != nil && !errors.Is(err, jwtauth.ErrNoTokenFound) {
-//			api.Send(w, r, err)
-//			return
-//		}
-//
-//		// If token is present extract identity
-//		if tkn != nil {
-//			ctx = SetIdentityToContext(ctx, IdentityFromToken(tkn))
-//			r = r.WithContext(ctx)
-//
-//			// @todo verify JWT ID (access-token!!
-//			tkn.JwtID()
-//
-//		}
-//
-//		next.ServeHTTP(w, r)
-//	})
-//}
+func (m *jwtManager) ValidateContext(ctx context.Context, scope ...string) error {
+	return ValidateContext(ctx, m.oa2m, scope...)
+}
 
+func (m *jwtManager) Validate(ctx context.Context, token jwt.Token, scope ...string) error {
+	return Validate(ctx, token, m.oa2m, scope...)
+}
+
+// ValidateContext gets JWT & claims from context
 //
-//// Generate makes a new token and stores it in the database
-//func (tm *tokenManager) Generate(ctx context.Context, i Identifiable, clientID uint64, scope ...string) (token []byte, err error) {
-//	var (
-//		//	eti  = GetExtraReqInfoFromContext(ctx)
-//		//	oa2t = &types.AuthOa2token{
-//		//		ID:         id.Next(),
-//		//		CreatedAt:  time.Now().Round(time.Second),
-//		//		RemoteAddr: eti.RemoteAddr,
-//		//		UserAgent:  eti.UserAgent,
-//		//		ClientID:   clientID,
-//		//	}
-//		//
-//		//	acc = &types.AuthConfirmedClient{
-//		//		ConfirmedAt: oa2t.CreatedAt,
-//		//		ClientID:    clientID,
-//		//	}
-//		oa2t *types.AuthOa2token
-//		acc  *types.AuthConfirmedClient
+// It's chi middleware that puts it there
+func ValidateContext(ctx context.Context, oa2m oauth2manager, scope ...string) (err error) {
+	var (
+		token jwt.Token
+	)
+
+	if token, _, err = jwtauth.FromContext(ctx); err != nil {
+		return ErrUnauthorized()
+	}
+
+	return Validate(ctx, token, oa2m, scope...)
+}
+
+// Validate performs token validation
 //
-//		jwtID = id.Next()
-//	)
+// Steps:
+//   - check scope in the JWT
+//   - check if JWT ID is set (where the access-token string is stored)
+//   - check if access-token exists in the DB
 //
-//	if oa2t, acc, err = MakeAuthStructs(ctx, jwtID, i.Identity(), clientID, nil, tm.expiry); err != nil {
-//		return
-//	}
 //
-//	if token, err = tm.make(jwtID, i, clientID, scope...); err != nil {
-//		return nil, err
-//	}
-//
-//	oa2t.Access = string(token)
-//
-//	// use the same expiration as on token
-//	//oa2t.ExpiresAt = oa2t.CreatedAt.Add(tm.expiry)
-//
-//	//if oa2t.Data, err = json.Marshal(oa2t); err != nil {
-//	//	return
-//	//}
-//
-//	//if oa2t.UserID, _ = ExtractFromSubClaim(i.String()); oa2t.UserID == 0 {
-//	//	// UserID stores collection of IDs: user's ID and set of all roles' user is member of
-//	//	return nil, fmt.Errorf("could not parse user ID from token")
-//	//}
-//	//
-//	//// copy user id to auth client confirmation
-//	//acc.UserID = oa2t.UserID
-//
-//	return token, StoreAuthToken(ctx, DefaultJwtStore, oa2t, acc)
-//}
+func Validate(ctx context.Context, token jwt.Token, oa2m oauth2manager, scope ...string) (err error) {
+	if len(scope) > 0 && !CheckJwtScope(token, scope...) {
+		return ErrUnauthorizedScope()
+	}
+
+	// Extract the JWT id from the token (string) and convert it to uint64
+	// to be compatible with the lookup function
+	if len(token.JwtID()) < 10 {
+		return ErrMalformedToken("missing or malformed JWT ID")
+	}
+
+	// @todo we could use a simple caching mechanism here
+	//       1. if lookup is successful, add a JWT ID to the list
+	//       2. add short exp time (that should not last longer than token's exp time)
+	//       3. check against the list first; if JWT ID is not present there check in storage
+	//
+	if _, err = oa2m.LoadAccessToken(ctx, token.JwtID()); err != nil {
+		return ErrUnauthorized()
+	}
+
+	return nil
+}
 
 // IdentityFromToken decodes sub & roles claims into identity
 func IdentityFromToken(token jwt.Token) *identity {

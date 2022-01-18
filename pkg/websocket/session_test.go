@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -8,14 +9,26 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/lestrrat-go/jwx/jwa"
+	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
+type (
+	dummyJwtValidator struct{ err error }
+)
+
+func (d *dummyJwtValidator) Validate(_ context.Context, _ jwt.Token, _ ...string) error {
+	return d.err
+}
+
 func TestSession_procRawMessage(t *testing.T) {
 	var (
 		req = require.New(t)
-		s   = session{server: Server(nil, options.WebsocketOpt{})}
+		s   = session{
+			server: Server(nil, options.WebsocketOpt{}),
+			jv:     &dummyJwtValidator{},
+		}
 
 		userID uint64 = 123
 		token  []byte
@@ -68,6 +81,4 @@ func TestSession_procRawMessage(t *testing.T) {
 	req.NoError(err)
 
 	req.EqualError(s.procRawMessage(mockResponse(token)), "unauthorized: identity does not match")
-
-	t.Error("are we actually checking if access token exists?")
 }

@@ -337,6 +337,8 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 
 	app.WsServer = websocket.Server(app.Log, app.Opt.Websocket)
 
+	corredor.Service().SetAuthTokenMaker(app.jwt)
+
 	ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Init)
 	defer sentry.Recover()
 
@@ -413,9 +415,6 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	if err != nil {
 		return
 	}
-
-	//@todo remove vv
-	//auth.SetJWTStore(app.Store)
 
 	corredor.Service().SetUserFinder(sysService.DefaultUser)
 	corredor.Service().SetRoleFinder(sysService.DefaultRole)
