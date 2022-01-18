@@ -71,12 +71,8 @@ func (conv Gig) UnwrapPreprocessor(w ParamWrap) (out gig.Preprocessor, err error
 		return gig.PreprocessorAttachmentRemoveParams(w.Params), nil
 	case gig.PreprocessorHandleAttachmentTransform:
 		return gig.PreprocessorAttachmentTransformParams(w.Params), nil
-	case gig.PreprocessorHandleResourceRemove:
-		return gig.PreprocessorResourceRemoveParams(w.Params), nil
-	case gig.PreprocessorHandleResourceLoad:
-		return gig.PreprocessorResourceLoadParams(w.Params), nil
-	case gig.PreprocessorHandleNamespaceLoad:
-		return gig.PreprocessorNamespaceLoadParams(w.Params), nil
+	case gig.PreprocessorHandleExperimentalExport:
+		return gig.PreprocessorExperimentalExportParams(w.Params), nil
 	}
 
 	return nil, fmt.Errorf("unknown preprocessor: %s", w.Ref)

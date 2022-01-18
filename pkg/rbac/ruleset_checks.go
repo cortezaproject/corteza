@@ -63,7 +63,7 @@ func checkRulesByResource(set RuleSet, op, res string) Access {
 	sort.Sort(set)
 
 	for _, r := range set {
-		if !matchResource(r.Resource, res) {
+		if !MatchResource(r.Resource, res) {
 			continue
 		}
 

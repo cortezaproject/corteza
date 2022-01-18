@@ -66,20 +66,20 @@ var (
 	ResourceTranslationResourceType = resource.ResourceTranslationType
 )
 
-func WorkerEnvoy(s store.Storer) Worker {
+func WorkerEnvoy(s store.Storer) *workerEnvoy {
 	return &workerEnvoy{
 		store: s,
 	}
 }
 
-func WorkerImport(s store.Storer) Worker {
+func WorkerImport(s store.Storer) *workerEnvoy {
 	return &workerEnvoy{
 		direction: envoyDirectionIn,
 		store:     s,
 	}
 }
 
-func WorkerExport(s store.Storer) Worker {
+func WorkerExport(s store.Storer) *workerEnvoy {
 	return &workerEnvoy{
 		store:     s,
 		direction: envoyDirectionOut,

@@ -58,12 +58,8 @@ func (w *workerAttachment) Preprocess(ctx context.Context, tasks ...Preprocessor
 func (w *workerEnvoy) Preprocess(ctx context.Context, tasks ...Preprocessor) (err error) {
 	for _, t := range tasks {
 		switch tc := t.(type) {
-		case preprocessorResourceRemove:
-			err = w.resourceRemove(ctx, tc)
-		case preprocessorResourceLoad:
-			err = w.resourceLoad(ctx, tc)
-		case preprocessorNamespaceLoad:
-			err = w.namespaceLoad(ctx, tc)
+		case preprocessorExperimentalExport:
+			err = w.experimentalExport(ctx, tc)
 		case preprocessorNoop:
 			err = w.noop(ctx, tc)
 		default:

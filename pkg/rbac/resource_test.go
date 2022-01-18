@@ -67,7 +67,7 @@ func TestResourceMatch(t *testing.T) {
 
 	for _, tc := range tcc {
 		t.Run(tc.m, func(t *testing.T) {
-			require.Equal(t, tc.e, matchResource(tc.m, tc.r))
+			require.Equal(t, tc.e, MatchResource(tc.m, tc.r))
 		})
 	}
 }
@@ -82,8 +82,8 @@ func benchmarkMatchResource(b *testing.B, c int) {
 	b.StartTimer()
 
 	for n := 0; n < b.N; n++ {
-		matchResource("corteza::test/a/1/1/1", "corteza::test/a/1/1/1")
-		matchResource("corteza::test/a/*/*/1", "corteza::test/a/1/1/1")
+		MatchResource("corteza::test/a/1/1/1", "corteza::test/a/1/1/1")
+		MatchResource("corteza::test/a/*/*/1", "corteza::test/a/1/1/1")
 	}
 
 	b.StopTimer()
