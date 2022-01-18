@@ -31,7 +31,7 @@ func (conv Gig) {{.unwrapFunc}}(w ParamWrap) (out gig.{{.expKind}}, err error) {
   switch w.Ref {
   {{- range .set }}
   case gig.{{.goConst}}:
-    return gig.{{.expKind}}{{.expIdent}}Params(w.Params), nil
+    return gig.{{.expKind}}{{.expIdent}}Params(w.Params)
   {{- end }}
 	}
 

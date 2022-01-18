@@ -62,12 +62,12 @@ func (t postprocessorSave) Postprocess(ctx context.Context, baseMeta WorkMeta, s
 	return
 }
 
-func postprocessorArchiveTransformer(base postprocessorArchive) postprocessorArchive {
+func postprocessorArchiveTransformer(base postprocessorArchive) (postprocessorArchive, error) {
 	if base.name == "" {
 		base.name = "archive"
 	}
 
-	return base
+	return base, nil
 }
 
 func (t postprocessorArchive) Postprocess(ctx context.Context, baseMeta WorkMeta, ss SourceSet) (out SourceSet, meta WorkMeta, err error) {

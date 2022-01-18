@@ -27,9 +27,9 @@ func (conv Gig) UnwrapDecoderSet(wraps ParamWrapSet) (out gig.DecoderSet, err er
 func (conv Gig) UnwrapDecoder(w ParamWrap) (out gig.Decoder, err error) {
 	switch w.Ref {
 	case gig.DecoderHandleNoop:
-		return gig.DecoderNoopParams(w.Params), nil
+		return gig.DecoderNoopParams(w.Params)
 	case gig.DecoderHandleArchive:
-		return gig.DecoderArchiveParams(w.Params), nil
+		return gig.DecoderArchiveParams(w.Params)
 	}
 
 	return nil, fmt.Errorf("unknown decoder: %s", w.Ref)
@@ -66,13 +66,13 @@ func (conv Gig) UnwrapPreprocessorSet(wraps ParamWrapSet) (out gig.PreprocessorS
 func (conv Gig) UnwrapPreprocessor(w ParamWrap) (out gig.Preprocessor, err error) {
 	switch w.Ref {
 	case gig.PreprocessorHandleNoop:
-		return gig.PreprocessorNoopParams(w.Params), nil
+		return gig.PreprocessorNoopParams(w.Params)
 	case gig.PreprocessorHandleAttachmentRemove:
-		return gig.PreprocessorAttachmentRemoveParams(w.Params), nil
+		return gig.PreprocessorAttachmentRemoveParams(w.Params)
 	case gig.PreprocessorHandleAttachmentTransform:
-		return gig.PreprocessorAttachmentTransformParams(w.Params), nil
+		return gig.PreprocessorAttachmentTransformParams(w.Params)
 	case gig.PreprocessorHandleExperimentalExport:
-		return gig.PreprocessorExperimentalExportParams(w.Params), nil
+		return gig.PreprocessorExperimentalExportParams(w.Params)
 	}
 
 	return nil, fmt.Errorf("unknown preprocessor: %s", w.Ref)
@@ -109,13 +109,13 @@ func (conv Gig) UnwrapPostprocessorSet(wraps ParamWrapSet) (out gig.Postprocesso
 func (conv Gig) UnwrapPostprocessor(w ParamWrap) (out gig.Postprocessor, err error) {
 	switch w.Ref {
 	case gig.PostprocessorHandleNoop:
-		return gig.PostprocessorNoopParams(w.Params), nil
+		return gig.PostprocessorNoopParams(w.Params)
 	case gig.PostprocessorHandleDiscard:
-		return gig.PostprocessorDiscardParams(w.Params), nil
+		return gig.PostprocessorDiscardParams(w.Params)
 	case gig.PostprocessorHandleSave:
-		return gig.PostprocessorSaveParams(w.Params), nil
+		return gig.PostprocessorSaveParams(w.Params)
 	case gig.PostprocessorHandleArchive:
-		return gig.PostprocessorArchiveParams(w.Params), nil
+		return gig.PostprocessorArchiveParams(w.Params)
 	}
 
 	return nil, fmt.Errorf("unknown postprocessor: %s", w.Ref)

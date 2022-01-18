@@ -4,6 +4,7 @@ package {{ .package }}
 
 import (
   "github.com/spf13/cast"
+	"fmt"
 {{- range .imports }}
     {{ . }}
 {{- end }}
@@ -36,22 +37,45 @@ const (
 {{ $taskGoType := .goType }}
 {{ $taskGoInterface := .goInterface }}
 {{ $taskTransformer := .transformer }}
+{{ $taskIdent := .ident }}
 
 {{ $hasRequired := false }}
 
 // {{ .constructorParams }} returns a new {{ $taskGoType }} from the params
-func {{ .constructorParams }}(params map[string]interface{}) {{ $taskGoInterface }} {
-  out := {{ .goType }}{
+func {{ .constructorParams }}(params map[string]interface{}) ({{ $taskGoInterface }}, error) {
+  var (
+    out = {{ .goType }}{}
+    err error
+  )
+
+  // Param validation
+  // - supported params
+  index := map[string]bool{
   {{- range .struct }}
-    {{ .ident }}: {{ .castFunc }}(params["{{ .ident }}"]),
-    {{ $hasRequired = or $hasRequired .required }}
+    "{{- .ident }}": true,
   {{- end }}
   }
+  for p := range params {
+    if !index[p] {
+      return nil, fmt.Errorf("unknown parameter provided to {{ $taskIdent }}: %s", p)
+    }
+  }
+
+  // Fill and check requirements
+  {{- range .struct }}
+    {{- if .required }}
+  if _, ok := params["{{ .ident }}"]; !ok {
+    return nil, fmt.Errorf("required parameter not provided: {{ .ident }}")
+  }
+    {{- end }}
+  out.{{ .ident }} = {{ .castFunc }}(params["{{ .ident }}"])
+    {{- $hasRequired = or $hasRequired .required -}}
+  {{- end }}
 
   {{- if $taskTransformer }}
-  out = {{ $taskTransformer }}(out)
+  out, err = {{ $taskTransformer }}(out)
   {{- end }}
-  return out
+  return out, err
 }
 
 {{ $struct := .struct }}
@@ -65,8 +89,12 @@ func {{ .constructor }}(
     {{- .ident }} {{ .goType -}},
     {{- end }}
   {{- end -}}
-  {{ .ident }} {{ .goType -}}) {{ $taskGoInterface }} {
-  out := {{ $taskGoType }}{
+  {{ .ident }} {{ .goType -}}) ({{ $taskGoInterface }}, error) {
+  var (
+    err error
+    out {{ $taskGoType }}
+  )
+  out = {{ $taskGoType }}{
   {{- range $struct }}
     {{- if .required }}
     {{ .ident }}: {{ .ident }},
@@ -76,10 +104,10 @@ func {{ .constructor }}(
   }
 
   {{- if $taskTransformer }}
-  out = {{ $taskTransformer }}(out)
+  out, err = {{ $taskTransformer }}(out)
   {{- end }}
 
-  return out
+  return out, err
 }
 
     {{- end }}
@@ -92,8 +120,13 @@ func {{ .constructor }}(
       {{- .ident }} {{ .goType -}},
       {{- end }}
     {{- end -}}
-  ) {{ $taskGoInterface }} {
-  out := {{ $taskGoType }}{
+  ) ({{ $taskGoInterface }}, error) {
+  var (
+    err error
+    out {{ $taskGoType }}
+  )
+
+  out = {{ $taskGoType }}{
   {{- range $struct }}
     {{- if .required }}
     {{ .ident }}: {{ .ident }},
@@ -102,10 +135,10 @@ func {{ .constructor }}(
   }
 
   {{- if $taskTransformer }}
-  out = {{ $taskTransformer }}(out)
+  out, err = {{ $taskTransformer }}(out)
   {{- end }}
 
-  return out
+  return out, err
   }
   {{- end }}
 
