@@ -7,6 +7,7 @@ package gig
 //
 
 import (
+	"fmt"
 	"github.com/spf13/cast"
 )
 
@@ -28,19 +29,42 @@ const (
 // Constructors and utils
 
 // DecoderNoopParams returns a new decoderNoop from the params
-func DecoderNoopParams(params map[string]interface{}) Decoder {
-	out := decoderNoop{
-		source: cast.ToUint64(params["source"]),
+func DecoderNoopParams(params map[string]interface{}) (Decoder, error) {
+	var (
+		out = decoderNoop{}
+		err error
+	)
+
+	// Param validation
+	// - supported params
+	index := map[string]bool{
+		"source": true,
 	}
-	return out
+	for p := range params {
+		if !index[p] {
+			return nil, fmt.Errorf("unknown parameter provided to noop: %s", p)
+		}
+	}
+
+	// Fill and check requirements
+	if _, ok := params["source"]; !ok {
+		return nil, fmt.Errorf("required parameter not provided: source")
+	}
+	out.source = cast.ToUint64(params["source"])
+	return out, err
 }
 
-func DecoderNoop(source uint64) Decoder {
-	out := decoderNoop{
+func DecoderNoop(source uint64) (Decoder, error) {
+	var (
+		err error
+		out decoderNoop
+	)
+
+	out = decoderNoop{
 		source: source,
 	}
 
-	return out
+	return out, err
 }
 
 func (t decoderNoop) Ref() string {
@@ -54,19 +78,42 @@ func (t decoderNoop) Params() map[string]interface{} {
 }
 
 // DecoderArchiveParams returns a new decoderArchive from the params
-func DecoderArchiveParams(params map[string]interface{}) Decoder {
-	out := decoderArchive{
-		source: cast.ToUint64(params["source"]),
+func DecoderArchiveParams(params map[string]interface{}) (Decoder, error) {
+	var (
+		out = decoderArchive{}
+		err error
+	)
+
+	// Param validation
+	// - supported params
+	index := map[string]bool{
+		"source": true,
 	}
-	return out
+	for p := range params {
+		if !index[p] {
+			return nil, fmt.Errorf("unknown parameter provided to archive: %s", p)
+		}
+	}
+
+	// Fill and check requirements
+	if _, ok := params["source"]; !ok {
+		return nil, fmt.Errorf("required parameter not provided: source")
+	}
+	out.source = cast.ToUint64(params["source"])
+	return out, err
 }
 
-func DecoderArchive(source uint64) Decoder {
-	out := decoderArchive{
+func DecoderArchive(source uint64) (Decoder, error) {
+	var (
+		err error
+		out decoderArchive
+	)
+
+	out = decoderArchive{
 		source: source,
 	}
 
-	return out
+	return out, err
 }
 
 func (t decoderArchive) Ref() string {

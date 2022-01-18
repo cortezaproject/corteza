@@ -7,6 +7,7 @@ package gig
 //
 
 import (
+	"fmt"
 	"github.com/spf13/cast"
 )
 
@@ -31,9 +32,23 @@ const (
 // Constructors and utils
 
 // PostprocessorNoopParams returns a new postprocessorNoop from the params
-func PostprocessorNoopParams(params map[string]interface{}) Postprocessor {
-	out := postprocessorNoop{}
-	return out
+func PostprocessorNoopParams(params map[string]interface{}) (Postprocessor, error) {
+	var (
+		out = postprocessorNoop{}
+		err error
+	)
+
+	// Param validation
+	// - supported params
+	index := map[string]bool{}
+	for p := range params {
+		if !index[p] {
+			return nil, fmt.Errorf("unknown parameter provided to noop: %s", p)
+		}
+	}
+
+	// Fill and check requirements
+	return out, err
 }
 
 func (t postprocessorNoop) Ref() string {
@@ -45,9 +60,23 @@ func (t postprocessorNoop) Params() map[string]interface{} {
 }
 
 // PostprocessorDiscardParams returns a new postprocessorDiscard from the params
-func PostprocessorDiscardParams(params map[string]interface{}) Postprocessor {
-	out := postprocessorDiscard{}
-	return out
+func PostprocessorDiscardParams(params map[string]interface{}) (Postprocessor, error) {
+	var (
+		out = postprocessorDiscard{}
+		err error
+	)
+
+	// Param validation
+	// - supported params
+	index := map[string]bool{}
+	for p := range params {
+		if !index[p] {
+			return nil, fmt.Errorf("unknown parameter provided to discard: %s", p)
+		}
+	}
+
+	// Fill and check requirements
+	return out, err
 }
 
 func (t postprocessorDiscard) Ref() string {
@@ -59,9 +88,23 @@ func (t postprocessorDiscard) Params() map[string]interface{} {
 }
 
 // PostprocessorSaveParams returns a new postprocessorSave from the params
-func PostprocessorSaveParams(params map[string]interface{}) Postprocessor {
-	out := postprocessorSave{}
-	return out
+func PostprocessorSaveParams(params map[string]interface{}) (Postprocessor, error) {
+	var (
+		out = postprocessorSave{}
+		err error
+	)
+
+	// Param validation
+	// - supported params
+	index := map[string]bool{}
+	for p := range params {
+		if !index[p] {
+			return nil, fmt.Errorf("unknown parameter provided to save: %s", p)
+		}
+	}
+
+	// Fill and check requirements
+	return out, err
 }
 
 func (t postprocessorSave) Ref() string {
@@ -73,33 +116,60 @@ func (t postprocessorSave) Params() map[string]interface{} {
 }
 
 // PostprocessorArchiveParams returns a new postprocessorArchive from the params
-func PostprocessorArchiveParams(params map[string]interface{}) Postprocessor {
-	out := postprocessorArchive{
-		encoding: archiveFromParams(params["encoding"]),
+func PostprocessorArchiveParams(params map[string]interface{}) (Postprocessor, error) {
+	var (
+		out = postprocessorArchive{}
+		err error
+	)
 
-		name: cast.ToString(params["name"]),
+	// Param validation
+	// - supported params
+	index := map[string]bool{
+		"encoding": true,
+		"name":     true,
 	}
-	out = postprocessorArchiveTransformer(out)
-	return out
+	for p := range params {
+		if !index[p] {
+			return nil, fmt.Errorf("unknown parameter provided to archive: %s", p)
+		}
+	}
+
+	// Fill and check requirements
+	if _, ok := params["encoding"]; !ok {
+		return nil, fmt.Errorf("required parameter not provided: encoding")
+	}
+	out.encoding = archiveFromParams(params["encoding"])
+	out.name = cast.ToString(params["name"])
+	out, err = postprocessorArchiveTransformer(out)
+	return out, err
 }
 
 // PostprocessorArchiveName returns a new postprocessorArchive from the required fields and name
-func PostprocessorArchiveName(encoding archive, name string) Postprocessor {
-	out := postprocessorArchive{
+func PostprocessorArchiveName(encoding archive, name string) (Postprocessor, error) {
+	var (
+		err error
+		out postprocessorArchive
+	)
+	out = postprocessorArchive{
 		encoding: encoding,
 		name:     name,
 	}
-	out = postprocessorArchiveTransformer(out)
+	out, err = postprocessorArchiveTransformer(out)
 
-	return out
+	return out, err
 }
-func PostprocessorArchive(encoding archive) Postprocessor {
-	out := postprocessorArchive{
+func PostprocessorArchive(encoding archive) (Postprocessor, error) {
+	var (
+		err error
+		out postprocessorArchive
+	)
+
+	out = postprocessorArchive{
 		encoding: encoding,
 	}
-	out = postprocessorArchiveTransformer(out)
+	out, err = postprocessorArchiveTransformer(out)
 
-	return out
+	return out, err
 }
 
 func (t postprocessorArchive) Ref() string {
