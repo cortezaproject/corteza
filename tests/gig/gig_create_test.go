@@ -25,7 +25,7 @@ func Test_gig_create(t *testing.T) {
 		g, err = svc.Create(ctx, gig.UpdatePayload{
 			Worker: gig.WorkerNoop(),
 			Decode: gig.DecoderSet{
-				gig.DecoderNoop(0),
+				decoderSafe(gig.DecoderNoopSource(0)),
 			},
 			Preprocess: gig.PreprocessorSet{
 				gig.PreprocessorNoop(),
@@ -47,7 +47,7 @@ func Test_gig_create(t *testing.T) {
 
 		h.a.Len(g.Sources, 1)
 		h.a.Len(g.Sources[0].Decoders(), 1)
-		h.a.IsType(gig.DecoderNoop(0), g.Sources[0].Decoders()[0])
+		h.a.IsType(decoderSafe(gig.DecoderNoopSource(0)), g.Sources[0].Decoders()[0])
 
 		h.a.Len(g.Preprocess, 1)
 		pre := gig.PreprocessorNoop()

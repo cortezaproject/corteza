@@ -46,7 +46,7 @@ func Test_gig_update(t *testing.T) {
 
 			ng, err = svc.Update(ctx, g, gig.UpdatePayload{
 				Decode: gig.DecoderSet{
-					gig.DecoderNoop(0),
+					decoderSafe(gig.DecoderNoopSource(0)),
 				},
 				Sources: []gig.SourceWrap{
 					{
@@ -81,7 +81,7 @@ func Test_gig_update(t *testing.T) {
 			ng, err = svc.Update(ctx, g, gig.UpdatePayload{
 				Sources: gig.ToSourceWrap(g.Sources...),
 				Decode: gig.DecoderSet{
-					gig.DecoderNoop(sourceID),
+					decoderSafe(gig.DecoderNoopSource(sourceID)),
 				},
 			})
 			h.a.NoError(err)

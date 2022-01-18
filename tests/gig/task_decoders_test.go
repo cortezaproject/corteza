@@ -15,7 +15,7 @@ func test_decoder_tasks_worker(t *testing.T, h helper, s store.Storer) gig.Worke
 func test_decoder_tasks_noop(ctx context.Context, t *testing.T, h helper, svc gig.Service, s store.Storer, g gig.Gig, tc string) {
 	g, err := svc.AddSources(ctx, g, gig.SourceWrapSet{{
 		Uri: testSource(t, tc, "secret-key.txt"),
-	}}, gig.DecoderNoop(0))
+	}}, decoderSafe(gig.DecoderNoopSource(0)))
 	h.a.NoError(err)
 
 	g, err = svc.Prepare(ctx, g)
@@ -33,7 +33,7 @@ func test_decoder_tasks_noop(ctx context.Context, t *testing.T, h helper, svc gi
 func test_decoder_tasks_archive(ctx context.Context, t *testing.T, h helper, svc gig.Service, s store.Storer, g gig.Gig, tc string) {
 	g, err := svc.AddSources(ctx, g, gig.SourceWrapSet{{
 		Uri: testSource(t, tc, "archive.tar.gz"),
-	}}, gig.DecoderArchive(0))
+	}}, decoderSafe(gig.DecoderArchiveSource(0)))
 	h.a.NoError(err)
 
 	g, err = svc.Prepare(ctx, g)

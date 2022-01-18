@@ -12,11 +12,12 @@ func Test_envoy_worker_export(t *testing.T) {
 		err               error
 	)
 	loadScenario(ctx, s, t, h)
+	_ = svc
+	_ = err
+	_ = g
 
-	p1 := gig.PreprocessorResourceLoadHandle(gig.ComposeNamespaceResourceType, "ns1")
-	p2 := gig.PreprocessorResourceRemoveIdentifier(gig.ResourceTranslationResourceType, "*")
-
-	g, err = svc.SetPreprocessors(ctx, g, p1, p2)
+	p1 := preprocessorSafe(gig.PreprocessorExperimentalExportHandle("ns1"))
+	g, err = svc.SetPreprocessors(ctx, g, p1)
 	h.a.NoError(err)
 
 	g, err = svc.Exec(ctx, g)

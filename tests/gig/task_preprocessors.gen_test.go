@@ -56,37 +56,30 @@ func Test_preprocessor_tasks(t *testing.T) {
 		test_preprocessor_tasks_attachment_noop(ctx, t, h, svc, s, g, "attachment", "noop")
 	})
 
-	t.Run("resourceRemove", func(_ *testing.T) {
+	t.Run("noop", func(_ *testing.T) {
 		g, err = svc.Create(ctx, gig.UpdatePayload{
-			Worker: test_preprocessor_tasks_worker_envoy(t, h, s),
+			Worker: test_preprocessor_tasks_worker_import(t, h, s),
 		})
 		h.a.NoError(err)
 
-		test_preprocessor_tasks_envoy_resourceRemove(ctx, t, h, svc, s, g, "envoy", "resourceRemove")
+		test_preprocessor_tasks_import_noop(ctx, t, h, svc, s, g, "import", "noop")
 	})
-	t.Run("resourceLoad", func(_ *testing.T) {
+
+	t.Run("experimentalExport", func(_ *testing.T) {
 		g, err = svc.Create(ctx, gig.UpdatePayload{
-			Worker: test_preprocessor_tasks_worker_envoy(t, h, s),
+			Worker: test_preprocessor_tasks_worker_export(t, h, s),
 		})
 		h.a.NoError(err)
 
-		test_preprocessor_tasks_envoy_resourceLoad(ctx, t, h, svc, s, g, "envoy", "resourceLoad")
-	})
-	t.Run("namespaceLoad", func(_ *testing.T) {
-		g, err = svc.Create(ctx, gig.UpdatePayload{
-			Worker: test_preprocessor_tasks_worker_envoy(t, h, s),
-		})
-		h.a.NoError(err)
-
-		test_preprocessor_tasks_envoy_namespaceLoad(ctx, t, h, svc, s, g, "envoy", "namespaceLoad")
+		test_preprocessor_tasks_export_experimentalExport(ctx, t, h, svc, s, g, "export", "experimentalExport")
 	})
 	t.Run("noop", func(_ *testing.T) {
 		g, err = svc.Create(ctx, gig.UpdatePayload{
-			Worker: test_preprocessor_tasks_worker_envoy(t, h, s),
+			Worker: test_preprocessor_tasks_worker_export(t, h, s),
 		})
 		h.a.NoError(err)
 
-		test_preprocessor_tasks_envoy_noop(ctx, t, h, svc, s, g, "envoy", "noop")
+		test_preprocessor_tasks_export_noop(ctx, t, h, svc, s, g, "export", "noop")
 	})
 
 }
