@@ -81,42 +81,38 @@ _attachmentPreprocessors: [
 
 _envoyPreprocessors: [
 	{
-		ident:       "resourceRemove"
-		transformer: "preprocessorResourceRemoveTransformer"
-		description: "Removes the specified resource."
-		struct: {
-			resource: {
-				required: true
-			}
-			identifier: {}
-		}
-	},
-	{
-		ident:       "resourceLoad"
-		description: "Loads the specified resource from internal storage."
-		struct: {
-			resource: {
-				required: true
-			}
-			id: {
-				goType:   "uint64"
-				exprType: "string"
-			}
-			handle: {
-			}
-			query: {
-			}
-		}
-	},
-	{
-		ident:       "namespaceLoad"
-		description: "Loads the namespace with a predefined set of sub-resources."
+		ident:       "experimentalExport"
+		description: "Loads the namespace along with some sub-resources (modules, pages, charts, ...)"
 		struct: {
 			id: {
 				goType:   "uint64"
 				exprType: "string"
 			}
 			handle: {
+			}
+
+			inclRBAC: {
+				goType: "bool"
+			}
+			inclRoles: {
+				goType: "[]string"
+				castFunc: "cast.ToStringSlice"
+			}
+			exclRoles: {
+				goType: "[]string"
+				castFunc: "cast.ToStringSlice"
+			}
+
+			inclTranslations: {
+				goType: "bool"
+			}
+			inclLanguage: {
+				goType: "[]string"
+				castFunc: "cast.ToStringSlice"
+			}
+			exclLanguage: {
+				goType: "[]string"
+				castFunc: "cast.ToStringSlice"
 			}
 		}
 	},

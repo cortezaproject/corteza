@@ -19,19 +19,15 @@ type (
 		height int
 		width  int
 	}
-	preprocessorResourceRemove struct {
-		identifier string
-		resource   string
-	}
-	preprocessorResourceLoad struct {
-		handle   string
-		id       uint64
-		query    string
-		resource string
-	}
-	preprocessorNamespaceLoad struct {
-		handle string
-		id     uint64
+	preprocessorExperimentalExport struct {
+		exclLanguage     []string
+		exclRoles        []string
+		handle           string
+		id               uint64
+		inclLanguage     []string
+		inclRBAC         bool
+		inclRoles        []string
+		inclTranslations bool
 	}
 )
 
@@ -39,9 +35,7 @@ const (
 	PreprocessorHandleNoop                = "noop"
 	PreprocessorHandleAttachmentRemove    = "attachmentRemove"
 	PreprocessorHandleAttachmentTransform = "attachmentTransform"
-	PreprocessorHandleResourceRemove      = "resourceRemove"
-	PreprocessorHandleResourceLoad        = "resourceLoad"
-	PreprocessorHandleNamespaceLoad       = "namespaceLoad"
+	PreprocessorHandleExperimentalExport  = "experimentalExport"
 )
 
 // ------------------------------------------------------------------------
@@ -126,147 +120,114 @@ func (t preprocessorAttachmentTransform) Params() map[string]interface{} {
 	}
 }
 
-// PreprocessorResourceRemoveParams returns a new preprocessorResourceRemove from the params
-func PreprocessorResourceRemoveParams(params map[string]interface{}) Preprocessor {
-	out := preprocessorResourceRemove{
-		identifier: cast.ToString(params["identifier"]),
+// PreprocessorExperimentalExportParams returns a new preprocessorExperimentalExport from the params
+func PreprocessorExperimentalExportParams(params map[string]interface{}) Preprocessor {
+	out := preprocessorExperimentalExport{
+		exclLanguage: cast.ToStringSlice(params["exclLanguage"]),
 
-		resource: cast.ToString(params["resource"]),
-	}
-	out = preprocessorResourceRemoveTransformer(out)
-	return out
-}
+		exclRoles: cast.ToStringSlice(params["exclRoles"]),
 
-// PreprocessorResourceRemoveIdentifier returns a new preprocessorResourceRemove from the required fields and identifier
-func PreprocessorResourceRemoveIdentifier(resource string, identifier string) Preprocessor {
-	out := preprocessorResourceRemove{
-		resource:   resource,
-		identifier: identifier,
-	}
-	out = preprocessorResourceRemoveTransformer(out)
-
-	return out
-}
-func PreprocessorResourceRemove(resource string) Preprocessor {
-	out := preprocessorResourceRemove{
-		resource: resource,
-	}
-	out = preprocessorResourceRemoveTransformer(out)
-
-	return out
-}
-
-func (t preprocessorResourceRemove) Ref() string {
-	return PreprocessorHandleResourceRemove
-}
-
-func (t preprocessorResourceRemove) Params() map[string]interface{} {
-	return map[string]interface{}{
-		"identifier": t.identifier,
-		"resource":   t.resource,
-	}
-}
-
-// PreprocessorResourceLoadParams returns a new preprocessorResourceLoad from the params
-func PreprocessorResourceLoadParams(params map[string]interface{}) Preprocessor {
-	out := preprocessorResourceLoad{
 		handle: cast.ToString(params["handle"]),
 
 		id: cast.ToUint64(params["id"]),
 
-		query: cast.ToString(params["query"]),
+		inclLanguage: cast.ToStringSlice(params["inclLanguage"]),
 
-		resource: cast.ToString(params["resource"]),
+		inclRBAC: cast.ToBool(params["inclRBAC"]),
+
+		inclRoles: cast.ToStringSlice(params["inclRoles"]),
+
+		inclTranslations: cast.ToBool(params["inclTranslations"]),
 	}
 	return out
 }
 
-// PreprocessorResourceLoadHandle returns a new preprocessorResourceLoad from the required fields and handle
-func PreprocessorResourceLoadHandle(resource string, handle string) Preprocessor {
-	out := preprocessorResourceLoad{
-		resource: resource,
-		handle:   handle,
-	}
-
-	return out
-}
-
-// PreprocessorResourceLoadId returns a new preprocessorResourceLoad from the required fields and id
-func PreprocessorResourceLoadId(resource string, id uint64) Preprocessor {
-	out := preprocessorResourceLoad{
-		resource: resource,
-		id:       id,
+// PreprocessorExperimentalExportExclLanguage returns a new preprocessorExperimentalExport from the required fields and exclLanguage
+func PreprocessorExperimentalExportExclLanguage(exclLanguage []string) Preprocessor {
+	out := preprocessorExperimentalExport{
+		exclLanguage: exclLanguage,
 	}
 
 	return out
 }
 
-// PreprocessorResourceLoadQuery returns a new preprocessorResourceLoad from the required fields and query
-func PreprocessorResourceLoadQuery(resource string, query string) Preprocessor {
-	out := preprocessorResourceLoad{
-		resource: resource,
-		query:    query,
-	}
-
-	return out
-}
-func PreprocessorResourceLoad(resource string) Preprocessor {
-	out := preprocessorResourceLoad{
-		resource: resource,
+// PreprocessorExperimentalExportExclRoles returns a new preprocessorExperimentalExport from the required fields and exclRoles
+func PreprocessorExperimentalExportExclRoles(exclRoles []string) Preprocessor {
+	out := preprocessorExperimentalExport{
+		exclRoles: exclRoles,
 	}
 
 	return out
 }
 
-func (t preprocessorResourceLoad) Ref() string {
-	return PreprocessorHandleResourceLoad
-}
-
-func (t preprocessorResourceLoad) Params() map[string]interface{} {
-	return map[string]interface{}{
-		"handle":   t.handle,
-		"id":       t.id,
-		"query":    t.query,
-		"resource": t.resource,
-	}
-}
-
-// PreprocessorNamespaceLoadParams returns a new preprocessorNamespaceLoad from the params
-func PreprocessorNamespaceLoadParams(params map[string]interface{}) Preprocessor {
-	out := preprocessorNamespaceLoad{
-		handle: cast.ToString(params["handle"]),
-
-		id: cast.ToUint64(params["id"]),
-	}
-	return out
-}
-
-// PreprocessorNamespaceLoadHandle returns a new preprocessorNamespaceLoad from the required fields and handle
-func PreprocessorNamespaceLoadHandle(handle string) Preprocessor {
-	out := preprocessorNamespaceLoad{
+// PreprocessorExperimentalExportHandle returns a new preprocessorExperimentalExport from the required fields and handle
+func PreprocessorExperimentalExportHandle(handle string) Preprocessor {
+	out := preprocessorExperimentalExport{
 		handle: handle,
 	}
 
 	return out
 }
 
-// PreprocessorNamespaceLoadId returns a new preprocessorNamespaceLoad from the required fields and id
-func PreprocessorNamespaceLoadId(id uint64) Preprocessor {
-	out := preprocessorNamespaceLoad{
+// PreprocessorExperimentalExportId returns a new preprocessorExperimentalExport from the required fields and id
+func PreprocessorExperimentalExportId(id uint64) Preprocessor {
+	out := preprocessorExperimentalExport{
 		id: id,
 	}
 
 	return out
 }
 
-func (t preprocessorNamespaceLoad) Ref() string {
-	return PreprocessorHandleNamespaceLoad
+// PreprocessorExperimentalExportInclLanguage returns a new preprocessorExperimentalExport from the required fields and inclLanguage
+func PreprocessorExperimentalExportInclLanguage(inclLanguage []string) Preprocessor {
+	out := preprocessorExperimentalExport{
+		inclLanguage: inclLanguage,
+	}
+
+	return out
 }
 
-func (t preprocessorNamespaceLoad) Params() map[string]interface{} {
+// PreprocessorExperimentalExportInclRBAC returns a new preprocessorExperimentalExport from the required fields and inclRBAC
+func PreprocessorExperimentalExportInclRBAC(inclRBAC bool) Preprocessor {
+	out := preprocessorExperimentalExport{
+		inclRBAC: inclRBAC,
+	}
+
+	return out
+}
+
+// PreprocessorExperimentalExportInclRoles returns a new preprocessorExperimentalExport from the required fields and inclRoles
+func PreprocessorExperimentalExportInclRoles(inclRoles []string) Preprocessor {
+	out := preprocessorExperimentalExport{
+		inclRoles: inclRoles,
+	}
+
+	return out
+}
+
+// PreprocessorExperimentalExportInclTranslations returns a new preprocessorExperimentalExport from the required fields and inclTranslations
+func PreprocessorExperimentalExportInclTranslations(inclTranslations bool) Preprocessor {
+	out := preprocessorExperimentalExport{
+		inclTranslations: inclTranslations,
+	}
+
+	return out
+}
+
+func (t preprocessorExperimentalExport) Ref() string {
+	return PreprocessorHandleExperimentalExport
+}
+
+func (t preprocessorExperimentalExport) Params() map[string]interface{} {
 	return map[string]interface{}{
-		"handle": t.handle,
-		"id":     t.id,
+		"exclLanguage":     t.exclLanguage,
+		"exclRoles":        t.exclRoles,
+		"handle":           t.handle,
+		"id":               t.id,
+		"inclLanguage":     t.inclLanguage,
+		"inclRBAC":         t.inclRBAC,
+		"inclRoles":        t.inclRoles,
+		"inclTranslations": t.inclTranslations,
 	}
 }
 
@@ -310,27 +271,20 @@ func preprocessorDefinitions() TaskDefSet {
 			},
 		},
 		{
-			Ref:         PreprocessorHandleResourceRemove,
+			Ref:         PreprocessorHandleExperimentalExport,
 			Kind:        TaskPreprocessor,
-			Description: "Removes the specified resource.",
+			Description: "Loads the namespace along with some sub-resources (modules, pages, charts, ...)",
 			Params: []taskDefParam{
 				{
-					Name:     "identifier",
-					Kind:     "String",
+					Name:     "exclLanguage",
+					Kind:     "[]string",
 					Required: false,
 				},
 				{
-					Name:     "resource",
-					Kind:     "String",
-					Required: true,
+					Name:     "exclRoles",
+					Kind:     "[]string",
+					Required: false,
 				},
-			},
-		},
-		{
-			Ref:         PreprocessorHandleResourceLoad,
-			Kind:        TaskPreprocessor,
-			Description: "Loads the specified resource from internal storage.",
-			Params: []taskDefParam{
 				{
 					Name:     "handle",
 					Kind:     "String",
@@ -342,30 +296,23 @@ func preprocessorDefinitions() TaskDefSet {
 					Required: false,
 				},
 				{
-					Name:     "query",
-					Kind:     "String",
+					Name:     "inclLanguage",
+					Kind:     "[]string",
 					Required: false,
 				},
 				{
-					Name:     "resource",
-					Kind:     "String",
-					Required: true,
-				},
-			},
-		},
-		{
-			Ref:         PreprocessorHandleNamespaceLoad,
-			Kind:        TaskPreprocessor,
-			Description: "Loads the namespace with a predefined set of sub-resources.",
-			Params: []taskDefParam{
-				{
-					Name:     "handle",
-					Kind:     "String",
+					Name:     "inclRBAC",
+					Kind:     "Bool",
 					Required: false,
 				},
 				{
-					Name:     "id",
-					Kind:     "string",
+					Name:     "inclRoles",
+					Kind:     "[]string",
+					Required: false,
+				},
+				{
+					Name:     "inclTranslations",
+					Kind:     "Bool",
 					Required: false,
 				},
 			},

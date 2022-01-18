@@ -1,6 +1,14 @@
 package gig
 
 type (
+	rbacResource interface {
+		RbacResource() string
+	}
+
+	translatableResource interface {
+		ResourceTranslation() string
+	}
+
 	taskDefParam struct {
 		Name        string `json:"name"`
 		Kind        string `json:"kind"`
