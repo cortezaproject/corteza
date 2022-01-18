@@ -29,7 +29,8 @@ type (
 		Checksum string            `json:"checksum"`
 		Decoders conv.ParamWrapSet `json:"decoders"`
 	}
-	gigWorkerPayload struct {
+
+	gigWorker struct {
 		Ref string `json:"ref"`
 	}
 
@@ -37,7 +38,7 @@ type (
 		ID        uint64             `json:"gigID,string"`
 		Signature string             `json:"signature"`
 		Sources   []gigSourcePayload `json:"sources"`
-		Worker    gigWorkerPayload   `json:"worker"`
+		Worker    gigWorker          `json:"worker"`
 
 		Preprocess  conv.ParamWrapSet `json:"preprocess"`
 		Postprocess conv.ParamWrapSet `json:"postprocess"`
@@ -47,6 +48,10 @@ type (
 
 	gigTaskPayload struct {
 		Set gig.TaskDefSet `json:"set"`
+	}
+
+	gigWorkerPayload struct {
+		Set gig.WorkerDefSet `json:"set"`
 	}
 )
 
@@ -169,6 +174,10 @@ func (ctrl Gig) Tasks(ctx context.Context, r *request.GigTasks) (interface{}, er
 	return gigTaskPayload{Set: ctrl.svc.Tasks(ctx)}, nil
 }
 
+func (ctrl Gig) Workers(ctx context.Context, r *request.GigWorkers) (interface{}, error) {
+	return gigWorkerPayload{Set: ctrl.svc.Workers(ctx)}, nil
+}
+
 // ...
 
 func (ctrl Gig) prepareSources(blob *multipart.FileHeader, uri string) (out gig.SourceWrapSet, err error) {
@@ -243,7 +252,7 @@ func (ctrl Gig) makeGigPayload(ctx context.Context, g *gig.Gig, err error) (*gig
 		ID:        g.ID,
 		Signature: g.Signature,
 		Sources:   sources,
-		Worker: gigWorkerPayload{
+		Worker: gigWorker{
 			Ref: g.Worker.Ref(),
 		},
 		Preprocess:  pre,

@@ -33,6 +33,7 @@ type (
 		State(context.Context, *request.GigState) (interface{}, error)
 		Status(context.Context, *request.GigStatus) (interface{}, error)
 		Complete(context.Context, *request.GigComplete) (interface{}, error)
+		Workers(context.Context, *request.GigWorkers) (interface{}, error)
 		Tasks(context.Context, *request.GigTasks) (interface{}, error)
 	}
 
@@ -52,6 +53,7 @@ type (
 		State        func(http.ResponseWriter, *http.Request)
 		Status       func(http.ResponseWriter, *http.Request)
 		Complete     func(http.ResponseWriter, *http.Request)
+		Workers      func(http.ResponseWriter, *http.Request)
 		Tasks        func(http.ResponseWriter, *http.Request)
 	}
 )
@@ -282,6 +284,22 @@ func NewGig(h GigAPI) *Gig {
 
 			api.Send(w, r, value)
 		},
+		Workers: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewGigWorkers()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Workers(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 		Tasks: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewGigTasks()
@@ -318,6 +336,7 @@ func (h Gig) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Ha
 		r.Get("/gig/{gigID}/state", h.State)
 		r.Get("/gig/{gigID}/status", h.Status)
 		r.Patch("/gig/{gigID}/complete", h.Complete)
+		r.Get("/gig/workers", h.Workers)
 		r.Get("/gig/tasks", h.Tasks)
 	})
 }

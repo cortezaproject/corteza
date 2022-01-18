@@ -17,10 +17,6 @@ type (
 	}
 )
 
-var (
-	WorkerHandleAttachment = "attachment"
-)
-
 func WorkerAttachment() Worker {
 	return &workerAttachment{}
 }

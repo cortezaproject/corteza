@@ -1402,6 +1402,11 @@ endpoints:
         required: true
         title: ID
 
+  - name: workers
+    method: GET
+    title: Available gig workers
+    path: /workers
+
   - name: tasks
     method: GET
     title: Available gig tasks

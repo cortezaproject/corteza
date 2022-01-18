@@ -25,4 +25,10 @@ type (
 		Cleanup(context.Context) error
 		Ref() string
 	}
+
+	WorkerDef struct {
+		Ref         string `json:"ref"`
+		Description string `json:"description,omitempty"`
+	}
+	WorkerDefSet []WorkerDef
 )

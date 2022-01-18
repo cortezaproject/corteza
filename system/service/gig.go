@@ -31,6 +31,7 @@ type (
 		State(context.Context, uint64) (gig.WorkerState, error)
 
 		Tasks(context.Context) gig.TaskDefSet
+		Workers(context.Context) gig.WorkerDefSet
 	}
 
 	gigAccessController interface {
@@ -532,9 +533,15 @@ func (svc gigService) Tasks(ctx context.Context) (defs gig.TaskDefSet) {
 	return svc.manager.Tasks(ctx)
 }
 
+func (svc gigService) Workers(ctx context.Context) (defs gig.WorkerDefSet) {
+	return svc.manager.Workers(ctx)
+}
+
 func (svc gigService) initWorker(ctx context.Context, name string) (w gig.Worker, err error) {
 	switch strings.ToLower(name) {
-	case gig.WorkerHandleEnvoy:
+	case gig.WorkerHandleExport:
+		return gig.WorkerExport(svc.store), nil
+	case gig.WorkerHandleImport:
 		return gig.WorkerImport(svc.store), nil
 	case gig.WorkerHandleAttachment:
 		return nil, fmt.Errorf("worker not implemented: %s", name)

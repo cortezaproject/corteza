@@ -14,10 +14,6 @@ type (
 	}
 )
 
-var (
-	WorkerHandleNoop = "noop"
-)
-
 func WorkerNoop() Worker {
 	return &workerNoop{}
 }
