@@ -31,6 +31,14 @@ func Test_worker_state(t *testing.T) {
 		return g
 	}
 
+	t.Run("completed gig", func(_ *testing.T) {
+		ng, err := svc.Complete(ctx, g)
+		h.a.NoError(err)
+
+		_, err = svc.State(ctx, ng)
+		h.a.Error(err)
+	})
+
 	t.Run("noop", func(_ *testing.T) {
 		g = prep(gig.WorkerNoop(), "secret-message.txt")
 

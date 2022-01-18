@@ -105,5 +105,26 @@ gig:
 		},
 	]+
 
+	[
+		for k in ["decoders", "postprocessors", "preprocessors"] {
+			template: "gocode/gig/unit/task_$kind_test.go.tpl"
+			output:   "pkg/gig/task_\(k).gen_test.go"
+			payload: {
+				package: "gig"
+				imports: []
+
+				taskKind:  strings.TrimSuffix(k, "s")
+				taskExpKind: strings.ToTitle(taskKind)
+				taskConst: "Task" + strings.ToTitle(taskKind)
+
+				test: string | *"test_\(taskKind)_tasks"
+				expTest: string | *strings.ToTitle(test)
+				testWorker: string | *"\(test)_worker"
+
+				tasks:     app.corteza.gig[k]
+			}
+		},
+	]+
+
 	// Placeholder
 	[]

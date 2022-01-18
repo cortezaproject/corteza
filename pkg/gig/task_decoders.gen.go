@@ -29,7 +29,7 @@ const (
 // Constructors and utils
 
 // DecoderNoopParams returns a new decoderNoop from the params
-func DecoderNoopParams(params map[string]interface{}) (Decoder, error) {
+func DecoderNoopParams(params map[string]interface{}) (decoderNoop, error) {
 	var (
 		out = decoderNoop{}
 		err error
@@ -42,7 +42,7 @@ func DecoderNoopParams(params map[string]interface{}) (Decoder, error) {
 	}
 	for p := range params {
 		if !index[p] {
-			return nil, fmt.Errorf("unknown parameter provided to noop: %s", p)
+			return out, fmt.Errorf("unknown parameter provided to noop: %s", p)
 		}
 	}
 
@@ -52,7 +52,7 @@ func DecoderNoopParams(params map[string]interface{}) (Decoder, error) {
 }
 
 // DecoderNoopSource returns a new decoderNoop from the required fields and source
-func DecoderNoopSource(source uint64) (Decoder, error) {
+func DecoderNoopSource(source uint64) (decoderNoop, error) {
 	var (
 		err error
 		out decoderNoop
@@ -75,7 +75,7 @@ func (t decoderNoop) Params() map[string]interface{} {
 }
 
 // DecoderArchiveParams returns a new decoderArchive from the params
-func DecoderArchiveParams(params map[string]interface{}) (Decoder, error) {
+func DecoderArchiveParams(params map[string]interface{}) (decoderArchive, error) {
 	var (
 		out = decoderArchive{}
 		err error
@@ -88,7 +88,7 @@ func DecoderArchiveParams(params map[string]interface{}) (Decoder, error) {
 	}
 	for p := range params {
 		if !index[p] {
-			return nil, fmt.Errorf("unknown parameter provided to archive: %s", p)
+			return out, fmt.Errorf("unknown parameter provided to archive: %s", p)
 		}
 	}
 
@@ -98,7 +98,7 @@ func DecoderArchiveParams(params map[string]interface{}) (Decoder, error) {
 }
 
 // DecoderArchiveSource returns a new decoderArchive from the required fields and source
-func DecoderArchiveSource(source uint64) (Decoder, error) {
+func DecoderArchiveSource(source uint64) (decoderArchive, error) {
 	var (
 		err error
 		out decoderArchive

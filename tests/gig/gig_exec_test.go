@@ -48,4 +48,25 @@ func Test_gig_exec(t *testing.T) {
 		h.a.NotNil(ng.Status.CompletedAt)
 		h.a.NotNil(ng.Status.Elapsed)
 	})
+
+	t.Run("complete on demand", func(_ *testing.T) {
+		ng, err = svc.Exec(ctx, g)
+		h.a.NoError(err)
+		h.a.Nil(ng.CompletedAt)
+
+		ng, err = svc.Complete(ctx, g)
+		h.a.NoError(err)
+		h.a.NotNil(ng.CompletedAt)
+	})
+
+	t.Run("complete on exec", func(_ *testing.T) {
+		ng, err = svc.Create(ctx, gig.UpdatePayload{
+			Worker:     gig.WorkerNoop(),
+			CompleteOn: gig.OnExec,
+		})
+
+		ng, err = svc.Exec(ctx, ng)
+		h.a.NoError(err)
+		h.a.NotNil(ng.CompletedAt)
+	})
 }

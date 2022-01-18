@@ -92,6 +92,20 @@ func Test_gig_update(t *testing.T) {
 		})
 	})
 
+	t.Run("update decoders", func(_ *testing.T) {
+		var ng gig.Gig
+		_ = ng
+
+		ng, err = svc.Update(ctx, g, gig.UpdatePayload{
+			Preprocess: gig.PreprocessorSet{
+				gig.PreprocessorNoop(),
+			},
+		})
+		h.a.NoError(err)
+		h.a.Len(ng.Preprocess, 1)
+		h.a.NotNil(ng.UpdatedAt)
+	})
+
 	t.Run("update preprocessors", func(_ *testing.T) {
 		var ng gig.Gig
 		_ = ng
