@@ -9,7 +9,6 @@ _decoders: [{
 		source: {
 			goType:   "uint64"
 			exprType: "String"
-			required: true
 		}
 	}
 },
@@ -20,7 +19,6 @@ _decoders: [{
 			source: {
 				goType:   "uint64"
 				exprType: "String"
-				required: true
 			}
 		}
 	}]
