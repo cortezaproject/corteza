@@ -13,11 +13,11 @@ import (
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
-func (w *workerEnvoy) noop(_ context.Context, _ preprocessorNoop) error {
+func (w *workerExport) noop(_ context.Context, _ preprocessorNoop) error {
 	return nil
 }
 
-func (w *workerEnvoy) experimentalExport(ctx context.Context, params preprocessorExperimentalExport) error {
+func (w *workerExport) experimentalExport(ctx context.Context, params preprocessorExperimentalExport) error {
 	df := store.NewDecodeFilter()
 
 	if params.id != 0 {
@@ -35,11 +35,13 @@ func (w *workerEnvoy) experimentalExport(ctx context.Context, params preprocesso
 		ComposePage(&types.PageFilter{}).
 		ComposeChart(&types.ChartFilter{})
 
-	res, err := w.getStoreDecoders().Decode(ctx, w.store, df)
+	res, err := getStoreDecoders().Decode(ctx, w.store, df)
 	res = w.pruneResTr(res)
 	if err != nil {
 		return err
 	}
+
+	res = w.removeUnsupportedBits(res)
 
 	if params.inclRBAC {
 		res, err = w.loadAccessControl(ctx, params, res)
@@ -61,7 +63,37 @@ func (w *workerEnvoy) experimentalExport(ctx context.Context, params preprocesso
 	return nil
 }
 
-func (w *workerEnvoy) loadAccessControl(ctx context.Context, params preprocessorExperimentalExport, base resource.InterfaceSet) (resource.InterfaceSet, error) {
+func (w *workerExport) removeUnsupportedBits(base resource.InterfaceSet) resource.InterfaceSet {
+	// - prune resources we won't preserve
+	prune := resource.RefSet{resource.MakeWildRef(AutomationWorkflowResourceType)}
+	for _, r := range base {
+		pp, ok := r.(resource.PrunableInterface)
+		if !ok {
+			continue
+		}
+
+		for _, p := range prune {
+			pp.Prune(p)
+		}
+	}
+
+	// - remove namespace assets
+	// @todo add support for attachment export
+	for _, r := range base {
+		if r.ResourceType() == ComposeNamespaceResourceType {
+			c := r.(*resource.ComposeNamespace)
+			c.Res.Meta.Icon = ""
+			c.Res.Meta.IconID = 0
+			c.Res.Meta.Logo = ""
+			c.Res.Meta.LogoID = 0
+			c.Res.Meta.LogoEnabled = false
+		}
+	}
+
+	return base
+}
+
+func (w *workerExport) loadAccessControl(ctx context.Context, params preprocessorExperimentalExport, base resource.InterfaceSet) (resource.InterfaceSet, error) {
 	var (
 		roles     resource.InterfaceSet
 		out       resource.InterfaceSet
@@ -130,7 +162,7 @@ func (w *workerEnvoy) loadAccessControl(ctx context.Context, params preprocessor
 	return out, nil
 }
 
-func (w *workerEnvoy) loadTranslations(ctx context.Context, params preprocessorExperimentalExport, base resource.InterfaceSet) (resource.InterfaceSet, error) {
+func (w *workerExport) loadTranslations(ctx context.Context, params preprocessorExperimentalExport, base resource.InterfaceSet) (resource.InterfaceSet, error) {
 	var (
 		translations systemTypes.ResourceTranslationSet
 		out          resource.InterfaceSet
@@ -182,12 +214,12 @@ func (w *workerEnvoy) loadTranslations(ctx context.Context, params preprocessorE
 }
 
 // @todo can we make this better?
-func (w *workerEnvoy) loadRBACRules(ctx context.Context) ([]*rbac.Rule, error) {
+func (w *workerExport) loadRBACRules(ctx context.Context) ([]*rbac.Rule, error) {
 	out, _, err := intStore.SearchRbacRules(ctx, w.store, rbac.RuleFilter{})
 	return out, err
 }
 
-func (w *workerEnvoy) loadInclRoles(ctx context.Context, identifiers []string) (resource.InterfaceSet, map[uint64]bool, error) {
+func (w *workerExport) loadInclRoles(ctx context.Context, identifiers []string) (resource.InterfaceSet, map[uint64]bool, error) {
 	df := store.NewDecodeFilter()
 
 	for _, r := range identifiers {
@@ -202,7 +234,7 @@ func (w *workerEnvoy) loadInclRoles(ctx context.Context, identifiers []string) (
 		}
 	}
 
-	res, err := w.getStoreDecoders().Decode(ctx, w.store, df)
+	res, err := getStoreDecoders().Decode(ctx, w.store, df)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -215,10 +247,10 @@ func (w *workerEnvoy) loadInclRoles(ctx context.Context, identifiers []string) (
 	return res, index, nil
 }
 
-func (w *workerEnvoy) loadExclRoles(ctx context.Context, identifiers []string) (resource.InterfaceSet, map[uint64]bool, error) {
+func (w *workerExport) loadExclRoles(ctx context.Context, identifiers []string) (resource.InterfaceSet, map[uint64]bool, error) {
 	df := store.NewDecodeFilter()
 
-	res, err := w.getStoreDecoders().Decode(ctx, w.store, df)
+	res, err := getStoreDecoders().Decode(ctx, w.store, df)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -248,12 +280,12 @@ func (w *workerEnvoy) loadExclRoles(ctx context.Context, identifiers []string) (
 }
 
 // @todo can we make this better?
-func (w *workerEnvoy) loadResourceTranslations(ctx context.Context) (systemTypes.ResourceTranslationSet, error) {
+func (w *workerExport) loadResourceTranslations(ctx context.Context) (systemTypes.ResourceTranslationSet, error) {
 	out, _, err := intStore.SearchResourceTranslations(ctx, w.store, systemTypes.ResourceTranslationFilter{})
 	return out, err
 }
 
-func (w *workerEnvoy) loadInclTranslations(ctx context.Context, lang []string) (systemTypes.ResourceTranslationSet, error) {
+func (w *workerExport) loadInclTranslations(ctx context.Context, lang []string) (systemTypes.ResourceTranslationSet, error) {
 	translations, err := w.loadResourceTranslations(ctx)
 	if err != nil {
 		return nil, err
@@ -274,7 +306,7 @@ func (w *workerEnvoy) loadInclTranslations(ctx context.Context, lang []string) (
 	return out, nil
 }
 
-func (w *workerEnvoy) loadExclTranslations(ctx context.Context, lang []string) (systemTypes.ResourceTranslationSet, error) {
+func (w *workerExport) loadExclTranslations(ctx context.Context, lang []string) (systemTypes.ResourceTranslationSet, error) {
 	translations, err := w.loadResourceTranslations(ctx)
 	if err != nil {
 		return nil, err
@@ -299,7 +331,7 @@ func matchResource(matcher, resource string) (m bool) {
 	return rbac.MatchResource(matcher, resource)
 }
 
-func (w *workerEnvoy) pruneResTr(nn []resource.Interface) (mm []resource.Interface) {
+func (w *workerExport) pruneResTr(nn []resource.Interface) (mm []resource.Interface) {
 	mm = make([]resource.Interface, 0, len(nn))
 	for _, n := range nn {
 		if n.ResourceType() != resource.ResourceTranslationType {

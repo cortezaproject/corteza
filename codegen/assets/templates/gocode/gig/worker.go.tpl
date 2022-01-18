@@ -37,3 +37,19 @@ func (w *{{ .goType }}) Preprocess(ctx context.Context, tasks ...Preprocessor) (
     return nil
 }
 {{ end }}
+
+// ------------------------------------------------------------------------
+// Worker registry
+
+func workerDefinitions() WorkerDefSet {
+  return WorkerDefSet{
+  {{- range .workers }}
+    {
+      Ref: {{ .goConst }},
+    {{- if .description }}
+      Description: "{{ .description }}",
+    {{- end }}
+    },
+  {{- end }}
+  }
+}

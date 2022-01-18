@@ -9,7 +9,7 @@ import (
 	expIdent:     string | *strings.ToTitle(ident)
 	description?: string
 	goType:       string | *"worker\(expIdent)"
-	goConst:      string | *"Worker\(expIdent)Handle"
+	goConst:      string | *"WorkerHandle\(expIdent)"
 
 	tasks: [...({kind: "preprocessor"} & #gigTask)] | *[]
 }

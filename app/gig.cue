@@ -77,7 +77,13 @@ _attachmentPreprocessors: [
 	},
 ]
 
-_envoyPreprocessors: [
+_envoyGenericPreprocessors: [
+]
+
+_importPreprocessors: [
+]
+
+_exportPreprocessors: [
 	{
 		ident:       "experimentalExport"
 		description: "Loads the namespace along with some sub-resources (modules, pages, charts, ...)"

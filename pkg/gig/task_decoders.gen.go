@@ -47,19 +47,16 @@ func DecoderNoopParams(params map[string]interface{}) (Decoder, error) {
 	}
 
 	// Fill and check requirements
-	if _, ok := params["source"]; !ok {
-		return nil, fmt.Errorf("required parameter not provided: source")
-	}
 	out.source = cast.ToUint64(params["source"])
 	return out, err
 }
 
-func DecoderNoop(source uint64) (Decoder, error) {
+// DecoderNoopSource returns a new decoderNoop from the required fields and source
+func DecoderNoopSource(source uint64) (Decoder, error) {
 	var (
 		err error
 		out decoderNoop
 	)
-
 	out = decoderNoop{
 		source: source,
 	}
@@ -96,19 +93,16 @@ func DecoderArchiveParams(params map[string]interface{}) (Decoder, error) {
 	}
 
 	// Fill and check requirements
-	if _, ok := params["source"]; !ok {
-		return nil, fmt.Errorf("required parameter not provided: source")
-	}
 	out.source = cast.ToUint64(params["source"])
 	return out, err
 }
 
-func DecoderArchive(source uint64) (Decoder, error) {
+// DecoderArchiveSource returns a new decoderArchive from the required fields and source
+func DecoderArchiveSource(source uint64) (Decoder, error) {
 	var (
 		err error
 		out decoderArchive
 	)
-
 	out = decoderArchive{
 		source: source,
 	}
@@ -139,7 +133,7 @@ func decoderDefinitions() TaskDefSet {
 				{
 					Name:     "source",
 					Kind:     "String",
-					Required: true,
+					Required: false,
 				},
 			},
 		},
@@ -151,7 +145,7 @@ func decoderDefinitions() TaskDefSet {
 				{
 					Name:     "source",
 					Kind:     "String",
-					Required: true,
+					Required: false,
 				},
 			},
 		},

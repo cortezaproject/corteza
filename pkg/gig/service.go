@@ -30,6 +30,7 @@ type (
 		Update(context.Context, Gig, UpdatePayload) (Gig, error)
 		State(context.Context, Gig) (out interface{}, err error)
 		Tasks(context.Context) (out TaskDefSet)
+		Workers(context.Context) (out WorkerDefSet)
 		Delete(context.Context, Gig) (Gig, error)
 		Undelete(context.Context, Gig) (Gig, error)
 
@@ -421,6 +422,10 @@ func (svc *service) Tasks(_ context.Context) (out TaskDefSet) {
 	out = append(out, postprocessorDefinitions()...)
 
 	return
+}
+
+func (svc *service) Workers(_ context.Context) (out WorkerDefSet) {
+	return workerDefinitions()
 }
 
 func (svc *service) Delete(ctx context.Context, old Gig) (g Gig, err error) {

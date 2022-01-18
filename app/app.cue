@@ -55,15 +55,34 @@ corteza: schema.#platform & {
 
 		preprocessors: _noopPreprocessors +
 			_attachmentPreprocessors +
-			_envoyPreprocessors +
+			_envoyGenericPreprocessors +
+			_importPreprocessors +
+			_exportPreprocessors +
 			[]
 
 		postprocessors: _postprocessors
 
 		workers: [
-			{ident: "noop", tasks:       _noopPreprocessors},
-			{ident: "attachment", tasks: _attachmentPreprocessors + _noopPreprocessors},
-			{ident: "envoy", tasks:      _envoyPreprocessors + _noopPreprocessors},
+			{
+				ident: "noop",
+				description: "Noop worker has no predefined operations -- it proxies decoder results into postprocessor input.",
+				tasks:       _noopPreprocessors
+			},
+			{
+				ident: "attachment",
+				description: "@todo not implemented.",
+				tasks: _attachmentPreprocessors + _noopPreprocessors
+			},
+			{
+				ident: "import",
+				description: "Import worker is used to import external data into Corteza.",
+				tasks:      _envoyGenericPreprocessors + _importPreprocessors + _noopPreprocessors
+			},
+			{
+				ident: "export",
+				description: "Export worker is used to export internal data into a predefined format.",
+				tasks:      _envoyGenericPreprocessors + _exportPreprocessors + _noopPreprocessors
+			},
 		]
 	}
 }

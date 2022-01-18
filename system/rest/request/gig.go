@@ -187,6 +187,9 @@ type (
 		GigID uint64 `json:",string"`
 	}
 
+	GigWorkers struct {
+	}
+
 	GigTasks struct {
 	}
 )
@@ -1077,6 +1080,22 @@ func (r *GigComplete) Fill(req *http.Request) (err error) {
 		}
 
 	}
+
+	return err
+}
+
+// NewGigWorkers request
+func NewGigWorkers() *GigWorkers {
+	return &GigWorkers{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r GigWorkers) Auditable() map[string]interface{} {
+	return map[string]interface{}{}
+}
+
+// Fill processes request and fills internal variables
+func (r *GigWorkers) Fill(req *http.Request) (err error) {
 
 	return err
 }
