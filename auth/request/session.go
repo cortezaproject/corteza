@@ -1,9 +1,10 @@
 package request
 
 import (
+	"net/url"
+
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/gorilla/sessions"
-	"net/url"
 )
 
 const (
@@ -23,26 +24,22 @@ func GetAuthUser(ses *sessions.Session) *authUser {
 		return nil
 	}
 
-	return val.(*authUser)
+	au := val.(*authUser)
+	if au.User != nil {
+		au.User.SetRoles(getRoleMemberships(ses)...)
+	}
+
+	return au
 }
 
 // GetRoleMemberships is wrapper to get value from session
-func GetRoleMemberships(ses *sessions.Session) []uint64 {
+func getRoleMemberships(ses *sessions.Session) []uint64 {
 	val, has := ses.Values[keyRoles]
 	if !has {
 		return nil
 	}
 
 	return val.([]uint64)
-}
-
-// SetRoleMemberships is a session value setting wrapper for RoleMemberships
-func SetRoleMemberships(ses *sessions.Session, val []uint64) {
-	if val != nil {
-		ses.Values[keyRoles] = val
-	} else {
-		delete(ses.Values, keyRoles)
-	}
 }
 
 // GetOAuth2AuthParams is wrapper to get value from session

@@ -104,7 +104,7 @@ type (
 	}
 
 	authTokenMaker interface {
-		Generate(ctx context.Context, i auth.Identifiable, clientID uint64, scope ...string) (token []byte, err error)
+		Generate(ctx context.Context, i auth.Identifiable, clientID uint64, scope ...string) (signed []byte, err error)
 	}
 )
 
@@ -735,7 +735,7 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 		}
 
 		// Generate and save the token
-		token, err = svc.authTokenMaker.Generate(ctx, definer, 0)
+		token, err = svc.authTokenMaker.Generate(ctx, definer, 0, "profile", "api")
 		if err != nil {
 			return
 		}

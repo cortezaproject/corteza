@@ -26,6 +26,10 @@ var (
 )
 
 type (
+	jwtValidator interface {
+		Validate(ctx context.Context, token jwt.Token, scope ...string) error
+	}
+
 	session struct {
 		id   uint64
 		once sync.Once
@@ -45,6 +49,8 @@ type (
 
 		identity auth.Identifiable
 
+		jv jwtValidator
+
 		server *server
 	}
 )
@@ -56,6 +62,7 @@ func Session(ctx context.Context, ws *server, conn *websocket.Conn) *session {
 		config: ws.config,
 		send:   make(chan []byte, 512),
 		stop:   make(chan []byte, 1),
+		jv:     auth.JWT(),
 		server: ws,
 	}
 
@@ -292,12 +299,8 @@ func (s *session) authenticate(p *payloadAuth) error {
 		return err
 	}
 
-	if err = jwt.Validate(token); err != nil {
+	if err = s.jv.Validate(s.ctx, token, "api"); err != nil {
 		return err
-	}
-
-	if !auth.CheckJwtScope(token, "api") {
-		return fmt.Errorf("client does not allow use of websockets (missing 'api' scope)")
 	}
 
 	// Get identity using JWT claims
