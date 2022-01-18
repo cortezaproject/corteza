@@ -12,8 +12,8 @@ labels: &labels
 functions:
   lookup:
     meta:
-      short: Compose record lookup
-      description: Find specific record by ID
+      short: Attachment lookup
+      description: Find specific attachment by ID
     labels:
       <<: *labels
     params:
