@@ -55,20 +55,41 @@ func test_postprocessor_tasks_save(ctx context.Context, t *testing.T, h helper, 
 }
 
 func test_postprocessor_tasks_archive(ctx context.Context, t *testing.T, h helper, svc gig.Service, s store.Storer, g gig.Gig, tc string) {
-	g, err := svc.SetPostprocessors(ctx, g, postprocessorSafe(gig.PostprocessorArchive(gig.ArchiveTar)))
-	h.a.NoError(err)
+	t.Run(".tar.gz", func(_ *testing.T) {
+		g, err := svc.SetPostprocessors(ctx, g, postprocessorSafe(gig.PostprocessorArchive(gig.ArchiveTar)))
+		h.a.NoError(err)
 
-	ss, err := gig.PrepareSourceFromDirectory(ctx, testSource(t, "_base"))
-	h.a.NoError(err)
-	g, err = svc.AddSources(ctx, g, gig.ToSourceWrap(ss...))
-	h.a.NoError(err)
+		ss, err := gig.PrepareSourceFromDirectory(ctx, testSource(t, "_base"))
+		h.a.NoError(err)
+		g, err = svc.AddSources(ctx, g, gig.ToSourceWrap(ss...))
+		h.a.NoError(err)
 
-	g, err = svc.Exec(ctx, g)
-	h.a.NoError(err)
+		g, err = svc.Exec(ctx, g)
+		h.a.NoError(err)
 
-	out, _, err := svc.Output(ctx, g)
-	h.a.NoError(err)
+		out, _, err := svc.Output(ctx, g)
+		h.a.NoError(err)
 
-	h.a.Len(out, 1)
-	h.a.True(gig.ToSourceWrap(out...).HasByName("archive.tar.gz"))
+		h.a.Len(out, 1)
+		h.a.True(gig.ToSourceWrap(out...).HasByName("archive.tar.gz"))
+	})
+
+	t.Run(".zip", func(_ *testing.T) {
+		g, err := svc.SetPostprocessors(ctx, g, postprocessorSafe(gig.PostprocessorArchive(gig.ArchiveZIP)))
+		h.a.NoError(err)
+
+		ss, err := gig.PrepareSourceFromDirectory(ctx, testSource(t, "_base"))
+		h.a.NoError(err)
+		g, err = svc.AddSources(ctx, g, gig.ToSourceWrap(ss...))
+		h.a.NoError(err)
+
+		g, err = svc.Exec(ctx, g)
+		h.a.NoError(err)
+
+		out, _, err := svc.Output(ctx, g)
+		h.a.NoError(err)
+
+		h.a.Len(out, 1)
+		h.a.True(gig.ToSourceWrap(out...).HasByName("archive.zip"))
+	})
 }
