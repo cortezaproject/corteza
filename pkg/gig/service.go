@@ -36,7 +36,7 @@ type (
 
 		Prepare(context.Context, Gig) (Gig, error)
 		Exec(context.Context, Gig) (Gig, error)
-		Output(context.Context, Gig) (SourceSet, error)
+		Output(context.Context, Gig) (SourceSet, Gig, error)
 		Cleanup(context.Context, Gig) (Gig, error)
 
 		SetSources(context.Context, Gig, SourceWrapSet, ...Decoder) (Gig, error)
@@ -76,6 +76,7 @@ func (svc *service) Create(ctx context.Context, pl UpdatePayload) (g Gig, err er
 	}
 
 	g = newGig(pl.Worker)
+	g.CompleteOn = pl.CompleteOn
 
 	decoders := pl.Decode
 	if len(pl.Sources) > 0 {
@@ -115,6 +116,7 @@ func (svc *service) Update(ctx context.Context, old Gig, pl UpdatePayload) (g Gi
 	}
 
 	g = old
+	g.CompleteOn = pl.CompleteOn
 
 	var implicit []Decoder
 	if len(pl.Decode) > 0 {
@@ -199,35 +201,7 @@ func (svc *service) RemoveSources(ctx context.Context, old Gig, sources ...uint6
 		return
 	}
 
-	g = old
-
-	var rm SourceSet
-	var keep SourceSet
-
-	if len(sources) > 0 {
-		rmSet := make(map[uint64]bool)
-		for _, sID := range sources {
-			rmSet[sID] = true
-		}
-
-		for _, src := range g.Sources {
-			if rmSet[src.ID()] {
-				rm = append(rm, src)
-			} else {
-				keep = append(keep, src)
-			}
-		}
-	} else {
-		rm = g.Sources
-	}
-
-	err = cleanupSources(ctx, rm...)
-	if err != nil {
-		return
-	}
-
-	g.Sources = keep
-	return
+	return removeSources(ctx, old, sources...)
 }
 
 func (svc *service) SetDecoders(ctx context.Context, old Gig, decoders ...Decoder) (g Gig, err error) {
@@ -267,16 +241,16 @@ func (svc *service) Cleanup(ctx context.Context, old Gig) (g Gig, err error) {
 }
 
 func (svc *service) cleanup(ctx context.Context, old Gig) (g Gig, err error) {
-	g, err = svc.RemoveSources(ctx, old)
+	g, err = removeSources(ctx, old)
 	if err != nil {
 		return
 	}
 
-	if err = g.Worker.Cleanup(ctx); err != nil {
+	if g.Worker == nil {
 		return
 	}
 
-	if err = cleanupSources(ctx, g.Output...); err != nil {
+	if err = g.Worker.Cleanup(ctx); err != nil {
 		return
 	}
 
@@ -293,6 +267,8 @@ func (svc *service) Complete(ctx context.Context, old Gig) (g Gig, err error) {
 	if err != nil {
 		return
 	}
+
+	g.CompletedAt = now()
 
 	return updateGig(ctx, g)
 }
@@ -355,15 +331,9 @@ func (svc *service) Exec(ctx context.Context, old Gig) (g Gig, err error) {
 		return
 	}
 
-	// Do the postprocessing
 	g.Output = output
 
-	if len(g.Postprocess) == 0 {
-		_, err = updateGig(ctx, old)
-		return
-	}
-
-	// If postprocessor defined
+	// Do the postprocessing
 	for _, pp := range g.Postprocess {
 		output, g.Status.Meta, err = pp.Postprocess(ctx, g.Status.Meta, output)
 		if err != nil {
@@ -373,7 +343,7 @@ func (svc *service) Exec(ctx context.Context, old Gig) (g Gig, err error) {
 
 	g.Output = output
 
-	if g.CompleteOn == onExec {
+	if g.CompleteOn == OnExec {
 		g, err = svc.cleanup(ctx, g)
 		if err != nil {
 			return
@@ -384,21 +354,22 @@ func (svc *service) Exec(ctx context.Context, old Gig) (g Gig, err error) {
 	return updateGig(ctx, g)
 }
 
-func (svc *service) Output(ctx context.Context, old Gig) (out SourceSet, err error) {
+func (svc *service) Output(ctx context.Context, old Gig) (out SourceSet, g Gig, err error) {
 	out = old.Output
+	g = old
 
 	if old.CompletedAt != nil {
 		err = fmt.Errorf("unable to get output for gig %d: already completed", old.ID)
 		return
 	}
 
-	if old.CompleteOn == onOutput {
-		old, err = svc.cleanup(ctx, old)
+	if old.CompleteOn == OnOutput {
+		g, err = svc.cleanup(ctx, old)
 		if err != nil {
 			return
 		}
-		old.CompletedAt = now()
-		old, err = updateGig(ctx, old)
+		g.CompletedAt = now()
+		g, err = updateGig(ctx, g)
 		if err != nil {
 			return
 		}
@@ -479,6 +450,38 @@ func setDecoders(ctx context.Context, old Gig, decoders []Decoder) (g Gig, err e
 		}
 	}
 
+	return
+}
+
+func removeSources(ctx context.Context, old Gig, sources ...uint64) (g Gig, err error) {
+	g = old
+
+	var rm SourceSet
+	var keep SourceSet
+
+	if len(sources) > 0 {
+		rmSet := make(map[uint64]bool)
+		for _, sID := range sources {
+			rmSet[sID] = true
+		}
+
+		for _, src := range g.Sources {
+			if rmSet[src.ID()] {
+				rm = append(rm, src)
+			} else {
+				keep = append(keep, src)
+			}
+		}
+	} else {
+		rm = g.Sources
+	}
+
+	err = cleanupSources(ctx, rm...)
+	if err != nil {
+		return
+	}
+
+	g.Sources = keep
 	return
 }
 

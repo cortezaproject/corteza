@@ -43,7 +43,7 @@ const (
 // Constructors and utils
 
 // PreprocessorNoopParams returns a new preprocessorNoop from the params
-func PreprocessorNoopParams(params map[string]interface{}) (Preprocessor, error) {
+func PreprocessorNoopParams(params map[string]interface{}) (preprocessorNoop, error) {
 	var (
 		out = preprocessorNoop{}
 		err error
@@ -54,7 +54,7 @@ func PreprocessorNoopParams(params map[string]interface{}) (Preprocessor, error)
 	index := map[string]bool{}
 	for p := range params {
 		if !index[p] {
-			return nil, fmt.Errorf("unknown parameter provided to noop: %s", p)
+			return out, fmt.Errorf("unknown parameter provided to noop: %s", p)
 		}
 	}
 
@@ -71,7 +71,7 @@ func (t preprocessorNoop) Params() map[string]interface{} {
 }
 
 // PreprocessorAttachmentRemoveParams returns a new preprocessorAttachmentRemove from the params
-func PreprocessorAttachmentRemoveParams(params map[string]interface{}) (Preprocessor, error) {
+func PreprocessorAttachmentRemoveParams(params map[string]interface{}) (preprocessorAttachmentRemove, error) {
 	var (
 		out = preprocessorAttachmentRemove{}
 		err error
@@ -84,19 +84,19 @@ func PreprocessorAttachmentRemoveParams(params map[string]interface{}) (Preproce
 	}
 	for p := range params {
 		if !index[p] {
-			return nil, fmt.Errorf("unknown parameter provided to attachmentRemove: %s", p)
+			return out, fmt.Errorf("unknown parameter provided to attachmentRemove: %s", p)
 		}
 	}
 
 	// Fill and check requirements
 	if _, ok := params["mimeType"]; !ok {
-		return nil, fmt.Errorf("required parameter not provided: mimeType")
+		return out, fmt.Errorf("required parameter not provided: mimeType")
 	}
 	out.mimeType = cast.ToString(params["mimeType"])
 	return out, err
 }
 
-func PreprocessorAttachmentRemove(mimeType string) (Preprocessor, error) {
+func PreprocessorAttachmentRemove(mimeType string) (preprocessorAttachmentRemove, error) {
 	var (
 		err error
 		out preprocessorAttachmentRemove
@@ -120,7 +120,7 @@ func (t preprocessorAttachmentRemove) Params() map[string]interface{} {
 }
 
 // PreprocessorAttachmentTransformParams returns a new preprocessorAttachmentTransform from the params
-func PreprocessorAttachmentTransformParams(params map[string]interface{}) (Preprocessor, error) {
+func PreprocessorAttachmentTransformParams(params map[string]interface{}) (preprocessorAttachmentTransform, error) {
 	var (
 		out = preprocessorAttachmentTransform{}
 		err error
@@ -134,7 +134,7 @@ func PreprocessorAttachmentTransformParams(params map[string]interface{}) (Prepr
 	}
 	for p := range params {
 		if !index[p] {
-			return nil, fmt.Errorf("unknown parameter provided to attachmentTransform: %s", p)
+			return out, fmt.Errorf("unknown parameter provided to attachmentTransform: %s", p)
 		}
 	}
 
@@ -145,7 +145,7 @@ func PreprocessorAttachmentTransformParams(params map[string]interface{}) (Prepr
 }
 
 // PreprocessorAttachmentTransformHeight returns a new preprocessorAttachmentTransform from the required fields and height
-func PreprocessorAttachmentTransformHeight(height int) (Preprocessor, error) {
+func PreprocessorAttachmentTransformHeight(height int) (preprocessorAttachmentTransform, error) {
 	var (
 		err error
 		out preprocessorAttachmentTransform
@@ -158,7 +158,7 @@ func PreprocessorAttachmentTransformHeight(height int) (Preprocessor, error) {
 }
 
 // PreprocessorAttachmentTransformWidth returns a new preprocessorAttachmentTransform from the required fields and width
-func PreprocessorAttachmentTransformWidth(width int) (Preprocessor, error) {
+func PreprocessorAttachmentTransformWidth(width int) (preprocessorAttachmentTransform, error) {
 	var (
 		err error
 		out preprocessorAttachmentTransform
@@ -182,7 +182,7 @@ func (t preprocessorAttachmentTransform) Params() map[string]interface{} {
 }
 
 // PreprocessorExperimentalExportParams returns a new preprocessorExperimentalExport from the params
-func PreprocessorExperimentalExportParams(params map[string]interface{}) (Preprocessor, error) {
+func PreprocessorExperimentalExportParams(params map[string]interface{}) (preprocessorExperimentalExport, error) {
 	var (
 		out = preprocessorExperimentalExport{}
 		err error
@@ -202,7 +202,7 @@ func PreprocessorExperimentalExportParams(params map[string]interface{}) (Prepro
 	}
 	for p := range params {
 		if !index[p] {
-			return nil, fmt.Errorf("unknown parameter provided to experimentalExport: %s", p)
+			return out, fmt.Errorf("unknown parameter provided to experimentalExport: %s", p)
 		}
 	}
 
@@ -219,7 +219,7 @@ func PreprocessorExperimentalExportParams(params map[string]interface{}) (Prepro
 }
 
 // PreprocessorExperimentalExportExclLanguage returns a new preprocessorExperimentalExport from the required fields and exclLanguage
-func PreprocessorExperimentalExportExclLanguage(exclLanguage []string) (Preprocessor, error) {
+func PreprocessorExperimentalExportExclLanguage(exclLanguage []string) (preprocessorExperimentalExport, error) {
 	var (
 		err error
 		out preprocessorExperimentalExport
@@ -232,7 +232,7 @@ func PreprocessorExperimentalExportExclLanguage(exclLanguage []string) (Preproce
 }
 
 // PreprocessorExperimentalExportExclRoles returns a new preprocessorExperimentalExport from the required fields and exclRoles
-func PreprocessorExperimentalExportExclRoles(exclRoles []string) (Preprocessor, error) {
+func PreprocessorExperimentalExportExclRoles(exclRoles []string) (preprocessorExperimentalExport, error) {
 	var (
 		err error
 		out preprocessorExperimentalExport
@@ -245,7 +245,7 @@ func PreprocessorExperimentalExportExclRoles(exclRoles []string) (Preprocessor, 
 }
 
 // PreprocessorExperimentalExportHandle returns a new preprocessorExperimentalExport from the required fields and handle
-func PreprocessorExperimentalExportHandle(handle string) (Preprocessor, error) {
+func PreprocessorExperimentalExportHandle(handle string) (preprocessorExperimentalExport, error) {
 	var (
 		err error
 		out preprocessorExperimentalExport
@@ -258,7 +258,7 @@ func PreprocessorExperimentalExportHandle(handle string) (Preprocessor, error) {
 }
 
 // PreprocessorExperimentalExportId returns a new preprocessorExperimentalExport from the required fields and id
-func PreprocessorExperimentalExportId(id uint64) (Preprocessor, error) {
+func PreprocessorExperimentalExportId(id uint64) (preprocessorExperimentalExport, error) {
 	var (
 		err error
 		out preprocessorExperimentalExport
@@ -271,7 +271,7 @@ func PreprocessorExperimentalExportId(id uint64) (Preprocessor, error) {
 }
 
 // PreprocessorExperimentalExportInclLanguage returns a new preprocessorExperimentalExport from the required fields and inclLanguage
-func PreprocessorExperimentalExportInclLanguage(inclLanguage []string) (Preprocessor, error) {
+func PreprocessorExperimentalExportInclLanguage(inclLanguage []string) (preprocessorExperimentalExport, error) {
 	var (
 		err error
 		out preprocessorExperimentalExport
@@ -284,7 +284,7 @@ func PreprocessorExperimentalExportInclLanguage(inclLanguage []string) (Preproce
 }
 
 // PreprocessorExperimentalExportInclRBAC returns a new preprocessorExperimentalExport from the required fields and inclRBAC
-func PreprocessorExperimentalExportInclRBAC(inclRBAC bool) (Preprocessor, error) {
+func PreprocessorExperimentalExportInclRBAC(inclRBAC bool) (preprocessorExperimentalExport, error) {
 	var (
 		err error
 		out preprocessorExperimentalExport
@@ -297,7 +297,7 @@ func PreprocessorExperimentalExportInclRBAC(inclRBAC bool) (Preprocessor, error)
 }
 
 // PreprocessorExperimentalExportInclRoles returns a new preprocessorExperimentalExport from the required fields and inclRoles
-func PreprocessorExperimentalExportInclRoles(inclRoles []string) (Preprocessor, error) {
+func PreprocessorExperimentalExportInclRoles(inclRoles []string) (preprocessorExperimentalExport, error) {
 	var (
 		err error
 		out preprocessorExperimentalExport
@@ -310,7 +310,7 @@ func PreprocessorExperimentalExportInclRoles(inclRoles []string) (Preprocessor, 
 }
 
 // PreprocessorExperimentalExportInclTranslations returns a new preprocessorExperimentalExport from the required fields and inclTranslations
-func PreprocessorExperimentalExportInclTranslations(inclTranslations bool) (Preprocessor, error) {
+func PreprocessorExperimentalExportInclTranslations(inclTranslations bool) (preprocessorExperimentalExport, error) {
 	var (
 		err error
 		out preprocessorExperimentalExport

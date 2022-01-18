@@ -8,6 +8,7 @@ package gig
 
 import (
 	"fmt"
+
 	"github.com/spf13/cast"
 )
 
@@ -32,7 +33,7 @@ const (
 // Constructors and utils
 
 // PostprocessorNoopParams returns a new postprocessorNoop from the params
-func PostprocessorNoopParams(params map[string]interface{}) (Postprocessor, error) {
+func PostprocessorNoopParams(params map[string]interface{}) (postprocessorNoop, error) {
 	var (
 		out = postprocessorNoop{}
 		err error
@@ -43,7 +44,7 @@ func PostprocessorNoopParams(params map[string]interface{}) (Postprocessor, erro
 	index := map[string]bool{}
 	for p := range params {
 		if !index[p] {
-			return nil, fmt.Errorf("unknown parameter provided to noop: %s", p)
+			return out, fmt.Errorf("unknown parameter provided to noop: %s", p)
 		}
 	}
 
@@ -60,7 +61,7 @@ func (t postprocessorNoop) Params() map[string]interface{} {
 }
 
 // PostprocessorDiscardParams returns a new postprocessorDiscard from the params
-func PostprocessorDiscardParams(params map[string]interface{}) (Postprocessor, error) {
+func PostprocessorDiscardParams(params map[string]interface{}) (postprocessorDiscard, error) {
 	var (
 		out = postprocessorDiscard{}
 		err error
@@ -71,7 +72,7 @@ func PostprocessorDiscardParams(params map[string]interface{}) (Postprocessor, e
 	index := map[string]bool{}
 	for p := range params {
 		if !index[p] {
-			return nil, fmt.Errorf("unknown parameter provided to discard: %s", p)
+			return out, fmt.Errorf("unknown parameter provided to discard: %s", p)
 		}
 	}
 
@@ -88,7 +89,7 @@ func (t postprocessorDiscard) Params() map[string]interface{} {
 }
 
 // PostprocessorSaveParams returns a new postprocessorSave from the params
-func PostprocessorSaveParams(params map[string]interface{}) (Postprocessor, error) {
+func PostprocessorSaveParams(params map[string]interface{}) (postprocessorSave, error) {
 	var (
 		out = postprocessorSave{}
 		err error
@@ -99,7 +100,7 @@ func PostprocessorSaveParams(params map[string]interface{}) (Postprocessor, erro
 	index := map[string]bool{}
 	for p := range params {
 		if !index[p] {
-			return nil, fmt.Errorf("unknown parameter provided to save: %s", p)
+			return out, fmt.Errorf("unknown parameter provided to save: %s", p)
 		}
 	}
 
@@ -116,7 +117,7 @@ func (t postprocessorSave) Params() map[string]interface{} {
 }
 
 // PostprocessorArchiveParams returns a new postprocessorArchive from the params
-func PostprocessorArchiveParams(params map[string]interface{}) (Postprocessor, error) {
+func PostprocessorArchiveParams(params map[string]interface{}) (postprocessorArchive, error) {
 	var (
 		out = postprocessorArchive{}
 		err error
@@ -130,13 +131,13 @@ func PostprocessorArchiveParams(params map[string]interface{}) (Postprocessor, e
 	}
 	for p := range params {
 		if !index[p] {
-			return nil, fmt.Errorf("unknown parameter provided to archive: %s", p)
+			return out, fmt.Errorf("unknown parameter provided to archive: %s", p)
 		}
 	}
 
 	// Fill and check requirements
 	if _, ok := params["encoding"]; !ok {
-		return nil, fmt.Errorf("required parameter not provided: encoding")
+		return out, fmt.Errorf("required parameter not provided: encoding")
 	}
 	out.encoding = archiveFromParams(params["encoding"])
 	out.name = cast.ToString(params["name"])
@@ -145,7 +146,7 @@ func PostprocessorArchiveParams(params map[string]interface{}) (Postprocessor, e
 }
 
 // PostprocessorArchiveName returns a new postprocessorArchive from the required fields and name
-func PostprocessorArchiveName(encoding archive, name string) (Postprocessor, error) {
+func PostprocessorArchiveName(encoding archive, name string) (postprocessorArchive, error) {
 	var (
 		err error
 		out postprocessorArchive
@@ -158,7 +159,7 @@ func PostprocessorArchiveName(encoding archive, name string) (Postprocessor, err
 
 	return out, err
 }
-func PostprocessorArchive(encoding archive) (Postprocessor, error) {
+func PostprocessorArchive(encoding archive) (postprocessorArchive, error) {
 	var (
 		err error
 		out postprocessorArchive

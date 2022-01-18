@@ -461,7 +461,7 @@ func (svc gigService) Output(ctx context.Context, gigID uint64) (out gig.SourceS
 			return GigServiceErrNotAllowedToRead()
 		}
 
-		out, err = svc.manager.Output(ctx, g)
+		out, _, err = svc.manager.Output(ctx, g)
 		return
 	}()
 

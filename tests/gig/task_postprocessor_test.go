@@ -24,7 +24,7 @@ func test_postprocessor_tasks_noop(ctx context.Context, t *testing.T, h helper, 
 	g, err = svc.Exec(ctx, g)
 	h.a.NoError(err)
 
-	out, err := svc.Output(ctx, g)
+	out, _, err := svc.Output(ctx, g)
 	h.a.NoError(err)
 
 	h.a.Len(out, 2)
@@ -44,7 +44,7 @@ func test_postprocessor_tasks_discard(ctx context.Context, t *testing.T, h helpe
 	g, err = svc.Exec(ctx, g)
 	h.a.NoError(err)
 
-	out, err := svc.Output(ctx, g)
+	out, _, err := svc.Output(ctx, g)
 	h.a.NoError(err)
 
 	h.a.Len(out, 0)
@@ -66,7 +66,7 @@ func test_postprocessor_tasks_archive(ctx context.Context, t *testing.T, h helpe
 	g, err = svc.Exec(ctx, g)
 	h.a.NoError(err)
 
-	out, err := svc.Output(ctx, g)
+	out, _, err := svc.Output(ctx, g)
 	h.a.NoError(err)
 
 	h.a.Len(out, 1)

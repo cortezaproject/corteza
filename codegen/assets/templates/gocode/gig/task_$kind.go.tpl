@@ -35,14 +35,13 @@ const (
 {{- range .tasks -}}
 
 {{ $taskGoType := .goType }}
-{{ $taskGoInterface := .goInterface }}
 {{ $taskTransformer := .transformer }}
 {{ $taskIdent := .ident }}
 
 {{ $hasRequired := false }}
 
 // {{ .constructorParams }} returns a new {{ $taskGoType }} from the params
-func {{ .constructorParams }}(params map[string]interface{}) ({{ $taskGoInterface }}, error) {
+func {{ .constructorParams }}(params map[string]interface{}) ({{ $taskGoType }}, error) {
   var (
     out = {{ .goType }}{}
     err error
@@ -57,7 +56,7 @@ func {{ .constructorParams }}(params map[string]interface{}) ({{ $taskGoInterfac
   }
   for p := range params {
     if !index[p] {
-      return nil, fmt.Errorf("unknown parameter provided to {{ $taskIdent }}: %s", p)
+      return out, fmt.Errorf("unknown parameter provided to {{ $taskIdent }}: %s", p)
     }
   }
 
@@ -65,7 +64,7 @@ func {{ .constructorParams }}(params map[string]interface{}) ({{ $taskGoInterfac
   {{- range .struct }}
     {{- if .required }}
   if _, ok := params["{{ .ident }}"]; !ok {
-    return nil, fmt.Errorf("required parameter not provided: {{ .ident }}")
+    return out, fmt.Errorf("required parameter not provided: {{ .ident }}")
   }
     {{- end }}
   out.{{ .ident }} = {{ .castFunc }}(params["{{ .ident }}"])
@@ -89,7 +88,7 @@ func {{ .constructor }}(
     {{- .ident }} {{ .goType -}},
     {{- end }}
   {{- end -}}
-  {{ .ident }} {{ .goType -}}) ({{ $taskGoInterface }}, error) {
+  {{ .ident }} {{ .goType -}}) ({{ $taskGoType }}, error) {
   var (
     err error
     out {{ $taskGoType }}
@@ -120,7 +119,7 @@ func {{ .constructor }}(
       {{- .ident }} {{ .goType -}},
       {{- end }}
     {{- end -}}
-  ) ({{ $taskGoInterface }}, error) {
+  ) ({{ $taskGoType }}, error) {
   var (
     err error
     out {{ $taskGoType }}

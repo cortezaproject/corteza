@@ -41,13 +41,14 @@ type (
 		Preprocess  PreprocessorSet
 		Postprocess PostprocessorSet
 		Sources     []SourceWrap
+		CompleteOn  completion
 	}
 )
 
 const (
-	onDemand completion = iota
-	onExec
-	onOutput
+	OnDemand completion = iota
+	OnExec
+	OnOutput
 )
 
 func newGig(w Worker) Gig {
@@ -64,23 +65,13 @@ func (g Gig) TySystemWrapper() *types.Gig {
 	}
 }
 
-func (set GigSet) FindByID(id uint64) *Gig {
-	for _, s := range set {
-		if s.ID == id {
-			return s
-		}
-	}
-
-	return nil
-}
-
 func (c completion) String() string {
 	switch c {
-	case onExec:
-		return "onExec"
-	case onOutput:
-		return "onOutput"
+	case OnExec:
+		return "OnExec"
+	case OnOutput:
+		return "OnOutput"
 	default:
-		return "onDemand"
+		return "OnDemand"
 	}
 }
