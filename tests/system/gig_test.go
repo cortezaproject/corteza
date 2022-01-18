@@ -100,3 +100,27 @@ func TestGigAddSources(t *testing.T) {
 		Assert(jsonpath.Len("$.response.sources[1].decoders", 1)).
 		End()
 }
+
+func TestGigListTasks(t *testing.T) {
+	h := newHelper(t)
+
+	h.apiInit().Get("/gig/tasks").
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Present("$.response.set")).
+		End()
+}
+
+func TestGigListWorkers(t *testing.T) {
+	h := newHelper(t)
+
+	h.apiInit().Get("/gig/workers").
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Present("$.response.set")).
+		End()
+}
