@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -81,11 +82,11 @@ func TestAuthExternalSAMLSuccess(t *testing.T) {
 
 		cookieSessionIDPtoSP = apitest.
 					NewCookie("saml_tCu5PV6EgxcvUAa9e57uJ2g-bTkqnNkyyHHaOu15yEfZjgWKt02AtXGe").
-					Value(string(readStaticFile("static/idp_to_sp.cookie")))
+					Value(strings.TrimSpace(string(readStaticFile("static/idp_to_sp.cookie"))))
 
 		cookieTokenIDPtoSPAfterLogin = apitest.
 						NewCookie("token").
-						Value(string(readStaticFile("static/idp_to_sp_token.cookie")))
+						Value(strings.TrimSpace(string(readStaticFile("static/idp_to_sp_token.cookie"))))
 	)
 
 	s.MaxClockSkew = time.Hour
