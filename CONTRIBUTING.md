@@ -7,9 +7,9 @@ All contributions are welcome; from bug reports, codefixes, and new features!
 
 Corteza projects are [Apache 2.0 licensed](LICENSE) and accept contributions via GitHub pull requests.
 
-Cover the [terminology](https://docs.cortezaproject.org/corteza-docs/2021.6/developer-guide/release-cycle/index.html#_terminology) for the development process and versioning.
+Cover the [terminology](https://docs.cortezaproject.org/corteza-docs/2021.9/developer-guide/release-cycle/index.html#_terminology) for the development process and versioning.
 
-Cover the [Git and GitHub](https://docs.cortezaproject.org/corteza-docs/2021.6/developer-guide/release-cycle/index.html#_github) ground rules regarding branch naming and conventions.
+Cover the [Git and GitHub](https://docs.cortezaproject.org/corteza-docs/2021.9/developer-guide/release-cycle/index.html#_github) ground rules regarding branch naming and conventions.
 
 When you wish to start working on a code contribution, assign yourself to a GitHub issue.
 If there is no issue, create one beforehand.
@@ -34,7 +34,7 @@ The core logic is written in GO, using [go-chi](https://pkg.go.dev/github.com/go
 Communication between the Corteza server and web applications is done using the REST API and web sockets.
 Communication between back-end services (Corteza server and Corredor) is done using gRPC.
 
-The [Developer Guide/Corteza Server](https://docs.cortezaproject.org/corteza-docs/2021.6/developer-guide/corteza-server/index.html) covers the [development setup](https://docs.cortezaproject.org/corteza-docs/2021.6/developer-guide/corteza-server/index.html#_development_setup), the [project structure](https://docs.cortezaproject.org/corteza-docs/2021.6/developer-guide/corteza-server/structure.html), and the feature insight documents.
+The [Developer Guide/Corteza Server](https://docs.cortezaproject.org/corteza-docs/2021.9/developer-guide/corteza-server/index.html) covers the [development setup](https://docs.cortezaproject.org/corteza-docs/2021.9/developer-guide/corteza-server/index.html#_development_setup), the [project structure](https://docs.cortezaproject.org/corteza-docs/2021.9/developer-guide/corteza-server/structure.html), and the feature insight documents.
 
 
 ### Corteza Web Applications
@@ -49,14 +49,14 @@ The repositories:
 
 Communication between the Corteza server and web applications is done using the REST API and web sockets.
 
-The [Developer Guide/Corteza Web Applications](https://docs.cortezaproject.org/corteza-docs/2021.6/developer-guide/web-applications/index.html) covers the [development setup](https://docs.cortezaproject.org/corteza-docs/2021.6/developer-guide/web-applications/index.html#_development_setup), the [project structure](https://docs.cortezaproject.org/corteza-docs/2021.6/developer-guide/web-applications/structure.html), and the feature insight documents.
+The [Developer Guide/Corteza Web Applications](https://docs.cortezaproject.org/corteza-docs/2021.9/developer-guide/web-applications/index.html) covers the [development setup](https://docs.cortezaproject.org/corteza-docs/2021.9/developer-guide/web-applications/index.html#_development_setup), the [project structure](https://docs.cortezaproject.org/corteza-docs/2021.9/developer-guide/web-applications/structure.html), and the feature insight documents.
 
 ### Documentation
 
 The documentation is written in [AsciiDoc](https://asciidoc.org/) and compiled using [Antora](https://antora.org/).
 The source code is available on the [GitHub cortezaproject/corteza-docs repository](https://github.com/cortezaproject/corteza-docs); the generated output is available on the [documentation page](http://docs.cortezaproject.org/).
 
-The [Developer Guide/Documentation](https://docs.cortezaproject.org/corteza-docs/2021.6/developer-guide/documentation/index.html) covers the [conventions](https://docs.cortezaproject.org/corteza-docs/2021.6/developer-guide/documentation/index.html#_conventions), [writing guidelines](https://docs.cortezaproject.org/corteza-docs/2021.6/developer-guide/documentation/index.html#documentation-writing-guidelines), as well as some [examples](https://docs.cortezaproject.org/corteza-docs/2021.6/developer-guide/documentation/examples/index.html) to help you get started.
+The [Developer Guide/Documentation](https://docs.cortezaproject.org/corteza-docs/2021.9/developer-guide/documentation/index.html) covers the [conventions](https://docs.cortezaproject.org/corteza-docs/2021.9/developer-guide/documentation/index.html#_conventions), [writing guidelines](https://docs.cortezaproject.org/corteza-docs/2021.9/developer-guide/documentation/index.html#documentation-writing-guidelines), as well as some [examples](https://docs.cortezaproject.org/corteza-docs/2021.9/developer-guide/documentation/examples/index.html) to help you get started.
 
 ## Bug reporting
 
