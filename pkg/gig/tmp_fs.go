@@ -22,10 +22,6 @@ func createTempFile(src io.Reader) (*os.File, error) {
 	return tmpF, nil
 }
 
-func getTempFile(path string) (*os.File, error) {
-	return os.Open(path)
-}
-
 func deleteTempFile(path string) error {
 	return os.Remove(path)
 }

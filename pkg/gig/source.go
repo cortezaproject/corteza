@@ -120,6 +120,16 @@ func (set SourceSet) GetByID(id uint64) (out *Source) {
 	return
 }
 
+func (set SourceSet) GetByName(name string) (out *Source) {
+	for _, s := range set {
+		if s.FileName() == name {
+			return &s
+		}
+	}
+
+	return
+}
+
 func mapSources(sources SourceSet) map[uint64]Source {
 	out := make(map[uint64]Source)
 	for _, src := range sources {
