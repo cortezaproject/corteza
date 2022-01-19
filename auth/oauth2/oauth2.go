@@ -1,10 +1,14 @@
 package oauth2
 
 import (
+	"fmt"
+	"net/http"
 	"strings"
 
+	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/go-oauth2/oauth2/v4"
 	"github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/manage"
@@ -73,8 +77,6 @@ func NewServer(manager oauth2.Manager) *server.Server {
 		AllowedGrantTypes: []oauth2.GrantType{
 			oauth2.AuthorizationCode,
 			oauth2.Refreshing,
-			// before enabling ClientCredentials grant type, we need to know how to modify released token
-			// using client's security info; how to enforce impersonated user and his roles.
 			oauth2.ClientCredentials,
 		},
 		AllowedCodeChallengeMethods: []oauth2.CodeChallengeMethod{
@@ -82,6 +84,32 @@ func NewServer(manager oauth2.Manager) *server.Server {
 			oauth2.CodeChallengeS256,
 		},
 	}, manager)
+
+	srv.ClientInfoHandler = func(r *http.Request) (clientID, clientSecret string, err error) {
+		// check in basic handler first
+		clientID, clientSecret, err = server.ClientBasicHandler(r)
+
+		if clientID == "" && clientSecret == "" {
+			//error or no error, if ID & secret are empty,
+			// check the form handler
+			clientID, clientSecret, err = server.ClientFormHandler(r)
+		}
+
+		// just in case, when client's handle is used instead of the ID
+		// preload it here
+		if id := payload.ParseUint64(clientID); id == 0 && handle.IsValid(clientID) {
+			var client oauth2.ClientInfo
+			client, err = manager.GetClient(r.Context(), clientID)
+			if err != nil {
+				err = fmt.Errorf("could not resolve client info: %v", err)
+				return
+			}
+
+			clientID = client.GetID()
+		}
+
+		return
+	}
 
 	srv.SetInternalErrorHandler(func(err error) (re *errors.Response) {
 		return errors.NewResponse(err, 500)

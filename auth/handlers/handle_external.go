@@ -78,9 +78,7 @@ func (h AuthHandlers) handleSuccessfulExternalAuth(w http.ResponseWriter, r *htt
 	})(w, r)
 }
 
-func (h AuthHandlers) handleFailedExternalAuth(w http.ResponseWriter, r *http.Request, err error) {
-	//provider := chi.URLParam(r, "provider")
-
+func (h AuthHandlers) handleFailedExternalAuth(w http.ResponseWriter, _ *http.Request, err error) {
 	if strings.Contains(err.Error(), "Error processing your OAuth request: Invalid oauth_verifier parameter") {
 		// Just take user through the same loop again
 		w.Header().Set("Location", GetLinks().Profile)
@@ -88,8 +86,8 @@ func (h AuthHandlers) handleFailedExternalAuth(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	fmt.Fprintf(w, "SSO Error: %v", err.Error())
 	w.WriteHeader(http.StatusOK)
+	_, _ = fmt.Fprintf(w, "SSO Error: %v", err.Error())
 }
 
 func beginUserAuth(w http.ResponseWriter, r *http.Request, eh external.ExternalAuthHandler) {

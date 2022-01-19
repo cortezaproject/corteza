@@ -8,6 +8,8 @@ import (
 
 	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/auth/settings"
+	"github.com/cortezaproject/corteza-server/system/types"
+	oauth2models "github.com/go-oauth2/oauth2/v4/models"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
@@ -124,4 +126,22 @@ func Test_oauth2AuthorizeSuccessSetParams(t *testing.T) {
 	rq.Equal("", authReq.Template)
 	rq.Equal(-1, authReq.Status)
 	rq.Equal(nil, authReq.Data["error"])
+}
+
+func Test_generateIdToken(t *testing.T) {
+	var (
+		req = require.New(t)
+	)
+
+	signed, err := generateIdToken(
+		&types.User{},
+		&types.AuthClient{
+			Secret: "correct horse battery stable",
+		},
+		&oauth2models.Token{},
+		"http://cortezaproject.org",
+	)
+
+	req.NoError(err)
+	req.NotEmpty(signed)
 }
