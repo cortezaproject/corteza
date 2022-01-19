@@ -5,6 +5,7 @@ import (
 	"archive/zip"
 	"compress/gzip"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -231,10 +232,14 @@ func archiveFromString(arch string) (archive, error) {
 func (f archive) String() string {
 	switch f {
 	case ArchiveZIP:
-		return ".zip"
+		return "zip"
 	case ArchiveTar:
-		return ".tar.gz"
+		return "tar"
 	}
 
 	return "N/A"
+}
+
+func (f archive) MarshalJSON() ([]byte, error) {
+	return json.Marshal(f.String())
 }

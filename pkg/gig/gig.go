@@ -7,12 +7,12 @@ import (
 )
 
 type (
-	completion int
+	Completion int
 
 	Gig struct {
 		ID         uint64 `json:"gigID,string"`
 		Signature  string
-		CompleteOn completion
+		CompleteOn Completion
 
 		Sources SourceSet
 		Worker  Worker
@@ -41,12 +41,12 @@ type (
 		Preprocess  PreprocessorSet
 		Postprocess PostprocessorSet
 		Sources     []SourceWrap
-		CompleteOn  completion
+		CompleteOn  Completion
 	}
 )
 
 const (
-	OnDemand completion = iota
+	OnDemand Completion = iota
 	OnExec
 	OnOutput
 )
@@ -65,7 +65,7 @@ func (g Gig) TySystemWrapper() *types.Gig {
 	}
 }
 
-func (c completion) String() string {
+func (c Completion) String() string {
 	switch c {
 	case OnExec:
 		return "OnExec"

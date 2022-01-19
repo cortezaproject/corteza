@@ -1,0 +1,633 @@
+= Example cURL requests
+
+Below is a series of cURL examples you can use to interact with gigs.
+
+== ENV variables
+
+[source,bash]
+----
+export API_BASE=http://localhost:1024
+export JWT=use_your_jwt_here
+export GIG_ID=123
+export NS_HANDLE=ns1
+export SOURCE_ID=123
+----
+
+== Get all workers
+
+A worker defines what we wish to use the gig for -- import worker would allow us to import data, export worker would allow us to export data, and so on.
+
+Use the `/gig/workers` endpoint to get a list of workers.
+
+.Example request:
+[source,bash]
+----
+curl -X GET "$API_BASE/api/system/gig/workers" \
+  -H "Authorization: Bearer $JWT" \
+  -H 'accept: application/json' \
+  --compressed | pp_json;
+----
+
+.Example response:
+[source,json]
+----
+{
+  "response": {
+    "set": [
+      {
+        "ref": "noop",
+        "description": "Noop worker has no predefined operations -- it proxies decoder results into postprocessor input."
+      },
+      {
+        "ref": "attachment",
+        "description": "@todo not implemented."
+      },
+      {
+        "ref": "import",
+        "description": "Import worker is used to import external data into Corteza."
+      },
+      {
+        "ref": "export",
+        "description": "Export worker is used to export internal data into a predefined format."
+      }
+    ]
+  }
+}
+----
+
+== Get all tasks
+
+Tasks allow you to further modify the initial behavior of the gig and the worker itself.
+
+.There are three kinds of tasks:
+* *Decoders* allow you to specify custom decoding over the provided sources such as extracting archives,
+* *preprocessors* allow you to specify custom worker preprocessing before the actual operation is run,
+* *postprocessors* allow you to specify custom processing over the gig result such as creating an archive of all produced sources.
+
+.Example request:
+[source,bash]
+----
+curl -X GET "$API_BASE/api/system/gig/tasks" \
+  -H "Authorization: Bearer $JWT" \
+  -H 'accept: application/json' \
+  --compressed | pp_json;
+----
+
+.Example response:
+[source,json]
+----
+{
+  "response": {
+    "set": [
+      {
+        "ref": "noop",
+        "kind": "decoder",
+        "description": "Noop does nothing.",
+        "params": [
+          {
+            "name": "source",
+            "kind": "String",
+            "required": false,
+            "description": ""
+          }
+        ]
+      },
+      {
+        "ref": "archive",
+        "kind": "decoder",
+        "description": "Extracts the contents of the archive into sepparate sources; extraction is not recursive.",
+        "params": [
+          {
+            "name": "source",
+            "kind": "String",
+            "required": false,
+            "description": ""
+          }
+        ]
+      },
+      {
+        "ref": "noop",
+        "kind": "preprocessor",
+        "description": "Noop does nothing."
+      },
+      {
+        "ref": "attachmentRemove",
+        "kind": "preprocessor",
+        "description": "Removes the attachment.",
+        "params": [
+          {
+            "name": "mimeType",
+            "kind": "String",
+            "required": true,
+            "description": ""
+          }
+        ]
+      }
+    ]
+  }
+}
+----
+
+== Create a new gig
+
+A gig encapsulates the work that is to be done; it defines the sources, tasks, and workers that we are going to use.
+
+.Example request:
+[source,bash]
+----
+curl -X POST "$API_BASE/api/system/gig/" \
+  -H 'accept: application/json' \
+  -H "Authorization: Bearer $JWT" \
+  -H 'content-type: application/json' \
+  --data-raw "{
+  \"worker\": \"export\",
+  \"preprocessors\": [{
+    \"ref\": \"experimentalExport\",
+    \"params\": {
+    \"handle\": \"$NS_HANDLE\",
+    \"inclRBAC\": true,
+    \"inclRoles\": [\"authenticated\"],
+    \"inclTranslations\": true,
+    \"inclLanguage\": [\"en\", \"de\"]
+    }
+  }]
+  }" \
+  --compressed | pp_json;
+----
+
+.Example response:
+[source,json]
+----
+{
+  "response": {
+    "gigID": "267354235245446257",
+    "signature": "",
+    "sources": [],
+    "worker": {
+      "ref": "export"
+    },
+    "preprocess": [
+      {
+        "Ref": "experimentalExport",
+        "Params": {
+          "exclLanguage": null,
+          "exclRoles": null,
+          "handle": "ns1",
+          "id": 0,
+          "inclLanguage": [
+            "en",
+            "de"
+          ],
+          "inclRBAC": true,
+          "inclRoles": [
+            "authenticated"
+          ],
+          "inclTranslations": true
+        }
+      }
+    ],
+    "postprocess": []
+  }
+}
+----
+
+== Read the gig
+
+Use the read endpoint to access the details of your gig.
+
+.Example request:
+[source,bash]
+----
+curl -X GET "$API_BASE/api/system/gig/$GIG_ID" \
+  -H 'accept: application/json' \
+  -H "Authorization: Bearer $JWT" \
+  -H 'content-type: application/json' \
+  --compressed | pp_json;
+----
+
+.Example response:
+[source,json]
+----
+{
+  "response": {
+    "gigID": "267354235245446257",
+    "signature": "",
+    "sources": [],
+    "worker": {
+      "ref": "export"
+    },
+    "preprocess": [
+      {
+        "Ref": "experimentalExport",
+        "Params": {
+          "exclLanguage": null,
+          "exclRoles": null,
+          "handle": "ns1",
+          "id": 0,
+          "inclLanguage": [
+            "en",
+            "de"
+          ],
+          "inclRBAC": true,
+          "inclRoles": [
+            "authenticated"
+          ],
+          "inclTranslations": true
+        }
+      }
+    ],
+    "postprocess": []
+  }
+}
+----
+
+== Update gig
+
+You can update your gig to tweak the behavior before you execute it.
+
+.Example request:
+[source,bash]
+----
+curl -X PUT "$API_BASE/api/system/gig/$GIG_ID" \
+  -H 'accept: application/json' \
+  -H "Authorization: Bearer $JWT" \
+  -H 'content-type: application/json' \
+  --data-raw "{
+  \"worker\": \"export\",
+  \"decoders\": [{
+    \"ref\": \"noop\"
+  }],
+  \"preprocessors\": [{
+    \"ref\": \"experimentalExport\",
+    \"params\": {
+    \"handle\": \"$NS_HANDLE\",
+    \"inclRBAC\": true,
+    \"inclRoles\": [\"authenticated\"],
+    \"inclTranslations\": true,
+    \"inclLanguage\": [\"en\", \"de\"]
+    }
+  }],
+  \"postprocessors\": [{
+    \"ref\": \"archive\",
+    \"params\": { \"encoding\": \"tar\", \"name\": \"archive\" }
+  }]
+  }" \
+  --compressed | pp_json;
+----
+
+.Example response:
+[source,json]
+----
+{
+  "response": {
+    "gigID": "267354235245446257",
+    "signature": "",
+    "sources": [],
+    "worker": {
+      "ref": "export"
+    },
+    "preprocess": [
+      {
+        "Ref": "experimentalExport",
+        "Params": {
+          "exclLanguage": null,
+          "exclRoles": null,
+          "handle": "ns1",
+          "id": 0,
+          "inclLanguage": [
+            "en",
+            "de"
+          ],
+          "inclRBAC": true,
+          "inclRoles": [
+            "authenticated"
+          ],
+          "inclTranslations": true
+        }
+      }
+    ],
+    "postprocess": [
+      {
+        "Ref": "archive",
+        "Params": {
+          "encoding": "tar",
+          "name": "archive"
+        }
+      }
+    ]
+  }
+}
+----
+
+== Prepare gig
+
+When you prepare the gig, the worker attempts to prepare the state for execution.
+Use the exec endpoint to execute the gig.
+
+[TIP]
+====
+The prepare step is optional; if needed, the system performs it before execution.
+====
+
+.Example request:
+[source,bash]
+----
+curl -X PUT "$API_BASE/api/system/gig/$GIG_ID/prepare" \
+  -H 'accept: application/json' \
+  -H "Authorization: Bearer $JWT" \
+  -H 'content-type: application/json' \
+  --compressed | pp_json;
+----
+
+.Example response:
+[source,json]
+----
+{
+  "success": {
+    "message": "OK"
+  }
+}
+----
+
+== Inspect the state
+
+The state becomes available after the gig is prepared.
+The endpoint allows you to inspect the state the worker prepared.
+You can use the state to further tweak the gig before you execute it.
+
+[NOTE]
+====
+Each worker may define its own data representation based on what the worker does.
+For example, import and export workers define the same format, while the attachment worker defines something completely different.
+====
+
+.Example request:
+[source,bash]
+----
+curl -X GET "$API_BASE/api/system/gig/$GIG_ID/state" \
+  -H 'accept: application/json' \
+  -H "Authorization: Bearer $JWT" \
+  -H 'content-type: application/json' \
+  --compressed | pp_json;
+----
+
+.Example response:
+[source,json]
+----
+{
+  "response": {
+    "Resources": [
+      {
+        "resourceType": "corteza::compose:namespace",
+        "identifier": "ns1",
+        "identifiers": [
+          "ns1",
+          "267082633710683249"
+        ],
+        "raw": {
+          "namespaceID": "267082633710683249",
+          "slug": "ns1",
+          "enabled": true,
+          "meta": {
+            "iconID": "0",
+            "logoID": "0"
+          },
+          "createdAt": "2022-01-17T12:27:35Z",
+          "name": "ns1"
+        }
+      },
+      {
+        "resourceType": "corteza::compose:page",
+        "identifier": "Home",
+        "identifiers": [
+          "Home",
+          "267231466239313009"
+        ],
+        "raw": {
+          "pageID": "267231466239313009",
+          "selfID": "0",
+          "namespaceID": "267082633710683249",
+          "moduleID": "0",
+          "handle": "",
+          "blocks": [
+            {
+              "blockID": "1",
+              "options": {
+                "body": "<p><br class=\"ProseMirror-trailingBreak\"></p>"
+              },
+              "style": {
+                "variants": {
+                  "headerText": "dark"
+                }
+              },
+              "kind": "Content",
+              "xywh": [
+                0,
+                0,
+                3,
+                3
+              ],
+              "title": "Hello"
+            }
+          ],
+          "visible": true,
+          "weight": 0,
+          "createdAt": "2022-01-18T13:06:06Z",
+          "updatedAt": "2022-01-18T13:06:42Z",
+          "title": "Home",
+          "description": ""
+        }
+      },
+    ]
+  }
+}
+----
+
+== Exec
+
+The exec endpoint executes the gig.
+The result is usually a series of output sources or a database modification.
+
+[TIP]
+====
+You can skip the prepare step and directly call the exec endpoint.
+====
+
+.Example request:
+[source,bash]
+----
+curl -X PUT "$API_BASE/api/system/gig/$GIG_ID/exec" \
+  -H 'accept: application/json' \
+  -H "Authorization: Bearer $JWT" \
+  -H 'content-type: application/json' \
+  --compressed | pp_json;
+----
+
+.Example response:
+[source,json]
+----
+{
+  "success": {
+    "message": "OK"
+  }
+}
+----
+
+== Status
+
+The status endpoint allows you to follow the execution status for long running gigs.
+
+.Example request:
+[source,bash]
+----
+curl -X GET "$API_BASE/api/system/gig/$GIG_ID/status" \
+  -H 'accept: application/json' \
+  -H "Authorization: Bearer $JWT" \
+  -H 'content-type: application/json' \
+  --compressed | pp_json;
+----
+
+.Example response:
+[source,json]
+----
+{
+  "success": {
+    "message": "OK"
+  }
+}
+----
+
+== Output sources
+
+The endpoint allows you to inspect the output sources prepared by the gig.
+
+.Example request:
+[source,bash]
+----
+curl -X GET "$API_BASE/api/system/gig/$GIG_ID/output" \
+  -H "Authorization: Bearer $JWT" \
+  --compressed | pp_json;
+----
+
+.Example response:
+[source,json]
+----
+{
+  "response": {
+    "set": [
+      {
+        "sourceID": "267363666423202929",
+        "name": "corteza::compose:namespace.yaml",
+        "mime": "text/yaml; charset=utf-8",
+        "size": 106,
+        "checksum": "706af4f0b3948722298981bd9aa54ded7556cf501898dfcf37ecbc43613005ef",
+        "isDir": false
+      },
+      {
+        "sourceID": "267363666423268465",
+        "name": "corteza::compose:page.yaml",
+        "mime": "text/yaml; charset=utf-8",
+        "size": 507,
+        "checksum": "1914a7b09cef2f1a62147485e43c51ca081573f0c53399b00076ff51132e84af",
+        "isDir": false
+      },
+      {
+        "sourceID": "267363666423334001",
+        "name": "corteza::system:role.yaml",
+        "mime": "text/yaml; charset=utf-8",
+        "size": 101,
+        "checksum": "2f1f37d93daa2dc2784b28368ff5a133b20d0d0da24300356316faaafcd3db14",
+        "isDir": false
+      },
+      {
+        "sourceID": "267363666423399537",
+        "name": "rbac-rule.yaml",
+        "mime": "text/yaml; charset=utf-8",
+        "size": 468,
+        "checksum": "1b88f0a7c3d7c905171f176d3b303078d3817dd04a7d65cb3371b77f09482d75",
+        "isDir": false
+      },
+      {
+        "sourceID": "267363666423465073",
+        "name": "resource-translation.yaml",
+        "mime": "text/yaml; charset=utf-8",
+        "size": 311,
+        "checksum": "072dfa48b7db6bd24731a1b5d28f3ecb154c85104736eece9208cd603d35e6a9",
+        "isDir": false
+      }
+    ]
+  }
+}
+----
+
+== Download specific output
+
+The endpoint allows you to download only the specified output.
+
+.Example request:
+[source,bash]
+----
+curl -X GET "$API_BASE/api/system/gig/$GIG_ID/output/$SOURCE_ID" \
+  -H "Authorization: Bearer $JWT" \
+  --compressed;
+----
+
+.Example response:
+[source,yaml]
+----
+namespaces:
+  - name: ns1
+    slug: ns1
+    enabled: true
+    createdAt: "2022-01-17T12:27:35Z"
+----
+
+== Download all outputs
+
+The endpoint allows you to download all of the outputs prepared bu the gig.
+
+[IMPORTANT]
+====
+When using REST API you can only fetch a single source at a time.
+Consider using a archive postprocessor to collect all sources into a single output.
+====
+
+.Example request:
+[source,bash]
+----
+curl -X GET "$API_BASE/api/system/gig/$GIG_ID/output/all" \
+  -H "Authorization: Bearer $JWT" \
+  --compressed \
+  --output ./test.tar.gz;
+----
+
+== Complete
+
+When you're finished with the gig you should mark it as complete.
+Marking it as complete will cleanup the internals and preserve the execution context for archive purposes.
+
+[TIP]
+====
+You can specify the gig to complete after it has been executed (`OnExec`) or after the output has been collected (`OnOutput`).
+By default it is on demand (`OnDemand`).
+====
+
+.Example request:
+[source,bash]
+----
+curl -X PATCH "$API_BASE/api/system/gig/$GIG_ID/complete" \
+  -H 'accept: application/json' \
+  -H "Authorization: Bearer $JWT" \
+  -H 'content-type: application/json' \
+  --compressed | pp_json;
+----
+
+.Example response:
+[source,json]
+----
+{
+  "success": {
+    "message": "OK"
+  }
+}
+----

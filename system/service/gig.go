@@ -26,7 +26,9 @@ type (
 		Complete(context.Context, uint64) error
 		Cleanup(context.Context, uint64) error
 
-		Output(context.Context, uint64) (gig.SourceSet, error)
+		Output(context.Context, uint64) (gig.SourceWrapSet, error)
+		OutputAll(context.Context, uint64) (gig.SourceSet, error)
+		OutputSpecific(context.Context, uint64, uint64) (gig.Source, error)
 		Status(context.Context, uint64) (gig.WorkerStatus, error)
 		State(context.Context, uint64) (gig.WorkerState, error)
 
@@ -439,7 +441,7 @@ func (svc gigService) Cleanup(ctx context.Context, gigID uint64) (err error) {
 	return svc.recordAction(ctx, gProps, GigServiceActionUpdate, err)
 }
 
-func (svc gigService) Output(ctx context.Context, gigID uint64) (out gig.SourceSet, err error) {
+func (svc gigService) Output(ctx context.Context, gigID uint64) (out gig.SourceWrapSet, err error) {
 	var (
 		gProps = &gigServiceActionProps{gig: &types.Gig{ID: gigID}}
 		g      gig.Gig
@@ -465,7 +467,65 @@ func (svc gigService) Output(ctx context.Context, gigID uint64) (out gig.SourceS
 		return
 	}()
 
-	return g.Output, svc.recordAction(ctx, gProps, GigServiceActionLookup, err)
+	return out, svc.recordAction(ctx, gProps, GigServiceActionLookup, err)
+}
+
+func (svc gigService) OutputAll(ctx context.Context, gigID uint64) (out gig.SourceSet, err error) {
+	var (
+		gProps = &gigServiceActionProps{gig: &types.Gig{ID: gigID}}
+		g      gig.Gig
+	)
+
+	err = func() (err error) {
+		if gigID == 0 {
+			return GigServiceErrInvalidID()
+		}
+
+		g, err = svc.manager.Read(ctx, gigID)
+		if err != nil {
+			return err
+		}
+
+		gProps.setGig(g.TySystemWrapper())
+
+		if !svc.ac.CanReadGig(ctx, g.TySystemWrapper()) {
+			return GigServiceErrNotAllowedToRead()
+		}
+
+		out, _, err = svc.manager.OutputAll(ctx, g)
+		return
+	}()
+
+	return out, svc.recordAction(ctx, gProps, GigServiceActionLookup, err)
+}
+
+func (svc gigService) OutputSpecific(ctx context.Context, gigID, sourceID uint64) (out gig.Source, err error) {
+	var (
+		gProps = &gigServiceActionProps{gig: &types.Gig{ID: gigID}}
+		g      gig.Gig
+	)
+
+	err = func() (err error) {
+		if gigID == 0 {
+			return GigServiceErrInvalidID()
+		}
+
+		g, err = svc.manager.Read(ctx, gigID)
+		if err != nil {
+			return err
+		}
+
+		gProps.setGig(g.TySystemWrapper())
+
+		if !svc.ac.CanReadGig(ctx, g.TySystemWrapper()) {
+			return GigServiceErrNotAllowedToRead()
+		}
+
+		out, _, err = svc.manager.OutputSpecific(ctx, g, sourceID)
+		return
+	}()
+
+	return out, svc.recordAction(ctx, gProps, GigServiceActionLookup, err)
 }
 
 func (svc gigService) Status(ctx context.Context, gigID uint64) (out gig.WorkerStatus, err error) {

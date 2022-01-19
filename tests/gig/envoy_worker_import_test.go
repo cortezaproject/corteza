@@ -38,6 +38,7 @@ func Test_envoy_worker_import(t *testing.T) {
 	})
 
 	t.Run("exec", func(_ *testing.T) {
+		cleanup(ctx, h, s)
 		g, err = svc.Exec(ctx, g)
 		h.a.NoError(err)
 
@@ -56,5 +57,6 @@ func Test_envoy_worker_import(t *testing.T) {
 		h.a.Len(ff, 2)
 		h.a.Equal("f1 label", ff[0].Label)
 		h.a.Equal("f2 label", ff[1].Label)
+		cleanup(ctx, h, s)
 	})
 }

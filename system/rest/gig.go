@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/api"
@@ -42,8 +43,19 @@ type (
 
 		Preprocess  conv.ParamWrapSet `json:"preprocess"`
 		Postprocess conv.ParamWrapSet `json:"postprocess"`
+	}
 
-		State gig.WorkerState `json:"state,omitempty"`
+	gigSourceWrapPayload struct {
+		ID       uint64 `json:"sourceID,string"`
+		Name     string `json:"name"`
+		Mime     string `json:"mime"`
+		Size     int64  `json:"size"`
+		Checksum string `json:"checksum"`
+		IsDir    bool   `json:"isDir"`
+	}
+
+	gigSourceWrapSetPayload struct {
+		Set []*gigSourceWrapPayload `json:"set"`
 	}
 
 	gigTaskPayload struct {
@@ -63,12 +75,13 @@ func (Gig) New() *Gig {
 }
 
 func (ctrl Gig) Create(ctx context.Context, r *request.GigCreate) (interface{}, error) {
-	g, err := ctrl.create(ctx, r.Worker, r.Preprocessors, r.Postprocessors)
+	g, err := ctrl.create(ctx, r.Worker, r.Preprocessors, r.Postprocessors, ctrl.parseCompletion(r.Completion))
 	return ctrl.makeGigPayload(ctx, g, err)
 }
 
 func (ctrl Gig) Go(ctx context.Context, r *request.GigGo) (interface{}, error) {
-	g, err := ctrl.create(ctx, r.Worker, r.Preprocessors, r.Postprocessors)
+	// This gig should complete right after we're done
+	g, err := ctrl.create(ctx, r.Worker, r.Preprocessors, r.Postprocessors, gig.OnOutput)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +91,7 @@ func (ctrl Gig) Go(ctx context.Context, r *request.GigGo) (interface{}, error) {
 		return nil, err
 	}
 
-	out, err := ctrl.svc.Output(ctx, g.ID)
+	out, err := ctrl.svc.OutputAll(ctx, g.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -105,6 +118,7 @@ func (ctrl Gig) Update(ctx context.Context, r *request.GigUpdate) (interface{}, 
 	}
 
 	g, err := ctrl.svc.Update(ctx, r.GigID, gig.UpdatePayload{
+		CompleteOn:  ctrl.parseCompletion(r.Completion),
 		Decode:      decode,
 		Preprocess:  pre,
 		Postprocess: post,
@@ -152,10 +166,23 @@ func (ctrl Gig) Exec(ctx context.Context, r *request.GigExec) (interface{}, erro
 
 func (ctrl Gig) Output(ctx context.Context, r *request.GigOutput) (interface{}, error) {
 	out, err := ctrl.svc.Output(ctx, r.GigID)
+	return ctrl.makeSourceWrapSetPayload(ctx, out, err)
+}
+
+func (ctrl Gig) OutputAll(ctx context.Context, r *request.GigOutputAll) (interface{}, error) {
+	out, err := ctrl.svc.OutputAll(ctx, r.GigID)
 	if err != nil {
 		return nil, err
 	}
 	return ctrl.serve(ctx, out, err)
+}
+
+func (ctrl Gig) OutputSpecific(ctx context.Context, r *request.GigOutputSpecific) (interface{}, error) {
+	out, err := ctrl.svc.OutputSpecific(ctx, r.GigID, r.SourceID)
+	if err != nil {
+		return nil, err
+	}
+	return ctrl.serve(ctx, gig.SourceSet{out}, err)
 }
 
 func (ctrl Gig) State(ctx context.Context, r *request.GigState) (interface{}, error) {
@@ -260,6 +287,30 @@ func (ctrl Gig) makeGigPayload(ctx context.Context, g *gig.Gig, err error) (*gig
 	}, nil
 }
 
+func (ctrl Gig) makeSourceWrapSetPayload(ctx context.Context, ss gig.SourceWrapSet, err error) (*gigSourceWrapSetPayload, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	out := &gigSourceWrapSetPayload{}
+	for _, s := range ss {
+		out.Set = append(out.Set, ctrl.makeSourceWrapPayload(ctx, s))
+	}
+
+	return out, nil
+}
+
+func (ctrl Gig) makeSourceWrapPayload(ctx context.Context, s gig.SourceWrap) *gigSourceWrapPayload {
+	return &gigSourceWrapPayload{
+		ID:       s.ID,
+		Name:     s.Name,
+		Mime:     s.Mime,
+		Size:     s.Size,
+		Checksum: s.Checksum,
+		IsDir:    s.IsDir,
+	}
+}
+
 func (ctrl Gig) serve(ctx context.Context, sources gig.SourceSet, err error) (interface{}, error) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		if err != nil {
@@ -293,7 +344,7 @@ func (ctrl Gig) serve(ctx context.Context, sources gig.SourceSet, err error) (in
 	}, nil
 }
 
-func (ctrl Gig) create(ctx context.Context, worker string, preWrap conv.ParamWrapSet, postWrap conv.ParamWrapSet) (*gig.Gig, error) {
+func (ctrl Gig) create(ctx context.Context, worker string, preWrap conv.ParamWrapSet, postWrap conv.ParamWrapSet, c gig.Completion) (*gig.Gig, error) {
 	pre, err := ctrl.conv.UnwrapPreprocessorSet(preWrap)
 	if err != nil {
 		return nil, err
@@ -304,7 +355,19 @@ func (ctrl Gig) create(ctx context.Context, worker string, preWrap conv.ParamWra
 	}
 
 	return ctrl.svc.Create(ctx, worker, gig.UpdatePayload{
+		CompleteOn:  c,
 		Preprocess:  pre,
 		Postprocess: post,
 	})
+}
+
+func (ctrl Gig) parseCompletion(name string) gig.Completion {
+	switch strings.ToLower(name) {
+	case "onexec":
+		return gig.OnExec
+	case "onoutput":
+		return gig.OnOutput
+	}
+
+	return gig.OnDemand
 }

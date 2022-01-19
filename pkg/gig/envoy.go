@@ -14,13 +14,13 @@ import (
 
 type (
 	WorkerStateEnvoy struct {
-		Resources []envoyResourceWrap
+		Resources []envoyResourceWrap `json:"resources"`
 	}
 	envoyResourceWrap struct {
-		ResourceType string
-		Identifier   string
-		Identifiers  []string
-		Raw          interface{}
+		ResourceType string      `json:"resourceType"`
+		Identifier   string      `json:"identifier"`
+		Identifiers  []string    `json:"identifiers"`
+		Raw          interface{} `json:"raw"`
 	}
 
 	storeDecoder interface {
