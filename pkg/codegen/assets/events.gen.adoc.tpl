@@ -8,13 +8,12 @@
 //  - {{ .Source }}
 {{- end }}
 
-= Resources and events
 {{- range .Definitions }}
 {{- range .Resources }}
 
-== {{ .ResourceString }}
+= {{ .ResourceString }}
 
-=== Events
+== Events
 
 {{- if .BeforeAfter }}
 .Before/after events:
@@ -33,7 +32,7 @@
 {{- end }}
 {{- end }}
 
-=== Exec arguments
+== Exec arguments
 
 .Argument properties:
 [%header, cols=3*]
