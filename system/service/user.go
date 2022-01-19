@@ -199,12 +199,6 @@ func (svc user) FindByHandle(ctx context.Context, handle string) (u *types.User,
 }
 
 // FindByAny finds user by given identifier (context, id, handle, email)
-//
-// This function goes against the context anti (!!!) pattern we're using
-// (and trying to get rid of)
-//
-// Main reason to push ctx here as the 1st arg is allow (simple) interface definition
-// in the consumers that reside under the pkg/
 func (svc user) FindByAny(ctx context.Context, identifier interface{}) (u *types.User, err error) {
 	if ctx, ok := identifier.(context.Context); ok {
 		identifier = internalAuth.GetIdentityFromContext(ctx).Identity()

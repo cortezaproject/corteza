@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/cortezaproject/corteza-server/auth/external"
 	"github.com/cortezaproject/corteza-server/auth/request"
@@ -51,11 +52,12 @@ type (
 	}
 
 	userService interface {
+		FindByAny(ctx context.Context, identifier interface{}) (*types.User, error)
 		Update(context.Context, *types.User) (*types.User, error)
 	}
 
 	clientService interface {
-		LookupByID(context.Context, uint64) (*types.AuthClient, error)
+		Lookup(context.Context, interface{}) (*types.AuthClient, error)
 		Confirmed(context.Context, uint64) (types.AuthConfirmedClientSet, error)
 		Revoke(ctx context.Context, userID, clientID uint64) error
 	}
@@ -134,6 +136,14 @@ const (
 	TmplMfaTotp                  = "mfa-totp.html.tpl"
 	TmplMfaTotpDisable           = "mfa-totp-disable.html.tpl"
 	TmplInternalError            = "error-internal.html.tpl"
+)
+
+var (
+	// wrapper around time.Now() that will aid service testing
+	now = func() *time.Time {
+		c := time.Now()
+		return &c
+	}
 )
 
 func init() {

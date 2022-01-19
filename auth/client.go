@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -15,8 +16,12 @@ type (
 	}
 )
 
-func (svc clientService) LookupByID(ctx context.Context, clientID uint64) (*types.AuthClient, error) {
-	return store.LookupAuthClientByID(ctx, svc.store, clientID)
+func (svc clientService) Lookup(ctx context.Context, identifier interface{}) (*types.AuthClient, error) {
+	return clientLookup(ctx, svc.store, identifier)
+}
+
+func (svc clientService) LookupByHandle(ctx context.Context, handle string) (*types.AuthClient, error) {
+	return store.LookupAuthClientByHandle(ctx, svc.store, handle)
 }
 
 func (svc clientService) Confirmed(ctx context.Context, userID uint64) (types.AuthConfirmedClientSet, error) {

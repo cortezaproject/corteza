@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -25,6 +24,7 @@ import (
 	"github.com/cortezaproject/corteza-server/auth/settings"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/version"
@@ -33,6 +33,7 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/go-chi/chi/v5"
 	oauth2def "github.com/go-oauth2/oauth2/v4"
+	"github.com/spf13/cast"
 	"go.uber.org/zap"
 	"golang.org/x/text/language"
 )
@@ -87,17 +88,10 @@ func New(ctx context.Context, log *zap.Logger, oa2m oauth2def.Manager, s store.S
 		// this is a bit silly and a bad design of the oauth2 server lib
 		// why do we need to keep on load the client??
 		var (
-			clientID uint64
-			client   *types.AuthClient
+			client *types.AuthClient
 		)
 
-		clientID, err = strconv.ParseUint(id, 10, 64)
-		if err != nil {
-			return false, fmt.Errorf("could not authorize client: %w", err)
-		}
-
-		client, err = store.LookupAuthClientByID(ctx, s, clientID)
-		if err != nil {
+		if client, err = clientLookup(ctx, s, id); err != nil {
 			return false, fmt.Errorf("could not authorize client: %w", err)
 		}
 
@@ -113,17 +107,10 @@ func New(ctx context.Context, log *zap.Logger, oa2m oauth2def.Manager, s store.S
 		// this is a bit silly and a bad design of the oauth2 server lib
 		// why do we need to keep on load the client??
 		var (
-			clientID uint64
-			client   *types.AuthClient
+			client *types.AuthClient
 		)
 
-		clientID, err = strconv.ParseUint(tgr.ClientID, 10, 64)
-		if err != nil {
-			return false, fmt.Errorf("could not authorize client: %w", err)
-		}
-
-		client, err = store.LookupAuthClientByID(ctx, s, clientID)
-		if err != nil {
+		if client, err = clientLookup(ctx, s, tgr.ClientID); err != nil {
 			return false, fmt.Errorf("could not authorize client: %w", err)
 		}
 
@@ -139,7 +126,7 @@ func New(ctx context.Context, log *zap.Logger, oa2m oauth2def.Manager, s store.S
 		fieldsValue = make(map[string]interface{})
 		handlers.SubSplit(ti, fieldsValue)
 		fieldsValue["refresh_token_expires_in"] = int(ti.GetRefreshExpiresIn() / time.Second)
-		if err = handlers.Profile(ctx, ti, fieldsValue); err != nil {
+		if err = userProfile(ctx, s, ti, fieldsValue); err != nil {
 			log.Error("failed to add profile data", zap.Error(err))
 		}
 
@@ -463,4 +450,44 @@ func (svc service) WellKnownOpenIDConfiguration() http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "application/json")
 	}
+}
+
+func clientLookup(ctx context.Context, s store.AuthClients, identifier interface{}) (*types.AuthClient, error) {
+	if id := cast.ToUint64(identifier); id > 0 {
+		return store.LookupAuthClientByID(ctx, s, id)
+	} else if h := cast.ToString(identifier); handle.IsValid(h) {
+		return store.LookupAuthClientByHandle(ctx, s, h)
+	} else {
+		return nil, systemService.AuthClientErrInvalidID()
+	}
+}
+
+// Profile fills map with user's data
+//
+// If scope supports it (contains "profile") user is loaded and
+// map is filled with username (handle), email and name
+func userProfile(ctx context.Context, s store.Users, ti oauth2def.TokenInfo, data map[string]interface{}) error {
+	if !auth.CheckScope(ti.GetScope(), "profile") {
+		return nil
+	}
+
+	userID, _ := auth.ExtractFromSubClaim(ti.GetUserID())
+	if userID == 0 {
+		return fmt.Errorf("invalid user ID in 'sub' claim")
+	}
+
+	user, err := store.LookupUserByID(ctx, s, userID)
+	if err != nil {
+		return err
+	}
+
+	data["handle"] = user.Handle
+	data["name"] = user.Name
+	data["email"] = user.Email
+
+	if user.Meta != nil && user.Meta.PreferredLanguage != "" {
+		data["preferred_language"] = user.Meta.PreferredLanguage
+	}
+
+	return nil
 }

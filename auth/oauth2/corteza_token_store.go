@@ -65,36 +65,6 @@ func (c CortezaTokenStore) Create(ctx context.Context, info oauth2.TokenInfo) (e
 		return
 	}
 
-	// this is oauth2 specific go-code and there is no
-	// need for it to be moved to MakeAuthStructs fn in auth pkg
-	if code := info.GetCode(); code != "" {
-		oa2t.Code = code
-	} else {
-		// When creating non-access-code tokens,
-		// we need to overwrite expiration time
-		// with custom values for access or refresh token
-		oa2t.Access = info.GetAccess()
-		oa2t.ExpiresAt = info.GetAccessCreateAt().Add(info.GetAccessExpiresIn())
-
-		if refresh := info.GetRefresh(); refresh != "" {
-			oa2t.Refresh = info.GetRefresh()
-			oa2t.ExpiresAt = info.GetRefreshCreateAt().Add(info.GetRefreshExpiresIn())
-		}
-	}
-
-	//if oa2t.ClientID, err = strconv.ParseUint(info.GetClientID(), 10, 64); err != nil {
-	//	return fmt.Errorf("could not parse client ID from token info: %w", err)
-	//}
-
-	//if info.GetUserID() != "" {
-	//	if oa2t.UserID, _ = auth.ExtractFromSubClaim(info.GetUserID()); oa2t.UserID == 0 {
-	//		// UserID stores collection of IDs: user's ID and set of all roles user is member of
-	//		return fmt.Errorf("could not parse user ID from token info")
-	//	}
-	//}
-	//
-	//// copy user id to auth client confirmation
-	//acc.UserID = oa2t.UserID
 	if err = store.UpsertAuthConfirmedClient(ctx, c.Store, acc); err != nil {
 		return
 	}
@@ -169,7 +139,7 @@ func (c CortezaTokenStore) GetByRefresh(ctx context.Context, refresh string) (oa
 	return internal, t.Data.Unmarshal(internal)
 }
 
-func makeAuthStructs(ctx context.Context, jwtID, userID, clientID uint64, data oauth2.TokenInfo, expiresAt time.Duration) (oa2t *types.AuthOa2token, acc *types.AuthConfirmedClient, err error) {
+func makeAuthStructs(ctx context.Context, jwtID, userID, clientID uint64, info oauth2.TokenInfo, expiresAt time.Duration) (oa2t *types.AuthOa2token, acc *types.AuthConfirmedClient, err error) {
 	var (
 		eti       = auth.GetExtraReqInfoFromContext(ctx)
 		createdAt = time.Now().Round(time.Second)
@@ -191,8 +161,23 @@ func makeAuthStructs(ctx context.Context, jwtID, userID, clientID uint64, data o
 		ConfirmedAt: createdAt,
 	}
 
-	if oa2t.Data, err = json.Marshal(data); err != nil {
+	if oa2t.Data, err = json.Marshal(info); err != nil {
 		return nil, nil, err
+	}
+
+	if code := info.GetCode(); code != "" {
+		oa2t.Code = code
+	} else {
+		// When creating non-access-code tokens,
+		// we need to overwrite expiration time
+		// with custom values for access or refresh token
+		oa2t.Access = info.GetAccess()
+		oa2t.ExpiresAt = info.GetAccessCreateAt().Add(info.GetAccessExpiresIn())
+
+		if refresh := info.GetRefresh(); refresh != "" {
+			oa2t.Refresh = info.GetRefresh()
+			oa2t.ExpiresAt = info.GetRefreshCreateAt().Add(info.GetRefreshExpiresIn())
+		}
 	}
 
 	return

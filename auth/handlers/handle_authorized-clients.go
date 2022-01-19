@@ -83,7 +83,7 @@ func (h *AuthHandlers) getAuthorizedClients(req *request.AuthReq) (ss authClient
 	ss = make(authClients, 0, len(set))
 
 	for i := range set {
-		client, err = h.ClientService.LookupByID(req.Context(), set[i].ClientID)
+		client, err = h.ClientService.Lookup(req.Context(), set[i].ClientID)
 		if errors.IsNotFound(err) {
 			continue
 		}
