@@ -18,7 +18,7 @@ require (
 	github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/brianvoe/gofakeit/v6 v6.5.0
-	github.com/cortezaproject/corteza-locale v0.0.0-20220111142345-b53bc6baba9e
+	github.com/cortezaproject/corteza-locale v0.0.0-20220114105940-1a8db53b1a09
 	github.com/crewjam/saml v0.4.5
 	github.com/crusttech/go-oidc v0.0.0-20180918092017-982855dad3e1
 	github.com/davecgh/go-spew v1.1.1
@@ -29,7 +29,7 @@ require (
 	github.com/dop251/goja v0.0.0-20210726224656-a55e4cfac4cf
 	github.com/edwvee/exiffix v0.0.0-20180602190213-b57537c92a6b
 	github.com/evanw/esbuild v0.12.16
-	github.com/exoscale/egoscale v0.80.1
+	github.com/exoscale/egoscale v0.80.1 // indirect
 	github.com/fastly/go-utils v0.0.0-20180712184237-d95a45783239 // indirect
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/gabriel-vasile/mimetype v1.1.2
@@ -40,7 +40,7 @@ require (
 	github.com/go-chi/jwtauth v0.0.0-20190109153619-47840abb19b3
 	github.com/go-oauth2/oauth2/v4 v4.3.0
 	github.com/go-sql-driver/mysql v1.5.0
-	github.com/gofrs/uuid v3.2.0+incompatible
+	github.com/gofrs/uuid v3.2.0+incompatible // indirect
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.4.2
 	github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75

@@ -11,3 +11,7 @@ errors:
   notAllowedToUpdate: not allowed to update this namespace
   notFound: namespace does not exist
   staleData: stale data
+  unsupportedExportFormat: unsupported export format
+  unsupportedImportFormat: unsupported import format
+  importMissingNamespace: the import source does not contain a namespace definition
+  cloneMultiple: not allowed to clone multiple namespaces at once
