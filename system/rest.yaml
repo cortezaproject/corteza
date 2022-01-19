@@ -1223,6 +1223,9 @@ endpoints:
         type: conv.ParamWrapSet
         title: Output postprocessing to do
         parser: conv.ParseParamWrap
+      - name: completion
+        type: string
+        title: Specifies when the gig is marked as completed
 
   - name: go
     method: POST
@@ -1276,6 +1279,9 @@ endpoints:
         type: conv.ParamWrapSet
         title: Output postprocessing to do
         parser: conv.ParseParamWrap
+      - name: completion
+        type: string
+        title: Specifies when the gig is marked as completed
 
   - name: delete
     method: DELETE
@@ -1368,6 +1374,32 @@ endpoints:
         type: uint64
         required: true
         title: ID
+
+  - name: outputAll
+    method: GET
+    title: Get output of the gig
+    path: "/{gigID}/output/all"
+    parameters:
+      path:
+      - name: gigID
+        type: uint64
+        required: true
+        title: ID
+
+  - name: outputSpecific
+    method: GET
+    title: Get output of the gig
+    path: "/{gigID}/output/{sourceID}"
+    parameters:
+      path:
+      - name: gigID
+        type: uint64
+        required: true
+        title: ID
+      - name: sourceID
+        type: uint64
+        required: true
+        title: Source ID
 
   - name: state
     method: GET

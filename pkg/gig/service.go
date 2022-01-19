@@ -36,7 +36,9 @@ type (
 
 		Prepare(context.Context, Gig) (Gig, error)
 		Exec(context.Context, Gig) (Gig, error)
-		Output(context.Context, Gig) (SourceSet, Gig, error)
+		Output(context.Context, Gig) (SourceWrapSet, Gig, error)
+		OutputAll(context.Context, Gig) (SourceSet, Gig, error)
+		OutputSpecific(context.Context, Gig, uint64) (Source, Gig, error)
 		Cleanup(context.Context, Gig) (Gig, error)
 
 		SetSources(context.Context, Gig, SourceWrapSet, ...Decoder) (Gig, error)
@@ -354,7 +356,24 @@ func (svc *service) Exec(ctx context.Context, old Gig) (g Gig, err error) {
 	return updateGig(ctx, g)
 }
 
-func (svc *service) Output(ctx context.Context, old Gig) (out SourceSet, g Gig, err error) {
+func (svc *service) Output(ctx context.Context, old Gig) (out SourceWrapSet, g Gig, err error) {
+	tmp := old.Output
+	g = old
+
+	if old.CompletedAt != nil {
+		err = fmt.Errorf("unable to get output for gig %d: already completed", old.ID)
+		return
+	}
+
+	if len(tmp) == 0 {
+		return
+	}
+
+	out = ToSourceWrap(tmp...)
+	return
+}
+
+func (svc *service) OutputAll(ctx context.Context, old Gig) (out SourceSet, g Gig, err error) {
 	out = old.Output
 	g = old
 
@@ -375,6 +394,24 @@ func (svc *service) Output(ctx context.Context, old Gig) (out SourceSet, g Gig, 
 		}
 	}
 
+	return
+}
+
+func (svc *service) OutputSpecific(ctx context.Context, old Gig, sourceID uint64) (out Source, g Gig, err error) {
+	if old.CompletedAt != nil {
+		err = fmt.Errorf("unable to get output for gig %d: already completed", old.ID)
+		return
+	}
+
+	g = old
+	tmp := g.Output.GetByID(sourceID)
+
+	if tmp == nil {
+		err = fmt.Errorf("unable to get the output for gig: %d: source not found: %d", g.ID, sourceID)
+		return
+	}
+
+	out = *tmp
 	return
 }
 

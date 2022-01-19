@@ -49,6 +49,11 @@ type (
 		//
 		// Output postprocessing to do
 		Postprocessors conv.ParamWrapSet
+
+		// Completion POST parameter
+		//
+		// Specifies when the gig is marked as completed
+		Completion string
 	}
 
 	GigGo struct {
@@ -95,6 +100,11 @@ type (
 		//
 		// Output postprocessing to do
 		Postprocessors conv.ParamWrapSet
+
+		// Completion POST parameter
+		//
+		// Specifies when the gig is marked as completed
+		Completion string
 	}
 
 	GigDelete struct {
@@ -166,6 +176,25 @@ type (
 		GigID uint64 `json:",string"`
 	}
 
+	GigOutputAll struct {
+		// GigID PATH parameter
+		//
+		// ID
+		GigID uint64 `json:",string"`
+	}
+
+	GigOutputSpecific struct {
+		// GigID PATH parameter
+		//
+		// ID
+		GigID uint64 `json:",string"`
+
+		// SourceID PATH parameter
+		//
+		// Source ID
+		SourceID uint64 `json:",string"`
+	}
+
 	GigState struct {
 		// GigID PATH parameter
 		//
@@ -205,6 +234,7 @@ func (r GigCreate) Auditable() map[string]interface{} {
 		"worker":         r.Worker,
 		"preprocessors":  r.Preprocessors,
 		"postprocessors": r.Postprocessors,
+		"completion":     r.Completion,
 	}
 }
 
@@ -221,6 +251,11 @@ func (r GigCreate) GetPreprocessors() conv.ParamWrapSet {
 // Auditable returns all auditable/loggable parameters
 func (r GigCreate) GetPostprocessors() conv.ParamWrapSet {
 	return r.Postprocessors
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r GigCreate) GetCompletion() string {
+	return r.Completion
 }
 
 // Fill processes request and fills internal variables
@@ -274,6 +309,13 @@ func (r *GigCreate) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
+			if val, ok := req.MultipartForm.Value["completion"]; ok && len(val) > 0 {
+				r.Completion, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -310,6 +352,13 @@ func (r *GigCreate) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := req.Form["postprocessors"]; ok {
 			r.Postprocessors, err = conv.ParseParamWrap(val)
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["completion"]; ok && len(val) > 0 {
+			r.Completion, err = val[0], nil
 			if err != nil {
 				return err
 			}
@@ -491,6 +540,7 @@ func (r GigUpdate) Auditable() map[string]interface{} {
 		"decoders":       r.Decoders,
 		"preprocessors":  r.Preprocessors,
 		"postprocessors": r.Postprocessors,
+		"completion":     r.Completion,
 	}
 }
 
@@ -512,6 +562,11 @@ func (r GigUpdate) GetPreprocessors() conv.ParamWrapSet {
 // Auditable returns all auditable/loggable parameters
 func (r GigUpdate) GetPostprocessors() conv.ParamWrapSet {
 	return r.Postprocessors
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r GigUpdate) GetCompletion() string {
+	return r.Completion
 }
 
 // Fill processes request and fills internal variables
@@ -570,6 +625,13 @@ func (r *GigUpdate) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
+			if val, ok := req.MultipartForm.Value["completion"]; ok && len(val) > 0 {
+				r.Completion, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -611,6 +673,13 @@ func (r *GigUpdate) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := req.Form["postprocessors"]; ok {
 			r.Postprocessors, err = conv.ParseParamWrap(val)
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["completion"]; ok && len(val) > 0 {
+			r.Completion, err = val[0], nil
 			if err != nil {
 				return err
 			}
@@ -970,6 +1039,88 @@ func (r *GigOutput) Fill(req *http.Request) (err error) {
 
 		val = chi.URLParam(req, "gigID")
 		r.GigID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewGigOutputAll request
+func NewGigOutputAll() *GigOutputAll {
+	return &GigOutputAll{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r GigOutputAll) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"gigID": r.GigID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r GigOutputAll) GetGigID() uint64 {
+	return r.GigID
+}
+
+// Fill processes request and fills internal variables
+func (r *GigOutputAll) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "gigID")
+		r.GigID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewGigOutputSpecific request
+func NewGigOutputSpecific() *GigOutputSpecific {
+	return &GigOutputSpecific{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r GigOutputSpecific) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"gigID":    r.GigID,
+		"sourceID": r.SourceID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r GigOutputSpecific) GetGigID() uint64 {
+	return r.GigID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r GigOutputSpecific) GetSourceID() uint64 {
+	return r.SourceID
+}
+
+// Fill processes request and fills internal variables
+func (r *GigOutputSpecific) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "gigID")
+		r.GigID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "sourceID")
+		r.SourceID, err = payload.ParseUint64(val), nil
 		if err != nil {
 			return err
 		}
