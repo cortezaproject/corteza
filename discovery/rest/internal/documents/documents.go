@@ -2,6 +2,7 @@ package documents
 
 import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"time"
 )
 
@@ -23,10 +24,11 @@ type (
 	}
 
 	docPartialUser struct {
-		UserID uint64 `json:"userID,string"`
-		Email  string `json:"email,omitempty"`
-		Name   string `json:"name,omitempty"`
-		Handle string `json:"handle,omitempty"`
+		UserID   uint64 `json:"userID,string"`
+		Email    string `json:"email,omitempty"`
+		Name     string `json:"name,omitempty"`
+		Username string `json:"username,omitempty"`
+		Handle   string `json:"handle,omitempty"`
 	}
 
 	docPartialChange struct {
@@ -131,4 +133,22 @@ func makePartialChange(at *time.Time) *docPartialChange {
 	// @todo handle unreadable (access-control) modules
 	// @todo attach security info (allow/deny roles)
 	return &docPartialChange{At: at}
+}
+
+func makeChange(at *time.Time, user *sysTypes.User) (out *docPartialChange) {
+	out = &docPartialChange{}
+	if at != nil {
+		out.At = at
+	}
+	if user != nil {
+		out.By = &docPartialUser{
+			UserID:   user.ID,
+			Email:    user.Email,
+			Name:     user.Name,
+			Username: user.Username,
+			Handle:   user.Handle,
+		}
+	}
+
+	return
 }

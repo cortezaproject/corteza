@@ -49,6 +49,10 @@ type (
 		page interface {
 			Find(ctx context.Context, filter cmpTypes.PageFilter) (set cmpTypes.PageSet, f cmpTypes.PageFilter, err error)
 		}
+
+		usr interface {
+			FindByID(ctx context.Context, id uint64) (*sysTypes.User, error)
+		}
 	}
 
 	pageDetail struct {
@@ -73,6 +77,7 @@ func ComposeResources() *composeResources {
 		mod:      cmpService.DefaultModule,
 		rec:      cmpService.DefaultRecord,
 		page:     cmpService.DefaultPage,
+		usr:      sysService.DefaultUser,
 	}
 }
 
@@ -292,11 +297,41 @@ func (d composeResources) Records(ctx context.Context, namespaceID, moduleID uin
 			Handle:   mod.Handle,
 		}
 
+		users := make(map[uint64]sysTypes.User)
 		for i, rec := range rr {
 			recordID := rec.ID
 			rsp.Documents[i].ID = recordID
 			// where should this link to? record page in the compose?
 			// rsp.Documents[i].URL = "" // added to source
+
+			// fixme refactor me
+			var (
+				createdBy *sysTypes.User
+				updatedBy *sysTypes.User
+				deletedBy *sysTypes.User
+			)
+			if rec.CreatedBy > 0 {
+				createdBy, users, err = d.getUserInfo(ctx, rec.CreatedBy, users)
+				if err != nil {
+					return
+				}
+			}
+
+			if rec.UpdatedBy > 0 {
+				updatedBy, users, err = d.getUserInfo(ctx, rec.UpdatedBy, users)
+				if err != nil {
+					return
+				}
+			}
+
+			if rec.DeletedBy > 0 {
+				deletedBy, users, err = d.getUserInfo(ctx, rec.DeletedBy, users)
+				if err != nil {
+					return
+				}
+			}
+			// fixme refactor me END
+
 			doc := &docComposeRecord{
 				ResourceType: "compose:record", // @todo use RBAC resourceType
 				RecordID:     recordID,
@@ -305,9 +340,13 @@ func (d composeResources) Records(ctx context.Context, namespaceID, moduleID uin
 				Url:          d.getUrlToResource(pageDetail{moduleID: moduleID, recordID: recordID}),
 				Labels:       rec.Labels,
 				//Values:       d.recordValues(ctx, rec, nil),
-				Created:      makePartialChange(&rec.CreatedAt),
-				Updated:      makePartialChange(rec.UpdatedAt),
-				Deleted:      makePartialChange(rec.DeletedAt),
+				//Created:      makePartialChange(&rec.CreatedAt),
+				//Updated:      makePartialChange(rec.UpdatedAt),
+				//Deleted:      makePartialChange(rec.DeletedAt),
+
+				Created: makeChange(&rec.CreatedAt, createdBy),
+				Updated: makeChange(rec.UpdatedAt, updatedBy),
+				Deleted: makeChange(rec.DeletedAt, deletedBy),
 			}
 
 			// Values and value labels
@@ -402,4 +441,20 @@ func (d composeResources) getUrlToResource(page pageDetail) (url string) {
 		url = fmt.Sprintf("%s/compose/ns/%s/pages", host, page.namespaceSlug)
 	}
 	return
+}
+
+func (d composeResources) getUserInfo(ctx context.Context, ID uint64, users map[uint64]sysTypes.User) (*sysTypes.User, map[uint64]sysTypes.User, error) {
+	if users == nil {
+		users = make(map[uint64]sysTypes.User)
+	}
+	user, ok := users[ID]
+	if ok {
+		return &user, users, nil
+	} else {
+		u, err := d.usr.FindByID(ctx, ID)
+		if err != nil {
+			users[ID] = *u
+		}
+		return u, users, err
+	}
 }
