@@ -53,8 +53,10 @@ DEV_MAILHOG_SMTP_ADDR ?= 1025
 DEV_MAILHOG_HTTP_ADDR ?= 8025
 
 GIN_ARG_LADDR ?= localhost
-GIN_ARGS      ?= --laddr $(GIN_ARG_LADDR) --immediate
+GIN_ARGS      ?= --laddr $(GIN_ARG_LADDR) --build cmd/corteza --immediate
 
+GIN_CORTEZA_ENV_FILE ?= .env
+GIN_CORTEZA_BIN_ARGS ?= --env-file $(GIN_CORTEZA_ENV_FILE)
 
 DOCKER                ?= docker
 
@@ -107,7 +109,7 @@ $(RELEASE_PKEY):
 # Development
 
 watch: $(GIN)
-	$(GIN) $(GIN_ARGS) --build cmd/corteza run -- serve
+	$(GIN) $(GIN_ARGS) -- $(GIN_CORTEZA_BIN_ARGS) serve
 
 realize: watch # BC
 

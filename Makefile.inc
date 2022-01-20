@@ -1,5 +1,5 @@
 GO         = go
-GOGET      = $(GO) get -u
+GOINSTALL  = $(GO) install
 GOFLAGS   ?= -trimpath
 GOPATH    ?= $(HOME)/go
 
@@ -31,31 +31,31 @@ BINS = $(GOCRITIC) $(MOCKGEN) $(GOTEST) $(STATICCHECK) $(PROTOGEN) $(GIN) $(STAT
 ########################################################################################################################
 # Go Toolset
 $(GOCRITIC):
-	$(GOGET) github.com/go-critic/go-critic/...
+	$(GOINSTALL) github.com/go-critic/go-critic@latest
 
 $(MOCKGEN):
-	$(GOGET) github.com/golang/mock/mockgen
+	$(GOINSTALL) github.com/golang/mock/mockgen@latest
 
 $(STATICCHECK):
-	$(GOGET) honnef.co/go/tools/cmd/staticcheck
+	$(GOINSTALL) honnef.co/go/tools/cmd/staticcheck@latest
 
 $(PROTOGEN):
-	$(GOGET) github.com/golang/protobuf/protoc-gen-go
+	$(GOINSTALL) github.com/golang/protobuf/protoc-gen-go@latest
 
 $(PROTOGEN_GRPC):
-	$(GOGET) google.golang.org/grpc/cmd/protoc-gen-go-grpc
+	$(GOINSTALL) google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
 $(GIN):
-	$(GOGET) github.com/codegangsta/gin
+	$(GOINSTALL) github.com/codegangsta/gin@latest
 
 $(GOTEST):
-	$(GOGET) github.com/rakyll/gotest
+	$(GOINSTALL) github.com/rakyll/gotest@latest
 
 $(STATIK):
-	$(GOGET) github.com/goware/statik
+	$(GOINSTALL) github.com/goware/statik@latest
 
 $(MODOUTDATED):
-	$(GOGET) github.com/psampaz/go-mod-outdated
+	$(GOINSTALL) github.com/psampaz/go-mod-outdated@latest
 
 $(CODEGEN):
 	$(GO) build -o $@ cmd/codegen/main.go
