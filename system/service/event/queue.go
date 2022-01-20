@@ -14,7 +14,7 @@ func (res queueBase) Match(c eventbus.ConstraintMatcher) bool {
 
 func queueMatch(r *types.QueueMessage, c eventbus.ConstraintMatcher) bool {
 	switch c.Name() {
-	case "message.queue":
+	case "payload.queue":
 		return c.Match(r.Queue)
 	}
 
