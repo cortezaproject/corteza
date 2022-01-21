@@ -41,6 +41,7 @@ import (
 	sysService "github.com/cortezaproject/corteza-server/system/service"
 	sysEvent "github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/lestrrat-go/jwx/jwt"
 	"go.uber.org/zap"
 	gomail "gopkg.in/mail.v2"
 )
@@ -382,9 +383,18 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	app.WsServer = websocket.Server(
 		app.Log,
 		app.Opt.Websocket,
-		func(ctx context.Context, s string) (auth.Identifiable, error) {
-			//auth.TokenIssuer.Validate(ctx, []byte(s))
-			return nil, nil
+		func(ctx context.Context, s string) (_ auth.Identifiable, err error) {
+			var token jwt.Token
+
+			if token, err = jwt.Parse([]byte(s)); err != nil {
+				return
+			}
+
+			if err = auth.TokenIssuer.Validate(ctx, token); err != nil {
+				return
+			}
+
+			return auth.IdentityFromToken(token), nil
 		},
 	)
 
