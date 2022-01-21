@@ -13,6 +13,7 @@ import (
 	st "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
+	"github.com/stretchr/testify/require"
 )
 
 type (
@@ -33,6 +34,7 @@ func (h mockNodeHandshake) Complete(ctx context.Context, n *types.Node, t string
 
 func (h helper) clearNodes() {
 	h.noError(store.TruncateFederationNodes(context.Background(), service.DefaultStore))
+	h.noError(store.TruncateAuthClients(context.Background(), service.DefaultStore))
 }
 
 func (h helper) prepareRBAC() {
@@ -74,7 +76,17 @@ func TestSuccessfulNodePairing(t *testing.T) {
 			n := h.lookupNodeByID(ID)
 			return n.AuthToken
 		}
+
+		authClient = &st.AuthClient{
+			ID:     42,
+			Handle: "handle",
+			Secret: "secret",
+		}
+
+		req = require.New(t)
 	)
+
+	req.NoError(store.CreateAuthClient(context.Background(), service.DefaultStore, authClient))
 
 	service.DefaultNode.SetHandshaker(nil)
 
@@ -168,7 +180,7 @@ func TestSuccessfulNodePairing(t *testing.T) {
 		service.DefaultNode.SetHandshaker(&mockNodeHandshake{
 			init: func(ctx context.Context, n *types.Node, authToken string) error {
 				h.apiInit().
-					//Debug().
+					Debug().
 					// make sure we do not use test auth-token for authentication but
 					// we do it with pairing token
 					Intercept(helpers.ReqHeaderRawAuthBearer([]byte(n.AuthToken))).

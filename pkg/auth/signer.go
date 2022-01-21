@@ -21,6 +21,11 @@ var (
 	DefaultSigner Signer
 )
 
+func SetupSigner(secret string) (err error) {
+	DefaultSigner = HmacSigner(secret)
+	return
+}
+
 func HmacSigner(secret string) *hmacSigner {
 	return &hmacSigner{
 		secret: []byte(secret),

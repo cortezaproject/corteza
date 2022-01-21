@@ -18,11 +18,13 @@ import (
 )
 
 type (
-	CortezaTokenStore struct {
-		Store interface {
-			store.AuthOa2tokens
-			store.AuthConfirmedClients
-		}
+	tokenStorer interface {
+		store.AuthOa2tokens
+		store.AuthConfirmedClients
+	}
+
+	tokenStore struct {
+		Store tokenStorer
 	}
 )
 
@@ -38,18 +40,20 @@ var (
 		return id.Next()
 	}
 
-	_ oauth2.TokenStore = &CortezaTokenStore{}
+	_ oauth2.TokenStore = &tokenStore{}
 )
 
-func (c CortezaTokenStore) Create(ctx context.Context, info oauth2.TokenInfo) (err error) {
+func NewTokenStore(s tokenStorer) *tokenStore {
+	return &tokenStore{Store: s}
+}
+
+func (c tokenStore) Create(ctx context.Context, info oauth2.TokenInfo) (err error) {
 	var (
 		oa2t *types.AuthOa2token
 		acc  *types.AuthConfirmedClient
 
 		userID   uint64
 		clientID uint64
-
-		jwtID = id.Next()
 	)
 
 	if clientID, err = strconv.ParseUint(info.GetClientID(), 10, 64); err != nil {
@@ -61,7 +65,7 @@ func (c CortezaTokenStore) Create(ctx context.Context, info oauth2.TokenInfo) (e
 	}
 
 	// Make oauth2 token and auth confirmation structs from user and client IDs
-	if oa2t, acc, err = makeAuthStructs(ctx, jwtID, userID, clientID, info, info.GetCodeExpiresIn()); err != nil {
+	if oa2t, acc, err = makeAuthStructs(ctx, userID, clientID, info, info.GetCodeExpiresIn()); err != nil {
 		return
 	}
 
@@ -76,19 +80,19 @@ func (c CortezaTokenStore) Create(ctx context.Context, info oauth2.TokenInfo) (e
 	return nil
 }
 
-func (c CortezaTokenStore) RemoveByCode(ctx context.Context, code string) error {
+func (c tokenStore) RemoveByCode(ctx context.Context, code string) error {
 	return store.DeleteAuthOA2TokenByCode(ctx, c.Store, code)
 }
 
-func (c CortezaTokenStore) RemoveByAccess(ctx context.Context, access string) error {
+func (c tokenStore) RemoveByAccess(ctx context.Context, access string) error {
 	return store.DeleteAuthOA2TokenByAccess(ctx, c.Store, access)
 }
 
-func (c CortezaTokenStore) RemoveByRefresh(ctx context.Context, refresh string) error {
+func (c tokenStore) RemoveByRefresh(ctx context.Context, refresh string) error {
 	return store.DeleteAuthOA2TokenByRefresh(ctx, c.Store, refresh)
 }
 
-func (c CortezaTokenStore) GetByCode(ctx context.Context, code string) (oauth2.TokenInfo, error) {
+func (c tokenStore) GetByCode(ctx context.Context, code string) (oauth2.TokenInfo, error) {
 	var (
 		internal = &oauth2models.Token{}
 		t, err   = store.LookupAuthOa2tokenByCode(ctx, c.Store, code)
@@ -105,7 +109,7 @@ func (c CortezaTokenStore) GetByCode(ctx context.Context, code string) (oauth2.T
 	return internal, t.Data.Unmarshal(internal)
 }
 
-func (c CortezaTokenStore) GetByAccess(ctx context.Context, access string) (oauth2.TokenInfo, error) {
+func (c tokenStore) GetByAccess(ctx context.Context, access string) (oauth2.TokenInfo, error) {
 	var (
 		internal = &oauth2models.Token{}
 		t, err   = store.LookupAuthOa2tokenByAccess(ctx, c.Store, access)
@@ -118,7 +122,7 @@ func (c CortezaTokenStore) GetByAccess(ctx context.Context, access string) (oaut
 	return internal, t.Data.Unmarshal(internal)
 }
 
-func (c CortezaTokenStore) GetByRefresh(ctx context.Context, refresh string) (oauth2.TokenInfo, error) {
+func (c tokenStore) GetByRefresh(ctx context.Context, refresh string) (oauth2.TokenInfo, error) {
 	var (
 		internal = &oauth2models.Token{}
 		t, err   = store.LookupAuthOa2tokenByRefresh(ctx, c.Store, refresh)
@@ -139,14 +143,14 @@ func (c CortezaTokenStore) GetByRefresh(ctx context.Context, refresh string) (oa
 	return internal, t.Data.Unmarshal(internal)
 }
 
-func makeAuthStructs(ctx context.Context, jwtID, userID, clientID uint64, info oauth2.TokenInfo, expiresAt time.Duration) (oa2t *types.AuthOa2token, acc *types.AuthConfirmedClient, err error) {
+func makeAuthStructs(ctx context.Context, userID, clientID uint64, info oauth2.TokenInfo, expiresAt time.Duration) (oa2t *types.AuthOa2token, acc *types.AuthConfirmedClient, err error) {
 	var (
 		eti       = auth.GetExtraReqInfoFromContext(ctx)
 		createdAt = time.Now().Round(time.Second)
 	)
 
 	oa2t = &types.AuthOa2token{
-		ID:         jwtID,
+		ID:         id.Next(),
 		CreatedAt:  createdAt,
 		RemoteAddr: eti.RemoteAddr,
 		UserAgent:  eti.UserAgent,

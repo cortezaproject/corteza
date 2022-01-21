@@ -24,9 +24,7 @@ const (
 )
 
 type (
-	tokenGenerator interface {
-		Generate(ctx context.Context, i auth.Identifiable, clientID uint64, scope ...string) (token []byte, err error)
-	}
+	tokenIssuer func(context.Context, auth.Identifiable) (token []byte, err error)
 
 	node struct {
 		store   store.Storer
@@ -34,7 +32,7 @@ type (
 
 		actionlog actionlog.Recorder
 
-		tokenEncoder tokenGenerator
+		tokenIssuer tokenIssuer
 
 		name    string
 		host    string
@@ -60,15 +58,15 @@ type (
 	}
 )
 
-func Node(s store.Storer, u service.UserService, al actionlog.Recorder, th tokenGenerator, options options.FederationOpt, ac nodeAccessController) *node {
+func Node(s store.Storer, u service.UserService, al actionlog.Recorder, th tokenIssuer, options options.FederationOpt, ac nodeAccessController) *node {
 	return &node{
-		store:        s,
-		sysUser:      u,
-		actionlog:    al,
-		tokenEncoder: th,
-		ac:           ac,
-		name:         options.Label,
-		host:         options.Host,
+		store:       s,
+		sysUser:     u,
+		actionlog:   al,
+		tokenIssuer: th,
+		ac:          ac,
+		name:        options.Label,
+		host:        options.Host,
 
 		// @todo use HTTP_API_BASE_URL (HTTPServerOpt.ApiBaseUrl) to prefix URI path
 		baseURL: "/federation",
@@ -296,7 +294,7 @@ func (svc node) Pair(ctx context.Context, nodeID uint64) error {
 
 			var accessToken []byte
 			// Generate JWT token for the federated user
-			accessToken, err = svc.tokenEncoder.Generate(ctx, u, 0)
+			accessToken, err = svc.tokenIssuer(ctx, u)
 			if err != nil {
 				return err
 			}
@@ -367,7 +365,7 @@ func (svc node) HandshakeConfirm(ctx context.Context, nodeID uint64) error {
 
 		var accessToken []byte
 		// Generate JWT token for the federated user
-		accessToken, err = svc.tokenEncoder.Generate(ctx, u, 0)
+		accessToken, err = svc.tokenIssuer(ctx, u)
 
 		n.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
 		n.UpdatedAt = now()

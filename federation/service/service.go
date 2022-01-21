@@ -59,7 +59,7 @@ var (
 	}
 )
 
-func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) (err error) {
+func Initialize(_ context.Context, log *zap.Logger, s store.Storer, c Config) (err error) {
 	DefaultOptions = c.Federation
 
 	// we're doing conversion to avoid having
@@ -86,7 +86,20 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 
 	DefaultAccessControl = AccessControl()
 
-	DefaultNode = Node(DefaultStore, service.DefaultUser, DefaultActionlog, auth.JWT(), c.Federation, DefaultAccessControl)
+	DefaultNode = Node(
+		DefaultStore,
+		service.DefaultUser,
+		DefaultActionlog,
+		func(ctx context.Context, i auth.Identifiable) (token []byte, err error) {
+			return auth.TokenIssuer.Issue(
+				ctx,
+				auth.WithIdentity(i),
+				auth.WithScope("api"),
+			)
+		},
+		c.Federation,
+		DefaultAccessControl,
+	)
 	DefaultNodeSync = NodeSync()
 	DefaultExposedModule = ExposedModule()
 	DefaultSharedModule = SharedModule()

@@ -18,7 +18,6 @@ import (
 	oauth2errors "github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/lestrrat-go/jwx/jwt"
 
-	"github.com/cortezaproject/corteza-server/auth/oauth2"
 	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
@@ -44,17 +43,12 @@ func (h AuthHandlers) oauth2Authorize(req *request.AuthReq) (err error) {
 	request.SetOauth2AuthParams(req.Session, nil)
 
 	var (
-		ctx    context.Context
 		client *types.AuthClient
 	)
 
 	if client, err = h.loadRequestedClient(req); err != nil {
 		return err
 	}
-
-	// add client to context, now we can reach it from client store via context.Value() fn
-	// this way we work around the limitations we have with the oauth2 lib.
-	ctx = context.WithValue(req.Context(), &oauth2.ContextClientStore{}, client)
 
 	if client != nil {
 		// No client validation is done at this point;
@@ -69,9 +63,7 @@ func (h AuthHandlers) oauth2Authorize(req *request.AuthReq) (err error) {
 	// does not send status code!
 	req.Status = -1
 
-	// handle authorize request with extended context that now holds the loaded client!
-	// we do this
-	err = h.OAuth2.HandleAuthorizeRequest(req.Response, req.Request.Clone(ctx))
+	err = h.OAuth2.HandleAuthorizeRequest(req.Response, req.Request)
 	if err != nil {
 		req.Status = http.StatusInternalServerError
 		req.Template = TmplInternalError
@@ -178,9 +170,6 @@ func (h AuthHandlers) oauth2Info(w http.ResponseWriter, r *http.Request) {
 	var (
 		jt     jwt.Token
 		claims map[string]interface{}
-
-		// scope is intentionally left empty
-		scope = make([]string, 0)
 	)
 
 	err := func() (err error) {
@@ -188,7 +177,7 @@ func (h AuthHandlers) oauth2Info(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err = auth.JWT().Validate(r.Context(), jt, scope...); err != nil {
+		if err = auth.TokenIssuer.Validate(r.Context(), jt); err != nil {
 			return
 		}
 
@@ -277,12 +266,9 @@ func (h AuthHandlers) oauth2authorizeDefaultClientProc(req *request.AuthReq) (er
 	}
 
 	var (
-		// extend context and set default client for oauth2server internals
-		ctx = context.WithValue(req.Context(), &oauth2.ContextClientStore{}, h.DefaultClient)
-
 		// Clone of the initial request
 		// that we'll use for token request validation
-		r = req.Request.Clone(ctx)
+		r = req.Request.Clone(req.Context())
 	)
 
 	if _, has := r.Form["code"]; has {
@@ -359,9 +345,6 @@ func (h AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.Aut
 		return h.tokenError(w, fmt.Errorf("invalid client: %w", err))
 	}
 
-	// add client to context: we can reach it from client store via context.Value() fn
-	// this way we work around the limitations we have with the oauth2 lib.
-	ctx = context.WithValue(ctx, &oauth2.ContextClientStore{}, client)
 	r = req.Request.Clone(ctx)
 
 	gt, tgr, err := h.OAuth2.ValidationTokenRequest(r)
@@ -411,15 +394,25 @@ func (h AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.Aut
 		scope  = strings.Split(ti.GetScope(), " ")
 	)
 
-	signed, err = auth.JWT().Sign(ti.GetAccess(), user, client.ID, scope...)
+	signed, err = auth.TokenIssuer.Sign(
+		auth.WithAccessToken(ti.GetAccess()),
+		auth.WithIdentity(user),
+		auth.WithClientID(client.ID),
+		auth.WithScope(scope...),
+	)
+
 	if err != nil {
 		return h.tokenError(w, err)
 	}
 
+	// modify token info with signed JWT
+	// this will be sent back to the user
 	ti.SetAccess(string(signed))
 
 	response := h.OAuth2.GetTokenData(ti)
 
+	// in case client is configured with "openid" scope,
+	// we'll add "id_token" with all required (by OIDC) details encoded
 	if strings.Contains(client.Scope, "openid") {
 		var idToken []byte
 		if idToken, err = generateIdToken(user, client, ti, h.Opt.BaseURL); err != nil {

@@ -1,10 +1,12 @@
 package websocket
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"sync"
 
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/slice"
@@ -13,6 +15,8 @@ import (
 )
 
 type (
+	tokenValidator func(context.Context, string) (auth.Identifiable, error)
+
 	server struct {
 		config options.WebsocketOpt
 		logger *zap.Logger
@@ -22,6 +26,8 @@ type (
 
 		// keep lock on session map changes
 		l sync.RWMutex
+
+		tokenValidator tokenValidator
 	}
 )
 
@@ -36,15 +42,16 @@ var (
 	}
 )
 
-func Server(logger *zap.Logger, config options.WebsocketOpt) *server {
+func Server(logger *zap.Logger, config options.WebsocketOpt, tv tokenValidator) *server {
 	if !config.LogEnabled {
 		logger = zap.NewNop()
 	}
 
 	return &server{
-		config:   config,
-		logger:   logger.Named("websocket"),
-		sessions: make(map[uint64]map[uint64]io.Writer),
+		config:         config,
+		logger:         logger.Named("websocket"),
+		sessions:       make(map[uint64]map[uint64]io.Writer),
+		tokenValidator: tv,
 	}
 }
 

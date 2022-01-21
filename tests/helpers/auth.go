@@ -11,8 +11,8 @@ import (
 
 func BindAuthMiddleware(r chi.Router) {
 	r.Use(
-		auth.JWT().HttpVerifier(),
-		auth.JWT().HttpValidator("api"),
+		auth.HttpTokenVerifier,
+		auth.HttpTokenValidator(),
 	)
 }
 

@@ -24,7 +24,6 @@ import (
 	"github.com/cortezaproject/corteza-server/auth/settings"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/version"
@@ -33,7 +32,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/go-chi/chi/v5"
 	oauth2def "github.com/go-oauth2/oauth2/v4"
-	"github.com/spf13/cast"
 	"go.uber.org/zap"
 	"golang.org/x/text/language"
 )
@@ -52,10 +50,9 @@ type (
 var PublicAssets embed.FS
 
 // New initializes Auth service that orchestrates session manager, oauth2 manager and http request handlers
-func New(ctx context.Context, log *zap.Logger, oa2m oauth2def.Manager, s store.Storer, opt options.AuthOpt) (svc *service, err error) {
+func New(ctx context.Context, log *zap.Logger, oa2m oauth2def.Manager, s store.Storer, opt options.AuthOpt, defClient *types.AuthClient) (svc *service, err error) {
 	var (
-		tpls      templateExecutor
-		defClient *types.AuthClient
+		tpls templateExecutor
 	)
 
 	log = log.Named("auth")
@@ -132,14 +129,6 @@ func New(ctx context.Context, log *zap.Logger, oa2m oauth2def.Manager, s store.S
 
 		return
 	})
-
-	if opt.DefaultClient != "" {
-		// default client will help streamline authorization with default clients
-		defClient, err = store.LookupAuthClientByHandle(ctx, s, opt.DefaultClient)
-		if err != nil {
-			return nil, fmt.Errorf("cannot load default client: %w", err)
-		}
-	}
 
 	var (
 		tplLoader templateLoader
@@ -449,16 +438,6 @@ func (svc service) WellKnownOpenIDConfiguration() http.HandlerFunc {
 		})
 
 		w.Header().Set("Content-Type", "application/json")
-	}
-}
-
-func clientLookup(ctx context.Context, s store.AuthClients, identifier interface{}) (*types.AuthClient, error) {
-	if id := cast.ToUint64(identifier); id > 0 {
-		return store.LookupAuthClientByID(ctx, s, id)
-	} else if h := cast.ToString(identifier); handle.IsValid(h) {
-		return store.LookupAuthClientByHandle(ctx, s, h)
-	} else {
-		return nil, systemService.AuthClientErrInvalidID()
 	}
 }
 

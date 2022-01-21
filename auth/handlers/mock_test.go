@@ -72,7 +72,8 @@ type (
 	}
 
 	userServiceMocked struct {
-		update func(context.Context, *types.User) (*types.User, error)
+		update    func(context.Context, *types.User) (*types.User, error)
+		findByAny func(context.Context, interface{}) (*types.User, error)
 	}
 
 	authServiceMocked struct {
@@ -103,6 +104,10 @@ type (
 //
 func (u userServiceMocked) Update(ctx context.Context, user *types.User) (*types.User, error) {
 	return u.update(ctx, user)
+}
+
+func (u userServiceMocked) FindByAny(ctx context.Context, any interface{}) (*types.User, error) {
+	return u.findByAny(ctx, any)
 }
 
 //
