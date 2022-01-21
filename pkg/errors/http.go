@@ -43,6 +43,7 @@ func ProperlyServeHTTP(w http.ResponseWriter, r *http.Request, err error, mask b
 	serveHTTP(w, r, code, err, mask)
 }
 
+// Serves error via
 func serveHTTP(w http.ResponseWriter, r *http.Request, code int, err error, mask bool) {
 	var (
 		// Very naive approach on parsing accept headers
@@ -53,9 +54,9 @@ func serveHTTP(w http.ResponseWriter, r *http.Request, code int, err error, mask
 		// Prettify error for plain text debug output
 		w.Header().Set("Content-Type", "plain/text")
 		w.WriteHeader(code)
-		writeHttpPlain(w, err)
-		fmt.Fprintln(w, "Note: you are seeing this because system is running in development mode")
-		fmt.Fprintln(w, "and HTTP request is made without \"Accept: .../json\" headers")
+		writeHttpPlain(w, err, mask)
+		_, _ = fmt.Fprintln(w, "Note: you are seeing this because system is running in development mode")
+		_, _ = fmt.Fprintln(w, "and HTTP request is made without \"Accept: .../json\" headers")
 		return
 	}
 
@@ -64,7 +65,7 @@ func serveHTTP(w http.ResponseWriter, r *http.Request, code int, err error, mask
 	writeHttpJSON(r.Context(), w, err, mask)
 }
 
-func writeHttpPlain(w io.Writer, err error) {
+func writeHttpPlain(w io.Writer, err error, mask bool) {
 	var (
 		dlmt = strings.Repeat("-", 80)
 
@@ -78,6 +79,12 @@ func writeHttpPlain(w io.Writer, err error) {
 	write("Error: ")
 	write(err.Error())
 	write("\n")
+
+	if _, is := err.(interface{ Safe() bool }); !is || mask {
+		// do not output any details on un-safe errors or
+		// when a masked output is preferred
+		return
+	}
 
 	if err, is := err.(*Error); is {
 		write(dlmt + "\n")
@@ -105,13 +112,14 @@ func writeHttpPlain(w io.Writer, err error) {
 		if we := err.Unwrap(); we != nil {
 			write(dlmt + "\n")
 			write("Wrapped error:\n\n")
-			writeHttpPlain(w, we)
+			writeHttpPlain(w, we, mask)
 		}
 	}
 	write(dlmt + "\n")
 
 }
 
+// writeHttpJSON
 func writeHttpJSON(ctx context.Context, w io.Writer, err error, mask bool) {
 	var (
 		wrap = struct {
@@ -119,8 +127,8 @@ func writeHttpJSON(ctx context.Context, w io.Writer, err error, mask bool) {
 		}{}
 	)
 
-	if se, is := err.(interface{ Safe() bool }); !is || !se.Safe() {
-		// trim error details when not debugging or error is not safe
+	if se, is := err.(interface{ Safe() bool }); !is || !se.Safe() || mask {
+		// trim error details when not debugging or error is not safe or maske
 		err = fmt.Errorf(err.Error())
 	}
 
