@@ -19,9 +19,8 @@ type (
 	}
 
 	Auth struct {
-		tokenHandler tokenGenerator
-		settings     *types.AppSettings
-		authSvc      authUserService
+		settings *types.AppSettings
+		authSvc  authUserService
 	}
 
 	authUserResponse struct {
@@ -51,9 +50,8 @@ type (
 
 func (Auth) New() *Auth {
 	return &Auth{
-		tokenHandler: auth.JWT(),
-		settings:     service.CurrentSettings,
-		authSvc:      service.DefaultAuth,
+		settings: service.CurrentSettings,
+		authSvc:  service.DefaultAuth,
 	}
 }
 
@@ -75,7 +73,7 @@ func (ctrl *Auth) makePayload(ctx context.Context, user *types.User) (*authUserR
 	}
 
 	// Generate and save the token
-	t, err := ctrl.tokenHandler.Generate(ctx, user, 0)
+	t, err := auth.TokenIssuer.Issue(ctx, auth.WithIdentity(user))
 	if err != nil {
 		return nil, nil
 	}

@@ -13,7 +13,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/gorilla/websocket"
-	"github.com/lestrrat-go/jwx/jwt"
 	"go.uber.org/zap"
 )
 
@@ -26,10 +25,6 @@ var (
 )
 
 type (
-	jwtValidator interface {
-		Validate(ctx context.Context, token jwt.Token, scope ...string) error
-	}
-
 	session struct {
 		id   uint64
 		once sync.Once
@@ -49,8 +44,6 @@ type (
 
 		identity auth.Identifiable
 
-		jv jwtValidator
-
 		server *server
 	}
 )
@@ -62,7 +55,6 @@ func Session(ctx context.Context, ws *server, conn *websocket.Conn) *session {
 		config: ws.config,
 		send:   make(chan []byte, 512),
 		stop:   make(chan []byte, 1),
-		jv:     auth.JWT(),
 		server: ws,
 	}
 
@@ -294,17 +286,10 @@ func (s *session) writeLoop() error {
 }
 
 func (s *session) authenticate(p *payloadAuth) error {
-	token, err := jwt.Parse([]byte(p.AccessToken))
+	identity, err := s.server.tokenValidator(s.ctx, p.AccessToken)
 	if err != nil {
 		return err
 	}
-
-	if err = s.jv.Validate(s.ctx, token, "api"); err != nil {
-		return err
-	}
-
-	// Get identity using JWT claims
-	identity := auth.IdentityFromToken(token)
 
 	if s.identity != nil {
 		if s.identity.Identity() != identity.Identity() {

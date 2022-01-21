@@ -116,7 +116,7 @@ func InitTestApp() {
 		r.Use(server.BaseMiddleware(false, logger.Default())...)
 
 		helpers.BindAuthMiddleware(r)
-		r.Group(rest.MountRoutes(auth.JWT()))
+		r.Group(rest.MountRoutes())
 		hh.MountHttpRoutes(r)
 	}
 }
@@ -142,7 +142,8 @@ func newHelper(t *testing.T) helper {
 	h.mockPermissionsWithAccess()
 
 	var err error
-	h.token, err = auth.JWT().Generate(context.Background(), h.cUser, 0)
+	ctx := context.Background()
+	h.token, err = auth.TokenIssuer.Issue(ctx, auth.WithIdentity(h.cUser))
 	if err != nil {
 		panic(err)
 	}

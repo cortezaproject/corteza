@@ -2,16 +2,17 @@ package websocket
 
 import (
 	"bytes"
+	"testing"
+
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
-	"testing"
 )
 
 func TestWebsocketSend_NoSessions(t *testing.T) {
 	var (
 		req = require.New(t)
-		ws  = Server(zap.NewNop(), options.WebsocketOpt{})
+		ws  = Server(zap.NewNop(), options.WebsocketOpt{}, nil)
 	)
 
 	req.NoError(ws.Send("msg", "msg"))
@@ -23,7 +24,7 @@ func TestWebsocketSend_NoSessions(t *testing.T) {
 func TestWebsocketSend_ExistingSessions(t *testing.T) {
 	var (
 		req = require.New(t)
-		ws  = Server(zap.NewNop(), options.WebsocketOpt{})
+		ws  = Server(zap.NewNop(), options.WebsocketOpt{}, nil)
 
 		s1User uint64 = 100
 		s1ID   uint64 = 101

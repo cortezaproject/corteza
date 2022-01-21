@@ -2,36 +2,47 @@ package websocket
 
 import (
 	"context"
+	"fmt"
 	"testing"
-	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/options"
-	"github.com/lestrrat-go/jwx/jwa"
-	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
-type (
-	dummyJwtValidator struct{ err error }
-)
-
-func (d *dummyJwtValidator) Validate(_ context.Context, _ jwt.Token, _ ...string) error {
-	return d.err
-}
-
 func TestSession_procRawMessage(t *testing.T) {
 	var (
 		req = require.New(t)
-		s   = session{
-			server: Server(nil, options.WebsocketOpt{}),
-			jv:     &dummyJwtValidator{},
+
+		identity1 = auth.Authenticated(123, 456, 789)
+		identity2 = auth.Authenticated(321, 456, 789)
+
+		s = session{
+			server: Server(
+				nil,
+				options.WebsocketOpt{},
+				func(ctx context.Context, accessToken string) (auth.Identifiable, error) {
+					//token, err := jwt.Parse([]byte(accessToken))
+					//if err != nil {
+					//	return nil, err
+					//}
+					//return auth.IdentityFromToken(token), nil
+					switch accessToken {
+					case "one":
+						return identity1, nil
+					case "two":
+						return identity2, nil
+					case "":
+						return nil, fmt.Errorf("failed to parse token: EOF")
+					}
+
+					return nil, fmt.Errorf("something else went wrong")
+				}),
 		}
 
-		userID uint64 = 123
-		token  []byte
+		token []byte
 
 		mockResponse = func(token []byte) (out []byte) {
 			out = []byte(`{"@type": "credentials", "@value": {"accessToken": "`)
@@ -41,19 +52,11 @@ func TestSession_procRawMessage(t *testing.T) {
 		}
 	)
 
-	jwtManager, err := auth.NewJWTManager(nil, jwa.HS512, "secret", time.Minute)
-	req.NoError(err)
-
 	if testing.Verbose() {
 		s.logger = logger.MakeDebugLogger()
 	} else {
 		s.logger = zap.NewNop()
 	}
-
-	req.NoError(err)
-
-	token, err = jwtManager.Sign("access-token", auth.Authenticated(userID, 456, 789), 0, "api")
-	req.NoError(err)
 
 	req.EqualError(s.procRawMessage([]byte("{}")), "unauthenticated session")
 	req.Nil(s.identity)
@@ -61,24 +64,19 @@ func TestSession_procRawMessage(t *testing.T) {
 	req.EqualError(s.procRawMessage(mockResponse(nil)), "unauthorized: failed to parse token: EOF")
 	req.Nil(s.identity)
 
+	token = []byte("one")
 	req.NoError(s.procRawMessage(mockResponse(token)))
 	req.NotNil(s.identity)
-	req.Equal(userID, s.identity.Identity())
+	req.Equal(identity1.Identity(), s.identity.Identity())
 
 	req.EqualError(s.procRawMessage([]byte("{}")), "unknown message type ''")
-	req.Equal(userID, s.identity.Identity())
+	req.Equal(identity1.Identity(), s.identity.Identity())
 
-	// Repeat with the same user
-	token, err = jwtManager.Sign("access-token", auth.Authenticated(userID, 456, 789), 0, "api")
-	req.NoError(err)
-
+	token = []byte("one")
 	req.NoError(s.procRawMessage(mockResponse(token)))
 	req.NotNil(s.identity)
-	req.Equal(userID, s.identity.Identity())
+	req.Equal(identity1.Identity(), s.identity.Identity())
 
-	// Try to authenticate on an existing authenticated session as a different user
-	token, err = jwtManager.Sign("access-token", auth.Authenticated(userID+1, 456, 789), 0, "api")
-	req.NoError(err)
-
+	token = []byte("two")
 	req.EqualError(s.procRawMessage(mockResponse(token)), "unauthorized: identity does not match")
 }

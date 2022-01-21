@@ -46,14 +46,18 @@ func (i identity) String() string {
 
 func ExtractFromSubClaim(sub string) (userID uint64, rr []uint64) {
 	parts := strings.Split(sub, " ")
-	rr = make([]uint64, len(parts)-1)
-	for p := range parts {
-		id, _ := strconv.ParseUint(parts[p], 10, 64)
-		if p == 0 {
-			userID = id
-		} else {
-			rr[p-1] = id
+
+	if len(parts) > 1 {
+		rr = make([]uint64, len(parts)-1)
+		for p := range parts {
+			id, _ := strconv.ParseUint(parts[p], 10, 64)
+			if p == 0 {
+				userID = id
+			} else {
+				rr[p-1] = id
+			}
 		}
 	}
+
 	return
 }

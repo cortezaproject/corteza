@@ -9,6 +9,8 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
+	"github.com/cortezaproject/corteza-server/system/types"
+
 	// Explicitly register SQLite (not done in the app as for testing only)
 	_ "github.com/cortezaproject/corteza-server/store/sqlite3"
 )
@@ -32,6 +34,8 @@ func NewIntegrationTestApp(ctx context.Context, initTestServices func(*app.Corte
 	a.Opt.Auth.DefaultClient = ""
 
 	a.Log = logger.Default()
+
+	a.DefaultAuthClient = &types.AuthClient{ID: 1, Handle: "test-auth-client", Secret: "integration-tests"}
 
 	cli.HandleError(a.InitStore(ctx))
 	cli.HandleError(initTestServices(a))

@@ -15,7 +15,6 @@ import (
 	autService "github.com/cortezaproject/corteza-server/automation/service"
 	cmpService "github.com/cortezaproject/corteza-server/compose/service"
 	cmpEvent "github.com/cortezaproject/corteza-server/compose/service/event"
-	fdrService "github.com/cortezaproject/corteza-server/federation/service"
 	fedService "github.com/cortezaproject/corteza-server/federation/service"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/apigw"
@@ -24,6 +23,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/http"
+	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/mail"
@@ -317,27 +317,84 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return
 	}
 
+	if app.Opt.Auth.DefaultClient != "" {
+		// default client will help streamline authorization with default clients
+		app.DefaultAuthClient, err = store.LookupAuthClientByHandle(ctx, app.Store, app.Opt.Auth.DefaultClient)
+		if err != nil {
+			return fmt.Errorf("cannot load default client: %w", err)
+		}
+	}
+
 	{
 		app.oa2m = oauth2.NewManager(
 			app.Opt.Auth,
 			app.Log,
-			&oauth2.ContextClientStore{},
-			&oauth2.CortezaTokenStore{Store: app.Store},
+			oauth2.NewClientStore(app.Store, app.DefaultAuthClient),
+			oauth2.NewTokenStore(app.Store),
 		)
 
 		// set base path for links&routes in auth server
 		authHandlers.BasePath = app.Opt.HTTPServer.BaseUrl
 
-		if err = auth.SetupDefault(app.oa2m, app.Opt.Auth.Secret, app.Opt.Auth.Expiry); err != nil {
-			return
+		auth.DefaultSigner = auth.HmacSigner(app.Opt.Auth.Secret)
+
+		if auth.HttpTokenVerifier, err = auth.TokenVerifierMiddlewareWithSecretSigner(app.Opt.Auth.Secret); err != nil {
+			return fmt.Errorf("could not set token verifier")
 		}
 
-		app.jwt = auth.JWT()
+		auth.TokenIssuer, err = auth.NewTokenIssuer(
+			auth.WithSecretSigner(app.Opt.Auth.Secret),
+			// @todo implement configurable issuer claim
+			//auth.WithDefaultIssuer(app.Opt.Auth.TokenClaimIssuer),
+			auth.WithDefaultExpiration(app.Opt.Auth.Expiry),
+			auth.WithDefaultClientID(app.DefaultAuthClient.ID),
+			auth.WithLookup(func(ctx context.Context, accessToken string) (err error) {
+				_, err = store.LookupAuthOa2tokenByAccess(ctx, app.Store, accessToken)
+				return err
+			}),
+			auth.WithStore(func(ctx context.Context, req auth.TokenRequest) error {
+				var (
+					eti       = auth.GetExtraReqInfoFromContext(ctx)
+					createdAt = req.IssuedAt
+
+					oa2t = &types.AuthOa2token{
+						ID:         id.Next(),
+						Access:     req.AccessToken,
+						Refresh:    req.RefreshToken,
+						CreatedAt:  createdAt,
+						RemoteAddr: eti.RemoteAddr,
+						UserAgent:  eti.UserAgent,
+						ClientID:   req.ClientID,
+						UserID:     req.UserID,
+						ExpiresAt:  createdAt.Add(req.Expiration),
+					}
+				)
+
+				return store.CreateAuthOa2token(ctx, app.Store, oa2t)
+			}),
+		)
+
+		if err != nil {
+			return
+		}
 	}
 
-	app.WsServer = websocket.Server(app.Log, app.Opt.Websocket)
+	app.WsServer = websocket.Server(
+		app.Log,
+		app.Opt.Websocket,
+		func(ctx context.Context, s string) (auth.Identifiable, error) {
+			//auth.TokenIssuer.Validate(ctx, []byte(s))
+			return nil, nil
+		},
+	)
 
-	corredor.Service().SetAuthTokenMaker(app.jwt)
+	corredor.Service().SetAuthTokenMaker(func(i auth.Identifiable) (signed []byte, err error) {
+		return auth.TokenIssuer.Issue(ctx,
+			auth.WithIdentity(i),
+			auth.WithScope("api", "profile"),
+			auth.WithAudience("corredor"),
+		)
+	})
 
 	ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Init)
 	defer sentry.Recover()
@@ -430,7 +487,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		//
 		// Note: this is a legacy approach, all services from all 3 apps
 		// will most likely be merged in the future
-		err = fdrService.Initialize(ctx, app.Log, app.Store, fdrService.Config{
+		err = fedService.Initialize(ctx, app.Log, app.Store, fedService.Config{
 			ActionLog:  app.Opt.ActionLog,
 			Federation: app.Opt.Federation,
 		})
@@ -510,7 +567,7 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 
 	updateSmtpSettings(app.Log, sysService.CurrentSettings)
 
-	if app.AuthService, err = authService.New(ctx, app.Log, app.oa2m, app.Store, app.Opt.Auth); err != nil {
+	if app.AuthService, err = authService.New(ctx, app.Log, app.oa2m, app.Store, app.Opt.Auth, app.DefaultAuthClient); err != nil {
 		return fmt.Errorf("failed to init auth service: %w", err)
 	}
 

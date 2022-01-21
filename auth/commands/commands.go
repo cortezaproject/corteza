@@ -104,7 +104,11 @@ func Command(ctx context.Context, app serviceInitializer, storeInit func(ctx con
 			err = service.DefaultAuth.LoadRoleMemberships(ctx, user)
 			cli.HandleError(err)
 
-			signedToken, err = auth.JWT().Generate(ctx, user, 0, "api", "profile")
+			signedToken, err = auth.TokenIssuer.Issue(ctx,
+				auth.WithIdentity(user),
+				auth.WithScope("profile", "api"),
+			)
+
 			cli.HandleError(err)
 			cmd.Println(string(signedToken))
 		},

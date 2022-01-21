@@ -8,7 +8,7 @@ import (
 	"github.com/cortezaproject/corteza-server/system/service"
 )
 
-func MountRoutes(mv auth.MiddlewareValidator) func(r chi.Router) {
+func MountRoutes() func(r chi.Router) {
 	return func(r chi.Router) {
 		r.Group(func(r chi.Router) {
 			handlers.NewLocale(Locale{}.New()).MountRoutes(r)
@@ -26,7 +26,7 @@ func MountRoutes(mv auth.MiddlewareValidator) func(r chi.Router) {
 
 		// Protect all _private_ routes
 		r.Group(func(r chi.Router) {
-			r.Use(mv.HttpValidator("api"))
+			r.Use(auth.HttpTokenValidator("api"))
 
 			handlers.NewAuthClient(AuthClient{}.New()).MountRoutes(r)
 			handlers.NewAutomation(Automation{}.New()).MountRoutes(r)

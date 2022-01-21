@@ -103,9 +103,7 @@ type (
 		FindByAny(context.Context, interface{}) (*types.Role, error)
 	}
 
-	authTokenMaker interface {
-		Generate(ctx context.Context, i auth.Identifiable, clientID uint64, scope ...string) (signed []byte, err error)
-	}
+	authTokenMaker func(i auth.Identifiable) (signed []byte, err error)
 )
 
 const (
@@ -168,8 +166,7 @@ func NewService(logger *zap.Logger, opt options.CorredorOpt) *service {
 
 		iteratorProviders: make(map[string]IteratorResourceFinder),
 
-		authTokenMaker: auth.JWT(),
-		eventRegistry:  eventbus.Service(),
+		eventRegistry: eventbus.Service(),
 
 		denyExec: make(map[string]map[uint64]bool),
 
@@ -735,7 +732,7 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 		}
 
 		// Generate and save the token
-		token, err = svc.authTokenMaker.Generate(ctx, definer, 0, "profile", "api")
+		token, err = svc.authTokenMaker(definer)
 		if err != nil {
 			return
 		}
@@ -753,7 +750,7 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 		}
 
 		// Generate and save the token
-		token, err = svc.authTokenMaker.Generate(ctx, invoker, 0)
+		token, err = svc.authTokenMaker(invoker)
 		if err != nil {
 			return
 		}

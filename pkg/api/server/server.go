@@ -86,7 +86,7 @@ func (s server) Serve(ctx context.Context) {
 		}
 
 		// Verifies JWT in headers, cookies, ...
-		r.Use(auth.JWT().HttpVerifier())
+		r.Use(auth.HttpTokenVerifier)
 
 		for _, mountRoutes := range s.endpoints {
 			mountRoutes(r)
