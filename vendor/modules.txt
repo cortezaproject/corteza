@@ -1,7 +1,5 @@
 # cloud.google.com/go v0.99.0
 cloud.google.com/go/compute/metadata
-# github.com/0xAX/notificator v0.0.0-20210731104411-c42e3d4a43ee
-## explicit
 # github.com/766b/chi-prometheus v0.0.0-20211217152057-87afa9aa2ca8
 ## explicit
 github.com/766b/chi-prometheus
@@ -24,10 +22,7 @@ github.com/Masterminds/squirrel
 ## explicit
 github.com/PaesslerAG/gval
 # github.com/PaesslerAG/jsonpath v0.1.1
-## explicit
 github.com/PaesslerAG/jsonpath
-# github.com/PuerkitoBio/goquery v1.5.1
-## explicit
 # github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d
 ## explicit
 github.com/SentimensRG/ctx
@@ -48,10 +43,6 @@ github.com/brianvoe/gofakeit/v6
 github.com/brianvoe/gofakeit/v6/data
 # github.com/cespare/xxhash/v2 v2.1.2
 github.com/cespare/xxhash/v2
-# github.com/codegangsta/envy v0.0.0-20141216192214-4b78388c8ce4
-## explicit
-# github.com/codegangsta/gin v0.0.0-20211113050330-71f90109db02
-## explicit
 # github.com/cortezaproject/corteza-locale v0.0.0-20220111135803-4fb0db6196bc
 ## explicit
 github.com/cortezaproject/corteza-locale
@@ -69,12 +60,8 @@ github.com/crusttech/go-oidc
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/deckarep/golang-set v1.7.1
-## explicit
 # github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.0-20210816181553-5444fa50b93d
 github.com/decred/dcrd/dcrec/secp256k1/v4
-# github.com/dgrijalva/jwt-go v3.2.0+incompatible
-## explicit
 # github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
 ## explicit
 github.com/dgryski/dgoogauth
@@ -123,8 +110,6 @@ github.com/evanw/esbuild/internal/runtime
 github.com/evanw/esbuild/internal/sourcemap
 github.com/evanw/esbuild/internal/xxhash
 github.com/evanw/esbuild/pkg/api
-# github.com/fastly/go-utils v0.0.0-20180712184237-d95a45783239
-## explicit
 # github.com/fsnotify/fsnotify v1.5.1
 ## explicit
 github.com/fsnotify/fsnotify
@@ -184,7 +169,8 @@ github.com/goccy/go-json/internal/errors
 github.com/goccy/go-json/internal/runtime
 # github.com/golang-jwt/jwt v3.2.2+incompatible
 github.com/golang-jwt/jwt
-# github.com/golang-jwt/jwt/v4 v4.1.0
+# github.com/golang-jwt/jwt/v4 v4.2.0
+## explicit
 github.com/golang-jwt/jwt/v4
 # github.com/golang/mock v1.6.0
 ## explicit
@@ -225,10 +211,7 @@ github.com/huandu/xstrings
 ## explicit
 github.com/imdario/mergo
 # github.com/inconshreveable/mousetrap v1.0.0
-## explicit
 github.com/inconshreveable/mousetrap
-# github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869
-## explicit
 # github.com/jmoiron/sqlx v1.3.4
 ## explicit
 github.com/jmoiron/sqlx
@@ -301,8 +284,6 @@ github.com/markbates/goth/providers/linkedin
 github.com/markbates/goth/providers/openidConnect
 # github.com/mattermost/xml-roundtrip-validator v0.1.0
 github.com/mattermost/xml-roundtrip-validator
-# github.com/mattn/go-shellwords v1.0.12
-## explicit
 # github.com/mattn/go-sqlite3 v1.14.10
 ## explicit
 github.com/mattn/go-sqlite3
@@ -363,8 +344,6 @@ github.com/prometheus/common/model
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
 github.com/prometheus/procfs/internal/util
-# github.com/prometheus/tsdb v0.7.1
-## explicit
 # github.com/russellhaering/goxmldsig v1.1.1
 github.com/russellhaering/goxmldsig
 github.com/russellhaering/goxmldsig/etreeutils
@@ -401,10 +380,6 @@ github.com/steinfletcher/apitest-jsonpath/jsonpath
 ## explicit
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
-# github.com/tebeka/strftime v0.1.5
-## explicit
-# github.com/urfave/cli v1.22.5
-## explicit
 # go.uber.org/atomic v1.9.0
 ## explicit
 go.uber.org/atomic

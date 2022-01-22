@@ -17,6 +17,7 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 	s "github.com/crewjam/saml"
 	"github.com/crewjam/saml/samlsp"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/steinfletcher/apitest"
 	"go.uber.org/zap"
 )
@@ -87,20 +88,18 @@ func TestAuthExternalSAMLSuccess(t *testing.T) {
 		cookieTokenIDPtoSPAfterLogin = apitest.
 						NewCookie("token").
 						Value(strings.TrimSpace(string(readStaticFile("static/idp_to_sp_token.cookie"))))
+
+		may21 = func() time.Time {
+			tm, _ := time.Parse("2006-01-2 15:04:05", "2021-05-17 09:17:10")
+			return tm
+		}
 	)
 
 	s.MaxClockSkew = time.Hour
 	s.MaxIssueDelay = time.Hour
 
-	//jwt.TimeFunc = func() time.Time {
-	//	tm, _ := time.Parse("2006-01-2 15:04:05", "2021-05-17 09:17:10")
-	//	return tm
-	//}
-
-	s.TimeNow = func() time.Time {
-		tm, _ := time.Parse("2006-01-2 15:04:05", "2021-05-17 09:17:10")
-		return tm
-	}
+	jwt.TimeFunc = may21
+	s.TimeNow = may21
 
 	// first step, there is no session cookie, redirect to idp
 	// in this case, host from parsed metadata
