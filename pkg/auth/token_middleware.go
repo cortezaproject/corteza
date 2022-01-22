@@ -44,7 +44,7 @@ func HttpTokenValidator(scope ...string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			token, err := verifyToken(r.Context(), TokenIssuer, scope...)
-			if err != nil {
+			if err != nil && !errors.Is(err, jwtauth.ErrNoTokenFound) {
 				errors.ProperlyServeHTTP(w, r, err, false)
 				return
 			}
