@@ -223,6 +223,10 @@ func makeToken(req *TokenRequest) (_ jwt.Token, err error) {
 
 // IdentityFromToken decodes sub & roles claims into identity
 func IdentityFromToken(token jwt.Token) *identity {
+	if token == nil {
+		return Anonymous()
+	}
+
 	var (
 		roles, _ = token.Get("roles")
 	)
