@@ -180,10 +180,6 @@ func TestSuccessfulNodePairing(t *testing.T) {
 		service.DefaultNode.SetHandshaker(&mockNodeHandshake{
 			init: func(ctx context.Context, n *types.Node, authToken string) error {
 				h.apiInit().
-					Debug().
-					// make sure we do not use test auth-token for authentication but
-					// we do it with pairing token
-					Intercept(helpers.ReqHeaderRawAuthBearer([]byte(n.AuthToken))).
 					Post(fmt.Sprintf("/nodes/%d/handshake", n.SharedNodeID)).
 					FormData("pairToken", n.PairToken).
 					FormData("authToken", authToken).
