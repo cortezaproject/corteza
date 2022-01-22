@@ -363,9 +363,11 @@ func (svc node) HandshakeConfirm(ctx context.Context, nodeID uint64) error {
 			return err
 		}
 
-		var accessToken []byte
 		// Generate JWT token for the federated user
-		accessToken, err = svc.tokenIssuer(ctx, u)
+		var accessToken []byte
+		if accessToken, err = svc.tokenIssuer(ctx, u); err != nil {
+			return fmt.Errorf("could not confirm handshake: %w", err)
+		}
 
 		n.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
 		n.UpdatedAt = now()

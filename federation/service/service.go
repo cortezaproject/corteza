@@ -95,6 +95,7 @@ func Initialize(_ context.Context, log *zap.Logger, s store.Storer, c Config) (e
 				ctx,
 				auth.WithIdentity(i),
 				auth.WithScope("api"),
+				auth.WithAudience("federation"),
 			)
 		},
 		c.Federation,
