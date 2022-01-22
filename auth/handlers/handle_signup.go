@@ -44,7 +44,7 @@ func (h *AuthHandlers) signupProc(req *request.AuthReq) error {
 			)
 			req.RedirectTo = GetLinks().Profile
 
-			req.AuthUser = request.NewAuthUser(h.Settings, newUser, false, 0)
+			req.AuthUser = request.NewAuthUser(h.Settings, newUser, false, h.Opt.SessionLifetime)
 
 			// auto-complete EmailOTP
 			req.AuthUser.CompleteEmailOTP()
@@ -110,7 +110,7 @@ func (h *AuthHandlers) confirmEmail(req *request.AuthReq) (err error) {
 
 			req.RedirectTo = GetLinks().Profile
 
-			req.AuthUser = request.NewAuthUser(h.Settings, user, false, 0)
+			req.AuthUser = request.NewAuthUser(h.Settings, user, false, h.Opt.SessionLifetime)
 
 			// auto-complete EmailOTP
 			req.AuthUser.CompleteEmailOTP()
