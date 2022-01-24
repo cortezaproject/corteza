@@ -2,11 +2,11 @@ package automation
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"testing"
+
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
-	"testing"
 )
 
 func observableLog() (*zap.Logger, *observer.ObservedLogs) {
@@ -18,9 +18,8 @@ func TestLogHandler_Debug(t *testing.T) {
 	var (
 		req      = require.New(t)
 		log, obs = observableLog()
-		handler  = &logHandler{}
-		ctx      = logger.ContextWithValue(context.Background(), log)
-		err      = handler.debug(ctx, &logDebugArgs{Message: "123abc", Fields: map[string]string{"foo": "bar"}})
+		handler  = &logHandler{logger: log}
+		err      = handler.debug(context.Background(), &logDebugArgs{Message: "123abc", Fields: map[string]string{"foo": "bar"}})
 	)
 
 	req.NoError(err)
@@ -36,9 +35,8 @@ func TestLogHandler_Info(t *testing.T) {
 	var (
 		req      = require.New(t)
 		log, obs = observableLog()
-		handler  = &logHandler{}
-		ctx      = logger.ContextWithValue(context.Background(), log)
-		err      = handler.info(ctx, &logInfoArgs{Message: "123abc", Fields: map[string]string{"foo": "bar"}})
+		handler  = &logHandler{logger: log}
+		err      = handler.info(context.Background(), &logInfoArgs{Message: "123abc", Fields: map[string]string{"foo": "bar"}})
 	)
 
 	req.NoError(err)
@@ -54,9 +52,8 @@ func TestLogHandler_Warn(t *testing.T) {
 	var (
 		req      = require.New(t)
 		log, obs = observableLog()
-		handler  = &logHandler{}
-		ctx      = logger.ContextWithValue(context.Background(), log)
-		err      = handler.warn(ctx, &logWarnArgs{Message: "123abc", Fields: map[string]string{"foo": "bar"}})
+		handler  = &logHandler{logger: log}
+		err      = handler.warn(context.Background(), &logWarnArgs{Message: "123abc", Fields: map[string]string{"foo": "bar"}})
 	)
 
 	req.NoError(err)
@@ -72,9 +69,8 @@ func TestLogHandler_Error(t *testing.T) {
 	var (
 		req      = require.New(t)
 		log, obs = observableLog()
-		handler  = &logHandler{}
-		ctx      = logger.ContextWithValue(context.Background(), log)
-		err      = handler.error(ctx, &logErrorArgs{Message: "123abc", Fields: map[string]string{"foo": "bar"}})
+		handler  = &logHandler{logger: log}
+		err      = handler.error(context.Background(), &logErrorArgs{Message: "123abc", Fields: map[string]string{"foo": "bar"}})
 	)
 
 	req.NoError(err)
