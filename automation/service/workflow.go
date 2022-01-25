@@ -559,6 +559,10 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 
 		wap.setWorkflow(wf)
 
+		if !svc.ac.CanExecuteWorkflow(ctx, wf) {
+			return WorkflowErrNotAllowedToExecute()
+		}
+
 		if !wf.Enabled && !p.Trace {
 			return WorkflowErrDisabled()
 		}
@@ -612,7 +616,6 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 			p.EventType = "onTrace"
 		}
 
-		//wait, err = svc.session.Start(g, ssp)
 		wait, err = svc.exec(ctx, wf, p)
 
 		if err != nil {
@@ -699,12 +702,6 @@ func (svc *workflow) exec(ctx context.Context, wf *types.Workflow, p types.Workf
 
 	// merge workflow scope with the input
 	scope = wf.Scope.MustMerge(p.Input)
-
-	// User (either invoker or one set in the security descriptor) MUST have
-	// permissions to execute this workflow
-	if !svc.ac.CanExecuteWorkflow(ctx, wf) {
-		return nil, WorkflowErrNotAllowedToExecute()
-	}
 
 	return svc.session.Start(ctx, g, types.SessionStartParams{
 		Invoker: intAuth.GetIdentityFromContext(ctx),
