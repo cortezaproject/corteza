@@ -179,9 +179,6 @@ metric:
     labelLabel: Label style
     valueLabel: Value style
   label: Metric
-notification:
-  record:
-    loadFailed: Could not load record
 record:
   confirmDelete: Are you sure you want to delete this record?
   deleteFailed: Could not delete record
@@ -231,6 +228,7 @@ recordList:
     selection: Selected records
     specifyTimezone: Export to timezone
     timezonePlaceholder: Select timezone
+    datePresetUndefined: Unknown date preset
   federated: Federated
   fields: Module fields
   filter:

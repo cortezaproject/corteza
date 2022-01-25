@@ -68,6 +68,8 @@ page:
 record:
   createFailed: Could not create record
   deleteFailed: Could not delete record
+  deleteBulkFailed: Could not delete selected records
+  deleteBulkSuccess: Successfully deleted selected records
   invalidOwnerVar: Can not use ${ownerID} variable in non-record pages
   invalidRecordVar: Can not use ${record...} variable in non-record pages
   listLoadFailed: Could not load record list

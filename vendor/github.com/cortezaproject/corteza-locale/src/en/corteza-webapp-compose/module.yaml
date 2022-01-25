@@ -95,13 +95,6 @@ newLabel: Module Name *
 newPlaceholder: Name used on the list of modules
 noModule: No modules
 noModuleFilter: No module matches your search
-notification:
-  deleteFailed: Could not delete this module
-  deleted: Module deleted
-  saveFailed: Could not save this module
-  saved: Module saved
-  page:
-    createFailed: Could not create a page
 recordPage:
   create: Create record page
   edit: Page builder
