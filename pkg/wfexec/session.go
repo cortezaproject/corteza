@@ -626,12 +626,7 @@ func (s *Session) exec(ctx context.Context, log *zap.Logger, st *State) (nxt []*
 			// push logger to context but raise the stacktrace level to panic
 			// to prevent overly verbose traces
 			ctx = logger.ContextWithValue(ctx, log)
-
-			// Context received in exec() wil not have the identity we're expecting
-			// so we need to pull it from state owner and add it to new context
-			// that is set to step exec function
-			stepCtx := auth.SetIdentityToContext(ctx, st.owner)
-			stepCtx = SetContextCallStack(stepCtx, s.callStack)
+			stepCtx := SetContextCallStack(ctx, s.callStack)
 
 			result, st.err = st.step.Exec(stepCtx, st.MakeRequest())
 

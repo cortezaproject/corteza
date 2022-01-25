@@ -269,7 +269,7 @@ func (svc *session) Resume(sessionID, stateID uint64, i auth.Identifiable, input
 //
 // We need initial context for the session because we want to catch all cancellations or timeouts from there
 // and not from any potential HTTP requests or similar temporary context that can prematurely destroy a workflow session
-func (svc *session) spawn(g *wfexec.Graph, workflowID uint64, trace bool, callStack []uint64, invoker, runner auth.Identifiable) (ses *types.Session) {
+func (svc *session) spawn(g *wfexec.Graph, workflowID uint64, trace bool, callStack []uint64, runner, invoker auth.Identifiable) (ses *types.Session) {
 	s := &spawn{
 		workflowID: workflowID,
 		session:    make(chan *wfexec.Session, 1),
@@ -316,9 +316,15 @@ func (svc *session) Watch(ctx context.Context) {
 				}
 
 				if svc.opt.ExecDebug {
+					log := svc.log.
+						Named("exec").
+						With(zap.Uint64("workflowID", s.workflowID)).
+						With(zap.Uint64("runnerID", s.runner.Identity())).
+						With(zap.Uint64s("runnerRoles", s.runner.Roles()))
+
 					opts = append(
 						opts,
-						wfexec.SetLogger(svc.log.Named("exec").With(zap.Uint64("workflowID", s.workflowID))),
+						wfexec.SetLogger(log),
 						wfexec.SetDumpStacktraceOnPanic(true),
 					)
 				}

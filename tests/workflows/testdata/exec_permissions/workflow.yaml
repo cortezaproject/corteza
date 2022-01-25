@@ -1,0 +1,16 @@
+workflows:
+  wf:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: termination
+
+    paths: []
+    allow:
+      executors:
+        - execute
