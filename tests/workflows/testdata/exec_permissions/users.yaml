@@ -1,0 +1,8 @@
+users:
+  exec-allowed: exec-allowed@cortezaproject.org
+  exec-denied: exec-denied@cortezaproject.org
+
+roles:
+  executors:
+    members:
+      - exec-allowed

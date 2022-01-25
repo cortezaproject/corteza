@@ -560,11 +560,6 @@ func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable
 			continue
 		}
 
-		if t.EventType == "onManual" {
-			// skip onManual trigger registration,
-			// we'll handle them directly
-		}
-
 		var (
 			cnstr eventbus.ConstraintMatcher
 			ops   = make([]eventbus.HandlerRegOp, 0, len(t.Constraints)+2)

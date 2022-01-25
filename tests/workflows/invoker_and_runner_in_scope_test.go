@@ -85,5 +85,4 @@ func Test_invoker_and_runner_in_scope(t *testing.T) {
 		req.Equal(aux.Runner.Handle, wfRunner.Handle)
 		req.Equal(aux.Invoker.Handle, wfInvoker.Handle)
 	})
-
 }
