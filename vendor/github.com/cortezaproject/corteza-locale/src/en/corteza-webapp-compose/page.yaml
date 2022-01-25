@@ -38,12 +38,6 @@ navigation:
 newPlaceholder: Page title
 noBlock: No block added yet
 noPages: No pages
-notification:
-  deleteFailed: Could not delete this page
-  loadFailed: Could not load the page tree
-  saved: Page saved
-  saveFailed: Could not save this page
-  saveFailedRequired: Could not save this page, all required module fields must be present
 notVisible: Hidden
 pageMoveFailed: Could not move this page
 reordered: Page reordered
