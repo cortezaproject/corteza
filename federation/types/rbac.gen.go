@@ -6,12 +6,6 @@ package types
 // the code is regenerated.
 //
 
-// Definitions file that controls how this file is generated:
-// - federation.exposed-module.yaml
-// - federation.node.yaml
-// - federation.shared-module.yaml
-// - federation.yaml
-
 import (
 	"fmt"
 	"strconv"
@@ -24,12 +18,47 @@ type (
 	Component struct{}
 )
 
+var (
+	_ = fmt.Printf
+	_ = strconv.FormatUint
+)
+
 const (
-	ExposedModuleResourceType = "corteza::federation:exposed-module"
 	NodeResourceType          = "corteza::federation:node"
+	ExposedModuleResourceType = "corteza::federation:exposed-module"
 	SharedModuleResourceType  = "corteza::federation:shared-module"
 	ComponentResourceType     = "corteza::federation"
 )
+
+// RbacResource returns string representation of RBAC resource for Node by calling NodeRbacResource fn
+//
+// RBAC resource is in the corteza::federation:node/... format
+//
+// This function is auto-generated
+func (r Node) RbacResource() string {
+	return NodeRbacResource(r.ID)
+}
+
+// NodeRbacResource returns string representation of RBAC resource for Node
+//
+// RBAC resource is in the corteza::federation:node/... format
+//
+// This function is auto-generated
+func NodeRbacResource(id uint64) string {
+	cpts := []interface{}{NodeResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(NodeRbacResourceTpl(), cpts...)
+
+}
+
+func NodeRbacResourceTpl() string {
+	return "%s/%s"
+}
 
 // RbacResource returns string representation of RBAC resource for ExposedModule by calling ExposedModuleRbacResource fn
 //
@@ -63,40 +92,8 @@ func ExposedModuleRbacResource(nodeID uint64, id uint64) string {
 
 }
 
-// @todo template
 func ExposedModuleRbacResourceTpl() string {
 	return "%s/%s/%s"
-}
-
-// RbacResource returns string representation of RBAC resource for Node by calling NodeRbacResource fn
-//
-// RBAC resource is in the corteza::federation:node/... format
-//
-// This function is auto-generated
-func (r Node) RbacResource() string {
-	return NodeRbacResource(r.ID)
-}
-
-// NodeRbacResource returns string representation of RBAC resource for Node
-//
-// RBAC resource is in the corteza::federation:node/... format
-//
-// This function is auto-generated
-func NodeRbacResource(id uint64) string {
-	cpts := []interface{}{NodeResourceType}
-	if id != 0 {
-		cpts = append(cpts, strconv.FormatUint(id, 10))
-	} else {
-		cpts = append(cpts, "*")
-	}
-
-	return fmt.Sprintf(NodeRbacResourceTpl(), cpts...)
-
-}
-
-// @todo template
-func NodeRbacResourceTpl() string {
-	return "%s/%s"
 }
 
 // RbacResource returns string representation of RBAC resource for SharedModule by calling SharedModuleRbacResource fn
@@ -131,7 +128,6 @@ func SharedModuleRbacResource(nodeID uint64, id uint64) string {
 
 }
 
-// @todo template
 func SharedModuleRbacResourceTpl() string {
 	return "%s/%s/%s"
 }
@@ -155,7 +151,6 @@ func ComponentRbacResource() string {
 
 }
 
-// @todo template
 func ComponentRbacResourceTpl() string {
 	return "%s"
 }

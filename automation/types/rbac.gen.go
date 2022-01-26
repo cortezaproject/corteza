@@ -6,10 +6,6 @@ package types
 // the code is regenerated.
 //
 
-// Definitions file that controls how this file is generated:
-// - automation.workflow.yaml
-// - automation.yaml
-
 import (
 	"fmt"
 	"strconv"
@@ -20,6 +16,11 @@ type (
 	//
 	// This struct is auto-generated
 	Component struct{}
+)
+
+var (
+	_ = fmt.Printf
+	_ = strconv.FormatUint
 )
 
 const (
@@ -53,7 +54,6 @@ func WorkflowRbacResource(id uint64) string {
 
 }
 
-// @todo template
 func WorkflowRbacResourceTpl() string {
 	return "%s/%s"
 }
@@ -77,7 +77,6 @@ func ComponentRbacResource() string {
 
 }
 
-// @todo template
 func ComponentRbacResourceTpl() string {
 	return "%s"
 }

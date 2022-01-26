@@ -6,10 +6,6 @@ package resource
 // the code is regenerated.
 //
 
-// Definitions file that controls how this file is generated:
-// - automation.workflow.yaml
-// - automation.yaml
-
 import (
 	"github.com/cortezaproject/corteza-server/automation/types"
 )
