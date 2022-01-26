@@ -26,7 +26,7 @@ props:
     description: Attach stacktraces
 
   - name: sampleRate
-    type: float32
+    type: float64
     description: Sample rate for event submission (0.0 - 1.0. defaults to 1.0)
 
   - name: maxBreadcrumbs
