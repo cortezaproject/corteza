@@ -47,7 +47,7 @@ type (
 	}
 )
 
-// Lookup function Compose record lookup
+// Lookup function Attachment lookup
 //
 // expects implementation of lookup function:
 // func (h attachmentHandler) lookup(ctx context.Context, args *attachmentLookupArgs) (results *attachmentLookupResults, err error) {
@@ -59,8 +59,8 @@ func (h attachmentHandler) Lookup() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"attachment": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short:       "Compose record lookup",
-			Description: "Find specific record by ID",
+			Short:       "Attachment lookup",
+			Description: "Find specific attachment by ID",
 		},
 
 		Parameters: []*atypes.Param{

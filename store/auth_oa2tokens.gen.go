@@ -10,7 +10,6 @@ package store
 
 import (
 	"context"
-
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
