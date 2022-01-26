@@ -124,10 +124,10 @@ func (p *Page) decodeTranslations(tt locale.ResourceTranslationIndex) {
 		)
 
 		// - generic page block stuff
-		if aux = tt.FindByKey(rpl.Replace(LocaleKeyPageBlockTitle.Path)); aux != nil {
+		if aux = tt.FindByKey(rpl.Replace(LocaleKeyPagePageBlockBlockIDTitle.Path)); aux != nil {
 			p.Blocks[i].Title = aux.Msg
 		}
-		if aux = tt.FindByKey(rpl.Replace(LocaleKeyPageBlockDescription.Path)); aux != nil {
+		if aux = tt.FindByKey(rpl.Replace(LocaleKeyPagePageBlockBlockIDDescription.Path)); aux != nil {
 			p.Blocks[i].Description = aux.Msg
 		}
 
@@ -148,7 +148,7 @@ func (p *Page) decodeTranslations(tt locale.ResourceTranslationIndex) {
 					"{{buttonID}}", strconv.FormatUint(buttonID, 10),
 				)
 
-				if aux = tt.FindByKey(rpl.Replace(LocaleKeyPageBlockAutomationButtonlabel.Path)); aux != nil {
+				if aux = tt.FindByKey(rpl.Replace(LocaleKeyPagePageBlockBlockIDButtonButtonIDLabel.Path)); aux != nil {
 					btn["label"] = aux.Msg
 				}
 			}
@@ -169,13 +169,13 @@ func (p *Page) encodeTranslations() (out locale.ResourceTranslationSet) {
 		// - generic page block stuff
 		out = append(out, &locale.ResourceTranslation{
 			Resource: p.ResourceTranslation(),
-			Key:      rpl.Replace(LocaleKeyPageBlockTitle.Path),
+			Key:      rpl.Replace(LocaleKeyPagePageBlockBlockIDTitle.Path),
 			Msg:      block.Title,
 		})
 
 		out = append(out, &locale.ResourceTranslation{
 			Resource: p.ResourceTranslation(),
-			Key:      rpl.Replace(LocaleKeyPageBlockDescription.Path),
+			Key:      rpl.Replace(LocaleKeyPagePageBlockBlockIDDescription.Path),
 			Msg:      block.Description,
 		})
 
@@ -202,7 +202,7 @@ func (p *Page) encodeTranslations() (out locale.ResourceTranslationSet) {
 
 				out = append(out, &locale.ResourceTranslation{
 					Resource: p.ResourceTranslation(),
-					Key:      rpl.Replace(LocaleKeyPageBlockAutomationButtonlabel.Path),
+					Key:      rpl.Replace(LocaleKeyPagePageBlockBlockIDButtonButtonIDLabel.Path),
 					Msg:      btn["label"].(string),
 				})
 			}

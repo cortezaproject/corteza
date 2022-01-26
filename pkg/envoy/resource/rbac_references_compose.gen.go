@@ -6,15 +6,6 @@ package resource
 // the code is regenerated.
 //
 
-// Definitions file that controls how this file is generated:
-// - compose.chart.yaml
-// - compose.module-field.yaml
-// - compose.module.yaml
-// - compose.namespace.yaml
-// - compose.page.yaml
-// - compose.record.yaml
-// - compose.yaml
-
 import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
@@ -24,31 +15,12 @@ import (
 // Resources with "envoy: false" are skipped
 //
 // This function is auto-generated
-func ComposeChartRbacReferences(namespace string, chart string) (res *Ref, pp []*Ref, err error) {
-	if namespace != "*" {
-		pp = append(pp, &Ref{ResourceType: types.NamespaceResourceType, Identifiers: MakeIdentifiers(namespace)})
+func ComposeChartRbacReferences(namespaceID string, chart string) (res *Ref, pp []*Ref, err error) {
+	if namespaceID != "*" {
+		pp = append(pp, &Ref{ResourceType: types.NamespaceResourceType, Identifiers: MakeIdentifiers(namespaceID)})
 	}
 	if chart != "*" {
 		res = &Ref{ResourceType: types.ChartResourceType, Identifiers: MakeIdentifiers(chart)}
-	}
-
-	return
-}
-
-// ComposeModuleFieldRbacReferences generates RBAC references
-//
-// Resources with "envoy: false" are skipped
-//
-// This function is auto-generated
-func ComposeModuleFieldRbacReferences(namespace string, module string, moduleField string) (res *Ref, pp []*Ref, err error) {
-	if namespace != "*" {
-		pp = append(pp, &Ref{ResourceType: types.NamespaceResourceType, Identifiers: MakeIdentifiers(namespace)})
-	}
-	if module != "*" {
-		pp = append(pp, &Ref{ResourceType: types.ModuleResourceType, Identifiers: MakeIdentifiers(module)})
-	}
-	if moduleField != "*" {
-		res = &Ref{ResourceType: types.ModuleFieldResourceType, Identifiers: MakeIdentifiers(moduleField)}
 	}
 
 	return
@@ -59,12 +31,31 @@ func ComposeModuleFieldRbacReferences(namespace string, module string, moduleFie
 // Resources with "envoy: false" are skipped
 //
 // This function is auto-generated
-func ComposeModuleRbacReferences(namespace string, module string) (res *Ref, pp []*Ref, err error) {
-	if namespace != "*" {
-		pp = append(pp, &Ref{ResourceType: types.NamespaceResourceType, Identifiers: MakeIdentifiers(namespace)})
+func ComposeModuleRbacReferences(namespaceID string, module string) (res *Ref, pp []*Ref, err error) {
+	if namespaceID != "*" {
+		pp = append(pp, &Ref{ResourceType: types.NamespaceResourceType, Identifiers: MakeIdentifiers(namespaceID)})
 	}
 	if module != "*" {
 		res = &Ref{ResourceType: types.ModuleResourceType, Identifiers: MakeIdentifiers(module)}
+	}
+
+	return
+}
+
+// ComposeModuleFieldRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func ComposeModuleFieldRbacReferences(namespaceID string, moduleID string, moduleField string) (res *Ref, pp []*Ref, err error) {
+	if namespaceID != "*" {
+		pp = append(pp, &Ref{ResourceType: types.NamespaceResourceType, Identifiers: MakeIdentifiers(namespaceID)})
+	}
+	if moduleID != "*" {
+		pp = append(pp, &Ref{ResourceType: types.ModuleResourceType, Identifiers: MakeIdentifiers(moduleID)})
+	}
+	if moduleField != "*" {
+		res = &Ref{ResourceType: types.ModuleFieldResourceType, Identifiers: MakeIdentifiers(moduleField)}
 	}
 
 	return
@@ -88,9 +79,9 @@ func ComposeNamespaceRbacReferences(namespace string) (res *Ref, pp []*Ref, err 
 // Resources with "envoy: false" are skipped
 //
 // This function is auto-generated
-func ComposePageRbacReferences(namespace string, page string) (res *Ref, pp []*Ref, err error) {
-	if namespace != "*" {
-		pp = append(pp, &Ref{ResourceType: types.NamespaceResourceType, Identifiers: MakeIdentifiers(namespace)})
+func ComposePageRbacReferences(namespaceID string, page string) (res *Ref, pp []*Ref, err error) {
+	if namespaceID != "*" {
+		pp = append(pp, &Ref{ResourceType: types.NamespaceResourceType, Identifiers: MakeIdentifiers(namespaceID)})
 	}
 	if page != "*" {
 		res = &Ref{ResourceType: types.PageResourceType, Identifiers: MakeIdentifiers(page)}
@@ -104,12 +95,12 @@ func ComposePageRbacReferences(namespace string, page string) (res *Ref, pp []*R
 // Resources with "envoy: false" are skipped
 //
 // This function is auto-generated
-func ComposeRecordRbacReferences(namespace string, module string, record string) (res *Ref, pp []*Ref, err error) {
-	if namespace != "*" {
-		pp = append(pp, &Ref{ResourceType: types.NamespaceResourceType, Identifiers: MakeIdentifiers(namespace)})
+func ComposeRecordRbacReferences(namespaceID string, moduleID string, record string) (res *Ref, pp []*Ref, err error) {
+	if namespaceID != "*" {
+		pp = append(pp, &Ref{ResourceType: types.NamespaceResourceType, Identifiers: MakeIdentifiers(namespaceID)})
 	}
-	if module != "*" {
-		pp = append(pp, &Ref{ResourceType: types.ModuleResourceType, Identifiers: MakeIdentifiers(module)})
+	if moduleID != "*" {
+		pp = append(pp, &Ref{ResourceType: types.ModuleResourceType, Identifiers: MakeIdentifiers(moduleID)})
 	}
 	if record != "*" {
 		res = &Ref{ResourceType: types.RecordResourceType, Identifiers: MakeIdentifiers(record)}

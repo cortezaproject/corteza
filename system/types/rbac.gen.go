@@ -6,17 +6,6 @@ package types
 // the code is regenerated.
 //
 
-// Definitions file that controls how this file is generated:
-// - system.apigw-route.yaml
-// - system.application.yaml
-// - system.auth-client.yaml
-// - system.queue.yaml
-// - system.report.yaml
-// - system.role.yaml
-// - system.template.yaml
-// - system.user.yaml
-// - system.yaml
-
 import (
 	"fmt"
 	"strconv"
@@ -27,6 +16,11 @@ type (
 	//
 	// This struct is auto-generated
 	Component struct{}
+)
+
+var (
+	_ = fmt.Printf
+	_ = strconv.FormatUint
 )
 
 const (
@@ -67,7 +61,6 @@ func ApigwRouteRbacResource(id uint64) string {
 
 }
 
-// @todo template
 func ApigwRouteRbacResourceTpl() string {
 	return "%s/%s"
 }
@@ -98,7 +91,6 @@ func ApplicationRbacResource(id uint64) string {
 
 }
 
-// @todo template
 func ApplicationRbacResourceTpl() string {
 	return "%s/%s"
 }
@@ -129,7 +121,6 @@ func AuthClientRbacResource(id uint64) string {
 
 }
 
-// @todo template
 func AuthClientRbacResourceTpl() string {
 	return "%s/%s"
 }
@@ -160,7 +151,6 @@ func QueueRbacResource(id uint64) string {
 
 }
 
-// @todo template
 func QueueRbacResourceTpl() string {
 	return "%s/%s"
 }
@@ -191,7 +181,6 @@ func ReportRbacResource(id uint64) string {
 
 }
 
-// @todo template
 func ReportRbacResourceTpl() string {
 	return "%s/%s"
 }
@@ -222,7 +211,6 @@ func RoleRbacResource(id uint64) string {
 
 }
 
-// @todo template
 func RoleRbacResourceTpl() string {
 	return "%s/%s"
 }
@@ -253,7 +241,6 @@ func TemplateRbacResource(id uint64) string {
 
 }
 
-// @todo template
 func TemplateRbacResourceTpl() string {
 	return "%s/%s"
 }
@@ -284,7 +271,6 @@ func UserRbacResource(id uint64) string {
 
 }
 
-// @todo template
 func UserRbacResourceTpl() string {
 	return "%s/%s"
 }
@@ -308,7 +294,6 @@ func ComponentRbacResource() string {
 
 }
 
-// @todo template
 func ComponentRbacResourceTpl() string {
 	return "%s"
 }

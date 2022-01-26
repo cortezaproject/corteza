@@ -6,12 +6,6 @@ package service
 // the code is regenerated.
 //
 
-// Definitions file that controls how this file is generated:
-// - federation.exposed-module.yaml
-// - federation.node.yaml
-// - federation.shared-module.yaml
-// - federation.yaml
-
 import (
 	"context"
 	"fmt"
@@ -61,11 +55,6 @@ func (svc accessControl) Effective(ctx context.Context, rr ...rbac.Resource) (ee
 func (svc accessControl) List() (out []map[string]string) {
 	def := []map[string]string{
 		{
-			"type": types.ExposedModuleResourceType,
-			"any":  types.ExposedModuleRbacResource(0, 0),
-			"op":   "manage",
-		},
-		{
 			"type": types.NodeResourceType,
 			"any":  types.NodeRbacResource(0),
 			"op":   "manage",
@@ -74,6 +63,11 @@ func (svc accessControl) List() (out []map[string]string) {
 			"type": types.NodeResourceType,
 			"any":  types.NodeRbacResource(0),
 			"op":   "module.create",
+		},
+		{
+			"type": types.ExposedModuleResourceType,
+			"any":  types.ExposedModuleRbacResource(0, 0),
+			"op":   "manage",
 		},
 		{
 			"type": types.SharedModuleResourceType,
@@ -183,13 +177,6 @@ func (svc accessControl) CloneRulesByRoleID(ctx context.Context, fromRoleID uint
 	return svc.rbac.CloneRulesByRoleID(ctx, fromRoleID, toRoleID...)
 }
 
-// CanManageExposedModule checks if current user can manage shared module
-//
-// This function is auto-generated
-func (svc accessControl) CanManageExposedModule(ctx context.Context, r *types.ExposedModule) bool {
-	return svc.can(ctx, "manage", r)
-}
-
 // CanManageNode checks if current user can manage federation node
 //
 // This function is auto-generated
@@ -204,6 +191,13 @@ func (svc accessControl) CanCreateModuleOnNode(ctx context.Context, r *types.Nod
 	return svc.can(ctx, "module.create", r)
 }
 
+// CanManageExposedModule checks if current user can manage exposed module module
+//
+// This function is auto-generated
+func (svc accessControl) CanManageExposedModule(ctx context.Context, r *types.ExposedModule) bool {
+	return svc.can(ctx, "manage", r)
+}
+
 // CanMapSharedModule checks if current user can map shared module
 //
 // This function is auto-generated
@@ -215,42 +209,48 @@ func (svc accessControl) CanMapSharedModule(ctx context.Context, r *types.Shared
 //
 // This function is auto-generated
 func (svc accessControl) CanGrant(ctx context.Context) bool {
-	return svc.can(ctx, "grant", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "grant", r)
 }
 
 // CanPair checks if current user can pair federation nodes
 //
 // This function is auto-generated
 func (svc accessControl) CanPair(ctx context.Context) bool {
-	return svc.can(ctx, "pair", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "pair", r)
 }
 
 // CanReadSettings checks if current user can read settings
 //
 // This function is auto-generated
 func (svc accessControl) CanReadSettings(ctx context.Context) bool {
-	return svc.can(ctx, "settings.read", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "settings.read", r)
 }
 
 // CanManageSettings checks if current user can manage settings
 //
 // This function is auto-generated
 func (svc accessControl) CanManageSettings(ctx context.Context) bool {
-	return svc.can(ctx, "settings.manage", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "settings.manage", r)
 }
 
 // CanCreateNode checks if current user can create new federation node
 //
 // This function is auto-generated
 func (svc accessControl) CanCreateNode(ctx context.Context) bool {
-	return svc.can(ctx, "node.create", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "node.create", r)
 }
 
 // CanSearchNodes checks if current user can list, search or filter federation nodes
 //
 // This function is auto-generated
 func (svc accessControl) CanSearchNodes(ctx context.Context) bool {
-	return svc.can(ctx, "nodes.search", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "nodes.search", r)
 }
 
 // rbacResourceValidator validates known component's resource by routing it to the appropriate validator
@@ -258,10 +258,10 @@ func (svc accessControl) CanSearchNodes(ctx context.Context) bool {
 // This function is auto-generated
 func rbacResourceValidator(r string, oo ...string) error {
 	switch rbac.ResourceType(r) {
-	case types.ExposedModuleResourceType:
-		return rbacExposedModuleResourceValidator(r, oo...)
 	case types.NodeResourceType:
 		return rbacNodeResourceValidator(r, oo...)
+	case types.ExposedModuleResourceType:
+		return rbacExposedModuleResourceValidator(r, oo...)
 	case types.SharedModuleResourceType:
 		return rbacSharedModuleResourceValidator(r, oo...)
 	case types.ComponentResourceType:
@@ -276,14 +276,14 @@ func rbacResourceValidator(r string, oo ...string) error {
 // This function is auto-generated
 func rbacResourceOperations(r string) map[string]bool {
 	switch rbac.ResourceType(r) {
-	case types.ExposedModuleResourceType:
-		return map[string]bool{
-			"manage": true,
-		}
 	case types.NodeResourceType:
 		return map[string]bool{
 			"manage":        true,
 			"module.create": true,
+		}
+	case types.ExposedModuleResourceType:
+		return map[string]bool{
+			"manage": true,
 		}
 	case types.SharedModuleResourceType:
 		return map[string]bool{
@@ -303,67 +303,22 @@ func rbacResourceOperations(r string) map[string]bool {
 	return nil
 }
 
-// rbacExposedModuleResourceValidator checks validity of rbac resource and operations
-//
-// Can be called without operations to check for validity of resource string only
-//
-// This function is auto-generated
-func rbacExposedModuleResourceValidator(r string, oo ...string) error {
-	defOps := rbacResourceOperations(r)
-	for _, o := range oo {
-		if !defOps[o] {
-			return fmt.Errorf("invalid operation '%s' for federation ExposedModule resource", o)
-		}
-	}
-
-	if !strings.HasPrefix(r, types.ExposedModuleResourceType) {
-		// expecting resource to always include path
-		return fmt.Errorf("invalid resource type")
-	}
-
-	const sep = "/"
-	var (
-		pp  = strings.Split(strings.Trim(r[len(types.ExposedModuleResourceType):], sep), sep)
-		prc = []string{
-			"nodeID",
-			"ID",
-		}
-	)
-
-	if len(pp) != len(prc) {
-		return fmt.Errorf("invalid resource path structure")
-	}
-
-	for i := 0; i < len(pp); i++ {
-		if pp[i] != "*" {
-			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid resource path wildcard level (%d) for ExposedModule", i)
-			}
-
-			if _, err := cast.ToUint64E(pp[i]); err != nil {
-				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
-			}
-		}
-	}
-	return nil
-}
-
-// rbacNodeResourceValidator checks validity of rbac resource and operations
+// rbacNodeResourceValidator checks validity of RBAC resource and operations
 //
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
 func rbacNodeResourceValidator(r string, oo ...string) error {
-	defOps := rbacResourceOperations(r)
-	for _, o := range oo {
-		if !defOps[o] {
-			return fmt.Errorf("invalid operation '%s' for federation Node resource", o)
-		}
-	}
-
 	if !strings.HasPrefix(r, types.NodeResourceType) {
 		// expecting resource to always include path
 		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for node resource", o)
+		}
 	}
 
 	const sep = "/"
@@ -381,7 +336,7 @@ func rbacNodeResourceValidator(r string, oo ...string) error {
 	for i := 0; i < len(pp); i++ {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid resource path wildcard level (%d) for Node", i)
+				return fmt.Errorf("invalid path wildcard level (%d) for node resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {
@@ -392,29 +347,29 @@ func rbacNodeResourceValidator(r string, oo ...string) error {
 	return nil
 }
 
-// rbacSharedModuleResourceValidator checks validity of rbac resource and operations
+// rbacExposedModuleResourceValidator checks validity of RBAC resource and operations
 //
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
-func rbacSharedModuleResourceValidator(r string, oo ...string) error {
-	defOps := rbacResourceOperations(r)
-	for _, o := range oo {
-		if !defOps[o] {
-			return fmt.Errorf("invalid operation '%s' for federation SharedModule resource", o)
-		}
-	}
-
-	if !strings.HasPrefix(r, types.SharedModuleResourceType) {
+func rbacExposedModuleResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.ExposedModuleResourceType) {
 		// expecting resource to always include path
 		return fmt.Errorf("invalid resource type")
 	}
 
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for exposedModule resource", o)
+		}
+	}
+
 	const sep = "/"
 	var (
-		pp  = strings.Split(strings.Trim(r[len(types.SharedModuleResourceType):], sep), sep)
+		pp  = strings.Split(strings.Trim(r[len(types.ExposedModuleResourceType):], sep), sep)
 		prc = []string{
-			"nodeID",
+			"NodeID",
 			"ID",
 		}
 	)
@@ -426,7 +381,7 @@ func rbacSharedModuleResourceValidator(r string, oo ...string) error {
 	for i := 0; i < len(pp); i++ {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid resource path wildcard level (%d) for SharedModule", i)
+				return fmt.Errorf("invalid path wildcard level (%d) for exposedModule resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {
@@ -437,22 +392,67 @@ func rbacSharedModuleResourceValidator(r string, oo ...string) error {
 	return nil
 }
 
-// rbacComponentResourceValidator checks validity of rbac resource and operations
+// rbacSharedModuleResourceValidator checks validity of RBAC resource and operations
+//
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacSharedModuleResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.SharedModuleResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for sharedModule resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.SharedModuleResourceType):], sep), sep)
+		prc = []string{
+			"NodeID",
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for sharedModule resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacComponentResourceValidator checks validity of RBAC resource and operations
 //
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
 func rbacComponentResourceValidator(r string, oo ...string) error {
-	defOps := rbacResourceOperations(r)
-	for _, o := range oo {
-		if !defOps[o] {
-			return fmt.Errorf("invalid operation '%s' for federation resource", o)
-		}
-	}
-
 	if !strings.HasPrefix(r, types.ComponentResourceType) {
 		// expecting resource to always include path
 		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for federation component resource", o)
+		}
 	}
 
 	return nil
