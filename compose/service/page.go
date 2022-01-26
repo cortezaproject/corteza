@@ -314,90 +314,178 @@ func (svc page) Create(ctx context.Context, new *types.Page) (*types.Page, error
 }
 
 func (svc page) Update(ctx context.Context, upd *types.Page) (c *types.Page, err error) {
-	return svc.updater(ctx, upd.NamespaceID, upd.ID, PageActionUpdate, svc.handleUpdate(ctx, upd))
-}
-
-func (svc page) DeleteByID(ctx context.Context, namespaceID, pageID uint64) error {
-	return trim1st(svc.updater(ctx, namespaceID, pageID, PageActionDelete, svc.handleDelete))
-}
-
-func (svc page) UndeleteByID(ctx context.Context, namespaceID, pageID uint64) error {
-	return trim1st(svc.updater(ctx, namespaceID, pageID, PageActionUndelete, svc.handleUndelete))
-}
-
-func (svc page) updater(ctx context.Context, namespaceID, pageID uint64, action func(...*pageActionProps) *pageAction, fn pageUpdateHandler) (*types.Page, error) {
-	var (
-		changes pageChanges
-
-		ns     *types.Namespace
-		p, old *types.Page
-		aProps = &pageActionProps{page: &types.Page{ID: pageID, NamespaceID: namespaceID}}
-		err    error
-	)
-
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		ns, p, err = loadPage(ctx, s, namespaceID, pageID)
+		ns, res, err := loadPage(ctx, s, upd.NamespaceID, upd.ID)
 		if err != nil {
 			return
 		}
 
-		if err = label.Load(ctx, svc.store, p); err != nil {
+		c, err = svc.updater(ctx, svc.store, ns, res, PageActionUpdate, svc.handleUpdate(ctx, upd))
+		return
+	})
+
+	return
+}
+
+func (svc page) DeleteByID(ctx context.Context, namespaceID, pageID uint64, strategy types.PageChildrenDeleteStrategy) error {
+	var (
+		validChildren, pp types.PageSet
+
+		ns  *types.Namespace
+		res *types.Page
+
+		skipUndeleted = func(p *types.Page) (bool, error) {
+			return p.DeletedAt == nil, nil
+		}
+	)
+
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if strategy == types.PageChildrenOnDeleteForce {
+			// simply delete the page and ignore the subpages
+			ns, res, err = loadPage(ctx, s, namespaceID, pageID)
+			if err != nil {
+				return
+			}
+		} else {
+			// Load all pages in the namespace and
+			// try to figure out the family tree
+			pp, _, err = store.SearchComposePages(ctx, s, types.PageFilter{
+				NamespaceID: namespaceID,
+			})
+
+			if res = pp.FindByID(pageID); res == nil {
+				return PageErrNotFound()
+			}
+
+			validChildren, _ = pp.FindByParent(res.ID).Filter(skipUndeleted)
+
+			switch strategy {
+			case types.PageChildrenOnDeleteAbort:
+				// Abort if there are any valid (undeleted) children
+				if len(validChildren) > 0 {
+					return PageErrDeleteAbortedForPageWithSubpages()
+				}
+
+			case types.PageChildrenOnDeleteRebase:
+				// update all our children to point to our parent
+				err = validChildren.Walk(func(child *types.Page) (err error) {
+					updChild := child.Clone()
+					updChild.SelfID = res.SelfID
+					_, err = svc.updater(ctx, s, ns, child, PageActionUpdate, svc.handleUpdate(ctx, updChild))
+					return err
+				})
+
+				if err != nil {
+					return
+				}
+
+			case types.PageChildrenOnDeleteCascade:
+				// update all our children to point to our parent
+				err = pp.RecursiveWalk(res, func(child *types.Page, _ *types.Page) (err error) {
+					if child.DeletedAt != nil {
+						// skip the ones that are already deleted
+						return nil
+					}
+
+					_, err = svc.updater(ctx, s, ns, child, PageActionDelete, svc.handleDelete)
+					return err
+				})
+
+				if err != nil {
+					return
+				}
+			default:
+				return PageErrUnknownDeleteStrategy()
+			}
+
+			if ns, err = loadNamespace(ctx, s, namespaceID); err != nil {
+				return
+			}
+		}
+
+		_, err = svc.updater(ctx, svc.store, ns, res, PageActionDelete, svc.handleDelete)
+		return
+	})
+}
+
+func (svc page) UndeleteByID(ctx context.Context, namespaceID, pageID uint64) error {
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		ns, res, err := loadPage(ctx, s, namespaceID, pageID)
+		if err != nil {
+			return
+		}
+
+		_, err = svc.updater(ctx, svc.store, ns, res, PageActionUpdate, svc.handleUndelete)
+		return
+	})
+}
+
+func (svc page) updater(ctx context.Context, s store.Storer, ns *types.Namespace, res *types.Page, action func(...*pageActionProps) *pageAction, fn pageUpdateHandler) (*types.Page, error) {
+	var (
+		changes pageChanges
+		old     *types.Page
+		aProps  = &pageActionProps{page: res}
+		err     error
+	)
+
+	err = store.Tx(ctx, s, func(ctx context.Context, s store.Storer) (err error) {
+		if err = label.Load(ctx, svc.store, res); err != nil {
 			return err
 		}
 
 		// Get max blockID for later use
 		blockID := uint64(0)
-		for _, b := range p.Blocks {
+		for _, b := range res.Blocks {
 			if b.BlockID > blockID {
 				blockID = b.BlockID
 			}
 		}
 
-		old = p.Clone()
+		old = res.Clone()
 
 		aProps.setNamespace(ns)
-		aProps.setChanged(p)
+		aProps.setChanged(res)
 
-		if p.DeletedAt == nil {
-			err = svc.eventbus.WaitFor(ctx, event.PageBeforeUpdate(p, old, ns, nil))
+		if res.DeletedAt == nil {
+			err = svc.eventbus.WaitFor(ctx, event.PageBeforeUpdate(old, res, ns, nil))
 		} else {
-			err = svc.eventbus.WaitFor(ctx, event.PageBeforeDelete(p, old, ns, nil))
+			err = svc.eventbus.WaitFor(ctx, event.PageBeforeDelete(old, res, ns, nil))
 		}
 
 		if err != nil {
 			return
 		}
 
-		if changes, err = fn(ctx, ns, p); err != nil {
+		if changes, err = fn(ctx, ns, res); err != nil {
 			return err
 		}
 
 		if changes&pageChanged > 0 {
-			if err = store.UpdateComposePage(ctx, svc.store, p); err != nil {
+			if err = store.UpdateComposePage(ctx, s, res); err != nil {
 				return err
 			}
 		}
 
-		if err = updateTranslations(ctx, svc.ac, svc.locale, p.EncodeTranslations()...); err != nil {
+		if err = updateTranslations(ctx, svc.ac, svc.locale, res.EncodeTranslations()...); err != nil {
 			return
 		}
 
 		if changes&pageLabelsChanged > 0 {
-			if err = label.Update(ctx, s, p); err != nil {
+			if err = label.Update(ctx, s, res); err != nil {
 				return
 			}
 		}
 
-		if p.DeletedAt == nil {
-			err = svc.eventbus.WaitFor(ctx, event.PageAfterUpdate(p, old, ns, nil))
+		if res.DeletedAt == nil {
+			err = svc.eventbus.WaitFor(ctx, event.PageAfterUpdate(res, res, ns, nil))
 		} else {
-			err = svc.eventbus.WaitFor(ctx, event.PageAfterDelete(nil, old, ns, nil))
+			err = svc.eventbus.WaitFor(ctx, event.PageAfterDelete(nil, res, ns, nil))
 		}
 
 		return err
 	})
 
-	return p, svc.recordAction(ctx, aProps, action, err)
+	return res, svc.recordAction(ctx, aProps, action, err)
 }
 
 // lookup fn() orchestrates page lookup, namespace preload and check

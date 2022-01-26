@@ -238,6 +238,11 @@ type (
 		//
 		// Page ID
 		PageID uint64 `json:",string"`
+
+		// Strategy GET parameter
+		//
+		// Page delete strategy (abort, force, rebase, cascade)
+		Strategy string
 	}
 
 	PageUpload struct {
@@ -1150,6 +1155,7 @@ func (r PageDelete) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"namespaceID": r.NamespaceID,
 		"pageID":      r.PageID,
+		"strategy":    r.Strategy,
 	}
 }
 
@@ -1163,8 +1169,25 @@ func (r PageDelete) GetPageID() uint64 {
 	return r.PageID
 }
 
+// Auditable returns all auditable/loggable parameters
+func (r PageDelete) GetStrategy() string {
+	return r.Strategy
+}
+
 // Fill processes request and fills internal variables
 func (r *PageDelete) Fill(req *http.Request) (err error) {
+
+	{
+		// GET params
+		tmp := req.URL.Query()
+
+		if val, ok := tmp["strategy"]; ok && len(val) > 0 {
+			r.Strategy, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+	}
 
 	{
 		var val string

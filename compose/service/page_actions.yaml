@@ -84,6 +84,13 @@ errors:
     message: "invalid or missing namespace ID"
     severity: warning
 
+  - error: deleteAbortedForPageWithSubpages
+    message: "removal of page with subpages aborted"
+    severity: debug
+
+  - error: unknownDeleteStrategy
+    message: "unknown delete strategy"
+
   - error: notAllowedToRead
     message: "not allowed to read this page"
     log: "could not read {{page}}; insufficient permissions"

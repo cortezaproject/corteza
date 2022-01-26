@@ -98,6 +98,15 @@ type (
 		filter.Sorting
 		filter.Paging
 	}
+
+	PageChildrenDeleteStrategy string
+)
+
+const (
+	PageChildrenOnDeleteAbort   PageChildrenDeleteStrategy = "abort"
+	PageChildrenOnDeleteForce   PageChildrenDeleteStrategy = "force"
+	PageChildrenOnDeleteRebase  PageChildrenDeleteStrategy = "rebase"
+	PageChildrenOnDeleteCascade PageChildrenDeleteStrategy = "cascade"
 )
 
 func (m Page) Clone() *Page {
@@ -266,6 +275,29 @@ func (set PageSet) FindByParent(parentID uint64) (out PageSet) {
 	for i := range set {
 		if set[i].SelfID == parentID {
 			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// RecursiveWalk through all child pages
+func (set PageSet) RecursiveWalk(parent *Page, fn func(c *Page, parent *Page) error) (err error) {
+	if parent == nil {
+		return
+	}
+
+	for _, page := range set {
+		if page.SelfID != parent.ID {
+			continue
+		}
+
+		if err = fn(page, parent); err != nil {
+			return
+		}
+
+		if err = set.RecursiveWalk(page, fn); err != nil {
+			return
 		}
 	}
 
