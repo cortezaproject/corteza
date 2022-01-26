@@ -32,12 +32,22 @@ general:
   error: Error
   success: Success
   warning: Warning
+  import:
+    failed: Import failed
+    readingError: Error reading file
+    successful: Import successful
+    typeMissmatch: 'Import error: trying to import object of type "{{type1}}" into a list of objects of type "{{type2}}"'
 module:
   createFailed: Could not create a module
   deleteFailed: Could not delete this module
   deleted: Module deleted
   saveFailed: Could not save this module
   saved: Module saved
+  columns:
+    saved: Columns saved
+    saveFailed: Could not save columns
+  recordPage:
+    createFailed: Could not create module record page
 namespace:
   application:
     createFailed: Could not create namespace application
@@ -49,6 +59,9 @@ namespace:
   disabled: Namespace disabled - redirecting
   saveFailed: Could not save this namespace
   saved: Namespace saved
+  cloneFailed: Could not clone this namespace
+  imported: Namespace imported
+  importFailed: Namespace failed to import
 page:
   createFailed: Could not create a page
   deleteFailed: Could not delete this page
@@ -60,6 +73,8 @@ page:
 record:
   createFailed: Could not create record
   deleteFailed: Could not delete record
+  deleteBulkFailed: Could not delete selected records
+  deleteBulkSuccess: Successfully deleted selected records
   invalidOwnerVar: Can not use ${ownerID} variable in non-record pages
   invalidRecordVar: Can not use ${record...} variable in non-record pages
   listLoadFailed: Could not load record list

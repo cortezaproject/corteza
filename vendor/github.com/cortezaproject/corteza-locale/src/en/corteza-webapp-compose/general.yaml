@@ -117,10 +117,3 @@ field:
   kind:
     user:
       suggestionPlaceholder: Start typing to search for users by email or name
-notification:
-  composeAccessNotAllowed: Not allowed to access Compose
-  import:
-    failed: Import failed
-    readingError: Error reading file
-    successful: Import successful
-    typeMissmatch: 'Import error: trying to import object of type "{{type1}}" into a list of objects of type "{{type2}}"'
