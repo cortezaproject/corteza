@@ -275,7 +275,7 @@ type (
 				// Enable indexing of compose records
 				Enabled bool `kv:"enabled" json:"enabled"`
 			} `kv:"compose-records" json:"compose-records"`
-		} `kv:"discovery"`
+		} `kv:"discovery" json:"discovery"`
 	}
 
 	ExternalAuthProviderSet []*ExternalAuthProvider
