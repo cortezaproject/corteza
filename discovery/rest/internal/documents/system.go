@@ -44,7 +44,9 @@ func (d systemResources) Users(ctx context.Context, limit uint, cur string) (rsp
 
 		var (
 			uu types.UserSet
-			f  = types.UserFilter{}
+			f  = types.UserFilter{
+				Deleted: filter.StateExcluded,
+			}
 		)
 
 		if f.Paging, err = filter.NewPaging(limit, cur); err != nil {

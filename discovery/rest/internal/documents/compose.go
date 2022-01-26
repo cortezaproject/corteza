@@ -93,7 +93,7 @@ func (d composeResources) Namespaces(ctx context.Context, limit uint, cur string
 			pf           cmpTypes.PageFilter
 			nss          cmpTypes.NamespaceSet
 			f            = cmpTypes.NamespaceFilter{
-				Deleted: filter.StateInclusive,
+				Deleted: filter.StateExcluded,
 			}
 		)
 
@@ -182,7 +182,7 @@ func (d composeResources) Modules(ctx context.Context, namespaceID uint64, limit
 			mm cmpTypes.ModuleSet
 			f  = cmpTypes.ModuleFilter{
 				NamespaceID: namespaceID,
-				Deleted:     filter.StateInclusive,
+				Deleted:     filter.StateExcluded,
 			}
 		)
 
@@ -267,7 +267,7 @@ func (d composeResources) Records(ctx context.Context, namespaceID, moduleID uin
 			f   = cmpTypes.RecordFilter{
 				NamespaceID: namespaceID,
 				ModuleID:    moduleID,
-				Deleted:     filter.StateInclusive,
+				Deleted:     filter.StateExcluded,
 			}
 		)
 
