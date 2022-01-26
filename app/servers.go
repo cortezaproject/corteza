@@ -102,7 +102,7 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 			r.Route("/websocket", app.WsServer.MountRoutes)
 
 			if app.Opt.Discovery.Enabled {
-				r.Route("/discovery", discoveryRest.MountRoutes)
+				r.Route("/discovery", discoveryRest.MountRoutes())
 			}
 
 			if app.Opt.Federation.Enabled {

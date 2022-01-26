@@ -16,7 +16,7 @@ func Init(sentryOpt options.SentryOpt) error {
 		Dsn:              sentryOpt.DSN,
 		Debug:            sentryOpt.Debug,
 		AttachStacktrace: sentryOpt.AttachStacktrace,
-		SampleRate:       sentryOpt.SampleRate,
+		SampleRate:       float64(sentryOpt.SampleRate),
 		MaxBreadcrumbs:   sentryOpt.MaxBreadcrumbs,
 		IgnoreErrors:     nil,
 		BeforeSend:       nil,
