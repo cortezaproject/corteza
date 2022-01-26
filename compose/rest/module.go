@@ -51,8 +51,8 @@ type (
 		CanCreateRecordOnModule(context.Context, *types.Module) bool
 		CanReadRecord(context.Context, *types.Record) bool
 
-		CanReadRecordValue(context.Context, *types.ModuleField) bool
-		CanUpdateRecordValue(context.Context, *types.ModuleField) bool
+		CanReadRecordValueOnModuleField(context.Context, *types.ModuleField) bool
+		CanUpdateRecordValueOnModuleField(context.Context, *types.ModuleField) bool
 	}
 )
 
@@ -196,8 +196,8 @@ func (ctrl Module) makeFieldsPayload(ctx context.Context, m *types.Module) (out 
 		out[i] = &moduleFieldPayload{
 			ModuleField: f,
 
-			CanReadRecordValue:   ctrl.ac.CanReadRecordValue(ctx, f),
-			CanUpdateRecordValue: ctrl.ac.CanUpdateRecordValue(ctx, f),
+			CanReadRecordValue:   ctrl.ac.CanReadRecordValueOnModuleField(ctx, f),
+			CanUpdateRecordValue: ctrl.ac.CanUpdateRecordValueOnModuleField(ctx, f),
 		}
 	}
 

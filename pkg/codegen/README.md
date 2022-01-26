@@ -1,5 +1,7 @@
 # Code generation package
 
+See [latest codegen version](../../codegen/README.md).
+
 It consumes YAMLs from all known locations and provides them to
 templates
 

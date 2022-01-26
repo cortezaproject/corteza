@@ -28,14 +28,14 @@ func (svc resourceTranslationsManager) moduleExtended(ctx context.Context, res *
 				Msg:      svc.locale.TResourceFor(tag, f.ResourceTranslation(), k.Path),
 			})
 
-			k = types.LocaleKeyModuleFieldDescriptionView
+			k = types.LocaleKeyModuleFieldMetaDescriptionView
 			out = append(out, &locale.ResourceTranslation{
 				Resource: f.ResourceTranslation(),
 				Lang:     tag.String(),
 				Key:      k.Path,
 				Msg:      svc.locale.TResourceFor(tag, f.ResourceTranslation(), k.Path),
 			})
-			k = types.LocaleKeyModuleFieldDescriptionEdit
+			k = types.LocaleKeyModuleFieldMetaDescriptionEdit
 			out = append(out, &locale.ResourceTranslation{
 				Resource: f.ResourceTranslation(),
 				Lang:     tag.String(),
@@ -43,14 +43,14 @@ func (svc resourceTranslationsManager) moduleExtended(ctx context.Context, res *
 				Msg:      svc.locale.TResourceFor(tag, f.ResourceTranslation(), k.Path),
 			})
 
-			k = types.LocaleKeyModuleFieldHintView
+			k = types.LocaleKeyModuleFieldMetaHintView
 			out = append(out, &locale.ResourceTranslation{
 				Resource: f.ResourceTranslation(),
 				Lang:     tag.String(),
 				Key:      k.Path,
 				Msg:      svc.locale.TResourceFor(tag, f.ResourceTranslation(), k.Path),
 			})
-			k = types.LocaleKeyModuleFieldHintEdit
+			k = types.LocaleKeyModuleFieldMetaHintEdit
 			out = append(out, &locale.ResourceTranslation{
 				Resource: f.ResourceTranslation(),
 				Lang:     tag.String(),
@@ -86,7 +86,7 @@ func (svc resourceTranslationsManager) moduleFieldExpressionsHandler(ctx context
 			"{{validatorID}}", strconv.FormatUint(vContentID, 10),
 		)
 
-		tKey := rpl.Replace(types.LocaleKeyModuleFieldValidatorError.Path)
+		tKey := rpl.Replace(types.LocaleKeyModuleFieldExpressionValidatorValidatorIDError.Path)
 
 		out = append(out, &locale.ResourceTranslation{
 			Resource: f.ResourceTranslation(),
@@ -128,7 +128,7 @@ func (svc resourceTranslationsManager) moduleFieldOptionsHandler(ctx context.Con
 			}
 		}
 
-		trKey := strings.NewReplacer("{{value}}", value).Replace(types.LocaleKeyModuleFieldOptionsOptionTexts.Path)
+		trKey := strings.NewReplacer("{{value}}", value).Replace(types.LocaleKeyModuleFieldMetaOptionsValueText.Path)
 
 		out = append(out, &locale.ResourceTranslation{
 			Resource: f.ResourceTranslation(),
@@ -154,7 +154,7 @@ func (svc resourceTranslationsManager) pageExtended(ctx context.Context, res *ty
 			)
 
 			// base stuff
-			k = types.LocaleKeyPageBlockTitle
+			k = types.LocaleKeyPagePageBlockBlockIDTitle
 			out = append(out, &locale.ResourceTranslation{
 				Resource: res.ResourceTranslation(),
 				Lang:     tag.String(),
@@ -162,7 +162,7 @@ func (svc resourceTranslationsManager) pageExtended(ctx context.Context, res *ty
 				Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), rpl.Replace(k.Path)),
 			})
 
-			k = types.LocaleKeyPageBlockDescription
+			k = types.LocaleKeyPagePageBlockBlockIDDescription
 			out = append(out, &locale.ResourceTranslation{
 				Resource: res.ResourceTranslation(),
 				Lang:     tag.String(),

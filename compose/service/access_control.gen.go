@@ -6,15 +6,6 @@ package service
 // the code is regenerated.
 //
 
-// Definitions file that controls how this file is generated:
-// - compose.chart.yaml
-// - compose.module-field.yaml
-// - compose.module.yaml
-// - compose.namespace.yaml
-// - compose.page.yaml
-// - compose.record.yaml
-// - compose.yaml
-
 import (
 	"context"
 	"fmt"
@@ -79,16 +70,6 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "delete",
 		},
 		{
-			"type": types.ModuleFieldResourceType,
-			"any":  types.ModuleFieldRbacResource(0, 0, 0),
-			"op":   "record.value.read",
-		},
-		{
-			"type": types.ModuleFieldResourceType,
-			"any":  types.ModuleFieldRbacResource(0, 0, 0),
-			"op":   "record.value.update",
-		},
-		{
 			"type": types.ModuleResourceType,
 			"any":  types.ModuleRbacResource(0, 0),
 			"op":   "read",
@@ -112,6 +93,16 @@ func (svc accessControl) List() (out []map[string]string) {
 			"type": types.ModuleResourceType,
 			"any":  types.ModuleRbacResource(0, 0),
 			"op":   "records.search",
+		},
+		{
+			"type": types.ModuleFieldResourceType,
+			"any":  types.ModuleFieldRbacResource(0, 0, 0),
+			"op":   "record.value.read",
+		},
+		{
+			"type": types.ModuleFieldResourceType,
+			"any":  types.ModuleFieldRbacResource(0, 0, 0),
+			"op":   "record.value.update",
 		},
 		{
 			"type": types.NamespaceResourceType,
@@ -296,56 +287,42 @@ func (svc accessControl) CloneRulesByRoleID(ctx context.Context, fromRoleID uint
 	return svc.rbac.CloneRulesByRoleID(ctx, fromRoleID, toRoleID...)
 }
 
-// CanReadChart checks if current user can read chart
+// CanReadChart checks if current user can read
 //
 // This function is auto-generated
 func (svc accessControl) CanReadChart(ctx context.Context, r *types.Chart) bool {
 	return svc.can(ctx, "read", r)
 }
 
-// CanUpdateChart checks if current user can update chart
+// CanUpdateChart checks if current user can update
 //
 // This function is auto-generated
 func (svc accessControl) CanUpdateChart(ctx context.Context, r *types.Chart) bool {
 	return svc.can(ctx, "update", r)
 }
 
-// CanDeleteChart checks if current user can delete chart
+// CanDeleteChart checks if current user can delete
 //
 // This function is auto-generated
 func (svc accessControl) CanDeleteChart(ctx context.Context, r *types.Chart) bool {
 	return svc.can(ctx, "delete", r)
 }
 
-// CanReadRecordValue checks if current user can read field value on records
-//
-// This function is auto-generated
-func (svc accessControl) CanReadRecordValue(ctx context.Context, r *types.ModuleField) bool {
-	return svc.can(ctx, "record.value.read", r)
-}
-
-// CanUpdateRecordValue checks if current user can update field value on records
-//
-// This function is auto-generated
-func (svc accessControl) CanUpdateRecordValue(ctx context.Context, r *types.ModuleField) bool {
-	return svc.can(ctx, "record.value.update", r)
-}
-
-// CanReadModule checks if current user can read module
+// CanReadModule checks if current user can read
 //
 // This function is auto-generated
 func (svc accessControl) CanReadModule(ctx context.Context, r *types.Module) bool {
 	return svc.can(ctx, "read", r)
 }
 
-// CanUpdateModule checks if current user can update module
+// CanUpdateModule checks if current user can update
 //
 // This function is auto-generated
 func (svc accessControl) CanUpdateModule(ctx context.Context, r *types.Module) bool {
 	return svc.can(ctx, "update", r)
 }
 
-// CanDeleteModule checks if current user can delete module
+// CanDeleteModule checks if current user can delete
 //
 // This function is auto-generated
 func (svc accessControl) CanDeleteModule(ctx context.Context, r *types.Module) bool {
@@ -366,21 +343,35 @@ func (svc accessControl) CanSearchRecordsOnModule(ctx context.Context, r *types.
 	return svc.can(ctx, "records.search", r)
 }
 
-// CanReadNamespace checks if current user can read namespace
+// CanReadRecordValueOnModuleField checks if current user can read field value on records
+//
+// This function is auto-generated
+func (svc accessControl) CanReadRecordValueOnModuleField(ctx context.Context, r *types.ModuleField) bool {
+	return svc.can(ctx, "record.value.read", r)
+}
+
+// CanUpdateRecordValueOnModuleField checks if current user can update field value on records
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateRecordValueOnModuleField(ctx context.Context, r *types.ModuleField) bool {
+	return svc.can(ctx, "record.value.update", r)
+}
+
+// CanReadNamespace checks if current user can read
 //
 // This function is auto-generated
 func (svc accessControl) CanReadNamespace(ctx context.Context, r *types.Namespace) bool {
 	return svc.can(ctx, "read", r)
 }
 
-// CanUpdateNamespace checks if current user can update namespace
+// CanUpdateNamespace checks if current user can update
 //
 // This function is auto-generated
 func (svc accessControl) CanUpdateNamespace(ctx context.Context, r *types.Namespace) bool {
 	return svc.can(ctx, "update", r)
 }
 
-// CanDeleteNamespace checks if current user can delete namespace
+// CanDeleteNamespace checks if current user can delete
 //
 // This function is auto-generated
 func (svc accessControl) CanDeleteNamespace(ctx context.Context, r *types.Namespace) bool {
@@ -436,42 +427,42 @@ func (svc accessControl) CanSearchPagesOnNamespace(ctx context.Context, r *types
 	return svc.can(ctx, "pages.search", r)
 }
 
-// CanReadPage checks if current user can read page
+// CanReadPage checks if current user can read
 //
 // This function is auto-generated
 func (svc accessControl) CanReadPage(ctx context.Context, r *types.Page) bool {
 	return svc.can(ctx, "read", r)
 }
 
-// CanUpdatePage checks if current user can update page
+// CanUpdatePage checks if current user can update
 //
 // This function is auto-generated
 func (svc accessControl) CanUpdatePage(ctx context.Context, r *types.Page) bool {
 	return svc.can(ctx, "update", r)
 }
 
-// CanDeletePage checks if current user can delete page
+// CanDeletePage checks if current user can delete
 //
 // This function is auto-generated
 func (svc accessControl) CanDeletePage(ctx context.Context, r *types.Page) bool {
 	return svc.can(ctx, "delete", r)
 }
 
-// CanReadRecord checks if current user can read record
+// CanReadRecord checks if current user can read
 //
 // This function is auto-generated
 func (svc accessControl) CanReadRecord(ctx context.Context, r *types.Record) bool {
 	return svc.can(ctx, "read", r)
 }
 
-// CanUpdateRecord checks if current user can update record
+// CanUpdateRecord checks if current user can update
 //
 // This function is auto-generated
 func (svc accessControl) CanUpdateRecord(ctx context.Context, r *types.Record) bool {
 	return svc.can(ctx, "update", r)
 }
 
-// CanDeleteRecord checks if current user can delete record
+// CanDeleteRecord checks if current user can delete
 //
 // This function is auto-generated
 func (svc accessControl) CanDeleteRecord(ctx context.Context, r *types.Record) bool {
@@ -482,42 +473,48 @@ func (svc accessControl) CanDeleteRecord(ctx context.Context, r *types.Record) b
 //
 // This function is auto-generated
 func (svc accessControl) CanGrant(ctx context.Context) bool {
-	return svc.can(ctx, "grant", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "grant", r)
 }
 
 // CanReadSettings checks if current user can read settings
 //
 // This function is auto-generated
 func (svc accessControl) CanReadSettings(ctx context.Context) bool {
-	return svc.can(ctx, "settings.read", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "settings.read", r)
 }
 
 // CanManageSettings checks if current user can manage settings
 //
 // This function is auto-generated
 func (svc accessControl) CanManageSettings(ctx context.Context) bool {
-	return svc.can(ctx, "settings.manage", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "settings.manage", r)
 }
 
 // CanCreateNamespace checks if current user can create namespace
 //
 // This function is auto-generated
 func (svc accessControl) CanCreateNamespace(ctx context.Context) bool {
-	return svc.can(ctx, "namespace.create", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "namespace.create", r)
 }
 
 // CanSearchNamespaces checks if current user can list, search or filter namespaces
 //
 // This function is auto-generated
 func (svc accessControl) CanSearchNamespaces(ctx context.Context) bool {
-	return svc.can(ctx, "namespaces.search", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "namespaces.search", r)
 }
 
 // CanManageResourceTranslations checks if current user can list, search, create, or update resource translations
 //
 // This function is auto-generated
 func (svc accessControl) CanManageResourceTranslations(ctx context.Context) bool {
-	return svc.can(ctx, "resource-translations.manage", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "resource-translations.manage", r)
 }
 
 // rbacResourceValidator validates known component's resource by routing it to the appropriate validator
@@ -527,10 +524,10 @@ func rbacResourceValidator(r string, oo ...string) error {
 	switch rbac.ResourceType(r) {
 	case types.ChartResourceType:
 		return rbacChartResourceValidator(r, oo...)
-	case types.ModuleFieldResourceType:
-		return rbacModuleFieldResourceValidator(r, oo...)
 	case types.ModuleResourceType:
 		return rbacModuleResourceValidator(r, oo...)
+	case types.ModuleFieldResourceType:
+		return rbacModuleFieldResourceValidator(r, oo...)
 	case types.NamespaceResourceType:
 		return rbacNamespaceResourceValidator(r, oo...)
 	case types.PageResourceType:
@@ -555,11 +552,6 @@ func rbacResourceOperations(r string) map[string]bool {
 			"update": true,
 			"delete": true,
 		}
-	case types.ModuleFieldResourceType:
-		return map[string]bool{
-			"record.value.read":   true,
-			"record.value.update": true,
-		}
 	case types.ModuleResourceType:
 		return map[string]bool{
 			"read":           true,
@@ -567,6 +559,11 @@ func rbacResourceOperations(r string) map[string]bool {
 			"delete":         true,
 			"record.create":  true,
 			"records.search": true,
+		}
+	case types.ModuleFieldResourceType:
+		return map[string]bool{
+			"record.value.read":   true,
+			"record.value.update": true,
 		}
 	case types.NamespaceResourceType:
 		return map[string]bool{
@@ -607,29 +604,29 @@ func rbacResourceOperations(r string) map[string]bool {
 	return nil
 }
 
-// rbacChartResourceValidator checks validity of rbac resource and operations
+// rbacChartResourceValidator checks validity of RBAC resource and operations
 //
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
 func rbacChartResourceValidator(r string, oo ...string) error {
-	defOps := rbacResourceOperations(r)
-	for _, o := range oo {
-		if !defOps[o] {
-			return fmt.Errorf("invalid operation '%s' for compose Chart resource", o)
-		}
-	}
-
 	if !strings.HasPrefix(r, types.ChartResourceType) {
 		// expecting resource to always include path
 		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for chart resource", o)
+		}
 	}
 
 	const sep = "/"
 	var (
 		pp  = strings.Split(strings.Trim(r[len(types.ChartResourceType):], sep), sep)
 		prc = []string{
-			"namespaceID",
+			"NamespaceID",
 			"ID",
 		}
 	)
@@ -641,7 +638,7 @@ func rbacChartResourceValidator(r string, oo ...string) error {
 	for i := 0; i < len(pp); i++ {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid resource path wildcard level (%d) for Chart", i)
+				return fmt.Errorf("invalid path wildcard level (%d) for chart resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {
@@ -652,75 +649,29 @@ func rbacChartResourceValidator(r string, oo ...string) error {
 	return nil
 }
 
-// rbacModuleFieldResourceValidator checks validity of rbac resource and operations
-//
-// Can be called without operations to check for validity of resource string only
-//
-// This function is auto-generated
-func rbacModuleFieldResourceValidator(r string, oo ...string) error {
-	defOps := rbacResourceOperations(r)
-	for _, o := range oo {
-		if !defOps[o] {
-			return fmt.Errorf("invalid operation '%s' for compose ModuleField resource", o)
-		}
-	}
-
-	if !strings.HasPrefix(r, types.ModuleFieldResourceType) {
-		// expecting resource to always include path
-		return fmt.Errorf("invalid resource type")
-	}
-
-	const sep = "/"
-	var (
-		pp  = strings.Split(strings.Trim(r[len(types.ModuleFieldResourceType):], sep), sep)
-		prc = []string{
-			"namespaceID",
-			"moduleID",
-			"ID",
-		}
-	)
-
-	if len(pp) != len(prc) {
-		return fmt.Errorf("invalid resource path structure")
-	}
-
-	for i := 0; i < len(pp); i++ {
-		if pp[i] != "*" {
-			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid resource path wildcard level (%d) for ModuleField", i)
-			}
-
-			if _, err := cast.ToUint64E(pp[i]); err != nil {
-				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
-			}
-		}
-	}
-	return nil
-}
-
-// rbacModuleResourceValidator checks validity of rbac resource and operations
+// rbacModuleResourceValidator checks validity of RBAC resource and operations
 //
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
 func rbacModuleResourceValidator(r string, oo ...string) error {
-	defOps := rbacResourceOperations(r)
-	for _, o := range oo {
-		if !defOps[o] {
-			return fmt.Errorf("invalid operation '%s' for compose Module resource", o)
-		}
-	}
-
 	if !strings.HasPrefix(r, types.ModuleResourceType) {
 		// expecting resource to always include path
 		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for module resource", o)
+		}
 	}
 
 	const sep = "/"
 	var (
 		pp  = strings.Split(strings.Trim(r[len(types.ModuleResourceType):], sep), sep)
 		prc = []string{
-			"namespaceID",
+			"NamespaceID",
 			"ID",
 		}
 	)
@@ -732,7 +683,7 @@ func rbacModuleResourceValidator(r string, oo ...string) error {
 	for i := 0; i < len(pp); i++ {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid resource path wildcard level (%d) for Module", i)
+				return fmt.Errorf("invalid path wildcard level (%d) for module resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {
@@ -743,22 +694,68 @@ func rbacModuleResourceValidator(r string, oo ...string) error {
 	return nil
 }
 
-// rbacNamespaceResourceValidator checks validity of rbac resource and operations
+// rbacModuleFieldResourceValidator checks validity of RBAC resource and operations
+//
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacModuleFieldResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.ModuleFieldResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for moduleField resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.ModuleFieldResourceType):], sep), sep)
+		prc = []string{
+			"NamespaceID",
+			"ModuleID",
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for moduleField resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacNamespaceResourceValidator checks validity of RBAC resource and operations
 //
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
 func rbacNamespaceResourceValidator(r string, oo ...string) error {
-	defOps := rbacResourceOperations(r)
-	for _, o := range oo {
-		if !defOps[o] {
-			return fmt.Errorf("invalid operation '%s' for compose Namespace resource", o)
-		}
-	}
-
 	if !strings.HasPrefix(r, types.NamespaceResourceType) {
 		// expecting resource to always include path
 		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for namespace resource", o)
+		}
 	}
 
 	const sep = "/"
@@ -776,7 +773,7 @@ func rbacNamespaceResourceValidator(r string, oo ...string) error {
 	for i := 0; i < len(pp); i++ {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid resource path wildcard level (%d) for Namespace", i)
+				return fmt.Errorf("invalid path wildcard level (%d) for namespace resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {
@@ -787,29 +784,29 @@ func rbacNamespaceResourceValidator(r string, oo ...string) error {
 	return nil
 }
 
-// rbacPageResourceValidator checks validity of rbac resource and operations
+// rbacPageResourceValidator checks validity of RBAC resource and operations
 //
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
 func rbacPageResourceValidator(r string, oo ...string) error {
-	defOps := rbacResourceOperations(r)
-	for _, o := range oo {
-		if !defOps[o] {
-			return fmt.Errorf("invalid operation '%s' for compose Page resource", o)
-		}
-	}
-
 	if !strings.HasPrefix(r, types.PageResourceType) {
 		// expecting resource to always include path
 		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for page resource", o)
+		}
 	}
 
 	const sep = "/"
 	var (
 		pp  = strings.Split(strings.Trim(r[len(types.PageResourceType):], sep), sep)
 		prc = []string{
-			"namespaceID",
+			"NamespaceID",
 			"ID",
 		}
 	)
@@ -821,7 +818,7 @@ func rbacPageResourceValidator(r string, oo ...string) error {
 	for i := 0; i < len(pp); i++ {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid resource path wildcard level (%d) for Page", i)
+				return fmt.Errorf("invalid path wildcard level (%d) for page resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {
@@ -832,30 +829,30 @@ func rbacPageResourceValidator(r string, oo ...string) error {
 	return nil
 }
 
-// rbacRecordResourceValidator checks validity of rbac resource and operations
+// rbacRecordResourceValidator checks validity of RBAC resource and operations
 //
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
 func rbacRecordResourceValidator(r string, oo ...string) error {
-	defOps := rbacResourceOperations(r)
-	for _, o := range oo {
-		if !defOps[o] {
-			return fmt.Errorf("invalid operation '%s' for compose Record resource", o)
-		}
-	}
-
 	if !strings.HasPrefix(r, types.RecordResourceType) {
 		// expecting resource to always include path
 		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for record resource", o)
+		}
 	}
 
 	const sep = "/"
 	var (
 		pp  = strings.Split(strings.Trim(r[len(types.RecordResourceType):], sep), sep)
 		prc = []string{
-			"namespaceID",
-			"moduleID",
+			"NamespaceID",
+			"ModuleID",
 			"ID",
 		}
 	)
@@ -867,7 +864,7 @@ func rbacRecordResourceValidator(r string, oo ...string) error {
 	for i := 0; i < len(pp); i++ {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid resource path wildcard level (%d) for Record", i)
+				return fmt.Errorf("invalid path wildcard level (%d) for record resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {
@@ -878,22 +875,22 @@ func rbacRecordResourceValidator(r string, oo ...string) error {
 	return nil
 }
 
-// rbacComponentResourceValidator checks validity of rbac resource and operations
+// rbacComponentResourceValidator checks validity of RBAC resource and operations
 //
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
 func rbacComponentResourceValidator(r string, oo ...string) error {
-	defOps := rbacResourceOperations(r)
-	for _, o := range oo {
-		if !defOps[o] {
-			return fmt.Errorf("invalid operation '%s' for compose resource", o)
-		}
-	}
-
 	if !strings.HasPrefix(r, types.ComponentResourceType) {
 		// expecting resource to always include path
 		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for compose component resource", o)
+		}
 	}
 
 	return nil

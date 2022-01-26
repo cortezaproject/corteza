@@ -6,11 +6,6 @@ package service
 // the code is regenerated.
 //
 
-// Definitions file that controls how this file is generated:
-// - compose.module.yaml
-// - compose.namespace.yaml
-// - compose.page.yaml
-
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -41,9 +36,9 @@ type (
 	}
 
 	ResourceTranslationsManagerService interface {
-		Module(ctx context.Context, namespaceID uint64, ID uint64) (locale.ResourceTranslationSet, error)
+		Module(ctx context.Context, NamespaceID uint64, ID uint64) (locale.ResourceTranslationSet, error)
 		Namespace(ctx context.Context, ID uint64) (locale.ResourceTranslationSet, error)
-		Page(ctx context.Context, namespaceID uint64, ID uint64) (locale.ResourceTranslationSet, error)
+		Page(ctx context.Context, NamespaceID uint64, ID uint64) (locale.ResourceTranslationSet, error)
 
 		Upsert(context.Context, locale.ResourceTranslationSet) error
 		Locale() locale.Resource
@@ -108,7 +103,7 @@ func (svc resourceTranslationsManager) Upsert(ctx context.Context, rr locale.Res
 		sysLocale = append(sysLocale, aux...)
 
 		aux = current.Old(rr)
-		aux.Walk(func(cc *systemTypes.ResourceTranslation) error {
+		_ = aux.Walk(func(cc *systemTypes.ResourceTranslation) error {
 			cc.UpdatedAt = now()
 			cc.UpdatedBy = me.Identity()
 			return nil
@@ -132,7 +127,7 @@ func (svc resourceTranslationsManager) Locale() locale.Resource {
 	return svc.locale
 }
 
-func (svc resourceTranslationsManager) Module(ctx context.Context, namespaceID uint64, ID uint64) (locale.ResourceTranslationSet, error) {
+func (svc resourceTranslationsManager) Module(ctx context.Context, NamespaceID uint64, ID uint64) (locale.ResourceTranslationSet, error) {
 	var (
 		err error
 		out locale.ResourceTranslationSet
@@ -140,7 +135,7 @@ func (svc resourceTranslationsManager) Module(ctx context.Context, namespaceID u
 		k   types.LocaleKey
 	)
 
-	res, err = svc.loadModule(ctx, svc.store, namespaceID, ID)
+	res, err = svc.loadModule(ctx, svc.store, NamespaceID, ID)
 	if err != nil {
 		return nil, err
 	}
@@ -156,8 +151,7 @@ func (svc resourceTranslationsManager) Module(ctx context.Context, namespaceID u
 
 	}
 
-	tmp, err := svc.moduleExtended(ctx, res)
-	return append(out, tmp...), err
+	return out, nil
 }
 
 func (svc resourceTranslationsManager) Namespace(ctx context.Context, ID uint64) (locale.ResourceTranslationSet, error) {
@@ -182,7 +176,7 @@ func (svc resourceTranslationsManager) Namespace(ctx context.Context, ID uint64)
 			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), k.Path),
 		})
 
-		k = types.LocaleKeyNamespaceSubtitle
+		k = types.LocaleKeyNamespaceMetaSubtitle
 		out = append(out, &locale.ResourceTranslation{
 			Resource: res.ResourceTranslation(),
 			Lang:     tag.String(),
@@ -190,7 +184,7 @@ func (svc resourceTranslationsManager) Namespace(ctx context.Context, ID uint64)
 			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), k.Path),
 		})
 
-		k = types.LocaleKeyNamespaceDescription
+		k = types.LocaleKeyNamespaceMetaDescription
 		out = append(out, &locale.ResourceTranslation{
 			Resource: res.ResourceTranslation(),
 			Lang:     tag.String(),
@@ -199,10 +193,11 @@ func (svc resourceTranslationsManager) Namespace(ctx context.Context, ID uint64)
 		})
 
 	}
+
 	return out, nil
 }
 
-func (svc resourceTranslationsManager) Page(ctx context.Context, namespaceID uint64, ID uint64) (locale.ResourceTranslationSet, error) {
+func (svc resourceTranslationsManager) Page(ctx context.Context, NamespaceID uint64, ID uint64) (locale.ResourceTranslationSet, error) {
 	var (
 		err error
 		out locale.ResourceTranslationSet
@@ -210,7 +205,7 @@ func (svc resourceTranslationsManager) Page(ctx context.Context, namespaceID uin
 		k   types.LocaleKey
 	)
 
-	res, err = svc.loadPage(ctx, svc.store, namespaceID, ID)
+	res, err = svc.loadPage(ctx, svc.store, NamespaceID, ID)
 	if err != nil {
 		return nil, err
 	}

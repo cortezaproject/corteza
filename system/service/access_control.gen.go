@@ -6,17 +6,6 @@ package service
 // the code is regenerated.
 //
 
-// Definitions file that controls how this file is generated:
-// - system.apigw-route.yaml
-// - system.application.yaml
-// - system.auth-client.yaml
-// - system.queue.yaml
-// - system.report.yaml
-// - system.role.yaml
-// - system.template.yaml
-// - system.user.yaml
-// - system.yaml
-
 import (
 	"context"
 	"fmt"
@@ -114,6 +103,11 @@ func (svc accessControl) List() (out []map[string]string) {
 			"type": types.AuthClientResourceType,
 			"any":  types.AuthClientRbacResource(0),
 			"op":   "authorize",
+		},
+		{
+			"type": types.QueueResourceType,
+			"any":  types.QueueRbacResource(0),
+			"op":   "render",
 		},
 		{
 			"type": types.QueueResourceType,
@@ -503,6 +497,13 @@ func (svc accessControl) CanAuthorizeAuthClient(ctx context.Context, r *types.Au
 	return svc.can(ctx, "authorize", r)
 }
 
+// CanRenderQueue checks if current user can render template
+//
+// This function is auto-generated
+func (svc accessControl) CanRenderQueue(ctx context.Context, r *types.Queue) bool {
+	return svc.can(ctx, "render", r)
+}
+
 // CanReadQueue checks if current user can read queue
 //
 // This function is auto-generated
@@ -643,7 +644,7 @@ func (svc accessControl) CanDeleteUser(ctx context.Context, r *types.User) bool 
 	return svc.can(ctx, "delete", r)
 }
 
-// CanSuspendUser checks if current user can suspemd user
+// CanSuspendUser checks if current user can suspend user
 //
 // This function is auto-generated
 func (svc accessControl) CanSuspendUser(ctx context.Context, r *types.User) bool {
@@ -682,168 +683,192 @@ func (svc accessControl) CanImpersonateUser(ctx context.Context, r *types.User) 
 //
 // This function is auto-generated
 func (svc accessControl) CanGrant(ctx context.Context) bool {
-	return svc.can(ctx, "grant", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "grant", r)
 }
 
 // CanReadActionLog checks if current user can access to action log
 //
 // This function is auto-generated
 func (svc accessControl) CanReadActionLog(ctx context.Context) bool {
-	return svc.can(ctx, "action-log.read", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "action-log.read", r)
 }
 
 // CanReadSettings checks if current user can read system settings
 //
 // This function is auto-generated
 func (svc accessControl) CanReadSettings(ctx context.Context) bool {
-	return svc.can(ctx, "settings.read", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "settings.read", r)
 }
 
 // CanManageSettings checks if current user can manage system settings
 //
 // This function is auto-generated
 func (svc accessControl) CanManageSettings(ctx context.Context) bool {
-	return svc.can(ctx, "settings.manage", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "settings.manage", r)
 }
 
 // CanCreateAuthClient checks if current user can create auth clients
 //
 // This function is auto-generated
 func (svc accessControl) CanCreateAuthClient(ctx context.Context) bool {
-	return svc.can(ctx, "auth-client.create", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "auth-client.create", r)
 }
 
 // CanSearchAuthClients checks if current user can list, search or filter auth clients
 //
 // This function is auto-generated
 func (svc accessControl) CanSearchAuthClients(ctx context.Context) bool {
-	return svc.can(ctx, "auth-clients.search", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "auth-clients.search", r)
 }
 
 // CanCreateRole checks if current user can create roles
 //
 // This function is auto-generated
 func (svc accessControl) CanCreateRole(ctx context.Context) bool {
-	return svc.can(ctx, "role.create", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "role.create", r)
 }
 
 // CanSearchRoles checks if current user can list, search or filter roles
 //
 // This function is auto-generated
 func (svc accessControl) CanSearchRoles(ctx context.Context) bool {
-	return svc.can(ctx, "roles.search", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "roles.search", r)
 }
 
 // CanCreateUser checks if current user can create users
 //
 // This function is auto-generated
 func (svc accessControl) CanCreateUser(ctx context.Context) bool {
-	return svc.can(ctx, "user.create", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "user.create", r)
 }
 
 // CanSearchUsers checks if current user can list, search or filter users
 //
 // This function is auto-generated
 func (svc accessControl) CanSearchUsers(ctx context.Context) bool {
-	return svc.can(ctx, "users.search", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "users.search", r)
 }
 
 // CanCreateApplication checks if current user can create applications
 //
 // This function is auto-generated
 func (svc accessControl) CanCreateApplication(ctx context.Context) bool {
-	return svc.can(ctx, "application.create", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "application.create", r)
 }
 
 // CanSearchApplications checks if current user can list, search or filter auth clients
 //
 // This function is auto-generated
 func (svc accessControl) CanSearchApplications(ctx context.Context) bool {
-	return svc.can(ctx, "applications.search", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "applications.search", r)
 }
 
 // CanSelfApplicationFlag checks if current user can manage private flags for applications
 //
 // This function is auto-generated
 func (svc accessControl) CanSelfApplicationFlag(ctx context.Context) bool {
-	return svc.can(ctx, "application.flag.self", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "application.flag.self", r)
 }
 
 // CanGlobalApplicationFlag checks if current user can manage global flags for applications
 //
 // This function is auto-generated
 func (svc accessControl) CanGlobalApplicationFlag(ctx context.Context) bool {
-	return svc.can(ctx, "application.flag.global", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "application.flag.global", r)
 }
 
 // CanCreateTemplate checks if current user can create template
 //
 // This function is auto-generated
 func (svc accessControl) CanCreateTemplate(ctx context.Context) bool {
-	return svc.can(ctx, "template.create", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "template.create", r)
 }
 
 // CanSearchTemplates checks if current user can list, search or filter templates
 //
 // This function is auto-generated
 func (svc accessControl) CanSearchTemplates(ctx context.Context) bool {
-	return svc.can(ctx, "templates.search", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "templates.search", r)
 }
 
 // CanCreateReport checks if current user can create report
 //
 // This function is auto-generated
 func (svc accessControl) CanCreateReport(ctx context.Context) bool {
-	return svc.can(ctx, "report.create", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "report.create", r)
 }
 
 // CanSearchReports checks if current user can list, search or filter reports
 //
 // This function is auto-generated
 func (svc accessControl) CanSearchReports(ctx context.Context) bool {
-	return svc.can(ctx, "reports.search", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "reports.search", r)
 }
 
-// CanAssignReminder checks if current user can assign reminders
+// CanAssignReminder checks if current user can  assign reminders
 //
 // This function is auto-generated
 func (svc accessControl) CanAssignReminder(ctx context.Context) bool {
-	return svc.can(ctx, "reminder.assign", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "reminder.assign", r)
 }
 
 // CanCreateQueue checks if current user can create messagebus queues
 //
 // This function is auto-generated
 func (svc accessControl) CanCreateQueue(ctx context.Context) bool {
-	return svc.can(ctx, "queue.create", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "queue.create", r)
 }
 
 // CanSearchQueues checks if current user can list, search or filter messagebus queues
 //
 // This function is auto-generated
 func (svc accessControl) CanSearchQueues(ctx context.Context) bool {
-	return svc.can(ctx, "queues.search", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "queues.search", r)
 }
 
 // CanCreateApigwRoute checks if current user can create api gateway route
 //
 // This function is auto-generated
 func (svc accessControl) CanCreateApigwRoute(ctx context.Context) bool {
-	return svc.can(ctx, "apigw-route.create", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "apigw-route.create", r)
 }
 
 // CanSearchApigwRoutes checks if current user can list search or filter api gateway routes
 //
 // This function is auto-generated
 func (svc accessControl) CanSearchApigwRoutes(ctx context.Context) bool {
-	return svc.can(ctx, "apigw-routes.search", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "apigw-routes.search", r)
 }
 
 // CanManageResourceTranslations checks if current user can list, search, create, or update resource translations
 //
 // This function is auto-generated
 func (svc accessControl) CanManageResourceTranslations(ctx context.Context) bool {
-	return svc.can(ctx, "resource-translations.manage", &types.Component{})
+	r := &types.Component{}
+	return svc.can(ctx, "resource-translations.manage", r)
 }
 
 // rbacResourceValidator validates known component's resource by routing it to the appropriate validator
@@ -900,6 +925,7 @@ func rbacResourceOperations(r string) map[string]bool {
 		}
 	case types.QueueResourceType:
 		return map[string]bool{
+			"render":      true,
 			"read":        true,
 			"update":      true,
 			"delete":      true,
@@ -970,22 +996,22 @@ func rbacResourceOperations(r string) map[string]bool {
 	return nil
 }
 
-// rbacApigwRouteResourceValidator checks validity of rbac resource and operations
+// rbacApigwRouteResourceValidator checks validity of RBAC resource and operations
 //
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
 func rbacApigwRouteResourceValidator(r string, oo ...string) error {
-	defOps := rbacResourceOperations(r)
-	for _, o := range oo {
-		if !defOps[o] {
-			return fmt.Errorf("invalid operation '%s' for system ApigwRoute resource", o)
-		}
-	}
-
 	if !strings.HasPrefix(r, types.ApigwRouteResourceType) {
 		// expecting resource to always include path
 		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for apigwRoute resource", o)
+		}
 	}
 
 	const sep = "/"
@@ -1003,7 +1029,7 @@ func rbacApigwRouteResourceValidator(r string, oo ...string) error {
 	for i := 0; i < len(pp); i++ {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid resource path wildcard level (%d) for ApigwRoute", i)
+				return fmt.Errorf("invalid path wildcard level (%d) for apigwRoute resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {
@@ -1014,22 +1040,22 @@ func rbacApigwRouteResourceValidator(r string, oo ...string) error {
 	return nil
 }
 
-// rbacApplicationResourceValidator checks validity of rbac resource and operations
+// rbacApplicationResourceValidator checks validity of RBAC resource and operations
 //
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
 func rbacApplicationResourceValidator(r string, oo ...string) error {
-	defOps := rbacResourceOperations(r)
-	for _, o := range oo {
-		if !defOps[o] {
-			return fmt.Errorf("invalid operation '%s' for system Application resource", o)
-		}
-	}
-
 	if !strings.HasPrefix(r, types.ApplicationResourceType) {
 		// expecting resource to always include path
 		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for application resource", o)
+		}
 	}
 
 	const sep = "/"
@@ -1047,7 +1073,7 @@ func rbacApplicationResourceValidator(r string, oo ...string) error {
 	for i := 0; i < len(pp); i++ {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid resource path wildcard level (%d) for Application", i)
+				return fmt.Errorf("invalid path wildcard level (%d) for application resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {
@@ -1058,22 +1084,22 @@ func rbacApplicationResourceValidator(r string, oo ...string) error {
 	return nil
 }
 
-// rbacAuthClientResourceValidator checks validity of rbac resource and operations
+// rbacAuthClientResourceValidator checks validity of RBAC resource and operations
 //
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
 func rbacAuthClientResourceValidator(r string, oo ...string) error {
-	defOps := rbacResourceOperations(r)
-	for _, o := range oo {
-		if !defOps[o] {
-			return fmt.Errorf("invalid operation '%s' for system AuthClient resource", o)
-		}
-	}
-
 	if !strings.HasPrefix(r, types.AuthClientResourceType) {
 		// expecting resource to always include path
 		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for authClient resource", o)
+		}
 	}
 
 	const sep = "/"
@@ -1091,7 +1117,7 @@ func rbacAuthClientResourceValidator(r string, oo ...string) error {
 	for i := 0; i < len(pp); i++ {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid resource path wildcard level (%d) for AuthClient", i)
+				return fmt.Errorf("invalid path wildcard level (%d) for authClient resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {
@@ -1102,22 +1128,22 @@ func rbacAuthClientResourceValidator(r string, oo ...string) error {
 	return nil
 }
 
-// rbacQueueResourceValidator checks validity of rbac resource and operations
+// rbacQueueResourceValidator checks validity of RBAC resource and operations
 //
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
 func rbacQueueResourceValidator(r string, oo ...string) error {
-	defOps := rbacResourceOperations(r)
-	for _, o := range oo {
-		if !defOps[o] {
-			return fmt.Errorf("invalid operation '%s' for system Queue resource", o)
-		}
-	}
-
 	if !strings.HasPrefix(r, types.QueueResourceType) {
 		// expecting resource to always include path
 		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for queue resource", o)
+		}
 	}
 
 	const sep = "/"
@@ -1135,7 +1161,7 @@ func rbacQueueResourceValidator(r string, oo ...string) error {
 	for i := 0; i < len(pp); i++ {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid resource path wildcard level (%d) for Queue", i)
+				return fmt.Errorf("invalid path wildcard level (%d) for queue resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {
@@ -1146,22 +1172,22 @@ func rbacQueueResourceValidator(r string, oo ...string) error {
 	return nil
 }
 
-// rbacReportResourceValidator checks validity of rbac resource and operations
+// rbacReportResourceValidator checks validity of RBAC resource and operations
 //
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
 func rbacReportResourceValidator(r string, oo ...string) error {
-	defOps := rbacResourceOperations(r)
-	for _, o := range oo {
-		if !defOps[o] {
-			return fmt.Errorf("invalid operation '%s' for system Report resource", o)
-		}
-	}
-
 	if !strings.HasPrefix(r, types.ReportResourceType) {
 		// expecting resource to always include path
 		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for report resource", o)
+		}
 	}
 
 	const sep = "/"
@@ -1179,7 +1205,7 @@ func rbacReportResourceValidator(r string, oo ...string) error {
 	for i := 0; i < len(pp); i++ {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid resource path wildcard level (%d) for Report", i)
+				return fmt.Errorf("invalid path wildcard level (%d) for report resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {
@@ -1190,22 +1216,22 @@ func rbacReportResourceValidator(r string, oo ...string) error {
 	return nil
 }
 
-// rbacRoleResourceValidator checks validity of rbac resource and operations
+// rbacRoleResourceValidator checks validity of RBAC resource and operations
 //
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
 func rbacRoleResourceValidator(r string, oo ...string) error {
-	defOps := rbacResourceOperations(r)
-	for _, o := range oo {
-		if !defOps[o] {
-			return fmt.Errorf("invalid operation '%s' for system Role resource", o)
-		}
-	}
-
 	if !strings.HasPrefix(r, types.RoleResourceType) {
 		// expecting resource to always include path
 		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for role resource", o)
+		}
 	}
 
 	const sep = "/"
@@ -1223,7 +1249,7 @@ func rbacRoleResourceValidator(r string, oo ...string) error {
 	for i := 0; i < len(pp); i++ {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid resource path wildcard level (%d) for Role", i)
+				return fmt.Errorf("invalid path wildcard level (%d) for role resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {
@@ -1234,22 +1260,22 @@ func rbacRoleResourceValidator(r string, oo ...string) error {
 	return nil
 }
 
-// rbacTemplateResourceValidator checks validity of rbac resource and operations
+// rbacTemplateResourceValidator checks validity of RBAC resource and operations
 //
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
 func rbacTemplateResourceValidator(r string, oo ...string) error {
-	defOps := rbacResourceOperations(r)
-	for _, o := range oo {
-		if !defOps[o] {
-			return fmt.Errorf("invalid operation '%s' for system Template resource", o)
-		}
-	}
-
 	if !strings.HasPrefix(r, types.TemplateResourceType) {
 		// expecting resource to always include path
 		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for template resource", o)
+		}
 	}
 
 	const sep = "/"
@@ -1267,7 +1293,7 @@ func rbacTemplateResourceValidator(r string, oo ...string) error {
 	for i := 0; i < len(pp); i++ {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid resource path wildcard level (%d) for Template", i)
+				return fmt.Errorf("invalid path wildcard level (%d) for template resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {
@@ -1278,22 +1304,22 @@ func rbacTemplateResourceValidator(r string, oo ...string) error {
 	return nil
 }
 
-// rbacUserResourceValidator checks validity of rbac resource and operations
+// rbacUserResourceValidator checks validity of RBAC resource and operations
 //
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
 func rbacUserResourceValidator(r string, oo ...string) error {
-	defOps := rbacResourceOperations(r)
-	for _, o := range oo {
-		if !defOps[o] {
-			return fmt.Errorf("invalid operation '%s' for system User resource", o)
-		}
-	}
-
 	if !strings.HasPrefix(r, types.UserResourceType) {
 		// expecting resource to always include path
 		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for user resource", o)
+		}
 	}
 
 	const sep = "/"
@@ -1311,7 +1337,7 @@ func rbacUserResourceValidator(r string, oo ...string) error {
 	for i := 0; i < len(pp); i++ {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid resource path wildcard level (%d) for User", i)
+				return fmt.Errorf("invalid path wildcard level (%d) for user resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {
@@ -1322,22 +1348,22 @@ func rbacUserResourceValidator(r string, oo ...string) error {
 	return nil
 }
 
-// rbacComponentResourceValidator checks validity of rbac resource and operations
+// rbacComponentResourceValidator checks validity of RBAC resource and operations
 //
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
 func rbacComponentResourceValidator(r string, oo ...string) error {
-	defOps := rbacResourceOperations(r)
-	for _, o := range oo {
-		if !defOps[o] {
-			return fmt.Errorf("invalid operation '%s' for system resource", o)
-		}
-	}
-
 	if !strings.HasPrefix(r, types.ComponentResourceType) {
 		// expecting resource to always include path
 		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for system component resource", o)
+		}
 	}
 
 	return nil
