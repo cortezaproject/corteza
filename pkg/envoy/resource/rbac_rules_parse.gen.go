@@ -8,7 +8,9 @@ package resource
 
 import (
 	"fmt"
+	automationTypes "github.com/cortezaproject/corteza-server/automation/types"
 	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
+	federationTypes "github.com/cortezaproject/corteza-server/federation/types"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 	"strings"
 )
@@ -178,6 +180,44 @@ func ParseRule(res string) (string, *Ref, []*Ref, error) {
 		)
 		return resourceType, ref, pp, err
 
+	case automationTypes.WorkflowResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := AutomationWorkflowRbacReferences(
+			path[0],
+		)
+		return resourceType, ref, pp, err
+
+	case federationTypes.NodeResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := FederationNodeRbacReferences(
+			path[0],
+		)
+		return resourceType, ref, pp, err
+
+	case federationTypes.ExposedModuleResourceType:
+		if len(path) != 2 {
+			return "", nil, nil, fmt.Errorf("expecting 2 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := FederationExposedModuleRbacReferences(
+			path[0],
+			path[1],
+		)
+		return resourceType, ref, pp, err
+
+	case federationTypes.SharedModuleResourceType:
+		if len(path) != 2 {
+			return "", nil, nil, fmt.Errorf("expecting 2 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := FederationSharedModuleRbacReferences(
+			path[0],
+			path[1],
+		)
+		return resourceType, ref, pp, err
+
 	case systemTypes.ComponentResourceType:
 		if len(path) != 0 {
 			return "", nil, nil, fmt.Errorf("expecting 0 reference components in path, got %d", len(path))
@@ -186,6 +226,20 @@ func ParseRule(res string) (string, *Ref, []*Ref, error) {
 		// Component resource, no path
 		return resourceType, nil, nil, nil
 	case composeTypes.ComponentResourceType:
+		if len(path) != 0 {
+			return "", nil, nil, fmt.Errorf("expecting 0 reference components in path, got %d", len(path))
+		}
+
+		// Component resource, no path
+		return resourceType, nil, nil, nil
+	case automationTypes.ComponentResourceType:
+		if len(path) != 0 {
+			return "", nil, nil, fmt.Errorf("expecting 0 reference components in path, got %d", len(path))
+		}
+
+		// Component resource, no path
+		return resourceType, nil, nil, nil
+	case federationTypes.ComponentResourceType:
 		if len(path) != 0 {
 			return "", nil, nil, fmt.Errorf("expecting 0 reference components in path, got %d", len(path))
 		}
