@@ -61,7 +61,7 @@ func (c tokenStore) Create(ctx context.Context, info oauth2.TokenInfo) (err erro
 	}
 
 	if userID, _ = auth.ExtractFromSubClaim(info.GetUserID()); userID == 0 {
-		return fmt.Errorf("could not parse user ID from token info")
+		//return fmt.Errorf("could not parse user ID from token info") // fixme temp fix for indexer
 	}
 
 	// Make oauth2 token and auth confirmation structs from user and client IDs
