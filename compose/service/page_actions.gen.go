@@ -742,6 +742,74 @@ func PageErrInvalidNamespaceID(mm ...*pageActionProps) *errors.Error {
 	return e
 }
 
+// PageErrDeleteAbortedForPageWithSubpages returns "compose:page.deleteAbortedForPageWithSubpages" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func PageErrDeleteAbortedForPageWithSubpages(mm ...*pageActionProps) *errors.Error {
+	var p = &pageActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("removal of page with subpages aborted", nil),
+
+		errors.Meta("type", "deleteAbortedForPageWithSubpages"),
+		errors.Meta("resource", "compose:page"),
+
+		errors.Meta(pagePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page.errors.deleteAbortedForPageWithSubpages"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// PageErrUnknownDeleteStrategy returns "compose:page.unknownDeleteStrategy" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func PageErrUnknownDeleteStrategy(mm ...*pageActionProps) *errors.Error {
+	var p = &pageActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("unknown delete strategy", nil),
+
+		errors.Meta("type", "unknownDeleteStrategy"),
+		errors.Meta("resource", "compose:page"),
+
+		errors.Meta(pagePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page.errors.unknownDeleteStrategy"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // PageErrNotAllowedToRead returns "compose:page.notAllowedToRead" as *errors.Error
 //
 //

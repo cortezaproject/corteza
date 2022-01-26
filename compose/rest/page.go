@@ -40,7 +40,7 @@ type (
 
 			Create(ctx context.Context, page *types.Page) (*types.Page, error)
 			Update(ctx context.Context, page *types.Page) (*types.Page, error)
-			DeleteByID(ctx context.Context, namespaceID, pageID uint64) error
+			DeleteByID(ctx context.Context, namespaceID, pageID uint64, pds types.PageChildrenDeleteStrategy) error
 
 			Reorder(ctx context.Context, namespaceID, selfID uint64, pageIDs []uint64) error
 		}
@@ -169,7 +169,18 @@ func (ctrl *Page) Update(ctx context.Context, r *request.PageUpdate) (interface{
 }
 
 func (ctrl *Page) Delete(ctx context.Context, r *request.PageDelete) (interface{}, error) {
-	return api.OK(), ctrl.page.DeleteByID(ctx, r.NamespaceID, r.PageID)
+	var strategy types.PageChildrenDeleteStrategy
+
+	switch aux := types.PageChildrenDeleteStrategy(r.Strategy); aux {
+	case types.PageChildrenOnDeleteForce,
+		types.PageChildrenOnDeleteRebase,
+		types.PageChildrenOnDeleteCascade:
+		strategy = aux
+	default:
+		strategy = types.PageChildrenOnDeleteAbort
+	}
+
+	return api.OK(), ctrl.page.DeleteByID(ctx, r.NamespaceID, r.PageID, strategy)
 }
 
 func (ctrl *Page) Upload(ctx context.Context, r *request.PageUpload) (interface{}, error) {

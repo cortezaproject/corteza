@@ -417,14 +417,13 @@ endpoints:
         title: Page ID order
   - name: delete
     path: "/{pageID}"
-    method: Delete
+    method: DELETE
     title: Delete page
     parameters:
       path:
-      - type: uint64
-        name: pageID
-        required: true
-        title: Page ID
+      - { type: uint64, name: pageID, required: true, title: Page ID }
+      get:
+      - { type: string, name: strategy, title: "Page delete strategy (abort, force, rebase, cascade)" }
   - name: upload
     path: "/{pageID}/attachment"
     method: POST
