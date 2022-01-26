@@ -62,6 +62,9 @@ type (
 		Created  *docPartialChange `json:"created,omitempty"`
 		Deleted  *docPartialChange `json:"deleted,omitempty"`
 		Security docSecurity       `json:"security"`
+
+		// Aggregation update
+		Namespace docPartialComposeNamespace `json:"namespace"`
 	}
 
 	docPartialComposeNamespaceMeta struct {
@@ -83,11 +86,14 @@ type (
 		Url          string                          `json:"url,omitempty"`
 		Labels       map[string]string               `json:"labels,omitempty"`
 		Fields       []*docPartialComposeModuleField `json:"fields"`
-		Namespace    docPartialComposeNamespace      `json:"namespace"`
 		Updated      *docPartialChange               `json:"updated,omitempty"`
 		Created      *docPartialChange               `json:"created,omitempty"`
 		Deleted      *docPartialChange               `json:"deleted,omitempty"`
 		Security     docSecurity                     `json:"security"`
+
+		// Aggregation update
+		Namespace docPartialComposeNamespace `json:"namespace"`
+		Module    docPartialComposeModule    `json:"module"`
 	}
 
 	docPartialComposeModuleField struct {
@@ -102,18 +108,20 @@ type (
 	}
 
 	docComposeRecord struct {
-		ResourceType string                     `json:"resourceType"`
-		RecordID     uint64                     `json:"recordID,string"`
-		Url          string                     `json:"url,omitempty"`
-		Namespace    docPartialComposeNamespace `json:"namespace"`
-		Module       docPartialComposeModule    `json:"module"`
-		Labels       map[string]string          `json:"labels,omitempty"`
-		ValueLabels  map[string]string          `json:"valueLabels,omitempty"`
-		Values       map[string][]interface{}   `json:"values"`
-		Updated      *docPartialChange          `json:"updated,omitempty"`
-		Created      *docPartialChange          `json:"created,omitempty"`
-		Deleted      *docPartialChange          `json:"deleted,omitempty"`
-		Security     docSecurity                `json:"security"`
+		ResourceType string                   `json:"resourceType"`
+		RecordID     uint64                   `json:"recordID,string"`
+		Url          string                   `json:"url,omitempty"`
+		Labels       map[string]string        `json:"labels,omitempty"`
+		ValueLabels  map[string]string        `json:"valueLabels,omitempty"`
+		Values       map[string][]interface{} `json:"values"`
+		Updated      *docPartialChange        `json:"updated,omitempty"`
+		Created      *docPartialChange        `json:"created,omitempty"`
+		Deleted      *docPartialChange        `json:"deleted,omitempty"`
+		Security     docSecurity              `json:"security"`
+
+		// Aggregation update
+		Namespace docPartialComposeNamespace `json:"namespace"`
+		Module    docPartialComposeModule    `json:"module"`
 	}
 
 	docSecurity struct {

@@ -62,6 +62,15 @@ func (m composeMapping) Namespaces(ctx context.Context) ([]*Mapping, error) {
 			"deleted": change(),
 
 			"security": security(),
+
+			"namespace": &property{
+				Type: "nested",
+				Properties: map[string]*property{
+					"namespaceID": &property{Type: "unsigned_long"},
+					"name":        &property{Type: "text"},
+					"handle":      &property{Type: "keyword"},
+				},
+			},
 		},
 	}}, nil
 }
@@ -90,6 +99,23 @@ func (m composeMapping) Modules(ctx context.Context) ([]*Mapping, error) {
 				Properties: map[string]*property{
 					"name":  {Type: "keyword"},
 					"label": {Type: "text"},
+				},
+			},
+
+			"namespace": &property{
+				Type: "nested",
+				Properties: map[string]*property{
+					"namespaceID": &property{Type: "unsigned_long"},
+					"name":        &property{Type: "text"},
+					"handle":      &property{Type: "keyword"},
+				},
+			},
+			"module": &property{
+				Type: "nested",
+				Properties: map[string]*property{
+					"moduleID": &property{Type: "unsigned_long"},
+					"name":     &property{Type: "text"},
+					"handle":   &property{Type: "keyword"},
 				},
 			},
 		},

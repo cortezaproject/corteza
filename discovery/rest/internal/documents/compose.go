@@ -154,6 +154,12 @@ func (d composeResources) Namespaces(ctx context.Context, limit uint, cur string
 				Created: makePartialChange(&ns.CreatedAt),
 				Updated: makePartialChange(ns.UpdatedAt),
 				Deleted: makePartialChange(ns.DeletedAt),
+
+				Namespace: docPartialComposeNamespace{
+					NamespaceID: nsID,
+					Name:        ns.Name,
+					Handle:      nsSlug,
+				},
 			}
 
 			doc.Security.AllowedRoles, doc.Security.DeniedRoles = d.rbac.SignificantRoles(ns, "read")
@@ -216,7 +222,6 @@ func (d composeResources) Modules(ctx context.Context, namespaceID uint64, limit
 				ModuleID:     mod.ID,
 				Name:         mod.Name,
 				Handle:       mod.Handle,
-				Namespace:    nsPartial,
 				Fields: func() []*docPartialComposeModuleField {
 					out := make([]*docPartialComposeModuleField, len(mod.Fields))
 					for i, f := range mod.Fields {
@@ -231,6 +236,13 @@ func (d composeResources) Modules(ctx context.Context, namespaceID uint64, limit
 				Created: makePartialChange(&mod.CreatedAt),
 				Updated: makePartialChange(mod.UpdatedAt),
 				Deleted: makePartialChange(mod.DeletedAt),
+
+				Namespace: nsPartial,
+				Module: docPartialComposeModule{
+					ModuleID: mod.ID,
+					Name:     mod.Name,
+					Handle:   mod.Handle,
+				},
 			}
 
 			doc.Security.AllowedRoles, doc.Security.DeniedRoles = d.rbac.SignificantRoles(mod, "read")
