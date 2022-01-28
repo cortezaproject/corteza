@@ -7,12 +7,12 @@ import (
 )
 
 type (
-	fn struct {
+	Fn struct {
 		f goja.Callable
 	}
 )
 
-func (f fn) Exec(i ...goja.Value) (interface{}, error) {
+func (f Fn) Exec(i ...goja.Value) (interface{}, error) {
 	ret, err := f.f(goja.Undefined(), i...)
 
 	if err != nil {

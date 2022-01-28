@@ -10,8 +10,7 @@ functions:
         required: true
         types:
           - { wf: Any }
-          - { wf: String, suffix: String }
-          - { wf: Reader, suffix: Stream }
+          - { wf: Reader,  suffix: Stream }
       source:
         required: true
         types:
@@ -21,5 +20,7 @@ functions:
         wf: String
       resultInt:
         wf: Integer
+      resultBool:
+        wf: Boolean
       resultAny:
         wf: Any

@@ -36,7 +36,6 @@ type (
 		hasScope    bool
 		Scope       interface{}
 		scopeAny    interface{}
-		scopeString string
 		scopeStream io.Reader
 
 		hasSource bool
@@ -46,12 +45,13 @@ type (
 	jsenvExecuteResults struct {
 		ResultString string
 		ResultInt    int64
+		ResultBool   bool
 		ResultAny    interface{}
 	}
 )
 
-func (a jsenvExecuteArgs) GetScope() (bool, interface{}, string, io.Reader) {
-	return a.hasScope, a.scopeAny, a.scopeString, a.scopeStream
+func (a jsenvExecuteArgs) GetScope() (bool, interface{}, io.Reader) {
+	return a.hasScope, a.scopeAny, a.scopeStream
 }
 
 // Execute function Process arbitrary data in jsenv
@@ -72,7 +72,7 @@ func (h jsenvHandler) Execute() *atypes.Function {
 		Parameters: []*atypes.Param{
 			{
 				Name:  "scope",
-				Types: []string{"Any", "String", "Reader"}, Required: true,
+				Types: []string{"Any", "Reader"}, Required: true,
 			},
 			{
 				Name:  "source",
@@ -90,6 +90,11 @@ func (h jsenvHandler) Execute() *atypes.Function {
 			{
 				Name:  "resultInt",
 				Types: []string{"Integer"},
+			},
+
+			{
+				Name:  "resultBool",
+				Types: []string{"Boolean"},
 			},
 
 			{
@@ -116,8 +121,6 @@ func (h jsenvHandler) Execute() *atypes.Function {
 				switch aux.Type() {
 				case h.reg.Type("Any").Type():
 					args.scopeAny = aux.Get().(interface{})
-				case h.reg.Type("String").Type():
-					args.scopeString = aux.Get().(string)
 				case h.reg.Type("Reader").Type():
 					args.scopeStream = aux.Get().(io.Reader)
 				}
@@ -152,6 +155,19 @@ func (h jsenvHandler) Execute() *atypes.Function {
 				if tval, err = h.reg.Type("Integer").Cast(results.ResultInt); err != nil {
 					return
 				} else if err = expr.Assign(out, "resultInt", tval); err != nil {
+					return
+				}
+			}
+
+			{
+				// converting results.ResultBool (bool) to Boolean
+				var (
+					tval expr.TypedValue
+				)
+
+				if tval, err = h.reg.Type("Boolean").Cast(results.ResultBool); err != nil {
+					return
+				} else if err = expr.Assign(out, "resultBool", tval); err != nil {
 					return
 				}
 			}
