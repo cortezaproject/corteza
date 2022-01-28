@@ -51,6 +51,7 @@ var (
 	testApp *app.CortezaApp
 	r       chi.Router
 
+	// defStore store.Storer
 	eventBus = eventbus.New()
 )
 
@@ -68,6 +69,7 @@ func InitTestApp() {
 				return err
 			}
 
+			// defStore = app.Store
 			eventbus.Set(eventBus)
 			return nil
 		})
