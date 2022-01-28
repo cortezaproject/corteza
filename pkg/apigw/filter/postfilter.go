@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/cortezaproject/corteza-server/automation/service"
 	atypes "github.com/cortezaproject/corteza-server/automation/types"
 	agctx "github.com/cortezaproject/corteza-server/pkg/apigw/ctx"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
@@ -194,7 +193,7 @@ func NewJsonResponse(reg typesRegistry) (e *jsonResponse) {
 }
 
 func (j jsonResponse) New() types.Handler {
-	return NewJsonResponse(service.Registry())
+	return NewJsonResponse(j.reg)
 }
 
 func (j jsonResponse) String() string {

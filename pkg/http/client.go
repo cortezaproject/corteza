@@ -28,8 +28,6 @@ type (
 		config     *Config
 	}
 
-	Request http.Request
-
 	DebugLevel string
 )
 

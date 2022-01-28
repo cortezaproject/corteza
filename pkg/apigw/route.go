@@ -8,8 +8,8 @@ import (
 	actx "github.com/cortezaproject/corteza-server/pkg/apigw/ctx"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	h "github.com/cortezaproject/corteza-server/pkg/http"
 	"github.com/cortezaproject/corteza-server/pkg/options"
-	"github.com/cortezaproject/corteza-server/system/automation"
 	"go.uber.org/zap"
 )
 
@@ -42,12 +42,10 @@ func (r route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	r.log.Debug("started serving route")
 
-	// create a new automation HttpRequest
-	ar, err := automation.NewHttpRequest(req)
+	ar, err := h.NewRequest(req)
 
 	if err != nil {
-		r.log.Error("could not prepare a request holder", zap.Error(err))
-		return
+		r.log.Error("could not get initial request", zap.Error(err))
 	}
 
 	scope.Set("opts", r.opts)

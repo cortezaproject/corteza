@@ -113,10 +113,9 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		&expr.KVV{},
 		&expr.Reader{},
 		&expr.Vars{},
+		&expr.HttpRequest{},
 
 		&automation.EmailMessage{},
-		&automation.HttpRequest{},
-		&automation.HttpRequestBody{},
 	)
 
 	automation.HttpRequestHandler(Registry())
