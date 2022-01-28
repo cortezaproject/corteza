@@ -8,8 +8,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/apigw/filter"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/filter/proxy"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
-	"github.com/cortezaproject/corteza-server/pkg/options"
 )
 
 type (
@@ -74,7 +72,5 @@ func (r *Registry) Preload() {
 }
 
 func NewWorkflow() (wf filter.WfExecer) {
-	// implementation assumes that Corredor & Workflow options can not be changed
-	// in the run-time.
-	return service.Workflow(logger.Default().Named("workflow"), *options.Corredor(), *options.Workflow())
+	return service.DefaultWorkflow
 }

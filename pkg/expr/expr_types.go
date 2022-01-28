@@ -16,6 +16,7 @@ import (
 	"github.com/PaesslerAG/gval"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
+	h "github.com/cortezaproject/corteza-server/pkg/http"
 	"github.com/spf13/cast"
 )
 
@@ -651,6 +652,36 @@ func CastToReader(val interface{}) (out io.Reader, err error) {
 		return casted, nil
 	default:
 		return nil, fmt.Errorf("unable to cast %T to io.Reader", val)
+	}
+}
+
+func CastToHttpRequest(val interface{}) (out *h.Request, err error) {
+	switch val := val.(type) {
+	case Iterator:
+		out = &h.Request{}
+		return out, val.Each(func(k string, v TypedValue) error {
+			return assignToHttpRequest(out, k, v)
+		})
+	}
+
+	switch val := UntypedValue(val).(type) {
+	case *h.Request:
+		return val, nil
+	case nil:
+		return &h.Request{}, nil
+	default:
+		return &h.Request{}, fmt.Errorf("unable to cast type %T to %T", val, out)
+	}
+}
+
+func CastToUrl(val interface{}) (out *url.URL, err error) {
+	switch val := UntypedValue(val).(type) {
+	case *url.URL:
+		return val, nil
+	case nil:
+		return &url.URL{}, nil
+	default:
+		return &url.URL{}, fmt.Errorf("unable to cast type %T to %T", val, out)
 	}
 }
 

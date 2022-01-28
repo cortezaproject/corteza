@@ -1,8 +1,5 @@
 package: automation
 
-imports:
-  - github.com/cortezaproject/corteza-server/automation/types
-
 types:
   EmailMessage:
     # using ad-hoc type for now, we'll port this to something internal
@@ -19,31 +16,4 @@ types:
 #      - { name: 'parts',           exprType: 'Any',          goType: 'map[string]io.Reader', mode: ro }
 #      - { name: 'embedded',        exprType: 'Any',          goType: 'map[string]io.Reader', mode: ro }
 #      - { name: 'attachments',     exprType: 'Any',          goType: 'map[string]io.Reader', mode: ro }
-  HttpRequest:
-    as: '*types.HttpRequest'
-    struct:
-      - { name: 'Method',   exprType: 'String', goType: 'string' }
-      - { name: 'URL',      exprType: 'Url',    goType: 'url.Url' }
-      - { name: 'Header',   exprType: 'KVV',    goType: 'map[string][]string' }
-      - { name: 'Body',     exprType: 'HttpRequestBody',  goType: '*types.HttpRequestBody' }
-      - { name: 'Form',     exprType: 'KVV',    goType: 'map[string][]string' }
-      - { name: 'PostForm', exprType: 'KVV',    goType: 'map[string][]string' }
-
-  HttpRequestBody:
-    as: '*types.HttpRequestBody'
-    struct:
-      - { name: 'Body',   exprType: 'Reader', goType: 'io.Reader' }
-      - { name: 'Buffer', exprType: 'Bytes',  goType: '[]byte' }
-
-  Url:
-    as: '*types.Url'
-    struct:
-      - { name: 'Scheme',      exprType: 'String',  goType: 'string' }
-      - { name: 'Opaque',      exprType: 'String',  goType: 'string' }
-      - { name: 'Host',        exprType: 'String',  goType: 'string' }
-      - { name: 'Path',        exprType: 'String',  goType: 'string' }
-      - { name: 'RawPath',     exprType: 'String',  goType: 'string' }
-      - { name: 'ForceQuery',  exprType: 'Boolean', goType: 'bool' }
-      - { name: 'RawQuery',    exprType: 'String',  goType: 'string' }
-      - { name: 'Fragment',    exprType: 'String',  goType: 'string' }
-      - { name: 'RawFragment', exprType: 'String',  goType: 'string' }
+  

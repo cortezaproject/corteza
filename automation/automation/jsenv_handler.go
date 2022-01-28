@@ -63,8 +63,6 @@ func (h jsenvHandler) execute(ctx context.Context, args *jsenvExecuteArgs) (res 
 	}
 
 	switch vv := out.(type) {
-	case uint64:
-		res.ResultInt = int64(vv)
 	case int64:
 		res.ResultInt = int64(vv)
 	case string:
