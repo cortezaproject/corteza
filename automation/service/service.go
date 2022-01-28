@@ -115,6 +115,8 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		&expr.Vars{},
 
 		&automation.EmailMessage{},
+		&automation.HttpRequest{},
+		&automation.HttpRequestBody{},
 	)
 
 	automation.HttpRequestHandler(Registry())
@@ -126,6 +128,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	automation.CorredorHandler(Registry(), corredor.Service())
 	automation.EmailHandler(Registry())
 	automation.JwtHandler(Registry())
+	automation.ApigwBodyHandler(Registry())
 	return
 }
 
