@@ -61,10 +61,6 @@ func Proc() {
 		storeSrc     []string
 		storeDefs    []*storeDef
 
-		optionSrcPath = filepath.Join("pkg", "options", "*.yaml")
-		optionSrc     []string
-		optionDefs    []*optionsDef
-
 		aFuncsSrcPath = filepath.Join("*", "automation", "*_handler.yaml")
 		aFuncsSrc     []string
 		aFuncsDefs    []*aFuncDefs
@@ -163,9 +159,6 @@ func Proc() {
 		storeSrc = glob(storeSrcPath)
 		output("loaded %d store definitions from %s\n", len(storeSrc), storeSrcPath)
 
-		optionSrc = glob(optionSrcPath)
-		output("loaded %d option definitions from %s\n", len(optionSrc), optionSrcPath)
-
 		aFuncsSrc = glob(aFuncsSrcPath)
 		output("loaded %d function definitions from %s\n", len(aFuncsSrc), aFuncsSrcPath)
 
@@ -184,7 +177,6 @@ func Proc() {
 			fileList = append(fileList, exprTypeSrc...)
 			fileList = append(fileList, restSrc...)
 			fileList = append(fileList, storeSrc...)
-			fileList = append(fileList, optionSrc...)
 			fileList = append(fileList, aFuncsSrc...)
 
 			for _, d := range fileList {
@@ -263,16 +255,6 @@ func Proc() {
 
 			if outputErr(err, "failed to process store:\n") {
 				return
-			}
-
-			if optionDefs, err = procOptions(optionSrc...); err == nil {
-				if genCode {
-					err = genOptions(tpls, optionDefs...)
-				}
-
-				if genDocs && err == nil {
-					err = genOptionsDocs(tpls, docPath+docGenBase, optionDefs...)
-				}
 			}
 
 			if outputErr(err, "fail to process options:\n") {
