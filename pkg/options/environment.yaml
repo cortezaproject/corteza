@@ -1,7 +1,0 @@
-docs:
-  title: Environment
-
-props:
-  - name: environment
-    default: "production"
-    env: ENVIRONMENT

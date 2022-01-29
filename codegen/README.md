@@ -9,6 +9,10 @@ See [old codegen](../pkh/codegen/README.md).
 Right now, Corteza is migrating its old YAML definitions to CUE.
 We are also simplifying all templates by moving as much data manipulation to Cue as possible.
 
+### Todo
+ - options documentation (see assets/templates/docs/options.gen.adoc.tpl)
+ 
+
 ## Intro 
 
 Codegen tools are based on [cuelang](https://cuelang.org/docs/tutorials/) and golang templates.
@@ -21,10 +25,10 @@ Codegen tools are based on [cuelang](https://cuelang.org/docs/tutorials/) and go
 
 Platform, component and resource definitions (.cue files) can be found in:
  - `app`
- - `automation` @todo
+ - `automation`
  - `system`
  - `compose`
- - `federation` @todo
+ - `federation`
 
 ## Running code generator
 
@@ -58,8 +62,7 @@ Collection of `#codegen` structs with template + payload + output instructions. 
 
 Main entry point that combines all components
 
- - @todo options 
-
+ - options (see [options.cue](./options.cue))
  - @todo REST endpoints (unrelated to specific component)
 
 #### Component
