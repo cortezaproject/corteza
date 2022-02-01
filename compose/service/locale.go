@@ -143,7 +143,8 @@ func (svc resourceTranslationsManager) moduleFieldOptionsHandler(ctx context.Con
 
 func (svc resourceTranslationsManager) pageExtended(ctx context.Context, res *types.Page) (out locale.ResourceTranslationSet, err error) {
 	var (
-		k types.LocaleKey
+		k   types.LocaleKey
+		aux []*locale.ResourceTranslation
 	)
 
 	for _, tag := range svc.locale.Tags() {
@@ -172,7 +173,7 @@ func (svc resourceTranslationsManager) pageExtended(ctx context.Context, res *ty
 
 			switch block.Kind {
 			case "Automation":
-				aux, err := svc.pageExtendedAutomationBlock(tag, res, block, pbContentID, k)
+				aux, err = svc.pageExtendedAutomationBlock(tag, res, block, pbContentID)
 				if err != nil {
 					return nil, err
 				}
@@ -185,10 +186,13 @@ func (svc resourceTranslationsManager) pageExtended(ctx context.Context, res *ty
 	return
 }
 
-func (svc resourceTranslationsManager) pageExtendedAutomationBlock(tag language.Tag, res *types.Page, block types.PageBlock, blockID uint64, k types.LocaleKey) (locale.ResourceTranslationSet, error) {
-	out := make(locale.ResourceTranslationSet, 0, 10)
+func (svc resourceTranslationsManager) pageExtendedAutomationBlock(tag language.Tag, res *types.Page, block types.PageBlock, blockID uint64) (locale.ResourceTranslationSet, error) {
+	var (
+		k     = types.LocaleKeyPagePageBlockBlockIDButtonButtonIDLabel
+		out   = make(locale.ResourceTranslationSet, 0, 10)
+		bb, _ = block.Options["buttons"].([]interface{})
+	)
 
-	bb, _ := block.Options["buttons"].([]interface{})
 	for j, auxBtn := range bb {
 		btn := auxBtn.(map[string]interface{})
 
