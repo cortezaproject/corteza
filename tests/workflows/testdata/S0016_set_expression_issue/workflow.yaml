@@ -1,0 +1,28 @@
+workflows:
+  set_expression:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: expressions
+        arguments: [
+          { target: aux, type: Vars, value: null },
+          { target: testString, type: String, value: "testString" },
+          { target: foo, type: String, value: "testing string" },
+          { target: testInt, type: String, value: "testInt" },
+          { target: bar, type: Integer, expr: "40" },
+          { target: testVar, type: String, value: "testVar" },
+          { target: foobar, type: Vars, expr: "{\"testString\": \"testing string\", \"testFloat\": 50}" },
+          { target: out, type: Vars, expr: "set(aux, testString, foo)" },
+          { target: out, type: Vars, expr: "set(out, testInt, bar)" },
+          { target: out, type: Vars, expr: "set(out, testVar, foobar)" },
+        ]
+      - stepID: 2
+        kind: termination
+
+    paths:
+      - { parentID: 1, childID: 2 }
