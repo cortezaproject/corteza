@@ -132,7 +132,8 @@ func (p *Page) decodeTranslations(tt locale.ResourceTranslationIndex) {
 		}
 
 		// - automation page block stuff
-		if block.Kind == "Automation" {
+		switch block.Kind {
+		case "Automation":
 			bb, _ := block.Options["buttons"].([]interface{})
 			for j, auxBtn := range bb {
 				btn := auxBtn.(map[string]interface{})
@@ -152,7 +153,13 @@ func (p *Page) decodeTranslations(tt locale.ResourceTranslationIndex) {
 					btn["label"] = aux.Msg
 				}
 			}
+
+		case "Content":
+			if aux = tt.FindByKey(rpl.Replace(LocaleKeyPagePageBlockBlockIDContentBody.Path)); aux != nil {
+				block.Options["body"] = aux.Msg
+			}
 		}
+
 	}
 }
 
@@ -180,7 +187,9 @@ func (p *Page) encodeTranslations() (out locale.ResourceTranslationSet) {
 		})
 
 		// - automation page block stuff
-		if block.Kind == "Automation" {
+
+		switch block.Kind {
+		case "Automation":
 			bb, _ := block.Options["buttons"].([]interface{})
 			for j, auxBtn := range bb {
 				btn := auxBtn.(map[string]interface{})
@@ -205,7 +214,15 @@ func (p *Page) encodeTranslations() (out locale.ResourceTranslationSet) {
 					Key:      rpl.Replace(LocaleKeyPagePageBlockBlockIDButtonButtonIDLabel.Path),
 					Msg:      btn["label"].(string),
 				})
+
 			}
+		case "Content":
+			body, _ := block.Options["body"].(string)
+			out = append(out, &locale.ResourceTranslation{
+				Resource: p.ResourceTranslation(),
+				Key:      rpl.Replace(LocaleKeyPagePageBlockBlockIDContentBody.Path),
+				Msg:      body,
+			})
 		}
 	}
 
