@@ -63,13 +63,18 @@ func ResolveTypes(rt resolvableType, resolver func(typ string) Type) error {
 	return rt.ResolveTypes(resolver)
 }
 
-func set(m merger, key string, val TypedValue) (out TypedValue, err error) {
+func set(m merger, key string, val interface{}) (out TypedValue, err error) {
 	out, err = m.Merge()
 	if err != nil {
 		return
 	}
 
-	err = Assign(out, key, val)
+	v, err := Typify(val)
+	if err != nil {
+		return
+	}
+
+	err = Assign(out, key, v)
 	if err != nil {
 		return
 	}
