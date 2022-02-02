@@ -118,10 +118,15 @@ var (
 		Resource: PageResourceTranslationType,
 		Path:     "pageBlock.{{blockID}}.description",
 	}
-	LocaleKeyPageBlockAutomationButtonlabel = LocaleKey{
-		Name:     "blockAutomationButtonlabel",
+	LocaleKeyPageBlockAutomationButtonLabel = LocaleKey{
+		Name:     "blockAutomationButtonLabel",
 		Resource: PageResourceTranslationType,
 		Path:     "pageBlock.{{blockID}}.button.{{buttonID}}.label",
+	}
+	LocaleKeyPageBlockContentBody = LocaleKey{
+		Name:     "blockContentBody",
+		Resource: PageResourceTranslationType,
+		Path:     "pageBlock.{{blockID}}.content.body",
 	}
 )
 

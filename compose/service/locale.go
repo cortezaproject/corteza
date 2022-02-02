@@ -179,6 +179,15 @@ func (svc resourceTranslationsManager) pageExtended(ctx context.Context, res *ty
 				}
 
 				out = append(out, aux...)
+			case "Content":
+				k = types.LocaleKeyPageBlockContentBody
+				out = append(out, &locale.ResourceTranslation{
+					Resource: res.ResourceTranslation(),
+					Lang:     tag.String(),
+					Key:      rpl.Replace(k.Path),
+					Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), rpl.Replace(k.Path)),
+				})
+
 			}
 		}
 	}
@@ -188,7 +197,7 @@ func (svc resourceTranslationsManager) pageExtended(ctx context.Context, res *ty
 
 func (svc resourceTranslationsManager) pageExtendedAutomationBlock(tag language.Tag, res *types.Page, block types.PageBlock, blockID uint64) (locale.ResourceTranslationSet, error) {
 	var (
-		k     = types.LocaleKeyPagePageBlockBlockIDButtonButtonIDLabel
+		k     = types.LocaleKeyPageBlockAutomationButtonLabel
 		out   = make(locale.ResourceTranslationSet, 0, 10)
 		bb, _ = block.Options["buttons"].([]interface{})
 	)
