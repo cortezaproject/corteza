@@ -52,8 +52,10 @@ func SetupGothProviders(log *zap.Logger, redirectUrl string, ep ...settings.Prov
 
 			wellKnown := strings.TrimSuffix(pc.IssuerUrl, "/") + WellKnown
 
-			scope := strings.Split(pc.Scope, " ")
-			if len(scope) == 0 {
+			var scope []string
+			if len(pc.Scope) > 0 {
+				scope = strings.Split(pc.Scope, " ")
+			} else {
 				scope = append(scope, "email")
 			}
 
