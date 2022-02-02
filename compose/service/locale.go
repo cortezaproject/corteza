@@ -179,6 +179,15 @@ func (svc resourceTranslationsManager) pageExtended(ctx context.Context, res *ty
 				}
 
 				out = append(out, aux...)
+			case "Content":
+				k = types.LocaleKeyPagePageBlockBlockIDContentBody
+				out = append(out, &locale.ResourceTranslation{
+					Resource: res.ResourceTranslation(),
+					Lang:     tag.String(),
+					Key:      rpl.Replace(k.Path),
+					Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), rpl.Replace(k.Path)),
+				})
+
 			}
 		}
 	}

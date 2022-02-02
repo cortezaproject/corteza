@@ -35,6 +35,10 @@ page: schema.#resource & {
 				path: ["pageBlock", {part: "blockID", var: true}, "button", {part: "buttonID", var: true}, "label"]
 				customHandler: true
 			}
+			blockContentBody: {
+				path: ["pageBlock", {part: "blockID", var: true}, "content", "body"]
+				customHandler: true
+			}
 		}
 	}
 }
