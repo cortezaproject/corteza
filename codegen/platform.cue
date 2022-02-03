@@ -15,4 +15,5 @@ platform: [...schema.#codegen] &
 	localeTypes+
 	envoyRBAC+
 	options+
+	gig+
 	[] // placeholder

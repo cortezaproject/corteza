@@ -55,6 +55,10 @@ func NewComposeRecordTemplate(modRef, nsRef, name string, defaultable bool, fiel
 	return r
 }
 
+func (r *ComposeRecordTemplate) Resource() interface{} {
+	return nil
+}
+
 // MapToMappingTplSet converts the given string map to a propper MappingTplSet
 func MapToMappingTplSet(b map[string]string) MappingTplSet {
 	mp := make(MappingTplSet, 0, len(b))

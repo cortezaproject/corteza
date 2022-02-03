@@ -23,7 +23,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/store"
-	systemService "github.com/cortezaproject/corteza-server/system/service"
 )
 
 type (
@@ -50,7 +49,6 @@ type (
 		namespace     service.NamespaceService
 		attachment    service.AttachmentService
 		ac            recordAccessController
-		userFinder    systemService.UserService
 	}
 
 	recordAccessController interface {
@@ -70,9 +68,6 @@ func (Record) New() *Record {
 		namespace:     service.DefaultNamespace,
 		attachment:    service.DefaultAttachment,
 		ac:            service.DefaultAccessControl,
-
-		// See comment at DefaultSystemUser definition
-		userFinder: systemService.DefaultUser,
 	}
 }
 

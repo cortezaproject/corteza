@@ -65,6 +65,10 @@ func NewComposeRecordSet(w CrsWalker, nsRef, modRef string) *ComposeRecord {
 	return r
 }
 
+func (r *ComposeRecord) Resource() interface{} {
+	return nil
+}
+
 func (r *ComposeRecord) SetUserFlakes(uu UserstampIndex) {
 	r.UserFlakes = uu
 
