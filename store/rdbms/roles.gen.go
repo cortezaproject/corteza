@@ -73,7 +73,7 @@ func (s Store) SearchRoles(ctx context.Context, f types.RoleFilter) (types.RoleS
 		}
 
 		// Apply sorting expr from filter to query
-		if q, err = setOrderBy(q, sort, s.sortableRoleColumns()); err != nil {
+		if q, err = setOrderBy(q, sort, s.sortableRoleColumns(), s.Config().SqlSortHandler); err != nil {
 			return err
 		}
 

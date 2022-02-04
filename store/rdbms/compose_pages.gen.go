@@ -73,7 +73,7 @@ func (s Store) SearchComposePages(ctx context.Context, f types.PageFilter) (type
 		}
 
 		// Apply sorting expr from filter to query
-		if q, err = setOrderBy(q, sort, s.sortableComposePageColumns()); err != nil {
+		if q, err = setOrderBy(q, sort, s.sortableComposePageColumns(), s.Config().SqlSortHandler); err != nil {
 			return err
 		}
 

@@ -73,7 +73,7 @@ func (s Store) SearchApigwFilters(ctx context.Context, f types.ApigwFilterFilter
 		}
 
 		// Apply sorting expr from filter to query
-		if q, err = setOrderBy(q, sort, s.sortableApigwFilterColumns()); err != nil {
+		if q, err = setOrderBy(q, sort, s.sortableApigwFilterColumns(), s.Config().SqlSortHandler); err != nil {
 			return err
 		}
 

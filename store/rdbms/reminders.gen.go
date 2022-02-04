@@ -73,7 +73,7 @@ func (s Store) SearchReminders(ctx context.Context, f types.ReminderFilter) (typ
 		}
 
 		// Apply sorting expr from filter to query
-		if q, err = setOrderBy(q, sort, s.sortableReminderColumns()); err != nil {
+		if q, err = setOrderBy(q, sort, s.sortableReminderColumns(), s.Config().SqlSortHandler); err != nil {
 			return err
 		}
 
