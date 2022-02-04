@@ -16,6 +16,14 @@ var (
 	HttpTokenVerifier func(http.Handler) http.Handler
 )
 
+// verifier is a custom middleware as the built-in one does not look at query parameters
+// and it instructs to build one yourself
+func verifier(ja *jwtauth.JWTAuth) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return jwtauth.Verify(ja, jwtauth.TokenFromHeader, jwtauth.TokenFromQuery, jwtauth.TokenFromCookie)(next)
+	}
+}
+
 // TokenVerifierMiddlewareWithSecretSigner returns HTTP handler with simple jwa.HS512 + secret verifier
 //
 // This should be 1:1 with token issuer!
@@ -29,7 +37,7 @@ func TokenVerifierMiddlewareWithSecretSigner(secret string) (_ func(http.Handler
 		return nil, fmt.Errorf("could not parse JWK: %w", err)
 	}
 
-	return jwtauth.Verifier(jwtauth.New(jwa.HS512.String(), key, nil)), nil
+	return verifier(jwtauth.New(jwa.HS512.String(), key, nil)), nil
 }
 
 // HttpTokenValidator checks if there is a token with identity and matching scope claim
