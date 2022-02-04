@@ -73,7 +73,7 @@ func (s Store) SearchComposeNamespaces(ctx context.Context, f types.NamespaceFil
 		}
 
 		// Apply sorting expr from filter to query
-		if q, err = setOrderBy(q, sort, s.sortableComposeNamespaceColumns()); err != nil {
+		if q, err = setOrderBy(q, sort, s.sortableComposeNamespaceColumns(), s.Config().SqlSortHandler); err != nil {
 			return err
 		}
 

@@ -73,7 +73,7 @@ func (s Store) SearchAuthClients(ctx context.Context, f types.AuthClientFilter) 
 		}
 
 		// Apply sorting expr from filter to query
-		if q, err = setOrderBy(q, sort, s.sortableAuthClientColumns()); err != nil {
+		if q, err = setOrderBy(q, sort, s.sortableAuthClientColumns(), s.Config().SqlSortHandler); err != nil {
 			return err
 		}
 

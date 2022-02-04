@@ -73,7 +73,7 @@ func (s Store) SearchFederationSharedModules(ctx context.Context, f types.Shared
 		}
 
 		// Apply sorting expr from filter to query
-		if q, err = setOrderBy(q, sort, s.sortableFederationSharedModuleColumns()); err != nil {
+		if q, err = setOrderBy(q, sort, s.sortableFederationSharedModuleColumns(), s.Config().SqlSortHandler); err != nil {
 			return err
 		}
 

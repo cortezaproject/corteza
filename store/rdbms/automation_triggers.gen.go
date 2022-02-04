@@ -73,7 +73,7 @@ func (s Store) SearchAutomationTriggers(ctx context.Context, f types.TriggerFilt
 		}
 
 		// Apply sorting expr from filter to query
-		if q, err = setOrderBy(q, sort, s.sortableAutomationTriggerColumns()); err != nil {
+		if q, err = setOrderBy(q, sort, s.sortableAutomationTriggerColumns(), s.Config().SqlSortHandler); err != nil {
 			return err
 		}
 

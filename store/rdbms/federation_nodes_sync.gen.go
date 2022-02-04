@@ -73,7 +73,7 @@ func (s Store) SearchFederationNodesSyncs(ctx context.Context, f types.NodeSyncF
 		}
 
 		// Apply sorting expr from filter to query
-		if q, err = setOrderBy(q, sort, s.sortableFederationNodesSyncColumns()); err != nil {
+		if q, err = setOrderBy(q, sort, s.sortableFederationNodesSyncColumns(), s.Config().SqlSortHandler); err != nil {
 			return err
 		}
 

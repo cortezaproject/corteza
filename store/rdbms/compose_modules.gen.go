@@ -73,7 +73,7 @@ func (s Store) SearchComposeModules(ctx context.Context, f types.ModuleFilter) (
 		}
 
 		// Apply sorting expr from filter to query
-		if q, err = setOrderBy(q, sort, s.sortableComposeModuleColumns()); err != nil {
+		if q, err = setOrderBy(q, sort, s.sortableComposeModuleColumns(), s.Config().SqlSortHandler); err != nil {
 			return err
 		}
 

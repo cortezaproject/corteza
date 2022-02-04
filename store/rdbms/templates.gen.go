@@ -73,7 +73,7 @@ func (s Store) SearchTemplates(ctx context.Context, f types.TemplateFilter) (typ
 		}
 
 		// Apply sorting expr from filter to query
-		if q, err = setOrderBy(q, sort, s.sortableTemplateColumns()); err != nil {
+		if q, err = setOrderBy(q, sort, s.sortableTemplateColumns(), s.Config().SqlSortHandler); err != nil {
 			return err
 		}
 

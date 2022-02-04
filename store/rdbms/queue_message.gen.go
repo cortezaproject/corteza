@@ -73,7 +73,7 @@ func (s Store) SearchQueueMessages(ctx context.Context, f types.QueueMessageFilt
 		}
 
 		// Apply sorting expr from filter to query
-		if q, err = setOrderBy(q, sort, s.sortableQueueMessageColumns()); err != nil {
+		if q, err = setOrderBy(q, sort, s.sortableQueueMessageColumns(), s.Config().SqlSortHandler); err != nil {
 			return err
 		}
 

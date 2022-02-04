@@ -73,7 +73,7 @@ func (s Store) SearchComposeCharts(ctx context.Context, f types.ChartFilter) (ty
 		}
 
 		// Apply sorting expr from filter to query
-		if q, err = setOrderBy(q, sort, s.sortableComposeChartColumns()); err != nil {
+		if q, err = setOrderBy(q, sort, s.sortableComposeChartColumns(), s.Config().SqlSortHandler); err != nil {
 			return err
 		}
 
