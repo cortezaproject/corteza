@@ -442,10 +442,6 @@ func setOrderBy(q squirrel.SelectBuilder, sort filter.SortExprSet, sortable map[
 			sqlSort[i] = c.Column
 		}
 
-		if sort[i].Descending {
-			sqlSort[i] += " DESC"
-		}
-
 		// Let DB specific sort handler determine the appropriate  syntax
 		sqlSort[i] = sortHandler(sqlSort[i], sort[i].Descending)
 	}
