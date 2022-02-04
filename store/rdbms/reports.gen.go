@@ -73,7 +73,7 @@ func (s Store) SearchReports(ctx context.Context, f types.ReportFilter) (types.R
 		}
 
 		// Apply sorting expr from filter to query
-		if q, err = setOrderBy(q, sort, s.sortableReportColumns()); err != nil {
+		if q, err = setOrderBy(q, sort, s.sortableReportColumns(), s.Config().SqlSortHandler); err != nil {
 			return err
 		}
 

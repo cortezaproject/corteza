@@ -73,7 +73,7 @@ func (s Store) SearchAutomationSessions(ctx context.Context, f types.SessionFilt
 		}
 
 		// Apply sorting expr from filter to query
-		if q, err = setOrderBy(q, sort, s.sortableAutomationSessionColumns()); err != nil {
+		if q, err = setOrderBy(q, sort, s.sortableAutomationSessionColumns(), s.Config().SqlSortHandler); err != nil {
 			return err
 		}
 

@@ -73,7 +73,7 @@ func (s Store) SearchAutomationWorkflows(ctx context.Context, f types.WorkflowFi
 		}
 
 		// Apply sorting expr from filter to query
-		if q, err = setOrderBy(q, sort, s.sortableAutomationWorkflowColumns()); err != nil {
+		if q, err = setOrderBy(q, sort, s.sortableAutomationWorkflowColumns(), s.Config().SqlSortHandler); err != nil {
 			return err
 		}
 
