@@ -116,7 +116,7 @@ func (s Store) {{ toggleExport .Search.Export "Search" $.Types.Plural }}(ctx con
 
 	{{ else if 	$.Search.EnableSorting }}
 		// Apply sorting expr from filter to query
-		if q, err = setOrderBy(q, sort, s.sortable{{ export $.Types.Singular }}Columns()); err != nil {
+		if q, err = setOrderBy(q, sort, s.sortable{{ export $.Types.Singular }}Columns(), s.Config().SqlSortHandler); err != nil {
 			return err
 		}
 	{{ end }}

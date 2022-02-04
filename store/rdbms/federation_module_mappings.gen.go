@@ -85,7 +85,7 @@ func (s Store) SearchFederationModuleMappings(ctx context.Context, f types.Modul
 		}
 
 		// Apply sorting expr from filter to query
-		if q, err = setOrderBy(q, sort, s.sortableFederationModuleMappingColumns()); err != nil {
+		if q, err = setOrderBy(q, sort, s.sortableFederationModuleMappingColumns(), s.Config().SqlSortHandler); err != nil {
 			return err
 		}
 

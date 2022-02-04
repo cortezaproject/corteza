@@ -73,7 +73,7 @@ func (s Store) SearchApigwRoutes(ctx context.Context, f types.ApigwRouteFilter) 
 		}
 
 		// Apply sorting expr from filter to query
-		if q, err = setOrderBy(q, sort, s.sortableApigwRouteColumns()); err != nil {
+		if q, err = setOrderBy(q, sort, s.sortableApigwRouteColumns(), s.Config().SqlSortHandler); err != nil {
 			return err
 		}
 

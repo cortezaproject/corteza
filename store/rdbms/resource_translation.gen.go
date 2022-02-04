@@ -73,7 +73,7 @@ func (s Store) SearchResourceTranslations(ctx context.Context, f types.ResourceT
 		}
 
 		// Apply sorting expr from filter to query
-		if q, err = setOrderBy(q, sort, s.sortableResourceTranslationColumns()); err != nil {
+		if q, err = setOrderBy(q, sort, s.sortableResourceTranslationColumns(), s.Config().SqlSortHandler); err != nil {
 			return err
 		}
 
