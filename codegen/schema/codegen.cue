@@ -4,8 +4,8 @@ package schema
 	template: string
 	output:   string
 
-	syntax: "go"
-	if output =~ "\\.adoc" {
+	syntax: string | *"go"
+	if output =~ "\\.adoc$" {
 		syntax: "adoc"
 	}
 

@@ -14,8 +14,8 @@ import (
 	extended: bool | *false
 
 	resource: {
-		type:       string
-		const:      string | *("\(resourceExpIdent)ResourceTranslationType")
+		type:  string
+		const: string | *("\(resourceExpIdent)ResourceTranslationType")
 	}
 
 	keys: {
