@@ -22,8 +22,7 @@ waitFor: schema.#optionsGroup & {
 
 	options: {
 		delay: {
-			type:    "time.Duration"
-			default: "0"
+			type: "time.Duration"
 			description: """
 				Delays API startup for the amount of time specified (10s, 2m...).
 				    This delay happens before service (`WAIT_FOR_SERVICES`) probing.
@@ -31,10 +30,10 @@ waitFor: schema.#optionsGroup & {
 			env: "WAIT_FOR"
 		}
 		status_page: {
-			type:        "bool"
-			default:     "true"
-			description: "Show temporary status web page."
-			env:         "WAIT_FOR_STATUS_PAGE"
+			type:          "bool"
+			defaultGoExpr: "true"
+			description:   "Show temporary status web page."
+			env:           "WAIT_FOR_STATUS_PAGE"
 		}
 
 		services: {
@@ -51,24 +50,27 @@ waitFor: schema.#optionsGroup & {
 		}
 
 		services_timeout: {
-			type:        "time.Duration"
-			default:     "time.Minute"
-			description: "Max time for each service probe."
-			env:         "WAIT_FOR_SERVICES_TIMEOUT"
+			type:          "time.Duration"
+			defaultGoExpr: "time.Minute"
+			defaultValue:  "1m"
+			description:   "Max time for each service probe."
+			env:           "WAIT_FOR_SERVICES_TIMEOUT"
 		}
 
 		services_probe_timeout: {
-			type:        "time.Duration"
-			default:     "time.Second * 30"
-			description: "Timeout for each service probe."
-			env:         "WAIT_FOR_SERVICES_PROBE_TIMEOUT"
+			type:          "time.Duration"
+			defaultGoExpr: "time.Second * 30"
+			defaultValue:  "30s"
+			description:   "Timeout for each service probe."
+			env:           "WAIT_FOR_SERVICES_PROBE_TIMEOUT"
 		}
 
 		services_probe_interval: {
-			type:        "time.Duration"
-			default:     "time.Second * 5"
-			description: "Interval between service probes."
-			env:         "WAIT_FOR_SERVICES_PROBE_INTERVAL"
+			type:          "time.Duration"
+			defaultGoExpr: "time.Second * 5"
+			defaultValue:  "5s"
+			description:   "Interval between service probes."
+			env:           "WAIT_FOR_SERVICES_PROBE_INTERVAL"
 		}
 	}
 }

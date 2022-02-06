@@ -27,7 +27,7 @@ type (
 	func {{ .func }}() (o *{{ .struct }}) {
 			o = &{{ .struct }}{
 				{{- range  .options }}
-					{{- if .default }}
+					{{- if or .default }}
 						{{ .expIdent }}: {{ .default }},
 					{{- end }}
 				{{- end }}

@@ -13,9 +13,10 @@ monitor: schema.#optionsGroup & {
 
 	options: {
 		interval: {
-			type:        "time.Duration"
-			default:     "300 * time.Second"
-			description: "Output (log) interval for monitoring."
+			type:          "time.Duration"
+			defaultGoExpr: "5 * time.Minute"
+			defaultValue:  "5m"
+			description:   "Output (log) interval for monitoring."
 		}
 	}
 	title: "Monitoring"

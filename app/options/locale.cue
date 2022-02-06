@@ -8,7 +8,7 @@ locale: schema.#optionsGroup & {
 	handle: "locale"
 	options: {
 		languages: {
-			default: "\"en\""
+			defaultValue: "en"
 			description: """
 				List of compa delimited languages (language tags) to enable.
 				In case when an enabled language can not be loaded, error is logged.
@@ -23,7 +23,7 @@ locale: schema.#optionsGroup & {
 		}
 
 		query_string_param: {
-			default: "\"lng\""
+			defaultValue: "lng"
 			description: """
 				Name of the query string parameter used to pass the language tag (it overrides Accept-Language header).
 				Set it to empty string to disable detection from the query string.

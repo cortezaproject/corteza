@@ -8,16 +8,14 @@ actionLog: schema.#optionsGroup & {
 	handle: "actionLog"
 	options: {
 		enabled: {
-			type:    "bool"
-			default: "true"
+			type:          "bool"
+			defaultGoExpr: "true"
 		}
 		debug: {
-			type:    "bool"
-			default: "false"
+			type: "bool"
 		}
 		workflow_functions_enabled: {
-			type:    "bool"
-			default: "false"
+			type: "bool"
 		}
 	}
 	title: "Actionlog"

@@ -8,7 +8,7 @@ sentry: schema.#optionsGroup & {
 	handle: "sentry"
 
 	imports: [
-		"\"github.com/cortezaproject/corteza-server/pkg/version\""
+		"\"github.com/cortezaproject/corteza-server/pkg/version\"",
 	]
 
 	title: "Sentry monitoring"
@@ -31,26 +31,26 @@ sentry: schema.#optionsGroup & {
 			description: "Print out debugging information."
 		}
 		attach_stacktrace: {
-			type:        "bool"
-			default:     "true"
-			description: "Attach stacktraces"
+			type:          "bool"
+			defaultGoExpr: "true"
+			description:   "Attach stacktraces"
 		}
 		sample_rate: {
 			type:        "float64"
 			description: "Sample rate for event submission (0.0 - 1.0. defaults to 1.0)"
 		}
 		max_breadcrumbs: {
-			type:        "int"
-			default:     "0"
-			description: "Maximum number of bredcrumbs."
+			type:          "int"
+			defaultGoExpr: "0"
+			description:   "Maximum number of bredcrumbs."
 		}
 		server_name: {
 			description: "Set reported Server name."
 			env:         "SENTRY_SERVERNAME"
 		}
 		release: {
-			default:     "version.Version"
-			description: "Set reported Release."
+			defaultGoExpr: "version.Version"
+			description:   "Set reported Release."
 		}
 		dist: {
 			description: "Set reported distribution."

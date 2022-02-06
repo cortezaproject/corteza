@@ -8,8 +8,8 @@ environment: schema.#optionsGroup & {
 	handle: "environment"
 	options: {
 		environment: {
-			default: "\"production\""
-			env:     "ENVIRONMENT"
+			defaultValue: "production"
+			env:          "ENVIRONMENT"
 		}
 	}
 	title: "Environment"

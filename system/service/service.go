@@ -32,7 +32,7 @@ type (
 		Storage   options.ObjectStoreOpt
 		Template  options.TemplateOpt
 		Auth      options.AuthOpt
-		RBAC      options.RBACOpt
+		RBAC      options.RbacOpt
 		Limit     options.LimitOpt
 	}
 

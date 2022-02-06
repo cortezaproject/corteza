@@ -20,7 +20,7 @@ var (
 	baseHrefMatcher = regexp.MustCompile(`<base\s+href="?.+?"?\s*\/?>`)
 )
 
-func MakeWebappServer(log *zap.Logger, httpSrvOpt options.HTTPServerOpt, authOpt options.AuthOpt) func(r chi.Router) {
+func MakeWebappServer(log *zap.Logger, httpSrvOpt options.HttpServerOpt, authOpt options.AuthOpt) func(r chi.Router) {
 	var (
 		apiBaseUrl = options.CleanBase(httpSrvOpt.BaseUrl, httpSrvOpt.ApiBaseUrl)
 		apps       = strings.Split(httpSrvOpt.WebappList, ",")
@@ -59,7 +59,7 @@ func MakeWebappServer(log *zap.Logger, httpSrvOpt options.HTTPServerOpt, authOpt
 }
 
 // Serves index.html in case the requested file isn't found (or some other os.Stat error)
-func serveIndex(opt options.HTTPServerOpt, indexHTML []byte, serve http.Handler) http.HandlerFunc {
+func serveIndex(opt options.HttpServerOpt, indexHTML []byte, serve http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		requestedFile := path.Join(

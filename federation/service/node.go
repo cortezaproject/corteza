@@ -68,7 +68,7 @@ func Node(s store.Storer, u service.UserService, al actionlog.Recorder, th token
 		name:        options.Label,
 		host:        options.Host,
 
-		// @todo use HTTP_API_BASE_URL (HTTPServerOpt.ApiBaseUrl) to prefix URI path
+		// @todo use HTTP_API_BASE_URL (HttpServerOpt.ApiBaseUrl) to prefix URI path
 		baseURL: "/federation",
 
 		handshaker: HttpHandshake(http.DefaultClient),

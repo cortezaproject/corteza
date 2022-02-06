@@ -20,14 +20,14 @@ import (
 type (
 	server struct {
 		log            *zap.Logger
-		httpOpt        options.HTTPServerOpt
+		httpOpt        options.HttpServerOpt
 		waitForOpt     options.WaitForOpt
 		environmentOpt options.EnvironmentOpt
 		endpoints      []func(r chi.Router)
 	}
 )
 
-func New(log *zap.Logger, envOpt options.EnvironmentOpt, httpOpt options.HTTPServerOpt, waitForOpt options.WaitForOpt) *server {
+func New(log *zap.Logger, envOpt options.EnvironmentOpt, httpOpt options.HttpServerOpt, waitForOpt options.WaitForOpt) *server {
 	return &server{
 		endpoints: make([]func(r chi.Router), 0),
 		log:       log.Named("http"),

@@ -29,14 +29,25 @@ options:
 				imports: [ for i in {for g in app.corteza.options for i in g.imports {"\(i)": i}} {i}]
 
 				groups: [
-				    for g in app.corteza.options {
-				     func:    g.expIdent
-				     struct:  g.expIdent + "Opt"
-				     options: g.options
-				    }
+					for g in app.corteza.options {
+						func:   g.expIdent
+						struct: g.expIdent + "Opt"
+						options: [
+							for o in g.options {
+								o
 
+								default?: string
+								if (o.defaultGoExpr != _|_) {
+									default: o.defaultGoExpr
+								}
+
+								if (o.defaultGoExpr == _|_ && o.defaultValue != _|_) {
+									default: "\"" + o.defaultValue + "\""
+								}
+							},
+						]
+					},
 				]
-
 			}
 		},
 	]

@@ -19,16 +19,21 @@ websocket: schema.#optionsGroup & {
 		}
 		timeout: {
 			type:        "time.Duration"
-			default:     "15 * time.Second"
 			description: "Time before `WsServer` gets timed out."
+
+			defaultGoExpr: "15 * time.Second"
+			defaultValue:  "15s"
 		}
 		ping_timeout: {
-			type:    "time.Duration"
-			default: "120 * time.Second"
+			type:          "time.Duration"
+			defaultGoExpr: "120 * time.Second"
+			defaultValue:  "120s"
 		}
 		ping_period: {
-			type:    "time.Duration"
-			default: "((120 * time.Second) * 9) / 10"
+			type: "time.Duration"
+
+			defaultGoExpr: "((120 * time.Second) * 9) / 10"
+			defaultValue:  "119s"
 		}
 	}
 }
