@@ -51,19 +51,26 @@ func main() {
 		cli.HandleError(fmt.Errorf("failed to decode input from standard input: %v", err))
 	}
 
-	if tpl, err = LoadTemplates(BaseTemplate(), tplRootPath); err != nil {
+	if tpl, err = loadTemplates(baseTemplate(), tplRootPath); err != nil {
 		cli.HandleError(fmt.Errorf("failed to load templates: %v", err))
 	}
 
 	for _, j := range tasks {
+		print(fmt.Sprintf("generating %s (from %s) ...", j.Output, j.Template))
+
 		switch j.Syntax {
 		case "go":
-			print(fmt.Sprintf("generating %s (from %s) ...", j.Output, j.Template))
-			if err = GoTemplate(j.Output, tpl.Lookup(j.Template), j.Payload); err != nil {
-				cli.HandleError(fmt.Errorf("failed to write template: %v", err))
-			}
+			err = writeFormattedGo(j.Output, tpl.Lookup(j.Template), j.Payload)
+		default:
+			err = write(j.Output, tpl.Lookup(j.Template), j.Payload)
+		}
+
+		if err != nil {
+			cli.HandleError(fmt.Errorf("failed to write template: %v", err))
+		} else {
 			print("done\n")
 		}
+
 	}
 }
 

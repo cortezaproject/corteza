@@ -14,12 +14,12 @@ import (
 	"github.com/Masterminds/sprig"
 )
 
-func BaseTemplate() *template.Template {
+func baseTemplate() *template.Template {
 	return template.New("").
 		Funcs(sprig.TxtFuncMap())
 }
 
-func LoadTemplates(rTpl *template.Template, rootDir string) (*template.Template, error) {
+func loadTemplates(rTpl *template.Template, rootDir string) (*template.Template, error) {
 	cleanRoot := filepath.Clean(rootDir)
 	pfx := len(cleanRoot) + 1
 
@@ -44,24 +44,45 @@ func LoadTemplates(rTpl *template.Template, rootDir string) (*template.Template,
 	})
 }
 
-func GoTemplate(dst string, tpl *template.Template, payload interface{}) (err error) {
-	var output io.WriteCloser
-	buf := bytes.Buffer{}
+func writeFormattedGo(dst string, tpl *template.Template, payload interface{}) error {
+	return write(dst, tpl, payload, func(in io.ReadWriter) (out io.ReadWriter, err error) {
+		var (
+			bb []byte
+		)
+
+		if bb, err = ioutil.ReadAll(in); err != nil {
+			return
+		}
+
+		if bb, err = format.Source(bb); err != nil {
+			// output error and return unformatted source
+			_, _ = fmt.Fprintf(os.Stderr, "%s fmt warn: %v\n", dst, err)
+			return in, err
+		}
+
+		return bytes.NewBuffer(bb), nil
+	})
+}
+
+func write(dst string, tpl *template.Template, payload interface{}, pp ...func(io.ReadWriter) (io.ReadWriter, error)) (err error) {
+	var (
+		output io.WriteCloser
+		buf    io.ReadWriter
+	)
 
 	if tpl == nil {
 		return fmt.Errorf("could not find template for %s", dst)
 	}
 
-	if err := tpl.Execute(&buf, payload); err != nil {
+	buf = &bytes.Buffer{}
+	if err := tpl.Execute(buf, payload); err != nil {
 		return err
 	}
 
-	fmtsrc, err := format.Source(buf.Bytes())
-	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "%s fmt warn: %v\n", dst, err)
-
-		err = nil
-		fmtsrc = buf.Bytes()
+	for _, proc := range pp {
+		if buf, err = proc(buf); err != nil {
+			return
+		}
 	}
 
 	if dst == "" || dst == "-" {
@@ -74,7 +95,7 @@ func GoTemplate(dst string, tpl *template.Template, payload interface{}) (err er
 		defer output.Close()
 	}
 
-	if _, err = output.Write(fmtsrc); err != nil {
+	if _, err = io.Copy(output, buf); err != nil {
 		return err
 	}
 
