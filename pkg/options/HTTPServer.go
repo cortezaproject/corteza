@@ -1,6 +1,6 @@
 package options
 
-func (o *HTTPServerOpt) Defaults() {
+func (o *HttpServerOpt) Defaults() {
 	o.BaseUrl = CleanBase(o.BaseUrl)
 	o.ApiBaseUrl = CleanBase(o.ApiBaseUrl)
 	o.WebappBaseUrl = CleanBase(o.WebappBaseUrl)

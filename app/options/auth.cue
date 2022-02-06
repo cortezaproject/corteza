@@ -17,8 +17,8 @@ auth: schema.#optionsGroup & {
 			description: "Enable extra logging for authentication flows"
 		}
 		password_security: {
-			type:    "bool"
-			default: "true"
+			type:          "bool"
+			defaultGoExpr: "true"
 			description: """
 				Password security allows you to disable constraints to which passwords must conform to.
 
@@ -30,7 +30,7 @@ auth: schema.#optionsGroup & {
 				"""
 		}
 		secret: {
-			default: "getSecretFromEnv(\"jwt secret\")"
+			defaultGoExpr: "getSecretFromEnv(\"jwt secret\")"
 			description: """
 				Secret used for signing JWT tokens.
 
@@ -44,32 +44,37 @@ auth: schema.#optionsGroup & {
 		}
 		access_token_lifetime: {
 			type:        "time.Duration"
-			default:     "time.Hour * 2"
 			description: "Access token lifetime"
 			env:         "AUTH_OAUTH2_ACCESS_TOKEN_LIFETIME"
+
+			defaultGoExpr: "time.Hour * 2"
+			defaultValue:  "2h"
 		}
 		refresh_token_lifetime: {
 			type:        "time.Duration"
-			default:     "time.Hour * 24 * 3"
 			description: "Refresh token lifetime"
 			env:         "AUTH_OAUTH2_REFRESH_TOKEN_LIFETIME"
+
+			defaultGoExpr: "time.Hour * 24 * 3"
+			defaultValue:  "72h"
 		}
 		expiry: {
 			type:        "time.Duration"
-			default:     "time.Hour * 24 * 30"
-			description: "Experation time for the auth JWT tokens."
+			description: "Expiration time for the auth JWT tokens."
 			env:         "AUTH_JWT_EXPIRY"
+
+			defaultGoExpr: "time.Hour * 24 * 30"
+			defaultValue:  "720h"
 		}
 		external_redirect_URL: {
-			default: "fullURL(\"/auth/external/{provider}/callback\")"
 			description: """
 				Redirect URL to be sent with OAuth2 authentication request to provider
 
 				`provider` placeholder is replaced with the actual value when used.
 				"""
+			defaultGoExpr: "fullURL(\"/auth/external/{provider}/callback\")"
 		}
 		external_cookie_secret: {
-			default: "getSecretFromEnv(\"external cookie secret\")"
 			description: """
 				Secret used for securing cookies
 
@@ -79,61 +84,69 @@ auth: schema.#optionsGroup & {
 				Generated secret will change if you change any of these variables.
 				====
 				"""
+
+			defaultGoExpr: "getSecretFromEnv(\"external cookie secret\")"
 		}
 		base_URL: {
-			default: "fullURL(\"/auth\")"
 			description: """
 				Frontend base URL. Must be an absolute URL, with the domain.
 				This is used for some redirects and links in auth emails.
 				"""
+
+			defaultGoExpr: "fullURL(\"/auth\")"
 		}
 		session_cookie_name: {
-			default:     "\"session\""
-			description: "Session cookie name"
+			description:  "Session cookie name"
+			defaultValue: "session"
 		}
 		session_cookie_path: {
-			default:     "pathPrefix(\"/auth\")"
-			description: "Session cookie path"
+			description:   "Session cookie path"
+			defaultGoExpr: "pathPrefix(\"/auth\")"
 		}
 		session_cookie_domain: {
-			default:     "guessHostname()"
-			description: "Session cookie domain"
+			defaultGoExpr: "guessHostname()"
+			description:   "Session cookie domain"
 		}
 		session_cookie_secure: {
-			type:        "bool"
-			default:     "isSecure()"
-			description: "Defaults to true when HTTPS is used. Corteza will try to guess the this setting by"
+			type:          "bool"
+			defaultGoExpr: "isSecure()"
+			description:   "Defaults to true when HTTPS is used. Corteza will try to guess the this setting by"
 		}
 		session_lifetime: {
-			type:        "time.Duration"
-			default:     "24 * time.Hour"
-			description: "How long do we keep the temporary session"
+			type:          "time.Duration"
+			description:   "How long do we keep the temporary session"
+			defaultGoExpr: "24 * time.Hour"
+			defaultValue:  "24h"
 		}
 		session_perm_lifetime: {
-			type:        "time.Duration"
-			default:     "360 * 24 * time.Hour"
-			description: "How long do we keep the permanent session"
+			type:          "time.Duration"
+			description:   "How long do we keep the permanent session"
+			defaultGoExpr: "360 * 24 * time.Hour"
+			defaultValue:  "8640h"
 		}
 		garbage_collector_interval: {
-			type:        "time.Duration"
-			default:     "15 * time.Minute"
-			description: "How often are expired sessions and tokens purged from the database"
+			type:          "time.Duration"
+			description:   "How often are expired sessions and tokens purged from the database"
+			defaultGoExpr: "15 * time.Minute"
+			defaultValue:  "15min"
 		}
 		request_rate_limit: {
-			type:    "int"
-			default: "60"
+			type: "int"
 			description: """
 				How many requests from a cerain IP address are allowed in a time window.
 				Set to zero to disable
 				"""
+			defaultGoExpr: "60"
+			defaultValue:  "60"
 		}
 		request_rate_window_length: {
-			type:        "time.Duration"
-			default:     "time.Minute"
-			description: "How many requests from a cerain IP address are allowed in a time window"
+			type:          "time.Duration"
+			defaultGoExpr: "time.Minute"
+			defaultValue:  "1m"
+			description:   "How many requests from a cerain IP address are allowed in a time window"
 		}
 		csrf_secret: {
-			default: "getSecretFromEnv(\"csrf secret\")"
+			defaultGoExpr: "getSecretFromEnv(\"csrf secret\")"
 			description: """
 				Secret used for securing CSRF protection
 
@@ -145,20 +158,20 @@ auth: schema.#optionsGroup & {
 				"""
 		}
 		csrf_enabled: {
-			type:        "bool"
-			default:     "true"
-			description: "Enable CSRF protection"
+			type:          "bool"
+			defaultGoExpr: "true"
+			description:   "Enable CSRF protection"
 		}
 		csrf_field_name: {
-			default:     "\"same-site-authenticity-token\""
-			description: "Form field name used for CSRF protection"
+			defaultValue: "same-site-authenticity-token"
+			description:  "Form field name used for CSRF protection"
 		}
 		csrf_cookie_name: {
-			default:     "\"same-site-authenticity-token\""
-			description: "Cookie name used for CSRF protection"
+			defaultValue: "same-site-authenticity-token"
+			description:  "Cookie name used for CSRF protection"
 		}
 		default_client: {
-			default: "\"corteza-webapp\""
+			defaultValue: "corteza-webapp"
 			description: """
 				Handle for OAuth2 client used for automatic redirect from /auth/oauth2/go endpoint.
 
@@ -168,7 +181,6 @@ auth: schema.#optionsGroup & {
 				"""
 		}
 		assets_path: {
-			default: ""
 			description: """
 				Path to js, css, images and template source files
 

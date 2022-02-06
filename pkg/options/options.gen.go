@@ -7,9 +7,10 @@ package options
 //
 
 import (
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/pkg/version"
-	"time"
 )
 
 type (
@@ -18,68 +19,68 @@ type (
 	}
 
 	HTTPClientOpt struct {
-		Timeout     time.Duration `env:"HTTP_CLIENT_TIMEOUT"`
 		TlsInsecure bool          `env:"HTTP_CLIENT_TLS_INSECURE"`
+		Timeout     time.Duration `env:"HTTP_CLIENT_TIMEOUT"`
 	}
 
-	HTTPServerOpt struct {
+	HttpServerOpt struct {
 		Addr                   string `env:"HTTP_ADDR"`
-		ApiBaseUrl             string `env:"HTTP_API_BASE_URL"`
-		ApiEnabled             bool   `env:"HTTP_API_ENABLED"`
-		BaseUrl                string `env:"HTTP_BASE_URL"`
-		EnableDebugRoute       bool   `env:"HTTP_ENABLE_DEBUG_ROUTE"`
-		EnableHealthcheckRoute bool   `env:"HTTP_ENABLE_HEALTHCHECK_ROUTE"`
-		EnableMetrics          bool   `env:"HTTP_METRICS"`
-		EnablePanicReporting   bool   `env:"HTTP_REPORT_PANIC"`
-		EnableVersionRoute     bool   `env:"HTTP_ENABLE_VERSION_ROUTE"`
 		LogRequest             bool   `env:"HTTP_LOG_REQUEST"`
 		LogResponse            bool   `env:"HTTP_LOG_RESPONSE"`
-		MetricsPassword        string `env:"HTTP_METRICS_PASSWORD"`
+		Tracing                bool   `env:"HTTP_ERROR_TRACING"`
+		EnableHealthcheckRoute bool   `env:"HTTP_ENABLE_HEALTHCHECK_ROUTE"`
+		EnableVersionRoute     bool   `env:"HTTP_ENABLE_VERSION_ROUTE"`
+		EnableDebugRoute       bool   `env:"HTTP_ENABLE_DEBUG_ROUTE"`
+		EnableMetrics          bool   `env:"HTTP_METRICS"`
 		MetricsServiceLabel    string `env:"HTTP_METRICS_NAME"`
 		MetricsUsername        string `env:"HTTP_METRICS_USERNAME"`
-		SslTerminated          bool   `env:"HTTP_SSL_TERMINATED"`
-		Tracing                bool   `env:"HTTP_ERROR_TRACING"`
-		WebappBaseDir          string `env:"HTTP_WEBAPP_BASE_DIR"`
-		WebappBaseUrl          string `env:"HTTP_WEBAPP_BASE_URL"`
+		MetricsPassword        string `env:"HTTP_METRICS_PASSWORD"`
+		EnablePanicReporting   bool   `env:"HTTP_REPORT_PANIC"`
+		BaseUrl                string `env:"HTTP_BASE_URL"`
+		ApiEnabled             bool   `env:"HTTP_API_ENABLED"`
+		ApiBaseUrl             string `env:"HTTP_API_BASE_URL"`
 		WebappEnabled          bool   `env:"HTTP_WEBAPP_ENABLED"`
+		WebappBaseUrl          string `env:"HTTP_WEBAPP_BASE_URL"`
+		WebappBaseDir          string `env:"HTTP_WEBAPP_BASE_DIR"`
 		WebappList             string `env:"HTTP_WEBAPP_LIST"`
+		SslTerminated          bool   `env:"HTTP_SSL_TERMINATED"`
 	}
 
-	RBACOpt struct {
-		AnonymousRoles     string `env:"RBAC_ANONYMOUS_ROLES"`
-		AuthenticatedRoles string `env:"RBAC_AUTHENTICATED_ROLES"`
-		BypassRoles        string `env:"RBAC_BYPASS_ROLES"`
+	RbacOpt struct {
 		Log                bool   `env:"RBAC_LOG"`
 		ServiceUser        string `env:"RBAC_SERVICE_USER"`
+		BypassRoles        string `env:"RBAC_BYPASS_ROLES"`
+		AuthenticatedRoles string `env:"RBAC_AUTHENTICATED_ROLES"`
+		AnonymousRoles     string `env:"RBAC_ANONYMOUS_ROLES"`
 	}
 
 	SCIMOpt struct {
-		BaseURL              string `env:"SCIM_BASE_URL"`
 		Enabled              bool   `env:"SCIM_ENABLED"`
+		BaseURL              string `env:"SCIM_BASE_URL"`
+		Secret               string `env:"SCIM_SECRET"`
 		ExternalIdAsPrimary  bool   `env:"SCIM_EXTERNAL_ID_AS_PRIMARY"`
 		ExternalIdValidation string `env:"SCIM_EXTERNAL_ID_VALIDATION"`
-		Secret               string `env:"SCIM_SECRET"`
 	}
 
 	SMTPOpt struct {
-		From          string `env:"SMTP_FROM"`
-		Host          string `env:"SMTP_HOST"`
-		Pass          string `env:"SMTP_PASS"`
-		Port          int    `env:"SMTP_PORT"`
-		TlsInsecure   bool   `env:"SMTP_TLS_INSECURE"`
-		TlsServerName string `env:"SMTP_TLS_SERVER_NAME"`
-		User          string `env:"SMTP_USER"`
+		Host          string `env:"SMPT_HOST"`
+		Port          int    `env:"SMPT_PORT"`
+		User          string `env:"SMPT_USER"`
+		Pass          string `env:"SMPT_PASS"`
+		From          string `env:"SMPT_FROM"`
+		TlsInsecure   bool   `env:"SMPT_TLS_INSECURE"`
+		TlsServerName string `env:"SMPT_TLS_SERVER_NAME"`
 	}
 
 	ActionLogOpt struct {
-		Debug                    bool `env:"ACTIONLOG_DEBUG"`
 		Enabled                  bool `env:"ACTIONLOG_ENABLED"`
+		Debug                    bool `env:"ACTIONLOG_DEBUG"`
 		WorkflowFunctionsEnabled bool `env:"ACTIONLOG_WORKFLOW_FUNCTIONS_ENABLED"`
 	}
 
 	ApigwOpt struct {
-		Debug                bool          `env:"APIGW_DEBUG"`
 		Enabled              bool          `env:"APIGW_ENABLED"`
+		Debug                bool          `env:"APIGW_DEBUG"`
 		LogEnabled           bool          `env:"APIGW_LOG_ENABLED"`
 		LogRequestBody       bool          `env:"APIGW_LOG_REQUEST_BODY"`
 		ProxyEnableDebugLog  bool          `env:"APIGW_PROXY_ENABLE_DEBUG_LOG"`
@@ -88,45 +89,45 @@ type (
 	}
 
 	AuthOpt struct {
-		AccessTokenLifetime      time.Duration `env:"AUTH_OAUTH2_ACCESS_TOKEN_LIFETIME"`
-		AssetsPath               string        `env:"AUTH_ASSETS_PATH"`
-		BaseURL                  string        `env:"AUTH_BASE_URL"`
-		CsrfCookieName           string        `env:"AUTH_CSRF_COOKIE_NAME"`
-		CsrfEnabled              bool          `env:"AUTH_CSRF_ENABLED"`
-		CsrfFieldName            string        `env:"AUTH_CSRF_FIELD_NAME"`
-		CsrfSecret               string        `env:"AUTH_CSRF_SECRET"`
-		DefaultClient            string        `env:"AUTH_DEFAULT_CLIENT"`
-		DevelopmentMode          bool          `env:"AUTH_DEVELOPMENT_MODE"`
-		Expiry                   time.Duration `env:"AUTH_JWT_EXPIRY"`
-		ExternalCookieSecret     string        `env:"AUTH_EXTERNAL_COOKIE_SECRET"`
-		ExternalRedirectURL      string        `env:"AUTH_EXTERNAL_REDIRECT_URL"`
-		GarbageCollectorInterval time.Duration `env:"AUTH_GARBAGE_COLLECTOR_INTERVAL"`
 		LogEnabled               bool          `env:"AUTH_LOG_ENABLED"`
 		PasswordSecurity         bool          `env:"AUTH_PASSWORD_SECURITY"`
-		RefreshTokenLifetime     time.Duration `env:"AUTH_OAUTH2_REFRESH_TOKEN_LIFETIME"`
-		RequestRateLimit         int           `env:"AUTH_REQUEST_RATE_LIMIT"`
-		RequestRateWindowLength  time.Duration `env:"AUTH_REQUEST_RATE_WINDOW_LENGTH"`
 		Secret                   string        `env:"AUTH_JWT_SECRET"`
-		SessionCookieDomain      string        `env:"AUTH_SESSION_COOKIE_DOMAIN"`
+		AccessTokenLifetime      time.Duration `env:"AUTH_OAUTH2_ACCESS_TOKEN_LIFETIME"`
+		RefreshTokenLifetime     time.Duration `env:"AUTH_OAUTH2_REFRESH_TOKEN_LIFETIME"`
+		Expiry                   time.Duration `env:"AUTH_JWT_EXPIRY"`
+		ExternalRedirectURL      string        `env:"AUTH_EXTERNAL_REDIRECT_URL"`
+		ExternalCookieSecret     string        `env:"AUTH_EXTERNAL_COOKIE_SECRET"`
+		BaseURL                  string        `env:"AUTH_BASE_URL"`
 		SessionCookieName        string        `env:"AUTH_SESSION_COOKIE_NAME"`
 		SessionCookiePath        string        `env:"AUTH_SESSION_COOKIE_PATH"`
+		SessionCookieDomain      string        `env:"AUTH_SESSION_COOKIE_DOMAIN"`
 		SessionCookieSecure      bool          `env:"AUTH_SESSION_COOKIE_SECURE"`
 		SessionLifetime          time.Duration `env:"AUTH_SESSION_LIFETIME"`
 		SessionPermLifetime      time.Duration `env:"AUTH_SESSION_PERM_LIFETIME"`
+		GarbageCollectorInterval time.Duration `env:"AUTH_GARBAGE_COLLECTOR_INTERVAL"`
+		RequestRateLimit         int           `env:"AUTH_REQUEST_RATE_LIMIT"`
+		RequestRateWindowLength  time.Duration `env:"AUTH_REQUEST_RATE_WINDOW_LENGTH"`
+		CsrfSecret               string        `env:"AUTH_CSRF_SECRET"`
+		CsrfEnabled              bool          `env:"AUTH_CSRF_ENABLED"`
+		CsrfFieldName            string        `env:"AUTH_CSRF_FIELD_NAME"`
+		CsrfCookieName           string        `env:"AUTH_CSRF_COOKIE_NAME"`
+		DefaultClient            string        `env:"AUTH_DEFAULT_CLIENT"`
+		AssetsPath               string        `env:"AUTH_ASSETS_PATH"`
+		DevelopmentMode          bool          `env:"AUTH_DEVELOPMENT_MODE"`
 	}
 
 	CorredorOpt struct {
-		Addr                  string        `env:"CORREDOR_ADDR"`
-		DefaultExecTimeout    time.Duration `env:"CORREDOR_DEFAULT_EXEC_TIMEOUT"`
 		Enabled               bool          `env:"CORREDOR_ENABLED"`
-		ListRefresh           time.Duration `env:"CORREDOR_LIST_REFRESH"`
-		ListTimeout           time.Duration `env:"CORREDOR_LIST_TIMEOUT"`
+		Addr                  string        `env:"CORREDOR_ADDR"`
 		MaxBackoffDelay       time.Duration `env:"CORREDOR_MAX_BACKOFF_DELAY"`
 		MaxReceiveMessageSize int           `env:"CORREDOR_MAX_RECEIVE_MESSAGE_SIZE"`
+		DefaultExecTimeout    time.Duration `env:"CORREDOR_DEFAULT_EXEC_TIMEOUT"`
+		ListTimeout           time.Duration `env:"CORREDOR_LIST_TIMEOUT"`
+		ListRefresh           time.Duration `env:"CORREDOR_LIST_REFRESH"`
 		RunAsEnabled          bool          `env:"CORREDOR_RUN_AS_ENABLED"`
-		TlsCertCA             string        `env:"CORREDOR_CLIENT_CERTIFICATES_CA"`
 		TlsCertEnabled        bool          `env:"CORREDOR_CLIENT_CERTIFICATES_ENABLED"`
 		TlsCertPath           string        `env:"CORREDOR_CLIENT_CERTIFICATES_PATH"`
+		TlsCertCA             string        `env:"CORREDOR_CLIENT_CERTIFICATES_CA"`
 		TlsCertPrivate        string        `env:"CORREDOR_CLIENT_CERTIFICATES_PRIVATE"`
 		TlsCertPublic         string        `env:"CORREDOR_CLIENT_CERTIFICATES_PUBLIC"`
 		TlsServerName         string        `env:"CORREDOR_CLIENT_CERTIFICATES_SERVER_NAME"`
@@ -142,13 +143,13 @@ type (
 	}
 
 	FederationOpt struct {
-		DataMonitorInterval      time.Duration `env:"FEDERATION_SYNC_DATA_MONITOR_INTERVAL"`
-		DataPageSize             int           `env:"FEDERATION_SYNC_DATA_PAGE_SIZE"`
 		Enabled                  bool          `env:"FEDERATION_ENABLED"`
-		Host                     string        `env:"FEDERATION_HOST"`
 		Label                    string        `env:"FEDERATION_LABEL"`
+		Host                     string        `env:"FEDERATION_HOST"`
 		StructureMonitorInterval time.Duration `env:"FEDERATION_SYNC_STRUCTURE_MONITOR_INTERVAL"`
 		StructurePageSize        int           `env:"FEDERATION_SYNC_STRUCTURE_PAGE_SIZE"`
+		DataMonitorInterval      time.Duration `env:"FEDERATION_SYNC_DATA_MONITOR_INTERVAL"`
+		DataPageSize             int           `env:"FEDERATION_SYNC_DATA_PAGE_SIZE"`
 	}
 
 	LimitOpt struct {
@@ -156,19 +157,19 @@ type (
 	}
 
 	LocaleOpt struct {
-		DevelopmentMode             bool   `env:"LOCALE_DEVELOPMENT_MODE"`
 		Languages                   string `env:"LOCALE_LANGUAGES"`
-		Log                         bool   `env:"LOCALE_LOG"`
 		Path                        string `env:"LOCALE_PATH"`
 		QueryStringParam            string `env:"LOCALE_QUERY_STRING_PARAM"`
 		ResourceTranslationsEnabled bool   `env:"LOCALE_RESOURCE_TRANSLATIONS_ENABLED"`
+		Log                         bool   `env:"LOCALE_LOG"`
+		DevelopmentMode             bool   `env:"LOCALE_DEVELOPMENT_MODE"`
 	}
 
 	LogOpt struct {
 		Debug           bool   `env:"LOG_DEBUG"`
+		Level           string `env:"LOG_LEVEL"`
 		Filter          string `env:"LOG_FILTER"`
 		IncludeCaller   bool   `env:"LOG_INCLUDE_CALLER"`
-		Level           string `env:"LOG_LEVEL"`
 		StacktraceLevel string `env:"LOG_STACKTRACE_LEVEL"`
 	}
 
@@ -182,15 +183,15 @@ type (
 	}
 
 	ObjectStoreOpt struct {
-		MinioAccessKey  string `env:"MINIO_ACCESS_KEY"`
-		MinioBucket     string `env:"MINIO_BUCKET"`
-		MinioEndpoint   string `env:"MINIO_ENDPOINT"`
-		MinioPathPrefix string `env:"MINIO_PATH_PREFIX"`
-		MinioSSECKey    string `env:"MINIO_SSEC_KEY"`
-		MinioSecretKey  string `env:"MINIO_SECRET_KEY"`
-		MinioSecure     bool   `env:"MINIO_SECURE"`
-		MinioStrict     bool   `env:"MINIO_STRICT"`
 		Path            string `env:"STORAGE_PATH"`
+		MinioEndpoint   string `env:"MINIO_ENDPOINT"`
+		MinioSecure     bool   `env:"MINIO_SECURE"`
+		MinioAccessKey  string `env:"MINIO_ACCESS_KEY"`
+		MinioSecretKey  string `env:"MINIO_SECRET_KEY"`
+		MinioSSECKey    string `env:"MINIO_SSEC_KEY"`
+		MinioBucket     string `env:"MINIO_BUCKET"`
+		MinioPathPrefix string `env:"MINIO_PATH_PREFIX"`
+		MinioStrict     bool   `env:"MINIO_STRICT"`
 	}
 
 	PluginsOpt struct {
@@ -209,14 +210,14 @@ type (
 
 	SentryOpt struct {
 		DSN              string  `env:"SENTRY_DSN"`
-		AttachStacktrace bool    `env:"SENTRY_ATTACH_STACKTRACE"`
 		Debug            bool    `env:"SENTRY_DEBUG"`
+		AttachStacktrace bool    `env:"SENTRY_ATTACH_STACKTRACE"`
+		SampleRate       float64 `env:"SENTRY_SAMPLE_RATE"`
+		MaxBreadcrumbs   int     `env:"SENTRY_MAX_BREADCRUMBS"`
+		ServerName       string  `env:"SENTRY_SERVERNAME"`
+		Release          string  `env:"SENTRY_RELEASE"`
 		Dist             string  `env:"SENTRY_DIST"`
 		Environment      string  `env:"SENTRY_ENVIRONMENT"`
-		MaxBreadcrumbs   int     `env:"SENTRY_MAX_BREADCRUMBS"`
-		Release          string  `env:"SENTRY_RELEASE"`
-		SampleRate       float64 `env:"SENTRY_SAMPLE_RATE"`
-		ServerName       string  `env:"SENTRY_SERVERNAME"`
 	}
 
 	TemplateOpt struct {
@@ -225,30 +226,30 @@ type (
 	}
 
 	UpgradeOpt struct {
-		Always bool `env:"UPGRADE_ALWAYS"`
 		Debug  bool `env:"UPGRADE_DEBUG"`
+		Always bool `env:"UPGRADE_ALWAYS"`
 	}
 
 	WaitForOpt struct {
 		Delay                 time.Duration `env:"WAIT_FOR"`
-		Services              string        `env:"WAIT_FOR_SERVICES"`
-		ServicesProbeInterval time.Duration `env:"WAIT_FOR_SERVICES_PROBE_INTERVAL"`
-		ServicesProbeTimeout  time.Duration `env:"WAIT_FOR_SERVICES_PROBE_TIMEOUT"`
-		ServicesTimeout       time.Duration `env:"WAIT_FOR_SERVICES_TIMEOUT"`
 		StatusPage            bool          `env:"WAIT_FOR_STATUS_PAGE"`
+		Services              string        `env:"WAIT_FOR_SERVICES"`
+		ServicesTimeout       time.Duration `env:"WAIT_FOR_SERVICES_TIMEOUT"`
+		ServicesProbeTimeout  time.Duration `env:"WAIT_FOR_SERVICES_PROBE_TIMEOUT"`
+		ServicesProbeInterval time.Duration `env:"WAIT_FOR_SERVICES_PROBE_INTERVAL"`
 	}
 
 	WebsocketOpt struct {
 		LogEnabled  bool          `env:"WEBSOCKET_LOG_ENABLED"`
-		PingPeriod  time.Duration `env:"WEBSOCKET_PING_PERIOD"`
-		PingTimeout time.Duration `env:"WEBSOCKET_PING_TIMEOUT"`
 		Timeout     time.Duration `env:"WEBSOCKET_TIMEOUT"`
+		PingTimeout time.Duration `env:"WEBSOCKET_PING_TIMEOUT"`
+		PingPeriod  time.Duration `env:"WEBSOCKET_PING_PERIOD"`
 	}
 
 	WorkflowOpt struct {
-		CallStackSize int  `env:"WORKFLOW_CALL_STACK_SIZE"`
-		ExecDebug     bool `env:"WORKFLOW_EXEC_DEBUG"`
 		Register      bool `env:"WORKFLOW_REGISTER"`
+		ExecDebug     bool `env:"WORKFLOW_EXEC_DEBUG"`
+		CallStackSize int  `env:"WORKFLOW_CALL_STACK_SIZE"`
 	}
 )
 
@@ -279,8 +280,7 @@ func DB() (o *DBOpt) {
 // This function is auto-generated
 func HTTPClient() (o *HTTPClientOpt) {
 	o = &HTTPClientOpt{
-		Timeout:     30 * time.Second,
-		TlsInsecure: false,
+		Timeout: 30 * time.Second,
 	}
 
 	fill(o)
@@ -297,38 +297,32 @@ func HTTPClient() (o *HTTPClientOpt) {
 	return
 }
 
-// HTTPServer initializes and returns a HTTPServerOpt with default values
+// HttpServer initializes and returns a HttpServerOpt with default values
 //
 // This function is auto-generated
-func HTTPServer() (o *HTTPServerOpt) {
-	o = &HTTPServerOpt{
+func HttpServer() (o *HttpServerOpt) {
+	o = &HttpServerOpt{
 		Addr:                   ":80",
-		ApiBaseUrl:             "/",
-		ApiEnabled:             true,
-		BaseUrl:                "/",
-		EnableDebugRoute:       false,
 		EnableHealthcheckRoute: true,
-		EnableMetrics:          false,
-		EnablePanicReporting:   true,
 		EnableVersionRoute:     true,
-		LogRequest:             false,
-		LogResponse:            false,
-		MetricsPassword:        string(rand.Bytes(5)),
 		MetricsServiceLabel:    "corteza",
 		MetricsUsername:        "metrics",
-		SslTerminated:          isSecure(),
-		Tracing:                false,
-		WebappBaseDir:          "./webapp/public",
+		MetricsPassword:        string(rand.Bytes(5)),
+		EnablePanicReporting:   true,
+		BaseUrl:                "/",
+		ApiEnabled:             true,
+		ApiBaseUrl:             "/",
 		WebappBaseUrl:          "/",
-		WebappEnabled:          false,
+		WebappBaseDir:          "./webapp/public",
 		WebappList:             "admin,compose,workflow,reporter",
+		SslTerminated:          isSecure(),
 	}
 
 	fill(o)
 
 	// Function that allows access to custom logic inside the parent function.
 	// The custom logic in the other file should be like:
-	// func (o *HTTPServerOpt) Defaults() {...}
+	// func (o *HttpServerOpt) Defaults() {...}
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
@@ -338,21 +332,21 @@ func HTTPServer() (o *HTTPServerOpt) {
 	return
 }
 
-// RBAC initializes and returns a RBACOpt with default values
+// Rbac initializes and returns a RbacOpt with default values
 //
 // This function is auto-generated
-func RBAC() (o *RBACOpt) {
-	o = &RBACOpt{
-		AnonymousRoles:     "anonymous",
-		AuthenticatedRoles: "authenticated",
+func Rbac() (o *RbacOpt) {
+	o = &RbacOpt{
 		BypassRoles:        "super-admin",
+		AuthenticatedRoles: "authenticated",
+		AnonymousRoles:     "anonymous",
 	}
 
 	fill(o)
 
 	// Function that allows access to custom logic inside the parent function.
 	// The custom logic in the other file should be like:
-	// func (o *RBACOpt) Defaults() {...}
+	// func (o *RbacOpt) Defaults() {...}
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
@@ -390,9 +384,8 @@ func SCIM() (o *SCIMOpt) {
 // This function is auto-generated
 func SMTP() (o *SMTPOpt) {
 	o = &SMTPOpt{
-		Host:        "localhost",
-		Port:        25,
-		TlsInsecure: false,
+		Host: "localhost",
+		Port: 25,
 	}
 
 	fill(o)
@@ -414,9 +407,7 @@ func SMTP() (o *SMTPOpt) {
 // This function is auto-generated
 func ActionLog() (o *ActionLogOpt) {
 	o = &ActionLogOpt{
-		Debug:                    false,
-		Enabled:                  true,
-		WorkflowFunctionsEnabled: false,
+		Enabled: true,
 	}
 
 	fill(o)
@@ -438,11 +429,7 @@ func ActionLog() (o *ActionLogOpt) {
 // This function is auto-generated
 func Apigw() (o *ApigwOpt) {
 	o = &ApigwOpt{
-		Debug:                false,
 		Enabled:              true,
-		LogEnabled:           false,
-		LogRequestBody:       false,
-		ProxyEnableDebugLog:  false,
 		ProxyFollowRedirects: true,
 		ProxyOutboundTimeout: time.Second * 30,
 	}
@@ -466,28 +453,28 @@ func Apigw() (o *ApigwOpt) {
 // This function is auto-generated
 func Auth() (o *AuthOpt) {
 	o = &AuthOpt{
-		AccessTokenLifetime:      time.Hour * 2,
-		BaseURL:                  fullURL("/auth"),
-		CsrfCookieName:           "same-site-authenticity-token",
-		CsrfEnabled:              true,
-		CsrfFieldName:            "same-site-authenticity-token",
-		CsrfSecret:               getSecretFromEnv("csrf secret"),
-		DefaultClient:            "corteza-webapp",
-		Expiry:                   time.Hour * 24 * 30,
-		ExternalCookieSecret:     getSecretFromEnv("external cookie secret"),
-		ExternalRedirectURL:      fullURL("/auth/external/{provider}/callback"),
-		GarbageCollectorInterval: 15 * time.Minute,
 		PasswordSecurity:         true,
-		RefreshTokenLifetime:     time.Hour * 24 * 3,
-		RequestRateLimit:         60,
-		RequestRateWindowLength:  time.Minute,
 		Secret:                   getSecretFromEnv("jwt secret"),
-		SessionCookieDomain:      guessHostname(),
+		AccessTokenLifetime:      time.Hour * 2,
+		RefreshTokenLifetime:     time.Hour * 24 * 3,
+		Expiry:                   time.Hour * 24 * 30,
+		ExternalRedirectURL:      fullURL("/auth/external/{provider}/callback"),
+		ExternalCookieSecret:     getSecretFromEnv("external cookie secret"),
+		BaseURL:                  fullURL("/auth"),
 		SessionCookieName:        "session",
 		SessionCookiePath:        pathPrefix("/auth"),
+		SessionCookieDomain:      guessHostname(),
 		SessionCookieSecure:      isSecure(),
 		SessionLifetime:          24 * time.Hour,
 		SessionPermLifetime:      360 * 24 * time.Hour,
+		GarbageCollectorInterval: 15 * time.Minute,
+		RequestRateLimit:         60,
+		RequestRateWindowLength:  time.Minute,
+		CsrfSecret:               getSecretFromEnv("csrf secret"),
+		CsrfEnabled:              true,
+		CsrfFieldName:            "same-site-authenticity-token",
+		CsrfCookieName:           "same-site-authenticity-token",
+		DefaultClient:            "corteza-webapp",
 	}
 
 	fill(o)
@@ -510,16 +497,14 @@ func Auth() (o *AuthOpt) {
 func Corredor() (o *CorredorOpt) {
 	o = &CorredorOpt{
 		Addr:                  "localhost:50051",
-		DefaultExecTimeout:    time.Minute,
-		Enabled:               false,
-		ListRefresh:           time.Second * 5,
-		ListTimeout:           time.Second * 2,
 		MaxBackoffDelay:       time.Minute,
 		MaxReceiveMessageSize: 2 << 23,
+		DefaultExecTimeout:    time.Minute,
+		ListTimeout:           time.Second * 2,
+		ListRefresh:           time.Second * 5,
 		RunAsEnabled:          true,
-		TlsCertCA:             "ca.crt",
-		TlsCertEnabled:        false,
 		TlsCertPath:           "/certs/corredor/client",
+		TlsCertCA:             "ca.crt",
 		TlsCertPrivate:        "private.key",
 		TlsCertPublic:         "public.crt",
 	}
@@ -588,13 +573,12 @@ func Eventbus() (o *EventbusOpt) {
 // This function is auto-generated
 func Federation() (o *FederationOpt) {
 	o = &FederationOpt{
-		DataMonitorInterval:      time.Second * 60,
-		DataPageSize:             100,
-		Enabled:                  false,
-		Host:                     "local.cortezaproject.org",
 		Label:                    "federated",
+		Host:                     "local.cortezaproject.org",
 		StructureMonitorInterval: time.Minute * 2,
 		StructurePageSize:        1,
+		DataMonitorInterval:      time.Minute,
+		DataPageSize:             100,
 	}
 
 	fill(o)
@@ -659,7 +643,6 @@ func Locale() (o *LocaleOpt) {
 // This function is auto-generated
 func Log() (o *LogOpt) {
 	o = &LogOpt{
-		IncludeCaller:   false,
 		Level:           "warn",
 		StacktraceLevel: "dpanic",
 	}
@@ -683,8 +666,7 @@ func Log() (o *LogOpt) {
 // This function is auto-generated
 func Messagebus() (o *MessagebusOpt) {
 	o = &MessagebusOpt{
-		Enabled:    true,
-		LogEnabled: false,
+		Enabled: true,
 	}
 
 	fill(o)
@@ -706,7 +688,7 @@ func Messagebus() (o *MessagebusOpt) {
 // This function is auto-generated
 func Monitor() (o *MonitorOpt) {
 	o = &MonitorOpt{
-		Interval: 300 * time.Second,
+		Interval: 5 * time.Minute,
 	}
 
 	fill(o)
@@ -728,10 +710,9 @@ func Monitor() (o *MonitorOpt) {
 // This function is auto-generated
 func ObjectStore() (o *ObjectStoreOpt) {
 	o = &ObjectStoreOpt{
-		MinioBucket: "{component}",
-		MinioSecure: true,
-		MinioStrict: false,
 		Path:        "var/store",
+		MinioSecure: true,
+		MinioBucket: "{component}",
 	}
 
 	fill(o)
@@ -841,9 +822,7 @@ func Sentry() (o *SentryOpt) {
 //
 // This function is auto-generated
 func Template() (o *TemplateOpt) {
-	o = &TemplateOpt{
-		RendererGotenbergEnabled: false,
-	}
+	o = &TemplateOpt{}
 
 	fill(o)
 
@@ -865,7 +844,6 @@ func Template() (o *TemplateOpt) {
 func Upgrade() (o *UpgradeOpt) {
 	o = &UpgradeOpt{
 		Always: true,
-		Debug:  false,
 	}
 
 	fill(o)
@@ -887,11 +865,10 @@ func Upgrade() (o *UpgradeOpt) {
 // This function is auto-generated
 func WaitFor() (o *WaitForOpt) {
 	o = &WaitForOpt{
-		Delay:                 0,
-		ServicesProbeInterval: time.Second * 5,
-		ServicesProbeTimeout:  time.Second * 30,
-		ServicesTimeout:       time.Minute,
 		StatusPage:            true,
+		ServicesTimeout:       time.Minute,
+		ServicesProbeTimeout:  time.Second * 30,
+		ServicesProbeInterval: time.Second * 5,
 	}
 
 	fill(o)
@@ -913,9 +890,9 @@ func WaitFor() (o *WaitForOpt) {
 // This function is auto-generated
 func Websocket() (o *WebsocketOpt) {
 	o = &WebsocketOpt{
-		PingPeriod:  ((120 * time.Second) * 9) / 10,
-		PingTimeout: 120 * time.Second,
 		Timeout:     15 * time.Second,
+		PingTimeout: 120 * time.Second,
+		PingPeriod:  ((120 * time.Second) * 9) / 10,
 	}
 
 	fill(o)
@@ -937,9 +914,8 @@ func Websocket() (o *WebsocketOpt) {
 // This function is auto-generated
 func Workflow() (o *WorkflowOpt) {
 	o = &WorkflowOpt{
-		CallStackSize: 16,
-		ExecDebug:     false,
 		Register:      true,
+		CallStackSize: 16,
 	}
 
 	fill(o)

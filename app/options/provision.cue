@@ -8,13 +8,13 @@ provision: schema.#optionsGroup & {
 	handle: "provision"
 	options: {
 		always: {
-			type:        "bool"
-			default:     "true"
-			description: "Controls if provision should run when the server starts."
+			type:          "bool"
+			defaultGoExpr: "true"
+			description:   "Controls if provision should run when the server starts."
 		}
 		path: {
-			default:     "\"provision/*\""
-			description: "Colon seperated paths to config files for provisioning."
+			defaultValue: "provision/*"
+			description:  "Colon seperated paths to config files for provisioning."
 		}
 	}
 	title: "Provisioning"

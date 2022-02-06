@@ -14,59 +14,59 @@ corredor: schema.#optionsGroup & {
 	options: {
 		enabled: {
 			type:        "bool"
-			default:     "false"
 			description: "Enable/disable Corredor integration"
 		}
 		addr: {
-			default:     "\"localhost:50051\""
-			description: "Hostname and port of the Corredor gRPC server."
+			defaultValue: "localhost:50051"
+			description:  "Hostname and port of the Corredor gRPC server."
 		}
 		max_backoff_delay: {
-			type:        "time.Duration"
-			default:     "time.Minute"
-			description: "Max delay for backoff on connection."
+			type:          "time.Duration"
+			description:   "Max delay for backoff on connection."
+			defaultGoExpr: "time.Minute"
+			defaultValue:  "1m"
 		}
 		max_receive_message_size: {
-			type:        "int"
-			default:     "2 << 23"
-			description: "Max message size that can be recived."
+			type:          "int"
+			defaultGoExpr: "2 << 23"
+			description:   "Max message size that can be recived."
 		}
 		default_exec_timeout: {
-			type:    "time.Duration"
-			default: "time.Minute"
+			type:          "time.Duration"
+			defaultGoExpr: "time.Minute"
 		}
 		list_timeout: {
-			type:    "time.Duration"
-			default: "time.Second * 2"
+			type:          "time.Duration"
+			defaultGoExpr: "time.Second * 2"
+			defaultValue:  "2s"
 		}
 		list_refresh: {
-			type:    "time.Duration"
-			default: "time.Second * 5"
+			type:          "time.Duration"
+			defaultGoExpr: "time.Second * 5"
 		}
 		run_as_enabled: {
-			type:    "bool"
-			default: "true"
+			type:          "bool"
+			defaultGoExpr: "true"
 		}
 		tls_cert_enabled: {
-			type:    "bool"
-			default: "false"
-			env:     "CORREDOR_CLIENT_CERTIFICATES_ENABLED"
+			type: "bool"
+			env:  "CORREDOR_CLIENT_CERTIFICATES_ENABLED"
 		}
 		tls_cert_path: {
-			default: "\"/certs/corredor/client\""
-			env:     "CORREDOR_CLIENT_CERTIFICATES_PATH"
+			defaultValue: "/certs/corredor/client"
+			env:          "CORREDOR_CLIENT_CERTIFICATES_PATH"
 		}
 		tls_cert_cA: {
-			default: "\"ca.crt\""
-			env:     "CORREDOR_CLIENT_CERTIFICATES_CA"
+			defaultValue: "ca.crt"
+			env:          "CORREDOR_CLIENT_CERTIFICATES_CA"
 		}
 		tls_cert_private: {
-			default: "\"private.key\""
-			env:     "CORREDOR_CLIENT_CERTIFICATES_PRIVATE"
+			defaultValue: "private.key"
+			env:          "CORREDOR_CLIENT_CERTIFICATES_PRIVATE"
 		}
 		tls_cert_public: {
-			default: "\"public.crt\""
-			env:     "CORREDOR_CLIENT_CERTIFICATES_PUBLIC"
+			defaultValue: "public.crt"
+			env:          "CORREDOR_CLIENT_CERTIFICATES_PUBLIC"
 		}
 		tls_server_name: {
 			env: "CORREDOR_CLIENT_CERTIFICATES_SERVER_NAME"

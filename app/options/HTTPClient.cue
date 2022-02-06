@@ -5,9 +5,9 @@ import (
 )
 
 HTTPClient: schema.#optionsGroup & {
-	title:    "HTTP Client"
+	title: "HTTP Client"
 	// Explicitly define all variants to be 100% compaltible with old name
-	handle:   "http-client"
+	handle: "http-client"
 
 	// @todo remove explcitly defined expIdent and adjust the code
 	expIdent: "HTTPClient"
@@ -16,12 +16,9 @@ HTTPClient: schema.#optionsGroup & {
 		"\"time\"",
 	]
 
-
-
 	options: {
 		tls_insecure: {
-			type:    "bool"
-			default: "false"
+			type: "bool"
 			description: """
 				Allow insecure (invalid, expired TLS/SSL certificates) connections.
 
@@ -33,8 +30,10 @@ HTTPClient: schema.#optionsGroup & {
 		}
 		timeout: {
 			type:        "time.Duration"
-			default:     "30 * time.Second"
 			description: "Default timeout for clients."
+
+			defaultGoExpr: "30 * time.Second"
+			defaultValue:  "30s"
 		}
 	}
 }

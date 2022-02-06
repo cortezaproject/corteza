@@ -8,8 +8,8 @@ DB: schema.#optionsGroup & {
 	handle: "DB"
 	options: {
 		DSN: {
-			default:     "\"sqlite3://file::memory:?cache=shared&mode=memory\""
-			description: "Database connection string."
+			defaultValue: "sqlite3://file::memory:?cache=shared&mode=memory"
+			description:  "Database connection string."
 		}
 	}
 	title: "Connection to data store backend"

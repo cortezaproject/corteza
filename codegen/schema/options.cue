@@ -4,30 +4,30 @@ import (
 	"strings"
 )
 
-#_ENV:     =~ "^[A-Z][A-Z0-9_]*[A-Z0-9]?$"
+#_ENV: =~"^[A-Z][A-Z0-9_]*[A-Z0-9]?$"
 //#_optName: =~ "^[a-zA-Z][a-zA-Z0-9\\s]*[a-zA-Z0-9]+$"
 
 #optionsGroup: #_base & {
 	imports: [...string] | *([])
 
-  handle: #handle
+	handle: #handle
 
-  title?: string
-  description?: string
+	title:        string | *handle
+	description?: string
 
-  env: #_ENV | *(strings.ToUpper(strings.Replace(handle, "-", "_", -1)))
+	env:        #_ENV | *(strings.ToUpper(strings.Replace(handle, "-", "_", -1)))
 	_envPrefix: env
 
 	options: {
 		[_opt=_]: #option & {
-		  handle: _opt
-			env: #_ENV | *(_envPrefix + "_" + strings.ToUpper(strings.Replace(handle, " ", "_", -1)))
+			handle: _opt
+			env:    #_ENV | *(_envPrefix + "_" + strings.ToUpper(strings.Replace(handle, " ", "_", -1)))
 		}
 	}
 }
 
 #option: {
-  handle: #handle
+	handle: #handle
 	_words: strings.Replace(strings.Replace(strings.Replace(handle, "-", " ", -1), "_", " ", -1), ".", " ", -1)
 
 	// lowercased (unexported, golang) identifier
@@ -36,8 +36,14 @@ import (
 	// upercased (exported, golang) identifier
 	expIdent: #expIdent | *strings.Replace(strings.ToTitle(_words), " ", "", -1)
 
-	type: string | *"string"
+	type:         string | *"string"
 	description?: string
-	default?: string
+
+	// Default expression to be used
+	defaultGoExpr?: string
+
 	env?: #_ENV
+
+	// Plain default value to use when generating .env.example
+	defaultValue?: string
 }

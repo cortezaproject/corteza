@@ -5,8 +5,8 @@ import (
 )
 
 RBAC: schema.#optionsGroup & {
-	handle: "RBAC"
-	title: "RBAC options"
+	handle: "rbac"
+	title:  "RBAC options"
 
 	options: {
 		log: {
@@ -15,7 +15,7 @@ RBAC: schema.#optionsGroup & {
 		}
 		service_user: {}
 		bypass_roles: {
-			default: "\"super-admin\""
+			defaultValue: "super-admin"
 			description: """
 				Space delimited list of role handles.
 				These roles causes short-circuiting access control check and allowing all operations.
@@ -23,7 +23,7 @@ RBAC: schema.#optionsGroup & {
 				"""
 		}
 		authenticated_roles: {
-			default: "\"authenticated\""
+			defaultValue: "authenticated"
 			description: """
 				Space delimited list of role handles.
 				These roles are automatically assigned to authenticated user.
@@ -32,7 +32,7 @@ RBAC: schema.#optionsGroup & {
 				"""
 		}
 		anonymous_roles: {
-			default: "\"anonymous\""
+			defaultValue: "anonymous"
 			description: """
 				Space delimited list of role handles.
 				These roles are automatically assigned to anonymous user.

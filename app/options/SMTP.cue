@@ -5,8 +5,12 @@ import (
 )
 
 SMTP: schema.#optionsGroup & {
-	handle: "SMTP"
-	title: "Email sending"
+	handle: "smpt"
+	title:  "Email sending"
+
+	// @todo remove explicitly defined expIdent and adjust the code
+	expIdent: "SMTP"
+
 	intro: """
 		Configure your local SMTP server or use one of the available providers.
 
@@ -17,13 +21,13 @@ SMTP: schema.#optionsGroup & {
 
 	options: {
 		host: {
-			default:     "\"localhost\""
-			description: "The SMTP server hostname."
+			defaultValue: "localhost"
+			description:  "The SMTP server hostname."
 		}
 		port: {
-			type:        "int"
-			default:     "25"
-			description: "The SMTP post."
+			type:          "int"
+			defaultGoExpr: "25"
+			description:   "The SMTP post."
 		}
 		user: {
 			description: "The SMTP username."
@@ -36,7 +40,6 @@ SMTP: schema.#optionsGroup & {
 		}
 		tls_insecure: {
 			type:        "bool"
-			default:     "false"
 			description: "Allow insecure (invalid, expired TLS certificates) connections."
 		}
 		tls_server_name: {}

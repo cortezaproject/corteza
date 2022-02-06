@@ -762,7 +762,7 @@ func toLabeledRoles(set []*types.Role) []label.LabeledResource {
 // Initializes roles to RBAC and default role service
 //
 // Sets all closed & system roles
-func initRoles(ctx context.Context, log *zap.Logger, opt options.RBACOpt, eb eventbusRoleChangeRegistry, ru rbacRoleUpdater) (err error) {
+func initRoles(ctx context.Context, log *zap.Logger, opt options.RbacOpt, eb eventbusRoleChangeRegistry, ru rbacRoleUpdater) (err error) {
 	var (
 		// splits space separated string into map
 		s = func(l string) (map[string]bool, error) {

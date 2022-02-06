@@ -5,16 +5,20 @@ import (
 )
 
 SCIM: schema.#optionsGroup & {
-	handle: "SCIM"
-	title: "SCIM Server"
+	handle: "scim"
+	title:  "SCIM Server"
+
+	// @todo remove explicitly defined expIdent and adjust the code
+	expIdent: "SCIM"
+
 	options: {
 		enabled: {
 			type:        "bool"
 			description: "Enable SCIM subsystem"
 		}
 		base_URL: {
-			default:     "\"/scim\""
-			description: "Prefix for SCIM API endpoints"
+			defaultValue: "/scim"
+			description:  "Prefix for SCIM API endpoints"
 		}
 		secret: {
 			description: "Secret to use to validate requests on SCIM API endpoints"
@@ -24,8 +28,8 @@ SCIM: schema.#optionsGroup & {
 			description: "Use external IDs in SCIM API endpoints"
 		}
 		external_id_validation: {
-			default:     "\"^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$\""
-			description: "Validates format of external IDs. Defaults to UUID"
+			defaultValue: "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+			description:  "Validates format of external IDs. Defaults to UUID"
 		}
 	}
 }

@@ -13,14 +13,16 @@ eventbus: schema.#optionsGroup & {
 
 	options: {
 		scheduler_enabled: {
-			type:        "bool"
-			default:     "true"
-			description: "Enable eventbus sheduler."
+			type:          "bool"
+			defaultGoExpr: "true"
+			description:   "Enable eventbus scheduler."
 		}
 		scheduler_interval: {
 			type:        "time.Duration"
-			default:     "time.Minute"
 			description: "Set time interval for `eventbus` scheduler."
+
+			defaultGoExpr: "time.Minute"
+			defaultValue:  "60s"
 		}
 	}
 	title: "Events and scheduler"

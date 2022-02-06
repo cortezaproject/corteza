@@ -8,19 +8,18 @@ workflow: schema.#optionsGroup & {
 	handle: "workflow"
 	options: {
 		register: {
-			type:        "bool"
-			default:     "true"
-			description: "Registers enabled and valid workflows and executes them when triggered"
+			type:          "bool"
+			defaultGoExpr: "true"
+			description:   "Registers enabled and valid workflows and executes them when triggered"
 		}
 		exec_debug: {
 			type:        "bool"
-			default:     "false"
 			description: "Enables verbose logging for workflow execution"
 		}
 		call_stack_size: {
-			type:        "int"
-			default:     "16"
-			description: "Defines the maximum call stack size between workflows"
+			type:          "int"
+			defaultGoExpr: "16"
+			description:   "Defines the maximum call stack size between workflows"
 		}
 	}
 	title: "Workflow"

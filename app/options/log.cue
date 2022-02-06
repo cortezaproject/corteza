@@ -17,7 +17,7 @@ log: schema.#optionsGroup & {
 				"""
 		}
 		level: {
-			default: "\"warn\""
+			defaultValue: "warn"
 			description: """
 				Minimum logging level. If set to "warn",
 				Levels warn, error, dpanic panic and fatal will be logged.
@@ -45,8 +45,7 @@ log: schema.#optionsGroup & {
 				"""
 		}
 		include_caller: {
-			type:    "bool"
-			default: "false"
+			type: "bool"
 			description: """
 				Set to true to see where the logging was called from.
 
@@ -55,7 +54,7 @@ log: schema.#optionsGroup & {
 				"""
 		}
 		stacktrace_level: {
-			default: "\"dpanic\""
+			defaultValue: "dpanic"
 			description: """
 				Include stack-trace when logging at a specified level or below.
 				Disable for production.
