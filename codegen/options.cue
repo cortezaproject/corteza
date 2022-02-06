@@ -1,6 +1,7 @@
 package codegen
 
 import (
+	"strings"
 	"github.com/cortezaproject/corteza-server/app"
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
@@ -50,4 +51,48 @@ options:
 				]
 			}
 		},
-	]
+	]+
+
+	[
+		{
+			template: "docs/.env.example.tpl"
+			output:   ".env.example"
+			syntax:   ".env"
+			payload: {
+				groups: [
+					for g in app.corteza.options {
+						title: "# " + strings.Join(strings.Split(g.title, "\n"), "\n# ")
+
+						if (g.intro != _|_) {
+							intro: "# " + strings.Join(strings.Split(g.intro, "\n"), "\n# ")
+						}
+
+						options: [
+							for o in g.options {
+								handle: o.handle
+								env:    o.env
+								type:   o.type
+
+								defaultGoExpr?: string
+								if (o.defaultGoExpr != _|_) {
+									defaultGoExpr: o.defaultGoExpr
+								}
+
+								defaultValue?: string
+								if (o.defaultValue != _|_) {
+									defaultValue: o.defaultValue
+								}
+
+								if (o.description != _|_) {
+									description: "# " + strings.Join(strings.Split(o.description, "\n"), "\n# ")
+								}
+							},
+						]
+					},
+				]
+			}
+		},
+	]+
+
+	// placeholder
+	[]
