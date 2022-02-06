@@ -28,7 +28,7 @@ rbacAccessControl:
 						description:   op.description
 						checkFuncName: op.checkFuncName
 
-					  references: [ for p in res.parents {p}, {param: "id", refField: "ID"}]
+						references: [ for p in res.parents {p}, {param: "id", refField: "ID"}]
 					},
 					for op in cmp.rbac.operations {
 						"op":          op.handle

@@ -25,7 +25,7 @@ rbacTypes:
 						attFunc: "\(res.expIdent)RbacAttributes"
 						goType:  res.expIdent
 
-					  references: [ for p in res.parents {p}, {param: "id", refField: "ID"}]
+						references: [ for p in res.parents {p}, {param: "id", refField: "ID"}]
 					},
 					{
 						const:     "ComponentResourceType"

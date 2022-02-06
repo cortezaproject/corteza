@@ -24,7 +24,7 @@ localeService:
 							expIdent: res.expIdent
 							ident:    res.ident
 
-  					  references: [ for p in res.parents {p}, {param: "id", refField: "ID"}]
+							references: [ for p in res.parents {p}, {param: "id", refField: "ID"}]
 
 							extended: res.locale.extended
 
