@@ -7,8 +7,8 @@ import (
 node: schema.#resource & {
 	rbac: {
 		operations: {
-				"manage": description: "Manage federation node"
-				"module.create": description: "Create shared module"
+			"manage": description:        "Manage federation node"
+			"module.create": description: "Create shared module"
 		}
 	}
 }

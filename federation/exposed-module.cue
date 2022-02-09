@@ -11,7 +11,7 @@ exposedModule: schema.#resource & {
 
 	rbac: {
 		operations: {
-				"manage": description: "Manage exposed module module"
+			"manage": description: "Manage exposed module module"
 		}
 	}
 }

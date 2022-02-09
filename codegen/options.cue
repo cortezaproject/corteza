@@ -9,6 +9,9 @@ import (
 options:
 	[...schema.#codegen] &
 	[
+
+		// placeholder
+
 		//  for g in app.corteza.options {
 		//   template: "gocode/options/$options_group.go.tpl"
 		//   output:   "pkg/options/\(g.ident).gen.go"
@@ -93,6 +96,4 @@ options:
 			}
 		},
 	]+
-
-	// placeholder
 	[]

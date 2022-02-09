@@ -11,7 +11,7 @@ sharedModule: schema.#resource & {
 
 	rbac: {
 		operations: {
-				"map": description: "Map shared module"
+			"map": description: "Map shared module"
 		}
 	}
 }
