@@ -16,7 +16,7 @@ template:
     request-password-reset: Passwort vergessen?
     signup: Neuen Account anlegen
     external:
-    login-with: Mit {{idp}} anmelden
+      login-with: Mit {{idp}} anmelden
 alerts:
   logged-in: Sie sind nun angemeldet.
   local-disabled: Lokale Accounts deaktiviert

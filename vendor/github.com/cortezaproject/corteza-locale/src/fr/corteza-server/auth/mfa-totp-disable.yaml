@@ -1,6 +1,6 @@
 ---
 template:
-  title: Disable two-factor authentication with TOTP
-  instructions: Disable by entering existing code.
+  title: Désactiver l'authentification à 2 facteurs avec TOTP
+  instructions: Désactiver en entrant le code existant.
   button:
-    remove: Remove
+    remove: Supprimer

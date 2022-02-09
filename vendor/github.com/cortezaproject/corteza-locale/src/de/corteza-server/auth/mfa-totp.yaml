@@ -16,8 +16,8 @@ template:
   gauth: Google Authentikator für <a target="_blank" href="{{ android }}">Android</a> oder <a target="_blank" href="{{ iphone }}">iPhone</a>
   authy: <a target="_blank" href="{{ link }}">Authy</a>
   form:
-    title: "Complete the configuration by entering code from the authenticator application:"
-    button: Submit
+    title: "Vervollständigen Sie die Konfiguration durch Eingabe des Codes aus der Authenticator-Anwendung:"
+    button: Absenden
 alerts:
-  text-2FA-enabled: Two factor authentication with TOTP enabled
-  text-2FA-disabled: Two factor authentication with TOTP disabled
+  text-2FA-enabled: Zwei-Faktor-Authentifizierung mit TOTP ist aktiviert
+  text-2FA-disabled: Zwei-Faktor-Authentifizierung mit TOTP ist deaktiviert

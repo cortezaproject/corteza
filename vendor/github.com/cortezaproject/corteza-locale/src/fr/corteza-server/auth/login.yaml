@@ -1,22 +1,22 @@
 ---
 template:
-  title: Log in
+  title: Se connecter
   form:
     email:
       label: E-mail
       placeholder: email@domain.ltd
     password:
-      label: Password
-      placeholder: password
+      label: Mot de passe
+      placeholder: mot de passe
     button:
-      login-and-remember: Log in and remember me
-      login: Log in
-      continue: Continue
+      login-and-remember: Se connecter et se souvenir de moi
+      login: Se connecter
+      continue: Continuer
   links:
-    request-password-reset: Forgot your password?
-    signup: Create a new account
+    request-password-reset: Mot de passe oublié?
+    signup: Créer un nouveau compte
     external:
-    login-with: Login with {{idp}}
+      login-with: Se connecter avec {{idp}}
 alerts:
-  logged-in: You are now logged-in.
-  local-disabled: Local accounts disabled
+  logged-in: Vous êtes maintenant connecté.
+  local-disabled: Comptes locaux désactivés
