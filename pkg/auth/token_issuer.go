@@ -148,7 +148,7 @@ func (tm *tokenIssuer) newTokenRequest() *TokenRequest {
 // Validate performs token validation by checking existence of access-token in the store
 func (tm *tokenIssuer) Validate(ctx context.Context, token jwt.Token) (err error) {
 	if err = tm.lookup(ctx, token.JwtID()); err != nil {
-		return ErrUnauthorized()
+		return errUnauthorized()
 	}
 
 	return nil

@@ -5,7 +5,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 )
 
-func ErrUnauthorized() error {
+func errUnauthorized() error {
 	return errors.New(
 		errors.KindUnauthorized,
 
@@ -22,7 +22,7 @@ func ErrUnauthorized() error {
 	)
 }
 
-func ErrUnauthorizedScope() error {
+func errUnauthorizedScope() error {
 	return errors.New(
 		errors.KindUnauthorized,
 
@@ -33,23 +33,6 @@ func ErrUnauthorizedScope() error {
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "internal"),
 		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.unauthorizedScope"),
-
-		errors.StackSkip(1),
-		errors.StackTrimAtFn("http.HandlerFunc.ServeHTTP"),
-	)
-}
-
-func ErrMalformedToken(details string) error {
-	return errors.New(
-		errors.KindUnauthorized,
-
-		"malformed token: "+details,
-
-		errors.Meta("type", "malformedToken"),
-
-		// translation namespace & key
-		errors.Meta(locale.ErrorMetaNamespace{}, "internal"),
-		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.malformedToken"),
 
 		errors.StackSkip(1),
 		errors.StackTrimAtFn("http.HandlerFunc.ServeHTTP"),
