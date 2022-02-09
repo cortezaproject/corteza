@@ -12,11 +12,11 @@ component: schema.#component & {
 	}
 
 	rbac: operations: {
-    "grant": description: "Manage automation permissions"
-    "workflow.create": description: "Create workflows"
-    "triggers.search": description: "List, search or filter triggers"
-    "sessions.search": description: "List, search or filter sessions"
-    "workflows.search": description: "List, search or filter workflows"
-    "resource-translations.manage": description: "List, search, create, or update resource translations"
+		"grant": description:                        "Manage automation permissions"
+		"workflow.create": description:              "Create workflows"
+		"triggers.search": description:              "List, search or filter triggers"
+		"sessions.search": description:              "List, search or filter sessions"
+		"workflows.search": description:             "List, search or filter workflows"
+		"resource-translations.manage": description: "List, search, create, or update resource translations"
 	}
 }

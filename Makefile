@@ -142,11 +142,14 @@ test.codegen: $(CUE) $(JSONTPLEXEC)
 cue.fmt: $(CUE)
 	$(CUE) fmt -v codegen/*.cue
 	$(CUE) fmt -v codegen/schema/*.cue
+
 	$(CUE) fmt -v app/*.cue
+	$(CUE) fmt -v app/options/*.cue
+
 	$(CUE) fmt system/*.cue
 	$(CUE) fmt compose/*.cue
-	# $(CUE) fmt automation/*.cue
-	# $(CUE) fmt federation/*.cue
+	$(CUE) fmt automation/*.cue
+	$(CUE) fmt federation/*.cue
 
 codegen-legacy: $(CODEGEN)
 	@ $(CODEGEN) -v
@@ -172,9 +175,6 @@ locale.update:
 
 outdated: $(MODOUTDATED)
 	$(GO) list -mod=mod -u -m -json all | $(MODOUTDATED) -update -direct
-
-
-
 
 #######################################################################################################################
 # Quality Assurance

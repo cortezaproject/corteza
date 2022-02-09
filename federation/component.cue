@@ -14,11 +14,11 @@ component: schema.#component & {
 	}
 
 	rbac: operations: {
-    "grant":            description: "Manage federation permissions"
-    "pair":             description: "Pair federation nodes"
-    "settings.read":    description: "Read settings"
-    "settings.manage":  description: "Manage settings"
-    "node.create":      description: "Create new federation node"
-    "nodes.search":     description: "List, search or filter federation nodes"
+		"grant": description:           "Manage federation permissions"
+		"pair": description:            "Pair federation nodes"
+		"settings.read": description:   "Read settings"
+		"settings.manage": description: "Manage settings"
+		"node.create": description:     "Create new federation node"
+		"nodes.search": description:    "List, search or filter federation nodes"
 	}
 }
