@@ -16,11 +16,31 @@ var (
 	HttpTokenVerifier func(http.Handler) http.Handler
 )
 
-// verifier is a custom middleware as the built-in one does not look at query parameters
-// and it instructs to build one yourself
+// verifier returns a jwt verification middleware
+//
+// Tasks
+// 1. picks token from header, query or cookie
+// 2. extracts identity (if any) and adds it into request context
+//
+// In there is no token
 func verifier(ja *jwtauth.JWTAuth) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		return jwtauth.Verify(ja, jwtauth.TokenFromHeader, jwtauth.TokenFromQuery, jwtauth.TokenFromCookie)(next)
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			token, err := jwtauth.VerifyRequest(ja, r, jwtauth.TokenFromHeader, jwtauth.TokenFromQuery, jwtauth.TokenFromCookie)
+			ctx := r.Context()
+
+			if token != nil && err == nil {
+				if err = TokenIssuer.Validate(ctx, token); err != nil {
+					errors.ProperlyServeHTTP(w, r, err, false)
+					return
+				}
+			}
+
+			ctx = jwtauth.NewContext(ctx, token, err)
+			ctx = SetIdentityToContext(ctx, IdentityFromToken(token))
+
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
 	}
 }
 
@@ -51,30 +71,30 @@ func HttpTokenValidator(scope ...string) func(http.Handler) http.Handler {
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			token, err := verifyToken(r.Context(), TokenIssuer, scope...)
+			err := verifyToken(r.Context(), scope...)
 			if err != nil && !errors.Is(err, jwtauth.ErrNoTokenFound) {
 				errors.ProperlyServeHTTP(w, r, err, false)
 				return
 			}
 
-			r = r.WithContext(SetIdentityToContext(r.Context(), IdentityFromToken(token)))
 			next.ServeHTTP(w, r)
 		})
 	}
 }
 
 // pulls token from context and validates scope & access-token
-func verifyToken(ctx context.Context, issuer *tokenIssuer, scope ...string) (token jwt.Token, err error) {
+func verifyToken(ctx context.Context, scope ...string) (err error) {
+	var token jwt.Token
 	if token, _, err = jwtauth.FromContext(ctx); err != nil {
 		return
 	}
 
-	if len(scope) > 0 && !CheckJwtScope(token, scope...) {
-		return nil, ErrUnauthorizedScope()
+	if token == nil {
+		return errUnauthorized()
 	}
 
-	if err = issuer.Validate(ctx, token); err != nil {
-		return
+	if len(scope) > 0 && !CheckJwtScope(token, scope...) {
+		return errUnauthorizedScope()
 	}
 
 	return

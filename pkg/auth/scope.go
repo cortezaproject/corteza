@@ -14,6 +14,10 @@ const (
 // We're using interface{} and casting it if needed to simplify usage of the fn by directly
 // using it with map[string]interface{} claims type
 func CheckJwtScope(token jwt.Token, required ...string) bool {
+	if token == nil {
+		return false
+	}
+
 	scopeClaimRaw, has := token.Get("scope")
 	if !has {
 		return false
