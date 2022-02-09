@@ -11,19 +11,42 @@ params:
     required: true
     types:
       - { wf: String }
+    meta: { visual: { input: { type: url } } }
+
   method: &method
     required: true
     types:
       - { wf: String }
+    meta:
+      visual:
+        input:
+          type: select
+          properties:
+            options:
+              - { value: "GET",      text: "GET" }
+              - { value: "HEAD",     text: "HEAD" }
+              - { value: "POST",     text: "POST" }
+              - { value: "PUT",      text: "PUT" }
+              - { value: "PATCH",    text: "PATCH" }
+              - { value: "DELETE",   text: "DELETE" }
+              - { value: "CONNECT",  text: "CONNECT" }
+              - { value: "OPTIONS",  text: "OPTIONS" }
+              - { value: "TRACE",    text: "TRACE" }
+
   params: &params
     types:
       - { wf: KVV,      go: 'url.Values' }
+
   headers: &headers
     types:
       - { wf: KVV,      go: 'http.Header' }
+    meta: { visual: { input: { type: http-headers } } }
+
+
   headerAuthBearer: &headerAuthBearer
     types:
       - { wf: String }
+
   headerAuthUsername: &headerAuthUsername
     types:
       - { wf: String }

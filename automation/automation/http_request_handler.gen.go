@@ -10,13 +10,14 @@ package automation
 
 import (
 	"context"
-	atypes "github.com/cortezaproject/corteza-server/automation/types"
-	"github.com/cortezaproject/corteza-server/pkg/expr"
-	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 	"io"
 	"net/http"
 	"net/url"
 	"time"
+
+	atypes "github.com/cortezaproject/corteza-server/automation/types"
+	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 )
 
 var _ wfexec.ExecResponse
@@ -110,10 +111,16 @@ func (h httpRequestHandler) Send() *atypes.Function {
 			{
 				Name:  "url",
 				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Visual: map[string]interface{}{"input": map[string]interface{}{"type": "url"}},
+				},
 			},
 			{
 				Name:  "method",
 				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Visual: map[string]interface{}{"input": map[string]interface{}{"properties": map[string]interface{}{"options": []interface{}{map[string]interface{}{"text": "GET", "value": "GET"}, map[string]interface{}{"text": "HEAD", "value": "HEAD"}, map[string]interface{}{"text": "POST", "value": "POST"}, map[string]interface{}{"text": "PUT", "value": "PUT"}, map[string]interface{}{"text": "PATCH", "value": "PATCH"}, map[string]interface{}{"text": "DELETE", "value": "DELETE"}, map[string]interface{}{"text": "CONNECT", "value": "CONNECT"}, map[string]interface{}{"text": "OPTIONS", "value": "OPTIONS"}, map[string]interface{}{"text": "TRACE", "value": "TRACE"}}}, "type": "select"}},
+				},
 			},
 			{
 				Name:  "params",
@@ -122,6 +129,9 @@ func (h httpRequestHandler) Send() *atypes.Function {
 			{
 				Name:  "headers",
 				Types: []string{"KVV"},
+				Meta: &atypes.ParamMeta{
+					Visual: map[string]interface{}{"input": map[string]interface{}{"type": "http-headers"}},
+				},
 			},
 			{
 				Name:  "headerAuthBearer",
