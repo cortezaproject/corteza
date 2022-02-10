@@ -517,6 +517,7 @@ func (Schema) ComposePage() *Table {
 		ColumnDef("rel_namespace", ColumnTypeIdentifier),
 		ColumnDef("rel_module", ColumnTypeIdentifier),
 		ColumnDef("self_id", ColumnTypeIdentifier),
+		ColumnDef("config", ColumnTypeJson),
 		ColumnDef("blocks", ColumnTypeJson),
 		ColumnDef("visible", ColumnTypeBoolean),
 		ColumnDef("weight", ColumnTypeInteger),

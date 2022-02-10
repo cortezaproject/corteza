@@ -338,6 +338,10 @@ endpoints:
         name: blocks
         required: false
         title: Blocks JSON
+      - type: sqlxTypes.JSONText
+        name: config
+        required: false
+        title: Config JSON
   - name: read
     path: "/{pageID}"
     method: GET
@@ -400,6 +404,10 @@ endpoints:
         name: blocks
         required: false
         title: Blocks JSON
+      - type: sqlxTypes.JSONText
+        name: config
+        required: false
+        title: Config JSON
   - name: reorder
     method: POST
     title: Reorder pages

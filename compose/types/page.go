@@ -25,6 +25,7 @@ type (
 
 		Handle string `json:"handle"`
 
+		Config PageConfig `json:"config"`
 		Blocks PageBlocks `json:"blocks"`
 
 		Children PageSet `json:"children,omitempty"`
@@ -72,6 +73,54 @@ type (
 
 	PageBlockStyle struct {
 		Variants map[string]string `json:"variants,omitempty"`
+	}
+
+	PageConfig struct {
+		// How page is presented in the navigation
+		NavItem struct {
+			Icon *PageConfigIcon `json:"icon,omitempty"`
+		} `json:"navItem"`
+
+		//// Example how page-config structure can evolve in the future
+		//Views []struct {
+		//	// what kind of output is this view intended for (screen, mobile...?)
+		//	Output string
+		//
+		//	// Migrated page blocks, might be replaced someday with a more complex structure
+		//	Blocks []PageBlock
+		//}
+	}
+
+	PageConfigIcon struct {
+		// Icon types and sources
+		//
+		// Note that backed does not enforce or validate all src value (types due to a limited
+		// awareness of capabilities and
+		//
+		// Type: empty or "link" (default):
+		// Indicate that src will contain an absolute or relative link to an icon.
+		// Can also be used for inline images (storing "base64:" prefixed string in source).
+		// This type and reference is not validated by the backend.
+		//
+		// Type: "library"
+		// Source references an icon from a library. Ref's value should be in the following
+		// notation: "font-awesome://<icon-identifier>".
+		// This type and source is not validated by the backend.
+		//
+		// Type: "svg"
+		// SRC contains raw SVG document
+
+		////////////////////////////////////////////////////////////////////////////////////////////////////////
+		// Other types that might be implemented in the future:
+		// "attachment"
+		// Reference (ID) to an existing attachment in local Corteza instance is expected
+		// This type and reference must be validated by the backend.
+
+		Type string `json:"type,omitempty"`
+		Src  string `json:"src"`
+
+		// Any custom styling that should be applied to the icon
+		Style map[string]string `json:"style,omitempty"`
 	}
 
 	PageFilter struct {
@@ -319,4 +368,23 @@ func (set PageSet) RecursiveWalk(parent *Page, fn func(c *Page, parent *Page) er
 	}
 
 	return
+}
+
+func (bb *PageConfig) Scan(value interface{}) error {
+	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
+	switch value.(type) {
+	case nil:
+		*bb = PageConfig{}
+	case []uint8:
+		b := value.([]byte)
+		if err := json.Unmarshal(b, bb); err != nil {
+			return errors.Wrapf(err, "cannot scan '%v' into PageConfig", string(b))
+		}
+	}
+
+	return nil
+}
+
+func (bb PageConfig) Value() (driver.Value, error) {
+	return json.Marshal(bb)
 }

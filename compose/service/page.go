@@ -575,6 +575,11 @@ func (svc page) handleUpdate(ctx context.Context, upd *types.Page) pageUpdateHan
 			changes |= pageChanged
 		}
 
+		if !reflect.DeepEqual(res.Config, upd.Config) {
+			res.Config = upd.Config
+			changes |= pageChanged
+		}
+
 		if !reflect.DeepEqual(res.Blocks, upd.Blocks) {
 			res.Blocks = upd.Blocks
 			changes |= pageChanged
