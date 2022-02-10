@@ -102,6 +102,8 @@ github.com/cortezaproject/corteza-locale v0.0.0-20220111142345-b53bc6baba9e h1:s
 github.com/cortezaproject/corteza-locale v0.0.0-20220111142345-b53bc6baba9e/go.mod h1:wsI1UftEdBqTuEDKBZmx2LfNu/kZun5pRbCAi420JCg=
 github.com/cortezaproject/corteza-locale v0.0.0-20220126101514-0fec25e91ea5 h1:55ulLKj6q4lz2lhzwVqn3MCrWTLVeN/R+PSYcRj6DbE=
 github.com/cortezaproject/corteza-locale v0.0.0-20220126101514-0fec25e91ea5/go.mod h1:wsI1UftEdBqTuEDKBZmx2LfNu/kZun5pRbCAi420JCg=
+github.com/cortezaproject/corteza-locale v0.0.0-20220126101537-7502490d290b h1:Sd8wmIZzZxkvsC42RvyioFTHr7++2VXaLQvZ1k0B1lc=
+github.com/cortezaproject/corteza-locale v0.0.0-20220126101537-7502490d290b/go.mod h1:wsI1UftEdBqTuEDKBZmx2LfNu/kZun5pRbCAi420JCg=
 github.com/cortezaproject/corteza-locale v0.0.0-20220128105343-aa9e252db18b h1:tVCQVs8/s3kgpf2XFMByhxEjmib0vxhSxI0N6HhEXOg=
 github.com/cortezaproject/corteza-locale v0.0.0-20220128105343-aa9e252db18b/go.mod h1:wsI1UftEdBqTuEDKBZmx2LfNu/kZun5pRbCAi420JCg=
 github.com/cortezaproject/corteza-locale v0.0.0-20220208175500-968c388d516c h1:jMJBr3iE+ME9PgIaucBmbCQUqPkStAz0t3VNkprToCw=

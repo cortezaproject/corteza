@@ -12,8 +12,6 @@ template:
     handle:
       label: Handle
       placeholder: Short name, nickname or handle
-    preferred-language:
-      label: Preferred language
     buttons:
       submit: Update profile
 alerts:

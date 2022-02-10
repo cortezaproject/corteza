@@ -5,15 +5,13 @@ template:
     email:
       label: E-Mail
       placeholder: email@domain.tld
-      resend-confirmation-link: Die E-Mail ist nicht verifiziert, <a href="{{link}}?resend">den Bestätigungslink erneut senden.</a>
+      resend-confirmation-link: Die E-Mail ist nicht verifiziert,, <a href="{{link}}?resend">den Bestätigungslink erneut sendenk.</a>
     name:
       label: Vollständiger Name
       placeholder: Ihr Vollständiger Name
     handle:
       label: Alias
       placeholder: Kurzname, Nickname oder Alias
-    preferred-language:
-      label: Bevorzugte Sprache
     buttons:
       submit: Profil Aktualisieren
 alerts:

@@ -1,10 +1,7 @@
 label:
-  add: Add
-  ascending: Ascending
+  add: + Add
   back: Back
   delete: Delete
-  descending: Descending
-  none: None
   ok: Ok
   save: Save
   urlPlaceholder: https://example.tld

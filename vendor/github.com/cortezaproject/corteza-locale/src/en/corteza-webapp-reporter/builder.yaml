@@ -1,6 +1,9 @@
 add:
+  label: Add
+  with-plus: '+ Add'
   datasource: Add datasource
   display-element: Add display element
+ascending: Ascending
 available: Available
 block:
   description: Block description
@@ -22,6 +25,7 @@ datasource:
 datasources:
   label: Datasources
   save: Save Datasources
+descending: Descending
 description: Description
 display-elements:
   types:
@@ -33,6 +37,7 @@ element: Element
 elements: Elements
 filter-expression: Filter expression
 general: General
+grab: '.grab'
 joined-datasource-handling: Joined datasource handling
 layout: Layout
 layout-options:
@@ -40,6 +45,7 @@ layout-options:
   vertical: Vertical
 limit: Limit
 no-blocks-added: No blocks added yet
+none: None
 or: Or
 pick-scenario: Pick a scenario
 prefilter: Prefilter

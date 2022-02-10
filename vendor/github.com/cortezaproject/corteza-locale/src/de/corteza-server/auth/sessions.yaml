@@ -15,6 +15,3 @@ template:
     soon: In {{days}} Tagen
     delete: Diese Sitzung Löschen
   delete-all: Alle Sitzungen Löschen
-alerts:
-  session-deleted: Sitzung gelöscht
-  delete-sessions-but-current: Alle Sitzungen außer der aktuellen gelöscht

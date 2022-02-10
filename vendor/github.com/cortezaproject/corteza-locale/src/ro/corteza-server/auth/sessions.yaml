@@ -15,6 +15,3 @@ template:
     soon: In {{days}} days
     delete: Delete this session
   delete-all: Delete all sessions
-alerts:
-  session-deleted: Session deleted
-  delete-sessions-but-current: All but current sessions deleted

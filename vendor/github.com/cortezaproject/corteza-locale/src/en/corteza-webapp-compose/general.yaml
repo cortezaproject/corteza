@@ -4,7 +4,6 @@ label:
   add: Add
   addNew: Add new
   addValue: Add new value
-  ascending: Ascending
   attachmentFileInfo: '(File size: {{0}}, uploaded {{1}})'
   attributes: Attributes
   back: Back
@@ -16,7 +15,6 @@ label:
   close: Close
   create: Create
   delete: Delete
-  descending: Descending
   description: Description
   download: Download
   dropFiles: Click or drop files here to upload

@@ -1,8 +1,8 @@
 ---
 template:
-  authorize-client: Finaliser l'autorisation de
+  authorize-client: Finalize the authorization of
   class:
-    your-profile: Votre profil
-    security: Sécurité
-    login-session: Sessions de connexion
-    authorized-clients: Clients autorisés
+    your-profile: Your profile
+    security: Security
+    login-session: Login sessions
+    authorized-clients: Authorized clients

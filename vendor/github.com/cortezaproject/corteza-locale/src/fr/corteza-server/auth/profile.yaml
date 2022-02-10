@@ -1,21 +1,19 @@
 ---
 template:
-  title: Votre profil
+  title: Your profile
   form:
     email:
       label: Email
       placeholder: email@domain.ltd
-      resend-confirmation-link: L'email n'est pas vérifié, <a href="{{link}}?resend"> renvoyer le lien de confirmation.</a>
+      resend-confirmation-link: Email is not verified, <a href="{{link}}?resend">resend confirmation link.</a>
     name:
-      label: Nom complet
-      placeholder: Votre nom complet
+      label: Full name
+      placeholder: Your full name
     handle:
-      label: Identifiant
-      placeholder: Surnom ou identifiant
-    preferred-language:
-      label: Langue préférée
+      label: Handle
+      placeholder: Short name, nickname or handle
     buttons:
-      submit: Mise à jour du profil
+      submit: Update profile
 alerts:
-  profile-updated: Profil mis à jour avec succès.
-  profile-update-fail: Impossible de mettre à jour le profil en raison d'erreurs de saisie
+  profile-updated: Profile successfully updated.
+  profile-update-fail: Could not update profile due to input errors

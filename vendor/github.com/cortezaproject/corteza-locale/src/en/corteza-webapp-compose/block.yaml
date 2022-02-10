@@ -340,7 +340,6 @@ recordList:
     prefilterLabel: Prefilter records
     prefilterPlaceholder: field1 = 1 AND field2 = 232
     presortFootnote: Simplified SQL condition (ORDER BY ...) syntax is supported.
-    presortToggleInput: Toggle input type
     presortHideSort: Hide sorting
     presortLabel: Presort records
     presortPlaceholder: field1 DESC, field2 ASC
