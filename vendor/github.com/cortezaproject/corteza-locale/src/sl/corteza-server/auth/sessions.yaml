@@ -15,3 +15,6 @@ template:
     soon: Čez {{days}} dni
     delete: Izbriši to sejo
   delete-all: Izbriši vse seje
+alerts:
+  session-deleted: Session deleted
+  delete-sessions-but-current: All but current sessions deleted

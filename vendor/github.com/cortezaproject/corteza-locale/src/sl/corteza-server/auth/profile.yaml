@@ -12,6 +12,8 @@ template:
     handle:
       label: Handle
       placeholder: Kratko ime ali vzdevek
+    preferred-language:
+      label: Preferred language
     buttons:
       submit: Posodobi profil
 alerts:
