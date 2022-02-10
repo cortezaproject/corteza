@@ -149,7 +149,7 @@ webapp:
 	@ $(MAKE) --directory=webapp
 
 locale.update:
-	$(GO) get github.com/cortezaproject/corteza-locale
+	$(GO) get github.com/cortezaproject/corteza-locale@2021.9.x
 	$(GO) mod vendor
 	git add --all vendor/github.com/cortezaproject
 	git commit -m 'Update corteza-locale dep' vendor/github.com/cortezaproject vendor/modules.txt go.mod go.sum
