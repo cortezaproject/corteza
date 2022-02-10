@@ -16,7 +16,7 @@ template:
     request-password-reset: Parolă uitată?
     signup: Înregistrare cont nou
     external:
-    login-with: Conectare cu {{idp}}
+      login-with: Login with {{idp}}
 alerts:
   logged-in: Conectare realizată cu succes.
   local-disabled: Conturile locale sunt dezactivate

@@ -16,7 +16,7 @@ template:
     request-password-reset: Forgot your password?
     signup: Create a new account
     external:
-    login-with: Login with {{idp}}
+      login-with: Login with {{idp}}
 alerts:
   logged-in: You are now logged-in.
   local-disabled: Local accounts disabled

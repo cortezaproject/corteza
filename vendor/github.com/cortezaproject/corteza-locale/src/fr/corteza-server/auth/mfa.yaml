@@ -1,19 +1,19 @@
 ---
 template:
-  title: Multi-factor authentication
+  title: Authentification multi-facteurs
   email:
-    instructions: Check your inbox and enter the received code
+    instructions: Vérifiez votre boîte mail et entrez le code reçu
     code: Code
-    verify: Verify
-    resend: Resend
-    confirmed: Email OTP confirmed
+    verify: Vérifiez
+    resend: Renvoyez
+    confirmed: Email OTP confirmé
   totp:
-    instructions: Check your TOTP application and enter the code you received
+    instructions: Vérifiez votre application TOTP et entrez le code que vous avez reçu
     code: Code
-    confirmed: TOTP confirmed
-    verify: Verify
+    confirmed: TOTP confirmé
+    verify: Vérifiez
 alerts:
   email:
-    resent: Email OTP resent
+    resent: Email OTP renvoyé
   topt:
-    valid: TOTP valid
+    valid: TOTP valide
