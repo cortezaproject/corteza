@@ -115,11 +115,18 @@ func (ctrl *Page) Create(ctx context.Context, r *request.PageCreate) (interface{
 		}
 	)
 
+	if len(r.Config) > 2 {
+		if err = r.Config.Unmarshal(&mod.Config); err != nil {
+			return nil, err
+		}
+	}
+
 	if len(r.Blocks) > 2 {
 		if err = r.Blocks.Unmarshal(&mod.Blocks); err != nil {
 			return nil, err
 		}
 	}
+
 	mod, err = ctrl.page.Create(ctx, mod)
 	return ctrl.makePayload(ctx, mod, err)
 }
@@ -158,7 +165,17 @@ func (ctrl *Page) Update(ctx context.Context, r *request.PageUpdate) (interface{
 		}
 	)
 
+	if len(r.Config) > 2 {
+		// Process config if it was included in the request
+		// if not, do not assume that config has been removed!
+		if err = r.Config.Unmarshal(&mod.Config); err != nil {
+			return nil, err
+		}
+	}
+
 	if len(r.Blocks) > 2 {
+		// Process blocks if they were included in the request
+		// if not, do not assume that blocks were removed!
 		if err = r.Blocks.Unmarshal(&mod.Blocks); err != nil {
 			return nil, err
 		}

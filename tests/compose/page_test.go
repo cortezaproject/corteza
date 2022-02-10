@@ -30,6 +30,17 @@ func (h helper) repoMakePage(ns *types.Namespace, name string) *types.Page {
 		NamespaceID: ns.ID,
 	}
 
+	res.Blocks = types.PageBlocks{
+		{BlockID: 1},
+		{BlockID: 2},
+	}
+
+	res.Config.NavItem.Icon = &types.PageConfigIcon{
+		Type:  "type",
+		Src:   "src",
+		Style: map[string]string{"sty": "le"},
+	}
+
 	h.noError(store.CreateComposePage(context.Background(), service.DefaultStore, res))
 	return res
 }
@@ -69,6 +80,8 @@ func TestPageRead(t *testing.T) {
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Equal(`$.response.title`, m.Title)).
 		Assert(jsonpath.Equal(`$.response.pageID`, fmt.Sprintf("%d", m.ID))).
+		Assert(jsonpath.Equal(`$.response.config.navItem.icon.src`, `src`)).
+		Assert(jsonpath.Len(`$.response.blocks`, 2)).
 		End()
 }
 
@@ -153,13 +166,30 @@ func TestPageCreate(t *testing.T) {
 
 	ns := h.makeNamespace("some-namespace")
 
+	rsp := struct {
+		Response *types.Page `json:"response"`
+	}{}
+
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/page/", ns.ID)).
-		FormData("title", "some-page").
+		Header("Accept", "application/json").
+		JSON(fmt.Sprintf(`{
+			"title": "some-page",
+			"config":{"navItem":{"icon":{"src":"my-icon"}}},
+			"blocks":[{"blockID": "1"}]
+		}`)).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
-		End()
+		End().
+		JSON(&rsp)
+
+	res := h.lookupPageByID(rsp.Response.ID)
+	h.a.NotNil(res)
+	h.a.Equal("some-page", res.Title)
+	h.a.Len(res.Blocks, 1)
+	h.a.NotNil(res.Config.NavItem.Icon)
+	h.a.Equal("my-icon", res.Config.NavItem.Icon.Src)
 }
 
 func TestPageUpdateForbidden(t *testing.T) {
@@ -200,6 +230,36 @@ func TestPageUpdate(t *testing.T) {
 	res = h.lookupPageByID(res.ID)
 	h.a.NotNil(res)
 	h.a.Equal("changed-name", res.Title)
+}
+
+func TestPageUpdateWithBlocksAndConfig(t *testing.T) {
+	h := newHelper(t)
+	h.clearPages()
+
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "pages.search")
+	ns := h.makeNamespace("some-namespace")
+	res := h.repoMakePage(ns, "some-page")
+	helpers.AllowMe(h, types.PageRbacResource(0, 0), "update")
+
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/page/%d", ns.ID, res.ID)).
+		Header("Accept", "application/json").
+		JSON(fmt.Sprintf(`{
+			"title": "changed-name",
+			"config":{"navItem":{"icon":{"src":"my-icon"}}},
+			"blocks":[{"blockID": "1"}]
+		}`)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	res = h.lookupPageByID(res.ID)
+	h.a.NotNil(res)
+	h.a.Equal("changed-name", res.Title)
+	h.a.NotNil(res.Config.NavItem.Icon)
+	h.a.Equal("my-icon", res.Config.NavItem.Icon.Src)
+	h.a.Len(res.Blocks, 1)
 }
 
 func TestPageReorder(t *testing.T) {

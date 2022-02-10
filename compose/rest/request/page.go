@@ -11,15 +11,16 @@ package request
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"mime/multipart"
+	"net/http"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/go-chi/chi/v5"
 	sqlxTypes "github.com/jmoiron/sqlx/types"
-	"io"
-	"mime/multipart"
-	"net/http"
-	"strings"
 )
 
 // dummy vars to prevent
@@ -133,6 +134,11 @@ type (
 		//
 		// Blocks JSON
 		Blocks sqlxTypes.JSONText
+
+		// Config POST parameter
+		//
+		// Config JSON
+		Config sqlxTypes.JSONText
 	}
 
 	PageRead struct {
@@ -209,6 +215,11 @@ type (
 		//
 		// Blocks JSON
 		Blocks sqlxTypes.JSONText
+
+		// Config POST parameter
+		//
+		// Config JSON
+		Config sqlxTypes.JSONText
 	}
 
 	PageReorder struct {
@@ -474,6 +485,7 @@ func (r PageCreate) Auditable() map[string]interface{} {
 		"labels":      r.Labels,
 		"visible":     r.Visible,
 		"blocks":      r.Blocks,
+		"config":      r.Config,
 	}
 }
 
@@ -525,6 +537,11 @@ func (r PageCreate) GetVisible() bool {
 // Auditable returns all auditable/loggable parameters
 func (r PageCreate) GetBlocks() sqlxTypes.JSONText {
 	return r.Blocks
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageCreate) GetConfig() sqlxTypes.JSONText {
+	return r.Config
 }
 
 // Fill processes request and fills internal variables
@@ -615,6 +632,13 @@ func (r *PageCreate) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
+			if val, ok := req.MultipartForm.Value["config"]; ok && len(val) > 0 {
+				r.Config, err = payload.ParseJSONTextWithErr(val[0])
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -688,6 +712,13 @@ func (r *PageCreate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["blocks"]; ok && len(val) > 0 {
 			r.Blocks, err = payload.ParseJSONTextWithErr(val[0])
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["config"]; ok && len(val) > 0 {
+			r.Config, err = payload.ParseJSONTextWithErr(val[0])
 			if err != nil {
 				return err
 			}
@@ -810,6 +841,7 @@ func (r PageUpdate) Auditable() map[string]interface{} {
 		"labels":      r.Labels,
 		"visible":     r.Visible,
 		"blocks":      r.Blocks,
+		"config":      r.Config,
 	}
 }
 
@@ -866,6 +898,11 @@ func (r PageUpdate) GetVisible() bool {
 // Auditable returns all auditable/loggable parameters
 func (r PageUpdate) GetBlocks() sqlxTypes.JSONText {
 	return r.Blocks
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageUpdate) GetConfig() sqlxTypes.JSONText {
+	return r.Config
 }
 
 // Fill processes request and fills internal variables
@@ -956,6 +993,13 @@ func (r *PageUpdate) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
+			if val, ok := req.MultipartForm.Value["config"]; ok && len(val) > 0 {
+				r.Config, err = payload.ParseJSONTextWithErr(val[0])
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -1029,6 +1073,13 @@ func (r *PageUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["blocks"]; ok && len(val) > 0 {
 			r.Blocks, err = payload.ParseJSONTextWithErr(val[0])
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["config"]; ok && len(val) > 0 {
+			r.Config, err = payload.ParseJSONTextWithErr(val[0])
 			if err != nil {
 				return err
 			}

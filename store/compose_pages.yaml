@@ -12,6 +12,7 @@ fields:
   - { field: Handle, lookupFilterPreprocessor: lower }
   - { field: Title }
   - { field: Description, type: "string" }
+  - { field: Config,      type: "types.PageConfig" }
   - { field: Blocks,      type: "types.PageBlocks" }
   - { field: Visible,     type: bool }
   - { field: Weight,      type: int,                 sortable: true }

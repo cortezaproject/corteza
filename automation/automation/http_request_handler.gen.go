@@ -10,14 +10,13 @@ package automation
 
 import (
 	"context"
+	atypes "github.com/cortezaproject/corteza-server/automation/types"
+	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 	"io"
 	"net/http"
 	"net/url"
 	"time"
-
-	atypes "github.com/cortezaproject/corteza-server/automation/types"
-	"github.com/cortezaproject/corteza-server/pkg/expr"
-	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 )
 
 var _ wfexec.ExecResponse
