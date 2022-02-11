@@ -31,6 +31,9 @@ func Command(ctx context.Context, app serviceInitializer, storeInit func(ctx con
 	var (
 		enableDiscoveredProvider               bool
 		skipValidationOnAutoDiscoveredProvider bool
+
+		clientID uint64
+		scope    []string
 	)
 
 	cmd := &cobra.Command{
@@ -104,15 +107,33 @@ func Command(ctx context.Context, app serviceInitializer, storeInit func(ctx con
 			err = service.DefaultAuth.LoadRoleMemberships(ctx, user)
 			cli.HandleError(err)
 
-			signedToken, err = auth.TokenIssuer.Issue(ctx,
+			opts := []auth.IssueOptFn{
 				auth.WithIdentity(user),
-				auth.WithScope("profile", "api"),
-			)
+				auth.WithScope(scope...),
+			}
+
+			if clientID > 0 {
+				opts = append(opts, auth.WithClientID(clientID))
+			}
+
+			signedToken, err = auth.TokenIssuer.Issue(ctx, opts...)
 
 			cli.HandleError(err)
 			cmd.Println(string(signedToken))
 		},
 	}
+
+	jwtCmd.Flags().Uint64Var(
+		&clientID,
+		"auth-client",
+		0,
+		"ID if the auth client")
+
+	jwtCmd.Flags().StringArrayVar(
+		&scope,
+		"scope",
+		[]string{"profile", "api"},
+		"Scope")
 
 	testEmails := &cobra.Command{
 		Use:     "test-notifications [recipient]",
