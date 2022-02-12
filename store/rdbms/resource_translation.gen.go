@@ -421,25 +421,20 @@ func (s Store) execDeleteResourceTranslations(ctx context.Context, cnd squirrel.
 func (s Store) internalResourceTranslationRowScanner(row rowScanner) (res *types.ResourceTranslation, err error) {
 	res = &types.ResourceTranslation{}
 
-	if _, has := s.config.RowScanners["resourceTranslation"]; has {
-		scanner := s.config.RowScanners["resourceTranslation"].(func(_ rowScanner, _ *types.ResourceTranslation) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.ID,
-			&res.Lang,
-			&res.Resource,
-			&res.K,
-			&res.Message,
-			&res.OwnedBy,
-			&res.CreatedBy,
-			&res.UpdatedBy,
-			&res.DeletedBy,
-			&res.CreatedAt,
-			&res.UpdatedAt,
-			&res.DeletedAt,
-		)
-	}
+	err = row.Scan(
+		&res.ID,
+		&res.Lang,
+		&res.Resource,
+		&res.K,
+		&res.Message,
+		&res.OwnedBy,
+		&res.CreatedBy,
+		&res.UpdatedBy,
+		&res.DeletedBy,
+		&res.CreatedAt,
+		&res.UpdatedAt,
+		&res.DeletedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

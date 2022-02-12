@@ -432,27 +432,22 @@ func (s Store) execDeleteAutomationSessions(ctx context.Context, cnd squirrel.Sq
 func (s Store) internalAutomationSessionRowScanner(row rowScanner) (res *types.Session, err error) {
 	res = &types.Session{}
 
-	if _, has := s.config.RowScanners["automationSession"]; has {
-		scanner := s.config.RowScanners["automationSession"].(func(_ rowScanner, _ *types.Session) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.ID,
-			&res.WorkflowID,
-			&res.EventType,
-			&res.ResourceType,
-			&res.Status,
-			&res.Input,
-			&res.Output,
-			&res.Stacktrace,
-			&res.CreatedBy,
-			&res.CreatedAt,
-			&res.PurgeAt,
-			&res.CompletedAt,
-			&res.SuspendedAt,
-			&res.Error,
-		)
-	}
+	err = row.Scan(
+		&res.ID,
+		&res.WorkflowID,
+		&res.EventType,
+		&res.ResourceType,
+		&res.Status,
+		&res.Input,
+		&res.Output,
+		&res.Stacktrace,
+		&res.CreatedBy,
+		&res.CreatedAt,
+		&res.PurgeAt,
+		&res.CompletedAt,
+		&res.SuspendedAt,
+		&res.Error,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

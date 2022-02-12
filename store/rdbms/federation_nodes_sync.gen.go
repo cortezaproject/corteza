@@ -444,18 +444,13 @@ func (s Store) execDeleteFederationNodesSyncs(ctx context.Context, cnd squirrel.
 func (s Store) internalFederationNodesSyncRowScanner(row rowScanner) (res *types.NodeSync, err error) {
 	res = &types.NodeSync{}
 
-	if _, has := s.config.RowScanners["federationNodesSync"]; has {
-		scanner := s.config.RowScanners["federationNodesSync"].(func(_ rowScanner, _ *types.NodeSync) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.NodeID,
-			&res.ModuleID,
-			&res.SyncType,
-			&res.SyncStatus,
-			&res.TimeOfAction,
-		)
-	}
+	err = row.Scan(
+		&res.NodeID,
+		&res.ModuleID,
+		&res.SyncType,
+		&res.SyncStatus,
+		&res.TimeOfAction,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

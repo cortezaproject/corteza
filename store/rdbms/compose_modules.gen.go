@@ -452,21 +452,16 @@ func (s Store) execDeleteComposeModules(ctx context.Context, cnd squirrel.Sqlize
 func (s Store) internalComposeModuleRowScanner(row rowScanner) (res *types.Module, err error) {
 	res = &types.Module{}
 
-	if _, has := s.config.RowScanners["composeModule"]; has {
-		scanner := s.config.RowScanners["composeModule"].(func(_ rowScanner, _ *types.Module) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.ID,
-			&res.Handle,
-			&res.Name,
-			&res.Meta,
-			&res.NamespaceID,
-			&res.CreatedAt,
-			&res.UpdatedAt,
-			&res.DeletedAt,
-		)
-	}
+	err = row.Scan(
+		&res.ID,
+		&res.Handle,
+		&res.Name,
+		&res.Meta,
+		&res.NamespaceID,
+		&res.CreatedAt,
+		&res.UpdatedAt,
+		&res.DeletedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

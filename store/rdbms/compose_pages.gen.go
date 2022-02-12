@@ -452,27 +452,22 @@ func (s Store) execDeleteComposePages(ctx context.Context, cnd squirrel.Sqlizer)
 func (s Store) internalComposePageRowScanner(row rowScanner) (res *types.Page, err error) {
 	res = &types.Page{}
 
-	if _, has := s.config.RowScanners["composePage"]; has {
-		scanner := s.config.RowScanners["composePage"].(func(_ rowScanner, _ *types.Page) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.ID,
-			&res.SelfID,
-			&res.NamespaceID,
-			&res.ModuleID,
-			&res.Handle,
-			&res.Title,
-			&res.Description,
-			&res.Config,
-			&res.Blocks,
-			&res.Visible,
-			&res.Weight,
-			&res.CreatedAt,
-			&res.UpdatedAt,
-			&res.DeletedAt,
-		)
-	}
+	err = row.Scan(
+		&res.ID,
+		&res.SelfID,
+		&res.NamespaceID,
+		&res.ModuleID,
+		&res.Handle,
+		&res.Title,
+		&res.Description,
+		&res.Config,
+		&res.Blocks,
+		&res.Visible,
+		&res.Weight,
+		&res.CreatedAt,
+		&res.UpdatedAt,
+		&res.DeletedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

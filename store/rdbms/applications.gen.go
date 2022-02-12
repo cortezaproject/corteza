@@ -432,22 +432,17 @@ func (s Store) execDeleteApplications(ctx context.Context, cnd squirrel.Sqlizer)
 func (s Store) internalApplicationRowScanner(row rowScanner) (res *types.Application, err error) {
 	res = &types.Application{}
 
-	if _, has := s.config.RowScanners["application"]; has {
-		scanner := s.config.RowScanners["application"].(func(_ rowScanner, _ *types.Application) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.ID,
-			&res.Name,
-			&res.OwnerID,
-			&res.Enabled,
-			&res.Weight,
-			&res.Unify,
-			&res.CreatedAt,
-			&res.UpdatedAt,
-			&res.DeletedAt,
-		)
-	}
+	err = row.Scan(
+		&res.ID,
+		&res.Name,
+		&res.OwnerID,
+		&res.Enabled,
+		&res.Weight,
+		&res.Unify,
+		&res.CreatedAt,
+		&res.UpdatedAt,
+		&res.DeletedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

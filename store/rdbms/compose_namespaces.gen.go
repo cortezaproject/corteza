@@ -441,21 +441,16 @@ func (s Store) execDeleteComposeNamespaces(ctx context.Context, cnd squirrel.Sql
 func (s Store) internalComposeNamespaceRowScanner(row rowScanner) (res *types.Namespace, err error) {
 	res = &types.Namespace{}
 
-	if _, has := s.config.RowScanners["composeNamespace"]; has {
-		scanner := s.config.RowScanners["composeNamespace"].(func(_ rowScanner, _ *types.Namespace) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.ID,
-			&res.Name,
-			&res.Slug,
-			&res.Enabled,
-			&res.Meta,
-			&res.CreatedAt,
-			&res.UpdatedAt,
-			&res.DeletedAt,
-		)
-	}
+	err = row.Scan(
+		&res.ID,
+		&res.Name,
+		&res.Slug,
+		&res.Enabled,
+		&res.Meta,
+		&res.CreatedAt,
+		&res.UpdatedAt,
+		&res.DeletedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

@@ -247,18 +247,13 @@ func (s Store) execDeleteSettings(ctx context.Context, cnd squirrel.Sqlizer) err
 func (s Store) internalSettingRowScanner(row rowScanner) (res *types.SettingValue, err error) {
 	res = &types.SettingValue{}
 
-	if _, has := s.config.RowScanners["setting"]; has {
-		scanner := s.config.RowScanners["setting"].(func(_ rowScanner, _ *types.SettingValue) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.Name,
-			&res.OwnedBy,
-			&res.Value,
-			&res.UpdatedBy,
-			&res.UpdatedAt,
-		)
-	}
+	err = row.Scan(
+		&res.Name,
+		&res.OwnedBy,
+		&res.Value,
+		&res.UpdatedBy,
+		&res.UpdatedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

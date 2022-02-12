@@ -246,23 +246,18 @@ func (s Store) execDeleteAttachments(ctx context.Context, cnd squirrel.Sqlizer) 
 func (s Store) internalAttachmentRowScanner(row rowScanner) (res *types.Attachment, err error) {
 	res = &types.Attachment{}
 
-	if _, has := s.config.RowScanners["attachment"]; has {
-		scanner := s.config.RowScanners["attachment"].(func(_ rowScanner, _ *types.Attachment) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.ID,
-			&res.OwnerID,
-			&res.Kind,
-			&res.Url,
-			&res.PreviewUrl,
-			&res.Name,
-			&res.Meta,
-			&res.CreatedAt,
-			&res.UpdatedAt,
-			&res.DeletedAt,
-		)
-	}
+	err = row.Scan(
+		&res.ID,
+		&res.OwnerID,
+		&res.Kind,
+		&res.Url,
+		&res.PreviewUrl,
+		&res.Name,
+		&res.Meta,
+		&res.CreatedAt,
+		&res.UpdatedAt,
+		&res.DeletedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

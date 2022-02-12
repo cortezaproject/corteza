@@ -269,18 +269,13 @@ func (s Store) execDeleteFlags(ctx context.Context, cnd squirrel.Sqlizer) error 
 func (s Store) internalFlagRowScanner(row rowScanner) (res *types.Flag, err error) {
 	res = &types.Flag{}
 
-	if _, has := s.config.RowScanners["flag"]; has {
-		scanner := s.config.RowScanners["flag"].(func(_ rowScanner, _ *types.Flag) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.Kind,
-			&res.ResourceID,
-			&res.OwnedBy,
-			&res.Name,
-			&res.Active,
-		)
-	}
+	err = row.Scan(
+		&res.Kind,
+		&res.ResourceID,
+		&res.OwnedBy,
+		&res.Name,
+		&res.Active,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

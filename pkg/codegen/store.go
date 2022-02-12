@@ -82,7 +82,6 @@ type (
 		Alias string `yaml:"alias,omitempty"`
 		Table string `yaml:"table,omitempty"`
 
-		CustomRowScanner        bool `yaml:"customRowScanner"`
 		CustomFilterConverter   bool `yaml:"customFilterConverter"`
 		CustomSortConverter     bool `yaml:"customSortConverter"`
 		CustomCursorCollector   bool `yaml:"customCursorCollector"`
@@ -221,7 +220,6 @@ func procStore(mm ...string) ([]*storeDef, error) {
 			Source: m,
 
 			RDBMS: storeTypeRdbmsDef{
-				CustomRowScanner:      false,
 				CustomFilterConverter: false,
 				CustomEncoder:         false,
 			},

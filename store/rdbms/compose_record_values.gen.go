@@ -231,19 +231,14 @@ func (s Store) execDeleteComposeRecordValues(ctx context.Context, cnd squirrel.S
 func (s Store) internalComposeRecordValueRowScanner(_mod *types.Module, row rowScanner) (res *types.RecordValue, err error) {
 	res = &types.RecordValue{}
 
-	if _, has := s.config.RowScanners["composeRecordValue"]; has {
-		scanner := s.config.RowScanners["composeRecordValue"].(func(_mod *types.Module, _ rowScanner, _ *types.RecordValue) error)
-		err = scanner(_mod, row, res)
-	} else {
-		err = row.Scan(
-			&res.RecordID,
-			&res.Name,
-			&res.Place,
-			&res.Value,
-			&res.Ref,
-			&res.DeletedAt,
-		)
-	}
+	err = row.Scan(
+		&res.RecordID,
+		&res.Name,
+		&res.Place,
+		&res.Value,
+		&res.Ref,
+		&res.DeletedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

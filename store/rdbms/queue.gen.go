@@ -422,23 +422,18 @@ func (s Store) execDeleteQueues(ctx context.Context, cnd squirrel.Sqlizer) error
 func (s Store) internalQueueRowScanner(row rowScanner) (res *types.Queue, err error) {
 	res = &types.Queue{}
 
-	if _, has := s.config.RowScanners["queue"]; has {
-		scanner := s.config.RowScanners["queue"].(func(_ rowScanner, _ *types.Queue) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.ID,
-			&res.Consumer,
-			&res.Queue,
-			&res.Meta,
-			&res.CreatedBy,
-			&res.UpdatedBy,
-			&res.DeletedBy,
-			&res.CreatedAt,
-			&res.UpdatedAt,
-			&res.DeletedAt,
-		)
-	}
+	err = row.Scan(
+		&res.ID,
+		&res.Consumer,
+		&res.Queue,
+		&res.Meta,
+		&res.CreatedBy,
+		&res.UpdatedBy,
+		&res.DeletedBy,
+		&res.CreatedAt,
+		&res.UpdatedAt,
+		&res.DeletedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

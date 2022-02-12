@@ -229,15 +229,10 @@ func (s Store) execDeleteRoleMembers(ctx context.Context, cnd squirrel.Sqlizer) 
 func (s Store) internalRoleMemberRowScanner(row rowScanner) (res *types.RoleMember, err error) {
 	res = &types.RoleMember{}
 
-	if _, has := s.config.RowScanners["roleMember"]; has {
-		scanner := s.config.RowScanners["roleMember"].(func(_ rowScanner, _ *types.RoleMember) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.UserID,
-			&res.RoleID,
-		)
-	}
+	err = row.Scan(
+		&res.UserID,
+		&res.RoleID,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)
