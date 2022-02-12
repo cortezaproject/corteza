@@ -1,19 +1,15 @@
 package app
 
 import (
-	"context"
 	"net/http"
 	"path"
 	"regexp"
 	"strings"
-	"sync"
 
 	automationRest "github.com/cortezaproject/corteza-server/automation/rest"
 	composeRest "github.com/cortezaproject/corteza-server/compose/rest"
 	"github.com/cortezaproject/corteza-server/docs"
 	federationRest "github.com/cortezaproject/corteza-server/federation/rest"
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/pkg/api/server"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/webapp"
@@ -22,34 +18,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 )
-
-func (app *CortezaApp) Serve(ctx context.Context) (err error) {
-	wg := &sync.WaitGroup{}
-
-	{ // @todo refactor wait-for out of HTTP API server.
-		app.HttpServer = server.New(app.Log, app.Opt.Environment, app.Opt.HTTPServer, app.Opt.WaitFor)
-		app.HttpServer.MountRoutes(app.mountHttpRoutes)
-
-		wg.Add(1)
-		go func() {
-			app.HttpServer.Serve(actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_API_REST))
-			wg.Done()
-		}()
-	}
-
-	{
-		//wg.Add(1)
-		//go func(ctx context.Context) {
-		//	grpcApi.Serve(actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_API_GRPC))
-		//	wg.Done()
-		//}(ctx)
-	}
-
-	// Wait for all servers to be done
-	wg.Wait()
-
-	return nil
-}
 
 func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 	var (
