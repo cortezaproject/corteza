@@ -3,9 +3,12 @@ package app
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	authCommands "github.com/cortezaproject/corteza-server/auth/commands"
 	federationCommands "github.com/cortezaproject/corteza-server/federation/commands"
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/api/server"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/plugin"
@@ -65,11 +68,39 @@ func (app *CortezaApp) InitCLI() {
 			"If no paths are provided, corteza loads .env file from the current directory (equivalent to --env-file .)")
 
 	serveCmd := cli.ServeCommand(func() (err error) {
+		wg := &sync.WaitGroup{}
+
+		{ // @todo refactor wait-for out of HTTP API server.
+			app.HttpServer = server.New(app.Log, app.Opt.Environment, app.Opt.HTTPServer, app.Opt.WaitFor)
+
+			wg.Add(1)
+			go func() {
+				app.HttpServer.Serve(actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_API_REST))
+				wg.Done()
+			}()
+		}
+
+		{
+			// @todo add other server/listeners here...
+			//wg.Add(1)
+			//go func(ctx context.Context) {
+			//	grpcApi.Serve(actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_API_GRPC))
+			//	wg.Done()
+			//}(ctx)
+		}
+
 		if err = app.Activate(ctx); err != nil {
 			return
 		}
 
-		return app.Serve(ctx)
+		app.HttpServer.Activate(app.mountHttpRoutes)
+
+		// Wait for all servers to be done
+		wg.Wait()
+
+		app.HttpServer.Shutdown()
+
+		return nil
 	})
 
 	upgradeCmd := cli.UpgradeCommand(func() (err error) {

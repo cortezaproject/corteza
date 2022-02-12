@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"net/http"
 	"os"
 	"runtime/debug"
@@ -31,32 +32,25 @@ func sentryMiddleware() func(http.Handler) http.Handler {
 	}).Handle
 }
 
-// HandlePanic sends 500 error when panic occurs inside the request call
-func handlePanic(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		defer func() {
-			if err := recover(); err != nil {
-				log := logger.Default()
-				if err, ok := err.(error); ok {
-					log = log.With(zap.Error(err))
-				} else {
-					log = log.With(zap.Any("recover-value", err))
-				}
+func panicRecovery(ctx context.Context, w http.ResponseWriter) {
+	if err := recover(); err != nil {
+		log := logger.ContextValue(ctx)
+		if err, ok := err.(error); ok {
+			log = log.With(zap.Error(err))
+		} else {
+			log = log.With(zap.Any("recover-value", err))
+		}
 
-				log.Debug("crashed on http request", zap.ByteString("stack", debug.Stack()))
+		log.Debug("crashed on http request", zap.ByteString("stack", debug.Stack()))
 
-				w.WriteHeader(500)
+		w.WriteHeader(500)
 
-				if _, has := os.LookupEnv("DEBUG_DUMP_STACK_IN_RESPONSE"); has {
-					// Provide nice call stack on endpoint when
-					// we crash
-					w.Write(debug.Stack())
-				}
+		if _, has := os.LookupEnv("DEBUG_DUMP_STACK_IN_RESPONSE"); has {
+			// Provide nice call stack on endpoint when
+			// we crash
+			_, _ = w.Write(debug.Stack())
+		}
 
-				return
-			}
-		}()
-
-		next.ServeHTTP(w, req)
-	})
+		return
+	}
 }

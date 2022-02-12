@@ -27,7 +27,7 @@ type (
 func ServeHTTP(w http.ResponseWriter, r *http.Request, err error, mask bool) {
 	// due to backward compatibility,
 	// custom HTTP statuses are disabled for now.
-	serveHTTP(w, r, http.StatusOK, err, mask)
+	ServeHTTPWithCode(w, r, http.StatusOK, err, mask)
 }
 
 // ProperlyServeHTTP Prepares and encodes given error for HTTP transport, same as ServeHTTP but with proper status codes
@@ -40,11 +40,11 @@ func ProperlyServeHTTP(w http.ResponseWriter, r *http.Request, err error, mask b
 		code = e.kind.httpStatus()
 	}
 
-	serveHTTP(w, r, code, err, mask)
+	ServeHTTPWithCode(w, r, code, err, mask)
 }
 
 // Serves error via
-func serveHTTP(w http.ResponseWriter, r *http.Request, code int, err error, mask bool) {
+func ServeHTTPWithCode(w http.ResponseWriter, r *http.Request, code int, err error, mask bool) {
 	var (
 		// Very naive approach on parsing accept headers
 		acceptsJson = strings.Contains(r.Header.Get("accept"), "application/json")

@@ -19,8 +19,9 @@ import (
 
 type (
 	httpApiServer interface {
-		MountRoutes(mm ...func(chi.Router))
 		Serve(ctx context.Context)
+		Activate(mm ...func(chi.Router))
+		Shutdown()
 	}
 
 	grpcServer interface {
