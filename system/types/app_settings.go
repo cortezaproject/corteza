@@ -165,7 +165,12 @@ type (
 		Compose struct {
 			// UI related settings
 			// (placeholder)
-			UI struct{} `kv:"ui"`
+			UI struct {
+				Sidebar struct {
+					// Specific sidebar settings for compose, such as namespace list link
+					ShowNamespaceList bool `kv:"show-namespace-list" json:"showNamespaceList"`
+				} `kv:"sidebar" json:"sidebar"`
+			} `kv:"ui" json:"ui"`
 
 			// Record related settings
 			Record struct {
@@ -203,6 +208,11 @@ type (
 		UI struct {
 			MainLogo string `kv:"main-logo" json:"mainLogo"`
 			IconLogo string `kv:"icon-logo" json:"iconLogo"`
+
+			Sidebar struct {
+				// General sidebar settings
+				Disabled bool `kv:"disabled" json:"disabled"`
+			} `kv:"sidebar" json:"sidebar"`
 		} `kv:"ui" json:"ui"`
 
 		ResourceTranslations struct {
