@@ -61,6 +61,7 @@ func shutdownRoutes() (r chi.Router) {
 		w.Header().Set("Refresh", "15; url=/")
 		_, _ = fmt.Fprint(w, "corteza server shutting down")
 	})
+
 	return
 }
 
