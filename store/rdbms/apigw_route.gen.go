@@ -404,25 +404,20 @@ func (s Store) execDeleteApigwRoutes(ctx context.Context, cnd squirrel.Sqlizer) 
 func (s Store) internalApigwRouteRowScanner(row rowScanner) (res *types.ApigwRoute, err error) {
 	res = &types.ApigwRoute{}
 
-	if _, has := s.config.RowScanners["apigwRoute"]; has {
-		scanner := s.config.RowScanners["apigwRoute"].(func(_ rowScanner, _ *types.ApigwRoute) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.ID,
-			&res.Endpoint,
-			&res.Method,
-			&res.Enabled,
-			&res.Group,
-			&res.Meta,
-			&res.CreatedBy,
-			&res.UpdatedBy,
-			&res.DeletedBy,
-			&res.CreatedAt,
-			&res.UpdatedAt,
-			&res.DeletedAt,
-		)
-	}
+	err = row.Scan(
+		&res.ID,
+		&res.Endpoint,
+		&res.Method,
+		&res.Enabled,
+		&res.Group,
+		&res.Meta,
+		&res.CreatedBy,
+		&res.UpdatedBy,
+		&res.DeletedBy,
+		&res.CreatedAt,
+		&res.UpdatedAt,
+		&res.DeletedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

@@ -11,6 +11,7 @@ package rdbms
 import (
 	"context"
 	"database/sql"
+
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -443,26 +444,21 @@ func (s Store) execDeleteReports(ctx context.Context, cnd squirrel.Sqlizer) erro
 func (s Store) internalReportRowScanner(row rowScanner) (res *types.Report, err error) {
 	res = &types.Report{}
 
-	if _, has := s.config.RowScanners["report"]; has {
-		scanner := s.config.RowScanners["report"].(func(_ rowScanner, _ *types.Report) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.ID,
-			&res.Handle,
-			&res.Meta,
-			&res.Scenarios,
-			&res.Sources,
-			&res.Blocks,
-			&res.OwnedBy,
-			&res.CreatedBy,
-			&res.UpdatedBy,
-			&res.DeletedBy,
-			&res.CreatedAt,
-			&res.UpdatedAt,
-			&res.DeletedAt,
-		)
-	}
+	err = row.Scan(
+		&res.ID,
+		&res.Handle,
+		&res.Meta,
+		&res.Scenarios,
+		&res.Sources,
+		&res.Blocks,
+		&res.OwnedBy,
+		&res.CreatedBy,
+		&res.UpdatedBy,
+		&res.DeletedBy,
+		&res.CreatedAt,
+		&res.UpdatedAt,
+		&res.DeletedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

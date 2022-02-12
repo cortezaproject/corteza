@@ -432,29 +432,24 @@ func (s Store) execDeleteAutomationTriggers(ctx context.Context, cnd squirrel.Sq
 func (s Store) internalAutomationTriggerRowScanner(row rowScanner) (res *types.Trigger, err error) {
 	res = &types.Trigger{}
 
-	if _, has := s.config.RowScanners["automationTrigger"]; has {
-		scanner := s.config.RowScanners["automationTrigger"].(func(_ rowScanner, _ *types.Trigger) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.ID,
-			&res.WorkflowID,
-			&res.StepID,
-			&res.Enabled,
-			&res.ResourceType,
-			&res.EventType,
-			&res.Meta,
-			&res.Constraints,
-			&res.Input,
-			&res.OwnedBy,
-			&res.CreatedBy,
-			&res.UpdatedBy,
-			&res.DeletedBy,
-			&res.CreatedAt,
-			&res.UpdatedAt,
-			&res.DeletedAt,
-		)
-	}
+	err = row.Scan(
+		&res.ID,
+		&res.WorkflowID,
+		&res.StepID,
+		&res.Enabled,
+		&res.ResourceType,
+		&res.EventType,
+		&res.Meta,
+		&res.Constraints,
+		&res.Input,
+		&res.OwnedBy,
+		&res.CreatedBy,
+		&res.UpdatedBy,
+		&res.DeletedBy,
+		&res.CreatedAt,
+		&res.UpdatedAt,
+		&res.DeletedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

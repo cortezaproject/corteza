@@ -246,24 +246,19 @@ func (s Store) execDeleteComposeAttachments(ctx context.Context, cnd squirrel.Sq
 func (s Store) internalComposeAttachmentRowScanner(row rowScanner) (res *types.Attachment, err error) {
 	res = &types.Attachment{}
 
-	if _, has := s.config.RowScanners["composeAttachment"]; has {
-		scanner := s.config.RowScanners["composeAttachment"].(func(_ rowScanner, _ *types.Attachment) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.ID,
-			&res.NamespaceID,
-			&res.Kind,
-			&res.Url,
-			&res.PreviewUrl,
-			&res.Name,
-			&res.Meta,
-			&res.OwnerID,
-			&res.CreatedAt,
-			&res.UpdatedAt,
-			&res.DeletedAt,
-		)
-	}
+	err = row.Scan(
+		&res.ID,
+		&res.NamespaceID,
+		&res.Kind,
+		&res.Url,
+		&res.PreviewUrl,
+		&res.Name,
+		&res.Meta,
+		&res.OwnerID,
+		&res.CreatedAt,
+		&res.UpdatedAt,
+		&res.DeletedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

@@ -87,9 +87,6 @@ type (
 
 		ErrorHandler store.ErrorHandler
 
-		// Implementations can override internal RDBMS row scanners
-		RowScanners map[string]interface{}
-
 		// Different store backend implementation might handle upsert differently...
 		UpsertBuilder func(*Config, string, store.Payload, ...string) (squirrel.InsertBuilder, error)
 

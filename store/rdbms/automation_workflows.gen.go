@@ -443,31 +443,26 @@ func (s Store) execDeleteAutomationWorkflows(ctx context.Context, cnd squirrel.S
 func (s Store) internalAutomationWorkflowRowScanner(row rowScanner) (res *types.Workflow, err error) {
 	res = &types.Workflow{}
 
-	if _, has := s.config.RowScanners["automationWorkflow"]; has {
-		scanner := s.config.RowScanners["automationWorkflow"].(func(_ rowScanner, _ *types.Workflow) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.ID,
-			&res.Handle,
-			&res.Meta,
-			&res.Enabled,
-			&res.Trace,
-			&res.KeepSessions,
-			&res.Scope,
-			&res.Steps,
-			&res.Paths,
-			&res.Issues,
-			&res.RunAs,
-			&res.OwnedBy,
-			&res.CreatedBy,
-			&res.UpdatedBy,
-			&res.DeletedBy,
-			&res.CreatedAt,
-			&res.UpdatedAt,
-			&res.DeletedAt,
-		)
-	}
+	err = row.Scan(
+		&res.ID,
+		&res.Handle,
+		&res.Meta,
+		&res.Enabled,
+		&res.Trace,
+		&res.KeepSessions,
+		&res.Scope,
+		&res.Steps,
+		&res.Paths,
+		&res.Issues,
+		&res.RunAs,
+		&res.OwnedBy,
+		&res.CreatedBy,
+		&res.UpdatedBy,
+		&res.DeletedBy,
+		&res.CreatedAt,
+		&res.UpdatedAt,
+		&res.DeletedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

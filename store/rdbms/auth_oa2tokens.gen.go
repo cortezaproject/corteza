@@ -190,24 +190,19 @@ func (s Store) execDeleteAuthOa2tokens(ctx context.Context, cnd squirrel.Sqlizer
 func (s Store) internalAuthOa2tokenRowScanner(row rowScanner) (res *types.AuthOa2token, err error) {
 	res = &types.AuthOa2token{}
 
-	if _, has := s.config.RowScanners["authOa2token"]; has {
-		scanner := s.config.RowScanners["authOa2token"].(func(_ rowScanner, _ *types.AuthOa2token) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.ID,
-			&res.Code,
-			&res.Access,
-			&res.Refresh,
-			&res.ExpiresAt,
-			&res.CreatedAt,
-			&res.Data,
-			&res.ClientID,
-			&res.UserID,
-			&res.RemoteAddr,
-			&res.UserAgent,
-		)
-	}
+	err = row.Scan(
+		&res.ID,
+		&res.Code,
+		&res.Access,
+		&res.Refresh,
+		&res.ExpiresAt,
+		&res.CreatedAt,
+		&res.Data,
+		&res.ClientID,
+		&res.UserID,
+		&res.RemoteAddr,
+		&res.UserAgent,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

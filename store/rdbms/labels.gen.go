@@ -240,17 +240,12 @@ func (s Store) execDeleteLabels(ctx context.Context, cnd squirrel.Sqlizer) error
 func (s Store) internalLabelRowScanner(row rowScanner) (res *types.Label, err error) {
 	res = &types.Label{}
 
-	if _, has := s.config.RowScanners["label"]; has {
-		scanner := s.config.RowScanners["label"].(func(_ rowScanner, _ *types.Label) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.Kind,
-			&res.ResourceID,
-			&res.Name,
-			&res.Value,
-		)
-	}
+	err = row.Scan(
+		&res.Kind,
+		&res.ResourceID,
+		&res.Name,
+		&res.Value,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

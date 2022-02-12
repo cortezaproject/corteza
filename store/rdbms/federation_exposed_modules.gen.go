@@ -432,26 +432,21 @@ func (s Store) execDeleteFederationExposedModules(ctx context.Context, cnd squir
 func (s Store) internalFederationExposedModuleRowScanner(row rowScanner) (res *types.ExposedModule, err error) {
 	res = &types.ExposedModule{}
 
-	if _, has := s.config.RowScanners["federationExposedModule"]; has {
-		scanner := s.config.RowScanners["federationExposedModule"].(func(_ rowScanner, _ *types.ExposedModule) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.ID,
-			&res.Handle,
-			&res.Name,
-			&res.NodeID,
-			&res.ComposeModuleID,
-			&res.ComposeNamespaceID,
-			&res.Fields,
-			&res.CreatedBy,
-			&res.UpdatedBy,
-			&res.DeletedBy,
-			&res.CreatedAt,
-			&res.UpdatedAt,
-			&res.DeletedAt,
-		)
-	}
+	err = row.Scan(
+		&res.ID,
+		&res.Handle,
+		&res.Name,
+		&res.NodeID,
+		&res.ComposeModuleID,
+		&res.ComposeNamespaceID,
+		&res.Fields,
+		&res.CreatedBy,
+		&res.UpdatedBy,
+		&res.DeletedBy,
+		&res.CreatedAt,
+		&res.UpdatedAt,
+		&res.DeletedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

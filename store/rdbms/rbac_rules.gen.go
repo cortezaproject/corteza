@@ -228,17 +228,12 @@ func (s Store) execDeleteRbacRules(ctx context.Context, cnd squirrel.Sqlizer) er
 func (s Store) internalRbacRuleRowScanner(row rowScanner) (res *rbac.Rule, err error) {
 	res = &rbac.Rule{}
 
-	if _, has := s.config.RowScanners["rbacRule"]; has {
-		scanner := s.config.RowScanners["rbacRule"].(func(_ rowScanner, _ *rbac.Rule) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.RoleID,
-			&res.Resource,
-			&res.Operation,
-			&res.Access,
-		)
-	}
+	err = row.Scan(
+		&res.RoleID,
+		&res.Resource,
+		&res.Operation,
+		&res.Access,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

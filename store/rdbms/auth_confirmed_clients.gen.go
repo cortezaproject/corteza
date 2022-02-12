@@ -237,16 +237,11 @@ func (s Store) execDeleteAuthConfirmedClients(ctx context.Context, cnd squirrel.
 func (s Store) internalAuthConfirmedClientRowScanner(row rowScanner) (res *types.AuthConfirmedClient, err error) {
 	res = &types.AuthConfirmedClient{}
 
-	if _, has := s.config.RowScanners["authConfirmedClient"]; has {
-		scanner := s.config.RowScanners["authConfirmedClient"].(func(_ rowScanner, _ *types.AuthConfirmedClient) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.UserID,
-			&res.ClientID,
-			&res.ConfirmedAt,
-		)
-	}
+	err = row.Scan(
+		&res.UserID,
+		&res.ClientID,
+		&res.ConfirmedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

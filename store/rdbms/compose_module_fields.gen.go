@@ -237,29 +237,24 @@ func (s Store) execDeleteComposeModuleFields(ctx context.Context, cnd squirrel.S
 func (s Store) internalComposeModuleFieldRowScanner(row rowScanner) (res *types.ModuleField, err error) {
 	res = &types.ModuleField{}
 
-	if _, has := s.config.RowScanners["composeModuleField"]; has {
-		scanner := s.config.RowScanners["composeModuleField"].(func(_ rowScanner, _ *types.ModuleField) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.ID,
-			&res.Name,
-			&res.ModuleID,
-			&res.Place,
-			&res.Kind,
-			&res.Label,
-			&res.Options,
-			&res.Private,
-			&res.Required,
-			&res.Visible,
-			&res.Multi,
-			&res.DefaultValue,
-			&res.Expressions,
-			&res.CreatedAt,
-			&res.UpdatedAt,
-			&res.DeletedAt,
-		)
-	}
+	err = row.Scan(
+		&res.ID,
+		&res.Name,
+		&res.ModuleID,
+		&res.Place,
+		&res.Kind,
+		&res.Label,
+		&res.Options,
+		&res.Private,
+		&res.Required,
+		&res.Visible,
+		&res.Multi,
+		&res.DefaultValue,
+		&res.Expressions,
+		&res.CreatedAt,
+		&res.UpdatedAt,
+		&res.DeletedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

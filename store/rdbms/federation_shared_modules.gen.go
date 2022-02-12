@@ -432,25 +432,20 @@ func (s Store) execDeleteFederationSharedModules(ctx context.Context, cnd squirr
 func (s Store) internalFederationSharedModuleRowScanner(row rowScanner) (res *types.SharedModule, err error) {
 	res = &types.SharedModule{}
 
-	if _, has := s.config.RowScanners["federationSharedModule"]; has {
-		scanner := s.config.RowScanners["federationSharedModule"].(func(_ rowScanner, _ *types.SharedModule) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.ID,
-			&res.NodeID,
-			&res.Handle,
-			&res.Name,
-			&res.ExternalFederationModuleID,
-			&res.Fields,
-			&res.CreatedBy,
-			&res.UpdatedBy,
-			&res.DeletedBy,
-			&res.CreatedAt,
-			&res.UpdatedAt,
-			&res.DeletedAt,
-		)
-	}
+	err = row.Scan(
+		&res.ID,
+		&res.NodeID,
+		&res.Handle,
+		&res.Name,
+		&res.ExternalFederationModuleID,
+		&res.Fields,
+		&res.CreatedBy,
+		&res.UpdatedBy,
+		&res.DeletedBy,
+		&res.CreatedAt,
+		&res.UpdatedAt,
+		&res.DeletedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

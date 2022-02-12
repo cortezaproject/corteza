@@ -261,27 +261,22 @@ func (s Store) execDeleteFederationNodes(ctx context.Context, cnd squirrel.Sqliz
 func (s Store) internalFederationNodeRowScanner(row rowScanner) (res *types.Node, err error) {
 	res = &types.Node{}
 
-	if _, has := s.config.RowScanners["federationNode"]; has {
-		scanner := s.config.RowScanners["federationNode"].(func(_ rowScanner, _ *types.Node) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.ID,
-			&res.Name,
-			&res.SharedNodeID,
-			&res.BaseURL,
-			&res.Status,
-			&res.Contact,
-			&res.PairToken,
-			&res.AuthToken,
-			&res.CreatedBy,
-			&res.UpdatedBy,
-			&res.DeletedBy,
-			&res.CreatedAt,
-			&res.UpdatedAt,
-			&res.DeletedAt,
-		)
-	}
+	err = row.Scan(
+		&res.ID,
+		&res.Name,
+		&res.SharedNodeID,
+		&res.BaseURL,
+		&res.Status,
+		&res.Contact,
+		&res.PairToken,
+		&res.AuthToken,
+		&res.CreatedBy,
+		&res.UpdatedBy,
+		&res.DeletedBy,
+		&res.CreatedAt,
+		&res.UpdatedAt,
+		&res.DeletedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

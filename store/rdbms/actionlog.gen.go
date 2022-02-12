@@ -135,12 +135,20 @@ func (s Store) execCreateActionlogs(ctx context.Context, payload store.Payload) 
 func (s Store) internalActionlogRowScanner(row rowScanner) (res *actionlog.Action, err error) {
 	res = &actionlog.Action{}
 
-	if _, has := s.config.RowScanners["actionlog"]; has {
-		scanner := s.config.RowScanners["actionlog"].(func(_ rowScanner, _ *actionlog.Action) error)
-		err = scanner(row, res)
-	} else {
-		err = s.scanActionlogRow(row, res)
-	}
+	err = row.Scan(
+		&res.ID,
+		&res.Timestamp,
+		&res.RequestOrigin,
+		&res.RequestID,
+		&res.ActorIPAddr,
+		&res.ActorID,
+		&res.Resource,
+		&res.Action,
+		&res.Error,
+		&res.Severity,
+		&res.Description,
+		&res.Meta,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

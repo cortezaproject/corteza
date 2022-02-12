@@ -556,20 +556,11 @@ func (s Store) execDelete{{ export $.Types.Plural }}(ctx context.Context, cnd sq
 func (s Store) internal{{ export $.Types.Singular }}RowScanner({{ template "extraArgsDefFirst" . }}row rowScanner) (res *{{ $.Types.GoType }}, err error) {
 	res = &{{ $.Types.GoType }}{}
 
-	if _, has := s.config.RowScanners[{{ printf "%q" (unexport $.Types.Singular) }}]; has {
-		scanner := s.config.RowScanners[{{ printf "%q" (unexport $.Types.Singular) }}].(func({{ template "extraArgsDefFirst" . }}_ rowScanner, _ *{{ $.Types.GoType }}) error)
-		err = scanner({{ template "extraArgsCallFirst" . }}row, res)
-	} else {
-	{{- if .RDBMS.CustomRowScanner }}
-		err = s.scan{{ $.Types.Singular }}Row({{ template "extraArgsCallFirst" . }}row, res)
-	{{- else }}
-		err = row.Scan(
-		{{- range $.RDBMS.Columns }}
-			&res.{{ .Field }},
-		{{- end }}
-		)
+	err = row.Scan(
+	{{- range $.RDBMS.Columns }}
+		&res.{{ .Field }},
 	{{- end }}
-	}
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

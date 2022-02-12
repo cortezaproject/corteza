@@ -443,25 +443,20 @@ func (s Store) execDeleteTemplates(ctx context.Context, cnd squirrel.Sqlizer) er
 func (s Store) internalTemplateRowScanner(row rowScanner) (res *types.Template, err error) {
 	res = &types.Template{}
 
-	if _, has := s.config.RowScanners["template"]; has {
-		scanner := s.config.RowScanners["template"].(func(_ rowScanner, _ *types.Template) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.ID,
-			&res.Handle,
-			&res.Language,
-			&res.Type,
-			&res.Partial,
-			&res.Meta,
-			&res.Template,
-			&res.OwnerID,
-			&res.CreatedAt,
-			&res.UpdatedAt,
-			&res.DeletedAt,
-			&res.LastUsedAt,
-		)
-	}
+	err = row.Scan(
+		&res.ID,
+		&res.Handle,
+		&res.Language,
+		&res.Type,
+		&res.Partial,
+		&res.Meta,
+		&res.Template,
+		&res.OwnerID,
+		&res.CreatedAt,
+		&res.UpdatedAt,
+		&res.DeletedAt,
+		&res.LastUsedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

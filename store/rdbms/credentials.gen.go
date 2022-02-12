@@ -236,24 +236,19 @@ func (s Store) execDeleteCredentials(ctx context.Context, cnd squirrel.Sqlizer) 
 func (s Store) internalCredentialsRowScanner(row rowScanner) (res *types.Credentials, err error) {
 	res = &types.Credentials{}
 
-	if _, has := s.config.RowScanners["credentials"]; has {
-		scanner := s.config.RowScanners["credentials"].(func(_ rowScanner, _ *types.Credentials) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.ID,
-			&res.OwnerID,
-			&res.Kind,
-			&res.Label,
-			&res.Credentials,
-			&res.Meta,
-			&res.LastUsedAt,
-			&res.ExpiresAt,
-			&res.CreatedAt,
-			&res.UpdatedAt,
-			&res.DeletedAt,
-		)
-	}
+	err = row.Scan(
+		&res.ID,
+		&res.OwnerID,
+		&res.Kind,
+		&res.Label,
+		&res.Credentials,
+		&res.Meta,
+		&res.LastUsedAt,
+		&res.ExpiresAt,
+		&res.CreatedAt,
+		&res.UpdatedAt,
+		&res.DeletedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

@@ -234,20 +234,15 @@ func (s Store) execDeleteAuthSessions(ctx context.Context, cnd squirrel.Sqlizer)
 func (s Store) internalAuthSessionRowScanner(row rowScanner) (res *types.AuthSession, err error) {
 	res = &types.AuthSession{}
 
-	if _, has := s.config.RowScanners["authSession"]; has {
-		scanner := s.config.RowScanners["authSession"].(func(_ rowScanner, _ *types.AuthSession) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.ID,
-			&res.Data,
-			&res.UserID,
-			&res.RemoteAddr,
-			&res.UserAgent,
-			&res.CreatedAt,
-			&res.ExpiresAt,
-		)
-	}
+	err = row.Scan(
+		&res.ID,
+		&res.Data,
+		&res.UserID,
+		&res.RemoteAddr,
+		&res.UserAgent,
+		&res.CreatedAt,
+		&res.ExpiresAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

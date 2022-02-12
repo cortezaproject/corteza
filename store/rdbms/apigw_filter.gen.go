@@ -404,26 +404,21 @@ func (s Store) execDeleteApigwFilters(ctx context.Context, cnd squirrel.Sqlizer)
 func (s Store) internalApigwFilterRowScanner(row rowScanner) (res *types.ApigwFilter, err error) {
 	res = &types.ApigwFilter{}
 
-	if _, has := s.config.RowScanners["apigwFilter"]; has {
-		scanner := s.config.RowScanners["apigwFilter"].(func(_ rowScanner, _ *types.ApigwFilter) error)
-		err = scanner(row, res)
-	} else {
-		err = row.Scan(
-			&res.ID,
-			&res.Route,
-			&res.Weight,
-			&res.Kind,
-			&res.Ref,
-			&res.Enabled,
-			&res.Params,
-			&res.CreatedBy,
-			&res.UpdatedBy,
-			&res.DeletedBy,
-			&res.CreatedAt,
-			&res.UpdatedAt,
-			&res.DeletedAt,
-		)
-	}
+	err = row.Scan(
+		&res.ID,
+		&res.Route,
+		&res.Weight,
+		&res.Kind,
+		&res.Ref,
+		&res.Enabled,
+		&res.Params,
+		&res.CreatedBy,
+		&res.UpdatedBy,
+		&res.DeletedBy,
+		&res.CreatedAt,
+		&res.UpdatedAt,
+		&res.DeletedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)

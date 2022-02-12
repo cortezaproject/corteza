@@ -370,23 +370,18 @@ func (s Store) execDeleteComposeRecords(ctx context.Context, cnd squirrel.Sqlize
 func (s Store) internalComposeRecordRowScanner(_mod *types.Module, row rowScanner) (res *types.Record, err error) {
 	res = &types.Record{}
 
-	if _, has := s.config.RowScanners["composeRecord"]; has {
-		scanner := s.config.RowScanners["composeRecord"].(func(_mod *types.Module, _ rowScanner, _ *types.Record) error)
-		err = scanner(_mod, row, res)
-	} else {
-		err = row.Scan(
-			&res.ID,
-			&res.ModuleID,
-			&res.NamespaceID,
-			&res.OwnedBy,
-			&res.CreatedBy,
-			&res.UpdatedBy,
-			&res.DeletedBy,
-			&res.CreatedAt,
-			&res.UpdatedAt,
-			&res.DeletedAt,
-		)
-	}
+	err = row.Scan(
+		&res.ID,
+		&res.ModuleID,
+		&res.NamespaceID,
+		&res.OwnedBy,
+		&res.CreatedBy,
+		&res.UpdatedBy,
+		&res.DeletedBy,
+		&res.CreatedAt,
+		&res.UpdatedAt,
+		&res.DeletedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, store.ErrNotFound.Stack(1)
