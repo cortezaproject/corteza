@@ -37,16 +37,18 @@ func Init() {
 	}
 
 	var (
-		err  error
-		conf = applyOptions(zap.NewProductionConfig(), opt)
+		conf        = applyOptions(zap.NewProductionConfig(), opt)
+		logger, err = conf.Build()
 	)
 
-	defaultLogger, err = conf.Build()
 	if err != nil {
 		panic(err)
 	}
 
-	defaultLogger = applySpecials(defaultLogger, opt)
+	logger = applySpecials(defaultLogger, opt)
+	logger = withDebugBuffer(logger)
+
+	defaultLogger = logger
 }
 
 func MakeDebugLogger() *zap.Logger {
@@ -70,6 +72,8 @@ func MakeDebugLogger() *zap.Logger {
 	if err != nil {
 		panic(err)
 	}
+
+	logger = withDebugBuffer(logger)
 
 	return applySpecials(logger, &dbgOpt)
 }
@@ -96,6 +100,15 @@ func applySpecials(l *zap.Logger, opt *options.LogOpt) *zap.Logger {
 
 	// LOG_STACKTRACE_LEVEL
 	return l.WithOptions(zap.AddStacktrace(mustParseLevel(opt.StacktraceLevel)))
+}
+
+// adds Tee logger that copies all log messages to debug buffer
+func withDebugBuffer(in *zap.Logger) *zap.Logger {
+	return zap.New(zapcore.NewTee(
+		in.Core(),
+
+		DebugBufferedLogger(debugLogRR),
+	))
 }
 
 func mustParseLevel(l string) (o zapcore.Level) {
