@@ -2,12 +2,13 @@ package server
 
 import (
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/corredor"
-	"github.com/cortezaproject/corteza-server/pkg/eventbus"
-	"github.com/davecgh/go-spew/spew"
 	"net/http"
 	"reflect"
 	"runtime"
+
+	"github.com/cortezaproject/corteza-server/pkg/corredor"
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/davecgh/go-spew/spew"
 
 	"github.com/go-chi/chi/v5"
 )

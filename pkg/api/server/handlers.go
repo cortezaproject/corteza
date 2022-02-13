@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"net/http"
 	"path"
+	"strconv"
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/version"
 	"github.com/go-chi/chi/v5"
@@ -68,6 +70,7 @@ func shutdownRoutes() (r chi.Router) {
 // routes used when in active mode
 func activeRoutes(log *zap.Logger, mountable []func(r chi.Router), envOpt options.EnvironmentOpt, httpOpt options.HttpServerOpt) (r chi.Router) {
 	r = chi.NewRouter()
+	r.Use(handleCORS)
 
 	r.Route("/"+strings.TrimPrefix(httpOpt.BaseUrl, "/"), func(r chi.Router) {
 		// Reports error to Sentry if enabled
@@ -130,6 +133,8 @@ func mountServiceHandlers(r chi.Router, log *zap.Logger, opt options.HttpServerO
 	if opt.EnableHealthcheckRoute {
 		mountHealthCheckHandler(r, log, opt.BaseUrl)
 	}
+
+	mountDebugLogViewer(r, log)
 }
 
 func mountDebugHandler(r chi.Router, log *zap.Logger) {
@@ -183,4 +188,39 @@ func mountHealthCheckHandler(r chi.Router, log *zap.Logger, basePath string) {
 		log.Debug("health check route enabled: " + sPath)
 	}
 
+}
+
+func mountDebugLogViewer(r chi.Router, log *zap.Logger) {
+	var (
+		path = "/view-log"
+	)
+
+	r.Get(path+".json", func(w http.ResponseWriter, r *http.Request) {
+		var (
+			after int = 0
+			limit int = 100
+			err   error
+			q     = r.URL.Query()
+		)
+
+		if aux := q.Get("after"); len(aux) > 0 {
+			after, err = strconv.Atoi(aux)
+			if err != nil {
+				errors.ProperlyServeHTTP(w, r, errors.InvalidData("invalid value format for after: %w", err), false)
+				return
+			}
+		}
+
+		if aux := q.Get("limit"); len(aux) > 0 {
+			limit, err = strconv.Atoi(aux)
+			if err != nil {
+				errors.ProperlyServeHTTP(w, r, errors.InvalidData("invalid value format for limit: %w", err), false)
+				return
+			}
+		}
+
+		_, _ = logger.WriteLogBuffer(w, after, limit)
+	})
+
+	log.Debug("log viewer route enabled: " + path)
 }
