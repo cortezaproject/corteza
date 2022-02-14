@@ -105,6 +105,10 @@ func count(arr interface{}, v ...interface{}) (count int, err error) {
 	arr = UntypedValue(arr)
 
 	if stv, is := arr.([]TypedValue); is {
+		if len(v) == 0 {
+			return len(stv), nil
+		}
+
 		for _, vv := range v {
 			if occ, err := find(stv, vv); err != nil {
 				return 0, err
