@@ -38,7 +38,14 @@ type (
 // and mounts it to chi Router
 func MountSPA(r chi.Router, path string, root fs.FS, cc ...configurator) error {
 	path = "/" + strings.Trim(strings.TrimRight(path, "*"), "/") + "/"
-	handler, err := FileServer(root, append(cc, UrlPrefix(path), Fallbacks("index.html"))...)
+
+	cc = append(
+		[]configurator{UrlPrefix(path), Fallbacks("index.html")},
+		// appnd all configurators at the end and allow override of prefix & fallbacks
+		cc...
+	)
+
+	handler, err := FileServer(root, cc...)
 	if err != nil {
 		return err
 	}

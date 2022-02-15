@@ -1,3 +1,12 @@
+# bundle web-console
+FROM node:16.14-alpine as webconsole-build-stage
+
+WORKDIR /webconsole
+COPY ./webconsole ./
+# Snapshot is built in development mode and with source map
+RUN yarn install && yarn build --mode dev --sourcemap
+
+
 # build server
 FROM golang:1.17-buster as server-build-stage
 
@@ -9,6 +18,7 @@ WORKDIR /corteza
 
 COPY . ./
 
+COPY --from=webconsole-build-stage /webconsole/dist ./webconsole/dist
 RUN make release-clean release
 
 
