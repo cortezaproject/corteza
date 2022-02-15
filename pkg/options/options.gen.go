@@ -43,6 +43,9 @@ type (
 		WebappBaseDir          string `env:"HTTP_WEBAPP_BASE_DIR"`
 		WebappList             string `env:"HTTP_WEBAPP_LIST"`
 		SslTerminated          bool   `env:"HTTP_SSL_TERMINATED"`
+		WebConsoleEnabled      bool   `env:"HTTP_SERVER_WEB_CONSOLE_ENABLED"`
+		WebConsoleUsername     string `env:"HTTP_SERVER_WEB_CONSOLE_USERNAME"`
+		WebConsolePassword     string `env:"HTTP_SERVER_WEB_CONSOLE_PASSWORD"`
 	}
 
 	RbacOpt struct {
@@ -325,6 +328,9 @@ func HttpServer() (o *HttpServerOpt) {
 		WebappBaseDir:          "./webapp/public",
 		WebappList:             "admin,compose,workflow,reporter",
 		SslTerminated:          isSecure(),
+		WebConsoleEnabled:      false,
+		WebConsoleUsername:     "admin",
+		WebConsolePassword:     string(rand.Bytes(32)),
 	}
 
 	// Custom defaults

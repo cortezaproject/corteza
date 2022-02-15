@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/version"
+	"github.com/cortezaproject/corteza-server/webconsole"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
@@ -22,6 +23,8 @@ import (
 // routes used when server is in waiting mode
 func waitingRoutes(log *zap.Logger, httpOpt options.HttpServerOpt) (r chi.Router) {
 	r = chi.NewRouter()
+	r.Use(handleCORS)
+
 	mountServiceHandlers(r, log, httpOpt)
 
 	r.HandleFunc("/*", func(w http.ResponseWriter, r *http.Request) {
@@ -114,7 +117,6 @@ func activeRoutes(log *zap.Logger, mountable []func(r chi.Router), envOpt option
 
 	if httpOpt.BaseUrl != "/" {
 		r.Handle("/", http.RedirectHandler(httpOpt.BaseUrl, http.StatusTemporaryRedirect))
-
 	}
 
 	mountServiceHandlers(r, log, httpOpt)
@@ -122,6 +124,29 @@ func activeRoutes(log *zap.Logger, mountable []func(r chi.Router), envOpt option
 }
 
 func mountServiceHandlers(r chi.Router, log *zap.Logger, opt options.HttpServerOpt) {
+	if opt.WebConsoleEnabled {
+		log.Info("web console enabled (HTTP_SERVER_WEB_CONSOLE_ENABLED=true): /console")
+		r.Route("/console", func(r chi.Router) {
+			if len(opt.WebConsolePassword) > 0 {
+				credentials := map[string]string{
+					opt.WebConsoleUsername: opt.WebConsolePassword,
+				}
+				r.Use(middleware.BasicAuth("web-console", credentials))
+			} else {
+				// warn the user regardless of what environment Corteza is running in.
+				log.Warn("SECURITY RISK: web console enabled is unprotected, set " +
+					"HTTP_SERVER_WEB_CONSOLE_USERNAME, HTTP_SERVER_WEB_CONSOLE_PASSWORD " +
+					"if not running in development environment!")
+			}
+
+			webconsole.Mount(r)
+			mountDebugLogViewer(r, log)
+
+			// redirect from /console to /console/ui/
+			r.Mount("/", http.RedirectHandler("/console/ui", http.StatusTemporaryRedirect))
+		})
+	}
+
 	if opt.EnableDebugRoute {
 		mountDebugHandler(r, log)
 	}
@@ -134,7 +159,6 @@ func mountServiceHandlers(r chi.Router, log *zap.Logger, opt options.HttpServerO
 		mountHealthCheckHandler(r, log, opt.BaseUrl)
 	}
 
-	mountDebugLogViewer(r, log)
 }
 
 func mountDebugHandler(r chi.Router, log *zap.Logger) {
@@ -192,7 +216,7 @@ func mountHealthCheckHandler(r chi.Router, log *zap.Logger, basePath string) {
 
 func mountDebugLogViewer(r chi.Router, log *zap.Logger) {
 	var (
-		path = "/view-log"
+		path = "/server-log-feed"
 	)
 
 	r.Get(path+".json", func(w http.ResponseWriter, r *http.Request) {
@@ -206,7 +230,7 @@ func mountDebugLogViewer(r chi.Router, log *zap.Logger) {
 		if aux := q.Get("after"); len(aux) > 0 {
 			after, err = strconv.Atoi(aux)
 			if err != nil {
-				errors.ProperlyServeHTTP(w, r, errors.InvalidData("invalid value format for after: %w", err), false)
+				errors.ProperlyServeHTTP(w, r, errors.InvalidData("invalid value format for after: %v", err), false)
 				return
 			}
 		}
@@ -214,7 +238,7 @@ func mountDebugLogViewer(r chi.Router, log *zap.Logger) {
 		if aux := q.Get("limit"); len(aux) > 0 {
 			limit, err = strconv.Atoi(aux)
 			if err != nil {
-				errors.ProperlyServeHTTP(w, r, errors.InvalidData("invalid value format for limit: %w", err), false)
+				errors.ProperlyServeHTTP(w, r, errors.InvalidData("invalid value format for limit: %v", err), false)
 				return
 			}
 		}
