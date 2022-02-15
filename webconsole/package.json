@@ -1,0 +1,41 @@
+{
+  "name": "corteza-server-web-console",
+  "license": "Apache-2.0",
+  "version": "0.0.0",
+  "contributors": [
+    "Denis Arh <denis.arh@crust.tech>"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview --port 5050",
+    "test:unit": "vitest --environment jsdom",
+    "typecheck": "vue-tsc --noEmit && vue-tsc --noEmit -p tsconfig.vitest.json --composite false",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
+  },
+  "dependencies": {
+    "axios": "^0.26.0",
+    "pinia": "^2.0.11",
+    "sass": "^1.49.7",
+    "vue": "^3.2.29",
+    "vue-router": "^4.0.12"
+  },
+  "devDependencies": {
+    "@rushstack/eslint-patch": "^1.1.0",
+    "@types/jsdom": "^16.2.14",
+    "@types/node": "^16.11.22",
+    "@vitejs/plugin-vue": "^2.1.0",
+    "@vue/eslint-config-prettier": "^7.0.0",
+    "@vue/eslint-config-typescript": "^10.0.0",
+    "@vue/test-utils": "^2.0.0-rc.18",
+    "@vue/tsconfig": "^0.1.3",
+    "eslint": "^8.5.0",
+    "eslint-plugin-vue": "^8.2.0",
+    "jsdom": "^19.0.0",
+    "prettier": "^2.5.1",
+    "typescript": "~4.5.5",
+    "vite": "^2.7.13",
+    "vitest": "^0.2.5",
+    "vue-tsc": "^0.31.1"
+  }
+}
