@@ -33,14 +33,19 @@ type (
 				{{- end }}
 			}
 
-			fill(o)
-
-			// Function that allows access to custom logic inside the parent function.
-			// The custom logic in the other file should be like:
-			// func (o *{{ .struct }}) Defaults() {...}
+			// Custom defaults
 			func(o interface{}) {
 				if def, ok := o.(interface{ Defaults() }); ok {
 					def.Defaults()
+				}
+			}(o)
+
+			fill(o)
+
+			// Custom cleanup
+			func(o interface{}) {
+				if def, ok := o.(interface{ Cleanup() }); ok {
+					def.Cleanup()
 				}
 			}(o)
 

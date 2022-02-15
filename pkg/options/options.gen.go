@@ -7,10 +7,9 @@ package options
 //
 
 import (
-	"time"
-
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/pkg/version"
+	"time"
 )
 
 type (
@@ -261,14 +260,19 @@ func DB() (o *DBOpt) {
 		DSN: "sqlite3://file::memory:?cache=shared&mode=memory",
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *DBOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -283,14 +287,19 @@ func HTTPClient() (o *HTTPClientOpt) {
 		Timeout: 30 * time.Second,
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *HTTPClientOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -318,14 +327,19 @@ func HttpServer() (o *HttpServerOpt) {
 		SslTerminated:          isSecure(),
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *HttpServerOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -342,14 +356,19 @@ func Rbac() (o *RbacOpt) {
 		AnonymousRoles:     "anonymous",
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *RbacOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -365,14 +384,19 @@ func SCIM() (o *SCIMOpt) {
 		ExternalIdValidation: "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *SCIMOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -388,14 +412,19 @@ func SMTP() (o *SMTPOpt) {
 		Port: 25,
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *SMTPOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -410,14 +439,19 @@ func ActionLog() (o *ActionLogOpt) {
 		Enabled: true,
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *ActionLogOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -434,14 +468,19 @@ func Apigw() (o *ApigwOpt) {
 		ProxyOutboundTimeout: time.Second * 30,
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *ApigwOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -477,14 +516,19 @@ func Auth() (o *AuthOpt) {
 		DefaultClient:            "corteza-webapp",
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *AuthOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -509,14 +553,19 @@ func Corredor() (o *CorredorOpt) {
 		TlsCertPublic:         "public.crt",
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *CorredorOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -531,14 +580,19 @@ func Environment() (o *EnvironmentOpt) {
 		Environment: "production",
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *EnvironmentOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -554,14 +608,19 @@ func Eventbus() (o *EventbusOpt) {
 		SchedulerInterval: time.Minute,
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *EventbusOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -581,14 +640,19 @@ func Federation() (o *FederationOpt) {
 		DataPageSize:             100,
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *FederationOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -601,14 +665,19 @@ func Federation() (o *FederationOpt) {
 func Limit() (o *LimitOpt) {
 	o = &LimitOpt{}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *LimitOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -624,14 +693,19 @@ func Locale() (o *LocaleOpt) {
 		QueryStringParam: "lng",
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *LocaleOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -647,14 +721,19 @@ func Log() (o *LogOpt) {
 		StacktraceLevel: "dpanic",
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *LogOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -669,14 +748,19 @@ func Messagebus() (o *MessagebusOpt) {
 		Enabled: true,
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *MessagebusOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -691,14 +775,19 @@ func Monitor() (o *MonitorOpt) {
 		Interval: 5 * time.Minute,
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *MonitorOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -715,14 +804,19 @@ func ObjectStore() (o *ObjectStoreOpt) {
 		MinioBucket: "{component}",
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *ObjectStoreOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -737,14 +831,19 @@ func Plugins() (o *PluginsOpt) {
 		Enabled: true,
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *PluginsOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -760,14 +859,19 @@ func Provision() (o *ProvisionOpt) {
 		Path:   "provision/*",
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *ProvisionOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -780,14 +884,19 @@ func Provision() (o *ProvisionOpt) {
 func Seeder() (o *SeederOpt) {
 	o = &SeederOpt{}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *SeederOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -804,14 +913,19 @@ func Sentry() (o *SentryOpt) {
 		Release:          version.Version,
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *SentryOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -824,14 +938,19 @@ func Sentry() (o *SentryOpt) {
 func Template() (o *TemplateOpt) {
 	o = &TemplateOpt{}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *TemplateOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -846,14 +965,19 @@ func Upgrade() (o *UpgradeOpt) {
 		Always: true,
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *UpgradeOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -871,14 +995,19 @@ func WaitFor() (o *WaitForOpt) {
 		ServicesProbeInterval: time.Second * 5,
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *WaitForOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -895,14 +1024,19 @@ func Websocket() (o *WebsocketOpt) {
 		PingPeriod:  ((120 * time.Second) * 9) / 10,
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *WebsocketOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
@@ -918,14 +1052,19 @@ func Workflow() (o *WorkflowOpt) {
 		CallStackSize: 16,
 	}
 
-	fill(o)
-
-	// Function that allows access to custom logic inside the parent function.
-	// The custom logic in the other file should be like:
-	// func (o *WorkflowOpt) Defaults() {...}
+	// Custom defaults
 	func(o interface{}) {
 		if def, ok := o.(interface{ Defaults() }); ok {
 			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
 		}
 	}(o)
 
