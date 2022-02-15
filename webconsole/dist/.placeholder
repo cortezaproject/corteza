@@ -1,0 +1,2 @@
+Placeholder file to avoid broken build when dist is empty (go error: contains no embeddable files)
+File is copied from the public to dist when web console app is built.

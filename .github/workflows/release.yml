@@ -25,10 +25,33 @@ jobs:
           restore-keys: ${{ runner.os }}-go-
       - run: make test.all
 
-  release-linux:
+
+  build-web-console:
     runs-on: ubuntu-latest
     needs:
       - test
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+      - uses: actions/cache@v2
+        if: ${{ !env.ACT }}
+        with:
+          path: ~/.npm
+          key: ${{ runner.OS }}-node-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: ${{ runner.OS }}-node-
+      - name: Install dependencies
+        working-directory: ./webconsole
+        run: yarn install
+      - name: Build Package
+        working-directory: ./webconsole
+        run: yarn build
+
+  release-linux:
+    runs-on: ubuntu-latest
+    needs:
+      - build-web-console
     env:
       BUILD_OS: linux
       BUILD_ARCH: amd64
@@ -47,7 +70,7 @@ jobs:
   release-darwin:
     runs-on: macos-latest
     needs:
-      - test
+      - build-web-console
     env:
       BUILD_OS: darwin
       BUILD_ARCH: amd64
@@ -73,7 +96,7 @@ jobs:
   release-docker:
     runs-on: ubuntu-latest
     needs:
-      - test
+      - build-web-console
       - release-linux
     env:
       BUILD_OS: linux
