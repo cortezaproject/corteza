@@ -279,6 +279,30 @@ type (
 		// ID
 		UserID uint64 `json:",string"`
 	}
+
+	UserExport struct {
+		// Filename PATH parameter
+		//
+		// Output filename
+		Filename string
+
+		// InclRoleMembership GET parameter
+		//
+		// Include role membership
+		InclRoleMembership bool
+
+		// InclRoles GET parameter
+		//
+		// Include roles
+		InclRoles bool
+	}
+
+	UserImport struct {
+		// Upload POST parameter
+		//
+		// File import
+		Upload *multipart.FileHeader
+	}
 )
 
 // NewUserList request
@@ -1389,6 +1413,129 @@ func (r *UserSessionsRemove) Fill(req *http.Request) (err error) {
 		r.UserID, err = payload.ParseUint64(val), nil
 		if err != nil {
 			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewUserExport request
+func NewUserExport() *UserExport {
+	return &UserExport{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r UserExport) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"filename":           r.Filename,
+		"inclRoleMembership": r.InclRoleMembership,
+		"inclRoles":          r.InclRoles,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r UserExport) GetFilename() string {
+	return r.Filename
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r UserExport) GetInclRoleMembership() bool {
+	return r.InclRoleMembership
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r UserExport) GetInclRoles() bool {
+	return r.InclRoles
+}
+
+// Fill processes request and fills internal variables
+func (r *UserExport) Fill(req *http.Request) (err error) {
+
+	{
+		// GET params
+		tmp := req.URL.Query()
+
+		if val, ok := tmp["inclRoleMembership"]; ok && len(val) > 0 {
+			r.InclRoleMembership, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["inclRoles"]; ok && len(val) > 0 {
+			r.InclRoles, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "filename")
+		r.Filename, err = val, nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewUserImport request
+func NewUserImport() *UserImport {
+	return &UserImport{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r UserImport) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"upload": r.Upload,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r UserImport) GetUpload() *multipart.FileHeader {
+	return r.Upload
+}
+
+// Fill processes request and fills internal variables
+func (r *UserImport) Fill(req *http.Request) (err error) {
+
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		// Caching 32MB to memory, the rest to disk
+		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
+			return err
+		} else if err == nil {
+			// Multipart params
+
+			// Ignoring upload as its handled in the POST params section
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if _, r.Upload, err = req.FormFile("upload"); err != nil {
+			return fmt.Errorf("error processing uploaded file: %w", err)
 		}
 
 	}

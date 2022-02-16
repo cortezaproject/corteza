@@ -26,6 +26,7 @@ type (
 	roleAccessController interface {
 		CanGrant(context.Context) bool
 
+		CanCreateRole(context.Context) bool
 		CanUpdateRole(context.Context, *types.Role) bool
 		CanDeleteRole(context.Context, *types.Role) bool
 		CanManageMembersOnRole(context.Context, *types.Role) bool
