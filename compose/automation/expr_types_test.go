@@ -580,3 +580,92 @@ func TestGvalStringFunctionParamsIntCasting(t *testing.T) {
 	})
 
 }
+
+func TestRecordValues_Merge(t *testing.T) {
+	var (
+		req = require.New(t)
+
+		rv  = &ComposeRecordValues{}
+		foo = &ComposeRecordValues{
+			value: &types.Record{
+				Values: []*types.RecordValue{
+					{
+						Name:  "k1",
+						Value: "testValue1",
+					},
+					{
+						Name:  "k2",
+						Value: "testValue2",
+					},
+				},
+			},
+		}
+		bar = &ComposeRecordValues{
+			value: &types.Record{
+				Values: []*types.RecordValue{
+					{
+						Name:  "k3",
+						Value: "testValue3",
+					},
+				},
+			},
+		}
+		expected = &types.Record{
+			Values: []*types.RecordValue{
+				{
+					Name:  "k1",
+					Value: "testValue1",
+				},
+				{
+					Name:  "k2",
+					Value: "testValue2",
+				},
+				{
+					Name:  "k3",
+					Value: "testValue3",
+				},
+			},
+		}
+	)
+
+	out, err := rv.Merge(foo, bar)
+	req.NoError(err)
+	req.Equal(expected, out.Get())
+}
+
+func TestRecordValues_Omit(t *testing.T) {
+	var (
+		req = require.New(t)
+
+		rv = ComposeRecordValues{
+			value: &types.Record{
+				Values: []*types.RecordValue{
+					{
+						Name:  "k1",
+						Value: "testValue1",
+					},
+					{
+						Name:  "k2",
+						Value: "testValue2",
+					},
+					{
+						Name:  "k3",
+						Value: "testValue3",
+					},
+				},
+			},
+		}
+		expected = &types.Record{
+			Values: []*types.RecordValue{
+				{
+					Name:  "k2",
+					Value: "testValue2",
+				},
+			},
+		}
+	)
+
+	out, err := rv.Delete("k1", "k3")
+	req.NoError(err)
+	req.Equal(expected, out.Get())
+}
