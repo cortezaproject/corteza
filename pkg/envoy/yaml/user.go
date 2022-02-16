@@ -7,8 +7,9 @@ import (
 
 type (
 	user struct {
-		res *types.User
-		ts  *resource.Timestamps
+		res   *types.User
+		ts    *resource.Timestamps
+		roles []string
 
 		envoyConfig   *resource.EnvoyConfig
 		encoderConfig *EncoderConfig

@@ -34,6 +34,8 @@ type (
 		MembershipRemove(context.Context, *request.UserMembershipRemove) (interface{}, error)
 		TriggerScript(context.Context, *request.UserTriggerScript) (interface{}, error)
 		SessionsRemove(context.Context, *request.UserSessionsRemove) (interface{}, error)
+		Export(context.Context, *request.UserExport) (interface{}, error)
+		Import(context.Context, *request.UserImport) (interface{}, error)
 	}
 
 	// HTTP API interface
@@ -53,6 +55,8 @@ type (
 		MembershipRemove func(http.ResponseWriter, *http.Request)
 		TriggerScript    func(http.ResponseWriter, *http.Request)
 		SessionsRemove   func(http.ResponseWriter, *http.Request)
+		Export           func(http.ResponseWriter, *http.Request)
+		Import           func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -298,6 +302,38 @@ func NewUser(h UserAPI) *User {
 
 			api.Send(w, r, value)
 		},
+		Export: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewUserExport()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Export(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		Import: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewUserImport()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Import(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -319,5 +355,7 @@ func (h User) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.H
 		r.Delete("/users/{userID}/membership/{roleID}", h.MembershipRemove)
 		r.Post("/users/{userID}/trigger", h.TriggerScript)
 		r.Delete("/users/{userID}/sessions", h.SessionsRemove)
+		r.Get("/users/export/{filename}.zip", h.Export)
+		r.Post("/users/import", h.Import)
 	})
 }

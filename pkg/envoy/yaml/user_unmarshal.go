@@ -68,11 +68,34 @@ func (wrap *user) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
+	if wrap.roles, err = decodeUserRoles(n); err != nil {
+		return
+	}
+
 	if wrap.ts, err = decodeTimestamps(n); err != nil {
 		return
 	}
 
 	return nil
+}
+
+func decodeUserRoles(n *yaml.Node) (roles []string, err error) {
+	var ecNode *yaml.Node
+	for i, k := range n.Content {
+		if k.Value == "roles" {
+			ecNode = n.Content[i+1]
+			break
+		}
+	}
+
+	if ecNode == nil {
+		return
+	}
+
+	return roles, y7s.EachSeq(ecNode, func(v *yaml.Node) (err error) {
+		roles = append(roles, v.Value)
+		return nil
+	})
 }
 
 func (wset userSet) MarshalEnvoy() ([]resource.Interface, error) {
@@ -91,7 +114,7 @@ func (wset userSet) MarshalEnvoy() ([]resource.Interface, error) {
 }
 
 func (wrap user) MarshalEnvoy() ([]resource.Interface, error) {
-	rs := resource.NewUser(wrap.res)
+	rs := resource.NewUser(wrap.res, wrap.roles...)
 	rs.SetTimestamps(wrap.ts)
 	rs.SetConfig(wrap.envoyConfig)
 

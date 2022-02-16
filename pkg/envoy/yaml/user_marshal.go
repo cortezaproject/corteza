@@ -9,8 +9,14 @@ import (
 )
 
 func userFromResource(r *resource.User, cfg *EncoderConfig) *user {
+	roles := make([]string, 0, len(r.RefRoles))
+	for _, r := range r.RefRoles {
+		roles = append(roles, r.Identifiers.First())
+	}
+
 	return &user{
 		res:           r.Res,
+		roles:         roles,
 		encoderConfig: cfg,
 	}
 }
@@ -53,7 +59,20 @@ func (u *user) MarshalYAML() (interface{}, error) {
 		"name", u.res.Name,
 		"handle", u.res.Handle,
 		"kind", u.res.Kind,
+	)
+	if err != nil {
+		return nil, err
+	}
 
+	if len(u.roles) > 0 {
+		nsn, err = addMap(nsn,
+			"roles", u.roles,
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+	nsn, err = addMap(nsn,
 		"meta", u.res.Meta,
 
 		"labels", u.res.Labels,

@@ -12,20 +12,43 @@ type (
 	User struct {
 		*base
 		Res *types.User
+
+		RoleMembership []Identifiers
+		RefRoles       RefSet
 	}
 )
 
-func NewUser(u *types.User) *User {
+func NewUser(u *types.User, roles ...string) *User {
 	r := &User{base: &base{}}
 	r.SetResourceType(types.UserResourceType)
 	r.Res = u
 
 	r.AddIdentifier(identifiers(u.Handle, u.Email, u.Name, u.ID)...)
 
+	// Role membership
+	for _, role := range roles {
+		rid := MakeIdentifiers(role)
+		r.RoleMembership = append(r.RoleMembership, rid)
+
+		r.RefRoles = append(r.RefRoles, r.AddRef(types.RoleResourceType, role))
+	}
+
 	// Initial timestamps
 	r.SetTimestamps(MakeTimestampsCUDAS(&u.CreatedAt, u.UpdatedAt, u.DeletedAt, nil, u.SuspendedAt))
 
 	return r
+}
+
+func (u *User) AddRoles(roles ...*types.Role) *User {
+	for _, r := range roles {
+		idf := firstOkString(r.Handle, strconv.FormatUint(r.ID, 10))
+		rid := MakeIdentifiers(idf)
+		u.RoleMembership = append(u.RoleMembership, rid)
+
+		u.RefRoles = append(u.RefRoles, u.AddRef(types.RoleResourceType, idf))
+	}
+
+	return u
 }
 
 func (r *User) Resource() interface{} {

@@ -670,6 +670,37 @@ endpoints:
           name: userID
           required: true
           title: ID
+
+  - name: export
+    method: GET
+    title: Export users
+    path: "/export/{filename}.zip"
+    parameters:
+      path:
+      - name: filename
+        type: string
+        required: true
+        title: Output filename
+      get:
+      - name: inclRoleMembership
+        type: bool
+        required: false
+        title: Include role membership
+      - name: inclRoles
+        type: bool
+        required: false
+        title: Include roles
+  - name: import
+    method: POST
+    title: Import users
+    path: "/import"
+    parameters:
+      post:
+      - name: upload
+        type: "*multipart.FileHeader"
+        required: true
+        title: File import
+
 - title: Applications
   path: "/application"
   entrypoint: application
