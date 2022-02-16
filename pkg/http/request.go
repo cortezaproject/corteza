@@ -1,11 +1,14 @@
 package http
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"net/url"
+
+	"github.com/pkg/errors"
 )
 
 type (
@@ -14,24 +17,16 @@ type (
 		Body io.Reader
 	}
 
+	// The BufferedReader behaves exactly like a bytes.Reader, with the exception
+	// when the last block is read, it automatically rewinds the internal pointer to the start,
+	// so effectively, the content can be read again without calling Seek() externally.
 	BufferedReader struct {
-		buffer []byte
+		s        []byte
+		i        int64 // current reading index
+		prevRune int   // index of previous rune; or < 0
 	}
 )
 
-// NewBufferedReader creates a new reader from readcloser
-func NewBufferedReader(r io.ReadCloser) (b *BufferedReader, err error) {
-	var bb []byte
-
-	if bb, err = io.ReadAll(r); err != nil {
-		return
-	}
-
-	b = &BufferedReader{bb}
-	return
-}
-
-// NewRequest creates a new Request with the buffered ready body
 func NewRequest(r *http.Request) (rr *Request, err error) {
 	rs, err := NewBufferedReader(r.Body)
 
@@ -43,25 +38,59 @@ func NewRequest(r *http.Request) (rr *Request, err error) {
 	return
 }
 
-func (bb *BufferedReader) Read(p []byte) (n int, err error) {
-	if len(bb.buffer) <= n {
-		err = io.EOF
+// NewBufferedReader copies original data to the
+// BufferedReader
+func NewBufferedReader(rr io.Reader) (bb *BufferedReader, err error) {
+	var (
+		buf = &bytes.Buffer{}
+	)
+
+	bb = &BufferedReader{}
+
+	_, err = io.Copy(buf, rr)
+
+	if err != nil {
 		return
 	}
 
-	if c := cap(p); c > 0 {
-		for n < c {
-			if len(bb.buffer) <= n {
-				err = io.EOF
-				break
-			}
+	return &BufferedReader{
+		s:        buf.Bytes(),
+		i:        0,
+		prevRune: -1,
+	}, nil
+}
 
-			p[n] = bb.buffer[n]
-			n++
-		}
+func (r *BufferedReader) Read(b []byte) (n int, err error) {
+	if r.i >= int64(len(r.s)) {
+		n = 0
+		err = io.EOF
+		r.Seek(0, io.SeekStart)
+		return
 	}
-
+	r.prevRune = -1
+	n = copy(b, r.s[r.i:])
+	r.i += int64(n)
 	return
+}
+
+func (r *BufferedReader) Seek(offset int64, whence int) (int64, error) {
+	r.prevRune = -1
+	var abs int64
+	switch whence {
+	case io.SeekStart:
+		abs = offset
+	case io.SeekCurrent:
+		abs = r.i + offset
+	case io.SeekEnd:
+		abs = int64(len(r.s)) + offset
+	default:
+		return 0, errors.New("bytes.Reader.Seek: invalid whence")
+	}
+	if abs < 0 {
+		return 0, errors.New("bytes.Reader.Seek: negative position")
+	}
+	r.i = abs
+	return abs, nil
 }
 
 func (bb *Request) MarshalJSON() ([]byte, error) {
