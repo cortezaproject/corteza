@@ -50,6 +50,11 @@ func Connect(ctx context.Context, dsn string) (store.Storer, error) {
 	cfg.ASTFormatter = sqlASTFormatter
 	cfg.CastModuleFieldToColumnType = fieldToColumnTypeCaster
 
+	// Set to zero
+	// Otherwise SQLite (in-memory) disconnects
+	// and all tables and data is lost
+	cfg.ConnMaxLifetime = 0
+
 	if s.Store, err = rdbms.Connect(ctx, cfg); err != nil {
 		return nil, err
 	}
