@@ -120,7 +120,7 @@ func (set RecordValueSet) FilterByRecordID(recordID uint64) (vv RecordValueSet) 
 	return
 }
 
-// Replaces existing values, remove extra
+// Replace existing values, remove extra
 func (set RecordValueSet) Replace(name string, values ...string) (vv RecordValueSet) {
 	for i := range set {
 		if set[i].Name != name {
@@ -160,7 +160,7 @@ func (set RecordValueSet) Set(v *RecordValue) RecordValueSet {
 	return append(set, v)
 }
 
-// Has value set?
+// Get value set?
 func (set RecordValueSet) Get(name string, place uint) *RecordValue {
 	for i := range set {
 		if set[i].Name != name {
