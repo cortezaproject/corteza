@@ -2,7 +2,6 @@ package automation
 
 import (
 	"context"
-	"fmt"
 	"io"
 )
 
@@ -23,11 +22,6 @@ func ApigwBodyHandler(reg queueHandlerRegistry) *apigwBodyHandler {
 
 func (h apigwBodyHandler) read(ctx context.Context, args *apigwBodyReadArgs) (res *apigwBodyReadResults, err error) {
 	res = &apigwBodyReadResults{}
-
-	if !args.hasRequest {
-		err = fmt.Errorf("could not read body, contents missing")
-		return
-	}
 
 	bb, err := io.ReadAll(args.Request.Body)
 

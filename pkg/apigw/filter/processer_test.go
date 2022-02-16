@@ -139,16 +139,17 @@ func Test_processerPayload(t *testing.T) {
 				},
 				exp: "{\"count\":2,\"results\":[{\"fullname\":\"Johnny Mnemonic\"},{\"fullname\":\"Johnny Knoxville\"}]}\n",
 				params: prepareFuncPayload(t, `
-				const b = JSON.parse(readRequestBody(input.Get('request')));
+				const readOnce = JSON.parse(readRequestBody(input.Get('request')));
+				const readTwice = JSON.parse(readRequestBody(input.Get('request')));
 
 				return {
 					"results":
-						b.map(function({ name, surname }) {
+						readTwice.map(function({ name, surname }) {
 							return {
 								"fullname": name[0].toUpperCase() + name.substring(1) + " " + surname[0].toUpperCase() + surname.substring(1)
 							}
 						}),
-					"count": b.length
+					"count": readTwice.length
 				};
 				`),
 			},

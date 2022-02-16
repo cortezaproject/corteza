@@ -676,6 +676,10 @@ func CastToHttpRequest(val interface{}) (out *h.Request, err error) {
 
 func CastToUrl(val interface{}) (out *url.URL, err error) {
 	switch val := UntypedValue(val).(type) {
+	case []byte:
+		return url.Parse(string(val))
+	case string:
+		return url.Parse(val)
 	case *url.URL:
 		return val, nil
 	case nil:
