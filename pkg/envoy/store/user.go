@@ -84,7 +84,7 @@ func findUserStore(ctx context.Context, s store.Storer, gf genericFilter) (u *ty
 
 	for _, i := range gf.identifiers {
 		// email
-		if _, err = mail.ParseAddress(i); err != nil {
+		if _, err = mail.ParseAddress(i); err == nil {
 			u, err = store.LookupUserByEmail(ctx, s, i)
 			if err == store.ErrNotFound {
 				return nil, nil
