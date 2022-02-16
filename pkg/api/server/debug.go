@@ -3,8 +3,6 @@ package server
 import (
 	"fmt"
 	"net/http"
-	"reflect"
-	"runtime"
 
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
@@ -23,8 +21,13 @@ func debugRoutes(r chi.Routes) http.HandlerFunc {
 				if route.SubRoutes != nil && len(route.SubRoutes.Routes()) > 0 {
 					printRoutes(route.SubRoutes, pfix+route.Pattern[:len(route.Pattern)-2])
 				} else {
-					for method, fn := range route.Handlers {
-						fmt.Fprintf(w, "%-8s %-80s -> %s\n", method, pfix+route.Pattern, runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name())
+					if route.Handlers["*"] != nil {
+						fmt.Fprintf(w, "%-8s %-80s\n", "*", pfix+route.Pattern)
+						continue
+					}
+
+					for method := range route.Handlers {
+						fmt.Fprintf(w, "%-8s %-80s\n", method, pfix+route.Pattern)
 					}
 				}
 			}
