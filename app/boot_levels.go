@@ -77,7 +77,7 @@ func (app *CortezaApp) Setup() (err error) {
 		if app.Opt.DB.IsSQLite() {
 			log.Warn("You're using SQLite as a storage backend")
 			log.Warn("Should be used only for testing")
-			log.Warn("You may experience unstability and data loss")
+			log.Warn("You may experience instability and data loss")
 		}
 
 		if _, is := os.LookupEnv("MINIO_BUCKET_SEP"); is {
