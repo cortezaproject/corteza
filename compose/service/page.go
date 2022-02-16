@@ -290,8 +290,8 @@ func (svc page) Create(ctx context.Context, new *types.Page) (*types.Page, error
 		new.DeletedAt = nil
 
 		// Ensure page-block IDs
-		for i, b := range new.Blocks {
-			b.BlockID = uint64(i) + 1
+		for i := range new.Blocks {
+			new.Blocks[i].BlockID = uint64(i) + 1
 		}
 
 		if err = store.CreateComposePage(ctx, s, new); err != nil {
