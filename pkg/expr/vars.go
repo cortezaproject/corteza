@@ -76,7 +76,7 @@ func (t *Vars) ResolveTypes(res func(typ string) Type) (err error) {
 }
 
 // Merge combines the given Vars(es) into Vars
-// NOTE: It will return CLONE of the original Vars, if its called without any parameters
+// NOTE: It will return CLONE of the original Vars, if it's called without any parameters
 func (t *Vars) Merge(nn ...Iterator) (out TypedValue, err error) {
 	return t.MustMerge(nn...), nil
 }
@@ -337,7 +337,7 @@ func (t *Vars) Each(fn func(k string, v TypedValue) error) (err error) {
 	return
 }
 
-// Set set/update the specific key value in KV
+// Set or update the specific key value in Vars
 func (t *Vars) Set(k string, v interface{}) (err error) {
 	t.mux.RLock()
 	defer t.mux.RUnlock()
@@ -513,7 +513,7 @@ func CastToVars(val interface{}) (out map[string]TypedValue, err error) {
 	return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
 }
 
-// Filter take keys returns KV with only those key value pair
+// Filter take keys returns Vars with only those key value pair
 func (t *Vars) Filter(keys ...string) (out TypedValue, err error) {
 	t.mux.RLock()
 	defer t.mux.RUnlock()
@@ -533,7 +533,7 @@ func (t *Vars) Filter(keys ...string) (out TypedValue, err error) {
 	return vars, nil
 }
 
-// Delete take keys returns KV without those key value pair
+// Delete take keys returns Vars without those key value pair
 func (t *Vars) Delete(keys ...string) (out TypedValue, err error) {
 	t.mux.RLock()
 	defer t.mux.RUnlock()

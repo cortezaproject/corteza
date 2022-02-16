@@ -63,7 +63,20 @@ func ResolveTypes(rt resolvableType, resolver func(typ string) Type) error {
 	return rt.ResolveTypes(resolver)
 }
 
-func set(m merger, key string, val interface{}) (out TypedValue, err error) {
+func set(i interface{}, key string, val interface{}) (out TypedValue, err error) {
+	m, ok := i.(merger)
+	if !ok {
+		i, err = Typify(i)
+		if err != nil {
+			return
+		}
+
+		m, ok = i.(merger)
+		if !ok {
+			return out, fmt.Errorf("cannot set on unexpected type: %T", i)
+		}
+	}
+
 	out, err = m.Merge()
 	if err != nil {
 		return

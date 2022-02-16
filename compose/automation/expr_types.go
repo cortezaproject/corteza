@@ -518,3 +518,105 @@ func CastToAttachment(val interface{}) (out *types.Attachment, err error) {
 		return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
 	}
 }
+
+func EmptyComposeRecordValues() *ComposeRecordValues {
+	return &ComposeRecordValues{value: &types.Record{Values: types.RecordValueSet{}}}
+}
+
+func (t *ComposeRecordValues) Each(fn func(k string, v expr.TypedValue) error) (err error) {
+	if t.IsEmpty() {
+		return
+	}
+
+	for _, vv := range t.GetValue() {
+		key := vv.Name
+		if len(key) == 0 {
+			continue
+		}
+
+		var val expr.TypedValue
+		val, err = expr.Typify(vv)
+		if err = fn(key, val); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Merge combines the given ComposeRecordValues into ComposeRecordValues
+// NOTE: It will return CLONE of the original ComposeRecordValues, if it's called without any parameters
+func (t *ComposeRecordValues) Merge(nn ...expr.Iterator) (out expr.TypedValue, err error) {
+	rv := EmptyComposeRecordValues()
+
+	nn = append([]expr.Iterator{t}, nn...)
+
+	for _, i := range nn {
+		err = i.Each(func(k string, v expr.TypedValue) error {
+			var (
+				rVal types.RecordValue
+				bb   []byte
+			)
+
+			// @todo implement casting of RecordValue from TypedValue
+			bb, err = json.Marshal(v.Get())
+			if err != nil {
+				return err
+			}
+
+			err = json.Unmarshal(bb, &rVal)
+			if err != nil {
+				return err
+			}
+
+			rr := rv.GetValue().Set(&rVal)
+			err = rv.Assign(rr)
+			if err != nil {
+				return err
+			}
+
+			return err
+		})
+		if err != nil {
+			return
+		}
+	}
+
+	return rv, nil
+}
+
+func (t *ComposeRecordValues) Delete(keys ...string) (out expr.TypedValue, err error) {
+	if t.IsEmpty() {
+		return
+	}
+
+	// get cloned ComposeRecordValues
+	out, err = t.Merge()
+	if err != nil {
+		return
+	}
+
+	rv := out.(*ComposeRecordValues)
+	if !rv.IsEmpty() {
+		rv.value.Values = types.RecordValueSet{}
+	}
+
+	keyMap := make(map[string]string)
+	for _, k := range keys {
+		keyMap[k] = k
+	}
+
+	// Push the only with values with non-matching Name
+	for _, val := range t.GetValue() {
+		_, ok := keyMap[val.Name]
+		if !ok {
+			rr := rv.GetValue().Set(val.Clone())
+			err = rv.Assign(rr)
+			if err != nil {
+				return out, err
+			}
+		}
+	}
+
+	return rv, nil
+}

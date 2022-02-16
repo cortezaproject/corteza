@@ -10,16 +10,105 @@ workflows:
       - stepID: 1
         kind: expressions
         arguments: [
+          ## Initialize empty vars
           { target: aux, type: Vars, value: null },
+
+          ## Initialize key and value(string) for set expression
           { target: testString, type: String, value: "testString" },
           { target: foo, type: String, value: "testing string" },
+
+          # Evaluate set for Vars(1st argument) with string value(3rd argument);
+          #         it will set string value type for given key to Vars(out)
+          { target: out, type: Vars, expr: "set(aux, testString, foo)" },
+
+          ## Initialize key and value(int) for set expression
           { target: testInt, type: String, value: "testInt" },
           { target: bar, type: Integer, expr: "40" },
+
+          # Evaluate set for Vars(1st argument) with int value(3rd argument);
+          #         it will set int value type for given key to Vars(out)
+          { target: out, type: Vars, expr: "set(out, testInt, bar)" },
+
+          ## Initialize key and value(Vars) for set expression
           { target: testVar, type: String, value: "testVar" },
           { target: foobar, type: Vars, expr: "{\"testString\": \"testing string\", \"testFloat\": 50}" },
-          { target: out, type: Vars, expr: "set(aux, testString, foo)" },
-          { target: out, type: Vars, expr: "set(out, testInt, bar)" },
+
+          # Evaluate set for Vars(1st argument) with Vars value(3rd argument);
+          #         it will set Vars value type for given key to Vars(out)
           { target: out, type: Vars, expr: "set(out, testVar, foobar)" },
+
+          ## Evaluate set for constant: `{}`(1st argument) with string value(3rd argument);
+          #         it will set string value type for given key to Vars(outConstStr)
+          { target: outConstStr, type: Vars, expr: "set({}, \"testConstKey\", \"testConstValue\")" },
+
+          ## Evaluate set for constant value(1st argument) with int value(3rd argument);
+          #         it will set int value type for given key to Vars(outConstInt)
+          { target: outConstInt, type: Vars, expr: "set({}, testInt, bar)" },
+
+          ## Initialize rv(ComposeRecordValues) and key for set expression
+          { target: rv, type: ComposeRecordValues, expr: "{}" },
+          { target: testRv, type: String, value: "testRv" },
+
+          # Evaluate set for ComposeRecordValues(1st argument) with string value(3rd argument);
+          #         it will set string value for given key(Name) to ComposeRecordValues(outRv)
+          { target: outRv, type: ComposeRecordValues, expr: "set(rv, testRv, foo)" },
+
+          # Evaluate set for ComposeRecordValues(1st argument) with float value(3rd argument);
+          #         it will set float value for given key(Name) to ComposeRecordValues(outRv)
+          { target: outRv, type: ComposeRecordValues, expr: "set(outRv, \"testFloat\", 50)" },
+        ]
+      - stepID: 2
+        kind: termination
+
+    paths:
+      - { parentID: 1, childID: 2 }
+
+  omit_expression:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: expressions
+        arguments: [
+          # Initialize empty vars
+          { target: aux, type: Vars, value: null },
+
+          ## Initialize key and value(string) for set/omit expressions
+          { target: testString, type: String, value: "testString" },
+          { target: foo, type: String, value: "testing string" },
+
+          # Set values into Vars
+          { target: out, type: Vars, expr: "set(aux, testString, foo)" },
+
+          # Evaluate omit for Vars(1st argument) for keys;
+          #         it will omit values matching keys from Vars(outConstInt)
+          { target: out, type: Vars, expr: "omit(out, testString)" },
+
+          ## Set/Omit value into constant
+          { target: testInt, type: String, value: "testInt" },
+          { target: bar, type: Integer, expr: "40" },
+          { target: outConstInt, type: Vars, expr: "set({}, testInt, bar)" },
+
+          # Evaluate omit for Vars(1st argument) for keys;
+          #         it will omit values matching keys from Vars(outConstInt)
+          { target: outConstInt, type: Vars, expr: "omit(outConstInt, testInt)" },
+
+          ## Initialize rv(ComposeRecordValues) and key for set/omit expressions
+          { target: rv, type: ComposeRecordValues, expr: "{}" },
+          { target: testRv, type: String, value: "testRv" },
+
+          # Set values into ComposeRecordValues
+          { target: outRv, type: ComposeRecordValues, expr: "set(rv, testRv, foo)" },
+          { target: outRv, type: ComposeRecordValues, expr: "set(rv, \"removeMe\", \"I will be removed\")" },
+          { target: outRv, type: ComposeRecordValues, expr: "set(outRv, \"testFloat\", 50)" },
+
+          # Evaluate omit for ComposeRecordValues(1st argument) for key(Name);
+          #         it will omit values matching Name from ComposeRecordValues(outRv)
+          { target: outRv, type: ComposeRecordValues, expr: "omit(outRv, \"testRv\", \"removeMe\")" },
         ]
       - stepID: 2
         kind: termination
