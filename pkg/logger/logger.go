@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/options"
@@ -10,7 +11,6 @@ import (
 )
 
 var (
-	opt           = options.Log()
 	defaultLogger = zap.NewNop()
 )
 
@@ -26,36 +26,76 @@ func SetDefault(logger *zap.Logger) {
 	defaultLogger = logger
 }
 
-// Init (re)initializes logger according to the settings
+// Init (re)initializes global logger according to the settings
+//
+// It also peaks into http-server options to determinate if log events
+// should be buffered for use from web console
 func Init() {
+	var (
+		// @todo this should probably be refactored by adding a new option to LogOpt
+		//       that controls if we create a buffered output as well; and when not explicitly
+		//       set, we take state of web-console as a base
+		hSrvOpt = options.HttpServer()
+		logger  = Must(Make(options.Log()))
+	)
+
+	if hSrvOpt.WebConsoleEnabled {
+		// web console is the only thing right now
+		// that needs logger to buffer events for later access
+		logger = withDebugBuffer(logger)
+	}
+
+	defaultLogger = logger
+}
+
+// Make creates a logger (debug or production) according to options
+func Make(opt *options.LogOpt) (logger *zap.Logger, err error) {
 	if opt.Debug {
 		// Do we want to enable debug logger
 		// with a bit more dev-friendly output
-		defaultLogger = MakeDebugLogger()
-		defaultLogger.Debug("full debug mode enabled")
-		return
+		logger, err = Debug(opt)
+	} else {
+		logger, err = Production(opt)
 	}
 
-	var (
-		err  error
-		conf = applyOptions(zap.NewProductionConfig(), opt)
-	)
-
-	defaultLogger, err = conf.Build()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	defaultLogger = applySpecials(defaultLogger, opt)
+	logger = withFilter(logger, opt.Filter)
+	logger = withStacktraceLevel(logger, opt.StacktraceLevel)
+
+	return logger, nil
 }
 
 func MakeDebugLogger() *zap.Logger {
-	dbgOpt := *opt
-	dbgOpt.Debug = true
-	dbgOpt.Level = "debug"
+	return Must(Debug(options.Log()))
+}
+
+// Must is a utility function that panics if given log maker returns an error
+func Must(logger *zap.Logger, err error) *zap.Logger {
+	if err != nil {
+		panic(fmt.Errorf("failed to configure logger: %w", err))
+	}
+
+	return logger
+}
+
+// Debug prepares debug logger using options
+func Debug(opt *options.LogOpt) (*zap.Logger, error) {
+	var (
+		// make a copy of debug options so that we do not
+		dbgOpt = &options.LogOpt{
+			Debug:           true,
+			Level:           "debug",
+			Filter:          opt.Filter,
+			IncludeCaller:   opt.IncludeCaller,
+			StacktraceLevel: opt.StacktraceLevel,
+		}
+	)
 
 	var (
-		conf = applyOptions(zap.NewDevelopmentConfig(), &dbgOpt)
+		conf = applyOptionsToConfig(zap.NewDevelopmentConfig(), dbgOpt)
 	)
 
 	// Print log level in colors
@@ -66,16 +106,19 @@ func MakeDebugLogger() *zap.Logger {
 		enc.AppendString(t.Format("15:04:05.000"))
 	}
 
-	logger, err := conf.Build()
-	if err != nil {
-		panic(err)
-	}
+	return conf.Build()
+}
 
-	return applySpecials(logger, &dbgOpt)
+func Production(opt *options.LogOpt) (*zap.Logger, error) {
+	var (
+		conf = applyOptionsToConfig(zap.NewProductionConfig(), opt)
+	)
+
+	return conf.Build()
 }
 
 // Applies options from environment variables
-func applyOptions(conf zap.Config, opt *options.LogOpt) zap.Config {
+func applyOptionsToConfig(conf zap.Config, opt *options.LogOpt) zap.Config {
 	// LOG_LEVEL
 	conf.Level = zap.NewAtomicLevelAt(mustParseLevel(opt.Level))
 
@@ -87,15 +130,31 @@ func applyOptions(conf zap.Config, opt *options.LogOpt) zap.Config {
 	return conf
 }
 
-// Applies "special" options - filtering and conditional stack-level
-func applySpecials(l *zap.Logger, opt *options.LogOpt) *zap.Logger {
-	if len(opt.Filter) > 0 {
-		// LOG_FILTER
-		l = zap.New(zapfilter.NewFilteringCore(l.Core(), zapfilter.MustParseRules(opt.Filter)))
+// Applies filtering options
+//
+// This is controlled with LOG_FILTER environmental var
+func withFilter(l *zap.Logger, filter string) *zap.Logger {
+	if len(filter) > 0 {
+		l = zap.New(zapfilter.NewFilteringCore(l.Core(), zapfilter.MustParseRules(filter)))
 	}
 
-	// LOG_STACKTRACE_LEVEL
-	return l.WithOptions(zap.AddStacktrace(mustParseLevel(opt.StacktraceLevel)))
+	return l
+}
+
+// Applies stacktrace level options
+//
+// This is controlled with LOG_STACKTRACE_LEVEL environmental var
+func withStacktraceLevel(l *zap.Logger, level string) *zap.Logger {
+	return l.WithOptions(zap.AddStacktrace(mustParseLevel(level)))
+}
+
+// Adds Tee logger that copies all log messages to debug buffer
+func withDebugBuffer(in *zap.Logger) *zap.Logger {
+	return zap.New(zapcore.NewTee(
+		in.Core(),
+
+		DebugBufferedLogger(debugLogRR),
+	))
 }
 
 func mustParseLevel(l string) (o zapcore.Level) {

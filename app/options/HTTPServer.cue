@@ -119,5 +119,23 @@ HTTPServer: schema.#optionsGroup & {
 				"""
 			env: "HTTP_SSL_TERMINATED"
 		}
+
+		web_console_enabled: {
+			type:          "bool"
+			defaultGoExpr: "false"
+			description:   "Enable web console. When running in dev environment, web console is enabled by default."
+		}
+		web_console_username: {
+			defaultValue: "admin"
+			description:  "Username for the web console endpoint."
+		}
+		web_console_password: {
+			defaultGoExpr: "string(rand.Bytes(32))"
+			description: """
+				Password for the web console endpoint. When running in dev environment, password is not required.
+
+				Corteza intentionally sets default password to random chars to prevent security incidents.
+				"""
+		}
 	}
 }

@@ -1,3 +1,5 @@
+webconsole/dist
+webconsole/node_modules
 .idea
 .dev
 build
