@@ -2,7 +2,10 @@ package automation
 
 import (
 	"fmt"
+	"io"
+
 	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza-server/pkg/http"
 	"gopkg.in/mail.v2"
 )
 
@@ -28,4 +31,26 @@ func CastToEmailMessage(val interface{}) (out *emailMessage, err error) {
 	default:
 		return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
 	}
+}
+
+func ReadRequestBody(in interface{}) (s string) {
+	var (
+		b   []byte
+		err error
+	)
+
+	switch val := in.(type) {
+	case *http.Request:
+		b, err = io.ReadAll(val.Body)
+	case io.Reader:
+		b, err = io.ReadAll(val)
+	default:
+		b = []byte{}
+	}
+
+	if err != nil {
+		return ""
+	}
+
+	return string(b)
 }

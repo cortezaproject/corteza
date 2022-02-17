@@ -16,3 +16,4 @@ types:
 #      - { name: 'parts',           exprType: 'Any',          goType: 'map[string]io.Reader', mode: ro }
 #      - { name: 'embedded',        exprType: 'Any',          goType: 'map[string]io.Reader', mode: ro }
 #      - { name: 'attachments',     exprType: 'Any',          goType: 'map[string]io.Reader', mode: ro }
+  

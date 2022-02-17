@@ -7,11 +7,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/automation/service"
 	agctx "github.com/cortezaproject/corteza-server/pkg/apigw/ctx"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/stretchr/testify/require"
+)
+
+type (
+	mockHandlerRegistry struct{}
 )
 
 func Test_redirectionMerge(t *testing.T) {
@@ -141,7 +144,7 @@ func Test_jsonResponse(t *testing.T) {
 
 			r = r.WithContext(agctx.ScopeToContext(context.Background(), scope))
 
-			h := getHandler(NewJsonResponse(service.Registry()))
+			h := getHandler(NewJsonResponse(&mockHandlerRegistry{}))
 			h, err := h.Merge([]byte(tc.expr))
 
 			req.NoError(err)
@@ -163,4 +166,8 @@ func Test_jsonResponse(t *testing.T) {
 // hackity hack
 func getHandler(h types.Handler) types.Handler {
 	return h
+}
+
+func (r *mockHandlerRegistry) Type(ref string) expr.Type {
+	return expr.Any{}
 }

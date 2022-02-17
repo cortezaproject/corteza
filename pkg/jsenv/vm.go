@@ -45,8 +45,7 @@ func (ss Vm) Fetch(key string) goja.Value {
 
 // RegisterFunction registers the function to the vm and returns the
 // function that can be used in go
-func (ss Vm) RegisterFunction(s string, wrapperFn ...func() string) (f *fn, err error) {
-
+func (ss Vm) RegisterFunction(s string, wrapperFn ...func() string) (f *Fn, err error) {
 	if len(wrapperFn) > 0 {
 		for _, wfn := range wrapperFn {
 			s = fmt.Sprintf(wfn(), s)
@@ -78,7 +77,7 @@ func (ss Vm) RegisterFunction(s string, wrapperFn ...func() string) (f *fn, err 
 		return
 	}
 
-	return &fn{
+	return &Fn{
 		f: fnn,
 	}, nil
 }
