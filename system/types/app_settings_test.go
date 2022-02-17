@@ -1,7 +1,6 @@
 package types
 
 import (
-	"sort"
 	"testing"
 
 	sqlTypes "github.com/jmoiron/sqlx/types"
@@ -33,27 +32,30 @@ func Test_settingsExtAuthProvidersDecode(t *testing.T) {
 	)
 
 	var (
-		aux = Dst{}
-		kv  = SettingsKV{
-			"providers.foo.enabled":                sqlTypes.JSONText(`true`),
-			"providers.openid-connect.bar.enabled": sqlTypes.JSONText(`true`),
-			"providers.openid-connect.bar.key":     sqlTypes.JSONText(`"K3Y"`),
-			"providers.google.enabled":             sqlTypes.JSONText(`true`),
-			"providers.google.key":                 sqlTypes.JSONText(`"g00gl3"`),
-		}
-
-		eq = Dst{
+		aux = Dst{
 			Providers: ExternalAuthProviderSet{
 				{Handle: "github"},
 				{Handle: "facebook"},
 				{Enabled: true, Key: "g00gl3", Handle: "google"},
 				{Handle: "linkedin"},
-				{Enabled: true, Key: "K3Y", Handle: "openid-connect.bar"},
+				{Enabled: true, Key: "K3Y", Handle: "openid-connect.remove"},
 			},
 		}
-	)
+		kv = SettingsKV{
+			"providers.foo.enabled":                sqlTypes.JSONText(`true`),
+			"providers.openid-connect.bar.enabled": sqlTypes.JSONText(`true`),
+			"providers.openid-connect.bar.key":     sqlTypes.JSONText(`"K3Y"`),
+			"providers.google.enabled":             sqlTypes.JSONText(`true`),
+			"providers.google.key":                 sqlTypes.JSONText(`"g00gl3"`),
 
-	sort.Sort(eq.Providers)
+			// Values with null should not be added!
+			"providers.openid-connect.null.handle": sqlTypes.JSONText(`null`),
+
+			// Values with null should not be added!
+			"providers.openid-connect.remove.handle": sqlTypes.JSONText(`null`),
+			"providers.openid-connect.remove.key":    sqlTypes.JSONText(`null`),
+		}
+	)
 
 	require.NoError(t, DecodeKV(kv, &aux))
 	require.Len(t, aux.Providers, 5)
