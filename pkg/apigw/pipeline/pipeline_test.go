@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/cortezaproject/corteza-server/pkg/apigw/pipeline/chain"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -16,7 +17,7 @@ var (
 )
 
 func NewPl() *Pl {
-	return NewPipeline(zap.NewNop())
+	return NewPipeline(zap.NewNop(), chain.NewDefault())
 }
 
 func Test_pipelineAdd(t *testing.T) {

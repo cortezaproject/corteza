@@ -10,6 +10,8 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/apigw/filter"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/filter/proxy"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/pipeline"
+	"github.com/cortezaproject/corteza-server/pkg/apigw/pipeline/chain"
+	"github.com/cortezaproject/corteza-server/pkg/apigw/profiler"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/registry"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	f "github.com/cortezaproject/corteza-server/pkg/filter"
@@ -31,6 +33,7 @@ type (
 		reg    *registry.Registry
 		routes []*route
 		mx     *chi.Mux
+		pr     *profiler.Profiler
 		storer storer
 	}
 )
@@ -54,7 +57,11 @@ func Setup(opts *options.ApigwOpt, log *zap.Logger, storer storer) {
 }
 
 func New(opts *options.ApigwOpt, logger *zap.Logger, storer storer) *apigw {
-	reg := registry.NewRegistry()
+	var (
+		pr  = profiler.New()
+		reg = registry.NewRegistry()
+	)
+
 	reg.Preload()
 
 	return &apigw{
@@ -62,6 +69,7 @@ func New(opts *options.ApigwOpt, logger *zap.Logger, storer storer) *apigw {
 		log:    logger,
 		storer: storer,
 		reg:    reg,
+		pr:     pr,
 	}
 }
 
@@ -71,12 +79,12 @@ func New(opts *options.ApigwOpt, logger *zap.Logger, storer storer) *apigw {
 // When reloading routes, make sure to replace the original mux
 func (s *apigw) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if s.mx == nil {
-		http.Error(w, "API Gateway not initialized", http.StatusInternalServerError)
+		http.Error(w, "Integration Gateway not initialized", http.StatusInternalServerError)
 		return
 	}
 
 	if len(s.routes) == 0 {
-		helperDefaultResponse(s.opts)(w, r)
+		helperDefaultResponse(s.opts, s.pr)(w, r)
 		return
 	}
 
@@ -113,8 +121,18 @@ func (s *apigw) Reload(ctx context.Context) (err error) {
 		s.mx.Method(r.method, r.endpoint, r)
 	}
 
-	// API GW 404 handler
-	s.mx.NotFound(helperDefaultResponse(s.opts))
+	// handling missed hits
+	// profiler gets the missed hit info also
+	{
+		var (
+			defaultMethodResponse = helperMethodNotAllowed(s.opts, s.pr)
+			defaultResponse       = helperDefaultResponse(s.opts, s.pr)
+			// profiler              = helperProfiler(s.opts, s.pr)
+		)
+
+		s.mx.NotFound(defaultResponse)
+		s.mx.MethodNotAllowed(defaultMethodResponse)
+	}
 
 	return nil
 }
@@ -138,7 +156,7 @@ func (s *apigw) Init(ctx context.Context, routes ...*route) {
 	for _, r := range s.routes {
 		var (
 			log  = s.log.With(zap.String("route", r.String()))
-			pipe = pipeline.NewPipeline(log)
+			pipe = pipeline.NewPipeline(log, chain.NewDefault())
 		)
 
 		// pipeline needs to know how to handle
@@ -147,6 +165,7 @@ func (s *apigw) Init(ctx context.Context, routes ...*route) {
 
 		r.opts = s.opts
 		r.log = log
+		r.pr = s.pr
 
 		regFilters, err := s.loadFilters(ctx, r.ID)
 
@@ -281,4 +300,8 @@ func (s *apigw) loadFilters(ctx context.Context, route uint64) (ff []*st.ApigwFi
 	})
 
 	return
+}
+
+func (s *apigw) Profiler() *profiler.Profiler {
+	return s.pr
 }

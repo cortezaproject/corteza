@@ -207,6 +207,13 @@ type (
 			Enabled bool `kv:"-" json:"enabled"`
 		} `kv:"federation" json:"federation"`
 
+		// Federation settings
+		Apigw struct {
+			// This only holds the value of APIGW_PROFILER_ENABLED for now
+			//
+			ProfilerEnabled bool `kv:"-" json:"profilerEnabled"`
+		} `kv:"apigw" json:"apigw"`
+
 		// UserInterface settings
 		UI struct {
 			MainLogo string `kv:"main-logo" json:"mainLogo"`
