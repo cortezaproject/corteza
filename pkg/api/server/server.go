@@ -48,7 +48,7 @@ func New(log *zap.Logger, envOpt options.EnvironmentOpt, httpOpt options.HttpSer
 		waitForOpt:     waitForOpt,
 	}
 
-	s.demux = Demux(waiting, waitingRoutes(s.log, s.httpOpt))
+	s.demux = Demux(waiting, waitingRoutes(s.log.Named("waiting"), s.httpOpt))
 	s.demux.Router(shutdown, shutdownRoutes())
 
 	return s
