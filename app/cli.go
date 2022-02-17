@@ -42,20 +42,23 @@ func (app *CortezaApp) InitCLI() {
 		// loaded at this point!
 		app.Opt = options.Init()
 
-		app.Log.Warn("loading plugins", zap.String("paths", app.Opt.Plugins.Paths))
-		if app.Opt.Plugins.Enabled {
-			var paths []string
-			paths, err = plugin.Resolve(app.Opt.Plugins.Paths)
+		{
+			log := app.Log.Named("plugins")
+			if app.Opt.Plugins.Enabled && len(app.Opt.Plugins.Paths) > 0 {
+				log.Warn("loading", zap.String("paths", app.Opt.Plugins.Paths))
 
-			app.Log.Warn("loading plugins", zap.Strings("paths", paths))
+				var paths []string
+				paths, err = plugin.Resolve(app.Opt.Plugins.Paths)
+				log.Warn("loading", zap.Strings("resolved-paths", paths))
 
-			app.plugins, err = plugin.Load(paths...)
-			if err != nil {
-				return err
+				app.plugins, err = plugin.Load(paths...)
+				if err != nil {
+					return err
+				}
+			} else {
+				// Empty set of plugins
+				app.plugins = plugin.Set{}
 			}
-		} else {
-			// Empty set of plugins
-			app.plugins = plugin.Set{}
 		}
 
 		return err

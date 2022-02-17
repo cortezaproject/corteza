@@ -30,6 +30,7 @@ type (
 )
 
 const (
+	// allowing 10k entries (no limiting the entry size)
 	debugLogCap = 10240
 )
 
@@ -40,7 +41,13 @@ var (
 	}
 )
 
+// WriteLogBuffer provides access to default debug log buffer
 func WriteLogBuffer(w io.Writer, after, limit int) (_ int, err error) {
+	return writeLogBuffer(w, debugLogRR, after, limit)
+}
+
+// writes stream of entries from log buffer into provided writer array of JSON objects.
+func writeLogBuffer(w io.Writer, logBuf *rr, after, limit int) (_ int, err error) {
 	var (
 		// was at least one entry outputted?
 		has bool
@@ -52,7 +59,7 @@ func WriteLogBuffer(w io.Writer, after, limit int) (_ int, err error) {
 		return
 	}
 
-	for _, e := range debugLogRR.buf {
+	for _, e := range logBuf.buf {
 		if after >= e.num {
 			continue
 		}
@@ -100,6 +107,7 @@ func (r *rr) append(ent []byte) {
 	}
 }
 
+// DebugBufferedLogger provides buffered logger compatible with zap.
 func DebugBufferedLogger(out *rr) *debugBufferingLogger {
 	var encConf = zap.NewProductionEncoderConfig()
 	encConf.EncodeTime = zapcore.RFC3339NanoTimeEncoder
