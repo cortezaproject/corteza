@@ -144,16 +144,23 @@ func DecodeKV(kv SettingsKV, dst interface{}, pp ...string) (err error) {
 
 		// Native type
 		if val, ok := kv[key]; ok {
-			// Always use pointer to value
-			if val == nil {
+			// Take care of null values
+			if val == nil || val.String() == "null" {
 				switch structFType.Type.Kind() {
 				case reflect.String:
 					structField.SetString("")
-					continue
+				case reflect.Int, reflect.Int32, reflect.Int64:
+					structField.SetInt(0)
+				case reflect.Uint, reflect.Uint32, reflect.Uint64:
+					structField.SetUint(0)
+				case reflect.Float32, reflect.Float64:
+					structField.SetFloat(0)
 				}
+
+				continue
 			}
 
-			if val.Unmarshal(structField.Addr().Interface()) != nil {
+			if err = val.Unmarshal(structField.Addr().Interface()); err != nil {
 				// Try to get numbers encoded as strings...
 				var tmp interface{}
 				if val.Unmarshal(&tmp) != nil {

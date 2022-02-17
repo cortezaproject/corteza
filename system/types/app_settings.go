@@ -310,7 +310,12 @@ func (set *ExternalAuthProviderSet) DecodeKV(kv SettingsKV, prefix string) (err 
 	}
 
 	// create standard provider set
-	providers := map[string]bool{"github": true, "facebook": true, "google": true, "linkedin": true}
+	permanent := map[string]bool{"github": true, "facebook": true, "google": true, "linkedin": true}
+	// and make a working copy
+	providers := make(map[string]bool)
+	for k, v := range permanent {
+		providers[k] = v
+	}
 
 	// remove prefix
 	kv = kv.CutPrefix(prefix + ".")
@@ -340,6 +345,14 @@ func (set *ExternalAuthProviderSet) DecodeKV(kv SettingsKV, prefix string) (err 
 		if err != nil {
 			return
 		}
+	}
+
+	// Cleanup
+	var clean = ExternalAuthProviderSet{}
+	for _, p := range *set {
+		if p.empty() && !permanent[p.Handle] {
+			continue
+		}
 
 		if p.Label == "" {
 			switch p.Handle {
@@ -348,8 +361,10 @@ func (set *ExternalAuthProviderSet) DecodeKV(kv SettingsKV, prefix string) (err 
 			case "linkedin":
 				p.Label = "LinkedIn"
 			case "corteza-iam", "corteza", "corteza-one":
+				// Some legacy provider naming
 				p.Label = "Corteza IAM"
 			case "crust-iam", "crust", "crust-unify":
+				// Some legacy provider naming
 				p.Label = "Crust IAM"
 			default:
 				if strings.HasPrefix(p.Handle, oidcProviderPrefix) {
@@ -359,7 +374,11 @@ func (set *ExternalAuthProviderSet) DecodeKV(kv SettingsKV, prefix string) (err 
 				}
 			}
 		}
+
+		clean = append(clean, p)
 	}
+
+	*set = clean
 
 	return
 }
@@ -393,7 +412,7 @@ func (set ExternalAuthProviderSet) Less(i, j int) bool {
 // Returns enabled providers, sorted with their redirect-URLs set...
 func (set ExternalAuthProviderSet) Valid() (out ExternalAuthProviderSet) {
 	for _, eap := range set {
-		if !eap.Enabled {
+		if eap.empty() || !eap.Enabled {
 			continue
 		}
 
@@ -405,21 +424,21 @@ func (set ExternalAuthProviderSet) Valid() (out ExternalAuthProviderSet) {
 
 var _ KVDecoder = &ExternalAuthProviderSet{}
 
-func (set ExternalAuthProvider) EncodeKV() (vv SettingValueSet, err error) {
-	if set.Handle == "" {
+func (eap ExternalAuthProvider) EncodeKV() (vv SettingValueSet, err error) {
+	if eap.Handle == "" {
 		return nil, errors.New("cannot encode external auth provider without handle")
 	}
 	var (
-		prefix = "auth.external.providers." + set.Handle + "."
+		prefix = "auth.external.providers." + eap.Handle + "."
 		pairs  = map[string]interface{}{
-			"enabled":  set.Enabled,
-			"label":    set.Label,
-			"key":      set.Key,
-			"secret":   set.Secret,
-			"scope":    set.Scope,
-			"issuer":   set.IssuerUrl,
-			"redirect": set.RedirectUrl,
-			"weight":   set.Weight,
+			"enabled":  eap.Enabled,
+			"label":    eap.Label,
+			"key":      eap.Key,
+			"secret":   eap.Secret,
+			"scope":    eap.Scope,
+			"issuer":   eap.IssuerUrl,
+			"redirect": eap.RedirectUrl,
+			"weight":   eap.Weight,
 		}
 	)
 
@@ -434,4 +453,13 @@ func (set ExternalAuthProvider) EncodeKV() (vv SettingValueSet, err error) {
 	}
 
 	return
+}
+
+// returns true if all relevant props are empty
+func (eap ExternalAuthProvider) empty() bool {
+	return len(
+		eap.RedirectUrl+
+			eap.Secret+
+			eap.Key,
+	) == 0
 }
