@@ -97,7 +97,6 @@ func (h workflow) Handler() types.HandlerFunc {
 			ctx   = r.Context()
 			scope = agctx.ScopeFromContext(ctx)
 		)
-
 		// cleanup scope for wf
 		scp := filterScope(scope, "opts")
 

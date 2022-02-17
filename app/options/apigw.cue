@@ -25,6 +25,10 @@ apigw: schema.#optionsGroup & {
 			type:        "bool"
 			description: "Enable extra logging"
 		}
+		profiler_enabled: {
+			type:        "bool"
+			description: "Enable profiler"
+		}
 		log_request_body: {
 			type:        "bool"
 			description: "Enable incoming request body output in logs"

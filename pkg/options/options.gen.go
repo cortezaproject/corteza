@@ -85,6 +85,7 @@ type (
 		Enabled              bool          `env:"APIGW_ENABLED"`
 		Debug                bool          `env:"APIGW_DEBUG"`
 		LogEnabled           bool          `env:"APIGW_LOG_ENABLED"`
+		ProfilerEnabled      bool          `env:"APIGW_PROFILER_ENABLED"`
 		LogRequestBody       bool          `env:"APIGW_LOG_REQUEST_BODY"`
 		ProxyEnableDebugLog  bool          `env:"APIGW_PROXY_ENABLE_DEBUG_LOG"`
 		ProxyFollowRedirects bool          `env:"APIGW_PROXY_FOLLOW_REDIRECTS"`

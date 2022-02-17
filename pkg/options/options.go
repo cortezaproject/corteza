@@ -28,6 +28,7 @@ type (
 		Limit       LimitOpt
 		Plugins     PluginsOpt
 		Discovery   DiscoveryOpt
+		Apigw       ApigwOpt
 	}
 )
 
@@ -59,5 +60,6 @@ func Init() *Options {
 		Limit:       *Limit(),
 		Plugins:     *Plugins(),
 		Discovery:   *Discovery(),
+		Apigw:       *Apigw(),
 	}
 }

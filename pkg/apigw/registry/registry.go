@@ -59,6 +59,7 @@ func (r *Registry) Preload() {
 	// prefilters
 	r.Add("queryParam", filter.NewQueryParam())
 	r.Add("header", filter.NewHeader())
+	r.Add("profiler", filter.NewProfiler())
 
 	// processers
 	r.Add("workflow", filter.NewWorkflow(NewWorkflow()))

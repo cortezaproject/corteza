@@ -7,6 +7,7 @@ import (
 	"time"
 
 	actx "github.com/cortezaproject/corteza-server/pkg/apigw/ctx"
+	"github.com/cortezaproject/corteza-server/pkg/apigw/pipeline/chain"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"go.uber.org/zap"
@@ -25,18 +26,20 @@ type (
 
 	Pl struct {
 		workers workerSet
+		ch      chain.ChainHandler
 		err     types.ErrorHandlerFunc
 		log     *zap.Logger
 		async   bool
 	}
 )
 
-func NewPipeline(log *zap.Logger) *Pl {
+func NewPipeline(log *zap.Logger, ch chain.ChainHandler) *Pl {
 	var (
 		defaultErrorHandler = types.NewDefaultErrorHandler(log)
 	)
 
 	return &Pl{
+		ch:  ch,
 		log: log,
 		err: defaultErrorHandler.Handler(),
 	}
@@ -65,11 +68,8 @@ func (pp *Pl) Add(w *Worker) {
 // that handles filter groups
 func (pp *Pl) Handler() http.Handler {
 	// use the chi implementation of chains
-	chiChain := chiHandlerChain{
-		chain: pp.makeMiddleware(pp.workers...),
-	}
-
-	return chiChain.Handler()
+	pp.ch.Chain(pp.makeMiddleware(pp.workers...))
+	return pp.ch.Handler()
 }
 
 // makeMiddleware creates a list of handlers from workers

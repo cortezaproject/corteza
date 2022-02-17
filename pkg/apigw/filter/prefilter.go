@@ -6,7 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
+	agctx "github.com/cortezaproject/corteza-server/pkg/apigw/ctx"
+	prf "github.com/cortezaproject/corteza-server/pkg/apigw/profiler"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	pe "github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
@@ -35,6 +38,10 @@ type (
 		params struct {
 			Expr string `json:"expr"`
 		}
+	}
+
+	profiler struct {
+		types.FilterMeta
 	}
 )
 
@@ -203,5 +210,62 @@ func (qp *queryParam) Handler() types.HandlerFunc {
 		}
 
 		return nil
+	}
+}
+
+func NewProfiler() (pp *profiler) {
+	pp = &profiler{}
+
+	pp.Name = "profiler"
+	pp.Label = "Profiler"
+	pp.Kind = types.PreFilter
+
+	return
+}
+
+func (pr profiler) New() types.Handler {
+	return NewProfiler()
+}
+
+func (pr profiler) String() string {
+	return fmt.Sprintf("apigw filter %s (%s)", pr.Name, pr.Label)
+}
+
+func (pr profiler) Meta() types.FilterMeta {
+	return pr.FilterMeta
+}
+
+func (pr *profiler) Merge(params []byte) (types.Handler, error) {
+	return pr, nil
+}
+
+func (pr *profiler) Handler() types.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) (err error) {
+		var (
+			ctx   = r.Context()
+			scope = agctx.ScopeFromContext(ctx)
+		)
+
+		if scope.Opts().ProfilerEnabled {
+			// profiler enabled overrides any profiling prefilter
+			// the hit is registered on lower level
+			return
+		}
+
+		var (
+			n   = time.Now()
+			hit = agctx.ProfilerFromContext(r.Context())
+		)
+
+		if hit == nil {
+			return
+		}
+
+		hit.(*prf.Hit).Ts = &n
+		hit.(*prf.Hit).R = scope.Request()
+
+		r = r.WithContext(agctx.ProfilerToContext(r.Context(), hit))
+
+		return
 	}
 }

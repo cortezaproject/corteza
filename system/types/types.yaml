@@ -23,6 +23,10 @@ types:
     labelResourceType: template
   ApigwRoute: {}
   ApigwFilter: {}
+  ApigwProfilerHit:
+    noIdField: true
+  ApigwProfilerAggregation:
+    noIdField: true
   Report:
     labelResourceType: report
   ResourceTranslation: {}
