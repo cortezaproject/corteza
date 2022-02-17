@@ -39,7 +39,7 @@ func Test_registerFunction(t *testing.T) {
 	for _, tc := range tcc {
 		t.Run(tc.name, func(t *testing.T) {
 			var (
-				f   *fn
+				f   *Fn
 				err error
 
 				req = require.New(t)

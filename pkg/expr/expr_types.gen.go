@@ -11,7 +11,9 @@ package expr
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/http"
 	"io"
+	"net/url"
 	"sync"
 	"time"
 )
@@ -464,6 +466,203 @@ func (t Handle) Compare(to TypedValue) (int, error) {
 	}
 }
 
+// HttpRequest is an expression type, wrapper for *http.Request type
+type HttpRequest struct {
+	value *http.Request
+	mux   sync.RWMutex
+}
+
+// NewHttpRequest creates new instance of HttpRequest expression type
+func NewHttpRequest(val interface{}) (*HttpRequest, error) {
+	if c, err := CastToHttpRequest(val); err != nil {
+		return nil, fmt.Errorf("unable to create HttpRequest: %w", err)
+	} else {
+		return &HttpRequest{value: c}, nil
+	}
+}
+
+// Get return underlying value on HttpRequest
+func (t *HttpRequest) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// GetValue returns underlying value on HttpRequest
+func (t *HttpRequest) GetValue() *http.Request {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// Type return type name
+func (HttpRequest) Type() string { return "HttpRequest" }
+
+// Cast converts value to *http.Request
+func (HttpRequest) Cast(val interface{}) (TypedValue, error) {
+	return NewHttpRequest(val)
+}
+
+// Assign new value to HttpRequest
+//
+// value is first passed through CastToHttpRequest
+func (t *HttpRequest) Assign(val interface{}) error {
+	if c, err := CastToHttpRequest(val); err != nil {
+		return err
+	} else {
+		t.value = c
+		return nil
+	}
+}
+
+func (t *HttpRequest) AssignFieldValue(key string, val TypedValue) error {
+	t.mux.Lock()
+	defer t.mux.Unlock()
+	return assignToHttpRequest(t.value, key, val)
+}
+
+// SelectGVal implements gval.Selector requirements
+//
+// It allows gval lib to access HttpRequest's underlying value (*http.Request)
+// and it's fields
+//
+func (t *HttpRequest) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return httpRequestGValSelector(t.value, k)
+}
+
+// Select is field accessor for *http.Request
+//
+// Similar to SelectGVal but returns typed values
+func (t *HttpRequest) Select(k string) (TypedValue, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return httpRequestTypedValueSelector(t.value, k)
+}
+
+func (t *HttpRequest) Has(k string) bool {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	switch k {
+	case "Method":
+		return true
+	case "URL":
+		return true
+	case "Header":
+		return true
+	case "Body":
+		return true
+	case "Form":
+		return true
+	case "PostForm":
+		return true
+	}
+	return false
+}
+
+// httpRequestGValSelector is field accessor for *http.Request
+func httpRequestGValSelector(res *http.Request, k string) (interface{}, error) {
+	if res == nil {
+		return nil, nil
+	}
+	switch k {
+	case "Method":
+		return res.Method, nil
+	case "URL":
+		return res.URL, nil
+	case "Header":
+		return res.Header, nil
+	case "Body":
+		return res.Body, nil
+	case "Form":
+		return res.Form, nil
+	case "PostForm":
+		return res.PostForm, nil
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// httpRequestTypedValueSelector is field accessor for *http.Request
+func httpRequestTypedValueSelector(res *http.Request, k string) (TypedValue, error) {
+	if res == nil {
+		return nil, nil
+	}
+	switch k {
+	case "Method":
+		return NewString(res.Method)
+	case "URL":
+		return NewUrl(res.URL)
+	case "Header":
+		return NewKVV(res.Header)
+	case "Body":
+		return NewReader(res.Body)
+	case "Form":
+		return NewKVV(res.Form)
+	case "PostForm":
+		return NewKVV(res.PostForm)
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// assignToHttpRequest is field value setter for *http.Request
+func assignToHttpRequest(res *http.Request, k string, val interface{}) error {
+	switch k {
+	case "Method":
+		aux, err := CastToString(val)
+		if err != nil {
+			return err
+		}
+
+		res.Method = aux
+		return nil
+	case "URL":
+		aux, err := CastToUrl(val)
+		if err != nil {
+			return err
+		}
+
+		res.URL = aux
+		return nil
+	case "Header":
+		aux, err := CastToKVV(val)
+		if err != nil {
+			return err
+		}
+
+		res.Header = aux
+		return nil
+	case "Body":
+		aux, err := CastToReader(val)
+		if err != nil {
+			return err
+		}
+
+		res.Body = aux
+		return nil
+	case "Form":
+		aux, err := CastToKVV(val)
+		if err != nil {
+			return err
+		}
+
+		res.Form = aux
+		return nil
+	case "PostForm":
+		aux, err := CastToKVV(val)
+		if err != nil {
+			return err
+		}
+
+		res.PostForm = aux
+		return nil
+	}
+
+	return fmt.Errorf("unknown field '%s'", k)
+}
+
 // ID is an expression type, wrapper for uint64 type
 type ID struct {
 	value uint64
@@ -880,6 +1079,55 @@ func (t UnsignedInteger) Compare(to TypedValue) (int, error) {
 		return 1, nil
 	default:
 		return 0, fmt.Errorf("cannot compare %s and %s: unknown state", t.Type(), c.Type())
+	}
+}
+
+// Url is an expression type, wrapper for *url.URL type
+type Url struct {
+	value *url.URL
+	mux   sync.RWMutex
+}
+
+// NewUrl creates new instance of Url expression type
+func NewUrl(val interface{}) (*Url, error) {
+	if c, err := CastToUrl(val); err != nil {
+		return nil, fmt.Errorf("unable to create Url: %w", err)
+	} else {
+		return &Url{value: c}, nil
+	}
+}
+
+// Get return underlying value on Url
+func (t *Url) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// GetValue returns underlying value on Url
+func (t *Url) GetValue() *url.URL {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// Type return type name
+func (Url) Type() string { return "Url" }
+
+// Cast converts value to *url.URL
+func (Url) Cast(val interface{}) (TypedValue, error) {
+	return NewUrl(val)
+}
+
+// Assign new value to Url
+//
+// value is first passed through CastToUrl
+func (t *Url) Assign(val interface{}) error {
+	if c, err := CastToUrl(val); err != nil {
+		return err
+	} else {
+		t.value = c
+		return nil
 	}
 }
 

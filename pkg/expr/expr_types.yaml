@@ -2,6 +2,8 @@ package: expr
 imports:
   - io
   - time
+  - github.com/cortezaproject/corteza-server/pkg/http
+  - net/url
 
 types:
   Any:
@@ -76,3 +78,15 @@ types:
   Reader:
     as: 'io.Reader'
 
+  HttpRequest:
+    as: '*http.Request'
+    struct:
+      - { name: 'Method',   exprType: 'String', goType: 'string' }
+      - { name: 'URL',      exprType: 'Url',    goType: 'url.Url' }
+      - { name: 'Header',   exprType: 'KVV',    goType: 'map[string][]string' }
+      - { name: 'Body',     exprType: 'Reader', goType: '*types.BufferedReader' }
+      - { name: 'Form',     exprType: 'KVV',    goType: 'map[string][]string' }
+      - { name: 'PostForm', exprType: 'KVV',    goType: 'map[string][]string' }
+
+  Url:
+    as: '*url.URL'
