@@ -2,10 +2,11 @@
 
 When enabled (`HTTP_WEB_CONSOLE_ENABLED=true`), it allows insight and management of corteza internals. 
 
-## Web Console development
+## Running server and web console both from source
 
-When developing web-console backend (API) base URL must be set to the actual server. That can be achieved by setting a URL as value local store item with `console-api-base-url` as key:
+See [DEVELOPMENT.md](DEVELOPMENT.md) for details.
 
-```javascript
-localStorage.setItem('console-api-base-url', '//localhost:3000/console')
-```  
+## Running server from source and using bundled web console
+
+If you want to use web console while do changes on the server you need to bundle it.
+Run `yarn build` and make sure you enable dev mode with `ENVIRONMENT=dev`, restart the server and navigate your browser to `<server>/console/`.  
