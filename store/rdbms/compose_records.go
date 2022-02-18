@@ -102,7 +102,7 @@ func (s Store) SearchComposeRecords(ctx context.Context, m *types.Module, f type
 		// Make sure results are always sorted at least by primary keys
 		if f.Sort.Get("id") == nil {
 			f.Sort = append(f.Sort, &filter.SortExpr{
-				Column:     "id",
+				Column:     "id", // @fixme add `record.` prefix
 				Descending: f.Sort.LastDescending(),
 			})
 		}
@@ -641,14 +641,45 @@ func (s Store) composeRecordsSorter(m *types.Module, q squirrel.SelectBuilder, s
 	var (
 		sortable = s.sortableComposeRecordColumns()
 		sqlSort  = make([]string, len(sort))
+
+		fieldConflict = false
 	)
 
+	// Determine if module fields conflicts with system fields
+	for _, f := range m.Fields {
+		fName := strings.ToLower(f.Name)
+		if len(fName) > 0 {
+			if _, has := sortable[fName]; has {
+				fieldConflict = true
+			}
+		}
+	}
+
+	//fmt.Println("fieldConflict: ", fieldConflict)
 	for i, c := range sort {
 		var err error
-		if col, has := sortable[strings.ToLower(c.Column)]; has {
+
+		// initial check with module fields if conflicts
+		colName := strings.ToLower(c.Column)
+		if fieldConflict {
+			rvPrefix := "record.values."
+			rvColSort := strings.HasPrefix(colName, rvPrefix)
+			if rvColSort {
+				colName = fmt.Sprintf("rv_%s", strings.TrimPrefix(colName, rvPrefix))
+			} else {
+				if _, has := sortable[colName]; has {
+					err = fmt.Errorf("could not sort by column name identical to system field: %s", c.Column)
+				}
+			}
+		}
+
+		if err != nil {
+			return q, err
+		}
+
+		if col, has := sortable[colName]; has {
 			sqlSort[i] = col
 		} else if f := m.Fields.FindByName(c.Column); f != nil {
-
 			sqlSort[i], _, _, err = s.config.CastModuleFieldToColumnType(f, c.Column)
 		} else {
 			err = fmt.Errorf("could not sort by unknown column: %s", c.Column)

@@ -88,9 +88,11 @@ func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{
 		}
 	)
 
+	fmt.Println("r.Sort: ", r.Sort)
 	if err = f.Sort.Set(r.Sort); err != nil {
 		return nil, err
 	}
+	fmt.Println("f.Sort: ", f.Sort)
 
 	if m, err = ctrl.module.FindByID(ctx, r.NamespaceID, r.ModuleID); err != nil {
 		return nil, err
@@ -111,7 +113,16 @@ func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
 		return nil, err
 	}
+	fmt.Println("f.Sorting: ", f.Sorting)
 
+	//rvPrefix := "record.values."
+	//rvColSort := strings.HasPrefix(colName, rvPrefix)
+
+	for i, s := range f.Sorting.Sort {
+		rvPrefix := "record.values."
+		f.Sorting.Sort[i].Column = fmt.Sprintf("rv_%s", strings.TrimPrefix(s.Column, rvPrefix))
+		f.Sorting.Sort[i].Column = fmt.Sprintf("%s", strings.TrimPrefix(s.Column, rvPrefix))
+	}
 	rr, filter, err := ctrl.record.Find(ctx, f)
 
 	return ctrl.makeFilterPayload(ctx, m, rr, &filter, err)
