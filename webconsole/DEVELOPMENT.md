@@ -1,5 +1,16 @@
 # Corteza Server Web Console
 
+## Setting up
+
+When developing web-console backend (API) base URL must be set to the actual server. That can be achieved by setting a URL as value local store item with `console-api-base-url` as key:
+
+```javascript
+localStorage.setItem('console-api-base-url', '//localhost:3000/console')
+```  
+
+Make sure console and all required routes are enabled on the server (`ENVIRONMENT=dev` and/or `HTTP_WEB_CONSOLE_ENABLED=true`). 
+Also make sure username and password is disabled for the console for development.
+
 ## Type Support for `.vue` Imports in TS
 
 TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=johnsoncodehk.vscode-typescript-vue-plugin) to make the TypeScript language service aware of `.vue` types.
@@ -18,29 +29,29 @@ See [Vite Configuration Reference](https://vitejs.dev/config/).
 ## Project Setup
 
 ```sh
-npm install
+yarn install
 ```
 
 ### Compile and Hot-Reload for Development
 
 ```sh
-npm run dev
+yarn dev
 ```
 
 ### Type-Check, Compile and Minify for Production
 
 ```sh
-npm run build
+yarn build
 ```
 
 ### Run Unit Tests with [Vitest](https://vitest.dev/)
 
 ```sh
-npm run test:unit
+yarn test:unit
 ```
 
 ### Lint with [ESLint](https://eslint.org/)
 
 ```sh
-npm run lint
+yarn lint
 ```
