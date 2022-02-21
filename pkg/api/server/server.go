@@ -12,11 +12,9 @@ import (
 
 type (
 	server struct {
-		log            *zap.Logger
-		httpOpt        options.HttpServerOpt
-		waitForOpt     options.WaitForOpt
-		environmentOpt options.EnvironmentOpt
-		endpoints      []func(r chi.Router)
+		log       *zap.Logger
+		opts      *options.Options
+		endpoints []func(r chi.Router)
 
 		demux *demux
 	}
@@ -38,17 +36,15 @@ const (
 //  - /healthcheck
 //  - /healthcheck
 
-func New(log *zap.Logger, envOpt options.EnvironmentOpt, httpOpt options.HttpServerOpt, waitForOpt options.WaitForOpt) *server {
+func New(log *zap.Logger, opts *options.Options) *server {
 	s := &server{
 		endpoints: make([]func(r chi.Router), 0),
 		log:       log.Named("http"),
 
-		environmentOpt: envOpt,
-		httpOpt:        httpOpt,
-		waitForOpt:     waitForOpt,
+		opts: opts,
 	}
 
-	s.demux = Demux(waiting, waitingRoutes(s.log.Named("waiting"), s.httpOpt))
+	s.demux = Demux(waiting, waitingRoutes(s.log.Named("waiting"), s.opts.HTTPServer))
 	s.demux.Router(shutdown, shutdownRoutes())
 
 	return s
@@ -56,7 +52,7 @@ func New(log *zap.Logger, envOpt options.EnvironmentOpt, httpOpt options.HttpSer
 
 // Activate reconfigures server to use active routes
 func (s *server) Activate(mm ...func(chi.Router)) {
-	s.demux.Router(active, activeRoutes(s.log, mm, s.environmentOpt, s.httpOpt))
+	s.demux.Router(active, activeRoutes(s.log, mm, s.opts))
 
 	s.log.Debug("entering active state")
 	s.demux.State(active)
@@ -72,11 +68,11 @@ func (s server) Serve(ctx context.Context) {
 	s.log.Info(
 		"starting HTTP server",
 
-		zap.String("path-prefix", s.httpOpt.BaseUrl),
-		zap.String("address", s.httpOpt.Addr),
+		zap.String("path-prefix", s.opts.HTTPServer.BaseUrl),
+		zap.String("address", s.opts.HTTPServer.Addr),
 	)
 
-	listener, err := net.Listen("tcp", s.httpOpt.Addr)
+	listener, err := net.Listen("tcp", s.opts.HTTPServer.Addr)
 	if err != nil {
 		s.log.Error("cannot start server", zap.Error(err))
 		return
