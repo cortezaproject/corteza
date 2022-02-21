@@ -185,7 +185,6 @@ auth: schema.#optionsGroup & {
 				Path to js, css, images and template source files
 
 				When corteza starts, if path exists it tries to load template files from it.
-				If not it uses statically embedded files.
 
 				When empty path is set (default value), embedded files are used.
 				"""

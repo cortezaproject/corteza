@@ -120,6 +120,13 @@ HTTPServer: schema.#optionsGroup & {
 			env: "HTTP_SSL_TERMINATED"
 		}
 
+		assets_path: {
+			description: """
+				Corteza will directly serve these assets (static files).
+				When empty path is set (default value), embedded files are used.
+				"""
+		}
+
 		web_console_enabled: {
 			type:          "bool"
 			defaultGoExpr: "false"
