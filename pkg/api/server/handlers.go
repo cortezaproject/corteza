@@ -1,12 +1,15 @@
 package server
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"net/http"
 	"path"
 	"strconv"
 	"strings"
 
+	"github.com/cortezaproject/corteza-server/assets"
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
@@ -71,9 +74,13 @@ func shutdownRoutes() (r chi.Router) {
 }
 
 // routes used when in active mode
-func activeRoutes(log *zap.Logger, mountable []func(r chi.Router), envOpt options.EnvironmentOpt, httpOpt options.HttpServerOpt) (r chi.Router) {
+func activeRoutes(log *zap.Logger, mountable []func(r chi.Router), opts *options.Options) (r chi.Router) {
 	r = chi.NewRouter()
 	r.Use(handleCORS)
+
+	httpOpt := opts.HTTPServer
+	authOpt := opts.Auth
+	envOpt := opts.Environment
 
 	r.Route("/"+strings.TrimPrefix(httpOpt.BaseUrl, "/"), func(r chi.Router) {
 		// Reports error to Sentry if enabled
@@ -120,6 +127,11 @@ func activeRoutes(log *zap.Logger, mountable []func(r chi.Router), envOpt option
 	}
 
 	mountServiceHandlers(r, log, httpOpt, active)
+
+	r.HandleFunc(httpOpt.ApiBaseUrl, handleStaticPages(log, httpOpt, authOpt, "api-landing.html"))
+	r.HandleFunc(httpOpt.ApiBaseUrl+"/", handleStaticPages(log, httpOpt, authOpt, "api-landing.html"))
+	r.NotFound(handleStaticPages(log, httpOpt, authOpt, "api-404.html"))
+
 	return
 }
 
@@ -251,4 +263,49 @@ func mountDebugLogViewer(r chi.Router, log *zap.Logger) {
 
 		_, _ = logger.WriteLogBuffer(w, after, limit)
 	})
+}
+
+func handleStaticPages(log *zap.Logger, hOpt options.HttpServerOpt, aOpt options.AuthOpt, file string) http.HandlerFunc {
+	// "good-enough" for now, plan to move to templates when
+	// merging with auth
+	const linkTpl = `<a class="btn btn-light font-weight-bold text-dark m-2" href="%s">%s</a>`
+	var (
+		links = make([]string, 0)
+		buf   []byte
+
+		placeholder = []byte("<!-- links -->")
+	)
+
+	links = append(links, fmt.Sprintf(linkTpl, aOpt.BaseURL, "Login"))
+
+	if hOpt.ApiEnabled {
+		links = append(links, fmt.Sprintf(linkTpl, "https://docs.cortezaproject.org/", "Documentation"))
+	}
+
+	if hOpt.WebConsoleEnabled {
+		links = append(links, fmt.Sprintf(linkTpl, "/console", "Console"))
+	}
+
+	page, err := assets.Files(log, hOpt.AssetsPath).Open(file)
+	if err != nil {
+		log.Warn("could not open static page", zap.String("file", file), zap.Error(err))
+	}
+
+	buf, err = io.ReadAll(page)
+	if err != nil {
+		log.Warn("could not prepare static page", zap.String("file", file), zap.Error(err))
+	}
+
+	buf = bytes.ReplaceAll(buf, placeholder, []byte(strings.Join(links, "")))
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		if page == nil {
+			// fallback to default 404 handler
+			http.NotFound(w, r)
+			return
+		}
+
+		w.WriteHeader(http.StatusNotFound)
+		w.Write(buf)
+	}
 }

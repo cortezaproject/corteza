@@ -18,7 +18,7 @@ import (
 // WaitFor sets up a simple status page, delays execution and probes services
 func (s server) WaitFor(ctx context.Context) {
 	var (
-		opt      = s.waitForOpt
+		opt      = s.opts.WaitFor
 		services = opt.GetServices()
 	)
 
@@ -37,7 +37,7 @@ func (s server) WaitFor(ctx context.Context) {
 	)
 
 	// Setup a simple HTTP server that will inform the impatient users
-	listener, err := net.Listen("tcp", s.httpOpt.Addr)
+	listener, err := net.Listen("tcp", s.opts.HTTPServer.Addr)
 	if err != nil {
 		s.log.Error("cannot start server", zap.Error(err))
 		os.Exit(1)

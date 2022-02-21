@@ -74,7 +74,7 @@ func (app *CortezaApp) InitCLI() {
 		wg := &sync.WaitGroup{}
 
 		{ // @todo refactor wait-for out of HTTP API server.
-			app.HttpServer = server.New(app.Log, app.Opt.Environment, app.Opt.HTTPServer, app.Opt.WaitFor)
+			app.HttpServer = server.New(app.Log, app.Opt)
 
 			wg.Add(1)
 			go func() {
