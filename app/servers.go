@@ -1,11 +1,15 @@
 package app
 
 import (
+	"fmt"
+	"io/fs"
 	"net/http"
+	"os"
 	"path"
 	"regexp"
 	"strings"
 
+	"github.com/cortezaproject/corteza-server/assets"
 	automationRest "github.com/cortezaproject/corteza-server/automation/rest"
 	composeRest "github.com/cortezaproject/corteza-server/compose/rest"
 	"github.com/cortezaproject/corteza-server/docs"
@@ -23,6 +27,40 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 	var (
 		ho = app.Opt.HTTPServer
 	)
+
+	func() {
+		// asset serving has some overlap with auth assets, web-console and webapp serving
+		// and might be joined with one or more of them in the later version
+
+		var (
+			url   = options.CleanBase(ho.BaseUrl, "assets")
+			aPath = ho.AssetsPath
+			files fs.FS
+			err   error
+		)
+
+		if len(aPath) > 0 {
+			if files, err = loadAssetsFromPath(aPath); err != nil {
+				// log warning but fallback to embedded assets
+				app.Log.Warn(
+					fmt.Sprintf("failed to use custom assets path (HTTP_SERVER_ASSETS_PATH=%s)", aPath),
+					zap.Error(err),
+				)
+			}
+		}
+
+		if files == nil {
+			aPath = "embedded"
+			files, err = fs.Sub(assets.Embedded, "src")
+			if err != nil {
+				// if this is off, we might as well panic
+				panic(err)
+			}
+		}
+
+		r.Handle(url+"/*", http.StripPrefix(url+"/", http.FileServer(http.FS(files))))
+		app.Log.Info("web assets mounted", zap.String("url", url), zap.String("path", aPath))
+	}()
 
 	func() {
 		if ho.WebappEnabled && ho.ApiEnabled && ho.ApiBaseUrl == ho.WebappBaseUrl {
@@ -132,4 +170,31 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 	func() {
 		r.Handle("/.well-known/openid-configuration", app.AuthService.WellKnownOpenIDConfiguration())
 	}()
+}
+
+func loadAssetsFromPath(path string) (assets fs.FS, err error) {
+	// at least favicon file should exist in the custom asset path
+	// otherwise we default to embedded files
+	const check = "favicon32x32.png"
+
+	var (
+		fi os.FileInfo
+	)
+
+	if fi, err = os.Stat(path); err != nil {
+		return
+
+	}
+
+	if !fi.IsDir() {
+		return nil, fmt.Errorf("expecting directory")
+
+	}
+
+	assets = os.DirFS(path)
+	if _, err = assets.Open(check); err != nil {
+		return nil, err
+	}
+
+	return
 }
