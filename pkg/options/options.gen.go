@@ -43,6 +43,7 @@ type (
 		WebappBaseDir          string `env:"HTTP_WEBAPP_BASE_DIR"`
 		WebappList             string `env:"HTTP_WEBAPP_LIST"`
 		SslTerminated          bool   `env:"HTTP_SSL_TERMINATED"`
+		AssetsPath             string `env:"HTTP_SERVER_ASSETS_PATH"`
 		WebConsoleEnabled      bool   `env:"HTTP_SERVER_WEB_CONSOLE_ENABLED"`
 		WebConsoleUsername     string `env:"HTTP_SERVER_WEB_CONSOLE_USERNAME"`
 		WebConsolePassword     string `env:"HTTP_SERVER_WEB_CONSOLE_PASSWORD"`
