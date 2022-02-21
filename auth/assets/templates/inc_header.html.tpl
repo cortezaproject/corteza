@@ -11,10 +11,10 @@
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 		<!-- Custom CSS -->
-		<link href="{{ links.Assets }}/style.css?{{ buildtime }}" rel="stylesheet">
+		<link href="{{ links.AuthAssets }}/style.css?{{ buildtime }}" rel="stylesheet">
         <title>Corteza</title>
 	</head>
-	<body style="background: url({{ links.Assets }}/background.jpeg) no-repeat top;background-size: cover;background-attachment: fixed;">
+	<body style="background: url({{ links.Assets }}/release-background.png) no-repeat top;background-size: cover;background-attachment: fixed;">
         {{ if .user }}
             <div class="position-absolute user text-white m-2">
 			    <a class="font-weight-bold text-white" href="{{ links.Base }}"><i class="bi bi-grid-3x2-gap-fill text-white mr-1 align-middle" style="font-size: 1.4rem;"></i></a>
