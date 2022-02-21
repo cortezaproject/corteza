@@ -504,6 +504,22 @@ func TestMemberAdd(t *testing.T) {
 		End()
 }
 
+func TestMemberAdd_denied(t *testing.T) {
+	h := newHelper(t)
+	helpers.AllowMe(h, types.UserRbacResource(0), "read")
+
+	r := h.repoMakeRole(h.randEmail())
+	u := h.createUserWithEmail(h.randEmail())
+
+	h.apiInit().
+		Post(fmt.Sprintf("/roles/%d/member/%d", r.ID, u.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("role.errors.notAllowedToManageMembers")).
+		End()
+}
+
 func TestMemberRemove(t *testing.T) {
 	h := newHelper(t)
 	helpers.AllowMe(h, types.UserRbacResource(0), "read")
@@ -518,5 +534,21 @@ func TestMemberRemove(t *testing.T) {
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
+		End()
+}
+
+func TestMemberRemove_denied(t *testing.T) {
+	h := newHelper(t)
+	helpers.AllowMe(h, types.UserRbacResource(0), "read")
+
+	r := h.repoMakeRole(h.randEmail())
+	u := h.createUserWithEmail(h.randEmail())
+
+	h.apiInit().
+		Post(fmt.Sprintf("/roles/%d/member/%d", r.ID, u.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("role.errors.notAllowedToManageMembers")).
 		End()
 }
