@@ -99,5 +99,5 @@ func (ctrl *Settings) Set(ctx context.Context, r *request.SettingsSet) (interfac
 //
 // This is available to all authenticated users
 func (ctrl *Settings) Current(ctx context.Context, r *request.SettingsCurrent) (interface{}, error) {
-	return service.CurrentSettings, nil
+	return service.CurrentSettings.WithDefaults(), nil
 }
