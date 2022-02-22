@@ -89,7 +89,7 @@ func (v RecordValue) Cast(f *ModuleField) (interface{}, error) {
 }
 
 func (set RecordValueSet) Clone() (vv RecordValueSet) {
-	vv = make(RecordValueSet, len(vv))
+	vv = make(RecordValueSet, len(set))
 	for i := range set {
 		vv[i] = set[i].Clone()
 	}
