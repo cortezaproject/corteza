@@ -223,6 +223,12 @@ func (s *session) writeLoop() error {
 	}()
 
 	write := func(msg []byte) (err error) {
+		defer func() {
+			if recErr := recover(); recErr != nil {
+				s.logger.Debug("recovering from write panic", zap.Error(err))
+			}
+		}()
+
 		if s.conn == nil {
 			// Connection closed, nowhere to write
 			return
@@ -240,6 +246,12 @@ func (s *session) writeLoop() error {
 	}
 
 	ping := func() (err error) {
+		defer func() {
+			if recErr := recover(); recErr != nil {
+				s.logger.Debug("recovering from ping panic", zap.Error(err))
+			}
+		}()
+
 		if s.conn == nil {
 			// Connection closed, nothing to ping
 			return
