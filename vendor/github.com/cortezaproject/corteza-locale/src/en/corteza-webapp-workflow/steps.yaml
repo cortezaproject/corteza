@@ -70,12 +70,15 @@ trigger:
     'event*': 'Event*'
     'failed-fetch-event-types': Failed to fetch event types
     'initial-scope': Initial Scope
+    equal: Equal
+    not-equal: Not equal
     like: Like
     'not-like': Not like
     operator: Operator
     resource:  Resource
     'resource*':  'Resource*'
     'select-constraint-type': Select constraint type
+    'select-operator': Select operator
     'select-event-type': Select event type
     'select-resource-type': Select resource type
   label: Trigger (Start)

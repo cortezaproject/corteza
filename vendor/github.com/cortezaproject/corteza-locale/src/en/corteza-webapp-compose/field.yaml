@@ -1,3 +1,5 @@
+available-items: Available items
+selected-items: Selected items
 defaultFieldValue: Default field value
 defaultValue: Default value
 kind:
@@ -96,6 +98,7 @@ kind:
       label: User roles
       placeholder: Filter by user roles
 noPermission: No permission to read field value
+no-items-found: No items found
 options:
   description:
     label:

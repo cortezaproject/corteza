@@ -85,3 +85,14 @@ list:
   permissions: Permissions
   title: Users
   yaml: YAML
+export:
+  buttonLabel: Export
+  title: Export users
+  inclRoleMembership: Include role membership
+  inclRoles: Include roles
+  membershipRequiredLabel: Roles can only be exported when role membership is selected
+  export: Export
+import:
+  buttonLabel: Import
+  title: Import users
+  uploadFilePlaceholder: Click or drop files here to import

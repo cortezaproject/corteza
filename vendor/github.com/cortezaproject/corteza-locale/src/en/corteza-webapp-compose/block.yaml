@@ -407,3 +407,10 @@ comment:
     footnote: 'Field value will be used as reference'
 navigation:
   chart: Charts
+report:
+  label: Report
+  scenario:
+    label: Scenario
+  element:
+    label: Display element
+    description: Display elements are grouped by their respective block
