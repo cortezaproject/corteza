@@ -4,6 +4,7 @@ label:
   back: Back
   delete: Delete
   descending: Descending
+  name: Name
   none: None
   ok: Ok
   save: Save

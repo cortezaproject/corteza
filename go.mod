@@ -15,7 +15,7 @@ require (
 	github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/brianvoe/gofakeit/v6 v6.12.1
-	github.com/cortezaproject/corteza-locale v0.0.0-20220208175500-968c388d516c
+	github.com/cortezaproject/corteza-locale v0.0.0-20220221161423-82485d57fd22
 	github.com/crewjam/saml v0.4.6
 	github.com/crusttech/go-oidc v0.0.0-20180918092017-982855dad3e1
 	github.com/davecgh/go-spew v1.1.1

@@ -86,3 +86,10 @@ record:
   unexpectedValue: Unexpected value for record module ({{type}})
   updateFailed: Could not update record
   validationErrors: check error messages on the form
+report:
+  listFetchFailed: Failed to fetch reports
+  fetchFailed: Failed to fetch report
+  runFailed: Failed to run report
+translations:
+  saved: Translations saved
+  saveFailed: Could not save translations
