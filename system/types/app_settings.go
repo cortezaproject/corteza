@@ -163,12 +163,15 @@ type (
 		} `json:"auth"`
 
 		Compose struct {
-			// UI related settings
-			// (placeholder)
+			// Compose UI settings
 			UI struct {
+				// Sidebar specific settings
 				Sidebar struct {
-					// Specific sidebar settings for compose, such as namespace list link
+					// Hide namespace list
 					HideNamespaceList bool `json:"hideNamespaceList"`
+
+					// Hide namespace link at the end of the list
+					HideNamespaceListLink bool `json:"hideNamespaceListLink"`
 				} `kv:"sidebar,final" json:"sidebar"`
 			} `kv:"ui" json:"ui"`
 
