@@ -440,6 +440,12 @@ func (s *Session) worker(ctx context.Context) {
 
 			s.log.Debug("pulled state from queue", zap.Uint64("stateID", st.stateId))
 			if st.step == nil {
+				// We should not terminate if the session contains any delayed or prompted steps.
+				status := s.Status()
+				if status == SessionPrompted || status == SessionDelayed {
+					break
+				}
+
 				s.log.Debug("done, setting results and stopping the worker")
 
 				func() {
