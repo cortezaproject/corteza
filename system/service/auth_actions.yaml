@@ -203,6 +203,10 @@ errors:
     message: "invalid code"
     severity: warning
 
+  - error: rateLimitExceeded
+    message: "rate limit exceeded"
+    log: "rate limit exceeded for {{user}}"
+
   - error: maxUserLimitReached
     message: "you have reached your user limit, contact your Corteza administrator"
     severity: warning
