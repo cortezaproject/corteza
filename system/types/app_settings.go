@@ -219,7 +219,7 @@ type (
 
 			Topbar struct {
 				HideAppSelector        bool `json:"hideAppSelector"`
-				HideHelp               bool `json:"hideHelpLink"`
+				HideHelp               bool `json:"hideHelp"`
 				HideForumLink          bool `json:"hideForumLink"`
 				HideDocumentationLink  bool `json:"hideDocumentationLink"`
 				HideFeedbackLink       bool `json:"hideFeedbackLink"`
@@ -238,7 +238,7 @@ type (
 					URL    string `json:"url"`
 					NewTab bool   `json:"newTab"`
 				} `json:"profileLinks"`
-			} `kv:"topbar,final"`
+			} `kv:"topbar,final" json:"topbar"`
 		} `kv:"ui" json:"ui"`
 
 		ResourceTranslations struct {
