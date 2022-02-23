@@ -287,6 +287,112 @@ func TestAuth_InternalLogin(t *testing.T) {
 	}
 }
 
+func TestAuth_createUserToken(t *testing.T) {
+	var (
+		req = require.New(t)
+		ctx = context.Background()
+
+		validUser = &types.User{Email: "valid@test.cortezaproject.org", ID: nextID(), CreatedAt: *now(), EmailConfirmed: true}
+
+		tests = []struct {
+			name string
+			user *types.User
+			kind string
+			err  error
+		}{
+			{
+				"no user",
+				nil,
+				"",
+				AuthErrGeneric(),
+			},
+			{
+				"zero ID",
+				&types.User{},
+				"",
+				AuthErrGeneric(),
+			},
+			{
+				"valid user",
+				validUser,
+				credentialsTypeResetPasswordToken,
+				nil,
+			},
+		}
+	)
+
+	svc := makeMockAuthService()
+	req.NoError(svc.store.TruncateUsers(ctx))
+	req.NoError(svc.store.TruncateCredentials(ctx))
+	req.NoError(store.CreateUser(ctx, svc.store, validUser))
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req = require.New(t)
+
+			var (
+				token, err = svc.createUserToken(ctx, tt.user, tt.kind)
+			)
+
+			if tt.err == nil {
+				req.NoError(err)
+				req.NotEmpty(token)
+			} else {
+				req.EqualError(err, tt.err.Error())
+			}
+
+		})
+	}
+}
+
+// ensure that existing password reset tokens are invalidated AND rate limiting kicks in
+func TestAuth_multiCreateUserTokenForPasswordReset(t *testing.T) {
+	var (
+		err           error
+		pToken, token string
+
+		svc = makeMockAuthService()
+
+		req = require.New(t)
+		ctx = context.Background()
+
+		validUser = &types.User{Email: "valid@test.cortezaproject.org", ID: nextID(), CreatedAt: *now(), EmailConfirmed: true}
+
+		// load credentials from token
+		t2c = func(token string) *types.Credentials {
+			id, _ := validateToken(token)
+			req.NotZero(id)
+			c, err := store.LookupCredentialsByID(ctx, svc.store, id)
+			req.NoError(err)
+			return c
+		}
+	)
+
+	req.NoError(svc.store.TruncateUsers(ctx))
+	req.NoError(svc.store.TruncateCredentials(ctx))
+	req.NoError(store.CreateUser(ctx, svc.store, validUser))
+
+	for try := 0; try <= tokenReqMaxCount+1; try++ {
+		token, err = svc.createUserToken(ctx, validUser, credentialsTypeResetPasswordToken)
+		t.Log("got token", token)
+
+		if try == tokenReqMaxCount+1 {
+			t.Log("rate limiting should kicked in")
+			req.EqualError(err, AuthErrRateLimitExceeded().Error())
+		} else {
+			if try > 0 {
+				t.Log("checking if previous token", pToken, "is deleted")
+				req.NotNil(t2c(pToken).DeletedAt)
+			}
+
+			req.NoError(err)
+			req.Nil(t2c(token).DeletedAt)
+			pToken = token
+		}
+	}
+
+}
+
 func Test_auth_checkPassword(t *testing.T) {
 	plainPassword := " ... plain password ... "
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(plainPassword), bcrypt.DefaultCost)
@@ -347,7 +453,7 @@ func Test_auth_checkPassword(t *testing.T) {
 	}
 }
 
-func Test_auth_validateToken(t *testing.T) {
+func TestValidateToken(t *testing.T) {
 	type args struct {
 		token string
 	}
@@ -380,8 +486,7 @@ func Test_auth_validateToken(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc := auth{}
-			gotID, gotCredentials := svc.validateToken(tt.args.token)
+			gotID, gotCredentials := validateToken(tt.args.token)
 
 			if gotID != tt.wantID {
 				t.Errorf("auth.validateToken() gotID = %v, want %v", gotID, tt.wantID)

@@ -1748,6 +1748,42 @@ func AuthErrInvalidEmailOTP(mm ...*authActionProps) *errors.Error {
 	return e
 }
 
+// AuthErrRateLimitExceeded returns "system:auth.rateLimitExceeded" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func AuthErrRateLimitExceeded(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("rate limit exceeded", nil),
+
+		errors.Meta("type", "rateLimitExceeded"),
+		errors.Meta("resource", "system:auth"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(authLogMetaKey{}, "rate limit exceeded for {{user}}"),
+		errors.Meta(authPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.rateLimitExceeded"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // AuthErrMaxUserLimitReached returns "system:auth.maxUserLimitReached" as *errors.Error
 //
 //
