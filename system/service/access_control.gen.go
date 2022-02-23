@@ -107,11 +107,6 @@ func (svc accessControl) List() (out []map[string]string) {
 		{
 			"type": types.QueueResourceType,
 			"any":  types.QueueRbacResource(0),
-			"op":   "render",
-		},
-		{
-			"type": types.QueueResourceType,
-			"any":  types.QueueRbacResource(0),
 			"op":   "read",
 		},
 		{
@@ -495,13 +490,6 @@ func (svc accessControl) CanDeleteAuthClient(ctx context.Context, r *types.AuthC
 // This function is auto-generated
 func (svc accessControl) CanAuthorizeAuthClient(ctx context.Context, r *types.AuthClient) bool {
 	return svc.can(ctx, "authorize", r)
-}
-
-// CanRenderQueue checks if current user can render template
-//
-// This function is auto-generated
-func (svc accessControl) CanRenderQueue(ctx context.Context, r *types.Queue) bool {
-	return svc.can(ctx, "render", r)
 }
 
 // CanReadQueue checks if current user can read queue
@@ -925,7 +913,6 @@ func rbacResourceOperations(r string) map[string]bool {
 		}
 	case types.QueueResourceType:
 		return map[string]bool{
-			"render":      true,
 			"read":        true,
 			"update":      true,
 			"delete":      true,

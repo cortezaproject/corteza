@@ -7,7 +7,6 @@ import (
 queue: schema.#resource & {
 	rbac: {
 		operations: {
-			"render": description:      "Render template"
 			"read": description:        "Read queue"
 			"update": description:      "Update queue"
 			"delete": description:      "Delete queue"
