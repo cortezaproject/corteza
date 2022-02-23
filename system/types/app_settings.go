@@ -168,8 +168,8 @@ type (
 			UI struct {
 				Sidebar struct {
 					// Specific sidebar settings for compose, such as namespace list link
-					ShowNamespaceList bool `kv:"show-namespace-list" json:"showNamespaceList"`
-				} `kv:"sidebar" json:"sidebar"`
+					HideNamespaceList bool `json:"hideNamespaceList"`
+				} `kv:"sidebar,final" json:"sidebar"`
 			} `kv:"ui" json:"ui"`
 
 			// Record related settings
@@ -211,8 +211,31 @@ type (
 
 			Sidebar struct {
 				// General sidebar settings
-				Disabled bool `kv:"disabled" json:"disabled"`
-			} `kv:"sidebar" json:"sidebar"`
+				Disabled bool `json:"disabled"`
+			} `kv:"sidebar,final" json:"sidebar"`
+
+			Topbar struct {
+				HideAppSelector        bool `json:"hideAppSelector"`
+				HideHelp               bool `json:"hideHelpLink"`
+				HideForumLink          bool `json:"hideForumLink"`
+				HideDocumentationLink  bool `json:"hideDocumentationLink"`
+				HideFeedbackLink       bool `json:"hideFeedbackLink"`
+				HideProfile            bool `json:"hideProfile"`
+				HideChangePasswordLink bool `json:"hideChangePasswordLink"`
+				HideProfileLink        bool `json:"HideProfileLink"`
+
+				HelpLinks []struct {
+					Handle string `json:"handle"`
+					URL    string `json:"url"`
+					NewTab bool   `json:"newTab"`
+				} `json:"helpLinks"`
+
+				ProfileLinks []struct {
+					Handle string `json:"handle"`
+					URL    string `json:"url"`
+					NewTab bool   `json:"newTab"`
+				} `json:"profileLinks"`
+			} `kv:"topbar,final"`
 		} `kv:"ui" json:"ui"`
 
 		ResourceTranslations struct {
