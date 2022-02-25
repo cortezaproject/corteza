@@ -1,12 +1,17 @@
 package rest
 
 import (
+	"archive/zip"
+	"bytes"
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
+	"strconv"
 	"time"
 
+	automationTypes "github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
@@ -18,6 +23,10 @@ import (
 	envoyStore "github.com/cortezaproject/corteza-server/pkg/envoy/store"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/yaml"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
+	systemService "github.com/cortezaproject/corteza-server/system/service"
+	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -38,10 +47,22 @@ type (
 		Set    []*namespacePayload   `json:"set"`
 	}
 
+	pageFinder interface {
+		Find(ctx context.Context, filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error)
+	}
+
+	chartFinder interface {
+		Find(ctx context.Context, filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error)
+	}
+
 	Namespace struct {
 		namespace  service.NamespaceService
+		module     service.ModuleService
+		page       pageFinder
+		chart      chartFinder
 		locale     service.ResourceTranslationsManagerService
 		attachment service.AttachmentService
+		role       systemService.RoleService
 		ac         namespaceAccessController
 	}
 
@@ -61,7 +82,11 @@ type (
 func (Namespace) New() *Namespace {
 	return &Namespace{
 		namespace:  service.DefaultNamespace,
+		module:     service.DefaultModule,
+		page:       service.DefaultPage,
+		chart:      service.DefaultChart,
 		locale:     service.DefaultResourceTranslation,
+		role:       systemService.DefaultRole,
 		attachment: service.DefaultAttachment,
 		ac:         service.DefaultAccessControl,
 	}
@@ -213,49 +238,79 @@ func (ctrl Namespace) Clone(ctx context.Context, r *request.NamespaceClone) (int
 	return ctrl.makePayload(ctx, ns, err)
 }
 
-func (ctrl Namespace) Export(ctx context.Context, r *request.NamespaceExport) (interface{}, error) {
+func (ctrl Namespace) Export(ctx context.Context, r *request.NamespaceExport) (out interface{}, err error) {
 	var (
-		// @todo support multiple archive types
-		ext  = "zip"
-		file = fmt.Sprintf("%s.%s", r.Filename, ext)
+		resources resource.InterfaceSet
 	)
 
-	// prepare filters
-	df := envoyStore.NewDecodeFilter()
-
-	// - compose resources
-	df = df.ComposeNamespace(&types.NamespaceFilter{
-		NamespaceID: []uint64{r.NamespaceID},
-	}).
-		ComposeModule(&types.ModuleFilter{}).
-		ComposePage(&types.PageFilter{}).
-		ComposeChart(&types.ChartFilter{})
-
-	// - workflow
-	// @todo how do we want to handle these ones?
-	//       do we handle these ones?
-
-	decoder := func() (resource.InterfaceSet, error) {
-		// get from store
-		sd := envoyStore.Decoder()
-		return sd.Decode(ctx, service.DefaultStore, df)
+	// Prepare resources
+	resources, nsII, err := ctrl.exportCompose(ctx, r.NamespaceID)
+	if err != nil {
+		return
 	}
 
-	encoder := func(nn resource.InterfaceSet) (envoy.Streamer, error) {
-		// prepare for encoding
-		ye := yaml.NewYamlEncoder(&yaml.EncoderConfig{})
-		bld := envoy.NewBuilder(ye)
-		g, err := bld.Build(ctx, nn...)
+	// Tweak exported resources
+	resources = ctrl.tweakExport(ctx, resources, nsII)
+
+	// RBAC
+	auxRBAC, err := ctrl.exportRBAC(ctx, resources)
+	if err != nil {
+		return
+	}
+
+	// Translations
+	auxResTrans, err := ctrl.exportResourceTranslations(ctx, resources)
+	if err != nil {
+		return
+	}
+	resources = append(resources, auxRBAC...)
+	resources = append(resources, auxResTrans...)
+
+	// Encode
+	ye := yaml.NewYamlEncoder(&yaml.EncoderConfig{})
+	bld := envoy.NewBuilder(ye)
+	g, err := bld.Build(ctx, resources...)
+	if err != nil {
+		return nil, err
+	}
+
+	err = envoy.Encode(ctx, g, ye)
+	if err != nil {
+		return
+	}
+
+	// Archive encoded resources
+	buf := bytes.NewBuffer(nil)
+	w := zip.NewWriter(buf)
+
+	var (
+		f  io.Writer
+		bb []byte
+	)
+	for _, s := range ye.Stream() {
+		// @todo generalize when needed
+		f, err = w.Create(fmt.Sprintf("%s.yaml", s.Resource))
 		if err != nil {
-			return nil, err
+			return
 		}
 
-		err = envoy.Encode(ctx, g, ye)
-		return ye, err
+		bb, err = ioutil.ReadAll(s.Source)
+		if err != nil {
+			return
+		}
+
+		_, err = f.Write(bb)
+		if err != nil {
+			return
+		}
 	}
 
-	rs, err := ctrl.namespace.Export(ctx, r.NamespaceID, ext, decoder, encoder)
-	return ctrl.serveExport(ctx, file, rs, err)
+	err = w.Close()
+	if err != nil {
+		return
+	}
+
+	return ctrl.serveExport(ctx, fmt.Sprintf("%s.zip", r.Filename), bytes.NewReader(buf.Bytes()), nil)
 }
 
 func (ctrl Namespace) ImportInit(ctx context.Context, r *request.NamespaceImportInit) (interface{}, error) {
@@ -353,4 +408,182 @@ func (ctrl Namespace) makeFilterPayload(ctx context.Context, nn types.NamespaceS
 	}
 
 	return nsp, nil
+}
+
+func (ctrl Namespace) exportCompose(ctx context.Context, namespaceID uint64) (resources resource.InterfaceSet, nsII resource.Identifiers, err error) {
+	// - namespace
+	n, err := ctrl.namespace.FindByID(ctx, namespaceID)
+	if err != nil {
+		return
+	}
+	nsRes := resource.NewComposeNamespace(n)
+	nsII = nsRes.Identifiers()
+	resources = append(resources, nsRes)
+	// - modules
+	mm, _, err := ctrl.module.Find(ctx, types.ModuleFilter{NamespaceID: n.ID})
+	if err != nil {
+		return
+	}
+	for _, m := range mm {
+		resources = append(resources, resource.NewComposeModule(m, n.Slug))
+	}
+	// - pages
+	pp, _, err := ctrl.page.Find(ctx, types.PageFilter{NamespaceID: n.ID})
+	if err != nil {
+		return
+	}
+	for _, p := range pp {
+		p, modRef, parentRef := resource.UnpackComposePage(p)
+		resources = append(resources, resource.NewComposePage(p, n.Slug, modRef, parentRef))
+	}
+	// - charts
+	cc, _, err := ctrl.chart.Find(ctx, types.ChartFilter{NamespaceID: n.ID})
+	if err != nil {
+		return
+	}
+	for _, c := range cc {
+		refMods := make([]string, 0, 2)
+		for _, r := range c.Config.Reports {
+			refMods = append(refMods, strconv.FormatUint(r.ModuleID, 10))
+		}
+		resources = append(resources, resource.NewComposeChart(c, n.Slug, refMods))
+	}
+
+	return
+}
+
+func (ctrl Namespace) exportRBAC(ctx context.Context, base resource.InterfaceSet) (resources resource.InterfaceSet, err error) {
+	// get all roles; we'll filter as needed later
+	roleIndex := make(map[uint64]*systemTypes.Role)
+	rr, _, err := ctrl.role.Find(ctx, systemTypes.RoleFilter{})
+	if err != nil {
+		return
+	}
+	for _, r := range rr {
+		roleIndex[r.ID] = r
+	}
+
+	// get all rbac rules
+	rules := rbac.Global().Rules()
+
+	// Match up
+	dupRoleIndex := make(map[uint64]bool)
+	dupRuleIndex := make(map[string]bool)
+	for _, res := range base {
+		// Skip if we can't handle
+		res, ok := res.(resource.RBACInterface)
+		if !ok {
+			continue
+		}
+
+		rbacRes, _, _ := res.RBACParts()
+		filteredRules := rules.FilterResource(rbacRes)
+		for _, rule := range filteredRules {
+			k := fmt.Sprintf("%s, %s, %d; %d", rule.Resource, rule.Operation, rule.Access, rule.RoleID)
+			if dupRuleIndex[k] {
+				continue
+			}
+
+			_, ref, pp, err := resource.ParseRule(rule.Resource)
+			if err != nil {
+				return nil, err
+			}
+
+			role, ok := roleIndex[rule.RoleID]
+			if !ok {
+				continue
+			}
+			if !dupRoleIndex[role.ID] {
+				// Add a placeholder role so Envoy can resolve dependencies
+				r := resource.NewRole(role)
+				r.MarkPlaceholder()
+				resources = append(resources, r)
+				dupRoleIndex[role.ID] = true
+			}
+
+			roleRef := role.Handle
+			if roleRef == "" {
+				roleRef = strconv.FormatUint(role.ID, 10)
+			}
+
+			dupRuleIndex[k] = true
+			resources = append(resources, resource.NewRbacRule(
+				rule,
+				roleRef,
+				ref,
+				rule.Resource,
+				pp...,
+			))
+		}
+	}
+
+	return
+}
+
+func (ctrl Namespace) exportResourceTranslations(ctx context.Context, base resource.InterfaceSet) (resources resource.InterfaceSet, err error) {
+	lsvc := locale.Global()
+	tags := lsvc.Tags()
+
+	for _, res := range base {
+		// Skip if we can't handle
+		res, ok := res.(resource.LocaleInterface)
+		if !ok {
+			continue
+		}
+
+		// Collect available resource translations
+		for _, t := range tags {
+			transRes, _, _ := res.ResourceTranslationParts()
+
+			translations := make(systemTypes.ResourceTranslationSet, 0, 4)
+			for _, trans := range locale.Global().ResourceTranslations(t, transRes) {
+				translations = append(translations, systemTypes.FromLocale(locale.ResourceTranslationSet{trans})...)
+			}
+
+			for _, trans := range locale.Global().ResourceTranslations(t, transRes) {
+				_, ref, pp, err := resource.ParseResourceTranslation(trans.Resource)
+				if err != nil {
+					return nil, err
+				}
+
+				resources = append(resources, resource.NewResourceTranslation(
+					translations,
+					ref.Identifiers.First(),
+					ref,
+					pp...,
+				))
+			}
+		}
+	}
+
+	return
+}
+
+func (ctrl Namespace) tweakExport(ctx context.Context, resources resource.InterfaceSet, nsII resource.Identifiers) resource.InterfaceSet {
+	oldNsRef := resource.MakeRef(types.NamespaceResourceType, nsII)
+	prune := resource.RefSet{resource.MakeWildRef(automationTypes.WorkflowResourceType)}
+	ns := resource.FindComposeNamespace(resources, nsII)
+
+	// - remove logo and icon references as attachments are not exported by default
+	// @todo code in attachment exporting, most likely when we do attachment handling rework
+	ns.Meta.Icon = ""
+	ns.Meta.IconID = 0
+	ns.Meta.Logo = ""
+	ns.Meta.LogoID = 0
+	ns.Meta.LogoEnabled = false
+
+	// - prune resources we won't preserve
+	resources.SearchForReferences(oldNsRef).Walk(func(r resource.Interface) error {
+		pp, ok := r.(resource.PrunableInterface)
+		if !ok {
+			return nil
+		}
+
+		for _, p := range prune {
+			pp.Prune(p)
+		}
+		return nil
+	})
+
+	return resources
 }
