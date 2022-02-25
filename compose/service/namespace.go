@@ -2,11 +2,7 @@ package service
 
 import (
 	"archive/zip"
-	"bytes"
 	"context"
-	"fmt"
-	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"reflect"
 	"strconv"
@@ -18,7 +14,6 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/yaml"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
@@ -76,7 +71,6 @@ type (
 		Create(ctx context.Context, namespace *types.Namespace) (*types.Namespace, error)
 		Update(ctx context.Context, namespace *types.Namespace) (*types.Namespace, error)
 		Clone(ctx context.Context, namespaceID uint64, dup *types.Namespace, decoder func() (resource.InterfaceSet, error), encoder func(resource.InterfaceSet) error) (ns *types.Namespace, err error)
-		Export(ctx context.Context, namespaceID uint64, archive string, decoder func() (resource.InterfaceSet, error), encoder func(resource.InterfaceSet) (envoy.Streamer, error)) (r io.ReadSeeker, err error)
 		ImportInit(ctx context.Context, f multipart.File, size int64) (namespaceImportSession, error)
 		ImportRun(ctx context.Context, sessionID uint64, dup *types.Namespace, encoder func(resource.InterfaceSet) error) (ns *types.Namespace, err error)
 		DeleteByID(ctx context.Context, namespaceID uint64) error
@@ -356,99 +350,6 @@ func (svc namespace) Clone(ctx context.Context, namespaceID uint64, dup *types.N
 	}()
 
 	return dup, svc.recordAction(ctx, aProps, NamespaceActionClone, err)
-}
-
-func (svc namespace) Export(ctx context.Context, namespaceID uint64, archive string, decoder func() (resource.InterfaceSet, error), encoder func(resource.InterfaceSet) (envoy.Streamer, error)) (r io.ReadSeeker, err error) {
-	var (
-		aProps = &namespaceActionProps{archiveFormat: archive}
-	)
-
-	// make archive
-	buf := bytes.NewBuffer(nil)
-	w := zip.NewWriter(buf)
-
-	err = func() error {
-		if archive != "zip" {
-			return NamespaceErrUnsupportedExportFormat()
-		}
-
-		// initial validation
-		// - target namespace
-		targetNs, err := store.LookupComposeNamespaceByID(ctx, svc.store, namespaceID)
-		if errors.IsNotFound(err) {
-			return NamespaceErrNotFound()
-		} else if err != nil {
-			return err
-		}
-		aProps.setNamespace(targetNs)
-
-		// - ac
-		if err = svc.canExport(ctx, targetNs); err != nil {
-			return err
-		}
-
-		// get namespace resources
-		nn, err := decoder()
-		if err != nil {
-			return err
-		}
-
-		// some meta bits
-		sNsID := strconv.FormatUint(namespaceID, 10)
-		oldNsRef := resource.MakeRef(types.NamespaceResourceType, resource.MakeIdentifiers(sNsID))
-		prune := resource.RefSet{resource.MakeWildRef(automationTypes.WorkflowResourceType)}
-		ns := resource.FindComposeNamespace(nn, resource.MakeIdentifiers(sNsID))
-
-		// - remove logo and icon references as attachments are not exported by default
-		// @todo code in attachment exporting, most likely when we do attachment handling rework
-		ns.Meta.Icon = ""
-		ns.Meta.IconID = 0
-		ns.Meta.Logo = ""
-		ns.Meta.LogoID = 0
-		ns.Meta.LogoEnabled = false
-
-		// - prune resources we won't preserve
-		nn.SearchForReferences(oldNsRef).Walk(func(r resource.Interface) error {
-			pp, ok := r.(resource.PrunableInterface)
-			if !ok {
-				return nil
-			}
-
-			for _, p := range prune {
-				pp.Prune(p)
-			}
-			return nil
-		})
-
-		// encode
-		ss, err := encoder(nn)
-		if err != nil {
-			return err
-		}
-
-		// create archive
-		for _, s := range ss.Stream() {
-			// @todo generalize when needed
-			f, err := w.Create(fmt.Sprintf("%s.yaml", s.Resource))
-			if err != nil {
-				return err
-			}
-
-			bb, err := ioutil.ReadAll(s.Source)
-			if err != nil {
-				return err
-			}
-
-			_, err = f.Write(bb)
-			if err != nil {
-				return err
-			}
-		}
-
-		return w.Close()
-	}()
-
-	return bytes.NewReader(buf.Bytes()), svc.recordAction(ctx, aProps, NamespaceActionExport, err)
 }
 
 func (svc namespace) ImportInit(ctx context.Context, f multipart.File, size int64) (namespaceImportSession, error) {

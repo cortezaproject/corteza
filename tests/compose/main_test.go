@@ -267,10 +267,15 @@ func grantImportExport(h helper) {
 	helpers.AllowMe(h, types.ComponentRbacResource(), "module.create")
 	helpers.AllowMe(h, types.ComponentRbacResource(), "page.create")
 	helpers.AllowMe(h, types.ComponentRbacResource(), "chart.create")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "modules.search")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "charts.search")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "pages.search")
 	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
 	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read")
 	helpers.AllowMe(h, types.PageRbacResource(0, 0), "read")
 	helpers.AllowMe(h, types.ChartRbacResource(0, 0), "read")
+	helpers.AllowMe(h, sysTypes.ComponentRbacResource(), "roles.search")
+	helpers.AllowMe(h, sysTypes.RoleRbacResource(0), "read")
 }
 
 func namespaceExportSafe(t *testing.T, h helper, namespaceID uint64) []byte {

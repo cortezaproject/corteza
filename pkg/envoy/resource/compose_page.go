@@ -129,6 +129,19 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 	return r
 }
 
+func UnpackComposePage(p *types.Page) (*types.Page, string, string) {
+	modRef := ""
+	parentRef := ""
+	if p.ModuleID != 0 {
+		modRef = strconv.FormatUint(p.ModuleID, 10)
+	}
+	if p.SelfID != 0 {
+		parentRef = strconv.FormatUint(p.SelfID, 10)
+	}
+
+	return p, modRef, parentRef
+}
+
 func (r *ComposePage) Resource() interface{} {
 	return r.Res
 }

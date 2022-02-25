@@ -60,6 +60,17 @@ func (set RuleSet) FilterAccess(a Access) (out RuleSet) {
 	return out
 }
 
+func (set RuleSet) FilterResource(res string) (out RuleSet) {
+	for _, r := range set {
+		if !matchResource(r.Resource, res) {
+			continue
+		}
+		out = append(out, r)
+	}
+
+	return
+}
+
 // AllowRule helper func to create allow rule
 func AllowRule(id uint64, r, o string) *Rule {
 	return &Rule{id, r, o, Allow, false}
