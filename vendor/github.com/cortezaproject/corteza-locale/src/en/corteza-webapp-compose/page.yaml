@@ -44,4 +44,6 @@ reordered: Page reordered
 title: List of Pages
 view: View
 visible: Visible
-deleteDisabled: Remove the sub-pages to delete this page
+delete:
+  rebase: Update parent of sub-pages
+  cascade: Delete sub-pages

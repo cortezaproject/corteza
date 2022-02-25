@@ -1,4 +1,5 @@
 editor:
+  title: Compose settings
   basic:
     attachments:
       max-size: Max size (MB)
@@ -8,4 +9,9 @@ editor:
         description: 'MIME types, separated with ",". Example: "text/plain,text/csv"'
         whitelist: File type whitelist
     title: Basic
-  title: Compose settings
+  ui:
+    title: User interface
+    sidebar:
+      title: Sidebar
+      hide-namespace-list: Hide list of namespaces
+      hide-namespace-list-link: Hide link to list of all namespaces
