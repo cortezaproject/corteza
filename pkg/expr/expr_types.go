@@ -203,7 +203,7 @@ func (t *Unresolved) Assign(interface{}) (err error) {
 }
 
 func CastToAny(val interface{}) (interface{}, error) {
-	return val, nil
+	return UntypedValue(val), nil
 }
 
 func CastToArray(val interface{}) (out []TypedValue, err error) {
