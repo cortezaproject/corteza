@@ -162,7 +162,7 @@ func (ctrl *Module) TriggerScript(ctx context.Context, r *request.ModuleTriggerS
 	}
 
 	// @todo implement same behaviour as we have on record - module+oldModule
-	err = corredor.Service().Exec(ctx, r.Script, event.ModuleOnManual(module, module, namespace))
+	err = corredor.Service().Exec(ctx, r.Script, corredor.ExtendScriptArgs(event.ModuleOnManual(module, module, namespace), r.Args))
 	return ctrl.makePayload(ctx, module, err)
 }
 

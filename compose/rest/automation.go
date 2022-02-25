@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/pkg/api"
 
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
@@ -47,5 +48,5 @@ func (ctrl *Automation) Bundle(ctx context.Context, r *request.AutomationBundle)
 }
 
 func (ctrl *Automation) TriggerScript(ctx context.Context, r *request.AutomationTriggerScript) (interface{}, error) {
-	return api.OK(), corredor.Service().Exec(ctx, r.Script, event.ComposeOnManual())
+	return api.OK(), corredor.Service().Exec(ctx, r.Script, corredor.ExtendScriptArgs(event.ComposeOnManual(), r.Args))
 }
