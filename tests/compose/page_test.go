@@ -1,10 +1,12 @@
 package compose
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"testing"
 	"time"
 
@@ -12,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
+	systemService "github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	"github.com/steinfletcher/apitest-jsonpath"
 	"github.com/stretchr/testify/require"
@@ -281,6 +284,102 @@ func TestPageTreeRead(t *testing.T) {
 		Assert(jsonpath.Equal(`$.response[2].title`, "p3")).
 		Assert(jsonpath.Equal(`$.response[3].title`, "p4")).
 		End()
+}
+
+func TestPageAttachment(t *testing.T) {
+	h := newHelper(t)
+	h.clearPages()
+
+	ns := h.makeNamespace("page attachment testing namespace")
+	page := h.repoMakePage(ns, "some-page")
+
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.PageRbacResource(0, 0), "read", "update")
+
+	xxlBlob := bytes.Repeat([]byte("0"), 1_000_001)
+
+	testImgFh, err := os.ReadFile("./testdata/test.png")
+	h.noError(err)
+
+	defer func() {
+		// reset settings after we're done
+		systemService.CurrentSettings.Compose.Page.Attachments.MaxSize = 0
+		systemService.CurrentSettings.Compose.Page.Attachments.Mimetypes = nil
+	}()
+
+	// one megabyte limit
+	systemService.CurrentSettings.Compose.Page.Attachments.MaxSize = 1
+	systemService.CurrentSettings.Compose.Page.Attachments.Mimetypes = []string{
+		"application/octet-stream",
+	}
+
+	cc := []struct {
+		name  string
+		file  []byte
+		fname string
+		mtype string
+		form  map[string]string
+		test  func(*http.Response, *http.Request) error
+	}{
+		{
+			"empty file",
+			[]byte(""),
+			"empty",
+			"plain/text",
+			map[string]string{},
+			helpers.AssertError("attachment.errors.notAllowedToCreateEmptyAttachment"),
+		},
+		{
+			"no file",
+			nil,
+			"empty",
+			"plain/text",
+			map[string]string{},
+			helpers.AssertError("attachment.errors.notAllowedToCreateEmptyAttachment"),
+		},
+		{
+			"valid upload, no constraints",
+			[]byte("."),
+			"dot",
+			"plain/text",
+			map[string]string{},
+			helpers.AssertNoErrors,
+		},
+		{
+			"global max size - over sized",
+			xxlBlob,
+			"numbers",
+			"plain/text",
+			map[string]string{},
+			helpers.AssertError("attachment.errors.tooLarge"),
+		},
+		{
+			"global mimetype - invalid",
+			testImgFh,
+			"numbers.gif",
+			"image/gif",
+			map[string]string{},
+			helpers.AssertError("attachment.errors.notAllowedToUploadThisType"),
+		},
+	}
+
+	for _, c := range cc {
+		t.Run(c.name, func(t *testing.T) {
+			h.t = t
+
+			helpers.InitFileUpload(t, h.apiInit(),
+				fmt.Sprintf("/namespace/%d/page/%d/attachment", page.NamespaceID, page.ID),
+				c.form,
+				c.file,
+				c.fname,
+				c.mtype,
+			).
+				Status(http.StatusOK).
+				Assert(c.test).
+				End()
+
+		})
+	}
 }
 
 func TestPageLabels(t *testing.T) {

@@ -27,9 +27,10 @@ workflows:
         kind: function
         ref: attachmentCreate
         arguments:
-          - { target: content,  type: String,        expr:  "base64blackGif" }
-          - { target: name,     type: String,        value: "black-from-base64-string.gif" }
-          - { target: resource, type: ComposeRecord, expr:  "attachable" }
+          - { target: content,   type: String,        expr:  "base64blackGif" }
+          - { target: name,      type: String,        value: "black-from-base64-string.gif" }
+          - { target: resource,  type: ComposeRecord, expr:  "attachable" }
+          - { target: fieldName, type: String,        value: "f1" }
         results:
           - { target: storedAttBlackGif, expr: "attachment"  }
 

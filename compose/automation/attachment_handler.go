@@ -13,7 +13,7 @@ import (
 type (
 	attachmentService interface {
 		FindByID(ctx context.Context, namespaceID, attachmentID uint64) (*types.Attachment, error)
-		CreateRecordAttachment(ctx context.Context, namespaceID uint64, name string, size int64, fh io.ReadSeeker, moduleID, recordID uint64) (att *types.Attachment, err error)
+		CreateRecordAttachment(ctx context.Context, namespaceID uint64, name string, size int64, fh io.ReadSeeker, moduleID, recordID uint64, fieldName string) (att *types.Attachment, err error)
 		DeleteByID(ctx context.Context, namespaceID uint64, attachmentID uint64) error
 		OpenOriginal(att *types.Attachment) (io.ReadSeeker, error)
 		OpenPreview(att *types.Attachment) (io.ReadSeeker, error)
@@ -113,6 +113,7 @@ func (h attachmentHandler) create(ctx context.Context, args *attachmentCreateArg
 			fh,
 			args.Resource.ModuleID,
 			args.Resource.ID,
+			args.FieldName,
 		)
 	default:
 		return nil, fmt.Errorf("unknown resource")
