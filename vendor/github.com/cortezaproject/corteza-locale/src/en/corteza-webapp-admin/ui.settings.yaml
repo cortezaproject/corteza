@@ -22,3 +22,29 @@ editor:
       instructions: 'Click or drop favicon file here to upload'
       uploading: 'Uploading favicon'
 
+  topbar:
+    title: Topbar
+
+    general: General
+
+    app-selector:
+      hide: Hide app selector
+    help:
+      title: Help
+      hide: Hide help
+      hide-forum-link: Hide forum link
+      hide-documentation-link: Hide documentation link
+      hide-feedback-link: Hide feedback link
+    profile:
+      title: Profile
+      hide: Hide profile
+      hide-profile-link: Hide profile link
+      hide-change-password-link: Hide change password link
+
+    links:
+      title: Custom links
+      handle: Name
+      invalid-handle-characters: Should be at least 2 characters long and start with a letter. Can contains only letters, numbers, dash, underscore and dots
+      url: URL
+      new-tab: New tab
+

@@ -215,6 +215,9 @@ settings:
   ui:
     fetch:
       error: UI settings fetch failed
+    update:
+      success: UI settings updated
+      error: UI settings update failed
 permissions:
   fetch:
     error: Permissions fetch failed
