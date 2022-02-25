@@ -2,8 +2,9 @@ package expr
 
 import (
 	"encoding/json"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 // extract typed-value
@@ -280,6 +281,19 @@ func TestVars_Omit(t *testing.T) {
 	out, err := omit(&vars, "k1", "k3")
 	req.NoError(err)
 	req.Equal(expected, out)
+}
+
+func TestVarsTypeResolving(t *testing.T) {
+	var (
+		req = require.New(t)
+		v   = &Vars{}
+	)
+
+	req.NoError(v.Set("unr", &Unresolved{value: "wrapped any", typ: "Any"}))
+	req.NoError(v.Set("any", &Any{value: "raw any"}))
+	req.NoError(v.ResolveTypes(func(typ string) Type { return Any{} }))
+	req.Equal("wrapped any", v.value["unr"].Get())
+	req.Equal("raw any", v.value["any"].Get())
 }
 
 func TestVars_UnmarshalJSON(t *testing.T) {
