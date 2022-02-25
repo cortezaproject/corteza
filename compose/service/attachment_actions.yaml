@@ -85,6 +85,10 @@ errors:
     message: "invalid module ID"
     severity: warning
 
+  - error: invalidModuleField
+    message: "invalid module field"
+    severity: warning
+
   - error: invalidPageID
     message: "invalid page ID"
     severity: warning
@@ -92,6 +96,14 @@ errors:
   - error: invalidRecordID
     message: "invalid record ID"
     severity: warning
+
+  - error: tooLarge
+    message: "file too large"
+    log: "could not upload this file, file size too large"
+
+  - error: notAllowedToUploadThisType
+    message: "file type not allowed"
+    log: "could not upload this file, file type not allowed"
 
   - error: notAllowedToListAttachments
     message: "not allowed to list attachments"

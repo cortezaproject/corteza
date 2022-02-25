@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"testing"
 	"time"
@@ -17,6 +18,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
+	systemService "github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	"github.com/steinfletcher/apitest"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
@@ -761,6 +763,172 @@ func TestRecordDelete(t *testing.T) {
 
 	r := h.lookupRecordByID(module, record.ID)
 	h.a.NotNil(r.DeletedAt)
+}
+
+func TestRecordAttachment(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	namespace := h.makeNamespace("record attachment testing namespace")
+
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read", "record.create")
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "read")
+	helpers.AllowMe(h, types.ModuleFieldRbacResource(0, 0, 0), "record.value.read", "record.value.update")
+
+	const maxSizeLimit = 1
+
+	module := h.makeModule(
+		namespace,
+		"module",
+		&types.ModuleField{Name: "no_constraints", Kind: "File"},
+		&types.ModuleField{
+			Name:    "max_size",
+			Kind:    "File",
+			Options: types.ModuleFieldOptions{"maxSize": maxSizeLimit},
+		},
+		&types.ModuleField{
+			Name: "img_only",
+			Kind: "File",
+			Options: types.ModuleFieldOptions{
+				"maxSize":   maxSizeLimit,
+				"mimetypes": "image/gif, image/png, image/jpeg",
+			},
+		},
+		&types.ModuleField{Name: "str", Kind: "String"},
+	)
+
+	xxlBlob := bytes.Repeat([]byte("0"), maxSizeLimit*1_000_000+1)
+
+	testImgFh, err := os.ReadFile("./testdata/test.png")
+	h.noError(err)
+
+	defer func() {
+		// reset settings after we're done
+		systemService.CurrentSettings.Compose.Record.Attachments.MaxSize = 0
+		systemService.CurrentSettings.Compose.Record.Attachments.Mimetypes = nil
+	}()
+
+	systemService.CurrentSettings.Compose.Record.Attachments.MaxSize = maxSizeLimit
+	systemService.CurrentSettings.Compose.Record.Attachments.Mimetypes = []string{
+		"application/octet-stream",
+	}
+
+	cc := []struct {
+		name  string
+		file  []byte
+		fname string
+		mtype string
+		form  map[string]string
+		test  func(*http.Response, *http.Request) error
+	}{
+		{
+			"empty file",
+			[]byte(""),
+			"empty",
+			"plain/text",
+			map[string]string{"fieldName": "no_constraints"},
+			helpers.AssertError("attachment.errors.notAllowedToCreateEmptyAttachment"),
+		},
+		{
+			"no file",
+			nil,
+			"empty",
+			"plain/text",
+			map[string]string{"fieldName": "no_constraints"},
+			helpers.AssertError("attachment.errors.notAllowedToCreateEmptyAttachment"),
+		},
+		{
+			"no field",
+			[]byte("."),
+			"dot",
+			"plain/text",
+			nil,
+			helpers.AssertError("attachment.errors.invalidModuleField"),
+		},
+		{
+			"invalid field",
+			[]byte("."),
+			"dot",
+			"plain/text",
+			map[string]string{"fieldName": "str"},
+			helpers.AssertError("attachment.errors.invalidModuleField"),
+		},
+		{
+			"valid upload, no constraints",
+			[]byte("."),
+			"dot",
+			"plain/text",
+			map[string]string{"fieldName": "no_constraints"},
+			helpers.AssertNoErrors,
+		},
+		{
+			"global max size - over sized",
+			xxlBlob,
+			"numbers",
+			"plain/text",
+			map[string]string{"fieldName": "no_constraints"},
+			helpers.AssertError("attachment.errors.tooLarge"),
+		},
+		{
+			"field max size - ok",
+			[]byte("12345"),
+			"numbers",
+			"plain/text",
+			map[string]string{"fieldName": "max_size"},
+			helpers.AssertNoErrors,
+		},
+		{
+			"field max size - over sized",
+			xxlBlob,
+			"numbers",
+			"plain/text",
+			map[string]string{"fieldName": "max_size"},
+			helpers.AssertError("attachment.errors.tooLarge"),
+		},
+		{
+			"global mimetype - invalid",
+			testImgFh,
+			"numbers.gif",
+			"image/gif",
+			map[string]string{"fieldName": "no_constraints"},
+			helpers.AssertError("attachment.errors.notAllowedToUploadThisType"),
+		},
+		{
+			"field mimetype - ok",
+			testImgFh,
+			"image.png",
+			"image/gif",
+			map[string]string{"fieldName": "img_only"},
+			helpers.AssertNoErrors,
+		},
+		{
+			"field mimetype - invalid",
+			testImgFh,
+			"image.png",
+			"image/gif",
+			map[string]string{"fieldName": "img_only"},
+			helpers.AssertNoErrors,
+		},
+	}
+
+	for _, c := range cc {
+		t.Run(c.name, func(t *testing.T) {
+			h.t = t
+
+			helpers.InitFileUpload(t, h.apiInit(),
+				fmt.Sprintf("/namespace/%d/module/%d/record/attachment", module.NamespaceID, module.ID),
+				c.form,
+				c.file,
+				c.fname,
+				c.mtype,
+			).
+				Status(http.StatusOK).
+				Assert(c.test).
+				End()
+
+		})
+	}
 }
 
 func TestRecordExport(t *testing.T) {

@@ -11,12 +11,13 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
-	"strings"
-	"time"
 )
 
 type (
@@ -781,6 +782,40 @@ func AttachmentErrInvalidModuleID(mm ...*attachmentActionProps) *errors.Error {
 	return e
 }
 
+// AttachmentErrInvalidModuleField returns "compose:attachment.invalidModuleField" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func AttachmentErrInvalidModuleField(mm ...*attachmentActionProps) *errors.Error {
+	var p = &attachmentActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid module field", nil),
+
+		errors.Meta("type", "invalidModuleField"),
+		errors.Meta("resource", "compose:attachment"),
+
+		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.invalidModuleField"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // AttachmentErrInvalidPageID returns "compose:attachment.invalidPageID" as *errors.Error
 //
 //
@@ -839,6 +874,78 @@ func AttachmentErrInvalidRecordID(mm ...*attachmentActionProps) *errors.Error {
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
 		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.invalidRecordID"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// AttachmentErrTooLarge returns "compose:attachment.tooLarge" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func AttachmentErrTooLarge(mm ...*attachmentActionProps) *errors.Error {
+	var p = &attachmentActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("file too large", nil),
+
+		errors.Meta("type", "tooLarge"),
+		errors.Meta("resource", "compose:attachment"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(attachmentLogMetaKey{}, "could not upload this file, file size too large"),
+		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.tooLarge"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// AttachmentErrNotAllowedToUploadThisType returns "compose:attachment.notAllowedToUploadThisType" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func AttachmentErrNotAllowedToUploadThisType(mm ...*attachmentActionProps) *errors.Error {
+	var p = &attachmentActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("file type not allowed", nil),
+
+		errors.Meta("type", "notAllowedToUploadThisType"),
+		errors.Meta("resource", "compose:attachment"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(attachmentLogMetaKey{}, "could not upload this file, file type nto allowed"),
+		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.notAllowedToUploadThisType"),
 
 		errors.StackSkip(1),
 	)

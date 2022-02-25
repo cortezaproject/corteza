@@ -122,6 +122,9 @@ type (
 		hasResource bool
 		Resource    *types.Record
 
+		hasFieldName bool
+		FieldName    string
+
 		hasContent    bool
 		Content       interface{}
 		contentString string
@@ -163,6 +166,10 @@ func (h attachmentHandler) Create() *atypes.Function {
 				Types: []string{"ComposeRecord"}, Required: true,
 			},
 			{
+				Name:  "fieldName",
+				Types: []string{"String"},
+			},
+			{
 				Name:  "content",
 				Types: []string{"String", "Reader", "Bytes"}, Required: true,
 			},
@@ -179,9 +186,10 @@ func (h attachmentHandler) Create() *atypes.Function {
 		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
 			var (
 				args = &attachmentCreateArgs{
-					hasName:     in.Has("name"),
-					hasResource: in.Has("resource"),
-					hasContent:  in.Has("content"),
+					hasName:      in.Has("name"),
+					hasResource:  in.Has("resource"),
+					hasFieldName: in.Has("fieldName"),
+					hasContent:   in.Has("content"),
 				}
 			)
 
