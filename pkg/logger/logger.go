@@ -68,8 +68,15 @@ func Make(opt *options.LogOpt) (logger *zap.Logger, err error) {
 	return logger, nil
 }
 
+// MakeDebugLogger creates a logger
 func MakeDebugLogger() *zap.Logger {
-	return Must(Debug(options.Log()))
+	var (
+		logger = Must(Debug(options.Log()))
+	)
+
+	logger = withStacktraceLevel(logger, "dpanic")
+
+	return logger
 }
 
 // Must is a utility function that panics if given log maker returns an error
