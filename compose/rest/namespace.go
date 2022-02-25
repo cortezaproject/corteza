@@ -318,7 +318,7 @@ func (ctrl *Namespace) TriggerScript(ctx context.Context, r *request.NamespaceTr
 		return
 	}
 
-	err = corredor.Service().Exec(ctx, r.Script, event.NamespaceOnManual(namespace, nil))
+	err = corredor.Service().Exec(ctx, r.Script, corredor.ExtendScriptArgs(event.NamespaceOnManual(namespace, nil), r.Args))
 	return ctrl.makePayload(ctx, namespace, err)
 }
 
