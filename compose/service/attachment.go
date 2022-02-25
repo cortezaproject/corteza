@@ -8,21 +8,30 @@ import (
 	"io"
 	"net/http"
 	"path"
+	"regexp"
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/objstore"
 	"github.com/cortezaproject/corteza-server/store"
+	systemService "github.com/cortezaproject/corteza-server/system/service"
 	"github.com/disintegration/imaging"
 	"github.com/edwvee/exiffix"
-	"github.com/pkg/errors"
 )
 
 const (
 	attachmentPreviewMaxWidth  = 320
 	attachmentPreviewMaxHeight = 180
+
+	// using base 10, it will be less confusing for the non-techie users
+	megabyte = 1_000_000
+)
+
+var (
+	reMimeType = regexp.MustCompile(`\w+/[-.\w]+(?:\+[-.\w]+)?`)
 )
 
 type (
@@ -48,7 +57,7 @@ type (
 		FindByID(ctx context.Context, namespaceID, attachmentID uint64) (*types.Attachment, error)
 		Find(ctx context.Context, filter types.AttachmentFilter) (types.AttachmentSet, types.AttachmentFilter, error)
 		CreatePageAttachment(ctx context.Context, namespaceID uint64, name string, size int64, fh io.ReadSeeker, pageID uint64) (*types.Attachment, error)
-		CreateRecordAttachment(ctx context.Context, namespaceID uint64, name string, size int64, fh io.ReadSeeker, moduleID, recordID uint64) (*types.Attachment, error)
+		CreateRecordAttachment(ctx context.Context, namespaceID uint64, name string, size int64, fh io.ReadSeeker, moduleID, recordID uint64, fieldName string) (*types.Attachment, error)
 		CreateNamespaceAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker) (*types.Attachment, error)
 		OpenOriginal(att *types.Attachment) (io.ReadSeeker, error)
 		OpenPreview(att *types.Attachment) (io.ReadSeeker, error)
@@ -246,8 +255,12 @@ func (svc attachment) CreatePageAttachment(ctx context.Context, namespaceID uint
 		}
 	)
 
-	err = func() error {
-		ns, p, err = loadPage(ctx, svc.store, namespaceID, pageID)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if size == 0 {
+			return AttachmentErrNotAllowedToCreateEmptyAttachment()
+		}
+
+		ns, p, err = loadPage(ctx, s, namespaceID, pageID)
 		if err != nil {
 			return err
 		}
@@ -259,20 +272,43 @@ func (svc attachment) CreatePageAttachment(ctx context.Context, namespaceID uint
 			return AttachmentErrNotAllowedToUpdatePage()
 		}
 
+		{
+			// Verify size and type of the uploaded page attachment
+			// Max size & allowed mime-types are pulled from the current settings
+			var (
+				maxSize      = int64(systemService.CurrentSettings.Compose.Page.Attachments.MaxSize) * megabyte
+				allowedTypes = systemService.CurrentSettings.Compose.Page.Attachments.Mimetypes
+				mimeType     string
+			)
+
+			if maxSize > 0 && maxSize < size {
+				return AttachmentErrTooLarge().Apply(
+					errors.Meta("size", size),
+					errors.Meta("maxSize", maxSize),
+				)
+			}
+
+			if mimeType, err = svc.extractMimetype(fh); err != nil {
+				return err
+			} else if !svc.checkMimeType(mimeType, allowedTypes...) {
+				return AttachmentErrNotAllowedToUploadThisType()
+			}
+		}
+
 		att = &types.Attachment{
 			NamespaceID: namespaceID,
 			Name:        strings.TrimSpace(name),
 			Kind:        types.PageAttachment,
 		}
 
-		return svc.create(ctx, name, size, fh, att)
-	}()
+		return svc.create(ctx, s, name, size, fh, att)
+	})
 
 	return att, svc.recordAction(ctx, aProps, AttachmentActionCreate, err)
 
 }
 
-func (svc attachment) CreateRecordAttachment(ctx context.Context, namespaceID uint64, name string, size int64, fh io.ReadSeeker, moduleID, recordID uint64) (att *types.Attachment, err error) {
+func (svc attachment) CreateRecordAttachment(ctx context.Context, namespaceID uint64, name string, size int64, fh io.ReadSeeker, moduleID, recordID uint64, fieldName string) (att *types.Attachment, err error) {
 	var (
 		ns *types.Namespace
 		m  *types.Module
@@ -286,6 +322,10 @@ func (svc attachment) CreateRecordAttachment(ctx context.Context, namespaceID ui
 	)
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if size == 0 {
+			return AttachmentErrNotAllowedToCreateEmptyAttachment()
+		}
+
 		ns, m, err = loadModuleWithNamespace(ctx, s, namespaceID, moduleID)
 		if err != nil {
 			return err
@@ -320,13 +360,50 @@ func (svc attachment) CreateRecordAttachment(ctx context.Context, namespaceID ui
 			}
 		}
 
+		{
+			// Verify size and type of the uploaded record attachment
+			// Max size & allowed mime-types are pulled from the current settings
+			var (
+				maxSize      = int64(systemService.CurrentSettings.Compose.Record.Attachments.MaxSize) * megabyte
+				allowedTypes = systemService.CurrentSettings.Compose.Record.Attachments.Mimetypes
+				mimeType     string
+			)
+
+			f := m.Fields.FindByName(fieldName)
+			if f == nil || f.Kind != "File" {
+				return AttachmentErrInvalidModuleField().Apply(
+					errors.Meta("fieldName", fieldName),
+				)
+			}
+
+			if aux := f.Options.Int64("maxSize"); aux > 0 {
+				maxSize = aux * megabyte
+			}
+			if aux := f.Options.String("mimetypes"); len(aux) > 0 {
+				allowedTypes = strings.Split(aux, ",")
+			}
+
+			if maxSize > 0 && maxSize < size {
+				return AttachmentErrTooLarge().Apply(
+					errors.Meta("size", size),
+					errors.Meta("maxSize", maxSize),
+				)
+			}
+
+			if mimeType, err = svc.extractMimetype(fh); err != nil {
+				return err
+			} else if !svc.checkMimeType(mimeType, allowedTypes...) {
+				return AttachmentErrNotAllowedToUploadThisType().Apply(errors.Meta("mimetype", mimeType))
+			}
+		}
+
 		att = &types.Attachment{
 			NamespaceID: namespaceID,
 			Name:        strings.TrimSpace(name),
 			Kind:        types.RecordAttachment,
 		}
 
-		return svc.create(ctx, name, size, fh, att)
+		return svc.create(ctx, s, name, size, fh, att)
 	})
 
 	return att, svc.recordAction(ctx, aProps, AttachmentActionCreate, err)
@@ -338,9 +415,34 @@ func (svc attachment) CreateNamespaceAttachment(ctx context.Context, name string
 	)
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if size == 0 {
+			return AttachmentErrNotAllowedToCreateEmptyAttachment()
+		}
 
 		if !svc.ac.CanCreateNamespace(ctx) {
 			return AttachmentErrNotAllowedToUpdateNamespace()
+		}
+
+		{
+			// Verify file size and
+			var (
+				// use max-file-size from page attachments for now
+				maxSize  = int64(systemService.CurrentSettings.Compose.Page.Attachments.MaxSize) * megabyte
+				mimeType string
+			)
+
+			if maxSize > 0 && maxSize < size {
+				return AttachmentErrTooLarge().Apply(
+					errors.Meta("size", size),
+					errors.Meta("maxSize", maxSize),
+				)
+			}
+
+			if mimeType, err = svc.extractMimetype(fh); err != nil {
+				return err
+			} else if !svc.checkMimeType(mimeType, "image/png", "image/gif", "image/jpeg") {
+				return AttachmentErrNotAllowedToUploadThisType()
+			}
 		}
 
 		att = &types.Attachment{
@@ -348,13 +450,15 @@ func (svc attachment) CreateNamespaceAttachment(ctx context.Context, name string
 			Kind: types.NamespaceAttachment,
 		}
 
-		return svc.create(ctx, name, size, fh, att)
+		// @todo limit upload on image/* only!
+
+		return svc.create(ctx, s, name, size, fh, att)
 	})
 
 	return att, svc.recordAction(ctx, aProps, AttachmentActionCreate, err)
 }
 
-func (svc attachment) create(ctx context.Context, name string, size int64, fh io.ReadSeeker, att *types.Attachment) (err error) {
+func (svc attachment) create(ctx context.Context, s store.ComposeAttachments, name string, size int64, fh io.ReadSeeker, att *types.Attachment) (err error) {
 	var (
 		aProps = &attachmentActionProps{}
 	)
@@ -368,7 +472,7 @@ func (svc attachment) create(ctx context.Context, name string, size int64, fh io
 	}
 
 	if svc.objects == nil {
-		return errors.New("cannot create attachment: store handler not set")
+		return errors.Internal("cannot create attachment: store handler not set")
 	}
 
 	if size == 0 {
@@ -399,7 +503,7 @@ func (svc attachment) create(ctx context.Context, name string, size int64, fh io
 		return AttachmentErrFailedToProcessImage(aProps).Wrap(err)
 	}
 
-	if err = store.CreateComposeAttachment(ctx, svc.store, att); err != nil {
+	if err = store.CreateComposeAttachment(ctx, s, att); err != nil {
 		return
 	}
 
@@ -451,7 +555,7 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 	}
 
 	if format, err = imaging.FormatFromExtension(att.Meta.Original.Extension); err != nil {
-		return errors.Wrapf(err, "Could not get format from extension '%s'", att.Meta.Original.Extension)
+		return errors.Internal("could not get format from extension '%s'", att.Meta.Original.Extension).Wrap(err)
 	}
 
 	previewFormat = format
@@ -472,7 +576,7 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 			// Use first image for the preview
 			preview = cfg.Image[0]
 		} else {
-			return errors.Wrapf(err, "Could not decode gif config")
+			return errors.Internal("Could not decode gif config").Wrap(err)
 		}
 
 	} else {
@@ -487,7 +591,7 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 	// other cases are handled here
 	if preview == nil {
 		if preview, err = imaging.Decode(original); err != nil {
-			return errors.Wrapf(err, "Could not decode original image")
+			return errors.Internal("Could not decode original image").Wrap(err)
 		}
 	}
 
@@ -519,6 +623,27 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 	att.PreviewUrl = svc.objects.Preview(att.ID, meta.Extension)
 
 	return svc.objects.Save(att.PreviewUrl, buf)
+}
+
+func (attachment) checkMimeType(test string, vv ...string) bool {
+	if len(vv) == 0 {
+		// return true if there are no type constraints to check against
+		return true
+	}
+
+	for _, v := range vv {
+		v = strings.TrimSpace(v)
+
+		if !reMimeType.MatchString(v) {
+			continue
+		}
+
+		if v == test {
+			return true
+		}
+	}
+
+	return false
 }
 
 var _ AttachmentService = &attachment{}

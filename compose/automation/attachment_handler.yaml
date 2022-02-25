@@ -39,6 +39,10 @@ functions:
         types:
           - { wf: ComposeRecord }
 
+      fieldName:
+        types:
+          - { wf: String }
+
       content:
         required: true
         types:

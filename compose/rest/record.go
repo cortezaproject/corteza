@@ -269,6 +269,7 @@ func (ctrl *Record) Upload(ctx context.Context, r *request.RecordUpload) (interf
 		file,
 		r.ModuleID,
 		r.RecordID,
+		r.FieldName,
 	)
 
 	return makeAttachmentPayload(ctx, a, err)

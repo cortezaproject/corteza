@@ -6,4 +6,4 @@ modules:
   mod1:
     name: Module#1
     fields:
-      f1: { label: 'Field1' }
+      f1: { label: 'Field1', kind: 'File' }
