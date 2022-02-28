@@ -106,14 +106,14 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
 	}
 
-	// Activity log for record
+	// Activity log for compose resources
 	{
-		log := zap.NewNop()
-		if c.Discovery.Debug {
-			log = logger.MakeDebugLogger()
+		l := log
+		if !c.Discovery.Debug {
+			l = zap.NewNop()
 		}
 
-		DefaultResourceActivityLog := discovery.Service(log, c.Discovery, DefaultStore, eventbus.Service())
+		DefaultResourceActivityLog := discovery.Service(l, c.Discovery, DefaultStore, eventbus.Service())
 		err = DefaultResourceActivityLog.InitResourceActivityLog(ctx, []string{
 			(types.Namespace{}).LabelResourceKind(),
 			(types.Module{}).LabelResourceKind(),
