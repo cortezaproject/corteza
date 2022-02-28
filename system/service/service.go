@@ -122,14 +122,14 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
 	}
 
-	// Activity log for user
+	// Activity log for system resources
 	{
-		log := zap.NewNop()
-		if c.Discovery.Debug {
-			log = logger.MakeDebugLogger()
+		l := log
+		if !c.Discovery.Debug {
+			l = zap.NewNop()
 		}
 
-		DefaultResourceActivityLog := discovery.Service(log, c.Discovery, DefaultStore, eventbus.Service())
+		DefaultResourceActivityLog := discovery.Service(l, c.Discovery, DefaultStore, eventbus.Service())
 		err = DefaultResourceActivityLog.InitResourceActivityLog(ctx, []string{
 			//(types.User{}).RbacResource(), // @todo user?? suppose to be system:user
 			"system:user",
