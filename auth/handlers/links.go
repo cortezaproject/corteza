@@ -1,6 +1,9 @@
 package handlers
 
-import "strings"
+import (
+	"regexp"
+	"strings"
+)
 
 type (
 	Links struct {
@@ -49,7 +52,10 @@ type (
 	}
 )
 
-var BasePath string = "/"
+var (
+	invalidLinkChars        = regexp.MustCompile(`[^-A-Za-z0-9+&@#/%?=~_|!:,.;\\(\\)]`)
+	BasePath         string = "/"
+)
 
 func GetLinks() Links {
 	var b = strings.TrimSuffix(BasePath, "/") + "/"
@@ -103,4 +109,8 @@ func tbp(s string) string {
 	}
 
 	return s
+}
+
+func sanitizeLink(l string) string {
+	return invalidLinkChars.ReplaceAllString(l, "")
 }

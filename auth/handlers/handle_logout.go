@@ -22,10 +22,10 @@ func (h *AuthHandlers) logoutProc(req *request.AuthReq) (err error) {
 
 	req.Template = TmplLogout
 
-	if req.Request.FormValue("back") != "" {
-		req.Data["link"] = req.Request.FormValue("back")
-	} else {
-		req.Data["link"] = GetLinks().Login
+	req.Data["link"] = GetLinks().Login
+
+	if bl := req.Request.FormValue("back"); bl != "" {
+		req.Data["link"] = sanitizeLink(bl)
 	}
 
 	return
