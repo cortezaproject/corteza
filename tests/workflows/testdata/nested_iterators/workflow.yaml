@@ -1,0 +1,57 @@
+workflows:
+  nested_iterators:
+    enabled: true
+    trace: true
+    triggers: [ { enabled: true, stepID: 10001 } ]
+
+    steps:
+      ## LEVEL 1
+
+      - stepID: 10001
+        kind: iterator
+        ref: loopDo
+        arguments: [ { target: "while", type: "String", value: "L1 > 0"  }]
+
+      - stepID: 10002
+        kind: expressions
+        arguments: [ { target: "L1", expr: "L1 - 1"  } ]
+
+      ## LEVEL 2
+
+      - stepID: 20001
+        kind: iterator
+        ref: loopDo
+        arguments: [ { target: "while", type: "String", value: "L2 > 0"  }]
+
+      - stepID: 20002
+        kind: expressions
+        arguments: [ { target: "L2", expr: "L2 - 1"  } ]
+
+      - stepID: 20003
+        kind: break
+
+      - stepID: 20009
+        kind: function
+        ref: logInfo
+        arguments: [{ target: "message", expr: '"loop level #2 break; L1:" + L1 + ", L2:" + L2', type: "String" }]
+
+      ## /LEVEL 2
+
+      - stepID: 10009
+        kind: function
+        ref: logInfo
+        arguments: [{ target: "message", expr: '"L1:" + L1 + ", L2:" + L2', type: "String" }]
+
+      ## /LEVEL 1
+
+
+    paths:
+      - { parentID: 10001, childID: 10002 }
+      - { parentID: 10001, childID: 10009 }
+      - { parentID: 10002, childID: 20001 }
+
+      - { parentID: 20001, childID: 20002 }
+      - { parentID: 20002, childID: 20003 }
+      - { parentID: 20001, childID: 20009 }
+
+
