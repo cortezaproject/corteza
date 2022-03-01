@@ -35,7 +35,7 @@ func Test_logoutProc(t *testing.T) {
 	authReq = prepareClientAuthReq(authHandlers, req, user)
 
 	req.PostForm = url.Values{}
-	req.PostForm.Add("back", "/back")
+	req.PostForm.Add("back", "\"><script>alert(origin)</script><\"")
 	authReq.Session.Values = map[interface{}]interface{}{"key": url.Values{"key": []string{"value"}}}
 
 	err := authHandlers.logoutProc(authReq)
@@ -43,6 +43,6 @@ func Test_logoutProc(t *testing.T) {
 	rq.Empty(authReq.Session.Values)
 	rq.Empty(authReq.AuthUser)
 	rq.Empty(authReq.Client)
-	rq.Equal("/back", authReq.Data["link"])
+	rq.Equal("scriptalert(origin)/script", authReq.Data["link"])
 	rq.Equal(TmplLogout, authReq.Template)
 }
