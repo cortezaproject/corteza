@@ -122,7 +122,7 @@ func Test_jsonResponse(t *testing.T) {
 			{
 				name:  "KV response as JSON",
 				expr:  `{"expr": "records", "type": "KV"}`,
-				scope: map[string]string{"foo": "bar", "baz": "bzz"},
+				scope: expr.Must(expr.Any{}.Cast(map[string]string{"foo": "bar", "baz": "bzz"})),
 				exp:   `{"baz":"bzz","foo":"bar"}`,
 			},
 			{
