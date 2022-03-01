@@ -1,0 +1,156 @@
+workflows:
+  kv_expressions:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: expressions
+        arguments: [
+          ## Initialize empty kv
+          { target: aux, type: KV, value: null },
+
+          ## Initialize key and value(string) for set expression
+          { target: testString, type: String, value: "testString" },
+          { target: foo, type: String, value: "testing string" },
+
+          # Evaluate set for KV(1st argument) with string value(3rd argument);
+          #         it will set string value type for given key to KV(out)
+          { target: out, type: KV, expr: "set(aux, testString, foo)" },
+          { target: out, type: KV, expr: "set(out, \"deleteMe\", \"foobar\")" },
+
+          # Evaluate omit for KV(1st argument) for key(Name);
+          #         it will omit values with matching keys from KV(out)
+          { target: out, type: KV, expr: "omit(out, \"deleteMe\")" },
+        ]
+      - stepID: 2
+        kind: termination
+
+    paths:
+      - { parentID: 1, childID: 2 }
+
+  kvv_expressions:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: expressions
+        arguments: [
+          ## Initialize empty kvv
+          { target: aux, type: KVV, expr: "{\"test\": [\"z\", \"y\", \"x\"], \"deleteMe\": [\"foo\", \"bar\"], }" },
+
+          ## Initialize key and value(Array) for set expression
+          { target: testString, type: String, value: "testString" },
+          { target: testArray, type: Any, expr: "[\"foo\", \"bar\"]" },
+
+          # Evaluate set for KVV(1st argument) with []string value(3rd argument);
+          #         it will set []string value for given key to KVV(out)
+          { target: out, type: KVV, expr: "set(aux, testString, testArray)" },
+
+          # Evaluate omit for KVV(1st argument) for key(Name);
+          #         it will omit values with matching keys from KVV(out)
+          { target: out, type: KVV, expr: "omit(out, \"test\", \"deleteMe\")" },
+        ]
+      - stepID: 2
+        kind: termination
+
+    paths:
+      - { parentID: 1, childID: 2 }
+
+  vars_expressions:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: expressions
+        arguments: [
+          ## Initialize empty vars
+          { target: aux, type: Vars, value: null },
+
+          ## Initialize key and value(string) for set expression
+          { target: testString, type: String, value: "testString" },
+          { target: foo, type: String, value: "testing string" },
+
+          # Evaluate set for Vars(1st argument) with string value(3rd argument);
+          #         it will set string value type for given key to Vars(out)
+          { target: out, type: Vars, expr: "set(aux, testString, foo)" },
+
+          ## Initialize key and value(int) for set expression
+          { target: testInt, type: String, value: "testInt" },
+          { target: bar, type: Integer, expr: "40" },
+
+          # Evaluate set for Vars(1st argument) with int value(3rd argument);
+          #         it will set int value type for given key to Vars(out)
+          { target: out, type: Vars, expr: "set(out, testInt, bar)" },
+
+          ## Initialize key and value(Vars) for set expression
+          { target: testVar, type: String, value: "testVar" },
+          { target: foobar, type: Vars, expr: "{\"testString\": \"testing string\", \"testFloat\": 50}" },
+
+          # Evaluate set for Vars(1st argument) with Vars value(3rd argument);
+          #         it will set Vars value type for given key to Vars(out)
+          { target: out, type: Vars, expr: "set(out, testVar, foobar)" },
+
+          ## Evaluate set for constant: `{}`(1st argument) with string value(3rd argument);
+          #         it will set string value type for given key to Vars(outConstStr)
+          { target: outConstStr, type: Vars, expr: "set({}, \"testConstKey\", \"testConstValue\")" },
+
+          ## Evaluate set for constant value(1st argument) with int value(3rd argument);
+          #         it will set int value type for given key to Vars(outConstInt)
+          { target: outConstInt, type: Vars, expr: "set({}, testInt, bar)" },
+
+          # Evaluate omit for Vars(1st argument) for keys;
+          #         it will omit values matching keys from Vars(outConstInt)
+          { target: outConstInt, type: Vars, expr: "omit(outConstInt, testInt)" },
+        ]
+      - stepID: 2
+        kind: termination
+
+    paths:
+      - { parentID: 1, childID: 2 }
+
+  compose_record_values_expressions:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: expressions
+        arguments: [
+          ## Initialize rv(ComposeRecordValues) and key for set expression
+          { target: rv, type: ComposeRecordValues, expr: "{}" },
+          { target: testRv, type: String, value: "testRv" },
+          { target: foo, type: String, value: "testing string" },
+
+          # Evaluate set for ComposeRecordValues(1st argument) with string value(3rd argument);
+          #         it will set string value for given key(Name) to ComposeRecordValues(outRv)
+          { target: out, type: ComposeRecordValues, expr: "set(rv, testRv, foo)" },
+
+          # Evaluate set for ComposeRecordValues(1st argument) with float value(3rd argument);
+          #         it will set float value for given key(Name) to ComposeRecordValues(outRv)
+          { target: out, type: ComposeRecordValues, expr: "set(out, \"testFloat\", 50)" },
+          { target: out, type: ComposeRecordValues, expr: "set(out, \"removeMe\", \"I will be removed\")" },
+
+          # Evaluate omit for ComposeRecordValues(1st argument) for key(Name);
+          #         it will omit values matching Name from ComposeRecordValues(outRv)
+          { target: out, type: ComposeRecordValues, expr: "omit(out, \"testRv\", \"removeMe\")" },
+        ]
+      - stepID: 2
+        kind: termination
+
+    paths:
+      - { parentID: 1, childID: 2 }

@@ -463,12 +463,12 @@ func CastToUnsignedInteger(val interface{}) (out uint64, err error) {
 }
 
 func (t *KV) Has(k string) bool {
-	_, has := t.value[k]
-	return has
+	_, is := t.value[k]
+	return is
 }
 
 func (t *KV) Select(k string) (TypedValue, error) {
-	if v, has := t.value[k]; has {
+	if v, is := t.value[k]; is {
 		return Must(NewString(v)), nil
 	} else {
 		return nil, errors.NotFound("no such key '%s'", k)
@@ -504,8 +504,28 @@ func CastToKV(val interface{}) (out map[string]string, err error) {
 	}
 }
 
+func (t *KV) SelectGVal(_ context.Context, k string) (interface{}, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
+	val, err := t.Select(k)
+	switch c := val.(type) {
+	case gval.Selector:
+		return c, nil
+	default:
+		return UntypedValue(val), err
+	}
+}
+
 func (t *KV) Each(fn func(k string, v TypedValue) error) (err error) {
-	if t == nil || t.value == nil {
+	if t == nil {
+		return nil
+	}
+
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
+	if t.value == nil {
 		return
 	}
 
@@ -527,9 +547,14 @@ func (t *KV) Each(fn func(k string, v TypedValue) error) (err error) {
 // Merge combines the given KVs into KV
 // NOTE: It will return CLONE of the original KV, if its called without any parameters
 func (t *KV) Merge(nn ...Iterator) (out TypedValue, err error) {
-	kv := EmptyKV()
+	if t != nil {
+		t.mux.RLock()
+		defer t.mux.RUnlock()
 
-	nn = append([]Iterator{t}, nn...)
+		nn = append([]Iterator{t}, nn...)
+	}
+
+	kv := EmptyKV()
 
 	for _, i := range nn {
 		err = i.Each(func(k string, v TypedValue) error {
@@ -547,9 +572,13 @@ func (t *KV) Merge(nn ...Iterator) (out TypedValue, err error) {
 
 // Filter take keys returns KV with only those key value pair
 func (t *KV) Filter(keys ...string) (out TypedValue, err error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	if t.value == nil {
 		return
 	}
+
 	kv := EmptyKV()
 
 	for _, k := range keys {
@@ -564,6 +593,9 @@ func (t *KV) Filter(keys ...string) (out TypedValue, err error) {
 
 // Delete take keys returns KV without those key value pair
 func (t *KV) Delete(keys ...string) (out TypedValue, err error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	if t.value == nil {
 		return
 	}
@@ -702,8 +734,36 @@ func CastToUrl(val interface{}) (out *url.URL, err error) {
 	}
 }
 
+func (t *KVV) Select(k string) (TypedValue, error) {
+	if v, is := t.value[k]; is {
+		return Must(Typify(v)), nil
+	} else {
+		return nil, errors.NotFound("no such key '%s'", k)
+	}
+}
+
+func (t *KVV) SelectGVal(_ context.Context, k string) (interface{}, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
+	val, err := t.Select(k)
+	switch c := val.(type) {
+	case gval.Selector:
+		return c, nil
+	default:
+		return UntypedValue(val), err
+	}
+}
+
 func (t *KVV) Each(fn func(k string, v TypedValue) error) (err error) {
-	if t == nil || t.value == nil {
+	if t == nil {
+		return
+	}
+
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
+	if t.value == nil {
 		return
 	}
 
@@ -725,19 +785,25 @@ func (t *KVV) Each(fn func(k string, v TypedValue) error) (err error) {
 // Merge combines the given KVVs into KVV
 // NOTE: It will return CLONE of the original KVV, if its called without any parameters
 func (t *KVV) Merge(nn ...Iterator) (out TypedValue, err error) {
-	kvv := EmptyKVV()
+	if t != nil {
+		t.mux.RLock()
+		defer t.mux.RUnlock()
 
-	nn = append([]Iterator{t}, nn...)
+		nn = append([]Iterator{t}, nn...)
+	}
+
+	kvv := EmptyKVV()
 
 	for _, i := range nn {
 		err = i.Each(func(k string, v TypedValue) error {
-			ss, err := cast.ToStringSliceE(v.Get())
+			var ss []string
+			ss, err = cast.ToStringSliceE(v.Get())
 			if err != nil {
 				return err
 			}
 
-			_, has := kvv.value[k]
-			if has {
+			_, is := kvv.value[k]
+			if is {
 				kvv.value[k] = append(kvv.value[k], ss...)
 			} else {
 				kvv.value[k] = ss
@@ -754,9 +820,13 @@ func (t *KVV) Merge(nn ...Iterator) (out TypedValue, err error) {
 
 // Filter take keys returns KVV with only those key value pair
 func (t *KVV) Filter(keys ...string) (out TypedValue, err error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	if t.value == nil {
 		return
 	}
+
 	kvv := EmptyKVV()
 
 	for _, k := range keys {
@@ -771,6 +841,9 @@ func (t *KVV) Filter(keys ...string) (out TypedValue, err error) {
 
 // Delete take keys returns KVV without those key value pair
 func (t *KVV) Delete(keys ...string) (out TypedValue, err error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	if t.value == nil {
 		return
 	}

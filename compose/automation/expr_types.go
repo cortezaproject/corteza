@@ -585,6 +585,42 @@ func (t *ComposeRecordValues) Merge(nn ...expr.Iterator) (out expr.TypedValue, e
 	return rv, nil
 }
 
+func (t *ComposeRecordValues) Filter(keys ...string) (out expr.TypedValue, err error) {
+	if t.IsEmpty() {
+		return
+	}
+
+	// get cloned ComposeRecordValues
+	out, err = t.Merge()
+	if err != nil {
+		return
+	}
+
+	rv := out.(*ComposeRecordValues)
+	if !rv.IsEmpty() {
+		rv.value.Values = types.RecordValueSet{}
+	}
+
+	keyMap := make(map[string]string)
+	for _, k := range keys {
+		keyMap[k] = k
+	}
+
+	// Push the only with values with matching Name
+	for _, val := range t.GetValue() {
+		_, ok := keyMap[val.Name]
+		if ok {
+			rr := rv.GetValue().Set(val.Clone())
+			err = rv.Assign(rr)
+			if err != nil {
+				return out, err
+			}
+		}
+	}
+
+	return rv, nil
+}
+
 func (t *ComposeRecordValues) Delete(keys ...string) (out expr.TypedValue, err error) {
 	if t.IsEmpty() {
 		return
