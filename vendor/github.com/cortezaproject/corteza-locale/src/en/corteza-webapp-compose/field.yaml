@@ -1,5 +1,6 @@
 defaultFieldValue: Default field value
 defaultValue: Default value
+required-field: This field is required
 kind:
   bool:
     checkedValueLabel: Value when checked
