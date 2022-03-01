@@ -31,16 +31,6 @@
 			{{ if .Current }}
                 <h5>{{ tr "sessions.template.list.current" }}</h5>
 			{{ end }}
-            {{ if not .Current }}
-                <button
-                    type="submit"
-                    name="delete"
-                    value="{{ .ID }}"
-                    class="btn btn-sm btn-link text-danger float-right"
-                >
-                    {{ tr "sessions.template.list.delete" }}
-                </button>
-            {{ end }}
 			<label class="mb-0 d-block">{{ tr "sessions.template.list.authorized-on" }}</label>
 			<p class="w-75 d-inline-block">
                 <time datetime="{{ .CreatedAt }}">{{ .CreatedAt | date "Mon, 02 Jan 2006 15:04 MST" }}</time>

@@ -58,6 +58,7 @@ func (h *AuthHandlers) sessionsView(req *request.AuthReq) error {
 }
 
 func (h *AuthHandlers) sessionsProc(req *request.AuthReq) error {
+	ctx := req.Context()
 	ss, err := h.getSessions(req)
 	if err != nil {
 		return err
@@ -70,9 +71,14 @@ func (h *AuthHandlers) sessionsProc(req *request.AuthReq) error {
 				continue
 			}
 
-			if err = h.SessionManager.DeleteByID(req.Context(), s.id); err != nil {
+			if err = h.SessionManager.DeleteByID(ctx, s.id); err != nil {
 				return err
 			}
+		}
+
+		err = h.TokenService.DeleteByUserID(ctx, req.AuthUser.User.ID)
+		if err != nil {
+			return err
 		}
 
 		t := translator(req, "auth")
@@ -86,7 +92,7 @@ func (h *AuthHandlers) sessionsProc(req *request.AuthReq) error {
 				continue
 			}
 
-			if err = h.SessionManager.DeleteByID(req.Context(), s.id); err != nil {
+			if err = h.SessionManager.DeleteByID(ctx, s.id); err != nil {
 				return err
 			}
 		}
