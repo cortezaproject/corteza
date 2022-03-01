@@ -22,6 +22,7 @@ import (
 	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
 	systemService "github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	oauth2def "github.com/go-oauth2/oauth2/v4"
@@ -38,7 +39,6 @@ func (h AuthHandlers) oauth2Authorize(req *request.AuthReq) (err error) {
 		h.Log.Debug("restarting oauth2 authorization flow", zap.Any("params", req.Request.Form))
 	} else {
 		h.Log.Debug("starting new oauth2 authorization flow", zap.Any("params", req.Request.Form))
-
 	}
 
 	request.SetOauth2AuthParams(req.Session, nil)
@@ -353,6 +353,14 @@ func (h AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.Aut
 		return h.tokenError(w, err)
 	}
 
+	// Manually set the impersonating user & roles when client credentials
+	if gt == oauth2def.ClientCredentials {
+		tgr.UserID = strings.Join(
+			append([]string{strconv.FormatUint(client.Security.ImpersonateUser, 10)}, client.Security.ForcedRoles...),
+			" ",
+		)
+	}
+
 	ti, err := h.OAuth2.GetAccessToken(ctx, gt, tgr)
 	if err != nil {
 		return h.tokenError(w, err)
@@ -397,9 +405,24 @@ func (h AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.Aut
 		scope  = strings.Split(ti.GetScope(), " ")
 	)
 
+	// Here set roles to signed
 	signed, err = auth.TokenIssuer.Sign(
 		auth.WithAccessToken(ti.GetAccess()),
 		auth.WithIdentity(user),
+		func(tr *auth.TokenRequest) error {
+			// Calculate user's roles
+			roles := user.Roles()
+			if client.Security != nil {
+				roles = auth.ApplyRoleSecurity(
+					payload.ParseUint64s(client.Security.PermittedRoles),
+					payload.ParseUint64s(client.Security.ProhibitedRoles),
+					payload.ParseUint64s(client.Security.ForcedRoles),
+					roles...,
+				)
+			}
+			tr.Roles = roles
+			return nil
+		},
 		auth.WithClientID(client.ID),
 		auth.WithScope(scope...),
 	)
