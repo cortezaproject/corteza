@@ -11,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/store"
@@ -36,7 +37,7 @@ type (
 
 	ResourceTranslationsManagerService interface {
 {{- range .resources }}
-		{{ .expIdent }}(ctx context.Context, {{ range .references }}{{ . }} uint64, {{ end }}) (locale.ResourceTranslationSet, error)
+		{{ .expIdent }}(ctx context.Context, {{ range .references }}{{ .param }} uint64, {{ end }}) (locale.ResourceTranslationSet, error)
 {{- end }}
 
 		Upsert(context.Context, locale.ResourceTranslationSet) error
@@ -85,6 +86,7 @@ func (svc resourceTranslationsManager) Upsert(ctx context.Context, rr locale.Res
 	for res, rr := range localeByRes {
 		current, _, err := store.SearchResourceTranslations(ctx, svc.store, systemTypes.ResourceTranslationFilter{
 			Resource: res,
+			Deleted:  filter.StateInclusive,
 		})
 		if err != nil {
 			return err
@@ -101,13 +103,27 @@ func (svc resourceTranslationsManager) Upsert(ctx context.Context, rr locale.Res
 		})
 		sysLocale = append(sysLocale, aux...)
 
-		aux = current.Old(rr)
-		_ = aux.Walk(func(cc *systemTypes.ResourceTranslation) error {
-			cc.UpdatedAt = now()
-			cc.UpdatedBy = me.Identity()
-			return nil
-		})
-		sysLocale = append(sysLocale, aux...)
+		for _, diff := range current.Old(rr) {
+			old := diff[0]
+			new := diff[1]
+
+			// soft delete; restore old message
+			if new.Message == "" {
+				new.Message = old.Message
+				if new.DeletedAt == nil {
+					new.DeletedAt = now()
+					new.DeletedBy = me.Identity()
+				}
+			} else {
+				new.UpdatedAt = now()
+				new.UpdatedBy = me.Identity()
+
+				new.DeletedAt = nil
+				new.DeletedBy = 0
+			}
+
+			sysLocale = append(sysLocale, new)
+		}
 	}
 
 	err = store.UpsertResourceTranslation(ctx, svc.store, sysLocale...)
@@ -128,7 +144,7 @@ func (svc resourceTranslationsManager) Locale() locale.Resource {
 
 {{- range .resources }}
 
-func (svc resourceTranslationsManager) {{ .expIdent }}(ctx context.Context, {{ range .references }}{{ . }} uint64, {{ end }}) (locale.ResourceTranslationSet, error) {
+func (svc resourceTranslationsManager) {{ .expIdent }}(ctx context.Context, {{ range .references }}{{ .param }} uint64, {{ end }}) (locale.ResourceTranslationSet, error) {
 	var (
 		err       error
 		out       locale.ResourceTranslationSet
@@ -136,7 +152,7 @@ func (svc resourceTranslationsManager) {{ .expIdent }}(ctx context.Context, {{ r
 		k         types.LocaleKey
 	)
 
-	res, err = svc.load{{ .expIdent }}(ctx, svc.store, {{ range .references }}{{ . }}, {{ end }})
+	res, err = svc.load{{ .expIdent }}(ctx, svc.store, {{ range .references }}{{ .param }}, {{ end }})
 	if err != nil {
 		return nil, err
 	}

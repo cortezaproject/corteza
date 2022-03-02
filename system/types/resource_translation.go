@@ -92,13 +92,16 @@ outer:
 	return
 }
 
-func (set ResourceTranslationSet) Old(bb locale.ResourceTranslationSet) (out ResourceTranslationSet) {
+func (set ResourceTranslationSet) Old(bb locale.ResourceTranslationSet) (out [][2]*ResourceTranslation) {
 	for _, b := range bb {
 		for _, a := range set {
 			// It's not new
 			if a.Compare(b) {
-				a.Message = b.Msg
-				out = append(out, a)
+				aux := *a
+				aux.Message = b.Msg
+
+				// old, new
+				out = append(out, [2]*ResourceTranslation{a, &aux})
 				break
 			}
 		}
