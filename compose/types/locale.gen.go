@@ -89,13 +89,11 @@ func (r *Module) DecodeTranslations(tt locale.ResourceTranslationIndex) {
 func (r *Module) EncodeTranslations() (out locale.ResourceTranslationSet) {
 	out = locale.ResourceTranslationSet{}
 
-	if r.Name != "" {
-		out = append(out, &locale.ResourceTranslation{
-			Resource: r.ResourceTranslation(),
-			Key:      LocaleKeyModuleName.Path,
-			Msg:      locale.SanitizeMessage(r.Name),
-		})
-	}
+	out = append(out, &locale.ResourceTranslation{
+		Resource: r.ResourceTranslation(),
+		Key:      LocaleKeyModuleName.Path,
+		Msg:      locale.SanitizeMessage(r.Name),
+	})
 
 	return out
 }
@@ -153,13 +151,11 @@ func (r *ModuleField) DecodeTranslations(tt locale.ResourceTranslationIndex) {
 func (r *ModuleField) EncodeTranslations() (out locale.ResourceTranslationSet) {
 	out = locale.ResourceTranslationSet{}
 
-	if r.Label != "" {
-		out = append(out, &locale.ResourceTranslation{
-			Resource: r.ResourceTranslation(),
-			Key:      LocaleKeyModuleFieldLabel.Path,
-			Msg:      locale.SanitizeMessage(r.Label),
-		})
-	}
+	out = append(out, &locale.ResourceTranslation{
+		Resource: r.ResourceTranslation(),
+		Key:      LocaleKeyModuleFieldLabel.Path,
+		Msg:      locale.SanitizeMessage(r.Label),
+	})
 
 	out = append(out, r.encodeTranslationsMetaDescriptionView()...)
 
@@ -222,29 +218,23 @@ func (r *Namespace) DecodeTranslations(tt locale.ResourceTranslationIndex) {
 func (r *Namespace) EncodeTranslations() (out locale.ResourceTranslationSet) {
 	out = locale.ResourceTranslationSet{}
 
-	if r.Name != "" {
-		out = append(out, &locale.ResourceTranslation{
-			Resource: r.ResourceTranslation(),
-			Key:      LocaleKeyNamespaceName.Path,
-			Msg:      locale.SanitizeMessage(r.Name),
-		})
-	}
+	out = append(out, &locale.ResourceTranslation{
+		Resource: r.ResourceTranslation(),
+		Key:      LocaleKeyNamespaceName.Path,
+		Msg:      locale.SanitizeMessage(r.Name),
+	})
 
-	if r.Meta.Subtitle != "" {
-		out = append(out, &locale.ResourceTranslation{
-			Resource: r.ResourceTranslation(),
-			Key:      LocaleKeyNamespaceMetaSubtitle.Path,
-			Msg:      locale.SanitizeMessage(r.Meta.Subtitle),
-		})
-	}
+	out = append(out, &locale.ResourceTranslation{
+		Resource: r.ResourceTranslation(),
+		Key:      LocaleKeyNamespaceMetaSubtitle.Path,
+		Msg:      locale.SanitizeMessage(r.Meta.Subtitle),
+	})
 
-	if r.Meta.Description != "" {
-		out = append(out, &locale.ResourceTranslation{
-			Resource: r.ResourceTranslation(),
-			Key:      LocaleKeyNamespaceMetaDescription.Path,
-			Msg:      locale.SanitizeMessage(r.Meta.Description),
-		})
-	}
+	out = append(out, &locale.ResourceTranslation{
+		Resource: r.ResourceTranslation(),
+		Key:      LocaleKeyNamespaceMetaDescription.Path,
+		Msg:      locale.SanitizeMessage(r.Meta.Description),
+	})
 
 	return out
 }
@@ -294,21 +284,17 @@ func (r *Page) DecodeTranslations(tt locale.ResourceTranslationIndex) {
 func (r *Page) EncodeTranslations() (out locale.ResourceTranslationSet) {
 	out = locale.ResourceTranslationSet{}
 
-	if r.Title != "" {
-		out = append(out, &locale.ResourceTranslation{
-			Resource: r.ResourceTranslation(),
-			Key:      LocaleKeyPageTitle.Path,
-			Msg:      locale.SanitizeMessage(r.Title),
-		})
-	}
+	out = append(out, &locale.ResourceTranslation{
+		Resource: r.ResourceTranslation(),
+		Key:      LocaleKeyPageTitle.Path,
+		Msg:      locale.SanitizeMessage(r.Title),
+	})
 
-	if r.Description != "" {
-		out = append(out, &locale.ResourceTranslation{
-			Resource: r.ResourceTranslation(),
-			Key:      LocaleKeyPageDescription.Path,
-			Msg:      locale.SanitizeMessage(r.Description),
-		})
-	}
+	out = append(out, &locale.ResourceTranslation{
+		Resource: r.ResourceTranslation(),
+		Key:      LocaleKeyPageDescription.Path,
+		Msg:      locale.SanitizeMessage(r.Description),
+	})
 
 	out = append(out, r.encodeTranslations()...)
 

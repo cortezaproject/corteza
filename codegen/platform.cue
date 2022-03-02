@@ -13,6 +13,7 @@ platform: [...schema.#codegen] &
 	rbacAccessControl+
 	rbacTypes+
 	localeTypes+
+	localeService+
 	envoyRBAC+
 	options+
 	[] // placeholder

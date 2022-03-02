@@ -100,13 +100,11 @@ func (r *{{ .expIdent }}) EncodeTranslations() (out locale.ResourceTranslationSe
 			out = append(out, r.{{ .encodeFunc }}()...)
 			{{- end}}
 		{{ else }}
-		if r.{{ .fieldPath }} != "" {
-			out = append(out, &locale.ResourceTranslation{
-				Resource: r.ResourceTranslation(),
-				Key:      {{ .struct }}.Path,
-				Msg:      locale.SanitizeMessage(r.{{ .fieldPath }}),
-			})
-		}
+		out = append(out, &locale.ResourceTranslation{
+			Resource: r.ResourceTranslation(),
+			Key:      {{ .struct }}.Path,
+			Msg:      locale.SanitizeMessage(r.{{ .fieldPath }}),
+		})
 		{{- end}}
 	{{- end}}
 

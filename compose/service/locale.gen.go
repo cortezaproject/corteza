@@ -12,6 +12,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/store"
@@ -36,9 +37,9 @@ type (
 	}
 
 	ResourceTranslationsManagerService interface {
-		Module(ctx context.Context, NamespaceID uint64, ID uint64) (locale.ResourceTranslationSet, error)
-		Namespace(ctx context.Context, ID uint64) (locale.ResourceTranslationSet, error)
-		Page(ctx context.Context, NamespaceID uint64, ID uint64) (locale.ResourceTranslationSet, error)
+		Module(ctx context.Context, namespaceID uint64, id uint64) (locale.ResourceTranslationSet, error)
+		Namespace(ctx context.Context, id uint64) (locale.ResourceTranslationSet, error)
+		Page(ctx context.Context, namespaceID uint64, id uint64) (locale.ResourceTranslationSet, error)
 
 		Upsert(context.Context, locale.ResourceTranslationSet) error
 		Locale() locale.Resource
@@ -86,6 +87,7 @@ func (svc resourceTranslationsManager) Upsert(ctx context.Context, rr locale.Res
 	for res, rr := range localeByRes {
 		current, _, err := store.SearchResourceTranslations(ctx, svc.store, systemTypes.ResourceTranslationFilter{
 			Resource: res,
+			Deleted:  filter.StateInclusive,
 		})
 		if err != nil {
 			return err
@@ -104,8 +106,16 @@ func (svc resourceTranslationsManager) Upsert(ctx context.Context, rr locale.Res
 
 		aux = current.Old(rr)
 		_ = aux.Walk(func(cc *systemTypes.ResourceTranslation) error {
-			cc.UpdatedAt = now()
-			cc.UpdatedBy = me.Identity()
+			if cc.Message == "" {
+				cc.DeletedAt = now()
+				cc.DeletedBy = me.Identity()
+			} else {
+				cc.UpdatedAt = now()
+				cc.UpdatedBy = me.Identity()
+
+				cc.DeletedAt = nil
+				cc.DeletedBy = 0
+			}
 			return nil
 		})
 		sysLocale = append(sysLocale, aux...)
@@ -127,7 +137,7 @@ func (svc resourceTranslationsManager) Locale() locale.Resource {
 	return svc.locale
 }
 
-func (svc resourceTranslationsManager) Module(ctx context.Context, NamespaceID uint64, ID uint64) (locale.ResourceTranslationSet, error) {
+func (svc resourceTranslationsManager) Module(ctx context.Context, namespaceID uint64, id uint64) (locale.ResourceTranslationSet, error) {
 	var (
 		err error
 		out locale.ResourceTranslationSet
@@ -135,7 +145,7 @@ func (svc resourceTranslationsManager) Module(ctx context.Context, NamespaceID u
 		k   types.LocaleKey
 	)
 
-	res, err = svc.loadModule(ctx, svc.store, NamespaceID, ID)
+	res, err = svc.loadModule(ctx, svc.store, namespaceID, id)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +164,7 @@ func (svc resourceTranslationsManager) Module(ctx context.Context, NamespaceID u
 	return out, nil
 }
 
-func (svc resourceTranslationsManager) Namespace(ctx context.Context, ID uint64) (locale.ResourceTranslationSet, error) {
+func (svc resourceTranslationsManager) Namespace(ctx context.Context, id uint64) (locale.ResourceTranslationSet, error) {
 	var (
 		err error
 		out locale.ResourceTranslationSet
@@ -162,7 +172,7 @@ func (svc resourceTranslationsManager) Namespace(ctx context.Context, ID uint64)
 		k   types.LocaleKey
 	)
 
-	res, err = svc.loadNamespace(ctx, svc.store, ID)
+	res, err = svc.loadNamespace(ctx, svc.store, id)
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +207,7 @@ func (svc resourceTranslationsManager) Namespace(ctx context.Context, ID uint64)
 	return out, nil
 }
 
-func (svc resourceTranslationsManager) Page(ctx context.Context, NamespaceID uint64, ID uint64) (locale.ResourceTranslationSet, error) {
+func (svc resourceTranslationsManager) Page(ctx context.Context, namespaceID uint64, id uint64) (locale.ResourceTranslationSet, error) {
 	var (
 		err error
 		out locale.ResourceTranslationSet
@@ -205,7 +215,7 @@ func (svc resourceTranslationsManager) Page(ctx context.Context, NamespaceID uin
 		k   types.LocaleKey
 	)
 
-	res, err = svc.loadPage(ctx, svc.store, NamespaceID, ID)
+	res, err = svc.loadPage(ctx, svc.store, namespaceID, id)
 	if err != nil {
 		return nil, err
 	}
