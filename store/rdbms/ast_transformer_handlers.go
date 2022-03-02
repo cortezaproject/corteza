@@ -9,7 +9,11 @@ import (
 )
 
 func (t *astTransformer) handleSymbol(n *qlng.ASTNode) (string, []interface{}, error) {
-	return n.Symbol, nil, nil
+	s := n.Symbol
+	if t.onSymbol != nil {
+		s = t.onSymbol(s)
+	}
+	return s, nil, nil
 }
 
 func (t *astTransformer) handleValue(n *qlng.ASTNode) (string, []interface{}, error) {

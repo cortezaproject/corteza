@@ -11,6 +11,7 @@ type (
 		placeholders bool
 		root         *qlng.ASTNode
 		custom       []ASTFormatterFn
+		onSymbol     func(s string) string
 	}
 
 	// FormattedASTArgs is a temporary storage for already handled nested arguments

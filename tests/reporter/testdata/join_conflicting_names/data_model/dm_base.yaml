@@ -1,0 +1,57 @@
+namespaces:
+  ns:
+    name: ns name
+
+modules:
+  aa:
+    records:
+      source: aa.csv
+      key: id
+      mapping:
+        id: /
+        pk:
+          field: pk
+        group:
+          field: group
+        label:
+          field: label
+
+    fields:
+      pk:
+        label: pk label
+        kind: String
+      group:
+        label: group label
+        kind: String
+      label:
+        label: label label
+        kind: String
+
+  bb:
+    records:
+      source: bb.csv
+      key: id
+      mapping:
+        id: /
+        pk:
+          field: pk
+        fk_a:
+          field: fk_a
+        group:
+          field: group
+        label:
+          field: label
+
+    fields:
+      pk:
+        label: pk label
+        kind: String
+      fk_a:
+        label: fk_a label
+        kind: String
+      group:
+        label: group label
+        kind: String
+      label:
+        label: label label
+        kind: String

@@ -105,6 +105,12 @@ func (r *recordDatasource) Load(ctx context.Context, dd ...*report.FrameDefiniti
 	return r.load(ctx, def, q)
 }
 
+func (r *recordDatasource) prepASTTransformer(node *qlng.ASTNode) *astTransformer {
+	tr := r.store.ASTTransformer(node)
+	tr.onSymbol = wrapCol
+	return tr
+}
+
 // Group instructs the datasource to provide grouped and aggregated output
 func (r *recordDatasource) Group(d report.GroupDefinition, name string) (bool, error) {
 	defer func() {
@@ -141,7 +147,7 @@ func (r *recordDatasource) Group(d report.GroupDefinition, name string) (bool, e
 		}
 
 		// AST transformation tasks
-		tr := r.store.ASTTransformer(k.Def.ASTNode)
+		tr := r.prepASTTransformer(k.Def.ASTNode)
 		outType, err := tr.Analyze(auxLevelColumns)
 		if err != nil {
 			return false, err
@@ -163,7 +169,7 @@ func (r *recordDatasource) Group(d report.GroupDefinition, name string) (bool, e
 			return false, err
 		}
 
-		q = q.Column(squirrel.Alias(tr, c.Name)).
+		q = q.Column(squirrel.Alias(tr, wrapCol(c.Name))).
 			GroupBy(sql)
 	}
 
@@ -191,7 +197,7 @@ func (r *recordDatasource) Group(d report.GroupDefinition, name string) (bool, e
 		}
 
 		// AST transformation tasks
-		tr := r.store.ASTTransformer(k.Def.ASTNode)
+		tr := r.prepASTTransformer(k.Def.ASTNode)
 		outType, err := tr.Analyze(auxLevelColumns)
 		if err != nil {
 			return false, err
@@ -207,11 +213,11 @@ func (r *recordDatasource) Group(d report.GroupDefinition, name string) (bool, e
 		r.levelColumns[k.Name] = outType
 
 		// - SQL things
-		q = q.Column(squirrel.Alias(tr, c.Name))
+		q = q.Column(squirrel.Alias(tr, wrapCol(c.Name)))
 	}
 
 	if d.Filter != nil && d.Filter.ASTNode != nil {
-		q = q.Having(r.store.ASTTransformer(d.Filter.ASTNode))
+		q = q.Having(r.prepASTTransformer(d.Filter.ASTNode))
 	}
 
 	r.cols = groupCols
@@ -257,11 +263,11 @@ func (r *recordDatasource) partition(ctx context.Context, partitionSize uint, pa
 	//       one sub-select
 	var prt squirrel.SelectBuilder
 	if len(ss) > 0 {
-		prt = squirrel.Select(fmt.Sprintf("*, row_number() over(partition by %s order by %s) as pp_rank", partitionCol, strings.Join(ss, ","))).
+		prt = squirrel.Select(fmt.Sprintf("*, row_number() over(partition by %s order by %s) as pp_rank", wrapCol(partitionCol), strings.Join(ss, ","))).
 			PlaceholderFormat(r.store.config.PlaceholderFormat).
 			FromSelect(q, "partition_base")
 	} else {
-		prt = squirrel.Select(fmt.Sprintf("*, row_number() over(partition by %s) as pp_rank", partitionCol)).
+		prt = squirrel.Select(fmt.Sprintf("*, row_number() over(partition by %s) as pp_rank", wrapCol(partitionCol))).
 			PlaceholderFormat(r.store.config.PlaceholderFormat).
 			FromSelect(q, "partition_base")
 	}
@@ -303,7 +309,7 @@ func (r *recordDatasource) preloadQuery(def *report.FrameDefinition) (squirrel.S
 
 	// - filtering
 	if def.Filter != nil && def.Filter.ASTNode != nil {
-		q = q.Where(r.store.ASTTransformer(def.Filter.ASTNode))
+		q = q.Where(r.prepASTTransformer(def.Filter.ASTNode))
 	}
 
 	return q, nil
@@ -340,7 +346,14 @@ func (r *recordDatasource) load(ctx context.Context, def *report.FrameDefinition
 	}
 
 	if def.Paging.PageCursor != nil {
-		q = q.Where(builders.CursorCondition(def.Paging.PageCursor, nil))
+		q = q.Where(builders.CursorCondition(def.Paging.PageCursor,
+			func(s string) (builders.KeyMap, error) {
+				return builders.KeyMap{
+					FieldCast:    "r_" + s,
+					TypeCast:     "r_" + s,
+					TypeCastPtrn: "%s",
+				}, nil
+			}))
 	}
 
 	if len(sort) > 0 {
@@ -428,7 +441,7 @@ func (r *recordDatasource) load(ctx context.Context, def *report.FrameDefinition
 // The query includes all of the requested columns in the required types to avid the need to type cast.
 func (r *recordDatasource) baseQuery(f *report.Filter) (sqb squirrel.SelectBuilder, err error) {
 	var (
-		joinTpl = "compose_record_value AS %s ON (%s.record_id = crd.id AND %s.name = '%s' AND %s.deleted_at IS NULL)"
+		joinTpl = "compose_record_value AS r_%s ON (r_%s.record_id = r_crd.id AND r_%s.name = '%s' AND r_%s.deleted_at IS NULL)"
 	)
 
 	// - the initial set of available columns
@@ -441,10 +454,10 @@ func (r *recordDatasource) baseQuery(f *report.Filter) (sqb squirrel.SelectBuild
 	}
 
 	// - base query
-	sqb = r.store.SelectBuilder("compose_record AS crd").
-		Where("crd.deleted_at IS NULL").
-		Where("crd.module_id = ?", r.module.ID).
-		Where("crd.rel_namespace = ?", r.module.NamespaceID)
+	sqb = r.store.SelectBuilder("compose_record AS r_crd").
+		Where("r_crd.deleted_at IS NULL").
+		Where("r_crd.module_id = ?", r.module.ID).
+		Where("r_crd.rel_namespace = ?", r.module.NamespaceID)
 
 	// - based on the definition, preload the columns
 	var (
@@ -460,14 +473,14 @@ func (r *recordDatasource) baseQuery(f *report.Filter) (sqb squirrel.SelectBuild
 
 		// native record columns don't need any extra handling
 		if col, _, is = isRealRecordCol(c.Name); is {
-			sqb = sqb.Column(squirrel.Alias(squirrel.Expr(col), c.Name))
+			sqb = sqb.Column(squirrel.Alias(squirrel.Expr(wrapCol(col)), wrapCol(c.Name)))
 			continue
 		}
 
 		// non-native record columns need to have their type casted before use
-		_, _, tcp, _ := r.store.config.CastModuleFieldToColumnType(c, c.Name)
+		_, _, tcp, _ := r.store.config.CastModuleFieldToColumnType(c, wrapCol(c.Name))
 		sqb = sqb.LeftJoin(strings.ReplaceAll(joinTpl, "%s", c.Name)).
-			Column(squirrel.Alias(squirrel.Expr(fmt.Sprintf(tcp, c.Name+".value")), c.Name))
+			Column(squirrel.Alias(squirrel.Expr(fmt.Sprintf(tcp, wrapCol(c.Name)+".value")), wrapCol(c.Name)))
 	}
 
 	// @todo this is temporary!!
@@ -494,7 +507,7 @@ func (r *recordDatasource) baseQuery(f *report.Filter) (sqb squirrel.SelectBuild
 		}
 
 		if f != nil && f.ASTNode != nil {
-			sqb = sqb.Where(r.store.ASTTransformer(f.ASTNode))
+			sqb = sqb.Where(r.prepASTTransformer(f.ASTNode))
 		}
 	}
 
@@ -560,7 +573,8 @@ func (b *recordDatasource) cast(row sqlx.ColScanner, out *report.Frame) error {
 	k := ""
 	for i, c := range out.Columns {
 		k = "" + c.Name
-		v, ok := aux[k]
+		// cols are wrapped so we need to handle those properly
+		v, ok := aux[wrapCol(k)]
 		if !ok {
 			continue
 		}
@@ -631,7 +645,7 @@ func (r *recordDatasource) sortExpr(sorting filter.SortExprSet) ([]string, error
 			return nil, err
 		}
 
-		ss[i] = r.store.config.SqlSortHandler(fmt.Sprintf(typeCast, c.Column), c.Descending)
+		ss[i] = r.store.config.SqlSortHandler(fmt.Sprintf(typeCast, wrapCol(c.Column)), c.Descending)
 	}
 
 	return ss, nil
@@ -669,4 +683,8 @@ func (r *recordDatasource) isAggregated(n *qlng.ASTNode) bool {
 		return true
 	}
 	return false
+}
+
+func wrapCol(col string) string {
+	return "r_" + col
 }

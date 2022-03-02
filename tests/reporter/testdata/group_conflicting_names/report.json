@@ -1,0 +1,36 @@
+{
+  "handle": "testing_report",
+  "sources": [
+    { "step": { "load": {
+      "name": "mod",
+      "source": "composeRecords",
+      "definition": {
+        "module": "mod",
+        "namespace": "ns"
+      }
+    }}}, { "step": { "group": {
+      "name": "grouped",
+      "source": "mod",
+      "keys": [
+        { "name": "by_group", "def": { "symbol": "group" } }
+      ],
+      "columns": [
+        {
+          "name": "count",
+          "def": {
+            "ref": "count"
+          }
+        }
+      ]
+    }}}
+  ],
+  "frames": [{
+    "name":   "result",
+    "source": "grouped",
+    "columns": [
+      { "name": "by_group", "label": "by_group" },
+      { "name": "count", "label": "count" }
+    ],
+    "sort": "by_group ASC"
+  }]
+}
