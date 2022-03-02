@@ -9,6 +9,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/label"
+	"github.com/cortezaproject/corteza-server/pkg/minions"
 	rep "github.com/cortezaproject/corteza-server/pkg/report"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -474,6 +475,9 @@ func (svc *report) enhance(ctx context.Context, ff []*rep.Frame) (_ []*rep.Frame
 		for _, r := range f.Rows {
 			for _, ci := range userCols {
 				col := r[ci]
+				if minions.IsNil(col) {
+					continue
+				}
 				switch col.Type() {
 				case "ID":
 					uID := col.Get().(uint64)
