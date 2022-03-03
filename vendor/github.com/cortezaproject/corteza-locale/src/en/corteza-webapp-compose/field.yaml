@@ -58,13 +58,14 @@ kind:
     label: Record
     moduleLabel: Module name
     modulePlaceholder: Pick module
+    queryFieldsLabel: Query fields on search
+    moduleField: Module field
+    fieldFromModuleField: Label field from related module field
+    pickField: Pick field
+    suggestionPlaceholder: Start typing to search for records
     prefilterFootnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {{0}}, {{1}} and {{2}} are evaluated (when available)
     prefilterLabel: Prefilter records
     prefilterPlaceholder: field1 = 1 AND field2 = 232
-    queryFieldsLabel: Query fields on search
-    recordFieldLabel: Record label from field
-    recordFieldPlaceholder: Pick field
-    suggestionPlaceholder: Start typing to search for records
   select:
     label: Select
     optionAdd: Add
@@ -98,6 +99,12 @@ kind:
     roles:
       label: User roles
       placeholder: Filter by user roles
+  geometry:
+    label: Geometry
+    openMap: Open map
+    latitude: Latitude
+    longitude: Longitude
+    clickToPlaceMarker: Click to place a marker or click on a marker to remove it
 noPermission: No permission to read field value
 no-items-found: No items found
 options:

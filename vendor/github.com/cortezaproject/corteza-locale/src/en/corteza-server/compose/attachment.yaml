@@ -24,3 +24,6 @@ errors:
   notFound: attachment not found
   pageNotFound: page not found
   recordNotFound: record not found
+  invalidModuleField: invalid module field
+  tooLarge: uploaded file is too large
+  notAllowedToUploadThisType: not allowed to upload this type of file

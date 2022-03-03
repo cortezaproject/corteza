@@ -7,5 +7,6 @@ label:
   name: Name
   none: None
   ok: Ok
+  openLinkInNewTab: Open link in a new tab
   save: Save
   urlPlaceholder: https://example.tld
