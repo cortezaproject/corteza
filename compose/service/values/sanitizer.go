@@ -2,15 +2,13 @@ package values
 
 import (
 	"fmt"
-	"html"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
-	"github.com/microcosm-cc/bluemonday"
+	"github.com/cortezaproject/corteza-server/pkg/xss"
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -286,23 +284,8 @@ func sNumber(num interface{}, p uint) string {
 	return str
 }
 
-// sString is used mostly to strip insecure html data
-// from strings
 func sString(str string) string {
-	// use standard html escaping policy
-	p := bluemonday.UGCPolicy()
-
-	// match only colors for html editor elements on style attr
-	p.AllowAttrs("style").OnElements("span", "p")
-	p.AllowStyles("color").Matching(regexp.MustCompile("(?i)^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$")).Globally()
-	p.AllowStyles("background-color").Matching(regexp.MustCompile("(?i)^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$")).Globally()
-
-	sanitized := p.Sanitize(str)
-
-	// handle escaped strings and unescape them
-	// all the dangerous chars should have been stripped
-	// by now
-	return html.UnescapeString(sanitized)
+	return xss.RichText(str)
 }
 
 // sanitize casts value to field kind format
