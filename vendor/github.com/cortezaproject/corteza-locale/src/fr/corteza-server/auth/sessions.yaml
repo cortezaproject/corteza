@@ -13,7 +13,6 @@ template:
     today: Aujourd'hui
     tomorrow: En 1 jour
     soon: En {{days}} jours
-    delete: Supprimer cette session
   delete-all: Supprimer toutes les sessions
 alerts:
   session-deleted: Session supprimée

@@ -13,8 +13,7 @@ template:
     today: Danes
     tomorrow: Čez 1 dan
     soon: Čez {{days}} dni
-    delete: Izbriši to sejo
   delete-all: Izbriši vse seje
 alerts:
   session-deleted: Session deleted
-  delete-sessions-but-current: All but current sessions deleted
+  delete-sessions-but-current: All but current login sessions deleted

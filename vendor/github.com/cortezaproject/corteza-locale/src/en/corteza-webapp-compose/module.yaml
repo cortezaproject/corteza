@@ -51,6 +51,11 @@ edit:
       allFields: All Fields
       description: Select the fields you want to share with the selected network
       title: Expose
+  discoverySettings:
+    title: Discovery settings
+    public: Public
+    private: Private
+    protected: Protected
   fieldPermissions: Field permissions
   manageRecordFields: Manage record fields
   moduleFieldSettings: Module field settings

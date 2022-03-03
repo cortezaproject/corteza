@@ -234,27 +234,27 @@ resources:
         delete:
           description: 'Default: deny'
           specific: Delete {{target}}
-          title: Delete any role
+          title: Delete any queue
         members.manage:
           description: 'Default: deny'
           specific: Manage members for {{target}}
-          title: Manage members for any role
+          title: Manage members for any queue
         read:
           description: 'Default: deny'
           specific: Read {{target}}
-          title: Read any role
+          title: Read any queue
         update:
           description: 'Default: deny'
           specific: Update {{target}}
-          title: Update any role
+          title: Update any queue
         queue.read:
           description: 'Default: deny'
           specific: Read messages from {{target}}
-          title: Read messages from any role
+          title: Read messages from any queue
         queue.write:
           description: 'Default: deny'
           specific: Write messages to {{target}}
-          title: Write messages to any role
+          title: Write messages to any queue
 
     template:
       label: Templates

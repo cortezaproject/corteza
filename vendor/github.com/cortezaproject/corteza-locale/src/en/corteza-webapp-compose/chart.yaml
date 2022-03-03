@@ -31,6 +31,13 @@ edit:
     gaugeSteps: Steps
     label: Dimensions
     skipMissingValues: Skip missing values
+    optionsPicker:
+      searchPlaceholder: Type here to search among select options
+      availableItems: Available options
+      selectAllItems: Select all
+      selectedItems: Selected options
+      unselectAllItems: Unselect all
+      noItemsFound: No options found
   filter:
     customize: Customize filter
     label: Filters
