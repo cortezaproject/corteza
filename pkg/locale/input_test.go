@@ -14,10 +14,8 @@ func Test_SanitizeMessage(t *testing.T) {
 	}{
 		{"simple", "abc", "abc"},
 		{"accents", "čšž", "čšž"},
-		{"html", "<b>čšž</b>", "čšž"},
-		{"broken html 1", "<b>čšž</b", "čšž"},
-		{"broken html 2", "b>čšž</b", "b>čšž"},
-		{"broken html 3", "<b fff=\"čšž</b", ""},
+		{"safe html", "<b>čšž</b>", "<b>čšž</b>"},
+		{"unsafe html", `<a href="javascript:document.location='https://cortezaproject.org/'">XSS</A>`, "XSS"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -1,15 +1,9 @@
 package locale
 
 import (
-	"html"
-
-	"github.com/microcosm-cc/bluemonday"
-)
-
-var (
-	stripHtml = bluemonday.StripTagsPolicy().Sanitize
+	"github.com/cortezaproject/corteza-server/pkg/xss"
 )
 
 func SanitizeMessage(in string) string {
-	return html.UnescapeString(stripHtml(in))
+	return xss.RichText(in)
 }
