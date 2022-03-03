@@ -561,20 +561,33 @@ func (b *recordDatasource) calculatePaging(out []*report.Frame, sorting filter.S
 	return out
 }
 
-func (b *recordDatasource) cast(row sqlx.ColScanner, out *report.Frame) error {
-	var err error
+func (b *recordDatasource) mapRow(row sqlx.ColScanner) (out map[string]interface{}, err error) {
 	aux := make(map[string]interface{})
 	if err = sqlx.MapScan(row, aux); err != nil {
-		return err
+		return
 	}
 
+	// PgSQL treats idents as lowercase which would cause not lower-case field names
+	// to not work.
+	// Since fields can not be same with different capitalization, converting to lowercase
+	// does the trick.
+	out = make(map[string]interface{})
+	for k, v := range aux {
+		out[strings.ToLower(k)] = v
+	}
+
+	return
+}
+
+func (b *recordDatasource) cast(row sqlx.ColScanner, out *report.Frame) (err error) {
+	aux, err := b.mapRow(row)
 	r := make(report.FrameRow, len(out.Columns))
 
 	k := ""
 	for i, c := range out.Columns {
 		k = "" + c.Name
 		// cols are wrapped so we need to handle those properly
-		v, ok := aux[wrapCol(k)]
+		v, ok := aux[strings.ToLower(wrapCol(k))]
 		if !ok {
 			continue
 		}
