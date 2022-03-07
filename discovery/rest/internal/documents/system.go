@@ -41,7 +41,7 @@ func SystemResources() *systemResources {
 	}
 }
 
-func (d systemResources) Users(ctx context.Context, limit uint, cur string) (rsp *Response, err error) {
+func (d systemResources) Users(ctx context.Context, limit uint, cur string, userID uint64) (rsp *Response, err error) {
 	return rsp, func() (err error) {
 		if !d.settings.Discovery.SystemUsers.Enabled {
 			return errors.Internal("system user indexing disabled")
@@ -53,6 +53,10 @@ func (d systemResources) Users(ctx context.Context, limit uint, cur string) (rsp
 				Deleted: filter.StateExcluded,
 			}
 		)
+
+		if userID > 0 {
+			f.UserID = append(f.UserID, userID)
+		}
 
 		if f.Paging, err = filter.NewPaging(limit, cur); err != nil {
 			return err

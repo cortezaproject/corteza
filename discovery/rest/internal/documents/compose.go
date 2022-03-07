@@ -81,7 +81,7 @@ func ComposeResources() *composeResources {
 	}
 }
 
-func (d composeResources) Namespaces(ctx context.Context, limit uint, cur string) (rsp *Response, err error) {
+func (d composeResources) Namespaces(ctx context.Context, limit uint, cur string, namespaceID uint64) (rsp *Response, err error) {
 	return rsp, func() (err error) {
 		if !d.settings.Discovery.ComposeNamespaces.Enabled {
 			return errors.Internal("compose namespace indexing disabled")
@@ -96,6 +96,10 @@ func (d composeResources) Namespaces(ctx context.Context, limit uint, cur string
 				Deleted: filter.StateExcluded,
 			}
 		)
+
+		if namespaceID > 0 {
+			f.NamespaceID = append(f.NamespaceID, namespaceID)
+		}
 
 		if f.Paging, err = filter.NewPaging(limit, cur); err != nil {
 			return err
@@ -171,7 +175,7 @@ func (d composeResources) Namespaces(ctx context.Context, limit uint, cur string
 	}()
 }
 
-func (d composeResources) Modules(ctx context.Context, namespaceID uint64, limit uint, cur string) (rsp *Response, err error) {
+func (d composeResources) Modules(ctx context.Context, namespaceID uint64, limit uint, cur string, moduleID uint64) (rsp *Response, err error) {
 	return rsp, func() (err error) {
 		if !d.settings.Discovery.ComposeModules.Enabled {
 			return errors.Internal("compose module indexing disabled")
@@ -185,6 +189,10 @@ func (d composeResources) Modules(ctx context.Context, namespaceID uint64, limit
 				Deleted:     filter.StateExcluded,
 			}
 		)
+
+		if moduleID > 0 {
+			f.ModuleID = append(f.ModuleID, moduleID)
+		}
 
 		if f.Paging, err = filter.NewPaging(limit, cur); err != nil {
 			return
@@ -254,7 +262,7 @@ func (d composeResources) Modules(ctx context.Context, namespaceID uint64, limit
 	}()
 }
 
-func (d composeResources) Records(ctx context.Context, namespaceID, moduleID uint64, limit uint, cur string) (rsp *Response, err error) {
+func (d composeResources) Records(ctx context.Context, namespaceID, moduleID uint64, limit uint, cur string, recordID uint64) (rsp *Response, err error) {
 	return rsp, func() (err error) {
 		if !d.settings.Discovery.ComposeRecords.Enabled {
 			return errors.Internal("compose record indexing disabled")
@@ -270,6 +278,10 @@ func (d composeResources) Records(ctx context.Context, namespaceID, moduleID uin
 				Deleted:     filter.StateExcluded,
 			}
 		)
+
+		if recordID > 0 {
+			f.Query = fmt.Sprintf("ID=%d", recordID)
+		}
 
 		if f.Paging, err = filter.NewPaging(limit, cur); err != nil {
 			return err

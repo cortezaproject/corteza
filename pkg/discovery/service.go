@@ -80,7 +80,10 @@ func (svc service) InitResourceActivityLog(ctx context.Context, resourceType []s
 			var a *types.ResourceActivity
 			dec, is := ev.(types.ResDecoder)
 			if is {
-				svc.logger.Debug(fmt.Sprintf("resource changed, updating ActivityLog for EventType: %s and ResourceType: %s", ev.EventType(), ev.ResourceType()))
+				svc.logger.Debug("resource changed",
+					zap.String("eventType", ev.EventType()),
+					zap.String("resourceType", ev.ResourceType()),
+				)
 
 				a, err = types.CastToResourceActivity(dec)
 				if err != nil {

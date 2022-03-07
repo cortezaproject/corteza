@@ -23,11 +23,17 @@ endpoints:
       method: GET
       title: Resource
       path: "/system/users"
+      parameters:
+        path:
+          - { name: userID, type: uint64, title: User ID }
 
     - name: composeNamespaces
       method: GET
       title: Resource
       path: "/compose/namespaces"
+      parameters:
+        path:
+          - { name: namespaceID, type: uint64, title: Namespace ID }
 
     - name: composeModules
       method: GET
@@ -36,6 +42,7 @@ endpoints:
       parameters:
         path:
           - { name: namespaceID, type: uint64, title: Namespace ID }
+          - { name: moduleID,    type: uint64, title: Module ID }
 
     - name: composeRecords
       method: GET
@@ -45,6 +52,7 @@ endpoints:
         path:
           - { name: namespaceID, type: uint64, title: Namespace ID }
           - { name: moduleID,    type: uint64, title: Module ID }
+          - { name: recordID,    type: uint64, title: Record ID }
 
 - path: "/feed"
   entrypoint: feed
