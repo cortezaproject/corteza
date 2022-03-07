@@ -112,6 +112,8 @@ github.com/cortezaproject/corteza-locale v0.0.0-20220225073410-dc52f843458b h1:W
 github.com/cortezaproject/corteza-locale v0.0.0-20220225073410-dc52f843458b/go.mod h1:wsI1UftEdBqTuEDKBZmx2LfNu/kZun5pRbCAi420JCg=
 github.com/cortezaproject/corteza-locale v0.0.0-20220301120510-bb469e7573e3 h1:xwuUKB3IGsv/Sz2dzu1Ecb3nXw8xNhBo2RCWbs6wST8=
 github.com/cortezaproject/corteza-locale v0.0.0-20220301120510-bb469e7573e3/go.mod h1:wsI1UftEdBqTuEDKBZmx2LfNu/kZun5pRbCAi420JCg=
+github.com/cortezaproject/corteza-locale v0.0.0-20220304165618-662a364648e0 h1:R4bFAJf3IBnXq2D5yFvLtlvNOHHWEGBzOPft8F5f2Tk=
+github.com/cortezaproject/corteza-locale v0.0.0-20220304165618-662a364648e0/go.mod h1:wsI1UftEdBqTuEDKBZmx2LfNu/kZun5pRbCAi420JCg=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/crewjam/httperr v0.0.0-20190612203328-a946449404da h1:WXnT88cFG2davqSFqvaFfzkSMC0lqh/8/rKZ+z7tYvI=
 github.com/crewjam/httperr v0.0.0-20190612203328-a946449404da/go.mod h1:+rmNIXRvYMqLQeR4DHyTvs6y0MEMymTz4vyFpFkKTPs=
