@@ -11,13 +11,12 @@ package service
 import (
 	"context"
 	"fmt"
-	"strings"
-	"time"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
+	"strings"
+	"time"
 )
 
 type (
@@ -940,7 +939,7 @@ func AttachmentErrNotAllowedToUploadThisType(mm ...*attachmentActionProps) *erro
 		errors.Meta("resource", "compose:attachment"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(attachmentLogMetaKey{}, "could not upload this file, file type nto allowed"),
+		errors.Meta(attachmentLogMetaKey{}, "could not upload this file, file type not allowed"),
 		errors.Meta(attachmentPropsMetaKey{}, p),
 
 		// translation namespace & key

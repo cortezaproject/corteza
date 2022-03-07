@@ -434,6 +434,7 @@ func (s Store) internalResourceActivityLogRowScanner(row rowScanner) (res *types
 		&res.ResourceType,
 		&res.ResourceAction,
 		&res.Timestamp,
+		&res.Meta,
 	)
 
 	if err == sql.ErrNoRows {
@@ -477,6 +478,7 @@ func (Store) resourceActivityLogColumns(aa ...string) []string {
 		alias + "resource_type",
 		alias + "resource_action",
 		alias + "ts",
+		alias + "meta",
 	}
 }
 
@@ -502,6 +504,7 @@ func (s Store) internalResourceActivityLogEncoder(res *types.ResourceActivity) s
 		"resource_type":   res.ResourceType,
 		"resource_action": res.ResourceAction,
 		"ts":              res.Timestamp,
+		"meta":            res.Meta,
 	}
 }
 

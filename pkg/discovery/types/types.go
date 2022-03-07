@@ -1,11 +1,13 @@
 package types
 
 import (
+	"encoding/json"
 	"fmt"
 	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
+	"github.com/jmoiron/sqlx/types"
 	"time"
 )
 
@@ -28,6 +30,9 @@ type (
 
 		// Timestamp of the raised event
 		Timestamp time.Time `json:"timestamp"`
+
+		// Meta of the related resources
+		Meta types.JSONText `json:"meta"`
 	}
 
 	ResourceActivityFilter struct {
@@ -45,6 +50,11 @@ type (
 		// Standard helpers for paging and sorting
 		filter.Sorting
 		filter.Paging
+	}
+
+	ResourceActivityMeta struct {
+		NamespaceID uint64 `json:"namespaceID,string"`
+		ModuleID    uint64 `json:"moduleID,string"`
 	}
 
 	ResDecoder interface {
@@ -99,6 +109,22 @@ func CastToResourceActivity(dec ResDecoder) (a *ResourceActivity, err error) {
 	setResourceID := func(ID uint64) {
 		a.ResourceID = ID
 	}
+	setMeta := func(nsID, mID uint64) error {
+		var meta ResourceActivityMeta
+		if nsID > 0 {
+			meta.NamespaceID = nsID
+		}
+		if mID > 0 {
+			meta.ModuleID = mID
+		}
+
+		a.Meta, err = json.Marshal(meta)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
 
 	switch a.ResourceType {
 	case "system:user": // @todo system/service/service.go#134
@@ -115,14 +141,24 @@ func CastToResourceActivity(dec ResDecoder) (a *ResourceActivity, err error) {
 		}
 	case (composeTypes.Module{}).LabelResourceKind():
 		if v, ok := dec.(mDecoder); ok {
-			if v.Module() != nil {
-				setResourceID(v.Module().ID)
+			mod := v.Module()
+			if mod != nil {
+				setResourceID(mod.ID)
+				err = setMeta(mod.NamespaceID, 0)
+				if err != nil {
+					return
+				}
 			}
 		}
 	case (composeTypes.Record{}).LabelResourceKind():
 		if v, ok := dec.(recDecoder); ok {
-			if v.Record() != nil {
-				setResourceID(v.Record().ID)
+			rec := v.Record()
+			if rec != nil {
+				setResourceID(rec.ID)
+				err = setMeta(rec.NamespaceID, rec.ModuleID)
+				if err != nil {
+					return
+				}
 			}
 		}
 	default:

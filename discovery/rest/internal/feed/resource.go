@@ -82,6 +82,7 @@ func (a resourceActivity) ResourceActivities(ctx context.Context, limit uint, cu
 				ResourceType:   a.ResourceType,
 				ResourceAction: a.ResourceAction,
 				Timestamp:      a.Timestamp,
+				Meta:           a.Meta,
 			})
 
 			return nil

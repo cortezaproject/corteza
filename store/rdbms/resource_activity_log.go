@@ -7,7 +7,7 @@ import (
 )
 
 func (s Store) convertResourceActivityLogFilter(f types.ResourceActivityFilter) (query squirrel.SelectBuilder, err error) {
-	query = s.actionlogsSelectBuilder()
+	query = s.resourceActivityLogsSelectBuilder()
 
 	// Always sort by ID descending
 	query = query.OrderBy("id DESC")
@@ -36,6 +36,7 @@ func (s Store) scanResourceActivityLogRow(row rowScanner, res *types.ResourceAct
 		&res.ResourceType,
 		&res.ResourceAction,
 		&res.Timestamp,
+		&res.Meta,
 	)
 
 	if err != nil {
@@ -53,6 +54,7 @@ func (s Store) encodeResourceActivityLog(res *types.ResourceActivity) store.Payl
 		"resource_type":   res.ResourceType,
 		"resource_action": res.ResourceAction,
 		"ts":              res.Timestamp,
+		"meta":            res.Meta,
 	}
 
 	return out

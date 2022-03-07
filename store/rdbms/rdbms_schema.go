@@ -750,6 +750,7 @@ func (Schema) ResourceActivityLog() *Table {
 		ColumnDef("resource_type", ColumnTypeText, ColumnTypeLength(handleLength)),
 		ColumnDef("resource_action", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
 		ColumnDef("ts", ColumnTypeTimestamp),
+		ColumnDef("meta", ColumnTypeJson),
 
 		AddIndex("rel_resource", IColumn("rel_resource")),
 		AddIndex("ts", IColumn("ts")),

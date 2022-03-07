@@ -99,7 +99,10 @@ func (g genericUpgrades) Upgrade(ctx context.Context, t *ddl.Table) error {
 		return g.all(ctx,
 			g.AddScenariosField,
 		)
-
+	case "resource_activity_log":
+		return g.all(ctx,
+			g.AddResourceActivityLogMetaField,
+		)
 	}
 
 	return nil
@@ -453,4 +456,15 @@ func (g genericUpgrades) CreateAutomationSessionIndexes(ctx context.Context) (er
 	}
 
 	return
+}
+
+func (g genericUpgrades) AddResourceActivityLogMetaField(ctx context.Context) error {
+	_, err := g.u.AddColumn(ctx, "resource_activity_log", &ddl.Column{
+		Name:         "meta",
+		Type:         ddl.ColumnType{Type: ddl.ColumnTypeJson},
+		IsNull:       false,
+		DefaultValue: "'{}'",
+	})
+
+	return err
 }

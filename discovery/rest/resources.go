@@ -9,13 +9,13 @@ import (
 type (
 	resources struct {
 		sys interface {
-			Users(ctx context.Context, limit uint, cur string) (*documents.Response, error)
+			Users(ctx context.Context, limit uint, cur string, userID uint64) (*documents.Response, error)
 		}
 
 		cmp interface {
-			Namespaces(ctx context.Context, limit uint, cur string) (*documents.Response, error)
-			Modules(ctx context.Context, namespaceID uint64, limit uint, cur string) (*documents.Response, error)
-			Records(ctx context.Context, namespaceID, moduleID uint64, limit uint, cur string) (*documents.Response, error)
+			Namespaces(ctx context.Context, limit uint, cur string, namespaceID uint64) (*documents.Response, error)
+			Modules(ctx context.Context, namespaceID uint64, limit uint, cur string, moduleID uint64) (*documents.Response, error)
+			Records(ctx context.Context, namespaceID, moduleID uint64, limit uint, cur string, recordID uint64) (*documents.Response, error)
 		}
 	}
 )
@@ -28,17 +28,17 @@ func Resources() *resources {
 }
 
 func (ctrl resources) SystemUsers(ctx context.Context, r *request.ResourcesSystemUsers) (interface{}, error) {
-	return ctrl.sys.Users(ctx, r.Limit, r.PageCursor)
+	return ctrl.sys.Users(ctx, r.Limit, r.PageCursor, r.UserID)
 }
 
 func (ctrl resources) ComposeNamespaces(ctx context.Context, r *request.ResourcesComposeNamespaces) (interface{}, error) {
-	return ctrl.cmp.Namespaces(ctx, r.Limit, r.PageCursor)
+	return ctrl.cmp.Namespaces(ctx, r.Limit, r.PageCursor, r.NamespaceID)
 }
 
 func (ctrl resources) ComposeModules(ctx context.Context, r *request.ResourcesComposeModules) (interface{}, error) {
-	return ctrl.cmp.Modules(ctx, r.NamespaceID, r.Limit, r.PageCursor)
+	return ctrl.cmp.Modules(ctx, r.NamespaceID, r.Limit, r.PageCursor, r.ModuleID)
 }
 
 func (ctrl resources) ComposeRecords(ctx context.Context, r *request.ResourcesComposeRecords) (interface{}, error) {
-	return ctrl.cmp.Records(ctx, r.NamespaceID, r.ModuleID, r.Limit, r.PageCursor)
+	return ctrl.cmp.Records(ctx, r.NamespaceID, r.ModuleID, r.Limit, r.PageCursor, r.RecordID)
 }
