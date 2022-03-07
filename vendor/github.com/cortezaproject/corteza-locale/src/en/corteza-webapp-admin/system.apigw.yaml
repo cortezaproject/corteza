@@ -88,6 +88,7 @@ editor:
       workflow: 'Workflow'
       status: 'HTTP Status'
       jsfunc: 'Function'
+      input: 'Input'
 
     httpStatus:
       none: No Status

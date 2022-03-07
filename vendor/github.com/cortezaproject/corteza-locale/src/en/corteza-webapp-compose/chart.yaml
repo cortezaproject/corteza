@@ -93,6 +93,7 @@ edit:
       placeholder: Select metric output
     relative: Show relative value
     relativePrecision: 'Precision:'
+    cumulative: Cumulative
     title: Metrics
   module:
     label: Module
