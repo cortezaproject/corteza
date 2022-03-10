@@ -155,8 +155,6 @@ func Test_jsenvHandler(t *testing.T) {
 				ctx = context.Background()
 			)
 
-			handler.preloadVm()
-
 			out, err := handler.execute(ctx, tc.params)
 
 			if tc.err == nil {
