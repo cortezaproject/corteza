@@ -96,8 +96,11 @@ func (h recordsHandler) search(ctx context.Context, args *recordsSearchArgs) (re
 	}
 
 	if args.hasPageCursor {
-		if err = f.PageCursor.Decode(args.PageCursor); err != nil {
-			return
+		if args.PageCursor != "" {
+			f.PageCursor = &filter.PagingCursor{}
+			if err = f.PageCursor.UnmarshalJSON([]byte(args.PageCursor)); err != nil {
+				return
+			}
 		}
 	}
 
@@ -115,6 +118,29 @@ func (h recordsHandler) search(ctx context.Context, args *recordsSearchArgs) (re
 	var auxf types.RecordFilter
 	results.Records, auxf, err = h.rec.Find(ctx, f)
 	results.Total = uint64(auxf.Total)
+	if auxf.NextPage != nil {
+		results.NextPage = auxf.NextPage.Encode()
+	}
+	if auxf.PrevPage != nil {
+		results.PrevPage = auxf.PrevPage.Encode()
+	}
+
+	// Always assure at least empty cursor when requesting page nav.
+	if auxf.PageNavigation == nil && auxf.IncPageNavigation {
+		results.PageNavigation = append(results.PageNavigation, nil)
+	}
+
+	for _, pn := range auxf.PageNavigation {
+		if pn == nil {
+			continue
+		}
+		// first page is null -- no cursor
+		if pn.Cursor == nil {
+			results.PageNavigation = append(results.PageNavigation, nil)
+		} else {
+			results.PageNavigation = append(results.PageNavigation, Must(NewString(pn.Cursor.Encode())))
+		}
+	}
 	return
 }
 
@@ -164,8 +190,11 @@ func (h recordsHandler) each(ctx context.Context, args *recordsEachArgs) (out wf
 	}
 
 	if args.hasPageCursor {
-		if err = f.PageCursor.Decode(args.PageCursor); err != nil {
-			return nil, err
+		if args.PageCursor != "" {
+			f.NextPage = &filter.PagingCursor{}
+			if err = f.NextPage.UnmarshalJSON([]byte(args.PageCursor)); err != nil {
+				return
+			}
 		}
 	}
 

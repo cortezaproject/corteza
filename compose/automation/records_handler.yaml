@@ -57,6 +57,9 @@ params:
   rvPageCursor: &rvPageCursor
     wf: String
 
+  rvPageNavigation: &rvPageNavigation
+    wf: Array
+
   filterParams: &filterParams
     module: *moduleLookup
     namespace: *namespaceLookup
@@ -117,7 +120,10 @@ functions:
       records:
         <<: *rvRecord
         isArray: true
-      total:      *rvTotal
+      total:          *rvTotal
+      nextPage:       *rvPageCursor
+      prevPage:       *rvPageCursor
+      pageNavigation: *rvPageNavigation
 
   first:
     meta:
@@ -207,7 +213,9 @@ functions:
       <<: *labels
       delete: "step"
     params:
-      record: *recordLookup
+      module:    *moduleLookup
+      namespace: *namespaceLookup
+      record:    *recordLookup
 
 #  undelete:
 #    meta:

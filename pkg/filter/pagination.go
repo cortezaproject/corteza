@@ -207,7 +207,10 @@ func (p *PagingCursor) UnmarshalJSON(in []byte) error {
 	// Decode the the string if it's not a JSON
 	if in[0] != byte('{') {
 		s := string(in)
-		in, err = base64.StdEncoding.DecodeString(s[1 : len(s)-1])
+		if s[0] == '"' {
+			s = s[1 : len(s)-1]
+		}
+		in, err = base64.StdEncoding.DecodeString(s)
 		if err != nil {
 			return err
 		}
