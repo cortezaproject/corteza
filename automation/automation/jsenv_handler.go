@@ -11,7 +11,6 @@ import (
 type (
 	jsenvHandler struct {
 		reg jsenvHandlerRegistry
-		vm  jsenv.Vm
 	}
 )
 
@@ -20,22 +19,24 @@ func JsenvHandler(reg queueHandlerRegistry) *jsenvHandler {
 		reg: reg,
 	}
 
-	h.preloadVm()
 	h.register()
 
 	return h
 }
 
-func (h *jsenvHandler) preloadVm() {
-	// call jsenv, feed it function and expect a result
+func initVm() jsenv.Vm {
 	tr := jsenv.NewTransformer(jsenv.LoaderJS, jsenv.TargetNoop)
-	h.vm = jsenv.New(tr)
+	vm := jsenv.New(tr)
 
 	// register a request body reader
-	h.vm.Register("readRequestBody", ReadRequestBody)
+	vm.Register("readRequestBody", ReadRequestBody)
+
+	return vm
 }
 
 func (h jsenvHandler) execute(ctx context.Context, args *jsenvExecuteArgs) (res *jsenvExecuteResults, err error) {
+	vm := initVm()
+
 	res = &jsenvExecuteResults{}
 
 	if !args.hasSource {
@@ -48,14 +49,14 @@ func (h jsenvHandler) execute(ctx context.Context, args *jsenvExecuteArgs) (res 
 		return
 	}
 
-	fn, err := h.vm.RegisterFunction(args.Source)
+	fn, err := vm.RegisterFunction(args.Source)
 
 	if err != nil {
 		err = fmt.Errorf("could not register jsenv function: %s", err)
 		return
 	}
 
-	out, err := fn.Exec(h.vm.New(expr.UntypedValue(args.Scope)))
+	out, err := fn.Exec(vm.New(expr.UntypedValue(args.Scope)))
 
 	if err != nil {
 		err = fmt.Errorf("could not exec jsenv function: %s", err)
