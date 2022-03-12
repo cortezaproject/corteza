@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path"
 	"text/template"
 
 	"github.com/cortezaproject/corteza-server/pkg/cli"
@@ -23,12 +24,14 @@ var (
 	verbose     bool
 	showHelp    bool
 	tplRootPath string
+	outputBase  string
 )
 
 func init() {
 	flag.BoolVar(&showHelp, "h", false, "show help")
 	flag.BoolVar(&verbose, "v", false, "be verbose")
 	flag.StringVar(&tplRootPath, "p", "codegen/assets/templates", "location of the template files")
+	flag.StringVar(&outputBase, "b", ".", "base dir for output")
 	flag.Parse()
 }
 
@@ -56,13 +59,14 @@ func main() {
 	}
 
 	for _, j := range tasks {
-		print(fmt.Sprintf("generating %s (from %s) ...", j.Output, j.Template))
+		output := path.Join(outputBase, j.Output)
+		print(fmt.Sprintf("generating %s (from %s) ...", output, j.Template))
 
 		switch j.Syntax {
 		case "go":
-			err = writeFormattedGo(j.Output, tpl.Lookup(j.Template), j.Payload)
+			err = writeFormattedGo(output, tpl.Lookup(j.Template), j.Payload)
 		default:
-			err = write(j.Output, tpl.Lookup(j.Template), j.Payload)
+			err = write(output, tpl.Lookup(j.Template), j.Payload)
 		}
 
 		if err != nil {

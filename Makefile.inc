@@ -2,6 +2,8 @@ GO         = go
 GOINSTALL  = $(GO) install
 GOFLAGS   ?= -trimpath
 GOPATH    ?= $(HOME)/go
+ROOT_DIR   = $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+
 
 CGO_ENABLED = 1
 
@@ -20,14 +22,17 @@ GIN           = $(GOPATH)/bin/gin
 STATIK        = $(GOPATH)/bin/statik
 MODOUTDATED   = $(GOPATH)/bin/go-mod-outdated
 CUE           = $(GOPATH)/bin/cue
-CODEGEN       = build/codegen
-JSONTPLEXEC   = build/json-tpl-exec
+CODEGEN       = $(GOPATH)/bin/corteza-codegen
+JSONTPLEXEC   = $(GOPATH)/bin/corteza-json-tpl-exec
 
 PROTOC      = /usr/local/bin/protoc
 FSWATCH     = /usr/local/bin/fswatch
 
 # fswatch is intentionally left out...
-BINS = $(GOCRITIC) $(MOCKGEN) $(GOTEST) $(STATICCHECK) $(PROTOGEN) $(GIN) $(STATIK) $(CODEGEN)
+BINS         = $(GOCRITIC) $(MOCKGEN) $(GOTEST) $(STATICCHECK) $(PROTOGEN) $(GIN) $(STATIK)
+
+# Corteza's tools
+CORTEZA_BINS = $(CODEGEN) $(JSONTPLEXEC)
 
 
 ########################################################################################################################
@@ -59,16 +64,27 @@ $(STATIK):
 $(MODOUTDATED):
 	$(GOINSTALL) github.com/psampaz/go-mod-outdated@latest
 
-$(CODEGEN):
-	$(GO) build -o $@ cmd/codegen/main.go
-
 $(CUE):
 	$(GOINSTALL) cuelang.org/go/cmd/cue@latest
 
+$(CODEGEN):
+	$(GO) build -o $@ $(ROOT_DIR)/cmd/codegen/main.go
+
 $(JSONTPLEXEC):
-	$(GO) build -o $@ ./codegen/tool
+	$(GO) build -o $@ $(ROOT_DIR)/codegen/tool
 
 clean-tools:
 	rm -f $(BINS)
+
+clean-corteza-tools:
+	rm -f $(CORTEZA_BINS)
+
+########################################################################################################################
+
+COLOUR_GREEN=\033[0;32m
+COLOUR_RED=\033[0;31m
+COLOUR_BLUE=\033[0;34m
+COLOUR_END=\033[0m
+
 
 #

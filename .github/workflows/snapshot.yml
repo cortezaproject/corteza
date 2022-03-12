@@ -27,7 +27,7 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-go-
-      - run: make test.codegen test.all
+      - run: make test.all
 
   snapshot-docker:
     runs-on: ubuntu-latest

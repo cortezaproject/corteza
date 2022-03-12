@@ -133,11 +133,8 @@ watch.test.%: $(FSWATCH)
 watch.test: watch.test.unit
 
 # See codegen/README.md for details
-codegen: $(CUE) $(JSONTPLEXEC)
-	$(CUE) eval codegen/*.cue --out json -e platform | $(JSONTPLEXEC) -v
-
-test.codegen: $(CUE) $(JSONTPLEXEC)
-	$(CUE) eval codegen/*.cue --out json -e platform > /dev/null
+codegen:
+	@ make -C codegen all
 
 cue.fmt: $(CUE)
 	$(CUE) fmt -v codegen/*.cue
