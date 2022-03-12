@@ -14,6 +14,10 @@ import (
 )
 
 type (
+	ColumnOptions interface {
+		Bool(key string) bool
+	}
+
 	Frame struct {
 		Name   string `json:"name"`
 		Source string `json:"source"`
@@ -45,12 +49,13 @@ type (
 	frameCellCaster func(in interface{}) (expr.TypedValue, error)
 	FrameColumnSet  []*FrameColumn
 	FrameColumn     struct {
-		Name    string `json:"name"`
-		Label   string `json:"label"`
-		Kind    string `json:"kind"`
-		Primary bool   `json:"primary"`
-		Unique  bool   `json:"unique"`
-		System  bool   `json:"system"`
+		Name    string        `json:"name"`
+		Label   string        `json:"label"`
+		Kind    string        `json:"kind"`
+		Primary bool          `json:"primary"`
+		Unique  bool          `json:"unique"`
+		System  bool          `json:"system"`
+		Options ColumnOptions `json:"-"`
 
 		Caster frameCellCaster `json:"-" yaml:"-"`
 	}
@@ -390,7 +395,15 @@ func (c *FrameColumn) IsNumeric() bool {
 }
 
 func (c *FrameColumn) IsDateTime() bool {
-	return c.Kind == "DateTime"
+	return c.Kind == "DateTime" && !c.IsTimeOnly() && !c.IsDateOnly()
+}
+
+func (c *FrameColumn) IsTimeOnly() bool {
+	return c.Options != nil && c.Options.Bool("onlyDate")
+}
+
+func (c *FrameColumn) IsDateOnly() bool {
+	return c.Options != nil && c.Options.Bool("onlyTime")
 }
 
 func (c *FrameColumn) IsRef() bool {
