@@ -54,6 +54,8 @@ type (
 		IsBoolean() bool
 		IsNumeric() bool
 		IsDateTime() bool
+		IsTimeOnly() bool
+		IsDateOnly() bool
 		IsRef() bool
 	}
 

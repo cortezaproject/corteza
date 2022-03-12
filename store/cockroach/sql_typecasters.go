@@ -2,6 +2,7 @@ package cockroach
 
 import (
 	"fmt"
+
 	"github.com/cortezaproject/corteza-server/store/rdbms"
 )
 
@@ -27,6 +28,14 @@ func fieldToColumnTypeCaster(field rdbms.ModuleFieldTypeDetector, ident string) 
 		return fmt.Sprintf(tcp, fc), fcp, tcp, nil
 	case field.IsDateTime():
 		tcp := "CAST(%s AS TIMESTAMP)"
+		fc := fmt.Sprintf(fcp, ident)
+		return fmt.Sprintf(tcp, fc), fcp, tcp, nil
+	case field.IsDateOnly():
+		tcp := "CAST(%s AS DATE)"
+		fc := fmt.Sprintf(fcp, ident)
+		return fmt.Sprintf(tcp, fc), fcp, tcp, nil
+	case field.IsTimeOnly():
+		tcp := "CAST(%s AS TIME)"
 		fc := fmt.Sprintf(fcp, ident)
 		return fmt.Sprintf(tcp, fc), fcp, tcp, nil
 	case field.IsRef():

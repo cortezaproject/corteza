@@ -44,6 +44,8 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 				&types.ModuleField{Kind: "DateTime", Name: "datetime1"},
 				&types.ModuleField{Kind: "DateTime", Name: "datetime2"},
 				&types.ModuleField{Kind: "DateTime", Name: "datetime3"},
+				&types.ModuleField{Kind: "DateTime", Name: "date1", Options: map[string]interface{}{"onlyDate": true}},
+				&types.ModuleField{Kind: "DateTime", Name: "time1", Options: map[string]interface{}{"onlyTime": true}},
 
 				&types.ModuleField{Kind: "Email", Name: "email1"},
 				&types.ModuleField{Kind: "Email", Name: "email2"},
@@ -1634,5 +1636,53 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 		req.NoError(err)
 		req.Equal("1st,1;2nd,22;3rd,3", stringifyValues(set, "str1", "num1"))
 
+	})
+
+	t.Run("date-time filtering", func(t *testing.T) {
+		var (
+			err error
+			set types.RecordSet
+
+			req, _ = truncAndCreate(t,
+				makeNew(&types.RecordValue{Name: "num1", Value: "1001"}, &types.RecordValue{Name: "datetime1", Value: "2020-10-01T00:00:01"}),
+				makeNew(&types.RecordValue{Name: "num1", Value: "1002"}, &types.RecordValue{Name: "datetime1", Value: "2020-10-02T00:00:02"}),
+				makeNew(&types.RecordValue{Name: "num1", Value: "1003"}, &types.RecordValue{Name: "datetime1", Value: "2020-10-03T00:00:03"}),
+				makeNew(&types.RecordValue{Name: "num1", Value: "1004"}, &types.RecordValue{Name: "datetime1", Value: "2020-10-04T00:00:03"}),
+
+				makeNew(&types.RecordValue{Name: "num1", Value: "2001"}, &types.RecordValue{Name: "date1", Value: "2020-10-01"}),
+				makeNew(&types.RecordValue{Name: "num1", Value: "2002"}, &types.RecordValue{Name: "date1", Value: "2020-10-02"}),
+				makeNew(&types.RecordValue{Name: "num1", Value: "2003"}, &types.RecordValue{Name: "date1", Value: "2020-10-03"}),
+				makeNew(&types.RecordValue{Name: "num1", Value: "2004"}, &types.RecordValue{Name: "date1", Value: "2020-10-04"}),
+
+				makeNew(&types.RecordValue{Name: "num1", Value: "3001"}, &types.RecordValue{Name: "time1", Value: "01:00:00"}),
+				makeNew(&types.RecordValue{Name: "num1", Value: "3002"}, &types.RecordValue{Name: "time1", Value: "02:00:00"}),
+				makeNew(&types.RecordValue{Name: "num1", Value: "3003"}, &types.RecordValue{Name: "time1", Value: "03:00:00"}),
+				makeNew(&types.RecordValue{Name: "num1", Value: "3004"}, &types.RecordValue{Name: "time1", Value: "04:00:00"}),
+			)
+
+			cases = []struct {
+				query  string
+				result string
+			}{
+				{"datetime1 = '2020-10-02T00:00:02'", "1002"},
+				{"date1 = '2020-10-02'", "2002"},
+				{"time1 = '02:00:00'", "3002"},
+				{"datetime1 <= '2020-10-02T00:00:02'", "1001;1002"},
+				{"date1 <= '2020-10-02'", "2001;2002"},
+				{"time1 <= '02:00:00'", "3001;3002"},
+				{"datetime1 > '2020-10-02T00:00:02'", "1003;1004"},
+				{"date1 > '2020-10-02'", "2003;2004"},
+				{"time1 > '02:00:00'", "3003;3004"},
+			}
+		)
+
+		for _, c := range cases {
+			t.Run(c.query, func(t *testing.T) {
+				req = require.New(t)
+				set, _, err = s.SearchComposeRecords(ctx, mod, types.RecordFilter{Query: c.query})
+				req.NoError(err)
+				req.Equal(c.result, stringifyValues(set, "num1"))
+			})
+		}
 	})
 }

@@ -393,6 +393,16 @@ func (c *FrameColumn) IsDateTime() bool {
 	return c.Kind == "DateTime"
 }
 
+func (c *FrameColumn) IsTimeOnly() bool {
+	// @todo Is this needed for the reporting and how can we detect this?
+	return false
+}
+
+func (c *FrameColumn) IsDateOnly() bool {
+	// @todo Is this needed for the reporting and how can we detect this?
+	return false
+}
+
 func (c *FrameColumn) IsRef() bool {
 	// @todo not quite right
 	return c.Kind == "Record"

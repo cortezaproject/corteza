@@ -392,7 +392,15 @@ func (f ModuleField) IsNumeric() bool {
 }
 
 func (f ModuleField) IsDateTime() bool {
-	return f.Kind == "DateTime"
+	return f.Kind == "DateTime" && !f.IsDateOnly() && !f.IsTimeOnly()
+}
+
+func (f ModuleField) IsDateOnly() bool {
+	return f.Kind == "DateTime" && f.Options.Bool("onlyDate")
+}
+
+func (f ModuleField) IsTimeOnly() bool {
+	return f.Kind == "DateTime" && f.Options.Bool("onlyTime")
 }
 
 // IsRef tells us if value of this field be a reference to something
