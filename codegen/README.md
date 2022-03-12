@@ -34,18 +34,36 @@ Platform, component and resource definitions (.cue files) can be found in:
 
 When a definitions or templates are changed all outputs need to be regenerated
 
-This can be done with the following command
-```
+This can be done with the following command (the root of the project)
+```shell
 make codegen
 ```
-Please note that 
+
+Inside `/codegen` you can run codegen with different options
+```shell
+# generate all
+make 
+
+# generate only server files (golang code, .env.example, ...)  
+make server 
+
+# generate only docs (asciidoc files)
+make docs
+
+# generate for only one specific codegen definition
+make server.options.cue
+make docs.options.cue
+
+# or more of them at once
+make server.options.cue docs.options.cue
+```
 
 
 ## How does it work?
 
 ### High-level overview
 
-See [Makefile's `codegen-cue` task](../Makefile)
+See [Makefile's `codegen` task](../Makefile)
 
 1. evaluate codegen instructions (see [platform.cue](./platform.cue))
 2. output instructions as JSON
@@ -57,28 +75,8 @@ See [Makefile's `codegen-cue` task](../Makefile)
 #### Codegen instructions
 
 Collection of `#codegen` structs with template + payload + output instructions. Template exec tool iterates over collection and creates output from each one. 
+endpoints (unrelated to specific component)
 
-#### Platform
+# Troubleshooting
 
-Main entry point that combines all components
-
- - options (see [options.cue](./options.cue))
- - @todo REST endpoints (unrelated to specific component)
-
-#### Component
-
-Defines component, it's behaviour, RBAC operations and resources
-
- - @todo REST endpoints (unrelated to specific resources)
-
-#### Resource
-
-Defines resource, it's behaviour, types, RBAC operations, translatable keys
-
- - @todo events 
- - @todo actions 
- - @todo errors 
- - @todo automation functions
- - @todo expression types 
- - @todo REST endpoints
-
+1. Make sure you have the latest version of cue (0.4.2 or newer)
