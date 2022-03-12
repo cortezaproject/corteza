@@ -25,6 +25,8 @@ type (
 		boolean  bool
 		numeric  bool
 		dateTime bool
+		dateOnly bool
+		timeOnly bool
 		ref      bool
 	}
 )
@@ -777,6 +779,12 @@ func (t mftd) IsNumeric() bool {
 }
 func (t mftd) IsDateTime() bool {
 	return t.dateTime
+}
+func (t mftd) IsDateOnly() bool {
+	return t.dateOnly
+}
+func (t mftd) IsTimeOnly() bool {
+	return t.timeOnly
 }
 func (t mftd) IsRef() bool {
 	return t.ref

@@ -30,6 +30,14 @@ func fieldToColumnTypeCaster(field rdbms.ModuleFieldTypeDetector, ident string) 
 		tcp := "CAST(%s AS DATETIME)"
 		fc := fmt.Sprintf(fcp, ident)
 		return fmt.Sprintf(tcp, fc), fcp, tcp, nil
+	case field.IsDateOnly():
+		tcp := "CAST(%s AS DATE)"
+		fc := fmt.Sprintf(fcp, ident)
+		return fmt.Sprintf(tcp, fc), fcp, tcp, nil
+	case field.IsTimeOnly():
+		tcp := "CAST(%s AS TIME)"
+		fc := fmt.Sprintf(fcp, ident)
+		return fmt.Sprintf(tcp, fc), fcp, tcp, nil
 	case field.IsRef():
 		tcp := "%s"
 		fc := fmt.Sprintf(fcpRef, ident)
