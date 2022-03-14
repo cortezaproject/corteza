@@ -167,7 +167,8 @@ func (svc resourceTranslationsManager) Module(ctx context.Context, namespaceID u
 
 	}
 
-	return out, nil
+	tmp, err := svc.moduleExtended(ctx, res)
+	return append(out, tmp...), err
 }
 
 func (svc resourceTranslationsManager) Namespace(ctx context.Context, id uint64) (locale.ResourceTranslationSet, error) {

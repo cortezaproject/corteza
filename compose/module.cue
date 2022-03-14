@@ -21,6 +21,8 @@ module: schema.#resource & {
 	}
 
 	locale: {
+		extended: true
+
 		keys: {
 			"name": {}
 		}
