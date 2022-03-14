@@ -84,6 +84,7 @@ func (r *Module) DecodeTranslations(tt locale.ResourceTranslationIndex) {
 	if aux = tt.FindByKey(LocaleKeyModuleName.Path); aux != nil {
 		r.Name = aux.Msg
 	}
+	r.decodeTranslations(tt)
 }
 
 func (r *Module) EncodeTranslations() (out locale.ResourceTranslationSet) {
@@ -94,6 +95,7 @@ func (r *Module) EncodeTranslations() (out locale.ResourceTranslationSet) {
 		Key:      LocaleKeyModuleName.Path,
 		Msg:      locale.SanitizeMessage(r.Name),
 	})
+	out = append(out, r.encodeTranslations()...)
 
 	return out
 }

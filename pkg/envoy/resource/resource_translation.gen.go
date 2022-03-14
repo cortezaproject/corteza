@@ -18,7 +18,9 @@ func (r *ComposeModule) EncodeTranslations() ([]*ResourceTranslation, error) {
 	res, ref, pp := r.ResourceTranslationParts()
 	out = append(out, NewResourceTranslation(systemTypes.FromLocale(rr), res, ref, pp...))
 
-	return out, nil
+	tmp, err := r.encodeTranslations()
+	return append(out, tmp...), err
+
 }
 func (r *ComposeModuleField) EncodeTranslations() ([]*ResourceTranslation, error) {
 	out := make([]*ResourceTranslation, 0, 10)
