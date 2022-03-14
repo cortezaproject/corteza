@@ -20,9 +20,13 @@ lookups:
       searches for corteza resource activity by ID
       It returns corteza resource activity even if deleted
 
+search:
+  enableFilterCheckFunction: false
+
 rdbms:
   alias: ral
   table: resource_activity_log
+  customFilterConverter: true
   mapFields:
     Timestamp: { column: ts }
     Meta:      { column: meta }

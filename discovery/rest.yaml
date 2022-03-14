@@ -24,7 +24,7 @@ endpoints:
       title: Resource
       path: "/system/users"
       parameters:
-        path:
+        get:
           - { name: userID, type: uint64, title: User ID }
 
     - name: composeNamespaces
@@ -32,7 +32,7 @@ endpoints:
       title: Resource
       path: "/compose/namespaces"
       parameters:
-        path:
+        get:
           - { name: namespaceID, type: uint64, title: Namespace ID }
 
     - name: composeModules
@@ -42,6 +42,7 @@ endpoints:
       parameters:
         path:
           - { name: namespaceID, type: uint64, title: Namespace ID }
+        get:
           - { name: moduleID,    type: uint64, title: Module ID }
 
     - name: composeRecords
@@ -52,6 +53,7 @@ endpoints:
         path:
           - { name: namespaceID, type: uint64, title: Namespace ID }
           - { name: moduleID,    type: uint64, title: Module ID }
+        get:
           - { name: recordID,    type: uint64, title: Record ID }
 
 - path: "/feed"

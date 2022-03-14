@@ -57,7 +57,7 @@ func (a resourceActivity) ResourceActivities(ctx context.Context, limit uint, cu
 		}
 
 		f.FromTimestamp = from
-		f.FromTimestamp = to
+		f.ToTimestamp = to
 
 		if f.Paging, err = filter.NewPaging(limit, cur); err != nil {
 			return err
