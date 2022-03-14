@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -60,6 +61,11 @@ type (
 	}
 )
 
+const (
+	defaultRecordSearchSize uint = 500
+	maxRecordSearchSize          = 1000
+)
+
 func (Record) New() *Record {
 	return &Record{
 		importSession: service.DefaultImportSession,
@@ -100,6 +106,12 @@ func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{
 		// Query param takes preference
 		f.Query = r.Query
 	}
+
+	if r.Limit == 0 {
+		r.Limit = defaultRecordSearchSize
+	}
+
+	r.Limit = uint(math.Min(float64(r.Limit), float64(maxRecordSearchSize)))
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
 		return nil, err
