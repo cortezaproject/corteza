@@ -94,6 +94,7 @@ func (svc record) Datasource(ctx context.Context, ld *report.LoadStepDefinition)
 			c = report.MakeColumnOfKind(k)
 			c.Name = f.Name
 			c.Label = f.Label
+			c.Options = f.Options
 			if c.Label == "" {
 				c.Label = c.Name
 			}
