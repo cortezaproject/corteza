@@ -64,18 +64,22 @@ type (
 	userDecoder interface {
 		ResDecoder
 		User() *systemTypes.User
+		OldUser() *systemTypes.User
 	}
 	nsDecoder interface {
 		ResDecoder
 		Namespace() *composeTypes.Namespace
+		OldNamespace() *composeTypes.Namespace
 	}
 	mDecoder interface {
 		ResDecoder
 		Module() *composeTypes.Module
+		OldModule() *composeTypes.Module
 	}
 	recDecoder interface {
 		ResDecoder
 		Record() *composeTypes.Record
+		OldRecord() *composeTypes.Record
 	}
 )
 
@@ -129,19 +133,33 @@ func CastToResourceActivity(dec ResDecoder) (a *ResourceActivity, err error) {
 	switch a.ResourceType {
 	case "system:user": // @todo system/service/service.go#134
 		if v, ok := dec.(userDecoder); ok {
-			if v.User() != nil {
-				setResourceID(v.User().ID)
+			user := v.User()
+			// fallback to OldUser for afterDelete event
+			if user == nil {
+				user = v.OldUser()
+			}
+			if user != nil {
+				setResourceID(user.ID)
 			}
 		}
 	case (composeTypes.Namespace{}).LabelResourceKind():
 		if v, ok := dec.(nsDecoder); ok {
-			if v.Namespace() != nil {
-				setResourceID(v.Namespace().ID)
+			ns := v.Namespace()
+			// fallback to OldNamespace for afterDelete event
+			if ns == nil {
+				ns = v.OldNamespace()
+			}
+			if ns != nil {
+				setResourceID(ns.ID)
 			}
 		}
 	case (composeTypes.Module{}).LabelResourceKind():
 		if v, ok := dec.(mDecoder); ok {
 			mod := v.Module()
+			// fallback to OldModule for afterDelete event
+			if mod == nil {
+				mod = v.OldModule()
+			}
 			if mod != nil {
 				setResourceID(mod.ID)
 				err = setMeta(mod.NamespaceID, 0)
@@ -153,6 +171,10 @@ func CastToResourceActivity(dec ResDecoder) (a *ResourceActivity, err error) {
 	case (composeTypes.Record{}).LabelResourceKind():
 		if v, ok := dec.(recDecoder); ok {
 			rec := v.Record()
+			// fallback to OldRecord for afterDelete event
+			if rec == nil {
+				rec = v.OldRecord()
+			}
 			if rec != nil {
 				setResourceID(rec.ID)
 				err = setMeta(rec.NamespaceID, rec.ModuleID)

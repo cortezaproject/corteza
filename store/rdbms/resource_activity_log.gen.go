@@ -33,7 +33,10 @@ func (s Store) SearchResourceActivityLogs(ctx context.Context, f types.ResourceA
 	)
 
 	return set, f, func() error {
-		q = s.resourceActivityLogsSelectBuilder()
+		q, err = s.convertResourceActivityLogFilter(f)
+		if err != nil {
+			return err
+		}
 
 		// Paging enabled
 		// {search: {enablePaging:true}}
@@ -78,7 +81,7 @@ func (s Store) SearchResourceActivityLogs(ctx context.Context, f types.ResourceA
 			ctx,
 			q, f.Sort, f.PageCursor,
 			f.Limit,
-			f.Check,
+			nil,
 			func(cur *filter.PagingCursor) squirrel.Sqlizer {
 				return builders.CursorCondition(cur, nil)
 			},
@@ -261,16 +264,6 @@ func (s Store) QueryResourceActivityLogs(
 	}
 
 	for _, res = range tmp {
-
-		// check fn set, call it and see if it passed the test
-		// if not, skip the item
-		if check != nil {
-			if chk, err := check(res); err != nil {
-				return nil, err
-			} else if !chk {
-				continue
-			}
-		}
 
 		set = append(set, res)
 	}
@@ -482,7 +475,7 @@ func (Store) resourceActivityLogColumns(aa ...string) []string {
 	}
 }
 
-// {true true false true true true}
+// {true true false true true false}
 
 // sortableResourceActivityLogColumns returns all ResourceActivityLog columns flagged as sortable
 //

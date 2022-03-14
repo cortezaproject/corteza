@@ -7,6 +7,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/options"
+	"sync"
 	"time"
 
 	"go.uber.org/zap"
@@ -17,6 +18,7 @@ type (
 		// logger for repository errors
 		logger *zap.Logger
 		opt    options.DiscoveryOpt
+		mux    sync.RWMutex
 
 		// where the activity log records are kept
 		store resourceActivityLogStore
@@ -46,7 +48,7 @@ func Service(logger *zap.Logger, opt options.DiscoveryOpt, s resourceActivityLog
 	return
 }
 
-func (svc service) log(a *types.ResourceActivity) {
+func (svc *service) log(a *types.ResourceActivity) {
 	zlf := []zap.Field{
 		zap.Uint8("recordID", uint8(a.ResourceID)),
 		zap.String("ResourceType", a.ResourceType),
@@ -68,12 +70,15 @@ func (svc service) log(a *types.ResourceActivity) {
 		Debug(fmt.Sprintf("%s of %s", a.ResourceAction, a.ResourceType))
 }
 
-func (svc service) InitResourceActivityLog(ctx context.Context, resourceType []string) (err error) {
+func (svc *service) InitResourceActivityLog(ctx context.Context, resourceType []string) (err error) {
 	eventType := []string{
 		string(types.AfterCreate),
 		string(types.AfterUpdate),
 		string(types.AfterDelete),
 	}
+
+	svc.mux.RLock()
+	defer svc.mux.RUnlock()
 
 	svc.eventbus.Register(
 		func(_ context.Context, ev eventbus.Event) error {
@@ -109,7 +114,7 @@ func (svc service) InitResourceActivityLog(ctx context.Context, resourceType []s
 	return
 }
 
-func (svc service) Record(ctx context.Context, a *types.ResourceActivity) {
+func (svc *service) Record(ctx context.Context, a *types.ResourceActivity) {
 	if a == nil {
 		// nothing to record
 		return

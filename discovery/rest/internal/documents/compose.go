@@ -280,7 +280,7 @@ func (d composeResources) Records(ctx context.Context, namespaceID, moduleID uin
 		)
 
 		if recordID > 0 {
-			f.Query = fmt.Sprintf("ID=%d", recordID)
+			f.Query = fmt.Sprintf("recordID=%d", recordID)
 		}
 
 		if f.Paging, err = filter.NewPaging(limit, cur); err != nil {

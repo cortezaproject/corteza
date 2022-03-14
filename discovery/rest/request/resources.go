@@ -34,28 +34,23 @@ var (
 type (
 	// Internal API interface
 	ResourcesSystemUsers struct {
-		// UserID PATH parameter
+		// Limit GET parameter
+		//
+		// Limit
+		Limit uint
+
+		// PageCursor GET parameter
+		//
+		// Page cursor
+		PageCursor string
+
+		// UserID GET parameter
 		//
 		// User ID
 		UserID uint64 `json:",string"`
-
-		// Limit GET parameter
-		//
-		// Limit
-		Limit uint
-
-		// PageCursor GET parameter
-		//
-		// Page cursor
-		PageCursor string
 	}
 
 	ResourcesComposeNamespaces struct {
-		// NamespaceID PATH parameter
-		//
-		// Namespace ID
-		NamespaceID uint64 `json:",string"`
-
 		// Limit GET parameter
 		//
 		// Limit
@@ -65,6 +60,11 @@ type (
 		//
 		// Page cursor
 		PageCursor string
+
+		// NamespaceID GET parameter
+		//
+		// Namespace ID
+		NamespaceID uint64 `json:",string"`
 	}
 
 	ResourcesComposeModules struct {
@@ -73,11 +73,6 @@ type (
 		// Namespace ID
 		NamespaceID uint64 `json:",string"`
 
-		// ModuleID PATH parameter
-		//
-		// Module ID
-		ModuleID uint64 `json:",string"`
-
 		// Limit GET parameter
 		//
 		// Limit
@@ -87,6 +82,11 @@ type (
 		//
 		// Page cursor
 		PageCursor string
+
+		// ModuleID GET parameter
+		//
+		// Module ID
+		ModuleID uint64 `json:",string"`
 	}
 
 	ResourcesComposeRecords struct {
@@ -100,11 +100,6 @@ type (
 		// Module ID
 		ModuleID uint64 `json:",string"`
 
-		// RecordID PATH parameter
-		//
-		// Record ID
-		RecordID uint64 `json:",string"`
-
 		// Limit GET parameter
 		//
 		// Limit
@@ -114,6 +109,11 @@ type (
 		//
 		// Page cursor
 		PageCursor string
+
+		// RecordID GET parameter
+		//
+		// Record ID
+		RecordID uint64 `json:",string"`
 	}
 )
 
@@ -125,15 +125,10 @@ func NewResourcesSystemUsers() *ResourcesSystemUsers {
 // Auditable returns all auditable/loggable parameters
 func (r ResourcesSystemUsers) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"userID":     r.UserID,
 		"limit":      r.Limit,
 		"pageCursor": r.PageCursor,
+		"userID":     r.UserID,
 	}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ResourcesSystemUsers) GetUserID() uint64 {
-	return r.UserID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -144,6 +139,11 @@ func (r ResourcesSystemUsers) GetLimit() uint {
 // Auditable returns all auditable/loggable parameters
 func (r ResourcesSystemUsers) GetPageCursor() string {
 	return r.PageCursor
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ResourcesSystemUsers) GetUserID() uint64 {
+	return r.UserID
 }
 
 // Fill processes request and fills internal variables
@@ -165,18 +165,12 @@ func (r *ResourcesSystemUsers) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
-	}
-
-	{
-		var val string
-		// path params
-
-		val = chi.URLParam(req, "userID")
-		r.UserID, err = payload.ParseUint64(val), nil
-		if err != nil {
-			return err
+		if val, ok := tmp["userID"]; ok && len(val) > 0 {
+			r.UserID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
 		}
-
 	}
 
 	return err
@@ -190,15 +184,10 @@ func NewResourcesComposeNamespaces() *ResourcesComposeNamespaces {
 // Auditable returns all auditable/loggable parameters
 func (r ResourcesComposeNamespaces) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"namespaceID": r.NamespaceID,
 		"limit":       r.Limit,
 		"pageCursor":  r.PageCursor,
+		"namespaceID": r.NamespaceID,
 	}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ResourcesComposeNamespaces) GetNamespaceID() uint64 {
-	return r.NamespaceID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -209,6 +198,11 @@ func (r ResourcesComposeNamespaces) GetLimit() uint {
 // Auditable returns all auditable/loggable parameters
 func (r ResourcesComposeNamespaces) GetPageCursor() string {
 	return r.PageCursor
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ResourcesComposeNamespaces) GetNamespaceID() uint64 {
+	return r.NamespaceID
 }
 
 // Fill processes request and fills internal variables
@@ -230,18 +224,12 @@ func (r *ResourcesComposeNamespaces) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
-	}
-
-	{
-		var val string
-		// path params
-
-		val = chi.URLParam(req, "namespaceID")
-		r.NamespaceID, err = payload.ParseUint64(val), nil
-		if err != nil {
-			return err
+		if val, ok := tmp["namespaceID"]; ok && len(val) > 0 {
+			r.NamespaceID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
 		}
-
 	}
 
 	return err
@@ -256,20 +244,15 @@ func NewResourcesComposeModules() *ResourcesComposeModules {
 func (r ResourcesComposeModules) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"namespaceID": r.NamespaceID,
-		"moduleID":    r.ModuleID,
 		"limit":       r.Limit,
 		"pageCursor":  r.PageCursor,
+		"moduleID":    r.ModuleID,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
 func (r ResourcesComposeModules) GetNamespaceID() uint64 {
 	return r.NamespaceID
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ResourcesComposeModules) GetModuleID() uint64 {
-	return r.ModuleID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -280,6 +263,11 @@ func (r ResourcesComposeModules) GetLimit() uint {
 // Auditable returns all auditable/loggable parameters
 func (r ResourcesComposeModules) GetPageCursor() string {
 	return r.PageCursor
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ResourcesComposeModules) GetModuleID() uint64 {
+	return r.ModuleID
 }
 
 // Fill processes request and fills internal variables
@@ -301,6 +289,12 @@ func (r *ResourcesComposeModules) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+		if val, ok := tmp["moduleID"]; ok && len(val) > 0 {
+			r.ModuleID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	{
@@ -309,12 +303,6 @@ func (r *ResourcesComposeModules) Fill(req *http.Request) (err error) {
 
 		val = chi.URLParam(req, "namespaceID")
 		r.NamespaceID, err = payload.ParseUint64(val), nil
-		if err != nil {
-			return err
-		}
-
-		val = chi.URLParam(req, "moduleID")
-		r.ModuleID, err = payload.ParseUint64(val), nil
 		if err != nil {
 			return err
 		}
@@ -334,9 +322,9 @@ func (r ResourcesComposeRecords) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"namespaceID": r.NamespaceID,
 		"moduleID":    r.ModuleID,
-		"recordID":    r.RecordID,
 		"limit":       r.Limit,
 		"pageCursor":  r.PageCursor,
+		"recordID":    r.RecordID,
 	}
 }
 
@@ -351,11 +339,6 @@ func (r ResourcesComposeRecords) GetModuleID() uint64 {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ResourcesComposeRecords) GetRecordID() uint64 {
-	return r.RecordID
-}
-
-// Auditable returns all auditable/loggable parameters
 func (r ResourcesComposeRecords) GetLimit() uint {
 	return r.Limit
 }
@@ -363,6 +346,11 @@ func (r ResourcesComposeRecords) GetLimit() uint {
 // Auditable returns all auditable/loggable parameters
 func (r ResourcesComposeRecords) GetPageCursor() string {
 	return r.PageCursor
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ResourcesComposeRecords) GetRecordID() uint64 {
+	return r.RecordID
 }
 
 // Fill processes request and fills internal variables
@@ -384,6 +372,12 @@ func (r *ResourcesComposeRecords) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+		if val, ok := tmp["recordID"]; ok && len(val) > 0 {
+			r.RecordID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	{
@@ -398,12 +392,6 @@ func (r *ResourcesComposeRecords) Fill(req *http.Request) (err error) {
 
 		val = chi.URLParam(req, "moduleID")
 		r.ModuleID, err = payload.ParseUint64(val), nil
-		if err != nil {
-			return err
-		}
-
-		val = chi.URLParam(req, "recordID")
-		r.RecordID, err = payload.ParseUint64(val), nil
 		if err != nil {
 			return err
 		}
