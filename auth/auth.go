@@ -396,23 +396,29 @@ func (svc service) MountHttpRoutes(basePath string, r chi.Router) {
 	svc.handlers.MountHttpRoutes(r)
 
 	const uriRoot = "/auth/assets/public"
-	if svc.opt.DevelopmentMode {
+	var (
+		assetHandler http.Handler
+		useEmbedded  = len(svc.opt.AssetsPath) == 0
+	)
+
+	if useEmbedded {
+		assetHandler = http.StripPrefix(basePath+"/auth/", http.FileServer(http.FS(PublicAssets)))
+	} else {
 		var root = strings.TrimRight(svc.opt.AssetsPath, "/") + "/public"
 
 		if err := dirCheck(root); err != nil {
 			svc.log.Error(
-				"failed to run in development mode (AUTH_DEVELOPMENT_MODE=true)",
+				"failed to configure auth assets handler",
 				zap.Error(err),
 				zap.String("AUTH_ASSETS_PATH", svc.opt.AssetsPath),
 			)
 		} else {
-			r.Handle(uriRoot+"/*", http.StripPrefix(basePath+uriRoot, http.FileServer(http.Dir(root))))
-			return
+			assetHandler = http.StripPrefix(basePath+uriRoot, http.FileServer(http.Dir(root)))
 		}
 	}
 
 	// fallback to embedded assets
-	r.Handle(uriRoot+"/*", http.StripPrefix(basePath+"/auth/", http.FileServer(http.FS(PublicAssets))))
+	r.Handle(uriRoot+"/*", assetHandler)
 }
 
 // checks if directory exists & is readable
