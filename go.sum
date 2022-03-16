@@ -151,6 +151,8 @@ github.com/cortezaproject/corteza-locale v0.0.0-20220303121557-895f8cda4757 h1:b
 github.com/cortezaproject/corteza-locale v0.0.0-20220303121557-895f8cda4757/go.mod h1:wsI1UftEdBqTuEDKBZmx2LfNu/kZun5pRbCAi420JCg=
 github.com/cortezaproject/corteza-locale v0.0.0-20220304144401-64d27e16a10b h1:NcHxSAxbxCiH1isno9SPe4MqpfQoI8Xiv0edwxGGL3E=
 github.com/cortezaproject/corteza-locale v0.0.0-20220304144401-64d27e16a10b/go.mod h1:wsI1UftEdBqTuEDKBZmx2LfNu/kZun5pRbCAi420JCg=
+github.com/cortezaproject/corteza-locale v0.0.0-20220316130533-4cb957f72e45 h1:7nOFmZEzsyU4CFh8tviRP9NZTWkgizGd+ChBpbmP744=
+github.com/cortezaproject/corteza-locale v0.0.0-20220316130533-4cb957f72e45/go.mod h1:wsI1UftEdBqTuEDKBZmx2LfNu/kZun5pRbCAi420JCg=
 github.com/cpuguy83/go-md2man v1.0.10/go.mod h1:SmD6nW6nTyfqj6ABTjUi3V3JVMnlJmwcJI5acqYI6dE=
 github.com/cpuguy83/go-md2man/v2 v2.0.1/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=

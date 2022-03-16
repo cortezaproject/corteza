@@ -2,11 +2,14 @@ label:
   add: Add
   ascending: Ascending
   back: Back
+  clear: Clear
   delete: Delete
   descending: Descending
   name: Name
   none: None
+  now: Now
   ok: Ok
   openLinkInNewTab: Open link in a new tab
   save: Save
+  today: Today
   urlPlaceholder: https://example.tld
