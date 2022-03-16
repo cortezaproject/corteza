@@ -12,6 +12,7 @@ label:
   browse: Browse
   buttons: Buttons
   cancel: Cancel
+  clear: Clear
   clone: Clone
   close: Close
   create: Create
@@ -36,9 +37,10 @@ label:
   multi: Multi value
   name: Name
   next: Next
-  "no": "No"
+  no: No
   noHandle: No handle
   none: None
+  now: Now
   ok: Ok
   openBookmarks: Open bookmarks
   pageBuilder: Page builder
@@ -56,6 +58,7 @@ label:
   status: Status
   timeHour: '{{t}}h'
   timeMinute: '{{t}}min'
+  today: Today
   title: Title
   type: Type
   updatedAt: Updated at
@@ -64,7 +67,7 @@ label:
   urlPlaceholder: https://example.tld
   validation: Validation
   view: View
-  "yes": "Yes"
+  yes: Yes
 navigation:
   chart: Charts
   namespace: Namespaces
