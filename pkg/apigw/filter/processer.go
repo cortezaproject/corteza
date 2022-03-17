@@ -15,6 +15,7 @@ import (
 	pe "github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/jsenv"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"go.uber.org/zap"
 )
 
@@ -47,7 +48,7 @@ type (
 	}
 )
 
-func NewWorkflow(wf WfExecer) (p *workflow) {
+func NewWorkflow(opts *options.ApigwOpt, wf WfExecer) (p *workflow) {
 	p = &workflow{}
 
 	p.d = wf
@@ -67,8 +68,12 @@ func NewWorkflow(wf WfExecer) (p *workflow) {
 	return
 }
 
-func (h workflow) New() types.Handler {
-	return NewWorkflow(h.d)
+func (h workflow) New(opts *options.ApigwOpt) types.Handler {
+	return NewWorkflow(opts, h.d)
+}
+
+func (h workflow) Enabled() bool {
+	return true
 }
 
 func (h workflow) String() string {
@@ -147,7 +152,7 @@ func (h workflow) Handler() types.HandlerFunc {
 	}
 }
 
-func NewPayload(l *zap.Logger) (p *processerPayload) {
+func NewPayload(opts *options.ApigwOpt, l *zap.Logger) (p *processerPayload) {
 	p = &processerPayload{}
 
 	p.vm = jsenv.New(jsenv.NewTransformer(jsenv.LoaderJS, jsenv.TargetES2016))
@@ -171,8 +176,12 @@ func NewPayload(l *zap.Logger) (p *processerPayload) {
 	return
 }
 
-func (h processerPayload) New() types.Handler {
-	return NewPayload(h.log)
+func (h processerPayload) New(opts *options.ApigwOpt) types.Handler {
+	return NewPayload(opts, h.log)
+}
+
+func (h processerPayload) Enabled() bool {
+	return true
 }
 
 func (h processerPayload) String() string {

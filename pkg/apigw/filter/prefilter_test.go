@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/stretchr/testify/require"
 )
 
@@ -33,7 +34,7 @@ func Test_headerMerge(t *testing.T) {
 	)
 
 	for _, tc := range tcc {
-		t.Run(tc.name, testMerge(NewHeader(), tc))
+		t.Run(tc.name, testMerge(NewHeader(&options.ApigwOpt{}), tc))
 	}
 }
 
@@ -79,7 +80,7 @@ func Test_headerHandle(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "/foo", http.NoBody)
 		r.Header = tc.headers
 
-		t.Run(tc.name, testHandle(NewHeader(), r, tc))
+		t.Run(tc.name, testHandle(NewHeader(&options.ApigwOpt{}), r, tc))
 	}
 }
 
@@ -111,7 +112,7 @@ func Test_queryParamMerge(t *testing.T) {
 	)
 
 	for _, tc := range tcc {
-		t.Run(tc.name, testMerge(NewQueryParam(), tc))
+		t.Run(tc.name, testMerge(NewQueryParam(&options.ApigwOpt{}), tc))
 	}
 }
 
@@ -144,7 +145,7 @@ func Test_queryParamHandle(t *testing.T) {
 
 	for _, tc := range tcc {
 		r := httptest.NewRequest(http.MethodGet, tc.url, http.NoBody)
-		t.Run(tc.name, testHandle(NewQueryParam(), r, tc))
+		t.Run(tc.name, testHandle(NewQueryParam(&options.ApigwOpt{}), r, tc))
 	}
 }
 

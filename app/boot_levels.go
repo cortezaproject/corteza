@@ -723,6 +723,7 @@ func updatePasswdSettings(opt options.AuthOpt, current *types.AppSettings) {
 
 func updateApigwSettings(opt options.ApigwOpt, current *types.AppSettings) {
 	current.Apigw.ProfilerEnabled = opt.ProfilerEnabled
+	current.Apigw.ProfilerGlobal = opt.ProfilerGlobal
 }
 
 // Checks if discovery is enabled in the options

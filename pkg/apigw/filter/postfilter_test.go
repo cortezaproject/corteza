@@ -10,6 +10,7 @@ import (
 	agctx "github.com/cortezaproject/corteza-server/pkg/apigw/ctx"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/stretchr/testify/require"
 )
 
@@ -34,7 +35,7 @@ func Test_redirectionMerge(t *testing.T) {
 	)
 
 	for _, tc := range tcc {
-		t.Run(tc.name, testMerge(NewRedirection(), tc))
+		t.Run(tc.name, testMerge(NewRedirection(&options.ApigwOpt{}), tc))
 	}
 }
 
@@ -74,7 +75,7 @@ func Test_redirection(t *testing.T) {
 				rc  = httptest.NewRecorder()
 			)
 
-			h := getHandler(NewRedirection())
+			h := getHandler(NewRedirection(&options.ApigwOpt{}))
 			h, err := h.Merge([]byte(tc.expr))
 
 			req.NoError(err)
@@ -144,7 +145,7 @@ func Test_jsonResponse(t *testing.T) {
 
 			r = r.WithContext(agctx.ScopeToContext(context.Background(), scope))
 
-			h := getHandler(NewJsonResponse(&mockHandlerRegistry{}))
+			h := getHandler(NewJsonResponse(&options.ApigwOpt{}, &mockHandlerRegistry{}))
 			h, err := h.Merge([]byte(tc.expr))
 
 			req.NoError(err)
