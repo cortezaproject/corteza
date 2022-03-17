@@ -11,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	h "github.com/cortezaproject/corteza-server/pkg/http"
 	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/davecgh/go-spew/spew"
 	"go.uber.org/zap"
 )
 
@@ -54,8 +55,11 @@ func (r route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	scope.Set("opts", r.opts)
 	scope.Set("request", ar)
 
+	spew.Dump("OPTS", r.opts)
+
 	// use profiler, override any profiling prefilter
-	if r.opts.ProfilerEnabled {
+	if r.opts.ProfilerEnabled && r.opts.ProfilerGlobal {
+		spew.Dump("adding to profiler")
 		// add request to profiler
 		hit = r.pr.Hit(ar)
 		hit.Route = r.ID
@@ -66,20 +70,28 @@ func (r route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	r.handler.ServeHTTP(w, req)
 
-	if r.opts.ProfilerEnabled {
-		r.pr.Push(hit)
-	} else {
-		if hit = actx.ProfilerFromContext(req.Context()).(*profiler.Hit); hit != nil && hit.R != nil {
-			// updated hit from a possible prefilter
-			// we need to push route ID even if the profiler is disabled
-			hit.Route = r.ID
-			r.pr.Push(hit)
-		}
-	}
-
 	r.log.Debug("finished serving route",
 		zap.Duration("duration", time.Since(start)),
 	)
+
+	if !r.opts.ProfilerEnabled {
+		return
+	}
+
+	if r.opts.ProfilerGlobal {
+		r.pr.Push(hit)
+		return
+	}
+
+	if hit = actx.ProfilerFromContext(req.Context()).(*profiler.Hit); hit != nil && hit.R != nil {
+		// updated hit from a possible prefilter
+		// we need to push route ID even if the profiler is disabled
+		hit.Route = r.ID
+		hit.Status = http.StatusOK
+
+		r.pr.Push(hit)
+		r.log.Debug("pushing request to profiler")
+	}
 }
 
 func (r route) String() string {

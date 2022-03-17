@@ -41,7 +41,7 @@ func helperMethodNotAllowed(opt *options.ApigwOpt, pr *profiler.Profiler) http.H
 }
 
 func addToProfiler(opt *options.ApigwOpt, pr *profiler.Profiler, r *http.Request, status int) {
-	if !opt.ProfilerEnabled {
+	if !(opt.ProfilerEnabled && opt.ProfilerGlobal) {
 		return
 	}
 

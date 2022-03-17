@@ -13,6 +13,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	pe "github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 )
 
 type (
@@ -41,11 +42,12 @@ type (
 	}
 
 	profiler struct {
+		opts *options.ApigwOpt
 		types.FilterMeta
 	}
 )
 
-func NewHeader() (v *header) {
+func NewHeader(opts *options.ApigwOpt) (v *header) {
 	v = &header{}
 
 	v.Name = "header"
@@ -63,8 +65,12 @@ func NewHeader() (v *header) {
 	return
 }
 
-func (h header) New() types.Handler {
-	return NewHeader()
+func (h header) New(opts *options.ApigwOpt) types.Handler {
+	return NewHeader(opts)
+}
+
+func (h header) Enabled() bool {
+	return true
 }
 
 func (h header) String() string {
@@ -129,7 +135,7 @@ func (h header) Handler() types.HandlerFunc {
 	}
 }
 
-func NewQueryParam() (v *queryParam) {
+func NewQueryParam(opts *options.ApigwOpt) (v *queryParam) {
 	v = &queryParam{}
 
 	v.Name = "queryParam"
@@ -147,8 +153,12 @@ func NewQueryParam() (v *queryParam) {
 	return
 }
 
-func (qp queryParam) New() types.Handler {
-	return NewQueryParam()
+func (qp queryParam) New(opts *options.ApigwOpt) types.Handler {
+	return NewQueryParam(opts)
+}
+
+func (qp queryParam) Enabled() bool {
+	return true
 }
 
 func (qp queryParam) String() string {
@@ -213,9 +223,10 @@ func (qp *queryParam) Handler() types.HandlerFunc {
 	}
 }
 
-func NewProfiler() (pp *profiler) {
+func NewProfiler(opts *options.ApigwOpt) (pp *profiler) {
 	pp = &profiler{}
 
+	pp.opts = opts
 	pp.Name = "profiler"
 	pp.Label = "Profiler"
 	pp.Kind = types.PreFilter
@@ -223,8 +234,12 @@ func NewProfiler() (pp *profiler) {
 	return
 }
 
-func (pr profiler) New() types.Handler {
-	return NewProfiler()
+func (pr profiler) New(opts *options.ApigwOpt) types.Handler {
+	return NewProfiler(opts)
+}
+
+func (pr profiler) Enabled() bool {
+	return pr.opts.ProfilerEnabled
 }
 
 func (pr profiler) String() string {
@@ -246,8 +261,8 @@ func (pr *profiler) Handler() types.HandlerFunc {
 			scope = agctx.ScopeFromContext(ctx)
 		)
 
-		if scope.Opts().ProfilerEnabled {
-			// profiler enabled overrides any profiling prefilter
+		if pr.opts.ProfilerEnabled && pr.opts.ProfilerGlobal {
+			// profiler global overrides any profiling prefilter
 			// the hit is registered on lower level
 			return
 		}

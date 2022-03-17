@@ -59,7 +59,7 @@ func Setup(opts *options.ApigwOpt, log *zap.Logger, storer storer) {
 func New(opts *options.ApigwOpt, logger *zap.Logger, storer storer) *apigw {
 	var (
 		pr  = profiler.New()
-		reg = registry.NewRegistry()
+		reg = registry.NewRegistry(opts)
 	)
 
 	reg.Preload()

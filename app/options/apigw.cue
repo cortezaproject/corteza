@@ -29,6 +29,10 @@ apigw: schema.#optionsGroup & {
 			type:        "bool"
 			description: "Enable profiler"
 		}
+		profiler_global: {
+			type:        "bool"
+			description: "Profiler enabled for all routes"
+		}
 		log_request_body: {
 			type:        "bool"
 			description: "Enable incoming request body output in logs"
