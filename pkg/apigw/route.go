@@ -11,7 +11,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	h "github.com/cortezaproject/corteza-server/pkg/http"
 	"github.com/cortezaproject/corteza-server/pkg/options"
-	"github.com/davecgh/go-spew/spew"
 	"go.uber.org/zap"
 )
 
@@ -55,11 +54,8 @@ func (r route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	scope.Set("opts", r.opts)
 	scope.Set("request", ar)
 
-	spew.Dump("OPTS", r.opts)
-
 	// use profiler, override any profiling prefilter
 	if r.opts.ProfilerEnabled && r.opts.ProfilerGlobal {
-		spew.Dump("adding to profiler")
 		// add request to profiler
 		hit = r.pr.Hit(ar)
 		hit.Route = r.ID
