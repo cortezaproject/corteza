@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/version"
 )
@@ -35,8 +34,6 @@ func (h httpRequestHandler) send(ctx context.Context, args *httpRequestSendArgs)
 		rsp *http.Response
 	)
 
-	// spew.Dump("TIMEOUT", args.Timeout)
-
 	r = &httpRequestSendResults{}
 
 	req, err = h.makeRequest(ctx, args)
@@ -44,16 +41,7 @@ func (h httpRequestHandler) send(ctx context.Context, args *httpRequestSendArgs)
 		return nil, err
 	}
 
-	// spew.Dump("ERR, REQ", err)
-	// spew.Dump(httputil.DumpRequestOut(req, false))
-
-	client := http.DefaultClient
-	client.Timeout = 5 * time.Minute
-
-	rsp, err = client.Do(req)
-	// spew.Dump("ERR", err)
-	// spew.Dump("RESP")
-	// spew.Dump(httputil.DumpResponse(rsp, true))
+	rsp, err = http.DefaultClient.Do(req)
 	if err != nil {
 		return
 	}
@@ -140,8 +128,6 @@ func (h httpRequestHandler) makeRequest(ctx context.Context, args *httpRequestSe
 		purl.RawQuery = args.Params.Encode()
 		args.Url = purl.String()
 	}
-
-	// spew.Dump("CTX", ctx)
 
 	req, err = http.NewRequestWithContext(ctx, args.Method, args.Url, args.bodyStream)
 	if err != nil {

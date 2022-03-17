@@ -41,7 +41,7 @@ type (
 
 func (ApigwProfiler) New() *ApigwProfiler {
 	return &ApigwProfiler{
-		svc: service.DefaultApigwRoute,
+		svc: service.DefaultApigwProfiler,
 		ac:  service.DefaultAccessControl,
 	}
 }

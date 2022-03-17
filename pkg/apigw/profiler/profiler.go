@@ -9,14 +9,6 @@ import (
 	h "github.com/cortezaproject/corteza-server/pkg/http"
 )
 
-const (
-	// default fallback on amount of items
-	FILTER_NUM_ITEMS = 20
-
-	// default fallback on amount of aggregated items
-	FILTER_NUM_AGG_ITEMS = 10
-)
-
 type (
 	Hits map[string][]*Hit
 
