@@ -3,6 +3,7 @@ package ctx
 import (
 	"context"
 
+	"github.com/cortezaproject/corteza-server/pkg/apigw/profiler"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 )
 
@@ -29,12 +30,12 @@ func ProfilerToContext(ctx context.Context, h interface{}) context.Context {
 	return context.WithValue(ctx, ContextKeyProfiler, h)
 }
 
-func ProfilerFromContext(ctx context.Context) (h interface{}) {
+func ProfilerFromContext(ctx context.Context) (h *profiler.Hit) {
 	hh := ctx.Value(ContextKeyProfiler)
 
 	if hh == nil {
 		return nil
 	}
 
-	return hh
+	return hh.(*profiler.Hit)
 }

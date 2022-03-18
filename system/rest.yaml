@@ -1690,7 +1690,7 @@ endpoints:
       path:
       - { type: uint64, name: queueID, required: true, title: Queue ID }
 
-- title: API Gateway routes
+- title: Integration gateway routes
   path: "/apigw/route"
   entrypoint: apigwRoute
   authentication: []
@@ -1751,7 +1751,7 @@ endpoints:
     path: "/{routeID}/undelete"
     parameters: { path: [ { name: routeID, type: uint64, required: true, title: "Route ID" } ] }
 
-- title: API Gateway filters
+- title: Integration gateway filters
   path: "/apigw/filter"
   entrypoint: apigwFilter
   authentication: []
@@ -1822,7 +1822,7 @@ endpoints:
     title: Proxy auth definitions
     path: "/proxy_auth/def"
 
-- title: API Gateway profiler
+- title: Integration gateway profiler
   path: "/apigw/profiler"
   entrypoint: apigwProfiler
   authentication: []

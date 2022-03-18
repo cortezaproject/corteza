@@ -207,10 +207,8 @@ type (
 			Enabled bool `kv:"-" json:"enabled"`
 		} `kv:"federation" json:"federation"`
 
-		// Federation settings
+		// Integration gateway settings
 		Apigw struct {
-			// This only holds the value of APIGW_PROFILER_ENABLED for now
-			//
 			ProfilerEnabled bool `kv:"-" json:"profilerEnabled"`
 			ProfilerGlobal  bool `kv:"-" json:"profilerGlobal"`
 		} `kv:"apigw" json:"apigw"`

@@ -1,157 +1,113 @@
 package profiler
 
-// import (
-// 	"net/http/httptest"
-// 	"strings"
-// 	"testing"
-// 	"time"
+import (
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+	"time"
 
-// 	"github.com/cortezaproject/corteza-server/pkg/filter"
-// 	h "github.com/cortezaproject/corteza-server/pkg/http"
-// 	"github.com/cortezaproject/corteza-server/system/types"
-// 	"github.com/davecgh/go-spew/spew"
-// )
+	h "github.com/cortezaproject/corteza-server/pkg/http"
+	"github.com/stretchr/testify/require"
+)
 
-// func Test_Profiler(t *testing.T) {
-// 	// var (
-// 	// 	p = Profiler{
-// 	// 		l: make(map[string]*Hit),
-// 	// 	}
-// 	// 	req = require.New(t)
-// 	// )
+const (
+	day = time.Hour * 24
+)
 
-// 	// // in goes the h.Request
-// 	// rr, err := http.NewRequest("POST", "/foo", strings.NewReader(`foo`))
+func Test_ApigwProfiler_newHit(t *testing.T) {
+	var (
+		p   = New()
+		req = require.New(t)
 
-// 	// req.NoError(err)
+		rr, err = h.NewRequest(httptest.NewRequest("POST", "/foo", strings.NewReader(`foo`)))
+		hit     = p.Hit(rr)
+	)
 
-// 	// hh, err := h.NewRequest(rr)
-// 	// req.NoError(err)
+	req.NoError(err)
+	req.Equal(hit.Status, http.StatusOK)
+	req.NotNil(hit.Ts)
+	req.NotNil(hit.ID)
+}
 
-// 	// // need to create an internal profiling struct to hold the request?
-// 	// p.Push(hh)
+func Test_ApigwProfiler_push(t *testing.T) {
+	var (
+		p       = New()
+		req     = require.New(t)
+		rr, err = h.NewRequest(httptest.NewRequest("POST", "/foo", strings.NewReader(`foo`)))
 
-// 	// spew.Dump(p.l)
+		hit = p.Hit(rr)
+		id  = p.Push(hit)
+	)
 
-// 	t.Fail()
-// }
+	_, found := p.l[id]
 
-// func Test_Profiler2(t *testing.T) {
-// 	// types:
-// 	//  + list of hits, aggregated by endpoint (ie /parse/js)
-// 	//  - list of hits for a specific endpoint
-// 	//  - list of hits for a specific registered route
+	req.NoError(err)
+	req.NotEmpty(id)
+	req.Len(p.l, 1)
+	req.True(found)
+}
 
-// 	now := time.Now()
-// 	then := time.Date(2022, time.March, 1, 1, 1, 1, 0, time.UTC)
-// 	later := time.Date(2022, time.March, 1, 1, 1, 1, 30, time.UTC)
+func Test_ApigwProfiler_filterPath(t *testing.T) {
+	var (
+		pp  = New()
+		req = require.New(t)
 
-// 	pp := New()
-// 	hr, _ := h.NewRequest(httptest.NewRequest("POST", "/foo", strings.NewReader(`foo`)))
-// 	hr2, _ := h.NewRequest(httptest.NewRequest("GET", "/sometotherpath", strings.NewReader(`foo`)))
-// 	pp.Push(&Hit{R: hr, Ts: &then})
-// 	pp.Push(&Hit{R: hr, Ts: &then})
-// 	pp.Push(&Hit{R: hr, Ts: &now})
-// 	pp.Push(&Hit{R: hr, Ts: &now})
-// 	pp.Push(&Hit{R: hr2, Ts: &now})
-// 	pp.Push(&Hit{R: hr2, Ts: &later})
-// 	pp.Push(&Hit{R: hr2, Ts: &later})
-// 	pp.Push(&Hit{R: hr2, Ts: &later})
-// 	pp.Push(&Hit{R: hr2, Ts: &later})
-// 	pp.Push(&Hit{R: hr2, Ts: &later})
-// 	pp.Push(&Hit{R: hr2, Ts: &later})
-// 	pp.Push(&Hit{R: hr2, Ts: &later})
+		now   = time.Date(2022, time.March, 1, 1, 1, 1, 0, time.UTC)
+		then  = now.Add(-1 * day)
+		later = now.Add(day)
 
-// 	var err error
-// 	f := types.ApigwProfilerFilter{}
-// 	if f.Sorting, err = filter.NewSorting("count DESC"); err != nil {
-// 		spew.Dump(err)
-// 	}
+		hr, _  = h.NewRequest(httptest.NewRequest("POST", "/foo", strings.NewReader(`foo`)))
+		hr2, _ = h.NewRequest(httptest.NewRequest("GET", "/bar", strings.NewReader(`foo`)))
+		hr3, _ = h.NewRequest(httptest.NewRequest("GET", "/baz", strings.NewReader(`foo`)))
+	)
 
-// 	list := pp.Dump(Sort{})
+	pp.Push(&Hit{R: hr, Ts: &then})
+	pp.Push(&Hit{R: hr, Ts: &then})
+	pp.Push(&Hit{R: hr2, Ts: &now})
+	pp.Push(&Hit{R: hr3, Ts: &later})
 
-// 	// list of aggregations
-// 	//  - keep showing, just refresh
+	list := pp.Hits(Sort{
+		Path: hr3.RequestURI,
+	})
 
-// 	// list := pp.Dump(Sort{Before: &later, Size: 3})
-// 	// spew.Dump(list)
+	_, found := list[hr3.RequestURI]
 
-// 	// list = list.Filter(func(k string, v *Hit) bool {
-// 	// 	if v.R.URL.Path == "/sometotherpath" {
-// 	// 		return true
-// 	// 	}
+	req.True(found)
+	req.Len(list[hr3.RequestURI], 1)
+}
 
-// 	// 	return false
-// 	// })
+func Test_ApigwProfiler_filterHit(t *testing.T) {
+	var (
+		pp  = New()
+		req = require.New(t)
 
-// 	// spew.Dump("LIST", list)
+		now   = time.Date(2022, time.March, 1, 1, 1, 1, 0, time.UTC)
+		then  = now.Add(-1 * day)
+		later = now.Add(day)
 
-// 	// for p, v := range list {
-// 	// 	for _, vv := range v {
-// 	// 		spew.Dump(fmt.Sprintf("Path: %s, S: %s, F: %s", p, vv.Ts, vv.Ts))
-// 	// 	}
-// 	// }
+		hr, _  = h.NewRequest(httptest.NewRequest("POST", "/foo", strings.NewReader(`foo`)))
+		hr2, _ = h.NewRequest(httptest.NewRequest("GET", "/bar", strings.NewReader(`foo`)))
+		hr3, _ = h.NewRequest(httptest.NewRequest("GET", "/baz", strings.NewReader(`foo`)))
+	)
 
-// 	var (
-// 		r                = make(types.ApigwProfilerAggregationSet, 0)
-// 		tsum, tmin, tmax time.Duration
-// 		ssum, smin, smax int64
-// 		i                uint64 = 1
-// 	)
+	pp.Push(&Hit{R: hr, Ts: &then})
+	pp.Push(&Hit{R: hr, Ts: &now})
+	pp.Push(&Hit{R: hr2, Ts: &now})
+	pp.Push(&Hit{R: hr2, Ts: &later})
+	pp.Push(&Hit{R: hr2, Ts: &later})
 
-// 	for p, v := range list {
-// 		tmin, tmax, tsum = time.Hour, 0, 0
-// 		smin, smax, ssum = 0, 0, 0
+	h := pp.Hit(hr3)
+	h.Ts = &later
 
-// 		i = 0
+	id := pp.Push(h)
 
-// 		for _, vv := range v {
-// 			var (
-// 				d = vv.Tf.Sub(*vv.Ts)
-// 				s = vv.R.ContentLength
-// 			)
+	list := pp.Hits(Sort{
+		Hit: h.ID,
+	})
 
-// 			if d < tmin {
-// 				tmin = d
-// 			}
+	_, found := list[id]
 
-// 			if d > tmax {
-// 				tmax = d
-// 			}
-
-// 			if s < smin {
-// 				smin = s
-// 			}
-
-// 			if s > smax {
-// 				smax = s
-// 			}
-
-// 			tsum += d
-// 			ssum += s
-// 			i++
-// 		}
-
-// 		spew.Dump("TSUM", tsum.Seconds())
-
-// 		r = append(r, &types.ApigwProfilerAggregation{
-// 			Path:  p,
-// 			Count: i,
-// 			Tmin:  tmin,
-// 			Tmax:  tmax,
-// 			Tavg:  time.Duration(int64(tsum.Seconds()/float64(i))) * time.Second,
-// 			Smin:  smin,
-// 			Smax:  smax,
-// 			Savg:  float64(ssum) / float64(i),
-// 		})
-
-// 	}
-
-// 	spew.Dump(r)
-
-// 	SortAggregation(&r, &f)
-
-// 	spew.Dump(r)
-
-// 	t.Fail()
-// }
+	req.True(found)
+	req.Len(list[id], 1)
+}

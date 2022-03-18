@@ -1,8 +1,6 @@
 package profiler
 
 import (
-	"encoding/base64"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -10,30 +8,8 @@ import (
 )
 
 type (
-	Hits map[string][]*Hit
-
 	Profiler struct {
 		l Hits
-	}
-
-	Hit struct {
-		ID     string
-		Status int
-		Route  uint64
-
-		R *h.Request
-
-		Ts *time.Time
-		Tf *time.Time
-		D  *time.Duration
-	}
-
-	CtxHit []*Stage
-
-	Stage struct {
-		Name string
-		Ts   *time.Time
-		Tf   *time.Time
 	}
 )
 
@@ -89,36 +65,4 @@ func (p *Profiler) Hits(s Sort) Hits {
 
 func (p *Profiler) id(r *h.Request) string {
 	return r.URL.Path
-}
-
-func (h *Hit) generateID() {
-	h.ID = base64.URLEncoding.EncodeToString([]byte(fmt.Sprintf("%s_%d", h.R.URL.Path, h.Ts.UnixNano())))
-}
-
-func (s Hits) Filter(fn func(k string, v *Hit) bool) Hits {
-	ss := Hits{}
-
-	for k, v := range s {
-		for _, vv := range v {
-			if !fn(k, vv) {
-				continue
-			}
-
-			ss[k] = append(ss[k], vv)
-		}
-	}
-
-	return ss
-}
-
-func (h Hits) Len() int {
-	return h.Len()
-}
-
-func (h Hits) Less(i, j int) bool {
-	return false
-}
-
-func (h Hits) Swap(i, j int) {
-	return
 }
