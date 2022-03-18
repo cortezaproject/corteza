@@ -7,6 +7,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/cortezaproject/corteza-server/pkg/qlng"
 	"github.com/cortezaproject/corteza-server/store/rdbms"
+	"github.com/davecgh/go-spew/spew"
 )
 
 var (
@@ -38,13 +39,18 @@ func sqlASTFormatter(n *qlng.ASTNode) rdbms.HandlerSig {
 }
 
 func sqlFunctionHandler(f ql.Function) (ql.ASTNode, error) {
+	spew.Dump(f)
 	switch strings.ToUpper(f.Name) {
 	case "QUARTER", "YEAR":
 		return ql.MakeFormattedNode(fmt.Sprintf("EXTRACT(%s FROM %%s::date)", f.Name), f.Arguments...), nil
 	case "DATE_FORMAT":
 		return ql.MakeReplacedFormattedNode("TO_CHAR(%s, %s)", translateDateFormatParams, f.Arguments...), nil
+	case "TIMESTAMP":
+		return ql.MakeFormattedNode("TIMESTAMPTZ(%s::TIMESTAMPTZ)", f.Arguments...), nil
 	case "DATE":
 		return ql.MakeFormattedNode("%s::DATE", f.Arguments...), nil
+	case "TIME":
+		return ql.MakeFormattedNode("DATE_TRUNC('second', %s::TIME)::TIME", f.Arguments...), nil
 	case "DATE_ADD", "DATE_SUB", "STD":
 		return nil, fmt.Errorf("%q function is currently unsupported in PostgreSQL store backend", f.Name)
 	}

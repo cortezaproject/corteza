@@ -117,6 +117,8 @@ func sqlFunctionHandler(f ql.Function) (ql.ASTNode, error) {
 		return ql.MakeFormattedNode("STRFTIME('%%Y', %s)", f.Arguments...), nil
 	case "NOW":
 		return ql.MakeFormattedNode("DATE('now')", f.Arguments...), nil
+	case "TIMESTAMP", "DATETIME":
+		return ql.MakeFormattedNode("DATETIME(%s)", f.Arguments...), nil
 	case "DATE_FORMAT":
 		if len(f.Arguments) != 2 {
 			return nil, fmt.Errorf("expecting exactly two arguments for DATE_FORMAT function")

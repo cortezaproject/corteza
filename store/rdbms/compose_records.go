@@ -540,6 +540,7 @@ func (s Store) convertComposeRecordFilter(m *types.Module, f types.RecordFilter)
 		// Resolve all identifiers found in the query
 		// into their table/column counterparts
 		fp.OnIdent = identResolver
+		fp.OnFunction = s.SqlFunctionHandler
 
 		if fn, err = fp.ParseExpression(f.Query); err != nil {
 			return
@@ -559,6 +560,7 @@ func (s Store) convertComposeRecordFilter(m *types.Module, f types.RecordFilter)
 		// Resolve all identifiers found in sort
 		// into their table/column counterparts
 		sp.OnIdent = identResolver
+		sp.OnFunction = s.SqlFunctionHandler
 
 		if _, err = sp.ParseColumns(f.Sort.String()); err != nil {
 			return

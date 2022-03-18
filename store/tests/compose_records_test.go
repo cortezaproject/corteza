@@ -1665,8 +1665,11 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 				result string
 			}{
 				{"datetime1 = '2020-10-02T00:00:02'", "1002"},
+				{"TIMESTAMP(datetime1) = TIMESTAMP('2020-10-02T00:00:02')", "1002"},
 				{"date1 = '2020-10-02'", "2002"},
+				{"DATE(date1) = DATE('2020-10-02')", "2002"},
 				{"time1 = '02:00:00'", "3002"},
+				{"TIME(time1) = TIME('02:00:00')", "3002"},
 				{"datetime1 <= '2020-10-02T00:00:02'", "1001;1002"},
 				{"date1 <= '2020-10-02'", "2001;2002"},
 				{"time1 <= '02:00:00'", "3001;3002"},
