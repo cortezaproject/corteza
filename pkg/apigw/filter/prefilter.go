@@ -9,7 +9,6 @@ import (
 	"time"
 
 	agctx "github.com/cortezaproject/corteza-server/pkg/apigw/ctx"
-	prf "github.com/cortezaproject/corteza-server/pkg/apigw/profiler"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	pe "github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
@@ -261,7 +260,7 @@ func (pr *profiler) Handler() types.HandlerFunc {
 			scope = agctx.ScopeFromContext(ctx)
 		)
 
-		if pr.opts.ProfilerEnabled && pr.opts.ProfilerGlobal {
+		if pr.opts.ProfilerGlobal {
 			// profiler global overrides any profiling prefilter
 			// the hit is registered on lower level
 			return
@@ -276,8 +275,8 @@ func (pr *profiler) Handler() types.HandlerFunc {
 			return
 		}
 
-		hit.(*prf.Hit).Ts = &n
-		hit.(*prf.Hit).R = scope.Request()
+		hit.Ts = &n
+		hit.R = scope.Request()
 
 		r = r.WithContext(agctx.ProfilerToContext(r.Context(), hit))
 

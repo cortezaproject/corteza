@@ -79,7 +79,7 @@ func (r route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if hit = actx.ProfilerFromContext(req.Context()).(*profiler.Hit); hit != nil && hit.R != nil {
+	if hit = actx.ProfilerFromContext(req.Context()); hit != nil && hit.R != nil {
 		// updated hit from a possible prefilter
 		// we need to push route ID even if the profiler is disabled
 		hit.Route = r.ID

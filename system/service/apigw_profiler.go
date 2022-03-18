@@ -17,7 +17,7 @@ import (
 
 var (
 	sortAggFields   = []string{"path", "count", "size_min", "size_max", "size_avg", "time_min", "time_max", "time_avg"}
-	sortRouteFields = []string{"time_start", "time_finish", "time_duration"}
+	sortRouteFields = []string{"time_start", "time_finish", "time_duration", "content_length", "http_status_code"}
 )
 
 const (
@@ -56,9 +56,8 @@ func (svc *apigwProfiler) Hits(ctx context.Context, filter types.ApigwProfilerFi
 	}
 
 	var sorting = profiler.Sort{
-		Hit:    filter.Hit,
-		Path:   filter.Path,
-		Before: filter.Before,
+		Hit:  filter.Hit,
+		Path: filter.Path,
 	}
 
 	var (
@@ -130,8 +129,7 @@ func (svc *apigwProfiler) HitsAggregated(ctx context.Context, filter types.Apigw
 
 	var (
 		list = apigw.Service().Profiler().Hits(profiler.Sort{
-			Path:   filter.Path,
-			Before: filter.Before,
+			Path: filter.Path,
 		})
 
 		tsum, tmin, tmax time.Duration

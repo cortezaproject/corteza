@@ -127,7 +127,6 @@ func (s *apigw) Reload(ctx context.Context) (err error) {
 		var (
 			defaultMethodResponse = helperMethodNotAllowed(s.opts, s.pr)
 			defaultResponse       = helperDefaultResponse(s.opts, s.pr)
-			// profiler              = helperProfiler(s.opts, s.pr)
 		)
 
 		s.mx.NotFound(defaultResponse)
