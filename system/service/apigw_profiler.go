@@ -184,7 +184,9 @@ func (svc *apigwProfiler) HitsAggregated(ctx context.Context, filter types.Apigw
 		})
 	}
 
-	// sort
+	// sort first, by primary and secondary fields
+	// primary is the one chosen
+	// secondary is path
 	sortAggregation(&r, &f)
 
 	// filter
@@ -332,6 +334,10 @@ func getSortTypeHit(s string, list *types.ApigwProfilerHitSet) sort.Interface {
 		return types.ByFTime(*list)
 	case "time_duration":
 		return types.ByDuration(*list)
+	case "content_length":
+		return types.ByContentLength(*list)
+	case "http_status_code":
+		return types.ByStatus(*list)
 	default:
 		return types.BySTime(*list)
 	}

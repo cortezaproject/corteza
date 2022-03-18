@@ -21,14 +21,7 @@ func (s Scp) Keys() (kk []string) {
 }
 
 func (s Scp) Request() *h.Request {
-	// todo - fix with expr.Request
 	if _, ok := s["request"]; ok {
-		// switch s["request"].(type) {
-		// case *http.Request:
-		// 	return s["request"].(*http.Request)
-		// case *expr.Any:
-		// 	return s["request"].(*expr.Any).Get().(*http.Request)
-		// }
 		return s["request"].(*h.Request)
 	}
 
