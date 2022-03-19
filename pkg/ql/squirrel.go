@@ -23,7 +23,7 @@ func (nn ASTNodes) ToSql() (out string, args []interface{}, err error) {
 				// Example: ((A) AND (B))
 				out = out + "(" + _out + ")"
 			} else {
-				out = out + _out
+				out = out + " " + _out
 			}
 
 			args = append(args, _args...)
