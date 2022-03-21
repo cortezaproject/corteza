@@ -1606,7 +1606,7 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 			req.NoError(err)
 			req.Len(report, 3)
 
-			report, err = s.ComposeRecordReport(ctx, mod, "MAX(num1)", "DATE_FORMAT(dt1, '%y; %j @ %H %i %p')", "")
+			report, err = s.ComposeRecordReport(ctx, mod, "MAX(num1)", "DATE_FORMAT(dt1, '%Y; %j @ %H %i')", "")
 			req.NoError(err)
 			req.Len(report, 3)
 		})
