@@ -3,11 +3,16 @@ package values
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/stretchr/testify/require"
 	"reflect"
 	"testing"
 	"time"
 )
+
+func makeLocaleService() localeService {
+	return locale.Global()
+}
 
 func Test_validator_vDatetime(t *testing.T) {
 	var (
@@ -19,6 +24,7 @@ func Test_validator_vDatetime(t *testing.T) {
 				}
 				return t
 			},
+			localeSvc: makeLocaleService(),
 		}
 		tests = []struct {
 			name string
@@ -29,7 +35,7 @@ func Test_validator_vDatetime(t *testing.T) {
 			{
 				name: "unparsable",
 				val:  "unparsable",
-				want: e2s(types.RecordValueError{Kind: "invalidValue", Meta: map[string]interface{}{"field": "", "value": "unparsable"}}),
+				want: e2s(types.RecordValueError{Kind: "invalidValue", Meta: map[string]interface{}{"field": "", "value": "unparsable"}, Message: "record-field.errors.invalidValue"}),
 			},
 			{
 				name: "valid datetime value",
@@ -80,7 +86,7 @@ func Test_validator_vDatetime(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := vldtr.vDatetime(&types.RecordValue{Value: tt.val}, &types.ModuleField{Options: tt.opt}, nil, nil); !reflect.DeepEqual(got, tt.want) {
+			if got := vldtr.vDatetime(context.Background(), &types.RecordValue{Value: tt.val}, &types.ModuleField{Options: tt.opt}, nil, nil); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("vDatetime() = %+v, want %+v", got, tt.want)
 			}
 		})
@@ -89,7 +95,9 @@ func Test_validator_vDatetime(t *testing.T) {
 
 func Test_validator_vNumber(t *testing.T) {
 	var (
-		vldtr = validator{}
+		vldtr = validator{
+			localeSvc: makeLocaleService(),
+		}
 		tests = []struct {
 			name string
 			val  string
@@ -99,7 +107,7 @@ func Test_validator_vNumber(t *testing.T) {
 			{
 				name: "unparsable",
 				val:  "unparsable",
-				want: e2s(types.RecordValueError{Kind: "invalidValue", Meta: map[string]interface{}{"field": "", "value": "unparsable"}}),
+				want: e2s(types.RecordValueError{Kind: "invalidValue", Meta: map[string]interface{}{"field": "", "value": "unparsable"}, Message: "record-field.errors.invalidValue"}),
 			},
 			{
 				name: "valid number value",
@@ -118,7 +126,7 @@ func Test_validator_vNumber(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := vldtr.vNumber(&types.RecordValue{Value: tt.val}, &types.ModuleField{Options: tt.opt}, nil, nil); !reflect.DeepEqual(got, tt.want) {
+			if got := vldtr.vNumber(context.Background(), &types.RecordValue{Value: tt.val}, &types.ModuleField{Options: tt.opt}, nil, nil); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("vNumber() = %+v, want %+v", got, tt.want)
 			}
 		})
@@ -127,7 +135,9 @@ func Test_validator_vNumber(t *testing.T) {
 
 func Test_validator_vUrl(t *testing.T) {
 	var (
-		vldtr = validator{}
+		vldtr = validator{
+			localeSvc: makeLocaleService(),
+		}
 		tests = []struct {
 			name string
 			val  string
@@ -137,7 +147,7 @@ func Test_validator_vUrl(t *testing.T) {
 			{
 				name: "invalid-url",
 				val:  "invalid-url",
-				want: e2s(types.RecordValueError{Kind: "invalidValue", Meta: map[string]interface{}{"field": "", "value": "invalid-url"}}),
+				want: e2s(types.RecordValueError{Kind: "invalidValue", Meta: map[string]interface{}{"field": "", "value": "invalid-url"}, Message: "record-field.errors.invalidValue"}),
 			},
 			{
 				name: "valid value",
@@ -148,7 +158,7 @@ func Test_validator_vUrl(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := vldtr.vUrl(&types.RecordValue{Value: tt.val}, &types.ModuleField{Options: tt.opt}, nil, nil); !reflect.DeepEqual(got, tt.want) {
+			if got := vldtr.vUrl(context.Background(), &types.RecordValue{Value: tt.val}, &types.ModuleField{Options: tt.opt}, nil, nil); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("vUrl() = %+v, want %+v", got, tt.want)
 			}
 		})
@@ -157,7 +167,9 @@ func Test_validator_vUrl(t *testing.T) {
 
 func Test_validator_vEmail(t *testing.T) {
 	var (
-		vldtr = validator{}
+		vldtr = validator{
+			localeSvc: makeLocaleService(),
+		}
 		tests = []struct {
 			name string
 			val  string
@@ -167,7 +179,7 @@ func Test_validator_vEmail(t *testing.T) {
 			{
 				name: "unparsable",
 				val:  "un pars able",
-				want: e2s(types.RecordValueError{Kind: "invalidValue", Meta: map[string]interface{}{"field": "", "value": "un pars able"}}),
+				want: e2s(types.RecordValueError{Kind: "invalidValue", Meta: map[string]interface{}{"field": "", "value": "un pars able"}, Message: "record-field.errors.invalidValue"}),
 			},
 			{
 				name: "valid value",
@@ -178,7 +190,7 @@ func Test_validator_vEmail(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := vldtr.vEmail(&types.RecordValue{Value: tt.val}, &types.ModuleField{Options: tt.opt}, nil, nil); !reflect.DeepEqual(got, tt.want) {
+			if got := vldtr.vEmail(context.Background(), &types.RecordValue{Value: tt.val}, &types.ModuleField{Options: tt.opt}, nil, nil); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("vEmail() = %+v, want %+v", got, tt.want)
 			}
 		})
@@ -187,7 +199,9 @@ func Test_validator_vEmail(t *testing.T) {
 
 func Test_validator_vSelect(t *testing.T) {
 	var (
-		vldtr = validator{}
+		vldtr = validator{
+			localeSvc: makeLocaleService(),
+		}
 		tests = []struct {
 			name string
 			val  string
@@ -207,14 +221,14 @@ func Test_validator_vSelect(t *testing.T) {
 				name: "valid value",
 				val:  "the rest",
 				opt:  types.ModuleFieldOptions{"options": []string{"crust", "corteza"}},
-				want: e2s(types.RecordValueError{Kind: "invalidValue", Meta: map[string]interface{}{"field": "", "value": "the rest"}}),
+				want: e2s(types.RecordValueError{Kind: "invalidValue", Meta: map[string]interface{}{"field": "", "value": "the rest"}, Message: "record-field.errors.invalidValue"}),
 			},
 		}
 	)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := vldtr.vSelect(&types.RecordValue{Value: tt.val}, &types.ModuleField{Options: tt.opt}, nil, nil); !reflect.DeepEqual(got, tt.want) {
+			if got := vldtr.vSelect(context.Background(), &types.RecordValue{Value: tt.val}, &types.ModuleField{Options: tt.opt}, nil, nil); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("vSelect() = %+v, want %+v", got, tt.want)
 			}
 		})

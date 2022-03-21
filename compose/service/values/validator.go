@@ -3,6 +3,7 @@ package values
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"math/big"
 	"net/mail"
 	"net/url"
@@ -26,38 +27,68 @@ type (
 	UniqueChecker    func(context.Context, store.Storer, *types.RecordValue, *types.ModuleField, *types.Module) (uint64, error)
 	ReferenceChecker func(context.Context, store.Storer, *types.RecordValue, *types.ModuleField, *types.Module) (bool, error)
 
+	localeService interface {
+		T(ctx context.Context, ns, key string, rr ...string) string
+	}
+
 	validator struct {
 		uniqueCheckerFn    UniqueChecker
 		recordRefCheckerFn ReferenceChecker
 		userRefCheckerFn   ReferenceChecker
 		fileRefCheckerFn   ReferenceChecker
 
+		localeSvc localeService
+
 		now func() time.Time
 	}
 )
 
 func makeInternalErr(field *types.ModuleField, err error) types.RecordValueError {
-	return types.RecordValueError{Kind: "internal", Message: err.Error(), Meta: map[string]interface{}{"field": field.Name}}
+	return types.RecordValueError{
+		Kind:    "internal",
+		Message: err.Error(),
+		Meta:    map[string]interface{}{"field": field.Name},
+	}
 }
 
-func makeEmptyErr(field *types.ModuleField) types.RecordValueError {
-	return types.RecordValueError{Kind: "empty", Meta: map[string]interface{}{"field": field.Name}}
+func makeEmptyErr(ctx context.Context, field *types.ModuleField, ls localeService) types.RecordValueError {
+	return types.RecordValueError{
+		Kind:    "empty",
+		Meta:    map[string]interface{}{"field": field.Name},
+		Message: ls.T(ctx, "compose", "record-field.errors.empty"),
+	}
 }
 
-func makeInvalidValueErr(field *types.ModuleField, value string) types.RecordValueError {
-	return types.RecordValueError{Kind: "invalidValue", Meta: map[string]interface{}{"field": field.Name, "value": value}}
+func makeInvalidValueErr(ctx context.Context, field *types.ModuleField, value string, ls localeService) types.RecordValueError {
+	return types.RecordValueError{
+		Kind:    "invalidValue",
+		Meta:    map[string]interface{}{"field": field.Name, "value": value},
+		Message: ls.T(ctx, "compose", "record-field.errors.invalidValue"),
+	}
 }
 
-func makeInvalidRefErr(field *types.ModuleField, ref uint64) types.RecordValueError {
-	return types.RecordValueError{Kind: "invalidRef", Meta: map[string]interface{}{"field": field.Name, "ref": ref}}
+func makeInvalidRefErr(ctx context.Context, field *types.ModuleField, ref uint64, ls localeService) types.RecordValueError {
+	return types.RecordValueError{
+		Kind:    "invalidRef",
+		Meta:    map[string]interface{}{"field": field.Name, "ref": ref},
+		Message: ls.T(ctx, "compose", "record-field.errors.invalidRef"),
+	}
 }
 
-func makeDuplicateValueInSetErr(field *types.ModuleField, value string) types.RecordValueError {
-	return types.RecordValueError{Kind: "duplicateValueInSet", Meta: map[string]interface{}{"field": field.Name, "value": value}}
+func makeDuplicateValueInSetErr(ctx context.Context, field *types.ModuleField, value string, ls localeService) types.RecordValueError {
+	return types.RecordValueError{
+		Kind:    "duplicateValueInSet",
+		Meta:    map[string]interface{}{"field": field.Name, "value": value},
+		Message: ls.T(ctx, "compose", "record-field.errors.duplicateValueInSet"),
+	}
 }
 
-func makeDuplicateValueErr(field *types.ModuleField, recordID uint64) types.RecordValueError {
-	return types.RecordValueError{Kind: "duplicateValue", Meta: map[string]interface{}{"field": field.Name, "recordID": recordID}}
+func makeDuplicateValueErr(ctx context.Context, field *types.ModuleField, recordID uint64, ls localeService) types.RecordValueError {
+	return types.RecordValueError{
+		Kind:    "duplicateValue",
+		Meta:    map[string]interface{}{"field": field.Name, "recordID": recordID},
+		Message: ls.T(ctx, "compose", "record-field.errors.duplicateValue"),
+	}
 }
 
 // Simple wrapper for easier error returning from validation functions
@@ -67,7 +98,8 @@ func e2s(ee ...types.RecordValueError) []types.RecordValueError {
 
 func Validator() *validator {
 	return &validator{
-		now: func() time.Time { return time.Now() },
+		now:       func() time.Time { return time.Now() },
+		localeSvc: locale.Global(),
 	}
 }
 
@@ -111,13 +143,13 @@ fields:
 
 		if f.Required {
 			if len(vv) == 0 {
-				out.Push(makeEmptyErr(f))
+				out.Push(makeEmptyErr(ctx, f, vldtr.localeSvc))
 				continue fields
 			}
 
 			for _, v := range vv {
 				if len(v.Value) == 0 || (f.IsRef() && v.Ref == 0) {
-					out.Push(makeEmptyErr(f))
+					out.Push(makeEmptyErr(ctx, f, vldtr.localeSvc))
 					continue fields
 				}
 			}
@@ -127,7 +159,7 @@ fields:
 			flipped := make(map[string]bool)
 			for _, v := range vv {
 				if flipped[v.Value] {
-					out.Push(makeDuplicateValueInSetErr(f, v.Value))
+					out.Push(makeDuplicateValueInSetErr(ctx, f, v.Value, vldtr.localeSvc))
 					continue fields
 				}
 
@@ -160,23 +192,23 @@ fields:
 			// Per field type validators
 			switch strings.ToLower(f.Kind) {
 			case "bool":
-				out.Push(vldtr.vBool(v, f, r, m)...)
+				out.Push(vldtr.vBool(ctx, v, f, r, m)...)
 			case "datetime":
-				out.Push(vldtr.vDatetime(v, f, r, m)...)
+				out.Push(vldtr.vDatetime(ctx, v, f, r, m)...)
 			case "email":
-				out.Push(vldtr.vEmail(v, f, r, m)...)
+				out.Push(vldtr.vEmail(ctx, v, f, r, m)...)
 			case "file":
 				out.Push(vldtr.vFile(ctx, s, v, f, r, m)...)
 			case "number":
-				out.Push(vldtr.vNumber(v, f, r, m)...)
+				out.Push(vldtr.vNumber(ctx, v, f, r, m)...)
 			case "record":
 				out.Push(vldtr.vRecord(ctx, s, v, f, r, m)...)
 			case "select":
-				out.Push(vldtr.vSelect(v, f, r, m)...)
+				out.Push(vldtr.vSelect(ctx, v, f, r, m)...)
 			//case "string":
 			//	out.Push(vldtr.vString(v, f, r, m)...)
 			case "url":
-				out.Push(vldtr.vUrl(v, f, r, m)...)
+				out.Push(vldtr.vUrl(ctx, v, f, r, m)...)
 			case "user":
 				out.Push(vldtr.vUser(ctx, s, v, f, r, m)...)
 			}
@@ -234,7 +266,7 @@ fields:
 		if err != nil {
 			out.Push(makeInternalErr(f, err))
 		} else if duplicateRecordID > 0 && duplicateRecordID != r.ID {
-			out.Push(makeDuplicateValueErr(f, duplicateRecordID))
+			out.Push(makeDuplicateValueErr(ctx, f, duplicateRecordID, vldtr.localeSvc))
 		}
 	}
 
@@ -245,19 +277,19 @@ fields:
 	return out
 }
 
-func (vldtr validator) vBool(v *types.RecordValue, f *types.ModuleField, r *types.Record, m *types.Module) []types.RecordValueError {
+func (vldtr validator) vBool(ctx context.Context, v *types.RecordValue, f *types.ModuleField, r *types.Record, m *types.Module) []types.RecordValueError {
 	if v.Value == "" {
 		return nil
 	}
 
 	if v.Value != strBoolTrue && v.Value != strBoolFalse && v.Value != strBoolFalseAlt {
-		return e2s(makeInvalidValueErr(f, v.Value))
+		return e2s(makeInvalidValueErr(ctx, f, v.Value, vldtr.localeSvc))
 	}
 
 	return nil
 }
 
-func (vldtr validator) vDatetime(v *types.RecordValue, f *types.ModuleField, r *types.Record, m *types.Module) []types.RecordValueError {
+func (vldtr validator) vDatetime(ctx context.Context, v *types.RecordValue, f *types.ModuleField, r *types.Record, m *types.Module) []types.RecordValueError {
 	var (
 		inputFormat string
 		t           time.Time
@@ -283,16 +315,16 @@ func (vldtr validator) vDatetime(v *types.RecordValue, f *types.ModuleField, r *
 
 	t, err = time.Parse(inputFormat, v.Value)
 	if err != nil {
-		return e2s(makeInvalidValueErr(f, v.Value))
+		return e2s(makeInvalidValueErr(ctx, f, v.Value, vldtr.localeSvc))
 	}
 
 	if f.Options.Bool(fieldOpt_Datetime_onlyFutureValues) {
 		if !t.After(refTime) {
-			return e2s(makeInvalidValueErr(f, v.Value))
+			return e2s(makeInvalidValueErr(ctx, f, v.Value, vldtr.localeSvc))
 		}
 	} else if f.Options.Bool(fieldOpt_Datetime_onlyPastValues) {
 		if !t.Before(refTime) {
-			return e2s(makeInvalidValueErr(f, v.Value))
+			return e2s(makeInvalidValueErr(ctx, f, v.Value, vldtr.localeSvc))
 		}
 	}
 
@@ -301,9 +333,9 @@ func (vldtr validator) vDatetime(v *types.RecordValue, f *types.ModuleField, r *
 	return nil
 }
 
-func (vldtr validator) vEmail(v *types.RecordValue, f *types.ModuleField, r *types.Record, m *types.Module) []types.RecordValueError {
+func (vldtr validator) vEmail(ctx context.Context, v *types.RecordValue, f *types.ModuleField, r *types.Record, m *types.Module) []types.RecordValueError {
 	if _, err := mail.ParseAddress(v.Value); err != nil {
-		return e2s(makeInvalidValueErr(f, v.Value))
+		return e2s(makeInvalidValueErr(ctx, f, v.Value, vldtr.localeSvc))
 	}
 
 	return nil
@@ -316,15 +348,15 @@ func (vldtr validator) vFile(ctx context.Context, s store.Storer, v *types.Recor
 	if ok, err := vldtr.fileRefCheckerFn(ctx, s, v, f, m); err != nil {
 		return e2s(makeInternalErr(f, err))
 	} else if !ok {
-		return e2s(makeInvalidRefErr(f, v.Ref))
+		return e2s(makeInvalidRefErr(ctx, f, v.Ref, vldtr.localeSvc))
 	}
 
 	return nil
 }
 
-func (vldtr validator) vNumber(v *types.RecordValue, f *types.ModuleField, r *types.Record, m *types.Module) []types.RecordValueError {
+func (vldtr validator) vNumber(ctx context.Context, v *types.RecordValue, f *types.ModuleField, r *types.Record, m *types.Module) []types.RecordValueError {
 	if _, _, err := big.ParseFloat(v.Value, 0, f.Options.Precision(), big.ToNearestEven); err != nil {
-		return e2s(makeInvalidValueErr(f, v.Value))
+		return e2s(makeInvalidValueErr(ctx, f, v.Value, vldtr.localeSvc))
 	}
 
 	return nil
@@ -338,13 +370,13 @@ func (vldtr validator) vRecord(ctx context.Context, s store.Storer, v *types.Rec
 	if ok, err := vldtr.recordRefCheckerFn(ctx, s, v, f, m); err != nil {
 		return e2s(makeInternalErr(f, err))
 	} else if !ok {
-		return e2s(makeInvalidRefErr(f, v.Ref))
+		return e2s(makeInvalidRefErr(ctx, f, v.Ref, vldtr.localeSvc))
 	}
 
 	return nil
 }
 
-func (vldtr validator) vSelect(v *types.RecordValue, f *types.ModuleField, r *types.Record, m *types.Module) []types.RecordValueError {
+func (vldtr validator) vSelect(ctx context.Context, v *types.RecordValue, f *types.ModuleField, r *types.Record, m *types.Module) []types.RecordValueError {
 	var (
 		sbm          = make(map[string]bool)
 		options, has = f.Options["options"]
@@ -387,7 +419,7 @@ func (vldtr validator) vSelect(v *types.RecordValue, f *types.ModuleField, r *ty
 	}
 
 	if !sbm[v.Value] {
-		return e2s(makeInvalidValueErr(f, v.Value))
+		return e2s(makeInvalidValueErr(ctx, f, v.Value, vldtr.localeSvc))
 	}
 
 	return nil
@@ -397,13 +429,13 @@ func (vldtr validator) vSelect(v *types.RecordValue, f *types.ModuleField, r *ty
 //	return nil
 //}
 
-func (vldtr validator) vUrl(v *types.RecordValue, f *types.ModuleField, r *types.Record, m *types.Module) []types.RecordValueError {
+func (vldtr validator) vUrl(ctx context.Context, v *types.RecordValue, f *types.ModuleField, r *types.Record, m *types.Module) []types.RecordValueError {
 	if p, err := url.Parse(v.Value); err != nil {
-		return e2s(makeInvalidValueErr(f, v.Value))
+		return e2s(makeInvalidValueErr(ctx, f, v.Value, vldtr.localeSvc))
 	} else if p.Scheme == "" || p.Host == "" {
-		return e2s(makeInvalidValueErr(f, v.Value))
+		return e2s(makeInvalidValueErr(ctx, f, v.Value, vldtr.localeSvc))
 	} else if f.Options.Bool(fieldOpt_Url_onlySecure) && p.Scheme != "https" {
-		return e2s(makeInvalidValueErr(f, v.Value))
+		return e2s(makeInvalidValueErr(ctx, f, v.Value, vldtr.localeSvc))
 	}
 
 	return nil
@@ -416,7 +448,7 @@ func (vldtr validator) vUser(ctx context.Context, s store.Storer, v *types.Recor
 	if ok, err := vldtr.userRefCheckerFn(ctx, s, v, f, m); err != nil {
 		return e2s(makeInternalErr(f, err))
 	} else if !ok {
-		return e2s(makeInvalidRefErr(f, v.Ref))
+		return e2s(makeInvalidRefErr(ctx, f, v.Ref, vldtr.localeSvc))
 	}
 
 	return nil
