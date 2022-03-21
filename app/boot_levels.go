@@ -491,7 +491,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	corredor.Service().SetRoleFinder(sysService.DefaultRole)
 
 	// Initialize API GW bits
-	apigw.Setup(options.Apigw(), app.Log, app.Store)
+	apigw.Setup(*options.Apigw(), app.Log, app.Store)
 	if err = apigw.Service().Reload(ctx); err != nil {
 		return err
 	}

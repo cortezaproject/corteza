@@ -46,7 +46,7 @@ type (
 	}
 )
 
-func New(opts *options.ApigwOpt, l *zap.Logger, c *http.Client, s types.SecureStorager) (p *proxy) {
+func New(opts options.ApigwOpt, l *zap.Logger, c *http.Client, s types.SecureStorager) (p *proxy) {
 	p = &proxy{}
 
 	p.c = c
@@ -68,7 +68,7 @@ func New(opts *options.ApigwOpt, l *zap.Logger, c *http.Client, s types.SecureSt
 	return
 }
 
-func (h proxy) New(opts *options.ApigwOpt) types.Handler {
+func (h proxy) New(opts options.ApigwOpt) types.Handler {
 	return New(opts, h.log, h.c, h.s)
 }
 

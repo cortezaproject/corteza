@@ -48,7 +48,7 @@ type (
 	}
 )
 
-func NewWorkflow(opts *options.ApigwOpt, wf WfExecer) (p *workflow) {
+func NewWorkflow(opts options.ApigwOpt, wf WfExecer) (p *workflow) {
 	p = &workflow{}
 
 	p.d = wf
@@ -68,7 +68,7 @@ func NewWorkflow(opts *options.ApigwOpt, wf WfExecer) (p *workflow) {
 	return
 }
 
-func (h workflow) New(opts *options.ApigwOpt) types.Handler {
+func (h workflow) New(opts options.ApigwOpt) types.Handler {
 	return NewWorkflow(opts, h.d)
 }
 
@@ -152,7 +152,7 @@ func (h workflow) Handler() types.HandlerFunc {
 	}
 }
 
-func NewPayload(opts *options.ApigwOpt, l *zap.Logger) (p *processerPayload) {
+func NewPayload(opts options.ApigwOpt, l *zap.Logger) (p *processerPayload) {
 	p = &processerPayload{}
 
 	p.vm = jsenv.New(jsenv.NewTransformer(jsenv.LoaderJS, jsenv.TargetES2016))
@@ -176,7 +176,7 @@ func NewPayload(opts *options.ApigwOpt, l *zap.Logger) (p *processerPayload) {
 	return
 }
 
-func (h processerPayload) New(opts *options.ApigwOpt) types.Handler {
+func (h processerPayload) New(opts options.ApigwOpt) types.Handler {
 	return NewPayload(opts, h.log)
 }
 

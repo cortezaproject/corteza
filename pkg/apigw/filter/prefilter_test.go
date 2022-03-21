@@ -37,7 +37,7 @@ func Test_headerMerge(t *testing.T) {
 	)
 
 	for _, tc := range tcc {
-		t.Run(tc.name, testMerge(NewHeader(&options.ApigwOpt{}), tc))
+		t.Run(tc.name, testMerge(NewHeader(options.ApigwOpt{}), tc))
 	}
 }
 
@@ -83,7 +83,7 @@ func Test_headerHandle(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "/foo", http.NoBody)
 		r.Header = tc.headers
 
-		t.Run(tc.name, testHandle(NewHeader(&options.ApigwOpt{}), r, tc))
+		t.Run(tc.name, testHandle(NewHeader(options.ApigwOpt{}), r, tc))
 	}
 }
 
@@ -115,7 +115,7 @@ func Test_queryParamMerge(t *testing.T) {
 	)
 
 	for _, tc := range tcc {
-		t.Run(tc.name, testMerge(NewQueryParam(&options.ApigwOpt{}), tc))
+		t.Run(tc.name, testMerge(NewQueryParam(options.ApigwOpt{}), tc))
 	}
 }
 
@@ -148,7 +148,7 @@ func Test_queryParamHandle(t *testing.T) {
 
 	for _, tc := range tcc {
 		r := httptest.NewRequest(http.MethodGet, tc.url, http.NoBody)
-		t.Run(tc.name, testHandle(NewQueryParam(&options.ApigwOpt{}), r, tc))
+		t.Run(tc.name, testHandle(NewQueryParam(options.ApigwOpt{}), r, tc))
 	}
 }
 
@@ -156,7 +156,7 @@ func Test_profilerHandle_profilerGlobal(t *testing.T) {
 	type (
 		tfp struct {
 			name string
-			opts *options.ApigwOpt
+			opts options.ApigwOpt
 			r    *http.Request
 			exp  *h.Request
 		}
@@ -167,13 +167,13 @@ func Test_profilerHandle_profilerGlobal(t *testing.T) {
 		tcc = []tfp{
 			{
 				name: "skip profiler hit on profiler global = true",
-				opts: &options.ApigwOpt{ProfilerGlobal: true},
+				opts: options.ApigwOpt{ProfilerGlobal: true},
 				r:    rr,
 				exp:  nil,
 			},
 			{
 				name: "add profiler hit on profiler global = false",
-				opts: &options.ApigwOpt{ProfilerGlobal: false},
+				opts: options.ApigwOpt{ProfilerGlobal: false},
 				r:    rr,
 				exp:  createRequest(rr),
 			},
