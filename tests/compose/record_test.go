@@ -424,7 +424,7 @@ func TestRecordCreateWithErrors(t *testing.T) {
 		Assert(helpers.AssertRecordValueError(
 			&types.RecordValueError{
 				Kind:    "empty",
-				Message: "",
+				Message: "record-field.errors.empty",
 				Meta:    map[string]interface{}{"field": "required"},
 			},
 		)).
