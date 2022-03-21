@@ -480,6 +480,8 @@ func ActionLog() (o *ActionLogOpt) {
 func Apigw() (o *ApigwOpt) {
 	o = &ApigwOpt{
 		Enabled:              true,
+		ProfilerEnabled:      true,
+		ProfilerGlobal:       false,
 		ProxyFollowRedirects: true,
 		ProxyOutboundTimeout: time.Second * 30,
 	}
