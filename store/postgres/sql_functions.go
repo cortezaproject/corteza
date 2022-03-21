@@ -7,7 +7,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/cortezaproject/corteza-server/pkg/qlng"
 	"github.com/cortezaproject/corteza-server/store/rdbms"
-	"github.com/davecgh/go-spew/spew"
 )
 
 var (
@@ -39,7 +38,6 @@ func sqlASTFormatter(n *qlng.ASTNode) rdbms.HandlerSig {
 }
 
 func sqlFunctionHandler(f ql.Function) (ql.ASTNode, error) {
-	spew.Dump(f)
 	switch strings.ToUpper(f.Name) {
 	case "QUARTER", "YEAR":
 		return ql.MakeFormattedNode(fmt.Sprintf("EXTRACT(%s FROM %%s::date)", f.Name), f.Arguments...), nil
