@@ -95,7 +95,7 @@ func Test_pl(t *testing.T) {
 				method:     tc.method,
 				endpoint:   tc.endpoint,
 				log:        zap.NewNop(),
-				opts:       options.Apigw(),
+				opts:       *options.Apigw(),
 				handler:    pipe.Handler(),
 				errHandler: pipe.Error(),
 			}

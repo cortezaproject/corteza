@@ -7,17 +7,17 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 )
 
-type ContextKey string
-
-const ContextKeyScope ContextKey = "scope"
-const ContextKeyProfiler ContextKey = "profiler"
+type (
+	scopeCtxKey    struct{}
+	profilerCtxKey struct{}
+)
 
 func ScopeToContext(ctx context.Context, s *types.Scp) context.Context {
-	return context.WithValue(ctx, ContextKeyScope, s)
+	return context.WithValue(ctx, scopeCtxKey{}, s)
 }
 
 func ScopeFromContext(ctx context.Context) (ss *types.Scp) {
-	s := ctx.Value(ContextKeyScope)
+	s := ctx.Value(scopeCtxKey{})
 
 	if s == nil {
 		return &types.Scp{}
@@ -27,11 +27,11 @@ func ScopeFromContext(ctx context.Context) (ss *types.Scp) {
 }
 
 func ProfilerToContext(ctx context.Context, h interface{}) context.Context {
-	return context.WithValue(ctx, ContextKeyProfiler, h)
+	return context.WithValue(ctx, profilerCtxKey{}, h)
 }
 
 func ProfilerFromContext(ctx context.Context) (h *profiler.Hit) {
-	hh := ctx.Value(ContextKeyProfiler)
+	hh := ctx.Value(profilerCtxKey{})
 
 	if hh == nil {
 		return nil

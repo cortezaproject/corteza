@@ -33,7 +33,7 @@ type (
 	MockRoundTripper func(*http.Request) (*http.Response, error)
 )
 
-func (h MockHandler) New(opts *options.ApigwOpt) Handler {
+func (h MockHandler) New(opts options.ApigwOpt) Handler {
 	return MockHandler{}
 }
 

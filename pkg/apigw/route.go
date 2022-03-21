@@ -21,7 +21,7 @@ type (
 		method   string
 		meta     routeMeta
 
-		opts *options.ApigwOpt
+		opts options.ApigwOpt
 		log  *zap.Logger
 		pr   *profiler.Profiler
 

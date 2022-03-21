@@ -56,7 +56,7 @@ type (
 	}
 )
 
-func NewRedirection(opts *options.ApigwOpt) (e *redirection) {
+func NewRedirection(opts options.ApigwOpt) (e *redirection) {
 	e = &redirection{}
 
 	e.Name = "redirection"
@@ -79,7 +79,7 @@ func NewRedirection(opts *options.ApigwOpt) (e *redirection) {
 	return
 }
 
-func (h redirection) New(opts *options.ApigwOpt) types.Handler {
+func (h redirection) New(opts options.ApigwOpt) types.Handler {
 	return NewRedirection(opts)
 }
 
@@ -129,7 +129,7 @@ func (h redirection) Handler() types.HandlerFunc {
 	}
 }
 
-func NewDefaultJsonResponse(opts *options.ApigwOpt) (e *defaultJsonResponse) {
+func NewDefaultJsonResponse(opts options.ApigwOpt) (e *defaultJsonResponse) {
 	e = &defaultJsonResponse{}
 
 	e.Name = "defaultJsonResponse"
@@ -139,7 +139,7 @@ func NewDefaultJsonResponse(opts *options.ApigwOpt) (e *defaultJsonResponse) {
 	return
 }
 
-func (j defaultJsonResponse) New(opts *options.ApigwOpt) types.Handler {
+func (j defaultJsonResponse) New(opts options.ApigwOpt) types.Handler {
 	return NewDefaultJsonResponse(opts)
 }
 
@@ -181,7 +181,7 @@ func checkStatus(typ string, status int) bool {
 	}
 }
 
-func NewJsonResponse(opts *options.ApigwOpt, reg typesRegistry) (e *jsonResponse) {
+func NewJsonResponse(opts options.ApigwOpt, reg typesRegistry) (e *jsonResponse) {
 	e = &jsonResponse{}
 
 	e.Name = "jsonResponse"
@@ -201,7 +201,7 @@ func NewJsonResponse(opts *options.ApigwOpt, reg typesRegistry) (e *jsonResponse
 	return
 }
 
-func (j jsonResponse) New(opts *options.ApigwOpt) types.Handler {
+func (j jsonResponse) New(opts options.ApigwOpt) types.Handler {
 	return NewJsonResponse(opts, j.reg)
 }
 

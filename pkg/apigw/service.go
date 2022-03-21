@@ -28,7 +28,7 @@ type (
 	}
 
 	apigw struct {
-		opts   *options.ApigwOpt
+		opts   options.ApigwOpt
 		log    *zap.Logger
 		reg    *registry.Registry
 		routes []*route
@@ -48,7 +48,7 @@ func Service() *apigw {
 }
 
 // Setup handles the singleton service
-func Setup(opts *options.ApigwOpt, log *zap.Logger, storer storer) {
+func Setup(opts options.ApigwOpt, log *zap.Logger, storer storer) {
 	if apiGw != nil {
 		return
 	}
@@ -56,7 +56,7 @@ func Setup(opts *options.ApigwOpt, log *zap.Logger, storer storer) {
 	apiGw = New(opts, log, storer)
 }
 
-func New(opts *options.ApigwOpt, logger *zap.Logger, storer storer) *apigw {
+func New(opts options.ApigwOpt, logger *zap.Logger, storer storer) *apigw {
 	var (
 		pr  = profiler.New()
 		reg = registry.NewRegistry(opts)
@@ -66,7 +66,7 @@ func New(opts *options.ApigwOpt, logger *zap.Logger, storer storer) *apigw {
 
 	return &apigw{
 		opts:   opts,
-		log:    logger,
+		log:    logger.Named("http.apigw"),
 		storer: storer,
 		reg:    reg,
 		pr:     pr,
@@ -84,7 +84,7 @@ func (s *apigw) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(s.routes) == 0 {
-		helperDefaultResponse(s.opts, s.pr)(w, r)
+		helperDefaultResponse(s.opts, s.pr, s.log)(w, r)
 		return
 	}
 
@@ -105,11 +105,9 @@ func (s *apigw) Reload(ctx context.Context) (err error) {
 	routes, err := s.loadRoutes(ctx)
 
 	if err != nil {
-		s.log.Error("could not reload API Gateway routes", zap.Error(err))
+		s.log.Error("could not reload Integration Gateway routes", zap.Error(err))
 		return
 	}
-
-	s.log.Debug("reloading API Gateway routes and functions", zap.Int("count", len(routes)))
 
 	s.Init(ctx, routes...)
 
@@ -125,8 +123,8 @@ func (s *apigw) Reload(ctx context.Context) (err error) {
 	// profiler gets the missed hit info also
 	{
 		var (
-			defaultMethodResponse = helperMethodNotAllowed(s.opts, s.pr)
-			defaultResponse       = helperDefaultResponse(s.opts, s.pr)
+			defaultMethodResponse = helperMethodNotAllowed(s.opts, s.pr, s.log)
+			defaultResponse       = helperDefaultResponse(s.opts, s.pr, s.log)
 		)
 
 		s.mx.NotFound(defaultResponse)
@@ -144,6 +142,7 @@ func (s *apigw) Init(ctx context.Context, routes ...*route) {
 
 	s.routes = routes
 
+	s.loadInfo()
 	s.log.Debug("registering routes", zap.Int("count", len(s.routes)))
 
 	defaultPostFilter, err := s.reg.Get("defaultJsonResponse")
@@ -299,6 +298,31 @@ func (s *apigw) loadFilters(ctx context.Context, route uint64) (ff []*st.ApigwFi
 	})
 
 	return
+}
+
+func (s *apigw) loadInfo() {
+	s.log.Info("loading Integration Gateway", zap.Bool("debug", s.opts.Debug), zap.Bool("log", s.opts.LogEnabled))
+
+	if s.opts.ProfilerEnabled {
+		if s.opts.LogRequestBody {
+			s.log.Info("profiler and request body logging is enabled, profiler use is prefered",
+				zap.Bool("APIGW_PROFILER_ENABLED", s.opts.ProfilerEnabled),
+				zap.Bool("APIGW_LOG_REQUEST_BODY", s.opts.LogRequestBody))
+		} else {
+			s.log.Info("request body logging is enabled, profiler use is prefered (APIGW_PROFILER_ENABLED)",
+				zap.Bool("APIGW_LOG_REQUEST_BODY", s.opts.LogRequestBody))
+		}
+
+		if !s.opts.ProfilerGlobal {
+			s.log.Warn("profiler enabled only for routes with a profiler prefilter, use global setting to enable for all (APIGW_PROFILER_GLOBAL)")
+		}
+	} else {
+		if s.opts.ProfilerGlobal {
+			s.log.Warn("profiler global is enabled, but profiler disabled, no routes will be profiled",
+				zap.Bool("APIGW_PROFILER_ENABLED", s.opts.ProfilerEnabled),
+				zap.Bool("APIGW_PROFILER_GLOBAL", s.opts.ProfilerGlobal))
+		}
+	}
 }
 
 func (s *apigw) Profiler() *profiler.Profiler {

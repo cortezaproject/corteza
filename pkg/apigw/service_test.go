@@ -160,7 +160,7 @@ func Test_serviceInit(t *testing.T) {
 				ctx = context.Background()
 			)
 
-			reg := registry.NewRegistry(&options.ApigwOpt{})
+			reg := registry.NewRegistry(options.ApigwOpt{})
 
 			for hn, h := range tc.reg {
 				reg.Add(hn, h)

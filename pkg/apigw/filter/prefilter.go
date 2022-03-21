@@ -41,12 +41,12 @@ type (
 	}
 
 	profiler struct {
-		opts *options.ApigwOpt
+		opts options.ApigwOpt
 		types.FilterMeta
 	}
 )
 
-func NewHeader(opts *options.ApigwOpt) (v *header) {
+func NewHeader(opts options.ApigwOpt) (v *header) {
 	v = &header{}
 
 	v.Name = "header"
@@ -64,7 +64,7 @@ func NewHeader(opts *options.ApigwOpt) (v *header) {
 	return
 }
 
-func (h header) New(opts *options.ApigwOpt) types.Handler {
+func (h header) New(opts options.ApigwOpt) types.Handler {
 	return NewHeader(opts)
 }
 
@@ -134,7 +134,7 @@ func (h header) Handler() types.HandlerFunc {
 	}
 }
 
-func NewQueryParam(opts *options.ApigwOpt) (v *queryParam) {
+func NewQueryParam(opts options.ApigwOpt) (v *queryParam) {
 	v = &queryParam{}
 
 	v.Name = "queryParam"
@@ -152,7 +152,7 @@ func NewQueryParam(opts *options.ApigwOpt) (v *queryParam) {
 	return
 }
 
-func (qp queryParam) New(opts *options.ApigwOpt) types.Handler {
+func (qp queryParam) New(opts options.ApigwOpt) types.Handler {
 	return NewQueryParam(opts)
 }
 
@@ -222,7 +222,7 @@ func (qp *queryParam) Handler() types.HandlerFunc {
 	}
 }
 
-func NewProfiler(opts *options.ApigwOpt) (pp *profiler) {
+func NewProfiler(opts options.ApigwOpt) (pp *profiler) {
 	pp = &profiler{}
 
 	pp.opts = opts
@@ -233,7 +233,7 @@ func NewProfiler(opts *options.ApigwOpt) (pp *profiler) {
 	return
 }
 
-func (pr profiler) New(opts *options.ApigwOpt) types.Handler {
+func (pr profiler) New(opts options.ApigwOpt) types.Handler {
 	return NewProfiler(opts)
 }
 

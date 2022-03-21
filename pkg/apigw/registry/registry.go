@@ -13,14 +13,14 @@ import (
 
 type (
 	Registry struct {
-		opts *options.ApigwOpt
+		opts options.ApigwOpt
 		h    map[string]types.Handler
 	}
 
 	secureStorageTodo struct{}
 )
 
-func NewRegistry(opts *options.ApigwOpt) *Registry {
+func NewRegistry(opts options.ApigwOpt) *Registry {
 	return &Registry{
 		h:    map[string]types.Handler{},
 		opts: opts,

@@ -20,7 +20,7 @@ type (
 		HTTPHandler
 		fmt.Stringer
 
-		New(*options.ApigwOpt) Handler
+		New(options.ApigwOpt) Handler
 		Merge([]byte) (Handler, error)
 		Meta() FilterMeta
 		Enabled() bool

@@ -35,7 +35,7 @@ func Test_redirectionMerge(t *testing.T) {
 	)
 
 	for _, tc := range tcc {
-		t.Run(tc.name, testMerge(NewRedirection(&options.ApigwOpt{}), tc))
+		t.Run(tc.name, testMerge(NewRedirection(options.ApigwOpt{}), tc))
 	}
 }
 
@@ -75,7 +75,7 @@ func Test_redirection(t *testing.T) {
 				rc  = httptest.NewRecorder()
 			)
 
-			h := getHandler(NewRedirection(&options.ApigwOpt{}))
+			h := getHandler(NewRedirection(options.ApigwOpt{}))
 			h, err := h.Merge([]byte(tc.expr))
 
 			req.NoError(err)
@@ -145,7 +145,7 @@ func Test_jsonResponse(t *testing.T) {
 
 			r = r.WithContext(agctx.ScopeToContext(context.Background(), scope))
 
-			h := getHandler(NewJsonResponse(&options.ApigwOpt{}, &mockHandlerRegistry{}))
+			h := getHandler(NewJsonResponse(options.ApigwOpt{}, &mockHandlerRegistry{}))
 			h, err := h.Merge([]byte(tc.expr))
 
 			req.NoError(err)
