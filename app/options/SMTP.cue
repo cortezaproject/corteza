@@ -5,7 +5,7 @@ import (
 )
 
 SMTP: schema.#optionsGroup & {
-	handle: "smpt"
+	handle: "smtp"
 	title:  "Email sending"
 
 	// @todo remove explicitly defined expIdent and adjust the code

@@ -66,13 +66,13 @@ type (
 	}
 
 	SMTPOpt struct {
-		Host          string `env:"SMPT_HOST"`
-		Port          int    `env:"SMPT_PORT"`
-		User          string `env:"SMPT_USER"`
-		Pass          string `env:"SMPT_PASS"`
-		From          string `env:"SMPT_FROM"`
-		TlsInsecure   bool   `env:"SMPT_TLS_INSECURE"`
-		TlsServerName string `env:"SMPT_TLS_SERVER_NAME"`
+		Host          string `env:"SMTP_HOST"`
+		Port          int    `env:"SMTP_PORT"`
+		User          string `env:"SMTP_USER"`
+		Pass          string `env:"SMTP_PASS"`
+		From          string `env:"SMTP_FROM"`
+		TlsInsecure   bool   `env:"SMTP_TLS_INSECURE"`
+		TlsServerName string `env:"SMTP_TLS_SERVER_NAME"`
 	}
 
 	ActionLogOpt struct {
