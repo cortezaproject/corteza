@@ -19,7 +19,7 @@ editor:
       disabledFootnote: Unable to change the handle of the default auth client
       label: Handle
       placeholder-handle: handle (a - z, 0 - 9, underscore, dash)
-      invalid-handle-characters: Should be at least 2 characters long and start with a letter. Can contains only letters, numbers, dash, underscore and dot
+      invalid-handle-characters: Should be at least 2 characters long and start with a letter. Can contain only letters, numbers, dashes, underscores and dots
     name: Name
     no-time: No time selected
     profile: Allow client access to user's profile
