@@ -3,3 +3,9 @@ label:
   none: None
   now: Now
   today: Today
+  routes: Routes
+  requests: Requests
+  refresh: Refresh
+  refreshing: Refreshing...
+  refreshingIn: Refreshing in {{seconds}}s
+  loadMore: Load more

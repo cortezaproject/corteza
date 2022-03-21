@@ -1,6 +1,6 @@
 description: Description
 handle-with-star: 'Handle*'
-invalid-handle-characters: Should be at least 2 characters long and start with a letter. Can contains only letters, numbers, dash, underscore and dot
+invalid-handle-characters: Should be at least 2 characters long and start with a letter. Can contain only letters, numbers, dashes, underscores and dots
 name: Name
 name-with-star: 'Name*'
 new-report: New Report
