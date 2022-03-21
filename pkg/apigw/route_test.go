@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/pkg/apigw/pipeline"
+	"github.com/cortezaproject/corteza-server/pkg/apigw/pipeline/chain"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/stretchr/testify/require"
@@ -77,7 +78,7 @@ func Test_pl(t *testing.T) {
 			var (
 				req  = require.New(t)
 				rr   = httptest.NewRecorder()
-				pipe = pipeline.NewPipeline(zap.NewNop())
+				pipe = pipeline.NewPipeline(zap.NewNop(), chain.NewDefault())
 			)
 
 			r := httptest.NewRequest("POST", "/foo", http.NoBody)
@@ -94,7 +95,7 @@ func Test_pl(t *testing.T) {
 				method:     tc.method,
 				endpoint:   tc.endpoint,
 				log:        zap.NewNop(),
-				opts:       options.Apigw(),
+				opts:       *options.Apigw(),
 				handler:    pipe.Handler(),
 				errHandler: pipe.Error(),
 			}

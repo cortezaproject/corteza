@@ -207,6 +207,12 @@ type (
 			Enabled bool `kv:"-" json:"enabled"`
 		} `kv:"federation" json:"federation"`
 
+		// Integration gateway settings
+		Apigw struct {
+			ProfilerEnabled bool `kv:"-" json:"profilerEnabled"`
+			ProfilerGlobal  bool `kv:"-" json:"profilerGlobal"`
+		} `kv:"apigw" json:"apigw"`
+
 		// UserInterface settings
 		UI struct {
 			MainLogo string `kv:"main-logo" json:"mainLogo"`

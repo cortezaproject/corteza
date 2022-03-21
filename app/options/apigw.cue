@@ -25,6 +25,16 @@ apigw: schema.#optionsGroup & {
 			type:        "bool"
 			description: "Enable extra logging"
 		}
+		profiler_enabled: {
+			type:          "bool"
+			defaultGoExpr: "true"
+			description:   "Enable profiler"
+		}
+		profiler_global: {
+			type:          "bool"
+			defaultGoExpr: "false"
+			description:   "Profiler enabled for all routes"
+		}
 		log_request_body: {
 			type:        "bool"
 			description: "Enable incoming request body output in logs"

@@ -15,6 +15,16 @@ type (
 	// This type is auto-generated.
 	ApigwFilterSet []*ApigwFilter
 
+	// ApigwProfilerAggregationSet slice of ApigwProfilerAggregation
+	//
+	// This type is auto-generated.
+	ApigwProfilerAggregationSet []*ApigwProfilerAggregation
+
+	// ApigwProfilerHitSet slice of ApigwProfilerHit
+	//
+	// This type is auto-generated.
+	ApigwProfilerHitSet []*ApigwProfilerHit
+
 	// ApigwRouteSet slice of ApigwRoute
 	//
 	// This type is auto-generated.
@@ -157,6 +167,66 @@ func (set ApigwFilterSet) IDs() (IDs []uint64) {
 
 	for i := range set {
 		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(ApigwProfilerAggregation) err
+//
+// This function is auto-generated.
+func (set ApigwProfilerAggregationSet) Walk(w func(*ApigwProfilerAggregation) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(ApigwProfilerAggregation) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set ApigwProfilerAggregationSet) Filter(f func(*ApigwProfilerAggregation) (bool, error)) (out ApigwProfilerAggregationSet, err error) {
+	var ok bool
+	out = ApigwProfilerAggregationSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(ApigwProfilerHit) err
+//
+// This function is auto-generated.
+func (set ApigwProfilerHitSet) Walk(w func(*ApigwProfilerHit) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(ApigwProfilerHit) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set ApigwProfilerHitSet) Filter(f func(*ApigwProfilerHit) (bool, error)) (out ApigwProfilerHitSet, err error) {
+	var ok bool
+	out = ApigwProfilerHitSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
 	}
 
 	return

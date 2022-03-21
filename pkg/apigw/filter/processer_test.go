@@ -78,7 +78,7 @@ func Test_processerWorkflow(t *testing.T) {
 				rc      = httptest.NewRecorder()
 				rq, _   = http.NewRequest("POST", "/foo", http.NoBody)
 				ar, err = h.NewRequest(rq)
-				pp      = NewWorkflow(tc.wfs)
+				pp      = NewWorkflow(options.ApigwOpt{}, tc.wfs)
 			)
 
 			_, err = pp.Merge([]byte(tc.params))
@@ -173,7 +173,7 @@ func Test_processerPayload(t *testing.T) {
 				ar, err = h.NewRequest(tc.rq)
 			)
 
-			pp := NewPayload(zap.NewNop())
+			pp := NewPayload(options.ApigwOpt{}, zap.NewNop())
 			_, err = pp.Merge([]byte(tc.params))
 
 			if tc.errv != "" {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/apigw/registry"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	st "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -159,7 +160,7 @@ func Test_serviceInit(t *testing.T) {
 				ctx = context.Background()
 			)
 
-			reg := registry.NewRegistry()
+			reg := registry.NewRegistry(options.ApigwOpt{})
 
 			for hn, h := range tc.reg {
 				reg.Add(hn, h)

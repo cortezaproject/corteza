@@ -478,7 +478,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	// will most likely be merged in the future
 	err = cmpService.Initialize(ctx, app.Log, app.Store, cmpService.Config{
 		ActionLog:  app.Opt.ActionLog,
-		Discovery: app.Opt.Discovery,
+		Discovery:  app.Opt.Discovery,
 		Storage:    app.Opt.ObjStore,
 		UserFinder: sysService.DefaultUser,
 	})
@@ -491,7 +491,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	corredor.Service().SetRoleFinder(sysService.DefaultRole)
 
 	// Initialize API GW bits
-	apigw.Setup(options.Apigw(), app.Log, app.Store)
+	apigw.Setup(*options.Apigw(), app.Log, app.Store)
 	if err = apigw.Service().Reload(ctx); err != nil {
 		return err
 	}
@@ -602,6 +602,7 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 	updateFederationSettings(app.Opt.Federation, sysService.CurrentSettings)
 	updateAuthSettings(app.AuthService, sysService.CurrentSettings)
 	updatePasswdSettings(app.Opt.Auth, sysService.CurrentSettings)
+	updateApigwSettings(app.Opt.Apigw, sysService.CurrentSettings)
 	sysService.DefaultSettings.Register("auth.", func(ctx context.Context, current interface{}, set types.SettingValueSet) {
 		appSettings, is := current.(*types.AppSettings)
 		if !is {
@@ -718,6 +719,11 @@ func updateFederationSettings(opt options.FederationOpt, current *types.AppSetti
 // Checks if password security is enabled in the options
 func updatePasswdSettings(opt options.AuthOpt, current *types.AppSettings) {
 	current.Auth.Internal.PasswordConstraints.PasswordSecurity = opt.PasswordSecurity
+}
+
+func updateApigwSettings(opt options.ApigwOpt, current *types.AppSettings) {
+	current.Apigw.ProfilerEnabled = opt.ProfilerEnabled
+	current.Apigw.ProfilerGlobal = opt.ProfilerGlobal
 }
 
 // Checks if discovery is enabled in the options

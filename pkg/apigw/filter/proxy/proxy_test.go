@@ -174,7 +174,7 @@ func Test_proxy(t *testing.T) {
 				rq = httptest.NewRequest("POST", "/foo", strings.NewReader(`custom request body`))
 			}
 
-			proxy := New(zap.NewNop(), c, struct{}{})
+			proxy := New(options.ApigwOpt{}, zap.NewNop(), c, struct{}{})
 			_, err := proxy.Merge([]byte(tc.params))
 			req.NoError(err)
 

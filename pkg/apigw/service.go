@@ -10,6 +10,8 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/apigw/filter"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/filter/proxy"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/pipeline"
+	"github.com/cortezaproject/corteza-server/pkg/apigw/pipeline/chain"
+	"github.com/cortezaproject/corteza-server/pkg/apigw/profiler"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/registry"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	f "github.com/cortezaproject/corteza-server/pkg/filter"
@@ -26,11 +28,12 @@ type (
 	}
 
 	apigw struct {
-		opts   *options.ApigwOpt
+		opts   options.ApigwOpt
 		log    *zap.Logger
 		reg    *registry.Registry
 		routes []*route
 		mx     *chi.Mux
+		pr     *profiler.Profiler
 		storer storer
 	}
 )
@@ -45,7 +48,7 @@ func Service() *apigw {
 }
 
 // Setup handles the singleton service
-func Setup(opts *options.ApigwOpt, log *zap.Logger, storer storer) {
+func Setup(opts options.ApigwOpt, log *zap.Logger, storer storer) {
 	if apiGw != nil {
 		return
 	}
@@ -53,15 +56,20 @@ func Setup(opts *options.ApigwOpt, log *zap.Logger, storer storer) {
 	apiGw = New(opts, log, storer)
 }
 
-func New(opts *options.ApigwOpt, logger *zap.Logger, storer storer) *apigw {
-	reg := registry.NewRegistry()
+func New(opts options.ApigwOpt, logger *zap.Logger, storer storer) *apigw {
+	var (
+		pr  = profiler.New()
+		reg = registry.NewRegistry(opts)
+	)
+
 	reg.Preload()
 
 	return &apigw{
 		opts:   opts,
-		log:    logger,
+		log:    logger.Named("http.apigw"),
 		storer: storer,
 		reg:    reg,
+		pr:     pr,
 	}
 }
 
@@ -71,12 +79,12 @@ func New(opts *options.ApigwOpt, logger *zap.Logger, storer storer) *apigw {
 // When reloading routes, make sure to replace the original mux
 func (s *apigw) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if s.mx == nil {
-		http.Error(w, "API Gateway not initialized", http.StatusInternalServerError)
+		http.Error(w, "Integration Gateway not initialized", http.StatusInternalServerError)
 		return
 	}
 
 	if len(s.routes) == 0 {
-		helperDefaultResponse(s.opts)(w, r)
+		helperDefaultResponse(s.opts, s.pr, s.log)(w, r)
 		return
 	}
 
@@ -97,11 +105,9 @@ func (s *apigw) Reload(ctx context.Context) (err error) {
 	routes, err := s.loadRoutes(ctx)
 
 	if err != nil {
-		s.log.Error("could not reload API Gateway routes", zap.Error(err))
+		s.log.Error("could not reload Integration Gateway routes", zap.Error(err))
 		return
 	}
-
-	s.log.Debug("reloading API Gateway routes and functions", zap.Int("count", len(routes)))
 
 	s.Init(ctx, routes...)
 
@@ -113,8 +119,17 @@ func (s *apigw) Reload(ctx context.Context) (err error) {
 		s.mx.Method(r.method, r.endpoint, r)
 	}
 
-	// API GW 404 handler
-	s.mx.NotFound(helperDefaultResponse(s.opts))
+	// handling missed hits
+	// profiler gets the missed hit info also
+	{
+		var (
+			defaultMethodResponse = helperMethodNotAllowed(s.opts, s.pr, s.log)
+			defaultResponse       = helperDefaultResponse(s.opts, s.pr, s.log)
+		)
+
+		s.mx.NotFound(defaultResponse)
+		s.mx.MethodNotAllowed(defaultMethodResponse)
+	}
 
 	return nil
 }
@@ -127,6 +142,7 @@ func (s *apigw) Init(ctx context.Context, routes ...*route) {
 
 	s.routes = routes
 
+	s.loadInfo()
 	s.log.Debug("registering routes", zap.Int("count", len(s.routes)))
 
 	defaultPostFilter, err := s.reg.Get("defaultJsonResponse")
@@ -138,7 +154,7 @@ func (s *apigw) Init(ctx context.Context, routes ...*route) {
 	for _, r := range s.routes {
 		var (
 			log  = s.log.With(zap.String("route", r.String()))
-			pipe = pipeline.NewPipeline(log)
+			pipe = pipeline.NewPipeline(log, chain.NewDefault())
 		)
 
 		// pipeline needs to know how to handle
@@ -147,6 +163,7 @@ func (s *apigw) Init(ctx context.Context, routes ...*route) {
 
 		r.opts = s.opts
 		r.log = log
+		r.pr = s.pr
 
 		regFilters, err := s.loadFilters(ctx, r.ID)
 
@@ -281,4 +298,33 @@ func (s *apigw) loadFilters(ctx context.Context, route uint64) (ff []*st.ApigwFi
 	})
 
 	return
+}
+
+func (s *apigw) loadInfo() {
+	s.log.Info("loading Integration Gateway", zap.Bool("debug", s.opts.Debug), zap.Bool("log", s.opts.LogEnabled))
+
+	if s.opts.ProfilerEnabled {
+		if s.opts.LogRequestBody {
+			s.log.Info("profiler and request body logging is enabled, profiler use is prefered",
+				zap.Bool("APIGW_PROFILER_ENABLED", s.opts.ProfilerEnabled),
+				zap.Bool("APIGW_LOG_REQUEST_BODY", s.opts.LogRequestBody))
+		} else {
+			s.log.Info("request body logging is enabled, profiler use is prefered (APIGW_PROFILER_ENABLED)",
+				zap.Bool("APIGW_LOG_REQUEST_BODY", s.opts.LogRequestBody))
+		}
+
+		if !s.opts.ProfilerGlobal {
+			s.log.Warn("profiler enabled only for routes with a profiler prefilter, use global setting to enable for all (APIGW_PROFILER_GLOBAL)")
+		}
+	} else {
+		if s.opts.ProfilerGlobal {
+			s.log.Warn("profiler global is enabled, but profiler disabled, no routes will be profiled",
+				zap.Bool("APIGW_PROFILER_ENABLED", s.opts.ProfilerEnabled),
+				zap.Bool("APIGW_PROFILER_GLOBAL", s.opts.ProfilerGlobal))
+		}
+	}
+}
+
+func (s *apigw) Profiler() *profiler.Profiler {
+	return s.pr
 }

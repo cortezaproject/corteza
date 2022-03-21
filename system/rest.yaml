@@ -1690,7 +1690,7 @@ endpoints:
       path:
       - { type: uint64, name: queueID, required: true, title: Queue ID }
 
-- title: API Gateway routes
+- title: Integration gateway routes
   path: "/apigw/route"
   entrypoint: apigwRoute
   authentication: []
@@ -1751,7 +1751,7 @@ endpoints:
     path: "/{routeID}/undelete"
     parameters: { path: [ { name: routeID, type: uint64, required: true, title: "Route ID" } ] }
 
-- title: API Gateway filters
+- title: Integration gateway filters
   path: "/apigw/filter"
   entrypoint: apigwFilter
   authentication: []
@@ -1821,6 +1821,39 @@ endpoints:
     method: GET
     title: Proxy auth definitions
     path: "/proxy_auth/def"
+
+- title: Integration gateway profiler
+  path: "/apigw/profiler"
+  entrypoint: apigwProfiler
+  authentication: []
+  apis:
+  - name: aggregation
+    method: GET
+    title: List aggregated list of routes
+    path: "/"
+    parameters:
+      get:
+      - { name: path,   type: "string", title: "Filter by request path"         }
+      - { name: before, type: "string", title: "Entries before specified route" }
+      - { name: sort,   type: "string", title: "Sort items"                     }
+      - { name: limit,  type: "uint",   title: "Limit"                          }
+  - name: route
+    method: GET
+    title: List hits per route
+    path: "/route/{routeID}"
+    parameters:
+      path:
+      - { name: routeID, type: "string",     title: "Route ID", required: true }
+      get:
+      - { name: path,   type: "string", title: "Filter by request path"          }
+      - { name: before, type: "string", title: "Entries before specified hit ID" }
+      - { name: sort,   type: "string", title: "Sort items"                      }
+      - { name: limit,  type: "uint",   title: "Limit"                           }
+  - name: hit
+    method: GET
+    title: Hit details
+    path: "/hit/{hitID}"
+    parameters: { path: [ { name: hitID, type: string, required: true, title: "Hit ID" } ] }
 
 - title: Locale
   entrypoint: locale

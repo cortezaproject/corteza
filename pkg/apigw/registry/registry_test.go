@@ -4,13 +4,14 @@ import (
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_registryAddGet(t *testing.T) {
 	var (
 		req = require.New(t)
-		r   = NewRegistry()
+		r   = NewRegistry(options.ApigwOpt{})
 	)
 
 	r.Add("mockHandler", types.MockHandler{})
@@ -25,7 +26,7 @@ func Test_registryAddGet(t *testing.T) {
 func Test_registryAddGetErr(t *testing.T) {
 	var (
 		req = require.New(t)
-		r   = NewRegistry()
+		r   = NewRegistry(options.ApigwOpt{})
 	)
 
 	r.Add("mockHandler", types.MockHandler{})
@@ -71,7 +72,7 @@ func Test_registryMerge(t *testing.T) {
 	for _, tc := range tcc {
 		var (
 			req = require.New(t)
-			r   = NewRegistry()
+			r   = NewRegistry(options.ApigwOpt{})
 		)
 
 		m, err := r.Merge(types.MockHandler{}, []byte(tc.params))
@@ -89,7 +90,7 @@ func Test_registryMerge(t *testing.T) {
 func Test_registryAll(t *testing.T) {
 	var (
 		req = require.New(t)
-		r   = NewRegistry()
+		r   = NewRegistry(options.ApigwOpt{})
 	)
 
 	r.Add("mockHandler", types.MockHandler{})
