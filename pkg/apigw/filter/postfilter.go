@@ -12,6 +12,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	errors "github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 )
 
 type (
@@ -55,7 +56,7 @@ type (
 	}
 )
 
-func NewRedirection() (e *redirection) {
+func NewRedirection(opts options.ApigwOpt) (e *redirection) {
 	e = &redirection{}
 
 	e.Name = "redirection"
@@ -78,8 +79,12 @@ func NewRedirection() (e *redirection) {
 	return
 }
 
-func (h redirection) New() types.Handler {
-	return NewRedirection()
+func (h redirection) New(opts options.ApigwOpt) types.Handler {
+	return NewRedirection(opts)
+}
+
+func (h redirection) Enabled() bool {
+	return true
 }
 
 func (h redirection) String() string {
@@ -124,7 +129,7 @@ func (h redirection) Handler() types.HandlerFunc {
 	}
 }
 
-func NewDefaultJsonResponse() (e *defaultJsonResponse) {
+func NewDefaultJsonResponse(opts options.ApigwOpt) (e *defaultJsonResponse) {
 	e = &defaultJsonResponse{}
 
 	e.Name = "defaultJsonResponse"
@@ -134,8 +139,12 @@ func NewDefaultJsonResponse() (e *defaultJsonResponse) {
 	return
 }
 
-func (j defaultJsonResponse) New() types.Handler {
-	return NewDefaultJsonResponse()
+func (j defaultJsonResponse) New(opts options.ApigwOpt) types.Handler {
+	return NewDefaultJsonResponse(opts)
+}
+
+func (j defaultJsonResponse) Enabled() bool {
+	return true
 }
 
 func (j defaultJsonResponse) String() string {
@@ -172,7 +181,7 @@ func checkStatus(typ string, status int) bool {
 	}
 }
 
-func NewJsonResponse(reg typesRegistry) (e *jsonResponse) {
+func NewJsonResponse(opts options.ApigwOpt, reg typesRegistry) (e *jsonResponse) {
 	e = &jsonResponse{}
 
 	e.Name = "jsonResponse"
@@ -192,8 +201,12 @@ func NewJsonResponse(reg typesRegistry) (e *jsonResponse) {
 	return
 }
 
-func (j jsonResponse) New() types.Handler {
-	return NewJsonResponse(j.reg)
+func (j jsonResponse) New(opts options.ApigwOpt) types.Handler {
+	return NewJsonResponse(opts, j.reg)
+}
+
+func (j jsonResponse) Enabled() bool {
+	return true
 }
 
 func (j jsonResponse) String() string {

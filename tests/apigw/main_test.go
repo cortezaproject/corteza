@@ -82,7 +82,7 @@ func InitTestApp() {
 		r.Group(rest.MountRoutes())
 
 		// API gw routes
-		apigw.Setup(options.Apigw(), service.DefaultLogger, service.DefaultStore)
+		apigw.Setup(*options.Apigw(), service.DefaultLogger, service.DefaultStore)
 		err := apigw.Service().Reload(ctx)
 		if err != nil {
 			panic(err)

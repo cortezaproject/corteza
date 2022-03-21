@@ -6,10 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
+	agctx "github.com/cortezaproject/corteza-server/pkg/apigw/ctx"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	pe "github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 )
 
 type (
@@ -36,9 +39,14 @@ type (
 			Expr string `json:"expr"`
 		}
 	}
+
+	profiler struct {
+		opts options.ApigwOpt
+		types.FilterMeta
+	}
 )
 
-func NewHeader() (v *header) {
+func NewHeader(opts options.ApigwOpt) (v *header) {
 	v = &header{}
 
 	v.Name = "header"
@@ -56,8 +64,12 @@ func NewHeader() (v *header) {
 	return
 }
 
-func (h header) New() types.Handler {
-	return NewHeader()
+func (h header) New(opts options.ApigwOpt) types.Handler {
+	return NewHeader(opts)
+}
+
+func (h header) Enabled() bool {
+	return true
 }
 
 func (h header) String() string {
@@ -122,7 +134,7 @@ func (h header) Handler() types.HandlerFunc {
 	}
 }
 
-func NewQueryParam() (v *queryParam) {
+func NewQueryParam(opts options.ApigwOpt) (v *queryParam) {
 	v = &queryParam{}
 
 	v.Name = "queryParam"
@@ -140,8 +152,12 @@ func NewQueryParam() (v *queryParam) {
 	return
 }
 
-func (qp queryParam) New() types.Handler {
-	return NewQueryParam()
+func (qp queryParam) New(opts options.ApigwOpt) types.Handler {
+	return NewQueryParam(opts)
+}
+
+func (qp queryParam) Enabled() bool {
+	return true
 }
 
 func (qp queryParam) String() string {
@@ -203,5 +219,67 @@ func (qp *queryParam) Handler() types.HandlerFunc {
 		}
 
 		return nil
+	}
+}
+
+func NewProfiler(opts options.ApigwOpt) (pp *profiler) {
+	pp = &profiler{}
+
+	pp.opts = opts
+	pp.Name = "profiler"
+	pp.Label = "Profiler"
+	pp.Kind = types.PreFilter
+
+	return
+}
+
+func (pr profiler) New(opts options.ApigwOpt) types.Handler {
+	return NewProfiler(opts)
+}
+
+func (pr profiler) Enabled() bool {
+	return pr.opts.ProfilerEnabled
+}
+
+func (pr profiler) String() string {
+	return fmt.Sprintf("apigw filter %s (%s)", pr.Name, pr.Label)
+}
+
+func (pr profiler) Meta() types.FilterMeta {
+	return pr.FilterMeta
+}
+
+func (pr *profiler) Merge(params []byte) (types.Handler, error) {
+	return pr, nil
+}
+
+func (pr *profiler) Handler() types.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) (err error) {
+		var (
+			ctx   = r.Context()
+			scope = agctx.ScopeFromContext(ctx)
+		)
+
+		if pr.opts.ProfilerGlobal {
+			// profiler global overrides any profiling prefilter
+			// the hit is registered on lower level
+			return
+		}
+
+		var (
+			n   = time.Now()
+			hit = agctx.ProfilerFromContext(r.Context())
+		)
+
+		if hit == nil {
+			return
+		}
+
+		hit.Ts = &n
+		hit.R = scope.Request()
+
+		r = r.WithContext(agctx.ProfilerToContext(r.Context(), hit))
+
+		return
 	}
 }

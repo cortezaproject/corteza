@@ -82,6 +82,7 @@ var (
 	DefaultQueue               *queue
 	DefaultApigwRoute          *apigwRoute
 	DefaultApigwFilter         *apigwFilter
+	DefaultApigwProfiler       *apigwProfiler
 	DefaultReport              *report
 
 	DefaultStatistics *statistics
@@ -197,6 +198,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultAttachment = Attachment(DefaultObjectStore)
 	DefaultQueue = Queue()
 	DefaultApigwRoute = Route()
+	DefaultApigwProfiler = Profiler()
 	DefaultApigwFilter = Filter()
 
 	if err = initRoles(ctx, log.Named("rbac.roles"), c.RBAC, eventbus.Service(), rbac.Global()); err != nil {

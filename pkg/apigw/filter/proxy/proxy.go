@@ -14,6 +14,7 @@ import (
 	actx "github.com/cortezaproject/corteza-server/pkg/apigw/ctx"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	pe "github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"go.uber.org/zap"
 )
 
@@ -45,7 +46,7 @@ type (
 	}
 )
 
-func New(l *zap.Logger, c *http.Client, s types.SecureStorager) (p *proxy) {
+func New(opts options.ApigwOpt, l *zap.Logger, c *http.Client, s types.SecureStorager) (p *proxy) {
 	p = &proxy{}
 
 	p.c = c
@@ -67,8 +68,12 @@ func New(l *zap.Logger, c *http.Client, s types.SecureStorager) (p *proxy) {
 	return
 }
 
-func (h proxy) New() types.Handler {
-	return New(h.log, h.c, h.s)
+func (h proxy) New(opts options.ApigwOpt) types.Handler {
+	return New(opts, h.log, h.c, h.s)
+}
+
+func (h proxy) Enabled() bool {
+	return true
 }
 
 func (h proxy) String() string {

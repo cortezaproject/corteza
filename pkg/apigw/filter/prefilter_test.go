@@ -5,7 +5,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	agctx "github.com/cortezaproject/corteza-server/pkg/apigw/ctx"
+	prf "github.com/cortezaproject/corteza-server/pkg/apigw/profiler"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
+	h "github.com/cortezaproject/corteza-server/pkg/http"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/stretchr/testify/require"
 )
 
@@ -33,7 +37,7 @@ func Test_headerMerge(t *testing.T) {
 	)
 
 	for _, tc := range tcc {
-		t.Run(tc.name, testMerge(NewHeader(), tc))
+		t.Run(tc.name, testMerge(NewHeader(options.ApigwOpt{}), tc))
 	}
 }
 
@@ -79,7 +83,7 @@ func Test_headerHandle(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "/foo", http.NoBody)
 		r.Header = tc.headers
 
-		t.Run(tc.name, testHandle(NewHeader(), r, tc))
+		t.Run(tc.name, testHandle(NewHeader(options.ApigwOpt{}), r, tc))
 	}
 }
 
@@ -111,7 +115,7 @@ func Test_queryParamMerge(t *testing.T) {
 	)
 
 	for _, tc := range tcc {
-		t.Run(tc.name, testMerge(NewQueryParam(), tc))
+		t.Run(tc.name, testMerge(NewQueryParam(options.ApigwOpt{}), tc))
 	}
 }
 
@@ -144,8 +148,66 @@ func Test_queryParamHandle(t *testing.T) {
 
 	for _, tc := range tcc {
 		r := httptest.NewRequest(http.MethodGet, tc.url, http.NoBody)
-		t.Run(tc.name, testHandle(NewQueryParam(), r, tc))
+		t.Run(tc.name, testHandle(NewQueryParam(options.ApigwOpt{}), r, tc))
 	}
+}
+
+func Test_profilerHandle_profilerGlobal(t *testing.T) {
+	type (
+		tfp struct {
+			name string
+			opts options.ApigwOpt
+			r    *http.Request
+			exp  *h.Request
+		}
+	)
+
+	var (
+		rr  = httptest.NewRequest(http.MethodGet, "/foo", http.NoBody)
+		tcc = []tfp{
+			{
+				name: "skip profiler hit on profiler global = true",
+				opts: options.ApigwOpt{ProfilerGlobal: true},
+				r:    rr,
+				exp:  nil,
+			},
+			{
+				name: "add profiler hit on profiler global = false",
+				opts: options.ApigwOpt{ProfilerGlobal: false},
+				r:    rr,
+				exp:  createRequest(rr),
+			},
+		}
+	)
+
+	for _, tc := range tcc {
+		var (
+			req = require.New(t)
+
+			ph  = NewProfiler(tc.opts)
+			hfn = ph.Handler()
+
+			hr  = createRequest(tc.r)
+			hit = &prf.Hit{}
+		)
+
+		req.Nil(hit.R)
+
+		tc.r = tc.r.WithContext(agctx.ScopeToContext(tc.r.Context(), &types.Scp{"request": hr}))
+		tc.r = tc.r.WithContext(agctx.ProfilerToContext(tc.r.Context(), hit))
+
+		err := hfn(httptest.NewRecorder(), tc.r)
+		req.NoError(err)
+
+		scoped := agctx.ProfilerFromContext(tc.r.Context())
+
+		req.Equal(tc.exp, scoped.R)
+	}
+}
+
+func createRequest(r *http.Request) (hr *h.Request) {
+	hr, _ = h.NewRequest(r)
+	return
 }
 
 func testMerge(h types.Handler, tc tf) func(t *testing.T) {
