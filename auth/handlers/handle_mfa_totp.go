@@ -74,7 +74,7 @@ func (h AuthHandlers) mfaTotpConfigProc(req *request.AuthReq) (err error) {
 	if err == nil {
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "primary",
-			Text: t("mfa_totp.alerts.text-TFA-enabled"),
+			Text: t("mfa-totp.alerts.text-MFA-enabled"),
 		})
 
 		// Make sure we update User's data in the session
@@ -91,12 +91,12 @@ func (h AuthHandlers) mfaTotpConfigProc(req *request.AuthReq) (err error) {
 	switch {
 	case errors.IsInvalidData(err):
 		req.SetKV(map[string]string{
-			"error": "Invalid code format",
+			"error": t("mfa-totp.errors.invalid-code-format"),
 		})
 		return nil
 	case errors.IsUnauthenticated(err):
 		req.SetKV(map[string]string{
-			"error": "Invalid code",
+			"error": t("mfa-totp.errors.invalid-code"),
 		})
 		return nil
 
@@ -178,7 +178,7 @@ func (h AuthHandlers) mfaTotpDisableProc(req *request.AuthReq) (err error) {
 	if err == nil {
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "primary",
-			Text: t("mfa_totp.alerts.text-TFA_disabled"),
+			Text: t("mfa-totp.alerts.text-MFA_disabled"),
 		})
 
 		// Make sure we update User's data in the session
@@ -194,12 +194,12 @@ func (h AuthHandlers) mfaTotpDisableProc(req *request.AuthReq) (err error) {
 	switch {
 	case errors.IsInvalidData(err):
 		req.SetKV(map[string]string{
-			"error": "Invalid code format",
+			"error": t("mfa-totp.errors.invalid-code-format"),
 		})
 		return nil
 	case errors.IsUnauthenticated(err):
 		req.SetKV(map[string]string{
-			"error": "Invalid code",
+			"error": t("mfa-totp.errors.invalid-code"),
 		})
 		return nil
 
