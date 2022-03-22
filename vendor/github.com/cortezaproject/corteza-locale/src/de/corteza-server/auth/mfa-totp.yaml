@@ -19,5 +19,10 @@ template:
     title: "Vervollständigen Sie die Konfiguration durch Eingabe des Codes aus der Authenticator-Anwendung:"
     button: Absenden
 alerts:
-  text-2FA-enabled: Zwei-Faktor-Authentifizierung mit TOTP ist aktiviert
-  text-2FA-disabled: Zwei-Faktor-Authentifizierung mit TOTP ist deaktiviert
+  text-MFA-enabled: Zwei-Faktor-Authentifizierung mit TOTP ist aktiviert
+  text-MFA-disabled: Zwei-Faktor-Authentifizierung mit TOTP ist deaktiviert
+
+errors:
+  invalid-code-format: "Invalid code format"
+  invalid-code: "Invalid code"
+

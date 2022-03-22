@@ -22,5 +22,9 @@ template:
     button: Submit
 
 alerts:
-  text-2FA-enabled: Two factor authentication with TOTP enabled
-  text-2FA-disabled: Two factor authentication with TOTP disabled
+  text-MFA-enabled: Two factor authentication with TOTP enabled
+  text-MFA-disabled: Two factor authentication with TOTP disabled
+
+errors:
+  invalid-code-format: "Invalid code format"
+  invalid-code: "Invalid code"

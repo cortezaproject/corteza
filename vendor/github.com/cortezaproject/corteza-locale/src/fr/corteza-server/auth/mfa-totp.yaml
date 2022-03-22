@@ -19,5 +19,10 @@ template:
     title: "Terminez la configuration en saisissant le code de l'application d'authentification:"
     button: Envoyez
 alerts:
-  text-2FA-enabled: Authentification à 2 facteurs avec TOTP activée
-  text-2FA-disabled: Authentification à 2 facteurs avec TOTP désactivée
+  text-MFA-enabled: Authentification à 2 facteurs avec TOTP activée
+  text-MFA-disabled: Authentification à 2 facteurs avec TOTP désactivée
+
+errors:
+  invalid-code-format: "Invalid code format"
+  invalid-code: "Invalid code"
+
