@@ -1676,6 +1676,7 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 				{"datetime1 > '2020-10-02T00:00:02'", "1003;1004"},
 				{"date1 > '2020-10-02'", "2003;2004"},
 				{"time1 > '02:00:00'", "3003;3004"},
+				{"(TIMESTAMP(DATE_FORMAT(datetime1, '%Y-%m-%dT%H:%i:00Z')) = TIMESTAMP(DATE_FORMAT('2020-10-02T00:00:02', '%Y-%m-%dT%H:%i:00Z')))", "1002"},
 			}
 		)
 

@@ -42,7 +42,7 @@ func sqlFunctionHandler(f ql.Function) (ql.ASTNode, error) {
 	case "QUARTER", "YEAR":
 		return ql.MakeFormattedNode(fmt.Sprintf("EXTRACT(%s FROM %%s::date)", f.Name), f.Arguments...), nil
 	case "DATE_FORMAT":
-		return ql.MakeReplacedFormattedNode("TO_CHAR(%s, %s)", translateDateFormatParams, f.Arguments...), nil
+		return ql.MakeReplacedFormattedNode("TO_CHAR(%s::TIMESTAMPTZ, %s::TEXT)", translateDateFormatParams, f.Arguments...), nil
 	case "TIMESTAMP":
 		return ql.MakeFormattedNode("TIMESTAMPTZ(%s::TIMESTAMPTZ)", f.Arguments...), nil
 	case "DATE":
