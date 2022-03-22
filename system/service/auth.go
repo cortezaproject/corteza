@@ -1210,8 +1210,8 @@ func (svc auth) cleanupCredentials(ctx context.Context, s store.Credentials, cc 
 			update = append(update, c)
 
 		case false, // just a placeholder
-			c.DeletedAt.Add(tokenReqMaxWindow).Before(*now()),
-			c.ExpiresAt.Before(*now()):
+			(c.DeletedAt != nil && c.DeletedAt.Add(tokenReqMaxWindow).Before(*now())),
+			(c.ExpiresAt != nil && c.ExpiresAt.Before(*now())):
 			// schedule all soft-deleted and expired token
 			// for removal
 			remove = append(remove, c)
