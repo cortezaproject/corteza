@@ -333,7 +333,7 @@ func (svc role) Create(ctx context.Context, new *types.Role) (r *types.Role, err
 
 		r = new
 
-		_ = svc.eventbus.WaitFor(ctx, event.RoleAfterCreate(new, r))
+		svc.eventbus.Dispatch(ctx, event.RoleAfterCreate(new, r))
 		return
 	}()
 
@@ -408,7 +408,7 @@ func (svc role) Update(ctx context.Context, upd *types.Role) (r *types.Role, err
 			r.Labels = upd.Labels
 		}
 
-		_ = svc.eventbus.WaitFor(ctx, event.RoleAfterUpdate(upd, r))
+		svc.eventbus.Dispatch(ctx, event.RoleAfterUpdate(upd, r))
 
 		return nil
 	}()
@@ -487,7 +487,7 @@ func (svc role) Delete(ctx context.Context, roleID uint64) (err error) {
 			return
 		}
 
-		_ = svc.eventbus.WaitFor(ctx, event.RoleAfterDelete(nil, r))
+		svc.eventbus.Dispatch(ctx, event.RoleAfterDelete(nil, r))
 
 		return
 	}()
@@ -530,7 +530,7 @@ func (svc role) Undelete(ctx context.Context, roleID uint64) (err error) {
 
 func (svc role) Archive(ctx context.Context, roleID uint64) (err error) {
 	var (
-		r       *types.Role
+		r, upd  *types.Role
 		raProps = &roleActionProps{role: &types.Role{ID: roleID}}
 	)
 
@@ -543,17 +543,23 @@ func (svc role) Archive(ctx context.Context, roleID uint64) (err error) {
 			return RoleErrNotAllowedToArchive()
 		}
 
-		raProps.setRole(r)
-
-		if !svc.ac.CanUpdateRole(ctx, r) {
-			return RoleErrNotAllowedToArchive()
-		}
-
-		r.ArchivedAt = now()
-		if err = store.UpdateRole(ctx, svc.store, r); err != nil {
+		upd = r.Clone()
+		if err = svc.eventbus.WaitFor(ctx, event.RoleBeforeUpdate(upd, r)); err != nil {
 			return
 		}
 
+		raProps.setRole(upd)
+
+		if !svc.ac.CanUpdateRole(ctx, upd) {
+			return RoleErrNotAllowedToArchive()
+		}
+
+		upd.ArchivedAt = now()
+		if err = store.UpdateRole(ctx, svc.store, upd); err != nil {
+			return
+		}
+
+		svc.eventbus.Dispatch(ctx, event.RoleAfterUpdate(upd, r))
 		return
 	}()
 
@@ -562,7 +568,7 @@ func (svc role) Archive(ctx context.Context, roleID uint64) (err error) {
 
 func (svc role) Unarchive(ctx context.Context, roleID uint64) (err error) {
 	var (
-		r       *types.Role
+		r, upd  *types.Role
 		raProps = &roleActionProps{role: &types.Role{ID: roleID}}
 	)
 
@@ -575,17 +581,23 @@ func (svc role) Unarchive(ctx context.Context, roleID uint64) (err error) {
 			return RoleErrNotAllowedToUnarchive()
 		}
 
-		raProps.setRole(r)
+		upd = r.Clone()
+		if err = svc.eventbus.WaitFor(ctx, event.RoleBeforeUpdate(upd, r)); err != nil {
+			return
+		}
 
-		if !svc.ac.CanDeleteRole(ctx, r) {
+		raProps.setRole(upd)
+
+		if !svc.ac.CanDeleteRole(ctx, upd) {
 			return RoleErrNotAllowedToUndelete()
 		}
 
 		r.ArchivedAt = nil
-		if err = store.UpdateRole(ctx, svc.store, r); err != nil {
+		if err = store.UpdateRole(ctx, svc.store, upd); err != nil {
 			return
 		}
 
+		svc.eventbus.Dispatch(ctx, event.RoleAfterUpdate(upd, r))
 		return nil
 	}()
 
