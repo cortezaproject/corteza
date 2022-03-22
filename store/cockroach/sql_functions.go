@@ -2,8 +2,9 @@ package cockroach
 
 import (
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"strings"
+
+	"github.com/cortezaproject/corteza-server/pkg/ql"
 )
 
 func sqlFunctionHandler(f ql.Function) (ql.ASTNode, error) {
@@ -11,7 +12,7 @@ func sqlFunctionHandler(f ql.Function) (ql.ASTNode, error) {
 	case "QUARTER", "YEAR":
 		return ql.MakeFormattedNode(fmt.Sprintf("EXTRACT(%s FROM %%s::date)", f.Name), f.Arguments...), nil
 	case "DATE_FORMAT":
-		return ql.MakeFormattedNode("TO_CHAR(%s, %s)", f.Arguments...), nil
+		return ql.MakeFormattedNode("TO_CHAR(%s::TIMESTAMPTZ, %s::TEXT)", f.Arguments...), nil
 	case "DATE":
 		return ql.MakeFormattedNode("%s::DATE", f.Arguments...), nil
 	case "DATE_ADD", "DATE_SUB", "STD":
