@@ -56,6 +56,14 @@ func (h *AuthHandlers) resetPasswordForm(req *request.AuthReq) (err error) {
 			// login user
 			req.AuthUser = request.NewAuthUser(h.Settings, user, false, h.Opt.SessionLifetime)
 
+			if req.AuthUser.PendingEmailOTP() {
+				// Email OTP enabled & pending
+				//
+				// If we're here it means user clicked on a link in an email;
+				// we are effectively confirming email OTP
+				req.AuthUser.CompleteEmailOTP()
+			}
+
 			// redirect back to self (but without token and with user in session
 			h.Log.Debug("valid password reset token found, refreshing page with stored user")
 			req.RedirectTo = GetLinks().ResetPassword
