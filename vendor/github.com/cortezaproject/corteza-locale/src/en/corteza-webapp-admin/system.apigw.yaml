@@ -108,8 +108,10 @@ editor:
 profiler:
   label: 'Profiler'
   title: 'Integration Gateway Profiler'
-  loading: 'Loading hits'
-  permissions: 'Permissions'
+  refreshingIn: Refreshing in {{seconds}}s
+  description: 
+    globalEnabled: 'Showing routes for all incoming requests'
+    globalDisabled: 'Showing only registered routes with profiler prefilter'
 
   hit:
     title: 'Request Details'
@@ -150,6 +152,7 @@ profiler:
     path: 'Route'
     count: 'Count'
     content_length: 'Content Length'
+    http_method: 'Method'
     http_status_code: 'Status Code'
     size_min: 'Size (min)'
     size_max: 'Size (max)'

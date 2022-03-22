@@ -6,6 +6,5 @@ label:
   routes: Routes
   requests: Requests
   refresh: Refresh
-  refreshing: Refreshing...
-  refreshingIn: Refreshing in {{seconds}}s
   loadMore: Load more
+  loading: Loading
