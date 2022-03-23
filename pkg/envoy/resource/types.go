@@ -154,10 +154,14 @@ func (rr InterfaceSet) Walk(f func(r Interface) error) (err error) {
 // SearchForIdentifiers returns the resources where the provided identifiers exist
 //
 // The Resource is matching if at least one identifier matches.
-func (rr InterfaceSet) SearchForIdentifiers(ii Identifiers) (out InterfaceSet) {
+func (rr InterfaceSet) SearchForIdentifiers(resource string, ii Identifiers) (out InterfaceSet) {
 	out = make(InterfaceSet, 0, len(rr)/2)
 
 	for _, r := range rr {
+		if r.ResourceType() != resource {
+			continue
+		}
+
 		if r.Identifiers().HasAny(ii) {
 			out = append(out, r)
 		}

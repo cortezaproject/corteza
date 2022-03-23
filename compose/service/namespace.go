@@ -330,7 +330,7 @@ func (svc namespace) Clone(ctx context.Context, namespaceID uint64, dup *types.N
 
 		// Correct internal references
 		// - namespace identifiers
-		nn.SearchForIdentifiers(oldNsRef.Identifiers).Walk(func(r resource.Interface) error {
+		nn.SearchForIdentifiers(oldNsRef.ResourceType, oldNsRef.Identifiers).Walk(func(r resource.Interface) error {
 			r.ReID(newNsRef.Identifiers)
 			return nil
 		})
@@ -589,7 +589,7 @@ func (svc namespace) ImportRun(ctx context.Context, sessionID uint64, dup *types
 
 		// Correct internal references
 		// - namespace identifiers
-		session.Resources.SearchForIdentifiers(oldNsRef.Identifiers).Walk(func(r resource.Interface) error {
+		session.Resources.SearchForIdentifiers(oldNsRef.ResourceType, oldNsRef.Identifiers).Walk(func(r resource.Interface) error {
 			r.ReID(newNsRef.Identifiers)
 			return nil
 		})
