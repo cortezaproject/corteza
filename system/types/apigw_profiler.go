@@ -60,6 +60,7 @@ type (
 	ByDuration      ApigwProfilerHitSet
 	ByContentLength ApigwProfilerHitSet
 	ByStatus        ApigwProfilerHitSet
+	ByMethod        ApigwProfilerHitSet
 )
 
 func (h ByPath) Len() int {
@@ -282,6 +283,24 @@ func (h ByStatus) Less(i, j int) bool {
 }
 
 func (h ByStatus) Swap(i, j int) {
+	h[i], h[j] = h[j], h[i]
+	return
+}
+
+func (h ByMethod) Len() int {
+	return len(h)
+}
+
+func (h ByMethod) Less(i, j int) bool {
+	// most will have the same status
+	// so for paging we need a secondary sort
+	if h[i].Request.Method == h[j].Request.Method {
+		return h[j].Ts.After(*h[i].Ts)
+	}
+	return h[i].Request.Method < h[j].Request.Method
+}
+
+func (h ByMethod) Swap(i, j int) {
 	h[i], h[j] = h[j], h[i]
 	return
 }
