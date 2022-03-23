@@ -1,6 +1,7 @@
 package js_parser
 
 import (
+	"github.com/evanw/esbuild/internal/helpers"
 	"github.com/evanw/esbuild/internal/js_lexer"
 	"github.com/evanw/esbuild/internal/logger"
 )
@@ -19,7 +20,7 @@ func ParseGlobalName(log logger.Log, source logger.Source) (result []string, ok 
 	lexer := js_lexer.NewLexerGlobalName(log, source)
 
 	// Start off with an identifier
-	result = append(result, lexer.Identifier)
+	result = append(result, lexer.Identifier.String)
 	lexer.Expect(js_lexer.TIdentifier)
 
 	// Follow with dot or index expressions
@@ -30,12 +31,12 @@ func ParseGlobalName(log logger.Log, source logger.Source) (result []string, ok 
 			if !lexer.IsIdentifierOrKeyword() {
 				lexer.Expect(js_lexer.TIdentifier)
 			}
-			result = append(result, lexer.Identifier)
+			result = append(result, lexer.Identifier.String)
 			lexer.Next()
 
 		case js_lexer.TOpenBracket:
 			lexer.Next()
-			result = append(result, js_lexer.UTF16ToString(lexer.StringLiteral()))
+			result = append(result, helpers.UTF16ToString(lexer.StringLiteral()))
 			lexer.Expect(js_lexer.TStringLiteral)
 			lexer.Expect(js_lexer.TCloseBracket)
 

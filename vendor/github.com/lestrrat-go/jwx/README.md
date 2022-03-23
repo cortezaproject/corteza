@@ -2,6 +2,8 @@
 
 Various libraries implementing various JWx technologies. Please click on the package names in the table below to find the synopsis/description for each package.
 
+If you are using this module in your product or your company, please add  your product and/or company name in the [Wiki](https://github.com/lestrrat-go/jwx/wiki/Users)! It really helps keeping up our motivation.
+
 | Package name                                              | Notes                                           |
 |-----------------------------------------------------------|-------------------------------------------------|
 | [jwt](https://github.com/lestrrat-go/jwx/tree/main/jwt) | [RFC 7519](https://tools.ietf.org/html/rfc7519) |
@@ -118,6 +120,11 @@ If you are editing auto-generated files (those files with the `_gen.go` suffix, 
 ## Discussions / Usage
 
 Please try [discussions](https://github.com/lestrrat-go/jwx/discussions) first.
+
+# Related Modules
+
+* [github.com/jwx-go/crypto-signer/gcp](https://github.com/jwx-go/crypto-signer/tree/main/gcp) - GCP KMS wrapper that implements [`crypto.Signer`](https://pkg.go.dev/crypto#Signer)
+* [github.com/jwx-go/crypto-signer/aws](https://github.com/jwx-go/crypto-signer/tree/main/aws) - AWS KMS wrapper that implements [`crypto.Signer`](https://pkg.go.dev/crypto#Signer)
 
 # Credits
 

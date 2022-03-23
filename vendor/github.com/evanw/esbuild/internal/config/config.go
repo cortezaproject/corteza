@@ -37,17 +37,6 @@ const (
 	PlatformNeutral
 )
 
-type StrictOptions struct {
-	// Loose:  "class Foo { foo = 1 }" => "class Foo { constructor() { this.foo = 1; } }"
-	// Strict: "class Foo { foo = 1 }" => "class Foo { constructor() { __publicField(this, 'foo', 1); } }"
-	//
-	// The disadvantage of strictness here is code bloat and performance. The
-	// advantage is following the class field specification accurately. For
-	// example, loose mode will incorrectly trigger setter methods while strict
-	// mode won't.
-	ClassFields bool
-}
-
 type SourceMap uint8
 
 const (
@@ -176,10 +165,18 @@ type WildcardPattern struct {
 	Suffix string
 }
 
-type ExternalModules struct {
-	NodeModules map[string]bool
-	AbsPaths    map[string]bool
-	Patterns    []WildcardPattern
+type ExternalMatchers struct {
+	Exact    map[string]bool
+	Patterns []WildcardPattern
+}
+
+func (matchers ExternalMatchers) HasMatchers() bool {
+	return len(matchers.Exact) > 0 || len(matchers.Patterns) > 0
+}
+
+type ExternalSettings struct {
+	PreResolve  ExternalMatchers
+	PostResolve ExternalMatchers
 }
 
 type Mode uint8
@@ -202,16 +199,33 @@ type Options struct {
 	ModuleTypeData js_ast.ModuleTypeData
 	Defines        *ProcessedDefines
 	TSTarget       *TSTarget
+	MangleProps    *regexp.Regexp
+	ReserveProps   *regexp.Regexp
+
+	// When mangling property names, call this function with a callback and do
+	// the property name mangling inside the callback. The callback takes an
+	// argument which is the mangle cache map to mutate. These callbacks are
+	// serialized so mutating the map does not require extra synchronization.
+	//
+	// This is a callback for determinism reasons. We may be building multiple
+	// entry points in parallel that are supposed to share a single cache. We
+	// don't want the order that each entry point mangles properties in to cause
+	// the output to change, so we serialize the property mangling over all entry
+	// points in entry point order. However, we still want to link everything in
+	// parallel so only property mangling is serialized, which is implemented by
+	// this function blocking until the previous entry point's property mangling
+	// has finished.
+	ExclusiveMangleCacheUpdate func(cb func(mangleCache map[string]interface{}))
 
 	// This is the original information that was used to generate the
 	// unsupported feature sets above. It's used for error messages.
 	OriginalTargetEnv string
 
-	ExtensionOrder  []string
-	MainFields      []string
-	Conditions      []string
-	AbsNodePaths    []string // The "NODE_PATH" variable from Node.js
-	ExternalModules ExternalModules
+	ExtensionOrder   []string
+	MainFields       []string
+	Conditions       []string
+	AbsNodePaths     []string // The "NODE_PATH" variable from Node.js
+	ExternalSettings ExternalSettings
 
 	AbsOutputFile      string
 	AbsOutputDir       string
@@ -247,9 +261,9 @@ type Options struct {
 	TS                TSOptions
 	Mode              Mode
 	PreserveSymlinks  bool
-	RemoveWhitespace  bool
+	MinifyWhitespace  bool
 	MinifyIdentifiers bool
-	MangleSyntax      bool
+	MinifySyntax      bool
 	ProfilerNames     bool
 	CodeSplitting     bool
 	WatchMode         bool
@@ -267,6 +281,7 @@ type Options struct {
 	IgnoreDCEAnnotations    bool
 	TreeShaking             bool
 	DropDebugger            bool
+	MangleQuoted            bool
 	Platform                Platform
 	TargetFromAPI           TargetFromAPI
 	OutputFormat            Format

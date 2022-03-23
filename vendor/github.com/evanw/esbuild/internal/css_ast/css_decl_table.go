@@ -1,5 +1,12 @@
 package css_ast
 
+import (
+	"strings"
+	"sync"
+
+	"github.com/evanw/esbuild/internal/helpers"
+)
+
 type D uint16
 
 const (
@@ -639,4 +646,29 @@ var KnownDeclarations = map[string]D{
 	"writing-mode":                DWritingMode,
 	"z-index":                     DZIndex,
 	"zoom":                        DZoom,
+}
+
+var typoDetector *helpers.TypoDetector
+var typoDetectorMutex sync.Mutex
+
+func MaybeCorrectDeclarationTypo(text string) (string, bool) {
+	// Ignore CSS variables, which should not be corrected to CSS properties
+	if strings.HasPrefix(text, "--") {
+		return "", false
+	}
+
+	typoDetectorMutex.Lock()
+	defer typoDetectorMutex.Unlock()
+
+	// Lazily-initialize the typo detector for speed when it's not needed
+	if typoDetector == nil {
+		valid := make([]string, 0, len(KnownDeclarations))
+		for key := range KnownDeclarations {
+			valid = append(valid, key)
+		}
+		detector := helpers.MakeTypoDetector(valid)
+		typoDetector = &detector
+	}
+
+	return typoDetector.MaybeCorrectTypo(text)
 }

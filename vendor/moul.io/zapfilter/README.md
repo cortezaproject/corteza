@@ -70,6 +70,9 @@ func CheckAnyLevel(logger *zap.Logger) bool
     CheckAnyLevel determines whether at least one log level isn't filtered-out
     by the logger.
 
+func CheckLevel(logger *zap.Logger, level zapcore.Level) bool
+    CheckLevel determines whether a specific log level would produce log or not.
+
 func NewFilteringCore(next zapcore.Core, filter FilterFunc) zapcore.Core
     NewFilteringCore returns a core middleware that uses the given filter
     function to determine whether to actually call Write on the next core in the

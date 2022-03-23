@@ -330,8 +330,7 @@ type KeyframeBlock struct {
 }
 
 func (a *RAtKeyframes) Equal(rule R) bool {
-	b, ok := rule.(*RAtKeyframes)
-	if ok && a.AtToken == b.AtToken && a.Name == b.Name && len(a.Blocks) == len(b.Blocks) {
+	if b, ok := rule.(*RAtKeyframes); ok && a.AtToken == b.AtToken && a.Name == b.Name && len(a.Blocks) == len(b.Blocks) {
 		for i, ai := range a.Blocks {
 			bi := b.Blocks[i]
 			if len(ai.Selectors) != len(bi.Selectors) {
@@ -407,11 +406,12 @@ func (r *RUnknownAt) Hash() (uint32, bool) {
 type RSelector struct {
 	Selectors []ComplexSelector
 	Rules     []Rule
+	HasAtNest bool
 }
 
 func (a *RSelector) Equal(rule R) bool {
 	b, ok := rule.(*RSelector)
-	if ok && len(a.Selectors) == len(b.Selectors) {
+	if ok && len(a.Selectors) == len(b.Selectors) && a.HasAtNest == b.HasAtNest {
 		for i, sel := range a.Selectors {
 			if !sel.Equal(b.Selectors[i]) {
 				return false
@@ -512,6 +512,44 @@ func (r *RComment) Hash() (uint32, bool) {
 	return hash, true
 }
 
+type RAtLayer struct {
+	Names [][]string
+	Rules []Rule
+}
+
+func (a *RAtLayer) Equal(rule R) bool {
+	if b, ok := rule.(*RAtLayer); ok && len(a.Names) == len(b.Names) && len(a.Rules) == len(b.Rules) {
+		for i, ai := range a.Names {
+			bi := b.Names[i]
+			if len(ai) != len(bi) {
+				return false
+			}
+			for j, aj := range ai {
+				if aj != bi[j] {
+					return false
+				}
+			}
+		}
+		if !RulesEqual(a.Rules, b.Rules) {
+			return false
+		}
+	}
+	return false
+}
+
+func (r *RAtLayer) Hash() (uint32, bool) {
+	hash := uint32(10)
+	hash = helpers.HashCombine(hash, uint32(len(r.Names)))
+	for _, parts := range r.Names {
+		hash = helpers.HashCombine(hash, uint32(len(parts)))
+		for _, part := range parts {
+			hash = helpers.HashCombineString(hash, part)
+		}
+	}
+	hash = HashRules(hash, r.Rules)
+	return hash, true
+}
+
 type ComplexSelector struct {
 	Selectors []CompoundSelector
 }
@@ -523,7 +561,7 @@ func (a ComplexSelector) Equal(b ComplexSelector) bool {
 
 	for i, ai := range a.Selectors {
 		bi := b.Selectors[i]
-		if ai.HasNestPrefix != bi.HasNestPrefix || ai.Combinator != bi.Combinator {
+		if ai.NestingSelector != bi.NestingSelector || ai.Combinator != bi.Combinator {
 			return false
 		}
 
@@ -546,11 +584,19 @@ func (a ComplexSelector) Equal(b ComplexSelector) bool {
 	return true
 }
 
+type NestingSelector uint8
+
+const (
+	NestingSelectorNone                NestingSelector = iota
+	NestingSelectorPrefix                              // "&a {}"
+	NestingSelectorPresentButNotPrefix                 // "a& {}"
+)
+
 type CompoundSelector struct {
 	Combinator        string // Optional, may be ""
 	TypeSelector      *NamespacedName
 	SubclassSelectors []SS
-	HasNestPrefix     bool // "&"
+	NestingSelector   NestingSelector // "&"
 }
 
 type NameToken struct {

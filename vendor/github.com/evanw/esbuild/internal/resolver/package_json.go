@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/evanw/esbuild/internal/config"
+	"github.com/evanw/esbuild/internal/helpers"
 	"github.com/evanw/esbuild/internal/js_ast"
 	"github.com/evanw/esbuild/internal/js_lexer"
 	"github.com/evanw/esbuild/internal/js_parser"
@@ -196,7 +197,16 @@ func (r resolverQuery) checkBrowserMap(resolveDirInfo *dirInfo, inputPath string
 				}
 			}
 			if isInSamePackage {
-				checkPath("./" + inputPath)
+				relativePathPrefix := "./"
+
+				// Use the relative path from the file containing the import path to the
+				// enclosing package.json file. This includes any subdirectories within the
+				// package if there are any.
+				if relPath, ok := r.fs.Rel(resolveDirInfo.enclosingBrowserScope.absPath, resolveDirInfo.absPath); ok && relPath != "." {
+					relativePathPrefix += strings.ReplaceAll(relPath, "\\", "/") + "/"
+				}
+
+				checkPath(relativePathPrefix + inputPath)
 			}
 		}
 	}
@@ -250,7 +260,7 @@ func (r resolverQuery) parsePackageJSON(inputPath string) *packageJSON {
 	}
 
 	// Read the "type" field
-	if typeJSON, _, ok := getProperty(json, "type"); ok {
+	if typeJSON, typeKeyLoc, ok := getProperty(json, "type"); ok {
 		if typeValue, ok := getString(typeJSON); ok {
 			switch typeValue {
 			case "commonjs":
@@ -266,10 +276,24 @@ func (r resolverQuery) parsePackageJSON(inputPath string) *packageJSON {
 					Range:  jsonSource.RangeOfString(typeJSON.Loc),
 				}
 			default:
-				r.log.AddWithNotes(logger.Warning, &tracker, jsonSource.RangeOfString(typeJSON.Loc),
+				notes := []logger.MsgData{{Text: "The \"type\" field must be set to either \"commonjs\" or \"module\"."}}
+				kind := logger.Warning
+
+				// If someone does something like "type": "./index.d.ts" then they
+				// likely meant "types" instead of "type". Customize the message
+				// for this and hide it if it's inside a published npm package.
+				if strings.HasSuffix(typeValue, ".d.ts") {
+					notes[0] = tracker.MsgData(jsonSource.RangeOfString(typeKeyLoc),
+						"TypeScript type declarations use the \"types\" field, not the \"type\" field:")
+					notes[0].Location.Suggestion = "\"types\""
+					if helpers.IsInsideNodeModules(jsonSource.KeyPath.Text) {
+						kind = logger.Debug
+					}
+				}
+
+				r.log.AddWithNotes(kind, &tracker, jsonSource.RangeOfString(typeJSON.Loc),
 					fmt.Sprintf("%q is not a valid value for the \"type\" field", typeValue),
-					[]logger.MsgData{{Text: "The \"type\" field must be set to either \"commonjs\" or \"module\"."}},
-				)
+					notes)
 			}
 		} else {
 			r.log.Add(logger.Warning, &tracker, logger.Range{Loc: typeJSON.Loc},
@@ -371,7 +395,7 @@ func (r resolverQuery) parsePackageJSON(inputPath string) *packageJSON {
 				}
 
 				// Reference: https://github.com/webpack/webpack/blob/ed175cd22f89eb9fecd0a70572a3fd0be028e77c/lib/optimize/SideEffectsFlagPlugin.js
-				pattern := js_lexer.UTF16ToString(item.Value)
+				pattern := helpers.UTF16ToString(item.Value)
 				if !strings.ContainsRune(pattern, '/') {
 					pattern = "**/" + pattern
 				}
@@ -542,7 +566,7 @@ func parseImportsExportsMap(source logger.Source, log logger.Log, json js_ast.Ex
 			return pjEntry{
 				kind:       pjString,
 				firstToken: source.RangeOfString(expr.Loc),
-				strData:    js_lexer.UTF16ToString(e.Value),
+				strData:    helpers.UTF16ToString(e.Value),
 			}
 
 		case *js_ast.EArray:
@@ -564,7 +588,7 @@ func parseImportsExportsMap(source logger.Source, log logger.Log, json js_ast.Ex
 
 			for i, property := range e.Properties {
 				keyStr, _ := property.Key.Data.(*js_ast.EString)
-				key := js_lexer.UTF16ToString(keyStr.Value)
+				key := helpers.UTF16ToString(keyStr.Value)
 				keyRange := source.RangeOfString(property.Key.Loc)
 
 				// If exports is an Object with both a key starting with "." and a key

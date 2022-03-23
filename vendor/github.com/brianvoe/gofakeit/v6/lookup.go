@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"reflect"
 	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -25,7 +26,7 @@ type Info struct {
 	Description string                                                            `json:"description"`
 	Example     string                                                            `json:"example"`
 	Output      string                                                            `json:"output"`
-	Data        map[string]string                                                 `json:"-"`
+	ContentType string                                                            `json:"content_type"`
 	Params      []Param                                                           `json:"params"`
 	Generate    func(r *rand.Rand, m *MapParams, info *Info) (interface{}, error) `json:"-"`
 }
@@ -170,6 +171,11 @@ func AddFuncLookup(functionName string, info Info) {
 		FuncLookups = make(map[string]Info)
 	}
 
+	// Check content type
+	if info.ContentType == "" {
+		info.ContentType = "text/plain"
+	}
+
 	lockFuncLookups.Lock()
 	FuncLookups[functionName] = info
 	lockFuncLookups.Unlock()
@@ -225,6 +231,17 @@ func (i *Info) GetField(m *MapParams, field string) (*Param, []string, error) {
 
 		return p, value, nil
 	} else if m == nil && p.Default != "" {
+		// If p.Type is []uint, then we need to convert it to []string
+		if strings.HasPrefix(p.Default, "[") {
+			// Remove [] from type
+			defaultClean := p.Default[1 : len(p.Default)-1]
+
+			// Split on comma
+			defaultSplit := strings.Split(defaultClean, ",")
+
+			return p, defaultSplit, nil
+		}
+
 		// If default isnt empty use default
 		return p, []string{p.Default}, nil
 	}
@@ -349,6 +366,25 @@ func (i *Info) GetIntArray(m *MapParams, field string) ([]int, error) {
 	}
 
 	return ints, nil
+}
+
+// GetUintArray will retrieve []uint field from data
+func (i *Info) GetUintArray(m *MapParams, field string) ([]uint, error) {
+	_, value, err := i.GetField(m, field)
+	if err != nil {
+		return nil, err
+	}
+
+	var uints []uint
+	for i := 0; i < len(value); i++ {
+		valueUint, err := strconv.ParseUint(value[i], 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("%s value could not parse to uint", value[i])
+		}
+		uints = append(uints, uint(valueUint))
+	}
+
+	return uints, nil
 }
 
 // GetFloat32Array will retrieve []float field from data

@@ -221,9 +221,10 @@ func parseFile(args parseArgs) {
 
 	case config.LoaderCSS:
 		ast := args.caches.CSSCache.Parse(args.log, source, css_parser.Options{
-			MangleSyntax:           args.options.MangleSyntax,
-			RemoveWhitespace:       args.options.RemoveWhitespace,
+			MinifySyntax:           args.options.MinifySyntax,
+			MinifyWhitespace:       args.options.MinifyWhitespace,
 			UnsupportedCSSFeatures: args.options.UnsupportedCSSFeatures,
+			OriginalTargetEnv:      args.options.OriginalTargetEnv,
 		})
 		result.file.inputFile.Repr = &graph.CSSRepr{AST: ast}
 		result.ok = true
@@ -241,7 +242,7 @@ func parseFile(args parseArgs) {
 
 	case config.LoaderText:
 		encoded := base64.StdEncoding.EncodeToString([]byte(source.Contents))
-		expr := js_ast.Expr{Data: &js_ast.EString{Value: js_lexer.StringToUTF16(source.Contents)}}
+		expr := js_ast.Expr{Data: &js_ast.EString{Value: helpers.StringToUTF16(source.Contents)}}
 		ast := js_parser.LazyExportAST(args.log, source, js_parser.OptionsFromConfig(&args.options), expr, "")
 		ast.URLForCSS = "data:text/plain;base64," + encoded
 		if pluginName != "" {
@@ -255,7 +256,7 @@ func parseFile(args parseArgs) {
 	case config.LoaderBase64:
 		mimeType := guessMimeType(ext, source.Contents)
 		encoded := base64.StdEncoding.EncodeToString([]byte(source.Contents))
-		expr := js_ast.Expr{Data: &js_ast.EString{Value: js_lexer.StringToUTF16(encoded)}}
+		expr := js_ast.Expr{Data: &js_ast.EString{Value: helpers.StringToUTF16(encoded)}}
 		ast := js_parser.LazyExportAST(args.log, source, js_parser.OptionsFromConfig(&args.options), expr, "")
 		ast.URLForCSS = "data:" + mimeType + ";base64," + encoded
 		if pluginName != "" {
@@ -268,7 +269,7 @@ func parseFile(args parseArgs) {
 
 	case config.LoaderBinary:
 		encoded := base64.StdEncoding.EncodeToString([]byte(source.Contents))
-		expr := js_ast.Expr{Data: &js_ast.EString{Value: js_lexer.StringToUTF16(encoded)}}
+		expr := js_ast.Expr{Data: &js_ast.EString{Value: helpers.StringToUTF16(encoded)}}
 		helper := "__toBinary"
 		if args.options.Platform == config.PlatformNode {
 			helper = "__toBinaryNode"
@@ -287,7 +288,7 @@ func parseFile(args parseArgs) {
 		mimeType := guessMimeType(ext, source.Contents)
 		encoded := base64.StdEncoding.EncodeToString([]byte(source.Contents))
 		url := fmt.Sprintf("data:%s;base64,%s", mimeType, encoded)
-		expr := js_ast.Expr{Data: &js_ast.EString{Value: js_lexer.StringToUTF16(url)}}
+		expr := js_ast.Expr{Data: &js_ast.EString{Value: helpers.StringToUTF16(url)}}
 		ast := js_parser.LazyExportAST(args.log, source, js_parser.OptionsFromConfig(&args.options), expr, "")
 		ast.URLForCSS = url
 		if pluginName != "" {
@@ -301,7 +302,7 @@ func parseFile(args parseArgs) {
 	case config.LoaderFile:
 		uniqueKey := fmt.Sprintf("%sA%08d", args.uniqueKeyPrefix, args.sourceIndex)
 		uniqueKeyPath := uniqueKey + source.KeyPath.IgnoredSuffix
-		expr := js_ast.Expr{Data: &js_ast.EString{Value: js_lexer.StringToUTF16(uniqueKeyPath)}}
+		expr := js_ast.Expr{Data: &js_ast.EString{Value: helpers.StringToUTF16(uniqueKeyPath)}}
 		ast := js_parser.LazyExportAST(args.log, source, js_parser.OptionsFromConfig(&args.options), expr, "")
 		ast.URLForCSS = uniqueKeyPath
 		if pluginName != "" {
@@ -432,9 +433,10 @@ func parseFile(args parseArgs) {
 							pluginName, args.fs, absResolveDir, args.options.Platform, source.PrettyPath)
 						debug.LogErrorMsg(args.log, &source, record.Range, text, notes)
 					} else if args.log.Level <= logger.LevelDebug && !didLogError && record.Flags.Has(ast.HandlesImportErrors) {
-						args.log.Add(logger.Debug, &tracker, record.Range,
+						args.log.AddWithNotes(logger.Debug, &tracker, record.Range,
 							fmt.Sprintf("Importing %q was allowed even though it could not be resolved because dynamic import failures appear to be handled here:",
-								record.Path.Text))
+								record.Path.Text), []logger.MsgData{tracker.MsgData(js_lexer.RangeOfIdentifier(source, record.ErrorHandlerLoc),
+								"The handler for dynamic import failures is here:")})
 					}
 					continue
 				}
@@ -1077,12 +1079,48 @@ func ScanBundle(
 		}
 	}()
 
+	// Wait for all "onStart" plugins here before continuing. People sometimes run
+	// setup code in "onStart" that "onLoad" expects to be able to use without
+	// "onLoad" needing to block on the completion of their "onStart" callback.
+	//
+	// We want to enable this:
+	//
+	//   let plugin = {
+	//     name: 'example',
+	//     setup(build) {
+	//       let started = false
+	//       build.onStart(() => started = true)
+	//       build.onLoad({ filter: /.*/ }, () => {
+	//         assert(started === true)
+	//       })
+	//     },
+	//   }
+	//
+	// without people having to write something like this:
+	//
+	//   let plugin = {
+	//     name: 'example',
+	//     setup(build) {
+	//       let started = {}
+	//       started.promise = new Promise(resolve => {
+	//         started.resolve = resolve
+	//       })
+	//       build.onStart(() => {
+	//         started.resolve(true)
+	//       })
+	//       build.onLoad({ filter: /.*/ }, async () => {
+	//         assert(await started.promise === true)
+	//       })
+	//     },
+	//   }
+	//
+	onStartWaitGroup.Wait()
+
 	s.preprocessInjectedFiles()
 	entryPointMeta := s.addEntryPoints(entryPoints)
 	s.scanAllDependencies()
 	files := s.processScannedFiles()
 
-	onStartWaitGroup.Wait()
 	return Bundle{
 		fs:              fs,
 		res:             res,
@@ -1173,6 +1211,10 @@ func (s *scanner) maybeParseFile(
 	if path.Namespace == "dataurl" {
 		if _, ok := resolver.ParseDataURL(path.Text); ok {
 			prettyPath = path.Text
+			if len(prettyPath) > 65 {
+				prettyPath = prettyPath[:65]
+			}
+			prettyPath = strings.ReplaceAll(prettyPath, "\n", "\\n")
 			if len(prettyPath) > 64 {
 				prettyPath = prettyPath[:64] + "..."
 			}
@@ -2035,7 +2077,7 @@ func applyOptionDefaults(options *config.Options) {
 	options.ProfilerNames = !options.MinifyIdentifiers
 }
 
-func (b *Bundle) Compile(log logger.Log, options config.Options, timer *helpers.Timer) ([]graph.OutputFile, string) {
+func (b *Bundle) Compile(log logger.Log, options config.Options, timer *helpers.Timer, mangleCache map[string]interface{}) ([]graph.OutputFile, string) {
 	timer.Begin("Compile phase")
 	defer timer.End("Compile phase")
 
@@ -2044,6 +2086,11 @@ func (b *Bundle) Compile(log logger.Log, options config.Options, timer *helpers.
 	// The format can't be "preserve" while bundling
 	if options.Mode == config.ModeBundle && options.OutputFormat == config.FormatPreserve {
 		options.OutputFormat = config.FormatESModule
+	}
+
+	// In most cases we don't need synchronized access to the mangle cache
+	options.ExclusiveMangleCacheUpdate = func(cb func(mangleCache map[string]interface{})) {
+		cb(mangleCache)
 	}
 
 	files := make([]graph.InputFile, len(b.files))
@@ -2062,20 +2109,35 @@ func (b *Bundle) Compile(log logger.Log, options config.Options, timer *helpers.
 	var resultGroups [][]graph.OutputFile
 	if options.CodeSplitting || len(b.entryPoints) == 1 {
 		// If code splitting is enabled or if there's only one entry point, link all entry points together
-		resultGroups = [][]graph.OutputFile{link(
-			&options, timer, log, b.fs, b.res, files, b.entryPoints, b.uniqueKeyPrefix, allReachableFiles, dataForSourceMaps)}
+		resultGroups = [][]graph.OutputFile{link(&options, timer, log, b.fs, b.res,
+			files, b.entryPoints, b.uniqueKeyPrefix, allReachableFiles, dataForSourceMaps)}
 	} else {
 		// Otherwise, link each entry point with the runtime file separately
 		waitGroup := sync.WaitGroup{}
 		resultGroups = make([][]graph.OutputFile, len(b.entryPoints))
+		serializer := helpers.MakeSerializer(len(b.entryPoints))
 		for i, entryPoint := range b.entryPoints {
 			waitGroup.Add(1)
 			go func(i int, entryPoint graph.EntryPoint) {
 				entryPoints := []graph.EntryPoint{entryPoint}
 				forked := timer.Fork()
-				reachableFiles := findReachableFiles(files, entryPoints)
-				resultGroups[i] = link(
-					&options, forked, log, b.fs, b.res, files, entryPoints, b.uniqueKeyPrefix, reachableFiles, dataForSourceMaps)
+				var optionsPtr *config.Options
+				if mangleCache != nil {
+					// Each goroutine needs a separate options object
+					optionsClone := options
+					optionsClone.ExclusiveMangleCacheUpdate = func(cb func(mangleCache map[string]interface{})) {
+						// Serialize all accesses to the mangle cache in entry point order for determinism
+						serializer.Enter(i)
+						defer serializer.Leave(i)
+						cb(mangleCache)
+					}
+					optionsPtr = &optionsClone
+				} else {
+					// Each goroutine can share an options object
+					optionsPtr = &options
+				}
+				resultGroups[i] = link(optionsPtr, forked, log, b.fs, b.res, files, entryPoints,
+					b.uniqueKeyPrefix, findReachableFiles(files, entryPoints), dataForSourceMaps)
 				timer.Join(forked)
 				waitGroup.Done()
 			}(i, entryPoint)
@@ -2253,7 +2315,7 @@ func (b *Bundle) computeDataForSourceMapsInParallel(options *config.Options, rea
 								if value := sm.SourcesContent[i]; value.Quoted != "" {
 									if options.ASCIIOnly && !isASCIIOnly(value.Quoted) {
 										// Re-quote non-ASCII values if output is ASCII-only
-										quotedContents = js_printer.QuoteForJSON(js_lexer.UTF16ToString(value.Value), options.ASCIIOnly)
+										quotedContents = js_printer.QuoteForJSON(helpers.UTF16ToString(value.Value), options.ASCIIOnly)
 									} else {
 										// Otherwise just use the value directly from the input file
 										quotedContents = []byte(value.Quoted)
@@ -2325,7 +2387,7 @@ func (b *Bundle) generateMetadataJSON(results []graph.OutputFile, allReachableFi
 }
 
 type runtimeCacheKey struct {
-	MangleSyntax      bool
+	MinifySyntax      bool
 	MinifyIdentifiers bool
 	ES6               bool
 }
@@ -2340,7 +2402,7 @@ var globalRuntimeCache runtimeCache
 func (cache *runtimeCache) parseRuntime(options *config.Options) (source logger.Source, runtimeAST js_ast.AST, ok bool) {
 	key := runtimeCacheKey{
 		// All configuration options that the runtime code depends on must go here
-		MangleSyntax:      options.MangleSyntax,
+		MinifySyntax:      options.MinifySyntax,
 		MinifyIdentifiers: options.MinifyIdentifiers,
 		ES6:               runtime.CanUseES6(options.UnsupportedJSFeatures),
 	}
@@ -2374,7 +2436,7 @@ func (cache *runtimeCache) parseRuntime(options *config.Options) (source logger.
 	log := logger.NewDeferLog(logger.DeferLogAll)
 	runtimeAST, ok = js_parser.Parse(log, source, js_parser.OptionsFromConfig(&config.Options{
 		// These configuration options must only depend on the key
-		MangleSyntax:      key.MangleSyntax,
+		MinifySyntax:      key.MinifySyntax,
 		MinifyIdentifiers: key.MinifyIdentifiers,
 		UnsupportedJSFeatures: compat.UnsupportedJSFeatures(
 			map[compat.Engine][]int{compat.ES: {constraint}}),

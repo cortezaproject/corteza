@@ -307,6 +307,8 @@ func validateFeatures(log logger.Log, target Target, engines []Engine) (config.T
 		constraints[compat.ES] = []int{2020}
 	case ES2021:
 		constraints[compat.ES] = []int{2021}
+	case ES2022:
+		constraints[compat.ES] = []int{2022}
 	case ESNext:
 		targetFromAPI = config.TargetWasConfiguredIncludingESNext
 	case DefaultTarget:
@@ -331,10 +333,14 @@ func validateFeatures(log logger.Log, target Target, engines []Engine) (config.T
 					constraints[compat.Edge] = version
 				case EngineFirefox:
 					constraints[compat.Firefox] = version
+				case EngineIE:
+					constraints[compat.IE] = version
 				case EngineIOS:
 					constraints[compat.IOS] = version
 				case EngineNode:
 					constraints[compat.Node] = version
+				case EngineOpera:
+					constraints[compat.Opera] = version
 				case EngineSafari:
 					constraints[compat.Safari] = version
 				default:
@@ -382,27 +388,51 @@ func validateGlobalName(log logger.Log, text string) []string {
 	return nil
 }
 
-func validateExternals(log logger.Log, fs fs.FS, paths []string) config.ExternalModules {
-	result := config.ExternalModules{
-		NodeModules: make(map[string]bool),
-		AbsPaths:    make(map[string]bool),
+func validateRegex(log logger.Log, what string, value string) *regexp.Regexp {
+	if value == "" {
+		return nil
 	}
+	regex, err := regexp.Compile(value)
+	if err != nil {
+		log.Add(logger.Error, nil, logger.Range{},
+			fmt.Sprintf("The %q setting is not a valid Go regular expression: %s", what, value))
+		return nil
+	}
+	return regex
+}
+
+func validateExternals(log logger.Log, fs fs.FS, paths []string) config.ExternalSettings {
+	result := config.ExternalSettings{
+		PreResolve:  config.ExternalMatchers{Exact: make(map[string]bool)},
+		PostResolve: config.ExternalMatchers{Exact: make(map[string]bool)},
+	}
+
 	for _, path := range paths {
 		if index := strings.IndexByte(path, '*'); index != -1 {
+			// Wildcard behavior
 			if strings.ContainsRune(path[index+1:], '*') {
 				log.Add(logger.Error, nil, logger.Range{}, fmt.Sprintf("External path %q cannot have more than one \"*\" wildcard", path))
 			} else {
-				result.Patterns = append(result.Patterns, config.WildcardPattern{
-					Prefix: path[:index],
-					Suffix: path[index+1:],
-				})
+				result.PreResolve.Patterns = append(result.PreResolve.Patterns, config.WildcardPattern{Prefix: path[:index], Suffix: path[index+1:]})
+				if !resolver.IsPackagePath(path) {
+					if absPath := validatePath(log, fs, path, "external path"); absPath != "" {
+						if absIndex := strings.IndexByte(absPath, '*'); absIndex != -1 && !strings.ContainsRune(absPath[absIndex+1:], '*') {
+							result.PostResolve.Patterns = append(result.PostResolve.Patterns, config.WildcardPattern{Prefix: absPath[:absIndex], Suffix: absPath[absIndex+1:]})
+						}
+					}
+				}
 			}
-		} else if resolver.IsPackagePath(path) {
-			result.NodeModules[path] = true
-		} else if absPath := validatePath(log, fs, path, "external path"); absPath != "" {
-			result.AbsPaths[absPath] = true
+		} else {
+			// Non-wildcard behavior
+			result.PreResolve.Exact[path] = true
+			if resolver.IsPackagePath(path) {
+				result.PreResolve.Patterns = append(result.PreResolve.Patterns, config.WildcardPattern{Prefix: path + "/"})
+			} else if absPath := validatePath(log, fs, path, "external path"); absPath != "" {
+				result.PostResolve.Exact[absPath] = true
+			}
 		}
 	}
+
 	return result
 }
 
@@ -556,9 +586,9 @@ func validateDefines(
 				if _, processEnvNodeEnv := rawDefines["process.env.NODE_ENV"]; !processEnvNodeEnv {
 					var value []uint16
 					if minify {
-						value = js_lexer.StringToUTF16("production")
+						value = helpers.StringToUTF16("production")
 					} else {
-						value = js_lexer.StringToUTF16("development")
+						value = helpers.StringToUTF16("development")
 					}
 					rawDefines["process.env.NODE_ENV"] = config.DefineData{
 						DefineFunc: func(args config.DefineArgs) js_ast.E {
@@ -720,6 +750,27 @@ func convertMessagesToInternal(msgs []logger.Msg, kind logger.MsgKind, messages 
 	return msgs
 }
 
+func cloneMangleCache(log logger.Log, mangleCache map[string]interface{}) map[string]interface{} {
+	if mangleCache == nil {
+		return nil
+	}
+	clone := make(map[string]interface{}, len(mangleCache))
+	for k, v := range mangleCache {
+		if v == "__proto__" {
+			// This could cause problems for our binary serialization protocol. It's
+			// also unnecessary because we already avoid mangling this property name.
+			log.Add(logger.Error, nil, logger.Range{},
+				fmt.Sprintf("Invalid identifier name %q in mangle cache", k))
+		} else if _, ok := v.(string); ok || v == false {
+			clone[k] = v
+		} else {
+			log.Add(logger.Error, nil, logger.Range{},
+				fmt.Sprintf("Expected %q in mangle cache to map to either a string or false", k))
+		}
+	}
+	return clone
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Build API
 
@@ -851,6 +902,7 @@ func rebuildImpl(
 	footerJS, footerCSS := validateBannerOrFooter(log, "footer", buildOpts.Footer)
 	minify := buildOpts.MinifyWhitespace && buildOpts.MinifyIdentifiers && buildOpts.MinifySyntax
 	defines, injectedDefines := validateDefines(log, buildOpts.Define, buildOpts.Pure, buildOpts.Platform, minify, buildOpts.Drop)
+	mangleCache := cloneMangleCache(log, buildOpts.MangleCache)
 	options := config.Options{
 		TargetFromAPI:          targetFromAPI,
 		UnsupportedJSFeatures:  jsFeatures,
@@ -868,9 +920,12 @@ func rebuildImpl(
 		LegalComments:         validateLegalComments(buildOpts.LegalComments, buildOpts.Bundle),
 		SourceRoot:            buildOpts.SourceRoot,
 		ExcludeSourcesContent: buildOpts.SourcesContent == SourcesContentExclude,
-		MangleSyntax:          buildOpts.MinifySyntax,
-		RemoveWhitespace:      buildOpts.MinifyWhitespace,
+		MinifySyntax:          buildOpts.MinifySyntax,
+		MinifyWhitespace:      buildOpts.MinifyWhitespace,
 		MinifyIdentifiers:     buildOpts.MinifyIdentifiers,
+		MangleProps:           validateRegex(log, "mangle props", buildOpts.MangleProps),
+		ReserveProps:          validateRegex(log, "reserve props", buildOpts.ReserveProps),
+		MangleQuoted:          buildOpts.MangleQuoted == MangleQuotedTrue,
 		DropDebugger:          (buildOpts.Drop & DropDebugger) != 0,
 		AllowOverwrite:        buildOpts.AllowOverwrite,
 		ASCIIOnly:             validateASCIIOnly(buildOpts.Charset),
@@ -890,7 +945,7 @@ func rebuildImpl(
 		OutputExtensionCSS:    outCSS,
 		ExtensionToLoader:     validateLoaders(log, buildOpts.Loader),
 		ExtensionOrder:        validateResolveExtensions(log, buildOpts.ResolveExtensions),
-		ExternalModules:       validateExternals(log, realFS, buildOpts.External),
+		ExternalSettings:      validateExternals(log, realFS, buildOpts.External),
 		TsConfigOverride:      validatePath(log, realFS, buildOpts.Tsconfig, "tsconfig path"),
 		MainFields:            buildOpts.MainFields,
 		Conditions:            append([]string{}, buildOpts.Conditions...),
@@ -968,7 +1023,7 @@ func rebuildImpl(
 
 	if !buildOpts.Bundle {
 		// Disallow bundle-only options when not bundling
-		if len(options.ExternalModules.NodeModules) > 0 || len(options.ExternalModules.AbsPaths) > 0 {
+		if options.ExternalSettings.PreResolve.HasMatchers() || options.ExternalSettings.PostResolve.HasMatchers() {
 			log.Add(logger.Error, nil, logger.Range{}, "Cannot use \"external\" without \"bundle\"")
 		}
 	} else if options.OutputFormat == config.FormatPreserve {
@@ -1019,7 +1074,7 @@ func rebuildImpl(
 		// Stop now if there were errors
 		if !log.HasErrors() {
 			// Compile the bundle
-			results, metafile := bundle.Compile(log, options, timer)
+			results, metafile := bundle.Compile(log, options, timer, mangleCache)
 
 			// Stop now if there were errors
 			if !log.HasErrors() {
@@ -1122,6 +1177,11 @@ func rebuildImpl(
 		}
 	}
 
+	// Only return the mangle cache for a successful build
+	if log.HasErrors() {
+		mangleCache = nil
+	}
+
 	result := BuildResult{
 		Errors:      convertMessagesToPublic(logger.Error, msgs),
 		Warnings:    convertMessagesToPublic(logger.Warning, msgs),
@@ -1129,6 +1189,7 @@ func rebuildImpl(
 		Metafile:    metafileJSON,
 		Rebuild:     rebuild,
 		Stop:        stop,
+		MangleCache: mangleCache,
 	}
 
 	for _, onEnd := range onEndCallbacks {
@@ -1345,6 +1406,7 @@ func transformImpl(input string, transformOpts TransformOptions) TransformResult
 	// Convert and validate the transformOpts
 	targetFromAPI, jsFeatures, cssFeatures, targetEnv := validateFeatures(log, transformOpts.Target, transformOpts.Engines)
 	defines, injectedDefines := validateDefines(log, transformOpts.Define, transformOpts.Pure, PlatformNeutral, false /* minify */, transformOpts.Drop)
+	mangleCache := cloneMangleCache(log, transformOpts.MangleCache)
 	options := config.Options{
 		TargetFromAPI:           targetFromAPI,
 		UnsupportedJSFeatures:   jsFeatures,
@@ -1360,9 +1422,12 @@ func transformImpl(input string, transformOpts TransformOptions) TransformResult
 		ExcludeSourcesContent:   transformOpts.SourcesContent == SourcesContentExclude,
 		OutputFormat:            validateFormat(transformOpts.Format),
 		GlobalName:              validateGlobalName(log, transformOpts.GlobalName),
-		MangleSyntax:            transformOpts.MinifySyntax,
-		RemoveWhitespace:        transformOpts.MinifyWhitespace,
+		MinifySyntax:            transformOpts.MinifySyntax,
+		MinifyWhitespace:        transformOpts.MinifyWhitespace,
 		MinifyIdentifiers:       transformOpts.MinifyIdentifiers,
+		MangleProps:             validateRegex(log, "mangle props", transformOpts.MangleProps),
+		ReserveProps:            validateRegex(log, "reserve props", transformOpts.ReserveProps),
+		MangleQuoted:            transformOpts.MangleQuoted == MangleQuotedTrue,
 		DropDebugger:            (transformOpts.Drop & DropDebugger) != 0,
 		ASCIIOnly:               validateASCIIOnly(transformOpts.Charset),
 		IgnoreDCEAnnotations:    transformOpts.IgnoreAnnotations,
@@ -1418,7 +1483,7 @@ func transformImpl(input string, transformOpts TransformOptions) TransformResult
 		// Stop now if there were errors
 		if !log.HasErrors() {
 			// Compile the bundle
-			results, _ = bundle.Compile(log, options, timer)
+			results, _ = bundle.Compile(log, options, timer, mangleCache)
 		}
 
 		timer.Log(log)
@@ -1440,12 +1505,18 @@ func transformImpl(input string, transformOpts TransformOptions) TransformResult
 		}
 	}
 
+	// Only return the mangle cache for a successful build
+	if log.HasErrors() {
+		mangleCache = nil
+	}
+
 	msgs := log.Done()
 	return TransformResult{
-		Errors:   convertMessagesToPublic(logger.Error, msgs),
-		Warnings: convertMessagesToPublic(logger.Warning, msgs),
-		Code:     code,
-		Map:      sourceMap,
+		Errors:      convertMessagesToPublic(logger.Error, msgs),
+		Warnings:    convertMessagesToPublic(logger.Warning, msgs),
+		Code:        code,
+		Map:         sourceMap,
+		MangleCache: mangleCache,
 	}
 }
 
@@ -1807,7 +1878,7 @@ func (a metafileArray) Less(i int, j int) bool {
 func getObjectProperty(expr js_ast.Expr, key string) js_ast.Expr {
 	if obj, ok := expr.Data.(*js_ast.EObject); ok {
 		for _, prop := range obj.Properties {
-			if js_lexer.UTF16EqualsString(prop.Key.Data.(*js_ast.EString).Value, key) {
+			if helpers.UTF16EqualsString(prop.Key.Data.(*js_ast.EString).Value, key) {
 				return prop.ValueOrNil
 			}
 		}
@@ -1846,10 +1917,10 @@ func analyzeMetafileImpl(metafile string, opts AnalyzeMetafileOptions) string {
 
 			// Scan over the "outputs" object
 			for _, output := range outputs.Properties {
-				if key := js_lexer.UTF16ToString(output.Key.Data.(*js_ast.EString).Value); !strings.HasSuffix(key, ".map") {
+				if key := helpers.UTF16ToString(output.Key.Data.(*js_ast.EString).Value); !strings.HasSuffix(key, ".map") {
 					entryPointPath := ""
 					if entryPoint := getObjectPropertyString(output.ValueOrNil, "entryPoint"); entryPoint != nil {
-						entryPointPath = js_lexer.UTF16ToString(entryPoint.Value)
+						entryPointPath = helpers.UTF16ToString(entryPoint.Value)
 						entryPoints = append(entryPoints, entryPointPath)
 					}
 
@@ -1860,7 +1931,7 @@ func analyzeMetafileImpl(metafile string, opts AnalyzeMetafileOptions) string {
 							for _, input := range inputs.Properties {
 								if bytesInOutput := getObjectPropertyNumber(input.ValueOrNil, "bytesInOutput"); bytesInOutput != nil && bytesInOutput.Value > 0 {
 									children = append(children, metafileEntry{
-										name: js_lexer.UTF16ToString(input.Key.Data.(*js_ast.EString).Value),
+										name: helpers.UTF16ToString(input.Key.Data.(*js_ast.EString).Value),
 										size: int(bytesInOutput.Value),
 									})
 								}
@@ -1900,11 +1971,11 @@ func analyzeMetafileImpl(metafile string, opts AnalyzeMetafileOptions) string {
 
 						for _, item := range imports.Items {
 							if path := getObjectPropertyString(item, "path"); path != nil {
-								data.imports = append(data.imports, js_lexer.UTF16ToString(path.Value))
+								data.imports = append(data.imports, helpers.UTF16ToString(path.Value))
 							}
 						}
 
-						importsForPath[js_lexer.UTF16ToString(prop.Key.Data.(*js_ast.EString).Value)] = data
+						importsForPath[helpers.UTF16ToString(prop.Key.Data.(*js_ast.EString).Value)] = data
 					}
 				}
 			}

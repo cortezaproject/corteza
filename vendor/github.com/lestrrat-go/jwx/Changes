@@ -1,6 +1,73 @@
 Changes
 =======
 
+v1.2.20 03 Mar 2022
+[Miscellaneous]
+  * Dependency on golang.org/x/crypto has been upgraded to
+    v0.0.0-20220214200702-86341886e292 to address
+    https://nvd.nist.gov/vuln/detail/CVE-2020-14040 (#598)
+
+v1.2.19 22 Feb 2022
+[New Feature]
+  * [jwk] jwk.Parse (and (jwk.AutoRefresh).Configure) can accept a new
+    option `jwk.WithIgnoreParseError(bool)`, which allows users to ignore
+    errors during parsing of each key contained in the JWKS, allowing
+    you to "skip" invalid keys.
+
+    This option should not be used lightly, as it hides the presence of
+    possibly faulty keys. However, this can be an escape hatch if you are
+    faced with a faulty JWKS that you do not control.
+
+v1.2.18 23 Jan 2022
+[Bug fixes]
+  * [jwe] When presented with jwk.Key with a key ID, the jwe encryption
+    code path did not assign this key ID to the resulting data structure.
+    This has been fixed, and now the key ID is properly applied to the
+    `kid` field.
+  * [jws] Use for `crypto.Signer`s were implemented for signing, but verification was
+    never properly implemented. This has been fixed.
+
+[Miscellaneous]
+  * [jws] Because of fixes to code path that deals with `crypto.Signer`s, we are
+    now able to fully integrate with Cloud services, such as Google's Cloud KMS
+    and AWS KMS, that provide key management and signing payloads
+
+    An implementation for these are available at https://github.com/jwx-go/crypto-signer.
+
+    Suppot `crypto.Signer` in JWE encryption has not been implemented.
+
+v1.2.17 12 Jan 2022
+[Miscellaneous]
+  * Re-release v1.2.16 as v1.2.17 because of an error in the release process.
+    The code is exactly the same as what v1.2.16 intended to release.
+    v1.2.16 has been retracted in go.mod.
+
+v1.2.16 12 Jan 2022 
+
+  THIS VERSION HAS BEEN RETRACTED. PLEASE USE v1.2.17
+
+[Bug Fixes]
+  * Peviously, `jws.Sign()` could not create a signed payload with
+    detached and unencoded payload, even when the documentation said it could.
+    Now you may use the `jws.Sign()` in the following way to create
+    a JWS message with detached, unencoded state:
+
+       hdrs := jws.NewHeaders()
+       hdrs.Set("b64", false)
+       hdrs.Set("crit", "b64")
+       jws.Sign(nil, alg, key, jws.WithDetachedPayload(payload), jws.WithHeaders(hdrs))
+
+    Notice the use of `nil` for the first parameter, and the use of
+    `jws.WithDetachedPayload()`.
+
+    We realize this is not exactly a clean API, but this is currently the
+    only way to implement this in a backward-compatible fashion. Most likely
+    this will change in a future major version.
+[Miscellaneous]
+  * `jws.WithDetachedPayload()` is now of type `jws.SignVerifyOption`, which
+    satisfies both `jws.SignOption` and `jws.VerifyOption`
+   
+
 v1.2.15 07 Jan 2022
 [New Features]
   * `(jwk.AutoRefresh).Remove()` has been implemented.
