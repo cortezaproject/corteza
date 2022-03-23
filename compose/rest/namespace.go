@@ -18,6 +18,8 @@ import (
 	envoyStore "github.com/cortezaproject/corteza-server/pkg/envoy/store"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/yaml"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	systemService "github.com/cortezaproject/corteza-server/system/service"
+	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -43,6 +45,7 @@ type (
 		locale     service.ResourceTranslationsManagerService
 		attachment service.AttachmentService
 		ac         namespaceAccessController
+		role       systemService.RoleService
 	}
 
 	namespaceAccessController interface {
@@ -64,6 +67,7 @@ func (Namespace) New() *Namespace {
 		locale:     service.DefaultResourceTranslation,
 		attachment: service.DefaultAttachment,
 		ac:         service.DefaultAccessControl,
+		role:       systemService.DefaultRole,
 	}
 }
 
@@ -235,6 +239,18 @@ func (ctrl Namespace) Export(ctx context.Context, r *request.NamespaceExport) (i
 	// @todo how do we want to handle these ones?
 	//       do we handle these ones?
 
+	// Prepare placeholder role resources for User ModuleField references
+	rr, _, err := ctrl.role.Find(ctx, systemTypes.RoleFilter{})
+	var rolePlaceholders resource.InterfaceSet
+	if err != nil {
+		return nil, err
+	}
+	for _, role := range rr {
+		r := resource.NewRole(role)
+		r.MarkPlaceholder()
+		rolePlaceholders = append(rolePlaceholders, r)
+	}
+
 	decoder := func() (resource.InterfaceSet, error) {
 		// get from store
 		sd := envoyStore.Decoder()
@@ -242,6 +258,8 @@ func (ctrl Namespace) Export(ctx context.Context, r *request.NamespaceExport) (i
 	}
 
 	encoder := func(nn resource.InterfaceSet) (envoy.Streamer, error) {
+		nn = append(nn, rolePlaceholders...)
+
 		// prepare for encoding
 		ye := yaml.NewYamlEncoder(&yaml.EncoderConfig{})
 		bld := envoy.NewBuilder(ye)
