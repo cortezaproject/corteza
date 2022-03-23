@@ -51,6 +51,7 @@ type (
 	}
 
 	userService interface {
+		FindByAny(context.Context, interface{}) (*types.User, error)
 		Update(context.Context, *types.User) (*types.User, error)
 	}
 

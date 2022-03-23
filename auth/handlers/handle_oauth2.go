@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/lestrrat-go/jwx/jwk"
 	"net/http"
@@ -366,6 +367,8 @@ func (h AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.Aut
 		r   = req.Request
 		w   = req.Response
 		ctx = req.Context()
+
+		user *types.User
 	)
 
 	req.Status = -1
@@ -384,6 +387,8 @@ func (h AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.Aut
 		return h.tokenError(w, err)
 	}
 
+	suCtx := auth.SetIdentityToContext(ctx, auth.ServiceUser())
+
 	if gt == oauth2def.ClientCredentials {
 		// Authenticated with client credentials!
 		//
@@ -392,9 +397,22 @@ func (h AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.Aut
 			return h.tokenError(w, errors.Internal("auth client security configuration invalid"))
 		}
 
+		// Load the user
+		if user, err = h.UserService.FindByAny(suCtx, client.Security.ImpersonateUser); err != nil {
+			return h.tokenError(w, fmt.Errorf("could not generate token for impersonated user: %v", err))
+		}
+
+		roles := user.Roles()
+		roles = auth.ApplyRoleSecurity(
+			payload.ParseUint64s(client.Security.PermittedRoles),
+			payload.ParseUint64s(client.Security.ProhibitedRoles),
+			payload.ParseUint64s(client.Security.ForcedRoles),
+			roles...,
+		)
+
 		tgr.UserID = strings.Join(append(
 			[]string{fmt.Sprintf("%d", client.Security.ImpersonateUser)},
-			client.Security.ForcedRoles...,
+			payload.Uint64stoa(roles)...,
 		), " ")
 	}
 
@@ -411,14 +429,14 @@ func (h AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.Aut
 			return fmt.Errorf("invalid user ID in 'sub' claim")
 		}
 
-		var user *types.User
-		user, err = systemService.DefaultUser.FindByID(
+		var u *types.User
+		u, err = systemService.DefaultUser.FindByID(
 			// inject ad-hoc identity into context so that user service is aware who is
 			// doing the lookup
 			auth.SetIdentityToContext(ctx, auth.Authenticated(userID, roles...)),
 			userID,
 		)
-		if user.ID == 0 {
+		if u.ID == 0 {
 			return fmt.Errorf("invalid user in 'sub' claim")
 		}
 
@@ -427,7 +445,7 @@ func (h AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.Aut
 			Issuer:   h.Opt.BaseURL,
 			ClientID: ti.GetClientID(),
 			UserID:   ti.GetUserID(),
-			Email:    user.Email,
+			Email:    u.Email,
 			Expiry:   time.Now().Add(ti.GetAccessExpiresIn()).Unix(),
 		}
 
