@@ -155,6 +155,21 @@ func (f *ModuleField) decodeTranslationsOptionsOptionTexts(tt locale.ResourceTra
 	}
 }
 
+// Decodes translations and modifies options
+func (f *ModuleField) decodeTranslationsOptionsBoolLabels(tt locale.ResourceTranslationIndex) {
+	if f.Kind != "Bool" {
+		return
+	}
+
+	var aux *locale.ResourceTranslation
+	if aux = tt.FindByKey(strings.NewReplacer("{{value}}", "true").Replace(LocaleKeyModuleFieldOptionsBoolLabel.Path)); aux != nil {
+		f.setOptionKey(aux.Msg, "trueLabel")
+	}
+	if aux = tt.FindByKey(strings.NewReplacer("{{value}}", "false").Replace(LocaleKeyModuleFieldOptionsBoolLabel.Path)); aux != nil {
+		f.setOptionKey(aux.Msg, "falseLabel")
+	}
+}
+
 func (m *ModuleField) encodeTranslationsValidatorError() (out locale.ResourceTranslationSet) {
 	out = make(locale.ResourceTranslationSet, 0, 3)
 
@@ -257,6 +272,27 @@ func (f *ModuleField) encodeTranslationsOptionsOptionTexts() (out locale.Resourc
 			})
 		}
 	}
+
+	return
+}
+
+func (m *ModuleField) encodeTranslationsOptionsBoolLabels() (out locale.ResourceTranslationSet) {
+	if m.Kind != "Bool" {
+		return
+	}
+
+	out = make(locale.ResourceTranslationSet, 0, 3)
+	out = append(out, &locale.ResourceTranslation{
+		Resource: m.ResourceTranslation(),
+		Key:      strings.NewReplacer("{{value}}", "true").Replace(LocaleKeyModuleFieldOptionsBoolLabel.Path),
+		Msg:      m.Options.String("trueLabel"),
+	})
+
+	out = append(out, &locale.ResourceTranslation{
+		Resource: m.ResourceTranslation(),
+		Key:      strings.NewReplacer("{{value}}", "false").Replace(LocaleKeyModuleFieldOptionsBoolLabel.Path),
+		Msg:      m.Options.String("falseLabel"),
+	})
 
 	return
 }
