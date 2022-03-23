@@ -252,8 +252,14 @@ func (ctrl Namespace) Export(ctx context.Context, r *request.NamespaceExport) (o
 	// Tweak exported resources
 	resources = ctrl.tweakExport(ctx, resources, nsII)
 
+	var roleIndex map[uint64]*systemTypes.Role
+	resources, roleIndex, err = ctrl.preparePlaceholders(ctx, resources)
+	if err != nil {
+		return
+	}
+
 	// RBAC
-	auxRBAC, err := ctrl.exportRBAC(ctx, resources)
+	auxRBAC, err := ctrl.exportRBAC(ctx, roleIndex, resources)
 	if err != nil {
 		return
 	}
@@ -452,22 +458,11 @@ func (ctrl Namespace) exportCompose(ctx context.Context, namespaceID uint64) (re
 	return
 }
 
-func (ctrl Namespace) exportRBAC(ctx context.Context, base resource.InterfaceSet) (resources resource.InterfaceSet, err error) {
-	// get all roles; we'll filter as needed later
-	roleIndex := make(map[uint64]*systemTypes.Role)
-	rr, _, err := ctrl.role.Find(ctx, systemTypes.RoleFilter{})
-	if err != nil {
-		return
-	}
-	for _, r := range rr {
-		roleIndex[r.ID] = r
-	}
-
+func (ctrl Namespace) exportRBAC(ctx context.Context, roleIndex map[uint64]*systemTypes.Role, base resource.InterfaceSet) (resources resource.InterfaceSet, err error) {
 	// get all rbac rules
 	rules := rbac.Global().Rules()
 
 	// Match up
-	dupRoleIndex := make(map[uint64]bool)
 	dupRuleIndex := make(map[string]bool)
 	for _, res := range base {
 		// Skip if we can't handle
@@ -492,13 +487,6 @@ func (ctrl Namespace) exportRBAC(ctx context.Context, base resource.InterfaceSet
 			role, ok := roleIndex[rule.RoleID]
 			if !ok {
 				continue
-			}
-			if !dupRoleIndex[role.ID] {
-				// Add a placeholder role so Envoy can resolve dependencies
-				r := resource.NewRole(role)
-				r.MarkPlaceholder()
-				resources = append(resources, r)
-				dupRoleIndex[role.ID] = true
 			}
 
 			roleRef := role.Handle
@@ -586,4 +574,25 @@ func (ctrl Namespace) tweakExport(ctx context.Context, resources resource.Interf
 	})
 
 	return resources
+}
+
+func (ctrl Namespace) preparePlaceholders(ctx context.Context, base resource.InterfaceSet) (resources resource.InterfaceSet, roleIndex map[uint64]*systemTypes.Role, err error) {
+	resources = base
+
+	// Get roles as we'll need them later for some resources
+	roleIndex = make(map[uint64]*systemTypes.Role)
+	rr, _, err := ctrl.role.Find(ctx, systemTypes.RoleFilter{})
+	if err != nil {
+		return
+	}
+	for _, role := range rr {
+		roleIndex[role.ID] = role
+
+		// Add them as placeholders since we don't want to export them
+		r := resource.NewRole(role)
+		r.MarkPlaceholder()
+		resources = append(resources, r)
+	}
+
+	return
 }
