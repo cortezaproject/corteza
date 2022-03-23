@@ -35,6 +35,11 @@ func CheckAnyLevel(logger *zap.Logger) bool {
 	return false
 }
 
+// CheckLevel determines whether a specific log level would produce log or not.
+func CheckLevel(logger *zap.Logger, level zapcore.Level) bool {
+	return logger.Check(level, "") != nil
+}
+
 type filteringCore struct {
 	next   zapcore.Core
 	filter FilterFunc

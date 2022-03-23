@@ -1,12 +1,14 @@
 # Disclaimer
 
 The following applies to all activities including, but not limited to, filing GitHub Issues, posting on GitHub Discussions, and creating GitHub PRs on this project.
+If you do not follow the instructions, your issue/PR/question _will_ be closed without warning.
+We realize this is harsh, but it will be done to protect the mental health of the maintainers.
 
 ## Premises
 
 * This is a free opensource project.
   * We are very glad that you find this project useful, and we intend to make software that helps you.
-  * But we are not obligated to work for you, make changes for you, or otherwise heed to your needs.
+  * But we are not obligated to work for you, do your homework or research for you, make changes for you, or otherwise heed to your needs.
 
 ## Rules
 
@@ -23,6 +25,10 @@ We write software because we're curious, we fix bugs because we have integrity. 
 The authors of this project do NOT know what you are trying to accomplish.
 
 In order to understand what you are trying to accomplish, we need you to explain your intentions, but we also need code.
+
+Please give us code that conveys what you are trying to accomplish.
+
+Please do not send us links for us to read and guess what you want to do.
 
 Except for those cases when you absolutely cannot do so, please ALWAYS include a standalone Go test function that shows us exactly how the code fails and what your expectations are. 
 

@@ -32,7 +32,7 @@ type Options struct {
 	// us do binary search on to figure out what line a given AST node came from
 	LineOffsetTables []sourcemap.LineOffsetTable
 
-	RemoveWhitespace  bool
+	MinifyWhitespace  bool
 	ASCIIOnly         bool
 	AddSourceMappings bool
 	LegalComments     config.LegalComments
@@ -81,7 +81,7 @@ func (p *printer) printRule(rule css_ast.Rule, indent int32, omitTrailingSemicol
 		p.builder.AddSourceMapping(rule.Loc, p.css)
 	}
 
-	if !p.options.RemoveWhitespace {
+	if !p.options.MinifyWhitespace {
 		p.printIndent(indent)
 	}
 
@@ -95,7 +95,7 @@ func (p *printer) printRule(rule css_ast.Rule, indent int32, omitTrailingSemicol
 		p.print(";")
 
 	case *css_ast.RAtImport:
-		if p.options.RemoveWhitespace {
+		if p.options.MinifyWhitespace {
 			p.print("@import")
 		} else {
 			p.print("@import ")
@@ -113,22 +113,22 @@ func (p *printer) printRule(rule css_ast.Rule, indent int32, omitTrailingSemicol
 		} else {
 			p.printIdent(r.Name, identNormal, canDiscardWhitespaceAfter)
 		}
-		if !p.options.RemoveWhitespace {
+		if !p.options.MinifyWhitespace {
 			p.print(" ")
 		}
-		if p.options.RemoveWhitespace {
+		if p.options.MinifyWhitespace {
 			p.print("{")
 		} else {
 			p.print("{\n")
 		}
 		indent++
 		for _, block := range r.Blocks {
-			if !p.options.RemoveWhitespace {
+			if !p.options.MinifyWhitespace {
 				p.printIndent(indent)
 			}
 			for i, sel := range block.Selectors {
 				if i > 0 {
-					if p.options.RemoveWhitespace {
+					if p.options.MinifyWhitespace {
 						p.print(",")
 					} else {
 						p.print(", ")
@@ -136,16 +136,16 @@ func (p *printer) printRule(rule css_ast.Rule, indent int32, omitTrailingSemicol
 				}
 				p.print(sel)
 			}
-			if !p.options.RemoveWhitespace {
+			if !p.options.MinifyWhitespace {
 				p.print(" ")
 			}
 			p.printRuleBlock(block.Rules, indent)
-			if !p.options.RemoveWhitespace {
+			if !p.options.MinifyWhitespace {
 				p.print("\n")
 			}
 		}
 		indent--
-		if !p.options.RemoveWhitespace {
+		if !p.options.MinifyWhitespace {
 			p.printIndent(indent)
 		}
 		p.print("}")
@@ -157,14 +157,18 @@ func (p *printer) printRule(rule css_ast.Rule, indent int32, omitTrailingSemicol
 			whitespace = canDiscardWhitespaceAfter
 		}
 		p.printIdent(r.AtToken, identNormal, whitespace)
-		if !p.options.RemoveWhitespace || len(r.Prelude) > 0 {
+		if (!p.options.MinifyWhitespace && r.Rules != nil) || len(r.Prelude) > 0 {
 			p.print(" ")
 		}
 		p.printTokens(r.Prelude, printTokensOpts{})
-		if !p.options.RemoveWhitespace && len(r.Prelude) > 0 {
-			p.print(" ")
+		if r.Rules == nil {
+			p.print(";")
+		} else {
+			if !p.options.MinifyWhitespace && len(r.Prelude) > 0 {
+				p.print(" ")
+			}
+			p.printRuleBlock(r.Rules, indent)
 		}
-		p.printRuleBlock(r.Rules, indent)
 
 	case *css_ast.RUnknownAt:
 		p.print("@")
@@ -173,11 +177,11 @@ func (p *printer) printRule(rule css_ast.Rule, indent int32, omitTrailingSemicol
 			whitespace = canDiscardWhitespaceAfter
 		}
 		p.printIdent(r.AtToken, identNormal, whitespace)
-		if (!p.options.RemoveWhitespace && r.Block != nil) || len(r.Prelude) > 0 {
+		if (!p.options.MinifyWhitespace && r.Block != nil) || len(r.Prelude) > 0 {
 			p.print(" ")
 		}
 		p.printTokens(r.Prelude, printTokensOpts{})
-		if !p.options.RemoveWhitespace && r.Block != nil && len(r.Prelude) > 0 {
+		if !p.options.MinifyWhitespace && r.Block != nil && len(r.Prelude) > 0 {
 			p.print(" ")
 		}
 		if r.Block == nil {
@@ -187,15 +191,18 @@ func (p *printer) printRule(rule css_ast.Rule, indent int32, omitTrailingSemicol
 		}
 
 	case *css_ast.RSelector:
-		p.printComplexSelectors(r.Selectors, indent)
-		if !p.options.RemoveWhitespace {
+		if r.HasAtNest {
+			p.print("@nest")
+		}
+		p.printComplexSelectors(r.Selectors, indent, r.HasAtNest)
+		if !p.options.MinifyWhitespace {
 			p.print(" ")
 		}
 		p.printRuleBlock(r.Rules, indent)
 
 	case *css_ast.RQualified:
 		hasWhitespaceAfter := p.printTokens(r.Prelude, printTokensOpts{})
-		if !hasWhitespaceAfter && !p.options.RemoveWhitespace {
+		if !hasWhitespaceAfter && !p.options.MinifyWhitespace {
 			p.print(" ")
 		}
 		p.printRuleBlock(r.Rules, indent)
@@ -208,7 +215,7 @@ func (p *printer) printRule(rule css_ast.Rule, indent int32, omitTrailingSemicol
 			isDeclaration: true,
 		})
 		if r.Important {
-			if !hasWhitespaceAfter && !p.options.RemoveWhitespace && len(r.Value) > 0 {
+			if !hasWhitespaceAfter && !p.options.MinifyWhitespace && len(r.Value) > 0 {
 				p.print(" ")
 			}
 			p.print("!important")
@@ -226,11 +233,32 @@ func (p *printer) printRule(rule css_ast.Rule, indent int32, omitTrailingSemicol
 	case *css_ast.RComment:
 		p.printIndentedComment(indent, r.Text)
 
+	case *css_ast.RAtLayer:
+		p.print("@layer")
+		for i, parts := range r.Names {
+			if i == 0 {
+				p.print(" ")
+			} else if !p.options.MinifyWhitespace {
+				p.print(", ")
+			} else {
+				p.print(",")
+			}
+			p.print(strings.Join(parts, "."))
+		}
+		if r.Rules == nil {
+			p.print(";")
+		} else {
+			if !p.options.MinifyWhitespace {
+				p.print(" ")
+			}
+			p.printRuleBlock(r.Rules, indent)
+		}
+
 	default:
 		panic("Internal error")
 	}
 
-	if !p.options.RemoveWhitespace {
+	if !p.options.MinifyWhitespace {
 		p.print("\n")
 	}
 }
@@ -246,7 +274,7 @@ func (p *printer) printIndentedComment(indent int32, text string) {
 			break
 		}
 		p.print(text[:newline+1])
-		if !p.options.RemoveWhitespace {
+		if !p.options.MinifyWhitespace {
 			p.printIndent(indent)
 		}
 		text = text[newline+1:]
@@ -255,27 +283,27 @@ func (p *printer) printIndentedComment(indent int32, text string) {
 }
 
 func (p *printer) printRuleBlock(rules []css_ast.Rule, indent int32) {
-	if p.options.RemoveWhitespace {
+	if p.options.MinifyWhitespace {
 		p.print("{")
 	} else {
 		p.print("{\n")
 	}
 
 	for i, decl := range rules {
-		omitTrailingSemicolon := p.options.RemoveWhitespace && i+1 == len(rules)
+		omitTrailingSemicolon := p.options.MinifyWhitespace && i+1 == len(rules)
 		p.printRule(decl, indent+1, omitTrailingSemicolon)
 	}
 
-	if !p.options.RemoveWhitespace {
+	if !p.options.MinifyWhitespace {
 		p.printIndent(indent)
 	}
 	p.print("}")
 }
 
-func (p *printer) printComplexSelectors(selectors []css_ast.ComplexSelector, indent int32) {
+func (p *printer) printComplexSelectors(selectors []css_ast.ComplexSelector, indent int32, hasAtNest bool) {
 	for i, complex := range selectors {
 		if i > 0 {
-			if p.options.RemoveWhitespace {
+			if p.options.MinifyWhitespace {
 				p.print(",")
 			} else {
 				p.print(",\n")
@@ -284,7 +312,7 @@ func (p *printer) printComplexSelectors(selectors []css_ast.ComplexSelector, ind
 		}
 
 		for j, compound := range complex.Selectors {
-			p.printCompoundSelector(compound, j == 0, j+1 == len(complex.Selectors))
+			p.printCompoundSelector(compound, (!hasAtNest || i != 0) && j == 0, j+1 == len(complex.Selectors))
 		}
 	}
 }
@@ -297,16 +325,16 @@ func (p *printer) printCompoundSelector(sel css_ast.CompoundSelector, isFirst bo
 		p.print(" ")
 	}
 
-	if sel.HasNestPrefix {
+	if sel.NestingSelector == css_ast.NestingSelectorPrefix {
 		p.print("&")
 	}
 
 	if sel.Combinator != "" {
-		if !p.options.RemoveWhitespace {
+		if !p.options.MinifyWhitespace {
 			p.print(" ")
 		}
 		p.print(sel.Combinator)
-		if !p.options.RemoveWhitespace {
+		if !p.options.MinifyWhitespace {
 			p.print(" ")
 		}
 	}
@@ -374,6 +402,12 @@ func (p *printer) printCompoundSelector(sel css_ast.CompoundSelector, isFirst bo
 		case *css_ast.SSPseudoClass:
 			p.printPseudoClassSelector(*s, whitespace)
 		}
+	}
+
+	// It doesn't matter where the "&" goes since all non-prefix cases are
+	// treated the same. This just always puts it as a suffix for simplicity.
+	if sel.NestingSelector == css_ast.NestingSelectorPresentButNotPrefix {
+		p.print("&")
 	}
 }
 
@@ -636,7 +670,7 @@ func (p *printer) printTokens(tokens []css_ast.Token, opts printTokensOpts) bool
 
 	// Pretty-print long comma-separated declarations of 3 or more items
 	isMultiLineValue := false
-	if !p.options.RemoveWhitespace && opts.isDeclaration {
+	if !p.options.MinifyWhitespace && opts.isDeclaration {
 		commaCount := 0
 		for _, t := range tokens {
 			if t.Kind == css_lexer.TComma {

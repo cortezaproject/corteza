@@ -16,7 +16,6 @@ import (
 	"github.com/evanw/esbuild/internal/fs"
 	"github.com/evanw/esbuild/internal/helpers"
 	"github.com/evanw/esbuild/internal/js_ast"
-	"github.com/evanw/esbuild/internal/js_lexer"
 	"github.com/evanw/esbuild/internal/js_printer"
 	"github.com/evanw/esbuild/internal/logger"
 )
@@ -274,10 +273,10 @@ func (rr *resolver) Resolve(sourceDir string, importPath string, kind ast.Import
 	}
 
 	// Certain types of URLs default to being external for convenience
-	if r.isExternalPattern(importPath) ||
+	if isExplicitlyExternal := r.isExternal(r.options.ExternalSettings.PreResolve, importPath); isExplicitlyExternal ||
 
 		// "fill: url(#filter);"
-		(kind.IsFromCSS() && strings.HasPrefix(importPath, "#")) ||
+		(kind == ast.ImportURL && strings.HasPrefix(importPath, "#")) ||
 
 		// "background: url(http://example.com/images/image.png);"
 		strings.HasPrefix(importPath, "http://") ||
@@ -289,7 +288,11 @@ func (rr *resolver) Resolve(sourceDir string, importPath string, kind ast.Import
 		strings.HasPrefix(importPath, "//") {
 
 		if r.debugLogs != nil {
-			r.debugLogs.addNote("Marking this path as implicitly external")
+			if isExplicitlyExternal {
+				r.debugLogs.addNote(fmt.Sprintf("The path %q was marked as external by the user", importPath))
+			} else {
+				r.debugLogs.addNote("Marking this path as implicitly external")
+			}
 		}
 
 		r.flushDebugLogs(flushDueToSuccess)
@@ -426,8 +429,14 @@ func (rr *resolver) Resolve(sourceDir string, importPath string, kind ast.Import
 	return result, debugMeta
 }
 
-func (r resolverQuery) isExternalPattern(path string) bool {
-	for _, pattern := range r.options.ExternalModules.Patterns {
+func (r resolverQuery) isExternal(matchers config.ExternalMatchers, path string) bool {
+	if _, ok := matchers.Exact[path]; ok {
+		return true
+	}
+	for _, pattern := range matchers.Patterns {
+		if r.debugLogs != nil {
+			r.debugLogs.addNote(fmt.Sprintf("Checking %q against the external pattern %q", path, pattern.Prefix+"*"+pattern.Suffix))
+		}
 		if len(path) >= len(pattern.Prefix)+len(pattern.Suffix) &&
 			strings.HasPrefix(path, pattern.Prefix) &&
 			strings.HasSuffix(path, pattern.Suffix) {
@@ -512,6 +521,14 @@ func (r resolverQuery) flushDebugLogs(mode flushMode) {
 }
 
 func (r resolverQuery) finalizeResolve(result *ResolveResult) {
+	if !result.IsExternal && r.isExternal(r.options.ExternalSettings.PostResolve, result.PathPair.Primary.Text) {
+		if r.debugLogs != nil {
+			r.debugLogs.addNote(fmt.Sprintf("The path %q was marked as external by the user", result.PathPair.Primary.Text))
+		}
+		result.IsExternal = true
+		return
+	}
+
 	for _, path := range result.PathPair.iter() {
 		if path.Namespace == "file" {
 			if dirInfo := r.dirInfoCached(r.fs.Dir(path.Text)); dirInfo != nil {
@@ -659,17 +676,6 @@ func (r resolverQuery) resolveWithoutSymlinks(sourceDir string, importPath strin
 			}
 		}
 
-		if r.options.ExternalModules.AbsPaths != nil && r.options.ExternalModules.AbsPaths[importPath] {
-			// If the string literal in the source text is an absolute path and has
-			// been marked as an external module, mark it as *not* an absolute path.
-			// That way we preserve the literal text in the output and don't generate
-			// a relative path from the output directory to that path.
-			if r.debugLogs != nil {
-				r.debugLogs.addNote(fmt.Sprintf("The path %q was marked as external by the user", importPath))
-			}
-			return &ResolveResult{PathPair: PathPair{Primary: logger.Path{Text: importPath}}, IsExternal: true}
-		}
-
 		// Run node's resolution rules (e.g. adding ".js")
 		if absolute, ok, diffCase := r.loadAsFileOrDirectory(importPath); ok {
 			return &ResolveResult{PathPair: absolute, DifferentCase: diffCase}
@@ -688,7 +694,7 @@ func (r resolverQuery) resolveWithoutSymlinks(sourceDir string, importPath strin
 		absPath := r.fs.Join(sourceDir, importPath)
 
 		// Check for external packages first
-		if r.options.ExternalModules.AbsPaths != nil && r.options.ExternalModules.AbsPaths[absPath] {
+		if r.isExternal(r.options.ExternalSettings.PostResolve, absPath) {
 			if r.debugLogs != nil {
 				r.debugLogs.addNote(fmt.Sprintf("The path %q was marked as external by the user", absPath))
 			}
@@ -720,27 +726,6 @@ func (r resolverQuery) resolveWithoutSymlinks(sourceDir string, importPath strin
 	}
 
 	if checkPackage {
-		// Check for external packages first
-		if r.options.ExternalModules.NodeModules != nil {
-			query := importPath
-			for {
-				if r.options.ExternalModules.NodeModules[query] {
-					if r.debugLogs != nil {
-						r.debugLogs.addNote(fmt.Sprintf("The path %q was marked as external by the user", query))
-					}
-					return &ResolveResult{PathPair: PathPair{Primary: logger.Path{Text: importPath}}, IsExternal: true}
-				}
-
-				// If the module "foo" has been marked as external, we also want to treat
-				// paths into that module such as "foo/bar" as external too.
-				slash := strings.LastIndexByte(query, '/')
-				if slash == -1 {
-					break
-				}
-				query = query[:slash]
-			}
-		}
-
 		sourceDirInfo := r.dirInfoCached(sourceDir)
 		if sourceDirInfo == nil {
 			// Bail if the directory is missing for some reason
@@ -1255,7 +1240,7 @@ func getProperty(json js_ast.Expr, name string) (js_ast.Expr, logger.Loc, bool) 
 	if obj, ok := json.Data.(*js_ast.EObject); ok {
 		for _, prop := range obj.Properties {
 			if key, ok := prop.Key.Data.(*js_ast.EString); ok && key.Value != nil &&
-				len(key.Value) == len(name) && js_lexer.UTF16ToString(key.Value) == name {
+				len(key.Value) == len(name) && helpers.UTF16ToString(key.Value) == name {
 				return prop.ValueOrNil, prop.Key.Loc, true
 			}
 		}
@@ -1265,7 +1250,7 @@ func getProperty(json js_ast.Expr, name string) (js_ast.Expr, logger.Loc, bool) 
 
 func getString(json js_ast.Expr) (string, bool) {
 	if value, ok := json.Data.(*js_ast.EString); ok {
-		return js_lexer.UTF16ToString(value.Value), true
+		return helpers.UTF16ToString(value.Value), true
 	}
 	return "", false
 }
@@ -1474,11 +1459,17 @@ func (r resolverQuery) loadAsMainField(dirInfo *dirInfo, path string, extensionO
 	return PathPair{}, false, nil
 }
 
+func hasCaseInsensitiveSuffix(s string, suffix string) bool {
+	return len(s) >= len(suffix) && strings.EqualFold(s[len(s)-len(suffix):], suffix)
+}
+
 // This closely follows the behavior of "tryLoadModuleUsingPaths()" in the
 // official TypeScript compiler
 func (r resolverQuery) matchTSConfigPaths(tsConfigJSON *TSConfigJSON, path string) (PathPair, bool, *fs.DifferentCase) {
 	if r.debugLogs != nil {
 		r.debugLogs.addNote(fmt.Sprintf("Matching %q against \"paths\" in %q", path, tsConfigJSON.AbsPath))
+		r.debugLogs.increaseIndent()
+		defer r.debugLogs.decreaseIndent()
 	}
 
 	absBaseURL := tsConfigJSON.BaseURLForPaths
@@ -1501,6 +1492,14 @@ func (r resolverQuery) matchTSConfigPaths(tsConfigJSON *TSConfigJSON, path strin
 				r.debugLogs.addNote(fmt.Sprintf("Found an exact match for %q in \"paths\"", key))
 			}
 			for _, originalPath := range originalPaths {
+				// Ignore ".d.ts" files because this rule is obviously only here for type checking
+				if hasCaseInsensitiveSuffix(originalPath, ".d.ts") {
+					if r.debugLogs != nil {
+						r.debugLogs.addNote(fmt.Sprintf("Ignoring substitution %q because it ends in \".d.ts\"", originalPath))
+					}
+					continue
+				}
+
 				// Load the original path relative to the "baseUrl" from tsconfig.json
 				absoluteOriginalPath := originalPath
 				if !r.fs.IsAbs(originalPath) {
@@ -1557,6 +1556,14 @@ func (r resolverQuery) matchTSConfigPaths(tsConfigJSON *TSConfigJSON, path strin
 			// Swap out the "*" in the original path for whatever the "*" matched
 			matchedText := path[len(longestMatch.prefix) : len(path)-len(longestMatch.suffix)]
 			originalPath = strings.Replace(originalPath, "*", matchedText, 1)
+
+			// Ignore ".d.ts" files because this rule is obviously only here for type checking
+			if hasCaseInsensitiveSuffix(originalPath, ".d.ts") {
+				if r.debugLogs != nil {
+					r.debugLogs.addNote(fmt.Sprintf("Ignoring substitution %q because it ends in \".d.ts\"", originalPath))
+				}
+				continue
+			}
 
 			// Load the original path relative to the "baseUrl" from tsconfig.json
 			absoluteOriginalPath := originalPath
@@ -1693,6 +1700,15 @@ func (r resolverQuery) loadNodeModules(importPath string, dirInfo *dirInfo, forb
 							conditions = r.esmConditionsImport
 						case ast.ImportRequire, ast.ImportRequireResolve:
 							conditions = r.esmConditionsRequire
+						case ast.ImportEntryPoint:
+							// Treat entry points as imports instead of requires for consistency with
+							// Webpack and Rollup. More information:
+							//
+							// * https://github.com/evanw/esbuild/issues/1956
+							// * https://github.com/nodejs/node/issues/41686
+							// * https://github.com/evanw/entry-point-resolve-test
+							//
+							conditions = r.esmConditionsImport
 						}
 
 						// Resolve against the path "/", then join it with the absolute

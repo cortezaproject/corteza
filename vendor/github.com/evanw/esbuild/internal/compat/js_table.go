@@ -9,8 +9,10 @@ const (
 	Edge
 	ES
 	Firefox
+	IE
 	IOS
 	Node
+	Opera
 	Safari
 )
 
@@ -24,10 +26,14 @@ func (e Engine) String() string {
 		return "es"
 	case Firefox:
 		return "firefox"
+	case IE:
+		return "ie"
 	case IOS:
 		return "ios"
 	case Node:
 		return "node"
+	case Opera:
+		return "opera"
 	case Safari:
 		return "safari"
 	}
@@ -81,6 +87,7 @@ const (
 	RestArgument
 	TemplateLiteral
 	TopLevelAwait
+	TypeofExoticObjectIsObject
 	UnicodeEscapes
 )
 
@@ -91,6 +98,7 @@ func (features JSFeature) Has(feature JSFeature) bool {
 var jsTable = map[JSFeature]map[Engine][]versionRange{
 	ArbitraryModuleNamespaceNames: {
 		Chrome:  {{start: v{90, 0, 0}}},
+		ES:      {{start: v{2022, 0, 0}}},
 		Firefox: {{start: v{87, 0, 0}}},
 		Node:    {{start: v{16, 0, 0}}},
 	},
@@ -101,6 +109,7 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Firefox: {{start: v{36, 0, 0}}},
 		IOS:     {{start: v{10, 0, 0}}},
 		Node:    {{start: v{5, 0, 0}}},
+		Opera:   {{start: v{33, 0, 0}}},
 		Safari:  {{start: v{10, 0, 0}}},
 	},
 	Arrow: {
@@ -110,6 +119,7 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Firefox: {{start: v{45, 0, 0}}},
 		IOS:     {{start: v{10, 0, 0}}},
 		Node:    {{start: v{6, 0, 0}}},
+		Opera:   {{start: v{36, 0, 0}}},
 		Safari:  {{start: v{10, 0, 0}}},
 	},
 	AsyncAwait: {
@@ -119,6 +129,7 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Firefox: {{start: v{52, 0, 0}}},
 		IOS:     {{start: v{11, 0, 0}}},
 		Node:    {{start: v{7, 6, 0}}},
+		Opera:   {{start: v{42, 0, 0}}},
 		Safari:  {{start: v{11, 0, 0}}},
 	},
 	AsyncGenerator: {
@@ -128,6 +139,7 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Firefox: {{start: v{57, 0, 0}}},
 		IOS:     {{start: v{12, 0, 0}}},
 		Node:    {{start: v{10, 0, 0}}},
+		Opera:   {{start: v{50, 0, 0}}},
 		Safari:  {{start: v{12, 0, 0}}},
 	},
 	BigInt: {
@@ -137,6 +149,7 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Firefox: {{start: v{68, 0, 0}}},
 		IOS:     {{start: v{14, 0, 0}}},
 		Node:    {{start: v{10, 4, 0}}},
+		Opera:   {{start: v{54, 0, 0}}},
 		Safari:  {{start: v{14, 0, 0}}},
 	},
 	Class: {
@@ -146,82 +159,102 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Firefox: {{start: v{45, 0, 0}}},
 		IOS:     {{start: v{10, 0, 0}}},
 		Node:    {{start: v{6, 0, 0}}},
+		Opera:   {{start: v{36, 0, 0}}},
 		Safari:  {{start: v{10, 0, 0}}},
 	},
 	ClassField: {
 		Chrome:  {{start: v{73, 0, 0}}},
 		Edge:    {{start: v{79, 0, 0}}},
+		ES:      {{start: v{2022, 0, 0}}},
 		Firefox: {{start: v{69, 0, 0}}},
 		IOS:     {{start: v{14, 0, 0}}},
 		Node:    {{start: v{12, 0, 0}}},
+		Opera:   {{start: v{60, 0, 0}}},
 		Safari:  {{start: v{14, 0, 0}}},
 	},
 	ClassPrivateAccessor: {
 		Chrome:  {{start: v{84, 0, 0}}},
 		Edge:    {{start: v{84, 0, 0}}},
+		ES:      {{start: v{2022, 0, 0}}},
 		Firefox: {{start: v{90, 0, 0}}},
 		IOS:     {{start: v{15, 0, 0}}},
 		Node:    {{start: v{14, 6, 0}}},
+		Opera:   {{start: v{70, 0, 0}}},
 		Safari:  {{start: v{15, 0, 0}}},
 	},
 	ClassPrivateBrandCheck: {
 		Chrome:  {{start: v{91, 0, 0}}},
 		Edge:    {{start: v{91, 0, 0}}},
+		ES:      {{start: v{2022, 0, 0}}},
 		Firefox: {{start: v{90, 0, 0}}},
 		IOS:     {{start: v{15, 0, 0}}},
 		Node:    {{start: v{16, 9, 0}}},
+		Opera:   {{start: v{77, 0, 0}}},
 		Safari:  {{start: v{15, 0, 0}}},
 	},
 	ClassPrivateField: {
 		Chrome:  {{start: v{84, 0, 0}}},
 		Edge:    {{start: v{84, 0, 0}}},
+		ES:      {{start: v{2022, 0, 0}}},
 		Firefox: {{start: v{90, 0, 0}}},
 		IOS:     {{start: v{15, 0, 0}}},
 		Node:    {{start: v{14, 6, 0}}},
+		Opera:   {{start: v{70, 0, 0}}},
 		Safari:  {{start: v{14, 1, 0}}},
 	},
 	ClassPrivateMethod: {
 		Chrome:  {{start: v{84, 0, 0}}},
 		Edge:    {{start: v{84, 0, 0}}},
+		ES:      {{start: v{2022, 0, 0}}},
 		Firefox: {{start: v{90, 0, 0}}},
 		IOS:     {{start: v{15, 0, 0}}},
 		Node:    {{start: v{14, 6, 0}}},
+		Opera:   {{start: v{70, 0, 0}}},
 		Safari:  {{start: v{15, 0, 0}}},
 	},
 	ClassPrivateStaticAccessor: {
 		Chrome:  {{start: v{84, 0, 0}}},
 		Edge:    {{start: v{84, 0, 0}}},
+		ES:      {{start: v{2022, 0, 0}}},
 		Firefox: {{start: v{90, 0, 0}}},
 		IOS:     {{start: v{15, 0, 0}}},
 		Node:    {{start: v{14, 6, 0}}},
+		Opera:   {{start: v{70, 0, 0}}},
 		Safari:  {{start: v{15, 0, 0}}},
 	},
 	ClassPrivateStaticField: {
 		Chrome:  {{start: v{74, 0, 0}}},
 		Edge:    {{start: v{79, 0, 0}}},
+		ES:      {{start: v{2022, 0, 0}}},
 		Firefox: {{start: v{90, 0, 0}}},
 		IOS:     {{start: v{15, 0, 0}}},
 		Node:    {{start: v{12, 0, 0}}},
+		Opera:   {{start: v{62, 0, 0}}},
 		Safari:  {{start: v{14, 1, 0}}},
 	},
 	ClassPrivateStaticMethod: {
 		Chrome:  {{start: v{84, 0, 0}}},
 		Edge:    {{start: v{84, 0, 0}}},
+		ES:      {{start: v{2022, 0, 0}}},
 		Firefox: {{start: v{90, 0, 0}}},
 		IOS:     {{start: v{15, 0, 0}}},
 		Node:    {{start: v{14, 6, 0}}},
+		Opera:   {{start: v{70, 0, 0}}},
 		Safari:  {{start: v{15, 0, 0}}},
 	},
 	ClassStaticBlocks: {
 		Chrome: {{start: v{91, 0, 0}}},
+		ES:     {{start: v{2022, 0, 0}}},
 		Node:   {{start: v{16, 11, 0}}},
 	},
 	ClassStaticField: {
 		Chrome:  {{start: v{73, 0, 0}}},
 		Edge:    {{start: v{79, 0, 0}}},
+		ES:      {{start: v{2022, 0, 0}}},
 		Firefox: {{start: v{75, 0, 0}}},
 		IOS:     {{start: v{15, 0, 0}}},
 		Node:    {{start: v{12, 0, 0}}},
+		Opera:   {{start: v{60, 0, 0}}},
 		Safari:  {{start: v{14, 1, 0}}},
 	},
 	Const: {
@@ -229,8 +262,10 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Edge:    {{start: v{14, 0, 0}}},
 		ES:      {{start: v{2015, 0, 0}}},
 		Firefox: {{start: v{51, 0, 0}}},
+		IE:      {{start: v{11, 0, 0}}},
 		IOS:     {{start: v{11, 0, 0}}},
 		Node:    {{start: v{6, 0, 0}}},
+		Opera:   {{start: v{36, 0, 0}}},
 		Safari:  {{start: v{11, 0, 0}}},
 	},
 	DefaultArgument: {
@@ -240,6 +275,7 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Firefox: {{start: v{53, 0, 0}}},
 		IOS:     {{start: v{10, 0, 0}}},
 		Node:    {{start: v{6, 0, 0}}},
+		Opera:   {{start: v{36, 0, 0}}},
 		Safari:  {{start: v{10, 0, 0}}},
 	},
 	Destructuring: {
@@ -249,6 +285,7 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Firefox: {{start: v{53, 0, 0}}},
 		IOS:     {{start: v{10, 0, 0}}},
 		Node:    {{start: v{6, 5, 0}}},
+		Opera:   {{start: v{38, 0, 0}}},
 		Safari:  {{start: v{10, 0, 0}}},
 	},
 	DynamicImport: {
@@ -267,6 +304,7 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Firefox: {{start: v{52, 0, 0}}},
 		IOS:     {{start: v{10, 3, 0}}},
 		Node:    {{start: v{7, 0, 0}}},
+		Opera:   {{start: v{39, 0, 0}}},
 		Safari:  {{start: v{10, 1, 0}}},
 	},
 	ExportStarAs: {
@@ -283,6 +321,7 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Firefox: {{start: v{57, 0, 0}}},
 		IOS:     {{start: v{12, 0, 0}}},
 		Node:    {{start: v{10, 0, 0}}},
+		Opera:   {{start: v{50, 0, 0}}},
 		Safari:  {{start: v{12, 0, 0}}},
 	},
 	ForOf: {
@@ -292,6 +331,7 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Firefox: {{start: v{53, 0, 0}}},
 		IOS:     {{start: v{10, 0, 0}}},
 		Node:    {{start: v{6, 5, 0}}},
+		Opera:   {{start: v{38, 0, 0}}},
 		Safari:  {{start: v{10, 0, 0}}},
 	},
 	Generator: {
@@ -301,6 +341,7 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Firefox: {{start: v{53, 0, 0}}},
 		IOS:     {{start: v{10, 0, 0}}},
 		Node:    {{start: v{6, 0, 0}}},
+		Opera:   {{start: v{37, 0, 0}}},
 		Safari:  {{start: v{10, 0, 0}}},
 	},
 	Hashbang: {
@@ -309,10 +350,12 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Firefox: {{start: v{67, 0, 0}}},
 		IOS:     {{start: v{13, 4, 0}}},
 		Node:    {{start: v{12, 0, 0}}},
+		Opera:   {{start: v{62, 0, 0}}},
 		Safari:  {{start: v{13, 1, 0}}},
 	},
 	ImportAssertions: {
 		Chrome: {{start: v{91, 0, 0}}},
+		Node:   {{start: v{16, 14, 0}}},
 	},
 	ImportMeta: {
 		Chrome:  {{start: v{64, 0, 0}}},
@@ -328,8 +371,10 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Edge:    {{start: v{14, 0, 0}}},
 		ES:      {{start: v{2015, 0, 0}}},
 		Firefox: {{start: v{51, 0, 0}}},
+		IE:      {{start: v{11, 0, 0}}},
 		IOS:     {{start: v{11, 0, 0}}},
 		Node:    {{start: v{6, 0, 0}}},
+		Opera:   {{start: v{36, 0, 0}}},
 		Safari:  {{start: v{11, 0, 0}}},
 	},
 	LogicalAssignment: {
@@ -339,6 +384,7 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Firefox: {{start: v{79, 0, 0}}},
 		IOS:     {{start: v{14, 0, 0}}},
 		Node:    {{start: v{15, 0, 0}}},
+		Opera:   {{start: v{71, 0, 0}}},
 		Safari:  {{start: v{14, 0, 0}}},
 	},
 	NestedRestBinding: {
@@ -348,6 +394,7 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Firefox: {{start: v{47, 0, 0}}},
 		IOS:     {{start: v{10, 3, 0}}},
 		Node:    {{start: v{6, 0, 0}}},
+		Opera:   {{start: v{36, 0, 0}}},
 		Safari:  {{start: v{10, 1, 0}}},
 	},
 	NewTarget: {
@@ -357,6 +404,7 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Firefox: {{start: v{41, 0, 0}}},
 		IOS:     {{start: v{10, 0, 0}}},
 		Node:    {{start: v{5, 0, 0}}},
+		Opera:   {{start: v{33, 0, 0}}},
 		Safari:  {{start: v{10, 0, 0}}},
 	},
 	NodeColonPrefixImport: {
@@ -372,6 +420,7 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Firefox: {{start: v{72, 0, 0}}},
 		IOS:     {{start: v{13, 4, 0}}},
 		Node:    {{start: v{14, 0, 0}}},
+		Opera:   {{start: v{67, 0, 0}}},
 		Safari:  {{start: v{13, 1, 0}}},
 	},
 	ObjectAccessors: {
@@ -379,8 +428,10 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Edge:    {{start: v{12, 0, 0}}},
 		ES:      {{start: v{5, 0, 0}}},
 		Firefox: {{start: v{2, 0, 0}}},
+		IE:      {{start: v{9, 0, 0}}},
 		IOS:     {{start: v{6, 0, 0}}},
 		Node:    {{start: v{0, 10, 0}}},
+		Opera:   {{start: v{10, 10, 0}}},
 		Safari:  {{start: v{3, 1, 0}}},
 	},
 	ObjectExtensions: {
@@ -390,12 +441,14 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Firefox: {{start: v{34, 0, 0}}},
 		IOS:     {{start: v{10, 0, 0}}},
 		Node:    {{start: v{4, 0, 0}}},
+		Opera:   {{start: v{31, 0, 0}}},
 		Safari:  {{start: v{10, 0, 0}}},
 	},
 	ObjectRestSpread: {
 		ES:      {{start: v{2018, 0, 0}}},
 		Firefox: {{start: v{55, 0, 0}}},
 		IOS:     {{start: v{11, 3, 0}}},
+		Opera:   {{start: v{47, 0, 0}}},
 		Safari:  {{start: v{11, 1, 0}}},
 	},
 	OptionalCatchBinding: {
@@ -405,6 +458,7 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Firefox: {{start: v{58, 0, 0}}},
 		IOS:     {{start: v{11, 3, 0}}},
 		Node:    {{start: v{10, 0, 0}}},
+		Opera:   {{start: v{53, 0, 0}}},
 		Safari:  {{start: v{11, 1, 0}}},
 	},
 	OptionalChain: {
@@ -414,6 +468,7 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Firefox: {{start: v{74, 0, 0}}},
 		IOS:     {{start: v{13, 4, 0}}},
 		Node:    {{start: v{16, 9, 0}}},
+		Opera:   {{start: v{77, 0, 0}}},
 		Safari:  {{start: v{13, 1, 0}}},
 	},
 	RestArgument: {
@@ -423,6 +478,7 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Firefox: {{start: v{43, 0, 0}}},
 		IOS:     {{start: v{10, 0, 0}}},
 		Node:    {{start: v{6, 0, 0}}},
+		Opera:   {{start: v{34, 0, 0}}},
 		Safari:  {{start: v{10, 0, 0}}},
 	},
 	TemplateLiteral: {
@@ -432,14 +488,26 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Firefox: {{start: v{34, 0, 0}}},
 		IOS:     {{start: v{9, 0, 0}}},
 		Node:    {{start: v{4, 0, 0}}},
+		Opera:   {{start: v{28, 0, 0}}},
 		Safari:  {{start: v{9, 0, 0}}},
 	},
 	TopLevelAwait: {
 		Chrome:  {{start: v{89, 0, 0}}},
 		Edge:    {{start: v{89, 0, 0}}},
+		ES:      {{start: v{2022, 0, 0}}},
 		Firefox: {{start: v{89, 0, 0}}},
 		Node:    {{start: v{14, 8, 0}}},
 		Safari:  {{start: v{15, 0, 0}}},
+	},
+	TypeofExoticObjectIsObject: {
+		Chrome:  {{start: v{0, 0, 0}}},
+		Edge:    {{start: v{0, 0, 0}}},
+		ES:      {{start: v{2020, 0, 0}}},
+		Firefox: {{start: v{0, 0, 0}}},
+		IOS:     {{start: v{0, 0, 0}}},
+		Node:    {{start: v{0, 0, 0}}},
+		Opera:   {{start: v{0, 0, 0}}},
+		Safari:  {{start: v{0, 0, 0}}},
 	},
 	UnicodeEscapes: {
 		Chrome:  {{start: v{44, 0, 0}}},
@@ -448,6 +516,7 @@ var jsTable = map[JSFeature]map[Engine][]versionRange{
 		Firefox: {{start: v{53, 0, 0}}},
 		IOS:     {{start: v{9, 0, 0}}},
 		Node:    {{start: v{4, 0, 0}}},
+		Opera:   {{start: v{31, 0, 0}}},
 		Safari:  {{start: v{9, 0, 0}}},
 	},
 }

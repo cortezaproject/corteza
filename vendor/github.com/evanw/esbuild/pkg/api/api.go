@@ -125,6 +125,7 @@ const (
 	ES2019
 	ES2020
 	ES2021
+	ES2022
 )
 
 type Loader uint8
@@ -168,8 +169,10 @@ const (
 	EngineChrome EngineName = iota
 	EngineEdge
 	EngineFirefox
+	EngineIE
 	EngineIOS
 	EngineNode
+	EngineOpera
 	EngineSafari
 )
 
@@ -246,6 +249,13 @@ const (
 	DropDebugger
 )
 
+type MangleQuoted uint8
+
+const (
+	MangleQuotedFalse MangleQuoted = iota
+	MangleQuotedTrue
+)
+
 ////////////////////////////////////////////////////////////////////////////////
 // Build API
 
@@ -261,14 +271,18 @@ type BuildOptions struct {
 	Target  Target   // Documentation: https://esbuild.github.io/api/#target
 	Engines []Engine // Documentation: https://esbuild.github.io/api/#target
 
-	Drop              Drop
-	MinifyWhitespace  bool          // Documentation: https://esbuild.github.io/api/#minify
-	MinifyIdentifiers bool          // Documentation: https://esbuild.github.io/api/#minify
-	MinifySyntax      bool          // Documentation: https://esbuild.github.io/api/#minify
-	Charset           Charset       // Documentation: https://esbuild.github.io/api/#charset
-	TreeShaking       TreeShaking   // Documentation: https://esbuild.github.io/api/#tree-shaking
-	IgnoreAnnotations bool          // Documentation: https://esbuild.github.io/api/#ignore-annotations
-	LegalComments     LegalComments // Documentation: https://esbuild.github.io/api/#legal-comments
+	MangleProps       string                 // Documentation: https://esbuild.github.io/api/#mangle-props
+	ReserveProps      string                 // Documentation: https://esbuild.github.io/api/#mangle-props
+	MangleQuoted      MangleQuoted           // Documentation: https://esbuild.github.io/api/#mangle-props
+	MangleCache       map[string]interface{} // Documentation: https://esbuild.github.io/api/#mangle-props
+	Drop              Drop                   // Documentation: https://esbuild.github.io/api/#drop
+	MinifyWhitespace  bool                   // Documentation: https://esbuild.github.io/api/#minify
+	MinifyIdentifiers bool                   // Documentation: https://esbuild.github.io/api/#minify
+	MinifySyntax      bool                   // Documentation: https://esbuild.github.io/api/#minify
+	Charset           Charset                // Documentation: https://esbuild.github.io/api/#charset
+	TreeShaking       TreeShaking            // Documentation: https://esbuild.github.io/api/#tree-shaking
+	IgnoreAnnotations bool                   // Documentation: https://esbuild.github.io/api/#ignore-annotations
+	LegalComments     LegalComments          // Documentation: https://esbuild.github.io/api/#legal-comments
 
 	JSXMode     JSXMode // Documentation: https://esbuild.github.io/api/#jsx-mode
 	JSXFactory  string  // Documentation: https://esbuild.github.io/api/#jsx-factory
@@ -340,6 +354,7 @@ type BuildResult struct {
 
 	OutputFiles []OutputFile
 	Metafile    string
+	MangleCache map[string]interface{}
 
 	Rebuild func() BuildResult // Only when "Incremental: true"
 	Stop    func()             // Only when "Watch: true"
@@ -373,14 +388,18 @@ type TransformOptions struct {
 	Format     Format // Documentation: https://esbuild.github.io/api/#format
 	GlobalName string // Documentation: https://esbuild.github.io/api/#global-name
 
-	Drop              Drop
-	MinifyWhitespace  bool          // Documentation: https://esbuild.github.io/api/#minify
-	MinifyIdentifiers bool          // Documentation: https://esbuild.github.io/api/#minify
-	MinifySyntax      bool          // Documentation: https://esbuild.github.io/api/#minify
-	Charset           Charset       // Documentation: https://esbuild.github.io/api/#charset
-	TreeShaking       TreeShaking   // Documentation: https://esbuild.github.io/api/#tree-shaking
-	IgnoreAnnotations bool          // Documentation: https://esbuild.github.io/api/#ignore-annotations
-	LegalComments     LegalComments // Documentation: https://esbuild.github.io/api/#legal-comments
+	MangleProps       string                 // Documentation: https://esbuild.github.io/api/#mangle-props
+	ReserveProps      string                 // Documentation: https://esbuild.github.io/api/#mangle-props
+	MangleQuoted      MangleQuoted           // Documentation: https://esbuild.github.io/api/#mangle-props
+	MangleCache       map[string]interface{} // Documentation: https://esbuild.github.io/api/#mangle-props
+	Drop              Drop                   // Documentation: https://esbuild.github.io/api/#drop
+	MinifyWhitespace  bool                   // Documentation: https://esbuild.github.io/api/#minify
+	MinifyIdentifiers bool                   // Documentation: https://esbuild.github.io/api/#minify
+	MinifySyntax      bool                   // Documentation: https://esbuild.github.io/api/#minify
+	Charset           Charset                // Documentation: https://esbuild.github.io/api/#charset
+	TreeShaking       TreeShaking            // Documentation: https://esbuild.github.io/api/#tree-shaking
+	IgnoreAnnotations bool                   // Documentation: https://esbuild.github.io/api/#ignore-annotations
+	LegalComments     LegalComments          // Documentation: https://esbuild.github.io/api/#legal-comments
 
 	JSXMode     JSXMode // Documentation: https://esbuild.github.io/api/#jsx
 	JSXFactory  string  // Documentation: https://esbuild.github.io/api/#jsx-factory
@@ -404,6 +423,8 @@ type TransformResult struct {
 
 	Code []byte
 	Map  []byte
+
+	MangleCache map[string]interface{}
 }
 
 // Documentation: https://esbuild.github.io/api/#transform-api

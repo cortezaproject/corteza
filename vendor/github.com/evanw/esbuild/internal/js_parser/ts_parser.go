@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/evanw/esbuild/internal/compat"
+	"github.com/evanw/esbuild/internal/helpers"
 	"github.com/evanw/esbuild/internal/js_ast"
 	"github.com/evanw/esbuild/internal/js_lexer"
 	"github.com/evanw/esbuild/internal/logger"
@@ -252,6 +253,18 @@ func (p *parser) skipTypeScriptTypeWithOpts(level js_ast.L, opts skipTypeOpts) {
 
 			p.lexer.Expect(js_lexer.TOpenParen)
 			p.lexer.Expect(js_lexer.TStringLiteral)
+
+			// "import('./foo.json', { assert: { type: 'json' } })"
+			if p.lexer.Token == js_lexer.TComma {
+				p.lexer.Next()
+				p.skipTypeScriptObjectType()
+
+				// "import('./foo.json', { assert: { type: 'json' } }, )"
+				if p.lexer.Token == js_lexer.TComma {
+					p.lexer.Next()
+				}
+			}
+
 			p.lexer.Expect(js_lexer.TCloseParen)
 
 		case js_lexer.TNew:
@@ -277,7 +290,7 @@ func (p *parser) skipTypeScriptTypeWithOpts(level js_ast.L, opts skipTypeOpts) {
 			p.skipTypeScriptParenOrFnType()
 
 		case js_lexer.TIdentifier:
-			kind := tsTypeIdentifierMap[p.lexer.Identifier]
+			kind := tsTypeIdentifierMap[p.lexer.Identifier.String]
 
 			if kind == tsTypeIdentifierPrefix {
 				p.lexer.Next()
@@ -363,6 +376,7 @@ func (p *parser) skipTypeScriptTypeWithOpts(level js_ast.L, opts skipTypeOpts) {
 					}
 					p.lexer.Next()
 				}
+				p.skipTypeScriptTypeArguments(false /* isInsideJSXElement */)
 			}
 
 		case js_lexer.TOpenBracket:
@@ -776,18 +790,19 @@ func (p *parser) isTSArrowFnJSX() (isTSArrowFn bool) {
 func (p *parser) canFollowTypeArgumentsInExpression() bool {
 	switch p.lexer.Token {
 	case
-		// These are the only tokens can legally follow a type argument list. So we
-		// definitely want to treat them as type arg lists.
+		// These tokens can follow a type argument list in a call expression.
 		js_lexer.TOpenParen,                     // foo<x>(
 		js_lexer.TNoSubstitutionTemplateLiteral, // foo<T> `...`
 		js_lexer.TTemplateHead:                  // foo<T> `...${100}...`
 		return true
 
 	case
-		// These cases can't legally follow a type arg list. However, they're not
-		// legal expressions either. The user is probably in the middle of a
-		// generic type. So treat it as such.
+		// These tokens can't follow in a call expression, nor can they start an
+		// expression. So, consider the type argument list part of an instantiation
+		// expression.
+		js_lexer.TComma,                   // foo<x>,
 		js_lexer.TDot,                     // foo<x>.
+		js_lexer.TQuestionDot,             // foo<x>?.
 		js_lexer.TCloseParen,              // foo<x>)
 		js_lexer.TCloseBracket,            // foo<x>]
 		js_lexer.TColon,                   // foo<x>:
@@ -807,14 +822,6 @@ func (p *parser) canFollowTypeArgumentsInExpression() bool {
 		js_lexer.TEndOfFile:               // foo<x>
 		return true
 
-	case
-		// We don't want to treat these as type arguments. Otherwise we'll parse
-		// this as an invocation expression. Instead, we want to parse out the
-		// expression in isolation from the type arguments.
-		js_lexer.TComma,     // foo<x>,
-		js_lexer.TOpenBrace: // foo<x> {
-		return false
-
 	default:
 		// Anything else treat as an expression.
 		return false
@@ -822,7 +829,7 @@ func (p *parser) canFollowTypeArgumentsInExpression() bool {
 }
 
 func (p *parser) skipTypeScriptInterfaceStmt(opts parseStmtOpts) {
-	name := p.lexer.Identifier
+	name := p.lexer.Identifier.String
 	p.lexer.Expect(js_lexer.TIdentifier)
 
 	if opts.isModuleScope {
@@ -869,7 +876,7 @@ func (p *parser) skipTypeScriptTypeStmt(opts parseStmtOpts) {
 		return
 	}
 
-	name := p.lexer.Identifier
+	name := p.lexer.Identifier.String
 	p.lexer.Expect(js_lexer.TIdentifier)
 
 	if opts.isModuleScope {
@@ -886,6 +893,7 @@ func (p *parser) parseTypeScriptDecorators() []js_ast.Expr {
 	var tsDecorators []js_ast.Expr
 	if p.options.ts.Parse {
 		for p.lexer.Token == js_lexer.TAt {
+			loc := p.lexer.Loc()
 			p.lexer.Next()
 
 			// Parse a new/call expression with "exprFlagTSDecorator" so we ignore
@@ -896,16 +904,45 @@ func (p *parser) parseTypeScriptDecorators() []js_ast.Expr {
 			//   }
 			//
 			// This matches the behavior of the TypeScript compiler.
-			tsDecorators = append(tsDecorators, p.parseExprWithFlags(js_ast.LNew, exprFlagTSDecorator))
+			value := p.parseExprWithFlags(js_ast.LNew, exprFlagTSDecorator)
+			value.Loc = loc
+			tsDecorators = append(tsDecorators, value)
 		}
 	}
 	return tsDecorators
 }
 
+func (p *parser) logInvalidDecoratorError(classKeyword logger.Range) {
+	if p.options.ts.Parse && p.lexer.Token == js_lexer.TAt {
+		// Forbid decorators inside class expressions
+		p.lexer.AddRangeErrorWithNotes(p.lexer.Range(), "Decorators can only be used with class declarations in TypeScript",
+			[]logger.MsgData{p.tracker.MsgData(classKeyword, "This is a class expression, not a class declaration:")})
+
+		// Parse and discard decorators for error recovery
+		scopeIndex := len(p.scopesInOrder)
+		p.parseTypeScriptDecorators()
+		p.discardScopesUpTo(scopeIndex)
+	}
+}
+
+func (p *parser) logMisplacedDecoratorError(tsDecorators *deferredTSDecorators) {
+	found := fmt.Sprintf("%q", p.lexer.Raw())
+	if p.lexer.Token == js_lexer.TEndOfFile {
+		found = "end of file"
+	}
+
+	// Try to be helpful by pointing out the decorator
+	p.lexer.AddRangeErrorWithNotes(p.lexer.Range(), fmt.Sprintf("Expected \"class\" after TypeScript decorator but found %s", found), []logger.MsgData{
+		p.tracker.MsgData(logger.Range{Loc: tsDecorators.values[0].Loc}, "The preceding TypeScript decorator is here:"),
+		{Text: "Decorators can only be used with class declarations in TypeScript."},
+	})
+	p.discardScopesUpTo(tsDecorators.scopeIndex)
+}
+
 func (p *parser) parseTypeScriptEnumStmt(loc logger.Loc, opts parseStmtOpts) js_ast.Stmt {
 	p.lexer.Expect(js_lexer.TEnum)
 	nameLoc := p.lexer.Loc()
-	nameText := p.lexer.Identifier
+	nameText := p.lexer.Identifier.String
 	p.lexer.Expect(js_lexer.TIdentifier)
 	name := js_ast.LocRef{Loc: nameLoc, Ref: js_ast.InvalidRef}
 
@@ -949,10 +986,10 @@ func (p *parser) parseTypeScriptEnumStmt(loc logger.Loc, opts parseStmtOpts) js_
 		var nameText string
 		if p.lexer.Token == js_lexer.TStringLiteral {
 			value.Name = p.lexer.StringLiteral()
-			nameText = js_lexer.UTF16ToString(value.Name)
+			nameText = helpers.UTF16ToString(value.Name)
 		} else if p.lexer.IsIdentifierOrKeyword() {
-			nameText = p.lexer.Identifier
-			value.Name = js_lexer.StringToUTF16(nameText)
+			nameText = p.lexer.Identifier.String
+			value.Name = helpers.StringToUTF16(nameText)
 		} else {
 			p.lexer.Expect(js_lexer.TIdentifier)
 		}
@@ -960,7 +997,7 @@ func (p *parser) parseTypeScriptEnumStmt(loc logger.Loc, opts parseStmtOpts) js_
 
 		// Identifiers can be referenced by other values
 		if !opts.isTypeScriptDeclare && js_lexer.IsIdentifierUTF16(value.Name) {
-			value.Ref = p.declareSymbol(js_ast.SymbolOther, value.Loc, js_lexer.UTF16ToString(value.Name))
+			value.Ref = p.declareSymbol(js_ast.SymbolOther, value.Loc, helpers.UTF16ToString(value.Name))
 		}
 
 		// Parse the initializer
@@ -989,9 +1026,9 @@ func (p *parser) parseTypeScriptEnumStmt(loc logger.Loc, opts parseStmtOpts) js_
 				} else {
 					var nextName string
 					if p.lexer.Token == js_lexer.TStringLiteral {
-						nextName = js_lexer.UTF16ToString(p.lexer.StringLiteral())
+						nextName = helpers.UTF16ToString(p.lexer.StringLiteral())
 					} else {
-						nextName = p.lexer.Identifier
+						nextName = p.lexer.Identifier.String
 					}
 					errorLoc = p.lexer.Loc()
 					errorText = fmt.Sprintf("Expected \",\" before %q in enum", nextName)
@@ -1080,7 +1117,7 @@ func (p *parser) parseTypeScriptImportEqualsStmt(loc logger.Loc, opts parseStmtO
 	value := js_ast.Expr{Loc: p.lexer.Loc(), Data: &js_ast.EIdentifier{Ref: p.storeNameInRef(name)}}
 	p.lexer.Expect(js_lexer.TIdentifier)
 
-	if name == "require" && p.lexer.Token == js_lexer.TOpenParen {
+	if name.String == "require" && p.lexer.Token == js_lexer.TOpenParen {
 		// "import ns = require('x')"
 		p.lexer.Next()
 		path := js_ast.Expr{Loc: p.lexer.Loc(), Data: &js_ast.EString{Value: p.lexer.StringLiteral()}}
@@ -1097,7 +1134,7 @@ func (p *parser) parseTypeScriptImportEqualsStmt(loc logger.Loc, opts parseStmtO
 			p.lexer.Next()
 			value.Data = &js_ast.EDot{
 				Target:  value,
-				Name:    p.lexer.Identifier,
+				Name:    p.lexer.Identifier.String,
 				NameLoc: p.lexer.Loc(),
 			}
 			p.lexer.Expect(js_lexer.TIdentifier)
@@ -1157,7 +1194,7 @@ func (p *parser) getOrCreateExportedNamespaceMembers(name string, isExport bool)
 func (p *parser) parseTypeScriptNamespaceStmt(loc logger.Loc, opts parseStmtOpts) js_ast.Stmt {
 	// "namespace Foo {}"
 	nameLoc := p.lexer.Loc()
-	nameText := p.lexer.Identifier
+	nameText := p.lexer.Identifier.String
 	p.lexer.Next()
 
 	// Generate the namespace object
@@ -1412,20 +1449,19 @@ func (p *parser) generateClosureForTypeScriptNamespaceOrEnum(
 	}
 
 	var argExpr js_ast.Expr
-	if p.options.mangleSyntax && !p.options.unsupportedJSFeatures.Has(compat.LogicalAssignment) {
+	if p.options.minifySyntax && !p.options.unsupportedJSFeatures.Has(compat.LogicalAssignment) {
 		// If the "||=" operator is supported, our minified output can be slightly smaller
 		if isExport && p.enclosingNamespaceArgRef != nil {
 			// "name = (enclosing.name ||= {})"
-			name := p.symbols[nameRef.InnerIndex].OriginalName
 			argExpr = js_ast.Assign(
 				js_ast.Expr{Loc: nameLoc, Data: &js_ast.EIdentifier{Ref: nameRef}},
 				js_ast.Expr{Loc: nameLoc, Data: &js_ast.EBinary{
 					Op: js_ast.BinOpLogicalOrAssign,
-					Left: js_ast.Expr{Loc: nameLoc, Data: &js_ast.EDot{
-						Target:  js_ast.Expr{Loc: nameLoc, Data: &js_ast.EIdentifier{Ref: *p.enclosingNamespaceArgRef}},
-						Name:    name,
-						NameLoc: nameLoc,
-					}},
+					Left: js_ast.Expr{Loc: nameLoc, Data: p.dotOrMangledPropVisit(
+						js_ast.Expr{Loc: nameLoc, Data: &js_ast.EIdentifier{Ref: *p.enclosingNamespaceArgRef}},
+						p.symbols[nameRef.InnerIndex].OriginalName,
+						nameLoc,
+					)},
 					Right: js_ast.Expr{Loc: nameLoc, Data: &js_ast.EObject{}},
 				}},
 			)
@@ -1448,17 +1484,17 @@ func (p *parser) generateClosureForTypeScriptNamespaceOrEnum(
 				js_ast.Expr{Loc: nameLoc, Data: &js_ast.EIdentifier{Ref: nameRef}},
 				js_ast.Expr{Loc: nameLoc, Data: &js_ast.EBinary{
 					Op: js_ast.BinOpLogicalOr,
-					Left: js_ast.Expr{Loc: nameLoc, Data: &js_ast.EDot{
-						Target:  js_ast.Expr{Loc: nameLoc, Data: &js_ast.EIdentifier{Ref: *p.enclosingNamespaceArgRef}},
-						Name:    name,
-						NameLoc: nameLoc,
-					}},
+					Left: js_ast.Expr{Loc: nameLoc, Data: p.dotOrMangledPropVisit(
+						js_ast.Expr{Loc: nameLoc, Data: &js_ast.EIdentifier{Ref: *p.enclosingNamespaceArgRef}},
+						name,
+						nameLoc,
+					)},
 					Right: js_ast.Assign(
-						js_ast.Expr{Loc: nameLoc, Data: &js_ast.EDot{
-							Target:  js_ast.Expr{Loc: nameLoc, Data: &js_ast.EIdentifier{Ref: *p.enclosingNamespaceArgRef}},
-							Name:    name,
-							NameLoc: nameLoc,
-						}},
+						js_ast.Expr{Loc: nameLoc, Data: p.dotOrMangledPropVisit(
+							js_ast.Expr{Loc: nameLoc, Data: &js_ast.EIdentifier{Ref: *p.enclosingNamespaceArgRef}},
+							name,
+							nameLoc,
+						)},
 						js_ast.Expr{Loc: nameLoc, Data: &js_ast.EObject{}},
 					),
 				}},
@@ -1487,18 +1523,18 @@ func (p *parser) generateClosureForTypeScriptNamespaceOrEnum(
 	if p.options.unsupportedJSFeatures.Has(compat.Arrow) {
 		targetExpr = js_ast.Expr{Loc: stmtLoc, Data: &js_ast.EFunction{Fn: js_ast.Fn{
 			Args: args,
-			Body: js_ast.FnBody{Loc: stmtLoc, Stmts: stmtsInsideClosure},
+			Body: js_ast.FnBody{Loc: stmtLoc, Block: js_ast.SBlock{Stmts: stmtsInsideClosure}},
 		}}}
 	} else {
 		// "(() => { foo() })()" => "(() => foo())()"
-		if p.options.mangleSyntax && len(stmtsInsideClosure) == 1 {
+		if p.options.minifySyntax && len(stmtsInsideClosure) == 1 {
 			if expr, ok := stmtsInsideClosure[0].Data.(*js_ast.SExpr); ok {
 				stmtsInsideClosure[0].Data = &js_ast.SReturn{ValueOrNil: expr.Value}
 			}
 		}
 		targetExpr = js_ast.Expr{Loc: stmtLoc, Data: &js_ast.EArrow{
 			Args:       args,
-			Body:       js_ast.FnBody{Loc: stmtLoc, Stmts: stmtsInsideClosure},
+			Body:       js_ast.FnBody{Loc: stmtLoc, Block: js_ast.SBlock{Stmts: stmtsInsideClosure}},
 			PreferExpr: true,
 		}}
 	}
@@ -1525,7 +1561,7 @@ func (p *parser) generateClosureForTypeScriptEnum(
 	if p.currentScope != p.moduleScope {
 		stmtsInsideClosure := []js_ast.Stmt{}
 		if len(exprsInsideClosure) > 0 {
-			if p.options.mangleSyntax {
+			if p.options.minifySyntax {
 				// "a; b; c;" => "a, b, c;"
 				joined := js_ast.JoinAllWithComma(exprsInsideClosure)
 				stmtsInsideClosure = append(stmtsInsideClosure, js_ast.Stmt{Loc: joined.Loc, Data: &js_ast.SExpr{Value: joined}})
@@ -1580,7 +1616,7 @@ func (p *parser) generateClosureForTypeScriptEnum(
 	stmtsInsideClosure := []js_ast.Stmt{}
 	if len(exprsInsideClosure) > 0 {
 		argExpr := js_ast.Expr{Loc: nameLoc, Data: &js_ast.EIdentifier{Ref: argRef}}
-		if p.options.mangleSyntax {
+		if p.options.minifySyntax {
 			// "a; b; return c;" => "return a, b, c;"
 			joined := js_ast.JoinAllWithComma(exprsInsideClosure)
 			joined = js_ast.JoinWithComma(joined, argExpr)
@@ -1599,13 +1635,13 @@ func (p *parser) generateClosureForTypeScriptEnum(
 	if p.options.unsupportedJSFeatures.Has(compat.Arrow) {
 		targetExpr = js_ast.Expr{Loc: stmtLoc, Data: &js_ast.EFunction{Fn: js_ast.Fn{
 			Args: args,
-			Body: js_ast.FnBody{Loc: stmtLoc, Stmts: stmtsInsideClosure},
+			Body: js_ast.FnBody{Loc: stmtLoc, Block: js_ast.SBlock{Stmts: stmtsInsideClosure}},
 		}}}
 	} else {
 		targetExpr = js_ast.Expr{Loc: stmtLoc, Data: &js_ast.EArrow{
 			Args:       args,
-			Body:       js_ast.FnBody{Loc: stmtLoc, Stmts: stmtsInsideClosure},
-			PreferExpr: p.options.mangleSyntax,
+			Body:       js_ast.FnBody{Loc: stmtLoc, Block: js_ast.SBlock{Stmts: stmtsInsideClosure}},
+			PreferExpr: p.options.minifySyntax,
 		}}
 	}
 
@@ -1636,7 +1672,7 @@ func (p *parser) generateClosureForTypeScriptEnum(
 }
 
 func (p *parser) wrapInlinedEnum(value js_ast.Expr, comment string) js_ast.Expr {
-	if p.shouldFoldNumericConstants || p.options.mangleSyntax || strings.Contains(comment, "*/") {
+	if strings.Contains(comment, "*/") {
 		// Don't wrap with a comment
 		return value
 	}

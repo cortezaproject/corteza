@@ -236,6 +236,7 @@ FirstName() string
 LastName() string
 Gender() string
 SSN() string
+Hobby() string
 Contact() *ContactInfo
 Email() string
 Phone() string
@@ -285,6 +286,7 @@ LongitudeInRange(min, max float64) (float64, error)
 
 ```go
 Gamertag() string
+Dice(numDice uint, sides []uint) []uint
 ```
 
 ### Beer
