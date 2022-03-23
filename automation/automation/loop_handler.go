@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 )
@@ -43,7 +44,7 @@ func (h loopHandler) sequence(_ context.Context, args *loopSequenceArgs) (wfexec
 	}
 
 	i := &sequenceIterator{
-		counter: 0,
+		counter: args.First,
 		cFirst:  args.First,
 		cLast:   args.Last,
 		cStep:   args.Step,

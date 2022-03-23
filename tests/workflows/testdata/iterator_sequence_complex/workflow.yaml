@@ -1,0 +1,30 @@
+workflows:
+  testing:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 10
+
+    steps:
+      - stepID: 10
+        kind: iterator
+        ref: loopSequence
+        arguments:
+          - { target: "first", expr: "2", type: "Integer"}
+          - { target: "last", expr: "5", type: "Integer"}
+          - { target: "step", expr: "2", type: "Integer"}
+        results:
+          - { target: "i", expr: "counter" }
+          - { target: "first", expr: "isFirst" }
+          - { target: "last", expr: "isLast" }
+
+      - stepID: 11
+        kind: continue
+
+      - stepID: 12
+        kind: termination
+
+    paths:
+      - { parentID: 10, childID: 11 }
+      - { parentID: 10, childID: 12 }

@@ -3,6 +3,7 @@ package automation
 import (
 	"bufio"
 	"context"
+
 	. "github.com/cortezaproject/corteza-server/pkg/expr"
 )
 
@@ -18,7 +19,7 @@ func (i *sequenceIterator) More(context.Context, *Vars) (bool, error) {
 }
 
 func (i *sequenceIterator) more() bool {
-	return i.counter*(i.cStep/i.cStep) < i.cLast*(i.cStep/i.cStep)
+	return i.counter < i.cLast
 }
 
 func (i *sequenceIterator) Start(context.Context, *Vars) error { return nil }
@@ -27,8 +28,8 @@ func (i *sequenceIterator) Next(context.Context, *Vars) (*Vars, error) {
 	out := &Vars{}
 	out.Set("counter", i.counter)
 	out.Set("isFirst", i.counter == i.cFirst)
-	out.Set("isLast", !i.more())
 	i.counter = i.counter + i.cStep
+	out.Set("isLast", !i.more())
 	return out, nil
 }
 
