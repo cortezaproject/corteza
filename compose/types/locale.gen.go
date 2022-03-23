@@ -39,6 +39,7 @@ var (
 	LocaleKeyModuleFieldMetaHintEdit                        = LocaleKey{Path: "meta.hint.edit"}
 	LocaleKeyModuleFieldExpressionValidatorValidatorIDError = LocaleKey{Path: "expression.validator.{{validatorID}}.error"}
 	LocaleKeyModuleFieldMetaOptionsValueText                = LocaleKey{Path: "meta.options.{{value}}.text"}
+	LocaleKeyModuleFieldMetaBoolValueLabel                  = LocaleKey{Path: "meta.bool.{{value}}.label"}
 	LocaleKeyNamespaceName                                  = LocaleKey{Path: "name"}
 	LocaleKeyNamespaceMetaSubtitle                          = LocaleKey{Path: "meta.subtitle"}
 	LocaleKeyNamespaceMetaDescription                       = LocaleKey{Path: "meta.description"}
@@ -148,6 +149,8 @@ func (r *ModuleField) DecodeTranslations(tt locale.ResourceTranslationIndex) {
 
 	r.decodeTranslationsMetaOptionsValueText(tt)
 
+	r.decodeTranslationsMetaBoolValueLabel(tt)
+
 }
 
 func (r *ModuleField) EncodeTranslations() (out locale.ResourceTranslationSet) {
@@ -170,6 +173,8 @@ func (r *ModuleField) EncodeTranslations() (out locale.ResourceTranslationSet) {
 	out = append(out, r.encodeTranslationsExpressionValidatorValidatorIDError()...)
 
 	out = append(out, r.encodeTranslationsMetaOptionsValueText()...)
+
+	out = append(out, r.encodeTranslationsMetaBoolValueLabel()...)
 
 	return out
 }
