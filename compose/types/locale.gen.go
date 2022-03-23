@@ -14,9 +14,8 @@ package types
 
 import (
 	"fmt"
-	"strconv"
-
 	"github.com/cortezaproject/corteza-server/pkg/locale"
+	"strconv"
 )
 
 type (
@@ -77,6 +76,12 @@ var (
 		Resource:      ModuleFieldResourceTranslationType,
 		Path:          "meta.options.{{value}}.text",
 		CustomHandler: "optionsOptionTexts",
+	}
+	LocaleKeyModuleFieldOptionsBoolLabel = LocaleKey{
+		Name:          "optionsBoolLabel",
+		Resource:      ModuleFieldResourceTranslationType,
+		Path:          "meta.{{bool}}.label",
+		CustomHandler: "optionsBoolLabels",
 	}
 	LocaleKeyModuleName = LocaleKey{
 		Name:     "name",
@@ -167,6 +172,7 @@ func (r *ModuleField) DecodeTranslations(tt locale.ResourceTranslationIndex) {
 	r.decodeTranslationsHintEdit(tt)
 	r.decodeTranslationsValidatorError(tt)
 	r.decodeTranslationsOptionsOptionTexts(tt)
+	r.decodeTranslationsOptionsBoolLabels(tt)
 }
 
 func (r *ModuleField) EncodeTranslations() (out locale.ResourceTranslationSet) {
@@ -185,6 +191,7 @@ func (r *ModuleField) EncodeTranslations() (out locale.ResourceTranslationSet) {
 	out = append(out, r.encodeTranslationsHintEdit()...)
 	out = append(out, r.encodeTranslationsValidatorError()...)
 	out = append(out, r.encodeTranslationsOptionsOptionTexts()...)
+	out = append(out, r.encodeTranslationsOptionsBoolLabels()...)
 
 	return out
 }

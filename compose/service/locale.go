@@ -71,6 +71,12 @@ func (svc resourceTranslationsManager) moduleExtended(ctx context.Context, res *
 				return nil, err
 			}
 			out = append(out, set...)
+
+			set, err = svc.moduleFieldBoolHandler(ctx, tag, f)
+			if err != nil {
+				return nil, err
+			}
+			out = append(out, set...)
 		}
 	}
 
@@ -137,6 +143,32 @@ func (svc resourceTranslationsManager) moduleFieldOptionsHandler(ctx context.Con
 			Msg:      svc.locale.TResourceFor(tag, f.ResourceTranslation(), trKey),
 		})
 	}
+
+	return out, nil
+}
+
+func (svc resourceTranslationsManager) moduleFieldBoolHandler(ctx context.Context, tag language.Tag, f *types.ModuleField) (locale.ResourceTranslationSet, error) {
+	if f.Kind != "Bool" {
+		return nil, nil
+	}
+
+	out := make(locale.ResourceTranslationSet, 0, 2)
+
+	trKey := strings.NewReplacer("{{bool}}", "true").Replace(types.LocaleKeyModuleFieldOptionsBoolLabel.Path)
+	out = append(out, &locale.ResourceTranslation{
+		Resource: f.ResourceTranslation(),
+		Lang:     tag.String(),
+		Key:      trKey,
+		Msg:      svc.locale.TResourceFor(tag, f.ResourceTranslation(), trKey),
+	})
+
+	trKey = strings.NewReplacer("{{bool}}", "false").Replace(types.LocaleKeyModuleFieldOptionsBoolLabel.Path)
+	out = append(out, &locale.ResourceTranslation{
+		Resource: f.ResourceTranslation(),
+		Lang:     tag.String(),
+		Key:      trKey,
+		Msg:      svc.locale.TResourceFor(tag, f.ResourceTranslation(), trKey),
+	})
 
 	return out, nil
 }

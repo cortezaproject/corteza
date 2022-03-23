@@ -27,3 +27,8 @@ locale:
         custom: true,
         customHandler: optionsOptionTexts
         }
+    - { name: optionsBoolLabel,
+        path: "meta.{{bool}}.label",
+        custom: true,
+        customHandler: optionsBoolLabels
+        }
