@@ -17,7 +17,7 @@ import (
 
 var (
 	sortAggFields   = []string{"path", "count", "size_min", "size_max", "size_avg", "time_min", "time_max", "time_avg"}
-	sortRouteFields = []string{"time_start", "time_finish", "time_duration", "content_length", "http_status_code"}
+	sortRouteFields = []string{"time_start", "time_finish", "time_duration", "content_length", "http_status_code", "http_method"}
 )
 
 const (
@@ -336,6 +336,8 @@ func getSortTypeHit(s string, list *types.ApigwProfilerHitSet) sort.Interface {
 		return types.ByContentLength(*list)
 	case "http_status_code":
 		return types.ByStatus(*list)
+	case "http_method":
+		return types.ByMethod(*list)
 	default:
 		return types.BySTime(*list)
 	}
