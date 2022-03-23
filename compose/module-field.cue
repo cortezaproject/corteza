@@ -46,6 +46,10 @@ moduleField: schema.#resource & {
 				path: ["meta", "options", {part: "value", var: true}, "text"]
 				customHandler: true
 			}
+			optionsBoolLabels: {
+				path: ["meta", "bool", {part: "value", var: true}, "label"]
+				customHandler: true
+			}
 		}
 	}
 }
