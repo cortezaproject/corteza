@@ -285,6 +285,9 @@ func (svc *session) spawn(g *wfexec.Graph, workflowID uint64, trace bool, callSt
 
 	// blocks until session is set
 	ses = types.NewSession(<-s.session)
+	if !svc.opt.StackTraceEnabled {
+		ses.DisableStacktrace()
+	}
 
 	svc.mux.Lock()
 	svc.pool[ses.ID] = ses

@@ -15,6 +15,10 @@ import (
 )
 
 type (
+	runtimeOptions struct {
+		disableStacktrace bool
+	}
+
 	// Instance of single workflow execution
 	Session struct {
 		ID         uint64 `json:"sessionID,string"`
@@ -42,6 +46,8 @@ type (
 		Error       string     `json:"error,omitempty"`
 
 		session *wfexec.Session
+
+		runtimeOpts runtimeOptions `json:"-"`
 
 		// For keeping runtime stacktrace,
 		// even if we do not want to store it on every update
@@ -112,6 +118,10 @@ func NewSession(s *wfexec.Session) *Session {
 	}
 }
 
+func (s *Session) DisableStacktrace() {
+	s.runtimeOpts.disableStacktrace = true
+}
+
 func (s *Session) Exec(ctx context.Context, step wfexec.Step, input *expr.Vars) error {
 	return s.session.Exec(ctx, step, input)
 }
@@ -165,10 +175,12 @@ func (s *Session) Apply(ssp SessionStartParams) {
 }
 
 func (s *Session) AppendRuntimeStacktrace(frame *wfexec.Frame) {
-	s.l.RLock()
-	defer s.l.RUnlock()
+	if !s.runtimeOpts.disableStacktrace {
+		s.l.RLock()
+		defer s.l.RUnlock()
 
-	s.RuntimeStacktrace = append(s.RuntimeStacktrace, frame)
+		s.RuntimeStacktrace = append(s.RuntimeStacktrace, frame)
+	}
 }
 
 func (s *Session) CopyRuntimeStacktrace() {
