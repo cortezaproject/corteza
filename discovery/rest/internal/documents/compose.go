@@ -476,7 +476,7 @@ func (d composeResources) getUserInfo(ctx context.Context, ID uint64, users map[
 		return &user, users, nil
 	} else {
 		u, err := d.usr.FindByID(ctx, ID)
-		if err != nil {
+		if err != nil && u != nil {
 			users[ID] = *u
 		}
 		return u, users, err
