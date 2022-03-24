@@ -21,6 +21,11 @@ workflow: schema.#optionsGroup & {
 			defaultGoExpr: "16"
 			description:   "Defines the maximum call stack size between workflows"
 		}
+		stack_trace_enabled: {
+			type:          "bool"
+			defaultGoExpr: "true"
+			description:   "Enables execution stack trace construction"
+		}
 	}
 	title: "Workflow"
 }

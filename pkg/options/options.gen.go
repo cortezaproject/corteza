@@ -252,9 +252,10 @@ type (
 	}
 
 	WorkflowOpt struct {
-		Register      bool `env:"WORKFLOW_REGISTER"`
-		ExecDebug     bool `env:"WORKFLOW_EXEC_DEBUG"`
-		CallStackSize int  `env:"WORKFLOW_CALL_STACK_SIZE"`
+		Register          bool `env:"WORKFLOW_REGISTER"`
+		ExecDebug         bool `env:"WORKFLOW_EXEC_DEBUG"`
+		CallStackSize     int  `env:"WORKFLOW_CALL_STACK_SIZE"`
+		StackTraceEnabled bool `env:"WORKFLOW_STACK_TRACE_ENABLED"`
 	}
 
 	DiscoveryOpt struct {
@@ -1066,8 +1067,9 @@ func Websocket() (o *WebsocketOpt) {
 // This function is auto-generated
 func Workflow() (o *WorkflowOpt) {
 	o = &WorkflowOpt{
-		Register:      true,
-		CallStackSize: 16,
+		Register:          true,
+		CallStackSize:     16,
+		StackTraceEnabled: true,
 	}
 
 	// Custom defaults
