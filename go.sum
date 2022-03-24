@@ -129,6 +129,8 @@ github.com/coreos/go-etcd v2.0.0+incompatible/go.mod h1:Jez6KQU2B/sWsbdaef3ED8Nz
 github.com/coreos/go-semver v0.2.0/go.mod h1:nnelYz7RCh+5ahJtPPxZlU+153eP4D4r3EedlOD2RNk=
 github.com/cortezaproject/corteza-locale v0.0.0-20220322170233-572348fc2ebb h1:zi9o1xd6ZG47wMPuI6SneR9h4rN9uFGxapKpMPoZk5U=
 github.com/cortezaproject/corteza-locale v0.0.0-20220322170233-572348fc2ebb/go.mod h1:wsI1UftEdBqTuEDKBZmx2LfNu/kZun5pRbCAi420JCg=
+github.com/cortezaproject/corteza-locale v0.0.0-20220324124427-6775aced3be1 h1:IZEJ5PtErB0vWwywp+CGOdSIiaWkchiQxuZ0yI/2A3M=
+github.com/cortezaproject/corteza-locale v0.0.0-20220324124427-6775aced3be1/go.mod h1:wsI1UftEdBqTuEDKBZmx2LfNu/kZun5pRbCAi420JCg=
 github.com/cpuguy83/go-md2man v1.0.10/go.mod h1:SmD6nW6nTyfqj6ABTjUi3V3JVMnlJmwcJI5acqYI6dE=
 github.com/cpuguy83/go-md2man/v2 v2.0.1/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
