@@ -340,7 +340,7 @@ func (d *systemDecoder) decodeSettings(ctx context.Context, s store.Storer, ff [
 		aux := *f
 
 		for {
-			nn, _, err = s.SearchSettings(ctx, types.SettingsFilter(aux))
+			nn, _, err = store.SearchSettingValues(ctx, s, types.SettingsFilter(aux))
 			if err != nil {
 				return &auxRsp{
 					err: err,

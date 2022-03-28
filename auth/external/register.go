@@ -16,7 +16,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func AddProvider(ctx context.Context, log *zap.Logger, s store.Settings, eap *types.ExternalAuthProvider, force bool) error {
+func AddProvider(ctx context.Context, log *zap.Logger, s store.SettingValues, eap *types.ExternalAuthProvider, force bool) error {
 	var (
 		prefix = "auth.external.providers." + eap.Key + "."
 	)
@@ -33,7 +33,7 @@ func AddProvider(ctx context.Context, log *zap.Logger, s store.Settings, eap *ty
 
 	log.Info("adding external authentication provider")
 
-	ss, _, err := store.SearchSettings(ctx, s, types.SettingsFilter{
+	ss, _, err := store.SearchSettingValues(ctx, s, types.SettingsFilter{
 		Prefix: prefix,
 	})
 
@@ -52,7 +52,7 @@ func AddProvider(ctx context.Context, log *zap.Logger, s store.Settings, eap *ty
 	if vv, err := eap.EncodeKV(); err != nil {
 		return fmt.Errorf("could not encode auth provider values: %w", err)
 		return err
-	} else if err = store.UpsertSetting(ctx, s, vv...); err != nil {
+	} else if err = store.UpsertSettingValue(ctx, s, vv...); err != nil {
 		return fmt.Errorf("could not store auth provider values: %w", err)
 	}
 
@@ -102,11 +102,11 @@ func DiscoverOidcProvider(ctx context.Context, log *zap.Logger, opt options.Auth
 	return
 }
 
-func RegisterOidcProvider(ctx context.Context, log *zap.Logger, s store.Settings, opt options.AuthOpt, name, providerUrl string, force, validate, enable bool) (eap *types.ExternalAuthProvider, err error) {
+func RegisterOidcProvider(ctx context.Context, log *zap.Logger, s store.SettingValues, opt options.AuthOpt, name, providerUrl string, force, validate, enable bool) (eap *types.ExternalAuthProvider, err error) {
 	if !force {
 		prefix := "auth.external.providers." + eap.Key + "."
 
-		vv, _, err := store.SearchSettings(ctx, s, types.SettingsFilter{
+		vv, _, err := store.SearchSettingValues(ctx, s, types.SettingsFilter{
 			Prefix: prefix,
 		})
 
@@ -168,7 +168,7 @@ func RegisterOidcProvider(ctx context.Context, log *zap.Logger, s store.Settings
 		vv = append(vv, v)
 	}
 
-	err = store.UpsertSetting(ctx, s, vv...)
+	err = store.UpsertSettingValue(ctx, s, vv...)
 	if err != nil {
 		return
 	}

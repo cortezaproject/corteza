@@ -2,18 +2,19 @@ package tests
 
 import (
 	"context"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/stretchr/testify/require"
-	"strings"
-	"testing"
-	"time"
 )
 
-func testAttachment(t *testing.T, s store.Attachments) {
+func testAttachments(t *testing.T, s store.Attachments) {
 	var (
 		ctx = context.Background()
 		req = require.New(t)
@@ -82,7 +83,7 @@ func testAttachment(t *testing.T, s store.Attachments) {
 			att.Url = "url"
 
 			req.NoError(s.UpsertAttachment(ctx, att))
-	
+
 			upserted, err := s.LookupAttachmentByID(ctx, att.ID)
 			req.NoError(err)
 			req.Equal(att.Name, upserted.Name)
@@ -92,7 +93,7 @@ func testAttachment(t *testing.T, s store.Attachments) {
 			att := makeNew("upsert me", "upsert-me")
 
 			req.NoError(s.UpsertAttachment(ctx, att))
-	
+
 			upserted, err := s.LookupAttachmentByID(ctx, att.ID)
 			req.NoError(err)
 			req.Equal(att.Name, upserted.Name)

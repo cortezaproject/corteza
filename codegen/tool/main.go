@@ -7,16 +7,24 @@ import (
 	"os"
 	"path"
 	"text/template"
+	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 )
 
 type (
+	inOut struct {
+		Template string `json:"template"`
+		Output   string `json:"output"`
+		Syntax   string `json:"syntax"`
+	}
+
 	task struct {
-		Template string      `json:"template"`
-		Output   string      `json:"output"`
-		Syntax   string      `json:"syntax"`
-		Payload  interface{} `json:"payload"`
+		inOut
+
+		Bulk []inOut `json:"bulk"`
+
+		Payload interface{} `json:"payload"`
 	}
 )
 
@@ -49,32 +57,40 @@ func main() {
 		err   error
 	)
 
-	print("Waiting for stdin ...\n")
+	started := time.Now()
+	print("Waiting for stdin ...")
 	if err = input.Decode(&tasks); err != nil {
 		cli.HandleError(fmt.Errorf("failed to decode input from standard input: %v", err))
 	}
+
+	println(time.Now().Sub(started).Round(time.Second)/time.Second, "sec")
 
 	if tpl, err = loadTemplates(baseTemplate(), tplRootPath); err != nil {
 		cli.HandleError(fmt.Errorf("failed to load templates: %v", err))
 	}
 
 	for _, j := range tasks {
-		output := path.Join(outputBase, j.Output)
-		print(fmt.Sprintf("generating %s (from %s) ...", output, j.Template))
-
-		switch j.Syntax {
-		case "go":
-			err = writeFormattedGo(output, tpl.Lookup(j.Template), j.Payload)
-		default:
-			err = write(output, tpl.Lookup(j.Template), j.Payload)
+		if len(j.Bulk) == 0 {
+			j.Bulk = append(j.Bulk, j.inOut)
 		}
 
-		if err != nil {
-			cli.HandleError(fmt.Errorf("failed to write template: %v", err))
-		} else {
-			print("done\n")
-		}
+		for _, o := range j.Bulk {
+			output := path.Join(outputBase, o.Output)
+			print(fmt.Sprintf("generating %s (from %s) ...", output, o.Template))
 
+			switch o.Syntax {
+			case "go":
+				err = writeFormattedGo(output, tpl.Lookup(o.Template), j.Payload)
+			default:
+				err = write(output, tpl.Lookup(o.Template), j.Payload)
+			}
+
+			if err != nil {
+				cli.HandleError(fmt.Errorf("failed to write template: %v", err))
+			} else {
+				print("done\n")
+			}
+		}
 	}
 }
 

@@ -2,21 +2,19 @@ package store
 
 import (
 	"context"
+
 	"go.uber.org/zap"
 )
 
 type (
-	storeUpgrader interface {
+	upgradable interface {
 		Upgrade(context.Context, *zap.Logger) error
 	}
 )
 
-func Upgrade(ctx context.Context, log *zap.Logger, s Storer) error {
-	upgradableStore, ok := s.(storeUpgrader)
-	if !ok {
-		log.Debug("store does not support upgrades")
-		return nil
-	}
-
-	return upgradableStore.Upgrade(ctx, log)
+// Upgrade runs all needed upgrades on a specific store
+//
+// See store/adapters/rdbms/schema/README.md for more details on RDBMS implementations
+func Upgrade(ctx context.Context, log *zap.Logger, s upgradable) error {
+	return s.Upgrade(ctx, log)
 }

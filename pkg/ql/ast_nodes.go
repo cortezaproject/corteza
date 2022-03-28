@@ -3,16 +3,14 @@ package ql
 import (
 	"fmt"
 	"strings"
-
-	"github.com/Masterminds/squirrel"
 )
 
 // SelectStatement represents a SQL SELECT statement.
 type (
 	ASTNode interface {
 		fmt.Stringer
-		squirrel.Sqlizer
 
+		ToSQL() (string, []interface{}, error)
 		Validate() error
 	}
 

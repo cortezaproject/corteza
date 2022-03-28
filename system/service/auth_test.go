@@ -9,7 +9,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/store/sqlite3"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers/sqlite"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/markbates/goth"
 	"github.com/stretchr/testify/require"
@@ -22,7 +22,7 @@ func makeMockAuthService() *auth {
 	var (
 		ctx = context.Background()
 
-		mem, err = sqlite3.ConnectInMemory(ctx)
+		mem, err = sqlite.ConnectInMemory(ctx)
 
 		svc = &auth{
 			providerValidator: func(s string) error {
@@ -61,7 +61,7 @@ func TestAuth_External(t *testing.T) {
 			return fmt.Sprintf("fresh-profile-id-%d", nextID())
 		}
 
-		fooCredentials = &types.Credentials{
+		fooCredentials = &types.Credential{
 			ID:          nextID(),
 			OwnerID:     validUser.ID,
 			Label:       "credentials for foo provider",
@@ -70,7 +70,7 @@ func TestAuth_External(t *testing.T) {
 			CreatedAt:   time.Time{},
 		}
 
-		barCredentials = &types.Credentials{
+		barCredentials = &types.Credential{
 			ID:          nextID(),
 			OwnerID:     validUser.ID,
 			Label:       "credentials for bar provider",
@@ -108,7 +108,7 @@ func TestAuth_External(t *testing.T) {
 	req.NoError(svc.store.TruncateUsers(ctx))
 	req.NoError(svc.store.TruncateCredentials(ctx))
 	req.NoError(store.CreateUser(ctx, svc.store, validUser, suspendedUser))
-	req.NoError(store.CreateCredentials(ctx, svc.store, fooCredentials, barCredentials))
+	req.NoError(store.CreateCredential(ctx, svc.store, fooCredentials, barCredentials))
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -359,10 +359,10 @@ func TestAuth_multiCreateUserTokenForPasswordReset(t *testing.T) {
 		validUser = &types.User{Email: "valid@test.cortezaproject.org", ID: nextID(), CreatedAt: *now(), EmailConfirmed: true}
 
 		// load credentials from token
-		t2c = func(token string) *types.Credentials {
+		t2c = func(token string) *types.Credential {
 			id, _ := validateToken(token)
 			req.NotZero(id)
-			c, err := store.LookupCredentialsByID(ctx, svc.store, id)
+			c, err := store.LookupCredentialByID(ctx, svc.store, id)
 			req.NoError(err)
 			return c
 		}
@@ -398,7 +398,7 @@ func Test_auth_checkPassword(t *testing.T) {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(plainPassword), bcrypt.DefaultCost)
 	type args struct {
 		password string
-		cc       types.CredentialsSet
+		cc       types.CredentialSet
 	}
 	tests := []struct {
 		name string
@@ -414,29 +414,29 @@ func Test_auth_checkPassword(t *testing.T) {
 			rval: false,
 			args: args{
 				password: " foo ",
-				cc:       types.CredentialsSet{&types.Credentials{ID: 1, Credentials: string(hashedPassword)}}}},
+				cc:       types.CredentialSet{&types.Credential{ID: 1, Credentials: string(hashedPassword)}}}},
 		{
 			name: "invalid credentials",
 			rval: false,
 			args: args{
 				password: " foo ",
-				cc:       types.CredentialsSet{&types.Credentials{ID: 0, Credentials: string(hashedPassword)}}}},
+				cc:       types.CredentialSet{&types.Credential{ID: 0, Credentials: string(hashedPassword)}}}},
 		{
 			name: "ok",
 			rval: true,
 			args: args{
 				password: plainPassword,
-				cc:       types.CredentialsSet{&types.Credentials{ID: 1, Credentials: string(hashedPassword)}}}},
+				cc:       types.CredentialSet{&types.Credential{ID: 1, Credentials: string(hashedPassword)}}}},
 		{
 			name: "multipass",
 			rval: true,
 			args: args{
 				password: plainPassword,
-				cc: types.CredentialsSet{
-					&types.Credentials{ID: 0, Credentials: string(hashedPassword)},
-					&types.Credentials{ID: 1, Credentials: "$2a$10$8sOZxfZinxnu3bAtpkqEx.wBBwOfci6aG1szgUyxm5.BL2WiLu.ni"},
-					&types.Credentials{ID: 2, Credentials: string(hashedPassword)},
-					&types.Credentials{ID: 3, Credentials: ""},
+				cc: types.CredentialSet{
+					&types.Credential{ID: 0, Credentials: string(hashedPassword)},
+					&types.Credential{ID: 1, Credentials: "$2a$10$8sOZxfZinxnu3bAtpkqEx.wBBwOfci6aG1szgUyxm5.BL2WiLu.ni"},
+					&types.Credential{ID: 2, Credentials: string(hashedPassword)},
+					&types.Credential{ID: 3, Credentials: ""},
 				}}},
 	}
 

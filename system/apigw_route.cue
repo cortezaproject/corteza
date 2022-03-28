@@ -1,0 +1,72 @@
+package system
+
+import (
+	"github.com/cortezaproject/corteza-server/codegen/schema"
+)
+
+apigw_route: schema.#Resource & {
+	features: {
+		labels: false
+	}
+
+	struct: {
+		id: schema.IdField
+		endpoint: {}
+		method: {}
+		enabled: {goType: "bool"}
+		group: {goType: "uint64"}
+		meta: {goType: "types.ApigwRouteMeta"}
+
+		created_at: schema.SortableTimestampField
+		updated_at: schema.SortableTimestampNilField
+		deleted_at: schema.SortableTimestampNilField
+		created_by: { goType: "uint64" }
+		updated_by: { goType: "uint64" }
+		deleted_by: { goType: "uint64" }
+	}
+
+	filter: {
+		struct: {
+			route: {}
+			group: {}
+
+			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
+			disabled: {goType: "filter.State", storeIdent: "enabled"}
+		}
+
+		byValue: ["route", "group"]
+		byNilState: ["deleted"]
+		byFalseState: ["disabled"]
+	}
+
+
+	rbac: {
+		operations: {
+			read: description:   "Read API Gateway route"
+			update: description: "Update API Gateway route"
+			delete: description: "Delete API Gateway route"
+		}
+	}
+
+	store: {
+		api: {
+			lookups: [
+				{
+					fields: ["id"]
+					description: """
+						searches for route by ID
+
+						It returns route even if deleted or suspended
+						"""
+				}, {
+					fields: ["endpoint"]
+					description: """
+						searches for route by endpoint
+
+						It returns route even if deleted or suspended
+						"""
+				},
+			]
+		}
+	}
+}

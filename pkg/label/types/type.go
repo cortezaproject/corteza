@@ -16,6 +16,7 @@ type (
 		Kind       string
 		ResourceID []uint64
 		Filter     map[string]string
+		Limit      uint
 	}
 )
 

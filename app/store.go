@@ -2,7 +2,7 @@ package app
 
 // Registers all supported store backends
 import (
-	_ "github.com/cortezaproject/corteza-server/store/mysql"
-	_ "github.com/cortezaproject/corteza-server/store/postgres"
-	_ "github.com/cortezaproject/corteza-server/store/sqlite3"
+	_ "github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers/mysql"
+	_ "github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers/postgres"
+	_ "github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers/sqlite"
 )

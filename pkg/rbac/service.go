@@ -29,7 +29,9 @@ type (
 	}
 
 	// RuleFilter is a dummy struct to satisfy store codegen
-	RuleFilter struct{}
+	RuleFilter struct {
+		Limit uint
+	}
 
 	RoleSettings struct {
 		Bypass        []uint64

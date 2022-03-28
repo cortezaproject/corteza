@@ -57,10 +57,6 @@ func Proc() {
 		restSrc     []string
 		restDefs    []*restDef
 
-		storeSrcPath = filepath.Join("store", "*.yaml")
-		storeSrc     []string
-		storeDefs    []*storeDef
-
 		aFuncsSrcPath = filepath.Join("*", "automation", "*_handler.yaml")
 		aFuncsSrc     []string
 		aFuncsDefs    []*aFuncDefs
@@ -156,9 +152,6 @@ func Proc() {
 		restSrc = glob(restSrcPath)
 		output("loaded %d rest definitions from %s\n", len(restSrc), restSrcPath)
 
-		storeSrc = glob(storeSrcPath)
-		output("loaded %d store definitions from %s\n", len(storeSrc), storeSrcPath)
-
 		aFuncsSrc = glob(aFuncsSrcPath)
 		output("loaded %d function definitions from %s\n", len(aFuncsSrc), aFuncsSrcPath)
 
@@ -176,7 +169,6 @@ func Proc() {
 			fileList = append(fileList, typeSrc...)
 			fileList = append(fileList, exprTypeSrc...)
 			fileList = append(fileList, restSrc...)
-			fileList = append(fileList, storeSrc...)
 			fileList = append(fileList, aFuncsSrc...)
 
 			for _, d := range fileList {
@@ -245,12 +237,6 @@ func Proc() {
 
 			if outputErr(err, "failed to process rest:\n") {
 				return
-			}
-
-			if storeDefs, err = procStore(storeSrc...); err == nil {
-				if genCode {
-					err = genStore(tpls, storeDefs...)
-				}
 			}
 
 			if outputErr(err, "failed to process store:\n") {
