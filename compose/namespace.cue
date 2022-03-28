@@ -4,7 +4,32 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-namespace: schema.#resource & {
+namespace: schema.#Resource & {
+	struct: {
+		id: schema.IdField
+		slug: { goType: "string" }
+		enabled: { goType: "bool" }
+		meta: { goType: "types.NamespaceMeta" }
+		name: {}
+	} & {
+		created_at: schema.SortableTimestampField
+		updated_at: schema.SortableTimestampNilField
+		deleted_at: schema.SortableTimestampNilField
+	}
+
+	filter: {
+		struct: {
+			namespace_id: { goType: "[]uint64", ident: "namespaceID" }
+			slug: { goType: "string" }
+			name: { goType: "string" }
+			deleted: { goType: "filter.State", storeIdent: "deleted_at" }
+		}
+
+		query: ["name", "slug"]
+		byValue: ["namespace_id", "name", "slug"]
+		byNilState: ["deleted"]
+	}
+
 	rbac: {
 		operations: {
 			"read": {}
@@ -21,8 +46,6 @@ namespace: schema.#resource & {
 	}
 
 	locale: {
-		resource: references: [ "ID"]
-
 		keys: {
 			name: {}
 			metaSubtitle: {
@@ -31,6 +54,36 @@ namespace: schema.#resource & {
 			metaDescription: {
 				path: ["meta", "description"]
 			}
+		}
+	}
+
+	store: {
+		ident: "composeNamespace"
+
+		settings: {
+			rdbms: {
+				table: "compose_namespace"
+			}
+		}
+
+		api: {
+			lookups: [
+				{
+					fields: ["slug"]
+					constraintCheck: true
+					nullConstraint: ["deleted_at"]
+					description: """
+						searches for namespace by slug (case-insensitive)
+						"""
+				}, {
+					fields: ["id"]
+					description: """
+						searches for compose namespace by ID
+
+						It returns compose namespace even if deleted
+						"""
+				},
+			]
 		}
 	}
 }

@@ -111,6 +111,7 @@ type (
 
 	AuthConfirmedClientFilter struct {
 		UserID uint64
+		Limit  uint
 	}
 )
 

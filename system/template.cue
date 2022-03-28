@@ -4,13 +4,67 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-template: schema.#resource & {
+template: schema.#Resource & {
+	struct: {
+		id:     schema.IdField
+		handle: schema.HandleField
+		language: {goType: "string"}
+		type: {goType: "types.DocumentType"}
+		partial: {goType: "bool"}
+		meta: {goType: "types.TemplateMeta"}
+		template: {goType: "string"}
+
+		owner_id: { ident: "ownerID", goType: "uint64", storeIdent: "rel_owner" }
+		created_at: schema.SortableTimestampField
+		updated_at: schema.SortableTimestampNilField
+		deleted_at: schema.SortableTimestampNilField
+		last_used_at: schema.SortableTimestampNilField
+	}
+
+	filter: {
+		struct: {
+			template_id: {goType: "[]uint64", ident: "templateID", storeIdent: "id"}
+			handle: {goType: "string"}
+			type: {goType: "string"}
+			owner_id: {goType: "uint64", storeIdent: "rel_owner", ident: "ownerID" }
+			partial: {goType: "bool"}
+			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
+		}
+
+		byValue: ["template_id", "handle", "partial", "type", "owner_id"]
+		byNilState: ["deleted"]
+	}
+
 	rbac: {
 		operations: {
 			read: description:   "Read template"
 			update: description: "Update template"
 			delete: description: "Delete template"
 			render: description: "Render template"
+		}
+	}
+
+	store: {
+		api: {
+			lookups: [
+				{
+					fields: ["id"]
+					description: """
+						searches for template by ID
+
+						It also returns deleted templates.
+						"""
+				}, {
+					fields: ["handle"]
+					nullConstraint: ["deleted_at"]
+					constraintCheck: true
+					description: """
+						searches for template by handle
+
+						It returns only valid templates (not deleted)
+						"""
+				},
+			]
 		}
 	}
 }

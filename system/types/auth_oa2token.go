@@ -23,5 +23,6 @@ type (
 
 	AuthOa2tokenFilter struct {
 		UserID uint64
+		Limit  uint
 	}
 )

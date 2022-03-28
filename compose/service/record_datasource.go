@@ -66,11 +66,11 @@ func (svc record) Datasource(ctx context.Context, ld *report.LoadStepDefinition)
 	}
 
 	// Find mod
-	mod, err := svc.store.LookupComposeModuleByID(ctx, moduleID)
+	mod, err := store.LookupComposeModuleByID(ctx, svc.store, moduleID)
 	if err != nil {
 		return nil, err
 	}
-	mod.Fields, _, err = svc.store.SearchComposeModuleFields(ctx, types.ModuleFieldFilter{
+	mod.Fields, _, err = store.SearchComposeModuleFields(ctx, svc.store, types.ModuleFieldFilter{
 		ModuleID: []uint64{mod.ID},
 	})
 	if err != nil {
@@ -141,5 +141,5 @@ func (svc record) Datasource(ctx context.Context, ld *report.LoadStepDefinition)
 		ld.Columns = cols
 	}
 
-	return svc.store.ComposeRecordDatasource(ctx, mod, ld)
+	return store.ComposeRecordDatasource(ctx, svc.store, mod, ld)
 }

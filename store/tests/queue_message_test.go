@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func testQueueMessage(t *testing.T, s store.QueueMessages) {
+func testQueueMessages(t *testing.T, s store.QueueMessages) {
 	var (
 		ctx           = context.Background()
 		foobarMessage = &types.QueueMessage{Payload: []byte(`foobar`), Created: now()}

@@ -5,7 +5,8 @@ import (
 )
 
 DB: schema.#optionsGroup & {
-	handle: "DB"
+	handle: "db"
+	expIdent: "DB"
 	options: {
 		DSN: {
 			defaultValue: "sqlite3://file::memory:?cache=shared&mode=memory"

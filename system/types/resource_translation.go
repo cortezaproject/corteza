@@ -30,11 +30,11 @@ type (
 	}
 
 	ResourceTranslationFilter struct {
-		TranslationID []uint `json:"translationID"`
-		Lang          string `json:"lang"`
-		Resource      string `json:"resource"`
-		ResourceType  string `json:"resourceType"`
-		OwnerID       uint64 `json:"ownerID,string"`
+		TranslationID []uint64 `json:"translationID"`
+		Lang          string   `json:"lang"`
+		Resource      string   `json:"resource"`
+		ResourceType  string   `json:"resourceType"`
+		OwnerID       uint64   `json:"ownerID,string"`
 
 		Deleted filter.State `json:"deleted"`
 

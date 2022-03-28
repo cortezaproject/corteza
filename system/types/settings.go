@@ -32,6 +32,8 @@ type (
 		//
 		// Store then loads additional resources to satisfy the paging parameters
 		Check func(*SettingValue) (bool, error) `json:"-"`
+
+		Limit uint `json:"-"`
 	}
 
 	SettingsKV map[string]types.JSONText

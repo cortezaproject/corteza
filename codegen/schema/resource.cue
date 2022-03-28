@@ -1,6 +1,14 @@
 package schema
 
-#resource: #_base & {
+import (
+	"strings"
+)
+
+#Resource: {
+	#_base
+
+	imports: [...{ import: string }]
+
 	// copy field values from #_base
 	handle: handle, ident: ident, expIdent: expIdent
 
@@ -10,8 +18,39 @@ package schema
 	// Fully qualified resource name
 	fqrn: string | *(platform + "::" + component + ":" + handle)
 
-	// fields: #Fields
+	struct: #Struct
+	filter: {
+		"expIdent": #expIdent | *"\(expIdent)Filter"
+
+		struct: #Struct
+
+		// generate filtering by-nil-state for the specified fields
+		"byNilState": [...string]
+
+		// generate filtering by-false-state for the specified fields
+		"byFalseState": [...string]
+
+		// generate query filter for the specified fields
+		"query": [...string]
+
+		// filter resources by fields (eq)
+		"byValue": [...string]
+	}
 	// operations: #Operations
+
+	features: {
+		// filtering by label
+		labels:   bool | *true
+
+		// support pagination
+		paging:   bool | *true
+
+		// support sorting
+		sorting:   bool | *true
+
+		// support resource check function
+		checkFn:   bool | *true
+	}
 
 	// All parent resources
 	parents: [... #_base & {
@@ -35,64 +74,58 @@ package schema
 		}
 	}
 
-	// List of known keys for resource translation
-	// locale?: {
-	//  [Name=_]: {
-	//   name:   Name & #Handle
-	//   path:   string
-	//   custom: bool | *false
-	//  }
-	// }
+	store?: {
+		// how is this resource represented (prefixed/suffixed functions) in the store
+		"ident": #ident | *ident
+		"identPlural": #ident | *"\(store.ident)s"
+		"expIdent": #expIdent | *strings.ToTitle(store.ident)
+		"expIdentPlural": #expIdent | *"\(store.expIdent)s"
+
+		api?: {
+			lookups: [...{
+				_expFields: [ for f in fields {strings.ToTitle(struct[f].expIdent)}]
+
+				"expIdent":  "Lookup\(store.expIdent)By" + strings.Join(_expFields, "")
+				description: string | *""
+
+				// fields used for the lookup (must exist in the struct)
+				fields: [...string]
+
+				// Skip null constraints
+				nullConstraint: [...string]
+				constraintCheck: bool | *false
+			}]
+
+			functions: [...{
+				expIdent: string
+
+				description: string | *""
+
+				args: [...{ident: #ident, goType: string, spread: bool | *false}]
+				return: [...string]
+			}]
+		}
+
+		settings: {
+			defaultOrder: [...{ field: string, descending: bool | *false }]
+
+			rdbms: {
+				// use resource handle (plural) as RDBMS table name as default
+				table: string | *"\(strings.Replace(handle, "-", "_", -1))s"
+			}
+		}
+	}
 }
 
-//#fields: {
-// // Each field can be
-// [key=_]: #fields | *({name: key} & #field)
-//}
-//
-//#field: {
-// name:   #expIdent
-// unique: bool | *false
-//
-// // Golang type (built-in or other)
-// type: string | *"string"
-//
-// // System fields,
-// system: bool | *false
-//
-// if name =~ "At$" {
-//  type: string | *"*time.Time"
-// }
-//}
+#storeFunction: {
+	expIdent: #expIdent
+	args: [...string]
+	return: [...string]
+}
 
-//#Operations: {
-// [Operation=_]: {operation: Operation} & #Operation
-//}
-
-//#Operation: {
-// name: #ExpIdent
-// description: string
-// can: string | false | *"\(name)"
-//}
-
-//idField: {
-// // Expecting ID field to allways have name ID
-// name:   "ID"
-// unique: true
-//
-// // Service fields,
-// // @todo We might want to have a better name for this
-// // service: true
-//
-// // @todo someday we'll replace this with the "ID" type
-// type: "uint64"
-//}
-//
-//handleField: {
-// // Expecting ID field to allways have name ID
-// name:   "handle"
-// unique: true
-//
-// // @todo someday we'll replace this with the "ID" type
-// type: "string" & #handle
-//}
+#PkgResource: #Resource & {
+	package: {
+		ident: #ident
+		import: string
+	}
+}
