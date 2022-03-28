@@ -30,6 +30,7 @@ type (
 	RecordValueFilter struct {
 		RecordID []uint64
 		Deleted  filter.State `json:"deleted"`
+		Limit    uint
 	}
 )
 

@@ -2,6 +2,10 @@ package tests
 
 import (
 	"context"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/store"
@@ -9,18 +13,15 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/stretchr/testify/require"
-	"strings"
-	"testing"
-	"time"
 )
 
 func testCredentials(t *testing.T, s store.Credentials) {
 	var (
 		ctx = context.Background()
 
-		makeNew = func(nn ...string) *types.Credentials {
+		makeNew = func(nn ...string) *types.Credential {
 			name := strings.Join(nn, "")
-			return &types.Credentials{
+			return &types.Credential{
 				ID:          id.Next(),
 				OwnerID:     id.Next(),
 				Kind:        "test-kind" + name,
@@ -30,38 +31,38 @@ func testCredentials(t *testing.T, s store.Credentials) {
 			}
 		}
 
-		truncAndCreate = func(t *testing.T) (*require.Assertions, *types.Credentials) {
+		truncAndCreate = func(t *testing.T) (*require.Assertions, *types.Credential) {
 			req := require.New(t)
 			req.NoError(s.TruncateCredentials(ctx))
 			credentials := makeNew()
-			req.NoError(s.CreateCredentials(ctx, credentials))
+			req.NoError(s.CreateCredential(ctx, credentials))
 			return req, credentials
 		}
 
-		truncAndFill = func(t *testing.T, l int) (*require.Assertions, types.CredentialsSet) {
+		truncAndFill = func(t *testing.T, l int) (*require.Assertions, types.CredentialSet) {
 			req := require.New(t)
 			req.NoError(s.TruncateCredentials(ctx))
 
-			set := make([]*types.Credentials, l)
+			set := make([]*types.Credential, l)
 
 			for i := 0; i < l; i++ {
 				set[i] = makeNew(string(rand.Bytes(10)))
 			}
 
-			req.NoError(s.CreateCredentials(ctx, set...))
+			req.NoError(s.CreateCredential(ctx, set...))
 			return req, set
 		}
 	)
 
 	t.Run("create", func(t *testing.T) {
 		req := require.New(t)
-		req.NoError(s.CreateCredentials(ctx, makeNew()))
+		req.NoError(s.CreateCredential(ctx, makeNew()))
 	})
 
 	t.Run("lookup by ID", func(t *testing.T) {
 		req, crd := truncAndCreate(t)
 
-		fetched, err := s.LookupCredentialsByID(ctx, crd.ID)
+		fetched, err := s.LookupCredentialByID(ctx, crd.ID)
 		req.NoError(err)
 		req.Equal(crd.ID, fetched.ID)
 		req.NotNil(fetched.CreatedAt)
@@ -72,8 +73,8 @@ func testCredentials(t *testing.T, s store.Credentials) {
 	t.Run("update", func(t *testing.T) {
 		req, crd := truncAndCreate(t)
 		crd.Credentials = "new-credentials"
-		req.NoError(s.UpdateCredentials(ctx, crd))
-		fetched, err := s.LookupCredentialsByID(ctx, crd.ID)
+		req.NoError(s.UpdateCredential(ctx, crd))
+		fetched, err := s.LookupCredentialByID(ctx, crd.ID)
 		req.NoError(err)
 		req.Equal("new-credentials", fetched.Credentials)
 	})
@@ -81,8 +82,8 @@ func testCredentials(t *testing.T, s store.Credentials) {
 	t.Run("update", func(t *testing.T) {
 		req, crd := truncAndCreate(t)
 		crd.Credentials = "new-credentials"
-		req.NoError(s.UpdateCredentials(ctx, crd))
-		fetched, err := s.LookupCredentialsByID(ctx, crd.ID)
+		req.NoError(s.UpdateCredential(ctx, crd))
+		fetched, err := s.LookupCredentialByID(ctx, crd.ID)
 		req.NoError(err)
 		req.Equal("new-credentials", fetched.Credentials)
 	})
@@ -90,16 +91,16 @@ func testCredentials(t *testing.T, s store.Credentials) {
 	t.Run("delete", func(t *testing.T) {
 		t.Run("by credentials", func(t *testing.T) {
 			req, crd := truncAndCreate(t)
-			req.NoError(s.DeleteCredentials(ctx, crd))
-			set, _, err := s.SearchCredentials(ctx, types.CredentialsFilter{OwnerID: crd.OwnerID})
+			req.NoError(s.DeleteCredential(ctx, crd))
+			set, _, err := s.SearchCredentials(ctx, types.CredentialFilter{OwnerID: crd.OwnerID})
 			req.NoError(err)
 			req.Len(set, 0)
 		})
 
 		t.Run("by ID", func(t *testing.T) {
 			req, crd := truncAndCreate(t)
-			req.NoError(s.DeleteCredentialsByID(ctx, crd.ID))
-			set, _, err := s.SearchCredentials(ctx, types.CredentialsFilter{OwnerID: crd.OwnerID})
+			req.NoError(s.DeleteCredentialByID(ctx, crd.ID))
+			set, _, err := s.SearchCredentials(ctx, types.CredentialFilter{OwnerID: crd.OwnerID})
 			req.NoError(err)
 			req.Len(set, 0)
 		})
@@ -109,7 +110,7 @@ func testCredentials(t *testing.T, s store.Credentials) {
 		t.Run("by owner", func(t *testing.T) {
 			req, prefill := truncAndFill(t, 5)
 
-			set, _, err := s.SearchCredentials(ctx, types.CredentialsFilter{OwnerID: prefill[0].OwnerID})
+			set, _, err := s.SearchCredentials(ctx, types.CredentialFilter{OwnerID: prefill[0].OwnerID})
 			req.NoError(err)
 			req.Len(set, 1)
 		})
@@ -117,7 +118,7 @@ func testCredentials(t *testing.T, s store.Credentials) {
 		t.Run("by kind", func(t *testing.T) {
 			req, prefill := truncAndFill(t, 5)
 
-			set, _, err := s.SearchCredentials(ctx, types.CredentialsFilter{Kind: prefill[0].Kind})
+			set, _, err := s.SearchCredentials(ctx, types.CredentialFilter{Kind: prefill[0].Kind})
 			req.NoError(err)
 			req.Len(set, 1)
 		})
@@ -130,15 +131,15 @@ func testCredentials(t *testing.T, s store.Credentials) {
 		// 		prefill[0].DeletedAt = &time
 		// 		req.NoError(s.DeleteCredentialsByID(ctx, prefill[0].ID))
 
-		// 		set, _, err := s.SearchCredentials(ctx, types.CredentialsFilter{Deleted: filter.StateExcluded})
+		// 		set, _, err := s.SearchCredentials(ctx, types.CredentialFilter{Deleted: filter.StateExcluded})
 		// 		req.NoError(err)
 		// 		req.Len(set, 4)
 
-		// 		set, _, err = s.SearchCredentials(ctx, types.CredentialsFilter{Deleted: filter.StateInclusive})
+		// 		set, _, err = s.SearchCredentials(ctx, types.CredentialFilter{Deleted: filter.StateInclusive})
 		// 		req.NoError(err)
 		// 		req.Len(set, 5)
 
-		// 		set, _, err = s.SearchCredentials(ctx, types.CredentialsFilter{Deleted: filter.StateExclusive})
+		// 		set, _, err = s.SearchCredentials(ctx, types.CredentialFilter{Deleted: filter.StateExclusive})
 		// 		req.NoError(err)
 		// 		req.Len(set, 1)
 		// 	})

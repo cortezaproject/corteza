@@ -56,12 +56,12 @@ func migratePre202109Roles(ctx context.Context, log *zap.Logger, s store.Storer)
 		}
 
 		// transfer all rbac rules
-		if err = s.TransferRoleMembers(ctx, obsoleteAdminsID, m["admins"].ID); err != nil {
+		if err = store.TransferRoleMembers(ctx, s, obsoleteAdminsID, m["admins"].ID); err != nil {
 			return
 		}
 
 		// transfer all rbac rules
-		if err = s.TransferRbacRules(ctx, obsoleteAdminsID, m["admins"].ID); err != nil {
+		if err = store.TransferRbacRules(ctx, s, obsoleteAdminsID, m["admins"].ID); err != nil {
 			return
 		}
 	}

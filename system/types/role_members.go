@@ -9,5 +9,6 @@ type (
 	RoleMemberFilter struct {
 		RoleID uint64
 		UserID uint64
+		Limit  uint
 	}
 )

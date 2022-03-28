@@ -167,6 +167,11 @@ func (meta *UserMeta) Scan(value interface{}) error {
 			return errors.Wrapf(err, "cannot scan '%v' into User.Meta", value)
 		}
 		return nil
+	case string:
+		if err := json.Unmarshal([]byte(value.(string)), meta); err != nil {
+			return errors.Wrapf(err, "cannot scan '%v' into User.Meta", value)
+		}
+		return nil
 	}
 	return errors.Errorf("User.Meta: unknown type %T, expected []uint8", value)
 }

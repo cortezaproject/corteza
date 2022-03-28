@@ -9,8 +9,10 @@ component: schema.#component & {
 
 	resources: {
 		"node":           node
+		"node-sync":      nodeSync
 		"exposed-module": exposedModule
 		"shared-module":  sharedModule
+		"module-mapping": moduleMapping
 	}
 
 	rbac: operations: {

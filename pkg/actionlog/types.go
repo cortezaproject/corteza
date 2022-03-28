@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/pkg/errors"
 )
 
@@ -67,6 +68,9 @@ type (
 		Resource string   `json:"resource"`
 		Action   string   `json:"action"`
 		Limit    uint     `json:"limit"`
+
+		// Standard helpers for sorting
+		filter.Sorting
 	}
 
 	loggableMetaValue interface {

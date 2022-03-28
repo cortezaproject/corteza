@@ -4,14 +4,69 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-exposedModule: schema.#resource & {
+exposedModule: schema.#Resource & {
 	parents: [
 		{handle: "node"},
 	]
 
+	features: {
+		labels: false
+	}
+
+	struct: {
+		id:          schema.IdField
+		handle:      schema.HandleField
+		name: {}
+		node_id: { ident: "nodeID", goType: "uint64" }
+		compose_module_id: { ident: "composeModuleID", goType: "uint64" }
+		compose_namespace_id: { ident: "composeNamespaceID", goType: "uint64" }
+		fields: { goType: "types.ModuleFieldSet" }
+
+		created_at: schema.SortableTimestampField
+		updated_at: schema.SortableTimestampNilField
+		deleted_at: schema.SortableTimestampNilField
+		created_by: { goType: "uint64" }
+		updated_by: { goType: "uint64" }
+		deleted_by: { goType: "uint64" }
+	}
+
+	filter: {
+		struct: {
+			node_id:              { goType: "uint64", ident: "nodeID",             storeIdent: "rel_node" }
+			compose_module_id:    { goType: "uint64", ident: "composeModuleID",    storeIdent: "rel_compose_module" }
+			compose_namespace_id: { goType: "uint64", ident: "composeNamespaceID", storeIdent: "rel_compose_namespace" }
+		}
+
+		byValue: ["compose_module_id", "compose_namespace_id", "node_id"]
+	}
+
+
 	rbac: {
 		operations: {
 			"manage": description: "Manage exposed module module"
+		}
+	}
+
+	store: {
+		ident: "federationExposedModule"
+
+		settings: {
+			rdbms: {
+				table: "federation_exposed_module"
+			}
+		}
+
+		api: {
+			lookups: [
+				{
+					fields: ["id"]
+					description: """
+						searches for federation module by ID
+
+						It returns federation module
+						"""
+				}
+			]
 		}
 	}
 }

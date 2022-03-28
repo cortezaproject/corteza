@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func testActionlog(t *testing.T, s store.Actionlogs) {
+func testActionlogs(t *testing.T, s store.Actionlogs) {
 	var (
 		ctx = context.Background()
 

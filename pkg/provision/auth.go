@@ -33,10 +33,10 @@ func emailSettings(ctx context.Context, s store.Storer) error {
 
 	return s.Tx(ctx, func(ctx context.Context, s store.Storer) error {
 		return ss.Walk(func(setting *types.SettingValue) error {
-			_, err := store.LookupSettingByNameOwnedBy(ctx, s, setting.Name, 0)
+			_, err := store.LookupSettingValueByNameOwnedBy(ctx, s, setting.Name, 0)
 			if errors.IsNotFound(err) {
 				setting.UpdatedAt = *now()
-				return store.CreateSetting(ctx, s, setting)
+				return store.CreateSettingValue(ctx, s, setting)
 			}
 
 			return err

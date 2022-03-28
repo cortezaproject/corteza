@@ -8,12 +8,14 @@ component: schema.#component & {
 	handle: "compose"
 
 	resources: {
-		"chart":        chart
-		"module":       module
-		"module-field": moduleField
-		"namespace":    namespace
-		"page":         page
-		"record":       record
+		"attachment":          attachment
+		"chart":               chart
+		"module":              module
+		"module-field":        moduleField
+		"namespace":           namespace
+		"page":                page
+		"record":              record
+		"record-value":        recordValue
 	}
 
 	rbac: operations: {
@@ -24,3 +26,4 @@ component: schema.#component & {
 		"resource-translations.manage": description: "List, search, create, or update resource translations"
 	}
 }
+

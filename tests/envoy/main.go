@@ -22,7 +22,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/provision"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/store/sqlite3"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers/sqlite"
 	stypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -95,25 +95,25 @@ func encode(ctx context.Context, s store.Storer, nn []resource.Interface) error 
 
 func truncateStore(ctx context.Context, s store.Storer, t *testing.T) {
 	err := collect(
-		s.TruncateComposeNamespaces(ctx),
-		s.TruncateComposeModules(ctx),
-		s.TruncateComposeModuleFields(ctx),
-		s.TruncateComposeRecords(ctx, nil),
-		s.TruncateComposePages(ctx),
-		s.TruncateComposeCharts(ctx),
+		store.TruncateComposeNamespaces(ctx, s),
+		store.TruncateComposeModules(ctx, s),
+		store.TruncateComposeModuleFields(ctx, s),
+		store.TruncateComposeRecords(ctx, s, nil),
+		store.TruncateComposePages(ctx, s),
+		store.TruncateComposeCharts(ctx, s),
 
-		s.TruncateRoles(ctx),
-		s.TruncateUsers(ctx),
-		s.TruncateTemplates(ctx),
-		s.TruncateApplications(ctx),
-		s.TruncateApigwRoutes(ctx),
-		s.TruncateApigwFilters(ctx),
-		s.TruncateReports(ctx),
-		s.TruncateSettings(ctx),
-		s.TruncateRbacRules(ctx),
+		store.TruncateRoles(ctx, s),
+		store.TruncateUsers(ctx, s),
+		store.TruncateTemplates(ctx, s),
+		store.TruncateApplications(ctx, s),
+		store.TruncateApigwRoutes(ctx, s),
+		store.TruncateApigwFilters(ctx, s),
+		store.TruncateReports(ctx, s),
+		store.TruncateSettingValues(ctx, s),
+		store.TruncateRbacRules(ctx, s),
 
-		s.TruncateAutomationWorkflows(ctx),
-		s.TruncateAutomationTriggers(ctx),
+		store.TruncateAutomationWorkflows(ctx, s),
+		store.TruncateAutomationTriggers(ctx, s),
 	)
 	if err != nil {
 		t.Fatal(err.Error())
@@ -130,7 +130,7 @@ func initServices(ctx context.Context, t *testing.T) store.Storer {
 			err error
 		)
 
-		s, err = sqlite3.ConnectInMemoryWithDebug(ctx)
+		s, err = sqlite.ConnectInMemoryWithDebug(ctx)
 		if err != nil {
 			t.Fatalf("failed to init sqlite in-memory db: %v", err)
 		}

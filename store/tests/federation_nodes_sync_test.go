@@ -6,6 +6,6 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 )
 
-func testFederationNodesSync(t *testing.T, s store.FederationNodesSyncs) {
-	// @todo
+func testFederationNodeSyncs(t *testing.T, s store.FederationNodeSyncs) {
+	t.Skip("@todo")
 }

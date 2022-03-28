@@ -20,7 +20,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/store/sqlite3"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	"github.com/go-chi/chi/v5"
@@ -67,7 +66,7 @@ func InitTestApp() {
 		ctx := cli.Context()
 
 		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
-			service.DefaultStore, err = sqlite3.ConnectInMemory(ctx)
+			service.DefaultStore, err = sqlite.ConnectInMemory(ctx)
 			if err != nil {
 				return err
 			}

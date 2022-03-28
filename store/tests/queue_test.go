@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func testQueue(t *testing.T, s store.Queues) {
+func testQueues(t *testing.T, s store.Queues) {
 	var (
 		ctx = context.Background()
 		new = &types.Queue{
