@@ -3,12 +3,13 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"time"
+
 	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/jmoiron/sqlx/types"
-	"time"
 )
 
 type (
@@ -38,8 +39,6 @@ type (
 	ResourceActivityFilter struct {
 		FromTimestamp *time.Time `json:"from"`
 		ToTimestamp   *time.Time `json:"to"`
-
-		Limit uint `json:"limit"`
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the activity and return false if store should not return it

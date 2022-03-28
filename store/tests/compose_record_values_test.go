@@ -1,8 +1,9 @@
 package tests
 
 import (
-	"github.com/cortezaproject/corteza-server/store"
 	"testing"
+
+	"github.com/cortezaproject/corteza-server/store"
 )
 
 func testComposeRecordValues(t *testing.T, s store.ComposeRecordValues) {

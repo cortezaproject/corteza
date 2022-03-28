@@ -3,12 +3,13 @@ package discovery
 import (
 	"context"
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/discovery/types"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/options"
-	"sync"
-	"time"
 
 	"go.uber.org/zap"
 )
@@ -28,7 +29,7 @@ type (
 	}
 
 	resourceActivityLogStore interface {
-		CreateResourceActivityLog(ctx context.Context, rr ...*types.ResourceActivity) error
+		CreateResourceActivity(ctx context.Context, rr ...*types.ResourceActivity) error
 	}
 
 	eventbusRegistry interface {
@@ -96,7 +97,7 @@ func (svc *service) InitResourceActivityLog(ctx context.Context, resourceType []
 					return err
 				}
 
-				err = svc.store.CreateResourceActivityLog(ctx, a)
+				err = svc.store.CreateResourceActivity(ctx, a)
 				if err != nil {
 					svc.logger.With(zap.Error(err)).Error("could not record activity event")
 					return err
@@ -130,7 +131,7 @@ func (svc *service) Record(ctx context.Context, a *types.ResourceActivity) {
 	// discovery to fail...
 	ctx = context.Background()
 
-	if err := svc.store.CreateResourceActivityLog(ctx, a); err != nil {
+	if err := svc.store.CreateResourceActivity(ctx, a); err != nil {
 		svc.logger.With(zap.Error(err)).Error("could not record activity event")
 	}
 }

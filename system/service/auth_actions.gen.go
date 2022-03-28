@@ -23,7 +23,7 @@ type (
 	authActionProps struct {
 		email       string
 		provider    string
-		credentials *types.Credentials
+		credentials *types.Credential
 		role        *types.Role
 		user        *types.User
 	}
@@ -81,7 +81,7 @@ func (p *authActionProps) setProvider(provider string) *authActionProps {
 //
 // This function is auto-generated.
 //
-func (p *authActionProps) setCredentials(credentials *types.Credentials) *authActionProps {
+func (p *authActionProps) setCredentials(credentials *types.Credential) *authActionProps {
 	p.credentials = credentials
 	return p
 }

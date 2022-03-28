@@ -4,11 +4,47 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-moduleField: schema.#resource & {
+moduleField: schema.#Resource & {
 	parents: [
 		{handle: "namespace"},
 		{handle: "module"},
 	]
+
+	struct: {
+		id: schema.IdField
+		namespace_id: { ident: "namespaceID", goType: "uint64", store: false }
+		module_id: { ident: "moduleID", goType: "uint64", storeIdent: "rel_module" }
+		place: { goType: "int" }
+		kind: { goType: "string" }
+		name: {}
+		label: {}
+		options: { goType: "types.ModuleFieldOptions" }
+		private: { goType: "bool", storeIdent: "is_private" }
+		required: { goType: "bool", storeIdent: "is_required" }
+		visible: { goType: "bool", storeIdent: "is_visible" }
+		multi: { goType: "bool", storeIdent: "is_multi" }
+		default_value: { goType: "types.RecordValueSet" }
+		expressions: { goType: "types.ModuleFieldExpr" }
+		created_at: { goType: "time.Time" }
+		updated_at: { goType: "*time.Time" }
+		deleted_at: { goType: "*time.Time" }
+	}
+
+	filter: {
+		struct: {
+			module_id: { goType: "[]uint64" }
+			deleted: { goType: "filter.State", storeIdent: "deleted_at" }
+		}
+
+		byNilState: ["deleted"]
+	}
+
+	features: {
+		labels: false
+		paging: false
+		sorting: false
+		checkFn: false
+	}
 
 	rbac: {
 		operations: {
@@ -50,6 +86,29 @@ moduleField: schema.#resource & {
 				path: ["meta", "bool", {part: "value", var: true}, "label"]
 				customHandler: true
 			}
+		}
+	}
+
+	store: {
+		ident: "composeModuleField"
+
+		settings: {
+			rdbms: {
+				table: "compose_module_field"
+			}
+		}
+
+		api: {
+			lookups: [
+				{
+					fields: ["module_id", "name"]
+					constraintCheck: true
+					nullConstraint: ["deleted_at"]
+					description: """
+						searches for compose module field by name (case-insensitive)
+						"""
+				},
+			]
 		}
 	}
 }

@@ -13,7 +13,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/store/sqlite3"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers/sqlite"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -163,7 +163,7 @@ func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 		// uncomment to enable sql conn debugging
 		//ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
 		ctx    = context.Background()
-		s, err = sqlite3.ConnectInMemoryWithDebug(ctx)
+		s, err = sqlite.ConnectInMemoryWithDebug(ctx)
 	)
 
 	req.NoError(err)
@@ -304,7 +304,7 @@ func TestRecord_defValueFieldPermissionIssue(t *testing.T) {
 	var (
 		req    = require.New(t)
 		ctx    = context.Background()
-		s, err = sqlite3.ConnectInMemoryWithDebug(ctx)
+		s, err = sqlite.ConnectInMemoryWithDebug(ctx)
 	)
 
 	t.Log("setting up the test environment")
@@ -445,7 +445,7 @@ func TestRecord_refAccessControl(t *testing.T) {
 		// uncomment to enable sql conn debugging
 		//ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
 		ctx    = context.Background()
-		s, err = sqlite3.ConnectInMemoryWithDebug(ctx)
+		s, err = sqlite.ConnectInMemoryWithDebug(ctx)
 	)
 
 	req.NoError(err)
@@ -608,7 +608,7 @@ func TestRecord_searchAccessControl(t *testing.T) {
 		// uncomment to enable sql conn debugging
 		//ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
 		ctx    = context.Background()
-		s, err = sqlite3.ConnectInMemoryWithDebug(ctx)
+		s, err = sqlite.ConnectInMemoryWithDebug(ctx)
 	)
 
 	req.NoError(err)
@@ -708,7 +708,7 @@ func TestRecord_contextualRolesAccessControl(t *testing.T) {
 		// uncomment to enable sql conn debugging
 		ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
 		//ctx    = context.Background()
-		s, err = sqlite3.ConnectInMemoryWithDebug(ctx)
+		s, err = sqlite.ConnectInMemoryWithDebug(ctx)
 	)
 
 	req.NoError(err)

@@ -5,7 +5,7 @@ import (
 )
 
 waitFor: schema.#optionsGroup & {
-	handle: "waitFor"
+	handle: "wait-for"
 
 	imports: [
 		"\"time\"",

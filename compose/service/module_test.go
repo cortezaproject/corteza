@@ -9,7 +9,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/store/sqlite3"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers/sqlite"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
@@ -17,10 +17,10 @@ import (
 func TestModules(t *testing.T) {
 	var (
 		ctx    = context.Background()
-		s, err = sqlite3.ConnectInMemory(ctx)
+		s, err = sqlite.ConnectInMemory(ctx)
 
 		// ctx    = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
-		// s, err = sqlite3.ConnectInMemoryWithDebug(ctx)
+		// s, err = sqlite.ConnectInMemoryWithDebug(ctx)
 
 		namespaceID = nextID()
 		ns          *types.Namespace

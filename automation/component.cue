@@ -9,6 +9,8 @@ component: schema.#component & {
 
 	resources: {
 		"workflow": workflow
+		"session":  session
+		"trigger":  trigger
 	}
 
 	rbac: operations: {

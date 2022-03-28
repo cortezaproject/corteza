@@ -12,7 +12,7 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 
 	// Explicitly register SQLite (not done in the app as for testing only)
-	_ "github.com/cortezaproject/corteza-server/store/sqlite3"
+	_ "github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers/sqlite"
 )
 
 func NewIntegrationTestApp(ctx context.Context, initTestServices func(*app.CortezaApp) error) *app.CortezaApp {

@@ -47,17 +47,19 @@ func loadTemplates(rTpl *template.Template, rootDir string) (*template.Template,
 func writeFormattedGo(dst string, tpl *template.Template, payload interface{}) error {
 	return write(dst, tpl, payload, func(in io.ReadWriter) (out io.ReadWriter, err error) {
 		var (
-			bb []byte
+			org, bb []byte
 		)
 
-		if bb, err = ioutil.ReadAll(in); err != nil {
+		if org, err = ioutil.ReadAll(in); err != nil {
 			return
 		}
 
-		if bb, err = format.Source(bb); err != nil {
-			// output error and return unformatted source
+		cp := bytes.NewBuffer(org)
+
+		if bb, err = format.Source(cp.Bytes()); err != nil {
+			// output error and return un-formatted source
 			_, _ = fmt.Fprintf(os.Stderr, "%s fmt warn: %v\n", dst, err)
-			return in, err
+			return cp, nil
 		}
 
 		return bytes.NewBuffer(bb), nil

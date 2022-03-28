@@ -39,19 +39,19 @@ func (svc nodeSync) Create(ctx context.Context, new *types.NodeSync) (*types.Nod
 			return NodeSyncErrNodeNotFound()
 		}
 
-		return store.CreateFederationNodesSync(ctx, s, new)
+		return store.CreateFederationNodeSync(ctx, s, new)
 	})
 
 	return new, svc.recordAction(ctx, aProps, NodeSyncActionCreate, err)
 }
 
 func (svc nodeSync) Search(ctx context.Context, f types.NodeSyncFilter) (types.NodeSyncSet, types.NodeSyncFilter, error) {
-	return store.SearchFederationNodesSyncs(ctx, svc.store, f)
+	return store.SearchFederationNodeSyncs(ctx, svc.store, f)
 }
 
 func (svc nodeSync) LookupLastSuccessfulSync(ctx context.Context, nodeID uint64, syncType string) (ns *types.NodeSync, err error) {
-	// todo - filter by synctype does not work
-	s, _, err := store.SearchFederationNodesSyncs(ctx, svc.store, types.NodeSyncFilter{
+	// todo - filter by sync-type does not work
+	s, _, err := store.SearchFederationNodeSyncs(ctx, svc.store, types.NodeSyncFilter{
 		NodeID:     nodeID,
 		SyncType:   syncType,
 		SyncStatus: types.NodeSyncStatusSuccess,

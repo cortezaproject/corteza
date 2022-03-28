@@ -17,5 +17,6 @@ type (
 
 	AuthSessionFilter struct {
 		UserID uint64
+		Limit  uint
 	}
 )

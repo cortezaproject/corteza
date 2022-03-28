@@ -63,7 +63,7 @@ func migrateEmailTemplates(ctx context.Context, log *zap.Logger, s store.Storer)
 
 	return store.Tx(ctx, s, func(ctx context.Context, s store.Storer) error {
 		for name, tmpl := range m {
-			sval, err := store.LookupSettingByNameOwnedBy(ctx, s, name, 0)
+			sval, err := store.LookupSettingValueByNameOwnedBy(ctx, s, name, 0)
 			if errors.IsNotFound(err) {
 				// setting not found, that's ok, see the next one
 				continue
@@ -97,7 +97,7 @@ func migrateEmailTemplates(ctx context.Context, log *zap.Logger, s store.Storer)
 
 		// Go over all settings again and remove them
 		for name := range m {
-			if err := store.DeleteSettingByNameOwnedBy(ctx, s, name, 0); err != nil {
+			if err := store.DeleteSettingValueByNameOwnedBy(ctx, s, name, 0); err != nil {
 				return err
 			}
 		}

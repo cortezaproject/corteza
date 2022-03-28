@@ -11,20 +11,20 @@ discovery: schema.#optionsGroup & {
 			type:          "bool"
 			defaultGoExpr: "false"
 			description:   "Enable discovery endpoints"
-		},
+		}
 		debug: {
 			type:          "bool"
 			defaultGoExpr: "false"
 			description:   "Enable discovery related activity info"
-		},
+		}
 		corteza_domain: {
-			type:          "string"
-			description:   "Indicates host of corteza compose webapp"
-		},
- 		base_url: {
-			type:          "string"
-			description:   "Indicates host of corteza discovery server"
-		},
+			type:        "string"
+			description: "Indicates host of corteza compose webapp"
+		}
+		base_url: {
+			type:        "string"
+			description: "Indicates host of corteza discovery server"
+		}
 
 	}
 	title: "Discovery"

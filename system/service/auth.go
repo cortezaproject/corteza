@@ -145,12 +145,12 @@ func (svc auth) External(ctx context.Context, profile types.ExternalAuthUser) (u
 		}
 
 		var (
-			cc types.CredentialsSet
-			f  = types.CredentialsFilter{Kind: profile.Provider, Credentials: profile.UserID}
+			cc types.CredentialSet
+			f  = types.CredentialFilter{Kind: profile.Provider, Credentials: profile.UserID}
 		)
 
 		if cc, _, err = store.SearchCredentials(ctx, svc.store, f); err == nil {
-			// Credentials found, load user
+			// Credential found, load user
 			for _, c := range cc {
 				if !c.Valid() {
 					continue
@@ -163,7 +163,7 @@ func (svc auth) External(ctx context.Context, profile types.ExternalAuthUser) (u
 					if errors.IsNotFound(err) {
 						// Orphaned credentials (no owner)
 						// try to auto-fix this by removing credentials and recreating user
-						if err = store.DeleteCredentialsByID(ctx, svc.store, c.ID); err != nil {
+						if err = store.DeleteCredentialByID(ctx, svc.store, c.ID); err != nil {
 							return
 						} else {
 							goto findByEmail
@@ -277,7 +277,7 @@ func (svc auth) External(ctx context.Context, profile types.ExternalAuthUser) (u
 
 		// If we got to this point, assume that user is authenticated
 		// but credentials need to be stored
-		c := &types.Credentials{
+		c := &types.Credential{
 			ID:          nextID(),
 			CreatedAt:   *now(),
 			Kind:        profile.Provider,
@@ -286,7 +286,7 @@ func (svc auth) External(ctx context.Context, profile types.ExternalAuthUser) (u
 			LastUsedAt:  now(),
 		}
 
-		if err = store.CreateCredentials(ctx, svc.store, c); err != nil {
+		if err = store.CreateCredential(ctx, svc.store, c); err != nil {
 			return err
 		}
 
@@ -318,7 +318,7 @@ func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password 
 
 		aam = &authActionProps{
 			email:       input.Email,
-			credentials: &types.Credentials{Kind: credentialsTypePassword},
+			credentials: &types.Credential{Kind: credentialsTypePassword},
 		}
 	)
 
@@ -344,9 +344,9 @@ func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password 
 
 		if err == nil && eUser != nil {
 			var (
-				c  *types.Credentials
-				cc types.CredentialsSet
-				f  = types.CredentialsFilter{OwnerID: eUser.ID, Kind: credentialsTypePassword}
+				c  *types.Credential
+				cc types.CredentialSet
+				f  = types.CredentialFilter{OwnerID: eUser.ID, Kind: credentialsTypePassword}
 			)
 			if cc, _, err = store.SearchCredentials(ctx, svc.store, f); err != nil {
 				return err
@@ -455,7 +455,7 @@ func (svc auth) InternalLogin(ctx context.Context, email string, password string
 
 		aam = &authActionProps{
 			email:       email,
-			credentials: &types.Credentials{Kind: credentialsTypePassword},
+			credentials: &types.Credential{Kind: credentialsTypePassword},
 			user:        u,
 		}
 	)
@@ -474,7 +474,7 @@ func (svc auth) InternalLogin(ctx context.Context, email string, password string
 		}
 
 		var (
-			cc types.CredentialsSet
+			cc types.CredentialSet
 		)
 
 		u, err = store.LookupUserByEmail(ctx, svc.store, email)
@@ -486,7 +486,7 @@ func (svc auth) InternalLogin(ctx context.Context, email string, password string
 
 		// Update audit meta with found user
 		ctx = internalAuth.SetIdentityToContext(ctx, u)
-		cc, _, err = store.SearchCredentials(ctx, svc.store, types.CredentialsFilter{OwnerID: u.ID, Kind: credentialsTypePassword})
+		cc, _, err = store.SearchCredentials(ctx, svc.store, types.CredentialFilter{OwnerID: u.ID, Kind: credentialsTypePassword})
 		if err != nil {
 			return err
 		}
@@ -506,7 +506,7 @@ func (svc auth) InternalLogin(ctx context.Context, email string, password string
 }
 
 // checkPassword returns true if given (encrypted) password matches any of the credentials
-func (svc auth) checkPassword(password string, cc types.CredentialsSet) bool {
+func (svc auth) checkPassword(password string, cc types.CredentialSet) bool {
 	return cc.CompareHashAndPassword(password) != nil
 }
 
@@ -519,7 +519,7 @@ func (svc auth) SetPassword(ctx context.Context, userID uint64, password string)
 
 		aam = &authActionProps{
 			user:        u,
-			credentials: &types.Credentials{Kind: credentialsTypePassword},
+			credentials: &types.Credential{Kind: credentialsTypePassword},
 		}
 	)
 
@@ -577,11 +577,11 @@ func (svc auth) Impersonate(ctx context.Context, userID uint64) (u *types.User, 
 func (svc auth) ChangePassword(ctx context.Context, userID uint64, oldPassword, newPassword string) (err error) {
 	var (
 		u  *types.User
-		cc types.CredentialsSet
+		cc types.CredentialSet
 
 		aam = &authActionProps{
 			user:        u,
-			credentials: &types.Credentials{Kind: credentialsTypePassword},
+			credentials: &types.Credential{Kind: credentialsTypePassword},
 		}
 	)
 
@@ -606,7 +606,7 @@ func (svc auth) ChangePassword(ctx context.Context, userID uint64, oldPassword, 
 		aam.setUser(u)
 		ctx = internalAuth.SetIdentityToContext(ctx, u)
 
-		cc, _, err = store.SearchCredentials(ctx, svc.store, types.CredentialsFilter{Kind: credentialsTypePassword, OwnerID: userID})
+		cc, _, err = store.SearchCredentials(ctx, svc.store, types.CredentialFilter{Kind: credentialsTypePassword, OwnerID: userID})
 		if err != nil {
 			return err
 		}
@@ -689,7 +689,7 @@ func (svc auth) SetPasswordCredentials(ctx context.Context, userID uint64, passw
 	}
 
 	// Add new credentials with new password
-	c := &types.Credentials{
+	c := &types.Credential{
 		ID:          nextID(),
 		CreatedAt:   *now(),
 		OwnerID:     userID,
@@ -697,7 +697,7 @@ func (svc auth) SetPasswordCredentials(ctx context.Context, userID uint64, passw
 		Credentials: string(hash),
 	}
 
-	return store.CreateCredentials(ctx, svc.store, c)
+	return store.CreateCredential(ctx, svc.store, c)
 }
 
 // RemovePasswordCredentials (soft) deletes old password entry
@@ -709,8 +709,8 @@ func (svc auth) RemovePasswordCredentials(ctx context.Context, userID uint64) (e
 // RemovePasswordCredentials (soft) deletes old password entry
 func (svc auth) removePasswordCredentials(ctx context.Context, userID uint64) (err error) {
 	var (
-		cc types.CredentialsSet
-		f  = types.CredentialsFilter{Kind: credentialsTypePassword, OwnerID: userID}
+		cc types.CredentialSet
+		f  = types.CredentialFilter{Kind: credentialsTypePassword, OwnerID: userID}
 	)
 
 	if cc, _, err = store.SearchCredentials(ctx, svc.store, f); err != nil {
@@ -718,13 +718,13 @@ func (svc auth) removePasswordCredentials(ctx context.Context, userID uint64) (e
 	}
 
 	// Mark all credentials as deleted
-	_ = cc.Walk(func(c *types.Credentials) error {
+	_ = cc.Walk(func(c *types.Credential) error {
 		c.DeletedAt = now()
 		return nil
 	})
 
 	// Do a partial update and soft-delete all
-	return store.UpdateCredentials(ctx, svc.store, cc...)
+	return store.UpdateCredential(ctx, svc.store, cc...)
 }
 
 // ValidateEmailConfirmationToken issues a validation token that can be used for
@@ -752,7 +752,7 @@ func (svc *auth) PasswordSet(ctx context.Context, email string) (is bool) {
 		return
 	}
 
-	cc, _, err := store.SearchCredentials(ctx, svc.store, types.CredentialsFilter{
+	cc, _, err := store.SearchCredentials(ctx, svc.store, types.CredentialFilter{
 		OwnerID: u.ID,
 		Kind:    credentialsTypePassword,
 	})
@@ -772,7 +772,7 @@ func (svc auth) loadFromTokenAndConfirmEmail(ctx context.Context, token, tokenTy
 	var (
 		aam = &authActionProps{
 			user:        u,
-			credentials: &types.Credentials{Kind: tokenType},
+			credentials: &types.Credential{Kind: tokenType},
 		}
 	)
 
@@ -814,7 +814,7 @@ func (svc auth) ExchangePasswordResetToken(ctx context.Context, token string) (u
 	var (
 		aam = &authActionProps{
 			user:        u,
-			credentials: &types.Credentials{Kind: credentialsTypeResetPasswordToken},
+			credentials: &types.Credential{Kind: credentialsTypeResetPasswordToken},
 		}
 	)
 
@@ -850,7 +850,7 @@ func (svc auth) SendEmailAddressConfirmationToken(ctx context.Context, u *types.
 
 		aam = &authActionProps{
 			user:        u,
-			credentials: &types.Credentials{Kind: credentialsTypeEmailAuthToken},
+			credentials: &types.Credential{Kind: credentialsTypeEmailAuthToken},
 		}
 	)
 
@@ -948,7 +948,7 @@ func (svc auth) sendPasswordCreateToken(ctx context.Context, u *types.User) (url
 }
 
 // procLogin fn performs standard validation, credentials-update tasks and triggers events
-func (svc auth) procLogin(ctx context.Context, s store.Storer, u *types.User, c *types.Credentials, p *types.AuthProvider) (err error) {
+func (svc auth) procLogin(ctx context.Context, s store.Storer, u *types.User, c *types.Credential, p *types.AuthProvider) (err error) {
 	if err = svc.eventbus.WaitFor(ctx, event.AuthBeforeLogin(u, p)); err != nil {
 		return err
 	}
@@ -1005,7 +1005,7 @@ func (svc auth) procLogin(ctx context.Context, s store.Storer, u *types.User, c 
 
 	if c != nil {
 		c.LastUsedAt = now()
-		if err = store.UpdateCredentials(ctx, s, c); err != nil {
+		if err = store.UpdateCredential(ctx, s, c); err != nil {
 			return err
 		}
 	}
@@ -1018,7 +1018,7 @@ func (svc auth) procLogin(ctx context.Context, s store.Storer, u *types.User, c 
 func (svc auth) loadUserFromToken(ctx context.Context, token, kind string) (u *types.User, _ error) {
 	var (
 		aam = &authActionProps{
-			credentials: &types.Credentials{Kind: kind},
+			credentials: &types.Credential{Kind: kind},
 		}
 	)
 
@@ -1028,7 +1028,7 @@ func (svc auth) loadUserFromToken(ctx context.Context, token, kind string) (u *t
 			return AuthErrInvalidToken(aam)
 		}
 
-		c, err := store.LookupCredentialsByID(ctx, s, credentialsID)
+		c, err := store.LookupCredentialByID(ctx, s, credentialsID)
 		if errors.IsNotFound(err) {
 			return AuthErrInvalidToken(aam)
 		}
@@ -1039,7 +1039,7 @@ func (svc auth) loadUserFromToken(ctx context.Context, token, kind string) (u *t
 			return
 		}
 
-		if err = store.DeleteCredentialsByID(ctx, s, c.ID); err != nil {
+		if err = store.DeleteCredentialByID(ctx, s, c.ID); err != nil {
 			return
 		}
 
@@ -1072,7 +1072,7 @@ func (svc auth) createUserToken(ctx context.Context, u *types.User, kind string)
 		expiresAt time.Time
 		aam       = &authActionProps{
 			user:        u,
-			credentials: &types.Credentials{Kind: kind},
+			credentials: &types.Credential{Kind: kind},
 		}
 	)
 
@@ -1082,7 +1082,7 @@ func (svc auth) createUserToken(ctx context.Context, u *types.User, kind string)
 		}
 
 		// Rate limit requests
-		cc, _, err := store.SearchCredentials(ctx, s, types.CredentialsFilter{
+		cc, _, err := store.SearchCredentials(ctx, s, types.CredentialFilter{
 			OwnerID: u.ID,
 			Kind:    kind,
 
@@ -1132,7 +1132,7 @@ func (svc auth) createUserToken(ctx context.Context, u *types.User, kind string)
 			token = string(rand.Bytes(credentialsTokenLength))
 		}
 
-		c := &types.Credentials{
+		c := &types.Credential{
 			ID:          nextID(),
 			CreatedAt:   *now(),
 			OwnerID:     u.ID,
@@ -1141,7 +1141,7 @@ func (svc auth) createUserToken(ctx context.Context, u *types.User, kind string)
 			ExpiresAt:   &expiresAt,
 		}
 
-		err = store.CreateCredentials(ctx, s, c)
+		err = store.CreateCredential(ctx, s, c)
 
 		if err != nil {
 			return err
@@ -1163,7 +1163,7 @@ func (svc auth) createUserToken(ctx context.Context, u *types.User, kind string)
 }
 
 // checks existing tokens and ensure that the creation rate is within limits
-func (svc auth) checkTokenRate(cc types.CredentialsSet, window time.Duration, max int) error {
+func (svc auth) checkTokenRate(cc types.CredentialSet, window time.Duration, max int) error {
 	if len(cc) == 0 || window == 0 || max == 0 {
 		return nil
 	}
@@ -1193,10 +1193,9 @@ func (svc auth) checkTokenRate(cc types.CredentialsSet, window time.Duration, ma
 	return nil
 }
 
-func (svc auth) cleanupCredentials(ctx context.Context, s store.Credentials, cc types.CredentialsSet) (err error) {
+func (svc auth) cleanupCredentials(ctx context.Context, s store.Credentials, cc types.CredentialSet) (err error) {
 	var (
-		update types.CredentialsSet
-		remove types.CredentialsSet
+		update, remove types.CredentialSet
 	)
 
 	for _, c := range cc {
@@ -1218,11 +1217,11 @@ func (svc auth) cleanupCredentials(ctx context.Context, s store.Credentials, cc 
 		}
 	}
 
-	if err = store.UpdateCredentials(ctx, s, update...); err != nil {
+	if err = store.UpdateCredential(ctx, s, update...); err != nil {
 		return
 	}
 
-	if err = store.DeleteCredentials(ctx, s, remove...); err != nil {
+	if err = store.DeleteCredential(ctx, s, remove...); err != nil {
 		return
 	}
 
@@ -1261,10 +1260,10 @@ func (svc auth) autoPromote(ctx context.Context, u *types.User) (err error) {
 // Fn fails if no secret is set
 func (svc auth) ValidateTOTP(ctx context.Context, code string) (err error) {
 	var (
-		c    *types.Credentials
+		c    *types.Credential
 		u    *types.User
 		kind = credentialsTypeMfaTotpSecret
-		aam  = &authActionProps{credentials: &types.Credentials{Kind: kind}}
+		aam  = &authActionProps{credentials: &types.Credential{Kind: kind}}
 		i    = internalAuth.GetIdentityFromContext(ctx)
 	)
 
@@ -1290,7 +1289,7 @@ func (svc auth) ValidateTOTP(ctx context.Context, code string) (err error) {
 			return err
 		} else {
 			c.LastUsedAt = now()
-			return store.UpdateCredentials(ctx, s, c)
+			return store.UpdateCredential(ctx, s, c)
 		}
 	})
 
@@ -1303,7 +1302,7 @@ func (svc auth) ValidateTOTP(ctx context.Context, code string) (err error) {
 func (svc auth) ConfigureTOTP(ctx context.Context, secret string, code string) (u *types.User, err error) {
 	var (
 		kind = credentialsTypeMfaTotpSecret
-		aam  = &authActionProps{credentials: &types.Credentials{Kind: kind}}
+		aam  = &authActionProps{credentials: &types.Credential{Kind: kind}}
 		i    = internalAuth.GetIdentityFromContext(ctx)
 	)
 
@@ -1334,7 +1333,7 @@ func (svc auth) ConfigureTOTP(ctx context.Context, secret string, code string) (
 			return err
 		}
 
-		cred := &types.Credentials{
+		cred := &types.Credential{
 			ID:          nextID(),
 			CreatedAt:   *now(),
 			OwnerID:     u.ID,
@@ -1342,7 +1341,7 @@ func (svc auth) ConfigureTOTP(ctx context.Context, secret string, code string) (
 			Credentials: secret,
 		}
 
-		if err = store.CreateCredentials(ctx, s, cred); err != nil {
+		if err = store.CreateCredential(ctx, s, cred); err != nil {
 			return err
 		}
 
@@ -1361,9 +1360,9 @@ func (svc auth) ConfigureTOTP(ctx context.Context, secret string, code string) (
 // It returns the user with security policy changes
 func (svc auth) RemoveTOTP(ctx context.Context, userID uint64, code string) (u *types.User, err error) {
 	var (
-		c    *types.Credentials
+		c    *types.Credential
 		kind = credentialsTypeMfaTotpSecret
-		aam  = &authActionProps{credentials: &types.Credentials{Kind: kind}}
+		aam  = &authActionProps{credentials: &types.Credential{Kind: kind}}
 		i    = internalAuth.GetIdentityFromContext(ctx)
 		self = i != nil && i.Identity() == userID
 	)
@@ -1408,8 +1407,8 @@ func (svc auth) RemoveTOTP(ctx context.Context, userID uint64, code string) (u *
 }
 
 // Searches for all valid TOTP secret credentials
-func (svc auth) getTOTPSecret(ctx context.Context, s store.Credentials, userID uint64) (*types.Credentials, error) {
-	cc, _, err := store.SearchCredentials(ctx, s, types.CredentialsFilter{
+func (svc auth) getTOTPSecret(ctx context.Context, s store.Credentials, userID uint64) (*types.Credential, error) {
+	cc, _, err := store.SearchCredentials(ctx, s, types.CredentialFilter{
 		OwnerID: userID,
 		Kind:    credentialsTypeMfaTotpSecret,
 		Deleted: filter.StateExcluded,
@@ -1451,7 +1450,7 @@ func (auth) validateTOTP(secret string, code string) error {
 // Revokes all existing user's TOTPs
 func (auth) revokeAllTOTP(ctx context.Context, s store.Credentials, userID uint64) error {
 	// revoke (soft-delete) all existing secrets
-	cc, _, err := store.SearchCredentials(ctx, s, types.CredentialsFilter{
+	cc, _, err := store.SearchCredentials(ctx, s, types.CredentialFilter{
 		OwnerID: userID,
 		Kind:    credentialsTypeMfaTotpSecret,
 		Deleted: filter.StateExcluded,
@@ -1461,9 +1460,9 @@ func (auth) revokeAllTOTP(ctx context.Context, s store.Credentials, userID uint6
 		return err
 	}
 
-	return cc.Walk(func(c *types.Credentials) error {
+	return cc.Walk(func(c *types.Credential) error {
 		c.DeletedAt = now()
-		return store.UpdateCredentials(ctx, s, c)
+		return store.UpdateCredential(ctx, s, c)
 	})
 }
 
@@ -1472,7 +1471,7 @@ func (svc auth) SendEmailOTP(ctx context.Context) (err error) {
 		otp  string
 		u    *types.User
 		kind = credentialsTypeMFAEmailOTP
-		aam  = &authActionProps{credentials: &types.Credentials{Kind: kind}}
+		aam  = &authActionProps{credentials: &types.Credential{Kind: kind}}
 		i    = internalAuth.GetIdentityFromContext(ctx)
 	)
 
@@ -1505,7 +1504,7 @@ func (svc auth) SendEmailOTP(ctx context.Context) (err error) {
 func (svc auth) ConfigureEmailOTP(ctx context.Context, userID uint64, enable bool) (u *types.User, err error) {
 	var (
 		kind = credentialsTypeMFAEmailOTP
-		aam  = &authActionProps{credentials: &types.Credentials{Kind: kind}}
+		aam  = &authActionProps{credentials: &types.Credential{Kind: kind}}
 	)
 
 	err = svc.store.Tx(ctx, func(ctx context.Context, s store.Storer) (err error) {
@@ -1534,10 +1533,10 @@ func (svc auth) ConfigureEmailOTP(ctx context.Context, userID uint64, enable boo
 // ValidateEmailOTP issues a validation OTP
 func (svc auth) ValidateEmailOTP(ctx context.Context, code string) (err error) {
 	var (
-		cc   types.CredentialsSet
+		cc   types.CredentialSet
 		u    *types.User
 		kind = credentialsTypeMFAEmailOTP
-		aam  = &authActionProps{credentials: &types.Credentials{Kind: kind}}
+		aam  = &authActionProps{credentials: &types.Credential{Kind: kind}}
 		i    = internalAuth.GetIdentityFromContext(ctx)
 	)
 
@@ -1559,7 +1558,7 @@ func (svc auth) ValidateEmailOTP(ctx context.Context, code string) (err error) {
 			return AuthErrInvalidEmailOTP()
 		}
 
-		cc, _, err = store.SearchCredentials(ctx, s, types.CredentialsFilter{
+		cc, _, err = store.SearchCredentials(ctx, s, types.CredentialFilter{
 			OwnerID: u.ID,
 			Kind:    kind,
 			Deleted: filter.StateExcluded,
@@ -1578,8 +1577,8 @@ func (svc auth) ValidateEmailOTP(ctx context.Context, code string) (err error) {
 				continue
 			}
 
-			// Credentials found, remove it
-			return store.DeleteCredentials(ctx, s, c)
+			// Credential found, remove it
+			return store.DeleteCredential(ctx, s, c)
 		}
 
 		return AuthErrInvalidEmailOTP()

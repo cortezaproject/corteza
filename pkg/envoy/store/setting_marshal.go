@@ -25,7 +25,7 @@ func (n *setting) Prepare(ctx context.Context, pl *payload) (err error) {
 	// Init global state
 	if gSettings == nil {
 		gSettings = make(map[string]bool)
-		ss, _, err := store.SearchSettings(ctx, pl.s, types.SettingsFilter{})
+		ss, _, err := store.SearchSettingValues(ctx, pl.s, types.SettingsFilter{})
 		if err != store.ErrNotFound && err != nil {
 			return err
 		}
@@ -66,7 +66,7 @@ func (n *setting) Encode(ctx context.Context, pl *payload) (err error) {
 	}
 
 	if _, exists := gSettings[res.Name]; !exists {
-		return store.CreateSetting(ctx, pl.s, res)
+		return store.CreateSettingValue(ctx, pl.s, res)
 	}
 
 	// On existing setting, replace/merge right basically overwrites the existing value;
@@ -74,7 +74,7 @@ func (n *setting) Encode(ctx context.Context, pl *payload) (err error) {
 	switch n.cfg.OnExisting {
 	case resource.Replace,
 		resource.MergeRight:
-		return store.UpdateSetting(ctx, pl.s, res)
+		return store.UpdateSettingValue(ctx, pl.s, res)
 	}
 
 	return nil

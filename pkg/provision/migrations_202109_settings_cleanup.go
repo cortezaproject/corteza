@@ -26,7 +26,7 @@ func cleanupPre202109Settings(ctx context.Context, log *zap.Logger, s store.Stor
 	}
 
 	for _, name := range names {
-		if err = store.DeleteSettingByNameOwnedBy(ctx, s, name, 0); err != nil {
+		if err = store.DeleteSettingValueByNameOwnedBy(ctx, s, name, 0); err != nil {
 			return
 		}
 	}

@@ -6,6 +6,6 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 )
 
-func testResourceTranslation(t *testing.T, s store.Reports) {
+func testResourceTranslations(t *testing.T, s store.Reports) {
 	t.Skip("@todo")
 }

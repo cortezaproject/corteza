@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/pkg/discovery/types"
 	"github.com/cortezaproject/corteza-server/store"
 )
@@ -24,7 +25,7 @@ func ResourceActivity() *resourceActivity {
 
 func (svc resourceActivity) Find(ctx context.Context, filter types.ResourceActivityFilter) (aa types.ResourceActivitySet, f types.ResourceActivityFilter, err error) {
 	err = func() error {
-		aa, f, err = store.SearchResourceActivityLogs(ctx, svc.store, filter)
+		aa, f, err = store.SearchResourceActivitys(ctx, svc.store, filter)
 		if err != nil {
 			return err
 		}

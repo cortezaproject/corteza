@@ -208,7 +208,7 @@ func (app *CortezaApp) InitStore(ctx context.Context) (err error) {
 		// @todo refactor this to make more sense and put it where it belongs
 		{
 			var set types.SettingValueSet
-			set, _, err = store.SearchSettings(ctx, app.Store, types.SettingsFilter{Prefix: "auth.external"})
+			set, _, err = store.SearchSettingValues(ctx, app.Store, types.SettingsFilter{Prefix: "auth.external"})
 			if err != nil {
 				return err
 			}
@@ -216,7 +216,7 @@ func (app *CortezaApp) InitStore(ctx context.Context) (err error) {
 			err = set.Walk(func(old *types.SettingValue) error {
 				if strings.HasSuffix(old.Name, ".redirect-url") {
 					// remove obsolete redirect-url
-					if err = store.DeleteSetting(ctx, app.Store, old); err != nil {
+					if err = store.DeleteSettingValue(ctx, app.Store, old); err != nil {
 						return err
 					}
 
@@ -229,13 +229,13 @@ func (app *CortezaApp) InitStore(ctx context.Context) (err error) {
 
 					log.Info("renaming settings", zap.String("old", old.Name), zap.String("new", new.Name))
 
-					if err = store.CreateSetting(ctx, app.Store, &new); err != nil {
+					if err = store.CreateSettingValue(ctx, app.Store, &new); err != nil {
 						if store.ErrNotUnique != err {
 							return err
 						}
 					}
 
-					if err = store.DeleteSetting(ctx, app.Store, old); err != nil {
+					if err = store.DeleteSettingValue(ctx, app.Store, old); err != nil {
 						return err
 					}
 				}
