@@ -16,9 +16,6 @@ github.com/Masterminds/semver
 # github.com/Masterminds/sprig v2.22.0+incompatible
 ## explicit
 github.com/Masterminds/sprig
-# github.com/Masterminds/squirrel v1.5.2
-## explicit; go 1.14
-github.com/Masterminds/squirrel
 # github.com/PaesslerAG/gval v1.1.2
 ## explicit; go 1.15
 github.com/PaesslerAG/gval
@@ -51,7 +48,7 @@ github.com/brianvoe/gofakeit/v6/data
 # github.com/cespare/xxhash/v2 v2.1.2
 ## explicit; go 1.11
 github.com/cespare/xxhash/v2
-# github.com/cortezaproject/corteza-locale v0.0.0-20220322170233-572348fc2ebb
+# github.com/cortezaproject/corteza-locale v0.0.0-20220325122632-efe005772021
 ## explicit; go 1.16
 github.com/cortezaproject/corteza-locale
 # github.com/crewjam/httperr v0.2.0
@@ -82,7 +79,7 @@ github.com/disintegration/imaging
 ## explicit
 github.com/dlclark/regexp2
 github.com/dlclark/regexp2/syntax
-# github.com/dop251/goja v0.0.0-20220214123719-b09a6bfa842f
+# github.com/dop251/goja v0.0.0-20220324112439-a18ffb9c5866
 ## explicit; go 1.14
 github.com/dop251/goja
 github.com/dop251/goja/ast
@@ -92,10 +89,23 @@ github.com/dop251/goja/ftoa/internal/fast
 github.com/dop251/goja/parser
 github.com/dop251/goja/token
 github.com/dop251/goja/unistring
+# github.com/doug-martin/goqu/v9 v9.18.0
+## explicit; go 1.12
+github.com/doug-martin/goqu/v9
+github.com/doug-martin/goqu/v9/dialect/mysql
+github.com/doug-martin/goqu/v9/dialect/postgres
+github.com/doug-martin/goqu/v9/dialect/sqlite3
+github.com/doug-martin/goqu/v9/exec
+github.com/doug-martin/goqu/v9/exp
+github.com/doug-martin/goqu/v9/internal/errors
+github.com/doug-martin/goqu/v9/internal/sb
+github.com/doug-martin/goqu/v9/internal/tag
+github.com/doug-martin/goqu/v9/internal/util
+github.com/doug-martin/goqu/v9/sqlgen
 # github.com/edwvee/exiffix v0.0.0-20210922235313-0f6cbda5e58f
 ## explicit
 github.com/edwvee/exiffix
-# github.com/evanw/esbuild v0.14.27
+# github.com/evanw/esbuild v0.14.28
 ## explicit; go 1.13
 github.com/evanw/esbuild/internal/api_helpers
 github.com/evanw/esbuild/internal/ast
@@ -183,8 +193,8 @@ github.com/goccy/go-json/internal/runtime
 # github.com/golang-jwt/jwt v3.2.2+incompatible
 ## explicit
 github.com/golang-jwt/jwt
-# github.com/golang-jwt/jwt/v4 v4.4.0
-## explicit; go 1.15
+# github.com/golang-jwt/jwt/v4 v4.4.1
+## explicit; go 1.16
 github.com/golang-jwt/jwt/v4
 # github.com/golang/mock v1.6.0
 ## explicit; go 1.11
@@ -249,12 +259,6 @@ github.com/json-iterator/go
 # github.com/klauspost/cpuid v1.2.3
 ## explicit
 github.com/klauspost/cpuid
-# github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
-## explicit
-github.com/lann/builder
-# github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0
-## explicit
-github.com/lann/ps
 # github.com/lestrrat-go/backoff/v2 v2.0.8
 ## explicit; go 1.16
 github.com/lestrrat-go/backoff/v2
@@ -418,16 +422,12 @@ github.com/steinfletcher/apitest/difflib
 github.com/steinfletcher/apitest-jsonpath
 github.com/steinfletcher/apitest-jsonpath/http
 github.com/steinfletcher/apitest-jsonpath/jsonpath
+# github.com/stretchr/objx v0.2.0
+## explicit; go 1.12
 # github.com/stretchr/testify v1.7.1
 ## explicit; go 1.13
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
-# github.com/tidwall/gjson v1.14.0
-## explicit; go 1.12
-# github.com/valyala/bytebufferpool v1.0.0
-## explicit
-# github.com/valyala/fasthttp v1.34.0
-## explicit; go 1.12
 # go.uber.org/atomic v1.9.0
 ## explicit; go 1.13
 go.uber.org/atomic
@@ -462,7 +462,7 @@ golang.org/x/image/bmp
 golang.org/x/image/ccitt
 golang.org/x/image/tiff
 golang.org/x/image/tiff/lzw
-# golang.org/x/net v0.0.0-20220225172249-27dd8689420f
+# golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
 ## explicit; go 1.17
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
@@ -485,7 +485,7 @@ golang.org/x/oauth2/google/internal/externalaccount
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9
+# golang.org/x/sys v0.0.0-20220114195835-da31bd327af9
 ## explicit; go 1.17
 golang.org/x/sys/cpu
 golang.org/x/sys/execabs

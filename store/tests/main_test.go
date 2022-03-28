@@ -8,9 +8,9 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/store/mysql"
-	"github.com/cortezaproject/corteza-server/store/postgres"
-	"github.com/cortezaproject/corteza-server/store/sqlite3"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers/mysql"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers/postgres"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers/sqlite"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	_ "github.com/joho/godotenv/autoload"
 	"go.uber.org/zap"
@@ -60,7 +60,7 @@ func Test_Store(t *testing.T) {
 			{
 				name:      "SQLite",
 				dsnEnvKey: "RDBMS_SQLITE_DSN",
-				init:      sqlite3.Connect,
+				init:      sqlite.Connect,
 			},
 			{
 				name:      "InMemory",

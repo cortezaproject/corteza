@@ -1,21 +1,16 @@
 package ql
 
-// Squirrel Sqlizer interface implementators for all ast node types
-// This helps us to throw columns into squirrel's select builder
-
 import (
 	"fmt"
-
-	"github.com/Masterminds/squirrel"
 )
 
-// ToSql concatenates outputs and arguments from all nodes
-func (nn ASTNodes) ToSql() (out string, args []interface{}, err error) {
+// ToSQL concatenates outputs and arguments from all nodes
+func (nn ASTNodes) ToSQL() (out string, args []interface{}, err error) {
 	var _out string
 	var _args []interface{}
 
 	for _, s := range nn {
-		if _out, _args, err = s.ToSql(); err != nil {
+		if _out, _args, err = s.ToSQL(); err != nil {
 			return
 		} else {
 			if _, ok := s.(ASTNodes); ok {
@@ -33,13 +28,13 @@ func (nn ASTNodes) ToSql() (out string, args []interface{}, err error) {
 	return out, args, err
 }
 
-// ToSql concatenates outputs and arguments from all nodes, comma delimited
-func (nn ASTSet) ToSql() (out string, args []interface{}, err error) {
+// ToSQL concatenates outputs and arguments from all nodes, comma delimited
+func (nn ASTSet) ToSQL() (out string, args []interface{}, err error) {
 	var _out string
 	var _args []interface{}
 
 	for i, s := range nn {
-		if _out, _args, err = s.ToSql(); err != nil {
+		if _out, _args, err = s.ToSQL(); err != nil {
 			return
 		} else {
 			if i > 0 {
@@ -55,24 +50,25 @@ func (nn ASTSet) ToSql() (out string, args []interface{}, err error) {
 	return out, args, err
 }
 
-// ToSql returns column alias expression or output of underlying expression's ToSql()
-func (n Column) ToSql() (string, []interface{}, error) {
+// ToSQL returns column alias expression or output of underlying expression's ToSQL()
+func (n Column) ToSQL() (string, []interface{}, error) {
 	if n.Alias != "" {
-		return squirrel.Alias(n.Expr, n.Alias).ToSql()
+		panic("@todo reimplement this")
+		//return squirrel.Alias(n.Expr, n.Alias).ToSQL()
 	} else {
-		return n.Expr.ToSql()
+		return n.Expr.ToSQL()
 	}
 }
 
-func (n Ident) ToSql() (string, []interface{}, error) {
+func (n Ident) ToSQL() (string, []interface{}, error) {
 	return n.Value, n.Args, nil
 }
 
-func (n LNull) ToSql() (string, []interface{}, error) {
+func (n LNull) ToSQL() (string, []interface{}, error) {
 	return "NULL", nil, nil
 }
 
-func (n LBoolean) ToSql() (string, []interface{}, error) {
+func (n LBoolean) ToSQL() (string, []interface{}, error) {
 	if n.Value {
 		return "TRUE", nil, nil
 	} else {
@@ -80,8 +76,8 @@ func (n LBoolean) ToSql() (string, []interface{}, error) {
 	}
 }
 
-func (n Function) ToSql() (string, []interface{}, error) {
-	if paramsSql, args, err := n.Arguments.ToSql(); err != nil {
+func (n Function) ToSQL() (string, []interface{}, error) {
+	if paramsSql, args, err := n.Arguments.ToSQL(); err != nil {
 		return "", nil, err
 	} else {
 		return fmt.Sprintf("%s(%s)", n.Name, paramsSql), args, nil
@@ -89,15 +85,15 @@ func (n Function) ToSql() (string, []interface{}, error) {
 
 }
 
-func (n Keyword) ToSql() (string, []interface{}, error) {
+func (n Keyword) ToSQL() (string, []interface{}, error) {
 	return n.Keyword, nil, nil
 }
 
-func (n Interval) ToSql() (string, []interface{}, error) {
+func (n Interval) ToSQL() (string, []interface{}, error) {
 	return fmt.Sprintf("INTERVAL ? %s", n.Unit), []interface{}{n.Value}, nil
 }
 
-func (n Operator) ToSql() (string, []interface{}, error) {
+func (n Operator) ToSQL() (string, []interface{}, error) {
 	var op = n.Kind
 
 	switch n.Kind {
@@ -109,20 +105,20 @@ func (n Operator) ToSql() (string, []interface{}, error) {
 	return " " + op + " ", nil, nil
 }
 
-func (n LString) ToSql() (string, []interface{}, error) {
+func (n LString) ToSQL() (string, []interface{}, error) {
 	return "?", []interface{}{n.Value}, nil
 }
 
-func (n LNumber) ToSql() (string, []interface{}, error) {
+func (n LNumber) ToSQL() (string, []interface{}, error) {
 	return n.Value, nil, nil
 }
 
-func (n NodeF) ToSql() (string, []interface{}, error) {
+func (n NodeF) ToSQL() (string, []interface{}, error) {
 	var (
 		// used for sprintf to complete the base expression
 		fArgs []interface{}
 
-		// collection of al args from ToSql() that
+		// collection of al args from ToSQL() that
 		// are passed on to the caller
 		adtArgs []interface{}
 	)
@@ -139,7 +135,7 @@ func (n NodeF) ToSql() (string, []interface{}, error) {
 			}
 		}
 
-		if fa, aa, err := s.ToSql(); err != nil {
+		if fa, aa, err := s.ToSQL(); err != nil {
 			return "", nil, err
 		} else {
 			fArgs = append(fArgs, fa)

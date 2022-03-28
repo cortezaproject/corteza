@@ -48,5 +48,7 @@ type (
 		Check func(node *Node) (bool, error) `json:"-"`
 
 		Deleted filter.State `json:"deleted"`
+
+		Limit uint
 	}
 )

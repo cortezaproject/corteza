@@ -7,5 +7,6 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 )
 
-func testApigwRoute(t *testing.T, s store.ApigwRoutes) {
+func testApigwRoutes(t *testing.T, s store.ApigwRoutes) {
+	t.Skip("@todo")
 }

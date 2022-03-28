@@ -252,7 +252,7 @@ func (d *composeDecoder) decodeComposeRecord(ctx context.Context, s store.Storer
 			var err error
 
 			for {
-				rr, fn, err = s.SearchComposeRecords(ctx, mod, types.RecordFilter(aux))
+				rr, fn, err = store.SearchComposeRecords(ctx, s, mod, types.RecordFilter(aux))
 				if err != nil {
 					return err
 				}

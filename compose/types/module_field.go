@@ -49,6 +49,7 @@ type (
 	ModuleFieldFilter struct {
 		ModuleID []uint64
 		Deleted  filter.State
+		Limit    uint
 	}
 )
 

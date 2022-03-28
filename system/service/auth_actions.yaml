@@ -16,7 +16,7 @@ props:
   - name: email
   - name: provider
   - name: credentials
-    type: "*types.Credentials"
+    type: "*types.Credential"
     fields: [ kind, label, ID ]
   - name: role
     type: "*types.Role"

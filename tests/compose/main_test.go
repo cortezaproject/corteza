@@ -191,11 +191,11 @@ func cleanup(t *testing.T) {
 	)
 
 	err := collect(
-		defStore.TruncateComposeNamespaces(ctx),
-		defStore.TruncateComposePages(ctx),
-		defStore.TruncateComposeModuleFields(ctx),
-		defStore.TruncateComposeModules(ctx),
-		defStore.TruncateComposeRecords(ctx, nil),
+		store.TruncateComposeNamespaces(ctx, defStore),
+		store.TruncateComposePages(ctx, defStore),
+		store.TruncateComposeModuleFields(ctx, defStore),
+		store.TruncateComposeModules(ctx, defStore),
+		store.TruncateComposeRecords(ctx, defStore, nil),
 	)
 	if err != nil {
 		t.Fatalf("failed to decode scenario data: %v", err)

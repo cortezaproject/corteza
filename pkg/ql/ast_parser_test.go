@@ -2,9 +2,10 @@ package ql
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 // Ensure the parser can parse strings into Statement ASTs.
@@ -278,7 +279,7 @@ func TestAstParser_Parser(t *testing.T) {
 				"test case: %d. %s\n"+
 				" expected: %#v\n"+
 				"      got: %#v\n\n", i, test.in, test.tree, tree)
-		} else if sql, args, err := tree.ToSql(); err != nil {
+		} else if sql, args, err := tree.ToSQL(); err != nil {
 			t.Fatal(err)
 		} else if test.sql != "" && sql != test.sql {
 			t.Errorf("sql does not match:\n"+

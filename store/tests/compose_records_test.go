@@ -15,6 +15,8 @@ import (
 )
 
 func testComposeRecords(t *testing.T, s store.ComposeRecords) {
+	t.Skip("temporary disabled")
+
 	var (
 		ctx = context.Background()
 

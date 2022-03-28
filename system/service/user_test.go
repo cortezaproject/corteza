@@ -8,7 +8,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/store/sqlite3"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers/sqlite"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -34,7 +34,7 @@ func TestUser_ProtectedSearch(t *testing.T) {
 		s store.Storer
 	)
 
-	if s, err = sqlite3.ConnectInMemory(ctx); err != nil {
+	if s, err = sqlite.ConnectInMemory(ctx); err != nil {
 		req.NoError(err)
 	} else if err = store.Upgrade(ctx, zap.NewNop(), s); err != nil {
 		req.NoError(err)

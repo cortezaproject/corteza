@@ -24,7 +24,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/store/sqlite3"
 	"github.com/cortezaproject/corteza-server/system/rest"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -87,7 +86,7 @@ func InitTestApp() {
 				return err
 			}
 
-			service.DefaultStore, err = sqlite3.ConnectInMemory(ctx)
+			service.DefaultStore, err = sqlite.ConnectInMemory(ctx)
 			if err != nil {
 				return err
 			}

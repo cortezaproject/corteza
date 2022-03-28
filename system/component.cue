@@ -8,14 +8,25 @@ component: schema.#component & {
 	handle: "system"
 
 	resources: {
-		"apigw-route": apigwRoute
-		"application": application
-		"auth-client": authClient
-		"queue":       queue
-		"report":      report
-		"role":        role
-		"template":    template
-		"user":        user
+		"attachment":            attachment
+		"application":           application
+		"apigw-route":           apigw_route
+		"apigw-filter":          apigw_filter
+		"auth-client":           auth_client
+		"auth-confirmed-client": auth_confirmed_client
+		"auth-session":          auth_session
+		"auth-oa2token":         auth_oa2token
+		"credential":            credential
+		"queue":                 queue
+		"queue_message":         queue_message
+		"reminder":              reminder
+		"report":                report
+		"resource-translation":  resource_translation
+		"role":                  role
+		"role_member":           role_member
+		"settings":              settings
+		"template":              template
+		"user":                  user
 	}
 
 	rbac: operations: {

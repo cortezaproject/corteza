@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers/sqlite"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/store/sqlite3"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
@@ -17,7 +17,7 @@ import (
 func TestCharts(t *testing.T) {
 	var (
 		ctx    = context.Background()
-		s, err = sqlite3.ConnectInMemory(ctx)
+		s, err = sqlite.ConnectInMemory(ctx)
 
 		namespaceID = nextID()
 		ns          *types.Namespace

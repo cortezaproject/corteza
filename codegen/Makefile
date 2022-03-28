@@ -18,6 +18,3 @@ $(DEF_DOCS): $(CUE) $(JSONTPLEXEC)
 	@[ "${DOCS_DIR}" ] || ( echo "DOCS_DIR is not set, run make like this: make docs DOCS_DIR=/path/to/corteza-docs"; exit 1 )
 	@ echo "$(COLOUR_GREEN)Generating doc files from $@$(COLOUR_END) $(COLOUR_BLUE)(dst: $(DOCS_DIR))$(COLOUR_END)"
 	@ $(CUE) eval $@ --out json | $(JSONTPLEXEC) -v -p $(ROOT_DIR)/codegen/assets/templates -b $(DOCS_DIR)
-
-gen:
-	@ rm $(JSONTPLEXEC)

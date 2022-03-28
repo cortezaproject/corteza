@@ -6,6 +6,6 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 )
 
-func testResourceActivityLog(t *testing.T, s store.ResourceActivityLogs) {
+func testResourceActivitys(t *testing.T, s store.ResourceActivitys) {
 	t.Skip("@todo")
 }

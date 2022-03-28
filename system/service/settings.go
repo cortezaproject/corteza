@@ -17,7 +17,7 @@ import (
 
 type (
 	settings struct {
-		store         store.Settings
+		store         store.SettingValues
 		accessControl accessController
 		logger        *zap.Logger
 		m             sync.RWMutex
@@ -49,7 +49,7 @@ var (
 	ErrNoManagePermission = fmt.Errorf("not allowed to manage settings")
 )
 
-func Settings(ctx context.Context, s store.Settings, log *zap.Logger, ac accessController, current interface{}) *settings {
+func Settings(ctx context.Context, s store.SettingValues, log *zap.Logger, ac accessController, current interface{}) *settings {
 	svc := &settings{
 		store:         s,
 		accessControl: ac,
@@ -132,7 +132,7 @@ func (svc *settings) findByPrefix(ctx context.Context, pp ...string) (types.Sett
 		}
 	)
 
-	vv, _, err := store.SearchSettings(ctx, svc.store, f)
+	vv, _, err := store.SearchSettingValues(ctx, svc.store, f)
 	return vv, err
 }
 
@@ -141,7 +141,7 @@ func (svc *settings) Get(ctx context.Context, name string, ownedBy uint64) (out 
 		return nil, ErrNoReadPermission
 	}
 
-	out, err = store.LookupSettingByNameOwnedBy(ctx, svc.store, name, ownedBy)
+	out, err = store.LookupSettingValueByNameOwnedBy(ctx, svc.store, name, ownedBy)
 	if err != nil && !errors.IsNotFound(err) {
 		return nil, err
 	}
@@ -182,17 +182,17 @@ func (svc *settings) Set(ctx context.Context, v *types.SettingValue) (err error)
 	}
 
 	var current *types.SettingValue
-	current, err = store.LookupSettingByNameOwnedBy(ctx, svc.store, v.Name, v.OwnedBy)
+	current, err = store.LookupSettingValueByNameOwnedBy(ctx, svc.store, v.Name, v.OwnedBy)
 	if errors.IsNotFound(err) {
 		v.UpdatedAt = *now()
-		err = store.CreateSetting(ctx, svc.store, v)
+		err = store.CreateSettingValue(ctx, svc.store, v)
 	} else if err != nil {
 		return err
 	}
 
 	if !current.Eq(v) {
 		v.UpdatedAt = *now()
-		err = store.UpdateSetting(ctx, svc.store, v)
+		err = store.UpdateSettingValue(ctx, svc.store, v)
 	}
 
 	if err != nil || current.Eq(v) {
@@ -224,15 +224,15 @@ func (svc *settings) BulkSet(ctx context.Context, vv types.SettingValueSet) (err
 		new = current.New(vv)
 	}
 
-	if err = store.UpdateSetting(ctx, svc.store, old...); err != nil {
+	if err = store.UpdateSettingValue(ctx, svc.store, old...); err != nil {
 		return
 	}
 
-	if err = store.CreateSetting(ctx, svc.store, new...); err != nil {
+	if err = store.CreateSettingValue(ctx, svc.store, new...); err != nil {
 		return
 	}
 
-	if err = store.DeleteSetting(ctx, svc.store, vv.Trash()...); err != nil {
+	if err = store.DeleteSettingValue(ctx, svc.store, vv.Trash()...); err != nil {
 		return
 	}
 
@@ -257,14 +257,14 @@ func (svc *settings) Delete(ctx context.Context, name string, ownedBy uint64) er
 		return ErrNoManagePermission
 	}
 
-	current, err := store.LookupSettingByNameOwnedBy(ctx, svc.store, name, ownedBy)
+	current, err := store.LookupSettingValueByNameOwnedBy(ctx, svc.store, name, ownedBy)
 	if errors.IsNotFound(err) {
 		return nil
 	} else if err != nil {
 		return err
 	}
 
-	err = store.DeleteSetting(ctx, svc.store, current)
+	err = store.DeleteSettingValue(ctx, svc.store, current)
 	if err != nil {
 		return err
 	}
