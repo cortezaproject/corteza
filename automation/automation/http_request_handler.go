@@ -41,6 +41,13 @@ func (h httpRequestHandler) send(ctx context.Context, args *httpRequestSendArgs)
 		return nil, err
 	}
 
+	if args.Timeout > 0 {
+		var tfn context.CancelFunc
+		ctx, tfn = context.WithTimeout(ctx, args.Timeout)
+		req = req.WithContext(ctx)
+		defer tfn()
+	}
+
 	rsp, err = http.DefaultClient.Do(req)
 	if err != nil {
 		return
@@ -111,12 +118,6 @@ func (h httpRequestHandler) makeRequest(ctx context.Context, args *httpRequestSe
 	}()
 	if err != nil {
 		return nil, err
-	}
-
-	if args.Timeout > 0 {
-		var tfn context.CancelFunc
-		ctx, tfn = context.WithTimeout(ctx, args.Timeout)
-		defer tfn()
 	}
 
 	if args.hasParams {
