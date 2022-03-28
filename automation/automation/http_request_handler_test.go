@@ -2,11 +2,14 @@ package automation
 
 import (
 	"context"
-	"github.com/stretchr/testify/require"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestHttpRequestMaker(t *testing.T) {
@@ -33,6 +36,22 @@ func TestHttpRequestMaker(t *testing.T) {
 		r.NoError(err)
 		r.Equal("GET", req.Method)
 		r.Equal("http://localhost/test", req.URL.String())
+	})
+
+	t.Run("basic timeout", func(t *testing.T) {
+		var (
+			r   = require.New(t)
+			ctx = context.Background()
+
+			_, err = httpRequestHandler{}.send(ctx, &httpRequestSendArgs{
+				Timeout:          time.Nanosecond,
+				HeaderAuthBearer: "foo",
+				Url:              "http://localhost/test",
+				Method:           "GET",
+			})
+		)
+
+		r.True(errors.Is(err, context.DeadlineExceeded))
 	})
 
 	t.Run("post form", func(t *testing.T) {
