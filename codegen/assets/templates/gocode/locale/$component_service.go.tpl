@@ -61,81 +61,83 @@ func (svc resourceTranslationsManager) Upsert(ctx context.Context, rr locale.Res
 	//  - managed resource translation strings are all for default language
 	//  or
 	//  - user is allowed to manage resource translations
-	if rr.ContainsForeign(svc.Locale().Default().Tag) {
-		if !svc.ac.CanManageResourceTranslations(ctx) {
-			return ErrNotAllowedToManageResourceTranslations
-		}
-	}
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+        if rr.ContainsForeign(svc.Locale().Default().Tag) {
+            if !svc.ac.CanManageResourceTranslations(ctx) {
+                return ErrNotAllowedToManageResourceTranslations
+            }
+        }
 
-	for _, r := range rr {
-		r.Msg = locale.SanitizeMessage(r.Msg)
-	}
+        for _, r := range rr {
+            r.Msg = locale.SanitizeMessage(r.Msg)
+        }
 
-	// @todo validation
+        // @todo validation
 
-	me := intAuth.GetIdentityFromContext(ctx)
+        me := intAuth.GetIdentityFromContext(ctx)
 
-	// - group by resource
-	localeByRes := make(map[string]locale.ResourceTranslationSet)
-	for _, r := range rr {
-		localeByRes[r.Resource] = append(localeByRes[r.Resource], r)
-	}
+        // - group by resource
+        localeByRes := make(map[string]locale.ResourceTranslationSet)
+        for _, r := range rr {
+            localeByRes[r.Resource] = append(localeByRes[r.Resource], r)
+        }
 
-	// - for each resource, fetch the current state
-	sysLocale := make(systemTypes.ResourceTranslationSet, 0, len(rr))
-	for res, rr := range localeByRes {
-		current, _, err := store.SearchResourceTranslations(ctx, svc.store, systemTypes.ResourceTranslationFilter{
-			Resource: res,
-			Deleted:  filter.StateInclusive,
-		})
-		if err != nil {
-			return err
-		}
+        // - for each resource, fetch the current state
+        sysLocale := make(systemTypes.ResourceTranslationSet, 0, len(rr))
+        for res, rr := range localeByRes {
+            current, _, err := store.SearchResourceTranslations(ctx, s, systemTypes.ResourceTranslationFilter{
+                Resource: res,
+                Deleted:  filter.StateInclusive,
+            })
+            if err != nil {
+                return err
+            }
 
-		// get deltas and prepare upsert accordingly
-		aux := current.New(rr)
-		aux.Walk(func(cc *systemTypes.ResourceTranslation) error {
-			cc.ID = nextID()
-			cc.CreatedAt = *now()
-			cc.CreatedBy = me.Identity()
+            // get deltas and prepare upsert accordingly
+            aux := current.New(rr)
+            aux.Walk(func(cc *systemTypes.ResourceTranslation) error {
+                cc.ID = nextID()
+                cc.CreatedAt = *now()
+                cc.CreatedBy = me.Identity()
 
-			return nil
-		})
-		sysLocale = append(sysLocale, aux...)
+                return nil
+            })
+            sysLocale = append(sysLocale, aux...)
 
-		for _, diff := range current.Old(rr) {
-			old := diff[0]
-			new := diff[1]
+            for _, diff := range current.Old(rr) {
+                old := diff[0]
+                new := diff[1]
 
-			// soft delete; restore old message
-			if new.Message == "" {
-				new.Message = old.Message
-				if new.DeletedAt == nil {
-					new.DeletedAt = now()
-					new.DeletedBy = me.Identity()
-				}
-			} else {
-				new.UpdatedAt = now()
-				new.UpdatedBy = me.Identity()
+                // soft delete; restore old message
+                if new.Message == "" {
+                    new.Message = old.Message
+                    if new.DeletedAt == nil {
+                        new.DeletedAt = now()
+                        new.DeletedBy = me.Identity()
+                    }
+                } else {
+                    new.UpdatedAt = now()
+                    new.UpdatedBy = me.Identity()
 
-				new.DeletedAt = nil
-				new.DeletedBy = 0
-			}
+                    new.DeletedAt = nil
+                    new.DeletedBy = 0
+                }
 
-			sysLocale = append(sysLocale, new)
-		}
-	}
+                sysLocale = append(sysLocale, new)
+            }
+        }
 
-	err = store.UpsertResourceTranslation(ctx, svc.store, sysLocale...)
-	if err != nil {
-		return err
-	}
+        err = store.UpsertResourceTranslation(ctx, s, sysLocale...)
+        if err != nil {
+            return err
+        }
 
-	// Reload ALL resource translations
-	// @todo we could probably do this more selectively and refresh only updated resources?
-	_ = locale.Global().ReloadResourceTranslations(ctx)
+        // Reload ALL resource translations
+        // @todo we could probably do this more selectively and refresh only updated resources?
+        _ = locale.Global().ReloadResourceTranslations(ctx)
 
-	return nil
+        return nil
+    })
 }
 
 func (svc resourceTranslationsManager) Locale() locale.Resource {
