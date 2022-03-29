@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func testApigwFilter(t *testing.T, s store.ApigwFilters) {
+func testApigwFilters(t *testing.T, s store.ApigwFilters) {
 	var (
 		ctx = context.Background()
 		new = &types.ApigwFilter{
