@@ -4,6 +4,7 @@ import (
 	"context"
 
 	systemType "github.com/cortezaproject/corteza-server/system/types"
+	"github.com/doug-martin/goqu/v9"
 )
 
 func (s Store) ApplicationMetrics(ctx context.Context) (_ *systemType.ApplicationMetrics, err error) {
@@ -30,65 +31,54 @@ func (s Store) ApplicationMetrics(ctx context.Context) (_ *systemType.Applicatio
 }
 
 func (s Store) ReorderApplications(ctx context.Context, order []uint64) (err error) {
-	//var (
-	//	apps   systemType.ApplicationSet
-	//	appMap = map[uint64]bool{}
-	//	weight = 1
-	//
-	//	f = systemType.ApplicationFilter{}
-	//)
+	var (
+		apps   systemType.ApplicationSet
+		appMap = map[uint64]bool{}
+		weight = 1
 
-	//s.Query(ctx, applicationSelectQuery())
-	//if err = s.applicationCollection(ctx).Find().All(apps); err != nil {
-	//	return
-	//}
-	//
-	//if apps, _, err = s.SearchApplications(ctx, f); err != nil {
-	//	return
-	//}
-	//
-	//for _, app := range apps {
-	//	appMap[app.ID] = true
-	//}
-	//
-	//// honor parameter first
-	//for _, id := range order {
-	//	if appMap[id] {
-	//		appMap[id] = false
-	//
-	//		app := apps.FindByID(id)
-	//		if app == nil {
-	//			continue
-	//		}
-	//
-	//		app.Weight = weight
-	//		weight++
-	//	}
-	//}
-	//
-	//for id, update := range appMap {
-	//	if !update {
-	//		continue
-	//	}
-	//
-	//	app := apps.FindByID(id)
-	//	if app == nil {
-	//		continue
-	//	}
-	//
-	//	app.Weight = weight
-	//	weight++
-	//}
-	//
-	//for _, app := range apps {
-	//	err = s.applicationCollection(ctx).
-	//		Find(db.Cond{"id": app.ID}).
-	//		Update(app)
-	//
-	//	if err != nil {
-	//		return
-	//	}
-	//}
-	//
+		f = systemType.ApplicationFilter{}
+
+		query = func(id uint64, weight int) *goqu.UpdateDataset {
+			return s.config.Dialect.
+				Update(applicationTable).
+				Set(goqu.Record{"weight": weight}).
+				Where(goqu.C("id").Eq(id))
+		}
+	)
+
+	if apps, _, err = s.SearchApplications(ctx, f); err != nil {
+		return
+	}
+
+	for _, app := range apps {
+		appMap[app.ID] = true
+	}
+
+	// honor parameter first
+	for _, id := range order {
+		if appMap[id] {
+			appMap[id] = false
+
+			if err = s.Exec(ctx, query(id, weight)); err != nil {
+				return
+			}
+
+			weight++
+		}
+	}
+
+	for id, update := range appMap {
+		if !update {
+			continue
+		}
+
+		if err = s.Exec(ctx, query(id, weight)); err != nil {
+			return
+		}
+
+		weight++
+
+	}
+
 	return
 }
