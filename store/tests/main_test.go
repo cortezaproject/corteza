@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers/mysql"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers/postgres"
@@ -27,81 +26,65 @@ func init() {
 	helpers.RecursiveDotEnvLoad()
 }
 
-func Test_Store(t *testing.T) {
-	type (
-		suite struct {
-			name      string
-			dsnEnvKey string
-			init      store.ConnectorFn
-		}
-	)
+func Test_RDBMS_SQLITE(t *testing.T) {
+	testAllGenerated(t, setup(t, sqlite.Connect))
+}
 
-	logger.SetDefault(logger.MakeDebugLogger())
+func Test_RDBMS_MYSQL(t *testing.T) {
+	testAllGenerated(t, setup(t, mysql.Connect))
+}
 
-	var (
-		ctx = context.Background()
+func Test_RDBMS_PGSQL(t *testing.T) {
+	testAllGenerated(t, setup(t, postgres.Connect))
+}
 
-		ss = []suite{
-			{
-				name:      "MySQL",
-				dsnEnvKey: "RDBMS_MYSQL_DSN",
-				init:      mysql.Connect,
-			},
-			{
-				name:      "PostgreSQL",
-				dsnEnvKey: "RDBMS_PGSQL_DSN",
-				init:      postgres.Connect,
-			},
-			{
-				name:      "CockroachDB",
-				dsnEnvKey: "RDBMS_COCKROACHDB_DSN",
-				init:      nil,
-			},
-			{
-				name:      "SQLite",
-				dsnEnvKey: "RDBMS_SQLITE_DSN",
-				init:      sqlite.Connect,
-			},
-			{
-				name:      "InMemory",
-				dsnEnvKey: "MEMORY_DSN",
-				init:      nil,
-			},
-			{
-				name:      "MongoDB",
-				dsnEnvKey: "MONGODB_DSN",
-				init:      nil,
-			},
-			{
-				name:      "ElasticSearch",
-				dsnEnvKey: "ELASTICSEARCH_DSN",
-				init:      nil,
-			},
-		}
-	)
+func Test_RDBMS_COCKROACHDB(t *testing.T) {
+	testAllGenerated(t, setup(t, nil))
+}
 
-	for _, s := range ss {
-		t.Run(s.name, func(t *testing.T) {
-			dsn, has := os.LookupEnv(s.dsnEnvKey)
-			if !has {
-				t.Skipf("no %s found, skipping %s store tests", s.dsnEnvKey, s.name)
-				return
-			}
+func Test_MEMORY(t *testing.T) {
+	testAllGenerated(t, setup(t, nil))
+}
 
-			genericStore, err := s.init(ctx, dsn)
-			if err != nil {
-				t.Errorf("failed to initialize %s store: %s", s.name, err.Error())
-				return
-			}
+func Test_MONGODB(t *testing.T) {
+	testAllGenerated(t, setup(t, nil))
+}
 
-			err = store.Upgrade(ctx, zap.NewNop(), genericStore)
-			if err != nil {
-				t.Errorf("failed to upgrade %s store: %s", s.name, err.Error())
-				return
-			}
+func Test_ELASTICSEARCH(t *testing.T) {
+	testAllGenerated(t, setup(t, nil))
+}
 
-			testAllGenerated(t, genericStore)
-		})
+func setup(t *testing.T, connect store.ConnectorFn) (s store.Storer) {
+	t.Parallel()
+
+	if connect == nil {
+		t.Skipf("connection function not set, skipping tests")
+		return
 	}
 
+	var (
+		err      error
+		env      = t.Name()[5:] + "_DSN"
+		dsn, has = os.LookupEnv(env)
+		ctx      = context.Background()
+	)
+
+	if !has || len(dsn) == 0 {
+		t.Skipf("no %s found, skipping tests", env)
+		return
+	}
+
+	s, err = connect(ctx, dsn)
+	if err != nil {
+		t.Errorf("failed to initialize: %v", err)
+		return
+	}
+
+	err = store.Upgrade(ctx, zap.NewNop(), s)
+	if err != nil {
+		t.Errorf("failed to upgrade : %v", err)
+		return
+	}
+
+	return s
 }
