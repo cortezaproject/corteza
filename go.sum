@@ -132,6 +132,7 @@ github.com/coreos/go-semver v0.3.0/go.mod h1:nnelYz7RCh+5ahJtPPxZlU+153eP4D4r3Ee
 github.com/coreos/go-systemd/v22 v22.3.2/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSVTIJ3seZv2GcEnc=
 github.com/cortezaproject/corteza-locale v0.0.0-20220316130533-4cb957f72e45 h1:7nOFmZEzsyU4CFh8tviRP9NZTWkgizGd+ChBpbmP744=
 github.com/cortezaproject/corteza-locale v0.0.0-20220316130533-4cb957f72e45/go.mod h1:wsI1UftEdBqTuEDKBZmx2LfNu/kZun5pRbCAi420JCg=
+github.com/cortezaproject/corteza-locale v0.0.0-20220322170233-572348fc2ebb h1:zi9o1xd6ZG47wMPuI6SneR9h4rN9uFGxapKpMPoZk5U=
 github.com/cortezaproject/corteza-locale v0.0.0-20220322170233-572348fc2ebb/go.mod h1:wsI1UftEdBqTuEDKBZmx2LfNu/kZun5pRbCAi420JCg=
 github.com/cortezaproject/corteza-locale v0.0.0-20220325122632-efe005772021 h1:imm4kwnqdZ7/fDg9xg1hQphVob/oYg94dzGtC6JcpO0=
 github.com/cortezaproject/corteza-locale v0.0.0-20220325122632-efe005772021/go.mod h1:wsI1UftEdBqTuEDKBZmx2LfNu/kZun5pRbCAi420JCg=

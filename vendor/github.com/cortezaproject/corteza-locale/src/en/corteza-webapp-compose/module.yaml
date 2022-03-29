@@ -102,9 +102,6 @@ noModule: No modules
 noModuleFilter: No module matches your search
 recordPage:
   create: Create record page
-  edit: Edit record page
-recordListPage:
-  create: Create record list page
-  edit: Edit record list page
+  edit: Page builder
 searchPlaceholder: Type here to search all modules in this namespace
 title: List of Modules

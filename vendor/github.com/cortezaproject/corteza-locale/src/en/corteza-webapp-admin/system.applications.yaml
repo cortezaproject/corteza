@@ -20,10 +20,9 @@ editor:
       label: Configuration
     listed: Listed
     logo:
-      label: Logo
       description: Logo used in the application selector
+      label: Logo
       placeholder: Choose a logo or drop it here...
-      reset: Reset
     name:
       description: Name used in the application selector
       label: Name
