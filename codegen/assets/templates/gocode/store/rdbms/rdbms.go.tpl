@@ -142,9 +142,10 @@ func (s Store) Search{{ .expIdentPlural }}(ctx context.Context, {{ template "ext
 		})
 	}
 
+
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOf{{ .expIdentPlural }} fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOf{{ .expIdentPlural }} fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -153,10 +154,7 @@ func (s Store) Search{{ .expIdentPlural }}(ctx context.Context, {{ template "ext
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOf{{ .expIdentPlural }}(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOf{{ .expIdentPlural }}(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -188,6 +186,7 @@ func (s Store) Search{{ .expIdentPlural }}(ctx context.Context, {{ template "ext
 func (s Store) fetchFullPageOf{{ .expIdentPlural }}(
 	ctx context.Context,
 	filter {{ .goFilterType }},
+	sort filter.SortExprSet,
 ) (set []*{{ .goType }}, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*{{ .goType }}
@@ -215,8 +214,9 @@ func (s Store) fetchFullPageOf{{ .expIdentPlural }}(
 	set = make([]*{{ .goType }}, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
