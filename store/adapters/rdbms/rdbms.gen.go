@@ -466,8 +466,8 @@ func (s Store) SearchApigwFilters(ctx context.Context, f systemType.ApigwFilterF
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfApigwFilters fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfApigwFilters fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -476,10 +476,7 @@ func (s Store) SearchApigwFilters(ctx context.Context, f systemType.ApigwFilterF
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfApigwFilters(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfApigwFilters(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -504,6 +501,7 @@ func (s Store) SearchApigwFilters(ctx context.Context, f systemType.ApigwFilterF
 func (s Store) fetchFullPageOfApigwFilters(
 	ctx context.Context,
 	filter systemType.ApigwFilterFilter,
+	sort filter.SortExprSet,
 ) (set []*systemType.ApigwFilter, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*systemType.ApigwFilter
@@ -531,8 +529,9 @@ func (s Store) fetchFullPageOfApigwFilters(
 	set = make([]*systemType.ApigwFilter, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -988,8 +987,8 @@ func (s Store) SearchApigwRoutes(ctx context.Context, f systemType.ApigwRouteFil
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfApigwRoutes fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfApigwRoutes fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -998,10 +997,7 @@ func (s Store) SearchApigwRoutes(ctx context.Context, f systemType.ApigwRouteFil
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfApigwRoutes(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfApigwRoutes(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -1026,6 +1022,7 @@ func (s Store) SearchApigwRoutes(ctx context.Context, f systemType.ApigwRouteFil
 func (s Store) fetchFullPageOfApigwRoutes(
 	ctx context.Context,
 	filter systemType.ApigwRouteFilter,
+	sort filter.SortExprSet,
 ) (set []*systemType.ApigwRoute, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*systemType.ApigwRoute
@@ -1053,8 +1050,9 @@ func (s Store) fetchFullPageOfApigwRoutes(
 	set = make([]*systemType.ApigwRoute, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -1514,8 +1512,8 @@ func (s Store) SearchApplications(ctx context.Context, f systemType.ApplicationF
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfApplications fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfApplications fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -1524,10 +1522,7 @@ func (s Store) SearchApplications(ctx context.Context, f systemType.ApplicationF
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfApplications(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfApplications(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -1552,6 +1547,7 @@ func (s Store) SearchApplications(ctx context.Context, f systemType.ApplicationF
 func (s Store) fetchFullPageOfApplications(
 	ctx context.Context,
 	filter systemType.ApplicationFilter,
+	sort filter.SortExprSet,
 ) (set []*systemType.Application, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*systemType.Application
@@ -1579,8 +1575,9 @@ func (s Store) fetchFullPageOfApplications(
 	set = make([]*systemType.Application, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -1998,8 +1995,8 @@ func (s Store) SearchAttachments(ctx context.Context, f systemType.AttachmentFil
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfAttachments fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfAttachments fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -2008,10 +2005,7 @@ func (s Store) SearchAttachments(ctx context.Context, f systemType.AttachmentFil
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfAttachments(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfAttachments(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -2036,6 +2030,7 @@ func (s Store) SearchAttachments(ctx context.Context, f systemType.AttachmentFil
 func (s Store) fetchFullPageOfAttachments(
 	ctx context.Context,
 	filter systemType.AttachmentFilter,
+	sort filter.SortExprSet,
 ) (set []*systemType.Attachment, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*systemType.Attachment
@@ -2063,8 +2058,9 @@ func (s Store) fetchFullPageOfAttachments(
 	set = make([]*systemType.Attachment, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -2480,8 +2476,8 @@ func (s Store) SearchAuthClients(ctx context.Context, f systemType.AuthClientFil
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfAuthClients fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfAuthClients fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -2490,10 +2486,7 @@ func (s Store) SearchAuthClients(ctx context.Context, f systemType.AuthClientFil
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfAuthClients(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfAuthClients(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -2518,6 +2511,7 @@ func (s Store) SearchAuthClients(ctx context.Context, f systemType.AuthClientFil
 func (s Store) fetchFullPageOfAuthClients(
 	ctx context.Context,
 	filter systemType.AuthClientFilter,
+	sort filter.SortExprSet,
 ) (set []*systemType.AuthClient, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*systemType.AuthClient
@@ -2545,8 +2539,9 @@ func (s Store) fetchFullPageOfAuthClients(
 	set = make([]*systemType.AuthClient, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -4019,8 +4014,8 @@ func (s Store) SearchAutomationSessions(ctx context.Context, f automationType.Se
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfAutomationSessions fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfAutomationSessions fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -4029,10 +4024,7 @@ func (s Store) SearchAutomationSessions(ctx context.Context, f automationType.Se
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfAutomationSessions(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfAutomationSessions(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -4057,6 +4049,7 @@ func (s Store) SearchAutomationSessions(ctx context.Context, f automationType.Se
 func (s Store) fetchFullPageOfAutomationSessions(
 	ctx context.Context,
 	filter automationType.SessionFilter,
+	sort filter.SortExprSet,
 ) (set []*automationType.Session, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*automationType.Session
@@ -4084,8 +4077,9 @@ func (s Store) fetchFullPageOfAutomationSessions(
 	set = make([]*automationType.Session, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -4507,8 +4501,8 @@ func (s Store) SearchAutomationTriggers(ctx context.Context, f automationType.Tr
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfAutomationTriggers fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfAutomationTriggers fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -4517,10 +4511,7 @@ func (s Store) SearchAutomationTriggers(ctx context.Context, f automationType.Tr
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfAutomationTriggers(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfAutomationTriggers(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -4545,6 +4536,7 @@ func (s Store) SearchAutomationTriggers(ctx context.Context, f automationType.Tr
 func (s Store) fetchFullPageOfAutomationTriggers(
 	ctx context.Context,
 	filter automationType.TriggerFilter,
+	sort filter.SortExprSet,
 ) (set []*automationType.Trigger, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*automationType.Trigger
@@ -4572,8 +4564,9 @@ func (s Store) fetchFullPageOfAutomationTriggers(
 	set = make([]*automationType.Trigger, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -4991,8 +4984,8 @@ func (s Store) SearchAutomationWorkflows(ctx context.Context, f automationType.W
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfAutomationWorkflows fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfAutomationWorkflows fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -5001,10 +4994,7 @@ func (s Store) SearchAutomationWorkflows(ctx context.Context, f automationType.W
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfAutomationWorkflows(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfAutomationWorkflows(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -5029,6 +5019,7 @@ func (s Store) SearchAutomationWorkflows(ctx context.Context, f automationType.W
 func (s Store) fetchFullPageOfAutomationWorkflows(
 	ctx context.Context,
 	filter automationType.WorkflowFilter,
+	sort filter.SortExprSet,
 ) (set []*automationType.Workflow, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*automationType.Workflow
@@ -5056,8 +5047,9 @@ func (s Store) fetchFullPageOfAutomationWorkflows(
 	set = make([]*automationType.Workflow, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -5549,8 +5541,8 @@ func (s Store) SearchComposeAttachments(ctx context.Context, f composeType.Attac
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfComposeAttachments fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfComposeAttachments fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -5559,10 +5551,7 @@ func (s Store) SearchComposeAttachments(ctx context.Context, f composeType.Attac
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfComposeAttachments(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfComposeAttachments(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -5587,6 +5576,7 @@ func (s Store) SearchComposeAttachments(ctx context.Context, f composeType.Attac
 func (s Store) fetchFullPageOfComposeAttachments(
 	ctx context.Context,
 	filter composeType.AttachmentFilter,
+	sort filter.SortExprSet,
 ) (set []*composeType.Attachment, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*composeType.Attachment
@@ -5614,8 +5604,9 @@ func (s Store) fetchFullPageOfComposeAttachments(
 	set = make([]*composeType.Attachment, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -6031,8 +6022,8 @@ func (s Store) SearchComposeCharts(ctx context.Context, f composeType.ChartFilte
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfComposeCharts fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfComposeCharts fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -6041,10 +6032,7 @@ func (s Store) SearchComposeCharts(ctx context.Context, f composeType.ChartFilte
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfComposeCharts(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfComposeCharts(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -6069,6 +6057,7 @@ func (s Store) SearchComposeCharts(ctx context.Context, f composeType.ChartFilte
 func (s Store) fetchFullPageOfComposeCharts(
 	ctx context.Context,
 	filter composeType.ChartFilter,
+	sort filter.SortExprSet,
 ) (set []*composeType.Chart, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*composeType.Chart
@@ -6096,8 +6085,9 @@ func (s Store) fetchFullPageOfComposeCharts(
 	set = make([]*composeType.Chart, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -6561,8 +6551,8 @@ func (s Store) SearchComposeModules(ctx context.Context, f composeType.ModuleFil
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfComposeModules fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfComposeModules fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -6571,10 +6561,7 @@ func (s Store) SearchComposeModules(ctx context.Context, f composeType.ModuleFil
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfComposeModules(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfComposeModules(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -6599,6 +6586,7 @@ func (s Store) SearchComposeModules(ctx context.Context, f composeType.ModuleFil
 func (s Store) fetchFullPageOfComposeModules(
 	ctx context.Context,
 	filter composeType.ModuleFilter,
+	sort filter.SortExprSet,
 ) (set []*composeType.Module, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*composeType.Module
@@ -6626,8 +6614,9 @@ func (s Store) fetchFullPageOfComposeModules(
 	set = make([]*composeType.Module, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -7474,8 +7463,8 @@ func (s Store) SearchComposeNamespaces(ctx context.Context, f composeType.Namesp
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfComposeNamespaces fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfComposeNamespaces fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -7484,10 +7473,7 @@ func (s Store) SearchComposeNamespaces(ctx context.Context, f composeType.Namesp
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfComposeNamespaces(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfComposeNamespaces(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -7512,6 +7498,7 @@ func (s Store) SearchComposeNamespaces(ctx context.Context, f composeType.Namesp
 func (s Store) fetchFullPageOfComposeNamespaces(
 	ctx context.Context,
 	filter composeType.NamespaceFilter,
+	sort filter.SortExprSet,
 ) (set []*composeType.Namespace, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*composeType.Namespace
@@ -7539,8 +7526,9 @@ func (s Store) fetchFullPageOfComposeNamespaces(
 	set = make([]*composeType.Namespace, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -8026,8 +8014,8 @@ func (s Store) SearchComposePages(ctx context.Context, f composeType.PageFilter)
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfComposePages fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfComposePages fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -8036,10 +8024,7 @@ func (s Store) SearchComposePages(ctx context.Context, f composeType.PageFilter)
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfComposePages(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfComposePages(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -8064,6 +8049,7 @@ func (s Store) SearchComposePages(ctx context.Context, f composeType.PageFilter)
 func (s Store) fetchFullPageOfComposePages(
 	ctx context.Context,
 	filter composeType.PageFilter,
+	sort filter.SortExprSet,
 ) (set []*composeType.Page, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*composeType.Page
@@ -8091,8 +8077,9 @@ func (s Store) fetchFullPageOfComposePages(
 	set = make([]*composeType.Page, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -8598,8 +8585,8 @@ func (s Store) SearchComposeRecords(ctx context.Context, mod *composeType.Module
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfComposeRecords fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfComposeRecords fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -8608,10 +8595,7 @@ func (s Store) SearchComposeRecords(ctx context.Context, mod *composeType.Module
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfComposeRecords(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfComposeRecords(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -8636,6 +8620,7 @@ func (s Store) SearchComposeRecords(ctx context.Context, mod *composeType.Module
 func (s Store) fetchFullPageOfComposeRecords(
 	ctx context.Context,
 	filter composeType.RecordFilter,
+	sort filter.SortExprSet,
 ) (set []*composeType.Record, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*composeType.Record
@@ -8663,8 +8648,9 @@ func (s Store) fetchFullPageOfComposeRecords(
 	set = make([]*composeType.Record, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -9637,8 +9623,8 @@ func (s Store) SearchFederationExposedModules(ctx context.Context, f federationT
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfFederationExposedModules fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfFederationExposedModules fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -9647,10 +9633,7 @@ func (s Store) SearchFederationExposedModules(ctx context.Context, f federationT
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfFederationExposedModules(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfFederationExposedModules(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -9675,6 +9658,7 @@ func (s Store) SearchFederationExposedModules(ctx context.Context, f federationT
 func (s Store) fetchFullPageOfFederationExposedModules(
 	ctx context.Context,
 	filter federationType.ExposedModuleFilter,
+	sort filter.SortExprSet,
 ) (set []*federationType.ExposedModule, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*federationType.ExposedModule
@@ -9702,8 +9686,9 @@ func (s Store) fetchFullPageOfFederationExposedModules(
 	set = make([]*federationType.ExposedModule, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -10123,8 +10108,8 @@ func (s Store) SearchFederationModuleMappings(ctx context.Context, f federationT
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfFederationModuleMappings fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfFederationModuleMappings fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -10133,10 +10118,7 @@ func (s Store) SearchFederationModuleMappings(ctx context.Context, f federationT
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfFederationModuleMappings(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfFederationModuleMappings(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -10161,6 +10143,7 @@ func (s Store) SearchFederationModuleMappings(ctx context.Context, f federationT
 func (s Store) fetchFullPageOfFederationModuleMappings(
 	ctx context.Context,
 	filter federationType.ModuleMappingFilter,
+	sort filter.SortExprSet,
 ) (set []*federationType.ModuleMapping, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*federationType.ModuleMapping
@@ -10188,8 +10171,9 @@ func (s Store) fetchFullPageOfFederationModuleMappings(
 	set = make([]*federationType.ModuleMapping, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -10995,8 +10979,8 @@ func (s Store) SearchFederationNodeSyncs(ctx context.Context, f federationType.N
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfFederationNodeSyncs fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfFederationNodeSyncs fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -11005,10 +10989,7 @@ func (s Store) SearchFederationNodeSyncs(ctx context.Context, f federationType.N
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfFederationNodeSyncs(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfFederationNodeSyncs(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -11033,6 +11014,7 @@ func (s Store) SearchFederationNodeSyncs(ctx context.Context, f federationType.N
 func (s Store) fetchFullPageOfFederationNodeSyncs(
 	ctx context.Context,
 	filter federationType.NodeSyncFilter,
+	sort filter.SortExprSet,
 ) (set []*federationType.NodeSync, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*federationType.NodeSync
@@ -11060,8 +11042,9 @@ func (s Store) fetchFullPageOfFederationNodeSyncs(
 	set = make([]*federationType.NodeSync, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -11517,8 +11500,8 @@ func (s Store) SearchFederationSharedModules(ctx context.Context, f federationTy
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfFederationSharedModules fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfFederationSharedModules fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -11527,10 +11510,7 @@ func (s Store) SearchFederationSharedModules(ctx context.Context, f federationTy
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfFederationSharedModules(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfFederationSharedModules(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -11555,6 +11535,7 @@ func (s Store) SearchFederationSharedModules(ctx context.Context, f federationTy
 func (s Store) fetchFullPageOfFederationSharedModules(
 	ctx context.Context,
 	filter federationType.SharedModuleFilter,
+	sort filter.SortExprSet,
 ) (set []*federationType.SharedModule, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*federationType.SharedModule
@@ -11582,8 +11563,9 @@ func (s Store) fetchFullPageOfFederationSharedModules(
 	set = make([]*federationType.SharedModule, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -12608,8 +12590,8 @@ func (s Store) SearchQueues(ctx context.Context, f systemType.QueueFilter) (set 
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfQueues fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfQueues fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -12618,10 +12600,7 @@ func (s Store) SearchQueues(ctx context.Context, f systemType.QueueFilter) (set 
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfQueues(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfQueues(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -12646,6 +12625,7 @@ func (s Store) SearchQueues(ctx context.Context, f systemType.QueueFilter) (set 
 func (s Store) fetchFullPageOfQueues(
 	ctx context.Context,
 	filter systemType.QueueFilter,
+	sort filter.SortExprSet,
 ) (set []*systemType.Queue, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*systemType.Queue
@@ -12673,8 +12653,9 @@ func (s Store) fetchFullPageOfQueues(
 	set = make([]*systemType.Queue, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -13130,8 +13111,8 @@ func (s Store) SearchQueueMessages(ctx context.Context, f systemType.QueueMessag
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfQueueMessages fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfQueueMessages fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -13140,10 +13121,7 @@ func (s Store) SearchQueueMessages(ctx context.Context, f systemType.QueueMessag
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfQueueMessages(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfQueueMessages(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -13168,6 +13146,7 @@ func (s Store) SearchQueueMessages(ctx context.Context, f systemType.QueueMessag
 func (s Store) fetchFullPageOfQueueMessages(
 	ctx context.Context,
 	filter systemType.QueueMessageFilter,
+	sort filter.SortExprSet,
 ) (set []*systemType.QueueMessage, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*systemType.QueueMessage
@@ -13195,8 +13174,9 @@ func (s Store) fetchFullPageOfQueueMessages(
 	set = make([]*systemType.QueueMessage, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -13808,8 +13788,8 @@ func (s Store) SearchReminders(ctx context.Context, f systemType.ReminderFilter)
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfReminders fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfReminders fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -13818,10 +13798,7 @@ func (s Store) SearchReminders(ctx context.Context, f systemType.ReminderFilter)
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfReminders(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfReminders(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -13846,6 +13823,7 @@ func (s Store) SearchReminders(ctx context.Context, f systemType.ReminderFilter)
 func (s Store) fetchFullPageOfReminders(
 	ctx context.Context,
 	filter systemType.ReminderFilter,
+	sort filter.SortExprSet,
 ) (set []*systemType.Reminder, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*systemType.Reminder
@@ -13873,8 +13851,9 @@ func (s Store) fetchFullPageOfReminders(
 	set = make([]*systemType.Reminder, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -14302,8 +14281,8 @@ func (s Store) SearchReports(ctx context.Context, f systemType.ReportFilter) (se
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfReports fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfReports fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -14312,10 +14291,7 @@ func (s Store) SearchReports(ctx context.Context, f systemType.ReportFilter) (se
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfReports(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfReports(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -14340,6 +14316,7 @@ func (s Store) SearchReports(ctx context.Context, f systemType.ReportFilter) (se
 func (s Store) fetchFullPageOfReports(
 	ctx context.Context,
 	filter systemType.ReportFilter,
+	sort filter.SortExprSet,
 ) (set []*systemType.Report, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*systemType.Report
@@ -14367,8 +14344,9 @@ func (s Store) fetchFullPageOfReports(
 	set = make([]*systemType.Report, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -15098,8 +15076,8 @@ func (s Store) SearchResourceTranslations(ctx context.Context, f systemType.Reso
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfResourceTranslations fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfResourceTranslations fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -15108,10 +15086,7 @@ func (s Store) SearchResourceTranslations(ctx context.Context, f systemType.Reso
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfResourceTranslations(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfResourceTranslations(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -15136,6 +15111,7 @@ func (s Store) SearchResourceTranslations(ctx context.Context, f systemType.Reso
 func (s Store) fetchFullPageOfResourceTranslations(
 	ctx context.Context,
 	filter systemType.ResourceTranslationFilter,
+	sort filter.SortExprSet,
 ) (set []*systemType.ResourceTranslation, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*systemType.ResourceTranslation
@@ -15163,8 +15139,9 @@ func (s Store) fetchFullPageOfResourceTranslations(
 	set = make([]*systemType.ResourceTranslation, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -15569,8 +15546,8 @@ func (s Store) SearchRoles(ctx context.Context, f systemType.RoleFilter) (set sy
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfRoles fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfRoles fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -15579,10 +15556,7 @@ func (s Store) SearchRoles(ctx context.Context, f systemType.RoleFilter) (set sy
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfRoles(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfRoles(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -15607,6 +15581,7 @@ func (s Store) SearchRoles(ctx context.Context, f systemType.RoleFilter) (set sy
 func (s Store) fetchFullPageOfRoles(
 	ctx context.Context,
 	filter systemType.RoleFilter,
+	sort filter.SortExprSet,
 ) (set []*systemType.Role, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*systemType.Role
@@ -15634,8 +15609,9 @@ func (s Store) fetchFullPageOfRoles(
 	set = make([]*systemType.Role, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -16737,8 +16713,8 @@ func (s Store) SearchTemplates(ctx context.Context, f systemType.TemplateFilter)
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfTemplates fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfTemplates fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -16747,10 +16723,7 @@ func (s Store) SearchTemplates(ctx context.Context, f systemType.TemplateFilter)
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfTemplates(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfTemplates(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -16775,6 +16748,7 @@ func (s Store) SearchTemplates(ctx context.Context, f systemType.TemplateFilter)
 func (s Store) fetchFullPageOfTemplates(
 	ctx context.Context,
 	filter systemType.TemplateFilter,
+	sort filter.SortExprSet,
 ) (set []*systemType.Template, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*systemType.Template
@@ -16802,8 +16776,9 @@ func (s Store) fetchFullPageOfTemplates(
 	set = make([]*systemType.Template, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -17299,8 +17274,8 @@ func (s Store) SearchUsers(ctx context.Context, f systemType.UserFilter) (set sy
 	}
 
 	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the fetchFullPageOfUsers fn used for cursor creation so it MUST keep the initial
-	// direction information
+	// Original are passed to the etchFullPageOfUsers fn used for cursor creation;
+	// direction information it MUST keep the initial
 	sort := f.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
@@ -17309,10 +17284,7 @@ func (s Store) SearchUsers(ctx context.Context, f systemType.UserFilter) (set sy
 		sort.Reverse()
 	}
 
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfUsers(
-		ctx,
-		f,
-	)
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfUsers(ctx, f, sort)
 
 	f.PageCursor = nil
 	if err != nil {
@@ -17337,6 +17309,7 @@ func (s Store) SearchUsers(ctx context.Context, f systemType.UserFilter) (set sy
 func (s Store) fetchFullPageOfUsers(
 	ctx context.Context,
 	filter systemType.UserFilter,
+	sort filter.SortExprSet,
 ) (set []*systemType.User, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*systemType.User
@@ -17364,8 +17337,9 @@ func (s Store) fetchFullPageOfUsers(
 	set = make([]*systemType.User, 0, DefaultSliceCapacity)
 
 	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter
+		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
+		tryFilter.Sort = sort
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items

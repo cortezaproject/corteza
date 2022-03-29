@@ -90,7 +90,7 @@ func (c *cursorCondition) values() []interface{} {
 	return vv
 }
 
-// builds cursor SQL condition
+// builds cursor SQL expression
 //
 // this could be simple (f1, f2, ...) < (v1, v2, ...) but we need  to be a bit careful with NULL values
 // So we need (f1 < v1 OR (f1 = v1 AND f2 < v2) pattern, extended to:
