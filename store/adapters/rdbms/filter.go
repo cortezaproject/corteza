@@ -210,6 +210,18 @@ func (f *extendedFilters) SetDefaults() {
 		return ee, f, nil
 	}
 
+	f.SettingValue = func(f systemType.SettingsFilter) (ee []goqu.Expression, _ systemType.SettingsFilter, err error) {
+		if ee, f, err = SettingValueFilter(f); err != nil {
+			return
+		}
+
+		if len(f.Prefix) > 0 {
+			ee = append(ee, goqu.C("name").Like(f.Prefix+"%"))
+		}
+
+		return ee, f, nil
+	}
+
 	f.FederationExposedModule = func(f types.ExposedModuleFilter) (ee []goqu.Expression, _ types.ExposedModuleFilter, err error) {
 		if ee, f, err = FederationExposedModuleFilter(f); err != nil {
 			return
