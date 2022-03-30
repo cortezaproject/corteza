@@ -147,7 +147,7 @@ var (
 	apigwFilterSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
-			"route",
+			"rel_route",
 			"weight",
 			"ref",
 			"kind",
@@ -169,7 +169,7 @@ var (
 		return d.Insert(apigwFilterTable).
 			Rows(goqu.Record{
 				"id":         res.ID,
-				"route":      res.Route,
+				"rel_route":  res.Route,
 				"weight":     res.Weight,
 				"ref":        res.Ref,
 				"kind":       res.Kind,
@@ -194,7 +194,7 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
-						"route":      res.Route,
+						"rel_route":  res.Route,
 						"weight":     res.Weight,
 						"ref":        res.Ref,
 						"kind":       res.Kind,
@@ -217,7 +217,7 @@ var (
 	apigwFilterUpdateQuery = func(d goqu.DialectWrapper, res *systemType.ApigwFilter) *goqu.UpdateDataset {
 		return d.Update(apigwFilterTable).
 			Set(goqu.Record{
-				"route":      res.Route,
+				"rel_route":  res.Route,
 				"weight":     res.Weight,
 				"ref":        res.Ref,
 				"kind":       res.Kind,
@@ -270,7 +270,7 @@ var (
 			"endpoint",
 			"method",
 			"enabled",
-			"group",
+			"rel_group",
 			"meta",
 			"created_at",
 			"updated_at",
@@ -291,7 +291,7 @@ var (
 				"endpoint":   res.Endpoint,
 				"method":     res.Method,
 				"enabled":    res.Enabled,
-				"group":      res.Group,
+				"rel_group":  res.Group,
 				"meta":       res.Meta,
 				"created_at": res.CreatedAt,
 				"updated_at": res.UpdatedAt,
@@ -315,7 +315,7 @@ var (
 						"endpoint":   res.Endpoint,
 						"method":     res.Method,
 						"enabled":    res.Enabled,
-						"group":      res.Group,
+						"rel_group":  res.Group,
 						"meta":       res.Meta,
 						"created_at": res.CreatedAt,
 						"updated_at": res.UpdatedAt,
@@ -337,7 +337,7 @@ var (
 				"endpoint":   res.Endpoint,
 				"method":     res.Method,
 				"enabled":    res.Enabled,
-				"group":      res.Group,
+				"rel_group":  res.Group,
 				"meta":       res.Meta,
 				"created_at": res.CreatedAt,
 				"updated_at": res.UpdatedAt,
