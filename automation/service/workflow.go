@@ -709,7 +709,7 @@ func (svc *workflow) exec(ctx context.Context, wf *types.Workflow, p types.Workf
 
 		WorkflowID:   wf.ID,
 		KeepFor:      wf.KeepSessions,
-		Trace:        wf.Trace,
+		Trace:        wf.Trace || p.Trace,
 		Input:        scope,
 		StepID:       p.StepID,
 		EventType:    p.EventType,
