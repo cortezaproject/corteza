@@ -26,6 +26,7 @@ endpoints:
       parameters:
         get:
           - { name: userID, type: uint64, title: User ID }
+          - { name: deleted, type: uint, title: Exclude (0, default), include (1) or return only (2) deleted users }
 
     - name: composeNamespaces
       method: GET
@@ -34,6 +35,7 @@ endpoints:
       parameters:
         get:
           - { name: namespaceID, type: uint64, title: Namespace ID }
+          - { name: deleted, type: uint, title: Exclude (0, default), include (1) or return only (2) deleted namespaces }
 
     - name: composeModules
       method: GET
@@ -44,6 +46,7 @@ endpoints:
           - { name: namespaceID, type: uint64, title: Namespace ID }
         get:
           - { name: moduleID,    type: uint64, title: Module ID }
+          - { name: deleted, type: uint, title: Exclude (0, default), include (1) or return only (2) deleted modules }
 
     - name: composeRecords
       method: GET
@@ -55,6 +58,7 @@ endpoints:
           - { name: moduleID,    type: uint64, title: Module ID }
         get:
           - { name: recordID,    type: uint64, title: Record ID }
+          - { name: deleted, type: uint, title: Exclude (0, default), include (1) or return only (2) deleted records }
 
 - path: "/feed"
   entrypoint: feed

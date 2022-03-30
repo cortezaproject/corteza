@@ -81,7 +81,7 @@ func ComposeResources() *composeResources {
 	}
 }
 
-func (d composeResources) Namespaces(ctx context.Context, limit uint, cur string, namespaceID uint64) (rsp *Response, err error) {
+func (d composeResources) Namespaces(ctx context.Context, limit uint, cur string, namespaceID uint64, deleted uint) (rsp *Response, err error) {
 	return rsp, func() (err error) {
 		if !d.settings.Discovery.ComposeNamespaces.Enabled {
 			return errors.Internal("compose namespace indexing disabled")
@@ -93,7 +93,7 @@ func (d composeResources) Namespaces(ctx context.Context, limit uint, cur string
 			pf           cmpTypes.PageFilter
 			nss          cmpTypes.NamespaceSet
 			f            = cmpTypes.NamespaceFilter{
-				Deleted: filter.StateExcluded,
+				Deleted: filter.State(deleted),
 			}
 		)
 
@@ -175,7 +175,7 @@ func (d composeResources) Namespaces(ctx context.Context, limit uint, cur string
 	}()
 }
 
-func (d composeResources) Modules(ctx context.Context, namespaceID uint64, limit uint, cur string, moduleID uint64) (rsp *Response, err error) {
+func (d composeResources) Modules(ctx context.Context, namespaceID uint64, limit uint, cur string, moduleID uint64, deleted uint) (rsp *Response, err error) {
 	return rsp, func() (err error) {
 		if !d.settings.Discovery.ComposeModules.Enabled {
 			return errors.Internal("compose module indexing disabled")
@@ -186,7 +186,7 @@ func (d composeResources) Modules(ctx context.Context, namespaceID uint64, limit
 			mm cmpTypes.ModuleSet
 			f  = cmpTypes.ModuleFilter{
 				NamespaceID: namespaceID,
-				Deleted:     filter.StateExcluded,
+				Deleted:     filter.State(deleted),
 			}
 		)
 
@@ -262,7 +262,7 @@ func (d composeResources) Modules(ctx context.Context, namespaceID uint64, limit
 	}()
 }
 
-func (d composeResources) Records(ctx context.Context, namespaceID, moduleID uint64, limit uint, cur string, recordID uint64) (rsp *Response, err error) {
+func (d composeResources) Records(ctx context.Context, namespaceID, moduleID uint64, limit uint, cur string, recordID uint64, deleted uint) (rsp *Response, err error) {
 	return rsp, func() (err error) {
 		if !d.settings.Discovery.ComposeRecords.Enabled {
 			return errors.Internal("compose record indexing disabled")
@@ -275,7 +275,7 @@ func (d composeResources) Records(ctx context.Context, namespaceID, moduleID uin
 			f   = cmpTypes.RecordFilter{
 				NamespaceID: namespaceID,
 				ModuleID:    moduleID,
-				Deleted:     filter.StateExcluded,
+				Deleted:     filter.State(deleted),
 			}
 		)
 
