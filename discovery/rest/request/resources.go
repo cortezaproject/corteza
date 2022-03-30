@@ -48,6 +48,11 @@ type (
 		//
 		// User ID
 		UserID uint64 `json:",string"`
+
+		// Deleted GET parameter
+		//
+		// Exclude (0
+		Deleted uint
 	}
 
 	ResourcesComposeNamespaces struct {
@@ -65,6 +70,11 @@ type (
 		//
 		// Namespace ID
 		NamespaceID uint64 `json:",string"`
+
+		// Deleted GET parameter
+		//
+		// Exclude (0
+		Deleted uint
 	}
 
 	ResourcesComposeModules struct {
@@ -87,6 +97,11 @@ type (
 		//
 		// Module ID
 		ModuleID uint64 `json:",string"`
+
+		// Deleted GET parameter
+		//
+		// Exclude (0
+		Deleted uint
 	}
 
 	ResourcesComposeRecords struct {
@@ -114,6 +129,11 @@ type (
 		//
 		// Record ID
 		RecordID uint64 `json:",string"`
+
+		// Deleted GET parameter
+		//
+		// Exclude (0
+		Deleted uint
 	}
 )
 
@@ -128,6 +148,7 @@ func (r ResourcesSystemUsers) Auditable() map[string]interface{} {
 		"limit":      r.Limit,
 		"pageCursor": r.PageCursor,
 		"userID":     r.UserID,
+		"deleted":    r.Deleted,
 	}
 }
 
@@ -144,6 +165,11 @@ func (r ResourcesSystemUsers) GetPageCursor() string {
 // Auditable returns all auditable/loggable parameters
 func (r ResourcesSystemUsers) GetUserID() uint64 {
 	return r.UserID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ResourcesSystemUsers) GetDeleted() uint {
+	return r.Deleted
 }
 
 // Fill processes request and fills internal variables
@@ -171,6 +197,12 @@ func (r *ResourcesSystemUsers) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+		if val, ok := tmp["deleted"]; ok && len(val) > 0 {
+			r.Deleted, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return err
@@ -187,6 +219,7 @@ func (r ResourcesComposeNamespaces) Auditable() map[string]interface{} {
 		"limit":       r.Limit,
 		"pageCursor":  r.PageCursor,
 		"namespaceID": r.NamespaceID,
+		"deleted":     r.Deleted,
 	}
 }
 
@@ -203,6 +236,11 @@ func (r ResourcesComposeNamespaces) GetPageCursor() string {
 // Auditable returns all auditable/loggable parameters
 func (r ResourcesComposeNamespaces) GetNamespaceID() uint64 {
 	return r.NamespaceID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ResourcesComposeNamespaces) GetDeleted() uint {
+	return r.Deleted
 }
 
 // Fill processes request and fills internal variables
@@ -230,6 +268,12 @@ func (r *ResourcesComposeNamespaces) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+		if val, ok := tmp["deleted"]; ok && len(val) > 0 {
+			r.Deleted, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return err
@@ -247,6 +291,7 @@ func (r ResourcesComposeModules) Auditable() map[string]interface{} {
 		"limit":       r.Limit,
 		"pageCursor":  r.PageCursor,
 		"moduleID":    r.ModuleID,
+		"deleted":     r.Deleted,
 	}
 }
 
@@ -270,6 +315,11 @@ func (r ResourcesComposeModules) GetModuleID() uint64 {
 	return r.ModuleID
 }
 
+// Auditable returns all auditable/loggable parameters
+func (r ResourcesComposeModules) GetDeleted() uint {
+	return r.Deleted
+}
+
 // Fill processes request and fills internal variables
 func (r *ResourcesComposeModules) Fill(req *http.Request) (err error) {
 
@@ -291,6 +341,12 @@ func (r *ResourcesComposeModules) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["moduleID"]; ok && len(val) > 0 {
 			r.ModuleID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["deleted"]; ok && len(val) > 0 {
+			r.Deleted, err = payload.ParseUint(val[0]), nil
 			if err != nil {
 				return err
 			}
@@ -325,6 +381,7 @@ func (r ResourcesComposeRecords) Auditable() map[string]interface{} {
 		"limit":       r.Limit,
 		"pageCursor":  r.PageCursor,
 		"recordID":    r.RecordID,
+		"deleted":     r.Deleted,
 	}
 }
 
@@ -353,6 +410,11 @@ func (r ResourcesComposeRecords) GetRecordID() uint64 {
 	return r.RecordID
 }
 
+// Auditable returns all auditable/loggable parameters
+func (r ResourcesComposeRecords) GetDeleted() uint {
+	return r.Deleted
+}
+
 // Fill processes request and fills internal variables
 func (r *ResourcesComposeRecords) Fill(req *http.Request) (err error) {
 
@@ -374,6 +436,12 @@ func (r *ResourcesComposeRecords) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["recordID"]; ok && len(val) > 0 {
 			r.RecordID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["deleted"]; ok && len(val) > 0 {
+			r.Deleted, err = payload.ParseUint(val[0]), nil
 			if err != nil {
 				return err
 			}

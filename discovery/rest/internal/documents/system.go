@@ -41,7 +41,7 @@ func SystemResources() *systemResources {
 	}
 }
 
-func (d systemResources) Users(ctx context.Context, limit uint, cur string, userID uint64) (rsp *Response, err error) {
+func (d systemResources) Users(ctx context.Context, limit uint, cur string, userID uint64, deleted uint) (rsp *Response, err error) {
 	return rsp, func() (err error) {
 		if !d.settings.Discovery.SystemUsers.Enabled {
 			return errors.Internal("system user indexing disabled")
@@ -50,7 +50,7 @@ func (d systemResources) Users(ctx context.Context, limit uint, cur string, user
 		var (
 			uu types.UserSet
 			f  = types.UserFilter{
-				Deleted: filter.StateExcluded,
+				Deleted: filter.State(deleted),
 			}
 		)
 
