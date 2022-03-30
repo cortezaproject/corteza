@@ -46,6 +46,8 @@ The repositories:
 2. [corteza-webapp-admin](https://github.com/cortezaproject/corteza-webapp-admin)
 3. [corteza-webapp-compose](https://github.com/cortezaproject/corteza-webapp-compose)
 4. [corteza-webapp-workflow](https://github.com/cortezaproject/corteza-webapp-workflow)
+4. [corteza-webapp-reporter](https://github.com/cortezaproject/corteza-webapp-reporter)
+4. [corteza-webapp-discovery](https://github.com/cortezaproject/corteza-webapp-discovery)
 
 Communication between the Corteza server and web applications is done using the REST API and web sockets.
 
