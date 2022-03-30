@@ -62,7 +62,7 @@ func (svc resourceTranslationsManager) Upsert(ctx context.Context, rr locale.Res
 	//  - managed resource translation strings are all for default language
 	//  or
 	//  - user is allowed to manage resource translations
-	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if rr.ContainsForeign(svc.Locale().Default().Tag) {
 			if !svc.ac.CanManageResourceTranslations(ctx) {
 				return ErrNotAllowedToManageResourceTranslations
@@ -133,12 +133,15 @@ func (svc resourceTranslationsManager) Upsert(ctx context.Context, rr locale.Res
 			return err
 		}
 
-		// Reload ALL resource translations
-		// @todo we could probably do this more selectively and refresh only updated resources?
-		_ = locale.Global().ReloadResourceTranslations(ctx)
-
 		return nil
 	})
+	if err != nil {
+		return err
+	}
+
+	// Reload ALL resource translations
+	// @todo we could probably do this more selectively and refresh only updated resources?
+	return locale.Global().ReloadResourceTranslations(ctx)
 }
 
 func (svc resourceTranslationsManager) Locale() locale.Resource {
