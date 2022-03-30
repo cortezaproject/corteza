@@ -7,6 +7,8 @@ package rdbms
 //
 
 import (
+	"strings"
+
 	automationType "github.com/cortezaproject/corteza-server/automation/types"
 	composeType "github.com/cortezaproject/corteza-server/compose/types"
 	federationType "github.com/cortezaproject/corteza-server/federation/types"
@@ -17,7 +19,6 @@ import (
 	rbacType "github.com/cortezaproject/corteza-server/pkg/rbac"
 	systemType "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/doug-martin/goqu/v9"
-	"strings"
 )
 
 type (
@@ -222,10 +223,6 @@ func ApigwRouteFilter(f systemType.ApigwRouteFilter) (ee []goqu.Expression, _ sy
 
 	if val := strings.TrimSpace(f.Route); len(val) > 0 {
 		ee = append(ee, goqu.C("route").Eq(f.Route))
-	}
-
-	if val := strings.TrimSpace(f.Group); len(val) > 0 {
-		ee = append(ee, goqu.C("group").Eq(f.Group))
 	}
 
 	return ee, f, err
