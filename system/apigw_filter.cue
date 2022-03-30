@@ -11,7 +11,7 @@ apigw_filter: schema.#Resource & {
 
 	struct: {
 		id: schema.IdField
-		route:  { goType: "uint64" }
+		route:  { goType: "uint64", storeIdent: "rel_route" }
 		weight: { goType: "uint64" }
 		ref: {}
 		kind: {}

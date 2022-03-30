@@ -10,12 +10,12 @@ apigw_route: schema.#Resource & {
 	}
 
 	struct: {
-		id: schema.IdField
+		id:       schema.IdField
 		endpoint: {}
-		method: {}
-		enabled: {goType: "bool"}
-		group: {goType: "uint64"}
-		meta: {goType: "types.ApigwRouteMeta"}
+		method:   {}
+		enabled:  {goType: "bool"}
+		group:    {goType: "uint64", storeIdent: "rel_group"}
+		meta:     {goType: "types.ApigwRouteMeta"}
 
 		created_at: schema.SortableTimestampField
 		updated_at: schema.SortableTimestampNilField
@@ -28,13 +28,12 @@ apigw_route: schema.#Resource & {
 	filter: {
 		struct: {
 			route: {}
-			group: {}
 
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 			disabled: {goType: "filter.State", storeIdent: "enabled"}
 		}
 
-		byValue: ["route", "group"]
+		byValue: ["route"]
 		byNilState: ["deleted"]
 		byFalseState: ["disabled"]
 	}

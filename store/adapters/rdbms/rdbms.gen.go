@@ -777,7 +777,7 @@ func (s Store) LookupApigwFilterByRoute(ctx context.Context, route uint64) (_ *s
 		rows   *sql.Rows
 		aux    = new(auxApigwFilter)
 		lookup = apigwFilterSelectQuery(s.config.Dialect).Where(
-			goqu.I("route").Eq(route),
+			goqu.I("rel_route").Eq(route),
 		).Limit(1)
 	)
 
