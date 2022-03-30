@@ -53,15 +53,15 @@ Additionally, we've provided some [video instructions](https://forum.cortezaproj
 Quick references:
 
 * [data backup and restore](https://docs.cortezaproject.org/corteza-docs/2022.3/devops-guide/maintenance/backups.html)
-* [troubleshooting](https://docs.cortezaproject.org/corteza-docs/2022.3/devops-guide/maintenance/troubleshooting.html)
-* [setting up an email relay](https://docs.cortezaproject.org/corteza-docs/2022.3/devops-guide/extension-requirements/email-relay.html)
-* [setting up sink routes](https://docs.cortezaproject.org/corteza-docs/2022.3/devops-guide/extension-requirements/sink-route.html)
+* [troubleshooting](https://docs.cortezaproject.org/corteza-docs/2022.3/devops-guide/troubleshooting/index.html)
+* [setting up an email relay](https://docs.cortezaproject.org/corteza-docs/2022.3/devops-guide/email-relay.html)
+* [setting up sink routes](https://docs.cortezaproject.org/corteza-docs/2022.3/devops-guide/sink-route.html)
 
 ## Upgrading Corteza
 
-[![Latest Version Card](https://img.shields.io/github/v/tag/cortezaproject/corteza-server?label=latest%20stable%20version)](https://img.shields.io/github/v/tag/cortezaproject/corteza-server?label=latest%20stable%20version)
+[![Latest Version Card](https://img.shields.io/github/v/tag/cortezaproject/corteza-locale?label=latest%20stable%20version)](https://img.shields.io/github/v/tag/cortezaproject/corteza-locale?label=latest%20stable%20version)
 
-Refer to the [changelog](https://docs.cortezaproject.org/corteza-docs/2022.3/changelog/index.html) and the [upgrade guide](https://docs.cortezaproject.org/corteza-docs/2022.3/upgrade-guide/index.html) to upgrade your Corteza instance.
+Refer to the [changelog](https://docs.cortezaproject.org/corteza-docs/2022.3/changelog/index.html) and the [upgrade guide](https://docs.cortezaproject.org/corteza-docs/2022.3/devops-guide/upgrade/index.html) to upgrade your Corteza instance.
 
 ## Using Corteza
 
@@ -70,7 +70,7 @@ Refer to the [End-User Guide](https://docs.cortezaproject.org/corteza-docs/2022.
 Quick references:
 
 * [Corteza CRM](https://docs.cortezaproject.org/corteza-docs/2022.3/end-user-guide/crm/index.html)
-* [Corteza Service Solution](https://docs.cortezaproject.org/corteza-docs/2022.3/end-user-guide/case-management/index.html)
+* [Corteza Case Management](https://docs.cortezaproject.org/corteza-docs/2022.3/end-user-guide/case-management/index.html)
 
 ## Create with Corteza
 
@@ -84,10 +84,10 @@ Quick references:
 
 ## Contributing
 
-Refer to the [Developer Guide/Corteza Server](https://docs.cortezaproject.org/corteza-docs/2022.3/developer-guide/corteza-server/index.html) document for details regarding the [development setup](https://docs.cortezaproject.org/corteza-docs/2022.3/developer-guide/corteza-server/index.html#_development_setup), the [project structure](https://docs.cortezaproject.org/corteza-docs/2022.3/developer-guide/corteza-server/structure.html), and the feature insight documents.
+<!-- @todo -->
+<!-- Refer to the [Developer Guide/Corteza Server](https://docs.cortezaproject.org/corteza-docs/2022.3/developer-guide/corteza-server/index.html) document for details regarding the [development setup](https://docs.cortezaproject.org/corteza-docs/2022.3/developer-guide/corteza-server/index.html#_development_setup), the [project structure](https://docs.cortezaproject.org/corteza-docs/2022.3/developer-guide/corteza-server/structure.html), and the feature insight documents. -->
 
 Refer to the [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines and code of conduct.
-
 ## Community
 
 Reach out to us on [our forum](https://forum.cortezaproject.org/).
