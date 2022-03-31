@@ -31,24 +31,18 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 		return
 	}
 
-	//cfg.PlaceholderFormat = squirrel.Question
 	cfg.TxRetryErrHandler = txRetryErrHandler
 	cfg.ErrorHandler = errorHandler
-	//cfg.UpsertBuilder = UpsertBuilder
-	//cfg.CastModuleFieldToColumnType = fieldToColumnTypeCaster
-	//cfg.SqlSortHandler = SqlSortHandler
 
 	if s, err = rdbms.Connect(ctx, cfg); err != nil {
 		return
 	}
 
-	// See https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_ansi
-	// for details
+	// See https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_ansi for details
 	if _, err = s.DB().ExecContext(ctx, "SET SESSION sql_mode = 'ANSI'"); err != nil {
 		return
 	}
 
-	//ql.QueryEncoder = &QueryEncoder{}
 	cfg.Upgrader = NewUpgrader(s)
 
 	return s, nil
