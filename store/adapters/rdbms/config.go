@@ -32,9 +32,6 @@ type (
 
 		Dialect goqu.DialectWrapper
 
-		// Forces debug mode on RDBMS driver
-		Debug bool
-
 		// MaxOpenConns sets maximum number of open connections to the database
 		// defaults to same value as set in the db/sql
 		MaxOpenConns int
@@ -96,10 +93,6 @@ func (c *Config) MaskedDSN() string {
 }
 
 func (c *Config) SetDefaults() {
-	//if c.PlaceholderFormat == nil {
-	//	c.PlaceholderFormat = squirrel.Question
-	//}
-
 	if c.TxMaxRetries == 0 {
 		c.TxMaxRetries = TxRetryHardLimit
 	}

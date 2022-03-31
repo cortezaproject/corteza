@@ -29,16 +29,12 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 		return
 	}
 
-	//cfg.PlaceholderFormat = squirrel.Dollar
 	cfg.TxRetryErrHandler = txRetryErrHandler
 	cfg.ErrorHandler = errorHandler
 
 	// Using transactions in SQLite causes table locking
 	// @todo there must be a better way to go around this
 	cfg.TxDisabled = true
-	//cfg.SqlFunctionHandler = sqlFunctionHandler
-	//cfg.ASTFormatter = sqlASTFormatter
-	//cfg.CastModuleFieldToColumnType = fieldToColumnTypeCaster
 
 	// Set to zero
 	// Otherwise SQLite (in-memory) disconnects
@@ -50,8 +46,6 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 	}
 
 	cfg.Upgrader = NewUpgrader(s)
-
-	//ql.QueryEncoder = &QueryEncoder{}
 
 	return s, nil
 }
