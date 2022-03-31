@@ -30,21 +30,13 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 		return
 	}
 
-	//cfg.PlaceholderFormat = squirrel.Dollar
 	cfg.ErrorHandler = errorHandler
-	//cfg.SqlFunctionHandler = sqlFunctionHandler
-	//cfg.ASTFormatter = sqlASTFormatter
-	//cfg.CastModuleFieldToColumnType = fieldToColumnTypeCaster
 
 	if s, err = rdbms.Connect(ctx, cfg); err != nil {
 		return
 	}
 
-	// s.Filters
 	cfg.Upgrader = NewUpgrader(s)
-
-	//ql.QueryEncoder = &QueryEncoder{}
-
 	return s, nil
 }
 
