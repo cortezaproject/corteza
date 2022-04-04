@@ -20,6 +20,7 @@
 			<input
 				type="email"
 				class="form-control"
+				data-test-id="input-email"
 				name="email"
 				required
 				placeholder="{{ tr "login.template.form.email.placeholder" }}"
@@ -36,6 +37,7 @@
 				type="password"
 				required
 				class="form-control"
+				data-test-id="input-password"
 				name="password"
 				placeholder="{{ tr "login.template.form.password.placeholder" }}"
 				autocomplete="current-password"
@@ -45,6 +47,7 @@
 			<div class="col text-right">
 				<button
 					class="btn btn-primary btn-block btn-lg"
+					data-test-id="button-login-and-remember"
 					name="keep-session"
 					value="true"
 					type="submit"
@@ -64,6 +67,7 @@
 			<div class="col text-right">
 				<button
 					class="btn btn-primary btn-block btn-lg"
+					data-test-id="button-login"
 					name="keep-session"
 					value="true"
 					type="submit"

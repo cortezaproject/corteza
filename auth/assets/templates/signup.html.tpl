@@ -20,6 +20,7 @@
             <input
                 type="email"
                 class="form-control"
+								data-test-id="input-email"
                 name="email"
                 required
                 placeholder="{{ tr "signup.template.form.email.placeholder" }}"
@@ -34,6 +35,7 @@
 			<input
 				type="password"
 				class="form-control"
+				data-test-id="input-password"
 				name="password"
 				required
 				placeholder="{{ tr "signup.template.form.password.placeholder" }}"
@@ -47,6 +49,7 @@
 			<input
 				type="text"
 				class="form-control"
+				data-test-id="input-name"
 				name="name"
 				placeholder="{{ tr "signup.template.form.name.placeholder" }}"
 				value="{{ .form.name }}"
@@ -60,6 +63,7 @@
 			<input
 				type="text"
 				class="form-control handle-mask"
+				data-test-id="input-handle"
 				name="handle"
 				placeholder="{{ tr "signup.template.form.nickname.placeholder" }}"
 				value="{{ .form.handle }}"
@@ -70,6 +74,7 @@
 			<button
 				id="submit"
 				class="btn btn-primary btn-block btn-lg"
+				data-test-id="button-submit"
 				type="submit"
 			>{{ tr "signup.template.form.button.sign-up" }}</button>
 		</div>
