@@ -286,6 +286,8 @@ func (h rolesHandler) each(ctx context.Context, args *rolesEachArgs) (out wfexec
 		i.useIterLimit = true
 		i.iterLimit = uint(args.Limit)
 
+		f.Limit = uint(args.Limit)
+
 		if args.Limit > uint64(wfexec.MaxIteratorBufferSize) {
 			f.Limit = wfexec.MaxIteratorBufferSize
 		}

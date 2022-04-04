@@ -137,6 +137,8 @@ func (h templatesHandler) each(ctx context.Context, args *templatesEachArgs) (ou
 		i.useIterLimit = true
 		i.iterLimit = uint(args.Limit)
 
+		f.Limit = uint(args.Limit)
+
 		if args.Limit > uint64(wfexec.MaxIteratorBufferSize) {
 			f.Limit = wfexec.MaxIteratorBufferSize
 		}
