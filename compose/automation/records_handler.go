@@ -180,6 +180,8 @@ func (h recordsHandler) each(ctx context.Context, args *recordsEachArgs) (out wf
 		i.useIterLimit = true
 		i.iterLimit = uint(args.Limit)
 
+		f.Limit = uint(args.Limit)
+
 		if args.Limit > uint64(wfexec.MaxIteratorBufferSize) {
 			f.Limit = wfexec.MaxIteratorBufferSize
 		}

@@ -84,6 +84,8 @@ func (h actionlogHandler) each(ctx context.Context, args *actionlogEachArgs) (ou
 		i.useIterLimit = true
 		i.iterLimit = uint(args.Limit)
 
+		f.Limit = uint(args.Limit)
+
 		if args.Limit > uint64(wfexec.MaxIteratorBufferSize) {
 			f.Limit = wfexec.MaxIteratorBufferSize
 		}
