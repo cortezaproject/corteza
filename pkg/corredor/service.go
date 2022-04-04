@@ -117,6 +117,9 @@ var (
 	// Global corredor service
 	gCorredor *service
 
+	// Lock for accessing global service
+	gLock sync.RWMutex
+
 	// List of event types that can be used as iteration
 	// initiator
 	//
@@ -142,11 +145,17 @@ const (
 )
 
 func Service() *service {
+	gLock.RLock()
+	defer gLock.RUnlock()
+
 	return gCorredor
 }
 
 // Setup start connects to Corredor & initialize service
 func Setup(logger *zap.Logger, opt options.CorredorOpt) (err error) {
+	gLock.Lock()
+	defer gLock.Unlock()
+
 	if gCorredor != nil {
 		// Prevent multiple initializations
 		return
