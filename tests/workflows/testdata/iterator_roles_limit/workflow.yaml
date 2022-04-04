@@ -1,0 +1,29 @@
+workflows:
+  testing:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 10
+
+    steps:
+      - stepID: 10
+        kind: iterator
+        ref: rolesEach
+        arguments:
+          - { "target": "incTotal", "value": "false", "type": "Boolean" }
+          - { "target": "limit", "value": "2", "type": "UnsignedInteger" }
+        results:
+          - { "target": "r", "expr": "role" }
+          - { "target": "i", "expr": "index" }
+          - { "target": "t", "expr": "total" }
+
+      - stepID: 11
+        kind: continue
+
+      - stepID: 12
+        kind: termination
+
+    paths:
+      - { parentID: 10, childID: 11 }
+      - { parentID: 10, childID: 12 }
