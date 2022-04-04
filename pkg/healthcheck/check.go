@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"sync"
 )
 
 type (
@@ -28,6 +29,7 @@ type (
 
 	results []*result
 	checks  struct {
+		l  sync.RWMutex
 		cc []*check
 	}
 )
@@ -50,10 +52,16 @@ func New() *checks {
 
 // Add appends new check
 func (c *checks) Add(fn checkFn, label string, description ...string) {
+	c.l.Lock()
+	defer c.l.Unlock()
+
 	c.cc = append(c.cc, &check{fn, &Meta{Label: label, Description: strings.Join(description, "")}})
 }
 
-func (c checks) Run(ctx context.Context) results {
+func (c *checks) Run(ctx context.Context) results {
+	c.l.RLock()
+	defer c.l.RUnlock()
+
 	var rr = make([]*result, len(c.cc))
 
 	for i, c := range c.cc {
