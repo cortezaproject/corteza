@@ -66,3 +66,17 @@ func Test_Healthy(t *testing.T) {
 		})
 	}
 }
+
+// tested with
+// go test -count 10 -race -run Test_DataRace ./pkg/healthcheck/...
+func Test_DataRace(t *testing.T) {
+	hc := New()
+
+	go func() {
+		hc.Add(func(ctx context.Context) error { return nil }, "hc1")
+		hc.Add(func(ctx context.Context) error { return nil }, "hc2")
+		hc.Add(func(ctx context.Context) error { return nil }, "hc3")
+	}()
+	go hc.Run(context.Background())
+
+}
