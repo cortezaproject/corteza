@@ -12,6 +12,40 @@ import (
 	"go.uber.org/zap"
 )
 
+//type (
+//	mockConn struct {
+//		close            func() error
+//		remoteAddr       func() net.Addr
+//		writeMessage     func(messageType int, data []byte) error
+//		setWriteDeadline func(t time.Time) error
+//		readMessage      func() (messageType int, p []byte, err error)
+//		setReadDeadline  func(t time.Time) error
+//		setPongHandler   func(h func(appData string) error)
+//	}
+//)
+//
+//func MockConn() *mockConn {
+//	return &mockConn{
+//		close:            func() (err error) { return },
+//		remoteAddr:       func() (addr net.Addr) { return &net.IPAddr{IP: net.IPv4(0, 0, 0, 0)} },
+//		writeMessage:     func(messageType int, data []byte) (err error) { return },
+//		setWriteDeadline: func(t time.Time) (err error) { return },
+//		readMessage:      func() (messageType int, p []byte, err error) { return },
+//		setReadDeadline:  func(t time.Time) (err error) { return },
+//		setPongHandler:   func(h func(appData string) error) {},
+//	}
+//}
+//
+//func (c *mockConn) Close() error         { return c.close() }
+//func (c *mockConn) RemoteAddr() net.Addr { return c.remoteAddr() }
+//func (c *mockConn) WriteMessage(messageType int, data []byte) error {
+//	return c.writeMessage(messageType, data)
+//}
+//func (c *mockConn) SetWriteDeadline(t time.Time) error                  { return c.setWriteDeadline(t) }
+//func (c *mockConn) ReadMessage() (messageType int, p []byte, err error) { return c.readMessage() }
+//func (c *mockConn) SetReadDeadline(t time.Time) error                   { return c.setReadDeadline(t) }
+//func (c *mockConn) SetPongHandler(h func(appData string) error)         { c.setPongHandler(h) }
+
 func TestSession_procRawMessage(t *testing.T) {
 	var (
 		req = require.New(t)
@@ -24,11 +58,6 @@ func TestSession_procRawMessage(t *testing.T) {
 				nil,
 				options.WebsocketOpt{},
 				func(ctx context.Context, accessToken string) (auth.Identifiable, error) {
-					//token, err := jwt.Parse([]byte(accessToken))
-					//if err != nil {
-					//	return nil, err
-					//}
-					//return auth.IdentityFromToken(token), nil
 					switch accessToken {
 					case "one":
 						return identity1, nil
@@ -59,23 +88,23 @@ func TestSession_procRawMessage(t *testing.T) {
 	}
 
 	req.EqualError(s.procRawMessage([]byte("{}")), "unauthenticated session")
-	req.Nil(s.identity)
+	req.Nil(s.Identity())
 
 	req.EqualError(s.procRawMessage(mockResponse(nil)), "unauthorized: failed to parse token: EOF")
-	req.Nil(s.identity)
+	req.Nil(s.Identity())
 
 	token = []byte("one")
 	req.NoError(s.procRawMessage(mockResponse(token)))
-	req.NotNil(s.identity)
-	req.Equal(identity1.Identity(), s.identity.Identity())
+	req.NotNil(s.Identity())
+	req.Equal(identity1.Identity(), s.Identity().Identity())
 
 	req.EqualError(s.procRawMessage([]byte("{}")), "unknown message type ''")
-	req.Equal(identity1.Identity(), s.identity.Identity())
+	req.Equal(identity1.Identity(), s.Identity().Identity())
 
 	token = []byte("one")
 	req.NoError(s.procRawMessage(mockResponse(token)))
-	req.NotNil(s.identity)
-	req.Equal(identity1.Identity(), s.identity.Identity())
+	req.NotNil(s.Identity())
+	req.Equal(identity1.Identity(), s.Identity().Identity())
 
 	token = []byte("two")
 	req.EqualError(s.procRawMessage(mockResponse(token)), "unauthorized: identity does not match")
