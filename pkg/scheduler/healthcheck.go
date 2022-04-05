@@ -11,7 +11,7 @@ func Healthcheck(ctx context.Context) error {
 		return nil
 	}
 
-	if gScheduler.ticker == nil {
+	if gScheduler.ticker() == nil {
 		return fmt.Errorf("stopped")
 	}
 
