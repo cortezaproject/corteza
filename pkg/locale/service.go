@@ -131,8 +131,6 @@ func (svc *service) SupportedLang(tag language.Tag) bool {
 // all translation files
 func (svc *service) ReloadStatic() (err error) {
 	var (
-		i       int
-		lang    *Language
 		ll, aux []*Language
 
 		logFields = make([]zap.Field, 0)
@@ -140,6 +138,10 @@ func (svc *service) ReloadStatic() (err error) {
 
 	svc.l.Lock()
 	defer svc.l.Unlock()
+
+	if len(svc.tags) == 0 {
+		return fmt.Errorf("no supported languages (LOCALE_LANGUAGES is empty)")
+	}
 
 	svc.log.Info("reloading static",
 		zap.Strings("path", svc.src),
@@ -178,7 +180,7 @@ func (svc *service) ReloadStatic() (err error) {
 		ll = append(ll, aux...)
 	}
 
-	for i, lang = range ll {
+	for _, lang := range ll {
 		logFields = []zap.Field{
 			zap.Stringer("tag", lang.Tag),
 		}
@@ -206,11 +208,6 @@ func (svc *service) ReloadStatic() (err error) {
 			return err
 		}
 
-		if i == 0 && svc.def == nil {
-			// set first one as default
-			svc.def = lang
-		}
-
 		if svc.set[lang.Tag] != nil {
 			svc.log.Info(
 				"language overloaded",
@@ -234,7 +231,7 @@ func (svc *service) ReloadStatic() (err error) {
 	}
 
 	// Do another pass and link all extended languages
-	for _, lang = range svc.set {
+	for _, lang := range svc.set {
 		if lang.Extends.IsRoot() {
 			continue
 		}
@@ -244,6 +241,16 @@ func (svc *service) ReloadStatic() (err error) {
 		}
 
 		lang.extends = svc.set[lang.Extends]
+	}
+
+	if svc.def == nil {
+		first := svc.tags[0]
+
+		if svc.set[first] == nil {
+			return fmt.Errorf("could not find %s in loaded languages", first)
+		}
+
+		svc.def = svc.set[first]
 	}
 
 	return nil
