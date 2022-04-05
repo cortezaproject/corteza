@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	authCommands "github.com/cortezaproject/corteza-server/auth/commands"
@@ -30,39 +29,40 @@ func (app *CortezaApp) InitCLI() {
 	)
 
 	app.Command = cli.RootCommand(func() (err error) {
-		if len(envs) == 0 {
-			envs = []string{"."}
-		}
+		log := app.Log.Named("plugins")
+		if app.Opt.Plugins.Enabled && len(app.Opt.Plugins.Paths) > 0 {
+			log.Warn("loading", zap.String("paths", app.Opt.Plugins.Paths))
 
-		if err := cli.LoadEnv(envs...); err != nil {
-			return fmt.Errorf("failed to load environmental variables: %w", err)
-		}
+			var paths []string
+			paths, err = plugin.Resolve(app.Opt.Plugins.Paths)
+			log.Warn("loading", zap.Strings("resolved-paths", paths))
 
-		// Environmental variables (from the env, files, see cli.LoadEnv) MUST be
-		// loaded at this point!
-		app.Opt = options.Init()
-
-		{
-			log := app.Log.Named("plugins")
-			if app.Opt.Plugins.Enabled && len(app.Opt.Plugins.Paths) > 0 {
-				log.Warn("loading", zap.String("paths", app.Opt.Plugins.Paths))
-
-				var paths []string
-				paths, err = plugin.Resolve(app.Opt.Plugins.Paths)
-				log.Warn("loading", zap.Strings("resolved-paths", paths))
-
-				app.plugins, err = plugin.Load(paths...)
-				if err != nil {
-					return err
-				}
-			} else {
-				// Empty set of plugins
-				app.plugins = plugin.Set{}
+			app.plugins, err = plugin.Load(paths...)
+			if err != nil {
+				return err
 			}
+		} else {
+			// Empty set of plugins
+			app.plugins = plugin.Set{}
 		}
 
 		return err
 	})
+
+	// Environmental variables (from the env, files, see cli.LoadEnv) MUST be
+	// loaded at this point!
+	if len(envs) == 0 {
+		envs = []string{"."}
+	}
+
+	// Loading env after the rootcommand is added, so as not to break
+	// the Execute() if there is an error
+	if err := cli.LoadEnv(envs...); err != nil {
+		app.Log.Error("failed to load environmental variables", zap.Error(err))
+		return
+	}
+
+	app.Opt = options.Init()
 
 	app.Command.Flags().StringSliceVar(&envs, "env-file", nil,
 		"Load environmental variables from files and directories containing .env file.\n"+

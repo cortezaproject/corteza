@@ -340,6 +340,13 @@ func (req *TokenRequest) apply(opt ...IssueOptFn) (err error) {
 	return
 }
 
+func WithExpiration(e time.Duration) IssueOptFn {
+	return func(t *TokenRequest) (err error) {
+		t.Expiration = e
+		return
+	}
+}
+
 func WithIdentity(i Identifiable) IssueOptFn {
 	return func(t *TokenRequest) (err error) {
 		t.UserID = i.Identity()
