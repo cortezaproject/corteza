@@ -22,7 +22,7 @@ type (
 		l sync.RWMutex
 
 		// Simple chan to control if service is running or not
-		ticker *time.Ticker
+		t *time.Ticker
 	}
 
 	dispatcher interface {
@@ -83,29 +83,29 @@ func (svc *service) OnTick(events ...eventbus.Event) {
 }
 
 func (svc *service) Stop() {
+	svc.l.Lock()
+	defer svc.l.Unlock()
 
-	if svc.ticker == nil {
-		svc.log.Debug("already stopped")
-	} else {
-		svc.log.Debug("stopping")
-		svc.ticker.Stop()
-		svc.l.Lock()
-		svc.ticker = nil
-		defer svc.l.Unlock()
+	if svc.t == nil {
+		return
 	}
+
+	svc.log.Debug("stopping")
+	svc.t.Stop()
+	svc.t = nil
 }
 
 // Run starts event scheduler service
 func (svc *service) Start(ctx context.Context) {
-
-	if svc.ticker != nil {
+	if svc.ticker() != nil {
 		svc.log.Debug("already started")
 		return
 	}
 
 	svc.l.Lock()
-	svc.ticker = &time.Ticker{}
-	svc.l.Unlock()
+	defer svc.l.Unlock()
+	// setting un-configured ticker to mark scheduler service as stated
+	svc.t = &time.Ticker{}
 
 	go func() {
 		defer sentry.Recover()
@@ -121,9 +121,11 @@ func (svc *service) Start(ctx context.Context) {
 
 		// Wait until start of the next interval
 		time.Sleep(delay)
+
 		svc.l.Lock()
-		svc.ticker = time.NewTicker(svc.interval)
-		svc.l.Unlock()
+		defer svc.l.Unlock()
+		svc.t = time.NewTicker(svc.interval)
+
 		svc.log.Debug("started")
 
 		go svc.watch(ctx)
@@ -132,45 +134,43 @@ func (svc *service) Start(ctx context.Context) {
 
 func (svc *service) watch(ctx context.Context) {
 	defer sentry.Recover()
-	defer func() {
-		defer svc.log.Debug("stopped")
-		svc.ticker.Stop()
-		svc.l.Lock()
-		svc.ticker = nil
-		svc.l.Unlock()
-	}()
+	defer svc.Stop()
 
 	// start with first interval
 	svc.dispatch(ctx)
 
 	for {
-		select {
-		case <-svc.ticker.C:
-			svc.dispatch(ctx)
+		func() {
+			select {
+			case <-svc.ticker().C:
+				svc.dispatch(ctx)
 
-		case <-ctx.Done():
-			svc.log.Debug("done")
-			return
-		}
+			case <-ctx.Done():
+				svc.log.Debug("done")
+				return
+			}
+		}()
 	}
 }
 
-func (svc *service) Started() (started bool) {
+func (svc *service) ticker() *time.Ticker {
 	svc.l.RLock()
 	defer svc.l.RUnlock()
+	return svc.t
+}
 
-	return svc.ticker != nil
+func (svc *service) Started() (started bool) {
+	return svc.ticker() != nil
 }
 
 func (svc *service) dispatch(ctx context.Context) {
 	svc.l.RLock()
+	defer svc.l.RUnlock()
 
 	ee := make([]eventbus.Event, len(svc.events))
 	for e := range svc.events {
 		ee[e] = svc.events[e]
 	}
-
-	defer svc.l.RUnlock()
 
 	for _, ev := range ee {
 		go func(ev eventbus.Event) {

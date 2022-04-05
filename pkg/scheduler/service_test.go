@@ -43,7 +43,11 @@ func TestMainServiceFunctions(t *testing.T) {
 		actionWait   = loopInterval * 10
 	)
 
-	r.Nil(gScheduler)
+	if gScheduler != nil {
+		gScheduler.Stop()
+		gScheduler = nil
+	}
+
 	Setup(zap.NewNop(), eventbus.New(), loopInterval)
 	r.NotNil(gScheduler)
 	r.False(gScheduler.Started())
