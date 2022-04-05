@@ -109,8 +109,8 @@ func (ws *server) Send(t string, payload interface{}, userIDs ...uint64) error {
 func (ws *server) StoreSession(s *session) {
 	ws.l.Lock()
 	defer ws.l.Unlock()
-	if s.identity != nil {
-		ws.storeSession(s, s.identity.Identity(), s.id)
+	if i := s.Identity(); i != nil {
+		ws.storeSession(s, i.Identity(), s.id)
 	}
 }
 
@@ -126,8 +126,8 @@ func (ws *server) storeSession(w io.Writer, uid, sid uint64) {
 func (ws *server) RemoveSession(s *session) {
 	ws.l.Lock()
 	defer ws.l.Unlock()
-	if s.identity != nil {
-		uid := s.identity.Identity()
+	if i := s.Identity(); i != nil {
+		uid := i.Identity()
 		delete(ws.sessions[uid], s.id)
 
 		if len(ws.sessions[uid]) == 0 {
