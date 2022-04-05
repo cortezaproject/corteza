@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"time"
 
 	"github.com/cortezaproject/corteza-server/auth/external"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -32,8 +33,9 @@ func Command(ctx context.Context, app serviceInitializer, storeInit func(ctx con
 		enableDiscoveredProvider               bool
 		skipValidationOnAutoDiscoveredProvider bool
 
-		clientID uint64
-		scope    []string
+		clientID      uint64
+		scope         []string
+		tokenDuration time.Duration
 	)
 
 	cmd := &cobra.Command{
@@ -116,6 +118,10 @@ func Command(ctx context.Context, app serviceInitializer, storeInit func(ctx con
 				opts = append(opts, auth.WithClientID(clientID))
 			}
 
+			if tokenDuration > 0 {
+				opts = append(opts, auth.WithExpiration(tokenDuration))
+			}
+
 			signedToken, err = auth.TokenIssuer.Issue(ctx, opts...)
 
 			cli.HandleError(err)
@@ -134,6 +140,12 @@ func Command(ctx context.Context, app serviceInitializer, storeInit func(ctx con
 		"scope",
 		[]string{"profile", "api"},
 		"Scope")
+
+	jwtCmd.Flags().DurationVar(
+		&tokenDuration,
+		"duration",
+		app.Options().Auth.Expiry,
+		"Token expiry duration")
 
 	testEmails := &cobra.Command{
 		Use:     "test-notifications [recipient]",
