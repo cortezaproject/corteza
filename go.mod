@@ -1,6 +1,6 @@
 module github.com/cortezaproject/corteza-server
 
-go 1.17
+go 1.18
 
 // This is useful when testing changes on corteza-locale
 // and you do not want to push on every change in the locale repo
