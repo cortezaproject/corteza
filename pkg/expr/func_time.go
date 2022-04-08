@@ -173,6 +173,14 @@ func prepMod(base interface{}, mod interface{}) (*time.Time, int, error) {
 		t = &auxt
 	case *time.Time:
 		t = auxt
+	case string:
+		tt, err := cast.ToTimeE(auxt)
+
+		if err != nil {
+			return nil, 0, err
+		}
+
+		t = &tt
 	default:
 		return nil, 0, errors.New("unexpected input type")
 	}
