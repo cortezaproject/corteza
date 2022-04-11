@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"net/url"
 	"strings"
 
@@ -30,6 +31,7 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 		return
 	}
 
+	cfg.TxRetryErrHandler = txRetryErrHandler
 	cfg.ErrorHandler = errorHandler
 
 	if s, err = rdbms.Connect(ctx, cfg); err != nil {
@@ -74,6 +76,31 @@ func ProcDataSourceName(dsn string) (c *rdbms.Config, err error) {
 		DBName:         strings.Trim(u.Path, "/"),
 		Dialect:        goqu.Dialect("postgres"),
 	}, nil
+}
+
+func txRetryErrHandler(try int, err error) bool {
+	for errors.Unwrap(err) != nil {
+		err = errors.Unwrap(err)
+	}
+
+	var pqErr, ok = err.(*pq.Error)
+	if !ok || pqErr == nil {
+		return false
+	}
+
+	switch pqErr.Code.Name() {
+	// https://www.postgresql.org/docs/current/errcodes-appendix.html > Class 40 — Transaction Rollback
+	case
+		"transaction_rollback",
+		"transaction_integrity_constraint_violation",
+		"serialization_failure",
+		"statement_completion_unknown",
+		"deadlock_detected":
+		return true
+
+	}
+
+	return false
 }
 
 func errorHandler(err error) error {
