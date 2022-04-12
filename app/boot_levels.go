@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"os"
-	"strings"
 
 	authService "github.com/cortezaproject/corteza-server/auth"
 	authHandlers "github.com/cortezaproject/corteza-server/auth/handlers"
@@ -117,7 +116,7 @@ func (app *CortezaApp) Setup() (err error) {
 		}
 
 		if languages, err := locale.Service(localeLog, app.Opt.Locale); err != nil {
-			return err
+			return fmt.Errorf("locale service setup: %w", err)
 		} else {
 			locale.SetGlobal(languages)
 		}
@@ -143,7 +142,7 @@ func (app *CortezaApp) Setup() (err error) {
 	}
 
 	if err = corredor.Setup(app.Log, app.Opt.Corredor); err != nil {
-		return err
+		return fmt.Errorf("corredor setup failed: %w", err)
 	}
 
 	{
@@ -157,7 +156,7 @@ func (app *CortezaApp) Setup() (err error) {
 	}
 
 	if err = app.plugins.Setup(app.Log.Named("plugin")); err != nil {
-		return
+		return fmt.Errorf("plugins setup failed: %w", err)
 	}
 
 	app.lvl = bootLevelSetup
@@ -171,7 +170,7 @@ func (app *CortezaApp) InitStore(ctx context.Context) (err error) {
 		return nil
 	} else if err = app.Setup(); err != nil {
 		// Initialize previous level
-		return err
+		return fmt.Errorf("app setup failed: %w", err)
 	}
 
 	// Do not re-initialize store
@@ -181,7 +180,7 @@ func (app *CortezaApp) InitStore(ctx context.Context) (err error) {
 
 		app.Store, err = store.Connect(ctx, app.Log, app.Opt.DB.DSN, app.Opt.Environment.IsDevelopment())
 		if err != nil {
-			return err
+			return fmt.Errorf("could not connect to primary store: %w", err)
 		}
 	}
 
@@ -202,52 +201,8 @@ func (app *CortezaApp) InitStore(ctx context.Context) (err error) {
 		}
 
 		if err = store.Upgrade(ctx, log, app.Store); err != nil {
-			return err
+			return fmt.Errorf("could not upgrade primary store: %w", err)
 		}
-
-		// @todo refactor this to make more sense and put it where it belongs
-		{
-			var set types.SettingValueSet
-			set, _, err = store.SearchSettingValues(ctx, app.Store, types.SettingsFilter{Prefix: "auth.external"})
-			if err != nil {
-				return err
-			}
-
-			err = set.Walk(func(old *types.SettingValue) error {
-				if strings.HasSuffix(old.Name, ".redirect-url") {
-					// remove obsolete redirect-url
-					if err = store.DeleteSettingValue(ctx, app.Store, old); err != nil {
-						return err
-					}
-
-					return nil
-				}
-
-				if strings.Contains(old.Name, ".provider.gplus.") {
-					var new = *old
-					new.Name = strings.Replace(new.Name, "provider.gplus.", "provider.google.", 1)
-
-					log.Info("renaming settings", zap.String("old", old.Name), zap.String("new", new.Name))
-
-					if err = store.CreateSettingValue(ctx, app.Store, &new); err != nil {
-						if store.ErrNotUnique != err {
-							return err
-						}
-					}
-
-					if err = store.DeleteSettingValue(ctx, app.Store, old); err != nil {
-						return err
-					}
-				}
-
-				return nil
-			})
-
-			if err != nil {
-				return err
-			}
-		}
-
 	}
 
 	app.lvl = bootLevelStoreInitialized
@@ -262,11 +217,11 @@ func (app *CortezaApp) Provision(ctx context.Context) (err error) {
 	}
 
 	if err = app.InitStore(ctx); err != nil {
-		return err
+		return
 	}
 
 	if err = app.initSystemEntities(ctx); err != nil {
-		return
+		return fmt.Errorf("could not initialize system entities: %w", err)
 	}
 
 	{
@@ -297,7 +252,7 @@ func (app *CortezaApp) Provision(ctx context.Context) (err error) {
 		ctx = auth.SetIdentityToContext(ctx, auth.ProvisionUser())
 
 		if err = provision.Run(ctx, app.Log, app.Store, app.Opt.Provision, app.Opt.Auth); err != nil {
-			return err
+			return fmt.Errorf("could not run provision: %w", err)
 		}
 	}
 
@@ -377,7 +332,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		)
 
 		if err != nil {
-			return
+			return fmt.Errorf("could not initialize token issuer: %w", err)
 		}
 	}
 
@@ -411,7 +366,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	defer sentry.Recover()
 
 	if err = corredor.Service().Connect(ctx); err != nil {
-		return
+		return fmt.Errorf("could not connecto to corredor service: %w", err)
 	}
 
 	if rbac.Global() == nil {
@@ -432,7 +387,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	// Initialize resource translation stuff
 	locale.Global().BindStore(app.Store)
 	if err = locale.Global().ReloadResourceTranslations(ctx); err != nil {
-		return err
+		return fmt.Errorf("could not reload resource translations: %w", err)
 	}
 
 	// Initializes system services
@@ -469,7 +424,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	})
 
 	if err != nil {
-		return
+		return fmt.Errorf("could not initialize automation services: %w", err)
 	}
 
 	// Initializes compose services
@@ -484,7 +439,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	})
 
 	if err != nil {
-		return
+		return fmt.Errorf("could not initialize compose services: %w", err)
 	}
 
 	corredor.Service().SetUserFinder(sysService.DefaultUser)
@@ -493,7 +448,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	// Initialize API GW bits
 	apigw.Setup(*options.Apigw(), app.Log, app.Store)
 	if err = apigw.Service().Reload(ctx); err != nil {
-		return err
+		return fmt.Errorf("could not initialize api gateway services: %w", err)
 	}
 
 	if app.Opt.Federation.Enabled {
@@ -507,7 +462,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		})
 
 		if err != nil {
-			return
+			return fmt.Errorf("could not initialize federation services: %w", err)
 		}
 	}
 
@@ -515,7 +470,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	if app.Opt.Discovery.Enabled {
 		err = discoveryService.Initialize(ctx, app.Opt.Discovery, app.Store)
 		if err != nil {
-			return err
+			return fmt.Errorf("could not initialize discovery services: %w", err)
 		}
 	}
 
@@ -527,11 +482,11 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	_ = seeder.Seeder(ctx, app.Store, seeder.Faker())
 
 	if err = app.plugins.Initialize(ctx, app.Log); err != nil {
-		return
+		return fmt.Errorf("could not initialize plugins: %w", err)
 	}
 
 	if err = app.plugins.RegisterAutomation(autService.Registry()); err != nil {
-		return
+		return fmt.Errorf("could not register automation plugins: %w", err)
 	}
 
 	app.lvl = bootLevelServicesInitialized
@@ -544,7 +499,7 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 		return
 	}
 
-	if err := app.InitServices(ctx); err != nil {
+	if err = app.InitServices(ctx); err != nil {
 		return err
 	}
 
@@ -576,19 +531,22 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 	rbac.Global().Watch(ctx)
 
 	if err = sysService.Activate(ctx); err != nil {
-		return err
+		return fmt.Errorf("could not activate system services: %w", err)
+
 	}
 
 	if err = autService.Activate(ctx); err != nil {
-		return err
+		return fmt.Errorf("could not activate automation services: %w", err)
+
 	}
 
 	if err = cmpService.Activate(ctx); err != nil {
-		return err
+		return fmt.Errorf("could not activate compose services: %w", err)
+
 	}
 
 	if err = applySmtpOptionsToSettings(ctx, app.Log, app.Opt.SMTP, sysService.CurrentSettings); err != nil {
-		return err
+		return fmt.Errorf("could not apply SMTP options to settings: %w", err)
 	}
 
 	updateSmtpSettings(app.Log, sysService.CurrentSettings)
@@ -648,12 +606,12 @@ func (app *CortezaApp) initSystemEntities(ctx context.Context) (err error) {
 
 	// Basic provision for system resources that we need before anything else
 	if rr, err = provision.SystemRoles(ctx, app.Log, app.Store); err != nil {
-		return
+		return fmt.Errorf("could not provision system roles")
 	}
 
 	// Basic provision for system users that we need before anything else
 	if uu, err = provision.SystemUsers(ctx, app.Log, app.Store); err != nil {
-		return
+		return fmt.Errorf("could not provision system users")
 	}
 
 	// set system users & roles with so that the whole app knows what to use

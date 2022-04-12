@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -164,7 +165,11 @@ func DecodeKV(kv SettingsKV, dst interface{}, pp ...string) (err error) {
 				// Try to get numbers encoded as strings...
 				var tmp interface{}
 				if val.Unmarshal(&tmp) != nil {
-					return err
+					return fmt.Errorf(
+						"could not unamarshal JSON value for settings key %q: %w",
+						key,
+						err,
+					)
 				}
 
 				switch cnv := tmp.(type) {
