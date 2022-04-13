@@ -183,8 +183,8 @@ func mountDebugHandler(r chi.Router, log *zap.Logger) {
 	log.Debug("route debugger enabled: /__routes")
 	r.Get("/__routes", debugRoutes(r))
 
-	log.Debug("profiler enabled: /__profiler")
-	r.Mount("/__profiler", middleware.Profiler())
+	log.Debug("profiler enabled: /debug/pprof")
+	r.Mount("/debug", middleware.Profiler())
 
 	log.Debug("eventbus handlers debug enabled: /__eventbus")
 	r.Get("/__eventbus", debugEventbus())
