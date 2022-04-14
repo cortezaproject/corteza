@@ -11,10 +11,9 @@ package schema
 }
 
 #codegen: {
-	bulk?: [...#_ioSpec]
-	if bulk == _|_ {
-		#_ioSpec
-	}
-
+	#_ioSpec
 	payload: _
+} | {
+		bulk?: [...#_ioSpec]
+		payload: _
 }
