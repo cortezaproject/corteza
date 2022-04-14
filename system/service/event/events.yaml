@@ -118,3 +118,15 @@ system:queue:
       type: '*types.QueueMessage'
   constraints:
     - name: payload.queue
+
+system:data-privacy-request:
+  on: ['manual']
+  ba: ['create', 'update', 'delete']
+  props:
+    - name: 'dataPrivacyRequest'
+      type: '*types.DataPrivacyRequest'
+    - name: 'oldDataPrivacyRequest'
+      type: '*types.DataPrivacyRequest'
+      immutable: true
+  constraints:
+    - name: role.name

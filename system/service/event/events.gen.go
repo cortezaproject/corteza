@@ -206,6 +206,65 @@ type (
 		*authClientBase
 	}
 
+	// dataPrivacyRequestBase
+	//
+	// This type is auto-generated.
+	dataPrivacyRequestBase struct {
+		immutable             bool
+		dataPrivacyRequest    *types.DataPrivacyRequest
+		oldDataPrivacyRequest *types.DataPrivacyRequest
+		invoker               auth.Identifiable
+	}
+
+	// dataPrivacyRequestOnManual
+	//
+	// This type is auto-generated.
+	dataPrivacyRequestOnManual struct {
+		*dataPrivacyRequestBase
+	}
+
+	// dataPrivacyRequestBeforeCreate
+	//
+	// This type is auto-generated.
+	dataPrivacyRequestBeforeCreate struct {
+		*dataPrivacyRequestBase
+	}
+
+	// dataPrivacyRequestBeforeUpdate
+	//
+	// This type is auto-generated.
+	dataPrivacyRequestBeforeUpdate struct {
+		*dataPrivacyRequestBase
+	}
+
+	// dataPrivacyRequestBeforeDelete
+	//
+	// This type is auto-generated.
+	dataPrivacyRequestBeforeDelete struct {
+		*dataPrivacyRequestBase
+	}
+
+	// dataPrivacyRequestAfterCreate
+	//
+	// This type is auto-generated.
+	dataPrivacyRequestAfterCreate struct {
+		*dataPrivacyRequestBase
+	}
+
+	// dataPrivacyRequestAfterUpdate
+	//
+	// This type is auto-generated.
+	dataPrivacyRequestAfterUpdate struct {
+		*dataPrivacyRequestBase
+	}
+
+	// dataPrivacyRequestAfterDelete
+	//
+	// This type is auto-generated.
+	dataPrivacyRequestAfterDelete struct {
+		*dataPrivacyRequestBase
+	}
+
 	// mailBase
 	//
 	// This type is auto-generated.
@@ -1728,6 +1787,415 @@ func (res *authClientBase) DecodeVars(vars *expr.Vars) (err error) {
 	}
 	// Could not find expression-type counterpart for *types.AuthClient
 	// oldAuthClient marked as immutable
+	// Could not find expression-type counterpart for auth.Identifiable
+
+	return
+}
+
+// ResourceType returns "system:data-privacy-request"
+//
+// This function is auto-generated.
+func (dataPrivacyRequestBase) ResourceType() string {
+	return "system:data-privacy-request"
+}
+
+// EventType on dataPrivacyRequestOnManual returns "onManual"
+//
+// This function is auto-generated.
+func (dataPrivacyRequestOnManual) EventType() string {
+	return "onManual"
+}
+
+// EventType on dataPrivacyRequestBeforeCreate returns "beforeCreate"
+//
+// This function is auto-generated.
+func (dataPrivacyRequestBeforeCreate) EventType() string {
+	return "beforeCreate"
+}
+
+// EventType on dataPrivacyRequestBeforeUpdate returns "beforeUpdate"
+//
+// This function is auto-generated.
+func (dataPrivacyRequestBeforeUpdate) EventType() string {
+	return "beforeUpdate"
+}
+
+// EventType on dataPrivacyRequestBeforeDelete returns "beforeDelete"
+//
+// This function is auto-generated.
+func (dataPrivacyRequestBeforeDelete) EventType() string {
+	return "beforeDelete"
+}
+
+// EventType on dataPrivacyRequestAfterCreate returns "afterCreate"
+//
+// This function is auto-generated.
+func (dataPrivacyRequestAfterCreate) EventType() string {
+	return "afterCreate"
+}
+
+// EventType on dataPrivacyRequestAfterUpdate returns "afterUpdate"
+//
+// This function is auto-generated.
+func (dataPrivacyRequestAfterUpdate) EventType() string {
+	return "afterUpdate"
+}
+
+// EventType on dataPrivacyRequestAfterDelete returns "afterDelete"
+//
+// This function is auto-generated.
+func (dataPrivacyRequestAfterDelete) EventType() string {
+	return "afterDelete"
+}
+
+// DataPrivacyRequestOnManual creates onManual for system:data-privacy-request resource
+//
+// This function is auto-generated.
+func DataPrivacyRequestOnManual(
+	argDataPrivacyRequest *types.DataPrivacyRequest,
+	argOldDataPrivacyRequest *types.DataPrivacyRequest,
+) *dataPrivacyRequestOnManual {
+	return &dataPrivacyRequestOnManual{
+		dataPrivacyRequestBase: &dataPrivacyRequestBase{
+			immutable:             false,
+			dataPrivacyRequest:    argDataPrivacyRequest,
+			oldDataPrivacyRequest: argOldDataPrivacyRequest,
+		},
+	}
+}
+
+// DataPrivacyRequestOnManualImmutable creates onManual for system:data-privacy-request resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func DataPrivacyRequestOnManualImmutable(
+	argDataPrivacyRequest *types.DataPrivacyRequest,
+	argOldDataPrivacyRequest *types.DataPrivacyRequest,
+) *dataPrivacyRequestOnManual {
+	return &dataPrivacyRequestOnManual{
+		dataPrivacyRequestBase: &dataPrivacyRequestBase{
+			immutable:             true,
+			dataPrivacyRequest:    argDataPrivacyRequest,
+			oldDataPrivacyRequest: argOldDataPrivacyRequest,
+		},
+	}
+}
+
+// DataPrivacyRequestBeforeCreate creates beforeCreate for system:data-privacy-request resource
+//
+// This function is auto-generated.
+func DataPrivacyRequestBeforeCreate(
+	argDataPrivacyRequest *types.DataPrivacyRequest,
+	argOldDataPrivacyRequest *types.DataPrivacyRequest,
+) *dataPrivacyRequestBeforeCreate {
+	return &dataPrivacyRequestBeforeCreate{
+		dataPrivacyRequestBase: &dataPrivacyRequestBase{
+			immutable:             false,
+			dataPrivacyRequest:    argDataPrivacyRequest,
+			oldDataPrivacyRequest: argOldDataPrivacyRequest,
+		},
+	}
+}
+
+// DataPrivacyRequestBeforeCreateImmutable creates beforeCreate for system:data-privacy-request resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func DataPrivacyRequestBeforeCreateImmutable(
+	argDataPrivacyRequest *types.DataPrivacyRequest,
+	argOldDataPrivacyRequest *types.DataPrivacyRequest,
+) *dataPrivacyRequestBeforeCreate {
+	return &dataPrivacyRequestBeforeCreate{
+		dataPrivacyRequestBase: &dataPrivacyRequestBase{
+			immutable:             true,
+			dataPrivacyRequest:    argDataPrivacyRequest,
+			oldDataPrivacyRequest: argOldDataPrivacyRequest,
+		},
+	}
+}
+
+// DataPrivacyRequestBeforeUpdate creates beforeUpdate for system:data-privacy-request resource
+//
+// This function is auto-generated.
+func DataPrivacyRequestBeforeUpdate(
+	argDataPrivacyRequest *types.DataPrivacyRequest,
+	argOldDataPrivacyRequest *types.DataPrivacyRequest,
+) *dataPrivacyRequestBeforeUpdate {
+	return &dataPrivacyRequestBeforeUpdate{
+		dataPrivacyRequestBase: &dataPrivacyRequestBase{
+			immutable:             false,
+			dataPrivacyRequest:    argDataPrivacyRequest,
+			oldDataPrivacyRequest: argOldDataPrivacyRequest,
+		},
+	}
+}
+
+// DataPrivacyRequestBeforeUpdateImmutable creates beforeUpdate for system:data-privacy-request resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func DataPrivacyRequestBeforeUpdateImmutable(
+	argDataPrivacyRequest *types.DataPrivacyRequest,
+	argOldDataPrivacyRequest *types.DataPrivacyRequest,
+) *dataPrivacyRequestBeforeUpdate {
+	return &dataPrivacyRequestBeforeUpdate{
+		dataPrivacyRequestBase: &dataPrivacyRequestBase{
+			immutable:             true,
+			dataPrivacyRequest:    argDataPrivacyRequest,
+			oldDataPrivacyRequest: argOldDataPrivacyRequest,
+		},
+	}
+}
+
+// DataPrivacyRequestBeforeDelete creates beforeDelete for system:data-privacy-request resource
+//
+// This function is auto-generated.
+func DataPrivacyRequestBeforeDelete(
+	argDataPrivacyRequest *types.DataPrivacyRequest,
+	argOldDataPrivacyRequest *types.DataPrivacyRequest,
+) *dataPrivacyRequestBeforeDelete {
+	return &dataPrivacyRequestBeforeDelete{
+		dataPrivacyRequestBase: &dataPrivacyRequestBase{
+			immutable:             false,
+			dataPrivacyRequest:    argDataPrivacyRequest,
+			oldDataPrivacyRequest: argOldDataPrivacyRequest,
+		},
+	}
+}
+
+// DataPrivacyRequestBeforeDeleteImmutable creates beforeDelete for system:data-privacy-request resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func DataPrivacyRequestBeforeDeleteImmutable(
+	argDataPrivacyRequest *types.DataPrivacyRequest,
+	argOldDataPrivacyRequest *types.DataPrivacyRequest,
+) *dataPrivacyRequestBeforeDelete {
+	return &dataPrivacyRequestBeforeDelete{
+		dataPrivacyRequestBase: &dataPrivacyRequestBase{
+			immutable:             true,
+			dataPrivacyRequest:    argDataPrivacyRequest,
+			oldDataPrivacyRequest: argOldDataPrivacyRequest,
+		},
+	}
+}
+
+// DataPrivacyRequestAfterCreate creates afterCreate for system:data-privacy-request resource
+//
+// This function is auto-generated.
+func DataPrivacyRequestAfterCreate(
+	argDataPrivacyRequest *types.DataPrivacyRequest,
+	argOldDataPrivacyRequest *types.DataPrivacyRequest,
+) *dataPrivacyRequestAfterCreate {
+	return &dataPrivacyRequestAfterCreate{
+		dataPrivacyRequestBase: &dataPrivacyRequestBase{
+			immutable:             false,
+			dataPrivacyRequest:    argDataPrivacyRequest,
+			oldDataPrivacyRequest: argOldDataPrivacyRequest,
+		},
+	}
+}
+
+// DataPrivacyRequestAfterCreateImmutable creates afterCreate for system:data-privacy-request resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func DataPrivacyRequestAfterCreateImmutable(
+	argDataPrivacyRequest *types.DataPrivacyRequest,
+	argOldDataPrivacyRequest *types.DataPrivacyRequest,
+) *dataPrivacyRequestAfterCreate {
+	return &dataPrivacyRequestAfterCreate{
+		dataPrivacyRequestBase: &dataPrivacyRequestBase{
+			immutable:             true,
+			dataPrivacyRequest:    argDataPrivacyRequest,
+			oldDataPrivacyRequest: argOldDataPrivacyRequest,
+		},
+	}
+}
+
+// DataPrivacyRequestAfterUpdate creates afterUpdate for system:data-privacy-request resource
+//
+// This function is auto-generated.
+func DataPrivacyRequestAfterUpdate(
+	argDataPrivacyRequest *types.DataPrivacyRequest,
+	argOldDataPrivacyRequest *types.DataPrivacyRequest,
+) *dataPrivacyRequestAfterUpdate {
+	return &dataPrivacyRequestAfterUpdate{
+		dataPrivacyRequestBase: &dataPrivacyRequestBase{
+			immutable:             false,
+			dataPrivacyRequest:    argDataPrivacyRequest,
+			oldDataPrivacyRequest: argOldDataPrivacyRequest,
+		},
+	}
+}
+
+// DataPrivacyRequestAfterUpdateImmutable creates afterUpdate for system:data-privacy-request resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func DataPrivacyRequestAfterUpdateImmutable(
+	argDataPrivacyRequest *types.DataPrivacyRequest,
+	argOldDataPrivacyRequest *types.DataPrivacyRequest,
+) *dataPrivacyRequestAfterUpdate {
+	return &dataPrivacyRequestAfterUpdate{
+		dataPrivacyRequestBase: &dataPrivacyRequestBase{
+			immutable:             true,
+			dataPrivacyRequest:    argDataPrivacyRequest,
+			oldDataPrivacyRequest: argOldDataPrivacyRequest,
+		},
+	}
+}
+
+// DataPrivacyRequestAfterDelete creates afterDelete for system:data-privacy-request resource
+//
+// This function is auto-generated.
+func DataPrivacyRequestAfterDelete(
+	argDataPrivacyRequest *types.DataPrivacyRequest,
+	argOldDataPrivacyRequest *types.DataPrivacyRequest,
+) *dataPrivacyRequestAfterDelete {
+	return &dataPrivacyRequestAfterDelete{
+		dataPrivacyRequestBase: &dataPrivacyRequestBase{
+			immutable:             false,
+			dataPrivacyRequest:    argDataPrivacyRequest,
+			oldDataPrivacyRequest: argOldDataPrivacyRequest,
+		},
+	}
+}
+
+// DataPrivacyRequestAfterDeleteImmutable creates afterDelete for system:data-privacy-request resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func DataPrivacyRequestAfterDeleteImmutable(
+	argDataPrivacyRequest *types.DataPrivacyRequest,
+	argOldDataPrivacyRequest *types.DataPrivacyRequest,
+) *dataPrivacyRequestAfterDelete {
+	return &dataPrivacyRequestAfterDelete{
+		dataPrivacyRequestBase: &dataPrivacyRequestBase{
+			immutable:             true,
+			dataPrivacyRequest:    argDataPrivacyRequest,
+			oldDataPrivacyRequest: argOldDataPrivacyRequest,
+		},
+	}
+}
+
+// SetDataPrivacyRequest sets new dataPrivacyRequest value
+//
+// This function is auto-generated.
+func (res *dataPrivacyRequestBase) SetDataPrivacyRequest(argDataPrivacyRequest *types.DataPrivacyRequest) {
+	res.dataPrivacyRequest = argDataPrivacyRequest
+}
+
+// DataPrivacyRequest returns dataPrivacyRequest
+//
+// This function is auto-generated.
+func (res dataPrivacyRequestBase) DataPrivacyRequest() *types.DataPrivacyRequest {
+	return res.dataPrivacyRequest
+}
+
+// OldDataPrivacyRequest returns oldDataPrivacyRequest
+//
+// This function is auto-generated.
+func (res dataPrivacyRequestBase) OldDataPrivacyRequest() *types.DataPrivacyRequest {
+	return res.oldDataPrivacyRequest
+}
+
+// SetInvoker sets new invoker value
+//
+// This function is auto-generated.
+func (res *dataPrivacyRequestBase) SetInvoker(argInvoker auth.Identifiable) {
+	res.invoker = argInvoker
+}
+
+// Invoker returns invoker
+//
+// This function is auto-generated.
+func (res dataPrivacyRequestBase) Invoker() auth.Identifiable {
+	return res.invoker
+}
+
+// Encode internal data to be passed as event params & arguments to triggered Corredor script
+func (res dataPrivacyRequestBase) Encode() (args map[string][]byte, err error) {
+	args = make(map[string][]byte)
+
+	if args["dataPrivacyRequest"], err = json.Marshal(res.dataPrivacyRequest); err != nil {
+		return nil, err
+	}
+
+	if args["oldDataPrivacyRequest"], err = json.Marshal(res.oldDataPrivacyRequest); err != nil {
+		return nil, err
+	}
+
+	if args["invoker"], err = json.Marshal(res.invoker); err != nil {
+		return nil, err
+	}
+
+	return
+}
+
+// Encode internal data to be passed as event params & arguments to workflow
+func (res dataPrivacyRequestBase) EncodeVars() (out *expr.Vars, err error) {
+	out = &expr.Vars{}
+	var v expr.TypedValue
+
+	// Could not found expression-type counterpart for *types.DataPrivacyRequest
+
+	// Could not found expression-type counterpart for *types.DataPrivacyRequest
+
+	// Could not found expression-type counterpart for auth.Identifiable
+
+	_ = v
+	return
+}
+
+// Decode return values from Corredor script into struct props
+func (res *dataPrivacyRequestBase) Decode(results map[string][]byte) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	if res.dataPrivacyRequest != nil {
+		if r, ok := results["result"]; ok && len(results) == 1 {
+			if err = json.Unmarshal(r, res.dataPrivacyRequest); err != nil {
+				return
+			}
+		}
+	}
+
+	if res.dataPrivacyRequest != nil {
+		if r, ok := results["dataPrivacyRequest"]; ok {
+			if err = json.Unmarshal(r, res.dataPrivacyRequest); err != nil {
+				return
+			}
+		}
+	}
+
+	// Do not decode oldDataPrivacyRequest; marked as immutable
+
+	if res.invoker != nil {
+		if r, ok := results["invoker"]; ok {
+			if err = json.Unmarshal(r, res.invoker); err != nil {
+				return
+			}
+		}
+	}
+	return
+}
+
+func (res *dataPrivacyRequestBase) DecodeVars(vars *expr.Vars) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	// Could not find expression-type counterpart for *types.DataPrivacyRequest
+	// oldDataPrivacyRequest marked as immutable
 	// Could not find expression-type counterpart for auth.Identifiable
 
 	return

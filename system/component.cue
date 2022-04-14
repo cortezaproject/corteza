@@ -8,27 +8,29 @@ component: schema.#component & {
 	handle: "system"
 
 	resources: {
-		"attachment":            attachment
-		"application":           application
-		"apigw-route":           apigw_route
-		"apigw-filter":          apigw_filter
-		"auth-client":           auth_client
-		"auth-confirmed-client": auth_confirmed_client
-		"auth-session":          auth_session
-		"auth-oa2token":         auth_oa2token
-		"credential":            credential
-		"queue":                 queue
-		"queue_message":         queue_message
-		"reminder":              reminder
-		"report":                report
-		"resource-translation":  resource_translation
-		"role":                  role
-		"role_member":           role_member
-		"settings":              settings
-		"template":              template
-		"user":                  user
-		"dal_connection":        dal_connection
-		"dal_sensitivity_level": dal_sensitivity_level
+		"attachment":            				attachment
+		"application":           				application
+		"apigw-route":           				apigw_route
+		"apigw-filter":          				apigw_filter
+		"auth-client":           				auth_client
+		"auth-confirmed-client": 				auth_confirmed_client
+		"auth-session":          				auth_session
+		"auth-oa2token":         				auth_oa2token
+		"credential":            				credential
+		"data-privacy-request":  				data_privacy_request
+		"data-privacy-request_comment": data_privacy_request_comment
+		"queue":                 				queue
+		"queue_message":         				queue_message
+		"reminder":              				reminder
+		"report":                				report
+		"resource-translation":  				resource_translation
+		"role":                  				role
+		"role_member":           				role_member
+		"settings":              				settings
+		"template":              				template
+		"user":                  				user
+		"dal_connection":        				dal_connection
+		"dal_sensitivity_level": 				dal_sensitivity_level
 	}
 
 	rbac: operations: {
@@ -70,5 +72,8 @@ component: schema.#component & {
 		"apigw-routes.search": description: "List search or filter API gateway routes"
 
 		"resource-translations.manage": description: "List, search, create, or update resource translations"
+
+		"data-privacy-request.create": description:  "Create data privacy requests"
+		"data-privacy-requests.search": description: "List, search or filter data privacy requests"
 	}
 }

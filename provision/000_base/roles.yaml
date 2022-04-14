@@ -64,3 +64,9 @@ roles:
           - corteza::compose:record
           - corteza::system:authClient
           - corteza::automation:workflow
+
+  data-privacy-officer:
+    name: Data Privacy Officer
+    meta:
+      description: |-
+        Users that are allowed to view and manage privacy requests.

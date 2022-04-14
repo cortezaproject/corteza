@@ -380,6 +380,36 @@ type (
 		DeletedBy uint64                             `db:"deleted_by"`
 	}
 
+	// auxDataPrivacyRequest is an auxiliary structure used for transporting to/from RDBMS store
+	auxDataPrivacyRequest struct {
+		ID          uint64                   `db:"id"`
+		Kind        systemType.RequestKind   `db:"kind"`
+		Status      systemType.RequestStatus `db:"status"`
+		RequestedAt time.Time                `db:"requested_at"`
+		RequestedBy uint64                   `db:"requested_by"`
+		CompletedAt *time.Time               `db:"completed_at"`
+		CompletedBy uint64                   `db:"completed_by"`
+		CreatedAt   time.Time                `db:"created_at"`
+		UpdatedAt   *time.Time               `db:"updated_at"`
+		DeletedAt   *time.Time               `db:"deleted_at"`
+		CreatedBy   uint64                   `db:"created_by"`
+		UpdatedBy   uint64                   `db:"updated_by"`
+		DeletedBy   uint64                   `db:"deleted_by"`
+	}
+
+	// auxDataPrivacyRequestComment is an auxiliary structure used for transporting to/from RDBMS store
+	auxDataPrivacyRequestComment struct {
+		ID        uint64     `db:"id"`
+		RequestID uint64     `db:"request_id"`
+		Comment   string     `db:"comment"`
+		CreatedAt time.Time  `db:"created_at"`
+		UpdatedAt *time.Time `db:"updated_at"`
+		DeletedAt *time.Time `db:"deleted_at"`
+		CreatedBy uint64     `db:"created_by"`
+		UpdatedBy uint64     `db:"updated_by"`
+		DeletedBy uint64     `db:"deleted_by"`
+	}
+
 	// auxFederationExposedModule is an auxiliary structure used for transporting to/from RDBMS store
 	auxFederationExposedModule struct {
 		ID                 uint64                        `db:"id"`
@@ -1932,6 +1962,118 @@ func (aux *auxDalSensitivityLevel) scan(row scanner) error {
 		&aux.Handle,
 		&aux.Level,
 		&aux.Meta,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+		&aux.CreatedBy,
+		&aux.UpdatedBy,
+		&aux.DeletedBy,
+	)
+}
+
+// encodes DataPrivacyRequest to auxDataPrivacyRequest
+//
+// This function is auto-generated
+func (aux *auxDataPrivacyRequest) encode(res *systemType.DataPrivacyRequest) (_ error) {
+	aux.ID = res.ID
+	aux.Kind = res.Kind
+	aux.Status = res.Status
+	aux.RequestedAt = res.RequestedAt
+	aux.RequestedBy = res.RequestedBy
+	aux.CompletedAt = res.CompletedAt
+	aux.CompletedBy = res.CompletedBy
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	aux.CreatedBy = res.CreatedBy
+	aux.UpdatedBy = res.UpdatedBy
+	aux.DeletedBy = res.DeletedBy
+	return
+}
+
+// decodes DataPrivacyRequest from auxDataPrivacyRequest
+//
+// This function is auto-generated
+func (aux auxDataPrivacyRequest) decode() (res *systemType.DataPrivacyRequest, _ error) {
+	res = new(systemType.DataPrivacyRequest)
+	res.ID = aux.ID
+	res.Kind = aux.Kind
+	res.Status = aux.Status
+	res.RequestedAt = aux.RequestedAt
+	res.RequestedBy = aux.RequestedBy
+	res.CompletedAt = aux.CompletedAt
+	res.CompletedBy = aux.CompletedBy
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	res.CreatedBy = aux.CreatedBy
+	res.UpdatedBy = aux.UpdatedBy
+	res.DeletedBy = aux.DeletedBy
+	return
+}
+
+// scans row and fills auxDataPrivacyRequest fields
+//
+// This function is auto-generated
+func (aux *auxDataPrivacyRequest) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.Kind,
+		&aux.Status,
+		&aux.RequestedAt,
+		&aux.RequestedBy,
+		&aux.CompletedAt,
+		&aux.CompletedBy,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+		&aux.CreatedBy,
+		&aux.UpdatedBy,
+		&aux.DeletedBy,
+	)
+}
+
+// encodes DataPrivacyRequestComment to auxDataPrivacyRequestComment
+//
+// This function is auto-generated
+func (aux *auxDataPrivacyRequestComment) encode(res *systemType.DataPrivacyRequestComment) (_ error) {
+	aux.ID = res.ID
+	aux.RequestID = res.RequestID
+	aux.Comment = res.Comment
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	aux.CreatedBy = res.CreatedBy
+	aux.UpdatedBy = res.UpdatedBy
+	aux.DeletedBy = res.DeletedBy
+	return
+}
+
+// decodes DataPrivacyRequestComment from auxDataPrivacyRequestComment
+//
+// This function is auto-generated
+func (aux auxDataPrivacyRequestComment) decode() (res *systemType.DataPrivacyRequestComment, _ error) {
+	res = new(systemType.DataPrivacyRequestComment)
+	res.ID = aux.ID
+	res.RequestID = aux.RequestID
+	res.Comment = aux.Comment
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	res.CreatedBy = aux.CreatedBy
+	res.UpdatedBy = aux.UpdatedBy
+	res.DeletedBy = aux.DeletedBy
+	return
+}
+
+// scans row and fills auxDataPrivacyRequestComment fields
+//
+// This function is auto-generated
+func (aux *auxDataPrivacyRequestComment) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.RequestID,
+		&aux.Comment,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,

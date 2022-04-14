@@ -62,6 +62,8 @@ type (
 		Credentials
 		DalConnections
 		DalSensitivityLevels
+		DataPrivacyRequests
+		DataPrivacyRequestComments
 		FederationExposedModules
 		FederationModuleMappings
 		FederationNodes
@@ -361,6 +363,27 @@ type (
 		DeleteDalSensitivityLevelByID(ctx context.Context, id uint64) error
 		TruncateDalSensitivityLevels(ctx context.Context) error
 		LookupDalSensitivityLevelByID(ctx context.Context, id uint64) (*systemType.DalSensitivityLevel, error)
+	}
+
+	DataPrivacyRequests interface {
+		SearchDataPrivacyRequests(ctx context.Context, f systemType.DataPrivacyRequestFilter) (systemType.DataPrivacyRequestSet, systemType.DataPrivacyRequestFilter, error)
+		CreateDataPrivacyRequest(ctx context.Context, rr ...*systemType.DataPrivacyRequest) error
+		UpdateDataPrivacyRequest(ctx context.Context, rr ...*systemType.DataPrivacyRequest) error
+		UpsertDataPrivacyRequest(ctx context.Context, rr ...*systemType.DataPrivacyRequest) error
+		DeleteDataPrivacyRequest(ctx context.Context, rr ...*systemType.DataPrivacyRequest) error
+		DeleteDataPrivacyRequestByID(ctx context.Context, id uint64) error
+		TruncateDataPrivacyRequests(ctx context.Context) error
+		LookupDataPrivacyRequestByID(ctx context.Context, id uint64) (*systemType.DataPrivacyRequest, error)
+	}
+
+	DataPrivacyRequestComments interface {
+		SearchDataPrivacyRequestComments(ctx context.Context, f systemType.DataPrivacyRequestCommentFilter) (systemType.DataPrivacyRequestCommentSet, systemType.DataPrivacyRequestCommentFilter, error)
+		CreateDataPrivacyRequestComment(ctx context.Context, rr ...*systemType.DataPrivacyRequestComment) error
+		UpdateDataPrivacyRequestComment(ctx context.Context, rr ...*systemType.DataPrivacyRequestComment) error
+		UpsertDataPrivacyRequestComment(ctx context.Context, rr ...*systemType.DataPrivacyRequestComment) error
+		DeleteDataPrivacyRequestComment(ctx context.Context, rr ...*systemType.DataPrivacyRequestComment) error
+		DeleteDataPrivacyRequestCommentByID(ctx context.Context, id uint64) error
+		TruncateDataPrivacyRequestComments(ctx context.Context) error
 	}
 
 	FederationExposedModules interface {
@@ -2099,6 +2122,113 @@ func TruncateDalSensitivityLevels(ctx context.Context, s DalSensitivityLevels) e
 // This function is auto-generated
 func LookupDalSensitivityLevelByID(ctx context.Context, s DalSensitivityLevels, id uint64) (*systemType.DalSensitivityLevel, error) {
 	return s.LookupDalSensitivityLevelByID(ctx, id)
+}
+
+// SearchDataPrivacyRequests returns all matching DataPrivacyRequests from store
+//
+// This function is auto-generated
+func SearchDataPrivacyRequests(ctx context.Context, s DataPrivacyRequests, f systemType.DataPrivacyRequestFilter) (systemType.DataPrivacyRequestSet, systemType.DataPrivacyRequestFilter, error) {
+	return s.SearchDataPrivacyRequests(ctx, f)
+}
+
+// CreateDataPrivacyRequest creates one or more DataPrivacyRequests in store
+//
+// This function is auto-generated
+func CreateDataPrivacyRequest(ctx context.Context, s DataPrivacyRequests, rr ...*systemType.DataPrivacyRequest) error {
+	return s.CreateDataPrivacyRequest(ctx, rr...)
+}
+
+// UpdateDataPrivacyRequest updates one or more (existing) DataPrivacyRequests in store
+//
+// This function is auto-generated
+func UpdateDataPrivacyRequest(ctx context.Context, s DataPrivacyRequests, rr ...*systemType.DataPrivacyRequest) error {
+	return s.UpdateDataPrivacyRequest(ctx, rr...)
+}
+
+// UpsertDataPrivacyRequest creates new or updates existing one or more DataPrivacyRequests in store
+//
+// This function is auto-generated
+func UpsertDataPrivacyRequest(ctx context.Context, s DataPrivacyRequests, rr ...*systemType.DataPrivacyRequest) error {
+	return s.UpsertDataPrivacyRequest(ctx, rr...)
+}
+
+// DeleteDataPrivacyRequest deletes one or more DataPrivacyRequests from store
+//
+// This function is auto-generated
+func DeleteDataPrivacyRequest(ctx context.Context, s DataPrivacyRequests, rr ...*systemType.DataPrivacyRequest) error {
+	return s.DeleteDataPrivacyRequest(ctx, rr...)
+}
+
+// DeleteDataPrivacyRequestByID deletes one or more DataPrivacyRequests from store
+//
+// This function is auto-generated
+func DeleteDataPrivacyRequestByID(ctx context.Context, s DataPrivacyRequests, id uint64) error {
+	return s.DeleteDataPrivacyRequestByID(ctx, id)
+}
+
+// TruncateDataPrivacyRequests Deletes all DataPrivacyRequests from store
+//
+// This function is auto-generated
+func TruncateDataPrivacyRequests(ctx context.Context, s DataPrivacyRequests) error {
+	return s.TruncateDataPrivacyRequests(ctx)
+}
+
+// LookupDataPrivacyRequestByID searches for data privacy request by ID
+//
+// It returns data privacy request even if deleted
+//
+// This function is auto-generated
+func LookupDataPrivacyRequestByID(ctx context.Context, s DataPrivacyRequests, id uint64) (*systemType.DataPrivacyRequest, error) {
+	return s.LookupDataPrivacyRequestByID(ctx, id)
+}
+
+// SearchDataPrivacyRequestComments returns all matching DataPrivacyRequestComments from store
+//
+// This function is auto-generated
+func SearchDataPrivacyRequestComments(ctx context.Context, s DataPrivacyRequestComments, f systemType.DataPrivacyRequestCommentFilter) (systemType.DataPrivacyRequestCommentSet, systemType.DataPrivacyRequestCommentFilter, error) {
+	return s.SearchDataPrivacyRequestComments(ctx, f)
+}
+
+// CreateDataPrivacyRequestComment creates one or more DataPrivacyRequestComments in store
+//
+// This function is auto-generated
+func CreateDataPrivacyRequestComment(ctx context.Context, s DataPrivacyRequestComments, rr ...*systemType.DataPrivacyRequestComment) error {
+	return s.CreateDataPrivacyRequestComment(ctx, rr...)
+}
+
+// UpdateDataPrivacyRequestComment updates one or more (existing) DataPrivacyRequestComments in store
+//
+// This function is auto-generated
+func UpdateDataPrivacyRequestComment(ctx context.Context, s DataPrivacyRequestComments, rr ...*systemType.DataPrivacyRequestComment) error {
+	return s.UpdateDataPrivacyRequestComment(ctx, rr...)
+}
+
+// UpsertDataPrivacyRequestComment creates new or updates existing one or more DataPrivacyRequestComments in store
+//
+// This function is auto-generated
+func UpsertDataPrivacyRequestComment(ctx context.Context, s DataPrivacyRequestComments, rr ...*systemType.DataPrivacyRequestComment) error {
+	return s.UpsertDataPrivacyRequestComment(ctx, rr...)
+}
+
+// DeleteDataPrivacyRequestComment deletes one or more DataPrivacyRequestComments from store
+//
+// This function is auto-generated
+func DeleteDataPrivacyRequestComment(ctx context.Context, s DataPrivacyRequestComments, rr ...*systemType.DataPrivacyRequestComment) error {
+	return s.DeleteDataPrivacyRequestComment(ctx, rr...)
+}
+
+// DeleteDataPrivacyRequestCommentByID deletes one or more DataPrivacyRequestComments from store
+//
+// This function is auto-generated
+func DeleteDataPrivacyRequestCommentByID(ctx context.Context, s DataPrivacyRequestComments, id uint64) error {
+	return s.DeleteDataPrivacyRequestCommentByID(ctx, id)
+}
+
+// TruncateDataPrivacyRequestComments Deletes all DataPrivacyRequestComments from store
+//
+// This function is auto-generated
+func TruncateDataPrivacyRequestComments(ctx context.Context, s DataPrivacyRequestComments) error {
+	return s.TruncateDataPrivacyRequestComments(ctx)
 }
 
 // SearchFederationExposedModules returns all matching FederationExposedModules from store
