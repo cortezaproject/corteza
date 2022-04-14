@@ -1,0 +1,79 @@
+# List of loggable service actions
+
+resource: system:data-privacy-request
+service: dataPrivacy
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: alert
+
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+props:
+  - name: dataPrivacyRequest
+    type: "*types.DataPrivacyRequest"
+    fields: [ kind, ID ]
+  - name: new
+    type: "*types.DataPrivacyRequest"
+    fields: [ kind, ID ]
+  - name: update
+    type: "*types.DataPrivacyRequest"
+    fields: [ kind, ID ]
+  - name: filter
+    type: "*types.DataPrivacyRequestFilter"
+    fields: [ kind, sort ]
+
+actions:
+  - action: search
+    log: "searched for data privacy requests"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{dataPrivacyRequest}}"
+    severity: info
+
+  - action: create
+    log: "created {{dataPrivacyRequest}}"
+
+  - action: update
+    log: "updated {{dataPrivacyRequest}}"
+
+  - action: approve
+    log: "approved {{dataPrivacyRequest}}"
+
+
+errors:
+  - error: notFound
+    message: "data privacy request not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: invalidKind
+    message: "invalid Kind"
+    severity: warning
+
+  - error: invalidStatus
+    message: "invalid Status"
+    severity: warning
+
+  - error: notAllowedToRead
+    message: "not allowed to read this data privacy request"
+    log: "failed to read data privacy request; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to search or list data privacy request"
+    log: "failed to search or list data privacy requests; insufficient permissions"
+
+  - error: notAllowedToCreate
+    message: "not allowed to create data privacy request"
+    log: "failed to create data privacy request; insufficient permissions"
+
+  - error: notAllowedToApprove
+    message: "not allowed to approve/reject data privacy request"
+    log: "failed to approve/reject data privacy request; insufficient permissions"

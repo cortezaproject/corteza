@@ -1048,6 +1048,186 @@ func TestDalSensitivityLevelSetIDs(t *testing.T) {
 	}
 }
 
+func TestDataPrivacyRequestSetWalk(t *testing.T) {
+	var (
+		value = make(DataPrivacyRequestSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*DataPrivacyRequest) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*DataPrivacyRequest) error { return fmt.Errorf("walk error") }))
+}
+
+func TestDataPrivacyRequestSetFilter(t *testing.T) {
+	var (
+		value = make(DataPrivacyRequestSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*DataPrivacyRequest) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*DataPrivacyRequest) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*DataPrivacyRequest) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestDataPrivacyRequestSetIDs(t *testing.T) {
+	var (
+		value = make(DataPrivacyRequestSet, 3)
+		req   = require.New(t)
+	)
+
+	// construct objects
+	value[0] = new(DataPrivacyRequest)
+	value[1] = new(DataPrivacyRequest)
+	value[2] = new(DataPrivacyRequest)
+	// set ids
+	value[0].ID = 1
+	value[1].ID = 2
+	value[2].ID = 3
+
+	// Find existing
+	{
+		val := value.FindByID(2)
+		req.Equal(uint64(2), val.ID)
+	}
+
+	// Find non-existing
+	{
+		val := value.FindByID(4)
+		req.Nil(val)
+	}
+
+	// List IDs from set
+	{
+		val := value.IDs()
+		req.Equal(len(val), len(value))
+	}
+}
+
+func TestDataPrivacyRequestCommentSetWalk(t *testing.T) {
+	var (
+		value = make(DataPrivacyRequestCommentSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*DataPrivacyRequestComment) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*DataPrivacyRequestComment) error { return fmt.Errorf("walk error") }))
+}
+
+func TestDataPrivacyRequestCommentSetFilter(t *testing.T) {
+	var (
+		value = make(DataPrivacyRequestCommentSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*DataPrivacyRequestComment) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*DataPrivacyRequestComment) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*DataPrivacyRequestComment) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestDataPrivacyRequestCommentSetIDs(t *testing.T) {
+	var (
+		value = make(DataPrivacyRequestCommentSet, 3)
+		req   = require.New(t)
+	)
+
+	// construct objects
+	value[0] = new(DataPrivacyRequestComment)
+	value[1] = new(DataPrivacyRequestComment)
+	value[2] = new(DataPrivacyRequestComment)
+	// set ids
+	value[0].ID = 1
+	value[1].ID = 2
+	value[2].ID = 3
+
+	// Find existing
+	{
+		val := value.FindByID(2)
+		req.Equal(uint64(2), val.ID)
+	}
+
+	// Find non-existing
+	{
+		val := value.FindByID(4)
+		req.Nil(val)
+	}
+
+	// List IDs from set
+	{
+		val := value.IDs()
+		req.Equal(len(val), len(value))
+	}
+}
+
 func TestQueueSetWalk(t *testing.T) {
 	var (
 		value = make(QueueSet, 3)

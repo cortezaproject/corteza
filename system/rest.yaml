@@ -2198,3 +2198,67 @@ endpoints:
       path:
       - { type: string, name: lang,      required: true,  title: Language  }
       - { type: string, name: application, required: true, title: Application name }
+
+- title: Data Privacy Request
+  entrypoint: dataPrivacyRequest
+  path: "/data-privacy/requests"
+  apis:
+    - name: list
+      method: GET
+      title: List data privacy requests
+      path: "/"
+      parameters:
+        get:
+          - { name: query,              type: "string",     title: "Filter requests" }
+          - { name: kind,               type: "[]string",   title: "Filter by kind: correct, delete, export" }
+          - { name: status,             type: "[]string",   title: "Filter by status: pending, cancel, approve, reject" }
+          - { name: limit,              type: "uint",       title: "Limit" }
+          - { name: pageCursor,         type: "string",     title: "Page cursor" }
+          - { name: sort,               type: "string",     title: "Sort items" }
+    - name: create
+      method: POST
+      title: Create data privacy request
+      path: "/"
+      parameters:
+        post:
+          - { name: kind,         type: "string",   title: "Request Kind", required: true }
+    - name: update status
+      method: PATCH
+      title: Update data privacy request status
+      path: "/{requestID}/status/{status}"
+      parameters:
+        path:
+          - { name: requestID,     type: "uint64",   title: "ID",             required: true }
+          - { name: status,        type: "string",   title: "Request Status", required: true }
+    - name: read
+      method: GET
+      title: Get details about specific request
+      path: "/{requestID}"
+      parameters:
+        path:
+          - { name: requestID, type: "uint64",     title: "Request ID", required: true }
+
+- title: Data Privacy Request Comment
+  entrypoint: dataPrivacyRequestComment
+  path: "/data-privacy/requests/{requestID}/comments"
+  parameters:
+    path:
+      - { name: requestID, type: "uint64",     title: "Request ID", required: true }
+  apis:
+    - name: list
+      method: GET
+      title: List data privacy request comments
+      path: "/"
+      parameters:
+        get:
+          - { name: limit,              type: "uint",       title: "Limit" }
+          - { name: pageCursor,         type: "string",     title: "Page cursor" }
+          - { name: sort,               type: "string",     title: "Sort items" }
+    - name: create
+      method: POST
+      title: Create data privacy request comment
+      path: "/"
+      parameters:
+        post:
+          - { name: comment,            type: "string",   title: "Comment description", required: true }
+

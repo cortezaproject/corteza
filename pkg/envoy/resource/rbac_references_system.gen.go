@@ -49,6 +49,32 @@ func SystemAuthClientRbacReferences(authClient string) (res *Ref, pp []*Ref, err
 	return
 }
 
+// SystemDataPrivacyRequestRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemDataPrivacyRequestRbacReferences(dataPrivacyRequest string) (res *Ref, pp []*Ref, err error) {
+	if dataPrivacyRequest != "*" {
+		res = &Ref{ResourceType: types.DataPrivacyRequestResourceType, Identifiers: MakeIdentifiers(dataPrivacyRequest)}
+	}
+
+	return
+}
+
+// SystemDataPrivacyRequestCommentRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemDataPrivacyRequestCommentRbacReferences(dataPrivacyRequestComment string) (res *Ref, pp []*Ref, err error) {
+	if dataPrivacyRequestComment != "*" {
+		res = &Ref{ResourceType: types.DataPrivacyRequestCommentResourceType, Identifiers: MakeIdentifiers(dataPrivacyRequestComment)}
+	}
+
+	return
+}
+
 // SystemQueueRbacReferences generates RBAC references
 //
 // Resources with "envoy: false" are skipped
