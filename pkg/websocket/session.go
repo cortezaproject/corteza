@@ -117,12 +117,24 @@ func (s *session) Handle() error {
 
 	go func() {
 		if err := s.readLoop(); err != nil {
+			if errors.Is(err, net.ErrClosed) {
+				// read will return net.ErrClosed when
+				// recovering from panic
+				return
+			}
+
 			s.logger.Error("read failure", zap.Error(err))
 		}
 		s.Close()
 	}()
 
 	if err := s.writeLoop(); err != nil {
+		if errors.Is(err, net.ErrClosed) {
+			// write will return net.ErrClosed when
+			// recovering from panic
+			return nil
+		}
+
 		s.logger.Error("write failure", zap.Error(err))
 	}
 
@@ -153,7 +165,7 @@ func (s *session) readLoop() (err error) {
 
 	for {
 		if raw, err = s.read(); err != nil {
-			return errHandler("read failed", err)
+			return
 		}
 
 		if raw == nil {
@@ -170,6 +182,7 @@ func (s *session) read() (raw []byte, err error) {
 	defer func() {
 		if recovered := recover(); recovered != nil {
 			s.logger.Debug("recovering from websocket read panic", zap.Any("recovered-error", recovered))
+			err = net.ErrClosed
 		}
 	}()
 
@@ -273,6 +286,7 @@ func (s *session) write(t int, msg []byte) (err error) {
 	defer func() {
 		if recovered := recover(); recovered != nil {
 			s.logger.Debug("recovering from websocket write panic", zap.Any("recovered-error", recovered))
+			err = net.ErrClosed
 		}
 	}()
 
