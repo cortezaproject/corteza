@@ -47,11 +47,11 @@ func ParseRule(res string) (string, *Ref, []*Ref, error) {
 
 	// make the resource provide the slice of parent resources we should nest under
 	switch resourceType {
-	case systemTypes.ApigwRouteResourceType:
+	case systemTypes.AttachmentResourceType:
 		if len(path) != 1 {
 			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
 		}
-		ref, pp, err := SystemApigwRouteRbacReferences(
+		ref, pp, err := SystemAttachmentRbacReferences(
 			path[0],
 		)
 		return resourceType, ref, pp, err
@@ -65,11 +65,65 @@ func ParseRule(res string) (string, *Ref, []*Ref, error) {
 		)
 		return resourceType, ref, pp, err
 
+	case systemTypes.ApigwRouteResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := SystemApigwRouteRbacReferences(
+			path[0],
+		)
+		return resourceType, ref, pp, err
+
+	case systemTypes.ApigwFilterResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := SystemApigwFilterRbacReferences(
+			path[0],
+		)
+		return resourceType, ref, pp, err
+
 	case systemTypes.AuthClientResourceType:
 		if len(path) != 1 {
 			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
 		}
 		ref, pp, err := SystemAuthClientRbacReferences(
+			path[0],
+		)
+		return resourceType, ref, pp, err
+
+	case systemTypes.AuthConfirmedClientResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := SystemAuthConfirmedClientRbacReferences(
+			path[0],
+		)
+		return resourceType, ref, pp, err
+
+	case systemTypes.AuthSessionResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := SystemAuthSessionRbacReferences(
+			path[0],
+		)
+		return resourceType, ref, pp, err
+
+	case systemTypes.AuthOa2tokenResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := SystemAuthOa2tokenRbacReferences(
+			path[0],
+		)
+		return resourceType, ref, pp, err
+
+	case systemTypes.CredentialResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := SystemCredentialRbacReferences(
 			path[0],
 		)
 		return resourceType, ref, pp, err
@@ -83,6 +137,24 @@ func ParseRule(res string) (string, *Ref, []*Ref, error) {
 		)
 		return resourceType, ref, pp, err
 
+	case systemTypes.QueueMessageResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := SystemQueueMessageRbacReferences(
+			path[0],
+		)
+		return resourceType, ref, pp, err
+
+	case systemTypes.ReminderResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := SystemReminderRbacReferences(
+			path[0],
+		)
+		return resourceType, ref, pp, err
+
 	case systemTypes.ReportResourceType:
 		if len(path) != 1 {
 			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
@@ -92,11 +164,38 @@ func ParseRule(res string) (string, *Ref, []*Ref, error) {
 		)
 		return resourceType, ref, pp, err
 
+	case systemTypes.ResourceTranslationResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := SystemResourceTranslationRbacReferences(
+			path[0],
+		)
+		return resourceType, ref, pp, err
+
 	case systemTypes.RoleResourceType:
 		if len(path) != 1 {
 			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
 		}
 		ref, pp, err := SystemRoleRbacReferences(
+			path[0],
+		)
+		return resourceType, ref, pp, err
+
+	case systemTypes.RoleMemberResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := SystemRoleMemberRbacReferences(
+			path[0],
+		)
+		return resourceType, ref, pp, err
+
+	case systemTypes.SettingValueResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := SystemSettingValueRbacReferences(
 			path[0],
 		)
 		return resourceType, ref, pp, err
@@ -115,6 +214,15 @@ func ParseRule(res string) (string, *Ref, []*Ref, error) {
 			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
 		}
 		ref, pp, err := SystemUserRbacReferences(
+			path[0],
+		)
+		return resourceType, ref, pp, err
+
+	case composeTypes.AttachmentResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := ComposeAttachmentRbacReferences(
 			path[0],
 		)
 		return resourceType, ref, pp, err
@@ -180,6 +288,15 @@ func ParseRule(res string) (string, *Ref, []*Ref, error) {
 		)
 		return resourceType, ref, pp, err
 
+	case composeTypes.RecordValueResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := ComposeRecordValueRbacReferences(
+			path[0],
+		)
+		return resourceType, ref, pp, err
+
 	case automationTypes.WorkflowResourceType:
 		if len(path) != 1 {
 			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
@@ -189,11 +306,38 @@ func ParseRule(res string) (string, *Ref, []*Ref, error) {
 		)
 		return resourceType, ref, pp, err
 
+	case automationTypes.SessionResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := AutomationSessionRbacReferences(
+			path[0],
+		)
+		return resourceType, ref, pp, err
+
+	case automationTypes.TriggerResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := AutomationTriggerRbacReferences(
+			path[0],
+		)
+		return resourceType, ref, pp, err
+
 	case federationTypes.NodeResourceType:
 		if len(path) != 1 {
 			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
 		}
 		ref, pp, err := FederationNodeRbacReferences(
+			path[0],
+		)
+		return resourceType, ref, pp, err
+
+	case federationTypes.NodeSyncResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := FederationNodeSyncRbacReferences(
 			path[0],
 		)
 		return resourceType, ref, pp, err
@@ -213,6 +357,16 @@ func ParseRule(res string) (string, *Ref, []*Ref, error) {
 			return "", nil, nil, fmt.Errorf("expecting 2 reference components in path, got %d", len(path))
 		}
 		ref, pp, err := FederationSharedModuleRbacReferences(
+			path[0],
+			path[1],
+		)
+		return resourceType, ref, pp, err
+
+	case federationTypes.ModuleMappingResourceType:
+		if len(path) != 2 {
+			return "", nil, nil, fmt.Errorf("expecting 2 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := FederationModuleMappingRbacReferences(
 			path[0],
 			path[1],
 		)

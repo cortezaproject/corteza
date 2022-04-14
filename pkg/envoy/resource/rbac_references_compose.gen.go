@@ -10,6 +10,19 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
+// ComposeAttachmentRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func ComposeAttachmentRbacReferences(attachment string) (res *Ref, pp []*Ref, err error) {
+	if attachment != "*" {
+		res = &Ref{ResourceType: types.AttachmentResourceType, Identifiers: MakeIdentifiers(attachment)}
+	}
+
+	return
+}
+
 // ComposeChartRbacReferences generates RBAC references
 //
 // Resources with "envoy: false" are skipped
@@ -104,6 +117,19 @@ func ComposeRecordRbacReferences(namespaceID string, moduleID string, record str
 	}
 	if record != "*" {
 		res = &Ref{ResourceType: types.RecordResourceType, Identifiers: MakeIdentifiers(record)}
+	}
+
+	return
+}
+
+// ComposeRecordValueRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func ComposeRecordValueRbacReferences(recordValue string) (res *Ref, pp []*Ref, err error) {
+	if recordValue != "*" {
+		res = &Ref{ResourceType: types.RecordValueResourceType, Identifiers: MakeIdentifiers(recordValue)}
 	}
 
 	return

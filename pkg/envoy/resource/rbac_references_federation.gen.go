@@ -23,6 +23,19 @@ func FederationNodeRbacReferences(node string) (res *Ref, pp []*Ref, err error) 
 	return
 }
 
+// FederationNodeSyncRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func FederationNodeSyncRbacReferences(nodeSync string) (res *Ref, pp []*Ref, err error) {
+	if nodeSync != "*" {
+		res = &Ref{ResourceType: types.NodeSyncResourceType, Identifiers: MakeIdentifiers(nodeSync)}
+	}
+
+	return
+}
+
 // FederationExposedModuleRbacReferences generates RBAC references
 //
 // Resources with "envoy: false" are skipped
@@ -50,6 +63,22 @@ func FederationSharedModuleRbacReferences(nodeID string, sharedModule string) (r
 	}
 	if sharedModule != "*" {
 		res = &Ref{ResourceType: types.SharedModuleResourceType, Identifiers: MakeIdentifiers(sharedModule)}
+	}
+
+	return
+}
+
+// FederationModuleMappingRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func FederationModuleMappingRbacReferences(nodeID string, moduleMapping string) (res *Ref, pp []*Ref, err error) {
+	if nodeID != "*" {
+		pp = append(pp, &Ref{ResourceType: types.NodeResourceType, Identifiers: MakeIdentifiers(nodeID)})
+	}
+	if moduleMapping != "*" {
+		res = &Ref{ResourceType: types.ModuleMappingResourceType, Identifiers: MakeIdentifiers(moduleMapping)}
 	}
 
 	return

@@ -522,6 +522,8 @@ func (svc accessControl) CanManageResourceTranslations(ctx context.Context) bool
 // This function is auto-generated
 func rbacResourceValidator(r string, oo ...string) error {
 	switch rbac.ResourceType(r) {
+	case types.AttachmentResourceType:
+		return rbacAttachmentResourceValidator(r, oo...)
 	case types.ChartResourceType:
 		return rbacChartResourceValidator(r, oo...)
 	case types.ModuleResourceType:
@@ -534,6 +536,8 @@ func rbacResourceValidator(r string, oo ...string) error {
 		return rbacPageResourceValidator(r, oo...)
 	case types.RecordResourceType:
 		return rbacRecordResourceValidator(r, oo...)
+	case types.RecordValueResourceType:
+		return rbacRecordValueResourceValidator(r, oo...)
 	case types.ComponentResourceType:
 		return rbacComponentResourceValidator(r, oo...)
 	}
@@ -546,6 +550,8 @@ func rbacResourceValidator(r string, oo ...string) error {
 // This function is auto-generated
 func rbacResourceOperations(r string) map[string]bool {
 	switch rbac.ResourceType(r) {
+	case types.AttachmentResourceType:
+		return map[string]bool{}
 	case types.ChartResourceType:
 		return map[string]bool{
 			"read":   true,
@@ -590,6 +596,8 @@ func rbacResourceOperations(r string) map[string]bool {
 			"update": true,
 			"delete": true,
 		}
+	case types.RecordValueResourceType:
+		return map[string]bool{}
 	case types.ComponentResourceType:
 		return map[string]bool{
 			"grant":                        true,
@@ -601,6 +609,50 @@ func rbacResourceOperations(r string) map[string]bool {
 		}
 	}
 
+	return nil
+}
+
+// rbacAttachmentResourceValidator checks validity of RBAC resource and operations
+//
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacAttachmentResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.AttachmentResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for attachment resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.AttachmentResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for attachment resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
 	return nil
 }
 
@@ -865,6 +917,50 @@ func rbacRecordResourceValidator(r string, oo ...string) error {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid path wildcard level (%d) for record resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacRecordValueResourceValidator checks validity of RBAC resource and operations
+//
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacRecordValueResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.RecordValueResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for recordValue resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.RecordValueResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for recordValue resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {

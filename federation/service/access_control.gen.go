@@ -75,6 +75,11 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "map",
 		},
 		{
+			"type": types.ModuleMappingResourceType,
+			"any":  types.ModuleMappingRbacResource(0, 0),
+			"op":   "manage",
+		},
+		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "grant",
@@ -205,6 +210,13 @@ func (svc accessControl) CanMapSharedModule(ctx context.Context, r *types.Shared
 	return svc.can(ctx, "map", r)
 }
 
+// CanManageModuleMapping checks if current user can manage exposed module module
+//
+// This function is auto-generated
+func (svc accessControl) CanManageModuleMapping(ctx context.Context, r *types.ModuleMapping) bool {
+	return svc.can(ctx, "manage", r)
+}
+
 // CanGrant checks if current user can manage federation permissions
 //
 // This function is auto-generated
@@ -260,10 +272,14 @@ func rbacResourceValidator(r string, oo ...string) error {
 	switch rbac.ResourceType(r) {
 	case types.NodeResourceType:
 		return rbacNodeResourceValidator(r, oo...)
+	case types.NodeSyncResourceType:
+		return rbacNodeSyncResourceValidator(r, oo...)
 	case types.ExposedModuleResourceType:
 		return rbacExposedModuleResourceValidator(r, oo...)
 	case types.SharedModuleResourceType:
 		return rbacSharedModuleResourceValidator(r, oo...)
+	case types.ModuleMappingResourceType:
+		return rbacModuleMappingResourceValidator(r, oo...)
 	case types.ComponentResourceType:
 		return rbacComponentResourceValidator(r, oo...)
 	}
@@ -281,6 +297,8 @@ func rbacResourceOperations(r string) map[string]bool {
 			"manage":        true,
 			"module.create": true,
 		}
+	case types.NodeSyncResourceType:
+		return map[string]bool{}
 	case types.ExposedModuleResourceType:
 		return map[string]bool{
 			"manage": true,
@@ -288,6 +306,10 @@ func rbacResourceOperations(r string) map[string]bool {
 	case types.SharedModuleResourceType:
 		return map[string]bool{
 			"map": true,
+		}
+	case types.ModuleMappingResourceType:
+		return map[string]bool{
+			"manage": true,
 		}
 	case types.ComponentResourceType:
 		return map[string]bool{
@@ -337,6 +359,50 @@ func rbacNodeResourceValidator(r string, oo ...string) error {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid path wildcard level (%d) for node resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacNodeSyncResourceValidator checks validity of RBAC resource and operations
+//
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacNodeSyncResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.NodeSyncResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for nodeSync resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.NodeSyncResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for nodeSync resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {
@@ -427,6 +493,51 @@ func rbacSharedModuleResourceValidator(r string, oo ...string) error {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid path wildcard level (%d) for sharedModule resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacModuleMappingResourceValidator checks validity of RBAC resource and operations
+//
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacModuleMappingResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.ModuleMappingResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for moduleMapping resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.ModuleMappingResourceType):], sep), sep)
+		prc = []string{
+			"NodeID",
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for moduleMapping resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {

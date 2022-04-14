@@ -25,8 +25,10 @@ var (
 
 const (
 	NodeResourceType          = "corteza::federation:node"
+	NodeSyncResourceType      = "corteza::federation:node-sync"
 	ExposedModuleResourceType = "corteza::federation:exposed-module"
 	SharedModuleResourceType  = "corteza::federation:shared-module"
+	ModuleMappingResourceType = "corteza::federation:module-mapping"
 	ComponentResourceType     = "corteza::federation"
 )
 
@@ -57,6 +59,36 @@ func NodeRbacResource(id uint64) string {
 }
 
 func NodeRbacResourceTpl() string {
+	return "%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for NodeSync by calling NodeSyncRbacResource fn
+//
+// RBAC resource is in the corteza::federation:node-sync/... format
+//
+// This function is auto-generated
+func (r NodeSync) RbacResource() string {
+	return NodeSyncRbacResource(r.ID)
+}
+
+// NodeSyncRbacResource returns string representation of RBAC resource for NodeSync
+//
+// RBAC resource is in the corteza::federation:node-sync/... format
+//
+// This function is auto-generated
+func NodeSyncRbacResource(id uint64) string {
+	cpts := []interface{}{NodeSyncResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(NodeSyncRbacResourceTpl(), cpts...)
+
+}
+
+func NodeSyncRbacResourceTpl() string {
 	return "%s/%s"
 }
 
@@ -129,6 +161,42 @@ func SharedModuleRbacResource(nodeID uint64, id uint64) string {
 }
 
 func SharedModuleRbacResourceTpl() string {
+	return "%s/%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for ModuleMapping by calling ModuleMappingRbacResource fn
+//
+// RBAC resource is in the corteza::federation:module-mapping/... format
+//
+// This function is auto-generated
+func (r ModuleMapping) RbacResource() string {
+	return ModuleMappingRbacResource(r.NodeID, r.ID)
+}
+
+// ModuleMappingRbacResource returns string representation of RBAC resource for ModuleMapping
+//
+// RBAC resource is in the corteza::federation:module-mapping/... format
+//
+// This function is auto-generated
+func ModuleMappingRbacResource(nodeID uint64, id uint64) string {
+	cpts := []interface{}{ModuleMappingResourceType}
+	if nodeID != 0 {
+		cpts = append(cpts, strconv.FormatUint(nodeID, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(ModuleMappingRbacResourceTpl(), cpts...)
+
+}
+
+func ModuleMappingRbacResourceTpl() string {
 	return "%s/%s/%s"
 }
 

@@ -22,3 +22,29 @@ func AutomationWorkflowRbacReferences(workflow string) (res *Ref, pp []*Ref, err
 
 	return
 }
+
+// AutomationSessionRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func AutomationSessionRbacReferences(session string) (res *Ref, pp []*Ref, err error) {
+	if session != "*" {
+		res = &Ref{ResourceType: types.SessionResourceType, Identifiers: MakeIdentifiers(session)}
+	}
+
+	return
+}
+
+// AutomationTriggerRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func AutomationTriggerRbacReferences(trigger string) (res *Ref, pp []*Ref, err error) {
+	if trigger != "*" {
+		res = &Ref{ResourceType: types.TriggerResourceType, Identifiers: MakeIdentifiers(trigger)}
+	}
+
+	return
+}

@@ -24,14 +24,46 @@ var (
 )
 
 const (
+	AttachmentResourceType  = "corteza::compose:attachment"
 	ChartResourceType       = "corteza::compose:chart"
 	ModuleResourceType      = "corteza::compose:module"
 	ModuleFieldResourceType = "corteza::compose:module-field"
 	NamespaceResourceType   = "corteza::compose:namespace"
 	PageResourceType        = "corteza::compose:page"
 	RecordResourceType      = "corteza::compose:record"
+	RecordValueResourceType = "corteza::compose:record-value"
 	ComponentResourceType   = "corteza::compose"
 )
+
+// RbacResource returns string representation of RBAC resource for Attachment by calling AttachmentRbacResource fn
+//
+// RBAC resource is in the corteza::compose:attachment/... format
+//
+// This function is auto-generated
+func (r Attachment) RbacResource() string {
+	return AttachmentRbacResource(r.ID)
+}
+
+// AttachmentRbacResource returns string representation of RBAC resource for Attachment
+//
+// RBAC resource is in the corteza::compose:attachment/... format
+//
+// This function is auto-generated
+func AttachmentRbacResource(id uint64) string {
+	cpts := []interface{}{AttachmentResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(AttachmentRbacResourceTpl(), cpts...)
+
+}
+
+func AttachmentRbacResourceTpl() string {
+	return "%s/%s"
+}
 
 // RbacResource returns string representation of RBAC resource for Chart by calling ChartRbacResource fn
 //
@@ -253,6 +285,36 @@ func RecordRbacResource(namespaceID uint64, moduleID uint64, id uint64) string {
 
 func RecordRbacResourceTpl() string {
 	return "%s/%s/%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for RecordValue by calling RecordValueRbacResource fn
+//
+// RBAC resource is in the corteza::compose:record-value/... format
+//
+// This function is auto-generated
+func (r RecordValue) RbacResource() string {
+	return RecordValueRbacResource(r.ID)
+}
+
+// RecordValueRbacResource returns string representation of RBAC resource for RecordValue
+//
+// RBAC resource is in the corteza::compose:record-value/... format
+//
+// This function is auto-generated
+func RecordValueRbacResource(id uint64) string {
+	cpts := []interface{}{RecordValueResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(RecordValueRbacResourceTpl(), cpts...)
+
+}
+
+func RecordValueRbacResourceTpl() string {
+	return "%s/%s"
 }
 
 // RbacResource returns string representation of RBAC resource for Component by calling ComponentRbacResource fn

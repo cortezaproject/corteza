@@ -296,6 +296,10 @@ func rbacResourceValidator(r string, oo ...string) error {
 	switch rbac.ResourceType(r) {
 	case types.WorkflowResourceType:
 		return rbacWorkflowResourceValidator(r, oo...)
+	case types.SessionResourceType:
+		return rbacSessionResourceValidator(r, oo...)
+	case types.TriggerResourceType:
+		return rbacTriggerResourceValidator(r, oo...)
 	case types.ComponentResourceType:
 		return rbacComponentResourceValidator(r, oo...)
 	}
@@ -318,6 +322,10 @@ func rbacResourceOperations(r string) map[string]bool {
 			"triggers.manage": true,
 			"sessions.manage": true,
 		}
+	case types.SessionResourceType:
+		return map[string]bool{}
+	case types.TriggerResourceType:
+		return map[string]bool{}
 	case types.ComponentResourceType:
 		return map[string]bool{
 			"grant":                        true,
@@ -366,6 +374,94 @@ func rbacWorkflowResourceValidator(r string, oo ...string) error {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid path wildcard level (%d) for workflow resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacSessionResourceValidator checks validity of RBAC resource and operations
+//
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacSessionResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.SessionResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for session resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.SessionResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for session resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacTriggerResourceValidator checks validity of RBAC resource and operations
+//
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacTriggerResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.TriggerResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for trigger resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.TriggerResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for trigger resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {
