@@ -27,6 +27,7 @@ const (
 	ApplicationResourceType         = "corteza::system:application"
 	ApigwRouteResourceType          = "corteza::system:apigw-route"
 	AuthClientResourceType          = "corteza::system:auth-client"
+	DataPrivacyRequestResourceType  = "corteza::system:data-privacy-request"
 	QueueResourceType               = "corteza::system:queue"
 	QueueMessageResourceType        = "corteza::system:queue_message"
 	ReportResourceType              = "corteza::system:report"
@@ -125,6 +126,36 @@ func AuthClientRbacResource(id uint64) string {
 }
 
 func AuthClientRbacResourceTpl() string {
+	return "%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for DataPrivacyRequest by calling DataPrivacyRequestRbacResource fn
+//
+// RBAC resource is in the corteza::system:data-privacy-request/... format
+//
+// This function is auto-generated
+func (r DataPrivacyRequest) RbacResource() string {
+	return DataPrivacyRequestRbacResource(r.ID)
+}
+
+// DataPrivacyRequestRbacResource returns string representation of RBAC resource for DataPrivacyRequest
+//
+// RBAC resource is in the corteza::system:data-privacy-request/... format
+//
+// This function is auto-generated
+func DataPrivacyRequestRbacResource(id uint64) string {
+	cpts := []interface{}{DataPrivacyRequestResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(DataPrivacyRequestRbacResourceTpl(), cpts...)
+
+}
+
+func DataPrivacyRequestRbacResourceTpl() string {
 	return "%s/%s"
 }
 

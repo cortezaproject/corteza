@@ -74,6 +74,15 @@ func ParseRule(res string) (string, *Ref, []*Ref, error) {
 		)
 		return resourceType, ref, pp, err
 
+	case systemTypes.DataPrivacyRequestResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := SystemDataPrivacyRequestRbacReferences(
+			path[0],
+		)
+		return resourceType, ref, pp, err
+
 	case systemTypes.QueueResourceType:
 		if len(path) != 1 {
 			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))

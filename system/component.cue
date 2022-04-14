@@ -17,6 +17,7 @@ component: schema.#component & {
 		"auth-session":          auth_session
 		"auth-oa2token":         auth_oa2token
 		"credential":            credential
+		"data-privacy-request":  data_privacy_request
 		"queue":                 queue
 		"queue_message":         queue_message
 		"reminder":              reminder
@@ -70,5 +71,8 @@ component: schema.#component & {
 		"apigw-routes.search": description: "List search or filter API gateway routes"
 
 		"resource-translations.manage": description: "List, search, create, or update resource translations"
+
+		"data-privacy-request.create": description:  "Create data privacy requests"
+		"data-privacy-requests.search": description: "List, search or filter data privacy requests"
 	}
 }

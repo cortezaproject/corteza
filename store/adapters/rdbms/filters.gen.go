@@ -98,6 +98,9 @@ type (
 		// optional dalSensitivityLevel filter function called after the generated function
 		DalSensitivityLevel func(*Store, systemType.DalSensitivityLevelFilter) ([]goqu.Expression, systemType.DalSensitivityLevelFilter, error)
 
+		// optional dataPrivacyRequest filter function called after the generated function
+		DataPrivacyRequest func(*Store, systemType.DataPrivacyRequestFilter) ([]goqu.Expression, systemType.DataPrivacyRequestFilter, error)
+
 		// optional federationExposedModule filter function called after the generated function
 		FederationExposedModule func(*Store, federationType.ExposedModuleFilter) ([]goqu.Expression, federationType.ExposedModuleFilter, error)
 
@@ -762,6 +765,31 @@ func DalSensitivityLevelFilter(f systemType.DalSensitivityLevelFilter) (ee []goq
 
 	if len(f.SensitivityLevelID) > 0 {
 		ee = append(ee, goqu.C("id").In(f.SensitivityLevelID))
+	}
+
+	return ee, f, err
+}
+
+// DataPrivacyRequestFilter returns logical expressions
+//
+// This function is called from Store.QueryDataPrivacyRequests() and can be extended
+// by setting Store.Filters.DataPrivacyRequest. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func DataPrivacyRequestFilter(f systemType.DataPrivacyRequestFilter) (ee []goqu.Expression, _ systemType.DataPrivacyRequestFilter, err error) {
+
+	// @todo codegen warning: filtering by Kind ([]types.RequestKind) not supported,
+	//       see rdbms.go.tpl and add an exception
+
+	// @todo codegen warning: filtering by Status ([]types.RequestStatus) not supported,
+	//       see rdbms.go.tpl and add an exception
+
+	if f.Query != "" {
+		ee = append(ee, goqu.Or(
+			goqu.C("kind").ILike("%"+f.Query+"%"),
+			goqu.C("status").ILike("%"+f.Query+"%"),
+		))
 	}
 
 	return ee, f, err

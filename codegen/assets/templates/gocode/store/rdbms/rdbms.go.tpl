@@ -342,11 +342,15 @@ func (s *Store) Query{{ .expIdentPlural }}(
 	{{ if .features.paging }}
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
-			return
-		} else {
-			expr = append(expr, tExpr...)
-		}
+        {{- if .features.sorting }}
+        if tExpr, err = cursorWithSorting(f.PageCursor, s.{{ .api.sortableFields.fnIdent }}()); err != nil {
+        {{- else }}
+        if tExpr, err = cursor(f.PageCursor); err != nil {
+        {{- end }}
+            return
+        } else {
+            expr = append(expr, tExpr...)
+        }
 	}
 	{{ end }}
 

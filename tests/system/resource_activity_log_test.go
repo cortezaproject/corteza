@@ -11,7 +11,7 @@ import (
 )
 
 func (h helper) clearActivityLog() {
-	h.noError(store.TruncateResourceActivityLogs(context.Background(), service.DefaultStore))
+	h.noError(store.TruncateResourceActivitys(context.Background(), service.DefaultStore))
 }
 
 func (h helper) repoMakeActivityLog() *discoveryType.ResourceActivity {
@@ -22,7 +22,7 @@ func (h helper) repoMakeActivityLog() *discoveryType.ResourceActivity {
 		ResourceAction: "create",
 	}
 
-	h.a.NoError(store.CreateResourceActivityLog(context.Background(), service.DefaultStore, res))
+	h.a.NoError(store.CreateResourceActivity(context.Background(), service.DefaultStore, res))
 
 	return res
 }

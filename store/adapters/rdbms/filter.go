@@ -265,6 +265,26 @@ func DefaultFilters() (f *extendedFilters) {
 		return ee, f, err
 	}
 
+	f.DataPrivacyRequest = func(s *Store, f systemType.DataPrivacyRequestFilter) (ee []goqu.Expression, _ systemType.DataPrivacyRequestFilter, err error) {
+		if ee, f, err = DataPrivacyRequestFilter(f); err != nil {
+			return
+		}
+
+		if len(f.Kind) > 0 {
+			ee = append(ee, goqu.C("kind").In(f.Kind))
+		}
+
+		if len(f.Status) > 0 {
+			ee = append(ee, goqu.C("status").In(f.Status))
+		}
+
+		if f.Limit == 0 || f.Limit > MaxLimit {
+			f.Limit = MaxLimit
+		}
+
+		return ee, f, err
+	}
+
 	return
 }
 

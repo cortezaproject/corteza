@@ -87,7 +87,7 @@ func Test_buildCursorCond(t *testing.T) {
 			var (
 				req = require.New(t)
 
-				sql, args, err = CursorCondition(tt.cursor, nil).ToSQL()
+				sql, args, err = CursorCondition(tt.cursor, nil, nil).ToSQL()
 			)
 
 			req.NoError(err)

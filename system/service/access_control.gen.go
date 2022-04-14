@@ -105,6 +105,16 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "authorize",
 		},
 		{
+			"type": types.DataPrivacyRequestResourceType,
+			"any":  types.DataPrivacyRequestRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.DataPrivacyRequestResourceType,
+			"any":  types.DataPrivacyRequestRbacResource(0),
+			"op":   "approve",
+		},
+		{
 			"type": types.QueueResourceType,
 			"any":  types.QueueRbacResource(0),
 			"op":   "read",
@@ -404,6 +414,16 @@ func (svc accessControl) List() (out []map[string]string) {
 			"any":  types.ComponentRbacResource(),
 			"op":   "resource-translations.manage",
 		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "data-privacy-request.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "data-privacy-requests.search",
+		},
 	}
 
 	func(svc interface{}) {
@@ -545,6 +565,20 @@ func (svc accessControl) CanDeleteAuthClient(ctx context.Context, r *types.AuthC
 // This function is auto-generated
 func (svc accessControl) CanAuthorizeAuthClient(ctx context.Context, r *types.AuthClient) bool {
 	return svc.can(ctx, "authorize", r)
+}
+
+// CanReadDataPrivacyRequest checks if current user can read data privacy request
+//
+// This function is auto-generated
+func (svc accessControl) CanReadDataPrivacyRequest(ctx context.Context, r *types.DataPrivacyRequest) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanApproveDataPrivacyRequest checks if current user can approve/reject data privacy request
+//
+// This function is auto-generated
+func (svc accessControl) CanApproveDataPrivacyRequest(ctx context.Context, r *types.DataPrivacyRequest) bool {
+	return svc.can(ctx, "approve", r)
 }
 
 // CanReadQueue checks if current user can read queue
@@ -994,6 +1028,22 @@ func (svc accessControl) CanManageResourceTranslations(ctx context.Context) bool
 	return svc.can(ctx, "resource-translations.manage", r)
 }
 
+// CanCreateDataPrivacyRequest checks if current user can create data privacy requests
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateDataPrivacyRequest(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "data-privacy-request.create", r)
+}
+
+// CanSearchDataPrivacyRequests checks if current user can list, search or filter data privacy requests
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchDataPrivacyRequests(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "data-privacy-requests.search", r)
+}
+
 // rbacResourceValidator validates known component's resource by routing it to the appropriate validator
 //
 // This function is auto-generated
@@ -1005,6 +1055,8 @@ func rbacResourceValidator(r string, oo ...string) error {
 		return rbacApigwRouteResourceValidator(r, oo...)
 	case types.AuthClientResourceType:
 		return rbacAuthClientResourceValidator(r, oo...)
+	case types.DataPrivacyRequestResourceType:
+		return rbacDataPrivacyRequestResourceValidator(r, oo...)
 	case types.QueueResourceType:
 		return rbacQueueResourceValidator(r, oo...)
 	case types.QueueMessageResourceType:
@@ -1051,6 +1103,11 @@ func rbacResourceOperations(r string) map[string]bool {
 			"update":    true,
 			"delete":    true,
 			"authorize": true,
+		}
+	case types.DataPrivacyRequestResourceType:
+		return map[string]bool{
+			"read":    true,
+			"approve": true,
 		}
 	case types.QueueResourceType:
 		return map[string]bool{
@@ -1137,6 +1194,8 @@ func rbacResourceOperations(r string) map[string]bool {
 			"apigw-route.create":           true,
 			"apigw-routes.search":          true,
 			"resource-translations.manage": true,
+			"data-privacy-request.create":  true,
+			"data-privacy-requests.search": true,
 		}
 	}
 
@@ -1265,6 +1324,50 @@ func rbacAuthClientResourceValidator(r string, oo ...string) error {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid path wildcard level (%d) for authClient resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacDataPrivacyRequestResourceValidator checks validity of RBAC resource and operations
+//
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacDataPrivacyRequestResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.DataPrivacyRequestResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for dataPrivacyRequest resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.DataPrivacyRequestResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for dataPrivacyRequest resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {
