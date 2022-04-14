@@ -133,8 +133,8 @@ func (s server) bindMiscRoutes(r chi.Router) {
 		s.log.Debug("route debugger enabled: /__routes")
 		r.Get("/__routes", debugRoutes(r))
 
-		s.log.Debug("profiler enabled: /__profiler")
-		r.Mount("/__profiler", middleware.Profiler())
+		s.log.Debug("profiler enabled: /debug")
+		r.Mount("/debug", middleware.Profiler())
 
 		s.log.Debug("eventbus handlers debug enabled: /__eventbus")
 		r.Get("/__eventbus", debugEventbus())
