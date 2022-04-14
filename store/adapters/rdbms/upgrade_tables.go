@@ -74,6 +74,8 @@ func Tables() []*Table {
 		tableApigwRoute(),
 		tableApigwFilter(),
 		tableResourceActivityLog(),
+		tableDataPrivacyRequests(),
+		tableDataPrivacyRequestComments(),
 	}
 }
 
@@ -741,5 +743,31 @@ func tableResourceActivityLog() *Table {
 
 		AddIndex("rel_resource", IColumn("rel_resource")),
 		AddIndex("ts", IColumn("ts")),
+	)
+}
+
+func tableDataPrivacyRequests() *Table {
+	return TableDef("data_privacy_requests",
+		ID,
+		ColumnDef("kind", ColumnTypeText, ColumnTypeLength(handleLength)),
+		ColumnDef("status", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
+		ColumnDef("requested_at", ColumnTypeTimestamp),
+		ColumnDef("requested_by", ColumnTypeIdentifier),
+		ColumnDef("completed_at", ColumnTypeTimestamp, Null),
+		ColumnDef("completed_by", ColumnTypeIdentifier, DefaultValue("0")),
+		CUDTimestamps,
+		CUDUsers,
+
+		AddIndex("status", IColumn("status")),
+	)
+}
+
+func tableDataPrivacyRequestComments() *Table {
+	return TableDef("data_privacy_request_comments",
+		ID,
+		ColumnDef("rel_request", ColumnTypeIdentifier),
+		ColumnDef("comment", ColumnTypeText),
+		CUDTimestamps,
+		CUDUsers,
 	)
 }
