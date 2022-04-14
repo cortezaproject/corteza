@@ -2198,3 +2198,47 @@ endpoints:
       path:
       - { type: string, name: lang,      required: true,  title: Language  }
       - { type: string, name: application, required: true, title: Application name }
+
+- title: Data Privacy
+  entrypoint: dataPrivacy
+  path: "/data-privacy"
+  apis:
+    - name: list requests
+      method: GET
+      title: List data privacy requests
+      path: "/requests"
+      parameters:
+        get:
+          - { name: limit,        type: "uint",       title: "Limit" }
+          - { name: pageCursor,   type: "string",     title: "Page cursor" }
+          - { name: sort,         type: "string",     title: "Sort items" }
+    - name: create request
+      method: POST
+      title: Create data privacy request
+      path: "/requests"
+      parameters:
+        post:
+    - name: read request
+      method: GET
+      title: Get details about specific request
+      path: "/requests/{requestID}"
+      parameters:
+        path:
+          - { name: requestID, type: "string",     title: "Request ID", required: true }
+        post:
+    - name: list responses of request
+      method: GET
+      title: List responses for a specific request
+      path: "/requests/{requestID}/responses"
+      parameters:
+        path:
+          - { name: requestID, type: "string",     title: "Request ID", required: true }
+        post:
+    - name: create response for request
+      method: GET
+      title: Create response for a specific request
+      path: "/requests/{requestID}/responses"
+      parameters:
+        path:
+          - { name: requestID, type: "string",     title: "Request ID", required: true }
+        post:
