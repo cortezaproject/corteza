@@ -7,10 +7,13 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 )
 
-// RichText assures safe HTML content
-func RichText(in string) string {
+var (
+	p *bluemonday.Policy
+)
+
+func init() {
 	// use standard html escaping policy
-	p := bluemonday.UGCPolicy()
+	p = bluemonday.UGCPolicy()
 
 	// match only colors for html editor elements on style attr
 	p.AllowAttrs("style").OnElements("span", "p")
@@ -30,7 +33,10 @@ func RichText(in string) string {
 	// some link specifics we need; allow target but assure safety
 	p.AllowAttrs("target").OnElements("a")
 	p.AddTargetBlankToFullyQualifiedLinks(false)
+}
 
+// RichText assures safe HTML content
+func RichText(in string) string {
 	sanitized := p.Sanitize(in)
 
 	// handle escaped strings and unescape them
