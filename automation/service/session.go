@@ -442,7 +442,17 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 
 			// Send the pending prompts to user
 			if svc.promptSender != nil {
-				for _, pp := range s.AllPendingPrompts() {
+				for _, pp := range s.UnsentPendingPrompts() {
+					// Prevent prompts from being re-sent
+					//
+					// This here collects all of the pending prompts and (re-)sends them.
+					// The problem occurs if you display multiple prompts in parallel --
+					// they get duplicated.
+					//
+					// Patching back-end with this simple fix, but we should probably
+					// refactor the logic that handles prompting a bit.
+					pp.Original.MarkSent()
+
 					if err := svc.promptSender.Send("workflowSessionPrompt", pp, pp.OwnerId); err != nil {
 						svc.log.Error("failed to send prompt to user", zap.Error(err))
 					}

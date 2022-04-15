@@ -293,9 +293,30 @@ func (s *Session) AllPendingPrompts() (out []*PendingPrompt) {
 	defer s.mux.RUnlock()
 	s.mux.RLock()
 
-	out = make([]*PendingPrompt, 0, len(s.prompted))
+	return s.pendingPrompts(s.prompted)
+}
 
-	for _, p := range s.prompted {
+// UnsentPendingPrompts returns unsent pending prompts for all user
+func (s *Session) UnsentPendingPrompts() (out []*PendingPrompt) {
+	defer s.mux.RUnlock()
+	s.mux.RLock()
+
+	aux := s.pendingPrompts(s.prompted)
+	for _, p := range aux {
+		if p.Original.sent {
+			continue
+		}
+
+		out = append(out, p)
+	}
+
+	return
+}
+
+func (s *Session) pendingPrompts(prompted map[uint64]*prompted) (out []*PendingPrompt) {
+	out = make([]*PendingPrompt, 0, len(prompted))
+
+	for _, p := range prompted {
 		pending := p.toPending()
 		pending.SessionID = s.id
 		out = append(out, pending)
