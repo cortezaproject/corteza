@@ -57,6 +57,50 @@ var (
 	_ sort.Interface = &ModuleFieldSet{}
 )
 
+func (f *ModuleField) SelectOptions() (out []string) {
+	if f.Kind != "Select" {
+		return
+	}
+
+	var (
+		options, has = f.Options["options"]
+	)
+
+	if !has {
+		return
+	}
+
+	switch oo := options.(type) {
+	case []string:
+		out = oo
+	case []interface{}:
+		for _, o := range oo {
+			switch c := o.(type) {
+			case string:
+				out = append(out, c)
+			case map[string]string:
+				if value, has := c["value"]; has {
+					out = append(out, value)
+				}
+			case map[string]interface{}:
+				if value, has := c["value"]; has {
+					if value, ok := value.(string); ok {
+						out = append(out, value)
+					}
+				}
+			case ModuleFieldOptions:
+				if value, has := c["value"]; has {
+					if value, ok := value.(string); ok {
+						out = append(out, value)
+					}
+				}
+			}
+		}
+	}
+
+	return
+}
+
 func (f *ModuleField) decodeTranslationsExpressionValidatorValidatorIDError(tt locale.ResourceTranslationIndex) {
 	var aux *locale.ResourceTranslation
 
