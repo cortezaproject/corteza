@@ -236,9 +236,7 @@ func (svc *workflow) Create(ctx context.Context, new *types.Workflow) (wf *types
 			return
 		}
 
-		if err = svc.updateCache(wf, runAs, g); err != nil {
-			return
-		}
+		svc.updateCache(wf, runAs, g)
 
 		if len(wf.Issues) == 0 {
 			if err = svc.triggers.registerWorkflows(ctx, wf); err != nil {
@@ -339,9 +337,7 @@ func (svc *workflow) updater(ctx context.Context, workflowID uint64, action func
 			return
 		}
 
-		if err = svc.updateCache(res, runAs, g); err != nil {
-			return
-		}
+		svc.updateCache(res, runAs, g)
 
 		if len(res.Issues) == 0 {
 			if err = svc.triggers.registerWorkflows(ctx, res); err != nil {
@@ -494,7 +490,7 @@ func (svc workflow) handleUndelete(ctx context.Context, res *types.Workflow) (wo
 
 func (svc *workflow) Load(ctx context.Context) error {
 	var (
-		wwf, _, err = store.SearchAutomationWorkflows(ctx, svc.store, types.WorkflowFilter{
+		set, _, err = store.SearchAutomationWorkflows(ctx, svc.store, types.WorkflowFilter{
 			Deleted:  filter.StateInclusive,
 			Disabled: filter.StateExcluded,
 		})
@@ -506,25 +502,21 @@ func (svc *workflow) Load(ctx context.Context) error {
 		return err
 	}
 
-	_ = wwf.Walk(func(wf *types.Workflow) error {
+	for _, wf := range set {
 		svc.wIndex[wf.Handle] = wf.ID
 
 		if g, runAs, err = svc.validateWorkflow(ctx, wf); err != nil {
-			return err
+			continue
 		}
 
-		if err = svc.updateCache(wf, runAs, g); err != nil {
-			return err
-		}
+		svc.updateCache(wf, runAs, g)
+	}
 
-		return nil
-	})
-
-	return svc.triggers.registerWorkflows(ctx, wwf...)
+	return svc.triggers.registerWorkflows(ctx, set...)
 }
 
 // updateCache
-func (svc *workflow) updateCache(wf *types.Workflow, runAs intAuth.Identifiable, g *wfexec.Graph) (err error) {
+func (svc *workflow) updateCache(wf *types.Workflow, runAs intAuth.Identifiable, g *wfexec.Graph) {
 	defer svc.mux.Unlock()
 	svc.mux.Lock()
 	if wf.Executable() {
