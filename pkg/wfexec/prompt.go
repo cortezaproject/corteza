@@ -1,8 +1,9 @@
 package wfexec
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/expr"
 )
 
 type (
@@ -16,6 +17,8 @@ type (
 		// state to be resumed
 		state *State
 
+		sent bool
+
 		// prompt reference; something client can use
 		// for orientation, what kind of prompt is expected
 		ref string
@@ -28,6 +31,8 @@ type (
 		StateID   uint64     `json:"stateID,string"`
 		Payload   *expr.Vars `json:"payload"`
 		OwnerId   uint64     `json:"-"`
+
+		Original *prompted `json:"-"`
 	}
 
 	ResumedPrompt struct {
@@ -47,6 +52,7 @@ func (p *prompted) toPending() *PendingPrompt {
 		StateID:   p.state.stateId,
 		Payload:   p.payload,
 		OwnerId:   p.ownerId,
+		Original:  p,
 	}
 }
 
@@ -55,4 +61,8 @@ func (p *prompted) toResumed() *ResumedPrompt {
 		StateID: p.state.stateId,
 		OwnerId: p.ownerId,
 	}
+}
+
+func (p *prompted) MarkSent() {
+	p.sent = true
 }
