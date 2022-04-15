@@ -1,10 +1,13 @@
 package automation
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -90,12 +93,72 @@ func (h attachmentHandler) create(ctx context.Context, args *attachmentCreateArg
 
 	switch {
 	case len(args.contentBytes) > 0:
-		size = int64(len(args.contentString))
+		size = int64(len(args.contentBytes))
 		fh = bytes.NewReader(args.contentBytes)
 
 	case args.contentStream != nil:
 		if rs, is := args.contentStream.(io.ReadSeeker); is {
+			_, err = rs.Seek(0, 0)
+			if err != nil {
+				return nil, err
+			}
+
+			size, err = getReaderSize(rs)
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = rs.Seek(0, 0)
+			if err != nil {
+				return nil, err
+			}
+
 			fh = rs
+		} else {
+			// In case we only got a reader...
+			//
+			// For future proofing, for handling larger attachment, we create a temp.
+			// file which we then use as a reader
+
+			// Preparations
+			tmpf, err := ioutil.TempFile("", "reader")
+			if err != nil {
+				return nil, err
+			}
+			defer tmpf.Close()
+			defer os.Remove(tmpf.Name())
+
+			// Writing content to file
+			w := bufio.NewWriter(tmpf)
+			r := args.contentStream
+			buf := make([]byte, 1024)
+			for {
+				// read
+				n, err := r.Read(buf)
+				if err != nil && err != io.EOF {
+					return nil, err
+				}
+				if n == 0 {
+					break
+				}
+
+				// on-the-fly size calculation
+				size += int64(n)
+
+				// write
+				if _, err := w.Write(buf[:n]); err != nil {
+					return nil, err
+				}
+			}
+			if err = w.Flush(); err != nil {
+				return nil, err
+			}
+
+			_, err = tmpf.Seek(0, 0)
+			if err != nil {
+				return nil, err
+			}
+			fh = tmpf
 		}
 
 	default:
@@ -137,4 +200,22 @@ func lookupAttachment(ctx context.Context, svc attachmentService, args attachmen
 	}
 
 	return nil, fmt.Errorf("empty attachment lookup params")
+}
+
+func getReaderSize(r io.Reader) (size int64, err error) {
+	buf := make([]byte, 1024)
+	var n int
+	for {
+		// read a chunk
+		n, err = r.Read(buf)
+		if err != nil && err != io.EOF {
+			return 0, err
+		}
+		if n == 0 {
+			break
+		}
+		size += int64(n)
+	}
+
+	return size, nil
 }

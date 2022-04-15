@@ -1,0 +1,96 @@
+workflows:
+  attachments:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 11
+
+    steps:
+      - stepID: 11
+        kind: function
+        ref: composeRecordsNew
+        arguments:
+          - { target: module,    type: Handle, value: "mod1" }
+          - { target: namespace, type: Handle, value: "ns1" }
+        results:
+          - { target: attachableString, expr: "record"  }
+      - stepID: 12
+        kind: function
+        ref: composeRecordsNew
+        arguments:
+          - { target: module,    type: Handle, value: "mod1" }
+          - { target: namespace, type: Handle, value: "ns1" }
+        results:
+          - { target: attachableReader, expr: "record"  }
+      - stepID: 13
+        kind: function
+        ref: composeRecordsNew
+        arguments:
+          - { target: module,    type: Handle, value: "mod1" }
+          - { target: namespace, type: Handle, value: "ns1" }
+        results:
+          - { target: attachableReadSeeker, expr: "record"  }
+      - stepID: 14
+        kind: function
+        ref: composeRecordsNew
+        arguments:
+          - { target: module,    type: Handle, value: "mod1" }
+          - { target: namespace, type: Handle, value: "ns1" }
+        results:
+          - { target: attachableBytes, expr: "record"  }
+
+
+
+
+      # Store attachment from given string
+      - stepID: 20
+        kind: function
+        ref: attachmentCreate
+        arguments:
+          - { target: content,   type: String,        expr:  "sourceString" }
+          - { target: name,      type: String,        value: "att.txt" }
+          - { target: resource,  type: ComposeRecord, expr:  "attachableString" }
+          - { target: fieldName, type: String,        value: "f1" }
+        results:
+          - { target: attachedString, expr: "attachment"  }
+      - stepID: 21
+        kind: function
+        ref: attachmentCreate
+        arguments:
+          - { target: content,   type: Reader,        expr:  "sourceReader" }
+          - { target: name,      type: String,        value: "att.txt" }
+          - { target: resource,  type: ComposeRecord, expr:  "attachableReader" }
+          - { target: fieldName, type: String,        value: "f1" }
+        results:
+          - { target: attachedReader, expr: "attachment"  }
+      - stepID: 22
+        kind: function
+        ref: attachmentCreate
+        arguments:
+          - { target: content,   type: Reader,        expr:  "sourceReadSeeker" }
+          - { target: name,      type: String,        value: "att.txt" }
+          - { target: resource,  type: ComposeRecord, expr:  "attachableReadSeeker" }
+          - { target: fieldName, type: String,        value: "f1" }
+        results:
+          - { target: attachedReadSeeker, expr: "attachment"  }
+      - stepID: 23
+        kind: function
+        ref: attachmentCreate
+        arguments:
+          - { target: content,   type: Bytes,        expr:  "sourceBytes" }
+          - { target: name,      type: String,        value: "att.txt" }
+          - { target: resource,  type: ComposeRecord, expr:  "attachableBytes" }
+          - { target: fieldName, type: String,        value: "f1" }
+        results:
+          - { target: attachedBytes, expr: "attachment"  }
+
+    paths:
+      - { parentID: 11, childID: 12 }
+      - { parentID: 12, childID: 13 }
+      - { parentID: 13, childID: 14 }
+
+      - { parentID: 14, childID: 20 }
+      - { parentID: 20, childID: 21 }
+      - { parentID: 21, childID: 22 }
+      - { parentID: 22, childID: 23 }
