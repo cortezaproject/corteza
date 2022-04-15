@@ -12,11 +12,22 @@ import (
 )
 
 type (
+	CRSDef struct {
+		ComposeRecordStoreID uint64
+		Capabilities         capabilities.Set
+
+		Partitioned     bool
+		PartitionFormat string
+		PartitionBase   []any
+	}
+
 	Module struct {
 		ID     uint64         `json:"moduleID,string"`
 		Handle string         `json:"handle"`
 		Meta   types.JSONText `json:"meta"`
 		Fields ModuleFieldSet `json:"fields"`
+
+		Store CRSDef
 
 		Labels map[string]string `json:"labels,omitempty"`
 
