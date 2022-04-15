@@ -32,14 +32,25 @@ type (
 	}
 )
 
-func NewParser(ee ...gval.Language) Parsable {
-	return NewGvalParser(ee...)
+var (
+	parser gval.Language
+)
+
+func init() {
+	parser = gval.Full(AllFunctions()...)
 }
 
-func NewGvalParser(ee ...gval.Language) *gvalParser {
-	ext := AllFunctions()
-	ext = append(ext, ee...)
-	return &gvalParser{lang: gval.Full(ext...)}
+// Parser returns global parser instance
+func Parser() gval.Language {
+	return parser
+}
+
+func NewParser() Parsable {
+	return NewGvalParser()
+}
+
+func NewGvalParser() *gvalParser {
+	return &gvalParser{lang: Parser()}
 }
 
 func (p *gvalParser) Parse(expr string) (Evaluable, error) {
@@ -79,10 +90,6 @@ func (e *gvalEval) Test(ctx context.Context, scope *Vars) (bool, error) {
 	}
 
 	return !isEmpty(r), nil
-}
-
-func Parser(ll ...gval.Language) gval.Language {
-	return gval.Full(append(AllFunctions(), ll...)...)
 }
 
 func AllFunctions() []gval.Language {
