@@ -114,6 +114,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		&expr.Reader{},
 		&expr.Vars{},
 		&expr.HttpRequest{},
+		&expr.Bytes{},
 
 		&automation.EmailMessage{},
 	)
