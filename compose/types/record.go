@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 )
 
@@ -114,6 +115,14 @@ func (r Record) Clone() *Record {
 	c := &r
 	c.Values = r.Values.Clone()
 	return c
+}
+
+func (r *Record) GetValue(name string, pos int) (expr.TypedValue, error) {
+	return expr.NewString("@todo")
+}
+
+func (r *Record) SetValue(name string, pos int, value expr.TypedValue) error {
+	return nil
 }
 
 func (r Record) Dict() map[string]interface{} {

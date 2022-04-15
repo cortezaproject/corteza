@@ -26,6 +26,8 @@ type (
 
 		Options ModuleFieldOptions `json:"options"`
 
+		Encoding EncodingStrategy
+
 		Private      bool           `json:"isPrivate"`
 		Required     bool           `json:"isRequired"`
 		Visible      bool           `json:"isVisible"`
@@ -44,6 +46,20 @@ type (
 		//          struct field is kept for the convenience for now since it allows us
 		//          easy encoding/decoding of the outgoing/incoming values
 		Label string `json:"label"`
+	}
+
+	EncodingStrategy struct {
+		*EncodingStrategyAlias
+		*EncodingStrategyJSON
+	}
+
+	EncodingStrategyAlias struct {
+		Ident string `json:"ident"`
+	}
+
+	EncodingStrategyJSON struct {
+		Ident string `json:"ident"`
+		Path  []any  `json:"path"`
 	}
 
 	ModuleFieldFilter struct {
