@@ -5,7 +5,7 @@ WGET_FLAGS   ?= -q
 TAR          ?= tar
 TAR_FLAGS    ?= -xzmok
 RELEASE_PAGE ?= https://releases.cortezaproject.org/files
-APPS         ?= admin compose workflow reporter
+APPS         ?= admin compose workflow reporter discovery
 ALL_APPS     ?= $(APPS) one
 VERSION      ?= $(shell git describe --tags --abbrev=0)
 PACKAGES      = $(addprefix corteza-webapp-,$(addsuffix -$(VERSION).tar.gz,$(ALL_APPS)))
@@ -23,6 +23,7 @@ install-packages: $(PACKAGES)
 	@ $(TAR) $(TAR_FLAGS) -f corteza-webapp-compose-$(VERSION).tar.gz -C public/compose
 	@ $(TAR) $(TAR_FLAGS) -f corteza-webapp-workflow-$(VERSION).tar.gz -C public/workflow
 	@ $(TAR) $(TAR_FLAGS) -f corteza-webapp-reporter-$(VERSION).tar.gz -C public/reporter
+	@ $(TAR) $(TAR_FLAGS) -f corteza-webapp-discovery-$(VERSION).tar.gz -C public/discovery
 
 download: $(PACKAGES)
 
@@ -32,11 +33,12 @@ $(PACKAGES):
 
 install-fresh: build
 	@ rm -rf public
-	@ cp -r $(SOURCE_LOC)one/dist      public/
-	@ cp -r $(SOURCE_LOC)admin/dist    public/admin
-	@ cp -r $(SOURCE_LOC)compose/dist  public/compose
-	@ cp -r $(SOURCE_LOC)workflow/dist public/workflow
-	@ cp -r $(SOURCE_LOC)reporter/dist public/reporter
+	@ cp -r $(SOURCE_LOC)one/dist       public/
+	@ cp -r $(SOURCE_LOC)admin/dist     public/admin
+	@ cp -r $(SOURCE_LOC)compose/dist   public/compose
+	@ cp -r $(SOURCE_LOC)workflow/dist  public/workflow
+	@ cp -r $(SOURCE_LOC)reporter/dist  public/reporter
+	@ cp -r $(SOURCE_LOC)discovery/dist public/discovery
 
 build: $(SOURCES)
 
