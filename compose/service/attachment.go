@@ -6,7 +6,6 @@ import (
 	"image"
 	"image/gif"
 	"io"
-	"net/http"
 	"path"
 	"regexp"
 	"strings"
@@ -20,6 +19,7 @@ import (
 	systemService "github.com/cortezaproject/corteza-server/system/service"
 	"github.com/disintegration/imaging"
 	"github.com/edwvee/exiffix"
+	"github.com/gabriel-vasile/mimetype"
 )
 
 const (
@@ -510,21 +510,22 @@ func (svc attachment) create(ctx context.Context, s store.ComposeAttachments, na
 	return nil
 }
 
-func (svc attachment) extractMimetype(file io.ReadSeeker) (mimetype string, err error) {
+func (svc attachment) extractMimetype(file io.ReadSeeker) (mType string, err error) {
 	if _, err = file.Seek(0, 0); err != nil {
 		return
 	}
 
 	// Make sure we rewind when we're done
-	defer file.Seek(0, 0)
+	defer func(file io.ReadSeeker, offset int64, whence int) {
+		_, _ = file.Seek(offset, whence)
+	}(file, 0, 0)
 
-	// See http.DetectContentType about 512 bytes
-	var buf = make([]byte, 512)
-	if _, err = file.Read(buf); err != nil {
+	var mime *mimetype.MIME
+	if mime, err = mimetype.DetectReader(file); err != nil {
 		return
 	}
 
-	return http.DetectContentType(buf), nil
+	return mime.String(), nil
 }
 
 func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment) (err error) {
