@@ -796,11 +796,21 @@ func TestRecordAttachment(t *testing.T) {
 			},
 		},
 		&types.ModuleField{Name: "str", Kind: "String"},
+		&types.ModuleField{
+			Name: "csv_only",
+			Kind: "File",
+			Options: types.ModuleFieldOptions{
+				"mimetypes": "text/csv",
+			},
+		},
 	)
 
 	xxlBlob := bytes.Repeat([]byte("0"), maxSizeLimit*1_000_000+1)
 
 	testImgFh, err := os.ReadFile("./testdata/test.png")
+	h.noError(err)
+
+	testCsvFh, err := os.ReadFile("./testdata/test.csv")
 	h.noError(err)
 
 	defer func() {
@@ -908,6 +918,14 @@ func TestRecordAttachment(t *testing.T) {
 			"image.png",
 			"image/gif",
 			map[string]string{"fieldName": "img_only"},
+			helpers.AssertNoErrors,
+		},
+		{
+			"csv file - ok",
+			testCsvFh,
+			"testCSV",
+			"text/csv",
+			map[string]string{"fieldName": "csv_only"},
 			helpers.AssertNoErrors,
 		},
 	}
