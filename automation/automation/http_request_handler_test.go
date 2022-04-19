@@ -71,4 +71,19 @@ func TestHttpRequestMaker(t *testing.T) {
 		r.Equal("POST", req.Method)
 		validateBody(r, req, "a=a&b=b&b=b&i=42")
 	})
+
+	t.Run("basic auth", func(t *testing.T) {
+		var (
+			r  = require.New(t)
+			in = &httpRequestSendArgs{
+				HeaderAuthUsername: "foo",
+				HeaderAuthPassword: "bar",
+			}
+			req, err = httpRequestHandler{}.makeRequest(context.Background(), in)
+		)
+
+		r.NoError(err)
+		r.Len(req.Header["Authorization"], 1)
+		r.Equal(req.Header["Authorization"][0], "Basic Zm9vOmJhcg==")
+	})
 }
