@@ -820,9 +820,7 @@ func TestRecordAttachment(t *testing.T) {
 	}()
 
 	systemService.CurrentSettings.Compose.Record.Attachments.MaxSize = maxSizeLimit
-	systemService.CurrentSettings.Compose.Record.Attachments.Mimetypes = []string{
-		"application/octet-stream",
-	}
+	systemService.CurrentSettings.Compose.Record.Attachments.Mimetypes = []string{}
 
 	cc := []struct {
 		name  string
@@ -902,7 +900,7 @@ func TestRecordAttachment(t *testing.T) {
 			"numbers.gif",
 			"image/gif",
 			map[string]string{"fieldName": "no_constraints"},
-			helpers.AssertError("attachment.errors.notAllowedToUploadThisType"),
+			helpers.AssertError("attachment.errors.failedToProcessImage"),
 		},
 		{
 			"field mimetype - ok",
