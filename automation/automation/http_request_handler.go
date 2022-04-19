@@ -145,21 +145,18 @@ func (h httpRequestHandler) makeRequest(ctx context.Context, args *httpRequestSe
 
 	args.Headers.Set("User-Agent", args.HeaderUserAgent)
 
-	switch {
-	case len(args.HeaderAuthBearer) > 0:
-		args.Headers.Add("Authorization", "Bearer "+args.HeaderAuthBearer)
-	case len(args.HeaderAuthPassword+args.HeaderAuthPassword) > 0:
-		req.SetBasicAuth(
-			args.HeaderAuthPassword,
-			args.HeaderAuthPassword,
-		)
-	}
-
 	if len(args.HeaderContentType) > 0 {
 		args.Headers.Add("Content-Type", args.HeaderContentType)
 	}
 
 	req.Header = args.Headers
+
+	switch {
+	case len(args.HeaderAuthBearer) > 0:
+		req.Header.Add("Authorization", "Bearer "+args.HeaderAuthBearer)
+	case len(args.HeaderAuthUsername+args.HeaderAuthPassword) > 0:
+		req.SetBasicAuth(args.HeaderAuthUsername, args.HeaderAuthPassword)
+	}
 
 	return
 }
