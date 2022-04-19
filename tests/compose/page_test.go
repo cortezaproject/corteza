@@ -369,9 +369,7 @@ func TestPageAttachment(t *testing.T) {
 
 	// one megabyte limit
 	systemService.CurrentSettings.Compose.Page.Attachments.MaxSize = 1
-	systemService.CurrentSettings.Compose.Page.Attachments.Mimetypes = []string{
-		"application/octet-stream",
-	}
+	systemService.CurrentSettings.Compose.Page.Attachments.Mimetypes = []string{}
 
 	cc := []struct {
 		name  string
@@ -419,7 +417,7 @@ func TestPageAttachment(t *testing.T) {
 			"numbers.gif",
 			"image/gif",
 			map[string]string{},
-			helpers.AssertError("attachment.errors.notAllowedToUploadThisType"),
+			helpers.AssertError("attachment.errors.failedToProcessImage"),
 		},
 	}
 
