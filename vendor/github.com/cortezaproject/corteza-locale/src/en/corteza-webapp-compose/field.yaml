@@ -105,6 +105,7 @@ kind:
     latitude: Latitude
     longitude: Longitude
     clickToPlaceMarker: Click to place a marker or click on a marker to remove it
+    initialZoomAndPosition: Set initial map zoom and position
 noPermission: No permission to read field value
 no-items-found: No items found
 options:
@@ -150,6 +151,7 @@ selector:
   systemField: (system field)
   unselectAll: Unselect all
 system:
+  recordID: Record ID
   createdAt: Created at
   createdBy: Created by
   deletedAt: Deleted at
