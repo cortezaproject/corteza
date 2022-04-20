@@ -53,6 +53,7 @@ label:
   remove: Remove
   removeDefault: Remove default
   required: Required
+  reset: Reset
   save: Save
   saveAndClose: Save and close
   status: Status
