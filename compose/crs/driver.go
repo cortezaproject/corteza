@@ -47,12 +47,19 @@ type (
 		// DDL
 		// Models returns all of the collections the given database already defines
 		Models(context.Context) (data.ModelSet, error)
+
+		// returns all attribute types that driver supports
+		AttributeTypes() []data.AttributeType
+
 		// AddModel requests the driver to support the specified collections
 		AddModel(context.Context, *data.Model, ...*data.Model) error
+
 		// // RemoveModel requests the driver to remove support for the specified collections
 		// RemoveModel(context.Context, *data.Model, ...*data.Model) error
+
 		// AlterModel requests the driver to alter the general collectio parameters
 		AlterModel(ctx context.Context, old *data.Model, new *data.Model) error
+
 		// AlterModelAttribute requests the driver to alter the specified attribute of the given collection
 		AlterModelAttribute(ctx context.Context, sch *data.Model, old data.Attribute, new data.Attribute, trans ...func(*data.Model, data.Attribute, expr.TypedValue) (expr.TypedValue, bool, error)) error
 	}
