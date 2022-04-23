@@ -16,7 +16,7 @@ import (
 			cmpIdent: cmp.ident
 			// Operation/resource validators, grouped by resource
 			types: [
-				for res in cmp.resources {
+				for res in cmp.resources if res.rbac != _|_ {
 					const:   "\(res.expIdent)ResourceType"
 					type:    res.fqrn
 					resFunc: "\(res.expIdent)RbacResource"

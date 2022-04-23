@@ -62,7 +62,7 @@ import (
 	}]
 
 	// All known RBAC operations for this resource
-	rbac: #rbacResource & {
+	rbac?: #rbacResource & {
 		resourceExpIdent: expIdent
 	}
 

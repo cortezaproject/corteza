@@ -26,14 +26,6 @@ role_member: schema.#Resource & {
 		byValue: [ "user_id", "role_id"]
 	}
 
-	rbac: {
-		operations: {
-			read: description:             "Read role"
-			update: description:           "Update role"
-			delete: description:           "Delete role"
-			"members.manage": description: "Manage members"
-		}}
-
 	store: {
 		api: {
 			lookups: []

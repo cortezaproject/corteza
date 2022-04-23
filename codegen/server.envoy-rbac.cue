@@ -18,7 +18,7 @@ import (
 			]
 
 			resources: [
-				for res in cmp.resources {
+				for res in cmp.resources if res.rbac != _|_ {
 					rbacRefFunc: "\(cmp.expIdent)\(res.expIdent)RbacReferences"
 					references: [
 						for p in res.parents {p},
@@ -42,7 +42,7 @@ import (
 			]
 
 			resources: [
-				for cmp in app.corteza.components for res in cmp.resources {
+				for cmp in app.corteza.components for res in cmp.resources if res.rbac != _|_ {
 					importAlias: "\(cmp.ident)Types"
 					expIdent:    res.expIdent
 

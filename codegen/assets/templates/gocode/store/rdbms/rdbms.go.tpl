@@ -315,7 +315,7 @@ func (s Store) Query{{ .expIdentPlural }}(
 	{{ end }}
 		set         = make([]*{{ .goType }}, 0, DefaultSliceCapacity)
 		res         *{{ .goType }}
-		aux         {{ .auxIdent }}
+		aux         *{{ .auxIdent }}
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -376,9 +376,6 @@ func (s Store) Query{{ .expIdentPlural }}(
 		return
 	}
 
-
-
-
 	if err = rows.Err(); err != nil {
 		err = fmt.Errorf("could not query {{ .expIdent }}: %w", err)
 		return
@@ -398,6 +395,7 @@ func (s Store) Query{{ .expIdentPlural }}(
 			return
 		}
 
+		aux = new({{ .auxIdent }})
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for {{ .expIdent }}: %w", err)
 			return
