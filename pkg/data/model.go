@@ -28,7 +28,7 @@ type (
 
 		// Store describes the strategy the underlying storage system should
 		// apply to the underlying value
-		Store StoreStrategy
+		Store StoreCodec
 		// Type describes what the value represents and how it should be
 		// encoded/decoded
 		Type attributeType
@@ -214,6 +214,26 @@ func (m Model) Validate() error {
 
 	return nil
 }
+
+//// AttributeGroups returns attributes grouped by ident
+//func (m Model) AttributeGroups() (gg map[string][]*Attribute) {
+//	gg = make(map[string][]*Attribute)
+//
+//	for _, attr := range m.Attributes {
+//		// @todo properly check attribute integrity:
+//		//    is embeddable
+//		//    only same types use the same ident
+//		if gIdent, embeddable := attr.Store.Embeddable(); !embeddable && len(gg[attr.Ident]) > 0 {
+//			panic("attribute " + attr.Ident + " is not embeddable")
+//		} else if len(gIdent) > 0 {
+//			gg[gIdent] = append(gg[gIdent], attr)
+//		} else {
+//			gg[attr.Ident] = append(gg[attr.Ident], attr)
+//		}
+//	}
+//
+//	return
+//}
 
 // Receivers to conform to the interface
 

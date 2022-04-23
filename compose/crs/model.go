@@ -208,7 +208,7 @@ func (crs *composeRecordStore) loadModules(ctx context.Context, cs cStore) (mm t
 	return
 }
 
-func moduleFieldCodec(f *types.ModuleField) (strat data.StoreStrategy) {
+func moduleFieldCodec(f *types.ModuleField) (strat data.StoreCodec) {
 	// Defaulting to alias
 	strat = data.StoreCodecAlias{
 		Ident: f.Name,
