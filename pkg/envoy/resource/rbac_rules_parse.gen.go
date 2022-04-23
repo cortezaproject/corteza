@@ -47,20 +47,20 @@ func ParseRule(res string) (string, *Ref, []*Ref, error) {
 
 	// make the resource provide the slice of parent resources we should nest under
 	switch resourceType {
-	case systemTypes.ApigwRouteResourceType:
-		if len(path) != 1 {
-			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
-		}
-		ref, pp, err := SystemApigwRouteRbacReferences(
-			path[0],
-		)
-		return resourceType, ref, pp, err
-
 	case systemTypes.ApplicationResourceType:
 		if len(path) != 1 {
 			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
 		}
 		ref, pp, err := SystemApplicationRbacReferences(
+			path[0],
+		)
+		return resourceType, ref, pp, err
+
+	case systemTypes.ApigwRouteResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := SystemApigwRouteRbacReferences(
 			path[0],
 		)
 		return resourceType, ref, pp, err
@@ -79,6 +79,15 @@ func ParseRule(res string) (string, *Ref, []*Ref, error) {
 			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
 		}
 		ref, pp, err := SystemQueueRbacReferences(
+			path[0],
+		)
+		return resourceType, ref, pp, err
+
+	case systemTypes.QueueMessageResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := SystemQueueMessageRbacReferences(
 			path[0],
 		)
 		return resourceType, ref, pp, err

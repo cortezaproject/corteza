@@ -24,46 +24,17 @@ var (
 )
 
 const (
-	ApigwRouteResourceType  = "corteza::system:apigw-route"
-	ApplicationResourceType = "corteza::system:application"
-	AuthClientResourceType  = "corteza::system:auth-client"
-	QueueResourceType       = "corteza::system:queue"
-	ReportResourceType      = "corteza::system:report"
-	RoleResourceType        = "corteza::system:role"
-	TemplateResourceType    = "corteza::system:template"
-	UserResourceType        = "corteza::system:user"
-	ComponentResourceType   = "corteza::system"
+	ApplicationResourceType  = "corteza::system:application"
+	ApigwRouteResourceType   = "corteza::system:apigw-route"
+	AuthClientResourceType   = "corteza::system:auth-client"
+	QueueResourceType        = "corteza::system:queue"
+	QueueMessageResourceType = "corteza::system:queue_message"
+	ReportResourceType       = "corteza::system:report"
+	RoleResourceType         = "corteza::system:role"
+	TemplateResourceType     = "corteza::system:template"
+	UserResourceType         = "corteza::system:user"
+	ComponentResourceType    = "corteza::system"
 )
-
-// RbacResource returns string representation of RBAC resource for ApigwRoute by calling ApigwRouteRbacResource fn
-//
-// RBAC resource is in the corteza::system:apigw-route/... format
-//
-// This function is auto-generated
-func (r ApigwRoute) RbacResource() string {
-	return ApigwRouteRbacResource(r.ID)
-}
-
-// ApigwRouteRbacResource returns string representation of RBAC resource for ApigwRoute
-//
-// RBAC resource is in the corteza::system:apigw-route/... format
-//
-// This function is auto-generated
-func ApigwRouteRbacResource(id uint64) string {
-	cpts := []interface{}{ApigwRouteResourceType}
-	if id != 0 {
-		cpts = append(cpts, strconv.FormatUint(id, 10))
-	} else {
-		cpts = append(cpts, "*")
-	}
-
-	return fmt.Sprintf(ApigwRouteRbacResourceTpl(), cpts...)
-
-}
-
-func ApigwRouteRbacResourceTpl() string {
-	return "%s/%s"
-}
 
 // RbacResource returns string representation of RBAC resource for Application by calling ApplicationRbacResource fn
 //
@@ -92,6 +63,36 @@ func ApplicationRbacResource(id uint64) string {
 }
 
 func ApplicationRbacResourceTpl() string {
+	return "%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for ApigwRoute by calling ApigwRouteRbacResource fn
+//
+// RBAC resource is in the corteza::system:apigw-route/... format
+//
+// This function is auto-generated
+func (r ApigwRoute) RbacResource() string {
+	return ApigwRouteRbacResource(r.ID)
+}
+
+// ApigwRouteRbacResource returns string representation of RBAC resource for ApigwRoute
+//
+// RBAC resource is in the corteza::system:apigw-route/... format
+//
+// This function is auto-generated
+func ApigwRouteRbacResource(id uint64) string {
+	cpts := []interface{}{ApigwRouteResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(ApigwRouteRbacResourceTpl(), cpts...)
+
+}
+
+func ApigwRouteRbacResourceTpl() string {
 	return "%s/%s"
 }
 
@@ -152,6 +153,36 @@ func QueueRbacResource(id uint64) string {
 }
 
 func QueueRbacResourceTpl() string {
+	return "%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for QueueMessage by calling QueueMessageRbacResource fn
+//
+// RBAC resource is in the corteza::system:queue_message/... format
+//
+// This function is auto-generated
+func (r QueueMessage) RbacResource() string {
+	return QueueMessageRbacResource(r.ID)
+}
+
+// QueueMessageRbacResource returns string representation of RBAC resource for QueueMessage
+//
+// RBAC resource is in the corteza::system:queue_message/... format
+//
+// This function is auto-generated
+func QueueMessageRbacResource(id uint64) string {
+	cpts := []interface{}{QueueMessageResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(QueueMessageRbacResourceTpl(), cpts...)
+
+}
+
+func QueueMessageRbacResourceTpl() string {
 	return "%s/%s"
 }
 
