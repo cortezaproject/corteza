@@ -175,7 +175,7 @@ func (s Store) QueryActionlogs(
 	var (
 		set         = make([]*actionlogType.Action, 0, DefaultSliceCapacity)
 		res         *actionlogType.Action
-		aux         auxActionlog
+		aux         *auxActionlog
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -239,6 +239,7 @@ func (s Store) QueryActionlogs(
 			return
 		}
 
+		aux = new(auxActionlog)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for Actionlog: %w", err)
 			return
@@ -628,7 +629,7 @@ func (s Store) QueryApigwFilters(
 
 		set         = make([]*systemType.ApigwFilter, 0, DefaultSliceCapacity)
 		res         *systemType.ApigwFilter
-		aux         auxApigwFilter
+		aux         *auxApigwFilter
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -701,6 +702,7 @@ func (s Store) QueryApigwFilters(
 			return
 		}
 
+		aux = new(auxApigwFilter)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for ApigwFilter: %w", err)
 			return
@@ -1149,7 +1151,7 @@ func (s Store) QueryApigwRoutes(
 
 		set         = make([]*systemType.ApigwRoute, 0, DefaultSliceCapacity)
 		res         *systemType.ApigwRoute
-		aux         auxApigwRoute
+		aux         *auxApigwRoute
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -1222,6 +1224,7 @@ func (s Store) QueryApigwRoutes(
 			return
 		}
 
+		aux = new(auxApigwRoute)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for ApigwRoute: %w", err)
 			return
@@ -1674,7 +1677,7 @@ func (s Store) QueryApplications(
 
 		set         = make([]*systemType.Application, 0, DefaultSliceCapacity)
 		res         *systemType.Application
-		aux         auxApplication
+		aux         *auxApplication
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -1747,6 +1750,7 @@ func (s Store) QueryApplications(
 			return
 		}
 
+		aux = new(auxApplication)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for Application: %w", err)
 			return
@@ -2157,7 +2161,7 @@ func (s Store) QueryAttachments(
 
 		set         = make([]*systemType.Attachment, 0, DefaultSliceCapacity)
 		res         *systemType.Attachment
-		aux         auxAttachment
+		aux         *auxAttachment
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -2230,6 +2234,7 @@ func (s Store) QueryAttachments(
 			return
 		}
 
+		aux = new(auxAttachment)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for Attachment: %w", err)
 			return
@@ -2638,7 +2643,7 @@ func (s Store) QueryAuthClients(
 
 		set         = make([]*systemType.AuthClient, 0, DefaultSliceCapacity)
 		res         *systemType.AuthClient
-		aux         auxAuthClient
+		aux         *auxAuthClient
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -2711,6 +2716,7 @@ func (s Store) QueryAuthClients(
 			return
 		}
 
+		aux = new(auxAuthClient)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for AuthClient: %w", err)
 			return
@@ -3037,7 +3043,7 @@ func (s Store) QueryAuthConfirmedClients(
 	var (
 		set         = make([]*systemType.AuthConfirmedClient, 0, DefaultSliceCapacity)
 		res         *systemType.AuthConfirmedClient
-		aux         auxAuthConfirmedClient
+		aux         *auxAuthConfirmedClient
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -3089,6 +3095,7 @@ func (s Store) QueryAuthConfirmedClients(
 			return
 		}
 
+		aux = new(auxAuthConfirmedClient)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for AuthConfirmedClient: %w", err)
 			return
@@ -3327,7 +3334,7 @@ func (s Store) QueryAuthOa2tokens(
 	var (
 		set         = make([]*systemType.AuthOa2token, 0, DefaultSliceCapacity)
 		res         *systemType.AuthOa2token
-		aux         auxAuthOa2token
+		aux         *auxAuthOa2token
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -3379,6 +3386,7 @@ func (s Store) QueryAuthOa2tokens(
 			return
 		}
 
+		aux = new(auxAuthOa2token)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for AuthOa2token: %w", err)
 			return
@@ -3730,7 +3738,7 @@ func (s Store) QueryAuthSessions(
 	var (
 		set         = make([]*systemType.AuthSession, 0, DefaultSliceCapacity)
 		res         *systemType.AuthSession
-		aux         auxAuthSession
+		aux         *auxAuthSession
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -3782,6 +3790,7 @@ func (s Store) QueryAuthSessions(
 			return
 		}
 
+		aux = new(auxAuthSession)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for AuthSession: %w", err)
 			return
@@ -4176,7 +4185,7 @@ func (s Store) QueryAutomationSessions(
 
 		set         = make([]*automationType.Session, 0, DefaultSliceCapacity)
 		res         *automationType.Session
-		aux         auxAutomationSession
+		aux         *auxAutomationSession
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -4249,6 +4258,7 @@ func (s Store) QueryAutomationSessions(
 			return
 		}
 
+		aux = new(auxAutomationSession)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for AutomationSession: %w", err)
 			return
@@ -4663,7 +4673,7 @@ func (s Store) QueryAutomationTriggers(
 
 		set         = make([]*automationType.Trigger, 0, DefaultSliceCapacity)
 		res         *automationType.Trigger
-		aux         auxAutomationTrigger
+		aux         *auxAutomationTrigger
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -4736,6 +4746,7 @@ func (s Store) QueryAutomationTriggers(
 			return
 		}
 
+		aux = new(auxAutomationTrigger)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for AutomationTrigger: %w", err)
 			return
@@ -5146,7 +5157,7 @@ func (s Store) QueryAutomationWorkflows(
 
 		set         = make([]*automationType.Workflow, 0, DefaultSliceCapacity)
 		res         *automationType.Workflow
-		aux         auxAutomationWorkflow
+		aux         *auxAutomationWorkflow
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -5219,6 +5230,7 @@ func (s Store) QueryAutomationWorkflows(
 			return
 		}
 
+		aux = new(auxAutomationWorkflow)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for AutomationWorkflow: %w", err)
 			return
@@ -5703,7 +5715,7 @@ func (s Store) QueryComposeAttachments(
 
 		set         = make([]*composeType.Attachment, 0, DefaultSliceCapacity)
 		res         *composeType.Attachment
-		aux         auxComposeAttachment
+		aux         *auxComposeAttachment
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -5776,6 +5788,7 @@ func (s Store) QueryComposeAttachments(
 			return
 		}
 
+		aux = new(auxComposeAttachment)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for ComposeAttachment: %w", err)
 			return
@@ -6184,7 +6197,7 @@ func (s Store) QueryComposeCharts(
 
 		set         = make([]*composeType.Chart, 0, DefaultSliceCapacity)
 		res         *composeType.Chart
-		aux         auxComposeChart
+		aux         *auxComposeChart
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -6257,6 +6270,7 @@ func (s Store) QueryComposeCharts(
 			return
 		}
 
+		aux = new(auxComposeChart)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for ComposeChart: %w", err)
 			return
@@ -6713,7 +6727,7 @@ func (s Store) QueryComposeModules(
 
 		set         = make([]*composeType.Module, 0, DefaultSliceCapacity)
 		res         *composeType.Module
-		aux         auxComposeModule
+		aux         *auxComposeModule
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -6786,6 +6800,7 @@ func (s Store) QueryComposeModules(
 			return
 		}
 
+		aux = new(auxComposeModule)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for ComposeModule: %w", err)
 			return
@@ -7153,7 +7168,7 @@ func (s Store) QueryComposeModuleFields(
 	var (
 		set         = make([]*composeType.ModuleField, 0, DefaultSliceCapacity)
 		res         *composeType.ModuleField
-		aux         auxComposeModuleField
+		aux         *auxComposeModuleField
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -7205,6 +7220,7 @@ func (s Store) QueryComposeModuleFields(
 			return
 		}
 
+		aux = new(auxComposeModuleField)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for ComposeModuleField: %w", err)
 			return
@@ -7625,7 +7641,7 @@ func (s Store) QueryComposeNamespaces(
 
 		set         = make([]*composeType.Namespace, 0, DefaultSliceCapacity)
 		res         *composeType.Namespace
-		aux         auxComposeNamespace
+		aux         *auxComposeNamespace
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -7698,6 +7714,7 @@ func (s Store) QueryComposeNamespaces(
 			return
 		}
 
+		aux = new(auxComposeNamespace)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for ComposeNamespace: %w", err)
 			return
@@ -8176,7 +8193,7 @@ func (s Store) QueryComposePages(
 
 		set         = make([]*composeType.Page, 0, DefaultSliceCapacity)
 		res         *composeType.Page
-		aux         auxComposePage
+		aux         *auxComposePage
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -8249,6 +8266,7 @@ func (s Store) QueryComposePages(
 			return
 		}
 
+		aux = new(auxComposePage)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for ComposePage: %w", err)
 			return
@@ -8747,7 +8765,7 @@ func (s Store) QueryComposeRecords(
 
 		set         = make([]*composeType.Record, 0, DefaultSliceCapacity)
 		res         *composeType.Record
-		aux         auxComposeRecord
+		aux         *auxComposeRecord
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -8820,6 +8838,7 @@ func (s Store) QueryComposeRecords(
 			return
 		}
 
+		aux = new(auxComposeRecord)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for ComposeRecord: %w", err)
 			return
@@ -9069,7 +9088,7 @@ func (s Store) QueryComposeRecordValues(
 	var (
 		set         = make([]*composeType.RecordValue, 0, DefaultSliceCapacity)
 		res         *composeType.RecordValue
-		aux         auxComposeRecordValue
+		aux         *auxComposeRecordValue
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -9121,6 +9140,7 @@ func (s Store) QueryComposeRecordValues(
 			return
 		}
 
+		aux = new(auxComposeRecordValue)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for ComposeRecordValue: %w", err)
 			return
@@ -9325,7 +9345,7 @@ func (s Store) QueryCredentials(
 	var (
 		set         = make([]*systemType.Credential, 0, DefaultSliceCapacity)
 		res         *systemType.Credential
-		aux         auxCredential
+		aux         *auxCredential
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -9377,6 +9397,7 @@ func (s Store) QueryCredentials(
 			return
 		}
 
+		aux = new(auxCredential)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for Credential: %w", err)
 			return
@@ -9785,7 +9806,7 @@ func (s Store) QueryFederationExposedModules(
 
 		set         = make([]*federationType.ExposedModule, 0, DefaultSliceCapacity)
 		res         *federationType.ExposedModule
-		aux         auxFederationExposedModule
+		aux         *auxFederationExposedModule
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -9858,6 +9879,7 @@ func (s Store) QueryFederationExposedModules(
 			return
 		}
 
+		aux = new(auxFederationExposedModule)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for FederationExposedModule: %w", err)
 			return
@@ -10270,7 +10292,7 @@ func (s Store) QueryFederationModuleMappings(
 
 		set         = make([]*federationType.ModuleMapping, 0, DefaultSliceCapacity)
 		res         *federationType.ModuleMapping
-		aux         auxFederationModuleMapping
+		aux         *auxFederationModuleMapping
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -10343,6 +10365,7 @@ func (s Store) QueryFederationModuleMappings(
 			return
 		}
 
+		aux = new(auxFederationModuleMapping)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for FederationModuleMapping: %w", err)
 			return
@@ -10598,7 +10621,7 @@ func (s Store) QueryFederationNodes(
 
 		set         = make([]*federationType.Node, 0, DefaultSliceCapacity)
 		res         *federationType.Node
-		aux         auxFederationNode
+		aux         *auxFederationNode
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -10650,6 +10673,7 @@ func (s Store) QueryFederationNodes(
 			return
 		}
 
+		aux = new(auxFederationNode)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for FederationNode: %w", err)
 			return
@@ -11141,7 +11165,7 @@ func (s Store) QueryFederationNodeSyncs(
 
 		set         = make([]*federationType.NodeSync, 0, DefaultSliceCapacity)
 		res         *federationType.NodeSync
-		aux         auxFederationNodeSync
+		aux         *auxFederationNodeSync
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -11214,6 +11238,7 @@ func (s Store) QueryFederationNodeSyncs(
 			return
 		}
 
+		aux = new(auxFederationNodeSync)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for FederationNodeSync: %w", err)
 			return
@@ -11662,7 +11687,7 @@ func (s Store) QueryFederationSharedModules(
 
 		set         = make([]*federationType.SharedModule, 0, DefaultSliceCapacity)
 		res         *federationType.SharedModule
-		aux         auxFederationSharedModule
+		aux         *auxFederationSharedModule
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -11735,6 +11760,7 @@ func (s Store) QueryFederationSharedModules(
 			return
 		}
 
+		aux = new(auxFederationSharedModule)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for FederationSharedModule: %w", err)
 			return
@@ -11989,7 +12015,7 @@ func (s Store) QueryFlags(
 	var (
 		set         = make([]*flagType.Flag, 0, DefaultSliceCapacity)
 		res         *flagType.Flag
-		aux         auxFlag
+		aux         *auxFlag
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -12041,6 +12067,7 @@ func (s Store) QueryFlags(
 			return
 		}
 
+		aux = new(auxFlag)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for Flag: %w", err)
 			return
@@ -12295,7 +12322,7 @@ func (s Store) QueryLabels(
 	var (
 		set         = make([]*labelsType.Label, 0, DefaultSliceCapacity)
 		res         *labelsType.Label
-		aux         auxLabel
+		aux         *auxLabel
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -12347,6 +12374,7 @@ func (s Store) QueryLabels(
 			return
 		}
 
+		aux = new(auxLabel)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for Label: %w", err)
 			return
@@ -12752,7 +12780,7 @@ func (s Store) QueryQueues(
 
 		set         = make([]*systemType.Queue, 0, DefaultSliceCapacity)
 		res         *systemType.Queue
-		aux         auxQueue
+		aux         *auxQueue
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -12825,6 +12853,7 @@ func (s Store) QueryQueues(
 			return
 		}
 
+		aux = new(auxQueue)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for Queue: %w", err)
 			return
@@ -13271,7 +13300,7 @@ func (s Store) QueryQueueMessages(
 	var (
 		set         = make([]*systemType.QueueMessage, 0, DefaultSliceCapacity)
 		res         *systemType.QueueMessage
-		aux         auxQueueMessage
+		aux         *auxQueueMessage
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -13344,6 +13373,7 @@ func (s Store) QueryQueueMessages(
 			return
 		}
 
+		aux = new(auxQueueMessage)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for QueueMessage: %w", err)
 			return
@@ -13535,7 +13565,7 @@ func (s Store) QueryRbacRules(
 	var (
 		set         = make([]*rbacType.Rule, 0, DefaultSliceCapacity)
 		res         *rbacType.Rule
-		aux         auxRbacRule
+		aux         *auxRbacRule
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -13587,6 +13617,7 @@ func (s Store) QueryRbacRules(
 			return
 		}
 
+		aux = new(auxRbacRule)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for RbacRule: %w", err)
 			return
@@ -13950,7 +13981,7 @@ func (s Store) QueryReminders(
 
 		set         = make([]*systemType.Reminder, 0, DefaultSliceCapacity)
 		res         *systemType.Reminder
-		aux         auxReminder
+		aux         *auxReminder
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -14023,6 +14054,7 @@ func (s Store) QueryReminders(
 			return
 		}
 
+		aux = new(auxReminder)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for Reminder: %w", err)
 			return
@@ -14443,7 +14475,7 @@ func (s Store) QueryReports(
 
 		set         = make([]*systemType.Report, 0, DefaultSliceCapacity)
 		res         *systemType.Report
-		aux         auxReport
+		aux         *auxReport
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -14516,6 +14548,7 @@ func (s Store) QueryReports(
 			return
 		}
 
+		aux = new(auxReport)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for Report: %w", err)
 			return
@@ -14837,7 +14870,7 @@ func (s Store) QueryResourceActivitys(
 	var (
 		set         = make([]*discoveryType.ResourceActivity, 0, DefaultSliceCapacity)
 		res         *discoveryType.ResourceActivity
-		aux         auxResourceActivity
+		aux         *auxResourceActivity
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -14889,6 +14922,7 @@ func (s Store) QueryResourceActivitys(
 			return
 		}
 
+		aux = new(auxResourceActivity)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for ResourceActivity: %w", err)
 			return
@@ -15236,7 +15270,7 @@ func (s Store) QueryResourceTranslations(
 	var (
 		set         = make([]*systemType.ResourceTranslation, 0, DefaultSliceCapacity)
 		res         *systemType.ResourceTranslation
-		aux         auxResourceTranslation
+		aux         *auxResourceTranslation
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -15309,6 +15343,7 @@ func (s Store) QueryResourceTranslations(
 			return
 		}
 
+		aux = new(auxResourceTranslation)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for ResourceTranslation: %w", err)
 			return
@@ -15708,7 +15743,7 @@ func (s Store) QueryRoles(
 
 		set         = make([]*systemType.Role, 0, DefaultSliceCapacity)
 		res         *systemType.Role
-		aux         auxRole
+		aux         *auxRole
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -15781,6 +15816,7 @@ func (s Store) QueryRoles(
 			return
 		}
 
+		aux = new(auxRole)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for Role: %w", err)
 			return
@@ -16177,7 +16213,7 @@ func (s Store) QueryRoleMembers(
 	var (
 		set         = make([]*systemType.RoleMember, 0, DefaultSliceCapacity)
 		res         *systemType.RoleMember
-		aux         auxRoleMember
+		aux         *auxRoleMember
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -16229,6 +16265,7 @@ func (s Store) QueryRoleMembers(
 			return
 		}
 
+		aux = new(auxRoleMember)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for RoleMember: %w", err)
 			return
@@ -16423,7 +16460,7 @@ func (s Store) QuerySettingValues(
 	var (
 		set         = make([]*systemType.SettingValue, 0, DefaultSliceCapacity)
 		res         *systemType.SettingValue
-		aux         auxSettingValue
+		aux         *auxSettingValue
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -16475,6 +16512,7 @@ func (s Store) QuerySettingValues(
 			return
 		}
 
+		aux = new(auxSettingValue)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for SettingValue: %w", err)
 			return
@@ -16875,7 +16913,7 @@ func (s Store) QueryTemplates(
 
 		set         = make([]*systemType.Template, 0, DefaultSliceCapacity)
 		res         *systemType.Template
-		aux         auxTemplate
+		aux         *auxTemplate
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -16948,6 +16986,7 @@ func (s Store) QueryTemplates(
 			return
 		}
 
+		aux = new(auxTemplate)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for Template: %w", err)
 			return
@@ -17436,7 +17475,7 @@ func (s Store) QueryUsers(
 
 		set         = make([]*systemType.User, 0, DefaultSliceCapacity)
 		res         *systemType.User
-		aux         auxUser
+		aux         *auxUser
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
@@ -17509,6 +17548,7 @@ func (s Store) QueryUsers(
 			return
 		}
 
+		aux = new(auxUser)
 		if err = aux.scan(rows); err != nil {
 			err = fmt.Errorf("could not scan rows for User: %w", err)
 			return

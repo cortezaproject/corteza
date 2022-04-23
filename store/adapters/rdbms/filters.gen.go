@@ -7,8 +7,6 @@ package rdbms
 //
 
 import (
-	"strings"
-
 	automationType "github.com/cortezaproject/corteza-server/automation/types"
 	composeType "github.com/cortezaproject/corteza-server/compose/types"
 	federationType "github.com/cortezaproject/corteza-server/federation/types"
@@ -19,6 +17,7 @@ import (
 	rbacType "github.com/cortezaproject/corteza-server/pkg/rbac"
 	systemType "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/doug-martin/goqu/v9"
+	"strings"
 )
 
 type (
@@ -825,7 +824,7 @@ func FederationSharedModuleFilter(f federationType.SharedModuleFilter) (ee []goq
 	}
 
 	if f.NodeID > 0 {
-		ee = append(ee, goqu.C("ref_node").Eq(f.NodeID))
+		ee = append(ee, goqu.C("rel_node").Eq(f.NodeID))
 	}
 
 	if val := strings.TrimSpace(f.Name); len(val) > 0 {

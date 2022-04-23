@@ -2392,7 +2392,7 @@ var (
 	// federationExposedModuleTable represents federationExposedModules store table
 	//
 	// This value is auto-generated
-	federationExposedModuleTable = goqu.T("federation_exposed_module")
+	federationExposedModuleTable = goqu.T("federation_module_exposed")
 
 	// federationExposedModuleSelectQuery assembles select query for fetching federationExposedModules
 	//
@@ -2402,9 +2402,9 @@ var (
 			"id",
 			"handle",
 			"name",
-			"node_id",
-			"compose_module_id",
-			"compose_namespace_id",
+			"rel_node",
+			"rel_compose_module",
+			"rel_compose_namespace",
 			"fields",
 			"created_at",
 			"updated_at",
@@ -2421,19 +2421,19 @@ var (
 	federationExposedModuleInsertQuery = func(d goqu.DialectWrapper, res *federationType.ExposedModule) *goqu.InsertDataset {
 		return d.Insert(federationExposedModuleTable).
 			Rows(goqu.Record{
-				"id":                   res.ID,
-				"handle":               res.Handle,
-				"name":                 res.Name,
-				"node_id":              res.NodeID,
-				"compose_module_id":    res.ComposeModuleID,
-				"compose_namespace_id": res.ComposeNamespaceID,
-				"fields":               res.Fields,
-				"created_at":           res.CreatedAt,
-				"updated_at":           res.UpdatedAt,
-				"deleted_at":           res.DeletedAt,
-				"created_by":           res.CreatedBy,
-				"updated_by":           res.UpdatedBy,
-				"deleted_by":           res.DeletedBy,
+				"id":                    res.ID,
+				"handle":                res.Handle,
+				"name":                  res.Name,
+				"rel_node":              res.NodeID,
+				"rel_compose_module":    res.ComposeModuleID,
+				"rel_compose_namespace": res.ComposeNamespaceID,
+				"fields":                res.Fields,
+				"created_at":            res.CreatedAt,
+				"updated_at":            res.UpdatedAt,
+				"deleted_at":            res.DeletedAt,
+				"created_by":            res.CreatedBy,
+				"updated_by":            res.UpdatedBy,
+				"deleted_by":            res.DeletedBy,
 			})
 	}
 
@@ -2447,18 +2447,18 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
-						"handle":               res.Handle,
-						"name":                 res.Name,
-						"node_id":              res.NodeID,
-						"compose_module_id":    res.ComposeModuleID,
-						"compose_namespace_id": res.ComposeNamespaceID,
-						"fields":               res.Fields,
-						"created_at":           res.CreatedAt,
-						"updated_at":           res.UpdatedAt,
-						"deleted_at":           res.DeletedAt,
-						"created_by":           res.CreatedBy,
-						"updated_by":           res.UpdatedBy,
-						"deleted_by":           res.DeletedBy,
+						"handle":                res.Handle,
+						"name":                  res.Name,
+						"rel_node":              res.NodeID,
+						"rel_compose_module":    res.ComposeModuleID,
+						"rel_compose_namespace": res.ComposeNamespaceID,
+						"fields":                res.Fields,
+						"created_at":            res.CreatedAt,
+						"updated_at":            res.UpdatedAt,
+						"deleted_at":            res.DeletedAt,
+						"created_by":            res.CreatedBy,
+						"updated_by":            res.UpdatedBy,
+						"deleted_by":            res.DeletedBy,
 					},
 				),
 			)
@@ -2470,18 +2470,18 @@ var (
 	federationExposedModuleUpdateQuery = func(d goqu.DialectWrapper, res *federationType.ExposedModule) *goqu.UpdateDataset {
 		return d.Update(federationExposedModuleTable).
 			Set(goqu.Record{
-				"handle":               res.Handle,
-				"name":                 res.Name,
-				"node_id":              res.NodeID,
-				"compose_module_id":    res.ComposeModuleID,
-				"compose_namespace_id": res.ComposeNamespaceID,
-				"fields":               res.Fields,
-				"created_at":           res.CreatedAt,
-				"updated_at":           res.UpdatedAt,
-				"deleted_at":           res.DeletedAt,
-				"created_by":           res.CreatedBy,
-				"updated_by":           res.UpdatedBy,
-				"deleted_by":           res.DeletedBy,
+				"handle":                res.Handle,
+				"name":                  res.Name,
+				"rel_node":              res.NodeID,
+				"rel_compose_module":    res.ComposeModuleID,
+				"rel_compose_namespace": res.ComposeNamespaceID,
+				"fields":                res.Fields,
+				"created_at":            res.CreatedAt,
+				"updated_at":            res.UpdatedAt,
+				"deleted_at":            res.DeletedAt,
+				"created_by":            res.CreatedBy,
+				"updated_by":            res.UpdatedBy,
+				"deleted_by":            res.DeletedBy,
 			}).
 			Where(federationExposedModulePrimaryKeys(res))
 	}
@@ -2812,7 +2812,7 @@ var (
 	// federationSharedModuleTable represents federationSharedModules store table
 	//
 	// This value is auto-generated
-	federationSharedModuleTable = goqu.T("federation_shared_module")
+	federationSharedModuleTable = goqu.T("federation_module_shared")
 
 	// federationSharedModuleSelectQuery assembles select query for fetching federationSharedModules
 	//
@@ -2821,9 +2821,9 @@ var (
 		return d.Select(
 			"id",
 			"handle",
-			"node_id",
+			"rel_node",
 			"name",
-			"external_federation_module_id",
+			"xref_module",
 			"fields",
 			"created_at",
 			"updated_at",
@@ -2840,18 +2840,18 @@ var (
 	federationSharedModuleInsertQuery = func(d goqu.DialectWrapper, res *federationType.SharedModule) *goqu.InsertDataset {
 		return d.Insert(federationSharedModuleTable).
 			Rows(goqu.Record{
-				"id":                            res.ID,
-				"handle":                        res.Handle,
-				"node_id":                       res.NodeID,
-				"name":                          res.Name,
-				"external_federation_module_id": res.ExternalFederationModuleID,
-				"fields":                        res.Fields,
-				"created_at":                    res.CreatedAt,
-				"updated_at":                    res.UpdatedAt,
-				"deleted_at":                    res.DeletedAt,
-				"created_by":                    res.CreatedBy,
-				"updated_by":                    res.UpdatedBy,
-				"deleted_by":                    res.DeletedBy,
+				"id":          res.ID,
+				"handle":      res.Handle,
+				"rel_node":    res.NodeID,
+				"name":        res.Name,
+				"xref_module": res.ExternalFederationModuleID,
+				"fields":      res.Fields,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
+				"created_by":  res.CreatedBy,
+				"updated_by":  res.UpdatedBy,
+				"deleted_by":  res.DeletedBy,
 			})
 	}
 
@@ -2865,17 +2865,17 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
-						"handle":                        res.Handle,
-						"node_id":                       res.NodeID,
-						"name":                          res.Name,
-						"external_federation_module_id": res.ExternalFederationModuleID,
-						"fields":                        res.Fields,
-						"created_at":                    res.CreatedAt,
-						"updated_at":                    res.UpdatedAt,
-						"deleted_at":                    res.DeletedAt,
-						"created_by":                    res.CreatedBy,
-						"updated_by":                    res.UpdatedBy,
-						"deleted_by":                    res.DeletedBy,
+						"handle":      res.Handle,
+						"rel_node":    res.NodeID,
+						"name":        res.Name,
+						"xref_module": res.ExternalFederationModuleID,
+						"fields":      res.Fields,
+						"created_at":  res.CreatedAt,
+						"updated_at":  res.UpdatedAt,
+						"deleted_at":  res.DeletedAt,
+						"created_by":  res.CreatedBy,
+						"updated_by":  res.UpdatedBy,
+						"deleted_by":  res.DeletedBy,
 					},
 				),
 			)
@@ -2887,17 +2887,17 @@ var (
 	federationSharedModuleUpdateQuery = func(d goqu.DialectWrapper, res *federationType.SharedModule) *goqu.UpdateDataset {
 		return d.Update(federationSharedModuleTable).
 			Set(goqu.Record{
-				"handle":                        res.Handle,
-				"node_id":                       res.NodeID,
-				"name":                          res.Name,
-				"external_federation_module_id": res.ExternalFederationModuleID,
-				"fields":                        res.Fields,
-				"created_at":                    res.CreatedAt,
-				"updated_at":                    res.UpdatedAt,
-				"deleted_at":                    res.DeletedAt,
-				"created_by":                    res.CreatedBy,
-				"updated_by":                    res.UpdatedBy,
-				"deleted_by":                    res.DeletedBy,
+				"handle":      res.Handle,
+				"rel_node":    res.NodeID,
+				"name":        res.Name,
+				"xref_module": res.ExternalFederationModuleID,
+				"fields":      res.Fields,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
+				"created_by":  res.CreatedBy,
+				"updated_by":  res.UpdatedBy,
+				"deleted_by":  res.DeletedBy,
 			}).
 			Where(federationSharedModulePrimaryKeys(res))
 	}

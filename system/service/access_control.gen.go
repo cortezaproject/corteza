@@ -55,33 +55,33 @@ func (svc accessControl) Effective(ctx context.Context, rr ...rbac.Resource) (ee
 func (svc accessControl) List() (out []map[string]string) {
 	def := []map[string]string{
 		{
-			"type": types.ApigwRouteResourceType,
-			"any":  types.ApigwRouteRbacResource(0),
+			"type": types.ApplicationResourceType,
+			"any":  types.ApplicationRbacResource(0),
 			"op":   "read",
 		},
 		{
-			"type": types.ApigwRouteResourceType,
-			"any":  types.ApigwRouteRbacResource(0),
+			"type": types.ApplicationResourceType,
+			"any":  types.ApplicationRbacResource(0),
 			"op":   "update",
 		},
 		{
-			"type": types.ApigwRouteResourceType,
-			"any":  types.ApigwRouteRbacResource(0),
+			"type": types.ApplicationResourceType,
+			"any":  types.ApplicationRbacResource(0),
 			"op":   "delete",
 		},
 		{
-			"type": types.ApplicationResourceType,
-			"any":  types.ApplicationRbacResource(0),
+			"type": types.ApigwRouteResourceType,
+			"any":  types.ApigwRouteRbacResource(0),
 			"op":   "read",
 		},
 		{
-			"type": types.ApplicationResourceType,
-			"any":  types.ApplicationRbacResource(0),
+			"type": types.ApigwRouteResourceType,
+			"any":  types.ApigwRouteRbacResource(0),
 			"op":   "update",
 		},
 		{
-			"type": types.ApplicationResourceType,
-			"any":  types.ApplicationRbacResource(0),
+			"type": types.ApigwRouteResourceType,
+			"any":  types.ApigwRouteRbacResource(0),
 			"op":   "delete",
 		},
 		{
@@ -127,6 +127,31 @@ func (svc accessControl) List() (out []map[string]string) {
 		{
 			"type": types.QueueResourceType,
 			"any":  types.QueueRbacResource(0),
+			"op":   "queue.write",
+		},
+		{
+			"type": types.QueueMessageResourceType,
+			"any":  types.QueueMessageRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.QueueMessageResourceType,
+			"any":  types.QueueMessageRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.QueueMessageResourceType,
+			"any":  types.QueueMessageRbacResource(0),
+			"op":   "delete",
+		},
+		{
+			"type": types.QueueMessageResourceType,
+			"any":  types.QueueMessageRbacResource(0),
+			"op":   "queue.read",
+		},
+		{
+			"type": types.QueueMessageResourceType,
+			"any":  types.QueueMessageRbacResource(0),
 			"op":   "queue.write",
 		},
 		{
@@ -422,27 +447,6 @@ func (svc accessControl) CloneRulesByRoleID(ctx context.Context, fromRoleID uint
 	return svc.rbac.CloneRulesByRoleID(ctx, fromRoleID, toRoleID...)
 }
 
-// CanReadApigwRoute checks if current user can read api gateway route
-//
-// This function is auto-generated
-func (svc accessControl) CanReadApigwRoute(ctx context.Context, r *types.ApigwRoute) bool {
-	return svc.can(ctx, "read", r)
-}
-
-// CanUpdateApigwRoute checks if current user can update api gateway route
-//
-// This function is auto-generated
-func (svc accessControl) CanUpdateApigwRoute(ctx context.Context, r *types.ApigwRoute) bool {
-	return svc.can(ctx, "update", r)
-}
-
-// CanDeleteApigwRoute checks if current user can delete api gateway route
-//
-// This function is auto-generated
-func (svc accessControl) CanDeleteApigwRoute(ctx context.Context, r *types.ApigwRoute) bool {
-	return svc.can(ctx, "delete", r)
-}
-
 // CanReadApplication checks if current user can read application
 //
 // This function is auto-generated
@@ -461,6 +465,27 @@ func (svc accessControl) CanUpdateApplication(ctx context.Context, r *types.Appl
 //
 // This function is auto-generated
 func (svc accessControl) CanDeleteApplication(ctx context.Context, r *types.Application) bool {
+	return svc.can(ctx, "delete", r)
+}
+
+// CanReadApigwRoute checks if current user can read api gateway route
+//
+// This function is auto-generated
+func (svc accessControl) CanReadApigwRoute(ctx context.Context, r *types.ApigwRoute) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateApigwRoute checks if current user can update api gateway route
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateApigwRoute(ctx context.Context, r *types.ApigwRoute) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteApigwRoute checks if current user can delete api gateway route
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteApigwRoute(ctx context.Context, r *types.ApigwRoute) bool {
 	return svc.can(ctx, "delete", r)
 }
 
@@ -524,6 +549,41 @@ func (svc accessControl) CanReadQueueOnQueue(ctx context.Context, r *types.Queue
 //
 // This function is auto-generated
 func (svc accessControl) CanWriteQueueOnQueue(ctx context.Context, r *types.Queue) bool {
+	return svc.can(ctx, "queue.write", r)
+}
+
+// CanReadQueueMessage checks if current user can read queue
+//
+// This function is auto-generated
+func (svc accessControl) CanReadQueueMessage(ctx context.Context, r *types.QueueMessage) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateQueueMessage checks if current user can update queue
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateQueueMessage(ctx context.Context, r *types.QueueMessage) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteQueueMessage checks if current user can delete queue
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteQueueMessage(ctx context.Context, r *types.QueueMessage) bool {
+	return svc.can(ctx, "delete", r)
+}
+
+// CanReadQueueOnQueueMessage checks if current user can read from queue
+//
+// This function is auto-generated
+func (svc accessControl) CanReadQueueOnQueueMessage(ctx context.Context, r *types.QueueMessage) bool {
+	return svc.can(ctx, "queue.read", r)
+}
+
+// CanWriteQueueOnQueueMessage checks if current user can write to queue
+//
+// This function is auto-generated
+func (svc accessControl) CanWriteQueueOnQueueMessage(ctx context.Context, r *types.QueueMessage) bool {
 	return svc.can(ctx, "queue.write", r)
 }
 
@@ -864,14 +924,16 @@ func (svc accessControl) CanManageResourceTranslations(ctx context.Context) bool
 // This function is auto-generated
 func rbacResourceValidator(r string, oo ...string) error {
 	switch rbac.ResourceType(r) {
-	case types.ApigwRouteResourceType:
-		return rbacApigwRouteResourceValidator(r, oo...)
 	case types.ApplicationResourceType:
 		return rbacApplicationResourceValidator(r, oo...)
+	case types.ApigwRouteResourceType:
+		return rbacApigwRouteResourceValidator(r, oo...)
 	case types.AuthClientResourceType:
 		return rbacAuthClientResourceValidator(r, oo...)
 	case types.QueueResourceType:
 		return rbacQueueResourceValidator(r, oo...)
+	case types.QueueMessageResourceType:
+		return rbacQueueMessageResourceValidator(r, oo...)
 	case types.ReportResourceType:
 		return rbacReportResourceValidator(r, oo...)
 	case types.RoleResourceType:
@@ -892,13 +954,13 @@ func rbacResourceValidator(r string, oo ...string) error {
 // This function is auto-generated
 func rbacResourceOperations(r string) map[string]bool {
 	switch rbac.ResourceType(r) {
-	case types.ApigwRouteResourceType:
+	case types.ApplicationResourceType:
 		return map[string]bool{
 			"read":   true,
 			"update": true,
 			"delete": true,
 		}
-	case types.ApplicationResourceType:
+	case types.ApigwRouteResourceType:
 		return map[string]bool{
 			"read":   true,
 			"update": true,
@@ -912,6 +974,14 @@ func rbacResourceOperations(r string) map[string]bool {
 			"authorize": true,
 		}
 	case types.QueueResourceType:
+		return map[string]bool{
+			"read":        true,
+			"update":      true,
+			"delete":      true,
+			"queue.read":  true,
+			"queue.write": true,
+		}
+	case types.QueueMessageResourceType:
 		return map[string]bool{
 			"read":        true,
 			"update":      true,
@@ -983,50 +1053,6 @@ func rbacResourceOperations(r string) map[string]bool {
 	return nil
 }
 
-// rbacApigwRouteResourceValidator checks validity of RBAC resource and operations
-//
-// Can be called without operations to check for validity of resource string only
-//
-// This function is auto-generated
-func rbacApigwRouteResourceValidator(r string, oo ...string) error {
-	if !strings.HasPrefix(r, types.ApigwRouteResourceType) {
-		// expecting resource to always include path
-		return fmt.Errorf("invalid resource type")
-	}
-
-	defOps := rbacResourceOperations(r)
-	for _, o := range oo {
-		if !defOps[o] {
-			return fmt.Errorf("invalid operation '%s' for apigwRoute resource", o)
-		}
-	}
-
-	const sep = "/"
-	var (
-		pp  = strings.Split(strings.Trim(r[len(types.ApigwRouteResourceType):], sep), sep)
-		prc = []string{
-			"ID",
-		}
-	)
-
-	if len(pp) != len(prc) {
-		return fmt.Errorf("invalid resource path structure")
-	}
-
-	for i := 0; i < len(pp); i++ {
-		if pp[i] != "*" {
-			if i > 0 && pp[i-1] == "*" {
-				return fmt.Errorf("invalid path wildcard level (%d) for apigwRoute resource", i)
-			}
-
-			if _, err := cast.ToUint64E(pp[i]); err != nil {
-				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
-			}
-		}
-	}
-	return nil
-}
-
 // rbacApplicationResourceValidator checks validity of RBAC resource and operations
 //
 // Can be called without operations to check for validity of resource string only
@@ -1061,6 +1087,50 @@ func rbacApplicationResourceValidator(r string, oo ...string) error {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid path wildcard level (%d) for application resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacApigwRouteResourceValidator checks validity of RBAC resource and operations
+//
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacApigwRouteResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.ApigwRouteResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for apigwRoute resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.ApigwRouteResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for apigwRoute resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {
@@ -1149,6 +1219,50 @@ func rbacQueueResourceValidator(r string, oo ...string) error {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid path wildcard level (%d) for queue resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacQueueMessageResourceValidator checks validity of RBAC resource and operations
+//
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacQueueMessageResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.QueueMessageResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for queueMessage resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.QueueMessageResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for queueMessage resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {

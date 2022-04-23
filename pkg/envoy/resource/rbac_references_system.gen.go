@@ -10,19 +10,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
-// SystemApigwRouteRbacReferences generates RBAC references
-//
-// Resources with "envoy: false" are skipped
-//
-// This function is auto-generated
-func SystemApigwRouteRbacReferences(apigwRoute string) (res *Ref, pp []*Ref, err error) {
-	if apigwRoute != "*" {
-		res = &Ref{ResourceType: types.ApigwRouteResourceType, Identifiers: MakeIdentifiers(apigwRoute)}
-	}
-
-	return
-}
-
 // SystemApplicationRbacReferences generates RBAC references
 //
 // Resources with "envoy: false" are skipped
@@ -31,6 +18,19 @@ func SystemApigwRouteRbacReferences(apigwRoute string) (res *Ref, pp []*Ref, err
 func SystemApplicationRbacReferences(application string) (res *Ref, pp []*Ref, err error) {
 	if application != "*" {
 		res = &Ref{ResourceType: types.ApplicationResourceType, Identifiers: MakeIdentifiers(application)}
+	}
+
+	return
+}
+
+// SystemApigwRouteRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemApigwRouteRbacReferences(apigwRoute string) (res *Ref, pp []*Ref, err error) {
+	if apigwRoute != "*" {
+		res = &Ref{ResourceType: types.ApigwRouteResourceType, Identifiers: MakeIdentifiers(apigwRoute)}
 	}
 
 	return
@@ -57,6 +57,19 @@ func SystemAuthClientRbacReferences(authClient string) (res *Ref, pp []*Ref, err
 func SystemQueueRbacReferences(queue string) (res *Ref, pp []*Ref, err error) {
 	if queue != "*" {
 		res = &Ref{ResourceType: types.QueueResourceType, Identifiers: MakeIdentifiers(queue)}
+	}
+
+	return
+}
+
+// SystemQueueMessageRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemQueueMessageRbacReferences(queueMessage string) (res *Ref, pp []*Ref, err error) {
+	if queueMessage != "*" {
+		res = &Ref{ResourceType: types.QueueMessageResourceType, Identifiers: MakeIdentifiers(queueMessage)}
 	}
 
 	return
