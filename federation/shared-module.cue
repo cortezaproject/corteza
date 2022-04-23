@@ -16,9 +16,9 @@ sharedModule: schema.#Resource & {
 	struct: {
 		id:          schema.IdField
 		handle:      schema.HandleField
-		node_id: { ident: "nodeID", goType: "uint64" }
+		node_id: { ident: "nodeID", goType: "uint64", storeIdent: "rel_node" }
 		name: {}
-		external_federation_module_id: { ident: "externalFederationModuleID", goType: "uint64" }
+		external_federation_module_id: { ident: "externalFederationModuleID", goType: "uint64", storeIdent: "xref_module",  }
 		fields: { goType: "types.ModuleFieldSet" }
 
 		created_at: schema.SortableTimestampField
@@ -31,7 +31,7 @@ sharedModule: schema.#Resource & {
 
 	filter: {
 		struct: {
-			node_id:  { goType: "uint64", ident: "nodeID", storeIdent: "ref_node" }
+			node_id:  { goType: "uint64", ident: "nodeID", storeIdent: "rel_node" }
 			handle:   { goType: "string" }
 			name:     { goType: "string" }
 			external_federation_module_id: { goType: "uint64", storeIdent: "xref_module", ident: "externalFederationModuleID" }
@@ -52,7 +52,7 @@ sharedModule: schema.#Resource & {
 
 		settings: {
 			rdbms: {
-				table: "federation_shared_module"
+				table: "federation_module_shared"
 			}
 		}
 

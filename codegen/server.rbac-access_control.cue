@@ -19,7 +19,7 @@ import (
 			// All possible RBAC operations on component and resources
 			// flattened
 			operations: [
-				for res in cmp.resources for op in res.rbac.operations {
+				for res in cmp.resources if res.rbac != _|_ for op in res.rbac.operations {
 					"op":          op.handle
 					const:         "types.\(res.expIdent)ResourceType"
 					resFunc:       "types.\(res.expIdent)RbacResource"
@@ -42,7 +42,7 @@ import (
 
 			// Operation/resource validators, grouped by resource
 			validation: [
-				for res in cmp.resources {
+				for res in cmp.resources if res.rbac != _|_ {
 					label:    res.ident
 					const:    "types.\(res.expIdent)ResourceType"
 					funcName: "rbac\(res.expIdent)ResourceValidator"

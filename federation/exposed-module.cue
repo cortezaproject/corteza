@@ -17,9 +17,9 @@ exposedModule: schema.#Resource & {
 		id:          schema.IdField
 		handle:      schema.HandleField
 		name: {}
-		node_id: { ident: "nodeID", goType: "uint64" }
-		compose_module_id: { ident: "composeModuleID", goType: "uint64" }
-		compose_namespace_id: { ident: "composeNamespaceID", goType: "uint64" }
+		node_id: { ident: "nodeID", goType: "uint64", storeIdent: "rel_node" }
+		compose_module_id: { ident: "composeModuleID", goType: "uint64", storeIdent: "rel_compose_module" }
+		compose_namespace_id: { ident: "composeNamespaceID", goType: "uint64", storeIdent: "rel_compose_namespace" }
 		fields: { goType: "types.ModuleFieldSet" }
 
 		created_at: schema.SortableTimestampField
@@ -52,7 +52,7 @@ exposedModule: schema.#Resource & {
 
 		settings: {
 			rdbms: {
-				table: "federation_exposed_module"
+				table: "federation_module_exposed"
 			}
 		}
 

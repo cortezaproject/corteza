@@ -31,12 +31,6 @@ moduleMapping: schema.#Resource & {
 		byValue: ["compose_module_id", "compose_namespace_id", "federation_module_id"]
 	}
 
-	rbac: {
-		operations: {
-			"manage": description: "Manage exposed module module"
-		}
-	}
-
 	store: {
 		ident: "federationModuleMapping"
 
