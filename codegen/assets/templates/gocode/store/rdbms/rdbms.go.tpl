@@ -38,7 +38,7 @@ var (
 // Create{{ .expIdent }} creates one or more rows in {{ .ident }} collection
 //
 // This function is auto-generated
-func (s Store) Create{{ .expIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} rr ...*{{ .goType }}) (err error) {
+func (s *Store) Create{{ .expIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} rr ...*{{ .goType }}) (err error) {
 	for i := range rr {
 		if err = s.check{{ .expIdent }}Constraints(ctx, rr[i]); err != nil {
 			return
@@ -56,7 +56,7 @@ func (s Store) Create{{ .expIdent }}(ctx context.Context, {{ template "extraArgs
 // Update{{ .expIdent }} updates one or more existing entries in {{ .ident }} collection
 //
 // This function is auto-generated
-func (s Store) Update{{ .expIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} rr ...*{{ .goType }}) (err error) {
+func (s *Store) Update{{ .expIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} rr ...*{{ .goType }}) (err error) {
 	for i := range rr {
 		if err = s.check{{ .expIdent }}Constraints(ctx, rr[i]); err != nil {
 			return
@@ -73,7 +73,7 @@ func (s Store) Update{{ .expIdent }}(ctx context.Context, {{ template "extraArgs
 // Upsert{{ .expIdent }} updates one or more existing entries in {{ .ident }} collection
 //
 // This function is auto-generated
-func (s Store) Upsert{{ .expIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} rr ...*{{ .goType }}) (err error) {
+func (s *Store) Upsert{{ .expIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} rr ...*{{ .goType }}) (err error) {
 	for i := range rr {
 		if err = s.check{{ .expIdent }}Constraints(ctx, rr[i]); err != nil {
 			return
@@ -90,7 +90,7 @@ func (s Store) Upsert{{ .expIdent }}(ctx context.Context, {{ template "extraArgs
 // Delete{{ .expIdent }} Deletes one or more entries from {{ .ident }} collection
 //
 // This function is auto-generated
-func (s Store) Delete{{ .expIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} rr ...*{{ .goType }}) (err error) {
+func (s *Store) Delete{{ .expIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} rr ...*{{ .goType }}) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, {{ .ident }}DeleteQuery(s.config.Dialect, {{ .ident }}PrimaryKeys(rr[i]))); err != nil {
 			return
@@ -103,7 +103,7 @@ func (s Store) Delete{{ .expIdent }}(ctx context.Context, {{ template "extraArgs
 // Delete{{ .expIdent }}ByID deletes single entry from {{ .ident }} collection
 //
 // This function is auto-generated
-func (s Store) {{ .api.deleteByPK.expFnIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} {{ range .api.deleteByPK.primaryKeys }}{{ .ident }} {{ .goType }},{{ end }}) error {
+func (s *Store) {{ .api.deleteByPK.expFnIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} {{ range .api.deleteByPK.primaryKeys }}{{ .ident }} {{ .goType }},{{ end }}) error {
 	return s.Exec(ctx, {{ .ident }}DeleteQuery(s.config.Dialect, goqu.Ex{
 	{{- range .api.deleteByPK.primaryKeys }}
 		{{ printf "%q" .storeIdent }}: {{ .ident }},
@@ -112,14 +112,14 @@ func (s Store) {{ .api.deleteByPK.expFnIdent }}(ctx context.Context, {{ template
 }
 
 // Truncate{{ .expIdentPlural }} Deletes all rows from the {{ .ident }} collection
-func (s Store) Truncate{{ .expIdentPlural }}(ctx context.Context, {{ template "extraArgs" .ident }}) error {
+func (s *Store) Truncate{{ .expIdentPlural }}(ctx context.Context, {{ template "extraArgs" .ident }}) error {
 	return s.Exec(ctx, {{ .ident }}TruncateQuery(s.config.Dialect))
 }
 
 // Search{{ .expIdentPlural }} returns (filtered) set of {{ .expIdentPlural }}
 //
 // This function is auto-generated
-func (s Store) Search{{ .expIdentPlural }}(ctx context.Context, {{ template "extraArgs" .ident }} f {{ .goFilterType }}) (set {{ .goSetType }}, _ {{ .goFilterType }}, err error) {
+func (s *Store) Search{{ .expIdentPlural }}(ctx context.Context, {{ template "extraArgs" .ident }} f {{ .goFilterType }}) (set {{ .goSetType }}, _ {{ .goFilterType }}, err error) {
 	{{ if .features.paging }}
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -183,7 +183,7 @@ func (s Store) Search{{ .expIdentPlural }}(ctx context.Context, {{ template "ext
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOf{{ .expIdentPlural }}(
+func (s *Store) fetchFullPageOf{{ .expIdentPlural }}(
 	ctx context.Context,
 	filter {{ .goFilterType }},
 	sort filter.SortExprSet,
@@ -305,7 +305,7 @@ func (s Store) fetchFullPageOf{{ .expIdentPlural }}(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) Query{{ .expIdentPlural }}(
+func (s *Store) Query{{ .expIdentPlural }}(
 	ctx context.Context,
 	f {{ .goFilterType }},
 ) (_ []*{{ .goType }}, more bool, err error) {
@@ -326,7 +326,7 @@ func (s Store) Query{{ .expIdentPlural }}(
 
 	if s.config.Filters.{{ .expIdent }} != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.{{ .expIdent }}(f)
+		tExpr, f, err = s.config.Filters.{{ .expIdent }}(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = {{ .expIdent }}Filter(f)
@@ -433,7 +433,7 @@ func (s Store) Query{{ .expIdentPlural }}(
 	{{ if .description	}}{{ .description }}{{ end }}
 	//
 	// This function is auto-generated
-	func (s Store) {{ .expFnIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} {{ range .args }}{{ .ident }} {{ .goType }}, {{ end }}) (_ *{{ .returnType }}, err error) {
+	func (s *Store) {{ .expFnIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} {{ range .args }}{{ .ident }} {{ .goType }}, {{ end }}) (_ *{{ .returnType }}, err error) {
 		var (
 			rows *sql.Rows
 			aux = new({{ .auxIdent }})
@@ -507,7 +507,7 @@ func (Store) {{ .fnIdent }}() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) {{ .fnIdent }}(res *{{ .goType }}, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) {{ .fnIdent }}(res *{{ .goType }}, cc ...*filter.SortExpr) *filter.PagingCursor {
 	{{- if .fields }}
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}

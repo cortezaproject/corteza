@@ -21,7 +21,7 @@ type (
 	{{ range .types }}
 
 		// optional {{ .ident }} filter function called after the generated function
-		{{ .expIdent }} func({{ .goFilterType }}) ([]goqu.Expression, {{ .goFilterType }}, error)
+		{{ .expIdent }} func(*Store, {{ .goFilterType }}) ([]goqu.Expression, {{ .goFilterType }}, error)
 	{{ end }}
 	}
 )

@@ -30,124 +30,124 @@ type (
 		// Filter extensions for search/query functions
 
 		// optional actionlog filter function called after the generated function
-		Actionlog func(actionlogType.Filter) ([]goqu.Expression, actionlogType.Filter, error)
+		Actionlog func(*Store, actionlogType.Filter) ([]goqu.Expression, actionlogType.Filter, error)
 
 		// optional apigwFilter filter function called after the generated function
-		ApigwFilter func(systemType.ApigwFilterFilter) ([]goqu.Expression, systemType.ApigwFilterFilter, error)
+		ApigwFilter func(*Store, systemType.ApigwFilterFilter) ([]goqu.Expression, systemType.ApigwFilterFilter, error)
 
 		// optional apigwRoute filter function called after the generated function
-		ApigwRoute func(systemType.ApigwRouteFilter) ([]goqu.Expression, systemType.ApigwRouteFilter, error)
+		ApigwRoute func(*Store, systemType.ApigwRouteFilter) ([]goqu.Expression, systemType.ApigwRouteFilter, error)
 
 		// optional application filter function called after the generated function
-		Application func(systemType.ApplicationFilter) ([]goqu.Expression, systemType.ApplicationFilter, error)
+		Application func(*Store, systemType.ApplicationFilter) ([]goqu.Expression, systemType.ApplicationFilter, error)
 
 		// optional attachment filter function called after the generated function
-		Attachment func(systemType.AttachmentFilter) ([]goqu.Expression, systemType.AttachmentFilter, error)
+		Attachment func(*Store, systemType.AttachmentFilter) ([]goqu.Expression, systemType.AttachmentFilter, error)
 
 		// optional authClient filter function called after the generated function
-		AuthClient func(systemType.AuthClientFilter) ([]goqu.Expression, systemType.AuthClientFilter, error)
+		AuthClient func(*Store, systemType.AuthClientFilter) ([]goqu.Expression, systemType.AuthClientFilter, error)
 
 		// optional authConfirmedClient filter function called after the generated function
-		AuthConfirmedClient func(systemType.AuthConfirmedClientFilter) ([]goqu.Expression, systemType.AuthConfirmedClientFilter, error)
+		AuthConfirmedClient func(*Store, systemType.AuthConfirmedClientFilter) ([]goqu.Expression, systemType.AuthConfirmedClientFilter, error)
 
 		// optional authOa2token filter function called after the generated function
-		AuthOa2token func(systemType.AuthOa2tokenFilter) ([]goqu.Expression, systemType.AuthOa2tokenFilter, error)
+		AuthOa2token func(*Store, systemType.AuthOa2tokenFilter) ([]goqu.Expression, systemType.AuthOa2tokenFilter, error)
 
 		// optional authSession filter function called after the generated function
-		AuthSession func(systemType.AuthSessionFilter) ([]goqu.Expression, systemType.AuthSessionFilter, error)
+		AuthSession func(*Store, systemType.AuthSessionFilter) ([]goqu.Expression, systemType.AuthSessionFilter, error)
 
 		// optional automationSession filter function called after the generated function
-		AutomationSession func(automationType.SessionFilter) ([]goqu.Expression, automationType.SessionFilter, error)
+		AutomationSession func(*Store, automationType.SessionFilter) ([]goqu.Expression, automationType.SessionFilter, error)
 
 		// optional automationTrigger filter function called after the generated function
-		AutomationTrigger func(automationType.TriggerFilter) ([]goqu.Expression, automationType.TriggerFilter, error)
+		AutomationTrigger func(*Store, automationType.TriggerFilter) ([]goqu.Expression, automationType.TriggerFilter, error)
 
 		// optional automationWorkflow filter function called after the generated function
-		AutomationWorkflow func(automationType.WorkflowFilter) ([]goqu.Expression, automationType.WorkflowFilter, error)
+		AutomationWorkflow func(*Store, automationType.WorkflowFilter) ([]goqu.Expression, automationType.WorkflowFilter, error)
 
 		// optional composeAttachment filter function called after the generated function
-		ComposeAttachment func(composeType.AttachmentFilter) ([]goqu.Expression, composeType.AttachmentFilter, error)
+		ComposeAttachment func(*Store, composeType.AttachmentFilter) ([]goqu.Expression, composeType.AttachmentFilter, error)
 
 		// optional composeChart filter function called after the generated function
-		ComposeChart func(composeType.ChartFilter) ([]goqu.Expression, composeType.ChartFilter, error)
+		ComposeChart func(*Store, composeType.ChartFilter) ([]goqu.Expression, composeType.ChartFilter, error)
 
 		// optional composeModule filter function called after the generated function
-		ComposeModule func(composeType.ModuleFilter) ([]goqu.Expression, composeType.ModuleFilter, error)
+		ComposeModule func(*Store, composeType.ModuleFilter) ([]goqu.Expression, composeType.ModuleFilter, error)
 
 		// optional composeModuleField filter function called after the generated function
-		ComposeModuleField func(composeType.ModuleFieldFilter) ([]goqu.Expression, composeType.ModuleFieldFilter, error)
+		ComposeModuleField func(*Store, composeType.ModuleFieldFilter) ([]goqu.Expression, composeType.ModuleFieldFilter, error)
 
 		// optional composeNamespace filter function called after the generated function
-		ComposeNamespace func(composeType.NamespaceFilter) ([]goqu.Expression, composeType.NamespaceFilter, error)
+		ComposeNamespace func(*Store, composeType.NamespaceFilter) ([]goqu.Expression, composeType.NamespaceFilter, error)
 
 		// optional composePage filter function called after the generated function
-		ComposePage func(composeType.PageFilter) ([]goqu.Expression, composeType.PageFilter, error)
+		ComposePage func(*Store, composeType.PageFilter) ([]goqu.Expression, composeType.PageFilter, error)
 
 		// optional composeRecord filter function called after the generated function
-		ComposeRecord func(composeType.RecordFilter) ([]goqu.Expression, composeType.RecordFilter, error)
+		ComposeRecord func(*Store, composeType.RecordFilter) ([]goqu.Expression, composeType.RecordFilter, error)
 
 		// optional composeRecordValue filter function called after the generated function
-		ComposeRecordValue func(composeType.RecordValueFilter) ([]goqu.Expression, composeType.RecordValueFilter, error)
+		ComposeRecordValue func(*Store, composeType.RecordValueFilter) ([]goqu.Expression, composeType.RecordValueFilter, error)
 
 		// optional credential filter function called after the generated function
-		Credential func(systemType.CredentialFilter) ([]goqu.Expression, systemType.CredentialFilter, error)
+		Credential func(*Store, systemType.CredentialFilter) ([]goqu.Expression, systemType.CredentialFilter, error)
 
 		// optional federationExposedModule filter function called after the generated function
-		FederationExposedModule func(federationType.ExposedModuleFilter) ([]goqu.Expression, federationType.ExposedModuleFilter, error)
+		FederationExposedModule func(*Store, federationType.ExposedModuleFilter) ([]goqu.Expression, federationType.ExposedModuleFilter, error)
 
 		// optional federationModuleMapping filter function called after the generated function
-		FederationModuleMapping func(federationType.ModuleMappingFilter) ([]goqu.Expression, federationType.ModuleMappingFilter, error)
+		FederationModuleMapping func(*Store, federationType.ModuleMappingFilter) ([]goqu.Expression, federationType.ModuleMappingFilter, error)
 
 		// optional federationNode filter function called after the generated function
-		FederationNode func(federationType.NodeFilter) ([]goqu.Expression, federationType.NodeFilter, error)
+		FederationNode func(*Store, federationType.NodeFilter) ([]goqu.Expression, federationType.NodeFilter, error)
 
 		// optional federationNodeSync filter function called after the generated function
-		FederationNodeSync func(federationType.NodeSyncFilter) ([]goqu.Expression, federationType.NodeSyncFilter, error)
+		FederationNodeSync func(*Store, federationType.NodeSyncFilter) ([]goqu.Expression, federationType.NodeSyncFilter, error)
 
 		// optional federationSharedModule filter function called after the generated function
-		FederationSharedModule func(federationType.SharedModuleFilter) ([]goqu.Expression, federationType.SharedModuleFilter, error)
+		FederationSharedModule func(*Store, federationType.SharedModuleFilter) ([]goqu.Expression, federationType.SharedModuleFilter, error)
 
 		// optional flag filter function called after the generated function
-		Flag func(flagType.FlagFilter) ([]goqu.Expression, flagType.FlagFilter, error)
+		Flag func(*Store, flagType.FlagFilter) ([]goqu.Expression, flagType.FlagFilter, error)
 
 		// optional label filter function called after the generated function
-		Label func(labelsType.LabelFilter) ([]goqu.Expression, labelsType.LabelFilter, error)
+		Label func(*Store, labelsType.LabelFilter) ([]goqu.Expression, labelsType.LabelFilter, error)
 
 		// optional queue filter function called after the generated function
-		Queue func(systemType.QueueFilter) ([]goqu.Expression, systemType.QueueFilter, error)
+		Queue func(*Store, systemType.QueueFilter) ([]goqu.Expression, systemType.QueueFilter, error)
 
 		// optional queueMessage filter function called after the generated function
-		QueueMessage func(systemType.QueueMessageFilter) ([]goqu.Expression, systemType.QueueMessageFilter, error)
+		QueueMessage func(*Store, systemType.QueueMessageFilter) ([]goqu.Expression, systemType.QueueMessageFilter, error)
 
 		// optional rbacRule filter function called after the generated function
-		RbacRule func(rbacType.RuleFilter) ([]goqu.Expression, rbacType.RuleFilter, error)
+		RbacRule func(*Store, rbacType.RuleFilter) ([]goqu.Expression, rbacType.RuleFilter, error)
 
 		// optional reminder filter function called after the generated function
-		Reminder func(systemType.ReminderFilter) ([]goqu.Expression, systemType.ReminderFilter, error)
+		Reminder func(*Store, systemType.ReminderFilter) ([]goqu.Expression, systemType.ReminderFilter, error)
 
 		// optional report filter function called after the generated function
-		Report func(systemType.ReportFilter) ([]goqu.Expression, systemType.ReportFilter, error)
+		Report func(*Store, systemType.ReportFilter) ([]goqu.Expression, systemType.ReportFilter, error)
 
 		// optional resourceActivity filter function called after the generated function
-		ResourceActivity func(discoveryType.ResourceActivityFilter) ([]goqu.Expression, discoveryType.ResourceActivityFilter, error)
+		ResourceActivity func(*Store, discoveryType.ResourceActivityFilter) ([]goqu.Expression, discoveryType.ResourceActivityFilter, error)
 
 		// optional resourceTranslation filter function called after the generated function
-		ResourceTranslation func(systemType.ResourceTranslationFilter) ([]goqu.Expression, systemType.ResourceTranslationFilter, error)
+		ResourceTranslation func(*Store, systemType.ResourceTranslationFilter) ([]goqu.Expression, systemType.ResourceTranslationFilter, error)
 
 		// optional role filter function called after the generated function
-		Role func(systemType.RoleFilter) ([]goqu.Expression, systemType.RoleFilter, error)
+		Role func(*Store, systemType.RoleFilter) ([]goqu.Expression, systemType.RoleFilter, error)
 
 		// optional roleMember filter function called after the generated function
-		RoleMember func(systemType.RoleMemberFilter) ([]goqu.Expression, systemType.RoleMemberFilter, error)
+		RoleMember func(*Store, systemType.RoleMemberFilter) ([]goqu.Expression, systemType.RoleMemberFilter, error)
 
 		// optional settingValue filter function called after the generated function
-		SettingValue func(systemType.SettingsFilter) ([]goqu.Expression, systemType.SettingsFilter, error)
+		SettingValue func(*Store, systemType.SettingsFilter) ([]goqu.Expression, systemType.SettingsFilter, error)
 
 		// optional template filter function called after the generated function
-		Template func(systemType.TemplateFilter) ([]goqu.Expression, systemType.TemplateFilter, error)
+		Template func(*Store, systemType.TemplateFilter) ([]goqu.Expression, systemType.TemplateFilter, error)
 
 		// optional user filter function called after the generated function
-		User func(systemType.UserFilter) ([]goqu.Expression, systemType.UserFilter, error)
+		User func(*Store, systemType.UserFilter) ([]goqu.Expression, systemType.UserFilter, error)
 	}
 )
 

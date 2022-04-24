@@ -17,7 +17,7 @@ import (
 )
 
 func (f *extendedFilters) SetDefaults() {
-	f.Actionlog = func(f actionlog.Filter) (ee []goqu.Expression, _ actionlog.Filter, err error) {
+	f.Actionlog = func(s *Store, f actionlog.Filter) (ee []goqu.Expression, _ actionlog.Filter, err error) {
 		if ee, f, err = ActionlogFilter(f); err != nil {
 			return
 		}
@@ -46,7 +46,7 @@ func (f *extendedFilters) SetDefaults() {
 		return ee, f, err
 	}
 
-	f.Application = func(f systemType.ApplicationFilter) (ee []goqu.Expression, _ systemType.ApplicationFilter, err error) {
+	f.Application = func(s *Store, f systemType.ApplicationFilter) (ee []goqu.Expression, _ systemType.ApplicationFilter, err error) {
 		if ee, f, err = ApplicationFilter(f); err != nil {
 			return
 		}
@@ -58,7 +58,7 @@ func (f *extendedFilters) SetDefaults() {
 		return ee, f, err
 	}
 
-	f.AutomationSession = func(f automationType.SessionFilter) (ee []goqu.Expression, _ automationType.SessionFilter, err error) {
+	f.AutomationSession = func(s *Store, f automationType.SessionFilter) (ee []goqu.Expression, _ automationType.SessionFilter, err error) {
 		if ee, f, err = AutomationSessionFilter(f); err != nil {
 			return
 		}
@@ -70,7 +70,7 @@ func (f *extendedFilters) SetDefaults() {
 		return ee, f, err
 	}
 
-	f.ComposeAttachment = func(f composeType.AttachmentFilter) (ee []goqu.Expression, _ composeType.AttachmentFilter, err error) {
+	f.ComposeAttachment = func(s *Store, f composeType.AttachmentFilter) (ee []goqu.Expression, _ composeType.AttachmentFilter, err error) {
 		if ee, f, err = ComposeAttachmentFilter(f); err != nil {
 			return
 		}
@@ -115,7 +115,7 @@ func (f *extendedFilters) SetDefaults() {
 		return ee, f, nil
 	}
 
-	f.ComposePage = func(f composeType.PageFilter) (ee []goqu.Expression, _ composeType.PageFilter, err error) {
+	f.ComposePage = func(s *Store, f composeType.PageFilter) (ee []goqu.Expression, _ composeType.PageFilter, err error) {
 		if ee, f, err = ComposePageFilter(f); err != nil {
 			return
 		}
@@ -129,7 +129,7 @@ func (f *extendedFilters) SetDefaults() {
 		return ee, f, nil
 	}
 
-	f.Reminder = func(f systemType.ReminderFilter) (ee []goqu.Expression, _ systemType.ReminderFilter, err error) {
+	f.Reminder = func(s *Store, f systemType.ReminderFilter) (ee []goqu.Expression, _ systemType.ReminderFilter, err error) {
 		if ee, f, err = ReminderFilter(f); err != nil {
 			return
 		}
@@ -160,7 +160,7 @@ func (f *extendedFilters) SetDefaults() {
 		return ee, f, nil
 	}
 
-	f.ResourceTranslation = func(f systemType.ResourceTranslationFilter) (ee []goqu.Expression, _ systemType.ResourceTranslationFilter, err error) {
+	f.ResourceTranslation = func(s *Store, f systemType.ResourceTranslationFilter) (ee []goqu.Expression, _ systemType.ResourceTranslationFilter, err error) {
 		if ee, f, err = ResourceTranslationFilter(f); err != nil {
 			return
 		}
@@ -172,15 +172,14 @@ func (f *extendedFilters) SetDefaults() {
 		return ee, f, nil
 	}
 
-	f.Role = func(f systemType.RoleFilter) (ee []goqu.Expression, _ systemType.RoleFilter, err error) {
+	f.Role = func(s *Store, f systemType.RoleFilter) (ee []goqu.Expression, _ systemType.RoleFilter, err error) {
 		if ee, f, err = RoleFilter(f); err != nil {
 			return
 		}
 
 		if f.MemberID > 0 {
-			memberships := goqu.
+			memberships := roleMemberSelectQuery(s.Config().Dialect).
 				Select("rel_role").
-				From(roleMemberTable).
 				Where(goqu.C("rel_user").In(f.MemberID))
 
 			ee = append(ee, goqu.C("id").In(memberships))
@@ -189,7 +188,7 @@ func (f *extendedFilters) SetDefaults() {
 		return ee, f, nil
 	}
 
-	f.User = func(f systemType.UserFilter) (ee []goqu.Expression, _ systemType.UserFilter, err error) {
+	f.User = func(s *Store, f systemType.UserFilter) (ee []goqu.Expression, _ systemType.UserFilter, err error) {
 		if ee, f, err = UserFilter(f); err != nil {
 			return
 		}
@@ -199,9 +198,8 @@ func (f *extendedFilters) SetDefaults() {
 		}
 
 		if len(f.RoleID) > 0 {
-			members := goqu.
+			members := roleMemberSelectQuery(s.Config().Dialect).
 				Select("rel_user").
-				From(roleMemberTable).
 				Where(goqu.C("rel_role").In(f.RoleID))
 
 			ee = append(ee, goqu.C("id").In(members))
@@ -210,7 +208,7 @@ func (f *extendedFilters) SetDefaults() {
 		return ee, f, nil
 	}
 
-	f.SettingValue = func(f systemType.SettingsFilter) (ee []goqu.Expression, _ systemType.SettingsFilter, err error) {
+	f.SettingValue = func(s *Store, f systemType.SettingsFilter) (ee []goqu.Expression, _ systemType.SettingsFilter, err error) {
 		if ee, f, err = SettingValueFilter(f); err != nil {
 			return
 		}
@@ -222,7 +220,7 @@ func (f *extendedFilters) SetDefaults() {
 		return ee, f, nil
 	}
 
-	f.FederationExposedModule = func(f types.ExposedModuleFilter) (ee []goqu.Expression, _ types.ExposedModuleFilter, err error) {
+	f.FederationExposedModule = func(s *Store, f types.ExposedModuleFilter) (ee []goqu.Expression, _ types.ExposedModuleFilter, err error) {
 		if ee, f, err = FederationExposedModuleFilter(f); err != nil {
 			return
 		}
@@ -242,7 +240,7 @@ func (f *extendedFilters) SetDefaults() {
 		return ee, f, nil
 	}
 
-	f.ResourceActivity = func(f discoveryType.ResourceActivityFilter) (ee []goqu.Expression, _ discoveryType.ResourceActivityFilter, err error) {
+	f.ResourceActivity = func(s *Store, f discoveryType.ResourceActivityFilter) (ee []goqu.Expression, _ discoveryType.ResourceActivityFilter, err error) {
 		if ee, f, err = ResourceActivityFilter(f); err != nil {
 			return
 		}
