@@ -13,26 +13,6 @@ import (
 )
 
 type (
-	//schemaUpgradeGenerator interface {
-	//	TableExists(string) bool
-	//	CreateTable(t *ddl.Table) string
-	//	CreateIndexes(ii ...*ddl.Index) []string
-	//}
-
-	// Store - Corteza RDBMS persistence layer
-	//Store struct {
-	//	config *Config
-	//
-	//	// Schema upgrade generator converts internal upgrade config
-	//	// to implementation specific SQL
-	//	sug schemaUpgradeGenerator
-	//
-	//	db dbLayer
-	//
-	//	// Logger for connection
-	//	logger *zap.Logger
-	//}
-
 	dbLayer interface {
 		sqlx.ExecerContext
 		SelectContext(context.Context, interface{}, string, ...interface{}) error
@@ -58,7 +38,7 @@ const (
 	MaxLimit = 1000
 )
 
-// Connect is called from the addapter's Connect  function
+// Connect is called from the adapter's Connect  function
 //
 // It is intentionally not compatible with store.ConnectorFn
 // and can not be used to register

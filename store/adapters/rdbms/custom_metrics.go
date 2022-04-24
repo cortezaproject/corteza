@@ -87,10 +87,13 @@ func timestampStatExpr(fields ...string) []interface{} {
 		valid = []goqu.Expression{}
 		ee    = []interface{}{goqu.COUNT(goqu.Star()).As("total")}
 
+		// literal 0 and 1 values we can safely use in the query
+		lit0, lit1 = goqu.L("0"), goqu.L("1")
+
 		sum = func(field string) goqu.Expression {
 			return goqu.COALESCE(
-				goqu.SUM(goqu.Case().When(goqu.C(field+"_at").IsNotNull(), 1).Else(0)),
-				goqu.L("0"),
+				goqu.SUM(goqu.Case().When(goqu.C(field+"_at").IsNotNull(), lit1).Else(lit0)),
+				lit0,
 			).As(field)
 		}
 	)
@@ -100,5 +103,5 @@ func timestampStatExpr(fields ...string) []interface{} {
 		valid = append(valid, goqu.C(field+"_at").IsNull())
 	}
 
-	return append(ee, goqu.SUM(goqu.Case().When(goqu.And(valid...), 1).Else(0)).As("valid"))
+	return append(ee, goqu.SUM(goqu.Case().When(goqu.And(valid...), lit1).Else(lit0)).As("valid"))
 }
