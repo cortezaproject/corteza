@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/cortezaproject/corteza-server/store"
+	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exec"
 	"go.uber.org/zap"
 )
@@ -29,6 +30,12 @@ type (
 		logger *zap.Logger
 	}
 )
+
+func init() {
+	// goqu should always use placeholders!
+	// https://doug-martin.github.io/goqu/docs/interpolation.html
+	goqu.SetDefaultPrepared(true)
+}
 
 func (s Store) Exec(ctx context.Context, q sqlizer) error {
 	var (
