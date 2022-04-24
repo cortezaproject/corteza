@@ -74,7 +74,7 @@ var (
 // CreateActionlog creates one or more rows in actionlog collection
 //
 // This function is auto-generated
-func (s Store) CreateActionlog(ctx context.Context, rr ...*actionlogType.Action) (err error) {
+func (s *Store) CreateActionlog(ctx context.Context, rr ...*actionlogType.Action) (err error) {
 	for i := range rr {
 		if err = s.checkActionlogConstraints(ctx, rr[i]); err != nil {
 			return
@@ -91,7 +91,7 @@ func (s Store) CreateActionlog(ctx context.Context, rr ...*actionlogType.Action)
 // UpdateActionlog updates one or more existing entries in actionlog collection
 //
 // This function is auto-generated
-func (s Store) UpdateActionlog(ctx context.Context, rr ...*actionlogType.Action) (err error) {
+func (s *Store) UpdateActionlog(ctx context.Context, rr ...*actionlogType.Action) (err error) {
 	for i := range rr {
 		if err = s.checkActionlogConstraints(ctx, rr[i]); err != nil {
 			return
@@ -108,7 +108,7 @@ func (s Store) UpdateActionlog(ctx context.Context, rr ...*actionlogType.Action)
 // UpsertActionlog updates one or more existing entries in actionlog collection
 //
 // This function is auto-generated
-func (s Store) UpsertActionlog(ctx context.Context, rr ...*actionlogType.Action) (err error) {
+func (s *Store) UpsertActionlog(ctx context.Context, rr ...*actionlogType.Action) (err error) {
 	for i := range rr {
 		if err = s.checkActionlogConstraints(ctx, rr[i]); err != nil {
 			return
@@ -125,7 +125,7 @@ func (s Store) UpsertActionlog(ctx context.Context, rr ...*actionlogType.Action)
 // DeleteActionlog Deletes one or more entries from actionlog collection
 //
 // This function is auto-generated
-func (s Store) DeleteActionlog(ctx context.Context, rr ...*actionlogType.Action) (err error) {
+func (s *Store) DeleteActionlog(ctx context.Context, rr ...*actionlogType.Action) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, actionlogDeleteQuery(s.config.Dialect, actionlogPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -138,21 +138,21 @@ func (s Store) DeleteActionlog(ctx context.Context, rr ...*actionlogType.Action)
 // DeleteActionlogByID deletes single entry from actionlog collection
 //
 // This function is auto-generated
-func (s Store) DeleteActionlogByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteActionlogByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, actionlogDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateActionlogs Deletes all rows from the actionlog collection
-func (s Store) TruncateActionlogs(ctx context.Context) error {
+func (s *Store) TruncateActionlogs(ctx context.Context) error {
 	return s.Exec(ctx, actionlogTruncateQuery(s.config.Dialect))
 }
 
 // SearchActionlogs returns (filtered) set of Actionlogs
 //
 // This function is auto-generated
-func (s Store) SearchActionlogs(ctx context.Context, f actionlogType.Filter) (set actionlogType.ActionSet, _ actionlogType.Filter, err error) {
+func (s *Store) SearchActionlogs(ctx context.Context, f actionlogType.Filter) (set actionlogType.ActionSet, _ actionlogType.Filter, err error) {
 
 	set, _, err = s.QueryActionlogs(ctx, f)
 	if err != nil {
@@ -168,7 +168,7 @@ func (s Store) SearchActionlogs(ctx context.Context, f actionlogType.Filter) (se
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryActionlogs(
+func (s *Store) QueryActionlogs(
 	ctx context.Context,
 	f actionlogType.Filter,
 ) (_ []*actionlogType.Action, more bool, err error) {
@@ -185,7 +185,7 @@ func (s Store) QueryActionlogs(
 
 	if s.config.Filters.Actionlog != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.Actionlog(f)
+		tExpr, f, err = s.config.Filters.Actionlog(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = ActionlogFilter(f)
@@ -261,7 +261,7 @@ func (s Store) QueryActionlogs(
 // LookupActionlogByID searches for action log by ID
 //
 // This function is auto-generated
-func (s Store) LookupActionlogByID(ctx context.Context, id uint64) (_ *actionlogType.Action, err error) {
+func (s *Store) LookupActionlogByID(ctx context.Context, id uint64) (_ *actionlogType.Action, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxActionlog)
@@ -321,7 +321,7 @@ func (Store) sortableActionlogFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectActionlogCursorValues(res *actionlogType.Action, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectActionlogCursorValues(res *actionlogType.Action, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -365,7 +365,7 @@ func (s *Store) checkActionlogConstraints(ctx context.Context, res *actionlogTyp
 // CreateApigwFilter creates one or more rows in apigwFilter collection
 //
 // This function is auto-generated
-func (s Store) CreateApigwFilter(ctx context.Context, rr ...*systemType.ApigwFilter) (err error) {
+func (s *Store) CreateApigwFilter(ctx context.Context, rr ...*systemType.ApigwFilter) (err error) {
 	for i := range rr {
 		if err = s.checkApigwFilterConstraints(ctx, rr[i]); err != nil {
 			return
@@ -382,7 +382,7 @@ func (s Store) CreateApigwFilter(ctx context.Context, rr ...*systemType.ApigwFil
 // UpdateApigwFilter updates one or more existing entries in apigwFilter collection
 //
 // This function is auto-generated
-func (s Store) UpdateApigwFilter(ctx context.Context, rr ...*systemType.ApigwFilter) (err error) {
+func (s *Store) UpdateApigwFilter(ctx context.Context, rr ...*systemType.ApigwFilter) (err error) {
 	for i := range rr {
 		if err = s.checkApigwFilterConstraints(ctx, rr[i]); err != nil {
 			return
@@ -399,7 +399,7 @@ func (s Store) UpdateApigwFilter(ctx context.Context, rr ...*systemType.ApigwFil
 // UpsertApigwFilter updates one or more existing entries in apigwFilter collection
 //
 // This function is auto-generated
-func (s Store) UpsertApigwFilter(ctx context.Context, rr ...*systemType.ApigwFilter) (err error) {
+func (s *Store) UpsertApigwFilter(ctx context.Context, rr ...*systemType.ApigwFilter) (err error) {
 	for i := range rr {
 		if err = s.checkApigwFilterConstraints(ctx, rr[i]); err != nil {
 			return
@@ -416,7 +416,7 @@ func (s Store) UpsertApigwFilter(ctx context.Context, rr ...*systemType.ApigwFil
 // DeleteApigwFilter Deletes one or more entries from apigwFilter collection
 //
 // This function is auto-generated
-func (s Store) DeleteApigwFilter(ctx context.Context, rr ...*systemType.ApigwFilter) (err error) {
+func (s *Store) DeleteApigwFilter(ctx context.Context, rr ...*systemType.ApigwFilter) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, apigwFilterDeleteQuery(s.config.Dialect, apigwFilterPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -429,21 +429,21 @@ func (s Store) DeleteApigwFilter(ctx context.Context, rr ...*systemType.ApigwFil
 // DeleteApigwFilterByID deletes single entry from apigwFilter collection
 //
 // This function is auto-generated
-func (s Store) DeleteApigwFilterByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteApigwFilterByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, apigwFilterDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateApigwFilters Deletes all rows from the apigwFilter collection
-func (s Store) TruncateApigwFilters(ctx context.Context) error {
+func (s *Store) TruncateApigwFilters(ctx context.Context) error {
 	return s.Exec(ctx, apigwFilterTruncateQuery(s.config.Dialect))
 }
 
 // SearchApigwFilters returns (filtered) set of ApigwFilters
 //
 // This function is auto-generated
-func (s Store) SearchApigwFilters(ctx context.Context, f systemType.ApigwFilterFilter) (set systemType.ApigwFilterSet, _ systemType.ApigwFilterFilter, err error) {
+func (s *Store) SearchApigwFilters(ctx context.Context, f systemType.ApigwFilterFilter) (set systemType.ApigwFilterSet, _ systemType.ApigwFilterFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -499,7 +499,7 @@ func (s Store) SearchApigwFilters(ctx context.Context, f systemType.ApigwFilterF
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfApigwFilters(
+func (s *Store) fetchFullPageOfApigwFilters(
 	ctx context.Context,
 	filter systemType.ApigwFilterFilter,
 	sort filter.SortExprSet,
@@ -620,7 +620,7 @@ func (s Store) fetchFullPageOfApigwFilters(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryApigwFilters(
+func (s *Store) QueryApigwFilters(
 	ctx context.Context,
 	f systemType.ApigwFilterFilter,
 ) (_ []*systemType.ApigwFilter, more bool, err error) {
@@ -639,7 +639,7 @@ func (s Store) QueryApigwFilters(
 
 	if s.config.Filters.ApigwFilter != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.ApigwFilter(f)
+		tExpr, f, err = s.config.Filters.ApigwFilter(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = ApigwFilterFilter(f)
@@ -734,7 +734,7 @@ func (s Store) QueryApigwFilters(
 // LookupApigwFilterByID searches for filter by ID
 //
 // This function is auto-generated
-func (s Store) LookupApigwFilterByID(ctx context.Context, id uint64) (_ *systemType.ApigwFilter, err error) {
+func (s *Store) LookupApigwFilterByID(ctx context.Context, id uint64) (_ *systemType.ApigwFilter, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxApigwFilter)
@@ -774,7 +774,7 @@ func (s Store) LookupApigwFilterByID(ctx context.Context, id uint64) (_ *systemT
 // LookupApigwFilterByRoute searches for filter by route
 //
 // This function is auto-generated
-func (s Store) LookupApigwFilterByRoute(ctx context.Context, route uint64) (_ *systemType.ApigwFilter, err error) {
+func (s *Store) LookupApigwFilterByRoute(ctx context.Context, route uint64) (_ *systemType.ApigwFilter, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxApigwFilter)
@@ -839,7 +839,7 @@ func (Store) sortableApigwFilterFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectApigwFilterCursorValues(res *systemType.ApigwFilter, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectApigwFilterCursorValues(res *systemType.ApigwFilter, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -887,7 +887,7 @@ func (s *Store) checkApigwFilterConstraints(ctx context.Context, res *systemType
 // CreateApigwRoute creates one or more rows in apigwRoute collection
 //
 // This function is auto-generated
-func (s Store) CreateApigwRoute(ctx context.Context, rr ...*systemType.ApigwRoute) (err error) {
+func (s *Store) CreateApigwRoute(ctx context.Context, rr ...*systemType.ApigwRoute) (err error) {
 	for i := range rr {
 		if err = s.checkApigwRouteConstraints(ctx, rr[i]); err != nil {
 			return
@@ -904,7 +904,7 @@ func (s Store) CreateApigwRoute(ctx context.Context, rr ...*systemType.ApigwRout
 // UpdateApigwRoute updates one or more existing entries in apigwRoute collection
 //
 // This function is auto-generated
-func (s Store) UpdateApigwRoute(ctx context.Context, rr ...*systemType.ApigwRoute) (err error) {
+func (s *Store) UpdateApigwRoute(ctx context.Context, rr ...*systemType.ApigwRoute) (err error) {
 	for i := range rr {
 		if err = s.checkApigwRouteConstraints(ctx, rr[i]); err != nil {
 			return
@@ -921,7 +921,7 @@ func (s Store) UpdateApigwRoute(ctx context.Context, rr ...*systemType.ApigwRout
 // UpsertApigwRoute updates one or more existing entries in apigwRoute collection
 //
 // This function is auto-generated
-func (s Store) UpsertApigwRoute(ctx context.Context, rr ...*systemType.ApigwRoute) (err error) {
+func (s *Store) UpsertApigwRoute(ctx context.Context, rr ...*systemType.ApigwRoute) (err error) {
 	for i := range rr {
 		if err = s.checkApigwRouteConstraints(ctx, rr[i]); err != nil {
 			return
@@ -938,7 +938,7 @@ func (s Store) UpsertApigwRoute(ctx context.Context, rr ...*systemType.ApigwRout
 // DeleteApigwRoute Deletes one or more entries from apigwRoute collection
 //
 // This function is auto-generated
-func (s Store) DeleteApigwRoute(ctx context.Context, rr ...*systemType.ApigwRoute) (err error) {
+func (s *Store) DeleteApigwRoute(ctx context.Context, rr ...*systemType.ApigwRoute) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, apigwRouteDeleteQuery(s.config.Dialect, apigwRoutePrimaryKeys(rr[i]))); err != nil {
 			return
@@ -951,21 +951,21 @@ func (s Store) DeleteApigwRoute(ctx context.Context, rr ...*systemType.ApigwRout
 // DeleteApigwRouteByID deletes single entry from apigwRoute collection
 //
 // This function is auto-generated
-func (s Store) DeleteApigwRouteByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteApigwRouteByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, apigwRouteDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateApigwRoutes Deletes all rows from the apigwRoute collection
-func (s Store) TruncateApigwRoutes(ctx context.Context) error {
+func (s *Store) TruncateApigwRoutes(ctx context.Context) error {
 	return s.Exec(ctx, apigwRouteTruncateQuery(s.config.Dialect))
 }
 
 // SearchApigwRoutes returns (filtered) set of ApigwRoutes
 //
 // This function is auto-generated
-func (s Store) SearchApigwRoutes(ctx context.Context, f systemType.ApigwRouteFilter) (set systemType.ApigwRouteSet, _ systemType.ApigwRouteFilter, err error) {
+func (s *Store) SearchApigwRoutes(ctx context.Context, f systemType.ApigwRouteFilter) (set systemType.ApigwRouteSet, _ systemType.ApigwRouteFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -1021,7 +1021,7 @@ func (s Store) SearchApigwRoutes(ctx context.Context, f systemType.ApigwRouteFil
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfApigwRoutes(
+func (s *Store) fetchFullPageOfApigwRoutes(
 	ctx context.Context,
 	filter systemType.ApigwRouteFilter,
 	sort filter.SortExprSet,
@@ -1142,7 +1142,7 @@ func (s Store) fetchFullPageOfApigwRoutes(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryApigwRoutes(
+func (s *Store) QueryApigwRoutes(
 	ctx context.Context,
 	f systemType.ApigwRouteFilter,
 ) (_ []*systemType.ApigwRoute, more bool, err error) {
@@ -1161,7 +1161,7 @@ func (s Store) QueryApigwRoutes(
 
 	if s.config.Filters.ApigwRoute != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.ApigwRoute(f)
+		tExpr, f, err = s.config.Filters.ApigwRoute(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = ApigwRouteFilter(f)
@@ -1258,7 +1258,7 @@ func (s Store) QueryApigwRoutes(
 // It returns route even if deleted or suspended
 //
 // This function is auto-generated
-func (s Store) LookupApigwRouteByID(ctx context.Context, id uint64) (_ *systemType.ApigwRoute, err error) {
+func (s *Store) LookupApigwRouteByID(ctx context.Context, id uint64) (_ *systemType.ApigwRoute, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxApigwRoute)
@@ -1300,7 +1300,7 @@ func (s Store) LookupApigwRouteByID(ctx context.Context, id uint64) (_ *systemTy
 // It returns route even if deleted or suspended
 //
 // This function is auto-generated
-func (s Store) LookupApigwRouteByEndpoint(ctx context.Context, endpoint string) (_ *systemType.ApigwRoute, err error) {
+func (s *Store) LookupApigwRouteByEndpoint(ctx context.Context, endpoint string) (_ *systemType.ApigwRoute, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxApigwRoute)
@@ -1365,7 +1365,7 @@ func (Store) sortableApigwRouteFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectApigwRouteCursorValues(res *systemType.ApigwRoute, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectApigwRouteCursorValues(res *systemType.ApigwRoute, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -1413,7 +1413,7 @@ func (s *Store) checkApigwRouteConstraints(ctx context.Context, res *systemType.
 // CreateApplication creates one or more rows in application collection
 //
 // This function is auto-generated
-func (s Store) CreateApplication(ctx context.Context, rr ...*systemType.Application) (err error) {
+func (s *Store) CreateApplication(ctx context.Context, rr ...*systemType.Application) (err error) {
 	for i := range rr {
 		if err = s.checkApplicationConstraints(ctx, rr[i]); err != nil {
 			return
@@ -1430,7 +1430,7 @@ func (s Store) CreateApplication(ctx context.Context, rr ...*systemType.Applicat
 // UpdateApplication updates one or more existing entries in application collection
 //
 // This function is auto-generated
-func (s Store) UpdateApplication(ctx context.Context, rr ...*systemType.Application) (err error) {
+func (s *Store) UpdateApplication(ctx context.Context, rr ...*systemType.Application) (err error) {
 	for i := range rr {
 		if err = s.checkApplicationConstraints(ctx, rr[i]); err != nil {
 			return
@@ -1447,7 +1447,7 @@ func (s Store) UpdateApplication(ctx context.Context, rr ...*systemType.Applicat
 // UpsertApplication updates one or more existing entries in application collection
 //
 // This function is auto-generated
-func (s Store) UpsertApplication(ctx context.Context, rr ...*systemType.Application) (err error) {
+func (s *Store) UpsertApplication(ctx context.Context, rr ...*systemType.Application) (err error) {
 	for i := range rr {
 		if err = s.checkApplicationConstraints(ctx, rr[i]); err != nil {
 			return
@@ -1464,7 +1464,7 @@ func (s Store) UpsertApplication(ctx context.Context, rr ...*systemType.Applicat
 // DeleteApplication Deletes one or more entries from application collection
 //
 // This function is auto-generated
-func (s Store) DeleteApplication(ctx context.Context, rr ...*systemType.Application) (err error) {
+func (s *Store) DeleteApplication(ctx context.Context, rr ...*systemType.Application) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, applicationDeleteQuery(s.config.Dialect, applicationPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -1477,21 +1477,21 @@ func (s Store) DeleteApplication(ctx context.Context, rr ...*systemType.Applicat
 // DeleteApplicationByID deletes single entry from application collection
 //
 // This function is auto-generated
-func (s Store) DeleteApplicationByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteApplicationByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, applicationDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateApplications Deletes all rows from the application collection
-func (s Store) TruncateApplications(ctx context.Context) error {
+func (s *Store) TruncateApplications(ctx context.Context) error {
 	return s.Exec(ctx, applicationTruncateQuery(s.config.Dialect))
 }
 
 // SearchApplications returns (filtered) set of Applications
 //
 // This function is auto-generated
-func (s Store) SearchApplications(ctx context.Context, f systemType.ApplicationFilter) (set systemType.ApplicationSet, _ systemType.ApplicationFilter, err error) {
+func (s *Store) SearchApplications(ctx context.Context, f systemType.ApplicationFilter) (set systemType.ApplicationSet, _ systemType.ApplicationFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -1547,7 +1547,7 @@ func (s Store) SearchApplications(ctx context.Context, f systemType.ApplicationF
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfApplications(
+func (s *Store) fetchFullPageOfApplications(
 	ctx context.Context,
 	filter systemType.ApplicationFilter,
 	sort filter.SortExprSet,
@@ -1668,7 +1668,7 @@ func (s Store) fetchFullPageOfApplications(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryApplications(
+func (s *Store) QueryApplications(
 	ctx context.Context,
 	f systemType.ApplicationFilter,
 ) (_ []*systemType.Application, more bool, err error) {
@@ -1687,7 +1687,7 @@ func (s Store) QueryApplications(
 
 	if s.config.Filters.Application != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.Application(f)
+		tExpr, f, err = s.config.Filters.Application(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = ApplicationFilter(f)
@@ -1784,7 +1784,7 @@ func (s Store) QueryApplications(
 // It returns role even if deleted or suspended
 //
 // This function is auto-generated
-func (s Store) LookupApplicationByID(ctx context.Context, id uint64) (_ *systemType.Application, err error) {
+func (s *Store) LookupApplicationByID(ctx context.Context, id uint64) (_ *systemType.Application, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxApplication)
@@ -1849,7 +1849,7 @@ func (Store) sortableApplicationFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectApplicationCursorValues(res *systemType.Application, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectApplicationCursorValues(res *systemType.Application, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -1897,7 +1897,7 @@ func (s *Store) checkApplicationConstraints(ctx context.Context, res *systemType
 // CreateAttachment creates one or more rows in attachment collection
 //
 // This function is auto-generated
-func (s Store) CreateAttachment(ctx context.Context, rr ...*systemType.Attachment) (err error) {
+func (s *Store) CreateAttachment(ctx context.Context, rr ...*systemType.Attachment) (err error) {
 	for i := range rr {
 		if err = s.checkAttachmentConstraints(ctx, rr[i]); err != nil {
 			return
@@ -1914,7 +1914,7 @@ func (s Store) CreateAttachment(ctx context.Context, rr ...*systemType.Attachmen
 // UpdateAttachment updates one or more existing entries in attachment collection
 //
 // This function is auto-generated
-func (s Store) UpdateAttachment(ctx context.Context, rr ...*systemType.Attachment) (err error) {
+func (s *Store) UpdateAttachment(ctx context.Context, rr ...*systemType.Attachment) (err error) {
 	for i := range rr {
 		if err = s.checkAttachmentConstraints(ctx, rr[i]); err != nil {
 			return
@@ -1931,7 +1931,7 @@ func (s Store) UpdateAttachment(ctx context.Context, rr ...*systemType.Attachmen
 // UpsertAttachment updates one or more existing entries in attachment collection
 //
 // This function is auto-generated
-func (s Store) UpsertAttachment(ctx context.Context, rr ...*systemType.Attachment) (err error) {
+func (s *Store) UpsertAttachment(ctx context.Context, rr ...*systemType.Attachment) (err error) {
 	for i := range rr {
 		if err = s.checkAttachmentConstraints(ctx, rr[i]); err != nil {
 			return
@@ -1948,7 +1948,7 @@ func (s Store) UpsertAttachment(ctx context.Context, rr ...*systemType.Attachmen
 // DeleteAttachment Deletes one or more entries from attachment collection
 //
 // This function is auto-generated
-func (s Store) DeleteAttachment(ctx context.Context, rr ...*systemType.Attachment) (err error) {
+func (s *Store) DeleteAttachment(ctx context.Context, rr ...*systemType.Attachment) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, attachmentDeleteQuery(s.config.Dialect, attachmentPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -1961,21 +1961,21 @@ func (s Store) DeleteAttachment(ctx context.Context, rr ...*systemType.Attachmen
 // DeleteAttachmentByID deletes single entry from attachment collection
 //
 // This function is auto-generated
-func (s Store) DeleteAttachmentByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteAttachmentByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, attachmentDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateAttachments Deletes all rows from the attachment collection
-func (s Store) TruncateAttachments(ctx context.Context) error {
+func (s *Store) TruncateAttachments(ctx context.Context) error {
 	return s.Exec(ctx, attachmentTruncateQuery(s.config.Dialect))
 }
 
 // SearchAttachments returns (filtered) set of Attachments
 //
 // This function is auto-generated
-func (s Store) SearchAttachments(ctx context.Context, f systemType.AttachmentFilter) (set systemType.AttachmentSet, _ systemType.AttachmentFilter, err error) {
+func (s *Store) SearchAttachments(ctx context.Context, f systemType.AttachmentFilter) (set systemType.AttachmentSet, _ systemType.AttachmentFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -2031,7 +2031,7 @@ func (s Store) SearchAttachments(ctx context.Context, f systemType.AttachmentFil
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfAttachments(
+func (s *Store) fetchFullPageOfAttachments(
 	ctx context.Context,
 	filter systemType.AttachmentFilter,
 	sort filter.SortExprSet,
@@ -2152,7 +2152,7 @@ func (s Store) fetchFullPageOfAttachments(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryAttachments(
+func (s *Store) QueryAttachments(
 	ctx context.Context,
 	f systemType.AttachmentFilter,
 ) (_ []*systemType.Attachment, more bool, err error) {
@@ -2171,7 +2171,7 @@ func (s Store) QueryAttachments(
 
 	if s.config.Filters.Attachment != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.Attachment(f)
+		tExpr, f, err = s.config.Filters.Attachment(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = AttachmentFilter(f)
@@ -2266,7 +2266,7 @@ func (s Store) QueryAttachments(
 // LookupAttachmentByID
 //
 // This function is auto-generated
-func (s Store) LookupAttachmentByID(ctx context.Context, id uint64) (_ *systemType.Attachment, err error) {
+func (s *Store) LookupAttachmentByID(ctx context.Context, id uint64) (_ *systemType.Attachment, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAttachment)
@@ -2331,7 +2331,7 @@ func (Store) sortableAttachmentFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectAttachmentCursorValues(res *systemType.Attachment, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectAttachmentCursorValues(res *systemType.Attachment, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -2379,7 +2379,7 @@ func (s *Store) checkAttachmentConstraints(ctx context.Context, res *systemType.
 // CreateAuthClient creates one or more rows in authClient collection
 //
 // This function is auto-generated
-func (s Store) CreateAuthClient(ctx context.Context, rr ...*systemType.AuthClient) (err error) {
+func (s *Store) CreateAuthClient(ctx context.Context, rr ...*systemType.AuthClient) (err error) {
 	for i := range rr {
 		if err = s.checkAuthClientConstraints(ctx, rr[i]); err != nil {
 			return
@@ -2396,7 +2396,7 @@ func (s Store) CreateAuthClient(ctx context.Context, rr ...*systemType.AuthClien
 // UpdateAuthClient updates one or more existing entries in authClient collection
 //
 // This function is auto-generated
-func (s Store) UpdateAuthClient(ctx context.Context, rr ...*systemType.AuthClient) (err error) {
+func (s *Store) UpdateAuthClient(ctx context.Context, rr ...*systemType.AuthClient) (err error) {
 	for i := range rr {
 		if err = s.checkAuthClientConstraints(ctx, rr[i]); err != nil {
 			return
@@ -2413,7 +2413,7 @@ func (s Store) UpdateAuthClient(ctx context.Context, rr ...*systemType.AuthClien
 // UpsertAuthClient updates one or more existing entries in authClient collection
 //
 // This function is auto-generated
-func (s Store) UpsertAuthClient(ctx context.Context, rr ...*systemType.AuthClient) (err error) {
+func (s *Store) UpsertAuthClient(ctx context.Context, rr ...*systemType.AuthClient) (err error) {
 	for i := range rr {
 		if err = s.checkAuthClientConstraints(ctx, rr[i]); err != nil {
 			return
@@ -2430,7 +2430,7 @@ func (s Store) UpsertAuthClient(ctx context.Context, rr ...*systemType.AuthClien
 // DeleteAuthClient Deletes one or more entries from authClient collection
 //
 // This function is auto-generated
-func (s Store) DeleteAuthClient(ctx context.Context, rr ...*systemType.AuthClient) (err error) {
+func (s *Store) DeleteAuthClient(ctx context.Context, rr ...*systemType.AuthClient) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, authClientDeleteQuery(s.config.Dialect, authClientPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -2443,21 +2443,21 @@ func (s Store) DeleteAuthClient(ctx context.Context, rr ...*systemType.AuthClien
 // DeleteAuthClientByID deletes single entry from authClient collection
 //
 // This function is auto-generated
-func (s Store) DeleteAuthClientByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteAuthClientByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, authClientDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateAuthClients Deletes all rows from the authClient collection
-func (s Store) TruncateAuthClients(ctx context.Context) error {
+func (s *Store) TruncateAuthClients(ctx context.Context) error {
 	return s.Exec(ctx, authClientTruncateQuery(s.config.Dialect))
 }
 
 // SearchAuthClients returns (filtered) set of AuthClients
 //
 // This function is auto-generated
-func (s Store) SearchAuthClients(ctx context.Context, f systemType.AuthClientFilter) (set systemType.AuthClientSet, _ systemType.AuthClientFilter, err error) {
+func (s *Store) SearchAuthClients(ctx context.Context, f systemType.AuthClientFilter) (set systemType.AuthClientSet, _ systemType.AuthClientFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -2513,7 +2513,7 @@ func (s Store) SearchAuthClients(ctx context.Context, f systemType.AuthClientFil
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfAuthClients(
+func (s *Store) fetchFullPageOfAuthClients(
 	ctx context.Context,
 	filter systemType.AuthClientFilter,
 	sort filter.SortExprSet,
@@ -2634,7 +2634,7 @@ func (s Store) fetchFullPageOfAuthClients(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryAuthClients(
+func (s *Store) QueryAuthClients(
 	ctx context.Context,
 	f systemType.AuthClientFilter,
 ) (_ []*systemType.AuthClient, more bool, err error) {
@@ -2653,7 +2653,7 @@ func (s Store) QueryAuthClients(
 
 	if s.config.Filters.AuthClient != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.AuthClient(f)
+		tExpr, f, err = s.config.Filters.AuthClient(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = AuthClientFilter(f)
@@ -2750,7 +2750,7 @@ func (s Store) QueryAuthClients(
 // 	It returns auth clint even if deleted
 //
 // This function is auto-generated
-func (s Store) LookupAuthClientByID(ctx context.Context, id uint64) (_ *systemType.AuthClient, err error) {
+func (s *Store) LookupAuthClientByID(ctx context.Context, id uint64) (_ *systemType.AuthClient, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAuthClient)
@@ -2792,7 +2792,7 @@ func (s Store) LookupAuthClientByID(ctx context.Context, id uint64) (_ *systemTy
 // It returns auth clint even if deleted
 //
 // This function is auto-generated
-func (s Store) LookupAuthClientByHandle(ctx context.Context, handle string) (_ *systemType.AuthClient, err error) {
+func (s *Store) LookupAuthClientByHandle(ctx context.Context, handle string) (_ *systemType.AuthClient, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAuthClient)
@@ -2861,7 +2861,7 @@ func (Store) sortableAuthClientFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectAuthClientCursorValues(res *systemType.AuthClient, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectAuthClientCursorValues(res *systemType.AuthClient, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -2941,7 +2941,7 @@ func (s *Store) checkAuthClientConstraints(ctx context.Context, res *systemType.
 // CreateAuthConfirmedClient creates one or more rows in authConfirmedClient collection
 //
 // This function is auto-generated
-func (s Store) CreateAuthConfirmedClient(ctx context.Context, rr ...*systemType.AuthConfirmedClient) (err error) {
+func (s *Store) CreateAuthConfirmedClient(ctx context.Context, rr ...*systemType.AuthConfirmedClient) (err error) {
 	for i := range rr {
 		if err = s.checkAuthConfirmedClientConstraints(ctx, rr[i]); err != nil {
 			return
@@ -2958,7 +2958,7 @@ func (s Store) CreateAuthConfirmedClient(ctx context.Context, rr ...*systemType.
 // UpdateAuthConfirmedClient updates one or more existing entries in authConfirmedClient collection
 //
 // This function is auto-generated
-func (s Store) UpdateAuthConfirmedClient(ctx context.Context, rr ...*systemType.AuthConfirmedClient) (err error) {
+func (s *Store) UpdateAuthConfirmedClient(ctx context.Context, rr ...*systemType.AuthConfirmedClient) (err error) {
 	for i := range rr {
 		if err = s.checkAuthConfirmedClientConstraints(ctx, rr[i]); err != nil {
 			return
@@ -2975,7 +2975,7 @@ func (s Store) UpdateAuthConfirmedClient(ctx context.Context, rr ...*systemType.
 // UpsertAuthConfirmedClient updates one or more existing entries in authConfirmedClient collection
 //
 // This function is auto-generated
-func (s Store) UpsertAuthConfirmedClient(ctx context.Context, rr ...*systemType.AuthConfirmedClient) (err error) {
+func (s *Store) UpsertAuthConfirmedClient(ctx context.Context, rr ...*systemType.AuthConfirmedClient) (err error) {
 	for i := range rr {
 		if err = s.checkAuthConfirmedClientConstraints(ctx, rr[i]); err != nil {
 			return
@@ -2992,7 +2992,7 @@ func (s Store) UpsertAuthConfirmedClient(ctx context.Context, rr ...*systemType.
 // DeleteAuthConfirmedClient Deletes one or more entries from authConfirmedClient collection
 //
 // This function is auto-generated
-func (s Store) DeleteAuthConfirmedClient(ctx context.Context, rr ...*systemType.AuthConfirmedClient) (err error) {
+func (s *Store) DeleteAuthConfirmedClient(ctx context.Context, rr ...*systemType.AuthConfirmedClient) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, authConfirmedClientDeleteQuery(s.config.Dialect, authConfirmedClientPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -3005,7 +3005,7 @@ func (s Store) DeleteAuthConfirmedClient(ctx context.Context, rr ...*systemType.
 // DeleteAuthConfirmedClientByID deletes single entry from authConfirmedClient collection
 //
 // This function is auto-generated
-func (s Store) DeleteAuthConfirmedClientByUserIDClientID(ctx context.Context, userID uint64, clientID uint64) error {
+func (s *Store) DeleteAuthConfirmedClientByUserIDClientID(ctx context.Context, userID uint64, clientID uint64) error {
 	return s.Exec(ctx, authConfirmedClientDeleteQuery(s.config.Dialect, goqu.Ex{
 		"rel_user":   userID,
 		"rel_client": clientID,
@@ -3013,14 +3013,14 @@ func (s Store) DeleteAuthConfirmedClientByUserIDClientID(ctx context.Context, us
 }
 
 // TruncateAuthConfirmedClients Deletes all rows from the authConfirmedClient collection
-func (s Store) TruncateAuthConfirmedClients(ctx context.Context) error {
+func (s *Store) TruncateAuthConfirmedClients(ctx context.Context) error {
 	return s.Exec(ctx, authConfirmedClientTruncateQuery(s.config.Dialect))
 }
 
 // SearchAuthConfirmedClients returns (filtered) set of AuthConfirmedClients
 //
 // This function is auto-generated
-func (s Store) SearchAuthConfirmedClients(ctx context.Context, f systemType.AuthConfirmedClientFilter) (set systemType.AuthConfirmedClientSet, _ systemType.AuthConfirmedClientFilter, err error) {
+func (s *Store) SearchAuthConfirmedClients(ctx context.Context, f systemType.AuthConfirmedClientFilter) (set systemType.AuthConfirmedClientSet, _ systemType.AuthConfirmedClientFilter, err error) {
 
 	set, _, err = s.QueryAuthConfirmedClients(ctx, f)
 	if err != nil {
@@ -3036,7 +3036,7 @@ func (s Store) SearchAuthConfirmedClients(ctx context.Context, f systemType.Auth
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryAuthConfirmedClients(
+func (s *Store) QueryAuthConfirmedClients(
 	ctx context.Context,
 	f systemType.AuthConfirmedClientFilter,
 ) (_ []*systemType.AuthConfirmedClient, more bool, err error) {
@@ -3051,7 +3051,7 @@ func (s Store) QueryAuthConfirmedClients(
 
 	if s.config.Filters.AuthConfirmedClient != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.AuthConfirmedClient(f)
+		tExpr, f, err = s.config.Filters.AuthConfirmedClient(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = AuthConfirmedClientFilter(f)
@@ -3117,7 +3117,7 @@ func (s Store) QueryAuthConfirmedClients(
 // LookupAuthConfirmedClientByUserIDClientID
 //
 // This function is auto-generated
-func (s Store) LookupAuthConfirmedClientByUserIDClientID(ctx context.Context, userID uint64, clientID uint64) (_ *systemType.AuthConfirmedClient, err error) {
+func (s *Store) LookupAuthConfirmedClientByUserIDClientID(ctx context.Context, userID uint64, clientID uint64) (_ *systemType.AuthConfirmedClient, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAuthConfirmedClient)
@@ -3182,7 +3182,7 @@ func (Store) sortableAuthConfirmedClientFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectAuthConfirmedClientCursorValues(res *systemType.AuthConfirmedClient, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectAuthConfirmedClientCursorValues(res *systemType.AuthConfirmedClient, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -3233,7 +3233,7 @@ func (s *Store) checkAuthConfirmedClientConstraints(ctx context.Context, res *sy
 // CreateAuthOa2token creates one or more rows in authOa2token collection
 //
 // This function is auto-generated
-func (s Store) CreateAuthOa2token(ctx context.Context, rr ...*systemType.AuthOa2token) (err error) {
+func (s *Store) CreateAuthOa2token(ctx context.Context, rr ...*systemType.AuthOa2token) (err error) {
 	for i := range rr {
 		if err = s.checkAuthOa2tokenConstraints(ctx, rr[i]); err != nil {
 			return
@@ -3250,7 +3250,7 @@ func (s Store) CreateAuthOa2token(ctx context.Context, rr ...*systemType.AuthOa2
 // UpdateAuthOa2token updates one or more existing entries in authOa2token collection
 //
 // This function is auto-generated
-func (s Store) UpdateAuthOa2token(ctx context.Context, rr ...*systemType.AuthOa2token) (err error) {
+func (s *Store) UpdateAuthOa2token(ctx context.Context, rr ...*systemType.AuthOa2token) (err error) {
 	for i := range rr {
 		if err = s.checkAuthOa2tokenConstraints(ctx, rr[i]); err != nil {
 			return
@@ -3267,7 +3267,7 @@ func (s Store) UpdateAuthOa2token(ctx context.Context, rr ...*systemType.AuthOa2
 // UpsertAuthOa2token updates one or more existing entries in authOa2token collection
 //
 // This function is auto-generated
-func (s Store) UpsertAuthOa2token(ctx context.Context, rr ...*systemType.AuthOa2token) (err error) {
+func (s *Store) UpsertAuthOa2token(ctx context.Context, rr ...*systemType.AuthOa2token) (err error) {
 	for i := range rr {
 		if err = s.checkAuthOa2tokenConstraints(ctx, rr[i]); err != nil {
 			return
@@ -3284,7 +3284,7 @@ func (s Store) UpsertAuthOa2token(ctx context.Context, rr ...*systemType.AuthOa2
 // DeleteAuthOa2token Deletes one or more entries from authOa2token collection
 //
 // This function is auto-generated
-func (s Store) DeleteAuthOa2token(ctx context.Context, rr ...*systemType.AuthOa2token) (err error) {
+func (s *Store) DeleteAuthOa2token(ctx context.Context, rr ...*systemType.AuthOa2token) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, authOa2tokenDeleteQuery(s.config.Dialect, authOa2tokenPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -3297,21 +3297,21 @@ func (s Store) DeleteAuthOa2token(ctx context.Context, rr ...*systemType.AuthOa2
 // DeleteAuthOa2tokenByID deletes single entry from authOa2token collection
 //
 // This function is auto-generated
-func (s Store) DeleteAuthOa2tokenByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteAuthOa2tokenByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, authOa2tokenDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateAuthOa2tokens Deletes all rows from the authOa2token collection
-func (s Store) TruncateAuthOa2tokens(ctx context.Context) error {
+func (s *Store) TruncateAuthOa2tokens(ctx context.Context) error {
 	return s.Exec(ctx, authOa2tokenTruncateQuery(s.config.Dialect))
 }
 
 // SearchAuthOa2tokens returns (filtered) set of AuthOa2tokens
 //
 // This function is auto-generated
-func (s Store) SearchAuthOa2tokens(ctx context.Context, f systemType.AuthOa2tokenFilter) (set systemType.AuthOa2tokenSet, _ systemType.AuthOa2tokenFilter, err error) {
+func (s *Store) SearchAuthOa2tokens(ctx context.Context, f systemType.AuthOa2tokenFilter) (set systemType.AuthOa2tokenSet, _ systemType.AuthOa2tokenFilter, err error) {
 
 	set, _, err = s.QueryAuthOa2tokens(ctx, f)
 	if err != nil {
@@ -3327,7 +3327,7 @@ func (s Store) SearchAuthOa2tokens(ctx context.Context, f systemType.AuthOa2toke
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryAuthOa2tokens(
+func (s *Store) QueryAuthOa2tokens(
 	ctx context.Context,
 	f systemType.AuthOa2tokenFilter,
 ) (_ []*systemType.AuthOa2token, more bool, err error) {
@@ -3342,7 +3342,7 @@ func (s Store) QueryAuthOa2tokens(
 
 	if s.config.Filters.AuthOa2token != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.AuthOa2token(f)
+		tExpr, f, err = s.config.Filters.AuthOa2token(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = AuthOa2tokenFilter(f)
@@ -3408,7 +3408,7 @@ func (s Store) QueryAuthOa2tokens(
 // LookupAuthOa2tokenByID
 //
 // This function is auto-generated
-func (s Store) LookupAuthOa2tokenByID(ctx context.Context, id uint64) (_ *systemType.AuthOa2token, err error) {
+func (s *Store) LookupAuthOa2tokenByID(ctx context.Context, id uint64) (_ *systemType.AuthOa2token, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAuthOa2token)
@@ -3448,7 +3448,7 @@ func (s Store) LookupAuthOa2tokenByID(ctx context.Context, id uint64) (_ *system
 // LookupAuthOa2tokenByCode
 //
 // This function is auto-generated
-func (s Store) LookupAuthOa2tokenByCode(ctx context.Context, code string) (_ *systemType.AuthOa2token, err error) {
+func (s *Store) LookupAuthOa2tokenByCode(ctx context.Context, code string) (_ *systemType.AuthOa2token, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAuthOa2token)
@@ -3488,7 +3488,7 @@ func (s Store) LookupAuthOa2tokenByCode(ctx context.Context, code string) (_ *sy
 // LookupAuthOa2tokenByAccess
 //
 // This function is auto-generated
-func (s Store) LookupAuthOa2tokenByAccess(ctx context.Context, access string) (_ *systemType.AuthOa2token, err error) {
+func (s *Store) LookupAuthOa2tokenByAccess(ctx context.Context, access string) (_ *systemType.AuthOa2token, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAuthOa2token)
@@ -3528,7 +3528,7 @@ func (s Store) LookupAuthOa2tokenByAccess(ctx context.Context, access string) (_
 // LookupAuthOa2tokenByRefresh
 //
 // This function is auto-generated
-func (s Store) LookupAuthOa2tokenByRefresh(ctx context.Context, refresh string) (_ *systemType.AuthOa2token, err error) {
+func (s *Store) LookupAuthOa2tokenByRefresh(ctx context.Context, refresh string) (_ *systemType.AuthOa2token, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAuthOa2token)
@@ -3591,7 +3591,7 @@ func (Store) sortableAuthOa2tokenFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectAuthOa2tokenCursorValues(res *systemType.AuthOa2token, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectAuthOa2tokenCursorValues(res *systemType.AuthOa2token, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -3637,7 +3637,7 @@ func (s *Store) checkAuthOa2tokenConstraints(ctx context.Context, res *systemTyp
 // CreateAuthSession creates one or more rows in authSession collection
 //
 // This function is auto-generated
-func (s Store) CreateAuthSession(ctx context.Context, rr ...*systemType.AuthSession) (err error) {
+func (s *Store) CreateAuthSession(ctx context.Context, rr ...*systemType.AuthSession) (err error) {
 	for i := range rr {
 		if err = s.checkAuthSessionConstraints(ctx, rr[i]); err != nil {
 			return
@@ -3654,7 +3654,7 @@ func (s Store) CreateAuthSession(ctx context.Context, rr ...*systemType.AuthSess
 // UpdateAuthSession updates one or more existing entries in authSession collection
 //
 // This function is auto-generated
-func (s Store) UpdateAuthSession(ctx context.Context, rr ...*systemType.AuthSession) (err error) {
+func (s *Store) UpdateAuthSession(ctx context.Context, rr ...*systemType.AuthSession) (err error) {
 	for i := range rr {
 		if err = s.checkAuthSessionConstraints(ctx, rr[i]); err != nil {
 			return
@@ -3671,7 +3671,7 @@ func (s Store) UpdateAuthSession(ctx context.Context, rr ...*systemType.AuthSess
 // UpsertAuthSession updates one or more existing entries in authSession collection
 //
 // This function is auto-generated
-func (s Store) UpsertAuthSession(ctx context.Context, rr ...*systemType.AuthSession) (err error) {
+func (s *Store) UpsertAuthSession(ctx context.Context, rr ...*systemType.AuthSession) (err error) {
 	for i := range rr {
 		if err = s.checkAuthSessionConstraints(ctx, rr[i]); err != nil {
 			return
@@ -3688,7 +3688,7 @@ func (s Store) UpsertAuthSession(ctx context.Context, rr ...*systemType.AuthSess
 // DeleteAuthSession Deletes one or more entries from authSession collection
 //
 // This function is auto-generated
-func (s Store) DeleteAuthSession(ctx context.Context, rr ...*systemType.AuthSession) (err error) {
+func (s *Store) DeleteAuthSession(ctx context.Context, rr ...*systemType.AuthSession) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, authSessionDeleteQuery(s.config.Dialect, authSessionPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -3701,21 +3701,21 @@ func (s Store) DeleteAuthSession(ctx context.Context, rr ...*systemType.AuthSess
 // DeleteAuthSessionByID deletes single entry from authSession collection
 //
 // This function is auto-generated
-func (s Store) DeleteAuthSessionByID(ctx context.Context, id string) error {
+func (s *Store) DeleteAuthSessionByID(ctx context.Context, id string) error {
 	return s.Exec(ctx, authSessionDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateAuthSessions Deletes all rows from the authSession collection
-func (s Store) TruncateAuthSessions(ctx context.Context) error {
+func (s *Store) TruncateAuthSessions(ctx context.Context) error {
 	return s.Exec(ctx, authSessionTruncateQuery(s.config.Dialect))
 }
 
 // SearchAuthSessions returns (filtered) set of AuthSessions
 //
 // This function is auto-generated
-func (s Store) SearchAuthSessions(ctx context.Context, f systemType.AuthSessionFilter) (set systemType.AuthSessionSet, _ systemType.AuthSessionFilter, err error) {
+func (s *Store) SearchAuthSessions(ctx context.Context, f systemType.AuthSessionFilter) (set systemType.AuthSessionSet, _ systemType.AuthSessionFilter, err error) {
 
 	set, _, err = s.QueryAuthSessions(ctx, f)
 	if err != nil {
@@ -3731,7 +3731,7 @@ func (s Store) SearchAuthSessions(ctx context.Context, f systemType.AuthSessionF
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryAuthSessions(
+func (s *Store) QueryAuthSessions(
 	ctx context.Context,
 	f systemType.AuthSessionFilter,
 ) (_ []*systemType.AuthSession, more bool, err error) {
@@ -3746,7 +3746,7 @@ func (s Store) QueryAuthSessions(
 
 	if s.config.Filters.AuthSession != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.AuthSession(f)
+		tExpr, f, err = s.config.Filters.AuthSession(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = AuthSessionFilter(f)
@@ -3812,7 +3812,7 @@ func (s Store) QueryAuthSessions(
 // LookupAuthSessionByID
 //
 // This function is auto-generated
-func (s Store) LookupAuthSessionByID(ctx context.Context, id string) (_ *systemType.AuthSession, err error) {
+func (s *Store) LookupAuthSessionByID(ctx context.Context, id string) (_ *systemType.AuthSession, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAuthSession)
@@ -3875,7 +3875,7 @@ func (Store) sortableAuthSessionFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectAuthSessionCursorValues(res *systemType.AuthSession, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectAuthSessionCursorValues(res *systemType.AuthSession, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -3921,7 +3921,7 @@ func (s *Store) checkAuthSessionConstraints(ctx context.Context, res *systemType
 // CreateAutomationSession creates one or more rows in automationSession collection
 //
 // This function is auto-generated
-func (s Store) CreateAutomationSession(ctx context.Context, rr ...*automationType.Session) (err error) {
+func (s *Store) CreateAutomationSession(ctx context.Context, rr ...*automationType.Session) (err error) {
 	for i := range rr {
 		if err = s.checkAutomationSessionConstraints(ctx, rr[i]); err != nil {
 			return
@@ -3938,7 +3938,7 @@ func (s Store) CreateAutomationSession(ctx context.Context, rr ...*automationTyp
 // UpdateAutomationSession updates one or more existing entries in automationSession collection
 //
 // This function is auto-generated
-func (s Store) UpdateAutomationSession(ctx context.Context, rr ...*automationType.Session) (err error) {
+func (s *Store) UpdateAutomationSession(ctx context.Context, rr ...*automationType.Session) (err error) {
 	for i := range rr {
 		if err = s.checkAutomationSessionConstraints(ctx, rr[i]); err != nil {
 			return
@@ -3955,7 +3955,7 @@ func (s Store) UpdateAutomationSession(ctx context.Context, rr ...*automationTyp
 // UpsertAutomationSession updates one or more existing entries in automationSession collection
 //
 // This function is auto-generated
-func (s Store) UpsertAutomationSession(ctx context.Context, rr ...*automationType.Session) (err error) {
+func (s *Store) UpsertAutomationSession(ctx context.Context, rr ...*automationType.Session) (err error) {
 	for i := range rr {
 		if err = s.checkAutomationSessionConstraints(ctx, rr[i]); err != nil {
 			return
@@ -3972,7 +3972,7 @@ func (s Store) UpsertAutomationSession(ctx context.Context, rr ...*automationTyp
 // DeleteAutomationSession Deletes one or more entries from automationSession collection
 //
 // This function is auto-generated
-func (s Store) DeleteAutomationSession(ctx context.Context, rr ...*automationType.Session) (err error) {
+func (s *Store) DeleteAutomationSession(ctx context.Context, rr ...*automationType.Session) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, automationSessionDeleteQuery(s.config.Dialect, automationSessionPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -3985,21 +3985,21 @@ func (s Store) DeleteAutomationSession(ctx context.Context, rr ...*automationTyp
 // DeleteAutomationSessionByID deletes single entry from automationSession collection
 //
 // This function is auto-generated
-func (s Store) DeleteAutomationSessionByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteAutomationSessionByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, automationSessionDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateAutomationSessions Deletes all rows from the automationSession collection
-func (s Store) TruncateAutomationSessions(ctx context.Context) error {
+func (s *Store) TruncateAutomationSessions(ctx context.Context) error {
 	return s.Exec(ctx, automationSessionTruncateQuery(s.config.Dialect))
 }
 
 // SearchAutomationSessions returns (filtered) set of AutomationSessions
 //
 // This function is auto-generated
-func (s Store) SearchAutomationSessions(ctx context.Context, f automationType.SessionFilter) (set automationType.SessionSet, _ automationType.SessionFilter, err error) {
+func (s *Store) SearchAutomationSessions(ctx context.Context, f automationType.SessionFilter) (set automationType.SessionSet, _ automationType.SessionFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -4055,7 +4055,7 @@ func (s Store) SearchAutomationSessions(ctx context.Context, f automationType.Se
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfAutomationSessions(
+func (s *Store) fetchFullPageOfAutomationSessions(
 	ctx context.Context,
 	filter automationType.SessionFilter,
 	sort filter.SortExprSet,
@@ -4176,7 +4176,7 @@ func (s Store) fetchFullPageOfAutomationSessions(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryAutomationSessions(
+func (s *Store) QueryAutomationSessions(
 	ctx context.Context,
 	f automationType.SessionFilter,
 ) (_ []*automationType.Session, more bool, err error) {
@@ -4195,7 +4195,7 @@ func (s Store) QueryAutomationSessions(
 
 	if s.config.Filters.AutomationSession != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.AutomationSession(f)
+		tExpr, f, err = s.config.Filters.AutomationSession(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = AutomationSessionFilter(f)
@@ -4292,7 +4292,7 @@ func (s Store) QueryAutomationSessions(
 // It returns session even if deleted
 //
 // This function is auto-generated
-func (s Store) LookupAutomationSessionByID(ctx context.Context, id uint64) (_ *automationType.Session, err error) {
+func (s *Store) LookupAutomationSessionByID(ctx context.Context, id uint64) (_ *automationType.Session, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAutomationSession)
@@ -4359,7 +4359,7 @@ func (Store) sortableAutomationSessionFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectAutomationSessionCursorValues(res *automationType.Session, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectAutomationSessionCursorValues(res *automationType.Session, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -4409,7 +4409,7 @@ func (s *Store) checkAutomationSessionConstraints(ctx context.Context, res *auto
 // CreateAutomationTrigger creates one or more rows in automationTrigger collection
 //
 // This function is auto-generated
-func (s Store) CreateAutomationTrigger(ctx context.Context, rr ...*automationType.Trigger) (err error) {
+func (s *Store) CreateAutomationTrigger(ctx context.Context, rr ...*automationType.Trigger) (err error) {
 	for i := range rr {
 		if err = s.checkAutomationTriggerConstraints(ctx, rr[i]); err != nil {
 			return
@@ -4426,7 +4426,7 @@ func (s Store) CreateAutomationTrigger(ctx context.Context, rr ...*automationTyp
 // UpdateAutomationTrigger updates one or more existing entries in automationTrigger collection
 //
 // This function is auto-generated
-func (s Store) UpdateAutomationTrigger(ctx context.Context, rr ...*automationType.Trigger) (err error) {
+func (s *Store) UpdateAutomationTrigger(ctx context.Context, rr ...*automationType.Trigger) (err error) {
 	for i := range rr {
 		if err = s.checkAutomationTriggerConstraints(ctx, rr[i]); err != nil {
 			return
@@ -4443,7 +4443,7 @@ func (s Store) UpdateAutomationTrigger(ctx context.Context, rr ...*automationTyp
 // UpsertAutomationTrigger updates one or more existing entries in automationTrigger collection
 //
 // This function is auto-generated
-func (s Store) UpsertAutomationTrigger(ctx context.Context, rr ...*automationType.Trigger) (err error) {
+func (s *Store) UpsertAutomationTrigger(ctx context.Context, rr ...*automationType.Trigger) (err error) {
 	for i := range rr {
 		if err = s.checkAutomationTriggerConstraints(ctx, rr[i]); err != nil {
 			return
@@ -4460,7 +4460,7 @@ func (s Store) UpsertAutomationTrigger(ctx context.Context, rr ...*automationTyp
 // DeleteAutomationTrigger Deletes one or more entries from automationTrigger collection
 //
 // This function is auto-generated
-func (s Store) DeleteAutomationTrigger(ctx context.Context, rr ...*automationType.Trigger) (err error) {
+func (s *Store) DeleteAutomationTrigger(ctx context.Context, rr ...*automationType.Trigger) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, automationTriggerDeleteQuery(s.config.Dialect, automationTriggerPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -4473,21 +4473,21 @@ func (s Store) DeleteAutomationTrigger(ctx context.Context, rr ...*automationTyp
 // DeleteAutomationTriggerByID deletes single entry from automationTrigger collection
 //
 // This function is auto-generated
-func (s Store) DeleteAutomationTriggerByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteAutomationTriggerByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, automationTriggerDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateAutomationTriggers Deletes all rows from the automationTrigger collection
-func (s Store) TruncateAutomationTriggers(ctx context.Context) error {
+func (s *Store) TruncateAutomationTriggers(ctx context.Context) error {
 	return s.Exec(ctx, automationTriggerTruncateQuery(s.config.Dialect))
 }
 
 // SearchAutomationTriggers returns (filtered) set of AutomationTriggers
 //
 // This function is auto-generated
-func (s Store) SearchAutomationTriggers(ctx context.Context, f automationType.TriggerFilter) (set automationType.TriggerSet, _ automationType.TriggerFilter, err error) {
+func (s *Store) SearchAutomationTriggers(ctx context.Context, f automationType.TriggerFilter) (set automationType.TriggerSet, _ automationType.TriggerFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -4543,7 +4543,7 @@ func (s Store) SearchAutomationTriggers(ctx context.Context, f automationType.Tr
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfAutomationTriggers(
+func (s *Store) fetchFullPageOfAutomationTriggers(
 	ctx context.Context,
 	filter automationType.TriggerFilter,
 	sort filter.SortExprSet,
@@ -4664,7 +4664,7 @@ func (s Store) fetchFullPageOfAutomationTriggers(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryAutomationTriggers(
+func (s *Store) QueryAutomationTriggers(
 	ctx context.Context,
 	f automationType.TriggerFilter,
 ) (_ []*automationType.Trigger, more bool, err error) {
@@ -4683,7 +4683,7 @@ func (s Store) QueryAutomationTriggers(
 
 	if s.config.Filters.AutomationTrigger != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.AutomationTrigger(f)
+		tExpr, f, err = s.config.Filters.AutomationTrigger(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = AutomationTriggerFilter(f)
@@ -4780,7 +4780,7 @@ func (s Store) QueryAutomationTriggers(
 // It returns trigger even if deleted
 //
 // This function is auto-generated
-func (s Store) LookupAutomationTriggerByID(ctx context.Context, id uint64) (_ *automationType.Trigger, err error) {
+func (s *Store) LookupAutomationTriggerByID(ctx context.Context, id uint64) (_ *automationType.Trigger, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAutomationTrigger)
@@ -4845,7 +4845,7 @@ func (Store) sortableAutomationTriggerFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectAutomationTriggerCursorValues(res *automationType.Trigger, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectAutomationTriggerCursorValues(res *automationType.Trigger, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -4893,7 +4893,7 @@ func (s *Store) checkAutomationTriggerConstraints(ctx context.Context, res *auto
 // CreateAutomationWorkflow creates one or more rows in automationWorkflow collection
 //
 // This function is auto-generated
-func (s Store) CreateAutomationWorkflow(ctx context.Context, rr ...*automationType.Workflow) (err error) {
+func (s *Store) CreateAutomationWorkflow(ctx context.Context, rr ...*automationType.Workflow) (err error) {
 	for i := range rr {
 		if err = s.checkAutomationWorkflowConstraints(ctx, rr[i]); err != nil {
 			return
@@ -4910,7 +4910,7 @@ func (s Store) CreateAutomationWorkflow(ctx context.Context, rr ...*automationTy
 // UpdateAutomationWorkflow updates one or more existing entries in automationWorkflow collection
 //
 // This function is auto-generated
-func (s Store) UpdateAutomationWorkflow(ctx context.Context, rr ...*automationType.Workflow) (err error) {
+func (s *Store) UpdateAutomationWorkflow(ctx context.Context, rr ...*automationType.Workflow) (err error) {
 	for i := range rr {
 		if err = s.checkAutomationWorkflowConstraints(ctx, rr[i]); err != nil {
 			return
@@ -4927,7 +4927,7 @@ func (s Store) UpdateAutomationWorkflow(ctx context.Context, rr ...*automationTy
 // UpsertAutomationWorkflow updates one or more existing entries in automationWorkflow collection
 //
 // This function is auto-generated
-func (s Store) UpsertAutomationWorkflow(ctx context.Context, rr ...*automationType.Workflow) (err error) {
+func (s *Store) UpsertAutomationWorkflow(ctx context.Context, rr ...*automationType.Workflow) (err error) {
 	for i := range rr {
 		if err = s.checkAutomationWorkflowConstraints(ctx, rr[i]); err != nil {
 			return
@@ -4944,7 +4944,7 @@ func (s Store) UpsertAutomationWorkflow(ctx context.Context, rr ...*automationTy
 // DeleteAutomationWorkflow Deletes one or more entries from automationWorkflow collection
 //
 // This function is auto-generated
-func (s Store) DeleteAutomationWorkflow(ctx context.Context, rr ...*automationType.Workflow) (err error) {
+func (s *Store) DeleteAutomationWorkflow(ctx context.Context, rr ...*automationType.Workflow) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, automationWorkflowDeleteQuery(s.config.Dialect, automationWorkflowPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -4957,21 +4957,21 @@ func (s Store) DeleteAutomationWorkflow(ctx context.Context, rr ...*automationTy
 // DeleteAutomationWorkflowByID deletes single entry from automationWorkflow collection
 //
 // This function is auto-generated
-func (s Store) DeleteAutomationWorkflowByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteAutomationWorkflowByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, automationWorkflowDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateAutomationWorkflows Deletes all rows from the automationWorkflow collection
-func (s Store) TruncateAutomationWorkflows(ctx context.Context) error {
+func (s *Store) TruncateAutomationWorkflows(ctx context.Context) error {
 	return s.Exec(ctx, automationWorkflowTruncateQuery(s.config.Dialect))
 }
 
 // SearchAutomationWorkflows returns (filtered) set of AutomationWorkflows
 //
 // This function is auto-generated
-func (s Store) SearchAutomationWorkflows(ctx context.Context, f automationType.WorkflowFilter) (set automationType.WorkflowSet, _ automationType.WorkflowFilter, err error) {
+func (s *Store) SearchAutomationWorkflows(ctx context.Context, f automationType.WorkflowFilter) (set automationType.WorkflowSet, _ automationType.WorkflowFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -5027,7 +5027,7 @@ func (s Store) SearchAutomationWorkflows(ctx context.Context, f automationType.W
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfAutomationWorkflows(
+func (s *Store) fetchFullPageOfAutomationWorkflows(
 	ctx context.Context,
 	filter automationType.WorkflowFilter,
 	sort filter.SortExprSet,
@@ -5148,7 +5148,7 @@ func (s Store) fetchFullPageOfAutomationWorkflows(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryAutomationWorkflows(
+func (s *Store) QueryAutomationWorkflows(
 	ctx context.Context,
 	f automationType.WorkflowFilter,
 ) (_ []*automationType.Workflow, more bool, err error) {
@@ -5167,7 +5167,7 @@ func (s Store) QueryAutomationWorkflows(
 
 	if s.config.Filters.AutomationWorkflow != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.AutomationWorkflow(f)
+		tExpr, f, err = s.config.Filters.AutomationWorkflow(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = AutomationWorkflowFilter(f)
@@ -5264,7 +5264,7 @@ func (s Store) QueryAutomationWorkflows(
 // It returns workflow even if deleted
 //
 // This function is auto-generated
-func (s Store) LookupAutomationWorkflowByID(ctx context.Context, id uint64) (_ *automationType.Workflow, err error) {
+func (s *Store) LookupAutomationWorkflowByID(ctx context.Context, id uint64) (_ *automationType.Workflow, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAutomationWorkflow)
@@ -5306,7 +5306,7 @@ func (s Store) LookupAutomationWorkflowByID(ctx context.Context, id uint64) (_ *
 // It returns only valid workflows
 //
 // This function is auto-generated
-func (s Store) LookupAutomationWorkflowByHandle(ctx context.Context, handle string) (_ *automationType.Workflow, err error) {
+func (s *Store) LookupAutomationWorkflowByHandle(ctx context.Context, handle string) (_ *automationType.Workflow, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAutomationWorkflow)
@@ -5373,7 +5373,7 @@ func (Store) sortableAutomationWorkflowFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectAutomationWorkflowCursorValues(res *automationType.Workflow, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectAutomationWorkflowCursorValues(res *automationType.Workflow, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -5451,7 +5451,7 @@ func (s *Store) checkAutomationWorkflowConstraints(ctx context.Context, res *aut
 // CreateComposeAttachment creates one or more rows in composeAttachment collection
 //
 // This function is auto-generated
-func (s Store) CreateComposeAttachment(ctx context.Context, rr ...*composeType.Attachment) (err error) {
+func (s *Store) CreateComposeAttachment(ctx context.Context, rr ...*composeType.Attachment) (err error) {
 	for i := range rr {
 		if err = s.checkComposeAttachmentConstraints(ctx, rr[i]); err != nil {
 			return
@@ -5468,7 +5468,7 @@ func (s Store) CreateComposeAttachment(ctx context.Context, rr ...*composeType.A
 // UpdateComposeAttachment updates one or more existing entries in composeAttachment collection
 //
 // This function is auto-generated
-func (s Store) UpdateComposeAttachment(ctx context.Context, rr ...*composeType.Attachment) (err error) {
+func (s *Store) UpdateComposeAttachment(ctx context.Context, rr ...*composeType.Attachment) (err error) {
 	for i := range rr {
 		if err = s.checkComposeAttachmentConstraints(ctx, rr[i]); err != nil {
 			return
@@ -5485,7 +5485,7 @@ func (s Store) UpdateComposeAttachment(ctx context.Context, rr ...*composeType.A
 // UpsertComposeAttachment updates one or more existing entries in composeAttachment collection
 //
 // This function is auto-generated
-func (s Store) UpsertComposeAttachment(ctx context.Context, rr ...*composeType.Attachment) (err error) {
+func (s *Store) UpsertComposeAttachment(ctx context.Context, rr ...*composeType.Attachment) (err error) {
 	for i := range rr {
 		if err = s.checkComposeAttachmentConstraints(ctx, rr[i]); err != nil {
 			return
@@ -5502,7 +5502,7 @@ func (s Store) UpsertComposeAttachment(ctx context.Context, rr ...*composeType.A
 // DeleteComposeAttachment Deletes one or more entries from composeAttachment collection
 //
 // This function is auto-generated
-func (s Store) DeleteComposeAttachment(ctx context.Context, rr ...*composeType.Attachment) (err error) {
+func (s *Store) DeleteComposeAttachment(ctx context.Context, rr ...*composeType.Attachment) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, composeAttachmentDeleteQuery(s.config.Dialect, composeAttachmentPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -5515,21 +5515,21 @@ func (s Store) DeleteComposeAttachment(ctx context.Context, rr ...*composeType.A
 // DeleteComposeAttachmentByID deletes single entry from composeAttachment collection
 //
 // This function is auto-generated
-func (s Store) DeleteComposeAttachmentByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteComposeAttachmentByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, composeAttachmentDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateComposeAttachments Deletes all rows from the composeAttachment collection
-func (s Store) TruncateComposeAttachments(ctx context.Context) error {
+func (s *Store) TruncateComposeAttachments(ctx context.Context) error {
 	return s.Exec(ctx, composeAttachmentTruncateQuery(s.config.Dialect))
 }
 
 // SearchComposeAttachments returns (filtered) set of ComposeAttachments
 //
 // This function is auto-generated
-func (s Store) SearchComposeAttachments(ctx context.Context, f composeType.AttachmentFilter) (set composeType.AttachmentSet, _ composeType.AttachmentFilter, err error) {
+func (s *Store) SearchComposeAttachments(ctx context.Context, f composeType.AttachmentFilter) (set composeType.AttachmentSet, _ composeType.AttachmentFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -5585,7 +5585,7 @@ func (s Store) SearchComposeAttachments(ctx context.Context, f composeType.Attac
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfComposeAttachments(
+func (s *Store) fetchFullPageOfComposeAttachments(
 	ctx context.Context,
 	filter composeType.AttachmentFilter,
 	sort filter.SortExprSet,
@@ -5706,7 +5706,7 @@ func (s Store) fetchFullPageOfComposeAttachments(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryComposeAttachments(
+func (s *Store) QueryComposeAttachments(
 	ctx context.Context,
 	f composeType.AttachmentFilter,
 ) (_ []*composeType.Attachment, more bool, err error) {
@@ -5725,7 +5725,7 @@ func (s Store) QueryComposeAttachments(
 
 	if s.config.Filters.ComposeAttachment != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.ComposeAttachment(f)
+		tExpr, f, err = s.config.Filters.ComposeAttachment(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = ComposeAttachmentFilter(f)
@@ -5820,7 +5820,7 @@ func (s Store) QueryComposeAttachments(
 // LookupComposeAttachmentByID
 //
 // This function is auto-generated
-func (s Store) LookupComposeAttachmentByID(ctx context.Context, id uint64) (_ *composeType.Attachment, err error) {
+func (s *Store) LookupComposeAttachmentByID(ctx context.Context, id uint64) (_ *composeType.Attachment, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposeAttachment)
@@ -5885,7 +5885,7 @@ func (Store) sortableComposeAttachmentFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectComposeAttachmentCursorValues(res *composeType.Attachment, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectComposeAttachmentCursorValues(res *composeType.Attachment, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -5933,7 +5933,7 @@ func (s *Store) checkComposeAttachmentConstraints(ctx context.Context, res *comp
 // CreateComposeChart creates one or more rows in composeChart collection
 //
 // This function is auto-generated
-func (s Store) CreateComposeChart(ctx context.Context, rr ...*composeType.Chart) (err error) {
+func (s *Store) CreateComposeChart(ctx context.Context, rr ...*composeType.Chart) (err error) {
 	for i := range rr {
 		if err = s.checkComposeChartConstraints(ctx, rr[i]); err != nil {
 			return
@@ -5950,7 +5950,7 @@ func (s Store) CreateComposeChart(ctx context.Context, rr ...*composeType.Chart)
 // UpdateComposeChart updates one or more existing entries in composeChart collection
 //
 // This function is auto-generated
-func (s Store) UpdateComposeChart(ctx context.Context, rr ...*composeType.Chart) (err error) {
+func (s *Store) UpdateComposeChart(ctx context.Context, rr ...*composeType.Chart) (err error) {
 	for i := range rr {
 		if err = s.checkComposeChartConstraints(ctx, rr[i]); err != nil {
 			return
@@ -5967,7 +5967,7 @@ func (s Store) UpdateComposeChart(ctx context.Context, rr ...*composeType.Chart)
 // UpsertComposeChart updates one or more existing entries in composeChart collection
 //
 // This function is auto-generated
-func (s Store) UpsertComposeChart(ctx context.Context, rr ...*composeType.Chart) (err error) {
+func (s *Store) UpsertComposeChart(ctx context.Context, rr ...*composeType.Chart) (err error) {
 	for i := range rr {
 		if err = s.checkComposeChartConstraints(ctx, rr[i]); err != nil {
 			return
@@ -5984,7 +5984,7 @@ func (s Store) UpsertComposeChart(ctx context.Context, rr ...*composeType.Chart)
 // DeleteComposeChart Deletes one or more entries from composeChart collection
 //
 // This function is auto-generated
-func (s Store) DeleteComposeChart(ctx context.Context, rr ...*composeType.Chart) (err error) {
+func (s *Store) DeleteComposeChart(ctx context.Context, rr ...*composeType.Chart) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, composeChartDeleteQuery(s.config.Dialect, composeChartPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -5997,21 +5997,21 @@ func (s Store) DeleteComposeChart(ctx context.Context, rr ...*composeType.Chart)
 // DeleteComposeChartByID deletes single entry from composeChart collection
 //
 // This function is auto-generated
-func (s Store) DeleteComposeChartByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteComposeChartByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, composeChartDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateComposeCharts Deletes all rows from the composeChart collection
-func (s Store) TruncateComposeCharts(ctx context.Context) error {
+func (s *Store) TruncateComposeCharts(ctx context.Context) error {
 	return s.Exec(ctx, composeChartTruncateQuery(s.config.Dialect))
 }
 
 // SearchComposeCharts returns (filtered) set of ComposeCharts
 //
 // This function is auto-generated
-func (s Store) SearchComposeCharts(ctx context.Context, f composeType.ChartFilter) (set composeType.ChartSet, _ composeType.ChartFilter, err error) {
+func (s *Store) SearchComposeCharts(ctx context.Context, f composeType.ChartFilter) (set composeType.ChartSet, _ composeType.ChartFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -6067,7 +6067,7 @@ func (s Store) SearchComposeCharts(ctx context.Context, f composeType.ChartFilte
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfComposeCharts(
+func (s *Store) fetchFullPageOfComposeCharts(
 	ctx context.Context,
 	filter composeType.ChartFilter,
 	sort filter.SortExprSet,
@@ -6188,7 +6188,7 @@ func (s Store) fetchFullPageOfComposeCharts(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryComposeCharts(
+func (s *Store) QueryComposeCharts(
 	ctx context.Context,
 	f composeType.ChartFilter,
 ) (_ []*composeType.Chart, more bool, err error) {
@@ -6207,7 +6207,7 @@ func (s Store) QueryComposeCharts(
 
 	if s.config.Filters.ComposeChart != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.ComposeChart(f)
+		tExpr, f, err = s.config.Filters.ComposeChart(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = ComposeChartFilter(f)
@@ -6304,7 +6304,7 @@ func (s Store) QueryComposeCharts(
 // It returns compose chart even if deleted
 //
 // This function is auto-generated
-func (s Store) LookupComposeChartByID(ctx context.Context, id uint64) (_ *composeType.Chart, err error) {
+func (s *Store) LookupComposeChartByID(ctx context.Context, id uint64) (_ *composeType.Chart, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposeChart)
@@ -6344,7 +6344,7 @@ func (s Store) LookupComposeChartByID(ctx context.Context, id uint64) (_ *compos
 // LookupComposeChartByNamespaceIDHandle searches for compose chart by handle (case-insensitive)
 //
 // This function is auto-generated
-func (s Store) LookupComposeChartByNamespaceIDHandle(ctx context.Context, namespaceID uint64, handle string) (_ *composeType.Chart, err error) {
+func (s *Store) LookupComposeChartByNamespaceIDHandle(ctx context.Context, namespaceID uint64, handle string) (_ *composeType.Chart, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposeChart)
@@ -6412,7 +6412,7 @@ func (Store) sortableComposeChartFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectComposeChartCursorValues(res *composeType.Chart, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectComposeChartCursorValues(res *composeType.Chart, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -6463,7 +6463,7 @@ func (s *Store) checkComposeChartConstraints(ctx context.Context, res *composeTy
 // CreateComposeModule creates one or more rows in composeModule collection
 //
 // This function is auto-generated
-func (s Store) CreateComposeModule(ctx context.Context, rr ...*composeType.Module) (err error) {
+func (s *Store) CreateComposeModule(ctx context.Context, rr ...*composeType.Module) (err error) {
 	for i := range rr {
 		if err = s.checkComposeModuleConstraints(ctx, rr[i]); err != nil {
 			return
@@ -6480,7 +6480,7 @@ func (s Store) CreateComposeModule(ctx context.Context, rr ...*composeType.Modul
 // UpdateComposeModule updates one or more existing entries in composeModule collection
 //
 // This function is auto-generated
-func (s Store) UpdateComposeModule(ctx context.Context, rr ...*composeType.Module) (err error) {
+func (s *Store) UpdateComposeModule(ctx context.Context, rr ...*composeType.Module) (err error) {
 	for i := range rr {
 		if err = s.checkComposeModuleConstraints(ctx, rr[i]); err != nil {
 			return
@@ -6497,7 +6497,7 @@ func (s Store) UpdateComposeModule(ctx context.Context, rr ...*composeType.Modul
 // UpsertComposeModule updates one or more existing entries in composeModule collection
 //
 // This function is auto-generated
-func (s Store) UpsertComposeModule(ctx context.Context, rr ...*composeType.Module) (err error) {
+func (s *Store) UpsertComposeModule(ctx context.Context, rr ...*composeType.Module) (err error) {
 	for i := range rr {
 		if err = s.checkComposeModuleConstraints(ctx, rr[i]); err != nil {
 			return
@@ -6514,7 +6514,7 @@ func (s Store) UpsertComposeModule(ctx context.Context, rr ...*composeType.Modul
 // DeleteComposeModule Deletes one or more entries from composeModule collection
 //
 // This function is auto-generated
-func (s Store) DeleteComposeModule(ctx context.Context, rr ...*composeType.Module) (err error) {
+func (s *Store) DeleteComposeModule(ctx context.Context, rr ...*composeType.Module) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, composeModuleDeleteQuery(s.config.Dialect, composeModulePrimaryKeys(rr[i]))); err != nil {
 			return
@@ -6527,21 +6527,21 @@ func (s Store) DeleteComposeModule(ctx context.Context, rr ...*composeType.Modul
 // DeleteComposeModuleByID deletes single entry from composeModule collection
 //
 // This function is auto-generated
-func (s Store) DeleteComposeModuleByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteComposeModuleByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, composeModuleDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateComposeModules Deletes all rows from the composeModule collection
-func (s Store) TruncateComposeModules(ctx context.Context) error {
+func (s *Store) TruncateComposeModules(ctx context.Context) error {
 	return s.Exec(ctx, composeModuleTruncateQuery(s.config.Dialect))
 }
 
 // SearchComposeModules returns (filtered) set of ComposeModules
 //
 // This function is auto-generated
-func (s Store) SearchComposeModules(ctx context.Context, f composeType.ModuleFilter) (set composeType.ModuleSet, _ composeType.ModuleFilter, err error) {
+func (s *Store) SearchComposeModules(ctx context.Context, f composeType.ModuleFilter) (set composeType.ModuleSet, _ composeType.ModuleFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -6597,7 +6597,7 @@ func (s Store) SearchComposeModules(ctx context.Context, f composeType.ModuleFil
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfComposeModules(
+func (s *Store) fetchFullPageOfComposeModules(
 	ctx context.Context,
 	filter composeType.ModuleFilter,
 	sort filter.SortExprSet,
@@ -6718,7 +6718,7 @@ func (s Store) fetchFullPageOfComposeModules(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryComposeModules(
+func (s *Store) QueryComposeModules(
 	ctx context.Context,
 	f composeType.ModuleFilter,
 ) (_ []*composeType.Module, more bool, err error) {
@@ -6737,7 +6737,7 @@ func (s Store) QueryComposeModules(
 
 	if s.config.Filters.ComposeModule != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.ComposeModule(f)
+		tExpr, f, err = s.config.Filters.ComposeModule(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = ComposeModuleFilter(f)
@@ -6832,7 +6832,7 @@ func (s Store) QueryComposeModules(
 // LookupComposeModuleByNamespaceIDHandle searches for compose module by handle (case-insensitive)
 //
 // This function is auto-generated
-func (s Store) LookupComposeModuleByNamespaceIDHandle(ctx context.Context, namespaceID uint64, handle string) (_ *composeType.Module, err error) {
+func (s *Store) LookupComposeModuleByNamespaceIDHandle(ctx context.Context, namespaceID uint64, handle string) (_ *composeType.Module, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposeModule)
@@ -6874,7 +6874,7 @@ func (s Store) LookupComposeModuleByNamespaceIDHandle(ctx context.Context, names
 // LookupComposeModuleByNamespaceIDName searches for compose module by name (case-insensitive)
 //
 // This function is auto-generated
-func (s Store) LookupComposeModuleByNamespaceIDName(ctx context.Context, namespaceID uint64, name string) (_ *composeType.Module, err error) {
+func (s *Store) LookupComposeModuleByNamespaceIDName(ctx context.Context, namespaceID uint64, name string) (_ *composeType.Module, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposeModule)
@@ -6918,7 +6918,7 @@ func (s Store) LookupComposeModuleByNamespaceIDName(ctx context.Context, namespa
 // It returns compose module even if deleted
 //
 // This function is auto-generated
-func (s Store) LookupComposeModuleByID(ctx context.Context, id uint64) (_ *composeType.Module, err error) {
+func (s *Store) LookupComposeModuleByID(ctx context.Context, id uint64) (_ *composeType.Module, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposeModule)
@@ -6984,7 +6984,7 @@ func (Store) sortableComposeModuleFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectComposeModuleCursorValues(res *composeType.Module, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectComposeModuleCursorValues(res *composeType.Module, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -7067,7 +7067,7 @@ func (s *Store) checkComposeModuleConstraints(ctx context.Context, res *composeT
 // CreateComposeModuleField creates one or more rows in composeModuleField collection
 //
 // This function is auto-generated
-func (s Store) CreateComposeModuleField(ctx context.Context, rr ...*composeType.ModuleField) (err error) {
+func (s *Store) CreateComposeModuleField(ctx context.Context, rr ...*composeType.ModuleField) (err error) {
 	for i := range rr {
 		if err = s.checkComposeModuleFieldConstraints(ctx, rr[i]); err != nil {
 			return
@@ -7084,7 +7084,7 @@ func (s Store) CreateComposeModuleField(ctx context.Context, rr ...*composeType.
 // UpdateComposeModuleField updates one or more existing entries in composeModuleField collection
 //
 // This function is auto-generated
-func (s Store) UpdateComposeModuleField(ctx context.Context, rr ...*composeType.ModuleField) (err error) {
+func (s *Store) UpdateComposeModuleField(ctx context.Context, rr ...*composeType.ModuleField) (err error) {
 	for i := range rr {
 		if err = s.checkComposeModuleFieldConstraints(ctx, rr[i]); err != nil {
 			return
@@ -7101,7 +7101,7 @@ func (s Store) UpdateComposeModuleField(ctx context.Context, rr ...*composeType.
 // UpsertComposeModuleField updates one or more existing entries in composeModuleField collection
 //
 // This function is auto-generated
-func (s Store) UpsertComposeModuleField(ctx context.Context, rr ...*composeType.ModuleField) (err error) {
+func (s *Store) UpsertComposeModuleField(ctx context.Context, rr ...*composeType.ModuleField) (err error) {
 	for i := range rr {
 		if err = s.checkComposeModuleFieldConstraints(ctx, rr[i]); err != nil {
 			return
@@ -7118,7 +7118,7 @@ func (s Store) UpsertComposeModuleField(ctx context.Context, rr ...*composeType.
 // DeleteComposeModuleField Deletes one or more entries from composeModuleField collection
 //
 // This function is auto-generated
-func (s Store) DeleteComposeModuleField(ctx context.Context, rr ...*composeType.ModuleField) (err error) {
+func (s *Store) DeleteComposeModuleField(ctx context.Context, rr ...*composeType.ModuleField) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, composeModuleFieldDeleteQuery(s.config.Dialect, composeModuleFieldPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -7131,21 +7131,21 @@ func (s Store) DeleteComposeModuleField(ctx context.Context, rr ...*composeType.
 // DeleteComposeModuleFieldByID deletes single entry from composeModuleField collection
 //
 // This function is auto-generated
-func (s Store) DeleteComposeModuleFieldByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteComposeModuleFieldByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, composeModuleFieldDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateComposeModuleFields Deletes all rows from the composeModuleField collection
-func (s Store) TruncateComposeModuleFields(ctx context.Context) error {
+func (s *Store) TruncateComposeModuleFields(ctx context.Context) error {
 	return s.Exec(ctx, composeModuleFieldTruncateQuery(s.config.Dialect))
 }
 
 // SearchComposeModuleFields returns (filtered) set of ComposeModuleFields
 //
 // This function is auto-generated
-func (s Store) SearchComposeModuleFields(ctx context.Context, f composeType.ModuleFieldFilter) (set composeType.ModuleFieldSet, _ composeType.ModuleFieldFilter, err error) {
+func (s *Store) SearchComposeModuleFields(ctx context.Context, f composeType.ModuleFieldFilter) (set composeType.ModuleFieldSet, _ composeType.ModuleFieldFilter, err error) {
 
 	set, _, err = s.QueryComposeModuleFields(ctx, f)
 	if err != nil {
@@ -7161,7 +7161,7 @@ func (s Store) SearchComposeModuleFields(ctx context.Context, f composeType.Modu
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryComposeModuleFields(
+func (s *Store) QueryComposeModuleFields(
 	ctx context.Context,
 	f composeType.ModuleFieldFilter,
 ) (_ []*composeType.ModuleField, more bool, err error) {
@@ -7176,7 +7176,7 @@ func (s Store) QueryComposeModuleFields(
 
 	if s.config.Filters.ComposeModuleField != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.ComposeModuleField(f)
+		tExpr, f, err = s.config.Filters.ComposeModuleField(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = ComposeModuleFieldFilter(f)
@@ -7242,7 +7242,7 @@ func (s Store) QueryComposeModuleFields(
 // LookupComposeModuleFieldByModuleIDName searches for compose module field by name (case-insensitive)
 //
 // This function is auto-generated
-func (s Store) LookupComposeModuleFieldByModuleIDName(ctx context.Context, moduleID uint64, name string) (_ *composeType.ModuleField, err error) {
+func (s *Store) LookupComposeModuleFieldByModuleIDName(ctx context.Context, moduleID uint64, name string) (_ *composeType.ModuleField, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposeModuleField)
@@ -7303,7 +7303,7 @@ func (Store) sortableComposeModuleFieldFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectComposeModuleFieldCursorValues(res *composeType.ModuleField, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectComposeModuleFieldCursorValues(res *composeType.ModuleField, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -7377,7 +7377,7 @@ func (s *Store) checkComposeModuleFieldConstraints(ctx context.Context, res *com
 // CreateComposeNamespace creates one or more rows in composeNamespace collection
 //
 // This function is auto-generated
-func (s Store) CreateComposeNamespace(ctx context.Context, rr ...*composeType.Namespace) (err error) {
+func (s *Store) CreateComposeNamespace(ctx context.Context, rr ...*composeType.Namespace) (err error) {
 	for i := range rr {
 		if err = s.checkComposeNamespaceConstraints(ctx, rr[i]); err != nil {
 			return
@@ -7394,7 +7394,7 @@ func (s Store) CreateComposeNamespace(ctx context.Context, rr ...*composeType.Na
 // UpdateComposeNamespace updates one or more existing entries in composeNamespace collection
 //
 // This function is auto-generated
-func (s Store) UpdateComposeNamespace(ctx context.Context, rr ...*composeType.Namespace) (err error) {
+func (s *Store) UpdateComposeNamespace(ctx context.Context, rr ...*composeType.Namespace) (err error) {
 	for i := range rr {
 		if err = s.checkComposeNamespaceConstraints(ctx, rr[i]); err != nil {
 			return
@@ -7411,7 +7411,7 @@ func (s Store) UpdateComposeNamespace(ctx context.Context, rr ...*composeType.Na
 // UpsertComposeNamespace updates one or more existing entries in composeNamespace collection
 //
 // This function is auto-generated
-func (s Store) UpsertComposeNamespace(ctx context.Context, rr ...*composeType.Namespace) (err error) {
+func (s *Store) UpsertComposeNamespace(ctx context.Context, rr ...*composeType.Namespace) (err error) {
 	for i := range rr {
 		if err = s.checkComposeNamespaceConstraints(ctx, rr[i]); err != nil {
 			return
@@ -7428,7 +7428,7 @@ func (s Store) UpsertComposeNamespace(ctx context.Context, rr ...*composeType.Na
 // DeleteComposeNamespace Deletes one or more entries from composeNamespace collection
 //
 // This function is auto-generated
-func (s Store) DeleteComposeNamespace(ctx context.Context, rr ...*composeType.Namespace) (err error) {
+func (s *Store) DeleteComposeNamespace(ctx context.Context, rr ...*composeType.Namespace) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, composeNamespaceDeleteQuery(s.config.Dialect, composeNamespacePrimaryKeys(rr[i]))); err != nil {
 			return
@@ -7441,21 +7441,21 @@ func (s Store) DeleteComposeNamespace(ctx context.Context, rr ...*composeType.Na
 // DeleteComposeNamespaceByID deletes single entry from composeNamespace collection
 //
 // This function is auto-generated
-func (s Store) DeleteComposeNamespaceByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteComposeNamespaceByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, composeNamespaceDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateComposeNamespaces Deletes all rows from the composeNamespace collection
-func (s Store) TruncateComposeNamespaces(ctx context.Context) error {
+func (s *Store) TruncateComposeNamespaces(ctx context.Context) error {
 	return s.Exec(ctx, composeNamespaceTruncateQuery(s.config.Dialect))
 }
 
 // SearchComposeNamespaces returns (filtered) set of ComposeNamespaces
 //
 // This function is auto-generated
-func (s Store) SearchComposeNamespaces(ctx context.Context, f composeType.NamespaceFilter) (set composeType.NamespaceSet, _ composeType.NamespaceFilter, err error) {
+func (s *Store) SearchComposeNamespaces(ctx context.Context, f composeType.NamespaceFilter) (set composeType.NamespaceSet, _ composeType.NamespaceFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -7511,7 +7511,7 @@ func (s Store) SearchComposeNamespaces(ctx context.Context, f composeType.Namesp
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfComposeNamespaces(
+func (s *Store) fetchFullPageOfComposeNamespaces(
 	ctx context.Context,
 	filter composeType.NamespaceFilter,
 	sort filter.SortExprSet,
@@ -7632,7 +7632,7 @@ func (s Store) fetchFullPageOfComposeNamespaces(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryComposeNamespaces(
+func (s *Store) QueryComposeNamespaces(
 	ctx context.Context,
 	f composeType.NamespaceFilter,
 ) (_ []*composeType.Namespace, more bool, err error) {
@@ -7651,7 +7651,7 @@ func (s Store) QueryComposeNamespaces(
 
 	if s.config.Filters.ComposeNamespace != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.ComposeNamespace(f)
+		tExpr, f, err = s.config.Filters.ComposeNamespace(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = ComposeNamespaceFilter(f)
@@ -7746,7 +7746,7 @@ func (s Store) QueryComposeNamespaces(
 // LookupComposeNamespaceBySlug searches for namespace by slug (case-insensitive)
 //
 // This function is auto-generated
-func (s Store) LookupComposeNamespaceBySlug(ctx context.Context, slug string) (_ *composeType.Namespace, err error) {
+func (s *Store) LookupComposeNamespaceBySlug(ctx context.Context, slug string) (_ *composeType.Namespace, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposeNamespace)
@@ -7789,7 +7789,7 @@ func (s Store) LookupComposeNamespaceBySlug(ctx context.Context, slug string) (_
 // It returns compose namespace even if deleted
 //
 // This function is auto-generated
-func (s Store) LookupComposeNamespaceByID(ctx context.Context, id uint64) (_ *composeType.Namespace, err error) {
+func (s *Store) LookupComposeNamespaceByID(ctx context.Context, id uint64) (_ *composeType.Namespace, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposeNamespace)
@@ -7854,7 +7854,7 @@ func (Store) sortableComposeNamespaceFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectComposeNamespaceCursorValues(res *composeType.Namespace, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectComposeNamespaceCursorValues(res *composeType.Namespace, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -7929,7 +7929,7 @@ func (s *Store) checkComposeNamespaceConstraints(ctx context.Context, res *compo
 // CreateComposePage creates one or more rows in composePage collection
 //
 // This function is auto-generated
-func (s Store) CreateComposePage(ctx context.Context, rr ...*composeType.Page) (err error) {
+func (s *Store) CreateComposePage(ctx context.Context, rr ...*composeType.Page) (err error) {
 	for i := range rr {
 		if err = s.checkComposePageConstraints(ctx, rr[i]); err != nil {
 			return
@@ -7946,7 +7946,7 @@ func (s Store) CreateComposePage(ctx context.Context, rr ...*composeType.Page) (
 // UpdateComposePage updates one or more existing entries in composePage collection
 //
 // This function is auto-generated
-func (s Store) UpdateComposePage(ctx context.Context, rr ...*composeType.Page) (err error) {
+func (s *Store) UpdateComposePage(ctx context.Context, rr ...*composeType.Page) (err error) {
 	for i := range rr {
 		if err = s.checkComposePageConstraints(ctx, rr[i]); err != nil {
 			return
@@ -7963,7 +7963,7 @@ func (s Store) UpdateComposePage(ctx context.Context, rr ...*composeType.Page) (
 // UpsertComposePage updates one or more existing entries in composePage collection
 //
 // This function is auto-generated
-func (s Store) UpsertComposePage(ctx context.Context, rr ...*composeType.Page) (err error) {
+func (s *Store) UpsertComposePage(ctx context.Context, rr ...*composeType.Page) (err error) {
 	for i := range rr {
 		if err = s.checkComposePageConstraints(ctx, rr[i]); err != nil {
 			return
@@ -7980,7 +7980,7 @@ func (s Store) UpsertComposePage(ctx context.Context, rr ...*composeType.Page) (
 // DeleteComposePage Deletes one or more entries from composePage collection
 //
 // This function is auto-generated
-func (s Store) DeleteComposePage(ctx context.Context, rr ...*composeType.Page) (err error) {
+func (s *Store) DeleteComposePage(ctx context.Context, rr ...*composeType.Page) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, composePageDeleteQuery(s.config.Dialect, composePagePrimaryKeys(rr[i]))); err != nil {
 			return
@@ -7993,21 +7993,21 @@ func (s Store) DeleteComposePage(ctx context.Context, rr ...*composeType.Page) (
 // DeleteComposePageByID deletes single entry from composePage collection
 //
 // This function is auto-generated
-func (s Store) DeleteComposePageByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteComposePageByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, composePageDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateComposePages Deletes all rows from the composePage collection
-func (s Store) TruncateComposePages(ctx context.Context) error {
+func (s *Store) TruncateComposePages(ctx context.Context) error {
 	return s.Exec(ctx, composePageTruncateQuery(s.config.Dialect))
 }
 
 // SearchComposePages returns (filtered) set of ComposePages
 //
 // This function is auto-generated
-func (s Store) SearchComposePages(ctx context.Context, f composeType.PageFilter) (set composeType.PageSet, _ composeType.PageFilter, err error) {
+func (s *Store) SearchComposePages(ctx context.Context, f composeType.PageFilter) (set composeType.PageSet, _ composeType.PageFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -8063,7 +8063,7 @@ func (s Store) SearchComposePages(ctx context.Context, f composeType.PageFilter)
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfComposePages(
+func (s *Store) fetchFullPageOfComposePages(
 	ctx context.Context,
 	filter composeType.PageFilter,
 	sort filter.SortExprSet,
@@ -8184,7 +8184,7 @@ func (s Store) fetchFullPageOfComposePages(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryComposePages(
+func (s *Store) QueryComposePages(
 	ctx context.Context,
 	f composeType.PageFilter,
 ) (_ []*composeType.Page, more bool, err error) {
@@ -8203,7 +8203,7 @@ func (s Store) QueryComposePages(
 
 	if s.config.Filters.ComposePage != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.ComposePage(f)
+		tExpr, f, err = s.config.Filters.ComposePage(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = ComposePageFilter(f)
@@ -8298,7 +8298,7 @@ func (s Store) QueryComposePages(
 // LookupComposePageByNamespaceIDHandle searches for page by handle (case-insensitive)
 //
 // This function is auto-generated
-func (s Store) LookupComposePageByNamespaceIDHandle(ctx context.Context, namespaceID uint64, handle string) (_ *composeType.Page, err error) {
+func (s *Store) LookupComposePageByNamespaceIDHandle(ctx context.Context, namespaceID uint64, handle string) (_ *composeType.Page, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposePage)
@@ -8340,7 +8340,7 @@ func (s Store) LookupComposePageByNamespaceIDHandle(ctx context.Context, namespa
 // LookupComposePageByNamespaceIDModuleID searches for page by moduleID
 //
 // This function is auto-generated
-func (s Store) LookupComposePageByNamespaceIDModuleID(ctx context.Context, namespaceID uint64, moduleID uint64) (_ *composeType.Page, err error) {
+func (s *Store) LookupComposePageByNamespaceIDModuleID(ctx context.Context, namespaceID uint64, moduleID uint64) (_ *composeType.Page, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposePage)
@@ -8384,7 +8384,7 @@ func (s Store) LookupComposePageByNamespaceIDModuleID(ctx context.Context, names
 // It returns compose page even if deleted
 //
 // This function is auto-generated
-func (s Store) LookupComposePageByID(ctx context.Context, id uint64) (_ *composeType.Page, err error) {
+func (s *Store) LookupComposePageByID(ctx context.Context, id uint64) (_ *composeType.Page, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposePage)
@@ -8450,7 +8450,7 @@ func (Store) sortableComposePageFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectComposePageCursorValues(res *composeType.Page, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectComposePageCursorValues(res *composeType.Page, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -8501,7 +8501,7 @@ func (s *Store) checkComposePageConstraints(ctx context.Context, res *composeTyp
 // CreateComposeRecord creates one or more rows in composeRecord collection
 //
 // This function is auto-generated
-func (s Store) CreateComposeRecord(ctx context.Context, mod *composeType.Module, rr ...*composeType.Record) (err error) {
+func (s *Store) CreateComposeRecord(ctx context.Context, mod *composeType.Module, rr ...*composeType.Record) (err error) {
 	for i := range rr {
 		if err = s.checkComposeRecordConstraints(ctx, rr[i]); err != nil {
 			return
@@ -8518,7 +8518,7 @@ func (s Store) CreateComposeRecord(ctx context.Context, mod *composeType.Module,
 // UpdateComposeRecord updates one or more existing entries in composeRecord collection
 //
 // This function is auto-generated
-func (s Store) UpdateComposeRecord(ctx context.Context, mod *composeType.Module, rr ...*composeType.Record) (err error) {
+func (s *Store) UpdateComposeRecord(ctx context.Context, mod *composeType.Module, rr ...*composeType.Record) (err error) {
 	for i := range rr {
 		if err = s.checkComposeRecordConstraints(ctx, rr[i]); err != nil {
 			return
@@ -8535,7 +8535,7 @@ func (s Store) UpdateComposeRecord(ctx context.Context, mod *composeType.Module,
 // UpsertComposeRecord updates one or more existing entries in composeRecord collection
 //
 // This function is auto-generated
-func (s Store) UpsertComposeRecord(ctx context.Context, mod *composeType.Module, rr ...*composeType.Record) (err error) {
+func (s *Store) UpsertComposeRecord(ctx context.Context, mod *composeType.Module, rr ...*composeType.Record) (err error) {
 	for i := range rr {
 		if err = s.checkComposeRecordConstraints(ctx, rr[i]); err != nil {
 			return
@@ -8552,7 +8552,7 @@ func (s Store) UpsertComposeRecord(ctx context.Context, mod *composeType.Module,
 // DeleteComposeRecord Deletes one or more entries from composeRecord collection
 //
 // This function is auto-generated
-func (s Store) DeleteComposeRecord(ctx context.Context, mod *composeType.Module, rr ...*composeType.Record) (err error) {
+func (s *Store) DeleteComposeRecord(ctx context.Context, mod *composeType.Module, rr ...*composeType.Record) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, composeRecordDeleteQuery(s.config.Dialect, composeRecordPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -8565,21 +8565,21 @@ func (s Store) DeleteComposeRecord(ctx context.Context, mod *composeType.Module,
 // DeleteComposeRecordByID deletes single entry from composeRecord collection
 //
 // This function is auto-generated
-func (s Store) DeleteComposeRecordByID(ctx context.Context, mod *composeType.Module, id uint64) error {
+func (s *Store) DeleteComposeRecordByID(ctx context.Context, mod *composeType.Module, id uint64) error {
 	return s.Exec(ctx, composeRecordDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateComposeRecords Deletes all rows from the composeRecord collection
-func (s Store) TruncateComposeRecords(ctx context.Context, mod *composeType.Module) error {
+func (s *Store) TruncateComposeRecords(ctx context.Context, mod *composeType.Module) error {
 	return s.Exec(ctx, composeRecordTruncateQuery(s.config.Dialect))
 }
 
 // SearchComposeRecords returns (filtered) set of ComposeRecords
 //
 // This function is auto-generated
-func (s Store) SearchComposeRecords(ctx context.Context, mod *composeType.Module, f composeType.RecordFilter) (set composeType.RecordSet, _ composeType.RecordFilter, err error) {
+func (s *Store) SearchComposeRecords(ctx context.Context, mod *composeType.Module, f composeType.RecordFilter) (set composeType.RecordSet, _ composeType.RecordFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -8635,7 +8635,7 @@ func (s Store) SearchComposeRecords(ctx context.Context, mod *composeType.Module
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfComposeRecords(
+func (s *Store) fetchFullPageOfComposeRecords(
 	ctx context.Context,
 	filter composeType.RecordFilter,
 	sort filter.SortExprSet,
@@ -8756,7 +8756,7 @@ func (s Store) fetchFullPageOfComposeRecords(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryComposeRecords(
+func (s *Store) QueryComposeRecords(
 	ctx context.Context,
 	f composeType.RecordFilter,
 ) (_ []*composeType.Record, more bool, err error) {
@@ -8775,7 +8775,7 @@ func (s Store) QueryComposeRecords(
 
 	if s.config.Filters.ComposeRecord != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.ComposeRecord(f)
+		tExpr, f, err = s.config.Filters.ComposeRecord(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = ComposeRecordFilter(f)
@@ -8872,7 +8872,7 @@ func (s Store) QueryComposeRecords(
 // It returns compose record even if deleted
 //
 // This function is auto-generated
-func (s Store) LookupComposeRecordByID(ctx context.Context, mod *composeType.Module, id uint64) (_ *composeType.Record, err error) {
+func (s *Store) LookupComposeRecordByID(ctx context.Context, mod *composeType.Module, id uint64) (_ *composeType.Record, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposeRecord)
@@ -8937,7 +8937,7 @@ func (Store) sortableComposeRecordFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectComposeRecordCursorValues(res *composeType.Record, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectComposeRecordCursorValues(res *composeType.Record, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -8985,7 +8985,7 @@ func (s *Store) checkComposeRecordConstraints(ctx context.Context, res *composeT
 // CreateComposeRecordValue creates one or more rows in composeRecordValue collection
 //
 // This function is auto-generated
-func (s Store) CreateComposeRecordValue(ctx context.Context, rr ...*composeType.RecordValue) (err error) {
+func (s *Store) CreateComposeRecordValue(ctx context.Context, rr ...*composeType.RecordValue) (err error) {
 	for i := range rr {
 		if err = s.checkComposeRecordValueConstraints(ctx, rr[i]); err != nil {
 			return
@@ -9002,7 +9002,7 @@ func (s Store) CreateComposeRecordValue(ctx context.Context, rr ...*composeType.
 // UpdateComposeRecordValue updates one or more existing entries in composeRecordValue collection
 //
 // This function is auto-generated
-func (s Store) UpdateComposeRecordValue(ctx context.Context, rr ...*composeType.RecordValue) (err error) {
+func (s *Store) UpdateComposeRecordValue(ctx context.Context, rr ...*composeType.RecordValue) (err error) {
 	for i := range rr {
 		if err = s.checkComposeRecordValueConstraints(ctx, rr[i]); err != nil {
 			return
@@ -9019,7 +9019,7 @@ func (s Store) UpdateComposeRecordValue(ctx context.Context, rr ...*composeType.
 // UpsertComposeRecordValue updates one or more existing entries in composeRecordValue collection
 //
 // This function is auto-generated
-func (s Store) UpsertComposeRecordValue(ctx context.Context, rr ...*composeType.RecordValue) (err error) {
+func (s *Store) UpsertComposeRecordValue(ctx context.Context, rr ...*composeType.RecordValue) (err error) {
 	for i := range rr {
 		if err = s.checkComposeRecordValueConstraints(ctx, rr[i]); err != nil {
 			return
@@ -9036,7 +9036,7 @@ func (s Store) UpsertComposeRecordValue(ctx context.Context, rr ...*composeType.
 // DeleteComposeRecordValue Deletes one or more entries from composeRecordValue collection
 //
 // This function is auto-generated
-func (s Store) DeleteComposeRecordValue(ctx context.Context, rr ...*composeType.RecordValue) (err error) {
+func (s *Store) DeleteComposeRecordValue(ctx context.Context, rr ...*composeType.RecordValue) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, composeRecordValueDeleteQuery(s.config.Dialect, composeRecordValuePrimaryKeys(rr[i]))); err != nil {
 			return
@@ -9049,7 +9049,7 @@ func (s Store) DeleteComposeRecordValue(ctx context.Context, rr ...*composeType.
 // DeleteComposeRecordValueByID deletes single entry from composeRecordValue collection
 //
 // This function is auto-generated
-func (s Store) DeleteComposeRecordValueByRecordIDNamePlace(ctx context.Context, recordID uint64, name string, place uint) error {
+func (s *Store) DeleteComposeRecordValueByRecordIDNamePlace(ctx context.Context, recordID uint64, name string, place uint) error {
 	return s.Exec(ctx, composeRecordValueDeleteQuery(s.config.Dialect, goqu.Ex{
 		"record_id": recordID,
 		"name":      name,
@@ -9058,14 +9058,14 @@ func (s Store) DeleteComposeRecordValueByRecordIDNamePlace(ctx context.Context, 
 }
 
 // TruncateComposeRecordValues Deletes all rows from the composeRecordValue collection
-func (s Store) TruncateComposeRecordValues(ctx context.Context) error {
+func (s *Store) TruncateComposeRecordValues(ctx context.Context) error {
 	return s.Exec(ctx, composeRecordValueTruncateQuery(s.config.Dialect))
 }
 
 // SearchComposeRecordValues returns (filtered) set of ComposeRecordValues
 //
 // This function is auto-generated
-func (s Store) SearchComposeRecordValues(ctx context.Context, f composeType.RecordValueFilter) (set composeType.RecordValueSet, _ composeType.RecordValueFilter, err error) {
+func (s *Store) SearchComposeRecordValues(ctx context.Context, f composeType.RecordValueFilter) (set composeType.RecordValueSet, _ composeType.RecordValueFilter, err error) {
 
 	set, _, err = s.QueryComposeRecordValues(ctx, f)
 	if err != nil {
@@ -9081,7 +9081,7 @@ func (s Store) SearchComposeRecordValues(ctx context.Context, f composeType.Reco
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryComposeRecordValues(
+func (s *Store) QueryComposeRecordValues(
 	ctx context.Context,
 	f composeType.RecordValueFilter,
 ) (_ []*composeType.RecordValue, more bool, err error) {
@@ -9096,7 +9096,7 @@ func (s Store) QueryComposeRecordValues(
 
 	if s.config.Filters.ComposeRecordValue != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.ComposeRecordValue(f)
+		tExpr, f, err = s.config.Filters.ComposeRecordValue(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = ComposeRecordValueFilter(f)
@@ -9186,7 +9186,7 @@ func (Store) sortableComposeRecordValueFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectComposeRecordValueCursorValues(res *composeType.RecordValue, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectComposeRecordValueCursorValues(res *composeType.RecordValue, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -9244,7 +9244,7 @@ func (s *Store) checkComposeRecordValueConstraints(ctx context.Context, res *com
 // CreateCredential creates one or more rows in credential collection
 //
 // This function is auto-generated
-func (s Store) CreateCredential(ctx context.Context, rr ...*systemType.Credential) (err error) {
+func (s *Store) CreateCredential(ctx context.Context, rr ...*systemType.Credential) (err error) {
 	for i := range rr {
 		if err = s.checkCredentialConstraints(ctx, rr[i]); err != nil {
 			return
@@ -9261,7 +9261,7 @@ func (s Store) CreateCredential(ctx context.Context, rr ...*systemType.Credentia
 // UpdateCredential updates one or more existing entries in credential collection
 //
 // This function is auto-generated
-func (s Store) UpdateCredential(ctx context.Context, rr ...*systemType.Credential) (err error) {
+func (s *Store) UpdateCredential(ctx context.Context, rr ...*systemType.Credential) (err error) {
 	for i := range rr {
 		if err = s.checkCredentialConstraints(ctx, rr[i]); err != nil {
 			return
@@ -9278,7 +9278,7 @@ func (s Store) UpdateCredential(ctx context.Context, rr ...*systemType.Credentia
 // UpsertCredential updates one or more existing entries in credential collection
 //
 // This function is auto-generated
-func (s Store) UpsertCredential(ctx context.Context, rr ...*systemType.Credential) (err error) {
+func (s *Store) UpsertCredential(ctx context.Context, rr ...*systemType.Credential) (err error) {
 	for i := range rr {
 		if err = s.checkCredentialConstraints(ctx, rr[i]); err != nil {
 			return
@@ -9295,7 +9295,7 @@ func (s Store) UpsertCredential(ctx context.Context, rr ...*systemType.Credentia
 // DeleteCredential Deletes one or more entries from credential collection
 //
 // This function is auto-generated
-func (s Store) DeleteCredential(ctx context.Context, rr ...*systemType.Credential) (err error) {
+func (s *Store) DeleteCredential(ctx context.Context, rr ...*systemType.Credential) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, credentialDeleteQuery(s.config.Dialect, credentialPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -9308,21 +9308,21 @@ func (s Store) DeleteCredential(ctx context.Context, rr ...*systemType.Credentia
 // DeleteCredentialByID deletes single entry from credential collection
 //
 // This function is auto-generated
-func (s Store) DeleteCredentialByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteCredentialByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, credentialDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateCredentials Deletes all rows from the credential collection
-func (s Store) TruncateCredentials(ctx context.Context) error {
+func (s *Store) TruncateCredentials(ctx context.Context) error {
 	return s.Exec(ctx, credentialTruncateQuery(s.config.Dialect))
 }
 
 // SearchCredentials returns (filtered) set of Credentials
 //
 // This function is auto-generated
-func (s Store) SearchCredentials(ctx context.Context, f systemType.CredentialFilter) (set systemType.CredentialSet, _ systemType.CredentialFilter, err error) {
+func (s *Store) SearchCredentials(ctx context.Context, f systemType.CredentialFilter) (set systemType.CredentialSet, _ systemType.CredentialFilter, err error) {
 
 	set, _, err = s.QueryCredentials(ctx, f)
 	if err != nil {
@@ -9338,7 +9338,7 @@ func (s Store) SearchCredentials(ctx context.Context, f systemType.CredentialFil
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryCredentials(
+func (s *Store) QueryCredentials(
 	ctx context.Context,
 	f systemType.CredentialFilter,
 ) (_ []*systemType.Credential, more bool, err error) {
@@ -9353,7 +9353,7 @@ func (s Store) QueryCredentials(
 
 	if s.config.Filters.Credential != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.Credential(f)
+		tExpr, f, err = s.config.Filters.Credential(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = CredentialFilter(f)
@@ -9421,7 +9421,7 @@ func (s Store) QueryCredentials(
 // It returns credentials even if deleted
 //
 // This function is auto-generated
-func (s Store) LookupCredentialByID(ctx context.Context, id uint64) (_ *systemType.Credential, err error) {
+func (s *Store) LookupCredentialByID(ctx context.Context, id uint64) (_ *systemType.Credential, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxCredential)
@@ -9490,7 +9490,7 @@ func (Store) sortableCredentialFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectCredentialCursorValues(res *systemType.Credential, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectCredentialCursorValues(res *systemType.Credential, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -9542,7 +9542,7 @@ func (s *Store) checkCredentialConstraints(ctx context.Context, res *systemType.
 // CreateFederationExposedModule creates one or more rows in federationExposedModule collection
 //
 // This function is auto-generated
-func (s Store) CreateFederationExposedModule(ctx context.Context, rr ...*federationType.ExposedModule) (err error) {
+func (s *Store) CreateFederationExposedModule(ctx context.Context, rr ...*federationType.ExposedModule) (err error) {
 	for i := range rr {
 		if err = s.checkFederationExposedModuleConstraints(ctx, rr[i]); err != nil {
 			return
@@ -9559,7 +9559,7 @@ func (s Store) CreateFederationExposedModule(ctx context.Context, rr ...*federat
 // UpdateFederationExposedModule updates one or more existing entries in federationExposedModule collection
 //
 // This function is auto-generated
-func (s Store) UpdateFederationExposedModule(ctx context.Context, rr ...*federationType.ExposedModule) (err error) {
+func (s *Store) UpdateFederationExposedModule(ctx context.Context, rr ...*federationType.ExposedModule) (err error) {
 	for i := range rr {
 		if err = s.checkFederationExposedModuleConstraints(ctx, rr[i]); err != nil {
 			return
@@ -9576,7 +9576,7 @@ func (s Store) UpdateFederationExposedModule(ctx context.Context, rr ...*federat
 // UpsertFederationExposedModule updates one or more existing entries in federationExposedModule collection
 //
 // This function is auto-generated
-func (s Store) UpsertFederationExposedModule(ctx context.Context, rr ...*federationType.ExposedModule) (err error) {
+func (s *Store) UpsertFederationExposedModule(ctx context.Context, rr ...*federationType.ExposedModule) (err error) {
 	for i := range rr {
 		if err = s.checkFederationExposedModuleConstraints(ctx, rr[i]); err != nil {
 			return
@@ -9593,7 +9593,7 @@ func (s Store) UpsertFederationExposedModule(ctx context.Context, rr ...*federat
 // DeleteFederationExposedModule Deletes one or more entries from federationExposedModule collection
 //
 // This function is auto-generated
-func (s Store) DeleteFederationExposedModule(ctx context.Context, rr ...*federationType.ExposedModule) (err error) {
+func (s *Store) DeleteFederationExposedModule(ctx context.Context, rr ...*federationType.ExposedModule) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, federationExposedModuleDeleteQuery(s.config.Dialect, federationExposedModulePrimaryKeys(rr[i]))); err != nil {
 			return
@@ -9606,21 +9606,21 @@ func (s Store) DeleteFederationExposedModule(ctx context.Context, rr ...*federat
 // DeleteFederationExposedModuleByID deletes single entry from federationExposedModule collection
 //
 // This function is auto-generated
-func (s Store) DeleteFederationExposedModuleByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteFederationExposedModuleByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, federationExposedModuleDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateFederationExposedModules Deletes all rows from the federationExposedModule collection
-func (s Store) TruncateFederationExposedModules(ctx context.Context) error {
+func (s *Store) TruncateFederationExposedModules(ctx context.Context) error {
 	return s.Exec(ctx, federationExposedModuleTruncateQuery(s.config.Dialect))
 }
 
 // SearchFederationExposedModules returns (filtered) set of FederationExposedModules
 //
 // This function is auto-generated
-func (s Store) SearchFederationExposedModules(ctx context.Context, f federationType.ExposedModuleFilter) (set federationType.ExposedModuleSet, _ federationType.ExposedModuleFilter, err error) {
+func (s *Store) SearchFederationExposedModules(ctx context.Context, f federationType.ExposedModuleFilter) (set federationType.ExposedModuleSet, _ federationType.ExposedModuleFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -9676,7 +9676,7 @@ func (s Store) SearchFederationExposedModules(ctx context.Context, f federationT
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfFederationExposedModules(
+func (s *Store) fetchFullPageOfFederationExposedModules(
 	ctx context.Context,
 	filter federationType.ExposedModuleFilter,
 	sort filter.SortExprSet,
@@ -9797,7 +9797,7 @@ func (s Store) fetchFullPageOfFederationExposedModules(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryFederationExposedModules(
+func (s *Store) QueryFederationExposedModules(
 	ctx context.Context,
 	f federationType.ExposedModuleFilter,
 ) (_ []*federationType.ExposedModule, more bool, err error) {
@@ -9816,7 +9816,7 @@ func (s Store) QueryFederationExposedModules(
 
 	if s.config.Filters.FederationExposedModule != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.FederationExposedModule(f)
+		tExpr, f, err = s.config.Filters.FederationExposedModule(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = FederationExposedModuleFilter(f)
@@ -9913,7 +9913,7 @@ func (s Store) QueryFederationExposedModules(
 // It returns federation module
 //
 // This function is auto-generated
-func (s Store) LookupFederationExposedModuleByID(ctx context.Context, id uint64) (_ *federationType.ExposedModule, err error) {
+func (s *Store) LookupFederationExposedModuleByID(ctx context.Context, id uint64) (_ *federationType.ExposedModule, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxFederationExposedModule)
@@ -9979,7 +9979,7 @@ func (Store) sortableFederationExposedModuleFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectFederationExposedModuleCursorValues(res *federationType.ExposedModule, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectFederationExposedModuleCursorValues(res *federationType.ExposedModule, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -10030,7 +10030,7 @@ func (s *Store) checkFederationExposedModuleConstraints(ctx context.Context, res
 // CreateFederationModuleMapping creates one or more rows in federationModuleMapping collection
 //
 // This function is auto-generated
-func (s Store) CreateFederationModuleMapping(ctx context.Context, rr ...*federationType.ModuleMapping) (err error) {
+func (s *Store) CreateFederationModuleMapping(ctx context.Context, rr ...*federationType.ModuleMapping) (err error) {
 	for i := range rr {
 		if err = s.checkFederationModuleMappingConstraints(ctx, rr[i]); err != nil {
 			return
@@ -10047,7 +10047,7 @@ func (s Store) CreateFederationModuleMapping(ctx context.Context, rr ...*federat
 // UpdateFederationModuleMapping updates one or more existing entries in federationModuleMapping collection
 //
 // This function is auto-generated
-func (s Store) UpdateFederationModuleMapping(ctx context.Context, rr ...*federationType.ModuleMapping) (err error) {
+func (s *Store) UpdateFederationModuleMapping(ctx context.Context, rr ...*federationType.ModuleMapping) (err error) {
 	for i := range rr {
 		if err = s.checkFederationModuleMappingConstraints(ctx, rr[i]); err != nil {
 			return
@@ -10064,7 +10064,7 @@ func (s Store) UpdateFederationModuleMapping(ctx context.Context, rr ...*federat
 // UpsertFederationModuleMapping updates one or more existing entries in federationModuleMapping collection
 //
 // This function is auto-generated
-func (s Store) UpsertFederationModuleMapping(ctx context.Context, rr ...*federationType.ModuleMapping) (err error) {
+func (s *Store) UpsertFederationModuleMapping(ctx context.Context, rr ...*federationType.ModuleMapping) (err error) {
 	for i := range rr {
 		if err = s.checkFederationModuleMappingConstraints(ctx, rr[i]); err != nil {
 			return
@@ -10081,7 +10081,7 @@ func (s Store) UpsertFederationModuleMapping(ctx context.Context, rr ...*federat
 // DeleteFederationModuleMapping Deletes one or more entries from federationModuleMapping collection
 //
 // This function is auto-generated
-func (s Store) DeleteFederationModuleMapping(ctx context.Context, rr ...*federationType.ModuleMapping) (err error) {
+func (s *Store) DeleteFederationModuleMapping(ctx context.Context, rr ...*federationType.ModuleMapping) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, federationModuleMappingDeleteQuery(s.config.Dialect, federationModuleMappingPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -10094,19 +10094,19 @@ func (s Store) DeleteFederationModuleMapping(ctx context.Context, rr ...*federat
 // DeleteFederationModuleMappingByID deletes single entry from federationModuleMapping collection
 //
 // This function is auto-generated
-func (s Store) DeleteFederationModuleMappingBy(ctx context.Context) error {
+func (s *Store) DeleteFederationModuleMappingBy(ctx context.Context) error {
 	return s.Exec(ctx, federationModuleMappingDeleteQuery(s.config.Dialect, goqu.Ex{}))
 }
 
 // TruncateFederationModuleMappings Deletes all rows from the federationModuleMapping collection
-func (s Store) TruncateFederationModuleMappings(ctx context.Context) error {
+func (s *Store) TruncateFederationModuleMappings(ctx context.Context) error {
 	return s.Exec(ctx, federationModuleMappingTruncateQuery(s.config.Dialect))
 }
 
 // SearchFederationModuleMappings returns (filtered) set of FederationModuleMappings
 //
 // This function is auto-generated
-func (s Store) SearchFederationModuleMappings(ctx context.Context, f federationType.ModuleMappingFilter) (set federationType.ModuleMappingSet, _ federationType.ModuleMappingFilter, err error) {
+func (s *Store) SearchFederationModuleMappings(ctx context.Context, f federationType.ModuleMappingFilter) (set federationType.ModuleMappingSet, _ federationType.ModuleMappingFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -10162,7 +10162,7 @@ func (s Store) SearchFederationModuleMappings(ctx context.Context, f federationT
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfFederationModuleMappings(
+func (s *Store) fetchFullPageOfFederationModuleMappings(
 	ctx context.Context,
 	filter federationType.ModuleMappingFilter,
 	sort filter.SortExprSet,
@@ -10283,7 +10283,7 @@ func (s Store) fetchFullPageOfFederationModuleMappings(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryFederationModuleMappings(
+func (s *Store) QueryFederationModuleMappings(
 	ctx context.Context,
 	f federationType.ModuleMappingFilter,
 ) (_ []*federationType.ModuleMapping, more bool, err error) {
@@ -10302,7 +10302,7 @@ func (s Store) QueryFederationModuleMappings(
 
 	if s.config.Filters.FederationModuleMapping != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.FederationModuleMapping(f)
+		tExpr, f, err = s.config.Filters.FederationModuleMapping(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = FederationModuleMappingFilter(f)
@@ -10399,7 +10399,7 @@ func (s Store) QueryFederationModuleMappings(
 // It returns module mapping
 //
 // This function is auto-generated
-func (s Store) LookupFederationModuleMappingByFederationModuleIDComposeModuleIDComposeNamespaceID(ctx context.Context, federationModuleID uint64, composeModuleID uint64, composeNamespaceID uint64) (_ *federationType.ModuleMapping, err error) {
+func (s *Store) LookupFederationModuleMappingByFederationModuleIDComposeModuleIDComposeNamespaceID(ctx context.Context, federationModuleID uint64, composeModuleID uint64, composeNamespaceID uint64) (_ *federationType.ModuleMapping, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxFederationModuleMapping)
@@ -10443,7 +10443,7 @@ func (s Store) LookupFederationModuleMappingByFederationModuleIDComposeModuleIDC
 // It returns module mapping
 //
 // This function is auto-generated
-func (s Store) LookupFederationModuleMappingByFederationModuleID(ctx context.Context, federationModuleID uint64) (_ *federationType.ModuleMapping, err error) {
+func (s *Store) LookupFederationModuleMappingByFederationModuleID(ctx context.Context, federationModuleID uint64) (_ *federationType.ModuleMapping, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxFederationModuleMapping)
@@ -10500,7 +10500,7 @@ func (Store) sortableFederationModuleMappingFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectFederationModuleMappingCursorValues(res *federationType.ModuleMapping, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectFederationModuleMappingCursorValues(res *federationType.ModuleMapping, cc ...*filter.SortExpr) *filter.PagingCursor {
 	return nil
 }
 
@@ -10518,7 +10518,7 @@ func (s *Store) checkFederationModuleMappingConstraints(ctx context.Context, res
 // CreateFederationNode creates one or more rows in federationNode collection
 //
 // This function is auto-generated
-func (s Store) CreateFederationNode(ctx context.Context, rr ...*federationType.Node) (err error) {
+func (s *Store) CreateFederationNode(ctx context.Context, rr ...*federationType.Node) (err error) {
 	for i := range rr {
 		if err = s.checkFederationNodeConstraints(ctx, rr[i]); err != nil {
 			return
@@ -10535,7 +10535,7 @@ func (s Store) CreateFederationNode(ctx context.Context, rr ...*federationType.N
 // UpdateFederationNode updates one or more existing entries in federationNode collection
 //
 // This function is auto-generated
-func (s Store) UpdateFederationNode(ctx context.Context, rr ...*federationType.Node) (err error) {
+func (s *Store) UpdateFederationNode(ctx context.Context, rr ...*federationType.Node) (err error) {
 	for i := range rr {
 		if err = s.checkFederationNodeConstraints(ctx, rr[i]); err != nil {
 			return
@@ -10552,7 +10552,7 @@ func (s Store) UpdateFederationNode(ctx context.Context, rr ...*federationType.N
 // UpsertFederationNode updates one or more existing entries in federationNode collection
 //
 // This function is auto-generated
-func (s Store) UpsertFederationNode(ctx context.Context, rr ...*federationType.Node) (err error) {
+func (s *Store) UpsertFederationNode(ctx context.Context, rr ...*federationType.Node) (err error) {
 	for i := range rr {
 		if err = s.checkFederationNodeConstraints(ctx, rr[i]); err != nil {
 			return
@@ -10569,7 +10569,7 @@ func (s Store) UpsertFederationNode(ctx context.Context, rr ...*federationType.N
 // DeleteFederationNode Deletes one or more entries from federationNode collection
 //
 // This function is auto-generated
-func (s Store) DeleteFederationNode(ctx context.Context, rr ...*federationType.Node) (err error) {
+func (s *Store) DeleteFederationNode(ctx context.Context, rr ...*federationType.Node) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, federationNodeDeleteQuery(s.config.Dialect, federationNodePrimaryKeys(rr[i]))); err != nil {
 			return
@@ -10582,21 +10582,21 @@ func (s Store) DeleteFederationNode(ctx context.Context, rr ...*federationType.N
 // DeleteFederationNodeByID deletes single entry from federationNode collection
 //
 // This function is auto-generated
-func (s Store) DeleteFederationNodeByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteFederationNodeByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, federationNodeDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateFederationNodes Deletes all rows from the federationNode collection
-func (s Store) TruncateFederationNodes(ctx context.Context) error {
+func (s *Store) TruncateFederationNodes(ctx context.Context) error {
 	return s.Exec(ctx, federationNodeTruncateQuery(s.config.Dialect))
 }
 
 // SearchFederationNodes returns (filtered) set of FederationNodes
 //
 // This function is auto-generated
-func (s Store) SearchFederationNodes(ctx context.Context, f federationType.NodeFilter) (set federationType.NodeSet, _ federationType.NodeFilter, err error) {
+func (s *Store) SearchFederationNodes(ctx context.Context, f federationType.NodeFilter) (set federationType.NodeSet, _ federationType.NodeFilter, err error) {
 
 	set, _, err = s.QueryFederationNodes(ctx, f)
 	if err != nil {
@@ -10612,7 +10612,7 @@ func (s Store) SearchFederationNodes(ctx context.Context, f federationType.NodeF
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryFederationNodes(
+func (s *Store) QueryFederationNodes(
 	ctx context.Context,
 	f federationType.NodeFilter,
 ) (_ []*federationType.Node, more bool, err error) {
@@ -10629,7 +10629,7 @@ func (s Store) QueryFederationNodes(
 
 	if s.config.Filters.FederationNode != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.FederationNode(f)
+		tExpr, f, err = s.config.Filters.FederationNode(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = FederationNodeFilter(f)
@@ -10707,7 +10707,7 @@ func (s Store) QueryFederationNodes(
 // It returns federation node
 //
 // This function is auto-generated
-func (s Store) LookupFederationNodeByID(ctx context.Context, id uint64) (_ *federationType.Node, err error) {
+func (s *Store) LookupFederationNodeByID(ctx context.Context, id uint64) (_ *federationType.Node, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxFederationNode)
@@ -10747,7 +10747,7 @@ func (s Store) LookupFederationNodeByID(ctx context.Context, id uint64) (_ *fede
 // LookupFederationNodeByBaseURLSharedNodeID searches for node by shared-node-id and base-url
 //
 // This function is auto-generated
-func (s Store) LookupFederationNodeByBaseURLSharedNodeID(ctx context.Context, baseURL string, sharedNodeID uint64) (_ *federationType.Node, err error) {
+func (s *Store) LookupFederationNodeByBaseURLSharedNodeID(ctx context.Context, baseURL string, sharedNodeID uint64) (_ *federationType.Node, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxFederationNode)
@@ -10788,7 +10788,7 @@ func (s Store) LookupFederationNodeByBaseURLSharedNodeID(ctx context.Context, ba
 // LookupFederationNodeBySharedNodeID searches for node by shared-node-id
 //
 // This function is auto-generated
-func (s Store) LookupFederationNodeBySharedNodeID(ctx context.Context, sharedNodeID uint64) (_ *federationType.Node, err error) {
+func (s *Store) LookupFederationNodeBySharedNodeID(ctx context.Context, sharedNodeID uint64) (_ *federationType.Node, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxFederationNode)
@@ -10853,7 +10853,7 @@ func (Store) sortableFederationNodeFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectFederationNodeCursorValues(res *federationType.Node, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectFederationNodeCursorValues(res *federationType.Node, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -10901,7 +10901,7 @@ func (s *Store) checkFederationNodeConstraints(ctx context.Context, res *federat
 // CreateFederationNodeSync creates one or more rows in federationNodeSync collection
 //
 // This function is auto-generated
-func (s Store) CreateFederationNodeSync(ctx context.Context, rr ...*federationType.NodeSync) (err error) {
+func (s *Store) CreateFederationNodeSync(ctx context.Context, rr ...*federationType.NodeSync) (err error) {
 	for i := range rr {
 		if err = s.checkFederationNodeSyncConstraints(ctx, rr[i]); err != nil {
 			return
@@ -10918,7 +10918,7 @@ func (s Store) CreateFederationNodeSync(ctx context.Context, rr ...*federationTy
 // UpdateFederationNodeSync updates one or more existing entries in federationNodeSync collection
 //
 // This function is auto-generated
-func (s Store) UpdateFederationNodeSync(ctx context.Context, rr ...*federationType.NodeSync) (err error) {
+func (s *Store) UpdateFederationNodeSync(ctx context.Context, rr ...*federationType.NodeSync) (err error) {
 	for i := range rr {
 		if err = s.checkFederationNodeSyncConstraints(ctx, rr[i]); err != nil {
 			return
@@ -10935,7 +10935,7 @@ func (s Store) UpdateFederationNodeSync(ctx context.Context, rr ...*federationTy
 // UpsertFederationNodeSync updates one or more existing entries in federationNodeSync collection
 //
 // This function is auto-generated
-func (s Store) UpsertFederationNodeSync(ctx context.Context, rr ...*federationType.NodeSync) (err error) {
+func (s *Store) UpsertFederationNodeSync(ctx context.Context, rr ...*federationType.NodeSync) (err error) {
 	for i := range rr {
 		if err = s.checkFederationNodeSyncConstraints(ctx, rr[i]); err != nil {
 			return
@@ -10952,7 +10952,7 @@ func (s Store) UpsertFederationNodeSync(ctx context.Context, rr ...*federationTy
 // DeleteFederationNodeSync Deletes one or more entries from federationNodeSync collection
 //
 // This function is auto-generated
-func (s Store) DeleteFederationNodeSync(ctx context.Context, rr ...*federationType.NodeSync) (err error) {
+func (s *Store) DeleteFederationNodeSync(ctx context.Context, rr ...*federationType.NodeSync) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, federationNodeSyncDeleteQuery(s.config.Dialect, federationNodeSyncPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -10965,21 +10965,21 @@ func (s Store) DeleteFederationNodeSync(ctx context.Context, rr ...*federationTy
 // DeleteFederationNodeSyncByID deletes single entry from federationNodeSync collection
 //
 // This function is auto-generated
-func (s Store) DeleteFederationNodeSyncByNodeID(ctx context.Context, nodeID uint64) error {
+func (s *Store) DeleteFederationNodeSyncByNodeID(ctx context.Context, nodeID uint64) error {
 	return s.Exec(ctx, federationNodeSyncDeleteQuery(s.config.Dialect, goqu.Ex{
 		"node_id": nodeID,
 	}))
 }
 
 // TruncateFederationNodeSyncs Deletes all rows from the federationNodeSync collection
-func (s Store) TruncateFederationNodeSyncs(ctx context.Context) error {
+func (s *Store) TruncateFederationNodeSyncs(ctx context.Context) error {
 	return s.Exec(ctx, federationNodeSyncTruncateQuery(s.config.Dialect))
 }
 
 // SearchFederationNodeSyncs returns (filtered) set of FederationNodeSyncs
 //
 // This function is auto-generated
-func (s Store) SearchFederationNodeSyncs(ctx context.Context, f federationType.NodeSyncFilter) (set federationType.NodeSyncSet, _ federationType.NodeSyncFilter, err error) {
+func (s *Store) SearchFederationNodeSyncs(ctx context.Context, f federationType.NodeSyncFilter) (set federationType.NodeSyncSet, _ federationType.NodeSyncFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -11035,7 +11035,7 @@ func (s Store) SearchFederationNodeSyncs(ctx context.Context, f federationType.N
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfFederationNodeSyncs(
+func (s *Store) fetchFullPageOfFederationNodeSyncs(
 	ctx context.Context,
 	filter federationType.NodeSyncFilter,
 	sort filter.SortExprSet,
@@ -11156,7 +11156,7 @@ func (s Store) fetchFullPageOfFederationNodeSyncs(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryFederationNodeSyncs(
+func (s *Store) QueryFederationNodeSyncs(
 	ctx context.Context,
 	f federationType.NodeSyncFilter,
 ) (_ []*federationType.NodeSync, more bool, err error) {
@@ -11175,7 +11175,7 @@ func (s Store) QueryFederationNodeSyncs(
 
 	if s.config.Filters.FederationNodeSync != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.FederationNodeSync(f)
+		tExpr, f, err = s.config.Filters.FederationNodeSync(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = FederationNodeSyncFilter(f)
@@ -11272,7 +11272,7 @@ func (s Store) QueryFederationNodeSyncs(
 // It returns sync activity
 //
 // This function is auto-generated
-func (s Store) LookupFederationNodeSyncByNodeID(ctx context.Context, nodeID uint64) (_ *federationType.NodeSync, err error) {
+func (s *Store) LookupFederationNodeSyncByNodeID(ctx context.Context, nodeID uint64) (_ *federationType.NodeSync, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxFederationNodeSync)
@@ -11314,7 +11314,7 @@ func (s Store) LookupFederationNodeSyncByNodeID(ctx context.Context, nodeID uint
 // It returns sync activity
 //
 // This function is auto-generated
-func (s Store) LookupFederationNodeSyncByNodeIDModuleIDSyncTypeSyncStatus(ctx context.Context, nodeID uint64, moduleID uint64, syncType string, syncStatus string) (_ *federationType.NodeSync, err error) {
+func (s *Store) LookupFederationNodeSyncByNodeIDModuleIDSyncTypeSyncStatus(ctx context.Context, nodeID uint64, moduleID uint64, syncType string, syncStatus string) (_ *federationType.NodeSync, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxFederationNodeSync)
@@ -11379,7 +11379,7 @@ func (Store) sortableFederationNodeSyncFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectFederationNodeSyncCursorValues(res *federationType.NodeSync, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectFederationNodeSyncCursorValues(res *federationType.NodeSync, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -11423,7 +11423,7 @@ func (s *Store) checkFederationNodeSyncConstraints(ctx context.Context, res *fed
 // CreateFederationSharedModule creates one or more rows in federationSharedModule collection
 //
 // This function is auto-generated
-func (s Store) CreateFederationSharedModule(ctx context.Context, rr ...*federationType.SharedModule) (err error) {
+func (s *Store) CreateFederationSharedModule(ctx context.Context, rr ...*federationType.SharedModule) (err error) {
 	for i := range rr {
 		if err = s.checkFederationSharedModuleConstraints(ctx, rr[i]); err != nil {
 			return
@@ -11440,7 +11440,7 @@ func (s Store) CreateFederationSharedModule(ctx context.Context, rr ...*federati
 // UpdateFederationSharedModule updates one or more existing entries in federationSharedModule collection
 //
 // This function is auto-generated
-func (s Store) UpdateFederationSharedModule(ctx context.Context, rr ...*federationType.SharedModule) (err error) {
+func (s *Store) UpdateFederationSharedModule(ctx context.Context, rr ...*federationType.SharedModule) (err error) {
 	for i := range rr {
 		if err = s.checkFederationSharedModuleConstraints(ctx, rr[i]); err != nil {
 			return
@@ -11457,7 +11457,7 @@ func (s Store) UpdateFederationSharedModule(ctx context.Context, rr ...*federati
 // UpsertFederationSharedModule updates one or more existing entries in federationSharedModule collection
 //
 // This function is auto-generated
-func (s Store) UpsertFederationSharedModule(ctx context.Context, rr ...*federationType.SharedModule) (err error) {
+func (s *Store) UpsertFederationSharedModule(ctx context.Context, rr ...*federationType.SharedModule) (err error) {
 	for i := range rr {
 		if err = s.checkFederationSharedModuleConstraints(ctx, rr[i]); err != nil {
 			return
@@ -11474,7 +11474,7 @@ func (s Store) UpsertFederationSharedModule(ctx context.Context, rr ...*federati
 // DeleteFederationSharedModule Deletes one or more entries from federationSharedModule collection
 //
 // This function is auto-generated
-func (s Store) DeleteFederationSharedModule(ctx context.Context, rr ...*federationType.SharedModule) (err error) {
+func (s *Store) DeleteFederationSharedModule(ctx context.Context, rr ...*federationType.SharedModule) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, federationSharedModuleDeleteQuery(s.config.Dialect, federationSharedModulePrimaryKeys(rr[i]))); err != nil {
 			return
@@ -11487,21 +11487,21 @@ func (s Store) DeleteFederationSharedModule(ctx context.Context, rr ...*federati
 // DeleteFederationSharedModuleByID deletes single entry from federationSharedModule collection
 //
 // This function is auto-generated
-func (s Store) DeleteFederationSharedModuleByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteFederationSharedModuleByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, federationSharedModuleDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateFederationSharedModules Deletes all rows from the federationSharedModule collection
-func (s Store) TruncateFederationSharedModules(ctx context.Context) error {
+func (s *Store) TruncateFederationSharedModules(ctx context.Context) error {
 	return s.Exec(ctx, federationSharedModuleTruncateQuery(s.config.Dialect))
 }
 
 // SearchFederationSharedModules returns (filtered) set of FederationSharedModules
 //
 // This function is auto-generated
-func (s Store) SearchFederationSharedModules(ctx context.Context, f federationType.SharedModuleFilter) (set federationType.SharedModuleSet, _ federationType.SharedModuleFilter, err error) {
+func (s *Store) SearchFederationSharedModules(ctx context.Context, f federationType.SharedModuleFilter) (set federationType.SharedModuleSet, _ federationType.SharedModuleFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -11557,7 +11557,7 @@ func (s Store) SearchFederationSharedModules(ctx context.Context, f federationTy
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfFederationSharedModules(
+func (s *Store) fetchFullPageOfFederationSharedModules(
 	ctx context.Context,
 	filter federationType.SharedModuleFilter,
 	sort filter.SortExprSet,
@@ -11678,7 +11678,7 @@ func (s Store) fetchFullPageOfFederationSharedModules(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryFederationSharedModules(
+func (s *Store) QueryFederationSharedModules(
 	ctx context.Context,
 	f federationType.SharedModuleFilter,
 ) (_ []*federationType.SharedModule, more bool, err error) {
@@ -11697,7 +11697,7 @@ func (s Store) QueryFederationSharedModules(
 
 	if s.config.Filters.FederationSharedModule != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.FederationSharedModule(f)
+		tExpr, f, err = s.config.Filters.FederationSharedModule(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = FederationSharedModuleFilter(f)
@@ -11794,7 +11794,7 @@ func (s Store) QueryFederationSharedModules(
 // It returns shared federation module
 //
 // This function is auto-generated
-func (s Store) LookupFederationSharedModuleByID(ctx context.Context, id uint64) (_ *federationType.SharedModule, err error) {
+func (s *Store) LookupFederationSharedModuleByID(ctx context.Context, id uint64) (_ *federationType.SharedModule, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxFederationSharedModule)
@@ -11860,7 +11860,7 @@ func (Store) sortableFederationSharedModuleFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectFederationSharedModuleCursorValues(res *federationType.SharedModule, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectFederationSharedModuleCursorValues(res *federationType.SharedModule, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -11911,7 +11911,7 @@ func (s *Store) checkFederationSharedModuleConstraints(ctx context.Context, res 
 // CreateFlag creates one or more rows in flag collection
 //
 // This function is auto-generated
-func (s Store) CreateFlag(ctx context.Context, rr ...*flagType.Flag) (err error) {
+func (s *Store) CreateFlag(ctx context.Context, rr ...*flagType.Flag) (err error) {
 	for i := range rr {
 		if err = s.checkFlagConstraints(ctx, rr[i]); err != nil {
 			return
@@ -11928,7 +11928,7 @@ func (s Store) CreateFlag(ctx context.Context, rr ...*flagType.Flag) (err error)
 // UpdateFlag updates one or more existing entries in flag collection
 //
 // This function is auto-generated
-func (s Store) UpdateFlag(ctx context.Context, rr ...*flagType.Flag) (err error) {
+func (s *Store) UpdateFlag(ctx context.Context, rr ...*flagType.Flag) (err error) {
 	for i := range rr {
 		if err = s.checkFlagConstraints(ctx, rr[i]); err != nil {
 			return
@@ -11945,7 +11945,7 @@ func (s Store) UpdateFlag(ctx context.Context, rr ...*flagType.Flag) (err error)
 // UpsertFlag updates one or more existing entries in flag collection
 //
 // This function is auto-generated
-func (s Store) UpsertFlag(ctx context.Context, rr ...*flagType.Flag) (err error) {
+func (s *Store) UpsertFlag(ctx context.Context, rr ...*flagType.Flag) (err error) {
 	for i := range rr {
 		if err = s.checkFlagConstraints(ctx, rr[i]); err != nil {
 			return
@@ -11962,7 +11962,7 @@ func (s Store) UpsertFlag(ctx context.Context, rr ...*flagType.Flag) (err error)
 // DeleteFlag Deletes one or more entries from flag collection
 //
 // This function is auto-generated
-func (s Store) DeleteFlag(ctx context.Context, rr ...*flagType.Flag) (err error) {
+func (s *Store) DeleteFlag(ctx context.Context, rr ...*flagType.Flag) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, flagDeleteQuery(s.config.Dialect, flagPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -11975,7 +11975,7 @@ func (s Store) DeleteFlag(ctx context.Context, rr ...*flagType.Flag) (err error)
 // DeleteFlagByID deletes single entry from flag collection
 //
 // This function is auto-generated
-func (s Store) DeleteFlagByKindResourceIDOwnedByName(ctx context.Context, kind string, resourceID uint64, ownedBy uint64, name string) error {
+func (s *Store) DeleteFlagByKindResourceIDOwnedByName(ctx context.Context, kind string, resourceID uint64, ownedBy uint64, name string) error {
 	return s.Exec(ctx, flagDeleteQuery(s.config.Dialect, goqu.Ex{
 		"kind":         kind,
 		"rel_resource": resourceID,
@@ -11985,14 +11985,14 @@ func (s Store) DeleteFlagByKindResourceIDOwnedByName(ctx context.Context, kind s
 }
 
 // TruncateFlags Deletes all rows from the flag collection
-func (s Store) TruncateFlags(ctx context.Context) error {
+func (s *Store) TruncateFlags(ctx context.Context) error {
 	return s.Exec(ctx, flagTruncateQuery(s.config.Dialect))
 }
 
 // SearchFlags returns (filtered) set of Flags
 //
 // This function is auto-generated
-func (s Store) SearchFlags(ctx context.Context, f flagType.FlagFilter) (set flagType.FlagSet, _ flagType.FlagFilter, err error) {
+func (s *Store) SearchFlags(ctx context.Context, f flagType.FlagFilter) (set flagType.FlagSet, _ flagType.FlagFilter, err error) {
 
 	set, _, err = s.QueryFlags(ctx, f)
 	if err != nil {
@@ -12008,7 +12008,7 @@ func (s Store) SearchFlags(ctx context.Context, f flagType.FlagFilter) (set flag
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryFlags(
+func (s *Store) QueryFlags(
 	ctx context.Context,
 	f flagType.FlagFilter,
 ) (_ []*flagType.Flag, more bool, err error) {
@@ -12023,7 +12023,7 @@ func (s Store) QueryFlags(
 
 	if s.config.Filters.Flag != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.Flag(f)
+		tExpr, f, err = s.config.Filters.Flag(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = FlagFilter(f)
@@ -12089,7 +12089,7 @@ func (s Store) QueryFlags(
 // LookupFlagByKindResourceIDOwnedByName searches for flag by kind, resource ID, owner and name
 //
 // This function is auto-generated
-func (s Store) LookupFlagByKindResourceIDOwnedByName(ctx context.Context, kind string, resourceID uint64, ownedBy uint64, name string) (_ *flagType.Flag, err error) {
+func (s *Store) LookupFlagByKindResourceIDOwnedByName(ctx context.Context, kind string, resourceID uint64, ownedBy uint64, name string) (_ *flagType.Flag, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxFlag)
@@ -12156,7 +12156,7 @@ func (Store) sortableFlagFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectFlagCursorValues(res *flagType.Flag, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectFlagCursorValues(res *flagType.Flag, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -12219,7 +12219,7 @@ func (s *Store) checkFlagConstraints(ctx context.Context, res *flagType.Flag) (e
 // CreateLabel creates one or more rows in label collection
 //
 // This function is auto-generated
-func (s Store) CreateLabel(ctx context.Context, rr ...*labelsType.Label) (err error) {
+func (s *Store) CreateLabel(ctx context.Context, rr ...*labelsType.Label) (err error) {
 	for i := range rr {
 		if err = s.checkLabelConstraints(ctx, rr[i]); err != nil {
 			return
@@ -12236,7 +12236,7 @@ func (s Store) CreateLabel(ctx context.Context, rr ...*labelsType.Label) (err er
 // UpdateLabel updates one or more existing entries in label collection
 //
 // This function is auto-generated
-func (s Store) UpdateLabel(ctx context.Context, rr ...*labelsType.Label) (err error) {
+func (s *Store) UpdateLabel(ctx context.Context, rr ...*labelsType.Label) (err error) {
 	for i := range rr {
 		if err = s.checkLabelConstraints(ctx, rr[i]); err != nil {
 			return
@@ -12253,7 +12253,7 @@ func (s Store) UpdateLabel(ctx context.Context, rr ...*labelsType.Label) (err er
 // UpsertLabel updates one or more existing entries in label collection
 //
 // This function is auto-generated
-func (s Store) UpsertLabel(ctx context.Context, rr ...*labelsType.Label) (err error) {
+func (s *Store) UpsertLabel(ctx context.Context, rr ...*labelsType.Label) (err error) {
 	for i := range rr {
 		if err = s.checkLabelConstraints(ctx, rr[i]); err != nil {
 			return
@@ -12270,7 +12270,7 @@ func (s Store) UpsertLabel(ctx context.Context, rr ...*labelsType.Label) (err er
 // DeleteLabel Deletes one or more entries from label collection
 //
 // This function is auto-generated
-func (s Store) DeleteLabel(ctx context.Context, rr ...*labelsType.Label) (err error) {
+func (s *Store) DeleteLabel(ctx context.Context, rr ...*labelsType.Label) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, labelDeleteQuery(s.config.Dialect, labelPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -12283,7 +12283,7 @@ func (s Store) DeleteLabel(ctx context.Context, rr ...*labelsType.Label) (err er
 // DeleteLabelByID deletes single entry from label collection
 //
 // This function is auto-generated
-func (s Store) DeleteLabelByKindResourceIDName(ctx context.Context, kind string, resourceID uint64, name string) error {
+func (s *Store) DeleteLabelByKindResourceIDName(ctx context.Context, kind string, resourceID uint64, name string) error {
 	return s.Exec(ctx, labelDeleteQuery(s.config.Dialect, goqu.Ex{
 		"kind":         kind,
 		"rel_resource": resourceID,
@@ -12292,14 +12292,14 @@ func (s Store) DeleteLabelByKindResourceIDName(ctx context.Context, kind string,
 }
 
 // TruncateLabels Deletes all rows from the label collection
-func (s Store) TruncateLabels(ctx context.Context) error {
+func (s *Store) TruncateLabels(ctx context.Context) error {
 	return s.Exec(ctx, labelTruncateQuery(s.config.Dialect))
 }
 
 // SearchLabels returns (filtered) set of Labels
 //
 // This function is auto-generated
-func (s Store) SearchLabels(ctx context.Context, f labelsType.LabelFilter) (set labelsType.LabelSet, _ labelsType.LabelFilter, err error) {
+func (s *Store) SearchLabels(ctx context.Context, f labelsType.LabelFilter) (set labelsType.LabelSet, _ labelsType.LabelFilter, err error) {
 
 	set, _, err = s.QueryLabels(ctx, f)
 	if err != nil {
@@ -12315,7 +12315,7 @@ func (s Store) SearchLabels(ctx context.Context, f labelsType.LabelFilter) (set 
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryLabels(
+func (s *Store) QueryLabels(
 	ctx context.Context,
 	f labelsType.LabelFilter,
 ) (_ []*labelsType.Label, more bool, err error) {
@@ -12330,7 +12330,7 @@ func (s Store) QueryLabels(
 
 	if s.config.Filters.Label != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.Label(f)
+		tExpr, f, err = s.config.Filters.Label(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = LabelFilter(f)
@@ -12396,7 +12396,7 @@ func (s Store) QueryLabels(
 // LookupLabelByKindResourceIDName searches for label by kind, resource ID and name
 //
 // This function is auto-generated
-func (s Store) LookupLabelByKindResourceIDName(ctx context.Context, kind string, resourceID uint64, name string) (_ *labelsType.Label, err error) {
+func (s *Store) LookupLabelByKindResourceIDName(ctx context.Context, kind string, resourceID uint64, name string) (_ *labelsType.Label, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxLabel)
@@ -12460,7 +12460,7 @@ func (Store) sortableLabelFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectLabelCursorValues(res *labelsType.Label, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectLabelCursorValues(res *labelsType.Label, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -12516,7 +12516,7 @@ func (s *Store) checkLabelConstraints(ctx context.Context, res *labelsType.Label
 // CreateQueue creates one or more rows in queue collection
 //
 // This function is auto-generated
-func (s Store) CreateQueue(ctx context.Context, rr ...*systemType.Queue) (err error) {
+func (s *Store) CreateQueue(ctx context.Context, rr ...*systemType.Queue) (err error) {
 	for i := range rr {
 		if err = s.checkQueueConstraints(ctx, rr[i]); err != nil {
 			return
@@ -12533,7 +12533,7 @@ func (s Store) CreateQueue(ctx context.Context, rr ...*systemType.Queue) (err er
 // UpdateQueue updates one or more existing entries in queue collection
 //
 // This function is auto-generated
-func (s Store) UpdateQueue(ctx context.Context, rr ...*systemType.Queue) (err error) {
+func (s *Store) UpdateQueue(ctx context.Context, rr ...*systemType.Queue) (err error) {
 	for i := range rr {
 		if err = s.checkQueueConstraints(ctx, rr[i]); err != nil {
 			return
@@ -12550,7 +12550,7 @@ func (s Store) UpdateQueue(ctx context.Context, rr ...*systemType.Queue) (err er
 // UpsertQueue updates one or more existing entries in queue collection
 //
 // This function is auto-generated
-func (s Store) UpsertQueue(ctx context.Context, rr ...*systemType.Queue) (err error) {
+func (s *Store) UpsertQueue(ctx context.Context, rr ...*systemType.Queue) (err error) {
 	for i := range rr {
 		if err = s.checkQueueConstraints(ctx, rr[i]); err != nil {
 			return
@@ -12567,7 +12567,7 @@ func (s Store) UpsertQueue(ctx context.Context, rr ...*systemType.Queue) (err er
 // DeleteQueue Deletes one or more entries from queue collection
 //
 // This function is auto-generated
-func (s Store) DeleteQueue(ctx context.Context, rr ...*systemType.Queue) (err error) {
+func (s *Store) DeleteQueue(ctx context.Context, rr ...*systemType.Queue) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, queueDeleteQuery(s.config.Dialect, queuePrimaryKeys(rr[i]))); err != nil {
 			return
@@ -12580,21 +12580,21 @@ func (s Store) DeleteQueue(ctx context.Context, rr ...*systemType.Queue) (err er
 // DeleteQueueByID deletes single entry from queue collection
 //
 // This function is auto-generated
-func (s Store) DeleteQueueByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteQueueByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, queueDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateQueues Deletes all rows from the queue collection
-func (s Store) TruncateQueues(ctx context.Context) error {
+func (s *Store) TruncateQueues(ctx context.Context) error {
 	return s.Exec(ctx, queueTruncateQuery(s.config.Dialect))
 }
 
 // SearchQueues returns (filtered) set of Queues
 //
 // This function is auto-generated
-func (s Store) SearchQueues(ctx context.Context, f systemType.QueueFilter) (set systemType.QueueSet, _ systemType.QueueFilter, err error) {
+func (s *Store) SearchQueues(ctx context.Context, f systemType.QueueFilter) (set systemType.QueueSet, _ systemType.QueueFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -12650,7 +12650,7 @@ func (s Store) SearchQueues(ctx context.Context, f systemType.QueueFilter) (set 
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfQueues(
+func (s *Store) fetchFullPageOfQueues(
 	ctx context.Context,
 	filter systemType.QueueFilter,
 	sort filter.SortExprSet,
@@ -12771,7 +12771,7 @@ func (s Store) fetchFullPageOfQueues(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryQueues(
+func (s *Store) QueryQueues(
 	ctx context.Context,
 	f systemType.QueueFilter,
 ) (_ []*systemType.Queue, more bool, err error) {
@@ -12790,7 +12790,7 @@ func (s Store) QueryQueues(
 
 	if s.config.Filters.Queue != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.Queue(f)
+		tExpr, f, err = s.config.Filters.Queue(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = QueueFilter(f)
@@ -12885,7 +12885,7 @@ func (s Store) QueryQueues(
 // LookupQueueByID searches for queue by ID
 //
 // This function is auto-generated
-func (s Store) LookupQueueByID(ctx context.Context, id uint64) (_ *systemType.Queue, err error) {
+func (s *Store) LookupQueueByID(ctx context.Context, id uint64) (_ *systemType.Queue, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxQueue)
@@ -12925,7 +12925,7 @@ func (s Store) LookupQueueByID(ctx context.Context, id uint64) (_ *systemType.Qu
 // LookupQueueByQueue searches for queue by queue name
 //
 // This function is auto-generated
-func (s Store) LookupQueueByQueue(ctx context.Context, queue string) (_ *systemType.Queue, err error) {
+func (s *Store) LookupQueueByQueue(ctx context.Context, queue string) (_ *systemType.Queue, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxQueue)
@@ -12990,7 +12990,7 @@ func (Store) sortableQueueFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectQueueCursorValues(res *systemType.Queue, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectQueueCursorValues(res *systemType.Queue, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -13038,7 +13038,7 @@ func (s *Store) checkQueueConstraints(ctx context.Context, res *systemType.Queue
 // CreateQueueMessage creates one or more rows in queueMessage collection
 //
 // This function is auto-generated
-func (s Store) CreateQueueMessage(ctx context.Context, rr ...*systemType.QueueMessage) (err error) {
+func (s *Store) CreateQueueMessage(ctx context.Context, rr ...*systemType.QueueMessage) (err error) {
 	for i := range rr {
 		if err = s.checkQueueMessageConstraints(ctx, rr[i]); err != nil {
 			return
@@ -13055,7 +13055,7 @@ func (s Store) CreateQueueMessage(ctx context.Context, rr ...*systemType.QueueMe
 // UpdateQueueMessage updates one or more existing entries in queueMessage collection
 //
 // This function is auto-generated
-func (s Store) UpdateQueueMessage(ctx context.Context, rr ...*systemType.QueueMessage) (err error) {
+func (s *Store) UpdateQueueMessage(ctx context.Context, rr ...*systemType.QueueMessage) (err error) {
 	for i := range rr {
 		if err = s.checkQueueMessageConstraints(ctx, rr[i]); err != nil {
 			return
@@ -13072,7 +13072,7 @@ func (s Store) UpdateQueueMessage(ctx context.Context, rr ...*systemType.QueueMe
 // UpsertQueueMessage updates one or more existing entries in queueMessage collection
 //
 // This function is auto-generated
-func (s Store) UpsertQueueMessage(ctx context.Context, rr ...*systemType.QueueMessage) (err error) {
+func (s *Store) UpsertQueueMessage(ctx context.Context, rr ...*systemType.QueueMessage) (err error) {
 	for i := range rr {
 		if err = s.checkQueueMessageConstraints(ctx, rr[i]); err != nil {
 			return
@@ -13089,7 +13089,7 @@ func (s Store) UpsertQueueMessage(ctx context.Context, rr ...*systemType.QueueMe
 // DeleteQueueMessage Deletes one or more entries from queueMessage collection
 //
 // This function is auto-generated
-func (s Store) DeleteQueueMessage(ctx context.Context, rr ...*systemType.QueueMessage) (err error) {
+func (s *Store) DeleteQueueMessage(ctx context.Context, rr ...*systemType.QueueMessage) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, queueMessageDeleteQuery(s.config.Dialect, queueMessagePrimaryKeys(rr[i]))); err != nil {
 			return
@@ -13102,21 +13102,21 @@ func (s Store) DeleteQueueMessage(ctx context.Context, rr ...*systemType.QueueMe
 // DeleteQueueMessageByID deletes single entry from queueMessage collection
 //
 // This function is auto-generated
-func (s Store) DeleteQueueMessageByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteQueueMessageByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, queueMessageDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateQueueMessages Deletes all rows from the queueMessage collection
-func (s Store) TruncateQueueMessages(ctx context.Context) error {
+func (s *Store) TruncateQueueMessages(ctx context.Context) error {
 	return s.Exec(ctx, queueMessageTruncateQuery(s.config.Dialect))
 }
 
 // SearchQueueMessages returns (filtered) set of QueueMessages
 //
 // This function is auto-generated
-func (s Store) SearchQueueMessages(ctx context.Context, f systemType.QueueMessageFilter) (set systemType.QueueMessageSet, _ systemType.QueueMessageFilter, err error) {
+func (s *Store) SearchQueueMessages(ctx context.Context, f systemType.QueueMessageFilter) (set systemType.QueueMessageSet, _ systemType.QueueMessageFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -13172,7 +13172,7 @@ func (s Store) SearchQueueMessages(ctx context.Context, f systemType.QueueMessag
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfQueueMessages(
+func (s *Store) fetchFullPageOfQueueMessages(
 	ctx context.Context,
 	filter systemType.QueueMessageFilter,
 	sort filter.SortExprSet,
@@ -13293,7 +13293,7 @@ func (s Store) fetchFullPageOfQueueMessages(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryQueueMessages(
+func (s *Store) QueryQueueMessages(
 	ctx context.Context,
 	f systemType.QueueMessageFilter,
 ) (_ []*systemType.QueueMessage, more bool, err error) {
@@ -13310,7 +13310,7 @@ func (s Store) QueryQueueMessages(
 
 	if s.config.Filters.QueueMessage != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.QueueMessage(f)
+		tExpr, f, err = s.config.Filters.QueueMessage(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = QueueMessageFilter(f)
@@ -13416,7 +13416,7 @@ func (Store) sortableQueueMessageFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectQueueMessageCursorValues(res *systemType.QueueMessage, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectQueueMessageCursorValues(res *systemType.QueueMessage, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -13462,7 +13462,7 @@ func (s *Store) checkQueueMessageConstraints(ctx context.Context, res *systemTyp
 // CreateRbacRule creates one or more rows in rbacRule collection
 //
 // This function is auto-generated
-func (s Store) CreateRbacRule(ctx context.Context, rr ...*rbacType.Rule) (err error) {
+func (s *Store) CreateRbacRule(ctx context.Context, rr ...*rbacType.Rule) (err error) {
 	for i := range rr {
 		if err = s.checkRbacRuleConstraints(ctx, rr[i]); err != nil {
 			return
@@ -13479,7 +13479,7 @@ func (s Store) CreateRbacRule(ctx context.Context, rr ...*rbacType.Rule) (err er
 // UpdateRbacRule updates one or more existing entries in rbacRule collection
 //
 // This function is auto-generated
-func (s Store) UpdateRbacRule(ctx context.Context, rr ...*rbacType.Rule) (err error) {
+func (s *Store) UpdateRbacRule(ctx context.Context, rr ...*rbacType.Rule) (err error) {
 	for i := range rr {
 		if err = s.checkRbacRuleConstraints(ctx, rr[i]); err != nil {
 			return
@@ -13496,7 +13496,7 @@ func (s Store) UpdateRbacRule(ctx context.Context, rr ...*rbacType.Rule) (err er
 // UpsertRbacRule updates one or more existing entries in rbacRule collection
 //
 // This function is auto-generated
-func (s Store) UpsertRbacRule(ctx context.Context, rr ...*rbacType.Rule) (err error) {
+func (s *Store) UpsertRbacRule(ctx context.Context, rr ...*rbacType.Rule) (err error) {
 	for i := range rr {
 		if err = s.checkRbacRuleConstraints(ctx, rr[i]); err != nil {
 			return
@@ -13513,7 +13513,7 @@ func (s Store) UpsertRbacRule(ctx context.Context, rr ...*rbacType.Rule) (err er
 // DeleteRbacRule Deletes one or more entries from rbacRule collection
 //
 // This function is auto-generated
-func (s Store) DeleteRbacRule(ctx context.Context, rr ...*rbacType.Rule) (err error) {
+func (s *Store) DeleteRbacRule(ctx context.Context, rr ...*rbacType.Rule) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, rbacRuleDeleteQuery(s.config.Dialect, rbacRulePrimaryKeys(rr[i]))); err != nil {
 			return
@@ -13526,7 +13526,7 @@ func (s Store) DeleteRbacRule(ctx context.Context, rr ...*rbacType.Rule) (err er
 // DeleteRbacRuleByID deletes single entry from rbacRule collection
 //
 // This function is auto-generated
-func (s Store) DeleteRbacRuleByRoleIDResourceOperation(ctx context.Context, roleID uint64, resource string, operation string) error {
+func (s *Store) DeleteRbacRuleByRoleIDResourceOperation(ctx context.Context, roleID uint64, resource string, operation string) error {
 	return s.Exec(ctx, rbacRuleDeleteQuery(s.config.Dialect, goqu.Ex{
 		"rel_role":  roleID,
 		"resource":  resource,
@@ -13535,14 +13535,14 @@ func (s Store) DeleteRbacRuleByRoleIDResourceOperation(ctx context.Context, role
 }
 
 // TruncateRbacRules Deletes all rows from the rbacRule collection
-func (s Store) TruncateRbacRules(ctx context.Context) error {
+func (s *Store) TruncateRbacRules(ctx context.Context) error {
 	return s.Exec(ctx, rbacRuleTruncateQuery(s.config.Dialect))
 }
 
 // SearchRbacRules returns (filtered) set of RbacRules
 //
 // This function is auto-generated
-func (s Store) SearchRbacRules(ctx context.Context, f rbacType.RuleFilter) (set rbacType.RuleSet, _ rbacType.RuleFilter, err error) {
+func (s *Store) SearchRbacRules(ctx context.Context, f rbacType.RuleFilter) (set rbacType.RuleSet, _ rbacType.RuleFilter, err error) {
 
 	set, _, err = s.QueryRbacRules(ctx, f)
 	if err != nil {
@@ -13558,7 +13558,7 @@ func (s Store) SearchRbacRules(ctx context.Context, f rbacType.RuleFilter) (set 
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryRbacRules(
+func (s *Store) QueryRbacRules(
 	ctx context.Context,
 	f rbacType.RuleFilter,
 ) (_ []*rbacType.Rule, more bool, err error) {
@@ -13573,7 +13573,7 @@ func (s Store) QueryRbacRules(
 
 	if s.config.Filters.RbacRule != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.RbacRule(f)
+		tExpr, f, err = s.config.Filters.RbacRule(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = RbacRuleFilter(f)
@@ -13661,7 +13661,7 @@ func (Store) sortableRbacRuleFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectRbacRuleCursorValues(res *rbacType.Rule, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectRbacRuleCursorValues(res *rbacType.Rule, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -13717,7 +13717,7 @@ func (s *Store) checkRbacRuleConstraints(ctx context.Context, res *rbacType.Rule
 // CreateReminder creates one or more rows in reminder collection
 //
 // This function is auto-generated
-func (s Store) CreateReminder(ctx context.Context, rr ...*systemType.Reminder) (err error) {
+func (s *Store) CreateReminder(ctx context.Context, rr ...*systemType.Reminder) (err error) {
 	for i := range rr {
 		if err = s.checkReminderConstraints(ctx, rr[i]); err != nil {
 			return
@@ -13734,7 +13734,7 @@ func (s Store) CreateReminder(ctx context.Context, rr ...*systemType.Reminder) (
 // UpdateReminder updates one or more existing entries in reminder collection
 //
 // This function is auto-generated
-func (s Store) UpdateReminder(ctx context.Context, rr ...*systemType.Reminder) (err error) {
+func (s *Store) UpdateReminder(ctx context.Context, rr ...*systemType.Reminder) (err error) {
 	for i := range rr {
 		if err = s.checkReminderConstraints(ctx, rr[i]); err != nil {
 			return
@@ -13751,7 +13751,7 @@ func (s Store) UpdateReminder(ctx context.Context, rr ...*systemType.Reminder) (
 // UpsertReminder updates one or more existing entries in reminder collection
 //
 // This function is auto-generated
-func (s Store) UpsertReminder(ctx context.Context, rr ...*systemType.Reminder) (err error) {
+func (s *Store) UpsertReminder(ctx context.Context, rr ...*systemType.Reminder) (err error) {
 	for i := range rr {
 		if err = s.checkReminderConstraints(ctx, rr[i]); err != nil {
 			return
@@ -13768,7 +13768,7 @@ func (s Store) UpsertReminder(ctx context.Context, rr ...*systemType.Reminder) (
 // DeleteReminder Deletes one or more entries from reminder collection
 //
 // This function is auto-generated
-func (s Store) DeleteReminder(ctx context.Context, rr ...*systemType.Reminder) (err error) {
+func (s *Store) DeleteReminder(ctx context.Context, rr ...*systemType.Reminder) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, reminderDeleteQuery(s.config.Dialect, reminderPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -13781,21 +13781,21 @@ func (s Store) DeleteReminder(ctx context.Context, rr ...*systemType.Reminder) (
 // DeleteReminderByID deletes single entry from reminder collection
 //
 // This function is auto-generated
-func (s Store) DeleteReminderByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteReminderByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, reminderDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateReminders Deletes all rows from the reminder collection
-func (s Store) TruncateReminders(ctx context.Context) error {
+func (s *Store) TruncateReminders(ctx context.Context) error {
 	return s.Exec(ctx, reminderTruncateQuery(s.config.Dialect))
 }
 
 // SearchReminders returns (filtered) set of Reminders
 //
 // This function is auto-generated
-func (s Store) SearchReminders(ctx context.Context, f systemType.ReminderFilter) (set systemType.ReminderSet, _ systemType.ReminderFilter, err error) {
+func (s *Store) SearchReminders(ctx context.Context, f systemType.ReminderFilter) (set systemType.ReminderSet, _ systemType.ReminderFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -13851,7 +13851,7 @@ func (s Store) SearchReminders(ctx context.Context, f systemType.ReminderFilter)
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfReminders(
+func (s *Store) fetchFullPageOfReminders(
 	ctx context.Context,
 	filter systemType.ReminderFilter,
 	sort filter.SortExprSet,
@@ -13972,7 +13972,7 @@ func (s Store) fetchFullPageOfReminders(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryReminders(
+func (s *Store) QueryReminders(
 	ctx context.Context,
 	f systemType.ReminderFilter,
 ) (_ []*systemType.Reminder, more bool, err error) {
@@ -13991,7 +13991,7 @@ func (s Store) QueryReminders(
 
 	if s.config.Filters.Reminder != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.Reminder(f)
+		tExpr, f, err = s.config.Filters.Reminder(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = ReminderFilter(f)
@@ -14086,7 +14086,7 @@ func (s Store) QueryReminders(
 // LookupReminderByID
 //
 // This function is auto-generated
-func (s Store) LookupReminderByID(ctx context.Context, id uint64) (_ *systemType.Reminder, err error) {
+func (s *Store) LookupReminderByID(ctx context.Context, id uint64) (_ *systemType.Reminder, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxReminder)
@@ -14157,7 +14157,7 @@ func (Store) sortableReminderFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectReminderCursorValues(res *systemType.Reminder, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectReminderCursorValues(res *systemType.Reminder, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -14211,7 +14211,7 @@ func (s *Store) checkReminderConstraints(ctx context.Context, res *systemType.Re
 // CreateReport creates one or more rows in report collection
 //
 // This function is auto-generated
-func (s Store) CreateReport(ctx context.Context, rr ...*systemType.Report) (err error) {
+func (s *Store) CreateReport(ctx context.Context, rr ...*systemType.Report) (err error) {
 	for i := range rr {
 		if err = s.checkReportConstraints(ctx, rr[i]); err != nil {
 			return
@@ -14228,7 +14228,7 @@ func (s Store) CreateReport(ctx context.Context, rr ...*systemType.Report) (err 
 // UpdateReport updates one or more existing entries in report collection
 //
 // This function is auto-generated
-func (s Store) UpdateReport(ctx context.Context, rr ...*systemType.Report) (err error) {
+func (s *Store) UpdateReport(ctx context.Context, rr ...*systemType.Report) (err error) {
 	for i := range rr {
 		if err = s.checkReportConstraints(ctx, rr[i]); err != nil {
 			return
@@ -14245,7 +14245,7 @@ func (s Store) UpdateReport(ctx context.Context, rr ...*systemType.Report) (err 
 // UpsertReport updates one or more existing entries in report collection
 //
 // This function is auto-generated
-func (s Store) UpsertReport(ctx context.Context, rr ...*systemType.Report) (err error) {
+func (s *Store) UpsertReport(ctx context.Context, rr ...*systemType.Report) (err error) {
 	for i := range rr {
 		if err = s.checkReportConstraints(ctx, rr[i]); err != nil {
 			return
@@ -14262,7 +14262,7 @@ func (s Store) UpsertReport(ctx context.Context, rr ...*systemType.Report) (err 
 // DeleteReport Deletes one or more entries from report collection
 //
 // This function is auto-generated
-func (s Store) DeleteReport(ctx context.Context, rr ...*systemType.Report) (err error) {
+func (s *Store) DeleteReport(ctx context.Context, rr ...*systemType.Report) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, reportDeleteQuery(s.config.Dialect, reportPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -14275,21 +14275,21 @@ func (s Store) DeleteReport(ctx context.Context, rr ...*systemType.Report) (err 
 // DeleteReportByID deletes single entry from report collection
 //
 // This function is auto-generated
-func (s Store) DeleteReportByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteReportByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, reportDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateReports Deletes all rows from the report collection
-func (s Store) TruncateReports(ctx context.Context) error {
+func (s *Store) TruncateReports(ctx context.Context) error {
 	return s.Exec(ctx, reportTruncateQuery(s.config.Dialect))
 }
 
 // SearchReports returns (filtered) set of Reports
 //
 // This function is auto-generated
-func (s Store) SearchReports(ctx context.Context, f systemType.ReportFilter) (set systemType.ReportSet, _ systemType.ReportFilter, err error) {
+func (s *Store) SearchReports(ctx context.Context, f systemType.ReportFilter) (set systemType.ReportSet, _ systemType.ReportFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -14345,7 +14345,7 @@ func (s Store) SearchReports(ctx context.Context, f systemType.ReportFilter) (se
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfReports(
+func (s *Store) fetchFullPageOfReports(
 	ctx context.Context,
 	filter systemType.ReportFilter,
 	sort filter.SortExprSet,
@@ -14466,7 +14466,7 @@ func (s Store) fetchFullPageOfReports(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryReports(
+func (s *Store) QueryReports(
 	ctx context.Context,
 	f systemType.ReportFilter,
 ) (_ []*systemType.Report, more bool, err error) {
@@ -14485,7 +14485,7 @@ func (s Store) QueryReports(
 
 	if s.config.Filters.Report != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.Report(f)
+		tExpr, f, err = s.config.Filters.Report(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = ReportFilter(f)
@@ -14582,7 +14582,7 @@ func (s Store) QueryReports(
 // It returns report even if deleted
 //
 // This function is auto-generated
-func (s Store) LookupReportByID(ctx context.Context, id uint64) (_ *systemType.Report, err error) {
+func (s *Store) LookupReportByID(ctx context.Context, id uint64) (_ *systemType.Report, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxReport)
@@ -14624,7 +14624,7 @@ func (s Store) LookupReportByID(ctx context.Context, id uint64) (_ *systemType.R
 // It returns report if deleted
 //
 // This function is auto-generated
-func (s Store) LookupReportByHandle(ctx context.Context, handle string) (_ *systemType.Report, err error) {
+func (s *Store) LookupReportByHandle(ctx context.Context, handle string) (_ *systemType.Report, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxReport)
@@ -14691,7 +14691,7 @@ func (Store) sortableReportFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectReportCursorValues(res *systemType.Report, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectReportCursorValues(res *systemType.Report, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -14769,7 +14769,7 @@ func (s *Store) checkReportConstraints(ctx context.Context, res *systemType.Repo
 // CreateResourceActivity creates one or more rows in resourceActivity collection
 //
 // This function is auto-generated
-func (s Store) CreateResourceActivity(ctx context.Context, rr ...*discoveryType.ResourceActivity) (err error) {
+func (s *Store) CreateResourceActivity(ctx context.Context, rr ...*discoveryType.ResourceActivity) (err error) {
 	for i := range rr {
 		if err = s.checkResourceActivityConstraints(ctx, rr[i]); err != nil {
 			return
@@ -14786,7 +14786,7 @@ func (s Store) CreateResourceActivity(ctx context.Context, rr ...*discoveryType.
 // UpdateResourceActivity updates one or more existing entries in resourceActivity collection
 //
 // This function is auto-generated
-func (s Store) UpdateResourceActivity(ctx context.Context, rr ...*discoveryType.ResourceActivity) (err error) {
+func (s *Store) UpdateResourceActivity(ctx context.Context, rr ...*discoveryType.ResourceActivity) (err error) {
 	for i := range rr {
 		if err = s.checkResourceActivityConstraints(ctx, rr[i]); err != nil {
 			return
@@ -14803,7 +14803,7 @@ func (s Store) UpdateResourceActivity(ctx context.Context, rr ...*discoveryType.
 // UpsertResourceActivity updates one or more existing entries in resourceActivity collection
 //
 // This function is auto-generated
-func (s Store) UpsertResourceActivity(ctx context.Context, rr ...*discoveryType.ResourceActivity) (err error) {
+func (s *Store) UpsertResourceActivity(ctx context.Context, rr ...*discoveryType.ResourceActivity) (err error) {
 	for i := range rr {
 		if err = s.checkResourceActivityConstraints(ctx, rr[i]); err != nil {
 			return
@@ -14820,7 +14820,7 @@ func (s Store) UpsertResourceActivity(ctx context.Context, rr ...*discoveryType.
 // DeleteResourceActivity Deletes one or more entries from resourceActivity collection
 //
 // This function is auto-generated
-func (s Store) DeleteResourceActivity(ctx context.Context, rr ...*discoveryType.ResourceActivity) (err error) {
+func (s *Store) DeleteResourceActivity(ctx context.Context, rr ...*discoveryType.ResourceActivity) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, resourceActivityDeleteQuery(s.config.Dialect, resourceActivityPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -14833,21 +14833,21 @@ func (s Store) DeleteResourceActivity(ctx context.Context, rr ...*discoveryType.
 // DeleteResourceActivityByID deletes single entry from resourceActivity collection
 //
 // This function is auto-generated
-func (s Store) DeleteResourceActivityByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteResourceActivityByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, resourceActivityDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateResourceActivitys Deletes all rows from the resourceActivity collection
-func (s Store) TruncateResourceActivitys(ctx context.Context) error {
+func (s *Store) TruncateResourceActivitys(ctx context.Context) error {
 	return s.Exec(ctx, resourceActivityTruncateQuery(s.config.Dialect))
 }
 
 // SearchResourceActivitys returns (filtered) set of ResourceActivitys
 //
 // This function is auto-generated
-func (s Store) SearchResourceActivitys(ctx context.Context, f discoveryType.ResourceActivityFilter) (set discoveryType.ResourceActivitySet, _ discoveryType.ResourceActivityFilter, err error) {
+func (s *Store) SearchResourceActivitys(ctx context.Context, f discoveryType.ResourceActivityFilter) (set discoveryType.ResourceActivitySet, _ discoveryType.ResourceActivityFilter, err error) {
 
 	set, _, err = s.QueryResourceActivitys(ctx, f)
 	if err != nil {
@@ -14863,7 +14863,7 @@ func (s Store) SearchResourceActivitys(ctx context.Context, f discoveryType.Reso
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryResourceActivitys(
+func (s *Store) QueryResourceActivitys(
 	ctx context.Context,
 	f discoveryType.ResourceActivityFilter,
 ) (_ []*discoveryType.ResourceActivity, more bool, err error) {
@@ -14878,7 +14878,7 @@ func (s Store) QueryResourceActivitys(
 
 	if s.config.Filters.ResourceActivity != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.ResourceActivity(f)
+		tExpr, f, err = s.config.Filters.ResourceActivity(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = ResourceActivityFilter(f)
@@ -14964,7 +14964,7 @@ func (Store) sortableResourceActivityFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectResourceActivityCursorValues(res *discoveryType.ResourceActivity, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectResourceActivityCursorValues(res *discoveryType.ResourceActivity, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -15008,7 +15008,7 @@ func (s *Store) checkResourceActivityConstraints(ctx context.Context, res *disco
 // CreateResourceTranslation creates one or more rows in resourceTranslation collection
 //
 // This function is auto-generated
-func (s Store) CreateResourceTranslation(ctx context.Context, rr ...*systemType.ResourceTranslation) (err error) {
+func (s *Store) CreateResourceTranslation(ctx context.Context, rr ...*systemType.ResourceTranslation) (err error) {
 	for i := range rr {
 		if err = s.checkResourceTranslationConstraints(ctx, rr[i]); err != nil {
 			return
@@ -15025,7 +15025,7 @@ func (s Store) CreateResourceTranslation(ctx context.Context, rr ...*systemType.
 // UpdateResourceTranslation updates one or more existing entries in resourceTranslation collection
 //
 // This function is auto-generated
-func (s Store) UpdateResourceTranslation(ctx context.Context, rr ...*systemType.ResourceTranslation) (err error) {
+func (s *Store) UpdateResourceTranslation(ctx context.Context, rr ...*systemType.ResourceTranslation) (err error) {
 	for i := range rr {
 		if err = s.checkResourceTranslationConstraints(ctx, rr[i]); err != nil {
 			return
@@ -15042,7 +15042,7 @@ func (s Store) UpdateResourceTranslation(ctx context.Context, rr ...*systemType.
 // UpsertResourceTranslation updates one or more existing entries in resourceTranslation collection
 //
 // This function is auto-generated
-func (s Store) UpsertResourceTranslation(ctx context.Context, rr ...*systemType.ResourceTranslation) (err error) {
+func (s *Store) UpsertResourceTranslation(ctx context.Context, rr ...*systemType.ResourceTranslation) (err error) {
 	for i := range rr {
 		if err = s.checkResourceTranslationConstraints(ctx, rr[i]); err != nil {
 			return
@@ -15059,7 +15059,7 @@ func (s Store) UpsertResourceTranslation(ctx context.Context, rr ...*systemType.
 // DeleteResourceTranslation Deletes one or more entries from resourceTranslation collection
 //
 // This function is auto-generated
-func (s Store) DeleteResourceTranslation(ctx context.Context, rr ...*systemType.ResourceTranslation) (err error) {
+func (s *Store) DeleteResourceTranslation(ctx context.Context, rr ...*systemType.ResourceTranslation) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, resourceTranslationDeleteQuery(s.config.Dialect, resourceTranslationPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -15072,21 +15072,21 @@ func (s Store) DeleteResourceTranslation(ctx context.Context, rr ...*systemType.
 // DeleteResourceTranslationByID deletes single entry from resourceTranslation collection
 //
 // This function is auto-generated
-func (s Store) DeleteResourceTranslationByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteResourceTranslationByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, resourceTranslationDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateResourceTranslations Deletes all rows from the resourceTranslation collection
-func (s Store) TruncateResourceTranslations(ctx context.Context) error {
+func (s *Store) TruncateResourceTranslations(ctx context.Context) error {
 	return s.Exec(ctx, resourceTranslationTruncateQuery(s.config.Dialect))
 }
 
 // SearchResourceTranslations returns (filtered) set of ResourceTranslations
 //
 // This function is auto-generated
-func (s Store) SearchResourceTranslations(ctx context.Context, f systemType.ResourceTranslationFilter) (set systemType.ResourceTranslationSet, _ systemType.ResourceTranslationFilter, err error) {
+func (s *Store) SearchResourceTranslations(ctx context.Context, f systemType.ResourceTranslationFilter) (set systemType.ResourceTranslationSet, _ systemType.ResourceTranslationFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -15142,7 +15142,7 @@ func (s Store) SearchResourceTranslations(ctx context.Context, f systemType.Reso
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfResourceTranslations(
+func (s *Store) fetchFullPageOfResourceTranslations(
 	ctx context.Context,
 	filter systemType.ResourceTranslationFilter,
 	sort filter.SortExprSet,
@@ -15263,7 +15263,7 @@ func (s Store) fetchFullPageOfResourceTranslations(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryResourceTranslations(
+func (s *Store) QueryResourceTranslations(
 	ctx context.Context,
 	f systemType.ResourceTranslationFilter,
 ) (_ []*systemType.ResourceTranslation, more bool, err error) {
@@ -15280,7 +15280,7 @@ func (s Store) QueryResourceTranslations(
 
 	if s.config.Filters.ResourceTranslation != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.ResourceTranslation(f)
+		tExpr, f, err = s.config.Filters.ResourceTranslation(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = ResourceTranslationFilter(f)
@@ -15366,7 +15366,7 @@ func (s Store) QueryResourceTranslations(
 // It also returns deleted resource translations.
 //
 // This function is auto-generated
-func (s Store) LookupResourceTranslationByID(ctx context.Context, id uint64) (_ *systemType.ResourceTranslation, err error) {
+func (s *Store) LookupResourceTranslationByID(ctx context.Context, id uint64) (_ *systemType.ResourceTranslation, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxResourceTranslation)
@@ -15431,7 +15431,7 @@ func (Store) sortableResourceTranslationFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectResourceTranslationCursorValues(res *systemType.ResourceTranslation, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectResourceTranslationCursorValues(res *systemType.ResourceTranslation, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -15479,7 +15479,7 @@ func (s *Store) checkResourceTranslationConstraints(ctx context.Context, res *sy
 // CreateRole creates one or more rows in role collection
 //
 // This function is auto-generated
-func (s Store) CreateRole(ctx context.Context, rr ...*systemType.Role) (err error) {
+func (s *Store) CreateRole(ctx context.Context, rr ...*systemType.Role) (err error) {
 	for i := range rr {
 		if err = s.checkRoleConstraints(ctx, rr[i]); err != nil {
 			return
@@ -15496,7 +15496,7 @@ func (s Store) CreateRole(ctx context.Context, rr ...*systemType.Role) (err erro
 // UpdateRole updates one or more existing entries in role collection
 //
 // This function is auto-generated
-func (s Store) UpdateRole(ctx context.Context, rr ...*systemType.Role) (err error) {
+func (s *Store) UpdateRole(ctx context.Context, rr ...*systemType.Role) (err error) {
 	for i := range rr {
 		if err = s.checkRoleConstraints(ctx, rr[i]); err != nil {
 			return
@@ -15513,7 +15513,7 @@ func (s Store) UpdateRole(ctx context.Context, rr ...*systemType.Role) (err erro
 // UpsertRole updates one or more existing entries in role collection
 //
 // This function is auto-generated
-func (s Store) UpsertRole(ctx context.Context, rr ...*systemType.Role) (err error) {
+func (s *Store) UpsertRole(ctx context.Context, rr ...*systemType.Role) (err error) {
 	for i := range rr {
 		if err = s.checkRoleConstraints(ctx, rr[i]); err != nil {
 			return
@@ -15530,7 +15530,7 @@ func (s Store) UpsertRole(ctx context.Context, rr ...*systemType.Role) (err erro
 // DeleteRole Deletes one or more entries from role collection
 //
 // This function is auto-generated
-func (s Store) DeleteRole(ctx context.Context, rr ...*systemType.Role) (err error) {
+func (s *Store) DeleteRole(ctx context.Context, rr ...*systemType.Role) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, roleDeleteQuery(s.config.Dialect, rolePrimaryKeys(rr[i]))); err != nil {
 			return
@@ -15543,21 +15543,21 @@ func (s Store) DeleteRole(ctx context.Context, rr ...*systemType.Role) (err erro
 // DeleteRoleByID deletes single entry from role collection
 //
 // This function is auto-generated
-func (s Store) DeleteRoleByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteRoleByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, roleDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateRoles Deletes all rows from the role collection
-func (s Store) TruncateRoles(ctx context.Context) error {
+func (s *Store) TruncateRoles(ctx context.Context) error {
 	return s.Exec(ctx, roleTruncateQuery(s.config.Dialect))
 }
 
 // SearchRoles returns (filtered) set of Roles
 //
 // This function is auto-generated
-func (s Store) SearchRoles(ctx context.Context, f systemType.RoleFilter) (set systemType.RoleSet, _ systemType.RoleFilter, err error) {
+func (s *Store) SearchRoles(ctx context.Context, f systemType.RoleFilter) (set systemType.RoleSet, _ systemType.RoleFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -15613,7 +15613,7 @@ func (s Store) SearchRoles(ctx context.Context, f systemType.RoleFilter) (set sy
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfRoles(
+func (s *Store) fetchFullPageOfRoles(
 	ctx context.Context,
 	filter systemType.RoleFilter,
 	sort filter.SortExprSet,
@@ -15734,7 +15734,7 @@ func (s Store) fetchFullPageOfRoles(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryRoles(
+func (s *Store) QueryRoles(
 	ctx context.Context,
 	f systemType.RoleFilter,
 ) (_ []*systemType.Role, more bool, err error) {
@@ -15753,7 +15753,7 @@ func (s Store) QueryRoles(
 
 	if s.config.Filters.Role != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.Role(f)
+		tExpr, f, err = s.config.Filters.Role(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = RoleFilter(f)
@@ -15850,7 +15850,7 @@ func (s Store) QueryRoles(
 // It returns role even if deleted or suspended
 //
 // This function is auto-generated
-func (s Store) LookupRoleByID(ctx context.Context, id uint64) (_ *systemType.Role, err error) {
+func (s *Store) LookupRoleByID(ctx context.Context, id uint64) (_ *systemType.Role, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxRole)
@@ -15892,7 +15892,7 @@ func (s Store) LookupRoleByID(ctx context.Context, id uint64) (_ *systemType.Rol
 // It returns only valid role (not deleted, not suspended)
 //
 // This function is auto-generated
-func (s Store) LookupRoleByHandle(ctx context.Context, handle string) (_ *systemType.Role, err error) {
+func (s *Store) LookupRoleByHandle(ctx context.Context, handle string) (_ *systemType.Role, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxRole)
@@ -15935,7 +15935,7 @@ func (s Store) LookupRoleByHandle(ctx context.Context, handle string) (_ *system
 // It returns only valid role (not deleted, not suspended)
 //
 // This function is auto-generated
-func (s Store) LookupRoleByName(ctx context.Context, name string) (_ *systemType.Role, err error) {
+func (s *Store) LookupRoleByName(ctx context.Context, name string) (_ *systemType.Role, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxRole)
@@ -16004,7 +16004,7 @@ func (Store) sortableRoleFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectRoleCursorValues(res *systemType.Role, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectRoleCursorValues(res *systemType.Role, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -16111,7 +16111,7 @@ func (s *Store) checkRoleConstraints(ctx context.Context, res *systemType.Role) 
 // CreateRoleMember creates one or more rows in roleMember collection
 //
 // This function is auto-generated
-func (s Store) CreateRoleMember(ctx context.Context, rr ...*systemType.RoleMember) (err error) {
+func (s *Store) CreateRoleMember(ctx context.Context, rr ...*systemType.RoleMember) (err error) {
 	for i := range rr {
 		if err = s.checkRoleMemberConstraints(ctx, rr[i]); err != nil {
 			return
@@ -16128,7 +16128,7 @@ func (s Store) CreateRoleMember(ctx context.Context, rr ...*systemType.RoleMembe
 // UpdateRoleMember updates one or more existing entries in roleMember collection
 //
 // This function is auto-generated
-func (s Store) UpdateRoleMember(ctx context.Context, rr ...*systemType.RoleMember) (err error) {
+func (s *Store) UpdateRoleMember(ctx context.Context, rr ...*systemType.RoleMember) (err error) {
 	for i := range rr {
 		if err = s.checkRoleMemberConstraints(ctx, rr[i]); err != nil {
 			return
@@ -16145,7 +16145,7 @@ func (s Store) UpdateRoleMember(ctx context.Context, rr ...*systemType.RoleMembe
 // UpsertRoleMember updates one or more existing entries in roleMember collection
 //
 // This function is auto-generated
-func (s Store) UpsertRoleMember(ctx context.Context, rr ...*systemType.RoleMember) (err error) {
+func (s *Store) UpsertRoleMember(ctx context.Context, rr ...*systemType.RoleMember) (err error) {
 	for i := range rr {
 		if err = s.checkRoleMemberConstraints(ctx, rr[i]); err != nil {
 			return
@@ -16162,7 +16162,7 @@ func (s Store) UpsertRoleMember(ctx context.Context, rr ...*systemType.RoleMembe
 // DeleteRoleMember Deletes one or more entries from roleMember collection
 //
 // This function is auto-generated
-func (s Store) DeleteRoleMember(ctx context.Context, rr ...*systemType.RoleMember) (err error) {
+func (s *Store) DeleteRoleMember(ctx context.Context, rr ...*systemType.RoleMember) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, roleMemberDeleteQuery(s.config.Dialect, roleMemberPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -16175,7 +16175,7 @@ func (s Store) DeleteRoleMember(ctx context.Context, rr ...*systemType.RoleMembe
 // DeleteRoleMemberByID deletes single entry from roleMember collection
 //
 // This function is auto-generated
-func (s Store) DeleteRoleMemberByUserIDRoleID(ctx context.Context, userID uint64, roleID uint64) error {
+func (s *Store) DeleteRoleMemberByUserIDRoleID(ctx context.Context, userID uint64, roleID uint64) error {
 	return s.Exec(ctx, roleMemberDeleteQuery(s.config.Dialect, goqu.Ex{
 		"rel_user": userID,
 		"rel_role": roleID,
@@ -16183,14 +16183,14 @@ func (s Store) DeleteRoleMemberByUserIDRoleID(ctx context.Context, userID uint64
 }
 
 // TruncateRoleMembers Deletes all rows from the roleMember collection
-func (s Store) TruncateRoleMembers(ctx context.Context) error {
+func (s *Store) TruncateRoleMembers(ctx context.Context) error {
 	return s.Exec(ctx, roleMemberTruncateQuery(s.config.Dialect))
 }
 
 // SearchRoleMembers returns (filtered) set of RoleMembers
 //
 // This function is auto-generated
-func (s Store) SearchRoleMembers(ctx context.Context, f systemType.RoleMemberFilter) (set systemType.RoleMemberSet, _ systemType.RoleMemberFilter, err error) {
+func (s *Store) SearchRoleMembers(ctx context.Context, f systemType.RoleMemberFilter) (set systemType.RoleMemberSet, _ systemType.RoleMemberFilter, err error) {
 
 	set, _, err = s.QueryRoleMembers(ctx, f)
 	if err != nil {
@@ -16206,7 +16206,7 @@ func (s Store) SearchRoleMembers(ctx context.Context, f systemType.RoleMemberFil
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryRoleMembers(
+func (s *Store) QueryRoleMembers(
 	ctx context.Context,
 	f systemType.RoleMemberFilter,
 ) (_ []*systemType.RoleMember, more bool, err error) {
@@ -16221,7 +16221,7 @@ func (s Store) QueryRoleMembers(
 
 	if s.config.Filters.RoleMember != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.RoleMember(f)
+		tExpr, f, err = s.config.Filters.RoleMember(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = RoleMemberFilter(f)
@@ -16309,7 +16309,7 @@ func (Store) sortableRoleMemberFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectRoleMemberCursorValues(res *systemType.RoleMember, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectRoleMemberCursorValues(res *systemType.RoleMember, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -16358,7 +16358,7 @@ func (s *Store) checkRoleMemberConstraints(ctx context.Context, res *systemType.
 // CreateSettingValue creates one or more rows in settingValue collection
 //
 // This function is auto-generated
-func (s Store) CreateSettingValue(ctx context.Context, rr ...*systemType.SettingValue) (err error) {
+func (s *Store) CreateSettingValue(ctx context.Context, rr ...*systemType.SettingValue) (err error) {
 	for i := range rr {
 		if err = s.checkSettingValueConstraints(ctx, rr[i]); err != nil {
 			return
@@ -16375,7 +16375,7 @@ func (s Store) CreateSettingValue(ctx context.Context, rr ...*systemType.Setting
 // UpdateSettingValue updates one or more existing entries in settingValue collection
 //
 // This function is auto-generated
-func (s Store) UpdateSettingValue(ctx context.Context, rr ...*systemType.SettingValue) (err error) {
+func (s *Store) UpdateSettingValue(ctx context.Context, rr ...*systemType.SettingValue) (err error) {
 	for i := range rr {
 		if err = s.checkSettingValueConstraints(ctx, rr[i]); err != nil {
 			return
@@ -16392,7 +16392,7 @@ func (s Store) UpdateSettingValue(ctx context.Context, rr ...*systemType.Setting
 // UpsertSettingValue updates one or more existing entries in settingValue collection
 //
 // This function is auto-generated
-func (s Store) UpsertSettingValue(ctx context.Context, rr ...*systemType.SettingValue) (err error) {
+func (s *Store) UpsertSettingValue(ctx context.Context, rr ...*systemType.SettingValue) (err error) {
 	for i := range rr {
 		if err = s.checkSettingValueConstraints(ctx, rr[i]); err != nil {
 			return
@@ -16409,7 +16409,7 @@ func (s Store) UpsertSettingValue(ctx context.Context, rr ...*systemType.Setting
 // DeleteSettingValue Deletes one or more entries from settingValue collection
 //
 // This function is auto-generated
-func (s Store) DeleteSettingValue(ctx context.Context, rr ...*systemType.SettingValue) (err error) {
+func (s *Store) DeleteSettingValue(ctx context.Context, rr ...*systemType.SettingValue) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, settingValueDeleteQuery(s.config.Dialect, settingValuePrimaryKeys(rr[i]))); err != nil {
 			return
@@ -16422,7 +16422,7 @@ func (s Store) DeleteSettingValue(ctx context.Context, rr ...*systemType.Setting
 // DeleteSettingValueByID deletes single entry from settingValue collection
 //
 // This function is auto-generated
-func (s Store) DeleteSettingValueByNameOwnedBy(ctx context.Context, name string, ownedBy uint64) error {
+func (s *Store) DeleteSettingValueByNameOwnedBy(ctx context.Context, name string, ownedBy uint64) error {
 	return s.Exec(ctx, settingValueDeleteQuery(s.config.Dialect, goqu.Ex{
 		"name":      name,
 		"rel_owner": ownedBy,
@@ -16430,14 +16430,14 @@ func (s Store) DeleteSettingValueByNameOwnedBy(ctx context.Context, name string,
 }
 
 // TruncateSettingValues Deletes all rows from the settingValue collection
-func (s Store) TruncateSettingValues(ctx context.Context) error {
+func (s *Store) TruncateSettingValues(ctx context.Context) error {
 	return s.Exec(ctx, settingValueTruncateQuery(s.config.Dialect))
 }
 
 // SearchSettingValues returns (filtered) set of SettingValues
 //
 // This function is auto-generated
-func (s Store) SearchSettingValues(ctx context.Context, f systemType.SettingsFilter) (set systemType.SettingValueSet, _ systemType.SettingsFilter, err error) {
+func (s *Store) SearchSettingValues(ctx context.Context, f systemType.SettingsFilter) (set systemType.SettingValueSet, _ systemType.SettingsFilter, err error) {
 
 	set, _, err = s.QuerySettingValues(ctx, f)
 	if err != nil {
@@ -16453,7 +16453,7 @@ func (s Store) SearchSettingValues(ctx context.Context, f systemType.SettingsFil
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QuerySettingValues(
+func (s *Store) QuerySettingValues(
 	ctx context.Context,
 	f systemType.SettingsFilter,
 ) (_ []*systemType.SettingValue, more bool, err error) {
@@ -16468,7 +16468,7 @@ func (s Store) QuerySettingValues(
 
 	if s.config.Filters.SettingValue != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.SettingValue(f)
+		tExpr, f, err = s.config.Filters.SettingValue(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = SettingValueFilter(f)
@@ -16534,7 +16534,7 @@ func (s Store) QuerySettingValues(
 // LookupSettingValueByNameOwnedBy searches for settings by name and owner
 //
 // This function is auto-generated
-func (s Store) LookupSettingValueByNameOwnedBy(ctx context.Context, name string, ownedBy uint64) (_ *systemType.SettingValue, err error) {
+func (s *Store) LookupSettingValueByNameOwnedBy(ctx context.Context, name string, ownedBy uint64) (_ *systemType.SettingValue, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxSettingValue)
@@ -16598,7 +16598,7 @@ func (Store) sortableSettingValueFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectSettingValueCursorValues(res *systemType.SettingValue, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectSettingValueCursorValues(res *systemType.SettingValue, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -16649,7 +16649,7 @@ func (s *Store) checkSettingValueConstraints(ctx context.Context, res *systemTyp
 // CreateTemplate creates one or more rows in template collection
 //
 // This function is auto-generated
-func (s Store) CreateTemplate(ctx context.Context, rr ...*systemType.Template) (err error) {
+func (s *Store) CreateTemplate(ctx context.Context, rr ...*systemType.Template) (err error) {
 	for i := range rr {
 		if err = s.checkTemplateConstraints(ctx, rr[i]); err != nil {
 			return
@@ -16666,7 +16666,7 @@ func (s Store) CreateTemplate(ctx context.Context, rr ...*systemType.Template) (
 // UpdateTemplate updates one or more existing entries in template collection
 //
 // This function is auto-generated
-func (s Store) UpdateTemplate(ctx context.Context, rr ...*systemType.Template) (err error) {
+func (s *Store) UpdateTemplate(ctx context.Context, rr ...*systemType.Template) (err error) {
 	for i := range rr {
 		if err = s.checkTemplateConstraints(ctx, rr[i]); err != nil {
 			return
@@ -16683,7 +16683,7 @@ func (s Store) UpdateTemplate(ctx context.Context, rr ...*systemType.Template) (
 // UpsertTemplate updates one or more existing entries in template collection
 //
 // This function is auto-generated
-func (s Store) UpsertTemplate(ctx context.Context, rr ...*systemType.Template) (err error) {
+func (s *Store) UpsertTemplate(ctx context.Context, rr ...*systemType.Template) (err error) {
 	for i := range rr {
 		if err = s.checkTemplateConstraints(ctx, rr[i]); err != nil {
 			return
@@ -16700,7 +16700,7 @@ func (s Store) UpsertTemplate(ctx context.Context, rr ...*systemType.Template) (
 // DeleteTemplate Deletes one or more entries from template collection
 //
 // This function is auto-generated
-func (s Store) DeleteTemplate(ctx context.Context, rr ...*systemType.Template) (err error) {
+func (s *Store) DeleteTemplate(ctx context.Context, rr ...*systemType.Template) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, templateDeleteQuery(s.config.Dialect, templatePrimaryKeys(rr[i]))); err != nil {
 			return
@@ -16713,21 +16713,21 @@ func (s Store) DeleteTemplate(ctx context.Context, rr ...*systemType.Template) (
 // DeleteTemplateByID deletes single entry from template collection
 //
 // This function is auto-generated
-func (s Store) DeleteTemplateByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteTemplateByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, templateDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateTemplates Deletes all rows from the template collection
-func (s Store) TruncateTemplates(ctx context.Context) error {
+func (s *Store) TruncateTemplates(ctx context.Context) error {
 	return s.Exec(ctx, templateTruncateQuery(s.config.Dialect))
 }
 
 // SearchTemplates returns (filtered) set of Templates
 //
 // This function is auto-generated
-func (s Store) SearchTemplates(ctx context.Context, f systemType.TemplateFilter) (set systemType.TemplateSet, _ systemType.TemplateFilter, err error) {
+func (s *Store) SearchTemplates(ctx context.Context, f systemType.TemplateFilter) (set systemType.TemplateSet, _ systemType.TemplateFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -16783,7 +16783,7 @@ func (s Store) SearchTemplates(ctx context.Context, f systemType.TemplateFilter)
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfTemplates(
+func (s *Store) fetchFullPageOfTemplates(
 	ctx context.Context,
 	filter systemType.TemplateFilter,
 	sort filter.SortExprSet,
@@ -16904,7 +16904,7 @@ func (s Store) fetchFullPageOfTemplates(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryTemplates(
+func (s *Store) QueryTemplates(
 	ctx context.Context,
 	f systemType.TemplateFilter,
 ) (_ []*systemType.Template, more bool, err error) {
@@ -16923,7 +16923,7 @@ func (s Store) QueryTemplates(
 
 	if s.config.Filters.Template != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.Template(f)
+		tExpr, f, err = s.config.Filters.Template(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = TemplateFilter(f)
@@ -17020,7 +17020,7 @@ func (s Store) QueryTemplates(
 // It also returns deleted templates.
 //
 // This function is auto-generated
-func (s Store) LookupTemplateByID(ctx context.Context, id uint64) (_ *systemType.Template, err error) {
+func (s *Store) LookupTemplateByID(ctx context.Context, id uint64) (_ *systemType.Template, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxTemplate)
@@ -17062,7 +17062,7 @@ func (s Store) LookupTemplateByID(ctx context.Context, id uint64) (_ *systemType
 // It returns only valid templates (not deleted)
 //
 // This function is auto-generated
-func (s Store) LookupTemplateByHandle(ctx context.Context, handle string) (_ *systemType.Template, err error) {
+func (s *Store) LookupTemplateByHandle(ctx context.Context, handle string) (_ *systemType.Template, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxTemplate)
@@ -17131,7 +17131,7 @@ func (Store) sortableTemplateFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectTemplateCursorValues(res *systemType.Template, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectTemplateCursorValues(res *systemType.Template, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
@@ -17211,7 +17211,7 @@ func (s *Store) checkTemplateConstraints(ctx context.Context, res *systemType.Te
 // CreateUser creates one or more rows in user collection
 //
 // This function is auto-generated
-func (s Store) CreateUser(ctx context.Context, rr ...*systemType.User) (err error) {
+func (s *Store) CreateUser(ctx context.Context, rr ...*systemType.User) (err error) {
 	for i := range rr {
 		if err = s.checkUserConstraints(ctx, rr[i]); err != nil {
 			return
@@ -17228,7 +17228,7 @@ func (s Store) CreateUser(ctx context.Context, rr ...*systemType.User) (err erro
 // UpdateUser updates one or more existing entries in user collection
 //
 // This function is auto-generated
-func (s Store) UpdateUser(ctx context.Context, rr ...*systemType.User) (err error) {
+func (s *Store) UpdateUser(ctx context.Context, rr ...*systemType.User) (err error) {
 	for i := range rr {
 		if err = s.checkUserConstraints(ctx, rr[i]); err != nil {
 			return
@@ -17245,7 +17245,7 @@ func (s Store) UpdateUser(ctx context.Context, rr ...*systemType.User) (err erro
 // UpsertUser updates one or more existing entries in user collection
 //
 // This function is auto-generated
-func (s Store) UpsertUser(ctx context.Context, rr ...*systemType.User) (err error) {
+func (s *Store) UpsertUser(ctx context.Context, rr ...*systemType.User) (err error) {
 	for i := range rr {
 		if err = s.checkUserConstraints(ctx, rr[i]); err != nil {
 			return
@@ -17262,7 +17262,7 @@ func (s Store) UpsertUser(ctx context.Context, rr ...*systemType.User) (err erro
 // DeleteUser Deletes one or more entries from user collection
 //
 // This function is auto-generated
-func (s Store) DeleteUser(ctx context.Context, rr ...*systemType.User) (err error) {
+func (s *Store) DeleteUser(ctx context.Context, rr ...*systemType.User) (err error) {
 	for i := range rr {
 		if err = s.Exec(ctx, userDeleteQuery(s.config.Dialect, userPrimaryKeys(rr[i]))); err != nil {
 			return
@@ -17275,21 +17275,21 @@ func (s Store) DeleteUser(ctx context.Context, rr ...*systemType.User) (err erro
 // DeleteUserByID deletes single entry from user collection
 //
 // This function is auto-generated
-func (s Store) DeleteUserByID(ctx context.Context, id uint64) error {
+func (s *Store) DeleteUserByID(ctx context.Context, id uint64) error {
 	return s.Exec(ctx, userDeleteQuery(s.config.Dialect, goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateUsers Deletes all rows from the user collection
-func (s Store) TruncateUsers(ctx context.Context) error {
+func (s *Store) TruncateUsers(ctx context.Context) error {
 	return s.Exec(ctx, userTruncateQuery(s.config.Dialect))
 }
 
 // SearchUsers returns (filtered) set of Users
 //
 // This function is auto-generated
-func (s Store) SearchUsers(ctx context.Context, f systemType.UserFilter) (set systemType.UserSet, _ systemType.UserFilter, err error) {
+func (s *Store) SearchUsers(ctx context.Context, f systemType.UserFilter) (set systemType.UserSet, _ systemType.UserFilter, err error) {
 
 	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 	f.PrevPage, f.NextPage = nil, nil
@@ -17345,7 +17345,7 @@ func (s Store) SearchUsers(ctx context.Context, f systemType.UserFilter) (set sy
 // Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
-func (s Store) fetchFullPageOfUsers(
+func (s *Store) fetchFullPageOfUsers(
 	ctx context.Context,
 	filter systemType.UserFilter,
 	sort filter.SortExprSet,
@@ -17466,7 +17466,7 @@ func (s Store) fetchFullPageOfUsers(
 // and replace it with a single utility fetcher
 //
 // This function is auto-generated
-func (s Store) QueryUsers(
+func (s *Store) QueryUsers(
 	ctx context.Context,
 	f systemType.UserFilter,
 ) (_ []*systemType.User, more bool, err error) {
@@ -17485,7 +17485,7 @@ func (s Store) QueryUsers(
 
 	if s.config.Filters.User != nil {
 		// extended filter set
-		tExpr, f, err = s.config.Filters.User(f)
+		tExpr, f, err = s.config.Filters.User(s, f)
 	} else {
 		// using generated filter
 		tExpr, f, err = UserFilter(f)
@@ -17582,7 +17582,7 @@ func (s Store) QueryUsers(
 // It returns user even if deleted or suspended
 //
 // This function is auto-generated
-func (s Store) LookupUserByID(ctx context.Context, id uint64) (_ *systemType.User, err error) {
+func (s *Store) LookupUserByID(ctx context.Context, id uint64) (_ *systemType.User, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxUser)
@@ -17624,7 +17624,7 @@ func (s Store) LookupUserByID(ctx context.Context, id uint64) (_ *systemType.Use
 // It returns only valid user (not deleted, not suspended)
 //
 // This function is auto-generated
-func (s Store) LookupUserByEmail(ctx context.Context, email string) (_ *systemType.User, err error) {
+func (s *Store) LookupUserByEmail(ctx context.Context, email string) (_ *systemType.User, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxUser)
@@ -17667,7 +17667,7 @@ func (s Store) LookupUserByEmail(ctx context.Context, email string) (_ *systemTy
 // It returns only valid user (not deleted, not suspended)
 //
 // This function is auto-generated
-func (s Store) LookupUserByHandle(ctx context.Context, handle string) (_ *systemType.User, err error) {
+func (s *Store) LookupUserByHandle(ctx context.Context, handle string) (_ *systemType.User, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxUser)
@@ -17710,7 +17710,7 @@ func (s Store) LookupUserByHandle(ctx context.Context, handle string) (_ *system
 // It returns only valid user (not deleted, not suspended)
 //
 // This function is auto-generated
-func (s Store) LookupUserByUsername(ctx context.Context, username string) (_ *systemType.User, err error) {
+func (s *Store) LookupUserByUsername(ctx context.Context, username string) (_ *systemType.User, err error) {
 	var (
 		rows   *sql.Rows
 		aux    = new(auxUser)
@@ -17781,7 +17781,7 @@ func (Store) sortableUserFields() map[string]string {
 //   undeleted items)
 //
 // This function is auto-generated
-func (s Store) collectUserCursorValues(res *systemType.User, cc ...*filter.SortExpr) *filter.PagingCursor {
+func (s *Store) collectUserCursorValues(res *systemType.User, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 

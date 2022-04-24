@@ -7,12 +7,12 @@ import (
 	"github.com/doug-martin/goqu/v9"
 )
 
-func (s Store) CountUsers(ctx context.Context, f systemType.UserFilter) (c uint, _ error) {
+func (s *Store) CountUsers(ctx context.Context, f systemType.UserFilter) (c uint, _ error) {
 	var (
 		aux = struct {
 			Count uint `db:"count"`
 		}{}
-		expr, _, err = s.config.Filters.User(f)
+		expr, _, err = s.config.Filters.User(s, f)
 
 		query = s.config.Dialect.
 			From(userTable).
