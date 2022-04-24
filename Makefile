@@ -170,7 +170,7 @@ locale.update:
 	git commit -m 'Update corteza-locale dep' vendor/github.com/cortezaproject vendor/modules.txt go.mod go.sum
 
 
-outdated: $(MODOUTDATED)
+vendors.check: $(MODOUTDATED)
 	$(GO) list -mod=mod -u -m -json all | $(MODOUTDATED) -update -direct
 
 #######################################################################################################################
