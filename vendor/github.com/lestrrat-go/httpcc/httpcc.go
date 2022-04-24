@@ -2,11 +2,10 @@ package httpcc
 
 import (
 	"bufio"
+	"fmt"
 	"strconv"
 	"strings"
 	"unicode/utf8"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -103,28 +102,28 @@ func parseDirective(s string, ccd directiveValidator) (*TokenPair, error) {
 	switch ccd.Validate(pair.Name) {
 	case TokenOnly:
 		if v[0] == '"' {
-			return nil, errors.Errorf(`invalid value for %s (quoted string not allowed)`, pair.Name)
+			return nil, fmt.Errorf(`invalid value for %s (quoted string not allowed)`, pair.Name)
 		}
 	case QuotedStringOnly: // quoted-string only
 		if v[0] != '"' {
-			return nil, errors.Errorf(`invalid value for %s (bare token not allowed)`, pair.Name)
+			return nil, fmt.Errorf(`invalid value for %s (bare token not allowed)`, pair.Name)
 		}
 		tmp, err := strconv.Unquote(v)
 		if err != nil {
-			return nil, errors.Errorf(`malformed quoted string in token`)
+			return nil, fmt.Errorf(`malformed quoted string in token`)
 		}
 		v = tmp
 	case AnyTokenValue:
 		if v[0] == '"' {
 			tmp, err := strconv.Unquote(v)
 			if err != nil {
-				return nil, errors.Errorf(`malformed quoted string in token`)
+				return nil, fmt.Errorf(`malformed quoted string in token`)
 			}
 			v = tmp
 		}
 	case NoArgument:
 		if len(v) > 0 {
-			return nil, errors.Errorf(`received argument to directive %s`, pair.Name)
+			return nil, fmt.Errorf(`received argument to directive %s`, pair.Name)
 		}
 	}
 
@@ -148,7 +147,7 @@ func parseDirectives(s string, p func(string) (*TokenPair, error)) ([]*TokenPair
 	for scanner.Scan() {
 		tok, err := p(scanner.Text())
 		if err != nil {
-			return nil, errors.Wrapf(err, `failed to parse token #%d`, len(tokens)+1)
+			return nil, fmt.Errorf(`failed to parse token #%d: %w`, len(tokens)+1, err)
 		}
 		tokens = append(tokens, tok)
 	}
@@ -220,7 +219,7 @@ func ParseRequest(v string) (*RequestDirective, error) {
 	var dir RequestDirective
 	tokens, err := ParseRequestDirectives(v)
 	if err != nil {
-		return nil, errors.Wrap(err, `failed to parse tokens`)
+		return nil, fmt.Errorf(`failed to parse tokens: %w`, err)
 	}
 
 	for _, token := range tokens {
@@ -229,19 +228,19 @@ func ParseRequest(v string) (*RequestDirective, error) {
 		case MaxAge:
 			iv, err := strconv.ParseUint(token.Value, 10, 64)
 			if err != nil {
-				return nil, errors.Wrap(err, `failed to parse max-age`)
+				return nil, fmt.Errorf(`failed to parse max-age: %w`, err)
 			}
 			dir.maxAge = &iv
 		case MaxStale:
 			iv, err := strconv.ParseUint(token.Value, 10, 64)
 			if err != nil {
-				return nil, errors.Wrap(err, `failed to parse max-stale`)
+				return nil, fmt.Errorf(`failed to parse max-stale: %w`, err)
 			}
 			dir.maxStale = &iv
 		case MinFresh:
 			iv, err := strconv.ParseUint(token.Value, 10, 64)
 			if err != nil {
-				return nil, errors.Wrap(err, `failed to parse min-fresh`)
+				return nil, fmt.Errorf(`failed to parse min-fresh: %w`, err)
 			}
 			dir.minFresh = &iv
 		case NoCache:
@@ -263,7 +262,7 @@ func ParseRequest(v string) (*RequestDirective, error) {
 func ParseResponse(v string) (*ResponseDirective, error) {
 	tokens, err := ParseResponseDirectives(v)
 	if err != nil {
-		return nil, errors.Wrap(err, `failed to parse tokens`)
+		return nil, fmt.Errorf(`failed to parse tokens: %w`, err)
 	}
 
 	var dir ResponseDirective
@@ -274,7 +273,7 @@ func ParseResponse(v string) (*ResponseDirective, error) {
 		case MaxAge:
 			iv, err := strconv.ParseUint(token.Value, 10, 64)
 			if err != nil {
-				return nil, errors.Wrap(err, `failed to parse max-age`)
+				return nil, fmt.Errorf(`failed to parse max-age: %w`, err)
 			}
 			dir.maxAge = &iv
 		case NoCache:
@@ -300,7 +299,7 @@ func ParseResponse(v string) (*ResponseDirective, error) {
 		case SMaxAge:
 			iv, err := strconv.ParseUint(token.Value, 10, 64)
 			if err != nil {
-				return nil, errors.Wrap(err, `failed to parse s-maxage`)
+				return nil, fmt.Errorf(`failed to parse s-maxage: %w`, err)
 			}
 			dir.sMaxAge = &iv
 		default:

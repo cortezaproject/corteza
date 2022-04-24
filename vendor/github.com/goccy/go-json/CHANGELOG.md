@@ -1,5 +1,34 @@
+# v0.9.6 - 2022/03/22
+
+### Fix bugs
+
+* Correct the handling of the minimum value of int type for decoder ( #344 )
+* Fix bugs of stream decoder's bufferSize ( #349 )
+* Add a guard to use typeptr more safely ( #351 )
+
+### Improve decoder performance
+
+* Improve escapeString's performance ( #345 )
+
+### Others
+
+* Update go version for CI ( #347 )
+
+# v0.9.5 - 2022/03/04
+
+### Fix bugs
+
+* Fix panic when decoding time.Time with context ( #328 )
+* Fix reading the next character in buffer to nul consideration ( #338 )
+* Fix incorrect handling on skipValue ( #341 )
+
+### Improve decoder performance
+
+* Improve performance when a payload contains escape sequence ( #334 )
+
 # v0.9.4 - 2022/01/21
 
+* Fix IsNilForMarshaler for string type with omitempty ( #323 )
 * Fix the case where the embedded field is at the end ( #326 )
 
 # v0.9.3 - 2022/01/14

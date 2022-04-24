@@ -12,7 +12,11 @@ test:
 	go test -v -race ./...
 
 cover:
+ifeq ($(strip $(STRFTIME_TAGS)),)
 	go test -v -race -coverpkg=./... -coverprofile=coverage.out ./...
+else
+	go test -v -tags $(STRFTIME_TAGS) -race -coverpkg=./... -coverprofile=coverage.out ./...
+endif
 
 viewcover:
 	go tool cover -html=coverage.out

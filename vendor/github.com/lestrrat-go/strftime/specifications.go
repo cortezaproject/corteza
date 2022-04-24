@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/pkg/errors"
+	"github.com/lestrrat-go/strftime/internal/errors"
 )
 
 // because there is no such thing was a sync.RWLocker
