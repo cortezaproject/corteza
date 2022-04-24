@@ -131,7 +131,7 @@ type DebugMeta struct {
 	notes             []logger.MsgData
 }
 
-func (dm DebugMeta) LogErrorMsg(log logger.Log, source *logger.Source, r logger.Range, text string, notes []logger.MsgData) {
+func (dm DebugMeta) LogErrorMsg(log logger.Log, source *logger.Source, r logger.Range, text string, suggestion string, notes []logger.MsgData) {
 	tracker := logger.MakeLineColumnTracker(source)
 
 	if source != nil && dm.suggestionMessage != "" {
@@ -144,6 +144,10 @@ func (dm DebugMeta) LogErrorMsg(log logger.Log, source *logger.Source, r logger.
 		Kind:  logger.Error,
 		Data:  tracker.MsgData(r, text),
 		Notes: append(dm.notes, notes...),
+	}
+
+	if msg.Data.Location != nil && suggestion != "" {
+		msg.Data.Location.Suggestion = suggestion
 	}
 
 	log.AddMsg(msg)
@@ -213,9 +217,10 @@ type resolver struct {
 
 type resolverQuery struct {
 	*resolver
-	debugMeta *DebugMeta
-	debugLogs *debugLogs
-	kind      ast.ImportKind
+	moduleSuffixes []string
+	debugMeta      *DebugMeta
+	debugLogs      *debugLogs
+	kind           ast.ImportKind
 }
 
 func NewResolver(fs fs.FS, log logger.Log, caches *cache.CacheSet, options config.Options) Resolver {
@@ -399,8 +404,9 @@ func (rr *resolver) Resolve(sourceDir string, importPath string, kind ast.Import
 
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
+	sourceDirInfo := r.loadModuleSuffixesForSourceDir(sourceDir)
 
-	result := r.resolveWithoutSymlinks(sourceDir, importPath)
+	result := r.resolveWithoutSymlinks(sourceDir, sourceDirInfo, importPath)
 	if result == nil {
 		// If resolution failed, try again with the URL query and/or hash removed
 		suffix := strings.IndexAny(importPath, "?#")
@@ -411,7 +417,7 @@ func (rr *resolver) Resolve(sourceDir string, importPath string, kind ast.Import
 		if r.debugLogs != nil {
 			r.debugLogs.addNote(fmt.Sprintf("Retrying resolution after removing the suffix %q", importPath[suffix:]))
 		}
-		if result2 := r.resolveWithoutSymlinks(sourceDir, importPath[:suffix]); result2 == nil {
+		if result2 := r.resolveWithoutSymlinks(sourceDir, sourceDirInfo, importPath[:suffix]); result2 == nil {
 			r.flushDebugLogs(flushDueToFailure)
 			return nil, debugMeta
 		} else {
@@ -427,6 +433,28 @@ func (rr *resolver) Resolve(sourceDir string, importPath string, kind ast.Import
 	r.finalizeResolve(result)
 	r.flushDebugLogs(flushDueToSuccess)
 	return result, debugMeta
+}
+
+func (r *resolverQuery) loadModuleSuffixesForSourceDir(sourceDir string) *dirInfo {
+	// Load TypeScript's "moduleSuffixes" setting from the "tsconfig.json" file
+	// enclosing the source directory if present. Otherwise default to a single
+	// empty string, which means "no suffix".
+	r.moduleSuffixes = defaultModuleSuffixes
+	sourceDirInfo := r.dirInfoCached(sourceDir)
+	if sourceDirInfo != nil {
+		if tsConfig := sourceDirInfo.enclosingTSConfigJSON; tsConfig != nil {
+			if moduleSuffixes := tsConfig.ModuleSuffixes; moduleSuffixes != nil {
+				if r.debugLogs != nil {
+					r.debugLogs.addNote(fmt.Sprintf("Using \"moduleSuffixes\" value of [%s] from %q",
+						helpers.StringArrayToQuotedCommaSeparatedString(moduleSuffixes), tsConfig.AbsPath))
+				}
+				r.moduleSuffixes = moduleSuffixes
+			}
+		}
+	}
+
+	// Return this so we don't have to look it up again later
+	return sourceDirInfo
 }
 
 func (r resolverQuery) isExternal(matchers config.ExternalMatchers, path string) bool {
@@ -471,6 +499,7 @@ func (rr *resolver) ProbeResolvePackageAsRelative(sourceDir string, importPath s
 
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
+	r.loadModuleSuffixesForSourceDir(sourceDir)
 
 	if pair, ok, diffCase := r.loadAsFileOrDirectory(absPath); ok {
 		result := &ResolveResult{PathPair: pair, DifferentCase: diffCase}
@@ -650,7 +679,7 @@ func (r resolverQuery) finalizeResolve(result *ResolveResult) {
 	}
 }
 
-func (r resolverQuery) resolveWithoutSymlinks(sourceDir string, importPath string) *ResolveResult {
+func (r resolverQuery) resolveWithoutSymlinks(sourceDir string, sourceDirInfo *dirInfo, importPath string) *ResolveResult {
 	// This implements the module resolution algorithm from node.js, which is
 	// described here: https://nodejs.org/api/modules.html#modules_all_together
 	var result ResolveResult
@@ -670,8 +699,8 @@ func (r resolverQuery) resolveWithoutSymlinks(sourceDir string, importPath strin
 		}
 
 		// First, check path overrides from the nearest enclosing TypeScript "tsconfig.json" file
-		if dirInfo := r.dirInfoCached(sourceDir); dirInfo != nil && dirInfo.enclosingTSConfigJSON != nil && dirInfo.enclosingTSConfigJSON.Paths != nil {
-			if absolute, ok, diffCase := r.matchTSConfigPaths(dirInfo.enclosingTSConfigJSON, importPath); ok {
+		if sourceDirInfo != nil && sourceDirInfo.enclosingTSConfigJSON != nil && sourceDirInfo.enclosingTSConfigJSON.Paths != nil {
+			if absolute, ok, diffCase := r.matchTSConfigPaths(sourceDirInfo.enclosingTSConfigJSON, importPath); ok {
 				return &ResolveResult{PathPair: absolute, DifferentCase: diffCase}
 			}
 		}
@@ -726,7 +755,6 @@ func (r resolverQuery) resolveWithoutSymlinks(sourceDir string, importPath strin
 	}
 
 	if checkPackage {
-		sourceDirInfo := r.dirInfoCached(sourceDir)
 		if sourceDirInfo == nil {
 			// Bail if the directory is missing for some reason
 			return nil
@@ -860,6 +888,7 @@ func (r resolverQuery) parseTSConfig(file string, visited map[string]bool) (*TSC
 	if visited[file] {
 		return nil, errParseErrorImportCycle
 	}
+	isExtends := len(visited) != 0
 	visited[file] = true
 
 	contents, err, originalError := r.caches.FSCache.ReadFile(r.fs, file)
@@ -963,6 +992,27 @@ func (r resolverQuery) parseTSConfig(file string, visited map[string]bool) (*TSC
 
 	if result.Paths != nil && !r.fs.IsAbs(result.BaseURLForPaths) {
 		result.BaseURLForPaths = r.fs.Join(fileDir, result.BaseURLForPaths)
+	}
+
+	// Now that we have parsed the entire "tsconfig.json" file, filter out any
+	// paths that are invalid due to being a package-style path without a base
+	// URL specified. This must be done here instead of when we're parsing the
+	// original file because TypeScript allows one "tsconfig.json" file to
+	// specify "baseUrl" and inherit a "paths" from another file via "extends".
+	if !isExtends && result.Paths != nil && result.BaseURL == nil {
+		var tracker *logger.LineColumnTracker
+		for key, paths := range result.Paths.Map {
+			end := 0
+			for _, path := range paths {
+				if isValidTSConfigPathNoBaseURLPattern(path.Text, r.log, &result.Paths.Source, &tracker, path.Loc) {
+					paths[end] = path
+					end++
+				}
+			}
+			if end < len(paths) {
+				result.Paths.Map[key] = paths[:end]
+			}
+		}
 	}
 
 	return result, nil
@@ -1093,6 +1143,11 @@ func (r resolverQuery) dirInfoUncached(path string) *dirInfo {
 	return info
 }
 
+// https://devblogs.microsoft.com/typescript/announcing-typescript-4-7-beta/#resolution-customization-with-modulesuffixes
+// "Note that the empty string '' in moduleSuffixes is necessary for TypeScript to
+// also look-up ./foo.ts. In a sense, the default value for moduleSuffixes is ['']."
+var defaultModuleSuffixes = []string{""}
+
 var rewrittenFileExtensions = map[string][]string{
 	// Note that the official compiler code always tries ".ts" before
 	// ".tsx" even if the original extension was ".jsx".
@@ -1100,6 +1155,18 @@ var rewrittenFileExtensions = map[string][]string{
 	".jsx": {".ts", ".tsx"},
 	".mjs": {".mts"},
 	".cjs": {".cts"},
+}
+
+var tsExtensionsToRemove = map[string]bool{
+	".mjs":  true,
+	".mts":  true,
+	".cjs":  true,
+	".cts":  true,
+	".ts":   true,
+	".js":   true,
+	".tsx":  true,
+	".jsx":  true,
+	".json": true,
 }
 
 func (r resolverQuery) loadAsFile(path string, extensionOrder []string) (string, bool, *fs.DifferentCase) {
@@ -1124,29 +1191,107 @@ func (r resolverQuery) loadAsFile(path string, extensionOrder []string) (string,
 		return "", false, nil
 	}
 
+	tryFile := func(base string) (string, bool, *fs.DifferentCase) {
+		// TypeScript lets you configure custom module suffixes
+		for _, suffix := range r.moduleSuffixes {
+			baseWithSuffix := base
+
+			// Splice in the suffix before the extension
+			if suffix != "" {
+				if lastDot := strings.LastIndexByte(base, '.'); lastDot != -1 && tsExtensionsToRemove[base[lastDot:]] {
+					baseWithSuffix = base[:lastDot]
+					suffix += base[lastDot:]
+				}
+				baseWithSuffix += suffix
+			}
+
+			if r.debugLogs != nil {
+				r.debugLogs.addNote(fmt.Sprintf("Checking for file %q", baseWithSuffix))
+			}
+			if entry, diffCase := entries.Get(baseWithSuffix); entry != nil && entry.Kind(r.fs) == fs.FileEntry {
+				if r.debugLogs != nil {
+					r.debugLogs.addNote(fmt.Sprintf("Found file %q", baseWithSuffix))
+				}
+				return r.fs.Join(dirPath, baseWithSuffix), true, diffCase
+			}
+		}
+
+		return "", false, nil
+	}
+
 	base := r.fs.Base(path)
 
+	// Given "./x.js", node's algorithm tries things in the following order:
+	//
+	//   ./x.js
+	//   ./x.js.js
+	//   ./x.js.json
+	//   ./x.js.node
+	//   ./x.js/index.js
+	//   ./x.js/index.json
+	//   ./x.js/index.node
+	//
+	// Given "./x.js" and a "moduleSuffixes" value of [".y", ""], TypeScript's
+	// algorithm tries things in the following order:
+	//
+	//   ./x.js.y.ts
+	//   ./x.js.ts
+	//   ./x.js.y.tsx
+	//   ./x.js.tsx
+	//   ./x.js.d.y.ts
+	//   ./x.js.d.ts
+	//   ./x.y.ts
+	//   ./x.ts
+	//   ./x.y.tsx
+	//   ./x.tsx
+	//   ./x.d.y.ts
+	//   ./x.d.ts
+	//   ./x.js/index.y.ts
+	//   ./x.js/index.ts
+	//   ./x.js/index.y.tsx
+	//   ./x.js/index.tsx
+	//   ./x.js/index.d.y.ts
+	//   ./x.js/index.d.ts
+	//   ./x.js.y.js
+	//   ./x.js.js
+	//   ./x.js.y.jsx
+	//   ./x.js.jsx
+	//   ./x.y.js
+	//   ./x.js
+	//   ./x.y.jsx
+	//   ./x.jsx
+	//   ./x.js/index.y.js
+	//   ./x.js/index.js
+	//   ./x.js/index.y.jsx
+	//   ./x.js/index.jsx
+	//
+	// Our order below is a blend of both. We try to follow node's algorithm but
+	// with the features of TypeScript's algorithm (omitting ".d.ts" files, which
+	// don't contain code). This means we should end up checking the same files
+	// as TypeScript, but in a different order.
+	//
+	// One reason we use a different order is because we support a customizable
+	// extension resolution order, which doesn't fit well into TypeScript's
+	// algorithm. For example, you can configure esbuild to check for extensions
+	// in the order ".js,.ts,.jsx,.tsx" but TypeScript always checks TypeScript
+	// extensions before JavaScript extensions, so we can't obey the user's
+	// intent if we follow TypeScript's algorithm exactly.
+	//
+	// Another reason we deviate from TypeScript's order is because our code is
+	// structured to handle node's algorithm and TypeScript's algorithm has a
+	// different structure. It intermixes multiple calls to LOAD_AS_FILE and
+	// LOAD_INDEX together while node always does one LOAD_AS_FILE before one
+	// LOAD_INDEX.
+
 	// Try the plain path without any extensions
-	if r.debugLogs != nil {
-		r.debugLogs.addNote(fmt.Sprintf("Checking for file %q", base))
-	}
-	if entry, diffCase := entries.Get(base); entry != nil && entry.Kind(r.fs) == fs.FileEntry {
-		if r.debugLogs != nil {
-			r.debugLogs.addNote(fmt.Sprintf("Found file %q", base))
-		}
-		return path, true, diffCase
+	if absolute, ok, diffCase := tryFile(base); ok {
+		return absolute, ok, diffCase
 	}
 
 	// Try the path with extensions
 	for _, ext := range extensionOrder {
-		if r.debugLogs != nil {
-			r.debugLogs.addNote(fmt.Sprintf("Checking for file %q", base+ext))
-		}
-		if entry, diffCase := entries.Get(base + ext); entry != nil && entry.Kind(r.fs) == fs.FileEntry {
-			if r.debugLogs != nil {
-				r.debugLogs.addNote(fmt.Sprintf("Found file %q", base+ext))
-			}
-			return path + ext, true, diffCase
+		if absolute, ok, diffCase := tryFile(base + ext); ok {
+			return absolute, ok, diffCase
 		}
 	}
 
@@ -1171,14 +1316,8 @@ func (r resolverQuery) loadAsFile(path string, extensionOrder []string) (string,
 		}
 		lastDot := strings.LastIndexByte(base, '.')
 		for _, ext := range exts {
-			if entry, diffCase := entries.Get(base[:lastDot] + ext); entry != nil && entry.Kind(r.fs) == fs.FileEntry {
-				if r.debugLogs != nil {
-					r.debugLogs.addNote(fmt.Sprintf("Rewrote to %q", base[:lastDot]+ext))
-				}
-				return path[:len(path)-(len(base)-lastDot)] + ext, true, diffCase
-			}
-			if r.debugLogs != nil {
-				r.debugLogs.addNote(fmt.Sprintf("Failed to rewrite to %q", base[:lastDot]+ext))
+			if absolute, ok, diffCase := tryFile(base[:lastDot] + ext); ok {
+				return absolute, ok, diffCase
 			}
 		}
 		break
@@ -1443,13 +1582,9 @@ func (r resolverQuery) loadAsMainField(dirInfo *dirInfo, path string, extensionO
 						fmt.Sprintf("The %q field here was ignored. Main fields must be configured explicitly when using the \"neutral\" platform.",
 							field)))
 				} else {
-					quoted := make([]string, len(mainFieldKeys))
-					for i, key := range mainFieldKeys {
-						quoted[i] = fmt.Sprintf("%q", key)
-					}
 					r.debugMeta.notes = append(r.debugMeta.notes, tracker.MsgData(keyRange,
 						fmt.Sprintf("The %q field here was ignored because the list of main fields to use is currently set to [%s].",
-							field, strings.Join(quoted, ", "))))
+							field, helpers.StringArrayToQuotedCommaSeparatedString(mainFieldKeys))))
 				}
 				break
 			}
@@ -1486,24 +1621,24 @@ func (r resolverQuery) matchTSConfigPaths(tsConfigJSON *TSConfigJSON, path strin
 	}
 
 	// Check for exact matches first
-	for key, originalPaths := range tsConfigJSON.Paths {
+	for key, originalPaths := range tsConfigJSON.Paths.Map {
 		if key == path {
 			if r.debugLogs != nil {
 				r.debugLogs.addNote(fmt.Sprintf("Found an exact match for %q in \"paths\"", key))
 			}
 			for _, originalPath := range originalPaths {
 				// Ignore ".d.ts" files because this rule is obviously only here for type checking
-				if hasCaseInsensitiveSuffix(originalPath, ".d.ts") {
+				if hasCaseInsensitiveSuffix(originalPath.Text, ".d.ts") {
 					if r.debugLogs != nil {
-						r.debugLogs.addNote(fmt.Sprintf("Ignoring substitution %q because it ends in \".d.ts\"", originalPath))
+						r.debugLogs.addNote(fmt.Sprintf("Ignoring substitution %q because it ends in \".d.ts\"", originalPath.Text))
 					}
 					continue
 				}
 
 				// Load the original path relative to the "baseUrl" from tsconfig.json
-				absoluteOriginalPath := originalPath
-				if !r.fs.IsAbs(originalPath) {
-					absoluteOriginalPath = r.fs.Join(absBaseURL, originalPath)
+				absoluteOriginalPath := originalPath.Text
+				if !r.fs.IsAbs(absoluteOriginalPath) {
+					absoluteOriginalPath = r.fs.Join(absBaseURL, absoluteOriginalPath)
 				}
 				if absolute, ok, diffCase := r.loadAsFileOrDirectory(absoluteOriginalPath); ok {
 					return absolute, true, diffCase
@@ -1516,14 +1651,14 @@ func (r resolverQuery) matchTSConfigPaths(tsConfigJSON *TSConfigJSON, path strin
 	type match struct {
 		prefix        string
 		suffix        string
-		originalPaths []string
+		originalPaths []TSConfigPath
 	}
 
 	// Check for pattern matches next
 	longestMatchPrefixLength := -1
 	longestMatchSuffixLength := -1
 	var longestMatch match
-	for key, originalPaths := range tsConfigJSON.Paths {
+	for key, originalPaths := range tsConfigJSON.Paths.Map {
 		if starIndex := strings.IndexByte(key, '*'); starIndex != -1 {
 			prefix, suffix := key[:starIndex], key[starIndex+1:]
 
@@ -1555,7 +1690,7 @@ func (r resolverQuery) matchTSConfigPaths(tsConfigJSON *TSConfigJSON, path strin
 		for _, originalPath := range longestMatch.originalPaths {
 			// Swap out the "*" in the original path for whatever the "*" matched
 			matchedText := path[len(longestMatch.prefix) : len(path)-len(longestMatch.suffix)]
-			originalPath = strings.Replace(originalPath, "*", matchedText, 1)
+			originalPath := strings.Replace(originalPath.Text, "*", matchedText, 1)
 
 			// Ignore ".d.ts" files because this rule is obviously only here for type checking
 			if hasCaseInsensitiveSuffix(originalPath, ".d.ts") {
@@ -1888,32 +2023,60 @@ func (r resolverQuery) finalizeImportsExportsResult(
 			fmt.Sprintf("Importing the directory %q is not supported:", resolvedPath))}
 
 	case pjStatusUndefinedNoConditionsMatch:
-		prettyPrintConditions := func(conditions []string) string {
-			quoted := make([]string, len(conditions))
-			for i, condition := range conditions {
-				quoted[i] = fmt.Sprintf("%q", condition)
-			}
-			return strings.Join(quoted, ", ")
-		}
 		keys := make([]string, 0, len(conditions))
 		for key := range conditions {
 			keys = append(keys, key)
 		}
 		sort.Strings(keys)
+
+		unmatchedConditions := make([]string, len(debug.unmatchedConditions))
+		for i, key := range debug.unmatchedConditions {
+			unmatchedConditions[i] = key.Text
+		}
+
 		r.debugMeta.notes = []logger.MsgData{
 			tracker.MsgData(importExportMap.root.firstToken,
 				fmt.Sprintf("The path %q is not currently exported by package %q:",
 					esmPackageSubpath, esmPackageName)),
+
 			tracker.MsgData(debug.token,
 				fmt.Sprintf("None of the conditions provided (%s) match any of the currently active conditions (%s):",
-					prettyPrintConditions(debug.unmatchedConditions),
-					prettyPrintConditions(keys),
-				))}
+					helpers.StringArrayToQuotedCommaSeparatedString(unmatchedConditions),
+					helpers.StringArrayToQuotedCommaSeparatedString(keys),
+				)),
+		}
+
+		didSuggestEnablingCondition := false
 		for _, key := range debug.unmatchedConditions {
-			if key == "import" && (r.kind == ast.ImportRequire || r.kind == ast.ImportRequireResolve) {
-				r.debugMeta.suggestionMessage = "Consider using an \"import\" statement to import this file:"
-			} else if key == "require" && (r.kind == ast.ImportStmt || r.kind == ast.ImportDynamic) {
-				r.debugMeta.suggestionMessage = "Consider using a \"require()\" call to import this file:"
+			switch key.Text {
+			case "import":
+				if r.kind == ast.ImportRequire || r.kind == ast.ImportRequireResolve {
+					r.debugMeta.suggestionMessage = "Consider using an \"import\" statement to import this file, " +
+						"which will work because the \"import\" condition is supported by this package:"
+				}
+
+			case "require":
+				if r.kind == ast.ImportStmt || r.kind == ast.ImportDynamic {
+					r.debugMeta.suggestionMessage = "Consider using a \"require()\" call to import this file, " +
+						"which will work because the \"require\" condition is supported by this package:"
+				}
+
+			default:
+				if !didSuggestEnablingCondition {
+					var how string
+					switch logger.API {
+					case logger.CLIAPI:
+						how = fmt.Sprintf("\"--conditions=%s\"", key.Text)
+					case logger.JSAPI:
+						how = fmt.Sprintf("\"conditions: ['%s']\"", key.Text)
+					case logger.GoAPI:
+						how = fmt.Sprintf("'Conditions: []string{%q}'", key.Text)
+					}
+					r.debugMeta.notes = append(r.debugMeta.notes, tracker.MsgData(key.Range,
+						fmt.Sprintf("Consider enabling the %q condition if this package expects it to be enabled. "+
+							"You can use %s to do that:", key.Text, how)))
+					didSuggestEnablingCondition = true
+				}
 			}
 		}
 	}

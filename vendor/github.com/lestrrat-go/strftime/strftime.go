@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pkg/errors"
+	"github.com/lestrrat-go/strftime/internal/errors"
 )
 
 type compileHandler interface {
