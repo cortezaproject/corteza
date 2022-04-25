@@ -79,6 +79,7 @@ type (
 		Enabled                  bool `env:"ACTIONLOG_ENABLED"`
 		Debug                    bool `env:"ACTIONLOG_DEBUG"`
 		WorkflowFunctionsEnabled bool `env:"ACTIONLOG_WORKFLOW_FUNCTIONS_ENABLED"`
+		ComposeRecordEnabled     bool `env:"ACTIONLOG_COMPOSE_RECORD_ENABLED"`
 	}
 
 	ApigwOpt struct {
@@ -452,7 +453,8 @@ func SMTP() (o *SMTPOpt) {
 // This function is auto-generated
 func ActionLog() (o *ActionLogOpt) {
 	o = &ActionLogOpt{
-		Enabled: true,
+		Enabled:              true,
+		ComposeRecordEnabled: false,
 	}
 
 	// Custom defaults
