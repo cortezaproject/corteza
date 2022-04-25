@@ -433,8 +433,9 @@ func (svc record) Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (r
 				continue
 			}
 
+			_ = svc.recordAction(ctx, aProp, action, err)
 			if err != nil {
-				return svc.recordAction(ctx, aProp, action, err)
+				return err
 			}
 
 			rr = append(rr, r)
