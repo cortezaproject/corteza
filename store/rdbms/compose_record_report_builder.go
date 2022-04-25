@@ -244,6 +244,13 @@ func (b recordReportBuilder) Cast(row sqlx.ColScanner) (out map[string]interface
 		switch cv := v.(type) {
 		case []uint8:
 			out[k] = string(cv)
+		case uint64, int64:
+			// Just to make sure we don't break anything old
+			if strings.Contains(k, "dimension") {
+				out[k] = fmt.Sprintf("%d", cv)
+			} else {
+				out[k] = cv
+			}
 		default:
 		}
 	}
