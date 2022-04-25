@@ -45,6 +45,12 @@ var (
 	LocaleKeyNamespaceMetaDescription                       = LocaleKey{Path: "meta.description"}
 	LocaleKeyPageTitle                                      = LocaleKey{Path: "title"}
 	LocaleKeyPageDescription                                = LocaleKey{Path: "description"}
+	LocaleKeyPageRecordToolbarNewLabel                      = LocaleKey{Path: "recordToolbar.new.label"}
+	LocaleKeyPageRecordToolbarEditLabel                     = LocaleKey{Path: "recordToolbar.edit.label"}
+	LocaleKeyPageRecordToolbarSubmitLabel                   = LocaleKey{Path: "recordToolbar.submit.label"}
+	LocaleKeyPageRecordToolbarDeleteLabel                   = LocaleKey{Path: "recordToolbar.delete.label"}
+	LocaleKeyPageRecordToolbarCloneLabel                    = LocaleKey{Path: "recordToolbar.clone.label"}
+	LocaleKeyPageRecordToolbarBackLabel                     = LocaleKey{Path: "recordToolbar.back.label"}
 	LocaleKeyPagePageBlockBlockIDTitle                      = LocaleKey{Path: "pageBlock.{{blockID}}.title"}
 	LocaleKeyPagePageBlockBlockIDDescription                = LocaleKey{Path: "pageBlock.{{blockID}}.description"}
 	LocaleKeyPagePageBlockBlockIDButtonButtonIDLabel        = LocaleKey{Path: "pageBlock.{{blockID}}.button.{{buttonID}}.label"}
