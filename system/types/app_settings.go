@@ -173,6 +173,16 @@ type (
 					// Hide namespace link at the end of the list
 					HideNamespaceListLink bool `json:"hideNamespaceListLink"`
 				} `kv:"sidebar,final" json:"sidebar"`
+
+				// Record toolbar specific settings
+				RecordToolbar struct {
+					HideNew    bool `json:"hideNew"`
+					HideEdit   bool `json:"hideEdit"`
+					HideSubmit bool `json:"hideSubmit"`
+					HideDelete bool `json:"hideDelete"`
+					HideClone  bool `json:"hideClone"`
+					HideBack   bool `json:"hideBack"`
+				} `kv:"record-toolbar,final" json:"record-toolbar"`
 			} `kv:"ui" json:"ui"`
 
 			// Record related settings
