@@ -571,6 +571,16 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 		updatePasswdSettings(app.Opt.Auth, sysService.CurrentSettings)
 	})
 
+	cmpService.DefaultPage.UpdateConfig(sysService.CurrentSettings)
+	sysService.DefaultSettings.Register("compose.ui.record-toolbar", func(ctx context.Context, current interface{}, set types.SettingValueSet) {
+		appSettings, is := current.(*types.AppSettings)
+		if !is {
+			return
+		}
+
+		cmpService.DefaultPage.UpdateConfig(appSettings)
+	})
+
 	updateDiscoverySettings(app.Opt.Discovery, service.CurrentSettings)
 	updateLocaleSettings(app.Opt.Locale)
 
