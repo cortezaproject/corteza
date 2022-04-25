@@ -21,8 +21,6 @@ namespace: schema.#resource & {
 	}
 
 	locale: {
-		resource: references: [ "ID"]
-
 		keys: {
 			name: {}
 			metaSubtitle: {

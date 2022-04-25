@@ -14,7 +14,7 @@ import (
 #handle: =~"^[A-Za-z][a-zA-Z0-9_\\-\\.]*[a-zA-Z0-9]+$"
 
 // More liberal then identifier, allows underscores and dots
-#baseHandle: =~"^[a-z][a-z0-9-]*[a-z0-9]+$"
+#baseHandle: =~"^[a-zA-Z][a-zA-Z0-9-]*[a-zA-Z0-9]+$"
 
 #_base: {
 	// lowercase dash-separated words
