@@ -23,6 +23,30 @@ page: schema.#resource & {
 		keys: {
 			title: {}
 			description: {}
+			recordToolbarButtonNewLabel: {
+				path: ["recordToolbar", "new", "label"]
+				customHandler: true
+			}
+			recordToolbarButtonEditLabel: {
+				path: ["recordToolbar", "edit", "label"]
+				customHandler: true
+			}
+			recordToolbarButtonSubmitLabel: {
+				path: ["recordToolbar", "submit", "label"]
+				customHandler: true
+			}
+			recordToolbarButtonDeleteLabel: {
+				path: ["recordToolbar", "delete", "label"]
+				customHandler: true
+			}
+			recordToolbarButtonCloneLabel: {
+				path: ["recordToolbar", "clone", "label"]
+				customHandler: true
+			}
+			recordToolbarButtonBackLabel: {
+				path: ["recordToolbar", "back", "label"]
+				customHandler: true
+			}
 			blockTitle: {
 				path: ["pageBlock", {part: "blockID", var: true}, "title"]
 				customHandler: true
