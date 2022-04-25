@@ -273,7 +273,7 @@ func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module,
 		new.DeletedAt = nil
 
 		if new.Fields != nil {
-			_ = new.Fields.Walk(func(f *types.ModuleField) error {
+			err = new.Fields.Walk(func(f *types.ModuleField) error {
 				f.ID = nextID()
 				f.ModuleID = new.ID
 				f.NamespaceID = new.NamespaceID
@@ -287,8 +287,15 @@ func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module,
 					f.Expressions.Validators[i] = v
 				}
 
+				if !handle.IsValid(f.Name) {
+					return ModuleErrInvalidHandle()
+				}
+
 				return nil
 			})
+			if err != nil {
+				return
+			}
 		}
 
 		aProps.setModule(new)
@@ -611,6 +618,12 @@ func updateModuleFields(ctx context.Context, s store.Storer, new, old *types.Mod
 			// if, by some weird case, someone managed to get invalid field name into
 			// the store, we'll turn a blind eye.
 			return ModuleErrFieldNameReserved()
+		}
+
+		// backward compatible; we didn't check for valid handle.
+		// if a field already existed and the handle is invalid we ignore the error.
+		if !handle.IsValid(f.Name) && old.Fields.FindByName(f.Name) == nil {
+			return ModuleErrInvalidHandle()
 		}
 
 		if f.ModuleID != new.ID {
