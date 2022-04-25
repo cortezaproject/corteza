@@ -13,6 +13,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/store"
+	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -22,6 +23,17 @@ type (
 		eventbus  eventDispatcher
 		store     store.Storer
 		locale    ResourceTranslationsManagerService
+
+		pageSettings *pageSettings
+	}
+
+	pageSettings struct {
+		hideNew    bool
+		hideEdit   bool
+		hideSubmit bool
+		hideDelete bool
+		hideClone  bool
+		hideBack   bool
 	}
 
 	pageAccessController interface {
@@ -46,11 +58,12 @@ const (
 
 func Page() *page {
 	return &page{
-		actionlog: DefaultActionlog,
-		ac:        DefaultAccessControl,
-		eventbus:  eventbus.Service(),
-		store:     DefaultStore,
-		locale:    DefaultResourceTranslation,
+		actionlog:    DefaultActionlog,
+		ac:           DefaultAccessControl,
+		eventbus:     eventbus.Service(),
+		store:        DefaultStore,
+		locale:       DefaultResourceTranslation,
+		pageSettings: &pageSettings{},
 	}
 }
 
@@ -143,6 +156,11 @@ func (svc page) search(ctx context.Context, filter types.PageFilter) (set types.
 		if err = label.Load(ctx, svc.store, toLabeledPages(set)...); err != nil {
 			return err
 		}
+
+		set.Walk(func(p *types.Page) error {
+			preparePageConfig(svc.pageSettings, p)
+			return nil
+		})
 
 		// i18n
 		tag := locale.GetAcceptLanguageFromContext(ctx)
@@ -505,6 +523,8 @@ func (svc page) lookup(ctx context.Context, namespaceID uint64, lookup func(*pag
 			return err
 		}
 
+		preparePageConfig(svc.pageSettings, p)
+
 		p.DecodeTranslations(svc.locale.Locale().ResourceTranslations(locale.GetAcceptLanguageFromContext(ctx), p.ResourceTranslation()))
 
 		aProps.setPage(p)
@@ -664,22 +684,55 @@ func (svc page) handleUndelete(ctx context.Context, ns *types.Namespace, m *type
 	return pageChanged, nil
 }
 
-func loadPage(ctx context.Context, s store.Storer, namespaceID, pageID uint64) (ns *types.Namespace, m *types.Page, err error) {
+func preparePageConfig(ss *pageSettings, p *types.Page) {
+	if p.ModuleID == 0 {
+		p.Config.Buttons = nil
+		return
+	}
+
+	p.Config.Buttons = &types.PageButtonConfig{}
+	if ss == nil {
+		return
+	}
+	p.Config.Buttons.New.Enabled = !ss.hideNew
+	p.Config.Buttons.Edit.Enabled = !ss.hideEdit
+	p.Config.Buttons.Submit.Enabled = !ss.hideSubmit
+	p.Config.Buttons.Delete.Enabled = !ss.hideDelete
+	p.Config.Buttons.Clone.Enabled = !ss.hideClone
+	p.Config.Buttons.Back.Enabled = !ss.hideBack
+}
+
+func (svc *page) UpdateConfig(ss *systemTypes.AppSettings) {
+	a := ss.Compose.UI.RecordToolbar
+
+	svc.pageSettings = &pageSettings{
+		hideNew:    a.HideNew,
+		hideEdit:   a.HideEdit,
+		hideSubmit: a.HideSubmit,
+		hideDelete: a.HideDelete,
+		hideClone:  a.HideClone,
+		hideBack:   a.HideBack,
+	}
+}
+
+func loadPage(ctx context.Context, s store.Storer, namespaceID, pageID uint64) (ns *types.Namespace, p *types.Page, err error) {
 	if pageID == 0 {
 		return nil, nil, PageErrInvalidID()
 	}
 
 	if ns, err = loadNamespace(ctx, s, namespaceID); err == nil {
-		if m, err = store.LookupComposePageByID(ctx, s, pageID); errors.IsNotFound(err) {
+		if p, err = store.LookupComposePageByID(ctx, s, pageID); errors.IsNotFound(err) {
 			err = PageErrNotFound()
 		}
 	}
+
+	preparePageConfig(nil, p)
 
 	if err != nil {
 		return nil, nil, err
 	}
 
-	if namespaceID != m.NamespaceID {
+	if namespaceID != p.NamespaceID {
 		// Make sure chart belongs to the right namespace
 		return nil, nil, PageErrNotFound()
 	}
