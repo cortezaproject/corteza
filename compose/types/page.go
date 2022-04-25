@@ -75,11 +75,27 @@ type (
 		Variants map[string]string `json:"variants,omitempty"`
 	}
 
+	PageButton struct {
+		Label   string `json:"label"`
+		Enabled bool   `json:"enabled"`
+	}
+
+	PageButtonConfig struct {
+		New    PageButton `json:"new"`
+		Edit   PageButton `json:"edit"`
+		Submit PageButton `json:"submit"`
+		Delete PageButton `json:"delete"`
+		Clone  PageButton `json:"clone"`
+		Back   PageButton `json:"back"`
+	}
+
 	PageConfig struct {
 		// How page is presented in the navigation
 		NavItem struct {
 			Icon *PageConfigIcon `json:"icon,omitempty"`
 		} `json:"navItem"`
+
+		Buttons *PageButtonConfig `json:"buttons,omitempty"`
 
 		//// Example how page-config structure can evolve in the future
 		//Views []struct {
@@ -166,6 +182,28 @@ func (m Page) Clone() *Page {
 func (p *Page) decodeTranslations(tt locale.ResourceTranslationIndex) {
 	var aux *locale.ResourceTranslation
 
+	// Buttons here
+	if p.Config.Buttons != nil {
+		if aux = tt.FindByKey(LocaleKeyPageRecordToolbarNewLabel.Path); aux != nil {
+			p.Config.Buttons.New.Label = aux.Msg
+		}
+		if aux = tt.FindByKey(LocaleKeyPageRecordToolbarEditLabel.Path); aux != nil {
+			p.Config.Buttons.Edit.Label = aux.Msg
+		}
+		if aux = tt.FindByKey(LocaleKeyPageRecordToolbarSubmitLabel.Path); aux != nil {
+			p.Config.Buttons.Submit.Label = aux.Msg
+		}
+		if aux = tt.FindByKey(LocaleKeyPageRecordToolbarDeleteLabel.Path); aux != nil {
+			p.Config.Buttons.Delete.Label = aux.Msg
+		}
+		if aux = tt.FindByKey(LocaleKeyPageRecordToolbarCloneLabel.Path); aux != nil {
+			p.Config.Buttons.Clone.Label = aux.Msg
+		}
+		if aux = tt.FindByKey(LocaleKeyPageRecordToolbarBackLabel.Path); aux != nil {
+			p.Config.Buttons.Back.Label = aux.Msg
+		}
+	}
+
 	for i, block := range p.Blocks {
 		blockID := locale.ContentID(block.BlockID, i)
 		rpl := strings.NewReplacer(
@@ -213,7 +251,10 @@ func (p *Page) decodeTranslations(tt locale.ResourceTranslationIndex) {
 }
 
 func (p *Page) encodeTranslations() (out locale.ResourceTranslationSet) {
-	out = make(locale.ResourceTranslationSet, 0, 3)
+	out = make(locale.ResourceTranslationSet, 0, 12)
+
+	// Button translations don't need to happen here as we don't do anything with buttons at the moment
+	// @todo when we add custom buttons this should change
 
 	// Page blocks
 	for i, block := range p.Blocks {
@@ -386,5 +427,8 @@ func (bb *PageConfig) Scan(value interface{}) error {
 }
 
 func (bb PageConfig) Value() (driver.Value, error) {
+	// We're not saving button config to the DB; no need for it
+	bb.Buttons = nil
+
 	return json.Marshal(bb)
 }
