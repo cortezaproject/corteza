@@ -193,6 +193,25 @@ func TestModuleCreate(t *testing.T) {
 		End()
 }
 
+func TestModuleCreateInvalidField(t *testing.T) {
+	h := newHelper(t)
+	h.clearModules()
+
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "module.create")
+
+	ns := h.makeNamespace("some-namespace")
+
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/module/", ns.ID)).
+		JSON(`{ "name": "mod", "fields": [{ "name": "a", "kind": "Number" }] }`).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("module.errors.invalidHandle")).
+		End()
+}
+
 func TestModuleUpdateForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
@@ -265,6 +284,30 @@ func TestModuleFieldsUpdate(t *testing.T) {
 	h.a.Nil(m.Fields[1].UpdatedAt)
 	h.a.Equal(m.Fields[1].Name, "new")
 	h.a.Equal(m.Fields[1].Kind, "DateTime")
+}
+
+func TestModuleFieldsUpdate_invalidHandle(t *testing.T) {
+	h := newHelper(t)
+	h.clearModules()
+
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "module.create")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "update")
+
+	ns := h.makeNamespace("some-namespace")
+	mod := h.makeModule(ns, "mod", &types.ModuleField{
+		Name: "a",
+		Kind: "String",
+	})
+
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, mod.ID)).
+		JSON(`{ "name": "mod", "fields": [{ "name": "a", "kind": "String" }] }`).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
 }
 
 func TestModuleUpdateWithReservedFieldName(t *testing.T) {
