@@ -9,7 +9,6 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"github.com/jmoiron/sqlx"
@@ -136,7 +135,8 @@ func (b *recordReportBuilder) Build() (sb squirrel.SelectBuilder, err error) {
 		joinTpl = "compose_record_value AS rv_%s ON (rv_%s.record_id = crd.id AND rv_%s.name = '%s' AND rv_%s.deleted_at IS NULL)"
 
 		report = b.store.SelectBuilder("compose_record AS crd").
-			Column(squirrel.Alias(squirrel.Expr("COUNT(*)"), "count")).
+			// record rows can duplicate due to multi value fields; we need to remove duplicates when counting
+			Column(squirrel.Alias(squirrel.Expr("COUNT(DISTINCT(crd.id))"), "count")).
 			Where("crd.deleted_at IS NULL").
 			Where("crd.module_id = ?", b.module.ID)
 
@@ -162,10 +162,6 @@ func (b *recordReportBuilder) Build() (sb squirrel.SelectBuilder, err error) {
 
 		if !b.module.Fields.HasName(i.Value) {
 			return i, fmt.Errorf("unknown field %q", i.Value)
-		}
-
-		if !handle.IsValid(i.Value) {
-			return i, fmt.Errorf("invalid field name: %q", i.Value)
 		}
 
 		if !alreadyJoined(i.Value) {
