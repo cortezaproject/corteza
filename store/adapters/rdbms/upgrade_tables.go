@@ -1,4 +1,8 @@
-package schema
+package rdbms
+
+import (
+	. "github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
+)
 
 const (
 	handleLength   = 64
@@ -21,8 +25,8 @@ const (
 	languageKeyLength = 256
 )
 
-// Tables fn holds a list of all tables that need to be created for Corteza
-func tables() []*Table {
+// Tables fn holds a list of all tables that need to be created
+func Tables() []*Table {
 	return []*Table{
 		tableUsers(),
 		tableCredentials(),
@@ -379,34 +383,6 @@ func tableComposeAttachment() *Table {
 		AddIndex("namespace", IColumn("rel_namespace")),
 	)
 }
-
-//func tableComposeRecordAttachment() *Table {
-//	return TableDef("compose_record_attachments",
-//		ColumnDef("rel_attachment", ColumnTypeIdentifier),
-//		ColumnDef("rel_namespace", ColumnTypeIdentifier),
-//		ColumnDef("rel_module", ColumnTypeIdentifier),
-//		ColumnDef("rel_record", ColumnTypeIdentifier),
-//		ColumnDef("field", ColumnTypeIdentifier),
-//		ColumnDef("owned_by", ColumnTypeIdentifier),
-//		CUDTimestamps,
-//		CUDUsers,
-//
-//		PrimaryKey(IColumn("rel_attachment", "rel_namespace", "rel_module", "field")),
-//	)
-//}
-
-//func tableComposePageAttachment() *Table {
-//	return TableDef("compose_record_attachments",
-//		ColumnDef("rel_attachment", ColumnTypeIdentifier),
-//		ColumnDef("rel_namespace", ColumnTypeIdentifier),
-//		ColumnDef("rel_page", ColumnTypeIdentifier),
-//		ColumnDef("owned_by", ColumnTypeIdentifier),
-//		CUDTimestamps,
-//		CUDUsers,
-//
-//		PrimaryKey(IColumn("rel_attachment", "rel_namespace", "rel_page")),
-//	)
-//}
 
 func tableComposeChart() *Table {
 	return TableDef("compose_chart",

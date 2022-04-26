@@ -37,6 +37,10 @@ type (
 	cursorKeyMapper func(string) (KeyMap, error)
 )
 
+func Cursor(c *filter.PagingCursor) ([]goqu.Expression, error) {
+	return cursor(c)
+}
+
 func cursor(cursor *filter.PagingCursor) ([]goqu.Expression, error) {
 	sql, args, err := CursorCondition(cursor, nil).ToSql()
 	if err != nil {

@@ -38,7 +38,7 @@ type (
 		Tx(context.Context, func(context.Context, Storer) error) error
 
 		// Upgrade store's schema to the latest version
-		Upgrade(context.Context, *zap.Logger) error
+		Upgrade(context.Context) error
 		Actionlogs
 		ApigwFilters
 		ApigwRoutes

@@ -7,30 +7,13 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/schema"
-	"github.com/doug-martin/goqu/v9"
-	"github.com/doug-martin/goqu/v9/exp"
 )
 
 type (
-	txRetryOnErrHandler func(int, error) bool
-
-	Functions struct {
-		// returns lower case text
-		LOWER func(interface{}) exp.SQLFunctionExpression
-
-		// returns date part of the input (YYYY-MM-DD)
-		DATE func(interface{}) exp.SQLFunctionExpression
-	}
-
-	Config struct {
+	ConnConfig struct {
 		DriverName     string
 		DataSourceName string
 		DBName         string
-
-		Dialect goqu.DialectWrapper
 
 		// MaxOpenConns sets maximum number of open connections to the database
 		// defaults to same value as set in the db/sql
@@ -53,33 +36,8 @@ type (
 		// ConnTryTimeout sets timeout per try
 		ConnTryTimeout time.Duration
 
-		// ConnTryMax maximum number of retrys for getting the connection
+		// ConnTryMax maximum number of retries for getting the connection
 		ConnTryMax int
-
-		// Disable transactions
-		TxDisabled bool
-
-		// How many times should we retry failed transaction?
-		TxMaxRetries int
-
-		// TxRetryErrHandler should return true if transaction should be retried
-		//
-		// Because retry algorithm varies between concrete rdbms implementations
-		//
-		// Handler must return true if failed transaction should be replied
-		// and false if we're safe to terminate it
-		TxRetryErrHandler txRetryOnErrHandler
-
-		ErrorHandler store.ErrorHandler
-
-		Functions Functions
-
-		// additional per-resource filters used when searching
-		// these filters can modify expression used for querying the database
-		Filters extendedFilters
-
-		// schema upgrade interface
-		Upgrader schema.Upgrader
 	}
 )
 
@@ -88,30 +46,11 @@ var (
 )
 
 // MaskedDSN replaces username & password from DSN string  dso it's usable for logging
-func (c *Config) MaskedDSN() string {
+func (c *ConnConfig) MaskedDSN() string {
 	return dsnMasker.ReplaceAllString(c.DataSourceName, "$1****$2:$3****$4@")
 }
 
-func (c *Config) SetDefaults() {
-	if c.TxMaxRetries == 0 {
-		c.TxMaxRetries = TxRetryHardLimit
-	}
-
-	//if c.TxRetryErrHandler == nil {
-	//	// Default transaction retry handler
-	//	c.TxRetryErrHandler = TxNoRetry
-	//}
-	//
-	//if c.ErrorHandler == nil {
-	//	c.ErrorHandler = ErrHandlerFallthrough
-	//}
-	//
-	//if c.UpsertBuilder == nil {
-	//	c.UpsertBuilder = UpsertBuilder
-	//}
-
-	// ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
+func (c *ConnConfig) SetDefaults() {
 	if c.MaxIdleConns == 0 {
 		// Same as default in the db/sql
 		c.MaxIdleConns = 32
@@ -144,35 +83,11 @@ func (c *Config) SetDefaults() {
 	if c.ConnTryMax == 0 {
 		c.ConnTryMax = 99
 	}
-
-	//if c.TriggerHandlers == nil {
-	//	c.TriggerHandlers = TriggerHandlers{}
-	//}
-	//
-	//if c.SqlSortHandler == nil {
-	//	c.SqlSortHandler = SqlSortHandler
-	//}
-
-	//if c.Functions == nil {
-	//	c.Functions = func(ident string, args ...interface{}) (*db.RawExpr, error) {
-	//		switch strings.ToUpper(ident) {
-	//		case "LOWER":
-	//			if len(args) != 1 {
-	//				return nil, errors.Internal("LOWER() function expects exactly 1 argument")
-	//			}
-	//			return db.Raw("LOWER(?)", args[0]), nil
-	//		}
-	//
-	//		return nil, errors.Internal("unknown function %q", ident)
-	//	}
-	//}
-	c.Functions.SetDefaults()
-	c.Filters.SetDefaults()
 }
 
 // ParseExtra parses extra params (params starting with *)
 // from DSN's querystring (after ?)
-func (c *Config) ParseExtra() (err error) {
+func (c *ConnConfig) ParseExtra() (err error) {
 	// Make sure we only got qs
 	const q = "?"
 	var (
@@ -252,19 +167,4 @@ func (c *Config) ParseExtra() (err error) {
 	c.DataSourceName += q + vv.Encode()
 
 	return nil
-}
-
-func (f *Functions) SetDefaults() {
-	if f.LOWER == nil {
-		f.LOWER = func(value interface{}) exp.SQLFunctionExpression {
-			return goqu.Func("LOWER", value)
-		}
-	}
-
-	if f.DATE == nil {
-		f.DATE = func(value interface{}) exp.SQLFunctionExpression {
-			return goqu.Func("DATE", value)
-		}
-	}
-
 }

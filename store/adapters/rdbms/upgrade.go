@@ -3,22 +3,44 @@ package rdbms
 import (
 	"context"
 	"fmt"
-
-	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/schema"
-	"go.uber.org/zap"
 )
 
-func (s Store) Upgrade(ctx context.Context, log *zap.Logger) error {
-	if s.config == nil {
-		return fmt.Errorf("config not set on RDBMS store")
+func (s *Store) Upgrade(ctx context.Context) (err error) {
+	if err = UpgradeBeforeTableCreation(ctx, s); err != nil {
+		return
 	}
 
-	if s.config.Upgrader == nil {
-		return fmt.Errorf("upgrader not configured on RDBMS store")
-
+	if err = UpgradeCreateTables(ctx, s); err != nil {
+		return
 	}
 
-	s.config.Upgrader.SetLogger(log)
+	if err = UpgradeAfterTableCreation(ctx, s); err != nil {
+		return
+	}
 
-	return schema.Upgrade(ctx, s.config.Upgrader)
+	return
+}
+
+// UpgradeBeforeTableCreation all actions that need to happen before tables are created
+//
+// Important note!
+// Corteza needs to be updated to the latest patch release under 2022.3.x before upgrading to 2022.9!
+func UpgradeBeforeTableCreation(ctx context.Context, s *Store) (err error) {
+	// @todo figure out how we will detect if database is on the latest version
+	return
+}
+
+// UpgradeCreateTables creates all tables needed by RDBMS store for Corteza to function properly
+func UpgradeCreateTables(ctx context.Context, s *Store) (err error) {
+	for _, t := range Tables() {
+		if err = s.SchemaAPI.CreateTable(ctx, s.DB, t); err != nil {
+			return fmt.Errorf("could not create table %s: %w", t.Name, err)
+		}
+	}
+
+	return
+}
+
+func UpgradeAfterTableCreation(ctx context.Context, s *Store) (err error) {
+	return
 }

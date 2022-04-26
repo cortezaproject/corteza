@@ -16,7 +16,7 @@ func (s Store) ReorderComposePages(ctx context.Context, namespaceID uint64, pare
 		f = composeType.PageFilter{ParentID: parentID, NamespaceID: namespaceID}
 
 		query = func(id uint64, weight int) *goqu.UpdateDataset {
-			return s.config.Dialect.
+			return s.Dialect.
 				Update(composePageTable).
 				Set(goqu.Record{"weight": weight}).
 				Where(goqu.C("id").Eq(id))

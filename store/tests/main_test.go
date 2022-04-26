@@ -82,7 +82,7 @@ func setup(t *testing.T, connect store.ConnectorFn) (s store.Storer) {
 
 	err = store.Upgrade(ctx, zap.NewNop(), s)
 	if err != nil {
-		t.Errorf("failed to upgrade : %v", err)
+		t.Fatalf("failed to upgrade : %v", err)
 		return
 	}
 
