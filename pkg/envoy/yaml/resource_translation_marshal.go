@@ -162,24 +162,24 @@ func (r *resourceTranslation) makeResourceTranslationResource(state *envoy.Resou
 
 		return fmt.Sprintf(composeTypes.ModuleFieldResourceTranslationTpl(), composeTypes.ModuleFieldResourceTranslationType, p0ID, p1ID, p2ID), nil
 
-	// case composeTypes.ChartResourceType:
-	// 	if len(res.RefPath) > 0 {
-	// 		p0 := resource.FindComposeNamespace(state.ParentResources, res.RefPath[0].Identifiers)
-	// 		if p0 == nil {
-	// 			return "", resource.ComposeNamespaceErrUnresolved(res.RefPath[0].Identifiers)
-	// 		}
-	// 		p0ID = p0.Slug
-	// 	}
+	case composeTypes.ChartResourceType:
+		if len(res.RefPath) > 0 {
+			p0 := resource.FindComposeNamespace(state.ParentResources, res.RefPath[0].Identifiers)
+			if p0 == nil {
+				return "", resource.ComposeNamespaceErrUnresolved(res.RefPath[0].Identifiers)
+			}
+			p0ID = p0.Slug
+		}
 
-	// 	if res.RefRes != nil {
-	// 		p1 := resource.FindComposeChart(state.ParentResources, res.RefRes.Identifiers)
-	// 		if p1 == nil {
-	// 			return "", resource.ComposeChartErrUnresolved(res.RefRes.Identifiers)
-	// 		}
-	// 		p1ID = p1.Handle
-	// 	}
+		if res.RefRes != nil {
+			p1 := resource.FindComposeChart(state.ParentResources, res.RefRes.Identifiers)
+			if p1 == nil {
+				return "", resource.ComposeChartErrUnresolved(res.RefRes.Identifiers)
+			}
+			p1ID = p1.Handle
+		}
 
-	// 	return fmt.Sprintf(composeTypes.ChartResourceTranslationTpl(), composeTypes.ChartResourceTranslationType, p0ID, p1ID), nil
+		return fmt.Sprintf(composeTypes.ChartResourceTranslationTpl(), composeTypes.ChartResourceTranslationType, p0ID, p1ID), nil
 
 	// case automationTypes.WorkflowResourceType:
 	// 	if res.RefRes != nil {

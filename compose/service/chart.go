@@ -2,7 +2,9 @@ package service
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"reflect"
+	"strconv"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
@@ -17,9 +19,11 @@ type (
 		actionlog actionlog.Recorder
 		ac        chartAccessController
 		store     store.Storer
+		locale    ResourceTranslationsManagerService
 	}
 
 	chartAccessController interface {
+		CanManageResourceTranslations(ctx context.Context) bool
 		CanSearchChartsOnNamespace(context.Context, *types.Namespace) bool
 		CanReadNamespace(context.Context, *types.Namespace) bool
 		CanCreateChartOnNamespace(context.Context, *types.Namespace) bool
@@ -44,12 +48,14 @@ func Chart() *chart {
 		ac:        DefaultAccessControl,
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
+		locale:    DefaultResourceTranslation,
 	}
 }
 
 func (svc chart) Find(ctx context.Context, filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error) {
 	var (
 		aProps = &chartActionProps{filter: &filter}
+		ns     *types.Namespace
 	)
 
 	// For each fetched item, store backend will check if it is valid or not
@@ -62,7 +68,7 @@ func (svc chart) Find(ctx context.Context, filter types.ChartFilter) (set types.
 	}
 
 	err = func() error {
-		ns, err := loadNamespace(ctx, svc.store, filter.NamespaceID)
+		ns, err = loadNamespace(ctx, svc.store, filter.NamespaceID)
 		if err != nil {
 			return err
 		}
@@ -98,6 +104,13 @@ func (svc chart) Find(ctx context.Context, filter types.ChartFilter) (set types.
 		if err = label.Load(ctx, svc.store, toLabeledCharts(set)...); err != nil {
 			return err
 		}
+
+		// i18n
+		tag := locale.GetAcceptLanguageFromContext(ctx)
+		set.Walk(func(p *types.Chart) error {
+			p.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, p.ResourceTranslation()))
+			return nil
+		})
 
 		return nil
 	}()
@@ -158,8 +171,21 @@ func (svc chart) Create(ctx context.Context, new *types.Chart) (*types.Chart, er
 		new.UpdatedAt = nil
 		new.DeletedAt = nil
 
+		// Ensure chart report IDs
+		for i, report := range new.Config.Reports {
+			new.Config.Reports[i].ReportID = nextID()
+			// Ensure chart report metric IDs
+			for j := range report.Metrics {
+				new.Config.Reports[i].Metrics[j]["metricID"] = strconv.FormatUint(nextID(), 10)
+			}
+		}
+
 		if err = store.CreateComposeChart(ctx, s, new); err != nil {
 			return err
+		}
+
+		if err = updateTranslations(ctx, svc.ac, svc.locale, new.EncodeTranslations()...); err != nil {
+			return
 		}
 
 		if err = label.Create(ctx, s, new); err != nil {
@@ -249,6 +275,10 @@ func (svc chart) updater(ctx context.Context, namespaceID, chartID uint64, actio
 			}
 		}
 
+		if err = updateTranslations(ctx, svc.ac, svc.locale, c.EncodeTranslations()...); err != nil {
+			return
+		}
+
 		if changes&chartLabelsChanged > 0 {
 			if err = label.Update(ctx, s, c); err != nil {
 				return
@@ -304,6 +334,25 @@ func (svc chart) handleUpdate(ctx context.Context, upd *types.Chart) chartUpdate
 			res.Config = upd.Config
 		}
 
+		// Assure ReportIDs
+		for i, r := range res.Config.Reports {
+			if r.ReportID == 0 {
+				r.ReportID = nextID()
+				res.Config.Reports[i] = r
+
+				changes |= chartChanged
+			}
+
+			// Ensure chart report metric IDs
+			for j, m := range r.Metrics {
+				if val, ok := m["metricID"]; !ok || val == 0 {
+					m["metricID"] = strconv.FormatUint(nextID(), 10)
+					res.Config.Reports[i].Metrics[j] = m
+
+					changes |= chartChanged
+				}
+			}
+		}
 		if changes&chartChanged > 0 {
 			res.UpdatedAt = now()
 		}
