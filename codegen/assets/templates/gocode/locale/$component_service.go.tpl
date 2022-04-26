@@ -154,7 +154,6 @@ func (svc resourceTranslationsManager) {{ .expIdent }}(ctx context.Context, {{ r
 		err       error
 		out       locale.ResourceTranslationSet
 		res       *types.{{ .expIdent }}
-		k         types.LocaleKey
 	)
 
 	res, err = svc.load{{ .expIdent }}(ctx, svc.store, {{ range .references }}{{ .param }}, {{ end }})
@@ -162,19 +161,29 @@ func (svc resourceTranslationsManager) {{ .expIdent }}(ctx context.Context, {{ r
 		return nil, err
 	}
 
-	for _, tag := range svc.locale.Tags() {
-	{{- range .keys}}
-		{{- if not .customHandler }}
-			k = types.{{ .struct }}
-			out = append(out, &locale.ResourceTranslation{
-				Resource: res.ResourceTranslation(),
-				Lang:     tag.String(),
-				Key:      k.Path,
-				Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), k.Path),
-			})
-		{{ end }}
-	{{- end}}
-	}
+    {{ $customHandlerExist := false }}
+    {{range .keys}}
+        {{if not .customHandler}}
+            {{ $customHandlerExist = true }}
+        {{end}}
+    {{end}}
+
+    {{ if $customHandlerExist }}
+        var k types.LocaleKey
+        for _, tag := range svc.locale.Tags() {
+        {{- range .keys}}
+            {{- if not .customHandler }}
+                k = types.{{ .struct }}
+                out = append(out, &locale.ResourceTranslation{
+                    Resource: res.ResourceTranslation(),
+                    Lang:     tag.String(),
+                    Key:      k.Path,
+                    Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), k.Path),
+                })
+            {{ end }}
+        {{- end}}
+        }
+    {{ end }}
 
 	{{ if .extended }}
 		tmp, err := svc.{{ .ident }}Extended(ctx, res)

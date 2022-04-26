@@ -37,6 +37,7 @@ type (
 	}
 
 	ResourceTranslationsManagerService interface {
+		Chart(ctx context.Context, namespaceID uint64, id uint64) (locale.ResourceTranslationSet, error)
 		Module(ctx context.Context, namespaceID uint64, id uint64) (locale.ResourceTranslationSet, error)
 		Namespace(ctx context.Context, id uint64) (locale.ResourceTranslationSet, error)
 		Page(ctx context.Context, namespaceID uint64, id uint64) (locale.ResourceTranslationSet, error)
@@ -148,12 +149,27 @@ func (svc resourceTranslationsManager) Locale() locale.Resource {
 	return svc.locale
 }
 
+func (svc resourceTranslationsManager) Chart(ctx context.Context, namespaceID uint64, id uint64) (locale.ResourceTranslationSet, error) {
+	var (
+		err error
+		out locale.ResourceTranslationSet
+		res *types.Chart
+	)
+
+	res, err = svc.loadChart(ctx, svc.store, namespaceID, id)
+	if err != nil {
+		return nil, err
+	}
+
+	tmp, err := svc.chartExtended(ctx, res)
+	return append(out, tmp...), err
+}
+
 func (svc resourceTranslationsManager) Module(ctx context.Context, namespaceID uint64, id uint64) (locale.ResourceTranslationSet, error) {
 	var (
 		err error
 		out locale.ResourceTranslationSet
 		res *types.Module
-		k   types.LocaleKey
 	)
 
 	res, err = svc.loadModule(ctx, svc.store, namespaceID, id)
@@ -161,6 +177,7 @@ func (svc resourceTranslationsManager) Module(ctx context.Context, namespaceID u
 		return nil, err
 	}
 
+	var k types.LocaleKey
 	for _, tag := range svc.locale.Tags() {
 		k = types.LocaleKeyModuleName
 		out = append(out, &locale.ResourceTranslation{
@@ -181,7 +198,6 @@ func (svc resourceTranslationsManager) Namespace(ctx context.Context, id uint64)
 		err error
 		out locale.ResourceTranslationSet
 		res *types.Namespace
-		k   types.LocaleKey
 	)
 
 	res, err = svc.loadNamespace(ctx, svc.store, id)
@@ -189,6 +205,7 @@ func (svc resourceTranslationsManager) Namespace(ctx context.Context, id uint64)
 		return nil, err
 	}
 
+	var k types.LocaleKey
 	for _, tag := range svc.locale.Tags() {
 		k = types.LocaleKeyNamespaceName
 		out = append(out, &locale.ResourceTranslation{
@@ -224,7 +241,6 @@ func (svc resourceTranslationsManager) Page(ctx context.Context, namespaceID uin
 		err error
 		out locale.ResourceTranslationSet
 		res *types.Page
-		k   types.LocaleKey
 	)
 
 	res, err = svc.loadPage(ctx, svc.store, namespaceID, id)
@@ -232,6 +248,7 @@ func (svc resourceTranslationsManager) Page(ctx context.Context, namespaceID uin
 		return nil, err
 	}
 
+	var k types.LocaleKey
 	for _, tag := range svc.locale.Tags() {
 		k = types.LocaleKeyPageTitle
 		out = append(out, &locale.ResourceTranslation{
