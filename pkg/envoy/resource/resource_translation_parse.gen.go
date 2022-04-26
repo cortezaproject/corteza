@@ -47,6 +47,16 @@ func ParseResourceTranslation(res string) (string, *Ref, []*Ref, error) {
 
 	// make the resource provide the slice of parent resources we should nest under
 	switch resourceType {
+	case composeTypes.ChartResourceTranslationType:
+		if len(path) != 2 {
+			return "", nil, nil, fmt.Errorf("expecting 2 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := ComposeChartResourceTranslationReferences(
+			path[0],
+			path[1],
+		)
+		return composeTypes.ChartResourceTranslationType, ref, pp, err
+
 	case composeTypes.ModuleResourceTranslationType:
 		if len(path) != 2 {
 			return "", nil, nil, fmt.Errorf("expecting 2 reference components in path, got %d", len(path))

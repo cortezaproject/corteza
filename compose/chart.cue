@@ -43,6 +43,21 @@ chart: schema.#Resource & {
 		}
 	}
 
+	locale: {
+		extended: true
+
+		keys: {
+			reportsYaxisLabel: {
+				path: ["yAxis", "label"]
+				customHandler: true
+			}
+			reportsMetricLabel: {
+				path: ["metrics", {part: "metricID", var: true}, "label"]
+				customHandler: true
+			}
+		}
+	}
+
 	store: {
 		ident: "composeChart"
 

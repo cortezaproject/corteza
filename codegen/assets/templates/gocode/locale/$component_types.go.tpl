@@ -73,7 +73,16 @@ func {{ .expIdent }}ResourceTranslationTpl() string {
 }
 
 func (r *{{ .expIdent }}) DecodeTranslations(tt locale.ResourceTranslationIndex) {
-	var aux *locale.ResourceTranslation
+    {{- $decodeFuncExist := false }}
+    {{- range .keys }}
+        {{- if not .decodeFunc }}
+            {{- $decodeFuncExist = true }}
+        {{- end }}
+    {{- end}}
+
+    {{- if $decodeFuncExist }}
+        var aux *locale.ResourceTranslation
+    {{- end }}
 
 	{{- range .keys }}
 		{{ if .decodeFunc }}
