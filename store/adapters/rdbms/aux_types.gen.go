@@ -621,7 +621,7 @@ func (aux auxActionlog) decode() (res *actionlogType.Action, _ error) {
 // scans row and fills auxActionlog fields
 //
 // This function is auto-generated
-func (aux *auxActionlog) scan(row scalable) error {
+func (aux *auxActionlog) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.Timestamp,
@@ -682,7 +682,7 @@ func (aux auxApigwFilter) decode() (res *systemType.ApigwFilter, _ error) {
 // scans row and fills auxApigwFilter fields
 //
 // This function is auto-generated
-func (aux *auxApigwFilter) scan(row scalable) error {
+func (aux *auxApigwFilter) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.Route,
@@ -742,7 +742,7 @@ func (aux auxApigwRoute) decode() (res *systemType.ApigwRoute, _ error) {
 // scans row and fills auxApigwRoute fields
 //
 // This function is auto-generated
-func (aux *auxApigwRoute) scan(row scalable) error {
+func (aux *auxApigwRoute) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.Endpoint,
@@ -795,7 +795,7 @@ func (aux auxApplication) decode() (res *systemType.Application, _ error) {
 // scans row and fills auxApplication fields
 //
 // This function is auto-generated
-func (aux *auxApplication) scan(row scalable) error {
+func (aux *auxApplication) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.Name,
@@ -847,7 +847,7 @@ func (aux auxAttachment) decode() (res *systemType.Attachment, _ error) {
 // scans row and fills auxAttachment fields
 //
 // This function is auto-generated
-func (aux *auxAttachment) scan(row scalable) error {
+func (aux *auxAttachment) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.OwnerID,
@@ -918,7 +918,7 @@ func (aux auxAuthClient) decode() (res *systemType.AuthClient, _ error) {
 // scans row and fills auxAuthClient fields
 //
 // This function is auto-generated
-func (aux *auxAuthClient) scan(row scalable) error {
+func (aux *auxAuthClient) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.Handle,
@@ -966,7 +966,7 @@ func (aux auxAuthConfirmedClient) decode() (res *systemType.AuthConfirmedClient,
 // scans row and fills auxAuthConfirmedClient fields
 //
 // This function is auto-generated
-func (aux *auxAuthConfirmedClient) scan(row scalable) error {
+func (aux *auxAuthConfirmedClient) scan(row scanner) error {
 	return row.Scan(
 		&aux.UserID,
 		&aux.ClientID,
@@ -1014,7 +1014,7 @@ func (aux auxAuthOa2token) decode() (res *systemType.AuthOa2token, _ error) {
 // scans row and fills auxAuthOa2token fields
 //
 // This function is auto-generated
-func (aux *auxAuthOa2token) scan(row scalable) error {
+func (aux *auxAuthOa2token) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.Code,
@@ -1062,7 +1062,7 @@ func (aux auxAuthSession) decode() (res *systemType.AuthSession, _ error) {
 // scans row and fills auxAuthSession fields
 //
 // This function is auto-generated
-func (aux *auxAuthSession) scan(row scalable) error {
+func (aux *auxAuthSession) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.Data,
@@ -1120,7 +1120,7 @@ func (aux auxAutomationSession) decode() (res *automationType.Session, _ error) 
 // scans row and fills auxAutomationSession fields
 //
 // This function is auto-generated
-func (aux *auxAutomationSession) scan(row scalable) error {
+func (aux *auxAutomationSession) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.WorkflowID,
@@ -1189,7 +1189,7 @@ func (aux auxAutomationTrigger) decode() (res *automationType.Trigger, _ error) 
 // scans row and fills auxAutomationTrigger fields
 //
 // This function is auto-generated
-func (aux *auxAutomationTrigger) scan(row scalable) error {
+func (aux *auxAutomationTrigger) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.WorkflowID,
@@ -1264,7 +1264,7 @@ func (aux auxAutomationWorkflow) decode() (res *automationType.Workflow, _ error
 // scans row and fills auxAutomationWorkflow fields
 //
 // This function is auto-generated
-func (aux *auxAutomationWorkflow) scan(row scalable) error {
+func (aux *auxAutomationWorkflow) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.Handle,
@@ -1327,7 +1327,7 @@ func (aux auxComposeAttachment) decode() (res *composeType.Attachment, _ error) 
 // scans row and fills auxComposeAttachment fields
 //
 // This function is auto-generated
-func (aux *auxComposeAttachment) scan(row scalable) error {
+func (aux *auxComposeAttachment) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.OwnerID,
@@ -1377,7 +1377,7 @@ func (aux auxComposeChart) decode() (res *composeType.Chart, _ error) {
 // scans row and fills auxComposeChart fields
 //
 // This function is auto-generated
-func (aux *auxComposeChart) scan(row scalable) error {
+func (aux *auxComposeChart) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.Handle,
@@ -1424,7 +1424,7 @@ func (aux auxComposeModule) decode() (res *composeType.Module, _ error) {
 // scans row and fills auxComposeModule fields
 //
 // This function is auto-generated
-func (aux *auxComposeModule) scan(row scalable) error {
+func (aux *auxComposeModule) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.Handle,
@@ -1487,7 +1487,7 @@ func (aux auxComposeModuleField) decode() (res *composeType.ModuleField, _ error
 // scans row and fills auxComposeModuleField fields
 //
 // This function is auto-generated
-func (aux *auxComposeModuleField) scan(row scalable) error {
+func (aux *auxComposeModuleField) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.ModuleID,
@@ -1542,7 +1542,7 @@ func (aux auxComposeNamespace) decode() (res *composeType.Namespace, _ error) {
 // scans row and fills auxComposeNamespace fields
 //
 // This function is auto-generated
-func (aux *auxComposeNamespace) scan(row scalable) error {
+func (aux *auxComposeNamespace) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.Slug,
@@ -1601,7 +1601,7 @@ func (aux auxComposePage) decode() (res *composeType.Page, _ error) {
 // scans row and fills auxComposePage fields
 //
 // This function is auto-generated
-func (aux *auxComposePage) scan(row scalable) error {
+func (aux *auxComposePage) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.SelfID,
@@ -1658,7 +1658,7 @@ func (aux auxComposeRecord) decode() (res *composeType.Record, _ error) {
 // scans row and fills auxComposeRecord fields
 //
 // This function is auto-generated
-func (aux *auxComposeRecord) scan(row scalable) error {
+func (aux *auxComposeRecord) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.ModuleID,
@@ -1703,7 +1703,7 @@ func (aux auxComposeRecordValue) decode() (res *composeType.RecordValue, _ error
 // scans row and fills auxComposeRecordValue fields
 //
 // This function is auto-generated
-func (aux *auxComposeRecordValue) scan(row scalable) error {
+func (aux *auxComposeRecordValue) scan(row scanner) error {
 	return row.Scan(
 		&aux.RecordID,
 		&aux.Name,
@@ -1754,7 +1754,7 @@ func (aux auxCredential) decode() (res *systemType.Credential, _ error) {
 // scans row and fills auxCredential fields
 //
 // This function is auto-generated
-func (aux *auxCredential) scan(row scalable) error {
+func (aux *auxCredential) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.OwnerID,
@@ -1814,7 +1814,7 @@ func (aux auxFederationExposedModule) decode() (res *federationType.ExposedModul
 // scans row and fills auxFederationExposedModule fields
 //
 // This function is auto-generated
-func (aux *auxFederationExposedModule) scan(row scalable) error {
+func (aux *auxFederationExposedModule) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.Handle,
@@ -1860,7 +1860,7 @@ func (aux auxFederationModuleMapping) decode() (res *federationType.ModuleMappin
 // scans row and fills auxFederationModuleMapping fields
 //
 // This function is auto-generated
-func (aux *auxFederationModuleMapping) scan(row scalable) error {
+func (aux *auxFederationModuleMapping) scan(row scanner) error {
 	return row.Scan(
 		&aux.NodeID,
 		&aux.FederationModuleID,
@@ -1916,7 +1916,7 @@ func (aux auxFederationNode) decode() (res *federationType.Node, _ error) {
 // scans row and fills auxFederationNode fields
 //
 // This function is auto-generated
-func (aux *auxFederationNode) scan(row scalable) error {
+func (aux *auxFederationNode) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.Name,
@@ -1963,7 +1963,7 @@ func (aux auxFederationNodeSync) decode() (res *federationType.NodeSync, _ error
 // scans row and fills auxFederationNodeSync fields
 //
 // This function is auto-generated
-func (aux *auxFederationNodeSync) scan(row scalable) error {
+func (aux *auxFederationNodeSync) scan(row scanner) error {
 	return row.Scan(
 		&aux.NodeID,
 		&aux.ModuleID,
@@ -2015,7 +2015,7 @@ func (aux auxFederationSharedModule) decode() (res *federationType.SharedModule,
 // scans row and fills auxFederationSharedModule fields
 //
 // This function is auto-generated
-func (aux *auxFederationSharedModule) scan(row scalable) error {
+func (aux *auxFederationSharedModule) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.Handle,
@@ -2060,7 +2060,7 @@ func (aux auxFlag) decode() (res *flagType.Flag, _ error) {
 // scans row and fills auxFlag fields
 //
 // This function is auto-generated
-func (aux *auxFlag) scan(row scalable) error {
+func (aux *auxFlag) scan(row scanner) error {
 	return row.Scan(
 		&aux.Kind,
 		&aux.ResourceID,
@@ -2096,7 +2096,7 @@ func (aux auxLabel) decode() (res *labelsType.Label, _ error) {
 // scans row and fills auxLabel fields
 //
 // This function is auto-generated
-func (aux *auxLabel) scan(row scalable) error {
+func (aux *auxLabel) scan(row scanner) error {
 	return row.Scan(
 		&aux.Kind,
 		&aux.ResourceID,
@@ -2143,7 +2143,7 @@ func (aux auxQueue) decode() (res *systemType.Queue, _ error) {
 // scans row and fills auxQueue fields
 //
 // This function is auto-generated
-func (aux *auxQueue) scan(row scalable) error {
+func (aux *auxQueue) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.Consumer,
@@ -2186,7 +2186,7 @@ func (aux auxQueueMessage) decode() (res *systemType.QueueMessage, _ error) {
 // scans row and fills auxQueueMessage fields
 //
 // This function is auto-generated
-func (aux *auxQueueMessage) scan(row scalable) error {
+func (aux *auxQueueMessage) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.Queue,
@@ -2222,7 +2222,7 @@ func (aux auxRbacRule) decode() (res *rbacType.Rule, _ error) {
 // scans row and fills auxRbacRule fields
 //
 // This function is auto-generated
-func (aux *auxRbacRule) scan(row scalable) error {
+func (aux *auxRbacRule) scan(row scanner) error {
 	return row.Scan(
 		&aux.RoleID,
 		&aux.Resource,
@@ -2275,7 +2275,7 @@ func (aux auxReminder) decode() (res *systemType.Reminder, _ error) {
 // scans row and fills auxReminder fields
 //
 // This function is auto-generated
-func (aux *auxReminder) scan(row scalable) error {
+func (aux *auxReminder) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.Resource,
@@ -2337,7 +2337,7 @@ func (aux auxReport) decode() (res *systemType.Report, _ error) {
 // scans row and fills auxReport fields
 //
 // This function is auto-generated
-func (aux *auxReport) scan(row scalable) error {
+func (aux *auxReport) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.Handle,
@@ -2385,7 +2385,7 @@ func (aux auxResourceActivity) decode() (res *discoveryType.ResourceActivity, _ 
 // scans row and fills auxResourceActivity fields
 //
 // This function is auto-generated
-func (aux *auxResourceActivity) scan(row scalable) error {
+func (aux *auxResourceActivity) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.Timestamp,
@@ -2438,7 +2438,7 @@ func (aux auxResourceTranslation) decode() (res *systemType.ResourceTranslation,
 // scans row and fills auxResourceTranslation fields
 //
 // This function is auto-generated
-func (aux *auxResourceTranslation) scan(row scalable) error {
+func (aux *auxResourceTranslation) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.Lang,
@@ -2489,7 +2489,7 @@ func (aux auxRole) decode() (res *systemType.Role, _ error) {
 // scans row and fills auxRole fields
 //
 // This function is auto-generated
-func (aux *auxRole) scan(row scalable) error {
+func (aux *auxRole) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.Name,
@@ -2524,7 +2524,7 @@ func (aux auxRoleMember) decode() (res *systemType.RoleMember, _ error) {
 // scans row and fills auxRoleMember fields
 //
 // This function is auto-generated
-func (aux *auxRoleMember) scan(row scalable) error {
+func (aux *auxRoleMember) scan(row scanner) error {
 	return row.Scan(
 		&aux.UserID,
 		&aux.RoleID,
@@ -2559,7 +2559,7 @@ func (aux auxSettingValue) decode() (res *systemType.SettingValue, _ error) {
 // scans row and fills auxSettingValue fields
 //
 // This function is auto-generated
-func (aux *auxSettingValue) scan(row scalable) error {
+func (aux *auxSettingValue) scan(row scanner) error {
 	return row.Scan(
 		&aux.Name,
 		&aux.OwnedBy,
@@ -2611,7 +2611,7 @@ func (aux auxTemplate) decode() (res *systemType.Template, _ error) {
 // scans row and fills auxTemplate fields
 //
 // This function is auto-generated
-func (aux *auxTemplate) scan(row scalable) error {
+func (aux *auxTemplate) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.Handle,
@@ -2670,7 +2670,7 @@ func (aux auxUser) decode() (res *systemType.User, _ error) {
 // scans row and fills auxUser fields
 //
 // This function is auto-generated
-func (aux *auxUser) scan(row scalable) error {
+func (aux *auxUser) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
 		&aux.Handle,

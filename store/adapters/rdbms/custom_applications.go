@@ -15,7 +15,7 @@ func (s Store) ApplicationMetrics(ctx context.Context) (_ *systemType.Applicatio
 			Valid   uint `db:"valid"`
 		}{}
 
-		query = applicationSelectQuery(s.config.Dialect).
+		query = applicationSelectQuery(s.Dialect).
 			Select(timestampStatExpr("deleted")...)
 	)
 
@@ -39,7 +39,7 @@ func (s Store) ReorderApplications(ctx context.Context, order []uint64) (err err
 		f = systemType.ApplicationFilter{}
 
 		query = func(id uint64, weight int) *goqu.UpdateDataset {
-			return s.config.Dialect.
+			return s.Dialect.
 				Update(applicationTable).
 				Set(goqu.Record{"weight": weight}).
 				Where(goqu.C("id").Eq(id))

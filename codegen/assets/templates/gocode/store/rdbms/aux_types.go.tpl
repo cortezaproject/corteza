@@ -46,7 +46,7 @@ func (aux {{ .auxIdent }}) decode() (res *{{ .goType }}, _ error) {
 // scans row and fills {{ .auxIdent }} fields
 //
 // This function is auto-generated
-func (aux *{{ .auxIdent }})scan(row scalable) (error) {
+func (aux *{{ .auxIdent }})scan(row scanner) (error) {
 	return row.Scan(
 	{{- range .auxStruct }}
 		&aux.{{ .expIdent }},

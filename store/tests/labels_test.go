@@ -2,17 +2,21 @@ package tests
 
 import (
 	"context"
+	"testing"
+
 	"github.com/cortezaproject/corteza-server/pkg/label/types"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/store"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func testLabels(t *testing.T, s store.Labels) {
 	var (
 		ctx = context.Background()
 	)
+
+	ctx = logger.ContextWithValue(ctx, logger.MakeDebugLogger())
 
 	t.Run("create", func(t *testing.T) {
 		req := require.New(t)

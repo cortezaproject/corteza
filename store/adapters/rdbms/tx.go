@@ -11,22 +11,28 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func (s Store) Tx(ctx context.Context, fn func(context.Context, store.Storer) error) error {
-	return tx(ctx, s.db, s.config, nil, func(ctx context.Context, tx dbLayer) error {
+type (
+	dbTransactionMaker interface {
+		BeginTxx(ctx context.Context, opts *sql.TxOptions) (*sqlx.Tx, error)
+	}
+)
+
+func (s *Store) Tx(ctx context.Context, fn func(context.Context, store.Storer) error) error {
+	if s.TxRetryLimit < 0 {
+		return fn(ctx, s)
+	}
+
+	return txHandler(ctx, s.DB, s.TxRetryLimit, s.TxRetryErrHandler, func(ctx context.Context, tx sqlx.ExtContext) error {
 		return fn(ctx, s.withTx(tx))
 	})
 }
 
-// tx begins a new db transaction and handles it's retries when possible
+// tx begins a new db transaction and handles retries when possible
 //
 // It utilizes configured transaction error handlers and max-retry limits
 // to determine if and how many times transaction should be retried
 //
-func tx(ctx context.Context, dbCandidate interface{}, cfg *Config, txOpt *sql.TxOptions, task func(context.Context, dbLayer) error) error {
-	if cfg.TxDisabled {
-		return task(ctx, dbCandidate.(dbLayer))
-	}
-
+func txHandler(ctx context.Context, dbc interface{}, max int, reh txRetryOnErrHandler, task func(context.Context, sqlx.ExtContext) error) error {
 	var (
 		lastTaskErr error
 		err         error
@@ -35,13 +41,13 @@ func tx(ctx context.Context, dbCandidate interface{}, cfg *Config, txOpt *sql.Tx
 		try         = 1
 	)
 
-	switch dbCandidate.(type) {
+	switch dbc.(type) {
 	case dbTransactionMaker:
-		// we can make a transaction, yay
-		db = dbCandidate.(*sqlx.DB)
-	case dbLayer:
+		// we can make a transaction!
+		db = dbc.(*sqlx.DB)
+	case sqlx.ExtContext:
 		// Already in a transaction, run the given task and finish
-		return task(ctx, dbCandidate.(dbLayer))
+		return task(ctx, dbc.(sqlx.ExtContext))
 	default:
 		return fmt.Errorf("could not use the db connection for transaction")
 	}
@@ -50,7 +56,7 @@ func tx(ctx context.Context, dbCandidate interface{}, cfg *Config, txOpt *sql.Tx
 		try++
 
 		// Start transaction
-		tx, err = db.BeginTxx(ctx, txOpt)
+		tx, err = db.BeginTxx(ctx, nil)
 		if err != nil {
 			return err
 		}
@@ -75,8 +81,8 @@ func tx(ctx context.Context, dbCandidate interface{}, cfg *Config, txOpt *sql.Tx
 		// if this particular error should be retried or not
 		//
 		// We cannot generalize here because different store implementation have
-		// different errors and we need to act accordingly
-		if cfg.TxRetryErrHandler == nil || !cfg.TxRetryErrHandler(try, lastTaskErr) {
+		// different errors; we need to act accordingly
+		if reh != nil && !reh(try, lastTaskErr) {
 			return fmt.Errorf("failed to complete transaction: %w", lastTaskErr)
 		}
 
@@ -84,7 +90,7 @@ func tx(ctx context.Context, dbCandidate interface{}, cfg *Config, txOpt *sql.Tx
 		// break the retry-loop earlier, but that might not be always the case
 		//
 		// We'll check the configured and hard-limit maximums
-		if try >= cfg.TxMaxRetries || try >= TxRetryHardLimit {
+		if try >= max || try >= TxRetryHardLimit {
 			return fmt.Errorf("failed to perform transaction (tries: %d), last error: %w", try, lastTaskErr)
 		}
 

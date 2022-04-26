@@ -7,12 +7,14 @@ import (
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/instrumentation"
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	"github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 	"github.com/ngrok/sqlmw"
 )
 
@@ -23,36 +25,40 @@ func init() {
 
 func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 	var (
-		cfg *rdbms.Config
-		s   *rdbms.Store
+		db  *sqlx.DB
+		cfg *rdbms.ConnConfig
 	)
 
-	if cfg, err = ProcDataSourceName(dsn); err != nil {
+	if cfg, err = NewConfig(dsn); err != nil {
 		return
 	}
 
-	cfg.TxRetryErrHandler = txRetryErrHandler
-	cfg.ErrorHandler = errorHandler
-
-	if s, err = rdbms.Connect(ctx, cfg); err != nil {
+	if db, err = rdbms.Connect(ctx, logger.Default(), cfg); err != nil {
 		return
 	}
 
 	// See https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_ansi for details
-	if _, err = s.DB().ExecContext(ctx, "SET SESSION sql_mode = 'ANSI'"); err != nil {
+	if _, err = db.ExecContext(ctx, `SET SESSION sql_mode = 'ANSI'`); err != nil {
 		return
 	}
 
-	cfg.Upgrader = NewUpgrader(s)
+	dialect := goqu.Dialect("mysql")
+	s := &rdbms.Store{
+		DB: db,
+
+		Dialect:           dialect,
+		TxRetryErrHandler: txRetryErrHandler,
+		ErrorHandler:      errorHandler,
+
+		SchemaAPI: &schema{dbName: cfg.DBName, dialect: dialect},
+	}
+
+	s.SetDefaults()
 
 	return s, nil
 }
 
-//func (s *Store) Upgrade(ctx context.Context, log *zap.Logger) (err error) {
-//	return (&rdbms.Schema{}).Upgrade(ctx, NewUpgrader(log, s))
-//}
-
-// ProcDataSourceName validates given DSN and ensures
+// NewConfig validates given DSN and ensures
 // params are present and correct
 //
 // If param is missing it sets it to default but returns
@@ -63,7 +69,7 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 // @todo similar fallback (autoconfig) for collation=utf8mb4_general_ci
 //       but allow different collation values
 //
-func ProcDataSourceName(in string) (*rdbms.Config, error) {
+func NewConfig(in string) (*rdbms.ConnConfig, error) {
 	const (
 		schemeDel   = "://"
 		validScheme = "mysql"
@@ -72,9 +78,7 @@ func ProcDataSourceName(in string) (*rdbms.Config, error) {
 	var (
 		endOfSchema = strings.Index(in, schemeDel)
 
-		c = &rdbms.Config{
-			Dialect: goqu.Dialect("mysql"),
-		}
+		c = &rdbms.ConnConfig{}
 	)
 
 	if endOfSchema > 0 && (in[:endOfSchema] == validScheme || strings.HasPrefix(in[:endOfSchema], validScheme+"+")) {
@@ -93,6 +97,8 @@ func ProcDataSourceName(in string) (*rdbms.Config, error) {
 		c.DataSourceName = pdsn.FormatDSN()
 		c.DBName = pdsn.DBName
 	}
+
+	c.SetDefaults()
 
 	return c, nil
 }
@@ -122,7 +128,6 @@ func txRetryErrHandler(try int, err error) bool {
 
 func errorHandler(err error) error {
 	if err != nil {
-
 		if implErr, ok := err.(*mysql.MySQLError); ok {
 			// https://www.fromdual.com/de/mysql-error-codes-and-messages
 			switch implErr.Number {

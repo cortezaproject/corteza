@@ -3,8 +3,9 @@ package store
 import "github.com/cortezaproject/corteza-server/pkg/errors"
 
 type (
+	// ErrorHandler
 	// each implementation can have internal error handler that can translate
-	// impl. specific errors liker transaction
+	// impl. specific errors like transaction
 	ErrorHandler func(error) error
 )
 
