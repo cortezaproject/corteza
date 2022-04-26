@@ -272,6 +272,43 @@ func (svc resourceTranslationsManager) pageExtended(ctx context.Context, res *ty
 	return
 }
 
+func (svc resourceTranslationsManager) chartExtended(_ context.Context, res *types.Chart) (out locale.ResourceTranslationSet, err error) {
+	var (
+		yAxisLabelK  = types.LocaleKeyChartYAxisLabel
+		metricLabelK = types.LocaleKeyChartMetricsMetricIDLabel
+	)
+
+	for _, report := range res.Config.Reports {
+		for _, tag := range svc.locale.Tags() {
+			out = append(out, &locale.ResourceTranslation{
+				Resource: res.ResourceTranslation(),
+				Lang:     tag.String(),
+				Key:      yAxisLabelK.Path,
+				Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), yAxisLabelK.Path),
+			})
+		}
+
+		for _, metric := range report.Metrics {
+			if _, ok := metric["metricID"]; ok {
+				mpl := strings.NewReplacer(
+					"{{metricID}}", metric["metricID"].(string),
+				)
+
+				for _, tag := range svc.locale.Tags() {
+					out = append(out, &locale.ResourceTranslation{
+						Resource: res.ResourceTranslation(),
+						Lang:     tag.String(),
+						Key:      mpl.Replace(metricLabelK.Path),
+						Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), mpl.Replace(metricLabelK.Path)),
+					})
+				}
+			}
+		}
+	}
+
+	return
+}
+
 func (svc resourceTranslationsManager) pageExtendedAutomationBlock(tag language.Tag, res *types.Page, block types.PageBlock, blockID uint64) (locale.ResourceTranslationSet, error) {
 	var (
 		k     = types.LocaleKeyPagePageBlockBlockIDButtonButtonIDLabel

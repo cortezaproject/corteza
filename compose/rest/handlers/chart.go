@@ -24,15 +24,19 @@ type (
 		Read(context.Context, *request.ChartRead) (interface{}, error)
 		Update(context.Context, *request.ChartUpdate) (interface{}, error)
 		Delete(context.Context, *request.ChartDelete) (interface{}, error)
+		ListTranslations(context.Context, *request.ChartListTranslations) (interface{}, error)
+		UpdateTranslations(context.Context, *request.ChartUpdateTranslations) (interface{}, error)
 	}
 
 	// HTTP API interface
 	Chart struct {
-		List   func(http.ResponseWriter, *http.Request)
-		Create func(http.ResponseWriter, *http.Request)
-		Read   func(http.ResponseWriter, *http.Request)
-		Update func(http.ResponseWriter, *http.Request)
-		Delete func(http.ResponseWriter, *http.Request)
+		List               func(http.ResponseWriter, *http.Request)
+		Create             func(http.ResponseWriter, *http.Request)
+		Read               func(http.ResponseWriter, *http.Request)
+		Update             func(http.ResponseWriter, *http.Request)
+		Delete             func(http.ResponseWriter, *http.Request)
+		ListTranslations   func(http.ResponseWriter, *http.Request)
+		UpdateTranslations func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -118,6 +122,38 @@ func NewChart(h ChartAPI) *Chart {
 
 			api.Send(w, r, value)
 		},
+		ListTranslations: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewChartListTranslations()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.ListTranslations(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		UpdateTranslations: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewChartUpdateTranslations()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.UpdateTranslations(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -129,5 +165,7 @@ func (h Chart) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.
 		r.Get("/namespace/{namespaceID}/chart/{chartID}", h.Read)
 		r.Post("/namespace/{namespaceID}/chart/{chartID}", h.Update)
 		r.Delete("/namespace/{namespaceID}/chart/{chartID}", h.Delete)
+		r.Get("/namespace/{namespaceID}/chart/{chartID}/translation", h.ListTranslations)
+		r.Patch("/namespace/{namespaceID}/chart/{chartID}/translation", h.UpdateTranslations)
 	})
 }

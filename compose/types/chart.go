@@ -3,6 +3,8 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
+	"strings"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -31,6 +33,7 @@ type (
 	}
 
 	ChartConfigReport struct {
+		ReportID   uint64                   `json:"reportID,string,omitempty"`
 		Filter     string                   `json:"filter"`
 		ModuleID   uint64                   `json:"moduleID,string,omitempty"`
 		Metrics    []map[string]interface{} `json:"metrics,omitempty"`
@@ -64,6 +67,60 @@ type (
 		filter.Paging
 	}
 )
+
+func (c Chart) decodeTranslations(tt locale.ResourceTranslationIndex) {
+	var aux *locale.ResourceTranslation
+
+	for i, report := range c.Config.Reports {
+		if aux = tt.FindByKey(LocaleKeyChartYAxisLabel.Path); aux != nil {
+			c.Config.Reports[i].YAxis["label"] = aux.Msg
+		}
+
+		for j, metric := range report.Metrics {
+			if metricID, ok := metric["metricID"]; ok {
+				mpl := strings.NewReplacer(
+					"{{metricID}}", metricID.(string),
+				)
+
+				if aux = tt.FindByKey(mpl.Replace(LocaleKeyChartMetricsMetricIDLabel.Path)); aux != nil {
+					c.Config.Reports[i].Metrics[j]["label"] = aux.Msg
+				}
+			}
+		}
+	}
+}
+
+func (c Chart) encodeTranslations() (out locale.ResourceTranslationSet) {
+	out = make(locale.ResourceTranslationSet, 0, 12)
+
+	for _, report := range c.Config.Reports {
+		if _, ok := report.YAxis["label"]; ok {
+			out = append(out, &locale.ResourceTranslation{
+				Resource: c.ResourceTranslation(),
+				Key:      LocaleKeyChartYAxisLabel.Path,
+				Msg:      report.YAxis["label"].(string),
+			})
+		}
+
+		for _, metric := range report.Metrics {
+			if metricID, ok := metric["metricID"]; ok {
+				mpl := strings.NewReplacer(
+					"{{metricID}}", metricID.(string),
+				)
+
+				if _, ok = metric["label"]; ok {
+					out = append(out, &locale.ResourceTranslation{
+						Resource: c.ResourceTranslation(),
+						Key:      mpl.Replace(LocaleKeyChartMetricsMetricIDLabel.Path),
+						Msg:      metric["label"].(string),
+					})
+				}
+			}
+		}
+	}
+
+	return
+}
 
 // FindByHandle finds chart by it's handle
 func (set ChartSet) FindByHandle(handle string) *Chart {
