@@ -1089,6 +1089,32 @@ endpoints:
         name: chartID
         required: true
         title: Chart ID
+  - name: listTranslations
+    method: GET
+    title: List chart translation
+    path: "/{chartID}/translation"
+    parameters:
+      path:
+        - type: uint64
+          name: chartID
+          required: true
+          title: ID
+  - name: updateTranslations
+    method: PATCH
+    title: Update chart translation
+    path: "/{chartID}/translation"
+    parameters:
+      path:
+        - type: uint64
+          name: chartID
+          required: true
+          title: ID
+      post:
+        - name: translations
+          type: locale.ResourceTranslationSet
+          title: Resource translation to upsert
+          required: true
+
 - title: Notifications
   description: Compose Notifications
   entrypoint: notification
