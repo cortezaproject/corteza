@@ -10,6 +10,16 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
+// ComposeChartResourceTranslationReferences generates Locale references
+//
+// This function is auto-generated
+func ComposeChartResourceTranslationReferences(namespaceID string, self string) (res *Ref, pp []*Ref, err error) {
+	res = &Ref{ResourceType: types.ChartResourceType, Identifiers: MakeIdentifiers(self)}
+	pp = append(pp, &Ref{ResourceType: types.NamespaceResourceType, Identifiers: MakeIdentifiers(namespaceID)})
+
+	return
+}
+
 // ComposeModuleResourceTranslationReferences generates Locale references
 //
 // This function is auto-generated

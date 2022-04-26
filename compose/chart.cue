@@ -16,4 +16,19 @@ chart: schema.#resource & {
 			"delete": {}
 		}
 	}
+
+	locale: {
+		extended: true
+
+		keys: {
+			reportsYaxisLabel: {
+				path: ["yAxis", "label"]
+				customHandler: true
+			}
+			reportsMetricLabel: {
+				path: ["metrics", {part: "metricID", var: true}, "label"]
+				customHandler: true
+			}
+		}
+	}
 }

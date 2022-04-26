@@ -77,13 +77,13 @@ func (r *ComposeChart) RBACParts() (resource string, ref *Ref, path []*Ref) {
 	return r.resourceParts(types.ChartRbacResourceTpl())
 }
 
-// func (r *ComposeChart) ResourceTranslationParts() (resource string, ref *Ref, path []*Ref) {
-// 	ref = r.Ref()
-// 	path = []*Ref{r.RefNs}
-// 	resource = fmt.Sprintf(types.ChartResourceTranslationTpl(), types.ChartResourceTranslationType, r.RefNs.Identifiers.First(), firstOkString(strconv.FormatUint(r.Res.ID, 10), r.Res.Handle))
+func (r *ComposeChart) ResourceTranslationParts() (resource string, ref *Ref, path []*Ref) {
+	return r.resourceParts(types.ChartResourceTranslationTpl())
+}
 
-// 	return
-// }
+func (r *ComposeChart) encodeTranslations() ([]*ResourceTranslation, error) {
+	return nil, nil
+}
 
 // FindComposeChart looks for the chart in the resources
 func FindComposeChart(rr InterfaceSet, ii Identifiers) (ch *types.Chart) {
