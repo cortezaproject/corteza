@@ -283,7 +283,7 @@ func (svc *service) ReloadResourceTranslations(ctx context.Context) (err error) 
 			svc.set[tag] = lang
 		}
 
-		if err = svc.loadResourceTranslations(ctx, lang, lang.Tag); err != nil {
+		if lang.resources, err = svc.LoadResourceTranslations(ctx, lang.Tag); err != nil {
 			return err
 		}
 

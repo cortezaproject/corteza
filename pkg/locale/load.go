@@ -195,13 +195,8 @@ func loadTranslations(lang *Language) (err error) {
 	return
 }
 
-func (svc *service) loadResourceTranslations(ctx context.Context, lang *Language, tg language.Tag) (err error) {
-	lang.resources, err = svc.s.TransformResource(ctx, tg)
-	if err != nil {
-		return err
-	}
-
-	return
+func (svc *service) LoadResourceTranslations(ctx context.Context, tg language.Tag) (out map[string]map[string]*ResourceTranslation, err error) {
+	return svc.s.TransformResource(ctx, tg)
 }
 
 // procInternal reads internal YAML translation files and converts it into
