@@ -26,7 +26,7 @@ type (
 	}
 )
 
-func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePage {
+func NewComposePage(pg *types.Page, nsRef, modRef, parentRef *Ref) *ComposePage {
 	r := &ComposePage{
 		base:      &base{},
 		WfRefs:    make(RefSet, 0, 10),
@@ -39,13 +39,13 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 
 	r.AddIdentifier(identifiers(pg.Handle, pg.Title, pg.ID)...)
 
-	r.RefNs = r.AddRef(types.NamespaceResourceType, nsRef)
-	if modRef != "" {
-		r.RefMod = r.AddRef(types.ModuleResourceType, modRef).Constraint(r.RefNs)
+	r.RefNs = r.addRef(nsRef)
+	if modRef != nil {
+		r.RefMod = r.addRef(modRef).Constraint(r.RefNs)
 	}
 
-	if parentRef != "" {
-		r.RefParent = r.AddRef(types.PageResourceType, parentRef).Constraint(r.RefNs)
+	if parentRef != nil {
+		r.RefParent = r.addRef(parentRef).Constraint(r.RefNs)
 	}
 
 	var ref *Ref
@@ -129,14 +129,15 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 	return r
 }
 
-func UnpackComposePage(p *types.Page) (*types.Page, string, string) {
-	modRef := ""
-	parentRef := ""
+func UnpackComposePage(p *types.Page) (*types.Page, *Ref, *Ref) {
+	var modRef *Ref
+	var parentRef *Ref
+
 	if p.ModuleID != 0 {
-		modRef = strconv.FormatUint(p.ModuleID, 10)
+		modRef = MakeModuleRef(p.ModuleID, "", "")
 	}
 	if p.SelfID != 0 {
-		parentRef = strconv.FormatUint(p.SelfID, 10)
+		parentRef = MakePageRef(p.SelfID, "", "")
 	}
 
 	return p, modRef, parentRef
@@ -206,20 +207,20 @@ func (r *ComposePage) SysID() uint64 {
 	return r.Res.ID
 }
 
-func (r *ComposePage) RBACParts() (resource string, ref *Ref, path []*Ref) {
-	ref = r.Ref()
+func (r *ComposePage) resourceParts(tpl string) (resource string, ref *Ref, path []*Ref) {
+	ref = r.Ref().Constraint(r.RefNs)
 	path = []*Ref{r.RefNs}
 	resource = fmt.Sprintf(types.PageRbacResourceTpl(), types.PageResourceType, r.RefNs.Identifiers.First(), firstOkString(strconv.FormatUint(r.Res.ID, 10), r.Res.Handle))
 
 	return
 }
 
-func (r *ComposePage) ResourceTranslationParts() (resource string, ref *Ref, path []*Ref) {
-	ref = r.Ref()
-	path = []*Ref{r.RefNs}
-	resource = fmt.Sprintf(types.PageResourceTranslationTpl(), types.PageResourceTranslationType, r.RefNs.Identifiers.First(), firstOkString(strconv.FormatUint(r.Res.ID, 10), r.Res.Handle))
+func (r *ComposePage) RBACParts() (resource string, ref *Ref, path []*Ref) {
+	return r.resourceParts(types.PageRbacResourceTpl())
+}
 
-	return
+func (r *ComposePage) ResourceTranslationParts() (resource string, ref *Ref, path []*Ref) {
+	return r.resourceParts(types.PageResourceTranslationTpl())
 }
 
 func (r *ComposePage) encodeTranslations() ([]*ResourceTranslation, error) {

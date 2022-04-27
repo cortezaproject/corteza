@@ -2,6 +2,9 @@ package resource
 
 import (
 	"time"
+
+	"github.com/cortezaproject/corteza-server/compose/types"
+	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 func firstOkString(ss ...string) string {
@@ -37,4 +40,41 @@ func toTime(v string) *time.Time {
 	}
 
 	return nil
+}
+
+// Ref builders
+
+func MakeNamespaceRef(id uint64, handle, name string) *Ref {
+	return makeGenericRef(types.NamespaceResourceType, id, handle, name)
+}
+
+func MakeModuleRef(id uint64, handle, name string) *Ref {
+	return makeGenericRef(types.ModuleResourceType, id, handle, name)
+}
+
+func MakePageRef(id uint64, handle, title string) *Ref {
+	return makeGenericRef(types.PageResourceType, id, handle, title)
+}
+
+func MakeRoleRef(id uint64, handle, name string) *Ref {
+	return makeGenericRef(systemTypes.RoleResourceType, id, handle, name)
+}
+
+func makeGenericRef(t string, id uint64, ii ...string) *Ref {
+	args := make([]interface{}, len(ii)+1)
+	args[0] = id
+	for i := range ii {
+		args[i+1] = ii[i]
+	}
+
+	aux := &Ref{
+		ResourceType: t,
+		Identifiers:  identifiers(args...),
+	}
+
+	if t == "" || len(aux.Identifiers) == 0 {
+		return nil
+	}
+
+	return aux
 }

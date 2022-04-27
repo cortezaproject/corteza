@@ -22,6 +22,7 @@ type (
 )
 
 func NewAPIGateway(res *types.ApigwRoute) *APIGateway {
+	// @todo we could use method + path combo to uniquely identify them also
 	r := &APIGateway{
 		base: &base{},
 	}
