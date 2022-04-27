@@ -8,7 +8,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 	"time"
 
 	automationTypes "github.com/cortezaproject/corteza-server/automation/types"
@@ -239,38 +238,11 @@ func (ctrl Namespace) Clone(ctx context.Context, r *request.NamespaceClone) (int
 }
 
 func (ctrl Namespace) Export(ctx context.Context, r *request.NamespaceExport) (out interface{}, err error) {
-	var (
-		resources resource.InterfaceSet
-	)
-
-	// Prepare resources
-	resources, nsII, err := ctrl.exportCompose(ctx, r.NamespaceID)
+	// Get resources
+	resources, err := ctrl.gatherResources(ctx, r.NamespaceID)
 	if err != nil {
 		return
 	}
-
-	// Tweak exported resources
-	resources = ctrl.tweakExport(ctx, resources, nsII)
-
-	var roleIndex map[uint64]*systemTypes.Role
-	resources, roleIndex, err = ctrl.preparePlaceholders(ctx, resources)
-	if err != nil {
-		return
-	}
-
-	// RBAC
-	auxRBAC, err := ctrl.exportRBAC(ctx, roleIndex, resources)
-	if err != nil {
-		return
-	}
-
-	// Translations
-	auxResTrans, err := ctrl.exportResourceTranslations(ctx, resources)
-	if err != nil {
-		return
-	}
-	resources = append(resources, auxRBAC...)
-	resources = append(resources, auxResTrans...)
 
 	// Encode
 	ye := yaml.NewYamlEncoder(&yaml.EncoderConfig{})
@@ -416,6 +388,44 @@ func (ctrl Namespace) makeFilterPayload(ctx context.Context, nn types.NamespaceS
 	return nsp, nil
 }
 
+func (ctrl Namespace) gatherResources(ctx context.Context, namespaceID uint64) (resources resource.InterfaceSet, err error) {
+	var (
+		nsII resource.Identifiers
+	)
+
+	// Prepare resources
+	resources, nsII, err = ctrl.exportCompose(ctx, namespaceID)
+	if err != nil {
+		return
+	}
+
+	// Tweak exported resources
+	resources = ctrl.tweakExport(ctx, resources, nsII)
+
+	// Role placeholders for RBAC
+	var roleIndex map[uint64]*systemTypes.Role
+	resources, roleIndex, err = ctrl.preparePlaceholders(ctx, resources)
+	if err != nil {
+		return
+	}
+
+	// RBAC
+	auxRBAC, err := ctrl.exportRBAC(ctx, roleIndex, resources)
+	if err != nil {
+		return
+	}
+
+	// Translations
+	auxResTrans, err := ctrl.exportResourceTranslations(ctx, resources)
+	if err != nil {
+		return
+	}
+	resources = append(resources, auxRBAC...)
+	resources = append(resources, auxResTrans...)
+
+	return
+}
+
 func (ctrl Namespace) exportCompose(ctx context.Context, namespaceID uint64) (resources resource.InterfaceSet, nsII resource.Identifiers, err error) {
 	// - namespace
 	n, err := ctrl.namespace.FindByID(ctx, namespaceID)
@@ -431,7 +441,11 @@ func (ctrl Namespace) exportCompose(ctx context.Context, namespaceID uint64) (re
 		return
 	}
 	for _, m := range mm {
-		resources = append(resources, resource.NewComposeModule(m, n.Slug))
+		km := resource.NewComposeModule(m, resource.MakeNamespaceRef(n.ID, n.Slug, n.Name))
+		for _, f := range m.Fields {
+			km.AddField(resource.NewComposeModuleField(f, km.RefNs, km.Ref()))
+		}
+		resources = append(resources, km)
 	}
 	// - pages
 	pp, _, err := ctrl.page.Find(ctx, types.PageFilter{NamespaceID: n.ID})
@@ -440,7 +454,12 @@ func (ctrl Namespace) exportCompose(ctx context.Context, namespaceID uint64) (re
 	}
 	for _, p := range pp {
 		p, modRef, parentRef := resource.UnpackComposePage(p)
-		resources = append(resources, resource.NewComposePage(p, n.Slug, modRef, parentRef))
+		resources = append(resources, resource.NewComposePage(
+			p,
+			resource.MakeNamespaceRef(n.ID, n.Slug, n.Name),
+			modRef,
+			parentRef,
+		))
 	}
 	// - charts
 	cc, _, err := ctrl.chart.Find(ctx, types.ChartFilter{NamespaceID: n.ID})
@@ -448,100 +467,88 @@ func (ctrl Namespace) exportCompose(ctx context.Context, namespaceID uint64) (re
 		return
 	}
 	for _, c := range cc {
-		refMods := make([]string, 0, 2)
+		refMods := make(resource.RefSet, 0, 2)
 		for _, r := range c.Config.Reports {
-			refMods = append(refMods, strconv.FormatUint(r.ModuleID, 10))
+			refMods = append(refMods, resource.MakeModuleRef(r.ModuleID, "", ""))
 		}
-		resources = append(resources, resource.NewComposeChart(c, n.Slug, refMods))
+		resources = append(resources, resource.NewComposeChart(
+			c,
+			resource.MakeNamespaceRef(n.ID, n.Slug, n.Name),
+			refMods,
+		))
 	}
 
 	return
 }
 
 func (ctrl Namespace) exportRBAC(ctx context.Context, roleIndex map[uint64]*systemTypes.Role, base resource.InterfaceSet) (resources resource.InterfaceSet, err error) {
-	// get all rbac rules
-	rules := rbac.Global().Rules()
+	// Prepare RBAC Rules
+	rawRules := rbac.Global().Rules()
+	rules := make([]*resource.RbacRule, 0, len(rawRules))
+	for _, rule := range rawRules {
+		_, ref, pp, err := resource.ParseRule(rule.Resource)
+		if err != nil {
+			return nil, err
+		}
 
-	// Match up
-	dupRuleIndex := make(map[string]bool)
-	for _, res := range base {
-		// Skip if we can't handle
-		res, ok := res.(resource.RBACInterface)
+		role, ok := roleIndex[rule.RoleID]
 		if !ok {
 			continue
 		}
 
-		rbacRes, _, _ := res.RBACParts()
-		filteredRules := rules.FilterResource(rbacRes)
-		for _, rule := range filteredRules {
-			k := fmt.Sprintf("%s, %s, %d; %d", rule.Resource, rule.Operation, rule.Access, rule.RoleID)
-			if dupRuleIndex[k] {
-				continue
-			}
+		rules = append(rules, resource.NewRbacRule(
+			rule,
+			resource.MakeRoleRef(role.ID, role.Handle, role.Name),
+			ref,
+			rule.Resource,
+			pp...,
+		))
+	}
 
-			_, ref, pp, err := resource.ParseRule(rule.Resource)
-			if err != nil {
-				return nil, err
-			}
-
-			role, ok := roleIndex[rule.RoleID]
-			if !ok {
-				continue
-			}
-
-			roleRef := role.Handle
-			if roleRef == "" {
-				roleRef = strconv.FormatUint(role.ID, 10)
-			}
-
-			dupRuleIndex[k] = true
-			resources = append(resources, resource.NewRbacRule(
-				rule,
-				roleRef,
-				ref,
-				rule.Resource,
-				pp...,
-			))
-		}
+	for _, r := range envoy.FilterRequestedRBACRules(base, rules) {
+		resources = append(resources, r)
 	}
 
 	return
 }
 
 func (ctrl Namespace) exportResourceTranslations(ctx context.Context, base resource.InterfaceSet) (resources resource.InterfaceSet, err error) {
-	lsvc := locale.Global()
-	tags := lsvc.Tags()
+	var (
+		lsvc         = locale.Global()
+		tags         = lsvc.Tags()
+		translations = make([]*resource.ResourceTranslation, 0, 124)
 
-	for _, res := range base {
-		// Skip if we can't handle
-		res, ok := res.(resource.LocaleInterface)
-		if !ok {
-			continue
+		resKeyTrans map[string]map[string]*locale.ResourceTranslation
+	)
+
+	for _, t := range tags {
+		resKeyTrans, err = lsvc.LoadResourceTranslations(ctx, t)
+		if err != nil {
+			return
 		}
 
-		// Collect available resource translations
-		for _, t := range tags {
-			transRes, _, _ := res.ResourceTranslationParts()
-
-			translations := make(systemTypes.ResourceTranslationSet, 0, 4)
-			for _, trans := range locale.Global().ResourceTranslations(t, transRes) {
-				translations = append(translations, systemTypes.FromLocale(locale.ResourceTranslationSet{trans})...)
+		for transRes, keyTrans := range resKeyTrans {
+			rawTranslations := make(locale.ResourceTranslationSet, 0, len(resKeyTrans))
+			for _, trans := range keyTrans {
+				rawTranslations = append(rawTranslations, trans)
 			}
 
-			for _, trans := range locale.Global().ResourceTranslations(t, transRes) {
-				_, ref, pp, err := resource.ParseResourceTranslation(trans.Resource)
-				if err != nil {
-					return nil, err
-				}
-
-				resources = append(resources, resource.NewResourceTranslation(
-					translations,
-					ref.Identifiers.First(),
-					ref,
-					pp...,
-				))
+			_, ref, pp, err := resource.ParseResourceTranslation(transRes)
+			if err != nil {
+				return nil, err
 			}
+
+			translations = append(translations, resource.NewResourceTranslation(
+				systemTypes.FromLocale(rawTranslations),
+				ref.Identifiers.First(),
+				ref,
+				pp...,
+			))
 		}
+	}
+
+	for _, t := range envoy.FilterRequiredResourceTranslations(base, translations) {
+		resources = append(resources, t)
 	}
 
 	return
