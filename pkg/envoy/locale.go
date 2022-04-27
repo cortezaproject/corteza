@@ -1,6 +1,8 @@
 package envoy
 
-import "github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+import (
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+)
 
 // NormalizeResourceTranslations takes the provided resource.ResourceTranslation
 // and merges duplicates based on the Priority parameter
@@ -62,4 +64,36 @@ func NormalizeResourceTranslations(rr ...resource.Interface) []resource.Interfac
 	}
 
 	return out
+}
+
+func appendRefSet(a resource.RefSet, b *resource.Ref) resource.RefSet {
+	return append(a, b)
+}
+
+// FilterRequiredResourceTranslations returns only resource translations relevant for the given resources
+func FilterRequiredResourceTranslations(request resource.InterfaceSet, translations []*resource.ResourceTranslation) (out []*resource.ResourceTranslation) {
+	out = make([]*resource.ResourceTranslation, 0, 100)
+
+	// Filter
+	procResSet(request, func(r resource.Interface) {
+		localeRes, ok := r.(resource.LocaleInterface)
+		if !ok {
+			return
+		}
+
+		_, ref, pp := localeRes.ResourceTranslationParts()
+		resourceRefSet := appendRefSet(pp, ref)
+
+		for _, t := range translations {
+			translationRefSet := appendRefSet(t.RefPath, t.RefRes)
+			// Res. tr. use strict equality to determine where it falls into
+			if !translationRefSet.Equals(resourceRefSet) {
+				continue
+			}
+
+			out = append(out, t)
+		}
+	})
+
+	return
 }
