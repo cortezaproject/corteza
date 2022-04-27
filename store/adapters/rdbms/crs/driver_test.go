@@ -6,6 +6,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/data"
+	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,7 +23,6 @@ func Test_sqlizers(t *testing.T) {
 
 		ms = CRS(m, nil)
 
-		req  = require.New(t)
 		q    sqlizer
 		sql  string
 		args []any
@@ -67,6 +67,7 @@ func Test_sqlizers(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run("", func(t *testing.T) {
+			req := require.New(t)
 			q = c.fn()
 
 			sql, args, err = q.ToSQL()
@@ -81,5 +82,86 @@ func Test_sqlizers(t *testing.T) {
 
 		})
 	}
+}
 
+func Test_search(t *testing.T) {
+	var (
+		m = &data.Model{
+			Ident: "test_tbl",
+			Attributes: data.AttributeSet{
+				&data.Attribute{Ident: sysID, Type: &data.TypeID{}, Store: &data.StoreCodecAlias{Ident: "id"}},
+				&data.Attribute{Ident: sysModuleID, Type: &data.TypeID{}, Store: &data.StoreCodecAlias{Ident: "rel_module"}},
+				&data.Attribute{Ident: sysCreatedAt, Type: &data.TypeTimestamp{}, Store: &data.StoreCodecAlias{Ident: "created_at"}},
+				&data.Attribute{Ident: sysUpdatedAt, Type: &data.TypeTimestamp{}, Store: &data.StoreCodecAlias{Ident: "updated_at"}},
+				&data.Attribute{Ident: "foo", Type: &data.TypeText{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
+				&data.Attribute{Ident: "bar", Type: &data.TypeNumber{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
+				&data.Attribute{Ident: "baz", Type: &data.TypeBoolean{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
+				&data.Attribute{Ident: "bbb", Type: &data.TypeUUID{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
+				&data.Attribute{Ident: "phy", Type: &data.TypeText{}, Store: &data.StoreCodecPlain{}},
+			},
+		}
+
+		sql  string
+		args []any
+		err  error
+
+		moduleID = uint64(1<<64 - 1)
+
+		prefix = `SELECT "test_tbl"."id", "test_tbl"."rel_module", "test_tbl"."created_at", "test_tbl"."updated_at", "test_tbl"."meta", "test_tbl"."phy" FROM "test_tbl"`
+	)
+
+	cases := []struct {
+		f    types.RecordFilter
+		sql  string
+		args []any
+		err  error
+	}{
+		{
+			f: types.RecordFilter{
+				ModuleID: moduleID,
+			},
+			sql:  prefix + ` WHERE ("test_tbl"."rel_module" = $1)`,
+			args: []any{moduleID},
+			err:  nil,
+		},
+		{
+			f: types.RecordFilter{
+				ModuleID: moduleID,
+				Query:    "moduleID == 1234",
+			},
+			sql:  prefix + ` WHERE (("test_tbl"."rel_module" = $1) AND ("test_tbl"."rel_module" = $2))`,
+			args: []any{moduleID, int64(1234)},
+			err:  nil,
+		},
+		{
+			f: types.RecordFilter{
+				ModuleID: moduleID,
+				Query:    `bar = 1 AND foo = phy`,
+			},
+			sql:  prefix + ` WHERE (("test_tbl"."rel_module" = $1) AND (("meta"->'bar'->0 = $2) AND ("meta"->'foo'->0 = "test_tbl"."phy")))`,
+			args: []any{moduleID, int64(1)},
+			err:  nil,
+		},
+	}
+
+	d := CRS(m, nil)
+
+	for _, c := range cases {
+		t.Run("", func(t *testing.T) {
+			req := require.New(t)
+			q := d.searchSql(c.f).WithDialect("postgres")
+			sql, args, err = q.ToSQL()
+			if c.args == nil {
+				req.NoError(err)
+			} else {
+				req.ErrorIs(err, c.err)
+			}
+
+			if len(c.sql) > 0 {
+				req.Equal(c.sql, sql)
+			}
+
+			req.Equal(c.args, args)
+		})
+	}
 }

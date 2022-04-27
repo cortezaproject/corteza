@@ -8,7 +8,7 @@ import (
 func init() {
 	d := dialect.DialectOptions()
 
-	// https://github.com/doug-martin/goqu/pull/330
+	// https://github.com/doug-martin/goqu/v9/pull/330
 	d.TruncateClause = []byte("DELETE FROM")
 
 	// Overriding vanila SQLite dialect

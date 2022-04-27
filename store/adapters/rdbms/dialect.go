@@ -6,10 +6,16 @@ package rdbms
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
+	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 )
+
+func init() {
+	goqu.SetDefaultPrepared(true)
+}
 
 // DeepIdentJSON constructs expression with chain of JSON operators
 // that point value inside JSON document
@@ -25,21 +31,26 @@ import (
 // SQLite
 // https://www.sqlite.org/json1.html#jptr
 func DeepIdentJSON(ident string, pp ...any) exp.LiteralExpression {
+	// strings.ReplaceAll(str, "'", `\'`)
+
 	var (
-		sql  = "?" + strings.Repeat("->?", len(pp))
-		args = []any{exp.ParseIdentifier(ident)}
+		//sql  = "?" + strings.Repeat("->?", len(pp))
+		//args = []any{exp.ParseIdentifier(ident)}
+		sql = strconv.Quote(ident)
 	)
 
 	for _, p := range pp {
-		switch p.(type) {
-		case string, int:
-			args = append(args, exp.NewLiteralExpression("?", p))
+		switch path := p.(type) {
+		case string:
+			sql += "->'" + strings.ReplaceAll(path, "'", `\'`) + "'"
+		case int:
+			sql += fmt.Sprintf("->%d", path)
 		default:
 			panic("invalid type")
 		}
 	}
 
-	return exp.NewLiteralExpression(sql, args...)
+	return exp.NewLiteralExpression(sql)
 }
 
 // JsonPath constructs json-path string from the slice of path parts.

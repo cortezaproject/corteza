@@ -13,12 +13,12 @@ import (
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers/sqlite"
 )
 
-const (
-	repeatReads  = 1000
-	totalRecords = 100
-)
+func TestIterator(t *testing.T) {
+	const (
+		repeatReads  = 1000
+		totalRecords = 100
+	)
 
-func TestIteratorNG(t *testing.T) {
 	ctx := context.Background()
 	ctx = logger.ContextWithValue(ctx, logger.MakeDebugLogger())
 	cfg, err := sqlite.NewConfig("sqlite3://file::memory:?cache=shared&mode=memory")
@@ -60,8 +60,7 @@ func TestIteratorNG(t *testing.T) {
 	}
 
 	d := CRS(m, db)
-	_, err = db.Exec("DELETE FROM test_tbl")
-	if err != nil {
+	if err = d.Truncate(ctx); err != nil {
 		t.Errorf("could not truncate: %v", err)
 	}
 

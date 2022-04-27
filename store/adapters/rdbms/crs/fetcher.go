@@ -6,7 +6,6 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/data"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/google/uuid"
 )
 
@@ -107,7 +106,3 @@ func newScanBuffer(d *crs) []any {
 
 	return vv
 }
-
-func CursorBackward(r *types.Record, sort filter.SortExprSet) *filter.PagingCursor { return nil }
-func CursorForward(r *types.Record, sort filter.SortExprSet) *filter.PagingCursor  { return nil }
-func Drain(*iterator) ([]*types.Record, error)                                     { return nil, nil }
