@@ -83,6 +83,10 @@ func (n *resourceTranslation) Encode(ctx context.Context, pl *payload) (err erro
 
 	ll := make(types.ResourceTranslationSet, 0, len(n.locales))
 	for _, l := range n.locales {
+		if l.Message == "" {
+			continue
+		}
+
 		old, ok := gResourceTranslations[l.Lang.Tag][resourceTranslationIndex(l)]
 
 		// not exist

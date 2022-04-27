@@ -1,7 +1,6 @@
 package store
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
@@ -28,19 +27,6 @@ func newRbacRule(rl *rbac.Rule) (*rbacRule, error) {
 
 func (rl *rbacRule) MarshalEnvoy() ([]resource.Interface, error) {
 	return envoy.CollectNodes(
-		resource.NewRbacRule(rl.rule, rl.refRole.Identifiers.First(), rl.refRbacRes, rl.refRbacResource, rl.refPathRes...),
+		resource.NewRbacRule(rl.rule, rl.refRole, rl.refRbacRes, rl.refRbacResource, rl.refPathRes...),
 	)
-}
-
-func rbacResToRef(rr string) (*resource.Ref, error) {
-	if rr == "" {
-		return nil, nil
-	}
-
-	ref := &resource.Ref{}
-	if ref.ResourceType = rbac.ResourceType(rr); ref.ResourceType != "" {
-		return ref, nil
-	}
-
-	return nil, fmt.Errorf("invalid resource provided: %s", rr)
 }

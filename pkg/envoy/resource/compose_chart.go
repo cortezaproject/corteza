@@ -19,7 +19,7 @@ type (
 	}
 )
 
-func NewComposeChart(res *types.Chart, nsRef string, mmRef []string) *ComposeChart {
+func NewComposeChart(res *types.Chart, nsRef *Ref, mmRef RefSet) *ComposeChart {
 	r := &ComposeChart{
 		base:    &base{},
 		RefMods: make(RefSet, len(mmRef)),
@@ -29,9 +29,9 @@ func NewComposeChart(res *types.Chart, nsRef string, mmRef []string) *ComposeCha
 
 	r.AddIdentifier(identifiers(res.Handle, res.Name, res.ID)...)
 
-	r.RefNs = r.AddRef(types.NamespaceResourceType, nsRef)
+	r.RefNs = r.addRef(nsRef)
 	for i, mRef := range mmRef {
-		r.RefMods[i] = r.AddRef(types.ModuleResourceType, mRef).Constraint(r.RefNs)
+		r.RefMods[i] = r.addRef(mRef).Constraint(r.RefNs)
 	}
 
 	// Initial timestamps

@@ -276,6 +276,34 @@ func (rr RefSet) HasRef(ref *Ref) bool {
 	return rr.findRef(ref) > -1
 }
 
+// IsSbubset checks if aa is subset of bb
+//
+// Order is important; primary use is RBAC and res. tr. path checking.
+func (aa RefSet) IsSubset(bb RefSet) bool {
+	if len(bb) > len(aa) {
+		return false
+	}
+
+	return aa[0:len(bb)].Equals(bb)
+}
+
+// Equals checks if two RefSets match
+//
+// They match if everything matches, even constraints (important)
+func (aa RefSet) Equals(bb RefSet) bool {
+	if len(aa) != len(bb) {
+		return false
+	}
+
+	for i, a := range aa {
+		if !a.equals(bb[i]) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Unique returns only unique references
 //
 // Uniqueness is defined as "two references may not define

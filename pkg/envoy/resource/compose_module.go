@@ -31,7 +31,7 @@ type (
 	}
 )
 
-func NewComposeModule(res *types.Module, nsRef string) *ComposeModule {
+func NewComposeModule(res *types.Module, nsRef *Ref) *ComposeModule {
 	r := &ComposeModule{
 		base:    &base{},
 		RefMods: make(RefSet, 0, len(res.Fields)),
@@ -41,7 +41,7 @@ func NewComposeModule(res *types.Module, nsRef string) *ComposeModule {
 
 	r.AddIdentifier(identifiers(res.Handle, res.Name, res.ID)...)
 
-	r.RefNs = r.AddRef(types.NamespaceResourceType, nsRef)
+	r.RefNs = r.addRef(nsRef)
 
 	// Field deps
 	for _, f := range res.Fields {
@@ -101,20 +101,20 @@ func (r *ComposeModule) SysID() uint64 {
 	return r.Res.ID
 }
 
-func (r *ComposeModule) RBACParts() (resource string, ref *Ref, path []*Ref) {
-	ref = r.Ref()
+func (r *ComposeModule) resourceParts(tpl string) (resource string, ref *Ref, path []*Ref) {
+	ref = r.Ref().Constraint(r.RefNs)
 	path = []*Ref{r.RefNs}
-	resource = fmt.Sprintf(types.ModuleRbacResourceTpl(), types.ModuleResourceType, r.RefNs.Identifiers.First(), firstOkString(strconv.FormatUint(r.Res.ID, 10), r.Res.Handle))
+	resource = fmt.Sprintf(tpl, types.ModuleResourceType, r.RefNs.Identifiers.First(), firstOkString(strconv.FormatUint(r.Res.ID, 10), r.Res.Handle))
 
 	return
 }
 
-func (r *ComposeModule) ResourceTranslationParts() (resource string, ref *Ref, path []*Ref) {
-	ref = r.Ref()
-	path = []*Ref{r.RefNs}
-	resource = fmt.Sprintf(types.ModuleResourceTranslationTpl(), types.ModuleResourceTranslationType, r.RefNs.Identifiers.First(), firstOkString(strconv.FormatUint(r.Res.ID, 10), r.Res.Handle))
+func (r *ComposeModule) RBACParts() (resource string, ref *Ref, path []*Ref) {
+	return r.resourceParts(types.ModuleRbacResourceTpl())
+}
 
-	return
+func (r *ComposeModule) ResourceTranslationParts() (resource string, ref *Ref, path []*Ref) {
+	return r.resourceParts(types.ModuleResourceTranslationTpl())
 }
 
 func (r *ComposeModule) encodeTranslations() ([]*ResourceTranslation, error) {
@@ -186,12 +186,20 @@ func FindComposeModuleField(rr InterfaceSet, mod, ii Identifiers) (field *types.
 	return nil
 }
 
-func (r *ComposeModuleField) ResourceTranslationParts() (resource string, ref *Ref, path []*Ref) {
-	ref = r.Ref()
+func (r *ComposeModuleField) resourceParts(tpl string) (resource string, ref *Ref, path []*Ref) {
+	ref = r.Ref().Constraint(r.RefNs).Constraint(r.RefMod)
 	path = []*Ref{r.RefNs, r.RefMod}
 	resource = fmt.Sprintf(types.ModuleFieldResourceTranslationTpl(), types.ModuleFieldResourceTranslationType, r.RefNs.Identifiers.First(), r.RefMod.Identifiers.First(), firstOkString(strconv.FormatUint(r.Res.ID, 10), r.Res.Name))
 
 	return
+}
+
+func (r *ComposeModuleField) RBACParts() (resource string, ref *Ref, path []*Ref) {
+	return r.resourceParts(types.ModuleFieldRbacResourceTpl())
+}
+
+func (r *ComposeModuleField) ResourceTranslationParts() (resource string, ref *Ref, path []*Ref) {
+	return r.resourceParts(types.ModuleFieldResourceTranslationTpl())
 }
 
 func (r *ComposeModuleField) ResourceTranslations() ([]*ResourceTranslation, error) {
@@ -213,7 +221,7 @@ func ComposeModuleFieldErrUnresolved(ii Identifiers) error {
 	return fmt.Errorf("compose module field unresolved %v", ii.StringSlice())
 }
 
-func NewComposeModuleField(res *types.ModuleField, nsRef, modRef string) *ComposeModuleField {
+func NewComposeModuleField(res *types.ModuleField, nsRef, modRef *Ref) *ComposeModuleField {
 	r := &ComposeModuleField{
 		base: &base{},
 	}
@@ -222,8 +230,8 @@ func NewComposeModuleField(res *types.ModuleField, nsRef, modRef string) *Compos
 
 	r.AddIdentifier(identifiers(res.Name, res.ID)...)
 
-	r.RefNs = r.AddRef(types.NamespaceResourceType, nsRef)
-	r.RefMod = r.AddRef(types.ModuleResourceType, modRef)
+	r.RefNs = r.addRef(nsRef)
+	r.RefMod = r.addRef(modRef).Constraint(r.RefNs)
 
 	// Initial timestamps
 	r.SetTimestamps(MakeTimestampsCUDA(&res.CreatedAt, res.UpdatedAt, res.DeletedAt, nil))

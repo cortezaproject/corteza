@@ -122,7 +122,9 @@ func (wset composeModuleSet) MarshalEnvoy() ([]resource.Interface, error) {
 }
 
 func (wrap composeModule) MarshalEnvoy() ([]resource.Interface, error) {
-	rs := resource.NewComposeModule(wrap.res, wrap.refNamespace)
+	nsRef := resource.MakeNamespaceRef(0, wrap.refNamespace, "")
+
+	rs := resource.NewComposeModule(wrap.res, nsRef)
 	rs.SetTimestamps(wrap.ts)
 	rs.SetConfig(wrap.envoyConfig)
 
@@ -144,7 +146,7 @@ func (wrap composeModule) MarshalEnvoy() ([]resource.Interface, error) {
 	defaultFieldTranslations := make([]resource.Interface, 0)
 	for _, wrapField := range wrap.fields {
 		// generic field things
-		f := resource.NewComposeModuleField(wrapField.res, wrap.refNamespace, rs.Ref().Identifiers.First())
+		f := resource.NewComposeModuleField(wrapField.res, nsRef, rs.Ref())
 		rs.AddField(f)
 		fieldTranslations = append(fieldTranslations, wrapField.locale.bindResource(f)...)
 
