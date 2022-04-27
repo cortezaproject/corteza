@@ -215,6 +215,14 @@ func (r *Ref) IsWildcard() bool {
 }
 
 func (a *Ref) equals(b *Ref) bool {
+	if a == nil && a == b {
+		return true
+	}
+
+	if a == nil && a != b {
+		return false
+	}
+
 	if a.ResourceType != b.ResourceType {
 		return false
 	}
