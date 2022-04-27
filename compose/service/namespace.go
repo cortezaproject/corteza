@@ -9,7 +9,6 @@ import (
 	"time"
 
 	automationService "github.com/cortezaproject/corteza-server/automation/service"
-	automationTypes "github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
@@ -303,50 +302,22 @@ func (svc namespace) Clone(ctx context.Context, namespaceID uint64, dup *types.N
 			return err
 		}
 
-		// some meta bits
-		sNsID := strconv.FormatUint(namespaceID, 10)
-		oldNsRef := resource.MakeRef(types.NamespaceResourceType, resource.MakeIdentifiers(sNsID))
-		newNsRef := resource.MakeRef(types.NamespaceResourceType, resource.MakeIdentifiers(dup.Slug, dup.Name))
-		prune := resource.RefSet{resource.MakeWildRef(automationTypes.WorkflowResourceType)}
+		aProps.setNamespace(dup)
+		_, err = svc.envoyRun(ctx, nn, targetNs, dup, encoder)
+		if err != nil {
+			return err
+		}
 
-		// rename the namespace
-		//
-		// For now we will find the namespace in set and change it's name, handle.
-		// The rest of the resources can stay as are.
-		//
-		// @todo add a more flexible system for such modifications
-		auxNs := resource.FindComposeNamespace(nn, oldNsRef.Identifiers)
-		auxNs.ID = 0
-		auxNs.Name = dup.Name
-		auxNs.Slug = dup.Slug
-		dup = auxNs
+		dup, err = store.LookupComposeNamespaceBySlug(ctx, svc.store, dup.Slug)
+		if err != nil {
+			return err
+		}
+		tag := locale.GetAcceptLanguageFromContext(ctx)
+		dup.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, dup.ResourceTranslation()))
+
 		aProps.setNamespace(dup)
 
-		// Correct internal references
-		// - namespace identifiers
-		nn.SearchForIdentifiers(oldNsRef.ResourceType, oldNsRef.Identifiers).Walk(func(r resource.Interface) error {
-			r.ReID(newNsRef.Identifiers)
-			return nil
-		})
-
-		// - relations
-		nn.SearchForReferences(oldNsRef).Walk(func(r resource.Interface) error {
-			r.ReRef(resource.RefSet{oldNsRef}, resource.RefSet{newNsRef})
-
-			// - additional pruning
-			pp, ok := r.(resource.PrunableInterface)
-			if !ok {
-				return nil
-			}
-
-			for _, p := range prune {
-				pp.Prune(p)
-			}
-			return nil
-		})
-
-		// encode
-		return encoder(nn)
+		return nil
 	}()
 
 	return dup, svc.recordAction(ctx, aProps, NamespaceActionClone, err)
@@ -743,7 +714,7 @@ func (svc namespace) canImport(ctx context.Context) error {
 
 func (svc namespace) envoyRun(ctx context.Context, resources resource.InterfaceSet, oldNS, newNS *types.Namespace, encoder func(resource.InterfaceSet) error) (ns *types.Namespace, err error) {
 	// Handle renames and references
-	oldNsRef := resource.MakeRef(types.NamespaceResourceType, resource.MakeIdentifiers(oldNS.Slug, oldNS.Name))
+	oldNsRef := resource.MakeRef(types.NamespaceResourceType, resource.MakeIdentifiers(oldNS.Slug, oldNS.Name, strconv.FormatUint(oldNS.ID, 10)))
 	newNsRef := resource.MakeRef(types.NamespaceResourceType, resource.MakeIdentifiers(newNS.Slug, newNS.Name))
 
 	auxNs := resource.FindComposeNamespace(resources, oldNsRef.Identifiers)

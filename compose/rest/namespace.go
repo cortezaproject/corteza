@@ -201,24 +201,13 @@ func (ctrl Namespace) Clone(ctx context.Context, r *request.NamespaceClone) (int
 		Slug: r.Slug,
 	}
 
-	// prepare filters
-	df := envoyStore.NewDecodeFilter()
-
-	// - compose resources
-	df = df.ComposeNamespace(&types.NamespaceFilter{
-		NamespaceID: []uint64{r.NamespaceID},
-	}).
-		ComposeModule(&types.ModuleFilter{}).
-		ComposePage(&types.PageFilter{}).
-		ComposeChart(&types.ChartFilter{})
-
-	// - workflow
-	// @todo how do we want to handle these ones?
-	//       do we handle these ones?
+	resources, err := ctrl.gatherResources(ctx, r.NamespaceID)
+	if err != nil {
+		return nil, err
+	}
 
 	decoder := func() (resource.InterfaceSet, error) {
-		// get from store
-		return envoyStore.Decoder().Decode(ctx, service.DefaultStore, df)
+		return resources, nil
 	}
 
 	encoder := func(nn resource.InterfaceSet) error {
