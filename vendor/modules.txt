@@ -26,8 +26,6 @@ github.com/PaesslerAG/jsonpath
 ## explicit
 github.com/SentimensRG/ctx
 github.com/SentimensRG/ctx/sigctx
-# github.com/andybalholm/brotli v1.0.4
-## explicit; go 1.12
 # github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 ## explicit; go 1.13
 github.com/asaskevich/govalidator
@@ -89,7 +87,7 @@ github.com/dop251/goja/ftoa/internal/fast
 github.com/dop251/goja/parser
 github.com/dop251/goja/token
 github.com/dop251/goja/unistring
-# github.com/doug-martin/goqu/v9 v9.18.0
+# github.com/doug-martin/goqu/v9 v9.18.0 => github.com/cortezaproject/goqu/v9 v9.18.4
 ## explicit; go 1.12
 github.com/doug-martin/goqu/v9
 github.com/doug-martin/goqu/v9/dialect/mysql
@@ -255,8 +253,6 @@ github.com/jonboulle/clockwork
 # github.com/json-iterator/go v1.1.12
 ## explicit; go 1.12
 github.com/json-iterator/go
-# github.com/klauspost/compress v1.15.0
-## explicit; go 1.15
 # github.com/klauspost/cpuid v1.2.3
 ## explicit
 github.com/klauspost/cpuid
@@ -430,8 +426,6 @@ github.com/steinfletcher/apitest-jsonpath/jsonpath
 ## explicit; go 1.13
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
-# github.com/valyala/bytebufferpool v1.0.0
-## explicit
 # github.com/valyala/fasthttp v1.35.0
 ## explicit; go 1.15
 # go.uber.org/atomic v1.9.0
@@ -643,3 +637,4 @@ moul.io/zapfilter
 rsc.io/qr
 rsc.io/qr/coding
 rsc.io/qr/gf256
+# github.com/doug-martin/goqu/v9 => github.com/cortezaproject/goqu/v9 v9.18.4
