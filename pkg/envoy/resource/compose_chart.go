@@ -19,7 +19,7 @@ type (
 	}
 )
 
-func NewComposeChart(res *types.Chart, nsRef string, mmRef []string) *ComposeChart {
+func NewComposeChart(res *types.Chart, nsRef *Ref, mmRef RefSet) *ComposeChart {
 	r := &ComposeChart{
 		base:    &base{},
 		RefMods: make(RefSet, len(mmRef)),
@@ -29,9 +29,9 @@ func NewComposeChart(res *types.Chart, nsRef string, mmRef []string) *ComposeCha
 
 	r.AddIdentifier(identifiers(res.Handle, res.Name, res.ID)...)
 
-	r.RefNs = r.AddRef(types.NamespaceResourceType, nsRef)
+	r.RefNs = r.addRef(nsRef)
 	for i, mRef := range mmRef {
-		r.RefMods[i] = r.AddRef(types.ModuleResourceType, mRef).Constraint(r.RefNs)
+		r.RefMods[i] = r.addRef(mRef).Constraint(r.RefNs)
 	}
 
 	// Initial timestamps
@@ -65,12 +65,16 @@ func (r *ComposeChart) SysID() uint64 {
 	return r.Res.ID
 }
 
-func (r *ComposeChart) RBACParts() (resource string, ref *Ref, path []*Ref) {
-	ref = r.Ref()
+func (r *ComposeChart) resourceParts(tpl string) (resource string, ref *Ref, path []*Ref) {
+	ref = r.Ref().Constraint(r.RefNs)
 	path = []*Ref{r.RefNs}
 	resource = fmt.Sprintf(types.ChartRbacResourceTpl(), types.ChartResourceType, r.RefNs.Identifiers.First(), firstOkString(strconv.FormatUint(r.Res.ID, 10), r.Res.Handle))
 
 	return
+}
+
+func (r *ComposeChart) RBACParts() (resource string, ref *Ref, path []*Ref) {
+	return r.resourceParts(types.ChartRbacResourceTpl())
 }
 
 // func (r *ComposeChart) ResourceTranslationParts() (resource string, ref *Ref, path []*Ref) {

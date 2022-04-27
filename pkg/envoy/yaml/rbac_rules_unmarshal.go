@@ -93,7 +93,7 @@ func (rr rbacRuleSet) MarshalEnvoy() ([]resource.Interface, error) {
 	var nn = make([]resource.Interface, 0, len(rr))
 
 	for _, r := range rr {
-		nn = append(nn, resource.NewRbacRule(r.res, r.refRole.Identifiers.First(), r.refRbacRes, r.refRbacResource, r.refPathRes...))
+		nn = append(nn, resource.NewRbacRule(r.res, r.refRole, r.refRbacRes, r.refRbacResource, r.refPathRes...))
 	}
 	return nn, nil
 }

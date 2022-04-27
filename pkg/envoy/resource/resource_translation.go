@@ -3,7 +3,6 @@ package resource
 import (
 	"fmt"
 
-	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"golang.org/x/text/language"
 )
@@ -31,15 +30,18 @@ func NewResourceTranslation(res types.ResourceTranslationSet, refResource string
 	r.Res = res
 
 	r.RefResource = refResource
-	r.RefRes = r.AddRef(refRes.ResourceType, refRes.Identifiers.StringSlice()...)
+	r.RefRes = r.addRef(refRes)
 
 	// any additional constraints
 	for i, rp := range refPath {
 		ref := MakeRef(rp.ResourceType, rp.Identifiers)
 
-		// @todo generalize when needed; for now only module field resource translations require this
-		if i == 1 && refRes.ResourceType == composeTypes.ModuleFieldResourceType {
-			ref = ref.Constraint(r.RefPath[0])
+		r.RefRes.Constraint(ref)
+		if i > 0 {
+			for j := i - 1; j < i; j++ {
+				aux := refPath[j]
+				ref = ref.Constraint(MakeRef(aux.ResourceType, aux.Identifiers))
+			}
 		}
 
 		r.RefPath = append(r.RefPath, r.addRef(ref))

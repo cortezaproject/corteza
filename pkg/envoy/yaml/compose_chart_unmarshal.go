@@ -110,11 +110,11 @@ func (wset composeChartSet) MarshalEnvoy() ([]resource.Interface, error) {
 }
 
 func (wrap composeChart) MarshalEnvoy() ([]resource.Interface, error) {
-	vv := make([]string, 0, len(wrap.refReportModules))
+	vv := make(resource.RefSet, 0, len(wrap.refReportModules))
 	for _, v := range wrap.refReportModules {
-		vv = append(vv, v)
+		vv = append(vv, resource.MakeModuleRef(0, v, ""))
 	}
-	rs := resource.NewComposeChart(wrap.res, wrap.refNamespace, vv)
+	rs := resource.NewComposeChart(wrap.res, resource.MakeNamespaceRef(0, wrap.refNamespace, ""), vv)
 	rs.SetTimestamps(wrap.ts)
 	rs.SetConfig(wrap.envoyConfig)
 	return envoy.CollectNodes(

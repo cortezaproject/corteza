@@ -1,8 +1,6 @@
 package store
 
 import (
-	"strconv"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
@@ -15,8 +13,8 @@ func newComposeModule(mod *types.Module) *composeModule {
 }
 
 func (mod *composeModule) MarshalEnvoy() ([]resource.Interface, error) {
-	refNs := strconv.FormatUint(mod.mod.NamespaceID, 10)
-	refMod := strconv.FormatUint(mod.mod.ID, 10)
+	refNs := resource.MakeNamespaceRef(mod.mod.NamespaceID, "", "")
+	refMod := resource.MakeModuleRef(mod.mod.ID, mod.mod.Handle, mod.mod.Name)
 
 	rMod := resource.NewComposeModule(mod.mod, refNs)
 	for _, f := range mod.mod.Fields {

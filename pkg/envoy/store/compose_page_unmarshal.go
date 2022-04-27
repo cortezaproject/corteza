@@ -1,8 +1,6 @@
 package store
 
 import (
-	"strconv"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
@@ -15,14 +13,16 @@ func newComposePage(pg *types.Page) *composePage {
 }
 
 func (pg *composePage) MarshalEnvoy() ([]resource.Interface, error) {
-	refNs := strconv.FormatUint(pg.pg.NamespaceID, 10)
-	refMod := ""
-	refParent := ""
+	var (
+		refNs     = resource.MakeNamespaceRef(pg.pg.NamespaceID, "", "")
+		refMod    *resource.Ref
+		refParent *resource.Ref
+	)
 	if pg.pg.ModuleID > 0 {
-		refMod = strconv.FormatUint(pg.pg.ModuleID, 10)
+		refMod = resource.MakeModuleRef(pg.pg.ModuleID, "", "")
 	}
 	if pg.pg.SelfID > 0 {
-		refParent = strconv.FormatUint(pg.pg.SelfID, 10)
+		refParent = resource.MakePageRef(pg.pg.SelfID, "", "")
 	}
 
 	return envoy.CollectNodes(

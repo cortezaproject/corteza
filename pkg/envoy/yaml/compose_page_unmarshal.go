@@ -160,7 +160,13 @@ func (wset composePageSet) MarshalEnvoy() ([]resource.Interface, error) {
 }
 
 func (wrap composePage) MarshalEnvoy() ([]resource.Interface, error) {
-	rs := resource.NewComposePage(wrap.res, wrap.refNamespace, wrap.refModule, wrap.refParent)
+	rs := resource.NewComposePage(
+		wrap.res,
+		resource.MakeNamespaceRef(0, wrap.refNamespace, ""),
+		resource.MakeModuleRef(0, wrap.refModule, ""),
+		resource.MakePageRef(0, wrap.refParent, ""),
+	)
+
 	rs.SetTimestamps(wrap.ts)
 	rs.SetConfig(wrap.envoyConfig)
 
