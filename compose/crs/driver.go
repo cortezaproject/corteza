@@ -66,10 +66,10 @@ type (
 
 	// probably somewhere else (on the db level?
 	Getter interface {
-		GetValue(name string, pos int) (expr.TypedValue, error)
+		GetValue(name string, pos int) (any, error)
 	}
 
 	Setter interface {
-		SetValue(name string, pos int, value expr.TypedValue) error
+		SetValue(name string, pos int, value any) error
 	}
 )

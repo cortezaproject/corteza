@@ -2,14 +2,18 @@ package crs
 
 import (
 	"context"
-	"database/sql"
+	"fmt"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/data"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/qlng"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ql"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/jmoiron/sqlx"
 )
 
 type (
@@ -18,9 +22,8 @@ type (
 	}
 
 	connection interface {
-		ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
-		QueryRowContext(context.Context, string, ...interface{}) *sql.Row
-		QueryContext(context.Context, string, ...interface{}) (*sql.Rows, error)
+		sqlx.QueryerContext
+		sqlx.ExecerContext
 	}
 
 	attrExpression interface {
@@ -42,10 +45,15 @@ type (
 		decode func([]*data.Attribute, any, *types.Record) error
 	}
 
+	queryParser interface {
+		Parse(string) (exp.Expression, error)
+	}
+
 	crs struct {
 		model *data.Model
+		conn  connection
 
-		conn connection
+		queryParser queryParser
 
 		deepJsonFn func(ident string, pp ...any) exp.LiteralExpression
 
@@ -69,11 +77,13 @@ type (
 //
 // It abstracts database table and its columns and provides unified interface
 // for fetching and storing records.
-func CRS(m *data.Model, conn connection) *crs {
+func CRS(m *data.Model, c connection) *crs {
 	var (
 		ms = &crs{
 			model: m,
-			conn:  conn,
+			conn:  c,
+
+			queryParser: ql.Converter(),
 		}
 	)
 
@@ -81,6 +91,12 @@ func CRS(m *data.Model, conn connection) *crs {
 	ms.deepJsonFn = rdbms.DeepIdentJSON
 
 	_ = ms.genColumns()
+
+	ms.queryParser = ql.Converter(
+		ql.SymHandler(func(node *qlng.ASTNode) (exp.Expression, error) {
+			return ms.attrToExpr(node.Symbol)
+		}),
+	)
 
 	return ms
 }
@@ -173,6 +189,16 @@ func (ms *crs) genColumns() error {
 	return nil
 }
 
+func (ms *crs) Truncate(ctx context.Context) error {
+	sql, args, err := ms.truncateSql().ToSQL()
+	if err != nil {
+		return err
+	}
+
+	_, err = ms.conn.ExecContext(ctx, sql, args...)
+	return err
+}
+
 func (ms *crs) Create(ctx context.Context, rr ...*types.Record) error {
 	sql, args, err := ms.insertSql(rr...).ToSQL()
 	if err != nil {
@@ -204,27 +230,9 @@ func (ms *crs) Delete(ctx context.Context, r *types.Record) error {
 }
 
 func (ms *crs) Search(ctx context.Context, f types.RecordFilter) (i *iterator, err error) {
-	// @todo apply filter
-	// @todo apply cursor constraints
-
-	if f.PageCursor != nil {
-		// Page cursor exists; we need to validate it against used sort
-		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
-		// from the cursor.
-		// This (extracted sorting info) is then returned as part of response
-		if f.Sort, err = f.PageCursor.Sort(f.Sort); err != nil {
-			return
-		}
-	}
-
-	// Make sure results are always sorted at least by primary key
-	if f.Sort.Get(sysID) == nil {
-		f.Sort = append(f.Sort, &filter.SortExpr{
-			Column:     sysID,
-			Descending: f.Sort.LastDescending(),
-		})
-	}
-
+	// construct base query
+	sql := ms.searchSql(f)
+	_ = sql
 	return &iterator{ms: ms}, nil
 }
 
@@ -526,8 +534,29 @@ func (ms *crs) Search(ctx context.Context, f types.RecordFilter) (i *iterator, e
 // constructs SQL for selecting records from a table, converting parts of record filter into conditions
 func (ms *crs) searchSql(f types.RecordFilter) *goqu.SelectDataset {
 	var (
-		cnd []exp.Expression
+		err  error
+		base = ms.selectSql()
+		tmp  exp.Expression
+		cnd  []exp.Expression
 	)
+
+	if f.PageCursor != nil {
+		// Page cursor exists; we need to validate it against used sort
+		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
+		// from the cursor.
+		// This (extracted sorting info) is then returned as part of response
+		if f.Sort, err = f.PageCursor.Sort(f.Sort); err != nil {
+			return base.SetError(err)
+		}
+	}
+
+	if f.Sort.Get(sysID) == nil {
+		// Make sure results are always sorted at least by primary key
+		f.Sort = append(f.Sort, &filter.SortExpr{
+			Column:     sysID,
+			Descending: f.Sort.LastDescending(),
+		})
+	}
 
 	{
 		// Add module & namespace constraints when model expects (has configured attributes) for them
@@ -541,16 +570,22 @@ func (ms *crs) searchSql(f types.RecordFilter) *goqu.SelectDataset {
 
 		if ms.sysExprNamespaceID != nil {
 			cnd = append(cnd, ms.sysExprNamespaceID.Eq(f.NamespaceID))
+		} else {
+			// @todo check if f.NamespaceID is compatible
 		}
 
 		if ms.sysExprModuleID != nil {
 			cnd = append(cnd, ms.sysExprModuleID.Eq(f.ModuleID))
+		} else {
+			// @todo check if f.ModuleID is compatible
 		}
 	}
 
 	{
-		// Limit by LabeledIDs (list of record IDs)
-		cnd = append(cnd, ms.sysColumnID.In(f.LabeledIDs))
+		if len(f.LabeledIDs) > 0 {
+			// Limit by LabeledIDs (list of record IDs)
+			cnd = append(cnd, ms.sysColumnID.In(f.LabeledIDs))
+		}
 	}
 
 	{
@@ -569,7 +604,13 @@ func (ms *crs) searchSql(f types.RecordFilter) *goqu.SelectDataset {
 		}
 	}
 
-	// @todo ql (AST) => []exp.Expression
+	if len(strings.TrimSpace(f.Query)) > 0 {
+		if tmp, err = ms.queryParser.Parse(f.Query); err != nil {
+			return base.SetError(err)
+		}
+
+		cnd = append(cnd, tmp)
+	}
 
 	return ms.selectSql().Where(cnd...)
 }
@@ -591,6 +632,10 @@ func (ms *crs) selectSql() *goqu.SelectDataset {
 	}
 
 	return q
+}
+
+func (ms *crs) truncateSql() (_ *goqu.TruncateDataset) {
+	return goqu.Truncate(ms.table)
 }
 
 func (ms *crs) insertSql(rr ...*types.Record) (_ *goqu.InsertDataset) {
@@ -631,24 +676,24 @@ func (ms *crs) deleteByIdSql(id uint64) *goqu.DeleteDataset {
 	return goqu.Delete(ms.table).Where(ms.sysColumnID.Eq(id))
 }
 
-//func (ms *crs) attrToExpr(ident string) (exp.Comparable, bool) {
-//	if !ms.model.HasAttribute(ident) {
-//		return nil, false
-//	}
-//
-//	attr := ms.model.Attributes.FindByIdent(ident)
-//	switch s := attr.Store.(type) {
-//	case *data.StoreCodecAlias:
-//		// using column directly
-//		return exp.NewIdentifierExpression("", ms.model.Ident, s.Ident), true
-//
-//	case *data.StoreCodecStdRecordValueJSON:
-//		// using JSON to handle embedded values
-//		return ms.deepJsonFn(ms.model.Ident, s.Ident, 0), true
-//	}
-//
-//	return exp.NewIdentifierExpression("", ms.model.Ident, ident), true
-//}
+func (ms *crs) attrToExpr(ident string) (exp.LiteralExpression, error) {
+	if !ms.model.HasAttribute(ident) {
+		return nil, fmt.Errorf("unknown attribute %q", ident)
+	}
+
+	attr := ms.model.Attributes.FindByIdent(ident)
+	switch s := attr.Store.(type) {
+	case *data.StoreCodecAlias:
+		// using column directly
+		return exp.NewLiteralExpression(fmt.Sprintf("%q.%q", ms.model.Ident, s.Ident)), nil
+
+	case *data.StoreCodecStdRecordValueJSON:
+		// using JSON to handle embedded values
+		return ms.deepJsonFn(s.Ident, attr.Ident, 0), nil
+	}
+
+	return exp.NewLiteralExpression(fmt.Sprintf("%q.%q", ms.model.Ident, ident)), nil
+}
 
 func attrColumnIdent(att *data.Attribute) string {
 	switch ss := att.Store.(type) {
@@ -683,14 +728,14 @@ func attrColumnIdent(att *data.Attribute) string {
 //	return
 //}
 
-//
-//func valueExpr(att *data.Attribute) (exp.Expression, error) {
+// attributeExp converts attribute to sql expression
+//func attributeExp(att *data.Attribute) (exp.Expression, error) {
 //	if att.Store == nil {
 //		return exp.NewIdentifierExpression("", "", att.Ident), nil
 //
 //	}
 //	switch ss := att.Store.(type) {
-//	case data.StoreCodecJSON:
+//	case data.StoreCodecStdRecordValueJSON:
 //		return exp.NewIdentifierExpression("", "", ss.Ident), nil
 //	case data.StoreCodecAlias:
 //		return exp.NewIdentifierExpression("", "", ss.Ident).As(att.Ident), nil
