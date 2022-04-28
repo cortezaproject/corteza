@@ -9,7 +9,6 @@ import (
 	"time"
 
 	automationService "github.com/cortezaproject/corteza-server/automation/service"
-	automationTypes "github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
@@ -303,50 +302,22 @@ func (svc namespace) Clone(ctx context.Context, namespaceID uint64, dup *types.N
 			return err
 		}
 
-		// some meta bits
-		sNsID := strconv.FormatUint(namespaceID, 10)
-		oldNsRef := resource.MakeRef(types.NamespaceResourceType, resource.MakeIdentifiers(sNsID))
-		newNsRef := resource.MakeRef(types.NamespaceResourceType, resource.MakeIdentifiers(dup.Slug, dup.Name))
-		prune := resource.RefSet{resource.MakeWildRef(automationTypes.WorkflowResourceType)}
+		aProps.setNamespace(dup)
+		_, err = svc.envoyRun(ctx, nn, targetNs, dup, encoder)
+		if err != nil {
+			return err
+		}
 
-		// rename the namespace
-		//
-		// For now we will find the namespace in set and change it's name, handle.
-		// The rest of the resources can stay as are.
-		//
-		// @todo add a more flexible system for such modifications
-		auxNs := resource.FindComposeNamespace(nn, oldNsRef.Identifiers)
-		auxNs.ID = 0
-		auxNs.Name = dup.Name
-		auxNs.Slug = dup.Slug
-		dup = auxNs
+		dup, err = store.LookupComposeNamespaceBySlug(ctx, svc.store, dup.Slug)
+		if err != nil {
+			return err
+		}
+		tag := locale.GetAcceptLanguageFromContext(ctx)
+		dup.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, dup.ResourceTranslation()))
+
 		aProps.setNamespace(dup)
 
-		// Correct internal references
-		// - namespace identifiers
-		nn.SearchForIdentifiers(oldNsRef.ResourceType, oldNsRef.Identifiers).Walk(func(r resource.Interface) error {
-			r.ReID(newNsRef.Identifiers)
-			return nil
-		})
-
-		// - relations
-		nn.SearchForReferences(oldNsRef).Walk(func(r resource.Interface) error {
-			r.ReRef(resource.RefSet{oldNsRef}, resource.RefSet{newNsRef})
-
-			// - additional pruning
-			pp, ok := r.(resource.PrunableInterface)
-			if !ok {
-				return nil
-			}
-
-			for _, p := range prune {
-				pp.Prune(p)
-			}
-			return nil
-		})
-
-		// encode
-		return encoder(nn)
+		return nil
 	}()
 
 	return dup, svc.recordAction(ctx, aProps, NamespaceActionClone, err)
@@ -469,6 +440,7 @@ func (svc namespace) ImportRun(ctx context.Context, sessionID uint64, dup *types
 		var (
 			session namespaceImportSession
 			ok      bool
+			newNS   *types.Namespace
 		)
 		if session, ok = namespaceSessionStore[sessionID]; !ok {
 			return NamespaceErrImportSessionNotFound()
@@ -477,45 +449,14 @@ func (svc namespace) ImportRun(ctx context.Context, sessionID uint64, dup *types
 			delete(namespaceSessionStore, sessionID)
 		}()
 
-		// Handle renames and references
-		oldNsRef := resource.MakeRef(types.NamespaceResourceType, resource.MakeIdentifiers(session.Slug, session.Name))
-		newNsRef := resource.MakeRef(types.NamespaceResourceType, resource.MakeIdentifiers(dup.Slug, dup.Name))
-
-		auxNs := resource.FindComposeNamespace(session.Resources, oldNsRef.Identifiers)
-		auxNs.ID = 0
-		auxNs.Name = dup.Name
-		auxNs.Slug = dup.Slug
-		dup = auxNs
 		aProps.setNamespace(dup)
 
-		// Correct internal references
-		// - namespace identifiers
-		session.Resources.SearchForIdentifiers(oldNsRef.ResourceType, oldNsRef.Identifiers).Walk(func(r resource.Interface) error {
-			r.ReID(newNsRef.Identifiers)
-			return nil
-		})
-		// - relations
-		session.Resources.SearchForReferences(oldNsRef).Walk(func(r resource.Interface) error {
-			r.ReRef(resource.RefSet{oldNsRef}, resource.RefSet{newNsRef})
-			return nil
-		})
-
-		// run the import
-		err = encoder(session.Resources)
+		newNS, err = svc.envoyRun(ctx, session.Resources, &types.Namespace{Slug: session.Slug, Name: session.Name}, dup, encoder)
 		if err != nil {
 			return err
 		}
 
-		// Reload RBAC rules (in case import brought in something new)
-		rbac.Global().Reload(ctx)
-
-		// Reload workflow-triggers (in case import brought in something new)
-		if err = automationService.DefaultWorkflow.Load(ctx); err != nil {
-			// should not be a fatal error
-			err = nil
-		}
-
-		aProps.setNamespace(dup)
+		aProps.setNamespace(newNS)
 		return nil
 	}()
 
@@ -769,6 +710,60 @@ func (svc namespace) canImport(ctx context.Context) error {
 		return NamespaceErrNotAllowedToCreate()
 	}
 	return nil
+}
+
+func (svc namespace) envoyRun(ctx context.Context, resources resource.InterfaceSet, oldNS, newNS *types.Namespace, encoder func(resource.InterfaceSet) error) (ns *types.Namespace, err error) {
+	// Handle renames and references
+	oldNsRef := resource.MakeRef(types.NamespaceResourceType, resource.MakeIdentifiers(oldNS.Slug, oldNS.Name, strconv.FormatUint(oldNS.ID, 10)))
+	newNsRef := resource.MakeRef(types.NamespaceResourceType, resource.MakeIdentifiers(newNS.Slug, newNS.Name))
+
+	auxNs := resource.FindComposeNamespace(resources, oldNsRef.Identifiers)
+	auxNs.ID = 0
+	auxNs.Name = newNS.Name
+	auxNs.Slug = newNS.Slug
+	newNS = auxNs
+	ns = newNS
+
+	// Correct internal references
+	// - namespace identifiers
+	resources.SearchForIdentifiers(oldNsRef.ResourceType, oldNsRef.Identifiers).Walk(func(r resource.Interface) error {
+		r.ReID(newNsRef.Identifiers)
+		return nil
+	})
+	// - relations
+	resources.SearchForReferences(oldNsRef).Walk(func(r resource.Interface) error {
+		r.ReRef(resource.RefSet{oldNsRef}, resource.RefSet{newNsRef})
+		return nil
+	})
+
+	// run the import
+	err = encoder(resources)
+	if err != nil {
+		return
+	}
+
+	// Adjust name res. tr. since we're changing it
+	if err = updateTranslations(ctx, svc.ac, svc.locale, &locale.ResourceTranslation{
+		Resource: auxNs.ResourceTranslation(),
+		Key:      types.LocaleKeyNamespaceName.Path,
+		Msg:      locale.SanitizeMessage(auxNs.Name),
+	}); err != nil {
+		return
+	}
+
+	// Reload RBAC rules (in case import brought in something new)
+	rbac.Global().Reload(ctx)
+	if err = locale.Global().ReloadResourceTranslations(ctx); err != nil {
+		return
+	}
+
+	// Reload workflow-triggers (in case import brought in something new)
+	if err = automationService.DefaultWorkflow.Load(ctx); err != nil {
+		// should not be a fatal error
+		err = nil
+	}
+
+	return
 }
 
 func loadNamespace(ctx context.Context, s store.Storer, namespaceID uint64) (ns *types.Namespace, err error) {

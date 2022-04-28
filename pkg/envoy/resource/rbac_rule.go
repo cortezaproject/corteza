@@ -5,7 +5,6 @@ import (
 
 	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
-	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -20,21 +19,34 @@ type (
 	}
 )
 
-func NewRbacRule(res *rbac.Rule, refRole string, refRes *Ref, refResource string, refPath ...*Ref) *RbacRule {
+func NewRbacRule(res *rbac.Rule, refRole, refRes *Ref, refResource string, refPath ...*Ref) *RbacRule {
 	r := &RbacRule{base: &base{}}
 	r.SetResourceType(RbacResourceType)
 	r.Res = res
 
-	r.RefRole = r.AddRef(types.RoleResourceType, refRole)
+	r.RefRole = r.addRef(refRole)
 
 	r.RefResource = refResource
 	if refRes != nil {
-		r.RefRes = r.AddRef(refRes.ResourceType, refRes.Identifiers.StringSlice()...)
+		r.RefRes = r.addRef(refRes)
 	}
 
 	// any additional constraints
-	for _, rp := range refPath {
-		r.RefPath = append(r.RefPath, r.AddRef(rp.ResourceType, rp.Identifiers.StringSlice()...))
+	for i, rp := range refPath {
+		ref := MakeRef(rp.ResourceType, rp.Identifiers)
+
+		if r.RefRes != nil {
+			r.RefRes.Constraint(ref)
+		}
+
+		if i > 0 {
+			for j := i - 1; j < i; j++ {
+				aux := refPath[j]
+				ref = ref.Constraint(MakeRef(aux.ResourceType, aux.Identifiers))
+			}
+		}
+
+		r.RefPath = append(r.RefPath, r.addRef(ref))
 	}
 
 	// Handle cases for nested resources
@@ -52,6 +64,26 @@ func NewRbacRule(res *rbac.Rule, refRole string, refRes *Ref, refResource string
 
 func (r *RbacRule) Resource() interface{} {
 	return r.Res
+}
+
+func (r *RbacRule) ReRef(old RefSet, new RefSet) {
+	r.base.ReRef(old, new)
+
+	// Care for wildcards
+	if r.RefRes != nil {
+		for i, o := range old {
+			if o.equals(r.RefRes) {
+				r.RefRes = new[i]
+				break
+			}
+		}
+	}
+
+	for i, o := range old {
+		if RefSet(r.RefPath).findRef(o) > -1 {
+			r.RefPath = RefSet(r.RefPath).replaceRef(o, new[i])
+		}
+	}
 }
 
 func (r *RbacRule) handleComposeRecord(res *rbac.Rule, refPath []*Ref) {
