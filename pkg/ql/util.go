@@ -1,4 +1,4 @@
-package qlng
+package ql
 
 import (
 	"regexp"

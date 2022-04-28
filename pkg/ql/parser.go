@@ -19,14 +19,14 @@ type (
 	}
 
 	IdentHandler    func(ident Ident) (Ident, error)
-	FunctionHandler func(ident Function) (ASTNode, error)
+	FunctionHandler func(ident function) (parserNode, error)
 )
 
 // NewParser returns a new instance of Parser.
 func NewParser() *Parser {
 	p := &Parser{
 		OnIdent:    func(ident Ident) (Ident, error) { return ident, nil },
-		OnFunction: func(ident Function) (ASTNode, error) { return ident, nil },
+		OnFunction: func(ident function) (parserNode, error) { return ident, nil },
 	}
 
 	return p
@@ -58,79 +58,37 @@ func (p *Parser) initLexer(s string) {
 	}
 }
 
-func (p *Parser) ParseSet(s string) (ASTNode, error) {
+// Parse parses the given expression and returns the generated AST
+func (p *Parser) Parse(s string) (*ASTNode, error) {
 	p.initLexer(s)
 
-	if set, err := p.parseSet(); err != nil {
-		return nil, err
-	} else {
-		return set, set.Validate()
-	}
-}
-
-func (p *Parser) ParseExpression(s string) (ASTNode, error) {
-	p.initLexer(s)
-
-	if set, err := p.parseExpr(p.nextToken()); err != nil {
+	if set, err := p.parse(p.nextToken()); err != nil {
 		return nil, err
 	} else if len(set) == 1 {
-		return set[0], set[0].Validate()
-	} else {
-		return set, set.Validate()
-	}
-
-}
-
-func (p *Parser) ParseColumns(s string) (columns Columns, err error) {
-	p.initLexer(s)
-
-	var t Token
-	var c Column
-
-next:
-	t = p.nextToken()
-	switch t.code {
-	case COMMA:
-		goto next
-	case EOF:
-		break
-	case ILLEGAL:
-		return nil, fmt.Errorf("found an illegal token (%+v)", t)
-	default:
-		if c, err = p.parseColumn(t); err != nil {
+		err := set[0].Validate()
+		if err != nil {
 			return nil, err
-		} else {
-			columns = append(columns, c)
 		}
-		goto next
+		return set[0].ToAST(), nil
+	} else {
+		err := set.Validate()
+		if err != nil {
+			return nil, err
+		}
+		return set.ToAST(), nil
 	}
 
-	err = columns.Validate()
-	return
 }
 
-func (p *Parser) parseColumn(t Token) (c Column, err error) {
-	if c.Expr, err = p.parseExpr(t); err != nil {
-		return
-	}
-
-	// Set alias move forward for 2 places
-	if p.peekIfAlias() {
-		c.Alias = p.peekToken(2).literal
-		p.nextToken()
-		p.nextToken()
-	}
-
-	return
-}
-
-// Peek ahead if there is an alias ident (<IDENT:AS>
+// Peek ahead if there is an alias ident (<IDENT:AS>)
+//
+// @todo remove this; not used anywhere after report builder gets removed
 func (p *Parser) peekIfAlias() bool {
 	var f, s = p.peekToken(1), p.peekToken(2)
 	return f.Is(IDENT) && strings.ToUpper(f.literal) == "AS" && s.Is(IDENT)
 }
 
-func (p *Parser) parseExpr(t Token) (list ASTNodes, err error) {
+func (p *Parser) parse(t Token) (list parserNodes, err error) {
 	goto checkToken
 
 next:
@@ -159,7 +117,7 @@ checkToken:
 	case ILLEGAL:
 		return nil, fmt.Errorf("found an illegal token (%+v)", t)
 	case IDENT:
-		var ident ASTNode
+		var ident parserNode
 		if ident, err = p.parseIdent(t); err != nil {
 			return nil, err
 		} else {
@@ -167,21 +125,21 @@ checkToken:
 			goto next
 		}
 	case LNULL:
-		list = append(list, LNull{})
+		list = append(list, lNull{})
 		goto next
 	case LBOOL:
-		list = append(list, LBoolean{Value: strings.ToUpper(t.literal) == "TRUE"})
+		list = append(list, lBoolean{value: evalBool(t.literal)})
 		goto next
 	case OPERATOR:
 		if len(list) > 0 {
 			// Merge with previous operator node
-			if prevOp, ok := list[len(list)-1].(Operator); ok {
-				list[len(list)-1] = Operator{Kind: prevOp.Kind + " " + t.literal}
+			if prevOp, ok := list[len(list)-1].(operator); ok {
+				list[len(list)-1] = operator{kind: prevOp.kind + " " + t.literal}
 				goto next
 			}
 		}
 
-		list = append(list, Operator{Kind: t.literal})
+		list = append(list, operator{kind: t.literal})
 		goto next
 	case KEYWORD:
 		if keyword, err := p.parseKeyword(t); err != nil {
@@ -191,15 +149,15 @@ checkToken:
 		}
 		goto next
 	case LNUMBER:
-		list = append(list, LNumber{Value: t.literal})
+		list = append(list, lNumber{value: t.literal})
 		goto next
 	case LSTRING:
-		list = append(list, LString{Value: t.literal})
+		list = append(list, lString{value: t.literal})
 		goto next
 	case PARENTHESIS_OPEN:
 		depth := p.level
 		p.level++
-		if sub, err := p.parseExpr(p.nextToken()); err != nil {
+		if sub, err := p.parse(p.nextToken()); err != nil {
 			return nil, err
 		} else {
 			list = append(list, sub)
@@ -219,11 +177,11 @@ checkToken:
 	return list, nil
 }
 
-func (p *Parser) parseIdent(t Token) (list ASTNode, err error) {
+func (p *Parser) parseIdent(t Token) (list parserNode, err error) {
 	if p.peekToken(1).Is(PARENTHESIS_OPEN) {
 		// Handle function calls: <IDENT><PARENTHESIS_OPEN>...
-		f := Function{Name: t.literal}
-		if f.Arguments, err = p.parseSet(); err != nil {
+		f := function{name: t.literal}
+		if f.arguments, err = p.parseSet(); err != nil {
 			return nil, err
 		} else {
 			return p.OnFunction(f)
@@ -244,8 +202,8 @@ func (p *Parser) parseIdent(t Token) (list ASTNode, err error) {
 	return p.OnIdent(i)
 }
 
-func (p *Parser) parseSet() (list ASTSet, err error) {
-	var expr ASTNodes
+func (p *Parser) parseSet() (list parserNodeSet, err error) {
+	var expr parserNodes
 	var parenthesisOpened = false
 
 next:
@@ -263,13 +221,13 @@ next:
 		parenthesisOpened = true
 		goto next
 	case LNUMBER:
-		list = append(list, LNumber{Value: t.literal})
+		list = append(list, lNumber{value: t.literal})
 		goto next
 	case LSTRING:
-		list = append(list, LString{Value: t.literal})
+		list = append(list, lString{value: t.literal})
 		goto next
 	case OPERATOR:
-		list = append(list, Operator{Kind: t.literal})
+		list = append(list, operator{kind: t.literal})
 		goto next
 	case KEYWORD:
 		if keyword, err := p.parseKeyword(t); err != nil {
@@ -288,7 +246,7 @@ next:
 				p.level++
 			}
 
-			if expr, err = p.parseExpr(t); err != nil {
+			if expr, err = p.parse(t); err != nil {
 				return
 			}
 
@@ -296,7 +254,7 @@ next:
 			goto next
 		}
 
-		var ident ASTNode
+		var ident parserNode
 		if ident, err = p.parseIdent(t); err != nil {
 			return nil, err
 		} else {
@@ -320,10 +278,10 @@ next:
 	}
 }
 
-func (p *Parser) parseKeyword(t Token) (list ASTNode, err error) {
+func (p *Parser) parseKeyword(t Token) (list parserNode, err error) {
 	switch strings.ToUpper(t.literal) {
 	case "INTERVAL":
-		i := Interval{Value: p.nextToken().literal}
+		i := interval{value: p.nextToken().literal}
 		u := p.nextToken()
 
 		if u.code != IDENT {
@@ -341,11 +299,11 @@ func (p *Parser) parseKeyword(t Token) (list ASTNode, err error) {
 			}
 		}
 
-		i.Unit = u.literal
+		i.unit = u.literal
 
 		return i, nil
 
 	default:
-		return Keyword{Keyword: t.literal}, nil
+		return keyword{keyword: t.literal}, nil
 	}
 }

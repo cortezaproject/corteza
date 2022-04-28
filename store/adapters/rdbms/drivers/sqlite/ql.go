@@ -96,6 +96,6 @@ package sqlite
 //}
 //)
 //
-//func sqlASTFormatter(n *qlng.ASTNode) rdbms.HandlerSig {
+//func sqlASTFormatter(n *ql.ASTNode) rdbms.HandlerSig {
 //	return sqlExprRegistry[n.Ref]
 //}
