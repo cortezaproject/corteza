@@ -8,7 +8,6 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/data"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/qlng"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ql"
 	"github.com/doug-martin/goqu/v9"
@@ -93,7 +92,7 @@ func CRS(m *data.Model, c connection) *crs {
 	_ = ms.genColumns()
 
 	ms.queryParser = ql.Converter(
-		ql.SymHandler(func(node *qlng.ASTNode) (exp.Expression, error) {
+		ql.SymHandler(func(node *ql.ASTNode) (exp.Expression, error) {
 			return ms.attrToExpr(node.Symbol)
 		}),
 	)

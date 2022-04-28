@@ -3,19 +3,19 @@ package ql
 import (
 	"fmt"
 
-	"github.com/cortezaproject/corteza-server/pkg/qlng"
+	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/doug-martin/goqu/v9/exp"
 )
 
 type (
-	refHandler func(*qlng.ASTNode, ...exp.Expression) (exp.Expression, error)
-	symHandler func(*qlng.ASTNode) (exp.Expression, error)
-	valHandler func(*qlng.ASTNode) (exp.Expression, error)
+	refHandler func(*ql.ASTNode, ...exp.Expression) (exp.Expression, error)
+	symHandler func(*ql.ASTNode) (exp.Expression, error)
+	valHandler func(*ql.ASTNode) (exp.Expression, error)
 
 	// converts query and AST from the parsed query into goqu expression
 	// that can be used in the SQL
 	converter struct {
-		parser     *qlng.Parser
+		parser     *ql.Parser
 		refHandler refHandler
 		symHandler symHandler
 		valHandler valHandler
@@ -27,7 +27,7 @@ type (
 // Initializes new converter
 func Converter(oo ...op) *converter {
 	c := &converter{
-		parser:     qlng.NewParser(),
+		parser:     ql.NewParser(),
 		refHandler: DefaultRefHandler,
 		symHandler: DefaultSymbolHandler,
 		valHandler: DefaultValueHandler,
@@ -72,7 +72,7 @@ func (c *converter) Parse(q string) (exp.Expression, error) {
 
 // Convert recursively walks through AST and converts the entire tree into expression
 // that can be used in goqu SQL builder
-func (c *converter) Convert(n *qlng.ASTNode) (_ exp.Expression, err error) {
+func (c *converter) Convert(n *ql.ASTNode) (_ exp.Expression, err error) {
 	switch {
 	case n.Symbol != "":
 		return c.symHandler(n)
@@ -92,7 +92,7 @@ func (c *converter) Convert(n *qlng.ASTNode) (_ exp.Expression, err error) {
 }
 
 // DefaultRefHandler converts ref from the AST node using ref2exp
-func DefaultRefHandler(n *qlng.ASTNode, args ...exp.Expression) (exp.Expression, error) {
+func DefaultRefHandler(n *ql.ASTNode, args ...exp.Expression) (exp.Expression, error) {
 	if ref2exp[n.Ref] == nil {
 		return nil, fmt.Errorf("unknown ref %q", n.Ref)
 	}
@@ -101,11 +101,11 @@ func DefaultRefHandler(n *qlng.ASTNode, args ...exp.Expression) (exp.Expression,
 }
 
 // DefaultSymbolHandler parses symbol from the AST node into an identifier
-func DefaultSymbolHandler(n *qlng.ASTNode) (exp.Expression, error) {
+func DefaultSymbolHandler(n *ql.ASTNode) (exp.Expression, error) {
 	return exp.ParseIdentifier(n.Symbol), nil
 }
 
 // DefaultValueHandler converts node into placeholder and a new attribute
-func DefaultValueHandler(n *qlng.ASTNode) (exp.Expression, error) {
+func DefaultValueHandler(n *ql.ASTNode) (exp.Expression, error) {
 	return exp.NewLiteralExpression("?", n.Value.V.Get()), nil
 }

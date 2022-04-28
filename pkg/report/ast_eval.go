@@ -2,7 +2,7 @@ package report
 
 import (
 	"github.com/cortezaproject/corteza-server/pkg/expr"
-	"github.com/cortezaproject/corteza-server/pkg/qlng"
+	"github.com/cortezaproject/corteza-server/pkg/ql"
 )
 
 type (
@@ -38,7 +38,7 @@ var (
 // eval evaluates the given AST over the provided frame row
 //
 // This is a simplified bool only implementation as nothing else is needed for now.
-func (d *joinedDataset) eval(n *qlng.ASTNode, row FrameRow, cc FrameColumnSet) bool {
+func (d *joinedDataset) eval(n *ql.ASTNode, row FrameRow, cc FrameColumnSet) bool {
 	if v, ok := d.evalRec(n, true, row, cc).(*expr.Boolean); !ok {
 		return false
 	} else {
@@ -46,7 +46,7 @@ func (d *joinedDataset) eval(n *qlng.ASTNode, row FrameRow, cc FrameColumnSet) b
 	}
 }
 
-func (d *joinedDataset) evalRec(n *qlng.ASTNode, isRoot bool, row FrameRow, cc FrameColumnSet) expr.TypedValue {
+func (d *joinedDataset) evalRec(n *ql.ASTNode, isRoot bool, row FrameRow, cc FrameColumnSet) expr.TypedValue {
 	// Leaf edge-cases
 	switch {
 	case n.Symbol != "":
