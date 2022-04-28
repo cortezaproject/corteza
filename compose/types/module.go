@@ -20,7 +20,6 @@ type (
 
 		Partitioned     bool
 		PartitionFormat string
-		PartitionBase   []any
 	}
 
 	Module struct {

@@ -8,6 +8,7 @@ type (
 		Handle   string
 		DSN      string
 		Location string
+
 		// ...
 
 		// @todo IMO having it like so (instead of in a struct) allows for more
