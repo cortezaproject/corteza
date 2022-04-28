@@ -8,6 +8,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/store"
+	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	"github.com/spf13/cast"
 )
@@ -79,10 +80,18 @@ func Test_namespace_duplicate(t *testing.T) {
 	h.a.NoError(err)
 
 	helpers.AllowMe(h, types.ComponentRbacResource(), "namespace.create")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "module.create")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "page.create")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "chart.create")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "modules.search")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "charts.search")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "pages.search")
 	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
 	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read")
 	helpers.AllowMe(h, types.PageRbacResource(0, 0), "read")
 	helpers.AllowMe(h, types.ChartRbacResource(0, 0), "read")
+	helpers.AllowMe(h, sysTypes.ComponentRbacResource(), "roles.search")
+	helpers.AllowMe(h, sysTypes.RoleRbacResource(0), "read")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/clone", ns.ID)).
