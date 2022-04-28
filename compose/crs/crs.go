@@ -6,28 +6,22 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/crs/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/data"
+	"go.uber.org/zap"
 )
 
 type (
 	// the core struct that outlines the compose record store facility
 	composeRecordStore struct {
-		drivers []driver
-		stores  map[uint64]*storeWrap
+		stores map[uint64]StoreConnection
 
 		// Indexed by corresponding storeID
 		models map[uint64]data.ModelSet
 
-		primary *storeWrap
-	}
+		primary StoreConnection
 
-	storeWrap struct {
-		store        connFunc
-		driver       driver
-		dsn          string
-		capabilities capabilities.Set
+		logger *zap.Logger
+		inDev  bool
 	}
-
-	connFunc func(ctx context.Context) (Store, error)
 
 	crsDefiner interface {
 		ComposeRecordStoreID() uint64
@@ -41,64 +35,48 @@ const (
 )
 
 // ComposeRecordStore initializes a fresh record store where the given store serves as the default
-func ComposeRecordStore(ctx context.Context, primary crsDefiner, d driver, drivers ...driver) (*composeRecordStore, error) {
-	drivers = append([]driver{d}, drivers...)
-
+func ComposeRecordStore(ctx context.Context, log *zap.Logger, inDev bool, primary crsDefiner, stores ...crsDefiner) (*composeRecordStore, error) {
 	crs := &composeRecordStore{
-		drivers: drivers,
-		stores:  make(map[uint64]*storeWrap),
+		stores:  make(map[uint64]StoreConnection),
 		models:  make(map[uint64]data.ModelSet),
 		primary: nil,
+
+		logger: log,
+		inDev:  inDev,
 	}
 
-	d = crs.getDriver(primary)
-	if d == nil {
-		return nil, fmt.Errorf("could not add default store: no supported driver found")
+	var err error
+
+	crs.primary, err = connect(ctx, log, primary, inDev)
+	if err != nil {
+		return nil, err
 	}
 
-	crs.primary = &storeWrap{
-		store:        storeConnWrap(d, primary),
-		driver:       d,
-		dsn:          primary.StoreDSN(),
-		capabilities: primary.Capabilities(),
-	}
-
-	return crs, nil
+	return crs, crs.AddStore(ctx, stores...)
 }
 
 // AddStore registers the given store definitions as compose record stores
-func (crs *composeRecordStore) AddStore(ctx context.Context, definers ...crsDefiner) error {
+func (crs *composeRecordStore) AddStore(ctx context.Context, definers ...crsDefiner) (err error) {
 	for _, definer := range definers {
-		if crs.stores[definer.ComposeRecordStoreID()] != nil {
-			return fmt.Errorf("can not add compose record store %d: already defined", definer.ComposeRecordStoreID())
-		}
-
-		d := crs.getDriver(definer)
-		if d == nil {
-			return fmt.Errorf("could not add store %d: no supported driver found", definer.ComposeRecordStoreID())
-		}
-
-		crs.stores[definer.ComposeRecordStoreID()] = &storeWrap{
-			store:        storeConnWrap(d, definer),
-			driver:       d,
-			dsn:          definer.StoreDSN(),
-			capabilities: definer.Capabilities(),
+		crs.stores[definer.ComposeRecordStoreID()], err = connect(ctx, crs.logger, definer, crs.inDev)
+		if err != nil {
+			return
 		}
 	}
+
 	return nil
 }
 
 // RemoveStore removes the given store definition as a compose record store
-func (crs *composeRecordStore) RemoveStore(ctx context.Context, storeIDs ...uint64) (err error) {
-	for _, storeID := range storeIDs {
+func (crs *composeRecordStore) RemoveStore(ctx context.Context, storeID uint64, storeIDs ...uint64) (err error) {
+	for _, storeID := range append(storeIDs, storeID) {
 		s := crs.stores[storeID]
 		if s == nil {
 			return fmt.Errorf("can not remove compose record store %d: store does not exist", storeID)
 		}
 
-		// Any potential driver cleanup
-		err = s.driver.Close(ctx, s.dsn)
-		if err != nil {
+		// Potential cleanups
+		if err = s.Close(ctx); err != nil {
 			return
 		}
 
@@ -110,6 +88,7 @@ func (crs *composeRecordStore) RemoveStore(ctx context.Context, storeIDs ...uint
 }
 
 // ---
+// Utilities
 
 func (crs *composeRecordStore) getModel(store uint64, ident string) *data.Model {
 	for _, model := range crs.models[store] {
@@ -122,26 +101,23 @@ func (crs *composeRecordStore) getModel(store uint64, ident string) *data.Model 
 }
 
 // getStore returns a store for the given identifier/capabilities combination
-func (crs *composeRecordStore) getStore(ctx context.Context, storeID uint64, cc ...capabilities.Capability) (store Store, can capabilities.Set, err error) {
+func (crs *composeRecordStore) getStore(ctx context.Context, storeID uint64, cc ...capabilities.Capability) (store StoreConnection, can capabilities.Set, err error) {
 	err = func() error {
 		// get the requested store
-		var wrap *storeWrap
 		if storeID == defaultStoreID {
-			wrap = crs.primary
+			store = crs.primary
 		} else {
-			wrap = crs.stores[storeID]
+			store = crs.stores[storeID]
 		}
-		if wrap == nil {
+		if store == nil {
 			return fmt.Errorf("could not get store %d: store does not exist", storeID)
 		}
 
 		// check if store supports requested capabilities
-		if !wrap.capabilities.IsSuperset(cc...) {
-			return fmt.Errorf("store does not support requested capabilities: %v", capabilities.Set(cc).Diff(wrap.capabilities))
+		if !store.Can(cc...) {
+			return fmt.Errorf("store does not support requested capabilities: %v", capabilities.Set(cc).Diff(store.Capabilities()))
 		}
-
-		store, err = wrap.store(ctx)
-		can = wrap.capabilities
+		can = store.Capabilities()
 		return nil
 	}()
 
@@ -151,23 +127,4 @@ func (crs *composeRecordStore) getStore(ctx context.Context, storeID uint64, cc 
 	}
 
 	return
-}
-
-// getDriver returns a driver which can be used with the given store
-func (crs *composeRecordStore) getDriver(def crsDefiner) driver {
-	for _, d := range crs.drivers {
-		if !d.Can(def.StoreDSN(), def.Capabilities()...) {
-			continue
-		}
-
-		return d
-	}
-
-	return nil
-}
-
-func storeConnWrap(d driver, def crsDefiner) connFunc {
-	return func(ctx context.Context) (Store, error) {
-		return d.Store(ctx, def.StoreDSN())
-	}
 }

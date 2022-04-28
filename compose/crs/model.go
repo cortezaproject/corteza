@@ -26,6 +26,24 @@ const (
 	urlLength = 2048
 )
 
+// ----------------------
+// @todo move this out and unify with RDBMS one
+
+const (
+	sysID          = "ID"
+	sysNamespaceID = "namespaceID"
+	sysModuleID    = "moduleID"
+	sysCreatedAt   = "createdAt"
+	sysCreatedBy   = "createdBy"
+	sysUpdatedAt   = "updatedAt"
+	sysUpdatedBy   = "updatedBy"
+	sysDeletedAt   = "deletedAt"
+	sysDeletedBy   = "deletedBy"
+	sysOwnedBy     = "ownedBy"
+)
+
+// ----------------------
+
 // ReloadModulesFromStore resets state based on the provided cStore
 func (crs *composeRecordStore) ReloadModulesFromStore(ctx context.Context, cs cStore) (err error) {
 	modules, err := crs.loadModules(ctx, cs)
@@ -52,12 +70,17 @@ func (crs *composeRecordStore) AddModules(ctx context.Context, modules ...*types
 		return
 	}
 
+	var (
+		s StoreConnection
+	)
+
 	for storeID, models := range crs.modelByStore(models) {
-		if crs.stores[storeID] == nil {
-			return fmt.Errorf("can not add module to store %d: store does not exist", storeID)
+		s, _, err = crs.getStore(ctx, storeID)
+		if err != nil {
+			return err
 		}
 
-		err = crs.addModel(ctx, storeID, models)
+		err = crs.addModel(ctx, s, storeID, models)
 		if err != nil {
 			return
 		}
@@ -112,54 +135,45 @@ func (crs *composeRecordStore) RemoveModules(ctx context.Context, modules ...*ty
 
 // AlterModule updates the old module with the new one
 func (crs *composeRecordStore) AlterModule(ctx context.Context, oldMod, newMod *types.Module) (err error) {
-	// validation
-	{
-		if oldMod.Store.ComposeRecordStoreID != newMod.Store.ComposeRecordStoreID {
-			return fmt.Errorf("cannot alter module stored in different record stores: old: %d, new: %d", oldMod.Store.ComposeRecordStoreID, newMod.Store.ComposeRecordStoreID)
-		}
-	}
+	return
+	// // validation
+	// {
+	// 	if oldMod.Store.ComposeRecordStoreID != newMod.Store.ComposeRecordStoreID {
+	// 		return fmt.Errorf("cannot alter module stored in different record stores: old: %d, new: %d", oldMod.Store.ComposeRecordStoreID, newMod.Store.ComposeRecordStoreID)
+	// 	}
+	// }
 
-	store, oldModel, err := crs.prepModuleDDL(ctx, oldMod)
-	if err != nil {
-		return
-	}
-	// store is same so we omit
-	_, newModel, err := crs.prepModuleDDL(ctx, newMod)
-	if err != nil {
-		return
-	}
+	// store, oldModel, err := crs.prepModuleDDL(ctx, oldMod)
+	// if err != nil {
+	// 	return
+	// }
+	// // store is same so we omit
+	// _, newModel, err := crs.prepModuleDDL(ctx, newMod)
+	// if err != nil {
+	// 	return
+	// }
 
-	return store.AlterModel(ctx, oldModel, newModel)
+	// return store.AlterModel(ctx, oldModel, newModel)
 }
 
 // @todo other ddl manipupations...
 
 // ---
 
-func (crs *composeRecordStore) prepModuleDDL(ctx context.Context, module *types.Module) (s Store, model *data.Model, err error) {
-	s, _, err = crs.getStore(ctx, module.Store.ComposeRecordStoreID)
-	if err != nil {
-		return
-	}
+// func (crs *composeRecordStore) prepModuleDDL(ctx context.Context, module *types.Module) (s Store, model *data.Model, err error) {
+// 	s, _, err = crs.getStore(ctx, module.Store.ComposeRecordStoreID)
+// 	if err != nil {
+// 		return
+// 	}
 
-	models, err := crs.modulesToModel(module)
-	if err != nil {
-		return
-	}
-	model = models[0]
+// 	models, err := crs.modulesToModel(module)
+// 	if err != nil {
+// 		return
+// 	}
+// 	model = models[0]
 
-	return
-}
-
-//  modulesByStore maps the given module set by their CRS
-func (crs *composeRecordStore) modulesByStore(modules types.ModuleSet) (out map[uint64]types.ModuleSet) {
-	out = make(map[uint64]types.ModuleSet)
-	for _, mod := range modules {
-		out[mod.Store.ComposeRecordStoreID] = append(out[mod.Store.ComposeRecordStoreID], mod)
-	}
-
-	return
-}
+// 	return
+// }
 
 //  modelByStore maps the given models by their CRS
 func (crs *composeRecordStore) modelByStore(models data.ModelSet) (out map[uint64]data.ModelSet) {
@@ -208,6 +222,7 @@ func (crs *composeRecordStore) loadModules(ctx context.Context, cs cStore) (mm t
 	return
 }
 
+// moduleFieldCodec is a little utility to construct the store codec we need
 func moduleFieldCodec(f *types.ModuleField) (strat data.StoreCodec) {
 	// Defaulting to alias
 	strat = data.StoreCodecAlias{
@@ -220,9 +235,8 @@ func moduleFieldCodec(f *types.ModuleField) (strat data.StoreCodec) {
 			Ident: f.Encoding.EncodingStrategyAlias.Ident,
 		}
 	case f.Encoding.EncodingStrategyJSON != nil:
-		strat = data.StoreCodecJSON{
+		strat = data.StoreCodecStdRecordValueJSON{
 			Ident: f.Encoding.EncodingStrategyJSON.Ident,
-			Path:  f.Encoding.EncodingStrategyJSON.Path,
 		}
 	}
 
@@ -276,8 +290,7 @@ func (crs *composeRecordStore) moduleModelInit(mod *types.Module) (out *data.Mod
 		ResourceID:   mod.ID,
 		ResourceType: types.ModuleResourceType,
 
-		// @todo this isn't exactly this
-		Ident:      mod.Handle,
+		Ident:      formatPartitionIdent(mod),
 		Attributes: make(data.AttributeSet, len(mod.Fields)),
 	}
 }
@@ -354,65 +367,65 @@ func (crs *composeRecordStore) moduleModelAttributes(mod *types.Module, refIndex
 	// System attrs
 	out = append(out,
 		&data.Attribute{
-			Ident: "recordID",
+			Ident: sysID,
 			Store: moduleFieldCodec(&types.ModuleField{
-				Name: "recordID",
+				Name: sysID,
 			}),
 			Type: data.TypeID{},
 		},
 		&data.Attribute{
-			Ident: "createdAt",
+			Ident: sysCreatedAt,
 			Store: moduleFieldCodec(&types.ModuleField{
-				Name: "createdAt",
+				Name: sysCreatedAt,
 			}),
 			Type: data.TypeTimestamp{},
 		},
 		&data.Attribute{
-			Ident: "updatedAt",
+			Ident: sysUpdatedAt,
 			Store: moduleFieldCodec(&types.ModuleField{
-				Name: "updatedAt",
+				Name: sysUpdatedAt,
 			}),
 			Type: data.TypeTimestamp{},
 		},
 		&data.Attribute{
-			Ident: "deletedAt",
+			Ident: sysDeletedAt,
 			Store: moduleFieldCodec(&types.ModuleField{
-				Name: "deletedAt",
+				Name: sysDeletedAt,
 			}),
 			Type: data.TypeTimestamp{},
 		},
 
 		&data.Attribute{
-			Ident: "ownedBy",
+			Ident: sysOwnedBy,
 			Store: moduleFieldCodec(&types.ModuleField{
-				Name: "ownedBy",
+				Name: sysOwnedBy,
 			}),
 			Type: data.TypeRef{
 				RefAttribute: &data.Attribute{Ident: "id"},
 			},
 		},
 		&data.Attribute{
-			Ident: "createdBy",
+			Ident: sysCreatedBy,
 			Store: moduleFieldCodec(&types.ModuleField{
-				Name: "createdBy",
+				Name: sysCreatedBy,
 			}),
 			Type: data.TypeRef{
 				RefAttribute: &data.Attribute{Ident: "id"},
 			},
 		},
 		&data.Attribute{
-			Ident: "updatedBy",
+			Ident: sysUpdatedBy,
 			Store: moduleFieldCodec(&types.ModuleField{
-				Name: "updatedBy",
+				Name: sysUpdatedBy,
 			}),
 			Type: data.TypeRef{
 				RefAttribute: &data.Attribute{Ident: "id"},
 			},
 		},
 		&data.Attribute{
-			Ident: "deletedBy",
+			Ident: sysDeletedBy,
 			Store: moduleFieldCodec(&types.ModuleField{
-				Name: "deletedBy",
+				Name: sysDeletedBy,
 			}),
 			Type: data.TypeRef{
 				RefAttribute: &data.Attribute{Ident: "id"},
@@ -423,14 +436,14 @@ func (crs *composeRecordStore) moduleModelAttributes(mod *types.Module, refIndex
 	return
 }
 
-func (crs *composeRecordStore) addModel(ctx context.Context, storeID uint64, models data.ModelSet) (err error) {
+func (crs *composeRecordStore) addModel(ctx context.Context, s StoreConnection, storeID uint64, models data.ModelSet) (err error) {
 	for _, model := range models {
 		existing := crs.getModel(storeID, model.Ident)
 		if existing != nil {
 			return fmt.Errorf("cannot add model %s to store %d: already exists", model.Ident, storeID)
 		}
 
-		err = crs.addModelToStore(ctx, storeID, model)
+		err = crs.addModelToStore(ctx, s, model)
 		if err != nil {
 			return
 		}
@@ -441,12 +454,7 @@ func (crs *composeRecordStore) addModel(ctx context.Context, storeID uint64, mod
 	return
 }
 
-func (crs *composeRecordStore) addModelToStore(ctx context.Context, storeID uint64, model *data.Model) (err error) {
-	s, _, err := crs.getStore(ctx, storeID)
-	if err != nil {
-		return err
-	}
-
+func (crs *composeRecordStore) addModelToStore(ctx context.Context, s StoreConnection, model *data.Model) (err error) {
 	available, err := s.Models(ctx)
 	if err != nil {
 		return err
@@ -470,4 +478,18 @@ func (crs *composeRecordStore) addModelToStore(ctx context.Context, storeID uint
 	}
 
 	return nil
+}
+
+// ---
+
+func formatPartitionIdent(mod *types.Module) string {
+	rpl := strings.NewReplacer(
+		"{{module}}", mod.Handle,
+	)
+
+	if mod.Store.PartitionFormat == "" {
+		return mod.Handle
+	}
+
+	return rpl.Replace(mod.Store.PartitionFormat)
 }

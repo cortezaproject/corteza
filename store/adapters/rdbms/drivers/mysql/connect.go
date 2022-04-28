@@ -6,10 +6,14 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/cortezaproject/corteza-server/compose/crs"
+	"github.com/cortezaproject/corteza-server/compose/crs/capabilities"
+
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms"
+	rdbmsCRS "github.com/cortezaproject/corteza-server/store/adapters/rdbms/crs"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/instrumentation"
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
@@ -20,7 +24,33 @@ import (
 
 func init() {
 	store.Register(Connect, "mysql", "mysql+debug")
+	crs.Register(ConnectCRS, "mysql", "mysql+debug")
+
 	sql.Register("mysql+debug", sqlmw.Driver(new(mysql.MySQLDriver), instrumentation.Debug()))
+}
+
+// @todo cleanup; unify common bits and stuff
+
+func ConnectCRS(ctx context.Context, dsn string, cc ...capabilities.Capability) (_ crs.StoreConnection, err error) {
+	var (
+		db  *sqlx.DB
+		cfg *rdbms.ConnConfig
+	)
+
+	if cfg, err = NewConfig(dsn); err != nil {
+		return
+	}
+
+	if db, err = rdbms.Connect(ctx, logger.Default(), cfg); err != nil {
+		return
+	}
+
+	// See https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_ansi for details
+	if _, err = db.ExecContext(ctx, `SET SESSION sql_mode = 'ANSI'`); err != nil {
+		return
+	}
+
+	return rdbmsCRS.CRSConnector(db, logger.Default(), goqu.Dialect("mysql"), cc), nil
 }
 
 func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
