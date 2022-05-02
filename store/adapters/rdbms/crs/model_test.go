@@ -6,9 +6,24 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/data"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
+	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
+	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/stretchr/testify/require"
 )
+
+type (
+	testDialect struct{}
+)
+
+func (testDialect) GOQU() goqu.DialectWrapper { return goqu.Dialect("sqlite3") }
+func (testDialect) DeepIdentJSON(ident exp.IdentifierExpression, pp ...any) exp.LiteralExpression {
+	return drivers.DeepIdentJSON(ident, pp...)
+}
+func (testDialect) AttributeCast(_ *data.Attribute, val exp.LiteralExpression) (exp.LiteralExpression, error) {
+	return exp.NewLiteralExpression("?", val), nil
+}
 
 func Test_sqlizers(t *testing.T) {
 	var (
@@ -21,65 +36,59 @@ func Test_sqlizers(t *testing.T) {
 			},
 		}
 
-		ms = CRS(m, nil)
+		ms = Model(m, nil, &testDialect{})
 
-		q    sqlizer
-		sql  string
-		args []any
-		err  error
+		q   sqlizer
+		sql string
+		err error
 
 		tenTenTen, _ = time.Parse("2006-01-02", "2010-10-10")
 	)
 
 	cases := []struct {
-		fn   func() sqlizer
-		sql  string
-		args []any
-		err  error
+		fn  func() sqlizer
+		sql string
+		err error
 	}{
 		{
-			fn:   func() sqlizer { return ms.lookupByIdSql(10) },
-			sql:  `SELECT "test_tbl"."id", "test_tbl"."created_at", "test_tbl"."updated_at" FROM "test_tbl" WHERE ("test_tbl"."id" = 10) LIMIT 1`,
-			args: []any{},
-			err:  nil,
+			fn:  func() sqlizer { return ms.lookupByIdSql(10).Prepared(false) },
+			sql: `SELECT "test_tbl"."id", "test_tbl"."created_at", "test_tbl"."updated_at" FROM "test_tbl" WHERE ("test_tbl"."id" = 10) LIMIT 1`,
+			err: nil,
 		},
 		{
 			fn: func() sqlizer {
-				return ms.updateSql(&types.Record{ID: 10, CreatedAt: tenTenTen, UpdatedAt: &tenTenTen})
+				return ms.updateSql(&types.Record{ID: 10, CreatedAt: tenTenTen, UpdatedAt: &tenTenTen}).Prepared(false)
 			},
-			sql:  `UPDATE "test_tbl" SET "created_at"='2010-10-10T00:00:00Z',"updated_at"='2010-10-10T00:00:00Z' WHERE ("test_tbl"."id" = 10)`,
-			args: []any{},
-			err:  nil,
+			sql: `UPDATE "test_tbl" SET "created_at"='2010-10-10T00:00:00Z',"updated_at"='2010-10-10T00:00:00Z' WHERE ("test_tbl"."id" = 10)`,
+			err: nil,
 		},
 		{
-			fn:   func() sqlizer { return ms.insertSql(&types.Record{ID: 10, CreatedAt: tenTenTen}) },
-			sql:  `INSERT INTO "test_tbl" ("created_at", "id", "updated_at") VALUES ('2010-10-10T00:00:00Z', 10, NULL)`,
-			args: []any{},
-			err:  nil,
+			fn:  func() sqlizer { return ms.insertSql(&types.Record{ID: 10, CreatedAt: tenTenTen}).Prepared(false) },
+			sql: `INSERT INTO "test_tbl" ("created_at", "id", "updated_at") VALUES ('2010-10-10T00:00:00Z', 10, NULL)`,
+			err: nil,
 		},
 		{
-			fn:   func() sqlizer { return ms.deleteByIdSql(12345) },
-			sql:  `DELETE FROM "test_tbl" WHERE ("test_tbl"."id" = 12345)`,
-			args: []any{},
-			err:  nil,
+			fn:  func() sqlizer { return ms.deleteByIdSql(12345).Prepared(false) },
+			sql: `DELETE FROM "test_tbl" WHERE ("test_tbl"."id" = 12345)`,
+			err: nil,
 		},
 	}
 
 	for _, c := range cases {
 		t.Run("", func(t *testing.T) {
+			// returns sqlizer with prepared(false):
+			// values are interpolated into a SQL string
 			req := require.New(t)
 			q = c.fn()
 
-			sql, args, err = q.ToSQL()
-			if c.args == nil {
+			sql, _, err = q.ToSQL()
+			if c.err == nil {
 				req.NoError(err)
 			} else {
 				req.ErrorIs(err, c.err)
 			}
 
 			req.Equal(c.sql, sql)
-			req.Equal(c.args, args)
-
 		})
 	}
 }
@@ -144,7 +153,7 @@ func Test_search(t *testing.T) {
 		},
 	}
 
-	d := CRS(m, nil)
+	d := Model(m, nil, nil)
 
 	for _, c := range cases {
 		t.Run("", func(t *testing.T) {

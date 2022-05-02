@@ -71,6 +71,10 @@ func NewPaging(limit uint, cursor string) (p Paging, err error) {
 	return
 }
 
+func (p *Paging) GetLimit() uint {
+	return p.Limit
+}
+
 func (p *Paging) Clone() *Paging {
 	if p == nil {
 		return nil

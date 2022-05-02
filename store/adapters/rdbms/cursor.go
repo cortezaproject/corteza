@@ -6,6 +6,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 )
 
 type (
@@ -37,12 +38,8 @@ type (
 	cursorKeyMapper func(string) (KeyMap, error)
 )
 
-func Cursor(c *filter.PagingCursor) ([]goqu.Expression, error) {
-	return cursor(c)
-}
-
 func cursor(cursor *filter.PagingCursor) ([]goqu.Expression, error) {
-	sql, args, err := CursorCondition(cursor, nil).ToSql()
+	sql, args, err := CursorCondition(cursor, nil).ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +47,7 @@ func cursor(cursor *filter.PagingCursor) ([]goqu.Expression, error) {
 	return []goqu.Expression{goqu.Literal(sql, args...)}, nil
 }
 
-// Builds a complex condition to filter rows before/after row that
+// CursorCondition builds a complex condition to filter rows before/after row that
 // the paging cursor points to
 func CursorCondition(pc pagingCursor, keyMapper cursorKeyMapper) *cursorCondition {
 	if keyMapper == nil {
@@ -66,7 +63,7 @@ func CursorCondition(pc pagingCursor, keyMapper cursorKeyMapper) *cursorConditio
 	return &cursorCondition{cur: pc, keyMapper: keyMapper}
 }
 
-func (c *cursorCondition) ToSql() (string, []interface{}, error) {
+func (c *cursorCondition) ToSQL() (string, []interface{}, error) {
 	sql, err := c.sql()
 	if err != nil {
 		return "", nil, err
@@ -182,4 +179,133 @@ func (c *cursorCondition) sql() (cnd string, err error) {
 	}
 
 	return
+}
+
+// CursorExpression builds cursor SQL expression using goqu/exp package
+//
+// this could be simple (f1, f2, ...) < (v1, v2, ...) but we need  to be a bit careful with NULL values
+// So we need (f1 < v1 OR (f1 = v1 AND f2 < v2) pattern, extended to:
+// ((f1 IS NULL AND v1 IS NOT NULL) OR f1 < v1 OR (((f1 IS NULL AND v1 IS NULL) OR f1 = v1) AND (f2...)
+//
+// Due to issues with param biding & types in Postgres (using ? IS NULL results in an error), we need do
+// check (on app-side) if value is nil to replace "? IS (NOT) NULL" check with TRUE/FALSE constants.
+func CursorExpression(
+	cur *filter.PagingCursor,
+	identLookup func(i string) (exp.LiteralExpression, error),
+	castFn func(i string, val any) (exp.LiteralExpression, error),
+) (e exp.Expression, err error) {
+	var (
+		cc = cur.Keys()
+		vv = cur.Values()
+
+		value any
+
+		ident exp.LiteralExpression
+
+		ltOp = map[bool]exp.BooleanOperation{
+			true:  exp.LtOp,
+			false: exp.GtOp,
+		}
+
+		// Little utility to know for sure if some value is nil or not
+		//
+		// Interface variables can be a bit tricky here, so this is required.
+		nilCheck = func(i interface{}) bool {
+			if i == nil {
+				return true
+			}
+			switch reflect.TypeOf(i).Kind() {
+			case reflect.Ptr, reflect.Map, reflect.Array, reflect.Chan, reflect.Slice:
+				return reflect.ValueOf(i).IsNil()
+			}
+			return false
+		}
+
+		isValueNull = func(i int, neg bool) exp.LiteralExpression {
+			if (nilCheck(vv[i]) && !neg) || (!nilCheck(vv[i]) && neg) {
+				return exp.NewLiteralExpression("TRUE")
+			}
+
+			return exp.NewLiteralExpression("FALSE")
+		}
+
+		curCond exp.ExpressionList
+	)
+
+	if len(cc) == 0 {
+		return
+	}
+
+	// ((($1 IS NOT NULL AND FALSE) OR ($2 > $3)) OR (((? IS NULL AND FALSE) OR ? = ?) AND (("test_tbl"."id" IS NOT NULL AND FALSE) OR ("test_tbl"."id" > ?))))
+
+	// going from the last key/column to the 1st one
+	for i := len(cc) - 1; i >= 0; i-- {
+		if identLookup != nil {
+			// Get the key context so we know how to format fields and format typecasts
+			ident, err = identLookup(cc[i])
+			if err != nil {
+				return
+			}
+		} else {
+			ident = exp.NewLiteralExpression("?", exp.NewIdentifierExpression("", "", cc[i]))
+		}
+
+		if castFn == nil {
+			value = vv[i]
+		} else {
+			value, err = castFn(cc[i], vv[i])
+			if err != nil {
+				return
+			}
+		}
+
+		// We need to cut off the values that are before the cursor (when ascending)
+		// and vice-versa for descending.
+		lt := cur.Desc()[i]
+		if cur.IsROrder() {
+			lt = !lt
+		}
+
+		op := ltOp[lt]
+
+		//// Typecast the value so comparison can work properly
+
+		// Either BOTH (field and value) are NULL or field is grater-then value
+		base := exp.NewExpressionList(
+			exp.OrType,
+			// both NULL
+			exp.NewExpressionList(
+				exp.AndType,
+				exp.NewLiteralExpression(`? IS NOT NULL`, ident),
+				isValueNull(i, false),
+			),
+			// or GT/LT value
+			exp.NewBooleanExpression(op, ident, value),
+		)
+
+		if curCond == nil {
+			curCond = base
+		} else {
+			curCond = exp.NewExpressionList(
+				exp.OrType,
+				base,
+				exp.NewExpressionList(
+					exp.AndType,
+					exp.NewExpressionList(
+						exp.OrType,
+						// both NULL
+						exp.NewExpressionList(
+							exp.AndType,
+							exp.NewLiteralExpression(`? IS NULL`, ident),
+							isValueNull(i, false),
+						),
+						exp.NewBooleanExpression(exp.EqOp, ident, value),
+					),
+					curCond,
+				),
+			)
+		}
+	}
+
+	return curCond.Expression(), nil
 }

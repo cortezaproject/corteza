@@ -4,21 +4,46 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/instrumentation"
-	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
 	"github.com/mattn/go-sqlite3"
 	"github.com/ngrok/sqlmw"
 )
 
+const (
+	// base for our schemas
+	baseSchema = "sqlite3"
+
+	// alt
+	altSchema   = baseSchema + "+alt"
+	debugSchema = baseSchema + "+debug"
+)
+
 func init() {
-	store.Register(Connect, "sqlite3", "sqlite3+debug")
-	sql.Register("sqlite3+debug", sqlmw.Driver(new(sqlite3.SQLiteDriver), instrumentation.Debug()))
+	var (
+		driver = &sqlite3.SQLiteDriver{
+			ConnectHook: func(conn *sqlite3.SQLiteConn) (err error) {
+				// register regexp function and use Go's regexp fn
+				if err = conn.RegisterFunc("regexp", regexp.MatchString, true); err != nil {
+					return
+				}
+
+				return
+			},
+		}
+	)
+
+	sql.Register(altSchema, driver)
+	sql.Register(debugSchema, sqlmw.Driver(driver, instrumentation.Debug()))
+
+	store.Register(Connect, baseSchema, altSchema, debugSchema)
+
 }
 
 func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
@@ -38,13 +63,13 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 	s := &rdbms.Store{
 		DB: db,
 
-		Dialect:      goqu.Dialect("sqlite3"),
+		Dialect:      goquDialectWrapper,
 		ErrorHandler: errorHandler,
 
 		TxRetryLimit: -1,
 		//TxRetryErrHandler: txRetryErrHandler,
 
-		SchemaAPI: &schema{},
+		SchemaAPI: &schema{dialect: Dialect()},
 	}
 
 	s.SetDefaults()
@@ -53,33 +78,37 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 }
 
 func ConnectInMemory(ctx context.Context) (s store.Storer, err error) {
-	return Connect(ctx, "sqlite3://file::memory:?cache=shared&mode=memory")
+	return Connect(ctx, baseSchema+"://file::memory:?cache=shared&mode=memory")
 }
 
 func ConnectInMemoryWithDebug(ctx context.Context) (s store.Storer, err error) {
-	return Connect(ctx, "sqlite3+debug://file::memory:?cache=shared&mode=memory")
+	return Connect(ctx, debugSchema+"://file::memory:?cache=shared&mode=memory")
 }
 
 // NewConfig validates given DSN and ensures
 // params are present and correct
 func NewConfig(in string) (*rdbms.ConnConfig, error) {
 	const (
-		schemeDel   = "://"
-		validScheme = "sqlite3"
+		schemaDel = "://"
 	)
 
 	var (
-		endOfSchema = strings.Index(in, schemeDel)
-
-		cfg = &rdbms.ConnConfig{}
+		cfg = &rdbms.ConnConfig{
+			DriverName: altSchema,
+		}
 	)
 
-	if endOfSchema > 0 && (in[:endOfSchema] == validScheme || strings.HasPrefix(in[:endOfSchema], validScheme+"+")) {
-		cfg.DriverName = in[:endOfSchema]
-		cfg.DataSourceName = in[endOfSchema+len(schemeDel):]
-	} else {
+	switch {
+	case strings.HasPrefix(in, baseSchema+schemaDel), strings.HasPrefix(in, altSchema+schemaDel):
+	// no special handlign
+	case strings.HasPrefix(in, debugSchema+schemaDel):
+		cfg.DriverName = debugSchema
+	default:
 		return nil, fmt.Errorf("expecting valid schema (sqlite3://) at the beginning of the DSN (%s)", in)
 	}
+
+	// reassemble DSN with base schema
+	cfg.DataSourceName = in[strings.Index(in, schemaDel)+len(schemaDel):]
 
 	// Set to zero
 	// Otherwise SQLite (in-memory) disconnects

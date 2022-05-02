@@ -1,9 +1,10 @@
-package rdbms
+package drivers
 
 import (
 	"testing"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/stretchr/testify/require"
 
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
@@ -27,17 +28,17 @@ func Test_DeepIdentJSON(t *testing.T) {
 			},
 			{
 				input: []interface{}{"one", "two"},
-				sql:   `"one"->'two'`,
+				sql:   `"one"->>'two'`,
 				args:  []interface{}{},
 			},
 			{
 				input: []interface{}{"one", 2, "three"},
-				sql:   `"one"->2->'three'`,
+				sql:   `"one"->2->>'three'`,
 				args:  []interface{}{},
 			},
 			{
 				input: []interface{}{"one", "two", 3},
-				sql:   `"one"->'two'->3`,
+				sql:   `"one"->'two'->>3`,
 				args:  []interface{}{},
 			},
 		}
@@ -49,7 +50,7 @@ func Test_DeepIdentJSON(t *testing.T) {
 				r = require.New(t)
 			)
 
-			sql, args, err := goqu.Dialect("postgres").Select(DeepIdentJSON(c.input[0].(string), c.input[1:]...)).From("test").ToSQL()
+			sql, args, err := goqu.Dialect("postgres").Select(DeepIdentJSON(exp.ParseIdentifier(c.input[0].(string)), c.input[1:]...)).From("test").ToSQL()
 			r.NoError(err)
 			r.Equal(pre+c.sql+post, sql)
 			r.Equal(c.args, args)

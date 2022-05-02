@@ -9,7 +9,7 @@ import (
 )
 
 // ComposeRecordCreate creates the given records for the given module
-func (crs *composeRecordStore) ComposeRecordCreate(ctx context.Context, module *types.Module, records ...*types.Record) (err error) {
+func (crs *composeRecordStore) ComposeRecordCreate(ctx context.Context, module *types.Module, records ...ValueGetter) (err error) {
 	if !module.Store.Partitioned {
 		return fmt.Errorf("only partitioned modules work right now")
 	}
