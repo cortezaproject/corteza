@@ -6,16 +6,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/compose/crs"
-	"github.com/cortezaproject/corteza-server/compose/crs/capabilities"
-
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms"
-	rdbmsCRS "github.com/cortezaproject/corteza-server/store/adapters/rdbms/crs"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/instrumentation"
-	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	"github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
@@ -24,34 +19,34 @@ import (
 
 func init() {
 	store.Register(Connect, "mysql", "mysql+debug")
-	crs.Register(ConnectCRS, "mysql", "mysql+debug")
+	//crs.Register(ConnectCRS, "mysql", "mysql+debug")
 
 	sql.Register("mysql+debug", sqlmw.Driver(new(mysql.MySQLDriver), instrumentation.Debug()))
 }
 
 // @todo cleanup; unify common bits and stuff
 
-func ConnectCRS(ctx context.Context, dsn string, cc ...capabilities.Capability) (_ crs.StoreConnection, err error) {
-	var (
-		db  *sqlx.DB
-		cfg *rdbms.ConnConfig
-	)
-
-	if cfg, err = NewConfig(dsn); err != nil {
-		return
-	}
-
-	if db, err = rdbms.Connect(ctx, logger.Default(), cfg); err != nil {
-		return
-	}
-
-	// See https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_ansi for details
-	if _, err = db.ExecContext(ctx, `SET SESSION sql_mode = 'ANSI'`); err != nil {
-		return
-	}
-
-	return rdbmsCRS.CRSConnector(db, logger.Default(), goqu.Dialect("mysql"), cc), nil
-}
+//func ConnectCRS(ctx context.Context, dsn string, cc ...capabilities.Capability) (_ crs.StoreConnection, err error) {
+//	var (
+//		db  *sqlx.DB
+//		cfg *rdbms.ConnConfig
+//	)
+//
+//	if cfg, err = NewConfig(dsn); err != nil {
+//		return
+//	}
+//
+//	if db, err = rdbms.Connect(ctx, logger.Default(), cfg); err != nil {
+//		return
+//	}
+//
+//	// See https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_ansi for details
+//	if _, err = db.ExecContext(ctx, `SET SESSION sql_mode = 'ANSI'`); err != nil {
+//		return
+//	}
+//
+//	return rdbmsCRS.CRSConnector(db, logger.Default(), goqu.Dialect("mysql"), cc), nil
+//}
 
 func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 	var (
@@ -72,15 +67,14 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 		return
 	}
 
-	dialect := goqu.Dialect("mysql")
 	s := &rdbms.Store{
 		DB: db,
 
-		Dialect:           dialect,
+		Dialect:           goquDialectWrapper,
 		TxRetryErrHandler: txRetryErrHandler,
 		ErrorHandler:      errorHandler,
 
-		SchemaAPI: &schema{dbName: cfg.DBName, dialect: dialect},
+		SchemaAPI: &schema{dbName: cfg.DBName, dialect: Dialect()},
 	}
 
 	s.SetDefaults()
@@ -95,9 +89,6 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 // error in case of incorrect param value
 //
 // See https://github.com/go-sql-driver/mysql for available dsn params
-//
-// @todo similar fallback (autoconfig) for collation=utf8mb4_general_ci
-//       but allow different collation values
 //
 func NewConfig(in string) (*rdbms.ConnConfig, error) {
 	const (
@@ -123,6 +114,18 @@ func NewConfig(in string) (*rdbms.ConnConfig, error) {
 	} else {
 		// Ensure driver parses time
 		pdsn.ParseTime = true
+
+		if pdsn.Collation == "" {
+			pdsn.Collation = "utf8mb4_general_ci"
+		}
+
+		if pdsn.Params == nil {
+			pdsn.Params = make(map[string]string)
+		}
+
+		if pdsn.Params["charset"] == "" {
+			pdsn.Params["charset"] = "utf8mb4"
+		}
 
 		c.DataSourceName = pdsn.FormatDSN()
 		c.DBName = pdsn.DBName

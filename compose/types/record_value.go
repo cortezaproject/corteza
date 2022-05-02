@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/expr"
@@ -421,6 +422,14 @@ func (set RecordValueSet) Dict(fields ModuleFieldSet) map[string]interface{} {
 	return rval
 }
 
-func (set RecordValueSet) Len() int           { return len(set) }
-func (set RecordValueSet) Swap(i, j int)      { set[i], set[j] = set[j], set[i] }
-func (set RecordValueSet) Less(i, j int) bool { return set[i].Place < set[j].Place }
+func (set RecordValueSet) Len() int      { return len(set) }
+func (set RecordValueSet) Swap(i, j int) { set[i], set[j] = set[j], set[i] }
+func (set RecordValueSet) Less(i, j int) bool {
+	n := strings.Compare(set[i].Name, set[j].Name)
+	if n != 0 {
+		return n < 0
+	}
+
+	return set[i].Place < set[j].Place
+
+}

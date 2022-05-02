@@ -8,25 +8,30 @@ import (
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/compose/crs/capabilities"
-	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/data"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"go.uber.org/zap"
 )
 
 type (
+	PKValues map[string]any
+
 	StoreConnection interface {
 		// ---
 
 		// Meta
+
 		// Capabilities returns all of the capabilities the given store supports
 		Capabilities() capabilities.Set
+
 		// Can returns true if this store can handle the given capabilities
 		Can(capabilities ...capabilities.Capability) bool
 
 		// ---
 
 		// Connection stuff
+
 		// Close closes the store connection allowing the driver to perform potential
 		// cleanup operations
 		Close(ctx context.Context) error
@@ -34,25 +39,23 @@ type (
 		// ---
 
 		// DML
+
 		// CreateRecords stores the given records into the underlying database
-		//
-		// @todo rename to Create and replace types.Record with Getter
-		CreateRecords(ctx context.Context, m *data.Model, rr ...*types.Record) error
-		// SearchRecords returns an iterator we can use to load data
-		//
-		// @todo rename to Search and replace filter with xyz
-		SearchRecords(ctx context.Context, sch *data.Model, filter any) (Iterator, error)
-		// ...
-		// @todo other functions; they are same difference so omitting for now
-		// - LookupRecord
-		// - UpdateRecords
-		// - DeleteRecords
-		// - TruncateRecords
+		CreateRecords(ctx context.Context, m *data.Model, rr ...ValueGetter) error
+
+		//UpdateRecords(ctx context.Context, m *data.Model, rr ...ValueGetter) error
+		//DeleteRecordsByPK(ctx context.Context, m *data.Model, rr ...ValueGetter) error
+		//TruncateRecords(ctx context.Context, m *data.Model) error
+
+		LookupRecord(context.Context, *data.Model, ValueGetter, ValueSetter) error
+
+		SearchRecords(context.Context, *data.Model, any) (Iterator, error)
 
 		// ---
 
 		// DDL
-		// Models returns all of the models the underlying database already supports
+
+		// Models returns all the models the underlying database already supports
 		//
 		// This is useful when adding support for new modules since we can find out what
 		// can work out of the box.
@@ -87,9 +90,12 @@ type (
 	// Iterator provides an interface for loading data from the underlying store
 	Iterator interface {
 		Next(ctx context.Context) bool
-		Scan(r *types.Record) (err error)
 		Err() error
+		Scan(ValueSetter) error
 		Close() error
+
+		BackCursor(ValueGetter) (*filter.PagingCursor, error)
+		ForwardCursor(ValueGetter) (*filter.PagingCursor, error)
 
 		// // -1 means unknown
 		// Total() int
@@ -99,12 +105,13 @@ type (
 
 	// Store provides an interface which CRS uses to interact with the underlying database
 
-	Getter interface {
-		GetValue(name string, pos int) (any, error)
+	ValueGetter interface {
+		CountValues() map[string]uint
+		GetValue(string, uint) (any, error)
 	}
 
-	Setter interface {
-		SetValue(name string, pos int, value any) error
+	ValueSetter interface {
+		SetValue(string, uint, any) error
 	}
 
 	ConnectorFn func(ctx context.Context, dsn string, cc ...capabilities.Capability) (StoreConnection, error)
@@ -113,6 +120,23 @@ type (
 var (
 	registered = make(map[string]ConnectorFn)
 )
+
+func (pkv PKValues) CountValues() map[string]uint {
+	c := make(map[string]uint)
+	for k := range pkv {
+		c[k] = 1
+	}
+
+	return c
+}
+
+func (pkv PKValues) GetValue(key string, _ uint) (any, error) {
+	if val, has := pkv[key]; has {
+		return val, nil
+	} else {
+		return nil, fmt.Errorf("missing")
+	}
+}
 
 // Register registers a new connector for the given DSN schema
 //

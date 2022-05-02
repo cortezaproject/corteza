@@ -2,6 +2,7 @@ package data
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/minions"
@@ -26,6 +27,10 @@ type (
 
 		MultiValue bool
 
+		PrimaryKey     bool
+		SoftDeleteFlag bool
+		Sortable       bool
+
 		// Store describes the strategy the underlying storage system should
 		// apply to the underlying value
 		Store StoreCodec
@@ -36,6 +41,12 @@ type (
 	AttributeSet []*Attribute
 
 	AttributeType string
+
+	// temp
+	Type interface {
+		attributeType
+	}
+
 	attributeType interface {
 		Type() AttributeType
 	}
@@ -49,6 +60,7 @@ type (
 		// @todo need to figure out how to support when IDs
 		//       generated/provided by store (SERIAL/AUTOINCREMENT)
 		GeneratedByStore bool
+		Nullable         bool
 	}
 
 	// TypeRef handles ID (uint64) coding + reference info
@@ -59,6 +71,7 @@ type (
 	TypeRef struct {
 		RefModel     *Model
 		RefAttribute *Attribute
+		Nullable     bool
 	}
 
 	// TypeTimestamp handles timestamp coding
@@ -66,21 +79,32 @@ type (
 	// Encoding/decoding might be different depending on
 	//  1) underlying store (and dialect)
 	//  2) value codec (raw, json ...)
-	TypeTimestamp struct{}
+	TypeTimestamp struct {
+		Timezone  bool
+		Precision uint
+		Nullable  bool
+	}
 
 	// TypeTime handles time coding
 	//
 	// Encoding/decoding might be different depending on
 	//  1) underlying store (and dialect)
 	//  2) value codec (raw, json ...)
-	TypeTime struct{}
+	TypeTime struct {
+		Timezone  bool
+		Precision uint
+		Nullable  bool
+	}
 
 	// TypeDate handles date coding
 	//
 	// Encoding/decoding might be different depending on
 	//  1) underlying store (and dialect)
 	//  2) value codec (raw, json ...)
-	TypeDate struct{}
+	TypeDate struct {
+		//
+		Nullable bool
+	}
 
 	// TypeNumber handles number coding
 	//
@@ -90,6 +114,7 @@ type (
 	TypeNumber struct {
 		Precision uint
 		Scale     uint
+		Nullable  bool
 	}
 
 	// TypeText handles string coding
@@ -97,18 +122,28 @@ type (
 	// Encoding/decoding might be different depending on
 	//  1) underlying store (and dialect)
 	//  2) value codec (raw, json ...)
-	TypeText struct{ Length uint }
+	TypeText struct {
+		Length   uint
+		Nullable bool
+	}
 
 	// TypeBoolean
-	TypeBoolean struct{}
+	TypeBoolean struct {
+		//
+		Nullable bool
+	}
 
 	// TypeEnum
 	TypeEnum struct {
-		Values []string
+		Values   []string
+		Nullable bool
 	}
 
 	// TypeGeometry
-	TypeGeometry struct{}
+	TypeGeometry struct {
+		//
+		Nullable bool
+	}
 
 	// TypeJSON handles coding of arbitrary data into JSON structure
 	// NOT TO BE CONFUSED with encodedField
@@ -116,12 +151,21 @@ type (
 	// Encoding/decoding might be different depending on
 	//  1) underlying store (and dialect)
 	//  2) value codec (raw, json ...)
-	TypeJSON struct{}
+	TypeJSON struct {
+		//
+		Nullable bool
+	}
 
 	// TypeBlob store/return data as
-	TypeBlob struct{}
+	TypeBlob struct {
+		//
+		Nullable bool
+	}
 
-	TypeUUID struct{}
+	TypeUUID struct {
+		//
+		Nullable bool
+	}
 )
 
 const (
@@ -138,6 +182,19 @@ const (
 	typeJSON      AttributeType = "json"
 	typeBlob      AttributeType = "blob"
 	typeUUID      AttributeType = "uuid"
+)
+
+const (
+	SysID          = "ID"
+	SysNamespaceID = "namespaceID"
+	SysModuleID    = "moduleID"
+	SysCreatedAt   = "createdAt"
+	SysCreatedBy   = "createdBy"
+	SysUpdatedAt   = "updatedAt"
+	SysUpdatedBy   = "updatedBy"
+	SysDeletedAt   = "deletedAt"
+	SysDeletedBy   = "deletedBy"
+	SysOwnedBy     = "ownedBy"
 )
 
 // FindByIdent returns the model that matches the ident
@@ -178,7 +235,7 @@ func (m Model) HasAttribute(ident string) bool {
 
 func (aa AttributeSet) FindByIdent(ident string) *Attribute {
 	for _, a := range aa {
-		if a.Ident == ident {
+		if strings.ToLower(a.Ident) == strings.ToLower(ident) {
 			return a
 		}
 	}

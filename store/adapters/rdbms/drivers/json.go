@@ -1,4 +1,4 @@
-package rdbms
+package drivers
 
 // dialect.go
 //
@@ -30,46 +30,58 @@ func init() {
 //
 // SQLite
 // https://www.sqlite.org/json1.html#jptr
-func DeepIdentJSON(ident string, pp ...any) exp.LiteralExpression {
-	// strings.ReplaceAll(str, "'", `\'`)
-
+func DeepIdentJSON(ident exp.IdentifierExpression, pp ...any) exp.LiteralExpression {
 	var (
-		//sql  = "?" + strings.Repeat("->?", len(pp))
-		//args = []any{exp.ParseIdentifier(ident)}
-		sql = strconv.Quote(ident)
+		sql  strings.Builder
+		last = len(pp) - 1
 	)
 
-	for _, p := range pp {
+	sql.WriteString("?")
+
+	for i, p := range pp {
+		sql.WriteString("-")
+
+		sql.WriteString(">")
+		if i == last {
+			sql.WriteString(">")
+		}
+
 		switch path := p.(type) {
 		case string:
-			sql += "->'" + strings.ReplaceAll(path, "'", `\'`) + "'"
+			sql.WriteString("'")
+			sql.WriteString(strings.ReplaceAll(path, "'", `\'`))
+			sql.WriteString("'")
 		case int:
-			sql += fmt.Sprintf("->%d", path)
+			sql.WriteString(strconv.Itoa(path))
 		default:
 			panic("invalid type")
 		}
 	}
 
-	return exp.NewLiteralExpression(sql)
+	return exp.NewLiteralExpression(sql.String(), ident)
 }
 
 // JsonPath constructs json-path string from the slice of path parts.
 //
 func JsonPath(pp ...any) string {
 	var (
-		path = "$"
+		path strings.Builder
 	)
 
+	path.WriteString("$")
 	for i := range pp {
 		switch part := pp[i].(type) {
 		case string:
-			path = path + "." + part
+			path.WriteString(".")
+			path.WriteString(part)
 		case int:
-			path = path + fmt.Sprintf("[%d]", pp[i])
+			path.WriteString("[")
+			path.WriteString(strconv.Itoa(i))
+			path.WriteString("]")
 		default:
 			panic(fmt.Errorf("JsonPath expect string or int, got %T", i))
 		}
 	}
 
-	return path
+	return path.String()
 }

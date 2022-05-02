@@ -10,7 +10,6 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/instrumentation"
-	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -36,14 +35,13 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 		return
 	}
 
-	dialect := goqu.Dialect("postgres")
 	s := &rdbms.Store{
 		DB: db,
 
-		Dialect:      dialect,
+		Dialect:      goquDialectWrapper,
 		ErrorHandler: errorHandler,
 
-		SchemaAPI: &schema{schemaName: "public", dialect: dialect},
+		SchemaAPI: &schema{schemaName: "public"},
 	}
 
 	s.SetDefaults()

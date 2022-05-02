@@ -5,13 +5,12 @@ import (
 	"fmt"
 
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
-	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
 )
 
 type (
 	schema struct {
-		dialect goqu.DialectWrapper
+		dialect *dialect
 	}
 )
 

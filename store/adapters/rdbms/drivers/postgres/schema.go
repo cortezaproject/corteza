@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
-	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -14,7 +13,7 @@ import (
 type (
 	schema struct {
 		schemaName string
-		dialect    goqu.DialectWrapper
+		dialect    *dialect
 	}
 )
 
