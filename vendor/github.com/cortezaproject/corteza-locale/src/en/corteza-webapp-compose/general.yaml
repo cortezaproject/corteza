@@ -9,6 +9,7 @@ label:
   attributes: Attributes
   back: Back
   backWithoutSave: Back (without saving changes)
+  block: Block
   browse: Browse
   buttons: Buttons
   cancel: Cancel
