@@ -49,8 +49,8 @@ jobs:
         if: ${{ !env.ACT }}
         with:
           registry: ghcr.io
-          username: ${{ secrets.GH_USERNAME }}
-          password: ${{ secrets.GH_TOKEN }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - run: |
           docker build --build-arg "BUILD_VERSION=${{ env.BUILD_VERSION_REF }}" \
                        --tag ghcr.io/cortezaproject/corteza-server:${{ env.BUILD_VERSION_SHA }} \
