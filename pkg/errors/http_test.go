@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"syscall"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -22,6 +23,30 @@ func Example_writeHttpJSON() {
 
 	// Output:
 	// {"error":{"message":"dummy error"}}
+}
+
+func Example_writeHttpJSON_clientAbortedConnectionReset() {
+	writeHttpJSON(context.Background(), os.Stdout, syscall.ECONNRESET, true)
+
+	// Output:
+}
+
+func Example_writeHttpPlain_clientAbortedConnectionReset() {
+	writeHttpPlain(os.Stdout, syscall.ECONNRESET, true)
+
+	// Output:
+}
+
+func Example_writeHttpJSON_clientAbortedConnectionPipe() {
+	writeHttpJSON(context.Background(), os.Stdout, syscall.EPIPE, true)
+
+	// Output:
+}
+
+func Example_writeHttpPlain_clientAbortedConnectionPipe() {
+	writeHttpPlain(os.Stdout, syscall.EPIPE, true)
+
+	// Output:
 }
 
 func Example_writeHttpPlain_masked() {
