@@ -3,11 +3,13 @@ package errors
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"sort"
 	"strings"
+	"syscall"
 
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 )
@@ -76,6 +78,11 @@ func writeHttpPlain(w io.Writer, err error, mask bool) {
 		}
 	)
 
+	// handle client-aborted connections with no output
+	if errors.Is(err, syscall.EPIPE) || errors.Is(err, syscall.ECONNRESET) {
+		return
+	}
+
 	write("Error: ")
 	write(err.Error())
 	write("\n")
@@ -126,6 +133,11 @@ func writeHttpJSON(ctx context.Context, w io.Writer, err error, mask bool) {
 			Error interface{} `json:"error"`
 		}{}
 	)
+
+	// handle client-aborted connections with no output
+	if errors.Is(err, syscall.EPIPE) || errors.Is(err, syscall.ECONNRESET) {
+		return
+	}
 
 	if se, is := err.(interface{ Safe() bool }); !is || !se.Safe() || mask {
 		// trim error details when not debugging or error is not safe or maske
