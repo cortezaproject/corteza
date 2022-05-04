@@ -126,7 +126,7 @@ func (h *AuthHandlers) confirmEmail(req *request.AuthReq) (err error) {
 	// redirect to the right page
 	// not doing this here and relying on handler on subseq. request
 	// will cause alerts to be removed
-	if req.AuthUser == nil && req.AuthUser.User == nil {
+	if req.AuthUser == nil || req.AuthUser.User == nil {
 		req.RedirectTo = GetLinks().Login
 	} else {
 		req.RedirectTo = GetLinks().Profile
