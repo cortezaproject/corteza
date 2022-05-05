@@ -53,7 +53,7 @@ DEV_MAILHOG_SMTP_ADDR ?= 1025
 DEV_MAILHOG_HTTP_ADDR ?= 8025
 
 GIN_ARG_LADDR ?= localhost
-GIN_ARGS      ?= --laddr $(GIN_ARG_LADDR) --build cmd/corteza --immediate
+GIN_ARGS      ?= --laddr $(GIN_ARG_LADDR) --build cmd/corteza --immediate --bin build/gin-bin
 
 GIN_CORTEZA_ENV_FILE ?= .env
 GIN_CORTEZA_BIN_ARGS ?= --env-file $(GIN_CORTEZA_ENV_FILE)
