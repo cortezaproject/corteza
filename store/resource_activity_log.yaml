@@ -13,16 +13,6 @@ fields:
   - { field: Timestamp,       type: "time.Time" }
   - { field: Meta,            type: "types.JSONText" }
 
-lookups:
-  - fields: [ ID ]
-    export: true
-    description: |-
-      searches for corteza resource activity by ID
-      It returns corteza resource activity even if deleted
-
-search:
-  enableFilterCheckFunction: false
-
 rdbms:
   alias: ral
   table: resource_activity_log
@@ -31,18 +21,17 @@ rdbms:
     Timestamp: { column: ts }
     Meta:      { column: meta }
 
-create:
-  export: true
+search:
+  enablePaging: false
+  enableSorting: false
+  enableFilterCheckFunction: false
 
 update:
-  export: true
+  enable: false
 
 upsert:
-  export: true
+  enable: false
 
 delete:
-  export: true
-
-truncate:
-  export: true
+  enable: false
 
