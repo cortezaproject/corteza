@@ -19,7 +19,7 @@ var (
 func TestSPA(t *testing.T) {
 	testAssetsSub, err := fs.Sub(testAssets, "test_data/file_server")
 	if err != nil {
-		t.Errorf("failed to dive into subdirectory: %w", err)
+		t.Errorf("failed to dive into subdirectory: %v", err)
 	}
 
 	testDirectAssets := os.DirFS("test_data/file_server")
