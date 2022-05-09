@@ -192,7 +192,7 @@ func (m *ModuleField) encodeTranslationsExpressionValidatorValidatorIDError() (o
 
 func (f *ModuleField) encodeTranslationsMetaDescriptionView() (out locale.ResourceTranslationSet) {
 	out = locale.ResourceTranslationSet{}
-	if v := f.getOptionKey("description", "edit"); v != nil {
+	if v := f.getOptionKey("description", "view"); v != nil {
 		aux := cast.ToString(v)
 
 		out = append(out, &locale.ResourceTranslation{
@@ -206,7 +206,7 @@ func (f *ModuleField) encodeTranslationsMetaDescriptionView() (out locale.Resour
 
 func (f *ModuleField) encodeTranslationsMetaDescriptionEdit() (out locale.ResourceTranslationSet) {
 	out = locale.ResourceTranslationSet{}
-	if v := f.getOptionKey("description", "view"); v != nil {
+	if v := f.getOptionKey("description", "edit"); v != nil {
 		aux := cast.ToString(v)
 		out = append(out, &locale.ResourceTranslation{
 			Resource: f.ResourceTranslation(),
@@ -219,7 +219,7 @@ func (f *ModuleField) encodeTranslationsMetaDescriptionEdit() (out locale.Resour
 
 func (f *ModuleField) encodeTranslationsMetaHintView() (out locale.ResourceTranslationSet) {
 	out = locale.ResourceTranslationSet{}
-	if v := f.getOptionKey("hint", "edit"); v != nil {
+	if v := f.getOptionKey("hint", "view"); v != nil {
 		aux := cast.ToString(v)
 		out = append(out, &locale.ResourceTranslation{
 			Resource: f.ResourceTranslation(),
@@ -232,7 +232,7 @@ func (f *ModuleField) encodeTranslationsMetaHintView() (out locale.ResourceTrans
 
 func (f *ModuleField) encodeTranslationsMetaHintEdit() (out locale.ResourceTranslationSet) {
 	out = locale.ResourceTranslationSet{}
-	if v := f.getOptionKey("hint", "view"); v != nil {
+	if v := f.getOptionKey("hint", "edit"); v != nil {
 		aux := cast.ToString(v)
 		out = append(out, &locale.ResourceTranslation{
 			Resource: f.ResourceTranslation(),
