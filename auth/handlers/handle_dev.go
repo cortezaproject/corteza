@@ -5,11 +5,13 @@ package handlers
 // See auth/README.adoc for details on how this works
 
 import (
+	"fmt"
+	"net/http"
+	"os"
+
 	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/pkg/y7s"
 	"gopkg.in/yaml.v3"
-	"net/http"
-	"os"
 )
 
 type (
@@ -29,12 +31,16 @@ type (
 
 func (h *AuthHandlers) devView(req *request.AuthReq) (err error) {
 	req.Template = "template-dev.html.tpl"
-	req.Data["templates"], err = getScenes()
+	req.Data["templates"], err = getScenes(h.Opt.AssetsPath)
 	return
 }
 
 func (h *AuthHandlers) devSceneView(w http.ResponseWriter, r *http.Request) {
-	s, err := findScenario(r.URL.Query().Get("template"), r.URL.Query().Get("scene"))
+	s, err := findScenario(
+		h.Opt.AssetsPath,
+		r.URL.Query().Get("template"),
+		r.URL.Query().Get("scene"),
+	)
 
 	if err == nil && s != nil {
 		err = h.Templates.ExecuteTemplate(w, s.Template+".html.tpl", s.Data)
@@ -46,8 +52,8 @@ func (h *AuthHandlers) devSceneView(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func findScenario(template, scene string) (*devScene, error) {
-	templates, err := getScenes()
+func findScenario(assetsPath, template, scene string) (*devScene, error) {
+	templates, err := getScenes(assetsPath)
 	if err != nil {
 		return nil, err
 	}
@@ -69,8 +75,12 @@ func findScenario(template, scene string) (*devScene, error) {
 	return nil, nil
 }
 
-func getScenes() (devScenariosDoc, error) {
-	f, err := os.Open("auth/assets/templates/scenarios.yaml")
+func getScenes(assetsPath string) (devScenariosDoc, error) {
+	if assetsPath == "" {
+		return nil, fmt.Errorf("can not load scenarios without AUTH_ASSETS_PATH and exported assets")
+	}
+
+	f, err := os.Open(assetsPath + "/templates/scenarios.yaml")
 	if err != nil {
 		return nil, err
 	}
