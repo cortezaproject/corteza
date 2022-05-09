@@ -21,9 +21,11 @@ func TestDecode(t *testing.T) {
 		withHandler struct{}
 
 		dst struct {
-			S string `kv:"s"`
-			B bool   `kv:"b"`
-			N int    `kv:"n"`
+			S   string  `kv:"s"`
+			B   bool    `kv:"b"`
+			N   int     `kv:"n"`
+			NAS int     `kv:"numAsString"`
+			Pi  float32 `kv:"pi"`
 
 			NoKV string
 
@@ -53,6 +55,8 @@ func TestDecode(t *testing.T) {
 			"s":           types.JSONText(`"string"`),
 			"b":           types.JSONText("true"),
 			"n":           types.JSONText("42"),
+			"numAsString": types.JSONText(`"84"`),
+			"pi":          types.JSONText(`"3.14"`),
 			"sub.s":       types.JSONText(`"string"`),
 			"sub.b":       types.JSONText("true"),
 			"sub.bar":     nil,
@@ -73,9 +77,11 @@ func TestDecode(t *testing.T) {
 		}
 
 		eq = dst{
-			S: "string",
-			B: true,
-			N: 42,
+			S:   "string",
+			B:   true,
+			N:   42,
+			NAS: 84,
+			Pi:  3.14,
 
 			NoKV: "NO-SettingsKV-!",
 			Ptr:  &ptr,

@@ -7,9 +7,10 @@ package options
 //
 
 import (
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/pkg/version"
-	"time"
 )
 
 type (
