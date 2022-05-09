@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -102,7 +103,7 @@ func DecodeKV(kv SettingsKV, dst interface{}, pp ...string) (err error) {
 			if decode, ok := decodeMethod.Interface().(func(SettingsKV, string) error); !ok {
 				panic("invalid DecodeKV() function signature")
 			} else if err = decode(kv, key); err != nil {
-				return errors.Wrapf(err, "cannot decode settings for %q", key)
+				return fmt.Errorf("cannot decode settings for %q: %w", key, err)
 			} else {
 				continue
 			}
@@ -114,7 +115,7 @@ func DecodeKV(kv SettingsKV, dst interface{}, pp ...string) (err error) {
 			// It calls DecodeKV recursively
 			if structField.Kind() == reflect.Struct {
 				if err = DecodeKV(kv.Filter(key), structValue, key); err != nil {
-					return
+					return err
 				}
 
 				continue
@@ -132,7 +133,7 @@ func DecodeKV(kv SettingsKV, dst interface{}, pp ...string) (err error) {
 					mapValue := reflect.New(structField.Type().Elem())
 					err = val.Unmarshal(mapValue.Interface())
 					if err != nil {
-						return errors.Wrapf(err, "cannot decode settings for %q", key)
+						return fmt.Errorf("cannot decode JSON into map for key %q: %w", key, err)
 					}
 
 					structField.SetMapIndex(reflect.ValueOf(k), mapValue.Elem())
@@ -163,15 +164,30 @@ func DecodeKV(kv SettingsKV, dst interface{}, pp ...string) (err error) {
 			if err = val.Unmarshal(structField.Addr().Interface()); err != nil {
 				// Try to get numbers encoded as strings...
 				var tmp interface{}
-				if val.Unmarshal(&tmp) != nil {
-					return err
+				if err = val.Unmarshal(&tmp); err != nil {
+					return fmt.Errorf("could not decode JSON for key %q: %w", key, err)
 				}
 
-				switch cnv := tmp.(type) {
-				case string:
+				var cnv, is = tmp.(string)
+				if !is {
+					// give up
+					continue
+				}
+
+				switch structFType.Type.Kind() {
+				case reflect.Int, reflect.Int32, reflect.Int64:
+					if num, err := strconv.ParseInt(cnv, 10, 64); err == nil {
+						structField.SetInt(num)
+					}
+				case reflect.Uint, reflect.Uint32, reflect.Uint64:
 					if num, err := strconv.ParseUint(cnv, 10, 64); err == nil {
 						structField.SetUint(num)
 					}
+				case reflect.Float32, reflect.Float64:
+					if num, err := strconv.ParseFloat(cnv, 64); err == nil {
+						structField.SetFloat(num)
+					}
+
 				}
 			}
 		}
