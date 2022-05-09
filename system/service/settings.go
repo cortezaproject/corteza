@@ -161,7 +161,7 @@ func (svc *settings) updateCurrent(ctx context.Context, vv types.SettingValueSet
 
 	// update current settings with new values
 	if err = vv.KV().Decode(svc.current); err != nil {
-		return
+		return fmt.Errorf("could not decode settings: %v", err)
 	}
 
 	// push message over update chan so that we can notify all settings listeners
