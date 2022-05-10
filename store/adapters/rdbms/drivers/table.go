@@ -9,6 +9,7 @@ import (
 )
 
 type (
+	// TableCodec is an RDBMS representation of data.Model structure and its arguments
 	TableCodec interface {
 		Columns() []Column
 		Ident() exp.IdentifierExpression
@@ -18,7 +19,7 @@ type (
 		AttributeExpression(string) (exp.LiteralExpression, error)
 	}
 
-	//	translates values from and to native db types
+	// GenericTableCodec is a generic implementation of TableCodec
 	GenericTableCodec struct {
 		// table identifier (name)
 		ident exp.IdentifierExpression
