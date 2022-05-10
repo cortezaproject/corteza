@@ -58,6 +58,11 @@ func sqlFunctionHandler(f ql.Function) (ql.ASTNode, error) {
 
 func translateDateFormatParams(format string) string {
 	return strings.NewReplacer(
+		// @todo Doing ...%dT%H... (for iso tomestamp) pgsql doesn't format it correctly
+		// so I'm covering this edgecase.
+		// We should fix this properly when we redo record storage.
+		`%dT%H`, `DD"T"HH24`,
+
 		`%a`, `Dy`,
 		`%b`, `Mon`,
 		`%c`, `FMMM`,
