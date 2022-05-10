@@ -9,6 +9,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/crs"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/data"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ql"
 	"github.com/doug-martin/goqu/v9"
@@ -26,25 +27,6 @@ type (
 		sqlx.ExecerContext
 	}
 
-	attrExpression interface {
-		exp.Comparable
-		exp.Inable
-		exp.Isable
-	}
-
-	attributeType interface {
-		Type() data.AttributeType
-	}
-
-	column struct {
-		ident      string
-		columnType attributeType
-		attributes []*data.Attribute
-
-		encode func(drivers.Dialect, []*data.Attribute, crs.ValueGetter) (any, error)
-		decode func(drivers.Dialect, []*data.Attribute, any, crs.ValueSetter) error
-	}
-
 	queryParser interface {
 		Parse(string) (exp.Expression, error)
 	}
@@ -57,22 +39,6 @@ type (
 		dialect     drivers.Dialect
 
 		table drivers.TableCodec
-
-		// ID column identifier expression
-		//sysColumnID       exp.IdentifierExpression
-		//sysPrimaryKeyAttr string
-
-		// optional record fields/columns/expressions
-		//sysExprNamespaceID attrExpression
-		//sysSoftDeleteAttr  string
-		//sysExprModuleID    attrExpression
-		//sysModuleAttr      string
-		//sysExprDeletedAt   attrExpression
-		//sysNamespaceAttr   string
-
-		// all columns we're selecting from when
-		// we're selecting from all columns
-		//columns []*column
 	}
 )
 
@@ -168,6 +134,10 @@ func (d *model) Search(f types.RecordFilter) (i *iterator, err error) {
 			continue
 		}
 
+		if !c.Attribute().PrimaryKey && !c.Attribute().Sortable {
+			return nil, fmt.Errorf("can not sort by %q; not sortable, not primary key", attrIdent)
+		}
+
 		// Make sure results are always sorted at least by primary key
 		f.AppendOrderBy(attrIdent, f.Sort.LastDescending())
 	}
@@ -255,20 +225,36 @@ func (d *model) searchSql(f types.RecordFilter) *goqu.SelectDataset {
 		//}
 	}
 
-	{
-		// If model supports soft-deletion (= delete-at attribute is present)
-		// we need to make sure we respect it
-		//if d.sysExprDeletedAt != nil {
-		//	switch f.Deleted {
-		//	case filter.StateExclusive:
-		//		// only not-null values
-		//		cnd = append(cnd, d.sysExprDeletedAt.IsNotNull())
-		//
-		//	case filter.StateExcluded:
-		//		// exclude all non-null values
-		//		cnd = append(cnd, d.sysExprDeletedAt.IsNull())
-		//	}
-		//}
+	if f.Deleted != filter.StateInclusive {
+		//If model supports soft-deletion (= delete-at attribute is present)
+		//we need to make sure we respect it
+		var attrIdent exp.LiteralExpression
+		for _, attr := range d.model.Attributes {
+			if !attr.SoftDeleteFlag {
+				continue
+			}
+
+			if !attr.Type.IsNullable() {
+				// @todo this must be checked much earlier
+				return base.SetError(fmt.Errorf("can not use non-nullable attribute %q soft-deleting", attr.Ident))
+			}
+
+			attrIdent, err = d.table.AttributeExpression(attr.Ident)
+			if err != nil {
+				return base.SetError(err)
+			}
+
+			switch f.Deleted {
+			case filter.StateExclusive:
+				// only not-null values
+				cnd = append(cnd, attrIdent.IsNotNull())
+
+			case filter.StateExcluded:
+				// exclude all non-null values
+				cnd = append(cnd, attrIdent.IsNull())
+			}
+
+		}
 	}
 
 	if len(strings.TrimSpace(f.Query)) > 0 {

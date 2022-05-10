@@ -27,174 +27,25 @@ type (
 
 		MultiValue bool
 
-		PrimaryKey     bool
+		PrimaryKey bool
+
+		// If attribute has SoftDeleteFlag=true we use it
+		// when filtering out deleted items
 		SoftDeleteFlag bool
-		Sortable       bool
+
+		// Is column sortable?
+		// Note: all primary keys are sortable
+		Sortable bool
 
 		// Store describes the strategy the underlying storage system should
 		// apply to the underlying value
 		Store StoreCodec
 		// Type describes what the value represents and how it should be
 		// encoded/decoded
-		Type attributeType
+		Type Type
 	}
+
 	AttributeSet []*Attribute
-
-	AttributeType string
-
-	// temp
-	Type interface {
-		attributeType
-	}
-
-	attributeType interface {
-		Type() AttributeType
-	}
-
-	// TypeID handles ID (uint64) coding
-	//
-	// Encoding/decoding might be different depending on
-	//  1) underlying store (and dialect)
-	//  2) value codec (raw, json ...)
-	TypeID struct {
-		// @todo need to figure out how to support when IDs
-		//       generated/provided by store (SERIAL/AUTOINCREMENT)
-		GeneratedByStore bool
-		Nullable         bool
-	}
-
-	// TypeRef handles ID (uint64) coding + reference info
-	//
-	// Encoding/decoding might be different depending on
-	//  1) underlying store (and dialect)
-	//  2) value codec (raw, json ...)
-	TypeRef struct {
-		RefModel     *Model
-		RefAttribute *Attribute
-		Nullable     bool
-	}
-
-	// TypeTimestamp handles timestamp coding
-	//
-	// Encoding/decoding might be different depending on
-	//  1) underlying store (and dialect)
-	//  2) value codec (raw, json ...)
-	TypeTimestamp struct {
-		Timezone  bool
-		Precision uint
-		Nullable  bool
-	}
-
-	// TypeTime handles time coding
-	//
-	// Encoding/decoding might be different depending on
-	//  1) underlying store (and dialect)
-	//  2) value codec (raw, json ...)
-	TypeTime struct {
-		Timezone  bool
-		Precision uint
-		Nullable  bool
-	}
-
-	// TypeDate handles date coding
-	//
-	// Encoding/decoding might be different depending on
-	//  1) underlying store (and dialect)
-	//  2) value codec (raw, json ...)
-	TypeDate struct {
-		//
-		Nullable bool
-	}
-
-	// TypeNumber handles number coding
-	//
-	// Encoding/decoding might be different depending on
-	//  1) underlying store (and dialect)
-	//  2) value codec (raw, json ...)
-	TypeNumber struct {
-		Precision uint
-		Scale     uint
-		Nullable  bool
-	}
-
-	// TypeText handles string coding
-	//
-	// Encoding/decoding might be different depending on
-	//  1) underlying store (and dialect)
-	//  2) value codec (raw, json ...)
-	TypeText struct {
-		Length   uint
-		Nullable bool
-	}
-
-	// TypeBoolean
-	TypeBoolean struct {
-		//
-		Nullable bool
-	}
-
-	// TypeEnum
-	TypeEnum struct {
-		Values   []string
-		Nullable bool
-	}
-
-	// TypeGeometry
-	TypeGeometry struct {
-		//
-		Nullable bool
-	}
-
-	// TypeJSON handles coding of arbitrary data into JSON structure
-	// NOT TO BE CONFUSED with encodedField
-	//
-	// Encoding/decoding might be different depending on
-	//  1) underlying store (and dialect)
-	//  2) value codec (raw, json ...)
-	TypeJSON struct {
-		//
-		Nullable bool
-	}
-
-	// TypeBlob store/return data as
-	TypeBlob struct {
-		//
-		Nullable bool
-	}
-
-	TypeUUID struct {
-		//
-		Nullable bool
-	}
-)
-
-const (
-	typeID        AttributeType = "id"
-	typeRef       AttributeType = "ref"
-	typeTimestamp AttributeType = "timestamp"
-	typeTime      AttributeType = "time"
-	typeDate      AttributeType = "date"
-	typeNumber    AttributeType = "number"
-	typeText      AttributeType = "text"
-	typeBoolean   AttributeType = "boolean"
-	typeEnum      AttributeType = "enum"
-	typeGeometry  AttributeType = "geometry"
-	typeJSON      AttributeType = "json"
-	typeBlob      AttributeType = "blob"
-	typeUUID      AttributeType = "uuid"
-)
-
-const (
-	SysID          = "ID"
-	SysNamespaceID = "namespaceID"
-	SysModuleID    = "moduleID"
-	SysCreatedAt   = "createdAt"
-	SysCreatedBy   = "createdBy"
-	SysUpdatedAt   = "updatedAt"
-	SysUpdatedBy   = "updatedBy"
-	SysDeletedAt   = "deletedAt"
-	SysDeletedBy   = "deletedBy"
-	SysOwnedBy     = "ownedBy"
 )
 
 // FindByIdent returns the model that matches the ident
@@ -217,7 +68,7 @@ func (aa ModelSet) FilterByReferenced(b *Model) (out ModelSet) {
 
 		for _, aAttribute := range aModel.Attributes {
 			switch casted := aAttribute.Type.(type) {
-			case TypeRef:
+			case *TypeRef:
 				if casted.RefModel.Ident == b.Ident {
 					out = append(out, aModel)
 				}
@@ -270,78 +121,4 @@ func (m Model) Validate() error {
 	}
 
 	return nil
-}
-
-//// AttributeGroups returns attributes grouped by ident
-//func (m Model) AttributeGroups() (gg map[string][]*Attribute) {
-//	gg = make(map[string][]*Attribute)
-//
-//	for _, attr := range m.Attributes {
-//		// @todo properly check attribute integrity:
-//		//    is embeddable
-//		//    only same types use the same ident
-//		if gIdent, embeddable := attr.Store.Embeddable(); !embeddable && len(gg[attr.Ident]) > 0 {
-//			panic("attribute " + attr.Ident + " is not embeddable")
-//		} else if len(gIdent) > 0 {
-//			gg[gIdent] = append(gg[gIdent], attr)
-//		} else {
-//			gg[attr.Ident] = append(gg[attr.Ident], attr)
-//		}
-//	}
-//
-//	return
-//}
-
-// Receivers to conform to the interface
-
-func (t TypeID) Type() AttributeType {
-	return typeID
-}
-
-func (t TypeRef) Type() AttributeType {
-	return typeRef
-}
-
-func (t TypeTimestamp) Type() AttributeType {
-	return typeTimestamp
-}
-
-func (t TypeTime) Type() AttributeType {
-	return typeTime
-}
-
-func (t TypeDate) Type() AttributeType {
-	return typeDate
-}
-
-func (t TypeNumber) Type() AttributeType {
-	return typeNumber
-}
-
-func (t TypeText) Type() AttributeType {
-	return typeText
-}
-
-func (t TypeBoolean) Type() AttributeType {
-	return typeBoolean
-}
-
-func (t TypeEnum) Type() AttributeType {
-	return typeEnum
-}
-
-func (t TypeGeometry) Type() AttributeType {
-	return typeGeometry
-}
-
-func (t TypeJSON) Type() AttributeType {
-	return typeJSON
-}
-
-func (t TypeBlob) Type() AttributeType {
-	return typeBlob
-}
-
-func (t TypeUUID) Type() AttributeType {
-	return typeUUID
 }

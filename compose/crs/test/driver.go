@@ -30,9 +30,9 @@ func RecordCodec(t *testing.T, d crs.StoreConnection) {
 		m = &data.Model{
 			Ident: "crs_test_codec",
 			Attributes: data.AttributeSet{
-				&data.Attribute{Ident: data.SysID, Type: &data.TypeID{}, Store: &data.StoreCodecAlias{Ident: "id"}, PrimaryKey: true},
-				&data.Attribute{Ident: data.SysCreatedAt, Type: &data.TypeTimestamp{}, Store: &data.StoreCodecAlias{Ident: "created_at"}},
-				&data.Attribute{Ident: data.SysUpdatedAt, Type: &data.TypeTimestamp{}, Store: &data.StoreCodecAlias{Ident: "updated_at"}},
+				&data.Attribute{Ident: "ID", Type: &data.TypeID{}, Store: &data.StoreCodecAlias{Ident: "id"}, PrimaryKey: true},
+				&data.Attribute{Ident: "createdAt", Type: &data.TypeTimestamp{}, Store: &data.StoreCodecAlias{Ident: "created_at"}},
+				&data.Attribute{Ident: "updatedAt", Type: &data.TypeTimestamp{}, Store: &data.StoreCodecAlias{Ident: "updated_at"}},
 
 				&data.Attribute{Ident: "vID", Type: &data.TypeID{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
 				&data.Attribute{Ident: "vRef", Type: &data.TypeRef{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
@@ -149,9 +149,9 @@ func RecordSearch(t *testing.T, d crs.StoreConnection) {
 		m = &data.Model{
 			Ident: "crs_test_search",
 			Attributes: data.AttributeSet{
-				&data.Attribute{Ident: data.SysID, Type: &data.TypeID{}, Store: &data.StoreCodecAlias{Ident: "id"}, PrimaryKey: true},
-				&data.Attribute{Ident: data.SysCreatedAt, Type: &data.TypeTimestamp{}, Store: &data.StoreCodecAlias{Ident: "created_at"}},
-				&data.Attribute{Ident: data.SysUpdatedAt, Type: &data.TypeTimestamp{}, Store: &data.StoreCodecAlias{Ident: "updated_at"}},
+				&data.Attribute{Ident: "ID", Type: &data.TypeID{}, Store: &data.StoreCodecAlias{Ident: "id"}, PrimaryKey: true},
+				&data.Attribute{Ident: "createdAt", Type: &data.TypeTimestamp{}, Store: &data.StoreCodecAlias{Ident: "created_at"}},
+				&data.Attribute{Ident: "updatedAt", Type: &data.TypeTimestamp{}, Store: &data.StoreCodecAlias{Ident: "updated_at"}},
 
 				&data.Attribute{Ident: "v_string", Type: &data.TypeText{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
 				&data.Attribute{Ident: "v_number", Type: &data.TypeNumber{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
