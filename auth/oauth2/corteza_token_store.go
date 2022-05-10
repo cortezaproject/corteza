@@ -136,10 +136,6 @@ func (c tokenStore) GetByRefresh(ctx context.Context, refresh string) (oauth2.To
 		return nil, fmt.Errorf("failed to get refresh token: %w", err)
 	}
 
-	if t.ExpiresAt.Before(*now()) {
-		//return nil, oauth2errors.ErrExpiredRefreshToken
-	}
-
 	return internal, t.Data.Unmarshal(internal)
 }
 

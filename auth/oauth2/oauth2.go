@@ -34,6 +34,13 @@ func NewManager(opt options.AuthOpt, log *zap.Logger, cs oauth2.ClientStore, ts 
 	// token store
 	manager.MapTokenStorage(ts)
 	manager.MapClientStorage(cs)
+	// Change the default config for it to update refresh token timestamps
+	// else the refresh token timestamp remains the same
+	//
+	// @note do this so we don't change the default `manage` package var
+	rcfg := *manage.DefaultRefreshTokenCfg
+	rcfg.IsResetRefreshTime = true
+	manager.SetRefreshTokenCfg(&rcfg)
 
 	manager.SetValidateURIHandler(func(baseURI, redirectURI string) (err error) {
 		if baseURI == "" {
