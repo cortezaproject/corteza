@@ -11,14 +11,14 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
-	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
 )
 
 type (
-	resourceIndex struct {
+	resIndex struct {
 		fields         map[uint64]*composeTypes.ModuleField
 		modules        map[uint64]*composeTypes.Module
+		records        map[uint64]*composeTypes.Record
 		charts         map[uint64]*composeTypes.Chart
 		pages          map[uint64]*composeTypes.Page
 		exposedModules map[uint64]*federationTypes.ExposedModule
@@ -26,17 +26,17 @@ type (
 	}
 )
 
-// MigrateOperations creates system roles
-func migratePre202109RbacRules(ctx context.Context, log *zap.Logger, s store.Storer) error {
+// MigrateOperations
+func migratePost202203RbacRules(ctx context.Context, log *zap.Logger, s store.Storer) error {
 	return store.Tx(ctx, s, func(ctx context.Context, s store.Storer) error {
 		rr, _, err := store.SearchRbacRules(ctx, s, rbac.RuleFilter{})
 		if err != nil {
 			return err
 		}
 
-		log.Info("migrating RBAC rules to new format", zap.Int("rules", len(rr)))
+		log.Info("migrating RBAC resource rules to proper format", zap.Int("rules", len(rr)))
 
-		rx, err := preloadResourceIndex(ctx, s)
+		rx, err := preloadRbacResourceIndex(ctx, s)
 		if err != nil {
 			return err
 		}
@@ -49,7 +49,7 @@ func migratePre202109RbacRules(ctx context.Context, log *zap.Logger, s store.Sto
 		for _, r := range rr {
 			var (
 				cr     = *r
-				action = migratePre202109RbacRule(r, rx)
+				action = migratePost202203RbacRule(r, rx)
 			)
 
 			if action != 0 {
@@ -85,96 +85,117 @@ func migratePre202109RbacRules(ctx context.Context, log *zap.Logger, s store.Sto
 //  0 - no action
 // -1 - remove
 //  1 - update
-func migratePre202109RbacRule(r *rbac.Rule, rx *resourceIndex) (op int) {
+func migratePost202203RbacRule(r *rbac.Rule, rx *resIndex) (op int) {
 	const (
-		nsSep = "::"
-		nsDef = "corteza"
+		wildCard = "*"
 	)
-
-	if strings.Contains(r.Resource, nsSep) {
-		return
-	}
 
 	if r.Resource == "" {
 		return -1
 	}
 
-	// split old format
-	parts := strings.SplitN(r.Resource, ":", 3)
+	// split the IDs
+	parts := strings.SplitN(r.Resource, "/", 4)
+	parts = parts[1:]
 
-	switch {
-	case parts[0] == "messaging":
-		return -1
-	case len(parts) > 1 && parts[1] == "automation-script":
-		return -1
-	case len(parts) == 1:
-		r.Resource = nsDef + nsSep + strings.Join(parts[:1], ":")
-	default:
-		r.Resource = nsDef + nsSep + strings.Join(parts[:2], ":")
+	isWildCard := func(s string) bool { return strings.Contains(s, wildCard) }
+	parseUint := func(s string) uint64 {
+		ID, _ := strconv.ParseUint(s, 10, 64)
+		return ID
 	}
+	validID := func(i uint64) bool { return i > 0 }
 
-	op = 1
-
-	rType := rbac.ResourceType(r.Resource)
-	switch {
-	case rType == systemTypes.UserResourceType && strings.HasPrefix(r.Operation, "unmask."):
-		// flipping terms in user unmask operations
-		r.Operation = strings.TrimPrefix(r.Operation, "unmask.") + ".unmask"
-
-	case rType == "corteza::federation:module":
-		// fed. module resource was split into two resources - exposed & shared
-		if r.Operation == "manage" {
-			rType = federationTypes.ExposedModuleResourceType
-		} else if r.Operation == "map" {
-			rType = federationTypes.SharedModuleResourceType
-		} else {
-			return -1
+	invalid := false
+	for i, p := range parts {
+		if i == 0 || len(p) == 0 {
+			continue
 		}
 
-	case rType == composeTypes.ModuleResourceType && strings.HasPrefix(r.Operation, "record.") && r.Operation != "record.create":
-		// change resource type from module to record on record read, delete, update operations & remove the prefix
-		rType = composeTypes.RecordResourceType
-		r.Operation = strings.TrimPrefix(r.Operation, "record.")
+		if !invalid {
+			invalid = isWildCard(parts[i-1]) && !isWildCard(p)
+		}
 	}
 
-	if len(parts) == 3 {
-		var ID, _ = strconv.ParseUint(parts[2], 10, 64)
+	if invalid {
+		op = 1
 
+		partsLen := len(parts)
+		ID := uint64(0)
 		p1 := uint64(0)
 		p2 := uint64(0)
 
-		// exceptions with nested references
+		if partsLen == 1 {
+			ID = parseUint(parts[0])
+		} else if partsLen == 2 {
+			p1 = parseUint(parts[0])
+			ID = parseUint(parts[1])
+		} else if partsLen == 3 {
+			p1 = parseUint(parts[0])
+			p2 = parseUint(parts[1])
+			ID = parseUint(parts[2])
+		}
+
+		rType := rbac.ResourceType(r.Resource)
 		switch rType {
 		case composeTypes.ModuleFieldResourceType:
 			if ID > 0 {
 				if f, ok := rx.fields[ID]; ok {
-					p1 = f.NamespaceID
 					p2 = f.ModuleID
+					if m, ok := rx.modules[p2]; ok {
+						p1 = m.NamespaceID
+						if !validID(p1) {
+							return -1
+						}
+					} else {
+						return -1
+					}
+				} else {
+					return -1
 				}
 			}
+
 			r.Resource = composeTypes.ModuleFieldRbacResource(p1, p2, ID)
 
 		case composeTypes.ModuleResourceType:
 			if ID > 0 {
 				if r, ok := rx.modules[ID]; ok {
 					p1 = r.NamespaceID
+					if !validID(p1) {
+						return -1
+					}
+				} else {
+					return -1
 				}
 			}
 			r.Resource = composeTypes.ModuleRbacResource(p1, ID)
 
-		// ID belongs to module!
 		case composeTypes.RecordResourceType:
 			if ID > 0 {
-				if r, ok := rx.modules[ID]; ok {
-					p1 = r.NamespaceID
+				if r, ok := rx.records[ID]; ok {
+					p2 = r.ModuleID
+					if m, ok := rx.modules[p2]; ok {
+						p1 = m.NamespaceID
+						if !validID(p1) {
+							return -1
+						}
+					} else {
+						return -1
+					}
+				} else {
+					return -1
 				}
 			}
-			r.Resource = composeTypes.RecordRbacResource(p1, ID, 0)
+			r.Resource = composeTypes.RecordRbacResource(p1, p2, ID)
 
 		case composeTypes.ChartResourceType:
 			if ID > 0 {
 				if r, ok := rx.charts[ID]; ok {
 					p1 = r.NamespaceID
+					if !validID(p1) {
+						return -1
+					}
+				} else {
+					return -1
 				}
 			}
 			r.Resource = composeTypes.ChartRbacResource(p1, ID)
@@ -183,6 +204,11 @@ func migratePre202109RbacRule(r *rbac.Rule, rx *resourceIndex) (op int) {
 			if ID > 0 {
 				if r, ok := rx.pages[ID]; ok {
 					p1 = r.NamespaceID
+					if !validID(p1) {
+						return -1
+					}
+				} else {
+					return -1
 				}
 			}
 			r.Resource = composeTypes.PageRbacResource(p1, ID)
@@ -191,6 +217,11 @@ func migratePre202109RbacRule(r *rbac.Rule, rx *resourceIndex) (op int) {
 			if ID > 0 {
 				if r, ok := rx.exposedModules[ID]; ok {
 					p1 = r.NodeID
+					if !validID(p1) {
+						return -1
+					}
+				} else {
+					return -1
 				}
 			}
 			r.Resource = federationTypes.ExposedModuleRbacResource(p1, ID)
@@ -199,6 +230,11 @@ func migratePre202109RbacRule(r *rbac.Rule, rx *resourceIndex) (op int) {
 			if ID > 0 {
 				if r, ok := rx.sharedModules[ID]; ok {
 					p1 = r.NodeID
+					if !validID(p1) {
+						return -1
+					}
+				} else {
+					return -1
 				}
 			}
 			r.Resource = federationTypes.SharedModuleRbacResource(p1, ID)
@@ -208,20 +244,16 @@ func migratePre202109RbacRule(r *rbac.Rule, rx *resourceIndex) (op int) {
 				if ID == 0 {
 					return "*"
 				}
-				return parts[2]
+				return strconv.FormatUint(ID, 10)
 			}()
 		}
-
-	} else {
-		r.Resource = rType + "/"
 	}
-
 	return
 }
 
-// helper to preloadresources that may be used when properly constructing rules
-func preloadResourceIndex(ctx context.Context, s store.Storer) (*resourceIndex, error) {
-	rx := &resourceIndex{}
+// helper to preload resources that may be used when properly constructing rules
+func preloadRbacResourceIndex(ctx context.Context, s store.Storer) (*resIndex, error) {
+	rx := &resIndex{}
 
 	rx.modules = make(map[uint64]*composeTypes.Module)
 	modules, _, err := store.SearchComposeModules(ctx, s, composeTypes.ModuleFilter{
@@ -235,6 +267,17 @@ func preloadResourceIndex(ctx context.Context, s store.Storer) (*resourceIndex, 
 	for _, r := range modules {
 		rx.modules[r.ID] = r
 		modIDs = append(modIDs, r.ID)
+
+		rx.records = make(map[uint64]*composeTypes.Record)
+		records, _, err := store.SearchComposeRecords(ctx, s, r, composeTypes.RecordFilter{
+			Deleted: filter.StateInclusive,
+		})
+		if err != nil {
+			return nil, err
+		}
+		for _, rec := range records {
+			rx.records[rec.ID] = rec
+		}
 	}
 
 	if len(modIDs) > 0 {
