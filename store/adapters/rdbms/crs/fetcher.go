@@ -20,8 +20,9 @@ type (
 		err error
 
 		query   *goqu.SelectDataset
-		sorting filter.Sorting
-		paging  filter.Paging
+		sorting filter.SortExprSet
+		cursor  *filter.PagingCursor
+		limit   uint
 
 		// @todo should filter also be here?
 
@@ -51,9 +52,9 @@ func (i *iterator) More(max uint, last crs.ValueGetter) (err error) {
 		i.rows = nil
 	}
 
-	i.paging.Limit = max
+	i.limit = max
 	if last != nil {
-		if i.paging.PageCursor, err = i.collectCursorValues(last); err != nil {
+		if i.cursor, err = i.collectCursorValues(last); err != nil {
 			return fmt.Errorf("could not collect cursor values: %w", err)
 		}
 	}
@@ -86,7 +87,7 @@ func (i *iterator) fetch(ctx context.Context) (_ *sql.Rows, err error) {
 	}
 
 	var (
-		cur = i.paging.PageCursor
+		cur = i.cursor
 
 		tmp  exp.Expression
 		sql  string
@@ -95,12 +96,12 @@ func (i *iterator) fetch(ctx context.Context) (_ *sql.Rows, err error) {
 		// contains query with ORDER BY and WHERE clauses
 		query = i.query
 
-		sort = i.sorting.Sort.Clone()
+		sort = i.sorting.Clone()
 	)
 
 	{
 		// Apply limit from the filter
-		query = query.Limit(i.paging.GetLimit())
+		query = query.Limit(i.limit)
 
 		if cur != nil {
 			// @todo this needs to work with embedded attributes (non physical columns) as well!
@@ -129,7 +130,7 @@ func (i *iterator) fetch(ctx context.Context) (_ *sql.Rows, err error) {
 			query = query.Where(tmp)
 
 			if cur.IsROrder() {
-				if i.paging.Limit > 0 {
+				if i.limit > 0 {
 					// When paging with the reverse cursor AND limit set
 					// we need to do a do sub-query reverse sort to ensure
 					// that we only select the rows that make sense
@@ -222,7 +223,7 @@ func (i *iterator) BackCursor(r crs.ValueGetter) (cur *filter.PagingCursor, err 
 
 	// if this cursor is used, we need to flip the conditional operator
 	// from less-then to greater-then
-	cur.LThen = i.sorting.Sort.Reversed()
+	cur.LThen = i.sorting.Reversed()
 	return
 }
 
@@ -232,7 +233,7 @@ func (i *iterator) ForwardCursor(r crs.ValueGetter) (*filter.PagingCursor, error
 
 func (i *iterator) collectCursorValues(r crs.ValueGetter) (_ *filter.PagingCursor, err error) {
 	var (
-		cur = &filter.PagingCursor{LThen: i.sorting.Sort.Reversed()}
+		cur = &filter.PagingCursor{LThen: i.sorting.Reversed()}
 
 		// @todo this will not work when using multiple primary keys!
 		pkUsed bool
@@ -252,7 +253,7 @@ func (i *iterator) collectCursorValues(r crs.ValueGetter) (_ *filter.PagingCurso
 		return nil, fmt.Errorf("can not construct cursor without primary key attributes")
 	}
 
-	for _, c := range i.sorting.Sort {
+	for _, c := range i.sorting {
 		if pKeys[c.Column] {
 			pkUsed = true
 		}

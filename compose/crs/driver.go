@@ -49,7 +49,7 @@ type (
 
 		LookupRecord(context.Context, *data.Model, ValueGetter, ValueSetter) error
 
-		SearchRecords(context.Context, *data.Model, any) (Iterator, error)
+		SearchRecords(context.Context, *data.Model, filter.Filter) (Iterator, error)
 
 		// ---
 

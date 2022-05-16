@@ -33,13 +33,17 @@ type (
 		// when filtering out deleted items
 		SoftDeleteFlag bool
 
-		// Is column sortable?
+		// Is attribute sortable?
 		// Note: all primary keys are sortable
 		Sortable bool
+
+		// Can attribute be used in query expression?
+		Filterable bool
 
 		// Store describes the strategy the underlying storage system should
 		// apply to the underlying value
 		Store StoreCodec
+
 		// Type describes what the value represents and how it should be
 		// encoded/decoded
 		Type Type

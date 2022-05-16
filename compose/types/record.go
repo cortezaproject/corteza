@@ -73,6 +73,11 @@ type (
 		filter.Sorting
 		filter.Paging
 	}
+
+	// wrapping struct for recordFilter that
+	recordFilter struct {
+		RecordFilter
+	}
 )
 
 const (
@@ -80,6 +85,38 @@ const (
 	OperationTypeUpdate OperationType = "update"
 	OperationTypeDelete OperationType = "delete"
 )
+
+// ToFilter wraps RecordFilter with struct that
+// imlements filter.Filter interface
+func (f RecordFilter) ToFilter() filter.Filter {
+	return &recordFilter{f}
+}
+
+func (f recordFilter) Constraints() map[string][]any {
+	c := make(map[string][]any)
+
+	for _, id := range f.LabeledIDs {
+		c["id"] = append(c["id"], id)
+	}
+
+	if f.ModuleID > 0 {
+		c["moduleId"] = []any{f.ModuleID}
+	}
+
+	if f.ModuleID > 0 {
+		c["namespaceId"] = []any{f.ModuleID}
+	}
+
+	return c
+}
+
+func (f recordFilter) Expression() string           { return f.Query }
+func (f recordFilter) OrderBy() filter.SortExprSet  { return f.Sort }
+func (f recordFilter) Limit() uint                  { return f.Paging.Limit }
+func (f recordFilter) Cursor() *filter.PagingCursor { return f.Paging.PageCursor }
+func (f recordFilter) StateConstraints() map[string]filter.State {
+	return map[string]filter.State{"deletedAt": f.Deleted}
+}
 
 // UserIDs returns a slice of user IDs from all items in the set
 func (set RecordSet) UserIDs() (IDs []uint64) {

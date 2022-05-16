@@ -220,7 +220,7 @@ func RecordSearch(t *testing.T, d crs.StoreConnection) {
 				req = require.New(t)
 			)
 
-			i, err := d.SearchRecords(ctx, m, c.f)
+			i, err := d.SearchRecords(ctx, m, c.f.ToFilter())
 			req.NoError(err)
 
 			rr, err := drain(ctx, i)
@@ -240,7 +240,7 @@ func RecordSearch(t *testing.T, d crs.StoreConnection) {
 				f.PageCursor = cur
 				f.Limit = lim
 				req.NoError(f.Sort.Set(orderBy))
-				i, err := d.SearchRecords(ctx, m, f)
+				i, err := d.SearchRecords(ctx, m, f.ToFilter())
 				req.NoError(err)
 				req.NoError(i.Err())
 
