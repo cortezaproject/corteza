@@ -87,11 +87,10 @@ func (svc *queue) SearchQueues(ctx context.Context, ff mt.QueueFilter) (l []mt.Q
 
 func makeFilter(ff *mt.QueueFilter) (f *types.QueueFilter) {
 	return &types.QueueFilter{
-		Queue:    ff.Queue,
-		Consumer: ff.Consumer,
-		Deleted:  ff.Deleted,
-		Sorting:  ff.Sorting,
-		Paging:   ff.Paging,
+		Query:   ff.Query,
+		Deleted: ff.Deleted,
+		Sorting: ff.Sorting,
+		Paging:  ff.Paging,
 	}
 }
 

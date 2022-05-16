@@ -72,7 +72,7 @@ func testApigwRoutes(t *testing.T, s store.ApigwRoutes) {
 			new,
 		))
 
-		set, _, err := s.SearchApigwRoutes(ctx, types.ApigwRouteFilter{})
+		set, _, err := s.SearchApigwRoutes(ctx, types.ApigwRouteFilter{Query: "fo"})
 		req.NoError(err)
 		req.Len(set, 1)
 	})
