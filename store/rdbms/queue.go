@@ -12,8 +12,8 @@ func (s Store) convertQueueFilter(f types.QueueFilter) (query squirrel.SelectBui
 	query = s.queuesSelectBuilder()
 	query = filter.StateCondition(query, "mqs.deleted_at", f.Deleted)
 
-	if f.Queue != "" {
-		query = query.Where(squirrel.Like{"LOWER(mqs.queue)": strings.ToLower(f.Queue)})
+	if f.Query != "" {
+		query = query.Where(squirrel.Like{"LOWER(mqs.queue)": "%" + strings.ToLower(f.Query) + "%"})
 	}
 
 	return

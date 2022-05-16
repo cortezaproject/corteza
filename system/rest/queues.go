@@ -46,6 +46,7 @@ func (ctrl *Queue) List(ctx context.Context, r *request.QueuesList) (interface{}
 	var (
 		err error
 		f   = types.QueueFilter{
+			Query:   r.Query,
 			Deleted: filter.State(r.Deleted),
 		}
 	)

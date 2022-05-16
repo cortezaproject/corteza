@@ -27,9 +27,7 @@ type (
 	}
 
 	QueueFilter struct {
-		Queue    string `json:"queue"`
-		Consumer string `json:"handler"`
-
+		Query   string       `json:"query"`
 		Deleted filter.State `json:"deleted"`
 
 		// Check fn is called by store backend for each resource found function can
