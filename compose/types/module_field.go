@@ -75,7 +75,7 @@ func (f *ModuleField) decodeTranslationsDescriptionView(tt locale.ResourceTransl
 	var aux *locale.ResourceTranslation
 
 	if aux = tt.FindByKey(LocaleKeyModuleFieldDescriptionView.Path); aux != nil {
-		f.setOptionKey(aux.Msg, "description", "edit")
+		f.setOptionKey(aux.Msg, "description", "view")
 	}
 }
 
@@ -83,7 +83,7 @@ func (f *ModuleField) decodeTranslationsDescriptionEdit(tt locale.ResourceTransl
 	var aux *locale.ResourceTranslation
 
 	if aux = tt.FindByKey(LocaleKeyModuleFieldDescriptionEdit.Path); aux != nil {
-		f.setOptionKey(aux.Msg, "description", "view")
+		f.setOptionKey(aux.Msg, "description", "edit")
 	}
 }
 
@@ -91,7 +91,7 @@ func (f *ModuleField) decodeTranslationsHintView(tt locale.ResourceTranslationIn
 	var aux *locale.ResourceTranslation
 
 	if aux = tt.FindByKey(LocaleKeyModuleFieldHintView.Path); aux != nil {
-		f.setOptionKey(aux.Msg, "hint", "edit")
+		f.setOptionKey(aux.Msg, "hint", "view")
 	}
 }
 
@@ -99,7 +99,7 @@ func (f *ModuleField) decodeTranslationsHintEdit(tt locale.ResourceTranslationIn
 	var aux *locale.ResourceTranslation
 
 	if aux = tt.FindByKey(LocaleKeyModuleFieldHintEdit.Path); aux != nil {
-		f.setOptionKey(aux.Msg, "hint", "view")
+		f.setOptionKey(aux.Msg, "hint", "edit")
 	}
 }
 
