@@ -28,12 +28,13 @@ apigw_route: schema.#Resource & {
 	filter: {
 		struct: {
 			route: {}
+			query: {goType: "string"}
 
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 			disabled: {goType: "filter.State", storeIdent: "enabled"}
 		}
 
-		byValue: ["route"]
+		query: ["endpoint"]
 		byNilState: ["deleted"]
 		byFalseState: ["disabled"]
 	}

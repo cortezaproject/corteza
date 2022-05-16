@@ -25,11 +25,11 @@ queue: schema.#Resource & {
 
 	filter: {
 		struct: {
-			queue: {goType: "string"}
+			query: {goType: "string"}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
 
-		byValue: ["queue"]
+		query: ["queue", "consumer"]
 		byNilState: ["deleted"]
 	}
 

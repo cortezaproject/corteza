@@ -58,8 +58,12 @@ func testQueues(t *testing.T, s store.Queues) {
 			new,
 		))
 
-		set, _, err := s.SearchQueues(ctx, types.QueueFilter{})
+		set, _, err := s.SearchQueues(ctx, types.QueueFilter{Query: "EST"})
 		req.NoError(err)
 		req.Len(set, 1)
+
+		set, _, err = s.SearchQueues(ctx, types.QueueFilter{Query: "foo"})
+		req.NoError(err)
+		req.Len(set, 0)
 	})
 }

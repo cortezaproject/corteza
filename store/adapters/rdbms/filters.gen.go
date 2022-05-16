@@ -220,8 +220,10 @@ func ApigwRouteFilter(f systemType.ApigwRouteFilter) (ee []goqu.Expression, _ sy
 		ee = append(ee, expr)
 	}
 
-	if val := strings.TrimSpace(f.Route); len(val) > 0 {
-		ee = append(ee, goqu.C("route").Eq(f.Route))
+	if f.Query != "" {
+		ee = append(ee, goqu.Or(
+			goqu.C("endpoint").ILike("%"+f.Query+"%"),
+		))
 	}
 
 	return ee, f, err
@@ -882,8 +884,11 @@ func QueueFilter(f systemType.QueueFilter) (ee []goqu.Expression, _ systemType.Q
 		ee = append(ee, expr)
 	}
 
-	if val := strings.TrimSpace(f.Queue); len(val) > 0 {
-		ee = append(ee, goqu.C("queue").Eq(f.Queue))
+	if f.Query != "" {
+		ee = append(ee, goqu.Or(
+			goqu.C("queue").ILike("%"+f.Query+"%"),
+			goqu.C("consumer").ILike("%"+f.Query+"%"),
+		))
 	}
 
 	return ee, f, err

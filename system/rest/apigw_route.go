@@ -46,6 +46,7 @@ func (ctrl *ApigwRoute) List(ctx context.Context, r *request.ApigwRouteList) (in
 	var (
 		err error
 		f   = types.ApigwRouteFilter{
+			Query:   r.Query,
 			Deleted: filter.State(r.Deleted),
 
 			// todo: this should dynamic as Delete
