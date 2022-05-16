@@ -254,54 +254,53 @@ func (m *ModuleField) encodeTranslationsExpressionValidatorValidatorIDError() (o
 
 func (f *ModuleField) encodeTranslationsMetaDescriptionView() (out locale.ResourceTranslationSet) {
 	out = locale.ResourceTranslationSet{}
-	if v := f.getOptionKey("description", "view"); v != nil {
-		aux := cast.ToString(v)
-
-		out = append(out, &locale.ResourceTranslation{
-			Resource: f.ResourceTranslation(),
-			Key:      LocaleKeyModuleFieldMetaDescriptionView.Path,
-			Msg:      aux,
-		})
+	t := &locale.ResourceTranslation{
+		Resource: f.ResourceTranslation(),
+		Key:      LocaleKeyModuleFieldMetaDescriptionView.Path,
 	}
+	if v := f.getOptionKey("description", "view"); v != nil {
+		t.Msg = cast.ToString(v)
+	}
+	out = append(out, t)
 	return out
 }
 
 func (f *ModuleField) encodeTranslationsMetaDescriptionEdit() (out locale.ResourceTranslationSet) {
 	out = locale.ResourceTranslationSet{}
-	if v := f.getOptionKey("description", "edit"); v != nil {
-		aux := cast.ToString(v)
-		out = append(out, &locale.ResourceTranslation{
-			Resource: f.ResourceTranslation(),
-			Key:      LocaleKeyModuleFieldMetaDescriptionEdit.Path,
-			Msg:      aux,
-		})
+	t := &locale.ResourceTranslation{
+		Resource: f.ResourceTranslation(),
+		Key:      LocaleKeyModuleFieldMetaDescriptionEdit.Path,
 	}
+	if v := f.getOptionKey("description", "edit"); v != nil {
+		t.Msg = cast.ToString(v)
+	}
+	out = append(out, t)
 	return out
 }
 
 func (f *ModuleField) encodeTranslationsMetaHintView() (out locale.ResourceTranslationSet) {
 	out = locale.ResourceTranslationSet{}
-	if v := f.getOptionKey("hint", "view"); v != nil {
-		aux := cast.ToString(v)
-		out = append(out, &locale.ResourceTranslation{
-			Resource: f.ResourceTranslation(),
-			Key:      LocaleKeyModuleFieldMetaHintView.Path,
-			Msg:      aux,
-		})
+	t := &locale.ResourceTranslation{
+		Resource: f.ResourceTranslation(),
+		Key:      LocaleKeyModuleFieldMetaHintView.Path,
 	}
+	if v := f.getOptionKey("hint", "view"); v != nil {
+		t.Msg = cast.ToString(v)
+	}
+	out = append(out, t)
 	return out
 }
 
 func (f *ModuleField) encodeTranslationsMetaHintEdit() (out locale.ResourceTranslationSet) {
 	out = locale.ResourceTranslationSet{}
-	if v := f.getOptionKey("hint", "edit"); v != nil {
-		aux := cast.ToString(v)
-		out = append(out, &locale.ResourceTranslation{
-			Resource: f.ResourceTranslation(),
-			Key:      LocaleKeyModuleFieldMetaHintEdit.Path,
-			Msg:      aux,
-		})
+	t := &locale.ResourceTranslation{
+		Resource: f.ResourceTranslation(),
+		Key:      LocaleKeyModuleFieldMetaHintEdit.Path,
 	}
+	if v := f.getOptionKey("hint", "edit"); v != nil {
+		t.Msg = cast.ToString(v)
+	}
+	out = append(out, t)
 	return out
 }
 
