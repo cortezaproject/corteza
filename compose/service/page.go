@@ -320,6 +320,8 @@ func (svc page) Create(ctx context.Context, new *types.Page) (*types.Page, error
 			return
 		}
 
+		preparePageConfig(svc.pageSettings, new)
+
 		if err = label.Create(ctx, s, new); err != nil {
 			return
 		}
@@ -487,6 +489,8 @@ func (svc page) updater(ctx context.Context, s store.Storer, ns *types.Namespace
 		if err = updateTranslations(ctx, svc.ac, svc.locale, res.EncodeTranslations()...); err != nil {
 			return
 		}
+
+		preparePageConfig(svc.pageSettings, res)
 
 		if changes&pageLabelsChanged > 0 {
 			if err = label.Update(ctx, s, res); err != nil {
