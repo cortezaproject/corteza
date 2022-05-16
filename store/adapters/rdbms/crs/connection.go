@@ -6,8 +6,8 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/crs"
 	"github.com/cortezaproject/corteza-server/compose/crs/capabilities"
-	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/data"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
 	"github.com/jmoiron/sqlx"
 )
@@ -67,8 +67,8 @@ func (c *connection) LookupRecord(ctx context.Context, m *data.Model, pkv crs.Va
 	return c.model(m).Lookup(ctx, pkv, r)
 }
 
-func (c *connection) SearchRecords(ctx context.Context, m *data.Model, filter any) (crs.Iterator, error) {
-	return c.model(m).Search(filter.(types.RecordFilter))
+func (c *connection) SearchRecords(ctx context.Context, m *data.Model, f filter.Filter) (crs.Iterator, error) {
+	return c.model(m).Search(f)
 }
 
 func (c *connection) Models(ctx context.Context) (data.ModelSet, error) {

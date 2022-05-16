@@ -12,23 +12,3 @@ const (
 	sysDeletedBy   = "deletedBy"
 	sysOwnedBy     = "ownedBy"
 )
-
-// is the
-func isSystemField(f string) bool {
-	switch f {
-	// handle system fields
-	case sysID,
-		sysNamespaceID,
-		sysModuleID,
-		sysCreatedAt,
-		sysCreatedBy,
-		sysUpdatedAt,
-		sysUpdatedBy,
-		sysDeletedAt,
-		sysDeletedBy,
-		sysOwnedBy:
-		return true
-	default:
-		return false
-	}
-}

@@ -40,10 +40,6 @@ func (s *Sorting) OrderBy() SortExprSet {
 	return s.Sort
 }
 
-func (s *Sorting) AppendOrderBy(col string, desc bool) {
-	s.Sort = append(s.Sort, &SortExpr{Column: col, Descending: desc})
-}
-
 // parses sort string
 //
 // We allow a simplified version of what SQL supports, so:

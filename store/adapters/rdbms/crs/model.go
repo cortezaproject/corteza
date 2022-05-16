@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/compose/crs"
-	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/data"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
@@ -18,10 +17,6 @@ import (
 )
 
 type (
-	sqlizer interface {
-		ToSQL() (string, []interface{}, error)
-	}
-
 	queryRunner interface {
 		sqlx.QueryerContext
 		sqlx.ExecerContext
@@ -59,6 +54,11 @@ func Model(m *data.Model, c queryRunner, d drivers.Dialect) *model {
 
 	ms.queryParser = ql.Converter(
 		ql.SymHandler(func(node *ql.ASTNode) (exp.Expression, error) {
+			attr := ms.model.Attributes.FindByIdent(node.Symbol)
+			if !attr.Filterable {
+				return nil, fmt.Errorf("attribute %q can not be used in query expression", attr.Ident)
+			}
+
 			return ms.table.AttributeExpression(node.Symbol)
 		}),
 	)
@@ -106,18 +106,22 @@ func (d *model) Delete(ctx context.Context, r crs.ValueGetter) error {
 	return err
 }
 
-func (d *model) Search(f types.RecordFilter) (i *iterator, err error) {
-	if f.PageCursor != nil {
+func (d *model) Search(f filter.Filter) (i *iterator, err error) {
+	var (
+		orderBy = f.OrderBy()
+	)
+
+	if f.Cursor() != nil {
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
 		// This (extracted sorting info) is then returned as part of response
-		if f.Sort, err = f.PageCursor.Sort(f.Sort); err != nil {
+		if orderBy, err = f.Cursor().Sort(orderBy); err != nil {
 			return nil, err
 		}
 	}
 
-	for _, s := range f.Sort {
+	for _, s := range orderBy {
 		if _, err = d.table.AttributeExpression(s.Column); err != nil {
 			return nil, err
 		}
@@ -130,7 +134,7 @@ func (d *model) Search(f types.RecordFilter) (i *iterator, err error) {
 		}
 
 		attrIdent := c.Attribute().Ident
-		if f.Sort.Get(attrIdent) != nil {
+		if orderBy.Get(attrIdent) != nil {
 			continue
 		}
 
@@ -139,14 +143,15 @@ func (d *model) Search(f types.RecordFilter) (i *iterator, err error) {
 		}
 
 		// Make sure results are always sorted at least by primary key
-		f.AppendOrderBy(attrIdent, f.Sort.LastDescending())
+		orderBy = append(orderBy, &filter.SortExpr{Column: attrIdent, Descending: orderBy.LastDescending()})
 	}
 
 	return &iterator{
 		ms:      d,
 		query:   d.searchSql(f),
-		sorting: f.Sorting,
-		paging:  f.Paging,
+		sorting: orderBy,
+		cursor:  f.Cursor(),
+		limit:   f.Limit(),
 	}, nil
 }
 
@@ -186,7 +191,7 @@ func (d *model) Lookup(ctx context.Context, pkv crs.ValueGetter, r crs.ValueSett
 // converting parts of record filter into conditions
 //
 // Does not add any limits, sorting or any cursor conditions!
-func (d *model) searchSql(f types.RecordFilter) *goqu.SelectDataset {
+func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 	var (
 		err  error
 		base = d.selectSql()
@@ -217,48 +222,66 @@ func (d *model) searchSql(f types.RecordFilter) *goqu.SelectDataset {
 		//}
 	}
 
-	{
-		// this can no longer be
-		//if len(f.LabeledIDs) > 0 {
-		//	// Limit by LabeledIDs (list of record IDs)
-		//	cnd = append(cnd, d.sysColumnID.In(f.LabeledIDs))
-		//}
-	}
+	for ident, vv := range f.Constraints() {
+		attr := d.model.Attributes.FindByIdent(ident)
+		if attr == nil {
+			return base.SetError(fmt.Errorf("unknown attribute %q used for state constrant", ident))
+		}
 
-	if f.Deleted != filter.StateInclusive {
-		//If model supports soft-deletion (= delete-at attribute is present)
-		//we need to make sure we respect it
-		var attrIdent exp.LiteralExpression
-		for _, attr := range d.model.Attributes {
-			if !attr.SoftDeleteFlag {
-				continue
-			}
+		if !attr.PrimaryKey {
+			continue
+		}
 
-			if !attr.Type.IsNullable() {
-				// @todo this must be checked much earlier
-				return base.SetError(fmt.Errorf("can not use non-nullable attribute %q soft-deleting", attr.Ident))
-			}
+		var attrExpr exp.LiteralExpression
+		attrExpr, err = d.table.AttributeExpression(attr.Ident)
+		if err != nil {
+			return base.SetError(err)
+		}
 
-			attrIdent, err = d.table.AttributeExpression(attr.Ident)
-			if err != nil {
-				return base.SetError(err)
-			}
-
-			switch f.Deleted {
-			case filter.StateExclusive:
-				// only not-null values
-				cnd = append(cnd, attrIdent.IsNotNull())
-
-			case filter.StateExcluded:
-				// exclude all non-null values
-				cnd = append(cnd, attrIdent.IsNull())
-			}
-
+		if len(vv) > 0 {
+			cnd = append(cnd, attrExpr.In(vv...))
 		}
 	}
 
-	if len(strings.TrimSpace(f.Query)) > 0 {
-		if tmp, err = d.queryParser.Parse(f.Query); err != nil {
+	for ident, state := range f.StateConstraints() {
+		attr := d.model.Attributes.FindByIdent(ident)
+		if attr == nil {
+			return base.SetError(fmt.Errorf("unknown attribute %q used for state constrant", ident))
+		}
+
+		if !attr.SoftDeleteFlag {
+			continue
+		}
+
+		if !attr.Type.IsNullable() {
+			// @todo this must be checked much earlier
+			return base.SetError(fmt.Errorf("can not use non-nullable attribute %q soft-deleting", attr.Ident))
+		}
+
+		if state == filter.StateInclusive {
+			// not used so we don't rea
+			continue
+		}
+
+		var attrExpr exp.LiteralExpression
+		attrExpr, err = d.table.AttributeExpression(attr.Ident)
+		if err != nil {
+			return base.SetError(err)
+		}
+
+		switch state {
+		case filter.StateExclusive:
+			// only not-null values
+			cnd = append(cnd, attrExpr.IsNotNull())
+
+		case filter.StateExcluded:
+			// exclude all non-null values
+			cnd = append(cnd, attrExpr.IsNull())
+		}
+	}
+
+	if q := strings.TrimSpace(f.Expression()); len(q) > 0 {
+		if tmp, err = d.queryParser.Parse(q); err != nil {
 			return base.SetError(err)
 		}
 
