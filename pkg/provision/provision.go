@@ -34,6 +34,9 @@ func Run(ctx context.Context, log *zap.Logger, s store.Storer, provisionOpt opti
 		func() error { return migrateResourceTranslations(ctx, log.Named("resource-translations"), s) },
 		func() error { return migrateReportIdentifiers(ctx, log.Named("report-identifiers"), s) },
 		func() error {
+			return migratePost202203RbacRules(ctx, log.Named("post-202203-rbac-resource-rules-fix"), s)
+		},
+		func() error {
 			return migratePost202203ResourceTranslations(ctx, log.Named("post-202203-resource-translations"), s)
 		},
 
