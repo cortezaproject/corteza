@@ -33,7 +33,7 @@ type (
 
 	ApigwRouteFilter struct {
 		Route string `json:"route"`
-		Group string `json:"group"`
+		Query string `json:"query"`
 
 		Deleted  filter.State `json:"deleted"`
 		Disabled filter.State `json:"disabled"`
