@@ -137,7 +137,7 @@ func (f *ModuleField) decodeTranslationsMetaDescriptionView(tt locale.ResourceTr
 	var aux *locale.ResourceTranslation
 
 	if aux = tt.FindByKey(LocaleKeyModuleFieldMetaDescriptionView.Path); aux != nil {
-		f.setOptionKey(aux.Msg, "description", "edit")
+		f.setOptionKey(aux.Msg, "description", "view")
 	}
 }
 
@@ -145,7 +145,7 @@ func (f *ModuleField) decodeTranslationsMetaDescriptionEdit(tt locale.ResourceTr
 	var aux *locale.ResourceTranslation
 
 	if aux = tt.FindByKey(LocaleKeyModuleFieldMetaDescriptionEdit.Path); aux != nil {
-		f.setOptionKey(aux.Msg, "description", "view")
+		f.setOptionKey(aux.Msg, "description", "edit")
 	}
 }
 
@@ -153,7 +153,7 @@ func (f *ModuleField) decodeTranslationsMetaHintView(tt locale.ResourceTranslati
 	var aux *locale.ResourceTranslation
 
 	if aux = tt.FindByKey(LocaleKeyModuleFieldMetaHintView.Path); aux != nil {
-		f.setOptionKey(aux.Msg, "hint", "edit")
+		f.setOptionKey(aux.Msg, "hint", "view")
 	}
 }
 
@@ -161,7 +161,7 @@ func (f *ModuleField) decodeTranslationsMetaHintEdit(tt locale.ResourceTranslati
 	var aux *locale.ResourceTranslation
 
 	if aux = tt.FindByKey(LocaleKeyModuleFieldMetaHintEdit.Path); aux != nil {
-		f.setOptionKey(aux.Msg, "hint", "view")
+		f.setOptionKey(aux.Msg, "hint", "edit")
 	}
 }
 
