@@ -1,7 +1,7 @@
 package drivers
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/data"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 )
@@ -23,12 +23,12 @@ type (
 		// AttributeCast prepares complex SQL expression that verifies
 		// arbitrary string value in the db and casts it to b used in
 		// comparison or soring expression
-		AttributeCast(*data.Attribute, exp.LiteralExpression) (exp.LiteralExpression, error)
+		AttributeCast(*dal.Attribute, exp.LiteralExpression) (exp.LiteralExpression, error)
 
 		// TableCodec returns table codec (encodes & decodes data to/from db table)
-		TableCodec(*data.Model) TableCodec
+		TableCodec(*dal.Model) TableCodec
 
 		// TypeWrap returns driver's type implementation for a particular attribute type
-		TypeWrap(data.Type) Type
+		TypeWrap(dal.Type) Type
 	}
 )

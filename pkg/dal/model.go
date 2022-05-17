@@ -1,4 +1,4 @@
-package data
+package dal
 
 import (
 	"fmt"
@@ -42,7 +42,7 @@ type (
 
 		// Store describes the strategy the underlying storage system should
 		// apply to the underlying value
-		Store StoreCodec
+		Store Codec
 
 		// Type describes what the value represents and how it should be
 		// encoded/decoded

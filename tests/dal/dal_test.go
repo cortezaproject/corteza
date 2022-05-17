@@ -1,17 +1,17 @@
-package crs
+package dal
 
 import (
 	"context"
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/compose/crs"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cortezaproject/corteza-server/compose/crs/capabilities"
 	_ "github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers/mysql"
 )
 
@@ -52,15 +52,15 @@ CREATE TABLE `the_cookie` (
 func TestHello(t *testing.T) {
 	ctx := context.Background()
 
-	c, err := crs.ComposeRecordStore(
+	c, err := dal.Service(
 		ctx,
 		nil,
 		false,
 		// Primary...
-		crs.CRSConnectionWrap(0, "mysql://envoy:envoy@tcp(localhost:3306)/crs?collation=utf8mb4_general_ci", capabilities.FullCapabilities()...),
+		Connection(0, "mysql://envoy:envoy@tcp(localhost:3306)/crs?collation=utf8mb4_general_ci", capabilities.FullCapabilities()...),
 
 		// Others...
-		crs.CRSConnectionWrap(1, "mysql://envoy:envoy@tcp(localhost:3306)/crs?collation=utf8mb4_general_ci", capabilities.FullCapabilities()...),
+		Connection(1, "mysql://envoy:envoy@tcp(localhost:3306)/crs?collation=utf8mb4_general_ci", capabilities.FullCapabilities()...),
 	)
 	require.NoError(t, err)
 	_ = c
@@ -70,7 +70,7 @@ func TestHello(t *testing.T) {
 	cookieModule := &types.Module{
 		ID:     10001,
 		Handle: "cookie",
-		Store: types.CRSDef{
+		Store: types.DalDef{
 			ComposeRecordStoreID: 0,
 			Capabilities:         capabilities.FullCapabilities(),
 			Partitioned:          true,
@@ -101,7 +101,7 @@ func TestHello(t *testing.T) {
 	cakeModule := &types.Module{
 		ID:     10002,
 		Handle: "cake",
-		Store: types.CRSDef{
+		Store: types.DalDef{
 			ComposeRecordStoreID: 1,
 			Capabilities:         capabilities.FullCapabilities(),
 			Partitioned:          true,

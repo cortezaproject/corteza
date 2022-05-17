@@ -7,62 +7,61 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/compose/crs"
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/data"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/stretchr/testify/require"
 )
 
-func All(t *testing.T, d crs.StoreConnection) {
+func All(t *testing.T, d dal.StoreConnection) {
 	t.Run("RecordCodec", func(t *testing.T) { RecordCodec(t, d) })
 	t.Run("RecordSearch", func(t *testing.T) { RecordSearch(t, d) })
 }
 
-func RecordCodec(t *testing.T, d crs.StoreConnection) {
+func RecordCodec(t *testing.T, d dal.StoreConnection) {
 	var (
 		req = require.New(t)
 
 		// enable query logging when +debug is used on DSN schema
 		ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
 
-		m = &data.Model{
+		m = &dal.Model{
 			Ident: "crs_test_codec",
-			Attributes: data.AttributeSet{
-				&data.Attribute{Ident: "ID", Type: &data.TypeID{}, Store: &data.StoreCodecAlias{Ident: "id"}, PrimaryKey: true},
-				&data.Attribute{Ident: "createdAt", Type: &data.TypeTimestamp{}, Store: &data.StoreCodecAlias{Ident: "created_at"}},
-				&data.Attribute{Ident: "updatedAt", Type: &data.TypeTimestamp{}, Store: &data.StoreCodecAlias{Ident: "updated_at"}},
+			Attributes: dal.AttributeSet{
+				&dal.Attribute{Ident: "ID", Type: &dal.TypeID{}, Store: &dal.CodecAlias{Ident: "id"}, PrimaryKey: true},
+				&dal.Attribute{Ident: "createdAt", Type: &dal.TypeTimestamp{}, Store: &dal.CodecAlias{Ident: "created_at"}},
+				&dal.Attribute{Ident: "updatedAt", Type: &dal.TypeTimestamp{}, Store: &dal.CodecAlias{Ident: "updated_at"}},
 
-				&data.Attribute{Ident: "vID", Type: &data.TypeID{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
-				&data.Attribute{Ident: "vRef", Type: &data.TypeRef{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
-				&data.Attribute{Ident: "vTimestamp", Type: &data.TypeTimestamp{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
-				&data.Attribute{Ident: "vTime", Type: &data.TypeTime{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
-				&data.Attribute{Ident: "vDate", Type: &data.TypeDate{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
-				&data.Attribute{Ident: "vNumber", Type: &data.TypeNumber{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
-				&data.Attribute{Ident: "vText", Type: &data.TypeText{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
-				&data.Attribute{Ident: "vBoolean_T", Type: &data.TypeBoolean{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
-				&data.Attribute{Ident: "vBoolean_F", Type: &data.TypeBoolean{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
-				&data.Attribute{Ident: "vEnum", Type: &data.TypeEnum{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
-				&data.Attribute{Ident: "vGeometry", Type: &data.TypeGeometry{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
-				&data.Attribute{Ident: "vJSON", Type: &data.TypeJSON{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
-				&data.Attribute{Ident: "vBlob", Type: &data.TypeBlob{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
-				&data.Attribute{Ident: "vUUID", Type: &data.TypeUUID{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
-				&data.Attribute{Ident: "pID", Type: &data.TypeID{}, Store: &data.StoreCodecPlain{}},
-				&data.Attribute{Ident: "pRef", Type: &data.TypeRef{}, Store: &data.StoreCodecPlain{}},
-				&data.Attribute{Ident: "pTimestamp_TZT", Type: &data.TypeTimestamp{Timezone: true}, Store: &data.StoreCodecPlain{}},
-				&data.Attribute{Ident: "pTimestamp_TZF", Type: &data.TypeTimestamp{Timezone: false}, Store: &data.StoreCodecPlain{}},
-				&data.Attribute{Ident: "pTime", Type: &data.TypeTime{}, Store: &data.StoreCodecPlain{}},
-				&data.Attribute{Ident: "pDate", Type: &data.TypeDate{}, Store: &data.StoreCodecPlain{}},
-				&data.Attribute{Ident: "pNumber", Type: &data.TypeNumber{}, Store: &data.StoreCodecPlain{}},
-				&data.Attribute{Ident: "pText", Type: &data.TypeText{}, Store: &data.StoreCodecPlain{}},
-				&data.Attribute{Ident: "pBoolean_T", Type: &data.TypeBoolean{}, Store: &data.StoreCodecPlain{}},
-				&data.Attribute{Ident: "pBoolean_F", Type: &data.TypeBoolean{}, Store: &data.StoreCodecPlain{}},
-				&data.Attribute{Ident: "pEnum", Type: &data.TypeEnum{}, Store: &data.StoreCodecPlain{}},
-				&data.Attribute{Ident: "pGeometry", Type: &data.TypeGeometry{}, Store: &data.StoreCodecPlain{}},
-				&data.Attribute{Ident: "pJSON", Type: &data.TypeJSON{}, Store: &data.StoreCodecPlain{}},
-				&data.Attribute{Ident: "pBlob", Type: &data.TypeBlob{}, Store: &data.StoreCodecPlain{}},
-				&data.Attribute{Ident: "pUUID", Type: &data.TypeUUID{}, Store: &data.StoreCodecPlain{}},
+				&dal.Attribute{Ident: "vID", Type: &dal.TypeID{}, Store: &dal.CodecRecordValueSetJSON{Ident: "meta"}},
+				&dal.Attribute{Ident: "vRef", Type: &dal.TypeRef{}, Store: &dal.CodecRecordValueSetJSON{Ident: "meta"}},
+				&dal.Attribute{Ident: "vTimestamp", Type: &dal.TypeTimestamp{}, Store: &dal.CodecRecordValueSetJSON{Ident: "meta"}},
+				&dal.Attribute{Ident: "vTime", Type: &dal.TypeTime{}, Store: &dal.CodecRecordValueSetJSON{Ident: "meta"}},
+				&dal.Attribute{Ident: "vDate", Type: &dal.TypeDate{}, Store: &dal.CodecRecordValueSetJSON{Ident: "meta"}},
+				&dal.Attribute{Ident: "vNumber", Type: &dal.TypeNumber{}, Store: &dal.CodecRecordValueSetJSON{Ident: "meta"}},
+				&dal.Attribute{Ident: "vText", Type: &dal.TypeText{}, Store: &dal.CodecRecordValueSetJSON{Ident: "meta"}},
+				&dal.Attribute{Ident: "vBoolean_T", Type: &dal.TypeBoolean{}, Store: &dal.CodecRecordValueSetJSON{Ident: "meta"}},
+				&dal.Attribute{Ident: "vBoolean_F", Type: &dal.TypeBoolean{}, Store: &dal.CodecRecordValueSetJSON{Ident: "meta"}},
+				&dal.Attribute{Ident: "vEnum", Type: &dal.TypeEnum{}, Store: &dal.CodecRecordValueSetJSON{Ident: "meta"}},
+				&dal.Attribute{Ident: "vGeometry", Type: &dal.TypeGeometry{}, Store: &dal.CodecRecordValueSetJSON{Ident: "meta"}},
+				&dal.Attribute{Ident: "vJSON", Type: &dal.TypeJSON{}, Store: &dal.CodecRecordValueSetJSON{Ident: "meta"}},
+				&dal.Attribute{Ident: "vBlob", Type: &dal.TypeBlob{}, Store: &dal.CodecRecordValueSetJSON{Ident: "meta"}},
+				&dal.Attribute{Ident: "vUUID", Type: &dal.TypeUUID{}, Store: &dal.CodecRecordValueSetJSON{Ident: "meta"}},
+				&dal.Attribute{Ident: "pID", Type: &dal.TypeID{}, Store: &dal.CodecPlain{}},
+				&dal.Attribute{Ident: "pRef", Type: &dal.TypeRef{}, Store: &dal.CodecPlain{}},
+				&dal.Attribute{Ident: "pTimestamp_TZT", Type: &dal.TypeTimestamp{Timezone: true}, Store: &dal.CodecPlain{}},
+				&dal.Attribute{Ident: "pTimestamp_TZF", Type: &dal.TypeTimestamp{Timezone: false}, Store: &dal.CodecPlain{}},
+				&dal.Attribute{Ident: "pTime", Type: &dal.TypeTime{}, Store: &dal.CodecPlain{}},
+				&dal.Attribute{Ident: "pDate", Type: &dal.TypeDate{}, Store: &dal.CodecPlain{}},
+				&dal.Attribute{Ident: "pNumber", Type: &dal.TypeNumber{}, Store: &dal.CodecPlain{}},
+				&dal.Attribute{Ident: "pText", Type: &dal.TypeText{}, Store: &dal.CodecPlain{}},
+				&dal.Attribute{Ident: "pBoolean_T", Type: &dal.TypeBoolean{}, Store: &dal.CodecPlain{}},
+				&dal.Attribute{Ident: "pBoolean_F", Type: &dal.TypeBoolean{}, Store: &dal.CodecPlain{}},
+				&dal.Attribute{Ident: "pEnum", Type: &dal.TypeEnum{}, Store: &dal.CodecPlain{}},
+				&dal.Attribute{Ident: "pGeometry", Type: &dal.TypeGeometry{}, Store: &dal.CodecPlain{}},
+				&dal.Attribute{Ident: "pJSON", Type: &dal.TypeJSON{}, Store: &dal.CodecPlain{}},
+				&dal.Attribute{Ident: "pBlob", Type: &dal.TypeBlob{}, Store: &dal.CodecPlain{}},
+				&dal.Attribute{Ident: "pUUID", Type: &dal.TypeUUID{}, Store: &dal.CodecPlain{}},
 			},
 		}
 
@@ -117,7 +116,7 @@ func RecordCodec(t *testing.T, d crs.StoreConnection) {
 	req.NoError(d.CreateRecords(ctx, m, &rIn))
 
 	rOut = new(types.Record)
-	req.NoError(d.LookupRecord(ctx, m, crs.PKValues{"id": rIn.ID}, rOut))
+	req.NoError(d.LookupRecord(ctx, m, dal.PKValues{"id": rIn.ID}, rOut))
 
 	{
 		// normalize timezone on timestamps
@@ -135,7 +134,7 @@ func RecordCodec(t *testing.T, d crs.StoreConnection) {
 	}
 }
 
-func RecordSearch(t *testing.T, d crs.StoreConnection) {
+func RecordSearch(t *testing.T, d dal.StoreConnection) {
 	const (
 		totalRecords = 10
 	)
@@ -146,19 +145,19 @@ func RecordSearch(t *testing.T, d crs.StoreConnection) {
 		// enable query logging when +debug is used on DSN schema
 		ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
 
-		m = &data.Model{
+		m = &dal.Model{
 			Ident: "crs_test_search",
-			Attributes: data.AttributeSet{
-				&data.Attribute{Ident: "ID", Type: &data.TypeID{}, Store: &data.StoreCodecAlias{Ident: "id"}, PrimaryKey: true},
-				&data.Attribute{Ident: "createdAt", Type: &data.TypeTimestamp{}, Store: &data.StoreCodecAlias{Ident: "created_at"}},
-				&data.Attribute{Ident: "updatedAt", Type: &data.TypeTimestamp{}, Store: &data.StoreCodecAlias{Ident: "updated_at"}},
+			Attributes: dal.AttributeSet{
+				&dal.Attribute{Ident: "ID", Type: &dal.TypeID{}, Store: &dal.CodecAlias{Ident: "id"}, PrimaryKey: true},
+				&dal.Attribute{Ident: "createdAt", Type: &dal.TypeTimestamp{}, Store: &dal.CodecAlias{Ident: "created_at"}},
+				&dal.Attribute{Ident: "updatedAt", Type: &dal.TypeTimestamp{}, Store: &dal.CodecAlias{Ident: "updated_at"}},
 
-				&data.Attribute{Ident: "v_string", Type: &data.TypeText{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
-				&data.Attribute{Ident: "v_number", Type: &data.TypeNumber{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
-				&data.Attribute{Ident: "v_is_odd", Type: &data.TypeBoolean{}, Store: &data.StoreCodecStdRecordValueJSON{Ident: "meta"}},
-				&data.Attribute{Ident: "p_string", Type: &data.TypeText{}, Store: &data.StoreCodecPlain{}},
-				&data.Attribute{Ident: "p_number", Type: &data.TypeNumber{}, Store: &data.StoreCodecPlain{}},
-				&data.Attribute{Ident: "p_is_odd", Type: &data.TypeBoolean{}, Store: &data.StoreCodecPlain{}},
+				&dal.Attribute{Ident: "v_string", Type: &dal.TypeText{}, Store: &dal.CodecRecordValueSetJSON{Ident: "meta"}},
+				&dal.Attribute{Ident: "v_number", Type: &dal.TypeNumber{}, Store: &dal.CodecRecordValueSetJSON{Ident: "meta"}},
+				&dal.Attribute{Ident: "v_is_odd", Type: &dal.TypeBoolean{}, Store: &dal.CodecRecordValueSetJSON{Ident: "meta"}},
+				&dal.Attribute{Ident: "p_string", Type: &dal.TypeText{}, Store: &dal.CodecPlain{}},
+				&dal.Attribute{Ident: "p_number", Type: &dal.TypeNumber{}, Store: &dal.CodecPlain{}},
+				&dal.Attribute{Ident: "p_is_odd", Type: &dal.TypeBoolean{}, Store: &dal.CodecPlain{}},
 			},
 		}
 	)
@@ -308,7 +307,7 @@ func RecordSearch(t *testing.T, d crs.StoreConnection) {
 	})
 }
 
-func drain(ctx context.Context, i crs.Iterator) (rr []*types.Record, err error) {
+func drain(ctx context.Context, i dal.Iterator) (rr []*types.Record, err error) {
 	var r *types.Record
 	rr = make([]*types.Record, 0, 100)
 	for i.Next(ctx) {

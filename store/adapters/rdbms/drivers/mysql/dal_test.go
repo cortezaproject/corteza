@@ -5,10 +5,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/compose/crs/test"
+	"github.com/cortezaproject/corteza-server/pkg/dal/test"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms"
-	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/crs"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/dal"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/require"
 )
@@ -39,7 +39,7 @@ func TestMySQL(t *testing.T) {
 
 	setupCodecTest(db, req)
 	setupRecordSearchTest(db, req)
-	test.All(t, crs.Connection(db, &dialect{}))
+	test.All(t, dal.Connection(db, &dialect{}))
 }
 
 // remove when store support for table creation is added to CRS

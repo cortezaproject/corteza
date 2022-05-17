@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/pkg/data"
 	"github.com/stretchr/testify/require"
 )
 
@@ -21,21 +20,21 @@ func TestTypeDecoders(t *testing.T) {
 			{
 				name: "time -tz -prec",
 				inp:  &sql.NullString{String: "06:06:06", Valid: true},
-				typ:  TypeWrap(&data.TypeTime{}),
+				typ:  TypeWrap(&dal.TypeTime{}),
 				ok:   true,
 				dec:  "06:06:06",
 			},
 			{
 				name: "time -tz +prec",
 				inp:  &sql.NullString{String: "06:06:06.321", Valid: true},
-				typ:  TypeWrap(&data.TypeTime{Precision: 3}),
+				typ:  TypeWrap(&dal.TypeTime{Precision: 3}),
 				ok:   true,
 				dec:  "06:06:06.321",
 			},
 			{
 				name: "time +tz +prec",
 				inp:  &sql.NullString{String: "06:06:06.321+04:00", Valid: true},
-				typ:  TypeWrap(&data.TypeTime{Precision: 3, Timezone: true}),
+				typ:  TypeWrap(&dal.TypeTime{Precision: 3, Timezone: true}),
 				ok:   true,
 				dec:  "06:06:06.321+04:00",
 			},
