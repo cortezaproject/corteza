@@ -2206,25 +2206,29 @@ endpoints:
     - name: list requests
       method: GET
       title: List data privacy requests
-      path: "/requests"
+      path: "/requests/"
       parameters:
         get:
           - { name: limit,        type: "uint",       title: "Limit" }
           - { name: pageCursor,   type: "string",     title: "Page cursor" }
           - { name: sort,         type: "string",     title: "Sort items" }
+          - { name: "deleted",    type: "uint",     title: "Exclude (0, default), include (1) or return only (2) deleted requests" }
+
     - name: create request
       method: POST
       title: Create data privacy request
       path: "/requests"
       parameters:
         post:
+          - { name: name,         type: "string",   title: "Request Name", required: true }
+          - { name: requestType,  type: "uint",     title: "Request Type", required: true }
     - name: read request
       method: GET
       title: Get details about specific request
       path: "/requests/{requestID}"
       parameters:
         path:
-          - { name: requestID, type: "string",     title: "Request ID", required: true }
+          - { name: requestID, type: "uint64",     title: "Request ID", required: true }
         post:
     - name: list responses of request
       method: GET

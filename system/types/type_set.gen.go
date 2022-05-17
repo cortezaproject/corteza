@@ -75,6 +75,11 @@ type (
 	// This type is auto-generated.
 	DalSensitivityLevelSet []*DalSensitivityLevel
 
+	// DataPrivacyRequestSet slice of DataPrivacyRequest
+	//
+	// This type is auto-generated.
+	DataPrivacyRequestSet []*DataPrivacyRequest
+
 	// QueueSet slice of Queue
 	//
 	// This type is auto-generated.
@@ -741,6 +746,62 @@ func (set DalSensitivityLevelSet) FindByID(ID uint64) *DalSensitivityLevel {
 //
 // This function is auto-generated.
 func (set DalSensitivityLevelSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(DataPrivacyRequest) err
+//
+// This function is auto-generated.
+func (set DataPrivacyRequestSet) Walk(w func(*DataPrivacyRequest) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(DataPrivacyRequest) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set DataPrivacyRequestSet) Filter(f func(*DataPrivacyRequest) (bool, error)) (out DataPrivacyRequestSet, err error) {
+	var ok bool
+	out = DataPrivacyRequestSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set DataPrivacyRequestSet) FindByID(ID uint64) *DataPrivacyRequest {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set DataPrivacyRequestSet) IDs() (IDs []uint64) {
 	IDs = make([]uint64, len(set))
 
 	for i := range set {

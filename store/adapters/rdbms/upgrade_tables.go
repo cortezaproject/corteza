@@ -74,6 +74,7 @@ func Tables() []*Table {
 		tableApigwRoute(),
 		tableApigwFilter(),
 		tableResourceActivityLog(),
+		tableDataPrivacyRequests(),
 	}
 }
 
@@ -741,5 +742,24 @@ func tableResourceActivityLog() *Table {
 
 		AddIndex("rel_resource", IColumn("rel_resource")),
 		AddIndex("ts", IColumn("ts")),
+	)
+}
+
+func tableDataPrivacyRequests() *Table {
+	return TableDef("data_privacy_requests",
+		ID,
+		ColumnDef("name", ColumnTypeIdentifier),
+		ColumnDef("request_type", ColumnTypeText, ColumnTypeLength(handleLength)),
+		ColumnDef("status", ColumnTypeInteger),
+		ColumnDef("requested_at", ColumnTypeTimestamp),
+		ColumnDef("requested_by", ColumnTypeTimestamp),
+		ColumnDef("completed_at", ColumnTypeTimestamp),
+		ColumnDef("completed_by", ColumnTypeTimestamp),
+
+		AddIndex("request_type", IColumn("request_type")),
+		AddIndex("requested_at", IColumn("requested_at")),
+		AddIndex("requested_by", IColumn("requested_by")),
+		AddIndex("completed_at", IColumn("completed_at")),
+		AddIndex("completed_by", IColumn("completed_by")),
 	)
 }
