@@ -20,30 +20,34 @@ const (
 	// base for our schemas
 	baseSchema = "sqlite3"
 
-	// alt
-	altSchema   = baseSchema + "+alt"
+	// alternative s hema with custom driver
+	altSchema = baseSchema + "+alt"
+
+	// debug schema with verbose logging
 	debugSchema = baseSchema + "+debug"
 )
 
-func init() {
-	var (
-		driver = &sqlite3.SQLiteDriver{
-			ConnectHook: func(conn *sqlite3.SQLiteConn) (err error) {
-				// register regexp function and use Go's regexp fn
-				if err = conn.RegisterFunc("regexp", regexp.MatchString, true); err != nil {
-					return
-				}
-
+var (
+	// make a custom driver with REGEX support
+	driver = &sqlite3.SQLiteDriver{
+		ConnectHook: func(conn *sqlite3.SQLiteConn) (err error) {
+			// register regexp function and use Go's regexp fn
+			if err = conn.RegisterFunc("regexp", regexp.MatchString, true); err != nil {
 				return
-			},
-		}
-	)
+			}
 
+			return
+		},
+	}
+)
+
+func init() {
+	// register alter driver
 	sql.Register(altSchema, driver)
+	// register drbug driver
 	sql.Register(debugSchema, sqlmw.Driver(driver, instrumentation.Debug()))
 
 	store.Register(Connect, baseSchema, altSchema, debugSchema)
-
 }
 
 func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {

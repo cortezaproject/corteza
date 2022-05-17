@@ -1,7 +1,7 @@
 package drivers
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/data"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/doug-martin/goqu/v9/exp"
 )
 
@@ -16,48 +16,48 @@ var (
 	LiteralTRUE      = exp.NewLiteralExpression(`TRUE`)
 )
 
-func AttributeCast(attr *data.Attribute, val exp.LiteralExpression) (exp.LiteralExpression, error) {
+func AttributeCast(attr *dal.Attribute, val exp.LiteralExpression) (exp.LiteralExpression, error) {
 	var (
 		c exp.CastExpression
 	)
 
 	switch attr.Type.(type) {
-	case *data.TypeID, *data.TypeRef:
+	case *dal.TypeID, *dal.TypeRef:
 		ce := exp.NewCaseExpression().
 			When(val.RegexpLike(CheckID), val).
 			Else(LiteralNULL)
 
 		c = exp.NewCastExpression(ce, "BIGINT")
 
-	case *data.TypeNumber:
+	case *dal.TypeNumber:
 		ce := exp.NewCaseExpression().
 			When(val.RegexpLike(CheckNumber), val).
 			Else(LiteralNULL)
 
 		c = exp.NewCastExpression(ce, "NUMERIC")
 
-	case *data.TypeTimestamp:
+	case *dal.TypeTimestamp:
 		ce := exp.NewCaseExpression().
 			When(val.RegexpLike(CheckFullISO8061), val).
 			Else(LiteralNULL)
 
 		c = exp.NewCastExpression(ce, "TIMESTAMPTZ")
 
-	case *data.TypeDate:
+	case *dal.TypeDate:
 		ce := exp.NewCaseExpression().
 			When(val.RegexpLike(CheckDateISO8061), val).
 			Else(LiteralNULL)
 
 		c = exp.NewCastExpression(ce, "DATE")
 
-	case *data.TypeTime:
+	case *dal.TypeTime:
 		ce := exp.NewCaseExpression().
 			When(val.RegexpLike(CheckTimeISO8061), val).
 			Else(LiteralNULL)
 
 		c = exp.NewCastExpression(ce, "TIMETZ")
 
-	case *data.TypeBoolean:
+	case *dal.TypeBoolean:
 		ce := exp.NewCaseExpression().
 			When(val.In(LiteralTRUE, exp.NewLiteralExpression(`'true'`)), LiteralTRUE).
 			When(val.In(LiteralFALSE, exp.NewLiteralExpression(`'false'`)), LiteralFALSE).

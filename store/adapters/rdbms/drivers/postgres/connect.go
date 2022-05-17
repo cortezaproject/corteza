@@ -16,9 +16,17 @@ import (
 	"github.com/ngrok/sqlmw"
 )
 
+const (
+	// base for our schemas
+	baseSchema = "postgres"
+
+	// debug schema with verbose logging
+	debugSchema = baseSchema + "+debug"
+)
+
 func init() {
-	store.Register(Connect, "postgres", "postgres+debug")
-	sql.Register("postgres+debug", sqlmw.Driver(new(pq.Driver), instrumentation.Debug()))
+	store.Register(Connect, baseSchema, debugSchema)
+	sql.Register(debugSchema, sqlmw.Driver(new(pq.Driver), instrumentation.Debug()))
 }
 
 func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {

@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/compose/crs/capabilities"
 	discovery "github.com/cortezaproject/corteza-server/discovery/types"
+	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/jmoiron/sqlx/types"
@@ -14,7 +14,7 @@ import (
 )
 
 type (
-	CRSDef struct {
+	DalDef struct {
 		ComposeRecordStoreID uint64
 		Capabilities         capabilities.Set
 
@@ -28,7 +28,7 @@ type (
 		Meta   types.JSONText `json:"meta"`
 		Fields ModuleFieldSet `json:"fields"`
 
-		Store CRSDef
+		Store DalDef
 
 		Labels map[string]string `json:"labels,omitempty"`
 

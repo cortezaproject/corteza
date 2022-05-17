@@ -1,11 +1,11 @@
-package crs
+package dal
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
 
-	"github.com/cortezaproject/corteza-server/compose/crs"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms"
 	"github.com/doug-martin/goqu/v9"
@@ -44,7 +44,7 @@ func (i *iterator) Next(ctx context.Context) bool {
 }
 
 // More fetches more records from the point of last record
-func (i *iterator) More(max uint, last crs.ValueGetter) (err error) {
+func (i *iterator) More(max uint, last dal.ValueGetter) (err error) {
 	if i.rows != nil {
 		if err = i.rows.Close(); err != nil {
 			return fmt.Errorf("could not close previous query: %w", err)
@@ -187,7 +187,7 @@ func (i *iterator) orderByExp(sort filter.SortExprSet) (oe []exp.OrderedExpressi
 	return
 }
 
-func (i *iterator) Scan(r crs.ValueSetter) (err error) {
+func (i *iterator) Scan(r dal.ValueSetter) (err error) {
 	if i.err != nil {
 		return i.err
 	}
@@ -212,7 +212,7 @@ func (i *iterator) Close() error {
 	return i.rows.Close()
 }
 
-func (i *iterator) BackCursor(r crs.ValueGetter) (cur *filter.PagingCursor, err error) {
+func (i *iterator) BackCursor(r dal.ValueGetter) (cur *filter.PagingCursor, err error) {
 	cur, err = i.collectCursorValues(r)
 	if err != nil {
 		return
@@ -227,11 +227,11 @@ func (i *iterator) BackCursor(r crs.ValueGetter) (cur *filter.PagingCursor, err 
 	return
 }
 
-func (i *iterator) ForwardCursor(r crs.ValueGetter) (*filter.PagingCursor, error) {
+func (i *iterator) ForwardCursor(r dal.ValueGetter) (*filter.PagingCursor, error) {
 	return i.collectCursorValues(r)
 }
 
-func (i *iterator) collectCursorValues(r crs.ValueGetter) (_ *filter.PagingCursor, err error) {
+func (i *iterator) collectCursorValues(r dal.ValueGetter) (_ *filter.PagingCursor, err error) {
 	var (
 		cur = &filter.PagingCursor{LThen: i.sorting.Reversed()}
 

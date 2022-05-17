@@ -1,4 +1,4 @@
-package crs
+package dal
 
 import (
 	"context"
@@ -7,8 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/compose/crs/capabilities"
-	"github.com/cortezaproject/corteza-server/pkg/data"
+	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"go.uber.org/zap"
@@ -41,15 +40,15 @@ type (
 		// DML
 
 		// CreateRecords stores the given records into the underlying database
-		CreateRecords(ctx context.Context, m *data.Model, rr ...ValueGetter) error
+		CreateRecords(ctx context.Context, m *Model, rr ...ValueGetter) error
 
 		//UpdateRecords(ctx context.Context, m *data.Model, rr ...ValueGetter) error
 		//DeleteRecordsByPK(ctx context.Context, m *data.Model, rr ...ValueGetter) error
 		//TruncateRecords(ctx context.Context, m *data.Model) error
 
-		LookupRecord(context.Context, *data.Model, ValueGetter, ValueSetter) error
+		LookupRecord(context.Context, *Model, ValueGetter, ValueSetter) error
 
-		SearchRecords(context.Context, *data.Model, filter.Filter) (Iterator, error)
+		SearchRecords(context.Context, *Model, filter.Filter) (Iterator, error)
 
 		// ---
 
@@ -59,7 +58,7 @@ type (
 		//
 		// This is useful when adding support for new modules since we can find out what
 		// can work out of the box.
-		Models(context.Context) (data.ModelSet, error)
+		Models(context.Context) (ModelSet, error)
 
 		// // returns all attribute types that driver supports
 		// AttributeTypes() []data.AttributeType
@@ -67,25 +66,25 @@ type (
 		// AddModel adds support for the given models to the underlying database
 		//
 		// The operation returns an error if any of the models already exists.
-		AddModel(context.Context, *data.Model, ...*data.Model) error
+		AddModel(context.Context, *Model, ...*Model) error
 
 		// RemoveModel removes support for the given model from the underlying database
-		RemoveModel(context.Context, *data.Model, ...*data.Model) error
+		RemoveModel(context.Context, *Model, ...*Model) error
 
 		// AlterModel requests for metadata changes to the existing model
 		//
 		// Only metadata (such as idents) are affected; attributes can not be changed here
-		AlterModel(ctx context.Context, old *data.Model, new *data.Model) error
+		AlterModel(ctx context.Context, old *Model, new *Model) error
 
 		// AlterModelAttribute requests for the model attribute change
 		//
 		// Specific operations require data transformations (type change).
 		// Some basic ops. should be implemented on DB driver level, but greater controll can be
 		// achieved via the trans functions.
-		AlterModelAttribute(ctx context.Context, sch *data.Model, old data.Attribute, new data.Attribute, trans ...TransformationFunction) error
+		AlterModelAttribute(ctx context.Context, sch *Model, old Attribute, new Attribute, trans ...TransformationFunction) error
 	}
 
-	TransformationFunction func(*data.Model, data.Attribute, expr.TypedValue) (expr.TypedValue, bool, error)
+	TransformationFunction func(*Model, Attribute, expr.TypedValue) (expr.TypedValue, bool, error)
 
 	// Iterator provides an interface for loading data from the underlying store
 	Iterator interface {

@@ -3,8 +3,7 @@ package drivers
 import (
 	"fmt"
 
-	"github.com/cortezaproject/corteza-server/compose/crs"
-	"github.com/cortezaproject/corteza-server/pkg/data"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/doug-martin/goqu/v9/exp"
 )
 
@@ -14,8 +13,8 @@ type (
 		Columns() []Column
 		Ident() exp.IdentifierExpression
 		MakeScanBuffer() []any
-		Encode(r crs.ValueGetter) (_ []any, err error)
-		Decode(buf []any, r crs.ValueSetter) (err error)
+		Encode(r dal.ValueGetter) (_ []any, err error)
+		Decode(buf []any, r dal.ValueSetter) (err error)
 		AttributeExpression(string) (exp.LiteralExpression, error)
 	}
 
@@ -28,7 +27,7 @@ type (
 		// we're selecting from all columns
 		columns []Column
 
-		model   *data.Model
+		model   *dal.Model
 		dialect Dialect
 	}
 )
@@ -37,7 +36,7 @@ var (
 	_ TableCodec = &GenericTableCodec{}
 )
 
-func NewTableCodec(m *data.Model, d Dialect) *GenericTableCodec {
+func NewTableCodec(m *dal.Model, d Dialect) *GenericTableCodec {
 	gtc := &GenericTableCodec{
 		dialect: d,
 		model:   m,
@@ -46,28 +45,29 @@ func NewTableCodec(m *data.Model, d Dialect) *GenericTableCodec {
 
 	var (
 		colIdent string
-		att      *data.Attribute
+		attr     *dal.Attribute
 		done     = make(map[string]bool)
 		cols     = make([]Column, 0, len(m.Attributes))
 	)
 
 	for a := range m.Attributes {
-		att = m.Attributes[a]
-		colIdent = attrColumnIdent(att)
+		attr = m.Attributes[a]
+		colIdent = attrColumnIdent(attr)
 
 		if done[colIdent] {
 			continue
 		}
 
-		if data.StoreCodecStdRecordValueJSONType.Is(att.Store) {
+		switch attr.Store.(type) {
+		case *dal.CodecRecordValueSetJSON:
 			// when dealing with encoded types there is probably
 			// a different column that can handle the encoded payload
 			cols = append(cols, &SimpleJsonDocColumn{
 				name:       colIdent,
 				attributes: collectStdRecordValueJSONColumns(colIdent, m.Attributes...),
 			})
-		} else {
-			cols = append(cols, NewSingleValueColumn(d, att))
+		default:
+			cols = append(cols, NewSingleValueColumn(d, attr))
 		}
 
 		done[colIdent] = true
@@ -96,7 +96,7 @@ func (t *GenericTableCodec) MakeScanBuffer() []any {
 	return out
 }
 
-func (t *GenericTableCodec) Encode(r crs.ValueGetter) (_ []any, err error) {
+func (t *GenericTableCodec) Encode(r dal.ValueGetter) (_ []any, err error) {
 	enc := make([]any, len(t.columns))
 
 	for c := range t.columns {
@@ -109,7 +109,7 @@ func (t *GenericTableCodec) Encode(r crs.ValueGetter) (_ []any, err error) {
 	return enc, nil
 }
 
-func (t *GenericTableCodec) Decode(buf []any, r crs.ValueSetter) (err error) {
+func (t *GenericTableCodec) Decode(buf []any, r dal.ValueSetter) (err error) {
 	if len(buf) != len(t.columns) {
 		return fmt.Errorf("columns incompatilbe with scan buffer")
 	}
@@ -131,11 +131,11 @@ func (t *GenericTableCodec) AttributeExpression(ident string) (exp.LiteralExpres
 	}
 
 	switch s := attr.Store.(type) {
-	case *data.StoreCodecAlias:
+	case *dal.CodecAlias:
 		// using column directly
 		return exp.NewLiteralExpression("?", exp.NewIdentifierExpression("", t.model.Ident, s.Ident)), nil
 
-	case *data.StoreCodecStdRecordValueJSON:
+	case *dal.CodecRecordValueSetJSON:
 		// using JSON to handle embedded values
 		lit, err := t.dialect.DeepIdentJSON(exp.NewIdentifierExpression("", t.model.Ident, s.Ident), attr.Ident, 0)
 		if err != nil {
@@ -148,12 +148,12 @@ func (t *GenericTableCodec) AttributeExpression(ident string) (exp.LiteralExpres
 	return exp.NewLiteralExpression("?", exp.NewIdentifierExpression("", t.model.Ident, ident)), nil
 }
 
-func attrColumnIdent(att *data.Attribute) string {
+func attrColumnIdent(att *dal.Attribute) string {
 	switch ss := att.Store.(type) {
-	case *data.StoreCodecStdRecordValueJSON:
+	case *dal.CodecRecordValueSetJSON:
 		return ss.Ident
 
-	case *data.StoreCodecAlias:
+	case *dal.CodecAlias:
 		return ss.Ident
 
 	default:
@@ -161,10 +161,10 @@ func attrColumnIdent(att *data.Attribute) string {
 	}
 }
 
-func collectStdRecordValueJSONColumns(ident string, aa ...*data.Attribute) []*data.Attribute {
-	filtered := make([]*data.Attribute, 0)
+func collectStdRecordValueJSONColumns(ident string, aa ...*dal.Attribute) []*dal.Attribute {
+	filtered := make([]*dal.Attribute, 0)
 	for _, a := range aa {
-		storeType, is := a.Store.(*data.StoreCodecStdRecordValueJSON)
+		storeType, is := a.Store.(*dal.CodecRecordValueSetJSON)
 		if !is {
 			continue
 		}

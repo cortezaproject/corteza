@@ -1,9 +1,11 @@
 package types
 
-import "github.com/cortezaproject/corteza-server/compose/crs/capabilities"
+import (
+	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
+)
 
 type (
-	ComposeRecordStore struct {
+	DAL struct {
 		ID       uint64
 		Handle   string
 		DSN      string
@@ -22,15 +24,15 @@ type (
 
 // @note this conforms to the crs.crsDefiner interface
 
-func (crs ComposeRecordStore) ComposeRecordStoreID() uint64 {
+func (crs DAL) ComposeRecordStoreID() uint64 {
 	return crs.ID
 }
 
-func (crs ComposeRecordStore) StoreDSN() string {
+func (crs DAL) StoreDSN() string {
 	return crs.DSN
 }
 
-func (crs ComposeRecordStore) Capabilities() capabilities.Set {
+func (crs DAL) Capabilities() capabilities.Set {
 	return append(crs.Enforced, crs.Supported...)
 }
 

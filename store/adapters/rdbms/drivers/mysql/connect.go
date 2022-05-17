@@ -17,36 +17,18 @@ import (
 	"github.com/ngrok/sqlmw"
 )
 
+const (
+	// base for our schemas
+	baseSchema = "mysql"
+
+	// debug schema with verbose logging
+	debugSchema = baseSchema + "+debug"
+)
+
 func init() {
-	store.Register(Connect, "mysql", "mysql+debug")
-	//crs.Register(ConnectCRS, "mysql", "mysql+debug")
-
-	sql.Register("mysql+debug", sqlmw.Driver(new(mysql.MySQLDriver), instrumentation.Debug()))
+	store.Register(Connect, baseSchema, debugSchema)
+	sql.Register(debugSchema, sqlmw.Driver(new(mysql.MySQLDriver), instrumentation.Debug()))
 }
-
-// @todo cleanup; unify common bits and stuff
-
-//func ConnectCRS(ctx context.Context, dsn string, cc ...capabilities.Capability) (_ crs.StoreConnection, err error) {
-//	var (
-//		db  *sqlx.DB
-//		cfg *rdbms.ConnConfig
-//	)
-//
-//	if cfg, err = NewConfig(dsn); err != nil {
-//		return
-//	}
-//
-//	if db, err = rdbms.Connect(ctx, logger.Default(), cfg); err != nil {
-//		return
-//	}
-//
-//	// See https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_ansi for details
-//	if _, err = db.ExecContext(ctx, `SET SESSION sql_mode = 'ANSI'`); err != nil {
-//		return
-//	}
-//
-//	return rdbmsCRS.CRSConnector(db, logger.Default(), goqu.Dialect("mysql"), cc), nil
-//}
 
 func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 	var (
@@ -62,8 +44,7 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 		return
 	}
 
-	// See https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_ansi for details
-	if _, err = db.ExecContext(ctx, `SET SESSION sql_mode = 'ANSI'`); err != nil {
+	if err = connSetup(ctx, db); err != nil {
 		return
 	}
 
@@ -134,6 +115,16 @@ func NewConfig(in string) (*rdbms.ConnConfig, error) {
 	c.SetDefaults()
 
 	return c, nil
+}
+
+// Connection setup
+func connSetup(ctx context.Context, db sqlx.ExecerContext) (err error) {
+	// See https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_ansi for details
+	if _, err = db.ExecContext(ctx, `SET SESSION sql_mode = 'ANSI'`); err != nil {
+		return
+	}
+
+	return
 }
 
 func txRetryErrHandler(try int, err error) bool {

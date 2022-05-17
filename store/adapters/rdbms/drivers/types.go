@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/data"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/google/uuid"
 	"github.com/spf13/cast"
 )
@@ -19,49 +19,55 @@ type (
 		Encode(any) (driver.Value, error)
 	}
 
-	TypeID        struct{ *data.TypeID }
-	TypeRef       struct{ *data.TypeRef }
-	TypeTimestamp struct{ *data.TypeTimestamp }
-	TypeTime      struct{ *data.TypeTime }
-	TypeDate      struct{ *data.TypeDate }
-	TypeNumber    struct{ *data.TypeNumber }
-	TypeText      struct{ *data.TypeText }
-	TypeBoolean   struct{ *data.TypeBoolean }
-	TypeEnum      struct{ *data.TypeEnum }
-	TypeGeometry  struct{ *data.TypeGeometry }
-	TypeJSON      struct{ *data.TypeJSON }
-	TypeBlob      struct{ *data.TypeBlob }
-	TypeUUID      struct{ *data.TypeUUID }
+	// @todo makes sense to rethink this strategy
+	//       we do not need to have 1:1 type pairings with the pkg/dal
+	//       it makes sense to define a few most common ones here (in the rdbms/drivers)
+	//       and introduce per/driver exceptions to handle implementation specific things
+	//       like MySQLs lack of BOOLEAN that is replaced with TINYINT(1)
+
+	TypeID        struct{ *dal.TypeID }
+	TypeRef       struct{ *dal.TypeRef }
+	TypeTimestamp struct{ *dal.TypeTimestamp }
+	TypeTime      struct{ *dal.TypeTime }
+	TypeDate      struct{ *dal.TypeDate }
+	TypeNumber    struct{ *dal.TypeNumber }
+	TypeText      struct{ *dal.TypeText }
+	TypeBoolean   struct{ *dal.TypeBoolean }
+	TypeEnum      struct{ *dal.TypeEnum }
+	TypeGeometry  struct{ *dal.TypeGeometry }
+	TypeJSON      struct{ *dal.TypeJSON }
+	TypeBlob      struct{ *dal.TypeBlob }
+	TypeUUID      struct{ *dal.TypeUUID }
 )
 
 // TypeWrap wraps type from data package
-func TypeWrap(dt data.Type) Type {
+func TypeWrap(dt dal.Type) Type {
 	switch c := dt.(type) {
-	case *data.TypeID:
+	case *dal.TypeID:
 		return &TypeID{c}
-	case *data.TypeRef:
+	case *dal.TypeRef:
 		return &TypeRef{c}
-	case *data.TypeTimestamp:
+	case *dal.TypeTimestamp:
 		return &TypeTimestamp{c}
-	case *data.TypeTime:
+	case *dal.TypeTime:
 		return &TypeTime{c}
-	case *data.TypeDate:
+	case *dal.TypeDate:
 		return &TypeDate{c}
-	case *data.TypeNumber:
+	case *dal.TypeNumber:
 		return &TypeNumber{c}
-	case *data.TypeText:
+	case *dal.TypeText:
 		return &TypeText{c}
-	case *data.TypeBoolean:
+	case *dal.TypeBoolean:
 		return &TypeBoolean{c}
-	case *data.TypeEnum:
+	case *dal.TypeEnum:
 		return &TypeEnum{c}
-	case *data.TypeGeometry:
+	case *dal.TypeGeometry:
 		return &TypeGeometry{c}
-	case *data.TypeJSON:
+	case *dal.TypeJSON:
 		return &TypeJSON{c}
-	case *data.TypeBlob:
+	case *dal.TypeBlob:
 		return &TypeBlob{c}
-	case *data.TypeUUID:
+	case *dal.TypeUUID:
 		return &TypeUUID{c}
 	}
 

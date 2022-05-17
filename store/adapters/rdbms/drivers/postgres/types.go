@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/data"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
 )
 
 type (
-	TypeTime struct{ *data.TypeTime }
+	TypeTime struct{ *dal.TypeTime }
 )
 
 func (*TypeTime) MakeScanBuffer() any { return new(sql.NullTime) }

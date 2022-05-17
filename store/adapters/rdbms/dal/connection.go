@@ -1,12 +1,11 @@
-package crs
+package dal
 
 import (
 	"context"
 	"sync"
 
-	"github.com/cortezaproject/corteza-server/compose/crs"
-	"github.com/cortezaproject/corteza-server/compose/crs/capabilities"
-	"github.com/cortezaproject/corteza-server/pkg/data"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
 	"github.com/jmoiron/sqlx"
@@ -30,7 +29,7 @@ func Connection(db *sqlx.DB, dialect drivers.Dialect) *connection {
 	}
 }
 
-func (c *connection) model(m *data.Model) *model {
+func (c *connection) model(m *dal.Model) *model {
 	c.mux.RLock()
 	if c.models[m.Ident] == nil {
 		c.mux.RUnlock()
@@ -59,39 +58,39 @@ func (c *connection) Close(ctx context.Context) error {
 	return nil
 }
 
-func (c *connection) CreateRecords(ctx context.Context, m *data.Model, rr ...crs.ValueGetter) error {
+func (c *connection) CreateRecords(ctx context.Context, m *dal.Model, rr ...dal.ValueGetter) error {
 	return c.model(m).Create(ctx, rr...)
 }
 
-func (c *connection) LookupRecord(ctx context.Context, m *data.Model, pkv crs.ValueGetter, r crs.ValueSetter) error {
+func (c *connection) LookupRecord(ctx context.Context, m *dal.Model, pkv dal.ValueGetter, r dal.ValueSetter) error {
 	return c.model(m).Lookup(ctx, pkv, r)
 }
 
-func (c *connection) SearchRecords(ctx context.Context, m *data.Model, f filter.Filter) (crs.Iterator, error) {
+func (c *connection) SearchRecords(ctx context.Context, m *dal.Model, f filter.Filter) (dal.Iterator, error) {
 	return c.model(m).Search(f)
 }
 
-func (c *connection) Models(ctx context.Context) (data.ModelSet, error) {
+func (c *connection) Models(ctx context.Context) (dal.ModelSet, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (c *connection) AddModel(ctx context.Context, model *data.Model, model2 ...*data.Model) error {
+func (c *connection) AddModel(ctx context.Context, model *dal.Model, model2 ...*dal.Model) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (c *connection) RemoveModel(ctx context.Context, model *data.Model, model2 ...*data.Model) error {
+func (c *connection) RemoveModel(ctx context.Context, model *dal.Model, model2 ...*dal.Model) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (c *connection) AlterModel(ctx context.Context, old *data.Model, new *data.Model) error {
+func (c *connection) AlterModel(ctx context.Context, old *dal.Model, new *dal.Model) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (c *connection) AlterModelAttribute(ctx context.Context, sch *data.Model, old data.Attribute, new data.Attribute, trans ...crs.TransformationFunction) error {
+func (c *connection) AlterModelAttribute(ctx context.Context, sch *dal.Model, old dal.Attribute, new dal.Attribute, trans ...dal.TransformationFunction) error {
 	//TODO implement me
 	panic("implement me")
 }

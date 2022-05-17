@@ -5,34 +5,33 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/cortezaproject/corteza-server/compose/crs"
-	"github.com/cortezaproject/corteza-server/pkg/data"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/spf13/cast"
 )
 
 type (
 	Column interface {
 		Name() string
-		Attribute() *data.Attribute
+		Attribute() *dal.Attribute
 		IsPrimaryKey() bool
-		Encode(crs.ValueGetter) (any, error)
-		Decode(any, crs.ValueSetter) error
+		Encode(dal.ValueGetter) (any, error)
+		Decode(any, dal.ValueSetter) error
 		Type() Type
 	}
 
 	SingleValueColumn struct {
 		typ  Type
 		name string
-		attr *data.Attribute
+		attr *dal.Attribute
 	}
 
 	SimpleJsonDocColumn struct {
 		name       string
-		attributes []*data.Attribute
+		attributes []*dal.Attribute
 	}
 )
 
-func NewSingleValueColumn(d Dialect, a *data.Attribute) *SingleValueColumn {
+func NewSingleValueColumn(d Dialect, a *dal.Attribute) *SingleValueColumn {
 	return &SingleValueColumn{
 		typ:  d.TypeWrap(a.Type),
 		attr: a,
@@ -48,7 +47,7 @@ func (c *SingleValueColumn) IsPrimaryKey() bool {
 	return c.attr.PrimaryKey
 }
 
-func (c *SingleValueColumn) Attribute() *data.Attribute {
+func (c *SingleValueColumn) Attribute() *dal.Attribute {
 	return c.attr
 }
 
@@ -56,7 +55,7 @@ func (c *SingleValueColumn) Type() Type {
 	return c.typ
 }
 
-func (c *SingleValueColumn) Encode(r crs.ValueGetter) (any, error) {
+func (c *SingleValueColumn) Encode(r dal.ValueGetter) (any, error) {
 	val, err := r.GetValue(c.attr.Ident, 0)
 	if err != nil {
 		return nil, err
@@ -65,7 +64,7 @@ func (c *SingleValueColumn) Encode(r crs.ValueGetter) (any, error) {
 	return c.typ.Encode(val)
 }
 
-func (c *SingleValueColumn) Decode(raw any, r crs.ValueSetter) error {
+func (c *SingleValueColumn) Decode(raw any, r dal.ValueSetter) error {
 	value, valid, err := c.typ.Decode(raw)
 	if err != nil {
 		return err
@@ -87,7 +86,7 @@ func (c *SimpleJsonDocColumn) IsPrimaryKey() bool {
 	return false
 }
 
-func (c *SimpleJsonDocColumn) Attribute() *data.Attribute {
+func (c *SimpleJsonDocColumn) Attribute() *dal.Attribute {
 	return c.attributes[0]
 }
 
@@ -95,7 +94,7 @@ func (c *SimpleJsonDocColumn) Type() Type {
 	return &TypeJSON{}
 }
 
-func (c *SimpleJsonDocColumn) Encode(r crs.ValueGetter) (_ any, err error) {
+func (c *SimpleJsonDocColumn) Encode(r dal.ValueGetter) (_ any, err error) {
 	var (
 		aux   = make(map[string][]any)
 		value any
@@ -118,7 +117,7 @@ func (c *SimpleJsonDocColumn) Encode(r crs.ValueGetter) (_ any, err error) {
 
 			// now, encode the value according to JSON format constraints
 			switch attr.Type.(type) {
-			case *data.TypeBoolean:
+			case *dal.TypeBoolean:
 				// we want booleans stored as booleans
 				aux[attr.Ident][place] = cast.ToBool(value)
 
@@ -137,7 +136,7 @@ func (c *SimpleJsonDocColumn) Encode(r crs.ValueGetter) (_ any, err error) {
 	return json.Marshal(aux)
 }
 
-func (c *SimpleJsonDocColumn) Decode(raw any, r crs.ValueSetter) (err error) {
+func (c *SimpleJsonDocColumn) Decode(raw any, r dal.ValueSetter) (err error) {
 	rawJson, is := raw.(*sql.RawBytes)
 	if !is {
 		return fmt.Errorf("incompatible input value type (%T), expecting *sql.RawBytes", raw)
@@ -150,7 +149,7 @@ func (c *SimpleJsonDocColumn) Decode(raw any, r crs.ValueSetter) (err error) {
 
 	// @todo this is too naive
 	for name, vv := range buf {
-		var attr *data.Attribute
+		var attr *dal.Attribute
 		for a := range c.attributes {
 			if c.attributes[a].Ident != name {
 				continue

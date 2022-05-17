@@ -1,4 +1,4 @@
-package crs
+package dal
 
 import (
 	"context"
@@ -6,8 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/compose/crs"
-	"github.com/cortezaproject/corteza-server/pkg/data"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ql"
@@ -27,7 +26,7 @@ type (
 	}
 
 	model struct {
-		model *data.Model
+		model *dal.Model
 		conn  queryRunner
 
 		queryParser queryParser
@@ -41,7 +40,7 @@ type (
 //
 // It abstracts database table and its columns and provides unified interface
 // for fetching and storing records.
-func Model(m *data.Model, c queryRunner, d drivers.Dialect) *model {
+func Model(m *dal.Model, c queryRunner, d drivers.Dialect) *model {
 	var (
 		ms = &model{
 			model:       m,
@@ -76,7 +75,7 @@ func (d *model) Truncate(ctx context.Context) error {
 	return err
 }
 
-func (d *model) Create(ctx context.Context, rr ...crs.ValueGetter) error {
+func (d *model) Create(ctx context.Context, rr ...dal.ValueGetter) error {
 	sql, args, err := d.insertSql(rr...).ToSQL()
 	if err != nil {
 		return err
@@ -86,7 +85,7 @@ func (d *model) Create(ctx context.Context, rr ...crs.ValueGetter) error {
 	return err
 }
 
-func (d *model) Update(ctx context.Context, r crs.ValueGetter) error {
+func (d *model) Update(ctx context.Context, r dal.ValueGetter) error {
 	sql, args, err := d.updateSql(r).ToSQL()
 	if err != nil {
 		return err
@@ -96,7 +95,7 @@ func (d *model) Update(ctx context.Context, r crs.ValueGetter) error {
 	return err
 }
 
-func (d *model) Delete(ctx context.Context, r crs.ValueGetter) error {
+func (d *model) Delete(ctx context.Context, r dal.ValueGetter) error {
 	sql, args, err := d.deleteSql(r).ToSQL()
 	if err != nil {
 		return err
@@ -155,7 +154,7 @@ func (d *model) Search(f filter.Filter) (i *iterator, err error) {
 	}, nil
 }
 
-func (d *model) Lookup(ctx context.Context, pkv crs.ValueGetter, r crs.ValueSetter) (err error) {
+func (d *model) Lookup(ctx context.Context, pkv dal.ValueGetter, r dal.ValueSetter) (err error) {
 	query, args, err := d.lookupSql(pkv).ToSQL()
 	if err != nil {
 		return
@@ -291,7 +290,7 @@ func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 	return base.Where(cnd...)
 }
 
-func (d *model) lookupSql(pkv crs.ValueGetter) *goqu.SelectDataset {
+func (d *model) lookupSql(pkv dal.ValueGetter) *goqu.SelectDataset {
 	var (
 		sel       = d.selectSql().Limit(1)
 		cond, err = d.pkLookupCondition(pkv)
@@ -327,7 +326,7 @@ func (d *model) truncateSql() (_ *goqu.TruncateDataset) {
 	return d.dialect.GOQU().Truncate(d.table)
 }
 
-func (d *model) insertSql(rr ...crs.ValueGetter) (_ *goqu.InsertDataset) {
+func (d *model) insertSql(rr ...dal.ValueGetter) (_ *goqu.InsertDataset) {
 	var (
 		ins = d.dialect.GOQU().Insert(d.table.Ident())
 		cc  = d.table.Columns()
@@ -353,7 +352,7 @@ func (d *model) insertSql(rr ...crs.ValueGetter) (_ *goqu.InsertDataset) {
 }
 
 // updateSql generates SQL command for updating record
-func (d *model) updateSql(r crs.ValueGetter) *goqu.UpdateDataset {
+func (d *model) updateSql(r dal.ValueGetter) *goqu.UpdateDataset {
 	var (
 		upd = d.dialect.GOQU().Update(d.table.Ident())
 
@@ -379,7 +378,7 @@ func (d *model) updateSql(r crs.ValueGetter) *goqu.UpdateDataset {
 	return upd.Where(condition).Set(values)
 }
 
-func (d *model) deleteSql(pkv crs.ValueGetter) *goqu.DeleteDataset {
+func (d *model) deleteSql(pkv dal.ValueGetter) *goqu.DeleteDataset {
 	var (
 		del       = d.dialect.GOQU().Delete(d.table.Ident())
 		cond, err = d.pkLookupCondition(pkv)
@@ -393,7 +392,7 @@ func (d *model) deleteSql(pkv crs.ValueGetter) *goqu.DeleteDataset {
 }
 
 // Constructs primary-key-lookup expression from pk values
-func (d *model) pkLookupCondition(pkv crs.ValueGetter) (_ exp.Expression, err error) {
+func (d *model) pkLookupCondition(pkv dal.ValueGetter) (_ exp.Expression, err error) {
 	var (
 		cnd = exp.NewExpressionList(exp.AndType)
 		val any
