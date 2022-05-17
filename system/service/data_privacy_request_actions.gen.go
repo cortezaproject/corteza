@@ -23,6 +23,7 @@ type (
 	dataPrivacyActionProps struct {
 		dataPrivacyRequest *types.DataPrivacyRequest
 		new                *types.DataPrivacyRequest
+		update             *types.DataPrivacyRequest
 		filter             *types.DataPrivacyRequestFilter
 	}
 
@@ -73,6 +74,17 @@ func (p *dataPrivacyActionProps) setNew(new *types.DataPrivacyRequest) *dataPriv
 	return p
 }
 
+// setUpdate updates dataPrivacyActionProps's update
+//
+// Allows method chaining
+//
+// This function is auto-generated.
+//
+func (p *dataPrivacyActionProps) setUpdate(update *types.DataPrivacyRequest) *dataPrivacyActionProps {
+	p.update = update
+	return p
+}
+
 // setFilter updates dataPrivacyActionProps's filter
 //
 // Allows method chaining
@@ -100,6 +112,10 @@ func (p dataPrivacyActionProps) Serialize() actionlog.Meta {
 	if p.new != nil {
 		m.Set("new.name", p.new.Name, true)
 		m.Set("new.ID", p.new.ID, true)
+	}
+	if p.update != nil {
+		m.Set("update.name", p.update.Name, true)
+		m.Set("update.ID", p.update.ID, true)
 	}
 	if p.filter != nil {
 		m.Set("filter.name", p.filter.Name, true)
@@ -161,6 +177,20 @@ func (p dataPrivacyActionProps) Format(in string, err error) string {
 		)
 		pairs = append(pairs, "{{new.name}}", fns(p.new.Name))
 		pairs = append(pairs, "{{new.ID}}", fns(p.new.ID))
+	}
+
+	if p.update != nil {
+		// replacement for "{{update}}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{{update}}",
+			fns(
+				p.update.Name,
+				p.update.ID,
+			),
+		)
+		pairs = append(pairs, "{{update.name}}", fns(p.update.Name))
+		pairs = append(pairs, "{{update.ID}}", fns(p.update.ID))
 	}
 
 	if p.filter != nil {
@@ -263,6 +293,26 @@ func DataPrivacyActionCreate(props ...*dataPrivacyActionProps) *dataPrivacyActio
 		resource:  "system:data-privacy-request",
 		action:    "create",
 		log:       "created {{dataPrivacyRequest}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// DataPrivacyActionUpdate returns "system:data-privacy-request.update" action
+//
+// This function is auto-generated.
+//
+func DataPrivacyActionUpdate(props ...*dataPrivacyActionProps) *dataPrivacyAction {
+	a := &dataPrivacyAction{
+		timestamp: time.Now(),
+		resource:  "system:data-privacy-request",
+		action:    "update",
+		log:       "updated {{dataPrivacyRequest}}",
 		severity:  actionlog.Notice,
 	}
 

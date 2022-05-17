@@ -67,6 +67,18 @@ type (
 		RequestType uint
 	}
 
+	DataPrivacyUpdateRequest struct {
+		// RequestID PATH parameter
+		//
+		// ID
+		RequestID uint64 `json:",string"`
+
+		// Status POST parameter
+		//
+		// Request Status
+		Status uint
+	}
+
 	DataPrivacyReadRequest struct {
 		// RequestID PATH parameter
 		//
@@ -240,6 +252,89 @@ func (r *DataPrivacyCreateRequest) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+	}
+
+	return err
+}
+
+// NewDataPrivacyUpdateRequest request
+func NewDataPrivacyUpdateRequest() *DataPrivacyUpdateRequest {
+	return &DataPrivacyUpdateRequest{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DataPrivacyUpdateRequest) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"requestID": r.RequestID,
+		"status":    r.Status,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DataPrivacyUpdateRequest) GetRequestID() uint64 {
+	return r.RequestID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DataPrivacyUpdateRequest) GetStatus() uint {
+	return r.Status
+}
+
+// Fill processes request and fills internal variables
+func (r *DataPrivacyUpdateRequest) Fill(req *http.Request) (err error) {
+
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		// Caching 32MB to memory, the rest to disk
+		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
+			return err
+		} else if err == nil {
+			// Multipart params
+
+			if val, ok := req.MultipartForm.Value["status"]; ok && len(val) > 0 {
+				r.Status, err = payload.ParseUint(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if val, ok := req.Form["status"]; ok && len(val) > 0 {
+			r.Status, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "requestID")
+		r.RequestID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
 	}
 
 	return err

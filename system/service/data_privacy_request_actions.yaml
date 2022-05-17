@@ -19,6 +19,9 @@ props:
   - name: new
     type: "*types.DataPrivacyRequest"
     fields: [ name, ID ]
+  - name: update
+    type: "*types.DataPrivacyRequest"
+    fields: [ name, ID ]
   - name: filter
     type: "*types.DataPrivacyRequestFilter"
     fields: [ name, deleted, sort ]
@@ -34,6 +37,9 @@ actions:
 
   - action: create
     log: "created {{dataPrivacyRequest}}"
+
+  - action: update
+    log: "updated {{dataPrivacyRequest}}"
 
 
 errors:

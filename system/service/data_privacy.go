@@ -27,6 +27,7 @@ type (
 		FindRequestByID(ctx context.Context, requestID uint64) (*types.DataPrivacyRequest, error)
 		FindRequest(context.Context, types.DataPrivacyRequestFilter) (types.DataPrivacyRequestSet, types.DataPrivacyRequestFilter, error)
 		CreateRequest(ctx context.Context, request *types.DataPrivacyRequest) (*types.DataPrivacyRequest, error)
+		UpdateRequest(ctx context.Context, request *types.DataPrivacyRequest) (*types.DataPrivacyRequest, error)
 	}
 )
 
@@ -141,4 +142,43 @@ func (svc dataPrivacy) CreateRequest(ctx context.Context, new *types.DataPrivacy
 	}()
 
 	return r, svc.recordAction(ctx, raProps, DataPrivacyActionCreate, err)
+}
+
+func (svc dataPrivacy) UpdateRequest(ctx context.Context, upd *types.DataPrivacyRequest) (r *types.DataPrivacyRequest, err error) {
+	var (
+		raProps = &dataPrivacyActionProps{update: upd}
+	)
+
+	err = func() (err error) {
+		if upd.ID == 0 {
+			return DataPrivacyErrInvalidID()
+		}
+
+		// Todo: check status update access control
+
+		// Todo: access control
+
+		if r, err = store.LookupDataPrivacyRequestByID(ctx, svc.store, upd.ID); err != nil {
+			return
+		}
+
+		raProps.setDataPrivacyRequest(r)
+
+		if err = svc.eventbus.WaitFor(ctx, event.DataPrivacyRequestBeforeUpdate(upd, r)); err != nil {
+			return
+		}
+
+		r.UpdatedAt = now()
+
+		// Assign changed values
+		if err = store.UpdateDataPrivacyRequest(ctx, svc.store, r); err != nil {
+			return err
+		}
+
+		svc.eventbus.Dispatch(ctx, event.DataPrivacyRequestAfterUpdate(upd, r))
+
+		return nil
+	}()
+
+	return r, svc.recordAction(ctx, raProps, DataPrivacyActionUpdate, err)
 }

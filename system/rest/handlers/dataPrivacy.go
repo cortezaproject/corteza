@@ -21,6 +21,7 @@ type (
 	DataPrivacyAPI interface {
 		ListRequests(context.Context, *request.DataPrivacyListRequests) (interface{}, error)
 		CreateRequest(context.Context, *request.DataPrivacyCreateRequest) (interface{}, error)
+		UpdateRequest(context.Context, *request.DataPrivacyUpdateRequest) (interface{}, error)
 		ReadRequest(context.Context, *request.DataPrivacyReadRequest) (interface{}, error)
 		ListResponsesOfRequest(context.Context, *request.DataPrivacyListResponsesOfRequest) (interface{}, error)
 		CreateResponseForRequest(context.Context, *request.DataPrivacyCreateResponseForRequest) (interface{}, error)
@@ -30,6 +31,7 @@ type (
 	DataPrivacy struct {
 		ListRequests             func(http.ResponseWriter, *http.Request)
 		CreateRequest            func(http.ResponseWriter, *http.Request)
+		UpdateRequest            func(http.ResponseWriter, *http.Request)
 		ReadRequest              func(http.ResponseWriter, *http.Request)
 		ListResponsesOfRequest   func(http.ResponseWriter, *http.Request)
 		CreateResponseForRequest func(http.ResponseWriter, *http.Request)
@@ -63,6 +65,22 @@ func NewDataPrivacy(h DataPrivacyAPI) *DataPrivacy {
 			}
 
 			value, err := h.CreateRequest(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		UpdateRequest: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewDataPrivacyUpdateRequest()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.UpdateRequest(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
@@ -126,6 +144,7 @@ func (h DataPrivacy) MountRoutes(r chi.Router, middlewares ...func(http.Handler)
 		r.Use(middlewares...)
 		r.Get("/data-privacy/requests/", h.ListRequests)
 		r.Post("/data-privacy/requests", h.CreateRequest)
+		r.Put("/data-privacy/requests/{requestID}", h.UpdateRequest)
 		r.Get("/data-privacy/requests/{requestID}", h.ReadRequest)
 		r.Get("/data-privacy/requests/{requestID}/responses", h.ListResponsesOfRequest)
 		r.Get("/data-privacy/requests/{requestID}/responses", h.CreateResponseForRequest)

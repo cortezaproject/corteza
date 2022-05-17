@@ -612,7 +612,8 @@ func (s *Session) exec(ctx context.Context, log *zap.Logger, st *State) (nxt []*
 	st.created = *now()
 
 	defer func() {
-		reason := recover()
+		var reason interface{}
+		reason = recover()
 		if reason == nil {
 			return
 		}
