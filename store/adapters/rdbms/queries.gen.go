@@ -2641,6 +2641,106 @@ var (
 		}
 	}
 
+	// dataPrivacyRequestTable represents dataPrivacyRequests store table
+	//
+	// This value is auto-generated
+	dataPrivacyRequestTable = goqu.T("data_privacy_requests")
+
+	// dataPrivacyRequestSelectQuery assembles select query for fetching dataPrivacyRequests
+	//
+	// This function is auto-generated
+	dataPrivacyRequestSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"name",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+			"created_by",
+			"updated_by",
+			"deleted_by",
+		).From(dataPrivacyRequestTable)
+	}
+
+	// dataPrivacyRequestInsertQuery assembles query inserting dataPrivacyRequests
+	//
+	// This function is auto-generated
+	dataPrivacyRequestInsertQuery = func(d goqu.DialectWrapper, res *systemType.DataPrivacyRequest) *goqu.InsertDataset {
+		return d.Insert(dataPrivacyRequestTable).
+			Rows(goqu.Record{
+				"id":         res.ID,
+				"name":       res.Name,
+				"created_at": res.CreatedAt,
+				"updated_at": res.UpdatedAt,
+				"deleted_at": res.DeletedAt,
+				"created_by": res.CreatedBy,
+				"updated_by": res.UpdatedBy,
+				"deleted_by": res.DeletedBy,
+			})
+	}
+
+	// dataPrivacyRequestUpsertQuery assembles (insert+on-conflict) query for replacing dataPrivacyRequests
+	//
+	// This function is auto-generated
+	dataPrivacyRequestUpsertQuery = func(d goqu.DialectWrapper, res *systemType.DataPrivacyRequest) *goqu.InsertDataset {
+		var target = `,id`
+
+		return dataPrivacyRequestInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"name":       res.Name,
+						"created_at": res.CreatedAt,
+						"updated_at": res.UpdatedAt,
+						"deleted_at": res.DeletedAt,
+						"created_by": res.CreatedBy,
+						"updated_by": res.UpdatedBy,
+						"deleted_by": res.DeletedBy,
+					},
+				),
+			)
+	}
+
+	// dataPrivacyRequestUpdateQuery assembles query for updating dataPrivacyRequests
+	//
+	// This function is auto-generated
+	dataPrivacyRequestUpdateQuery = func(d goqu.DialectWrapper, res *systemType.DataPrivacyRequest) *goqu.UpdateDataset {
+		return d.Update(dataPrivacyRequestTable).
+			Set(goqu.Record{
+				"name":       res.Name,
+				"created_at": res.CreatedAt,
+				"updated_at": res.UpdatedAt,
+				"deleted_at": res.DeletedAt,
+				"created_by": res.CreatedBy,
+				"updated_by": res.UpdatedBy,
+				"deleted_by": res.DeletedBy,
+			}).
+			Where(dataPrivacyRequestPrimaryKeys(res))
+	}
+
+	// dataPrivacyRequestDeleteQuery assembles delete query for removing dataPrivacyRequests
+	//
+	// This function is auto-generated
+	dataPrivacyRequestDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(dataPrivacyRequestTable).Where(ee...)
+	}
+
+	// dataPrivacyRequestDeleteQuery assembles delete query for removing dataPrivacyRequests
+	//
+	// This function is auto-generated
+	dataPrivacyRequestTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(dataPrivacyRequestTable)
+	}
+
+	// dataPrivacyRequestPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	dataPrivacyRequestPrimaryKeys = func(res *systemType.DataPrivacyRequest) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
 	// federationExposedModuleTable represents federationExposedModules store table
 	//
 	// This value is auto-generated

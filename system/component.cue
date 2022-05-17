@@ -17,6 +17,7 @@ component: schema.#component & {
 		"auth-session":          auth_session
 		"auth-oa2token":         auth_oa2token
 		"credential":            credential
+		"data-privacy-request":  data_privacy_request
 		"queue":                 queue
 		"queue_message":         queue_message
 		"reminder":              reminder

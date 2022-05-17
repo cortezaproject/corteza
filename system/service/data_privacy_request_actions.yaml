@@ -1,0 +1,58 @@
+# List of loggable service actions
+
+resource: system:data-privacy-request
+service: dataPrivacy
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: alert
+
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+props:
+  - name: dataPrivacyRequest
+    type: "*types.DataPrivacyRequest"
+    fields: [ name, ID ]
+  - name: new
+    type: "*types.DataPrivacyRequest"
+    fields: [ name, ID ]
+  - name: filter
+    type: "*types.DataPrivacyRequestFilter"
+    fields: [ name, deleted, sort ]
+
+actions:
+  - action: search
+    log: "searched for data privacy requests"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{dataPrivacyRequest}}"
+    severity: info
+
+  - action: create
+    log: "created {{dataPrivacyRequest}}"
+
+
+errors:
+  - error: notFound
+    message: "data privacy request not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: notAllowedToRead
+    message: "not allowed to read this role"
+    log: "failed to read {{dataPrivacyRequest.name}}; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to search or list roles"
+    log: "failed to search or list roles; insufficient permissions"
+
+  - error: notAllowedToCreate
+    message: "not allowed to create roles"
+    log: "failed to create role; insufficient permissions"

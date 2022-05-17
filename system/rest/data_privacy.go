@@ -6,7 +6,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"time"
 )
 
 type (
@@ -48,33 +47,8 @@ func (ctrl DataPrivacy) ListRequests(ctx context.Context, r *request.DataPrivacy
 		return nil, err
 	}
 
-	set, f, err := ctrl.dataPrivacy.Find(ctx, f)
+	set, f, err := ctrl.dataPrivacy.FindRequest(ctx, f)
 	return ctrl.makeFilterPayload(ctx, set, f, err)
-}
-
-func (ctrl DataPrivacy) CreateRequest(ctx context.Context, r *request.DataPrivacyCreateRequest) (interface{}, error) {
-	req := &types.DataPrivacyRequest{
-		Name:        r.Name,
-		RequestType: types.RequestType(r.RequestType),
-		Status:      types.RequestStatusPending,
-		RequestedAt: time.Now(),
-		// @todo: get current user
-		//RequestedBy: ,
-	}
-
-	return ctrl.dataPrivacy.Create(ctx, req)
-}
-
-func (ctrl DataPrivacy) ReadRequest(ctx context.Context, r *request.DataPrivacyReadRequest) (interface{}, error) {
-	return ctrl.dataPrivacy.FindByID(ctx, r.RequestID)
-}
-
-func (ctrl DataPrivacy) ListResponsesOfRequest(ctx context.Context, request *request.DataPrivacyListResponsesOfRequest) (interface{}, error) {
-	panic(any("implement me"))
-}
-
-func (ctrl DataPrivacy) CreateResponseForRequest(ctx context.Context, request *request.DataPrivacyCreateResponseForRequest) (interface{}, error) {
-	panic(any("implement me"))
 }
 
 func (ctrl DataPrivacy) makeFilterPayload(_ context.Context, rr types.DataPrivacyRequestSet, f types.DataPrivacyRequestFilter, err error) (*dataPrivacyRequestSetPayload, error) {
@@ -87,4 +61,25 @@ func (ctrl DataPrivacy) makeFilterPayload(_ context.Context, rr types.DataPrivac
 	}
 
 	return &dataPrivacyRequestSetPayload{Filter: f, Set: rr}, nil
+}
+
+func (ctrl DataPrivacy) CreateRequest(ctx context.Context, r *request.DataPrivacyCreateRequest) (interface{}, error) {
+	req := &types.DataPrivacyRequest{
+		Name:        r.Name,
+		RequestType: types.RequestType(r.RequestType),
+	}
+
+	return ctrl.dataPrivacy.CreateRequest(ctx, req)
+}
+
+func (ctrl DataPrivacy) ReadRequest(ctx context.Context, r *request.DataPrivacyReadRequest) (interface{}, error) {
+	return ctrl.dataPrivacy.FindRequestByID(ctx, r.RequestID)
+}
+
+func (ctrl DataPrivacy) ListResponsesOfRequest(ctx context.Context, request *request.DataPrivacyListResponsesOfRequest) (interface{}, error) {
+	panic(any("implement me"))
+}
+
+func (ctrl DataPrivacy) CreateResponseForRequest(ctx context.Context, request *request.DataPrivacyCreateResponseForRequest) (interface{}, error) {
+	panic(any("implement me"))
 }

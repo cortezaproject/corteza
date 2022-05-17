@@ -1980,6 +1980,181 @@ func getEventTypeDefinitions() []eventTypeDef {
 		},
 
 		{
+			ResourceType: "system:data-privacy-request",
+			EventType:    "onManual",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "dataPrivacyRequest",
+					Type:      "",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldDataPrivacyRequest",
+					Type:      "",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "role.name",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:data-privacy-request",
+			EventType:    "beforeCreate",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "dataPrivacyRequest",
+					Type:      "",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldDataPrivacyRequest",
+					Type:      "",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "role.name",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:data-privacy-request",
+			EventType:    "beforeUpdate",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "dataPrivacyRequest",
+					Type:      "",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldDataPrivacyRequest",
+					Type:      "",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "role.name",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:data-privacy-request",
+			EventType:    "beforeDelete",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "dataPrivacyRequest",
+					Type:      "",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldDataPrivacyRequest",
+					Type:      "",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "role.name",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:data-privacy-request",
+			EventType:    "afterCreate",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "dataPrivacyRequest",
+					Type:      "",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldDataPrivacyRequest",
+					Type:      "",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "role.name",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:data-privacy-request",
+			EventType:    "afterUpdate",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "dataPrivacyRequest",
+					Type:      "",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldDataPrivacyRequest",
+					Type:      "",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "role.name",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:data-privacy-request",
+			EventType:    "afterDelete",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "dataPrivacyRequest",
+					Type:      "",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldDataPrivacyRequest",
+					Type:      "",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "role.name",
+				},
+			},
+		},
+
+		{
 			ResourceType: "system:mail",
 			EventType:    "onManual",
 			Properties: []eventTypePropertyDef{
