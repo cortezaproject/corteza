@@ -1,7 +1,7 @@
 		</main>
 		{{ template "inc_toasts.html.tpl" .alerts }}
         <div class="footer col text-center py-4 text-white">
-        	{{ tr "inc_footer.code-link" }}<a href="https://github.com/cortezaproject/" target="_blank" class="text-white ml-2">GitHub</a>
+						{{ tr "inc_footer.code-link" }}<a data-test-id="link-github" href="https://github.com/cortezaproject/" target="_blank" class="text-white ml-2">GitHub</a>
         </div>
 	</body>
 	<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>

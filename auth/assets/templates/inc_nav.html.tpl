@@ -10,7 +10,11 @@
 {{ if not .hideNav }}
 	{{ if and .user .client }}
 	<div class="py-1 px-3">
-		<a href="{{ links.OAuth2AuthorizeClient }}" class="text-danger">
+		<a
+			data-test-id="link-finalize-authorization"
+			class="text-danger"
+			href="{{ links.OAuth2AuthorizeClient }}"
+		>
 		 {{ tr "inc_nav.template.authorize-client" }} {{ .client.Name }}
 		 <i class="bi bi-chevron-double-right"></i>
 		 </a>
@@ -18,16 +22,40 @@
 	{{ else if .user }}
 	<ul class="nav ml-1 d-flex justify-content-around">
 		<li class="nav-item {{ if eq $activeNav "profile" }}active{{ end  }}">
-			<a class="nav-link" href="{{ links.Profile }}">{{ tr "inc_nav.template.class.your-profile" }}</a>
+			<a
+				data-test-id="link-tab-profile"
+				class="nav-link"
+				href="{{ links.Profile }}"
+			>
+				{{ tr "inc_nav.template.class.your-profile" }}
+			</a>
 		</li>
 		<li class="nav-item {{ if eq $activeNav "security" }}active{{ end  }}">
-			<a class="nav-link" href="{{ links.Security }}">{{ tr "inc_nav.template.class.security" }}</a>
+			<a
+				data-test-id="link-tab-security"
+				class="nav-link"
+				href="{{ links.Security }}"
+			>
+				{{ tr "inc_nav.template.class.security" }}
+			</a>
 		</li>
 		<li class="nav-item {{ if eq $activeNav "sessions" }}active{{ end  }}">
-			<a class="nav-link" href="{{ links.Sessions }}">{{ tr "inc_nav.template.class.login-session" }}</a>
+			<a
+				data-test-id="link-tab-login-session"
+				class="nav-link"
+				href="{{ links.Sessions }}"
+			>
+				{{ tr "inc_nav.template.class.login-session" }}
+			</a>
 		</li>
 		<li class="nav-item {{ if eq $activeNav "clients" }}active{{ end  }}">
-			<a class="nav-link" href="{{ links.AuthorizedClients }}">{{ tr "inc_nav.template.class.authorized-clients" }}</a>
+			<a
+				data-test-id="link-tab-authorized-clients"
+				class="nav-link"
+				href="{{ links.AuthorizedClients }}"
+			>
+				{{ tr "inc_nav.template.class.authorized-clients" }}
+			</a>
 		</li>
 	</ul>
 	{{ end }}

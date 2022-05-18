@@ -9,7 +9,11 @@
 	>
 		{{ .csrfField }}
 		{{ if .form.error }}
-		<div class="text-danger mb-4 font-weight-bold" role="alert">
+		<div
+			data-test-id="error"
+			class="text-danger mb-4 font-weight-bold"
+			role="alert"
+		>
 			{{ .form.error }}
 		</div>
 		{{ end }}
@@ -18,9 +22,9 @@
                 {{ tr "login.template.form.email.label" }} *
             </label>
 			<input
+				data-test-id="input-email"
 				type="email"
 				class="form-control"
-				data-test-id="input-email"
 				name="email"
 				required
 				placeholder="{{ tr "login.template.form.email.placeholder" }}"
@@ -34,10 +38,10 @@
                 {{ tr "login.template.form.password.label" }} *
             </label>
 			<input
+				data-test-id="input-password"
 				type="password"
 				required
 				class="form-control"
-				data-test-id="input-password"
 				name="password"
 				placeholder="{{ tr "login.template.form.password.placeholder" }}"
 				autocomplete="current-password"
@@ -46,8 +50,8 @@
 		<div class="row">
 			<div class="col text-right">
 				<button
-					class="btn btn-primary btn-block btn-lg"
 					data-test-id="button-login-and-remember"
+					class="btn btn-primary btn-block btn-lg"
 					name="keep-session"
 					value="true"
 					type="submit"
@@ -55,6 +59,7 @@
 					{{ tr "login.template.form.button.login-and-remember" }}
 				</button>
 				<button
+					data-test-id="button-login"
 					class="btn btn-light btn-block"
 					type="submit"
 				>
@@ -66,8 +71,8 @@
 		<div class="row">
 			<div class="col text-right">
 				<button
+					data-test-id="button-continue"
 					class="btn btn-primary btn-block btn-lg"
-					data-test-id="button-login"
 					name="keep-session"
 					value="true"
 					type="submit"
@@ -81,12 +86,22 @@
 	<div class="row text-center pb-3">
         {{ if .settings.PasswordResetEnabled }}
         <div class="col cols-6">
-            <a href="{{ links.RequestPasswordReset }}">{{ tr "login.template.links.request-password-reset" }}</a>
+            <a
+							data-test-id="link-request-password-reset"
+							href="{{ links.RequestPasswordReset }}"
+						>
+							{{ tr "login.template.links.request-password-reset" }}
+						</a>
         </div>
         {{ end }}
         {{ if .settings.SignupEnabled }}
         <div class="col cols-6">
-            <a href="{{ links.Signup }}">{{ tr "login.template.links.signup" }}</a>
+            <a
+							data-test-id="link-signup"
+							href="{{ links.Signup }}"
+						>
+							{{ tr "login.template.links.signup" }}
+						</a>
         </div>
         {{ end }}
 	</div>

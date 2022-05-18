@@ -19,9 +19,9 @@
             <div class="position-absolute user text-white m-2">
 			    <a class="font-weight-bold text-white" href="{{ links.Base }}"><i class="bi bi-grid-3x2-gap-fill text-white mr-1 align-middle" style="font-size: 1.4rem;"></i></a>
                 {{ tr "inc_header.logged-in-as" }}
-                <a class="font-weight-bold text-white" href="{{ links.Profile }}">{{ coalesce .user.Name .user.Handle .user.Email }}</a>
+                <a  data-test-id="link-redirect-to-profile" class="font-weight-bold text-white" href="{{ links.Profile }}">{{ coalesce .user.Name .user.Handle .user.Email }}</a>
                 |
-                <a class="font-weight-bold text-white" href="{{ links.Logout }}">{{ tr "inc_header.logout" }}</a>
+                <a  data-test-id="link-logout" class="font-weight-bold text-white" href="{{ links.Logout }}">{{ tr "inc_header.logout" }}</a>
             </div>
         {{ end }}
 		<main class="auth mt-sm-5 pt-md-5">

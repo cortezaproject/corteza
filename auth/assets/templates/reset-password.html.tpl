@@ -17,29 +17,39 @@
                 {{ tr "reset-password.template.form.email.label" }}
             </label>
 			<input
+				data-test-id="input-email"
 				type="email"
 				class="form-control"
 				name="email"
 				readonly
 				placeholder="{{ tr "reset-password.template.form.email.placeholder" }}"
 				value="{{ .user.Email }}"
-				aria-label="{{ tr "reset-password.template.form.emaillabel" }}">
+				aria-label="{{ tr "reset-password.template.form.emaillabel" }}"
+			>
 		</div>
 		<div class="mb-3">
             <label>
                 {{ tr "reset-password.template.form.new-password.label" }}
             </label>
 			<input
+				data-test-id="input-new-password"
 				type="password"
 				required
 				class="form-control"
 				name="password"
 				autocomplete="new-password"
 				placeholder="{{ tr "reset-password.template.form.new-password.placeholder" }}"
-				aria-label="{{ tr "reset-password.template.form.new-passwordlabel" }}">
+				aria-label="{{ tr "reset-password.template.form.new-passwordlabel" }}"
+			>
 		</div>
 		<div class="text-right">
-			<button class="btn btn-primary btn-block btn-lg" type="submit">{{ tr "reset-password.template.form.buttons.change-password" }}</button>
+			<button
+				data-test-id="button-change-password"
+				class="btn btn-primary btn-block btn-lg"
+				type="submit"
+			>
+				{{ tr "reset-password.template.form.buttons.change-password" }}
+			</button>
 		</div>
 	</form>
 </div>
