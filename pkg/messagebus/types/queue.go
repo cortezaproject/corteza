@@ -29,9 +29,7 @@ type (
 	}
 
 	QueueFilter struct {
-		Query    string
-		Consumer string
-
+		Query   string
 		Deleted filter.State
 
 		filter.Sorting
