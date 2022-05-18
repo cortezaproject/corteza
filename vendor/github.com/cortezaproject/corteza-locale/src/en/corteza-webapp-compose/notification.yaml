@@ -86,6 +86,9 @@ record:
   unexpectedValue: Unexpected value for record module ({{type}})
   updateFailed: Could not update record
   validationErrors: check error messages on the form
+record-list:
+  corrupted-filter: Corrupted filter
+  incorrect-filter-structure: Incorrect structure of filter {{filterID}}
 report:
   listFetchFailed: Failed to fetch reports
   fetchFailed: Failed to fetch report
