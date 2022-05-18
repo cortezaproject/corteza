@@ -55,7 +55,7 @@ func (k roleKind) String() string {
 	case AnonymousRole:
 		return "anonymous"
 	default:
-		panic(any("unknown role kind"))
+		panic("unknown role kind")
 	}
 }
 

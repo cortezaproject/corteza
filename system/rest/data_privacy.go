@@ -95,9 +95,9 @@ func (ctrl DataPrivacy) ReadRequest(ctx context.Context, r *request.DataPrivacyR
 }
 
 func (ctrl DataPrivacy) ListResponsesOfRequest(ctx context.Context, request *request.DataPrivacyListResponsesOfRequest) (interface{}, error) {
-	panic(any("implement me"))
+	panic("implement me")
 }
 
 func (ctrl DataPrivacy) CreateResponseForRequest(ctx context.Context, request *request.DataPrivacyCreateResponseForRequest) (interface{}, error) {
-	panic(any("implement me"))
+	panic("implement me")
 }

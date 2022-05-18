@@ -41,8 +41,8 @@ actions:
   - action: update
     log: "updated {{dataPrivacyRequest}}"
 
-  - action: updateStatus
-    log: "updated status {{dataPrivacyRequest}}"
+  - action: approve
+    log: "approved {{dataPrivacyRequest}}"
 
 
 errors:

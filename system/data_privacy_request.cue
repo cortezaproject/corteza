@@ -5,6 +5,10 @@ import (
 )
 
 data_privacy_request: schema.#Resource & {
+	features: {
+		labels: false
+	}
+
 	struct: {
 		id: schema.IdField
 		name: {}
@@ -31,7 +35,7 @@ data_privacy_request: schema.#Resource & {
 		operations: {
 			read:
 				description: "Read data privacy request"
-			"status.approve":
+			approve:
 				description: "Approve/Reject data privacy request"
 		}
 	}

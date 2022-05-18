@@ -112,7 +112,7 @@ func (svc accessControl) List() (out []map[string]string) {
 		{
 			"type": types.DataPrivacyRequestResourceType,
 			"any":  types.DataPrivacyRequestRbacResource(0),
-			"op":   "status.approve",
+			"op":   "approve",
 		},
 		{
 			"type": types.QueueResourceType,
@@ -574,11 +574,11 @@ func (svc accessControl) CanReadDataPrivacyRequest(ctx context.Context, r *types
 	return svc.can(ctx, "read", r)
 }
 
-// CanApproveStatusOnDataPrivacyRequest checks if current user can approve/reject data privacy request
+// CanApproveDataPrivacyRequest checks if current user can approve/reject data privacy request
 //
 // This function is auto-generated
-func (svc accessControl) CanApproveStatusOnDataPrivacyRequest(ctx context.Context, r *types.DataPrivacyRequest) bool {
-	return svc.can(ctx, "status.approve", r)
+func (svc accessControl) CanApproveDataPrivacyRequest(ctx context.Context, r *types.DataPrivacyRequest) bool {
+	return svc.can(ctx, "approve", r)
 }
 
 // CanReadQueue checks if current user can read queue
@@ -1106,8 +1106,8 @@ func rbacResourceOperations(r string) map[string]bool {
 		}
 	case types.DataPrivacyRequestResourceType:
 		return map[string]bool{
-			"read":           true,
-			"status.approve": true,
+			"read":    true,
+			"approve": true,
 		}
 	case types.QueueResourceType:
 		return map[string]bool{

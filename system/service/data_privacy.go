@@ -24,7 +24,7 @@ type (
 		CanSearchDataPrivacyRequest(context.Context) bool
 		CanCreateDataPrivacyRequest(context.Context) bool
 		CanReadDataPrivacyRequest(context.Context, *types.DataPrivacyRequest) bool
-		CanApproveStatusOnDataPrivacyRequest(context.Context, *types.DataPrivacyRequest) bool
+		CanApproveDataPrivacyRequest(context.Context, *types.DataPrivacyRequest) bool
 	}
 
 	DataPrivacyService interface {
@@ -211,7 +211,7 @@ func (svc dataPrivacy) UpdateRequestStatus(ctx context.Context, upd *types.DataP
 		}
 
 		if upd.Status == types.RequestStatusApprove || upd.Status == types.RequestStatusReject {
-			if !svc.ac.CanApproveStatusOnDataPrivacyRequest(ctx, upd) {
+			if !svc.ac.CanApproveDataPrivacyRequest(ctx, upd) {
 				return DataPrivacyErrNotAllowedToApprove()
 			}
 		}
@@ -240,5 +240,5 @@ func (svc dataPrivacy) UpdateRequestStatus(ctx context.Context, upd *types.DataP
 		return nil
 	}()
 
-	return r, svc.recordAction(ctx, raProps, DataPrivacyActionUpdateStatus, err)
+	return r, svc.recordAction(ctx, raProps, DataPrivacyActionApprove, err)
 }

@@ -323,16 +323,16 @@ func DataPrivacyActionUpdate(props ...*dataPrivacyActionProps) *dataPrivacyActio
 	return a
 }
 
-// DataPrivacyActionUpdateStatus returns "system:data-privacy-request.updateStatus" action
+// DataPrivacyActionApprove returns "system:data-privacy-request.approve" action
 //
 // This function is auto-generated.
 //
-func DataPrivacyActionUpdateStatus(props ...*dataPrivacyActionProps) *dataPrivacyAction {
+func DataPrivacyActionApprove(props ...*dataPrivacyActionProps) *dataPrivacyAction {
 	a := &dataPrivacyAction{
 		timestamp: time.Now(),
 		resource:  "system:data-privacy-request",
-		action:    "updateStatus",
-		log:       "updated status {{dataPrivacyRequest}}",
+		action:    "approve",
+		log:       "approved {{dataPrivacyRequest}}",
 		severity:  actionlog.Notice,
 	}
 
