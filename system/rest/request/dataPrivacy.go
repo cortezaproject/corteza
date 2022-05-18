@@ -79,6 +79,18 @@ type (
 		Status uint
 	}
 
+	DataPrivacyUpdateRequestStatus struct {
+		// RequestID PATH parameter
+		//
+		// ID
+		RequestID uint64 `json:",string"`
+
+		// Status PATH parameter
+		//
+		// Request Status
+		Status uint
+	}
+
 	DataPrivacyReadRequest struct {
 		// RequestID PATH parameter
 		//
@@ -331,6 +343,53 @@ func (r *DataPrivacyUpdateRequest) Fill(req *http.Request) (err error) {
 
 		val = chi.URLParam(req, "requestID")
 		r.RequestID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewDataPrivacyUpdateRequestStatus request
+func NewDataPrivacyUpdateRequestStatus() *DataPrivacyUpdateRequestStatus {
+	return &DataPrivacyUpdateRequestStatus{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DataPrivacyUpdateRequestStatus) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"requestID": r.RequestID,
+		"status":    r.Status,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DataPrivacyUpdateRequestStatus) GetRequestID() uint64 {
+	return r.RequestID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DataPrivacyUpdateRequestStatus) GetStatus() uint {
+	return r.Status
+}
+
+// Fill processes request and fills internal variables
+func (r *DataPrivacyUpdateRequestStatus) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "requestID")
+		r.RequestID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "status")
+		r.Status, err = payload.ParseUint(val), nil
 		if err != nil {
 			return err
 		}

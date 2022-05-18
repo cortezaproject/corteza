@@ -81,6 +81,15 @@ func (ctrl DataPrivacy) UpdateRequest(ctx context.Context, r *request.DataPrivac
 	return ctrl.dataPrivacy.UpdateRequest(ctx, req)
 }
 
+func (ctrl DataPrivacy) UpdateRequestStatus(ctx context.Context, r *request.DataPrivacyUpdateRequestStatus) (interface{}, error) {
+	req := &types.DataPrivacyRequest{
+		ID:     r.RequestID,
+		Status: types.RequestStatus(r.Status),
+	}
+
+	return ctrl.dataPrivacy.UpdateRequestStatus(ctx, req)
+}
+
 func (ctrl DataPrivacy) ReadRequest(ctx context.Context, r *request.DataPrivacyReadRequest) (interface{}, error) {
 	return ctrl.dataPrivacy.FindRequestByID(ctx, r.RequestID)
 }

@@ -27,6 +27,15 @@ data_privacy_request: schema.#Resource & {
 		}
 	}
 
+	rbac: {
+		operations: {
+			read:
+				description: "Read data privacy request"
+			"status.approve":
+				description: "Approve/Reject data privacy request"
+		}
+	}
+
 	store: {
 		api: {
 			lookups: [

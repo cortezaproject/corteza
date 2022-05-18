@@ -41,6 +41,9 @@ actions:
   - action: update
     log: "updated {{dataPrivacyRequest}}"
 
+  - action: updateStatus
+    log: "updated status {{dataPrivacyRequest}}"
+
 
 errors:
   - error: notFound
@@ -51,14 +54,22 @@ errors:
     message: "invalid ID"
     severity: warning
 
+  - error: invalidStatus
+    message: "invalid Status"
+    severity: warning
+
   - error: notAllowedToRead
     message: "not allowed to read this role"
-    log: "failed to read {{dataPrivacyRequest.name}}; insufficient permissions"
+    log: "failed to read data privacy request; insufficient permissions"
 
   - error: notAllowedToSearch
     message: "not allowed to search or list roles"
-    log: "failed to search or list roles; insufficient permissions"
+    log: "failed to search or list data privacy requests; insufficient permissions"
 
   - error: notAllowedToCreate
     message: "not allowed to create roles"
-    log: "failed to create role; insufficient permissions"
+    log: "failed to create data privacy request; insufficient permissions"
+
+  - error: notAllowedToApprove
+    message: "not allowed to approve/reject data privacy request"
+    log: "failed to approve/reject data privacy request; insufficient permissions"

@@ -21,6 +21,10 @@ type (
 	}
 
 	dataPrivacyAccessController interface {
+		CanSearchDataPrivacyRequest(context.Context) bool
+		CanCreateDataPrivacyRequest(context.Context) bool
+		CanReadDataPrivacyRequest(context.Context, *types.DataPrivacyRequest) bool
+		CanApproveStatusOnDataPrivacyRequest(context.Context, *types.DataPrivacyRequest) bool
 	}
 
 	DataPrivacyService interface {
@@ -28,6 +32,7 @@ type (
 		FindRequest(context.Context, types.DataPrivacyRequestFilter) (types.DataPrivacyRequestSet, types.DataPrivacyRequestFilter, error)
 		CreateRequest(ctx context.Context, request *types.DataPrivacyRequest) (*types.DataPrivacyRequest, error)
 		UpdateRequest(ctx context.Context, request *types.DataPrivacyRequest) (*types.DataPrivacyRequest, error)
+		UpdateRequestStatus(ctx context.Context, request *types.DataPrivacyRequest) (*types.DataPrivacyRequest, error)
 	}
 )
 
@@ -57,7 +62,9 @@ func (svc dataPrivacy) FindRequestByID(ctx context.Context, requestID uint64) (r
 
 		raProps.setDataPrivacyRequest(r)
 
-		// Todo: access control
+		if !svc.ac.CanReadDataPrivacyRequest(ctx, r) {
+			return DataPrivacyErrNotAllowedToRead()
+		}
 
 		return nil
 	}()
@@ -83,14 +90,18 @@ func (svc dataPrivacy) FindRequest(ctx context.Context, filter types.DataPrivacy
 	)
 
 	// For each fetched item, store backend will check if it is valid or not
-	filter.Check = func(res *types.DataPrivacyRequest) (bool, error) {
-		// Todo: access control
+	filter.Check = func(req *types.DataPrivacyRequest) (bool, error) {
+		if !svc.ac.CanReadDataPrivacyRequest(ctx, req) {
+			return false, nil
+		}
 
 		return true, nil
 	}
 
 	err = func() error {
-		// Todo: access control
+		if !svc.ac.CanSearchDataPrivacyRequest(ctx) {
+			return DataPrivacyErrNotAllowedToSearch()
+		}
 
 		if filter.Deleted > 0 {
 			// If list with deleted or suspended resource is requested
@@ -119,7 +130,9 @@ func (svc dataPrivacy) CreateRequest(ctx context.Context, new *types.DataPrivacy
 	)
 
 	err = func() (err error) {
-		// Todo: access control
+		if !svc.ac.CanCreateDataPrivacyRequest(ctx) {
+			return DataPrivacyErrNotAllowedToCreate()
+		}
 
 		if err = svc.eventbus.WaitFor(ctx, event.DataPrivacyRequestBeforeCreate(new, r)); err != nil {
 			return
@@ -181,4 +194,51 @@ func (svc dataPrivacy) UpdateRequest(ctx context.Context, upd *types.DataPrivacy
 	}()
 
 	return r, svc.recordAction(ctx, raProps, DataPrivacyActionUpdate, err)
+}
+
+func (svc dataPrivacy) UpdateRequestStatus(ctx context.Context, upd *types.DataPrivacyRequest) (r *types.DataPrivacyRequest, err error) {
+	var (
+		raProps = &dataPrivacyActionProps{update: upd}
+	)
+
+	err = func() (err error) {
+		if upd.ID == 0 {
+			return DataPrivacyErrInvalidID()
+		}
+
+		if upd.Status == types.RequestStatusPending {
+			return DataPrivacyErrInvalidStatus()
+		}
+
+		if upd.Status == types.RequestStatusApprove || upd.Status == types.RequestStatusReject {
+			if !svc.ac.CanApproveStatusOnDataPrivacyRequest(ctx, upd) {
+				return DataPrivacyErrNotAllowedToApprove()
+			}
+		}
+
+		if r, err = store.LookupDataPrivacyRequestByID(ctx, svc.store, upd.ID); err != nil {
+			return
+		}
+
+		raProps.setDataPrivacyRequest(r)
+
+		if err = svc.eventbus.WaitFor(ctx, event.DataPrivacyRequestBeforeUpdate(upd, r)); err != nil {
+			return
+		}
+
+		r.CompletedAt = now()
+		r.CompletedBy = a.GetIdentityFromContext(ctx).Identity()
+		r.UpdatedAt = now()
+
+		// Assign changed values
+		if err = store.UpdateDataPrivacyRequest(ctx, svc.store, r); err != nil {
+			return err
+		}
+
+		svc.eventbus.Dispatch(ctx, event.DataPrivacyRequestAfterUpdate(upd, r))
+
+		return nil
+	}()
+
+	return r, svc.recordAction(ctx, raProps, DataPrivacyActionUpdateStatus, err)
 }

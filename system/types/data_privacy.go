@@ -52,18 +52,18 @@ type (
 
 const (
 	// RequestStatusPending initially request will be in pending status
-	RequestStatusPending RequestStatus = iota
+	RequestStatusPending RequestStatus = 1
 	// RequestStatusCancel owner of request has cancelled the request
-	RequestStatusCancel
+	RequestStatusCancel RequestStatus = 2
 	// RequestStatusApprove data officer has of request has cancelled the request
-	RequestStatusApprove
-	// RequestStatusRejected data officer has denied the request
-	RequestStatusRejected
+	RequestStatusApprove RequestStatus = 3
+	// RequestStatusReject data officer has denied the request
+	RequestStatusReject RequestStatus = 4
 
 	// RequestTypeCorrection
-	RequestTypeCorrection RequestType = iota
+	RequestTypeCorrection RequestType = 1
 	// RequestTypeDeletion
-	RequestTypeDeletion
+	RequestTypeDeletion RequestType = 2
 	// RequestTypeExport
-	RequestTypeExport
+	RequestTypeExport RequestType = 3
 )

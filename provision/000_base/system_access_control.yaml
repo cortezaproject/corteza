@@ -162,3 +162,8 @@ allow:
       - update
       - delete
       - run
+
+  data-privacy-officer:
+    corteza::system:data-privacy-request/*:
+      - read
+      - status.approve

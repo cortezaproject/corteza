@@ -2231,6 +2231,14 @@ endpoints:
           - { name: requestID,     type: "uint64",   title: "ID",             required: true }
         post:
           - { name: status,        type: "uint",     title: "Request Status", required: true }
+    - name: update request status
+      method: PUT
+      title: Update data privacy request status
+      path: "/requests/{requestID}/status/{status}"
+      parameters:
+        path:
+          - { name: requestID,     type: "uint64",   title: "ID",             required: true }
+          - { name: status,        type: "uint",     title: "Request Status", required: true }
     - name: read request
       method: GET
       title: Get details about specific request

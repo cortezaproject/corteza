@@ -323,6 +323,26 @@ func DataPrivacyActionUpdate(props ...*dataPrivacyActionProps) *dataPrivacyActio
 	return a
 }
 
+// DataPrivacyActionUpdateStatus returns "system:data-privacy-request.updateStatus" action
+//
+// This function is auto-generated.
+//
+func DataPrivacyActionUpdateStatus(props ...*dataPrivacyActionProps) *dataPrivacyAction {
+	a := &dataPrivacyAction{
+		timestamp: time.Now(),
+		resource:  "system:data-privacy-request",
+		action:    "updateStatus",
+		log:       "updated status {{dataPrivacyRequest}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors
@@ -431,6 +451,40 @@ func DataPrivacyErrInvalidID(mm ...*dataPrivacyActionProps) *errors.Error {
 	return e
 }
 
+// DataPrivacyErrInvalidStatus returns "system:data-privacy-request.invalidStatus" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func DataPrivacyErrInvalidStatus(mm ...*dataPrivacyActionProps) *errors.Error {
+	var p = &dataPrivacyActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid Status", nil),
+
+		errors.Meta("type", "invalidStatus"),
+		errors.Meta("resource", "system:data-privacy-request"),
+
+		errors.Meta(dataPrivacyPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "dataPrivacy.errors.invalidStatus"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // DataPrivacyErrNotAllowedToRead returns "system:data-privacy-request.notAllowedToRead" as *errors.Error
 //
 //
@@ -451,7 +505,7 @@ func DataPrivacyErrNotAllowedToRead(mm ...*dataPrivacyActionProps) *errors.Error
 		errors.Meta("resource", "system:data-privacy-request"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(dataPrivacyLogMetaKey{}, "failed to read {{dataPrivacyRequest.name}}; insufficient permissions"),
+		errors.Meta(dataPrivacyLogMetaKey{}, "failed to read data privacy request; insufficient permissions"),
 		errors.Meta(dataPrivacyPropsMetaKey{}, p),
 
 		// translation namespace & key
@@ -487,7 +541,7 @@ func DataPrivacyErrNotAllowedToSearch(mm ...*dataPrivacyActionProps) *errors.Err
 		errors.Meta("resource", "system:data-privacy-request"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(dataPrivacyLogMetaKey{}, "failed to search or list roles; insufficient permissions"),
+		errors.Meta(dataPrivacyLogMetaKey{}, "failed to search or list data privacy requests; insufficient permissions"),
 		errors.Meta(dataPrivacyPropsMetaKey{}, p),
 
 		// translation namespace & key
@@ -523,12 +577,48 @@ func DataPrivacyErrNotAllowedToCreate(mm ...*dataPrivacyActionProps) *errors.Err
 		errors.Meta("resource", "system:data-privacy-request"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(dataPrivacyLogMetaKey{}, "failed to create role; insufficient permissions"),
+		errors.Meta(dataPrivacyLogMetaKey{}, "failed to create data privacy request; insufficient permissions"),
 		errors.Meta(dataPrivacyPropsMetaKey{}, p),
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
 		errors.Meta(locale.ErrorMetaKey{}, "dataPrivacy.errors.notAllowedToCreate"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// DataPrivacyErrNotAllowedToApprove returns "system:data-privacy-request.notAllowedToApprove" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func DataPrivacyErrNotAllowedToApprove(mm ...*dataPrivacyActionProps) *errors.Error {
+	var p = &dataPrivacyActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to approve/reject data privacy request", nil),
+
+		errors.Meta("type", "notAllowedToApprove"),
+		errors.Meta("resource", "system:data-privacy-request"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(dataPrivacyLogMetaKey{}, "failed to approve/reject data privacy request; insufficient permissions"),
+		errors.Meta(dataPrivacyPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "dataPrivacy.errors.notAllowedToApprove"),
 
 		errors.StackSkip(1),
 	)

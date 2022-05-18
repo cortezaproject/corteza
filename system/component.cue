@@ -71,5 +71,8 @@ component: schema.#component & {
 		"apigw-routes.search": description: "List search or filter API gateway routes"
 
 		"resource-translations.manage": description: "List, search, create, or update resource translations"
+
+		"data-privacy-request.create": description:  "Create data privacy requests"
+		"data-privacy-request.search": description: "List, search or filter data privacy requests"
 	}
 }
