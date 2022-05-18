@@ -3,13 +3,19 @@
 	<h4 class="card-title p-3 border-bottom">{{ tr "mfa-totp.template.title" }}</h4>
 
 	{{ if .enforced }}
-	<p class="p-3 text-danger mb-0 font-weight-bold">
+	<p
+		data-test-id="p-enforced-TOTP"
+		class="p-3 text-danger mb-0 font-weight-bold"
+	>
 		{{ tr "mfa-totp.template.enforced" }}
 	</p>
 	{{ end }}
 
 
-	<div class="container p-3 m-0">
+	<div
+		data-test-id="div-configure-TOTP"
+		class="container p-3 m-0"
+	>
 		<div class="row">
 			<div class="col-12 col-sm-6 p-0 mb-3">
 				<pre class="h5 px-4">{{ .secret }}</pre>
@@ -45,6 +51,7 @@
 					</div>
 
 					<button
+						data-test-id="button-submit"
 						class="btn btn-primary btn-block btn-lg"
 						name="keep-session"
 						value="true"

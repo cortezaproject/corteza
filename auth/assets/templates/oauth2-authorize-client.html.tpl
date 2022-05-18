@@ -24,7 +24,8 @@
 
 	  <p class="text-center">
 		<button
-		  type="submit"
+		  data-test-id="button-allow"
+			type="submit"
 		  name="allow"
 		  {{ if .disabled }}disabled{{ end }}
 		  class="btn btn-{{ if .disabled }}secondary{{ else }}primary{{ end }} btn-lg m-2"
@@ -33,6 +34,7 @@
 		  {{ tr "oauth2-authorize-client.template.form.buttons.allow" }}
 		</button>
 		<button
+		  data-test-id="button-deny"
 		  type="submit"
 		  name="deny"
 		  class="btn btn-danger btn-lg m-2"

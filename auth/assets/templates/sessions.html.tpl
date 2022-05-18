@@ -9,6 +9,7 @@
 			<h4 class="card-title d-inline">{{ tr "sessions.template.title" }}</h4>
 			{{- if and .sessions (gt (len .sessions) 1) }}
 			<button
+				data-test-id="button-logout-from-everywhere"
 				type="submit"
 				name="delete-all-but-current"
 				value="true"

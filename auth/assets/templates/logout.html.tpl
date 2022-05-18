@@ -2,7 +2,11 @@
 <div class="card-body">
 	<form>
 		{{ if .form.error }}
-		<div class="text-danger font-weight-bold" role="alert">
+		<div
+			data-test-id="error"
+			class="text-danger font-weight-bold"
+			role="alert"
+		>
 			{{ .form.error }}
 		</div>
 		{{ else }}
