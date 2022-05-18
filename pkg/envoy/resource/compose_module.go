@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/minions"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
+	"github.com/modern-go/reflect2"
 	"github.com/spf13/cast"
 )
 
@@ -238,7 +238,7 @@ func (r *ComposeModuleField) Resource() interface{} {
 // ComposeModuleFieldExtractUserFieldRoles is a helper to extract roles
 // from the given filer options.
 func ComposeModuleFieldExtractUserFieldRoles(i interface{}) []string {
-	if minions.IsNil(i) {
+	if reflect2.IsNil(i) {
 		return nil
 	}
 
