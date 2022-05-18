@@ -22,6 +22,7 @@
                 </time>
             </div>
             <button
+                data-test-id="button-revoke-access"
                 type="submit"
                 name="revoke"
                 value="{{ .ID }}"
@@ -30,8 +31,10 @@
                 {{ tr "authorized-clients.template.list.buttons.revoke" }}
             </button>
         </div>
-	{{ else }}
-		<div class="text-center m-3 mb-3">
+		<div
+            data-test-id="text-empty-list"
+            class="text-center m-3 mb-3"
+        >
 			<i>{{ tr "authorized-clients.template.list.empty" }}</i>
 		</div>
 	{{ end }}
