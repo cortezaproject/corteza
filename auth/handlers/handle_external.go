@@ -62,9 +62,6 @@ func (h AuthHandlers) handleSuccessfulExternalAuth(w http.ResponseWriter, r *htt
 
 			// external logins are never permanent!
 			false,
-
-			// set def. lifetime for this session
-			h.Opt.SessionLifetime,
 		)
 
 		// auto-complete EmailOTP and TOTP when authenticating via external identity provider
