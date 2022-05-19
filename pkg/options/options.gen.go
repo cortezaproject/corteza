@@ -100,7 +100,6 @@ type (
 		Secret                   string        `env:"AUTH_JWT_SECRET"`
 		AccessTokenLifetime      time.Duration `env:"AUTH_OAUTH2_ACCESS_TOKEN_LIFETIME"`
 		RefreshTokenLifetime     time.Duration `env:"AUTH_OAUTH2_REFRESH_TOKEN_LIFETIME"`
-		Expiry                   time.Duration `env:"AUTH_JWT_EXPIRY"`
 		ExternalRedirectURL      string        `env:"AUTH_EXTERNAL_REDIRECT_URL"`
 		ExternalCookieSecret     string        `env:"AUTH_EXTERNAL_COOKIE_SECRET"`
 		BaseURL                  string        `env:"AUTH_BASE_URL"`
@@ -517,7 +516,6 @@ func Auth() (o *AuthOpt) {
 		Secret:                   getSecretFromEnv("jwt secret"),
 		AccessTokenLifetime:      time.Hour * 2,
 		RefreshTokenLifetime:     time.Hour * 24 * 3,
-		Expiry:                   time.Hour * 24 * 30,
 		ExternalRedirectURL:      fullURL("/auth/external/{provider}/callback"),
 		ExternalCookieSecret:     getSecretFromEnv("external cookie secret"),
 		BaseURL:                  fullURL("/auth"),
