@@ -36,15 +36,20 @@ type (
 		// Create stores the given data into the underlying database
 		Create(ctx context.Context, m *Model, rr ...ValueGetter) error
 
-		// Update(ctx context.Context, m *data.Model, rr ...ValueGetter) error
-		// Delete(ctx context.Context, m *data.Model, rr ...ValueGetter) error
-		// Truncate(ctx context.Context, m *data.Model) error
+		// Update updates the given value in the underlying connection
+		Update(ctx context.Context, m *Model, r ValueGetter) error
 
 		// Lookup returns one bit of data
 		Lookup(context.Context, *Model, ValueGetter, ValueSetter) error
 
 		// Search returns an iterator which can be used to access all if the bits
 		Search(context.Context, *Model, filter.Filter) (Iterator, error)
+
+		// Delete deletes the given value
+		Delete(ctx context.Context, m *Model, pkv ValueGetter) error
+
+		// Truncate deletes all the data for the given model
+		Truncate(ctx context.Context, m *Model) error
 
 		// DDL stuff
 

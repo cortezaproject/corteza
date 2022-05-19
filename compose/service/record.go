@@ -536,7 +536,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 		return nil, RecordErrValueInput().Wrap(rve)
 	}
 
-	err = svc.dal.Create(ctx, m.ModelFilter(), svc.recCreateCapabilities(m), svc.recToGetter(new)...)
+	err = svc.dal.Create(ctx, m.ModelFilter(), svc.recCreateCapabilities(m), svc.recToGetters(new)...)
 	if err != nil {
 		return
 	}
@@ -793,7 +793,7 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 			}
 		}
 
-		return store.UpdateComposeRecord(ctx, s, m, upd)
+		return svc.dal.Update(ctx, m.ModelFilter(), svc.recUpdateCapabilities(m), svc.recToGetter(upd))
 	})
 
 	if err != nil {
@@ -982,10 +982,7 @@ func (svc record) delete(ctx context.Context, namespaceID, moduleID, recordID ui
 	del.DeletedAt = now()
 	del.DeletedBy = invokerID
 
-	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
-		return store.UpdateComposeRecord(ctx, s, m, del)
-	})
-
+	err = svc.dal.Update(ctx, m.ModelFilter(), svc.recDeleteCapabilities(m), del)
 	if err != nil {
 		return nil, err
 	}
