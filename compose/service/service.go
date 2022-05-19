@@ -3,9 +3,11 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/discovery"
 	"strconv"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/discovery"
 
 	automationService "github.com/cortezaproject/corteza-server/automation/service"
 	"github.com/cortezaproject/corteza-server/compose/automation"
@@ -34,7 +36,7 @@ type (
 
 	Config struct {
 		ActionLog  options.ActionLogOpt
-		Discovery options.DiscoveryOpt
+		Discovery  options.DiscoveryOpt
 		Storage    options.ObjectStoreOpt
 		UserFinder userFinder
 	}
@@ -167,10 +169,12 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	}
 
 	DefaultNamespace = Namespace()
-	DefaultModule = Module()
+	if DefaultModule, err = Module(ctx, dal.Service()); err != nil {
+		return
+	}
 
 	DefaultImportSession = ImportSession()
-	DefaultRecord = Record()
+	DefaultRecord = Record(dal.Service())
 	DefaultPage = Page()
 	DefaultChart = Chart()
 	DefaultNotification = Notification(c.UserFinder)

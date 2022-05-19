@@ -28,6 +28,8 @@ type (
 		eventbus  eventDispatcher
 		store     store.Storer
 		locale    ResourceTranslationsManagerService
+
+		dal dalDDL
 	}
 
 	moduleAccessController interface {
@@ -50,6 +52,9 @@ type (
 		Create(ctx context.Context, module *types.Module) (*types.Module, error)
 		Update(ctx context.Context, module *types.Module) (*types.Module, error)
 		DeleteByID(ctx context.Context, namespaceID, moduleID uint64) error
+
+		// @note probably temporary just so tests are easier
+		ReloadDALModels(ctx context.Context) error
 	}
 
 	moduleUpdateHandler func(ctx context.Context, ns *types.Namespace, c *types.Module) (moduleChanges, error)
@@ -77,14 +82,17 @@ var (
 	})
 )
 
-func Module() *module {
-	return &module{
+func Module(ctx context.Context, dal dalDDL) (*module, error) {
+	svc := &module{
 		ac:        DefaultAccessControl,
 		eventbus:  eventbus.Service(),
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
 		locale:    DefaultResourceTranslation,
+		dal:       dal,
 	}
+
+	return svc, svc.ReloadDALModels(ctx)
 }
 
 func (svc module) Find(ctx context.Context, filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error) {
@@ -319,6 +327,10 @@ func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module,
 
 		if err = label.Create(ctx, s, new); err != nil {
 			return
+		}
+
+		if err = svc.addModuleToDAL(ctx, ns, new); err != nil {
+			return err
 		}
 
 		_ = svc.eventbus.WaitFor(ctx, event.ModuleAfterCreate(new, nil, ns))
