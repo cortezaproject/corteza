@@ -9,11 +9,22 @@ import (
 )
 
 type (
+	// ModelFilter is used to retrieve a model from the DAL based on given params
+	ModelFilter struct {
+		ConnectionID uint64
+
+		ResourceID uint64
+
+		ResourceType string
+		Resource     string
+	}
+
 	// Model describes the underlying data and its shape
 	Model struct {
-		StoreID uint64
-		Ident   string
+		ConnectionID uint64
+		Ident        string
 
+		Resource     string
 		ResourceID   uint64
 		ResourceType string
 
@@ -52,10 +63,47 @@ type (
 	AttributeSet []*Attribute
 )
 
-// FindByIdent returns the model that matches the ident
-func (mm ModelSet) FindByIdent(ident string) *Model {
+func PrimaryAttribute(ident string, codec Codec) *Attribute {
+	out := FullAttribute(ident, TypeID{}, codec)
+	out.Type = &TypeID{}
+	out.PrimaryKey = true
+	return out
+}
+
+func FullAttribute(ident string, at Type, codec Codec) *Attribute {
+	return &Attribute{
+		Ident:      ident,
+		Sortable:   true,
+		Filterable: true,
+		Store:      codec,
+		Type:       at,
+	}
+}
+
+func (a *Attribute) WithSoftDelete() *Attribute {
+	a.SoftDeleteFlag = true
+	return a
+}
+
+func (a *Attribute) WithMultiValue() *Attribute {
+	a.MultiValue = true
+	return a
+}
+
+// FindByResource returns the model that matches the resource
+func (mm ModelSet) FindByResource(resType string, resource string) *Model {
 	for _, m := range mm {
-		if m.Ident == ident {
+		if m.ResourceType == resType && m.Resource == resource {
+			return m
+		}
+	}
+
+	return nil
+}
+
+func (mm ModelSet) FindByID(id uint64) *Model {
+	for _, m := range mm {
+		if m.ResourceID == id {
 			return m
 		}
 	}
@@ -66,14 +114,14 @@ func (mm ModelSet) FindByIdent(ident string) *Model {
 // FilterByReferenced returns all of the models that reference b
 func (aa ModelSet) FilterByReferenced(b *Model) (out ModelSet) {
 	for _, aModel := range aa {
-		if aModel.Ident == b.Ident {
+		if aModel.Resource == b.Resource {
 			continue
 		}
 
 		for _, aAttribute := range aModel.Attributes {
 			switch casted := aAttribute.Type.(type) {
 			case *TypeRef:
-				if casted.RefModel.Ident == b.Ident {
+				if casted.RefModel.Resource == b.Resource {
 					out = append(out, aModel)
 				}
 			}
@@ -83,14 +131,14 @@ func (aa ModelSet) FilterByReferenced(b *Model) (out ModelSet) {
 	return
 }
 
-// HasAttribute returns true when the model includes the specified ident
+// HasAttribute returns true when the model includes the specified attribute
 func (m Model) HasAttribute(ident string) bool {
 	return m.Attributes.FindByIdent(ident) != nil
 }
 
 func (aa AttributeSet) FindByIdent(ident string) *Attribute {
 	for _, a := range aa {
-		if strings.ToLower(a.Ident) == strings.ToLower(ident) {
+		if strings.EqualFold(a.Ident, ident) {
 			return a
 		}
 	}
@@ -100,8 +148,8 @@ func (aa AttributeSet) FindByIdent(ident string) *Attribute {
 
 // Validate performs a base model validation before it is passed down
 func (m Model) Validate() error {
-	if m.Ident == "" {
-		return fmt.Errorf("ident not defined")
+	if m.Resource == "" {
+		return fmt.Errorf("resource not defined")
 	}
 
 	seen := make(map[string]bool)

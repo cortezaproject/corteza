@@ -51,8 +51,8 @@ type (
 	}
 )
 
-func (CodecPlain) Type() AttributeCodecType { return "corteza::dal:attribute-codec:plain" }
-func (CodecRecordValueSetJSON) Type() AttributeCodecType {
+func (*CodecPlain) Type() AttributeCodecType { return "corteza::dal:attribute-codec:plain" }
+func (*CodecRecordValueSetJSON) Type() AttributeCodecType {
 	return "corteza::dal:attribute-codec:record-value-set-json"
 }
-func (CodecAlias) Type() AttributeCodecType { return "corteza::dal:attribute-codec:alias" }
+func (*CodecAlias) Type() AttributeCodecType { return "corteza::dal:attribute-codec:alias" }

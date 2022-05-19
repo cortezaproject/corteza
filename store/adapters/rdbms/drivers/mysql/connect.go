@@ -31,20 +31,8 @@ func init() {
 }
 
 func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
-	var (
-		db  *sqlx.DB
-		cfg *rdbms.ConnConfig
-	)
-
-	if cfg, err = NewConfig(dsn); err != nil {
-		return
-	}
-
-	if db, err = rdbms.Connect(ctx, logger.Default(), cfg); err != nil {
-		return
-	}
-
-	if err = connSetup(ctx, db); err != nil {
+	db, cfg, err := connectBase(ctx, dsn)
+	if err != nil {
 		return
 	}
 
@@ -61,6 +49,23 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 	s.SetDefaults()
 
 	return s, nil
+}
+
+func connectBase(ctx context.Context, dsn string) (db *sqlx.DB, cfg *rdbms.ConnConfig, err error) {
+	if cfg, err = NewConfig(dsn); err != nil {
+		return
+	}
+
+	if db, err = rdbms.Connect(ctx, logger.Default(), cfg); err != nil {
+		return
+	}
+
+	// See https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_ansi for details
+	if _, err = db.ExecContext(ctx, `SET SESSION sql_mode = 'ANSI'`); err != nil {
+		return
+	}
+
+	return
 }
 
 // NewConfig validates given DSN and ensures

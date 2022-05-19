@@ -14,12 +14,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func All(t *testing.T, d dal.StoreConnection) {
+func All(t *testing.T, d dal.Connection) {
 	t.Run("RecordCodec", func(t *testing.T) { RecordCodec(t, d) })
 	t.Run("RecordSearch", func(t *testing.T) { RecordSearch(t, d) })
 }
 
-func RecordCodec(t *testing.T, d dal.StoreConnection) {
+func RecordCodec(t *testing.T, d dal.Connection) {
 	var (
 		req = require.New(t)
 
@@ -113,10 +113,10 @@ func RecordCodec(t *testing.T, d dal.StoreConnection) {
 	rIn.Values = rIn.Values.Set(&types.RecordValue{Name: "pUUID", Value: "ba485865-54f9-44de-bde8-6965556c022a"})
 	rIn.Values = rIn.Values.GetClean()
 
-	req.NoError(d.CreateRecords(ctx, m, &rIn))
+	req.NoError(d.Create(ctx, m, &rIn))
 
 	rOut = new(types.Record)
-	req.NoError(d.LookupRecord(ctx, m, dal.PKValues{"id": rIn.ID}, rOut))
+	req.NoError(d.Lookup(ctx, m, dal.PKValues{"id": rIn.ID}, rOut))
 
 	{
 		// normalize timezone on timestamps
@@ -134,7 +134,7 @@ func RecordCodec(t *testing.T, d dal.StoreConnection) {
 	}
 }
 
-func RecordSearch(t *testing.T, d dal.StoreConnection) {
+func RecordSearch(t *testing.T, d dal.Connection) {
 	const (
 		totalRecords = 10
 	)
@@ -173,7 +173,7 @@ func RecordSearch(t *testing.T, d dal.StoreConnection) {
 		r.Values = r.Values.Set(&types.RecordValue{Name: "p_number", Value: strconv.Itoa(i)})
 		r.Values = r.Values.Set(&types.RecordValue{Name: "p_is_odd", Value: strconv.FormatBool(i%2 == 1)})
 
-		req.NoError(d.CreateRecords(ctx, m, r))
+		req.NoError(d.Create(ctx, m, r))
 	}
 
 	cases := []struct {
@@ -219,7 +219,7 @@ func RecordSearch(t *testing.T, d dal.StoreConnection) {
 				req = require.New(t)
 			)
 
-			i, err := d.SearchRecords(ctx, m, c.f.ToFilter())
+			i, err := d.Search(ctx, m, c.f.ToFilter())
 			req.NoError(err)
 
 			rr, err := drain(ctx, i)
@@ -239,7 +239,7 @@ func RecordSearch(t *testing.T, d dal.StoreConnection) {
 				f.PageCursor = cur
 				f.Limit = lim
 				req.NoError(f.Sort.Set(orderBy))
-				i, err := d.SearchRecords(ctx, m, f.ToFilter())
+				i, err := d.Search(ctx, m, f.ToFilter())
 				req.NoError(err)
 				req.NoError(i.Err())
 
