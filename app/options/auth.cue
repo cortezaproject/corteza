@@ -43,17 +43,23 @@ auth: schema.#optionsGroup & {
 			env: "AUTH_JWT_SECRET"
 		}
 		access_token_lifetime: {
-			type:        "time.Duration"
-			description: "Access token lifetime"
-			env:         "AUTH_OAUTH2_ACCESS_TOKEN_LIFETIME"
+			type: "time.Duration"
+			description: """
+				Lifetime of the access token. Should be shorter than lifetime of the refresh token.
+				"""
+			env: "AUTH_OAUTH2_ACCESS_TOKEN_LIFETIME"
 
 			defaultGoExpr: "time.Hour * 2"
 			defaultValue:  "2h"
 		}
 		refresh_token_lifetime: {
-			type:        "time.Duration"
-			description: "Refresh token lifetime"
-			env:         "AUTH_OAUTH2_REFRESH_TOKEN_LIFETIME"
+			type: "time.Duration"
+			description: """
+				Lifetime of the refresh token. Should be much longer than lifetime of the access token.
+
+				Refresh tokens are used to exchange expired access tokens with new ones.
+				"""
+			env: "AUTH_OAUTH2_REFRESH_TOKEN_LIFETIME"
 
 			defaultGoExpr: "time.Hour * 24 * 3"
 			defaultValue:  "72h"
