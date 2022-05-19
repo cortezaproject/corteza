@@ -12,8 +12,11 @@ import (
 type (
 	dalDML interface {
 		Create(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, vv ...dal.ValueGetter) error
+		Update(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, r dal.ValueGetter) (err error)
 		Search(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, f filter.Filter) (dal.Iterator, error)
 		Lookup(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, lookup dal.ValueGetter, dst dal.ValueSetter) (err error)
+		Delete(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, pkv dal.ValueGetter) (err error)
+		Truncate(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set) (err error)
 	}
 )
 
@@ -64,7 +67,7 @@ func (svc *record) prepareRecordTarget(module *types.Module) *types.Record {
 	}
 }
 
-func (svc *record) recToGetter(rr ...*types.Record) (out []dal.ValueGetter) {
+func (svc *record) recToGetters(rr ...*types.Record) (out []dal.ValueGetter) {
 	out = make([]dal.ValueGetter, len(rr))
 
 	for i := range rr {
@@ -74,12 +77,26 @@ func (svc *record) recToGetter(rr ...*types.Record) (out []dal.ValueGetter) {
 	return
 }
 
-// recCreateCapabilities utility helps construct required creation capabilities
+func (svc *record) recToGetter(rr ...*types.Record) (out dal.ValueGetter) {
+	if len(rr) == 0 {
+		return
+	}
+
+	return svc.recToGetters(rr...)[0]
+}
+
 func (svc *record) recCreateCapabilities(m *types.Module) (out capabilities.Set) {
 	return capabilities.CreateCapabilities(m.DALConfig.Capabilities...)
 }
 
-// recFilterCapabilities utility helps construct required filter capabilities based on the provided record filter
+func (svc *record) recUpdateCapabilities(m *types.Module) (out capabilities.Set) {
+	return capabilities.UpdateCapabilities(m.DALConfig.Capabilities...)
+}
+
+func (svc *record) recDeleteCapabilities(m *types.Module) (out capabilities.Set) {
+	return capabilities.DeleteCapabilities(m.DALConfig.Capabilities...)
+}
+
 func (svc *record) recFilterCapabilities(f types.RecordFilter) (out capabilities.Set) {
 	if f.PageCursor != nil {
 		out = append(out, capabilities.Paging)

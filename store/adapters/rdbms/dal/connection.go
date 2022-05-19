@@ -57,12 +57,24 @@ func (c *connection) Create(ctx context.Context, m *dal.Model, rr ...dal.ValueGe
 	return c.model(m).Create(ctx, rr...)
 }
 
+func (c *connection) Update(ctx context.Context, m *dal.Model, r dal.ValueGetter) error {
+	return c.model(m).Update(ctx, r)
+}
+
 func (c *connection) Lookup(ctx context.Context, m *dal.Model, pkv dal.ValueGetter, r dal.ValueSetter) error {
 	return c.model(m).Lookup(ctx, pkv, r)
 }
 
 func (c *connection) Search(ctx context.Context, m *dal.Model, f filter.Filter) (dal.Iterator, error) {
 	return c.model(m).Search(f)
+}
+
+func (c *connection) Delete(ctx context.Context, m *dal.Model, pkv dal.ValueGetter) error {
+	return c.model(m).Delete(ctx, pkv)
+}
+
+func (c *connection) Truncate(ctx context.Context, m *dal.Model) error {
+	return c.model(m).Truncate(ctx)
 }
 
 func (c *connection) Models(ctx context.Context) (dal.ModelSet, error) {

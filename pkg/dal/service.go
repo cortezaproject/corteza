@@ -140,6 +140,15 @@ func (svc *service) Create(ctx context.Context, mf ModelFilter, capabilities cap
 	return cw.connection.Create(ctx, model, rr...)
 }
 
+func (svc *service) Update(ctx context.Context, mf ModelFilter, capabilities capabilities.Set, r ValueGetter) (err error) {
+	model, cw, err := svc.storeOpPrep(ctx, mf, capabilities)
+	if err != nil {
+		return
+	}
+
+	return cw.connection.Update(ctx, model, r)
+}
+
 func (svc *service) Search(ctx context.Context, mf ModelFilter, capabilities capabilities.Set, f filter.Filter) (iter Iterator, err error) {
 	model, cw, err := svc.storeOpPrep(ctx, mf, capabilities)
 	if err != nil {
@@ -155,6 +164,23 @@ func (svc *service) Lookup(ctx context.Context, mf ModelFilter, capabilities cap
 		return
 	}
 	return cw.connection.Lookup(ctx, model, lookup, dst)
+}
+
+func (svc *service) Delete(ctx context.Context, mf ModelFilter, capabilities capabilities.Set, pkv ValueGetter) (err error) {
+	model, cw, err := svc.storeOpPrep(ctx, mf, capabilities)
+	if err != nil {
+		return
+	}
+
+	return cw.connection.Delete(ctx, model, pkv)
+}
+func (svc *service) Truncate(ctx context.Context, mf ModelFilter, capabilities capabilities.Set) (err error) {
+	model, cw, err := svc.storeOpPrep(ctx, mf, capabilities)
+	if err != nil {
+		return
+	}
+
+	return cw.connection.Truncate(ctx, model)
 }
 
 func (svc *service) storeOpPrep(ctx context.Context, mf ModelFilter, capabilities capabilities.Set) (model *Model, cw *connectionWrap, err error) {
