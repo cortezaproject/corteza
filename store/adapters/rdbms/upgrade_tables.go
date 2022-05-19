@@ -476,6 +476,7 @@ func tableComposeRecord() *Table {
 		ID,
 		ColumnDef("rel_namespace", ColumnTypeIdentifier),
 		ColumnDef("module_id", ColumnTypeIdentifier),
+		ColumnDef("values", ColumnTypeJson),
 		ColumnDef("owned_by", ColumnTypeIdentifier),
 		CUDTimestamps,
 		CUDUsers,
