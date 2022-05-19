@@ -58,14 +58,6 @@ auth: schema.#optionsGroup & {
 			defaultGoExpr: "time.Hour * 24 * 3"
 			defaultValue:  "72h"
 		}
-		expiry: {
-			type:        "time.Duration"
-			description: "Expiration time for the auth JWT tokens."
-			env:         "AUTH_JWT_EXPIRY"
-
-			defaultGoExpr: "time.Hour * 24 * 30"
-			defaultValue:  "720h"
-		}
 		external_redirect_URL: {
 			description: """
 				Redirect URL to be sent with OAuth2 authentication request to provider
