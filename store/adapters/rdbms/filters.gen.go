@@ -559,6 +559,9 @@ func ComposeModuleFilter(f composeType.ModuleFilter) (ee []goqu.Expression, _ co
 //
 // This function is auto-generated
 func ComposeModuleFieldFilter(f composeType.ModuleFieldFilter) (ee []goqu.Expression, _ composeType.ModuleFieldFilter, err error) {
+	if len(f.ModuleID) > 0 {
+		ee = append(ee, goqu.C("rel_module").In(f.ModuleID))
+	}
 
 	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
