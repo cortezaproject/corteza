@@ -2,7 +2,6 @@ package request
 
 import (
 	"encoding/gob"
-	"time"
 
 	"github.com/cortezaproject/corteza-server/auth/settings"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -15,8 +14,8 @@ type (
 	authUser struct {
 		User *types.User
 
-		PermSession  bool
-		PermLifetime time.Duration
+		// is user logged-in with "remember-me"?
+		PermSession bool
 
 		MFAStatus map[authType]authStatus
 	}
@@ -52,12 +51,11 @@ func init() {
 	gob.Register(&authUser{})
 }
 
-func NewAuthUser(s *settings.Settings, u *types.User, perm bool, permLifetime time.Duration) *authUser {
+func NewAuthUser(s *settings.Settings, u *types.User, perm bool) *authUser {
 	au := &authUser{
-		User:         u,
-		PermSession:  perm,
-		PermLifetime: permLifetime,
-		MFAStatus:    make(map[authType]authStatus),
+		User:        u,
+		PermSession: perm,
+		MFAStatus:   make(map[authType]authStatus),
 	}
 
 	au.set(s, u)
@@ -154,7 +152,7 @@ func (au *authUser) ResetTOTP() {
 
 func (au *authUser) Forget(ses *sessions.Session) {
 	delete(ses.Values, keyAuthUser)
-	delete(ses.Values, keyPermanent)
+	delete(ses.Values, keyRememberMe)
 }
 
 func (au *authUser) Save(ses *sessions.Session) {
@@ -163,11 +161,9 @@ func (au *authUser) Save(ses *sessions.Session) {
 	// explicitly save roles
 	ses.Values[keyRoles] = au.User.Roles()
 
-	if au.PermLifetime > 0 {
-		ses.Options.MaxAge = int(au.PermLifetime / time.Second)
-		ses.Values[keyPermanent] = true
+	if au.PermSession {
+		ses.Values[keyRememberMe] = true
 	} else {
-		ses.Options.MaxAge = 0
-		delete(ses.Values, keyPermanent)
+		delete(ses.Values, keyRememberMe)
 	}
 }
