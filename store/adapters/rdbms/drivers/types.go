@@ -71,7 +71,7 @@ func TypeWrap(dt dal.Type) Type {
 		return &TypeUUID{c}
 	}
 
-	panic("type implementation missing")
+	panic(fmt.Sprintf("type implementation missing: %s", dt.Type()))
 }
 
 func (*TypeID) MakeScanBuffer() any        { return new(ID) }

@@ -16,10 +16,14 @@ import (
 type (
 	PKValues map[string]any
 
-	StoreConnection interface {
-		// ---
-
+	Connection interface {
 		// Meta
+
+		// Models returns all the models the underlying connection already supports
+		//
+		// This is useful when adding support for new models since we can find out what
+		// can work out of the box.
+		Models(context.Context) (ModelSet, error)
 
 		// Capabilities returns all of the capabilities the given store supports
 		Capabilities() capabilities.Set
@@ -27,61 +31,51 @@ type (
 		// Can returns true if this store can handle the given capabilities
 		Can(capabilities ...capabilities.Capability) bool
 
-		// ---
+		// DML stuff
 
-		// Connection stuff
+		// Create stores the given data into the underlying database
+		Create(ctx context.Context, m *Model, rr ...ValueGetter) error
 
-		// Close closes the store connection allowing the driver to perform potential
-		// cleanup operations
-		Close(ctx context.Context) error
+		// Update(ctx context.Context, m *data.Model, rr ...ValueGetter) error
+		// Delete(ctx context.Context, m *data.Model, rr ...ValueGetter) error
+		// Truncate(ctx context.Context, m *data.Model) error
 
-		// ---
+		// Lookup returns one bit of data
+		Lookup(context.Context, *Model, ValueGetter, ValueSetter) error
 
-		// DML
+		// Search returns an iterator which can be used to access all if the bits
+		Search(context.Context, *Model, filter.Filter) (Iterator, error)
 
-		// CreateRecords stores the given records into the underlying database
-		CreateRecords(ctx context.Context, m *Model, rr ...ValueGetter) error
-
-		//UpdateRecords(ctx context.Context, m *data.Model, rr ...ValueGetter) error
-		//DeleteRecordsByPK(ctx context.Context, m *data.Model, rr ...ValueGetter) error
-		//TruncateRecords(ctx context.Context, m *data.Model) error
-
-		LookupRecord(context.Context, *Model, ValueGetter, ValueSetter) error
-
-		SearchRecords(context.Context, *Model, filter.Filter) (Iterator, error)
-
-		// ---
-
-		// DDL
-
-		// Models returns all the models the underlying database already supports
-		//
-		// This is useful when adding support for new modules since we can find out what
-		// can work out of the box.
-		Models(context.Context) (ModelSet, error)
+		// DDL stuff
 
 		// // returns all attribute types that driver supports
 		// AttributeTypes() []data.AttributeType
 
-		// AddModel adds support for the given models to the underlying database
+		// CreateModel adds support for the given models to the underlying database
 		//
 		// The operation returns an error if any of the models already exists.
-		AddModel(context.Context, *Model, ...*Model) error
+		CreateModel(context.Context, *Model, ...*Model) error
 
-		// RemoveModel removes support for the given model from the underlying database
-		RemoveModel(context.Context, *Model, ...*Model) error
+		// DeleteModel removes support for the given model from the underlying database
+		DeleteModel(context.Context, *Model, ...*Model) error
 
-		// AlterModel requests for metadata changes to the existing model
+		// UpdateModel requests for metadata changes to the existing model
 		//
 		// Only metadata (such as idents) are affected; attributes can not be changed here
-		AlterModel(ctx context.Context, old *Model, new *Model) error
+		UpdateModel(ctx context.Context, old *Model, new *Model) error
 
-		// AlterModelAttribute requests for the model attribute change
+		// UpdateModelAttribute requests for the model attribute change
 		//
 		// Specific operations require data transformations (type change).
 		// Some basic ops. should be implemented on DB driver level, but greater controll can be
 		// achieved via the trans functions.
-		AlterModelAttribute(ctx context.Context, sch *Model, old Attribute, new Attribute, trans ...TransformationFunction) error
+		UpdateModelAttribute(ctx context.Context, sch *Model, old Attribute, new Attribute, trans ...TransformationFunction) error
+	}
+
+	ConnectionCloser interface {
+		// Close closes the store connection allowing the driver to perform potential
+		// cleanup operations
+		Close(ctx context.Context) error
 	}
 
 	TransformationFunction func(*Model, Attribute, expr.TypedValue) (expr.TypedValue, bool, error)
@@ -113,7 +107,7 @@ type (
 		SetValue(string, uint, any) error
 	}
 
-	ConnectorFn func(ctx context.Context, dsn string, cc ...capabilities.Capability) (StoreConnection, error)
+	ConnectorFn func(ctx context.Context, dsn string, cc ...capabilities.Capability) (Connection, error)
 )
 
 var (
@@ -147,8 +141,7 @@ func Register(fn ConnectorFn, tt ...string) {
 }
 
 // connect opens a new StoreConnection for the given CRS
-func connect(ctx context.Context, log *zap.Logger, def crsDefiner, isDevelopment bool) (StoreConnection, error) {
-	dsn := def.StoreDSN()
+func connect(ctx context.Context, log *zap.Logger, isDevelopment bool, dsn string, capabilities ...capabilities.Capability) (Connection, error) {
 
 	if isDevelopment {
 		if strings.Contains(dsn, "{version}") {
@@ -168,7 +161,7 @@ func connect(ctx context.Context, log *zap.Logger, def crsDefiner, isDevelopment
 	}
 
 	if conn, ok := registered[storeType]; ok {
-		return conn(ctx, dsn, def.Capabilities()...)
+		return conn(ctx, dsn, capabilities...)
 	} else {
 		return nil, fmt.Errorf("unknown store type used: %q (check your storage configuration)", storeType)
 	}

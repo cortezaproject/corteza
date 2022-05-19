@@ -15,7 +15,7 @@ func init() {
 	dal.Register(dalConnector, baseSchema, altSchema, debugSchema)
 }
 
-func dalConnector(ctx context.Context, dsn string, cc ...capabilities.Capability) (_ dal.StoreConnection, err error) {
+func dalConnector(ctx context.Context, dsn string, cc ...capabilities.Capability) (_ dal.Connection, err error) {
 	var (
 		db  *sqlx.DB
 		cfg *rdbms.ConnConfig

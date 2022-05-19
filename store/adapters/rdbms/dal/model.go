@@ -227,6 +227,7 @@ func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 			return base.SetError(fmt.Errorf("unknown attribute %q used for state constrant", ident))
 		}
 
+		// @note why?
 		if !attr.PrimaryKey {
 			continue
 		}

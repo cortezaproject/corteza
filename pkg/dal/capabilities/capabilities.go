@@ -6,14 +6,15 @@ type (
 )
 
 const (
-	Create  Capability = "create"
-	Update  Capability = "update"
-	Delete  Capability = "delete"
-	Search  Capability = "search"
-	Paging  Capability = "paging"
-	Stats   Capability = "stats"
-	Sorting Capability = "sorting"
-	RBAC    Capability = "RBAC"
+	Create  Capability = "corteza::dal:capability:create"
+	Update  Capability = "corteza::dal:capability:update"
+	Delete  Capability = "corteza::dal:capability:delete"
+	Search  Capability = "corteza::dal:capability:search"
+	Lookup  Capability = "corteza::dal:capability:lookup"
+	Paging  Capability = "corteza::dal:capability:paging"
+	Stats   Capability = "corteza::dal:capability:stats"
+	Sorting Capability = "corteza::dal:capability:sorting"
+	RBAC    Capability = "corteza::dal:capability:RBAC"
 )
 
 var (
@@ -21,6 +22,7 @@ var (
 		Create,
 		Update,
 		Search,
+		Lookup,
 		Paging,
 		Stats,
 		Sorting,
@@ -51,6 +53,11 @@ var (
 		Paging,
 		Sorting,
 		Stats,
+		RBAC,
+	}
+
+	lookupCapabilities = Set{
+		Lookup,
 		RBAC,
 	}
 )
@@ -84,6 +91,11 @@ func DeleteCapabilities(requested ...Capability) (required Set) {
 // SearchCapabilities returns only requested capabilities used for Search operations
 func SearchCapabilities(requested ...Capability) (required Set) {
 	return common(searchCapabilities, requested)
+}
+
+// LookupCapabilities returns only requested capabilities used for Search operations
+func LookupCapabilities(requested ...Capability) (required Set) {
+	return common(lookupCapabilities, requested)
 }
 
 func common(aa, bb Set) Set {
