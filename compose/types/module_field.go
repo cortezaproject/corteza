@@ -59,7 +59,6 @@ type (
 
 	EncodingStrategyJSON struct {
 		Ident string `json:"ident"`
-		Path  []any  `json:"path"`
 	}
 
 	ModuleFieldFilter struct {

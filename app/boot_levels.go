@@ -20,6 +20,8 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/apigw"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/http"
@@ -53,6 +55,10 @@ const (
 	bootLevelProvisioned
 	bootLevelServicesInitialized
 	bootLevelActivated
+
+	defaultComposeRecordTable    = "compose_record"
+	defaultComposeRecordValueCol = "values"
+	defaultPartitionFormat       = "compose_record_{{namespace}}_{{module}}"
 )
 
 // Setup configures all required services
@@ -264,6 +270,26 @@ func (app *CortezaApp) Provision(ctx context.Context) (err error) {
 func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	if app.lvl >= bootLevelServicesInitialized {
 		return nil
+	}
+
+	{
+		// Init DAL and prepare default connection
+		if _, err = dal.InitGlobalService(
+			ctx,
+			app.Log.Named("DAL"),
+			app.Opt.Environment.IsDevelopment(),
+
+			// DB_DSN is the default connection with full capabilities
+			app.Opt.DB.DSN,
+			dal.ConnectionDefaults{
+				ModelIdent:     defaultComposeRecordTable,
+				AttributeIdent: defaultComposeRecordValueCol,
+
+				PartitionFormat: defaultPartitionFormat,
+			},
+			capabilities.FullCapabilities()...); err != nil {
+			return err
+		}
 	}
 
 	if err := app.Provision(ctx); err != nil {

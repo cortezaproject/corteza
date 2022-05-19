@@ -6,6 +6,7 @@ import (
 	"time"
 
 	discovery "github.com/cortezaproject/corteza-server/discovery/types"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
@@ -14,21 +15,25 @@ import (
 )
 
 type (
-	DalDef struct {
-		ComposeRecordStoreID uint64
-		Capabilities         capabilities.Set
+	DALConfig struct {
+		ConnectionID uint64           `json:"connectionID,string"`
+		Capabilities capabilities.Set `json:"capabilities"`
 
-		Partitioned     bool
-		PartitionFormat string
+		Constraints map[string][]any `json:"constraints"`
+
+		Partitioned     bool   `json:"partitioned"`
+		PartitionFormat string `json:"partitionFormat"`
 	}
 
 	Module struct {
 		ID     uint64         `json:"moduleID,string"`
 		Handle string         `json:"handle"`
 		Meta   types.JSONText `json:"meta"`
-		Fields ModuleFieldSet `json:"fields"`
 
-		Store DalDef
+		DALConfig DALConfig `json:"DALConfig"`
+
+		Fields       ModuleFieldSet `json:"fields"`
+		SystemFields SystemFieldSet `json:"systemFields"`
 
 		Labels map[string]string `json:"labels,omitempty"`
 
@@ -42,6 +47,24 @@ type (
 		//          struct field is kept for the convenience for now since it allows us
 		//          easy encoding/decoding of the outgoing/incoming values
 		Name string `json:"name"`
+	}
+
+	SystemFieldSet struct {
+		ID *EncodingStrategy
+
+		ModuleID    *EncodingStrategy
+		NamespaceID *EncodingStrategy
+
+		OwnedBy *EncodingStrategy
+
+		CreatedAt *EncodingStrategy
+		CreatedBy *EncodingStrategy
+
+		UpdatedAt *EncodingStrategy
+		UpdatedBy *EncodingStrategy
+
+		DeletedAt *EncodingStrategy
+		DeletedBy *EncodingStrategy
 	}
 
 	ModuleMeta struct {
@@ -86,6 +109,18 @@ func (m *Module) decodeTranslations(tt locale.ResourceTranslationIndex) {
 // We won't worry about fields at this point
 func (m *Module) encodeTranslations() (out locale.ResourceTranslationSet) {
 	return
+}
+
+func (m *Module) ModelFilter() dal.ModelFilter {
+	return dal.ModelFilter{
+		ConnectionID: m.DALConfig.ConnectionID,
+
+		ResourceID: m.ID,
+
+		ResourceType: ModuleResourceType,
+		// @todo will use this for now but should probably change
+		Resource: m.RbacResource(),
+	}
 }
 
 // FindByHandle finds module by it's handle

@@ -76,6 +76,7 @@ type (
 
 	// wrapping struct for recordFilter that
 	recordFilter struct {
+		constraints map[string][]any
 		RecordFilter
 	}
 )
@@ -84,30 +85,41 @@ const (
 	OperationTypeCreate OperationType = "create"
 	OperationTypeUpdate OperationType = "update"
 	OperationTypeDelete OperationType = "delete"
+
+	recordFieldID          = "id"
+	recordFieldModuleID    = "moduleId"
+	recordFieldNamespaceID = "namespaceId"
 )
 
 // ToFilter wraps RecordFilter with struct that
 // imlements filter.Filter interface
 func (f RecordFilter) ToFilter() filter.Filter {
-	return &recordFilter{f}
-}
-
-func (f recordFilter) Constraints() map[string][]any {
 	c := make(map[string][]any)
 
 	for _, id := range f.LabeledIDs {
-		c["id"] = append(c["id"], id)
+		c[recordFieldID] = append(c[recordFieldID], id)
 	}
 
 	if f.ModuleID > 0 {
-		c["moduleId"] = []any{f.ModuleID}
+		c[recordFieldModuleID] = []any{f.ModuleID}
 	}
 
-	if f.ModuleID > 0 {
-		c["namespaceId"] = []any{f.ModuleID}
+	if f.NamespaceID > 0 {
+		c[recordFieldNamespaceID] = []any{f.NamespaceID}
 	}
 
-	return c
+	return f.ToConstraintedFilter(c)
+}
+
+func (f RecordFilter) ToConstraintedFilter(c map[string][]any) filter.Filter {
+	return &recordFilter{
+		RecordFilter: f,
+		constraints:  c,
+	}
+}
+
+func (f recordFilter) Constraints() map[string][]any {
+	return f.constraints
 }
 
 func (f recordFilter) Expression() string           { return f.Query }
