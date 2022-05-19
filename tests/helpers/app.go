@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"context"
-	"time"
 
 	"github.com/cortezaproject/corteza-server/app"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
@@ -30,7 +29,6 @@ func NewIntegrationTestApp(ctx context.Context, initTestServices func(*app.Corte
 
 	// Create a new JWT secret (to prevent any security weirdness)
 	a.Opt.Auth.Secret = string(rand.Bytes(32))
-	a.Opt.Auth.Expiry = time.Minute
 	a.Opt.Auth.DefaultClient = ""
 
 	a.Log = logger.Default()

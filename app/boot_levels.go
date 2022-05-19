@@ -92,6 +92,11 @@ func (app *CortezaApp) Setup() (err error) {
 					"so instead use environment variable MINIO_BUCKET, " +
 					"we have extended it to have more flexibility over minio bucket name")
 		}
+
+		if _, is := os.LookupEnv("AUTH_JWT_EXPIRY"); is {
+			log.Warn("AUTH_JWT_EXPIRY is removed. " +
+				"JWT expiration value is set from AUTH_OAUTH2_ACCESS_TOKEN_LIFETIME")
+		}
 	}
 
 	hcd := healthcheck.Defaults()
@@ -348,7 +353,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 			auth.WithSecretSigner(app.Opt.Auth.Secret),
 			// @todo implement configurable issuer claim
 			//auth.WithDefaultIssuer(app.Opt.Auth.TokenClaimIssuer),
-			auth.WithDefaultExpiration(app.Opt.Auth.Expiry),
+			auth.WithDefaultExpiration(app.Opt.Auth.AccessTokenLifetime),
 			auth.WithDefaultClientID(app.DefaultAuthClient.ID),
 			auth.WithLookup(func(ctx context.Context, accessToken string) (err error) {
 				_, err = store.LookupAuthOa2tokenByAccess(ctx, app.Store, accessToken)
