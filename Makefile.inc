@@ -65,7 +65,7 @@ $(MODOUTDATED):
 	$(GOINSTALL) github.com/psampaz/go-mod-outdated@latest
 
 $(CUE):
-	$(GOINSTALL) cuelang.org/go/cmd/cue@latest
+	$(GOINSTALL) cuelang.org/go/cmd/cue@v0.4.2
 
 $(CODEGEN):
 	$(GO) build -o $@ $(ROOT_DIR)/cmd/codegen/main.go
