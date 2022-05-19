@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	authService "github.com/cortezaproject/corteza-server/auth"
 	authHandlers "github.com/cortezaproject/corteza-server/auth/handlers"
@@ -96,6 +97,17 @@ func (app *CortezaApp) Setup() (err error) {
 		if _, is := os.LookupEnv("AUTH_JWT_EXPIRY"); is {
 			log.Warn("AUTH_JWT_EXPIRY is removed. " +
 				"JWT expiration value is set from AUTH_OAUTH2_ACCESS_TOKEN_LIFETIME")
+		}
+
+		if app.Opt.Auth.SessionLifetime < time.Hour {
+			log.Warn("AUTH_SESSION_LIFETIME is set to less then an hour, this might not be what you want." +
+				"When user logs-in without 'remember-me',  AUTH_SESSION_LIFETIME is used to set a maximum time before session is expired if user does not interacts with Corteza. " +
+				"Recommended session lifetime value is between one hour (default) and a day")
+		}
+
+		if app.Opt.Auth.SessionPermLifetime < time.Hour {
+			log.Warn("AUTH_SESSION_PERM_LIFETIME is set to less then an hour, this might not be what you want. " +
+				"Recommended permanent session lifetime values are between a day and a year (default)")
 		}
 	}
 
