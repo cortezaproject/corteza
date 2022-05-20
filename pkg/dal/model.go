@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/handle"
-	"github.com/cortezaproject/corteza-server/pkg/minions"
+	"github.com/modern-go/reflect2"
 )
 
 type (
@@ -167,7 +167,7 @@ func (m Model) Validate() error {
 		}
 		seen[attr.Ident] = true
 
-		if minions.IsNil(attr.Type) {
+		if reflect2.IsNil(attr.Type) {
 			return fmt.Errorf("attribute does not define a type: %s", attr.Ident)
 		}
 	}

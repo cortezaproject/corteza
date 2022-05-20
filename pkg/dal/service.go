@@ -116,6 +116,17 @@ func (svc *service) RemoveConnection(ctx context.Context, connectionID uint64) (
 	return nil
 }
 
+// UpdateConnection updates the given connection
+//
+// @todo make this better; for now remove + add
+func (svc *service) UpdateConnection(ctx context.Context, connectionID uint64, dsn string, dft ConnectionDefaults, capabilities ...capabilities.Capability) (err error) {
+	if err = svc.RemoveConnection(ctx, connectionID); err != nil {
+		return
+	}
+
+	return svc.AddConnection(ctx, connectionID, dsn, dft, capabilities...)
+}
+
 // ConnectionDefaultreturns the defaults we can use with this connection
 func (svc *service) ConnectionDefaults(ctx context.Context, connectionID uint64) (dft ConnectionDefaults, err error) {
 	wrap, _, err := svc.getConnection(ctx, connectionID)

@@ -31,6 +31,7 @@ func MountRoutes() func(r chi.Router) {
 			handlers.NewAuthClient(AuthClient{}.New()).MountRoutes(r)
 			handlers.NewAutomation(Automation{}.New()).MountRoutes(r)
 			handlers.NewUser(User{}.New()).MountRoutes(r)
+			handlers.NewConnection(Connection{}.New()).MountRoutes(r)
 			handlers.NewRole(Role{}.New()).MountRoutes(r)
 			handlers.NewPermissions(Permissions{}.New()).MountRoutes(r)
 			handlers.NewApplication(Application{}.New()).MountRoutes(r)

@@ -26,7 +26,7 @@ type (
 
 		Options ModuleFieldOptions `json:"options"`
 
-		Encoding EncodingStrategy
+		EncodingStrategy EncodingStrategy `json:"encodingStrategy"`
 
 		Private      bool           `json:"isPrivate"`
 		Required     bool           `json:"isRequired"`
@@ -49,8 +49,8 @@ type (
 	}
 
 	EncodingStrategy struct {
-		*EncodingStrategyAlias
-		*EncodingStrategyJSON
+		*EncodingStrategyAlias `json:"alias,omitempty"`
+		*EncodingStrategyJSON  `json:"json,omitempty"`
 	}
 
 	EncodingStrategyAlias struct {
@@ -424,6 +424,17 @@ func (set *ModuleFieldSet) Scan(src interface{}) error {
 }
 
 func (set ModuleFieldSet) Value() (driver.Value, error) {
+	return json.Marshal(set)
+}
+
+func (set *EncodingStrategy) Scan(src interface{}) error {
+	if data, ok := src.([]byte); ok {
+		return json.Unmarshal(data, set)
+	}
+	return nil
+}
+
+func (set EncodingStrategy) Value() (driver.Value, error) {
 	return json.Marshal(set)
 }
 

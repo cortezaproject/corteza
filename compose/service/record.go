@@ -259,7 +259,7 @@ func (svc record) FindByID(ctx context.Context, namespaceID, moduleID, recordID 
 		props.record.ID = recordID
 
 		out := svc.prepareRecordTarget(m)
-		return out, svc.dal.Lookup(ctx, m.ModelFilter(), capabilities.LookupCapabilities(m.DALConfig.Capabilities...), dal.PKValues{"id": recordID}, out)
+		return out, svc.dal.Lookup(ctx, m.ModelFilter(), capabilities.LookupCapabilities(m.ModelConfig.Capabilities...), dal.PKValues{"id": recordID}, out)
 	})
 }
 
@@ -326,8 +326,8 @@ func (svc record) Find(ctx context.Context, filter types.RecordFilter) (set type
 		}
 
 		dalFilter := filter.ToFilter()
-		if m.DALConfig.Partitioned {
-			dalFilter = filter.ToConstraintedFilter(m.DALConfig.Constraints)
+		if m.ModelConfig.Partitioned {
+			dalFilter = filter.ToConstraintedFilter(m.ModelConfig.Constraints)
 		}
 
 		var iter dal.Iterator

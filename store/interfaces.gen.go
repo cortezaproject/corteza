@@ -59,6 +59,7 @@ type (
 		ComposePages
 		ComposeRecords
 		ComposeRecordValues
+		Connections
 		Credentials
 		FederationExposedModules
 		FederationModuleMappings
@@ -325,6 +326,18 @@ type (
 		DeleteComposeRecordValueByRecordIDNamePlace(ctx context.Context, recordID uint64, name string, place uint) error
 		TruncateComposeRecordValues(ctx context.Context) error
 		ComposeRecordValueRefLookup(ctx context.Context, mod *composeType.Module, field string, ref uint64) (uint64, error)
+	}
+
+	Connections interface {
+		SearchConnections(ctx context.Context, f systemType.ConnectionFilter) (systemType.ConnectionSet, systemType.ConnectionFilter, error)
+		CreateConnection(ctx context.Context, rr ...*systemType.Connection) error
+		UpdateConnection(ctx context.Context, rr ...*systemType.Connection) error
+		UpsertConnection(ctx context.Context, rr ...*systemType.Connection) error
+		DeleteConnection(ctx context.Context, rr ...*systemType.Connection) error
+		DeleteConnectionByID(ctx context.Context, id uint64) error
+		TruncateConnections(ctx context.Context) error
+		LookupConnectionByID(ctx context.Context, id uint64) (*systemType.Connection, error)
+		LookupConnectionByHandle(ctx context.Context, handle string) (*systemType.Connection, error)
 	}
 
 	Credentials interface {
@@ -1891,6 +1904,73 @@ func TruncateComposeRecordValues(ctx context.Context, s ComposeRecordValues) err
 // This function is auto-generated
 func ComposeRecordValueRefLookup(ctx context.Context, s ComposeRecordValues, mod *composeType.Module, field string, ref uint64) (uint64, error) {
 	return s.ComposeRecordValueRefLookup(ctx, mod, field, ref)
+}
+
+// SearchConnections returns all matching Connections from store
+//
+// This function is auto-generated
+func SearchConnections(ctx context.Context, s Connections, f systemType.ConnectionFilter) (systemType.ConnectionSet, systemType.ConnectionFilter, error) {
+	return s.SearchConnections(ctx, f)
+}
+
+// CreateConnection creates one or more Connections in store
+//
+// This function is auto-generated
+func CreateConnection(ctx context.Context, s Connections, rr ...*systemType.Connection) error {
+	return s.CreateConnection(ctx, rr...)
+}
+
+// UpdateConnection updates one or more (existing) Connections in store
+//
+// This function is auto-generated
+func UpdateConnection(ctx context.Context, s Connections, rr ...*systemType.Connection) error {
+	return s.UpdateConnection(ctx, rr...)
+}
+
+// UpsertConnection creates new or updates existing one or more Connections in store
+//
+// This function is auto-generated
+func UpsertConnection(ctx context.Context, s Connections, rr ...*systemType.Connection) error {
+	return s.UpsertConnection(ctx, rr...)
+}
+
+// DeleteConnection deletes one or more Connections from store
+//
+// This function is auto-generated
+func DeleteConnection(ctx context.Context, s Connections, rr ...*systemType.Connection) error {
+	return s.DeleteConnection(ctx, rr...)
+}
+
+// DeleteConnectionByID deletes one or more Connections from store
+//
+// This function is auto-generated
+func DeleteConnectionByID(ctx context.Context, s Connections, id uint64) error {
+	return s.DeleteConnectionByID(ctx, id)
+}
+
+// TruncateConnections Deletes all Connections from store
+//
+// This function is auto-generated
+func TruncateConnections(ctx context.Context, s Connections) error {
+	return s.TruncateConnections(ctx)
+}
+
+// LookupConnectionByID searches for connection by ID
+//
+// It returns connection even if deleted or suspended
+//
+// This function is auto-generated
+func LookupConnectionByID(ctx context.Context, s Connections, id uint64) (*systemType.Connection, error) {
+	return s.LookupConnectionByID(ctx, id)
+}
+
+// LookupConnectionByHandle searches for connection by handle
+//
+// It returns only valid connection (not deleted)
+//
+// This function is auto-generated
+func LookupConnectionByHandle(ctx context.Context, s Connections, handle string) (*systemType.Connection, error) {
+	return s.LookupConnectionByHandle(ctx, handle)
 }
 
 // SearchCredentials returns all matching Credentials from store

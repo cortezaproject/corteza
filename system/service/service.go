@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/discovery"
 
 	automationService "github.com/cortezaproject/corteza-server/automation/service"
@@ -73,6 +74,7 @@ var (
 	DefaultAuth                *auth
 	DefaultAuthClient          *authClient
 	DefaultUser                *user
+	DefaultConnection          *connection
 	DefaultRole                *role
 	DefaultApplication         *application
 	DefaultReminder            ReminderService
@@ -144,6 +146,11 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultAccessControl = AccessControl()
 
 	DefaultSettings = Settings(ctx, DefaultStore, DefaultLogger, DefaultAccessControl, CurrentSettings)
+
+	DefaultConnection, err = Connection(ctx, dal.Service())
+	if err != nil {
+		return
+	}
 
 	if DefaultObjectStore == nil {
 		var (

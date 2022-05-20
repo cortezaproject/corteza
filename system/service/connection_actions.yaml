@@ -1,0 +1,98 @@
+# List of loggable service actions
+
+resource: system:connection
+service: connection
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+props:
+  - name: connection
+    type: "*types.Connection"
+    fields: [ DSN, ID ]
+  - name: new
+    type: "*types.Connection"
+    fields: [ DSN, ID ]
+  - name: update
+    type: "*types.Connection"
+    fields: [ DSN, ID ]
+  - name: search
+    type: "*types.ConnectionFilter"
+    fields: []
+
+actions:
+  - action: search
+    log: "searched for connection"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{connection}}"
+    severity: info
+
+  - action: create
+    log: "created {{connection}}"
+
+  - action: update
+    log: "updated {{connection}}"
+
+  - action: delete
+    log: "deleted {{connection}}"
+
+  - action: undelete
+    log: "undeleted {{connection}}"
+
+errors:
+  - error: notFound
+    message: "connection not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: invalidEndpoint
+    message: "invalid DSN"
+    severity: warning
+
+  - error: existsEndpoint
+    message: "connection with this DSN already exists"
+    severity: warning
+
+  - error: alreadyExists
+    message: "connection by that DSN already exists"
+    severity: warning
+
+  - error: notAllowedToCreate
+    message: "not allowed to create a connection"
+    log: "failed to create a connection; insufficient permissions"
+
+  - error: notAllowedToRead
+    message: "not allowed to read this connection"
+    log: "failed to read {{connection.DSN}}; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to list or search connections"
+    log: "failed to search for connections; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this connection"
+    log: "failed to update {{connection.DSN}}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this connection"
+    log: "failed to delete {{connection.DSN}}; insufficient permissions"
+
+  - error: notAllowedToUndelete
+    message: "not allowed to undelete this connection"
+    log: "failed to undelete {{connection.DSN}}; insufficient permissions"
+
+  - error: notAllowedToExec
+    message: "not allowed to execute this connection"
+    log: "failed to exec {{connection.DSN}}; insufficient permissions"
+
