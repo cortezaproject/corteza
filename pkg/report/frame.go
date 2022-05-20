@@ -9,7 +9,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/qlng"
+	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/spf13/cast"
 )
 
@@ -81,9 +81,9 @@ type (
 		// @todo size and other shape related bits
 	}
 
-	// Filter is a qlng.ASTNode wrapper to get some unmarshal/marshal features
+	// Filter is a ql.ASTNode wrapper to get some unmarshal/marshal features
 	Filter struct {
-		*qlng.ASTNode
+		*ql.ASTNode
 		Error string `json:"error,omitempty"`
 	}
 )
@@ -129,7 +129,7 @@ func (f *Filter) UnmarshalJSON(data []byte) (err error) {
 		return
 	}
 
-	p := qlng.NewParser()
+	p := ql.NewParser()
 
 	// String expr. needs to be parsed to the AST
 	switch v := aux.(type) {
@@ -163,7 +163,7 @@ func (f *Filter) UnmarshalJSON(data []byte) (err error) {
 	}
 
 	// A raw expression takes priority and replaces the original AST sub-tree
-	err = f.ASTNode.Traverse(func(n *qlng.ASTNode) (bool, *qlng.ASTNode, error) {
+	err = f.ASTNode.Traverse(func(n *ql.ASTNode) (bool, *ql.ASTNode, error) {
 		if n.Raw == "" {
 			return true, n, nil
 		}

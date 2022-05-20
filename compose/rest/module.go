@@ -107,6 +107,7 @@ func (ctrl *Module) Create(ctx context.Context, r *request.ModuleCreate) (interf
 		err error
 		mod = &types.Module{
 			NamespaceID: r.NamespaceID,
+			ModelConfig: r.ModelConfig,
 			Name:        r.Name,
 			Handle:      r.Handle,
 			Fields:      r.Fields,
@@ -125,6 +126,7 @@ func (ctrl *Module) Update(ctx context.Context, r *request.ModuleUpdate) (interf
 		mod = &types.Module{
 			ID:          r.ModuleID,
 			NamespaceID: r.NamespaceID,
+			ModelConfig: r.ModelConfig,
 			Name:        r.Name,
 			Handle:      r.Handle,
 			Fields:      r.Fields,

@@ -9,6 +9,26 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestSetTimeRecStructField(t *testing.T) {
+	var (
+		req = require.New(t)
+		r   = &Record{}
+		now = time.Now()
+	)
+
+	req.NoError(setTimeRecStructField(r, "createdAt", now))
+	req.Equal(r.CreatedAt, now)
+	req.NoError(setTimeRecStructField(r, "createdAt", nil))
+	req.Equal(r.CreatedAt, now)
+	req.NoError(setTimeRecStructField(r, "updatedAt", now))
+	req.Equal(r.UpdatedAt, &now)
+	req.NoError(setTimeRecStructField(r, "deletedAt", now))
+	req.Equal(r.DeletedAt, &now)
+	req.NoError(setTimeRecStructField(r, "deletedAt", nil))
+	req.Nil(r.DeletedAt)
+
+}
+
 func TestRecordUnmarshal(t *testing.T) {
 	tests := []struct {
 		name string

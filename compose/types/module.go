@@ -3,19 +3,37 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"time"
+
 	discovery "github.com/cortezaproject/corteza-server/discovery/types"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/pkg/errors"
-	"time"
 )
 
 type (
+	ModelConfig struct {
+		ConnectionID uint64           `json:"connectionID,string"`
+		Capabilities capabilities.Set `json:"capabilities"`
+
+		Constraints map[string][]any `json:"constraints"`
+
+		Partitioned     bool   `json:"partitioned"`
+		PartitionFormat string `json:"partitionFormat"`
+
+		SystemFieldEncoding SystemFieldEncoding `json:"systemFieldEncoding"`
+	}
+
 	Module struct {
 		ID     uint64         `json:"moduleID,string"`
 		Handle string         `json:"handle"`
 		Meta   types.JSONText `json:"meta"`
+
+		ModelConfig ModelConfig `json:"modelConfig"`
+
 		Fields ModuleFieldSet `json:"fields"`
 
 		Labels map[string]string `json:"labels,omitempty"`
@@ -30,6 +48,24 @@ type (
 		//          struct field is kept for the convenience for now since it allows us
 		//          easy encoding/decoding of the outgoing/incoming values
 		Name string `json:"name"`
+	}
+
+	SystemFieldEncoding struct {
+		ID *EncodingStrategy `json:"id"`
+
+		ModuleID    *EncodingStrategy `json:"moduleID"`
+		NamespaceID *EncodingStrategy `json:"namespaceID"`
+
+		OwnedBy *EncodingStrategy `json:"ownedBy"`
+
+		CreatedAt *EncodingStrategy `json:"createdAt"`
+		CreatedBy *EncodingStrategy `json:"createdBy"`
+
+		UpdatedAt *EncodingStrategy `json:"updatedAt"`
+		UpdatedBy *EncodingStrategy `json:"updatedBy"`
+
+		DeletedAt *EncodingStrategy `json:"deletedAt"`
+		DeletedBy *EncodingStrategy `json:"deletedBy"`
 	}
 
 	ModuleMeta struct {
@@ -76,6 +112,18 @@ func (m *Module) encodeTranslations() (out locale.ResourceTranslationSet) {
 	return
 }
 
+func (m *Module) ModelFilter() dal.ModelFilter {
+	return dal.ModelFilter{
+		ConnectionID: m.ModelConfig.ConnectionID,
+
+		ResourceID: m.ID,
+
+		ResourceType: ModuleResourceType,
+		// @todo will use this for now but should probably change
+		Resource: m.RbacResource(),
+	}
+}
+
 // FindByHandle finds module by it's handle
 func (set ModuleSet) FindByHandle(handle string) *Module {
 	for i := range set {
@@ -104,4 +152,32 @@ func (nm *ModuleMeta) Scan(value interface{}) error {
 
 func (nm ModuleMeta) Value() (driver.Value, error) {
 	return json.Marshal(nm)
+}
+
+func (nm *ModelConfig) Scan(value interface{}) error {
+	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
+	switch value.(type) {
+	case nil:
+		*nm = ModelConfig{}
+	case []uint8:
+		b := value.([]byte)
+		if err := json.Unmarshal(b, nm); err != nil {
+			return errors.Wrapf(err, "cannot scan '%v' into ModelConfig", string(b))
+		}
+	}
+
+	return nil
+}
+
+func (nm ModelConfig) Value() (driver.Value, error) {
+	return json.Marshal(nm)
+}
+
+func ParseModelConfig(ss []string) (m ModelConfig, err error) {
+	if len(ss) == 0 {
+		return
+	}
+
+	err = json.Unmarshal([]byte(ss[0]), &m)
+	return
 }

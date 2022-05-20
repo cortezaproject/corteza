@@ -6,7 +6,7 @@ type (
 
 const (
 	CHAR_WHITELIST_WHITESPACE = " \n\t"
-	CHAR_WHITELIST_OPERATORS  = "!+-/*=<>"
+	CHAR_WHITELIST_OPERATORS  = "!+-/*=<>&|"
 	CHAR_WHITELIST_QUOTES     = "'"
 )
 

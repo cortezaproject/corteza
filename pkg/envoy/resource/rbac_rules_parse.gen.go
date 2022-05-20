@@ -128,6 +128,15 @@ func ParseRule(res string) (string, *Ref, []*Ref, error) {
 		)
 		return resourceType, ref, pp, err
 
+	case systemTypes.ConnectionResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := SystemConnectionRbacReferences(
+			path[0],
+		)
+		return resourceType, ref, pp, err
+
 	case composeTypes.ChartResourceType:
 		if len(path) != 2 {
 			return "", nil, nil, fmt.Errorf("expecting 2 reference components in path, got %d", len(path))

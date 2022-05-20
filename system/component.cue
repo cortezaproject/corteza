@@ -27,6 +27,7 @@ component: schema.#component & {
 		"settings":              settings
 		"template":              template
 		"user":                  user
+		"connection":            connection
 	}
 
 	rbac: operations: {
@@ -42,6 +43,9 @@ component: schema.#component & {
 
 		"user.create": description:  "Create users"
 		"users.search": description: "List, search or filter users"
+
+		"connection.create": description:  "Create connections"
+		"connections.search": description: "List, search or filter connections"
 
 		"application.create": description:      "Create applications"
 		"applications.search": description:     "List, search or filter auth clients"

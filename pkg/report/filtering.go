@@ -1,6 +1,6 @@
 package report
 
-import "github.com/cortezaproject/corteza-server/pkg/qlng"
+import "github.com/cortezaproject/corteza-server/pkg/ql"
 
 func (a *Filter) mergeAnd(b *Filter) *Filter {
 	return merger(a, b, "and")
@@ -12,14 +12,14 @@ func (a *Filter) mergeOr(b *Filter) *Filter {
 
 func merger(a, b *Filter, ref string) *Filter {
 	// 1. merge the two
-	aa := make(qlng.ASTNodeSet, 0, 2)
+	aa := make(ql.ASTNodeSet, 0, 2)
 
 	// It needs to be under a group, so we get an `(a) and/or (b)`
 	if a != nil {
-		aa = append(aa, &qlng.ASTNode{Ref: "group", Args: qlng.ASTNodeSet{a.ASTNode}})
+		aa = append(aa, &ql.ASTNode{Ref: "group", Args: ql.ASTNodeSet{a.ASTNode}})
 	}
 	if b != nil {
-		aa = append(aa, &qlng.ASTNode{Ref: "group", Args: qlng.ASTNodeSet{b.ASTNode}})
+		aa = append(aa, &ql.ASTNode{Ref: "group", Args: ql.ASTNodeSet{b.ASTNode}})
 	}
 
 	// 2. flatten
@@ -35,7 +35,7 @@ func merger(a, b *Filter, ref string) *Filter {
 	}
 
 	return &Filter{
-		ASTNode: &qlng.ASTNode{
+		ASTNode: &ql.ASTNode{
 			Ref:  ref,
 			Args: aa,
 		},

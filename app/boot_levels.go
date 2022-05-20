@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"os"
+	"time"
 
 	authService "github.com/cortezaproject/corteza-server/auth"
 	authHandlers "github.com/cortezaproject/corteza-server/auth/handlers"
@@ -20,6 +21,8 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/apigw"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/http"
@@ -53,6 +56,10 @@ const (
 	bootLevelProvisioned
 	bootLevelServicesInitialized
 	bootLevelActivated
+
+	defaultComposeRecordTable    = "compose_record"
+	defaultComposeRecordValueCol = "values"
+	defaultPartitionFormat       = "compose_record_{{namespace}}_{{module}}"
 )
 
 // Setup configures all required services
@@ -274,6 +281,40 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return
 	}
 
+	var primaryDALConnection = types.Connection{
+		// Using id.Next since we dropped "special" ids a while ago.
+		// If needed, use the handle
+		ID:        id.Next(),
+		Handle:    "primary_connection",
+		DSN:       app.Opt.DB.DSN,
+		Location:  "@todo",
+		Ownership: "@todo",
+		// @todo
+		Sensitive: true,
+		Config: types.ConnectionConfig{
+			DefaultModelIdent:      defaultComposeRecordTable,
+			DefaultAttributeIdent:  defaultComposeRecordValueCol,
+			DefaultPartitionFormat: defaultPartitionFormat,
+		},
+		Capabilities: types.ConnectionCapabilities{
+			Supported: capabilities.FullCapabilities(),
+		},
+		CreatedAt: time.Now(),
+		CreatedBy: auth.ServiceUser().ID,
+	}
+	// Init DAL and prepare default connection
+	if _, err = dal.InitGlobalService(
+		ctx,
+		app.Log.Named("DAL"),
+		app.Opt.Environment.IsDevelopment(),
+
+		// DB_DSN is the default connection with full capabilities
+		primaryDALConnection.DSN,
+		primaryDALConnection.ConnectionDefaults(),
+		primaryDALConnection.ActiveCapabilities()...); err != nil {
+		return err
+	}
+
 	if app.Opt.Auth.DefaultClient != "" {
 		// default client will help streamline authorization with default clients
 		app.DefaultAuthClient, err = store.LookupAuthClientByHandle(ctx, app.Store, app.Opt.Auth.DefaultClient)
@@ -394,7 +435,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	//
 	// Note: this is a legacy approach, all services from all 3 apps
 	// will most likely be merged in the future
-	err = sysService.Initialize(ctx, app.Log, app.Store, app.WsServer, sysService.Config{
+	err = sysService.Initialize(ctx, app.Log, app.Store, primaryDALConnection, app.WsServer, sysService.Config{
 		ActionLog: app.Opt.ActionLog,
 		Discovery: app.Opt.Discovery,
 		Storage:   app.Opt.ObjStore,

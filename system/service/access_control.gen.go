@@ -255,6 +255,21 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "impersonate",
 		},
 		{
+			"type": types.ConnectionResourceType,
+			"any":  types.ConnectionRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.ConnectionResourceType,
+			"any":  types.ConnectionRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.ConnectionResourceType,
+			"any":  types.ConnectionRbacResource(0),
+			"op":   "delete",
+		},
+		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "grant",
@@ -303,6 +318,16 @@ func (svc accessControl) List() (out []map[string]string) {
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "users.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "connection.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "connections.search",
 		},
 		{
 			"type": types.ComponentResourceType,
@@ -727,6 +752,27 @@ func (svc accessControl) CanImpersonateUser(ctx context.Context, r *types.User) 
 	return svc.can(ctx, "impersonate", r)
 }
 
+// CanReadConnection checks if current user can read connection
+//
+// This function is auto-generated
+func (svc accessControl) CanReadConnection(ctx context.Context, r *types.Connection) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateConnection checks if current user can update connection
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateConnection(ctx context.Context, r *types.Connection) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteConnection checks if current user can delete connection
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteConnection(ctx context.Context, r *types.Connection) bool {
+	return svc.can(ctx, "delete", r)
+}
+
 // CanGrant checks if current user can manage system permissions
 //
 // This function is auto-generated
@@ -805,6 +851,22 @@ func (svc accessControl) CanCreateUser(ctx context.Context) bool {
 func (svc accessControl) CanSearchUsers(ctx context.Context) bool {
 	r := &types.Component{}
 	return svc.can(ctx, "users.search", r)
+}
+
+// CanCreateConnection checks if current user can create connections
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateConnection(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "connection.create", r)
+}
+
+// CanSearchConnections checks if current user can list, search or filter connections
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchConnections(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "connections.search", r)
 }
 
 // CanCreateApplication checks if current user can create applications
@@ -942,6 +1004,8 @@ func rbacResourceValidator(r string, oo ...string) error {
 		return rbacTemplateResourceValidator(r, oo...)
 	case types.UserResourceType:
 		return rbacUserResourceValidator(r, oo...)
+	case types.ConnectionResourceType:
+		return rbacConnectionResourceValidator(r, oo...)
 	case types.ComponentResourceType:
 		return rbacComponentResourceValidator(r, oo...)
 	}
@@ -1021,6 +1085,12 @@ func rbacResourceOperations(r string) map[string]bool {
 			"name.unmask":  true,
 			"impersonate":  true,
 		}
+	case types.ConnectionResourceType:
+		return map[string]bool{
+			"read":   true,
+			"update": true,
+			"delete": true,
+		}
 	case types.ComponentResourceType:
 		return map[string]bool{
 			"grant":                        true,
@@ -1033,6 +1103,8 @@ func rbacResourceOperations(r string) map[string]bool {
 			"roles.search":                 true,
 			"user.create":                  true,
 			"users.search":                 true,
+			"connection.create":            true,
+			"connections.search":           true,
 			"application.create":           true,
 			"applications.search":          true,
 			"application.flag.self":        true,
@@ -1439,6 +1511,50 @@ func rbacUserResourceValidator(r string, oo ...string) error {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid path wildcard level (%d) for user resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacConnectionResourceValidator checks validity of RBAC resource and operations
+//
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacConnectionResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.ConnectionResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for connection resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.ConnectionResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for connection resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {

@@ -33,6 +33,7 @@ const (
 	RoleResourceType         = "corteza::system:role"
 	TemplateResourceType     = "corteza::system:template"
 	UserResourceType         = "corteza::system:user"
+	ConnectionResourceType   = "corteza::system:connection"
 	ComponentResourceType    = "corteza::system"
 )
 
@@ -303,6 +304,36 @@ func UserRbacResource(id uint64) string {
 }
 
 func UserRbacResourceTpl() string {
+	return "%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for Connection by calling ConnectionRbacResource fn
+//
+// RBAC resource is in the corteza::system:connection/... format
+//
+// This function is auto-generated
+func (r Connection) RbacResource() string {
+	return ConnectionRbacResource(r.ID)
+}
+
+// ConnectionRbacResource returns string representation of RBAC resource for Connection
+//
+// RBAC resource is in the corteza::system:connection/... format
+//
+// This function is auto-generated
+func ConnectionRbacResource(id uint64) string {
+	cpts := []interface{}{ConnectionResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(ConnectionRbacResourceTpl(), cpts...)
+
+}
+
+func ConnectionRbacResourceTpl() string {
 	return "%s/%s"
 }
 

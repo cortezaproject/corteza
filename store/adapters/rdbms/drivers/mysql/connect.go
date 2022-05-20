@@ -11,24 +11,47 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/instrumentation"
-	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	"github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	"github.com/ngrok/sqlmw"
 )
 
+const (
+	// base for our schemas
+	baseSchema = "mysql"
+
+	// debug schema with verbose logging
+	debugSchema = baseSchema + "+debug"
+)
+
 func init() {
-	store.Register(Connect, "mysql", "mysql+debug")
-	sql.Register("mysql+debug", sqlmw.Driver(new(mysql.MySQLDriver), instrumentation.Debug()))
+	store.Register(Connect, baseSchema, debugSchema)
+	sql.Register(debugSchema, sqlmw.Driver(new(mysql.MySQLDriver), instrumentation.Debug()))
 }
 
 func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
-	var (
-		db  *sqlx.DB
-		cfg *rdbms.ConnConfig
-	)
+	db, cfg, err := connectBase(ctx, dsn)
+	if err != nil {
+		return
+	}
 
+	s := &rdbms.Store{
+		DB: db,
+
+		Dialect:           goquDialectWrapper,
+		TxRetryErrHandler: txRetryErrHandler,
+		ErrorHandler:      errorHandler,
+
+		SchemaAPI: &schema{dbName: cfg.DBName, dialect: Dialect()},
+	}
+
+	s.SetDefaults()
+
+	return s, nil
+}
+
+func connectBase(ctx context.Context, dsn string) (db *sqlx.DB, cfg *rdbms.ConnConfig, err error) {
 	if cfg, err = NewConfig(dsn); err != nil {
 		return
 	}
@@ -42,20 +65,7 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 		return
 	}
 
-	dialect := goqu.Dialect("mysql")
-	s := &rdbms.Store{
-		DB: db,
-
-		Dialect:           dialect,
-		TxRetryErrHandler: txRetryErrHandler,
-		ErrorHandler:      errorHandler,
-
-		SchemaAPI: &schema{dbName: cfg.DBName, dialect: dialect},
-	}
-
-	s.SetDefaults()
-
-	return s, nil
+	return
 }
 
 // NewConfig validates given DSN and ensures
@@ -65,9 +75,6 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 // error in case of incorrect param value
 //
 // See https://github.com/go-sql-driver/mysql for available dsn params
-//
-// @todo similar fallback (autoconfig) for collation=utf8mb4_general_ci
-//       but allow different collation values
 //
 func NewConfig(in string) (*rdbms.ConnConfig, error) {
 	const (
@@ -94,6 +101,18 @@ func NewConfig(in string) (*rdbms.ConnConfig, error) {
 		// Ensure driver parses time
 		pdsn.ParseTime = true
 
+		if pdsn.Collation == "" {
+			pdsn.Collation = "utf8mb4_general_ci"
+		}
+
+		if pdsn.Params == nil {
+			pdsn.Params = make(map[string]string)
+		}
+
+		if pdsn.Params["charset"] == "" {
+			pdsn.Params["charset"] = "utf8mb4"
+		}
+
 		c.DataSourceName = pdsn.FormatDSN()
 		c.DBName = pdsn.DBName
 	}
@@ -101,6 +120,16 @@ func NewConfig(in string) (*rdbms.ConnConfig, error) {
 	c.SetDefaults()
 
 	return c, nil
+}
+
+// Connection setup
+func connSetup(ctx context.Context, db sqlx.ExecerContext) (err error) {
+	// See https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_ansi for details
+	if _, err = db.ExecContext(ctx, `SET SESSION sql_mode = 'ANSI'`); err != nil {
+		return
+	}
+
+	return
 }
 
 func txRetryErrHandler(try int, err error) bool {

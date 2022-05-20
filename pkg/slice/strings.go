@@ -1,5 +1,30 @@
 package slice
 
+func ContainsAny[C comparable](haystack []C, needles ...C) bool {
+	for _, h := range haystack {
+		for _, n := range needles {
+			if h == n {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func ContainsAll[C comparable](haystack []C, needles ...C) bool {
+	var matches = 0
+	for _, h := range haystack {
+		for _, n := range needles {
+			if h == n {
+				matches++
+			}
+		}
+	}
+
+	return len(needles) == matches
+}
+
 func IntersectStrings(a []string, b []string) []string {
 	var (
 		out = make([]string, 0, len(a)+len(b))
@@ -33,6 +58,7 @@ func ToUint64BoolMap(u []uint64) (h map[uint64]bool) {
 	return
 }
 
+// @todo replace with ContainsAny
 func HasString(ss []string, s string) bool {
 	for i := range ss {
 		if ss[i] == s {

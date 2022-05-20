@@ -96,6 +96,11 @@ type (
 		// Module handle
 		Handle string
 
+		// ModelConfig POST parameter
+		//
+		// modelConfig
+		ModelConfig types.ModelConfig
+
 		// Fields POST parameter
 		//
 		// Fields JSON
@@ -144,6 +149,11 @@ type (
 		//
 		// Module Handle
 		Handle string
+
+		// ModelConfig POST parameter
+		//
+		// modelConfig
+		ModelConfig types.ModelConfig
 
 		// Fields POST parameter
 		//
@@ -371,6 +381,7 @@ func (r ModuleCreate) Auditable() map[string]interface{} {
 		"namespaceID": r.NamespaceID,
 		"name":        r.Name,
 		"handle":      r.Handle,
+		"modelConfig": r.ModelConfig,
 		"fields":      r.Fields,
 		"meta":        r.Meta,
 		"labels":      r.Labels,
@@ -390,6 +401,11 @@ func (r ModuleCreate) GetName() string {
 // Auditable returns all auditable/loggable parameters
 func (r ModuleCreate) GetHandle() string {
 	return r.Handle
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ModuleCreate) GetModelConfig() types.ModelConfig {
+	return r.ModelConfig
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -442,6 +458,18 @@ func (r *ModuleCreate) Fill(req *http.Request) (err error) {
 				}
 			}
 
+			if val, ok := req.MultipartForm.Value["modelConfig[]"]; ok {
+				r.ModelConfig, err = types.ParseModelConfig(val)
+				if err != nil {
+					return err
+				}
+			} else if val, ok := req.MultipartForm.Value["modelConfig"]; ok {
+				r.ModelConfig, err = types.ParseModelConfig(val)
+				if err != nil {
+					return err
+				}
+			}
+
 			if val, ok := req.MultipartForm.Value["meta"]; ok && len(val) > 0 {
 				r.Meta, err = payload.ParseJSONTextWithErr(val[0])
 				if err != nil {
@@ -479,6 +507,18 @@ func (r *ModuleCreate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["handle"]; ok && len(val) > 0 {
 			r.Handle, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["modelConfig[]"]; ok {
+			r.ModelConfig, err = types.ParseModelConfig(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["modelConfig"]; ok {
+			r.ModelConfig, err = types.ParseModelConfig(val)
 			if err != nil {
 				return err
 			}
@@ -585,6 +625,7 @@ func (r ModuleUpdate) Auditable() map[string]interface{} {
 		"moduleID":    r.ModuleID,
 		"name":        r.Name,
 		"handle":      r.Handle,
+		"modelConfig": r.ModelConfig,
 		"fields":      r.Fields,
 		"meta":        r.Meta,
 		"updatedAt":   r.UpdatedAt,
@@ -610,6 +651,11 @@ func (r ModuleUpdate) GetName() string {
 // Auditable returns all auditable/loggable parameters
 func (r ModuleUpdate) GetHandle() string {
 	return r.Handle
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ModuleUpdate) GetModelConfig() types.ModelConfig {
+	return r.ModelConfig
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -667,6 +713,18 @@ func (r *ModuleUpdate) Fill(req *http.Request) (err error) {
 				}
 			}
 
+			if val, ok := req.MultipartForm.Value["modelConfig[]"]; ok {
+				r.ModelConfig, err = types.ParseModelConfig(val)
+				if err != nil {
+					return err
+				}
+			} else if val, ok := req.MultipartForm.Value["modelConfig"]; ok {
+				r.ModelConfig, err = types.ParseModelConfig(val)
+				if err != nil {
+					return err
+				}
+			}
+
 			if val, ok := req.MultipartForm.Value["meta"]; ok && len(val) > 0 {
 				r.Meta, err = payload.ParseJSONTextWithErr(val[0])
 				if err != nil {
@@ -711,6 +769,18 @@ func (r *ModuleUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["handle"]; ok && len(val) > 0 {
 			r.Handle, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["modelConfig[]"]; ok {
+			r.ModelConfig, err = types.ParseModelConfig(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["modelConfig"]; ok {
+			r.ModelConfig, err = types.ParseModelConfig(val)
 			if err != nil {
 				return err
 			}

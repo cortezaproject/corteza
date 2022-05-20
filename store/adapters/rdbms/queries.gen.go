@@ -1636,6 +1636,7 @@ var (
 			"id",
 			"handle",
 			"meta",
+			"model_config",
 			"rel_namespace",
 			"name",
 			"created_at",
@@ -1653,6 +1654,7 @@ var (
 				"id":            res.ID,
 				"handle":        res.Handle,
 				"meta":          res.Meta,
+				"model_config":  res.ModelConfig,
 				"rel_namespace": res.NamespaceID,
 				"name":          res.Name,
 				"created_at":    res.CreatedAt,
@@ -1673,6 +1675,7 @@ var (
 					goqu.Record{
 						"handle":        res.Handle,
 						"meta":          res.Meta,
+						"model_config":  res.ModelConfig,
 						"rel_namespace": res.NamespaceID,
 						"name":          res.Name,
 						"created_at":    res.CreatedAt,
@@ -1691,6 +1694,7 @@ var (
 			Set(goqu.Record{
 				"handle":        res.Handle,
 				"meta":          res.Meta,
+				"model_config":  res.ModelConfig,
 				"rel_namespace": res.NamespaceID,
 				"name":          res.Name,
 				"created_at":    res.CreatedAt,
@@ -1740,6 +1744,7 @@ var (
 			"name",
 			"label",
 			"options",
+			"encoding_strategy",
 			"is_private",
 			"is_required",
 			"is_visible",
@@ -1758,22 +1763,23 @@ var (
 	composeModuleFieldInsertQuery = func(d goqu.DialectWrapper, res *composeType.ModuleField) *goqu.InsertDataset {
 		return d.Insert(composeModuleFieldTable).
 			Rows(goqu.Record{
-				"id":            res.ID,
-				"rel_module":    res.ModuleID,
-				"place":         res.Place,
-				"kind":          res.Kind,
-				"name":          res.Name,
-				"label":         res.Label,
-				"options":       res.Options,
-				"is_private":    res.Private,
-				"is_required":   res.Required,
-				"is_visible":    res.Visible,
-				"is_multi":      res.Multi,
-				"default_value": res.DefaultValue,
-				"expressions":   res.Expressions,
-				"created_at":    res.CreatedAt,
-				"updated_at":    res.UpdatedAt,
-				"deleted_at":    res.DeletedAt,
+				"id":                res.ID,
+				"rel_module":        res.ModuleID,
+				"place":             res.Place,
+				"kind":              res.Kind,
+				"name":              res.Name,
+				"label":             res.Label,
+				"options":           res.Options,
+				"encoding_strategy": res.EncodingStrategy,
+				"is_private":        res.Private,
+				"is_required":       res.Required,
+				"is_visible":        res.Visible,
+				"is_multi":          res.Multi,
+				"default_value":     res.DefaultValue,
+				"expressions":       res.Expressions,
+				"created_at":        res.CreatedAt,
+				"updated_at":        res.UpdatedAt,
+				"deleted_at":        res.DeletedAt,
 			})
 	}
 
@@ -1787,21 +1793,22 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
-						"rel_module":    res.ModuleID,
-						"place":         res.Place,
-						"kind":          res.Kind,
-						"name":          res.Name,
-						"label":         res.Label,
-						"options":       res.Options,
-						"is_private":    res.Private,
-						"is_required":   res.Required,
-						"is_visible":    res.Visible,
-						"is_multi":      res.Multi,
-						"default_value": res.DefaultValue,
-						"expressions":   res.Expressions,
-						"created_at":    res.CreatedAt,
-						"updated_at":    res.UpdatedAt,
-						"deleted_at":    res.DeletedAt,
+						"rel_module":        res.ModuleID,
+						"place":             res.Place,
+						"kind":              res.Kind,
+						"name":              res.Name,
+						"label":             res.Label,
+						"options":           res.Options,
+						"encoding_strategy": res.EncodingStrategy,
+						"is_private":        res.Private,
+						"is_required":       res.Required,
+						"is_visible":        res.Visible,
+						"is_multi":          res.Multi,
+						"default_value":     res.DefaultValue,
+						"expressions":       res.Expressions,
+						"created_at":        res.CreatedAt,
+						"updated_at":        res.UpdatedAt,
+						"deleted_at":        res.DeletedAt,
 					},
 				),
 			)
@@ -1813,21 +1820,22 @@ var (
 	composeModuleFieldUpdateQuery = func(d goqu.DialectWrapper, res *composeType.ModuleField) *goqu.UpdateDataset {
 		return d.Update(composeModuleFieldTable).
 			Set(goqu.Record{
-				"rel_module":    res.ModuleID,
-				"place":         res.Place,
-				"kind":          res.Kind,
-				"name":          res.Name,
-				"label":         res.Label,
-				"options":       res.Options,
-				"is_private":    res.Private,
-				"is_required":   res.Required,
-				"is_visible":    res.Visible,
-				"is_multi":      res.Multi,
-				"default_value": res.DefaultValue,
-				"expressions":   res.Expressions,
-				"created_at":    res.CreatedAt,
-				"updated_at":    res.UpdatedAt,
-				"deleted_at":    res.DeletedAt,
+				"rel_module":        res.ModuleID,
+				"place":             res.Place,
+				"kind":              res.Kind,
+				"name":              res.Name,
+				"label":             res.Label,
+				"options":           res.Options,
+				"encoding_strategy": res.EncodingStrategy,
+				"is_private":        res.Private,
+				"is_required":       res.Required,
+				"is_visible":        res.Visible,
+				"is_multi":          res.Multi,
+				"default_value":     res.DefaultValue,
+				"expressions":       res.Expressions,
+				"created_at":        res.CreatedAt,
+				"updated_at":        res.UpdatedAt,
+				"deleted_at":        res.DeletedAt,
 			}).
 			Where(composeModuleFieldPrimaryKeys(res))
 	}
@@ -2274,6 +2282,130 @@ var (
 			"record_id": res.RecordID,
 			"name":      res.Name,
 			"place":     res.Place,
+		}
+	}
+
+	// connectionTable represents connections store table
+	//
+	// This value is auto-generated
+	connectionTable = goqu.T("connections")
+
+	// connectionSelectQuery assembles select query for fetching connections
+	//
+	// This function is auto-generated
+	connectionSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"handle",
+			"dsn",
+			"location",
+			"ownership",
+			"sensitive",
+			"config",
+			"capabilities",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+			"created_by",
+			"updated_by",
+			"deleted_by",
+		).From(connectionTable)
+	}
+
+	// connectionInsertQuery assembles query inserting connections
+	//
+	// This function is auto-generated
+	connectionInsertQuery = func(d goqu.DialectWrapper, res *systemType.Connection) *goqu.InsertDataset {
+		return d.Insert(connectionTable).
+			Rows(goqu.Record{
+				"id":           res.ID,
+				"handle":       res.Handle,
+				"dsn":          res.DSN,
+				"location":     res.Location,
+				"ownership":    res.Ownership,
+				"sensitive":    res.Sensitive,
+				"config":       res.Config,
+				"capabilities": res.Capabilities,
+				"created_at":   res.CreatedAt,
+				"updated_at":   res.UpdatedAt,
+				"deleted_at":   res.DeletedAt,
+				"created_by":   res.CreatedBy,
+				"updated_by":   res.UpdatedBy,
+				"deleted_by":   res.DeletedBy,
+			})
+	}
+
+	// connectionUpsertQuery assembles (insert+on-conflict) query for replacing connections
+	//
+	// This function is auto-generated
+	connectionUpsertQuery = func(d goqu.DialectWrapper, res *systemType.Connection) *goqu.InsertDataset {
+		var target = `,id`
+
+		return connectionInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"handle":       res.Handle,
+						"dsn":          res.DSN,
+						"location":     res.Location,
+						"ownership":    res.Ownership,
+						"sensitive":    res.Sensitive,
+						"config":       res.Config,
+						"capabilities": res.Capabilities,
+						"created_at":   res.CreatedAt,
+						"updated_at":   res.UpdatedAt,
+						"deleted_at":   res.DeletedAt,
+						"created_by":   res.CreatedBy,
+						"updated_by":   res.UpdatedBy,
+						"deleted_by":   res.DeletedBy,
+					},
+				),
+			)
+	}
+
+	// connectionUpdateQuery assembles query for updating connections
+	//
+	// This function is auto-generated
+	connectionUpdateQuery = func(d goqu.DialectWrapper, res *systemType.Connection) *goqu.UpdateDataset {
+		return d.Update(connectionTable).
+			Set(goqu.Record{
+				"handle":       res.Handle,
+				"dsn":          res.DSN,
+				"location":     res.Location,
+				"ownership":    res.Ownership,
+				"sensitive":    res.Sensitive,
+				"config":       res.Config,
+				"capabilities": res.Capabilities,
+				"created_at":   res.CreatedAt,
+				"updated_at":   res.UpdatedAt,
+				"deleted_at":   res.DeletedAt,
+				"created_by":   res.CreatedBy,
+				"updated_by":   res.UpdatedBy,
+				"deleted_by":   res.DeletedBy,
+			}).
+			Where(connectionPrimaryKeys(res))
+	}
+
+	// connectionDeleteQuery assembles delete query for removing connections
+	//
+	// This function is auto-generated
+	connectionDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(connectionTable).Where(ee...)
+	}
+
+	// connectionDeleteQuery assembles delete query for removing connections
+	//
+	// This function is auto-generated
+	connectionTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(connectionTable)
+	}
+
+	// connectionPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	connectionPrimaryKeys = func(res *systemType.Connection) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
 		}
 	}
 

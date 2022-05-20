@@ -23,12 +23,16 @@ const (
 	// Some keys may introduce generated identifiers which may cause the size
 	// to inflate.
 	languageKeyLength = 256
+
+	urlLength      = 2048
+	locationLength = 256
 )
 
 // Tables fn holds a list of all tables that need to be created
 func Tables() []*Table {
 	return []*Table{
 		tableUsers(),
+		tableConnections(),
 		tableCredentials(),
 		tableAuthClients(),
 		tableAuthConfirmedClients(),
@@ -87,6 +91,24 @@ func tableUsers() *Table {
 
 		AddIndex("unique_email", IExpr("LOWER(email)"), IWhere("LENGTH(email) > 0 AND deleted_at IS NULL AND suspended_at IS NULL")),
 		AddIndex("unique_username", IExpr("LOWER(username)"), IWhere("LENGTH(username) > 0 AND deleted_at IS NULL AND suspended_at IS NULL")),
+		AddIndex("unique_handle", IExpr("LOWER(handle)"), IWhere("LENGTH(handle) > 0 AND deleted_at IS NULL AND suspended_at IS NULL")),
+	)
+}
+
+func tableConnections() *Table {
+	return TableDef("connections",
+		ID,
+
+		ColumnDef("handle", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
+		ColumnDef("dsn", ColumnTypeVarchar, ColumnTypeLength(urlLength)),
+		ColumnDef("location", ColumnTypeText),
+		ColumnDef("ownership", ColumnTypeText),
+		ColumnDef("sensitive", ColumnTypeBoolean),
+		ColumnDef("config", ColumnTypeJson),
+		ColumnDef("capabilities", ColumnTypeJson),
+		CUDTimestamps,
+		CUDUsers,
+
 		AddIndex("unique_handle", IExpr("LOWER(handle)"), IWhere("LENGTH(handle) > 0 AND deleted_at IS NULL AND suspended_at IS NULL")),
 	)
 }
@@ -405,6 +427,7 @@ func tableComposeModule() *Table {
 		ColumnDef("handle", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
 		ColumnDef("name", ColumnTypeText),
 		ColumnDef("meta", ColumnTypeJson),
+		ColumnDef("model_config", ColumnTypeJson),
 		CUDTimestamps,
 
 		AddIndex("namespace", IColumn("rel_namespace")),
@@ -420,6 +443,7 @@ func tableComposeModuleField() *Table {
 		ColumnDef("place", ColumnTypeInteger),
 		ColumnDef("kind", ColumnTypeText),
 		ColumnDef("options", ColumnTypeJson),
+		ColumnDef("encoding_strategy", ColumnTypeJson),
 		ColumnDef("default_value", ColumnTypeJson),
 		ColumnDef("expressions", ColumnTypeJson),
 		ColumnDef("name", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
@@ -476,6 +500,7 @@ func tableComposeRecord() *Table {
 		ID,
 		ColumnDef("rel_namespace", ColumnTypeIdentifier),
 		ColumnDef("module_id", ColumnTypeIdentifier),
+		ColumnDef("values", ColumnTypeJson),
 		ColumnDef("owned_by", ColumnTypeIdentifier),
 		CUDTimestamps,
 		CUDUsers,

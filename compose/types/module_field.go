@@ -26,6 +26,8 @@ type (
 
 		Options ModuleFieldOptions `json:"options"`
 
+		EncodingStrategy EncodingStrategy `json:"encodingStrategy"`
+
 		Private      bool           `json:"isPrivate"`
 		Required     bool           `json:"isRequired"`
 		Visible      bool           `json:"isVisible"`
@@ -46,6 +48,19 @@ type (
 		Label string `json:"label"`
 	}
 
+	EncodingStrategy struct {
+		*EncodingStrategyAlias `json:"alias,omitempty"`
+		*EncodingStrategyJSON  `json:"json,omitempty"`
+	}
+
+	EncodingStrategyAlias struct {
+		Ident string `json:"ident"`
+	}
+
+	EncodingStrategyJSON struct {
+		Ident string `json:"ident"`
+	}
+
 	ModuleFieldFilter struct {
 		ModuleID []uint64
 		Deleted  filter.State
@@ -56,6 +71,50 @@ type (
 var (
 	_ sort.Interface = &ModuleFieldSet{}
 )
+
+func (f *ModuleField) SelectOptions() (out []string) {
+	if f.Kind != "Select" {
+		return
+	}
+
+	var (
+		options, has = f.Options["options"]
+	)
+
+	if !has {
+		return
+	}
+
+	switch oo := options.(type) {
+	case []string:
+		out = oo
+	case []interface{}:
+		for _, o := range oo {
+			switch c := o.(type) {
+			case string:
+				out = append(out, c)
+			case map[string]string:
+				if value, has := c["value"]; has {
+					out = append(out, value)
+				}
+			case map[string]interface{}:
+				if value, has := c["value"]; has {
+					if value, ok := value.(string); ok {
+						out = append(out, value)
+					}
+				}
+			case ModuleFieldOptions:
+				if value, has := c["value"]; has {
+					if value, ok := value.(string); ok {
+						out = append(out, value)
+					}
+				}
+			}
+		}
+	}
+
+	return
+}
 
 func (f *ModuleField) decodeTranslationsExpressionValidatorValidatorIDError(tt locale.ResourceTranslationIndex) {
 	var aux *locale.ResourceTranslation
@@ -365,6 +424,17 @@ func (set *ModuleFieldSet) Scan(src interface{}) error {
 }
 
 func (set ModuleFieldSet) Value() (driver.Value, error) {
+	return json.Marshal(set)
+}
+
+func (set *EncodingStrategy) Scan(src interface{}) error {
+	if data, ok := src.([]byte); ok {
+		return json.Unmarshal(data, set)
+	}
+	return nil
+}
+
+func (set EncodingStrategy) Value() (driver.Value, error) {
 	return json.Marshal(set)
 }
 

@@ -36,6 +36,10 @@ func NewSorting(sort string) (s Sorting, err error) {
 	return
 }
 
+func (s *Sorting) OrderBy() SortExprSet {
+	return s.Sort
+}
+
 // parses sort string
 //
 // We allow a simplified version of what SQL supports, so:
