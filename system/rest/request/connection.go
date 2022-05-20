@@ -171,6 +171,9 @@ type (
 		Labels map[string]string
 	}
 
+	ConnectionReadPrimary struct {
+	}
+
 	ConnectionRead struct {
 		// ConnectionID PATH parameter
 		//
@@ -818,6 +821,22 @@ func (r *ConnectionUpdate) Fill(req *http.Request) (err error) {
 		}
 
 	}
+
+	return err
+}
+
+// NewConnectionReadPrimary request
+func NewConnectionReadPrimary() *ConnectionReadPrimary {
+	return &ConnectionReadPrimary{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConnectionReadPrimary) Auditable() map[string]interface{} {
+	return map[string]interface{}{}
+}
+
+// Fill processes request and fills internal variables
+func (r *ConnectionReadPrimary) Fill(req *http.Request) (err error) {
 
 	return err
 }

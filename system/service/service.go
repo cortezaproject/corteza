@@ -86,6 +86,7 @@ var (
 	DefaultApigwFilter         *apigwFilter
 	DefaultApigwProfiler       *apigwProfiler
 	DefaultReport              *report
+	primaryConnectionConfig    types.Connection
 
 	DefaultStatistics *statistics
 
@@ -101,7 +102,7 @@ var (
 	}
 )
 
-func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websocketSender, c Config) (err error) {
+func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, primaryConn types.Connection, ws websocketSender, c Config) (err error) {
 	var (
 		hcd = healthcheck.Defaults()
 	)
@@ -147,7 +148,8 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 
 	DefaultSettings = Settings(ctx, DefaultStore, DefaultLogger, DefaultAccessControl, CurrentSettings)
 
-	DefaultConnection, err = Connection(ctx, dal.Service())
+	primaryConnectionConfig = primaryConn
+	DefaultConnection, err = Connection(ctx, primaryConnectionConfig, dal.Service())
 	if err != nil {
 		return
 	}
