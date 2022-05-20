@@ -86,15 +86,15 @@ func (svc *record) recToGetter(rr ...*types.Record) (out dal.ValueGetter) {
 }
 
 func (svc *record) recCreateCapabilities(m *types.Module) (out capabilities.Set) {
-	return capabilities.CreateCapabilities(m.DALConfig.Capabilities...)
+	return capabilities.CreateCapabilities(m.ModelConfig.Capabilities...)
 }
 
 func (svc *record) recUpdateCapabilities(m *types.Module) (out capabilities.Set) {
-	return capabilities.UpdateCapabilities(m.DALConfig.Capabilities...)
+	return capabilities.UpdateCapabilities(m.ModelConfig.Capabilities...)
 }
 
 func (svc *record) recDeleteCapabilities(m *types.Module) (out capabilities.Set) {
-	return capabilities.DeleteCapabilities(m.DALConfig.Capabilities...)
+	return capabilities.DeleteCapabilities(m.ModelConfig.Capabilities...)
 }
 
 func (svc *record) recFilterCapabilities(f types.RecordFilter) (out capabilities.Set) {
@@ -118,6 +118,6 @@ func (svc *record) recFilterCapabilities(f types.RecordFilter) (out capabilities
 }
 
 func (svc *record) recSearchCapabilities(m *types.Module, f types.RecordFilter) (out capabilities.Set) {
-	return capabilities.SearchCapabilities(m.DALConfig.Capabilities...).
+	return capabilities.SearchCapabilities(m.ModelConfig.Capabilities...).
 		Union(svc.recFilterCapabilities(f))
 }

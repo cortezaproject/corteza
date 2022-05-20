@@ -8,6 +8,8 @@ types:
     noIdField: true
   User:
     labelResourceType: user
+  Connection:
+    labelResourceType: connection
   Application:
     labelResourceType: application
   Role:

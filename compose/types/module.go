@@ -15,7 +15,7 @@ import (
 )
 
 type (
-	DALConfig struct {
+	ModelConfig struct {
 		ConnectionID uint64           `json:"connectionID,string"`
 		Capabilities capabilities.Set `json:"capabilities"`
 
@@ -23,6 +23,8 @@ type (
 
 		Partitioned     bool   `json:"partitioned"`
 		PartitionFormat string `json:"partitionFormat"`
+
+		SystemFieldEncoding SystemFieldEncoding `json:"systemFieldEncoding"`
 	}
 
 	Module struct {
@@ -30,10 +32,9 @@ type (
 		Handle string         `json:"handle"`
 		Meta   types.JSONText `json:"meta"`
 
-		DALConfig DALConfig `json:"DALConfig"`
+		ModelConfig ModelConfig `json:"modelConfig"`
 
-		Fields       ModuleFieldSet `json:"fields"`
-		SystemFields SystemFieldSet `json:"systemFields"`
+		Fields ModuleFieldSet `json:"fields"`
 
 		Labels map[string]string `json:"labels,omitempty"`
 
@@ -49,22 +50,22 @@ type (
 		Name string `json:"name"`
 	}
 
-	SystemFieldSet struct {
-		ID *EncodingStrategy
+	SystemFieldEncoding struct {
+		ID *EncodingStrategy `json:"id"`
 
-		ModuleID    *EncodingStrategy
-		NamespaceID *EncodingStrategy
+		ModuleID    *EncodingStrategy `json:"moduleID"`
+		NamespaceID *EncodingStrategy `json:"namespaceID"`
 
-		OwnedBy *EncodingStrategy
+		OwnedBy *EncodingStrategy `json:"ownedBy"`
 
-		CreatedAt *EncodingStrategy
-		CreatedBy *EncodingStrategy
+		CreatedAt *EncodingStrategy `json:"createdAt"`
+		CreatedBy *EncodingStrategy `json:"createdBy"`
 
-		UpdatedAt *EncodingStrategy
-		UpdatedBy *EncodingStrategy
+		UpdatedAt *EncodingStrategy `json:"updatedAt"`
+		UpdatedBy *EncodingStrategy `json:"updatedBy"`
 
-		DeletedAt *EncodingStrategy
-		DeletedBy *EncodingStrategy
+		DeletedAt *EncodingStrategy `json:"deletedAt"`
+		DeletedBy *EncodingStrategy `json:"deletedBy"`
 	}
 
 	ModuleMeta struct {
@@ -113,7 +114,7 @@ func (m *Module) encodeTranslations() (out locale.ResourceTranslationSet) {
 
 func (m *Module) ModelFilter() dal.ModelFilter {
 	return dal.ModelFilter{
-		ConnectionID: m.DALConfig.ConnectionID,
+		ConnectionID: m.ModelConfig.ConnectionID,
 
 		ResourceID: m.ID,
 
@@ -151,4 +152,32 @@ func (nm *ModuleMeta) Scan(value interface{}) error {
 
 func (nm ModuleMeta) Value() (driver.Value, error) {
 	return json.Marshal(nm)
+}
+
+func (nm *ModelConfig) Scan(value interface{}) error {
+	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
+	switch value.(type) {
+	case nil:
+		*nm = ModelConfig{}
+	case []uint8:
+		b := value.([]byte)
+		if err := json.Unmarshal(b, nm); err != nil {
+			return errors.Wrapf(err, "cannot scan '%v' into ModelConfig", string(b))
+		}
+	}
+
+	return nil
+}
+
+func (nm ModelConfig) Value() (driver.Value, error) {
+	return json.Marshal(nm)
+}
+
+func ParseModelConfig(ss []string) (m ModelConfig, err error) {
+	if len(ss) == 0 {
+		return
+	}
+
+	err = json.Unmarshal([]byte(ss[0]), &m)
+	return
 }

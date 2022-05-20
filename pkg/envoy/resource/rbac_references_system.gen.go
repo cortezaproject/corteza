@@ -126,3 +126,16 @@ func SystemUserRbacReferences(user string) (res *Ref, pp []*Ref, err error) {
 
 	return
 }
+
+// SystemConnectionRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemConnectionRbacReferences(connection string) (res *Ref, pp []*Ref, err error) {
+	if connection != "*" {
+		res = &Ref{ResourceType: types.ConnectionResourceType, Identifiers: MakeIdentifiers(connection)}
+	}
+
+	return
+}

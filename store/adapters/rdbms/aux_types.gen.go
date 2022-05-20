@@ -243,34 +243,36 @@ type (
 
 	// auxComposeModule is an auxiliary structure used for transporting to/from RDBMS store
 	auxComposeModule struct {
-		ID          uint64     `db:"id"`
-		Handle      string     `db:"handle"`
-		Meta        rawJson    `db:"meta"`
-		NamespaceID uint64     `db:"namespace_id"`
-		Name        string     `db:"name"`
-		CreatedAt   time.Time  `db:"created_at"`
-		UpdatedAt   *time.Time `db:"updated_at"`
-		DeletedAt   *time.Time `db:"deleted_at"`
+		ID          uint64                  `db:"id"`
+		Handle      string                  `db:"handle"`
+		Meta        rawJson                 `db:"meta"`
+		ModelConfig composeType.ModelConfig `db:"model_config"`
+		NamespaceID uint64                  `db:"namespace_id"`
+		Name        string                  `db:"name"`
+		CreatedAt   time.Time               `db:"created_at"`
+		UpdatedAt   *time.Time              `db:"updated_at"`
+		DeletedAt   *time.Time              `db:"deleted_at"`
 	}
 
 	// auxComposeModuleField is an auxiliary structure used for transporting to/from RDBMS store
 	auxComposeModuleField struct {
-		ID           uint64                         `db:"id"`
-		ModuleID     uint64                         `db:"module_id"`
-		Place        int                            `db:"place"`
-		Kind         string                         `db:"kind"`
-		Name         string                         `db:"name"`
-		Label        string                         `db:"label"`
-		Options      composeType.ModuleFieldOptions `db:"options"`
-		Private      bool                           `db:"private"`
-		Required     bool                           `db:"required"`
-		Visible      bool                           `db:"visible"`
-		Multi        bool                           `db:"multi"`
-		DefaultValue composeType.RecordValueSet     `db:"default_value"`
-		Expressions  composeType.ModuleFieldExpr    `db:"expressions"`
-		CreatedAt    time.Time                      `db:"created_at"`
-		UpdatedAt    *time.Time                     `db:"updated_at"`
-		DeletedAt    *time.Time                     `db:"deleted_at"`
+		ID               uint64                         `db:"id"`
+		ModuleID         uint64                         `db:"module_id"`
+		Place            int                            `db:"place"`
+		Kind             string                         `db:"kind"`
+		Name             string                         `db:"name"`
+		Label            string                         `db:"label"`
+		Options          composeType.ModuleFieldOptions `db:"options"`
+		EncodingStrategy composeType.EncodingStrategy   `db:"encoding_strategy"`
+		Private          bool                           `db:"private"`
+		Required         bool                           `db:"required"`
+		Visible          bool                           `db:"visible"`
+		Multi            bool                           `db:"multi"`
+		DefaultValue     composeType.RecordValueSet     `db:"default_value"`
+		Expressions      composeType.ModuleFieldExpr    `db:"expressions"`
+		CreatedAt        time.Time                      `db:"created_at"`
+		UpdatedAt        *time.Time                     `db:"updated_at"`
+		DeletedAt        *time.Time                     `db:"deleted_at"`
 	}
 
 	// auxComposeNamespace is an auxiliary structure used for transporting to/from RDBMS store
@@ -325,6 +327,24 @@ type (
 		Ref       uint64     `db:"ref"`
 		Value     string     `db:"value"`
 		DeletedAt *time.Time `db:"deleted_at"`
+	}
+
+	// auxConnection is an auxiliary structure used for transporting to/from RDBMS store
+	auxConnection struct {
+		ID           uint64                            `db:"id"`
+		Handle       string                            `db:"handle"`
+		DSN          string                            `db:"dsn"`
+		Location     string                            `db:"location"`
+		Ownership    string                            `db:"ownership"`
+		Sensitive    bool                              `db:"sensitive"`
+		Config       systemType.ConnectionConfig       `db:"config"`
+		Capabilities systemType.ConnectionCapabilities `db:"capabilities"`
+		CreatedAt    time.Time                         `db:"created_at"`
+		UpdatedAt    *time.Time                        `db:"updated_at"`
+		DeletedAt    *time.Time                        `db:"deleted_at"`
+		CreatedBy    uint64                            `db:"created_by"`
+		UpdatedBy    uint64                            `db:"updated_by"`
+		DeletedBy    uint64                            `db:"deleted_by"`
 	}
 
 	// auxCredential is an auxiliary structure used for transporting to/from RDBMS store
@@ -1397,6 +1417,7 @@ func (aux *auxComposeModule) encode(res *composeType.Module) (_ error) {
 	aux.ID = res.ID
 	aux.Handle = res.Handle
 	aux.Meta = res.Meta
+	aux.ModelConfig = res.ModelConfig
 	aux.NamespaceID = res.NamespaceID
 	aux.Name = res.Name
 	aux.CreatedAt = res.CreatedAt
@@ -1413,6 +1434,7 @@ func (aux auxComposeModule) decode() (res *composeType.Module, _ error) {
 	res.ID = aux.ID
 	res.Handle = aux.Handle
 	res.Meta = aux.Meta
+	res.ModelConfig = aux.ModelConfig
 	res.NamespaceID = aux.NamespaceID
 	res.Name = aux.Name
 	res.CreatedAt = aux.CreatedAt
@@ -1429,6 +1451,7 @@ func (aux *auxComposeModule) scan(row scanner) error {
 		&aux.ID,
 		&aux.Handle,
 		&aux.Meta,
+		&aux.ModelConfig,
 		&aux.NamespaceID,
 		&aux.Name,
 		&aux.CreatedAt,
@@ -1448,6 +1471,7 @@ func (aux *auxComposeModuleField) encode(res *composeType.ModuleField) (_ error)
 	aux.Name = res.Name
 	aux.Label = res.Label
 	aux.Options = res.Options
+	aux.EncodingStrategy = res.EncodingStrategy
 	aux.Private = res.Private
 	aux.Required = res.Required
 	aux.Visible = res.Visible
@@ -1472,6 +1496,7 @@ func (aux auxComposeModuleField) decode() (res *composeType.ModuleField, _ error
 	res.Name = aux.Name
 	res.Label = aux.Label
 	res.Options = aux.Options
+	res.EncodingStrategy = aux.EncodingStrategy
 	res.Private = aux.Private
 	res.Required = aux.Required
 	res.Visible = aux.Visible
@@ -1496,6 +1521,7 @@ func (aux *auxComposeModuleField) scan(row scanner) error {
 		&aux.Name,
 		&aux.Label,
 		&aux.Options,
+		&aux.EncodingStrategy,
 		&aux.Private,
 		&aux.Required,
 		&aux.Visible,
@@ -1711,6 +1737,71 @@ func (aux *auxComposeRecordValue) scan(row scanner) error {
 		&aux.Ref,
 		&aux.Value,
 		&aux.DeletedAt,
+	)
+}
+
+// encodes Connection to auxConnection
+//
+// This function is auto-generated
+func (aux *auxConnection) encode(res *systemType.Connection) (_ error) {
+	aux.ID = res.ID
+	aux.Handle = res.Handle
+	aux.DSN = res.DSN
+	aux.Location = res.Location
+	aux.Ownership = res.Ownership
+	aux.Sensitive = res.Sensitive
+	aux.Config = res.Config
+	aux.Capabilities = res.Capabilities
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	aux.CreatedBy = res.CreatedBy
+	aux.UpdatedBy = res.UpdatedBy
+	aux.DeletedBy = res.DeletedBy
+	return
+}
+
+// decodes Connection from auxConnection
+//
+// This function is auto-generated
+func (aux auxConnection) decode() (res *systemType.Connection, _ error) {
+	res = new(systemType.Connection)
+	res.ID = aux.ID
+	res.Handle = aux.Handle
+	res.DSN = aux.DSN
+	res.Location = aux.Location
+	res.Ownership = aux.Ownership
+	res.Sensitive = aux.Sensitive
+	res.Config = aux.Config
+	res.Capabilities = aux.Capabilities
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	res.CreatedBy = aux.CreatedBy
+	res.UpdatedBy = aux.UpdatedBy
+	res.DeletedBy = aux.DeletedBy
+	return
+}
+
+// scans row and fills auxConnection fields
+//
+// This function is auto-generated
+func (aux *auxConnection) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.Handle,
+		&aux.DSN,
+		&aux.Location,
+		&aux.Ownership,
+		&aux.Sensitive,
+		&aux.Config,
+		&aux.Capabilities,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+		&aux.CreatedBy,
+		&aux.UpdatedBy,
+		&aux.DeletedBy,
 	)
 }
 

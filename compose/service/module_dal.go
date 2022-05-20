@@ -100,15 +100,15 @@ func (svc *module) ReloadDALModels(ctx context.Context) (err error) {
 }
 
 func (svc *module) moduleToModel(ctx context.Context, ns *types.Namespace, mod *types.Module) (*dal.Model, error) {
-	ccfg, err := svc.dal.ConnectionDefaults(ctx, mod.DALConfig.ConnectionID)
+	ccfg, err := svc.dal.ConnectionDefaults(ctx, mod.ModelConfig.ConnectionID)
 	if err != nil {
 		return nil, err
 	}
-	getCodec := moduleFieldCodecBuilder(mod.DALConfig.Partitioned, ccfg)
+	getCodec := moduleFieldCodecBuilder(mod.ModelConfig.Partitioned, ccfg)
 
 	// Metadata
 	out := &dal.Model{
-		ConnectionID: mod.DALConfig.ConnectionID,
+		ConnectionID: mod.ModelConfig.ConnectionID,
 		Ident:        svc.formatPartitionIdent(ns, mod, ccfg),
 
 		Attributes: make(dal.AttributeSet, len(mod.Fields)),
@@ -127,7 +127,7 @@ func (svc *module) moduleToModel(ctx context.Context, ns *types.Namespace, mod *
 	}
 
 	// Handle system fields; either default or user defined
-	if !mod.DALConfig.Partitioned {
+	if !mod.ModelConfig.Partitioned {
 		// When not partitioned the default system fields should be defined along side the `values` column
 		out.Attributes = append(out.Attributes, svc.moduleModelDefaultSysAttributes(getCodec)...)
 	} else {
@@ -139,40 +139,42 @@ func (svc *module) moduleToModel(ctx context.Context, ns *types.Namespace, mod *
 }
 
 func (svc *module) moduleModelSysAttributes(mod *types.Module, getCodec func(f *types.ModuleField) dal.Codec) (out dal.AttributeSet) {
-	if mod.SystemFields.ID != nil {
-		out = append(out, dal.PrimaryAttribute(sysID, getCodec(&types.ModuleField{Name: sysID, Encoding: *mod.SystemFields.ID})))
+	sysEnc := mod.ModelConfig.SystemFieldEncoding
+
+	if sysEnc.ID != nil {
+		out = append(out, dal.PrimaryAttribute(sysID, getCodec(&types.ModuleField{Name: sysID, EncodingStrategy: *sysEnc.ID})))
 	}
 
-	if mod.SystemFields.ModuleID != nil {
-		out = append(out, dal.FullAttribute(sysModuleID, &dal.TypeID{}, getCodec(&types.ModuleField{Name: sysModuleID, Encoding: *mod.SystemFields.ModuleID})))
+	if sysEnc.ModuleID != nil {
+		out = append(out, dal.FullAttribute(sysModuleID, &dal.TypeID{}, getCodec(&types.ModuleField{Name: sysModuleID, EncodingStrategy: *sysEnc.ModuleID})))
 	}
-	if mod.SystemFields.NamespaceID != nil {
-		out = append(out, dal.FullAttribute(sysNamespaceID, &dal.TypeID{}, getCodec(&types.ModuleField{Name: sysNamespaceID, Encoding: *mod.SystemFields.NamespaceID})))
-	}
-
-	if mod.SystemFields.OwnedBy != nil {
-		out = append(out, dal.FullAttribute(sysOwnedBy, &dal.TypeID{}, getCodec(&types.ModuleField{Name: sysOwnedBy, Encoding: *mod.SystemFields.OwnedBy})))
+	if sysEnc.NamespaceID != nil {
+		out = append(out, dal.FullAttribute(sysNamespaceID, &dal.TypeID{}, getCodec(&types.ModuleField{Name: sysNamespaceID, EncodingStrategy: *sysEnc.NamespaceID})))
 	}
 
-	if mod.SystemFields.CreatedAt != nil {
-		out = append(out, dal.FullAttribute(sysCreatedAt, &dal.TypeTimestamp{}, getCodec(&types.ModuleField{Name: sysCreatedAt, Encoding: *mod.SystemFields.CreatedAt})))
-	}
-	if mod.SystemFields.CreatedBy != nil {
-		out = append(out, dal.FullAttribute(sysCreatedBy, &dal.TypeID{}, getCodec(&types.ModuleField{Name: sysCreatedBy, Encoding: *mod.SystemFields.CreatedBy})))
+	if sysEnc.OwnedBy != nil {
+		out = append(out, dal.FullAttribute(sysOwnedBy, &dal.TypeID{}, getCodec(&types.ModuleField{Name: sysOwnedBy, EncodingStrategy: *sysEnc.OwnedBy})))
 	}
 
-	if mod.SystemFields.UpdatedAt != nil {
-		out = append(out, dal.FullAttribute(sysUpdatedAt, &dal.TypeTimestamp{}, getCodec(&types.ModuleField{Name: sysUpdatedAt, Encoding: *mod.SystemFields.UpdatedAt})))
+	if sysEnc.CreatedAt != nil {
+		out = append(out, dal.FullAttribute(sysCreatedAt, &dal.TypeTimestamp{}, getCodec(&types.ModuleField{Name: sysCreatedAt, EncodingStrategy: *sysEnc.CreatedAt})))
 	}
-	if mod.SystemFields.UpdatedBy != nil {
-		out = append(out, dal.FullAttribute(sysUpdatedBy, &dal.TypeID{}, getCodec(&types.ModuleField{Name: sysUpdatedBy, Encoding: *mod.SystemFields.UpdatedBy})))
+	if sysEnc.CreatedBy != nil {
+		out = append(out, dal.FullAttribute(sysCreatedBy, &dal.TypeID{}, getCodec(&types.ModuleField{Name: sysCreatedBy, EncodingStrategy: *sysEnc.CreatedBy})))
 	}
 
-	if mod.SystemFields.DeletedAt != nil {
-		out = append(out, dal.FullAttribute(sysDeletedAt, &dal.TypeTimestamp{}, getCodec(&types.ModuleField{Name: sysDeletedAt, Encoding: *mod.SystemFields.DeletedAt})))
+	if sysEnc.UpdatedAt != nil {
+		out = append(out, dal.FullAttribute(sysUpdatedAt, &dal.TypeTimestamp{}, getCodec(&types.ModuleField{Name: sysUpdatedAt, EncodingStrategy: *sysEnc.UpdatedAt})))
 	}
-	if mod.SystemFields.DeletedBy != nil {
-		out = append(out, dal.FullAttribute(sysDeletedBy, &dal.TypeID{}, getCodec(&types.ModuleField{Name: sysDeletedBy, Encoding: *mod.SystemFields.DeletedBy})))
+	if sysEnc.UpdatedBy != nil {
+		out = append(out, dal.FullAttribute(sysUpdatedBy, &dal.TypeID{}, getCodec(&types.ModuleField{Name: sysUpdatedBy, EncodingStrategy: *sysEnc.UpdatedBy})))
+	}
+
+	if sysEnc.DeletedAt != nil {
+		out = append(out, dal.FullAttribute(sysDeletedAt, &dal.TypeTimestamp{}, getCodec(&types.ModuleField{Name: sysDeletedAt, EncodingStrategy: *sysEnc.DeletedAt})))
+	}
+	if sysEnc.DeletedBy != nil {
+		out = append(out, dal.FullAttribute(sysDeletedBy, &dal.TypeID{}, getCodec(&types.ModuleField{Name: sysDeletedBy, EncodingStrategy: *sysEnc.DeletedBy})))
 	}
 
 	return
@@ -279,11 +281,11 @@ func (svc *module) moduleFieldToAttribute(getCodec func(f *types.ModuleField) da
 }
 
 func (svc *module) formatPartitionIdent(ns *types.Namespace, mod *types.Module, cfg dal.ConnectionDefaults) string {
-	if !mod.DALConfig.Partitioned {
+	if !mod.ModelConfig.Partitioned {
 		return cfg.ModelIdent
 	}
 
-	pfmt := mod.DALConfig.PartitionFormat
+	pfmt := mod.ModelConfig.PartitionFormat
 	if pfmt == "" {
 		pfmt = cfg.PartitionFormat
 	}
@@ -325,13 +327,13 @@ func moduleFieldCodec(f *types.ModuleField, partitioned bool, cfg dal.Connection
 	}
 
 	switch {
-	case f.Encoding.EncodingStrategyAlias != nil:
+	case f.EncodingStrategy.EncodingStrategyAlias != nil:
 		strat = &dal.CodecAlias{
-			Ident: f.Encoding.EncodingStrategyAlias.Ident,
+			Ident: f.EncodingStrategy.EncodingStrategyAlias.Ident,
 		}
-	case f.Encoding.EncodingStrategyJSON != nil:
+	case f.EncodingStrategy.EncodingStrategyJSON != nil:
 		strat = &dal.CodecRecordValueSetJSON{
-			Ident: f.Encoding.EncodingStrategyJSON.Ident,
+			Ident: f.EncodingStrategy.EncodingStrategyJSON.Ident,
 		}
 	}
 

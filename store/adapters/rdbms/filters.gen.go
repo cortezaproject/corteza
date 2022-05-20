@@ -7,8 +7,6 @@ package rdbms
 //
 
 import (
-	"strings"
-
 	automationType "github.com/cortezaproject/corteza-server/automation/types"
 	composeType "github.com/cortezaproject/corteza-server/compose/types"
 	federationType "github.com/cortezaproject/corteza-server/federation/types"
@@ -19,6 +17,7 @@ import (
 	rbacType "github.com/cortezaproject/corteza-server/pkg/rbac"
 	systemType "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/doug-martin/goqu/v9"
+	"strings"
 )
 
 type (
@@ -89,6 +88,9 @@ type (
 
 		// optional composeRecordValue filter function called after the generated function
 		ComposeRecordValue func(*Store, composeType.RecordValueFilter) ([]goqu.Expression, composeType.RecordValueFilter, error)
+
+		// optional connection filter function called after the generated function
+		Connection func(*Store, systemType.ConnectionFilter) ([]goqu.Expression, systemType.ConnectionFilter, error)
 
 		// optional credential filter function called after the generated function
 		Credential func(*Store, systemType.CredentialFilter) ([]goqu.Expression, systemType.CredentialFilter, error)
@@ -559,9 +561,6 @@ func ComposeModuleFilter(f composeType.ModuleFilter) (ee []goqu.Expression, _ co
 //
 // This function is auto-generated
 func ComposeModuleFieldFilter(f composeType.ModuleFieldFilter) (ee []goqu.Expression, _ composeType.ModuleFieldFilter, err error) {
-	if len(f.ModuleID) > 0 {
-		ee = append(ee, goqu.C("rel_module").In(f.ModuleID))
-	}
 
 	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
@@ -684,6 +683,46 @@ func ComposeRecordValueFilter(f composeType.RecordValueFilter) (ee []goqu.Expres
 
 	if len(f.RecordID) > 0 {
 		ee = append(ee, goqu.C("record_id").In(f.RecordID))
+	}
+
+	return ee, f, err
+}
+
+// ConnectionFilter returns logical expressions
+//
+// This function is called from Store.QueryConnections() and can be extended
+// by setting Store.Filters.Connection. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func ConnectionFilter(f systemType.ConnectionFilter) (ee []goqu.Expression, _ systemType.ConnectionFilter, err error) {
+
+	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if len(f.ConnectionID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.ConnectionID))
+	}
+
+	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
+		ee = append(ee, goqu.C("handle").Eq(f.Handle))
+	}
+
+	if val := strings.TrimSpace(f.DSN); len(val) > 0 {
+		ee = append(ee, goqu.C("dsn").Eq(f.DSN))
+	}
+
+	if val := strings.TrimSpace(f.Location); len(val) > 0 {
+		ee = append(ee, goqu.C("location").Eq(f.Location))
+	}
+
+	if val := strings.TrimSpace(f.Ownership); len(val) > 0 {
+		ee = append(ee, goqu.C("ownership").Eq(f.Ownership))
+	}
+
+	if len(f.LabeledIDs) > 0 {
+		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
 	}
 
 	return ee, f, err
