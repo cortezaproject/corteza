@@ -7,17 +7,17 @@ import (
 // Ensure the parser can parse strings into Statement ASTs.
 func Test_Validators(t *testing.T) {
 	var tests = []struct {
-		tree ASTNode
+		tree parserNode
 	}{
 		{
-			tree: ASTNodes{
+			tree: parserNodes{
 				Ident{Value: "foo"},
-				Operator{Kind: "="},
+				operator{kind: "="},
 			},
 		},
 		{
-			tree: ASTNodes{
-				Operator{Kind: "="},
+			tree: parserNodes{
+				operator{kind: "="},
 				Ident{Value: "foo"},
 			},
 		},

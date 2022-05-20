@@ -701,6 +701,175 @@ endpoints:
         required: true
         title: File import
 
+- title: Connections
+  path: "/connections"
+  entrypoint: connection
+  authentication:
+  - Client ID
+  - Session ID
+  imports:
+    - github.com/cortezaproject/corteza-server/pkg/label
+    - github.com/cortezaproject/corteza-server/system/types
+  apis:
+  - name: list
+    method: GET
+    title: Search connections (Directory)
+    path: "/"
+    parameters:
+      get:
+      - name: connectionID
+        type: "[]string"
+        required: false
+        title: Filter by connection ID
+      - type: string
+        name: handle
+        required: false
+        title: Search handle to match against connections
+      - type: string
+        name: location
+        required: false
+        title: Search location to match against connections
+      - type: string
+        name: ownership
+        required: false
+        title: Search ownership to match against connections
+      - name: deleted
+        required: false
+        title: Exclude (0, default), include (1) or return only (2) deleted connections
+        type: uint
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
+      - type: uint
+        name: limit
+        title: Limit
+      - type: string
+        name: pageCursor
+        title: Page cursor
+      - type: string
+        name: sort
+        title: Sort items
+  - name: create
+    method: POST
+    title: Create connection
+    path: "/"
+    parameters:
+      post:
+      - name: handle
+        type: string
+        required: true
+        title: handle
+      - name: dsn
+        type: string
+        required: true
+        title: dsn
+      - name: location
+        type: string
+        required: true
+        title: location
+      - name: ownership
+        type: string
+        required: true
+        title: ownership
+      - name: sensitive
+        type: bool
+        required: true
+        title: sensitive
+      - name: config
+        type: types.ConnectionConfig
+        required: true
+        title: config
+        parser: types.ParseConnectionConfig
+      - name: capabilities
+        type: types.ConnectionCapabilities
+        required: true
+        title: capabilities
+        parser: types.ParseConnectionCapabilities
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
+  - name: update
+    method: PUT
+    title: Update connection details
+    path: "/{connectionID}"
+    parameters:
+      path:
+      - type: uint64
+        name: connectionID
+        required: true
+        title: Connection ID
+      post:
+      - name: handle
+        type: string
+        required: true
+        title: handle
+      - name: dsn
+        type: string
+        required: true
+        title: dsn
+      - name: location
+        type: string
+        required: true
+        title: location
+      - name: ownership
+        type: string
+        required: true
+        title: ownership
+      - name: sensitive
+        type: bool
+        required: true
+        title: sensitive
+      - name: config
+        type: types.ConnectionConfig
+        required: true
+        title: config
+        parser: types.ParseConnectionConfig
+      - name: capabilities
+        type: types.ConnectionCapabilities
+        required: true
+        title: capabilities
+        parser: types.ParseConnectionCapabilities
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
+  - name: readPrimary
+    method: GET
+    title: Read primary connection details
+    path: "/primary"
+  - name: read
+    method: GET
+    title: Read connection details
+    path: "/{connectionID}"
+    parameters:
+      path:
+      - type: uint64
+        name: connectionID
+        required: true
+        title: Connection ID
+  - name: delete
+    method: DELETE
+    title: Remove connection
+    path: "/{connectionID}"
+    parameters:
+      path:
+      - type: uint64
+        name: connectionID
+        required: true
+        title: Connection ID
+  - name: undelete
+    method: POST
+    title: Undelete connection
+    path: "/{connectionID}/undelete"
+    parameters:
+      path:
+      - type: uint64
+        name: connectionID
+        required: true
+        title: Connection ID
+
 - title: Applications
   path: "/application"
   entrypoint: application

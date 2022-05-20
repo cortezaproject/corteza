@@ -8,15 +8,15 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/qlng"
+	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/spf13/cast"
 )
 
 type (
 	// partialPagingCnd is a wrapper struck for parts of the processed paging cursor
 	partialPagingCnd struct {
-		filterCut     *qlng.ASTNode
-		filterInclude *qlng.ASTNode
+		filterCut     *ql.ASTNode
+		filterInclude *ql.ASTNode
 		// when ref is "" that means local source
 		ref string
 	}
@@ -446,7 +446,7 @@ func (d *joinedDataset) calcualteCursorConditions(local *FrameDefinition, invert
 
 	}
 
-	var localAppendix *qlng.ASTNode
+	var localAppendix *ql.ASTNode
 
 	var (
 		cur = local.Paging.PageCursor
@@ -455,35 +455,35 @@ func (d *joinedDataset) calcualteCursorConditions(local *FrameDefinition, invert
 		// It's basically the second part of the wrap condition (if the value equals)
 		//
 		// The correlated string version is: (%s OR ((%s IS NULL AND %s) OR %s = %s))
-		baseCndAppx = func(field string, checkNull bool, value expr.TypedValue) *qlng.ASTNode {
-			return &qlng.ASTNode{
+		baseCndAppx = func(field string, checkNull bool, value expr.TypedValue) *ql.ASTNode {
+			return &ql.ASTNode{
 				Ref: "or",
-				Args: qlng.ASTNodeSet{
-					&qlng.ASTNode{
+				Args: ql.ASTNodeSet{
+					&ql.ASTNode{
 						Ref: "and",
-						Args: qlng.ASTNodeSet{
-							&qlng.ASTNode{
+						Args: ql.ASTNodeSet{
+							&ql.ASTNode{
 								Ref: "is",
-								Args: qlng.ASTNodeSet{
-									&qlng.ASTNode{
+								Args: ql.ASTNodeSet{
+									&ql.ASTNode{
 										Symbol: field,
 									},
-									&qlng.ASTNode{
+									&ql.ASTNode{
 										Ref: "null",
 									},
 								},
-							}, &qlng.ASTNode{
-								Value: qlng.MakeValueOf("Boolean", checkNull),
+							}, &ql.ASTNode{
+								Value: ql.MakeValueOf("Boolean", checkNull),
 							},
 						},
 					},
-					&qlng.ASTNode{
+					&ql.ASTNode{
 						Ref: "eq",
-						Args: qlng.ASTNodeSet{{
+						Args: ql.ASTNodeSet{{
 							Symbol: field,
 						}, {
 							// @todo type
-							Value: qlng.WrapValue(value),
+							Value: ql.WrapValue(value),
 						}},
 					},
 				},
@@ -493,29 +493,29 @@ func (d *joinedDataset) calcualteCursorConditions(local *FrameDefinition, invert
 		// baseCnd is the initial AST for filtering over the given sort column
 		//
 		// The correlated string version is: ((%s IS %s AND %s) OR (%s %s %s))
-		baseCnd = func(field string, nullVal *qlng.ASTNode, checkNull bool, compOp string, value expr.TypedValue, appendix bool) *qlng.ASTNode {
+		baseCnd = func(field string, nullVal *ql.ASTNode, checkNull bool, compOp string, value expr.TypedValue, appendix bool) *ql.ASTNode {
 			pp := strings.Split(field, ".")
 			field = pp[len(pp)-1]
 
-			out := &qlng.ASTNode{
+			out := &ql.ASTNode{
 				Ref: "or",
-				Args: qlng.ASTNodeSet{&qlng.ASTNode{
+				Args: ql.ASTNodeSet{&ql.ASTNode{
 					Ref: "and",
-					Args: qlng.ASTNodeSet{&qlng.ASTNode{
+					Args: ql.ASTNodeSet{&ql.ASTNode{
 						Ref: "is",
-						Args: qlng.ASTNodeSet{{
+						Args: ql.ASTNodeSet{{
 							Symbol: field,
 						}, nullVal},
-					}, &qlng.ASTNode{
-						Value: qlng.MakeValueOf("Boolean", checkNull),
+					}, &ql.ASTNode{
+						Value: ql.MakeValueOf("Boolean", checkNull),
 					}},
-				}, &qlng.ASTNode{
+				}, &ql.ASTNode{
 					Ref: compOp,
-					Args: qlng.ASTNodeSet{{
+					Args: ql.ASTNodeSet{{
 						Symbol: field,
 					}, {
 						// @todo type
-						Value: qlng.WrapValue(value),
+						Value: ql.WrapValue(value),
 					}},
 				},
 				},
@@ -524,9 +524,9 @@ func (d *joinedDataset) calcualteCursorConditions(local *FrameDefinition, invert
 			if appendix {
 				localAppendix = baseCndAppx(field, checkNull, value)
 
-				return &qlng.ASTNode{
+				return &ql.ASTNode{
 					Ref: "or",
-					Args: qlng.ASTNodeSet{
+					Args: ql.ASTNodeSet{
 						out,
 						localAppendix,
 					},
@@ -539,47 +539,47 @@ func (d *joinedDataset) calcualteCursorConditions(local *FrameDefinition, invert
 		// wrapCnd is the conjunction between two paging cursor columns
 		//
 		// The correlated string version is: (%s OR (((%s IS NULL AND %s) OR %s = %s) AND %s))
-		wrapCnd = func(base *qlng.ASTNode, field string, value expr.TypedValue, checkNull bool, condition *qlng.ASTNode) *qlng.ASTNode {
+		wrapCnd = func(base *ql.ASTNode, field string, value expr.TypedValue, checkNull bool, condition *ql.ASTNode) *ql.ASTNode {
 			pp := strings.Split(field, ".")
 			field = pp[len(pp)-1]
 
-			return &qlng.ASTNode{
+			return &ql.ASTNode{
 				Ref: "or",
-				Args: qlng.ASTNodeSet{
+				Args: ql.ASTNodeSet{
 					base,
-					&qlng.ASTNode{
+					&ql.ASTNode{
 						Ref: "and",
-						Args: qlng.ASTNodeSet{
-							&qlng.ASTNode{
+						Args: ql.ASTNodeSet{
+							&ql.ASTNode{
 								Ref: "or",
-								Args: qlng.ASTNodeSet{
-									&qlng.ASTNode{
+								Args: ql.ASTNodeSet{
+									&ql.ASTNode{
 										Ref: "and",
-										Args: qlng.ASTNodeSet{
-											&qlng.ASTNode{
+										Args: ql.ASTNodeSet{
+											&ql.ASTNode{
 												Ref: "is",
-												Args: qlng.ASTNodeSet{
-													&qlng.ASTNode{
+												Args: ql.ASTNodeSet{
+													&ql.ASTNode{
 														Symbol: field,
 													},
-													&qlng.ASTNode{
+													&ql.ASTNode{
 														Ref: "null",
 													},
 												},
-											}, &qlng.ASTNode{
-												Value: qlng.MakeValueOf("Boolean", checkNull),
+											}, &ql.ASTNode{
+												Value: ql.MakeValueOf("Boolean", checkNull),
 											},
 										},
 									},
-									&qlng.ASTNode{
+									&ql.ASTNode{
 										Ref: "eq",
-										Args: qlng.ASTNodeSet{
-											&qlng.ASTNode{
+										Args: ql.ASTNodeSet{
+											&ql.ASTNode{
 												Symbol: field,
 											},
-											&qlng.ASTNode{
+											&ql.ASTNode{
 												// @todo type
-												Value: qlng.WrapValue(value),
+												Value: ql.WrapValue(value),
 											},
 										},
 									},
@@ -602,7 +602,7 @@ func (d *joinedDataset) calcualteCursorConditions(local *FrameDefinition, invert
 			false: "gt",
 		}
 
-		notOp = map[bool]*qlng.ASTNode{
+		notOp = map[bool]*ql.ASTNode{
 			true:  {Ref: "nnull"},
 			false: {Ref: "null"},
 		}
@@ -620,7 +620,7 @@ func (d *joinedDataset) calcualteCursorConditions(local *FrameDefinition, invert
 	var tmp []string
 	var field string
 
-	calculateAST := func(ref string, cc []string, vv []interface{}, dsc []bool, cut bool) (cnd *qlng.ASTNode, err error) {
+	calculateAST := func(ref string, cc []string, vv []interface{}, dsc []bool, cut bool) (cnd *ql.ASTNode, err error) {
 		// going from the last key/column to the 1st one
 		for i := len(cc) - 1; i >= 0; i-- {
 			// We need to cut off the values that are before the cursor (when ascending)
@@ -650,7 +650,7 @@ func (d *joinedDataset) calcualteCursorConditions(local *FrameDefinition, invert
 		return
 	}
 
-	var fc *qlng.ASTNode
+	var fc *ql.ASTNode
 
 	// Edge case where only 1 source is used
 	ref := ""

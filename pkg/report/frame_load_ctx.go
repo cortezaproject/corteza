@@ -2,7 +2,7 @@ package report
 
 import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/qlng"
+	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/spf13/cast"
 )
 
@@ -53,23 +53,23 @@ func (bl *frameLoadCtx) keys(ff []*Frame) (keys []string, err error) {
 // @todo do some compression, ie "id > x && id < y"
 //       this will return more stuff but it could be faster then the current thing
 func (bl *frameLoadCtx) keyFilter(keys []string) *Filter {
-	aa := make(qlng.ASTNodeSet, len(keys))
+	aa := make(ql.ASTNodeSet, len(keys))
 
 	for i, k := range keys {
-		aa[i] = &qlng.ASTNode{
+		aa[i] = &ql.ASTNode{
 			Ref: "eq",
-			Args: qlng.ASTNodeSet{
-				&qlng.ASTNode{Symbol: bl.keyCol},
-				&qlng.ASTNode{Value: qlng.MakeValueOf("String", k)},
+			Args: ql.ASTNodeSet{
+				&ql.ASTNode{Symbol: bl.keyCol},
+				&ql.ASTNode{Value: ql.MakeValueOf("String", k)},
 			},
 		}
 	}
 
 	return &Filter{
-		ASTNode: &qlng.ASTNode{
+		ASTNode: &ql.ASTNode{
 			Ref: "group",
-			Args: qlng.ASTNodeSet{
-				&qlng.ASTNode{
+			Args: ql.ASTNodeSet{
+				&ql.ASTNode{
 					Ref:  "or",
 					Args: aa,
 				},

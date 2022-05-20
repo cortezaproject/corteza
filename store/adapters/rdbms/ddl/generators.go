@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/davecgh/go-spew/spew"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/jmoiron/sqlx"
@@ -62,7 +62,6 @@ func Exec(ctx context.Context, db sqlx.ExecerContext, ss ...any) (err error) {
 			panic(fmt.Sprintf("unexecutable input (%T)", s))
 		}
 
-		spew.Dump(sql, args)
 		if _, err = db.ExecContext(ctx, sql, args...); err != nil {
 			return
 		}
@@ -71,12 +70,12 @@ func Exec(ctx context.Context, db sqlx.ExecerContext, ss ...any) (err error) {
 	return
 }
 
-func TableExists(ctx context.Context, db sqlx.QueryerContext, d goqu.DialectWrapper, table, schema string) (bool, error) {
+func TableExists(ctx context.Context, db sqlx.QueryerContext, d drivers.Dialect, table, schema string) (bool, error) {
 	return GetBool(ctx, db, GenTableCheck(d, table, schema))
 }
 
-func GenTableCheck(d goqu.DialectWrapper, table, schema string) *goqu.SelectDataset {
-	return d.Select(goqu.COUNT(goqu.Star()).Gt(0)).
+func GenTableCheck(d drivers.Dialect, table, schema string) *goqu.SelectDataset {
+	return d.GOQU().Select(goqu.COUNT(goqu.Star()).Gt(0)).
 		From("information_schema.tables").
 		Where(
 			exp.ParseIdentifier("table_name").Eq(table),
@@ -84,12 +83,12 @@ func GenTableCheck(d goqu.DialectWrapper, table, schema string) *goqu.SelectData
 		)
 }
 
-func IndexExists(ctx context.Context, db sqlx.QueryerContext, d goqu.DialectWrapper, index, table, schema string) (bool, error) {
+func IndexExists(ctx context.Context, db sqlx.QueryerContext, d drivers.Dialect, index, table, schema string) (bool, error) {
 	return GetBool(ctx, db, GenIndexCheck(d, index, table, schema))
 }
 
-func GenIndexCheck(d goqu.DialectWrapper, index, table, schema string) *goqu.SelectDataset {
-	return d.Select(goqu.COUNT(goqu.Star()).Gt(0)).
+func GenIndexCheck(d drivers.Dialect, index, table, schema string) *goqu.SelectDataset {
+	return d.GOQU().Select(goqu.COUNT(goqu.Star()).Gt(0)).
 		From("information_schema.statistics").
 		Where(
 			exp.ParseIdentifier("index_name").Eq(index),

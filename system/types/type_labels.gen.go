@@ -57,6 +57,30 @@ func (m AuthClient) LabelResourceID() uint64 {
 }
 
 // SetLabel adds new label to label map
+func (m *Connection) SetLabel(key string, value string) {
+	if m.Labels == nil {
+		m.Labels = make(map[string]string)
+	}
+
+	m.Labels[key] = value
+}
+
+// GetLabels adds new label to label map
+func (m Connection) GetLabels() map[string]string {
+	return m.Labels
+}
+
+// GetLabels adds new label to label map
+func (Connection) LabelResourceKind() string {
+	return "connection"
+}
+
+// GetLabels adds new label to label map
+func (m Connection) LabelResourceID() uint64 {
+	return m.ID
+}
+
+// SetLabel adds new label to label map
 func (m *Report) SetLabel(key string, value string) {
 	if m.Labels == nil {
 		m.Labels = make(map[string]string)

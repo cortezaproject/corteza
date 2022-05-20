@@ -19,6 +19,7 @@ moduleField: schema.#Resource & {
 		name: {}
 		label: {}
 		options: { goType: "types.ModuleFieldOptions" }
+		encoding_strategy: { goType: "types.EncodingStrategy" }
 		private: { goType: "bool", storeIdent: "is_private" }
 		required: { goType: "bool", storeIdent: "is_required" }
 		visible: { goType: "bool", storeIdent: "is_visible" }

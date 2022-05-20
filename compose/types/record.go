@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/modern-go/reflect2"
+	"github.com/spf13/cast"
 )
 
 type (
@@ -71,13 +73,62 @@ type (
 		filter.Sorting
 		filter.Paging
 	}
+
+	// wrapping struct for recordFilter that
+	recordFilter struct {
+		constraints map[string][]any
+		RecordFilter
+	}
 )
 
 const (
 	OperationTypeCreate OperationType = "create"
 	OperationTypeUpdate OperationType = "update"
 	OperationTypeDelete OperationType = "delete"
+
+	recordFieldID          = "id"
+	recordFieldModuleID    = "moduleId"
+	recordFieldNamespaceID = "namespaceId"
 )
+
+// ToFilter wraps RecordFilter with struct that
+// imlements filter.Filter interface
+func (f RecordFilter) ToFilter() filter.Filter {
+	c := make(map[string][]any)
+
+	for _, id := range f.LabeledIDs {
+		c[recordFieldID] = append(c[recordFieldID], id)
+	}
+
+	if f.ModuleID > 0 {
+		c[recordFieldModuleID] = []any{f.ModuleID}
+	}
+
+	if f.NamespaceID > 0 {
+		c[recordFieldNamespaceID] = []any{f.NamespaceID}
+	}
+
+	return f.ToConstraintedFilter(c)
+}
+
+func (f RecordFilter) ToConstraintedFilter(c map[string][]any) filter.Filter {
+	return &recordFilter{
+		RecordFilter: f,
+		constraints:  c,
+	}
+}
+
+func (f recordFilter) Constraints() map[string][]any {
+	return f.constraints
+}
+
+func (f recordFilter) Expression() string           { return f.Query }
+func (f recordFilter) OrderBy() filter.SortExprSet  { return f.Sort }
+func (f recordFilter) Limit() uint                  { return f.Paging.Limit }
+func (f recordFilter) Cursor() *filter.PagingCursor { return f.Paging.PageCursor }
+func (f recordFilter) StateConstraints() map[string]filter.State {
+	return map[string]filter.State{"deletedAt": f.Deleted}
+}
 
 // UserIDs returns a slice of user IDs from all items in the set
 func (set RecordSet) UserIDs() (IDs []uint64) {
@@ -114,6 +165,167 @@ func (r Record) Clone() *Record {
 	c := &r
 	c.Values = r.Values.Clone()
 	return c
+}
+
+func (r *Record) GetValue(name string, pos uint) (any, error) {
+	switch name {
+	case "ID":
+		return r.ID, nil
+	case "moduleID":
+		return r.ModuleID, nil
+	case "namespaceID":
+		return r.NamespaceID, nil
+	case "createdAt":
+		return r.CreatedAt, nil
+	case "createdBy":
+		return r.CreatedBy, nil
+	case "updatedAt":
+		return r.UpdatedAt, nil
+	case "updatedBy":
+		return r.UpdatedBy, nil
+	case "deletedAt":
+		return r.DeletedAt, nil
+	case "deletedBy":
+		return r.DeletedBy, nil
+	case "ownedBy":
+		return r.OwnedBy, nil
+	default:
+		if val := r.Values.Get(name, pos); val != nil {
+			return val.Value, nil
+		}
+
+		return nil, nil
+	}
+}
+
+// CountValues returns how many values per field are there
+func (r *Record) CountValues() map[string]uint {
+	var (
+		pos = map[string]uint{
+			"ID":          1,
+			"moduleID":    1,
+			"namespaceID": 1,
+			"createdAt":   1,
+			"createdBy":   1,
+			"updatedAt":   1,
+			"updatedBy":   1,
+			"deletedAt":   1,
+			"deletedBy":   1,
+			"ownedBy":     1,
+		}
+	)
+
+	if mod := r.GetModule(); mod != nil {
+		for _, f := range mod.Fields {
+			pos[f.Name] = 0
+		}
+	}
+
+	for _, val := range r.Values {
+		pos[val.Name]++
+	}
+
+	return pos
+}
+
+func (r *Record) SetValue(name string, pos uint, value any) (err error) {
+	switch name {
+	case "ID", "moduleID", "namespaceID", "createdBy", "updatedBy", "deletedBy", "ownedBy":
+		return setUint64RecStructField(r, name, value)
+
+	case "createdAt", "updatedAt", "deletedAt":
+		return setTimeRecStructField(r, name, value)
+
+	default:
+		if reflect2.IsNil(value) {
+			r.Values, _ = r.Values.Filter(func(rv *RecordValue) (bool, error) {
+				if rv.Name == name && rv.Place == pos {
+					return false, nil
+				}
+
+				return true, nil
+			})
+
+			return
+		}
+
+		rv := &RecordValue{Name: name, Place: pos}
+
+		switch aux := value.(type) {
+		case *time.Time:
+			rv.Value = aux.Format(time.RFC3339)
+
+		case time.Time:
+			rv.Value = aux.Format(time.RFC3339)
+
+		default:
+			rv.Value, err = cast.ToStringE(aux)
+		}
+
+		if err != nil {
+			return
+		}
+
+		r.Values = r.Values.Set(rv)
+	}
+
+	return
+}
+
+func setTimeRecStructField(r *Record, name string, val any) (err error) {
+	var (
+		aux    time.Time
+		casted *time.Time
+		is     bool
+	)
+
+	if casted, is = val.(*time.Time); !is && val != nil {
+		aux, err = cast.ToTimeE(val)
+		if err != nil {
+			return err
+		}
+
+		casted = &aux
+	}
+
+	switch name {
+	case "createdAt":
+		if casted != nil {
+			r.CreatedAt = *casted
+		}
+	case "updatedAt":
+		r.UpdatedAt = casted
+	case "deletedAt":
+		r.DeletedAt = casted
+	}
+
+	return nil
+}
+
+func setUint64RecStructField(r *Record, ident string, val any) error {
+	id, err := cast.ToUint64E(val)
+	if err != nil {
+		return err
+	}
+
+	switch ident {
+	case "ID":
+		r.ID = id
+	case "moduleID":
+		r.ModuleID = id
+	case "namespaceID":
+		r.NamespaceID = id
+	case "createdBy":
+		r.CreatedBy = id
+	case "updatedBy":
+		r.UpdatedBy = id
+	case "deletedBy":
+		r.DeletedBy = id
+	case "ownedBy":
+		r.OwnedBy = id
+	}
+
+	return nil
 }
 
 func (r Record) Dict() map[string]interface{} {

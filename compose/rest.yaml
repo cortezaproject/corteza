@@ -556,6 +556,11 @@ endpoints:
         name: handle
         required: false
         title: Module handle
+      - type: types.ModelConfig
+        name: modelConfig
+        required: true
+        title: modelConfig
+        parser: types.ParseModelConfig
       - type: types.ModuleFieldSet
         name: fields
         required: true
@@ -597,6 +602,11 @@ endpoints:
         name: handle
         required: false
         title: Module Handle
+      - type: types.ModelConfig
+        name: modelConfig
+        required: true
+        title: modelConfig
+        parser: types.ParseModelConfig
       - type: types.ModuleFieldSet
         name: fields
         required: true

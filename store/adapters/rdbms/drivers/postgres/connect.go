@@ -10,16 +10,23 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/instrumentation"
-	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/ngrok/sqlmw"
 )
 
+const (
+	// base for our schemas
+	baseSchema = "postgres"
+
+	// debug schema with verbose logging
+	debugSchema = baseSchema + "+debug"
+)
+
 func init() {
-	store.Register(Connect, "postgres", "postgres+debug")
-	sql.Register("postgres+debug", sqlmw.Driver(new(pq.Driver), instrumentation.Debug()))
+	store.Register(Connect, baseSchema, debugSchema)
+	sql.Register(debugSchema, sqlmw.Driver(new(pq.Driver), instrumentation.Debug()))
 }
 
 func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
@@ -36,14 +43,13 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 		return
 	}
 
-	dialect := goqu.Dialect("postgres")
 	s := &rdbms.Store{
 		DB: db,
 
-		Dialect:      dialect,
+		Dialect:      goquDialectWrapper,
 		ErrorHandler: errorHandler,
 
-		SchemaAPI: &schema{schemaName: "public", dialect: dialect},
+		SchemaAPI: &schema{schemaName: "public"},
 	}
 
 	s.SetDefaults()

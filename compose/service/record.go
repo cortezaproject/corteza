@@ -15,6 +15,8 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
@@ -31,6 +33,8 @@ const (
 
 type (
 	record struct {
+		dal dalDML
+
 		actionlog actionlog.Recorder
 
 		ac       recordAccessController
@@ -146,13 +150,14 @@ type (
 	ErrorIndex  map[string]int
 )
 
-func Record() RecordService {
+func Record(dal dalDML) RecordService {
 	svc := &record{
 		actionlog:     DefaultActionlog,
 		ac:            DefaultAccessControl,
 		eventbus:      eventbus.Service(),
 		optEmitEvents: true,
 		store:         DefaultStore,
+		dal:           dal,
 
 		formatter: values.Formatter(),
 		sanitizer: values.Sanitizer(),
@@ -252,7 +257,9 @@ func (svc record) lookup(ctx context.Context, namespaceID, moduleID uint64, look
 func (svc record) FindByID(ctx context.Context, namespaceID, moduleID, recordID uint64) (r *types.Record, err error) {
 	return svc.lookup(ctx, namespaceID, moduleID, func(m *types.Module, props *recordActionProps) (*types.Record, error) {
 		props.record.ID = recordID
-		return store.LookupComposeRecordByID(ctx, svc.store, m, recordID)
+
+		out := svc.prepareRecordTarget(m)
+		return out, svc.dal.Lookup(ctx, m.ModelFilter(), capabilities.LookupCapabilities(m.ModelConfig.Capabilities...), dal.PKValues{"id": recordID}, out)
 	})
 }
 
@@ -318,7 +325,18 @@ func (svc record) Find(ctx context.Context, filter types.RecordFilter) (set type
 			}
 		}
 
-		set, f, err = store.SearchComposeRecords(ctx, svc.store, m, filter)
+		dalFilter := filter.ToFilter()
+		if m.ModelConfig.Partitioned {
+			dalFilter = filter.ToConstraintedFilter(m.ModelConfig.Constraints)
+		}
+
+		var iter dal.Iterator
+		iter, err = svc.dal.Search(ctx, m.ModelFilter(), svc.recSearchCapabilities(m, filter), dalFilter)
+		if err != nil {
+			return err
+		}
+
+		set, f, err = svc.drainIterator(ctx, iter, filter, m)
 		if err != nil {
 			return err
 		}
@@ -518,9 +536,10 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 		return nil, RecordErrValueInput().Wrap(rve)
 	}
 
-	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
-		return store.CreateComposeRecord(ctx, s, m, new)
-	})
+	err = svc.dal.Create(ctx, m.ModelFilter(), svc.recCreateCapabilities(m), svc.recToGetters(new)...)
+	if err != nil {
+		return
+	}
 
 	if err != nil {
 		return nil, err
@@ -774,7 +793,7 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 			}
 		}
 
-		return store.UpdateComposeRecord(ctx, s, m, upd)
+		return svc.dal.Update(ctx, m.ModelFilter(), svc.recUpdateCapabilities(m), svc.recToGetter(upd))
 	})
 
 	if err != nil {
@@ -963,10 +982,7 @@ func (svc record) delete(ctx context.Context, namespaceID, moduleID, recordID ui
 	del.DeletedAt = now()
 	del.DeletedBy = invokerID
 
-	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
-		return store.UpdateComposeRecord(ctx, s, m, del)
-	})
-
+	err = svc.dal.Update(ctx, m.ModelFilter(), svc.recDeleteCapabilities(m), del)
 	if err != nil {
 		return nil, err
 	}

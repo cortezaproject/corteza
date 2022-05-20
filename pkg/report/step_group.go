@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/cortezaproject/corteza-server/pkg/qlng"
+	"github.com/cortezaproject/corteza-server/pkg/ql"
 )
 
 type (
@@ -41,7 +41,7 @@ type (
 
 	// Wrapper for easier marshal/unmarshal
 	colDef struct {
-		*qlng.ASTNode
+		*ql.ASTNode
 	}
 )
 
@@ -109,7 +109,7 @@ func (def *colDef) UnmarshalJSON(data []byte) (err error) {
 		return
 	}
 
-	p := qlng.NewParser()
+	p := ql.NewParser()
 
 	// String expr. needs to be parsed to the AST
 	switch v := aux.(type) {
@@ -137,7 +137,7 @@ func (def *colDef) UnmarshalJSON(data []byte) (err error) {
 	}
 
 	// A raw expression takes priority and replaces the original AST sub-tree
-	return def.ASTNode.Traverse(func(n *qlng.ASTNode) (bool, *qlng.ASTNode, error) {
+	return def.ASTNode.Traverse(func(n *ql.ASTNode) (bool, *ql.ASTNode, error) {
 		if n.Raw == "" {
 			return true, n, nil
 		}
