@@ -695,7 +695,6 @@ endpoints:
   authentication: []
   imports:
     - github.com/cortezaproject/corteza-server/pkg/label
-    - github.com/cortezaproject/corteza-server/pkg/locale
     - github.com/cortezaproject/corteza-server/compose/types
   parameters:
     path:
@@ -973,6 +972,7 @@ endpoints:
   imports:
     - sqlxTypes github.com/jmoiron/sqlx/types
     - github.com/cortezaproject/corteza-server/pkg/label
+    - github.com/cortezaproject/corteza-server/pkg/locale
     - time
   parameters:
     path:
