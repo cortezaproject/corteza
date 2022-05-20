@@ -255,6 +255,34 @@ func migratePost202203RbacRule(r *rbac.Rule, rx *resIndex) (op int) {
 func preloadRbacResourceIndex(ctx context.Context, s store.Storer) (*resIndex, error) {
 	rx := &resIndex{}
 
+	rx.records = make(map[uint64]*composeTypes.Record)
+	var getRecords func(*composeTypes.Module, *filter.PagingCursor) (composeTypes.RecordSet, composeTypes.RecordFilter, error)
+	getRecords = func(m *composeTypes.Module, cursor *filter.PagingCursor) (rr composeTypes.RecordSet, f composeTypes.RecordFilter, err error) {
+		rr, f, err = store.SearchComposeRecords(ctx, s, m, composeTypes.RecordFilter{
+			Paging: filter.Paging{
+				Limit:      10000,
+				PageCursor: cursor,
+			},
+			Deleted: filter.StateInclusive,
+		})
+
+		if err != nil {
+			return
+		}
+		for _, rec := range rr {
+			rx.records[rec.ID] = rec
+		}
+
+		if f.NextPage != nil {
+			_, _, err = getRecords(m, f.NextPage)
+			if err != nil {
+				return
+			}
+		}
+
+		return
+	}
+
 	rx.modules = make(map[uint64]*composeTypes.Module)
 	modules, _, err := store.SearchComposeModules(ctx, s, composeTypes.ModuleFilter{
 		Paging:  filter.Paging{Limit: 0},
@@ -267,16 +295,9 @@ func preloadRbacResourceIndex(ctx context.Context, s store.Storer) (*resIndex, e
 	for _, r := range modules {
 		rx.modules[r.ID] = r
 		modIDs = append(modIDs, r.ID)
-
-		rx.records = make(map[uint64]*composeTypes.Record)
-		records, _, err := store.SearchComposeRecords(ctx, s, r, composeTypes.RecordFilter{
-			Deleted: filter.StateInclusive,
-		})
+		_, _, err = getRecords(r, nil)
 		if err != nil {
 			return nil, err
-		}
-		for _, rec := range records {
-			rx.records[rec.ID] = rec
 		}
 	}
 
