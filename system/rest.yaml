@@ -2246,7 +2246,6 @@ endpoints:
       parameters:
         path:
           - { name: requestID, type: "uint64",     title: "Request ID", required: true }
-        post:
     - name: list responses of request
       method: GET
       title: List responses for a specific request
@@ -2254,7 +2253,6 @@ endpoints:
       parameters:
         path:
           - { name: requestID, type: "string",     title: "Request ID", required: true }
-        post:
     - name: create response for request
       method: GET
       title: Create response for a specific request
@@ -2262,4 +2260,3 @@ endpoints:
       parameters:
         path:
           - { name: requestID, type: "string",     title: "Request ID", required: true }
-        post:
