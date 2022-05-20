@@ -12,6 +12,13 @@ data_privacy_request: schema.#Resource & {
 	struct: {
 		id: schema.IdField
 		name: {}
+		request_type: { goType: "types.RequestType", ident: "requestType", storeIdent: "request_type" }
+		status: { goType: "types.RequestStatus" }
+
+		requested_at: { schema.SortableTimestampField, ident: "requestedAt", storeIdent: "requested_at" }
+		requested_by: { goType: "uint64", ident: "requestedBy", storeIdent: "requested_by" }
+		completed_at: { schema.SortableTimestampNilField, ident: "completedAt", storeIdent: "completed_at" }
+		completed_by: { goType: "uint64", ident: "completedBy", storeIdent: "completed_by" }
 
 		created_at: schema.SortableTimestampField
 		updated_at: schema.SortableTimestampNilField

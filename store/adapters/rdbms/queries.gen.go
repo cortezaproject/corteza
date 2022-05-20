@@ -2653,6 +2653,12 @@ var (
 		return d.Select(
 			"id",
 			"name",
+			"request_type",
+			"status",
+			"requested_at",
+			"requested_by",
+			"completed_at",
+			"completed_by",
 			"created_at",
 			"updated_at",
 			"deleted_at",
@@ -2668,14 +2674,20 @@ var (
 	dataPrivacyRequestInsertQuery = func(d goqu.DialectWrapper, res *systemType.DataPrivacyRequest) *goqu.InsertDataset {
 		return d.Insert(dataPrivacyRequestTable).
 			Rows(goqu.Record{
-				"id":         res.ID,
-				"name":       res.Name,
-				"created_at": res.CreatedAt,
-				"updated_at": res.UpdatedAt,
-				"deleted_at": res.DeletedAt,
-				"created_by": res.CreatedBy,
-				"updated_by": res.UpdatedBy,
-				"deleted_by": res.DeletedBy,
+				"id":           res.ID,
+				"name":         res.Name,
+				"request_type": res.RequestType,
+				"status":       res.Status,
+				"requested_at": res.RequestedAt,
+				"requested_by": res.RequestedBy,
+				"completed_at": res.CompletedAt,
+				"completed_by": res.CompletedBy,
+				"created_at":   res.CreatedAt,
+				"updated_at":   res.UpdatedAt,
+				"deleted_at":   res.DeletedAt,
+				"created_by":   res.CreatedBy,
+				"updated_by":   res.UpdatedBy,
+				"deleted_by":   res.DeletedBy,
 			})
 	}
 
@@ -2689,13 +2701,19 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
-						"name":       res.Name,
-						"created_at": res.CreatedAt,
-						"updated_at": res.UpdatedAt,
-						"deleted_at": res.DeletedAt,
-						"created_by": res.CreatedBy,
-						"updated_by": res.UpdatedBy,
-						"deleted_by": res.DeletedBy,
+						"name":         res.Name,
+						"request_type": res.RequestType,
+						"status":       res.Status,
+						"requested_at": res.RequestedAt,
+						"requested_by": res.RequestedBy,
+						"completed_at": res.CompletedAt,
+						"completed_by": res.CompletedBy,
+						"created_at":   res.CreatedAt,
+						"updated_at":   res.UpdatedAt,
+						"deleted_at":   res.DeletedAt,
+						"created_by":   res.CreatedBy,
+						"updated_by":   res.UpdatedBy,
+						"deleted_by":   res.DeletedBy,
 					},
 				),
 			)
@@ -2707,13 +2725,19 @@ var (
 	dataPrivacyRequestUpdateQuery = func(d goqu.DialectWrapper, res *systemType.DataPrivacyRequest) *goqu.UpdateDataset {
 		return d.Update(dataPrivacyRequestTable).
 			Set(goqu.Record{
-				"name":       res.Name,
-				"created_at": res.CreatedAt,
-				"updated_at": res.UpdatedAt,
-				"deleted_at": res.DeletedAt,
-				"created_by": res.CreatedBy,
-				"updated_by": res.UpdatedBy,
-				"deleted_by": res.DeletedBy,
+				"name":         res.Name,
+				"request_type": res.RequestType,
+				"status":       res.Status,
+				"requested_at": res.RequestedAt,
+				"requested_by": res.RequestedBy,
+				"completed_at": res.CompletedAt,
+				"completed_by": res.CompletedBy,
+				"created_at":   res.CreatedAt,
+				"updated_at":   res.UpdatedAt,
+				"deleted_at":   res.DeletedAt,
+				"created_by":   res.CreatedBy,
+				"updated_by":   res.UpdatedBy,
+				"deleted_by":   res.DeletedBy,
 			}).
 			Where(dataPrivacyRequestPrimaryKeys(res))
 	}
