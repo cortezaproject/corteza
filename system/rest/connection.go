@@ -118,6 +118,10 @@ func (ctrl Connection) Update(ctx context.Context, r *request.ConnectionUpdate) 
 	return ctrl.svc.Update(ctx, connection)
 }
 
+func (ctrl Connection) ReadPrimary(ctx context.Context, r *request.ConnectionReadPrimary) (interface{}, error) {
+	return ctrl.svc.FindByID(ctx, 0)
+}
+
 func (ctrl Connection) Read(ctx context.Context, r *request.ConnectionRead) (interface{}, error) {
 	return ctrl.svc.FindByID(ctx, r.ConnectionID)
 }

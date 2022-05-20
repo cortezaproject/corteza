@@ -835,6 +835,10 @@ endpoints:
         name: labels
         title: Labels
         parser: label.ParseStrings
+  - name: readPrimary
+    method: GET
+    title: Read primary connection details
+    path: "/primary"
   - name: read
     method: GET
     title: Read connection details

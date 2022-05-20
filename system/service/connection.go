@@ -18,6 +18,8 @@ type (
 		store     store.Storer
 		ac        connectionAccessController
 		dal       dalConnections
+
+		primaryConnection types.Connection
 	}
 
 	connectionAccessController interface {
@@ -37,12 +39,13 @@ type (
 	}
 )
 
-func Connection(ctx context.Context, dal dalConnections) (*connection, error) {
+func Connection(ctx context.Context, pcOpts types.Connection, dal dalConnections) (*connection, error) {
 	out := &connection{
-		ac:        DefaultAccessControl,
-		actionlog: DefaultActionlog,
-		store:     DefaultStore,
-		dal:       dal,
+		ac:                DefaultAccessControl,
+		actionlog:         DefaultActionlog,
+		store:             DefaultStore,
+		dal:               dal,
+		primaryConnection: pcOpts,
 	}
 
 	return out, out.reloadConnections(ctx)
@@ -54,6 +57,13 @@ func (svc *connection) FindByID(ctx context.Context, ID uint64) (q *types.Connec
 	)
 
 	err = func() error {
+		if ID == 0 {
+			// primary; construct it since it doesn't actually exist
+			aux := svc.primaryConnection
+			q = &aux
+			return nil
+		}
+
 		if ID == 0 {
 			return ConnectionErrInvalidID()
 		}

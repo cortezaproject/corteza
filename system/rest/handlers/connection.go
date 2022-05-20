@@ -22,6 +22,7 @@ type (
 		List(context.Context, *request.ConnectionList) (interface{}, error)
 		Create(context.Context, *request.ConnectionCreate) (interface{}, error)
 		Update(context.Context, *request.ConnectionUpdate) (interface{}, error)
+		ReadPrimary(context.Context, *request.ConnectionReadPrimary) (interface{}, error)
 		Read(context.Context, *request.ConnectionRead) (interface{}, error)
 		Delete(context.Context, *request.ConnectionDelete) (interface{}, error)
 		Undelete(context.Context, *request.ConnectionUndelete) (interface{}, error)
@@ -29,12 +30,13 @@ type (
 
 	// HTTP API interface
 	Connection struct {
-		List     func(http.ResponseWriter, *http.Request)
-		Create   func(http.ResponseWriter, *http.Request)
-		Update   func(http.ResponseWriter, *http.Request)
-		Read     func(http.ResponseWriter, *http.Request)
-		Delete   func(http.ResponseWriter, *http.Request)
-		Undelete func(http.ResponseWriter, *http.Request)
+		List        func(http.ResponseWriter, *http.Request)
+		Create      func(http.ResponseWriter, *http.Request)
+		Update      func(http.ResponseWriter, *http.Request)
+		ReadPrimary func(http.ResponseWriter, *http.Request)
+		Read        func(http.ResponseWriter, *http.Request)
+		Delete      func(http.ResponseWriter, *http.Request)
+		Undelete    func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -81,6 +83,22 @@ func NewConnection(h ConnectionAPI) *Connection {
 			}
 
 			value, err := h.Update(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		ReadPrimary: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewConnectionReadPrimary()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.ReadPrimary(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
@@ -145,6 +163,7 @@ func (h Connection) MountRoutes(r chi.Router, middlewares ...func(http.Handler) 
 		r.Get("/connections/", h.List)
 		r.Post("/connections/", h.Create)
 		r.Put("/connections/{connectionID}", h.Update)
+		r.Get("/connections/primary", h.ReadPrimary)
 		r.Get("/connections/{connectionID}", h.Read)
 		r.Delete("/connections/{connectionID}", h.Delete)
 		r.Post("/connections/{connectionID}/undelete", h.Undelete)
