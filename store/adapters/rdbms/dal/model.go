@@ -224,7 +224,7 @@ func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 	for ident, vv := range f.Constraints() {
 		attr := d.model.Attributes.FindByIdent(ident)
 		if attr == nil {
-			return base.SetError(fmt.Errorf("unknown attribute %q used for state constrant", ident))
+			return base.SetError(fmt.Errorf("unknown attribute %q used for constrant", ident))
 		}
 
 		// @note why?
@@ -246,11 +246,13 @@ func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 	for ident, state := range f.StateConstraints() {
 		attr := d.model.Attributes.FindByIdent(ident)
 		if attr == nil {
-			return base.SetError(fmt.Errorf("unknown attribute %q used for state constrant", ident))
-		}
+			if ident == "deletedAt" {
+				// workaround for situation where filter constraints
+				// contain deletedAt but attribute does not exist
+				continue
+			}
 
-		if !attr.SoftDeleteFlag {
-			continue
+			return base.SetError(fmt.Errorf("unknown attribute %q used for state constrant", ident))
 		}
 
 		if !attr.Type.IsNullable() {
