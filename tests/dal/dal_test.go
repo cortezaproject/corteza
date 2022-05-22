@@ -2,184 +2,83 @@ package dal
 
 import (
 	"context"
-	"testing"
-	"time"
-
-	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
-	"github.com/cortezaproject/corteza-server/pkg/id"
-
-	"github.com/stretchr/testify/require"
-
-	_ "github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers/mysql"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/tests/dal/setup/mysql"
+	"github.com/cortezaproject/corteza-server/tests/dal/setup/postgres"
+	"github.com/cortezaproject/corteza-server/tests/dal/setup/sqlite"
+	"github.com/cortezaproject/corteza-server/tests/helpers"
+	_ "github.com/joho/godotenv/autoload"
+	"os"
+	"strings"
+	"testing"
 )
 
-/*
-See here for my table definitions
+// Tests DAL functionalities for all supported databases
+//
+// Tests for drivers are executed if DSN env variable (DAL_TEST_DSN_<driver>) is present.
+// Example: DAL_TEST_DSN_MYSQL, DAL_TEST_DSN_POSTGRES
+//
+// Multiple space delimited DSNs are supported.
+//
+// Tests scans current and two parent folders for presence of .env file
+// and loads the first one found.
+//
+//
+func TestDAL(t *testing.T) {
+	helpers.RecursiveDotEnvLoad()
 
-CREATE TABLE `the_cake` (
-  `id` bigint unsigned NOT NULL,
-  `name` VARCHAR(45),
-  `want` BOOLEAN,
-  `ownedBy` bigint unsigned NOT NULL,
-  `createdAt` datetime NOT NULL,
-  `updatedAt` datetime DEFAULT NULL,
-  `deletedAt` datetime DEFAULT NULL,
-  `createdBy` bigint unsigned NOT NULL,
-  `updatedBy` bigint unsigned NOT NULL DEFAULT '0',
-  `deletedBy` bigint unsigned NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`),
-  KEY `compose_record_owner` (`ownedBy`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
+	var (
+		// enrich context with debug logger
+		//
+		// this will enable us to log driver commands
+		// when +debug is used on DSN schema
+		ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
 
-CREATE TABLE `the_cookie` (
-  `id` bigint unsigned NOT NULL,
-  `name` VARCHAR(45),
-  `is_good` BOOLEAN,
-  `ownedBy` bigint unsigned NOT NULL,
-  `createdAt` datetime NOT NULL,
-  `updatedAt` datetime DEFAULT NULL,
-  `deletedAt` datetime DEFAULT NULL,
-  `createdBy` bigint unsigned NOT NULL,
-  `updatedBy` bigint unsigned NOT NULL DEFAULT '0',
-  `deletedBy` bigint unsigned NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`),
-  KEY `compose_record_owner` (`ownedBy`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb3;
-*/
+		conn dal.Connection
+		err  error
 
-func TestHello(t *testing.T) {
-	ctx := context.Background()
-
-	c, err := dal.Service(
-		ctx,
-		nil,
-		false,
-		// Primary...
-		Connection(0, "mysql://envoy:envoy@tcp(localhost:3306)/crs?collation=utf8mb4_general_ci", capabilities.FullCapabilities()...),
-
-		// Others...
-		Connection(1, "mysql://envoy:envoy@tcp(localhost:3306)/crs?collation=utf8mb4_general_ci", capabilities.FullCapabilities()...),
+		drivers = []struct {
+			name    string
+			dsn     string
+			connect func(string) (dal.Connection, error)
+		}{
+			{
+				name:    "sqlite",
+				dsn:     "sqlite3+debug://file::memory:?cache=shared&mode=memory",
+				connect: sqlite.Setup,
+			},
+			{
+				name:    "mysql",
+				dsn:     os.Getenv("DAL_TEST_DSN_MYSQL"),
+				connect: mysql.Setup,
+			},
+			{
+				name:    "postgres",
+				dsn:     os.Getenv("DAL_TEST_DSN_POSTGRES"),
+				connect: postgres.Setup,
+			},
+		}
 	)
-	require.NoError(t, err)
-	_ = c
 
-	// ---
+	for _, driver := range drivers {
+		t.Run(driver.name, func(t *testing.T) {
+			if driver.dsn == "" {
+				t.Skip("DSN for DAL test not set")
+			}
 
-	cookieModule := &types.Module{
-		ID:     10001,
-		Handle: "cookie",
-		Store: types.DalDef{
-			ComposeRecordStoreID: 0,
-			Capabilities:         capabilities.FullCapabilities(),
-			Partitioned:          true,
-			PartitionFormat:      "the_{{module}}",
-		},
-		Fields: types.ModuleFieldSet{&types.ModuleField{
-			ModuleID: 10001,
-			ID:       20001,
-			Name:     "name",
-			Encoding: types.EncodingStrategy{
-				EncodingStrategyAlias: &types.EncodingStrategyAlias{
-					Ident: "name",
-				},
-			},
-		}, &types.ModuleField{
-			ModuleID: 10001,
-			ID:       20002,
-			Name:     "is_good",
-			Kind:     "Bool",
-			Encoding: types.EncodingStrategy{
-				EncodingStrategyAlias: &types.EncodingStrategyAlias{
-					Ident: "is_good",
-				},
-			},
-		}},
+			for _, dsn := range strings.Split(driver.dsn, " ") {
+				t.Run("", func(t *testing.T) {
+					t.Log("Connecting to ", dsn)
+					if conn, err = driver.connect(dsn); err != nil {
+						t.Fatal(err)
+					}
+
+					t.Run("RecordCodec", func(t *testing.T) { RecordCodec(t, ctx, conn) })
+					t.Run("RecordSearch", func(t *testing.T) { RecordSearch(t, ctx, conn) })
+				})
+			}
+
+		})
 	}
-
-	cakeModule := &types.Module{
-		ID:     10002,
-		Handle: "cake",
-		Store: types.DalDef{
-			ComposeRecordStoreID: 1,
-			Capabilities:         capabilities.FullCapabilities(),
-			Partitioned:          true,
-			PartitionFormat:      "the_{{module}}",
-		},
-		Fields: types.ModuleFieldSet{&types.ModuleField{
-			ModuleID: 10002,
-			ID:       20003,
-			Name:     "name",
-			Encoding: types.EncodingStrategy{
-				EncodingStrategyAlias: &types.EncodingStrategyAlias{
-					// this doesn't work
-					Ident: "name",
-				},
-			},
-		}, &types.ModuleField{
-			ModuleID: 10002,
-			ID:       20004,
-			Name:     "want",
-			Kind:     "Bool",
-			Encoding: types.EncodingStrategy{
-				EncodingStrategyAlias: &types.EncodingStrategyAlias{
-					Ident: "want",
-				},
-			},
-		}},
-	}
-
-	err = c.ReloadModules(ctx, cookieModule, cakeModule)
-	require.NoError(t, err)
-
-	// ---
-
-	a := time.Now()
-
-	cookieRecord := &types.Record{
-		ID:       id.Next(),
-		ModuleID: 10001,
-		Values: types.RecordValueSet{{
-			Name:  "name",
-			Value: "SOME COOKIE HERE",
-		}, {
-			Name:  "is_good",
-			Value: "1",
-		}},
-		CreatedAt: time.Now(),
-		UpdatedAt: &a,
-		DeletedAt: &a,
-		OwnedBy:   20003,
-		CreatedBy: 20003,
-		UpdatedBy: 20003,
-		DeletedBy: 20003,
-	}
-
-	cakeRecord := &types.Record{
-		ID:       id.Next(),
-		ModuleID: 10002,
-		Values: types.RecordValueSet{{
-			Name:  "name",
-			Value: "DOME CAKE HERE",
-		}, {
-			Name:  "want",
-			Value: "1",
-		}},
-		CreatedAt: time.Now(),
-		UpdatedAt: &a,
-		DeletedAt: &a,
-		OwnedBy:   20003,
-		CreatedBy: 20003,
-		UpdatedBy: 20003,
-		DeletedBy: 20003,
-	}
-
-	err = c.ComposeRecordCreate(ctx, cookieModule, cookieRecord)
-	require.NoError(t, err)
-
-	err = c.ComposeRecordCreate(ctx, cakeModule, cakeRecord)
-	require.NoError(t, err)
-
-	require.FailNow(t, "the test dies a failNow so I can see logs!!!")
 }

@@ -54,6 +54,10 @@ func Model(m *dal.Model, c queryRunner, d drivers.Dialect) *model {
 	ms.queryParser = ql.Converter(
 		ql.SymHandler(func(node *ql.ASTNode) (exp.Expression, error) {
 			attr := ms.model.Attributes.FindByIdent(node.Symbol)
+			if attr == nil {
+				return nil, fmt.Errorf("unknown attribute %q used in query expression", node.Symbol)
+			}
+
 			if !attr.Filterable {
 				return nil, fmt.Errorf("attribute %q can not be used in query expression", attr.Ident)
 			}
