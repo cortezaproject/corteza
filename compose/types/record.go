@@ -92,7 +92,7 @@ const (
 )
 
 // ToFilter wraps RecordFilter with struct that
-// imlements filter.Filter interface
+// implements filter.Filter interface
 func (f RecordFilter) ToFilter() filter.Filter {
 	c := make(map[string][]any)
 
@@ -127,6 +127,9 @@ func (f recordFilter) OrderBy() filter.SortExprSet  { return f.Sort }
 func (f recordFilter) Limit() uint                  { return f.Paging.Limit }
 func (f recordFilter) Cursor() *filter.PagingCursor { return f.Paging.PageCursor }
 func (f recordFilter) StateConstraints() map[string]filter.State {
+	// @todo this needs to be model-dependant; if record's module
+	//       does not support deleted-at flag/timestamp,
+	//       this constraint should not be added
 	return map[string]filter.State{"deletedAt": f.Deleted}
 }
 
