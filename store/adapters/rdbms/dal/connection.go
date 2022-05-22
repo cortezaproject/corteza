@@ -32,6 +32,15 @@ func Connection(db *sqlx.DB, dialect drivers.Dialect, cc ...capabilities.Capabil
 }
 
 func (c *connection) model(m *dal.Model) *model {
+	if m.Resource == "" {
+		// if resource is empty, use ident
+		m.Resource = m.Ident
+	}
+
+	if m.Resource == "" {
+		panic("can not add model with empty resource")
+	}
+
 	c.mux.RLock()
 	if c.models[m.Resource] == nil {
 		c.mux.RUnlock()
