@@ -48,6 +48,10 @@ func (d *decoder) CanDecodeFile(f io.Reader) bool {
 	return d.CanDecodeExt(ext)
 }
 
+func (d *decoder) CanDecodeMime(m string) bool {
+	return m == "application/json" || m == "application/jsonlines"
+}
+
 func (d *decoder) CanDecodeExt(ext string) bool {
 	pt := strings.Split(ext, ".")
 	ext = strings.TrimSpace(pt[len(pt)-1])
