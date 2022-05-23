@@ -20,7 +20,7 @@ role: schema.#Resource & {
 	filter: {
 		struct: {
 			role_id: {goType: "[]uint64", ident: "roleID", storeIdent: "id" }
-			member_id: {goType: "uint64"}
+			member_id: {goType: "uint64" }
 			handle: {goType: "string"}
 			name: {goType: "string"}
 
@@ -29,7 +29,7 @@ role: schema.#Resource & {
 		}
 
 		query: ["handle", "name"]
-		byValue: ["role_id", "handle"]
+		byValue: ["role_id", "name", "handle"]
 		byNilState: ["deleted", "archived"]
 	}
 
