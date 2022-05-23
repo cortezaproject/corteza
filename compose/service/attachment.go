@@ -93,7 +93,7 @@ func (svc attachment) Find(ctx context.Context, filter types.AttachmentFilter) (
 		}
 
 		if filter.RecordID > 0 {
-			aProps.namespace, aProps.module, aProps.record, err = loadRecordCombo(ctx, svc.store, filter.NamespaceID, filter.ModuleID, filter.RecordID)
+			aProps.namespace, aProps.module, aProps.record, err = loadRecordCombo_old(ctx, svc.store, filter.NamespaceID, filter.ModuleID, filter.RecordID)
 			if err != nil {
 				return err
 			} else if svc.ac.CanReadRecord(ctx, aProps.record) {
@@ -648,3 +648,21 @@ func (attachment) checkMimeType(test string, vv ...string) bool {
 }
 
 var _ AttachmentService = &attachment{}
+
+// loadRecordCombo_old Loads namespace, module and record
+// @todo temporary
+func loadRecordCombo_old(ctx context.Context, s store.Storer, namespaceID, moduleID, recordID uint64) (ns *types.Namespace, m *types.Module, r *types.Record, err error) {
+	if ns, m, err = loadModuleWithNamespace(ctx, s, namespaceID, moduleID); err != nil {
+		return
+	}
+
+	if r, err = store.LookupComposeRecordByID(ctx, s, m, recordID); err != nil {
+		return
+	}
+
+	if r.ModuleID != moduleID {
+		return nil, nil, nil, RecordErrInvalidModuleID()
+	}
+
+	return
+}

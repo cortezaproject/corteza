@@ -778,7 +778,7 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 		return nil, RecordErrInvalidID()
 	}
 
-	ns, m, old, err = loadRecordCombo(ctx, svc.store, upd.NamespaceID, upd.ModuleID, upd.ID)
+	ns, m, old, err = loadRecordCombo(ctx, svc.store, svc.dal, upd.NamespaceID, upd.ModuleID, upd.ID)
 	if err != nil {
 		return
 	}
@@ -1022,7 +1022,7 @@ func (svc record) delete(ctx context.Context, namespaceID, moduleID, recordID ui
 		return nil, RecordErrInvalidID()
 	}
 
-	ns, m, del, err = loadRecordCombo(ctx, svc.store, namespaceID, moduleID, recordID)
+	ns, m, del, err = loadRecordCombo(ctx, svc.store, svc.dal, namespaceID, moduleID, recordID)
 	if err != nil {
 		return nil, err
 	}
@@ -1137,7 +1137,7 @@ func (svc record) Organize(ctx context.Context, namespaceID, moduleID, recordID 
 	)
 
 	err = func() error {
-		ns, m, r, err = loadRecordCombo(ctx, svc.store, namespaceID, moduleID, recordID)
+		ns, m, r, err = loadRecordCombo(ctx, svc.store, svc.dal, namespaceID, moduleID, recordID)
 		if err != nil {
 			return err
 		}
@@ -1290,7 +1290,7 @@ func (svc record) Validate(ctx context.Context, rec *types.Record) error {
 // For backward compatibility (of controllers), it returns module+record
 func (svc record) TriggerScript(ctx context.Context, namespaceID, moduleID, recordID uint64, rvs types.RecordValueSet, script string) (*types.Module, *types.Record, error) {
 	var (
-		ns, m, r, err = loadRecordCombo(ctx, svc.store, namespaceID, moduleID, recordID)
+		ns, m, r, err = loadRecordCombo(ctx, svc.store, svc.dal, namespaceID, moduleID, recordID)
 	)
 
 	if err != nil {
@@ -1493,12 +1493,15 @@ func ComposeRecordFilterAC(ctx context.Context, ac recordValueAccessController, 
 }
 
 // loadRecordCombo Loads namespace, module and record
-func loadRecordCombo(ctx context.Context, s store.Storer, namespaceID, moduleID, recordID uint64) (ns *types.Namespace, m *types.Module, r *types.Record, err error) {
+func loadRecordCombo(ctx context.Context, s store.Storer, dd dalDML, namespaceID, moduleID, recordID uint64) (ns *types.Namespace, m *types.Module, r *types.Record, err error) {
 	if ns, m, err = loadModuleWithNamespace(ctx, s, namespaceID, moduleID); err != nil {
 		return
 	}
 
-	if r, err = store.LookupComposeRecordByID(ctx, s, m, recordID); err != nil {
+	r = &types.Record{
+		Values: types.RecordValueSet{},
+	}
+	if err = dd.Lookup(ctx, m.ModelFilter(), capabilities.LookupCapabilities(m.ModelConfig.Capabilities...), dal.PKValues{"id": recordID}, r); err != nil {
 		return
 	}
 
