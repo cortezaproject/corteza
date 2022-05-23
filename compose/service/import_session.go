@@ -84,7 +84,7 @@ func (svc *importSession) Create(ctx context.Context, f io.ReadSeeker, name, con
 		}
 
 		f.Seek(0, 0)
-		if jd.CanDecodeFile(f) {
+		if jd.CanDecodeFile(f) || jd.CanDecodeMime(contentType) {
 			f.Seek(0, 0)
 			return jd.Decode(ctx, f, do)
 		}
