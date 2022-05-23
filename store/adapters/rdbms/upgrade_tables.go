@@ -756,10 +756,6 @@ func tableDataPrivacyRequests() *Table {
 		ColumnDef("completed_at", ColumnTypeTimestamp),
 		ColumnDef("completed_by", ColumnTypeTimestamp),
 
-		AddIndex("request_type", IColumn("request_type")),
-		AddIndex("requested_at", IColumn("requested_at")),
-		AddIndex("requested_by", IColumn("requested_by")),
-		AddIndex("completed_at", IColumn("completed_at")),
-		AddIndex("completed_by", IColumn("completed_by")),
+		AddIndex("status", IColumn("status")),
 	)
 }
