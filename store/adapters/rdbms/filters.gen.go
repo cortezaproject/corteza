@@ -575,6 +575,10 @@ func ComposeModuleFieldFilter(f composeType.ModuleFieldFilter) (ee []goqu.Expres
 		ee = append(ee, expr)
 	}
 
+	if len(f.ModuleID) > 0 {
+		ee = append(ee, goqu.C("rel_module").In(f.ModuleID))
+	}
+
 	return ee, f, err
 }
 
