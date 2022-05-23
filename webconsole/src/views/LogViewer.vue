@@ -51,18 +51,22 @@ const lastRefresh = ref<Date | undefined>()
 onMounted(() => {
   events.value = []
   fetch().then((interval: boolean) => {
+    let ih: number
     if (!interval) {
       return
     }
 
-    setInterval(async () => {
+    ih = setInterval(async () => {
       let after: number | undefined
 
       if (events.value.length > 0) {
         after = events.value[events.value.length - 1].index
       }
 
-      await fetch(after)
+      const ok = await fetch(after)
+      if (!ok) {
+        clearInterval(ih)
+      }
     }, 2000)
   }).catch((err ) => {
     alert(err)
