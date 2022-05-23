@@ -109,7 +109,7 @@ func tableConnections() *Table {
 		CUDTimestamps,
 		CUDUsers,
 
-		AddIndex("unique_handle", IExpr("LOWER(handle)"), IWhere("LENGTH(handle) > 0 AND deleted_at IS NULL AND suspended_at IS NULL")),
+		AddIndex("unique_handle", IExpr("LOWER(handle)"), IWhere("LENGTH(handle) > 0 AND deleted_at IS NULL")),
 	)
 }
 
