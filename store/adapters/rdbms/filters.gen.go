@@ -1078,6 +1078,10 @@ func RoleFilter(f systemType.RoleFilter) (ee []goqu.Expression, _ systemType.Rol
 		ee = append(ee, goqu.C("id").In(f.RoleID))
 	}
 
+	if val := strings.TrimSpace(f.Name); len(val) > 0 {
+		ee = append(ee, goqu.C("name").Eq(f.Name))
+	}
+
 	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
 		ee = append(ee, goqu.C("handle").Eq(f.Handle))
 	}
