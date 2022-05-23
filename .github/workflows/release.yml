@@ -48,6 +48,10 @@ jobs:
         working-directory: ./webconsole
         run: yarn build
 
+      - name: Cache console build
+        uses: actions/cache@v2
+        with: { path: ./webconsole, key: console-build }
+
   release-linux:
     runs-on: ubuntu-latest
     needs:
@@ -63,6 +67,11 @@ jobs:
       - uses: actions/setup-go@v1
         with:
           go-version: 1.17
+
+      - name: Restore console build from cache
+        uses: actions/cache@v2
+        with: { path: ./webconsole, key: console-build }
+
       - run: make release-clean release
       - run: make upload
         if: ${{ !env.ACT }}
@@ -89,6 +98,11 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-go-
+
+      - name: Restore console build from cache
+        uses: actions/cache@v2
+        with: { path: ./webconsole, key: console-build }
+
       - run: make release-clean release
       - run: make upload
         if: ${{ !env.ACT }}
