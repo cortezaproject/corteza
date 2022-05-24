@@ -360,6 +360,9 @@ func (n *rbacRule) makeRBACResource(pl *payload) (string, error) {
 		// @todo add support for importing rbac rules for specific queue
 		return systemTypes.QueueRbacResource(p1ID), nil
 
+	case systemTypes.DataPrivacyRequestResourceType:
+		return systemTypes.DataPrivacyRequestRbacResource(p1ID), nil
+
 	case federationTypes.NodeResourceType:
 		return federationTypes.NodeRbacResource(p1ID), nil
 	case federationTypes.SharedModuleResourceType:
