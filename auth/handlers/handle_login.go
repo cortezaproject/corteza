@@ -32,6 +32,7 @@ func (h *AuthHandlers) loginForm(req *request.AuthReq) error {
 	}
 
 	req.Data["form"] = kv
+	req.Data["enableRememberMe"] = h.Opt.SessionPermLifetime > 0
 	return nil
 }
 
@@ -88,7 +89,7 @@ func (h *AuthHandlers) loginProc(req *request.AuthReq) (err error) {
 			lifetime = h.Opt.SessionPermLifetime
 		}
 
-		req.AuthUser = request.NewAuthUser(h.Settings, user, isPerm, lifetime)
+		req.AuthUser = request.NewAuthUser(h.Settings, user, isPerm)
 
 		req.AuthUser.Save(req.Session)
 

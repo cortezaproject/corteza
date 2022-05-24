@@ -64,14 +64,6 @@ auth: schema.#optionsGroup & {
 			defaultGoExpr: "time.Hour * 24 * 3"
 			defaultValue:  "72h"
 		}
-		expiry: {
-			type:        "time.Duration"
-			description: "Expiration time for the auth JWT tokens."
-			env:         "AUTH_JWT_EXPIRY"
-
-			defaultGoExpr: "time.Hour * 24 * 30"
-			defaultValue:  "720h"
-		}
 		external_redirect_URL: {
 			description: """
 				Redirect URL to be sent with OAuth2 authentication request to provider
@@ -121,7 +113,15 @@ auth: schema.#optionsGroup & {
 		session_lifetime: {
 			type: "time.Duration"
 			description: """
-				Duration of the in /auth lasts when user logs-in without using \"remember-me\" option.
+				Maximum time user is allowed to stay idle when logged in without \"remember-me\" option and before session is expired.
+
+				Recomended value is between an hour and a day.
+
+				[IMPORTANT]
+				====
+				This affects only profile (/auth) pages. Using applications (admin, compose, ...) does not prolong the session.
+				====
+
 				"""
 			defaultGoExpr: "24 * time.Hour"
 			defaultValue:  "24h"
@@ -130,6 +130,8 @@ auth: schema.#optionsGroup & {
 			type: "time.Duration"
 			description: """
 				Duration of the session in /auth lasts when user logs-in with \"remember-me\" option.
+
+				If set to 0, \"remember-me\" option is removed.
 				"""
 
 			defaultGoExpr: "360 * 24 * time.Hour"
