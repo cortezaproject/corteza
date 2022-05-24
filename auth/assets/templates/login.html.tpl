@@ -47,9 +47,9 @@
 				autocomplete="current-password"
 				aria-label="{{ tr "login.template.form.password.label" }}">
 		</div>
-		{{ if .enableRememberMe }}
 		<div class="row">
 			<div class="col text-right">
+				{{ if .enableRememberMe }}
 				<button
 					data-test-id="button-login-and-remember"
 					class="btn btn-primary btn-block btn-lg"
@@ -59,6 +59,7 @@
 				>
 					{{ tr "login.template.form.button.login-and-remember" }}
 				</button>
+				{{ end }}
 				<button
 					data-test-id="button-login"
 					class="btn btn-light btn-block"
@@ -68,7 +69,6 @@
 				</button>
 			</div>
 		</div>
-		{{ end }}
 		{{ else }}
 		<div class="row">
 			<div class="col text-right">
