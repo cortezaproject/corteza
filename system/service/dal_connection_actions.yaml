@@ -1,7 +1,7 @@
 # List of loggable service actions
 
-resource: system:connection
-service: connection
+resource: system:dal-connection
+service: dalConnection
 
 # Default sensitivity for actions
 defaultActionSeverity: notice
@@ -14,16 +14,16 @@ import:
 
 props:
   - name: connection
-    type: "*types.Connection"
+    type: "*types.DalConnection"
     fields: [ DSN, ID ]
   - name: new
-    type: "*types.Connection"
+    type: "*types.DalConnection"
     fields: [ DSN, ID ]
   - name: update
-    type: "*types.Connection"
+    type: "*types.DalConnection"
     fields: [ DSN, ID ]
   - name: search
-    type: "*types.ConnectionFilter"
+    type: "*types.DalConnectionFilter"
     fields: []
 
 actions:

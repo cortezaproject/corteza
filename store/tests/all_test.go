@@ -74,11 +74,11 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	t.Run("composeRecordValue", func(t *testing.T) {
 		testComposeRecordValues(t, s)
 	})
-	t.Run("connection", func(t *testing.T) {
-		testConnections(t, s)
-	})
 	t.Run("credential", func(t *testing.T) {
 		testCredentials(t, s)
+	})
+	t.Run("dalConnection", func(t *testing.T) {
+		testDalConnections(t, s)
 	})
 	t.Run("federationExposedModule", func(t *testing.T) {
 		testFederationExposedModules(t, s)

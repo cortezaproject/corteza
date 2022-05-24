@@ -49,8 +49,8 @@ var (
 	_ store.ComposePages             = &Store{}
 	_ store.ComposeRecords           = &Store{}
 	_ store.ComposeRecordValues      = &Store{}
-	_ store.Connections              = &Store{}
 	_ store.Credentials              = &Store{}
+	_ store.DalConnections           = &Store{}
 	_ store.FederationExposedModules = &Store{}
 	_ store.FederationModuleMappings = &Store{}
 	_ store.FederationNodes          = &Store{}
@@ -9242,564 +9242,6 @@ func (s *Store) checkComposeRecordValueConstraints(ctx context.Context, res *com
 	return nil
 }
 
-// CreateConnection creates one or more rows in connection collection
-//
-// This function is auto-generated
-func (s *Store) CreateConnection(ctx context.Context, rr ...*systemType.Connection) (err error) {
-	for i := range rr {
-		if err = s.checkConnectionConstraints(ctx, rr[i]); err != nil {
-			return
-		}
-
-		if err = s.Exec(ctx, connectionInsertQuery(s.Dialect, rr[i])); err != nil {
-			return
-		}
-	}
-
-	return
-}
-
-// UpdateConnection updates one or more existing entries in connection collection
-//
-// This function is auto-generated
-func (s *Store) UpdateConnection(ctx context.Context, rr ...*systemType.Connection) (err error) {
-	for i := range rr {
-		if err = s.checkConnectionConstraints(ctx, rr[i]); err != nil {
-			return
-		}
-
-		if err = s.Exec(ctx, connectionUpdateQuery(s.Dialect, rr[i])); err != nil {
-			return
-		}
-	}
-
-	return
-}
-
-// UpsertConnection updates one or more existing entries in connection collection
-//
-// This function is auto-generated
-func (s *Store) UpsertConnection(ctx context.Context, rr ...*systemType.Connection) (err error) {
-	for i := range rr {
-		if err = s.checkConnectionConstraints(ctx, rr[i]); err != nil {
-			return
-		}
-
-		if err = s.Exec(ctx, connectionUpsertQuery(s.Dialect, rr[i])); err != nil {
-			return
-		}
-	}
-
-	return
-}
-
-// DeleteConnection Deletes one or more entries from connection collection
-//
-// This function is auto-generated
-func (s *Store) DeleteConnection(ctx context.Context, rr ...*systemType.Connection) (err error) {
-	for i := range rr {
-		if err = s.Exec(ctx, connectionDeleteQuery(s.Dialect, connectionPrimaryKeys(rr[i]))); err != nil {
-			return
-		}
-	}
-
-	return nil
-}
-
-// DeleteConnectionByID deletes single entry from connection collection
-//
-// This function is auto-generated
-func (s *Store) DeleteConnectionByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, connectionDeleteQuery(s.Dialect, goqu.Ex{
-		"id": id,
-	}))
-}
-
-// TruncateConnections Deletes all rows from the connection collection
-func (s Store) TruncateConnections(ctx context.Context) error {
-	return s.Exec(ctx, connectionTruncateQuery(s.Dialect))
-}
-
-// SearchConnections returns (filtered) set of Connections
-//
-// This function is auto-generated
-func (s *Store) SearchConnections(ctx context.Context, f systemType.ConnectionFilter) (set systemType.ConnectionSet, _ systemType.ConnectionFilter, err error) {
-
-	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
-	f.PrevPage, f.NextPage = nil, nil
-
-	if f.PageCursor != nil {
-		// Page cursor exists; we need to validate it against used sort
-		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
-		// from the cursor.
-		// This (extracted sorting info) is then returned as part of response
-		if f.Sort, err = f.PageCursor.Sort(f.Sort); err != nil {
-			return
-		}
-	}
-
-	// Make sure results are always sorted at least by primary keys
-	if f.Sort.Get("id") == nil {
-		f.Sort = append(f.Sort, &filter.SortExpr{
-			Column:     "id",
-			Descending: f.Sort.LastDescending(),
-		})
-	}
-
-	// Cloned sorting instructions for the actual sorting
-	// Original are passed to the etchFullPageOfConnections fn used for cursor creation;
-	// direction information it MUST keep the initial
-	sort := f.Sort.Clone()
-
-	// When cursor for a previous page is used it's marked as reversed
-	// This tells us to flip the descending flag on all used sort keys
-	if f.PageCursor != nil && f.PageCursor.ROrder {
-		sort.Reverse()
-	}
-
-	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfConnections(ctx, f, sort)
-
-	f.PageCursor = nil
-	if err != nil {
-		return nil, f, err
-	}
-
-	return set, f, nil
-}
-
-// fetchFullPageOfConnections collects all requested results.
-//
-// Function applies:
-//  - cursor conditions (where ...)
-//  - limit
-//
-// Main responsibility of this function is to perform additional sequential queries in case when not enough results
-// are collected due to failed check on a specific row (by check fn).
-//
-// Function then moves cursor to the last item fetched
-//
-// This function is auto-generated
-func (s *Store) fetchFullPageOfConnections(
-	ctx context.Context,
-	filter systemType.ConnectionFilter,
-	sort filter.SortExprSet,
-) (set []*systemType.Connection, prev, next *filter.PagingCursor, err error) {
-	var (
-		aux []*systemType.Connection
-
-		// When cursor for a previous page is used it's marked as reversed
-		// This tells us to flip the descending flag on all used sort keys
-		reversedOrder = filter.PageCursor != nil && filter.PageCursor.ROrder
-
-		// Copy no. of required items to limit
-		// Limit will change when doing subsequent queries to fill
-		// the set with all required items
-		limit = filter.Limit
-
-		reqItems = filter.Limit
-
-		// cursor to prev. page is only calculated when cursor is used
-		hasPrev = filter.PageCursor != nil
-
-		// next cursor is calculated when there are more pages to come
-		hasNext bool
-
-		tryFilter systemType.ConnectionFilter
-	)
-
-	set = make([]*systemType.Connection, 0, DefaultSliceCapacity)
-
-	for try := 0; try < MaxRefetches; try++ {
-		// Copy filter & apply custom sorting that might be affected by cursor
-		tryFilter = filter
-		tryFilter.Sort = sort
-
-		if limit > 0 {
-			// fetching + 1 to peak ahead if there are more items
-			// we can fetch (next-page cursor)
-			tryFilter.Limit = limit + 1
-		}
-
-		if aux, hasNext, err = s.QueryConnections(ctx, tryFilter); err != nil {
-			return nil, nil, nil, err
-		}
-
-		if len(aux) == 0 {
-			// nothing fetched
-			break
-		}
-
-		// append fetched items
-		set = append(set, aux...)
-
-		if reqItems == 0 || !hasNext {
-			// no max requested items specified, break out
-			break
-		}
-
-		collected := uint(len(set))
-
-		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
-
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
-			}
-
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectConnectionCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
-			continue
-		}
-
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
-		break
-	}
-
-	collected := len(set)
-
-	if collected == 0 {
-		return nil, nil, nil, nil
-	}
-
-	if reversedOrder {
-		// Fetched set needs to be reversed because we've forced a descending order to get the previous page
-		for i, j := 0, collected-1; i < j; i, j = i+1, j-1 {
-			set[i], set[j] = set[j], set[i]
-		}
-
-		// when in reverse-order rules on what cursor to return change
-		hasPrev, hasNext = hasNext, hasPrev
-	}
-
-	if hasPrev {
-		prev = s.collectConnectionCursorValues(set[0], filter.Sort...)
-		prev.ROrder = true
-		prev.LThen = !filter.Sort.Reversed()
-	}
-
-	if hasNext {
-		next = s.collectConnectionCursorValues(set[collected-1], filter.Sort...)
-		next.LThen = filter.Sort.Reversed()
-	}
-
-	return set, prev, next, nil
-}
-
-// QueryConnections queries the database, converts and checks each row and returns collected set
-//
-// With generics, we can remove this per-resource-generated function
-// and replace it with a single utility fetcher
-//
-// This function is auto-generated
-func (s *Store) QueryConnections(
-	ctx context.Context,
-	f systemType.ConnectionFilter,
-) (_ []*systemType.Connection, more bool, err error) {
-	var (
-		ok bool
-
-		set         = make([]*systemType.Connection, 0, DefaultSliceCapacity)
-		res         *systemType.Connection
-		aux         *auxConnection
-		rows        *sql.Rows
-		count       uint
-		expr, tExpr []goqu.Expression
-
-		sortExpr []exp.OrderedExpression
-	)
-
-	if s.Filters.Connection != nil {
-		// extended filter set
-		tExpr, f, err = s.Filters.Connection(s, f)
-	} else {
-		// using generated filter
-		tExpr, f, err = ConnectionFilter(f)
-	}
-
-	if err != nil {
-		err = fmt.Errorf("could generate filter expression for Connection: %w", err)
-		return
-	}
-
-	expr = append(expr, tExpr...)
-
-	// paging feature is enabled
-	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
-			return
-		} else {
-			expr = append(expr, tExpr...)
-		}
-	}
-
-	query := connectionSelectQuery(s.Dialect).Where(expr...)
-
-	// sorting feature is enabled
-	if sortExpr, err = order(f.Sort, s.sortableConnectionFields()); err != nil {
-		err = fmt.Errorf("could generate order expression for Connection: %w", err)
-		return
-	}
-
-	if len(sortExpr) > 0 {
-		query = query.Order(sortExpr...)
-	}
-
-	if f.Limit > 0 {
-		query = query.Limit(f.Limit)
-	}
-
-	rows, err = s.Query(ctx, query)
-	if err != nil {
-		err = fmt.Errorf("could not query Connection: %w", err)
-		return
-	}
-
-	if err = rows.Err(); err != nil {
-		err = fmt.Errorf("could not query Connection: %w", err)
-		return
-	}
-
-	defer func() {
-		closeError := rows.Close()
-		if err == nil {
-			// return error from close
-			err = closeError
-		}
-	}()
-
-	for rows.Next() {
-		if err = rows.Err(); err != nil {
-			err = fmt.Errorf("could not query Connection: %w", err)
-			return
-		}
-
-		aux = new(auxConnection)
-		if err = aux.scan(rows); err != nil {
-			err = fmt.Errorf("could not scan rows for Connection: %w", err)
-			return
-		}
-
-		count++
-		if res, err = aux.decode(); err != nil {
-			err = fmt.Errorf("could not decode Connection: %w", err)
-			return
-		}
-
-		// check fn set, call it and see if it passed the test
-		// if not, skip the item
-		if f.Check != nil {
-			if ok, err = f.Check(res); err != nil {
-				return
-			} else if !ok {
-				continue
-			}
-		}
-
-		set = append(set, res)
-	}
-
-	return set, f.Limit > 0 && count >= f.Limit, err
-
-}
-
-// LookupConnectionByID searches for connection by ID
-//
-// It returns connection even if deleted or suspended
-//
-// This function is auto-generated
-func (s *Store) LookupConnectionByID(ctx context.Context, id uint64) (_ *systemType.Connection, err error) {
-	var (
-		rows   *sql.Rows
-		aux    = new(auxConnection)
-		lookup = connectionSelectQuery(s.Dialect).Where(
-			goqu.I("id").Eq(id),
-		).Limit(1)
-	)
-
-	rows, err = s.Query(ctx, lookup)
-	if err != nil {
-		return
-	}
-
-	defer func() {
-		closeError := rows.Close()
-		if err == nil {
-			// return error from close
-			err = closeError
-		}
-	}()
-
-	if err = rows.Err(); err != nil {
-		return
-	}
-
-	if !rows.Next() {
-		return nil, store.ErrNotFound.Stack(1)
-	}
-
-	if err = aux.scan(rows); err != nil {
-		return
-	}
-
-	return aux.decode()
-}
-
-// LookupConnectionByHandle searches for connection by handle
-//
-// It returns only valid connection (not deleted)
-//
-// This function is auto-generated
-func (s *Store) LookupConnectionByHandle(ctx context.Context, handle string) (_ *systemType.Connection, err error) {
-	var (
-		rows   *sql.Rows
-		aux    = new(auxConnection)
-		lookup = connectionSelectQuery(s.Dialect).Where(
-			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
-			goqu.I("deleted_at").IsNull(),
-		).Limit(1)
-	)
-
-	rows, err = s.Query(ctx, lookup)
-	if err != nil {
-		return
-	}
-
-	defer func() {
-		closeError := rows.Close()
-		if err == nil {
-			// return error from close
-			err = closeError
-		}
-	}()
-
-	if err = rows.Err(); err != nil {
-		return
-	}
-
-	if !rows.Next() {
-		return nil, store.ErrNotFound.Stack(1)
-	}
-
-	if err = aux.scan(rows); err != nil {
-		return
-	}
-
-	return aux.decode()
-}
-
-// sortableConnectionFields returns all <no value> columns flagged as sortable
-//
-// With optional string arg, all columns are returned aliased
-//
-// This function is auto-generated
-func (Store) sortableConnectionFields() map[string]string {
-	return map[string]string{
-		"created_at": "created_at",
-		"createdat":  "created_at",
-		"deleted_at": "deleted_at",
-		"deletedat":  "deleted_at",
-		"handle":     "handle",
-		"id":         "id",
-		"updated_at": "updated_at",
-		"updatedat":  "updated_at",
-	}
-}
-
-// collectConnectionCursorValues collects values from the given resource that and sets them to the cursor
-// to be used for pagination
-//
-// Values that are collected must come from sortable, unique or primary columns/fields
-// At least one of the collected columns must be flagged as unique, otherwise fn appends primary keys at the end
-//
-// Known issue:
-//   when collecting cursor values for query that sorts by unique column with partial index (ie: unique handle on
-//   undeleted items)
-//
-// This function is auto-generated
-func (s *Store) collectConnectionCursorValues(res *systemType.Connection, cc ...*filter.SortExpr) *filter.PagingCursor {
-	var (
-		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
-
-		hasUnique bool
-
-		pkID bool
-
-		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
-				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
-					pkID = true
-				case "handle":
-					cur.Set(c.Column, res.Handle, c.Descending)
-					hasUnique = true
-				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
-				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
-				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
-				}
-			}
-		}
-	)
-
-	collect(cc...)
-	if !hasUnique || !pkID {
-		collect(&filter.SortExpr{Column: "id", Descending: false})
-	}
-
-	return cur
-
-}
-
-// checkConnectionConstraints performs lookups (on valid) resource to check if any of the values on unique fields
-// already exists in the store
-//
-// Using built-in constraint checking would be more performant, but unfortunately we cannot rely
-// on the full support (MySQL does not support conditional indexes)
-//
-// This function is auto-generated
-func (s *Store) checkConnectionConstraints(ctx context.Context, res *systemType.Connection) (err error) {
-	err = func() (err error) {
-
-		// handling string type as default
-		if len(res.Handle) == 0 {
-			// skip check on empty values
-			return nil
-		}
-
-		if res.DeletedAt != nil {
-			// skip check if value is not nil
-			return nil
-		}
-
-		ex, err := s.LookupConnectionByHandle(ctx, res.Handle)
-		if err == nil && ex != nil && ex.ID != res.ID {
-			return store.ErrNotUnique.Stack(1)
-		} else if !errors.IsNotFound(err) {
-			return err
-		}
-
-		return nil
-	}()
-
-	if err != nil {
-		return
-	}
-
-	return nil
-}
-
 // CreateCredential creates one or more rows in credential collection
 //
 // This function is auto-generated
@@ -10095,6 +9537,564 @@ func (s *Store) collectCredentialCursorValues(res *systemType.Credential, cc ...
 //
 // This function is auto-generated
 func (s *Store) checkCredentialConstraints(ctx context.Context, res *systemType.Credential) (err error) {
+	return nil
+}
+
+// CreateDalConnection creates one or more rows in dalConnection collection
+//
+// This function is auto-generated
+func (s *Store) CreateDalConnection(ctx context.Context, rr ...*systemType.DalConnection) (err error) {
+	for i := range rr {
+		if err = s.checkDalConnectionConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, dalConnectionInsertQuery(s.Dialect, rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpdateDalConnection updates one or more existing entries in dalConnection collection
+//
+// This function is auto-generated
+func (s *Store) UpdateDalConnection(ctx context.Context, rr ...*systemType.DalConnection) (err error) {
+	for i := range rr {
+		if err = s.checkDalConnectionConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, dalConnectionUpdateQuery(s.Dialect, rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpsertDalConnection updates one or more existing entries in dalConnection collection
+//
+// This function is auto-generated
+func (s *Store) UpsertDalConnection(ctx context.Context, rr ...*systemType.DalConnection) (err error) {
+	for i := range rr {
+		if err = s.checkDalConnectionConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, dalConnectionUpsertQuery(s.Dialect, rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// DeleteDalConnection Deletes one or more entries from dalConnection collection
+//
+// This function is auto-generated
+func (s *Store) DeleteDalConnection(ctx context.Context, rr ...*systemType.DalConnection) (err error) {
+	for i := range rr {
+		if err = s.Exec(ctx, dalConnectionDeleteQuery(s.Dialect, dalConnectionPrimaryKeys(rr[i]))); err != nil {
+			return
+		}
+	}
+
+	return nil
+}
+
+// DeleteDalConnectionByID deletes single entry from dalConnection collection
+//
+// This function is auto-generated
+func (s *Store) DeleteDalConnectionByID(ctx context.Context, id uint64) error {
+	return s.Exec(ctx, dalConnectionDeleteQuery(s.Dialect, goqu.Ex{
+		"id": id,
+	}))
+}
+
+// TruncateDalConnections Deletes all rows from the dalConnection collection
+func (s Store) TruncateDalConnections(ctx context.Context) error {
+	return s.Exec(ctx, dalConnectionTruncateQuery(s.Dialect))
+}
+
+// SearchDalConnections returns (filtered) set of DalConnections
+//
+// This function is auto-generated
+func (s *Store) SearchDalConnections(ctx context.Context, f systemType.DalConnectionFilter) (set systemType.DalConnectionSet, _ systemType.DalConnectionFilter, err error) {
+
+	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
+	f.PrevPage, f.NextPage = nil, nil
+
+	if f.PageCursor != nil {
+		// Page cursor exists; we need to validate it against used sort
+		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
+		// from the cursor.
+		// This (extracted sorting info) is then returned as part of response
+		if f.Sort, err = f.PageCursor.Sort(f.Sort); err != nil {
+			return
+		}
+	}
+
+	// Make sure results are always sorted at least by primary keys
+	if f.Sort.Get("id") == nil {
+		f.Sort = append(f.Sort, &filter.SortExpr{
+			Column:     "id",
+			Descending: f.Sort.LastDescending(),
+		})
+	}
+
+	// Cloned sorting instructions for the actual sorting
+	// Original are passed to the etchFullPageOfDalConnections fn used for cursor creation;
+	// direction information it MUST keep the initial
+	sort := f.Sort.Clone()
+
+	// When cursor for a previous page is used it's marked as reversed
+	// This tells us to flip the descending flag on all used sort keys
+	if f.PageCursor != nil && f.PageCursor.ROrder {
+		sort.Reverse()
+	}
+
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfDalConnections(ctx, f, sort)
+
+	f.PageCursor = nil
+	if err != nil {
+		return nil, f, err
+	}
+
+	return set, f, nil
+}
+
+// fetchFullPageOfDalConnections collects all requested results.
+//
+// Function applies:
+//  - cursor conditions (where ...)
+//  - limit
+//
+// Main responsibility of this function is to perform additional sequential queries in case when not enough results
+// are collected due to failed check on a specific row (by check fn).
+//
+// Function then moves cursor to the last item fetched
+//
+// This function is auto-generated
+func (s *Store) fetchFullPageOfDalConnections(
+	ctx context.Context,
+	filter systemType.DalConnectionFilter,
+	sort filter.SortExprSet,
+) (set []*systemType.DalConnection, prev, next *filter.PagingCursor, err error) {
+	var (
+		aux []*systemType.DalConnection
+
+		// When cursor for a previous page is used it's marked as reversed
+		// This tells us to flip the descending flag on all used sort keys
+		reversedOrder = filter.PageCursor != nil && filter.PageCursor.ROrder
+
+		// Copy no. of required items to limit
+		// Limit will change when doing subsequent queries to fill
+		// the set with all required items
+		limit = filter.Limit
+
+		reqItems = filter.Limit
+
+		// cursor to prev. page is only calculated when cursor is used
+		hasPrev = filter.PageCursor != nil
+
+		// next cursor is calculated when there are more pages to come
+		hasNext bool
+
+		tryFilter systemType.DalConnectionFilter
+	)
+
+	set = make([]*systemType.DalConnection, 0, DefaultSliceCapacity)
+
+	for try := 0; try < MaxRefetches; try++ {
+		// Copy filter & apply custom sorting that might be affected by cursor
+		tryFilter = filter
+		tryFilter.Sort = sort
+
+		if limit > 0 {
+			// fetching + 1 to peak ahead if there are more items
+			// we can fetch (next-page cursor)
+			tryFilter.Limit = limit + 1
+		}
+
+		if aux, hasNext, err = s.QueryDalConnections(ctx, tryFilter); err != nil {
+			return nil, nil, nil, err
+		}
+
+		if len(aux) == 0 {
+			// nothing fetched
+			break
+		}
+
+		// append fetched items
+		set = append(set, aux...)
+
+		if reqItems == 0 || !hasNext {
+			// no max requested items specified, break out
+			break
+		}
+
+		collected := uint(len(set))
+
+		if reqItems > collected {
+			// not enough items fetched, try again with adjusted limit
+			limit = reqItems - collected
+
+			if limit < MinEnsureFetchLimit {
+				// In case limit is set very low and we've missed records in the first fetch,
+				// make sure next fetch limit is a bit higher
+				limit = MinEnsureFetchLimit
+			}
+
+			// Update cursor so that it points to the last item fetched
+			tryFilter.PageCursor = s.collectDalConnectionCursorValues(set[collected-1], filter.Sort...)
+
+			// Copy reverse flag from sorting
+			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
+			continue
+		}
+
+		if reqItems < collected {
+			set = set[:reqItems]
+		}
+
+		break
+	}
+
+	collected := len(set)
+
+	if collected == 0 {
+		return nil, nil, nil, nil
+	}
+
+	if reversedOrder {
+		// Fetched set needs to be reversed because we've forced a descending order to get the previous page
+		for i, j := 0, collected-1; i < j; i, j = i+1, j-1 {
+			set[i], set[j] = set[j], set[i]
+		}
+
+		// when in reverse-order rules on what cursor to return change
+		hasPrev, hasNext = hasNext, hasPrev
+	}
+
+	if hasPrev {
+		prev = s.collectDalConnectionCursorValues(set[0], filter.Sort...)
+		prev.ROrder = true
+		prev.LThen = !filter.Sort.Reversed()
+	}
+
+	if hasNext {
+		next = s.collectDalConnectionCursorValues(set[collected-1], filter.Sort...)
+		next.LThen = filter.Sort.Reversed()
+	}
+
+	return set, prev, next, nil
+}
+
+// QueryDalConnections queries the database, converts and checks each row and returns collected set
+//
+// With generics, we can remove this per-resource-generated function
+// and replace it with a single utility fetcher
+//
+// This function is auto-generated
+func (s *Store) QueryDalConnections(
+	ctx context.Context,
+	f systemType.DalConnectionFilter,
+) (_ []*systemType.DalConnection, more bool, err error) {
+	var (
+		ok bool
+
+		set         = make([]*systemType.DalConnection, 0, DefaultSliceCapacity)
+		res         *systemType.DalConnection
+		aux         *auxDalConnection
+		rows        *sql.Rows
+		count       uint
+		expr, tExpr []goqu.Expression
+
+		sortExpr []exp.OrderedExpression
+	)
+
+	if s.Filters.DalConnection != nil {
+		// extended filter set
+		tExpr, f, err = s.Filters.DalConnection(s, f)
+	} else {
+		// using generated filter
+		tExpr, f, err = DalConnectionFilter(f)
+	}
+
+	if err != nil {
+		err = fmt.Errorf("could generate filter expression for DalConnection: %w", err)
+		return
+	}
+
+	expr = append(expr, tExpr...)
+
+	// paging feature is enabled
+	if f.PageCursor != nil {
+		if tExpr, err = cursor(f.PageCursor); err != nil {
+			return
+		} else {
+			expr = append(expr, tExpr...)
+		}
+	}
+
+	query := dalConnectionSelectQuery(s.Dialect).Where(expr...)
+
+	// sorting feature is enabled
+	if sortExpr, err = order(f.Sort, s.sortableDalConnectionFields()); err != nil {
+		err = fmt.Errorf("could generate order expression for DalConnection: %w", err)
+		return
+	}
+
+	if len(sortExpr) > 0 {
+		query = query.Order(sortExpr...)
+	}
+
+	if f.Limit > 0 {
+		query = query.Limit(f.Limit)
+	}
+
+	rows, err = s.Query(ctx, query)
+	if err != nil {
+		err = fmt.Errorf("could not query DalConnection: %w", err)
+		return
+	}
+
+	if err = rows.Err(); err != nil {
+		err = fmt.Errorf("could not query DalConnection: %w", err)
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	for rows.Next() {
+		if err = rows.Err(); err != nil {
+			err = fmt.Errorf("could not query DalConnection: %w", err)
+			return
+		}
+
+		aux = new(auxDalConnection)
+		if err = aux.scan(rows); err != nil {
+			err = fmt.Errorf("could not scan rows for DalConnection: %w", err)
+			return
+		}
+
+		count++
+		if res, err = aux.decode(); err != nil {
+			err = fmt.Errorf("could not decode DalConnection: %w", err)
+			return
+		}
+
+		// check fn set, call it and see if it passed the test
+		// if not, skip the item
+		if f.Check != nil {
+			if ok, err = f.Check(res); err != nil {
+				return
+			} else if !ok {
+				continue
+			}
+		}
+
+		set = append(set, res)
+	}
+
+	return set, f.Limit > 0 && count >= f.Limit, err
+
+}
+
+// LookupDalConnectionByID searches for connection by ID
+//
+// It returns connection even if deleted or suspended
+//
+// This function is auto-generated
+func (s *Store) LookupDalConnectionByID(ctx context.Context, id uint64) (_ *systemType.DalConnection, err error) {
+	var (
+		rows   *sql.Rows
+		aux    = new(auxDalConnection)
+		lookup = dalConnectionSelectQuery(s.Dialect).Where(
+			goqu.I("id").Eq(id),
+		).Limit(1)
+	)
+
+	rows, err = s.Query(ctx, lookup)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if err = rows.Err(); err != nil {
+		return
+	}
+
+	if !rows.Next() {
+		return nil, store.ErrNotFound.Stack(1)
+	}
+
+	if err = aux.scan(rows); err != nil {
+		return
+	}
+
+	return aux.decode()
+}
+
+// LookupDalConnectionByHandle searches for connection by handle
+//
+// It returns only valid connection (not deleted)
+//
+// This function is auto-generated
+func (s *Store) LookupDalConnectionByHandle(ctx context.Context, handle string) (_ *systemType.DalConnection, err error) {
+	var (
+		rows   *sql.Rows
+		aux    = new(auxDalConnection)
+		lookup = dalConnectionSelectQuery(s.Dialect).Where(
+			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
+			goqu.I("deleted_at").IsNull(),
+		).Limit(1)
+	)
+
+	rows, err = s.Query(ctx, lookup)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if err = rows.Err(); err != nil {
+		return
+	}
+
+	if !rows.Next() {
+		return nil, store.ErrNotFound.Stack(1)
+	}
+
+	if err = aux.scan(rows); err != nil {
+		return
+	}
+
+	return aux.decode()
+}
+
+// sortableDalConnectionFields returns all <no value> columns flagged as sortable
+//
+// With optional string arg, all columns are returned aliased
+//
+// This function is auto-generated
+func (Store) sortableDalConnectionFields() map[string]string {
+	return map[string]string{
+		"created_at": "created_at",
+		"createdat":  "created_at",
+		"deleted_at": "deleted_at",
+		"deletedat":  "deleted_at",
+		"handle":     "handle",
+		"id":         "id",
+		"updated_at": "updated_at",
+		"updatedat":  "updated_at",
+	}
+}
+
+// collectDalConnectionCursorValues collects values from the given resource that and sets them to the cursor
+// to be used for pagination
+//
+// Values that are collected must come from sortable, unique or primary columns/fields
+// At least one of the collected columns must be flagged as unique, otherwise fn appends primary keys at the end
+//
+// Known issue:
+//   when collecting cursor values for query that sorts by unique column with partial index (ie: unique handle on
+//   undeleted items)
+//
+// This function is auto-generated
+func (s *Store) collectDalConnectionCursorValues(res *systemType.DalConnection, cc ...*filter.SortExpr) *filter.PagingCursor {
+	var (
+		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
+
+		hasUnique bool
+
+		pkID bool
+
+		collect = func(cc ...*filter.SortExpr) {
+			for _, c := range cc {
+				switch c.Column {
+				case "id":
+					cur.Set(c.Column, res.ID, c.Descending)
+					pkID = true
+				case "handle":
+					cur.Set(c.Column, res.Handle, c.Descending)
+					hasUnique = true
+				case "createdAt":
+					cur.Set(c.Column, res.CreatedAt, c.Descending)
+				case "updatedAt":
+					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+				case "deletedAt":
+					cur.Set(c.Column, res.DeletedAt, c.Descending)
+				}
+			}
+		}
+	)
+
+	collect(cc...)
+	if !hasUnique || !pkID {
+		collect(&filter.SortExpr{Column: "id", Descending: false})
+	}
+
+	return cur
+
+}
+
+// checkDalConnectionConstraints performs lookups (on valid) resource to check if any of the values on unique fields
+// already exists in the store
+//
+// Using built-in constraint checking would be more performant, but unfortunately we cannot rely
+// on the full support (MySQL does not support conditional indexes)
+//
+// This function is auto-generated
+func (s *Store) checkDalConnectionConstraints(ctx context.Context, res *systemType.DalConnection) (err error) {
+	err = func() (err error) {
+
+		// handling string type as default
+		if len(res.Handle) == 0 {
+			// skip check on empty values
+			return nil
+		}
+
+		if res.DeletedAt != nil {
+			// skip check if value is not nil
+			return nil
+		}
+
+		ex, err := s.LookupDalConnectionByHandle(ctx, res.Handle)
+		if err == nil && ex != nil && ex.ID != res.ID {
+			return store.ErrNotUnique.Stack(1)
+		} else if !errors.IsNotFound(err) {
+			return err
+		}
+
+		return nil
+	}()
+
+	if err != nil {
+		return
+	}
+
 	return nil
 }
 

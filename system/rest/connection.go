@@ -24,22 +24,22 @@ type (
 	}
 
 	connectionSetPayload struct {
-		Filter types.ConnectionFilter `json:"filter"`
-		Set    types.ConnectionSet    `json:"set"`
+		Filter types.DalConnectionFilter `json:"filter"`
+		Set    types.DalConnectionSet    `json:"set"`
 	}
 
 	connectionAccessController interface {
-		CanCreateConnection(context.Context) bool
-		CanUpdateConnection(context.Context, *types.Connection) bool
+		CanCreateDalConnection(context.Context) bool
+		CanUpdateDalConnection(context.Context, *types.DalConnection) bool
 	}
 
 	connectionService interface {
-		FindByID(ctx context.Context, ID uint64) (*types.Connection, error)
-		Create(ctx context.Context, new *types.Connection) (*types.Connection, error)
-		Update(ctx context.Context, upd *types.Connection) (*types.Connection, error)
+		FindByID(ctx context.Context, ID uint64) (*types.DalConnection, error)
+		Create(ctx context.Context, new *types.DalConnection) (*types.DalConnection, error)
+		Update(ctx context.Context, upd *types.DalConnection) (*types.DalConnection, error)
 		DeleteByID(ctx context.Context, ID uint64) error
 		UndeleteByID(ctx context.Context, ID uint64) error
-		Search(ctx context.Context, filter types.ConnectionFilter) (types.ConnectionSet, types.ConnectionFilter, error)
+		Search(ctx context.Context, filter types.DalConnectionFilter) (types.DalConnectionSet, types.DalConnectionFilter, error)
 	}
 )
 
@@ -53,8 +53,8 @@ func (Connection) New() *Connection {
 func (ctrl Connection) List(ctx context.Context, r *request.ConnectionList) (interface{}, error) {
 	var (
 		err error
-		set types.ConnectionSet
-		f   = types.ConnectionFilter{
+		set types.DalConnectionSet
+		f   = types.DalConnectionFilter{
 			ConnectionID: payload.ParseUint64s(r.ConnectionID),
 			Handle:       r.Handle,
 			Location:     r.Location,
@@ -82,7 +82,7 @@ func (ctrl Connection) List(ctx context.Context, r *request.ConnectionList) (int
 }
 
 func (ctrl Connection) Create(ctx context.Context, r *request.ConnectionCreate) (interface{}, error) {
-	connection := &types.Connection{
+	connection := &types.DalConnection{
 		Handle: r.Handle,
 
 		DSN:       r.Dsn,
@@ -100,7 +100,7 @@ func (ctrl Connection) Create(ctx context.Context, r *request.ConnectionCreate) 
 }
 
 func (ctrl Connection) Update(ctx context.Context, r *request.ConnectionUpdate) (interface{}, error) {
-	connection := &types.Connection{
+	connection := &types.DalConnection{
 		ID:     r.ConnectionID,
 		Handle: r.Handle,
 
@@ -134,13 +134,13 @@ func (ctrl Connection) Undelete(ctx context.Context, r *request.ConnectionUndele
 	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.ConnectionID)
 }
 
-func (ctrl Connection) makeFilterPayload(ctx context.Context, uu types.ConnectionSet, f types.ConnectionFilter, err error) (*connectionSetPayload, error) {
+func (ctrl Connection) makeFilterPayload(ctx context.Context, uu types.DalConnectionSet, f types.DalConnectionFilter, err error) (*connectionSetPayload, error) {
 	if err != nil {
 		return nil, err
 	}
 
 	if len(uu) == 0 {
-		uu = make([]*types.Connection, 0)
+		uu = make([]*types.DalConnection, 0)
 	}
 
 	return &connectionSetPayload{Filter: f, Set: uu}, nil

@@ -18,18 +18,18 @@ import (
 
 type (
 	// Internal API interface
-	ConnectionAPI interface {
-		List(context.Context, *request.ConnectionList) (interface{}, error)
-		Create(context.Context, *request.ConnectionCreate) (interface{}, error)
-		Update(context.Context, *request.ConnectionUpdate) (interface{}, error)
-		ReadPrimary(context.Context, *request.ConnectionReadPrimary) (interface{}, error)
-		Read(context.Context, *request.ConnectionRead) (interface{}, error)
-		Delete(context.Context, *request.ConnectionDelete) (interface{}, error)
-		Undelete(context.Context, *request.ConnectionUndelete) (interface{}, error)
+	DalConnectionAPI interface {
+		List(context.Context, *request.DalConnectionList) (interface{}, error)
+		Create(context.Context, *request.DalConnectionCreate) (interface{}, error)
+		Update(context.Context, *request.DalConnectionUpdate) (interface{}, error)
+		ReadPrimary(context.Context, *request.DalConnectionReadPrimary) (interface{}, error)
+		Read(context.Context, *request.DalConnectionRead) (interface{}, error)
+		Delete(context.Context, *request.DalConnectionDelete) (interface{}, error)
+		Undelete(context.Context, *request.DalConnectionUndelete) (interface{}, error)
 	}
 
 	// HTTP API interface
-	Connection struct {
+	DalConnection struct {
 		List        func(http.ResponseWriter, *http.Request)
 		Create      func(http.ResponseWriter, *http.Request)
 		Update      func(http.ResponseWriter, *http.Request)
@@ -40,11 +40,11 @@ type (
 	}
 )
 
-func NewConnection(h ConnectionAPI) *Connection {
-	return &Connection{
+func NewDalConnection(h DalConnectionAPI) *DalConnection {
+	return &DalConnection{
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewConnectionList()
+			params := request.NewDalConnectionList()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
@@ -60,7 +60,7 @@ func NewConnection(h ConnectionAPI) *Connection {
 		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewConnectionCreate()
+			params := request.NewDalConnectionCreate()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
@@ -76,7 +76,7 @@ func NewConnection(h ConnectionAPI) *Connection {
 		},
 		Update: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewConnectionUpdate()
+			params := request.NewDalConnectionUpdate()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
@@ -92,7 +92,7 @@ func NewConnection(h ConnectionAPI) *Connection {
 		},
 		ReadPrimary: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewConnectionReadPrimary()
+			params := request.NewDalConnectionReadPrimary()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
@@ -108,7 +108,7 @@ func NewConnection(h ConnectionAPI) *Connection {
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewConnectionRead()
+			params := request.NewDalConnectionRead()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
@@ -124,7 +124,7 @@ func NewConnection(h ConnectionAPI) *Connection {
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewConnectionDelete()
+			params := request.NewDalConnectionDelete()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
@@ -140,7 +140,7 @@ func NewConnection(h ConnectionAPI) *Connection {
 		},
 		Undelete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewConnectionUndelete()
+			params := request.NewDalConnectionUndelete()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
@@ -157,15 +157,15 @@ func NewConnection(h ConnectionAPI) *Connection {
 	}
 }
 
-func (h Connection) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h DalConnection) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/connections/", h.List)
-		r.Post("/connections/", h.Create)
-		r.Put("/connections/{connectionID}", h.Update)
-		r.Get("/connections/primary", h.ReadPrimary)
-		r.Get("/connections/{connectionID}", h.Read)
-		r.Delete("/connections/{connectionID}", h.Delete)
-		r.Post("/connections/{connectionID}/undelete", h.Undelete)
+		r.Get("/dal/connections/", h.List)
+		r.Post("/dal/connections/", h.Create)
+		r.Put("/dal/connections/{connectionID}", h.Update)
+		r.Get("/dal/connections/primary", h.ReadPrimary)
+		r.Get("/dal/connections/{connectionID}", h.Read)
+		r.Delete("/dal/connections/{connectionID}", h.Delete)
+		r.Post("/dal/connections/{connectionID}/undelete", h.Undelete)
 	})
 }

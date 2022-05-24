@@ -59,8 +59,8 @@ type (
 		ComposePages
 		ComposeRecords
 		ComposeRecordValues
-		Connections
 		Credentials
+		DalConnections
 		FederationExposedModules
 		FederationModuleMappings
 		FederationNodes
@@ -328,18 +328,6 @@ type (
 		ComposeRecordValueRefLookup(ctx context.Context, mod *composeType.Module, field string, ref uint64) (uint64, error)
 	}
 
-	Connections interface {
-		SearchConnections(ctx context.Context, f systemType.ConnectionFilter) (systemType.ConnectionSet, systemType.ConnectionFilter, error)
-		CreateConnection(ctx context.Context, rr ...*systemType.Connection) error
-		UpdateConnection(ctx context.Context, rr ...*systemType.Connection) error
-		UpsertConnection(ctx context.Context, rr ...*systemType.Connection) error
-		DeleteConnection(ctx context.Context, rr ...*systemType.Connection) error
-		DeleteConnectionByID(ctx context.Context, id uint64) error
-		TruncateConnections(ctx context.Context) error
-		LookupConnectionByID(ctx context.Context, id uint64) (*systemType.Connection, error)
-		LookupConnectionByHandle(ctx context.Context, handle string) (*systemType.Connection, error)
-	}
-
 	Credentials interface {
 		SearchCredentials(ctx context.Context, f systemType.CredentialFilter) (systemType.CredentialSet, systemType.CredentialFilter, error)
 		CreateCredential(ctx context.Context, rr ...*systemType.Credential) error
@@ -349,6 +337,18 @@ type (
 		DeleteCredentialByID(ctx context.Context, id uint64) error
 		TruncateCredentials(ctx context.Context) error
 		LookupCredentialByID(ctx context.Context, id uint64) (*systemType.Credential, error)
+	}
+
+	DalConnections interface {
+		SearchDalConnections(ctx context.Context, f systemType.DalConnectionFilter) (systemType.DalConnectionSet, systemType.DalConnectionFilter, error)
+		CreateDalConnection(ctx context.Context, rr ...*systemType.DalConnection) error
+		UpdateDalConnection(ctx context.Context, rr ...*systemType.DalConnection) error
+		UpsertDalConnection(ctx context.Context, rr ...*systemType.DalConnection) error
+		DeleteDalConnection(ctx context.Context, rr ...*systemType.DalConnection) error
+		DeleteDalConnectionByID(ctx context.Context, id uint64) error
+		TruncateDalConnections(ctx context.Context) error
+		LookupDalConnectionByID(ctx context.Context, id uint64) (*systemType.DalConnection, error)
+		LookupDalConnectionByHandle(ctx context.Context, handle string) (*systemType.DalConnection, error)
 	}
 
 	FederationExposedModules interface {
@@ -1906,73 +1906,6 @@ func ComposeRecordValueRefLookup(ctx context.Context, s ComposeRecordValues, mod
 	return s.ComposeRecordValueRefLookup(ctx, mod, field, ref)
 }
 
-// SearchConnections returns all matching Connections from store
-//
-// This function is auto-generated
-func SearchConnections(ctx context.Context, s Connections, f systemType.ConnectionFilter) (systemType.ConnectionSet, systemType.ConnectionFilter, error) {
-	return s.SearchConnections(ctx, f)
-}
-
-// CreateConnection creates one or more Connections in store
-//
-// This function is auto-generated
-func CreateConnection(ctx context.Context, s Connections, rr ...*systemType.Connection) error {
-	return s.CreateConnection(ctx, rr...)
-}
-
-// UpdateConnection updates one or more (existing) Connections in store
-//
-// This function is auto-generated
-func UpdateConnection(ctx context.Context, s Connections, rr ...*systemType.Connection) error {
-	return s.UpdateConnection(ctx, rr...)
-}
-
-// UpsertConnection creates new or updates existing one or more Connections in store
-//
-// This function is auto-generated
-func UpsertConnection(ctx context.Context, s Connections, rr ...*systemType.Connection) error {
-	return s.UpsertConnection(ctx, rr...)
-}
-
-// DeleteConnection deletes one or more Connections from store
-//
-// This function is auto-generated
-func DeleteConnection(ctx context.Context, s Connections, rr ...*systemType.Connection) error {
-	return s.DeleteConnection(ctx, rr...)
-}
-
-// DeleteConnectionByID deletes one or more Connections from store
-//
-// This function is auto-generated
-func DeleteConnectionByID(ctx context.Context, s Connections, id uint64) error {
-	return s.DeleteConnectionByID(ctx, id)
-}
-
-// TruncateConnections Deletes all Connections from store
-//
-// This function is auto-generated
-func TruncateConnections(ctx context.Context, s Connections) error {
-	return s.TruncateConnections(ctx)
-}
-
-// LookupConnectionByID searches for connection by ID
-//
-// It returns connection even if deleted or suspended
-//
-// This function is auto-generated
-func LookupConnectionByID(ctx context.Context, s Connections, id uint64) (*systemType.Connection, error) {
-	return s.LookupConnectionByID(ctx, id)
-}
-
-// LookupConnectionByHandle searches for connection by handle
-//
-// It returns only valid connection (not deleted)
-//
-// This function is auto-generated
-func LookupConnectionByHandle(ctx context.Context, s Connections, handle string) (*systemType.Connection, error) {
-	return s.LookupConnectionByHandle(ctx, handle)
-}
-
 // SearchCredentials returns all matching Credentials from store
 //
 // This function is auto-generated
@@ -2029,6 +1962,73 @@ func TruncateCredentials(ctx context.Context, s Credentials) error {
 // This function is auto-generated
 func LookupCredentialByID(ctx context.Context, s Credentials, id uint64) (*systemType.Credential, error) {
 	return s.LookupCredentialByID(ctx, id)
+}
+
+// SearchDalConnections returns all matching DalConnections from store
+//
+// This function is auto-generated
+func SearchDalConnections(ctx context.Context, s DalConnections, f systemType.DalConnectionFilter) (systemType.DalConnectionSet, systemType.DalConnectionFilter, error) {
+	return s.SearchDalConnections(ctx, f)
+}
+
+// CreateDalConnection creates one or more DalConnections in store
+//
+// This function is auto-generated
+func CreateDalConnection(ctx context.Context, s DalConnections, rr ...*systemType.DalConnection) error {
+	return s.CreateDalConnection(ctx, rr...)
+}
+
+// UpdateDalConnection updates one or more (existing) DalConnections in store
+//
+// This function is auto-generated
+func UpdateDalConnection(ctx context.Context, s DalConnections, rr ...*systemType.DalConnection) error {
+	return s.UpdateDalConnection(ctx, rr...)
+}
+
+// UpsertDalConnection creates new or updates existing one or more DalConnections in store
+//
+// This function is auto-generated
+func UpsertDalConnection(ctx context.Context, s DalConnections, rr ...*systemType.DalConnection) error {
+	return s.UpsertDalConnection(ctx, rr...)
+}
+
+// DeleteDalConnection deletes one or more DalConnections from store
+//
+// This function is auto-generated
+func DeleteDalConnection(ctx context.Context, s DalConnections, rr ...*systemType.DalConnection) error {
+	return s.DeleteDalConnection(ctx, rr...)
+}
+
+// DeleteDalConnectionByID deletes one or more DalConnections from store
+//
+// This function is auto-generated
+func DeleteDalConnectionByID(ctx context.Context, s DalConnections, id uint64) error {
+	return s.DeleteDalConnectionByID(ctx, id)
+}
+
+// TruncateDalConnections Deletes all DalConnections from store
+//
+// This function is auto-generated
+func TruncateDalConnections(ctx context.Context, s DalConnections) error {
+	return s.TruncateDalConnections(ctx)
+}
+
+// LookupDalConnectionByID searches for connection by ID
+//
+// It returns connection even if deleted or suspended
+//
+// This function is auto-generated
+func LookupDalConnectionByID(ctx context.Context, s DalConnections, id uint64) (*systemType.DalConnection, error) {
+	return s.LookupDalConnectionByID(ctx, id)
+}
+
+// LookupDalConnectionByHandle searches for connection by handle
+//
+// It returns only valid connection (not deleted)
+//
+// This function is auto-generated
+func LookupDalConnectionByHandle(ctx context.Context, s DalConnections, handle string) (*systemType.DalConnection, error) {
+	return s.LookupDalConnectionByHandle(ctx, handle)
 }
 
 // SearchFederationExposedModules returns all matching FederationExposedModules from store

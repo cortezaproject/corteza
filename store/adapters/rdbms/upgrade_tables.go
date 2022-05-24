@@ -96,7 +96,7 @@ func tableUsers() *Table {
 }
 
 func tableConnections() *Table {
-	return TableDef("connections",
+	return TableDef("dal_connections",
 		ID,
 
 		ColumnDef("handle", ColumnTypeVarchar, ColumnTypeLength(handleLength)),

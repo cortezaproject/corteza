@@ -12,7 +12,7 @@ import (
 )
 
 type (
-	Connection struct {
+	DalConnection struct {
 		ID     uint64 `json:"connectionID,string"`
 		Handle string `json:"handle"`
 
@@ -48,7 +48,7 @@ type (
 		DefaultPartitionFormat string `json:"defaultPartitionFormat"`
 	}
 
-	ConnectionFilter struct {
+	DalConnectionFilter struct {
 		ConnectionID []uint64 `json:"connectionID,string"`
 		Handle       string   `json:"handle"`
 		DSN          string   `json:"dsn"`
@@ -65,7 +65,7 @@ type (
 		// modify the resource and return false if store should not return it
 		//
 		// Store then loads additional resources to satisfy the paging parameters
-		Check func(*Connection) (bool, error) `json:"-"`
+		Check func(*DalConnection) (bool, error) `json:"-"`
 
 		// Standard helpers for paging and sorting
 		filter.Sorting
@@ -73,7 +73,7 @@ type (
 	}
 )
 
-func (c Connection) ConnectionDefaults() dal.ConnectionDefaults {
+func (c DalConnection) ConnectionDefaults() dal.ConnectionDefaults {
 	return dal.ConnectionDefaults{
 		ModelIdent:      c.Config.DefaultModelIdent,
 		AttributeIdent:  c.Config.DefaultAttributeIdent,
@@ -81,7 +81,7 @@ func (c Connection) ConnectionDefaults() dal.ConnectionDefaults {
 	}
 }
 
-func (c Connection) ActiveCapabilities() capabilities.Set {
+func (c DalConnection) ActiveCapabilities() capabilities.Set {
 	return c.Capabilities.Supported.
 		Union(c.Capabilities.Enforced).
 		Union(c.Capabilities.Enabled)

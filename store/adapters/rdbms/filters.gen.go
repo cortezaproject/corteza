@@ -89,11 +89,11 @@ type (
 		// optional composeRecordValue filter function called after the generated function
 		ComposeRecordValue func(*Store, composeType.RecordValueFilter) ([]goqu.Expression, composeType.RecordValueFilter, error)
 
-		// optional connection filter function called after the generated function
-		Connection func(*Store, systemType.ConnectionFilter) ([]goqu.Expression, systemType.ConnectionFilter, error)
-
 		// optional credential filter function called after the generated function
 		Credential func(*Store, systemType.CredentialFilter) ([]goqu.Expression, systemType.CredentialFilter, error)
+
+		// optional dalConnection filter function called after the generated function
+		DalConnection func(*Store, systemType.DalConnectionFilter) ([]goqu.Expression, systemType.DalConnectionFilter, error)
 
 		// optional federationExposedModule filter function called after the generated function
 		FederationExposedModule func(*Store, federationType.ExposedModuleFilter) ([]goqu.Expression, federationType.ExposedModuleFilter, error)
@@ -688,14 +688,42 @@ func ComposeRecordValueFilter(f composeType.RecordValueFilter) (ee []goqu.Expres
 	return ee, f, err
 }
 
-// ConnectionFilter returns logical expressions
+// CredentialFilter returns logical expressions
 //
-// This function is called from Store.QueryConnections() and can be extended
-// by setting Store.Filters.Connection. Extension is called after all expressions
+// This function is called from Store.QueryCredentials() and can be extended
+// by setting Store.Filters.Credential. Extension is called after all expressions
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func ConnectionFilter(f systemType.ConnectionFilter) (ee []goqu.Expression, _ systemType.ConnectionFilter, err error) {
+func CredentialFilter(f systemType.CredentialFilter) (ee []goqu.Expression, _ systemType.CredentialFilter, err error) {
+
+	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if f.OwnerID > 0 {
+		ee = append(ee, goqu.C("rel_owner").Eq(f.OwnerID))
+	}
+
+	if val := strings.TrimSpace(f.Kind); len(val) > 0 {
+		ee = append(ee, goqu.C("kind").Eq(f.Kind))
+	}
+
+	if val := strings.TrimSpace(f.Credentials); len(val) > 0 {
+		ee = append(ee, goqu.C("credentials").Eq(f.Credentials))
+	}
+
+	return ee, f, err
+}
+
+// DalConnectionFilter returns logical expressions
+//
+// This function is called from Store.QueryDalConnections() and can be extended
+// by setting Store.Filters.DalConnection. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func DalConnectionFilter(f systemType.DalConnectionFilter) (ee []goqu.Expression, _ systemType.DalConnectionFilter, err error) {
 
 	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
@@ -723,34 +751,6 @@ func ConnectionFilter(f systemType.ConnectionFilter) (ee []goqu.Expression, _ sy
 
 	if len(f.LabeledIDs) > 0 {
 		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
-	}
-
-	return ee, f, err
-}
-
-// CredentialFilter returns logical expressions
-//
-// This function is called from Store.QueryCredentials() and can be extended
-// by setting Store.Filters.Credential. Extension is called after all expressions
-// are generated and can choose to ignore or alter them.
-//
-// This function is auto-generated
-func CredentialFilter(f systemType.CredentialFilter) (ee []goqu.Expression, _ systemType.CredentialFilter, err error) {
-
-	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
-		ee = append(ee, expr)
-	}
-
-	if f.OwnerID > 0 {
-		ee = append(ee, goqu.C("rel_owner").Eq(f.OwnerID))
-	}
-
-	if val := strings.TrimSpace(f.Kind); len(val) > 0 {
-		ee = append(ee, goqu.C("kind").Eq(f.Kind))
-	}
-
-	if val := strings.TrimSpace(f.Credentials); len(val) > 0 {
-		ee = append(ee, goqu.C("credentials").Eq(f.Credentials))
 	}
 
 	return ee, f, err

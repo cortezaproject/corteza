@@ -24,17 +24,17 @@ var (
 )
 
 const (
-	ApplicationResourceType  = "corteza::system:application"
-	ApigwRouteResourceType   = "corteza::system:apigw-route"
-	AuthClientResourceType   = "corteza::system:auth-client"
-	QueueResourceType        = "corteza::system:queue"
-	QueueMessageResourceType = "corteza::system:queue_message"
-	ReportResourceType       = "corteza::system:report"
-	RoleResourceType         = "corteza::system:role"
-	TemplateResourceType     = "corteza::system:template"
-	UserResourceType         = "corteza::system:user"
-	ConnectionResourceType   = "corteza::system:connection"
-	ComponentResourceType    = "corteza::system"
+	ApplicationResourceType   = "corteza::system:application"
+	ApigwRouteResourceType    = "corteza::system:apigw-route"
+	AuthClientResourceType    = "corteza::system:auth-client"
+	QueueResourceType         = "corteza::system:queue"
+	QueueMessageResourceType  = "corteza::system:queue_message"
+	ReportResourceType        = "corteza::system:report"
+	RoleResourceType          = "corteza::system:role"
+	TemplateResourceType      = "corteza::system:template"
+	UserResourceType          = "corteza::system:user"
+	DalConnectionResourceType = "corteza::system:dal_connection"
+	ComponentResourceType     = "corteza::system"
 )
 
 // RbacResource returns string representation of RBAC resource for Application by calling ApplicationRbacResource fn
@@ -307,33 +307,33 @@ func UserRbacResourceTpl() string {
 	return "%s/%s"
 }
 
-// RbacResource returns string representation of RBAC resource for Connection by calling ConnectionRbacResource fn
+// RbacResource returns string representation of RBAC resource for DalConnection by calling DalConnectionRbacResource fn
 //
-// RBAC resource is in the corteza::system:connection/... format
+// RBAC resource is in the corteza::system:dal_connection/... format
 //
 // This function is auto-generated
-func (r Connection) RbacResource() string {
-	return ConnectionRbacResource(r.ID)
+func (r DalConnection) RbacResource() string {
+	return DalConnectionRbacResource(r.ID)
 }
 
-// ConnectionRbacResource returns string representation of RBAC resource for Connection
+// DalConnectionRbacResource returns string representation of RBAC resource for DalConnection
 //
-// RBAC resource is in the corteza::system:connection/... format
+// RBAC resource is in the corteza::system:dal_connection/... format
 //
 // This function is auto-generated
-func ConnectionRbacResource(id uint64) string {
-	cpts := []interface{}{ConnectionResourceType}
+func DalConnectionRbacResource(id uint64) string {
+	cpts := []interface{}{DalConnectionResourceType}
 	if id != 0 {
 		cpts = append(cpts, strconv.FormatUint(id, 10))
 	} else {
 		cpts = append(cpts, "*")
 	}
 
-	return fmt.Sprintf(ConnectionRbacResourceTpl(), cpts...)
+	return fmt.Sprintf(DalConnectionRbacResourceTpl(), cpts...)
 
 }
 
-func ConnectionRbacResourceTpl() string {
+func DalConnectionRbacResourceTpl() string {
 	return "%s/%s"
 }
 
