@@ -9,7 +9,7 @@ import (
 )
 
 type (
-	DataPrivacy struct {
+	DataPrivacyRequest struct {
 		dataPrivacy service.DataPrivacyService
 		ac          dataPrivacyAccessController
 	}
@@ -24,14 +24,14 @@ type (
 	}
 )
 
-func (DataPrivacy) New() *DataPrivacy {
-	return &DataPrivacy{
+func (DataPrivacyRequest) New() *DataPrivacyRequest {
+	return &DataPrivacyRequest{
 		dataPrivacy: service.DefaultDataPrivacy,
 		ac:          service.DefaultAccessControl,
 	}
 }
 
-func (ctrl DataPrivacy) ListRequests(ctx context.Context, r *request.DataPrivacyListRequests) (interface{}, error) {
+func (ctrl DataPrivacyRequest) List(ctx context.Context, r *request.DataPrivacyRequestList) (interface{}, error) {
 	var (
 		err error
 		f   = types.DataPrivacyRequestFilter{
@@ -51,7 +51,7 @@ func (ctrl DataPrivacy) ListRequests(ctx context.Context, r *request.DataPrivacy
 	return ctrl.makeFilterPayload(ctx, set, f, err)
 }
 
-func (ctrl DataPrivacy) makeFilterPayload(_ context.Context, rr types.DataPrivacyRequestSet, f types.DataPrivacyRequestFilter, err error) (*dataPrivacyRequestSetPayload, error) {
+func (ctrl DataPrivacyRequest) makeFilterPayload(_ context.Context, rr types.DataPrivacyRequestSet, f types.DataPrivacyRequestFilter, err error) (*dataPrivacyRequestSetPayload, error) {
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func (ctrl DataPrivacy) makeFilterPayload(_ context.Context, rr types.DataPrivac
 	return &dataPrivacyRequestSetPayload{Filter: f, Set: rr}, nil
 }
 
-func (ctrl DataPrivacy) CreateRequest(ctx context.Context, r *request.DataPrivacyCreateRequest) (interface{}, error) {
+func (ctrl DataPrivacyRequest) Create(ctx context.Context, r *request.DataPrivacyRequestCreate) (interface{}, error) {
 	req := &types.DataPrivacyRequest{
 		Name: r.Name,
 		Kind: types.RequestKind(r.Kind),
@@ -72,7 +72,7 @@ func (ctrl DataPrivacy) CreateRequest(ctx context.Context, r *request.DataPrivac
 	return ctrl.dataPrivacy.CreateRequest(ctx, req)
 }
 
-func (ctrl DataPrivacy) UpdateRequest(ctx context.Context, r *request.DataPrivacyUpdateRequest) (interface{}, error) {
+func (ctrl DataPrivacyRequest) Update(ctx context.Context, r *request.DataPrivacyRequestUpdate) (interface{}, error) {
 	req := &types.DataPrivacyRequest{
 		ID:     r.RequestID,
 		Status: types.RequestStatus(r.Status),
@@ -81,7 +81,7 @@ func (ctrl DataPrivacy) UpdateRequest(ctx context.Context, r *request.DataPrivac
 	return ctrl.dataPrivacy.UpdateRequest(ctx, req)
 }
 
-func (ctrl DataPrivacy) UpdateRequestStatus(ctx context.Context, r *request.DataPrivacyUpdateRequestStatus) (interface{}, error) {
+func (ctrl DataPrivacyRequest) UpdateStatus(ctx context.Context, r *request.DataPrivacyRequestUpdateStatus) (interface{}, error) {
 	req := &types.DataPrivacyRequest{
 		ID:     r.RequestID,
 		Status: types.RequestStatus(r.Status),
@@ -90,14 +90,14 @@ func (ctrl DataPrivacy) UpdateRequestStatus(ctx context.Context, r *request.Data
 	return ctrl.dataPrivacy.UpdateRequestStatus(ctx, req)
 }
 
-func (ctrl DataPrivacy) ReadRequest(ctx context.Context, r *request.DataPrivacyReadRequest) (interface{}, error) {
+func (ctrl DataPrivacyRequest) Read(ctx context.Context, r *request.DataPrivacyRequestRead) (interface{}, error) {
 	return ctrl.dataPrivacy.FindRequestByID(ctx, r.RequestID)
 }
 
-func (ctrl DataPrivacy) ListResponsesOfRequest(ctx context.Context, request *request.DataPrivacyListResponsesOfRequest) (interface{}, error) {
+func (ctrl DataPrivacyRequest) ListResponses(ctx context.Context, request *request.DataPrivacyRequestListResponses) (interface{}, error) {
 	panic("implement me")
 }
 
-func (ctrl DataPrivacy) CreateResponseForRequest(ctx context.Context, request *request.DataPrivacyCreateResponseForRequest) (interface{}, error) {
+func (ctrl DataPrivacyRequest) CreateResponse(ctx context.Context, request *request.DataPrivacyRequestCreateResponse) (interface{}, error) {
 	panic("implement me")
 }

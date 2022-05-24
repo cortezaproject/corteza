@@ -2199,14 +2199,14 @@ endpoints:
       - { type: string, name: lang,      required: true,  title: Language  }
       - { type: string, name: application, required: true, title: Application name }
 
-- title: Data Privacy
-  entrypoint: dataPrivacy
-  path: "/data-privacy"
+- title: Data Privacy Request
+  entrypoint: dataPrivacyRequest
+  path: "/data-privacy/requests"
   apis:
-    - name: list requests
+    - name: list
       method: GET
       title: List data privacy requests
-      path: "/requests/"
+      path: "/"
       parameters:
         get:
           - { name: limit,        type: "uint",       title: "Limit" }
@@ -2214,49 +2214,49 @@ endpoints:
           - { name: sort,         type: "string",     title: "Sort items" }
           - { name: "deleted",    type: "uint",     title: "Exclude (0, default), include (1) or return only (2) deleted requests" }
 
-    - name: create request
+    - name: create
       method: POST
       title: Create data privacy request
-      path: "/requests"
+      path: "/"
       parameters:
         post:
           - { name: name,         type: "string",   title: "Request Name", required: true }
           - { name: kind,         type: "string",   title: "Request Kind", required: true }
-    - name: update request
+    - name: update
       method: PUT
       title: Update data privacy request
-      path: "/requests/{requestID}"
+      path: "/{requestID}"
       parameters:
         path:
           - { name: requestID,     type: "uint64",   title: "ID",           required: true }
         post:
           - { name: status,        type: "string",   title: "Request Status", required: true }
-    - name: update request status
+    - name: update status
       method: PUT
       title: Update data privacy request status
-      path: "/requests/{requestID}/status/{status}"
+      path: "/{requestID}/status/{status}"
       parameters:
         path:
           - { name: requestID,     type: "uint64",   title: "ID",             required: true }
           - { name: status,        type: "string",   title: "Request Status", required: true }
-    - name: read request
+    - name: read
       method: GET
       title: Get details about specific request
-      path: "/requests/{requestID}"
+      path: "/{requestID}"
       parameters:
         path:
           - { name: requestID, type: "uint64",     title: "Request ID", required: true }
-    - name: list responses of request
+    - name: list responses
       method: GET
       title: List responses for a specific request
-      path: "/requests/{requestID}/responses"
+      path: "/{requestID}/responses"
       parameters:
         path:
           - { name: requestID, type: "string",     title: "Request ID", required: true }
-    - name: create response for request
+    - name: create response
       method: GET
       title: Create response for a specific request
-      path: "/requests/{requestID}/responses"
+      path: "/{requestID}/responses"
       parameters:
         path:
           - { name: requestID, type: "string",     title: "Request ID", required: true }

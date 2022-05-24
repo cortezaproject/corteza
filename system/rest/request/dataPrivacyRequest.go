@@ -33,7 +33,7 @@ var (
 
 type (
 	// Internal API interface
-	DataPrivacyListRequests struct {
+	DataPrivacyRequestList struct {
 		// Limit GET parameter
 		//
 		// Limit
@@ -55,7 +55,7 @@ type (
 		Deleted uint
 	}
 
-	DataPrivacyCreateRequest struct {
+	DataPrivacyRequestCreate struct {
 		// Name POST parameter
 		//
 		// Request Name
@@ -67,7 +67,7 @@ type (
 		Kind string
 	}
 
-	DataPrivacyUpdateRequest struct {
+	DataPrivacyRequestUpdate struct {
 		// RequestID PATH parameter
 		//
 		// ID
@@ -79,7 +79,7 @@ type (
 		Status string
 	}
 
-	DataPrivacyUpdateRequestStatus struct {
+	DataPrivacyRequestUpdateStatus struct {
 		// RequestID PATH parameter
 		//
 		// ID
@@ -91,21 +91,21 @@ type (
 		Status string
 	}
 
-	DataPrivacyReadRequest struct {
+	DataPrivacyRequestRead struct {
 		// RequestID PATH parameter
 		//
 		// Request ID
 		RequestID uint64 `json:",string"`
 	}
 
-	DataPrivacyListResponsesOfRequest struct {
+	DataPrivacyRequestListResponses struct {
 		// RequestID PATH parameter
 		//
 		// Request ID
 		RequestID string
 	}
 
-	DataPrivacyCreateResponseForRequest struct {
+	DataPrivacyRequestCreateResponse struct {
 		// RequestID PATH parameter
 		//
 		// Request ID
@@ -113,13 +113,13 @@ type (
 	}
 )
 
-// NewDataPrivacyListRequests request
-func NewDataPrivacyListRequests() *DataPrivacyListRequests {
-	return &DataPrivacyListRequests{}
+// NewDataPrivacyRequestList request
+func NewDataPrivacyRequestList() *DataPrivacyRequestList {
+	return &DataPrivacyRequestList{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacyListRequests) Auditable() map[string]interface{} {
+func (r DataPrivacyRequestList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"limit":      r.Limit,
 		"pageCursor": r.PageCursor,
@@ -129,27 +129,27 @@ func (r DataPrivacyListRequests) Auditable() map[string]interface{} {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacyListRequests) GetLimit() uint {
+func (r DataPrivacyRequestList) GetLimit() uint {
 	return r.Limit
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacyListRequests) GetPageCursor() string {
+func (r DataPrivacyRequestList) GetPageCursor() string {
 	return r.PageCursor
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacyListRequests) GetSort() string {
+func (r DataPrivacyRequestList) GetSort() string {
 	return r.Sort
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacyListRequests) GetDeleted() uint {
+func (r DataPrivacyRequestList) GetDeleted() uint {
 	return r.Deleted
 }
 
 // Fill processes request and fills internal variables
-func (r *DataPrivacyListRequests) Fill(req *http.Request) (err error) {
+func (r *DataPrivacyRequestList) Fill(req *http.Request) (err error) {
 
 	{
 		// GET params
@@ -184,13 +184,13 @@ func (r *DataPrivacyListRequests) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewDataPrivacyCreateRequest request
-func NewDataPrivacyCreateRequest() *DataPrivacyCreateRequest {
-	return &DataPrivacyCreateRequest{}
+// NewDataPrivacyRequestCreate request
+func NewDataPrivacyRequestCreate() *DataPrivacyRequestCreate {
+	return &DataPrivacyRequestCreate{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacyCreateRequest) Auditable() map[string]interface{} {
+func (r DataPrivacyRequestCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"name": r.Name,
 		"kind": r.Kind,
@@ -198,17 +198,17 @@ func (r DataPrivacyCreateRequest) Auditable() map[string]interface{} {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacyCreateRequest) GetName() string {
+func (r DataPrivacyRequestCreate) GetName() string {
 	return r.Name
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacyCreateRequest) GetKind() string {
+func (r DataPrivacyRequestCreate) GetKind() string {
 	return r.Kind
 }
 
 // Fill processes request and fills internal variables
-func (r *DataPrivacyCreateRequest) Fill(req *http.Request) (err error) {
+func (r *DataPrivacyRequestCreate) Fill(req *http.Request) (err error) {
 
 	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -269,13 +269,13 @@ func (r *DataPrivacyCreateRequest) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewDataPrivacyUpdateRequest request
-func NewDataPrivacyUpdateRequest() *DataPrivacyUpdateRequest {
-	return &DataPrivacyUpdateRequest{}
+// NewDataPrivacyRequestUpdate request
+func NewDataPrivacyRequestUpdate() *DataPrivacyRequestUpdate {
+	return &DataPrivacyRequestUpdate{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacyUpdateRequest) Auditable() map[string]interface{} {
+func (r DataPrivacyRequestUpdate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"requestID": r.RequestID,
 		"status":    r.Status,
@@ -283,17 +283,17 @@ func (r DataPrivacyUpdateRequest) Auditable() map[string]interface{} {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacyUpdateRequest) GetRequestID() uint64 {
+func (r DataPrivacyRequestUpdate) GetRequestID() uint64 {
 	return r.RequestID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacyUpdateRequest) GetStatus() string {
+func (r DataPrivacyRequestUpdate) GetStatus() string {
 	return r.Status
 }
 
 // Fill processes request and fills internal variables
-func (r *DataPrivacyUpdateRequest) Fill(req *http.Request) (err error) {
+func (r *DataPrivacyRequestUpdate) Fill(req *http.Request) (err error) {
 
 	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -352,13 +352,13 @@ func (r *DataPrivacyUpdateRequest) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewDataPrivacyUpdateRequestStatus request
-func NewDataPrivacyUpdateRequestStatus() *DataPrivacyUpdateRequestStatus {
-	return &DataPrivacyUpdateRequestStatus{}
+// NewDataPrivacyRequestUpdateStatus request
+func NewDataPrivacyRequestUpdateStatus() *DataPrivacyRequestUpdateStatus {
+	return &DataPrivacyRequestUpdateStatus{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacyUpdateRequestStatus) Auditable() map[string]interface{} {
+func (r DataPrivacyRequestUpdateStatus) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"requestID": r.RequestID,
 		"status":    r.Status,
@@ -366,17 +366,17 @@ func (r DataPrivacyUpdateRequestStatus) Auditable() map[string]interface{} {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacyUpdateRequestStatus) GetRequestID() uint64 {
+func (r DataPrivacyRequestUpdateStatus) GetRequestID() uint64 {
 	return r.RequestID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacyUpdateRequestStatus) GetStatus() string {
+func (r DataPrivacyRequestUpdateStatus) GetStatus() string {
 	return r.Status
 }
 
 // Fill processes request and fills internal variables
-func (r *DataPrivacyUpdateRequestStatus) Fill(req *http.Request) (err error) {
+func (r *DataPrivacyRequestUpdateStatus) Fill(req *http.Request) (err error) {
 
 	{
 		var val string
@@ -399,25 +399,25 @@ func (r *DataPrivacyUpdateRequestStatus) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewDataPrivacyReadRequest request
-func NewDataPrivacyReadRequest() *DataPrivacyReadRequest {
-	return &DataPrivacyReadRequest{}
+// NewDataPrivacyRequestRead request
+func NewDataPrivacyRequestRead() *DataPrivacyRequestRead {
+	return &DataPrivacyRequestRead{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacyReadRequest) Auditable() map[string]interface{} {
+func (r DataPrivacyRequestRead) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"requestID": r.RequestID,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacyReadRequest) GetRequestID() uint64 {
+func (r DataPrivacyRequestRead) GetRequestID() uint64 {
 	return r.RequestID
 }
 
 // Fill processes request and fills internal variables
-func (r *DataPrivacyReadRequest) Fill(req *http.Request) (err error) {
+func (r *DataPrivacyRequestRead) Fill(req *http.Request) (err error) {
 
 	{
 		var val string
@@ -434,25 +434,25 @@ func (r *DataPrivacyReadRequest) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewDataPrivacyListResponsesOfRequest request
-func NewDataPrivacyListResponsesOfRequest() *DataPrivacyListResponsesOfRequest {
-	return &DataPrivacyListResponsesOfRequest{}
+// NewDataPrivacyRequestListResponses request
+func NewDataPrivacyRequestListResponses() *DataPrivacyRequestListResponses {
+	return &DataPrivacyRequestListResponses{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacyListResponsesOfRequest) Auditable() map[string]interface{} {
+func (r DataPrivacyRequestListResponses) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"requestID": r.RequestID,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacyListResponsesOfRequest) GetRequestID() string {
+func (r DataPrivacyRequestListResponses) GetRequestID() string {
 	return r.RequestID
 }
 
 // Fill processes request and fills internal variables
-func (r *DataPrivacyListResponsesOfRequest) Fill(req *http.Request) (err error) {
+func (r *DataPrivacyRequestListResponses) Fill(req *http.Request) (err error) {
 
 	{
 		var val string
@@ -469,25 +469,25 @@ func (r *DataPrivacyListResponsesOfRequest) Fill(req *http.Request) (err error) 
 	return err
 }
 
-// NewDataPrivacyCreateResponseForRequest request
-func NewDataPrivacyCreateResponseForRequest() *DataPrivacyCreateResponseForRequest {
-	return &DataPrivacyCreateResponseForRequest{}
+// NewDataPrivacyRequestCreateResponse request
+func NewDataPrivacyRequestCreateResponse() *DataPrivacyRequestCreateResponse {
+	return &DataPrivacyRequestCreateResponse{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacyCreateResponseForRequest) Auditable() map[string]interface{} {
+func (r DataPrivacyRequestCreateResponse) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"requestID": r.RequestID,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacyCreateResponseForRequest) GetRequestID() string {
+func (r DataPrivacyRequestCreateResponse) GetRequestID() string {
 	return r.RequestID
 }
 
 // Fill processes request and fills internal variables
-func (r *DataPrivacyCreateResponseForRequest) Fill(req *http.Request) (err error) {
+func (r *DataPrivacyRequestCreateResponse) Fill(req *http.Request) (err error) {
 
 	{
 		var val string
