@@ -749,7 +749,7 @@ func tableDataPrivacyRequests() *Table {
 	return TableDef("data_privacy_requests",
 		ID,
 		ColumnDef("name", ColumnTypeIdentifier),
-		ColumnDef("request_type", ColumnTypeText, ColumnTypeLength(handleLength)),
+		ColumnDef("kind", ColumnTypeText, ColumnTypeLength(handleLength)),
 		ColumnDef("status", ColumnTypeInteger),
 		ColumnDef("requested_at", ColumnTypeTimestamp),
 		ColumnDef("requested_by", ColumnTypeTimestamp),

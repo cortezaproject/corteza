@@ -61,10 +61,10 @@ type (
 		// Request Name
 		Name string
 
-		// RequestType POST parameter
+		// Kind POST parameter
 		//
-		// Request Type
-		RequestType uint
+		// Request Kind
+		Kind string
 	}
 
 	DataPrivacyUpdateRequest struct {
@@ -76,7 +76,7 @@ type (
 		// Status POST parameter
 		//
 		// Request Status
-		Status uint
+		Status string
 	}
 
 	DataPrivacyUpdateRequestStatus struct {
@@ -88,7 +88,7 @@ type (
 		// Status PATH parameter
 		//
 		// Request Status
-		Status uint
+		Status string
 	}
 
 	DataPrivacyReadRequest struct {
@@ -192,8 +192,8 @@ func NewDataPrivacyCreateRequest() *DataPrivacyCreateRequest {
 // Auditable returns all auditable/loggable parameters
 func (r DataPrivacyCreateRequest) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"name":        r.Name,
-		"requestType": r.RequestType,
+		"name": r.Name,
+		"kind": r.Kind,
 	}
 }
 
@@ -203,8 +203,8 @@ func (r DataPrivacyCreateRequest) GetName() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacyCreateRequest) GetRequestType() uint {
-	return r.RequestType
+func (r DataPrivacyCreateRequest) GetKind() string {
+	return r.Kind
 }
 
 // Fill processes request and fills internal variables
@@ -235,8 +235,8 @@ func (r *DataPrivacyCreateRequest) Fill(req *http.Request) (err error) {
 				}
 			}
 
-			if val, ok := req.MultipartForm.Value["requestType"]; ok && len(val) > 0 {
-				r.RequestType, err = payload.ParseUint(val[0]), nil
+			if val, ok := req.MultipartForm.Value["kind"]; ok && len(val) > 0 {
+				r.Kind, err = val[0], nil
 				if err != nil {
 					return err
 				}
@@ -258,8 +258,8 @@ func (r *DataPrivacyCreateRequest) Fill(req *http.Request) (err error) {
 			}
 		}
 
-		if val, ok := req.Form["requestType"]; ok && len(val) > 0 {
-			r.RequestType, err = payload.ParseUint(val[0]), nil
+		if val, ok := req.Form["kind"]; ok && len(val) > 0 {
+			r.Kind, err = val[0], nil
 			if err != nil {
 				return err
 			}
@@ -288,7 +288,7 @@ func (r DataPrivacyUpdateRequest) GetRequestID() uint64 {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacyUpdateRequest) GetStatus() uint {
+func (r DataPrivacyUpdateRequest) GetStatus() string {
 	return r.Status
 }
 
@@ -314,7 +314,7 @@ func (r *DataPrivacyUpdateRequest) Fill(req *http.Request) (err error) {
 			// Multipart params
 
 			if val, ok := req.MultipartForm.Value["status"]; ok && len(val) > 0 {
-				r.Status, err = payload.ParseUint(val[0]), nil
+				r.Status, err = val[0], nil
 				if err != nil {
 					return err
 				}
@@ -330,7 +330,7 @@ func (r *DataPrivacyUpdateRequest) Fill(req *http.Request) (err error) {
 		// POST params
 
 		if val, ok := req.Form["status"]; ok && len(val) > 0 {
-			r.Status, err = payload.ParseUint(val[0]), nil
+			r.Status, err = val[0], nil
 			if err != nil {
 				return err
 			}
@@ -371,7 +371,7 @@ func (r DataPrivacyUpdateRequestStatus) GetRequestID() uint64 {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacyUpdateRequestStatus) GetStatus() uint {
+func (r DataPrivacyUpdateRequestStatus) GetStatus() string {
 	return r.Status
 }
 
@@ -389,7 +389,7 @@ func (r *DataPrivacyUpdateRequestStatus) Fill(req *http.Request) (err error) {
 		}
 
 		val = chi.URLParam(req, "status")
-		r.Status, err = payload.ParseUint(val), nil
+		r.Status, err = val, nil
 		if err != nil {
 			return err
 		}

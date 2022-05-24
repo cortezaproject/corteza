@@ -2653,7 +2653,7 @@ var (
 		return d.Select(
 			"id",
 			"name",
-			"request_type",
+			"kind",
 			"status",
 			"requested_at",
 			"requested_by",
@@ -2676,7 +2676,7 @@ var (
 			Rows(goqu.Record{
 				"id":           res.ID,
 				"name":         res.Name,
-				"request_type": res.RequestType,
+				"kind":         res.Kind,
 				"status":       res.Status,
 				"requested_at": res.RequestedAt,
 				"requested_by": res.RequestedBy,
@@ -2702,7 +2702,7 @@ var (
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
 						"name":         res.Name,
-						"request_type": res.RequestType,
+						"kind":         res.Kind,
 						"status":       res.Status,
 						"requested_at": res.RequestedAt,
 						"requested_by": res.RequestedBy,
@@ -2726,7 +2726,7 @@ var (
 		return d.Update(dataPrivacyRequestTable).
 			Set(goqu.Record{
 				"name":         res.Name,
-				"request_type": res.RequestType,
+				"kind":         res.Kind,
 				"status":       res.Status,
 				"requested_at": res.RequestedAt,
 				"requested_by": res.RequestedBy,

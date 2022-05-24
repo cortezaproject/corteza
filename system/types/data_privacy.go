@@ -11,8 +11,8 @@ type (
 		ID   uint64 `json:"requestID,string"`
 		Name string `json:"name"`
 
-		RequestType RequestType   `json:"requestType"`
-		Status      RequestStatus `json:"status"`
+		Kind   RequestKind   `json:"requestType"`
+		Status RequestStatus `json:"status"`
 
 		RequestedAt time.Time  `json:"requestedAt,omitempty"`
 		RequestedBy uint64     `json:"requestedBy,string"`
@@ -46,24 +46,24 @@ type (
 		filter.Paging
 	}
 
-	RequestStatus int
-	RequestType   int
+	RequestStatus string
+	RequestKind   string
 )
 
 const (
 	// RequestStatusPending initially request will be in pending status
-	RequestStatusPending RequestStatus = 1
+	RequestStatusPending RequestStatus = "pending"
 	// RequestStatusCancel owner of request has cancelled the request
-	RequestStatusCancel RequestStatus = 2
+	RequestStatusCancel RequestStatus = "cancel"
 	// RequestStatusApprove data officer has of request has cancelled the request
-	RequestStatusApprove RequestStatus = 3
+	RequestStatusApprove RequestStatus = "approve"
 	// RequestStatusReject data officer has denied the request
-	RequestStatusReject RequestStatus = 4
+	RequestStatusReject RequestStatus = "reject"
 
-	// RequestTypeCorrection
-	RequestTypeCorrection RequestType = 1
-	// RequestTypeDeletion
-	RequestTypeDeletion RequestType = 2
-	// RequestTypeExport
-	RequestTypeExport RequestType = 3
+	// RequestTypeCorrect to correct module fields
+	RequestTypeCorrect RequestKind = "correct"
+	// RequestTypeDelete to delete module fields
+	RequestTypeDelete RequestKind = "delete"
+	// RequestTypeExport to export module fields
+	RequestTypeExport RequestKind = "export"
 )

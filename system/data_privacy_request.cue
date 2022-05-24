@@ -12,7 +12,7 @@ data_privacy_request: schema.#Resource & {
 	struct: {
 		id: schema.IdField
 		name: {}
-		request_type: { goType: "types.RequestType", ident: "requestType", storeIdent: "request_type" }
+		kind: { goType: "types.RequestKind" }
 		status: { goType: "types.RequestStatus" }
 
 		requested_at: { schema.SortableTimestampField, ident: "requestedAt", storeIdent: "requested_at" }

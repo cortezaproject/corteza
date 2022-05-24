@@ -65,8 +65,8 @@ func (ctrl DataPrivacy) makeFilterPayload(_ context.Context, rr types.DataPrivac
 
 func (ctrl DataPrivacy) CreateRequest(ctx context.Context, r *request.DataPrivacyCreateRequest) (interface{}, error) {
 	req := &types.DataPrivacyRequest{
-		Name:        r.Name,
-		RequestType: types.RequestType(r.RequestType),
+		Name: r.Name,
+		Kind: types.RequestKind(r.Kind),
 	}
 
 	return ctrl.dataPrivacy.CreateRequest(ctx, req)
