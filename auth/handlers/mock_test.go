@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"time"
 
 	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/auth/settings"
@@ -360,7 +359,7 @@ func prepareClientAuthReq(h *AuthHandlers, req *http.Request, user *types.User) 
 	}
 
 	if user != nil {
-		authReq.AuthUser = request.NewAuthUser(s, user, true, time.Duration(time.Hour))
+		authReq.AuthUser = request.NewAuthUser(s, user, true)
 	}
 
 	return authReq

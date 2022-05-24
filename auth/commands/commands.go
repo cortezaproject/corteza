@@ -144,7 +144,7 @@ func Command(ctx context.Context, app serviceInitializer, storeInit func(ctx con
 	jwtCmd.Flags().DurationVar(
 		&tokenDuration,
 		"duration",
-		app.Options().Auth.Expiry,
+		app.Options().Auth.AccessTokenLifetime,
 		"Token expiry duration")
 
 	testEmails := &cobra.Command{

@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	keyPermanent              = "permanent"
+	keyRememberMe             = "remember-me"
 	keyOriginalSession        = "originalSession"
 	keyAuthUser               = "authUser"
 	keyRoles                  = "roles"
@@ -97,4 +97,13 @@ func SetOauth2ClientAuthorized(ses *sessions.Session, val bool) {
 	} else {
 		delete(ses.Values, keyOAuth2ClientAuthorized)
 	}
+}
+
+// IsPermLogin decodes remember-me flag from the session and returns true if set
+func IsPermLogin(ses *sessions.Session) (p bool) {
+	if aux, has := ses.Values[keyRememberMe]; has {
+		p, _ = aux.(bool)
+	}
+
+	return
 }

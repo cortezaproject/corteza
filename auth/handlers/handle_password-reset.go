@@ -54,7 +54,7 @@ func (h *AuthHandlers) resetPasswordForm(req *request.AuthReq) (err error) {
 		user, err = h.AuthService.ValidatePasswordResetToken(req.Context(), token)
 		if err == nil {
 			// login user
-			req.AuthUser = request.NewAuthUser(h.Settings, user, false, h.Opt.SessionLifetime)
+			req.AuthUser = request.NewAuthUser(h.Settings, user, false)
 
 			if req.AuthUser.PendingEmailOTP() {
 				// Email OTP enabled & pending
