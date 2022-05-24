@@ -32,7 +32,7 @@ type (
 
 		Codecs []securecookie.Codec
 
-		Options *sessions.Options
+		opt options.AuthOpt
 	}
 )
 
@@ -58,13 +58,7 @@ func CortezaSessionStore(store store.AuthSessions, opt options.AuthOpt) *corteza
 	return &cortezaSessionStore{
 		store:  store,
 		Codecs: securecookie.CodecsFromPairs([]byte(opt.Secret)),
-		Options: &sessions.Options{
-			Path:     opt.SessionCookiePath,
-			Domain:   domain,
-			MaxAge:   int(opt.SessionLifetime / time.Second),
-			Secure:   opt.SessionCookieSecure,
-			HttpOnly: true,
-		},
+		opt:    opt,
 	}
 }
 
@@ -72,17 +66,28 @@ func (s cortezaSessionStore) Get(r *http.Request, name string) (*sessions.Sessio
 	return sessions.GetRegistry(r).Get(s, name)
 }
 
-func (s cortezaSessionStore) New(r *http.Request, name string) (*sessions.Session, error) {
-	session := sessions.NewSession(s, name)
-	session.Options = &sessions.Options{
-		Path:     s.Options.Path,
-		Domain:   s.Options.Domain,
-		MaxAge:   s.Options.MaxAge,
-		Secure:   s.Options.Secure,
-		HttpOnly: s.Options.HttpOnly,
+func (s cortezaSessionStore) New(r *http.Request, name string) (session *sessions.Session, err error) {
+	var (
+		domain = s.opt.SessionCookieDomain
+	)
+
+	if strings.Contains(domain, ":") {
+		// do not set domain on the cookie if it contains colon
+		// this most likely means it contains port
+		//
+		// browsers might misbehave
+		domain = ""
 	}
+
+	session = sessions.NewSession(s, name)
 	session.IsNew = true
-	var err error
+	session.Options = &sessions.Options{
+		Path:     s.opt.SessionCookiePath,
+		Domain:   domain,
+		Secure:   s.opt.SessionCookieSecure,
+		HttpOnly: true,
+	}
+
 	if cook, errCookie := r.Cookie(name); errCookie == nil {
 		err = securecookie.DecodeMulti(name, cook.Value, &session.ID, s.Codecs...)
 		if err == nil {
@@ -94,7 +99,8 @@ func (s cortezaSessionStore) New(r *http.Request, name string) (*sessions.Sessio
 			}
 		}
 	}
-	return session, err
+
+	return
 }
 
 func (s cortezaSessionStore) load(ctx context.Context, ses *sessions.Session) error {
@@ -103,12 +109,9 @@ func (s cortezaSessionStore) load(ctx context.Context, ses *sessions.Session) er
 		return err
 	}
 
-	var maxAge = int(cortezaSession.ExpiresAt.Sub(*now()) / time.Second)
-	if maxAge < 0 {
+	if now().After(cortezaSession.ExpiresAt) {
 		return fmt.Errorf("session expired")
 	}
-
-	ses.Options.MaxAge = maxAge
 
 	if err = gob.NewDecoder(bytes.NewReader(cortezaSession.Data)).Decode(&ses.Values); err != nil {
 		return fmt.Errorf("failed to decode session: %w", err)
@@ -151,23 +154,48 @@ func (s cortezaSessionStore) Save(r *http.Request, w http.ResponseWriter, ses *s
 		ses.ID = string(rand.Bytes(64))
 	}
 
-	if err = s.save(r.Context(), ses); err != nil {
+	var (
+		// make a copy of options for cookie
+		cOpt = *ses.Options
+
+		// expiration for stored session
+		exp time.Time
+	)
+
+	if IsPermLogin(ses) {
+		// if permanent login, make sure max-age is recalculated
+		// so that it slides in the future with every new session-save
+		cOpt.MaxAge = int(s.opt.SessionPermLifetime / time.Second)
+
+		// recalculate expiration for the stored (db) session
+		exp = now().Add(s.opt.SessionPermLifetime)
+	} else {
+		// Warning!
+		// when session is not permanent, max-age is NOT set on the cookie
+		// making cookie last only for the length of the session
+
+		// recalculate expiration for the stored (db) session
+		// we do that even if the cookie does not have a value
+		exp = now().Add(s.opt.SessionLifetime)
+	}
+
+	if err = s.save(r.Context(), ses, exp); err != nil {
 		return err
 	}
 
-	// Keep the session ID key in a cookie so it can be looked up in DB later.
+	// Keep the session ID key in a cookie so that it can be looked up in DB later.
 	encoded, err := securecookie.EncodeMulti(ses.Name(), ses.ID, s.Codecs...)
 	if err != nil {
 		return err
 	}
 
-	http.SetCookie(w, sessions.NewCookie(ses.Name(), encoded, ses.Options))
+	http.SetCookie(w, sessions.NewCookie(ses.Name(), encoded, &cOpt))
 	return nil
 }
 
 // save writes encoded session.Values to a database record.
 // writes to http_sessions table by default.
-func (s cortezaSessionStore) save(ctx context.Context, ses *sessions.Session) (err error) {
+func (s cortezaSessionStore) save(ctx context.Context, ses *sessions.Session, expires time.Time) (err error) {
 	var (
 		buf            = &bytes.Buffer{}
 		cortezaSession *types.AuthSession
@@ -191,10 +219,9 @@ func (s cortezaSessionStore) save(ctx context.Context, ses *sessions.Session) (e
 		extra := auth.GetExtraReqInfoFromContext(ctx)
 		cortezaSession.UserAgent = extra.UserAgent
 		cortezaSession.RemoteAddr = extra.RemoteAddr
-
-		// calculate expiration date from max-age
-		cortezaSession.ExpiresAt = now().Add(time.Second * time.Duration(ses.Options.MaxAge))
 	}
+
+	cortezaSession.ExpiresAt = expires
 
 	delete(ses.Values, keyOriginalSession)
 	if err = gob.NewEncoder(buf).Encode(ses.Values); err != nil {

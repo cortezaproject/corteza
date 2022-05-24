@@ -32,7 +32,7 @@ func (h *AuthHandlers) createPasswordForm(req *request.AuthReq) (err error) {
 			passwordSet = h.AuthService.PasswordSet(req.Context(), user.Email)
 			if !passwordSet {
 				// login user
-				req.AuthUser = request.NewAuthUser(h.Settings, user, false, h.Opt.SessionLifetime)
+				req.AuthUser = request.NewAuthUser(h.Settings, user, false)
 
 				// redirect back to self (but without token and with user in session)
 				h.Log.Debug("valid password create token found, refreshing page with stored user")
