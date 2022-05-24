@@ -35,7 +35,7 @@ var (
 
 type (
 	// Internal API interface
-	ConnectionList struct {
+	DalConnectionList struct {
 		// ConnectionID GET parameter
 		//
 		// Filter by connection ID
@@ -82,7 +82,7 @@ type (
 		Sort string
 	}
 
-	ConnectionCreate struct {
+	DalConnectionCreate struct {
 		// Handle POST parameter
 		//
 		// handle
@@ -124,7 +124,7 @@ type (
 		Labels map[string]string
 	}
 
-	ConnectionUpdate struct {
+	DalConnectionUpdate struct {
 		// ConnectionID PATH parameter
 		//
 		// Connection ID
@@ -171,24 +171,24 @@ type (
 		Labels map[string]string
 	}
 
-	ConnectionReadPrimary struct {
+	DalConnectionReadPrimary struct {
 	}
 
-	ConnectionRead struct {
+	DalConnectionRead struct {
 		// ConnectionID PATH parameter
 		//
 		// Connection ID
 		ConnectionID uint64 `json:",string"`
 	}
 
-	ConnectionDelete struct {
+	DalConnectionDelete struct {
 		// ConnectionID PATH parameter
 		//
 		// Connection ID
 		ConnectionID uint64 `json:",string"`
 	}
 
-	ConnectionUndelete struct {
+	DalConnectionUndelete struct {
 		// ConnectionID PATH parameter
 		//
 		// Connection ID
@@ -196,13 +196,13 @@ type (
 	}
 )
 
-// NewConnectionList request
-func NewConnectionList() *ConnectionList {
-	return &ConnectionList{}
+// NewDalConnectionList request
+func NewDalConnectionList() *DalConnectionList {
+	return &DalConnectionList{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionList) Auditable() map[string]interface{} {
+func (r DalConnectionList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"connectionID": r.ConnectionID,
 		"handle":       r.Handle,
@@ -217,52 +217,52 @@ func (r ConnectionList) Auditable() map[string]interface{} {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionList) GetConnectionID() []string {
+func (r DalConnectionList) GetConnectionID() []string {
 	return r.ConnectionID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionList) GetHandle() string {
+func (r DalConnectionList) GetHandle() string {
 	return r.Handle
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionList) GetLocation() string {
+func (r DalConnectionList) GetLocation() string {
 	return r.Location
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionList) GetOwnership() string {
+func (r DalConnectionList) GetOwnership() string {
 	return r.Ownership
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionList) GetDeleted() uint {
+func (r DalConnectionList) GetDeleted() uint {
 	return r.Deleted
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionList) GetLabels() map[string]string {
+func (r DalConnectionList) GetLabels() map[string]string {
 	return r.Labels
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionList) GetLimit() uint {
+func (r DalConnectionList) GetLimit() uint {
 	return r.Limit
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionList) GetPageCursor() string {
+func (r DalConnectionList) GetPageCursor() string {
 	return r.PageCursor
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionList) GetSort() string {
+func (r DalConnectionList) GetSort() string {
 	return r.Sort
 }
 
 // Fill processes request and fills internal variables
-func (r *ConnectionList) Fill(req *http.Request) (err error) {
+func (r *DalConnectionList) Fill(req *http.Request) (err error) {
 
 	{
 		// GET params
@@ -337,13 +337,13 @@ func (r *ConnectionList) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewConnectionCreate request
-func NewConnectionCreate() *ConnectionCreate {
-	return &ConnectionCreate{}
+// NewDalConnectionCreate request
+func NewDalConnectionCreate() *DalConnectionCreate {
+	return &DalConnectionCreate{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionCreate) Auditable() map[string]interface{} {
+func (r DalConnectionCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"handle":       r.Handle,
 		"dsn":          r.Dsn,
@@ -357,47 +357,47 @@ func (r ConnectionCreate) Auditable() map[string]interface{} {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionCreate) GetHandle() string {
+func (r DalConnectionCreate) GetHandle() string {
 	return r.Handle
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionCreate) GetDsn() string {
+func (r DalConnectionCreate) GetDsn() string {
 	return r.Dsn
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionCreate) GetLocation() string {
+func (r DalConnectionCreate) GetLocation() string {
 	return r.Location
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionCreate) GetOwnership() string {
+func (r DalConnectionCreate) GetOwnership() string {
 	return r.Ownership
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionCreate) GetSensitive() bool {
+func (r DalConnectionCreate) GetSensitive() bool {
 	return r.Sensitive
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionCreate) GetConfig() types.ConnectionConfig {
+func (r DalConnectionCreate) GetConfig() types.ConnectionConfig {
 	return r.Config
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionCreate) GetCapabilities() types.ConnectionCapabilities {
+func (r DalConnectionCreate) GetCapabilities() types.ConnectionCapabilities {
 	return r.Capabilities
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionCreate) GetLabels() map[string]string {
+func (r DalConnectionCreate) GetLabels() map[string]string {
 	return r.Labels
 }
 
 // Fill processes request and fills internal variables
-func (r *ConnectionCreate) Fill(req *http.Request) (err error) {
+func (r *DalConnectionCreate) Fill(req *http.Request) (err error) {
 
 	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -572,13 +572,13 @@ func (r *ConnectionCreate) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewConnectionUpdate request
-func NewConnectionUpdate() *ConnectionUpdate {
-	return &ConnectionUpdate{}
+// NewDalConnectionUpdate request
+func NewDalConnectionUpdate() *DalConnectionUpdate {
+	return &DalConnectionUpdate{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionUpdate) Auditable() map[string]interface{} {
+func (r DalConnectionUpdate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"connectionID": r.ConnectionID,
 		"handle":       r.Handle,
@@ -593,52 +593,52 @@ func (r ConnectionUpdate) Auditable() map[string]interface{} {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionUpdate) GetConnectionID() uint64 {
+func (r DalConnectionUpdate) GetConnectionID() uint64 {
 	return r.ConnectionID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionUpdate) GetHandle() string {
+func (r DalConnectionUpdate) GetHandle() string {
 	return r.Handle
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionUpdate) GetDsn() string {
+func (r DalConnectionUpdate) GetDsn() string {
 	return r.Dsn
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionUpdate) GetLocation() string {
+func (r DalConnectionUpdate) GetLocation() string {
 	return r.Location
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionUpdate) GetOwnership() string {
+func (r DalConnectionUpdate) GetOwnership() string {
 	return r.Ownership
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionUpdate) GetSensitive() bool {
+func (r DalConnectionUpdate) GetSensitive() bool {
 	return r.Sensitive
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionUpdate) GetConfig() types.ConnectionConfig {
+func (r DalConnectionUpdate) GetConfig() types.ConnectionConfig {
 	return r.Config
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionUpdate) GetCapabilities() types.ConnectionCapabilities {
+func (r DalConnectionUpdate) GetCapabilities() types.ConnectionCapabilities {
 	return r.Capabilities
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionUpdate) GetLabels() map[string]string {
+func (r DalConnectionUpdate) GetLabels() map[string]string {
 	return r.Labels
 }
 
 // Fill processes request and fills internal variables
-func (r *ConnectionUpdate) Fill(req *http.Request) (err error) {
+func (r *DalConnectionUpdate) Fill(req *http.Request) (err error) {
 
 	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -825,41 +825,41 @@ func (r *ConnectionUpdate) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewConnectionReadPrimary request
-func NewConnectionReadPrimary() *ConnectionReadPrimary {
-	return &ConnectionReadPrimary{}
+// NewDalConnectionReadPrimary request
+func NewDalConnectionReadPrimary() *DalConnectionReadPrimary {
+	return &DalConnectionReadPrimary{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionReadPrimary) Auditable() map[string]interface{} {
+func (r DalConnectionReadPrimary) Auditable() map[string]interface{} {
 	return map[string]interface{}{}
 }
 
 // Fill processes request and fills internal variables
-func (r *ConnectionReadPrimary) Fill(req *http.Request) (err error) {
+func (r *DalConnectionReadPrimary) Fill(req *http.Request) (err error) {
 
 	return err
 }
 
-// NewConnectionRead request
-func NewConnectionRead() *ConnectionRead {
-	return &ConnectionRead{}
+// NewDalConnectionRead request
+func NewDalConnectionRead() *DalConnectionRead {
+	return &DalConnectionRead{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionRead) Auditable() map[string]interface{} {
+func (r DalConnectionRead) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"connectionID": r.ConnectionID,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionRead) GetConnectionID() uint64 {
+func (r DalConnectionRead) GetConnectionID() uint64 {
 	return r.ConnectionID
 }
 
 // Fill processes request and fills internal variables
-func (r *ConnectionRead) Fill(req *http.Request) (err error) {
+func (r *DalConnectionRead) Fill(req *http.Request) (err error) {
 
 	{
 		var val string
@@ -876,25 +876,25 @@ func (r *ConnectionRead) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewConnectionDelete request
-func NewConnectionDelete() *ConnectionDelete {
-	return &ConnectionDelete{}
+// NewDalConnectionDelete request
+func NewDalConnectionDelete() *DalConnectionDelete {
+	return &DalConnectionDelete{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionDelete) Auditable() map[string]interface{} {
+func (r DalConnectionDelete) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"connectionID": r.ConnectionID,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionDelete) GetConnectionID() uint64 {
+func (r DalConnectionDelete) GetConnectionID() uint64 {
 	return r.ConnectionID
 }
 
 // Fill processes request and fills internal variables
-func (r *ConnectionDelete) Fill(req *http.Request) (err error) {
+func (r *DalConnectionDelete) Fill(req *http.Request) (err error) {
 
 	{
 		var val string
@@ -911,25 +911,25 @@ func (r *ConnectionDelete) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewConnectionUndelete request
-func NewConnectionUndelete() *ConnectionUndelete {
-	return &ConnectionUndelete{}
+// NewDalConnectionUndelete request
+func NewDalConnectionUndelete() *DalConnectionUndelete {
+	return &DalConnectionUndelete{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionUndelete) Auditable() map[string]interface{} {
+func (r DalConnectionUndelete) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"connectionID": r.ConnectionID,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ConnectionUndelete) GetConnectionID() uint64 {
+func (r DalConnectionUndelete) GetConnectionID() uint64 {
 	return r.ConnectionID
 }
 
 // Fill processes request and fills internal variables
-func (r *ConnectionUndelete) Fill(req *http.Request) (err error) {
+func (r *DalConnectionUndelete) Fill(req *http.Request) (err error) {
 
 	{
 		var val string

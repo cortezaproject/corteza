@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-connection: schema.#Resource & {
+dal_connection: schema.#Resource & {
 	struct: {
 		id:     schema.IdField
 		handle: schema.HandleField

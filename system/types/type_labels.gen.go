@@ -57,7 +57,7 @@ func (m AuthClient) LabelResourceID() uint64 {
 }
 
 // SetLabel adds new label to label map
-func (m *Connection) SetLabel(key string, value string) {
+func (m *DalConnection) SetLabel(key string, value string) {
 	if m.Labels == nil {
 		m.Labels = make(map[string]string)
 	}
@@ -66,17 +66,17 @@ func (m *Connection) SetLabel(key string, value string) {
 }
 
 // GetLabels adds new label to label map
-func (m Connection) GetLabels() map[string]string {
+func (m DalConnection) GetLabels() map[string]string {
 	return m.Labels
 }
 
 // GetLabels adds new label to label map
-func (Connection) LabelResourceKind() string {
+func (DalConnection) LabelResourceKind() string {
 	return "connection"
 }
 
 // GetLabels adds new label to label map
-func (m Connection) LabelResourceID() uint64 {
+func (m DalConnection) LabelResourceID() uint64 {
 	return m.ID
 }
 

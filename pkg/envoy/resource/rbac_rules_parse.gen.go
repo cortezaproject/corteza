@@ -128,11 +128,11 @@ func ParseRule(res string) (string, *Ref, []*Ref, error) {
 		)
 		return resourceType, ref, pp, err
 
-	case systemTypes.ConnectionResourceType:
+	case systemTypes.DalConnectionResourceType:
 		if len(path) != 1 {
 			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
 		}
-		ref, pp, err := SystemConnectionRbacReferences(
+		ref, pp, err := SystemDalConnectionRbacReferences(
 			path[0],
 		)
 		return resourceType, ref, pp, err

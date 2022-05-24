@@ -701,9 +701,9 @@ endpoints:
         required: true
         title: File import
 
-- title: Connections
-  path: "/connections"
-  entrypoint: connection
+- title: Data access layer connections
+  path: "/dal/connections"
+  entrypoint: dalConnection
   authentication:
   - Client ID
   - Session ID

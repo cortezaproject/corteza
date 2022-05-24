@@ -8,7 +8,7 @@ types:
     noIdField: true
   User:
     labelResourceType: user
-  Connection:
+  DalConnection:
     labelResourceType: connection
   Application:
     labelResourceType: application

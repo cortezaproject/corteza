@@ -74,7 +74,7 @@ var (
 	DefaultAuth                *auth
 	DefaultAuthClient          *authClient
 	DefaultUser                *user
-	DefaultConnection          *connection
+	DefaultConnection          *dalConnection
 	DefaultRole                *role
 	DefaultApplication         *application
 	DefaultReminder            ReminderService
@@ -86,7 +86,7 @@ var (
 	DefaultApigwFilter         *apigwFilter
 	DefaultApigwProfiler       *apigwProfiler
 	DefaultReport              *report
-	primaryConnectionConfig    types.Connection
+	primaryConnectionConfig    types.DalConnection
 
 	DefaultStatistics *statistics
 
@@ -102,7 +102,7 @@ var (
 	}
 )
 
-func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, primaryConn types.Connection, ws websocketSender, c Config) (err error) {
+func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, primaryConn types.DalConnection, ws websocketSender, c Config) (err error) {
 	var (
 		hcd = healthcheck.Defaults()
 	)

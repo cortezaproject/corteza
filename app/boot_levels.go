@@ -297,7 +297,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return
 	}
 
-	var primaryDALConnection = types.Connection{
+	var primaryDalConnection = types.DalConnection{
 		// Using id.Next since we dropped "special" ids a while ago.
 		// If needed, use the handle
 		ID:        id.Next(),
@@ -318,6 +318,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		CreatedAt: time.Now(),
 		CreatedBy: auth.ServiceUser().ID,
 	}
+
 	// Init DAL and prepare default connection
 	if _, err = dal.InitGlobalService(
 		ctx,
@@ -325,9 +326,9 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		app.Opt.Environment.IsDevelopment(),
 
 		// DB_DSN is the default connection with full capabilities
-		primaryDALConnection.DSN,
-		primaryDALConnection.ConnectionDefaults(),
-		primaryDALConnection.ActiveCapabilities()...); err != nil {
+		primaryDalConnection.DSN,
+		primaryDalConnection.ConnectionDefaults(),
+		primaryDalConnection.ActiveCapabilities()...); err != nil {
 		return err
 	}
 
@@ -451,7 +452,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	//
 	// Note: this is a legacy approach, all services from all 3 apps
 	// will most likely be merged in the future
-	err = sysService.Initialize(ctx, app.Log, app.Store, primaryDALConnection, app.WsServer, sysService.Config{
+	err = sysService.Initialize(ctx, app.Log, app.Store, primaryDalConnection, app.WsServer, sysService.Config{
 		ActionLog: app.Opt.ActionLog,
 		Discovery: app.Opt.Discovery,
 		Storage:   app.Opt.ObjStore,

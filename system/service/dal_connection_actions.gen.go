@@ -6,7 +6,7 @@ package service
 // the code is regenerated.
 //
 // Definitions file that controls how this file is generated:
-// system/service/connection_actions.yaml
+// system/service/dal_connection_actions.yaml
 
 import (
 	"context"
@@ -20,14 +20,14 @@ import (
 )
 
 type (
-	connectionActionProps struct {
-		connection *types.Connection
-		new        *types.Connection
-		update     *types.Connection
-		search     *types.ConnectionFilter
+	dalConnectionActionProps struct {
+		connection *types.DalConnection
+		new        *types.DalConnection
+		update     *types.DalConnection
+		search     *types.DalConnectionFilter
 	}
 
-	connectionAction struct {
+	dalConnectionAction struct {
 		timestamp time.Time
 		resource  string
 		action    string
@@ -37,11 +37,11 @@ type (
 		// prefix for error when action fails
 		errorMessage string
 
-		props *connectionActionProps
+		props *dalConnectionActionProps
 	}
 
-	connectionLogMetaKey   struct{}
-	connectionPropsMetaKey struct{}
+	dalConnectionLogMetaKey   struct{}
+	dalConnectionPropsMetaKey struct{}
 )
 
 var (
@@ -52,55 +52,55 @@ var (
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Props methods
-// setConnection updates connectionActionProps's connection
+// setConnection updates dalConnectionActionProps's connection
 //
 // Allows method chaining
 //
 // This function is auto-generated.
 //
-func (p *connectionActionProps) setConnection(connection *types.Connection) *connectionActionProps {
+func (p *dalConnectionActionProps) setConnection(connection *types.DalConnection) *dalConnectionActionProps {
 	p.connection = connection
 	return p
 }
 
-// setNew updates connectionActionProps's new
+// setNew updates dalConnectionActionProps's new
 //
 // Allows method chaining
 //
 // This function is auto-generated.
 //
-func (p *connectionActionProps) setNew(new *types.Connection) *connectionActionProps {
+func (p *dalConnectionActionProps) setNew(new *types.DalConnection) *dalConnectionActionProps {
 	p.new = new
 	return p
 }
 
-// setUpdate updates connectionActionProps's update
+// setUpdate updates dalConnectionActionProps's update
 //
 // Allows method chaining
 //
 // This function is auto-generated.
 //
-func (p *connectionActionProps) setUpdate(update *types.Connection) *connectionActionProps {
+func (p *dalConnectionActionProps) setUpdate(update *types.DalConnection) *dalConnectionActionProps {
 	p.update = update
 	return p
 }
 
-// setSearch updates connectionActionProps's search
+// setSearch updates dalConnectionActionProps's search
 //
 // Allows method chaining
 //
 // This function is auto-generated.
 //
-func (p *connectionActionProps) setSearch(search *types.ConnectionFilter) *connectionActionProps {
+func (p *dalConnectionActionProps) setSearch(search *types.DalConnectionFilter) *dalConnectionActionProps {
 	p.search = search
 	return p
 }
 
-// Serialize converts connectionActionProps to actionlog.Meta
+// Serialize converts dalConnectionActionProps to actionlog.Meta
 //
 // This function is auto-generated.
 //
-func (p connectionActionProps) Serialize() actionlog.Meta {
+func (p dalConnectionActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
 	)
@@ -127,7 +127,7 @@ func (p connectionActionProps) Serialize() actionlog.Meta {
 //
 // This function is auto-generated.
 //
-func (p connectionActionProps) Format(in string, err error) string {
+func (p dalConnectionActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
 		// first non-empty string
@@ -209,8 +209,8 @@ func (p connectionActionProps) Format(in string, err error) string {
 //
 // This function is auto-generated.
 //
-func (a *connectionAction) String() string {
-	var props = &connectionActionProps{}
+func (a *dalConnectionAction) String() string {
+	var props = &dalConnectionActionProps{}
 
 	if a.props != nil {
 		props = a.props
@@ -219,7 +219,7 @@ func (a *connectionAction) String() string {
 	return props.Format(a.log, nil)
 }
 
-func (e *connectionAction) ToAction() *actionlog.Action {
+func (e *dalConnectionAction) ToAction() *actionlog.Action {
 	return &actionlog.Action{
 		Resource:    e.resource,
 		Action:      e.action,
@@ -233,14 +233,14 @@ func (e *connectionAction) ToAction() *actionlog.Action {
 // *********************************************************************************************************************
 // Action constructors
 
-// ConnectionActionSearch returns "system:connection.search" action
+// DalConnectionActionSearch returns "system:dal-connection.search" action
 //
 // This function is auto-generated.
 //
-func ConnectionActionSearch(props ...*connectionActionProps) *connectionAction {
-	a := &connectionAction{
+func DalConnectionActionSearch(props ...*dalConnectionActionProps) *dalConnectionAction {
+	a := &dalConnectionAction{
 		timestamp: time.Now(),
-		resource:  "system:connection",
+		resource:  "system:dal-connection",
 		action:    "search",
 		log:       "searched for connection",
 		severity:  actionlog.Info,
@@ -253,14 +253,14 @@ func ConnectionActionSearch(props ...*connectionActionProps) *connectionAction {
 	return a
 }
 
-// ConnectionActionLookup returns "system:connection.lookup" action
+// DalConnectionActionLookup returns "system:dal-connection.lookup" action
 //
 // This function is auto-generated.
 //
-func ConnectionActionLookup(props ...*connectionActionProps) *connectionAction {
-	a := &connectionAction{
+func DalConnectionActionLookup(props ...*dalConnectionActionProps) *dalConnectionAction {
+	a := &dalConnectionAction{
 		timestamp: time.Now(),
-		resource:  "system:connection",
+		resource:  "system:dal-connection",
 		action:    "lookup",
 		log:       "looked-up for a {{connection}}",
 		severity:  actionlog.Info,
@@ -273,14 +273,14 @@ func ConnectionActionLookup(props ...*connectionActionProps) *connectionAction {
 	return a
 }
 
-// ConnectionActionCreate returns "system:connection.create" action
+// DalConnectionActionCreate returns "system:dal-connection.create" action
 //
 // This function is auto-generated.
 //
-func ConnectionActionCreate(props ...*connectionActionProps) *connectionAction {
-	a := &connectionAction{
+func DalConnectionActionCreate(props ...*dalConnectionActionProps) *dalConnectionAction {
+	a := &dalConnectionAction{
 		timestamp: time.Now(),
-		resource:  "system:connection",
+		resource:  "system:dal-connection",
 		action:    "create",
 		log:       "created {{connection}}",
 		severity:  actionlog.Notice,
@@ -293,14 +293,14 @@ func ConnectionActionCreate(props ...*connectionActionProps) *connectionAction {
 	return a
 }
 
-// ConnectionActionUpdate returns "system:connection.update" action
+// DalConnectionActionUpdate returns "system:dal-connection.update" action
 //
 // This function is auto-generated.
 //
-func ConnectionActionUpdate(props ...*connectionActionProps) *connectionAction {
-	a := &connectionAction{
+func DalConnectionActionUpdate(props ...*dalConnectionActionProps) *dalConnectionAction {
+	a := &dalConnectionAction{
 		timestamp: time.Now(),
-		resource:  "system:connection",
+		resource:  "system:dal-connection",
 		action:    "update",
 		log:       "updated {{connection}}",
 		severity:  actionlog.Notice,
@@ -313,14 +313,14 @@ func ConnectionActionUpdate(props ...*connectionActionProps) *connectionAction {
 	return a
 }
 
-// ConnectionActionDelete returns "system:connection.delete" action
+// DalConnectionActionDelete returns "system:dal-connection.delete" action
 //
 // This function is auto-generated.
 //
-func ConnectionActionDelete(props ...*connectionActionProps) *connectionAction {
-	a := &connectionAction{
+func DalConnectionActionDelete(props ...*dalConnectionActionProps) *dalConnectionAction {
+	a := &dalConnectionAction{
 		timestamp: time.Now(),
-		resource:  "system:connection",
+		resource:  "system:dal-connection",
 		action:    "delete",
 		log:       "deleted {{connection}}",
 		severity:  actionlog.Notice,
@@ -333,14 +333,14 @@ func ConnectionActionDelete(props ...*connectionActionProps) *connectionAction {
 	return a
 }
 
-// ConnectionActionUndelete returns "system:connection.undelete" action
+// DalConnectionActionUndelete returns "system:dal-connection.undelete" action
 //
 // This function is auto-generated.
 //
-func ConnectionActionUndelete(props ...*connectionActionProps) *connectionAction {
-	a := &connectionAction{
+func DalConnectionActionUndelete(props ...*dalConnectionActionProps) *dalConnectionAction {
+	a := &dalConnectionAction{
 		timestamp: time.Now(),
-		resource:  "system:connection",
+		resource:  "system:dal-connection",
 		action:    "undelete",
 		log:       "undeleted {{connection}}",
 		severity:  actionlog.Notice,
@@ -357,13 +357,13 @@ func ConnectionActionUndelete(props ...*connectionActionProps) *connectionAction
 // *********************************************************************************************************************
 // Error constructors
 
-// ConnectionErrGeneric returns "system:connection.generic" as *errors.Error
+// DalConnectionErrGeneric returns "system:dal-connection.generic" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ConnectionErrGeneric(mm ...*connectionActionProps) *errors.Error {
-	var p = &connectionActionProps{}
+func DalConnectionErrGeneric(mm ...*dalConnectionActionProps) *errors.Error {
+	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -374,15 +374,15 @@ func ConnectionErrGeneric(mm ...*connectionActionProps) *errors.Error {
 		p.Format("failed to complete request due to internal error", nil),
 
 		errors.Meta("type", "generic"),
-		errors.Meta("resource", "system:connection"),
+		errors.Meta("resource", "system:dal-connection"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(connectionLogMetaKey{}, "{err}"),
-		errors.Meta(connectionPropsMetaKey{}, p),
+		errors.Meta(dalConnectionLogMetaKey{}, "{err}"),
+		errors.Meta(dalConnectionPropsMetaKey{}, p),
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "connection.errors.generic"),
+		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.generic"),
 
 		errors.StackSkip(1),
 	)
@@ -393,13 +393,13 @@ func ConnectionErrGeneric(mm ...*connectionActionProps) *errors.Error {
 	return e
 }
 
-// ConnectionErrNotFound returns "system:connection.notFound" as *errors.Error
+// DalConnectionErrNotFound returns "system:dal-connection.notFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ConnectionErrNotFound(mm ...*connectionActionProps) *errors.Error {
-	var p = &connectionActionProps{}
+func DalConnectionErrNotFound(mm ...*dalConnectionActionProps) *errors.Error {
+	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -410,13 +410,13 @@ func ConnectionErrNotFound(mm ...*connectionActionProps) *errors.Error {
 		p.Format("connection not found", nil),
 
 		errors.Meta("type", "notFound"),
-		errors.Meta("resource", "system:connection"),
+		errors.Meta("resource", "system:dal-connection"),
 
-		errors.Meta(connectionPropsMetaKey{}, p),
+		errors.Meta(dalConnectionPropsMetaKey{}, p),
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "connection.errors.notFound"),
+		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -427,13 +427,13 @@ func ConnectionErrNotFound(mm ...*connectionActionProps) *errors.Error {
 	return e
 }
 
-// ConnectionErrInvalidID returns "system:connection.invalidID" as *errors.Error
+// DalConnectionErrInvalidID returns "system:dal-connection.invalidID" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ConnectionErrInvalidID(mm ...*connectionActionProps) *errors.Error {
-	var p = &connectionActionProps{}
+func DalConnectionErrInvalidID(mm ...*dalConnectionActionProps) *errors.Error {
+	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -444,13 +444,13 @@ func ConnectionErrInvalidID(mm ...*connectionActionProps) *errors.Error {
 		p.Format("invalid ID", nil),
 
 		errors.Meta("type", "invalidID"),
-		errors.Meta("resource", "system:connection"),
+		errors.Meta("resource", "system:dal-connection"),
 
-		errors.Meta(connectionPropsMetaKey{}, p),
+		errors.Meta(dalConnectionPropsMetaKey{}, p),
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "connection.errors.invalidID"),
+		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.invalidID"),
 
 		errors.StackSkip(1),
 	)
@@ -461,13 +461,13 @@ func ConnectionErrInvalidID(mm ...*connectionActionProps) *errors.Error {
 	return e
 }
 
-// ConnectionErrInvalidEndpoint returns "system:connection.invalidEndpoint" as *errors.Error
+// DalConnectionErrInvalidEndpoint returns "system:dal-connection.invalidEndpoint" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ConnectionErrInvalidEndpoint(mm ...*connectionActionProps) *errors.Error {
-	var p = &connectionActionProps{}
+func DalConnectionErrInvalidEndpoint(mm ...*dalConnectionActionProps) *errors.Error {
+	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -478,13 +478,13 @@ func ConnectionErrInvalidEndpoint(mm ...*connectionActionProps) *errors.Error {
 		p.Format("invalid DSN", nil),
 
 		errors.Meta("type", "invalidEndpoint"),
-		errors.Meta("resource", "system:connection"),
+		errors.Meta("resource", "system:dal-connection"),
 
-		errors.Meta(connectionPropsMetaKey{}, p),
+		errors.Meta(dalConnectionPropsMetaKey{}, p),
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "connection.errors.invalidEndpoint"),
+		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.invalidEndpoint"),
 
 		errors.StackSkip(1),
 	)
@@ -495,13 +495,13 @@ func ConnectionErrInvalidEndpoint(mm ...*connectionActionProps) *errors.Error {
 	return e
 }
 
-// ConnectionErrExistsEndpoint returns "system:connection.existsEndpoint" as *errors.Error
+// DalConnectionErrExistsEndpoint returns "system:dal-connection.existsEndpoint" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ConnectionErrExistsEndpoint(mm ...*connectionActionProps) *errors.Error {
-	var p = &connectionActionProps{}
+func DalConnectionErrExistsEndpoint(mm ...*dalConnectionActionProps) *errors.Error {
+	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -512,13 +512,13 @@ func ConnectionErrExistsEndpoint(mm ...*connectionActionProps) *errors.Error {
 		p.Format("connection with this DSN already exists", nil),
 
 		errors.Meta("type", "existsEndpoint"),
-		errors.Meta("resource", "system:connection"),
+		errors.Meta("resource", "system:dal-connection"),
 
-		errors.Meta(connectionPropsMetaKey{}, p),
+		errors.Meta(dalConnectionPropsMetaKey{}, p),
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "connection.errors.existsEndpoint"),
+		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.existsEndpoint"),
 
 		errors.StackSkip(1),
 	)
@@ -529,13 +529,13 @@ func ConnectionErrExistsEndpoint(mm ...*connectionActionProps) *errors.Error {
 	return e
 }
 
-// ConnectionErrAlreadyExists returns "system:connection.alreadyExists" as *errors.Error
+// DalConnectionErrAlreadyExists returns "system:dal-connection.alreadyExists" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ConnectionErrAlreadyExists(mm ...*connectionActionProps) *errors.Error {
-	var p = &connectionActionProps{}
+func DalConnectionErrAlreadyExists(mm ...*dalConnectionActionProps) *errors.Error {
+	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -546,13 +546,13 @@ func ConnectionErrAlreadyExists(mm ...*connectionActionProps) *errors.Error {
 		p.Format("connection by that DSN already exists", nil),
 
 		errors.Meta("type", "alreadyExists"),
-		errors.Meta("resource", "system:connection"),
+		errors.Meta("resource", "system:dal-connection"),
 
-		errors.Meta(connectionPropsMetaKey{}, p),
+		errors.Meta(dalConnectionPropsMetaKey{}, p),
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "connection.errors.alreadyExists"),
+		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.alreadyExists"),
 
 		errors.StackSkip(1),
 	)
@@ -563,13 +563,13 @@ func ConnectionErrAlreadyExists(mm ...*connectionActionProps) *errors.Error {
 	return e
 }
 
-// ConnectionErrNotAllowedToCreate returns "system:connection.notAllowedToCreate" as *errors.Error
+// DalConnectionErrNotAllowedToCreate returns "system:dal-connection.notAllowedToCreate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ConnectionErrNotAllowedToCreate(mm ...*connectionActionProps) *errors.Error {
-	var p = &connectionActionProps{}
+func DalConnectionErrNotAllowedToCreate(mm ...*dalConnectionActionProps) *errors.Error {
+	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -580,15 +580,15 @@ func ConnectionErrNotAllowedToCreate(mm ...*connectionActionProps) *errors.Error
 		p.Format("not allowed to create a connection", nil),
 
 		errors.Meta("type", "notAllowedToCreate"),
-		errors.Meta("resource", "system:connection"),
+		errors.Meta("resource", "system:dal-connection"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(connectionLogMetaKey{}, "failed to create a connection; insufficient permissions"),
-		errors.Meta(connectionPropsMetaKey{}, p),
+		errors.Meta(dalConnectionLogMetaKey{}, "failed to create a connection; insufficient permissions"),
+		errors.Meta(dalConnectionPropsMetaKey{}, p),
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "connection.errors.notAllowedToCreate"),
+		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.notAllowedToCreate"),
 
 		errors.StackSkip(1),
 	)
@@ -599,13 +599,13 @@ func ConnectionErrNotAllowedToCreate(mm ...*connectionActionProps) *errors.Error
 	return e
 }
 
-// ConnectionErrNotAllowedToRead returns "system:connection.notAllowedToRead" as *errors.Error
+// DalConnectionErrNotAllowedToRead returns "system:dal-connection.notAllowedToRead" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ConnectionErrNotAllowedToRead(mm ...*connectionActionProps) *errors.Error {
-	var p = &connectionActionProps{}
+func DalConnectionErrNotAllowedToRead(mm ...*dalConnectionActionProps) *errors.Error {
+	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -616,15 +616,15 @@ func ConnectionErrNotAllowedToRead(mm ...*connectionActionProps) *errors.Error {
 		p.Format("not allowed to read this connection", nil),
 
 		errors.Meta("type", "notAllowedToRead"),
-		errors.Meta("resource", "system:connection"),
+		errors.Meta("resource", "system:dal-connection"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(connectionLogMetaKey{}, "failed to read {{connection.DSN}}; insufficient permissions"),
-		errors.Meta(connectionPropsMetaKey{}, p),
+		errors.Meta(dalConnectionLogMetaKey{}, "failed to read {{connection.DSN}}; insufficient permissions"),
+		errors.Meta(dalConnectionPropsMetaKey{}, p),
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "connection.errors.notAllowedToRead"),
+		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)
@@ -635,13 +635,13 @@ func ConnectionErrNotAllowedToRead(mm ...*connectionActionProps) *errors.Error {
 	return e
 }
 
-// ConnectionErrNotAllowedToSearch returns "system:connection.notAllowedToSearch" as *errors.Error
+// DalConnectionErrNotAllowedToSearch returns "system:dal-connection.notAllowedToSearch" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ConnectionErrNotAllowedToSearch(mm ...*connectionActionProps) *errors.Error {
-	var p = &connectionActionProps{}
+func DalConnectionErrNotAllowedToSearch(mm ...*dalConnectionActionProps) *errors.Error {
+	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -652,15 +652,15 @@ func ConnectionErrNotAllowedToSearch(mm ...*connectionActionProps) *errors.Error
 		p.Format("not allowed to list or search connections", nil),
 
 		errors.Meta("type", "notAllowedToSearch"),
-		errors.Meta("resource", "system:connection"),
+		errors.Meta("resource", "system:dal-connection"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(connectionLogMetaKey{}, "failed to search for connections; insufficient permissions"),
-		errors.Meta(connectionPropsMetaKey{}, p),
+		errors.Meta(dalConnectionLogMetaKey{}, "failed to search for connections; insufficient permissions"),
+		errors.Meta(dalConnectionPropsMetaKey{}, p),
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "connection.errors.notAllowedToSearch"),
+		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.notAllowedToSearch"),
 
 		errors.StackSkip(1),
 	)
@@ -671,13 +671,13 @@ func ConnectionErrNotAllowedToSearch(mm ...*connectionActionProps) *errors.Error
 	return e
 }
 
-// ConnectionErrNotAllowedToUpdate returns "system:connection.notAllowedToUpdate" as *errors.Error
+// DalConnectionErrNotAllowedToUpdate returns "system:dal-connection.notAllowedToUpdate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ConnectionErrNotAllowedToUpdate(mm ...*connectionActionProps) *errors.Error {
-	var p = &connectionActionProps{}
+func DalConnectionErrNotAllowedToUpdate(mm ...*dalConnectionActionProps) *errors.Error {
+	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -688,15 +688,15 @@ func ConnectionErrNotAllowedToUpdate(mm ...*connectionActionProps) *errors.Error
 		p.Format("not allowed to update this connection", nil),
 
 		errors.Meta("type", "notAllowedToUpdate"),
-		errors.Meta("resource", "system:connection"),
+		errors.Meta("resource", "system:dal-connection"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(connectionLogMetaKey{}, "failed to update {{connection.DSN}}; insufficient permissions"),
-		errors.Meta(connectionPropsMetaKey{}, p),
+		errors.Meta(dalConnectionLogMetaKey{}, "failed to update {{connection.DSN}}; insufficient permissions"),
+		errors.Meta(dalConnectionPropsMetaKey{}, p),
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "connection.errors.notAllowedToUpdate"),
+		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.notAllowedToUpdate"),
 
 		errors.StackSkip(1),
 	)
@@ -707,13 +707,13 @@ func ConnectionErrNotAllowedToUpdate(mm ...*connectionActionProps) *errors.Error
 	return e
 }
 
-// ConnectionErrNotAllowedToDelete returns "system:connection.notAllowedToDelete" as *errors.Error
+// DalConnectionErrNotAllowedToDelete returns "system:dal-connection.notAllowedToDelete" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ConnectionErrNotAllowedToDelete(mm ...*connectionActionProps) *errors.Error {
-	var p = &connectionActionProps{}
+func DalConnectionErrNotAllowedToDelete(mm ...*dalConnectionActionProps) *errors.Error {
+	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -724,15 +724,15 @@ func ConnectionErrNotAllowedToDelete(mm ...*connectionActionProps) *errors.Error
 		p.Format("not allowed to delete this connection", nil),
 
 		errors.Meta("type", "notAllowedToDelete"),
-		errors.Meta("resource", "system:connection"),
+		errors.Meta("resource", "system:dal-connection"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(connectionLogMetaKey{}, "failed to delete {{connection.DSN}}; insufficient permissions"),
-		errors.Meta(connectionPropsMetaKey{}, p),
+		errors.Meta(dalConnectionLogMetaKey{}, "failed to delete {{connection.DSN}}; insufficient permissions"),
+		errors.Meta(dalConnectionPropsMetaKey{}, p),
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "connection.errors.notAllowedToDelete"),
+		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.notAllowedToDelete"),
 
 		errors.StackSkip(1),
 	)
@@ -743,13 +743,13 @@ func ConnectionErrNotAllowedToDelete(mm ...*connectionActionProps) *errors.Error
 	return e
 }
 
-// ConnectionErrNotAllowedToUndelete returns "system:connection.notAllowedToUndelete" as *errors.Error
+// DalConnectionErrNotAllowedToUndelete returns "system:dal-connection.notAllowedToUndelete" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ConnectionErrNotAllowedToUndelete(mm ...*connectionActionProps) *errors.Error {
-	var p = &connectionActionProps{}
+func DalConnectionErrNotAllowedToUndelete(mm ...*dalConnectionActionProps) *errors.Error {
+	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -760,15 +760,15 @@ func ConnectionErrNotAllowedToUndelete(mm ...*connectionActionProps) *errors.Err
 		p.Format("not allowed to undelete this connection", nil),
 
 		errors.Meta("type", "notAllowedToUndelete"),
-		errors.Meta("resource", "system:connection"),
+		errors.Meta("resource", "system:dal-connection"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(connectionLogMetaKey{}, "failed to undelete {{connection.DSN}}; insufficient permissions"),
-		errors.Meta(connectionPropsMetaKey{}, p),
+		errors.Meta(dalConnectionLogMetaKey{}, "failed to undelete {{connection.DSN}}; insufficient permissions"),
+		errors.Meta(dalConnectionPropsMetaKey{}, p),
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "connection.errors.notAllowedToUndelete"),
+		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.notAllowedToUndelete"),
 
 		errors.StackSkip(1),
 	)
@@ -779,13 +779,13 @@ func ConnectionErrNotAllowedToUndelete(mm ...*connectionActionProps) *errors.Err
 	return e
 }
 
-// ConnectionErrNotAllowedToExec returns "system:connection.notAllowedToExec" as *errors.Error
+// DalConnectionErrNotAllowedToExec returns "system:dal-connection.notAllowedToExec" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ConnectionErrNotAllowedToExec(mm ...*connectionActionProps) *errors.Error {
-	var p = &connectionActionProps{}
+func DalConnectionErrNotAllowedToExec(mm ...*dalConnectionActionProps) *errors.Error {
+	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -796,15 +796,15 @@ func ConnectionErrNotAllowedToExec(mm ...*connectionActionProps) *errors.Error {
 		p.Format("not allowed to execute this connection", nil),
 
 		errors.Meta("type", "notAllowedToExec"),
-		errors.Meta("resource", "system:connection"),
+		errors.Meta("resource", "system:dal-connection"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(connectionLogMetaKey{}, "failed to exec {{connection.DSN}}; insufficient permissions"),
-		errors.Meta(connectionPropsMetaKey{}, p),
+		errors.Meta(dalConnectionLogMetaKey{}, "failed to exec {{connection.DSN}}; insufficient permissions"),
+		errors.Meta(dalConnectionPropsMetaKey{}, p),
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "connection.errors.notAllowedToExec"),
+		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.notAllowedToExec"),
 
 		errors.StackSkip(1),
 	)
@@ -824,7 +824,7 @@ func ConnectionErrNotAllowedToExec(mm ...*connectionActionProps) *errors.Error {
 //
 // This function is auto-generated.
 //
-func (svc connection) recordAction(ctx context.Context, props *connectionActionProps, actionFn func(...*connectionActionProps) *connectionAction, err error) error {
+func (svc dalConnection) recordAction(ctx context.Context, props *dalConnectionActionProps, actionFn func(...*dalConnectionActionProps) *dalConnectionAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
 		return err
@@ -845,10 +845,10 @@ func (svc connection) recordAction(ctx context.Context, props *connectionActionP
 
 		a.Error = err.Error()
 		a.Severity = actionlog.Severity(m.AsInt("severity"))
-		a.Description = props.Format(m.AsString(connectionLogMetaKey{}), err)
+		a.Description = props.Format(m.AsString(dalConnectionLogMetaKey{}), err)
 
-		if p, has := m[connectionPropsMetaKey{}]; has {
-			a.Meta = p.(*connectionActionProps).Serialize()
+		if p, has := m[dalConnectionPropsMetaKey{}]; has {
+			a.Meta = p.(*dalConnectionActionProps).Serialize()
 		}
 
 		svc.actionlog.Record(ctx, a)
