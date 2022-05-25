@@ -19,6 +19,13 @@ func Healthcheck(_ context.Context) error {
 		return nil
 	}
 
+	if svc.conn == nil {
+		// working around edge-case where health-check is called
+		// but conn variable is not set;
+		// prevents nil pointer dereference error
+		return nil
+	}
+
 	if state := svc.conn.GetState(); state != connectivity.Ready {
 		return fmt.Errorf("connection is %s", state)
 	}
