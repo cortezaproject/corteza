@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
+	"github.com/davecgh/go-spew/spew"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 	"net/http"
 	"testing"
@@ -76,15 +77,18 @@ func TestDataPrivacyRequestListFilters(t *testing.T) {
 	helpers.AllowMe(h, types.ComponentRbacResource(), "data-privacy-requests.search")
 	helpers.AllowMe(h, types.DataPrivacyRequestRbacResource(0), "read")
 
-	h.apiInit().
+	json := h.apiInit().
 		Get("/data-privacy/requests/").
 		Query("query", types.RequestStatusApproved.String()).
 		Query("kind", types.RequestKindExport.String()).
+		Query("incTotal", "true").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Len(`$.response.set`, 1)).
 		End()
+
+	spew.Dump(json.Response.Body)
 }
 
 func TestDataPrivacyRequestRead(t *testing.T) {
