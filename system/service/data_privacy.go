@@ -29,7 +29,7 @@ type (
 
 	DataPrivacyService interface {
 		FindRequestByID(ctx context.Context, requestID uint64) (*types.DataPrivacyRequest, error)
-		FindRequest(context.Context, types.DataPrivacyRequestFilter) (types.DataPrivacyRequestSet, types.DataPrivacyRequestFilter, error)
+		FindRequests(context.Context, types.DataPrivacyRequestFilter) (types.DataPrivacyRequestSet, types.DataPrivacyRequestFilter, error)
 		CreateRequest(ctx context.Context, request *types.DataPrivacyRequest) (*types.DataPrivacyRequest, error)
 		UpdateRequest(ctx context.Context, request *types.DataPrivacyRequest) (*types.DataPrivacyRequest, error)
 		UpdateRequestStatus(ctx context.Context, request *types.DataPrivacyRequest) (*types.DataPrivacyRequest, error)
@@ -84,7 +84,7 @@ func (svc dataPrivacy) procRequest(_ context.Context, r *types.DataPrivacyReques
 	return r, nil
 }
 
-func (svc dataPrivacy) FindRequest(ctx context.Context, filter types.DataPrivacyRequestFilter) (rr types.DataPrivacyRequestSet, f types.DataPrivacyRequestFilter, err error) {
+func (svc dataPrivacy) FindRequests(ctx context.Context, filter types.DataPrivacyRequestFilter) (rr types.DataPrivacyRequestSet, f types.DataPrivacyRequestFilter, err error) {
 	var (
 		raProps = &dataPrivacyActionProps{filter: &filter}
 	)
@@ -199,7 +199,7 @@ func (svc dataPrivacy) UpdateRequestStatus(ctx context.Context, upd *types.DataP
 			return DataPrivacyErrInvalidStatus()
 		}
 
-		if upd.Status == types.RequestStatusApprove || upd.Status == types.RequestStatusReject {
+		if upd.Status == types.RequestStatusApproved || upd.Status == types.RequestStatusRejected {
 			if !svc.ac.CanApproveDataPrivacyRequest(ctx, upd) {
 				return DataPrivacyErrNotAllowedToApprove()
 			}

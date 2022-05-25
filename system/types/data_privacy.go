@@ -50,12 +50,12 @@ type (
 const (
 	// RequestStatusPending initially request will be in pending status
 	RequestStatusPending RequestStatus = "pending"
-	// RequestStatusCancel owner of request has cancelled the request
-	RequestStatusCancel RequestStatus = "cancel"
-	// RequestStatusApprove data officer has of request has cancelled the request
-	RequestStatusApprove RequestStatus = "approve"
-	// RequestStatusReject data officer has denied the request
-	RequestStatusReject RequestStatus = "reject"
+	// RequestStatusCanceled owner of request has cancelled the request
+	RequestStatusCanceled RequestStatus = "canceled"
+	// RequestStatusApproved data officer has of request has cancelled the request
+	RequestStatusApproved RequestStatus = "approved"
+	// RequestStatusRejected data officer has denied the request
+	RequestStatusRejected RequestStatus = "rejected"
 
 	// RequestKindCorrect to correct module fields
 	RequestKindCorrect RequestKind = "correct"
@@ -64,3 +64,11 @@ const (
 	// RequestKindExport to export module fields
 	RequestKindExport RequestKind = "export"
 )
+
+//func (lt RequestKind) IsValid() error {
+//	switch lt {
+//	case RequestStatusPending, RequestStatusCancel, RequestStatusApprove, RequestStatusReject:
+//		return nil
+//	}
+//	return errors.New("Invalid leave type")
+//}
