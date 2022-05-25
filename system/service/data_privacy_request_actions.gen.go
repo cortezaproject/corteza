@@ -448,6 +448,40 @@ func DataPrivacyErrInvalidID(mm ...*dataPrivacyActionProps) *errors.Error {
 	return e
 }
 
+// DataPrivacyErrInvalidKind returns "system:data-privacy-request.invalidKind" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func DataPrivacyErrInvalidKind(mm ...*dataPrivacyActionProps) *errors.Error {
+	var p = &dataPrivacyActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid Kind", nil),
+
+		errors.Meta("type", "invalidKind"),
+		errors.Meta("resource", "system:data-privacy-request"),
+
+		errors.Meta(dataPrivacyPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "dataPrivacy.errors.invalidKind"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // DataPrivacyErrInvalidStatus returns "system:data-privacy-request.invalidStatus" as *errors.Error
 //
 //

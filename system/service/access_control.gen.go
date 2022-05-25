@@ -422,7 +422,7 @@ func (svc accessControl) List() (out []map[string]string) {
 		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
-			"op":   "data-privacy-request.search",
+			"op":   "data-privacy-requests.search",
 		},
 	}
 
@@ -1036,12 +1036,12 @@ func (svc accessControl) CanCreateDataPrivacyRequest(ctx context.Context) bool {
 	return svc.can(ctx, "data-privacy-request.create", r)
 }
 
-// CanSearchDataPrivacyRequest checks if current user can list, search or filter data privacy requests
+// CanSearchDataPrivacyRequests checks if current user can list, search or filter data privacy requests
 //
 // This function is auto-generated
-func (svc accessControl) CanSearchDataPrivacyRequest(ctx context.Context) bool {
+func (svc accessControl) CanSearchDataPrivacyRequests(ctx context.Context) bool {
 	r := &types.Component{}
-	return svc.can(ctx, "data-privacy-request.search", r)
+	return svc.can(ctx, "data-privacy-requests.search", r)
 }
 
 // rbacResourceValidator validates known component's resource by routing it to the appropriate validator
@@ -1195,7 +1195,7 @@ func rbacResourceOperations(r string) map[string]bool {
 			"apigw-routes.search":          true,
 			"resource-translations.manage": true,
 			"data-privacy-request.create":  true,
-			"data-privacy-request.search":  true,
+			"data-privacy-requests.search": true,
 		}
 	}
 

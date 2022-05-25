@@ -21,7 +21,7 @@ type (
 	}
 
 	dataPrivacyAccessController interface {
-		CanSearchDataPrivacyRequest(context.Context) bool
+		CanSearchDataPrivacyRequests(context.Context) bool
 		CanCreateDataPrivacyRequest(context.Context) bool
 		CanReadDataPrivacyRequest(context.Context, *types.DataPrivacyRequest) bool
 		CanApproveDataPrivacyRequest(context.Context, *types.DataPrivacyRequest) bool
@@ -99,7 +99,7 @@ func (svc dataPrivacy) FindRequests(ctx context.Context, filter types.DataPrivac
 	}
 
 	err = func() error {
-		if !svc.ac.CanSearchDataPrivacyRequest(ctx) {
+		if !svc.ac.CanSearchDataPrivacyRequests(ctx) {
 			return DataPrivacyErrNotAllowedToSearch()
 		}
 
@@ -119,6 +119,10 @@ func (svc dataPrivacy) CreateRequest(ctx context.Context, new *types.DataPrivacy
 	)
 
 	err = func() (err error) {
+		if err = new.Kind.IsValid(); err != nil {
+			return DataPrivacyErrInvalidKind()
+		}
+
 		if !svc.ac.CanCreateDataPrivacyRequest(ctx) {
 			return DataPrivacyErrNotAllowedToCreate()
 		}
@@ -193,6 +197,10 @@ func (svc dataPrivacy) UpdateRequestStatus(ctx context.Context, upd *types.DataP
 	err = func() (err error) {
 		if upd.ID == 0 {
 			return DataPrivacyErrInvalidID()
+		}
+
+		if err = upd.Status.IsValid(); err != nil {
+			return DataPrivacyErrInvalidStatus()
 		}
 
 		if upd.Status == types.RequestStatusPending {

@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/pkg/errors"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -48,6 +49,13 @@ type (
 )
 
 const (
+	// RequestKindCorrect to correct module fields
+	RequestKindCorrect RequestKind = "correct"
+	// RequestKindDelete to delete module fields
+	RequestKindDelete RequestKind = "delete"
+	// RequestKindExport to export module fields
+	RequestKindExport RequestKind = "export"
+
 	// RequestStatusPending initially request will be in pending status
 	RequestStatusPending RequestStatus = "pending"
 	// RequestStatusCanceled owner of request has cancelled the request
@@ -56,19 +64,20 @@ const (
 	RequestStatusApproved RequestStatus = "approved"
 	// RequestStatusRejected data officer has denied the request
 	RequestStatusRejected RequestStatus = "rejected"
-
-	// RequestKindCorrect to correct module fields
-	RequestKindCorrect RequestKind = "correct"
-	// RequestKindDelete to delete module fields
-	RequestKindDelete RequestKind = "delete"
-	// RequestKindExport to export module fields
-	RequestKindExport RequestKind = "export"
 )
 
-//func (lt RequestKind) IsValid() error {
-//	switch lt {
-//	case RequestStatusPending, RequestStatusCancel, RequestStatusApprove, RequestStatusReject:
-//		return nil
-//	}
-//	return errors.New("Invalid leave type")
-//}
+func (k RequestKind) IsValid() error {
+	switch k {
+	case RequestKindCorrect, RequestKindDelete, RequestKindExport:
+		return nil
+	}
+	return errors.New("invalid request kind")
+}
+
+func (s RequestStatus) IsValid() error {
+	switch s {
+	case RequestStatusPending, RequestStatusCanceled, RequestStatusApproved, RequestStatusRejected:
+		return nil
+	}
+	return errors.New("invalid request status")
+}

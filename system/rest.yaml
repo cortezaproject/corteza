@@ -2222,15 +2222,6 @@ endpoints:
       parameters:
         post:
           - { name: kind,         type: "string",   title: "Request Kind", required: true }
-    - name: update
-      method: PUT
-      title: Update data privacy request
-      path: "/{requestID}"
-      parameters:
-        path:
-          - { name: requestID,     type: "uint64",   title: "ID",           required: true }
-        post:
-          - { name: status,        type: "string",   title: "Request Status", required: true }
     - name: update status
       method: PUT
       title: Update data privacy request status
