@@ -28,6 +28,7 @@ component: schema.#component & {
 		"template":              template
 		"user":                  user
 		"dal_connection":        dal_connection
+		"dal_sensitivity_level": dal_sensitivity_level
 	}
 
 	rbac: operations: {
@@ -46,6 +47,8 @@ component: schema.#component & {
 
 		"dal-connection.create": description:  "Create DAL connections"
 		"dal-connections.search": description: "List, search or filter DAL connections"
+
+		"dal-sensitivity-level.manage": description:  "Can manage DAL sensitivity levels"
 
 		"application.create": description:      "Create applications"
 		"applications.search": description:     "List, search or filter auth clients"

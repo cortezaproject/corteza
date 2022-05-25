@@ -24,17 +24,18 @@ var (
 )
 
 const (
-	ApplicationResourceType   = "corteza::system:application"
-	ApigwRouteResourceType    = "corteza::system:apigw-route"
-	AuthClientResourceType    = "corteza::system:auth-client"
-	QueueResourceType         = "corteza::system:queue"
-	QueueMessageResourceType  = "corteza::system:queue_message"
-	ReportResourceType        = "corteza::system:report"
-	RoleResourceType          = "corteza::system:role"
-	TemplateResourceType      = "corteza::system:template"
-	UserResourceType          = "corteza::system:user"
-	DalConnectionResourceType = "corteza::system:dal_connection"
-	ComponentResourceType     = "corteza::system"
+	ApplicationResourceType         = "corteza::system:application"
+	ApigwRouteResourceType          = "corteza::system:apigw-route"
+	AuthClientResourceType          = "corteza::system:auth-client"
+	QueueResourceType               = "corteza::system:queue"
+	QueueMessageResourceType        = "corteza::system:queue_message"
+	ReportResourceType              = "corteza::system:report"
+	RoleResourceType                = "corteza::system:role"
+	TemplateResourceType            = "corteza::system:template"
+	UserResourceType                = "corteza::system:user"
+	DalConnectionResourceType       = "corteza::system:dal_connection"
+	DalSensitivityLevelResourceType = "corteza::system:dal_sensitivity_level"
+	ComponentResourceType           = "corteza::system"
 )
 
 // RbacResource returns string representation of RBAC resource for Application by calling ApplicationRbacResource fn
@@ -334,6 +335,36 @@ func DalConnectionRbacResource(id uint64) string {
 }
 
 func DalConnectionRbacResourceTpl() string {
+	return "%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for DalSensitivityLevel by calling DalSensitivityLevelRbacResource fn
+//
+// RBAC resource is in the corteza::system:dal_sensitivity_level/... format
+//
+// This function is auto-generated
+func (r DalSensitivityLevel) RbacResource() string {
+	return DalSensitivityLevelRbacResource(r.ID)
+}
+
+// DalSensitivityLevelRbacResource returns string representation of RBAC resource for DalSensitivityLevel
+//
+// RBAC resource is in the corteza::system:dal_sensitivity_level/... format
+//
+// This function is auto-generated
+func DalSensitivityLevelRbacResource(id uint64) string {
+	cpts := []interface{}{DalSensitivityLevelResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(DalSensitivityLevelRbacResourceTpl(), cpts...)
+
+}
+
+func DalSensitivityLevelRbacResourceTpl() string {
 	return "%s/%s"
 }
 

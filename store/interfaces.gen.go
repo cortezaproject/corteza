@@ -61,6 +61,7 @@ type (
 		ComposeRecordValues
 		Credentials
 		DalConnections
+		DalSensitivityLevels
 		FederationExposedModules
 		FederationModuleMappings
 		FederationNodes
@@ -349,6 +350,17 @@ type (
 		TruncateDalConnections(ctx context.Context) error
 		LookupDalConnectionByID(ctx context.Context, id uint64) (*systemType.DalConnection, error)
 		LookupDalConnectionByHandle(ctx context.Context, handle string) (*systemType.DalConnection, error)
+	}
+
+	DalSensitivityLevels interface {
+		SearchDalSensitivityLevels(ctx context.Context, f systemType.DalSensitivityLevelFilter) (systemType.DalSensitivityLevelSet, systemType.DalSensitivityLevelFilter, error)
+		CreateDalSensitivityLevel(ctx context.Context, rr ...*systemType.DalSensitivityLevel) error
+		UpdateDalSensitivityLevel(ctx context.Context, rr ...*systemType.DalSensitivityLevel) error
+		UpsertDalSensitivityLevel(ctx context.Context, rr ...*systemType.DalSensitivityLevel) error
+		DeleteDalSensitivityLevel(ctx context.Context, rr ...*systemType.DalSensitivityLevel) error
+		DeleteDalSensitivityLevelByID(ctx context.Context, id uint64) error
+		TruncateDalSensitivityLevels(ctx context.Context) error
+		LookupDalSensitivityLevelByID(ctx context.Context, id uint64) (*systemType.DalSensitivityLevel, error)
 	}
 
 	FederationExposedModules interface {
@@ -2029,6 +2041,64 @@ func LookupDalConnectionByID(ctx context.Context, s DalConnections, id uint64) (
 // This function is auto-generated
 func LookupDalConnectionByHandle(ctx context.Context, s DalConnections, handle string) (*systemType.DalConnection, error) {
 	return s.LookupDalConnectionByHandle(ctx, handle)
+}
+
+// SearchDalSensitivityLevels returns all matching DalSensitivityLevels from store
+//
+// This function is auto-generated
+func SearchDalSensitivityLevels(ctx context.Context, s DalSensitivityLevels, f systemType.DalSensitivityLevelFilter) (systemType.DalSensitivityLevelSet, systemType.DalSensitivityLevelFilter, error) {
+	return s.SearchDalSensitivityLevels(ctx, f)
+}
+
+// CreateDalSensitivityLevel creates one or more DalSensitivityLevels in store
+//
+// This function is auto-generated
+func CreateDalSensitivityLevel(ctx context.Context, s DalSensitivityLevels, rr ...*systemType.DalSensitivityLevel) error {
+	return s.CreateDalSensitivityLevel(ctx, rr...)
+}
+
+// UpdateDalSensitivityLevel updates one or more (existing) DalSensitivityLevels in store
+//
+// This function is auto-generated
+func UpdateDalSensitivityLevel(ctx context.Context, s DalSensitivityLevels, rr ...*systemType.DalSensitivityLevel) error {
+	return s.UpdateDalSensitivityLevel(ctx, rr...)
+}
+
+// UpsertDalSensitivityLevel creates new or updates existing one or more DalSensitivityLevels in store
+//
+// This function is auto-generated
+func UpsertDalSensitivityLevel(ctx context.Context, s DalSensitivityLevels, rr ...*systemType.DalSensitivityLevel) error {
+	return s.UpsertDalSensitivityLevel(ctx, rr...)
+}
+
+// DeleteDalSensitivityLevel deletes one or more DalSensitivityLevels from store
+//
+// This function is auto-generated
+func DeleteDalSensitivityLevel(ctx context.Context, s DalSensitivityLevels, rr ...*systemType.DalSensitivityLevel) error {
+	return s.DeleteDalSensitivityLevel(ctx, rr...)
+}
+
+// DeleteDalSensitivityLevelByID deletes one or more DalSensitivityLevels from store
+//
+// This function is auto-generated
+func DeleteDalSensitivityLevelByID(ctx context.Context, s DalSensitivityLevels, id uint64) error {
+	return s.DeleteDalSensitivityLevelByID(ctx, id)
+}
+
+// TruncateDalSensitivityLevels Deletes all DalSensitivityLevels from store
+//
+// This function is auto-generated
+func TruncateDalSensitivityLevels(ctx context.Context, s DalSensitivityLevels) error {
+	return s.TruncateDalSensitivityLevels(ctx)
+}
+
+// LookupDalSensitivityLevelByID searches for user by ID
+//
+// It returns user even if deleted or suspended
+//
+// This function is auto-generated
+func LookupDalSensitivityLevelByID(ctx context.Context, s DalSensitivityLevels, id uint64) (*systemType.DalSensitivityLevel, error) {
+	return s.LookupDalSensitivityLevelByID(ctx, id)
 }
 
 // SearchFederationExposedModules returns all matching FederationExposedModules from store

@@ -11,7 +11,7 @@ package request
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/label"
+	"github.com/cortezaproject/corteza-server/pkg/geolocation"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/go-chi/chi/v5"
@@ -46,40 +46,15 @@ type (
 		// Search handle to match against connections
 		Handle string
 
-		// Location GET parameter
+		// Type GET parameter
 		//
-		// Search location to match against connections
-		Location string
-
-		// Ownership GET parameter
-		//
-		// Search ownership to match against connections
-		Ownership string
+		// Search type to match against connections
+		Type string
 
 		// Deleted GET parameter
 		//
 		// Exclude (0, default), include (1) or return only (2) deleted connections
 		Deleted uint
-
-		// Labels GET parameter
-		//
-		// Labels
-		Labels map[string]string
-
-		// Limit GET parameter
-		//
-		// Limit
-		Limit uint
-
-		// PageCursor GET parameter
-		//
-		// Page cursor
-		PageCursor string
-
-		// Sort GET parameter
-		//
-		// Sort items
-		Sort string
 	}
 
 	DalConnectionCreate struct {
@@ -88,25 +63,30 @@ type (
 		// handle
 		Handle string
 
-		// Dsn POST parameter
+		// Name POST parameter
 		//
-		// dsn
-		Dsn string
+		// name
+		Name string
+
+		// Type POST parameter
+		//
+		// type
+		Type string
 
 		// Location POST parameter
 		//
 		// location
-		Location string
+		Location *geolocation.Full
 
 		// Ownership POST parameter
 		//
 		// ownership
 		Ownership string
 
-		// Sensitive POST parameter
+		// SensitivityLevel POST parameter
 		//
-		// sensitive
-		Sensitive bool
+		// sensitivityLevel
+		SensitivityLevel uint64 `json:",string"`
 
 		// Config POST parameter
 		//
@@ -117,11 +97,6 @@ type (
 		//
 		// capabilities
 		Capabilities types.ConnectionCapabilities
-
-		// Labels POST parameter
-		//
-		// Labels
-		Labels map[string]string
 	}
 
 	DalConnectionUpdate struct {
@@ -135,25 +110,30 @@ type (
 		// handle
 		Handle string
 
-		// Dsn POST parameter
+		// Name POST parameter
 		//
-		// dsn
-		Dsn string
+		// name
+		Name string
+
+		// Type POST parameter
+		//
+		// type
+		Type string
 
 		// Location POST parameter
 		//
 		// location
-		Location string
+		Location *geolocation.Full
 
 		// Ownership POST parameter
 		//
 		// ownership
 		Ownership string
 
-		// Sensitive POST parameter
+		// SensitivityLevel POST parameter
 		//
-		// sensitive
-		Sensitive bool
+		// sensitivityLevel
+		SensitivityLevel uint64 `json:",string"`
 
 		// Config POST parameter
 		//
@@ -164,14 +144,6 @@ type (
 		//
 		// capabilities
 		Capabilities types.ConnectionCapabilities
-
-		// Labels POST parameter
-		//
-		// Labels
-		Labels map[string]string
-	}
-
-	DalConnectionReadPrimary struct {
 	}
 
 	DalConnectionRead struct {
@@ -206,13 +178,8 @@ func (r DalConnectionList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"connectionID": r.ConnectionID,
 		"handle":       r.Handle,
-		"location":     r.Location,
-		"ownership":    r.Ownership,
+		"type":         r.Type,
 		"deleted":      r.Deleted,
-		"labels":       r.Labels,
-		"limit":        r.Limit,
-		"pageCursor":   r.PageCursor,
-		"sort":         r.Sort,
 	}
 }
 
@@ -227,38 +194,13 @@ func (r DalConnectionList) GetHandle() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DalConnectionList) GetLocation() string {
-	return r.Location
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r DalConnectionList) GetOwnership() string {
-	return r.Ownership
+func (r DalConnectionList) GetType() string {
+	return r.Type
 }
 
 // Auditable returns all auditable/loggable parameters
 func (r DalConnectionList) GetDeleted() uint {
 	return r.Deleted
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r DalConnectionList) GetLabels() map[string]string {
-	return r.Labels
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r DalConnectionList) GetLimit() uint {
-	return r.Limit
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r DalConnectionList) GetPageCursor() string {
-	return r.PageCursor
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r DalConnectionList) GetSort() string {
-	return r.Sort
 }
 
 // Fill processes request and fills internal variables
@@ -285,49 +227,14 @@ func (r *DalConnectionList) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
-		if val, ok := tmp["location"]; ok && len(val) > 0 {
-			r.Location, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["ownership"]; ok && len(val) > 0 {
-			r.Ownership, err = val[0], nil
+		if val, ok := tmp["type"]; ok && len(val) > 0 {
+			r.Type, err = val[0], nil
 			if err != nil {
 				return err
 			}
 		}
 		if val, ok := tmp["deleted"]; ok && len(val) > 0 {
 			r.Deleted, err = payload.ParseUint(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["labels[]"]; ok {
-			r.Labels, err = label.ParseStrings(val)
-			if err != nil {
-				return err
-			}
-		} else if val, ok := tmp["labels"]; ok {
-			r.Labels, err = label.ParseStrings(val)
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["limit"]; ok && len(val) > 0 {
-			r.Limit, err = payload.ParseUint(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["pageCursor"]; ok && len(val) > 0 {
-			r.PageCursor, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["sort"]; ok && len(val) > 0 {
-			r.Sort, err = val[0], nil
 			if err != nil {
 				return err
 			}
@@ -345,14 +252,14 @@ func NewDalConnectionCreate() *DalConnectionCreate {
 // Auditable returns all auditable/loggable parameters
 func (r DalConnectionCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"handle":       r.Handle,
-		"dsn":          r.Dsn,
-		"location":     r.Location,
-		"ownership":    r.Ownership,
-		"sensitive":    r.Sensitive,
-		"config":       r.Config,
-		"capabilities": r.Capabilities,
-		"labels":       r.Labels,
+		"handle":           r.Handle,
+		"name":             r.Name,
+		"type":             r.Type,
+		"location":         r.Location,
+		"ownership":        r.Ownership,
+		"sensitivityLevel": r.SensitivityLevel,
+		"config":           r.Config,
+		"capabilities":     r.Capabilities,
 	}
 }
 
@@ -362,12 +269,17 @@ func (r DalConnectionCreate) GetHandle() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DalConnectionCreate) GetDsn() string {
-	return r.Dsn
+func (r DalConnectionCreate) GetName() string {
+	return r.Name
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DalConnectionCreate) GetLocation() string {
+func (r DalConnectionCreate) GetType() string {
+	return r.Type
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DalConnectionCreate) GetLocation() *geolocation.Full {
 	return r.Location
 }
 
@@ -377,8 +289,8 @@ func (r DalConnectionCreate) GetOwnership() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DalConnectionCreate) GetSensitive() bool {
-	return r.Sensitive
+func (r DalConnectionCreate) GetSensitivityLevel() uint64 {
+	return r.SensitivityLevel
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -389,11 +301,6 @@ func (r DalConnectionCreate) GetConfig() types.ConnectionConfig {
 // Auditable returns all auditable/loggable parameters
 func (r DalConnectionCreate) GetCapabilities() types.ConnectionCapabilities {
 	return r.Capabilities
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r DalConnectionCreate) GetLabels() map[string]string {
-	return r.Labels
 }
 
 // Fill processes request and fills internal variables
@@ -424,15 +331,27 @@ func (r *DalConnectionCreate) Fill(req *http.Request) (err error) {
 				}
 			}
 
-			if val, ok := req.MultipartForm.Value["dsn"]; ok && len(val) > 0 {
-				r.Dsn, err = val[0], nil
+			if val, ok := req.MultipartForm.Value["name"]; ok && len(val) > 0 {
+				r.Name, err = val[0], nil
 				if err != nil {
 					return err
 				}
 			}
 
-			if val, ok := req.MultipartForm.Value["location"]; ok && len(val) > 0 {
-				r.Location, err = val[0], nil
+			if val, ok := req.MultipartForm.Value["type"]; ok && len(val) > 0 {
+				r.Type, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["location[]"]; ok {
+				r.Location, err = geolocation.Parse(val)
+				if err != nil {
+					return err
+				}
+			} else if val, ok := req.MultipartForm.Value["location"]; ok {
+				r.Location, err = geolocation.Parse(val)
 				if err != nil {
 					return err
 				}
@@ -445,8 +364,8 @@ func (r *DalConnectionCreate) Fill(req *http.Request) (err error) {
 				}
 			}
 
-			if val, ok := req.MultipartForm.Value["sensitive"]; ok && len(val) > 0 {
-				r.Sensitive, err = payload.ParseBool(val[0]), nil
+			if val, ok := req.MultipartForm.Value["sensitivityLevel"]; ok && len(val) > 0 {
+				r.SensitivityLevel, err = payload.ParseUint64(val[0]), nil
 				if err != nil {
 					return err
 				}
@@ -475,18 +394,6 @@ func (r *DalConnectionCreate) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
-
-			if val, ok := req.MultipartForm.Value["labels[]"]; ok {
-				r.Labels, err = label.ParseStrings(val)
-				if err != nil {
-					return err
-				}
-			} else if val, ok := req.MultipartForm.Value["labels"]; ok {
-				r.Labels, err = label.ParseStrings(val)
-				if err != nil {
-					return err
-				}
-			}
 		}
 	}
 
@@ -504,15 +411,27 @@ func (r *DalConnectionCreate) Fill(req *http.Request) (err error) {
 			}
 		}
 
-		if val, ok := req.Form["dsn"]; ok && len(val) > 0 {
-			r.Dsn, err = val[0], nil
+		if val, ok := req.Form["name"]; ok && len(val) > 0 {
+			r.Name, err = val[0], nil
 			if err != nil {
 				return err
 			}
 		}
 
-		if val, ok := req.Form["location"]; ok && len(val) > 0 {
-			r.Location, err = val[0], nil
+		if val, ok := req.Form["type"]; ok && len(val) > 0 {
+			r.Type, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["location[]"]; ok {
+			r.Location, err = geolocation.Parse(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["location"]; ok {
+			r.Location, err = geolocation.Parse(val)
 			if err != nil {
 				return err
 			}
@@ -525,8 +444,8 @@ func (r *DalConnectionCreate) Fill(req *http.Request) (err error) {
 			}
 		}
 
-		if val, ok := req.Form["sensitive"]; ok && len(val) > 0 {
-			r.Sensitive, err = payload.ParseBool(val[0]), nil
+		if val, ok := req.Form["sensitivityLevel"]; ok && len(val) > 0 {
+			r.SensitivityLevel, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}
@@ -555,18 +474,6 @@ func (r *DalConnectionCreate) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
-
-		if val, ok := req.Form["labels[]"]; ok {
-			r.Labels, err = label.ParseStrings(val)
-			if err != nil {
-				return err
-			}
-		} else if val, ok := req.Form["labels"]; ok {
-			r.Labels, err = label.ParseStrings(val)
-			if err != nil {
-				return err
-			}
-		}
 	}
 
 	return err
@@ -580,15 +487,15 @@ func NewDalConnectionUpdate() *DalConnectionUpdate {
 // Auditable returns all auditable/loggable parameters
 func (r DalConnectionUpdate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"connectionID": r.ConnectionID,
-		"handle":       r.Handle,
-		"dsn":          r.Dsn,
-		"location":     r.Location,
-		"ownership":    r.Ownership,
-		"sensitive":    r.Sensitive,
-		"config":       r.Config,
-		"capabilities": r.Capabilities,
-		"labels":       r.Labels,
+		"connectionID":     r.ConnectionID,
+		"handle":           r.Handle,
+		"name":             r.Name,
+		"type":             r.Type,
+		"location":         r.Location,
+		"ownership":        r.Ownership,
+		"sensitivityLevel": r.SensitivityLevel,
+		"config":           r.Config,
+		"capabilities":     r.Capabilities,
 	}
 }
 
@@ -603,12 +510,17 @@ func (r DalConnectionUpdate) GetHandle() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DalConnectionUpdate) GetDsn() string {
-	return r.Dsn
+func (r DalConnectionUpdate) GetName() string {
+	return r.Name
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DalConnectionUpdate) GetLocation() string {
+func (r DalConnectionUpdate) GetType() string {
+	return r.Type
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DalConnectionUpdate) GetLocation() *geolocation.Full {
 	return r.Location
 }
 
@@ -618,8 +530,8 @@ func (r DalConnectionUpdate) GetOwnership() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DalConnectionUpdate) GetSensitive() bool {
-	return r.Sensitive
+func (r DalConnectionUpdate) GetSensitivityLevel() uint64 {
+	return r.SensitivityLevel
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -630,11 +542,6 @@ func (r DalConnectionUpdate) GetConfig() types.ConnectionConfig {
 // Auditable returns all auditable/loggable parameters
 func (r DalConnectionUpdate) GetCapabilities() types.ConnectionCapabilities {
 	return r.Capabilities
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r DalConnectionUpdate) GetLabels() map[string]string {
-	return r.Labels
 }
 
 // Fill processes request and fills internal variables
@@ -665,15 +572,27 @@ func (r *DalConnectionUpdate) Fill(req *http.Request) (err error) {
 				}
 			}
 
-			if val, ok := req.MultipartForm.Value["dsn"]; ok && len(val) > 0 {
-				r.Dsn, err = val[0], nil
+			if val, ok := req.MultipartForm.Value["name"]; ok && len(val) > 0 {
+				r.Name, err = val[0], nil
 				if err != nil {
 					return err
 				}
 			}
 
-			if val, ok := req.MultipartForm.Value["location"]; ok && len(val) > 0 {
-				r.Location, err = val[0], nil
+			if val, ok := req.MultipartForm.Value["type"]; ok && len(val) > 0 {
+				r.Type, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["location[]"]; ok {
+				r.Location, err = geolocation.Parse(val)
+				if err != nil {
+					return err
+				}
+			} else if val, ok := req.MultipartForm.Value["location"]; ok {
+				r.Location, err = geolocation.Parse(val)
 				if err != nil {
 					return err
 				}
@@ -686,8 +605,8 @@ func (r *DalConnectionUpdate) Fill(req *http.Request) (err error) {
 				}
 			}
 
-			if val, ok := req.MultipartForm.Value["sensitive"]; ok && len(val) > 0 {
-				r.Sensitive, err = payload.ParseBool(val[0]), nil
+			if val, ok := req.MultipartForm.Value["sensitivityLevel"]; ok && len(val) > 0 {
+				r.SensitivityLevel, err = payload.ParseUint64(val[0]), nil
 				if err != nil {
 					return err
 				}
@@ -716,18 +635,6 @@ func (r *DalConnectionUpdate) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
-
-			if val, ok := req.MultipartForm.Value["labels[]"]; ok {
-				r.Labels, err = label.ParseStrings(val)
-				if err != nil {
-					return err
-				}
-			} else if val, ok := req.MultipartForm.Value["labels"]; ok {
-				r.Labels, err = label.ParseStrings(val)
-				if err != nil {
-					return err
-				}
-			}
 		}
 	}
 
@@ -745,15 +652,27 @@ func (r *DalConnectionUpdate) Fill(req *http.Request) (err error) {
 			}
 		}
 
-		if val, ok := req.Form["dsn"]; ok && len(val) > 0 {
-			r.Dsn, err = val[0], nil
+		if val, ok := req.Form["name"]; ok && len(val) > 0 {
+			r.Name, err = val[0], nil
 			if err != nil {
 				return err
 			}
 		}
 
-		if val, ok := req.Form["location"]; ok && len(val) > 0 {
-			r.Location, err = val[0], nil
+		if val, ok := req.Form["type"]; ok && len(val) > 0 {
+			r.Type, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["location[]"]; ok {
+			r.Location, err = geolocation.Parse(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["location"]; ok {
+			r.Location, err = geolocation.Parse(val)
 			if err != nil {
 				return err
 			}
@@ -766,8 +685,8 @@ func (r *DalConnectionUpdate) Fill(req *http.Request) (err error) {
 			}
 		}
 
-		if val, ok := req.Form["sensitive"]; ok && len(val) > 0 {
-			r.Sensitive, err = payload.ParseBool(val[0]), nil
+		if val, ok := req.Form["sensitivityLevel"]; ok && len(val) > 0 {
+			r.SensitivityLevel, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}
@@ -796,18 +715,6 @@ func (r *DalConnectionUpdate) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
-
-		if val, ok := req.Form["labels[]"]; ok {
-			r.Labels, err = label.ParseStrings(val)
-			if err != nil {
-				return err
-			}
-		} else if val, ok := req.Form["labels"]; ok {
-			r.Labels, err = label.ParseStrings(val)
-			if err != nil {
-				return err
-			}
-		}
 	}
 
 	{
@@ -821,22 +728,6 @@ func (r *DalConnectionUpdate) Fill(req *http.Request) (err error) {
 		}
 
 	}
-
-	return err
-}
-
-// NewDalConnectionReadPrimary request
-func NewDalConnectionReadPrimary() *DalConnectionReadPrimary {
-	return &DalConnectionReadPrimary{}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r DalConnectionReadPrimary) Auditable() map[string]interface{} {
-	return map[string]interface{}{}
-}
-
-// Fill processes request and fills internal variables
-func (r *DalConnectionReadPrimary) Fill(req *http.Request) (err error) {
 
 	return err
 }

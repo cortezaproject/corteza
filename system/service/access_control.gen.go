@@ -332,6 +332,11 @@ func (svc accessControl) List() (out []map[string]string) {
 		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
+			"op":   "dal-sensitivity-level.manage",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
 			"op":   "application.create",
 		},
 		{
@@ -869,6 +874,14 @@ func (svc accessControl) CanSearchDalConnections(ctx context.Context) bool {
 	return svc.can(ctx, "dal-connections.search", r)
 }
 
+// CanManageDalSensitivityLevel checks if current user can can manage dal sensitivity levels
+//
+// This function is auto-generated
+func (svc accessControl) CanManageDalSensitivityLevel(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "dal-sensitivity-level.manage", r)
+}
+
 // CanCreateApplication checks if current user can create applications
 //
 // This function is auto-generated
@@ -1006,6 +1019,8 @@ func rbacResourceValidator(r string, oo ...string) error {
 		return rbacUserResourceValidator(r, oo...)
 	case types.DalConnectionResourceType:
 		return rbacDalConnectionResourceValidator(r, oo...)
+	case types.DalSensitivityLevelResourceType:
+		return rbacDalSensitivityLevelResourceValidator(r, oo...)
 	case types.ComponentResourceType:
 		return rbacComponentResourceValidator(r, oo...)
 	}
@@ -1091,6 +1106,8 @@ func rbacResourceOperations(r string) map[string]bool {
 			"update": true,
 			"delete": true,
 		}
+	case types.DalSensitivityLevelResourceType:
+		return map[string]bool{}
 	case types.ComponentResourceType:
 		return map[string]bool{
 			"grant":                        true,
@@ -1105,6 +1122,7 @@ func rbacResourceOperations(r string) map[string]bool {
 			"users.search":                 true,
 			"dal-connection.create":        true,
 			"dal-connections.search":       true,
+			"dal-sensitivity-level.manage": true,
 			"application.create":           true,
 			"applications.search":          true,
 			"application.flag.self":        true,
@@ -1555,6 +1573,50 @@ func rbacDalConnectionResourceValidator(r string, oo ...string) error {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid path wildcard level (%d) for dalConnection resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacDalSensitivityLevelResourceValidator checks validity of RBAC resource and operations
+//
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacDalSensitivityLevelResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.DalSensitivityLevelResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for dalSensitivityLevel resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.DalSensitivityLevelResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for dalSensitivityLevel resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {

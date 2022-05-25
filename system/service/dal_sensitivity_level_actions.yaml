@@ -1,0 +1,73 @@
+# List of loggable service actions
+
+resource: system:dal-sensitivity-level
+service: dalSensitivityLevel
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+props:
+  - name: sensitivityLevel
+    type: "*types.DalSensitivityLevel"
+    fields: [ handle, ID ]
+  - name: new
+    type: "*types.DalSensitivityLevel"
+    fields: [ handle, ID ]
+  - name: update
+    type: "*types.DalSensitivityLevel"
+    fields: [ handle, ID ]
+  - name: search
+    type: "*types.DalSensitivityLevelFilter"
+    fields: []
+
+actions:
+  - action: search
+    log: "searched for sensitivityLevel"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{sensitivityLevel}}"
+    severity: info
+
+  - action: create
+    log: "created {{sensitivityLevel}}"
+
+  - action: update
+    log: "updated {{sensitivityLevel}}"
+
+  - action: delete
+    log: "deleted {{sensitivityLevel}}"
+
+  - action: undelete
+    log: "undeleted {{sensitivityLevel}}"
+
+errors:
+  - error: notFound
+    message: "sensitivityLevel not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: invalidEndpoint
+    message: "invalid DSN"
+    severity: warning
+
+  - error: existsEndpoint
+    message: "sensitivityLevel with this DSN already exists"
+    severity: warning
+
+  - error: alreadyExists
+    message: "sensitivityLevel by that DSN already exists"
+    severity: warning
+
+  - error: notAllowedToManage
+    message: "not allowed to Manage a sensitivityLevel"
+    log: "failed to Manage a sensitivityLevel; insufficient permissions"

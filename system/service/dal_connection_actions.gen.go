@@ -106,15 +106,15 @@ func (p dalConnectionActionProps) Serialize() actionlog.Meta {
 	)
 
 	if p.connection != nil {
-		m.Set("connection.DSN", p.connection.DSN, true)
+		m.Set("connection.handle", p.connection.Handle, true)
 		m.Set("connection.ID", p.connection.ID, true)
 	}
 	if p.new != nil {
-		m.Set("new.DSN", p.new.DSN, true)
+		m.Set("new.handle", p.new.Handle, true)
 		m.Set("new.ID", p.new.ID, true)
 	}
 	if p.update != nil {
-		m.Set("update.DSN", p.update.DSN, true)
+		m.Set("update.handle", p.update.Handle, true)
 		m.Set("update.ID", p.update.ID, true)
 	}
 	if p.search != nil {
@@ -154,11 +154,11 @@ func (p dalConnectionActionProps) Format(in string, err error) string {
 			pairs,
 			"{{connection}}",
 			fns(
-				p.connection.DSN,
+				p.connection.Handle,
 				p.connection.ID,
 			),
 		)
-		pairs = append(pairs, "{{connection.DSN}}", fns(p.connection.DSN))
+		pairs = append(pairs, "{{connection.handle}}", fns(p.connection.Handle))
 		pairs = append(pairs, "{{connection.ID}}", fns(p.connection.ID))
 	}
 
@@ -168,11 +168,11 @@ func (p dalConnectionActionProps) Format(in string, err error) string {
 			pairs,
 			"{{new}}",
 			fns(
-				p.new.DSN,
+				p.new.Handle,
 				p.new.ID,
 			),
 		)
-		pairs = append(pairs, "{{new.DSN}}", fns(p.new.DSN))
+		pairs = append(pairs, "{{new.handle}}", fns(p.new.Handle))
 		pairs = append(pairs, "{{new.ID}}", fns(p.new.ID))
 	}
 
@@ -182,11 +182,11 @@ func (p dalConnectionActionProps) Format(in string, err error) string {
 			pairs,
 			"{{update}}",
 			fns(
-				p.update.DSN,
+				p.update.Handle,
 				p.update.ID,
 			),
 		)
-		pairs = append(pairs, "{{update.DSN}}", fns(p.update.DSN))
+		pairs = append(pairs, "{{update.handle}}", fns(p.update.Handle))
 		pairs = append(pairs, "{{update.ID}}", fns(p.update.ID))
 	}
 
@@ -619,7 +619,7 @@ func DalConnectionErrNotAllowedToRead(mm ...*dalConnectionActionProps) *errors.E
 		errors.Meta("resource", "system:dal-connection"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(dalConnectionLogMetaKey{}, "failed to read {{connection.DSN}}; insufficient permissions"),
+		errors.Meta(dalConnectionLogMetaKey{}, "failed to read {{connection.handle}}; insufficient permissions"),
 		errors.Meta(dalConnectionPropsMetaKey{}, p),
 
 		// translation namespace & key
@@ -691,7 +691,7 @@ func DalConnectionErrNotAllowedToUpdate(mm ...*dalConnectionActionProps) *errors
 		errors.Meta("resource", "system:dal-connection"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(dalConnectionLogMetaKey{}, "failed to update {{connection.DSN}}; insufficient permissions"),
+		errors.Meta(dalConnectionLogMetaKey{}, "failed to update {{connection.handle}}; insufficient permissions"),
 		errors.Meta(dalConnectionPropsMetaKey{}, p),
 
 		// translation namespace & key
@@ -727,7 +727,7 @@ func DalConnectionErrNotAllowedToDelete(mm ...*dalConnectionActionProps) *errors
 		errors.Meta("resource", "system:dal-connection"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(dalConnectionLogMetaKey{}, "failed to delete {{connection.DSN}}; insufficient permissions"),
+		errors.Meta(dalConnectionLogMetaKey{}, "failed to delete {{connection.handle}}; insufficient permissions"),
 		errors.Meta(dalConnectionPropsMetaKey{}, p),
 
 		// translation namespace & key
@@ -763,7 +763,7 @@ func DalConnectionErrNotAllowedToUndelete(mm ...*dalConnectionActionProps) *erro
 		errors.Meta("resource", "system:dal-connection"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(dalConnectionLogMetaKey{}, "failed to undelete {{connection.DSN}}; insufficient permissions"),
+		errors.Meta(dalConnectionLogMetaKey{}, "failed to undelete {{connection.handle}}; insufficient permissions"),
 		errors.Meta(dalConnectionPropsMetaKey{}, p),
 
 		// translation namespace & key
@@ -799,7 +799,7 @@ func DalConnectionErrNotAllowedToExec(mm ...*dalConnectionActionProps) *errors.E
 		errors.Meta("resource", "system:dal-connection"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(dalConnectionLogMetaKey{}, "failed to exec {{connection.DSN}}; insufficient permissions"),
+		errors.Meta(dalConnectionLogMetaKey{}, "failed to exec {{connection.handle}}; insufficient permissions"),
 		errors.Meta(dalConnectionPropsMetaKey{}, p),
 
 		// translation namespace & key

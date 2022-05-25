@@ -32,7 +32,8 @@ const (
 func Tables() []*Table {
 	return []*Table{
 		tableUsers(),
-		tableConnections(),
+		tableDalConnections(),
+		tableDalSensitivityLevels(),
 		tableCredentials(),
 		tableAuthClients(),
 		tableAuthConfirmedClients(),
@@ -95,17 +96,36 @@ func tableUsers() *Table {
 	)
 }
 
-func tableConnections() *Table {
+func tableDalConnections() *Table {
 	return TableDef("dal_connections",
 		ID,
 
 		ColumnDef("handle", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
-		ColumnDef("dsn", ColumnTypeVarchar, ColumnTypeLength(urlLength)),
-		ColumnDef("location", ColumnTypeText),
+		ColumnDef("name", ColumnTypeText),
+		ColumnDef("type", ColumnTypeText),
+
+		ColumnDef("location", ColumnTypeJson),
 		ColumnDef("ownership", ColumnTypeText),
-		ColumnDef("sensitive", ColumnTypeBoolean),
+		ColumnDef("sensitivity_level", ColumnTypeIdentifier),
+
 		ColumnDef("config", ColumnTypeJson),
 		ColumnDef("capabilities", ColumnTypeJson),
+		CUDTimestamps,
+		CUDUsers,
+
+		AddIndex("unique_handle", IExpr("LOWER(handle)"), IWhere("LENGTH(handle) > 0 AND deleted_at IS NULL")),
+	)
+}
+
+func tableDalSensitivityLevels() *Table {
+	return TableDef("dal_sensitivity_levels",
+		ID,
+
+		ColumnDef("handle", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
+		ColumnDef("level", ColumnTypeInteger),
+
+		ColumnDef("meta", ColumnTypeJson),
+
 		CUDTimestamps,
 		CUDUsers,
 

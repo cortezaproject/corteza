@@ -18,17 +18,17 @@ import (
 
 type (
 	// Internal API interface
-	DalConnectionAPI interface {
-		List(context.Context, *request.DalConnectionList) (interface{}, error)
-		Create(context.Context, *request.DalConnectionCreate) (interface{}, error)
-		Update(context.Context, *request.DalConnectionUpdate) (interface{}, error)
-		Read(context.Context, *request.DalConnectionRead) (interface{}, error)
-		Delete(context.Context, *request.DalConnectionDelete) (interface{}, error)
-		Undelete(context.Context, *request.DalConnectionUndelete) (interface{}, error)
+	DalSensitivityLevelAPI interface {
+		List(context.Context, *request.DalSensitivityLevelList) (interface{}, error)
+		Create(context.Context, *request.DalSensitivityLevelCreate) (interface{}, error)
+		Update(context.Context, *request.DalSensitivityLevelUpdate) (interface{}, error)
+		Read(context.Context, *request.DalSensitivityLevelRead) (interface{}, error)
+		Delete(context.Context, *request.DalSensitivityLevelDelete) (interface{}, error)
+		Undelete(context.Context, *request.DalSensitivityLevelUndelete) (interface{}, error)
 	}
 
 	// HTTP API interface
-	DalConnection struct {
+	DalSensitivityLevel struct {
 		List     func(http.ResponseWriter, *http.Request)
 		Create   func(http.ResponseWriter, *http.Request)
 		Update   func(http.ResponseWriter, *http.Request)
@@ -38,11 +38,11 @@ type (
 	}
 )
 
-func NewDalConnection(h DalConnectionAPI) *DalConnection {
-	return &DalConnection{
+func NewDalSensitivityLevel(h DalSensitivityLevelAPI) *DalSensitivityLevel {
+	return &DalSensitivityLevel{
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewDalConnectionList()
+			params := request.NewDalSensitivityLevelList()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
@@ -58,7 +58,7 @@ func NewDalConnection(h DalConnectionAPI) *DalConnection {
 		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewDalConnectionCreate()
+			params := request.NewDalSensitivityLevelCreate()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
@@ -74,7 +74,7 @@ func NewDalConnection(h DalConnectionAPI) *DalConnection {
 		},
 		Update: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewDalConnectionUpdate()
+			params := request.NewDalSensitivityLevelUpdate()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
@@ -90,7 +90,7 @@ func NewDalConnection(h DalConnectionAPI) *DalConnection {
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewDalConnectionRead()
+			params := request.NewDalSensitivityLevelRead()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
@@ -106,7 +106,7 @@ func NewDalConnection(h DalConnectionAPI) *DalConnection {
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewDalConnectionDelete()
+			params := request.NewDalSensitivityLevelDelete()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
@@ -122,7 +122,7 @@ func NewDalConnection(h DalConnectionAPI) *DalConnection {
 		},
 		Undelete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewDalConnectionUndelete()
+			params := request.NewDalSensitivityLevelUndelete()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
@@ -139,14 +139,14 @@ func NewDalConnection(h DalConnectionAPI) *DalConnection {
 	}
 }
 
-func (h DalConnection) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h DalSensitivityLevel) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/dal/connections/", h.List)
-		r.Post("/dal/connections/", h.Create)
-		r.Put("/dal/connections/{connectionID}", h.Update)
-		r.Get("/dal/connections/{connectionID}", h.Read)
-		r.Delete("/dal/connections/{connectionID}", h.Delete)
-		r.Post("/dal/connections/{connectionID}/undelete", h.Undelete)
+		r.Get("/dal/sensitivity-levels/", h.List)
+		r.Post("/dal/sensitivity-levels/", h.Create)
+		r.Put("/dal/sensitivity-levels/{sensitivityLevelID}", h.Update)
+		r.Get("/dal/sensitivity-levels/{sensitivityLevelID}", h.Read)
+		r.Delete("/dal/sensitivity-levels/{sensitivityLevelID}", h.Delete)
+		r.Post("/dal/sensitivity-levels/{sensitivityLevelID}/undelete", h.Undelete)
 	})
 }

@@ -2408,11 +2408,12 @@ var (
 	dalConnectionSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"name",
 			"handle",
-			"dsn",
+			"type",
 			"location",
 			"ownership",
-			"sensitive",
+			"sensitivity_level",
 			"config",
 			"capabilities",
 			"created_at",
@@ -2430,20 +2431,21 @@ var (
 	dalConnectionInsertQuery = func(d goqu.DialectWrapper, res *systemType.DalConnection) *goqu.InsertDataset {
 		return d.Insert(dalConnectionTable).
 			Rows(goqu.Record{
-				"id":           res.ID,
-				"handle":       res.Handle,
-				"dsn":          res.DSN,
-				"location":     res.Location,
-				"ownership":    res.Ownership,
-				"sensitive":    res.Sensitive,
-				"config":       res.Config,
-				"capabilities": res.Capabilities,
-				"created_at":   res.CreatedAt,
-				"updated_at":   res.UpdatedAt,
-				"deleted_at":   res.DeletedAt,
-				"created_by":   res.CreatedBy,
-				"updated_by":   res.UpdatedBy,
-				"deleted_by":   res.DeletedBy,
+				"id":                res.ID,
+				"name":              res.Name,
+				"handle":            res.Handle,
+				"type":              res.Type,
+				"location":          res.Location,
+				"ownership":         res.Ownership,
+				"sensitivity_level": res.SensitivityLevel,
+				"config":            res.Config,
+				"capabilities":      res.Capabilities,
+				"created_at":        res.CreatedAt,
+				"updated_at":        res.UpdatedAt,
+				"deleted_at":        res.DeletedAt,
+				"created_by":        res.CreatedBy,
+				"updated_by":        res.UpdatedBy,
+				"deleted_by":        res.DeletedBy,
 			})
 	}
 
@@ -2457,19 +2459,20 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
-						"handle":       res.Handle,
-						"dsn":          res.DSN,
-						"location":     res.Location,
-						"ownership":    res.Ownership,
-						"sensitive":    res.Sensitive,
-						"config":       res.Config,
-						"capabilities": res.Capabilities,
-						"created_at":   res.CreatedAt,
-						"updated_at":   res.UpdatedAt,
-						"deleted_at":   res.DeletedAt,
-						"created_by":   res.CreatedBy,
-						"updated_by":   res.UpdatedBy,
-						"deleted_by":   res.DeletedBy,
+						"name":              res.Name,
+						"handle":            res.Handle,
+						"type":              res.Type,
+						"location":          res.Location,
+						"ownership":         res.Ownership,
+						"sensitivity_level": res.SensitivityLevel,
+						"config":            res.Config,
+						"capabilities":      res.Capabilities,
+						"created_at":        res.CreatedAt,
+						"updated_at":        res.UpdatedAt,
+						"deleted_at":        res.DeletedAt,
+						"created_by":        res.CreatedBy,
+						"updated_by":        res.UpdatedBy,
+						"deleted_by":        res.DeletedBy,
 					},
 				),
 			)
@@ -2481,19 +2484,20 @@ var (
 	dalConnectionUpdateQuery = func(d goqu.DialectWrapper, res *systemType.DalConnection) *goqu.UpdateDataset {
 		return d.Update(dalConnectionTable).
 			Set(goqu.Record{
-				"handle":       res.Handle,
-				"dsn":          res.DSN,
-				"location":     res.Location,
-				"ownership":    res.Ownership,
-				"sensitive":    res.Sensitive,
-				"config":       res.Config,
-				"capabilities": res.Capabilities,
-				"created_at":   res.CreatedAt,
-				"updated_at":   res.UpdatedAt,
-				"deleted_at":   res.DeletedAt,
-				"created_by":   res.CreatedBy,
-				"updated_by":   res.UpdatedBy,
-				"deleted_by":   res.DeletedBy,
+				"name":              res.Name,
+				"handle":            res.Handle,
+				"type":              res.Type,
+				"location":          res.Location,
+				"ownership":         res.Ownership,
+				"sensitivity_level": res.SensitivityLevel,
+				"config":            res.Config,
+				"capabilities":      res.Capabilities,
+				"created_at":        res.CreatedAt,
+				"updated_at":        res.UpdatedAt,
+				"deleted_at":        res.DeletedAt,
+				"created_by":        res.CreatedBy,
+				"updated_by":        res.UpdatedBy,
+				"deleted_by":        res.DeletedBy,
 			}).
 			Where(dalConnectionPrimaryKeys(res))
 	}
@@ -2516,6 +2520,114 @@ var (
 	//
 	// This function is auto-generated
 	dalConnectionPrimaryKeys = func(res *systemType.DalConnection) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
+	// dalSensitivityLevelTable represents dalSensitivityLevels store table
+	//
+	// This value is auto-generated
+	dalSensitivityLevelTable = goqu.T("dal_sensitivity_levels")
+
+	// dalSensitivityLevelSelectQuery assembles select query for fetching dalSensitivityLevels
+	//
+	// This function is auto-generated
+	dalSensitivityLevelSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"handle",
+			"level",
+			"meta",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+			"created_by",
+			"updated_by",
+			"deleted_by",
+		).From(dalSensitivityLevelTable)
+	}
+
+	// dalSensitivityLevelInsertQuery assembles query inserting dalSensitivityLevels
+	//
+	// This function is auto-generated
+	dalSensitivityLevelInsertQuery = func(d goqu.DialectWrapper, res *systemType.DalSensitivityLevel) *goqu.InsertDataset {
+		return d.Insert(dalSensitivityLevelTable).
+			Rows(goqu.Record{
+				"id":         res.ID,
+				"handle":     res.Handle,
+				"level":      res.Level,
+				"meta":       res.Meta,
+				"created_at": res.CreatedAt,
+				"updated_at": res.UpdatedAt,
+				"deleted_at": res.DeletedAt,
+				"created_by": res.CreatedBy,
+				"updated_by": res.UpdatedBy,
+				"deleted_by": res.DeletedBy,
+			})
+	}
+
+	// dalSensitivityLevelUpsertQuery assembles (insert+on-conflict) query for replacing dalSensitivityLevels
+	//
+	// This function is auto-generated
+	dalSensitivityLevelUpsertQuery = func(d goqu.DialectWrapper, res *systemType.DalSensitivityLevel) *goqu.InsertDataset {
+		var target = `,id`
+
+		return dalSensitivityLevelInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"handle":     res.Handle,
+						"level":      res.Level,
+						"meta":       res.Meta,
+						"created_at": res.CreatedAt,
+						"updated_at": res.UpdatedAt,
+						"deleted_at": res.DeletedAt,
+						"created_by": res.CreatedBy,
+						"updated_by": res.UpdatedBy,
+						"deleted_by": res.DeletedBy,
+					},
+				),
+			)
+	}
+
+	// dalSensitivityLevelUpdateQuery assembles query for updating dalSensitivityLevels
+	//
+	// This function is auto-generated
+	dalSensitivityLevelUpdateQuery = func(d goqu.DialectWrapper, res *systemType.DalSensitivityLevel) *goqu.UpdateDataset {
+		return d.Update(dalSensitivityLevelTable).
+			Set(goqu.Record{
+				"handle":     res.Handle,
+				"level":      res.Level,
+				"meta":       res.Meta,
+				"created_at": res.CreatedAt,
+				"updated_at": res.UpdatedAt,
+				"deleted_at": res.DeletedAt,
+				"created_by": res.CreatedBy,
+				"updated_by": res.UpdatedBy,
+				"deleted_by": res.DeletedBy,
+			}).
+			Where(dalSensitivityLevelPrimaryKeys(res))
+	}
+
+	// dalSensitivityLevelDeleteQuery assembles delete query for removing dalSensitivityLevels
+	//
+	// This function is auto-generated
+	dalSensitivityLevelDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(dalSensitivityLevelTable).Where(ee...)
+	}
+
+	// dalSensitivityLevelDeleteQuery assembles delete query for removing dalSensitivityLevels
+	//
+	// This function is auto-generated
+	dalSensitivityLevelTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(dalSensitivityLevelTable)
+	}
+
+	// dalSensitivityLevelPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	dalSensitivityLevelPrimaryKeys = func(res *systemType.DalSensitivityLevel) goqu.Ex {
 		return goqu.Ex{
 			"id": res.ID,
 		}

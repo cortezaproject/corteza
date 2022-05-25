@@ -33,8 +33,8 @@ type (
 	}
 
 	dalConnections interface {
-		AddConnection(ctx context.Context, connectionID uint64, dsn string, dft dal.ConnectionDefaults, capabilities ...capabilities.Capability) (err error)
-		UpdateConnection(ctx context.Context, connectionID uint64, dsn string, dft dal.ConnectionDefaults, capabilities ...capabilities.Capability) (err error)
+		AddConnection(ctx context.Context, connectionID uint64, cp dal.ConnectionParams, dft dal.ConnectionDefaults, capabilities ...capabilities.Capability) (err error)
+		UpdateConnection(ctx context.Context, connectionID uint64, cp dal.ConnectionParams, dft dal.ConnectionDefaults, capabilities ...capabilities.Capability) (err error)
 		RemoveConnection(ctx context.Context, connectionID uint64) (err error)
 	}
 )
@@ -84,6 +84,21 @@ func (svc *dalConnection) FindByID(ctx context.Context, ID uint64) (q *types.Dal
 	return q, svc.recordAction(ctx, rProps, DalConnectionActionLookup, err)
 }
 
+func (svc *dalConnection) FindPrimary(ctx context.Context) (q *types.DalConnection, err error) {
+	var (
+		rProps = &dalConnectionActionProps{}
+	)
+
+	err = func() error {
+		// primary; construct it since it doesn't actually exist
+		aux := svc.primaryConnection
+		q = &aux
+		return nil
+	}()
+
+	return q, svc.recordAction(ctx, rProps, DalConnectionActionLookup, err)
+}
+
 func (svc *dalConnection) Create(ctx context.Context, new *types.DalConnection) (q *types.DalConnection, err error) {
 	var (
 		qProps = &dalConnectionActionProps{new: new}
@@ -104,7 +119,7 @@ func (svc *dalConnection) Create(ctx context.Context, new *types.DalConnection) 
 
 		q = new
 
-		return svc.dal.AddConnection(ctx, new.ID, new.DSN, new.ConnectionDefaults(), new.ActiveCapabilities()...)
+		return svc.dal.AddConnection(ctx, new.ID, new.Config.Connection, new.ConnectionDefaults(), new.ActiveCapabilities()...)
 	}()
 
 	return q, svc.recordAction(ctx, qProps, DalConnectionActionCreate, err)
@@ -136,7 +151,7 @@ func (svc *dalConnection) Update(ctx context.Context, upd *types.DalConnection) 
 
 		q = upd
 
-		return svc.dal.UpdateConnection(ctx, upd.ID, upd.DSN, upd.ConnectionDefaults(), upd.ActiveCapabilities()...)
+		return svc.dal.UpdateConnection(ctx, upd.ID, upd.Config.Connection, upd.ConnectionDefaults(), upd.ActiveCapabilities()...)
 	}()
 
 	return q, svc.recordAction(ctx, qProps, DalConnectionActionUpdate, err)
@@ -204,7 +219,7 @@ func (svc *dalConnection) UndeleteByID(ctx context.Context, ID uint64) (err erro
 			return
 		}
 
-		return svc.dal.AddConnection(ctx, q.ID, q.DSN, q.ConnectionDefaults(), q.ActiveCapabilities()...)
+		return svc.dal.AddConnection(ctx, q.ID, q.Config.Connection, q.ConnectionDefaults(), q.ActiveCapabilities()...)
 	}()
 
 	return svc.recordAction(ctx, qProps, DalConnectionActionDelete, err)
@@ -247,7 +262,7 @@ func (svc *dalConnection) reloadConnections(ctx context.Context) (err error) {
 	}
 
 	for _, c := range cc {
-		if err = svc.dal.AddConnection(ctx, c.ID, c.DSN, c.ConnectionDefaults(), c.ActiveCapabilities()...); err != nil {
+		if err = svc.dal.AddConnection(ctx, c.ID, c.Config.Connection, c.ConnectionDefaults(), c.ActiveCapabilities()...); err != nil {
 			return
 		}
 	}

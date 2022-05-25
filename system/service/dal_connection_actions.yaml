@@ -15,13 +15,13 @@ import:
 props:
   - name: connection
     type: "*types.DalConnection"
-    fields: [ DSN, ID ]
+    fields: [ handle, ID ]
   - name: new
     type: "*types.DalConnection"
-    fields: [ DSN, ID ]
+    fields: [ handle, ID ]
   - name: update
     type: "*types.DalConnection"
-    fields: [ DSN, ID ]
+    fields: [ handle, ID ]
   - name: search
     type: "*types.DalConnectionFilter"
     fields: []
@@ -74,7 +74,7 @@ errors:
 
   - error: notAllowedToRead
     message: "not allowed to read this connection"
-    log: "failed to read {{connection.DSN}}; insufficient permissions"
+    log: "failed to read {{connection.handle}}; insufficient permissions"
 
   - error: notAllowedToSearch
     message: "not allowed to list or search connections"
@@ -82,17 +82,17 @@ errors:
 
   - error: notAllowedToUpdate
     message: "not allowed to update this connection"
-    log: "failed to update {{connection.DSN}}; insufficient permissions"
+    log: "failed to update {{connection.handle}}; insufficient permissions"
 
   - error: notAllowedToDelete
     message: "not allowed to delete this connection"
-    log: "failed to delete {{connection.DSN}}; insufficient permissions"
+    log: "failed to delete {{connection.handle}}; insufficient permissions"
 
   - error: notAllowedToUndelete
     message: "not allowed to undelete this connection"
-    log: "failed to undelete {{connection.DSN}}; insufficient permissions"
+    log: "failed to undelete {{connection.handle}}; insufficient permissions"
 
   - error: notAllowedToExec
     message: "not allowed to execute this connection"
-    log: "failed to exec {{connection.DSN}}; insufficient permissions"
+    log: "failed to exec {{connection.handle}}; insufficient permissions"
 

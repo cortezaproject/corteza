@@ -701,6 +701,121 @@ endpoints:
         required: true
         title: File import
 
+- title: Data access layer drivers
+  path: "/dal/drivers"
+  entrypoint: dalDriver
+  authentication:
+  - Client ID
+  - Session ID
+  apis:
+  - name: list
+    method: GET
+    title: Search drivers
+    path: "/"
+
+- title: Data access layer sensitivity levels
+  path: "/dal/sensitivity-levels"
+  entrypoint: dalSensitivityLevel
+  authentication:
+  - Client ID
+  - Session ID
+  imports:
+    - github.com/cortezaproject/corteza-server/system/types
+  apis:
+  - name: list
+    method: GET
+    title: Search sensitivity levels
+    path: "/"
+    parameters:
+      get:
+      - name: sensitivityLevelID
+        type: "[]string"
+        required: false
+        title: Filter by sensitivity level ID
+      - name: deleted
+        required: false
+        title: Exclude (0, default), include (1) or return only (2) deleted sensitivity levels
+        type: uint
+
+  - name: create
+    method: POST
+    title: Create sensitivity level
+    path: "/"
+    parameters:
+      post:
+      - name: handle
+        type: string
+        required: true
+        title: handle
+      - name: level
+        type: int
+        required: true
+        title: level
+      - name: meta
+        type: types.DalSensitivityLevelMeta
+        parser: types.ParseDalSensitivityLevelMeta
+        required: true
+        title: meta
+
+  - name: update
+    method: PUT
+    title: Update connection details
+    path: "/{sensitivityLevelID}"
+    parameters:
+      path:
+      - type: uint64
+        name: sensitivityLevelID
+        required: true
+        title: Connection ID
+      post:
+      - name: handle
+        type: string
+        required: true
+        title: handle
+      - name: level
+        type: int
+        required: true
+        title: level
+      - name: meta
+        type: types.DalSensitivityLevelMeta
+        parser: types.ParseDalSensitivityLevelMeta
+        required: true
+        title: meta
+
+  - name: read
+    method: GET
+    title: Read connection details
+    path: "/{sensitivityLevelID}"
+    parameters:
+      path:
+      - type: uint64
+        name: sensitivityLevelID
+        required: true
+        title: Connection ID
+
+  - name: delete
+    method: DELETE
+    title: Remove sensitivity level
+    path: "/{sensitivityLevelID}"
+    parameters:
+      path:
+      - type: uint64
+        name: sensitivityLevelID
+        required: true
+        title: Connection ID
+
+  - name: undelete
+    method: POST
+    title: Undelete sensitivity level
+    path: "/{sensitivityLevelID}/undelete"
+    parameters:
+      path:
+      - type: uint64
+        name: sensitivityLevelID
+        required: true
+        title: Connection ID
+
+
 - title: Data access layer connections
   path: "/dal/connections"
   entrypoint: dalConnection
@@ -708,8 +823,8 @@ endpoints:
   - Client ID
   - Session ID
   imports:
-    - github.com/cortezaproject/corteza-server/pkg/label
     - github.com/cortezaproject/corteza-server/system/types
+    - github.com/cortezaproject/corteza-server/pkg/geolocation
   apis:
   - name: list
     method: GET
@@ -726,30 +841,13 @@ endpoints:
         required: false
         title: Search handle to match against connections
       - type: string
-        name: location
+        name: type
         required: false
-        title: Search location to match against connections
-      - type: string
-        name: ownership
-        required: false
-        title: Search ownership to match against connections
+        title: Search type to match against connections
       - name: deleted
         required: false
         title: Exclude (0, default), include (1) or return only (2) deleted connections
         type: uint
-      - type: map[string]string
-        name: labels
-        title: Labels
-        parser: label.ParseStrings
-      - type: uint
-        name: limit
-        title: Limit
-      - type: string
-        name: pageCursor
-        title: Page cursor
-      - type: string
-        name: sort
-        title: Sort items
   - name: create
     method: POST
     title: Create connection
@@ -760,22 +858,29 @@ endpoints:
         type: string
         required: true
         title: handle
-      - name: dsn
+      - name: name
         type: string
         required: true
-        title: dsn
-      - name: location
+        title: name
+      - name: type
         type: string
+        required: true
+        title: type
+
+      - name: location
+        type: "*geolocation.Full"
         required: true
         title: location
+        parser: geolocation.Parse
       - name: ownership
         type: string
         required: true
         title: ownership
-      - name: sensitive
-        type: bool
+      - name: sensitivityLevel
+        type: uint64
         required: true
-        title: sensitive
+        title: sensitivityLevel
+
       - name: config
         type: types.ConnectionConfig
         required: true
@@ -786,10 +891,6 @@ endpoints:
         required: true
         title: capabilities
         parser: types.ParseConnectionCapabilities
-      - type: map[string]string
-        name: labels
-        title: Labels
-        parser: label.ParseStrings
   - name: update
     method: PUT
     title: Update connection details
@@ -805,22 +906,29 @@ endpoints:
         type: string
         required: true
         title: handle
-      - name: dsn
+      - name: name
         type: string
         required: true
-        title: dsn
-      - name: location
+        title: name
+      - name: type
         type: string
+        required: true
+        title: type
+
+      - name: location
+        type: "*geolocation.Full"
         required: true
         title: location
+        parser: geolocation.Parse
       - name: ownership
         type: string
         required: true
         title: ownership
-      - name: sensitive
-        type: bool
+      - name: sensitivityLevel
+        type: uint64
         required: true
-        title: sensitive
+        title: sensitivityLevel
+
       - name: config
         type: types.ConnectionConfig
         required: true
@@ -831,14 +939,6 @@ endpoints:
         required: true
         title: capabilities
         parser: types.ParseConnectionCapabilities
-      - type: map[string]string
-        name: labels
-        title: Labels
-        parser: label.ParseStrings
-  - name: readPrimary
-    method: GET
-    title: Read primary connection details
-    path: "/primary"
   - name: read
     method: GET
     title: Read connection details

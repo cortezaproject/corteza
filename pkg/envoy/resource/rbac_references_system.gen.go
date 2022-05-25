@@ -139,3 +139,16 @@ func SystemDalConnectionRbacReferences(dalConnection string) (res *Ref, pp []*Re
 
 	return
 }
+
+// SystemDalSensitivityLevelRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemDalSensitivityLevelRbacReferences(dalSensitivityLevel string) (res *Ref, pp []*Ref, err error) {
+	if dalSensitivityLevel != "*" {
+		res = &Ref{ResourceType: types.DalSensitivityLevelResourceType, Identifiers: MakeIdentifiers(dalSensitivityLevel)}
+	}
+
+	return
+}
