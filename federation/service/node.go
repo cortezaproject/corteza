@@ -58,7 +58,7 @@ type (
 	}
 )
 
-func Node(s store.Storer, u service.UserService, al actionlog.Recorder, th tokenIssuer, options options.FederationOpt, ac nodeAccessController) *node {
+func Node(s store.Storer, u service.UserService, al actionlog.Recorder, th tokenIssuer, options options.FederationOpt, sopt options.HttpServerOpt, ac nodeAccessController) *node {
 	return &node{
 		store:       s,
 		sysUser:     u,
@@ -68,8 +68,7 @@ func Node(s store.Storer, u service.UserService, al actionlog.Recorder, th token
 		name:        options.Label,
 		host:        options.Host,
 
-		// @todo use HTTP_API_BASE_URL (HttpServerOpt.ApiBaseUrl) to prefix URI path
-		baseURL: "/federation",
+		baseURL: fmt.Sprintf("%s/federation", strings.TrimRight(sopt.ApiBaseUrl, "/")),
 
 		handshaker: HttpHandshake(http.DefaultClient),
 	}
