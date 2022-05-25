@@ -11,8 +11,8 @@ data_privacy_request: schema.#Resource & {
 
 	struct: {
 		id: schema.IdField
-		kind: { goType: "types.RequestKind" }
-		status: { goType: "types.RequestStatus" }
+		kind: { goType: "types.RequestKind", sortable: true }
+		status: { goType: "types.RequestStatus", sortable: true }
 
 		requested_at: { schema.SortableTimestampField, ident: "requestedAt", storeIdent: "requested_at" }
 		requested_by: { goType: "uint64", ident: "requestedBy", storeIdent: "requested_by" }
