@@ -2209,6 +2209,9 @@ endpoints:
       path: "/"
       parameters:
         get:
+          - { name: query,        type: "string",     title: "Filter requests" }
+          - { name: status,       type: "string",     title: "Filter requests" }
+          - { name: status,       type: "[]string",   title: "Filter by status: pending, cancel, approve, reject" }
           - { name: limit,        type: "uint",       title: "Limit" }
           - { name: pageCursor,   type: "string",     title: "Page cursor" }
           - { name: sort,         type: "string",     title: "Sort items" }

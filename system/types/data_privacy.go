@@ -8,10 +8,9 @@ import (
 
 type (
 	DataPrivacyRequest struct {
-		ID   uint64 `json:"requestID,string"`
-		Name string `json:"name"`
+		ID uint64 `json:"requestID,string"`
 
-		Kind   RequestKind   `json:"requestType"`
+		Kind   RequestKind   `json:"kind"`
 		Status RequestStatus `json:"status"`
 
 		RequestedAt time.Time  `json:"requestedAt,omitempty"`
@@ -30,10 +29,7 @@ type (
 	DataPrivacyRequestFilter struct {
 		RequestID []uint64 `json:"requestID"`
 
-		Name   string          `json:"name"`
 		Status []RequestStatus `json:"status"`
-
-		Deleted filter.State `json:"deleted"`
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it

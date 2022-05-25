@@ -103,17 +103,6 @@ func (svc dataPrivacy) FindRequest(ctx context.Context, filter types.DataPrivacy
 			return DataPrivacyErrNotAllowedToSearch()
 		}
 
-		if filter.Deleted > 0 {
-			// If list with deleted or suspended resource is requested
-			// user must have access permissions to system (ie: is admin)
-			//
-			// not the best solution but ATM it allows us to have at least
-			// some kind of control over who can see deleted or archived resource
-			//if !svc.ac.CanAccess(ctx) {
-			//	return {Resource}ErrNotAllowedToList{Resource}s()
-			//}
-		}
-
 		if rr, f, err = store.SearchDataPrivacyRequests(ctx, svc.store, filter); err != nil {
 			return err
 		}
@@ -226,6 +215,7 @@ func (svc dataPrivacy) UpdateRequestStatus(ctx context.Context, upd *types.DataP
 			return
 		}
 
+		r.Status = upd.Status
 		r.CompletedAt = now()
 		r.CompletedBy = a.GetIdentityFromContext(ctx).Identity()
 		r.UpdatedAt = now()

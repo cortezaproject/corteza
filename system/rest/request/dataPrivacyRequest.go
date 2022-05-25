@@ -34,6 +34,21 @@ var (
 type (
 	// Internal API interface
 	DataPrivacyRequestList struct {
+		// Query GET parameter
+		//
+		// Filter requests
+		Query string
+
+		// Status GET parameter
+		//
+		// Filter requests
+		Status string
+
+		// Status GET parameter
+		//
+		// Filter by status: pending, cancel, approve, reject
+		Status []string
+
 		// Limit GET parameter
 		//
 		// Limit
@@ -48,19 +63,9 @@ type (
 		//
 		// Sort items
 		Sort string
-
-		// Deleted GET parameter
-		//
-		// Exclude (0, default), include (1) or return only (2) deleted requests
-		Deleted uint
 	}
 
 	DataPrivacyRequestCreate struct {
-		// Name POST parameter
-		//
-		// Request Name
-		Name string
-
 		// Kind POST parameter
 		//
 		// Request Kind
@@ -121,11 +126,28 @@ func NewDataPrivacyRequestList() *DataPrivacyRequestList {
 // Auditable returns all auditable/loggable parameters
 func (r DataPrivacyRequestList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
+		"query":      r.Query,
+		"status":     r.Status,
+		"status":     r.Status,
 		"limit":      r.Limit,
 		"pageCursor": r.PageCursor,
 		"sort":       r.Sort,
-		"deleted":    r.Deleted,
 	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DataPrivacyRequestList) GetQuery() string {
+	return r.Query
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DataPrivacyRequestList) GetStatus() string {
+	return r.Status
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DataPrivacyRequestList) GetStatus() []string {
+	return r.Status
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -143,11 +165,6 @@ func (r DataPrivacyRequestList) GetSort() string {
 	return r.Sort
 }
 
-// Auditable returns all auditable/loggable parameters
-func (r DataPrivacyRequestList) GetDeleted() uint {
-	return r.Deleted
-}
-
 // Fill processes request and fills internal variables
 func (r *DataPrivacyRequestList) Fill(req *http.Request) (err error) {
 
@@ -155,6 +172,29 @@ func (r *DataPrivacyRequestList) Fill(req *http.Request) (err error) {
 		// GET params
 		tmp := req.URL.Query()
 
+		if val, ok := tmp["query"]; ok && len(val) > 0 {
+			r.Query, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["status"]; ok && len(val) > 0 {
+			r.Status, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["status[]"]; ok {
+			r.Status, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["status"]; ok {
+			r.Status, err = val, nil
+			if err != nil {
+				return err
+			}
+		}
 		if val, ok := tmp["limit"]; ok && len(val) > 0 {
 			r.Limit, err = payload.ParseUint(val[0]), nil
 			if err != nil {
@@ -173,12 +213,6 @@ func (r *DataPrivacyRequestList) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
-		if val, ok := tmp["deleted"]; ok && len(val) > 0 {
-			r.Deleted, err = payload.ParseUint(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
 	}
 
 	return err
@@ -192,14 +226,8 @@ func NewDataPrivacyRequestCreate() *DataPrivacyRequestCreate {
 // Auditable returns all auditable/loggable parameters
 func (r DataPrivacyRequestCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"name": r.Name,
 		"kind": r.Kind,
 	}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r DataPrivacyRequestCreate) GetName() string {
-	return r.Name
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -228,13 +256,6 @@ func (r *DataPrivacyRequestCreate) Fill(req *http.Request) (err error) {
 		} else if err == nil {
 			// Multipart params
 
-			if val, ok := req.MultipartForm.Value["name"]; ok && len(val) > 0 {
-				r.Name, err = val[0], nil
-				if err != nil {
-					return err
-				}
-			}
-
 			if val, ok := req.MultipartForm.Value["kind"]; ok && len(val) > 0 {
 				r.Kind, err = val[0], nil
 				if err != nil {
@@ -250,13 +271,6 @@ func (r *DataPrivacyRequestCreate) Fill(req *http.Request) (err error) {
 		}
 
 		// POST params
-
-		if val, ok := req.Form["name"]; ok && len(val) > 0 {
-			r.Name, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
 
 		if val, ok := req.Form["kind"]; ok && len(val) > 0 {
 			r.Kind, err = val[0], nil

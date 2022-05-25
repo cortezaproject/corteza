@@ -35,7 +35,9 @@ func (ctrl DataPrivacyRequest) List(ctx context.Context, r *request.DataPrivacyR
 	var (
 		err error
 		f   = types.DataPrivacyRequestFilter{
-			Deleted: filter.State(r.Deleted),
+			Status:     r.
+			Sorting:   filter.Sorting{},
+			Paging:    filter.Paging{},
 		}
 	)
 
