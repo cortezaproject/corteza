@@ -2212,15 +2212,12 @@ endpoints:
           - { name: limit,        type: "uint",       title: "Limit" }
           - { name: pageCursor,   type: "string",     title: "Page cursor" }
           - { name: sort,         type: "string",     title: "Sort items" }
-          - { name: "deleted",    type: "uint",     title: "Exclude (0, default), include (1) or return only (2) deleted requests" }
-
     - name: create
       method: POST
       title: Create data privacy request
       path: "/"
       parameters:
         post:
-          - { name: name,         type: "string",   title: "Request Name", required: true }
           - { name: kind,         type: "string",   title: "Request Kind", required: true }
     - name: update
       method: PUT

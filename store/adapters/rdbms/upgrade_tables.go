@@ -748,13 +748,14 @@ func tableResourceActivityLog() *Table {
 func tableDataPrivacyRequests() *Table {
 	return TableDef("data_privacy_requests",
 		ID,
-		ColumnDef("name", ColumnTypeIdentifier),
 		ColumnDef("kind", ColumnTypeText, ColumnTypeLength(handleLength)),
 		ColumnDef("status", ColumnTypeInteger),
 		ColumnDef("requested_at", ColumnTypeTimestamp),
-		ColumnDef("requested_by", ColumnTypeTimestamp),
-		ColumnDef("completed_at", ColumnTypeTimestamp),
-		ColumnDef("completed_by", ColumnTypeTimestamp),
+		ColumnDef("requested_by", ColumnTypeIdentifier),
+		ColumnDef("completed_at", ColumnTypeTimestamp, Null),
+		ColumnDef("completed_by", ColumnTypeIdentifier, DefaultValue("0")),
+		CUDTimestamps,
+		CUDUsers,
 
 		AddIndex("status", IColumn("status")),
 	)

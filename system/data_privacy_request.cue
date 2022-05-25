@@ -11,7 +11,6 @@ data_privacy_request: schema.#Resource & {
 
 	struct: {
 		id: schema.IdField
-		name: {}
 		kind: { goType: "types.RequestKind" }
 		status: { goType: "types.RequestStatus" }
 
@@ -31,10 +30,7 @@ data_privacy_request: schema.#Resource & {
 	filter: {
 		struct: {
 			request_id: {goType: "[]uint64", ident: "requestID", storeIdent: "id" }
-			name: {goType: "string"}
 			status: {goType: "[]types.RequestStatus"}
-
-			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
 	}
 
@@ -57,16 +53,7 @@ data_privacy_request: schema.#Resource & {
 
 						It returns data privacy request even if deleted
 						"""
-				}, {
-					fields: ["name"]
-					nullConstraint: ["deleted_at"]
-					constraintCheck: true
-					description: """
-						searches for data privacy request by name
-
-						It returns only valid data privacy request (not deleted)
-						"""
-				},
+				}
 			]
 			functions: []
 		}
