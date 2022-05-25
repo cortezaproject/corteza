@@ -29,6 +29,7 @@ type (
 
 	DataPrivacyRequestFilter struct {
 		RequestID []uint64 `json:"requestID"`
+		Query     string   `json:"query"`
 
 		Kind   []string `json:"kind"`
 		Status []string `json:"status"`
@@ -74,10 +75,18 @@ func (k RequestKind) IsValid() error {
 	return errors.New("invalid request kind")
 }
 
+func (k RequestKind) String() string {
+	return string(k)
+}
+
 func (s RequestStatus) IsValid() error {
 	switch s {
 	case RequestStatusPending, RequestStatusCanceled, RequestStatusApproved, RequestStatusRejected:
 		return nil
 	}
 	return errors.New("invalid request status")
+}
+
+func (s RequestStatus) String() string {
+	return string(s)
 }

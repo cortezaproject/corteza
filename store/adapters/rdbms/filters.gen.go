@@ -764,6 +764,19 @@ func DalSensitivityLevelFilter(f systemType.DalSensitivityLevelFilter) (ee []goq
 		ee = append(ee, goqu.C("id").In(f.SensitivityLevelID))
 	}
 
+	// @todo codegen warning: filtering by Kind ([]types.RequestKind) not supported,
+	//       see rdbms.go.tpl and add an exception
+
+	// @todo codegen warning: filtering by Status ([]types.RequestStatus) not supported,
+	//       see rdbms.go.tpl and add an exception
+
+	if f.Query != "" {
+		ee = append(ee, goqu.Or(
+			goqu.C("kind").ILike("%"+f.Query+"%"),
+			goqu.C("status").ILike("%"+f.Query+"%"),
+		))
+	}
+
 	return ee, f, err
 }
 

@@ -33,6 +33,9 @@ data_privacy_request: schema.#Resource & {
 			kind: {goType: "[]types.RequestKind"}
 			status: {goType: "[]types.RequestStatus"}
 		}
+
+		query: ["kind", "status"]
+		byValue: ["kind", "status"]
 	}
 
 	rbac: {

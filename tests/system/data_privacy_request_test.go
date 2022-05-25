@@ -64,6 +64,29 @@ func TestDataPrivacyRequestList(t *testing.T) {
 		End()
 }
 
+func TestDataPrivacyRequestListFilters(t *testing.T) {
+	h := newHelper(t)
+	h.clearDataPrivacyRequests()
+
+	h.createSampleDataPrivacyRequest()
+	h.createSampleDataPrivacyRequest()
+	h.createDataPrivacyRequest("", types.RequestStatusApproved)
+	h.createDataPrivacyRequest(types.RequestKindExport, types.RequestStatusApproved)
+
+	helpers.AllowMe(h, types.ComponentRbacResource(), "data-privacy-requests.search")
+	helpers.AllowMe(h, types.DataPrivacyRequestRbacResource(0), "read")
+
+	h.apiInit().
+		Get("/data-privacy/requests/").
+		Query("query", types.RequestStatusApproved.String()).
+		Query("kind", types.RequestKindExport.String()).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Len(`$.response.set`, 1)).
+		End()
+}
+
 func TestDataPrivacyRequestRead(t *testing.T) {
 	h := newHelper(t)
 	h.clearDataPrivacyRequests()
@@ -94,8 +117,8 @@ func TestDataPrivacyRequestCreate(t *testing.T) {
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Present(`$.response.requestID`)).
-		Assert(jsonpath.Equal(`$.response.kind`, string(types.RequestKindCorrect))).
-		Assert(jsonpath.Equal(`$.response.status`, string(types.RequestStatusPending))).
+		Assert(jsonpath.Equal(`$.response.kind`, types.RequestKindCorrect.String())).
+		Assert(jsonpath.Equal(`$.response.status`, types.RequestStatusPending.String())).
 		End()
 }
 
@@ -114,7 +137,7 @@ func TestDataPrivacyRequestUpdateStatus(t *testing.T) {
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
-		Assert(jsonpath.Equal(`$.response.status`, string(types.RequestStatusApproved))).
+		Assert(jsonpath.Equal(`$.response.status`, types.RequestStatusApproved.String())).
 		End()
 }
 

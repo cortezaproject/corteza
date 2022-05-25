@@ -35,6 +35,8 @@ func (ctrl DataPrivacyRequest) List(ctx context.Context, r *request.DataPrivacyR
 	var (
 		err error
 		f   = types.DataPrivacyRequestFilter{
+			Query:  r.Query,
+			Kind:   r.Kind,
 			Status: r.Status,
 		}
 	)
@@ -69,15 +71,6 @@ func (ctrl DataPrivacyRequest) Create(ctx context.Context, r *request.DataPrivac
 	}
 
 	return ctrl.dataPrivacy.CreateRequest(ctx, req)
-}
-
-func (ctrl DataPrivacyRequest) Update(ctx context.Context, r *request.DataPrivacyRequestUpdate) (interface{}, error) {
-	req := &types.DataPrivacyRequest{
-		ID:     r.RequestID,
-		Status: types.RequestStatus(r.Status),
-	}
-
-	return ctrl.dataPrivacy.UpdateRequest(ctx, req)
 }
 
 func (ctrl DataPrivacyRequest) UpdateStatus(ctx context.Context, r *request.DataPrivacyRequestUpdateStatus) (interface{}, error) {

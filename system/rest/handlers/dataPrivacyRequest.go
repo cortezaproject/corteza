@@ -21,7 +21,6 @@ type (
 	DataPrivacyRequestAPI interface {
 		List(context.Context, *request.DataPrivacyRequestList) (interface{}, error)
 		Create(context.Context, *request.DataPrivacyRequestCreate) (interface{}, error)
-		Update(context.Context, *request.DataPrivacyRequestUpdate) (interface{}, error)
 		UpdateStatus(context.Context, *request.DataPrivacyRequestUpdateStatus) (interface{}, error)
 		Read(context.Context, *request.DataPrivacyRequestRead) (interface{}, error)
 		ListResponses(context.Context, *request.DataPrivacyRequestListResponses) (interface{}, error)
@@ -32,7 +31,6 @@ type (
 	DataPrivacyRequest struct {
 		List           func(http.ResponseWriter, *http.Request)
 		Create         func(http.ResponseWriter, *http.Request)
-		Update         func(http.ResponseWriter, *http.Request)
 		UpdateStatus   func(http.ResponseWriter, *http.Request)
 		Read           func(http.ResponseWriter, *http.Request)
 		ListResponses  func(http.ResponseWriter, *http.Request)
@@ -67,22 +65,6 @@ func NewDataPrivacyRequest(h DataPrivacyRequestAPI) *DataPrivacyRequest {
 			}
 
 			value, err := h.Create(r.Context(), params)
-			if err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			api.Send(w, r, value)
-		},
-		Update: func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			params := request.NewDataPrivacyRequestUpdate()
-			if err := params.Fill(r); err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			value, err := h.Update(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
@@ -162,7 +144,6 @@ func (h DataPrivacyRequest) MountRoutes(r chi.Router, middlewares ...func(http.H
 		r.Use(middlewares...)
 		r.Get("/data-privacy/requests/", h.List)
 		r.Post("/data-privacy/requests/", h.Create)
-		r.Put("/data-privacy/requests/{requestID}", h.Update)
 		r.Put("/data-privacy/requests/{requestID}/status/{status}", h.UpdateStatus)
 		r.Get("/data-privacy/requests/{requestID}", h.Read)
 		r.Get("/data-privacy/requests/{requestID}/responses", h.ListResponses)
