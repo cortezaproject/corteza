@@ -24,6 +24,7 @@ type (
 		ActionLog  options.ActionLogOpt
 		Storage    options.ObjectStoreOpt
 		Federation options.FederationOpt
+		Server     options.HttpServerOpt
 	}
 )
 
@@ -99,6 +100,7 @@ func Initialize(_ context.Context, log *zap.Logger, s store.Storer, c Config) (e
 			)
 		},
 		c.Federation,
+		c.Server,
 		DefaultAccessControl,
 	)
 	DefaultNodeSync = NodeSync()

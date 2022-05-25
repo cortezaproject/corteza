@@ -517,6 +517,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		err = fedService.Initialize(ctx, app.Log, app.Store, fedService.Config{
 			ActionLog:  app.Opt.ActionLog,
 			Federation: app.Opt.Federation,
+			Server:     app.Opt.HTTPServer,
 		})
 
 		if err != nil {
