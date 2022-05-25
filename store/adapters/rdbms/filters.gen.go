@@ -95,6 +95,9 @@ type (
 		// optional dalConnection filter function called after the generated function
 		DalConnection func(*Store, systemType.DalConnectionFilter) ([]goqu.Expression, systemType.DalConnectionFilter, error)
 
+		// optional dalSensitivityLevel filter function called after the generated function
+		DalSensitivityLevel func(*Store, systemType.DalSensitivityLevelFilter) ([]goqu.Expression, systemType.DalSensitivityLevelFilter, error)
+
 		// optional federationExposedModule filter function called after the generated function
 		FederationExposedModule func(*Store, federationType.ExposedModuleFilter) ([]goqu.Expression, federationType.ExposedModuleFilter, error)
 
@@ -737,20 +740,24 @@ func DalConnectionFilter(f systemType.DalConnectionFilter) (ee []goqu.Expression
 		ee = append(ee, goqu.C("handle").Eq(f.Handle))
 	}
 
-	if val := strings.TrimSpace(f.DSN); len(val) > 0 {
-		ee = append(ee, goqu.C("dsn").Eq(f.DSN))
+	return ee, f, err
+}
+
+// DalSensitivityLevelFilter returns logical expressions
+//
+// This function is called from Store.QueryDalSensitivityLevels() and can be extended
+// by setting Store.Filters.DalSensitivityLevel. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func DalSensitivityLevelFilter(f systemType.DalSensitivityLevelFilter) (ee []goqu.Expression, _ systemType.DalSensitivityLevelFilter, err error) {
+
+	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
 	}
 
-	if val := strings.TrimSpace(f.Location); len(val) > 0 {
-		ee = append(ee, goqu.C("location").Eq(f.Location))
-	}
-
-	if val := strings.TrimSpace(f.Ownership); len(val) > 0 {
-		ee = append(ee, goqu.C("ownership").Eq(f.Ownership))
-	}
-
-	if len(f.LabeledIDs) > 0 {
-		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
+	if len(f.SensitivityLevelID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.SensitivityLevelID))
 	}
 
 	return ee, f, err

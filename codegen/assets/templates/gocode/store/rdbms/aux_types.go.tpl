@@ -5,6 +5,7 @@ package rdbms
 import (
 	"time"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza-server/pkg/geolocation"
 {{- range $path, $alias :=  .imports }}
     {{ $alias }} {{ printf "%q" $path }}
 {{- end }}

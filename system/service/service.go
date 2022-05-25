@@ -74,7 +74,8 @@ var (
 	DefaultAuth                *auth
 	DefaultAuthClient          *authClient
 	DefaultUser                *user
-	DefaultConnection          *dalConnection
+	DefaultDalConnection       *dalConnection
+	DefaultDalSensitivityLevel *dalSensitivityLevel
 	DefaultRole                *role
 	DefaultApplication         *application
 	DefaultReminder            ReminderService
@@ -149,7 +150,12 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, primaryCon
 	DefaultSettings = Settings(ctx, DefaultStore, DefaultLogger, DefaultAccessControl, CurrentSettings)
 
 	primaryConnectionConfig = primaryConn
-	DefaultConnection, err = Connection(ctx, primaryConnectionConfig, dal.Service())
+	DefaultDalConnection, err = Connection(ctx, primaryConnectionConfig, dal.Service())
+	if err != nil {
+		return
+	}
+
+	DefaultDalSensitivityLevel, err = SensitivityLevel(ctx)
 	if err != nil {
 		return
 	}

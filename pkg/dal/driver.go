@@ -16,6 +16,11 @@ import (
 type (
 	PKValues map[string]any
 
+	ConnectionParams struct {
+		Type   string         `json:"type"`
+		Params map[string]any `json:"params"`
+	}
+
 	Connection interface {
 		// Meta
 
@@ -113,10 +118,28 @@ type (
 	}
 
 	ConnectorFn func(ctx context.Context, dsn string, cc ...capabilities.Capability) (Connection, error)
+
+	DriverConnectionParam struct {
+		Key        string `json:"key"`
+		ValueType  string `json:"valueType"`
+		MultiValue bool   `json:"multiValue"`
+	}
+
+	DriverConnectionConfig struct {
+		Type   string                  `json:"type"`
+		Params []DriverConnectionParam `json:"params"`
+	}
+
+	Driver struct {
+		Type         string                 `json:"type"`
+		Connection   DriverConnectionConfig `json:"connection"`
+		Capabilities capabilities.Set       `json:"capabilities"`
+	}
 )
 
 var (
-	registered = make(map[string]ConnectorFn)
+	registeredConnectors = make(map[string]ConnectorFn)
+	registeredDrivers    = make(map[string]Driver)
 )
 
 func (pkv PKValues) CountValues() map[string]uint {
@@ -136,17 +159,25 @@ func (pkv PKValues) GetValue(key string, _ uint) (any, error) {
 	}
 }
 
-// Register registers a new connector for the given DSN schema
+// RegisterConnector registers a new connector for the given DSN schema
 //
 // In case of a duplicate schema the latter overwrites the prior
-func Register(fn ConnectorFn, tt ...string) {
+func RegisterConnector(fn ConnectorFn, tt ...string) {
 	for _, t := range tt {
-		registered[t] = fn
+		registeredConnectors[t] = fn
 	}
 }
 
+func RegisterDriver(d Driver) {
+	registeredDrivers[d.Type] = d
+}
+
 // connect opens a new StoreConnection for the given CRS
-func connect(ctx context.Context, log *zap.Logger, isDevelopment bool, dsn string, capabilities ...capabilities.Capability) (Connection, error) {
+func connect(ctx context.Context, log *zap.Logger, isDevelopment bool, cp ConnectionParams, capabilities ...capabilities.Capability) (Connection, error) {
+	if cp.Type != "corteza::dal:connection:dsn" {
+		return nil, fmt.Errorf("cannot open connection: only DSN connections supported")
+	}
+	dsn := cp.Params["dsn"].(string)
 
 	if isDevelopment {
 		if strings.Contains(dsn, "{version}") {
@@ -165,9 +196,64 @@ func connect(ctx context.Context, log *zap.Logger, isDevelopment bool, dsn strin
 		storeType = "mysql"
 	}
 
-	if conn, ok := registered[storeType]; ok {
+	if conn, ok := registeredConnectors[storeType]; ok {
 		return conn(ctx, dsn, capabilities...)
 	} else {
 		return nil, fmt.Errorf("unknown store type used: %q (check your storage configuration)", storeType)
+	}
+}
+
+func NewDSNDriverConnectionConfig() DriverConnectionConfig {
+	return DriverConnectionConfig{
+		Type: "corteza::dal:connection:dsn",
+		Params: []DriverConnectionParam{{
+			Key:       "dsn",
+			ValueType: "string",
+		}},
+	}
+}
+func NewHTTPDriverConnectionConfig() DriverConnectionConfig {
+	panic("not implemented NewHTTPDriverConnectionConfig")
+	return DriverConnectionConfig{
+		Type:   "corteza::dal:connection:http",
+		Params: []DriverConnectionParam{{}},
+	}
+}
+func NewFederatedNodeDriverConnectionConfig() DriverConnectionConfig {
+	panic("not implemented NewFederatedNodeDriverConnectionConfig")
+	return DriverConnectionConfig{
+		Type:   "corteza::dal:connection:federated-node",
+		Params: []DriverConnectionParam{{}},
+	}
+}
+
+func NewDSNConnection(dsn string) ConnectionParams {
+	return ConnectionParams{
+		Type: "corteza::dal:connection:dsn",
+		Params: map[string]any{
+			"dsn": dsn,
+		},
+	}
+}
+
+func NewHTTPConnection(url string, headers, query map[string][]string) ConnectionParams {
+	return ConnectionParams{
+		Type: "corteza::dal:connection:http",
+		Params: map[string]any{
+			"url":     url,
+			"headers": headers,
+			"query":   query,
+		},
+	}
+}
+
+func NewFederatedNodeCOnnection(url string, pairToken, authToken string) ConnectionParams {
+	return ConnectionParams{
+		Type: "corteza::dal:connection:federation-node",
+		Params: map[string]any{
+			"baseURL":   url,
+			"pairToken": pairToken,
+			"authToken": authToken,
+		},
 	}
 }

@@ -43,7 +43,7 @@ var (
 )
 
 // InitGlobalService initializes a fresh DAL where the given primary connection
-func InitGlobalService(ctx context.Context, log *zap.Logger, inDev bool, dsn string, dft ConnectionDefaults, capabilities ...capabilities.Capability) (*service, error) {
+func InitGlobalService(ctx context.Context, log *zap.Logger, inDev bool, cp ConnectionParams, dft ConnectionDefaults, capabilities ...capabilities.Capability) (*service, error) {
 	if gSvc == nil {
 		gSvc = &service{
 			connections: make(map[uint64]*connectionWrap),
@@ -58,7 +58,7 @@ func InitGlobalService(ctx context.Context, log *zap.Logger, inDev bool, dsn str
 		cw := &connectionWrap{
 			Defaults: dft,
 		}
-		cw.connection, err = connect(ctx, log, inDev, dsn, capabilities...)
+		cw.connection, err = connect(ctx, log, inDev, cp, capabilities...)
 		if err != nil {
 			return nil, err
 		}
@@ -81,14 +81,27 @@ func Service() *service {
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // //
+// driver management
+
+func (svc *service) Drivers() (drivers []Driver) {
+	for _, d := range registeredDrivers {
+		drivers = append(drivers, d)
+	}
+
+	return
+}
+
+// // // // // // // // // // // // // // // // // // // // // // // // //
+
+// // // // // // // // // // // // // // // // // // // // // // // // //
 // Connection management
 
 // AddConnection adds a new connection to the DAL
-func (svc *service) AddConnection(ctx context.Context, connectionID uint64, dsn string, dft ConnectionDefaults, capabilities ...capabilities.Capability) (err error) {
+func (svc *service) AddConnection(ctx context.Context, connectionID uint64, cp ConnectionParams, dft ConnectionDefaults, capabilities ...capabilities.Capability) (err error) {
 	cw := &connectionWrap{
 		Defaults: dft,
 	}
-	cw.connection, err = connect(ctx, svc.logger, svc.inDev, dsn, capabilities...)
+	cw.connection, err = connect(ctx, svc.logger, svc.inDev, cp, capabilities...)
 	if err != nil {
 		return
 	}
@@ -119,12 +132,12 @@ func (svc *service) RemoveConnection(ctx context.Context, connectionID uint64) (
 // UpdateConnection updates the given connection
 //
 // @todo make this better; for now remove + add
-func (svc *service) UpdateConnection(ctx context.Context, connectionID uint64, dsn string, dft ConnectionDefaults, capabilities ...capabilities.Capability) (err error) {
+func (svc *service) UpdateConnection(ctx context.Context, connectionID uint64, cp ConnectionParams, dft ConnectionDefaults, capabilities ...capabilities.Capability) (err error) {
 	if err = svc.RemoveConnection(ctx, connectionID); err != nil {
 		return
 	}
 
-	return svc.AddConnection(ctx, connectionID, dsn, dft, capabilities...)
+	return svc.AddConnection(ctx, connectionID, cp, dft, capabilities...)
 }
 
 // ConnectionDefaultreturns the defaults we can use with this connection

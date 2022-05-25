@@ -24,6 +24,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza-server/pkg/geolocation"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/http"
 	"github.com/cortezaproject/corteza-server/pkg/id"
@@ -300,17 +301,24 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	var primaryDalConnection = types.DalConnection{
 		// Using id.Next since we dropped "special" ids a while ago.
 		// If needed, use the handle
-		ID:        id.Next(),
-		Handle:    "primary_connection",
-		DSN:       app.Opt.DB.DSN,
-		Location:  "@todo",
+		ID:     id.Next(),
+		Name:   "Primary Connection",
+		Handle: "primary_connection",
+		Type:   types.DalPrimaryConnectionResourceType,
+
+		Location: &geolocation.Full{
+			// @todo get from .env
+		},
 		Ownership: "@todo",
 		// @todo
-		Sensitive: true,
+		// SensitivityLevel: ,
+
 		Config: types.ConnectionConfig{
 			DefaultModelIdent:      defaultComposeRecordTable,
 			DefaultAttributeIdent:  defaultComposeRecordValueCol,
 			DefaultPartitionFormat: defaultPartitionFormat,
+
+			Connection: dal.NewDSNConnection(app.Opt.DB.DSN),
 		},
 		Capabilities: types.ConnectionCapabilities{
 			Supported: capabilities.FullCapabilities(),
@@ -326,7 +334,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		app.Opt.Environment.IsDevelopment(),
 
 		// DB_DSN is the default connection with full capabilities
-		primaryDalConnection.DSN,
+		primaryDalConnection.Config.Connection,
 		primaryDalConnection.ConnectionDefaults(),
 		primaryDalConnection.ActiveCapabilities()...); err != nil {
 		return err

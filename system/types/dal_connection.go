@@ -8,18 +8,21 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/geolocation"
 	"github.com/pkg/errors"
 )
 
 type (
 	DalConnection struct {
 		ID     uint64 `json:"connectionID,string"`
+		Name   string `json:"name"`
 		Handle string `json:"handle"`
 
-		DSN       string `json:"dsn"`
-		Location  string `json:"location"`
-		Ownership string `json:"ownership"`
-		Sensitive bool   `json:"sensitive"`
+		Type string `json:"type"`
+
+		Location         *geolocation.Full `json:"location,omitempty"`
+		Ownership        string            `json:"ownership"`
+		SensitivityLevel uint64            `json:"sensitivityLevel,string"`
 
 		Config       ConnectionConfig       `json:"config"`
 		Capabilities ConnectionCapabilities `json:"capabilities"`
@@ -46,18 +49,16 @@ type (
 		DefaultAttributeIdent string `json:"defaultAttributeIdent"`
 
 		DefaultPartitionFormat string `json:"defaultPartitionFormat"`
+
+		PartitionFormatValidator string `json:"partitionFormatValidator"`
+
+		Connection dal.ConnectionParams `json:"connection"`
 	}
 
 	DalConnectionFilter struct {
 		ConnectionID []uint64 `json:"connectionID,string"`
 		Handle       string   `json:"handle"`
-		DSN          string   `json:"dsn"`
-		Location     string   `json:"location"`
-		Ownership    string   `json:"ownership"`
-		Sensitive    string   `json:"sensitive"`
-
-		LabeledIDs []uint64          `json:"-"`
-		Labels     map[string]string `json:"labels,omitempty"`
+		Type         string   `json:"type"`
 
 		Deleted filter.State `json:"deleted"`
 
@@ -68,9 +69,13 @@ type (
 		Check func(*DalConnection) (bool, error) `json:"-"`
 
 		// Standard helpers for paging and sorting
-		filter.Sorting
 		filter.Paging
 	}
+)
+
+var (
+	// Used to identify the primary DAL connection instead of an extra flag
+	DalPrimaryConnectionResourceType = "corteza::system:primary_dal_connection"
 )
 
 func (c DalConnection) ConnectionDefaults() dal.ConnectionDefaults {

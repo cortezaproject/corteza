@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	dal.Register(dalConnector, baseSchema, altSchema, debugSchema)
+	dal.RegisterConnector(dalConnector, baseSchema, altSchema, debugSchema)
 }
 
 func dalConnector(ctx context.Context, dsn string, cc ...capabilities.Capability) (_ dal.Connection, err error) {

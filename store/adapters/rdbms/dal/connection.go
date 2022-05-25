@@ -22,6 +22,14 @@ type (
 	}
 )
 
+func init() {
+	dal.RegisterDriver(dal.Driver{
+		Type:         "corteza::dal:driver:rdbms",
+		Capabilities: capabilities.FullCapabilities(),
+		Connection:   dal.NewDSNDriverConnectionConfig(),
+	})
+}
+
 func Connection(db *sqlx.DB, dialect drivers.Dialect, cc ...capabilities.Capability) *connection {
 	return &connection{
 		db:           db,

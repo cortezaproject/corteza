@@ -14,6 +14,7 @@ import (
 	discoveryType "github.com/cortezaproject/corteza-server/pkg/discovery/types"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	flagType "github.com/cortezaproject/corteza-server/pkg/flag/types"
+	"github.com/cortezaproject/corteza-server/pkg/geolocation"
 	labelsType "github.com/cortezaproject/corteza-server/pkg/label/types"
 	rbacType "github.com/cortezaproject/corteza-server/pkg/rbac"
 	systemType "github.com/cortezaproject/corteza-server/system/types"
@@ -346,20 +347,35 @@ type (
 
 	// auxDalConnection is an auxiliary structure used for transporting to/from RDBMS store
 	auxDalConnection struct {
-		ID           uint64                            `db:"id"`
-		Handle       string                            `db:"handle"`
-		DSN          string                            `db:"dsn"`
-		Location     string                            `db:"location"`
-		Ownership    string                            `db:"ownership"`
-		Sensitive    bool                              `db:"sensitive"`
-		Config       systemType.ConnectionConfig       `db:"config"`
-		Capabilities systemType.ConnectionCapabilities `db:"capabilities"`
-		CreatedAt    time.Time                         `db:"created_at"`
-		UpdatedAt    *time.Time                        `db:"updated_at"`
-		DeletedAt    *time.Time                        `db:"deleted_at"`
-		CreatedBy    uint64                            `db:"created_by"`
-		UpdatedBy    uint64                            `db:"updated_by"`
-		DeletedBy    uint64                            `db:"deleted_by"`
+		ID               uint64                            `db:"id"`
+		Name             string                            `db:"name"`
+		Handle           string                            `db:"handle"`
+		Type             string                            `db:"type"`
+		Location         *geolocation.Full                 `db:"location"`
+		Ownership        string                            `db:"ownership"`
+		SensitivityLevel uint64                            `db:"sensitivity_level"`
+		Config           systemType.ConnectionConfig       `db:"config"`
+		Capabilities     systemType.ConnectionCapabilities `db:"capabilities"`
+		CreatedAt        time.Time                         `db:"created_at"`
+		UpdatedAt        *time.Time                        `db:"updated_at"`
+		DeletedAt        *time.Time                        `db:"deleted_at"`
+		CreatedBy        uint64                            `db:"created_by"`
+		UpdatedBy        uint64                            `db:"updated_by"`
+		DeletedBy        uint64                            `db:"deleted_by"`
+	}
+
+	// auxDalSensitivityLevel is an auxiliary structure used for transporting to/from RDBMS store
+	auxDalSensitivityLevel struct {
+		ID        uint64                             `db:"id"`
+		Handle    string                             `db:"handle"`
+		Level     int                                `db:"level"`
+		Meta      systemType.DalSensitivityLevelMeta `db:"meta"`
+		CreatedAt time.Time                          `db:"created_at"`
+		UpdatedAt *time.Time                         `db:"updated_at"`
+		DeletedAt *time.Time                         `db:"deleted_at"`
+		CreatedBy uint64                             `db:"created_by"`
+		UpdatedBy uint64                             `db:"updated_by"`
+		DeletedBy uint64                             `db:"deleted_by"`
 	}
 
 	// auxFederationExposedModule is an auxiliary structure used for transporting to/from RDBMS store
@@ -1801,11 +1817,12 @@ func (aux *auxCredential) scan(row scanner) error {
 // This function is auto-generated
 func (aux *auxDalConnection) encode(res *systemType.DalConnection) (_ error) {
 	aux.ID = res.ID
+	aux.Name = res.Name
 	aux.Handle = res.Handle
-	aux.DSN = res.DSN
+	aux.Type = res.Type
 	aux.Location = res.Location
 	aux.Ownership = res.Ownership
-	aux.Sensitive = res.Sensitive
+	aux.SensitivityLevel = res.SensitivityLevel
 	aux.Config = res.Config
 	aux.Capabilities = res.Capabilities
 	aux.CreatedAt = res.CreatedAt
@@ -1823,11 +1840,12 @@ func (aux *auxDalConnection) encode(res *systemType.DalConnection) (_ error) {
 func (aux auxDalConnection) decode() (res *systemType.DalConnection, _ error) {
 	res = new(systemType.DalConnection)
 	res.ID = aux.ID
+	res.Name = aux.Name
 	res.Handle = aux.Handle
-	res.DSN = aux.DSN
+	res.Type = aux.Type
 	res.Location = aux.Location
 	res.Ownership = aux.Ownership
-	res.Sensitive = aux.Sensitive
+	res.SensitivityLevel = aux.SensitivityLevel
 	res.Config = aux.Config
 	res.Capabilities = aux.Capabilities
 	res.CreatedAt = aux.CreatedAt
@@ -1845,13 +1863,67 @@ func (aux auxDalConnection) decode() (res *systemType.DalConnection, _ error) {
 func (aux *auxDalConnection) scan(row scanner) error {
 	return row.Scan(
 		&aux.ID,
+		&aux.Name,
 		&aux.Handle,
-		&aux.DSN,
+		&aux.Type,
 		&aux.Location,
 		&aux.Ownership,
-		&aux.Sensitive,
+		&aux.SensitivityLevel,
 		&aux.Config,
 		&aux.Capabilities,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+		&aux.CreatedBy,
+		&aux.UpdatedBy,
+		&aux.DeletedBy,
+	)
+}
+
+// encodes DalSensitivityLevel to auxDalSensitivityLevel
+//
+// This function is auto-generated
+func (aux *auxDalSensitivityLevel) encode(res *systemType.DalSensitivityLevel) (_ error) {
+	aux.ID = res.ID
+	aux.Handle = res.Handle
+	aux.Level = res.Level
+	aux.Meta = res.Meta
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	aux.CreatedBy = res.CreatedBy
+	aux.UpdatedBy = res.UpdatedBy
+	aux.DeletedBy = res.DeletedBy
+	return
+}
+
+// decodes DalSensitivityLevel from auxDalSensitivityLevel
+//
+// This function is auto-generated
+func (aux auxDalSensitivityLevel) decode() (res *systemType.DalSensitivityLevel, _ error) {
+	res = new(systemType.DalSensitivityLevel)
+	res.ID = aux.ID
+	res.Handle = aux.Handle
+	res.Level = aux.Level
+	res.Meta = aux.Meta
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	res.CreatedBy = aux.CreatedBy
+	res.UpdatedBy = aux.UpdatedBy
+	res.DeletedBy = aux.DeletedBy
+	return
+}
+
+// scans row and fills auxDalSensitivityLevel fields
+//
+// This function is auto-generated
+func (aux *auxDalSensitivityLevel) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.Handle,
+		&aux.Level,
+		&aux.Meta,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,

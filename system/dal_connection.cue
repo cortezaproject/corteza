@@ -7,11 +7,15 @@ import (
 dal_connection: schema.#Resource & {
 	struct: {
 		id:     schema.IdField
+		name: { goType: "string" }
 		handle: schema.HandleField
-		dsn: {expIdent: "DSN"}
-		location: {}
+
+		// omitting isPrimary and replacing with a special type
+		type: { goType: "string" }
+
+		location: { goType: "*geolocation.Full" }
 		ownership: {}
-		sensitive: {goType: "bool"}
+		sensitivity_level: { goType: "uint64" }
 
 		config: {goType: "types.ConnectionConfig"}
 		capabilities: {goType: "types.ConnectionCapabilities"}
@@ -28,16 +32,19 @@ dal_connection: schema.#Resource & {
 		struct: {
 			connection_id: {goType: "[]uint64", ident: "connectionID", storeIdent: "id"}
 			handle: {goType: "string"}
-			dsn: {expIdent: "DSN", goType: "string"}
-			location: {goType: "string"}
-			ownership: {goType: "string"}
-			sensitive: {goType: "bool"}
+			type: {goType: "string"}
 
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
 
-		byValue: ["connection_id", "handle", "dsn", "location", "ownership"]
+		byValue: ["connection_id", "handle"]
 		byNilState: ["deleted"]
+	}
+
+	features: {
+		labels: false
+		paging: false
+		sorting: false
 	}
 
 	rbac: {
