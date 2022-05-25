@@ -106,20 +106,19 @@ func (p dataPrivacyActionProps) Serialize() actionlog.Meta {
 	)
 
 	if p.dataPrivacyRequest != nil {
-		m.Set("dataPrivacyRequest.name", p.dataPrivacyRequest.Name, true)
+		m.Set("dataPrivacyRequest.kind", p.dataPrivacyRequest.Kind, true)
 		m.Set("dataPrivacyRequest.ID", p.dataPrivacyRequest.ID, true)
 	}
 	if p.new != nil {
-		m.Set("new.name", p.new.Name, true)
+		m.Set("new.kind", p.new.Kind, true)
 		m.Set("new.ID", p.new.ID, true)
 	}
 	if p.update != nil {
-		m.Set("update.name", p.update.Name, true)
+		m.Set("update.kind", p.update.Kind, true)
 		m.Set("update.ID", p.update.ID, true)
 	}
 	if p.filter != nil {
-		m.Set("filter.name", p.filter.Name, true)
-		m.Set("filter.deleted", p.filter.Deleted, true)
+		m.Set("filter.kind", p.filter.Kind, true)
 		m.Set("filter.sort", p.filter.Sort, true)
 	}
 
@@ -157,11 +156,11 @@ func (p dataPrivacyActionProps) Format(in string, err error) string {
 			pairs,
 			"{{dataPrivacyRequest}}",
 			fns(
-				p.dataPrivacyRequest.Name,
+				p.dataPrivacyRequest.Kind,
 				p.dataPrivacyRequest.ID,
 			),
 		)
-		pairs = append(pairs, "{{dataPrivacyRequest.name}}", fns(p.dataPrivacyRequest.Name))
+		pairs = append(pairs, "{{dataPrivacyRequest.kind}}", fns(p.dataPrivacyRequest.Kind))
 		pairs = append(pairs, "{{dataPrivacyRequest.ID}}", fns(p.dataPrivacyRequest.ID))
 	}
 
@@ -171,11 +170,11 @@ func (p dataPrivacyActionProps) Format(in string, err error) string {
 			pairs,
 			"{{new}}",
 			fns(
-				p.new.Name,
+				p.new.Kind,
 				p.new.ID,
 			),
 		)
-		pairs = append(pairs, "{{new.name}}", fns(p.new.Name))
+		pairs = append(pairs, "{{new.kind}}", fns(p.new.Kind))
 		pairs = append(pairs, "{{new.ID}}", fns(p.new.ID))
 	}
 
@@ -185,11 +184,11 @@ func (p dataPrivacyActionProps) Format(in string, err error) string {
 			pairs,
 			"{{update}}",
 			fns(
-				p.update.Name,
+				p.update.Kind,
 				p.update.ID,
 			),
 		)
-		pairs = append(pairs, "{{update.name}}", fns(p.update.Name))
+		pairs = append(pairs, "{{update.kind}}", fns(p.update.Kind))
 		pairs = append(pairs, "{{update.ID}}", fns(p.update.ID))
 	}
 
@@ -199,13 +198,11 @@ func (p dataPrivacyActionProps) Format(in string, err error) string {
 			pairs,
 			"{{filter}}",
 			fns(
-				p.filter.Name,
-				p.filter.Deleted,
+				p.filter.Kind,
 				p.filter.Sort,
 			),
 		)
-		pairs = append(pairs, "{{filter.name}}", fns(p.filter.Name))
-		pairs = append(pairs, "{{filter.deleted}}", fns(p.filter.Deleted))
+		pairs = append(pairs, "{{filter.kind}}", fns(p.filter.Kind))
 		pairs = append(pairs, "{{filter.sort}}", fns(p.filter.Sort))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)

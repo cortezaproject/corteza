@@ -15,16 +15,16 @@ import:
 props:
   - name: dataPrivacyRequest
     type: "*types.DataPrivacyRequest"
-    fields: [ name, ID ]
+    fields: [ kind, ID ]
   - name: new
     type: "*types.DataPrivacyRequest"
-    fields: [ name, ID ]
+    fields: [ kind, ID ]
   - name: update
     type: "*types.DataPrivacyRequest"
-    fields: [ name, ID ]
+    fields: [ kind, ID ]
   - name: filter
     type: "*types.DataPrivacyRequestFilter"
-    fields: [ name, deleted, sort ]
+    fields: [ kind, sort ]
 
 actions:
   - action: search

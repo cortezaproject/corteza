@@ -29,7 +29,8 @@ type (
 	DataPrivacyRequestFilter struct {
 		RequestID []uint64 `json:"requestID"`
 
-		Status []RequestStatus `json:"status"`
+		Kind   []string `json:"kind"`
+		Status []string `json:"status"`
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it
@@ -56,10 +57,10 @@ const (
 	// RequestStatusReject data officer has denied the request
 	RequestStatusReject RequestStatus = "reject"
 
-	// RequestTypeCorrect to correct module fields
-	RequestTypeCorrect RequestKind = "correct"
-	// RequestTypeDelete to delete module fields
-	RequestTypeDelete RequestKind = "delete"
-	// RequestTypeExport to export module fields
-	RequestTypeExport RequestKind = "export"
+	// RequestKindCorrect to correct module fields
+	RequestKindCorrect RequestKind = "correct"
+	// RequestKindDelete to delete module fields
+	RequestKindDelete RequestKind = "delete"
+	// RequestKindExport to export module fields
+	RequestKindExport RequestKind = "export"
 )

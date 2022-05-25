@@ -39,10 +39,10 @@ type (
 		// Filter requests
 		Query string
 
-		// Status GET parameter
+		// Kind GET parameter
 		//
-		// Filter requests
-		Status string
+		// Filter by kind: correct, delete, export
+		Kind string
 
 		// Status GET parameter
 		//
@@ -127,7 +127,7 @@ func NewDataPrivacyRequestList() *DataPrivacyRequestList {
 func (r DataPrivacyRequestList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"query":      r.Query,
-		"status":     r.Status,
+		"kind":       r.Kind,
 		"status":     r.Status,
 		"limit":      r.Limit,
 		"pageCursor": r.PageCursor,
@@ -141,8 +141,8 @@ func (r DataPrivacyRequestList) GetQuery() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacyRequestList) GetStatus() string {
-	return r.Status
+func (r DataPrivacyRequestList) GetKind() string {
+	return r.Kind
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -178,8 +178,8 @@ func (r *DataPrivacyRequestList) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
-		if val, ok := tmp["status"]; ok && len(val) > 0 {
-			r.Status, err = val[0], nil
+		if val, ok := tmp["kind"]; ok && len(val) > 0 {
+			r.Kind, err = val[0], nil
 			if err != nil {
 				return err
 			}

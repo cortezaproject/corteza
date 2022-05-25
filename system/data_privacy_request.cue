@@ -30,6 +30,7 @@ data_privacy_request: schema.#Resource & {
 	filter: {
 		struct: {
 			request_id: {goType: "[]uint64", ident: "requestID", storeIdent: "id" }
+			kind: {goType: "[]types.RequestKind"}
 			status: {goType: "[]types.RequestStatus"}
 		}
 	}
