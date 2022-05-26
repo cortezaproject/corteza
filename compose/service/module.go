@@ -439,6 +439,9 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 		return err
 	})
 
+	// @todo improve this
+	err = svc.ReloadDALModels(ctx)
+
 	return m, svc.recordAction(ctx, aProps, action, err)
 }
 
@@ -547,6 +550,11 @@ func (svc module) handleUpdate(ctx context.Context, upd *types.Module) moduleUpd
 				res.Meta = upd.Meta
 			}
 
+		}
+
+		if !reflect.DeepEqual(res.ModelConfig, upd.ModelConfig) {
+			changes |= moduleChanged
+			res.ModelConfig = upd.ModelConfig
 		}
 
 		// @todo make field-change detection more optimal
