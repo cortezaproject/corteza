@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/davecgh/go-spew/spew"
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/compose/service/values"
@@ -855,4 +856,118 @@ func TestRecord_contextualRolesAccessControl(t *testing.T) {
 	rbacService.Grant(ctx, rbac.AllowRule(tttRole.ID, types.RecordRbacResource(0, 0, 0), "read"))
 	hits, _, err = svc.Find(ctx, f)
 	req.Len(hits, 9)
+}
+
+func TestSetRecordOwner(t *testing.T) {
+	var (
+		req = require.New(t)
+
+		// uncomment to enable sql conn debugging
+		//ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
+		ctx    = context.Background()
+		s, err = sqlite.ConnectInMemoryWithDebug(ctx)
+	)
+
+	req.NoError(err)
+	req.NoError(store.Upgrade(ctx, zap.NewNop(), s))
+	req.NoError(store.TruncateComposeNamespaces(ctx, s))
+	req.NoError(store.TruncateComposeModules(ctx, s))
+	req.NoError(store.TruncateComposeRecords(ctx, s, nil))
+	req.NoError(store.TruncateRbacRules(ctx, s))
+
+	var (
+		rbacService = rbac.NewService(
+			//zap.NewNop(),
+			logger.MakeDebugLogger(),
+			nil,
+		)
+		ac = &accessControl{rbac: rbacService}
+
+		invoker          = &sysTypes.User{ID: 1001}
+		originalOwner    = &sysTypes.User{ID: 2001}
+		alternativeOwner = &sysTypes.User{ID: 2002}
+
+		role = &sysTypes.Role{Name: "role-with-ownership-change-permission", ID: 3000}
+
+		old, upd *types.Record
+		rvse     *types.RecordValueErrorSet
+	)
+
+	rbacService.UpdateRoles(
+		rbac.CommonRole.Make(role.ID, role.Handle),
+	)
+
+	req.NoError(rbacService.Grant(ctx, rbac.AllowRule(role.ID, types.RecordRbacResource(0, 0, 0), "owner.manage")))
+	spew.Dump(rbacService.Rules())
+	req.NoError(store.CreateUser(ctx, s, invoker, originalOwner, alternativeOwner))
+
+	t.Run("invalid input", func(t *testing.T) {
+		old, upd = nil, nil
+		require.Nil(t, SetRecordOwner(ctx, ac, s, old, upd, invoker.ID))
+	})
+
+	t.Run("new record owner is invoker", func(t *testing.T) {
+		old, upd = nil, &types.Record{ID: 1, NamespaceID: 2, ModuleID: 3}
+
+		// this must work, invoker can always set owner to self on a new record
+		if rvse = SetRecordOwner(ctx, ac, s, old, upd, invoker.ID); !rvse.IsValid() {
+			t.Fatalf("errors: %v", rvse.Set)
+		}
+
+		req.Equal(upd.OwnedBy, invoker.ID)
+	})
+
+	t.Run("deny setting to alternative owner on create", func(t *testing.T) {
+		old, upd = nil, &types.Record{ID: 1, NamespaceID: 2, ModuleID: 3, OwnedBy: alternativeOwner.ID}
+
+		// this must work, invoker can always set owner to self on a new record
+		if rvse = SetRecordOwner(ctx, ac, s, old, upd, invoker.ID); rvse.IsValid() {
+			t.Fatalf("expecting error")
+		}
+	})
+
+	t.Run("deny setting to alternative owner on update", func(t *testing.T) {
+		old = &types.Record{ID: 1, NamespaceID: 2, ModuleID: 3, OwnedBy: originalOwner.ID}
+		upd = &types.Record{ID: 1, NamespaceID: 2, ModuleID: 3, OwnedBy: alternativeOwner.ID}
+
+		// this must work, invoker can always set owner to self on a new record
+		if rvse = SetRecordOwner(ctx, ac, s, old, upd, invoker.ID); rvse.IsValid() {
+			t.Fatalf("expecting error")
+		}
+	})
+
+	t.Run("allow setting to alternative owner on create", func(t *testing.T) {
+		ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(invoker.ID, role.ID))
+		old, upd = nil, &types.Record{ID: 1, NamespaceID: 2, ModuleID: 3, OwnedBy: alternativeOwner.ID}
+
+		if rvse = SetRecordOwner(ctx, ac, s, old, upd, invoker.ID); !rvse.IsValid() {
+			t.Fatalf("errors: %v", rvse.Set)
+		}
+
+		req.Equal(upd.OwnedBy, alternativeOwner.ID)
+	})
+
+	t.Run("allow setting to alternative owner on update", func(t *testing.T) {
+		ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(invoker.ID, role.ID))
+		old = &types.Record{ID: 1, NamespaceID: 2, ModuleID: 3, OwnedBy: originalOwner.ID}
+		upd = &types.Record{ID: 1, NamespaceID: 2, ModuleID: 3, OwnedBy: alternativeOwner.ID}
+
+		if rvse = SetRecordOwner(ctx, ac, s, old, upd, invoker.ID); !rvse.IsValid() {
+			t.Fatalf("errors: %v", rvse.Set)
+		}
+
+		req.Equal(upd.OwnedBy, alternativeOwner.ID)
+	})
+
+	t.Run("allow setting to new owner to zerp", func(t *testing.T) {
+		ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(invoker.ID, role.ID))
+		old = &types.Record{ID: 1, NamespaceID: 2, ModuleID: 3, OwnedBy: originalOwner.ID}
+		upd = &types.Record{ID: 1, NamespaceID: 2, ModuleID: 3, OwnedBy: 0}
+
+		if rvse = SetRecordOwner(ctx, ac, s, old, upd, invoker.ID); !rvse.IsValid() {
+			t.Fatalf("errors: %v", rvse.Set)
+		}
+
+		req.Equal(upd.OwnedBy, invoker.ID)
+	})
 }

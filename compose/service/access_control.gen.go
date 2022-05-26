@@ -185,6 +185,11 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "delete",
 		},
 		{
+			"type": types.RecordResourceType,
+			"any":  types.RecordRbacResource(0, 0, 0),
+			"op":   "owner.manage",
+		},
+		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "grant",
@@ -469,6 +474,13 @@ func (svc accessControl) CanDeleteRecord(ctx context.Context, r *types.Record) b
 	return svc.can(ctx, "delete", r)
 }
 
+// CanManageOwnerOnRecord checks if current user can owner.manage
+//
+// This function is auto-generated
+func (svc accessControl) CanManageOwnerOnRecord(ctx context.Context, r *types.Record) bool {
+	return svc.can(ctx, "owner.manage", r)
+}
+
 // CanGrant checks if current user can manage compose permissions
 //
 // This function is auto-generated
@@ -586,9 +598,10 @@ func rbacResourceOperations(r string) map[string]bool {
 		}
 	case types.RecordResourceType:
 		return map[string]bool{
-			"read":   true,
-			"update": true,
-			"delete": true,
+			"read":         true,
+			"update":       true,
+			"delete":       true,
+			"owner.manage": true,
 		}
 	case types.ComponentResourceType:
 		return map[string]bool{

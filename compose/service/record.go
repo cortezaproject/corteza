@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"regexp"
 	"sort"
 	"strconv"
@@ -70,6 +71,10 @@ type (
 		CanUpdateRecordValueOnModuleField(context.Context, *types.ModuleField) bool
 	}
 
+	recordManageOwnerAccessController interface {
+		CanManageOwnerOnRecord(context.Context, *types.Record) bool
+	}
+
 	recordAccessController interface {
 		CanCreateRecordOnModule(context.Context, *types.Module) bool
 		CanSearchRecordsOnModule(context.Context, *types.Module) bool
@@ -79,6 +84,7 @@ type (
 		CanUpdateRecord(context.Context, *types.Record) bool
 		CanDeleteRecord(context.Context, *types.Record) bool
 
+		recordManageOwnerAccessController
 		recordValueAccessController
 	}
 
@@ -617,29 +623,68 @@ func RecordValueSanitization(m *types.Module, vv types.RecordValueSet) (err erro
 	return
 }
 
-func RecordUpdateOwner(invokerID uint64, r, old *types.Record) *types.Record {
-	if old == nil {
-		if r.OwnedBy == 0 {
-			// If od owner is not set, make current user
-			// the owner of the record
-			r.OwnedBy = invokerID
+func SetRecordOwner(ctx context.Context, ac recordManageOwnerAccessController, s store.Storer, old, upd *types.Record, invoker uint64) *types.RecordValueErrorSet {
+	if upd == nil {
+		// no-op
+		return nil
+	}
+
+	var (
+		curOwner uint64
+		updOwner = upd.OwnedBy
+	)
+
+	if old != nil {
+		curOwner = old.OwnedBy
+	}
+
+	updOwner = CalcRecordOwner(curOwner, updOwner, invoker)
+
+	var (
+		mkError = func(kind, tkey string) *types.RecordValueErrorSet {
+			return &types.RecordValueErrorSet{Set: []types.RecordValueError{{
+				Kind:    kind,
+				Meta:    map[string]interface{}{"field": "", "value": updOwner},
+				Message: locale.Global().T(ctx, "compose", tkey),
+			}}}
 		}
-	} else {
-		if r.OwnedBy == 0 {
-			if old.OwnedBy > 0 {
-				// Owner not set/send in the payload
-				//
-				// Fallback to old owner (if set)
-				r.OwnedBy = old.OwnedBy
-			} else {
-				// If od owner is not set, make current user
-				// the owner of the record
-				r.OwnedBy = invokerID
-			}
+	)
+
+	if (old != nil && curOwner != updOwner) || (old == nil && updOwner != invoker) {
+		// check if ownership can be changed when:
+		//  a) updating (old != nil) and ownership changed
+		//  b) creating (old == nil) and ownership id not set to the invoking user
+		if !ac.CanManageOwnerOnRecord(ctx, upd) {
+			return mkError("accessDenied", "record.errors.ownershipChangeDenied")
 		}
 	}
 
-	return r
+	if _, err := store.LookupUserByID(ctx, s, updOwner); err != nil {
+		if errors.IsNotFound(err) {
+			return mkError("invalidValue", "record.errors.invalidOwner")
+		} else {
+			return mkError("internal", "record.errors.store")
+		}
+	}
+
+	upd.OwnedBy = updOwner
+	return nil
+}
+
+func CalcRecordOwner(current, new, invoker uint64) uint64 {
+	if invoker == 0 {
+		// invoker is, for some reason 0,
+		// use current owner as invoker
+		invoker = current
+	}
+
+	if new == 0 {
+		// if new owner is not set, use invoker
+		return invoker
+	}
+
+	// keep owner unchanged
+	return new
 }
 
 func RecordValueUpdateOpCheck(ctx context.Context, ac recordValueAccessController, m *types.Module, vv types.RecordValueSet) *types.RecordValueErrorSet {
@@ -873,7 +918,22 @@ func (svc record) procCreate(ctx context.Context, invokerID uint64, m *types.Mod
 	new.DeletedAt = nil
 	new.DeletedBy = 0
 
-	new = RecordUpdateOwner(invokerID, new, nil)
+	if new.OwnedBy == 0 {
+		new.OwnedBy = invokerID
+	}
+
+	if new.OwnedBy != invokerID {
+		// we're creating record here and this check goes against current
+		// RBAC implementation logic on record creation
+		if !svc.ac.CanManageOwnerOnRecord(ctx, new) {
+			// not permitted to change the owner
+
+		}
+	}
+
+	if err := SetRecordOwner(ctx, svc.ac, svc.store, nil, new, invokerID); err != nil {
+		return err
+	}
 
 	if rve = RecordValueUpdateOpCheck(ctx, svc.ac, m, new.Values); !rve.IsValid() {
 		return
@@ -924,7 +984,9 @@ func (svc record) procUpdate(ctx context.Context, invokerID uint64, m *types.Mod
 	upd.DeletedAt = old.DeletedAt
 	upd.DeletedBy = old.DeletedBy
 
-	upd = RecordUpdateOwner(invokerID, upd, old)
+	if err := SetRecordOwner(ctx, svc.ac, svc.store, old, upd, invokerID); err != nil {
+		return err
+	}
 
 	upd.Values = old.Values.Merge(m.Fields, upd.Values, func(f *types.ModuleField) bool {
 		return svc.ac.CanUpdateRecordValueOnModuleField(ctx, m.Fields.FindByName(f.Name))
