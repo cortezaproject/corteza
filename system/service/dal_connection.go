@@ -296,13 +296,11 @@ func (svc *dalConnection) reloadConnections(ctx context.Context) (err error) {
 func (svc *dalConnection) makeConnectionMeta(ctx context.Context, c *types.DalConnection) (cm dal.ConnectionMeta, err error) {
 	// @todo we could probably utilize connection params more here
 	cm = dal.ConnectionMeta{
-		ConnectionDefaults: dal.ConnectionDefaults{
-			ModelIdent:      c.Config.DefaultModelIdent,
-			AttributeIdent:  c.Config.DefaultAttributeIdent,
-			PartitionFormat: c.Config.DefaultPartitionFormat,
-		},
-		SensitivityLevel: c.SensitivityLevel,
-		Label:            c.Handle,
+		DefaultModelIdent:      c.Config.DefaultModelIdent,
+		DefaultAttributeIdent:  c.Config.DefaultAttributeIdent,
+		DefaultPartitionFormat: c.Config.DefaultPartitionFormat,
+		SensitivityLevel:       c.SensitivityLevel,
+		Label:                  c.Handle,
 	}
 
 	return

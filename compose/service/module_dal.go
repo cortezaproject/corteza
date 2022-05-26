@@ -14,7 +14,7 @@ import (
 
 type (
 	dalDDL interface {
-		ConnectionDefaults(ctx context.Context, connectionID uint64) (dft dal.ConnectionDefaults, err error)
+		ModelIdentFormatter(connectionID uint64) (f *dal.IdentFormatter, err error)
 
 		ReloadModel(ctx context.Context, models ...*dal.Model) (err error)
 		AddModel(ctx context.Context, models ...*dal.Model) (err error)
@@ -100,16 +100,14 @@ func (svc *module) ReloadDALModels(ctx context.Context) (err error) {
 }
 
 func (svc *module) moduleToModel(ctx context.Context, ns *types.Namespace, mod *types.Module) (*dal.Model, error) {
-	ccfg, err := svc.dal.ConnectionDefaults(ctx, mod.ModelConfig.ConnectionID)
+	formatter, tplParts, err := svc.prepareModelFormatter(ns, mod)
 	if err != nil {
 		return nil, err
 	}
-	getCodec := moduleFieldCodecBuilder(mod.ModelConfig.Partitioned, ccfg)
 
 	// Metadata
 	out := &dal.Model{
 		ConnectionID: mod.ModelConfig.ConnectionID,
-		Ident:        svc.formatPartitionIdent(ns, mod, ccfg),
 		Label:        mod.Handle,
 
 		Attributes: make(dal.AttributeSet, len(mod.Fields)),
@@ -120,6 +118,14 @@ func (svc *module) moduleToModel(ctx context.Context, ns *types.Namespace, mod *
 		ResourceType: types.ModuleResourceType,
 		Resource:     mod.RbacResource(),
 	}
+
+	var ok bool
+	out.Ident, ok = formatter.ModelIdent(ctx, mod.ModelConfig.Partitioned, mod.ModelConfig.PartitionFormat, tplParts...)
+	if !ok {
+		return nil, fmt.Errorf("invalid model identifier generated: %s", out.Ident)
+	}
+
+	getCodec := moduleFieldCodecBuilder(mod.ModelConfig.Partitioned, formatter)
 
 	// Handle user-defined fields
 	for i, f := range mod.Fields {
@@ -286,43 +292,18 @@ func (svc *module) moduleFieldToAttribute(getCodec func(f *types.ModuleField) da
 	return
 }
 
-func (svc *module) formatPartitionIdent(ns *types.Namespace, mod *types.Module, cfg dal.ConnectionDefaults) string {
-	if !mod.ModelConfig.Partitioned {
-		return cfg.ModelIdent
-	}
-
-	pfmt := mod.ModelConfig.PartitionFormat
-	if pfmt == "" {
-		pfmt = cfg.PartitionFormat
-	}
-	if pfmt == "" {
-		// @todo put in config or something
-		pfmt = "compose_record_{{namespace}}_{{module}}"
-	}
-
-	// @note we must not use name here since it is translatable
-	mh, _ := handle.Cast(nil, mod.Handle, strconv.FormatUint(mod.ID, 10))
-	nsh, _ := handle.Cast(nil, ns.Slug, strconv.FormatUint(ns.ID, 10))
-	rpl := strings.NewReplacer(
-		"{{module}}", mh,
-		"{{namespace}}", nsh,
-	)
-
-	return rpl.Replace(pfmt)
-}
-
-func moduleFieldCodecBuilder(partitioned bool, cfg dal.ConnectionDefaults) func(f *types.ModuleField) dal.Codec {
+func moduleFieldCodecBuilder(partitioned bool, formatter *dal.IdentFormatter) func(f *types.ModuleField) dal.Codec {
 	return func(f *types.ModuleField) dal.Codec {
-		return moduleFieldCodec(f, partitioned, cfg)
+		return moduleFieldCodec(f, partitioned, formatter)
 	}
 }
 
-func moduleFieldCodec(f *types.ModuleField, partitioned bool, cfg dal.ConnectionDefaults) (strat dal.Codec) {
+func moduleFieldCodec(f *types.ModuleField, partitioned bool, formatter *dal.IdentFormatter) (strat dal.Codec) {
 	if partitioned {
 		strat = &dal.CodecPlain{}
 	} else {
-		ident := cfg.AttributeIdent
-		if ident == "" {
+		ident, ok := formatter.AttributeIdent(partitioned, f.Name)
+		if !ok {
 			// @todo put in configs or something
 			ident = "values"
 		}
@@ -357,6 +338,22 @@ func (svc *module) addModuleToDAL(ctx context.Context, ns *types.Namespace, mod 
 	}
 	if err = svc.dal.AddModel(ctx, model); err != nil {
 		return
+	}
+
+	return
+}
+
+func (svc *module) prepareModelFormatter(ns *types.Namespace, mod *types.Module) (formatter *dal.IdentFormatter, tplParts []string, err error) {
+	formatter, err = svc.dal.ModelIdentFormatter(mod.ModelConfig.ConnectionID)
+	if err != nil {
+		return
+	}
+
+	modHandle, _ := handle.Cast(nil, mod.Handle, strconv.FormatUint(mod.ID, 10))
+	nsHandle, _ := handle.Cast(nil, ns.Slug, strconv.FormatUint(ns.ID, 10))
+	tplParts = []string{
+		"module", modHandle,
+		"namespace", nsHandle,
 	}
 
 	return

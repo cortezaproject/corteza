@@ -1,14 +1,27 @@
 package dal
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
+	"github.com/PaesslerAG/gval"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/modern-go/reflect2"
 )
 
 type (
+	IdentFormatter struct {
+		defaultModelIdent     string
+		defaultAttributeIdent string
+
+		defaultPartitionFormat string
+
+		things map[string]any
+
+		partitionFormatValidator gval.Evaluable
+	}
+
 	// ModelFilter is used to retrieve a model from the DAL based on given params
 	ModelFilter struct {
 		ConnectionID uint64
@@ -180,4 +193,85 @@ func (m Model) Validate() error {
 	}
 
 	return nil
+}
+
+func (f *IdentFormatter) AddEvalParam(params map[string]any) {
+	if f.things == nil {
+		f.things = make(map[string]any)
+	}
+
+	for k, v := range params {
+		f.things[k] = v
+	}
+
+}
+
+func (f IdentFormatter) getEvalParams(ident string) (out map[string]any) {
+	out = map[string]any{
+		"ident": ident,
+	}
+
+	for k, v := range f.things {
+		out[k] = v
+	}
+
+	return
+}
+
+func (f IdentFormatter) ModelIdent(ctx context.Context, partitioned bool, tpl string, kv ...string) (out string, ok bool) {
+	ok = true
+
+	if !partitioned {
+		return f.defaultModelIdent, ok
+	}
+
+	// A bit of preprocessing
+	{
+		if len(kv)%2 != 0 {
+			panic("ModelIdentFormatter.ModelIdent requires key/value pairs")
+		}
+		for i := 0; i < len(kv); i += 2 {
+			kv[i] = fmt.Sprintf("{{%s}}", kv[i])
+		}
+	}
+
+	// Template preparation with defaulting based on provided KV
+	{
+		if tpl == "" {
+			tpl = f.defaultPartitionFormat
+		}
+		if tpl == "" {
+			pts := make([]string, 0, len(kv)/2)
+			for i := 0; i < len(kv); i += 2 {
+				pts = append(pts, kv[i])
+			}
+			tpl = strings.Join(pts, "_")
+		}
+		if tpl == "" {
+			return "", false
+		}
+	}
+
+	rpl := strings.NewReplacer(kv...)
+	out = rpl.Replace(tpl)
+
+	if f.partitionFormatValidator != nil {
+		var err error
+		ok, err = f.partitionFormatValidator.EvalBool(ctx, f.getEvalParams(out))
+		ok = ok && (err == nil)
+	}
+
+	return
+}
+
+func (f IdentFormatter) AttributeIdent(partitioned bool, ident string) (out string, ok bool) {
+	if !partitioned {
+		if f.defaultAttributeIdent != "" {
+			return f.defaultAttributeIdent, true
+		}
+		return "", false
+	}
+
+	return ident, ident != ""
+
 }

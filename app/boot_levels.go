@@ -336,7 +336,9 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		// DB_DSN is the default connection with full capabilities
 		primaryDalConnection.Config.Connection,
 		dal.ConnectionMeta{
-			ConnectionDefaults: primaryDalConnection.ConnectionDefaults(),
+			DefaultModelIdent:      primaryDalConnection.Config.DefaultModelIdent,
+			DefaultAttributeIdent:  primaryDalConnection.Config.DefaultAttributeIdent,
+			DefaultPartitionFormat: primaryDalConnection.Config.DefaultPartitionFormat,
 			// @todo make it configurable from env
 			SensitivityLevel: 0,
 			Label:            primaryDalConnection.Handle,

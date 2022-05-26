@@ -78,14 +78,6 @@ var (
 	DalPrimaryConnectionResourceType = "corteza::system:primary_dal_connection"
 )
 
-func (c DalConnection) ConnectionDefaults() dal.ConnectionDefaults {
-	return dal.ConnectionDefaults{
-		ModelIdent:      c.Config.DefaultModelIdent,
-		AttributeIdent:  c.Config.DefaultAttributeIdent,
-		PartitionFormat: c.Config.DefaultPartitionFormat,
-	}
-}
-
 func (c DalConnection) ActiveCapabilities() capabilities.Set {
 	return c.Capabilities.Supported.
 		Union(c.Capabilities.Enforced).
