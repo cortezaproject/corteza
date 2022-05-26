@@ -155,7 +155,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, primaryCon
 		return
 	}
 
-	DefaultDalSensitivityLevel, err = SensitivityLevel(ctx)
+	DefaultDalSensitivityLevel, err = SensitivityLevel(ctx, dal.Service())
 	if err != nil {
 		return
 	}

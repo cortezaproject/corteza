@@ -23,10 +23,13 @@ type (
 	Model struct {
 		ConnectionID uint64
 		Ident        string
+		Label        string
 
 		Resource     string
 		ResourceID   uint64
 		ResourceType string
+
+		SensitivityLevel uint64
 
 		Attributes AttributeSet
 	}
@@ -35,6 +38,9 @@ type (
 	// Attribute describes a specific value of the dataset
 	Attribute struct {
 		Ident string
+		Label string
+
+		SensitivityLevel uint64
 
 		MultiValue bool
 
@@ -73,6 +79,7 @@ func PrimaryAttribute(ident string, codec Codec) *Attribute {
 func FullAttribute(ident string, at Type, codec Codec) *Attribute {
 	return &Attribute{
 		Ident:      ident,
+		Label:      ident,
 		Sortable:   true,
 		Filterable: true,
 		Store:      codec,

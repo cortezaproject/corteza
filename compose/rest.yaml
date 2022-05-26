@@ -561,6 +561,11 @@ endpoints:
         required: true
         title: modelConfig
         parser: types.ParseModelConfig
+      - type: types.DataPrivacyConfig
+        name: privacy
+        required: true
+        title: Data privacy config
+        parser: types.ParseDataPrivacyConfig
       - type: types.ModuleFieldSet
         name: fields
         required: true
@@ -607,6 +612,11 @@ endpoints:
         required: true
         title: modelConfig
         parser: types.ParseModelConfig
+      - type: types.DataPrivacyConfig
+        name: privacy
+        required: true
+        title: Data privacy config
+        parser: types.ParseDataPrivacyConfig
       - type: types.ModuleFieldSet
         name: fields
         required: true

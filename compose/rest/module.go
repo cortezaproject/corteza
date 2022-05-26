@@ -108,6 +108,7 @@ func (ctrl *Module) Create(ctx context.Context, r *request.ModuleCreate) (interf
 		mod = &types.Module{
 			NamespaceID: r.NamespaceID,
 			ModelConfig: r.ModelConfig,
+			Privacy:     r.Privacy,
 			Name:        r.Name,
 			Handle:      r.Handle,
 			Fields:      r.Fields,
@@ -127,6 +128,7 @@ func (ctrl *Module) Update(ctx context.Context, r *request.ModuleUpdate) (interf
 			ID:          r.ModuleID,
 			NamespaceID: r.NamespaceID,
 			ModelConfig: r.ModelConfig,
+			Privacy:     r.Privacy,
 			Name:        r.Name,
 			Handle:      r.Handle,
 			Fields:      r.Fields,

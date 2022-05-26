@@ -33,8 +33,8 @@ type (
 	}
 
 	dalConnections interface {
-		AddConnection(ctx context.Context, connectionID uint64, cp dal.ConnectionParams, dft dal.ConnectionDefaults, capabilities ...capabilities.Capability) (err error)
-		UpdateConnection(ctx context.Context, connectionID uint64, cp dal.ConnectionParams, dft dal.ConnectionDefaults, capabilities ...capabilities.Capability) (err error)
+		AddConnection(ctx context.Context, connectionID uint64, cp dal.ConnectionParams, dft dal.ConnectionMeta, capabilities ...capabilities.Capability) (err error)
+		UpdateConnection(ctx context.Context, connectionID uint64, cp dal.ConnectionParams, dft dal.ConnectionMeta, capabilities ...capabilities.Capability) (err error)
 		RemoveConnection(ctx context.Context, connectionID uint64) (err error)
 	}
 )
@@ -119,7 +119,13 @@ func (svc *dalConnection) Create(ctx context.Context, new *types.DalConnection) 
 
 		q = new
 
-		return svc.dal.AddConnection(ctx, new.ID, new.Config.Connection, new.ConnectionDefaults(), new.ActiveCapabilities()...)
+		var cm dal.ConnectionMeta
+		cm, err = svc.makeConnectionMeta(ctx, new)
+		if err != nil {
+			return
+		}
+
+		return svc.dal.AddConnection(ctx, new.ID, new.Config.Connection, cm, new.ActiveCapabilities()...)
 	}()
 
 	return q, svc.recordAction(ctx, qProps, DalConnectionActionCreate, err)
@@ -151,7 +157,13 @@ func (svc *dalConnection) Update(ctx context.Context, upd *types.DalConnection) 
 
 		q = upd
 
-		return svc.dal.UpdateConnection(ctx, upd.ID, upd.Config.Connection, upd.ConnectionDefaults(), upd.ActiveCapabilities()...)
+		var cm dal.ConnectionMeta
+		cm, err = svc.makeConnectionMeta(ctx, upd)
+		if err != nil {
+			return
+		}
+
+		return svc.dal.UpdateConnection(ctx, upd.ID, upd.Config.Connection, cm, upd.ActiveCapabilities()...)
 	}()
 
 	return q, svc.recordAction(ctx, qProps, DalConnectionActionUpdate, err)
@@ -219,7 +231,13 @@ func (svc *dalConnection) UndeleteByID(ctx context.Context, ID uint64) (err erro
 			return
 		}
 
-		return svc.dal.AddConnection(ctx, q.ID, q.Config.Connection, q.ConnectionDefaults(), q.ActiveCapabilities()...)
+		var cm dal.ConnectionMeta
+		cm, err = svc.makeConnectionMeta(ctx, q)
+		if err != nil {
+			return
+		}
+
+		return svc.dal.AddConnection(ctx, q.ID, q.Config.Connection, cm, q.ActiveCapabilities()...)
 	}()
 
 	return svc.recordAction(ctx, qProps, DalConnectionActionDelete, err)
@@ -262,9 +280,29 @@ func (svc *dalConnection) reloadConnections(ctx context.Context) (err error) {
 	}
 
 	for _, c := range cc {
-		if err = svc.dal.AddConnection(ctx, c.ID, c.Config.Connection, c.ConnectionDefaults(), c.ActiveCapabilities()...); err != nil {
+		var cm dal.ConnectionMeta
+		cm, err = svc.makeConnectionMeta(ctx, c)
+		if err != nil {
 			return
 		}
+		if err = svc.dal.AddConnection(ctx, c.ID, c.Config.Connection, cm, c.ActiveCapabilities()...); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (svc *dalConnection) makeConnectionMeta(ctx context.Context, c *types.DalConnection) (cm dal.ConnectionMeta, err error) {
+	// @todo we could probably utilize connection params more here
+	cm = dal.ConnectionMeta{
+		ConnectionDefaults: dal.ConnectionDefaults{
+			ModelIdent:      c.Config.DefaultModelIdent,
+			AttributeIdent:  c.Config.DefaultAttributeIdent,
+			PartitionFormat: c.Config.DefaultPartitionFormat,
+		},
+		SensitivityLevel: c.SensitivityLevel,
+		Label:            c.Handle,
 	}
 
 	return

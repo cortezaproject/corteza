@@ -75,3 +75,11 @@ func (nm *DalSensitivityLevelMeta) Scan(value interface{}) error {
 func (nm DalSensitivityLevelMeta) Value() (driver.Value, error) {
 	return json.Marshal(nm)
 }
+
+func (ss DalSensitivityLevelSet) Len() int { return len(ss) }
+func (ss DalSensitivityLevelSet) Less(i, j int) bool {
+	return ss[i].Level < ss[j].Level
+}
+func (ss DalSensitivityLevelSet) Swap(i, j int) {
+	ss[i], ss[j] = ss[j], ss[i]
+}

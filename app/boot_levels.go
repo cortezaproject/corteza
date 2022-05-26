@@ -330,12 +330,17 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	// Init DAL and prepare default connection
 	if _, err = dal.InitGlobalService(
 		ctx,
-		app.Log.Named("DAL"),
+		app.Log.Named("dal"),
 		app.Opt.Environment.IsDevelopment(),
 
 		// DB_DSN is the default connection with full capabilities
 		primaryDalConnection.Config.Connection,
-		primaryDalConnection.ConnectionDefaults(),
+		dal.ConnectionMeta{
+			ConnectionDefaults: primaryDalConnection.ConnectionDefaults(),
+			// @todo make it configurable from env
+			SensitivityLevel: 0,
+			Label:            primaryDalConnection.Handle,
+		},
 		primaryDalConnection.ActiveCapabilities()...); err != nil {
 		return err
 	}

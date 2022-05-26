@@ -28,6 +28,9 @@ const (
 	// Data already exists
 	KindDuplicateData
 
+	// Data sensitivity related issue
+	KindSensitiveData
+
 	// Access control
 	KindUnauthorized
 
@@ -50,7 +53,7 @@ const (
 // translates error kind into http status
 func (k kind) httpStatus() int {
 	switch k {
-	case KindInvalidData:
+	case KindInvalidData, KindSensitiveData:
 		return http.StatusBadRequest
 
 	case KindNotFound:
@@ -99,6 +102,10 @@ func StaleData(m string, aa ...interface{}) *Error {
 
 func DuplicateData(m string, aa ...interface{}) *Error {
 	return err(KindDuplicateData, fmt.Sprintf(m, aa...))
+}
+
+func SensitiveData(m string, aa ...interface{}) *Error {
+	return err(KindSensitiveData, fmt.Sprintf(m, aa...))
 }
 
 func Unauthorized(m string, aa ...interface{}) *Error {
@@ -162,6 +169,10 @@ func IsStaleData(err error) bool {
 
 func IsDuplicateData(err error) bool {
 	return IsKind(err, KindDuplicateData)
+}
+
+func IsSensitiveData(err error) bool {
+	return IsKind(err, KindSensitiveData)
 }
 
 func IsUnauthorized(err error) bool {
