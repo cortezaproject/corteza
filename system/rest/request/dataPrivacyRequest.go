@@ -49,16 +49,6 @@ type (
 		// Filter by status: pending, cancel, approve, reject
 		Status []string
 
-		// IncTotal GET parameter
-		//
-		// Include total requests counter
-		IncTotal bool
-
-		// IncPageNavigation GET parameter
-		//
-		// Include page navigation
-		IncPageNavigation bool
-
 		// Limit GET parameter
 		//
 		// Limit
@@ -124,14 +114,12 @@ func NewDataPrivacyRequestList() *DataPrivacyRequestList {
 // Auditable returns all auditable/loggable parameters
 func (r DataPrivacyRequestList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"query":             r.Query,
-		"kind":              r.Kind,
-		"status":            r.Status,
-		"incTotal":          r.IncTotal,
-		"incPageNavigation": r.IncPageNavigation,
-		"limit":             r.Limit,
-		"pageCursor":        r.PageCursor,
-		"sort":              r.Sort,
+		"query":      r.Query,
+		"kind":       r.Kind,
+		"status":     r.Status,
+		"limit":      r.Limit,
+		"pageCursor": r.PageCursor,
+		"sort":       r.Sort,
 	}
 }
 
@@ -148,16 +136,6 @@ func (r DataPrivacyRequestList) GetKind() []string {
 // Auditable returns all auditable/loggable parameters
 func (r DataPrivacyRequestList) GetStatus() []string {
 	return r.Status
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r DataPrivacyRequestList) GetIncTotal() bool {
-	return r.IncTotal
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r DataPrivacyRequestList) GetIncPageNavigation() bool {
-	return r.IncPageNavigation
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -206,18 +184,6 @@ func (r *DataPrivacyRequestList) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := tmp["status"]; ok {
 			r.Status, err = val, nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["incTotal"]; ok && len(val) > 0 {
-			r.IncTotal, err = payload.ParseBool(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["incPageNavigation"]; ok && len(val) > 0 {
-			r.IncPageNavigation, err = payload.ParseBool(val[0]), nil
 			if err != nil {
 				return err
 			}

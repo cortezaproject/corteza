@@ -2212,8 +2212,6 @@ endpoints:
           - { name: query,              type: "string",     title: "Filter requests" }
           - { name: kind,               type: "[]string",   title: "Filter by kind: correct, delete, export" }
           - { name: status,             type: "[]string",   title: "Filter by status: pending, cancel, approve, reject" }
-          - { name: incTotal,           type: "bool",       title: "Include total requests counter" }
-          - { name: incPageNavigation,  type: "bool",       title: "Include page navigation" }
           - { name: limit,              type: "uint",       title: "Limit" }
           - { name: pageCursor,         type: "string",     title: "Page cursor" }
           - { name: sort,               type: "string",     title: "Sort items" }

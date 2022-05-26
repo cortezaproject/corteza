@@ -45,10 +45,6 @@ func (ctrl DataPrivacyRequest) List(ctx context.Context, r *request.DataPrivacyR
 		return nil, err
 	}
 
-	// keeping these always true since we can't configure it as of now
-	f.IncTotal = true
-	f.IncPageNavigation = true
-
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
 		return nil, err
 	}
