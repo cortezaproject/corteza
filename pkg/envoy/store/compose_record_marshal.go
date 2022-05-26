@@ -327,7 +327,8 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 					rec.OwnedBy = ux[r.Us.OwnedBy.Ref]
 				}
 			}
-			service.RecordUpdateOwner(pl.invokerID, rec, old)
+
+			rec.OwnedBy = service.CalcRecordOwner(old.OwnedBy, rec.OwnedBy, pl.invokerID)
 
 			rvs := make(composeTypes.RecordValueSet, 0, len(r.Values))
 			for k, v := range r.Values {

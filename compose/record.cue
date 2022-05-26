@@ -42,6 +42,7 @@ record: schema.#Resource & {
 			"read": {}
 			"update": {}
 			"delete": {}
+			"owner.manage": {}
 		}
 	}
 
