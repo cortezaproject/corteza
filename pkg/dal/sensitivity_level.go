@@ -16,6 +16,10 @@ type (
 )
 
 func (sli sensitivityLevelIndex) includes(l uint64) (ok bool) {
+	if l == 0 {
+		return true
+	}
+
 	_, ok = sli.byID[l]
 	return
 }
