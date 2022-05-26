@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
+	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"go.uber.org/zap"
 )
@@ -16,21 +17,19 @@ type (
 		sensitivityLevel uint64
 
 		connection Connection
-		Defaults   ConnectionDefaults
+		meta       ConnectionMeta
 	}
 
 	ConnectionMeta struct {
-		ConnectionDefaults
-
 		SensitivityLevel uint64
 		Label            string
-	}
 
-	ConnectionDefaults struct {
-		ModelIdent     string
-		AttributeIdent string
+		DefaultModelIdent     string
+		DefaultAttributeIdent string
 
-		PartitionFormat string
+		DefaultPartitionFormat string
+
+		PartitionValidator string
 	}
 
 	service struct {
@@ -71,7 +70,7 @@ func InitGlobalService(ctx context.Context, log *zap.Logger, inDev bool, cp Conn
 
 		var err error
 		cw := &connectionWrap{
-			Defaults:         cm.ConnectionDefaults,
+			meta:             cm,
 			sensitivityLevel: cm.SensitivityLevel,
 			label:            cm.Label,
 		}
@@ -134,7 +133,7 @@ func (svc *service) AddConnection(ctx context.Context, connectionID uint64, cp C
 
 	cw := &connectionWrap{
 		connectionID:     connectionID,
-		Defaults:         cm.ConnectionDefaults,
+		meta:             cm,
 		sensitivityLevel: cm.SensitivityLevel,
 		label:            cm.Label,
 	}
@@ -181,16 +180,6 @@ func (svc *service) UpdateConnection(ctx context.Context, connectionID uint64, c
 	// @todo check sensitivity level against modules
 
 	return svc.AddConnection(ctx, connectionID, cp, cm, capabilities...)
-}
-
-// ConnectionDefaultreturns the defaults we can use with this connection
-func (svc *service) ConnectionDefaults(ctx context.Context, connectionID uint64) (dft ConnectionDefaults, err error) {
-	wrap, _, err := svc.getConnection(ctx, connectionID)
-	if err != nil {
-		return
-	}
-
-	return wrap.Defaults, nil
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // //
@@ -278,6 +267,34 @@ func (svc *service) ReloadModel(ctx context.Context, models ...*Model) (err erro
 	// @todo profile if manually removing nested pointers makes it faster
 	svc.models = make(map[uint64]ModelSet)
 	return svc.AddModel(ctx, models...)
+}
+
+func (svc *service) ModelIdentFormatter(connectionID uint64) (f *IdentFormatter, err error) {
+	// @todo ...
+	c := svc.connections[connectionID]
+	if connectionID == 0 {
+		c = svc.primary
+	}
+
+	if c == nil {
+		err = fmt.Errorf("connection %d does not exist", connectionID)
+		return
+	}
+
+	f = &IdentFormatter{
+		defaultModelIdent:      c.meta.DefaultModelIdent,
+		defaultAttributeIdent:  c.meta.DefaultAttributeIdent,
+		defaultPartitionFormat: c.meta.DefaultPartitionFormat,
+	}
+
+	if c.meta.PartitionValidator != "" {
+		f.partitionFormatValidator, err = expr.Parser().NewEvaluable(c.meta.PartitionValidator)
+		if err != nil {
+			return
+		}
+	}
+
+	return
 }
 
 // AddModel adds support for a new model
@@ -412,7 +429,7 @@ func (svc *service) modelByConnection(models ModelSet) (out map[uint64]ModelSet)
 
 func (svc *service) registerModel(ctx context.Context, cw *connectionWrap, connectionID uint64, models ModelSet) (err error) {
 	for _, model := range models {
-		svc.logger.Debug("adding model for connection", zap.Uint64("connectionID", connectionID), zap.String("resource type", model.ResourceType), zap.String("resource model", model.Resource))
+		svc.logger.Debug("adding model for connection", zap.Uint64("connectionID", connectionID), zap.String("resource type", model.ResourceType), zap.String("resource model", model.Resource), zap.String("model ident", model.Ident))
 
 		existing := svc.GetModelByResource(connectionID, model.ResourceType, model.Resource)
 		if existing != nil {
