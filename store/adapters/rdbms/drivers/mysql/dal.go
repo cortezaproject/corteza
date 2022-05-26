@@ -13,7 +13,18 @@ func init() {
 }
 
 func dalConnector(ctx context.Context, dsn string, cc ...capabilities.Capability) (_ dal.Connection, err error) {
-	db, _, err := connectBase(ctx, dsn)
+	cfg, err := NewConfig(dsn)
+	if err != nil {
+		return
+	}
+
+	// @todo rework the config building a bit; this will do for now
+	if cfg.ConnTryMax >= 99 {
+		cfg.ConnTryMax = 2
+	}
+
+	db, err := connectBase(ctx, cfg)
+
 	if err != nil {
 		return
 	}

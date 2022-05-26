@@ -31,7 +31,11 @@ func init() {
 }
 
 func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
-	db, cfg, err := connectBase(ctx, dsn)
+	cfg, err := NewConfig(dsn)
+	if err != nil {
+		return
+	}
+	db, err := connectBase(ctx, cfg)
 	if err != nil {
 		return
 	}
@@ -51,11 +55,7 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 	return s, nil
 }
 
-func connectBase(ctx context.Context, dsn string) (db *sqlx.DB, cfg *rdbms.ConnConfig, err error) {
-	if cfg, err = NewConfig(dsn); err != nil {
-		return
-	}
-
+func connectBase(ctx context.Context, cfg *rdbms.ConnConfig) (db *sqlx.DB, err error) {
 	if db, err = rdbms.Connect(ctx, logger.Default(), cfg); err != nil {
 		return
 	}

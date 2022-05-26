@@ -31,15 +31,14 @@ type (
 	}
 )
 
-func SensitivityLevel(ctx context.Context, dal dalSensitivityLevels) (*dalSensitivityLevel, error) {
-	out := &dalSensitivityLevel{
+func SensitivityLevel(ctx context.Context, dal dalSensitivityLevels) *dalSensitivityLevel {
+	return &dalSensitivityLevel{
 		ac:        DefaultAccessControl,
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
 		dal:       dal,
 	}
 
-	return out, out.reloadSensitivityLevels(ctx, out.store)
 }
 
 func (svc *dalSensitivityLevel) FindByID(ctx context.Context, ID uint64) (q *types.DalSensitivityLevel, err error) {
@@ -93,7 +92,7 @@ func (svc *dalSensitivityLevel) Create(ctx context.Context, new *types.DalSensit
 
 		q = new
 
-		return svc.reloadSensitivityLevels(ctx, svc.store)
+		return svc.ReloadSensitivityLevels(ctx, svc.store)
 	}()
 
 	return q, svc.recordAction(ctx, qProps, DalSensitivityLevelActionCreate, err)
@@ -130,7 +129,7 @@ func (svc *dalSensitivityLevel) Update(ctx context.Context, upd *types.DalSensit
 
 		q = upd
 
-		return svc.reloadSensitivityLevels(ctx, svc.store)
+		return svc.ReloadSensitivityLevels(ctx, svc.store)
 	}()
 
 	return q, svc.recordAction(ctx, qProps, DalSensitivityLevelActionUpdate, err)
@@ -169,7 +168,7 @@ func (svc *dalSensitivityLevel) DeleteByID(ctx context.Context, ID uint64) (err 
 			return
 		}
 
-		return svc.reloadSensitivityLevels(ctx, svc.store)
+		return svc.ReloadSensitivityLevels(ctx, svc.store)
 	}()
 
 	return svc.recordAction(ctx, qProps, DalSensitivityLevelActionDelete, err)
@@ -203,7 +202,7 @@ func (svc *dalSensitivityLevel) UndeleteByID(ctx context.Context, ID uint64) (er
 			return
 		}
 
-		return svc.reloadSensitivityLevels(ctx, svc.store)
+		return svc.ReloadSensitivityLevels(ctx, svc.store)
 	}()
 
 	return svc.recordAction(ctx, qProps, DalSensitivityLevelActionDelete, err)
@@ -238,7 +237,7 @@ func (svc *dalSensitivityLevel) Search(ctx context.Context, filter types.DalSens
 	return r, f, svc.recordAction(ctx, aProps, DalSensitivityLevelActionSearch, err)
 }
 
-func (svc *dalSensitivityLevel) reloadSensitivityLevels(ctx context.Context, s store.Storer) (err error) {
+func (svc *dalSensitivityLevel) ReloadSensitivityLevels(ctx context.Context, s store.Storer) (err error) {
 	ll, err := svc.getSensitivityLevels(ctx, s)
 	if err != nil {
 		return
