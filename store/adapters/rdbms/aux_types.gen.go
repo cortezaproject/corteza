@@ -244,15 +244,16 @@ type (
 
 	// auxComposeModule is an auxiliary structure used for transporting to/from RDBMS store
 	auxComposeModule struct {
-		ID          uint64                  `db:"id"`
-		Handle      string                  `db:"handle"`
-		Meta        rawJson                 `db:"meta"`
-		ModelConfig composeType.ModelConfig `db:"model_config"`
-		NamespaceID uint64                  `db:"namespace_id"`
-		Name        string                  `db:"name"`
-		CreatedAt   time.Time               `db:"created_at"`
-		UpdatedAt   *time.Time              `db:"updated_at"`
-		DeletedAt   *time.Time              `db:"deleted_at"`
+		ID          uint64                        `db:"id"`
+		Handle      string                        `db:"handle"`
+		Meta        rawJson                       `db:"meta"`
+		ModelConfig composeType.ModelConfig       `db:"model_config"`
+		Privacy     composeType.DataPrivacyConfig `db:"privacy"`
+		NamespaceID uint64                        `db:"namespace_id"`
+		Name        string                        `db:"name"`
+		CreatedAt   time.Time                     `db:"created_at"`
+		UpdatedAt   *time.Time                    `db:"updated_at"`
+		DeletedAt   *time.Time                    `db:"deleted_at"`
 	}
 
 	// auxComposeModuleField is an auxiliary structure used for transporting to/from RDBMS store
@@ -265,6 +266,7 @@ type (
 		Label            string                         `db:"label"`
 		Options          composeType.ModuleFieldOptions `db:"options"`
 		EncodingStrategy composeType.EncodingStrategy   `db:"encoding_strategy"`
+		Privacy          composeType.DataPrivacyConfig  `db:"privacy"`
 		Private          bool                           `db:"private"`
 		Required         bool                           `db:"required"`
 		Visible          bool                           `db:"visible"`
@@ -1434,6 +1436,7 @@ func (aux *auxComposeModule) encode(res *composeType.Module) (_ error) {
 	aux.Handle = res.Handle
 	aux.Meta = res.Meta
 	aux.ModelConfig = res.ModelConfig
+	aux.Privacy = res.Privacy
 	aux.NamespaceID = res.NamespaceID
 	aux.Name = res.Name
 	aux.CreatedAt = res.CreatedAt
@@ -1451,6 +1454,7 @@ func (aux auxComposeModule) decode() (res *composeType.Module, _ error) {
 	res.Handle = aux.Handle
 	res.Meta = aux.Meta
 	res.ModelConfig = aux.ModelConfig
+	res.Privacy = aux.Privacy
 	res.NamespaceID = aux.NamespaceID
 	res.Name = aux.Name
 	res.CreatedAt = aux.CreatedAt
@@ -1468,6 +1472,7 @@ func (aux *auxComposeModule) scan(row scanner) error {
 		&aux.Handle,
 		&aux.Meta,
 		&aux.ModelConfig,
+		&aux.Privacy,
 		&aux.NamespaceID,
 		&aux.Name,
 		&aux.CreatedAt,
@@ -1488,6 +1493,7 @@ func (aux *auxComposeModuleField) encode(res *composeType.ModuleField) (_ error)
 	aux.Label = res.Label
 	aux.Options = res.Options
 	aux.EncodingStrategy = res.EncodingStrategy
+	aux.Privacy = res.Privacy
 	aux.Private = res.Private
 	aux.Required = res.Required
 	aux.Visible = res.Visible
@@ -1513,6 +1519,7 @@ func (aux auxComposeModuleField) decode() (res *composeType.ModuleField, _ error
 	res.Label = aux.Label
 	res.Options = aux.Options
 	res.EncodingStrategy = aux.EncodingStrategy
+	res.Privacy = aux.Privacy
 	res.Private = aux.Private
 	res.Required = aux.Required
 	res.Visible = aux.Visible
@@ -1538,6 +1545,7 @@ func (aux *auxComposeModuleField) scan(row scanner) error {
 		&aux.Label,
 		&aux.Options,
 		&aux.EncodingStrategy,
+		&aux.Privacy,
 		&aux.Private,
 		&aux.Required,
 		&aux.Visible,

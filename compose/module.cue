@@ -15,6 +15,7 @@ module: schema.#Resource & {
 		handle: schema.HandleField
 		meta: { goType: "rawJson" }
 		model_config: { goType: "types.ModelConfig" }
+		privacy: { goType: "types.DataPrivacyConfig" }
 		fields: { goType: "types.ModuleFieldSet", store: false }
 		namespace_id: { ident: "namespaceID", goType: "uint64", storeIdent: "rel_namespace" }
 		name: {}

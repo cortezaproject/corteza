@@ -101,6 +101,11 @@ type (
 		// modelConfig
 		ModelConfig types.ModelConfig
 
+		// Privacy POST parameter
+		//
+		// Data privacy config
+		Privacy types.DataPrivacyConfig
+
 		// Fields POST parameter
 		//
 		// Fields JSON
@@ -154,6 +159,11 @@ type (
 		//
 		// modelConfig
 		ModelConfig types.ModelConfig
+
+		// Privacy POST parameter
+		//
+		// Data privacy config
+		Privacy types.DataPrivacyConfig
 
 		// Fields POST parameter
 		//
@@ -382,6 +392,7 @@ func (r ModuleCreate) Auditable() map[string]interface{} {
 		"name":        r.Name,
 		"handle":      r.Handle,
 		"modelConfig": r.ModelConfig,
+		"privacy":     r.Privacy,
 		"fields":      r.Fields,
 		"meta":        r.Meta,
 		"labels":      r.Labels,
@@ -406,6 +417,11 @@ func (r ModuleCreate) GetHandle() string {
 // Auditable returns all auditable/loggable parameters
 func (r ModuleCreate) GetModelConfig() types.ModelConfig {
 	return r.ModelConfig
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ModuleCreate) GetPrivacy() types.DataPrivacyConfig {
+	return r.Privacy
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -470,6 +486,18 @@ func (r *ModuleCreate) Fill(req *http.Request) (err error) {
 				}
 			}
 
+			if val, ok := req.MultipartForm.Value["privacy[]"]; ok {
+				r.Privacy, err = types.ParseDataPrivacyConfig(val)
+				if err != nil {
+					return err
+				}
+			} else if val, ok := req.MultipartForm.Value["privacy"]; ok {
+				r.Privacy, err = types.ParseDataPrivacyConfig(val)
+				if err != nil {
+					return err
+				}
+			}
+
 			if val, ok := req.MultipartForm.Value["meta"]; ok && len(val) > 0 {
 				r.Meta, err = payload.ParseJSONTextWithErr(val[0])
 				if err != nil {
@@ -519,6 +547,18 @@ func (r *ModuleCreate) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := req.Form["modelConfig"]; ok {
 			r.ModelConfig, err = types.ParseModelConfig(val)
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["privacy[]"]; ok {
+			r.Privacy, err = types.ParseDataPrivacyConfig(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["privacy"]; ok {
+			r.Privacy, err = types.ParseDataPrivacyConfig(val)
 			if err != nil {
 				return err
 			}
@@ -626,6 +666,7 @@ func (r ModuleUpdate) Auditable() map[string]interface{} {
 		"name":        r.Name,
 		"handle":      r.Handle,
 		"modelConfig": r.ModelConfig,
+		"privacy":     r.Privacy,
 		"fields":      r.Fields,
 		"meta":        r.Meta,
 		"updatedAt":   r.UpdatedAt,
@@ -656,6 +697,11 @@ func (r ModuleUpdate) GetHandle() string {
 // Auditable returns all auditable/loggable parameters
 func (r ModuleUpdate) GetModelConfig() types.ModelConfig {
 	return r.ModelConfig
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ModuleUpdate) GetPrivacy() types.DataPrivacyConfig {
+	return r.Privacy
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -725,6 +771,18 @@ func (r *ModuleUpdate) Fill(req *http.Request) (err error) {
 				}
 			}
 
+			if val, ok := req.MultipartForm.Value["privacy[]"]; ok {
+				r.Privacy, err = types.ParseDataPrivacyConfig(val)
+				if err != nil {
+					return err
+				}
+			} else if val, ok := req.MultipartForm.Value["privacy"]; ok {
+				r.Privacy, err = types.ParseDataPrivacyConfig(val)
+				if err != nil {
+					return err
+				}
+			}
+
 			if val, ok := req.MultipartForm.Value["meta"]; ok && len(val) > 0 {
 				r.Meta, err = payload.ParseJSONTextWithErr(val[0])
 				if err != nil {
@@ -781,6 +839,18 @@ func (r *ModuleUpdate) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := req.Form["modelConfig"]; ok {
 			r.ModelConfig, err = types.ParseModelConfig(val)
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["privacy[]"]; ok {
+			r.Privacy, err = types.ParseDataPrivacyConfig(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["privacy"]; ok {
+			r.Privacy, err = types.ParseDataPrivacyConfig(val)
 			if err != nil {
 				return err
 			}

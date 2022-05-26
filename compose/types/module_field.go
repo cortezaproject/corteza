@@ -28,6 +28,8 @@ type (
 
 		EncodingStrategy EncodingStrategy `json:"encodingStrategy"`
 
+		Privacy DataPrivacyConfig `json:"privacy"`
+
 		Private      bool           `json:"isPrivate"`
 		Required     bool           `json:"isRequired"`
 		Visible      bool           `json:"isVisible"`

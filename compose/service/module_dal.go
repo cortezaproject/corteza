@@ -110,8 +110,11 @@ func (svc *module) moduleToModel(ctx context.Context, ns *types.Namespace, mod *
 	out := &dal.Model{
 		ConnectionID: mod.ModelConfig.ConnectionID,
 		Ident:        svc.formatPartitionIdent(ns, mod, ccfg),
+		Label:        mod.Handle,
 
 		Attributes: make(dal.AttributeSet, len(mod.Fields)),
+
+		SensitivityLevel: mod.Privacy.SensitivityLevel,
 
 		ResourceID:   mod.ID,
 		ResourceType: types.ModuleResourceType,
@@ -276,6 +279,9 @@ func (svc *module) moduleFieldToAttribute(getCodec func(f *types.ModuleField) da
 	default:
 		return nil, fmt.Errorf("invalid field %s: kind %s not supported", f.Name, f.Kind)
 	}
+
+	out.SensitivityLevel = f.Privacy.SensitivityLevel
+	out.Label = f.Name
 
 	return
 }

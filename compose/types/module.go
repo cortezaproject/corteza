@@ -27,12 +27,18 @@ type (
 		SystemFieldEncoding SystemFieldEncoding `json:"systemFieldEncoding"`
 	}
 
+	DataPrivacyConfig struct {
+		SensitivityLevel uint64 `json:"sensitivityLevel,string"`
+		UsageDisclosure  string `json:"usageDisclosure"`
+	}
+
 	Module struct {
 		ID     uint64         `json:"moduleID,string"`
 		Handle string         `json:"handle"`
 		Meta   types.JSONText `json:"meta"`
 
-		ModelConfig ModelConfig `json:"modelConfig"`
+		ModelConfig ModelConfig       `json:"modelConfig"`
+		Privacy     DataPrivacyConfig `json:"privacy"`
 
 		Fields ModuleFieldSet `json:"fields"`
 
@@ -179,5 +185,33 @@ func ParseModelConfig(ss []string) (m ModelConfig, err error) {
 	}
 
 	err = json.Unmarshal([]byte(ss[0]), &m)
+	return
+}
+
+func (nm *DataPrivacyConfig) Scan(value interface{}) error {
+	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
+	switch value.(type) {
+	case nil:
+		*nm = DataPrivacyConfig{}
+	case []uint8:
+		b := value.([]byte)
+		if err := json.Unmarshal(b, nm); err != nil {
+			return errors.Wrapf(err, "cannot scan '%v' into DataPrivacyConfig", string(b))
+		}
+	}
+
+	return nil
+}
+
+func (nm DataPrivacyConfig) Value() (driver.Value, error) {
+	return json.Marshal(nm)
+}
+
+func ParseDataPrivacyConfig(ss []string) (dpc DataPrivacyConfig, err error) {
+	if len(ss) == 0 {
+		return
+	}
+
+	err = json.Unmarshal([]byte(ss[0]), &dpc)
 	return
 }
