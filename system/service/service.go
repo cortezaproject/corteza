@@ -150,12 +150,9 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, primaryCon
 	DefaultSettings = Settings(ctx, DefaultStore, DefaultLogger, DefaultAccessControl, CurrentSettings)
 
 	primaryConnectionConfig = primaryConn
-	DefaultDalConnection, err = Connection(ctx, primaryConnectionConfig, dal.Service())
-	if err != nil {
-		return
-	}
+	DefaultDalConnection = Connection(ctx, primaryConnectionConfig, dal.Service())
 
-	DefaultDalSensitivityLevel, err = SensitivityLevel(ctx, dal.Service())
+	DefaultDalSensitivityLevel = SensitivityLevel(ctx, dal.Service())
 	if err != nil {
 		return
 	}

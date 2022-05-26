@@ -328,9 +328,10 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	}
 
 	// Init DAL and prepare default connection
+	dalLogger := app.Log.Named("dal")
 	if _, err = dal.InitGlobalService(
 		ctx,
-		app.Log.Named("dal"),
+		dalLogger,
 		app.Opt.Environment.IsDevelopment(),
 
 		// DB_DSN is the default connection with full capabilities
@@ -481,6 +482,20 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return
 	}
 
+	// Initializing DAL components
+	// - Sensitivity levels
+	err = sysService.DefaultDalSensitivityLevel.ReloadSensitivityLevels(ctx, sysService.DefaultStore)
+	if err != nil {
+		// @note we're not erroring out here so Corteza can still be used
+		dalLogger.Error("failed to initialize DAL sensitivity levels", zap.Error(err))
+	}
+	// - DAL connections
+	err = sysService.DefaultDalConnection.ReloadConnections(ctx)
+	if err != nil {
+		// @note we're not erroring out here so Corteza can still be used
+		dalLogger.Error("failed to initialize DAL connections", zap.Error(err))
+	}
+
 	if app.Opt.Messagebus.Enabled {
 		// initialize all the queue handlers
 		messagebus.Service().Init(ctx, service.DefaultQueue)
@@ -513,6 +528,14 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 
 	if err != nil {
 		return fmt.Errorf("could not initialize compose services: %w", err)
+	}
+
+	// Initializing DAL components
+	// - Models
+	err = cmpService.DefaultModule.ReloadDALModels(ctx)
+	if err != nil {
+		// @note we're not erroring out here so Corteza can still be used
+		dalLogger.Error("failed to initialize DAL models", zap.Error(err))
 	}
 
 	corredor.Service().SetUserFinder(sysService.DefaultUser)

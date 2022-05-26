@@ -39,16 +39,14 @@ type (
 	}
 )
 
-func Connection(ctx context.Context, pcOpts types.DalConnection, dal dalConnections) (*dalConnection, error) {
-	out := &dalConnection{
+func Connection(ctx context.Context, pcOpts types.DalConnection, dal dalConnections) *dalConnection {
+	return &dalConnection{
 		ac:                DefaultAccessControl,
 		actionlog:         DefaultActionlog,
 		store:             DefaultStore,
 		dal:               dal,
 		primaryConnection: pcOpts,
 	}
-
-	return out, out.reloadConnections(ctx)
 }
 
 func (svc *dalConnection) FindByID(ctx context.Context, ID uint64) (q *types.DalConnection, err error) {
@@ -272,7 +270,7 @@ func (svc *dalConnection) Search(ctx context.Context, filter types.DalConnection
 	return r, f, svc.recordAction(ctx, aProps, DalConnectionActionSearch, err)
 }
 
-func (svc *dalConnection) reloadConnections(ctx context.Context) (err error) {
+func (svc *dalConnection) ReloadConnections(ctx context.Context) (err error) {
 	// Get all available connections
 	cc, _, err := store.SearchDalConnections(ctx, svc.store, types.DalConnectionFilter{})
 	if err != nil {
