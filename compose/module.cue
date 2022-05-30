@@ -18,7 +18,7 @@ module: schema.#Resource & {
 		privacy: { goType: "types.DataPrivacyConfig" }
 		fields: { goType: "types.ModuleFieldSet", store: false }
 		namespace_id: { ident: "namespaceID", goType: "uint64", storeIdent: "rel_namespace" }
-		name: {}
+		name: {sortable: true}
 
 		created_at: schema.SortableTimestampField
 		updated_at: schema.SortableTimestampNilField

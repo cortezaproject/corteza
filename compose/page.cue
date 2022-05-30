@@ -19,8 +19,8 @@ page: schema.#Resource & {
 		blocks: { goType: "types.PageBlocks" }
 		children: { goType: "types.PageSet", store: false }
 		visible: { goType: "bool" }
-		weight: { goType: "int" }
-		title: { goType: "string" }
+		weight: { goType: "int", sortable: true }
+		title: { goType: "string", sortable: true }
 		description: { goType: "string" }
 
 		created_at: schema.SortableTimestampField

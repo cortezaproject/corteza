@@ -16,8 +16,8 @@ moduleField: schema.#Resource & {
 		module_id: { ident: "moduleID", goType: "uint64", storeIdent: "rel_module" }
 		place: { goType: "int" }
 		kind: { goType: "string" }
-		name: {}
-		label: {}
+		name: {sortable: true}
+		label: {sortable: true}
 		options: { goType: "types.ModuleFieldOptions" }
 		encoding_strategy: { goType: "types.EncodingStrategy" }
 		privacy: { goType: "types.DataPrivacyConfig" }
