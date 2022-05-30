@@ -657,7 +657,7 @@ func (s *Store) QueryApigwFilters(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableApigwFilterFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -1179,7 +1179,7 @@ func (s *Store) QueryApigwRoutes(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableApigwRouteFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -1705,7 +1705,7 @@ func (s *Store) QueryApplications(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableApplicationFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -2189,7 +2189,7 @@ func (s *Store) QueryAttachments(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableAttachmentFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -2671,7 +2671,7 @@ func (s *Store) QueryAuthClients(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableAuthClientFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -4213,7 +4213,7 @@ func (s *Store) QueryAutomationSessions(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableAutomationSessionFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -4701,7 +4701,7 @@ func (s *Store) QueryAutomationTriggers(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableAutomationTriggerFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -5185,7 +5185,7 @@ func (s *Store) QueryAutomationWorkflows(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableAutomationWorkflowFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -5743,7 +5743,7 @@ func (s *Store) QueryComposeAttachments(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableComposeAttachmentFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -6225,7 +6225,7 @@ func (s *Store) QueryComposeCharts(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableComposeChartFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -6758,7 +6758,7 @@ func (s *Store) QueryComposeModules(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableComposeModuleFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -7681,7 +7681,7 @@ func (s *Store) QueryComposeNamespaces(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableComposeNamespaceFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -8233,7 +8233,7 @@ func (s *Store) QueryComposePages(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableComposePageFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -8811,7 +8811,7 @@ func (s *Store) QueryComposeRecords(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableComposeRecordFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -10534,7 +10534,7 @@ func (s *Store) QueryDataPrivacyRequests(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableDataPrivacyRequestFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -11032,7 +11032,7 @@ func (s *Store) QueryFederationExposedModules(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableFederationExposedModuleFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -11518,7 +11518,7 @@ func (s *Store) QueryFederationModuleMappings(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableFederationModuleMappingFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -12391,7 +12391,7 @@ func (s *Store) QueryFederationNodeSyncs(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableFederationNodeSyncFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -12913,7 +12913,7 @@ func (s *Store) QueryFederationSharedModules(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableFederationSharedModuleFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -14006,7 +14006,7 @@ func (s *Store) QueryQueues(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableQueueFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -14526,7 +14526,7 @@ func (s *Store) QueryQueueMessages(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableQueueMessageFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -15207,7 +15207,7 @@ func (s *Store) QueryReminders(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableReminderFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -15701,7 +15701,7 @@ func (s *Store) QueryReports(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableReportFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -16496,7 +16496,7 @@ func (s *Store) QueryResourceTranslations(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableResourceTranslationFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -16969,7 +16969,7 @@ func (s *Store) QueryRoles(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableRoleFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -18139,7 +18139,7 @@ func (s *Store) QueryTemplates(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableTemplateFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -18701,7 +18701,7 @@ func (s *Store) QueryUsers(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableUserFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
