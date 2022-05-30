@@ -20,9 +20,9 @@ type (
 
 		Type string `json:"type"`
 
-		Location         *geolocation.Full `json:"location,omitempty"`
-		Ownership        string            `json:"ownership"`
-		SensitivityLevel uint64            `json:"sensitivityLevel,string"`
+		Location         geolocation.Full `json:"location"`
+		Ownership        string           `json:"ownership"`
+		SensitivityLevel uint64           `json:"sensitivityLevel,string"`
 
 		Config       ConnectionConfig       `json:"config"`
 		Capabilities ConnectionCapabilities `json:"capabilities"`

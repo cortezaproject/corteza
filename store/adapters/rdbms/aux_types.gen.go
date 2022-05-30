@@ -353,7 +353,7 @@ type (
 		Name             string                            `db:"name"`
 		Handle           string                            `db:"handle"`
 		Type             string                            `db:"type"`
-		Location         *geolocation.Full                 `db:"location"`
+		Location         geolocation.Full                  `db:"location"`
 		Ownership        string                            `db:"ownership"`
 		SensitivityLevel uint64                            `db:"sensitivity_level"`
 		Config           systemType.ConnectionConfig       `db:"config"`

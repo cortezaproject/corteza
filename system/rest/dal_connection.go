@@ -161,7 +161,6 @@ func (ctrl DalConnection) federatedNodeToConnection(f *federationTypes.Node) *ty
 		Name:      f.Name,
 		Handle:    h,
 		Type:      federationTypes.NodeResourceType,
-		Location:  nil,
 		Ownership: f.Contact,
 
 		Config: types.ConnectionConfig{
