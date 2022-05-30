@@ -13,7 +13,7 @@ dal_connection: schema.#Resource & {
 		// omitting isPrimary and replacing with a special type
 		type: { goType: "string" }
 
-		location: { goType: "*geolocation.Full" }
+		location: { goType: "geolocation.Full" }
 		ownership: {}
 		sensitivity_level: { goType: "uint64" }
 

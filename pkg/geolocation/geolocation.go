@@ -7,8 +7,8 @@ import (
 
 type (
 	Geometry struct {
-		Type        string     `json:"type"`
-		Coordinates [2]float64 `json:"coordinates"`
+		Type        string    `json:"type"`
+		Coordinates []float64 `json:"coordinates"`
 	}
 
 	Properties struct {
@@ -21,7 +21,7 @@ type (
 	}
 )
 
-func Parse(ss []string) (m *Full, err error) {
+func Parse(ss []string) (m Full, err error) {
 	if len(ss) == 0 {
 		return
 	}

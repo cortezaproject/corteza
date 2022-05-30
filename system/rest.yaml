@@ -868,7 +868,7 @@ endpoints:
         title: type
 
       - name: location
-        type: "*geolocation.Full"
+        type: "geolocation.Full"
         required: true
         title: location
         parser: geolocation.Parse
@@ -916,7 +916,7 @@ endpoints:
         title: type
 
       - name: location
-        type: "*geolocation.Full"
+        type: "geolocation.Full"
         required: true
         title: location
         parser: geolocation.Parse

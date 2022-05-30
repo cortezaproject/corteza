@@ -76,7 +76,7 @@ type (
 		// Location POST parameter
 		//
 		// location
-		Location *geolocation.Full
+		Location geolocation.Full
 
 		// Ownership POST parameter
 		//
@@ -123,7 +123,7 @@ type (
 		// Location POST parameter
 		//
 		// location
-		Location *geolocation.Full
+		Location geolocation.Full
 
 		// Ownership POST parameter
 		//
@@ -279,7 +279,7 @@ func (r DalConnectionCreate) GetType() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DalConnectionCreate) GetLocation() *geolocation.Full {
+func (r DalConnectionCreate) GetLocation() geolocation.Full {
 	return r.Location
 }
 
@@ -520,7 +520,7 @@ func (r DalConnectionUpdate) GetType() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DalConnectionUpdate) GetLocation() *geolocation.Full {
+func (r DalConnectionUpdate) GetLocation() geolocation.Full {
 	return r.Location
 }
 
