@@ -12,7 +12,7 @@ chart: schema.#Resource & {
 	struct: {
 		id: schema.IdField
 		handle: schema.HandleField
-		name: {}
+		name: {sortable: true}
 		config: { goType: "types.ChartConfig" }
 		namespace_id: { ident: "namespaceID", goType: "uint64", storeIdent: "rel_namespace" }
 

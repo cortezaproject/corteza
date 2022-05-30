@@ -6398,6 +6398,7 @@ func (Store) sortableComposeChartFields() map[string]string {
 		"deletedat":  "deleted_at",
 		"handle":     "handle",
 		"id":         "id",
+		"name":       "name",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
 	}
@@ -6431,6 +6432,8 @@ func (s *Store) collectComposeChartCursorValues(res *composeType.Chart, cc ...*f
 				case "handle":
 					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+				case "name":
+					cur.Set(c.Column, res.Name, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":
@@ -6970,6 +6973,7 @@ func (Store) sortableComposeModuleFields() map[string]string {
 		"deletedat":  "deleted_at",
 		"handle":     "handle",
 		"id":         "id",
+		"name":       "name",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
 	}
@@ -7003,6 +7007,8 @@ func (s *Store) collectComposeModuleCursorValues(res *composeType.Module, cc ...
 				case "handle":
 					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+				case "name":
+					cur.Set(c.Column, res.Name, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":
@@ -7290,7 +7296,9 @@ func (s *Store) LookupComposeModuleFieldByModuleIDName(ctx context.Context, modu
 // This function is auto-generated
 func (Store) sortableComposeModuleFieldFields() map[string]string {
 	return map[string]string{
-		"id": "id",
+		"id":    "id",
+		"label": "label",
+		"name":  "name",
 	}
 }
 
@@ -7319,6 +7327,10 @@ func (s *Store) collectComposeModuleFieldCursorValues(res *composeType.ModuleFie
 				case "id":
 					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+				case "name":
+					cur.Set(c.Column, res.Name, c.Descending)
+				case "label":
+					cur.Set(c.Column, res.Label, c.Descending)
 				}
 			}
 		}
@@ -8436,8 +8448,10 @@ func (Store) sortableComposePageFields() map[string]string {
 		"deletedat":  "deleted_at",
 		"handle":     "handle",
 		"id":         "id",
+		"title":      "title",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
+		"weight":     "weight",
 	}
 }
 
@@ -8469,6 +8483,10 @@ func (s *Store) collectComposePageCursorValues(res *composeType.Page, cc ...*fil
 				case "handle":
 					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+				case "weight":
+					cur.Set(c.Column, res.Weight, c.Descending)
+				case "title":
+					cur.Set(c.Column, res.Title, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":
