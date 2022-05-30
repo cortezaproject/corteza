@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"fmt"
+	"reflect"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	a "github.com/cortezaproject/corteza-server/pkg/auth"
@@ -18,8 +20,6 @@ type (
 		store     store.Storer
 		ac        connectionAccessController
 		dal       dalConnections
-
-		primaryConnection types.DalConnection
 	}
 
 	connectionAccessController interface {
@@ -39,13 +39,12 @@ type (
 	}
 )
 
-func Connection(ctx context.Context, pcOpts types.DalConnection, dal dalConnections) *dalConnection {
+func Connection(ctx context.Context, dal dalConnections) *dalConnection {
 	return &dalConnection{
-		ac:                DefaultAccessControl,
-		actionlog:         DefaultActionlog,
-		store:             DefaultStore,
-		dal:               dal,
-		primaryConnection: pcOpts,
+		ac:        DefaultAccessControl,
+		actionlog: DefaultActionlog,
+		store:     DefaultStore,
+		dal:       dal,
 	}
 }
 
@@ -55,13 +54,6 @@ func (svc *dalConnection) FindByID(ctx context.Context, ID uint64) (q *types.Dal
 	)
 
 	err = func() error {
-		if ID == 0 {
-			// primary; construct it since it doesn't actually exist
-			aux := svc.primaryConnection
-			q = &aux
-			return nil
-		}
-
 		if ID == 0 {
 			return DalConnectionErrInvalidID()
 		}
@@ -82,21 +74,6 @@ func (svc *dalConnection) FindByID(ctx context.Context, ID uint64) (q *types.Dal
 	return q, svc.recordAction(ctx, rProps, DalConnectionActionLookup, err)
 }
 
-func (svc *dalConnection) FindPrimary(ctx context.Context) (q *types.DalConnection, err error) {
-	var (
-		rProps = &dalConnectionActionProps{}
-	)
-
-	err = func() error {
-		// primary; construct it since it doesn't actually exist
-		aux := svc.primaryConnection
-		q = &aux
-		return nil
-	}()
-
-	return q, svc.recordAction(ctx, rProps, DalConnectionActionLookup, err)
-}
-
 func (svc *dalConnection) Create(ctx context.Context, new *types.DalConnection) (q *types.DalConnection, err error) {
 	var (
 		qProps = &dalConnectionActionProps{new: new}
@@ -110,6 +87,15 @@ func (svc *dalConnection) Create(ctx context.Context, new *types.DalConnection) 
 		new.ID = nextID()
 		new.CreatedAt = *now()
 		new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
+
+		// validation
+		{
+			if new.Type != types.DalPrimaryConnectionResourceType {
+				// @todo error
+				err = fmt.Errorf("cannot create connection: unsupported connection type %s", new.Type)
+				return
+			}
+		}
 
 		if err = store.CreateDalConnection(ctx, svc.store, new); err != nil {
 			return err
@@ -132,22 +118,40 @@ func (svc *dalConnection) Create(ctx context.Context, new *types.DalConnection) 
 func (svc *dalConnection) Update(ctx context.Context, upd *types.DalConnection) (q *types.DalConnection, err error) {
 	var (
 		qProps = &dalConnectionActionProps{update: upd}
-		qq     *types.DalConnection
+		old    *types.DalConnection
 		e      error
 	)
 
 	err = func() (err error) {
-		if qq, e = store.LookupDalConnectionByID(ctx, svc.store, upd.ID); e != nil {
+		if old, e = store.LookupDalConnectionByID(ctx, svc.store, upd.ID); e != nil {
 			return DalConnectionErrNotFound(qProps)
 		}
 
-		if !svc.ac.CanUpdateDalConnection(ctx, qq) {
+		if !svc.ac.CanUpdateDalConnection(ctx, old) {
 			return DalConnectionErrNotAllowedToUpdate(qProps)
 		}
 
 		upd.UpdatedAt = now()
-		upd.CreatedAt = qq.CreatedAt
+		upd.CreatedAt = old.CreatedAt
 		upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+
+		// validate
+		{
+			if old.Type == types.DalPrimaryConnectionResourceType {
+				if !reflect.DeepEqual(old.Config.Connection, upd.Config.Connection) {
+					// @todo err
+					return fmt.Errorf("can not update connection parameters for primary connection")
+				}
+
+				if old.Handle != upd.Handle {
+					return fmt.Errorf("can not update handle for primary connection")
+				}
+
+				if old.Type != upd.Type {
+					return fmt.Errorf("can not update type for primary connection")
+				}
+			}
+		}
 
 		if err = store.UpdateDalConnection(ctx, svc.store, upd); err != nil {
 			return
@@ -180,6 +184,10 @@ func (svc *dalConnection) DeleteByID(ctx context.Context, ID uint64) (err error)
 
 		if q, err = store.LookupDalConnectionByID(ctx, svc.store, ID); err != nil {
 			return
+		}
+
+		if q.Type == types.DalPrimaryConnectionResourceType {
+			return fmt.Errorf("not allowed to delete primary connections")
 		}
 
 		if !svc.ac.CanDeleteDalConnection(ctx, q) {

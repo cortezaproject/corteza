@@ -22,9 +22,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
-	"github.com/cortezaproject/corteza-server/pkg/geolocation"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/http"
 	"github.com/cortezaproject/corteza-server/pkg/id"
@@ -57,10 +55,6 @@ const (
 	bootLevelProvisioned
 	bootLevelServicesInitialized
 	bootLevelActivated
-
-	defaultComposeRecordTable    = "compose_record"
-	defaultComposeRecordValueCol = "values"
-	defaultPartitionFormat       = "compose_record_{{namespace}}_{{module}}"
 )
 
 // Setup configures all required services
@@ -298,41 +292,44 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return
 	}
 
-	var primaryDalConnection = types.DalConnection{
-		// Using id.Next since we dropped "special" ids a while ago.
-		// If needed, use the handle
-		ID:     id.Next(),
-		Name:   "Primary Connection",
-		Handle: "primary_connection",
-		Type:   types.DalPrimaryConnectionResourceType,
+	var primaryDalConnection *types.DalConnection
+	primaryDalConnection, err = store.LookupDalConnectionByHandle(ctx, app.Store, "primary_connection")
+	if err != nil {
+		// @note we won't log the error here as this is a bigger issue then
+		// it not connecting
+		return
+	}
 
-		Location: &geolocation.Full{
-			// @todo get from .env
-		},
-		Ownership: "@todo",
-		// @todo
-		// SensitivityLevel: ,
+	dalLogger := app.Log.Named("dal")
 
-		Config: types.ConnectionConfig{
-			DefaultModelIdent:      defaultComposeRecordTable,
-			DefaultAttributeIdent:  defaultComposeRecordValueCol,
-			DefaultPartitionFormat: defaultPartitionFormat,
+	// Assure primary connection configs
+	{
+		if primaryDalConnection.Config.DefaultModelIdent != provision.DefaultComposeRecordTable {
+			dalLogger.Warn("overwriting DefaultModelIdent value", zap.String("old", primaryDalConnection.Config.DefaultModelIdent), zap.String("new", provision.DefaultComposeRecordTable))
+			primaryDalConnection.Config.DefaultModelIdent = provision.DefaultComposeRecordTable
+		}
 
-			Connection: dal.NewDSNConnection(app.Opt.DB.DSN),
-		},
-		Capabilities: types.ConnectionCapabilities{
-			Supported: capabilities.FullCapabilities(),
-		},
-		CreatedAt: time.Now(),
-		CreatedBy: auth.ServiceUser().ID,
+		if primaryDalConnection.Config.DefaultAttributeIdent != provision.DefaultComposeRecordValueCol {
+			dalLogger.Warn("overwriting DefaultAttributeIdent value", zap.String("old", primaryDalConnection.Config.DefaultAttributeIdent), zap.String("new", provision.DefaultComposeRecordValueCol))
+			primaryDalConnection.Config.DefaultAttributeIdent = provision.DefaultComposeRecordValueCol
+		}
+
+		if primaryDalConnection.Config.DefaultPartitionFormat != provision.DefaultPartitionFormat {
+			dalLogger.Warn("overwriting DefaultPartitionFormat value", zap.String("old", primaryDalConnection.Config.DefaultPartitionFormat), zap.String("new", provision.DefaultPartitionFormat))
+			primaryDalConnection.Config.DefaultPartitionFormat = provision.DefaultPartitionFormat
+		}
+
+		c := dal.NewDSNConnection(app.Opt.DB.DSN)
+		dalLogger.Warn("overwriting Connection value", zap.Any("old", primaryDalConnection.Config.Connection), zap.Any("new", c))
+		primaryDalConnection.Config.Connection = c
 	}
 
 	// Init DAL and prepare default connection
-	dalLogger := app.Log.Named("dal")
 	if _, err = dal.InitGlobalService(
 		ctx,
 		dalLogger,
 		app.Opt.Environment.IsDevelopment(),
+		primaryDalConnection.ID,
 
 		// DB_DSN is the default connection with full capabilities
 		primaryDalConnection.Config.Connection,
@@ -341,7 +338,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 			DefaultAttributeIdent:  primaryDalConnection.Config.DefaultAttributeIdent,
 			DefaultPartitionFormat: primaryDalConnection.Config.DefaultPartitionFormat,
 			// @todo make it configurable from env
-			SensitivityLevel: 0,
+			SensitivityLevel: primaryDalConnection.SensitivityLevel,
 			Label:            primaryDalConnection.Handle,
 		},
 		primaryDalConnection.ActiveCapabilities()...); err != nil {

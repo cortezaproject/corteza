@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/options"
@@ -19,6 +21,12 @@ var (
 		c := time.Now().Round(time.Second)
 		return &c
 	}
+)
+
+const (
+	DefaultComposeRecordTable    = "compose_record"
+	DefaultComposeRecordValueCol = "values"
+	DefaultPartitionFormat       = "compose_record_{{namespace}}_{{module}}"
 )
 
 func Run(ctx context.Context, log *zap.Logger, s store.Storer, provisionOpt options.ProvisionOpt, authOpt options.AuthOpt) error {
@@ -42,6 +50,8 @@ func Run(ctx context.Context, log *zap.Logger, s store.Storer, provisionOpt opti
 		func() error { return authAddExternals(ctx, log.Named("auth.externals"), s) },
 		func() error { return oidcAutoDiscovery(ctx, log.Named("auth.oidc-auto-discovery"), s, authOpt) },
 		func() error { return defaultAuthClient(ctx, log.Named("auth.clients"), s, authOpt) },
+
+		func() error { return defaultDalConnection(ctx, log.Named("dal.connections"), s) },
 	}
 
 	for _, fn := range ffn {
@@ -104,4 +114,41 @@ func defaultAuthClient(ctx context.Context, log *zap.Logger, s store.AuthClients
 	)
 
 	return nil
+}
+
+func defaultDalConnection(ctx context.Context, log *zap.Logger, s store.DalConnections) (err error) {
+	cc, err := store.LookupDalConnectionByHandle(ctx, s, "primary_connection")
+	if err != nil && err != store.ErrNotFound {
+		return
+	}
+
+	// Already exists
+	if cc != nil {
+		return
+	}
+
+	// Create it
+	var conn = &types.DalConnection{
+		// Using id.Next since we dropped "special" ids a while ago.
+		// If needed, use the handle
+		ID:     id.Next(),
+		Name:   "Primary Connection",
+		Handle: "primary_connection",
+		Type:   types.DalPrimaryConnectionResourceType,
+
+		Config: types.ConnectionConfig{
+			DefaultModelIdent:      DefaultComposeRecordTable,
+			DefaultAttributeIdent:  DefaultComposeRecordValueCol,
+			DefaultPartitionFormat: DefaultPartitionFormat,
+
+			// The connection should be taken from the .env on boot_level
+		},
+		Capabilities: types.ConnectionCapabilities{
+			Supported: capabilities.FullCapabilities(),
+		},
+		CreatedAt: *now(),
+		CreatedBy: auth.ServiceUser().ID,
+	}
+
+	return store.CreateDalConnection(ctx, s, conn)
 }

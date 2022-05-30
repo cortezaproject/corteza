@@ -55,7 +55,7 @@ var (
 )
 
 // InitGlobalService initializes a fresh DAL where the given primary connection
-func InitGlobalService(ctx context.Context, log *zap.Logger, inDev bool, cp ConnectionParams, cm ConnectionMeta, capabilities ...capabilities.Capability) (*service, error) {
+func InitGlobalService(ctx context.Context, log *zap.Logger, inDev bool, connectionID uint64, cp ConnectionParams, cm ConnectionMeta, capabilities ...capabilities.Capability) (*service, error) {
 	if gSvc == nil {
 		log.Debug("initializing DAL service with primary connection", zap.Any("connection params", cp))
 
@@ -73,6 +73,7 @@ func InitGlobalService(ctx context.Context, log *zap.Logger, inDev bool, cp Conn
 			meta:             cm,
 			sensitivityLevel: cm.SensitivityLevel,
 			label:            cm.Label,
+			connectionID:     connectionID,
 		}
 		cw.connection, err = connect(ctx, log, inDev, cp, capabilities...)
 		if err != nil {
@@ -270,9 +271,8 @@ func (svc *service) ReloadModel(ctx context.Context, models ...*Model) (err erro
 }
 
 func (svc *service) ModelIdentFormatter(connectionID uint64) (f *IdentFormatter, err error) {
-	// @todo ...
 	c := svc.connections[connectionID]
-	if connectionID == 0 {
+	if connectionID == 0 || connectionID == svc.primary.connectionID {
 		c = svc.primary
 	}
 
@@ -391,7 +391,7 @@ func (svc *service) GetModelByResource(connectionID uint64, resType string, reso
 func (svc *service) getConnection(ctx context.Context, connectionID uint64, cc ...capabilities.Capability) (cw *connectionWrap, can capabilities.Set, err error) {
 	err = func() error {
 		// get the requested connection
-		if connectionID == DefaultConnectionID {
+		if connectionID == DefaultConnectionID || connectionID == svc.primary.connectionID {
 			cw = svc.primary
 		} else {
 			cw = svc.connections[connectionID]

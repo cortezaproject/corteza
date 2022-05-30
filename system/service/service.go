@@ -87,7 +87,7 @@ var (
 	DefaultApigwFilter         *apigwFilter
 	DefaultApigwProfiler       *apigwProfiler
 	DefaultReport              *report
-	primaryConnectionConfig    types.DalConnection
+	primaryConnectionConfig    *types.DalConnection
 
 	DefaultStatistics *statistics
 
@@ -103,7 +103,7 @@ var (
 	}
 )
 
-func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, primaryConn types.DalConnection, ws websocketSender, c Config) (err error) {
+func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, primaryConn *types.DalConnection, ws websocketSender, c Config) (err error) {
 	var (
 		hcd = healthcheck.Defaults()
 	)
@@ -150,7 +150,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, primaryCon
 	DefaultSettings = Settings(ctx, DefaultStore, DefaultLogger, DefaultAccessControl, CurrentSettings)
 
 	primaryConnectionConfig = primaryConn
-	DefaultDalConnection = Connection(ctx, primaryConnectionConfig, dal.Service())
+	DefaultDalConnection = Connection(ctx, dal.Service())
 
 	DefaultDalSensitivityLevel = SensitivityLevel(ctx, dal.Service())
 	if err != nil {

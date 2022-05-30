@@ -2,7 +2,6 @@ package rest
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -51,7 +50,6 @@ type (
 
 	connectionService interface {
 		FindByID(ctx context.Context, ID uint64) (*types.DalConnection, error)
-		FindPrimary(ctx context.Context) (*types.DalConnection, error)
 		Create(ctx context.Context, new *types.DalConnection) (*types.DalConnection, error)
 		Update(ctx context.Context, upd *types.DalConnection) (*types.DalConnection, error)
 		DeleteByID(ctx context.Context, ID uint64) error
@@ -113,13 +111,7 @@ func (ctrl DalConnection) Create(ctx context.Context, r *request.DalConnectionCr
 		Capabilities: r.Capabilities,
 	}
 
-	switch connection.Type {
-	case types.DalConnectionResourceType:
-		return ctrl.svc.Create(ctx, connection)
-	default:
-		return nil, fmt.Errorf("cannot create connection: unsupported connection type %s", connection.Type)
-	}
-
+	return ctrl.svc.Create(ctx, connection)
 }
 
 func (ctrl DalConnection) Update(ctx context.Context, r *request.DalConnectionUpdate) (interface{}, error) {
@@ -187,16 +179,11 @@ func (ctrl DalConnection) federatedNodeToConnection(f *federationTypes.Node) *ty
 
 func (ctrl DalConnection) collectConnections(ctx context.Context, f types.DalConnectionFilter) (out types.DalConnectionSet, err error) {
 	var (
-		dalConnections       types.DalConnectionSet
-		primaryDalConnection *types.DalConnection
-		federatedNodes       federationTypes.NodeSet
+		dalConnections types.DalConnectionSet
+		federatedNodes federationTypes.NodeSet
 	)
 
 	if dalConnections, f, err = ctrl.svc.Search(ctx, f); err != nil {
-		return nil, err
-	}
-
-	if primaryDalConnection, err = ctrl.svc.FindPrimary(ctx); err != nil {
 		return nil, err
 	}
 
@@ -209,7 +196,6 @@ func (ctrl DalConnection) collectConnections(ctx context.Context, f types.DalCon
 		}
 	}
 
-	out = append(out, primaryDalConnection)
 	out = append(out, dalConnections...)
 
 	// We're converting federation nodes to DAL connection structs so that we have
@@ -249,12 +235,6 @@ func (ctrl DalConnection) filterConnections(baseConnections types.DalConnectionS
 			if f.Deleted == filter.StateExclusive {
 				include = include && conn.DeletedAt != nil
 			}
-		}
-
-		if f.Check != nil {
-			// @todo error handling here?
-			tmp, _ := f.Check(conn)
-			include = include && tmp
 		}
 
 		if include {
