@@ -104,7 +104,7 @@ func tableDalConnections() *Table {
 		ColumnDef("name", ColumnTypeText),
 		ColumnDef("type", ColumnTypeText),
 
-		ColumnDef("location", ColumnTypeJson),
+		ColumnDef("location", ColumnTypeJson, Null),
 		ColumnDef("ownership", ColumnTypeText),
 		ColumnDef("sensitivity_level", ColumnTypeIdentifier),
 
