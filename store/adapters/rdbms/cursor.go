@@ -3,6 +3,7 @@ package rdbms
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/doug-martin/goqu/v9"
@@ -11,8 +12,9 @@ import (
 
 type (
 	cursorCondition struct {
-		cur       pagingCursor
-		keyMapper cursorKeyMapper
+		cur          pagingCursor
+		keyMapper    cursorKeyMapper
+		sortableCols map[string]string
 	}
 
 	pagingCursor interface {
@@ -39,7 +41,16 @@ type (
 )
 
 func cursor(cursor *filter.PagingCursor) ([]goqu.Expression, error) {
-	sql, args, err := CursorCondition(cursor, nil).ToSQL()
+	sql, args, err := CursorCondition(cursor, nil, nil).ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	return []goqu.Expression{goqu.Literal(sql, args...)}, nil
+}
+
+func cursorWithSorting(cursor *filter.PagingCursor, sortableCols map[string]string) ([]goqu.Expression, error) {
+	sql, args, err := CursorCondition(cursor, nil, sortableCols).ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +60,7 @@ func cursor(cursor *filter.PagingCursor) ([]goqu.Expression, error) {
 
 // CursorCondition builds a complex condition to filter rows before/after row that
 // the paging cursor points to
-func CursorCondition(pc pagingCursor, keyMapper cursorKeyMapper) *cursorCondition {
+func CursorCondition(pc pagingCursor, keyMapper cursorKeyMapper, sortableCols map[string]string) *cursorCondition {
 	if keyMapper == nil {
 		keyMapper = func(s string) (KeyMap, error) {
 			return KeyMap{
@@ -60,7 +71,7 @@ func CursorCondition(pc pagingCursor, keyMapper cursorKeyMapper) *cursorConditio
 		}
 	}
 
-	return &cursorCondition{cur: pc, keyMapper: keyMapper}
+	return &cursorCondition{cur: pc, keyMapper: keyMapper, sortableCols: sortableCols}
 }
 
 func (c *cursorCondition) ToSQL() (string, []interface{}, error) {
@@ -152,7 +163,14 @@ func (c *cursorCondition) sql() (cnd string, err error) {
 	// going from the last key/column to the 1st one
 	for i := len(cc) - 1; i >= 0; i-- {
 		// Get the key context so we know how to format fields and format typecasts
-		km, err := c.keyMapper(cc[i])
+		colName := cc[i]
+		if c.sortableCols != nil {
+			if v, ok := c.sortableCols[strings.ToLower(cc[i])]; ok {
+				colName = v
+			}
+		}
+
+		km, err := c.keyMapper(colName)
 		if err != nil {
 			return "", err
 		}
