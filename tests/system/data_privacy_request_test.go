@@ -23,7 +23,7 @@ func (h helper) createDataPrivacyRequest(kind types.RequestKind, status types.Re
 		ID:          id.Next(),
 		Kind:        types.RequestKindCorrect,
 		Status:      types.RequestStatusPending,
-		RequestedAt: time.Time{},
+		RequestedAt: time.Now(),
 		RequestedBy: 0,
 		CreatedAt:   time.Now(),
 	}
