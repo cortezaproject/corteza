@@ -20,13 +20,13 @@ func Test_migratePost202203RbacRules(t *testing.T) {
 	}
 
 	tcc := []struct {
-		wantOp   int
+		wantOp   actionType
 		rule     *rbac.Rule
 		wantRule *rbac.Rule
 	}{
-		{-1, rbac.AllowRule(0, "corteza::compose:module/*/123", "op"), rbac.AllowRule(0, "corteza::compose:module/*/123", "op")},
-		{-1, rbac.AllowRule(0, "corteza::compose:module-field/*/*/123", "op"), rbac.AllowRule(0, "corteza::compose:module-field/*/*/123", "op")},
-		{-1, rbac.AllowRule(0, "corteza::compose:record/*/*/234", "op"), rbac.AllowRule(0, "corteza::compose:record/*/*/234", "op")},
+		{actionRemove, rbac.AllowRule(0, "corteza::compose:module/*/123", "op"), rbac.AllowRule(0, "corteza::compose:module/*/123", "op")},
+		{actionRemove, rbac.AllowRule(0, "corteza::compose:module-field/*/*/123", "op"), rbac.AllowRule(0, "corteza::compose:module-field/*/*/123", "op")},
+		{actionRemove, rbac.AllowRule(0, "corteza::compose:record/*/*/234", "op"), rbac.AllowRule(0, "corteza::compose:record/*/*/234", "op")},
 	}
 	for _, tc := range tcc {
 		t.Run(tc.rule.String(), func(t *testing.T) {
