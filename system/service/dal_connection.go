@@ -93,7 +93,7 @@ func (svc *dalConnection) Create(ctx context.Context, new *types.DalConnection) 
 
 		// validation
 		{
-			if new.Type != types.DalPrimaryConnectionResourceType {
+			if new.Type != types.DalConnectionResourceType {
 				// @todo error
 				err = fmt.Errorf("cannot create connection: unsupported connection type %s", new.Type)
 				return
