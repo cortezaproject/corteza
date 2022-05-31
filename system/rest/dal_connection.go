@@ -10,6 +10,7 @@ import (
 	federationTypes "github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
@@ -145,6 +146,20 @@ func (ctrl DalConnection) Undelete(ctx context.Context, r *request.DalConnection
 }
 
 func (ctrl DalConnection) makeFilterPayload(ctx context.Context, connections types.DalConnectionSet, f types.DalConnectionFilter) (out *connectionSetPayload, err error) {
+	for _, c := range connections {
+		if c.Capabilities.Enforced == nil {
+			c.Capabilities.Enforced = capabilities.Set{}
+		}
+		if c.Capabilities.Supported == nil {
+			c.Capabilities.Supported = capabilities.Set{}
+		}
+		if c.Capabilities.Unsupported == nil {
+			c.Capabilities.Unsupported = capabilities.Set{}
+		}
+		if c.Capabilities.Enabled == nil {
+			c.Capabilities.Enabled = capabilities.Set{}
+		}
+	}
 	out = &connectionSetPayload{
 		Set:    connections,
 		Filter: f,
