@@ -648,14 +648,14 @@ func RecordValueUpdateOpCheck(ctx context.Context, ac recordValueAccessControlle
 	return rve
 }
 
-func RecordPreparer(ctx context.Context, s store.Storer, ss recordValuesSanitizer, vv recordValuesValidator, ff recordValuesFormatter, m *types.Module, new *types.Record) *types.RecordValueErrorSet {
+func RecordPreparer(ctx context.Context, s store.Storer, ss recordValuesSanitizer, vv recordValuesValidator, ff recordValuesFormatter, m *types.Module, new *types.Record, old *types.Record) *types.RecordValueErrorSet {
 	// Before values are processed further and
 	// sent to automation scripts (if any)
 	// we need to make sure it does not get un-sanitized data
 	new.Values = ss.Run(m, new.Values)
 
 	rve := &types.RecordValueErrorSet{}
-	values.Expression(ctx, m, new, nil, rve)
+	values.Expression(ctx, m, new, old, rve)
 
 	if !rve.IsValid() {
 		return rve
@@ -861,7 +861,8 @@ func (svc record) procCreate(ctx context.Context, invokerID uint64, m *types.Mod
 		return
 	}
 
-	rve = RecordPreparer(ctx, svc.store, svc.sanitizer, svc.validator, svc.formatter, m, new)
+	// using nil for old since we're creating
+	rve = RecordPreparer(ctx, svc.store, svc.sanitizer, svc.validator, svc.formatter, m, new, nil)
 	return rve
 }
 
@@ -916,7 +917,7 @@ func (svc record) procUpdate(ctx context.Context, invokerID uint64, m *types.Mod
 		return rve
 	}
 
-	return RecordPreparer(ctx, svc.store, svc.sanitizer, svc.validator, svc.formatter, m, upd)
+	return RecordPreparer(ctx, svc.store, svc.sanitizer, svc.validator, svc.formatter, m, upd, old)
 }
 
 func (svc record) recordInfoUpdate(ctx context.Context, r *types.Record) {
