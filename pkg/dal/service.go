@@ -33,8 +33,9 @@ type (
 	}
 
 	service struct {
-		connections map[uint64]*connectionWrap
-		primary     *connectionWrap
+		connections         map[uint64]*connectionWrap
+		primary             *connectionWrap
+		primaryConnectionID uint64
 
 		// Indexed by corresponding storeID
 		models map[uint64]ModelSet
@@ -60,9 +61,10 @@ func InitGlobalService(ctx context.Context, log *zap.Logger, inDev bool, connect
 		log.Debug("initializing DAL service with primary connection", zap.Any("connection params", cp))
 
 		gSvc = &service{
-			connections: make(map[uint64]*connectionWrap),
-			models:      make(map[uint64]ModelSet),
-			primary:     nil,
+			connections:         make(map[uint64]*connectionWrap),
+			models:              make(map[uint64]ModelSet),
+			primary:             nil,
+			primaryConnectionID: connectionID,
 
 			logger: log,
 			inDev:  inDev,
@@ -143,7 +145,11 @@ func (svc *service) AddConnection(ctx context.Context, connectionID uint64, cp C
 	if err != nil {
 		return
 	}
-	svc.connections[connectionID] = cw
+	if connectionID == DefaultConnectionID || connectionID == svc.primaryConnectionID {
+		svc.primary = cw
+	} else {
+		svc.connections[connectionID] = cw
+	}
 	return
 }
 
@@ -151,9 +157,9 @@ func (svc *service) AddConnection(ctx context.Context, connectionID uint64, cp C
 func (svc *service) RemoveConnection(ctx context.Context, connectionID uint64) (err error) {
 	svc.logger.Debug("removing connection", zap.Uint64("connectionID", connectionID))
 
-	c := svc.connections[connectionID]
-	if c == nil {
-		return fmt.Errorf("can not remove connection %d: connection does not exist", connectionID)
+	c, _, err := svc.getConnection(ctx, connectionID)
+	if err != nil {
+		return fmt.Errorf("can not remove connection %d: %w", connectionID, err)
 	}
 
 	// Potential cleanups
@@ -164,7 +170,14 @@ func (svc *service) RemoveConnection(ctx context.Context, connectionID uint64) (
 	}
 
 	// Remove from registry
-	delete(svc.connections, connectionID)
+	//
+	// @todo this is temporary until a proper update function is prepared.
+	// The primary connection must not be removable!
+	if connectionID == DefaultConnectionID || connectionID == svc.primary.connectionID {
+		svc.primary = nil
+	} else {
+		delete(svc.connections, connectionID)
+	}
 
 	return nil
 }
