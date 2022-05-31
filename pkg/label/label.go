@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/label/types"
 	"github.com/cortezaproject/corteza-server/store"
-	"strings"
 )
 
 type (
@@ -157,6 +158,9 @@ func Create(ctx context.Context, s store.Labels, r LabeledResource) error {
 
 // Update updates or creates all labels on labeled resource and removes all non explicitly defined
 func Update(ctx context.Context, s store.Labels, r LabeledResource) error {
+	// @tmp
+	return nil
+
 	var (
 		err    error
 		labels = r.GetLabels()
