@@ -277,7 +277,7 @@ func (svc *dalSensitivityLevel) prepare(ctx context.Context, s store.Storer, sl 
 	{
 		// Assure unique level
 		for _, crt := range set {
-			if crt.Level == sl.Level {
+			if crt.Level == sl.Level && crt.ID != sl.ID {
 				return nil, fmt.Errorf("invalid sensitivity level: duplicated level value %d", sl.Level)
 			}
 		}

@@ -37,7 +37,7 @@ dal_connection: schema.#Resource & {
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
 
-		byValue: ["connection_id", "handle"]
+		byValue: ["connection_id", "handle", "type"]
 		byNilState: ["deleted"]
 	}
 

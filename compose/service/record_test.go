@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/compose/service/values"
@@ -898,7 +897,6 @@ func TestSetRecordOwner(t *testing.T) {
 	)
 
 	req.NoError(rbacService.Grant(ctx, rbac.AllowRule(role.ID, types.RecordRbacResource(0, 0, 0), "owner.manage")))
-	spew.Dump(rbacService.Rules())
 	req.NoError(store.CreateUser(ctx, s, invoker, originalOwner, alternativeOwner))
 
 	t.Run("invalid input", func(t *testing.T) {

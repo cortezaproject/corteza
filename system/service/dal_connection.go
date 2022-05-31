@@ -297,7 +297,9 @@ func (svc *dalConnection) Search(ctx context.Context, filter types.DalConnection
 
 func (svc *dalConnection) ReloadConnections(ctx context.Context) (err error) {
 	// Get all available connections
-	cc, _, err := store.SearchDalConnections(ctx, svc.store, types.DalConnectionFilter{})
+	cc, _, err := store.SearchDalConnections(ctx, svc.store, types.DalConnectionFilter{
+		Type: types.DalConnectionResourceType,
+	})
 	if err != nil {
 		return
 	}

@@ -740,6 +740,10 @@ func DalConnectionFilter(f systemType.DalConnectionFilter) (ee []goqu.Expression
 		ee = append(ee, goqu.C("handle").Eq(f.Handle))
 	}
 
+	if val := strings.TrimSpace(f.Type); len(val) > 0 {
+		ee = append(ee, goqu.C("type").Eq(f.Type))
+	}
+
 	return ee, f, err
 }
 
