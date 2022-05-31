@@ -34,6 +34,7 @@ type (
 		ActionLog options.ActionLogOpt
 		Discovery options.DiscoveryOpt
 		Storage   options.ObjectStoreOpt
+		DB        options.DBOpt
 		Template  options.TemplateOpt
 		Auth      options.AuthOpt
 		RBAC      options.RbacOpt
@@ -150,7 +151,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, primaryCon
 	DefaultSettings = Settings(ctx, DefaultStore, DefaultLogger, DefaultAccessControl, CurrentSettings)
 
 	primaryConnectionConfig = primaryConn
-	DefaultDalConnection = Connection(ctx, dal.Service())
+	DefaultDalConnection = Connection(ctx, dal.Service(), c.DB)
 
 	DefaultDalSensitivityLevel = SensitivityLevel(ctx, dal.Service())
 	if err != nil {

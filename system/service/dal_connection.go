@@ -9,6 +9,7 @@ import (
 	a "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -20,6 +21,7 @@ type (
 		store     store.Storer
 		ac        connectionAccessController
 		dal       dalConnections
+		dbConf    options.DBOpt
 	}
 
 	connectionAccessController interface {
@@ -39,12 +41,13 @@ type (
 	}
 )
 
-func Connection(ctx context.Context, dal dalConnections) *dalConnection {
+func Connection(ctx context.Context, dal dalConnections, dbConf options.DBOpt) *dalConnection {
 	return &dalConnection{
 		ac:        DefaultAccessControl,
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
 		dal:       dal,
+		dbConf:    dbConf,
 	}
 }
 
@@ -68,9 +71,9 @@ func (svc *dalConnection) FindByID(ctx context.Context, ID uint64) (q *types.Dal
 			return DalConnectionErrNotAllowedToRead(rProps)
 		}
 
+		svc.assurePrimaryConnection(q)
 		return nil
 	}()
-
 	return q, svc.recordAction(ctx, rProps, DalConnectionActionLookup, err)
 }
 
@@ -127,6 +130,8 @@ func (svc *dalConnection) Update(ctx context.Context, upd *types.DalConnection) 
 			return DalConnectionErrNotFound(qProps)
 		}
 
+		svc.assurePrimaryConnection(old)
+
 		if !svc.ac.CanUpdateDalConnection(ctx, old) {
 			return DalConnectionErrNotAllowedToUpdate(qProps)
 		}
@@ -147,6 +152,18 @@ func (svc *dalConnection) Update(ctx context.Context, upd *types.DalConnection) 
 					return fmt.Errorf("can not update handle for primary connection")
 				}
 
+				if old.Config.DefaultModelIdent != upd.Config.DefaultModelIdent {
+					return fmt.Errorf("can not update defaultModelIdent for primary connection")
+				}
+
+				if old.Config.DefaultAttributeIdent != upd.Config.DefaultAttributeIdent {
+					return fmt.Errorf("can not update defaultAttributeIdent for primary connection")
+				}
+
+				if old.Handle != upd.Handle {
+					return fmt.Errorf("can not update handle for primary connection")
+				}
+
 				if old.Type != upd.Type {
 					return fmt.Errorf("can not update type for primary connection")
 				}
@@ -158,6 +175,7 @@ func (svc *dalConnection) Update(ctx context.Context, upd *types.DalConnection) 
 		}
 
 		q = upd
+		svc.assurePrimaryConnection(q)
 
 		var cm dal.ConnectionMeta
 		cm, err = svc.makeConnectionMeta(ctx, upd)
@@ -167,7 +185,6 @@ func (svc *dalConnection) Update(ctx context.Context, upd *types.DalConnection) 
 
 		return svc.dal.UpdateConnection(ctx, upd.ID, upd.Config.Connection, cm, upd.ActiveCapabilities()...)
 	}()
-
 	return q, svc.recordAction(ctx, qProps, DalConnectionActionUpdate, err)
 }
 
@@ -272,9 +289,9 @@ func (svc *dalConnection) Search(ctx context.Context, filter types.DalConnection
 			return err
 		}
 
+		svc.assurePrimaryConnection(r...)
 		return nil
 	}()
-
 	return r, f, svc.recordAction(ctx, aProps, DalConnectionActionSearch, err)
 }
 
@@ -310,4 +327,13 @@ func (svc *dalConnection) makeConnectionMeta(ctx context.Context, c *types.DalCo
 	}
 
 	return
+}
+
+func (svc *dalConnection) assurePrimaryConnection(connections ...*types.DalConnection) {
+	for _, c := range connections {
+		if c.Type == types.DalPrimaryConnectionResourceType {
+			c.Config.Connection = dal.NewDSNConnection(svc.dbConf.DSN)
+			return
+		}
+	}
 }

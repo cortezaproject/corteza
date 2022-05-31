@@ -470,6 +470,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		Discovery: app.Opt.Discovery,
 		Storage:   app.Opt.ObjStore,
 		Template:  app.Opt.Template,
+		DB:        app.Opt.DB,
 		Auth:      app.Opt.Auth,
 		RBAC:      app.Opt.RBAC,
 		Limit:     app.Opt.Limit,
