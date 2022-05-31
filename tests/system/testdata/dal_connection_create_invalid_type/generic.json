@@ -1,0 +1,43 @@
+{
+  "name": "Test Connection",
+  "handle": "test_connection",
+  "type": "corteza::system:primary_dal_connection",
+  "location": {
+      "geometry": {
+          "type": "",
+          "coordinates": null
+      },
+      "properties": {
+          "name": ""
+      }
+  },
+  "ownership": "",
+  "sensitivityLevel": "0",
+  "config": {
+      "defaultModelIdent": "compose_record",
+      "defaultAttributeIdent": "values",
+      "defaultPartitionFormat": "compose_record_{{namespace}}_{{module}}",
+      "partitionFormatValidator": "",
+      "connection": {
+          "type": "corteza::dal:connection:dsn",
+          "params": {
+              "dsn": "mysql://user:pass@tcp(localhost:3308)/corteza?collation=utf8mb4_general_ci"
+          }
+      }
+  },
+  "capabilities": {
+      "enforced": [],
+      "supported": [
+          "corteza::dal:capability:create",
+          "corteza::dal:capability:update",
+          "corteza::dal:capability:search",
+          "corteza::dal:capability:lookup",
+          "corteza::dal:capability:paging",
+          "corteza::dal:capability:stats",
+          "corteza::dal:capability:sorting",
+          "corteza::dal:capability:RBAC"
+      ],
+      "unsupported": [],
+      "enabled": []
+  }
+}

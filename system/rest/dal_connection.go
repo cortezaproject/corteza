@@ -146,6 +146,10 @@ func (ctrl DalConnection) Undelete(ctx context.Context, r *request.DalConnection
 }
 
 func (ctrl DalConnection) makeFilterPayload(ctx context.Context, connections types.DalConnectionSet, f types.DalConnectionFilter) (out *connectionSetPayload, err error) {
+	out = &connectionSetPayload{
+		Filter: f,
+		Set:    make(types.DalConnectionSet, 0),
+	}
 	for _, c := range connections {
 		if c.Capabilities.Enforced == nil {
 			c.Capabilities.Enforced = capabilities.Set{}
@@ -160,10 +164,7 @@ func (ctrl DalConnection) makeFilterPayload(ctx context.Context, connections typ
 			c.Capabilities.Enabled = capabilities.Set{}
 		}
 	}
-	out = &connectionSetPayload{
-		Set:    connections,
-		Filter: f,
-	}
+	out.Set = append(out.Set, connections...)
 
 	return
 }

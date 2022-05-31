@@ -5,7 +5,9 @@ import (
 	"embed"
 	"errors"
 	"io"
+	"io/ioutil"
 	"os"
+	"path"
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/app"
@@ -24,6 +26,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers/sqlite"
 	"github.com/cortezaproject/corteza-server/system/rest"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -213,4 +216,15 @@ func (h helper) clearTemplates() {
 func readStaticFile(f string) []byte {
 	c, _ := mockData.ReadFile(f)
 	return c
+}
+
+func loadScenarioRequest(t *testing.T, req string) string {
+	f, err := os.Open(path.Join("testdata", t.Name()[5:], req))
+	require.NoError(t, err)
+	defer f.Close()
+
+	bb, err := ioutil.ReadAll(f)
+	require.NoError(t, err)
+
+	return string(bb)
 }
