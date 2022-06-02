@@ -250,6 +250,11 @@ type (
 		// Record values
 		Values types.RecordValueSet
 
+		// OwnedBy POST parameter
+		//
+		// Record Owner
+		OwnedBy uint64 `json:",string"`
+
 		// Records POST parameter
 		//
 		// Records
@@ -298,6 +303,11 @@ type (
 		//
 		// Record values
 		Values types.RecordValueSet
+
+		// OwnedBy POST parameter
+		//
+		// Record Owner
+		OwnedBy uint64 `json:",string"`
 
 		// Records POST parameter
 		//
@@ -1173,6 +1183,7 @@ func (r RecordCreate) Auditable() map[string]interface{} {
 		"namespaceID": r.NamespaceID,
 		"moduleID":    r.ModuleID,
 		"values":      r.Values,
+		"ownedBy":     r.OwnedBy,
 		"records":     r.Records,
 		"labels":      r.Labels,
 	}
@@ -1191,6 +1202,11 @@ func (r RecordCreate) GetModuleID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r RecordCreate) GetValues() types.RecordValueSet {
 	return r.Values
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordCreate) GetOwnedBy() uint64 {
+	return r.OwnedBy
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -1224,6 +1240,13 @@ func (r *RecordCreate) Fill(req *http.Request) (err error) {
 		} else if err == nil {
 			// Multipart params
 
+			if val, ok := req.MultipartForm.Value["ownedBy"]; ok && len(val) > 0 {
+				r.OwnedBy, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
 			if val, ok := req.MultipartForm.Value["labels[]"]; ok {
 				r.Labels, err = label.ParseStrings(val)
 				if err != nil {
@@ -1251,6 +1274,13 @@ func (r *RecordCreate) Fill(req *http.Request) (err error) {
 		//        return err
 		//    }
 		//}
+
+		if val, ok := req.Form["ownedBy"]; ok && len(val) > 0 {
+			r.OwnedBy, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
 
 		//if val, ok := req.Form["records[]"]; ok && len(val) > 0  {
 		//    r.Records, err = types.RecordBulkSet(val), nil
@@ -1364,6 +1394,7 @@ func (r RecordUpdate) Auditable() map[string]interface{} {
 		"moduleID":    r.ModuleID,
 		"recordID":    r.RecordID,
 		"values":      r.Values,
+		"ownedBy":     r.OwnedBy,
 		"records":     r.Records,
 		"labels":      r.Labels,
 	}
@@ -1387,6 +1418,11 @@ func (r RecordUpdate) GetRecordID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r RecordUpdate) GetValues() types.RecordValueSet {
 	return r.Values
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordUpdate) GetOwnedBy() uint64 {
+	return r.OwnedBy
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -1420,6 +1456,13 @@ func (r *RecordUpdate) Fill(req *http.Request) (err error) {
 		} else if err == nil {
 			// Multipart params
 
+			if val, ok := req.MultipartForm.Value["ownedBy"]; ok && len(val) > 0 {
+				r.OwnedBy, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
 			if val, ok := req.MultipartForm.Value["labels[]"]; ok {
 				r.Labels, err = label.ParseStrings(val)
 				if err != nil {
@@ -1447,6 +1490,13 @@ func (r *RecordUpdate) Fill(req *http.Request) (err error) {
 		//        return err
 		//    }
 		//}
+
+		if val, ok := req.Form["ownedBy"]; ok && len(val) > 0 {
+			r.OwnedBy, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
 
 		//if val, ok := req.Form["records[]"]; ok && len(val) > 0  {
 		//    r.Records, err = types.RecordBulkSet(val), nil

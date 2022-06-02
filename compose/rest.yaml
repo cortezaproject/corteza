@@ -849,6 +849,10 @@ endpoints:
         name: values
         required: false
         title: Record values
+      - type: uint64
+        name: ownedBy
+        required: false
+        title: Record Owner
       - type: types.RecordBulkSet
         name: records
         required: false
@@ -882,6 +886,10 @@ endpoints:
         name: values
         required: false
         title: Record values
+      - type: uint64
+        name: ownedBy
+        required: false
+        title: Record Owner
       - type: types.RecordBulkSet
         name: records
         required: false

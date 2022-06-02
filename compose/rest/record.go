@@ -168,6 +168,7 @@ func (ctrl *Record) Create(ctx context.Context, r *request.RecordCreate) (interf
 			ModuleID:    r.ModuleID,
 			Values:      r.Values,
 			Labels:      r.Labels,
+			OwnedBy:     r.OwnedBy,
 		}
 		oo = append(oo, &types.RecordBulkOperation{
 			Record:    rr,
@@ -218,6 +219,7 @@ func (ctrl *Record) Update(ctx context.Context, r *request.RecordUpdate) (interf
 			ModuleID:    r.ModuleID,
 			Values:      r.Values,
 			Labels:      r.Labels,
+			OwnedBy:     r.OwnedBy,
 		}
 		oo = append(oo, &types.RecordBulkOperation{
 			Record:    rr,
