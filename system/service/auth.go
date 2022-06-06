@@ -377,6 +377,15 @@ func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password 
 		//
 		// return nil,nil
 
+		// @note moved the password check higher up so we can terminate the proc
+		// sooner.
+		//
+		// The check must be after the login fallback so that we still allow
+		// logins with old passwords in case the policy has changed since then.
+		if !svc.CheckPasswordStrength(password) {
+			return AuthErrPasswordNotSecure()
+		}
+
 		var nUser = &types.User{
 			ID:        nextID(),
 			CreatedAt: *now(),
