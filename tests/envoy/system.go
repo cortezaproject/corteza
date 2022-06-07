@@ -117,6 +117,12 @@ func sTestSettings(ctx context.Context, t *testing.T, s store.Storer, usrID uint
 			UpdatedAt: updatedAt,
 			UpdatedBy: usrID,
 		},
+		{
+			Name:      pfx + "_setting_3.dot",
+			Value:     []byte(`{"someKey": "someValue","otherKey":10}`),
+			UpdatedAt: updatedAt,
+			UpdatedBy: usrID,
+		},
 	}
 
 	err := store.CreateSetting(ctx, s, ss...)

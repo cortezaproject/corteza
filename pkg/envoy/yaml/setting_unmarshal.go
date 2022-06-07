@@ -23,67 +23,28 @@ func (wset *settingSet) UnmarshalYAML(n *yaml.Node) error {
 
 		wrap.res = &types.SettingValue{}
 
-		switch v.Kind {
-		case yaml.MappingNode:
+		if y7s.IsKind(n, yaml.SequenceNode) {
+			if !y7s.IsKind(v, yaml.MappingNode) {
+				return y7s.NodeErr(n, "malformed setting definition: sequence of settings must be defined as maps")
+			}
+
 			if err = v.Decode(&wrap); err != nil {
 				return
 			}
-
-		default:
+		} else {
 			if err = y7s.DecodeScalar(k, "setting name", &wrap.res.Name); err != nil {
 				return err
 			}
 
-			if y7s.IsKind(v, yaml.SequenceNode) {
-				aux := make([]interface{}, 0, 10)
-
-				y7s.EachSeq(v, func(n *yaml.Node) error {
-					var vx interface{}
-					err := y7s.DecodeScalar(n, "setting value", &vx)
-					if err != nil {
-						return err
-					}
-
-					aux = append(aux, vx)
-					return nil
-				})
-
-				m, err := json.Marshal(aux)
-				if err != nil {
-					return err
-				}
-				wrap.res.Value = sqlt.JSONText(m)
-			} else if y7s.IsKind(v, yaml.MappingNode) {
-				aux := make(map[string]interface{})
-
-				y7s.EachMap(v, func(k, v *yaml.Node) error {
-					var vx interface{}
-					err := y7s.DecodeScalar(v, "setting value", &vx)
-					if err != nil {
-						return err
-					}
-
-					aux[k.Value] = vx
-					return nil
-				})
-
-				m, err := json.Marshal(aux)
-				if err != nil {
-					return err
-				}
-				wrap.res.Value = sqlt.JSONText(m)
-			} else {
-				var aux interface{}
-				err = y7s.DecodeScalar(v, "setting value", &aux)
-				if err != nil {
-					return err
-				}
-				m, err := json.Marshal(aux)
-				if err != nil {
-					return err
-				}
-				wrap.res.Value = sqlt.JSONText(m)
+			value, err := wrap.unmarshalSettingValue(v)
+			if err != nil {
+				return err
 			}
+			m, err := json.Marshal(value)
+			if err != nil {
+				return err
+			}
+			wrap.res.Value = sqlt.JSONText(m)
 		}
 
 		*wset = append(*wset, wrap)
@@ -107,10 +68,11 @@ func (wrap *setting) UnmarshalYAML(n *yaml.Node) (err error) {
 
 		case "value":
 			var aux interface{}
-			err = y7s.DecodeScalar(v, "setting value", &aux)
+			aux, err = wrap.unmarshalSettingValue(v)
 			if err != nil {
 				return err
 			}
+
 			m, err := json.Marshal(aux)
 			if err != nil {
 				return err
@@ -138,6 +100,48 @@ func (wrap *setting) UnmarshalYAML(n *yaml.Node) (err error) {
 	}
 
 	return nil
+}
+
+func (wrap *setting) unmarshalSettingValue(n *yaml.Node) (v interface{}, err error) {
+	switch n.Kind {
+	case yaml.SequenceNode:
+		out := make([]interface{}, 0, 10)
+
+		err = y7s.EachSeq(n, func(n *yaml.Node) error {
+			aux, err := wrap.unmarshalSettingValue(n)
+			if err != nil {
+				return err
+			}
+			out = append(out, aux)
+			return nil
+		})
+		return out, err
+
+	case yaml.MappingNode:
+		out := make(map[string]interface{})
+
+		err = y7s.EachMap(n, func(k, v *yaml.Node) error {
+			aux, err := wrap.unmarshalSettingValue(v)
+			if err != nil {
+				return err
+			}
+
+			out[k.Value] = aux
+			return nil
+		})
+		return out, err
+
+	case yaml.ScalarNode:
+		var out interface{}
+		if err := y7s.DecodeScalar(n, "setting value", &out); err != nil {
+			return v, err
+		}
+
+		return out, nil
+
+	default:
+		return nil, y7s.NodeErr(n, "unknown node kind")
+	}
 }
 
 func (wset settingSet) MarshalEnvoy() ([]resource.Interface, error) {

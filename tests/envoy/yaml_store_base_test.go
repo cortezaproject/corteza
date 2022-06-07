@@ -544,10 +544,13 @@ func TestYamlStore_base(t *testing.T) {
 				ss, _, err := store.SearchSettings(ctx, s, systypes.SettingsFilter{})
 				req.NoError(err)
 				req.NotNil(ss)
-				req.Len(ss, 4)
+				req.Len(ss, 6)
 
-				rs := []string{ss[0].Name, ss[1].Name, ss[2].Name, ss[3].Name}
-				req.Subset(rs, []string{"s1.opt.1", "s1.opt.2", "s2.opt.1", "s2.opt.2"})
+				rs := []string{ss[0].Name, ss[1].Name, ss[2].Name, ss[3].Name, ss[4].Name, ss[5].Name}
+				req.Subset(rs, []string{"s1.opt.1", "s1.opt.2", "compose.ui.record-toolbar", "compose.ui.record-otherbar", "s2.opt.1", "s2.opt.2"})
+
+				req.Equal("{\"hideBack\":true}", ss[2].Value.String())
+				req.Equal("{\"hideBack\":true,\"hideCreate\":true}", ss[3].Value.String())
 			},
 		},
 	}

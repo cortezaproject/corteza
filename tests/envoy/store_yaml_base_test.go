@@ -2,6 +2,7 @@ package envoy
 
 import (
 	"context"
+	"encoding/json"
 	"strconv"
 	"testing"
 	"time"
@@ -570,7 +571,7 @@ func TestStoreYaml_base(t *testing.T) {
 
 				ss, _, err := store.SearchSettings(ctx, s, stypes.SettingsFilter{})
 				req.NoError(err)
-				req.Len(ss, 2)
+				req.Len(ss, 3)
 
 				sv := ss[0]
 				req.Equal("base_setting_1", sv.Name)
@@ -581,6 +582,17 @@ func TestStoreYaml_base(t *testing.T) {
 				sv = ss[1]
 				req.Equal("base_setting_2", sv.Name)
 				req.Equal("20", sv.Value.String())
+				req.Equal(updatedAt.Format(time.RFC3339), sv.UpdatedAt.Format(time.RFC3339))
+				req.Equal(usr.ID, sv.UpdatedBy)
+
+				sv = ss[2]
+				req.Equal("base_setting_3.dot", sv.Name)
+				sValue := make(map[string]interface{})
+				req.NoError(json.Unmarshal(sv.Value, &sValue))
+				req.Contains(sValue, "someKey")
+				req.Equal("someValue", sValue["someKey"])
+				req.Contains(sValue, "otherKey")
+				req.Equal(float64(10), sValue["otherKey"])
 				req.Equal(updatedAt.Format(time.RFC3339), sv.UpdatedAt.Format(time.RFC3339))
 				req.Equal(usr.ID, sv.UpdatedBy)
 			},
