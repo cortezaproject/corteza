@@ -2761,6 +2761,110 @@ var (
 		}
 	}
 
+	// dataPrivacyRequestCommentTable represents dataPrivacyRequestComments store table
+	//
+	// This value is auto-generated
+	dataPrivacyRequestCommentTable = goqu.T("data_privacy_request_comments")
+
+	// dataPrivacyRequestCommentSelectQuery assembles select query for fetching dataPrivacyRequestComments
+	//
+	// This function is auto-generated
+	dataPrivacyRequestCommentSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"rel_request",
+			"comment",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+			"created_by",
+			"updated_by",
+			"deleted_by",
+		).From(dataPrivacyRequestCommentTable)
+	}
+
+	// dataPrivacyRequestCommentInsertQuery assembles query inserting dataPrivacyRequestComments
+	//
+	// This function is auto-generated
+	dataPrivacyRequestCommentInsertQuery = func(d goqu.DialectWrapper, res *systemType.DataPrivacyRequestComment) *goqu.InsertDataset {
+		return d.Insert(dataPrivacyRequestCommentTable).
+			Rows(goqu.Record{
+				"id":          res.ID,
+				"rel_request": res.RequestID,
+				"comment":     res.Comment,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
+				"created_by":  res.CreatedBy,
+				"updated_by":  res.UpdatedBy,
+				"deleted_by":  res.DeletedBy,
+			})
+	}
+
+	// dataPrivacyRequestCommentUpsertQuery assembles (insert+on-conflict) query for replacing dataPrivacyRequestComments
+	//
+	// This function is auto-generated
+	dataPrivacyRequestCommentUpsertQuery = func(d goqu.DialectWrapper, res *systemType.DataPrivacyRequestComment) *goqu.InsertDataset {
+		var target = `,id`
+
+		return dataPrivacyRequestCommentInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"rel_request": res.RequestID,
+						"comment":     res.Comment,
+						"created_at":  res.CreatedAt,
+						"updated_at":  res.UpdatedAt,
+						"deleted_at":  res.DeletedAt,
+						"created_by":  res.CreatedBy,
+						"updated_by":  res.UpdatedBy,
+						"deleted_by":  res.DeletedBy,
+					},
+				),
+			)
+	}
+
+	// dataPrivacyRequestCommentUpdateQuery assembles query for updating dataPrivacyRequestComments
+	//
+	// This function is auto-generated
+	dataPrivacyRequestCommentUpdateQuery = func(d goqu.DialectWrapper, res *systemType.DataPrivacyRequestComment) *goqu.UpdateDataset {
+		return d.Update(dataPrivacyRequestCommentTable).
+			Set(goqu.Record{
+				"rel_request": res.RequestID,
+				"comment":     res.Comment,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
+				"created_by":  res.CreatedBy,
+				"updated_by":  res.UpdatedBy,
+				"deleted_by":  res.DeletedBy,
+			}).
+			Where(dataPrivacyRequestCommentPrimaryKeys(res))
+	}
+
+	// dataPrivacyRequestCommentDeleteQuery assembles delete query for removing dataPrivacyRequestComments
+	//
+	// This function is auto-generated
+	dataPrivacyRequestCommentDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(dataPrivacyRequestCommentTable).Where(ee...)
+	}
+
+	// dataPrivacyRequestCommentDeleteQuery assembles delete query for removing dataPrivacyRequestComments
+	//
+	// This function is auto-generated
+	dataPrivacyRequestCommentTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(dataPrivacyRequestCommentTable)
+	}
+
+	// dataPrivacyRequestCommentPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	dataPrivacyRequestCommentPrimaryKeys = func(res *systemType.DataPrivacyRequestComment) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
 	// federationExposedModuleTable represents federationExposedModules store table
 	//
 	// This value is auto-generated

@@ -101,6 +101,9 @@ type (
 		// optional dataPrivacyRequest filter function called after the generated function
 		DataPrivacyRequest func(*Store, systemType.DataPrivacyRequestFilter) ([]goqu.Expression, systemType.DataPrivacyRequestFilter, error)
 
+		// optional dataPrivacyRequestComment filter function called after the generated function
+		DataPrivacyRequestComment func(*Store, systemType.DataPrivacyRequestCommentFilter) ([]goqu.Expression, systemType.DataPrivacyRequestCommentFilter, error)
+
 		// optional federationExposedModule filter function called after the generated function
 		FederationExposedModule func(*Store, federationType.ExposedModuleFilter) ([]goqu.Expression, federationType.ExposedModuleFilter, error)
 
@@ -794,6 +797,22 @@ func DataPrivacyRequestFilter(f systemType.DataPrivacyRequestFilter) (ee []goqu.
 			goqu.C("kind").ILike("%"+f.Query+"%"),
 			goqu.C("status").ILike("%"+f.Query+"%"),
 		))
+	}
+
+	return ee, f, err
+}
+
+// DataPrivacyRequestCommentFilter returns logical expressions
+//
+// This function is called from Store.QueryDataPrivacyRequestComments() and can be extended
+// by setting Store.Filters.DataPrivacyRequestComment. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func DataPrivacyRequestCommentFilter(f systemType.DataPrivacyRequestCommentFilter) (ee []goqu.Expression, _ systemType.DataPrivacyRequestCommentFilter, err error) {
+
+	if len(f.RequestID) > 0 {
+		ee = append(ee, goqu.C("rel_request").In(f.RequestID))
 	}
 
 	return ee, f, err

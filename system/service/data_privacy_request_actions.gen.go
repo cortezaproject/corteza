@@ -530,7 +530,7 @@ func DataPrivacyErrNotAllowedToRead(mm ...*dataPrivacyActionProps) *errors.Error
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("not allowed to read this role", nil),
+		p.Format("not allowed to read this data privacy request", nil),
 
 		errors.Meta("type", "notAllowedToRead"),
 		errors.Meta("resource", "system:data-privacy-request"),
@@ -566,7 +566,7 @@ func DataPrivacyErrNotAllowedToSearch(mm ...*dataPrivacyActionProps) *errors.Err
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("not allowed to search or list roles", nil),
+		p.Format("not allowed to search or list data privacy request", nil),
 
 		errors.Meta("type", "notAllowedToSearch"),
 		errors.Meta("resource", "system:data-privacy-request"),
@@ -602,7 +602,7 @@ func DataPrivacyErrNotAllowedToCreate(mm ...*dataPrivacyActionProps) *errors.Err
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("not allowed to create roles", nil),
+		p.Format("not allowed to create data privacy request", nil),
 
 		errors.Meta("type", "notAllowedToCreate"),
 		errors.Meta("resource", "system:data-privacy-request"),

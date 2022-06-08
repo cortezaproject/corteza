@@ -1057,6 +1057,8 @@ func rbacResourceValidator(r string, oo ...string) error {
 		return rbacAuthClientResourceValidator(r, oo...)
 	case types.DataPrivacyRequestResourceType:
 		return rbacDataPrivacyRequestResourceValidator(r, oo...)
+	case types.DataPrivacyRequestCommentResourceType:
+		return rbacDataPrivacyRequestCommentResourceValidator(r, oo...)
 	case types.QueueResourceType:
 		return rbacQueueResourceValidator(r, oo...)
 	case types.QueueMessageResourceType:
@@ -1109,6 +1111,8 @@ func rbacResourceOperations(r string) map[string]bool {
 			"read":    true,
 			"approve": true,
 		}
+	case types.DataPrivacyRequestCommentResourceType:
+		return map[string]bool{}
 	case types.QueueResourceType:
 		return map[string]bool{
 			"read":        true,
@@ -1368,6 +1372,50 @@ func rbacDataPrivacyRequestResourceValidator(r string, oo ...string) error {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid path wildcard level (%d) for dataPrivacyRequest resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacDataPrivacyRequestCommentResourceValidator checks validity of RBAC resource and operations
+//
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacDataPrivacyRequestCommentResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.DataPrivacyRequestCommentResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for dataPrivacyRequestComment resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.DataPrivacyRequestCommentResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for dataPrivacyRequestComment resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {

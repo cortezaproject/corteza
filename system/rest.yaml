@@ -2237,3 +2237,28 @@ endpoints:
       parameters:
         path:
           - { name: requestID, type: "uint64",     title: "Request ID", required: true }
+
+- title: Data Privacy Request Comment
+  entrypoint: dataPrivacyRequestComment
+  path: "/data-privacy/requests/{requestID}/comments"
+  parameters:
+    path:
+      - { name: requestID, type: "uint64",     title: "Request ID", required: true }
+  apis:
+    - name: list
+      method: GET
+      title: List data privacy request comments
+      path: "/"
+      parameters:
+        get:
+          - { name: limit,              type: "uint",       title: "Limit" }
+          - { name: pageCursor,         type: "string",     title: "Page cursor" }
+          - { name: sort,               type: "string",     title: "Sort items" }
+    - name: create
+      method: POST
+      title: Create data privacy request comment
+      path: "/"
+      parameters:
+        post:
+          - { name: comment,            type: "string",   title: "Comment description", required: true }
+

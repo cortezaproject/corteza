@@ -63,6 +63,7 @@ type (
 		DalConnections
 		DalSensitivityLevels
 		DataPrivacyRequests
+		DataPrivacyRequestComments
 		FederationExposedModules
 		FederationModuleMappings
 		FederationNodes
@@ -373,6 +374,16 @@ type (
 		DeleteDataPrivacyRequestByID(ctx context.Context, id uint64) error
 		TruncateDataPrivacyRequests(ctx context.Context) error
 		LookupDataPrivacyRequestByID(ctx context.Context, id uint64) (*systemType.DataPrivacyRequest, error)
+	}
+
+	DataPrivacyRequestComments interface {
+		SearchDataPrivacyRequestComments(ctx context.Context, f systemType.DataPrivacyRequestCommentFilter) (systemType.DataPrivacyRequestCommentSet, systemType.DataPrivacyRequestCommentFilter, error)
+		CreateDataPrivacyRequestComment(ctx context.Context, rr ...*systemType.DataPrivacyRequestComment) error
+		UpdateDataPrivacyRequestComment(ctx context.Context, rr ...*systemType.DataPrivacyRequestComment) error
+		UpsertDataPrivacyRequestComment(ctx context.Context, rr ...*systemType.DataPrivacyRequestComment) error
+		DeleteDataPrivacyRequestComment(ctx context.Context, rr ...*systemType.DataPrivacyRequestComment) error
+		DeleteDataPrivacyRequestCommentByID(ctx context.Context, id uint64) error
+		TruncateDataPrivacyRequestComments(ctx context.Context) error
 	}
 
 	FederationExposedModules interface {
@@ -2169,6 +2180,55 @@ func TruncateDataPrivacyRequests(ctx context.Context, s DataPrivacyRequests) err
 // This function is auto-generated
 func LookupDataPrivacyRequestByID(ctx context.Context, s DataPrivacyRequests, id uint64) (*systemType.DataPrivacyRequest, error) {
 	return s.LookupDataPrivacyRequestByID(ctx, id)
+}
+
+// SearchDataPrivacyRequestComments returns all matching DataPrivacyRequestComments from store
+//
+// This function is auto-generated
+func SearchDataPrivacyRequestComments(ctx context.Context, s DataPrivacyRequestComments, f systemType.DataPrivacyRequestCommentFilter) (systemType.DataPrivacyRequestCommentSet, systemType.DataPrivacyRequestCommentFilter, error) {
+	return s.SearchDataPrivacyRequestComments(ctx, f)
+}
+
+// CreateDataPrivacyRequestComment creates one or more DataPrivacyRequestComments in store
+//
+// This function is auto-generated
+func CreateDataPrivacyRequestComment(ctx context.Context, s DataPrivacyRequestComments, rr ...*systemType.DataPrivacyRequestComment) error {
+	return s.CreateDataPrivacyRequestComment(ctx, rr...)
+}
+
+// UpdateDataPrivacyRequestComment updates one or more (existing) DataPrivacyRequestComments in store
+//
+// This function is auto-generated
+func UpdateDataPrivacyRequestComment(ctx context.Context, s DataPrivacyRequestComments, rr ...*systemType.DataPrivacyRequestComment) error {
+	return s.UpdateDataPrivacyRequestComment(ctx, rr...)
+}
+
+// UpsertDataPrivacyRequestComment creates new or updates existing one or more DataPrivacyRequestComments in store
+//
+// This function is auto-generated
+func UpsertDataPrivacyRequestComment(ctx context.Context, s DataPrivacyRequestComments, rr ...*systemType.DataPrivacyRequestComment) error {
+	return s.UpsertDataPrivacyRequestComment(ctx, rr...)
+}
+
+// DeleteDataPrivacyRequestComment deletes one or more DataPrivacyRequestComments from store
+//
+// This function is auto-generated
+func DeleteDataPrivacyRequestComment(ctx context.Context, s DataPrivacyRequestComments, rr ...*systemType.DataPrivacyRequestComment) error {
+	return s.DeleteDataPrivacyRequestComment(ctx, rr...)
+}
+
+// DeleteDataPrivacyRequestCommentByID deletes one or more DataPrivacyRequestComments from store
+//
+// This function is auto-generated
+func DeleteDataPrivacyRequestCommentByID(ctx context.Context, s DataPrivacyRequestComments, id uint64) error {
+	return s.DeleteDataPrivacyRequestCommentByID(ctx, id)
+}
+
+// TruncateDataPrivacyRequestComments Deletes all DataPrivacyRequestComments from store
+//
+// This function is auto-generated
+func TruncateDataPrivacyRequestComments(ctx context.Context, s DataPrivacyRequestComments) error {
+	return s.TruncateDataPrivacyRequestComments(ctx)
 }
 
 // SearchFederationExposedModules returns all matching FederationExposedModules from store

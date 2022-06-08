@@ -36,3 +36,4 @@ types:
   QueueMessage:
     noIdField: true
   DataPrivacyRequest: {}
+  DataPrivacyRequestComment: {}

@@ -22,6 +22,16 @@ type (
 	dataPrivacyAccessController interface {
 		CanGrant(context.Context) bool
 	}
+
+	DataPrivacyRequestComment struct {
+		dataPrivacy service.DataPrivacyService
+		ac          dataPrivacyAccessController
+	}
+
+	dataPrivacyRequestCommentSetPayload struct {
+		Filter types.DataPrivacyRequestCommentFilter `json:"filter"`
+		Set    types.DataPrivacyRequestCommentSet    `json:"set"`
+	}
 )
 
 func (DataPrivacyRequest) New() *DataPrivacyRequest {
@@ -84,4 +94,52 @@ func (ctrl DataPrivacyRequest) UpdateStatus(ctx context.Context, r *request.Data
 
 func (ctrl DataPrivacyRequest) Read(ctx context.Context, r *request.DataPrivacyRequestRead) (interface{}, error) {
 	return ctrl.dataPrivacy.FindRequestByID(ctx, r.RequestID)
+}
+
+func (DataPrivacyRequestComment) New() *DataPrivacyRequestComment {
+	return &DataPrivacyRequestComment{
+		dataPrivacy: service.DefaultDataPrivacy,
+		ac:          service.DefaultAccessControl,
+	}
+}
+
+func (ctrl DataPrivacyRequestComment) List(ctx context.Context, r *request.DataPrivacyRequestCommentList) (interface{}, error) {
+	var (
+		err error
+		f   = types.DataPrivacyRequestCommentFilter{
+			RequestID: []uint64{r.RequestID},
+		}
+	)
+
+	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
+		return nil, err
+	}
+
+	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
+		return nil, err
+	}
+
+	set, f, err := ctrl.dataPrivacy.FindRequestComments(ctx, f)
+	return ctrl.makeFilterPayload(ctx, set, f, err)
+}
+
+func (ctrl DataPrivacyRequestComment) makeFilterPayload(_ context.Context, rr types.DataPrivacyRequestCommentSet, f types.DataPrivacyRequestCommentFilter, err error) (*dataPrivacyRequestCommentSetPayload, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	if len(rr) == 0 {
+		rr = make([]*types.DataPrivacyRequestComment, 0)
+	}
+
+	return &dataPrivacyRequestCommentSetPayload{Filter: f, Set: rr}, nil
+}
+
+func (ctrl DataPrivacyRequestComment) Create(ctx context.Context, r *request.DataPrivacyRequestCommentCreate) (interface{}, error) {
+	req := &types.DataPrivacyRequestComment{
+		RequestID: r.RequestID,
+		Comment:   r.Comment,
+	}
+
+	return ctrl.dataPrivacy.CreateRequestComment(ctx, req)
 }

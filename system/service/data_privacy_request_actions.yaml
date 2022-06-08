@@ -63,15 +63,15 @@ errors:
     severity: warning
 
   - error: notAllowedToRead
-    message: "not allowed to read this role"
+    message: "not allowed to read this data privacy request"
     log: "failed to read data privacy request; insufficient permissions"
 
   - error: notAllowedToSearch
-    message: "not allowed to search or list roles"
+    message: "not allowed to search or list data privacy request"
     log: "failed to search or list data privacy requests; insufficient permissions"
 
   - error: notAllowedToCreate
-    message: "not allowed to create roles"
+    message: "not allowed to create data privacy request"
     log: "failed to create data privacy request; insufficient permissions"
 
   - error: notAllowedToApprove

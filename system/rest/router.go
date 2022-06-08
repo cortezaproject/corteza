@@ -48,6 +48,7 @@ func MountRoutes() func(r chi.Router) {
 			handlers.NewApigwFilter(ApigwFilter{}.New()).MountRoutes(r)
 			handlers.NewApigwProfiler(ApigwProfiler{}.New()).MountRoutes(r)
 			handlers.NewDataPrivacyRequest(DataPrivacyRequest{}.New()).MountRoutes(r)
+			handlers.NewDataPrivacyRequestComment(DataPrivacyRequestComment{}.New()).MountRoutes(r)
 		})
 	}
 }

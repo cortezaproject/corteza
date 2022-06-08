@@ -86,6 +86,9 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	t.Run("dataPrivacyRequest", func(t *testing.T) {
 		testDataPrivacyRequests(t, s)
 	})
+	t.Run("dataPrivacyRequestComment", func(t *testing.T) {
+		testDataPrivacyRequestComments(t, s)
+	})
 	t.Run("federationExposedModule", func(t *testing.T) {
 		testFederationExposedModules(t, s)
 	})

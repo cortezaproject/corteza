@@ -62,6 +62,19 @@ func SystemDataPrivacyRequestRbacReferences(dataPrivacyRequest string) (res *Ref
 	return
 }
 
+// SystemDataPrivacyRequestCommentRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemDataPrivacyRequestCommentRbacReferences(dataPrivacyRequestComment string) (res *Ref, pp []*Ref, err error) {
+	if dataPrivacyRequestComment != "*" {
+		res = &Ref{ResourceType: types.DataPrivacyRequestCommentResourceType, Identifiers: MakeIdentifiers(dataPrivacyRequestComment)}
+	}
+
+	return
+}
+
 // SystemQueueRbacReferences generates RBAC references
 //
 // Resources with "envoy: false" are skipped

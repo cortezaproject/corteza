@@ -44,6 +44,33 @@ type (
 		filter.Paging
 	}
 
+	DataPrivacyRequestComment struct {
+		ID        uint64 `json:"commentID,string"`
+		RequestID uint64 `json:"requestID,string"`
+		Comment   string `json:"comment"`
+
+		CreatedAt time.Time  `json:"createdAt,omitempty"`
+		CreatedBy uint64     `json:"createdBy,string" `
+		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+		UpdatedBy uint64     `json:"updatedBy,string,omitempty"`
+		DeletedAt *time.Time `json:"deletedAt,omitempty"`
+		DeletedBy uint64     `json:"deletedBy,string,omitempty"`
+	}
+
+	DataPrivacyRequestCommentFilter struct {
+		RequestID []uint64 `json:"requestID"`
+
+		// Check fn is called by store backend for each resource found function can
+		// modify the resource and return false if store should not return it
+		//
+		// Store then loads additional resources to satisfy the paging parameters
+		Check func(request *DataPrivacyRequestComment) (bool, error) `json:"-"`
+
+		// Standard helpers for paging and sorting
+		filter.Sorting
+		filter.Paging
+	}
+
 	RequestStatus string
 	RequestKind   string
 )

@@ -75,6 +75,7 @@ func Tables() []*Table {
 		tableApigwFilter(),
 		tableResourceActivityLog(),
 		tableDataPrivacyRequests(),
+		tableDataPrivacyRequestComments(),
 	}
 }
 
@@ -758,5 +759,15 @@ func tableDataPrivacyRequests() *Table {
 		CUDUsers,
 
 		AddIndex("status", IColumn("status")),
+	)
+}
+
+func tableDataPrivacyRequestComments() *Table {
+	return TableDef("data_privacy_request_comments",
+		ID,
+		ColumnDef("rel_request", ColumnTypeIdentifier),
+		ColumnDef("comment", ColumnTypeText),
+		CUDTimestamps,
+		CUDUsers,
 	)
 }

@@ -29,49 +29,50 @@ import (
 )
 
 var (
-	_ store.Actionlogs               = &Store{}
-	_ store.ApigwFilters             = &Store{}
-	_ store.ApigwRoutes              = &Store{}
-	_ store.Applications             = &Store{}
-	_ store.Attachments              = &Store{}
-	_ store.AuthClients              = &Store{}
-	_ store.AuthConfirmedClients     = &Store{}
-	_ store.AuthOa2tokens            = &Store{}
-	_ store.AuthSessions             = &Store{}
-	_ store.AutomationSessions       = &Store{}
-	_ store.AutomationTriggers       = &Store{}
-	_ store.AutomationWorkflows      = &Store{}
-	_ store.ComposeAttachments       = &Store{}
-	_ store.ComposeCharts            = &Store{}
-	_ store.ComposeModules           = &Store{}
-	_ store.ComposeModuleFields      = &Store{}
-	_ store.ComposeNamespaces        = &Store{}
-	_ store.ComposePages             = &Store{}
-	_ store.ComposeRecords           = &Store{}
-	_ store.ComposeRecordValues      = &Store{}
-	_ store.Credentials              = &Store{}
-	_ store.DalConnections           = &Store{}
-	_ store.DalSensitivityLevels     = &Store{}
-	_ store.DataPrivacyRequests      = &Store{}
-	_ store.FederationExposedModules = &Store{}
-	_ store.FederationModuleMappings = &Store{}
-	_ store.FederationNodes          = &Store{}
-	_ store.FederationNodeSyncs      = &Store{}
-	_ store.FederationSharedModules  = &Store{}
-	_ store.Flags                    = &Store{}
-	_ store.Labels                   = &Store{}
-	_ store.Queues                   = &Store{}
-	_ store.QueueMessages            = &Store{}
-	_ store.RbacRules                = &Store{}
-	_ store.Reminders                = &Store{}
-	_ store.Reports                  = &Store{}
-	_ store.ResourceActivitys        = &Store{}
-	_ store.ResourceTranslations     = &Store{}
-	_ store.Roles                    = &Store{}
-	_ store.RoleMembers              = &Store{}
-	_ store.SettingValues            = &Store{}
-	_ store.Templates                = &Store{}
-	_ store.Users                    = &Store{}
+	_ store.Actionlogs                 = &Store{}
+	_ store.ApigwFilters               = &Store{}
+	_ store.ApigwRoutes                = &Store{}
+	_ store.Applications               = &Store{}
+	_ store.Attachments                = &Store{}
+	_ store.AuthClients                = &Store{}
+	_ store.AuthConfirmedClients       = &Store{}
+	_ store.AuthOa2tokens              = &Store{}
+	_ store.AuthSessions               = &Store{}
+	_ store.AutomationSessions         = &Store{}
+	_ store.AutomationTriggers         = &Store{}
+	_ store.AutomationWorkflows        = &Store{}
+	_ store.ComposeAttachments         = &Store{}
+	_ store.ComposeCharts              = &Store{}
+	_ store.ComposeModules             = &Store{}
+	_ store.ComposeModuleFields        = &Store{}
+	_ store.ComposeNamespaces          = &Store{}
+	_ store.ComposePages               = &Store{}
+	_ store.ComposeRecords             = &Store{}
+	_ store.ComposeRecordValues        = &Store{}
+	_ store.Credentials                = &Store{}
+	_ store.DalConnections             = &Store{}
+	_ store.DalSensitivityLevels       = &Store{}
+	_ store.DataPrivacyRequests        = &Store{}
+	_ store.DataPrivacyRequestComments = &Store{}
+	_ store.FederationExposedModules   = &Store{}
+	_ store.FederationModuleMappings   = &Store{}
+	_ store.FederationNodes            = &Store{}
+	_ store.FederationNodeSyncs        = &Store{}
+	_ store.FederationSharedModules    = &Store{}
+	_ store.Flags                      = &Store{}
+	_ store.Labels                     = &Store{}
+	_ store.Queues                     = &Store{}
+	_ store.QueueMessages              = &Store{}
+	_ store.RbacRules                  = &Store{}
+	_ store.Reminders                  = &Store{}
+	_ store.Reports                    = &Store{}
+	_ store.ResourceActivitys          = &Store{}
+	_ store.ResourceTranslations       = &Store{}
+	_ store.Roles                      = &Store{}
+	_ store.RoleMembers                = &Store{}
+	_ store.SettingValues              = &Store{}
+	_ store.Templates                  = &Store{}
+	_ store.Users                      = &Store{}
 )
 
 // CreateActionlog creates one or more rows in actionlog collection
@@ -8811,7 +8812,7 @@ func (s *Store) QueryComposeRecords(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursor(f.PageCursor); err != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableComposeRecordFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -10737,6 +10738,448 @@ func (s *Store) collectDataPrivacyRequestCursorValues(res *systemType.DataPrivac
 //
 // This function is auto-generated
 func (s *Store) checkDataPrivacyRequestConstraints(ctx context.Context, res *systemType.DataPrivacyRequest) (err error) {
+	return nil
+}
+
+// CreateDataPrivacyRequestComment creates one or more rows in dataPrivacyRequestComment collection
+//
+// This function is auto-generated
+func (s *Store) CreateDataPrivacyRequestComment(ctx context.Context, rr ...*systemType.DataPrivacyRequestComment) (err error) {
+	for i := range rr {
+		if err = s.checkDataPrivacyRequestCommentConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, dataPrivacyRequestCommentInsertQuery(s.Dialect, rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpdateDataPrivacyRequestComment updates one or more existing entries in dataPrivacyRequestComment collection
+//
+// This function is auto-generated
+func (s *Store) UpdateDataPrivacyRequestComment(ctx context.Context, rr ...*systemType.DataPrivacyRequestComment) (err error) {
+	for i := range rr {
+		if err = s.checkDataPrivacyRequestCommentConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, dataPrivacyRequestCommentUpdateQuery(s.Dialect, rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpsertDataPrivacyRequestComment updates one or more existing entries in dataPrivacyRequestComment collection
+//
+// This function is auto-generated
+func (s *Store) UpsertDataPrivacyRequestComment(ctx context.Context, rr ...*systemType.DataPrivacyRequestComment) (err error) {
+	for i := range rr {
+		if err = s.checkDataPrivacyRequestCommentConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, dataPrivacyRequestCommentUpsertQuery(s.Dialect, rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// DeleteDataPrivacyRequestComment Deletes one or more entries from dataPrivacyRequestComment collection
+//
+// This function is auto-generated
+func (s *Store) DeleteDataPrivacyRequestComment(ctx context.Context, rr ...*systemType.DataPrivacyRequestComment) (err error) {
+	for i := range rr {
+		if err = s.Exec(ctx, dataPrivacyRequestCommentDeleteQuery(s.Dialect, dataPrivacyRequestCommentPrimaryKeys(rr[i]))); err != nil {
+			return
+		}
+	}
+
+	return nil
+}
+
+// DeleteDataPrivacyRequestCommentByID deletes single entry from dataPrivacyRequestComment collection
+//
+// This function is auto-generated
+func (s *Store) DeleteDataPrivacyRequestCommentByID(ctx context.Context, id uint64) error {
+	return s.Exec(ctx, dataPrivacyRequestCommentDeleteQuery(s.Dialect, goqu.Ex{
+		"id": id,
+	}))
+}
+
+// TruncateDataPrivacyRequestComments Deletes all rows from the dataPrivacyRequestComment collection
+func (s Store) TruncateDataPrivacyRequestComments(ctx context.Context) error {
+	return s.Exec(ctx, dataPrivacyRequestCommentTruncateQuery(s.Dialect))
+}
+
+// SearchDataPrivacyRequestComments returns (filtered) set of DataPrivacyRequestComments
+//
+// This function is auto-generated
+func (s *Store) SearchDataPrivacyRequestComments(ctx context.Context, f systemType.DataPrivacyRequestCommentFilter) (set systemType.DataPrivacyRequestCommentSet, _ systemType.DataPrivacyRequestCommentFilter, err error) {
+
+	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
+	f.PrevPage, f.NextPage = nil, nil
+
+	if f.PageCursor != nil {
+		// Page cursor exists; we need to validate it against used sort
+		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
+		// from the cursor.
+		// This (extracted sorting info) is then returned as part of response
+		if f.Sort, err = f.PageCursor.Sort(f.Sort); err != nil {
+			return
+		}
+	}
+
+	// Make sure results are always sorted at least by primary keys
+	if f.Sort.Get("id") == nil {
+		f.Sort = append(f.Sort, &filter.SortExpr{
+			Column:     "id",
+			Descending: f.Sort.LastDescending(),
+		})
+	}
+
+	// Cloned sorting instructions for the actual sorting
+	// Original are passed to the etchFullPageOfDataPrivacyRequestComments fn used for cursor creation;
+	// direction information it MUST keep the initial
+	sort := f.Sort.Clone()
+
+	// When cursor for a previous page is used it's marked as reversed
+	// This tells us to flip the descending flag on all used sort keys
+	if f.PageCursor != nil && f.PageCursor.ROrder {
+		sort.Reverse()
+	}
+
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfDataPrivacyRequestComments(ctx, f, sort)
+
+	f.PageCursor = nil
+	if err != nil {
+		return nil, f, err
+	}
+
+	return set, f, nil
+}
+
+// fetchFullPageOfDataPrivacyRequestComments collects all requested results.
+//
+// Function applies:
+//  - cursor conditions (where ...)
+//  - limit
+//
+// Main responsibility of this function is to perform additional sequential queries in case when not enough results
+// are collected due to failed check on a specific row (by check fn).
+//
+// Function then moves cursor to the last item fetched
+//
+// This function is auto-generated
+func (s *Store) fetchFullPageOfDataPrivacyRequestComments(
+	ctx context.Context,
+	filter systemType.DataPrivacyRequestCommentFilter,
+	sort filter.SortExprSet,
+) (set []*systemType.DataPrivacyRequestComment, prev, next *filter.PagingCursor, err error) {
+	var (
+		aux []*systemType.DataPrivacyRequestComment
+
+		// When cursor for a previous page is used it's marked as reversed
+		// This tells us to flip the descending flag on all used sort keys
+		reversedOrder = filter.PageCursor != nil && filter.PageCursor.ROrder
+
+		// Copy no. of required items to limit
+		// Limit will change when doing subsequent queries to fill
+		// the set with all required items
+		limit = filter.Limit
+
+		reqItems = filter.Limit
+
+		// cursor to prev. page is only calculated when cursor is used
+		hasPrev = filter.PageCursor != nil
+
+		// next cursor is calculated when there are more pages to come
+		hasNext bool
+
+		tryFilter systemType.DataPrivacyRequestCommentFilter
+	)
+
+	set = make([]*systemType.DataPrivacyRequestComment, 0, DefaultSliceCapacity)
+
+	for try := 0; try < MaxRefetches; try++ {
+		// Copy filter & apply custom sorting that might be affected by cursor
+		tryFilter = filter
+		tryFilter.Sort = sort
+
+		if limit > 0 {
+			// fetching + 1 to peak ahead if there are more items
+			// we can fetch (next-page cursor)
+			tryFilter.Limit = limit + 1
+		}
+
+		if aux, hasNext, err = s.QueryDataPrivacyRequestComments(ctx, tryFilter); err != nil {
+			return nil, nil, nil, err
+		}
+
+		if len(aux) == 0 {
+			// nothing fetched
+			break
+		}
+
+		// append fetched items
+		set = append(set, aux...)
+
+		if reqItems == 0 || !hasNext {
+			// no max requested items specified, break out
+			break
+		}
+
+		collected := uint(len(set))
+
+		if reqItems > collected {
+			// not enough items fetched, try again with adjusted limit
+			limit = reqItems - collected
+
+			if limit < MinEnsureFetchLimit {
+				// In case limit is set very low and we've missed records in the first fetch,
+				// make sure next fetch limit is a bit higher
+				limit = MinEnsureFetchLimit
+			}
+
+			// Update cursor so that it points to the last item fetched
+			tryFilter.PageCursor = s.collectDataPrivacyRequestCommentCursorValues(set[collected-1], filter.Sort...)
+
+			// Copy reverse flag from sorting
+			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
+			continue
+		}
+
+		if reqItems < collected {
+			set = set[:reqItems]
+		}
+
+		break
+	}
+
+	collected := len(set)
+
+	if collected == 0 {
+		return nil, nil, nil, nil
+	}
+
+	if reversedOrder {
+		// Fetched set needs to be reversed because we've forced a descending order to get the previous page
+		for i, j := 0, collected-1; i < j; i, j = i+1, j-1 {
+			set[i], set[j] = set[j], set[i]
+		}
+
+		// when in reverse-order rules on what cursor to return change
+		hasPrev, hasNext = hasNext, hasPrev
+	}
+
+	if hasPrev {
+		prev = s.collectDataPrivacyRequestCommentCursorValues(set[0], filter.Sort...)
+		prev.ROrder = true
+		prev.LThen = !filter.Sort.Reversed()
+	}
+
+	if hasNext {
+		next = s.collectDataPrivacyRequestCommentCursorValues(set[collected-1], filter.Sort...)
+		next.LThen = filter.Sort.Reversed()
+	}
+
+	return set, prev, next, nil
+}
+
+// QueryDataPrivacyRequestComments queries the database, converts and checks each row and returns collected set
+//
+// With generics, we can remove this per-resource-generated function
+// and replace it with a single utility fetcher
+//
+// This function is auto-generated
+func (s *Store) QueryDataPrivacyRequestComments(
+	ctx context.Context,
+	f systemType.DataPrivacyRequestCommentFilter,
+) (_ []*systemType.DataPrivacyRequestComment, more bool, err error) {
+	var (
+		ok bool
+
+		set         = make([]*systemType.DataPrivacyRequestComment, 0, DefaultSliceCapacity)
+		res         *systemType.DataPrivacyRequestComment
+		aux         *auxDataPrivacyRequestComment
+		rows        *sql.Rows
+		count       uint
+		expr, tExpr []goqu.Expression
+
+		sortExpr []exp.OrderedExpression
+	)
+
+	if s.Filters.DataPrivacyRequestComment != nil {
+		// extended filter set
+		tExpr, f, err = s.Filters.DataPrivacyRequestComment(s, f)
+	} else {
+		// using generated filter
+		tExpr, f, err = DataPrivacyRequestCommentFilter(f)
+	}
+
+	if err != nil {
+		err = fmt.Errorf("could generate filter expression for DataPrivacyRequestComment: %w", err)
+		return
+	}
+
+	expr = append(expr, tExpr...)
+
+	// paging feature is enabled
+	if f.PageCursor != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableDataPrivacyRequestCommentFields()); err != nil {
+			return
+		} else {
+			expr = append(expr, tExpr...)
+		}
+	}
+
+	query := dataPrivacyRequestCommentSelectQuery(s.Dialect).Where(expr...)
+
+	// sorting feature is enabled
+	if sortExpr, err = order(f.Sort, s.sortableDataPrivacyRequestCommentFields()); err != nil {
+		err = fmt.Errorf("could generate order expression for DataPrivacyRequestComment: %w", err)
+		return
+	}
+
+	if len(sortExpr) > 0 {
+		query = query.Order(sortExpr...)
+	}
+
+	if f.Limit > 0 {
+		query = query.Limit(f.Limit)
+	}
+
+	rows, err = s.Query(ctx, query)
+	if err != nil {
+		err = fmt.Errorf("could not query DataPrivacyRequestComment: %w", err)
+		return
+	}
+
+	if err = rows.Err(); err != nil {
+		err = fmt.Errorf("could not query DataPrivacyRequestComment: %w", err)
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	for rows.Next() {
+		if err = rows.Err(); err != nil {
+			err = fmt.Errorf("could not query DataPrivacyRequestComment: %w", err)
+			return
+		}
+
+		aux = new(auxDataPrivacyRequestComment)
+		if err = aux.scan(rows); err != nil {
+			err = fmt.Errorf("could not scan rows for DataPrivacyRequestComment: %w", err)
+			return
+		}
+
+		count++
+		if res, err = aux.decode(); err != nil {
+			err = fmt.Errorf("could not decode DataPrivacyRequestComment: %w", err)
+			return
+		}
+
+		// check fn set, call it and see if it passed the test
+		// if not, skip the item
+		if f.Check != nil {
+			if ok, err = f.Check(res); err != nil {
+				return
+			} else if !ok {
+				continue
+			}
+		}
+
+		set = append(set, res)
+	}
+
+	return set, f.Limit > 0 && count >= f.Limit, err
+
+}
+
+// sortableDataPrivacyRequestCommentFields returns all <no value> columns flagged as sortable
+//
+// With optional string arg, all columns are returned aliased
+//
+// This function is auto-generated
+func (Store) sortableDataPrivacyRequestCommentFields() map[string]string {
+	return map[string]string{
+		"created_at": "created_at",
+		"createdat":  "created_at",
+		"deleted_at": "deleted_at",
+		"deletedat":  "deleted_at",
+		"id":         "id",
+		"updated_at": "updated_at",
+		"updatedat":  "updated_at",
+	}
+}
+
+// collectDataPrivacyRequestCommentCursorValues collects values from the given resource that and sets them to the cursor
+// to be used for pagination
+//
+// Values that are collected must come from sortable, unique or primary columns/fields
+// At least one of the collected columns must be flagged as unique, otherwise fn appends primary keys at the end
+//
+// Known issue:
+//   when collecting cursor values for query that sorts by unique column with partial index (ie: unique handle on
+//   undeleted items)
+//
+// This function is auto-generated
+func (s *Store) collectDataPrivacyRequestCommentCursorValues(res *systemType.DataPrivacyRequestComment, cc ...*filter.SortExpr) *filter.PagingCursor {
+	var (
+		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
+
+		hasUnique bool
+
+		pkID bool
+
+		collect = func(cc ...*filter.SortExpr) {
+			for _, c := range cc {
+				switch c.Column {
+				case "id":
+					cur.Set(c.Column, res.ID, c.Descending)
+					pkID = true
+				case "createdAt":
+					cur.Set(c.Column, res.CreatedAt, c.Descending)
+				case "updatedAt":
+					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+				case "deletedAt":
+					cur.Set(c.Column, res.DeletedAt, c.Descending)
+				}
+			}
+		}
+	)
+
+	collect(cc...)
+	if !hasUnique || !pkID {
+		collect(&filter.SortExpr{Column: "id", Descending: false})
+	}
+
+	return cur
+
+}
+
+// checkDataPrivacyRequestCommentConstraints performs lookups (on valid) resource to check if any of the values on unique fields
+// already exists in the store
+//
+// Using built-in constraint checking would be more performant, but unfortunately we cannot rely
+// on the full support (MySQL does not support conditional indexes)
+//
+// This function is auto-generated
+func (s *Store) checkDataPrivacyRequestCommentConstraints(ctx context.Context, res *systemType.DataPrivacyRequestComment) (err error) {
 	return nil
 }
 

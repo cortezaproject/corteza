@@ -32,6 +32,9 @@ type (
 		FindRequests(context.Context, types.DataPrivacyRequestFilter) (types.DataPrivacyRequestSet, types.DataPrivacyRequestFilter, error)
 		CreateRequest(ctx context.Context, request *types.DataPrivacyRequest) (*types.DataPrivacyRequest, error)
 		UpdateRequestStatus(ctx context.Context, request *types.DataPrivacyRequest) (*types.DataPrivacyRequest, error)
+
+		FindRequestComments(ctx context.Context, filter types.DataPrivacyRequestCommentFilter) (rr types.DataPrivacyRequestCommentSet, f types.DataPrivacyRequestCommentFilter, err error)
+		CreateRequestComment(ctx context.Context, new *types.DataPrivacyRequestComment) (r *types.DataPrivacyRequestComment, err error)
 	}
 )
 
@@ -199,4 +202,40 @@ func (svc dataPrivacy) UpdateRequestStatus(ctx context.Context, upd *types.DataP
 	}()
 
 	return r, svc.recordAction(ctx, raProps, DataPrivacyActionApprove, err)
+}
+
+func (svc dataPrivacy) FindRequestComments(ctx context.Context, filter types.DataPrivacyRequestCommentFilter) (rr types.DataPrivacyRequestCommentSet, f types.DataPrivacyRequestCommentFilter, err error) {
+	err = func() error {
+		if rr, f, err = store.SearchDataPrivacyRequestComments(ctx, svc.store, filter); err != nil {
+			return err
+		}
+
+		return nil
+	}()
+
+	return rr, f, err
+}
+
+func (svc dataPrivacy) CreateRequestComment(ctx context.Context, new *types.DataPrivacyRequestComment) (r *types.DataPrivacyRequestComment, err error) {
+	err = func() (err error) {
+
+		_, err = svc.FindRequestByID(ctx, new.RequestID)
+		if err != nil {
+			return
+		}
+
+		new.ID = nextID()
+		new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
+		new.CreatedAt = *now()
+
+		if err = store.CreateDataPrivacyRequestComment(ctx, svc.store, new); err != nil {
+			return
+		}
+
+		r = new
+
+		return
+	}()
+
+	return r, err
 }
