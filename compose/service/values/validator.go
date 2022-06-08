@@ -3,12 +3,14 @@ package values
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"math/big"
 	"net/mail"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
@@ -29,6 +31,7 @@ type (
 
 	localeService interface {
 		T(ctx context.Context, ns, key string, rr ...string) string
+		TResource(ctx context.Context, ns, key string, rr ...string) string
 	}
 
 	validator struct {
@@ -215,7 +218,7 @@ fields:
 		}
 
 		if len(f.Expressions.Validators) > 0 {
-			for _, cv := range f.Expressions.Validators {
+			for i, cv := range f.Expressions.Validators {
 				eval, err := valParser.NewEvaluable(cv.Test)
 				if err != nil {
 					out.Push(makeInternalErr(f, err))
@@ -234,9 +237,23 @@ fields:
 				}
 
 				if invalid {
+					message := cv.Error
+
+					// In case tests mit this for easier testing; falling back to whatever
+					// the field validator has stored.
+					if vldtr.localeSvc != nil {
+						validatorID := locale.ContentID(cv.ValidatorID, i)
+						rpl := strings.NewReplacer(
+							"{{validatorID}}", strconv.FormatUint(validatorID, 10),
+						)
+
+						k := rpl.Replace(types.LocaleKeyModuleFieldExpressionValidatorValidatorIDError.Path)
+						message = vldtr.localeSvc.TResource(ctx, f.ResourceTranslation(), k)
+					}
+
 					out.Push(types.RecordValueError{
 						Kind:    "error",
-						Message: cv.Error,
+						Message: message,
 						Meta:    map[string]interface{}{"field": f.Name}},
 					)
 
