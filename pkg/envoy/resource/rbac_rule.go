@@ -2,6 +2,7 @@ package resource
 
 import (
 	"fmt"
+	"strings"
 
 	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
@@ -60,6 +61,25 @@ func NewRbacRule(res *rbac.Rule, refRole, refRes *Ref, refResource string, refPa
 	}
 
 	return r
+}
+
+func (r *RbacRule) IndexPath() (out [][]string) {
+	parts := strings.Split(r.RefResource, "/")
+
+	// Must start with res. type
+	out = append(out, []string{parts[0]})
+
+	// path
+	for _, p := range r.RefPath {
+		out = append(out, p.Identifiers)
+	}
+
+	// optional resource
+	if r.RefRes != nil {
+		out = append(out, r.RefRes.Identifiers)
+	}
+
+	return
 }
 
 func (r *RbacRule) Resource() interface{} {

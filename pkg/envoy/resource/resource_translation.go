@@ -2,6 +2,7 @@ package resource
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/system/types"
 	"golang.org/x/text/language"
@@ -48,6 +49,30 @@ func NewResourceTranslation(res types.ResourceTranslationSet, refResource string
 	}
 
 	return r
+}
+
+func (r *ResourceTranslation) IndexPath() (out [][]string) {
+	if len(r.Res) == 0 {
+		return
+	}
+
+	res := r.Res[0].Resource
+	parts := strings.Split(res, "/")
+
+	// Must start with res. type
+	out = append(out, []string{parts[0]})
+
+	// path
+	for _, p := range r.RefPath {
+		out = append(out, p.Identifiers)
+	}
+
+	// optional resource
+	if r.RefRes != nil {
+		out = append(out, r.RefRes.Identifiers)
+	}
+
+	return
 }
 
 func (r *ResourceTranslation) Resource() interface{} {

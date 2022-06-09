@@ -8,6 +8,8 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	automationTypes "github.com/cortezaproject/corteza-server/automation/types"
@@ -399,13 +401,13 @@ func (ctrl Namespace) gatherResources(ctx context.Context, namespaceID uint64) (
 	}
 
 	// RBAC
-	auxRBAC, err := ctrl.exportRBAC(ctx, roleIndex, resources)
+	auxRBAC, err := ctrl.exportRBAC(ctx, namespaceID, roleIndex, resources)
 	if err != nil {
 		return
 	}
 
 	// Translations
-	auxResTrans, err := ctrl.exportResourceTranslations(ctx, resources)
+	auxResTrans, err := ctrl.exportResourceTranslations(ctx, namespaceID, resources)
 	if err != nil {
 		return
 	}
@@ -470,11 +472,17 @@ func (ctrl Namespace) exportCompose(ctx context.Context, namespaceID uint64) (re
 	return
 }
 
-func (ctrl Namespace) exportRBAC(ctx context.Context, roleIndex map[uint64]*systemTypes.Role, base resource.InterfaceSet) (resources resource.InterfaceSet, err error) {
+func (ctrl Namespace) exportRBAC(ctx context.Context, namespaceID uint64, roleIndex map[uint64]*systemTypes.Role, base resource.InterfaceSet) (resources resource.InterfaceSet, err error) {
 	// Prepare RBAC Rules
 	rawRules := rbac.Global().Rules()
 	rules := make([]*resource.RbacRule, 0, len(rawRules))
 	for _, rule := range rawRules {
+		rule = rule.Clone()
+		// Filter out things we 100% don't want in here
+		if !strings.Contains(rule.Resource, strconv.FormatUint(namespaceID, 10)) {
+			continue
+		}
+
 		_, ref, pp, err := resource.ParseRule(rule.Resource)
 		if err != nil {
 			return nil, err
@@ -501,7 +509,7 @@ func (ctrl Namespace) exportRBAC(ctx context.Context, roleIndex map[uint64]*syst
 	return
 }
 
-func (ctrl Namespace) exportResourceTranslations(ctx context.Context, base resource.InterfaceSet) (resources resource.InterfaceSet, err error) {
+func (ctrl Namespace) exportResourceTranslations(ctx context.Context, namespaceID uint64, base resource.InterfaceSet) (resources resource.InterfaceSet, err error) {
 	var (
 		lsvc         = locale.Global()
 		tags         = lsvc.Tags()
@@ -518,8 +526,17 @@ func (ctrl Namespace) exportResourceTranslations(ctx context.Context, base resou
 
 		for transRes, keyTrans := range resKeyTrans {
 			rawTranslations := make(locale.ResourceTranslationSet, 0, len(resKeyTrans))
-			for _, trans := range keyTrans {
-				rawTranslations = append(rawTranslations, trans)
+			for _, _trans := range keyTrans {
+				trans := *_trans
+				// Filter out things we 100% don't want in here
+				if !strings.Contains(trans.Resource, strconv.FormatUint(namespaceID, 10)) {
+					continue
+				}
+				rawTranslations = append(rawTranslations, &trans)
+			}
+
+			if len(rawTranslations) == 0 {
+				continue
 			}
 
 			_, ref, pp, err := resource.ParseResourceTranslation(transRes)

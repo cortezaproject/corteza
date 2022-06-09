@@ -1,7 +1,10 @@
 package envoy
 
 import (
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	resutil "github.com/cortezaproject/corteza-server/pkg/resource"
 )
 
 // NormalizeResourceTranslations takes the provided resource.ResourceTranslation
@@ -72,26 +75,32 @@ func appendRefSet(a resource.RefSet, b *resource.Ref) resource.RefSet {
 
 // FilterRequiredResourceTranslations returns only resource translations relevant for the given resources
 func FilterRequiredResourceTranslations(request resource.InterfaceSet, translations []*resource.ResourceTranslation) (out []*resource.ResourceTranslation) {
-	out = make([]*resource.ResourceTranslation, 0, 100)
+	out = make([]*resource.ResourceTranslation, 0, 10)
+
+	rtrIndex := resutil.NewIndex()
+	for _, r := range translations {
+		rtrIndex.Add(r, r.IndexPath()...)
+	}
 
 	// Filter
 	procResSet(request, func(r resource.Interface) {
-		localeRes, ok := r.(resource.LocaleInterface)
+		if r.Placeholder() {
+			return
+		}
+
+		rtrRes, ok := r.(resource.LocaleInterface)
 		if !ok {
 			return
 		}
 
-		_, ref, pp := localeRes.ResourceTranslationParts()
-		resourceRefSet := appendRefSet(pp, ref)
+		_, ref, pp := rtrRes.ResourceTranslationParts()
+		// @todo this string replace should eventually be improved; we didn't prefix
+		// resource translation's resources with corteza::
+		resPath := refsToIndexPath(strings.Replace(r.ResourceType(), "corteza::", "", -1), appendRefSet(pp, ref)...)
+		for _, _restr := range rtrIndex.Collect(resPath...) {
+			restr := _restr.(*resource.ResourceTranslation)
 
-		for _, t := range translations {
-			translationRefSet := appendRefSet(t.RefPath, t.RefRes)
-			// Res. tr. use strict equality to determine where it falls into
-			if !translationRefSet.Equals(resourceRefSet) {
-				continue
-			}
-
-			out = append(out, t)
+			out = append(out, restr)
 		}
 	})
 
