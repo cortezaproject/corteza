@@ -18,7 +18,6 @@ type (
 	resIndex struct {
 		fields         map[uint64]*composeTypes.ModuleField
 		modules        map[uint64]*composeTypes.Module
-		records        map[uint64]*composeTypes.Record
 		charts         map[uint64]*composeTypes.Chart
 		pages          map[uint64]*composeTypes.Page
 		exposedModules map[uint64]*federationTypes.ExposedModule
@@ -28,7 +27,6 @@ type (
 	fetchResIndex struct {
 		modules        bool
 		fields         bool
-		records        bool
 		charts         bool
 		pages          bool
 		exposedModules bool
@@ -68,7 +66,6 @@ func migratePost202203RbacRules(ctx context.Context, log *zap.Logger, s store.St
 			rx = &resIndex{
 				modules:        make(map[uint64]*composeTypes.Module),
 				fields:         make(map[uint64]*composeTypes.ModuleField),
-				records:        make(map[uint64]*composeTypes.Record),
 				charts:         make(map[uint64]*composeTypes.Chart),
 				pages:          make(map[uint64]*composeTypes.Page),
 				exposedModules: make(map[uint64]*federationTypes.ExposedModule),
@@ -105,7 +102,6 @@ func migratePost202203RbacRules(ctx context.Context, log *zap.Logger, s store.St
 					break
 				case composeTypes.RecordResourceType:
 					fetchRes.modules = true
-					fetchRes.records = true
 					break
 				case composeTypes.ChartResourceType:
 					fetchRes.charts = true
@@ -145,7 +141,7 @@ func migratePost202203RbacRules(ctx context.Context, log *zap.Logger, s store.St
 				continue
 			}
 
-			action := migratePost202203RbacRule(rule, rx)
+			action := migratePost202203RbacRule(ctx, s, rule, rx)
 			if action == actionUpdate {
 				err = store.CreateRbacRule(ctx, s, rule)
 				if err != nil {
@@ -190,7 +186,7 @@ func migratePost202203RbacRules(ctx context.Context, log *zap.Logger, s store.St
 }
 
 // validRbacRule validates the Rbac rule is its in invalid format and
-// returns actionRemove, actionNone, actionUpdate
+// returns actionRemove / actionNone / actionUpdate
 func validRbacRule(r *rbac.Rule) (op actionType) {
 	const (
 		wildCard = "*"
@@ -228,7 +224,7 @@ func validRbacRule(r *rbac.Rule) (op actionType) {
 
 // migratePost202203RbacRule will replace invalid Rbac rule parts(*) with and actual ID(resource ID),
 // if Rbac rule related resource exists then it will return actionUpdate otherwise returns actionRemove
-func migratePost202203RbacRule(r *rbac.Rule, rx *resIndex) (op actionType) {
+func migratePost202203RbacRule(ctx context.Context, s store.Storer, r *rbac.Rule, rx *resIndex) (op actionType) {
 	op = actionUpdate
 
 	// split the IDs
@@ -291,8 +287,8 @@ func migratePost202203RbacRule(r *rbac.Rule, rx *resIndex) (op actionType) {
 
 	case composeTypes.RecordResourceType:
 		if ID > 0 {
-			if r, ok := rx.records[ID]; ok {
-				p2 = r.ModuleID
+			// check if moduleID and namespaceID exists
+			if p2 > 0 {
 				if m, ok := rx.modules[p2]; ok {
 					p1 = m.NamespaceID
 					if !validID(p1) {
@@ -302,7 +298,22 @@ func migratePost202203RbacRule(r *rbac.Rule, rx *resIndex) (op actionType) {
 					return actionRemove
 				}
 			} else {
-				return actionRemove
+				// fetch record from store based on each module,
+				// 		to avoid fetching of all record of all module
+				for _, mod := range rx.modules {
+					if validID(p1) && validID(p2) {
+						continue
+					}
+					rec, err := store.LookupComposeRecordByID(ctx, s, mod, ID)
+					if err != nil && validID(rec.ModuleID) && validID(rec.NamespaceID) {
+						p1 = rec.NamespaceID
+						p2 = rec.ModuleID
+					}
+				}
+
+				if !validID(p1) || !validID(p2) {
+					return actionRemove
+				}
 			}
 		}
 		r.Resource = composeTypes.RecordRbacResource(p1, p2, ID)
@@ -375,34 +386,6 @@ func migratePost202203RbacRule(r *rbac.Rule, rx *resIndex) (op actionType) {
 func preloadRbacResourceIndex(ctx context.Context, s store.Storer, res fetchResIndex) (*resIndex, error) {
 	rx := &resIndex{}
 
-	rx.records = make(map[uint64]*composeTypes.Record)
-	var getRecords func(*composeTypes.Module, *filter.PagingCursor) (composeTypes.RecordSet, composeTypes.RecordFilter, error)
-	getRecords = func(m *composeTypes.Module, cursor *filter.PagingCursor) (rr composeTypes.RecordSet, f composeTypes.RecordFilter, err error) {
-		rr, f, err = store.SearchComposeRecords(ctx, s, m, composeTypes.RecordFilter{
-			Paging: filter.Paging{
-				Limit:      2000,
-				PageCursor: cursor,
-			},
-			Deleted: filter.StateInclusive,
-		})
-
-		if err != nil {
-			return
-		}
-		for _, rec := range rr {
-			rx.records[rec.ID] = rec
-		}
-
-		if f.NextPage != nil {
-			_, _, err = getRecords(m, f.NextPage)
-			if err != nil {
-				return
-			}
-		}
-
-		return
-	}
-
 	if res.modules {
 		rx.modules = make(map[uint64]*composeTypes.Module)
 		modules, _, err := store.SearchComposeModules(ctx, s, composeTypes.ModuleFilter{
@@ -412,17 +395,6 @@ func preloadRbacResourceIndex(ctx context.Context, s store.Storer, res fetchResI
 		modIDs := make([]uint64, 0, len(modules))
 		if err != nil {
 			return nil, err
-		}
-
-		if res.records {
-			for _, r := range modules {
-				rx.modules[r.ID] = r
-				modIDs = append(modIDs, r.ID)
-				_, _, err = getRecords(r, nil)
-				if err != nil {
-					return nil, err
-				}
-			}
 		}
 
 		if res.fields && len(modIDs) > 0 {
