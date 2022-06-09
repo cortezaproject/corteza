@@ -2,6 +2,9 @@ package rbac
 
 import (
 	"fmt"
+	"strings"
+
+	"github.com/cortezaproject/corteza-server/pkg/resource"
 )
 
 type (
@@ -17,9 +20,18 @@ type (
 
 	RuleSet []*Rule
 
+	ruleIndexWrap struct {
+		index *resource.IndexNode
+		rules RuleSet
+	}
+
 	// OptRuleSet RBAC rule index (operation / role ID / rules)
-	OptRuleSet map[string]map[uint64]RuleSet
+	OptRuleSet map[string]map[uint64]*ruleIndexWrap
 )
+
+func (r Rule) Clone() *Rule {
+	return &r
+}
 
 func (r Rule) String() string {
 	return fmt.Sprintf("%s %d to %s on %s", r.Access, r.RoleID, r.Operation, r.Resource)
@@ -29,17 +41,30 @@ func indexRules(rules []*Rule) OptRuleSet {
 	i := make(OptRuleSet)
 	for _, r := range rules {
 		if i[r.Operation] == nil {
-			i[r.Operation] = make(map[uint64]RuleSet)
+			i[r.Operation] = make(map[uint64]*ruleIndexWrap)
 		}
 
 		if i[r.Operation][r.RoleID] == nil {
-			i[r.Operation][r.RoleID] = RuleSet{}
+			i[r.Operation][r.RoleID] = &ruleIndexWrap{
+				index: resource.NewIndex(),
+			}
 		}
 
-		i[r.Operation][r.RoleID] = append(i[r.Operation][r.RoleID], r)
+		i[r.Operation][r.RoleID].index.Add(r, r.IndexPath()...)
+		i[r.Operation][r.RoleID].rules = append(i[r.Operation][r.RoleID].rules, r)
 	}
 
 	return i
+}
+
+func (r Rule) IndexPath() (out [][]string) {
+	pts := strings.Split(r.Resource, pathSep)
+
+	for _, p := range pts {
+		out = append(out, []string{p})
+	}
+
+	return
 }
 
 func (set RuleSet) Len() int      { return len(set) }

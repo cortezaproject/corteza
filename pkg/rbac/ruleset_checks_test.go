@@ -105,9 +105,11 @@ func benchmarkCheck(b *testing.B, c int) {
 
 	for i := 0; i < cap(rules); i++ {
 		rules = append(rules, &Rule{
-			RoleID:    uint64(rand.Int31n(50)),
-			Resource:  fmt.Sprintf("res-%d", rand.Int31n(1000)),
-			Operation: fmt.Sprintf("op-%d", rand.Int31n(100)),
+			// one over because interval is [a, b)
+			// lowered others to make the cases more resource intensive
+			RoleID:    uint64(rand.Int31n(10)),
+			Resource:  fmt.Sprintf("res-%d", rand.Int31n(10)),
+			Operation: fmt.Sprintf("op-%d", rand.Int31n(5)),
 			Access:    Access(rand.Int31n(2)),
 		})
 	}
@@ -117,7 +119,7 @@ func benchmarkCheck(b *testing.B, c int) {
 	b.StartTimer()
 
 	for n := 0; n < b.N; n++ {
-		check(iRules, pr, "res-0", "op-0")
+		check(iRules, pr, "op-0", "res-0")
 	}
 
 	b.StopTimer()

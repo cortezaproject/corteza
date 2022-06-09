@@ -279,7 +279,7 @@ func (svc service) String() (out string) {
 
 	for _, byRole := range svc.indexed {
 		for _, rr := range byRole {
-			for _, r := range rr {
+			for _, r := range rr.rules {
 				out += fmt.Sprintf(tpl, r.Access, r.Operation, role(r.RoleID), r.Resource)
 			}
 		}

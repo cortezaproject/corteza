@@ -2,6 +2,7 @@ package rbac
 
 import (
 	"sort"
+	"strings"
 )
 
 func check(indexedRules OptRuleSet, rolesByKind partRoles, op, res string) Access {
@@ -44,7 +45,11 @@ func check(indexedRules OptRuleSet, rolesByKind partRoles, op, res string) Acces
 			if !rolesByKind[kind][roleID] {
 				continue
 			}
-			rules = append(rules, r...)
+
+			aux := r.index.Collect(resourceToIndexPath(res)...)
+			for _, a := range aux {
+				rules = append(rules, a.(*Rule))
+			}
 		}
 
 		access := checkRulesByResource(rules, op, res)
@@ -88,4 +93,15 @@ func member(r partRoles, k roleKind) bool {
 	}
 
 	return false
+}
+
+// utility to get the resource index path from the resource identifier
+func resourceToIndexPath(r string) (out [][]string) {
+	pts := strings.Split(r, pathSep)
+
+	for _, pt := range pts {
+		out = append(out, []string{pt})
+	}
+
+	return
 }
