@@ -22,10 +22,6 @@ type (
 		name   string
 		module *types.Module
 
-		// @todo use these
-		supportedAggregationFunctions map[string]string
-		supportedFilterFunctions      map[string]bool
-
 		store *Store
 		rows  *sql.Rows
 
@@ -176,6 +172,19 @@ func (r *recordDatasource) Group(d report.GroupDefinition, name string) (bool, e
 
 		// - validate columns & functions
 		err = k.Def.Traverse(func(n *qlng.ASTNode) (bool, *qlng.ASTNode, error) {
+			if n.Ref == "count" && len(n.Args) == 0 {
+				pc := r.cols.FirstPrimary()
+				if pc == nil {
+					return false, nil, errors.New("cannot use count(): no primary key defined")
+				}
+				n.Args = append(n.Args, &qlng.ASTNode{
+					Ref: "distinct",
+					Args: qlng.ASTNodeSet{{
+						Symbol: pc.Name,
+					}},
+				})
+			}
+
 			if n.Symbol != "" {
 				if _, ok := auxLevelColumns[n.Symbol]; !ok {
 					return false, nil, fmt.Errorf("column %s does not exist on level %d", n.Symbol, r.nestLevel)
@@ -470,7 +479,6 @@ func (r *recordDatasource) baseQuery(f *report.Filter) (sqb squirrel.SelectBuild
 			Column(squirrel.Alias(squirrel.Expr(fmt.Sprintf(tcp, c.Name+".value")), c.Name))
 	}
 
-	// @todo this is temporary!!
 	sqb = squirrel.Select("*").
 		PlaceholderFormat(r.store.config.PlaceholderFormat).
 		FromSelect(sqb, "q_base")

@@ -360,6 +360,15 @@ func (cc FrameColumnSet) Find(name string) int {
 	return -1
 }
 
+func (cc FrameColumnSet) FirstPrimary() *FrameColumn {
+	for _, c := range cc {
+		if c.Primary {
+			return c
+		}
+	}
+	return nil
+}
+
 func (cc FrameColumnSet) String() string {
 	out := ""
 	for _, c := range cc {
