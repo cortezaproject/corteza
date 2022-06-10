@@ -161,6 +161,11 @@ var (
 			Result:  wrapRes("Number"),
 			Handler: makeGenericAggFncHandler("COUNT"),
 		},
+		"distinct": {
+			Args:    collectParams(true, "Any"),
+			Result:  wrapRes("Any"),
+			Handler: makeGenericAggFncHandler("DISTINCT"),
+		},
 		"sum": {
 			Args:    collectParams(true, "Any"),
 			Result:  wrapRes("Number"),
