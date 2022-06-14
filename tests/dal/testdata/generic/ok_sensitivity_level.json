@@ -1,0 +1,8 @@
+{
+  "handle": "private",
+  "level": 1,
+  "meta": {
+    "name": "private sensitivity",
+    "description": "data is private to the owner"
+  }
+}
