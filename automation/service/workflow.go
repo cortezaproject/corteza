@@ -570,7 +570,7 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 				return nil, err
 			}
 
-			if p.StepID == 0 && len(tt) > 0 {
+			if p.StepID == 0 && len(tt) == 1 {
 				return tt[0], nil
 			} else {
 				for _, tMatch := range tt {

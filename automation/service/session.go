@@ -171,7 +171,7 @@ func (svc *session) PendingPrompts(ctx context.Context) (pp []*wfexec.PendingPro
 //
 // Start is an asynchronous operation
 //
-// Please note that context passed to the function is NOT the the one that is
+// Please note that context passed to the function is NOT the one that is
 // used for the execution of the workflow. See watch function!
 //
 // It does not check user's permissions to execute workflow(s) so it should be used only when !
