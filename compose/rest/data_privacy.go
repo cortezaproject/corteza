@@ -48,7 +48,7 @@ func (DataPrivacy) New() *DataPrivacy {
 	}
 }
 
-func (ctrl *DataPrivacy) ListSensitiveData(ctx context.Context, r *request.DataPrivacyListSensitiveData) (out interface{}, err error) {
+func (ctrl *DataPrivacy) SensitiveDataList(ctx context.Context, r *request.DataPrivacySensitiveDataList) (out interface{}, err error) {
 	outSet := sensitiveDataSetPayload{}
 
 	primaryConnID := dal.Service().PrimaryConnectionID(ctx)
