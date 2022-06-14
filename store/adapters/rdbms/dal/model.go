@@ -232,9 +232,9 @@ func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 		}
 
 		// @note why?
-		if !attr.PrimaryKey {
-			continue
-		}
+		// if !attr.PrimaryKey {
+		// 	continue
+		// }
 
 		var attrExpr exp.LiteralExpression
 		attrExpr, err = d.table.AttributeExpression(attr.Ident)

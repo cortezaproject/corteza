@@ -91,9 +91,9 @@ const (
 	OperationTypeUpdate OperationType = "update"
 	OperationTypeDelete OperationType = "delete"
 
-	recordFieldID          = "id"
-	recordFieldModuleID    = "moduleId"
-	recordFieldNamespaceID = "namespaceId"
+	recordFieldID          = "ID"
+	recordFieldModuleID    = "moduleID"
+	recordFieldNamespaceID = "namespaceID"
 )
 
 // ToFilter wraps RecordFilter with struct that
