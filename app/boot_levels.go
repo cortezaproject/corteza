@@ -574,7 +574,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	sysService.DefaultReport.RegisterReporter("composeRecords", cmpService.DefaultRecord)
 
 	// Initializing seeder
-	_ = seeder.Seeder(ctx, app.Store, seeder.Faker())
+	_ = seeder.Seeder(ctx, app.Store, dal.Service(), seeder.Faker())
 
 	if err = app.plugins.Initialize(ctx, app.Log); err != nil {
 		return fmt.Errorf("could not initialize plugins: %w", err)

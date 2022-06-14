@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cortezaproject/corteza-server/pkg/cli"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/csv"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/directory"
@@ -76,7 +77,7 @@ func Import(ctx context.Context, storeInit func(ctx context.Context) (store.Stor
 				opt.OnExisting = resource.MergeRight
 			}
 
-			se := es.NewStoreEncoder(s, opt)
+			se := es.NewStoreEncoder(s, dal.Service(), opt)
 			bld := envoy.NewBuilder(se)
 			g, err := bld.Build(ctx, nn...)
 			cli.HandleError(err)

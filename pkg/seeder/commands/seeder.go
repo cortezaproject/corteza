@@ -3,8 +3,10 @@ package commands
 import (
 	"context"
 	"fmt"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/seeder"
 
 	"github.com/spf13/cobra"
@@ -39,7 +41,7 @@ func users(ctx context.Context, app serviceInitializer) (cmd *cobra.Command) {
 		PreRunE:   commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
-				seed = seeder.Seeder(ctx, seeder.DefaultStore, seeder.Faker())
+				seed = seeder.Seeder(ctx, seeder.DefaultStore, dal.Service(), seeder.Faker())
 				err  error
 			)
 
@@ -90,7 +92,7 @@ func records(ctx context.Context, app serviceInitializer) (cmd *cobra.Command) {
 		PreRunE:   commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
-				seed = seeder.Seeder(ctx, seeder.DefaultStore, seeder.Faker())
+				seed = seeder.Seeder(ctx, seeder.DefaultStore, dal.Service(), seeder.Faker())
 				err  error
 			)
 
@@ -145,7 +147,7 @@ func deleteAll(ctx context.Context, app serviceInitializer) (cmd *cobra.Command)
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
-				seed = seeder.Seeder(ctx, seeder.DefaultStore, seeder.Faker())
+				seed = seeder.Seeder(ctx, seeder.DefaultStore, dal.Service(), seeder.Faker())
 				err  error
 			)
 

@@ -13,6 +13,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	envoyStore "github.com/cortezaproject/corteza-server/pkg/envoy/store"
@@ -452,7 +453,7 @@ func (ctrl *User) Import(ctx context.Context, r *request.UserImport) (rsp interf
 		}
 	}
 
-	se := envoyStore.NewStoreEncoder(service.DefaultStore, &envoyStore.EncoderConfig{
+	se := envoyStore.NewStoreEncoder(service.DefaultStore, dal.Service(), &envoyStore.EncoderConfig{
 		OnExisting: resource.Skip,
 	})
 

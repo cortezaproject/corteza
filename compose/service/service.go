@@ -178,7 +178,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	DefaultPage = Page()
 	DefaultChart = Chart()
 	DefaultNotification = Notification(c.UserFinder)
-	DefaultAttachment = Attachment(DefaultObjectStore)
+	DefaultAttachment = Attachment(DefaultObjectStore, dal.Service())
 
 	RegisterIteratorProviders()
 

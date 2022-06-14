@@ -107,7 +107,7 @@ func (aum auxMarshaller) MarshalEnvoy() ([]resource.Interface, error) {
 }
 
 // Decode decodes all of the things in the provided store
-func (d *decoder) Decode(ctx context.Context, s store.Storer, f *DecodeFilter) ([]resource.Interface, error) {
+func (d *decoder) Decode(ctx context.Context, s store.Storer, dal dalService, f *DecodeFilter) ([]resource.Interface, error) {
 	mm := make(auxMarshaller, 0, 100)
 
 	if d.ux == nil {
@@ -134,7 +134,7 @@ func (d *decoder) Decode(ctx context.Context, s store.Storer, f *DecodeFilter) (
 		return mm, nil
 	}
 
-	compose := newComposeDecoder()
+	compose := newComposeDecoder(dal)
 	system := newSystemDecoder(d.ux)
 	automation := newAutomationDecoder(d.ux)
 

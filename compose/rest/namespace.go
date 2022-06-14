@@ -18,6 +18,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	envoyStore "github.com/cortezaproject/corteza-server/pkg/envoy/store"
@@ -219,12 +220,12 @@ func (ctrl Namespace) Clone(ctx context.Context, r *request.NamespaceClone) (int
 
 	decoder := func() (resource.InterfaceSet, error) {
 		// get from store
-		return envoyStore.Decoder().Decode(ctx, service.DefaultStore, df)
+		return envoyStore.Decoder().Decode(ctx, service.DefaultStore, dal.Service(), df)
 	}
 
 	encoder := func(nn resource.InterfaceSet) error {
 		// prepare for encoding
-		se := envoyStore.NewStoreEncoder(service.DefaultStore, &envoyStore.EncoderConfig{})
+		se := envoyStore.NewStoreEncoder(service.DefaultStore, dal.Service(), &envoyStore.EncoderConfig{})
 		bld := envoy.NewBuilder(se)
 		g, err := bld.Build(ctx, nn...)
 		if err != nil {
@@ -337,7 +338,7 @@ func (ctrl Namespace) ImportRun(ctx context.Context, r *request.NamespaceImportR
 		}
 
 		encoder = func(nn resource.InterfaceSet) error {
-			se := envoyStore.NewStoreEncoder(service.DefaultStore, &envoyStore.EncoderConfig{})
+			se := envoyStore.NewStoreEncoder(service.DefaultStore, dal.Service(), &envoyStore.EncoderConfig{})
 
 			bld := envoy.NewBuilder(se)
 			g, err := bld.Build(ctx, nn...)

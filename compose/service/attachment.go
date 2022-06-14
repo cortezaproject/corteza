@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/cortezaproject/corteza-server/compose/dalutils"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -40,6 +41,7 @@ type (
 		objects   objstore.Store
 		ac        attachmentAccessController
 		store     store.Storer
+		dal       dalDater
 	}
 
 	attachmentAccessController interface {
@@ -65,11 +67,12 @@ type (
 	}
 )
 
-func Attachment(store objstore.Store) *attachment {
+func Attachment(store objstore.Store, dal dalDater) *attachment {
 	return &attachment{
 		objects: store,
 		ac:      DefaultAccessControl,
 		store:   DefaultStore,
+		dal:     dal,
 	}
 }
 
@@ -93,7 +96,7 @@ func (svc attachment) Find(ctx context.Context, filter types.AttachmentFilter) (
 		}
 
 		if filter.RecordID > 0 {
-			aProps.namespace, aProps.module, aProps.record, err = loadRecordCombo(ctx, svc.store, filter.NamespaceID, filter.ModuleID, filter.RecordID)
+			aProps.namespace, aProps.module, aProps.record, err = loadRecordCombo(ctx, svc.store, svc.dal, filter.NamespaceID, filter.ModuleID, filter.RecordID)
 			if err != nil {
 				return err
 			} else if svc.ac.CanReadRecord(ctx, aProps.record) {
@@ -340,7 +343,7 @@ func (svc attachment) CreateRecordAttachment(ctx context.Context, namespaceID ui
 			// To allow upload (attachment creation) user must have permissions to
 			// alter that record
 
-			r, err = store.LookupComposeRecordByID(ctx, s, m, recordID)
+			r, err = dalutils.ComposeRecordsFind(ctx, svc.dal, m, recordID)
 			if err != nil {
 				return err
 			}

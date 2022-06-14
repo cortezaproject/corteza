@@ -5,8 +5,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/cortezaproject/corteza-server/compose/dalutils"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -29,19 +32,28 @@ type (
 		store.ComposeNamespaces
 		store.ComposePages
 		store.ComposeRecordValues
-		store.ComposeRecords
+	}
+
+	dalService interface {
+		Create(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, vv ...dal.ValueGetter) error
+		Search(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, f filter.Filter) (dal.Iterator, error)
+		Delete(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, pkv ...dal.ValueGetter) (err error)
+		Update(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, pkv ...dal.ValueGetter) (err error)
 	}
 
 	composeDecoder struct {
 		resourceID  []uint64
 		namespaceID []uint64
+
+		dal dalService
 	}
 )
 
-func newComposeDecoder() *composeDecoder {
+func newComposeDecoder(dal dalService) *composeDecoder {
 	return &composeDecoder{
 		resourceID:  make([]uint64, 0, 200),
 		namespaceID: make([]uint64, 0, 200),
+		dal:         dal,
 	}
 }
 
@@ -252,7 +264,7 @@ func (d *composeDecoder) decodeComposeRecord(ctx context.Context, s store.Storer
 			var err error
 
 			for {
-				rr, fn, err = store.SearchComposeRecords(ctx, s, mod, types.RecordFilter(aux))
+				rr, fn, err = dalutils.ComposeRecordsList(ctx, d.dal, mod, types.RecordFilter(aux))
 				if err != nil {
 					return err
 				}
