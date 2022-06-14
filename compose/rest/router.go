@@ -18,6 +18,7 @@ func MountRoutes() func(r chi.Router) {
 			notification = Notification{}.New()
 			attachment   = Attachment{}.New()
 			automation   = Automation{}.New()
+			dataPrivacy  = DataPrivacy{}.New()
 		)
 
 		// Initialize handlers & controllers.
@@ -38,6 +39,7 @@ func MountRoutes() func(r chi.Router) {
 			handlers.NewRecord(record).MountRoutes(r)
 			handlers.NewChart(chart).MountRoutes(r)
 			handlers.NewNotification(notification).MountRoutes(r)
+			handlers.NewDataPrivacy(dataPrivacy).MountRoutes(r)
 		})
 	}
 }

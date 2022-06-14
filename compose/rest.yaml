@@ -973,6 +973,19 @@ endpoints:
         type: map[string]interface{}
         parser: parseMapStringInterface
         title: Arguments to pass to the script
+
+- title: Data Privacy
+  entrypoint: dataPrivacy
+  path: "/data-privacy"
+  apis:
+    - name: list sensitive data
+      method: GET
+      title: List sensitive data
+      path: /sensitive-data
+      parameters:
+        get:
+          - { name: sensitivityLevelID, type: "uint64", title: "Sensitivity Level ID", required: false}
+
 - title: Charts
   path: "/namespace/{namespaceID}/chart"
   entrypoint: chart
