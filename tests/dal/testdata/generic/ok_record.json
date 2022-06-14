@@ -1,0 +1,16 @@
+{
+  "values": [
+    {
+      "name": "name",
+      "value": "Me"
+    },
+    {
+      "name": "email",
+      "value": "me@test.tld"
+    },
+    {
+      "name": "a_number",
+      "value": "42"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "name": "internal_non_partitioned",
+  "handle": "internal_non_partitioned",
+
+  "modelConfig": {
+    "connectionID": "42",
+    "capabilities": [],
+    "partitioned": false
+  },
+
+  "privacy": {
+    "sensitivityLevel": "0",
+    "usageDisclosure": "A"
+  },
+
+  "fields": [
+    {
+      "name": "f1",
+      "kind": "String",
+
+      "privacy": {
+        "sensitivityLevel": "0",
+        "usageDisclosure": "A"
+      }
+    },
+    {
+      "name": "f2",
+      "kind": "String"
+    }
+  ]
+}
