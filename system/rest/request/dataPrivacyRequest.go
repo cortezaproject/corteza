@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/go-chi/chi/v5"
 	"io"
 	"mime/multipart"
@@ -75,6 +76,11 @@ type (
 		//
 		// Request Kind
 		Kind string
+
+		// Payload POST parameter
+		//
+		// Request
+		Payload types.DataPrivacyRequestPayloadSet
 	}
 
 	DataPrivacyRequestUpdateStatus struct {
@@ -227,13 +233,19 @@ func NewDataPrivacyRequestCreate() *DataPrivacyRequestCreate {
 // Auditable returns all auditable/loggable parameters
 func (r DataPrivacyRequestCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"kind": r.Kind,
+		"kind":    r.Kind,
+		"payload": r.Payload,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
 func (r DataPrivacyRequestCreate) GetKind() string {
 	return r.Kind
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DataPrivacyRequestCreate) GetPayload() types.DataPrivacyRequestPayloadSet {
+	return r.Payload
 }
 
 // Fill processes request and fills internal variables
@@ -263,6 +275,18 @@ func (r *DataPrivacyRequestCreate) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
+			if val, ok := req.MultipartForm.Value["payload[]"]; ok {
+				r.Payload, err = types.ParseDataPrivacyRequestPayload(val)
+				if err != nil {
+					return err
+				}
+			} else if val, ok := req.MultipartForm.Value["payload"]; ok {
+				r.Payload, err = types.ParseDataPrivacyRequestPayload(val)
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -275,6 +299,18 @@ func (r *DataPrivacyRequestCreate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["kind"]; ok && len(val) > 0 {
 			r.Kind, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["payload[]"]; ok {
+			r.Payload, err = types.ParseDataPrivacyRequestPayload(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["payload"]; ok {
+			r.Payload, err = types.ParseDataPrivacyRequestPayload(val)
 			if err != nil {
 				return err
 			}

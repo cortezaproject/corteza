@@ -13,6 +13,7 @@ data_privacy_request: schema.#Resource & {
 		id: schema.IdField
 		kind: { goType: "types.RequestKind", sortable: true }
 		status: { goType: "types.RequestStatus", sortable: true }
+		payload: { goType: "types.DataPrivacyRequestPayloadSet" }
 
 		requested_at: schema.SortableTimestampField
 		requested_by: { goType: "uint64" }

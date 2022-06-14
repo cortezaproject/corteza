@@ -751,6 +751,7 @@ func tableDataPrivacyRequests() *Table {
 		ID,
 		ColumnDef("kind", ColumnTypeText, ColumnTypeLength(handleLength)),
 		ColumnDef("status", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
+		ColumnDef("payload", ColumnTypeJson),
 		ColumnDef("requested_at", ColumnTypeTimestamp),
 		ColumnDef("requested_by", ColumnTypeIdentifier),
 		ColumnDef("completed_at", ColumnTypeTimestamp, Null),

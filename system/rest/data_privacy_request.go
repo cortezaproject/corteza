@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
@@ -79,7 +80,8 @@ func (ctrl DataPrivacyRequest) makeFilterPayload(_ context.Context, rr types.Dat
 
 func (ctrl DataPrivacyRequest) Create(ctx context.Context, r *request.DataPrivacyRequestCreate) (interface{}, error) {
 	req := &types.DataPrivacyRequest{
-		Kind: types.CastToRequestKind(r.Kind),
+		Kind:    types.CastToRequestKind(r.Kind),
+		Payload: r.Payload,
 	}
 
 	return ctrl.dataPrivacy.CreateRequest(ctx, req)
