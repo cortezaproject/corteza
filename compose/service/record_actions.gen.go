@@ -28,6 +28,8 @@ type (
 		module        *types.Module
 		bulkOperation string
 		field         string
+		positionField *types.ModuleField
+		groupField    *types.ModuleField
 		value         string
 		valueErrors   *types.RecordValueErrorSet
 	}
@@ -134,6 +136,28 @@ func (p *recordActionProps) setField(field string) *recordActionProps {
 	return p
 }
 
+// setPositionField updates recordActionProps's positionField
+//
+// Allows method chaining
+//
+// This function is auto-generated.
+//
+func (p *recordActionProps) setPositionField(positionField *types.ModuleField) *recordActionProps {
+	p.positionField = positionField
+	return p
+}
+
+// setGroupField updates recordActionProps's groupField
+//
+// Allows method chaining
+//
+// This function is auto-generated.
+//
+func (p *recordActionProps) setGroupField(groupField *types.ModuleField) *recordActionProps {
+	p.groupField = groupField
+	return p
+}
+
 // setValue updates recordActionProps's value
 //
 // Allows method chaining
@@ -198,6 +222,14 @@ func (p recordActionProps) Serialize() actionlog.Meta {
 	}
 	m.Set("bulkOperation", p.bulkOperation, true)
 	m.Set("field", p.field, true)
+	if p.positionField != nil {
+		m.Set("positionField.name", p.positionField.Name, true)
+		m.Set("positionField.label", p.positionField.Label, true)
+	}
+	if p.groupField != nil {
+		m.Set("groupField.name", p.groupField.Name, true)
+		m.Set("groupField.label", p.groupField.Label, true)
+	}
 	m.Set("value", p.value, true)
 	if p.valueErrors != nil {
 		m.Set("valueErrors.set", p.valueErrors.Set, true)
@@ -324,6 +356,34 @@ func (p recordActionProps) Format(in string, err error) string {
 	}
 	pairs = append(pairs, "{{bulkOperation}}", fns(p.bulkOperation))
 	pairs = append(pairs, "{{field}}", fns(p.field))
+
+	if p.positionField != nil {
+		// replacement for "{{positionField}}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{{positionField}}",
+			fns(
+				p.positionField.Name,
+				p.positionField.Label,
+			),
+		)
+		pairs = append(pairs, "{{positionField.name}}", fns(p.positionField.Name))
+		pairs = append(pairs, "{{positionField.label}}", fns(p.positionField.Label))
+	}
+
+	if p.groupField != nil {
+		// replacement for "{{groupField}}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{{groupField}}",
+			fns(
+				p.groupField.Name,
+				p.groupField.Label,
+			),
+		)
+		pairs = append(pairs, "{{groupField.name}}", fns(p.groupField.Name))
+		pairs = append(pairs, "{{groupField.label}}", fns(p.groupField.Label))
+	}
 	pairs = append(pairs, "{{value}}", fns(p.value))
 
 	if p.valueErrors != nil {
@@ -1320,6 +1380,222 @@ func RecordErrNotAllowedToChangeFieldValue(mm ...*recordActionProps) *errors.Err
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
 		errors.Meta(locale.ErrorMetaKey{}, "record.errors.notAllowedToChangeFieldValue"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// RecordErrMissingPositionField returns "compose:record.missingPositionField" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func RecordErrMissingPositionField(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("position module field not found", nil),
+
+		errors.Meta("type", "missingPositionField"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "position module field not found"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.missingPositionField"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// RecordErrInvalidPositionFieldKind returns "compose:record.invalidPositionFieldKind" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func RecordErrInvalidPositionFieldKind(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid position field {{positionField}} kind; kind must be 'Number'", nil),
+
+		errors.Meta("type", "invalidPositionFieldKind"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "invalid position field {{positionField}} kind; kind must be 'Number'"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.invalidPositionFieldKind"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// RecordErrInvalidPositionFieldConfigMultiValue returns "compose:record.invalidPositionFieldConfigMultiValue" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func RecordErrInvalidPositionFieldConfigMultiValue(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid position field {{positionField}} configuration; field must not be multi-value", nil),
+
+		errors.Meta("type", "invalidPositionFieldConfigMultiValue"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "invalid position field {{positionField}} configuration; field must not be multi-value"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.invalidPositionFieldConfigMultiValue"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// RecordErrInvalidPositionValueType returns "compose:record.invalidPositionValueType" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func RecordErrInvalidPositionValueType(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid position value data type; value must be numeric", nil),
+
+		errors.Meta("type", "invalidPositionValueType"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "invalid position value data type; value must be numeric"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.invalidPositionValueType"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// RecordErrMissingGroupField returns "compose:record.missingGroupField" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func RecordErrMissingGroupField(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("group module field not found", nil),
+
+		errors.Meta("type", "missingGroupField"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "group module field not found"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.missingGroupField"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// RecordErrInvalidGroupFieldConfigMultiValue returns "compose:record.invalidGroupFieldConfigMultiValue" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func RecordErrInvalidGroupFieldConfigMultiValue(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid group field {{groupField}} configuration; field must not be multi-value", nil),
+
+		errors.Meta("type", "invalidGroupFieldConfigMultiValue"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "invalid group field {{groupField}} configuration; field must not be multi-value"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.invalidGroupFieldConfigMultiValue"),
 
 		errors.StackSkip(1),
 	)

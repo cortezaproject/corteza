@@ -12,6 +12,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/options"
 
 	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/system/dalutils"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -35,9 +36,10 @@ type (
 	}
 
 	dalConnections interface {
-		AddConnection(ctx context.Context, connectionID uint64, cp dal.ConnectionParams, dft dal.ConnectionMeta, capabilities ...capabilities.Capability) (err error)
+		CreateConnection(ctx context.Context, connectionID uint64, cp dal.ConnectionParams, dft dal.ConnectionMeta, capabilities ...capabilities.Capability) (err error)
 		UpdateConnection(ctx context.Context, connectionID uint64, cp dal.ConnectionParams, dft dal.ConnectionMeta, capabilities ...capabilities.Capability) (err error)
-		RemoveConnection(ctx context.Context, connectionID uint64) (err error)
+		DeleteConnection(ctx context.Context, connectionID uint64) (err error)
+		SearchConnectionIssues(connectionID uint64) (err []error)
 	}
 )
 
@@ -71,7 +73,7 @@ func (svc *dalConnection) FindByID(ctx context.Context, ID uint64) (q *types.Dal
 			return DalConnectionErrNotAllowedToRead(rProps)
 		}
 
-		svc.assurePrimaryConnection(q)
+		svc.proc(q)
 		return nil
 	}()
 	return q, svc.recordAction(ctx, rProps, DalConnectionActionLookup, err)
@@ -106,13 +108,11 @@ func (svc *dalConnection) Create(ctx context.Context, new *types.DalConnection) 
 
 		q = new
 
-		var cm dal.ConnectionMeta
-		cm, err = svc.makeConnectionMeta(ctx, new)
-		if err != nil {
-			return
+		if err = dalutils.DalConnectionCreate(ctx, svc.dal, new); err != nil {
+			return err
 		}
-
-		return svc.dal.AddConnection(ctx, new.ID, new.Config.Connection, cm, new.ActiveCapabilities()...)
+		svc.proc(q)
+		return
 	}()
 
 	return q, svc.recordAction(ctx, qProps, DalConnectionActionCreate, err)
@@ -130,7 +130,7 @@ func (svc *dalConnection) Update(ctx context.Context, upd *types.DalConnection) 
 			return DalConnectionErrNotFound(qProps)
 		}
 
-		svc.assurePrimaryConnection(old)
+		svc.proc(old)
 
 		if !svc.ac.CanUpdateDalConnection(ctx, old) {
 			return DalConnectionErrNotAllowedToUpdate(qProps)
@@ -175,15 +175,12 @@ func (svc *dalConnection) Update(ctx context.Context, upd *types.DalConnection) 
 		}
 
 		q = upd
-		svc.assurePrimaryConnection(q)
-
-		var cm dal.ConnectionMeta
-		cm, err = svc.makeConnectionMeta(ctx, upd)
-		if err != nil {
-			return
+		defer svc.proc(q)
+		if old.HasIssues() {
+			return dalutils.DalConnectionCreate(ctx, svc.dal, upd)
 		}
 
-		return svc.dal.UpdateConnection(ctx, upd.ID, upd.Config.Connection, cm, upd.ActiveCapabilities()...)
+		return dalutils.DalConnectionUpdate(ctx, svc.dal, upd)
 	}()
 	return q, svc.recordAction(ctx, qProps, DalConnectionActionUpdate, err)
 }
@@ -220,7 +217,7 @@ func (svc *dalConnection) DeleteByID(ctx context.Context, ID uint64) (err error)
 			return
 		}
 
-		return svc.dal.RemoveConnection(ctx, q.ID)
+		return dalutils.DalConnectionDelete(ctx, svc.dal, q)
 	}()
 
 	return svc.recordAction(ctx, qProps, DalConnectionActionDelete, err)
@@ -254,13 +251,8 @@ func (svc *dalConnection) UndeleteByID(ctx context.Context, ID uint64) (err erro
 			return
 		}
 
-		var cm dal.ConnectionMeta
-		cm, err = svc.makeConnectionMeta(ctx, q)
-		if err != nil {
-			return
-		}
-
-		return svc.dal.AddConnection(ctx, q.ID, q.Config.Connection, cm, q.ActiveCapabilities()...)
+		// We're creating it here since it was removed on delete
+		return dalutils.DalConnectionCreate(ctx, svc.dal, q)
 	}()
 
 	return svc.recordAction(ctx, qProps, DalConnectionActionDelete, err)
@@ -289,53 +281,44 @@ func (svc *dalConnection) Search(ctx context.Context, filter types.DalConnection
 			return err
 		}
 
-		svc.assurePrimaryConnection(r...)
+		svc.proc(r...)
 		return nil
 	}()
 	return r, f, svc.recordAction(ctx, aProps, DalConnectionActionSearch, err)
 }
 
 func (svc *dalConnection) ReloadConnections(ctx context.Context) (err error) {
-	// Get all available connections
-	cc, _, err := store.SearchDalConnections(ctx, svc.store, types.DalConnectionFilter{
-		Type: types.DalConnectionResourceType,
-	})
-	if err != nil {
+	return dalutils.DalConnectionReload(ctx, svc.store, svc.dal)
+}
+
+func (svc *dalConnection) proc(connections ...*types.DalConnection) {
+	for _, c := range connections {
+		svc.procPrimaryConnection(c)
+		svc.procDal(c)
+		svc.procLocale(c)
+	}
+}
+
+func (svc *dalConnection) procPrimaryConnection(c *types.DalConnection) {
+	if c.Type == types.DalPrimaryConnectionResourceType {
+		c.Config.Connection = dal.NewDSNConnection(svc.dbConf.DSN)
+		return
+	}
+}
+
+func (svc *dalConnection) procDal(c *types.DalConnection) {
+	ii := svc.dal.SearchConnectionIssues(c.ID)
+	if len(ii) == 0 {
+		c.Issues = nil
 		return
 	}
 
-	for _, c := range cc {
-		var cm dal.ConnectionMeta
-		cm, err = svc.makeConnectionMeta(ctx, c)
-		if err != nil {
-			return
-		}
-		if err = svc.dal.AddConnection(ctx, c.ID, c.Config.Connection, cm, c.ActiveCapabilities()...); err != nil {
-			return
-		}
+	c.Issues = make([]string, len(ii))
+	for i, err := range ii {
+		c.Issues[i] = err.Error()
 	}
-
-	return
 }
 
-func (svc *dalConnection) makeConnectionMeta(ctx context.Context, c *types.DalConnection) (cm dal.ConnectionMeta, err error) {
-	// @todo we could probably utilize connection params more here
-	cm = dal.ConnectionMeta{
-		DefaultModelIdent:      c.Config.DefaultModelIdent,
-		DefaultAttributeIdent:  c.Config.DefaultAttributeIdent,
-		DefaultPartitionFormat: c.Config.DefaultPartitionFormat,
-		SensitivityLevel:       c.SensitivityLevel,
-		Label:                  c.Handle,
-	}
-
-	return
-}
-
-func (svc *dalConnection) assurePrimaryConnection(connections ...*types.DalConnection) {
-	for _, c := range connections {
-		if c.Type == types.DalPrimaryConnectionResourceType {
-			c.Config.Connection = dal.NewDSNConnection(svc.dbConf.DSN)
-			return
-		}
-	}
+func (svc *dalConnection) procLocale(c *types.DalConnection) {
+	// @todo...
 }

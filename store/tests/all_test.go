@@ -68,9 +68,6 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	t.Run("composePage", func(t *testing.T) {
 		testComposePages(t, s)
 	})
-	t.Run("composeRecord", func(t *testing.T) {
-		testComposeRecords(t, s)
-	})
 	t.Run("composeRecordValue", func(t *testing.T) {
 		testComposeRecordValues(t, s)
 	})

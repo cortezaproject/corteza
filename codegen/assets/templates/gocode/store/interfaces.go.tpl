@@ -10,7 +10,6 @@ import (
 {{- end }}
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"golang.org/x/text/language"
-	"github.com/cortezaproject/corteza-server/pkg/report"
 )
 
 {{ define "extraArgs" -}}

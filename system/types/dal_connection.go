@@ -24,6 +24,8 @@ type (
 		Ownership        string           `json:"ownership"`
 		SensitivityLevel uint64           `json:"sensitivityLevel,string"`
 
+		Issues []string `json:"issues,omitempty" db:"-"`
+
 		Config       ConnectionConfig       `json:"config"`
 		Capabilities ConnectionCapabilities `json:"capabilities"`
 
@@ -82,6 +84,10 @@ func (c DalConnection) ActiveCapabilities() capabilities.Set {
 	return c.Capabilities.Supported.
 		Union(c.Capabilities.Enforced).
 		Union(c.Capabilities.Enabled)
+}
+
+func (c DalConnection) HasIssues() bool {
+	return len(c.Issues) > 0
 }
 
 func ParseConnectionConfig(ss []string) (m ConnectionConfig, err error) {

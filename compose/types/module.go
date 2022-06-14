@@ -19,6 +19,8 @@ type (
 		ConnectionID uint64           `json:"connectionID,string"`
 		Capabilities capabilities.Set `json:"capabilities"`
 
+		Issues []string `json:"issues,omitempty"`
+
 		Constraints map[string][]any `json:"constraints"`
 
 		Partitioned     bool   `json:"partitioned"`
@@ -106,6 +108,10 @@ func (m Module) Clone() *Module {
 	c := &m
 	c.Fields = m.Fields.Clone()
 	return c
+}
+
+func (m Module) HasIssues() bool {
+	return len(m.ModelConfig.Issues) > 0
 }
 
 // We won't worry about fields at this point
