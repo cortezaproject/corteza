@@ -116,6 +116,11 @@ func (ctrl *DataPrivacy) SensitiveDataList(ctx context.Context, r *request.DataP
 					Values:   a.Values,
 				})
 			}
+
+			if len(nsMod.Records) == 0 {
+				continue
+			}
+
 			outSet.Set = append(outSet.Set, nsMod)
 		}
 	}
