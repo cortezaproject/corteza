@@ -330,7 +330,7 @@ func (d *model) selectSql() *goqu.SelectDataset {
 }
 
 func (d *model) truncateSql() (_ *goqu.TruncateDataset) {
-	return d.dialect.GOQU().Truncate(d.table)
+	return d.dialect.GOQU().Truncate(d.table.Ident())
 }
 
 func (d *model) insertSql(rr ...dal.ValueGetter) (_ *goqu.InsertDataset) {
