@@ -777,17 +777,28 @@ func (svc *service) UpdateModelAttribute(ctx context.Context, model *Model, old,
 	}
 
 	// Update registry
-	ok := false
-	model = svc.FindModelByResourceID(model.ConnectionID, model.ResourceID)
-	for i, attribute := range model.Attributes {
-		if attribute.Ident == old.Ident {
-			model.Attributes[i] = new
-			ok = true
-			break
-		}
-	}
-	if !ok {
+	if old == nil {
+		// adding
 		model.Attributes = append(model.Attributes, new)
+	} else if new == nil {
+		// removing
+		model = svc.FindModelByResourceID(model.ConnectionID, model.ResourceID)
+		nSet := make(AttributeSet, 0, len(model.Attributes))
+		for _, attribute := range model.Attributes {
+			if attribute.Ident != old.Ident {
+				nSet = append(nSet, attribute)
+			}
+		}
+		model.Attributes = nSet
+	} else {
+		// updating
+		model = svc.FindModelByResourceID(model.ConnectionID, model.ResourceID)
+		for i, attribute := range model.Attributes {
+			if attribute.Ident == old.Ident {
+				model.Attributes[i] = new
+				break
+			}
+		}
 	}
 
 	svc.logger.Debug("updated model attribute")
