@@ -978,7 +978,7 @@ endpoints:
   entrypoint: dataPrivacy
   path: "/data-privacy"
   apis:
-    - name: list sensitive data
+    - name: sensitive data list
       method: GET
       title: List sensitive data
       path: /sensitive-data
