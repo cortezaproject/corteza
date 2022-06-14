@@ -94,6 +94,7 @@ type (
 
 		Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, filter string) (interface{}, error)
 		Find(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
+		FindSensitive(ctx context.Context, filter types.RecordFilter) (set []types.PrivateDataSet, err error)
 		RecordExport(context.Context, types.RecordFilter) error
 		RecordImport(context.Context, error) error
 
@@ -332,6 +333,61 @@ func (svc record) Find(ctx context.Context, filter types.RecordFilter) (set type
 	}()
 
 	return set, f, svc.recordAction(ctx, aProps, RecordActionSearch, err)
+}
+
+func (svc record) FindSensitive(ctx context.Context, filter types.RecordFilter) (set []types.PrivateDataSet, err error) {
+	var (
+		m *types.Module
+	)
+
+	err = func() error {
+		if m, err = loadModule(ctx, svc.store, filter.ModuleID); err != nil {
+			return err
+		}
+
+		// Force the query to only show owned records
+		// @todo allow additional querying
+		filter.Query = fmt.Sprintf("ownedBy='%d'", auth.GetIdentityFromContext(ctx).Identity())
+
+		rr, _, err := svc.Find(ctx, filter)
+		if err != nil {
+			return err
+		}
+
+		for _, r := range rr {
+			vv := make([]map[string]any, 0, len(r.Values))
+
+			for _, f := range m.Fields {
+				// Skip the ones with no privacy
+				// @todo allow the request to specify what level we wish to see
+				if f.Privacy.SensitivityLevel == 0 {
+					continue
+				}
+
+				values := make([]any, 0, 2)
+				for _, v := range r.Values.FilterByName(f.Name) {
+					values = append(values, v.Value)
+				}
+
+				// Make value
+				vv = append(vv, map[string]any{
+					"name":    f.Name,
+					"kind":    f.Kind,
+					"isMulti": f.Multi,
+					"value":   values,
+				})
+			}
+
+			set = append(set, types.PrivateDataSet{
+				ID:     r.ID,
+				Values: vv,
+			})
+		}
+
+		return nil
+	}()
+
+	return set, err
 }
 
 func (svc record) RecordImport(ctx context.Context, err error) error {

@@ -79,6 +79,11 @@ type (
 		constraints map[string][]any
 		RecordFilter
 	}
+
+	PrivateDataSet struct {
+		ID     uint64
+		Values []map[string]any
+	}
 )
 
 const (
