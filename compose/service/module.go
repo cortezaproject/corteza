@@ -425,6 +425,10 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 		}
 
 		if changes&moduleChanged > 0 {
+			if old.ModelConfig.ConnectionID != m.ModelConfig.ConnectionID {
+				return fmt.Errorf("unable to switch connection for existing models: run data migration")
+			}
+
 			if err = store.UpdateComposeModule(ctx, svc.store, m); err != nil {
 				return err
 			}
