@@ -8,9 +8,9 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	a "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
 
 	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/system/dalutils"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -27,7 +27,10 @@ type (
 	}
 
 	dalSensitivityLevels interface {
-		ReloadSensitivityLevels(raw dal.SensitivityLevelSet) (err error)
+		ReloadSensitivityLevels(levels ...dal.SensitivityLevel) (err error)
+		CreateSensitivityLevel(levels ...dal.SensitivityLevel) (err error)
+		UpdateSensitivityLevel(levels ...dal.SensitivityLevel) (err error)
+		DeleteSensitivityLevel(levels ...dal.SensitivityLevel) (err error)
 	}
 )
 
@@ -72,28 +75,28 @@ func (svc *dalSensitivityLevel) Create(ctx context.Context, new *types.DalSensit
 		qProps = &dalSensitivityLevelActionProps{new: new}
 	)
 
-	err = func() (err error) {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if !svc.ac.CanManageDalSensitivityLevel(ctx) {
 			return DalSensitivityLevelErrNotAllowedToManage(qProps)
 		}
 
 		new.CreatedAt = *now()
 		new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
-		ups, err := svc.prepare(ctx, svc.store, new)
+		ups, err := svc.prepare(ctx, s, new)
 		if err != nil {
 			return
 		}
 		new.ID = nextID()
 
-		err = store.UpsertDalSensitivityLevel(ctx, svc.store, ups...)
+		err = store.UpsertDalSensitivityLevel(ctx, s, ups...)
 		if err != nil {
 			return
 		}
 
 		q = new
 
-		return svc.ReloadSensitivityLevels(ctx, svc.store)
-	}()
+		return dalutils.DalSensitivityLevelCreate(svc.dal, new)
+	})
 
 	return q, svc.recordAction(ctx, qProps, DalSensitivityLevelActionCreate, err)
 }
@@ -105,8 +108,8 @@ func (svc *dalSensitivityLevel) Update(ctx context.Context, upd *types.DalSensit
 		e      error
 	)
 
-	err = func() (err error) {
-		if qq, e = store.LookupDalSensitivityLevelByID(ctx, svc.store, upd.ID); e != nil {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if qq, e = store.LookupDalSensitivityLevelByID(ctx, s, upd.ID); e != nil {
 			return DalSensitivityLevelErrNotFound(qProps)
 		}
 
@@ -118,19 +121,19 @@ func (svc *dalSensitivityLevel) Update(ctx context.Context, upd *types.DalSensit
 		upd.CreatedAt = qq.CreatedAt
 		upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-		ups, err := svc.prepare(ctx, svc.store, upd)
+		ups, err := svc.prepare(ctx, s, upd)
 		if err != nil {
 			return
 		}
-		err = store.UpsertDalSensitivityLevel(ctx, svc.store, ups...)
+		err = store.UpsertDalSensitivityLevel(ctx, s, ups...)
 		if err != nil {
 			return
 		}
 
 		q = upd
 
-		return svc.ReloadSensitivityLevels(ctx, svc.store)
-	}()
+		return dalutils.DalSensitivityLevelUpdate(svc.dal, upd)
+	})
 
 	return q, svc.recordAction(ctx, qProps, DalSensitivityLevelActionUpdate, err)
 }
@@ -141,12 +144,12 @@ func (svc *dalSensitivityLevel) DeleteByID(ctx context.Context, ID uint64) (err 
 		q      *types.DalSensitivityLevel
 	)
 
-	err = func() (err error) {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if ID == 0 {
 			return DalSensitivityLevelErrInvalidID()
 		}
 
-		if q, err = store.LookupDalSensitivityLevelByID(ctx, svc.store, ID); err != nil {
+		if q, err = store.LookupDalSensitivityLevelByID(ctx, s, ID); err != nil {
 			return
 		}
 
@@ -159,17 +162,36 @@ func (svc *dalSensitivityLevel) DeleteByID(ctx context.Context, ID uint64) (err 
 		q.DeletedAt = now()
 		q.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
 
-		ups, err := svc.prepare(ctx, svc.store, q)
+		ups, err := svc.prepare(ctx, s, q)
 		if err != nil {
 			return
 		}
-		err = store.UpsertDalSensitivityLevel(ctx, svc.store, ups...)
+		err = store.UpsertDalSensitivityLevel(ctx, s, ups...)
 		if err != nil {
 			return
 		}
 
-		return svc.ReloadSensitivityLevels(ctx, svc.store)
-	}()
+		var (
+			dd = make(types.DalSensitivityLevelSet, 0, len(ups)/2+1)
+			uu = make(types.DalSensitivityLevelSet, 0, len(ups)/2+1)
+		)
+
+		for _, l := range ups {
+			if l.DeletedAt != nil {
+				dd = append(dd, l)
+			} else {
+				uu = append(uu, l)
+			}
+		}
+
+		if err = dalutils.DalSensitivityLevelUpdate(svc.dal, uu...); err != nil {
+			return err
+		}
+		if err = dalutils.DalSensitivityLevelDelete(svc.dal, dd...); err != nil {
+			return err
+		}
+		return nil
+	})
 
 	return svc.recordAction(ctx, qProps, DalSensitivityLevelActionDelete, err)
 }
@@ -180,12 +202,12 @@ func (svc *dalSensitivityLevel) UndeleteByID(ctx context.Context, ID uint64) (er
 		q      *types.DalSensitivityLevel
 	)
 
-	err = func() (err error) {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if ID == 0 {
 			return DalSensitivityLevelErrInvalidID()
 		}
 
-		if q, err = store.LookupDalSensitivityLevelByID(ctx, svc.store, ID); err != nil {
+		if q, err = store.LookupDalSensitivityLevelByID(ctx, s, ID); err != nil {
 			return
 		}
 
@@ -198,12 +220,12 @@ func (svc *dalSensitivityLevel) UndeleteByID(ctx context.Context, ID uint64) (er
 		q.DeletedAt = nil
 		q.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-		if err = store.UpdateDalSensitivityLevel(ctx, svc.store, q); err != nil {
+		if err = store.UpdateDalSensitivityLevel(ctx, s, q); err != nil {
 			return
 		}
 
-		return svc.ReloadSensitivityLevels(ctx, svc.store)
-	}()
+		return dalutils.DalSensitivityLevelCreate(svc.dal, q)
+	})
 
 	return svc.recordAction(ctx, qProps, DalSensitivityLevelActionDelete, err)
 }
@@ -238,30 +260,7 @@ func (svc *dalSensitivityLevel) Search(ctx context.Context, filter types.DalSens
 }
 
 func (svc *dalSensitivityLevel) ReloadSensitivityLevels(ctx context.Context, s store.Storer) (err error) {
-	ll, err := svc.getSensitivityLevels(ctx, s)
-	if err != nil {
-		return
-	}
-
-	return svc.dal.ReloadSensitivityLevels(ll)
-}
-
-func (svc *dalSensitivityLevel) getSensitivityLevels(ctx context.Context, s store.Storer) (out dal.SensitivityLevelSet, err error) {
-	ll, _, err := store.SearchDalSensitivityLevels(ctx, s, types.DalSensitivityLevelFilter{Deleted: filter.StateExcluded})
-	if err != nil {
-		return
-	}
-
-	sort.Sort(ll)
-
-	for _, l := range ll {
-		out = append(out, dal.SensitivityLevel{
-			ID:     l.ID,
-			Handle: l.Handle,
-		})
-	}
-
-	return
+	return dalutils.DalSensitivityLevelReload(ctx, s, svc.dal)
 }
 
 func (svc *dalSensitivityLevel) prepare(ctx context.Context, s store.Storer, sl *types.DalSensitivityLevel) (_ types.DalSensitivityLevelSet, err error) {

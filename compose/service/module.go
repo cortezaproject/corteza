@@ -7,13 +7,13 @@ import (
 	"sort"
 	"strconv"
 
+	"github.com/cortezaproject/corteza-server/compose/dalutils"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
@@ -29,7 +29,7 @@ type (
 		store     store.Storer
 		locale    ResourceTranslationsManagerService
 
-		dal dalDDL
+		dal dalService
 	}
 
 	moduleAccessController interface {
@@ -82,7 +82,7 @@ var (
 	})
 )
 
-func Module(ctx context.Context, dal dalDDL) (*module, error) {
+func Module(ctx context.Context, dal dalService) (*module, error) {
 	svc := &module{
 		ac:        DefaultAccessControl,
 		eventbus:  eventbus.Service(),
@@ -222,6 +222,11 @@ func (svc module) FindByAny(ctx context.Context, namespaceID uint64, identifier 
 }
 
 func (svc module) proc(ctx context.Context, m *types.Module) {
+	svc.procLocale(ctx, m)
+	svc.procDal(m)
+}
+
+func (svc module) procLocale(ctx context.Context, m *types.Module) {
 	if svc.locale == nil || svc.locale.Locale() == nil {
 		return
 	}
@@ -233,6 +238,23 @@ func (svc module) proc(ctx context.Context, m *types.Module) {
 		mf.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, mf.ResourceTranslation()))
 		return nil
 	})
+}
+
+func (svc module) procDal(m *types.Module) {
+	if svc.dal == nil {
+		return
+	}
+
+	ii := svc.dal.SearchModelIssues(m.ModelConfig.ConnectionID, m.ID)
+	if len(ii) == 0 {
+		m.ModelConfig.Issues = nil
+		return
+	}
+
+	m.ModelConfig.Issues = make([]string, len(ii))
+	for i, err := range ii {
+		m.ModelConfig.Issues[i] = err.Error()
+	}
 }
 
 func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module, error) {
@@ -329,11 +351,13 @@ func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module,
 			return
 		}
 
-		if err = svc.addModuleToDAL(ctx, ns, new); err != nil {
+		if err = dalutils.ComposeModuleCreate(ctx, svc.dal, ns, new); err != nil {
 			return err
 		}
 
 		_ = svc.eventbus.WaitFor(ctx, event.ModuleAfterCreate(new, nil, ns))
+
+		svc.procDal(new)
 		return nil
 	})
 
@@ -350,6 +374,13 @@ func (svc module) DeleteByID(ctx context.Context, namespaceID, moduleID uint64) 
 
 func (svc module) UndeleteByID(ctx context.Context, namespaceID, moduleID uint64) error {
 	return trim1st(svc.updater(ctx, namespaceID, moduleID, ModuleActionUndelete, svc.handleUndelete))
+}
+
+// ReloadDALModels reconstructs the DAL's data model based on the store.Storer
+//
+// Directly using store so we don't spam the action log
+func (svc *module) ReloadDALModels(ctx context.Context) (err error) {
+	return dalutils.ComposeModulesReload(ctx, svc.store, svc.dal)
 }
 
 func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, action func(...*moduleActionProps) *moduleAction, fn moduleUpdateHandler) (*types.Module, error) {
@@ -373,6 +404,8 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 		}
 
 		old = m.Clone()
+		// so we can get issues
+		svc.procDal(old)
 
 		aProps.setNamespace(ns)
 		aProps.setChanged(m)
@@ -400,14 +433,15 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 		if changes&moduleFieldsChanged > 0 {
 			var (
 				hasRecords bool
-				set        types.RecordSet
+				// set        types.RecordSet
 			)
 
-			if set, _, err = store.SearchComposeRecords(ctx, s, m, types.RecordFilter{Paging: filter.Paging{Limit: 1}}); err != nil {
-				return err
-			}
+			// @todo !!
+			// if set, _, err = dalutils.ComposeRecordsList(ctx, svc.dal, m, types.RecordFilter{Paging: filter.Paging{Limit: 1}}); err != nil {
+			// 	return err
+			// }
 
-			hasRecords = len(set) > 0
+			// hasRecords = len(set) > 0
 
 			if err = updateModuleFields(ctx, s, m, old, hasRecords); err != nil {
 				return err
@@ -431,16 +465,27 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 		}
 
 		if m.DeletedAt == nil {
-			err = svc.eventbus.WaitFor(ctx, event.ModuleAfterUpdate(m, old, ns))
+			if err = svc.eventbus.WaitFor(ctx, event.ModuleAfterUpdate(m, old, ns)); err != nil {
+				return err
+			}
+			if err = dalutils.ComposeModuleUpdate(ctx, svc.dal, ns, old, m); err != nil {
+				return err
+			}
+			if err = dalutils.ComposeModuleFieldsUpdate(ctx, svc.dal, ns, old, m); err != nil {
+				return err
+			}
 		} else {
-			err = svc.eventbus.WaitFor(ctx, event.ModuleAfterDelete(nil, old, ns))
+			if err = svc.eventbus.WaitFor(ctx, event.ModuleAfterDelete(nil, old, ns)); err != nil {
+				return
+			}
+			if err = dalutils.ComposeModuleDelete(ctx, svc.dal, ns, m); err != nil {
+				return err
+			}
 		}
 
+		svc.procDal(m)
 		return err
 	})
-
-	// @todo improve this
-	err = svc.ReloadDALModels(ctx)
 
 	return m, svc.recordAction(ctx, aProps, action, err)
 }
@@ -555,6 +600,11 @@ func (svc module) handleUpdate(ctx context.Context, upd *types.Module) moduleUpd
 		if !reflect.DeepEqual(res.ModelConfig, upd.ModelConfig) {
 			changes |= moduleChanged
 			res.ModelConfig = upd.ModelConfig
+		}
+
+		if !reflect.DeepEqual(res.Privacy, upd.Privacy) {
+			changes |= moduleChanged
+			res.Privacy = upd.Privacy
 		}
 
 		// @todo make field-change detection more optimal

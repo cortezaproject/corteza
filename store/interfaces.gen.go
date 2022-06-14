@@ -17,7 +17,6 @@ import (
 	labelsType "github.com/cortezaproject/corteza-server/pkg/label/types"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	rbacType "github.com/cortezaproject/corteza-server/pkg/rbac"
-	"github.com/cortezaproject/corteza-server/pkg/report"
 	systemType "github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
 	"golang.org/x/text/language"
@@ -57,7 +56,6 @@ type (
 		ComposeModuleFields
 		ComposeNamespaces
 		ComposePages
-		ComposeRecords
 		ComposeRecordValues
 		Credentials
 		DalConnections
@@ -304,20 +302,6 @@ type (
 		LookupComposePageByNamespaceIDModuleID(ctx context.Context, namespaceID uint64, moduleID uint64) (*composeType.Page, error)
 		LookupComposePageByID(ctx context.Context, id uint64) (*composeType.Page, error)
 		ReorderComposePages(ctx context.Context, namespace_id uint64, parent_id uint64, page_ids []uint64) error
-	}
-
-	ComposeRecords interface {
-		SearchComposeRecords(ctx context.Context, mod *composeType.Module, f composeType.RecordFilter) (composeType.RecordSet, composeType.RecordFilter, error)
-		CreateComposeRecord(ctx context.Context, mod *composeType.Module, rr ...*composeType.Record) error
-		UpdateComposeRecord(ctx context.Context, mod *composeType.Module, rr ...*composeType.Record) error
-		UpsertComposeRecord(ctx context.Context, mod *composeType.Module, rr ...*composeType.Record) error
-		DeleteComposeRecord(ctx context.Context, mod *composeType.Module, rr ...*composeType.Record) error
-		DeleteComposeRecordByID(ctx context.Context, mod *composeType.Module, id uint64) error
-		TruncateComposeRecords(ctx context.Context, mod *composeType.Module) error
-		LookupComposeRecordByID(ctx context.Context, mod *composeType.Module, id uint64) (*composeType.Record, error)
-		ComposeRecordReport(ctx context.Context, mod *composeType.Module, metrics string, dimensions string, filters string) ([]map[string]interface{}, error)
-		ComposeRecordDatasource(ctx context.Context, mod *composeType.Module, ld *report.LoadStepDefinition) (report.Datasource, error)
-		PartialComposeRecordValueUpdate(ctx context.Context, mod *composeType.Module, values ...*composeType.RecordValue) error
 	}
 
 	ComposeRecordValues interface {
@@ -1804,85 +1788,6 @@ func LookupComposePageByID(ctx context.Context, s ComposePages, id uint64) (*com
 // This function is auto-generated
 func ReorderComposePages(ctx context.Context, s ComposePages, namespace_id uint64, parent_id uint64, page_ids []uint64) error {
 	return s.ReorderComposePages(ctx, namespace_id, parent_id, page_ids)
-}
-
-// SearchComposeRecords returns all matching ComposeRecords from store
-//
-// This function is auto-generated
-func SearchComposeRecords(ctx context.Context, s ComposeRecords, mod *composeType.Module, f composeType.RecordFilter) (composeType.RecordSet, composeType.RecordFilter, error) {
-	return s.SearchComposeRecords(ctx, mod, f)
-}
-
-// CreateComposeRecord creates one or more ComposeRecords in store
-//
-// This function is auto-generated
-func CreateComposeRecord(ctx context.Context, s ComposeRecords, mod *composeType.Module, rr ...*composeType.Record) error {
-	return s.CreateComposeRecord(ctx, mod, rr...)
-}
-
-// UpdateComposeRecord updates one or more (existing) ComposeRecords in store
-//
-// This function is auto-generated
-func UpdateComposeRecord(ctx context.Context, s ComposeRecords, mod *composeType.Module, rr ...*composeType.Record) error {
-	return s.UpdateComposeRecord(ctx, mod, rr...)
-}
-
-// UpsertComposeRecord creates new or updates existing one or more ComposeRecords in store
-//
-// This function is auto-generated
-func UpsertComposeRecord(ctx context.Context, s ComposeRecords, mod *composeType.Module, rr ...*composeType.Record) error {
-	return s.UpsertComposeRecord(ctx, mod, rr...)
-}
-
-// DeleteComposeRecord deletes one or more ComposeRecords from store
-//
-// This function is auto-generated
-func DeleteComposeRecord(ctx context.Context, s ComposeRecords, mod *composeType.Module, rr ...*composeType.Record) error {
-	return s.DeleteComposeRecord(ctx, mod, rr...)
-}
-
-// DeleteComposeRecordByID deletes one or more ComposeRecords from store
-//
-// This function is auto-generated
-func DeleteComposeRecordByID(ctx context.Context, s ComposeRecords, mod *composeType.Module, id uint64) error {
-	return s.DeleteComposeRecordByID(ctx, mod, id)
-}
-
-// TruncateComposeRecords Deletes all ComposeRecords from store
-//
-// This function is auto-generated
-func TruncateComposeRecords(ctx context.Context, s ComposeRecords, mod *composeType.Module) error {
-	return s.TruncateComposeRecords(ctx, mod)
-}
-
-// LookupComposeRecordByID searches for compose record by ID
-//
-// It returns compose record even if deleted
-//
-// This function is auto-generated
-func LookupComposeRecordByID(ctx context.Context, s ComposeRecords, mod *composeType.Module, id uint64) (*composeType.Record, error) {
-	return s.LookupComposeRecordByID(ctx, mod, id)
-}
-
-// ComposeRecordReport
-//
-// This function is auto-generated
-func ComposeRecordReport(ctx context.Context, s ComposeRecords, mod *composeType.Module, metrics string, dimensions string, filters string) ([]map[string]interface{}, error) {
-	return s.ComposeRecordReport(ctx, mod, metrics, dimensions, filters)
-}
-
-// ComposeRecordDatasource
-//
-// This function is auto-generated
-func ComposeRecordDatasource(ctx context.Context, s ComposeRecords, mod *composeType.Module, ld *report.LoadStepDefinition) (report.Datasource, error) {
-	return s.ComposeRecordDatasource(ctx, mod, ld)
-}
-
-// PartialComposeRecordValueUpdate
-//
-// This function is auto-generated
-func PartialComposeRecordValueUpdate(ctx context.Context, s ComposeRecords, mod *composeType.Module, values ...*composeType.RecordValue) error {
-	return s.PartialComposeRecordValueUpdate(ctx, mod, values...)
 }
 
 // SearchComposeRecordValues returns all matching ComposeRecordValues from store

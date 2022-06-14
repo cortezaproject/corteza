@@ -30,6 +30,12 @@ props:
     fields: [ name, handle, ID, namespaceID ]
   - name: bulkOperation
   - name: field
+  - name: positionField
+    type: "*types.ModuleField"
+    fields: [ name, label ]
+  - name: groupField
+    type: "*types.ModuleField"
+    fields: [ name, label ]
   - name: value
   - name: valueErrors
     type: "*types.RecordValueErrorSet"
@@ -156,7 +162,31 @@ errors:
     message: "not allowed to change value of field {{field}}"
     log: "failed to change value of field {{field}}; insufficient permissions"
 
+  # Organizer
+  - error: missingPositionField
+    message: "position module field not found"
+    log: "position module field not found"
 
+  - error: invalidPositionFieldKind
+    message: "invalid position field {{positionField}} kind; kind must be 'Number'"
+    log: "invalid position field {{positionField}} kind; kind must be 'Number'"
+
+  - error: invalidPositionFieldConfigMultiValue
+    message: "invalid position field {{positionField}} configuration; field must not be multi-value"
+    log: "invalid position field {{positionField}} configuration; field must not be multi-value"
+
+  - error: invalidPositionValueType
+    message: "invalid position value data type; value must be numeric"
+    log: "invalid position value data type; value must be numeric"
+
+  - error: missingGroupField
+    message: "group module field not found"
+    log: "group module field not found"
+  - error: invalidGroupFieldConfigMultiValue
+    message: "invalid group field {{groupField}} configuration; field must not be multi-value"
+    log: "invalid group field {{groupField}} configuration; field must not be multi-value"
+
+  # Importing
   - error: importSessionAlreadActive
     message: "import session already active"
     log: "failed to start import session"

@@ -1,4 +1,4 @@
-package service
+package dalutils
 
 import (
 	"context"
@@ -9,16 +9,38 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
+	"github.com/cortezaproject/corteza-server/store"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
-	dalDDL interface {
+	identFormatter interface {
 		ModelIdentFormatter(connectionID uint64) (f *dal.IdentFormatter, err error)
+	}
 
+	modelReloader interface {
+		identFormatter
 		ReloadModel(ctx context.Context, models ...*dal.Model) (err error)
-		AddModel(ctx context.Context, models ...*dal.Model) (err error)
-		RemoveModel(ctx context.Context, models ...*dal.Model) (err error)
+	}
+
+	modelCreator interface {
+		identFormatter
+		CreateModel(ctx context.Context, models ...*dal.Model) (err error)
+	}
+
+	modelUpdater interface {
+		identFormatter
+		UpdateModel(ctx context.Context, old, new *dal.Model) (err error)
+	}
+
+	attributeUpdater interface {
+		identFormatter
+		UpdateModelAttribute(ctx context.Context, model *dal.Model, old, new *dal.Attribute, trans ...dal.TransformationFunction) (err error)
+	}
+
+	modelDeleter interface {
+		identFormatter
+		DeleteModel(ctx context.Context, models ...*dal.Model) (err error)
 	}
 )
 
@@ -52,10 +74,7 @@ const (
 	colSysOwnedBy     = "owned_by"
 )
 
-// ReloadDALModels reconstructs the DAL's data model based on the store.Storer
-//
-// Directly using store so we don't spam the action log
-func (svc *module) ReloadDALModels(ctx context.Context) (err error) {
+func ComposeModulesReload(ctx context.Context, s store.Storer, r modelReloader) (err error) {
 	var (
 		namespaces types.NamespaceSet
 		modules    types.ModuleSet
@@ -63,14 +82,14 @@ func (svc *module) ReloadDALModels(ctx context.Context) (err error) {
 		models     dal.ModelSet
 	)
 
-	namespaces, _, err = svc.store.SearchComposeNamespaces(ctx, types.NamespaceFilter{})
+	namespaces, _, err = s.SearchComposeNamespaces(ctx, types.NamespaceFilter{})
 	if err != nil {
 		return
 	}
 
 	var model *dal.Model
 	for _, ns := range namespaces {
-		modules, _, err = svc.store.SearchComposeModules(ctx, types.ModuleFilter{
+		modules, _, err = s.SearchComposeModules(ctx, types.ModuleFilter{
 			NamespaceID: ns.ID,
 		})
 		if err != nil {
@@ -78,7 +97,7 @@ func (svc *module) ReloadDALModels(ctx context.Context) (err error) {
 		}
 
 		for _, mod := range modules {
-			fields, _, err = svc.store.SearchComposeModuleFields(ctx, types.ModuleFieldFilter{
+			fields, _, err = s.SearchComposeModuleFields(ctx, types.ModuleFieldFilter{
 				ModuleID: []uint64{mod.ID},
 			})
 			if err != nil {
@@ -87,7 +106,7 @@ func (svc *module) ReloadDALModels(ctx context.Context) (err error) {
 
 			mod.Fields = append(mod.Fields, fields...)
 
-			model, err = svc.moduleToModel(ctx, ns, mod)
+			model, err = moduleToModel(ctx, r, ns, mod)
 			if err != nil {
 				return
 			}
@@ -96,11 +115,91 @@ func (svc *module) ReloadDALModels(ctx context.Context) (err error) {
 		}
 	}
 
-	return svc.dal.ReloadModel(ctx, models...)
+	return r.ReloadModel(ctx, models...)
 }
 
-func (svc *module) moduleToModel(ctx context.Context, ns *types.Namespace, mod *types.Module) (*dal.Model, error) {
-	formatter, tplParts, err := svc.prepareModelFormatter(ns, mod)
+func ComposeModuleCreate(ctx context.Context, c modelCreator, ns *types.Namespace, mod *types.Module) (err error) {
+	model, err := moduleToModel(ctx, c, ns, mod)
+	if err != nil {
+		return
+	}
+	if err = c.CreateModel(ctx, model); err != nil {
+		return
+	}
+
+	return
+}
+
+func ComposeModuleUpdate(ctx context.Context, u modelUpdater, ns *types.Namespace, old, new *types.Module) (err error) {
+	oldModel, err := moduleToModel(ctx, u, ns, old)
+	if err != nil {
+		return
+	}
+	newModel, err := moduleToModel(ctx, u, ns, new)
+	if err != nil {
+		return
+	}
+
+	if err = u.UpdateModel(ctx, oldModel, newModel); err != nil {
+		return
+	}
+
+	return
+}
+
+func ComposeModuleFieldsUpdate(ctx context.Context, u attributeUpdater, ns *types.Namespace, old, new *types.Module) (err error) {
+	oldModel, err := moduleToModel(ctx, u, ns, old)
+	if err != nil {
+		return
+	}
+	newModel, err := moduleToModel(ctx, u, ns, new)
+	if err != nil {
+		return
+	}
+
+	diff := oldModel.Diff(newModel)
+	for _, d := range diff {
+		if err = u.UpdateModelAttribute(ctx, oldModel, d.Original, d.Asserted); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func ComposeModuleDelete(ctx context.Context, d modelDeleter, ns *types.Namespace, mod *types.Module) (err error) {
+	model, err := moduleToModel(ctx, d, ns, mod)
+	if err != nil {
+		return
+	}
+	if err = d.DeleteModel(ctx, model); err != nil {
+		return
+	}
+
+	return
+}
+
+func ComposeModuleModelFormatter(f identFormatter, ns *types.Namespace, mod *types.Module) (formatter *dal.IdentFormatter, tplParts []string, err error) {
+	formatter, err = f.ModelIdentFormatter(mod.ModelConfig.ConnectionID)
+	if err != nil {
+		return
+	}
+
+	modHandle, _ := handle.Cast(nil, mod.Handle, strconv.FormatUint(mod.ID, 10))
+	nsHandle, _ := handle.Cast(nil, ns.Slug, strconv.FormatUint(ns.ID, 10))
+	tplParts = []string{
+		"module", modHandle,
+		"namespace", nsHandle,
+	}
+
+	return
+}
+
+// // // // // // // // // // // // // // // // // // // // // // // // //
+// Utilities
+
+func moduleToModel(ctx context.Context, f identFormatter, ns *types.Namespace, mod *types.Module) (*dal.Model, error) {
+	formatter, tplParts, err := ComposeModuleModelFormatter(f, ns, mod)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +228,7 @@ func (svc *module) moduleToModel(ctx context.Context, ns *types.Namespace, mod *
 
 	// Handle user-defined fields
 	for i, f := range mod.Fields {
-		out.Attributes[i], err = svc.moduleFieldToAttribute(getCodec, ns, mod, f)
+		out.Attributes[i], err = moduleFieldToAttribute(getCodec, ns, mod, f)
 		if err != nil {
 			return nil, err
 		}
@@ -138,16 +237,16 @@ func (svc *module) moduleToModel(ctx context.Context, ns *types.Namespace, mod *
 	// Handle system fields; either default or user defined
 	if !mod.ModelConfig.Partitioned {
 		// When not partitioned the default system fields should be defined along side the `values` column
-		out.Attributes = append(out.Attributes, svc.moduleModelDefaultSysAttributes(getCodec)...)
+		out.Attributes = append(out.Attributes, moduleModelDefaultSysAttributes()...)
 	} else {
 		// When partitioned, we use store codec defined on the module
-		out.Attributes = append(out.Attributes, svc.moduleModelSysAttributes(mod, getCodec)...)
+		out.Attributes = append(out.Attributes, moduleModelSysAttributes(mod, getCodec)...)
 	}
 
 	return out, nil
 }
 
-func (svc *module) moduleModelSysAttributes(mod *types.Module, getCodec func(f *types.ModuleField) dal.Codec) (out dal.AttributeSet) {
+func moduleModelSysAttributes(mod *types.Module, getCodec func(f *types.ModuleField) dal.Codec) (out dal.AttributeSet) {
 	sysEnc := mod.ModelConfig.SystemFieldEncoding
 
 	if sysEnc.ID != nil {
@@ -173,23 +272,23 @@ func (svc *module) moduleModelSysAttributes(mod *types.Module, getCodec func(f *
 	}
 
 	if sysEnc.UpdatedAt != nil {
-		out = append(out, dal.FullAttribute(sysUpdatedAt, &dal.TypeTimestamp{}, getCodec(&types.ModuleField{Name: sysUpdatedAt, EncodingStrategy: *sysEnc.UpdatedAt})))
+		out = append(out, dal.FullAttribute(sysUpdatedAt, &dal.TypeTimestamp{Nullable: true}, getCodec(&types.ModuleField{Name: sysUpdatedAt, EncodingStrategy: *sysEnc.UpdatedAt})))
 	}
 	if sysEnc.UpdatedBy != nil {
-		out = append(out, dal.FullAttribute(sysUpdatedBy, &dal.TypeID{}, getCodec(&types.ModuleField{Name: sysUpdatedBy, EncodingStrategy: *sysEnc.UpdatedBy})))
+		out = append(out, dal.FullAttribute(sysUpdatedBy, &dal.TypeID{Nullable: true}, getCodec(&types.ModuleField{Name: sysUpdatedBy, EncodingStrategy: *sysEnc.UpdatedBy})))
 	}
 
 	if sysEnc.DeletedAt != nil {
-		out = append(out, dal.FullAttribute(sysDeletedAt, &dal.TypeTimestamp{}, getCodec(&types.ModuleField{Name: sysDeletedAt, EncodingStrategy: *sysEnc.DeletedAt})))
+		out = append(out, dal.FullAttribute(sysDeletedAt, &dal.TypeTimestamp{Nullable: true}, getCodec(&types.ModuleField{Name: sysDeletedAt, EncodingStrategy: *sysEnc.DeletedAt})))
 	}
 	if sysEnc.DeletedBy != nil {
-		out = append(out, dal.FullAttribute(sysDeletedBy, &dal.TypeID{}, getCodec(&types.ModuleField{Name: sysDeletedBy, EncodingStrategy: *sysEnc.DeletedBy})))
+		out = append(out, dal.FullAttribute(sysDeletedBy, &dal.TypeID{Nullable: true}, getCodec(&types.ModuleField{Name: sysDeletedBy, EncodingStrategy: *sysEnc.DeletedBy})))
 	}
 
 	return
 }
 
-func (svc *module) moduleModelDefaultSysAttributes(getCodec func(f *types.ModuleField) dal.Codec) dal.AttributeSet {
+func moduleModelDefaultSysAttributes() dal.AttributeSet {
 	return dal.AttributeSet{
 		dal.PrimaryAttribute(sysID, &dal.CodecAlias{Ident: colSysID}),
 
@@ -201,15 +300,15 @@ func (svc *module) moduleModelDefaultSysAttributes(getCodec func(f *types.Module
 		dal.FullAttribute(sysCreatedAt, &dal.TypeTimestamp{}, &dal.CodecAlias{Ident: colSysCreatedAt}),
 		dal.FullAttribute(sysCreatedBy, &dal.TypeID{}, &dal.CodecAlias{Ident: colSysCreatedBy}),
 
-		dal.FullAttribute(sysUpdatedAt, &dal.TypeTimestamp{}, &dal.CodecAlias{Ident: colSysUpdatedAt}),
-		dal.FullAttribute(sysUpdatedBy, &dal.TypeID{}, &dal.CodecAlias{Ident: colSysUpdatedBy}),
+		dal.FullAttribute(sysUpdatedAt, &dal.TypeTimestamp{Nullable: true}, &dal.CodecAlias{Ident: colSysUpdatedAt}),
+		dal.FullAttribute(sysUpdatedBy, &dal.TypeID{Nullable: true}, &dal.CodecAlias{Ident: colSysUpdatedBy}),
 
-		dal.FullAttribute(sysDeletedAt, &dal.TypeTimestamp{}, &dal.CodecAlias{Ident: colSysDeletedAt}),
-		dal.FullAttribute(sysDeletedBy, &dal.TypeID{}, &dal.CodecAlias{Ident: colSysDeletedBy}),
+		dal.FullAttribute(sysDeletedAt, &dal.TypeTimestamp{Nullable: true}, &dal.CodecAlias{Ident: colSysDeletedAt}),
+		dal.FullAttribute(sysDeletedBy, &dal.TypeID{Nullable: true}, &dal.CodecAlias{Ident: colSysDeletedBy}),
 	}
 }
 
-func (svc *module) moduleFieldToAttribute(getCodec func(f *types.ModuleField) dal.Codec, ns *types.Namespace, mod *types.Module, f *types.ModuleField) (out *dal.Attribute, err error) {
+func moduleFieldToAttribute(getCodec func(f *types.ModuleField) dal.Codec, ns *types.Namespace, mod *types.Module, f *types.ModuleField) (out *dal.Attribute, err error) {
 	kind := f.Kind
 	if kind == "" {
 		kind = "String"
@@ -322,38 +421,6 @@ func moduleFieldCodec(f *types.ModuleField, partitioned bool, formatter *dal.Ide
 		strat = &dal.CodecRecordValueSetJSON{
 			Ident: f.EncodingStrategy.EncodingStrategyJSON.Ident,
 		}
-	}
-
-	return
-}
-
-// // // // // // // // // // // // // // // // // // // // // // // // //
-// Utilities
-
-func (svc *module) addModuleToDAL(ctx context.Context, ns *types.Namespace, mod *types.Module) (err error) {
-	// Update DAL
-	model, err := svc.moduleToModel(ctx, ns, mod)
-	if err != nil {
-		return
-	}
-	if err = svc.dal.AddModel(ctx, model); err != nil {
-		return
-	}
-
-	return
-}
-
-func (svc *module) prepareModelFormatter(ns *types.Namespace, mod *types.Module) (formatter *dal.IdentFormatter, tplParts []string, err error) {
-	formatter, err = svc.dal.ModelIdentFormatter(mod.ModelConfig.ConnectionID)
-	if err != nil {
-		return
-	}
-
-	modHandle, _ := handle.Cast(nil, mod.Handle, strconv.FormatUint(mod.ID, 10))
-	nsHandle, _ := handle.Cast(nil, ns.Slug, strconv.FormatUint(ns.ID, 10))
-	tplParts = []string{
-		"module", modHandle,
-		"namespace", nsHandle,
 	}
 
 	return
