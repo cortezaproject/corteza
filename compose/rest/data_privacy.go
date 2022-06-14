@@ -64,13 +64,17 @@ func (ctrl *DataPrivacy) ListSensitiveData(ctx context.Context, r *request.DataP
 			return nil, err
 		}
 		for _, m := range modules {
-			if m.Privacy.SensitivityLevel == 0 {
-				continue
-			}
+			// @todo ignoring this for now; revert after dev release
+			// if m.Privacy.SensitivityLevel == 0 {
+			// 	continue
+			// }
 
 			sData, err := ctrl.record.FindSensitive(ctx, types.RecordFilter{ModuleID: m.ID, NamespaceID: m.NamespaceID})
 			if err != nil {
 				return nil, err
+			}
+			if len(sData) == 0 {
+				continue
 			}
 
 			nsMod := &sensitiveDataPayload{
