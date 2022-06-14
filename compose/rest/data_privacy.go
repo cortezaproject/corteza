@@ -14,16 +14,16 @@ type (
 	}
 
 	sensitiveDataPayload struct {
-		NamespaceID uint64 `json:"namespaceID"`
+		NamespaceID uint64 `json:"namespaceID,string"`
 		Namespace   string `json:"namespace"`
-		ModuleID    uint64 `json:"moduleID"`
+		ModuleID    uint64 `json:"moduleID,string"`
 		Module      string `json:"module"`
 
 		Records []sensitiveData `json:"records"`
 	}
 
 	sensitiveData struct {
-		RecordID uint64           `json:"recordID"`
+		RecordID uint64           `json:"recordID,string"`
 		Values   []map[string]any `json:"values"`
 	}
 
