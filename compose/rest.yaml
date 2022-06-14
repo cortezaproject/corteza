@@ -558,12 +558,12 @@ endpoints:
         title: Module handle
       - type: types.ModelConfig
         name: modelConfig
-        required: true
+        required: false
         title: modelConfig
         parser: types.ParseModelConfig
       - type: types.DataPrivacyConfig
         name: privacy
-        required: true
+        required: false
         title: Data privacy config
         parser: types.ParseDataPrivacyConfig
       - type: types.ModuleFieldSet
@@ -609,12 +609,12 @@ endpoints:
         title: Module Handle
       - type: types.ModelConfig
         name: modelConfig
-        required: true
+        required: false
         title: modelConfig
         parser: types.ParseModelConfig
       - type: types.DataPrivacyConfig
         name: privacy
-        required: true
+        required: false
         title: Data privacy config
         parser: types.ParseDataPrivacyConfig
       - type: types.ModuleFieldSet
