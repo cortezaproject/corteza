@@ -141,5 +141,6 @@ func (svc record) Datasource(ctx context.Context, ld *report.LoadStepDefinition)
 		ld.Columns = cols
 	}
 
-	return store.ComposeRecordDatasource(ctx, svc.store, mod, ld)
+	return nil, fmt.Errorf("@todo pending migration to DAL")
+	// return store.ComposeRecordDatasource(ctx, svc.store, mod, ld)
 }

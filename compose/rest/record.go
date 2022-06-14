@@ -16,6 +16,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/csv"
 	ejson "github.com/cortezaproject/corteza-server/pkg/envoy/json"
@@ -395,7 +396,7 @@ func (ctrl *Record) ImportRun(ctx context.Context, r *request.RecordImportRun) (
 			}
 			return err
 		}
-		se := estore.NewStoreEncoder(service.DefaultStore, cfg)
+		se := estore.NewStoreEncoder(service.DefaultStore, dal.Service(), cfg)
 		bld := envoy.NewBuilder(se)
 		g, err := bld.Build(ctx, ses.Resources...)
 		if err != nil {
@@ -464,7 +465,7 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 		}
 
 		sd := estore.Decoder()
-		nn, err := sd.Decode(ctx, service.DefaultStore, f)
+		nn, err := sd.Decode(ctx, service.DefaultStore, dal.Service(), f)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("failed to fetch records: %s", err.Error()), http.StatusBadRequest)
 		}

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/yaml"
 	"github.com/spf13/cobra"
 
@@ -40,7 +41,7 @@ func Export(ctx context.Context, storeInit func(ctx context.Context) (store.Stor
 			f = f.FromResource(args...)
 
 			sd := su.Decoder()
-			nn, err := sd.Decode(ctx, s, f)
+			nn, err := sd.Decode(ctx, s, dal.Service(), f)
 			cli.HandleError(err)
 
 			ye := yaml.NewYamlEncoder(&yaml.EncoderConfig{

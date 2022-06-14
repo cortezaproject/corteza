@@ -3,10 +3,15 @@ package seeder
 import (
 	"context"
 	"fmt"
-	cService "github.com/cortezaproject/corteza-server/compose/service"
 	"time"
 
+	"github.com/cortezaproject/corteza-server/compose/dalutils"
+	cService "github.com/cortezaproject/corteza-server/compose/service"
+
 	cTypes "github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	lTypes "github.com/cortezaproject/corteza-server/pkg/label/types"
 	"github.com/cortezaproject/corteza-server/store"
@@ -18,6 +23,7 @@ type (
 		ctx   context.Context
 		store storeService
 		faker fakerService
+		dal   dalService
 
 		modSvc moduleService
 	}
@@ -50,10 +56,12 @@ type (
 		LookupComposeModuleByNamespaceIDHandle(ctx context.Context, namespaceID uint64, name string) (*cTypes.Module, error)
 		LookupComposeModuleByID(ctx context.Context, id uint64) (*cTypes.Module, error)
 		SearchComposeModuleFields(ctx context.Context, f cTypes.ModuleFieldFilter) (cTypes.ModuleFieldSet, cTypes.ModuleFieldFilter, error)
+	}
 
-		SearchComposeRecords(ctx context.Context, _mod *cTypes.Module, f cTypes.RecordFilter) (cTypes.RecordSet, cTypes.RecordFilter, error)
-		CreateComposeRecord(ctx context.Context, mod *cTypes.Module, rr ...*cTypes.Record) error
-		DeleteComposeRecord(ctx context.Context, m *cTypes.Module, rr ...*cTypes.Record) error
+	dalService interface {
+		Create(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, vv ...dal.ValueGetter) error
+		Search(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, f filter.Filter) (dal.Iterator, error)
+		Delete(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, pkv ...dal.ValueGetter) (err error)
 	}
 
 	moduleService interface {
@@ -71,13 +79,14 @@ const (
 	FakeDataLabel = "generated"
 )
 
-func Seeder(ctx context.Context, store store.Storer, faker fakerService) *seeder {
+func Seeder(ctx context.Context, store store.Storer, dal dalService, faker fakerService) *seeder {
 	DefaultStore = store
 
 	return &seeder{
 		ctx:    ctx,
 		store:  store,
 		faker:  faker,
+		dal:    dal,
 		modSvc: cService.DefaultModule,
 	}
 }
@@ -352,7 +361,8 @@ func (s seeder) CreateRecord(params RecordParams) (IDs []uint64, err error) {
 		))
 	}
 
-	err = s.store.CreateComposeRecord(s.ctx, m, records...)
+	// @todo remove this .ctx ptrn
+	err = dalutils.ComposeRecordCreate(s.ctx, s.dal, m, records...)
 	if err != nil {
 		return
 	}
@@ -410,12 +420,12 @@ func (s seeder) DeleteAllRecord(mod *cTypes.Module) (err error) {
 			FakeDataLabel: FakeDataLabel,
 		},
 	}
-	records, _, err := s.store.SearchComposeRecords(s.ctx, mod, filter)
+	records, _, err := dalutils.ComposeRecordsList(s.ctx, s.dal, mod, filter)
 	if err != nil {
 		return
 	}
 
-	err = s.store.DeleteComposeRecord(s.ctx, mod, records...)
+	err = dalutils.ComposeRecordDelete(s.ctx, s.dal, mod, records...)
 	if err != nil {
 		return
 	}

@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/cortezaproject/corteza-server/compose/dalutils"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/service/values"
 	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
@@ -116,7 +117,7 @@ func (n *composeRecord) Prepare(ctx context.Context, pl *payload) (err error) {
 		}
 
 		// Preload all records
-		rr, _, err := store.SearchComposeRecords(ctx, pl.s, mod, composeTypes.RecordFilter{
+		rr, _, err := dalutils.ComposeRecordsList(ctx, pl.dal, mod, composeTypes.RecordFilter{
 			ModuleID:    mod.ID,
 			NamespaceID: mod.NamespaceID,
 			Paging: filter.Paging{
@@ -138,7 +139,7 @@ func (n *composeRecord) Prepare(ctx context.Context, pl *payload) (err error) {
 	}
 
 	// Preload own records
-	rr, _, err := store.SearchComposeRecords(ctx, pl.s, n.relMod, composeTypes.RecordFilter{
+	rr, _, err := dalutils.ComposeRecordsList(ctx, pl.dal, n.relMod, composeTypes.RecordFilter{
 		ModuleID:    n.relMod.ID,
 		NamespaceID: n.relNS.ID,
 		Paging: filter.Paging{
@@ -441,12 +442,12 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 
 			// Create a new record
 			if !exists {
-				err = store.CreateComposeRecord(ctx, pl.s, mod, rec)
+				err = dalutils.ComposeRecordCreate(ctx, pl.dal, mod, rec)
 				return err
 			}
 
 			// Update existing
-			err = store.UpdateComposeRecord(ctx, pl.s, mod, rec)
+			err = dalutils.ComposeRecordUpdate(ctx, pl.dal, mod, rec)
 			return err
 		}()
 

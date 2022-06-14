@@ -16,6 +16,7 @@ import (
 type (
 	storeEncoder struct {
 		s   store.Storer
+		dal dalService
 		cfg *EncoderConfig
 
 		// Each resource should define its own state that is used when encoding the resource.
@@ -61,6 +62,7 @@ type (
 
 	payload struct {
 		s     store.Storer
+		dal   dalService
 		state *envoy.ResourceState
 
 		invokerID uint64
@@ -82,7 +84,7 @@ var (
 // NewStoreEncoder initializes a fresh store encoder
 //
 // If no config is provided, it uses Skip as the default merge alg.
-func NewStoreEncoder(s store.Storer, cfg *EncoderConfig) envoy.PrepareEncoder {
+func NewStoreEncoder(s store.Storer, dal dalService, cfg *EncoderConfig) envoy.PrepareEncoder {
 	if cfg == nil {
 		cfg = &EncoderConfig{
 			OnExisting: resource.Skip,
@@ -91,6 +93,7 @@ func NewStoreEncoder(s store.Storer, cfg *EncoderConfig) envoy.PrepareEncoder {
 
 	return &storeEncoder{
 		s:   s,
+		dal: dal,
 		cfg: cfg,
 
 		state: make(map[resource.Interface]resourceState),
@@ -106,7 +109,7 @@ func (se *storeEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState)
 			return nil
 		}
 
-		err = rs.Prepare(ctx, se.makePayload(ctx, se.s, ers))
+		err = rs.Prepare(ctx, se.makePayload(ctx, se.s, se.dal, ers))
 		if err != nil {
 			return err
 		}
@@ -192,7 +195,7 @@ func (se *storeEncoder) Encode(ctx context.Context, p envoy.Provider) error {
 				err = ErrResourceStateUndefined
 			} else {
 				if state != nil {
-					err = state.Encode(ctx, se.makePayload(ctx, s, ers))
+					err = state.Encode(ctx, se.makePayload(ctx, s, se.dal, ers))
 				}
 			}
 
@@ -203,9 +206,10 @@ func (se *storeEncoder) Encode(ctx context.Context, p envoy.Provider) error {
 	})
 }
 
-func (se *storeEncoder) makePayload(ctx context.Context, s store.Storer, ers *envoy.ResourceState) *payload {
+func (se *storeEncoder) makePayload(ctx context.Context, s store.Storer, dal dalService, ers *envoy.ResourceState) *payload {
 	return &payload{
 		s:         s,
+		dal:       dal,
 		state:     ers,
 		invokerID: auth.GetIdentityFromContext(ctx).Identity(),
 	}
