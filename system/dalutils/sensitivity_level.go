@@ -34,6 +34,13 @@ func DalSensitivityLevelReload(ctx context.Context, s store.Storer, r sensitivit
 		return
 	}
 
+	// @todo temporary
+	ll = append(types.DalSensitivityLevelSet{{
+		ID:     1,
+		Handle: "private",
+		Level:  1,
+	}}, ll...)
+
 	sort.Sort(ll)
 
 	levels := make(dal.SensitivityLevelSet, 0, len(ll))
