@@ -4,6 +4,7 @@ type (
 	SensitivityLevel struct {
 		Handle string
 		ID     uint64
+		Level  int
 	}
 	SensitivityLevelSet []SensitivityLevel
 
@@ -15,9 +16,29 @@ type (
 	}
 )
 
+func SensitivityLevelIndex(levels ...SensitivityLevel) *sensitivityLevelIndex {
+	out := &sensitivityLevelIndex{
+		set:      make(SensitivityLevelSet, len(levels)),
+		byHandle: make(map[string]int),
+		byID:     make(map[uint64]int),
+	}
+
+	for i, l := range levels {
+		out.set[i] = l
+		out.byHandle[l.Handle] = i
+		out.byID[l.ID] = i
+	}
+
+	return out
+}
+
 func (sli sensitivityLevelIndex) includes(l uint64) (ok bool) {
 	if l == 0 {
 		return true
+	}
+
+	if sli.byID == nil {
+		return false
 	}
 
 	_, ok = sli.byID[l]
