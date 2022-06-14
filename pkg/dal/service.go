@@ -225,6 +225,10 @@ func (svc *service) CreateConnection(ctx context.Context, connectionID uint64, c
 	return nil
 }
 
+func (svc *service) PrimaryConnectionID(ctx context.Context) uint64 {
+	return svc.primaryConnectionID
+}
+
 // DeleteConnection removes the given connection from the DAL
 func (svc *service) DeleteConnection(ctx context.Context, connectionID uint64) (err error) {
 	svc.logger.Debug("deleting connection", zap.Uint64("connectionID", connectionID))
