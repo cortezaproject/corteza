@@ -101,7 +101,7 @@ func JSONPath(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression,
 		sql strings.Builder
 	)
 
-	sql.WriteString(`?->>"$`)
+	sql.WriteString(`?->>'$`)
 
 	for _, p := range pp {
 		switch path := p.(type) {
@@ -117,7 +117,6 @@ func JSONPath(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression,
 		}
 	}
 
-	sql.WriteString(`"`)
-
+	sql.WriteString(`'`)
 	return exp.NewLiteralExpression(sql.String(), ident), nil
 }
