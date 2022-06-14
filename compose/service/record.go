@@ -360,7 +360,7 @@ func (svc record) FindSensitive(ctx context.Context, filter types.RecordFilter) 
 			for _, f := range m.Fields {
 				// Skip the ones with no privacy
 				// @todo allow the request to specify what level we wish to see
-				if f.Privacy.SensitivityLevel == 0 {
+				if !f.Private {
 					continue
 				}
 
