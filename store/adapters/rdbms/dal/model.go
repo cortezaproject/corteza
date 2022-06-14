@@ -414,7 +414,7 @@ func (d *model) pkLookupCondition(pkv dal.ValueGetter) (_ exp.Expression, err er
 			return nil, fmt.Errorf("could not get value for primary key %q: %w", c.Name(), err)
 		}
 
-		cnd.Append(exp.NewBooleanExpression(exp.EqOp, d.table.Ident().Col(c.Name()), val))
+		cnd = cnd.Append(exp.NewBooleanExpression(exp.EqOp, d.table.Ident().Col(c.Name()), val))
 	}
 
 	return cnd, nil
