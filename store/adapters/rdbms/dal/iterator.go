@@ -209,6 +209,9 @@ func (i *iterator) Err() error {
 
 // Close iterator and cleanup
 func (i *iterator) Close() error {
+	if i.rows == nil {
+		return nil
+	}
 	return i.rows.Close()
 }
 
