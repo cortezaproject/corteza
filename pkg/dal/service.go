@@ -744,11 +744,14 @@ func (svc *service) UpdateModelAttribute(ctx context.Context, model *Model, old,
 			issues.addModelIssue(model.ConnectionID, model.ResourceID, errAttributeUpdateMissingModel(model.ConnectionID, model.ResourceID))
 		}
 
-		if !svc.sensitivityLevels.includes(new.SensitivityLevel) {
-			issues.addModelIssue(model.ConnectionID, model.ResourceID, errAttributeUpdateMissingSensitivityLevel(model.ConnectionID, model.ResourceID, new.SensitivityLevel))
-		} else {
-			if !svc.sensitivityLevels.isSubset(new.SensitivityLevel, model.SensitivityLevel) {
-				issues.addModelIssue(model.ConnectionID, model.ResourceID, errAttributeUpdateGreaterSensitivityLevel(model.ConnectionID, model.ResourceID, new.SensitivityLevel, model.SensitivityLevel))
+		// In case we're deleting it we can ignore this check
+		if new != nil {
+			if !svc.sensitivityLevels.includes(new.SensitivityLevel) {
+				issues.addModelIssue(model.ConnectionID, model.ResourceID, errAttributeUpdateMissingSensitivityLevel(model.ConnectionID, model.ResourceID, new.SensitivityLevel))
+			} else {
+				if !svc.sensitivityLevels.isSubset(new.SensitivityLevel, model.SensitivityLevel) {
+					issues.addModelIssue(model.ConnectionID, model.ResourceID, errAttributeUpdateGreaterSensitivityLevel(model.ConnectionID, model.ResourceID, new.SensitivityLevel, model.SensitivityLevel))
+				}
 			}
 		}
 
