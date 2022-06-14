@@ -2546,6 +2546,7 @@ var (
 			"id",
 			"kind",
 			"status",
+			"payload",
 			"requested_at",
 			"requested_by",
 			"completed_at",
@@ -2568,6 +2569,7 @@ var (
 				"id":           res.ID,
 				"kind":         res.Kind,
 				"status":       res.Status,
+				"payload":      res.Payload,
 				"requested_at": res.RequestedAt,
 				"requested_by": res.RequestedBy,
 				"completed_at": res.CompletedAt,
@@ -2593,6 +2595,7 @@ var (
 					goqu.Record{
 						"kind":         res.Kind,
 						"status":       res.Status,
+						"payload":      res.Payload,
 						"requested_at": res.RequestedAt,
 						"requested_by": res.RequestedBy,
 						"completed_at": res.CompletedAt,
@@ -2616,6 +2619,7 @@ var (
 			Set(goqu.Record{
 				"kind":         res.Kind,
 				"status":       res.Status,
+				"payload":      res.Payload,
 				"requested_at": res.RequestedAt,
 				"requested_by": res.RequestedBy,
 				"completed_at": res.CompletedAt,

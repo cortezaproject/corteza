@@ -368,19 +368,20 @@ type (
 
 	// auxDataPrivacyRequest is an auxiliary structure used for transporting to/from RDBMS store
 	auxDataPrivacyRequest struct {
-		ID          uint64                   `db:"id"`
-		Kind        systemType.RequestKind   `db:"kind"`
-		Status      systemType.RequestStatus `db:"status"`
-		RequestedAt time.Time                `db:"requested_at"`
-		RequestedBy uint64                   `db:"requested_by"`
-		CompletedAt *time.Time               `db:"completed_at"`
-		CompletedBy uint64                   `db:"completed_by"`
-		CreatedAt   time.Time                `db:"created_at"`
-		UpdatedAt   *time.Time               `db:"updated_at"`
-		DeletedAt   *time.Time               `db:"deleted_at"`
-		CreatedBy   uint64                   `db:"created_by"`
-		UpdatedBy   uint64                   `db:"updated_by"`
-		DeletedBy   uint64                   `db:"deleted_by"`
+		ID          uint64                                  `db:"id"`
+		Kind        systemType.RequestKind                  `db:"kind"`
+		Status      systemType.RequestStatus                `db:"status"`
+		Payload     systemType.DataPrivacyRequestPayloadSet `db:"payload"`
+		RequestedAt time.Time                               `db:"requested_at"`
+		RequestedBy uint64                                  `db:"requested_by"`
+		CompletedAt *time.Time                              `db:"completed_at"`
+		CompletedBy uint64                                  `db:"completed_by"`
+		CreatedAt   time.Time                               `db:"created_at"`
+		UpdatedAt   *time.Time                              `db:"updated_at"`
+		DeletedAt   *time.Time                              `db:"deleted_at"`
+		CreatedBy   uint64                                  `db:"created_by"`
+		UpdatedBy   uint64                                  `db:"updated_by"`
+		DeletedBy   uint64                                  `db:"deleted_by"`
 	}
 
 	// auxDataPrivacyRequestComment is an auxiliary structure used for transporting to/from RDBMS store
@@ -1911,6 +1912,7 @@ func (aux *auxDataPrivacyRequest) encode(res *systemType.DataPrivacyRequest) (_ 
 	aux.ID = res.ID
 	aux.Kind = res.Kind
 	aux.Status = res.Status
+	aux.Payload = res.Payload
 	aux.RequestedAt = res.RequestedAt
 	aux.RequestedBy = res.RequestedBy
 	aux.CompletedAt = res.CompletedAt
@@ -1932,6 +1934,7 @@ func (aux auxDataPrivacyRequest) decode() (res *systemType.DataPrivacyRequest, _
 	res.ID = aux.ID
 	res.Kind = aux.Kind
 	res.Status = aux.Status
+	res.Payload = aux.Payload
 	res.RequestedAt = aux.RequestedAt
 	res.RequestedBy = aux.RequestedBy
 	res.CompletedAt = aux.CompletedAt
@@ -1953,6 +1956,7 @@ func (aux *auxDataPrivacyRequest) scan(row scanner) error {
 		&aux.ID,
 		&aux.Kind,
 		&aux.Status,
+		&aux.Payload,
 		&aux.RequestedAt,
 		&aux.RequestedBy,
 		&aux.CompletedAt,

@@ -1,9 +1,12 @@
 package types
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/pkg/errors"
 )
 
 type (
@@ -12,6 +15,8 @@ type (
 
 		Kind   RequestKind   `json:"kind"`
 		Status RequestStatus `json:"status"`
+
+		Payload DataPrivacyRequestPayloadSet `json:"payload,omitempty"`
 
 		RequestedAt time.Time  `json:"requestedAt,omitempty"`
 		RequestedBy uint64     `json:"requestedBy,string"`
@@ -44,6 +49,27 @@ type (
 		// Standard helpers for paging and sorting
 		filter.Sorting
 		filter.Paging
+	}
+
+	// @todo temporarily using this; revert to proper struct after dev release
+	DataPrivacyRequestPayloadSet []map[string]any
+	// DataPrivacyRequestPayloadSet []DataPrivacyRequestPayload
+	DataPrivacyRequestPayload struct {
+		ConnectionID uint64                     `json:"connectionID,string"`
+		NamespaceID  uint64                     `json:"namespaceID,string"`
+		ModuleID     uint64                     `json:"moduleID,string"`
+		Records      []DataPrivacyRequestRecord `json:"records"`
+	}
+
+	DataPrivacyRequestRecord struct {
+		RecordID uint64                          `json:"recordID,string"`
+		Values   []DataPrivacyRequestRecordValue `json:"values"`
+	}
+
+	DataPrivacyRequestRecordValue struct {
+		Name     string `json:"name"`
+		Value    string `json:"value"`
+		Position int    `json:"position"`
 	}
 
 	DataPrivacyRequestComment struct {
@@ -129,4 +155,37 @@ func CastToRequestStatus(s string) RequestStatus {
 
 func (s RequestStatus) String() string {
 	return string(s)
+}
+
+func ParseDataPrivacyRequestPayload(ii []string) (out DataPrivacyRequestPayloadSet, err error) {
+	for _, i := range ii {
+		aux := make(map[string]any)
+		err = json.Unmarshal([]byte(i), &aux)
+		if err != nil {
+			return nil, err
+		}
+
+		out = append(out, aux)
+	}
+
+	return out, err
+}
+
+func (bb *DataPrivacyRequestPayloadSet) Scan(value interface{}) error {
+	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
+	switch value.(type) {
+	case nil:
+		*bb = DataPrivacyRequestPayloadSet{}
+	case []uint8:
+		b := value.([]byte)
+		if err := json.Unmarshal(b, bb); err != nil {
+			return errors.Wrapf(err, "cannot scan '%v' into DataPrivacyRequestPayloadSet", string(b))
+		}
+	}
+
+	return nil
+}
+
+func (bb DataPrivacyRequestPayloadSet) Value() (driver.Value, error) {
+	return json.Marshal(bb)
 }
