@@ -108,15 +108,18 @@ func (c *connection) CreateModel(ctx context.Context, model *dal.Model, model2 .
 
 func (c *connection) DeleteModel(ctx context.Context, model *dal.Model, model2 ...*dal.Model) error {
 	//TODO implement me
+	return nil
 	panic("implement me")
 }
 
 func (c *connection) UpdateModel(ctx context.Context, old *dal.Model, new *dal.Model) error {
 	//TODO implement me
+	return nil
 	panic("implement me")
 }
 
-func (c *connection) UpdateModelAttribute(ctx context.Context, sch *dal.Model, old dal.Attribute, new dal.Attribute, trans ...dal.TransformationFunction) error {
+func (c *connection) UpdateModelAttribute(ctx context.Context, sch *dal.Model, old, new *dal.Attribute, trans ...dal.TransformationFunction) error {
 	//TODO implement me
+	return nil
 	panic("implement me")
 }

@@ -29,5 +29,5 @@ func dalConnector(ctx context.Context, dsn string, cc ...capabilities.Capability
 		return
 	}
 
-	return rdbmsdal.Connection(db, Dialect()), nil
+	return rdbmsdal.Connection(db, Dialect(), cc...), nil
 }

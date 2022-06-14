@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/PaesslerAG/gval"
+	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/modern-go/reflect2"
 )
@@ -45,6 +46,8 @@ type (
 		SensitivityLevel uint64
 
 		Attributes AttributeSet
+
+		Capabilities capabilities.Set
 	}
 	ModelSet []*Model
 
@@ -110,20 +113,27 @@ func (a *Attribute) WithMultiValue() *Attribute {
 	return a
 }
 
-// FindByResource returns the model that matches the resource
-func (mm ModelSet) FindByResource(resType string, resource string) *Model {
+func (mm ModelSet) FindByResourceID(resourceID uint64) *Model {
 	for _, m := range mm {
-		if m.ResourceType == resType && m.Resource == resource {
+		if m.ResourceID == resourceID {
 			return m
 		}
 	}
-
 	return nil
 }
 
-func (mm ModelSet) FindByID(id uint64) *Model {
+func (mm ModelSet) FindByResourceIdent(resourceType, resourceIdent string) *Model {
 	for _, m := range mm {
-		if m.ResourceID == id {
+		if m.ResourceType == resourceType && m.Resource == resourceIdent {
+			return m
+		}
+	}
+	return nil
+}
+
+func (mm ModelSet) FindByIdent(ident string) *Model {
+	for _, m := range mm {
+		if m.Ident == ident {
 			return m
 		}
 	}
@@ -149,6 +159,17 @@ func (aa ModelSet) FilterByReferenced(b *Model) (out ModelSet) {
 	}
 
 	return
+}
+
+func (m Model) ToFilter() ModelFilter {
+	return ModelFilter{
+		ConnectionID: m.ConnectionID,
+
+		ResourceID: m.ResourceID,
+
+		ResourceType: m.ResourceType,
+		Resource:     m.Resource,
+	}
 }
 
 // HasAttribute returns true when the model includes the specified attribute
