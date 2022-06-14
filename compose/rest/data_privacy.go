@@ -6,6 +6,8 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
 )
 
 type (
@@ -49,6 +51,17 @@ func (DataPrivacy) New() *DataPrivacy {
 func (ctrl *DataPrivacy) ListSensitiveData(ctx context.Context, r *request.DataPrivacyListSensitiveData) (out interface{}, err error) {
 	outSet := sensitiveDataSetPayload{}
 
+	primaryConnID := dal.Service().PrimaryConnectionID(ctx)
+
+	reqConns := make(map[uint64]bool)
+	hasReqConns := len(r.ConnectionID) > 0
+	for _, connectionID := range payload.ParseUint64s(r.ConnectionID) {
+		if connectionID == 0 {
+			connectionID = primaryConnID
+		}
+		reqConns[connectionID] = true
+	}
+
 	// All namespaces
 	namespaces, _, err := ctrl.namespace.Find(ctx, types.NamespaceFilter{})
 	if err != nil {
@@ -64,6 +77,14 @@ func (ctrl *DataPrivacy) ListSensitiveData(ctx context.Context, r *request.DataP
 			return nil, err
 		}
 		for _, m := range modules {
+			conn := m.ModelConfig.ConnectionID
+			if conn == 0 {
+				conn = primaryConnID
+			}
+			if hasReqConns && !reqConns[conn] {
+				continue
+			}
+
 			// @todo ignoring this for now; revert after dev release
 			// if m.Privacy.SensitivityLevel == 0 {
 			// 	continue
@@ -87,6 +108,9 @@ func (ctrl *DataPrivacy) ListSensitiveData(ctx context.Context, r *request.DataP
 				Records: make([]sensitiveData, 0, len(sData)),
 			}
 			for _, a := range sData {
+				if len(a.Values) == 0 {
+					continue
+				}
 				nsMod.Records = append(nsMod.Records, sensitiveData{
 					RecordID: a.ID,
 					Values:   a.Values,

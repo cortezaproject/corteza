@@ -985,6 +985,7 @@ endpoints:
       parameters:
         get:
           - { name: sensitivityLevelID, type: "uint64", title: "Sensitivity Level ID", required: false}
+          - { name: connectionID, type: "[]string", required: false, title: "Filter by connection ID"}
 
 - title: Charts
   path: "/namespace/{namespaceID}/chart"

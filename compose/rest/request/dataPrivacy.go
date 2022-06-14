@@ -38,6 +38,11 @@ type (
 		//
 		// Sensitivity Level ID
 		SensitivityLevelID uint64 `json:",string"`
+
+		// ConnectionID GET parameter
+		//
+		// Filter by connection ID
+		ConnectionID []string
 	}
 )
 
@@ -50,12 +55,18 @@ func NewDataPrivacyListSensitiveData() *DataPrivacyListSensitiveData {
 func (r DataPrivacyListSensitiveData) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"sensitivityLevelID": r.SensitivityLevelID,
+		"connectionID":       r.ConnectionID,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
 func (r DataPrivacyListSensitiveData) GetSensitivityLevelID() uint64 {
 	return r.SensitivityLevelID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DataPrivacyListSensitiveData) GetConnectionID() []string {
+	return r.ConnectionID
 }
 
 // Fill processes request and fills internal variables
@@ -67,6 +78,17 @@ func (r *DataPrivacyListSensitiveData) Fill(req *http.Request) (err error) {
 
 		if val, ok := tmp["sensitivityLevelID"]; ok && len(val) > 0 {
 			r.SensitivityLevelID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["connectionID[]"]; ok {
+			r.ConnectionID, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["connectionID"]; ok {
+			r.ConnectionID, err = val, nil
 			if err != nil {
 				return err
 			}
