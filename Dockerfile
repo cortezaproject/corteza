@@ -7,7 +7,7 @@ RUN apt-get -y update \
     curl \
  && rm -rf /var/lib/apt/lists/*
 
-ARG VERSION=2022.3
+ARG VERSION=2022.9
 ARG SERVER_VERSION=${VERSION}
 ARG CORTEZA_SERVER_PATH=https://releases.cortezaproject.org/files/corteza-server-${SERVER_VERSION}-linux-amd64.tar.gz
 RUN mkdir /tmp/server
