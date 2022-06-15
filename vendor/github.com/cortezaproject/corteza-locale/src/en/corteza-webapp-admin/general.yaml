@@ -8,3 +8,6 @@ label:
   refresh: Refresh
   loadMore: Load more
   loading: Loading
+  submit: Submit
+  delete: Delete
+  undelete: Undelete

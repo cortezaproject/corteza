@@ -1,0 +1,11 @@
+list:
+  columns:
+    moduleName: Name
+    moduleHandle: Handle
+    connection: Connection
+    location: Location
+    ownership:  Ownership
+  title: Sensitive Data
+  module:
+    enable: Enable modules
+    disable: Disable modules

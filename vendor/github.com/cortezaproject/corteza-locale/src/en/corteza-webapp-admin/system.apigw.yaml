@@ -19,6 +19,8 @@ list:
       label: 'Only'
     deleted:
       label: 'Deleted routes'
+    handle:
+      placeholder: 'Filter endpoints by path'
 
   columns:
     endpoint: 'Endpoint'

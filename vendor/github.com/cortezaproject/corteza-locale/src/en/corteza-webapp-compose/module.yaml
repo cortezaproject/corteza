@@ -70,7 +70,7 @@ edit:
   systemFields: 'System fields:'
   tooltip:
     attributes: Select if the field can hold multiple values, if it's required field or if contains sensitive data
-    name: Must be a-z/A-Z, 0-9 or underscore
+    name: Should be at least 2 characters long and start with a letter. Can contain only letters, numbers, dashes, underscores and dots
     private: Sensitive data
     required: Required field
     title: The name displayed in form input / data lists
@@ -84,13 +84,13 @@ general:
   label:
     attributes: Attributes
     handle: Handle
-    name: Name
+    name: Name *
     permissions: Permissions
     title: Title
     type: Type
     saveAndClose: Save and close
   placeholder:
-    handle: handle (a - z, 0 - 9, underscore, dash)
+    handle: Handle
     sample: Sample
     invalid-handle-characters: Should be at least 2 characters long and start with a letter. Can contain only letters, numbers, dashes, underscores and dots
 import: Module import
@@ -100,6 +100,12 @@ newLabel: Module Name *
 newPlaceholder: Name used on the list of modules
 noModule: No modules
 noModuleFilter: No module matches your search
+privacy:
+  title: Privacy Settings
+  data-source: Data Source
+  select-data-source: Select a Data Source
+  location: Location
+  ownership: Ownership
 recordPage:
   create: Create record page
   edit: Edit record page

@@ -145,6 +145,16 @@ resources:
           title: Create new report
         reports.search:
           title: List and search reports
+        dal-connections.search:
+          title: Search connections
+        dal-connection.create:
+          title: Create connections
+        dal-sensitivity-level.manage:
+          title: Manage connection sensitivity level
+        data-privacy-requests.search:
+          title: Search connections
+        data-privacy-request.create:
+          title: Create connections
 
     application:
       label: Applications
@@ -204,6 +214,23 @@ resources:
           specific: Update client "{{target}}
           title: Update any client
 
+    dal-connection:
+      label: Connections
+      all: all connections
+      specific: connection "{{target}}"
+      operations:
+        read:
+          description: 'Default: deny'
+          specific: Read connection "{{target}}
+          title: Read any connection
+        update:
+          description: 'Default: deny'
+          specific: Update connection "{{target}}
+          title: Update any connection
+        delete:
+          description: 'Default: deny'
+          specific: Delete connection "{{target}}
+          title: Delete any connection
     role:
       label: Roles
       all: all roles
@@ -339,6 +366,19 @@ resources:
           specific: Update {{target}}
           title: Update any user
 
+    data-privacy-request:
+      label: Privacy Requests
+      all: all requests
+      specific: request "{{target}}"
+      operations:
+        read:
+          description: 'Default: deny'
+          specific: Read {{target}}
+          title: Read any request
+        approve:
+          description: 'Default: deny'
+          specific: Approve {{target}}
+          title: Approve any request
   federation:
     component:
       label: Federation component
@@ -462,3 +502,5 @@ resources:
           title: Read any record
         update:
           title: Update any record
+        owner.manage:
+          title: Manage ownership of any record

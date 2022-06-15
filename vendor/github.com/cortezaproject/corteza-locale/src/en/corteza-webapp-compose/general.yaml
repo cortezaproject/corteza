@@ -1,4 +1,7 @@
 label:
+  app-name:
+    public: Low Code
+    private: Low Code - Admin
   actions: Actions
   active: Active
   add: Add
@@ -9,6 +12,7 @@ label:
   attributes: Attributes
   back: Back
   backWithoutSave: Back (without saving changes)
+  block: Block
   browse: Browse
   buttons: Buttons
   cancel: Cancel
@@ -54,6 +58,7 @@ label:
   removeDefault: Remove default
   required: Required
   reset: Reset
+  sensitive: Sensitive
   save: Save
   saveAndClose: Save and close
   status: Status

@@ -4,6 +4,9 @@ translator:
   missing-translation: Missing translation
 
 resources:
+  chart:
+    title: Chart "{{ handle }}"
+
   namespace:
     title: Namespace "{{ handle }}"
   module:

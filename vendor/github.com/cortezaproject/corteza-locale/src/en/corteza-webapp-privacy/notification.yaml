@@ -1,0 +1,9 @@
+general:
+  error: Error
+  success: Success
+  warning: Warning
+search:
+  failed: Search failed
+list:
+  load:
+    error: Failed to load resource list

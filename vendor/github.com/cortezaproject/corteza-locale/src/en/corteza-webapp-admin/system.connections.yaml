@@ -1,0 +1,51 @@
+editor:
+  info:
+    location: Location
+    ownership: Ownership
+    title: Basic Information
+external:
+  add: Add New Connection
+  add-button: Add New Connection
+  columns:
+    dsn: DSN
+    location: Location
+    name: Name
+    ownership: Ownership
+    url: Url
+    actions: ""
+  filterForm:
+    query:
+      placeholder: Type here to search among all columns...
+  info:
+    handle: Handle
+    name: Name
+    location: Location
+    ownership: Ownership
+    url: Url
+    sensitiveData:
+      label: Sensitive Data
+      text: Check if it may contain sensitive data
+  loading: Loading Connections
+  title:
+    create: Create External Connection
+    basic-info: Basic Information
+    default: External Connections
+    edit: Edit External Connection
+federation:
+  title: Federation Connections
+  add-button: Add New Node
+  columns:
+    createdBy: Created by
+    createdAt: Created at
+    location: Location
+    name: Name
+    ownership: Ownership
+    url: Url
+    actions: ""
+  filterForm:
+    query:
+      placeholder: Type here to search among all columns...
+  loading: Loading Connections
+
+list:
+  title: Connections

@@ -116,6 +116,8 @@ github.com/cncf/xds/go v0.0.0-20211001041855-01bcc9b48dfe/go.mod h1:eXthEFrGJvWH
 github.com/cncf/xds/go v0.0.0-20211011173535-cb28da3451f1/go.mod h1:eXthEFrGJvWHgFFCl3hGmgk+/aYT6PnTQLykKQRLhEs=
 github.com/cortezaproject/corteza-locale v0.0.0-20220420093544-33f288d70ae8 h1:k3inoIRB4K3bs5VvgISZPSphUetDIdARgyO2OyAN6Rs=
 github.com/cortezaproject/corteza-locale v0.0.0-20220420093544-33f288d70ae8/go.mod h1:wsI1UftEdBqTuEDKBZmx2LfNu/kZun5pRbCAi420JCg=
+github.com/cortezaproject/corteza-locale v0.0.0-20220615084837-bea2371a9dce h1:IsMBs5jgz7tjinjnrVDr2eu2MrW384aLXr91dMNBTys=
+github.com/cortezaproject/corteza-locale v0.0.0-20220615084837-bea2371a9dce/go.mod h1:wsI1UftEdBqTuEDKBZmx2LfNu/kZun5pRbCAi420JCg=
 github.com/cortezaproject/goqu/v9 v9.18.4 h1:HV7Ocf6xYHIqU4buxYkg3Ght/en93Yr1m71KPhJXW0Y=
 github.com/cortezaproject/goqu/v9 v9.18.4/go.mod h1:nf0Wc2/hV3gYK9LiyqIrzBEVGlI8qW3GuDCEobC4wBQ=
 github.com/cpuguy83/go-md2man/v2 v2.0.1/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=

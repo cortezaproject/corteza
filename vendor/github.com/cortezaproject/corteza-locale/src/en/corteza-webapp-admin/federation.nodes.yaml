@@ -15,7 +15,7 @@ editor:
     deletedAt: Deleted at
     email: Admin Email
     enabled: Enabled
-    name: Server name
+    name: Server name *
     status: Status
     tags:
       label: Tags
@@ -23,7 +23,7 @@ editor:
     title: Basic information
     undelete: Undelete
     updatedAt: Updated at
-    url: Server URL
+    url: Server URL *
   title:
     create: Create Federated Node
     edit: Edit Federated Node
