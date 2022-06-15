@@ -25,6 +25,11 @@ func dalConnector(ctx context.Context, dsn string, cc ...capabilities.Capability
 		return
 	}
 
+	// @todo rework the config building a bit; this will do for now
+	if cfg.ConnTryMax >= 99 {
+		cfg.ConnTryMax = 2
+	}
+
 	if db, err = rdbms.Connect(ctx, logger.Default(), cfg); err != nil {
 		return
 	}
