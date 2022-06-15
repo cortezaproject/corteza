@@ -1,6 +1,6 @@
 {{ template "inc_header.html.tpl" . }}
 <div class="card-body p-0">
-	<h4 class="card-title p-3 border-bottom">{{ tr "login.template.title" }}</h4>
+	<h4 class="login-title card-title p-3 border-bottom">{{ tr "login.template.title" }}</h4>
 	{{ if .settings.LocalEnabled }}
 	<form
 		method="POST"
@@ -15,7 +15,7 @@
 		{{ end }}
 		<div class="mb-3">
 		    <label>
-                {{ tr "login.template.form.email.label" }} *
+                {{ tr "login.template.form.email.label" }}
             </label>
 			<input
 				type="email"
@@ -31,7 +31,7 @@
 		{{ if not .form.splitCredentialsCheck }}
 		<div class="mb-3">
             <label>
-                {{ tr "login.template.form.password.label" }} *
+                {{ tr "login.template.form.password.label" }}
             </label>
 			<input
 				type="password"
@@ -45,7 +45,6 @@
 		</div>
 		<div class="row">
 			<div class="col text-right">
-				{{ if .enableRememberMe }}
 				<button
 					class="btn btn-primary btn-block btn-lg"
 					data-test-id="button-login-and-remember"
@@ -54,13 +53,6 @@
 					type="submit"
 				>
 					{{ tr "login.template.form.button.login-and-remember" }}
-				</button>
-				{{ end }}
-				<button
-					class="btn btn-light btn-block"
-					type="submit"
-				>
-					{{ tr "login.template.form.button.login" }}
 				</button>
 			</div>
 		</div>
@@ -80,7 +72,7 @@
 		</div>
 		{{ end }}
 	</form>
-	<div class="row text-center pb-3">
+	<div class="row text-center px-3 pb-3">
         {{ if .settings.PasswordResetEnabled }}
         <div class="col cols-6">
             <a href="{{ links.RequestPasswordReset }}">{{ tr "login.template.links.request-password-reset" }}</a>
@@ -95,7 +87,7 @@
 	{{ end }}
 
 	{{ if .settings.ExternalEnabled }}
-	<div class="pb-3">
+	<div class="px-3 pb-3">
 	{{ range .providers }}
 		<a href="{{ links.External }}/{{ .Handle }}" class="btn btn-light btn-block btn-lg mb-2 mt-1 text-dark">
 			<i class="bi bi-{{ .Icon }} mr-1"></i>

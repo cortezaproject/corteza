@@ -14,10 +14,10 @@
 	<body class="bg-dark text-light">
 		<div class="container-fluid">
 			<div class="row m-0 p-0">
-				<div class="col-3">
+				<div class="col-3 pl-0">
 					<sidebar class="vh-100 position-fixed w-25 overflow-auto">
 					{{ range .templates }}
-                        <div class="pt-2">
+                        <div class="pt-2 w-75">
                             <code>{{ .Template }}.html.tpl</code>
                             <ul class="nav flex-column">
                                 {{ range .Scenes }}

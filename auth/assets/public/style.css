@@ -21,7 +21,7 @@ body {
 
 .logo {
   max-height: 45px;
-  max-width: 75%;
+  max-width: 25%;
 }
 
 .version {
@@ -72,6 +72,11 @@ a:hover {
   border-radius: 1rem;
 }
 
+.header {
+  background-color: #F4F7FA;
+  border-radius: 10px 10px 0 0 !important;
+}
+
 .btn-primary,
 .bg-primary {
   background-color: var(--primary)!important;
@@ -103,6 +108,10 @@ a:hover {
 /* Navigation */
 .nav-item.active {
   border-bottom: 4px solid var(--primary);
+}
+
+.login-title {
+  font-size: 25px;
 }
 
 /* form styling*/
