@@ -38,6 +38,9 @@ func (n *composeChart) Prepare(ctx context.Context, state *envoy.ResourceState) 
 
 	for i, r := range chr.Res.Config.Reports {
 		refMod := chr.RefMods[i]
+		if refMod == nil {
+			continue
+		}
 		relMod := resource.FindComposeModule(state.ParentResources, refMod.Identifiers)
 		if relMod == nil {
 			return resource.ComposeModuleErrUnresolved(refMod.Identifiers)

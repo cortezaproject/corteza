@@ -31,7 +31,10 @@ func NewComposeChart(res *types.Chart, nsRef *Ref, mmRef RefSet) *ComposeChart {
 
 	r.RefNs = r.addRef(nsRef)
 	for i, mRef := range mmRef {
-		r.RefMods[i] = r.addRef(mRef).Constraint(r.RefNs)
+		ref := r.addRef(mRef)
+		if ref != nil {
+			r.RefMods[i] = ref.Constraint(r.RefNs)
+		}
 	}
 
 	// Initial timestamps

@@ -131,6 +131,9 @@ func (b *builder) buildGraph(rr []resource.Interface) *graph {
 
 		// Attempt to connect all available nodes
 		for _, ref := range refs {
+			if ref == nil {
+				continue
+			}
 			// Handle wildcard references
 			if ref.IsWildcard() {
 				nn := nIndex.GetResourceType(ref.ResourceType)
