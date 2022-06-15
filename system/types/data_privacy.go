@@ -126,9 +126,9 @@ func CastToRequestKind(s string) RequestKind {
 	case "correct":
 		return RequestKindCorrect
 	case "delete":
-		return RequestKindCorrect
+		return RequestKindDelete
 	case "export":
-		return RequestKindCorrect
+		return RequestKindExport
 	default:
 		return ""
 	}
