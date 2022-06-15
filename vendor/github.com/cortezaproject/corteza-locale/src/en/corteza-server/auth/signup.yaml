@@ -15,7 +15,7 @@ template:
       placeholder: Short name, nickname or handle
     button:
       sign-up: Submit
-  log-in: Already have an account? <a href="{{link}}">Log in</a>
+  log-in: Already have an account? <a data-test-id="link-login" href="{{link}}">Log in</a>
 
 alerts:
   signup-successful: Sign-up successful.

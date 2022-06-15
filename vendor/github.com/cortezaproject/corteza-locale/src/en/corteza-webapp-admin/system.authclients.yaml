@@ -17,7 +17,7 @@ editor:
       client_credentials: Will be used to authenticate machines (grant type = client_credentials)
     handle:
       disabledFootnote: Unable to change the handle of the default auth client
-      label: Handle
+      label: Handle *
       placeholder-handle: handle (a - z, 0 - 9, underscore, dash)
       invalid-handle-characters: Should be at least 2 characters long and start with a letter. Can contain only letters, numbers, dashes, underscores and dots
     name: Name

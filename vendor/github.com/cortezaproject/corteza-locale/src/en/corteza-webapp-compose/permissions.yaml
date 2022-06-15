@@ -150,3 +150,8 @@ resources:
           specific: Update record "{{target}}"
           title: Update records of any module
           all-specific: Update records of module "{{ target }}"
+        'owner.manage':
+          description: 'Default: deny'
+          specific: Manage owner of record "{{target}}"
+          title: Manage record owners of any module
+          all-specific: Manage record owners of module "{{ target }}"

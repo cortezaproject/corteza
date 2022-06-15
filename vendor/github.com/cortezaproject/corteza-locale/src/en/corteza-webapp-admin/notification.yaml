@@ -229,4 +229,22 @@ permissions:
     error: Permissions clone failed
   role:
     error: Failed to add role
+connection:
+  fetch:
+    error: Connection fetch failed
+  update:
+    success: Connection updated
+    error: Connection update failed
+  create:
+    success: Connection created
+    error: Connection create failed
+  delete:
+    success: Connection deleted
+    error: Connection delete failed
+  undelete:
+    success: Connection restored
+    error: Connection restore failed
+  capabilities:
+    success: Connection capabilities updated
+    error: Connection capability update failed
 

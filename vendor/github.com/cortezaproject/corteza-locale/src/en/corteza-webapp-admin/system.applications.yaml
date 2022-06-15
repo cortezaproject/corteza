@@ -5,7 +5,7 @@ editor:
     deletedAt: Deleted at
     enabled: Enabled
     id: ID
-    name: Name
+    name: Name *
     title: Basic information
     undelete: Undelete
     updatedAt: Updated at
