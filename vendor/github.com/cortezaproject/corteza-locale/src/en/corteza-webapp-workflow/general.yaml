@@ -5,7 +5,7 @@ error: Error
 error-expression: Error message (expression)
 export: Export
 general: General
-handle: Handle
+handle: Handle *
 import:
   json: Import JSON
   label: Import
