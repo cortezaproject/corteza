@@ -7,10 +7,10 @@ import (
 application: schema.#Resource & {
 	struct: {
 		id: schema.IdField
-		name: {}
-		owner_id: { ident: "ownerID", goType: "uint64", storeIdent: "rel_owner" }
+		name: {sortable: true}
+		owner_id: { ident: "ownerID", goType: "uint64", storeIdent: "rel_owner", sortable: true }
 		enabled: {goType: "bool"}
-		weight: {goType: "int"}
+		weight: {goType: "int", sortable: true}
 		unify: {goType: "*types.ApplicationUnify"}
 		created_at: schema.SortableTimestampField
 		updated_at: schema.SortableTimestampNilField
