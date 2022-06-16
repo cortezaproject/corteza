@@ -1836,8 +1836,12 @@ func (Store) sortableApplicationFields() map[string]string {
 		"deleted_at": "deleted_at",
 		"deletedat":  "deleted_at",
 		"id":         "id",
+		"name":       "name",
+		"owner_id":   "owner_id",
+		"ownerid":    "owner_id",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
+		"weight":     "weight",
 	}
 }
 
@@ -1866,6 +1870,12 @@ func (s *Store) collectApplicationCursorValues(res *systemType.Application, cc .
 				case "id":
 					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+				case "name":
+					cur.Set(c.Column, res.Name, c.Descending)
+				case "ownerID":
+					cur.Set(c.Column, res.OwnerID, c.Descending)
+				case "weight":
+					cur.Set(c.Column, res.Weight, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":
