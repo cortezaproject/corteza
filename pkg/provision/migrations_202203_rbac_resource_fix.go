@@ -71,8 +71,9 @@ func migratePost202203RbacRules(ctx context.Context, log *zap.Logger, s store.St
 				exposedModules: make(map[uint64]*federationTypes.ExposedModule),
 				sharedModules:  make(map[uint64]*federationTypes.SharedModule),
 			}
-			uniq   = make(map[string]bool)
-			uniqID = func(r *rbac.Rule) string {
+			existingRules = make(map[string]bool)
+			uniq          = make(map[string]bool)
+			uniqID        = func(r *rbac.Rule) string {
 				return fmt.Sprintf("%s|%s|%d", r.Resource, r.Operation, r.RoleID)
 			}
 
@@ -83,6 +84,7 @@ func migratePost202203RbacRules(ctx context.Context, log *zap.Logger, s store.St
 
 		// check if migration is needed or not
 		for _, rule := range rr {
+			existingRules[uniqID(rule)] = true
 			action := validRbacRule(rule)
 			if action == actionRemove {
 				deleteRules = append(deleteRules, rule)
@@ -141,8 +143,15 @@ func migratePost202203RbacRules(ctx context.Context, log *zap.Logger, s store.St
 				continue
 			}
 
+			tmpRule := *rule
 			action := migratePost202203RbacRule(ctx, s, rule, rx)
 			if action == actionUpdate {
+				// delete migrated rules which already exist
+				if existingRules[uniqID(rule)] {
+					deleteRules = append(deleteRules, &tmpRule)
+					continue
+				}
+
 				err = store.CreateRbacRule(ctx, s, rule)
 				if err != nil {
 					return fmt.Errorf("could not create RBAC rule %s: %v", rule, err)
