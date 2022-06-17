@@ -73,6 +73,7 @@ type (
 
 	PageBlockStyle struct {
 		Variants map[string]string `json:"variants,omitempty"`
+		Wrap     map[string]string `json:"wrap,omitempty"`
 	}
 
 	PageButton struct {
