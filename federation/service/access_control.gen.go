@@ -20,8 +20,9 @@ type (
 	accessControl struct {
 		actionlog actionlog.Recorder
 
-		rbac interface {
-			Can(rbac.Session, string, rbac.Resource) bool
+		roleFinder func(ctx context.Context, id uint64) ([]uint64, error)
+		rbac       interface {
+			Evaluate(rbac.Session, string, rbac.Resource) rbac.Evaluated
 			Grant(context.Context, ...*rbac.Rule) error
 			FindRulesByRoleID(roleID uint64) (rr rbac.RuleSet)
 			CloneRulesByRoleID(ctx context.Context, fromRoleID uint64, toRoleID ...uint64) error
@@ -29,15 +30,16 @@ type (
 	}
 )
 
-func AccessControl() *accessControl {
+func AccessControl(rf func(ctx context.Context, id uint64) ([]uint64, error)) *accessControl {
 	return &accessControl{
-		rbac:      rbac.Global(),
-		actionlog: DefaultActionlog,
+		roleFinder: rf,
+		rbac:       rbac.Global(),
+		actionlog:  DefaultActionlog,
 	}
 }
 
 func (svc accessControl) can(ctx context.Context, op string, res rbac.Resource) bool {
-	return svc.rbac.Can(rbac.ContextToSession(ctx), op, res)
+	return svc.rbac.Evaluate(rbac.ContextToSession(ctx), op, res).Can
 }
 
 // Effective returns a list of effective permissions for all given resource
@@ -46,6 +48,39 @@ func (svc accessControl) Effective(ctx context.Context, rr ...rbac.Resource) (ee
 		r := res.RbacResource()
 		for op := range rbacResourceOperations(r) {
 			ee.Push(r, op, svc.can(ctx, op, res))
+		}
+	}
+
+	return
+}
+
+// Evaluate returns a list of permissions evaluated for the given user/roles combo
+func (svc accessControl) Evaluate(ctx context.Context, user uint64, roles []uint64, rr ...rbac.Resource) (ee rbac.EvaluatedSet, err error) {
+	// Reusing the grant permission since this is who the feature is for
+	if !svc.CanGrant(ctx) {
+		// @todo should be altered to check grant permissions PER resource
+		return nil, AccessControlErrNotAllowedToSetPermissions()
+	}
+
+	// Load roles for this user
+	//
+	// User's roles take priority over specified ones
+	if user != 0 {
+		rr, err := svc.roleFinder(ctx, user)
+		if err != nil {
+			return nil, err
+		}
+
+		roles = append(rr, roles...)
+	}
+
+	session := rbac.ParamsToSession(ctx, user, roles...)
+	for _, res := range rr {
+		r := res.RbacResource()
+		for op := range rbacResourceOperations(r) {
+			eval := svc.rbac.Evaluate(session, op, res)
+
+			ee = append(ee, eval)
 		}
 	}
 

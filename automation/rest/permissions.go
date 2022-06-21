@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/automation/rest/request"
 	"github.com/cortezaproject/corteza-server/automation/service"
 	"github.com/cortezaproject/corteza-server/automation/types"
@@ -14,8 +15,13 @@ type (
 		ac permissionsAccessController
 	}
 
+	rbacResWrap struct {
+		res string
+	}
+
 	permissionsAccessController interface {
 		Effective(context.Context, ...rbac.Resource) rbac.EffectiveSet
+		Evaluate(ctx context.Context, user uint64, roles []uint64, rr ...rbac.Resource) (ee rbac.EvaluatedSet, err error)
 		List() []map[string]string
 		FindRulesByRoleID(context.Context, uint64) (rbac.RuleSet, error)
 		Grant(ctx context.Context, rr ...*rbac.Rule) error
@@ -30,6 +36,15 @@ func (Permissions) New() *Permissions {
 
 func (ctrl Permissions) Effective(ctx context.Context, r *request.PermissionsEffective) (interface{}, error) {
 	return ctrl.ac.Effective(ctx, types.Component{}), nil
+}
+
+func (ctrl Permissions) Evaluate(ctx context.Context, r *request.PermissionsEvaluate) (interface{}, error) {
+	in := make([]rbac.Resource, 0, len(r.Resource))
+	for _, res := range r.Resource {
+		in = append(in, rbacResWrap{res: res})
+	}
+
+	return ctrl.ac.Evaluate(ctx, r.UserID, r.RoleID, in...)
 }
 
 func (ctrl Permissions) List(ctx context.Context, r *request.PermissionsList) (interface{}, error) {
@@ -60,4 +75,8 @@ func (ctrl Permissions) Update(ctx context.Context, r *request.PermissionsUpdate
 	}
 
 	return api.OK(), ctrl.ac.Grant(ctx, r.Rules...)
+}
+
+func (ar rbacResWrap) RbacResource() string {
+	return ar.res
 }

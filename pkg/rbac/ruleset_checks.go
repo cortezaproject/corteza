@@ -5,20 +5,26 @@ import (
 )
 
 func check(indexedRules OptRuleSet, rolesByKind partRoles, op, res string) Access {
+	a, _, _ := evaluate(indexedRules, rolesByKind, op, res, false)
+	return a
+}
+
+func evaluate(indexedRules OptRuleSet, rolesByKind partRoles, op, res string, parent bool) (Access, *Rule, explanation) {
 	if member(rolesByKind, AnonymousRole) && len(rolesByKind) > 1 {
 		// Integrity check; when user is member of anonymous role
 		// should not be member of any other type of role
-		return Deny
+
+		return Deny, nil, stepIntegrity
 	}
 
 	if member(rolesByKind, BypassRole) {
 		// if user has at least one bypass role, we allow access
-		return Allow
+		return Allow, nil, stepBypass
 	}
 
 	if len(indexedRules) == 0 {
 		// no rules no access
-		return Inherit
+		return Inherit, nil, stepRuleless
 	}
 
 	var rules RuleSet
@@ -34,11 +40,6 @@ func check(indexedRules OptRuleSet, rolesByKind partRoles, op, res string) Acces
 			continue
 		}
 
-		// user has at least one bypass role
-		if kind == BypassRole {
-			return Allow
-		}
-
 		rules = nil
 		for roleID, r := range indexedRules[op] {
 			if !rolesByKind[kind][roleID] {
@@ -47,17 +48,28 @@ func check(indexedRules OptRuleSet, rolesByKind partRoles, op, res string) Acces
 			rules = append(rules, r...)
 		}
 
-		access := checkRulesByResource(rules, op, res)
+		// When evaluating access for parent, omit the exact tule
+		if parent {
+			nr := make(RuleSet, 0, len(rules))
+			for _, r := range rules {
+				if r.Resource != res {
+					nr = append(nr, r)
+				}
+			}
+			rules = nr
+		}
+
+		r, access := checkRulesByResource(rules, op, res)
 		if access != Inherit {
-			return access
+			return access, r, stepEvaluated
 		}
 	}
 
-	return Inherit
+	return Inherit, nil, stepRuleless
 }
 
 // Check given resource match and operation on all given rules
-func checkRulesByResource(set RuleSet, op, res string) Access {
+func checkRulesByResource(set RuleSet, op, res string) (*Rule, Access) {
 	// Make sure rules are always sorted (by level)
 	// to avoid any kind of unstable behaviour
 	sort.Sort(set)
@@ -72,11 +84,11 @@ func checkRulesByResource(set RuleSet, op, res string) Access {
 		}
 
 		if r.Access != Inherit {
-			return r.Access
+			return r, r.Access
 		}
 	}
 
-	return Inherit
+	return nil, Inherit
 }
 
 // at least one of the roles must be set to true

@@ -85,7 +85,7 @@ func Initialize(_ context.Context, log *zap.Logger, s store.Storer, c Config) (e
 		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
 	}
 
-	DefaultAccessControl = AccessControl()
+	DefaultAccessControl = AccessControl(service.RolesForUser(s))
 
 	DefaultNode = Node(
 		DefaultStore,
