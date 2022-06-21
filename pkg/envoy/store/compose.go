@@ -178,7 +178,7 @@ func (d *composeDecoder) decodeComposeRecord(ctx context.Context, s store.Storer
 		}
 	}
 
-	ac := service.AccessControl()
+	ac := service.AccessControl(nil)
 
 	if len(d.namespaceID) > 0 {
 		ffNs := make([]*composeRecordFilter, 0, len(ff)+len(d.namespaceID))

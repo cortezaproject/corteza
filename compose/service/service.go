@@ -10,6 +10,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/discovery"
 
 	automationService "github.com/cortezaproject/corteza-server/automation/service"
+	systemService "github.com/cortezaproject/corteza-server/automation/service"
 	"github.com/cortezaproject/corteza-server/compose/automation"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
@@ -126,7 +127,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 		}
 	}
 
-	DefaultAccessControl = AccessControl()
+	DefaultAccessControl = AccessControl(systemService.RolesForUser(s))
 	DefaultResourceTranslation = ResourceTranslationsManager(locale.Global())
 
 	if DefaultObjectStore == nil {

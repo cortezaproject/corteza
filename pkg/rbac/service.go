@@ -93,12 +93,9 @@ func (svc *service) Can(ses Session, op string, res Resource) bool {
 //
 // See RuleSet's Check() func for details
 func (svc *service) Check(ses Session, op string, res Resource) (v Access) {
-	svc.l.RLock()
-	defer svc.l.RUnlock()
-
 	var (
-		fRoles = getContextRoles(ses, res, svc.roles)
-		access = check(svc.indexed, fRoles, op, res.RbacResource())
+		eval, fRoles = svc.evaluate(ses, op, res, false)
+		access       = eval.Access
 	)
 
 	svc.logger.Debug(access.String()+" "+op+" for "+res.RbacResource(),
@@ -111,6 +108,68 @@ func (svc *service) Check(ses Session, op string, res Resource) (v Access) {
 	)
 
 	return access
+}
+
+// Eval evaluates access for the given parameters
+//
+// The evaluation outputs verbose details to assist the UI.
+func (svc *service) Evaluate(ses Session, op string, res Resource) Evaluated {
+	var (
+		eval, fRoles = svc.evaluate(ses, op, res, true)
+	)
+
+	svc.logger.Debug(eval.Access.String()+" "+op+" for "+res.RbacResource(),
+		append(
+			fRoles.LogFields(),
+			zap.Uint64("identity", ses.Identity()),
+			zap.Any("indexed", len(svc.indexed)),
+			zap.Any("rules", len(svc.rules)),
+		)...,
+	)
+
+	return eval
+}
+
+func (svc *service) evaluate(ses Session, op string, res Resource, inclParent bool) (e Evaluated, _ partRoles) {
+	svc.l.RLock()
+	defer svc.l.RUnlock()
+
+	var (
+		fRoles             = getContextRoles(ses, res, svc.roles)
+		access, rule, expl = evaluate(svc.indexed, fRoles, op, res.RbacResource(), false)
+	)
+
+	// Check the requested resource
+	e = Evaluated{
+		Resource:  res.RbacResource(),
+		Operation: op,
+
+		Access: access,
+		Can:    access == Allow,
+		Rule:   rule,
+		Step:   expl,
+	}
+	if rule != nil {
+		e.RoleID = rule.RoleID
+	}
+
+	// Check the parent resource
+	if inclParent {
+		access, rule, expl = evaluate(svc.indexed, fRoles, op, res.RbacResource(), true)
+		e.Default = &Evaluated{
+			Resource:  res.RbacResource(),
+			Operation: op,
+			Access:    access,
+			Can:       access == Allow,
+			Rule:      rule,
+			Step:      expl,
+		}
+		if rule != nil {
+			e.Default.RoleID = rule.RoleID
+		}
+	}
+
+	return e, fRoles
 }
 
 // Grant appends and/or overwrites internal rules slice

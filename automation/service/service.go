@@ -12,6 +12,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/objstore"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/system/types"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
 )
@@ -89,7 +90,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
 	}
 
-	DefaultAccessControl = AccessControl()
+	DefaultAccessControl = AccessControl(RolesForUser(s))
 
 	DefaultSession = Session(DefaultLogger.Named("session"), c.Workflow, ws)
 	DefaultWorkflow = Workflow(DefaultLogger.Named("workflow"), c.Corredor, c.Workflow)
@@ -162,4 +163,20 @@ func isStale(new *time.Time, updatedAt *time.Time, createdAt time.Time) bool {
 // trim1st removes 1st param and returns only error
 func trim1st(_ interface{}, err error) error {
 	return err
+}
+
+// @note copied over from system/service/role@RolesForUser
+func RolesForUser(s store.Storer) func(ctx context.Context, userID uint64) ([]uint64, error) {
+	return func(ctx context.Context, userID uint64) ([]uint64, error) {
+		rr, _, err := store.SearchRoles(ctx, s, types.RoleFilter{MemberID: userID})
+		if err != nil {
+			return nil, err
+		}
+
+		out := make([]uint64, len(rr))
+		for i, r := range rr {
+			out[i] = r.ID
+		}
+		return out, nil
+	}
 }
