@@ -2,14 +2,18 @@ package rest
 
 import (
 	"context"
+	"encoding/json"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/report"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/pkg/errors"
+	"github.com/spf13/cast"
 )
 
 var _ = errors.Wrap
@@ -56,7 +60,17 @@ type (
 	}
 
 	reportFramePayload struct {
-		Frames []*report.Frame `json:"frames"`
+		Frames []*rspFrame `json:"frames"`
+	}
+
+	rspFrame struct {
+		*report.Frame
+		Rows []rspRows `json:"rows"`
+	}
+
+	rspRows struct {
+		row  report.FrameRow
+		cols report.FrameColumnSet
 	}
 )
 
@@ -182,7 +196,64 @@ func (ctrl Report) makeReportFramePayload(ctx context.Context, ff []*report.Fram
 		return nil, err
 	}
 
+	out := make([]*rspFrame, len(ff))
+	for i, f := range ff {
+		out[i] = &rspFrame{
+			Frame: f,
+		}
+
+		// We're including cols here so we can use then when marshling JSON
+		for _, r := range f.Rows {
+			out[i].Rows = append(out[i].Rows, rspRows{
+				row:  r,
+				cols: f.Columns,
+			})
+		}
+	}
+
 	return &reportFramePayload{
-		Frames: ff,
+		Frames: out,
 	}, nil
+}
+
+func (rr rspRows) MarshalJSON() (out []byte, err error) {
+	row := rr.row
+	cc := rr.cols
+
+	aux := make([]string, len(row))
+	var ss []string
+
+	enc := func(e expr.TypedValue) error {
+		s, err := cast.ToStringE(e.Get())
+		if err != nil {
+			return err
+		}
+
+		ss = append(ss, s)
+		return nil
+	}
+
+	for i, c := range row {
+		ss = make([]string, 0, 2)
+		if c == nil {
+			continue
+		}
+
+		switch cc := c.(type) {
+		case *expr.Array:
+			for _, v := range cc.GetValue() {
+				if err = enc(v); err != nil {
+					return
+				}
+			}
+		default:
+			if err = enc(c); err != nil {
+				return
+			}
+		}
+
+		aux[i] = strings.Join(ss, cc[i].MultivalueDelimiter)
+	}
+
+	return json.Marshal(aux)
 }

@@ -85,6 +85,13 @@ func (svc record) Datasource(ctx context.Context, ld *report.LoadStepDefinition)
 			c = report.MakeColumnOfKind(k)
 			c.Name = f.Name
 			c.Label = f.Label
+			c.Multivalue = f.Multi
+			if f.Multi {
+				c.MultivalueDelimiter = f.Options.String("multiDelimiter")
+				if c.MultivalueDelimiter == "" {
+					c.MultivalueDelimiter = "\n"
+				}
+			}
 			if c.Label == "" {
 				c.Label = c.Name
 			}
