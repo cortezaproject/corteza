@@ -39,8 +39,6 @@ type (
 
 		// params to help us perform things in place
 		startIndex int
-		size       int
-		sliced     bool
 	}
 
 	FrameRowSet []FrameRow
@@ -56,6 +54,9 @@ type (
 		Unique  bool          `json:"unique"`
 		System  bool          `json:"system"`
 		Options ColumnOptions `json:"-"`
+
+		Multivalue          bool   `json:"multivalue"`
+		MultivalueDelimiter string `json:"multivalueDelimiter"`
 
 		Caster frameCellCaster `json:"-" yaml:"-"`
 	}
@@ -279,14 +280,7 @@ func (f *Frame) String() string {
 
 	f.WalkRows(func(i int, r FrameRow) error {
 		out += fmt.Sprintf("%d| ", i+1)
-		for _, c := range r {
-			if c == nil {
-				out += "<N/A>, "
-			} else {
-				v := cast.ToString(c.Get())
-				out += fmt.Sprintf("%s, ", v)
-			}
-		}
+		out += fmt.Sprintf("%s, ", r.String())
 		out = strings.TrimRight(out, ", ") + "\n"
 		return nil
 	})
@@ -480,38 +474,32 @@ func (dd FrameDefinitionSet) FindBySourceRef(source, ref string) *FrameDefinitio
 	return nil
 }
 
-func (r FrameRow) MarshalJSON() (out []byte, err error) {
-	aux := make([]string, len(r))
-	var s string
-
-	for i, c := range r {
-		if c == nil {
-			continue
-		}
-
-		s, err = cast.ToStringE(c.Get())
-		if err != nil {
-			return nil, err
-		}
-
-		aux[i] = s
-	}
-
-	return json.Marshal(aux)
-}
-
-func (r FrameRow) String() string {
+func (row FrameRow) String() string {
 	out := ""
 	var s string
-	var err error
-	for _, c := range r {
-		if c == nil {
+
+	format := func(c expr.TypedValue) (out string) {
+		out, err := cast.ToStringE(c.Get())
+		if err != nil {
+			return fmt.Sprintf("[STRING CAST ERROR]%s", err.Error())
+		}
+		return out
+	}
+
+	for _, cell := range row {
+		if cell == nil {
 			out += "<N/A>, "
 		} else {
-			s, err = cast.ToStringE(c.Get())
-			if err != nil {
-				out = fmt.Sprintf("%s, [STRING CAST ERROR]%s", out, err.Error())
-			} else {
+			switch c := cell.(type) {
+			case *expr.Array:
+				aux := make([]string, 0, 3)
+				for _, c := range c.GetValue() {
+					aux = append(aux, format(c))
+				}
+
+				out = fmt.Sprintf("%s, %s", out, fmt.Sprintf("[%s]", strings.Join(aux, ", ")))
+			default:
+				s = format(cell)
 				out = fmt.Sprintf("%s, %s", out, s)
 			}
 		}
@@ -528,6 +516,26 @@ func (a FrameRow) Compare(b FrameRow, cols ...int) int {
 	}
 
 	return 0
+}
+
+// AppendCell adds an extra value to the cell at index i
+func (a FrameRow) AppendCell(i int, v expr.TypedValue) (err error) {
+	out := make([]expr.TypedValue, 0, 10)
+
+	handle := func(v expr.TypedValue) {
+		switch c := v.(type) {
+		case *expr.Array:
+			out = append(out, c.GetValue()...)
+		default:
+			out = append(out, v)
+		}
+	}
+
+	handle(a[i])
+	handle(v)
+
+	a[i], err = expr.NewArray(out)
+	return err
 }
 
 func (dd FrameDescriptionSet) FilterBySource(source string) FrameDescriptionSet {

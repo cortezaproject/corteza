@@ -10,6 +10,7 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/qlng"
 	"github.com/cortezaproject/corteza-server/pkg/report"
@@ -325,7 +326,9 @@ func (r *recordDatasource) preloadQuery(def *report.FrameDefinition) (squirrel.S
 }
 
 func (r *recordDatasource) load(ctx context.Context, def *report.FrameDefinition, q squirrel.SelectBuilder) (l report.Loader, c report.Closer, err error) {
-	sort := def.Sort
+	var (
+		sort filter.SortExprSet
+	)
 
 	// - paging related stuff
 	if def.Paging.PageCursor != nil {
@@ -633,12 +636,39 @@ func (b *recordDatasource) cast(row sqlx.ColScanner, out *report.Frame) (err err
 				return err
 			}
 			r[i] = c
-
 		}
-
 	}
 
-	out.Rows = append(out.Rows, r)
+	// Handling multi value fields; rows with duplicated PKs get their multi value fields
+	// merged together.
+	next := false
+	hasPrimary := false
+	if len(out.Rows) > 0 {
+		for i, c := range out.Columns {
+			hasPrimary = hasPrimary || c.Primary
+			if c.Primary {
+				a := out.Rows[len(out.Rows)-1][i].(expr.Comparable)
+				if o, err := a.Compare(r[i]); err != nil || o != 0 {
+					next = true
+					break
+				}
+			}
+		}
+	} else {
+		next = true
+	}
+
+	next = next || !hasPrimary
+	if next {
+		out.Rows = append(out.Rows, r)
+	} else {
+		lastR := out.Rows[len(out.Rows)-1]
+		for i, c := range out.Columns {
+			if c.Multivalue {
+				lastR.AppendCell(i, r[i])
+			}
+		}
+	}
 	return nil
 }
 
