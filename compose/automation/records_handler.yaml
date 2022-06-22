@@ -213,9 +213,13 @@ functions:
       <<: *labels
       delete: "step"
     params:
-      module:    *moduleLookup
-      namespace: *namespaceLookup
-      record:    *recordLookup
+      module:
+        <<: *moduleLookup
+        required: false
+      namespace:
+        <<: *namespaceLookup
+        required: false
+      record: *recordLookup
 
 #  undelete:
 #    meta:
