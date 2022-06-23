@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/spf13/cast"
 	"strings"
 	"sync"
 	"time"
@@ -17,6 +19,7 @@ import (
 
 type (
 	settings struct {
+		actionlog     actionlog.Recorder
 		store         store.SettingValues
 		accessControl accessController
 		logger        *zap.Logger
@@ -44,13 +47,9 @@ type (
 	}
 )
 
-var (
-	ErrNoReadPermission   = fmt.Errorf("not allowed to read settings")
-	ErrNoManagePermission = fmt.Errorf("not allowed to manage settings")
-)
-
-func Settings(ctx context.Context, s store.SettingValues, log *zap.Logger, ac accessController, current interface{}) *settings {
+func Settings(ctx context.Context, s store.SettingValues, log *zap.Logger, ac accessController, al actionlog.Recorder, current interface{}) *settings {
 	svc := &settings{
+		actionlog:     al,
 		store:         s,
 		accessControl: ac,
 		logger:        log.Named("settings"),
@@ -118,7 +117,7 @@ func (svc *settings) log(ctx context.Context, fields ...zapcore.Field) *zap.Logg
 
 func (svc *settings) FindByPrefix(ctx context.Context, pp ...string) (types.SettingValueSet, error) {
 	if !svc.accessControl.CanReadSettings(ctx) {
-		return nil, ErrNoReadPermission
+		return nil, SettingsErrNotAllowedToRead()
 	}
 
 	return svc.findByPrefix(ctx, pp...)
@@ -138,7 +137,7 @@ func (svc *settings) findByPrefix(ctx context.Context, pp ...string) (types.Sett
 
 func (svc *settings) Get(ctx context.Context, name string, ownedBy uint64) (out *types.SettingValue, err error) {
 	if !svc.accessControl.CanReadSettings(ctx) {
-		return nil, ErrNoReadPermission
+		return nil, SettingsErrNotAllowedToRead()
 	}
 
 	out, err = store.LookupSettingValueByNameOwnedBy(ctx, svc.store, name, ownedBy)
@@ -177,7 +176,11 @@ func (svc *settings) updateCurrent(ctx context.Context, vv types.SettingValueSet
 
 func (svc *settings) Set(ctx context.Context, v *types.SettingValue) (err error) {
 	if !svc.accessControl.CanManageSettings(ctx) {
-		return ErrNoManagePermission
+		return SettingsErrNotAllowedToManage()
+	}
+
+	if _, err = check(v); err != nil {
+		return
 	}
 
 	var current *types.SettingValue
@@ -205,7 +208,11 @@ func (svc *settings) Set(ctx context.Context, v *types.SettingValue) (err error)
 
 func (svc *settings) BulkSet(ctx context.Context, vv types.SettingValueSet) (err error) {
 	if !svc.accessControl.CanManageSettings(ctx) {
-		return ErrNoManagePermission
+		return SettingsErrNotAllowedToManage()
+	}
+
+	if _, err = check(vv...); err != nil {
+		return
 	}
 
 	// Load current settings and get changed values
@@ -253,7 +260,7 @@ func (svc *settings) logChange(ctx context.Context, vv types.SettingValueSet) {
 
 func (svc *settings) Delete(ctx context.Context, name string, ownedBy uint64) error {
 	if !svc.accessControl.CanManageSettings(ctx) {
-		return ErrNoManagePermission
+		return SettingsErrNotAllowedToManage()
 	}
 
 	current, err := store.LookupSettingValueByNameOwnedBy(ctx, svc.store, name, ownedBy)
@@ -275,4 +282,52 @@ func (svc *settings) Delete(ctx context.Context, name string, ownedBy uint64) er
 		zap.Uint64("owned-by", ownedBy)).Info("setting value removed")
 
 	return svc.updateCurrent(ctx, vv)
+}
+
+// Check validates settings values
+func check(vv ...*types.SettingValue) (ok bool, err error) {
+	set := append(types.SettingValueSet{}, vv...)
+	err = set.Walk(func(val *types.SettingValue) error {
+		// Password constraints: The min password length should be 8
+		if val.Name == "auth.internal.password-constraints.min-length" {
+			if cast.ToUint64(val.String()) < passwordMinLength {
+				return SettingsErrInvalidPasswordMinLength()
+			}
+		}
+
+		// Password constraints: The min upper case count should not be a negative number
+		if val.Name == "auth.internal.password-constraints.min-upper-case" {
+			if cast.ToInt(val.String()) < 0 {
+				return SettingsErrInvalidPasswordMinUpperCase()
+			}
+		}
+
+		// Password constraints: The min lower case count should not be a negative number
+		if val.Name == "auth.internal.password-constraints.min-lower-case" {
+			if cast.ToInt(val.String()) < 0 {
+				return SettingsErrInvalidPasswordMinLowerCase()
+			}
+		}
+
+		// Password constraints: The min number of numeric characters should not be a negative number
+		if val.Name == "auth.internal.password-constraints.min-num-count" {
+			if cast.ToInt(val.String()) < 0 {
+				return SettingsErrInvalidPasswordMinNumCount()
+			}
+		}
+
+		// Password constraints: The min number of special characters should not be a negative number
+		if val.Name == "auth.internal.password-constraints.min-special-count" {
+			if cast.ToInt(val.String()) < 0 {
+				return SettingsErrInvalidPasswordMinSpecialCharCount()
+			}
+		}
+
+		return err
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
