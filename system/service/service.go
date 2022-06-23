@@ -150,7 +150,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 
 	DefaultAccessControl = AccessControl(s)
 
-	DefaultSettings = Settings(ctx, DefaultStore, DefaultLogger, DefaultAccessControl, CurrentSettings)
+	DefaultSettings = Settings(ctx, DefaultStore, DefaultLogger, DefaultAccessControl, DefaultActionlog, CurrentSettings)
 
 	DefaultDalConnection = Connection(ctx, dal.Service(), c.DB)
 

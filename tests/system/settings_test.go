@@ -43,7 +43,7 @@ func TestSettingsList_noPermissions(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to read settings")).
+		Assert(helpers.AssertError("settings.errors.notAllowedToRead")).
 		End()
 }
 
@@ -84,8 +84,65 @@ func TestSettingsUpdate_noPermissions(t *testing.T) {
 		JSON(`{"values":[]}`).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to manage settings")).
+		Assert(helpers.AssertError("settings.errors.notAllowedToManage")).
 		End()
+}
+
+func TestSettingsUpdate_validation(t *testing.T) {
+	h := newHelper(t)
+	helpers.AllowMe(h, types.ComponentRbacResource(), "settings.manage")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "settings.read")
+
+	// Password constraints: The min password length should be 8
+	h.apiInit().
+		Patch("/settings/").
+		Header("Accept", "application/json").
+		JSON(`{"values":[{"name":"auth.internal.password-constraints.min-length","value":"7"}]}`).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("settings.errors.invalidPasswordMinLength")).
+		End()
+
+	// Password constraints: The min upper case count should not be a negative number
+	h.apiInit().
+		Patch("/settings/").
+		Header("Accept", "application/json").
+		JSON(`{"values":[{"name":"auth.internal.password-constraints.min-upper-case","value":"-1"}]}`).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("settings.errors.invalidPasswordMinUpperCase")).
+		End()
+
+	// Password constraints: The min lower case count should not be a negative number
+	h.apiInit().
+		Patch("/settings/").
+		Header("Accept", "application/json").
+		JSON(`{"values":[{"name":"auth.internal.password-constraints.min-lower-case","value":"-1"}]}`).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("settings.errors.invalidPasswordMinLowerCase")).
+		End()
+
+	// Password constraints: The min number of numeric characters should not be a negative number
+	h.apiInit().
+		Patch("/settings/").
+		Header("Accept", "application/json").
+		JSON(`{"values":[{"name":"auth.internal.password-constraints.min-num-count","value":"-1"}]}`).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("settings.errors.invalidPasswordMinNumCount")).
+		End()
+
+	// Password constraints: The min number of special characters should not be a negative number
+	h.apiInit().
+		Patch("/settings/").
+		Header("Accept", "application/json").
+		JSON(`{"values":[{"name":"auth.internal.password-constraints.min-special-count","value":"-1"}]}`).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("settings.errors.invalidPasswordMinSpecialCharCount")).
+		End()
+
 }
 
 func TestSettingsGet(t *testing.T) {
@@ -125,7 +182,7 @@ func TestSettingsGet_noPermissions(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to read settings")).
+		Assert(helpers.AssertError("settings.errors.notAllowedToRead")).
 		End()
 }
 
@@ -138,7 +195,7 @@ func TestSettingsSet_noPermissions(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to read settings")).
+		Assert(helpers.AssertError("settings.errors.notAllowedToRead")).
 		End()
 }
 

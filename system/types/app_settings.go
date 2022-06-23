@@ -379,19 +379,19 @@ type (
 		PasswordSecurity bool `kv:"-" json:"passwordSecurity"`
 
 		// The min password length
-		MinLength uint `kv:"min-length"`
+		MinLength uint `kv:"min-length" json:"minLength"`
 
 		// Minimum number of uppercase letters in password
-		MinUpperCase uint `kv:"min-upper-case"`
+		MinUpperCase uint `kv:"min-upper-case" json:"minUpperCase"`
 
 		// Minimum number of lowercase letters in password
-		MinLowerCase uint `kv:"min-lower-case"`
+		MinLowerCase uint `kv:"min-lower-case" json:"minLowerCase"`
 
 		// The min number of numeric characters
-		MinNumCount uint `kv:"min-num-count"`
+		MinNumCount uint `kv:"min-num-count" json:"minNumCount"`
 
 		// The min number of special characters
-		MinSpecialCount uint `kv:"min-special-count"`
+		MinSpecialCount uint `kv:"min-special-count" json:"minSpecialCount"`
 	}
 )
 
