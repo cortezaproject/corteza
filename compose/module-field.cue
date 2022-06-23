@@ -13,9 +13,9 @@ moduleField: schema.#Resource & {
 	struct: {
 		id: schema.IdField
 		namespace_id: { ident: "namespaceID", goType: "uint64", store: false }
-		module_id: { ident: "moduleID", goType: "uint64", storeIdent: "rel_module" }
-		place: { goType: "int" }
-		kind: { goType: "string" }
+		module_id: { sortable: true, ident: "moduleID", goType: "uint64", storeIdent: "rel_module" }
+		place: { sortable: true, goType: "int" }
+		kind: { sortable: true, goType: "string" }
 		name: {sortable: true}
 		label: {sortable: true}
 		options: { goType: "types.ModuleFieldOptions" }

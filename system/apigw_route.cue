@@ -11,10 +11,10 @@ apigw_route: schema.#Resource & {
 
 	struct: {
 		id:       schema.IdField
-		endpoint: {}
-		method:   {}
-		enabled:  {goType: "bool"}
-		group:    {goType: "uint64", storeIdent: "rel_group"}
+		endpoint: {sortable: true}
+		method:   {sortable: true}
+		enabled:  {sortable: true, goType: "bool"}
+		group:    {sortable: true, goType: "uint64", storeIdent: "rel_group"}
 		meta:     {goType: "types.ApigwRouteMeta"}
 
 		created_at: schema.SortableTimestampField

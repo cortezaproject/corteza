@@ -8,11 +8,11 @@ template: schema.#Resource & {
 	struct: {
 		id:     schema.IdField
 		handle: schema.HandleField
-		language: {goType: "string"}
-		type: {goType: "types.DocumentType"}
+		language: {sortable: true, goType: "string"}
+		type: {sortable: true, goType: "types.DocumentType"}
 		partial: {goType: "bool"}
 		meta: {goType: "types.TemplateMeta"}
-		template: {goType: "string"}
+		template: {sortable: true, goType: "string"}
 
 		owner_id: { ident: "ownerID", goType: "uint64", storeIdent: "rel_owner" }
 		created_at: schema.SortableTimestampField

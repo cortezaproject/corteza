@@ -11,10 +11,10 @@ session: schema.#Resource & {
 
 	struct: {
 		id:          schema.IdField
-		workflow_id: { ident: "workflowID", goType: "uint64", storeIdent: "rel_workflow" }
-		event_type: { goType: "string" }
-		resource_type: { goType: "string" }
-		status: { goType: "types.SessionStatus" }
+		workflow_id: { sortable: true, ident: "workflowID", goType: "uint64", storeIdent: "rel_workflow" }
+		event_type: { sortable: true, goType: "string" }
+		resource_type: { sortable: true, goType: "string" }
+		status: { sortable: true, goType: "types.SessionStatus" }
 		input: { goType: "*expr.Vars" }
 		output: { goType: "*expr.Vars" }
 		stacktrace: { goType: "types.Stacktrace" }

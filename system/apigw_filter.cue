@@ -11,11 +11,11 @@ apigw_filter: schema.#Resource & {
 
 	struct: {
 		id: schema.IdField
-		route:  { goType: "uint64", storeIdent: "rel_route" }
-		weight: { goType: "uint64" }
+		route:  { sortable: true, goType: "uint64", storeIdent: "rel_route" }
+		weight: { sortable: true, goType: "uint64" }
 		ref: {}
-		kind: {}
-		enabled: {goType: "bool"}
+		kind: {sortable: true}
+		enabled: {sortable: true, goType: "bool"}
 		params: {goType: "types.ApigwFilterParams"}
 
 		created_at: schema.SortableTimestampField

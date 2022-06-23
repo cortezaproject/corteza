@@ -11,7 +11,7 @@ reminder: schema.#Resource & {
 
 	struct: {
 		id:     schema.IdField
-		resource: {}
+		resource: { sortable: true }
 		payload: { goType: "rawJson" }
 		snooze_count: { goType: "uint" }
 		assigned_to: { goType: "uint64" }
