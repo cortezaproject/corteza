@@ -45,6 +45,7 @@
 		</div>
 		<div class="row">
 			<div class="col text-right">
+				{{ if .enableRememberMe }}
 				<button
 					class="btn btn-primary btn-block btn-lg"
 					data-test-id="button-login-and-remember"
@@ -53,6 +54,13 @@
 					type="submit"
 				>
 					{{ tr "login.template.form.button.login-and-remember" }}
+				</button>
+				{{ end }}
+				<button
+					class="btn btn-light btn-block"
+					type="submit"
+				>
+					{{ tr "login.template.form.button.login" }}
 				</button>
 			</div>
 		</div>
