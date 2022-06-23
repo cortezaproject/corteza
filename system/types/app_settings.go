@@ -74,13 +74,13 @@ type (
 					PasswordSecurity bool `kv:"-" json:"passwordSecurity"`
 
 					// The min password length
-					MinLength uint `kv:"min-length"`
+					MinLength uint `kv:"min-length" json:"minLength"`
 
 					// The min number of numeric characters
-					MinNumCount uint `kv:"min-num-count"`
+					MinNumCount uint `kv:"min-num-count" json:"minNumCount"`
 
 					// The min number of special characters
-					MinSpecialCount uint `kv:"min-special-count"`
+					MinSpecialCount uint `kv:"min-special-count" json:"minSpecialCount"`
 				} `kv:"password-constraints" json:"passwordConstraints"`
 			} `json:"internal"`
 

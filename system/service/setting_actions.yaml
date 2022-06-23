@@ -1,0 +1,44 @@
+# List of loggable service actions
+
+resource: system:setting
+service: settings
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: alert
+
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+props:
+  - name: settings
+    type: "*types.SettingValue"
+    fields: [ name, value ]
+
+actions:
+  - action: lookup
+    log: "looked-up for a setting"
+    severity: info
+
+errors:
+  - error: notAllowedToRead
+    message: "not allowed to read this setting"
+    log: "failed to read {{settings.name}}; insufficient permissions"
+
+  - error: notAllowedToManage
+    message: "not allowed to manage this setting"
+    log: "failed to manage {{settings.name}}; insufficient permissions"
+
+  - error: invalidPasswordMinLength
+    message: "password constraint minimum length should be at least 8 characters"
+    severity: warning
+
+  - error: invalidPasswordMinNumCount
+    message: "password constraint minimum number count should not be a negative number"
+    severity: warning
+
+  - error: invalidPasswordMinSpecialCharCount
+    message: "password constraint minimum special character count should not be a negative number"
+    severity: warning
