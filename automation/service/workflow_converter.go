@@ -10,6 +10,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
+	"github.com/cortezaproject/corteza-server/system/automation"
 	"go.uber.org/zap"
 )
 
@@ -436,6 +437,9 @@ func (svc workflowConverter) convPromptStep(s *types.WorkflowStep) (wfexec.Step,
 		args = types.ExprSet(s.Arguments)
 		res  = types.ExprSet(s.Results)
 	)
+	const (
+		ownerArgName = "owner"
+	)
 
 	return wfexec.NewGenericStep(func(ctx context.Context, r *wfexec.ExecRequest) (wfexec.ExecResponse, error) {
 		if r.Input == nil {
@@ -449,8 +453,26 @@ func (svc workflowConverter) convPromptStep(s *types.WorkflowStep) (wfexec.Step,
 			}
 
 			var ownerId uint64 = 0
-			if i := auth.GetIdentityFromContextWithKey(ctx, workflowInvokerCtxKey{}); i != nil {
-				ownerId = i.Identity()
+			if payload.Has(ownerArgName) {
+				// @note for now only types.User and uint64 are supported.
+				// At some point we should extend this to handles, emails, usernames, ...
+				// but for now this should be fine
+
+				// @todo should we validate existence here?
+				// I'm not sure how to bring in a thing to validate it so I omitted it for now.
+				param := expr.Must(payload.Select(ownerArgName))
+				switch casted := param.(type) {
+				case *automation.User:
+					ownerId = casted.GetValue().ID
+				case *expr.ID:
+					ownerId = casted.GetValue()
+				default:
+					return nil, fmt.Errorf("cannot select owner: unsupported type provided %T", casted)
+				}
+			} else {
+				if i := auth.GetIdentityFromContextWithKey(ctx, workflowInvokerCtxKey{}); i != nil {
+					ownerId = i.Identity()
+				}
 			}
 
 			return wfexec.Prompt(ownerId, s.Ref, payload), nil
