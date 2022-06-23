@@ -11,9 +11,9 @@ page: schema.#Resource & {
 
 	struct: {
 		id: schema.IdField
-		self_id: { ident: "selfID", goType: "uint64" }
-		module_id: { ident: "moduleID", goType: "uint64", storeIdent: "rel_module" }
-		namespace_id: { ident: "namespaceID", goType: "uint64", storeIdent: "rel_namespace" }
+		self_id: { sortable: true, ident: "selfID", goType: "uint64" }
+		module_id: { sortable: true, ident: "moduleID", goType: "uint64", storeIdent: "rel_module" }
+		namespace_id: { sortable: true, ident: "namespaceID", goType: "uint64", storeIdent: "rel_namespace" }
 		handle: schema.HandleField
 		config: { goType: "types.PageConfig" }
 		blocks: { goType: "types.PageBlocks" }

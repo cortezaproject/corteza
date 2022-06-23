@@ -9,7 +9,7 @@ workflow: schema.#Resource & {
 		id:          schema.IdField
 		handle:      schema.HandleField
 		meta: { goType: "*types.WorkflowMeta" }
-		enabled: { goType: "bool" }
+		enabled: { sortable: true, goType: "bool" }
 		trace: { goType: "bool" }
 		keep_sessions: { goType: "int" }
 		scope: { goType: "*expr.Vars" }

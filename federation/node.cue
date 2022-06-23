@@ -13,11 +13,11 @@ node: schema.#Resource & {
 
 	struct: {
 		id:          schema.IdField
-		name: {}
-		shared_node_id: { ident: "sharedNodeID", goType: "uint64" }
-		base_url: { goType: "string", ident: "baseURL" }
-		status: { goType: "string" }
-		contact: { goType: "string" }
+		name: {sortable: true}
+		shared_node_id: { sortable: true, ident: "sharedNodeID", goType: "uint64" }
+		base_url: { sortable: true, goType: "string", ident: "baseURL" }
+		status: { sortable: true, goType: "string" }
+		contact: { sortable: true, goType: "string" }
 		pair_token: { goType: "string" }
 		auth_token: { goType: "string" }
 

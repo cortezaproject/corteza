@@ -108,8 +108,8 @@ type (
 		Scope       string                         `db:"scope"`
 		ValidGrant  string                         `db:"valid_grant"`
 		RedirectURI string                         `db:"redirect_uri"`
-		Trusted     bool                           `db:"trusted"`
 		Enabled     bool                           `db:"enabled"`
+		Trusted     bool                           `db:"trusted"`
 		ValidFrom   *time.Time                     `db:"valid_from"`
 		ExpiresAt   *time.Time                     `db:"expires_at"`
 		Security    *systemType.AuthClientSecurity `db:"security"`
@@ -918,8 +918,8 @@ func (aux *auxAuthClient) encode(res *systemType.AuthClient) (_ error) {
 	aux.Scope = res.Scope
 	aux.ValidGrant = res.ValidGrant
 	aux.RedirectURI = res.RedirectURI
-	aux.Trusted = res.Trusted
 	aux.Enabled = res.Enabled
+	aux.Trusted = res.Trusted
 	aux.ValidFrom = res.ValidFrom
 	aux.ExpiresAt = res.ExpiresAt
 	aux.Security = res.Security
@@ -945,8 +945,8 @@ func (aux auxAuthClient) decode() (res *systemType.AuthClient, _ error) {
 	res.Scope = aux.Scope
 	res.ValidGrant = aux.ValidGrant
 	res.RedirectURI = aux.RedirectURI
-	res.Trusted = aux.Trusted
 	res.Enabled = aux.Enabled
+	res.Trusted = aux.Trusted
 	res.ValidFrom = aux.ValidFrom
 	res.ExpiresAt = aux.ExpiresAt
 	res.Security = aux.Security
@@ -972,8 +972,8 @@ func (aux *auxAuthClient) scan(row scanner) error {
 		&aux.Scope,
 		&aux.ValidGrant,
 		&aux.RedirectURI,
-		&aux.Trusted,
 		&aux.Enabled,
+		&aux.Trusted,
 		&aux.ValidFrom,
 		&aux.ExpiresAt,
 		&aux.Security,

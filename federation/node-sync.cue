@@ -10,10 +10,10 @@ nodeSync: schema.#Resource & {
 	}
 
 	struct: {
-		node_id: { ident: "nodeID", goType: "uint64", primaryKey: true }
-		module_id: { ident: "moduleID", goType: "uint64" }
-		sync_type: { goType: "string" }
-		sync_status: { goType: "string" }
+		node_id: { sortable: true, ident: "nodeID", goType: "uint64", primaryKey: true }
+		module_id: { sortable: true, ident: "moduleID", goType: "uint64" }
+		sync_type: { sortable: true, goType: "string" }
+		sync_status: { sortable: true, goType: "string" }
 	} & {
 		time_of_action: schema.SortableTimestampField
 	}
