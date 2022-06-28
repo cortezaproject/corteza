@@ -181,7 +181,8 @@ func defaultValidator(svc RecordService) recordValuesValidator {
 			return 0, nil
 		}
 
-		return store.ComposeRecordValueRefLookup(ctx, s, m, f.Name, v.Ref)
+		// @todo re-implement record-value ref lookup through DAL
+		panic("implement me")
 	})
 
 	validator.RecordRefChecker(func(ctx context.Context, s store.Storer, v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {

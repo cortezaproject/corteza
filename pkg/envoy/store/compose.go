@@ -31,7 +31,6 @@ type (
 		store.ComposeModules
 		store.ComposeNamespaces
 		store.ComposePages
-		store.ComposeRecordValues
 	}
 
 	dalService interface {

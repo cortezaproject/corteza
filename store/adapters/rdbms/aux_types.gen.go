@@ -308,16 +308,6 @@ type (
 		DeletedAt   *time.Time             `db:"deleted_at"`
 	}
 
-	// auxComposeRecordValue is an auxiliary structure used for transporting to/from RDBMS store
-	auxComposeRecordValue struct {
-		RecordID  uint64     `db:"record_id"`
-		Name      string     `db:"name"`
-		Place     uint       `db:"place"`
-		Ref       uint64     `db:"ref"`
-		Value     string     `db:"value"`
-		DeletedAt *time.Time `db:"deleted_at"`
-	}
-
 	// auxCredential is an auxiliary structure used for transporting to/from RDBMS store
 	auxCredential struct {
 		ID          uint64     `db:"id"`
@@ -1683,47 +1673,6 @@ func (aux *auxComposePage) scan(row scanner) error {
 		&aux.Description,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
-		&aux.DeletedAt,
-	)
-}
-
-// encodes ComposeRecordValue to auxComposeRecordValue
-//
-// This function is auto-generated
-func (aux *auxComposeRecordValue) encode(res *composeType.RecordValue) (_ error) {
-	aux.RecordID = res.RecordID
-	aux.Name = res.Name
-	aux.Place = res.Place
-	aux.Ref = res.Ref
-	aux.Value = res.Value
-	aux.DeletedAt = res.DeletedAt
-	return
-}
-
-// decodes ComposeRecordValue from auxComposeRecordValue
-//
-// This function is auto-generated
-func (aux auxComposeRecordValue) decode() (res *composeType.RecordValue, _ error) {
-	res = new(composeType.RecordValue)
-	res.RecordID = aux.RecordID
-	res.Name = aux.Name
-	res.Place = aux.Place
-	res.Ref = aux.Ref
-	res.Value = aux.Value
-	res.DeletedAt = aux.DeletedAt
-	return
-}
-
-// scans row and fills auxComposeRecordValue fields
-//
-// This function is auto-generated
-func (aux *auxComposeRecordValue) scan(row scanner) error {
-	return row.Scan(
-		&aux.RecordID,
-		&aux.Name,
-		&aux.Place,
-		&aux.Ref,
-		&aux.Value,
 		&aux.DeletedAt,
 	)
 }
