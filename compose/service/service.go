@@ -64,7 +64,7 @@ var (
 
 	DefaultNamespace           NamespaceService
 	DefaultImportSession       ImportSessionService
-	DefaultRecord              RecordService
+	DefaultRecord              *record
 	DefaultModule              ModuleService
 	DefaultChart               *chart
 	DefaultPage                *page
