@@ -12,29 +12,36 @@ import (
 	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
+	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/spf13/cast"
 	"strings"
 )
 
 type (
+	roleMemberSearcher interface {
+		SearchRoleMembers(context.Context, systemTypes.RoleMemberFilter) (systemTypes.RoleMemberSet, systemTypes.RoleMemberFilter, error)
+	}
+
+	rbacService interface {
+		Evaluate(rbac.Session, string, rbac.Resource) rbac.Evaluated
+		Grant(context.Context, ...*rbac.Rule) error
+		FindRulesByRoleID(roleID uint64) (rr rbac.RuleSet)
+		CloneRulesByRoleID(ctx context.Context, fromRoleID uint64, toRoleID ...uint64) error
+	}
+
 	accessControl struct {
 		actionlog actionlog.Recorder
 
-		roleFinder func(ctx context.Context, id uint64) ([]uint64, error)
-		rbac       interface {
-			Evaluate(rbac.Session, string, rbac.Resource) rbac.Evaluated
-			Grant(context.Context, ...*rbac.Rule) error
-			FindRulesByRoleID(roleID uint64) (rr rbac.RuleSet)
-			CloneRulesByRoleID(ctx context.Context, fromRoleID uint64, toRoleID ...uint64) error
-		}
+		store roleMemberSearcher
+		rbac  rbacService
 	}
 )
 
-func AccessControl(rf func(ctx context.Context, id uint64) ([]uint64, error)) *accessControl {
+func AccessControl(rms roleMemberSearcher) *accessControl {
 	return &accessControl{
-		roleFinder: rf,
-		rbac:       rbac.Global(),
-		actionlog:  DefaultActionlog,
+		store:     rms,
+		rbac:      rbac.Global(),
+		actionlog: DefaultActionlog,
 	}
 }
 
@@ -43,6 +50,8 @@ func (svc accessControl) can(ctx context.Context, op string, res rbac.Resource) 
 }
 
 // Effective returns a list of effective permissions for all given resource
+//
+// This function is auto-generated
 func (svc accessControl) Effective(ctx context.Context, rr ...rbac.Resource) (ee rbac.EffectiveSet) {
 	for _, res := range rr {
 		r := res.RbacResource()
@@ -55,38 +64,74 @@ func (svc accessControl) Effective(ctx context.Context, rr ...rbac.Resource) (ee
 }
 
 // Evaluate returns a list of permissions evaluated for the given user/roles combo
-func (svc accessControl) Evaluate(ctx context.Context, user uint64, roles []uint64, rr ...rbac.Resource) (ee rbac.EvaluatedSet, err error) {
+//
+// This function is auto-generated
+func (svc accessControl) Evaluate(ctx context.Context, userID uint64, roles []uint64, rr ...string) (ee rbac.EvaluatedSet, err error) {
 	// Reusing the grant permission since this is who the feature is for
 	if !svc.CanGrant(ctx) {
 		// @todo should be altered to check grant permissions PER resource
 		return nil, AccessControlErrNotAllowedToSetPermissions()
 	}
 
-	// Load roles for this user
-	//
-	// User's roles take priority over specified ones
-	if user != 0 {
-		rr, err := svc.roleFinder(ctx, user)
+	var (
+		resources []rbac.Resource
+		members   systemTypes.RoleMemberSet
+	)
+	if len(rr) > 0 {
+		resources = make([]rbac.Resource, 0, len(rr))
+		for _, r := range rr {
+			resources = append(resources, rbac.NewResource(r))
+		}
+	} else {
+		resources = svc.Resources()
+	}
+
+	// User ID specified, load its roles
+	if userID != 0 {
+		if len(roles) > 0 {
+			// should be prevented on the client
+			return nil, fmt.Errorf("userID and roles are mutually exclusive")
+		}
+
+		members, _, err = svc.store.SearchRoleMembers(ctx, systemTypes.RoleMemberFilter{UserID: userID})
 		if err != nil {
 			return nil, err
 		}
 
-		roles = append(rr, roles...)
+		for _, m := range members {
+			roles = append(roles, m.RoleID)
+		}
 	}
 
-	session := rbac.ParamsToSession(ctx, user, roles...)
-	for _, res := range rr {
+	if len(roles) == 0 {
+		// should be prevented on the client
+		return nil, fmt.Errorf("no roles specified")
+	}
+
+	session := rbac.ParamsToSession(ctx, userID, roles...)
+	for _, res := range resources {
 		r := res.RbacResource()
 		for op := range rbacResourceOperations(r) {
-			eval := svc.rbac.Evaluate(session, op, res)
-
-			ee = append(ee, eval)
+			ee = append(ee, svc.rbac.Evaluate(session, op, res))
 		}
 	}
 
 	return
 }
 
+// Resources returns list of resources
+//
+// This function is auto-generated
+func (svc accessControl) Resources() []rbac.Resource {
+	return []rbac.Resource{
+		rbac.NewResource(types.WorkflowRbacResource(0)),
+		rbac.NewResource(types.ComponentRbacResource()),
+	}
+}
+
+// List returns list of operations on all resources
+//
+// This function is auto-generated
 func (svc accessControl) List() (out []map[string]string) {
 	def := []map[string]string{
 		{

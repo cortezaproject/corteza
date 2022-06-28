@@ -2,21 +2,18 @@ package service
 
 import (
 	"context"
-	"time"
-
-	"github.com/cortezaproject/corteza-server/pkg/logger"
-
 	cs "github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/label"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/system/service"
 	ss "github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
+	"time"
 )
 
 type (
@@ -85,11 +82,11 @@ func Initialize(_ context.Context, log *zap.Logger, s store.Storer, c Config) (e
 		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
 	}
 
-	DefaultAccessControl = AccessControl(service.RolesForUser(s))
+	DefaultAccessControl = AccessControl(s)
 
 	DefaultNode = Node(
 		DefaultStore,
-		service.DefaultUser,
+		ss.DefaultUser,
 		DefaultActionlog,
 		func(ctx context.Context, i auth.Identifiable) (token []byte, err error) {
 			return auth.TokenIssuer.Issue(

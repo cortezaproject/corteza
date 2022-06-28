@@ -15,13 +15,9 @@ type (
 		ac permissionsAccessController
 	}
 
-	rbacResWrap struct {
-		res string
-	}
-
 	permissionsAccessController interface {
 		Effective(context.Context, ...rbac.Resource) rbac.EffectiveSet
-		Evaluate(ctx context.Context, user uint64, roles []uint64, rr ...rbac.Resource) (ee rbac.EvaluatedSet, err error)
+		Evaluate(ctx context.Context, user uint64, roles []uint64, rr ...string) (ee rbac.EvaluatedSet, err error)
 		List() []map[string]string
 		FindRulesByRoleID(context.Context, uint64) (rbac.RuleSet, error)
 		Grant(ctx context.Context, rr ...*rbac.Rule) error
@@ -39,12 +35,7 @@ func (ctrl Permissions) Effective(ctx context.Context, r *request.PermissionsEff
 }
 
 func (ctrl Permissions) Evaluate(ctx context.Context, r *request.PermissionsEvaluate) (interface{}, error) {
-	in := make([]rbac.Resource, 0, len(r.Resource))
-	for _, res := range r.Resource {
-		in = append(in, rbacResWrap{res: res})
-	}
-
-	return ctrl.ac.Evaluate(ctx, r.UserID, r.RoleID, in...)
+	return ctrl.ac.Evaluate(ctx, r.UserID, r.RoleID, r.Resource...)
 }
 
 func (ctrl Permissions) List(ctx context.Context, r *request.PermissionsList) (interface{}, error) {
@@ -75,8 +66,4 @@ func (ctrl Permissions) Update(ctx context.Context, r *request.PermissionsUpdate
 	}
 
 	return api.OK(), ctrl.ac.Grant(ctx, r.Rules...)
-}
-
-func (ar rbacResWrap) RbacResource() string {
-	return ar.res
 }
