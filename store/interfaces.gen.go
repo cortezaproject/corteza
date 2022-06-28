@@ -56,7 +56,6 @@ type (
 		ComposeModuleFields
 		ComposeNamespaces
 		ComposePages
-		ComposeRecordValues
 		Credentials
 		DalConnections
 		DalSensitivityLevels
@@ -302,17 +301,6 @@ type (
 		LookupComposePageByNamespaceIDModuleID(ctx context.Context, namespaceID uint64, moduleID uint64) (*composeType.Page, error)
 		LookupComposePageByID(ctx context.Context, id uint64) (*composeType.Page, error)
 		ReorderComposePages(ctx context.Context, namespace_id uint64, parent_id uint64, page_ids []uint64) error
-	}
-
-	ComposeRecordValues interface {
-		SearchComposeRecordValues(ctx context.Context, f composeType.RecordValueFilter) (composeType.RecordValueSet, composeType.RecordValueFilter, error)
-		CreateComposeRecordValue(ctx context.Context, rr ...*composeType.RecordValue) error
-		UpdateComposeRecordValue(ctx context.Context, rr ...*composeType.RecordValue) error
-		UpsertComposeRecordValue(ctx context.Context, rr ...*composeType.RecordValue) error
-		DeleteComposeRecordValue(ctx context.Context, rr ...*composeType.RecordValue) error
-		DeleteComposeRecordValueByRecordIDNamePlace(ctx context.Context, recordID uint64, name string, place uint) error
-		TruncateComposeRecordValues(ctx context.Context) error
-		ComposeRecordValueRefLookup(ctx context.Context, mod *composeType.Module, field string, ref uint64) (uint64, error)
 	}
 
 	Credentials interface {
@@ -1788,62 +1776,6 @@ func LookupComposePageByID(ctx context.Context, s ComposePages, id uint64) (*com
 // This function is auto-generated
 func ReorderComposePages(ctx context.Context, s ComposePages, namespace_id uint64, parent_id uint64, page_ids []uint64) error {
 	return s.ReorderComposePages(ctx, namespace_id, parent_id, page_ids)
-}
-
-// SearchComposeRecordValues returns all matching ComposeRecordValues from store
-//
-// This function is auto-generated
-func SearchComposeRecordValues(ctx context.Context, s ComposeRecordValues, f composeType.RecordValueFilter) (composeType.RecordValueSet, composeType.RecordValueFilter, error) {
-	return s.SearchComposeRecordValues(ctx, f)
-}
-
-// CreateComposeRecordValue creates one or more ComposeRecordValues in store
-//
-// This function is auto-generated
-func CreateComposeRecordValue(ctx context.Context, s ComposeRecordValues, rr ...*composeType.RecordValue) error {
-	return s.CreateComposeRecordValue(ctx, rr...)
-}
-
-// UpdateComposeRecordValue updates one or more (existing) ComposeRecordValues in store
-//
-// This function is auto-generated
-func UpdateComposeRecordValue(ctx context.Context, s ComposeRecordValues, rr ...*composeType.RecordValue) error {
-	return s.UpdateComposeRecordValue(ctx, rr...)
-}
-
-// UpsertComposeRecordValue creates new or updates existing one or more ComposeRecordValues in store
-//
-// This function is auto-generated
-func UpsertComposeRecordValue(ctx context.Context, s ComposeRecordValues, rr ...*composeType.RecordValue) error {
-	return s.UpsertComposeRecordValue(ctx, rr...)
-}
-
-// DeleteComposeRecordValue deletes one or more ComposeRecordValues from store
-//
-// This function is auto-generated
-func DeleteComposeRecordValue(ctx context.Context, s ComposeRecordValues, rr ...*composeType.RecordValue) error {
-	return s.DeleteComposeRecordValue(ctx, rr...)
-}
-
-// DeleteComposeRecordValueByID deletes one or more ComposeRecordValues from store
-//
-// This function is auto-generated
-func DeleteComposeRecordValueByRecordIDNamePlace(ctx context.Context, s ComposeRecordValues, recordID uint64, name string, place uint) error {
-	return s.DeleteComposeRecordValueByRecordIDNamePlace(ctx, recordID, name, place)
-}
-
-// TruncateComposeRecordValues Deletes all ComposeRecordValues from store
-//
-// This function is auto-generated
-func TruncateComposeRecordValues(ctx context.Context, s ComposeRecordValues) error {
-	return s.TruncateComposeRecordValues(ctx)
-}
-
-// ComposeRecordValueRefLookup
-//
-// This function is auto-generated
-func ComposeRecordValueRefLookup(ctx context.Context, s ComposeRecordValues, mod *composeType.Module, field string, ref uint64) (uint64, error) {
-	return s.ComposeRecordValueRefLookup(ctx, mod, field, ref)
 }
 
 // SearchCredentials returns all matching Credentials from store

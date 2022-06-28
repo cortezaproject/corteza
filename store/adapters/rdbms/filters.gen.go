@@ -83,9 +83,6 @@ type (
 		// optional composePage filter function called after the generated function
 		ComposePage func(*Store, composeType.PageFilter) ([]goqu.Expression, composeType.PageFilter, error)
 
-		// optional composeRecordValue filter function called after the generated function
-		ComposeRecordValue func(*Store, composeType.RecordValueFilter) ([]goqu.Expression, composeType.RecordValueFilter, error)
-
 		// optional credential filter function called after the generated function
 		Credential func(*Store, systemType.CredentialFilter) ([]goqu.Expression, systemType.CredentialFilter, error)
 
@@ -653,26 +650,6 @@ func ComposePageFilter(f composeType.PageFilter) (ee []goqu.Expression, _ compos
 			goqu.C("title").ILike("%"+f.Query+"%"),
 			goqu.C("description").ILike("%"+f.Query+"%"),
 		))
-	}
-
-	return ee, f, err
-}
-
-// ComposeRecordValueFilter returns logical expressions
-//
-// This function is called from Store.QueryComposeRecordValues() and can be extended
-// by setting Store.Filters.ComposeRecordValue. Extension is called after all expressions
-// are generated and can choose to ignore or alter them.
-//
-// This function is auto-generated
-func ComposeRecordValueFilter(f composeType.RecordValueFilter) (ee []goqu.Expression, _ composeType.RecordValueFilter, err error) {
-
-	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
-		ee = append(ee, expr)
-	}
-
-	if len(f.RecordID) > 0 {
-		ee = append(ee, goqu.C("record_id").In(f.RecordID))
 	}
 
 	return ee, f, err
