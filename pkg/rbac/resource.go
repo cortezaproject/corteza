@@ -6,6 +6,7 @@ import (
 )
 
 type (
+	resource string
 	Resource interface {
 		RbacResource() string
 	}
@@ -21,6 +22,19 @@ const (
 	pathSep  = "/"
 	wildcard = "*"
 )
+
+// NewResource constructs untyped resource from the given string
+//
+// This is a utility method that should not be used for standard permission checking and granting
+// it's intended to be used for testing end permission evaluation where we do not have access to the resource struct
+func NewResource(s string) Resource {
+	return resource(s)
+}
+
+// RbacResource returns string of an untyped resource
+func (t resource) RbacResource() string {
+	return string(t)
+}
 
 // ResourceType extracts 1st part of the resource
 //

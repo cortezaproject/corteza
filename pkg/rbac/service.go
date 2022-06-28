@@ -110,7 +110,7 @@ func (svc *service) Check(ses Session, op string, res Resource) (v Access) {
 	return access
 }
 
-// Eval evaluates access for the given parameters
+// Evaluate access for the given session, operation and resource
 //
 // The evaluation outputs verbose details to assist the UI.
 func (svc *service) Evaluate(ses Session, op string, res Resource) Evaluated {
@@ -321,7 +321,7 @@ func (svc *service) SignificantRoles(res Resource, op string) (aRR, dRR []uint64
 	return svc.rules.sigRoles(res.RbacResource(), op)
 }
 
-func (svc service) String() (out string) {
+func (svc *service) String() (out string) {
 	tpl := "%-5v %-20s to %-20s %-30s\n"
 	out += strings.Repeat("-", 120) + "\n"
 
