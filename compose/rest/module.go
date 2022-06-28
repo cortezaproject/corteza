@@ -23,10 +23,11 @@ type (
 
 		Fields []*moduleFieldPayload `json:"fields"`
 
-		CanGrant        bool `json:"canGrant"`
-		CanUpdateModule bool `json:"canUpdateModule"`
-		CanDeleteModule bool `json:"canDeleteModule"`
-		CanCreateRecord bool `json:"canCreateRecord"`
+		CanGrant             bool `json:"canGrant"`
+		CanUpdateModule      bool `json:"canUpdateModule"`
+		CanDeleteModule      bool `json:"canDeleteModule"`
+		CanCreateRecord      bool `json:"canCreateRecord"`
+		CanCreateOwnedRecord bool `json:"canCreateOwnedRecord"`
 	}
 
 	moduleFieldPayload struct {
@@ -49,6 +50,7 @@ type (
 		CanUpdateModule(context.Context, *types.Module) bool
 		CanDeleteModule(context.Context, *types.Module) bool
 		CanCreateRecordOnModule(context.Context, *types.Module) bool
+		CanCreateOwnedRecordOnModule(context.Context, *types.Module) bool
 		CanReadRecord(context.Context, *types.Record) bool
 
 		CanReadRecordValueOnModuleField(context.Context, *types.ModuleField) bool
@@ -189,7 +191,9 @@ func (ctrl Module) makePayload(ctx context.Context, m *types.Module, err error) 
 
 		CanUpdateModule: ctrl.ac.CanUpdateModule(ctx, m),
 		CanDeleteModule: ctrl.ac.CanDeleteModule(ctx, m),
-		CanCreateRecord: ctrl.ac.CanCreateRecordOnModule(ctx, m),
+
+		CanCreateRecord:      ctrl.ac.CanCreateRecordOnModule(ctx, m),
+		CanCreateOwnedRecord: ctrl.ac.CanCreateOwnedRecordOnModule(ctx, m),
 	}, nil
 }
 
