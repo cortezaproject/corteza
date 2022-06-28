@@ -314,7 +314,7 @@ func parseEnvoy(ctx context.Context, s store.Storer, h helper, path string) {
 	h.a.NoError(err)
 
 	// import into the store
-	se := es.NewStoreEncoder(s, nil)
+	se := es.NewStoreEncoder(s, dal.Service(), nil)
 	bld := envoy.NewBuilder(se)
 	g, err := bld.Build(ctx, nn...)
 	h.a.NoError(err)

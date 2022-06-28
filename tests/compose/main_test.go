@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
@@ -231,7 +232,7 @@ func parseEnvoy(ctx context.Context, s store.Storer, h helper, path string) {
 	h.a.NoError(err)
 
 	// import into the store
-	se := envoyStore.NewStoreEncoder(s, nil)
+	se := envoyStore.NewStoreEncoder(s, dal.Service(), &envoyStore.EncoderConfig{})
 	bld := envoy.NewBuilder(se)
 	g, err := bld.Build(ctx, nn...)
 	h.a.NoError(err)

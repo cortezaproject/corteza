@@ -3,6 +3,7 @@ package envoy
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"os"
 	"path"
 	"sync"
@@ -62,7 +63,7 @@ func decodeDirectory(ctx context.Context, suite string) ([]resource.Interface, e
 }
 
 func encode(ctx context.Context, s store.Storer, nn []resource.Interface) error {
-	se := es.NewStoreEncoder(s, nil)
+	se := es.NewStoreEncoder(s, dal.Service(), &es.EncoderConfig{})
 	g, err := envoy.NewSafeBuilder(se).Build(ctx, nn...)
 	if err != nil && err != envoy.BuilderErrUnresolvedReferences {
 		return err
@@ -73,7 +74,7 @@ func encode(ctx context.Context, s store.Storer, nn []resource.Interface) error 
 		df := es.NewDecodeFilter().FromRef(md...)
 
 		sd := es.Decoder()
-		mm, err := sd.Decode(ctx, s, df)
+		mm, err := sd.Decode(ctx, s, dal.Service(), df)
 		if err != nil {
 			return err
 		}
@@ -98,7 +99,6 @@ func truncateStore(ctx context.Context, s store.Storer, t *testing.T) {
 		store.TruncateComposeNamespaces(ctx, s),
 		store.TruncateComposeModules(ctx, s),
 		store.TruncateComposeModuleFields(ctx, s),
-		store.TruncateComposeRecords(ctx, s, nil),
 		store.TruncateComposePages(ctx, s),
 		store.TruncateComposeCharts(ctx, s),
 

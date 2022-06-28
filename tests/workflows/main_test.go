@@ -94,7 +94,7 @@ func loadScenarioWithName(ctx context.Context, t *testing.T, scenario string) {
 		t.Fatalf("failed to decode scenario data: %v", err)
 	}
 
-	storeEnc := envoyStore.NewStoreEncoder(defStore, &envoyStore.EncoderConfig{})
+	storeEnc := envoyStore.NewStoreEncoder(defStore, dal.Service(), &envoyStore.EncoderConfig{})
 
 	b := envoy.NewBuilder(storeEnc)
 	g, err := b.Build(ctx, decoded...)
