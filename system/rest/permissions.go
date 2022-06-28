@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
@@ -17,6 +18,7 @@ type (
 
 	permissionsAccessController interface {
 		Effective(context.Context, ...rbac.Resource) rbac.EffectiveSet
+		Evaluate(ctx context.Context, user uint64, roles []uint64, rr ...string) (ee rbac.EvaluatedSet, err error)
 		List() []map[string]string
 		FindRulesByRoleID(context.Context, uint64) (rbac.RuleSet, error)
 		CloneRulesByRoleID(ctx context.Context, roleID uint64, toRoleID ...uint64) error
@@ -32,6 +34,10 @@ func (Permissions) New() *Permissions {
 
 func (ctrl Permissions) Effective(ctx context.Context, r *request.PermissionsEffective) (interface{}, error) {
 	return ctrl.ac.Effective(ctx, types.Component{}), nil
+}
+
+func (ctrl Permissions) Evaluate(ctx context.Context, r *request.PermissionsEvaluate) (interface{}, error) {
+	return ctrl.ac.Evaluate(ctx, r.UserID, r.RoleID, r.Resource...)
 }
 
 func (ctrl Permissions) List(ctx context.Context, r *request.PermissionsList) (interface{}, error) {
@@ -64,6 +70,9 @@ func (ctrl Permissions) Update(ctx context.Context, r *request.PermissionsUpdate
 	return api.OK(), ctrl.ac.Grant(ctx, r.Rules...)
 }
 
+// Clone all RBAC rules on ALL components (not just system)
+//
+// @todo needs to be moved under roles
 func (ctrl Permissions) Clone(ctx context.Context, r *request.PermissionsClone) (interface{}, error) {
 	// Clone rules from role S to role T
 	return api.OK(), ctrl.ac.CloneRulesByRoleID(ctx, r.RoleID, payload.ParseUint64s(r.CloneToRoleID)...)

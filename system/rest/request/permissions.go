@@ -44,6 +44,23 @@ type (
 		Resource string
 	}
 
+	PermissionsEvaluate struct {
+		// Resource GET parameter
+		//
+		// Show only rules for a specific resource
+		Resource []string
+
+		// UserID GET parameter
+		//
+		//
+		UserID uint64 `json:",string"`
+
+		// RoleID GET parameter
+		//
+		//
+		RoleID []uint64
+	}
+
 	PermissionsRead struct {
 		// RoleID PATH parameter
 		//
@@ -125,6 +142,75 @@ func (r *PermissionsEffective) Fill(req *http.Request) (err error) {
 
 		if val, ok := tmp["resource"]; ok && len(val) > 0 {
 			r.Resource, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return err
+}
+
+// NewPermissionsEvaluate request
+func NewPermissionsEvaluate() *PermissionsEvaluate {
+	return &PermissionsEvaluate{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PermissionsEvaluate) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"resource": r.Resource,
+		"userID":   r.UserID,
+		"roleID":   r.RoleID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PermissionsEvaluate) GetResource() []string {
+	return r.Resource
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PermissionsEvaluate) GetUserID() uint64 {
+	return r.UserID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PermissionsEvaluate) GetRoleID() []uint64 {
+	return r.RoleID
+}
+
+// Fill processes request and fills internal variables
+func (r *PermissionsEvaluate) Fill(req *http.Request) (err error) {
+
+	{
+		// GET params
+		tmp := req.URL.Query()
+
+		if val, ok := tmp["resource[]"]; ok {
+			r.Resource, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["resource"]; ok {
+			r.Resource, err = val, nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["userID"]; ok && len(val) > 0 {
+			r.UserID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["roleID[]"]; ok {
+			r.RoleID, err = payload.ParseUint64s(val), nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["roleID"]; ok {
+			r.RoleID, err = payload.ParseUint64s(val), nil
 			if err != nil {
 				return err
 			}

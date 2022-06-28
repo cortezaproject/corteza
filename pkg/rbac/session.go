@@ -41,6 +41,14 @@ func ContextToSession(ctx context.Context) *session {
 	return NewSession(ctx, auth.GetIdentityFromContext(ctx))
 }
 
+func ParamsToSession(ctx context.Context, user uint64, roles ...uint64) *session {
+	return &session{
+		id:  user,
+		rr:  roles,
+		ctx: ctx,
+	}
+}
+
 func NewSession(ctx context.Context, i auth.Identifiable) *session {
 	return &session{
 		id:  i.Identity(),

@@ -16,6 +16,18 @@ import (
 				"\"github.com/cortezaproject/corteza-server/\(cmp.ident)/types\"",
 			]
 
+			// All known RBAC resources
+			resources: [
+				for res in cmp.resources if res.rbac != _|_ {
+					resFunc:       "types.\(res.expIdent)RbacResource"
+					references: [ for p in res.parents {p}, {param: "id", refField: "ID"}]
+				},
+				{
+					resFunc:       "types.ComponentRbacResource"
+					component:     true
+				},
+			]
+
 			// All possible RBAC operations on component and resources
 			// flattened
 			operations: [
