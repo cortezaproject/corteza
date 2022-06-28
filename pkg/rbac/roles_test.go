@@ -6,14 +6,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type (
-	testResource string
-)
-
-func (t testResource) RbacResource() string {
-	return string(t)
-}
-
 func Test_partitionRoles(t *testing.T) {
 	var (
 		req = require.New(t)
@@ -49,7 +41,7 @@ func Test_getContextRoles(t *testing.T) {
 			}
 		}
 
-		tres = testResource("testResource")
+		tres = NewResource("testResource")
 
 		tcc = []struct {
 			name         string

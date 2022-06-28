@@ -155,7 +155,8 @@ func Test_checkRulesByResource(t *testing.T) {
 
 	for _, c := range cc {
 		t.Run(c.res, func(t *testing.T) {
-			require.Equal(t, c.exp.String(), checkRulesByResource(c.set, c.op, c.res).String())
+			_, a := checkRulesByResource(c.set, c.op, c.res)
+			require.Equal(t, c.exp.String(), a.String())
 		})
 	}
 }

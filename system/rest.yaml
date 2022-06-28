@@ -1221,6 +1221,22 @@ endpoints:
         type: string
         required: false
         title: Show only rules for a specific resource
+  - name: evaluate
+    path: "/evaluate"
+    method: GET
+    title: Evaluate rules for given user/role combo
+    parameters:
+      get:
+      - name: resource
+        type: "[]string"
+        required: false
+        title: Show only rules for a specific resource
+      - name: userID
+        type: uint64
+        required: false
+      - name: roleID
+        type: "[]uint64"
+        required: false
   - name: read
     path: "/{roleID}/rules"
     method: GET

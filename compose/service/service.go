@@ -126,7 +126,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 		}
 	}
 
-	DefaultAccessControl = AccessControl()
+	DefaultAccessControl = AccessControl(s)
 	DefaultResourceTranslation = ResourceTranslationsManager(locale.Global())
 
 	if DefaultObjectStore == nil {

@@ -147,7 +147,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, primaryCon
 		}
 	}
 
-	DefaultAccessControl = AccessControl()
+	DefaultAccessControl = AccessControl(s)
 
 	DefaultSettings = Settings(ctx, DefaultStore, DefaultLogger, DefaultAccessControl, CurrentSettings)
 
