@@ -158,7 +158,7 @@ type (
 	ErrorIndex  map[string]int
 )
 
-func Record(dal dalDater) RecordService {
+func Record(dal dalDater) *record {
 	svc := &record{
 		actionlog:     DefaultActionlog,
 		ac:            DefaultAccessControl,
