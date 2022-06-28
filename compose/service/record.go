@@ -72,6 +72,7 @@ type (
 
 	recordManageOwnerAccessController interface {
 		CanManageOwnerOnRecord(context.Context, *types.Record) bool
+		CanCreateOwnedRecordOnModule(context.Context, *types.Module) bool
 	}
 
 	recordAccessController interface {
@@ -661,10 +662,15 @@ func SetRecordOwner(ctx context.Context, ac recordManageOwnerAccessController, s
 		}
 	)
 
-	if (old != nil && curOwner != updOwner) || (old == nil && updOwner != invoker) {
-		// check if ownership can be changed when:
-		//  a) updating (old != nil) and ownership changed
-		//  b) creating (old == nil) and ownership id not set to the invoking user
+	if old == nil && updOwner != invoker {
+		// Can be set on new records
+		if !ac.CanCreateOwnedRecordOnModule(ctx, upd.GetModule()) {
+			return mkError("accessDenied", "record.errors.ownershipChangeDenied")
+		}
+	}
+
+	if old != nil && curOwner != updOwner {
+		// Can ownership be changed on existing record?
 		if !ac.CanManageOwnerOnRecord(ctx, upd) {
 			return mkError("accessDenied", "record.errors.ownershipChangeDenied")
 		}
@@ -928,19 +934,6 @@ func (svc record) procCreate(ctx context.Context, invokerID uint64, m *types.Mod
 	new.UpdatedBy = 0
 	new.DeletedAt = nil
 	new.DeletedBy = 0
-
-	if new.OwnedBy == 0 {
-		new.OwnedBy = invokerID
-	}
-
-	if new.OwnedBy != invokerID {
-		// we're creating record here and this check goes against current
-		// RBAC implementation logic on record creation
-		if !svc.ac.CanManageOwnerOnRecord(ctx, new) {
-			// not permitted to change the owner
-
-		}
-	}
 
 	if err := SetRecordOwner(ctx, svc.ac, svc.store, nil, new, invokerID); err != nil {
 		return err

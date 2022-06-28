@@ -177,6 +177,11 @@ func (svc accessControl) List() (out []map[string]string) {
 		{
 			"type": types.ModuleResourceType,
 			"any":  types.ModuleRbacResource(0, 0),
+			"op":   "owned-record.create",
+		},
+		{
+			"type": types.ModuleResourceType,
+			"any":  types.ModuleRbacResource(0, 0),
 			"op":   "records.search",
 		},
 		{
@@ -426,6 +431,13 @@ func (svc accessControl) CanCreateRecordOnModule(ctx context.Context, r *types.M
 	return svc.can(ctx, "record.create", r)
 }
 
+// CanCreateOwnedRecordOnModule checks if current user can create record with custom owner
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateOwnedRecordOnModule(ctx context.Context, r *types.Module) bool {
+	return svc.can(ctx, "owned-record.create", r)
+}
+
 // CanSearchRecordsOnModule checks if current user can list, search or filter records
 //
 // This function is auto-generated
@@ -651,11 +663,12 @@ func rbacResourceOperations(r string) map[string]bool {
 		}
 	case types.ModuleResourceType:
 		return map[string]bool{
-			"read":           true,
-			"update":         true,
-			"delete":         true,
-			"record.create":  true,
-			"records.search": true,
+			"read":                true,
+			"update":              true,
+			"delete":              true,
+			"record.create":       true,
+			"owned-record.create": true,
+			"records.search":      true,
 		}
 	case types.ModuleFieldResourceType:
 		return map[string]bool{

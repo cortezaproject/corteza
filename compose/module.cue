@@ -45,6 +45,7 @@ module: schema.#Resource & {
 			"update": {}
 			"delete": {}
 			"record.create": description:  "Create record"
+			"owned-record.create": description:  "Create record with custom owner"
 			"records.search": description: "List, search or filter records"
 		}
 	}
