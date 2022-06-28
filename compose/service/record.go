@@ -47,8 +47,6 @@ type (
 		formatter recordValuesFormatter
 		sanitizer recordValuesSanitizer
 		validator recordValuesValidator
-
-		optEmitEvents bool
 	}
 
 	recordValuesFormatter interface {
@@ -113,8 +111,6 @@ type (
 		Iterator(ctx context.Context, f types.RecordFilter, fn eventbus.HandlerFn, action string) (err error)
 
 		TriggerScript(ctx context.Context, namespaceID, moduleID, recordID uint64, rvs types.RecordValueSet, script string) (*types.Module, *types.Record, error)
-
-		EventEmitting(enable bool)
 	}
 
 	recordImportSession struct {
@@ -160,12 +156,11 @@ type (
 
 func Record(dal dalDater) *record {
 	svc := &record{
-		actionlog:     DefaultActionlog,
-		ac:            DefaultAccessControl,
-		eventbus:      eventbus.Service(),
-		optEmitEvents: true,
-		store:         DefaultStore,
-		dal:           dal,
+		actionlog: DefaultActionlog,
+		ac:        DefaultAccessControl,
+		eventbus:  eventbus.Service(),
+		store:     DefaultStore,
+		dal:       dal,
 
 		formatter: values.Formatter(),
 		sanitizer: values.Sanitizer(),
@@ -213,10 +208,6 @@ func defaultValidator(svc RecordService) recordValuesValidator {
 	})
 
 	return validator
-}
-
-func (svc *record) EventEmitting(enable bool) {
-	svc.optEmitEvents = enable
 }
 
 // lookup fn() orchestrates record lookup, namespace preload and check
@@ -548,7 +539,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 	// ensure module ref is set before running through records workflows and scripts
 	new.SetModule(m)
 
-	if svc.optEmitEvents {
+	{
 		if rve = svc.procCreate(ctx, invokerID, m, new); !rve.IsValid() {
 			return nil, RecordErrValueInput().Wrap(rve)
 		}
@@ -581,7 +572,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 	// At this point we can return the value
 	rec = new
 
-	if svc.optEmitEvents {
+	{
 		new.Values = svc.formatter.Run(m, new.Values)
 		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterCreateImmutable(new, nil, m, ns, nil, nil))
 	}
@@ -828,7 +819,7 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 	upd.SetModule(m)
 	old.SetModule(m)
 
-	if svc.optEmitEvents {
+	{
 		// Handle input payload
 		if rve = svc.procUpdate(ctx, invokerID, m, upd, old); !rve.IsValid() {
 			return nil, RecordErrValueInput().Wrap(rve)
@@ -876,7 +867,7 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 	// At this point we can return the value
 	rec = upd
 
-	if svc.optEmitEvents {
+	{
 		// Before we pass values to automation scripts, they should be formatted
 		upd.Values = svc.formatter.Run(m, upd.Values)
 		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterUpdateImmutable(upd, old, m, ns, nil, nil))
@@ -1054,7 +1045,7 @@ func (svc record) delete(ctx context.Context, namespaceID, moduleID, recordID ui
 	// ensure module ref is set before running through records workflows and scripts
 	del.SetModule(m)
 
-	if svc.optEmitEvents {
+	{
 		// Calling before-record-delete scripts
 		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeDelete(nil, del, m, ns, nil, nil)); err != nil {
 			return nil, err
@@ -1068,7 +1059,7 @@ func (svc record) delete(ctx context.Context, namespaceID, moduleID, recordID ui
 	// ensure module ref is set before running through records workflows and scripts
 	del.SetModule(m)
 
-	if svc.optEmitEvents {
+	{
 		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterDeleteImmutable(nil, del, m, ns, nil, nil))
 	}
 
