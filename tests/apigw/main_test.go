@@ -3,6 +3,8 @@ package apigw
 import (
 	"context"
 	"errors"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers/sqlite"
 	"os"
 	"path"
 	"testing"
@@ -208,7 +210,7 @@ func parseEnvoy(ctx context.Context, s store.Storer, h helper, path string) {
 	h.a.NoError(err)
 
 	// import into the store
-	se := es.NewStoreEncoder(s, nil)
+	se := es.NewStoreEncoder(s, dal.Service(), nil)
 	bld := envoy.NewBuilder(se)
 	g, err := bld.Build(ctx, nn...)
 	h.a.NoError(err)

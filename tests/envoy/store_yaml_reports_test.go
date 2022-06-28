@@ -98,7 +98,7 @@ func TestStoreYaml_reports(t *testing.T) {
 			truncateStore(ctx, s, t)
 
 			// Encode back into store
-			se := su.NewStoreEncoder(s, &su.EncoderConfig{})
+			se := su.NewStoreEncoder(s, dal.Service(), &su.EncoderConfig{})
 			yd := yaml.Decoder()
 			nn = make([]resource.Interface, 0, len(nn))
 			for _, s := range ss {

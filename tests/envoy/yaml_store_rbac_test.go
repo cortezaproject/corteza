@@ -2,6 +2,7 @@ package envoy
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -178,7 +179,7 @@ func TestYamlStore_rbac(t *testing.T) {
 
 	// - decode store
 	sd := su.Decoder()
-	nn, err = sd.Decode(ctx, s, df)
+	nn, err = sd.Decode(ctx, s, dal.Service(), df)
 	req.NoError(err)
 	//
 	// - into yaml
@@ -194,7 +195,7 @@ func TestYamlStore_rbac(t *testing.T) {
 	truncateStore(ctx, s, t)
 	//
 	// - back into store
-	se := su.NewStoreEncoder(s, &su.EncoderConfig{})
+	se := su.NewStoreEncoder(s, dal.Service(), &su.EncoderConfig{})
 	yd := yaml.Decoder()
 	nn = make([]resource.Interface, 0, len(nn))
 	for _, s := range ss {

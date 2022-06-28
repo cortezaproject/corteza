@@ -3,6 +3,7 @@ package envoy
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"strconv"
 	"testing"
 	"time"
@@ -191,7 +192,7 @@ func TestStoreJsonl_records(t *testing.T) {
 			truncateStoreRecords(ctx, s, t)
 
 			// Encode back into store
-			se := su.NewStoreEncoder(s, &su.EncoderConfig{})
+			se := su.NewStoreEncoder(s, dal.Service(), &su.EncoderConfig{})
 			jd := json.Decoder()
 			nn = make([]resource.Interface, 0, len(nn))
 			for _, s := range ss {
@@ -406,7 +407,7 @@ func TestStoreJsonl_records_fieldTypes(t *testing.T) {
 			truncateStoreRecords(ctx, s, t)
 
 			// Encode back into store
-			se := su.NewStoreEncoder(s, &su.EncoderConfig{})
+			se := su.NewStoreEncoder(s, dal.Service(), &su.EncoderConfig{})
 			yd := csv.Decoder()
 			nn = make([]resource.Interface, 0, len(nn))
 			for _, s := range ss {
