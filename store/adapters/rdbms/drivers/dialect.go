@@ -2,6 +2,7 @@ package drivers
 
 import (
 	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 )
@@ -30,5 +31,8 @@ type (
 
 		// TypeWrap returns driver's type implementation for a particular attribute type
 		TypeWrap(dal.Type) Type
+
+		// NativeColumnType converts column type to type that can be used in the underlying rdbms
+		NativeColumnType(columnType ddl.ColumnType) string
 	}
 )

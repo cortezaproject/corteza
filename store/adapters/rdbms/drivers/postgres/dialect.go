@@ -2,38 +2,40 @@ package postgres
 
 import (
 	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 )
 
 type (
-	dialect struct{}
+	mysqlDialect struct{}
 )
 
 var (
-	goquDialectWrapper = goqu.Dialect("postgres")
+	_ drivers.Dialect = &mysqlDialect{}
 
-	_ drivers.Dialect = &dialect{}
+	dialect            = &mysqlDialect{}
+	goquDialectWrapper = goqu.Dialect("postgres")
 )
 
-func Dialect() *dialect {
-	return &dialect{}
+func Dialect() *mysqlDialect {
+	return dialect
 }
 
-func (dialect) GOQU() goqu.DialectWrapper {
+func (mysqlDialect) GOQU() goqu.DialectWrapper {
 	return goquDialectWrapper
 }
 
-func (dialect) DeepIdentJSON(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression, error) {
+func (mysqlDialect) DeepIdentJSON(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression, error) {
 	return drivers.DeepIdentJSON(ident, pp...), nil
 }
 
-func (d dialect) TableCodec(m *dal.Model) drivers.TableCodec {
+func (d mysqlDialect) TableCodec(m *dal.Model) drivers.TableCodec {
 	return drivers.NewTableCodec(m, d)
 }
 
-func (d dialect) TypeWrap(dt dal.Type) drivers.Type {
+func (d mysqlDialect) TypeWrap(dt dal.Type) drivers.Type {
 	// Any exception to general type-wrap implementation in the drivers package
 	// should be placed here
 	switch c := dt.(type) {
@@ -44,7 +46,7 @@ func (d dialect) TypeWrap(dt dal.Type) drivers.Type {
 	return drivers.TypeWrap(dt)
 }
 
-func (dialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpression) (exp.LiteralExpression, error) {
+func (mysqlDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpression) (exp.LiteralExpression, error) {
 	var (
 		c exp.CastExpression
 	)
@@ -68,4 +70,8 @@ func (dialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpression) (ex
 	}
 
 	return exp.NewLiteralExpression("?", c), nil
+}
+
+func (mysqlDialect) NativeColumnType(ct ddl.ColumnType) string {
+	return ddl.ColumnTypeTranslator(ct)
 }

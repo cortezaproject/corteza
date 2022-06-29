@@ -34,6 +34,8 @@ func Connect(ctx context.Context, log *zap.Logger, cfg *ConnConfig) (db *sqlx.DB
 		base      *sql.DB
 	)
 
+	log = log.Named("store")
+
 	if base, err = sql.Open(cfg.DriverName, cfg.DataSourceName); err != nil {
 		return
 	}

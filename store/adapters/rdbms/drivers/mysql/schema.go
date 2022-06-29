@@ -9,23 +9,28 @@ import (
 
 type (
 	schema struct {
-		dbName  string
-		dialect *dialect
+		dbName string
 	}
 )
 
+// TableExists  checks if table exists in the MySQL database
 func (s *schema) TableExists(ctx context.Context, db sqlx.QueryerContext, table string) (bool, error) {
-	return ddl.TableExists(ctx, db, s.dialect, table, "public")
+	return ddl.TableExists(ctx, db, Dialect(), table, s.dbName)
+}
+
+// ColumnExists  checks if column exists in the MySQL table
+func (s *schema) ColumnExists(ctx context.Context, db sqlx.QueryerContext, column, table string) (bool, error) {
+	return ddl.ColumnExists(ctx, db, Dialect(), column, table, s.dbName)
 }
 
 // CreateTable
 //
-// MySQL does not hav CREATE-INDEX-IF-NOT-EXISTS; we need to check index existance manually
+// MySQL does not hav CREATE-INDEX-IF-NOT-EXISTS; we need to check index existence manually
 func (s *schema) CreateTable(ctx context.Context, db sqlx.ExtContext, t *ddl.Table) (err error) {
-	tc := &ddl.CreateTableTemplate{
-		Table:         t,
-		TrColumnTypes: columnTypTranslator,
-		SuffixClause:  "ENGINE=InnoDB DEFAULT CHARSET=utf8",
+	tc := &ddl.CreateTable{
+		Dialect:      Dialect(),
+		Table:        t,
+		SuffixClause: "ENGINE=InnoDB DEFAULT CHARSET=utf8",
 	}
 
 	if err = ddl.Exec(ctx, db, tc); err != nil {
@@ -42,13 +47,14 @@ func (s *schema) CreateTable(ctx context.Context, db sqlx.ExtContext, t *ddl.Tab
 		}
 
 		var doesIt bool
-		if doesIt, err = ddl.IndexExists(ctx, db, s.dialect, index.Name, index.Table, s.dbName); err != nil {
+		if doesIt, err = ddl.IndexExists(ctx, db, Dialect(), index.Name, index.Table, s.dbName); err != nil {
 			return
 		} else if doesIt {
 			continue
 		}
 
-		ic := &ddl.CreateIndexTemplate{
+		ic := &ddl.CreateIndex{
+			Dialect:               Dialect(),
 			Index:                 index,
 			OmitIfNotExistsClause: true,
 		}
@@ -62,17 +68,40 @@ func (s *schema) CreateTable(ctx context.Context, db sqlx.ExtContext, t *ddl.Tab
 	return
 }
 
-func columnTypTranslator(ct ddl.ColumnType) string {
+func (s *schema) AddColumn(ctx context.Context, db sqlx.ExtContext, t *ddl.Table, cc ...*ddl.Column) (err error) {
+	var (
+		aux    []any
+		exists bool
+	)
+
+	for _, c := range cc {
+		// check column existence
+		if exists, err = s.ColumnExists(ctx, db, c.Name, t.Name); err != nil {
+			return
+		} else if exists {
+			// column exists
+			continue
+		}
+
+		// Sadly, some column types in MySQL can not have default values
+		if c.Type.Type == ddl.ColumnTypeJson || c.Type.Type == ddl.ColumnTypeBinary || c.Type.Type == ddl.ColumnTypeText {
+			c.DefaultValue = ""
+		}
+
+		aux = append(aux, &ddl.AddColumn{
+			Dialect: dialect,
+			Table:   t,
+			Column:  c,
+		})
+	}
+
+	return ddl.Exec(ctx, db, aux...)
+}
+
+func columnTypeTranslator(ct ddl.ColumnType) string {
 	switch ct.Type {
 	case ddl.ColumnTypeIdentifier:
 		return "BIGINT UNSIGNED"
-	case ddl.ColumnTypeText:
-		// @todo when compose_record_value is removed, this will no longer be needed
-		if y, has := ct.Flags["mysqlLongText"].(bool); has && y {
-			return "LONGTEXT"
-		}
-
-		return "TEXT"
 	case ddl.ColumnTypeBinary:
 		return "BLOB"
 	case ddl.ColumnTypeTimestamp:
