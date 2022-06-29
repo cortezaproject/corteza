@@ -51,7 +51,7 @@ github.com/brianvoe/gofakeit/v6/data
 # github.com/cespare/xxhash/v2 v2.1.2
 ## explicit; go 1.11
 github.com/cespare/xxhash/v2
-# github.com/cortezaproject/corteza-locale v0.0.0-20220614135319-b6478a6780bf
+# github.com/cortezaproject/corteza-locale v0.0.0-20220629130811-e0f912b2d0cf
 ## explicit; go 1.16
 github.com/cortezaproject/corteza-locale
 # github.com/crewjam/httperr v0.2.0
