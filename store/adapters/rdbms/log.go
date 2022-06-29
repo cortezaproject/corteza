@@ -12,7 +12,7 @@ import (
 // It checks the given context for logger before falling back to one set on the store
 func (s Store) log(ctx context.Context) *zap.Logger {
 	return logger.ContextValue(ctx, s.Logger, logger.Default(), zap.NewNop()).
-		Named("store.rdbms").
+		Named("store").
 		WithOptions(zap.AddCallerSkip(2))
 }
 

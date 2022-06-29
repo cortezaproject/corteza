@@ -59,7 +59,6 @@ func Tables() []*Table {
 		tableComposeNamespace(),
 		tableComposePage(),
 		tableComposeRecord(),
-		tableComposeRecordValue(),
 		tableFederationModuleShared(),
 		tableFederationModuleExposed(),
 		tableFederationModuleMapping(),
@@ -532,20 +531,6 @@ func tableComposeRecord() *Table {
 		AddIndex("namespace", IColumn("rel_namespace")),
 		AddIndex("module", IColumn("module_id")),
 		AddIndex("owner", IColumn("owned_by")),
-	)
-}
-
-func tableComposeRecordValue() *Table {
-	return TableDef("compose_record_value",
-		ColumnDef("record_id", ColumnTypeIdentifier),
-		ColumnDef("name", ColumnTypeVarchar, ColumnTypeLength(64)),
-		ColumnDef("value", ColumnTypeText, ColumnTypeFlag("mysqlLongText", true)),
-		ColumnDef("ref", ColumnTypeIdentifier),
-		ColumnDef("place", ColumnTypeInteger),
-		ColumnDef("deleted_at", ColumnTypeTimestamp, Null),
-
-		PrimaryKey(IColumn("record_id", "name", "place")),
-		AddIndex("ref", IColumn("ref"), IWhere("ref > 0")),
 	)
 }
 

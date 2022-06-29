@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/dialect/sqlite3"
@@ -9,13 +10,14 @@ import (
 )
 
 type (
-	dialect struct{}
+	sqliteDialect struct{}
 )
 
 var (
-	goquDialectWrapper = goqu.Dialect("sqlite3")
+	_ drivers.Dialect = &sqliteDialect{}
 
-	_ drivers.Dialect = &dialect{}
+	dialect            = &sqliteDialect{}
+	goquDialectWrapper = goqu.Dialect("sqlite3")
 )
 
 func init() {
@@ -28,28 +30,32 @@ func init() {
 	goqu.RegisterDialect("sqlite3", d)
 }
 
-func Dialect() *dialect {
-	return &dialect{}
+func Dialect() *sqliteDialect {
+	return dialect
 }
 
-func (dialect) GOQU() goqu.DialectWrapper {
+func (sqliteDialect) GOQU() goqu.DialectWrapper {
 	return goquDialectWrapper
 }
 
-func (dialect) DeepIdentJSON(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression, error) {
+func (sqliteDialect) DeepIdentJSON(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression, error) {
 	return drivers.DeepIdentJSON(ident, pp...), nil
 }
 
-func (d dialect) TableCodec(m *dal.Model) drivers.TableCodec {
+func (d sqliteDialect) TableCodec(m *dal.Model) drivers.TableCodec {
 	return drivers.NewTableCodec(m, d)
 }
 
-func (d dialect) TypeWrap(t dal.Type) drivers.Type {
+func (d sqliteDialect) TypeWrap(t dal.Type) drivers.Type {
 	// Any exception to general type-wrap implementation in the drivers package
 	// should be placed here
 	return drivers.TypeWrap(t)
 }
 
-func (dialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpression) (exp.LiteralExpression, error) {
+func (sqliteDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpression) (exp.LiteralExpression, error) {
 	return drivers.AttributeCast(attr, val)
+}
+
+func (sqliteDialect) NativeColumnType(ct ddl.ColumnType) string {
+	return columnTypeTranslator(ct)
 }

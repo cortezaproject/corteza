@@ -9,9 +9,7 @@ import (
 )
 
 type (
-	schema struct {
-		dialect *dialect
-	}
+	schema struct{}
 )
 
 func (s *schema) TableExists(ctx context.Context, db sqlx.QueryerContext, table string) (bool, error) {
@@ -27,19 +25,57 @@ func (s *schema) TableExists(ctx context.Context, db sqlx.QueryerContext, table 
 	return exists, nil
 }
 
+func (s *schema) ColumnExists(ctx context.Context, db sqlx.QueryerContext, column, table string) (bool, error) {
+	var (
+		exists bool
+		sql    = `SELECT COUNT(*) > 0 FROM pragma_table_info(?) WHERE name = ?;`
+	)
+
+	if err := sqlx.GetContext(ctx, db, &exists, sql, table, column); err != nil {
+		return false, fmt.Errorf("could not check if column exists: %w", err)
+	}
+
+	return exists, nil
+}
+
 func (s *schema) CreateTable(ctx context.Context, db sqlx.ExtContext, t *ddl.Table) (err error) {
 	tt := append(
-		[]any{&ddl.CreateTableTemplate{
-			Table:         t,
-			TrColumnTypes: columnTypTranslator,
+		[]any{&ddl.CreateTable{
+			Dialect: Dialect(),
+			Table:   t,
 		}},
-		ddl.CreateIndexTemplates(&ddl.CreateIndexTemplate{OmitFieldLength: true}, t.Indexes...)...,
+		ddl.CreateIndexTemplates(&ddl.CreateIndex{OmitFieldLength: true}, t.Indexes...)...,
 	)
 
 	return ddl.Exec(ctx, db, tt...)
 }
 
-func columnTypTranslator(ct ddl.ColumnType) string {
+func (s *schema) AddColumn(ctx context.Context, db sqlx.ExtContext, t *ddl.Table, cc ...*ddl.Column) (err error) {
+	var (
+		aux    []any
+		exists bool
+	)
+
+	for _, c := range cc {
+		// check column existence
+		if exists, err = s.ColumnExists(ctx, db, c.Name, t.Name); err != nil {
+			return
+		} else if exists {
+			// column exists
+			continue
+		}
+
+		aux = append(aux, &ddl.AddColumn{
+			Dialect: dialect,
+			Table:   t,
+			Column:  c,
+		})
+	}
+
+	return ddl.Exec(ctx, db, aux...)
+}
+
+func columnTypeTranslator(ct ddl.ColumnType) string {
 	switch ct.Type {
 	case ddl.ColumnTypeTimestamp:
 		return "TIMESTAMP"

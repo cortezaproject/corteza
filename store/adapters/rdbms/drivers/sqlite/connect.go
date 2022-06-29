@@ -73,7 +73,7 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 		TxRetryLimit: -1,
 		//TxRetryErrHandler: txRetryErrHandler,
 
-		SchemaAPI: &schema{dialect: Dialect()},
+		SchemaAPI: &schema{},
 	}
 
 	s.SetDefaults()

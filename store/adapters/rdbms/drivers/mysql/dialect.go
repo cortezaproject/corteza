@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"fmt"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
 	"strconv"
 	"strings"
 
@@ -12,32 +13,33 @@ import (
 )
 
 type (
-	dialect struct{}
+	mysqlDialect struct{}
 )
 
 var (
-	goquDialectWrapper = goqu.Dialect("mysql")
+	_ drivers.Dialect = &mysqlDialect{}
 
-	_ drivers.Dialect = &dialect{}
+	dialect            = &mysqlDialect{}
+	goquDialectWrapper = goqu.Dialect("mysql")
 )
 
-func Dialect() *dialect {
-	return &dialect{}
+func Dialect() *mysqlDialect {
+	return dialect
 }
 
-func (dialect) GOQU() goqu.DialectWrapper {
+func (mysqlDialect) GOQU() goqu.DialectWrapper {
 	return goquDialectWrapper
 }
 
-func (dialect) DeepIdentJSON(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression, error) {
+func (mysqlDialect) DeepIdentJSON(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression, error) {
 	return JSONPath(ident, pp...)
 }
 
-func (d dialect) TableCodec(m *dal.Model) drivers.TableCodec {
+func (d mysqlDialect) TableCodec(m *dal.Model) drivers.TableCodec {
 	return drivers.NewTableCodec(m, d)
 }
 
-func (d dialect) TypeWrap(dt dal.Type) drivers.Type {
+func (d mysqlDialect) TypeWrap(dt dal.Type) drivers.Type {
 	// Any exception to general type-wrap implementation in the drivers package
 	// should be placed here
 	switch c := dt.(type) {
@@ -59,7 +61,7 @@ func (d dialect) TypeWrap(dt dal.Type) drivers.Type {
 // AttributeCast for mySQL
 //
 // https://dev.mysql.com/doc/refman/8.0/en/cast-functions.html#function_cast
-func (dialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpression) (exp.LiteralExpression, error) {
+func (mysqlDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpression) (exp.LiteralExpression, error) {
 	var (
 		c exp.CastExpression
 	)
@@ -94,6 +96,10 @@ func (dialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpression) (ex
 	}
 
 	return exp.NewLiteralExpression("?", c), nil
+}
+
+func (mysqlDialect) NativeColumnType(ct ddl.ColumnType) string {
+	return columnTypeTranslator(ct)
 }
 
 func JSONPath(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression, error) {

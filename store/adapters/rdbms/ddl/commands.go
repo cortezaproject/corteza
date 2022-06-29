@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/jmoiron/sqlx"
@@ -13,27 +12,43 @@ import (
 type (
 	trColTypeFn func(ColumnType) string
 
-	CreateTableTemplate struct {
-		*Table
-		OmitIfNotExistsClause bool
-		SuffixClause          string
-		TrColumnTypes         trColTypeFn
+	dialect interface {
+		// GOQU returns goqu's dialect wrapper struct
+		GOQU() goqu.DialectWrapper
+
+		NativeColumnType(columnType ColumnType) string
 	}
 
-	CreateIndexTemplate struct {
-		*Index
+	CreateTable struct {
+		Dialect dialect
+
+		Table *Table
+
+		OmitIfNotExistsClause bool
+		SuffixClause          string
+	}
+
+	CreateIndex struct {
+		Dialect               dialect
+		Index                 *Index
 		OmitIfNotExistsClause bool
 		OmitFieldLength       bool
 	}
+
+	AddColumn struct {
+		Dialect dialect
+		Table   *Table
+		Column  *Column
+	}
 )
 
-func CreateIndexTemplates(base *CreateIndexTemplate, ii ...*Index) []any {
+func CreateIndexTemplates(base *CreateIndex, ii ...*Index) []any {
 	var (
 		tt = make([]any, len(ii))
 	)
 
 	for i := range ii {
-		tt[i] = &CreateIndexTemplate{
+		tt[i] = &CreateIndex{
 			Index:                 ii[i],
 			OmitIfNotExistsClause: base.OmitIfNotExistsClause,
 			OmitFieldLength:       base.OmitFieldLength,
@@ -43,8 +58,12 @@ func CreateIndexTemplates(base *CreateIndexTemplate, ii ...*Index) []any {
 	return tt
 }
 
-// utility for executing series fo commands
-func Exec(ctx context.Context, db sqlx.ExecerContext, ss ...any) (err error) {
+// Exec is an utility for executing series of commands
+//
+// Parameters can be string, Stringer interface or goqu's exp.SQLExpression
+//
+// Any other type will result in panic
+func Exec(ctx context.Context, db sqlx.ExtContext, ss ...any) (err error) {
 	for _, s := range ss {
 		var (
 			sql  string
@@ -58,6 +77,9 @@ func Exec(ctx context.Context, db sqlx.ExecerContext, ss ...any) (err error) {
 			sql = c.String()
 		case exp.SQLExpression:
 			sql, args, err = c.ToSQL()
+			if err != nil {
+				return
+			}
 		default:
 			panic(fmt.Sprintf("unexecutable input (%T)", s))
 		}
@@ -70,11 +92,15 @@ func Exec(ctx context.Context, db sqlx.ExecerContext, ss ...any) (err error) {
 	return
 }
 
-func TableExists(ctx context.Context, db sqlx.QueryerContext, d drivers.Dialect, table, schema string) (bool, error) {
+func TableExists(ctx context.Context, db sqlx.QueryerContext, d dialect, table, schema string) (bool, error) {
 	return GetBool(ctx, db, GenTableCheck(d, table, schema))
 }
 
-func GenTableCheck(d drivers.Dialect, table, schema string) *goqu.SelectDataset {
+func ColumnExists(ctx context.Context, db sqlx.QueryerContext, d dialect, column, table, schema string) (bool, error) {
+	return GetBool(ctx, db, GenColumnCheck(d, column, table, schema))
+}
+
+func GenTableCheck(d dialect, table, schema string) *goqu.SelectDataset {
 	return d.GOQU().Select(goqu.COUNT(goqu.Star()).Gt(0)).
 		From("information_schema.tables").
 		Where(
@@ -83,11 +109,47 @@ func GenTableCheck(d drivers.Dialect, table, schema string) *goqu.SelectDataset 
 		)
 }
 
-func IndexExists(ctx context.Context, db sqlx.QueryerContext, d drivers.Dialect, index, table, schema string) (bool, error) {
+func GenColumnCheck(d dialect, column, table, schema string) *goqu.SelectDataset {
+	return d.GOQU().Select(goqu.COUNT(goqu.Star()).Gt(0)).
+		From("information_schema.columns").
+		Where(
+			exp.ParseIdentifier("table_name").Eq(table),
+			exp.ParseIdentifier("table_schema").Eq(schema),
+			exp.ParseIdentifier("column_name").Eq(column),
+		)
+}
+
+//
+//func GenAddColumn(ctx context.Context, dialect dialect, db sqlx.ExtContext, t *Table, cc ...*Column) (err error) {
+//	var (
+//		aux    []any
+//		exists bool
+//	)
+//
+//	for _, c := range cc {
+//		// check column existence
+//		if exists, err = ColumnExists(ctx, db, dialect, c.Name, t.Name, "public"); err != nil {
+//			return
+//		} else if exists {
+//			// column exists
+//			continue
+//		}
+//
+//		aux = append(aux, &AddColumn{
+//			Dialect: dialect,
+//			Table:   t,
+//			Column:  c,
+//		})
+//	}
+//
+//	return Exec(ctx, db, aux...)
+//}
+
+func IndexExists(ctx context.Context, db sqlx.QueryerContext, d dialect, index, table, schema string) (bool, error) {
 	return GetBool(ctx, db, GenIndexCheck(d, index, table, schema))
 }
 
-func GenIndexCheck(d drivers.Dialect, index, table, schema string) *goqu.SelectDataset {
+func GenIndexCheck(d dialect, index, table, schema string) *goqu.SelectDataset {
 	return d.GOQU().Select(goqu.COUNT(goqu.Star()).Gt(0)).
 		From("information_schema.statistics").
 		Where(
@@ -97,19 +159,15 @@ func GenIndexCheck(d drivers.Dialect, index, table, schema string) *goqu.SelectD
 		)
 }
 
-func (t *CreateTableTemplate) String() string {
-	if t.TrColumnTypes == nil {
-		t.TrColumnTypes = ColumnTypeTranslator
-	}
-
+func (t *CreateTable) String() string {
 	sql := "CREATE TABLE "
 
 	if !t.OmitIfNotExistsClause {
 		sql += "IF NOT EXISTS "
 	}
 
-	sql += "\"" + t.Name + "\" (\n"
-	sql += GenCreateTableBody(t.Table, t.TrColumnTypes)
+	sql += "\"" + t.Table.Name + "\" (\n"
+	sql += GenCreateTableBody(t.Table, t.Dialect.NativeColumnType)
 	sql += "\n)"
 	sql += t.SuffixClause
 
@@ -165,7 +223,7 @@ func GenPrimaryKey(pk *Index) string {
 	return sql
 }
 
-func (t *CreateIndexTemplate) String() string {
+func (t *CreateIndex) String() string {
 	sql := "CREATE "
 
 	if t.Index.Unique {
@@ -207,6 +265,19 @@ func (t *CreateIndexTemplate) String() string {
 
 	if t.Index.Condition != "" {
 		sql += " WHERE " + t.Index.Condition
+	}
+
+	return sql
+}
+
+func (c *AddColumn) String() string {
+	sql := "ALTER TABLE" + " " + c.Table.Name + " ADD COLUMN " + c.Column.Name + " " + c.Dialect.NativeColumnType(c.Column.Type)
+	if !c.Column.IsNull {
+		sql += " NOT NULL"
+	}
+
+	if len(c.Column.DefaultValue) > 0 {
+		sql += " DEFAULT " + c.Column.DefaultValue
 	}
 
 	return sql

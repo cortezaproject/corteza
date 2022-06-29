@@ -34,8 +34,9 @@ type (
 	}
 
 	schemaAPI interface {
-		TableExists(ctx context.Context, db sqlx.QueryerContext, table string) (bool, error)
-		CreateTable(ctx context.Context, db sqlx.ExtContext, t *ddl.Table) error
+		TableExists(context.Context, sqlx.QueryerContext, string) (bool, error)
+		CreateTable(context.Context, sqlx.ExtContext, *ddl.Table) error
+		AddColumn(context.Context, sqlx.ExtContext, *ddl.Table, ...*ddl.Column) error
 	}
 
 	Store struct {

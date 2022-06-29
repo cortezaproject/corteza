@@ -3,44 +3,39 @@ package rdbms
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 )
 
 func (s *Store) Upgrade(ctx context.Context) (err error) {
-	if err = UpgradeBeforeTableCreation(ctx, s); err != nil {
-		return
-	}
+	var (
+		tableExists bool
+	)
 
-	if err = UpgradeCreateTables(ctx, s); err != nil {
-		return
-	}
-
-	if err = UpgradeAfterTableCreation(ctx, s); err != nil {
-		return
-	}
-
-	return
-}
-
-// UpgradeBeforeTableCreation all actions that need to happen before tables are created
-//
-// Important note!
-// Corteza needs to be updated to the latest patch release under 2022.3.x before upgrading to 2022.9!
-func UpgradeBeforeTableCreation(ctx context.Context, s *Store) (err error) {
-	// @todo figure out how we will detect if database is on the latest version
-	return
-}
-
-// UpgradeCreateTables creates all tables needed by RDBMS store for Corteza to function properly
-func UpgradeCreateTables(ctx context.Context, s *Store) (err error) {
 	for _, t := range Tables() {
-		if err = s.SchemaAPI.CreateTable(ctx, s.DB, t); err != nil {
-			return fmt.Errorf("could not create table %s: %w", t.Name, err)
+
+		tableExists, err = s.SchemaAPI.TableExists(ctx, s.DB, t.Name)
+		if err != nil {
+			return fmt.Errorf("could not check table %q existance: %w", t.Name, err)
+		}
+
+		if !tableExists {
+			s.log(ctx).Debug("creating table", zap.String("table", t.Name))
+			if err = s.SchemaAPI.CreateTable(ctx, s.DB, t); err != nil {
+				return fmt.Errorf("could not create table %q: %w", t.Name, err)
+			}
 		}
 	}
 
-	return
-}
+	fixes := []func(context.Context, *Store) error{
+		fix202209_extendComposeModuleForPrivacyAndDAL,
+		fix202209_extendComposeModuleFieldsForPrivacyAndDAL,
+	}
 
-func UpgradeAfterTableCreation(ctx context.Context, s *Store) (err error) {
+	for _, fix := range fixes {
+		if err = fix(ctx, s); err != nil {
+			return
+		}
+	}
+
 	return
 }

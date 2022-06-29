@@ -47,7 +47,7 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 		TxRetryErrHandler: txRetryErrHandler,
 		ErrorHandler:      errorHandler,
 
-		SchemaAPI: &schema{dbName: cfg.DBName, dialect: Dialect()},
+		SchemaAPI: &schema{dbName: cfg.DBName},
 	}
 
 	s.SetDefaults()
@@ -133,13 +133,23 @@ func connSetup(ctx context.Context, db sqlx.ExecerContext) (err error) {
 }
 
 func txRetryErrHandler(try int, err error) bool {
+	var (
+		mysqlErr *mysql.MySQLError
+		ok       bool
+	)
+
+	// unwrap errors until we find one comming from MySQL
 	for errors.Unwrap(err) != nil {
 		err = errors.Unwrap(err)
-	}
 
-	var mysqlErr, ok = err.(*mysql.MySQLError)
-	if !ok || mysqlErr == nil {
-		return false
+		mysqlErr, ok = err.(*mysql.MySQLError)
+		if !ok || mysqlErr == nil {
+			return false
+		}
+
+		if mysqlErr != nil {
+			break
+		}
 	}
 
 	switch mysqlErr.Number {
