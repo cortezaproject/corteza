@@ -1098,12 +1098,12 @@ func AuthErrPasswordChangeFailedForUnknownUser(mm ...*authActionProps) *errors.E
 	return e
 }
 
-// AuthErrPasswodResetFailedOldPasswordCheckFailed returns "system:auth.passwodResetFailedOldPasswordCheckFailed" as *errors.Error
+// AuthErrPasswordResetFailedOldPasswordCheckFailed returns "system:auth.passwordResetFailedOldPasswordCheckFailed" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func AuthErrPasswodResetFailedOldPasswordCheckFailed(mm ...*authActionProps) *errors.Error {
+func AuthErrPasswordResetFailedOldPasswordCheckFailed(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
@@ -1114,14 +1114,48 @@ func AuthErrPasswodResetFailedOldPasswordCheckFailed(mm ...*authActionProps) *er
 
 		p.Format("failed to change password, old password does not match", nil),
 
-		errors.Meta("type", "passwodResetFailedOldPasswordCheckFailed"),
+		errors.Meta("type", "passwordResetFailedOldPasswordCheckFailed"),
 		errors.Meta("resource", "system:auth"),
 
 		errors.Meta(authPropsMetaKey{}, p),
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.passwodResetFailedOldPasswordCheckFailed"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.passwordResetFailedOldPasswordCheckFailed"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// AuthErrPasswordSetFailedReusedPasswordCheckFailed returns "system:auth.passwordSetFailedReusedPasswordCheckFailed" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func AuthErrPasswordSetFailedReusedPasswordCheckFailed(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("failed to set password, already used", nil),
+
+		errors.Meta("type", "passwordSetFailedReusedPasswordCheckFailed"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.passwordSetFailedReusedPasswordCheckFailed"),
 
 		errors.StackSkip(1),
 	)
