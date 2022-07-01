@@ -88,7 +88,6 @@ var (
 	DefaultApigwFilter         *apigwFilter
 	DefaultApigwProfiler       *apigwProfiler
 	DefaultReport              *report
-	primaryConnectionConfig    *types.DalConnection
 	DefaultDataPrivacy         *dataPrivacy
 
 	DefaultStatistics *statistics
@@ -105,7 +104,7 @@ var (
 	}
 )
 
-func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, primaryConn *types.DalConnection, ws websocketSender, c Config) (err error) {
+func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websocketSender, c Config) (err error) {
 	var (
 		hcd = healthcheck.Defaults()
 	)
@@ -151,7 +150,6 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, primaryCon
 
 	DefaultSettings = Settings(ctx, DefaultStore, DefaultLogger, DefaultAccessControl, CurrentSettings)
 
-	primaryConnectionConfig = primaryConn
 	DefaultDalConnection = Connection(ctx, dal.Service(), c.DB)
 
 	DefaultDalSensitivityLevel = SensitivityLevel(ctx, dal.Service())
@@ -273,6 +271,19 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, primaryCon
 func Activate(ctx context.Context) (err error) {
 	// Run initial update of current settings
 	err = DefaultSettings.UpdateCurrent(ctx)
+	if err != nil {
+		return
+	}
+
+	// Reload DAL sensitivity levels
+	err = DefaultDalSensitivityLevel.ReloadSensitivityLevels(ctx, DefaultStore)
+	if err != nil {
+		return
+	}
+
+	// Reload DAL connections
+	println("reloading connections")
+	err = DefaultDalConnection.ReloadConnections(ctx)
 	if err != nil {
 		return
 	}

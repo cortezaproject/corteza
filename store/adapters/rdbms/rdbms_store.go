@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
 	"github.com/doug-martin/goqu/v9"
@@ -41,6 +41,9 @@ type (
 
 	Store struct {
 		DB sqlx.ExtContext
+
+		// DAL connection
+		DAL dal.Connection
 
 		// Logger for connection
 		Logger *zap.Logger
@@ -165,6 +168,11 @@ func (s Store) QueryOne(ctx context.Context, q sqlizer, dst interface{}) (err er
 	}
 
 	return exec.NewScanner(rows).ScanStruct(dst)
+}
+
+// ToDalConn uses store as DAL connection
+func (s Store) ToDalConn() dal.Connection {
+	return s.DAL
 }
 
 func DefaultFunctions() *Functions {

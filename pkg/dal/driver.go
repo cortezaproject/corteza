@@ -175,7 +175,7 @@ func RegisterDriver(d Driver) {
 // connect opens a new StoreConnection for the given CRS
 func connect(ctx context.Context, log *zap.Logger, isDevelopment bool, cp ConnectionParams, capabilities ...capabilities.Capability) (Connection, error) {
 	if cp.Type != "corteza::dal:connection:dsn" {
-		return nil, fmt.Errorf("cannot open connection: only DSN connections supported")
+		return nil, fmt.Errorf("cannot open connection: only DSN connections supported (got: %q)", cp.Type)
 	}
 	dsn := cp.Params["dsn"].(string)
 

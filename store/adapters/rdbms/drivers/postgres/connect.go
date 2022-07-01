@@ -3,6 +3,8 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/dal"
 	"net/url"
 	"strings"
 
@@ -45,6 +47,8 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 
 	s := &rdbms.Store{
 		DB: db,
+
+		DAL: dal.Connection(db, Dialect(), capabilities.FullCapabilities()...),
 
 		Dialect:      goquDialectWrapper,
 		ErrorHandler: errorHandler,

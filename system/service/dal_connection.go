@@ -8,11 +8,9 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	a "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/system/dalutils"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -21,7 +19,7 @@ type (
 		actionlog actionlog.Recorder
 		store     store.Storer
 		ac        connectionAccessController
-		dal       dalConnections
+		dal       dalConnManager
 		dbConf    options.DBOpt
 	}
 
@@ -35,15 +33,15 @@ type (
 		CanDeleteDalConnection(context.Context, *types.DalConnection) bool
 	}
 
-	dalConnections interface {
-		CreateConnection(ctx context.Context, connectionID uint64, cp dal.ConnectionParams, dft dal.ConnectionMeta, capabilities ...capabilities.Capability) (err error)
-		UpdateConnection(ctx context.Context, connectionID uint64, cp dal.ConnectionParams, dft dal.ConnectionMeta, capabilities ...capabilities.Capability) (err error)
-		DeleteConnection(ctx context.Context, connectionID uint64) (err error)
-		SearchConnectionIssues(connectionID uint64) (err []error)
+	// Connection management on DAL Service
+	dalConnManager interface {
+		ReplaceConnection(context.Context, *dal.ConnectionWrap, bool) error
+		RemoveConnection(context.Context, uint64) error
+		SearchConnectionIssues(uint64) []error
 	}
 )
 
-func Connection(ctx context.Context, dal dalConnections, dbConf options.DBOpt) *dalConnection {
+func Connection(ctx context.Context, dal dalConnManager, dbConf options.DBOpt) *dalConnection {
 	return &dalConnection{
 		ac:        DefaultAccessControl,
 		actionlog: DefaultActionlog,
@@ -108,7 +106,7 @@ func (svc *dalConnection) Create(ctx context.Context, new *types.DalConnection) 
 
 		q = new
 
-		if err = dalutils.DalConnectionCreate(ctx, svc.dal, new); err != nil {
+		if err = dalConnectionReplace(ctx, svc.store.ToDalConn(), svc.dal, new); err != nil {
 			return err
 		}
 		svc.proc(q)
@@ -120,20 +118,19 @@ func (svc *dalConnection) Create(ctx context.Context, new *types.DalConnection) 
 
 func (svc *dalConnection) Update(ctx context.Context, upd *types.DalConnection) (q *types.DalConnection, err error) {
 	var (
-		qProps = &dalConnectionActionProps{update: upd}
+		cProps = &dalConnectionActionProps{update: upd}
 		old    *types.DalConnection
-		e      error
 	)
 
 	err = func() (err error) {
-		if old, e = store.LookupDalConnectionByID(ctx, svc.store, upd.ID); e != nil {
-			return DalConnectionErrNotFound(qProps)
+		if old, err = store.LookupDalConnectionByID(ctx, svc.store, upd.ID); err != nil {
+			return DalConnectionErrNotFound(cProps)
 		}
 
 		svc.proc(old)
 
 		if !svc.ac.CanUpdateDalConnection(ctx, old) {
-			return DalConnectionErrNotAllowedToUpdate(qProps)
+			return DalConnectionErrNotAllowedToUpdate(cProps)
 		}
 
 		upd.UpdatedAt = now()
@@ -176,19 +173,15 @@ func (svc *dalConnection) Update(ctx context.Context, upd *types.DalConnection) 
 
 		q = upd
 		defer svc.proc(q)
-		if old.HasIssues() {
-			return dalutils.DalConnectionCreate(ctx, svc.dal, upd)
-		}
-
-		return dalutils.DalConnectionUpdate(ctx, svc.dal, upd)
+		return dalConnectionReplace(ctx, svc.store.ToDalConn(), svc.dal, upd)
 	}()
-	return q, svc.recordAction(ctx, qProps, DalConnectionActionUpdate, err)
+	return q, svc.recordAction(ctx, cProps, DalConnectionActionUpdate, err)
 }
 
 func (svc *dalConnection) DeleteByID(ctx context.Context, ID uint64) (err error) {
 	var (
-		qProps = &dalConnectionActionProps{}
-		q      *types.DalConnection
+		cProps = &dalConnectionActionProps{}
+		c      *types.DalConnection
 	)
 
 	err = func() (err error) {
@@ -196,37 +189,37 @@ func (svc *dalConnection) DeleteByID(ctx context.Context, ID uint64) (err error)
 			return DalConnectionErrInvalidID()
 		}
 
-		if q, err = store.LookupDalConnectionByID(ctx, svc.store, ID); err != nil {
+		if c, err = store.LookupDalConnectionByID(ctx, svc.store, ID); err != nil {
 			return
 		}
 
-		if q.Type == types.DalPrimaryConnectionResourceType {
+		if c.Type == types.DalPrimaryConnectionResourceType {
 			return fmt.Errorf("not allowed to delete primary connections")
 		}
 
-		if !svc.ac.CanDeleteDalConnection(ctx, q) {
-			return DalConnectionErrNotAllowedToDelete(qProps)
+		if !svc.ac.CanDeleteDalConnection(ctx, c) {
+			return DalConnectionErrNotAllowedToDelete(cProps)
 		}
 
-		qProps.setConnection(q)
+		cProps.setConnection(c)
 
-		q.DeletedAt = now()
-		q.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
+		c.DeletedAt = now()
+		c.DeletedBy = a.GetIdentityFromContext(ctx).Identity()
 
-		if err = store.UpdateDalConnection(ctx, svc.store, q); err != nil {
+		if err = store.UpdateDalConnection(ctx, svc.store, c); err != nil {
 			return
 		}
 
-		return dalutils.DalConnectionDelete(ctx, svc.dal, q)
+		return dalConnectionRemove(ctx, svc.dal, c)
 	}()
 
-	return svc.recordAction(ctx, qProps, DalConnectionActionDelete, err)
+	return svc.recordAction(ctx, cProps, DalConnectionActionDelete, err)
 }
 
 func (svc *dalConnection) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 	var (
-		qProps = &dalConnectionActionProps{}
-		q      *types.DalConnection
+		cProps = &dalConnectionActionProps{}
+		c      *types.DalConnection
 	)
 
 	err = func() (err error) {
@@ -234,28 +227,28 @@ func (svc *dalConnection) UndeleteByID(ctx context.Context, ID uint64) (err erro
 			return DalConnectionErrInvalidID()
 		}
 
-		if q, err = store.LookupDalConnectionByID(ctx, svc.store, ID); err != nil {
+		if c, err = store.LookupDalConnectionByID(ctx, svc.store, ID); err != nil {
 			return
 		}
 
-		if !svc.ac.CanDeleteDalConnection(ctx, q) {
-			return DalConnectionErrNotAllowedToUndelete(qProps)
+		if !svc.ac.CanDeleteDalConnection(ctx, c) {
+			return DalConnectionErrNotAllowedToUndelete(cProps)
 		}
 
-		qProps.setConnection(q)
+		cProps.setConnection(c)
 
-		q.DeletedAt = nil
-		q.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+		c.DeletedAt = nil
+		c.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-		if err = store.UpdateDalConnection(ctx, svc.store, q); err != nil {
+		if err = store.UpdateDalConnection(ctx, svc.store, c); err != nil {
 			return
 		}
 
 		// We're creating it here since it was removed on delete
-		return dalutils.DalConnectionCreate(ctx, svc.dal, q)
+		return dalConnectionRemove(ctx, svc.dal, c)
 	}()
 
-	return svc.recordAction(ctx, qProps, DalConnectionActionDelete, err)
+	return svc.recordAction(ctx, cProps, DalConnectionActionDelete, err)
 }
 
 func (svc *dalConnection) Search(ctx context.Context, filter types.DalConnectionFilter) (r types.DalConnectionSet, f types.DalConnectionFilter, err error) {
@@ -288,7 +281,7 @@ func (svc *dalConnection) Search(ctx context.Context, filter types.DalConnection
 }
 
 func (svc *dalConnection) ReloadConnections(ctx context.Context) (err error) {
-	return dalutils.DalConnectionReload(ctx, svc.store, svc.dal)
+	return dalConnectionReload(ctx, svc.store, svc.dal)
 }
 
 func (svc *dalConnection) proc(connections ...*types.DalConnection) {
@@ -321,4 +314,65 @@ func (svc *dalConnection) procDal(c *types.DalConnection) {
 
 func (svc *dalConnection) procLocale(c *types.DalConnection) {
 	// @todo...
+}
+
+func dalConnectionReload(ctx context.Context, s store.Storer, dcm dalConnManager) (err error) {
+	// Get all available connections
+	cc, _, err := store.SearchDalConnections(ctx, s, types.DalConnectionFilter{})
+	if err != nil {
+		return
+	}
+
+	return dalConnectionReplace(ctx, s.ToDalConn(), dcm, cc...)
+}
+
+// Replaces all given connections
+func dalConnectionReplace(ctx context.Context, primary dal.Connection, dcm dalConnManager, cc ...*types.DalConnection) (err error) {
+	var (
+		cw        *dal.ConnectionWrap
+		isPrimary bool
+	)
+
+	for _, c := range cc {
+		isPrimary = c.Type == types.DalPrimaryConnectionResourceType
+
+		cw = dal.MakeConnection(
+			c.ID,
+			// When connection is primary (type) we use the primary connection
+			// passed in to the fn
+			func() dal.Connection {
+				if isPrimary {
+					return primary
+				}
+
+				return nil
+			}(),
+			c.Config.Connection,
+			dal.ConnectionMeta{
+				DefaultModelIdent:      c.Config.DefaultModelIdent,
+				DefaultAttributeIdent:  c.Config.DefaultAttributeIdent,
+				DefaultPartitionFormat: c.Config.DefaultPartitionFormat,
+				SensitivityLevel:       c.SensitivityLevel,
+				Label:                  c.Handle,
+			},
+			c.ActiveCapabilities()...,
+		)
+
+		if err = dcm.ReplaceConnection(ctx, cw, isPrimary); err != nil {
+			return err
+		}
+	}
+
+	return
+}
+
+// Removes a connection from DAL service
+func dalConnectionRemove(ctx context.Context, dcm dalConnManager, cc ...*types.DalConnection) (err error) {
+	for _, c := range cc {
+		if err = dcm.RemoveConnection(ctx, c.ID); err != nil {
+			return err
+		}
+	}
+
+	return
 }

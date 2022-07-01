@@ -291,59 +291,6 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return
 	}
 
-	var primaryDalConnection *types.DalConnection
-	primaryDalConnection, err = store.LookupDalConnectionByHandle(ctx, app.Store, "primary_connection")
-	if err != nil {
-		// @note we won't log the error here as this is a bigger issue then
-		// it not connecting
-		return
-	}
-
-	dalLogger := app.Log.Named("dal")
-
-	// Assure primary connection configs
-	{
-		if primaryDalConnection.Config.DefaultModelIdent != provision.DefaultComposeRecordTable {
-			dalLogger.Warn("overwriting DefaultModelIdent value", zap.String("old", primaryDalConnection.Config.DefaultModelIdent), zap.String("new", provision.DefaultComposeRecordTable))
-			primaryDalConnection.Config.DefaultModelIdent = provision.DefaultComposeRecordTable
-		}
-
-		if primaryDalConnection.Config.DefaultAttributeIdent != provision.DefaultComposeRecordValueCol {
-			dalLogger.Warn("overwriting DefaultAttributeIdent value", zap.String("old", primaryDalConnection.Config.DefaultAttributeIdent), zap.String("new", provision.DefaultComposeRecordValueCol))
-			primaryDalConnection.Config.DefaultAttributeIdent = provision.DefaultComposeRecordValueCol
-		}
-
-		if primaryDalConnection.Config.DefaultPartitionFormat != provision.DefaultPartitionFormat {
-			dalLogger.Warn("overwriting DefaultPartitionFormat value", zap.String("old", primaryDalConnection.Config.DefaultPartitionFormat), zap.String("new", provision.DefaultPartitionFormat))
-			primaryDalConnection.Config.DefaultPartitionFormat = provision.DefaultPartitionFormat
-		}
-
-		c := dal.NewDSNConnection(app.Opt.DB.DSN)
-		dalLogger.Warn("overwriting Connection value", zap.Any("old", primaryDalConnection.Config.Connection), zap.Any("new", c))
-		primaryDalConnection.Config.Connection = c
-	}
-
-	// Init DAL and prepare default connection
-	if _, err = dal.InitGlobalService(
-		ctx,
-		dalLogger,
-		app.Opt.Environment.IsDevelopment(),
-		primaryDalConnection.ID,
-
-		// DB_DSN is the default connection with full capabilities
-		primaryDalConnection.Config.Connection,
-		dal.ConnectionMeta{
-			DefaultModelIdent:      primaryDalConnection.Config.DefaultModelIdent,
-			DefaultAttributeIdent:  primaryDalConnection.Config.DefaultAttributeIdent,
-			DefaultPartitionFormat: primaryDalConnection.Config.DefaultPartitionFormat,
-			// @todo make it configurable from env
-			SensitivityLevel: primaryDalConnection.SensitivityLevel,
-			Label:            primaryDalConnection.Handle,
-		},
-		primaryDalConnection.ActiveCapabilities()...); err != nil {
-		return err
-	}
-
 	if app.Opt.Auth.DefaultClient != "" {
 		// default client will help streamline authorization with default clients
 		app.DefaultAuthClient, err = store.LookupAuthClientByHandle(ctx, app.Store, app.Opt.Auth.DefaultClient)
@@ -460,11 +407,18 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return fmt.Errorf("could not reload resource translations: %w", err)
 	}
 
+	{
+		// Initialize Data Access Layer (DAL)
+		if err = app.initDAL(ctx, app.Log); err != nil {
+			return fmt.Errorf("can not initialize DAL: %w", err)
+		}
+	}
+
 	// Initializes system services
 	//
 	// Note: this is a legacy approach, all services from all 3 apps
 	// will most likely be merged in the future
-	err = sysService.Initialize(ctx, app.Log, app.Store, primaryDalConnection, app.WsServer, sysService.Config{
+	err = sysService.Initialize(ctx, app.Log, app.Store, app.WsServer, sysService.Config{
 		ActionLog: app.Opt.ActionLog,
 		Discovery: app.Opt.Discovery,
 		Storage:   app.Opt.ObjStore,
@@ -477,20 +431,6 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 
 	if err != nil {
 		return
-	}
-
-	// Initializing DAL components
-	// - Sensitivity levels
-	err = sysService.DefaultDalSensitivityLevel.ReloadSensitivityLevels(ctx, sysService.DefaultStore)
-	if err != nil {
-		// @note we're not erroring out here so Corteza can still be used
-		dalLogger.Error("failed to initialize DAL sensitivity levels", zap.Error(err))
-	}
-	// - DAL connections
-	err = sysService.DefaultDalConnection.ReloadConnections(ctx)
-	if err != nil {
-		// @note we're not erroring out here so Corteza can still be used
-		dalLogger.Error("failed to initialize DAL connections", zap.Error(err))
 	}
 
 	if app.Opt.Messagebus.Enabled {
@@ -525,14 +465,6 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 
 	if err != nil {
 		return fmt.Errorf("could not initialize compose services: %w", err)
-	}
-
-	// Initializing DAL components
-	// - Models
-	err = cmpService.DefaultModule.ReloadDALModels(ctx)
-	if err != nil {
-		// @note we're not erroring out here so Corteza can still be used
-		dalLogger.Error("failed to initialize DAL models", zap.Error(err))
 	}
 
 	corredor.Service().SetUserFinder(sysService.DefaultUser)

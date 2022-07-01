@@ -12,6 +12,7 @@ import (
 	composeType "github.com/cortezaproject/corteza-server/compose/types"
 	federationType "github.com/cortezaproject/corteza-server/federation/types"
 	actionlogType "github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	discoveryType "github.com/cortezaproject/corteza-server/pkg/discovery/types"
 	flagType "github.com/cortezaproject/corteza-server/pkg/flag/types"
 	labelsType "github.com/cortezaproject/corteza-server/pkg/label/types"
@@ -35,6 +36,9 @@ type (
 
 		// Tx is a transaction handler
 		Tx(context.Context, func(context.Context, Storer) error) error
+
+		// Returns underlying store as DAL connection
+		ToDalConn() dal.Connection
 
 		// Upgrade store's schema to the latest version
 		Upgrade(context.Context) error

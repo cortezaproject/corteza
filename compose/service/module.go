@@ -82,8 +82,8 @@ var (
 	})
 )
 
-func Module(ctx context.Context, dal dalService) (*module, error) {
-	svc := &module{
+func Module(dal dalService) *module {
+	return &module{
 		ac:        DefaultAccessControl,
 		eventbus:  eventbus.Service(),
 		actionlog: DefaultActionlog,
@@ -91,8 +91,6 @@ func Module(ctx context.Context, dal dalService) (*module, error) {
 		locale:    DefaultResourceTranslation,
 		dal:       dal,
 	}
-
-	return svc, svc.ReloadDALModels(ctx)
 }
 
 func (svc module) Find(ctx context.Context, filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error) {
