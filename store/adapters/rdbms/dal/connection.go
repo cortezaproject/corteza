@@ -12,12 +12,15 @@ import (
 )
 
 type (
+	// connection provides (pkg/dal.Connection) interface to RDBMS implementation
+	//
+	// In other words: this allows Corteza to read Records from the supported SQL databases
 	connection struct {
 		mux          sync.RWMutex
 		models       map[string]*model
 		capabilities capabilities.Set
 
-		db      *sqlx.DB
+		db      sqlx.ExtContext
 		dialect drivers.Dialect
 	}
 )
@@ -30,7 +33,7 @@ func init() {
 	})
 }
 
-func Connection(db *sqlx.DB, dialect drivers.Dialect, cc ...capabilities.Capability) *connection {
+func Connection(db sqlx.ExtContext, dialect drivers.Dialect, cc ...capabilities.Capability) *connection {
 	return &connection{
 		db:           db,
 		dialect:      dialect,

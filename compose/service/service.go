@@ -169,9 +169,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	}
 
 	DefaultNamespace = Namespace()
-	if DefaultModule, err = Module(ctx, dal.Service()); err != nil {
-		return
-	}
+	DefaultModule = Module(dal.Service())
 
 	DefaultImportSession = ImportSession()
 	DefaultRecord = Record(dal.Service())
@@ -217,6 +215,11 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 }
 
 func Activate(ctx context.Context) (err error) {
+	err = DefaultModule.ReloadDALModels(ctx)
+	if err != nil {
+		return err
+	}
+
 	return
 }
 

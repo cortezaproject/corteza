@@ -14,7 +14,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/system/dalutils"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/dal/setup/mysql"
@@ -140,9 +139,12 @@ func (h helper) cleanupDal() {
 func initSvc(ctx context.Context, d driver) (dalService, error) {
 	c := makeConnectionDefinition(d.dsn)
 
-	cm, err := dalutils.ConnectionMeta(ctx, c)
-	if err != nil {
-		return nil, err
+	cm := dal.ConnectionMeta{
+		DefaultModelIdent:      c.Config.DefaultModelIdent,
+		DefaultAttributeIdent:  c.Config.DefaultAttributeIdent,
+		DefaultPartitionFormat: c.Config.DefaultPartitionFormat,
+		SensitivityLevel:       c.SensitivityLevel,
+		Label:                  c.Handle,
 	}
 
 	svc, err := dal.New(

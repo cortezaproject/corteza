@@ -77,7 +77,8 @@ type (
 
 var (
 	// Used to identify the primary DAL connection instead of an extra flag
-	DalPrimaryConnectionResourceType = "corteza::system:primary_dal_connection"
+	DalPrimaryConnectionResourceType = "corteza::system:primary-dal-connection"
+	DalPrimaryConnectionHandle       = "primary-database"
 )
 
 func (c DalConnection) ActiveCapabilities() capabilities.Set {

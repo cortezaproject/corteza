@@ -3,7 +3,6 @@ package dal
 import (
 	"context"
 	"fmt"
-
 	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -11,30 +10,49 @@ import (
 )
 
 type (
-	connectionWrap struct {
-		connectionID     uint64
-		label            string
+	ConnectionWrap struct {
+		connectionID uint64
+
+		// @todo remove it and use value from connection meta
+		label string
+
+		// @todo remove it and use value from connection meta
 		sensitivityLevel uint64
 
 		connection Connection
-		meta       ConnectionMeta
+
+		params       ConnectionParams
+		meta         ConnectionMeta
+		capabilities capabilities.Set
 	}
 
 	ConnectionMeta struct {
 		SensitivityLevel uint64
 		Label            string
 
-		DefaultModelIdent     string
+		// When model does not specifiy the ident (table name for example), fallback to this
+		// @todo we can lose "Default" prefix
+		// @todo do we need a separate setting or can we get away with using just PartitionFormat
+		DefaultModelIdent string
+
+		// If model attribute(s) do not specify
+		// @todo needs to be more explicit that this is for  JSON encode attributes
+		// @todo we can lose "Default" prefix
 		DefaultAttributeIdent string
 
+		// If data is partitioned we fallback to this,
+		// @todo we can lose "Default" prefix
 		DefaultPartitionFormat string
 
 		PartitionValidator string
 	}
 
 	service struct {
-		connections         map[uint64]*connectionWrap
-		primaryConnectionID uint64
+		connections map[uint64]*ConnectionWrap
+
+		// Default connection ID
+		// Can not be changed in the runtime, only set to value different than zero!
+		defConnID uint64
 
 		// Indexed by corresponding storeID
 		models map[uint64]ModelSet
@@ -49,36 +67,21 @@ type (
 	}
 )
 
-const (
-	DefaultConnectionID uint64 = 0
-)
-
 var (
 	gSvc *service
 )
 
-// InitGlobalService initializes a fresh DAL where the given primary connection
-func InitGlobalService(ctx context.Context, log *zap.Logger, inDev bool, connectionID uint64, cp ConnectionParams, cm ConnectionMeta, capabilities ...capabilities.Capability) (_ *service, err error) {
-	log.Debug("initializing DAL service with primary connection", zap.Any("connection params", cp))
-
-	// To help prevent awkward issues due to globally shared resources
-	if gSvc != nil {
-		panic("cannot initialize global DAL service: already initialized")
-	}
-
-	if gSvc == nil {
-		gSvc, err = New(ctx, log, inDev, connectionID, cp, cm, capabilities...)
-		return gSvc, err
-	}
-
-	return gSvc, nil
+func SetGlobal(svc *service) {
+	gSvc = svc
 }
 
-func New(ctx context.Context, log *zap.Logger, inDev bool, connectionID uint64, cp ConnectionParams, cm ConnectionMeta, capabilities ...capabilities.Capability) (*service, error) {
+// New creates a DAL service with the primary connection
+//
+// It needs an established and working connection to the primary store
+func New(log *zap.Logger, inDev bool) (*service, error) {
 	svc := &service{
-		connections:         make(map[uint64]*connectionWrap),
-		models:              make(map[uint64]ModelSet),
-		primaryConnectionID: connectionID,
+		connections: make(map[uint64]*ConnectionWrap),
+		models:      make(map[uint64]ModelSet),
 
 		logger: log,
 		inDev:  inDev,
@@ -87,26 +90,12 @@ func New(ctx context.Context, log *zap.Logger, inDev bool, connectionID uint64, 
 		modelIssues:      make(dalIssueIndex),
 	}
 
-	var err error
-	cw := &connectionWrap{
-		meta:             cm,
-		sensitivityLevel: cm.SensitivityLevel,
-		label:            cm.Label,
-		connectionID:     connectionID,
-	}
-	cw.connection, err = connect(ctx, log, inDev, cp, capabilities...)
-	if err != nil {
-		return nil, err
-	}
-
-	svc.connections[connectionID] = cw
-
 	return svc, nil
 }
 
 // Service returns the global initialized DAL service
 //
-// If InitGlobalService has not yet been called the function will panic
+// Function will panic if DAL service is not set (via SetGlobal)
 func Service() *service {
 	if gSvc == nil {
 		panic("DAL global service not initialized: call dal.InitGlobalService() first")
@@ -194,52 +183,132 @@ func (svc *service) DeleteSensitivityLevel(levels ...SensitivityLevel) (err erro
 // // // // // // // // // // // // // // // // // // // // // // // // //
 // Connection management
 
-// CreateConnection adds a new connection to the DAL
-func (svc *service) CreateConnection(ctx context.Context, connectionID uint64, cp ConnectionParams, cm ConnectionMeta, capabilities ...capabilities.Capability) (err error) {
-	svc.logger.Debug("creating connection", zap.Uint64("connectionID", connectionID), zap.Any("connection params", cp))
+// MakeConnection makes and returns a new connection (wrap)
+func MakeConnection(ID uint64, conn Connection, p ConnectionParams, m ConnectionMeta, cap ...capabilities.Capability) *ConnectionWrap {
+	return &ConnectionWrap{
+		connectionID: ID,
+		connection:   conn,
 
+		params: p,
+
+		meta:             m,
+		sensitivityLevel: m.SensitivityLevel,
+		label:            m.Label,
+
+		capabilities: cap,
+	}
+}
+
+// ReplaceConnection adds new or updates an existing connection
+//
+// We rely on the user to provide stable connection IDs and
+// uses valid relations to these connections in the models.
+//
+// Is isDefault when adding a default connection. Service will then
+// compensate and use proper IDs when models refer to connection with ID=0
+func (svc *service) ReplaceConnection(ctx context.Context, cw *ConnectionWrap, isDefault bool) (err error) {
+	// @todo lock/unlock
 	var (
-		issues = newIssueHelper().addConnection(connectionID)
+		ID      = cw.connectionID
+		issues  = newIssueHelper().addConnection(ID)
+		oldConn *ConnectionWrap
+
+		log = svc.logger.Named("connection").With(
+			zap.Uint64("ID", ID),
+			zap.Any("params", cw.params),
+			zap.Any("meta", cw.meta),
+		)
 	)
+
+	if isDefault {
+		if svc.defConnID == 0 {
+			// default connection not set yet
+			log.Debug("setting as default connection")
+			svc.defConnID = ID
+		} else if svc.defConnID != ID {
+			// default connection set but ID is different.
+			// this does not make any sense
+			return fmt.Errorf("different ID for default connection detecte (old: %d, new: %d)", svc.defConnID, ID)
+		}
+	}
+
 	defer svc.updateIssues(issues)
 
-	// sensitivity levels
-	if !svc.sensitivityLevels.includes(cm.SensitivityLevel) {
-		issues.addConnectionIssue(connectionID, errConnectionCreateMissingSensitivityLevel(connectionID, cm.SensitivityLevel))
+	// Sensitivity level validations
+	if !svc.sensitivityLevels.includes(cw.meta.SensitivityLevel) {
+		issues.addConnectionIssue(ID, errConnectionCreateMissingSensitivityLevel(ID, cw.meta.SensitivityLevel))
 	}
 
-	// Prepare connection bits
-	cw := &connectionWrap{
-		connectionID:     connectionID,
-		meta:             cm,
-		sensitivityLevel: cm.SensitivityLevel,
-		label:            cm.Label,
+	if oldConn = svc.getConnectionByID(ID); oldConn != nil {
+		// Connection exists, validate models and sensitivity levels and close and remove connection at the end
+		log.Debug("found existing")
+
+		// Check already registered models and their capabilities
+		//
+		// Defer the return till the end so we can get a nicer report of what all is wrong
+		errored := false
+		for _, model := range svc.models[ID] {
+			log.Debug("validating model before connection is updated", zap.String("ident", model.Ident))
+
+			// - capabilities
+			if !model.Capabilities.IsSubset(cw.capabilities...) {
+				issues.addConnectionIssue(ID, fmt.Errorf("cannot update connection %d: new connection does not support existing models", ID))
+				errored = true
+			}
+
+			// - sensitivity levels
+			if !svc.sensitivityLevels.isSubset(model.SensitivityLevel, cw.meta.SensitivityLevel) {
+				issues.addConnectionIssue(ID, fmt.Errorf("cannot update connection %d: new connection sensitivity level does not support model %d", ID, model.ResourceID))
+				errored = true
+			}
+		}
+
+		// Don't update if meta bits are not ok
+		if errored {
+			log.Warn("update failed")
+			return
+		}
+
+		// close old connection
+		if cc, ok := oldConn.connection.(ConnectionCloser); ok {
+			if err = cc.Close(ctx); err != nil {
+				issues.addConnectionIssue(ID, err)
+				return nil
+			}
+
+			log.Debug("disconnected")
+		}
+
+		svc.removeConnection(ID)
 	}
-	if cw.connection, err = connect(ctx, svc.logger, svc.inDev, cp, capabilities...); err != nil {
-		issues.addConnectionIssue(connectionID, errConnectionCreateConnectionFailed(connectionID, err))
+
+	if cw.connection == nil {
+		cw.connection, err = connect(ctx, svc.logger, svc.inDev, cw.params, cw.capabilities...)
+		if err != nil {
+			log.Warn("could not connect", zap.Error(err))
+			issues.addConnectionIssue(ID, err)
+		} else {
+			log.Debug("connected")
+		}
+	} else {
+		log.Debug("using preexisting connection")
+
 	}
 
 	svc.addConnection(cw)
-
-	svc.logger.Debug("created connection")
+	log.Debug("added")
 	return nil
 }
 
-func (svc *service) PrimaryConnectionID(ctx context.Context) uint64 {
-	return svc.primaryConnectionID
-}
-
 // DeleteConnection removes the given connection from the DAL
-func (svc *service) DeleteConnection(ctx context.Context, connectionID uint64) (err error) {
-	svc.logger.Debug("deleting connection", zap.Uint64("connectionID", connectionID))
-
+func (svc *service) RemoveConnection(ctx context.Context, ID uint64) (err error) {
 	var (
-		issues = newIssueHelper().addConnection(connectionID)
+		issues = newIssueHelper().addConnection(ID)
 	)
 
-	c := svc.getConnectionByID(connectionID)
+	c := svc.getConnectionByID(ID)
 	if c == nil {
-		return errConnectionDeleteNotFound(connectionID)
+		return errConnectionDeleteNotFound(ID)
 	}
 
 	// Potential cleanups
@@ -253,90 +322,15 @@ func (svc *service) DeleteConnection(ctx context.Context, connectionID uint64) (
 	//
 	// @todo this is temporary until a proper update function is prepared.
 	// The primary connection must not be removable!
-	svc.removeConnection(connectionID)
+	svc.removeConnection(ID)
 
 	// Only if successful should we cleanup the issue registry
 	svc.updateIssues(issues)
 
-	svc.logger.Debug("deleted connection")
-
-	return nil
-}
-
-// UpdateConnection updates the given connection
-func (svc *service) UpdateConnection(ctx context.Context, connectionID uint64, cp ConnectionParams, cm ConnectionMeta, capabilities ...capabilities.Capability) (err error) {
-	svc.logger.Debug("updating connection", zap.Uint64("connectionID", connectionID))
-
-	var (
-		issues  = newIssueHelper().addConnection(connectionID)
-		oldConn *connectionWrap
+	svc.logger.Named("connection").Debug("deleted",
+		zap.Uint64("ID", ID),
+		zap.Any("meta", c.meta),
 	)
-	defer svc.updateIssues(issues)
-
-	// Validation
-	{
-		// Check if connection exists
-		oldConn = svc.getConnectionByID(connectionID)
-		if oldConn == nil {
-			issues.addConnectionIssue(connectionID, errConnectionUpdateNotFound(connectionID))
-		}
-
-		// sensitivity levels
-		if !svc.sensitivityLevels.includes(cm.SensitivityLevel) {
-			issues.addConnectionIssue(connectionID, errConnectionUpdateMissingSensitivityLevel(connectionID, cm.SensitivityLevel))
-		}
-
-		// Check already registered models and their capabilities
-		//
-		// Defer the return till the end so we can get a nicer report of what all is wrong
-		errored := false
-		for _, model := range svc.models[connectionID] {
-			// - capabilities
-			if !model.Capabilities.IsSubset(capabilities...) {
-				issues.addConnectionIssue(connectionID, fmt.Errorf("cannot update connection %d: new connection does not support existing models", connectionID))
-				errored = errored || true
-			}
-			// - sensitivity levels
-			if !svc.sensitivityLevels.isSubset(model.SensitivityLevel, cm.SensitivityLevel) {
-				issues.addConnectionIssue(connectionID, fmt.Errorf("cannot update connection %d: new connection sensitivity level does not support model %d", connectionID, model.ResourceID))
-				errored = errored || true
-			}
-		}
-
-		// Don't update if meta bits are not ok
-		if errored {
-			return
-		}
-	}
-
-	// close old connection
-	{
-		if cc, ok := oldConn.connection.(ConnectionCloser); ok {
-			if err = cc.Close(ctx); err != nil {
-				issues.addConnectionIssue(connectionID, err)
-				return nil
-			}
-		}
-		svc.removeConnection(connectionID)
-	}
-
-	// open new connection
-	{
-		newConnection, err := connect(ctx, svc.logger, svc.inDev, cp, capabilities...)
-		if err != nil {
-			issues.addConnectionIssue(connectionID, err)
-		}
-
-		svc.addConnection(&connectionWrap{
-			meta:             cm,
-			sensitivityLevel: cm.SensitivityLevel,
-			label:            cm.Label,
-			connectionID:     connectionID,
-			connection:       newConnection,
-		})
-	}
-
-	svc.logger.Debug("updated connection")
 
 	return nil
 }
@@ -436,7 +430,7 @@ func (svc *service) Truncate(ctx context.Context, mf ModelFilter, capabilities c
 	return cw.connection.Truncate(ctx, model)
 }
 
-func (svc *service) storeOpPrep(ctx context.Context, mf ModelFilter, capabilities capabilities.Set) (model *Model, cw *connectionWrap, err error) {
+func (svc *service) storeOpPrep(ctx context.Context, mf ModelFilter, capabilities capabilities.Set) (model *Model, cw *ConnectionWrap, err error) {
 	model = svc.getModelByFilter(mf)
 	if model == nil {
 		err = errModelNotFound(mf.ResourceID)
@@ -485,18 +479,24 @@ func (svc *service) SearchModels(ctx context.Context) (out ModelSet, err error) 
 
 // AddModel adds support for a new model
 func (svc *service) CreateModel(ctx context.Context, models ...*Model) (err error) {
-	svc.logger.Debug("creating models", zap.Int("count", len(models)))
-
 	var (
+		log       = svc.logger.Named("models")
 		issues    = newIssueHelper()
 		auxIssues = newIssueHelper()
 	)
+
+	svc.logger.Debug("creating", zap.Int("count", len(models)))
+
 	defer svc.updateIssues(issues)
 
 	// Validate models
 	for _, model := range models {
-		svc.logger.Debug("validating model", zap.Uint64("ID", model.ResourceID))
 		issues.addModel(model.ResourceID)
+
+		if model.ConnectionID == 0 {
+			// Replace model's connection ID with default one when zero
+			model.ConnectionID = svc.defConnID
+		}
 
 		// Assure the connection has no issues
 		if svc.hasConnectionIssues(model.ConnectionID) {
@@ -536,19 +536,28 @@ func (svc *service) CreateModel(ctx context.Context, models ...*Model) (err erro
 			}
 		}
 
-		svc.logger.Debug("validated model")
+		log.Debug("validated",
+			zap.Uint64("ID", model.ResourceID),
+			zap.String("ident", model.Ident),
+			zap.String("label", model.Label),
+		)
 	}
 
 	// Add models to corresponding connections
 	for connection, models := range svc.modelByConnection(models) {
 		for _, model := range models {
-			svc.logger.Debug("adding model", zap.Uint64("model", model.ResourceID))
+			mLog := log.With(
+				zap.Uint64("connectionID", model.ConnectionID),
+				zap.Uint64("ID", model.ResourceID),
+				zap.String("ident", model.Ident),
+				zap.String("label", model.Label),
+			)
 
 			connectionIssues := svc.hasConnectionIssues(model.ConnectionID)
 			modelIssues := svc.hasModelIssues(model.ConnectionID, model.ResourceID)
 
 			if !modelIssues && !connectionIssues {
-				svc.logger.Debug("adding model to connection", zap.Uint64("connection", model.ConnectionID), zap.Uint64("model", model.ResourceID))
+				mLog.Debug("adding model to connection")
 
 				// Add model to connection
 				auxIssues, err = svc.registerModelToConnection(ctx, connection, model)
@@ -558,10 +567,10 @@ func (svc *service) CreateModel(ctx context.Context, models ...*Model) (err erro
 				}
 			} else {
 				if connectionIssues {
-					svc.logger.Warn("not adding to connection due to connection issues", zap.Uint64("connection", model.ConnectionID))
+					mLog.Warn("not adding to connection due to connection issues")
 				}
 				if modelIssues {
-					svc.logger.Warn("not adding to connection due to model issues", zap.Uint64("model", model.ResourceID))
+					mLog.Warn("not adding to connection due to model issues")
 				}
 			}
 
@@ -570,23 +579,31 @@ func (svc *service) CreateModel(ctx context.Context, models ...*Model) (err erro
 		}
 	}
 
-	svc.logger.Debug("created models")
+	log.Debug("done")
 
 	return
 }
 
 // DeleteModel removes support for the model and deletes it from the connection
 func (svc *service) DeleteModel(ctx context.Context, models ...*Model) (err error) {
-	svc.logger.Debug("deleting models", zap.Int("count", len(models)))
 
 	var (
+		log    = svc.logger.Named("models")
 		issues = newIssueHelper()
 	)
+
+	log.Debug("deleting", zap.Int("count", len(models)))
+
 	defer svc.updateIssues(issues)
 
 	// validation
 	skip := make(map[uint64]bool)
 	for _, model := range models {
+		if model.ConnectionID == 0 {
+			// Replace model's connection ID with default one when zero
+			model.ConnectionID = svc.defConnID
+		}
+
 		issues.addModel(model.ResourceID)
 
 		// Validate existence
@@ -608,10 +625,15 @@ func (svc *service) DeleteModel(ctx context.Context, models ...*Model) (err erro
 
 	// Work
 	for _, model := range models {
-		svc.logger.Debug("deleting model", zap.Uint64("model", model.ResourceID))
+		mLog := log.With(
+			zap.Uint64("connectionID", model.ConnectionID),
+			zap.Uint64("ID", model.ResourceID),
+			zap.String("ident", model.Ident),
+			zap.String("label", model.Label),
+		)
 
 		if skip[model.ResourceID] {
-			svc.logger.Debug("model does not exist; skipping")
+			mLog.Debug("model does not exist; skipping")
 			continue
 		}
 
@@ -629,20 +651,39 @@ func (svc *service) DeleteModel(ctx context.Context, models ...*Model) (err erro
 		// how should this be handled; a straight up delete doesn't sound sane to me
 		// anymore
 
-		svc.logger.Debug("deleted model")
+		mLog.Debug("deleted")
 	}
 
 	return nil
 }
 
 func (svc *service) UpdateModel(ctx context.Context, old *Model, new *Model) (err error) {
-	svc.logger.Debug("updating model", zap.Uint64("model", old.ResourceID))
+	if old.ConnectionID == 0 {
+		// Replace old model's connection ID with default one when zero
+		old.ConnectionID = svc.defConnID
+	}
+
+	if new.ConnectionID == 0 {
+		// Replace new model's connection ID with default one when zero
+		new.ConnectionID = svc.defConnID
+	}
 
 	var (
-		conn *connectionWrap
+		log = svc.logger.Named("models").With(
+			zap.Uint64("connection", new.ConnectionID),
+			zap.Uint64("model", new.ResourceID),
+			zap.Uint64("ID", new.ResourceID),
+			zap.String("ident", new.Ident),
+			zap.String("label", new.Label),
+		)
+
+		conn *ConnectionWrap
 
 		issues = newIssueHelper().addModel(old.ResourceID)
 	)
+
+	log.Debug("updating", zap.Uint64("model", old.ResourceID))
+
 	defer svc.updateIssues(issues)
 
 	// Validation
@@ -693,7 +734,7 @@ func (svc *service) UpdateModel(ctx context.Context, old *Model, new *Model) (er
 	modelIssues := svc.hasModelIssues(new.ConnectionID, new.ResourceID)
 
 	if !modelIssues && !connectionIssues {
-		svc.logger.Debug("updating connection's model", zap.Uint64("connection", new.ConnectionID), zap.Uint64("model", new.ResourceID))
+		log.Debug("updating connection's model")
 
 		err = conn.connection.UpdateModel(ctx, old, new)
 		if err != nil {
@@ -701,10 +742,10 @@ func (svc *service) UpdateModel(ctx context.Context, old *Model, new *Model) (er
 		}
 	} else {
 		if connectionIssues {
-			svc.logger.Warn("not updating connection's model due to connection issues", zap.Uint64("connection", new.ConnectionID))
+			log.Warn("not updating connection's model due to connection issues")
 		}
 		if modelIssues {
-			svc.logger.Warn("not updating connection's model due to model issues", zap.Uint64("model", new.ResourceID))
+			log.Warn("not updating connection's model due to model issues")
 		}
 	}
 
@@ -721,7 +762,7 @@ func (svc *service) UpdateModel(ctx context.Context, old *Model, new *Model) (er
 		svc.models[old.ConnectionID] = append(svc.models[old.ConnectionID], new)
 	}
 
-	svc.logger.Debug("updated model")
+	log.Debug("updated")
 
 	return
 }
@@ -730,7 +771,7 @@ func (svc *service) UpdateModelAttribute(ctx context.Context, model *Model, old,
 	svc.logger.Debug("updating model attribute", zap.Uint64("model", model.ResourceID))
 
 	var (
-		conn   *connectionWrap
+		conn   *ConnectionWrap
 		issues = newIssueHelper().addModel(model.ResourceID)
 	)
 	defer svc.updateIssues(issues)
@@ -814,6 +855,10 @@ func (svc *service) UpdateModelAttribute(ctx context.Context, model *Model, old,
 }
 
 func (svc *service) ModelIdentFormatter(connectionID uint64) (f *IdentFormatter, err error) {
+	if connectionID == 0 {
+		connectionID = svc.defConnID
+	}
+
 	c := svc.getConnectionByID(connectionID)
 
 	if c == nil {
@@ -852,15 +897,19 @@ func (svc *service) FindModelByIdent(connectionID uint64, ident string) *Model {
 // // // // // // // // // // // // // // // // // // // // // // // // //
 // Utilities
 
-func (svc *service) getConnectionByID(connectionID uint64) (cw *connectionWrap) {
-	if connectionID == DefaultConnectionID || connectionID == svc.primaryConnectionID {
-		return svc.connections[svc.primaryConnectionID]
-	}
+func (svc *service) removeConnection(connectionID uint64) {
+	delete(svc.connections, connectionID)
+}
 
+func (svc *service) addConnection(cw *ConnectionWrap) {
+	svc.connections[cw.connectionID] = cw
+}
+
+func (svc *service) getConnectionByID(connectionID uint64) (cw *ConnectionWrap) {
 	return svc.connections[connectionID]
 }
 
-func (svc *service) getConnection(connectionID uint64, cc ...capabilities.Capability) (cw *connectionWrap, can capabilities.Set, err error) {
+func (svc *service) getConnection(connectionID uint64, cc ...capabilities.Capability) (cw *ConnectionWrap, can capabilities.Set, err error) {
 	err = func() error {
 		// get the requested connection
 		cw = svc.getConnectionByID(connectionID)
@@ -885,8 +934,8 @@ func (svc *service) getConnection(connectionID uint64, cc ...capabilities.Capabi
 }
 
 // modelByConnection maps the given models by their CRS
-func (svc *service) modelByConnection(models ModelSet) (out map[*connectionWrap]ModelSet) {
-	out = make(map[*connectionWrap]ModelSet)
+func (svc *service) modelByConnection(models ModelSet) (out map[*ConnectionWrap]ModelSet) {
+	out = make(map[*ConnectionWrap]ModelSet)
 
 	for _, model := range models {
 		c := svc.getConnectionByID(model.ConnectionID)
@@ -896,7 +945,7 @@ func (svc *service) modelByConnection(models ModelSet) (out map[*connectionWrap]
 	return
 }
 
-func (svc *service) registerModelToConnection(ctx context.Context, cw *connectionWrap, model *Model) (issues *issueHelper, err error) {
+func (svc *service) registerModelToConnection(ctx context.Context, cw *ConnectionWrap, model *Model) (issues *issueHelper, err error) {
 	issues = newIssueHelper()
 
 	available, err := cw.connection.Models(ctx)
@@ -928,6 +977,10 @@ func (svc *service) registerModelToConnection(ctx context.Context, cw *connectio
 }
 
 func (svc *service) getModelByFilter(mf ModelFilter) *Model {
+	if mf.ConnectionID == 0 {
+		mf.ConnectionID = svc.defConnID
+	}
+
 	if mf.ResourceID > 0 {
 		return svc.FindModelByResourceID(mf.ConnectionID, mf.ResourceID)
 	}
@@ -995,7 +1048,7 @@ func (svc *service) newSensitivityLevelIndex(levels SensitivityLevelSet) (out se
 
 func (svc *service) validateNewSensitivityLevels(levels sensitivityLevelIndex) (err error) {
 	err = func() (err error) {
-		cIndex := make(map[uint64]*connectionWrap)
+		cIndex := make(map[uint64]*ConnectionWrap)
 
 		// - connections
 		for _, _c := range svc.connections {
@@ -1034,18 +1087,6 @@ func (svc *service) validateNewSensitivityLevels(levels sensitivityLevelIndex) (
 		return fmt.Errorf("cannot reload sensitivity levels: %v", err)
 	}
 	return
-}
-
-func (svc *service) removeConnection(connectionID uint64) {
-	if connectionID == DefaultConnectionID || connectionID == svc.primaryConnectionID {
-		connectionID = svc.primaryConnectionID
-	}
-
-	delete(svc.connections, connectionID)
-}
-
-func (svc *service) addConnection(cw *connectionWrap) {
-	svc.connections[cw.connectionID] = cw
 }
 
 func wrapError(pfx string, err error) error {
