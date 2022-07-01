@@ -446,7 +446,7 @@ func Test_auth_checkPassword(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.rval != svc.checkPassword(tt.args.password, tt.args.cc) {
+			if tt.rval != svc.CheckPassword(tt.args.password, true, tt.args.cc) {
 				t.Errorf("auth.checkPassword() expecting rval to be %v", tt.rval)
 			}
 		})
