@@ -102,7 +102,7 @@ func Test_changePasswordProc(t *testing.T) {
 			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
 					changePassword: func(ctx context.Context, userID uint64, oldPassword, newPassword string) (err error) {
-						return service.AuthErrPasswodResetFailedOldPasswordCheckFailed()
+						return service.AuthErrPasswordResetFailedOldPasswordCheckFailed()
 					},
 				}
 			},

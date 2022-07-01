@@ -37,10 +37,9 @@ func (u *Credential) Valid() bool {
 }
 
 // CompareHashAndPassword returns first valid credentials with matching hash
-func (set CredentialSet) CompareHashAndPassword(password string) *Credential {
-	// We need only valid credentials (skip deleted, expired)
-	for _, c := range set {
-		if !c.Valid() {
+func (cc CredentialSet) CompareHashAndPassword(password string, validOnly bool) *Credential {
+	for _, c := range cc {
+		if validOnly && !c.Valid() {
 			continue
 		}
 
