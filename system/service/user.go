@@ -52,6 +52,7 @@ type (
 
 	userAuth interface {
 		CheckPasswordStrength(string) bool
+		CheckPassword(string, bool, types.CredentialSet) bool
 		SetPasswordCredentials(context.Context, uint64, string) error
 		RemovePasswordCredentials(context.Context, uint64) error
 		RemoveAccessTokens(context.Context, *types.User) error
@@ -686,7 +687,9 @@ func (svc user) Unsuspend(ctx context.Context, userID uint64) (err error) {
 // Expecting setter to have permissions to update users
 func (svc user) SetPassword(ctx context.Context, userID uint64, newPassword string) (err error) {
 	var (
-		u       *types.User
+		u  *types.User
+		cc types.CredentialSet
+
 		uaProps = &userActionProps{user: &types.User{ID: userID}}
 		a       = UserActionSetPassword
 	)
@@ -698,12 +701,12 @@ func (svc user) SetPassword(ctx context.Context, userID uint64, newPassword stri
 
 		uaProps.setUser(u)
 
-		if u.Kind == types.SystemUser {
-			return UserErrNotAllowedToUpdateSystem()
-		}
-
 		if !svc.ac.CanUpdateUser(ctx, u) {
 			return UserErrNotAllowedToUpdate()
+		}
+
+		if u.Kind == types.SystemUser {
+			return UserErrNotAllowedToUpdateSystem()
 		}
 
 		if err = svc.auth.RemoveAccessTokens(ctx, u); err != nil {
@@ -713,6 +716,19 @@ func (svc user) SetPassword(ctx context.Context, userID uint64, newPassword stri
 		if newPassword == "" {
 			a = UserActionRemovePassword
 			return svc.auth.RemovePasswordCredentials(ctx, userID)
+		}
+
+		cc, _, err = store.SearchCredentials(ctx, svc.store, types.CredentialFilter{
+			Kind:    credentialsTypePassword,
+			OwnerID: userID,
+			Deleted: filter.StateInclusive})
+
+		if err != nil {
+			return err
+		}
+
+		if svc.auth.CheckPassword(newPassword, false, cc) {
+			return AuthErrPasswordSetFailedReusedPasswordCheckFailed()
 		}
 
 		if !svc.auth.CheckPasswordStrength(newPassword) {

@@ -38,7 +38,7 @@ func (h *AuthHandlers) changePasswordProc(req *request.AuthReq) (err error) {
 	case service.AuthErrInternalLoginDisabledByConfig().Is(err),
 		service.AuthErrPasswordNotSecure().Is(err),
 		service.AuthErrPasswordChangeFailedForUnknownUser().Is(err),
-		service.AuthErrPasswodResetFailedOldPasswordCheckFailed().Is(err):
+		service.AuthErrPasswordResetFailedOldPasswordCheckFailed().Is(err):
 		req.SetKV(map[string]string{
 			"error": err.Error(),
 		})

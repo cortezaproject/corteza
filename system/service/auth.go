@@ -352,7 +352,7 @@ func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password 
 				return err
 			}
 
-			if c = cc.CompareHashAndPassword(password); c == nil {
+			if c = cc.CompareHashAndPassword(password, true); c == nil {
 				return AuthErrInvalidCredentials(aam)
 			}
 
@@ -491,7 +491,7 @@ func (svc auth) InternalLogin(ctx context.Context, email string, password string
 			return err
 		}
 
-		c := cc.CompareHashAndPassword(password)
+		c := cc.CompareHashAndPassword(password, true)
 		if c == nil {
 			return AuthErrInvalidCredentials(aam)
 		}
@@ -506,8 +506,8 @@ func (svc auth) InternalLogin(ctx context.Context, email string, password string
 }
 
 // checkPassword returns true if given (encrypted) password matches any of the credentials
-func (svc auth) checkPassword(password string, cc types.CredentialSet) bool {
-	return cc.CompareHashAndPassword(password) != nil
+func (svc auth) CheckPassword(password string, validOnly bool, cc types.CredentialSet) bool {
+	return cc.CompareHashAndPassword(password, validOnly) != nil
 }
 
 // SetPassword sets new password for a user
@@ -515,7 +515,8 @@ func (svc auth) checkPassword(password string, cc types.CredentialSet) bool {
 // This function also records an action
 func (svc auth) SetPassword(ctx context.Context, userID uint64, password string) (err error) {
 	var (
-		u *types.User
+		u  *types.User
+		cc types.CredentialSet
 
 		aam = &authActionProps{
 			user:        u,
@@ -539,6 +540,23 @@ func (svc auth) SetPassword(ctx context.Context, userID uint64, password string)
 
 		aam.setUser(u)
 		ctx = internalAuth.SetIdentityToContext(ctx, u)
+
+		cc, _, err = store.SearchCredentials(ctx, svc.store, types.CredentialFilter{
+			Kind:    credentialsTypePassword,
+			OwnerID: userID,
+			Deleted: filter.StateInclusive})
+
+		if err != nil {
+			return err
+		}
+
+		if svc.CheckPassword(password, true, cc) {
+			return AuthErrPasswordResetFailedOldPasswordCheckFailed(aam)
+		}
+
+		if svc.CheckPassword(password, false, cc) {
+			return AuthErrPasswordSetFailedReusedPasswordCheckFailed(aam)
+		}
 
 		if err != svc.SetPasswordCredentials(ctx, userID, password) {
 			return err
@@ -606,13 +624,21 @@ func (svc auth) ChangePassword(ctx context.Context, userID uint64, oldPassword, 
 		aam.setUser(u)
 		ctx = internalAuth.SetIdentityToContext(ctx, u)
 
-		cc, _, err = store.SearchCredentials(ctx, svc.store, types.CredentialFilter{Kind: credentialsTypePassword, OwnerID: userID})
+		cc, _, err = store.SearchCredentials(ctx, svc.store, types.CredentialFilter{
+			Kind:    credentialsTypePassword,
+			OwnerID: userID,
+			Deleted: filter.StateInclusive})
+
 		if err != nil {
 			return err
 		}
 
-		if !svc.checkPassword(oldPassword, cc) {
-			return AuthErrPasswodResetFailedOldPasswordCheckFailed(aam)
+		if !svc.CheckPassword(oldPassword, true, cc) {
+			return AuthErrPasswordResetFailedOldPasswordCheckFailed(aam)
+		}
+
+		if svc.CheckPassword(newPassword, false, cc) {
+			return AuthErrPasswordSetFailedReusedPasswordCheckFailed(aam)
 		}
 
 		if err != svc.SetPasswordCredentials(ctx, userID, newPassword) {
