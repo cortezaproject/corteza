@@ -164,6 +164,19 @@ func (c *SimpleJsonDocColumn) Decode(raw any, r dal.ValueSetter) (err error) {
 		}
 
 		for pos, v := range vv {
+			// now, encode the value according to JSON format constraints
+			switch attr.Type.(type) {
+			case *dal.TypeBoolean:
+				// for backward compatibility reasons
+				// we need to cast true bool values to "1"
+				// and use "" for other (false) values
+				if cast.ToBool(v) {
+					v = "1"
+				} else {
+					v = ""
+				}
+			}
+
 			if err = r.SetValue(name, uint(pos), v); err != nil {
 				return
 			}

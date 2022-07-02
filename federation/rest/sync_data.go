@@ -13,7 +13,6 @@ import (
 	"github.com/cortezaproject/corteza-server/federation/service"
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/federation"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -96,7 +95,7 @@ func (ctrl SyncData) ReadExposedAll(ctx context.Context, r *request.SyncDataRead
 
 		// todo - handle error properly
 		// @todo !!!
-		if list, _, err := (cs.Record(dal.Service())).Find(ctx, rf); err != nil || len(list) == 0 {
+		if list, _, err := (cs.Record()).Find(ctx, rf); err != nil || len(list) == 0 {
 			continue
 		}
 
@@ -224,7 +223,7 @@ func (ctrl SyncData) readExposed(ctx context.Context, r *request.SyncDataReadExp
 	}
 
 	// @todo !!!
-	list, f, err := (cs.Record(dal.Service())).Find(ctx, f)
+	list, f, err := (cs.Record()).Find(ctx, f)
 
 	if err != nil {
 		return nil, err

@@ -46,7 +46,7 @@ func TestCharts(t *testing.T) {
 
 	t.Run("crud", func(t *testing.T) {
 		req := require.New(t)
-		svc := chart{
+		svc := &chart{
 			store: s,
 			ac:    &accessControl{rbac: &rbac.ServiceAllowAll{}},
 		}

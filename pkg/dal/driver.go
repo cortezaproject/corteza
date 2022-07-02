@@ -93,6 +93,7 @@ type (
 	// Iterator provides an interface for loading data from the underlying store
 	Iterator interface {
 		Next(ctx context.Context) bool
+		More(uint, ValueGetter) error
 		Err() error
 		Scan(ValueSetter) error
 		Close() error
