@@ -155,13 +155,13 @@ type (
 	ErrorIndex  map[string]int
 )
 
-func Record(dal dalDater) *record {
+func Record() *record {
 	svc := &record{
 		actionlog: DefaultActionlog,
 		ac:        DefaultAccessControl,
 		eventbus:  eventbus.Service(),
 		store:     DefaultStore,
-		dal:       dal,
+		dal:       dal.Service(),
 
 		formatter: values.Formatter(),
 		sanitizer: values.Sanitizer(),
@@ -190,7 +190,6 @@ func defaultValidator(svc RecordService) recordValuesValidator {
 			return false, nil
 		}
 
-		//r, err := store.LookupComposeRecordByID(ctx, s, m, v.Ref)
 		r, err := svc.FindByID(ctx, f.NamespaceID, f.ModuleID, v.Ref)
 		return r != nil, err
 	})
@@ -930,7 +929,7 @@ func (svc record) procCreate(ctx context.Context, invokerID uint64, m *types.Mod
 	// to make sure nobody slips in something we do not want
 	new.ID = nextID()
 	new.CreatedBy = invokerID
-	new.CreatedAt = *now()
+	new.CreatedAt = *nowUTC()
 	new.UpdatedAt = nil
 	new.UpdatedBy = 0
 	new.DeletedAt = nil
@@ -984,13 +983,13 @@ func (svc record) procUpdate(ctx context.Context, invokerID uint64, m *types.Mod
 	// to make sure nobody slips in something we do not want
 	upd.CreatedAt = old.CreatedAt
 	upd.CreatedBy = old.CreatedBy
-	upd.UpdatedAt = now()
+	upd.UpdatedAt = nowUTC()
 	upd.UpdatedBy = invokerID
 	upd.DeletedAt = old.DeletedAt
 	upd.DeletedBy = old.DeletedBy
 
 	if err := SetRecordOwner(ctx, svc.ac, svc.store, old, upd, invokerID); err != nil {
-		return err
+		return
 	}
 
 	upd.Values = old.Values.Merge(m.Fields, upd.Values, func(f *types.ModuleField) bool {
@@ -998,10 +997,11 @@ func (svc record) procUpdate(ctx context.Context, invokerID uint64, m *types.Mod
 	})
 
 	if rve = RecordValueUpdateOpCheck(ctx, svc.ac, m, upd.Values); !rve.IsValid() {
-		return rve
+		return
 	}
 
-	return RecordPreparer(ctx, svc.store, svc.sanitizer, svc.validator, svc.formatter, m, upd)
+	rve = RecordPreparer(ctx, svc.store, svc.sanitizer, svc.validator, svc.formatter, m, upd)
+	return
 }
 
 func (svc record) recordInfoUpdate(ctx context.Context, r *types.Record) {
@@ -1443,7 +1443,7 @@ func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbu
 					recordableAction = RecordActionIteratorDelete
 
 					return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
-						rec.DeletedAt = now()
+						rec.DeletedAt = nowUTC()
 						rec.DeletedBy = invokerID
 						return dalutils.ComposeRecordSoftDelete(ctx, svc.dal, invokerID, m, rec)
 					})

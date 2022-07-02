@@ -340,6 +340,7 @@ func (svc *service) RemoveConnection(ctx context.Context, ID uint64) (err error)
 // // // // // // // // // // // // // // // // // // // // // // // // //
 // DML
 
+// Create stores new data (create compose record)
 func (svc *service) Create(ctx context.Context, mf ModelFilter, capabilities capabilities.Set, rr ...ValueGetter) (err error) {
 	if err = svc.canOpRecord(mf.ConnectionID, mf.ResourceID); err != nil {
 		return wrapError("cannot create record", err)

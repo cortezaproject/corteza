@@ -78,6 +78,12 @@ var (
 		return &c
 	}
 
+	// wrapper around time.Now() that will aid service testing
+	nowUTC = func() *time.Time {
+		c := time.Now().Round(time.Second).UTC()
+		return &c
+	}
+
 	// wrapper around nextID that will aid service testing
 	nextID = func() uint64 {
 		return id.Next()
@@ -172,7 +178,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	DefaultModule = Module(dal.Service())
 
 	DefaultImportSession = ImportSession()
-	DefaultRecord = Record(dal.Service())
+	DefaultRecord = Record()
 	DefaultPage = Page()
 	DefaultChart = Chart()
 	DefaultNotification = Notification(c.UserFinder)

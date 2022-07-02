@@ -3,6 +3,10 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/compose/dalutils"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms"
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/compose/service/values"
@@ -19,6 +23,147 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
+
+func makeTestRecordService(t *testing.T, mods ...any) *record {
+
+	var (
+		err error
+		req = require.New(t)
+		log = zap.NewNop()
+	)
+
+	for _, m := range mods {
+		switch c := m.(type) {
+
+		case *zap.Logger:
+			t.Log("using custom Logger to initialize Record service")
+			log = c
+		}
+	}
+
+	var (
+		ctx = logger.ContextWithValue(context.Background(), log)
+		svc = &record{
+			sanitizer: values.Sanitizer(),
+			formatter: values.Formatter(),
+			eventbus:  eventbus.New(),
+		}
+	)
+
+	svc.validator = defaultValidator(svc)
+
+	for _, m := range mods {
+		switch c := m.(type) {
+		case rbacService:
+			t.Log("using custom RBAC to initialize Record service")
+			svc.ac = &accessControl{rbac: c}
+		case store.Storer:
+			t.Log("using custom Store to initialize Record service")
+			svc.store = c
+		case dalService:
+			t.Log("using custom DAL to initialize Record service")
+			t.Log("make sure you manually reload models!")
+			svc.dal = c
+		}
+	}
+
+	if svc.ac == nil {
+		svc.ac = &accessControl{rbac: rbac.NewService(log, nil)}
+	}
+
+	if svc.store == nil {
+		svc.store, err = sqlite.ConnectInMemoryWithDebug(ctx)
+		req.NoError(err)
+
+		req.NoError(store.Upgrade(ctx, log, svc.store))
+		req.NoError(store.TruncateUsers(ctx, svc.store))
+		req.NoError(store.TruncateRoles(ctx, svc.store))
+		req.NoError(store.TruncateComposeNamespaces(ctx, svc.store))
+		req.NoError(store.TruncateComposeModules(ctx, svc.store))
+		req.NoError(store.TruncateComposeModuleFields(ctx, svc.store))
+		req.NoError(store.TruncateRbacRules(ctx, svc.store))
+
+	}
+
+	resourceMaker(ctx, t, svc.store, mods...)
+
+	if svc.dal == nil {
+		dalAux, err := dal.New(zap.NewNop(), true)
+		req.NoError(err)
+
+		const (
+			recordsTable = "compose_record"
+		)
+
+		req.NoError(
+			dalAux.ReplaceConnection(
+				ctx,
+				dal.MakeConnection(1, svc.store.ToDalConn(),
+					dal.ConnectionParams{},
+					dal.ConnectionMeta{DefaultModelIdent: recordsTable, DefaultAttributeIdent: "values"},
+				),
+				true,
+			),
+		)
+
+		svc.dal = dalAux
+
+		// assuming store will alwats be RDBMS/SQLite and we can just run delete
+		//
+		// this could be done more "properly" by invoking DAL to truncate records
+		// but at the momment we need to provide the right model/module.
+		_, err = svc.store.(*rdbms.Store).DB.ExecContext(ctx, "DELETE FROM "+recordsTable)
+		req.NoError(err)
+
+		t.Log("reloading DAL models")
+		req.NoError(dalutils.ComposeModulesReload(ctx, svc.store, dalAux))
+	}
+
+	return svc
+}
+
+func modelFilter(svc *record, moduleID uint64) *dal.Model {
+	type (
+		modelFinder interface {
+			FindModelByResourceID(connectionID uint64, resourceID uint64) *dal.Model
+		}
+	)
+
+	var (
+		aux any = svc.dal
+	)
+
+	return aux.(modelFinder).FindModelByResourceID(1, moduleID)
+}
+
+func verifyRecErrSet(t *testing.T, err any) {
+	if rves, is := err.(*types.RecordValueErrorSet); is {
+		if rves.IsValid() {
+			return
+		}
+
+		t.Logf("Record errors:")
+		for _, e := range rves.Set {
+			t.Logf(" => [%s] %s", e.Kind, e.Message)
+			t.Logf("    %v", e.Meta)
+		}
+
+		t.FailNow()
+	}
+
+	if err, is := err.(*errors.Error); is {
+		t.Errorf("unexpected error: %s", err.Error())
+		for k, v := range err.Meta() {
+			t.Errorf("                  %+v: %+v", k, v)
+		}
+		t.FailNow()
+	}
+
+	if err, is := err.(error); is {
+		t.Errorf("unexpected error: %s", err.Error())
+		t.FailNow()
+	}
+}
 
 func TestGeneralValueSetValidation(t *testing.T) {
 	var (
@@ -94,103 +239,17 @@ func TestDefaultValueSetting(t *testing.T) {
 	chk(out, "multi", 1, "m2")
 }
 
-func TestProcUpdateOwnerPreservation(t *testing.T) {
-	var (
-		ctx = context.Background()
-		a   = assert.New(t)
-
-		svc = record{
-			sanitizer: values.Sanitizer(),
-			validator: values.Validator(),
-			formatter: values.Formatter(),
-		}
-
-		mod = &types.Module{
-			Fields: types.ModuleFieldSet{},
-		}
-
-		oldRec = &types.Record{
-			OwnedBy: 1,
-			Values:  types.RecordValueSet{},
-		}
-		newRec = &types.Record{
-			OwnedBy: 0,
-			Values:  types.RecordValueSet{},
-		}
-	)
-
-	svc.procUpdate(ctx, 10, mod, newRec, oldRec)
-	a.Equal(newRec.OwnedBy, uint64(1))
-	svc.procUpdate(ctx, 10, mod, newRec, oldRec)
-	a.Equal(newRec.OwnedBy, uint64(1))
-}
-
-func TestProcUpdateOwnerChanged(t *testing.T) {
-	var (
-		ctx = context.Background()
-		a   = assert.New(t)
-
-		svc = record{
-			sanitizer: values.Sanitizer(),
-			validator: values.Validator(),
-			formatter: values.Formatter(),
-		}
-
-		mod = &types.Module{
-			Fields: types.ModuleFieldSet{},
-		}
-
-		oldRec = &types.Record{
-			OwnedBy: 1,
-			Values:  types.RecordValueSet{},
-		}
-		newRec = &types.Record{
-			OwnedBy: 9,
-			Values:  types.RecordValueSet{},
-		}
-	)
-
-	a.True(svc.procUpdate(ctx, 10, mod, newRec, oldRec).IsValid())
-	a.Equal(newRec.OwnedBy, uint64(9))
-	a.True(svc.procUpdate(ctx, 10, mod, newRec, oldRec).IsValid())
-	a.Equal(newRec.OwnedBy, uint64(9))
-}
-
 func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 	var (
+		err error
+
+		ctx = context.Background()
 		req = require.New(t)
 
-		// uncomment to enable sql conn debugging
-		//ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
-		ctx    = context.Background()
-		s, err = sqlite.ConnectInMemoryWithDebug(ctx)
-	)
+		u = &sysTypes.User{ID: nextID()}
 
-	req.NoError(err)
-	req.NoError(store.Upgrade(ctx, zap.NewNop(), s))
-	req.NoError(store.TruncateComposeNamespaces(ctx, s))
-	req.NoError(store.TruncateComposeModules(ctx, s))
-	req.NoError(store.TruncateComposeModuleFields(ctx, s))
-	req.NoError(store.TruncateComposeRecords(ctx, s, nil))
-	req.NoError(store.TruncateRbacRules(ctx, s))
+		ns = &types.Namespace{ID: nextID()}
 
-	var (
-		rbacService = rbac.NewService(
-			//zap.NewNop(),
-			logger.MakeDebugLogger(),
-			nil,
-		)
-		ac = &accessControl{rbac: rbacService}
-
-		svc = &record{
-			sanitizer: values.Sanitizer(),
-			formatter: values.Formatter(),
-			ac:        ac,
-			store:     s,
-		}
-
-		userID      = nextID()
-		ns          = &types.Namespace{ID: nextID()}
 		mod         = &types.Module{ID: nextID(), NamespaceID: ns.ID}
 		stringField = &types.ModuleField{ID: nextID(), ModuleID: mod.ID, Name: "string", Kind: "String"}
 		boolField   = &types.ModuleField{ID: nextID(), ModuleID: mod.ID, Name: "bool", Kind: "Boolean"}
@@ -199,6 +258,23 @@ func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 
 		readerRole = &sysTypes.Role{Name: "reader", ID: nextID()}
 		writerRole = &sysTypes.Role{Name: "writer", ID: nextID()}
+
+		//
+		rbacService = rbac.NewService(
+			zap.NewNop(),
+			//logger.MakeDebugLogger(),
+			nil,
+		)
+
+		svc = makeTestRecordService(t,
+			rbacService,
+			logger.MakeDebugLogger(),
+			u,
+			ns,
+			mod,
+			stringField,
+			boolField,
+		)
 
 		recChecked, recUnchecked *types.Record
 
@@ -213,10 +289,6 @@ func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 	)
 
 	svc.validator = defaultValidator(svc)
-
-	req.NoError(store.CreateComposeNamespace(ctx, s, ns))
-	req.NoError(store.CreateComposeModule(ctx, s, mod))
-	req.NoError(store.CreateComposeModuleField(ctx, s, stringField, boolField))
 
 	rbacService.UpdateRoles(
 		rbac.CommonRole.Make(readerRole.ID, readerRole.Name),
@@ -246,10 +318,10 @@ func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 
 	{
 		// security context w/ writer role
-		ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(userID, writerRole.ID, authRoleID))
+		ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(u.ID, writerRole.ID, authRoleID))
 
 		recChecked, err = svc.Create(ctx, &types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: valChecked})
-		req.NoError(errors.Unwrap(err))
+		verifyRecErrSet(t, err)
 
 		req.NotNil(recChecked.Values.Get("bool", 0), "should be checked")
 		req.Equal("1", recChecked.Values.Get("bool", 0).Value)
@@ -262,7 +334,7 @@ func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 		// *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
 
 		// security context w/ reader role
-		ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(userID, readerRole.ID, authRoleID))
+		ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(u.ID, readerRole.ID, authRoleID))
 
 		recChecked.Values = types.RecordValueSet{
 			&types.RecordValue{Name: "string", Value: "abc"},
@@ -285,7 +357,7 @@ func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 		// *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
 
 		// security context w/ writer role
-		ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(userID, writerRole.ID, authRoleID))
+		ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(u.ID, writerRole.ID, authRoleID))
 
 		recChecked.Values = types.RecordValueSet{
 			&types.RecordValue{Name: "string", Value: "abc"},
@@ -302,48 +374,46 @@ func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 
 func TestRecord_defValueFieldPermissionIssue(t *testing.T) {
 	var (
-		req    = require.New(t)
-		ctx    = context.Background()
-		s, err = sqlite.ConnectInMemoryWithDebug(ctx)
-	)
+		err error
+		req = require.New(t)
+		ctx = context.Background()
 
-	t.Log("setting up the test environment")
-
-	req.NoError(err)
-	req.NoError(store.Upgrade(ctx, zap.NewNop(), s))
-	req.NoError(store.TruncateComposeNamespaces(ctx, s))
-	req.NoError(store.TruncateComposeModules(ctx, s))
-	req.NoError(store.TruncateComposeModuleFields(ctx, s))
-	req.NoError(store.TruncateComposeRecords(ctx, s, nil))
-	req.NoError(store.TruncateRbacRules(ctx, s))
-
-	var (
 		rbacService = rbac.NewService(
 			//zap.NewNop(),
 			logger.MakeDebugLogger(),
 			nil,
 		)
-		ac = &accessControl{rbac: rbacService}
 
-		svc = &record{
-			sanitizer: values.Sanitizer(),
-			formatter: values.Formatter(),
-			ac:        ac,
-			store:     s,
-		}
+		user = &sysTypes.User{ID: nextID()}
 
 		ns            = &types.Namespace{ID: nextID()}
 		mod           = &types.Module{ID: nextID(), NamespaceID: ns.ID}
 		writableField = &types.ModuleField{ID: nextID(), ModuleID: mod.ID, NamespaceID: ns.ID, Name: "writable", Kind: "String", DefaultValue: types.RecordValueSet{{Value: "def-w"}}}
 		readableField = &types.ModuleField{ID: nextID(), ModuleID: mod.ID, NamespaceID: ns.ID, Name: "readable", Kind: "String", DefaultValue: types.RecordValueSet{{Value: "def-r"}}}
 
-		userID     = nextID()
+		svc = makeTestRecordService(t,
+			rbacService,
+			user,
+			ns,
+			mod,
+			writableField,
+			readableField,
+		)
+
 		authRoleID = nextID()
 		editorRole = &sysTypes.Role{Name: "editor", ID: nextID()}
 
 		recPartial *types.Record
 
 		valueExtractor = func(rec *types.Record, ff ...string) (out string) {
+			if rec == nil {
+				return "<NIL RECORD>"
+			}
+
+			if rec.Values == nil {
+				return "<NIL RECORD VALUES>"
+			}
+
 			for _, f := range ff {
 				out += "<"
 				if v := rec.Values.Get(f, 0); v != nil {
@@ -361,10 +431,6 @@ func TestRecord_defValueFieldPermissionIssue(t *testing.T) {
 	t.Log("creating namespace, module and fields")
 
 	svc.validator = defaultValidator(svc)
-
-	req.NoError(store.CreateComposeNamespace(ctx, s, ns))
-	req.NoError(store.CreateComposeModule(ctx, s, mod))
-	req.NoError(store.CreateComposeModuleField(ctx, s, writableField, readableField))
 
 	t.Log("setting up security")
 
@@ -389,11 +455,10 @@ func TestRecord_defValueFieldPermissionIssue(t *testing.T) {
 	{
 		t.Log("creating record with w/o editor role (expecting defaults")
 
-		ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(userID, authRoleID))
+		ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(user.ID, authRoleID))
 
 		recPartial, err = svc.Create(ctx, &types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: types.RecordValueSet{}})
-
-		req.NoError(errors.Unwrap(err))
+		verifyRecErrSet(t, err)
 		req.Equal("<def-w><def-r>", valueExtractor(recPartial, "writable", "readable"))
 
 		t.Log("creating record with w/o editor role (must be able to crate & update record and modify both fields)")
@@ -403,7 +468,7 @@ func TestRecord_defValueFieldPermissionIssue(t *testing.T) {
 			&types.RecordValue{Name: "readable", Value: "r"},
 		}})
 
-		req.NoError(errors.Unwrap(err))
+		verifyRecErrSet(t, err)
 		req.Equal("<w><r>", valueExtractor(recPartial, "writable", "readable"))
 
 		t.Log("updating record removing one of the values")
@@ -411,18 +476,17 @@ func TestRecord_defValueFieldPermissionIssue(t *testing.T) {
 		recPartial.Values = types.RecordValueSet{&types.RecordValue{Name: "writable", Value: "w2"}}
 
 		recPartial, err = svc.Update(ctx, recPartial)
-		req.NoError(errors.Unwrap(err))
+		verifyRecErrSet(t, err)
 		req.Equal("<w2><NULL>", valueExtractor(recPartial, "writable", "readable"))
 	}
 
 	{
 		t.Log("creating record with editor role (expecting defaults")
 
-		ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(userID, authRoleID, editorRole.ID))
+		ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(user.ID, authRoleID, editorRole.ID))
 
 		recPartial, err = svc.Create(ctx, &types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: types.RecordValueSet{}})
-
-		req.NoError(errors.Unwrap(err))
+		verifyRecErrSet(t, err)
 		req.Equal("<def-w><def-r>", valueExtractor(recPartial, "writable", "readable"))
 
 		t.Log("creating record with editor role (must be able to crate & update record and modify both fields)")
@@ -433,7 +497,7 @@ func TestRecord_defValueFieldPermissionIssue(t *testing.T) {
 			&types.RecordValue{Name: "readable", Value: "r"},
 		}})
 
-		req.NoError(errors.Unwrap(err))
+		verifyRecErrSet(t, err)
 		req.Equal("<def-w><r>", valueExtractor(recPartial, "writable", "readable"))
 	}
 }
@@ -453,7 +517,6 @@ func TestRecord_refAccessControl(t *testing.T) {
 	req.NoError(store.TruncateComposeNamespaces(ctx, s))
 	req.NoError(store.TruncateComposeModules(ctx, s))
 	req.NoError(store.TruncateComposeModuleFields(ctx, s))
-	req.NoError(store.TruncateComposeRecords(ctx, s, nil))
 	req.NoError(store.TruncateRbacRules(ctx, s))
 
 	var (
@@ -462,22 +525,13 @@ func TestRecord_refAccessControl(t *testing.T) {
 			logger.MakeDebugLogger(),
 			nil,
 		)
-		ac = &accessControl{rbac: rbacService}
-
-		svc = &record{
-			sanitizer: values.Sanitizer(),
-			formatter: values.Formatter(),
-			ac:        ac,
-			store:     s,
-		}
-
 		nextIDi uint64 = 1
 		nextID         = func() uint64 {
 			nextIDi++
 			return nextIDi
 		}
 
-		userID       = nextID()
+		user         = &sysTypes.User{ID: nextID()}
 		ns           = &types.Namespace{ID: nextID()}
 		mod1         = &types.Module{ID: nextID(), NamespaceID: ns.ID, Name: "mod one"}
 		mod2         = &types.Module{ID: nextID(), NamespaceID: ns.ID, Name: "mod two"}
@@ -485,6 +539,16 @@ func TestRecord_refAccessControl(t *testing.T) {
 		mod2refField = &types.ModuleField{ID: nextID(), NamespaceID: ns.ID, ModuleID: mod2.ID, Name: "ref", Kind: "Record"}
 
 		testerRole = &sysTypes.Role{Name: "tester", ID: nextID()}
+
+		svc = makeTestRecordService(t,
+			rbacService,
+			user,
+			ns,
+			mod1,
+			mod2,
+			mod1strField,
+			mod2refField,
+		)
 
 		mod1rec1 = &types.Record{
 			NamespaceID: ns.ID,
@@ -499,22 +563,13 @@ func TestRecord_refAccessControl(t *testing.T) {
 
 	svc.validator = defaultValidator(svc)
 
-	t.Log("create test namespace")
-	req.NoError(store.CreateComposeNamespace(ctx, s, ns))
-
-	t.Log("create test modules")
-	req.NoError(store.CreateComposeModule(ctx, s, mod1, mod2))
-
-	t.Log("create test module fields")
-	req.NoError(store.CreateComposeModuleField(ctx, s, mod1strField, mod2refField))
-
 	t.Log("inform rbac service about new roles")
 	rbacService.UpdateRoles(
 		rbac.CommonRole.Make(testerRole.ID, testerRole.Name),
 	)
 
 	t.Log("log-in with test user ")
-	ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(userID, testerRole.ID))
+	ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(user.ID, testerRole.ID))
 
 	_ = mod2rec1
 
@@ -524,7 +579,7 @@ func TestRecord_refAccessControl(t *testing.T) {
 		req.EqualError(err, "not allowed to create records")
 
 		t.Logf("granting permissions to create records on this module")
-		rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, mod1.RbacResource(), "record.create"))
+		req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, mod1.RbacResource(), "record.create")))
 
 		t.Log("retry creating record on 1st module; should fail because we do not have permissions to update field")
 		_, err = svc.Create(ctx, mod1rec1)
@@ -532,7 +587,7 @@ func TestRecord_refAccessControl(t *testing.T) {
 		req.True(types.IsRecordValueErrorSet(err).HasKind("updateDenied"))
 
 		t.Logf("granting permissions to update records values on module field")
-		rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, mod1strField.RbacResource(), "record.value.update"))
+		req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, mod1strField.RbacResource(), "record.value.update")))
 
 		t.Log("retry creating record on 1st module; should succeed")
 		mod1rec1, err = svc.Create(ctx, mod1rec1)
@@ -552,21 +607,21 @@ func TestRecord_refAccessControl(t *testing.T) {
 		req.EqualError(err, "not allowed to create records")
 
 		t.Log("grant record.create on namespace level")
-		rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, types.ModuleRbacResource(ns.ID, 0), "record.create"))
+		req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, types.ModuleRbacResource(ns.ID, 0), "record.create")))
 
 		t.Log("grant record.value.update on namespace level")
-		rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, types.ModuleFieldRbacResource(ns.ID, 0, 0), "record.value.update"))
+		req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, types.ModuleFieldRbacResource(ns.ID, 0, 0), "record.value.update")))
 
 		t.Log("create record on 2nd module with ref to record on the 1st module; most fail, not allowed to read (referenced) mod1rec1")
 		_, err = svc.Create(ctx, mod2rec1)
 		req.EqualError(err, "invalid record value input")
 
 		t.Log("grant read on record")
-		rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, mod1rec1.RbacResource(), "read"))
+		req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, mod1rec1.RbacResource(), "read")))
 
 		t.Log("create record on 2nd module with ref to record on the 1st module")
 		mod2rec1, err = svc.Create(ctx, mod2rec1)
-		req.NoError(errors.Unwrap(err))
+		verifyRecErrSet(t, err)
 	}
 	{
 		t.Log("update record on 2nd module with unchanged values; must fail, no update permissions")
@@ -574,64 +629,44 @@ func TestRecord_refAccessControl(t *testing.T) {
 		req.EqualError(err, "not allowed to update this record")
 
 		t.Log("grant update on namespace level")
-		rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, types.RecordRbacResource(ns.ID, 0, 0), "update"))
+		req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, types.RecordRbacResource(ns.ID, 0, 0), "update")))
 
 		t.Log("update record on 2nd module with unchanged values")
 		mod2rec1, err = svc.Update(ctx, mod2rec1)
-		req.NoError(errors.Unwrap(err))
+		verifyRecErrSet(t, err)
 
 		t.Log("update record on 2nd module with unchanged values; unset record value")
 		mod2rec1.Values = nil
 		mod2rec1, err = svc.Update(ctx, mod2rec1)
-		req.NoError(errors.Unwrap(err))
+		verifyRecErrSet(t, err)
 
 		t.Log("link 2nd record to 1st one again")
 		mod2rec1.Values = mod2rec1.Values.Set(&types.RecordValue{Name: "ref", Value: fmt.Sprintf("%d", mod1rec1.ID)})
 		mod2rec1, err = svc.Update(ctx, mod2rec1)
-		req.NoError(errors.Unwrap(err))
+		verifyRecErrSet(t, err)
 	}
 	{
 		t.Log("revoke read on record")
-		rbacService.Grant(ctx, rbac.DenyRule(testerRole.ID, mod1rec1.RbacResource(), "read"))
+		req.NoError(rbacService.Grant(ctx, rbac.DenyRule(testerRole.ID, mod1rec1.RbacResource(), "read")))
 
 		t.Log("link 2nd record to 1st one again but w/o permissions; must work, value did not change")
 		mod2rec1.Values = mod2rec1.Values.Set(&types.RecordValue{Name: "ref", Value: fmt.Sprintf("%d", mod1rec1.ID)})
 		mod2rec1, err = svc.Update(ctx, mod2rec1)
-		req.NoError(errors.Unwrap(err))
+		verifyRecErrSet(t, err)
 	}
 }
 
 func TestRecord_searchAccessControl(t *testing.T) {
 	var (
+		err error
 		req = require.New(t)
+		ctx = context.Background()
 
-		// uncomment to enable sql conn debugging
-		//ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
-		ctx    = context.Background()
-		s, err = sqlite.ConnectInMemoryWithDebug(ctx)
-	)
-
-	req.NoError(err)
-	req.NoError(store.Upgrade(ctx, zap.NewNop(), s))
-	req.NoError(store.TruncateComposeNamespaces(ctx, s))
-	req.NoError(store.TruncateComposeModules(ctx, s))
-	req.NoError(store.TruncateComposeModuleFields(ctx, s))
-	req.NoError(store.TruncateComposeRecords(ctx, s, nil))
-	req.NoError(store.TruncateRbacRules(ctx, s))
-
-	var (
 		rbacService = rbac.NewService(
 			//zap.NewNop(),
 			logger.MakeDebugLogger(),
 			nil,
 		)
-		ac = &accessControl{rbac: rbacService}
-
-		svc = &record{
-			ac:        ac,
-			store:     s,
-			sanitizer: values.Sanitizer(),
-		}
 
 		nextIDi uint64 = 1
 		nextID         = func() uint64 {
@@ -639,10 +674,18 @@ func TestRecord_searchAccessControl(t *testing.T) {
 			return nextIDi
 		}
 
-		userID = nextID()
-		ns     = &types.Namespace{ID: nextID()}
-		mod    = &types.Module{ID: nextID(), NamespaceID: ns.ID, Name: "mod one"}
-		//strField = &types.ModuleField{ID: nextID(), NamespaceID: ns.ID, ModuleID: mod.ID, Name: "str", Kind: "String"}
+		user     = &sysTypes.User{ID: nextID()}
+		ns       = &types.Namespace{ID: nextID()}
+		mod      = &types.Module{ID: nextID(), NamespaceID: ns.ID, Name: "mod one"}
+		strField = &types.ModuleField{ID: nextID(), NamespaceID: ns.ID, ModuleID: mod.ID, Name: "str", Kind: "String"}
+
+		svc = makeTestRecordService(t,
+			rbacService,
+			user,
+			ns,
+			mod,
+			strField,
+		)
 
 		testerRole = &sysTypes.Role{Name: "tester", ID: nextID()}
 
@@ -653,16 +696,12 @@ func TestRecord_searchAccessControl(t *testing.T) {
 			ModuleID:    mod.ID,
 			NamespaceID: ns.ID,
 		}
+
+		// search for module's model to be used as a filter
+		model = modelFilter(svc, mod.ID)
 	)
 
-	t.Log("create test namespace")
-	req.NoError(store.CreateComposeNamespace(ctx, s, ns))
-
-	t.Log("create test modules")
-	req.NoError(store.CreateComposeModule(ctx, s, mod))
-
-	//t.Log("create test module fields")
-	//req.NoError(store.CreateComposeModuleField(ctx, s, strField))
+	req.NotNil(model)
 
 	t.Log("create test records")
 	for i := 0; i < cap(rr); i++ {
@@ -672,7 +711,7 @@ func TestRecord_searchAccessControl(t *testing.T) {
 			ModuleID:    mod.ID,
 		}
 
-		req.NoError(store.CreateComposeRecord(ctx, s, mod, rr[i]))
+		req.NoError(svc.dal.Create(ctx, model.ToFilter(), nil, rr[i]))
 	}
 
 	t.Log("inform rbac service about new roles")
@@ -681,57 +720,38 @@ func TestRecord_searchAccessControl(t *testing.T) {
 	)
 
 	t.Log("log-in with test user ")
-	ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(userID, testerRole.ID))
-	rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, mod.RbacResource(), "records.search"))
+	ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(user.ID, testerRole.ID))
+	req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, mod.RbacResource(), "records.search")))
 
 	t.Log("search for the newly created records; should not find any (all denied)")
 	f.IncTotal = true
 	hits, f, err = svc.Find(ctx, f)
+	req.NoError(err)
 	req.Len(hits, 0)
 	req.Equal(uint(0), f.Total)
 
 	t.Log("allow read access for two records")
-	rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, rr[3].RbacResource(), "read"))
-	rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, rr[6].RbacResource(), "read"))
+	req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, rr[3].RbacResource(), "read")))
+	req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, rr[6].RbacResource(), "read")))
 
 	t.Log("search for the newly created records; should find 2 we're allowed to read")
 	f.IncTotal = true
 	hits, f, err = svc.Find(ctx, f)
+	req.NoError(err)
 	req.Len(hits, 2)
 	req.Equal(uint(2), f.Total)
 }
 
 func TestRecord_contextualRolesAccessControl(t *testing.T) {
 	var (
+		err error
 		req = require.New(t)
+		ctx = context.Background()
 
-		// uncomment to enable sql conn debugging
-		ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
-		//ctx    = context.Background()
-		s, err = sqlite.ConnectInMemoryWithDebug(ctx)
-	)
+		//log = zap.NewNop()
+		log = logger.MakeDebugLogger()
 
-	req.NoError(err)
-	req.NoError(store.Upgrade(ctx, zap.NewNop(), s))
-	req.NoError(store.TruncateComposeNamespaces(ctx, s))
-	req.NoError(store.TruncateComposeModules(ctx, s))
-	req.NoError(store.TruncateComposeModuleFields(ctx, s))
-	req.NoError(store.TruncateComposeRecords(ctx, s, nil))
-	req.NoError(store.TruncateRbacRules(ctx, s))
-
-	var (
-		rbacService = rbac.NewService(
-			//zap.NewNop(),
-			logger.MakeDebugLogger(),
-			nil,
-		)
-		ac = &accessControl{rbac: rbacService}
-
-		svc = &record{
-			ac:        ac,
-			store:     s,
-			sanitizer: values.Sanitizer(),
-		}
+		rbacService = rbac.NewService(log, nil)
 
 		nextIDi uint64 = 1
 		nextID         = func() uint64 {
@@ -739,11 +759,21 @@ func TestRecord_contextualRolesAccessControl(t *testing.T) {
 			return nextIDi
 		}
 
-		userID    = nextID()
+		user      = &sysTypes.User{ID: nextID()}
 		ns        = &types.Namespace{ID: nextID()}
 		mod       = &types.Module{ID: nextID(), NamespaceID: ns.ID, Name: "mod one"}
 		numField  = &types.ModuleField{ID: nextID(), NamespaceID: ns.ID, ModuleID: mod.ID, Name: "num", Kind: "String"}
 		boolField = &types.ModuleField{ID: nextID(), NamespaceID: ns.ID, ModuleID: mod.ID, Name: "yes", Kind: "String"}
+
+		svc = makeTestRecordService(t,
+			rbacService,
+			log,
+			user,
+			ns,
+			mod,
+			numField,
+			boolField,
+		)
 
 		baseRole   = &sysTypes.Role{Name: "base", ID: nextID()}
 		ownerRole  = &sysTypes.Role{Name: "owner", ID: nextID()}
@@ -757,6 +787,9 @@ func TestRecord_contextualRolesAccessControl(t *testing.T) {
 			ModuleID:    mod.ID,
 			NamespaceID: ns.ID,
 		}
+
+		// search for module's model to be used as a filter
+		model = modelFilter(svc, mod.ID)
 
 		// setting up rbac context role expression parser
 		roleCheckFnMaker = func(expression string) func(scope map[string]interface{}) bool {
@@ -778,17 +811,6 @@ func TestRecord_contextualRolesAccessControl(t *testing.T) {
 		}
 	)
 
-	t.Log("create test namespace")
-	req.NoError(store.CreateComposeNamespace(ctx, s, ns))
-
-	mod.Fields = types.ModuleFieldSet{numField, boolField}
-	numField.ModuleID = mod.ID
-	boolField.ModuleID = mod.ID
-
-	t.Log("create test modules")
-	req.NoError(store.CreateComposeModule(ctx, s, mod))
-	req.NoError(store.CreateComposeModuleField(ctx, s, numField, boolField))
-
 	t.Log("create test records")
 	for i := 0; i < cap(rr); i++ {
 		rr[i] = &types.Record{
@@ -799,7 +821,7 @@ func TestRecord_contextualRolesAccessControl(t *testing.T) {
 
 		if i%2 == 0 {
 			// let's own half of the records
-			rr[i].OwnedBy = userID
+			rr[i].OwnedBy = user.ID
 		}
 
 		if i%3 == 0 {
@@ -812,7 +834,8 @@ func TestRecord_contextualRolesAccessControl(t *testing.T) {
 			rr[i].Values = rr[i].Values.Set(&types.RecordValue{Name: "yes", Value: "1"})
 		}
 
-		req.NoError(store.CreateComposeRecord(ctx, s, mod, rr[i]))
+		req.NoError(svc.dal.Create(ctx, model.ToFilter(), nil, rr[i]))
+
 	}
 
 	// result
@@ -832,28 +855,32 @@ func TestRecord_contextualRolesAccessControl(t *testing.T) {
 		rbac.MakeContextRole(tttRole.ID, tttRole.Name, roleCheckFnMaker(`has(resource.values, "num") ? resource.values.num == 333 : false`), types.RecordResourceType),
 	)
 
-	rbacService.Grant(ctx, rbac.AllowRule(baseRole.ID, types.ModuleRbacResource(0, 0), "records.search"))
+	req.NoError(rbacService.Grant(ctx, rbac.AllowRule(baseRole.ID, types.ModuleRbacResource(0, 0), "records.search")))
 
 	t.Log("log-in with test user")
-	ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(userID, baseRole.ID))
+	ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(user.ID, baseRole.ID))
 
 	t.Log("expecting not find any (all denied)")
 	hits, _, err = svc.Find(ctx, f)
+	req.NoError(err)
 	req.Len(hits, 0)
 
 	t.Log("expecting to find 5 records (owned by us)")
-	rbacService.Grant(ctx, rbac.AllowRule(ownerRole.ID, types.RecordRbacResource(0, 0, 0), "read"))
+	req.NoError(rbacService.Grant(ctx, rbac.AllowRule(ownerRole.ID, types.RecordRbacResource(0, 0, 0), "read")))
 	hits, _, err = svc.Find(ctx, f)
+	req.NoError(err)
 	req.Len(hits, 5)
 
 	t.Log("expecting to find 2 records (owned by us and with true value for 'yes' field)")
-	rbacService.Grant(ctx, rbac.AllowRule(truthyRole.ID, types.RecordRbacResource(0, 0, 0), "read"))
+	req.NoError(rbacService.Grant(ctx, rbac.AllowRule(truthyRole.ID, types.RecordRbacResource(0, 0, 0), "read")))
 	hits, _, err = svc.Find(ctx, f)
+	req.NoError(err)
 	req.Len(hits, 8)
 
 	t.Log("expecting to find 2 records (owned by us and with true value for 'yes' field + 333 for num)")
-	rbacService.Grant(ctx, rbac.AllowRule(tttRole.ID, types.RecordRbacResource(0, 0, 0), "read"))
+	req.NoError(rbacService.Grant(ctx, rbac.AllowRule(tttRole.ID, types.RecordRbacResource(0, 0, 0), "read")))
 	hits, _, err = svc.Find(ctx, f)
+	req.NoError(err)
 	req.Len(hits, 9)
 }
 
@@ -871,13 +898,12 @@ func TestSetRecordOwner(t *testing.T) {
 	req.NoError(store.Upgrade(ctx, zap.NewNop(), s))
 	req.NoError(store.TruncateComposeNamespaces(ctx, s))
 	req.NoError(store.TruncateComposeModules(ctx, s))
-	req.NoError(store.TruncateComposeRecords(ctx, s, nil))
 	req.NoError(store.TruncateRbacRules(ctx, s))
 
 	var (
 		rbacService = rbac.NewService(
-			//zap.NewNop(),
-			logger.MakeDebugLogger(),
+			zap.NewNop(),
+			//logger.MakeDebugLogger(),
 			nil,
 		)
 		ac = &accessControl{rbac: rbacService}
@@ -888,8 +914,8 @@ func TestSetRecordOwner(t *testing.T) {
 
 		role = &sysTypes.Role{Name: "role-with-ownership-change-permission", ID: 3000}
 
+		mod      = &types.Module{ID: 3}
 		old, upd *types.Record
-		rvse     *types.RecordValueErrorSet
 	)
 
 	rbacService.UpdateRoles(
@@ -897,39 +923,42 @@ func TestSetRecordOwner(t *testing.T) {
 	)
 
 	req.NoError(rbacService.Grant(ctx, rbac.AllowRule(role.ID, types.RecordRbacResource(0, 0, 0), "owner.manage")))
+	req.NoError(rbacService.Grant(ctx, rbac.AllowRule(role.ID, types.ModuleRbacResource(0, 0), "owned-record.create")))
 	req.NoError(store.CreateUser(ctx, s, invoker, originalOwner, alternativeOwner))
 
 	t.Run("invalid input", func(t *testing.T) {
 		old, upd = nil, nil
-		require.Nil(t, SetRecordOwner(ctx, ac, s, old, upd, invoker.ID))
+		verifyRecErrSet(t, SetRecordOwner(ctx, ac, s, old, upd, invoker.ID))
 	})
 
 	t.Run("new record owner is invoker", func(t *testing.T) {
-		old, upd = nil, &types.Record{ID: 1, NamespaceID: 2, ModuleID: 3}
+		old, upd = nil, &types.Record{ID: 1, NamespaceID: 2, ModuleID: mod.ID}
+		upd.SetModule(mod)
 
 		// this must work, invoker can always set owner to self on a new record
-		if rvse = SetRecordOwner(ctx, ac, s, old, upd, invoker.ID); !rvse.IsValid() {
-			t.Fatalf("errors: %v", rvse.Set)
-		}
+		verifyRecErrSet(t, SetRecordOwner(ctx, ac, s, old, upd, invoker.ID))
 
 		req.Equal(upd.OwnedBy, invoker.ID)
 	})
 
 	t.Run("deny setting to alternative owner on create", func(t *testing.T) {
 		old, upd = nil, &types.Record{ID: 1, NamespaceID: 2, ModuleID: 3, OwnedBy: alternativeOwner.ID}
+		upd.SetModule(mod)
 
 		// this must work, invoker can always set owner to self on a new record
-		if rvse = SetRecordOwner(ctx, ac, s, old, upd, invoker.ID); rvse.IsValid() {
+		if rvse := SetRecordOwner(ctx, ac, s, old, upd, invoker.ID); rvse.IsValid() {
 			t.Fatalf("expecting error")
 		}
 	})
 
 	t.Run("deny setting to alternative owner on update", func(t *testing.T) {
 		old = &types.Record{ID: 1, NamespaceID: 2, ModuleID: 3, OwnedBy: originalOwner.ID}
+		old.SetModule(mod)
 		upd = &types.Record{ID: 1, NamespaceID: 2, ModuleID: 3, OwnedBy: alternativeOwner.ID}
+		upd.SetModule(mod)
 
 		// this must work, invoker can always set owner to self on a new record
-		if rvse = SetRecordOwner(ctx, ac, s, old, upd, invoker.ID); rvse.IsValid() {
+		if rvse := SetRecordOwner(ctx, ac, s, old, upd, invoker.ID); rvse.IsValid() {
 			t.Fatalf("expecting error")
 		}
 	})
@@ -937,35 +966,31 @@ func TestSetRecordOwner(t *testing.T) {
 	t.Run("allow setting to alternative owner on create", func(t *testing.T) {
 		ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(invoker.ID, role.ID))
 		old, upd = nil, &types.Record{ID: 1, NamespaceID: 2, ModuleID: 3, OwnedBy: alternativeOwner.ID}
+		upd.SetModule(mod)
 
-		if rvse = SetRecordOwner(ctx, ac, s, old, upd, invoker.ID); !rvse.IsValid() {
-			t.Fatalf("errors: %v", rvse.Set)
-		}
-
+		verifyRecErrSet(t, SetRecordOwner(ctx, ac, s, old, upd, invoker.ID))
 		req.Equal(upd.OwnedBy, alternativeOwner.ID)
 	})
 
 	t.Run("allow setting to alternative owner on update", func(t *testing.T) {
 		ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(invoker.ID, role.ID))
 		old = &types.Record{ID: 1, NamespaceID: 2, ModuleID: 3, OwnedBy: originalOwner.ID}
+		old.SetModule(mod)
 		upd = &types.Record{ID: 1, NamespaceID: 2, ModuleID: 3, OwnedBy: alternativeOwner.ID}
+		upd.SetModule(mod)
 
-		if rvse = SetRecordOwner(ctx, ac, s, old, upd, invoker.ID); !rvse.IsValid() {
-			t.Fatalf("errors: %v", rvse.Set)
-		}
-
+		verifyRecErrSet(t, SetRecordOwner(ctx, ac, s, old, upd, invoker.ID))
 		req.Equal(upd.OwnedBy, alternativeOwner.ID)
 	})
 
 	t.Run("allow setting to new owner to zerp", func(t *testing.T) {
 		ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(invoker.ID, role.ID))
 		old = &types.Record{ID: 1, NamespaceID: 2, ModuleID: 3, OwnedBy: originalOwner.ID}
+		old.SetModule(mod)
 		upd = &types.Record{ID: 1, NamespaceID: 2, ModuleID: 3, OwnedBy: 0}
+		upd.SetModule(mod)
 
-		if rvse = SetRecordOwner(ctx, ac, s, old, upd, invoker.ID); !rvse.IsValid() {
-			t.Fatalf("errors: %v", rvse.Set)
-		}
-
+		verifyRecErrSet(t, SetRecordOwner(ctx, ac, s, old, upd, invoker.ID))
 		req.Equal(upd.OwnedBy, invoker.ID)
 	})
 }

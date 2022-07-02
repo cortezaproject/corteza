@@ -106,7 +106,7 @@ func ComposeModulesReload(ctx context.Context, s store.Storer, r modelReloader) 
 
 			mod.Fields = append(mod.Fields, fields...)
 
-			model, err = moduleToModel(ctx, r, ns, mod)
+			model, err = ModuleToModel(ctx, r, ns, mod)
 			if err != nil {
 				return
 			}
@@ -119,7 +119,7 @@ func ComposeModulesReload(ctx context.Context, s store.Storer, r modelReloader) 
 }
 
 func ComposeModuleCreate(ctx context.Context, c modelCreator, ns *types.Namespace, mod *types.Module) (err error) {
-	model, err := moduleToModel(ctx, c, ns, mod)
+	model, err := ModuleToModel(ctx, c, ns, mod)
 	if err != nil {
 		return
 	}
@@ -131,11 +131,11 @@ func ComposeModuleCreate(ctx context.Context, c modelCreator, ns *types.Namespac
 }
 
 func ComposeModuleUpdate(ctx context.Context, u modelUpdater, ns *types.Namespace, old, new *types.Module) (err error) {
-	oldModel, err := moduleToModel(ctx, u, ns, old)
+	oldModel, err := ModuleToModel(ctx, u, ns, old)
 	if err != nil {
 		return
 	}
-	newModel, err := moduleToModel(ctx, u, ns, new)
+	newModel, err := ModuleToModel(ctx, u, ns, new)
 	if err != nil {
 		return
 	}
@@ -148,11 +148,11 @@ func ComposeModuleUpdate(ctx context.Context, u modelUpdater, ns *types.Namespac
 }
 
 func ComposeModuleFieldsUpdate(ctx context.Context, u attributeUpdater, ns *types.Namespace, old, new *types.Module) (err error) {
-	oldModel, err := moduleToModel(ctx, u, ns, old)
+	oldModel, err := ModuleToModel(ctx, u, ns, old)
 	if err != nil {
 		return
 	}
-	newModel, err := moduleToModel(ctx, u, ns, new)
+	newModel, err := ModuleToModel(ctx, u, ns, new)
 	if err != nil {
 		return
 	}
@@ -168,7 +168,7 @@ func ComposeModuleFieldsUpdate(ctx context.Context, u attributeUpdater, ns *type
 }
 
 func ComposeModuleDelete(ctx context.Context, d modelDeleter, ns *types.Namespace, mod *types.Module) (err error) {
-	model, err := moduleToModel(ctx, d, ns, mod)
+	model, err := ModuleToModel(ctx, d, ns, mod)
 	if err != nil {
 		return
 	}
@@ -198,7 +198,7 @@ func ComposeModuleModelFormatter(f identFormatter, ns *types.Namespace, mod *typ
 // // // // // // // // // // // // // // // // // // // // // // // // //
 // Utilities
 
-func moduleToModel(ctx context.Context, f identFormatter, ns *types.Namespace, mod *types.Module) (*dal.Model, error) {
+func ModuleToModel(ctx context.Context, f identFormatter, ns *types.Namespace, mod *types.Module) (*dal.Model, error) {
 	formatter, tplParts, err := ComposeModuleModelFormatter(f, ns, mod)
 	if err != nil {
 		return nil, err
@@ -315,7 +315,7 @@ func moduleFieldToAttribute(getCodec func(f *types.ModuleField) dal.Codec, ns *t
 	}
 
 	switch strings.ToLower(kind) {
-	case "bool":
+	case "bool", "boolean":
 		at := &dal.TypeBoolean{}
 		out = dal.FullAttribute(f.Name, at, getCodec(f))
 	case "datetime":
