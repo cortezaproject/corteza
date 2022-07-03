@@ -8,6 +8,7 @@ import (
 {{- range $path, $alias :=  .imports }}
     {{ $alias }} {{ printf "%q" $path }}
 {{- end }}
+  "github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"golang.org/x/text/language"
 )
