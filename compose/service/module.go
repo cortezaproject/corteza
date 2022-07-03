@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"reflect"
 	"sort"
 	"strconv"
@@ -82,14 +83,14 @@ var (
 	})
 )
 
-func Module(dal dalService) *module {
+func Module() *module {
 	return &module{
 		ac:        DefaultAccessControl,
 		eventbus:  eventbus.Service(),
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
 		locale:    DefaultResourceTranslation,
-		dal:       dal,
+		dal:       dal.Service(),
 	}
 }
 
