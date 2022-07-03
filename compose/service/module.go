@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"reflect"
 	"sort"
@@ -49,6 +50,7 @@ type (
 		FindByHandle(ctx context.Context, namespaceID uint64, handle string) (*types.Module, error)
 		FindByAny(ctx context.Context, namespaceID uint64, identifier interface{}) (*types.Module, error)
 		Find(ctx context.Context, filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error)
+		FindSensitive(ctx context.Context, filter types.PrivacyModuleFilter) (set []types.PrivacyModule, f types.PrivacyModuleFilter, err error)
 
 		Create(ctx context.Context, module *types.Module) (*types.Module, error)
 		Update(ctx context.Context, module *types.Module) (*types.Module, error)
@@ -380,6 +382,46 @@ func (svc module) UndeleteByID(ctx context.Context, namespaceID, moduleID uint64
 // Directly using store so we don't spam the action log
 func (svc *module) ReloadDALModels(ctx context.Context) (err error) {
 	return dalutils.ComposeModulesReload(ctx, svc.store, svc.dal)
+}
+
+// FindSensitive will list all module with at least one private module field
+func (svc module) FindSensitive(ctx context.Context, filter types.PrivacyModuleFilter) (set []types.PrivacyModule, f types.PrivacyModuleFilter, err error) {
+	var (
+		mm types.ModuleSet
+	)
+
+	err = func() error {
+		mm, _, err = svc.Find(ctx, types.ModuleFilter{NamespaceID: filter.NamespaceID})
+		if err != nil {
+			return err
+		}
+
+		identity := auth.GetIdentityFromContext(ctx).Identity()
+
+		for _, m := range mm {
+			isPrivate := false
+			for _, f := range m.Fields {
+				if !isPrivate {
+					isPrivate = f.Private
+				}
+			}
+
+			if isPrivate && m != nil {
+				ownedBy, _ := m.ModelConfig.SystemFieldEncoding.OwnedBy.Value()
+				set = append(set, types.PrivacyModule{
+					ID:           m.ID,
+					Name:         m.Name, // @todo get this as per translation
+					Handle:       m.Handle,
+					Owner:        ownedBy == identity,
+					ConnectionID: m.ModelConfig.ConnectionID,
+				})
+			}
+		}
+
+		return nil
+	}()
+
+	return set, filter, err
 }
 
 func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, action func(...*moduleActionProps) *moduleAction, fn moduleUpdateHandler) (*types.Module, error) {
@@ -857,7 +899,7 @@ func loadModuleFields(ctx context.Context, s store.Storer, mm ...*types.Module) 
 
 	for _, m := range mm {
 		m.Fields = ff.FilterByModule(m.ID)
-		m.Fields.Walk(func(f *types.ModuleField) error {
+		_ = m.Fields.Walk(func(f *types.ModuleField) error {
 			f.NamespaceID = m.NamespaceID
 			return nil
 		})

@@ -313,7 +313,7 @@ func (svc *service) ReplaceConnection(ctx context.Context, cw *ConnectionWrap, i
 	return nil
 }
 
-// DeleteConnection removes the given connection from the DAL
+// RemoveConnection removes the given connection from the DAL
 func (svc *service) RemoveConnection(ctx context.Context, ID uint64) (err error) {
 	var (
 		issues = newIssueHelper().addConnection(ID)
