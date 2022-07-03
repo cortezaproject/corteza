@@ -74,6 +74,17 @@ resources: {
 			value:       {}
 		}
 
+		filter: {
+			expIdent: "LabelFilter"
+			struct: {
+				kind: {}
+				rel_resource: { goType: "[]uint64", ident: "resourceID" }
+				limit: { goType: "uint" }
+			}
+
+			byValue: ["kind" , "rel_resource", ]
+		}
+
 		store: {
 			api: {
 				lookups: [

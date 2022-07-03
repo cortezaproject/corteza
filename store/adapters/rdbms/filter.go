@@ -11,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	discoveryType "github.com/cortezaproject/corteza-server/pkg/discovery/types"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	labelsType "github.com/cortezaproject/corteza-server/pkg/label/types"
 	systemType "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
@@ -126,6 +127,24 @@ func DefaultFilters() (f *extendedFilters) {
 			ee = append(ee, goqu.C("self_id").Eq(f.ParentID))
 		} else if f.Root {
 			ee = append(ee, goqu.C("self_id").Eq(0))
+		}
+
+		return ee, f, nil
+	}
+
+	f.Label = func(store *Store, f labelsType.LabelFilter) (ee []goqu.Expression, _ labelsType.LabelFilter, err error) {
+		if ee, f, err = LabelFilter(f); err != nil {
+			return
+		}
+
+		if len(f.Filter) > 0 {
+			values := make([]goqu.Expression, 0, len(f.Filter))
+
+			for k, v := range f.Filter {
+				values = append(values, exp.Ex{"name": k, "value": v})
+			}
+
+			ee = append(ee, goqu.Or(values...))
 		}
 
 		return ee, f, nil
