@@ -931,6 +931,14 @@ func FlagFilter(f flagType.FlagFilter) (ee []goqu.Expression, _ flagType.FlagFil
 // This function is auto-generated
 func LabelFilter(f labelsType.LabelFilter) (ee []goqu.Expression, _ labelsType.LabelFilter, err error) {
 
+	if val := strings.TrimSpace(f.Kind); len(val) > 0 {
+		ee = append(ee, goqu.C("kind").Eq(f.Kind))
+	}
+
+	if len(f.ResourceID) > 0 {
+		ee = append(ee, goqu.C("rel_resource").In(f.ResourceID))
+	}
+
 	return ee, f, err
 }
 
