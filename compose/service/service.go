@@ -175,7 +175,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	}
 
 	DefaultNamespace = Namespace()
-	DefaultModule = Module(dal.Service())
+	DefaultModule = Module()
 
 	DefaultImportSession = ImportSession()
 	DefaultRecord = Record()

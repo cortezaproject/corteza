@@ -2,11 +2,13 @@ package service
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/compose/dalutils"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
-	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers/sqlite"
@@ -14,55 +16,121 @@ import (
 	"go.uber.org/zap"
 )
 
-func TestModules(t *testing.T) {
+func makeTestModuleService(t *testing.T, mods ...any) *module {
+
 	var (
-		ctx    = context.Background()
-		s, err = sqlite.ConnectInMemory(ctx)
-
-		// ctx    = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
-		// s, err = sqlite.ConnectInMemoryWithDebug(ctx)
-
-		namespaceID = nextID()
-		ns          *types.Namespace
+		err error
+		req = require.New(t)
+		log = zap.NewNop()
 	)
 
-	if err != nil {
-		t.Fatalf("failed to init sqlite in-memory db: %v", err)
+	for _, m := range mods {
+		switch c := m.(type) {
+
+		case *zap.Logger:
+			t.Log("using custom Logger to initialize Module service")
+			log = c
+		}
 	}
 
-	if err = store.Upgrade(ctx, zap.NewNop(), s); err != nil {
-		t.Fatalf("failed to upgrade store: %v", err)
+	var (
+		ctx = logger.ContextWithValue(context.Background(), log)
+		svc = &module{
+			eventbus: eventbus.New(),
+		}
+	)
+
+	for _, m := range mods {
+		switch c := m.(type) {
+		case rbacService:
+			t.Log("using custom RBAC to initialize Module service")
+			svc.ac = &accessControl{rbac: c}
+		case store.Storer:
+			t.Log("using custom Store to initialize Module service")
+			svc.store = c
+		case dalService:
+			t.Log("using custom DAL to initialize Module service")
+			t.Log("make sure you manually reload models!")
+			svc.dal = c
+		}
 	}
 
-	if err = s.TruncateComposeNamespaces(ctx); err != nil {
-		t.Fatalf("failed to truncate compose namespaces: %v", err)
+	if svc.ac == nil {
+		svc.ac = &accessControl{rbac: rbac.NewService(log, nil)}
 	}
 
-	if err = s.TruncateComposeModules(ctx); err != nil {
-		t.Fatalf("failed to truncate compose modules: %v", err)
+	if svc.store == nil {
+		t.Log("using SQLite in-memory Store")
+		svc.store, err = sqlite.ConnectInMemoryWithDebug(ctx)
+		req.NoError(err)
+
+		t.Log("upgrading store")
+		req.NoError(store.Upgrade(ctx, log, svc.store))
+
+		t.Log("data cleanup")
+		req.NoError(store.TruncateUsers(ctx, svc.store))
+		req.NoError(store.TruncateRoles(ctx, svc.store))
+		req.NoError(store.TruncateComposeNamespaces(ctx, svc.store))
+		req.NoError(store.TruncateComposeModules(ctx, svc.store))
+		req.NoError(store.TruncateComposeModuleFields(ctx, svc.store))
+		req.NoError(store.TruncateRbacRules(ctx, svc.store))
+		req.NoError(store.TruncateLabels(ctx, svc.store))
+
 	}
 
-	ns = &types.Namespace{Name: "testing", ID: namespaceID, CreatedAt: *now()}
-	if err = store.CreateComposeNamespace(ctx, s, ns); err != nil {
-		t.Fatalf("failed to seed namespaces: %v", err)
+	resourceMaker(ctx, t, svc.store, mods...)
+
+	if svc.dal == nil {
+		dalAux, err := dal.New(zap.NewNop(), true)
+		req.NoError(err)
+
+		const (
+			recordsTable = "compose_record"
+		)
+
+		req.NoError(
+			dalAux.ReplaceConnection(
+				ctx,
+				dal.MakeConnection(1, svc.store.ToDalConn(),
+					dal.ConnectionParams{},
+					dal.ConnectionMeta{DefaultModelIdent: recordsTable, DefaultAttributeIdent: "values"},
+				),
+				true,
+			),
+		)
+
+		svc.dal = dalAux
+
+		t.Log("reloading DAL models")
+		req.NoError(dalutils.ComposeModulesReload(ctx, svc.store, dalAux))
 	}
+
+	return svc
+}
+
+func TestModules(t *testing.T) {
+	var (
+		ctx = context.Background()
+		ns  = &types.Namespace{Name: "testing", ID: nextID(), CreatedAt: *now()}
+	)
 
 	t.Run("crud", func(t *testing.T) {
 		req := require.New(t)
-		svc := module{
-			store:    s,
-			ac:       &accessControl{rbac: &rbac.ServiceAllowAll{}},
-			eventbus: eventbus.New(),
-		}
-		res, err := svc.Create(ctx, &types.Module{Name: "My first module", NamespaceID: namespaceID})
+
+		svc := makeTestModuleService(t,
+			ns,
+			&rbac.ServiceAllowAll{},
+		)
+
+		res, err := svc.Create(ctx, &types.Module{Name: "My first module", NamespaceID: ns.ID})
 		req.NoError(err)
 		req.NotNil(res)
 
-		res, err = svc.FindByID(ctx, namespaceID, res.ID)
+		res, err = svc.FindByID(ctx, ns.ID, res.ID)
 		req.NoError(err)
 		req.NotNil(res)
 
-		res, err = svc.FindByHandle(ctx, namespaceID, res.Handle)
+		res, err = svc.FindByHandle(ctx, ns.ID, res.Handle)
 		req.NoError(err)
 		req.NotNil(res)
 
@@ -73,141 +141,150 @@ func TestModules(t *testing.T) {
 		req.NotNil(res.UpdatedAt)
 		req.Equal(res.Name, "Changed")
 
-		res, err = svc.FindByID(ctx, namespaceID, res.ID)
+		res, err = svc.FindByID(ctx, ns.ID, res.ID)
 		req.NoError(err)
 		req.NotNil(res)
 		req.Equal(res.Name, "Changed")
 
-		err = svc.DeleteByID(ctx, namespaceID, res.ID)
+		err = svc.DeleteByID(ctx, ns.ID, res.ID)
 		req.NoError(err)
 		req.NotNil(res)
 
 		// this works because we're allowed to do everything
-		res, err = svc.FindByID(ctx, namespaceID, res.ID)
+		res, err = svc.FindByID(ctx, ns.ID, res.ID)
 		req.NoError(err)
 		req.NotNil(res)
 		req.NotNil(res.DeletedAt)
 	})
+}
 
-	t.Run("labels", func(t *testing.T) {
-		t.Run("search", func(t *testing.T) {
-			req := require.New(t)
-			svc := module{
-				store:    s,
-				ac:       &accessControl{rbac: &rbac.ServiceAllowAll{}},
-				eventbus: eventbus.New(),
-				locale:   ResourceTranslationsManager(locale.Static()),
+func TestModule_LabelSearch(t *testing.T) {
+	var (
+		ns  = &types.Namespace{Name: "testing", ID: nextID(), CreatedAt: *now()}
+		req = require.New(t)
+		svc = makeTestModuleService(t,
+			ns,
+			&rbac.ServiceAllowAll{},
+		)
+
+		ctx = context.Background()
+		//ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
+
+		makeModule = func(n ...string) *types.Module {
+			mod := &types.Module{
+				NamespaceID: ns.ID,
+				Name:        n[0],
+				Labels:      map[string]string{},
 			}
 
-			makeModule := func(n ...string) *types.Module {
-				mod := &types.Module{
-					NamespaceID: namespaceID,
-					Name:        n[0],
-					Labels:      map[string]string{},
-				}
-
-				for i := 1; i < len(n); i += 2 {
-					mod.Labels[n[i]] = n[i+1]
-				}
-
-				out, err := svc.Create(ctx, mod)
-
-				req.NoError(err)
-				return out
+			for i := 1; i < len(n); i += 2 {
+				mod.Labels[n[i]] = n[i+1]
 			}
 
-			findModules := func(labels map[string]string, IDs []uint64) types.ModuleSet {
-				f := types.ModuleFilter{NamespaceID: namespaceID, Labels: labels, ModuleID: IDs}
-				set, _, err := svc.Find(ctx, f)
-				req.NoError(err)
+			out, err := svc.Create(ctx, mod)
 
-				return set
-			}
+			req.NoError(err)
+			return out
+		}
 
-			makeModule("labeled module 1", "label1", "value1", "label2", "value2")
-			m2 := makeModule("labeled module 2", "label1", "value1")
-			m3 := makeModule("labeled module 3")
+		findModules = func(labels map[string]string, IDs []uint64) types.ModuleSet {
+			f := types.ModuleFilter{NamespaceID: ns.ID, Labels: labels, ModuleID: IDs}
+			set, _, err := svc.Find(ctx, f)
+			req.NoError(err)
 
-			// return all -- no label/ID filter, return all
-			req.Len(findModules(nil, nil), 3)
+			return set
+		}
+	)
 
-			// return 2 - both that have label1=valu1
-			req.Len(findModules(map[string]string{"label1": "value1"}, nil), 2)
+	makeModule("labeled module 1", "label1", "value1", "label2", "value2")
+	m2 := makeModule("labeled module 2", "label1", "value1")
+	m3 := makeModule("labeled module 3")
 
-			// return 0 - none have foo=foo
-			req.Len(findModules(map[string]string{"missing": "missing"}, nil), 0)
+	//return all -- no label/ID filter, return all
+	req.Len(findModules(nil, nil), 3)
 
-			// one has label2=value2
-			req.Len(findModules(map[string]string{"label2": "value2"}, nil), 1)
+	// return 2 - both that have label1=valu1
+	req.Len(findModules(map[string]string{"label1": "value1"}, nil), 2)
 
-			// explicit by ID and label
-			req.Len(findModules(map[string]string{"label1": "value1"}, []uint64{m2.ID}), 1)
+	// return 0 - none have foo=foo
+	req.Len(findModules(map[string]string{"missing": "missing"}, nil), 0)
 
-			// none with this combo
-			req.Len(findModules(map[string]string{"foo": "foo"}, []uint64{m3.ID}), 0)
+	// one has label2=value2
+	req.Len(findModules(map[string]string{"label2": "value2"}, nil), 1)
 
-			// one with explicit ID (regression) and nil for label filter
-			req.Len(findModules(nil, []uint64{m3.ID}), 1)
+	// explicit by ID and label
+	req.Len(findModules(map[string]string{"label1": "value1"}, []uint64{m2.ID}), 1)
 
-			// one with explicit ID (regression) and empty map for label filter
-			req.Len(findModules(map[string]string{}, []uint64{m3.ID}), 1)
-		})
+	// none with this combo
+	req.Len(findModules(map[string]string{"foo": "foo"}, []uint64{m3.ID}), 0)
 
-		t.Run("CRUD", func(t *testing.T) {
-			req := require.New(t)
-			svc := module{
-				store:    s,
-				ac:       &accessControl{rbac: &rbac.ServiceAllowAll{}},
-				eventbus: eventbus.New(),
-			}
+	// one with explicit ID (regression) and nil for label filter
+	req.Len(findModules(nil, []uint64{m3.ID}), 1)
 
-			findAndReturnLabel := func(id uint64) map[string]string {
-				res, err := svc.FindByID(ctx, namespaceID, id)
-				req.NoError(err)
-				req.NotNil(res)
-				return res.Labels
-			}
+	// one with explicit ID (regression) and empty map for label filter
+	req.Len(findModules(map[string]string{}, []uint64{m3.ID}), 1)
 
-			// create unlabeled module
-			res, err := svc.Create(ctx, &types.Module{Name: "unLabeledIDs", NamespaceID: namespaceID})
+}
+
+func TestModule_LabelCRUD(t *testing.T) {
+	var (
+		ctx = context.Background()
+		//ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
+
+		ns = &types.Namespace{Name: "testing", ID: nextID(), CreatedAt: *now()}
+
+		req = require.New(t)
+		svc = makeTestModuleService(t,
+			ns,
+			&rbac.ServiceAllowAll{},
+		)
+
+		findAndReturnLabel = func(id uint64) map[string]string {
+			res, err := svc.FindByID(ctx, ns.ID, id)
 			req.NoError(err)
 			req.NotNil(res)
-			req.Nil(res.Labels)
+			return res.Labels
+		}
+	)
 
-			// no labels should be present
-			req.Nil(findAndReturnLabel(res.ID))
+	// create unlabeled module
+	res, err := svc.Create(ctx, &types.Module{Name: "unLabeledIDs", NamespaceID: ns.ID})
+	req.NoError(err)
+	req.NotNil(res)
+	req.Nil(res.Labels)
 
-			// update the module with labels
-			res.Labels = map[string]string{"label1": "1st"}
-			res, err = svc.Update(ctx, res)
-			req.NoError(err)
-			req.NotNil(res)
-			req.Contains(res.Labels, "label1")
+	// no labels should be present
+	req.Nil(findAndReturnLabel(res.ID))
 
-			// must contain the added label
-			req.Contains(findAndReturnLabel(res.ID), "label1")
+	// update the module with labels
+	res.Labels = map[string]string{"label1": "1st"}
+	res, err = svc.Update(ctx, res)
+	req.NoError(err)
+	req.NotNil(res)
+	req.Contains(res.Labels, "label1")
 
-			res, err = svc.Create(ctx, &types.Module{Name: "LabeledIDs", NamespaceID: namespaceID, Labels: map[string]string{"label2": "2nd"}})
-			req.NoError(err)
-			req.NotNil(res)
-			req.Contains(res.Labels, "label2")
+	// must contain the added label
+	req.Contains(findAndReturnLabel(res.ID), "label1")
 
-			// must contain the added label
-			req.Contains(findAndReturnLabel(res.ID), "label2")
+	res, err = svc.Create(ctx, &types.Module{Name: "LabeledIDs", NamespaceID: ns.ID, Labels: map[string]string{"label2": "2nd"}})
+	req.NoError(err)
+	req.NotNil(res)
+	req.Contains(res.Labels, "label2")
 
-			// update with Labels:nil (should keep labels intact)
-			res.Labels = nil
-			res, err = svc.Update(ctx, res)
-			req.NoError(err)
+	// must contain the added label
+	req.Contains(findAndReturnLabel(res.ID), "label2")
 
-			req.Contains(findAndReturnLabel(res.ID), "label2")
+	// update with Labels:nil (should keep labels intact)
+	res.Labels = nil
+	res, err = svc.Update(ctx, res)
+	req.NoError(err)
 
-			// update with Labels:empty-map (should remove all labels)
-			res.Labels = map[string]string{}
-			res, err = svc.Update(ctx, res)
-			req.NoError(err)
+	req.Contains(findAndReturnLabel(res.ID), "label2")
 
-			req.Empty(findAndReturnLabel(res.ID))
-		})
-	})
+	// update with Labels:empty-map (should remove all labels)
+	res.Labels = map[string]string{}
+	res, err = svc.Update(ctx, res)
+	req.NoError(err)
+
+	req.Empty(findAndReturnLabel(res.ID))
 }
