@@ -34,11 +34,11 @@ type (
 		// and it's highly unlikely we'll support different/multiple logging "backend"
 		SetLogger(*zap.Logger)
 
-		// Tx is a transaction handler
-		Tx(context.Context, func(context.Context, Storer) error) error
-
 		// Returns underlying store as DAL connection
 		ToDalConn() dal.Connection
+
+		// Tx is a transaction handler
+		Tx(context.Context, func(context.Context, Storer) error) error
 
 		// Upgrade store's schema to the latest version
 		Upgrade(context.Context) error
