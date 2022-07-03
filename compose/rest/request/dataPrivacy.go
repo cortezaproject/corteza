@@ -44,6 +44,28 @@ type (
 		// Filter by connection ID
 		ConnectionID []string
 	}
+
+	DataPrivacyModuleList struct {
+		// ConnectionID GET parameter
+		//
+		// Filter by connection ID
+		ConnectionID []string
+
+		// Limit GET parameter
+		//
+		// Limit
+		Limit uint
+
+		// PageCursor GET parameter
+		//
+		// Page cursor
+		PageCursor string
+
+		// Sort GET parameter
+		//
+		// Sort items
+		Sort string
+	}
 )
 
 // NewDataPrivacySensitiveDataList request
@@ -89,6 +111,82 @@ func (r *DataPrivacySensitiveDataList) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := tmp["connectionID"]; ok {
 			r.ConnectionID, err = val, nil
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return err
+}
+
+// NewDataPrivacyModuleList request
+func NewDataPrivacyModuleList() *DataPrivacyModuleList {
+	return &DataPrivacyModuleList{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DataPrivacyModuleList) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"connectionID": r.ConnectionID,
+		"limit":        r.Limit,
+		"pageCursor":   r.PageCursor,
+		"sort":         r.Sort,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DataPrivacyModuleList) GetConnectionID() []string {
+	return r.ConnectionID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DataPrivacyModuleList) GetLimit() uint {
+	return r.Limit
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DataPrivacyModuleList) GetPageCursor() string {
+	return r.PageCursor
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DataPrivacyModuleList) GetSort() string {
+	return r.Sort
+}
+
+// Fill processes request and fills internal variables
+func (r *DataPrivacyModuleList) Fill(req *http.Request) (err error) {
+
+	{
+		// GET params
+		tmp := req.URL.Query()
+
+		if val, ok := tmp["connectionID[]"]; ok {
+			r.ConnectionID, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["connectionID"]; ok {
+			r.ConnectionID, err = val, nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["limit"]; ok && len(val) > 0 {
+			r.Limit, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["pageCursor"]; ok && len(val) > 0 {
+			r.PageCursor, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["sort"]; ok && len(val) > 0 {
+			r.Sort, err = val[0], nil
 			if err != nil {
 				return err
 			}

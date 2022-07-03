@@ -2,10 +2,10 @@ package rest
 
 import (
 	"context"
-
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 )
 
@@ -28,6 +28,11 @@ type (
 		Values   []map[string]any `json:"values"`
 	}
 
+	privacyModuleSetPayload struct {
+		Filter types.PrivacyModuleFilter `json:"filter"`
+		Set    []*types.PrivacyModule    `json:"set"`
+	}
+
 	privateDataFinder interface {
 		FindSensitive(ctx context.Context, filter types.RecordFilter) (set []types.PrivateDataSet, err error)
 	}
@@ -36,6 +41,7 @@ type (
 		record    privateDataFinder
 		module    service.ModuleService
 		namespace service.NamespaceService
+		privacy   service.DataPrivacyService
 	}
 )
 
@@ -44,6 +50,7 @@ func (DataPrivacy) New() *DataPrivacy {
 		record:    service.DefaultRecord,
 		module:    service.DefaultModule,
 		namespace: service.DefaultNamespace,
+		privacy:   service.DefaultDataPrivacy,
 	}
 }
 
@@ -112,4 +119,35 @@ func (ctrl *DataPrivacy) SensitiveDataList(ctx context.Context, r *request.DataP
 	}
 
 	return outSet, nil
+}
+
+func (ctrl *DataPrivacy) ModuleList(ctx context.Context, r *request.DataPrivacyModuleList) (out interface{}, err error) {
+	var (
+		f = types.PrivacyModuleFilter{
+			ConnectionID: payload.ParseUint64s(r.ConnectionID),
+		}
+	)
+
+	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
+		return nil, err
+	}
+
+	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
+		return nil, err
+	}
+
+	set, f, err := ctrl.privacy.FindModules(ctx, f)
+	return ctrl.makeFilterPayload(ctx, set, f, err)
+}
+
+func (ctrl DataPrivacy) makeFilterPayload(_ context.Context, mm types.PrivacyModuleSet, f types.PrivacyModuleFilter, err error) (*privacyModuleSetPayload, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	if len(mm) == 0 {
+		mm = make([]*types.PrivacyModule, 0)
+	}
+
+	return &privacyModuleSetPayload{Filter: f, Set: mm}, nil
 }

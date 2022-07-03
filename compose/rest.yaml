@@ -986,6 +986,16 @@ endpoints:
         get:
           - { name: sensitivityLevelID, type: "uint64", title: "Sensitivity Level ID", required: false}
           - { name: connectionID, type: "[]string", required: false, title: "Filter by connection ID"}
+    - name: module list
+      method: GET
+      title: List modules
+      path: /module
+      parameters:
+        get:
+          - { name: connectionID, type: "[]string", title: "Filter by connection ID" }
+          - { name: limit,        type: "uint",     title: "Limit" }
+          - { name: pageCursor,   type: "string",   title: "Page cursor" }
+          - { name: sort,         type: "string",   title: "Sort items" }
 
 - title: Charts
   path: "/namespace/{namespaceID}/chart"

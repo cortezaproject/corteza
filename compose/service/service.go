@@ -71,6 +71,7 @@ var (
 	DefaultAttachment          AttachmentService
 	DefaultNotification        *notification
 	DefaultResourceTranslation ResourceTranslationsManagerService
+	DefaultDataPrivacy         DataPrivacyService
 
 	// wrapper around time.Now() that will aid service testing
 	now = func() *time.Time {
@@ -196,6 +197,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	DefaultChart = Chart()
 	DefaultNotification = Notification(c.UserFinder)
 	DefaultAttachment = Attachment(DefaultObjectStore, dal.Service())
+	DefaultDataPrivacy = DataPrivacy()
 
 	RegisterIteratorProviders()
 

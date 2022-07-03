@@ -14,4 +14,6 @@ types:
     labelResourceType: compose:record
   RecordValue:
     noIdField: true
+  PrivacyModule:
+    noIdField: true
 
