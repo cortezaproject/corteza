@@ -24,24 +24,17 @@ var (
 func Run(ctx context.Context, log *zap.Logger, s store.Storer, provisionOpt options.ProvisionOpt, authOpt options.AuthOpt) error {
 	log = log.Named("provision")
 
+	// Note,
 	ffn := []func() error{
 		// Migrations:
-		func() error { return migrateApplications(ctx, s) },
-		func() error { return migrateEmailTemplates(ctx, log.Named("email-templates"), s) },
-		func() error { return migratePre202109Roles(ctx, log.Named("pre-202109-roles"), s) },
-		func() error { return migratePre202109RbacRules(ctx, log.Named("pre-202109-rbac-rules"), s) },
-		func() error { return cleanupPre202109Settings(ctx, log.Named("pre-202109-settings"), s) },
-		func() error { return migrateResourceTranslations(ctx, log.Named("resource-translations"), s) },
-		func() error { return migrateReportIdentifiers(ctx, log.Named("report-identifiers"), s) },
-		func() error {
-			return migratePost202203RbacRules(ctx, log.Named("post-202203-rbac-resource-rules-fix"), s)
-		},
-		func() error {
-			return migratePost202203ResourceTranslations(ctx, log.Named("post-202203-resource-translations"), s)
-		},
+		// (placeholder for all post 2022.3.x modifications)
+
+		// *************************************************************************************************************
 
 		// Config (full & partial)
 		func() error { return importConfig(ctx, log.Named("config"), s, provisionOpt.Path) },
+
+		// *************************************************************************************************************
 
 		// Auto-discoveries and other parts that cannot be imported from static files
 		func() error { return emailSettings(ctx, s) },
