@@ -28,6 +28,7 @@ type (
 
 		ac       roleAccessController
 		eventbus eventDispatcher
+		rbac     rbacRuleService
 
 		user UserService
 		auth roleAuth
@@ -42,6 +43,8 @@ type (
 	}
 
 	roleAccessController interface {
+		CanGrant(context.Context) bool
+
 		CanSearchRoles(context.Context) bool
 		CanCreateRole(context.Context) bool
 		CanReadRole(context.Context, *types.Role) bool
@@ -67,6 +70,7 @@ type (
 		Unarchive(ctx context.Context, ID uint64) error
 		Delete(ctx context.Context, ID uint64) error
 		Undelete(ctx context.Context, ID uint64) error
+		CloneRules(ctx context.Context, ID uint64, cloneToRoleID ...uint64) error
 
 		Membership(ctx context.Context, userID uint64) (types.RoleMemberSet, error)
 		MemberList(ctx context.Context, roleID uint64) (types.RoleMemberSet, error)
@@ -82,15 +86,20 @@ type (
 		UpdateRoles(rr ...*rbac.Role)
 	}
 
+	rbacRuleService interface {
+		CloneRulesByRoleID(ctx context.Context, roleID uint64, toRoleID ...uint64) error
+	}
+
 	roleAuth interface {
 		RemoveAccessTokens(context.Context, *types.User) error
 	}
 )
 
-func Role() *role {
+func Role(rbac rbacRuleService) *role {
 	return &role{
 		ac:       DefaultAccessControl,
 		eventbus: eventbus.Service(),
+		rbac:     rbac,
 
 		actionlog: DefaultActionlog,
 
@@ -602,6 +611,14 @@ func (svc role) Unarchive(ctx context.Context, roleID uint64) (err error) {
 	}()
 
 	return svc.recordAction(ctx, raProps, RoleActionUnarchive, err)
+}
+
+func (svc role) CloneRules(ctx context.Context, roleID uint64, cloneToRoleID ...uint64) (err error) {
+	if !svc.ac.CanGrant(ctx) {
+		return RoleErrNotAllowedToCloneRules()
+	}
+
+	return svc.rbac.CloneRulesByRoleID(ctx, roleID, cloneToRoleID...)
 }
 
 func (svc role) Membership(ctx context.Context, userID uint64) (types.RoleMemberSet, error) {

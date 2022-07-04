@@ -23,11 +23,9 @@ type (
 	}
 
 	rbacService interface {
-		Can(rbac.Session, string, rbac.Resource) bool
 		Evaluate(rbac.Session, string, rbac.Resource) rbac.Evaluated
 		Grant(context.Context, ...*rbac.Rule) error
 		FindRulesByRoleID(roleID uint64) (rr rbac.RuleSet)
-		CloneRulesByRoleID(ctx context.Context, fromRoleID uint64, toRoleID ...uint64) error
 	}
 
 	accessControl struct {
@@ -46,14 +44,14 @@ func AccessControl(rms roleMemberSearcher) *accessControl {
 	}
 }
 
-func (svc *accessControl) can(ctx context.Context, op string, res rbac.Resource) bool {
-	return svc.rbac.Can(rbac.ContextToSession(ctx), op, res)
+func (svc accessControl) can(ctx context.Context, op string, res rbac.Resource) bool {
+	return svc.rbac.Evaluate(rbac.ContextToSession(ctx), op, res).Can
 }
 
 // Effective returns a list of effective permissions for all given resource
 //
 // This function is auto-generated
-func (svc *accessControl) Effective(ctx context.Context, rr ...rbac.Resource) (ee rbac.EffectiveSet) {
+func (svc accessControl) Effective(ctx context.Context, rr ...rbac.Resource) (ee rbac.EffectiveSet) {
 	for _, res := range rr {
 		r := res.RbacResource()
 		for op := range rbacResourceOperations(r) {
@@ -67,7 +65,7 @@ func (svc *accessControl) Effective(ctx context.Context, rr ...rbac.Resource) (e
 // Evaluate returns a list of permissions evaluated for the given user/roles combo
 //
 // This function is auto-generated
-func (svc *accessControl) Evaluate(ctx context.Context, userID uint64, roles []uint64, rr ...string) (ee rbac.EvaluatedSet, err error) {
+func (svc accessControl) Evaluate(ctx context.Context, userID uint64, roles []uint64, rr ...string) (ee rbac.EvaluatedSet, err error) {
 	// Reusing the grant permission since this is who the feature is for
 	if !svc.CanGrant(ctx) {
 		// @todo should be altered to check grant permissions PER resource
@@ -123,7 +121,7 @@ func (svc *accessControl) Evaluate(ctx context.Context, userID uint64, roles []u
 // Resources returns list of resources
 //
 // This function is auto-generated
-func (svc *accessControl) Resources() []rbac.Resource {
+func (svc accessControl) Resources() []rbac.Resource {
 	return []rbac.Resource{
 		rbac.NewResource(types.ChartRbacResource(0, 0)),
 		rbac.NewResource(types.ModuleRbacResource(0, 0)),
@@ -138,7 +136,7 @@ func (svc *accessControl) Resources() []rbac.Resource {
 // List returns list of operations on all resources
 //
 // This function is auto-generated
-func (svc *accessControl) List() (out []map[string]string) {
+func (svc accessControl) List() (out []map[string]string) {
 	def := []map[string]string{
 		{
 			"type": types.ChartResourceType,
@@ -370,17 +368,6 @@ func (svc accessControl) FindRulesByRoleID(ctx context.Context, roleID uint64) (
 	}
 
 	return svc.rbac.FindRulesByRoleID(roleID), nil
-}
-
-// CloneRulesByRoleID clone all rules of a Role S to a specific Role T
-//
-// This function is auto-generated
-func (svc accessControl) CloneRulesByRoleID(ctx context.Context, fromRoleID uint64, toRoleID ...uint64) error {
-	if !svc.CanGrant(ctx) {
-		return AccessControlErrNotAllowedToSetPermissions()
-	}
-
-	return svc.rbac.CloneRulesByRoleID(ctx, fromRoleID, toRoleID...)
 }
 
 // CanReadChart checks if current user can read

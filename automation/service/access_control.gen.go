@@ -26,7 +26,6 @@ type (
 		Evaluate(rbac.Session, string, rbac.Resource) rbac.Evaluated
 		Grant(context.Context, ...*rbac.Rule) error
 		FindRulesByRoleID(roleID uint64) (rr rbac.RuleSet)
-		CloneRulesByRoleID(ctx context.Context, fromRoleID uint64, toRoleID ...uint64) error
 	}
 
 	accessControl struct {
@@ -259,17 +258,6 @@ func (svc accessControl) FindRulesByRoleID(ctx context.Context, roleID uint64) (
 	}
 
 	return svc.rbac.FindRulesByRoleID(roleID), nil
-}
-
-// CloneRulesByRoleID clone all rules of a Role S to a specific Role T
-//
-// This function is auto-generated
-func (svc accessControl) CloneRulesByRoleID(ctx context.Context, fromRoleID uint64, toRoleID ...uint64) error {
-	if !svc.CanGrant(ctx) {
-		return AccessControlErrNotAllowedToSetPermissions()
-	}
-
-	return svc.rbac.CloneRulesByRoleID(ctx, fromRoleID, toRoleID...)
 }
 
 // CanReadWorkflow checks if current user can read workflow

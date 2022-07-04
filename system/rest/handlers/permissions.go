@@ -25,7 +25,6 @@ type (
 		Read(context.Context, *request.PermissionsRead) (interface{}, error)
 		Delete(context.Context, *request.PermissionsDelete) (interface{}, error)
 		Update(context.Context, *request.PermissionsUpdate) (interface{}, error)
-		Clone(context.Context, *request.PermissionsClone) (interface{}, error)
 	}
 
 	// HTTP API interface
@@ -36,7 +35,6 @@ type (
 		Read      func(http.ResponseWriter, *http.Request)
 		Delete    func(http.ResponseWriter, *http.Request)
 		Update    func(http.ResponseWriter, *http.Request)
-		Clone     func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -138,22 +136,6 @@ func NewPermissions(h PermissionsAPI) *Permissions {
 
 			api.Send(w, r, value)
 		},
-		Clone: func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			params := request.NewPermissionsClone()
-			if err := params.Fill(r); err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			value, err := h.Clone(r.Context(), params)
-			if err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			api.Send(w, r, value)
-		},
 	}
 }
 
@@ -166,6 +148,5 @@ func (h Permissions) MountRoutes(r chi.Router, middlewares ...func(http.Handler)
 		r.Get("/permissions/{roleID}/rules", h.Read)
 		r.Delete("/permissions/{roleID}/rules", h.Delete)
 		r.Patch("/permissions/{roleID}/rules", h.Update)
-		r.Post("/permissions/{roleID}/rules/clone", h.Clone)
 	})
 }

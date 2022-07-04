@@ -169,6 +169,11 @@ func (ctrl Role) Unarchive(ctx context.Context, r *request.RoleUnarchive) (inter
 	return api.OK(), ctrl.role.Unarchive(ctx, r.RoleID)
 }
 
+func (ctrl Role) CloneRules(ctx context.Context, r *request.RoleCloneRules) (interface{}, error) {
+	// Clone rules from role S to role T
+	return api.OK(), ctrl.role.CloneRules(ctx, r.RoleID, payload.ParseUint64s(r.CloneToRoleID)...)
+}
+
 // deprecated
 func (ctrl Role) Merge(ctx context.Context, r *request.RoleMerge) (interface{}, error) {
 	return api.OK(), nil

@@ -120,6 +120,10 @@ errors:
     message: "not allowed to unarchive this role"
     log: "failed to unarchive {{role.handle}}; insufficient permissions"
 
+  - error: notAllowedToCloneRules
+    message: "not allowed to clone rules of this role"
+    log: "failed to clone rules of {{role.handle}}; insufficient permissions"
+
   - error: notAllowedToManageMembers
     message: "not allowed to manage role members"
     log: "failed to manage {{role.handle}} members; insufficient permissions"
