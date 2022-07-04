@@ -1039,6 +1039,42 @@ func RoleErrNotAllowedToUnarchive(mm ...*roleActionProps) *errors.Error {
 	return e
 }
 
+// RoleErrNotAllowedToCloneRules returns "system:role.notAllowedToCloneRules" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func RoleErrNotAllowedToCloneRules(mm ...*roleActionProps) *errors.Error {
+	var p = &roleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to clone rules of this role", nil),
+
+		errors.Meta("type", "notAllowedToCloneRules"),
+		errors.Meta("resource", "system:role"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(roleLogMetaKey{}, "failed to clone rules of {{role.handle}}; insufficient permissions"),
+		errors.Meta(rolePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "role.errors.notAllowedToCloneRules"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // RoleErrNotAllowedToManageMembers returns "system:role.notAllowedToManageMembers" as *errors.Error
 //
 //

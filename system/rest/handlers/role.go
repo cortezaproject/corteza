@@ -33,6 +33,7 @@ type (
 		MemberAdd(context.Context, *request.RoleMemberAdd) (interface{}, error)
 		MemberRemove(context.Context, *request.RoleMemberRemove) (interface{}, error)
 		TriggerScript(context.Context, *request.RoleTriggerScript) (interface{}, error)
+		CloneRules(context.Context, *request.RoleCloneRules) (interface{}, error)
 	}
 
 	// HTTP API interface
@@ -51,6 +52,7 @@ type (
 		MemberAdd     func(http.ResponseWriter, *http.Request)
 		MemberRemove  func(http.ResponseWriter, *http.Request)
 		TriggerScript func(http.ResponseWriter, *http.Request)
+		CloneRules    func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -280,6 +282,22 @@ func NewRole(h RoleAPI) *Role {
 
 			api.Send(w, r, value)
 		},
+		CloneRules: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewRoleCloneRules()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.CloneRules(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -300,5 +318,6 @@ func (h Role) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.H
 		r.Post("/roles/{roleID}/member/{userID}", h.MemberAdd)
 		r.Delete("/roles/{roleID}/member/{userID}", h.MemberRemove)
 		r.Post("/roles/{roleID}/trigger", h.TriggerScript)
+		r.Post("/roles/{roleID}/rules/clone", h.CloneRules)
 	})
 }
