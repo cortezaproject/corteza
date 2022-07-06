@@ -29,6 +29,10 @@ chart: schema.#resource & {
 				path: ["metrics", {part: "metricID", var: true}, "label"]
 				customHandler: true
 			}
+			reportsDimensionStepLabel: {
+				path: ["dimensions", {part: "dimensionID", var: true}, "meta", "steps", {part: "stepID", var: true}, "label"]
+				customHandler: true
+			}
 		}
 	}
 }
