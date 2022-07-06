@@ -274,8 +274,9 @@ func (svc resourceTranslationsManager) pageExtended(ctx context.Context, res *ty
 
 func (svc resourceTranslationsManager) chartExtended(_ context.Context, res *types.Chart) (out locale.ResourceTranslationSet, err error) {
 	var (
-		yAxisLabelK  = types.LocaleKeyChartYAxisLabel
-		metricLabelK = types.LocaleKeyChartMetricsMetricIDLabel
+		yAxisLabelK   = types.LocaleKeyChartYAxisLabel
+		metricLabelK  = types.LocaleKeyChartMetricsMetricIDLabel
+		dimStepLabelK = types.LocaleKeyChartDimensionsDimensionIDMetaStepsStepIDLabel
 	)
 
 	for _, report := range res.Config.Reports {
@@ -288,24 +289,36 @@ func (svc resourceTranslationsManager) chartExtended(_ context.Context, res *typ
 			})
 		}
 
-		for _, metric := range report.Metrics {
-			if _, ok := metric["metricID"]; ok {
-				mID, is := metric["metricID"].(string)
-				if !is {
-					continue
-				}
-				mpl := strings.NewReplacer("{{metricID}}", mID)
+		report.WalkMetrics(func(metricID string, _ map[string]interface{}) {
+			mpl := strings.NewReplacer(
+				"{{metricID}}", metricID,
+			)
 
-				for _, tag := range svc.locale.Tags() {
-					out = append(out, &locale.ResourceTranslation{
-						Resource: res.ResourceTranslation(),
-						Lang:     tag.String(),
-						Key:      mpl.Replace(metricLabelK.Path),
-						Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), mpl.Replace(metricLabelK.Path)),
-					})
-				}
+			for _, tag := range svc.locale.Tags() {
+				out = append(out, &locale.ResourceTranslation{
+					Resource: res.ResourceTranslation(),
+					Lang:     tag.String(),
+					Key:      mpl.Replace(metricLabelK.Path),
+					Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), mpl.Replace(metricLabelK.Path)),
+				})
 			}
-		}
+		})
+
+		report.WalkDimensionSteps(func(dimensionID string, stepID string, _ map[string]interface{}) {
+			mpl := strings.NewReplacer(
+				"{{dimensionID}}", dimensionID,
+				"{{stepID}}", stepID,
+			)
+
+			for _, tag := range svc.locale.Tags() {
+				out = append(out, &locale.ResourceTranslation{
+					Resource: res.ResourceTranslation(),
+					Lang:     tag.String(),
+					Key:      mpl.Replace(dimStepLabelK.Path),
+					Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), mpl.Replace(dimStepLabelK.Path)),
+				})
+			}
+		})
 	}
 
 	return
