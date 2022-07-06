@@ -11,6 +11,7 @@ package request
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/go-chi/chi/v5"
@@ -66,6 +67,16 @@ type (
 		//
 		// Role ID
 		RoleID uint64 `json:",string"`
+
+		// Specific GET parameter
+		//
+		// Exclude (0, default), include (1) or return only (2) specific rules
+		Specific filter.State
+
+		// Resource GET parameter
+		//
+		// Show only rules for a specific resource
+		Resource []string
 	}
 
 	PermissionsDelete struct {
@@ -216,7 +227,9 @@ func NewPermissionsRead() *PermissionsRead {
 // Auditable returns all auditable/loggable parameters
 func (r PermissionsRead) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"roleID": r.RoleID,
+		"roleID":   r.RoleID,
+		"specific": r.Specific,
+		"resource": r.Resource,
 	}
 }
 
@@ -225,8 +238,41 @@ func (r PermissionsRead) GetRoleID() uint64 {
 	return r.RoleID
 }
 
+// Auditable returns all auditable/loggable parameters
+func (r PermissionsRead) GetSpecific() filter.State {
+	return r.Specific
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PermissionsRead) GetResource() []string {
+	return r.Resource
+}
+
 // Fill processes request and fills internal variables
 func (r *PermissionsRead) Fill(req *http.Request) (err error) {
+
+	{
+		// GET params
+		tmp := req.URL.Query()
+
+		if val, ok := tmp["specific"]; ok && len(val) > 0 {
+			r.Specific, err = payload.ParseFilterState(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["resource[]"]; ok {
+			r.Resource, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["resource"]; ok {
+			r.Resource, err = val, nil
+			if err != nil {
+				return err
+			}
+		}
+	}
 
 	{
 		var val string

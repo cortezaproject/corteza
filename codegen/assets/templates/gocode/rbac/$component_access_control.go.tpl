@@ -9,6 +9,7 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 {{- range .imports }}
@@ -202,6 +203,55 @@ func (svc accessControl) logGrants(ctx context.Context, rr []*rbac.Rule) {
 
 	    svc.actionlog.Record(ctx, g.ToAction())
 	}
+}
+
+// FindRules find all rules based on filters
+//
+// This function is auto-generated
+func (svc accessControl) FindRules(ctx context.Context, roleID uint64, specific filter.State, rr ...string) (out rbac.RuleSet, err error) {
+	if !svc.CanGrant(ctx) {
+		return nil, AccessControlErrNotAllowedToSetPermissions()
+	}
+
+	rules, err := svc.FindRulesByRoleID(ctx, roleID)
+	if err != nil {
+		return
+	}
+
+	// Filter based on resource
+	if len(rr) > 0 {
+		ruleMap := make(map[string]bool)
+		uniqRuleID := func(r *rbac.Rule) string {
+			return fmt.Sprintf("%s|%s|%d", r.Resource, r.Operation, r.RoleID)
+		}
+		for _, r := range rr {
+			if err = rbacResourceValidator(r); err != nil {
+				return nil, fmt.Errorf("can not use resource %q: %w", r, err)
+			}
+
+			res := rbac.NewResource(r)
+			for _, rule := range rules.FilterResource(res.RbacResource()) {
+				if _, ok := ruleMap[uniqRuleID(rule)]; !ok {
+					out = append(out, rule)
+					ruleMap[uniqRuleID(rule)] = true
+				}
+			}
+		}
+	} else {
+		out = append(out, rules...)
+	}
+
+	// Filter for Excluded, Include, or Exclusive specific rules
+	switch specific {
+	// Exclude all the specific rules
+	case filter.StateExcluded:
+		out = out.FilterRules(false)
+	// Returns only all the specific rules
+	case filter.StateExclusive:
+		out = out.FilterRules(true)
+	}
+
+	return
 }
 
 // FindRulesByRoleID find all rules for a specific role

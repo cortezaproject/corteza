@@ -220,6 +220,8 @@ func (d *restEndpointParamDef) Parser(arg string) string {
 		return fmt.Sprintf("payload.Parse%s(%s), nil", export(d.Type), arg)
 	case "string", "[]string":
 		return fmt.Sprintf("%s, nil", arg)
+	case "filter.State":
+		return fmt.Sprintf("payload.ParseFilterState(%s), nil", arg)
 	default:
 		return fmt.Sprintf("%s(%s), nil", d.Type, arg)
 	}

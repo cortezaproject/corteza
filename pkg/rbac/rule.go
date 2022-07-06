@@ -71,6 +71,18 @@ func (set RuleSet) FilterResource(res string) (out RuleSet) {
 	return
 }
 
+// FilterRules will filter the rules based on given parameter(specific),
+//		If params is true then it will return only the specific rules otherwise it will return non-specific rules
+func (set RuleSet) FilterRules(specific bool) (out RuleSet) {
+	for _, r := range set {
+		if specific == isSpecific(r.Resource) {
+			out = append(out, r)
+		}
+	}
+
+	return
+}
+
 // AllowRule helper func to create allow rule
 func AllowRule(id uint64, r, o string) *Rule {
 	return &Rule{id, r, o, Allow, false}
