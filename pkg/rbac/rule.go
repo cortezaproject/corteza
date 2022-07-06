@@ -62,10 +62,22 @@ func (set RuleSet) FilterAccess(a Access) (out RuleSet) {
 
 func (set RuleSet) FilterResource(res string) (out RuleSet) {
 	for _, r := range set {
-		if !matchResource(r.Resource, res) {
+		if !matchResource(res, r.Resource) {
 			continue
 		}
 		out = append(out, r)
+	}
+
+	return
+}
+
+// FilterRules will filter the rules based on given parameter(specific),
+//		If params is true then it will return only the specific rules otherwise it will return non-specific rules
+func (set RuleSet) FilterRules(specific bool) (out RuleSet) {
+	for _, r := range set {
+		if specific == isSpecific(r.Resource) {
+			out = append(out, r)
+		}
 	}
 
 	return

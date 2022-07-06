@@ -102,3 +102,29 @@ func level(r string) (score int) {
 
 	return
 }
+
+// isSpecific will return true if rule relates to a specific resource
+//
+// ns::cmp:res/xx/*    returns true
+// ns::cmp:res/xx/xx   returns true
+// ns::cmp:res/  	   returns false
+// ns::cmp:res/*/*     returns false
+func isSpecific(r string) (out bool) {
+	out = false
+	parts := strings.Split(r, pathSep)
+	// remove resource name part
+	parts = parts[1:]
+
+	// check parts for wildcard if it's not empty otherwise return false
+	for _, p := range parts {
+		if len(p) == 0 {
+			continue
+		}
+
+		if p != wildcard && !out {
+			out = true
+		}
+	}
+
+	return
+}
