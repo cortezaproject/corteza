@@ -2,16 +2,15 @@ package service
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/locale"
-	"reflect"
-	"strconv"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/label"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/store"
+	"reflect"
+	"strconv"
 )
 
 type (
@@ -171,14 +170,8 @@ func (svc chart) Create(ctx context.Context, new *types.Chart) (*types.Chart, er
 		new.UpdatedAt = nil
 		new.DeletedAt = nil
 
-		// Ensure chart report IDs
-		for i, report := range new.Config.Reports {
-			new.Config.Reports[i].ReportID = nextID()
-			// Ensure chart report metric IDs
-			for j := range report.Metrics {
-				new.Config.Reports[i].Metrics[j]["metricID"] = strconv.FormatUint(nextID(), 10)
-			}
-		}
+		// generate config element IDs
+		new.Config.GenerateIDs(nextID)
 
 		if err = store.CreateComposeChart(ctx, s, new); err != nil {
 			return err
@@ -268,6 +261,9 @@ func (svc chart) updater(ctx context.Context, namespaceID, chartID uint64, actio
 		if changes, err = fn(ctx, ns, c); err != nil {
 			return err
 		}
+
+		// generate config element IDs if missing
+		c.Config.GenerateIDs(nextID)
 
 		if changes&chartChanged > 0 {
 			if err = store.UpdateComposeChart(ctx, s, c); err != nil {
