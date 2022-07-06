@@ -4,6 +4,9 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
+	"github.com/spf13/cast"
+	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -72,21 +75,45 @@ func (c Chart) decodeTranslations(tt locale.ResourceTranslationIndex) {
 	var aux *locale.ResourceTranslation
 
 	for i, report := range c.Config.Reports {
+		if report == nil {
+			continue
+		}
+
+		// apply translated label for YAxis
 		if aux = tt.FindByKey(LocaleKeyChartYAxisLabel.Path); aux != nil {
+			if c.Config.Reports[i].YAxis == nil {
+				c.Config.Reports[i].YAxis = make(map[string]interface{})
+			}
+
 			c.Config.Reports[i].YAxis["label"] = aux.Msg
 		}
 
-		for j, metric := range report.Metrics {
-			if metricID, ok := metric["metricID"]; ok {
-				mpl := strings.NewReplacer(
-					"{{metricID}}", metricID.(string),
-				)
+		// apply translated labels for metrics
+		report.walkMetrics(func(metricID string, metric map[string]interface{}) {
+			mpl := strings.NewReplacer("{{metricID}}", metricID)
 
-				if aux = tt.FindByKey(mpl.Replace(LocaleKeyChartMetricsMetricIDLabel.Path)); aux != nil {
-					c.Config.Reports[i].Metrics[j]["label"] = aux.Msg
-				}
+			aux = tt.FindByKey(mpl.Replace(LocaleKeyChartMetricsMetricIDLabel.Path))
+			if aux == nil {
+				return
 			}
-		}
+
+			metric["label"] = aux.Msg
+		})
+
+		// apply translated labels for each dimension/step
+		report.walkDimensionSteps(func(dimensionID, stepID string, step map[string]interface{}) {
+			mpl := strings.NewReplacer(
+				"{{dimensionID}}", dimensionID,
+				"{{stepID}}", stepID,
+			)
+
+			aux = tt.FindByKey(mpl.Replace(LocaleKeyChartDimensionsDimensionIDMetaStepsStepIDLabel.Path))
+			if aux == nil {
+				return
+			}
+
+			step["label"] = aux.Msg
+		})
 	}
 }
 
@@ -94,29 +121,41 @@ func (c Chart) encodeTranslations() (out locale.ResourceTranslationSet) {
 	out = make(locale.ResourceTranslationSet, 0, 12)
 
 	for _, report := range c.Config.Reports {
+		// collect labels from chart config: YAxis
 		if _, ok := report.YAxis["label"]; ok {
 			out = append(out, &locale.ResourceTranslation{
 				Resource: c.ResourceTranslation(),
 				Key:      LocaleKeyChartYAxisLabel.Path,
-				Msg:      report.YAxis["label"].(string),
+				Msg:      cast.ToString(report.YAxis["label"]),
 			})
 		}
 
-		for _, metric := range report.Metrics {
-			if metricID, ok := metric["metricID"]; ok {
-				mpl := strings.NewReplacer(
-					"{{metricID}}", metricID.(string),
-				)
+		// collect labels from chart config: metrics
+		report.walkMetrics(func(metricID string, m map[string]interface{}) {
+			mpl := strings.NewReplacer(
+				"{{metricID}}", metricID,
+			)
 
-				if _, ok = metric["label"]; ok {
-					out = append(out, &locale.ResourceTranslation{
-						Resource: c.ResourceTranslation(),
-						Key:      mpl.Replace(LocaleKeyChartMetricsMetricIDLabel.Path),
-						Msg:      metric["label"].(string),
-					})
-				}
-			}
-		}
+			out = append(out, &locale.ResourceTranslation{
+				Resource: c.ResourceTranslation(),
+				Key:      mpl.Replace(LocaleKeyChartMetricsMetricIDLabel.Path),
+				Msg:      cast.ToString(m["label"]),
+			})
+		})
+
+		// collect labels from chart config: dimensions/steps
+		report.walkDimensionSteps(func(dimID, stepID string, step map[string]interface{}) {
+			mpl := strings.NewReplacer(
+				"{{dimensionID}}", dimID,
+				"{{stepID}}", stepID,
+			)
+
+			out = append(out, &locale.ResourceTranslation{
+				Resource: c.ResourceTranslation(),
+				Key:      mpl.Replace(LocaleKeyChartDimensionsDimensionIDMetaStepsStepIDLabel.Path),
+				Msg:      cast.ToString(step["label"]),
+			})
+		})
 	}
 
 	return
@@ -150,4 +189,76 @@ func (cc *ChartConfig) Scan(value interface{}) error {
 
 func (cc ChartConfig) Value() (driver.Value, error) {
 	return json.Marshal(cc)
+}
+
+func (r *ChartConfigReport) walkMetrics(fn func(string, map[string]interface{})) {
+	for m := range r.Metrics {
+		metricID, ok := r.Metrics[m]["metricID"]
+		if !ok {
+			continue
+		}
+
+		if len(r.Metrics[m]) == 0 {
+			// avoid problems with nil maps
+			r.Metrics[m] = make(map[string]interface{})
+		}
+
+		fn(metricID.(string), r.Metrics[m])
+	}
+}
+
+func (r *ChartConfigReport) walkDimensionSteps(fn func(string, string, map[string]interface{})) {
+	for d := range r.Dimensions {
+		dimensionID, ok := r.Dimensions[d]["dimensionID"]
+		if !ok {
+			continue
+		}
+
+		meta, is := r.Dimensions[d]["meta"].(map[string]interface{})
+		if !is {
+			continue
+		}
+
+		var steps []map[string]interface{}
+
+		switch aux := meta["steps"].(type) {
+		case []interface{}:
+			for _, i := range aux {
+				if kv, is := i.(map[string]interface{}); is {
+					steps = append(steps, kv)
+				}
+			}
+		case []map[string]interface{}:
+			steps = aux
+		}
+
+		for s := range steps {
+			stepID, has := steps[s]["stepID"]
+			if !has {
+				return
+			}
+
+			fn(dimensionID.(string), stepID.(string), steps[s])
+		}
+	}
+}
+
+// Sets new value into nested map/slice struct
+//
+// This is a utility function, should be moved
+// somewhere under pkg/.
+func set(d interface{}, value interface{}, path ...string) {
+	index := func(v reflect.Value, idx string) reflect.Value {
+		if i, err := strconv.Atoi(idx); err == nil {
+			return v.Index(i)
+		}
+		return v.FieldByName(idx)
+	}
+
+	v := reflect.ValueOf(d)
+	for _, s := range path {
+		v = index(v, s)
+	}
+
+	v.Set(reflect.ValueOf(value))
 }

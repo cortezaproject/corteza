@@ -274,8 +274,9 @@ func (svc resourceTranslationsManager) pageExtended(ctx context.Context, res *ty
 
 func (svc resourceTranslationsManager) chartExtended(_ context.Context, res *types.Chart) (out locale.ResourceTranslationSet, err error) {
 	var (
-		yAxisLabelK  = types.LocaleKeyChartYAxisLabel
-		metricLabelK = types.LocaleKeyChartMetricsMetricIDLabel
+		yAxisLabelK   = types.LocaleKeyChartYAxisLabel
+		metricLabelK  = types.LocaleKeyChartMetricsMetricIDLabel
+		dimStepLabelK = types.LocaleKeyChartDimensionsDimensionIDMetaStepsStepIDLabel
 	)
 
 	for _, report := range res.Config.Reports {
@@ -300,6 +301,23 @@ func (svc resourceTranslationsManager) chartExtended(_ context.Context, res *typ
 						Lang:     tag.String(),
 						Key:      mpl.Replace(metricLabelK.Path),
 						Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), mpl.Replace(metricLabelK.Path)),
+					})
+				}
+			}
+		}
+
+		for _, dim := range report.Dimensions {
+			if _, ok := dim["dimensionID"]; ok {
+				mpl := strings.NewReplacer(
+					"{{dimensionID}}", dim["dimensionID"].(string),
+				)
+
+				for _, tag := range svc.locale.Tags() {
+					out = append(out, &locale.ResourceTranslation{
+						Resource: res.ResourceTranslation(),
+						Lang:     tag.String(),
+						Key:      mpl.Replace(metricLabelK.Path),
+						Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), mpl.Replace(dimStepLabelK.Path)),
 					})
 				}
 			}
