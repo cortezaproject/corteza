@@ -2,6 +2,7 @@ package payload
 
 import (
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/spf13/cast"
 	"strconv"
@@ -99,4 +100,8 @@ func ParseInt64(s string) int64 {
 // parseUInt64 parses a string to uint64
 func ParseBool(s string) bool {
 	return cast.ToBool(s)
+}
+
+func ParseFilterState(s string) filter.State {
+	return filter.State(cast.ToUint(s))
 }

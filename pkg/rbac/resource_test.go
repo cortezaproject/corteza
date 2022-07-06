@@ -115,3 +115,27 @@ func TestLevel(t *testing.T) {
 		})
 	}
 }
+
+func TestIsSpecific(t *testing.T) {
+	var (
+		tcc = []struct {
+			r string
+			e bool
+		}{
+			{"corteza::test/a/b/c", true},
+			{"corteza::test/a/b/*", true},
+			{"corteza::test/a/*/*", true},
+			{"corteza::test/a/*/123", true},
+			{"corteza::test/*/*/*", false},
+			{"corteza::test/*/*", false},
+			{"corteza::test/*", false},
+			{"corteza::test/", false},
+		}
+	)
+
+	for _, tc := range tcc {
+		t.Run(tc.r, func(t *testing.T) {
+			require.Equal(t, tc.e, isSpecific(tc.r))
+		})
+	}
+}
