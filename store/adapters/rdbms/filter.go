@@ -314,13 +314,15 @@ func Order(sort filter.SortExprSet, sortables map[string]string) (oo []exp.Order
 func order(sort filter.SortExprSet, sortables map[string]string) (oo []exp.OrderedExpression, err error) {
 	var (
 		has bool
+		col string
 	)
 
 	for _, s := range sort {
 		if len(sortables) > 0 {
-			if s.Column, has = sortables[strings.ToLower(s.Column)]; !has {
+			if col, has = sortables[strings.ToLower(s.Column)]; !has {
 				return nil, fmt.Errorf("column %q is not sortable", s.Column)
 			}
+			s.Column = col
 		}
 
 		if s.Descending {
