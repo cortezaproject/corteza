@@ -824,9 +824,13 @@ func (Store) sortableApigwFilterFields() map[string]string {
 		"createdat":  "created_at",
 		"deleted_at": "deleted_at",
 		"deletedat":  "deleted_at",
+		"enabled":    "enabled",
 		"id":         "id",
+		"kind":       "kind",
+		"route":      "route",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
+		"weight":     "weight",
 	}
 }
 
@@ -855,6 +859,14 @@ func (s *Store) collectApigwFilterCursorValues(res *systemType.ApigwFilter, cc .
 				case "id":
 					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+				case "route":
+					cur.Set(c.Column, res.Route, c.Descending)
+				case "weight":
+					cur.Set(c.Column, res.Weight, c.Descending)
+				case "kind":
+					cur.Set(c.Column, res.Kind, c.Descending)
+				case "enabled":
+					cur.Set(c.Column, res.Enabled, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":
@@ -1350,7 +1362,11 @@ func (Store) sortableApigwRouteFields() map[string]string {
 		"createdat":  "created_at",
 		"deleted_at": "deleted_at",
 		"deletedat":  "deleted_at",
+		"enabled":    "enabled",
+		"endpoint":   "endpoint",
+		"group":      "group",
 		"id":         "id",
+		"method":     "method",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
 	}
@@ -1381,6 +1397,14 @@ func (s *Store) collectApigwRouteCursorValues(res *systemType.ApigwRoute, cc ...
 				case "id":
 					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+				case "endpoint":
+					cur.Set(c.Column, res.Endpoint, c.Descending)
+				case "method":
+					cur.Set(c.Column, res.Method, c.Descending)
+				case "enabled":
+					cur.Set(c.Column, res.Enabled, c.Descending)
+				case "group":
+					cur.Set(c.Column, res.Group, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":
@@ -1834,6 +1858,7 @@ func (Store) sortableApplicationFields() map[string]string {
 		"createdat":  "created_at",
 		"deleted_at": "deleted_at",
 		"deletedat":  "deleted_at",
+		"enabled":    "enabled",
 		"id":         "id",
 		"name":       "name",
 		"owner_id":   "owner_id",
@@ -1873,6 +1898,8 @@ func (s *Store) collectApplicationCursorValues(res *systemType.Application, cc .
 					cur.Set(c.Column, res.Name, c.Descending)
 				case "ownerID":
 					cur.Set(c.Column, res.OwnerID, c.Descending)
+				case "enabled":
+					cur.Set(c.Column, res.Enabled, c.Descending)
 				case "weight":
 					cur.Set(c.Column, res.Weight, c.Descending)
 				case "createdAt":
@@ -2327,6 +2354,10 @@ func (Store) sortableAttachmentFields() map[string]string {
 		"deleted_at": "deleted_at",
 		"deletedat":  "deleted_at",
 		"id":         "id",
+		"kind":       "kind",
+		"name":       "name",
+		"owner_id":   "owner_id",
+		"ownerid":    "owner_id",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
 	}
@@ -2357,6 +2388,12 @@ func (s *Store) collectAttachmentCursorValues(res *systemType.Attachment, cc ...
 				case "id":
 					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+				case "ownerID":
+					cur.Set(c.Column, res.OwnerID, c.Descending)
+				case "kind":
+					cur.Set(c.Column, res.Kind, c.Descending)
+				case "name":
+					cur.Set(c.Column, res.Name, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":
@@ -2853,10 +2890,12 @@ func (Store) sortableAuthClientFields() map[string]string {
 		"createdat":  "created_at",
 		"deleted_at": "deleted_at",
 		"deletedat":  "deleted_at",
+		"enabled":    "enabled",
 		"expires_at": "expires_at",
 		"expiresat":  "expires_at",
 		"handle":     "handle",
 		"id":         "id",
+		"trusted":    "trusted",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
 	}
@@ -2890,6 +2929,10 @@ func (s *Store) collectAuthClientCursorValues(res *systemType.AuthClient, cc ...
 				case "handle":
 					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+				case "enabled":
+					cur.Set(c.Column, res.Enabled, c.Descending)
+				case "trusted":
+					cur.Set(c.Column, res.Trusted, c.Descending)
 				case "expiresAt":
 					cur.Set(c.Column, res.ExpiresAt, c.Descending)
 				case "createdAt":
@@ -4348,15 +4391,22 @@ func (s *Store) LookupAutomationSessionByID(ctx context.Context, id uint64) (_ *
 // This function is auto-generated
 func (Store) sortableAutomationSessionFields() map[string]string {
 	return map[string]string{
-		"completed_at": "completed_at",
-		"completedat":  "completed_at",
-		"created_at":   "created_at",
-		"createdat":    "created_at",
-		"id":           "id",
-		"purge_at":     "purge_at",
-		"purgeat":      "purge_at",
-		"suspended_at": "suspended_at",
-		"suspendedat":  "suspended_at",
+		"completed_at":  "completed_at",
+		"completedat":   "completed_at",
+		"created_at":    "created_at",
+		"createdat":     "created_at",
+		"event_type":    "event_type",
+		"eventtype":     "event_type",
+		"id":            "id",
+		"purge_at":      "purge_at",
+		"purgeat":       "purge_at",
+		"resource_type": "resource_type",
+		"resourcetype":  "resource_type",
+		"status":        "status",
+		"suspended_at":  "suspended_at",
+		"suspendedat":   "suspended_at",
+		"workflow_id":   "workflow_id",
+		"workflowid":    "workflow_id",
 	}
 }
 
@@ -4385,6 +4435,14 @@ func (s *Store) collectAutomationSessionCursorValues(res *automationType.Session
 				case "id":
 					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+				case "workflowID":
+					cur.Set(c.Column, res.WorkflowID, c.Descending)
+				case "eventType":
+					cur.Set(c.Column, res.EventType, c.Descending)
+				case "resourceType":
+					cur.Set(c.Column, res.ResourceType, c.Descending)
+				case "status":
+					cur.Set(c.Column, res.Status, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "purgeAt":
@@ -4836,13 +4894,20 @@ func (s *Store) LookupAutomationTriggerByID(ctx context.Context, id uint64) (_ *
 // This function is auto-generated
 func (Store) sortableAutomationTriggerFields() map[string]string {
 	return map[string]string{
-		"created_at": "created_at",
-		"createdat":  "created_at",
-		"deleted_at": "deleted_at",
-		"deletedat":  "deleted_at",
-		"id":         "id",
-		"updated_at": "updated_at",
-		"updatedat":  "updated_at",
+		"created_at":    "created_at",
+		"createdat":     "created_at",
+		"deleted_at":    "deleted_at",
+		"deletedat":     "deleted_at",
+		"enabled":       "enabled",
+		"event_type":    "event_type",
+		"eventtype":     "event_type",
+		"id":            "id",
+		"resource_type": "resource_type",
+		"resourcetype":  "resource_type",
+		"updated_at":    "updated_at",
+		"updatedat":     "updated_at",
+		"workflow_id":   "workflow_id",
+		"workflowid":    "workflow_id",
 	}
 }
 
@@ -4871,6 +4936,14 @@ func (s *Store) collectAutomationTriggerCursorValues(res *automationType.Trigger
 				case "id":
 					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+				case "workflowID":
+					cur.Set(c.Column, res.WorkflowID, c.Descending)
+				case "enabled":
+					cur.Set(c.Column, res.Enabled, c.Descending)
+				case "resourceType":
+					cur.Set(c.Column, res.ResourceType, c.Descending)
+				case "eventType":
+					cur.Set(c.Column, res.EventType, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":
@@ -5367,6 +5440,7 @@ func (Store) sortableAutomationWorkflowFields() map[string]string {
 		"createdat":  "created_at",
 		"deleted_at": "deleted_at",
 		"deletedat":  "deleted_at",
+		"enabled":    "enabled",
 		"handle":     "handle",
 		"id":         "id",
 		"updated_at": "updated_at",
@@ -5402,6 +5476,8 @@ func (s *Store) collectAutomationWorkflowCursorValues(res *automationType.Workfl
 				case "handle":
 					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+				case "enabled":
+					cur.Set(c.Column, res.Enabled, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":
@@ -5876,13 +5952,19 @@ func (s *Store) LookupComposeAttachmentByID(ctx context.Context, id uint64) (_ *
 // This function is auto-generated
 func (Store) sortableComposeAttachmentFields() map[string]string {
 	return map[string]string{
-		"created_at": "created_at",
-		"createdat":  "created_at",
-		"deleted_at": "deleted_at",
-		"deletedat":  "deleted_at",
-		"id":         "id",
-		"updated_at": "updated_at",
-		"updatedat":  "updated_at",
+		"created_at":   "created_at",
+		"createdat":    "created_at",
+		"deleted_at":   "deleted_at",
+		"deletedat":    "deleted_at",
+		"id":           "id",
+		"kind":         "kind",
+		"name":         "name",
+		"namespace_id": "namespace_id",
+		"namespaceid":  "namespace_id",
+		"owner_id":     "owner_id",
+		"ownerid":      "owner_id",
+		"updated_at":   "updated_at",
+		"updatedat":    "updated_at",
 	}
 }
 
@@ -5911,6 +5993,14 @@ func (s *Store) collectComposeAttachmentCursorValues(res *composeType.Attachment
 				case "id":
 					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+				case "ownerID":
+					cur.Set(c.Column, res.OwnerID, c.Descending)
+				case "namespaceID":
+					cur.Set(c.Column, res.NamespaceID, c.Descending)
+				case "kind":
+					cur.Set(c.Column, res.Kind, c.Descending)
+				case "name":
+					cur.Set(c.Column, res.Name, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":
@@ -6402,15 +6492,17 @@ func (s *Store) LookupComposeChartByNamespaceIDHandle(ctx context.Context, names
 // This function is auto-generated
 func (Store) sortableComposeChartFields() map[string]string {
 	return map[string]string{
-		"created_at": "created_at",
-		"createdat":  "created_at",
-		"deleted_at": "deleted_at",
-		"deletedat":  "deleted_at",
-		"handle":     "handle",
-		"id":         "id",
-		"name":       "name",
-		"updated_at": "updated_at",
-		"updatedat":  "updated_at",
+		"created_at":   "created_at",
+		"createdat":    "created_at",
+		"deleted_at":   "deleted_at",
+		"deletedat":    "deleted_at",
+		"handle":       "handle",
+		"id":           "id",
+		"name":         "name",
+		"namespace_id": "namespace_id",
+		"namespaceid":  "namespace_id",
+		"updated_at":   "updated_at",
+		"updatedat":    "updated_at",
 	}
 }
 
@@ -6444,6 +6536,8 @@ func (s *Store) collectComposeChartCursorValues(res *composeType.Chart, cc ...*f
 					hasUnique = true
 				case "name":
 					cur.Set(c.Column, res.Name, c.Descending)
+				case "namespaceID":
+					cur.Set(c.Column, res.NamespaceID, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":
@@ -7306,9 +7400,13 @@ func (s *Store) LookupComposeModuleFieldByModuleIDName(ctx context.Context, modu
 // This function is auto-generated
 func (Store) sortableComposeModuleFieldFields() map[string]string {
 	return map[string]string{
-		"id":    "id",
-		"label": "label",
-		"name":  "name",
+		"id":        "id",
+		"kind":      "kind",
+		"label":     "label",
+		"module_id": "module_id",
+		"moduleid":  "module_id",
+		"name":      "name",
+		"place":     "place",
 	}
 }
 
@@ -7337,6 +7435,12 @@ func (s *Store) collectComposeModuleFieldCursorValues(res *composeType.ModuleFie
 				case "id":
 					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+				case "moduleID":
+					cur.Set(c.Column, res.ModuleID, c.Descending)
+				case "place":
+					cur.Set(c.Column, res.Place, c.Descending)
+				case "kind":
+					cur.Set(c.Column, res.Kind, c.Descending)
 				case "name":
 					cur.Set(c.Column, res.Name, c.Descending)
 				case "label":
@@ -7862,6 +7966,7 @@ func (Store) sortableComposeNamespaceFields() map[string]string {
 		"deleted_at": "deleted_at",
 		"deletedat":  "deleted_at",
 		"id":         "id",
+		"slug":       "slug",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
 	}
@@ -7892,6 +7997,8 @@ func (s *Store) collectComposeNamespaceCursorValues(res *composeType.Namespace, 
 				case "id":
 					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+				case "slug":
+					cur.Set(c.Column, res.Slug, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":
@@ -8452,16 +8559,22 @@ func (s *Store) LookupComposePageByID(ctx context.Context, id uint64) (_ *compos
 // This function is auto-generated
 func (Store) sortableComposePageFields() map[string]string {
 	return map[string]string{
-		"created_at": "created_at",
-		"createdat":  "created_at",
-		"deleted_at": "deleted_at",
-		"deletedat":  "deleted_at",
-		"handle":     "handle",
-		"id":         "id",
-		"title":      "title",
-		"updated_at": "updated_at",
-		"updatedat":  "updated_at",
-		"weight":     "weight",
+		"created_at":   "created_at",
+		"createdat":    "created_at",
+		"deleted_at":   "deleted_at",
+		"deletedat":    "deleted_at",
+		"handle":       "handle",
+		"id":           "id",
+		"module_id":    "module_id",
+		"moduleid":     "module_id",
+		"namespace_id": "namespace_id",
+		"namespaceid":  "namespace_id",
+		"self_id":      "self_id",
+		"selfid":       "self_id",
+		"title":        "title",
+		"updated_at":   "updated_at",
+		"updatedat":    "updated_at",
+		"weight":       "weight",
 	}
 }
 
@@ -8490,6 +8603,12 @@ func (s *Store) collectComposePageCursorValues(res *composeType.Page, cc ...*fil
 				case "id":
 					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+				case "selfID":
+					cur.Set(c.Column, res.SelfID, c.Descending)
+				case "moduleID":
+					cur.Set(c.Column, res.ModuleID, c.Descending)
+				case "namespaceID":
+					cur.Set(c.Column, res.NamespaceID, c.Descending)
 				case "handle":
 					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
@@ -9111,6 +9230,8 @@ func (Store) sortableDalConnectionFields() map[string]string {
 		"deletedat":  "deleted_at",
 		"handle":     "handle",
 		"id":         "id",
+		"name":       "name",
+		"type":       "type",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
 	}
@@ -9141,9 +9262,13 @@ func (s *Store) collectDalConnectionCursorValues(res *systemType.DalConnection, 
 				case "id":
 					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+				case "name":
+					cur.Set(c.Column, res.Name, c.Descending)
 				case "handle":
 					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+				case "type":
+					cur.Set(c.Column, res.Type, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":
@@ -9444,6 +9569,7 @@ func (Store) sortableDalSensitivityLevelFields() map[string]string {
 		"deletedat":  "deleted_at",
 		"handle":     "handle",
 		"id":         "id",
+		"level":      "level",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
 	}
@@ -9477,6 +9603,8 @@ func (s *Store) collectDalSensitivityLevelCursorValues(res *systemType.DalSensit
 				case "handle":
 					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+				case "level":
+					cur.Set(c.Column, res.Level, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":
@@ -10872,6 +11000,9 @@ func (Store) sortableFederationExposedModuleFields() map[string]string {
 		"deletedat":  "deleted_at",
 		"handle":     "handle",
 		"id":         "id",
+		"name":       "name",
+		"node_id":    "node_id",
+		"nodeid":     "node_id",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
 	}
@@ -10905,6 +11036,10 @@ func (s *Store) collectFederationExposedModuleCursorValues(res *federationType.E
 				case "handle":
 					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+				case "name":
+					cur.Set(c.Column, res.Name, c.Descending)
+				case "nodeID":
+					cur.Set(c.Column, res.NodeID, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":
@@ -11003,8 +11138,10 @@ func (s *Store) DeleteFederationModuleMapping(ctx context.Context, rr ...*federa
 // DeleteFederationModuleMappingByID deletes single entry from federationModuleMapping collection
 //
 // This function is auto-generated
-func (s *Store) DeleteFederationModuleMappingBy(ctx context.Context) error {
-	return s.Exec(ctx, federationModuleMappingDeleteQuery(s.Dialect, goqu.Ex{}))
+func (s *Store) DeleteFederationModuleMappingByNodeID(ctx context.Context, nodeID uint64) error {
+	return s.Exec(ctx, federationModuleMappingDeleteQuery(s.Dialect, goqu.Ex{
+		"node_id": nodeID,
+	}))
 }
 
 // TruncateFederationModuleMappings Deletes all rows from the federationModuleMapping collection
@@ -11395,7 +11532,16 @@ func (s *Store) LookupFederationModuleMappingByFederationModuleID(ctx context.Co
 //
 // This function is auto-generated
 func (Store) sortableFederationModuleMappingFields() map[string]string {
-	return map[string]string{}
+	return map[string]string{
+		"compose_module_id":    "compose_module_id",
+		"compose_namespace_id": "compose_namespace_id",
+		"composemoduleid":      "compose_module_id",
+		"composenamespaceid":   "compose_namespace_id",
+		"federation_module_id": "federation_module_id",
+		"federationmoduleid":   "federation_module_id",
+		"node_id":              "node_id",
+		"nodeid":               "node_id",
+	}
 }
 
 // collectFederationModuleMappingCursorValues collects values from the given resource that and sets them to the cursor
@@ -11410,7 +11556,37 @@ func (Store) sortableFederationModuleMappingFields() map[string]string {
 //
 // This function is auto-generated
 func (s *Store) collectFederationModuleMappingCursorValues(res *federationType.ModuleMapping, cc ...*filter.SortExpr) *filter.PagingCursor {
-	return nil
+	var (
+		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
+
+		hasUnique bool
+
+		pkNodeID bool
+
+		collect = func(cc ...*filter.SortExpr) {
+			for _, c := range cc {
+				switch c.Column {
+				case "nodeID":
+					cur.Set(c.Column, res.NodeID, c.Descending)
+					pkNodeID = true
+				case "federationModuleID":
+					cur.Set(c.Column, res.FederationModuleID, c.Descending)
+				case "composeModuleID":
+					cur.Set(c.Column, res.ComposeModuleID, c.Descending)
+				case "composeNamespaceID":
+					cur.Set(c.Column, res.ComposeNamespaceID, c.Descending)
+				}
+			}
+		}
+	)
+
+	collect(cc...)
+	if !hasUnique || !pkNodeID {
+		collect(&filter.SortExpr{Column: "nodeID", Descending: false})
+	}
+
+	return cur
+
 }
 
 // checkFederationModuleMappingConstraints performs lookups (on valid) resource to check if any of the values on unique fields
@@ -11741,13 +11917,20 @@ func (s *Store) LookupFederationNodeBySharedNodeID(ctx context.Context, sharedNo
 // This function is auto-generated
 func (Store) sortableFederationNodeFields() map[string]string {
 	return map[string]string{
-		"created_at": "created_at",
-		"createdat":  "created_at",
-		"deleted_at": "deleted_at",
-		"deletedat":  "deleted_at",
-		"id":         "id",
-		"updated_at": "updated_at",
-		"updatedat":  "updated_at",
+		"base_url":       "base_url",
+		"baseurl":        "base_url",
+		"contact":        "contact",
+		"created_at":     "created_at",
+		"createdat":      "created_at",
+		"deleted_at":     "deleted_at",
+		"deletedat":      "deleted_at",
+		"id":             "id",
+		"name":           "name",
+		"shared_node_id": "shared_node_id",
+		"sharednodeid":   "shared_node_id",
+		"status":         "status",
+		"updated_at":     "updated_at",
+		"updatedat":      "updated_at",
 	}
 }
 
@@ -11776,6 +11959,16 @@ func (s *Store) collectFederationNodeCursorValues(res *federationType.Node, cc .
 				case "id":
 					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+				case "name":
+					cur.Set(c.Column, res.Name, c.Descending)
+				case "sharedNodeID":
+					cur.Set(c.Column, res.SharedNodeID, c.Descending)
+				case "baseURL":
+					cur.Set(c.Column, res.BaseURL, c.Descending)
+				case "status":
+					cur.Set(c.Column, res.Status, c.Descending)
+				case "contact":
+					cur.Set(c.Column, res.Contact, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":
@@ -12270,8 +12463,14 @@ func (s *Store) LookupFederationNodeSyncByNodeIDModuleIDSyncTypeSyncStatus(ctx c
 // This function is auto-generated
 func (Store) sortableFederationNodeSyncFields() map[string]string {
 	return map[string]string{
+		"module_id":      "module_id",
+		"moduleid":       "module_id",
 		"node_id":        "node_id",
 		"nodeid":         "node_id",
+		"sync_status":    "sync_status",
+		"sync_type":      "sync_type",
+		"syncstatus":     "sync_status",
+		"synctype":       "sync_type",
 		"time_of_action": "time_of_action",
 		"timeofaction":   "time_of_action",
 	}
@@ -12302,6 +12501,12 @@ func (s *Store) collectFederationNodeSyncCursorValues(res *federationType.NodeSy
 				case "nodeID":
 					cur.Set(c.Column, res.NodeID, c.Descending)
 					pkNodeID = true
+				case "moduleID":
+					cur.Set(c.Column, res.ModuleID, c.Descending)
+				case "syncType":
+					cur.Set(c.Column, res.SyncType, c.Descending)
+				case "syncStatus":
+					cur.Set(c.Column, res.SyncStatus, c.Descending)
 				case "timeOfAction":
 					cur.Set(c.Column, res.TimeOfAction, c.Descending)
 				}
@@ -12747,14 +12952,19 @@ func (s *Store) LookupFederationSharedModuleByID(ctx context.Context, id uint64)
 // This function is auto-generated
 func (Store) sortableFederationSharedModuleFields() map[string]string {
 	return map[string]string{
-		"created_at": "created_at",
-		"createdat":  "created_at",
-		"deleted_at": "deleted_at",
-		"deletedat":  "deleted_at",
-		"handle":     "handle",
-		"id":         "id",
-		"updated_at": "updated_at",
-		"updatedat":  "updated_at",
+		"created_at":                    "created_at",
+		"createdat":                     "created_at",
+		"deleted_at":                    "deleted_at",
+		"deletedat":                     "deleted_at",
+		"external_federation_module_id": "external_federation_module_id",
+		"externalfederationmoduleid":    "external_federation_module_id",
+		"handle":                        "handle",
+		"id":                            "id",
+		"name":                          "name",
+		"node_id":                       "node_id",
+		"nodeid":                        "node_id",
+		"updated_at":                    "updated_at",
+		"updatedat":                     "updated_at",
 	}
 }
 
@@ -12786,6 +12996,12 @@ func (s *Store) collectFederationSharedModuleCursorValues(res *federationType.Sh
 				case "handle":
 					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+				case "nodeID":
+					cur.Set(c.Column, res.NodeID, c.Descending)
+				case "name":
+					cur.Set(c.Column, res.Name, c.Descending)
+				case "externalFederationModuleID":
+					cur.Set(c.Column, res.ExternalFederationModuleID, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":
@@ -13878,11 +14094,13 @@ func (s *Store) LookupQueueByQueue(ctx context.Context, queue string) (_ *system
 // This function is auto-generated
 func (Store) sortableQueueFields() map[string]string {
 	return map[string]string{
+		"consumer":   "consumer",
 		"created_at": "created_at",
 		"createdat":  "created_at",
 		"deleted_at": "deleted_at",
 		"deletedat":  "deleted_at",
 		"id":         "id",
+		"queue":      "queue",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
 	}
@@ -13913,6 +14131,10 @@ func (s *Store) collectQueueCursorValues(res *systemType.Queue, cc ...*filter.So
 				case "id":
 					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+				case "consumer":
+					cur.Set(c.Column, res.Consumer, c.Descending)
+				case "queue":
+					cur.Set(c.Column, res.Queue, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":
@@ -14311,6 +14533,7 @@ func (Store) sortableQueueMessageFields() map[string]string {
 		"created":   "created",
 		"id":        "id",
 		"processed": "processed",
+		"queue":     "queue",
 	}
 }
 
@@ -14339,6 +14562,8 @@ func (s *Store) collectQueueMessageCursorValues(res *systemType.QueueMessage, cc
 				case "id":
 					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+				case "queue":
+					cur.Set(c.Column, res.Queue, c.Descending)
 				case "processed":
 					cur.Set(c.Column, res.Processed, c.Descending)
 				case "created":
@@ -15050,6 +15275,7 @@ func (Store) sortableReminderFields() map[string]string {
 		"id":           "id",
 		"remind_at":    "remind_at",
 		"remindat":     "remind_at",
+		"resource":     "resource",
 		"updated_at":   "updated_at",
 		"updatedat":    "updated_at",
 	}
@@ -15080,6 +15306,8 @@ func (s *Store) collectReminderCursorValues(res *systemType.Reminder, cc ...*fil
 				case "id":
 					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+				case "resource":
+					cur.Set(c.Column, res.Resource, c.Descending)
 				case "assignedAt":
 					cur.Set(c.Column, res.AssignedAt, c.Descending)
 				case "dismissedAt":
@@ -16897,6 +17125,7 @@ func (Store) sortableRoleFields() map[string]string {
 		"deletedat":   "deleted_at",
 		"handle":      "handle",
 		"id":          "id",
+		"name":        "name",
 		"updated_at":  "updated_at",
 		"updatedat":   "updated_at",
 	}
@@ -16927,6 +17156,8 @@ func (s *Store) collectRoleCursorValues(res *systemType.Role, cc ...*filter.Sort
 				case "id":
 					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+				case "name":
+					cur.Set(c.Column, res.Name, c.Descending)
 				case "handle":
 					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
@@ -18022,8 +18253,11 @@ func (Store) sortableTemplateFields() map[string]string {
 		"deletedat":    "deleted_at",
 		"handle":       "handle",
 		"id":           "id",
+		"language":     "language",
 		"last_used_at": "last_used_at",
 		"lastusedat":   "last_used_at",
+		"template":     "template",
+		"type":         "type",
 		"updated_at":   "updated_at",
 		"updatedat":    "updated_at",
 	}
@@ -18057,6 +18291,12 @@ func (s *Store) collectTemplateCursorValues(res *systemType.Template, cc ...*fil
 				case "handle":
 					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+				case "language":
+					cur.Set(c.Column, res.Language, c.Descending)
+				case "type":
+					cur.Set(c.Column, res.Type, c.Descending)
+				case "template":
+					cur.Set(c.Column, res.Template, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":
@@ -18671,6 +18911,8 @@ func (Store) sortableUserFields() map[string]string {
 		"email":        "email",
 		"handle":       "handle",
 		"id":           "id",
+		"kind":         "kind",
+		"name":         "name",
 		"suspended_at": "suspended_at",
 		"suspendedat":  "suspended_at",
 		"updated_at":   "updated_at",
@@ -18713,6 +18955,10 @@ func (s *Store) collectUserCursorValues(res *systemType.User, cc ...*filter.Sort
 				case "username":
 					cur.Set(c.Column, res.Username, c.Descending)
 					hasUnique = true
+				case "name":
+					cur.Set(c.Column, res.Name, c.Descending)
+				case "kind":
+					cur.Set(c.Column, res.Kind, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":

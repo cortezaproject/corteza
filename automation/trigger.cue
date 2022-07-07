@@ -7,11 +7,11 @@ import (
 trigger: schema.#Resource & {
 	struct: {
 		id:          schema.IdField
-		workflow_id: { ident: "workflowID", goType: "uint64", storeIdent: "rel_workflow" }
+		workflow_id: { sortable: true, ident: "workflowID", goType: "uint64", storeIdent: "rel_workflow" }
 		step_id: { ident: "stepID", goType: "uint64", storeIdent: "rel_step" }
-		enabled: { goType: "bool" }
-		resource_type: { goType: "string" }
-		event_type: { goType: "string" }
+		enabled: { sortable: true, goType: "bool" }
+		resource_type: { sortable: true, goType: "string" }
+		event_type: { sortable: true, goType: "string" }
 		meta: { goType: "*types.TriggerMeta" }
 		constraints: { goType: "types.TriggerConstraintSet" }
 		input: { goType: "*expr.Vars" }

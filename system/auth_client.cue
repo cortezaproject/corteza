@@ -13,8 +13,8 @@ auth_client: schema.#Resource & {
 		scope: {goType: "string"}
 		valid_grant: {goType: "string"}
 		redirect_uri: {goType: "string", ident: "redirectURI"}
-		trusted: {goType: "bool"}
-		enabled: {goType: "bool"}
+		enabled: {sortable: true, goType: "bool"}
+		trusted: {sortable: true, goType: "bool"}
 		valid_from: { goType: "*time.Time" }
 		expires_at: schema.SortableTimestampNilField
 		security: {goType: "*types.AuthClientSecurity"}

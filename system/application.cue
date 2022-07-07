@@ -9,7 +9,7 @@ application: schema.#Resource & {
 		id: schema.IdField
 		name: {sortable: true}
 		owner_id: { ident: "ownerID", goType: "uint64", storeIdent: "rel_owner", sortable: true }
-		enabled: {goType: "bool"}
+		enabled: {sortable: true, goType: "bool"}
 		weight: {goType: "int", sortable: true}
 		unify: {goType: "*types.ApplicationUnify"}
 		created_at: schema.SortableTimestampField

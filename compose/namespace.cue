@@ -7,7 +7,7 @@ import (
 namespace: schema.#Resource & {
 	struct: {
 		id: schema.IdField
-		slug: { goType: "string" }
+		slug: { sortable: true, goType: "string" }
 		enabled: { goType: "bool" }
 		meta: { goType: "types.NamespaceMeta" }
 		name: {}

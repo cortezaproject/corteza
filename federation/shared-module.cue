@@ -16,9 +16,9 @@ sharedModule: schema.#Resource & {
 	struct: {
 		id:          schema.IdField
 		handle:      schema.HandleField
-		node_id: { ident: "nodeID", goType: "uint64", storeIdent: "rel_node" }
-		name: {}
-		external_federation_module_id: { ident: "externalFederationModuleID", goType: "uint64", storeIdent: "xref_module",  }
+		node_id: { sortable: true, ident: "nodeID", goType: "uint64", storeIdent: "rel_node" }
+		name: {sortable: true}
+		external_federation_module_id: { sortable: true, ident: "externalFederationModuleID", goType: "uint64", storeIdent: "xref_module",  }
 		fields: { goType: "types.ModuleFieldSet" }
 
 		created_at: schema.SortableTimestampField

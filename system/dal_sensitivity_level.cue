@@ -8,7 +8,7 @@ dal_sensitivity_level: schema.#Resource & {
 	struct: {
 		id:     schema.IdField
 		handle: schema.HandleField
-		level: { goType: "int" }
+		level: { sortable: true, goType: "int" }
 		meta: {goType: "types.DalSensitivityLevelMeta"}
 
 		created_at: schema.SortableTimestampField

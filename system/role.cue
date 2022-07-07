@@ -7,7 +7,7 @@ import (
 role: schema.#Resource & {
 	struct: {
 		id: schema.IdField
-		name: {}
+		name: {sortable: true}
 		handle: schema.HandleField
 		meta: {goType: "*types.RoleMeta"}
 

@@ -14,7 +14,7 @@ chart: schema.#Resource & {
 		handle: schema.HandleField
 		name: {sortable: true}
 		config: { goType: "types.ChartConfig" }
-		namespace_id: { ident: "namespaceID", goType: "uint64", storeIdent: "rel_namespace" }
+		namespace_id: { sortable: true, ident: "namespaceID", goType: "uint64", storeIdent: "rel_namespace" }
 
 		created_at: schema.SortableTimestampField
 		updated_at: schema.SortableTimestampNilField

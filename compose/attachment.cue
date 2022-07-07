@@ -11,12 +11,12 @@ attachment: schema.#Resource & {
 
 	struct: {
 		id:       schema.IdField
-		owner_id: { goType: "uint64", storeIdent: "rel_owner", ident: "ownerID" }
-		namespace_id: { goType: "uint64", storeIdent: "rel_namespace", ident: "namespaceID" }
-		kind: {}
+		owner_id: { sortable: true, goType: "uint64", storeIdent: "rel_owner", ident: "ownerID" }
+		namespace_id: { sortable: true, goType: "uint64", storeIdent: "rel_namespace", ident: "namespaceID" }
+		kind: {sortable: true}
 		url:  {}
 		preview_url: {}
-		name:        {}
+		name:        {sortable: true}
 		meta:        { goType: "types.AttachmentMeta" }
 		created_at: schema.SortableTimestampField
 		updated_at: schema.SortableTimestampNilField
