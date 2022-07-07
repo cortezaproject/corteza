@@ -12,7 +12,7 @@ queue_message: schema.#Resource & {
 
 	struct: {
 		id:        schema.IdField
-		queue:     {}
+		queue:     { sortable: true }
 		payload:   { goType: "[]byte" }
 		processed: schema.SortableTimestampNilField
 		created:   schema.SortableTimestampNilField

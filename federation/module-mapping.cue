@@ -14,10 +14,10 @@ moduleMapping: schema.#Resource & {
 	}
 
 	struct: {
-		node_id: { ident: "nodeID", goType: "uint64" }
-		federation_module_id: { ident: "federationModuleID", goType: "uint64" }
-		compose_module_id: { ident: "composeModuleID", goType: "uint64" }
-		compose_namespace_id: { ident: "composeNamespaceID", goType: "uint64" }
+		node_id: { ident: "nodeID", goType: "uint64", primaryKey: true, unique: true }
+		federation_module_id: { sortable: true, ident: "federationModuleID", goType: "uint64" }
+		compose_module_id: { sortable: true, ident: "composeModuleID", goType: "uint64" }
+		compose_namespace_id: { sortable: true, ident: "composeNamespaceID", goType: "uint64" }
 		field_mapping: { goType: "types.ModuleFieldMappingSet" }
 	}
 

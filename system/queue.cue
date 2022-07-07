@@ -11,8 +11,8 @@ queue: schema.#Resource & {
 
 	struct: {
 		id: schema.IdField
-		consumer: {goType: "string"}
-		queue: {goType: "string"}
+		consumer: {sortable: true, goType: "string"}
+		queue: {sortable: true, goType: "string"}
 		meta: {goType: "types.QueueMeta"}
 
 		created_at: schema.SortableTimestampField

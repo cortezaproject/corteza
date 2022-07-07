@@ -7,11 +7,11 @@ import (
 dal_connection: schema.#Resource & {
 	struct: {
 		id:     schema.IdField
-		name: { goType: "string" }
+		name: { sortable: true, goType: "string" }
 		handle: schema.HandleField
 
 		// omitting isPrimary and replacing with a special type
-		type: { goType: "string" }
+		type: { sortable: true }
 
 		location: { goType: "geolocation.Full" }
 		ownership: {}
