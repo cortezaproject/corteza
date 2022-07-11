@@ -58,5 +58,8 @@ sentry: schema.#optionsGroup & {
 		environment: {
 			description: "Set reported environment."
 		}
+		webapp_DSN: {
+			description: "Set to enable Sentry client for webapp."
+		}
 	}
 }

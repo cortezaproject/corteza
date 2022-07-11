@@ -16,13 +16,25 @@ import (
 	"go.uber.org/zap"
 )
 
+type (
+	webappConfig struct {
+		appUrl              string
+		apiBaseUrl          string
+		authBaseUrl         string
+		webappBaseUrl       string
+		discoveryApiBaseUrl string
+		sentryUrl           string
+	}
+)
+
 var (
 	baseHrefMatcher = regexp.MustCompile(`<base\s+href="?.+?"?\s*\/?>`)
 )
 
-func MakeWebappServer(log *zap.Logger, httpSrvOpt options.HttpServerOpt, authOpt options.AuthOpt, discoveryOpt options.DiscoveryOpt) func(r chi.Router) {
+func MakeWebappServer(log *zap.Logger, httpSrvOpt options.HttpServerOpt, authOpt options.AuthOpt, discoveryOpt options.DiscoveryOpt, sentryOpt options.SentryOpt) func(r chi.Router) {
 	var (
 		apiBaseUrl          = options.CleanBase(httpSrvOpt.BaseUrl, httpSrvOpt.ApiBaseUrl)
+		webappSentryUrl     = sentryOpt.WebappDSN
 		discoveryApiBaseUrl = discoveryOpt.BaseUrl
 		apps                = strings.Split(httpSrvOpt.WebappList, ",")
 
@@ -49,12 +61,26 @@ func MakeWebappServer(log *zap.Logger, httpSrvOpt options.HttpServerOpt, authOpt
 
 		for _, app := range apps {
 			webBaseUrl = options.CleanBase(httpSrvOpt.WebappBaseUrl, app)
-			serveConfig(r, webBaseUrl, apiBaseUrl, authOpt.BaseURL, httpSrvOpt.BaseUrl, discoveryApiBaseUrl)
+			serveConfig(r, webappConfig{
+				appUrl:              webBaseUrl,
+				apiBaseUrl:          apiBaseUrl,
+				authBaseUrl:         authOpt.BaseURL,
+				webappBaseUrl:       httpSrvOpt.BaseUrl,
+				discoveryApiBaseUrl: discoveryApiBaseUrl,
+				sentryUrl:           webappSentryUrl,
+			})
 			r.Get(webBaseUrl+"*", serveIndex(httpSrvOpt, appIndexHTMLs[app], fs))
 		}
 
 		webBaseUrl = options.CleanBase(httpSrvOpt.WebappBaseUrl)
-		serveConfig(r, webBaseUrl, apiBaseUrl, authOpt.BaseURL, httpSrvOpt.BaseUrl, discoveryApiBaseUrl)
+		serveConfig(r, webappConfig{
+			appUrl:              webBaseUrl,
+			apiBaseUrl:          apiBaseUrl,
+			authBaseUrl:         authOpt.BaseURL,
+			webappBaseUrl:       httpSrvOpt.BaseUrl,
+			discoveryApiBaseUrl: discoveryApiBaseUrl,
+			sentryUrl:           webappSentryUrl,
+		})
 		r.Get(webBaseUrl+"*", serveIndex(httpSrvOpt, appIndexHTMLs[""], fs))
 	}
 }
@@ -95,14 +121,17 @@ func serveIndex(opt options.HttpServerOpt, indexHTML []byte, serve http.Handler)
 	}
 }
 
-func serveConfig(r chi.Router, appUrl, apiBaseUrl, authBaseUrl, webappBaseUrl, discoveryApiBaseUrl string) {
-	r.Get(options.CleanBase(appUrl, "config.js"), func(w http.ResponseWriter, r *http.Request) {
+func serveConfig(r chi.Router, config webappConfig) {
+	r.Get(options.CleanBase(config.appUrl, "config.js"), func(w http.ResponseWriter, r *http.Request) {
 		const line = "window.%s = '%s';\n"
-		_, _ = fmt.Fprintf(w, line, "CortezaAPI", apiBaseUrl)
-		_, _ = fmt.Fprintf(w, line, "CortezaAuth", authBaseUrl)
-		_, _ = fmt.Fprintf(w, line, "CortezaWebapp", webappBaseUrl)
-		if len(discoveryApiBaseUrl) > 0 {
-			_, _ = fmt.Fprintf(w, line, "CortezaDiscoveryAPI", discoveryApiBaseUrl)
+		_, _ = fmt.Fprintf(w, line, "CortezaAPI", config.apiBaseUrl)
+		_, _ = fmt.Fprintf(w, line, "CortezaAuth", config.authBaseUrl)
+		_, _ = fmt.Fprintf(w, line, "CortezaWebapp", config.webappBaseUrl)
+		if len(config.discoveryApiBaseUrl) > 0 {
+			_, _ = fmt.Fprintf(w, line, "CortezaDiscoveryAPI", config.discoveryApiBaseUrl)
+		}
+		if len(config.sentryUrl) > 0 {
+			_, _ = fmt.Fprintf(w, line, "SentryDSN", config.sentryUrl)
 		}
 	})
 }
