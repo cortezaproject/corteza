@@ -57,7 +57,7 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 			return
 		}
 
-		r.Route(options.CleanBase(ho.WebappBaseUrl), webapp.MakeWebappServer(app.Log, ho, app.Opt.Auth, app.Opt.Discovery))
+		r.Route(options.CleanBase(ho.WebappBaseUrl), webapp.MakeWebappServer(app.Log, ho, app.Opt.Auth, app.Opt.Discovery, app.Opt.Sentry))
 
 		app.Log.Info(
 			"client web applications enabled",

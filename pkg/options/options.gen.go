@@ -223,6 +223,7 @@ type (
 		Release          string  `env:"SENTRY_RELEASE"`
 		Dist             string  `env:"SENTRY_DIST"`
 		Environment      string  `env:"SENTRY_ENVIRONMENT"`
+		WebappDSN        string  `env:"SENTRY_WEBAPP_DSN"`
 	}
 
 	TemplateOpt struct {
