@@ -29,10 +29,25 @@ auth: schema.#optionsGroup & {
 				====
 				"""
 		}
+		jwt_algorithm: {
+			defaultGoExpr: "\"HS512\""
+			defaultValue:  "HS512"
+			description: """
+				Algoritm to be use for JWT signature.
+
+				Supported valus:
+				 - HS256, HS384, HS512
+				 - PS256, PS384, PS512,
+				 - RS256, RS384, RS512
+
+				Provide shared secret string for HS256, HS384, HS512 and full private key or path to the file PS* and RS* algorithms.
+				"""
+		}
 		secret: {
 			defaultGoExpr: "getSecretFromEnv(\"jwt secret\")"
 			description: """
 				Secret used for signing JWT tokens.
+				Value is used only when HS256, HS384 or HS512 algorithm is used.
 
 				[IMPORTANT]
 				====
@@ -41,6 +56,11 @@ auth: schema.#optionsGroup & {
 				====
 				"""
 			env: "AUTH_JWT_SECRET"
+		}
+		jwt_key: {
+			description: """
+				Raw private key or absolute or relative path to the file containing one.
+				"""
 		}
 		access_token_lifetime: {
 			type: "time.Duration"
