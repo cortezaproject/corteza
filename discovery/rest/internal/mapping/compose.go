@@ -44,7 +44,7 @@ func (m composeMapping) Namespaces(ctx context.Context) ([]*Mapping, error) {
 		Mapping: map[string]*property{
 			"resourceType": {Type: "keyword"},
 
-			"namespaceID": {Type: "unsigned_long"},
+			"namespaceID": {Type: "long"},
 
 			"name":    {Type: "keyword", Boost: 2},
 			"handle":  {Type: "keyword", Boost: 2},
@@ -63,12 +63,12 @@ func (m composeMapping) Namespaces(ctx context.Context) ([]*Mapping, error) {
 
 			"security": security(),
 
-			"namespace": &property{
+			"namespace": {
 				Type: "nested",
 				Properties: map[string]*property{
-					"namespaceID": &property{Type: "unsigned_long"},
-					"name":        &property{Type: "text"},
-					"handle":      &property{Type: "keyword"},
+					"namespaceID": {Type: "long"},
+					"name":        {Type: "text"},
+					"handle":      {Type: "keyword"},
 				},
 			},
 		},
@@ -81,7 +81,7 @@ func (m composeMapping) Modules(ctx context.Context) ([]*Mapping, error) {
 		Mapping: map[string]*property{
 			"resourceType": {Type: "keyword"},
 
-			"moduleID": &property{Type: "unsigned_long"},
+			"moduleID": {Type: "long"},
 			"created":  change(),
 			"updated":  change(),
 			"deleted":  change(),
@@ -102,20 +102,20 @@ func (m composeMapping) Modules(ctx context.Context) ([]*Mapping, error) {
 				},
 			},
 
-			"namespace": &property{
+			"namespace": {
 				Type: "nested",
 				Properties: map[string]*property{
-					"namespaceID": &property{Type: "unsigned_long"},
-					"name":        &property{Type: "text"},
-					"handle":      &property{Type: "keyword"},
+					"namespaceID": {Type: "long"},
+					"name":        {Type: "text"},
+					"handle":      {Type: "keyword"},
 				},
 			},
-			"module": &property{
+			"module": {
 				Type: "nested",
 				Properties: map[string]*property{
-					"moduleID": &property{Type: "unsigned_long"},
-					"name":     &property{Type: "text"},
-					"handle":   &property{Type: "keyword"},
+					"moduleID": {Type: "long"},
+					"name":     {Type: "text"},
+					"handle":   {Type: "keyword"},
 				},
 			},
 		},
@@ -174,7 +174,7 @@ func (m composeMapping) records(ctx context.Context, mod *types.Module, mm types
 	}
 	mapping.Mapping["resourceType"] = &property{Type: "keyword"}
 
-	mapping.Mapping["recordID"] = &property{Type: "unsigned_long"}
+	mapping.Mapping["recordID"] = &property{Type: "long"}
 	mapping.Mapping["url"] = &property{Type: "text"}
 	mapping.Mapping["created"] = change()
 	mapping.Mapping["updated"] = change()
@@ -193,17 +193,17 @@ func (m composeMapping) records(ctx context.Context, mod *types.Module, mm types
 	mapping.Mapping["module"] = &property{
 		Type: "nested",
 		Properties: map[string]*property{
-			"moduleID": &property{Type: "unsigned_long"},
-			"name":     &property{Type: "text"},
-			"handle":   &property{Type: "keyword"},
+			"moduleID": {Type: "long"},
+			"name":     {Type: "text"},
+			"handle":   {Type: "keyword"},
 		},
 	}
 	mapping.Mapping["namespace"] = &property{
 		Type: "nested",
 		Properties: map[string]*property{
-			"namespaceID": &property{Type: "unsigned_long"},
-			"name":        &property{Type: "text"},
-			"handle":      &property{Type: "keyword"},
+			"namespaceID": {Type: "long"},
+			"name":        {Type: "text"},
+			"handle":      {Type: "keyword"},
 		},
 	}
 
