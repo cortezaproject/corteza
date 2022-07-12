@@ -32,7 +32,7 @@ func (svc systemMapping) Users(_ context.Context) ([]*Mapping, error) {
 		Mapping: map[string]*property{
 			"resourceType": {Type: "keyword"},
 
-			"userID": {Type: "unsigned_long"},
+			"userID": {Type: "long"},
 
 			"email":  {Type: "keyword", Boost: 2},
 			"name":   {Type: "keyword", Boost: 10},

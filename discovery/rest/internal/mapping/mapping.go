@@ -28,7 +28,7 @@ func change() *property {
 		Properties: map[string]*property{
 			"at": {Type: "date"},
 			"by": {Type: "nested", Properties: map[string]*property{
-				"id":     {Type: "unsigned_long"},
+				"id":     {Type: "long"},
 				"email":  {Type: "keyword"},
 				"name":   {Type: "keyword"},
 				"handle": {Type: "keyword"},
@@ -41,8 +41,8 @@ func security() *property {
 	return &property{
 		Type: "nested",
 		Properties: map[string]*property{
-			"allowedRoles": {Type: "unsigned_long"},
-			"deniedRoles":  {Type: "unsigned_long"},
+			"allowedRoles": {Type: "long"},
+			"deniedRoles":  {Type: "long"},
 		},
 	}
 }
