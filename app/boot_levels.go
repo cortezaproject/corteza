@@ -289,7 +289,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	}
 
 	if err = app.initAuth(ctx); err != nil {
-		return
+		return fmt.Errorf("can not initialize auth: %w", err)
 	}
 
 	app.WsServer = websocket.Server(
