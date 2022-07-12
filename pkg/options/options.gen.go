@@ -97,7 +97,9 @@ type (
 	AuthOpt struct {
 		LogEnabled               bool          `env:"AUTH_LOG_ENABLED"`
 		PasswordSecurity         bool          `env:"AUTH_PASSWORD_SECURITY"`
+		JwtAlgorithm             string        `env:"AUTH_JWT_ALGORITHM"`
 		Secret                   string        `env:"AUTH_JWT_SECRET"`
+		JwtKey                   string        `env:"AUTH_JWT_KEY"`
 		AccessTokenLifetime      time.Duration `env:"AUTH_OAUTH2_ACCESS_TOKEN_LIFETIME"`
 		RefreshTokenLifetime     time.Duration `env:"AUTH_OAUTH2_REFRESH_TOKEN_LIFETIME"`
 		ExternalRedirectURL      string        `env:"AUTH_EXTERNAL_REDIRECT_URL"`
@@ -514,6 +516,7 @@ func Apigw() (o *ApigwOpt) {
 func Auth() (o *AuthOpt) {
 	o = &AuthOpt{
 		PasswordSecurity:         true,
+		JwtAlgorithm:             "HS512",
 		Secret:                   getSecretFromEnv("jwt secret"),
 		AccessTokenLifetime:      time.Hour * 2,
 		RefreshTokenLifetime:     time.Hour * 24 * 3,
