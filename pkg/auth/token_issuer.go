@@ -34,6 +34,9 @@ type (
 		signer tokenIssuerSigner
 	}
 
+	// IssuerOptFn modify toeknIssuer
+	IssuerOptFn func(*tokenIssuer) error
+
 	TokenRequest struct {
 		AccessToken  string
 		RefreshToken string
@@ -47,8 +50,8 @@ type (
 		Scope        []string
 	}
 
-	IssuerOptFn func(*tokenIssuer) error
-	IssueOptFn  func(*TokenRequest) error
+	// IssueOptFn functions modify TokenRequest
+	IssueOptFn func(*TokenRequest) error
 
 	tokenIssuerStore     func(context.Context, TokenRequest) error
 	tokenIssuerLookup    func(context.Context, string) error
@@ -67,37 +70,34 @@ var (
 )
 
 // NewTokenIssuer initializes and returns new instance of JWT manager
-func NewTokenIssuer(opt ...IssuerOptFn) (tm *tokenIssuer, err error) {
-	tm = &tokenIssuer{
+func NewTokenIssuer(opt ...IssuerOptFn) (issuer *tokenIssuer, err error) {
+	issuer = &tokenIssuer{
 		defaultRequest: &TokenRequest{Issuer: "cortezaproject.org"},
 
 		store: func(ctx context.Context, request TokenRequest) error {
+			// elegantly handle unconfigured store
 			return fmt.Errorf("token issuer store not configured")
 		},
 
 		lookup: func(context.Context, string) error {
+			// elegantly handle unconfigured lookup
 			return fmt.Errorf("token issuer lookup not configured")
 		},
 
 		signer: func(token jwt.Token) ([]byte, error) {
+			// elegantly handle unconfigured signer
 			return nil, fmt.Errorf("token issuer signer not configured")
 		},
 
 		generator: DefaultAccessTokenGenerator,
 	}
 
-	for _, fn := range opt {
-		if err = fn(tm); err != nil {
-			return
-		}
-	}
-
-	return
+	return issuer, applyToIssuer(issuer, opt...)
 }
 
 // Issue issues new access token, stores it and returns signed JWT.
-func (tm *tokenIssuer) Issue(ctx context.Context, opt ...IssueOptFn) (_ []byte, err error) {
-	var req = tm.newTokenRequest()
+func (i *tokenIssuer) Issue(ctx context.Context, opt ...IssueOptFn) (_ []byte, err error) {
+	var req = i.newTokenRequest()
 	if err = req.apply(opt...); err != nil {
 		return
 	}
@@ -107,47 +107,47 @@ func (tm *tokenIssuer) Issue(ctx context.Context, opt ...IssueOptFn) (_ []byte, 
 			"this is most likely an implementation mistake")
 	}
 
-	if req.AccessToken, req.RefreshToken, err = tm.generator(ctx, *req); err != nil {
+	if req.AccessToken, req.RefreshToken, err = i.generator(ctx, *req); err != nil {
 		return
 	}
 
-	if err = tm.store(ctx, *req); err != nil {
+	if err = i.store(ctx, *req); err != nil {
 		return
 	}
 
-	return tm.sign(req)
+	return i.sign(req)
 }
 
-func (tm *tokenIssuer) Sign(opt ...IssueOptFn) (_ []byte, err error) {
-	var req = tm.newTokenRequest()
+func (i *tokenIssuer) Sign(opt ...IssueOptFn) (_ []byte, err error) {
+	var req = i.newTokenRequest()
 	if err = req.apply(opt...); err != nil {
 		return
 	}
 
-	return tm.sign(req)
+	return i.sign(req)
 }
 
-func (tm *tokenIssuer) sign(req *TokenRequest) ([]byte, error) {
+func (i *tokenIssuer) sign(req *TokenRequest) ([]byte, error) {
 	if token, err := makeToken(req); err != nil {
 		return nil, err
 	} else {
-		return tm.signer(token)
+		return i.signer(token)
 	}
 }
 
 // Returns new token request and copies relevant values from the default token request on the issuer
-func (tm *tokenIssuer) newTokenRequest() *TokenRequest {
+func (i *tokenIssuer) newTokenRequest() *TokenRequest {
 	return &TokenRequest{
-		Issuer:     tm.defaultRequest.Issuer,
-		ClientID:   tm.defaultRequest.ClientID,
-		Expiration: tm.defaultRequest.Expiration,
+		Issuer:     i.defaultRequest.Issuer,
+		ClientID:   i.defaultRequest.ClientID,
+		Expiration: i.defaultRequest.Expiration,
 		IssuedAt:   *now(),
 	}
 }
 
 // Validate performs token validation by checking existence of access-token in the store
-func (tm *tokenIssuer) Validate(ctx context.Context, token jwt.Token) (err error) {
-	if err = tm.lookup(ctx, token.JwtID()); err != nil {
+func (i *tokenIssuer) Validate(ctx context.Context, token jwt.Token) (err error) {
+	if err = i.lookup(ctx, token.JwtID()); err != nil {
 		return errUnauthorized()
 	}
 
@@ -381,4 +381,14 @@ func WithClientID(id uint64) IssueOptFn {
 		t.ClientID = id
 		return
 	}
+}
+
+func applyToIssuer(tm *tokenIssuer, opt ...IssuerOptFn) (err error) {
+	for _, fn := range opt {
+		if err = fn(tm); err != nil {
+			return
+		}
+	}
+
+	return
 }
