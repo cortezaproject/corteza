@@ -4,10 +4,14 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/discovery/rest/internal/mapping"
 	"github.com/cortezaproject/corteza-server/discovery/rest/request"
+	"github.com/cortezaproject/corteza-server/system/service"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
 	mappings struct {
+		settings *types.AppSettings
+
 		sys interface {
 			Users(context.Context) ([]*mapping.Mapping, error)
 		}
@@ -22,8 +26,9 @@ type (
 
 func Mappings() *mappings {
 	return &mappings{
-		sys: mapping.SystemMapping(),
-		cmp: mapping.ComposeMapping(),
+		settings: service.CurrentSettings,
+		sys:      mapping.SystemMapping(),
+		cmp:      mapping.ComposeMapping(),
 	}
 }
 
@@ -36,10 +41,18 @@ func (ctrl mappings) List(ctx context.Context, r *request.MappingsList) (interfa
 		mappingFn = make([]func(ctx context.Context) ([]*mapping.Mapping, error), 4)
 	)
 
-	mappingFn = append(mappingFn, ctrl.sys.Users)
-	mappingFn = append(mappingFn, ctrl.cmp.Namespaces)
-	mappingFn = append(mappingFn, ctrl.cmp.Modules)
-	mappingFn = append(mappingFn, ctrl.cmp.Records)
+	if ctrl.settings.Discovery.SystemUsers.Enabled {
+		mappingFn = append(mappingFn, ctrl.sys.Users)
+	}
+	if ctrl.settings.Discovery.ComposeNamespaces.Enabled {
+		mappingFn = append(mappingFn, ctrl.cmp.Namespaces)
+	}
+	if ctrl.settings.Discovery.ComposeModules.Enabled {
+		mappingFn = append(mappingFn, ctrl.cmp.Modules)
+	}
+	if ctrl.settings.Discovery.ComposeRecords.Enabled {
+		mappingFn = append(mappingFn, ctrl.cmp.Records)
+	}
 
 	return out, func() error {
 		for _, fn := range mappingFn {
