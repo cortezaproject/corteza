@@ -1236,8 +1236,8 @@ endpoints:
         type: string
         required: false
         title: Show only rules for a specific resource
-  - name: evaluate
-    path: "/evaluate"
+  - name: trace
+    path: "/trace"
     method: GET
     title: Evaluate rules for given user/role combo
     parameters:

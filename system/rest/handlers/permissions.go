@@ -21,7 +21,7 @@ type (
 	PermissionsAPI interface {
 		List(context.Context, *request.PermissionsList) (interface{}, error)
 		Effective(context.Context, *request.PermissionsEffective) (interface{}, error)
-		Evaluate(context.Context, *request.PermissionsEvaluate) (interface{}, error)
+		Trace(context.Context, *request.PermissionsTrace) (interface{}, error)
 		Read(context.Context, *request.PermissionsRead) (interface{}, error)
 		Delete(context.Context, *request.PermissionsDelete) (interface{}, error)
 		Update(context.Context, *request.PermissionsUpdate) (interface{}, error)
@@ -31,7 +31,7 @@ type (
 	Permissions struct {
 		List      func(http.ResponseWriter, *http.Request)
 		Effective func(http.ResponseWriter, *http.Request)
-		Evaluate  func(http.ResponseWriter, *http.Request)
+		Trace     func(http.ResponseWriter, *http.Request)
 		Read      func(http.ResponseWriter, *http.Request)
 		Delete    func(http.ResponseWriter, *http.Request)
 		Update    func(http.ResponseWriter, *http.Request)
@@ -72,15 +72,15 @@ func NewPermissions(h PermissionsAPI) *Permissions {
 
 			api.Send(w, r, value)
 		},
-		Evaluate: func(w http.ResponseWriter, r *http.Request) {
+		Trace: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewPermissionsEvaluate()
+			params := request.NewPermissionsTrace()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
 			}
 
-			value, err := h.Evaluate(r.Context(), params)
+			value, err := h.Trace(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
@@ -144,7 +144,7 @@ func (h Permissions) MountRoutes(r chi.Router, middlewares ...func(http.Handler)
 		r.Use(middlewares...)
 		r.Get("/permissions/", h.List)
 		r.Get("/permissions/effective", h.Effective)
-		r.Get("/permissions/evaluate", h.Evaluate)
+		r.Get("/permissions/trace", h.Trace)
 		r.Get("/permissions/{roleID}/rules", h.Read)
 		r.Delete("/permissions/{roleID}/rules", h.Delete)
 		r.Patch("/permissions/{roleID}/rules", h.Update)

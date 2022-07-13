@@ -44,7 +44,7 @@ type (
 		Resource string
 	}
 
-	PermissionsEvaluate struct {
+	PermissionsTrace struct {
 		// Resource GET parameter
 		//
 		// Show only rules for a specific resource
@@ -139,13 +139,13 @@ func (r *PermissionsEffective) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewPermissionsEvaluate request
-func NewPermissionsEvaluate() *PermissionsEvaluate {
-	return &PermissionsEvaluate{}
+// NewPermissionsTrace request
+func NewPermissionsTrace() *PermissionsTrace {
+	return &PermissionsTrace{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PermissionsEvaluate) Auditable() map[string]interface{} {
+func (r PermissionsTrace) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"resource": r.Resource,
 		"userID":   r.UserID,
@@ -154,22 +154,22 @@ func (r PermissionsEvaluate) Auditable() map[string]interface{} {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PermissionsEvaluate) GetResource() []string {
+func (r PermissionsTrace) GetResource() []string {
 	return r.Resource
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PermissionsEvaluate) GetUserID() uint64 {
+func (r PermissionsTrace) GetUserID() uint64 {
 	return r.UserID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PermissionsEvaluate) GetRoleID() []uint64 {
+func (r PermissionsTrace) GetRoleID() []uint64 {
 	return r.RoleID
 }
 
 // Fill processes request and fills internal variables
-func (r *PermissionsEvaluate) Fill(req *http.Request) (err error) {
+func (r *PermissionsTrace) Fill(req *http.Request) (err error) {
 
 	{
 		// GET params

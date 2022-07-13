@@ -92,13 +92,14 @@ func (svc *service) Can(ses Session, op string, res Resource) bool {
 // Check verifies if role has access to perform an operation on a resource
 //
 // See RuleSet's Check() func for details
-func (svc *service) Check(ses Session, op string, res Resource) (v Access) {
+func (svc *service) Check(ses Session, op string, res Resource) (a Access) {
 	var (
-		eval, fRoles = svc.evaluate(ses, op, res, false)
-		access       = eval.Access
+		fRoles = getContextRoles(ses, res, svc.roles)
 	)
 
-	svc.logger.Debug(access.String()+" "+op+" for "+res.RbacResource(),
+	a = check(svc.indexed, fRoles, op, res.RbacResource(), nil)
+
+	svc.logger.Debug(a.String()+" "+op+" for "+res.RbacResource(),
 		append(
 			fRoles.LogFields(),
 			zap.Uint64("identity", ses.Identity()),
@@ -107,69 +108,19 @@ func (svc *service) Check(ses Session, op string, res Resource) (v Access) {
 		)...,
 	)
 
-	return access
+	return
 }
 
-// Evaluate access for the given session, operation and resource
-//
-// The evaluation outputs verbose details to assist the UI.
-func (svc *service) Evaluate(ses Session, op string, res Resource) Evaluated {
+// Trace checks RBAC rules and returns all decision trace log
+func (svc *service) Trace(ses Session, op string, res Resource) *Trace {
 	var (
-		eval, fRoles = svc.evaluate(ses, op, res, true)
+		t      = new(Trace)
+		fRoles = getContextRoles(ses, res, svc.roles)
 	)
 
-	svc.logger.Debug(eval.Access.String()+" "+op+" for "+res.RbacResource(),
-		append(
-			fRoles.LogFields(),
-			zap.Uint64("identity", ses.Identity()),
-			zap.Any("indexed", len(svc.indexed)),
-			zap.Any("rules", len(svc.rules)),
-		)...,
-	)
+	_ = check(svc.indexed, fRoles, op, res.RbacResource(), t)
 
-	return eval
-}
-
-func (svc *service) evaluate(ses Session, op string, res Resource, inclParent bool) (e Evaluated, _ partRoles) {
-	svc.l.RLock()
-	defer svc.l.RUnlock()
-
-	var (
-		fRoles             = getContextRoles(ses, res, svc.roles)
-		access, rule, expl = evaluate(svc.indexed, fRoles, op, res.RbacResource(), false)
-	)
-
-	// Check the requested resource
-	e = Evaluated{
-		Resource:  res.RbacResource(),
-		Operation: op,
-
-		Access: access,
-		Can:    access == Allow,
-		Rule:   rule,
-		Step:   expl,
-	}
-	if rule != nil {
-		e.RoleID = rule.RoleID
-	}
-
-	// Check the parent resource
-	if inclParent {
-		access, rule, expl = evaluate(svc.indexed, fRoles, op, res.RbacResource(), true)
-		e.Default = &Evaluated{
-			Resource:  res.RbacResource(),
-			Operation: op,
-			Access:    access,
-			Can:       access == Allow,
-			Rule:      rule,
-			Step:      expl,
-		}
-		if rule != nil {
-			e.Default.RoleID = rule.RoleID
-		}
-	}
-
-	return e, fRoles
+	return t
 }
 
 // Grant appends and/or overwrites internal rules slice

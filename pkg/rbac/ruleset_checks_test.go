@@ -48,8 +48,35 @@ func Test_check(t *testing.T) {
 				"",
 				"",
 				[]*Role{
-
 					{id: 1, kind: CommonRole},
+				},
+				[]*Rule{
+					{RoleID: 1, Access: Allow},
+					{RoleID: 2, Access: Deny},
+				},
+			},
+			{
+				"multiple matching roles of same kind with deny",
+				Deny,
+				"",
+				"",
+				[]*Role{
+					{id: 1, kind: CommonRole},
+					{id: 2, kind: CommonRole},
+				},
+				[]*Rule{
+					{RoleID: 1, Access: Allow},
+					{RoleID: 2, Access: Deny},
+				},
+			},
+			{
+				"multiple matching matching roles of different with deny last",
+				Allow,
+				"",
+				"",
+				[]*Role{
+					{id: 1, kind: CommonRole},
+					{id: 2, kind: AuthenticatedRole},
 				},
 				[]*Rule{
 					{RoleID: 1, Access: Allow},
@@ -77,17 +104,147 @@ func Test_check(t *testing.T) {
 
 	for _, c := range cc {
 		t.Run(c.name, func(t *testing.T) {
-			require.Equal(t, c.exp.String(), check(indexRules(c.set), partitionRoles(c.rr...), c.op, c.res).String())
+			require.Equal(t, c.exp.String(), check(indexRules(c.set), partitionRoles(c.rr...), c.op, c.res, nil).String())
+		})
+	}
+}
+
+func Test_checkWithTrace(t *testing.T) {
+	var (
+		trace *Trace
+
+		cc = []struct {
+			name  string
+			res   string
+			exp   Access
+			rr    []*Role
+			set   RuleSet
+			trace *Trace
+		}{
+			{
+				"fail on integrity check (multiple anonymous roles)",
+				"res-trace",
+				Deny,
+				[]*Role{
+					{id: 1, kind: AnonymousRole},
+					{id: 2, kind: CommonRole},
+					{id: 3, kind: CommonRole},
+				},
+				nil,
+				&Trace{
+					Resource:   "res-trace",
+					Operation:  "op-trace",
+					Access:     Deny,
+					Roles:      []uint64{1, 2, 3},
+					Rules:      nil,
+					Resolution: failedIntegrityCheck,
+				},
+			},
+			{
+				"allow when checking with bypass roles",
+				"res-trace",
+				Allow,
+				[]*Role{
+					{id: 1, kind: BypassRole},
+				},
+				nil,
+				&Trace{
+					Resource:   "res-trace",
+					Operation:  "op-trace",
+					Access:     Allow,
+					Roles:      []uint64{1},
+					Rules:      nil,
+					Resolution: bypassRoleMembership,
+				},
+			},
+			{
+				"no rules",
+				"res-trace",
+				Allow,
+				[]*Role{
+					{id: 1, kind: CommonRole},
+				},
+				nil,
+				&Trace{
+					Resource:   "res-trace",
+					Operation:  "op-trace",
+					Access:     Inherit,
+					Roles:      []uint64{1},
+					Rules:      nil,
+					Resolution: noRules,
+				},
+			},
+			{
+				"multi-role",
+				"res-trace",
+				Allow,
+				[]*Role{
+					{id: 1, kind: CommonRole},
+					{id: 2, kind: CommonRole},
+					{id: 3, kind: AuthenticatedRole},
+				},
+				RuleSet{
+					AllowRule(1, "res-trace", "op-trace"),
+					AllowRule(2, "res-trace", "op-trace"),
+					AllowRule(3, "res-trace", "op-trace"),
+					AllowRule(1, "res-trace-2", "op-trace"),
+					AllowRule(2, "res-trace", "op-trace-2"),
+				},
+				&Trace{
+					Resource:  "res-trace",
+					Operation: "op-trace",
+					Access:    Allow,
+					Roles:     []uint64{1, 2, 3},
+					Rules: RuleSet{
+						AllowRule(1, "res-trace", "op-trace"),
+						AllowRule(2, "res-trace", "op-trace"),
+					},
+				},
+			},
+			{
+				"nested resource",
+				"res-trace/2",
+				Allow,
+				[]*Role{
+					{id: 1, kind: CommonRole},
+					{id: 2, kind: CommonRole},
+					{id: 3, kind: AuthenticatedRole},
+				},
+				RuleSet{
+					AllowRule(1, "res-trace/*", "op-trace"),
+					AllowRule(2, "res-trace/*", "op-trace"),
+					AllowRule(2, "res-trace/1", "op-trace"),
+				},
+				&Trace{
+					Resource:  "res-trace/2",
+					Operation: "op-trace",
+					Access:    Allow,
+					Roles:     []uint64{1, 2, 3},
+					Rules: RuleSet{
+						AllowRule(1, "res-trace/*", "op-trace"),
+						AllowRule(2, "res-trace/*", "op-trace"),
+					},
+				},
+			},
+		}
+	)
+
+	for _, c := range cc {
+		t.Run(c.name, func(t *testing.T) {
+			trace = new(Trace)
+			check(indexRules(c.set), partitionRoles(c.rr...), "op-trace", c.res, trace)
+			require.Equal(t, c.trace, trace)
+
 		})
 	}
 }
 
 //cpu: Intel(R) Core(TM) i9-9980HK CPU @ 2.40GHz
-//Benchmark_Check100-16                	15626196	        88.85 ns/op
-//Benchmark_Check1000-16               	15976252	        74.09 ns/op
-//Benchmark_Check10000-16              	15025586	        78.12 ns/op
-//Benchmark_Check100000-16             	13760616	        84.70 ns/op
-//Benchmark_Check1000000-16            	 2602420	       415.8 ns/op
+//Benchmark_Check100-16        	12395438	        95.24 ns/op
+//Benchmark_Check1000-16       	12507883	        96.34 ns/op
+//Benchmark_Check10000-16      	11788594	        96.85 ns/op
+//Benchmark_Check100000-16     	11679951	       100.1 ns/op
+//Benchmark_Check1000000-16    	 4670353	       287.3 ns/op
 func benchmarkCheck(b *testing.B, c int) {
 	var (
 		// resting with 50 roles
@@ -117,7 +274,7 @@ func benchmarkCheck(b *testing.B, c int) {
 	b.StartTimer()
 
 	for n := 0; n < b.N; n++ {
-		check(iRules, pr, "res-0", "op-0")
+		check(iRules, pr, "res-0", "op-0", nil)
 	}
 
 	b.StopTimer()
@@ -155,8 +312,8 @@ func Test_checkRulesByResource(t *testing.T) {
 
 	for _, c := range cc {
 		t.Run(c.res, func(t *testing.T) {
-			_, a := checkRulesByResource(c.set, c.op, c.res)
-			require.Equal(t, c.exp.String(), a.String())
+			a := findRuleByResOp(c.set, c.op, c.res)
+			require.Equal(t, c.exp.String(), a.Access.String())
 		})
 	}
 }
