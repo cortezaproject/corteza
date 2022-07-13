@@ -82,7 +82,7 @@ func check(indexedRules OptRuleSet, rolesByKind partRoles, op, res string, trace
 			}
 
 			// check all rules for each role the security-context
-			if match = findRuleByResOp(rr, op, res); match.Access == Inherit {
+			if match = findRuleByResOp(rr, op, res); match == nil {
 				// no rules match
 				continue
 			}
@@ -136,7 +136,7 @@ func findRuleByResOp(set RuleSet, op, res string) *Rule {
 		}
 	}
 
-	return &Rule{Access: Inherit}
+	return nil
 }
 
 // at least one of the roles must be set to true

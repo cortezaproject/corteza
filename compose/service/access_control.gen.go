@@ -74,12 +74,16 @@ func (svc accessControl) Trace(ctx context.Context, userID uint64, roles []uint6
 	}
 
 	var (
-		resources = svc.Resources()
+		resources []rbac.Resource
 		members   systemTypes.RoleMemberSet
 	)
 	if len(rr) > 0 {
 		resources = make([]rbac.Resource, 0, len(rr))
 		for _, r := range rr {
+			if err = rbacResourceValidator(r); err != nil {
+				return nil, fmt.Errorf("can not use resource %q: %w", r, err)
+			}
+
 			resources = append(resources, rbac.NewResource(r))
 		}
 	} else {
@@ -981,9 +985,9 @@ func rbacRecordResourceValidator(r string, oo ...string) error {
 //
 // This function is auto-generated
 func rbacComponentResourceValidator(r string, oo ...string) error {
-	if !strings.HasPrefix(r, types.ComponentResourceType) {
+	if r != types.ComponentResourceType+"/" {
 		// expecting resource to always include path
-		return fmt.Errorf("invalid resource type")
+		return fmt.Errorf("invalid component resource, expecting " + types.ComponentResourceType + "/")
 	}
 
 	defOps := rbacResourceOperations(r)

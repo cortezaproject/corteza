@@ -10,7 +10,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/system/types"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
@@ -81,6 +80,10 @@ func (svc accessControl) Trace(ctx context.Context, userID uint64, roles []uint6
 	if len(rr) > 0 {
 		resources = make([]rbac.Resource, 0, len(rr))
 		for _, r := range rr {
+			if err = rbacResourceValidator(r); err != nil {
+				return nil, fmt.Errorf("can not use resource %q: %w", r, err)
+			}
+
 			resources = append(resources, rbac.NewResource(r))
 		}
 	} else {
@@ -91,7 +94,7 @@ func (svc accessControl) Trace(ctx context.Context, userID uint64, roles []uint6
 	if userID != 0 {
 		if len(roles) > 0 {
 			// should be prevented on the client
-			return nil, fmt.Errorf("userID and roles parameters are mutually exclusive")
+			return nil, fmt.Errorf("userID and roles are mutually exclusive")
 		}
 
 		members, _, err = svc.store.SearchRoleMembers(ctx, systemTypes.RoleMemberFilter{UserID: userID})
@@ -101,11 +104,6 @@ func (svc accessControl) Trace(ctx context.Context, userID uint64, roles []uint6
 
 		for _, m := range members {
 			roles = append(roles, m.RoleID)
-		}
-
-		// make sure we append all "authenticated" roles
-		for _, r := range internalAuth.AuthenticatedRoles() {
-			roles = append(roles, r.ID)
 		}
 	}
 
@@ -1871,9 +1869,9 @@ func rbacDalSensitivityLevelResourceValidator(r string, oo ...string) error {
 //
 // This function is auto-generated
 func rbacComponentResourceValidator(r string, oo ...string) error {
-	if !strings.HasPrefix(r, types.ComponentResourceType) {
+	if r != types.ComponentResourceType+"/" {
 		// expecting resource to always include path
-		return fmt.Errorf("invalid resource type")
+		return fmt.Errorf("invalid component resource, expecting " + types.ComponentResourceType + "/")
 	}
 
 	defOps := rbacResourceOperations(r)

@@ -79,6 +79,10 @@ func (svc accessControl) Trace(ctx context.Context, userID uint64, roles []uint6
 	if len(rr) > 0 {
 		resources = make([]rbac.Resource, 0, len(rr))
 		for _, r := range rr {
+			if err = rbacResourceValidator(r); err != nil {
+				return nil, fmt.Errorf("can not use resource %q: %w", r, err)
+			}
+
 			resources = append(resources, rbac.NewResource(r))
 		}
 	} else {
@@ -256,10 +260,17 @@ func rbacResourceOperations(r string) map[string]bool {
 //
 // This function is auto-generated
 func {{ .funcName }}(r string, oo ...string) error {
+	{{- if .references }}
 	if !strings.HasPrefix(r, {{ .const }}) {
 		// expecting resource to always include path
 		return fmt.Errorf("invalid resource type")
 	}
+	{{ else }}
+	if r != {{ .const }} + "/" {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid component resource, expecting " + {{ .const }} + "/")
+	}
+	{{ end }}
 
 	defOps := rbacResourceOperations(r)
 	for _, o := range oo {
