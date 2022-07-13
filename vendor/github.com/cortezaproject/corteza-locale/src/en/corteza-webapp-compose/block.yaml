@@ -191,7 +191,7 @@ record:
   moduleOrPageNotSet: 'RecordList block error: module or page option not set'
   moduleMismatch: Module incompatible, module mismatch
   preview:
-    blockNoRecord: Can not render this block without a record
+    blockNoRecord: Cannot render this block without a record
     fieldsFromModule: Single record block, displaying fields ({{0}}) from module {{1}}
     untitled: Untitled
   recordDeleted: This record was deleted
@@ -347,6 +347,7 @@ recordList:
     presortPlaceholder: field1 DESC, field2 ASC
     showTotalCount: Show total record count
     openInNewTab: Open records in a new tab
+    linkToParent: Link to parent record
   recordPage: record page
   refField:
     footnote: Field that links records with the parent record
