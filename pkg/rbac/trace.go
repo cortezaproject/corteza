@@ -1,17 +1,20 @@
 package rbac
 
-import "sort"
+import (
+	"github.com/cortezaproject/corteza-server/pkg/slice"
+	"sort"
+)
 
 type (
 	resolution string
 
 	Trace struct {
-		Resource   string     `json:"resource"`
-		Operation  string     `json:"operation"`
-		Access     Access     `json:"access"`
-		Roles      []uint64   `json:"roles"`
-		Rules      []*Rule    `json:"rules,omitempty"`
-		Resolution resolution `json:"resolution,omitempty"`
+		Resource   string        `json:"resource"`
+		Operation  string        `json:"operation"`
+		Access     Access        `json:"access"`
+		Roles      slice.UInt64s `json:"roles"`
+		Rules      []*Rule       `json:"rules,omitempty"`
+		Resolution resolution    `json:"resolution,omitempty"`
 	}
 )
 
