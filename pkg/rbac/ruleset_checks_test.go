@@ -313,6 +313,11 @@ func Test_checkRulesByResource(t *testing.T) {
 	for _, c := range cc {
 		t.Run(c.res, func(t *testing.T) {
 			a := findRuleByResOp(c.set, c.op, c.res)
+
+			if a == nil {
+				a = InheritRule(0, "", "")
+			}
+
 			require.Equal(t, c.exp.String(), a.Access.String())
 		})
 	}
