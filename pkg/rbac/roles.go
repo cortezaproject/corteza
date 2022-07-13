@@ -121,6 +121,34 @@ func getContextRoles(s Session, res Resource, preloadedRoles []*Role) (out partR
 		scope = make(map[string]interface{})
 	)
 
+	out = [roleKinds]map[uint64]bool{}
+
+	{
+		// if this is an anonymous user (has one role of kind anonymous)
+		// ensure role-kind integrity and skip complex checks
+		for _, r := range preloadedRoles {
+			if !mm[r.id] {
+				// skip roles that are not in the security session
+				// skip all other types of roles that user from session is not member of
+				continue
+			}
+
+			if r.kind != AnonymousRole {
+				continue
+			}
+
+			if out[AnonymousRole] == nil {
+				out[AnonymousRole] = make(map[uint64]bool)
+			}
+
+			out[AnonymousRole][r.id] = true
+		}
+
+		if len(out[AnonymousRole]) > 0 {
+			return
+		}
+	}
+
 	if d, ok := res.(resourceDicter); ok {
 		// if resource implements Dict() fn, we can use it to
 		// collect attributes, used for expression evaluation and contextual role gathering
@@ -129,7 +157,6 @@ func getContextRoles(s Session, res Resource, preloadedRoles []*Role) (out partR
 
 	scope["userID"] = s.Identity()
 
-	out = [roleKinds]map[uint64]bool{}
 	for _, r := range preloadedRoles {
 		if r.kind == ContextRole {
 			if len(r.crtypes) == 0 || !r.crtypes[ResourceType(res.RbacResource())] {

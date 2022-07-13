@@ -25,8 +25,8 @@ func (ServiceAllowAll) Grant(context.Context, ...*Rule) error {
 	return nil
 }
 
-func (ServiceAllowAll) Evaluate(Session, string, Resource) Evaluated {
-	return Evaluated{Access: Allow, Can: true}
+func (ServiceAllowAll) Trace(Session, string, Resource) *Trace {
+	return nil
 }
 
 func (ServiceAllowAll) CloneRulesByRoleID(context.Context, uint64, ...uint64) error {

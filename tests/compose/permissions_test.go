@@ -103,3 +103,19 @@ func TestPermissionsDelete(t *testing.T) {
 		h.a.True(r.Access == rbac.Inherit)
 	}
 }
+
+func TestPermissionsTrace(t *testing.T) {
+	h := newHelper(t)
+
+	helpers.AllowMe(h, types.ComponentRbacResource(), "grant")
+
+	h.apiInit().
+		Get("/permissions/trace").
+		Query("roleID[]", "1").
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Present(`$.response`)).
+		End()
+}

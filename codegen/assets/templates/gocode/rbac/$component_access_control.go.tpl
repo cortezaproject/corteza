@@ -22,7 +22,8 @@ type (
 	}
 
 	rbacService interface {
-		Evaluate(rbac.Session, string, rbac.Resource) rbac.Evaluated
+		Can(rbac.Session, string, rbac.Resource) bool
+		Trace(rbac.Session, string, rbac.Resource) *rbac.Trace
 		Grant(context.Context, ...*rbac.Rule) error
 		FindRulesByRoleID(roleID uint64) (rr rbac.RuleSet)
 	}
@@ -44,7 +45,7 @@ func AccessControl(rms roleMemberSearcher) *accessControl {
 }
 
 func (svc accessControl) can(ctx context.Context, op string, res rbac.Resource) bool {
-	return svc.rbac.Evaluate(rbac.ContextToSession(ctx), op, res).Can
+	return svc.rbac.Can(rbac.ContextToSession(ctx), op, res)
 }
 
 // Effective returns a list of effective permissions for all given resource
@@ -64,7 +65,7 @@ func (svc accessControl) Effective(ctx context.Context, rr ... rbac.Resource) (e
 // Evaluate returns a list of permissions evaluated for the given user/roles combo
 //
 // This function is auto-generated
-func (svc accessControl) Evaluate(ctx context.Context, userID uint64, roles []uint64, rr ...string) (ee rbac.EvaluatedSet, err error) {
+func (svc accessControl) Trace(ctx context.Context, userID uint64, roles []uint64, rr ...string) (ee []*rbac.Trace, err error) {
 	// Reusing the grant permission since this is who the feature is for
 	if !svc.CanGrant(ctx) {
 		// @todo should be altered to check grant permissions PER resource
@@ -110,7 +111,7 @@ func (svc accessControl) Evaluate(ctx context.Context, userID uint64, roles []ui
 	for _, res := range resources {
 		r := res.RbacResource()
 		for op := range rbacResourceOperations(r) {
-			ee = append(ee, svc.rbac.Evaluate(session, op, res))
+			ee = append(ee, svc.rbac.Trace(session, op, res))
 		}
 	}
 
