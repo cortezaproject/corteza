@@ -97,6 +97,11 @@ func serveIndex(opt options.HttpServerOpt, indexHTML []byte, serve http.Handler)
 
 func serveConfig(r chi.Router, appUrl, apiBaseUrl, authBaseUrl, webappBaseUrl, discoveryApiBaseUrl string) {
 	r.Get(options.CleanBase(appUrl, "config.js"), func(w http.ResponseWriter, r *http.Request) {
+
+		// Assure the content-type
+		// The presence of the X-Content-Type-Options: nosniff header breaks web applications
+		w.Header().Add("Content-Type", "text/javascript")
+
 		const line = "window.%s = '%s';\n"
 		_, _ = fmt.Fprintf(w, line, "CortezaAPI", apiBaseUrl)
 		_, _ = fmt.Fprintf(w, line, "CortezaAuth", authBaseUrl)
