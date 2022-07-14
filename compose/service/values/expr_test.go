@@ -2,9 +2,10 @@ package values
 
 import (
 	"context"
+	"testing"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestExpressions(t *testing.T) {
@@ -161,5 +162,18 @@ func TestExpressions(t *testing.T) {
 		req.Equal("a", new.Values.Get("f1", 0).Value)
 		req.Equal("b", new.Values.Get("f1", 1).Value)
 		req.Equal("c", new.Values.Get("f1", 2).Value)
+	})
+
+	t.Run("omit record value when expr returns null (nil)", func(t *testing.T) {
+		var (
+			req = require.New(t)
+			m   = makeModule("f1", "String", `null`)
+			r   = &types.Record{}
+			rve = &types.RecordValueErrorSet{}
+		)
+
+		Expression(ctx, m, r, nil, rve)
+		req.True(rve.IsValid())
+		req.Empty(r.Values)
 	})
 }

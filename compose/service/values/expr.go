@@ -3,8 +3,10 @@ package values
 import (
 	"context"
 	"fmt"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/modern-go/reflect2"
 )
 
 func makeInvalidExprErr(field *types.ModuleField, expr string, err error) types.RecordValueError {
@@ -78,24 +80,27 @@ func Expression(ctx context.Context, m *types.Module, r *types.Record, old *type
 		}
 
 		var strings []string
-		if values, isSlice := tmp.([]interface{}); isSlice {
-			if !f.Multi {
-				rve.Push(makeValueExprIncompErr(f))
-				continue
-			}
+		// When the expression results in null (nil) delete that record value.
+		// The below Values.Replace already does it so we simply ignore strings
+		if !reflect2.IsNil(tmp) {
+			if values, isSlice := tmp.([]interface{}); isSlice {
+				if !f.Multi {
+					rve.Push(makeValueExprIncompErr(f))
+					continue
+				}
 
-			strings = make([]string, len(values))
-			for i, value := range values {
-				strings[i] = sanitize(f, value)
-			}
-		} else {
-			if f.Multi {
-				rve.Push(makeValueExprIncompErr(f))
-				continue
-			}
+				strings = make([]string, len(values))
+				for i, value := range values {
+					strings[i] = sanitize(f, value)
+				}
+			} else {
+				if f.Multi {
+					rve.Push(makeValueExprIncompErr(f))
+					continue
+				}
 
-			strings = []string{sanitize(f, tmp)}
-
+				strings = []string{sanitize(f, tmp)}
+			}
 		}
 
 		r.Values = r.Values.Replace(f.Name, strings...)
