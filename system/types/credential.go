@@ -5,7 +5,6 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/jmoiron/sqlx/types"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type (
@@ -34,23 +33,4 @@ type (
 
 func (u *Credential) Valid() bool {
 	return u.ID > 0 && (u.ExpiresAt == nil || u.ExpiresAt.After(time.Now())) && u.DeletedAt == nil
-}
-
-// CompareHashAndPassword returns first valid credentials with matching hash
-func (cc CredentialSet) CompareHashAndPassword(password string, validOnly bool) *Credential {
-	for _, c := range cc {
-		if validOnly && !c.Valid() {
-			continue
-		}
-
-		if len(c.Credentials) == 0 {
-			continue
-		}
-
-		if bcrypt.CompareHashAndPassword([]byte(c.Credentials), []byte(password)) == nil {
-			return c
-		}
-	}
-
-	return nil
 }
