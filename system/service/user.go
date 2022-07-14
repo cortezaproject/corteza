@@ -52,7 +52,6 @@ type (
 
 	userAuth interface {
 		CheckPasswordStrength(string) bool
-		CheckPassword(string, bool, types.CredentialsSet) bool
 		SetPasswordCredentials(context.Context, uint64, string) error
 		RemovePasswordCredentials(context.Context, uint64) error
 		RemoveAccessTokens(context.Context, *types.User) error
@@ -687,8 +686,7 @@ func (svc user) Unsuspend(ctx context.Context, userID uint64) (err error) {
 // Expecting setter to have permissions to update users
 func (svc user) SetPassword(ctx context.Context, userID uint64, newPassword string) (err error) {
 	var (
-		u  *types.User
-		cc types.CredentialsSet
+		u *types.User
 
 		uaProps = &userActionProps{user: &types.User{ID: userID}}
 		a       = UserActionSetPassword
@@ -718,18 +716,13 @@ func (svc user) SetPassword(ctx context.Context, userID uint64, newPassword stri
 			return svc.auth.RemovePasswordCredentials(ctx, userID)
 		}
 
-		cc, _, err = store.SearchCredentials(ctx, svc.store, types.CredentialsFilter{
-			Kind:    credentialsTypePassword,
-			OwnerID: userID,
-			Deleted: filter.StateInclusive})
-
-		if err != nil {
-			return err
-		}
-
-		if svc.auth.CheckPassword(newPassword, false, cc) {
-			return AuthErrPasswordSetFailedReusedPasswordCheckFailed()
-		}
+		// note on password reuse:
+		//
+		// we do not really care if user is setting same password
+		// to someone else (or to self for that matter)
+		//
+		// he has rights to update the user and is doing so
+		// through general user management API
 
 		if !svc.auth.CheckPasswordStrength(newPassword) {
 			return UserErrPasswordNotSecure()
