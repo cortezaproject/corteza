@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/spf13/cast"
@@ -104,6 +105,10 @@ func (svc accessControl) Trace(ctx context.Context, userID uint64, roles []uint6
 
 		for _, m := range members {
 			roles = append(roles, m.RoleID)
+		}
+
+		for _, r := range internalAuth.AuthenticatedRoles() {
+			roles = append(roles, r.ID)
 		}
 	}
 
