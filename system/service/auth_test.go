@@ -14,7 +14,6 @@ import (
 	"github.com/markbates/goth"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
-	"golang.org/x/crypto/bcrypt"
 )
 
 // Mock auth service with nil for current time, dummy provider validator and mock db
@@ -391,109 +390,4 @@ func TestAuth_multiCreateUserTokenForPasswordReset(t *testing.T) {
 		}
 	}
 
-}
-
-func Test_auth_checkPassword(t *testing.T) {
-	plainPassword := " ... plain password ... "
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(plainPassword), bcrypt.DefaultCost)
-	type args struct {
-		password string
-		cc       types.CredentialsSet
-	}
-	tests := []struct {
-		name string
-		args args
-		rval bool
-	}{
-		{
-			name: "empty set",
-			rval: false,
-			args: args{}},
-		{
-			name: "bad pwd",
-			rval: false,
-			args: args{
-				password: " foo ",
-				cc:       types.CredentialsSet{&types.Credentials{ID: 1, Credentials: string(hashedPassword)}}}},
-		{
-			name: "invalid credentials",
-			rval: false,
-			args: args{
-				password: " foo ",
-				cc:       types.CredentialsSet{&types.Credentials{ID: 0, Credentials: string(hashedPassword)}}}},
-		{
-			name: "ok",
-			rval: true,
-			args: args{
-				password: plainPassword,
-				cc:       types.CredentialsSet{&types.Credentials{ID: 1, Credentials: string(hashedPassword)}}}},
-		{
-			name: "multipass",
-			rval: true,
-			args: args{
-				password: plainPassword,
-				cc: types.CredentialsSet{
-					&types.Credentials{ID: 0, Credentials: string(hashedPassword)},
-					&types.Credentials{ID: 1, Credentials: "$2a$10$8sOZxfZinxnu3bAtpkqEx.wBBwOfci6aG1szgUyxm5.BL2WiLu.ni"},
-					&types.Credentials{ID: 2, Credentials: string(hashedPassword)},
-					&types.Credentials{ID: 3, Credentials: ""},
-				}}},
-	}
-
-	svc := auth{
-		settings: &types.AppSettings{},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.rval != svc.CheckPassword(tt.args.password, true, tt.args.cc) {
-				t.Errorf("auth.checkPassword() expecting rval to be %v", tt.rval)
-			}
-		})
-	}
-}
-
-func TestValidateToken(t *testing.T) {
-	type args struct {
-		token string
-	}
-	tests := []struct {
-		name            string
-		args            args
-		wantID          uint64
-		wantCredentials string
-	}{
-		{
-			name:            "empty",
-			wantID:          0,
-			wantCredentials: "",
-			args:            args{token: ""}},
-		{
-			name:            "foo",
-			wantID:          0,
-			wantCredentials: "",
-			args:            args{token: "foo1"}},
-		{
-			name:            "semivalid",
-			wantID:          0,
-			wantCredentials: "",
-			args:            args{token: "foofoofoofoofoofoofoofoofoofoofo0"}},
-		{
-			name:            "valid",
-			wantID:          1,
-			wantCredentials: "foofoofoofoofoofoofoofoofoofoofo",
-			args:            args{token: "foofoofoofoofoofoofoofoofoofoofo1"}},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotID, gotCredentials := validateToken(tt.args.token)
-
-			if gotID != tt.wantID {
-				t.Errorf("auth.validateToken() gotID = %v, want %v", gotID, tt.wantID)
-			}
-			if gotCredentials != tt.wantCredentials {
-				t.Errorf("auth.validateToken() gotCredentials = %v, want %v", gotCredentials, tt.wantCredentials)
-			}
-		})
-	}
 }
