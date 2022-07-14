@@ -979,18 +979,3 @@ func UpdateRbacRoles(ctx context.Context, log *zap.Logger, ru rbacRoleUpdater, b
 	ru.UpdateRoles(rr...)
 	return nil
 }
-
-func RolesForUser(s store.Storer) func(ctx context.Context, userID uint64) ([]uint64, error) {
-	return func(ctx context.Context, userID uint64) ([]uint64, error) {
-		rr, _, err := store.SearchRoles(ctx, s, types.RoleFilter{MemberID: userID})
-		if err != nil {
-			return nil, err
-		}
-
-		out := make([]uint64, len(rr))
-		for i, r := range rr {
-			out[i] = r.ID
-		}
-		return out, nil
-	}
-}
