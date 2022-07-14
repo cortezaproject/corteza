@@ -97,6 +97,11 @@ func (svc *service) Check(ses Session, op string, res Resource) (a Access) {
 		fRoles = getContextRoles(ses, res, svc.roles)
 	)
 
+	if hasWildcards(res.RbacResource()) {
+		// prevent use of wildcard resources for checking permissions
+		return Inherit
+	}
+
 	a = check(svc.indexed, fRoles, op, res.RbacResource(), nil)
 
 	svc.logger.Debug(a.String()+" "+op+" for "+res.RbacResource(),

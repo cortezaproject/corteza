@@ -64,10 +64,10 @@ func ResourceComponent(r string) string {
 	}
 }
 
+// match returns true if the given resource matches the given pattern
 func matchResource(matcher, resource string) (m bool) {
 	if matcher == resource {
-		// if resources match make sure no wildcards are resent
-		return !hasWildcards(resource)
+		return true
 	}
 
 	m, _ = path.Match(matcher, resource)
