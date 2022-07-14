@@ -9,6 +9,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/xss"
+	"github.com/spf13/cast"
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -117,34 +118,7 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 			}
 		}
 
-		// Per field type validators
-		switch kind {
-		case "bool":
-			v.Value = sBool(v.Value)
-
-		case "datetime":
-			v.Value = sDatetime(v.Value, f.Options.Bool("onlyDate"), f.Options.Bool("onlyTime"))
-
-		case "number":
-			v.Value = sNumber(v.Value, f.Options.Precision())
-
-		case "string":
-			v.Value = sString(v.Value)
-
-			// Uncomment when they become relevant for sanitization
-			//case "email":
-			//	v = s.sEmail(v, f, m)
-			//case "file":
-			//	v = s.sFile(v, f, m)
-			//case "record":
-			//	v = s.sRecord(v, f, m)
-			//case "select":
-			//	v = s.sSelect(v, f, m)
-			//case "url":
-			//	v = s.sUrl(v, f, m)
-			//case "user":
-			//	v = s.sUser(v, f, m)
-		}
+		v.Value = sanitize(f, v.Value)
 	}
 
 	return
@@ -284,8 +258,13 @@ func sNumber(num interface{}, p uint) string {
 	return str
 }
 
-func sString(str string) string {
-	return xss.RichText(str)
+func sString(str interface{}) string {
+	base, err := cast.ToStringE(str)
+	if err != nil {
+		return ""
+	}
+
+	return xss.RichText(base)
 }
 
 // sanitize casts value to field kind format
@@ -297,6 +276,8 @@ func sanitize(f *types.ModuleField, v interface{}) string {
 		v = sDatetime(v, f.Options.Bool("onlyDate"), f.Options.Bool("onlyTime"))
 	case "number":
 		v = sNumber(v, f.Options.Precision())
+	case "string":
+		v = sString(v)
 	}
 
 	return fmt.Sprintf("%v", v)
