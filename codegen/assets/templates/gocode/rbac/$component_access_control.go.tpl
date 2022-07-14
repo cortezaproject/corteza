@@ -10,6 +10,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
+	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 {{- range .imports }}
     {{ . }}
 {{- end }}
@@ -103,6 +104,10 @@ func (svc accessControl) Trace(ctx context.Context, userID uint64, roles []uint6
 
 		for _, m := range members {
 			roles = append(roles, m.RoleID)
+		}
+
+		for _, r := range internalAuth.AuthenticatedRoles() {
+			roles = append(roles, r.ID)
 		}
 	}
 
