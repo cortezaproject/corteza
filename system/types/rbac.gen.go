@@ -35,8 +35,8 @@ const (
 	RoleResourceType                      = "corteza::system:role"
 	TemplateResourceType                  = "corteza::system:template"
 	UserResourceType                      = "corteza::system:user"
-	DalConnectionResourceType             = "corteza::system:dal_connection"
-	DalSensitivityLevelResourceType       = "corteza::system:dal_sensitivity_level"
+	DalConnectionResourceType             = "corteza::system:dal-connection"
+	DalSensitivityLevelResourceType       = "corteza::system:dal-sensitivity-level"
 	ComponentResourceType                 = "corteza::system"
 )
 
@@ -372,7 +372,7 @@ func UserRbacResourceTpl() string {
 
 // RbacResource returns string representation of RBAC resource for DalConnection by calling DalConnectionRbacResource fn
 //
-// RBAC resource is in the corteza::system:dal_connection/... format
+// RBAC resource is in the corteza::system:dal-connection/... format
 //
 // This function is auto-generated
 func (r DalConnection) RbacResource() string {
@@ -381,7 +381,7 @@ func (r DalConnection) RbacResource() string {
 
 // DalConnectionRbacResource returns string representation of RBAC resource for DalConnection
 //
-// RBAC resource is in the corteza::system:dal_connection/... format
+// RBAC resource is in the corteza::system:dal-connection/... format
 //
 // This function is auto-generated
 func DalConnectionRbacResource(id uint64) string {
@@ -402,7 +402,7 @@ func DalConnectionRbacResourceTpl() string {
 
 // RbacResource returns string representation of RBAC resource for DalSensitivityLevel by calling DalSensitivityLevelRbacResource fn
 //
-// RBAC resource is in the corteza::system:dal_sensitivity_level/... format
+// RBAC resource is in the corteza::system:dal-sensitivity-level/... format
 //
 // This function is auto-generated
 func (r DalSensitivityLevel) RbacResource() string {
@@ -411,7 +411,7 @@ func (r DalSensitivityLevel) RbacResource() string {
 
 // DalSensitivityLevelRbacResource returns string representation of RBAC resource for DalSensitivityLevel
 //
-// RBAC resource is in the corteza::system:dal_sensitivity_level/... format
+// RBAC resource is in the corteza::system:dal-sensitivity-level/... format
 //
 // This function is auto-generated
 func DalSensitivityLevelRbacResource(id uint64) string {

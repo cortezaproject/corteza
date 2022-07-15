@@ -29,8 +29,8 @@ component: schema.#component & {
 		"settings":              				settings
 		"template":              				template
 		"user":                  				user
-		"dal_connection":        				dal_connection
-		"dal_sensitivity_level": 				dal_sensitivity_level
+		"dal-connection":        				dal_connection
+		"dal-sensitivity-level": 				dal_sensitivity_level
 	}
 
 	rbac: operations: {
