@@ -30,7 +30,7 @@ type (
 	}
 
 	DataPrivacyConfig struct {
-		SensitivityLevel uint64 `json:"sensitivityLevel,string"`
+		SensitivityLevel uint64 `json:"sensitivityLevel,string,omitempty"`
 		UsageDisclosure  string `json:"usageDisclosure"`
 	}
 
