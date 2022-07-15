@@ -10,7 +10,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/system/dalutils"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -19,22 +18,20 @@ type (
 		actionlog actionlog.Recorder
 		store     store.Storer
 		ac        sensitivityLevelAccessController
-		dal       dalSensitivityLevels
+		dal       dalSensitivityLevelManager
 	}
 
 	sensitivityLevelAccessController interface {
 		CanManageDalSensitivityLevel(context.Context) bool
 	}
 
-	dalSensitivityLevels interface {
-		ReloadSensitivityLevels(levels ...dal.SensitivityLevel) (err error)
-		CreateSensitivityLevel(levels ...dal.SensitivityLevel) (err error)
-		UpdateSensitivityLevel(levels ...dal.SensitivityLevel) (err error)
-		DeleteSensitivityLevel(levels ...dal.SensitivityLevel) (err error)
+	dalSensitivityLevelManager interface {
+		ReplaceSensitivityLevel(levels ...dal.SensitivityLevel) (err error)
+		RemoveSensitivityLevel(levels ...uint64) (err error)
 	}
 )
 
-func SensitivityLevel(ctx context.Context, dal dalSensitivityLevels) *dalSensitivityLevel {
+func SensitivityLevel(ctx context.Context, dal dalSensitivityLevelManager) *dalSensitivityLevel {
 	return &dalSensitivityLevel{
 		ac:        DefaultAccessControl,
 		actionlog: DefaultActionlog,
@@ -95,7 +92,7 @@ func (svc *dalSensitivityLevel) Create(ctx context.Context, new *types.DalSensit
 
 		q = new
 
-		return dalutils.DalSensitivityLevelCreate(svc.dal, new)
+		return dalSensitivityLevelReplace(ctx, svc.dal, new)
 	})
 
 	return q, svc.recordAction(ctx, qProps, DalSensitivityLevelActionCreate, err)
@@ -132,7 +129,7 @@ func (svc *dalSensitivityLevel) Update(ctx context.Context, upd *types.DalSensit
 
 		q = upd
 
-		return dalutils.DalSensitivityLevelUpdate(svc.dal, upd)
+		return dalSensitivityLevelReplace(ctx, svc.dal, upd)
 	})
 
 	return q, svc.recordAction(ctx, qProps, DalSensitivityLevelActionUpdate, err)
@@ -184,10 +181,10 @@ func (svc *dalSensitivityLevel) DeleteByID(ctx context.Context, ID uint64) (err 
 			}
 		}
 
-		if err = dalutils.DalSensitivityLevelUpdate(svc.dal, uu...); err != nil {
+		if err = dalSensitivityLevelReplace(ctx, svc.dal, uu...); err != nil {
 			return err
 		}
-		if err = dalutils.DalSensitivityLevelDelete(svc.dal, dd...); err != nil {
+		if err = dalSensitivityLevelRemove(ctx, svc.dal, dd...); err != nil {
 			return err
 		}
 		return nil
@@ -224,7 +221,7 @@ func (svc *dalSensitivityLevel) UndeleteByID(ctx context.Context, ID uint64) (er
 			return
 		}
 
-		return dalutils.DalSensitivityLevelCreate(svc.dal, q)
+		return dalSensitivityLevelReplace(ctx, svc.dal, q)
 	})
 
 	return svc.recordAction(ctx, qProps, DalSensitivityLevelActionDelete, err)
@@ -260,7 +257,7 @@ func (svc *dalSensitivityLevel) Search(ctx context.Context, filter types.DalSens
 }
 
 func (svc *dalSensitivityLevel) ReloadSensitivityLevels(ctx context.Context, s store.Storer) (err error) {
-	return dalutils.DalSensitivityLevelReload(ctx, s, svc.dal)
+	return dalSensitivityLevelReload(ctx, svc.store, svc.dal)
 }
 
 func (svc *dalSensitivityLevel) prepare(ctx context.Context, s store.Storer, sl *types.DalSensitivityLevel) (_ types.DalSensitivityLevelSet, err error) {
@@ -333,4 +330,34 @@ func (svc *dalSensitivityLevel) prepare(ctx context.Context, s store.Storer, sl 
 	}
 
 	return set, err
+}
+
+func dalSensitivityLevelReload(ctx context.Context, s store.Storer, dsm dalSensitivityLevelManager) (err error) {
+	// Get all available sensitivityLevels
+	ll, _, err := store.SearchDalSensitivityLevels(ctx, s, types.DalSensitivityLevelFilter{})
+	if err != nil {
+		return
+	}
+
+	return dalSensitivityLevelReplace(ctx, dsm, ll...)
+}
+
+func dalSensitivityLevelReplace(ctx context.Context, dsm dalSensitivityLevelManager, ll ...*types.DalSensitivityLevel) (err error) {
+	for _, l := range ll {
+		sl := dal.MakeSensitivityLevel(l.ID, l.Level, l.Handle)
+		if err = dsm.ReplaceSensitivityLevel(sl); err != nil {
+			return
+		}
+	}
+
+	return nil
+}
+
+func dalSensitivityLevelRemove(ctx context.Context, dsm dalSensitivityLevelManager, ll ...*types.DalSensitivityLevel) (err error) {
+	dd := make([]uint64, len(ll))
+	for i, l := range ll {
+		dd[i] = l.ID
+	}
+
+	return dsm.RemoveSensitivityLevel(dd...)
 }

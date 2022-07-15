@@ -3,6 +3,8 @@ package dal
 import (
 	"context"
 	"fmt"
+	"strconv"
+
 	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -13,14 +15,7 @@ type (
 	ConnectionWrap struct {
 		connectionID uint64
 
-		// @todo remove it and use value from connection meta
-		label string
-
-		// @todo remove it and use value from connection meta
-		sensitivityLevel uint64
-
-		connection Connection
-
+		connection   Connection
 		params       ConnectionParams
 		meta         ConnectionMeta
 		capabilities capabilities.Set
@@ -60,7 +55,7 @@ type (
 		logger *zap.Logger
 		inDev  bool
 
-		sensitivityLevels sensitivityLevelIndex
+		sensitivityLevels *sensitivityLevelIndex
 
 		connectionIssues dalIssueIndex
 		modelIssues      dalIssueIndex
@@ -80,8 +75,9 @@ func SetGlobal(svc *service) {
 // It needs an established and working connection to the primary store
 func New(log *zap.Logger, inDev bool) (*service, error) {
 	svc := &service{
-		connections: make(map[uint64]*ConnectionWrap),
-		models:      make(map[uint64]ModelSet),
+		connections:       make(map[uint64]*ConnectionWrap),
+		models:            make(map[uint64]ModelSet),
+		sensitivityLevels: SensitivityLevelIndex(),
 
 		logger: log,
 		inDev:  inDev,
@@ -115,66 +111,87 @@ func (svc *service) Drivers() (drivers []Driver) {
 	return
 }
 
-func (svc *service) ReloadSensitivityLevels(levels ...SensitivityLevel) (err error) {
-	svc.logger.Debug("reloading sensitivity levels", zap.Any("sensitivity levels", levels))
-	newLevelIndex := svc.newSensitivityLevelIndex(levels)
+func MakeSensitivityLevel(ID uint64, level int, handle string) SensitivityLevel {
+	return SensitivityLevel{
+		ID:     ID,
+		Level:  level,
+		Handle: handle,
+	}
+}
+
+func (svc *service) ReplaceSensitivityLevel(levels ...SensitivityLevel) (err error) {
+	var (
+		log = svc.logger.Named("sensitivity level")
+	)
+
+	log.Debug("replacing levels", zap.Any("levels", levels))
+
+	if svc.sensitivityLevels == nil {
+		svc.sensitivityLevels = SensitivityLevelIndex()
+	}
+	nx := svc.sensitivityLevels
+
+	for _, l := range levels {
+		log := log.With(zap.Uint64("ID", l.ID), zap.Int("level", l.Level), zap.String("handle", l.Handle))
+		if nx.includes(l.ID) {
+			log.Debug("found existing")
+		} else {
+			log.Debug("adding new")
+		}
+	}
+
+	nx = svc.sensitivityLevels.with(levels...)
 
 	// Validate state after sensitivity level change
-	if err = svc.validateNewSensitivityLevels(newLevelIndex); err != nil {
+	log.Debug("validating new levels")
+	if err = svc.validateNewSensitivityLevels(nx); err != nil {
 		return
 	}
 
-	// Replace old ones
-	svc.sensitivityLevels = newLevelIndex
+	// Replace the old one
+	svc.sensitivityLevels = nx
 
 	svc.logger.Debug("reloaded sensitivity levels")
 	return
 }
 
-func (svc *service) CreateSensitivityLevel(levels ...SensitivityLevel) (err error) {
-	svc.logger.Debug("creating sensitivity levels", zap.Any("sensitivity levels", levels))
-	newIndex := svc.newAddedSensitivityLevelIndex(svc.sensitivityLevels, levels...)
+func (svc *service) RemoveSensitivityLevel(levelIDs ...uint64) (err error) {
+	var (
+		log = svc.logger.Named("sensitivity level")
+	)
+
+	log.Debug("removing levels", zap.Any("levels", levelIDs))
+
+	levels := make(SensitivityLevelSet, len(levelIDs))
+	for i, lID := range levelIDs {
+		levels[i] = MakeSensitivityLevel(lID, i, strconv.FormatUint(lID, 10))
+	}
+
+	if svc.sensitivityLevels == nil {
+		svc.sensitivityLevels = SensitivityLevelIndex()
+	}
+	nx := svc.sensitivityLevels
+
+	for _, l := range levels {
+		log := log.With(zap.Uint64("ID", l.ID))
+		if !nx.includes(l.ID) {
+			log.Debug("sensitivity level not found")
+			return errSensitivityLevelRemoveNotFound(l.ID)
+		}
+	}
+
+	nx = svc.sensitivityLevels.without(levels...)
 
 	// Validate state after sensitivity level change
-	if err = svc.validateNewSensitivityLevels(newIndex); err != nil {
+	log.Debug("validating new levels")
+	if err = svc.validateNewSensitivityLevels(nx); err != nil {
 		return
 	}
 
-	// Replace old ones
-	svc.sensitivityLevels = newIndex
-	svc.logger.Debug("created sensitivity levels")
-	return
-}
+	// Replace the old one
+	svc.sensitivityLevels = nx
 
-func (svc *service) UpdateSensitivityLevel(levels ...SensitivityLevel) (err error) {
-	svc.logger.Debug("updating sensitivity levels", zap.Any("sensitivity levels", levels))
-	newIndex := svc.newRemovedSensitivityLevelIndex(svc.sensitivityLevels, levels...)
-	newIndex = svc.newAddedSensitivityLevelIndex(newIndex, levels...)
-
-	// Validate state after sensitivity level change
-	if err = svc.validateNewSensitivityLevels(newIndex); err != nil {
-		return
-	}
-
-	// Replace old ones
-	svc.sensitivityLevels = newIndex
-	svc.logger.Debug("updated sensitivity levels")
-	return
-}
-
-func (svc *service) DeleteSensitivityLevel(levels ...SensitivityLevel) (err error) {
-	svc.logger.Debug("deleting sensitivity levels", zap.Any("sensitivity levels", levels))
-	newIndex := svc.newRemovedSensitivityLevelIndex(svc.sensitivityLevels, levels...)
-
-	// Validate state after sensitivity level change
-	if err = svc.validateNewSensitivityLevels(newIndex); err != nil {
-		return
-	}
-
-	// Replace old ones
-	svc.sensitivityLevels = newIndex
-	svc.logger.Debug("deleted sensitivity levels")
-
+	svc.logger.Debug("removed sensitivity levels")
 	return
 }
 
@@ -189,12 +206,8 @@ func MakeConnection(ID uint64, conn Connection, p ConnectionParams, m Connection
 		connectionID: ID,
 		connection:   conn,
 
-		params: p,
-
-		meta:             m,
-		sensitivityLevel: m.SensitivityLevel,
-		label:            m.Label,
-
+		params:       p,
+		meta:         m,
 		capabilities: cap,
 	}
 }
@@ -228,7 +241,7 @@ func (svc *service) ReplaceConnection(ctx context.Context, cw *ConnectionWrap, i
 		} else if svc.defConnID != ID {
 			// default connection set but ID is different.
 			// this does not make any sense
-			return fmt.Errorf("different ID for default connection detecte (old: %d, new: %d)", svc.defConnID, ID)
+			return fmt.Errorf("different ID for default connection detected (old: %d, new: %d)", svc.defConnID, ID)
 		}
 	}
 
@@ -522,8 +535,8 @@ func (svc *service) CreateModel(ctx context.Context, models ...*Model) (err erro
 			issues.addModelIssue(model.ConnectionID, model.ResourceID, errModelCreateMissingSensitivityLevel(model.ConnectionID, model.ResourceID, model.SensitivityLevel))
 		} else {
 			// Only check if it is present
-			if !svc.sensitivityLevels.isSubset(model.SensitivityLevel, conn.sensitivityLevel) {
-				issues.addModelIssue(model.ConnectionID, model.ResourceID, errModelCreateGreaterSensitivityLevel(model.ConnectionID, model.ResourceID, model.SensitivityLevel, conn.sensitivityLevel))
+			if !svc.sensitivityLevels.isSubset(model.SensitivityLevel, conn.meta.SensitivityLevel) {
+				issues.addModelIssue(model.ConnectionID, model.ResourceID, errModelCreateGreaterSensitivityLevel(model.ConnectionID, model.ResourceID, model.SensitivityLevel, conn.meta.SensitivityLevel))
 			}
 		}
 		// - attributes
@@ -722,8 +735,8 @@ func (svc *service) UpdateModel(ctx context.Context, old *Model, new *Model) (er
 		if !svc.sensitivityLevels.includes(new.SensitivityLevel) {
 			issues.addModelIssue(new.ConnectionID, new.ResourceID, errModelUpdateMissingSensitivityLevel(new.ConnectionID, new.ResourceID, new.SensitivityLevel))
 		} else {
-			if !svc.sensitivityLevels.isSubset(new.SensitivityLevel, conn.sensitivityLevel) {
-				issues.addModelIssue(new.ConnectionID, new.ResourceID, errModelUpdateGreaterSensitivityLevel(new.ConnectionID, new.ResourceID, new.SensitivityLevel, conn.sensitivityLevel))
+			if !svc.sensitivityLevels.isSubset(new.SensitivityLevel, conn.meta.SensitivityLevel) {
+				issues.addModelIssue(new.ConnectionID, new.ResourceID, errModelUpdateGreaterSensitivityLevel(new.ConnectionID, new.ResourceID, new.SensitivityLevel, conn.meta.SensitivityLevel))
 			}
 		}
 
@@ -988,66 +1001,7 @@ func (svc *service) getModelByFilter(mf ModelFilter) *Model {
 	return svc.FindModelByResourceIdent(mf.ConnectionID, mf.ResourceType, mf.Resource)
 }
 
-func (svc *service) newAddedSensitivityLevelIndex(sli sensitivityLevelIndex, add ...SensitivityLevel) (out sensitivityLevelIndex) {
-	newLevels := make(SensitivityLevelSet, 0, len(sli.set)+len(add))
-
-	var (
-		i = 0
-		j = 0
-	)
-
-	for i < len(sli.set) {
-		for j < len(add) {
-			if sli.set[i].Level <= add[j].Level {
-				newLevels = append(newLevels, sli.set[i])
-				i++
-			}
-			if sli.set[i].Level > add[j].Level {
-				newLevels = append(newLevels, add[j])
-				j++
-			}
-		}
-	}
-
-	if j < len(add)-1 {
-		newLevels = append(newLevels, add[j:]...)
-	}
-
-	return svc.newSensitivityLevelIndex(newLevels)
-}
-
-func (svc *service) newRemovedSensitivityLevelIndex(sli sensitivityLevelIndex, remove ...SensitivityLevel) (out sensitivityLevelIndex) {
-	newLevels := make(SensitivityLevelSet, 0, len(sli.set)+len(remove))
-
-	removeSet := SensitivityLevelSet(remove)
-
-	for _, l := range sli.set {
-		if !removeSet.includes(l.ID) {
-			newLevels = append(newLevels, l)
-		}
-	}
-
-	return svc.newSensitivityLevelIndex(newLevels)
-}
-
-func (svc *service) newSensitivityLevelIndex(levels SensitivityLevelSet) (out sensitivityLevelIndex) {
-	out = sensitivityLevelIndex{
-		byID:     make(map[uint64]int),
-		byHandle: make(map[string]int),
-		set:      make(SensitivityLevelSet, len(levels)),
-	}
-
-	for i, l := range levels {
-		out.set[i] = l
-
-		out.byID[l.ID] = i
-		out.byHandle[l.Handle] = i
-	}
-
-	return
-}
-
-func (svc *service) validateNewSensitivityLevels(levels sensitivityLevelIndex) (err error) {
+func (svc *service) validateNewSensitivityLevels(levels *sensitivityLevelIndex) (err error) {
 	err = func() (err error) {
 		cIndex := make(map[uint64]*ConnectionWrap)
 
@@ -1056,8 +1010,8 @@ func (svc *service) validateNewSensitivityLevels(levels sensitivityLevelIndex) (
 			c := _c
 			cIndex[c.connectionID] = c
 
-			if !levels.includes(c.sensitivityLevel) {
-				return fmt.Errorf("connection sensitivity level missing %d", c.sensitivityLevel)
+			if !levels.includes(c.meta.SensitivityLevel) {
+				return fmt.Errorf("connection sensitivity level missing %d", c.meta.SensitivityLevel)
 			}
 		}
 
@@ -1067,7 +1021,7 @@ func (svc *service) validateNewSensitivityLevels(levels sensitivityLevelIndex) (
 				if !levels.includes(m.SensitivityLevel) {
 					return fmt.Errorf("model sensitivity level missing %d", m.SensitivityLevel)
 				}
-				if !levels.isSubset(m.SensitivityLevel, cIndex[m.ConnectionID].sensitivityLevel) {
+				if !levels.isSubset(m.SensitivityLevel, cIndex[m.ConnectionID].meta.SensitivityLevel) {
 					return fmt.Errorf("model sensitivity level missing %d", m.SensitivityLevel)
 				}
 
