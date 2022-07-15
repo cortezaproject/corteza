@@ -1,5 +1,7 @@
 package dal
 
+import "sort"
+
 type (
 	SensitivityLevel struct {
 		Handle string
@@ -30,6 +32,29 @@ func SensitivityLevelIndex(levels ...SensitivityLevel) *sensitivityLevelIndex {
 	}
 
 	return out
+}
+
+func (sli sensitivityLevelIndex) with(levels ...SensitivityLevel) *sensitivityLevelIndex {
+	slvls := append(sli.set, levels...)
+	sort.Sort(slvls)
+
+	return SensitivityLevelIndex(slvls...)
+}
+
+func (sli sensitivityLevelIndex) without(levels ...SensitivityLevel) *sensitivityLevelIndex {
+	nn := make(SensitivityLevelSet, 0, len(sli.set))
+
+	remIndex := SensitivityLevelIndex(levels...)
+
+	for _, existing := range sli.set {
+		if !remIndex.includes(existing.ID) {
+			nn = append(nn, existing)
+		}
+	}
+
+	sort.Sort(nn)
+
+	return SensitivityLevelIndex(nn...)
 }
 
 func (sli sensitivityLevelIndex) includes(l uint64) (ok bool) {
@@ -69,10 +94,6 @@ func (sli sensitivityLevelIndex) isSubset(a, b uint64) (ok bool) {
 	return lvlA <= lvlB
 }
 
-func (ss SensitivityLevelSet) includes(l uint64) (ok bool) {
-	for _, s := range ss {
-		ok = ok || s.ID == l
-	}
-
-	return
-}
+func (a SensitivityLevelSet) Len() int           { return len(a) }
+func (a SensitivityLevelSet) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a SensitivityLevelSet) Less(i, j int) bool { return a[i].Level < a[j].Level }

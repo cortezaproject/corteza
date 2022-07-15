@@ -14,6 +14,12 @@ func errConnectionNotFound(connectionID uint64) error {
 	return fmt.Errorf("connection %d does not exist", connectionID)
 }
 
+// Sensitivity level errors
+// - remove
+func errSensitivityLevelRemoveNotFound(sensitivityLevelID uint64) error {
+	return fmt.Errorf("cannot remove sensitivity level %d: sensitivity level does not exist", sensitivityLevelID)
+}
+
 // Connection errors
 // - create
 func errConnectionCreateMissingSensitivityLevel(connectionID, sensitivityLevelID uint64) error {
