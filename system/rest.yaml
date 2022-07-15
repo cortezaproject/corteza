@@ -893,7 +893,7 @@ endpoints:
         title: ownership
       - name: sensitivityLevel
         type: uint64
-        required: true
+        required: false
         title: sensitivityLevel
 
       - name: config
@@ -941,7 +941,7 @@ endpoints:
         title: ownership
       - name: sensitivityLevel
         type: uint64
-        required: true
+        required: false
         title: sensitivityLevel
 
       - name: config
