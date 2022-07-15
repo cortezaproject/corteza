@@ -22,7 +22,7 @@ type (
 
 		Location         geolocation.Full `json:"location"`
 		Ownership        string           `json:"ownership"`
-		SensitivityLevel uint64           `json:"sensitivityLevel,string"`
+		SensitivityLevel uint64           `json:"sensitivityLevel,string,omitempty"`
 
 		Issues []string `json:"issues,omitempty" db:"-"`
 
