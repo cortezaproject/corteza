@@ -793,14 +793,26 @@ func (svc *service) ReplaceModelAttribute(ctx context.Context, model *Model, old
 }
 
 func (svc *service) FindModelByResourceID(connectionID uint64, resourceID uint64) *Model {
+	if connectionID == 0 {
+		connectionID = svc.defConnID
+	}
+
 	return svc.models[connectionID].FindByResourceID(resourceID)
 }
 
 func (svc *service) FindModelByResourceIdent(connectionID uint64, resourceType, resourceIdent string) *Model {
+	if connectionID == 0 {
+		connectionID = svc.defConnID
+	}
+
 	return svc.models[connectionID].FindByResourceIdent(resourceType, resourceIdent)
 }
 
 func (svc *service) FindModelByIdent(connectionID uint64, ident string) *Model {
+	if connectionID == 0 {
+		connectionID = svc.defConnID
+	}
+
 	return svc.models[connectionID].FindByIdent(ident)
 }
 
