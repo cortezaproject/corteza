@@ -70,6 +70,19 @@ func (c *SingleValueColumn) Decode(raw any, r dal.ValueSetter) error {
 		return err
 	}
 
+	// now, encode the value according to JSON format constraints
+	switch c.attr.Type.(type) {
+	case *dal.TypeBoolean:
+		// for backward compatibility reasons
+		// we need to cast true bool values to "1"
+		// and use "" for other (false) values
+		if cast.ToBool(value) {
+			value = "1"
+		} else {
+			value = ""
+		}
+	}
+
 	ident := c.attr.Ident
 	if !valid {
 		return r.SetValue(ident, 0, nil)
