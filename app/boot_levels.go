@@ -679,7 +679,10 @@ func updateLocaleSettings(opt options.LocaleOpt) {
 		} else {
 			// when resource translation is disabled,
 			// add only default (first) language to the list
-			out = append(out, locale.Global().Default().Tag.String())
+			def := locale.Global().Default()
+			if def != nil {
+				out = append(out, def.Tag.String())
+			}
 		}
 
 		appSettings.ResourceTranslations.Languages = out
