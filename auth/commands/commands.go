@@ -18,6 +18,7 @@ import (
 type (
 	serviceInitializer interface {
 		InitServices(ctx context.Context) error
+		Activate(ctx context.Context) error
 		Options() *options.Options
 	}
 )
@@ -25,6 +26,12 @@ type (
 func commandPreRunInitService(app serviceInitializer) func(*cobra.Command, []string) error {
 	return func(_ *cobra.Command, _ []string) error {
 		return app.InitServices(cli.Context())
+	}
+}
+
+func commandPreRunInitActivate(app serviceInitializer) func(*cobra.Command, []string) error {
+	return func(_ *cobra.Command, _ []string) error {
+		return app.Activate(cli.Context())
 	}
 }
 
@@ -151,7 +158,7 @@ func Command(ctx context.Context, app serviceInitializer, storeInit func(ctx con
 		Use:     "test-notifications [recipient]",
 		Short:   "Sends samples of all authentication notification to recipient",
 		Args:    cobra.ExactArgs(1),
-		PreRunE: commandPreRunInitService(app),
+		PreRunE: commandPreRunInitActivate(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
 				err error
