@@ -3,13 +3,14 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"reflect"
 	"sort"
 	"strconv"
+	"strings"
 
-	"github.com/cortezaproject/corteza-server/compose/dalutils"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
+
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -21,6 +22,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"github.com/cortezaproject/corteza-server/store"
+	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -31,7 +33,7 @@ type (
 		store     store.Storer
 		locale    ResourceTranslationsManagerService
 
-		dal dalService
+		dal dalModelManager
 	}
 
 	moduleAccessController interface {
@@ -63,6 +65,20 @@ type (
 	moduleUpdateHandler func(ctx context.Context, ns *types.Namespace, c *types.Module) (moduleChanges, error)
 
 	moduleChanges uint8
+
+	// Model management on DAL Service
+	dalModelManager interface {
+		GetConnectionMeta(ctx context.Context, ID uint64) (cm dal.ConnectionMeta, err error)
+
+		ReplaceModel(context.Context, *dal.Model) error
+		RemoveModel(ctx context.Context, connectionID, ID uint64) error
+		ReplaceModelAttribute(ctx context.Context, model *dal.Model, old, new *dal.Attribute, trans ...dal.TransformationFunction) (err error)
+		SearchModelIssues(connectionID, ID uint64) []error
+	}
+
+	dalIdentFormatter interface {
+		Format(ctx context.Context, template string) (out string, ok bool)
+	}
 )
 
 const (
@@ -70,6 +86,36 @@ const (
 	moduleChanged       moduleChanges = 1
 	moduleLabelsChanged moduleChanges = 2
 	moduleFieldsChanged moduleChanges = 4
+)
+
+const (
+	// https://www.rfc-editor.org/errata/eid1690
+	emailLength = 254
+
+	// Generally the upper most limit
+	urlLength = 2048
+
+	sysID          = "ID"
+	sysNamespaceID = "namespaceID"
+	sysModuleID    = "moduleID"
+	sysCreatedAt   = "createdAt"
+	sysCreatedBy   = "createdBy"
+	sysUpdatedAt   = "updatedAt"
+	sysUpdatedBy   = "updatedBy"
+	sysDeletedAt   = "deletedAt"
+	sysDeletedBy   = "deletedBy"
+	sysOwnedBy     = "ownedBy"
+
+	colSysID          = "id"
+	colSysNamespaceID = "rel_namespace"
+	colSysModuleID    = "module_id"
+	colSysCreatedAt   = "created_at"
+	colSysCreatedBy   = "created_by"
+	colSysUpdatedAt   = "updated_at"
+	colSysUpdatedBy   = "updated_by"
+	colSysDeletedAt   = "deleted_at"
+	colSysDeletedBy   = "deleted_by"
+	colSysOwnedBy     = "owned_by"
 )
 
 var (
@@ -352,7 +398,7 @@ func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module,
 			return
 		}
 
-		if err = dalutils.ComposeModuleCreate(ctx, svc.dal, ns, new); err != nil {
+		if err = dalModelReplace(ctx, svc.dal, ns, new); err != nil {
 			return err
 		}
 
@@ -381,7 +427,7 @@ func (svc module) UndeleteByID(ctx context.Context, namespaceID, moduleID uint64
 //
 // Directly using store so we don't spam the action log
 func (svc *module) ReloadDALModels(ctx context.Context) (err error) {
-	return dalutils.ComposeModulesReload(ctx, svc.store, svc.dal)
+	return dalModelReload(ctx, svc.store, svc.dal)
 }
 
 // FindSensitive will list all module with at least one private module field
@@ -513,17 +559,17 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 			if err = svc.eventbus.WaitFor(ctx, event.ModuleAfterUpdate(m, old, ns)); err != nil {
 				return err
 			}
-			if err = dalutils.ComposeModuleUpdate(ctx, svc.dal, ns, old, m); err != nil {
+			if err = dalModelReplace(ctx, svc.dal, ns, old, m); err != nil {
 				return err
 			}
-			if err = dalutils.ComposeModuleFieldsUpdate(ctx, svc.dal, ns, old, m); err != nil {
+			if err = dalAttributeReplace(ctx, svc.dal, ns, old, m); err != nil {
 				return err
 			}
 		} else {
 			if err = svc.eventbus.WaitFor(ctx, event.ModuleAfterDelete(nil, old, ns)); err != nil {
 				return
 			}
-			if err = dalutils.ComposeModuleDelete(ctx, svc.dal, ns, m); err != nil {
+			if err = dalModelRemove(ctx, svc.dal, m); err != nil {
 				return err
 			}
 		}
@@ -899,7 +945,7 @@ func loadModuleFields(ctx context.Context, s store.Storer, mm ...*types.Module) 
 
 	for _, m := range mm {
 		m.Fields = ff.FilterByModule(m.ID)
-		_ = m.Fields.Walk(func(f *types.ModuleField) error {
+		m.Fields.Walk(func(f *types.ModuleField) error {
 			f.NamespaceID = m.NamespaceID
 			return nil
 		})
@@ -978,4 +1024,407 @@ func loadModuleLabels(ctx context.Context, s store.Labels, set ...*types.Module)
 	}
 
 	return nil
+}
+
+// dalModelReload reloads all defined compose modules into the DAL
+func dalModelReload(ctx context.Context, s store.Storer, dmm dalModelManager) (err error) {
+	// Get all available namespaces
+	nn, _, err := store.SearchComposeNamespaces(ctx, s, types.NamespaceFilter{})
+	if err != nil {
+		return
+	}
+
+	// Get all available connections
+	mm, _, err := store.SearchComposeModules(ctx, s, types.ModuleFilter{})
+	if err != nil {
+		return
+	}
+	err = loadModuleFields(ctx, s, mm...)
+	if err != nil {
+		return err
+	}
+
+	// Reload!
+	for _, ns := range nn {
+		err = dalModelReplace(ctx, dmm, ns, modulesForNamespace(ns, mm)...)
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// modulesForNamespace returns all of the modules belonging to that namespace
+// @todo implement some indexing at an earlier step for faster processing; will do for now
+func modulesForNamespace(ns *types.Namespace, mm types.ModuleSet) (out types.ModuleSet) {
+	out = make(types.ModuleSet, 0, len(mm))
+	for _, m := range mm {
+		if m.NamespaceID == ns.ID {
+			out = append(out, m)
+		}
+	}
+	return
+}
+
+// Replaces all given connections
+func dalModelReplace(ctx context.Context, dmm dalModelManager, ns *types.Namespace, modules ...*types.Module) (err error) {
+	var (
+		models dal.ModelSet
+	)
+
+	models, err = moduleToModel(ctx, dmm, ns, modules...)
+	if err != nil {
+		return
+	}
+
+	for _, m := range models {
+		err = dmm.ReplaceModel(ctx, m)
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func dalAttributeReplace(ctx context.Context, dmm dalModelManager, ns *types.Namespace, old, new *types.Module) (err error) {
+	oldModel, err := moduleToModel(ctx, dmm, ns, old)
+	if err != nil {
+		return
+	}
+	newModel, err := moduleToModel(ctx, dmm, ns, new)
+	if err != nil {
+		return
+	}
+
+	diff := oldModel[0].Diff(newModel[0])
+	for _, d := range diff {
+		if err = dmm.ReplaceModelAttribute(ctx, oldModel[0], d.Original, d.Asserted); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Removes a connection from DAL service
+func dalModelRemove(ctx context.Context, dmm dalModelManager, mm ...*types.Module) (err error) {
+	for _, m := range mm {
+		if err = dmm.RemoveModel(ctx, m.ModelConfig.ConnectionID, m.ID); err != nil {
+			return err
+		}
+	}
+
+	return
+}
+
+func moduleToModel(ctx context.Context, dmm dalModelManager, ns *types.Namespace, modules ...*types.Module) (out dal.ModelSet, err error) {
+	var (
+		cm      dal.ConnectionMeta
+		attrAux dal.AttributeSet
+		ok      bool
+	)
+
+	for connectionID, modules := range modulesByConnection(modules...) {
+		// Get the connection meta
+		cm, err = dmm.GetConnectionMeta(ctx, connectionID)
+		if err != nil {
+			return
+		}
+
+		// Prepare the ident formatter for this connection
+		ff := dal.IdentFormatter(formatterNamespaceParams(ns)...)
+		if cm.PartitionValidator != "" {
+			ff, err = ff.WithValidationE(cm.PartitionValidator, nil)
+			if err != nil {
+				return
+			}
+		}
+
+		// Convert all modules to models
+		for _, mod := range modules {
+			// - base params
+			model := &dal.Model{
+				ConnectionID:     connectionID,
+				Label:            mod.Handle,
+				Resource:         mod.RbacResource(),
+				ResourceID:       mod.ID,
+				ResourceType:     types.ModuleResourceType,
+				SensitivityLevel: mod.Privacy.SensitivityLevel,
+				Capabilities:     mod.ModelConfig.Capabilities,
+			}
+
+			// - make the model ident
+			ident := cm.DefaultModelIdent
+			if mod.ModelConfig.Partitioned {
+				tpl := mod.ModelConfig.PartitionFormat
+				if tpl == "" {
+					tpl = cm.DefaultPartitionFormat
+				}
+
+				ident, ok = ff.Format(ctx, tpl, formatterModuleParams(mod)...)
+				if !ok {
+					err = fmt.Errorf("invalid model ident generated: %s", ident)
+					return
+				}
+			}
+			model.Ident = ident
+
+			// Convert user-defined fields to attributes
+			attrAux, err = moduleFieldsToAttributes(ctx, cm, ns, mod)
+			if err != nil {
+				return
+			}
+			model.Attributes = append(model.Attributes, attrAux...)
+
+			// Convert system fields to attribute
+			attrAux, err = moduleSystemFieldsToAttributes(ctx, cm, ns, mod)
+			if err != nil {
+				return
+			}
+			model.Attributes = append(model.Attributes, attrAux...)
+
+			out = append(out, model)
+		}
+	}
+
+	return
+}
+
+// moduleFieldsToAttributes converts all user-defined module fields to attributes
+func moduleFieldsToAttributes(ctx context.Context, cm dal.ConnectionMeta, ns *types.Namespace, mod *types.Module) (out dal.AttributeSet, err error) {
+	out = make(dal.AttributeSet, 0, len(mod.Fields))
+	var (
+		attr *dal.Attribute
+	)
+
+	for _, f := range mod.Fields {
+		attr, err = moduleFieldToAttribute(ctx, cm, mod, f)
+		if err != nil {
+			return
+		}
+		out = append(out, attr)
+	}
+
+	return
+}
+
+// moduleSystemFieldsToAttributes converts all system-defined module fields to attributes
+func moduleSystemFieldsToAttributes(ctx context.Context, cm dal.ConnectionMeta, ns *types.Namespace, mod *types.Module) (out dal.AttributeSet, err error) {
+	if mod.ModelConfig.Partitioned {
+		return partitionedModuleSystemFieldsToAttributes(cm, mod), nil
+	}
+	return defaultModuleSystemFieldsToAttributes(), nil
+}
+
+// partitionedModuleSystemFieldsToAttributes converts all system-defined module fields to attributes
+// keeping user-defined codec in mind
+func partitionedModuleSystemFieldsToAttributes(cm dal.ConnectionMeta, mod *types.Module) (out dal.AttributeSet) {
+	sysEnc := mod.ModelConfig.SystemFieldEncoding
+
+	if sysEnc.ID != nil {
+		out = append(out, dal.PrimaryAttribute(sysID, modelFieldCodec(cm, mod, &types.ModuleField{Name: sysID, EncodingStrategy: *sysEnc.ID})))
+	}
+
+	if sysEnc.ModuleID != nil {
+		out = append(out, dal.FullAttribute(sysModuleID, &dal.TypeID{}, modelFieldCodec(cm, mod, &types.ModuleField{Name: sysModuleID, EncodingStrategy: *sysEnc.ModuleID})))
+	}
+	if sysEnc.NamespaceID != nil {
+		out = append(out, dal.FullAttribute(sysNamespaceID, &dal.TypeID{}, modelFieldCodec(cm, mod, &types.ModuleField{Name: sysNamespaceID, EncodingStrategy: *sysEnc.NamespaceID})))
+	}
+
+	if sysEnc.OwnedBy != nil {
+		out = append(out, dal.FullAttribute(sysOwnedBy, &dal.TypeID{}, modelFieldCodec(cm, mod, &types.ModuleField{Name: sysOwnedBy, EncodingStrategy: *sysEnc.OwnedBy})))
+	}
+
+	if sysEnc.CreatedAt != nil {
+		out = append(out, dal.FullAttribute(sysCreatedAt, &dal.TypeTimestamp{}, modelFieldCodec(cm, mod, &types.ModuleField{Name: sysCreatedAt, EncodingStrategy: *sysEnc.CreatedAt})))
+	}
+	if sysEnc.CreatedBy != nil {
+		out = append(out, dal.FullAttribute(sysCreatedBy, &dal.TypeID{}, modelFieldCodec(cm, mod, &types.ModuleField{Name: sysCreatedBy, EncodingStrategy: *sysEnc.CreatedBy})))
+	}
+
+	if sysEnc.UpdatedAt != nil {
+		out = append(out, dal.FullAttribute(sysUpdatedAt, &dal.TypeTimestamp{Nullable: true}, modelFieldCodec(cm, mod, &types.ModuleField{Name: sysUpdatedAt, EncodingStrategy: *sysEnc.UpdatedAt})))
+	}
+	if sysEnc.UpdatedBy != nil {
+		out = append(out, dal.FullAttribute(sysUpdatedBy, &dal.TypeID{Nullable: true}, modelFieldCodec(cm, mod, &types.ModuleField{Name: sysUpdatedBy, EncodingStrategy: *sysEnc.UpdatedBy})))
+	}
+
+	if sysEnc.DeletedAt != nil {
+		out = append(out, dal.FullAttribute(sysDeletedAt, &dal.TypeTimestamp{Nullable: true}, modelFieldCodec(cm, mod, &types.ModuleField{Name: sysDeletedAt, EncodingStrategy: *sysEnc.DeletedAt})))
+	}
+	if sysEnc.DeletedBy != nil {
+		out = append(out, dal.FullAttribute(sysDeletedBy, &dal.TypeID{Nullable: true}, modelFieldCodec(cm, mod, &types.ModuleField{Name: sysDeletedBy, EncodingStrategy: *sysEnc.DeletedBy})))
+	}
+
+	return
+}
+
+// defaultModuleSystemFieldsToAttributes converts all system-defined module fields to attributes
+// assuming no user-defined codec provided
+func defaultModuleSystemFieldsToAttributes() dal.AttributeSet {
+	return dal.AttributeSet{
+		dal.PrimaryAttribute(sysID, &dal.CodecAlias{Ident: colSysID}),
+
+		dal.FullAttribute(sysModuleID, &dal.TypeID{}, &dal.CodecAlias{Ident: colSysModuleID}),
+		dal.FullAttribute(sysNamespaceID, &dal.TypeID{}, &dal.CodecAlias{Ident: colSysNamespaceID}),
+
+		dal.FullAttribute(sysOwnedBy, &dal.TypeID{}, &dal.CodecAlias{Ident: colSysOwnedBy}),
+
+		dal.FullAttribute(sysCreatedAt, &dal.TypeTimestamp{}, &dal.CodecAlias{Ident: colSysCreatedAt}),
+		dal.FullAttribute(sysCreatedBy, &dal.TypeID{}, &dal.CodecAlias{Ident: colSysCreatedBy}),
+
+		dal.FullAttribute(sysUpdatedAt, &dal.TypeTimestamp{Nullable: true}, &dal.CodecAlias{Ident: colSysUpdatedAt}),
+		dal.FullAttribute(sysUpdatedBy, &dal.TypeID{Nullable: true}, &dal.CodecAlias{Ident: colSysUpdatedBy}),
+
+		dal.FullAttribute(sysDeletedAt, &dal.TypeTimestamp{Nullable: true}, &dal.CodecAlias{Ident: colSysDeletedAt}),
+		dal.FullAttribute(sysDeletedBy, &dal.TypeID{Nullable: true}, &dal.CodecAlias{Ident: colSysDeletedBy}),
+	}
+}
+
+// moduleFieldToAttribute converts the given module field to a DAL attribute
+func moduleFieldToAttribute(ctx context.Context, cm dal.ConnectionMeta, mod *types.Module, f *types.ModuleField) (out *dal.Attribute, err error) {
+	kind := f.Kind
+	if kind == "" {
+		kind = "String"
+	}
+
+	switch strings.ToLower(kind) {
+	case "bool", "boolean":
+		at := &dal.TypeBoolean{}
+		out = dal.FullAttribute(f.Name, at, modelFieldCodec(cm, mod, f))
+	case "datetime":
+		switch {
+		case f.IsDateOnly():
+			at := &dal.TypeDate{}
+			out = dal.FullAttribute(f.Name, at, modelFieldCodec(cm, mod, f))
+		case f.IsTimeOnly():
+			at := &dal.TypeTime{}
+			out = dal.FullAttribute(f.Name, at, modelFieldCodec(cm, mod, f))
+		default:
+			at := &dal.TypeTimestamp{}
+			out = dal.FullAttribute(f.Name, at, modelFieldCodec(cm, mod, f))
+		}
+	case "email":
+		at := &dal.TypeText{Length: emailLength}
+		out = dal.FullAttribute(f.Name, at, modelFieldCodec(cm, mod, f))
+	case "file":
+		at := &dal.TypeRef{
+			RefModel:     &dal.Model{Resource: "corteza::system:attachment"},
+			RefAttribute: &dal.Attribute{Ident: "id"},
+		}
+		out = dal.FullAttribute(f.Name, at, modelFieldCodec(cm, mod, f))
+	case "number":
+		at := &dal.TypeNumber{
+			Precision: f.Options.Precision(),
+		}
+		out = dal.FullAttribute(f.Name, at, modelFieldCodec(cm, mod, f))
+	case "record":
+		at := &dal.TypeRef{
+			RefModel: &dal.Model{
+				ResourceID:   f.Options.UInt64("moduleID"),
+				ResourceType: types.ModuleResourceType,
+			},
+			RefAttribute: &dal.Attribute{
+				Ident: "id",
+			},
+		}
+		out = dal.FullAttribute(f.Name, at, modelFieldCodec(cm, mod, f))
+	case "select":
+		at := &dal.TypeEnum{
+			Values: f.SelectOptions(),
+		}
+		out = dal.FullAttribute(f.Name, at, modelFieldCodec(cm, mod, f))
+	case "string":
+		at := &dal.TypeText{
+			Length: 0,
+		}
+		out = dal.FullAttribute(f.Name, at, modelFieldCodec(cm, mod, f))
+	case "url":
+		at := &dal.TypeText{
+			Length: urlLength,
+		}
+		out = dal.FullAttribute(f.Name, at, modelFieldCodec(cm, mod, f))
+	case "user":
+		at := &dal.TypeRef{
+			RefModel: &dal.Model{
+				ResourceType: systemTypes.UserResourceType,
+			},
+			RefAttribute: &dal.Attribute{
+				Ident: "id",
+			},
+		}
+		out = dal.FullAttribute(f.Name, at, modelFieldCodec(cm, mod, f))
+
+	default:
+		return nil, fmt.Errorf("invalid field %s: kind %s not supported", f.Name, f.Kind)
+	}
+
+	out.SensitivityLevel = f.Privacy.SensitivityLevel
+	out.Label = f.Name
+
+	return
+}
+
+// modulesByConnection groups given modules by the common connectionID
+func modulesByConnection(modules ...*types.Module) map[uint64]types.ModuleSet {
+	out := make(map[uint64]types.ModuleSet)
+	for _, mod := range modules {
+		out[mod.ModelConfig.ConnectionID] = append(out[mod.ModelConfig.ConnectionID], mod)
+	}
+
+	return out
+}
+
+// formatterNamespaceParams returns the base namespace params used for ident formatting
+func formatterNamespaceParams(ns *types.Namespace) []string {
+	nsHandle, _ := handle.Cast(nil, ns.Slug, strconv.FormatUint(ns.ID, 10))
+	return []string{
+		"namespace", nsHandle,
+	}
+}
+
+// formatterModuleParams returns the base module params used for ident formatting
+func formatterModuleParams(mod *types.Module) []string {
+	modHandle, _ := handle.Cast(nil, mod.Handle, strconv.FormatUint(mod.ID, 10))
+	return []string{
+		"module", modHandle,
+	}
+}
+
+// modelFieldCodec returns the DAL codec the given module field should use
+func modelFieldCodec(cm dal.ConnectionMeta, mod *types.Module, f *types.ModuleField) (c dal.Codec) {
+	c = baseModelFieldCodec(cm, mod, f)
+
+	switch {
+	case f.EncodingStrategy.EncodingStrategyAlias != nil:
+		c = &dal.CodecAlias{
+			Ident: f.EncodingStrategy.EncodingStrategyAlias.Ident,
+		}
+	case f.EncodingStrategy.EncodingStrategyJSON != nil:
+		c = &dal.CodecRecordValueSetJSON{
+			Ident: f.EncodingStrategy.EncodingStrategyJSON.Ident,
+		}
+	}
+
+	return
+}
+
+// baseModelFieldCodec returns the DAL codec the given module field should use by default
+func baseModelFieldCodec(cm dal.ConnectionMeta, mod *types.Module, f *types.ModuleField) dal.Codec {
+	if mod.ModelConfig.Partitioned {
+		return &dal.CodecPlain{}
+	}
+
+	ident := cm.DefaultAttributeIdent
+	if ident == "" {
+		// @todo put in configs or something
+		ident = "values"
+	}
+
+	return &dal.CodecRecordValueSetJSON{
+		Ident: ident,
+	}
 }

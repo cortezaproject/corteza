@@ -10,13 +10,11 @@ import (
 
 type (
 	dalModeler interface {
-		ModelIdentFormatter(connectionID uint64) (f *dal.IdentFormatter, err error)
+		SearchModels(ctx context.Context) (out dal.ModelSet, err error)
+		ReplaceModel(ctx context.Context, model *dal.Model) (err error)
+		RemoveModel(ctx context.Context, connectionID, ID uint64) (err error)
 
-		ReloadModel(ctx context.Context, models ...*dal.Model) (err error)
-		CreateModel(ctx context.Context, models ...*dal.Model) (err error)
-		UpdateModel(ctx context.Context, old, new *dal.Model) (err error)
-		UpdateModelAttribute(ctx context.Context, model *dal.Model, old, new *dal.Attribute, trans ...dal.TransformationFunction) (err error)
-		DeleteModel(ctx context.Context, models ...*dal.Model) (err error)
+		GetConnectionMeta(ctx context.Context, ID uint64) (cm dal.ConnectionMeta, err error)
 
 		SearchModelIssues(connectionID, resourceID uint64) (out []error)
 	}

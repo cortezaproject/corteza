@@ -51,9 +51,6 @@ func errModelCreateProblematicConnection(connectionID, modelID uint64) error {
 func errModelCreateMissingConnection(connectionID, modelID uint64) error {
 	return fmt.Errorf("cannot create model %d on connection %d: connection does not exist", modelID, connectionID)
 }
-func errModelCreateDuplicate(connectionID, modelID uint64) error {
-	return fmt.Errorf("cannot create model %d on connection %d: model already exists", modelID, connectionID)
-}
 func errModelCreateMissingSensitivityLevel(connectionID, modelID, sensitivityLevelID uint64) error {
 	return fmt.Errorf("cannot create model %d on connection %d: sensitivity level %d does not exist", modelID, connectionID, sensitivityLevelID)
 }
