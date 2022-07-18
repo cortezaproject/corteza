@@ -1,7 +1,7 @@
 {
     "name": "Test Connection",
     "handle": "test_connection",
-    "type": "corteza::system:dal_connection",
+    "type": "corteza::system:dal-connection",
     "location": {
         "geometry": {
             "type": "",

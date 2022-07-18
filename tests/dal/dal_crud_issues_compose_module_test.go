@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/compose/types"
-	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 )
@@ -16,14 +14,8 @@ func Test_dal_crud_issues_compose_module_missing_sensitivity(t *testing.T) {
 	h := newHelperT(t)
 	defer h.cleanupDal()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "module.create")
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "modules.search")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "update")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "delete")
-
+	helpers.AllowMeModuleCRUD(h)
 	ns := h.createNamespace("test")
-
 	aux := &composeModuleRestRsp{}
 
 	rsp := h.apiInit().
@@ -79,14 +71,8 @@ func Test_dal_crud_issues_compose_module_field_missing_sensitivity(t *testing.T)
 	h := newHelperT(t)
 	defer h.cleanupDal()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "module.create")
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "modules.search")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "update")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "delete")
-
+	helpers.AllowMeModuleCRUD(h)
 	ns := h.createNamespace("test")
-
 	aux := &composeModuleRestRsp{}
 
 	rsp := h.apiInit().
@@ -141,17 +127,8 @@ func Test_dal_crud_issues_compose_module_nok_connection(t *testing.T) {
 	h := newHelperT(t)
 	defer h.cleanupDal()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "module.create")
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "modules.search")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "update")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "delete")
-
-	helpers.AllowMe(h, systemTypes.ComponentRbacResource(), "dal-connection.create")
-	helpers.AllowMe(h, systemTypes.ComponentRbacResource(), "dal-connections.search")
-	helpers.AllowMe(h, systemTypes.DalConnectionRbacResource(0), "read")
-	helpers.AllowMe(h, systemTypes.DalConnectionRbacResource(0), "update")
-	helpers.AllowMe(h, systemTypes.DalConnectionRbacResource(0), "delete")
+	helpers.AllowMeModuleCRUD(h)
+	helpers.AllowMeDalConnectionCRUD(h)
 
 	ns := h.createNamespace("test")
 	conn := createConnectionFromGenerics(h.secCtx(), t, "nok_connection_connectivity.json")

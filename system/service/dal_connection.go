@@ -145,22 +145,6 @@ func (svc *dalConnection) Update(ctx context.Context, upd *types.DalConnection) 
 					return fmt.Errorf("can not update connection parameters for primary connection")
 				}
 
-				if old.Handle != upd.Handle {
-					return fmt.Errorf("can not update handle for primary connection")
-				}
-
-				if old.Config.DefaultModelIdent != upd.Config.DefaultModelIdent {
-					return fmt.Errorf("can not update defaultModelIdent for primary connection")
-				}
-
-				if old.Config.DefaultAttributeIdent != upd.Config.DefaultAttributeIdent {
-					return fmt.Errorf("can not update defaultAttributeIdent for primary connection")
-				}
-
-				if old.Handle != upd.Handle {
-					return fmt.Errorf("can not update handle for primary connection")
-				}
-
 				if old.Type != upd.Type {
 					return fmt.Errorf("can not update type for primary connection")
 				}
@@ -245,7 +229,8 @@ func (svc *dalConnection) UndeleteByID(ctx context.Context, ID uint64) (err erro
 		}
 
 		// We're creating it here since it was removed on delete
-		return dalConnectionRemove(ctx, svc.dal, c)
+		// primary connection can't be deleted we're just using nil here.
+		return dalConnectionReplace(ctx, nil, svc.dal, c)
 	}()
 
 	return svc.recordAction(ctx, cProps, DalConnectionActionDelete, err)

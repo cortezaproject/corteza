@@ -30,29 +30,27 @@ type (
 
 	dalService interface {
 		Drivers() (drivers []dal.Driver)
-		ReloadSensitivityLevels(levels ...dal.SensitivityLevel) (err error)
-		CreateSensitivityLevel(levels ...dal.SensitivityLevel) (err error)
-		UpdateSensitivityLevel(levels ...dal.SensitivityLevel) (err error)
-		DeleteSensitivityLevel(levels ...dal.SensitivityLevel) (err error)
-		CreateConnection(ctx context.Context, connectionID uint64, cp dal.ConnectionParams, cm dal.ConnectionMeta, capabilities ...capabilities.Capability) (err error)
-		DeleteConnection(ctx context.Context, connectionID uint64) (err error)
-		UpdateConnection(ctx context.Context, connectionID uint64, cp dal.ConnectionParams, cm dal.ConnectionMeta, capabilities ...capabilities.Capability) (err error)
+
+		ReplaceSensitivityLevel(levels ...dal.SensitivityLevel) (err error)
+		RemoveSensitivityLevel(levelIDs ...uint64) (err error)
+
+		ReplaceConnection(ctx context.Context, cw *dal.ConnectionWrap, isDefault bool) (err error)
+		RemoveConnection(ctx context.Context, ID uint64) (err error)
+
+		SearchModels(ctx context.Context) (out dal.ModelSet, err error)
+		ReplaceModel(ctx context.Context, model *dal.Model) (err error)
+		RemoveModel(ctx context.Context, connectionID, ID uint64) (err error)
+		ReplaceModelAttribute(ctx context.Context, model *dal.Model, old, new *dal.Attribute, trans ...dal.TransformationFunction) (err error)
+		FindModelByResourceID(connectionID uint64, resourceID uint64) *dal.Model
+		FindModelByResourceIdent(connectionID uint64, resourceType, resourceIdent string) *dal.Model
+		FindModelByIdent(connectionID uint64, ident string) *dal.Model
+
 		Create(ctx context.Context, mf dal.ModelFilter, capabilities capabilities.Set, rr ...dal.ValueGetter) (err error)
 		Update(ctx context.Context, mf dal.ModelFilter, capabilities capabilities.Set, rr ...dal.ValueGetter) (err error)
 		Search(ctx context.Context, mf dal.ModelFilter, capabilities capabilities.Set, f filter.Filter) (iter dal.Iterator, err error)
 		Lookup(ctx context.Context, mf dal.ModelFilter, capabilities capabilities.Set, lookup dal.ValueGetter, dst dal.ValueSetter) (err error)
 		Delete(ctx context.Context, mf dal.ModelFilter, capabilities capabilities.Set, vv ...dal.ValueGetter) (err error)
 		Truncate(ctx context.Context, mf dal.ModelFilter, capabilities capabilities.Set) (err error)
-		ReloadModel(ctx context.Context, models ...*dal.Model) (err error)
-		SearchModels(ctx context.Context) (out dal.ModelSet, err error)
-		CreateModel(ctx context.Context, models ...*dal.Model) (err error)
-		DeleteModel(ctx context.Context, models ...*dal.Model) (err error)
-		UpdateModel(ctx context.Context, old, new *dal.Model) (err error)
-		UpdateModelAttribute(ctx context.Context, model *dal.Model, old, new *dal.Attribute, trans ...dal.TransformationFunction) (err error)
-		ModelIdentFormatter(connectionID uint64) (f *dal.IdentFormatter, err error)
-		FindModelByResourceID(connectionID uint64, resourceID uint64) *dal.Model
-		FindModelByResourceIdent(connectionID uint64, resourceType, resourceIdent string) *dal.Model
-		FindModelByIdent(connectionID uint64, ident string) *dal.Model
 
 		SearchConnectionIssues(connectionID uint64) (out []error)
 		SearchModelIssues(connectionID, resourceID uint64) (out []error)
@@ -131,6 +129,7 @@ func (h helper) cleanupDal() {
 		}
 		h.a.NoError(store.DeleteDalConnectionByID(ctx, ds, c.ID))
 	}
+	dd.Purge(ctx)
 
 	h.a.NoError(service.DefaultDalConnection.ReloadConnections(ctx))
 	h.a.NoError(composeService.DefaultModule.ReloadDALModels(ctx))
@@ -147,15 +146,15 @@ func initSvc(ctx context.Context, d driver) (dalService, error) {
 		Label:                  c.Handle,
 	}
 
-	svc, err := dal.New(
-		ctx,
-		zap.NewNop(),
-		false,
-		c.ID,
-		c.Config.Connection,
-		cm,
-		capabilities.FullCapabilities()...,
-	)
+	svc, err := dal.New(zap.NewNop(), false)
+	if err != nil {
+		return nil, err
+	}
+
+	err = svc.ReplaceConnection(ctx, dal.MakeConnection(c.ID, nil, c.Config.Connection, cm, capabilities.FullCapabilities()...), true)
+	if err != nil {
+		return nil, err
+	}
 
 	return svc, err
 }
@@ -233,7 +232,7 @@ func bootstrapWithModel(rootTest *testing.T, ident string, run func(context.Cont
 
 			driver.setup(ctx, rootTest, driver.dsn)
 
-			require.NoError(t, svc.CreateModel(ctx, model))
+			require.NoError(t, svc.ReplaceModel(ctx, model))
 
 			run(ctx, t, h, svc, model)
 		})

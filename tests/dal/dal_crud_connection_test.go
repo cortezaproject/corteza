@@ -14,8 +14,7 @@ func Test_dal_crud_connection_list(t *testing.T) {
 	h := newHelperT(t)
 	defer h.cleanupDal()
 
-	helpers.AllowMe(h, types.ComponentRbacResource(), "dal-connections.search")
-	helpers.AllowMe(h, types.DalConnectionRbacResource(0), "read")
+	helpers.AllowMeDalConnectionSearch(h)
 
 	h.apiInit().
 		Get("/system/dal/connections/").
@@ -87,7 +86,7 @@ func Test_dal_crud_connection_create_invalid_type(t *testing.T) {
 		Header("Content-Type", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertErrorP("corteza::system:primary_dal_connection")).
+		Assert(helpers.AssertErrorP("corteza::system:primary-dal-connection")).
 		End()
 }
 

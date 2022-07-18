@@ -18,15 +18,8 @@ func Test_dal_crud_compose_record_create(t *testing.T) {
 
 	ctx := h.secCtx()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "module.create")
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "modules.search")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "update")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "delete")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "record.create")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "records.search")
-	helpers.AllowMe(h, types.ModuleFieldRbacResource(0, 0, 0), "record.value.update")
-	helpers.AllowMe(h, types.ModuleFieldRbacResource(0, 0, 0), "record.value.read")
+	helpers.AllowMeModuleCRUD(h)
+	helpers.AllowMeRecordCRUD(h)
 
 	ns := h.createNamespace("test")
 	module := createModuleFromGenerics(ctx, t, "ok_module.json", ns.ID, &types.ModelConfig{
@@ -84,16 +77,8 @@ func Test_dal_crud_compose_record_update(t *testing.T) {
 
 	ctx := h.secCtx()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "module.create")
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "modules.search")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "update")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "delete")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "record.create")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "records.search")
-	helpers.AllowMe(h, types.ModuleFieldRbacResource(0, 0, 0), "record.value.update")
-	helpers.AllowMe(h, types.ModuleFieldRbacResource(0, 0, 0), "record.value.read")
-	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "update")
+	helpers.AllowMeModuleCRUD(h)
+	helpers.AllowMeRecordCRUD(h)
 
 	ns := h.createNamespace("test")
 	module := createModuleFromGenerics(ctx, t, "ok_module.json", ns.ID, &types.ModelConfig{
@@ -151,17 +136,8 @@ func Test_dal_crud_compose_record_delete(t *testing.T) {
 
 	ctx := h.secCtx()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "module.create")
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "modules.search")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "update")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "delete")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "record.create")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "records.search")
-	helpers.AllowMe(h, types.ModuleFieldRbacResource(0, 0, 0), "record.value.update")
-	helpers.AllowMe(h, types.ModuleFieldRbacResource(0, 0, 0), "record.value.read")
-	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "delete")
-	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "read")
+	helpers.AllowMeModuleCRUD(h)
+	helpers.AllowMeRecordCRUD(h)
 
 	ns := h.createNamespace("test")
 	module := createModuleFromGenerics(ctx, t, "ok_module.json", ns.ID, &types.ModelConfig{
