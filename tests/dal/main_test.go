@@ -75,6 +75,10 @@ func InitTestApp() {
 
 			return nil
 		})
+
+		if err := testApp.Activate(ctx); err != nil {
+			panic(fmt.Errorf("could not activate corteza: %v", err))
+		}
 	}
 
 	hh = &handlers.AuthHandlers{

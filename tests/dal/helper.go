@@ -138,6 +138,7 @@ func (h helper) createSensitivityLevel(res *types.DalSensitivityLevel) *types.Da
 	}
 
 	h.a.NoError(service.DefaultStore.CreateDalSensitivityLevel(context.Background(), res))
+	h.a.NoError(service.DefaultDalSensitivityLevel.ReloadSensitivityLevels(context.Background(), service.DefaultStore))
 	return res
 }
 

@@ -44,8 +44,8 @@ func Test_dal_codec_json(t *testing.T) {
 	rIn.Values = rIn.Values.Set(&types.RecordValue{Name: "vDate", Value: "2022-01-01"})
 	rIn.Values = rIn.Values.Set(&types.RecordValue{Name: "vNumber", Value: "2423423"})
 	rIn.Values = rIn.Values.Set(&types.RecordValue{Name: "vText", Value: "lorm ipsum "})
-	rIn.Values = rIn.Values.Set(&types.RecordValue{Name: "vBoolean_T", Value: "true"})
-	rIn.Values = rIn.Values.Set(&types.RecordValue{Name: "vBoolean_F", Value: "false"})
+	rIn.Values = rIn.Values.Set(&types.RecordValue{Name: "vBoolean_T", Value: "1"})
+	rIn.Values = rIn.Values.Set(&types.RecordValue{Name: "vBoolean_F", Value: ""})
 	rIn.Values = rIn.Values.Set(&types.RecordValue{Name: "vEnum", Value: "abc"})
 	rIn.Values = rIn.Values.Set(&types.RecordValue{Name: "vGeometry", Value: `{"lat":1,"lng":1}`})
 	rIn.Values = rIn.Values.Set(&types.RecordValue{Name: "vJSON", Value: `[{"bool":true"}]`})
@@ -53,7 +53,7 @@ func Test_dal_codec_json(t *testing.T) {
 	rIn.Values = rIn.Values.Set(&types.RecordValue{Name: "vUUID", Value: "ba485865-54f9-44de-bde8-6965556c022a"})
 
 	bootstrap(t, func(ctx context.Context, t *testing.T, h helper, svc dalService) {
-		h.a.NoError(svc.CreateModel(ctx, model))
+		h.a.NoError(svc.ReplaceModel(ctx, model))
 		h.a.NoError(svc.Create(ctx, model.ToFilter(), capabilities.CreateCapabilities(model.Capabilities...), &rIn))
 
 		h.a.NoError(svc.Lookup(ctx, model.ToFilter(), capabilities.LookupCapabilities(model.Capabilities...), dal.PKValues{"id": rIn.ID}, &rOut))

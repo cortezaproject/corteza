@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 )
@@ -15,11 +14,7 @@ func Test_dal_crud_issues_connection_connectivity(t *testing.T) {
 	h := newHelperT(t)
 	defer h.cleanupDal()
 
-	helpers.AllowMe(h, types.ComponentRbacResource(), "dal-connection.create")
-	helpers.AllowMe(h, types.ComponentRbacResource(), "dal-connections.search")
-	helpers.AllowMe(h, types.DalConnectionRbacResource(0), "read")
-	helpers.AllowMe(h, types.DalConnectionRbacResource(0), "update")
-	helpers.AllowMe(h, types.DalConnectionRbacResource(0), "delete")
+	helpers.AllowMeDalConnectionCRUD(h)
 
 	aux := &dalConnectionRestRsp{}
 
@@ -76,11 +71,7 @@ func Test_dal_crud_issues_connection_sensitivity(t *testing.T) {
 	h := newHelperT(t)
 	defer h.cleanupDal()
 
-	helpers.AllowMe(h, types.ComponentRbacResource(), "dal-connection.create")
-	helpers.AllowMe(h, types.ComponentRbacResource(), "dal-connections.search")
-	helpers.AllowMe(h, types.DalConnectionRbacResource(0), "read")
-	helpers.AllowMe(h, types.DalConnectionRbacResource(0), "update")
-	helpers.AllowMe(h, types.DalConnectionRbacResource(0), "delete")
+	helpers.AllowMeDalConnectionCRUD(h)
 
 	aux := &dalConnectionRestRsp{}
 

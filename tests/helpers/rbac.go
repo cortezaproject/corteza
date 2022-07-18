@@ -3,6 +3,7 @@ package helpers
 import (
 	"context"
 
+	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
@@ -62,4 +63,46 @@ func Deny(role *types.Role, r string, oo ...string) {
 
 func Grant(rr ...*rbac.Rule) {
 	cli.HandleError(rbac.Global().Grant(context.Background(), rr...))
+}
+
+// Common RBAC presets
+
+func AllowMeModuleCreate(mrg myRoleGetter) {
+	AllowMe(mrg, composeTypes.NamespaceRbacResource(0), "module.create")
+}
+
+func AllowMeModuleSearch(mrg myRoleGetter) {
+	AllowMe(mrg, composeTypes.NamespaceRbacResource(0), "modules.search")
+	AllowMe(mrg, composeTypes.ModuleRbacResource(0, 0), "read")
+}
+
+func AllowMeModuleCRUD(mrg myRoleGetter) {
+	AllowMe(mrg, composeTypes.NamespaceRbacResource(0), "module.create")
+	AllowMe(mrg, composeTypes.NamespaceRbacResource(0), "modules.search")
+	AllowMe(mrg, composeTypes.ModuleRbacResource(0, 0), "read")
+	AllowMe(mrg, composeTypes.ModuleRbacResource(0, 0), "update")
+	AllowMe(mrg, composeTypes.ModuleRbacResource(0, 0), "delete")
+}
+
+func AllowMeRecordCRUD(mrg myRoleGetter) {
+	AllowMe(mrg, composeTypes.ModuleRbacResource(0, 0), "record.create")
+	AllowMe(mrg, composeTypes.ModuleRbacResource(0, 0), "records.search")
+	AllowMe(mrg, composeTypes.RecordRbacResource(0, 0, 0), "read")
+	AllowMe(mrg, composeTypes.RecordRbacResource(0, 0, 0), "update")
+	AllowMe(mrg, composeTypes.RecordRbacResource(0, 0, 0), "delete")
+	AllowMe(mrg, composeTypes.ModuleFieldRbacResource(0, 0, 0), "record.value.update")
+	AllowMe(mrg, composeTypes.ModuleFieldRbacResource(0, 0, 0), "record.value.read")
+}
+
+func AllowMeDalConnectionSearch(mrg myRoleGetter) {
+	AllowMe(mrg, types.ComponentRbacResource(), "dal-connections.search")
+	AllowMe(mrg, types.DalConnectionRbacResource(0), "read")
+}
+
+func AllowMeDalConnectionCRUD(mrg myRoleGetter) {
+	AllowMe(mrg, types.ComponentRbacResource(), "dal-connection.create")
+	AllowMe(mrg, types.ComponentRbacResource(), "dal-connections.search")
+	AllowMe(mrg, types.DalConnectionRbacResource(0), "read")
+	AllowMe(mrg, types.DalConnectionRbacResource(0), "update")
+	AllowMe(mrg, types.DalConnectionRbacResource(0), "delete")
 }
