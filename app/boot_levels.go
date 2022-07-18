@@ -731,8 +731,6 @@ func applySmtpOptionsToSettings(ctx context.Context, log *zap.Logger, opt option
 					"To avoid confusion and potential issues, we suggest you to " +
 					"remove all SMTP_* variables")
 		}
-
-		return
 	}
 
 	// SMTP server settings do not exist but

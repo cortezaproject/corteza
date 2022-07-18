@@ -81,7 +81,7 @@ func New() *gomail.Message {
 	return message
 }
 
-// Sends message with SMTP dialer
+// Send message with SMTP dialer
 func Send(message *gomail.Message, dd ...Dialer) (err error) {
 	for _, d := range append(dd, defaultDialer) {
 		if d == nil {
