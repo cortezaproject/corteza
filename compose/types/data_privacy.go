@@ -10,10 +10,9 @@ type (
 		ID     uint64 `json:"moduleID,string"`
 		Name   string `json:"name"`
 		Handle string `json:"handle"`
-		Owner  bool   `json:"owner"`
 
-		ConnectionID uint64 `json:"-"`
-		Connection   *sysTypes.DalConnection
+		ConnectionID uint64                  `json:"-"`
+		Connection   *sysTypes.DalConnection `json:"connection"`
 	}
 
 	PrivacyModuleFilter struct {
