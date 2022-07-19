@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 
 	"github.com/cortezaproject/corteza-server/compose/service/event"
@@ -442,8 +441,6 @@ func (svc module) FindSensitive(ctx context.Context, filter types.PrivacyModuleF
 			return err
 		}
 
-		identity := auth.GetIdentityFromContext(ctx).Identity()
-
 		for _, m := range mm {
 			isPrivate := false
 			for _, f := range m.Fields {
@@ -453,12 +450,10 @@ func (svc module) FindSensitive(ctx context.Context, filter types.PrivacyModuleF
 			}
 
 			if isPrivate && m != nil {
-				ownedBy, _ := m.ModelConfig.SystemFieldEncoding.OwnedBy.Value()
 				set = append(set, types.PrivacyModule{
 					ID:           m.ID,
 					Name:         m.Name, // @todo get this as per translation
 					Handle:       m.Handle,
-					Owner:        ownedBy == identity,
 					ConnectionID: m.ModelConfig.ConnectionID,
 				})
 			}

@@ -18,10 +18,6 @@ type (
 		FindByID(ctx context.Context, ID uint64) (q *sysTypes.DalConnection, err error)
 	}
 
-	moduleSetPayload struct {
-		Set []types.PrivacyModule `json:"set"`
-	}
-
 	DataPrivacyService interface {
 		FindModules(ctx context.Context, filter types.PrivacyModuleFilter) (types.PrivacyModuleSet, types.PrivacyModuleFilter, error)
 	}
@@ -83,7 +79,6 @@ func (svc dataPrivacy) FindModules(ctx context.Context, filter types.PrivacyModu
 				ID:         m.ID,
 				Name:       m.Name,
 				Handle:     m.Handle,
-				Owner:      m.Owner,
 				Connection: c,
 			})
 		}
