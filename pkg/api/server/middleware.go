@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"runtime/debug"
@@ -34,14 +35,22 @@ func sentryMiddleware() func(http.Handler) http.Handler {
 
 func panicRecovery(ctx context.Context, w http.ResponseWriter) {
 	if err := recover(); err != nil {
-		log := logger.ContextValue(ctx)
-		if err, ok := err.(error); ok {
-			log = log.With(zap.Error(err))
-		} else {
-			log = log.With(zap.Any("recover-value", err))
-		}
 
-		log.Debug("crashed on http request", zap.ByteString("stack", debug.Stack()))
+		if _, has := os.LookupEnv("LOG_DEBUG"); has {
+			println("================================================================================")
+			fmt.Printf("%v\n", err)
+			println("--------------------------------------------------------------------------------")
+			debug.PrintStack()
+			println("================================================================================")
+		} else {
+			log := logger.ContextValue(ctx)
+			if err, ok := err.(error); ok {
+				log = log.With(zap.Error(err))
+			} else {
+				log = log.With(zap.Any("recover-value", err))
+			}
+			log.Debug("crashed on http request", zap.ByteString("stack", debug.Stack()))
+		}
 
 		w.WriteHeader(500)
 
