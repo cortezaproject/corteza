@@ -24,7 +24,7 @@ import (
 type (
 	wfServicer struct {
 		load func(ctx context.Context) error
-		exec func(ctx context.Context, workflowID uint64, p atypes.WorkflowExecParams) (*expr.Vars, atypes.Stacktrace, error)
+		exec func(ctx context.Context, workflowID uint64, p atypes.WorkflowExecParams) (*expr.Vars, uint64, atypes.Stacktrace, error)
 	}
 )
 
@@ -50,8 +50,8 @@ func Test_processerWorkflow(t *testing.T) {
 					load: func(ctx context.Context) error {
 						return nil
 					},
-					exec: func(ctx context.Context, workflowID uint64, p atypes.WorkflowExecParams) (*expr.Vars, atypes.Stacktrace, error) {
-						return must(expr.NewVars(map[string]interface{}{"foo": "bar"})), make([]*wfexec.Frame, 0), errors.New("mocked error")
+					exec: func(ctx context.Context, workflowID uint64, p atypes.WorkflowExecParams) (*expr.Vars, uint64, atypes.Stacktrace, error) {
+						return must(expr.NewVars(map[string]interface{}{"foo": "bar"})), 0, make([]*wfexec.Frame, 0), errors.New("mocked error")
 					},
 				},
 			},
@@ -63,8 +63,8 @@ func Test_processerWorkflow(t *testing.T) {
 					load: func(ctx context.Context) error {
 						return nil
 					},
-					exec: func(ctx context.Context, workflowID uint64, p atypes.WorkflowExecParams) (*expr.Vars, atypes.Stacktrace, error) {
-						return must(expr.NewVars(map[string]interface{}{"foo": "bar"})), make([]*wfexec.Frame, 0), nil
+					exec: func(ctx context.Context, workflowID uint64, p atypes.WorkflowExecParams) (*expr.Vars, uint64, atypes.Stacktrace, error) {
+						return must(expr.NewVars(map[string]interface{}{"foo": "bar"})), 0, make([]*wfexec.Frame, 0), nil
 					},
 				},
 			},
@@ -215,7 +215,7 @@ func (f wfServicer) Load(ctx context.Context) error {
 	return f.load(ctx)
 }
 
-func (f wfServicer) Exec(ctx context.Context, workflowID uint64, p atypes.WorkflowExecParams) (*expr.Vars, atypes.Stacktrace, error) {
+func (f wfServicer) Exec(ctx context.Context, workflowID uint64, p atypes.WorkflowExecParams) (*expr.Vars, uint64, atypes.Stacktrace, error) {
 	return f.exec(ctx, workflowID, p)
 }
 

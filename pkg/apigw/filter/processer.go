@@ -31,7 +31,7 @@ type (
 
 	WfExecer interface {
 		Load(ctx context.Context) error
-		Exec(ctx context.Context, workflowID uint64, p atypes.WorkflowExecParams) (*expr.Vars, atypes.Stacktrace, error)
+		Exec(ctx context.Context, workflowID uint64, p atypes.WorkflowExecParams) (*expr.Vars, uint64, atypes.Stacktrace, error)
 	}
 
 	processerPayload struct {
@@ -120,7 +120,7 @@ func (h workflow) Handler() types.HandlerFunc {
 			Input: in,
 		}
 
-		out, _, err := h.d.Exec(ctx, h.params.Workflow, wp)
+		out, _, _, err := h.d.Exec(ctx, h.params.Workflow, wp)
 
 		if err != nil {
 			return pe.Internal("could not exec workflow: %v", err)

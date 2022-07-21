@@ -56,7 +56,7 @@ func Test_exec_permissions(t *testing.T) {
 	t.Run("exec denied", func(t *testing.T) {
 		req = require.New(t)
 		ctx = auth.SetIdentityToContext(ctx, execDenied)
-		_, _, err = execWorkflow(ctx, "wf", types.WorkflowExecParams{})
+		_, _, _, err = execWorkflow(ctx, "wf", types.WorkflowExecParams{})
 		req.ErrorIs(err, service.WorkflowErrNotAllowedToExecute())
 	})
 }

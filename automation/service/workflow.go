@@ -531,14 +531,14 @@ func (svc *workflow) updateCache(wf *types.Workflow, runAs intAuth.Identifiable,
 	return
 }
 
-func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.WorkflowExecParams) (*expr.Vars, types.Stacktrace, error) {
+func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.WorkflowExecParams) (*expr.Vars, uint64, types.Stacktrace, error) {
 	var (
-		wap     = &workflowActionProps{}
-		t       *types.Trigger
-		results *expr.Vars
-		wait    WaitFn
-
+		wap        = &workflowActionProps{}
+		t          *types.Trigger
+		results    *expr.Vars
+		wait       WaitFn
 		stacktrace types.Stacktrace
+		sessionID  uint64
 	)
 
 	err := func() (err error) {
@@ -610,13 +610,13 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 			p.EventType = "onTrace"
 		}
 
-		wait, err = svc.exec(ctx, wf, p)
+		wait, sessionID, err = svc.exec(ctx, wf, p)
 
 		if err != nil {
 			return err
 		}
 
-		if !p.Async {
+		if p.Async {
 			if !p.Wait && wf.CheckDeferred() {
 				// deferred workflow, return right away and keep the workflow session
 				// running without waiting for the execution
@@ -627,11 +627,11 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 		// wait for the workflow to complete
 		// reuse scope for results
 		// this will be decoded back to event properties
-		results, _, stacktrace, err = wait(ctx)
+		results, sessionID, _, stacktrace, err = wait(ctx)
 		return err
 	}()
 
-	return results, stacktrace, svc.recordAction(ctx, wap, WorkflowActionExecute, err)
+	return results, sessionID, stacktrace, svc.recordAction(ctx, wap, WorkflowActionExecute, err)
 }
 
 // validates workflow by trying to convert it to graph and checking assigned triggers
@@ -675,16 +675,16 @@ func (svc *workflow) validateWorkflow(ctx context.Context, wf *types.Workflow) (
 	return
 }
 
-func (svc *workflow) exec(ctx context.Context, wf *types.Workflow, p types.WorkflowExecParams) (WaitFn, error) {
+func (svc *workflow) exec(ctx context.Context, wf *types.Workflow, p types.WorkflowExecParams) (WaitFn, uint64, error) {
 	if wf.Issues != nil {
-		return nil, wf.Issues
+		return nil, 0, wf.Issues
 	}
 
 	defer svc.mux.Unlock()
 	svc.mux.Lock()
 
 	if svc.cache[wf.ID] == nil {
-		return nil, WorkflowErrInvalidID()
+		return nil, 0, WorkflowErrInvalidID()
 	}
 
 	var (
@@ -726,7 +726,7 @@ func makeWorkflowHandler(svc *workflow, wf *types.Workflow, t *types.Trigger) ev
 			}
 		}
 
-		wait, err := svc.exec(ctx, wf, types.WorkflowExecParams{
+		wait, _, err := svc.exec(ctx, wf, types.WorkflowExecParams{
 			StepID:       t.StepID,
 			EventType:    t.EventType,
 			ResourceType: t.ResourceType,
@@ -749,7 +749,7 @@ func makeWorkflowHandler(svc *workflow, wf *types.Workflow, t *types.Trigger) ev
 		// wait for the workflow to complete
 		// reuse scope for results
 		// this will be decoded back to event properties
-		scope, _, _, err = wait(ctx)
+		scope, _, _, _, err = wait(ctx)
 		if err != nil {
 			return
 		}

@@ -18,7 +18,7 @@ func Test0015_step_issue(t *testing.T) {
 	loadScenario(ctx, t)
 
 	t.Run("exclusive gateway step issue", func(t *testing.T) {
-		_, _, err := execWorkflow(ctx, "case1", types.WorkflowExecParams{})
+		_, _, _, err := execWorkflow(ctx, "case1", types.WorkflowExecParams{})
 
 		issues, is := err.(types.WorkflowIssueSet)
 		req.True(is)
@@ -30,7 +30,7 @@ func Test0015_step_issue(t *testing.T) {
 	})
 
 	t.Run("inclusive gateway step issue", func(t *testing.T) {
-		_, _, err := execWorkflow(ctx, "case2", types.WorkflowExecParams{})
+		_, _, _, err := execWorkflow(ctx, "case2", types.WorkflowExecParams{})
 
 		issues, is := err.(types.WorkflowIssueSet)
 		req.True(is)
@@ -42,7 +42,7 @@ func Test0015_step_issue(t *testing.T) {
 	})
 
 	t.Run("function step issue", func(t *testing.T) {
-		_, _, err := execWorkflow(ctx, "case3", types.WorkflowExecParams{})
+		_, _, _, err := execWorkflow(ctx, "case3", types.WorkflowExecParams{})
 
 		issues, is := err.(types.WorkflowIssueSet)
 		req.True(is)
@@ -53,7 +53,7 @@ func Test0015_step_issue(t *testing.T) {
 	})
 
 	t.Run("iterator step issue", func(t *testing.T) {
-		_, _, err := execWorkflow(ctx, "case4", types.WorkflowExecParams{})
+		_, _, _, err := execWorkflow(ctx, "case4", types.WorkflowExecParams{})
 
 		issues, is := err.(types.WorkflowIssueSet)
 		req.True(is)
