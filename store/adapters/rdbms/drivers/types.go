@@ -3,6 +3,7 @@ package drivers
 import (
 	"database/sql"
 	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -243,7 +244,19 @@ func (t *TypeJSON) Decode(raw any) (any, bool, error) {
 }
 
 func (t *TypeJSON) Encode(val any) (driver.Value, error) {
-	return val, nil
+	switch c := val.(type) {
+	case driver.Valuer:
+		// does the value type know how to encode itself for the DB?
+		return c.Value()
+
+	case json.Marshaler:
+		// does the value type know how to encode itself as JSON?
+		return c.MarshalJSON()
+
+	default:
+		// Last reasort - just encode with JSON pkg
+		return json.Marshal(val)
+	}
 }
 
 func (t *TypeBlob) Decode(raw any) (any, bool, error) {
