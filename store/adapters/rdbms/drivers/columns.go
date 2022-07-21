@@ -112,13 +112,22 @@ func (c *SimpleJsonDocColumn) Encode(r dal.ValueGetter) (_ any, err error) {
 		aux   = make(map[string][]any)
 		value any
 		place uint
-		size  uint
 
+		// determinate how many values can we expected to store in the attribute
+		//
+		// implementations can return nil for the value to signal
+		// that each attribute holds exactly one value
 		count = r.CountValues()
+
+		// preset this to one just in case CountValues()
+		// returns nil!
+		size uint = 1
 	)
 
 	for _, attr := range c.attributes {
-		size = count[attr.Ident]
+		if count != nil {
+			size = count[attr.Ident]
+		}
 
 		aux[attr.Ident] = make([]any, size)
 
