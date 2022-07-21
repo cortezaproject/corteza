@@ -104,10 +104,8 @@ func (svc chart) Find(ctx context.Context, filter types.ChartFilter) (set types.
 			return err
 		}
 
-		// i18n
-		tag := locale.GetAcceptLanguageFromContext(ctx)
-		set.Walk(func(p *types.Chart) error {
-			p.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, p.ResourceTranslation()))
+		set.Walk(func(c *types.Chart) error {
+			svc.proc(ctx, c)
 			return nil
 		})
 
@@ -137,6 +135,15 @@ func (svc chart) FindByHandle(ctx context.Context, namespaceID uint64, h string)
 		aProps.chart.Handle = h
 		return store.LookupComposeChartByNamespaceIDHandle(ctx, svc.store, namespaceID, h)
 	})
+}
+
+func (svc chart) proc(ctx context.Context, c *types.Chart) {
+	if svc.locale == nil || svc.locale.Locale() == nil {
+		return
+	}
+
+	tag := locale.GetAcceptLanguageFromContext(ctx)
+	c.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, c.ResourceTranslation()))
 }
 
 func (svc chart) Create(ctx context.Context, new *types.Chart) (*types.Chart, error) {
@@ -225,6 +232,8 @@ func (svc chart) lookup(ctx context.Context, namespaceID uint64, lookup func(*ch
 		if !svc.ac.CanReadChart(ctx, c) {
 			return ChartErrNotAllowedToRead()
 		}
+
+		svc.proc(ctx, c)
 
 		if err = label.Load(ctx, svc.store, c); err != nil {
 			return err
