@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	sysService "github.com/cortezaproject/corteza-server/system/service"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 )
@@ -12,6 +13,7 @@ type (
 		ns      NamespaceService
 		m       ModuleService
 		dalConn dalConnectionService
+		locale  ResourceTranslationsManagerService
 	}
 
 	dalConnectionService interface {
@@ -28,6 +30,7 @@ func DataPrivacy() *dataPrivacy {
 		ns:      DefaultNamespace,
 		m:       DefaultModule,
 		dalConn: sysService.DefaultDalConnection,
+		locale:  DefaultResourceTranslation,
 	}
 }
 
@@ -37,21 +40,19 @@ func (svc dataPrivacy) FindModules(ctx context.Context, filter types.PrivacyModu
 		cc      = make(map[uint64]*sysTypes.DalConnection, 0)
 	)
 
-	reqConnes := make(map[uint64]bool)
-	hasReqConnes := len(filter.ConnectionID) > 0
-	for _, connectionID := range filter.ConnectionID {
-		reqConnes[connectionID] = true
-	}
-
-	// All namespaces
 	namespaces, _, err := svc.ns.Find(ctx, types.NamespaceFilter{})
 	if err != nil {
 		return
 	}
 
 	for _, n := range namespaces {
-		// Sensitive modules only
-		modules, f, err = svc.m.FindSensitive(ctx, types.PrivacyModuleFilter{NamespaceID: n.ID})
+		tag := locale.GetAcceptLanguageFromContext(ctx)
+		n.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, n.ResourceTranslation()))
+
+		modules, f, err = svc.m.FindSensitive(ctx, types.PrivacyModuleFilter{
+			NamespaceID:  n.ID,
+			ConnectionID: filter.ConnectionID,
+		})
 		if err != nil {
 			return
 		}
@@ -61,26 +62,21 @@ func (svc dataPrivacy) FindModules(ctx context.Context, filter types.PrivacyModu
 
 		for _, m := range modules {
 			connID := m.ConnectionID
-			if hasReqConnes && !reqConnes[connID] {
-				continue
-			}
-
-			var c *sysTypes.DalConnection
 			if val, ok := cc[connID]; ok {
-				c = val
+				m.Connection = val
 			} else {
-				c, err = svc.dalConn.FindByID(ctx, connID)
+				m.Connection, err = svc.dalConn.FindByID(ctx, connID)
 				if err != nil {
-					cc[connID] = c
+					cc[connID] = m.Connection
 				}
 			}
 
-			out = append(out, &types.PrivacyModule{
-				ID:         m.ID,
-				Name:       m.Name,
-				Handle:     m.Handle,
-				Connection: c,
-			})
+			m.Namespace = types.PrivacyNamespaceMeta{
+				ID:   n.ID,
+				Slug: n.Slug,
+				Name: n.Name,
+			}
+			out = append(out, &m)
 		}
 	}
 

@@ -433,7 +433,14 @@ func (svc *module) ReloadDALModels(ctx context.Context) (err error) {
 func (svc module) FindSensitive(ctx context.Context, filter types.PrivacyModuleFilter) (set []types.PrivacyModule, f types.PrivacyModuleFilter, err error) {
 	var (
 		mm types.ModuleSet
+
+		reqConnes    = make(map[uint64]bool)
+		hasReqConnes = len(filter.ConnectionID) > 0
 	)
+
+	for _, connectionID := range filter.ConnectionID {
+		reqConnes[connectionID] = true
+	}
 
 	err = func() error {
 		mm, _, err = svc.Find(ctx, types.ModuleFilter{NamespaceID: filter.NamespaceID})
@@ -442,18 +449,36 @@ func (svc module) FindSensitive(ctx context.Context, filter types.PrivacyModuleF
 		}
 
 		for _, m := range mm {
-			isPrivate := false
-			for _, f := range m.Fields {
-				isPrivate = isPrivate || f.IsSensitive()
+			cMeta, err := svc.dal.GetConnectionMeta(ctx, m.ModelConfig.ConnectionID)
+			if err != nil {
+				return err
 			}
 
-			if isPrivate && m != nil {
-				set = append(set, types.PrivacyModule{
-					ID:           m.ID,
-					Name:         m.Name, // @todo get this as per translation
-					Handle:       m.Handle,
-					ConnectionID: m.ModelConfig.ConnectionID,
-				})
+			connID := cMeta.ConnectionID
+			if hasReqConnes && !reqConnes[connID] {
+				continue
+			}
+
+			isSensitive := false
+			for _, f := range m.Fields {
+				isSensitive = isSensitive || f.IsSensitive()
+			}
+
+			tag := locale.GetAcceptLanguageFromContext(ctx)
+			m.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, m.ResourceTranslation()))
+
+			if isSensitive && m != nil {
+				pm := types.PrivacyModule{
+					Module: types.PrivacyModuleMeta{
+						ID:     m.ID,
+						Name:   m.Name,
+						Handle: m.Handle,
+						Fields: m.Fields,
+					},
+					ConnectionID: connID,
+				}
+
+				set = append(set, pm)
 			}
 		}
 

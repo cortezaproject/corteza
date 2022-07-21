@@ -21,6 +21,7 @@ type (
 	}
 
 	ConnectionMeta struct {
+		ConnectionID     uint64
 		SensitivityLevel uint64
 		Label            string
 
@@ -329,7 +330,7 @@ func (svc *service) ReplaceConnection(ctx context.Context, cw *ConnectionWrap, i
 //
 // The function is primarily used by services which need to know a little bit
 // about the connection their resources are located in (ident formatting for example).
-func (svc *service) GetConnectionMeta(ctx context.Context, ID uint64) (cm ConnectionMeta, err error) {
+func (svc *service) GetConnectionMeta(_ context.Context, ID uint64) (cm ConnectionMeta, err error) {
 	if ID == 0 {
 		ID = svc.defConnID
 	}
@@ -341,6 +342,7 @@ func (svc *service) GetConnectionMeta(ctx context.Context, ID uint64) (cm Connec
 	}
 
 	cm = cw.meta
+	cm.ConnectionID = cw.connectionID
 	return
 }
 
