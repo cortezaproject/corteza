@@ -1,17 +1,22 @@
 package ql
 
 import (
+	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/doug-martin/goqu/v9/exp"
 )
 
 type (
-	exprHandler struct {
-		Handler func(...exp.Expression) exp.Expression
+	ExprHandlerMap map[string]*ExprHandler
+
+	ExprHandler struct {
+		Handler  func(...exp.Expression) exp.Expression
+		HandlerE func(...exp.Expression) (exp.Expression, error)
 	}
 )
 
 var (
-	ref2exp = map[string]*exprHandler{
+	ref2exp = ExprHandlerMap{
 		// keywords
 		"null": {
 			Handler: func(args ...exp.Expression) exp.Expression {
@@ -167,31 +172,55 @@ var (
 		//	Result:  wrapRes("Number"),
 		//	Handler: makeGenericAggFncHandler("AVG"),
 		//},
-		//
-		//// - filtering
-		//"now": {
-		//	Result:  wrapRes("DateTime"),
-		//	Handler: makeGenericFilterFncHandler("NOW"),
-		//},
-		//"quarter": {
-		//	Args:    collectParams(true, "DateTime"),
-		//	Result:  wrapRes("Number"),
-		//	Handler: makeGenericFilterFncHandler("QUARTER"),
-		//},
-		//"year": {
-		//	Args:    collectParams(true, "DateTime"),
-		//	Result:  wrapRes("Number"),
-		//	Handler: makeGenericFilterFncHandler("YEAR"),
-		//},
-		//"month": {
-		//	Args:    collectParams(true, "DateTime"),
-		//	Result:  wrapRes("Number"),
-		//	Handler: makeGenericFilterFncHandler("MONTH"),
-		//},
-		//"date": {
-		//	Args:    collectParams(true, "DateTime"),
-		//	Result:  wrapRes("Number"),
-		//	Handler: makeGenericFilterFncHandler("DAY"),
-		//},
+
+		// - filtering
+		"now": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("NOW")
+			},
+		},
+		"quarter": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("QUARTER", args[0])
+			},
+		},
+		"year": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("YEAR", args[0])
+			},
+		},
+		"month": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("MONTH", args[0])
+			},
+		},
+		"date": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("DAY", args[0])
+			},
+		},
 	}
 )
+
+func (ee ExprHandlerMap) ExprHandlers() (out ExprHandlerMap) {
+	out = ref2exp
+	if out == nil {
+		out = make(map[string]*ExprHandler)
+	}
+	for name, expr := range ee {
+		out[name] = expr
+	}
+	return
+}
+
+func (ee ExprHandlerMap) RefHandler(n *ql.ASTNode, args ...exp.Expression) (exp.Expression, error) {
+	if ref2exp[n.Ref] == nil {
+		return nil, fmt.Errorf("unknown ref %q", n.Ref)
+	}
+
+	if ref2exp[n.Ref].Handler != nil {
+		return ref2exp[n.Ref].Handler(args...), nil
+	}
+
+	return ref2exp[n.Ref].HandlerE(args...)
+}

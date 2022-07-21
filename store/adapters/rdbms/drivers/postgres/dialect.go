@@ -4,38 +4,39 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ql"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 )
 
 type (
-	mysqlDialect struct{}
+	postgresDialect struct{}
 )
 
 var (
-	_ drivers.Dialect = &mysqlDialect{}
+	_ drivers.Dialect = &postgresDialect{}
 
-	dialect            = &mysqlDialect{}
+	dialect            = &postgresDialect{}
 	goquDialectWrapper = goqu.Dialect("postgres")
 )
 
-func Dialect() *mysqlDialect {
+func Dialect() *postgresDialect {
 	return dialect
 }
 
-func (mysqlDialect) GOQU() goqu.DialectWrapper {
+func (postgresDialect) GOQU() goqu.DialectWrapper {
 	return goquDialectWrapper
 }
 
-func (mysqlDialect) DeepIdentJSON(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression, error) {
+func (postgresDialect) DeepIdentJSON(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression, error) {
 	return drivers.DeepIdentJSON(ident, pp...), nil
 }
 
-func (d mysqlDialect) TableCodec(m *dal.Model) drivers.TableCodec {
+func (d postgresDialect) TableCodec(m *dal.Model) drivers.TableCodec {
 	return drivers.NewTableCodec(m, d)
 }
 
-func (d mysqlDialect) TypeWrap(dt dal.Type) drivers.Type {
+func (d postgresDialect) TypeWrap(dt dal.Type) drivers.Type {
 	// Any exception to general type-wrap implementation in the drivers package
 	// should be placed here
 	switch c := dt.(type) {
@@ -46,7 +47,7 @@ func (d mysqlDialect) TypeWrap(dt dal.Type) drivers.Type {
 	return drivers.TypeWrap(dt)
 }
 
-func (mysqlDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpression) (exp.LiteralExpression, error) {
+func (postgresDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpression) (exp.LiteralExpression, error) {
 	var (
 		c exp.CastExpression
 	)
@@ -72,6 +73,10 @@ func (mysqlDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpression
 	return exp.NewLiteralExpression("?", c), nil
 }
 
-func (mysqlDialect) NativeColumnType(ct ddl.ColumnType) string {
+func (postgresDialect) NativeColumnType(ct ddl.ColumnType) string {
 	return ddl.ColumnTypeTranslator(ct)
+}
+
+func (postgresDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (exp.Expression, error) {
+	return ref2exp.RefHandler(n, args...)
 }

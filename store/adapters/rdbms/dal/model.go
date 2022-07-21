@@ -64,6 +64,7 @@ func Model(m *dal.Model, c queryRunner, d drivers.Dialect) *model {
 
 			return ms.table.AttributeExpression(node.Symbol)
 		}),
+		ql.RefHandler(d.ExprHandler),
 	)
 
 	return ms
