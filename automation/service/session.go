@@ -49,7 +49,7 @@ type (
 		CanManageSessionsOnWorkflow(context.Context, *types.Workflow) bool
 	}
 
-	WaitFn func(ctx context.Context) (*expr.Vars, wfexec.SessionStatus, types.Stacktrace, error)
+	WaitFn func(ctx context.Context) (*expr.Vars, uint64, wfexec.SessionStatus, types.Stacktrace, error)
 )
 
 const (
@@ -175,23 +175,23 @@ func (svc *session) PendingPrompts(ctx context.Context) (pp []*wfexec.PendingPro
 // used for the execution of the workflow. See watch function!
 //
 // It does not check user's permissions to execute workflow(s) so it should be used only when !
-func (svc *session) Start(ctx context.Context, g *wfexec.Graph, ssp types.SessionStartParams) (wait WaitFn, err error) {
+func (svc *session) Start(ctx context.Context, g *wfexec.Graph, ssp types.SessionStartParams) (wait WaitFn, _ uint64, err error) {
 	var (
 		start wfexec.Step
 	)
 
 	if g == nil {
-		return nil, errors.InvalidData("cannot start workflow, uninitialized graph")
+		return nil, 0, errors.InvalidData("cannot start workflow, uninitialized graph")
 	}
 
 	if len(ssp.CallStack) > svc.opt.CallStackSize {
-		return nil, WorkflowErrMaximumCallStackSizeExceeded()
+		return nil, 0, WorkflowErrMaximumCallStackSizeExceeded()
 	}
 
 	ssp.CallStack = append(ssp.CallStack, ssp.WorkflowID)
 
 	if ssp.Invoker == nil {
-		return nil, errors.InvalidData("cannot start workflow without user")
+		return nil, 0, errors.InvalidData("cannot start workflow without user")
 	}
 
 	if ssp.Runner == nil {
@@ -205,14 +205,14 @@ func (svc *session) Start(ctx context.Context, g *wfexec.Graph, ssp types.Sessio
 		case 1:
 			start = oo[0]
 		case 0:
-			return nil, errors.InvalidData("could not find starting step")
+			return nil, 0, errors.InvalidData("could not find starting step")
 		default:
-			return nil, errors.InvalidData("cannot start workflow session multiple starting steps found")
+			return nil, 0, errors.InvalidData("cannot start workflow session multiple starting steps found")
 		}
 	} else if start = g.StepByID(ssp.StepID); start == nil {
-		return nil, errors.InvalidData("trigger staring step references non-existing step")
+		return nil, 0, errors.InvalidData("trigger staring step references non-existing step")
 	} else if len(g.Parents(g.StepByID(ssp.StepID))) > 0 {
-		return nil, errors.InvalidData("cannot start workflow on a step with parents")
+		return nil, 0, errors.InvalidData("cannot start workflow on a step with parents")
 	}
 
 	var (
@@ -233,9 +233,11 @@ func (svc *session) Start(ctx context.Context, g *wfexec.Graph, ssp types.Sessio
 		return
 	}
 
-	return func(ctx context.Context) (*expr.Vars, wfexec.SessionStatus, types.Stacktrace, error) {
-		return ses.WaitResults(ctx)
-	}, nil
+	return func(ctx context.Context) (scope *expr.Vars, sessionID uint64, status wfexec.SessionStatus, stacktrace types.Stacktrace, err error) {
+		sessionID = ses.ID
+		scope, status, stacktrace, err = ses.WaitResults(ctx)
+		return
+	}, ses.ID, nil
 }
 
 // Resume resumes suspended session/state

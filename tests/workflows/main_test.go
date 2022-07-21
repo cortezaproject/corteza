@@ -125,10 +125,10 @@ func bypassRBAC(ctx context.Context) context.Context {
 	return auth.SetIdentityToContext(ctx, u)
 }
 
-func execWorkflow(ctx context.Context, name string, p autTypes.WorkflowExecParams) (*expr.Vars, autTypes.Stacktrace, error) {
+func execWorkflow(ctx context.Context, name string, p autTypes.WorkflowExecParams) (*expr.Vars, uint64, autTypes.Stacktrace, error) {
 	wf, err := defStore.LookupAutomationWorkflowByHandle(ctx, name)
 	if err != nil {
-		return nil, nil, err
+		return nil, 0, nil, err
 	}
 
 	return service.DefaultWorkflow.Exec(ctx, wf.ID, p)
@@ -136,7 +136,7 @@ func execWorkflow(ctx context.Context, name string, p autTypes.WorkflowExecParam
 
 func mustExecWorkflow(ctx context.Context, t *testing.T, name string, p autTypes.WorkflowExecParams) (vars *expr.Vars, strace autTypes.Stacktrace) {
 	var err error
-	vars, strace, err = execWorkflow(ctx, name, p)
+	vars, _, strace, err = execWorkflow(ctx, name, p)
 	if err != nil {
 		if issues, is := err.(autTypes.WorkflowIssueSet); is {
 			for _, i := range issues {
