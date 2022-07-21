@@ -4,6 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ql"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/dialect/sqlite3"
 	"github.com/doug-martin/goqu/v9/exp"
@@ -58,4 +59,8 @@ func (sqliteDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpressio
 
 func (sqliteDialect) NativeColumnType(ct ddl.ColumnType) string {
 	return columnTypeTranslator(ct)
+}
+
+func (sqliteDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (exp.Expression, error) {
+	return ref2exp.RefHandler(n, args...)
 }

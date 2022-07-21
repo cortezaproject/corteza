@@ -49,6 +49,31 @@ func TestConverter(t *testing.T) {
 				sql:  `("one" + ? / ? * ? < ?)`,
 				args: []any{int64(2), int64(3), int64(4), int64(10)},
 			},
+			{
+				qry:  `concat('foo', 'bar')`,
+				sql:  `CONCAT(?, ?)`,
+				args: []any{"foo", "bar"},
+			},
+			{
+				qry:  `quarter('2022-07-21')`,
+				sql:  `QUARTER(?)`,
+				args: []any{"2022-07-21"},
+			},
+			{
+				qry:  `year('2022-07-21')`,
+				sql:  `YEAR(?)`,
+				args: []any{"2022-07-21"},
+			},
+			{
+				qry:  `month('2022-07-21')`,
+				sql:  `MONTH(?)`,
+				args: []any{"2022-07-21"},
+			},
+			{
+				qry:  `date('2022-07-21')`,
+				sql:  `DAY(?)`,
+				args: []any{"2022-07-21"},
+			},
 		}
 	)
 

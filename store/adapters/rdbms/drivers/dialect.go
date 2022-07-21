@@ -2,6 +2,7 @@ package drivers
 
 import (
 	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
@@ -34,5 +35,8 @@ type (
 
 		// NativeColumnType converts column type to type that can be used in the underlying rdbms
 		NativeColumnType(columnType ddl.ColumnType) string
+
+		// ExprHandler returns driver specific expression handling
+		ExprHandler(*ql.ASTNode, ...exp.Expression) (exp.Expression, error)
 	}
 )

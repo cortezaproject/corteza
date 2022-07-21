@@ -1,8 +1,6 @@
 package ql
 
 import (
-	"fmt"
-
 	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/doug-martin/goqu/v9/exp"
 )
@@ -24,7 +22,7 @@ type (
 	op func(*converter)
 )
 
-// Initializes new converter
+// Converter initializes new converter
 func Converter(oo ...op) *converter {
 	c := &converter{
 		parser:     ql.NewParser(),
@@ -93,11 +91,7 @@ func (c *converter) Convert(n *ql.ASTNode) (_ exp.Expression, err error) {
 
 // DefaultRefHandler converts ref from the AST node using ref2exp
 func DefaultRefHandler(n *ql.ASTNode, args ...exp.Expression) (exp.Expression, error) {
-	if ref2exp[n.Ref] == nil {
-		return nil, fmt.Errorf("unknown ref %q", n.Ref)
-	}
-
-	return ref2exp[n.Ref].Handler(args...), nil
+	return ref2exp.RefHandler(n, args...)
 }
 
 // DefaultSymbolHandler parses symbol from the AST node into an identifier
