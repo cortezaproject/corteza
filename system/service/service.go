@@ -265,16 +265,6 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		)
 	}
 
-	return
-}
-
-func Activate(ctx context.Context) (err error) {
-	// Run initial update of current settings
-	err = DefaultSettings.UpdateCurrent(ctx)
-	if err != nil {
-		return
-	}
-
 	// Reload DAL sensitivity levels
 	err = DefaultDalSensitivityLevel.ReloadSensitivityLevels(ctx, DefaultStore)
 	if err != nil {
@@ -282,7 +272,6 @@ func Activate(ctx context.Context) (err error) {
 	}
 
 	// Reload DAL connections
-	println("reloading connections")
 	err = DefaultDalConnection.ReloadConnections(ctx)
 	if err != nil {
 		return
@@ -293,6 +282,16 @@ func Activate(ctx context.Context) (err error) {
 
 func Watchers(ctx context.Context) {
 	DefaultReminder.Watch(ctx)
+	return
+}
+
+func Activate(ctx context.Context) (err error) {
+	// Run initial update of current settings
+	err = DefaultSettings.UpdateCurrent(ctx)
+	if err != nil {
+		return
+	}
+
 	return
 }
 
