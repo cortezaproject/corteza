@@ -3,6 +3,7 @@ package mysql
 import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ql"
 	"strconv"
 	"strings"
 
@@ -100,6 +101,10 @@ func (mysqlDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpression
 
 func (mysqlDialect) NativeColumnType(ct ddl.ColumnType) string {
 	return columnTypeTranslator(ct)
+}
+
+func (mysqlDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (exp.Expression, error) {
+	return ql.DefaultRefHandler(n, args...)
 }
 
 func JSONPath(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression, error) {

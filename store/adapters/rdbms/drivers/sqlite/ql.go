@@ -1,101 +1,140 @@
 package sqlite
 
-//var (
-//sqlExprRegistry = map[string]rdbms.HandlerSig{
-//	// functions
-//	// - filtering
-//	"now": func(aa ...rdbms.FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
-//		if len(aa) != 0 {
-//			err = fmt.Errorf("expecting 0 arguments, got %d", len(aa))
-//			return
-//		}
-//
-//		out = "DATE('now')"
-//		return
-//	},
-//	"quarter": func(aa ...rdbms.FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
-//		if len(aa) != 1 {
-//			err = fmt.Errorf("expecting 1 arguments, got %d", len(aa))
-//			return
-//		}
-//
-//		out = fmt.Sprintf("(CAST(STRFTIME('%%m', %s) AS INTEGER) + 2) / 3", aa[0].S)
-//		args = aa[0].Args
-//		return
-//	},
-//	"year": func(aa ...rdbms.FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
-//		if len(aa) != 1 {
-//			err = fmt.Errorf("expecting 1 arguments, got %d", len(aa))
-//			return
-//		}
-//
-//		out = fmt.Sprintf("STRFTIME('%%Y', %s)", aa[0].S)
-//		args = aa[0].Args
-//		return
-//	},
-//	"month": func(aa ...rdbms.FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
-//		if len(aa) != 1 {
-//			err = fmt.Errorf("expecting 1 arguments, got %d", len(aa))
-//			return
-//		}
-//
-//		out = fmt.Sprintf("STRFTIME('%%m', %s)", aa[0].S)
-//		args = aa[0].Args
-//		return
-//	},
-//	"date": func(aa ...rdbms.FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
-//		if len(aa) != 1 {
-//			err = fmt.Errorf("expecting 1 arguments, got %d", len(aa))
-//			return
-//		}
-//
-//		out = fmt.Sprintf("STRFTIME('%%d', %s)", aa[0].S)
-//		args = aa[0].Args
-//		return
-//	},
-//
-//	// - strings
-//	"concat": func(aa ...rdbms.FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
-//		selfEnclosed = true
-//
-//		params := make([]string, len(aa))
-//		for i, a := range aa {
-//			params[i] = a.S
-//			args = append(args, a.Args...)
-//		}
-//
-//		out = fmt.Sprintf("(%s)", strings.Join(params, "||"))
-//		return
-//	},
-//
-//	// - typecast
-//	"float": func(aa ...rdbms.FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
-//		selfEnclosed = true
-//
-//		if len(aa) != 1 {
-//			err = fmt.Errorf("expecting 1 argument, got %d", len(aa))
-//			return
-//		}
-//
-//		out = fmt.Sprintf("CAST(%s AS FLOAT)", aa[0].S)
-//		args = aa[0].Args
-//		return
-//	},
-//	"string": func(aa ...rdbms.FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
-//		selfEnclosed = true
-//
-//		if len(aa) != 1 {
-//			err = fmt.Errorf("expecting 1 argument, got %d", len(aa))
-//			return
-//		}
-//
-//		out = fmt.Sprintf("CAST(%s AS TEXT)", aa[0].S)
-//		args = aa[0].Args
-//		return
-//	},
-//}
-//)
-//
-//func sqlASTFormatter(n *ql.ASTNode) rdbms.HandlerSig {
-//	return sqlExprRegistry[n.Ref]
-//}
+import (
+	"fmt"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ql"
+	"github.com/doug-martin/goqu/v9/exp"
+	"regexp"
+	"strings"
+)
+
+var (
+	ref2exp = ql.ExprHandlerMap{
+		// filtering
+		"now": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("DATE",
+					exp.NewLiteralExpression("'NOW'"),
+				)
+			},
+		},
+		"quarter": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewLiteralExpression("(CAST(STRFTIME('%m', ?) AS INTEGER) + 2) / 3", args[0])
+			},
+		},
+		"year": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("STRFTIME",
+					exp.NewLiteralExpression("'%Y'"),
+					args[0],
+				)
+			},
+		},
+		"month": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("STRFTIME",
+					exp.NewLiteralExpression("'%m'"),
+					args[0],
+				)
+			},
+		},
+		"date": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("STRFTIME",
+					exp.NewLiteralExpression("'%Y-%m-%dT00:00:00Z'"),
+					args[0],
+				)
+			},
+		},
+		"datetime": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("DATETIME", args[0])
+			},
+		},
+		"timestamp": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("DATETIME", args[0])
+			},
+		},
+		"date_format": {
+			HandlerE: func(args ...exp.Expression) (exp.Expression, error) {
+				format, err := supportedDateFormatParams(args[1])
+				if err != nil {
+					return nil, err
+				}
+
+				return exp.NewSQLFunctionExpression("STRFTIME",
+					format,
+					args[0],
+				), nil
+			},
+		},
+
+		// functions currently unsupported in SQLite store backend
+		//"DATE_ADD": {
+		//	Handler: func(args ...exp.Expression) exp.Expression {
+		//		return exp.NewLiteralExpression("")
+		//	},
+		//},
+		//"DATE_SUB": {
+		//	Handler: func(args ...exp.Expression) exp.Expression {
+		//		return exp.NewLiteralExpression("")
+		//	},
+		//},
+		//"STD": {
+		//	Handler: func(args ...exp.Expression) exp.Expression {
+		//		return exp.NewLiteralExpression("")
+		//	},
+		//},
+	}.ExprHandlers()
+
+	supportedSubstitutions = map[string]bool{
+		"d": true,
+		"H": true,
+		"j": true,
+		"m": true,
+		"M": true,
+		"S": true,
+		"w": true,
+		"W": true,
+		"Y": true,
+		"%": true,
+	}
+)
+
+func supportedDateFormatParams(e interface{}) (interface{}, error) {
+	le, ok := e.(exp.LiteralExpression)
+	if !ok {
+		return e, fmt.Errorf("unknown date format")
+	}
+
+	var format string
+	args := le.Args()
+	if len(args) > 0 {
+		format = dateFormatReplacer(fmt.Sprintf("%s", args[0]))
+	} else {
+		return e, fmt.Errorf("date format not found")
+	}
+
+	r := regexp.MustCompile(`%(?P<sub>.)`)
+
+	for _, m := range r.FindAllStringSubmatch(format, -1) {
+		if len(m) == 0 {
+			continue
+		}
+
+		if _, ok := supportedSubstitutions[m[1]]; !ok {
+			return e, fmt.Errorf("format substitution not supported: %%%s", m[1])
+		}
+	}
+
+	return format, nil
+}
+
+func dateFormatReplacer(format string) string {
+	return strings.NewReplacer(
+		`%i`, `%M`,
+		`%U`, `%W`,
+	).Replace(format)
+}
