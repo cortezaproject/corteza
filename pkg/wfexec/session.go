@@ -123,6 +123,7 @@ const (
 	SessionDelayed
 	SessionFailed
 	SessionCompleted
+	SessionCanceled
 )
 
 var (
@@ -136,6 +137,8 @@ var (
 		c := time.Now()
 		return &c
 	}
+
+	errCanceled = fmt.Errorf("canceled")
 )
 
 func (s SessionStatus) String() string {
@@ -150,6 +153,8 @@ func (s SessionStatus) String() string {
 		return "failed"
 	case SessionCompleted:
 		return "completed"
+	case SessionCanceled:
+		return "aborted"
 	}
 
 	return "UNKNOWN-SESSION-STATUS"
@@ -197,6 +202,10 @@ func (s *Session) Status() SessionStatus {
 
 	switch {
 	case s.err != nil:
+		if s.err == errCanceled {
+			return SessionCanceled
+		}
+
 		return SessionFailed
 
 	case len(s.prompted) > 0:
@@ -425,7 +434,7 @@ func (s *Session) WaitUntil(ctx context.Context, expected ...SessionStatus) erro
 			}
 
 		case <-ctx.Done():
-			s.log.Debug("wait context done", zap.Error(ctx.Err()))
+			s.log.Debug("wait context canceled", zap.Error(ctx.Err()))
 			s.Cancel()
 			return s.err
 		}
@@ -573,8 +582,9 @@ func (s *Session) worker(ctx context.Context) {
 }
 
 func (s *Session) Cancel() {
-	s.log.Debug("canceling")
-	s.qErr <- fmt.Errorf("canceled")
+	s.log.Warn("canceling")
+	s.qErr <- errCanceled
+	s.eventHandler(SessionCanceled, nil, s)
 }
 
 func (s *Session) Stop() {

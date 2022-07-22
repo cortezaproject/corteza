@@ -243,6 +243,9 @@ func (svc *session) Start(ctx context.Context, g *wfexec.Graph, ssp types.Sessio
 // Resume resumes suspended session/state
 //
 // Session can only be resumed by knowing session and state ID. Resume is an asynchronous operation
+//
+// There is minimum access-control deep inside wfexec.Session.Resume function
+// that compares identity with state owner
 func (svc *session) Resume(sessionID, stateID uint64, i auth.Identifiable, input *expr.Vars) error {
 	var (
 		ctx = auth.SetIdentityToContext(context.Background(), i)
@@ -264,6 +267,36 @@ func (svc *session) Resume(sessionID, stateID uint64, i auth.Identifiable, input
 		svc.log.Error("failed to send prompt resume status to user", zap.Error(err))
 	}
 
+	return nil
+}
+
+// Terminates session ID
+func (svc *session) Cancel(ctx context.Context, sessionID uint64) (err error) {
+	svc.mux.RLock()
+
+	var (
+		wf  *types.Workflow
+		ses = svc.pool[sessionID]
+	)
+
+	// unlock right away!
+	// when session is canceled, handler pick it up and
+	// locks it again
+	svc.mux.RUnlock()
+
+	if ses == nil {
+		return errors.NotFound("session not found or already canceled")
+	}
+
+	if wf, err = loadWorkflow(ctx, svc.store, ses.WorkflowID); err != nil {
+		return
+	}
+
+	if !svc.ac.CanManageSessionsOnWorkflow(ctx, wf) {
+		return SessionErrNotAllowedToManage()
+	}
+
+	ses.Cancel()
 	return nil
 }
 
@@ -414,7 +447,10 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 		svc.mux.Lock()
 		defer svc.mux.Unlock()
 
-		log := svc.log.With(zap.Uint64("sessionID", s.ID()))
+		log := svc.log.With(
+			zap.Uint64("sessionID", s.ID()),
+			zap.Stringer("status", i),
+		)
 
 		ses := svc.pool[s.ID()]
 		if ses == nil {
@@ -424,18 +460,23 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 
 		log = log.With(zap.Uint64("workflowID", ses.WorkflowID))
 
+		log.Debug("state change handler")
+
 		var (
-			// By default, we want to update session when new status is prompted, delayed, completed or failed
+			// By default, we want to update session when new status is prompted, delayed, completed, canceled or failed
 			// But if status is active, we'll flush it every X frames (sessionStateFlushFrequency)
 			update = true
 
-			frame = state.MakeFrame()
+			frame *wfexec.Frame
 		)
 
-		// Stacktrace will be set to !nil if frame collection is needed
-		if len(ses.RuntimeStacktrace) > 0 {
-			// calculate how long it took to get to this step
-			frame.ElapsedTime = uint(frame.CreatedAt.Sub(ses.RuntimeStacktrace[0].CreatedAt) / time.Millisecond)
+		if state != nil {
+			frame = state.MakeFrame()
+			// Stacktrace will be set to !nil if frame collection is needed
+			if len(ses.RuntimeStacktrace) > 0 {
+				// calculate how long it took to get to this step
+				frame.ElapsedTime = uint(frame.CreatedAt.Sub(ses.RuntimeStacktrace[0].CreatedAt) / time.Millisecond)
+			}
 		}
 
 		ses.AppendRuntimeStacktrace(frame)
@@ -476,8 +517,15 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 		case wfexec.SessionFailed:
 			ses.SuspendedAt = nil
 			ses.CompletedAt = now()
-			ses.Error = state.Error()
+			if state != nil {
+				ses.Error = state.Error()
+			}
 			ses.Status = types.SessionFailed
+
+		case wfexec.SessionCanceled:
+			ses.SuspendedAt = nil
+			ses.CompletedAt = now()
+			ses.Status = types.SessionCanceled
 
 		default:
 			// force update on every F new frames (F=sessionStateFlushFrequency) but only when stacktrace is not nil

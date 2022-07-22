@@ -2,7 +2,6 @@ package rest
 
 import (
 	"context"
-	"fmt"
 	"github.com/cortezaproject/corteza-server/automation/rest/request"
 	"github.com/cortezaproject/corteza-server/automation/service"
 	"github.com/cortezaproject/corteza-server/automation/types"
@@ -24,6 +23,7 @@ type (
 		LookupByID(ctx context.Context, sessionID uint64) (*types.Session, error)
 		Resume(sessionID, stateID uint64, i auth.Identifiable, input *expr.Vars) error
 		PendingPrompts(context.Context) []*wfexec.PendingPrompt
+		Cancel(context.Context, uint64) error
 	}
 
 	sessionSetPayload struct {
@@ -79,12 +79,8 @@ func (ctrl Session) Read(ctx context.Context, r *request.SessionRead) (interface
 	return ctrl.svc.LookupByID(ctx, r.SessionID)
 }
 
-func (ctrl Session) Delete(ctx context.Context, r *request.SessionDelete) (interface{}, error) {
-	return nil, fmt.Errorf("not implemented")
-}
-
-func (ctrl Session) Trace(ctx context.Context, trace *request.SessionTrace) (interface{}, error) {
-	return nil, fmt.Errorf("not implemented")
+func (ctrl Session) Cancel(ctx context.Context, r *request.SessionCancel) (interface{}, error) {
+	return true, ctrl.svc.Cancel(ctx, r.SessionID)
 }
 
 func (ctrl Session) ListPrompts(ctx context.Context, r *request.SessionListPrompts) (interface{}, error) {
@@ -97,10 +93,6 @@ func (ctrl Session) ListPrompts(ctx context.Context, r *request.SessionListPromp
 
 func (ctrl Session) ResumeState(ctx context.Context, r *request.SessionResumeState) (interface{}, error) {
 	return api.OK(), ctrl.svc.Resume(r.SessionID, r.StateID, auth.GetIdentityFromContext(ctx), r.Input)
-}
-
-func (ctrl Session) DeleteState(ctx context.Context, r *request.SessionDeleteState) (interface{}, error) {
-	return nil, fmt.Errorf("not implemented")
 }
 
 func (ctrl Session) makeFilterPayload(ctx context.Context, ss types.SessionSet, f types.SessionFilter, err error) (*sessionSetPayload, error) {
