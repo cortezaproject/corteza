@@ -21,22 +21,18 @@ type (
 	SessionAPI interface {
 		List(context.Context, *request.SessionList) (interface{}, error)
 		Read(context.Context, *request.SessionRead) (interface{}, error)
-		Trace(context.Context, *request.SessionTrace) (interface{}, error)
-		Delete(context.Context, *request.SessionDelete) (interface{}, error)
+		Cancel(context.Context, *request.SessionCancel) (interface{}, error)
 		ListPrompts(context.Context, *request.SessionListPrompts) (interface{}, error)
 		ResumeState(context.Context, *request.SessionResumeState) (interface{}, error)
-		DeleteState(context.Context, *request.SessionDeleteState) (interface{}, error)
 	}
 
 	// HTTP API interface
 	Session struct {
 		List        func(http.ResponseWriter, *http.Request)
 		Read        func(http.ResponseWriter, *http.Request)
-		Trace       func(http.ResponseWriter, *http.Request)
-		Delete      func(http.ResponseWriter, *http.Request)
+		Cancel      func(http.ResponseWriter, *http.Request)
 		ListPrompts func(http.ResponseWriter, *http.Request)
 		ResumeState func(http.ResponseWriter, *http.Request)
-		DeleteState func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -74,31 +70,15 @@ func NewSession(h SessionAPI) *Session {
 
 			api.Send(w, r, value)
 		},
-		Trace: func(w http.ResponseWriter, r *http.Request) {
+		Cancel: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewSessionTrace()
+			params := request.NewSessionCancel()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
 			}
 
-			value, err := h.Trace(r.Context(), params)
-			if err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			api.Send(w, r, value)
-		},
-		Delete: func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			params := request.NewSessionDelete()
-			if err := params.Fill(r); err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			value, err := h.Delete(r.Context(), params)
+			value, err := h.Cancel(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
@@ -138,22 +118,6 @@ func NewSession(h SessionAPI) *Session {
 
 			api.Send(w, r, value)
 		},
-		DeleteState: func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			params := request.NewSessionDeleteState()
-			if err := params.Fill(r); err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			value, err := h.DeleteState(r.Context(), params)
-			if err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			api.Send(w, r, value)
-		},
 	}
 }
 
@@ -162,10 +126,8 @@ func (h Session) MountRoutes(r chi.Router, middlewares ...func(http.Handler) htt
 		r.Use(middlewares...)
 		r.Get("/sessions/", h.List)
 		r.Get("/sessions/{sessionID}", h.Read)
-		r.Get("/sessions/{sessionID}/trace", h.Trace)
-		r.Delete("/sessions/{sessionID}", h.Delete)
+		r.Post("/sessions/{sessionID}/cancel", h.Cancel)
 		r.Get("/sessions/prompts", h.ListPrompts)
 		r.Post("/sessions/{sessionID}/state/{stateID}", h.ResumeState)
-		r.Delete("/sessions/{sessionID}/state/{stateID}", h.DeleteState)
 	})
 }
