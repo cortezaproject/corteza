@@ -94,14 +94,7 @@ type (
 		SessionID uint64 `json:",string"`
 	}
 
-	SessionTrace struct {
-		// SessionID PATH parameter
-		//
-		// Session ID
-		SessionID uint64 `json:",string"`
-	}
-
-	SessionDelete struct {
+	SessionCancel struct {
 		// SessionID PATH parameter
 		//
 		// Session ID
@@ -126,18 +119,6 @@ type (
 		//
 		// Prompt variables
 		Input *expr.Vars
-	}
-
-	SessionDeleteState struct {
-		// SessionID PATH parameter
-		//
-		// Session ID
-		SessionID uint64 `json:",string"`
-
-		// StateID PATH parameter
-		//
-		// State ID
-		StateID uint64 `json:",string"`
 	}
 )
 
@@ -339,60 +320,25 @@ func (r *SessionRead) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewSessionTrace request
-func NewSessionTrace() *SessionTrace {
-	return &SessionTrace{}
+// NewSessionCancel request
+func NewSessionCancel() *SessionCancel {
+	return &SessionCancel{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r SessionTrace) Auditable() map[string]interface{} {
+func (r SessionCancel) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"sessionID": r.SessionID,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r SessionTrace) GetSessionID() uint64 {
+func (r SessionCancel) GetSessionID() uint64 {
 	return r.SessionID
 }
 
 // Fill processes request and fills internal variables
-func (r *SessionTrace) Fill(req *http.Request) (err error) {
-
-	{
-		var val string
-		// path params
-
-		val = chi.URLParam(req, "sessionID")
-		r.SessionID, err = payload.ParseUint64(val), nil
-		if err != nil {
-			return err
-		}
-
-	}
-
-	return err
-}
-
-// NewSessionDelete request
-func NewSessionDelete() *SessionDelete {
-	return &SessionDelete{}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r SessionDelete) Auditable() map[string]interface{} {
-	return map[string]interface{}{
-		"sessionID": r.SessionID,
-	}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r SessionDelete) GetSessionID() uint64 {
-	return r.SessionID
-}
-
-// Fill processes request and fills internal variables
-func (r *SessionDelete) Fill(req *http.Request) (err error) {
+func (r *SessionCancel) Fill(req *http.Request) (err error) {
 
 	{
 		var val string
@@ -508,53 +454,6 @@ func (r *SessionResumeState) Fill(req *http.Request) (err error) {
 			}
 		}
 	}
-
-	{
-		var val string
-		// path params
-
-		val = chi.URLParam(req, "sessionID")
-		r.SessionID, err = payload.ParseUint64(val), nil
-		if err != nil {
-			return err
-		}
-
-		val = chi.URLParam(req, "stateID")
-		r.StateID, err = payload.ParseUint64(val), nil
-		if err != nil {
-			return err
-		}
-
-	}
-
-	return err
-}
-
-// NewSessionDeleteState request
-func NewSessionDeleteState() *SessionDeleteState {
-	return &SessionDeleteState{}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r SessionDeleteState) Auditable() map[string]interface{} {
-	return map[string]interface{}{
-		"sessionID": r.SessionID,
-		"stateID":   r.StateID,
-	}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r SessionDeleteState) GetSessionID() uint64 {
-	return r.SessionID
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r SessionDeleteState) GetStateID() uint64 {
-	return r.StateID
-}
-
-// Fill processes request and fills internal variables
-func (r *SessionDeleteState) Fill(req *http.Request) (err error) {
 
 	{
 		var val string

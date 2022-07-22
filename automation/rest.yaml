@@ -206,16 +206,20 @@ endpoints:
     title: Read session details
     path: "/{sessionID}"
     parameters: { path: [ { name: sessionID, type: uint64, required: true, title: "Session ID" } ] }
-  - name: trace
-    method: GET
-    title: Read session trace info
-    path: "/{sessionID}/trace"
+
+  - name: cancel
+    method: POST
+    title: Cancel session
+    path: "/{sessionID}/cancel"
     parameters: { path: [ { name: sessionID, type: uint64, required: true, title: "Session ID" } ] }
-  - name: delete
-    method: DELETE
-    title: Remove session
-    path: "/{sessionID}"
-    parameters: { path: [ { name: sessionID, type: uint64, required: true, title: "Session ID" } ] }
+
+# not yet implemented
+#
+#  - name: delete
+#    method: DELETE
+#    title: Remove session
+#    path: "/{sessionID}"
+#    parameters: { path: [ { name: sessionID, type: uint64, required: true, title: "Session ID" } ] }
 
   - name: listPrompts
     method: GET
@@ -233,14 +237,16 @@ endpoints:
       post:
       - { name: input,        type: "*expr.Vars",           title: "Prompt variables", parser: "types.ParseWorkflowVariables" }
 
-  - name: deleteState
-    method: DELETE
-    title: Cancel session's state
-    path: "/{sessionID}/state/{stateID}"
-    parameters:
-      path:
-      - { name: sessionID,    type: uint64, required: true, title: "Session ID" }
-      - { name: stateID,      type: uint64, required: true, title: "State ID" }
+# not yet implemented
+#
+#  - name: deleteState
+#    method: DELETE
+#    title: Cancel session's state
+#    path: "/{sessionID}/state/{stateID}"
+#    parameters:
+#      path:
+#      - { name: sessionID,    type: uint64, required: true, title: "Session ID" }
+#      - { name: stateID,      type: uint64, required: true, title: "State ID" }
 
 - title: Functions
   path: "/functions"
