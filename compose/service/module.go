@@ -599,13 +599,16 @@ func (svc module) lookup(ctx context.Context, namespaceID uint64, lookup func(*m
 			return ModuleErrNotAllowedToRead()
 		}
 
-		svc.proc(ctx, m)
-
 		if err = loadModuleLabels(ctx, svc.store, m); err != nil {
 			return err
 		}
 
-		return loadModuleFields(ctx, svc.store, m)
+		if err = loadModuleFields(ctx, svc.store, m); err != nil {
+			return err
+		}
+
+		svc.proc(ctx, m)
+		return nil
 	}()
 
 	return m, svc.recordAction(ctx, aProps, ModuleActionLookup, err)
