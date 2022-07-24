@@ -53,6 +53,15 @@ import (
 			]
 
 			// Operation/resource validators, grouped by resource
+			loaders: [
+				for res in cmp.resources if res.rbac != _|_ {
+					const:    "types.\(res.expIdent)ResourceType"
+					funcName: "load\(res.expIdent)"
+					refIndex: [ { 0 }, for i, p in res.parents {i + 1} ]
+				},
+			]
+
+			// Operation/resource validators, grouped by resource
 			validation: [
 				for res in cmp.resources if res.rbac != _|_ {
 					label:    res.ident

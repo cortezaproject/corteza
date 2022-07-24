@@ -139,3 +139,26 @@ func TestIsSpecific(t *testing.T) {
 		})
 	}
 }
+
+func TestParseResourceID(t *testing.T) {
+	var (
+		tcc = []struct {
+			in      string
+			outType string
+			outIDs  []uint64
+		}{
+			{"corteza::test/*/*/*", "corteza::test", []uint64{0, 0, 0}},
+			{"corteza::test/234/*/123", "corteza::test", []uint64{234, 0, 123}},
+			{"corteza::test/3/2/1", "corteza::test", []uint64{3, 2, 1}},
+		}
+	)
+
+	for _, tc := range tcc {
+		t.Run(tc.in, func(t *testing.T) {
+			outType, outIDs := ParseResourceID(tc.in)
+
+			require.Equal(t, tc.outType, outType)
+			require.Equal(t, tc.outIDs, outIDs)
+		})
+	}
+}

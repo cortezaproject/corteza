@@ -1,6 +1,7 @@
 package rbac
 
 import (
+	"github.com/spf13/cast"
 	"path"
 	"strings"
 )
@@ -62,6 +63,19 @@ func ResourceComponent(r string) string {
 	} else {
 		return t
 	}
+}
+
+func ParseResourceID(r string) (string, []uint64) {
+	const sep = "/"
+	var (
+		pp  = strings.Split(r, sep)
+		ids = make([]uint64, 0)
+	)
+
+	for i := 1; i < len(pp); i++ {
+		ids = append(ids, cast.ToUint64(pp[i]))
+	}
+	return pp[0], ids
 }
 
 // match returns true if the given resource matches the given pattern

@@ -14,16 +14,13 @@ import (
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
+	"github.com/cortezaproject/corteza-server/store"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/spf13/cast"
 	"strings"
 )
 
 type (
-	roleMemberSearcher interface {
-		SearchRoleMembers(context.Context, systemTypes.RoleMemberFilter) (systemTypes.RoleMemberSet, systemTypes.RoleMemberFilter, error)
-	}
-
 	rbacService interface {
 		Can(rbac.Session, string, rbac.Resource) bool
 		Trace(rbac.Session, string, rbac.Resource) *rbac.Trace
@@ -34,14 +31,14 @@ type (
 	accessControl struct {
 		actionlog actionlog.Recorder
 
-		store roleMemberSearcher
+		store store.Storer
 		rbac  rbacService
 	}
 )
 
-func AccessControl(rms roleMemberSearcher) *accessControl {
+func AccessControl(s store.Storer) *accessControl {
 	return &accessControl{
-		store:     rms,
+		store:     s,
 		rbac:      rbac.Global(),
 		actionlog: DefaultActionlog,
 	}
@@ -76,6 +73,7 @@ func (svc accessControl) Trace(ctx context.Context, userID uint64, roles []uint6
 	}
 
 	var (
+		resource  rbac.Resource
 		resources []rbac.Resource
 		members   systemTypes.RoleMemberSet
 	)
@@ -86,7 +84,12 @@ func (svc accessControl) Trace(ctx context.Context, userID uint64, roles []uint6
 				return nil, fmt.Errorf("can not use resource %q: %w", r, err)
 			}
 
-			resources = append(resources, rbac.NewResource(r))
+			resource, err = svc.resourceLoader(ctx, r)
+			if err != nil {
+				return
+			}
+
+			resources = append(resources, resource)
 		}
 	} else {
 		resources = svc.Resources()
@@ -120,8 +123,7 @@ func (svc accessControl) Trace(ctx context.Context, userID uint64, roles []uint6
 
 	session := rbac.ParamsToSession(ctx, userID, roles...)
 	for _, res := range resources {
-		r := res.RbacResource()
-		for op := range rbacResourceOperations(r) {
+		for op := range rbacResourceOperations(res.RbacResource()) {
 			ee = append(ee, svc.rbac.Trace(session, op, res))
 		}
 	}
@@ -703,7 +705,36 @@ func rbacResourceValidator(r string, oo ...string) error {
 		return rbacComponentResourceValidator(r, oo...)
 	}
 
-	return fmt.Errorf("unknown resource type '%q'", r)
+	return fmt.Errorf("unknown resource type %q", r)
+}
+
+// resourceLoader loads resource from store
+//
+// function assumes existence of loader functions for all resource types
+//
+// This function is auto-generated
+func (svc accessControl) resourceLoader(ctx context.Context, resource string) (rbac.Resource, error) {
+	resourceType, ids := rbac.ParseResourceID(resource)
+
+	switch rbac.ResourceType(resourceType) {
+	case types.ChartResourceType:
+		return loadChart(ctx, svc.store, ids[0], ids[1])
+	case types.ModuleResourceType:
+		return loadModule(ctx, svc.store, ids[0], ids[1])
+	case types.ModuleFieldResourceType:
+		return loadModuleField(ctx, svc.store, ids[0], ids[1], ids[2])
+	case types.NamespaceResourceType:
+		return loadNamespace(ctx, svc.store, ids[0])
+	case types.PageResourceType:
+		return loadPage(ctx, svc.store, ids[0], ids[1])
+	case types.RecordResourceType:
+		return loadRecord(ctx, svc.store, ids[0], ids[1], ids[2])
+	case types.ComponentResourceType:
+		return &types.Component{}, nil
+	}
+
+	_ = ids
+	return nil, fmt.Errorf("unknown resource type %q", resourceType)
 }
 
 // rbacResourceOperations returns defined operations for a requested resource
