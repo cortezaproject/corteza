@@ -41,7 +41,6 @@ actions:
   - action: update
     log: "updated {{node}}"
 
-
   - action: delete
     log: "deleted {{node}}"
 
@@ -66,6 +65,10 @@ actions:
 errors:
   - error: notFound
     message: "node does not exist"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
     severity: warning
 
   - error: pairingURIInvalid

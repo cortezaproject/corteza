@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 
 	composeService "github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/federation/types"
@@ -43,7 +44,7 @@ func SharedModule() *sharedModule {
 
 func (svc sharedModule) FindByID(ctx context.Context, nodeID uint64, moduleID uint64) (module *types.SharedModule, err error) {
 	err = func() error {
-		if module, err = store.LookupFederationSharedModuleByID(ctx, svc.store, moduleID); err != nil {
+		if module, err = loadSharedModule(ctx, svc.store, nodeID, moduleID); err != nil {
 			return err
 		}
 
@@ -150,4 +151,21 @@ func (svc sharedModule) Find(ctx context.Context, filter types.SharedModuleFilte
 	}()
 
 	return set, f, svc.recordAction(ctx, aProps, SharedModuleActionSearch, err)
+}
+
+func loadSharedModule(ctx context.Context, s store.FederationSharedModules, nodeID, ID uint64) (res *types.SharedModule, err error) {
+	if ID == 0 || nodeID == 0 {
+		return nil, SharedModuleErrInvalidID()
+	}
+
+	if res, err = store.LookupFederationSharedModuleByID(ctx, s, ID); errors.IsNotFound(err) {
+		err = SharedModuleErrNotFound()
+	}
+
+	if err == nil && nodeID != res.NodeID {
+		// Make sure chart belongs to the right namespace
+		return nil, SharedModuleErrNotFound()
+	}
+
+	return
 }

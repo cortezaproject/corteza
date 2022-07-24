@@ -359,20 +359,18 @@ func (svc resourceTranslationsManager) pageExtendedAutomationBlock(tag language.
 
 // Helper loaders
 
-func (svc resourceTranslationsManager) loadModule(ctx context.Context, s store.Storer, namespaceID, moduleID uint64) (m *types.Module, err error) {
-	return loadModule(ctx, s, moduleID)
+func (svc resourceTranslationsManager) loadModule(ctx context.Context, s store.Storer, namespaceID, moduleID uint64) (*types.Module, error) {
+	return loadModule(ctx, s, namespaceID, moduleID)
 }
 
-func (svc resourceTranslationsManager) loadNamespace(ctx context.Context, s store.Storer, namespaceID uint64) (m *types.Namespace, err error) {
+func (svc resourceTranslationsManager) loadNamespace(ctx context.Context, s store.Storer, namespaceID uint64) (*types.Namespace, error) {
 	return loadNamespace(ctx, s, namespaceID)
 }
 
-func (svc resourceTranslationsManager) loadPage(ctx context.Context, s store.Storer, namespaceID, pageID uint64) (m *types.Page, err error) {
-	_, m, err = loadPage(ctx, s, namespaceID, pageID)
-	return m, err
+func (svc resourceTranslationsManager) loadPage(ctx context.Context, s store.Storer, namespaceID, pageID uint64) (*types.Page, error) {
+	return loadPage(ctx, s, namespaceID, pageID)
 }
 
-func (svc resourceTranslationsManager) loadChart(ctx context.Context, s store.Storer, namespaceID, chartID uint64) (m *types.Chart, err error) {
-	_, m, err = loadChart(ctx, s, namespaceID, chartID)
-	return m, err
+func (svc resourceTranslationsManager) loadChart(ctx context.Context, s store.Storer, namespaceID, chartID uint64) (*types.Chart, error) {
+	return loadChart(ctx, s, namespaceID, chartID)
 }

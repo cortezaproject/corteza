@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"strconv"
 
 	cs "github.com/cortezaproject/corteza-server/compose/service"
@@ -77,7 +78,7 @@ func (svc exposedModule) FindByAny(ctx context.Context, nodeID uint64, identifie
 
 func (svc exposedModule) FindByID(ctx context.Context, nodeID uint64, moduleID uint64) (module *types.ExposedModule, err error) {
 	err = func() error {
-		if module, err = store.LookupFederationExposedModuleByID(ctx, svc.store, moduleID); err != nil {
+		if module, err = loadExposedModule(ctx, svc.store, nodeID, moduleID); err != nil {
 			return err
 		}
 
@@ -157,7 +158,7 @@ func (svc exposedModule) updater(ctx context.Context, nodeID, moduleID uint64, a
 	)
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		if m, err = svc.store.LookupFederationExposedModuleByID(ctx, moduleID); err != nil {
+		if m, err = loadExposedModule(ctx, svc.store, nodeID, moduleID); err != nil {
 			return err
 		}
 
@@ -315,4 +316,21 @@ func (svc exposedModule) uniqueCheck(ctx context.Context, m *types.ExposedModule
 	}
 
 	return nil
+}
+
+func loadExposedModule(ctx context.Context, s store.FederationExposedModules, nodeID, ID uint64) (res *types.ExposedModule, err error) {
+	if ID == 0 || nodeID == 0 {
+		return nil, SharedModuleErrInvalidID()
+	}
+
+	if res, err = store.LookupFederationExposedModuleByID(ctx, s, ID); errors.IsNotFound(err) {
+		err = SharedModuleErrNotFound()
+	}
+
+	if err == nil && nodeID != res.NodeID {
+		// Make sure chart belongs to the right namespace
+		return nil, SharedModuleErrNotFound()
+	}
+
+	return
 }

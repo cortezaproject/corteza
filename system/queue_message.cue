@@ -28,15 +28,7 @@ queue_message: schema.#Resource & {
 		byNilState: ["processed"]
 	}
 
-	rbac: {
-		operations: {
-			"read": description:        "Read queue"
-			"update": description:      "Update queue"
-			"delete": description:      "Delete queue"
-			"queue.read": description:  "Read from queue"
-			"queue.write": description: "Write to queue"
-		}
-	}
+	rbac: false
 
 	store: {
 		api: {

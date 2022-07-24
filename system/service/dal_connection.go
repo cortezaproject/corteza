@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"reflect"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
@@ -57,11 +58,7 @@ func (svc *dalConnection) FindByID(ctx context.Context, ID uint64) (q *types.Dal
 	)
 
 	err = func() error {
-		if ID == 0 {
-			return DalConnectionErrInvalidID()
-		}
-
-		if q, err = store.LookupDalConnectionByID(ctx, svc.store, ID); err != nil {
+		if q, err = loadDalConnection(ctx, svc.store, ID); err != nil {
 			return DalConnectionErrInvalidID().Wrap(err)
 		}
 
@@ -123,7 +120,7 @@ func (svc *dalConnection) Update(ctx context.Context, upd *types.DalConnection) 
 	)
 
 	err = func() (err error) {
-		if old, err = store.LookupDalConnectionByID(ctx, svc.store, upd.ID); err != nil {
+		if old, err = loadDalConnection(ctx, svc.store, upd.ID); err != nil {
 			return DalConnectionErrNotFound(cProps)
 		}
 
@@ -169,11 +166,7 @@ func (svc *dalConnection) DeleteByID(ctx context.Context, ID uint64) (err error)
 	)
 
 	err = func() (err error) {
-		if ID == 0 {
-			return DalConnectionErrInvalidID()
-		}
-
-		if c, err = store.LookupDalConnectionByID(ctx, svc.store, ID); err != nil {
+		if c, err = loadDalConnection(ctx, svc.store, ID); err != nil {
 			return
 		}
 
@@ -207,11 +200,7 @@ func (svc *dalConnection) UndeleteByID(ctx context.Context, ID uint64) (err erro
 	)
 
 	err = func() (err error) {
-		if ID == 0 {
-			return DalConnectionErrInvalidID()
-		}
-
-		if c, err = store.LookupDalConnectionByID(ctx, svc.store, ID); err != nil {
+		if c, err = loadDalConnection(ctx, svc.store, ID); err != nil {
 			return
 		}
 
@@ -299,6 +288,18 @@ func (svc *dalConnection) procDal(c *types.DalConnection) {
 
 func (svc *dalConnection) procLocale(c *types.DalConnection) {
 	// @todo...
+}
+
+func loadDalConnection(ctx context.Context, s store.DalConnections, ID uint64) (res *types.DalConnection, err error) {
+	if ID == 0 {
+		return nil, DalConnectionErrInvalidID()
+	}
+
+	if res, err = store.LookupDalConnectionByID(ctx, s, ID); errors.IsNotFound(err) {
+		return nil, DalConnectionErrNotFound()
+	}
+
+	return
 }
 
 func dalConnectionReload(ctx context.Context, s store.Storer, dcm dalConnManager) (err error) {

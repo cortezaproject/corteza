@@ -220,7 +220,7 @@ func (svc record) lookup(ctx context.Context, namespaceID, moduleID uint64, look
 	)
 
 	err = func() error {
-		if ns, m, err = loadModuleWithNamespace(ctx, svc.store, namespaceID, moduleID); err != nil {
+		if ns, m, err = loadModuleCombo(ctx, svc.store, namespaceID, moduleID); err != nil {
 			return err
 		}
 
@@ -277,7 +277,7 @@ func (svc record) Find(ctx context.Context, filter types.RecordFilter) (set type
 	)
 
 	err = func() error {
-		if m, err = loadModule(ctx, svc.store, filter.ModuleID); err != nil {
+		if m, err = loadModule(ctx, svc.store, filter.NamespaceID, filter.ModuleID); err != nil {
 			return err
 		}
 
@@ -333,7 +333,7 @@ func (svc record) FindSensitive(ctx context.Context, filter types.RecordFilter) 
 	)
 
 	err = func() error {
-		if m, err = loadModule(ctx, svc.store, filter.ModuleID); err != nil {
+		if m, err = loadModule(ctx, svc.store, filter.NamespaceID, filter.ModuleID); err != nil {
 			return err
 		}
 
@@ -518,7 +518,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 		m  *types.Module
 	)
 
-	ns, m, err = loadModuleWithNamespace(ctx, svc.store, new.NamespaceID, new.ModuleID)
+	ns, m, err = loadModuleCombo(ctx, svc.store, new.NamespaceID, new.ModuleID)
 	if err != nil {
 		return
 	}
@@ -1087,7 +1087,7 @@ func (svc record) DeleteByID(ctx context.Context, namespaceID, moduleID uint64, 
 			return RecordErrInvalidModuleID()
 		}
 
-		ns, m, err = loadModuleWithNamespace(ctx, svc.store, namespaceID, moduleID)
+		ns, m, err = loadModuleCombo(ctx, svc.store, namespaceID, moduleID)
 		if err != nil {
 			return err
 		}
@@ -1289,7 +1289,7 @@ func (svc record) Organize(ctx context.Context, namespaceID, moduleID, recordID 
 }
 
 func (svc record) Validate(ctx context.Context, rec *types.Record) error {
-	if m, err := loadModule(ctx, svc.store, rec.ModuleID); err != nil {
+	if m, err := loadModule(ctx, svc.store, rec.NamespaceID, rec.ModuleID); err != nil {
 		return err
 	} else {
 		rec.Values = values.Sanitizer().Run(m, rec.Values)
@@ -1371,7 +1371,7 @@ func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbu
 	)
 
 	err = func() error {
-		ns, m, err = loadModuleWithNamespace(ctx, svc.store, f.NamespaceID, f.ModuleID)
+		ns, m, err = loadModuleCombo(ctx, svc.store, f.NamespaceID, f.ModuleID)
 		if err != nil {
 			return err
 		}
@@ -1510,7 +1510,7 @@ func ComposeRecordFilterAC(ctx context.Context, ac recordValueAccessController, 
 
 // loadRecordCombo Loads namespace, module and record
 func loadRecordCombo(ctx context.Context, s store.Storer, dal dalDater, namespaceID, moduleID, recordID uint64) (ns *types.Namespace, m *types.Module, r *types.Record, err error) {
-	if ns, m, err = loadModuleWithNamespace(ctx, s, namespaceID, moduleID); err != nil {
+	if ns, m, err = loadModuleCombo(ctx, s, namespaceID, moduleID); err != nil {
 		return
 	}
 
@@ -1522,6 +1522,16 @@ func loadRecordCombo(ctx context.Context, s store.Storer, dal dalDater, namespac
 		return nil, nil, nil, RecordErrInvalidModuleID()
 	}
 
+	return
+}
+
+// loadRecord loads record
+//
+// function uses global DAL service to load records
+// this is because we need to be able to call it from AccessControl service
+// that does not have DAL
+func loadRecord(ctx context.Context, s store.Storer, namespaceID, moduleID, recordID uint64) (res *types.Record, err error) {
+	_, _, res, err = loadRecordCombo(ctx, s, dal.Service(), namespaceID, moduleID, recordID)
 	return
 }
 

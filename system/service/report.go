@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"strconv"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
@@ -62,11 +63,7 @@ func (svc *report) LookupByID(ctx context.Context, ID uint64) (report *types.Rep
 	)
 
 	err = func() error {
-		if ID == 0 {
-			return ReportErrInvalidID()
-		}
-
-		if report, err = store.LookupReportByID(ctx, svc.store, ID); err != nil {
+		if report, err = loadReport(ctx, svc.store, ID); err != nil {
 			return ReportErrInvalidID().Wrap(err)
 		}
 
@@ -179,11 +176,7 @@ func (svc *report) Update(ctx context.Context, upd *types.Report) (report *types
 	)
 
 	err = func() (err error) {
-		if upd.ID == 0 {
-			return ReportErrInvalidID()
-		}
-
-		if report, err = store.LookupReportByID(ctx, svc.store, upd.ID); err != nil {
+		if report, err = loadReport(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
 
@@ -236,11 +229,7 @@ func (svc *report) Delete(ctx context.Context, ID uint64) (err error) {
 	)
 
 	err = func() (err error) {
-		if ID == 0 {
-			return ReportErrInvalidID()
-		}
-
-		if report, err = store.LookupReportByID(ctx, svc.store, ID); err != nil {
+		if report, err = loadReport(ctx, svc.store, ID); err != nil {
 			return
 		}
 
@@ -273,11 +262,7 @@ func (svc *report) Undelete(ctx context.Context, ID uint64) (err error) {
 	)
 
 	err = func() (err error) {
-		if ID == 0 {
-			return ReportErrInvalidID()
-		}
-
-		if report, err = store.LookupReportByID(ctx, svc.store, ID); err != nil {
+		if report, err = loadReport(ctx, svc.store, ID); err != nil {
 			return
 		}
 
@@ -358,11 +343,7 @@ func (svc *report) Run(ctx context.Context, reportID uint64, dd rep.FrameDefinit
 		// 	return
 		// }
 
-		if reportID == 0 {
-			return ReportErrInvalidID()
-		}
-
-		r, err := store.LookupReportByID(ctx, svc.store, reportID)
+		r, err := loadReport(ctx, svc.store, reportID)
 		if err != nil {
 			return err
 		}
@@ -552,6 +533,18 @@ func (svc *report) setIDs(r *types.Report) *types.Report {
 	}
 
 	return r
+}
+
+func loadReport(ctx context.Context, s store.Reports, ID uint64) (res *types.Report, err error) {
+	if ID == 0 {
+		return nil, ReportErrInvalidID()
+	}
+
+	if res, err = store.LookupReportByID(ctx, s, ID); errors.IsNotFound(err) {
+		return nil, ReportErrNotFound()
+	}
+
+	return
 }
 
 // toLabeledReports converts to []label.LabeledResource

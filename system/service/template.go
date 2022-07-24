@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"io"
 	"strconv"
 	"strings"
@@ -73,11 +74,7 @@ func (svc template) FindByID(ctx context.Context, ID uint64) (tpl *types.Templat
 	)
 
 	err = func() error {
-		if ID == 0 {
-			return TemplateErrInvalidID()
-		}
-
-		if tpl, err = store.LookupTemplateByID(ctx, svc.store, ID); err != nil {
+		if tpl, err = loadTemplate(ctx, svc.store, ID); err != nil {
 			return TemplateErrInvalidID().Wrap(err)
 		}
 
@@ -232,15 +229,11 @@ func (svc template) Update(ctx context.Context, upd *types.Template) (tpl *types
 	)
 
 	err = func() (err error) {
-		if upd.ID == 0 {
-			return TemplateErrInvalidID()
-		}
-
 		if !handle.IsValid(upd.Handle) {
 			return TemplateErrInvalidHandle()
 		}
 
-		if tpl, err = store.LookupTemplateByID(ctx, svc.store, upd.ID); err != nil {
+		if tpl, err = loadTemplate(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
 
@@ -285,11 +278,7 @@ func (svc template) DeleteByID(ctx context.Context, ID uint64) (err error) {
 	)
 
 	err = func() (err error) {
-		if ID == 0 {
-			return TemplateErrInvalidID()
-		}
-
-		if tpl, err = store.LookupTemplateByID(ctx, svc.store, ID); err != nil {
+		if tpl, err = loadTemplate(ctx, svc.store, ID); err != nil {
 			return
 		}
 
@@ -319,11 +308,7 @@ func (svc template) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 	)
 
 	err = func() (err error) {
-		if ID == 0 {
-			return TemplateErrInvalidID()
-		}
-
-		if tpl, err = store.LookupTemplateByID(ctx, svc.store, ID); err != nil {
+		if tpl, err = loadTemplate(ctx, svc.store, ID); err != nil {
 			return
 		}
 
@@ -480,6 +465,18 @@ func (svc template) getAttachments(ctx context.Context, tpl *types.Template) (re
 
 	// 	return nil
 	// })
+}
+
+func loadTemplate(ctx context.Context, s store.Templates, ID uint64) (res *types.Template, err error) {
+	if ID == 0 {
+		return nil, TemplateErrInvalidID()
+	}
+
+	if res, err = store.LookupTemplateByID(ctx, s, ID); errors.IsNotFound(err) {
+		return nil, TemplateErrNotFound()
+	}
+
+	return
 }
 
 // toLabeledTemplates converts to []label.LabeledResource

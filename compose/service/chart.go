@@ -117,12 +117,7 @@ func (svc chart) Find(ctx context.Context, filter types.ChartFilter) (set types.
 
 func (svc chart) FindByID(ctx context.Context, namespaceID, chartID uint64) (c *types.Chart, err error) {
 	return svc.lookup(ctx, namespaceID, func(aProps *chartActionProps) (*types.Chart, error) {
-		if chartID == 0 {
-			return nil, ChartErrInvalidID()
-		}
-
-		aProps.chart.ID = chartID
-		return store.LookupComposeChartByID(ctx, svc.store, chartID)
+		return loadChart(ctx, svc.store, namespaceID, chartID)
 	})
 }
 
@@ -255,7 +250,7 @@ func (svc chart) updater(ctx context.Context, namespaceID, chartID uint64, actio
 	)
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		ns, c, err = loadChart(ctx, s, namespaceID, chartID)
+		ns, c, err = loadChartCombo(ctx, s, namespaceID, chartID)
 		if err != nil {
 			return
 		}
@@ -401,24 +396,31 @@ func (svc chart) handleUndelete(ctx context.Context, ns *types.Namespace, c *typ
 	return chartChanged, nil
 }
 
-func loadChart(ctx context.Context, s store.Storer, namespaceID, chartID uint64) (ns *types.Namespace, c *types.Chart, err error) {
-	if chartID == 0 {
-		return nil, nil, ChartErrInvalidID()
-	}
-
-	if ns, err = loadNamespace(ctx, s, namespaceID); err == nil {
-		if c, err = store.LookupComposeChartByID(ctx, s, chartID); errors.IsNotFound(err) {
-			err = ChartErrNotFound()
-		}
-	}
-
+func loadChartCombo(ctx context.Context, s interface {
+	store.ComposeCharts
+	store.ComposeNamespaces
+}, namespaceID, chartID uint64) (ns *types.Namespace, c *types.Chart, err error) {
+	ns, err = loadNamespace(ctx, s, namespaceID)
 	if err != nil {
-		return nil, nil, err
+		return
 	}
 
-	if namespaceID != c.NamespaceID {
+	c, err = loadChart(ctx, s, namespaceID, chartID)
+	return
+}
+
+func loadChart(ctx context.Context, s store.ComposeCharts, namespaceID, chartID uint64) (res *types.Chart, err error) {
+	if chartID == 0 || namespaceID == 0 {
+		return nil, ChartErrInvalidID()
+	}
+
+	if res, err = store.LookupComposeChartByID(ctx, s, chartID); errors.IsNotFound(err) {
+		err = ChartErrNotFound()
+	}
+
+	if err == nil && namespaceID != res.NamespaceID {
 		// Make sure chart belongs to the right namespace
-		return nil, nil, ChartErrNotFound()
+		return nil, ChartErrNotFound()
 	}
 
 	return
