@@ -159,6 +159,17 @@ func getContextRoles(s Session, res Resource, preloadedRoles []*Role) (out partR
 
 	for _, r := range preloadedRoles {
 		if r.kind == ContextRole {
+			if hasWildcards(res.RbacResource()) {
+				// if resource has wildcards, we can't use it for contextual role evaluation
+				//
+				// this exception causes RBAC trace requests that can have wildcard
+				// resources to ignore this role
+				//
+				// without skipping contextual roles like this
+				// check function on role is highly likely to fail to evaluate properly
+				continue
+			}
+
 			if len(r.crtypes) == 0 || !r.crtypes[ResourceType(res.RbacResource())] {
 				// resource type not compatible with this contextual role
 				continue
