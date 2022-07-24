@@ -758,7 +758,7 @@ func (svc user) DeleteAuthTokensByUserID(ctx context.Context, userID uint64) (er
 			return UserErrInvalidID()
 		}
 
-		if err = svc.store.DeleteAuthOA2TokenByUserID(ctx, userID); err != nil {
+		if err = store.DeleteAuthOA2TokenByUserID(ctx, svc.store, userID); err != nil {
 			return
 		}
 
@@ -779,7 +779,7 @@ func (svc user) DeleteAuthSessionsByUserID(ctx context.Context, userID uint64) (
 			return UserErrInvalidID()
 		}
 
-		if err = svc.store.DeleteAuthSessionsByUserID(ctx, userID); err != nil {
+		if err = store.DeleteAuthSessionsByUserID(ctx, svc.store, userID); err != nil {
 			return
 		}
 

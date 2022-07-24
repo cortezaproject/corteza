@@ -125,7 +125,7 @@ func (svc *auth) loadUserFromToken(ctx context.Context, token, kind string) (u *
 		}
 	)
 
-	return u, svc.store.Tx(ctx, func(ctx context.Context, s store.Storer) (err error) {
+	return u, store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		credentialsID, credentials := validateToken(token)
 		if credentialsID == 0 {
 			return AuthErrInvalidToken(aam)
@@ -179,7 +179,7 @@ func (svc *auth) createUserToken(ctx context.Context, u *types.User, kind string
 		}
 	)
 
-	err = svc.store.Tx(ctx, func(ctx context.Context, s store.Storer) (err error) {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if u == nil || u.ID == 0 {
 			return AuthErrGeneric()
 		}
@@ -722,7 +722,7 @@ func (svc *auth) RemoveAccessTokens(ctx context.Context, user *types.User) error
 		ctx,
 		&authActionProps{user: user},
 		AuthActionAccessTokensRemoved,
-		svc.store.DeleteAuthOA2TokenByUserID(ctx, user.ID),
+		store.DeleteAuthOA2TokenByUserID(ctx, svc.store, user.ID),
 	)
 }
 
@@ -737,7 +737,7 @@ func (svc *auth) ValidateTOTP(ctx context.Context, code string) (err error) {
 		i    = internalAuth.GetIdentityFromContext(ctx)
 	)
 
-	err = svc.store.Tx(ctx, func(ctx context.Context, s store.Storer) error {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 		if !svc.settings.Auth.MultiFactor.TOTP.Enabled {
 			return AuthErrDisabledMFAWithTOTP()
 		}
@@ -776,7 +776,7 @@ func (svc *auth) ConfigureTOTP(ctx context.Context, secret string, code string) 
 		i    = internalAuth.GetIdentityFromContext(ctx)
 	)
 
-	err = svc.store.Tx(ctx, func(ctx context.Context, s store.Storer) error {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 		if !svc.settings.Auth.MultiFactor.TOTP.Enabled {
 			return AuthErrDisabledMFAWithTOTP()
 		}
@@ -837,7 +837,7 @@ func (svc *auth) RemoveTOTP(ctx context.Context, userID uint64, code string) (u 
 		self = i != nil && i.Identity() == userID
 	)
 
-	err = svc.store.Tx(ctx, func(ctx context.Context, s store.Storer) error {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 		if !svc.settings.Auth.MultiFactor.TOTP.Enabled {
 			return AuthErrDisabledMFAWithTOTP()
 		}
@@ -945,7 +945,7 @@ func (svc *auth) SendEmailOTP(ctx context.Context) (err error) {
 		i    = internalAuth.GetIdentityFromContext(ctx)
 	)
 
-	err = svc.store.Tx(ctx, func(ctx context.Context, s store.Storer) (err error) {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if !svc.settings.Auth.MultiFactor.EmailOTP.Enabled {
 			return AuthErrDisabledMFAWithEmailOTP()
 		}
@@ -977,7 +977,7 @@ func (svc *auth) ConfigureEmailOTP(ctx context.Context, userID uint64, enable bo
 		aam  = &authActionProps{credentials: &types.Credential{Kind: kind}}
 	)
 
-	err = svc.store.Tx(ctx, func(ctx context.Context, s store.Storer) (err error) {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if !svc.settings.Auth.MultiFactor.EmailOTP.Enabled {
 			return AuthErrDisabledMFAWithEmailOTP()
 		}
@@ -1010,7 +1010,7 @@ func (svc *auth) ValidateEmailOTP(ctx context.Context, code string) (err error) 
 		i    = internalAuth.GetIdentityFromContext(ctx)
 	)
 
-	err = svc.store.Tx(ctx, func(ctx context.Context, s store.Storer) error {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 		if !svc.settings.Auth.MultiFactor.EmailOTP.Enabled {
 			return AuthErrDisabledMFAWithEmailOTP()
 		}

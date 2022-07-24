@@ -45,7 +45,7 @@ func (svc *queue) CreateQueueEvent(q string, p []byte) eventbus.Event {
 }
 
 func (svc *queue) ProcessQueueMessage(ctx context.Context, ID uint64, m mt.QueueMessage) error {
-	svc.store.UpdateQueueMessage(ctx, &types.QueueMessage{
+	store.UpdateQueueMessage(ctx, svc.store, &types.QueueMessage{
 		ID:        ID,
 		Processed: now(),
 		Queue:     m.Queue,
@@ -56,7 +56,7 @@ func (svc *queue) ProcessQueueMessage(ctx context.Context, ID uint64, m mt.Queue
 }
 
 func (svc *queue) CreateQueueMessage(ctx context.Context, m mt.QueueMessage) error {
-	svc.store.CreateQueueMessage(ctx, &types.QueueMessage{
+	store.CreateQueueMessage(ctx, svc.store, &types.QueueMessage{
 		ID:      nextID(),
 		Created: now(),
 		Queue:   m.Queue,
@@ -67,7 +67,7 @@ func (svc *queue) CreateQueueMessage(ctx context.Context, m mt.QueueMessage) err
 }
 
 func (svc *queue) SearchQueues(ctx context.Context, ff mt.QueueFilter) (l []mt.QueueDb, f mt.QueueFilter, err error) {
-	list, _, err := svc.store.SearchQueues(ctx, *(makeFilter(&ff)))
+	list, _, err := store.SearchQueues(ctx, svc.store, *(makeFilter(&ff)))
 
 	if err != nil {
 		return
