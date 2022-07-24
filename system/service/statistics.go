@@ -45,19 +45,19 @@ func (svc statistics) Metrics(ctx context.Context) (rval *StatisticsMetricsPaylo
 		rval = &StatisticsMetricsPayload{}
 
 		if svc.ac.CanSearchUsers(ctx) {
-			if rval.Users, err = svc.store.UserMetrics(ctx); err != nil {
+			if rval.Users, err = store.UserMetrics(ctx, svc.store); err != nil {
 				return err
 			}
 		}
 
 		if svc.ac.CanSearchRoles(ctx) {
-			if rval.Roles, err = svc.store.RoleMetrics(ctx); err != nil {
+			if rval.Roles, err = store.RoleMetrics(ctx, svc.store); err != nil {
 				return err
 			}
 		}
 
 		if svc.ac.CanSearchApplications(ctx) {
-			if rval.Applications, err = svc.store.ApplicationMetrics(ctx); err != nil {
+			if rval.Applications, err = store.ApplicationMetrics(ctx, svc.store); err != nil {
 				return err
 			}
 		}

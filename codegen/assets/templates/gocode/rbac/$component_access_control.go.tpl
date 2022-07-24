@@ -101,7 +101,7 @@ func (svc accessControl) Trace(ctx context.Context, userID uint64, roles []uint6
 			return nil, fmt.Errorf("userID and roles are mutually exclusive")
 		}
 
-		members, _, err = svc.store.SearchRoleMembers(ctx, systemTypes.RoleMemberFilter{UserID: userID})
+		members, _, err = store.SearchRoleMembers(ctx, svc.store, systemTypes.RoleMemberFilter{UserID: userID})
 		if err != nil {
 			return nil, err
 		}

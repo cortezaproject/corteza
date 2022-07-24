@@ -104,8 +104,8 @@ func TestAuth_External(t *testing.T) {
 
 	svc := makeMockAuthService()
 	svc.settings.Auth.External.Enabled = true
-	req.NoError(svc.store.TruncateUsers(ctx))
-	req.NoError(svc.store.TruncateCredentials(ctx))
+	req.NoError(store.TruncateUsers(ctx, svc.store))
+	req.NoError(store.TruncateCredentials(ctx, svc.store))
 	req.NoError(store.CreateUser(ctx, svc.store, validUser, suspendedUser))
 	req.NoError(store.CreateCredential(ctx, svc.store, fooCredentials, barCredentials))
 
@@ -147,7 +147,7 @@ func TestAuth_InternalSignUp(t *testing.T) {
 	svc.settings.Auth.Internal.Enabled = true
 	svc.settings.Auth.Internal.Signup.Enabled = true
 
-	req.NoError(svc.store.CreateUser(ctx, &types.User{Email: "existing@internal-signup-test.tld", ID: existingUserID, CreatedAt: *now()}))
+	req.NoError(store.CreateUser(ctx, svc.store, &types.User{Email: "existing@internal-signup-test.tld", ID: existingUserID, CreatedAt: *now()}))
 	req.NoError(svc.SetPassword(ctx, existingUserID, "secure password"))
 
 	t.Run("invalid email", func(t *testing.T) {
@@ -262,8 +262,8 @@ func TestAuth_InternalLogin(t *testing.T) {
 
 	svc := makeMockAuthService()
 	svc.settings.Auth.Internal.Enabled = true
-	req.NoError(svc.store.TruncateUsers(ctx))
-	req.NoError(svc.store.TruncateCredentials(ctx))
+	req.NoError(store.TruncateUsers(ctx, svc.store))
+	req.NoError(store.TruncateCredentials(ctx, svc.store))
 	req.NoError(store.CreateUser(ctx, svc.store, validUser, suspendedUser))
 	req.NoError(svc.SetPasswordCredentials(ctx, validUser.ID, validPass))
 
@@ -321,8 +321,8 @@ func TestAuth_createUserToken(t *testing.T) {
 	)
 
 	svc := makeMockAuthService()
-	req.NoError(svc.store.TruncateUsers(ctx))
-	req.NoError(svc.store.TruncateCredentials(ctx))
+	req.NoError(store.TruncateUsers(ctx, svc.store))
+	req.NoError(store.TruncateCredentials(ctx, svc.store))
 	req.NoError(store.CreateUser(ctx, svc.store, validUser))
 
 	for _, tt := range tests {
@@ -367,8 +367,8 @@ func TestAuth_multiCreateUserTokenForPasswordReset(t *testing.T) {
 		}
 	)
 
-	req.NoError(svc.store.TruncateUsers(ctx))
-	req.NoError(svc.store.TruncateCredentials(ctx))
+	req.NoError(store.TruncateUsers(ctx, svc.store))
+	req.NoError(store.TruncateCredentials(ctx, svc.store))
 	req.NoError(store.CreateUser(ctx, svc.store, validUser))
 
 	for try := 0; try <= tokenReqMaxCount+1; try++ {

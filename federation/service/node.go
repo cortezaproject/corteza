@@ -452,7 +452,7 @@ func (svc node) updater(ctx context.Context, nodeID uint64, action func(...*node
 }
 
 func (svc node) FindBySharedNodeID(ctx context.Context, sharedNodeID uint64) (*types.Node, error) {
-	n, err := svc.store.LookupFederationNodeBySharedNodeID(ctx, sharedNodeID)
+	n, err := store.LookupFederationNodeBySharedNodeID(ctx, svc.store, sharedNodeID)
 
 	if n != nil && !svc.ac.CanManageNode(ctx, n) {
 		return nil, NodeErrNotAllowedToManage()

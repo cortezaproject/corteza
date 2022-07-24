@@ -488,7 +488,7 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 
 		ses.CopyRuntimeStacktrace()
 
-		if err := svc.store.UpsertAutomationSession(ctx, ses); err != nil {
+		if err := store.UpsertAutomationSession(ctx, svc.store, ses); err != nil {
 			log.Error("failed to update session", zap.Error(err))
 		}
 	}
