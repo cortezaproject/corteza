@@ -87,7 +87,7 @@ func (svc attachment) Find(ctx context.Context, filter types.AttachmentFilter) (
 		}
 
 		if filter.PageID > 0 {
-			aProps.namespace, aProps.page, err = loadPage(ctx, svc.store, filter.NamespaceID, filter.PageID)
+			aProps.namespace, aProps.page, err = loadPageCombo(ctx, svc.store, filter.NamespaceID, filter.PageID)
 			if err != nil {
 				return err
 			} else if svc.ac.CanReadPage(ctx, aProps.page) {
@@ -103,7 +103,7 @@ func (svc attachment) Find(ctx context.Context, filter types.AttachmentFilter) (
 				return AttachmentErrNotAllowedToReadRecord()
 			}
 		} else if filter.ModuleID > 0 {
-			aProps.namespace, aProps.module, err = loadModuleWithNamespace(ctx, svc.store, filter.NamespaceID, filter.ModuleID)
+			aProps.namespace, aProps.module, err = loadModuleCombo(ctx, svc.store, filter.NamespaceID, filter.ModuleID)
 			if err != nil {
 				return err
 			} else if svc.ac.CanReadRecord(ctx, aProps.record) {
@@ -263,7 +263,7 @@ func (svc attachment) CreatePageAttachment(ctx context.Context, namespaceID uint
 			return AttachmentErrNotAllowedToCreateEmptyAttachment()
 		}
 
-		ns, p, err = loadPage(ctx, s, namespaceID, pageID)
+		ns, p, err = loadPageCombo(ctx, s, namespaceID, pageID)
 		if err != nil {
 			return err
 		}
@@ -329,7 +329,7 @@ func (svc attachment) CreateRecordAttachment(ctx context.Context, namespaceID ui
 			return AttachmentErrNotAllowedToCreateEmptyAttachment()
 		}
 
-		ns, m, err = loadModuleWithNamespace(ctx, s, namespaceID, moduleID)
+		ns, m, err = loadModuleCombo(ctx, s, namespaceID, moduleID)
 		if err != nil {
 			return err
 		}

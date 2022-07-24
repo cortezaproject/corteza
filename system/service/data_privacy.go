@@ -53,11 +53,7 @@ func (svc dataPrivacy) FindRequestByID(ctx context.Context, requestID uint64) (r
 	)
 
 	err = func() error {
-		if requestID == 0 {
-			return DataPrivacyErrInvalidID()
-		}
-
-		r, err = store.LookupDataPrivacyRequestByID(ctx, svc.store, requestID)
+		r, err = loadDataPrivacyRequest(ctx, svc.store, requestID)
 		if r, err = svc.procRequest(ctx, r, err); err != nil {
 			return err
 		}
@@ -158,10 +154,6 @@ func (svc dataPrivacy) UpdateRequestStatus(ctx context.Context, upd *types.DataP
 	)
 
 	err = func() (err error) {
-		if upd.ID == 0 {
-			return DataPrivacyErrInvalidID()
-		}
-
 		if len(upd.Status.String()) == 0 {
 			return DataPrivacyErrInvalidStatus()
 		}
@@ -176,7 +168,7 @@ func (svc dataPrivacy) UpdateRequestStatus(ctx context.Context, upd *types.DataP
 			}
 		}
 
-		if r, err = store.LookupDataPrivacyRequestByID(ctx, svc.store, upd.ID); err != nil {
+		if r, err = loadDataPrivacyRequest(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
 
@@ -238,4 +230,16 @@ func (svc dataPrivacy) CreateRequestComment(ctx context.Context, new *types.Data
 	}()
 
 	return r, err
+}
+
+func loadDataPrivacyRequest(ctx context.Context, s store.DataPrivacyRequests, ID uint64) (res *types.DataPrivacyRequest, err error) {
+	if ID == 0 {
+		return nil, DataPrivacyErrInvalidID()
+	}
+
+	if res, err = store.LookupDataPrivacyRequestByID(ctx, s, ID); errors.IsNotFound(err) {
+		return nil, DataPrivacyErrNotFound()
+	}
+
+	return
 }

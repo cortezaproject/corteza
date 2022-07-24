@@ -335,7 +335,7 @@ func (svc page) Create(ctx context.Context, new *types.Page) (*types.Page, error
 
 func (svc page) Update(ctx context.Context, upd *types.Page) (c *types.Page, err error) {
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		ns, res, err := loadPage(ctx, s, upd.NamespaceID, upd.ID)
+		ns, res, err := loadPageCombo(ctx, s, upd.NamespaceID, upd.ID)
 		if err != nil {
 			return
 		}
@@ -362,7 +362,7 @@ func (svc page) DeleteByID(ctx context.Context, namespaceID, pageID uint64, stra
 	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if strategy == types.PageChildrenOnDeleteForce {
 			// simply delete the page and ignore the subpages
-			ns, res, err = loadPage(ctx, s, namespaceID, pageID)
+			ns, res, err = loadPageCombo(ctx, s, namespaceID, pageID)
 			if err != nil {
 				return
 			}
@@ -430,7 +430,7 @@ func (svc page) DeleteByID(ctx context.Context, namespaceID, pageID uint64, stra
 
 func (svc page) UndeleteByID(ctx context.Context, namespaceID, pageID uint64) error {
 	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		ns, res, err := loadPage(ctx, s, namespaceID, pageID)
+		ns, res, err := loadPageCombo(ctx, s, namespaceID, pageID)
 		if err != nil {
 			return
 		}
@@ -719,27 +719,39 @@ func (svc *page) UpdateConfig(ss *systemTypes.AppSettings) {
 	}
 }
 
-func loadPage(ctx context.Context, s store.Storer, namespaceID, pageID uint64) (ns *types.Namespace, p *types.Page, err error) {
-	if pageID == 0 {
-		return nil, nil, PageErrInvalidID()
-	}
-
-	if ns, err = loadNamespace(ctx, s, namespaceID); err == nil {
-		if p, err = store.LookupComposePageByID(ctx, s, pageID); errors.IsNotFound(err) {
-			err = PageErrNotFound()
-		}
-	}
-
-	preparePageConfig(nil, p)
-
+func loadPageCombo(ctx context.Context, s interface {
+	store.ComposePages
+	store.ComposeNamespaces
+}, namespaceID, pageID uint64) (ns *types.Namespace, c *types.Page, err error) {
+	ns, err = loadNamespace(ctx, s, namespaceID)
 	if err != nil {
-		return nil, nil, err
+		return
 	}
 
-	if namespaceID != p.NamespaceID {
-		// Make sure chart belongs to the right namespace
-		return nil, nil, PageErrNotFound()
+	c, err = loadPage(ctx, s, namespaceID, pageID)
+	return
+}
+
+func loadPage(ctx context.Context, s store.ComposePages, namespaceID, pageID uint64) (res *types.Page, err error) {
+	if pageID == 0 || namespaceID == 0 {
+		return nil, PageErrInvalidID()
 	}
+
+	if res, err = store.LookupComposePageByID(ctx, s, pageID); errors.IsNotFound(err) {
+		err = PageErrNotFound()
+	}
+
+	if err == nil && namespaceID != res.NamespaceID {
+		// Make sure chart belongs to the right namespace
+		return nil, PageErrNotFound()
+	}
+
+	if err == nil && namespaceID != res.NamespaceID {
+		// Make sure page belongs to the right namespace
+		return nil, PageErrNotFound()
+	}
+
+	preparePageConfig(nil, res)
 
 	return
 }

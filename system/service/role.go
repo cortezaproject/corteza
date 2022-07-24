@@ -220,11 +220,7 @@ func (svc role) FindByID(ctx context.Context, roleID uint64) (r *types.Role, err
 }
 
 func (svc role) findByID(ctx context.Context, roleID uint64) (*types.Role, error) {
-	if roleID == 0 {
-		return nil, RoleErrInvalidID()
-	}
-
-	r, err := store.LookupRoleByID(ctx, svc.store, roleID)
+	r, err := loadRole(ctx, svc.store, roleID)
 	return svc.proc(ctx, r, err)
 }
 
@@ -356,10 +352,6 @@ func (svc role) Update(ctx context.Context, upd *types.Role) (r *types.Role, err
 	)
 
 	err = func() (err error) {
-		if upd.ID == 0 {
-			return RoleErrInvalidID()
-		}
-
 		if !handle.IsValid(upd.Handle) {
 			return RoleErrInvalidHandle()
 		}
@@ -368,7 +360,7 @@ func (svc role) Update(ctx context.Context, upd *types.Role) (r *types.Role, err
 			return RoleErrNotAllowedToUpdate()
 		}
 
-		if r, err = store.LookupRoleByID(ctx, svc.store, upd.ID); err != nil {
+		if r, err = loadRole(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
 
@@ -770,6 +762,18 @@ func (svc role) MemberRemove(ctx context.Context, roleID, memberID uint64) (err 
 	}()
 
 	return svc.recordAction(ctx, raProps, RoleActionMemberRemove, err)
+}
+
+func loadRole(ctx context.Context, s store.Roles, ID uint64) (res *types.Role, err error) {
+	if ID == 0 {
+		return nil, RoleErrInvalidID()
+	}
+
+	if res, err = store.LookupRoleByID(ctx, s, ID); errors.IsNotFound(err) {
+		return nil, RoleErrNotFound()
+	}
+
+	return
 }
 
 // toLabeledRoles converts to []label.LabeledResource

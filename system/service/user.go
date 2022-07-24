@@ -118,11 +118,7 @@ func (svc user) FindByID(ctx context.Context, userID uint64) (u *types.User, err
 	)
 
 	err = func() error {
-		if userID == 0 {
-			return UserErrInvalidID()
-		}
-
-		u, err = store.LookupUserByID(ctx, svc.store, userID)
+		u, err = loadUser(ctx, svc.store, userID)
 		if u, err = svc.proc(ctx, u, err); err != nil {
 			return err
 		}
@@ -399,10 +395,6 @@ func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err
 	)
 
 	err = func() (err error) {
-		if upd.ID == 0 {
-			return UserErrInvalidID()
-		}
-
 		if !handle.IsValid(upd.Handle) {
 			return UserErrInvalidHandle()
 		}
@@ -411,7 +403,7 @@ func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err
 			return UserErrInvalidEmail()
 		}
 
-		if u, err = store.LookupUserByID(ctx, svc.store, upd.ID); err != nil {
+		if u, err = loadUser(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
 
@@ -474,10 +466,7 @@ func (svc user) ToggleEmailConfirmation(ctx context.Context, userID uint64, conf
 	)
 
 	err = func() (err error) {
-		if userID == 0 {
-			return UserErrInvalidID()
-		}
-		if u, err = store.LookupUserByID(ctx, svc.store, userID); err != nil {
+		if u, err = loadUser(ctx, svc.store, userID); err != nil {
 			return
 		}
 
@@ -512,11 +501,7 @@ func (svc user) Delete(ctx context.Context, userID uint64) (err error) {
 	)
 
 	err = func() (err error) {
-		if userID == 0 {
-			return UserErrInvalidID()
-		}
-
-		if u, err = store.LookupUserByID(ctx, svc.store, userID); err != nil {
+		if u, err = loadUser(ctx, svc.store, userID); err != nil {
 			return
 		}
 
@@ -555,11 +540,7 @@ func (svc user) Undelete(ctx context.Context, userID uint64) (err error) {
 	)
 
 	err = func() (err error) {
-		if userID == 0 {
-			return UserErrInvalidID()
-		}
-
-		if u, err = store.LookupUserByID(ctx, svc.store, userID); err != nil {
+		if u, err = loadUser(ctx, svc.store, userID); err != nil {
 			return
 		}
 
@@ -600,11 +581,7 @@ func (svc user) Suspend(ctx context.Context, userID uint64) (err error) {
 	)
 
 	err = func() (err error) {
-		if userID == 0 {
-			return UserErrInvalidID()
-		}
-
-		if u, err = store.LookupUserByID(ctx, svc.store, userID); err != nil {
+		if u, err = loadUser(ctx, svc.store, userID); err != nil {
 			return
 		}
 
@@ -649,11 +626,7 @@ func (svc user) Unsuspend(ctx context.Context, userID uint64) (err error) {
 	)
 
 	err = func() (err error) {
-		if userID == 0 {
-			return UserErrInvalidID()
-		}
-
-		if u, err = store.LookupUserByID(ctx, svc.store, userID); err != nil {
+		if u, err = loadUser(ctx, svc.store, userID); err != nil {
 			return
 		}
 
@@ -693,7 +666,7 @@ func (svc user) SetPassword(ctx context.Context, userID uint64, newPassword stri
 	)
 
 	err = func() (err error) {
-		if u, err = store.LookupUserByID(ctx, svc.store, userID); err != nil {
+		if u, err = loadUser(ctx, svc.store, userID); err != nil {
 			return err
 		}
 
@@ -828,6 +801,18 @@ func (svc user) checkLimits(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func loadUser(ctx context.Context, s store.Users, ID uint64) (res *types.User, err error) {
+	if ID == 0 {
+		return nil, UserErrInvalidID()
+	}
+
+	if res, err = store.LookupUserByID(ctx, s, ID); errors.IsNotFound(err) {
+		return nil, UserErrNotFound()
+	}
+
+	return
 }
 
 func countValidUsers(ctx context.Context, s store.Users) (c uint, err error) {

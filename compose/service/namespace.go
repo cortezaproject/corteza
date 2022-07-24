@@ -766,7 +766,7 @@ func (svc namespace) envoyRun(ctx context.Context, resources resource.InterfaceS
 	return
 }
 
-func loadNamespace(ctx context.Context, s store.Storer, namespaceID uint64) (ns *types.Namespace, err error) {
+func loadNamespace(ctx context.Context, s store.ComposeNamespaces, namespaceID uint64) (ns *types.Namespace, err error) {
 	if namespaceID == 0 {
 		return nil, ChartErrInvalidNamespaceID()
 	}

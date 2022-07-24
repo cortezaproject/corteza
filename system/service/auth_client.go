@@ -98,11 +98,7 @@ func (svc *authClient) IsDefaultClient(c *types.AuthClient) bool {
 
 func (svc *authClient) lookupByID(ctx context.Context, ID uint64) (client *types.AuthClient, err error) {
 	err = func() error {
-		if ID == 0 {
-			return AuthClientErrInvalidID()
-		}
-
-		if client, err = store.LookupAuthClientByID(ctx, svc.store, ID); err != nil {
+		if client, err = loadAuthClient(ctx, svc.store, ID); err != nil {
 			return AuthClientErrInvalidID().Wrap(err)
 		}
 
@@ -185,7 +181,7 @@ func (svc *authClient) Search(ctx context.Context, af types.AuthClientFilter) (a
 	return aa, f, svc.recordAction(ctx, aaProps, AuthClientActionSearch, err)
 }
 
-func (svc *authClient) Create(ctx context.Context, new *types.AuthClient) (app *types.AuthClient, err error) {
+func (svc *authClient) Create(ctx context.Context, new *types.AuthClient) (res *types.AuthClient, err error) {
 	var (
 		aaProps = &authClientActionProps{new: new}
 	)
@@ -227,13 +223,13 @@ func (svc *authClient) Create(ctx context.Context, new *types.AuthClient) (app *
 			return
 		}
 
-		app = new
+		res = new
 
 		_ = svc.eventbus.WaitFor(ctx, event.AuthClientAfterCreate(new, nil))
 		return nil
 	}()
 
-	return app, svc.recordAction(ctx, aaProps, AuthClientActionCreate, err)
+	return res, svc.recordAction(ctx, aaProps, AuthClientActionCreate, err)
 }
 
 func (svc *authClient) Update(ctx context.Context, upd *types.AuthClient) (res *types.AuthClient, err error) {
@@ -263,7 +259,7 @@ func (svc *authClient) Update(ctx context.Context, upd *types.AuthClient) (res *
 			return AuthClientErrInvalidID()
 		}
 
-		if res, err = store.LookupAuthClientByID(ctx, svc.store, upd.ID); err != nil {
+		if res, err = loadAuthClient(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
 
@@ -334,38 +330,34 @@ func (svc *authClient) Update(ctx context.Context, upd *types.AuthClient) (res *
 func (svc *authClient) Delete(ctx context.Context, ID uint64) (err error) {
 	var (
 		aaProps = &authClientActionProps{}
-		app     *types.AuthClient
+		res     *types.AuthClient
 	)
 
 	err = func() (err error) {
-		if ID == 0 {
-			return AuthClientErrInvalidID()
-		}
-
-		if app, err = store.LookupAuthClientByID(ctx, svc.store, ID); err != nil {
+		if res, err = loadAuthClient(ctx, svc.store, ID); err != nil {
 			return
 		}
 
-		aaProps.setAuthClient(app)
+		aaProps.setAuthClient(res)
 
-		if !svc.ac.CanDeleteAuthClient(ctx, app) {
+		if !svc.ac.CanDeleteAuthClient(ctx, res) {
 			return AuthClientErrNotAllowedToDelete()
 		}
 
-		if app.Handle == svc.opt.DefaultClient {
+		if res.Handle == svc.opt.DefaultClient {
 			return AuthClientErrUnableToDeleteDefaultClient()
 		}
 
-		if err = svc.eventbus.WaitFor(ctx, event.AuthClientBeforeDelete(nil, app)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.AuthClientBeforeDelete(nil, res)); err != nil {
 			return
 		}
 
-		app.DeletedAt = now()
-		if err = store.UpdateAuthClient(ctx, svc.store, app); err != nil {
+		res.DeletedAt = now()
+		if err = store.UpdateAuthClient(ctx, svc.store, res); err != nil {
 			return
 		}
 
-		_ = svc.eventbus.WaitFor(ctx, event.AuthClientAfterDelete(nil, app))
+		_ = svc.eventbus.WaitFor(ctx, event.AuthClientAfterDelete(nil, res))
 		return nil
 	}()
 
@@ -375,40 +367,48 @@ func (svc *authClient) Delete(ctx context.Context, ID uint64) (err error) {
 func (svc *authClient) Undelete(ctx context.Context, ID uint64) (err error) {
 	var (
 		aaProps = &authClientActionProps{}
-		app     *types.AuthClient
+		res     *types.AuthClient
 	)
 
 	err = func() (err error) {
-		if ID == 0 {
-			return AuthClientErrInvalidID()
-		}
-
-		if app, err = store.LookupAuthClientByID(ctx, svc.store, ID); err != nil {
+		if res, err = loadAuthClient(ctx, svc.store, ID); err != nil {
 			return
 		}
 
-		aaProps.setAuthClient(app)
+		aaProps.setAuthClient(res)
 
-		if !svc.ac.CanDeleteAuthClient(ctx, app) {
+		if !svc.ac.CanDeleteAuthClient(ctx, res) {
 			return AuthClientErrNotAllowedToUndelete()
 		}
 
 		// @todo add event
-		//       if err = svc.eventbus.WaitFor(ctx, event.AuthClientBeforeUndelete(nil, app)); err != nil {
+		//       if err = svc.eventbus.WaitFor(ctx, event.AuthClientBeforeUndelete(nil, res)); err != nil {
 		//       	return
 		//       }
 
-		app.DeletedAt = nil
-		if err = store.UpdateAuthClient(ctx, svc.store, app); err != nil {
+		res.DeletedAt = nil
+		if err = store.UpdateAuthClient(ctx, svc.store, res); err != nil {
 			return
 		}
 
 		// @todo add event
-		//       _ = svc.eventbus.WaitFor(ctx, event.AuthClientAfterUndelete(nil, app))
+		//       _ = svc.eventbus.WaitFor(ctx, event.AuthClientAfterUndelete(nil, res))
 		return nil
 	}()
 
 	return svc.recordAction(ctx, aaProps, AuthClientActionUndelete, err)
+}
+
+func loadAuthClient(ctx context.Context, s store.AuthClients, ID uint64) (res *types.AuthClient, err error) {
+	if ID == 0 {
+		return nil, AuthClientErrInvalidID()
+	}
+
+	if res, err = store.LookupAuthClientByID(ctx, s, ID); errors.IsNotFound(err) {
+		return nil, AuthClientErrNotFound()
+	}
+
+	return
 }
 
 // toLabeledAuthClients converts to []label.LabeledResource

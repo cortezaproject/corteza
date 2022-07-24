@@ -476,7 +476,7 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 	)
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		ns, m, err = loadModuleWithNamespace(ctx, s, namespaceID, moduleID)
+		ns, m, err = loadModuleCombo(ctx, s, namespaceID, moduleID)
 		if err != nil {
 			return
 		}
@@ -955,42 +955,49 @@ func loadModuleFields(ctx context.Context, s store.Storer, mm ...*types.Module) 
 }
 
 // loads record module with fields and namespace
-func loadModuleWithNamespace(ctx context.Context, s store.Storer, namespaceID, moduleID uint64) (ns *types.Namespace, m *types.Module, err error) {
-	if moduleID == 0 {
-		return nil, nil, ModuleErrInvalidID()
-	}
-
-	if ns, err = loadNamespace(ctx, s, namespaceID); err == nil {
-		m, err = loadModule(ctx, s, moduleID)
-	}
-
+func loadModuleCombo(ctx context.Context, s store.Storer, namespaceID, moduleID uint64) (ns *types.Namespace, m *types.Module, err error) {
+	ns, err = loadNamespace(ctx, s, namespaceID)
 	if err != nil {
-		return nil, nil, err
+		return
 	}
 
-	if namespaceID != m.NamespaceID {
+	m, err = loadModule(ctx, s, namespaceID, moduleID)
+	return
+}
+
+func loadModule(ctx context.Context, s store.Storer, namespaceID, moduleID uint64) (res *types.Module, err error) {
+	if moduleID == 0 {
+		return nil, ModuleErrInvalidID()
+	}
+
+	if res, err = store.LookupComposeModuleByID(ctx, s, moduleID); errors.IsNotFound(err) {
+		err = ModuleErrNotFound()
+	}
+
+	if err == nil && namespaceID != res.NamespaceID {
 		// Make sure chart belongs to the right namespace
-		return nil, nil, ModuleErrNotFound()
+		return nil, ModuleErrNotFound()
+	}
+
+	if err == nil {
+		err = loadModuleFields(ctx, s, res)
 	}
 
 	return
 }
 
-func loadModule(ctx context.Context, s store.Storer, moduleID uint64) (m *types.Module, err error) {
+func loadModuleField(ctx context.Context, s store.Storer, namespaceID, moduleID, fieldID uint64) (res *types.ModuleField, err error) {
 	if moduleID == 0 {
 		return nil, ModuleErrInvalidID()
 	}
 
-	if m, err = store.LookupComposeModuleByID(ctx, s, moduleID); errors.IsNotFound(err) {
+	if res, err = store.LookupComposeModuleFieldByID(ctx, s, fieldID); errors.IsNotFound(err) {
 		err = ModuleErrNotFound()
 	}
 
-	if err == nil {
-		err = loadModuleFields(ctx, s, m)
-	}
-
-	if err != nil {
-		return nil, err
+	if err == nil && (namespaceID != res.NamespaceID || moduleID != res.ModuleID) {
+		// Make sure chart belongs to the right namespace
+		return nil, ModuleErrNotFound()
 	}
 
 	return

@@ -31,9 +31,7 @@ data_privacy_request_comment: schema.#Resource & {
 		byValue: ["request_id"]
 	}
 
-	rbac: {
-		operations: {}
-	}
+	rbac: false
 
 	store: {
 		api: {

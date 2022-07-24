@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/apigw"
@@ -43,11 +44,7 @@ func (svc *apigwRoute) FindByID(ctx context.Context, ID uint64) (q *types.ApigwR
 	)
 
 	err = func() error {
-		if ID == 0 {
-			return ApigwRouteErrInvalidID()
-		}
-
-		if q, err = store.LookupApigwRouteByID(ctx, svc.store, ID); err != nil {
+		if q, err = loadApigwRoute(ctx, svc.store, ID); err != nil {
 			return ApigwRouteErrInvalidID().Wrap(err)
 		}
 
@@ -107,7 +104,7 @@ func (svc *apigwRoute) Update(ctx context.Context, upd *types.ApigwRoute) (q *ty
 	)
 
 	err = func() (err error) {
-		if qq, e = store.LookupApigwRouteByID(ctx, svc.store, upd.ID); e != nil {
+		if qq, e = loadApigwRoute(ctx, svc.store, upd.ID); e != nil {
 			return ApigwRouteErrNotFound(qProps)
 		}
 
@@ -150,11 +147,7 @@ func (svc *apigwRoute) DeleteByID(ctx context.Context, ID uint64) (err error) {
 	)
 
 	err = func() (err error) {
-		if ID == 0 {
-			return ApigwRouteErrInvalidID()
-		}
-
-		if q, err = store.LookupApigwRouteByID(ctx, svc.store, ID); err != nil {
+		if q, err = loadApigwRoute(ctx, svc.store, ID); err != nil {
 			return
 		}
 
@@ -191,11 +184,7 @@ func (svc *apigwRoute) UndeleteByID(ctx context.Context, ID uint64) (err error) 
 	)
 
 	err = func() (err error) {
-		if ID == 0 {
-			return ApigwRouteErrInvalidID()
-		}
-
-		if q, err = store.LookupApigwRouteByID(ctx, svc.store, ID); err != nil {
+		if q, err = loadApigwRoute(ctx, svc.store, ID); err != nil {
 			return
 		}
 
@@ -252,4 +241,16 @@ func (svc *apigwRoute) Search(ctx context.Context, filter types.ApigwRouteFilter
 	}()
 
 	return r, f, svc.recordAction(ctx, aProps, ApigwRouteActionSearch, err)
+}
+
+func loadApigwRoute(ctx context.Context, s store.ApigwRoutes, ID uint64) (res *types.ApigwRoute, err error) {
+	if ID == 0 {
+		return nil, ApigwRouteErrInvalidID()
+	}
+
+	if res, err = store.LookupApigwRouteByID(ctx, s, ID); errors.IsNotFound(err) {
+		return nil, ApigwRouteErrNotFound()
+	}
+
+	return
 }

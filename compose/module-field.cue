@@ -110,7 +110,12 @@ moduleField: schema.#Resource & {
 					description: """
 						searches for compose module field by name (case-insensitive)
 						"""
-				},
+				}, {
+					fields: ["id"]
+					description: """
+						searches for compose module field by ID
+						"""
+				}
 			]
 		}
 	}

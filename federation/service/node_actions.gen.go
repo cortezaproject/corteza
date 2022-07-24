@@ -534,6 +534,40 @@ func NodeErrNotFound(mm ...*nodeActionProps) *errors.Error {
 	return e
 }
 
+// NodeErrInvalidID returns "federation:node.invalidID" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func NodeErrInvalidID(mm ...*nodeActionProps) *errors.Error {
+	var p = &nodeActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid ID", nil),
+
+		errors.Meta("type", "invalidID"),
+		errors.Meta("resource", "federation:node"),
+
+		errors.Meta(nodePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "node.errors.invalidID"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // NodeErrPairingURIInvalid returns "federation:node.pairingURIInvalid" as *errors.Error
 //
 //

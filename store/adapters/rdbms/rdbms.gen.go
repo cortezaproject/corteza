@@ -7393,6 +7393,46 @@ func (s *Store) LookupComposeModuleFieldByModuleIDName(ctx context.Context, modu
 	return aux.decode()
 }
 
+// LookupComposeModuleFieldByID searches for compose module field by ID
+//
+// This function is auto-generated
+func (s *Store) LookupComposeModuleFieldByID(ctx context.Context, id uint64) (_ *composeType.ModuleField, err error) {
+	var (
+		rows   *sql.Rows
+		aux    = new(auxComposeModuleField)
+		lookup = composeModuleFieldSelectQuery(s.Dialect).Where(
+			goqu.I("id").Eq(id),
+		).Limit(1)
+	)
+
+	rows, err = s.Query(ctx, lookup)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if err = rows.Err(); err != nil {
+		return
+	}
+
+	if !rows.Next() {
+		return nil, store.ErrNotFound.Stack(1)
+	}
+
+	if err = aux.scan(rows); err != nil {
+		return
+	}
+
+	return aux.decode()
+}
+
 // sortableComposeModuleFieldFields returns all <no value> columns flagged as sortable
 //
 // With optional string arg, all columns are returned aliased

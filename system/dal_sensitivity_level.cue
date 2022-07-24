@@ -30,9 +30,7 @@ dal_sensitivity_level: schema.#Resource & {
 		byNilState: ["deleted"]
 	}
 
-	rbac: {
-		operations: {}
-	}
+	rbac: false
 
 	features: {
 		labels: false

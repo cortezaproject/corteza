@@ -279,6 +279,7 @@ type (
 		DeleteComposeModuleFieldByID(ctx context.Context, id uint64) error
 		TruncateComposeModuleFields(ctx context.Context) error
 		LookupComposeModuleFieldByModuleIDName(ctx context.Context, moduleID uint64, name string) (*composeType.ModuleField, error)
+		LookupComposeModuleFieldByID(ctx context.Context, id uint64) (*composeType.ModuleField, error)
 	}
 
 	ComposeNamespaces interface {
@@ -1636,6 +1637,13 @@ func TruncateComposeModuleFields(ctx context.Context, s ComposeModuleFields) err
 // This function is auto-generated
 func LookupComposeModuleFieldByModuleIDName(ctx context.Context, s ComposeModuleFields, moduleID uint64, name string) (*composeType.ModuleField, error) {
 	return s.LookupComposeModuleFieldByModuleIDName(ctx, moduleID, name)
+}
+
+// LookupComposeModuleFieldByID searches for compose module field by ID
+//
+// This function is auto-generated
+func LookupComposeModuleFieldByID(ctx context.Context, s ComposeModuleFields, id uint64) (*composeType.ModuleField, error) {
+	return s.LookupComposeModuleFieldByID(ctx, id)
 }
 
 // SearchComposeNamespaces returns all matching ComposeNamespaces from store
