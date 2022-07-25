@@ -44,6 +44,9 @@ type (
 
 		store store.Storer
 
+		namespace namespaceFinder
+		module    moduleFinder
+
 		formatter recordValuesFormatter
 		sanitizer recordValuesSanitizer
 		validator recordValuesValidator
@@ -88,12 +91,20 @@ type (
 		recordValueAccessController
 	}
 
+	moduleFinder interface {
+		Find(ctx context.Context, filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error)
+	}
+
+	namespaceFinder interface {
+		Find(context.Context, types.NamespaceFilter) (types.NamespaceSet, types.NamespaceFilter, error)
+	}
+
 	RecordService interface {
 		FindByID(ctx context.Context, namespaceID, moduleID, recordID uint64) (*types.Record, error)
 
 		Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, filter string) (interface{}, error)
 		Find(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
-		FindSensitive(ctx context.Context, filter types.RecordFilter) (set []types.PrivateDataSet, err error)
+		FindSensitive(ctx context.Context) (set []types.SensitiveRecordSet, err error)
 		RecordExport(context.Context, types.RecordFilter) error
 		RecordImport(context.Context, error) error
 
@@ -162,6 +173,9 @@ func Record() *record {
 		eventbus:  eventbus.Service(),
 		store:     DefaultStore,
 		dal:       dal.Service(),
+
+		namespace: DefaultNamespace,
+		module:    DefaultModule,
 
 		formatter: values.Formatter(),
 		sanitizer: values.Sanitizer(),
@@ -327,59 +341,98 @@ func (svc record) Find(ctx context.Context, filter types.RecordFilter) (set type
 	return set, f, svc.recordAction(ctx, aProps, RecordActionSearch, err)
 }
 
-func (svc record) FindSensitive(ctx context.Context, filter types.RecordFilter) (set []types.PrivateDataSet, err error) {
+// FindSensitive returns stripped down records for all namespaces/modules where fields define a sensitivity level
+func (svc record) FindSensitive(ctx context.Context) (set []types.SensitiveRecordSet, err error) {
 	var (
-		m *types.Module
+		namespaces types.NamespaceSet
+		modules    types.ModuleSet
+
+		userID = auth.GetIdentityFromContext(ctx).Identity()
 	)
 
 	err = func() error {
-		if m, err = loadModule(ctx, svc.store, filter.NamespaceID, filter.ModuleID); err != nil {
-			return err
-		}
-
-		// Force the query to only show owned records
-		// @todo allow additional querying
-		filter.Query = fmt.Sprintf("ownedBy='%d'", auth.GetIdentityFromContext(ctx).Identity())
-
-		rr, _, err := svc.Find(ctx, filter)
+		// Get namespaces
+		namespaces, _, err = svc.namespace.Find(ctx, types.NamespaceFilter{})
 		if err != nil {
 			return err
 		}
 
-		for _, r := range rr {
-			vv := make([]map[string]any, 0, len(r.Values))
+		for _, namespace := range namespaces {
+			// Get corresponding modules
+			modules, _, err = svc.module.Find(ctx, types.ModuleFilter{NamespaceID: namespace.ID})
+			if err != nil {
+				return err
+			}
 
-			for _, f := range m.Fields {
-				// Skip the ones with no privacy
-				// @todo allow the request to specify what level we wish to see
-				if !f.Private {
+			for _, module := range modules {
+				// Get sensitive record data
+				aux, err := svc.findSensitive(ctx, userID, namespace, module, types.RecordFilter{
+					ModuleID:    module.ID,
+					NamespaceID: namespace.ID,
+				})
+				if err != nil {
+					return err
+				}
+				if len(aux.Records) == 0 {
 					continue
 				}
 
-				values := make([]any, 0, 2)
-				for _, v := range r.Values.FilterByName(f.Name) {
-					values = append(values, v.Value)
-				}
-
-				// Make value
-				vv = append(vv, map[string]any{
-					"name":    f.Name,
-					"kind":    f.Kind,
-					"isMulti": f.Multi,
-					"value":   values,
-				})
+				set = append(set, aux)
 			}
-
-			set = append(set, types.PrivateDataSet{
-				ID:     r.ID,
-				Values: vv,
-			})
 		}
 
 		return nil
 	}()
 
 	return set, err
+}
+
+func (svc record) findSensitive(ctx context.Context, userID uint64, namespace *types.Namespace, module *types.Module, filter types.RecordFilter) (out types.SensitiveRecordSet, err error) {
+	out = types.SensitiveRecordSet{
+		Namespace: namespace,
+		Module:    module,
+	}
+
+	// Force the query to only show owned records
+	// @todo allow additional querying
+	filter.Query = fmt.Sprintf("ownedBy='%d'", userID)
+
+	rr, _, err := svc.Find(ctx, filter)
+	if err != nil {
+		return
+	}
+
+	for _, r := range rr {
+		vv := make([]map[string]any, 0, len(r.Values))
+
+		for _, f := range module.Fields {
+			// Skip the ones with no privacy
+			// @todo allow the request to specify what level we wish to see
+			if !f.IsSensitive() {
+				continue
+			}
+
+			values := make([]any, 0, 2)
+			for _, v := range r.Values.FilterByName(f.Name) {
+				values = append(values, v.Value)
+			}
+
+			// Make value
+			vv = append(vv, map[string]any{
+				"name":    f.Name,
+				"kind":    f.Kind,
+				"isMulti": f.Multi,
+				"value":   values,
+			})
+		}
+
+		out.Records = append(out.Records, types.SensitiveRecord{
+			RecordID: r.ID,
+			Values:   vv,
+		})
+	}
+
+	return
 }
 
 func (svc record) RecordImport(ctx context.Context, err error) error {

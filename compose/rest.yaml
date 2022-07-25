@@ -978,10 +978,10 @@ endpoints:
   entrypoint: dataPrivacy
   path: "/data-privacy"
   apis:
-    - name: sensitive data list
+    - name: record list
       method: GET
-      title: List sensitive data
-      path: /sensitive-data
+      title: List records for data privacy
+      path: /record
       parameters:
         get:
           - { name: sensitivityLevelID, type: "uint64", title: "Sensitivity Level ID", required: false}

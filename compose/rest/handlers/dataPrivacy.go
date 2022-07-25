@@ -19,28 +19,28 @@ import (
 type (
 	// Internal API interface
 	DataPrivacyAPI interface {
-		SensitiveDataList(context.Context, *request.DataPrivacySensitiveDataList) (interface{}, error)
+		RecordList(context.Context, *request.DataPrivacyRecordList) (interface{}, error)
 		ModuleList(context.Context, *request.DataPrivacyModuleList) (interface{}, error)
 	}
 
 	// HTTP API interface
 	DataPrivacy struct {
-		SensitiveDataList func(http.ResponseWriter, *http.Request)
-		ModuleList        func(http.ResponseWriter, *http.Request)
+		RecordList func(http.ResponseWriter, *http.Request)
+		ModuleList func(http.ResponseWriter, *http.Request)
 	}
 )
 
 func NewDataPrivacy(h DataPrivacyAPI) *DataPrivacy {
 	return &DataPrivacy{
-		SensitiveDataList: func(w http.ResponseWriter, r *http.Request) {
+		RecordList: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewDataPrivacySensitiveDataList()
+			params := request.NewDataPrivacyRecordList()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
 			}
 
-			value, err := h.SensitiveDataList(r.Context(), params)
+			value, err := h.RecordList(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
@@ -70,7 +70,7 @@ func NewDataPrivacy(h DataPrivacyAPI) *DataPrivacy {
 func (h DataPrivacy) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/data-privacy/sensitive-data", h.SensitiveDataList)
+		r.Get("/data-privacy/record", h.RecordList)
 		r.Get("/data-privacy/module", h.ModuleList)
 	})
 }

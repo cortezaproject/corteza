@@ -444,9 +444,7 @@ func (svc module) FindSensitive(ctx context.Context, filter types.PrivacyModuleF
 		for _, m := range mm {
 			isPrivate := false
 			for _, f := range m.Fields {
-				if !isPrivate {
-					isPrivate = f.Private
-				}
+				isPrivate = isPrivate || f.IsSensitive()
 			}
 
 			if isPrivate && m != nil {

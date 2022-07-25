@@ -33,7 +33,7 @@ var (
 
 type (
 	// Internal API interface
-	DataPrivacySensitiveDataList struct {
+	DataPrivacyRecordList struct {
 		// SensitivityLevelID GET parameter
 		//
 		// Sensitivity Level ID
@@ -68,13 +68,13 @@ type (
 	}
 )
 
-// NewDataPrivacySensitiveDataList request
-func NewDataPrivacySensitiveDataList() *DataPrivacySensitiveDataList {
-	return &DataPrivacySensitiveDataList{}
+// NewDataPrivacyRecordList request
+func NewDataPrivacyRecordList() *DataPrivacyRecordList {
+	return &DataPrivacyRecordList{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacySensitiveDataList) Auditable() map[string]interface{} {
+func (r DataPrivacyRecordList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"sensitivityLevelID": r.SensitivityLevelID,
 		"connectionID":       r.ConnectionID,
@@ -82,17 +82,17 @@ func (r DataPrivacySensitiveDataList) Auditable() map[string]interface{} {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacySensitiveDataList) GetSensitivityLevelID() uint64 {
+func (r DataPrivacyRecordList) GetSensitivityLevelID() uint64 {
 	return r.SensitivityLevelID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DataPrivacySensitiveDataList) GetConnectionID() []string {
+func (r DataPrivacyRecordList) GetConnectionID() []string {
 	return r.ConnectionID
 }
 
 // Fill processes request and fills internal variables
-func (r *DataPrivacySensitiveDataList) Fill(req *http.Request) (err error) {
+func (r *DataPrivacyRecordList) Fill(req *http.Request) (err error) {
 
 	{
 		// GET params

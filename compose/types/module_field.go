@@ -516,3 +516,7 @@ func (f ModuleField) IsTimeOnly() bool {
 func (f ModuleField) IsRef() bool {
 	return f.Kind == "Record" || f.Kind == "User" || f.Kind == "File"
 }
+
+func (f ModuleField) IsSensitive() bool {
+	return f.Privacy.SensitivityLevel > 0
+}
