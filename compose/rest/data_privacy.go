@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -10,7 +11,7 @@ import (
 )
 
 type (
-	sensitiveDataSetPayload struct {
+	sensitiveRecordsSetPayload struct {
 		Set []*sensitiveDataPayload `json:"set"`
 	}
 
@@ -20,10 +21,10 @@ type (
 		ModuleID    uint64 `json:"moduleID,string"`
 		Module      string `json:"module"`
 
-		Records []sensitiveData `json:"records"`
+		Records []sensitiveRecords `json:"records"`
 	}
 
-	sensitiveData struct {
+	sensitiveRecords struct {
 		RecordID uint64           `json:"recordID,string"`
 		Values   []map[string]any `json:"values"`
 	}
@@ -34,7 +35,7 @@ type (
 	}
 
 	privateDataFinder interface {
-		FindSensitive(ctx context.Context, filter types.RecordFilter) (set []types.PrivateDataSet, err error)
+		FindSensitive(ctx context.Context) (set []types.SensitiveRecordSet, err error)
 	}
 
 	DataPrivacy struct {
@@ -54,68 +55,51 @@ func (DataPrivacy) New() *DataPrivacy {
 	}
 }
 
-func (ctrl *DataPrivacy) SensitiveDataList(ctx context.Context, r *request.DataPrivacySensitiveDataList) (out interface{}, err error) {
-	outSet := sensitiveDataSetPayload{}
-
+func (ctrl *DataPrivacy) RecordList(ctx context.Context, r *request.DataPrivacyRecordList) (out interface{}, err error) {
+	// If we're requesting only specific connections, prepare filter params here
 	reqConns := make(map[uint64]bool)
 	hasReqConns := len(r.ConnectionID) > 0
 	for _, connectionID := range payload.ParseUint64s(r.ConnectionID) {
 		reqConns[connectionID] = true
 	}
 
-	// All namespaces
-	namespaces, _, err := ctrl.namespace.Find(ctx, types.NamespaceFilter{})
+	// Collect sensitive records
+	ss, err := ctrl.record.FindSensitive(ctx)
 	if err != nil {
 		return
 	}
 
-	outSet.Set = make([]*sensitiveDataPayload, 0, 10)
+	outSet := sensitiveRecordsSetPayload{
+		Set: make([]*sensitiveDataPayload, 0, 10),
+	}
 
-	for _, n := range namespaces {
-		// All modules
-		modules, _, err := ctrl.module.Find(ctx, types.ModuleFilter{NamespaceID: n.ID})
-		if err != nil {
-			return nil, err
+	for _, s := range ss {
+		// Skip the ones we don't want
+		if hasReqConns && !reqConns[s.Module.ModelConfig.ConnectionID] {
+			continue
 		}
-		for _, m := range modules {
-			conn := m.ModelConfig.ConnectionID
-			if hasReqConns && !reqConns[conn] {
-				continue
-			}
 
-			sData, err := ctrl.record.FindSensitive(ctx, types.RecordFilter{ModuleID: m.ID, NamespaceID: m.NamespaceID})
-			if err != nil {
-				return nil, err
-			}
-			if len(sData) == 0 {
-				continue
-			}
+		// Build the payload
+		payload := &sensitiveDataPayload{
+			NamespaceID: s.Namespace.ID,
+			Namespace:   s.Namespace.Name,
 
-			nsMod := &sensitiveDataPayload{
-				NamespaceID: n.ID,
-				Namespace:   n.Name,
+			ModuleID: s.Module.ID,
+			Module:   s.Module.Name,
 
-				ModuleID: m.ID,
-				Module:   m.Name,
-
-				Records: make([]sensitiveData, 0, len(sData)),
-			}
-			for _, a := range sData {
-				if len(a.Values) == 0 {
-					continue
-				}
-				nsMod.Records = append(nsMod.Records, sensitiveData{
-					RecordID: a.ID,
-					Values:   a.Values,
-				})
-			}
-
-			if len(nsMod.Records) == 0 {
-				continue
-			}
-
-			outSet.Set = append(outSet.Set, nsMod)
+			Records: make([]sensitiveRecords, 0, len(s.Records)),
 		}
+		for _, a := range s.Records {
+			if len(a.Values) == 0 {
+				continue
+			}
+			payload.Records = append(payload.Records, sensitiveRecords{
+				RecordID: a.RecordID,
+				Values:   a.Values,
+			})
+		}
+
+		outSet.Set = append(outSet.Set, payload)
 	}
 
 	return outSet, nil

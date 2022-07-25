@@ -80,9 +80,18 @@ type (
 		RecordFilter
 	}
 
-	PrivateDataSet struct {
-		ID     uint64
-		Values []map[string]any
+	SensitiveRecord struct {
+		RecordID uint64
+		Values   []map[string]any
+	}
+
+	SensitiveRecordSet struct {
+		// Contextual metadata
+		ConnectionID uint64
+		Module       *Module
+		Namespace    *Namespace
+
+		Records []SensitiveRecord
 	}
 )
 
