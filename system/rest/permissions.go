@@ -3,7 +3,6 @@ package rest
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/api"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
@@ -20,7 +19,7 @@ type (
 		Trace(context.Context, uint64, []uint64, ...string) ([]*rbac.Trace, error)
 		List() []map[string]string
 		FindRulesByRoleID(context.Context, uint64) (rbac.RuleSet, error)
-		FindRules(ctx context.Context, roleID uint64, specific filter.State, rr ...string) (rbac.RuleSet, error)
+		FindRules(ctx context.Context, roleID uint64, rr ...string) (rbac.RuleSet, error)
 		Grant(ctx context.Context, rr ...*rbac.Rule) error
 	}
 )
@@ -44,7 +43,7 @@ func (ctrl Permissions) List(ctx context.Context, r *request.PermissionsList) (i
 }
 
 func (ctrl Permissions) Read(ctx context.Context, r *request.PermissionsRead) (interface{}, error) {
-	return ctrl.ac.FindRules(ctx, r.RoleID, r.Specific, r.Resource...)
+	return ctrl.ac.FindRules(ctx, r.RoleID, r.Resource...)
 }
 
 func (ctrl Permissions) Delete(ctx context.Context, r *request.PermissionsDelete) (interface{}, error) {

@@ -276,7 +276,6 @@ endpoints:
   - Client ID
   - Session ID
   imports:
-    - github.com/cortezaproject/corteza-server/pkg/filter
     - github.com/cortezaproject/corteza-server/pkg/rbac
   apis:
   - name: list
@@ -320,10 +319,6 @@ endpoints:
         required: true
         title: Role ID
       get:
-      - name: specific
-        required: false
-        title: Exclude (0, default), include (1) or return only (2) specific rules
-        type: "filter.State"
       - name: resource
         type: "[]string"
         required: false
