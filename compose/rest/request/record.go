@@ -434,6 +434,23 @@ type (
 		// Arguments to pass to the script
 		Args map[string]interface{}
 	}
+
+	RecordRevisions struct {
+		// NamespaceID PATH parameter
+		//
+		// Namespace ID
+		NamespaceID uint64 `json:",string"`
+
+		// ModuleID PATH parameter
+		//
+		// Module ID
+		ModuleID uint64 `json:",string"`
+
+		// RecordID PATH parameter
+		//
+		// ID
+		RecordID uint64 `json:",string"`
+	}
 )
 
 // NewRecordReport request
@@ -2077,6 +2094,65 @@ func (r *RecordTriggerScriptOnList) Fill(req *http.Request) (err error) {
 
 		val = chi.URLParam(req, "moduleID")
 		r.ModuleID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewRecordRevisions request
+func NewRecordRevisions() *RecordRevisions {
+	return &RecordRevisions{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordRevisions) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"namespaceID": r.NamespaceID,
+		"moduleID":    r.ModuleID,
+		"recordID":    r.RecordID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordRevisions) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordRevisions) GetModuleID() uint64 {
+	return r.ModuleID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordRevisions) GetRecordID() uint64 {
+	return r.RecordID
+}
+
+// Fill processes request and fills internal variables
+func (r *RecordRevisions) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "namespaceID")
+		r.NamespaceID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "moduleID")
+		r.ModuleID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "recordID")
+		r.RecordID, err = payload.ParseUint64(val), nil
 		if err != nil {
 			return err
 		}

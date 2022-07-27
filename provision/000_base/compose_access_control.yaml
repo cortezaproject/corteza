@@ -60,6 +60,7 @@ allow:
       - read
       - update
       - delete
+      - revisions.search
 
     corteza::compose:chart/*/*:
       - read

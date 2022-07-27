@@ -37,6 +37,8 @@ type (
 		ID       uint64 `json:"recordID,string"`
 		ModuleID uint64 `json:"moduleID,string"`
 
+		Revision uint `json:"revision,omitempty"`
+
 		module *Module
 
 		Values RecordValueSet `json:"values,omitempty"`
@@ -49,9 +51,9 @@ type (
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		CreatedBy uint64     `json:"createdBy,string" `
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		UpdatedBy uint64     `json:"updatedBy,string,omitempty" `
+		UpdatedBy uint64     `json:"updatedBy,string,omitempty"`
 		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-		DeletedBy uint64     `json:"deletedBy,string,omitempty" `
+		DeletedBy uint64     `json:"deletedBy,string,omitempty"`
 	}
 
 	RecordFilter struct {
@@ -193,6 +195,8 @@ func (r *Record) GetValue(name string, pos uint) (any, error) {
 		return r.ModuleID, nil
 	case "namespaceID":
 		return r.NamespaceID, nil
+	case "revision":
+		return r.Revision, nil
 	case "createdAt":
 		return r.CreatedAt, nil
 	case "createdBy":
@@ -217,33 +221,40 @@ func (r *Record) GetValue(name string, pos uint) (any, error) {
 }
 
 // CountValues returns how many values per field are there
-func (r *Record) CountValues() map[string]uint {
+func (r *Record) CountValues() (pos map[string]uint) {
 	var (
-		pos = map[string]uint{
-			"ID":          1,
-			"moduleID":    1,
-			"namespaceID": 1,
-			"createdAt":   1,
-			"createdBy":   1,
-			"updatedAt":   1,
-			"updatedBy":   1,
-			"deletedAt":   1,
-			"deletedBy":   1,
-			"ownedBy":     1,
-		}
+		mod = r.GetModule()
 	)
 
-	if mod := r.GetModule(); mod != nil {
-		for _, f := range mod.Fields {
-			pos[f.Name] = 0
-		}
+	pos = map[string]uint{
+		"ID":          1,
+		"moduleID":    1,
+		"namespaceID": 1,
+		"revision":    1,
+		"createdAt":   1,
+		"createdBy":   1,
+		"updatedAt":   1,
+		"updatedBy":   1,
+		"deletedAt":   1,
+		"deletedBy":   1,
+		"ownedBy":     1,
+	}
+
+	if mod == nil {
+		// count record values
+		// only when module is known
+		return
+	}
+
+	for _, f := range mod.Fields {
+		pos[f.Name] = 0
 	}
 
 	for _, val := range r.Values {
 		pos[val.Name]++
 	}
 
-	return pos
+	return
 }
 
 func (r *Record) SetValue(name string, pos uint, value any) (err error) {
@@ -262,6 +273,8 @@ func (r *Record) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Uint64(value, &r.DeletedBy)
 	case "ownedBy":
 		return cast2.Uint64(value, &r.OwnedBy)
+	case "revision":
+		return cast2.Uint(value, &r.Revision)
 	case "createdAt":
 		return cast2.Time(value, &r.CreatedAt)
 	case "updatedAt":
@@ -323,6 +336,7 @@ func (r Record) Dict() map[string]interface{} {
 		"ID":          r.ID,
 		"recordID":    r.ID,
 		"moduleID":    r.ModuleID,
+		"revision":    r.Revision,
 		"labels":      r.Labels,
 		"namespaceID": r.NamespaceID,
 		"ownedBy":     r.OwnedBy,

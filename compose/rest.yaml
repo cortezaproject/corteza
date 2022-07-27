@@ -922,6 +922,13 @@ endpoints:
         type: map[string]interface{}
         parser: parseMapStringInterface
         title: Arguments to pass to the script
+  - name: revisions
+    method: GET
+    title: List record revisions
+    path: "/{recordID}/revisions"
+    parameters:
+      path:
+       - { type: uint64, name: recordID, required: true, title: ID }
 
 - title: Data Privacy
   entrypoint: dataPrivacy
