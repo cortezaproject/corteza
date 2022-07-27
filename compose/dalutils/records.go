@@ -2,13 +2,11 @@ package dalutils
 
 import (
 	"context"
-	"math"
-	"time"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"math"
 )
 
 type (
@@ -75,13 +73,7 @@ func ComposeRecordUpdate(ctx context.Context, u updater, mod *types.Module, reco
 	return u.Update(ctx, mod.ModelFilter(), recUpdateCapabilities(mod), recToGetters(records...)...)
 }
 
-func ComposeRecordSoftDelete(ctx context.Context, u updater, invoker uint64, mod *types.Module, records ...*types.Record) (err error) {
-	n := time.Now().Round(time.Second).UTC()
-	for _, r := range records {
-		r.DeletedAt = &n
-		r.DeletedBy = invoker
-	}
-
+func ComposeRecordSoftDelete(ctx context.Context, u updater, mod *types.Module, records ...*types.Record) (err error) {
 	return u.Update(ctx, mod.ModelFilter(), recUpdateCapabilities(mod), recToGetters(records...)...)
 }
 
