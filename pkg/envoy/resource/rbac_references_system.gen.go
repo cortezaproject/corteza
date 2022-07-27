@@ -62,19 +62,6 @@ func SystemDataPrivacyRequestRbacReferences(dataPrivacyRequest string) (res *Ref
 	return
 }
 
-// SystemDataPrivacyRequestCommentRbacReferences generates RBAC references
-//
-// Resources with "envoy: false" are skipped
-//
-// This function is auto-generated
-func SystemDataPrivacyRequestCommentRbacReferences(dataPrivacyRequestComment string) (res *Ref, pp []*Ref, err error) {
-	if dataPrivacyRequestComment != "*" {
-		res = &Ref{ResourceType: types.DataPrivacyRequestCommentResourceType, Identifiers: MakeIdentifiers(dataPrivacyRequestComment)}
-	}
-
-	return
-}
-
 // SystemQueueRbacReferences generates RBAC references
 //
 // Resources with "envoy: false" are skipped
@@ -83,19 +70,6 @@ func SystemDataPrivacyRequestCommentRbacReferences(dataPrivacyRequestComment str
 func SystemQueueRbacReferences(queue string) (res *Ref, pp []*Ref, err error) {
 	if queue != "*" {
 		res = &Ref{ResourceType: types.QueueResourceType, Identifiers: MakeIdentifiers(queue)}
-	}
-
-	return
-}
-
-// SystemQueueMessageRbacReferences generates RBAC references
-//
-// Resources with "envoy: false" are skipped
-//
-// This function is auto-generated
-func SystemQueueMessageRbacReferences(queueMessage string) (res *Ref, pp []*Ref, err error) {
-	if queueMessage != "*" {
-		res = &Ref{ResourceType: types.QueueMessageResourceType, Identifiers: MakeIdentifiers(queueMessage)}
 	}
 
 	return
@@ -161,19 +135,6 @@ func SystemUserRbacReferences(user string) (res *Ref, pp []*Ref, err error) {
 func SystemDalConnectionRbacReferences(dalConnection string) (res *Ref, pp []*Ref, err error) {
 	if dalConnection != "*" {
 		res = &Ref{ResourceType: types.DalConnectionResourceType, Identifiers: MakeIdentifiers(dalConnection)}
-	}
-
-	return
-}
-
-// SystemDalSensitivityLevelRbacReferences generates RBAC references
-//
-// Resources with "envoy: false" are skipped
-//
-// This function is auto-generated
-func SystemDalSensitivityLevelRbacReferences(dalSensitivityLevel string) (res *Ref, pp []*Ref, err error) {
-	if dalSensitivityLevel != "*" {
-		res = &Ref{ResourceType: types.DalSensitivityLevelResourceType, Identifiers: MakeIdentifiers(dalSensitivityLevel)}
 	}
 
 	return
