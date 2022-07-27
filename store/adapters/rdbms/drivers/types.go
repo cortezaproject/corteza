@@ -249,6 +249,10 @@ func (t *TypeJSON) Encode(val any) (driver.Value, error) {
 		// does the value type know how to encode itself for the DB?
 		return c.Value()
 
+	// These types are native to driver.Value
+	case int64, float64, bool, []byte, string, time.Time:
+		return c, nil
+
 	case json.Marshaler:
 		// does the value type know how to encode itself as JSON?
 		return c.MarshalJSON()

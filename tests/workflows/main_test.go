@@ -10,6 +10,8 @@ import (
 	"github.com/cortezaproject/corteza-server/automation/service"
 	autTypes "github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/csv"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/directory"
@@ -18,6 +20,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/envoy/yaml"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/store"
@@ -26,9 +29,31 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type (
+	dalSvc interface {
+		Purge(ctx context.Context)
+
+		GetConnectionMeta(ctx context.Context, ID uint64) (cm dal.ConnectionMeta, err error)
+
+		SearchModels(ctx context.Context) (out dal.ModelSet, err error)
+		RemoveModel(ctx context.Context, connectionID, ID uint64) (err error)
+		ReplaceModel(ctx context.Context, model *dal.Model) (err error)
+		ReplaceModelAttribute(ctx context.Context, model *dal.Model, old, new *dal.Attribute, trans ...dal.TransformationFunction) (err error)
+		SearchModelIssues(connectionID, resourceID uint64) (out []error)
+
+		Create(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, vv ...dal.ValueGetter) error
+		Update(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, rr ...dal.ValueGetter) (err error)
+		Search(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, f filter.Filter) (dal.Iterator, error)
+		Lookup(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, lookup dal.ValueGetter, dst dal.ValueSetter) (err error)
+		Delete(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, pkv ...dal.ValueGetter) (err error)
+		Truncate(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set) (err error)
+	}
+)
+
 var (
 	defApp   *app.CortezaApp
 	defStore store.Storer
+	defDal   dalSvc
 	eventBus = eventbus.New()
 )
 
@@ -48,6 +73,8 @@ func TestMain(m *testing.M) {
 		return nil
 	})
 
+	defDal = dal.Service()
+
 	if err := defApp.Activate(ctx); err != nil {
 		panic(fmt.Errorf("could not activate corteza: %v", err))
 	}
@@ -63,6 +90,20 @@ func cleanup(t *testing.T) {
 	if err := defStore.TruncateAutomationWorkflows(ctx); err != nil {
 		t.Fatalf("failed to decode scenario data: %v", err)
 	}
+}
+
+func truncateRecords(ctx context.Context) error {
+	models, err := defDal.SearchModels(ctx)
+	if err != nil {
+		return err
+	}
+	for _, model := range models {
+		err = defDal.Truncate(ctx, model.ToFilter(), nil)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func loadScenario(ctx context.Context, t *testing.T) {

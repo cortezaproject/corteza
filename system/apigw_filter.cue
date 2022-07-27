@@ -28,7 +28,7 @@ apigw_filter: schema.#Resource & {
 
 	filter: {
 		struct: {
-			route_id: {goType: "uint64", ident: "routeID"}
+			route_id: {goType: "uint64", ident: "routeID", storeIdent: "rel_route"}
 			deleted:  {goType: "filter.State", storeIdent: "deleted_at"}
 			disabled: {goType: "filter.State", storeIdent: "enabled"}
 		}

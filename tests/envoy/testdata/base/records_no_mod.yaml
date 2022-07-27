@@ -1,5 +1,0 @@
-namespace: ns1
-records:
-  notThere:
-    - values:
-        f1: "v1"

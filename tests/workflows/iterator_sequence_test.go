@@ -21,7 +21,7 @@ func Test_iterator_sequence(t *testing.T) {
 		req = require.New(t)
 	)
 
-	req.NoError(defStore.TruncateComposeRecords(ctx, nil))
+	req.NoError(truncateRecords(ctx))
 	req.NoError(defStore.TruncateComposeModules(ctx))
 	req.NoError(defStore.TruncateComposeNamespaces(ctx))
 

@@ -1,6 +1,0 @@
-namespace: ns1
-pages:
-  pg1:
-    title: pg1 name
-    blocks:
-    - title: block1

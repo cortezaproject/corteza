@@ -18,7 +18,15 @@ import (
 )
 
 func (h helper) clearDalConnections() {
-	h.noError(store.TruncateDalConnections(context.Background(), service.DefaultStore))
+	cc, _, err := store.SearchDalConnections(context.Background(), service.DefaultStore, types.DalConnectionFilter{})
+	h.noError(err)
+
+	for _, c := range cc {
+		if c.Type == types.DalPrimaryConnectionResourceType {
+			continue
+		}
+		h.noError(store.DeleteDalConnection(context.Background(), service.DefaultStore, c))
+	}
 }
 
 func (h helper) getPrimaryConnection() *types.DalConnection {

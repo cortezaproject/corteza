@@ -44,6 +44,7 @@ _StoreResource: {
 			// @todo this should be pulled from the struct
 			"byValue":      [ for name in res.filter.byValue {res.filter.struct[name]}]
 			"byLabel": res.features.labels
+			"byFlag":  res.features.flags
 		}
 
 		auxIdent:  "aux\(expIdent)"
