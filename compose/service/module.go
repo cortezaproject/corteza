@@ -542,15 +542,20 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 		if changes&moduleFieldsChanged > 0 {
 			var (
 				hasRecords bool
-				// set        types.RecordSet
+				set        types.RecordSet
 			)
 
-			// @todo !!
-			// if set, _, err = dalutils.ComposeRecordsList(ctx, svc.dal, m, types.RecordFilter{Paging: filter.Paging{Limit: 1}}); err != nil {
-			// 	return err
-			// }
-
-			// hasRecords = len(set) > 0
+			// @todo rethink how model issues and attempted module update with records should interact.
+			// 			 this is a temporary solution but should be re-thinked.
+			modelIssues := svc.dal.SearchModelIssues(m.ModelConfig.ConnectionID, m.ID)
+			if len(modelIssues) == 0 {
+				if set, _, err = dalutils.ComposeRecordsList(ctx, svc.dal, m, types.RecordFilter{Paging: filter.Paging{Limit: 1}, Check: func(r *types.Record) (bool, error) { return true, nil }}); err != nil {
+					return err
+				}
+				hasRecords = len(set) > 0
+			} else {
+				hasRecords = false
+			}
 
 			if err = updateModuleFields(ctx, s, m, old, hasRecords); err != nil {
 				return err
