@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/cast2"
 	"strconv"
 	"time"
 
@@ -247,12 +248,26 @@ func (r *Record) CountValues() map[string]uint {
 
 func (r *Record) SetValue(name string, pos uint, value any) (err error) {
 	switch name {
-	case "ID", "moduleID", "namespaceID", "createdBy", "updatedBy", "deletedBy", "ownedBy":
-		return setUint64RecStructField(r, name, value)
-
-	case "createdAt", "updatedAt", "deletedAt":
-		return setTimeRecStructField(r, name, value)
-
+	case "ID":
+		return cast2.Uint64(value, &r.ID)
+	case "moduleID":
+		return cast2.Uint64(value, &r.ModuleID)
+	case "namespaceID":
+		return cast2.Uint64(value, &r.NamespaceID)
+	case "createdBy":
+		return cast2.Uint64(value, &r.CreatedBy)
+	case "updatedBy":
+		return cast2.Uint64(value, &r.UpdatedBy)
+	case "deletedBy":
+		return cast2.Uint64(value, &r.DeletedBy)
+	case "ownedBy":
+		return cast2.Uint64(value, &r.OwnedBy)
+	case "createdAt":
+		return cast2.Time(value, &r.CreatedAt)
+	case "updatedAt":
+		return cast2.TimePtr(value, &r.UpdatedAt)
+	case "deletedAt":
+		return cast2.TimePtr(value, &r.DeletedAt)
 	default:
 		if reflect2.IsNil(value) {
 			r.Values, _ = r.Values.Filter(func(rv *RecordValue) (bool, error) {
@@ -301,62 +316,6 @@ func (r *Record) SetValue(name string, pos uint, value any) (err error) {
 	}
 
 	return
-}
-
-func setTimeRecStructField(r *Record, name string, val any) (err error) {
-	var (
-		aux    time.Time
-		casted *time.Time
-		is     bool
-	)
-
-	if casted, is = val.(*time.Time); !is && val != nil {
-		aux, err = cast.ToTimeE(val)
-		if err != nil {
-			return err
-		}
-
-		casted = &aux
-	}
-
-	switch name {
-	case "createdAt":
-		if casted != nil {
-			r.CreatedAt = *casted
-		}
-	case "updatedAt":
-		r.UpdatedAt = casted
-	case "deletedAt":
-		r.DeletedAt = casted
-	}
-
-	return nil
-}
-
-func setUint64RecStructField(r *Record, ident string, val any) error {
-	id, err := cast.ToUint64E(val)
-	if err != nil {
-		return err
-	}
-
-	switch ident {
-	case "ID":
-		r.ID = id
-	case "moduleID":
-		r.ModuleID = id
-	case "namespaceID":
-		r.NamespaceID = id
-	case "createdBy":
-		r.CreatedBy = id
-	case "updatedBy":
-		r.UpdatedBy = id
-	case "deletedBy":
-		r.DeletedBy = id
-	case "ownedBy":
-		r.OwnedBy = id
-	}
-
-	return nil
 }
 
 func (r Record) Dict() map[string]interface{} {
