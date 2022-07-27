@@ -105,8 +105,10 @@ func Service() *service {
 //
 // Primarily used for testing reasons
 func (svc *service) Purge(ctx context.Context) {
-	svc.connections = make(map[uint64]*ConnectionWrap)
-	svc.defConnID = 0
+	nc := map[uint64]*ConnectionWrap{}
+	nc[svc.defConnID] = svc.connections[svc.defConnID]
+
+	svc.connections = nc
 	svc.models = make(map[uint64]ModelSet)
 	svc.sensitivityLevels = SensitivityLevelIndex()
 	svc.connectionIssues = make(dalIssueIndex)
