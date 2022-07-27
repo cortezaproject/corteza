@@ -1,9 +1,11 @@
 package seeder
 
 import (
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/seeder"
 	"testing"
+
+	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/seeder"
 )
 
 func TestCreateUser(t *testing.T) {
@@ -11,7 +13,7 @@ func TestCreateUser(t *testing.T) {
 	h.clearUsers()
 
 	limit := 10
-	gen := seeder.Seeder(h.ctx, seeder.DefaultStore, seeder.Faker())
+	gen := seeder.Seeder(h.ctx, seeder.DefaultStore, dal.Service(), seeder.Faker())
 
 	userIDs, err := gen.CreateUser(seeder.Params{Limit: limit})
 	h.noError(err)
@@ -23,7 +25,7 @@ func TestClearAllUser(t *testing.T) {
 	h.clearUsers()
 
 	limit := 10
-	gen := seeder.Seeder(h.ctx, seeder.DefaultStore, seeder.Faker())
+	gen := seeder.Seeder(h.ctx, seeder.DefaultStore, dal.Service(), seeder.Faker())
 
 	userIDs, err := gen.CreateUser(seeder.Params{Limit: limit})
 	h.noError(err)
@@ -47,7 +49,7 @@ func TestCreateRecord(t *testing.T) {
 	)
 
 	limit := 10
-	gen := seeder.Seeder(h.ctx, seeder.DefaultStore, seeder.Faker())
+	gen := seeder.Seeder(h.ctx, seeder.DefaultStore, dal.Service(), seeder.Faker())
 
 	recIDs, err := gen.CreateRecord(seeder.RecordParams{
 		NamespaceID:     n.ID,
@@ -73,7 +75,7 @@ func TestClearAllRecord(t *testing.T) {
 	)
 
 	limit := 10
-	gen := seeder.Seeder(h.ctx, seeder.DefaultStore, seeder.Faker())
+	gen := seeder.Seeder(h.ctx, seeder.DefaultStore, dal.Service(), seeder.Faker())
 
 	recIDs, err := gen.CreateRecord(seeder.RecordParams{
 		NamespaceID:     n.ID,

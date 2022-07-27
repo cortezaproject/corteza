@@ -9,7 +9,10 @@ import (
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 
+	"github.com/cortezaproject/corteza-server/compose/dalutils"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -68,6 +71,7 @@ type (
 	// Model management on DAL Service
 	dalModelManager interface {
 		GetConnectionMeta(ctx context.Context, ID uint64) (cm dal.ConnectionMeta, err error)
+		Search(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, f filter.Filter) (dal.Iterator, error)
 
 		ReplaceModel(context.Context, *dal.Model) error
 		RemoveModel(ctx context.Context, connectionID, ID uint64) error
@@ -397,7 +401,7 @@ func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module,
 			return
 		}
 
-		if err = dalModelReplace(ctx, svc.dal, ns, new); err != nil {
+		if err = DalModelReplace(ctx, svc.dal, ns, new); err != nil {
 			return err
 		}
 
@@ -426,7 +430,7 @@ func (svc module) UndeleteByID(ctx context.Context, namespaceID, moduleID uint64
 //
 // Directly using store so we don't spam the action log
 func (svc *module) ReloadDALModels(ctx context.Context) (err error) {
-	return dalModelReload(ctx, svc.store, svc.dal)
+	return DalModelReload(ctx, svc.store, svc.dal)
 }
 
 // FindSensitive will list all module with at least one private module field
@@ -582,7 +586,7 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 			if err = svc.eventbus.WaitFor(ctx, event.ModuleAfterUpdate(m, old, ns)); err != nil {
 				return err
 			}
-			if err = dalModelReplace(ctx, svc.dal, ns, old, m); err != nil {
+			if err = DalModelReplace(ctx, svc.dal, ns, old, m); err != nil {
 				return err
 			}
 			if err = dalAttributeReplace(ctx, svc.dal, ns, old, m); err != nil {
@@ -592,7 +596,7 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 			if err = svc.eventbus.WaitFor(ctx, event.ModuleAfterDelete(nil, old, ns)); err != nil {
 				return
 			}
-			if err = dalModelRemove(ctx, svc.dal, m); err != nil {
+			if err = DalModelRemove(ctx, svc.dal, m); err != nil {
 				return err
 			}
 		}
@@ -1059,8 +1063,8 @@ func loadModuleLabels(ctx context.Context, s store.Labels, set ...*types.Module)
 	return nil
 }
 
-// dalModelReload reloads all defined compose modules into the DAL
-func dalModelReload(ctx context.Context, s store.Storer, dmm dalModelManager) (err error) {
+// DalModelReload reloads all defined compose modules into the DAL
+func DalModelReload(ctx context.Context, s store.Storer, dmm dalModelManager) (err error) {
 	// Get all available namespaces
 	nn, _, err := store.SearchComposeNamespaces(ctx, s, types.NamespaceFilter{})
 	if err != nil {
@@ -1079,7 +1083,7 @@ func dalModelReload(ctx context.Context, s store.Storer, dmm dalModelManager) (e
 
 	// Reload!
 	for _, ns := range nn {
-		err = dalModelReplace(ctx, dmm, ns, modulesForNamespace(ns, mm)...)
+		err = DalModelReplace(ctx, dmm, ns, modulesForNamespace(ns, mm)...)
 		if err != nil {
 			return
 		}
@@ -1101,7 +1105,7 @@ func modulesForNamespace(ns *types.Namespace, mm types.ModuleSet) (out types.Mod
 }
 
 // Replaces all given connections
-func dalModelReplace(ctx context.Context, dmm dalModelManager, ns *types.Namespace, modules ...*types.Module) (err error) {
+func DalModelReplace(ctx context.Context, dmm dalModelManager, ns *types.Namespace, modules ...*types.Module) (err error) {
 	var (
 		models dal.ModelSet
 	)
@@ -1142,7 +1146,7 @@ func dalAttributeReplace(ctx context.Context, dmm dalModelManager, ns *types.Nam
 }
 
 // Removes a connection from DAL service
-func dalModelRemove(ctx context.Context, dmm dalModelManager, mm ...*types.Module) (err error) {
+func DalModelRemove(ctx context.Context, dmm dalModelManager, mm ...*types.Module) (err error) {
 	for _, m := range mm {
 		if err = dmm.RemoveModel(ctx, m.ModelConfig.ConnectionID, m.ID); err != nil {
 			return err
