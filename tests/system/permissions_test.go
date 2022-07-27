@@ -2,15 +2,16 @@ package system
 
 import (
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/id"
 	"net/http"
 	"strconv"
 	"testing"
 
+	"github.com/cortezaproject/corteza-server/pkg/id"
+	jsonpath "github.com/steinfletcher/apitest-jsonpath"
+
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
-	"github.com/steinfletcher/apitest-jsonpath"
 )
 
 func TestPermissionsEffective(t *testing.T) {
@@ -199,7 +200,7 @@ func TestPermissionsCloneToSingleRole(t *testing.T) {
 	h.a.Len(p.FindRulesByRoleID(roleT), 2)
 
 	h.apiInit().
-		Post(fmt.Sprintf("/permissions/%d/rules/clone", roleS)).
+		Post(fmt.Sprintf("/roles/%d/rules/clone", roleS)).
 		Query("cloneToRoleID", strconv.FormatUint(roleT, 10)).
 		Header("Accept", "application/json").
 		Expect(t).
@@ -244,7 +245,7 @@ func TestPermissionsCloneToMultipleRole(t *testing.T) {
 	h.a.Len(p.FindRulesByRoleID(roleY), 3)
 
 	h.apiInit().
-		Post(fmt.Sprintf("/permissions/%d/rules/clone", roleS)).
+		Post(fmt.Sprintf("/roles/%d/rules/clone", roleS)).
 		Query("cloneToRoleID", strconv.FormatUint(roleT, 10)).
 		Query("cloneToRoleID", strconv.FormatUint(roleY, 10)).
 		Header("Accept", "application/json").
@@ -282,11 +283,11 @@ func TestPermissionsCloneNotAllowed(t *testing.T) {
 	h.a.Len(p.FindRulesByRoleID(roleT), 2)
 
 	h.apiInit().
-		Post(fmt.Sprintf("/permissions/%d/rules/clone", roleS)).
+		Post(fmt.Sprintf("/roles/%d/rules/clone", roleS)).
 		Header("Accept", "application/json").
 		FormData("cloneToRoleID", strconv.FormatUint(roleT, 10)).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("accessControl.errors.notAllowedToSetPermissions")).
+		Assert(helpers.AssertError("role.errors.notAllowedToCloneRules")).
 		End()
 }
