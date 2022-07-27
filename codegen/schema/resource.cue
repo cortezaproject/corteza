@@ -42,6 +42,9 @@ import (
 		// filtering by label
 		labels:   bool | *true
 
+		// filtering by flag
+		flags:   bool | *false
+
 		// support pagination
 		paging:   bool | *true
 
