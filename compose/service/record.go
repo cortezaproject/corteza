@@ -1090,6 +1090,9 @@ func (svc record) delete(ctx context.Context, namespaceID, moduleID, recordID ui
 		return nil, RecordErrNotAllowedToDelete()
 	}
 
+	del.DeletedAt = nowUTC()
+	del.DeletedBy = invokerID
+
 	// ensure module ref is set before running through records workflows and scripts
 	del.SetModule(m)
 
@@ -1099,8 +1102,7 @@ func (svc record) delete(ctx context.Context, namespaceID, moduleID, recordID ui
 			return nil, err
 		}
 	}
-
-	if err = dalutils.ComposeRecordSoftDelete(ctx, svc.dal, invokerID, m, del); err != nil {
+	if err = dalutils.ComposeRecordSoftDelete(ctx, svc.dal, m, del); err != nil {
 		return nil, err
 	}
 
@@ -1502,7 +1504,7 @@ func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbu
 					return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 						rec.DeletedAt = nowUTC()
 						rec.DeletedBy = invokerID
-						return dalutils.ComposeRecordSoftDelete(ctx, svc.dal, invokerID, m, rec)
+						return dalutils.ComposeRecordSoftDelete(ctx, svc.dal, m, rec)
 					})
 				}
 
