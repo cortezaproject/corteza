@@ -7,10 +7,16 @@ import (
 )
 
 func (s Store) DeleteExtraLabels(ctx context.Context, kind string, resourceId uint64, name ...string) error {
-	return s.Exec(ctx, labelDeleteQuery(
-		s.Dialect,
-		goqu.C("kind").Eq(kind),
-		goqu.C("rel_resource").Eq(resourceId),
-		goqu.C("name").NotIn(name),
-	))
+	var (
+		expr = []goqu.Expression{
+			goqu.C("kind").Eq(kind),
+			goqu.C("rel_resource").Eq(resourceId),
+		}
+	)
+
+	if len(name) > 0 {
+		expr = append(expr, goqu.C("name").NotIn(name))
+	}
+
+	return s.Exec(ctx, labelDeleteQuery(s.Dialect, expr...))
 }
