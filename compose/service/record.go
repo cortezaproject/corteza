@@ -1042,7 +1042,7 @@ func (svc record) procUpdate(ctx context.Context, invokerID uint64, m *types.Mod
 	upd.DeletedAt = old.DeletedAt
 	upd.DeletedBy = old.DeletedBy
 
-	if err := SetRecordOwner(ctx, svc.ac, svc.store, old, upd, invokerID); err != nil {
+	if rve = SetRecordOwner(ctx, svc.ac, svc.store, old, upd, invokerID); !rve.IsValid() {
 		return
 	}
 

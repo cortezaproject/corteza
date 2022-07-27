@@ -151,6 +151,9 @@ func (h helper) makeRecord(module *types.Module, rvs ...*types.RecordValue) *typ
 		CreatedAt:   time.Now(),
 		ModuleID:    module.ID,
 		NamespaceID: module.NamespaceID,
+		// Passing the current owner in here since the tests (who care about this)
+		// rely on it being set to something valid.
+		OwnedBy: h.cUser.ID,
 
 		// We are directly storing the record values here, so ensure
 		// everything is formatted in the same manner as it would be
