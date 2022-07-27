@@ -132,7 +132,7 @@ func (c *SimpleJsonDocColumn) Encode(r dal.ValueGetter) (_ any, err error) {
 		aux[attr.Ident] = make([]any, size)
 
 		for place = 0; place < size; place++ {
-			value, err = r.GetValue(attr.Ident, 0)
+			value, err = r.GetValue(attr.Ident, place)
 			if err != nil {
 				return nil, err
 			}

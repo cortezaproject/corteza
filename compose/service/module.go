@@ -1392,6 +1392,7 @@ func moduleFieldToAttribute(ctx context.Context, cm dal.ConnectionMeta, mod *typ
 
 	out.SensitivityLevel = f.Privacy.SensitivityLevel
 	out.Label = f.Name
+	out.MultiValue = f.Multi
 
 	return
 }

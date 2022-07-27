@@ -192,3 +192,67 @@ func TestToBulkOperationsDetermineOperation(t *testing.T) {
 		rr[1].Operation,
 	)
 }
+
+func TestRecord_ValueGetter(t *testing.T) {
+	var (
+		r = &Record{
+			module: &Module{
+				Fields: []*ModuleField{
+					{Name: "svf"},
+					{Name: "mvf", Multi: true},
+				},
+			},
+			Values: RecordValueSet{
+				{Name: "svf", Value: "foo"},
+				{Name: "mvf", Value: "foo0", Place: 0},
+				{Name: "mvf", Value: "foo1", Place: 1},
+				{Name: "mvf", Value: "foo2", Place: 2},
+			},
+		}
+
+		tests = []struct {
+			name    string
+			field   string
+			pos     uint
+			count   uint
+			want    any
+			wantErr bool
+		}{
+			{
+				name:    "Get single value",
+				field:   "svf",
+				want:    "foo",
+				wantErr: false,
+			},
+			{
+				name:  "Get first multi value",
+				field: "mvf",
+				pos:   0,
+				count: 1,
+				want:  "foo0",
+			},
+			{
+				name:  "Get second multi value",
+				field: "mvf",
+				pos:   1,
+				count: 1,
+				want:  "foo1",
+			},
+		}
+	)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := r.GetValue(tt.field, tt.pos)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetValue() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetValue() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
