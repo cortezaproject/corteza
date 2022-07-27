@@ -131,6 +131,18 @@ resources: {
 			active:      {                   goType: "bool"}
 		}
 
+		filter: {
+			expIdent: "FlagFilter"
+			struct: {
+				kind: {}
+				resource_id: { goType: "[]uint64", ident: "resourceID", storeIdent: "rel_resource" }
+				owned_by: { goType: "[]uint64", ident: "ownedBy" }
+				name: { goType: "[]string", ident: "name" }
+			}
+
+			byValue: ["kind", "resource_id", "owned_by", "name", ]
+		}
+
 		store: {
 			api: {
 				lookups: [

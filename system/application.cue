@@ -32,6 +32,10 @@ application: schema.#Resource & {
 		byNilState: ["deleted"]
 	}
 
+	features: {
+		flags: true
+	}
+
 	rbac: {
 		operations: {
 			read:
