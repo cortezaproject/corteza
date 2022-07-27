@@ -914,7 +914,7 @@ func TestSetRecordOwner(t *testing.T) {
 
 		role = &sysTypes.Role{Name: "role-with-ownership-change-permission", ID: 3000}
 
-		mod      = &types.Module{ID: 3}
+		mod      = &types.Module{ID: 3, NamespaceID: 71624}
 		old, upd *types.Record
 	)
 
