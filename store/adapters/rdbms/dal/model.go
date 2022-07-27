@@ -149,9 +149,18 @@ func (d *model) Search(f filter.Filter) (i *iterator, err error) {
 		orderBy = append(orderBy, &filter.SortExpr{Column: attrIdent, Descending: orderBy.LastDescending()})
 	}
 
+	var (
+		q *goqu.SelectDataset
+	)
+
+	q = d.searchSql(f)
+	if err = q.Error(); err != nil {
+		return
+	}
+
 	return &iterator{
 		ms:      d,
-		query:   d.searchSql(f),
+		query:   q,
 		sorting: orderBy,
 		cursor:  f.Cursor(),
 		limit:   f.Limit(),
@@ -169,6 +178,10 @@ func (d *model) Lookup(ctx context.Context, pkv dal.ValueGetter, r dal.ValueSett
 	// and ability to use sql.RawBytes
 	var rows *sql.Rows
 	rows, err = d.conn.QueryContext(ctx, query, args...)
+	if err != nil {
+		return
+	}
+
 	if err = rows.Err(); err != nil {
 		return
 	}
