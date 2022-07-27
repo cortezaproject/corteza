@@ -13,6 +13,7 @@ type (
 		SearchModels(ctx context.Context) (out dal.ModelSet, err error)
 		ReplaceModel(ctx context.Context, model *dal.Model) (err error)
 		RemoveModel(ctx context.Context, connectionID, ID uint64) (err error)
+		ReplaceModelAttribute(ctx context.Context, model *dal.Model, old, new *dal.Attribute, trans ...dal.TransformationFunction) (err error)
 
 		GetConnectionMeta(ctx context.Context, ID uint64) (cm dal.ConnectionMeta, err error)
 

@@ -3,7 +3,12 @@ package seeder
 import (
 	"context"
 	"errors"
+	"os"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/app"
+	composeService "github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/id"
@@ -15,9 +20,6 @@ import (
 	sTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	"github.com/stretchr/testify/require"
-	"os"
-	"testing"
-	"time"
 )
 
 type (
@@ -114,12 +116,14 @@ func (h helper) clearModules() {
 }
 
 func (h helper) makeModule(ns *types.Namespace, name string, ff ...*types.ModuleField) *types.Module {
-	return h.createModule(&types.Module{
+	m := h.createModule(&types.Module{
 		Name:        name,
 		NamespaceID: ns.ID,
 		Fields:      ff,
 		CreatedAt:   time.Now(),
 	})
+	composeService.DefaultModule.ReloadDALModels(context.Background())
+	return m
 }
 
 func (h helper) createModule(res *types.Module) *types.Module {

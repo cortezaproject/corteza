@@ -12,11 +12,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cortezaproject/corteza-server/compose/dalutils"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/store"
 	systemService "github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	"github.com/steinfletcher/apitest"
@@ -27,7 +27,7 @@ import (
 func (h helper) clearRecords() {
 	h.clearNamespaces()
 	h.clearModules()
-	h.noError(store.TruncateComposeRecords(context.Background(), service.DefaultStore, nil))
+	h.noError(truncateRecords(context.Background()))
 }
 
 type (
@@ -161,13 +161,13 @@ func (h helper) makeRecord(module *types.Module, rvs ...*types.RecordValue) *typ
 		Values: values.Formatter().Run(module, rvs),
 	}
 
-	h.noError(store.CreateComposeRecord(context.Background(), service.DefaultStore, module, rec))
+	h.noError(dalutils.ComposeRecordCreate(context.Background(), defDal, module, rec))
 
 	return rec
 }
 
 func (h helper) lookupRecordByID(module *types.Module, ID uint64) *types.Record {
-	res, err := store.LookupComposeRecordByID(context.Background(), service.DefaultStore, module, ID)
+	res, err := dalutils.ComposeRecordsFind(context.Background(), defDal, module, ID)
 	h.noError(err)
 	return res
 }
