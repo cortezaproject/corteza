@@ -59,7 +59,7 @@ func Make(op Operation, revision uint, resourceID, userID uint64) (rev *Revision
 }
 
 // untested
-func (r *Revision) CollectChanges(new, old dal.ValueGetter, omit ...string) (err error) {
+func (r *Revision) CollectChanges(new, old dal.ValueGetter, skip ...string) (err error) {
 	var (
 		cc = make([]*Change, 0)
 		ch *Change
@@ -86,8 +86,8 @@ keys:
 			continue keys
 		}
 
-		for _, o := range omit {
-			if key == o {
+		for _, s := range skip {
+			if key == s {
 				continue keys
 			}
 		}
