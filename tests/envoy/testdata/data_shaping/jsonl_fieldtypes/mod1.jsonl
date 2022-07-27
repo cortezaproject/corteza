@@ -1,2 +1,0 @@
-{"id": "1", "c_bool": "true", "c_datetime": "2021-04-01T10:00:00Z", "c_email": "mail@test.tld", "c_number": "1.23", "c_select": "opt_2", "c_string": "test here", "c_url": "https://test.tld"}
-{"id": "2", "c_bool": "false", "c_datetime": "2021-04-02T10:00:00Z", "c_email": "mail@test.tld", "c_number": "20", "c_select": "opt_3", "c_string": "test here", "c_url": "https://test.tld"}
