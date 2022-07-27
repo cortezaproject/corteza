@@ -105,8 +105,10 @@ func Service() *service {
 //
 // Primarily used for testing reasons
 func (svc *service) Purge(ctx context.Context) {
-	svc.connections = make(map[uint64]*ConnectionWrap)
-	svc.defConnID = 0
+	nc := map[uint64]*ConnectionWrap{}
+	nc[svc.defConnID] = svc.connections[svc.defConnID]
+
+	svc.connections = nc
 	svc.models = make(map[uint64]ModelSet)
 	svc.sensitivityLevels = SensitivityLevelIndex()
 	svc.connectionIssues = make(dalIssueIndex)
@@ -189,7 +191,7 @@ func (svc *service) RemoveSensitivityLevel(levelIDs ...uint64) (err error) {
 		log := log.With(zap.Uint64("ID", l.ID))
 		if !nx.includes(l.ID) {
 			log.Debug("sensitivity level not found")
-			return errSensitivityLevelRemoveNotFound(l.ID)
+			continue
 		}
 	}
 

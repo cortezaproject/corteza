@@ -1,3 +1,0 @@
-id,c_bool,c_datetime,c_email,c_number,c_select,c_string,c_url
-1,true,2021-04-01T10:00:00Z,mail@test.tld,1.23,opt_2,test here,https://test.tld
-2,false,2021-04-02T10:00:00Z,mail@test.tld,20,opt_3,test here,https://test.tld

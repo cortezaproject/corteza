@@ -1,5 +1,0 @@
-namespace: ns2
-records:
-  settings:
-  - values:
-      s1: ns2 value

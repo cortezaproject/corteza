@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
@@ -14,6 +13,10 @@ import (
 	"path"
 	"strings"
 	"testing"
+
+	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 
 	"github.com/cortezaproject/corteza-server/app"
 	"github.com/cortezaproject/corteza-server/compose/rest"
@@ -55,14 +58,35 @@ type (
 		roleID uint64
 		token  []byte
 	}
+
+	dalSvc interface {
+		Purge(ctx context.Context)
+
+		GetConnectionMeta(ctx context.Context, ID uint64) (cm dal.ConnectionMeta, err error)
+
+		SearchModels(ctx context.Context) (out dal.ModelSet, err error)
+		RemoveModel(ctx context.Context, connectionID, ID uint64) (err error)
+		ReplaceModel(ctx context.Context, model *dal.Model) (err error)
+		ReplaceModelAttribute(ctx context.Context, model *dal.Model, old, new *dal.Attribute, trans ...dal.TransformationFunction) (err error)
+		SearchModelIssues(connectionID, resourceID uint64) (out []error)
+
+		Create(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, vv ...dal.ValueGetter) error
+		Update(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, rr ...dal.ValueGetter) (err error)
+		Search(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, f filter.Filter) (dal.Iterator, error)
+		Lookup(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, lookup dal.ValueGetter, dst dal.ValueSetter) (err error)
+		Delete(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, pkv ...dal.ValueGetter) (err error)
+		Truncate(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set) (err error)
+	}
 )
 
 var (
-	testApp *app.CortezaApp
-	r       chi.Router
+	testApp  *app.CortezaApp
+	r        chi.Router
+	testUser *sysTypes.User
 
 	eventBus = eventbus.New()
 	defStore store.Storer
+	defDal   dalSvc
 )
 
 func init() {
@@ -98,6 +122,7 @@ func InitTestApp() {
 			return nil
 		})
 
+		defDal = dal.Service()
 	}
 
 	if r == nil {
@@ -114,14 +139,28 @@ func TestMain(m *testing.M) {
 }
 
 func newHelper(t *testing.T) helper {
+	ctx := context.Background()
+
 	h := helper{
 		t:      t,
 		a:      require.New(t),
 		roleID: id.Next(),
-		cUser: &sysTypes.User{
-			ID: id.Next(),
-		},
 	}
+
+	if testUser == nil {
+		testUser = &sysTypes.User{
+			Handle: "test_user",
+			Name:   "test_user",
+			ID:     id.Next(),
+		}
+
+		err := store.CreateUser(ctx, service.DefaultStore, testUser)
+		if err != nil {
+			panic(err)
+		}
+
+	}
+	h.cUser = testUser
 
 	h.cUser.SetRoles(h.roleID)
 	helpers.UpdateRBAC(h.roleID)
@@ -196,11 +235,31 @@ func cleanup(t *testing.T) {
 		store.TruncateComposePages(ctx, defStore),
 		store.TruncateComposeModuleFields(ctx, defStore),
 		store.TruncateComposeModules(ctx, defStore),
-		store.TruncateComposeRecords(ctx, defStore, nil),
 	)
 	if err != nil {
 		t.Fatalf("failed to decode scenario data: %v", err)
 	}
+
+	err = truncateRecords(ctx)
+	if err != nil {
+		t.Fatalf("failed to truncate records: %v", err)
+	}
+
+	defDal.Purge(ctx)
+}
+
+func truncateRecords(ctx context.Context) error {
+	models, err := defDal.SearchModels(ctx)
+	if err != nil {
+		return err
+	}
+	for _, model := range models {
+		err = defDal.Truncate(ctx, model.ToFilter(), nil)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func scenario(t *testing.T) string {
