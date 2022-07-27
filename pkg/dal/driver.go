@@ -90,23 +90,6 @@ type (
 
 	TransformationFunction func(*Model, Attribute, expr.TypedValue) (expr.TypedValue, bool, error)
 
-	// Iterator provides an interface for loading data from the underlying store
-	Iterator interface {
-		Next(ctx context.Context) bool
-		More(uint, ValueGetter) error
-		Err() error
-		Scan(ValueSetter) error
-		Close() error
-
-		BackCursor(ValueGetter) (*filter.PagingCursor, error)
-		ForwardCursor(ValueGetter) (*filter.PagingCursor, error)
-
-		// // -1 means unknown
-		// Total() int
-		// Cursor() any
-		// // ... do we need anything else here?
-	}
-
 	// Store provides an interface which CRS uses to interact with the underlying database
 
 	ValueGetter interface {
