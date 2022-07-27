@@ -3,11 +3,11 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/compose/dalutils"
+	"testing"
+
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms"
-	"testing"
 
 	"github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -116,7 +116,7 @@ func makeTestRecordService(t *testing.T, mods ...any) *record {
 		req.NoError(err)
 
 		t.Log("reloading DAL models")
-		req.NoError(dalutils.ComposeModulesReload(ctx, svc.store, dalAux))
+		req.NoError(DalModelReload(ctx, svc.store, dalAux))
 	}
 
 	return svc

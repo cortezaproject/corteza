@@ -22,10 +22,16 @@ func (h helper) clearModules() {
 	h.clearNamespaces()
 	h.noError(store.TruncateComposeModules(context.Background(), service.DefaultStore))
 	h.noError(store.TruncateComposeModuleFields(context.Background(), service.DefaultStore))
+
+	models, err := defDal.SearchModels(context.Background())
+	h.noError(err)
+	for _, m := range models {
+		h.noError(defDal.RemoveModel(context.Background(), m.ConnectionID, m.ResourceID))
+	}
 }
 
 func (h helper) makeModule(ns *types.Namespace, name string, ff ...*types.ModuleField) *types.Module {
-	return h.createModule(&types.Module{
+	return h.createModule(ns, &types.Module{
 		Name:        name,
 		NamespaceID: ns.ID,
 		Fields:      ff,
@@ -33,7 +39,7 @@ func (h helper) makeModule(ns *types.Namespace, name string, ff ...*types.Module
 	})
 }
 
-func (h helper) createModule(res *types.Module) *types.Module {
+func (h helper) createModule(ns *types.Namespace, res *types.Module) *types.Module {
 	res.ID = id.Next()
 	res.CreatedAt = time.Now()
 	h.noError(store.CreateComposeModule(context.Background(), service.DefaultStore, res))
@@ -47,6 +53,8 @@ func (h helper) createModule(res *types.Module) *types.Module {
 	})
 
 	h.noError(store.CreateComposeModuleField(context.Background(), service.DefaultStore, res.Fields...))
+
+	h.noError(service.DalModelReplace(context.Background(), defDal, ns, res))
 
 	return res
 }
@@ -122,7 +130,7 @@ func TestModuleListQuery(t *testing.T) {
 	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
 	ns := h.makeNamespace("some-namespace")
 
-	h.createModule(&types.Module{
+	h.createModule(ns, &types.Module{
 		Name:        "name",
 		Handle:      "handle",
 		NamespaceID: ns.ID,

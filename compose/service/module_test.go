@@ -2,10 +2,10 @@ package service
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/compose/dalutils"
+	"testing"
+
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
-	"testing"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
@@ -102,7 +102,7 @@ func makeTestModuleService(t *testing.T, mods ...any) *module {
 		svc.dal = dalAux
 
 		t.Log("reloading DAL models")
-		req.NoError(dalutils.ComposeModulesReload(ctx, svc.store, dalAux))
+		req.NoError(DalModelReload(ctx, svc.store, dalAux))
 	}
 
 	return svc
