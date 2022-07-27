@@ -189,7 +189,7 @@ func (svc *service) RemoveSensitivityLevel(levelIDs ...uint64) (err error) {
 		log := log.With(zap.Uint64("ID", l.ID))
 		if !nx.includes(l.ID) {
 			log.Debug("sensitivity level not found")
-			return errSensitivityLevelRemoveNotFound(l.ID)
+			continue
 		}
 	}
 
