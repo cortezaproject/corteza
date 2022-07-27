@@ -42,27 +42,30 @@ func Connection(db sqlx.ExtContext, dialect drivers.Dialect, cc ...capabilities.
 	}
 }
 
+// model returns rdbms/dal model (converted dal.Model)
+//
+// It constructs key from res-type + res + ident
+// and caches it in the connection
+//
+// This allows us to have same resource or ident on different res-types
+// For example: module's model for revisions has same resouce and ident but different type
 func (c *connection) model(m *dal.Model) *model {
-	if m.Resource == "" {
-		// if resource is empty, use ident
-		m.Resource = m.Ident
-	}
-
-	if m.Resource == "" {
-		panic("can not add model with empty resource")
+	key := m.ResourceType + "|" + m.Resource + "|" + m.Ident
+	if key == "" {
+		panic("can not add model without a key (combo of resource type, resource and ident)")
 	}
 
 	c.mux.RLock()
-	if c.models[m.Resource] == nil {
+	if c.models[key] == nil {
 		c.mux.RUnlock()
 		c.mux.Lock()
-		c.models[m.Resource] = Model(m, c.db, c.dialect)
+		c.models[key] = Model(m, c.db, c.dialect)
 		defer c.mux.Unlock()
-		return c.models[m.Resource]
+		return c.models[key]
 	}
 
 	defer c.mux.RUnlock()
-	return c.models[m.Resource]
+	return c.models[key]
 }
 
 func (c *connection) Capabilities() capabilities.Set {
