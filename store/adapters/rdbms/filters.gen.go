@@ -203,7 +203,7 @@ func ApigwFilterFilter(f systemType.ApigwFilterFilter) (ee []goqu.Expression, _ 
 	}
 
 	if f.RouteID > 0 {
-		ee = append(ee, goqu.C("route_id").Eq(f.RouteID))
+		ee = append(ee, goqu.C("rel_route").Eq(f.RouteID))
 	}
 
 	return ee, f, err
@@ -254,6 +254,10 @@ func ApplicationFilter(f systemType.ApplicationFilter) (ee []goqu.Expression, _ 
 
 	if len(f.LabeledIDs) > 0 {
 		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
+	}
+
+	if len(f.FlaggedIDs) > 0 {
+		ee = append(ee, goqu.I("id").In(f.FlaggedIDs))
 	}
 
 	if f.Query != "" {
@@ -919,6 +923,22 @@ func FederationSharedModuleFilter(f federationType.SharedModuleFilter) (ee []goq
 // This function is auto-generated
 func FlagFilter(f flagType.FlagFilter) (ee []goqu.Expression, _ flagType.FlagFilter, err error) {
 
+	if val := strings.TrimSpace(f.Kind); len(val) > 0 {
+		ee = append(ee, goqu.C("kind").Eq(f.Kind))
+	}
+
+	if len(f.ResourceID) > 0 {
+		ee = append(ee, goqu.C("rel_resource").In(f.ResourceID))
+	}
+
+	if len(f.OwnedBy) > 0 {
+		ee = append(ee, goqu.C("owned_by").In(f.OwnedBy))
+	}
+
+	if ss := trimStringSlice(f.Name); len(ss) > 0 {
+		ee = append(ee, goqu.C("name").In(ss))
+	}
+
 	return ee, f, err
 }
 
@@ -1251,4 +1271,15 @@ func UserFilter(f systemType.UserFilter) (ee []goqu.Expression, _ systemType.Use
 	}
 
 	return ee, f, err
+}
+
+// trimStringSlice is a utility to trim all of the string slice elements and omit empty ones
+func trimStringSlice(in []string) []string {
+	out := make([]string, 0, len(in))
+	for _, s := range in {
+		if t := strings.TrimSpace(s); len(t) > 0 {
+			out = append(out, t)
+		}
+	}
+	return out
 }

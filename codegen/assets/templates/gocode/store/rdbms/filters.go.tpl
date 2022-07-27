@@ -52,6 +52,10 @@ func {{ .expIdent }}Filter(f {{ .goFilterType }})(ee []goqu.Expression, _ {{ .go
 		if val := strings.TrimSpace(f.{{ .expIdent }}); len(val) > 0 {
 			ee = append(ee, goqu.C({{ printf "%q" .storeIdent }}).Eq(f.{{ .expIdent }}))
 		}
+		{{ else if eq .goType "[]string" }}
+		if ss := trimStringSlice(f.{{ .expIdent }}); len(ss) > 0 {
+			ee = append(ee, goqu.C({{ printf "%q" .storeIdent }}).In(ss))
+		}
 		{{ else if eq .goType "bool" }}
 		if f.{{ .expIdent }} {
 			ee = append(ee, goqu.C({{ printf "%q" .storeIdent }}).IsTrue())
@@ -76,6 +80,12 @@ func {{ .expIdent }}Filter(f {{ .goFilterType }})(ee []goqu.Expression, _ {{ .go
 	}
 	{{ end }}
 
+	{{ if .filter.byFlag }}
+	if len(f.FlaggedIDs) > 0 {
+		ee = append(ee, goqu.I("id").In(f.FlaggedIDs))
+	}
+	{{ end }}
+
 	{{ if .filter.query }}
 	if f.Query != "" {
 		ee = append(ee, goqu.Or(
@@ -89,3 +99,14 @@ func {{ .expIdent }}Filter(f {{ .goFilterType }})(ee []goqu.Expression, _ {{ .go
 	return ee, f, err
 }
 {{ end }}
+
+// trimStringSlice is a utility to trim all of the string slice elements and omit empty ones
+func trimStringSlice(in []string) []string {
+	out := make([]string, 0, len(in))
+	for _, s := range in {
+		if t := strings.TrimSpace(s); len(t) > 0 {
+			out = append(out, t)
+		}
+	}
+	return out
+}
