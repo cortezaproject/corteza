@@ -60,23 +60,23 @@ func (set RuleSet) FilterAccess(a Access) (out RuleSet) {
 	return out
 }
 
-func (set RuleSet) FilterResource(res string) (out RuleSet) {
-	for _, r := range set {
-		if !matchResource(res, r.Resource) {
-			continue
+func (set RuleSet) FilterResource(rr ...Resource) (out RuleSet) {
+	var (
+		ruleMap    = make(map[string]bool)
+		uniqRuleID = func(r *Rule) string {
+			return fmt.Sprintf("%s|%s|%d", r.Resource, r.Operation, r.RoleID)
 		}
-		out = append(out, r)
-	}
+	)
 
-	return
-}
-
-// FilterRules will filter the rules based on given parameter(specific),
-//		If params is true then it will return only the specific rules otherwise it will return non-specific rules
-func (set RuleSet) FilterRules(specific bool) (out RuleSet) {
-	for _, r := range set {
-		if specific == isSpecific(r.Resource) {
-			out = append(out, r)
+	for _, res := range rr {
+		for _, rule := range set {
+			if !matchResource(res.RbacResource(), rule.Resource) {
+				continue
+			}
+			if _, ok := ruleMap[uniqRuleID(rule)]; !ok {
+				out = append(out, rule)
+				ruleMap[uniqRuleID(rule)] = true
+			}
 		}
 	}
 

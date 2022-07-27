@@ -211,25 +211,17 @@ func (svc accessControl) logGrants(ctx context.Context, rr []*rbac.Rule) {
 // FindRules find all rules based on filters
 //
 // This function is auto-generated
-func (svc accessControl) FindRules(ctx context.Context, roleID uint64, specific filter.State, rr ...string) (out rbac.RuleSet, err error) {
+func (svc accessControl) FindRules(ctx context.Context, roleID uint64, rr ...string) (out rbac.RuleSet, err error) {
 	if !svc.CanGrant(ctx) {
         return nil, AccessControlErrNotAllowedToSetPermissions()
     }
 
-    rules, err := svc.FindRulesByRoleID(ctx, roleID)
+    out, err = svc.FindRulesByRoleID(ctx, roleID)
     if err != nil {
         return
     }
 
-    var (
-        resources  []rbac.Resource
-        ruleMap    = make(map[string]bool)
-        uniqRuleID = func(r *rbac.Rule) string {
-            return fmt.Sprintf("%s|%s|%d", r.Resource, r.Operation, r.RoleID)
-        }
-    )
-
-    // Filter based on resource
+    var resources  []rbac.Resource
     if len(rr) > 0 {
         resources = make([]rbac.Resource, 0, len(rr))
         for _, r := range rr {
@@ -243,26 +235,7 @@ func (svc accessControl) FindRules(ctx context.Context, roleID uint64, specific 
         resources = svc.Resources()
     }
 
-    for _, res := range resources {
-        for _, rule := range rules.FilterResource(res.RbacResource()) {
-            if _, ok := ruleMap[uniqRuleID(rule)]; !ok {
-                out = append(out, rule)
-                ruleMap[uniqRuleID(rule)] = true
-            }
-        }
-    }
-
-    // Filter for Excluded, Include, or Exclusive specific rules
-    switch specific {
-    // Exclude all the specific rules
-    case filter.StateExcluded:
-        out = out.FilterRules(false)
-    // Returns only all the specific rules
-    case filter.StateExclusive:
-        out = out.FilterRules(true)
-    }
-
-    return
+    return out.FilterResource(resources...), nil
 }
 
 // FindRulesByRoleID find all rules for a specific role
