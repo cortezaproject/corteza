@@ -83,29 +83,11 @@ func ParseRule(res string) (string, *Ref, []*Ref, error) {
 		)
 		return resourceType, ref, pp, err
 
-	case systemTypes.DataPrivacyRequestCommentResourceType:
-		if len(path) != 1 {
-			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
-		}
-		ref, pp, err := SystemDataPrivacyRequestCommentRbacReferences(
-			path[0],
-		)
-		return resourceType, ref, pp, err
-
 	case systemTypes.QueueResourceType:
 		if len(path) != 1 {
 			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
 		}
 		ref, pp, err := SystemQueueRbacReferences(
-			path[0],
-		)
-		return resourceType, ref, pp, err
-
-	case systemTypes.QueueMessageResourceType:
-		if len(path) != 1 {
-			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
-		}
-		ref, pp, err := SystemQueueMessageRbacReferences(
 			path[0],
 		)
 		return resourceType, ref, pp, err
@@ -151,15 +133,6 @@ func ParseRule(res string) (string, *Ref, []*Ref, error) {
 			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
 		}
 		ref, pp, err := SystemDalConnectionRbacReferences(
-			path[0],
-		)
-		return resourceType, ref, pp, err
-
-	case systemTypes.DalSensitivityLevelResourceType:
-		if len(path) != 1 {
-			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
-		}
-		ref, pp, err := SystemDalSensitivityLevelRbacReferences(
 			path[0],
 		)
 		return resourceType, ref, pp, err

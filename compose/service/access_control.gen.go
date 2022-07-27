@@ -9,6 +9,8 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
@@ -17,7 +19,6 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/spf13/cast"
-	"strings"
 )
 
 type (
@@ -123,7 +124,8 @@ func (svc accessControl) Trace(ctx context.Context, userID uint64, roles []uint6
 
 	session := rbac.ParamsToSession(ctx, userID, roles...)
 	for _, res := range resources {
-		for op := range rbacResourceOperations(res.RbacResource()) {
+		r := res.RbacResource()
+		for op := range rbacResourceOperations(r) {
 			ee = append(ee, svc.rbac.Trace(session, op, res))
 		}
 	}
