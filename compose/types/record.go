@@ -267,22 +267,36 @@ func (r *Record) SetValue(name string, pos uint, value any) (err error) {
 		}
 
 		rv := &RecordValue{Name: name, Place: pos}
+		var auxv string
 
 		switch aux := value.(type) {
 		case *time.Time:
-			rv.Value = aux.Format(time.RFC3339)
+			auxv = aux.Format(time.RFC3339)
 
 		case time.Time:
-			rv.Value = aux.Format(time.RFC3339)
+			auxv = aux.Format(time.RFC3339)
 
 		default:
-			rv.Value, err = cast.ToStringE(aux)
+			auxv, err = cast.ToStringE(aux)
 		}
 
 		if err != nil {
 			return
 		}
 
+		// Try to utilize the module when possible
+		// It can be omitted for some cases for easier test cases
+		if r.module != nil {
+			f := r.module.Fields.FindByName(name)
+			if f != nil {
+				switch f.Kind {
+				case "Record", "User", "File":
+					rv.Ref = cast.ToUint64(value)
+				}
+			}
+		}
+
+		rv.Value = auxv
 		r.Values = r.Values.Set(rv)
 	}
 
