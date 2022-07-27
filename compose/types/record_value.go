@@ -227,13 +227,7 @@ func (set RecordValueSet) GetClean() (out RecordValueSet) {
 			continue
 		}
 
-		out = append(out, &RecordValue{
-			RecordID: set[s].RecordID,
-			Name:     set[s].Name,
-			Value:    set[s].Value,
-			Ref:      set[s].Ref,
-			Place:    set[s].Place,
-		})
+		out = append(out, set[s].Clone())
 	}
 
 	return out
