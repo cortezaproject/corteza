@@ -139,10 +139,6 @@ func drainIterator(ctx context.Context, iter dal.Iterator, mod *types.Module, f 
 		refetchFactor = 1.2
 	)
 
-	if f.Check == nil {
-		panic("filter check function not set, this is probably a mistake")
-	}
-
 	var (
 		// counter for false checks
 		checked uint
@@ -176,10 +172,12 @@ func drainIterator(ctx context.Context, iter dal.Iterator, mod *types.Module, f 
 			}
 
 			// check fetched record
-			if ok, err = f.Check(r); err != nil {
-				return
-			} else if !ok {
-				continue
+			if f.Check != nil {
+				if ok, err = f.Check(r); err != nil {
+					return
+				} else if !ok {
+					continue
+				}
 			}
 
 			checked++
@@ -242,11 +240,14 @@ func drainIterator(ctx context.Context, iter dal.Iterator, mod *types.Module, f 
 
 func prepareRecordTarget(module *types.Module) *types.Record {
 	// so we can avoid some code later involving (non)partitioned modules :seenoevil:
-	return &types.Record{
+	r := &types.Record{
 		ModuleID:    module.ID,
 		NamespaceID: module.NamespaceID,
 		Values:      make(types.RecordValueSet, 0, len(module.Fields)),
 	}
+	r.SetModule(module)
+
+	return r
 }
 
 func recToGetters(rr ...*types.Record) (out []dal.ValueGetter) {

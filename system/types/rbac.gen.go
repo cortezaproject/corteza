@@ -24,20 +24,17 @@ var (
 )
 
 const (
-	ApplicationResourceType               = "corteza::system:application"
-	ApigwRouteResourceType                = "corteza::system:apigw-route"
-	AuthClientResourceType                = "corteza::system:auth-client"
-	DataPrivacyRequestResourceType        = "corteza::system:data-privacy-request"
-	DataPrivacyRequestCommentResourceType = "corteza::system:data-privacy-request_comment"
-	QueueResourceType                     = "corteza::system:queue"
-	QueueMessageResourceType              = "corteza::system:queue_message"
-	ReportResourceType                    = "corteza::system:report"
-	RoleResourceType                      = "corteza::system:role"
-	TemplateResourceType                  = "corteza::system:template"
-	UserResourceType                      = "corteza::system:user"
-	DalConnectionResourceType             = "corteza::system:dal-connection"
-	DalSensitivityLevelResourceType       = "corteza::system:dal-sensitivity-level"
-	ComponentResourceType                 = "corteza::system"
+	ApplicationResourceType        = "corteza::system:application"
+	ApigwRouteResourceType         = "corteza::system:apigw-route"
+	AuthClientResourceType         = "corteza::system:auth-client"
+	DataPrivacyRequestResourceType = "corteza::system:data-privacy-request"
+	QueueResourceType              = "corteza::system:queue"
+	ReportResourceType             = "corteza::system:report"
+	RoleResourceType               = "corteza::system:role"
+	TemplateResourceType           = "corteza::system:template"
+	UserResourceType               = "corteza::system:user"
+	DalConnectionResourceType      = "corteza::system:dal-connection"
+	ComponentResourceType          = "corteza::system"
 )
 
 // RbacResource returns string representation of RBAC resource for Application by calling ApplicationRbacResource fn
@@ -160,36 +157,6 @@ func DataPrivacyRequestRbacResourceTpl() string {
 	return "%s/%s"
 }
 
-// RbacResource returns string representation of RBAC resource for DataPrivacyRequestComment by calling DataPrivacyRequestCommentRbacResource fn
-//
-// RBAC resource is in the corteza::system:data-privacy-request_comment/... format
-//
-// This function is auto-generated
-func (r DataPrivacyRequestComment) RbacResource() string {
-	return DataPrivacyRequestCommentRbacResource(r.ID)
-}
-
-// DataPrivacyRequestCommentRbacResource returns string representation of RBAC resource for DataPrivacyRequestComment
-//
-// RBAC resource is in the corteza::system:data-privacy-request_comment/... format
-//
-// This function is auto-generated
-func DataPrivacyRequestCommentRbacResource(id uint64) string {
-	cpts := []interface{}{DataPrivacyRequestCommentResourceType}
-	if id != 0 {
-		cpts = append(cpts, strconv.FormatUint(id, 10))
-	} else {
-		cpts = append(cpts, "*")
-	}
-
-	return fmt.Sprintf(DataPrivacyRequestCommentRbacResourceTpl(), cpts...)
-
-}
-
-func DataPrivacyRequestCommentRbacResourceTpl() string {
-	return "%s/%s"
-}
-
 // RbacResource returns string representation of RBAC resource for Queue by calling QueueRbacResource fn
 //
 // RBAC resource is in the corteza::system:queue/... format
@@ -217,36 +184,6 @@ func QueueRbacResource(id uint64) string {
 }
 
 func QueueRbacResourceTpl() string {
-	return "%s/%s"
-}
-
-// RbacResource returns string representation of RBAC resource for QueueMessage by calling QueueMessageRbacResource fn
-//
-// RBAC resource is in the corteza::system:queue_message/... format
-//
-// This function is auto-generated
-func (r QueueMessage) RbacResource() string {
-	return QueueMessageRbacResource(r.ID)
-}
-
-// QueueMessageRbacResource returns string representation of RBAC resource for QueueMessage
-//
-// RBAC resource is in the corteza::system:queue_message/... format
-//
-// This function is auto-generated
-func QueueMessageRbacResource(id uint64) string {
-	cpts := []interface{}{QueueMessageResourceType}
-	if id != 0 {
-		cpts = append(cpts, strconv.FormatUint(id, 10))
-	} else {
-		cpts = append(cpts, "*")
-	}
-
-	return fmt.Sprintf(QueueMessageRbacResourceTpl(), cpts...)
-
-}
-
-func QueueMessageRbacResourceTpl() string {
 	return "%s/%s"
 }
 
@@ -397,36 +334,6 @@ func DalConnectionRbacResource(id uint64) string {
 }
 
 func DalConnectionRbacResourceTpl() string {
-	return "%s/%s"
-}
-
-// RbacResource returns string representation of RBAC resource for DalSensitivityLevel by calling DalSensitivityLevelRbacResource fn
-//
-// RBAC resource is in the corteza::system:dal-sensitivity-level/... format
-//
-// This function is auto-generated
-func (r DalSensitivityLevel) RbacResource() string {
-	return DalSensitivityLevelRbacResource(r.ID)
-}
-
-// DalSensitivityLevelRbacResource returns string representation of RBAC resource for DalSensitivityLevel
-//
-// RBAC resource is in the corteza::system:dal-sensitivity-level/... format
-//
-// This function is auto-generated
-func DalSensitivityLevelRbacResource(id uint64) string {
-	cpts := []interface{}{DalSensitivityLevelResourceType}
-	if id != 0 {
-		cpts = append(cpts, strconv.FormatUint(id, 10))
-	} else {
-		cpts = append(cpts, "*")
-	}
-
-	return fmt.Sprintf(DalSensitivityLevelRbacResourceTpl(), cpts...)
-
-}
-
-func DalSensitivityLevelRbacResourceTpl() string {
 	return "%s/%s"
 }
 
