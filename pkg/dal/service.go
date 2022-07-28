@@ -391,12 +391,12 @@ func (svc *service) RemoveConnection(ctx context.Context, ID uint64) (err error)
 // Create stores new data (create compose record)
 func (svc *service) Create(ctx context.Context, mf ModelRef, capabilities capabilities.Set, rr ...ValueGetter) (err error) {
 	if err = svc.canOpRecord(mf.ConnectionID, mf.ResourceID); err != nil {
-		return wrapError("cannot create record", err)
+		return fmt.Errorf("cannot create record: %w", err)
 	}
 
 	model, cw, err := svc.storeOpPrep(ctx, mf, capabilities)
 	if err != nil {
-		return wrapError("cannot create record", err)
+		return fmt.Errorf("cannot create record: %w", err)
 	}
 
 	return cw.connection.Create(ctx, model, rr...)
@@ -404,17 +404,17 @@ func (svc *service) Create(ctx context.Context, mf ModelRef, capabilities capabi
 
 func (svc *service) Update(ctx context.Context, mf ModelRef, capabilities capabilities.Set, rr ...ValueGetter) (err error) {
 	if err = svc.canOpRecord(mf.ConnectionID, mf.ResourceID); err != nil {
-		return wrapError("cannot update record", err)
+		return fmt.Errorf("cannot update record: %w", err)
 	}
 
 	model, cw, err := svc.storeOpPrep(ctx, mf, capabilities)
 	if err != nil {
-		return wrapError("cannot update record", err)
+		return fmt.Errorf("cannot update record: %w", err)
 	}
 
 	for _, r := range rr {
 		if err = cw.connection.Update(ctx, model, r); err != nil {
-			return wrapError("cannot update record", err)
+			return fmt.Errorf("cannot update record: %w", err)
 		}
 	}
 
@@ -423,13 +423,13 @@ func (svc *service) Update(ctx context.Context, mf ModelRef, capabilities capabi
 
 func (svc *service) Search(ctx context.Context, mf ModelRef, capabilities capabilities.Set, f filter.Filter) (iter Iterator, err error) {
 	if err = svc.canOpRecord(mf.ConnectionID, mf.ResourceID); err != nil {
-		err = wrapError("cannot search record", err)
+		err = fmt.Errorf("cannot search record: %w", err)
 		return
 	}
 
 	model, cw, err := svc.storeOpPrep(ctx, mf, capabilities)
 	if err != nil {
-		err = wrapError("cannot search record", err)
+		err = fmt.Errorf("cannot search record: %w", err)
 		return
 	}
 
@@ -438,29 +438,29 @@ func (svc *service) Search(ctx context.Context, mf ModelRef, capabilities capabi
 
 func (svc *service) Lookup(ctx context.Context, mf ModelRef, capabilities capabilities.Set, lookup ValueGetter, dst ValueSetter) (err error) {
 	if err = svc.canOpRecord(mf.ConnectionID, mf.ResourceID); err != nil {
-		return wrapError("cannot lookup record", err)
+		return fmt.Errorf("cannot lookup record: %w", err)
 	}
 
 	model, cw, err := svc.storeOpPrep(ctx, mf, capabilities)
 	if err != nil {
-		return wrapError("cannot lookup record", err)
+		return fmt.Errorf("cannot lookup record: %w", err)
 	}
 	return cw.connection.Lookup(ctx, model, lookup, dst)
 }
 
 func (svc *service) Delete(ctx context.Context, mf ModelRef, capabilities capabilities.Set, vv ...ValueGetter) (err error) {
 	if err = svc.canOpRecord(mf.ConnectionID, mf.ResourceID); err != nil {
-		return wrapError("cannot delete record", err)
+		return fmt.Errorf("cannot delete record: %w", err)
 	}
 
 	model, cw, err := svc.storeOpPrep(ctx, mf, capabilities)
 	if err != nil {
-		return wrapError("cannot delete record", err)
+		return fmt.Errorf("cannot delete record: %w", err)
 	}
 
 	for _, v := range vv {
 		if err = cw.connection.Delete(ctx, model, v); err != nil {
-			return wrapError("cannot delete record", err)
+			return fmt.Errorf("cannot delete record: %w", err)
 		}
 	}
 	return
@@ -468,12 +468,12 @@ func (svc *service) Delete(ctx context.Context, mf ModelRef, capabilities capabi
 
 func (svc *service) Truncate(ctx context.Context, mf ModelRef, capabilities capabilities.Set) (err error) {
 	if err = svc.canOpRecord(mf.ConnectionID, mf.ResourceID); err != nil {
-		return wrapError("cannot truncate record", err)
+		return fmt.Errorf("cannot truncate record: %w", err)
 	}
 
 	model, cw, err := svc.storeOpPrep(ctx, mf, capabilities)
 	if err != nil {
-		return wrapError("cannot truncate record", err)
+		return fmt.Errorf("cannot truncate record: %w", err)
 	}
 
 	return cw.connection.Truncate(ctx, model)
@@ -942,8 +942,4 @@ func (svc *service) validateNewSensitivityLevels(levels *sensitivityLevelIndex) 
 		return fmt.Errorf("cannot reload sensitivity levels: %v", err)
 	}
 	return
-}
-
-func wrapError(pfx string, err error) error {
-	return fmt.Errorf("%s: %v", pfx, err)
 }
