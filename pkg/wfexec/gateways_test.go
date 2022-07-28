@@ -30,17 +30,21 @@ func TestJoinGateway(t *testing.T) {
 		err error
 	)
 
-	r, err = gw.Exec(context.TODO(), &ExecRequest{Parent: p1})
+	r, err = gw.Exec(context.TODO(), &ExecRequest{Parent: p1, SessionID: 1})
 	req.NoError(err)
 	req.Equal(&partial{}, r)
 
-	r, err = gw.Exec(context.TODO(), &ExecRequest{Parent: p2})
+	r, err = gw.Exec(context.TODO(), &ExecRequest{Parent: p2, SessionID: 1})
 	req.NoError(err)
 	req.Equal(&partial{}, r)
 
-	r, err = gw.Exec(context.TODO(), &ExecRequest{Parent: p3})
+	r, err = gw.Exec(context.TODO(), &ExecRequest{Parent: p3, SessionID: 1})
 	req.NoError(err)
 	req.IsType(&expr.Vars{}, r)
+
+	r, err = gw.Exec(context.TODO(), &ExecRequest{Parent: p1, SessionID: 2})
+	req.NoError(err)
+	req.Equal(&partial{}, r)
 }
 
 func TestForkGateway(t *testing.T) {
