@@ -28,18 +28,28 @@ func NewGatewayPath(s Step, t pathTester) (gwp *GatewayPath, err error) {
 
 // joinGateway handles merging/joining of multiple paths into
 // a single path forward
-type joinGateway struct {
-	StepIdentifier
-	paths  Steps
-	scopes map[Step]*expr.Vars
-	l      sync.Mutex
-}
+type (
+	joinGateway struct {
+		StepIdentifier
+		paths  Steps
+		scopes map[uint64]map[Step]*expr.Vars
+		l      sync.Mutex
+	}
+)
 
 // JoinGateway fn initializes join gateway with all paths that are expected to be partial
 func JoinGateway(ss ...Step) *joinGateway {
 	return &joinGateway{
-		paths:  ss,
-		scopes: make(map[Step]*expr.Vars),
+		paths: ss,
+
+		// group scopes by session and step
+		// this prevents scope corruption when same workflow
+		// is executed multiple times
+		//
+		// might not be the best way where to keep the state of the join-gateway
+		// but it beats hidden variables in the scope or dedicated prop in the
+		// ExecRequest
+		scopes: make(map[uint64]map[Step]*expr.Vars),
 	}
 }
 
@@ -57,18 +67,25 @@ func (gw *joinGateway) Exec(_ context.Context, r *ExecRequest) (ExecResponse, er
 		return nil, fmt.Errorf("unknown parent for join gateway")
 	}
 
-	gw.scopes[r.Parent] = r.Scope
-	if len(gw.scopes) < len(gw.paths) {
+	if len(gw.scopes[r.SessionID]) == 0 {
+		gw.scopes[r.SessionID] = make(map[Step]*expr.Vars)
+	}
+
+	gw.scopes[r.SessionID][r.Parent] = r.Scope
+	if len(gw.scopes[r.SessionID]) < len(gw.paths) {
 		return &partial{}, nil
 	}
 
 	// All collected, merge scope parent all paths in the defined order
 	var merged *expr.Vars
 	for _, p := range gw.paths {
-		if gw.scopes[p] != nil {
-			merged = merged.MustMerge(gw.scopes[p])
+		if gw.scopes[r.SessionID][p] != nil {
+			merged = merged.MustMerge(gw.scopes[r.SessionID][p])
 		}
 	}
+
+	// all inbound paths visited, cleanup scopes for the session
+	delete(gw.scopes, r.SessionID)
 
 	return merged, nil
 }
