@@ -122,7 +122,7 @@ func (a *issueHelper) mergeWith(b *issueHelper) {
 
 // Op check utils
 
-func (svc *service) canOpRecord(connectionID, modelID uint64) (err error) {
+func (svc *service) canOpData(connectionID, modelID uint64) (err error) {
 	if svc.hasConnectionIssues(connectionID) {
 		return errRecordOpProblematicConnection(connectionID)
 	}

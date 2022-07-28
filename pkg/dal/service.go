@@ -388,33 +388,33 @@ func (svc *service) RemoveConnection(ctx context.Context, ID uint64) (err error)
 // // // // // // // // // // // // // // // // // // // // // // // // //
 // DML
 
-// Create stores new data (create compose record)
+// Create stores new data (create data entry)
 func (svc *service) Create(ctx context.Context, mf ModelRef, capabilities capabilities.Set, rr ...ValueGetter) (err error) {
-	if err = svc.canOpRecord(mf.ConnectionID, mf.ResourceID); err != nil {
-		return fmt.Errorf("cannot create record: %w", err)
+	if err = svc.canOpData(mf.ConnectionID, mf.ResourceID); err != nil {
+		return fmt.Errorf("cannot create data entry: %w", err)
 	}
 
 	model, cw, err := svc.storeOpPrep(ctx, mf, capabilities)
 	if err != nil {
-		return fmt.Errorf("cannot create record: %w", err)
+		return fmt.Errorf("cannot create data entry: %w", err)
 	}
 
 	return cw.connection.Create(ctx, model, rr...)
 }
 
 func (svc *service) Update(ctx context.Context, mf ModelRef, capabilities capabilities.Set, rr ...ValueGetter) (err error) {
-	if err = svc.canOpRecord(mf.ConnectionID, mf.ResourceID); err != nil {
-		return fmt.Errorf("cannot update record: %w", err)
+	if err = svc.canOpData(mf.ConnectionID, mf.ResourceID); err != nil {
+		return fmt.Errorf("cannot update data entry: %w", err)
 	}
 
 	model, cw, err := svc.storeOpPrep(ctx, mf, capabilities)
 	if err != nil {
-		return fmt.Errorf("cannot update record: %w", err)
+		return fmt.Errorf("cannot update data entry: %w", err)
 	}
 
 	for _, r := range rr {
 		if err = cw.connection.Update(ctx, model, r); err != nil {
-			return fmt.Errorf("cannot update record: %w", err)
+			return fmt.Errorf("cannot update data entry: %w", err)
 		}
 	}
 
@@ -422,14 +422,14 @@ func (svc *service) Update(ctx context.Context, mf ModelRef, capabilities capabi
 }
 
 func (svc *service) Search(ctx context.Context, mf ModelRef, capabilities capabilities.Set, f filter.Filter) (iter Iterator, err error) {
-	if err = svc.canOpRecord(mf.ConnectionID, mf.ResourceID); err != nil {
-		err = fmt.Errorf("cannot search record: %w", err)
+	if err = svc.canOpData(mf.ConnectionID, mf.ResourceID); err != nil {
+		err = fmt.Errorf("cannot search data entry: %w", err)
 		return
 	}
 
 	model, cw, err := svc.storeOpPrep(ctx, mf, capabilities)
 	if err != nil {
-		err = fmt.Errorf("cannot search record: %w", err)
+		err = fmt.Errorf("cannot search data entry: %w", err)
 		return
 	}
 
@@ -437,43 +437,43 @@ func (svc *service) Search(ctx context.Context, mf ModelRef, capabilities capabi
 }
 
 func (svc *service) Lookup(ctx context.Context, mf ModelRef, capabilities capabilities.Set, lookup ValueGetter, dst ValueSetter) (err error) {
-	if err = svc.canOpRecord(mf.ConnectionID, mf.ResourceID); err != nil {
-		return fmt.Errorf("cannot lookup record: %w", err)
+	if err = svc.canOpData(mf.ConnectionID, mf.ResourceID); err != nil {
+		return fmt.Errorf("cannot lookup data entry: %w", err)
 	}
 
 	model, cw, err := svc.storeOpPrep(ctx, mf, capabilities)
 	if err != nil {
-		return fmt.Errorf("cannot lookup record: %w", err)
+		return fmt.Errorf("cannot lookup data entry: %w", err)
 	}
 	return cw.connection.Lookup(ctx, model, lookup, dst)
 }
 
 func (svc *service) Delete(ctx context.Context, mf ModelRef, capabilities capabilities.Set, vv ...ValueGetter) (err error) {
-	if err = svc.canOpRecord(mf.ConnectionID, mf.ResourceID); err != nil {
-		return fmt.Errorf("cannot delete record: %w", err)
+	if err = svc.canOpData(mf.ConnectionID, mf.ResourceID); err != nil {
+		return fmt.Errorf("cannot delete data entry: %w", err)
 	}
 
 	model, cw, err := svc.storeOpPrep(ctx, mf, capabilities)
 	if err != nil {
-		return fmt.Errorf("cannot delete record: %w", err)
+		return fmt.Errorf("cannot delete data entry: %w", err)
 	}
 
 	for _, v := range vv {
 		if err = cw.connection.Delete(ctx, model, v); err != nil {
-			return fmt.Errorf("cannot delete record: %w", err)
+			return fmt.Errorf("cannot delete data entry: %w", err)
 		}
 	}
 	return
 }
 
 func (svc *service) Truncate(ctx context.Context, mf ModelRef, capabilities capabilities.Set) (err error) {
-	if err = svc.canOpRecord(mf.ConnectionID, mf.ResourceID); err != nil {
-		return fmt.Errorf("cannot truncate record: %w", err)
+	if err = svc.canOpData(mf.ConnectionID, mf.ResourceID); err != nil {
+		return fmt.Errorf("cannot truncate data entry: %w", err)
 	}
 
 	model, cw, err := svc.storeOpPrep(ctx, mf, capabilities)
 	if err != nil {
-		return fmt.Errorf("cannot truncate record: %w", err)
+		return fmt.Errorf("cannot truncate data entry: %w", err)
 	}
 
 	return cw.connection.Truncate(ctx, model)
