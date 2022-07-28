@@ -119,7 +119,46 @@ func (svc *service) Check(ses Session, op string, res Resource) (a Access) {
 // Trace checks RBAC rules and returns all decision trace log
 func (svc *service) Trace(ses Session, op string, res Resource) *Trace {
 	var (
-		t      = new(Trace)
+		t = new(Trace)
+	)
+
+	if hasWildcards(res.RbacResource()) {
+		// a special case for when user has contextual roles
+		// AND trace is done on a resource with wildcards
+		ctxRolesDebug := partRoles{ContextRole: make(map[uint64]bool)}
+		for _, memberOf := range ses.Roles() {
+			for _, role := range svc.roles {
+				if role.kind != ContextRole {
+					continue
+				}
+
+				if role.id != memberOf {
+					continue
+				}
+
+				// member of contextual role
+				//
+				// this is a tricky situation:
+				// when doing regular check this is an unlikely scenario since
+				// check can not be done on a resource with wildcards
+				//
+				// all contextual roles we're members off will be collected
+				ctxRolesDebug[ContextRole][memberOf] = true
+
+			}
+		}
+
+		if len(ctxRolesDebug[ContextRole]) > 0 {
+			// session has at least one contextual role
+			// and since we're checking this on a wildcard resource
+			// there is no need to procede with RBAC check
+			baseTraceInfo(t, res.RbacResource(), op, ctxRolesDebug)
+			resolve(t, Inherit, unknownContext)
+			return t
+		}
+	}
+
+	var (
 		fRoles = getContextRoles(ses, res, svc.roles)
 	)
 

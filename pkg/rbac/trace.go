@@ -23,6 +23,7 @@ const (
 	bypassRoleMembership resolution = "bypass-role-membership"
 	noRules              resolution = "no-rules"
 	noMatch              resolution = "no-match"
+	unknownContext       resolution = "unknown-context"
 )
 
 // baseTraceInfo updates given check trace struct
