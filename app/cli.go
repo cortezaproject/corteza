@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	authCommands "github.com/cortezaproject/corteza-server/auth/commands"
@@ -93,7 +94,8 @@ func (app *CortezaApp) InitCLI() {
 		}
 
 		if err = app.Activate(ctx); err != nil {
-			return
+			cli.HandleError(fmt.Errorf("could not start Corteza: %w", err))
+			return nil
 		}
 
 		app.HttpServer.Activate(app.mountHttpRoutes)
