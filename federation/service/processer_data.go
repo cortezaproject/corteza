@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	ct "github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/federation/service/decoder"
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/decoder"
 	st "github.com/cortezaproject/corteza-server/system/types"
 )
 
