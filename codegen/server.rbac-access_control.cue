@@ -56,6 +56,7 @@ import (
 			loaders: [
 				for res in cmp.resources if res.rbac != _|_ {
 					const:    "types.\(res.expIdent)ResourceType"
+					resFunc:  "types.\(res.expIdent)RbacResource"
 					funcName: "load\(res.expIdent)"
 					refIndex: [ { 0 }, for i, p in res.parents {i + 1} ]
 				},

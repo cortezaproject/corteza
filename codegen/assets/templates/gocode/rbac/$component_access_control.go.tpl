@@ -10,7 +10,6 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 {{- range .imports }}
@@ -280,11 +279,25 @@ func rbacResourceValidator(r string, oo ...string) error {
 //
 // This function is auto-generated
 func (svc accessControl) resourceLoader(ctx context.Context, resource string) (rbac.Resource, error) {
-	resourceType, ids := rbac.ParseResourceID(resource)
+	var (
+		hasWildcard       = false
+		resourceType, ids = rbac.ParseResourceID(resource)
+	)
+
+	for _, id := range ids {
+		if id == 0 {
+			hasWildcard = true
+			break
+		}
+	}
 
 	switch rbac.ResourceType(resourceType) {
 	{{- range .loaders }}
 		case {{ .const }}:
+			if hasWildcard {
+				return rbac.NewResource({{ .resFunc }}({{ range $i := .refIndex }}0,{{ end }})), nil
+			}
+
 			return {{ .funcName }}(ctx, svc.store {{ range $i := .refIndex }}, ids[{{ $i }}]{{ end }})
 	{{- end }}
 	case types.ComponentResourceType:
