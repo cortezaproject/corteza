@@ -122,7 +122,7 @@ func makeTestRecordService(t *testing.T, mods ...any) *record {
 	return svc
 }
 
-func modelFilter(svc *record, moduleID uint64) *dal.Model {
+func ModelRef(svc *record, moduleID uint64) *dal.Model {
 	type (
 		modelFinder interface {
 			FindModelByResourceID(connectionID uint64, resourceID uint64) *dal.Model
@@ -698,7 +698,7 @@ func TestRecord_searchAccessControl(t *testing.T) {
 		}
 
 		// search for module's model to be used as a filter
-		model = modelFilter(svc, mod.ID)
+		model = ModelRef(svc, mod.ID)
 	)
 
 	req.NotNil(model)
@@ -789,7 +789,7 @@ func TestRecord_contextualRolesAccessControl(t *testing.T) {
 		}
 
 		// search for module's model to be used as a filter
-		model = modelFilter(svc, mod.ID)
+		model = ModelRef(svc, mod.ID)
 
 		// setting up rbac context role expression parser
 		roleCheckFnMaker = func(expression string) func(scope map[string]interface{}) bool {

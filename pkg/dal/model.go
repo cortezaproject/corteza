@@ -10,8 +10,8 @@ import (
 )
 
 type (
-	// ModelFilter is used to retrieve a model from the DAL based on given params
-	ModelFilter struct {
+	// ModelRef is used to retrieve a model from the DAL based on given params
+	ModelRef struct {
 		ConnectionID uint64
 
 		ResourceID uint64
@@ -148,8 +148,8 @@ func (aa ModelSet) FilterByReferenced(b *Model) (out ModelSet) {
 	return
 }
 
-func (m Model) ToFilter() ModelFilter {
-	return ModelFilter{
+func (m Model) ToFilter() ModelRef {
+	return ModelRef{
 		ConnectionID: m.ConnectionID,
 
 		ResourceID: m.ResourceID,

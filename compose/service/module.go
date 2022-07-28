@@ -71,7 +71,7 @@ type (
 	// Model management on DAL Service
 	dalModelManager interface {
 		GetConnectionMeta(ctx context.Context, ID uint64) (cm dal.ConnectionMeta, err error)
-		Search(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, f filter.Filter) (dal.Iterator, error)
+		Search(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set, f filter.Filter) (dal.Iterator, error)
 
 		ReplaceModel(context.Context, *dal.Model) error
 		RemoveModel(ctx context.Context, connectionID, ID uint64) error

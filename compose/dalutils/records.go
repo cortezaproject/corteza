@@ -11,23 +11,23 @@ import (
 
 type (
 	creator interface {
-		Create(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, vv ...dal.ValueGetter) error
+		Create(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set, vv ...dal.ValueGetter) error
 	}
 
 	updater interface {
-		Update(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, rr ...dal.ValueGetter) (err error)
+		Update(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set, rr ...dal.ValueGetter) (err error)
 	}
 
 	searcher interface {
-		Search(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, f filter.Filter) (dal.Iterator, error)
+		Search(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set, f filter.Filter) (dal.Iterator, error)
 	}
 
 	lookuper interface {
-		Lookup(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, lookup dal.ValueGetter, dst dal.ValueSetter) (err error)
+		Lookup(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set, lookup dal.ValueGetter, dst dal.ValueSetter) (err error)
 	}
 
 	deleter interface {
-		Delete(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, pkv ...dal.ValueGetter) (err error)
+		Delete(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set, pkv ...dal.ValueGetter) (err error)
 	}
 )
 
@@ -57,7 +57,7 @@ func ComposeRecordsIterator(ctx context.Context, s searcher, mod *types.Module, 
 func ComposeRecordsFind(ctx context.Context, l lookuper, mod *types.Module, recordID uint64) (out *types.Record, err error) {
 	out = prepareRecordTarget(mod)
 
-	err = l.Lookup(ctx, mod.ModelFilter(), recLookupCapabilities(mod), dal.PKValues{"id": recordID}, out)
+	err = l.Lookup(ctx, mod.ModelRef(), recLookupCapabilities(mod), dal.PKValues{"id": recordID}, out)
 	if err != nil {
 		return
 	}
@@ -66,19 +66,19 @@ func ComposeRecordsFind(ctx context.Context, l lookuper, mod *types.Module, reco
 }
 
 func ComposeRecordCreate(ctx context.Context, c creator, mod *types.Module, records ...*types.Record) (err error) {
-	return c.Create(ctx, mod.ModelFilter(), recCreateCapabilities(mod), recToGetters(records...)...)
+	return c.Create(ctx, mod.ModelRef(), recCreateCapabilities(mod), recToGetters(records...)...)
 }
 
 func ComposeRecordUpdate(ctx context.Context, u updater, mod *types.Module, records ...*types.Record) (err error) {
-	return u.Update(ctx, mod.ModelFilter(), recUpdateCapabilities(mod), recToGetters(records...)...)
+	return u.Update(ctx, mod.ModelRef(), recUpdateCapabilities(mod), recToGetters(records...)...)
 }
 
 func ComposeRecordSoftDelete(ctx context.Context, u updater, mod *types.Module, records ...*types.Record) (err error) {
-	return u.Update(ctx, mod.ModelFilter(), recUpdateCapabilities(mod), recToGetters(records...)...)
+	return u.Update(ctx, mod.ModelRef(), recUpdateCapabilities(mod), recToGetters(records...)...)
 }
 
 func ComposeRecordDelete(ctx context.Context, d deleter, mod *types.Module, records ...*types.Record) (err error) {
-	return d.Delete(ctx, mod.ModelFilter(), recDeleteCapabilities(mod), recToGetters(records...)...)
+	return d.Delete(ctx, mod.ModelRef(), recDeleteCapabilities(mod), recToGetters(records...)...)
 }
 
 func WalkIterator(ctx context.Context, iter dal.Iterator, mod *types.Module, f func(r *types.Record) error) (err error) {
@@ -111,7 +111,7 @@ func prepFilter(filter types.RecordFilter, mod *types.Module) (dalFilter filter.
 func prepIterator(ctx context.Context, dal searcher, mod *types.Module, filter types.RecordFilter) (iter dal.Iterator, err error) {
 	dalFilter := prepFilter(filter, mod)
 
-	iter, err = dal.Search(ctx, mod.ModelFilter(), recSearchCapabilities(mod, filter), dalFilter)
+	iter, err = dal.Search(ctx, mod.ModelRef(), recSearchCapabilities(mod, filter), dalFilter)
 	return
 }
 

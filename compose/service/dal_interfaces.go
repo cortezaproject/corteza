@@ -21,12 +21,12 @@ type (
 	}
 
 	dalDater interface {
-		Create(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, vv ...dal.ValueGetter) error
-		Update(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, rr ...dal.ValueGetter) (err error)
-		Search(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, f filter.Filter) (dal.Iterator, error)
-		Lookup(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, lookup dal.ValueGetter, dst dal.ValueSetter) (err error)
-		Delete(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, pkv ...dal.ValueGetter) (err error)
-		Truncate(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set) (err error)
+		Create(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set, vv ...dal.ValueGetter) error
+		Update(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set, rr ...dal.ValueGetter) (err error)
+		Search(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set, f filter.Filter) (dal.Iterator, error)
+		Lookup(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set, lookup dal.ValueGetter, dst dal.ValueSetter) (err error)
+		Delete(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set, pkv ...dal.ValueGetter) (err error)
+		Truncate(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set) (err error)
 	}
 
 	dalService interface {
