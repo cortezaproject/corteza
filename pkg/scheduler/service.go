@@ -140,16 +140,14 @@ func (svc *service) watch(ctx context.Context) {
 	svc.dispatch(ctx)
 
 	for {
-		func() {
-			select {
-			case <-svc.ticker().C:
-				svc.dispatch(ctx)
+		select {
+		case <-svc.ticker().C:
+			svc.dispatch(ctx)
 
-			case <-ctx.Done():
-				svc.log.Debug("done")
-				return
-			}
-		}()
+		case <-ctx.Done():
+			svc.log.Debug("done")
+			return
+		}
 	}
 }
 
