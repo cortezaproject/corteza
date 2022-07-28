@@ -37,6 +37,11 @@ func (t resource) RbacResource() string {
 	return string(t)
 }
 
+// HasWildcards returns true if the given resource has wildcards
+func (t resource) HasWildcards() bool {
+	return hasWildcards(string(t))
+}
+
 // ResourceType extracts 1st part of the resource
 //
 // ns::cmp:res/c returns ns::cmp:res

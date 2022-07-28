@@ -420,10 +420,24 @@ func rbacResourceValidator(r string, oo ...string) error {
 //
 // This function is auto-generated
 func (svc accessControl) resourceLoader(ctx context.Context, resource string) (rbac.Resource, error) {
-	resourceType, ids := rbac.ParseResourceID(resource)
+	var (
+		hasWildcard       = false
+		resourceType, ids = rbac.ParseResourceID(resource)
+	)
+
+	for _, id := range ids {
+		if id == 0 {
+			hasWildcard = true
+			break
+		}
+	}
 
 	switch rbac.ResourceType(resourceType) {
 	case types.WorkflowResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.WorkflowRbacResource(0)), nil
+		}
+
 		return loadWorkflow(ctx, svc.store, ids[0])
 	case types.ComponentResourceType:
 		return &types.Component{}, nil

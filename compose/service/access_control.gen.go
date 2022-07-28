@@ -9,8 +9,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"strings"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
@@ -18,6 +16,7 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/spf13/cast"
+	"strings"
 )
 
 type (
@@ -688,20 +687,54 @@ func rbacResourceValidator(r string, oo ...string) error {
 //
 // This function is auto-generated
 func (svc accessControl) resourceLoader(ctx context.Context, resource string) (rbac.Resource, error) {
-	resourceType, ids := rbac.ParseResourceID(resource)
+	var (
+		hasWildcard       = false
+		resourceType, ids = rbac.ParseResourceID(resource)
+	)
+
+	for _, id := range ids {
+		if id == 0 {
+			hasWildcard = true
+			break
+		}
+	}
 
 	switch rbac.ResourceType(resourceType) {
 	case types.ChartResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.ChartRbacResource(0, 0)), nil
+		}
+
 		return loadChart(ctx, svc.store, ids[0], ids[1])
 	case types.ModuleResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.ModuleRbacResource(0, 0)), nil
+		}
+
 		return loadModule(ctx, svc.store, ids[0], ids[1])
 	case types.ModuleFieldResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.ModuleFieldRbacResource(0, 0, 0)), nil
+		}
+
 		return loadModuleField(ctx, svc.store, ids[0], ids[1], ids[2])
 	case types.NamespaceResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.NamespaceRbacResource(0)), nil
+		}
+
 		return loadNamespace(ctx, svc.store, ids[0])
 	case types.PageResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.PageRbacResource(0, 0)), nil
+		}
+
 		return loadPage(ctx, svc.store, ids[0], ids[1])
 	case types.RecordResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.RecordRbacResource(0, 0, 0)), nil
+		}
+
 		return loadRecord(ctx, svc.store, ids[0], ids[1], ids[2])
 	case types.ComponentResourceType:
 		return &types.Component{}, nil
