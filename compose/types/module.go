@@ -124,8 +124,8 @@ func (m *Module) encodeTranslations() (out locale.ResourceTranslationSet) {
 	return
 }
 
-func (m *Module) ModelFilter() dal.ModelFilter {
-	return dal.ModelFilter{
+func (m *Module) ModelRef() dal.ModelRef {
+	return dal.ModelRef{
 		ConnectionID: m.ModelConfig.ConnectionID,
 
 		ResourceID: m.ID,

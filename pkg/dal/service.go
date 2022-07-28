@@ -389,7 +389,7 @@ func (svc *service) RemoveConnection(ctx context.Context, ID uint64) (err error)
 // DML
 
 // Create stores new data (create compose record)
-func (svc *service) Create(ctx context.Context, mf ModelFilter, capabilities capabilities.Set, rr ...ValueGetter) (err error) {
+func (svc *service) Create(ctx context.Context, mf ModelRef, capabilities capabilities.Set, rr ...ValueGetter) (err error) {
 	if err = svc.canOpRecord(mf.ConnectionID, mf.ResourceID); err != nil {
 		return wrapError("cannot create record", err)
 	}
@@ -402,7 +402,7 @@ func (svc *service) Create(ctx context.Context, mf ModelFilter, capabilities cap
 	return cw.connection.Create(ctx, model, rr...)
 }
 
-func (svc *service) Update(ctx context.Context, mf ModelFilter, capabilities capabilities.Set, rr ...ValueGetter) (err error) {
+func (svc *service) Update(ctx context.Context, mf ModelRef, capabilities capabilities.Set, rr ...ValueGetter) (err error) {
 	if err = svc.canOpRecord(mf.ConnectionID, mf.ResourceID); err != nil {
 		return wrapError("cannot update record", err)
 	}
@@ -421,7 +421,7 @@ func (svc *service) Update(ctx context.Context, mf ModelFilter, capabilities cap
 	return
 }
 
-func (svc *service) Search(ctx context.Context, mf ModelFilter, capabilities capabilities.Set, f filter.Filter) (iter Iterator, err error) {
+func (svc *service) Search(ctx context.Context, mf ModelRef, capabilities capabilities.Set, f filter.Filter) (iter Iterator, err error) {
 	if err = svc.canOpRecord(mf.ConnectionID, mf.ResourceID); err != nil {
 		err = wrapError("cannot search record", err)
 		return
@@ -436,7 +436,7 @@ func (svc *service) Search(ctx context.Context, mf ModelFilter, capabilities cap
 	return cw.connection.Search(ctx, model, f)
 }
 
-func (svc *service) Lookup(ctx context.Context, mf ModelFilter, capabilities capabilities.Set, lookup ValueGetter, dst ValueSetter) (err error) {
+func (svc *service) Lookup(ctx context.Context, mf ModelRef, capabilities capabilities.Set, lookup ValueGetter, dst ValueSetter) (err error) {
 	if err = svc.canOpRecord(mf.ConnectionID, mf.ResourceID); err != nil {
 		return wrapError("cannot lookup record", err)
 	}
@@ -448,7 +448,7 @@ func (svc *service) Lookup(ctx context.Context, mf ModelFilter, capabilities cap
 	return cw.connection.Lookup(ctx, model, lookup, dst)
 }
 
-func (svc *service) Delete(ctx context.Context, mf ModelFilter, capabilities capabilities.Set, vv ...ValueGetter) (err error) {
+func (svc *service) Delete(ctx context.Context, mf ModelRef, capabilities capabilities.Set, vv ...ValueGetter) (err error) {
 	if err = svc.canOpRecord(mf.ConnectionID, mf.ResourceID); err != nil {
 		return wrapError("cannot delete record", err)
 	}
@@ -466,7 +466,7 @@ func (svc *service) Delete(ctx context.Context, mf ModelFilter, capabilities cap
 	return
 }
 
-func (svc *service) Truncate(ctx context.Context, mf ModelFilter, capabilities capabilities.Set) (err error) {
+func (svc *service) Truncate(ctx context.Context, mf ModelRef, capabilities capabilities.Set) (err error) {
 	if err = svc.canOpRecord(mf.ConnectionID, mf.ResourceID); err != nil {
 		return wrapError("cannot truncate record", err)
 	}
@@ -479,7 +479,7 @@ func (svc *service) Truncate(ctx context.Context, mf ModelFilter, capabilities c
 	return cw.connection.Truncate(ctx, model)
 }
 
-func (svc *service) storeOpPrep(ctx context.Context, mf ModelFilter, capabilities capabilities.Set) (model *Model, cw *ConnectionWrap, err error) {
+func (svc *service) storeOpPrep(ctx context.Context, mf ModelRef, capabilities capabilities.Set) (model *Model, cw *ConnectionWrap, err error) {
 	model = svc.getModelByFilter(mf)
 	if model == nil {
 		err = errModelNotFound(mf.ResourceID)
@@ -890,7 +890,7 @@ func (svc *service) registerModelToConnection(ctx context.Context, cw *Connectio
 	return nil, nil
 }
 
-func (svc *service) getModelByFilter(mf ModelFilter) *Model {
+func (svc *service) getModelByFilter(mf ModelRef) *Model {
 	if mf.ConnectionID == 0 {
 		mf.ConnectionID = svc.defConnID
 	}

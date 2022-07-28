@@ -59,9 +59,9 @@ type (
 	}
 
 	dalService interface {
-		Create(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, vv ...dal.ValueGetter) error
-		Search(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, f filter.Filter) (dal.Iterator, error)
-		Delete(ctx context.Context, m dal.ModelFilter, capabilities capabilities.Set, pkv ...dal.ValueGetter) (err error)
+		Create(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set, vv ...dal.ValueGetter) error
+		Search(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set, f filter.Filter) (dal.Iterator, error)
+		Delete(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set, pkv ...dal.ValueGetter) (err error)
 	}
 
 	moduleService interface {
