@@ -183,7 +183,7 @@ func connect(ctx context.Context, log *zap.Logger, isDevelopment bool, cp Connec
 	if conn, ok := registeredConnectors[storeType]; ok {
 		return conn(ctx, dsn, capabilities...)
 	} else {
-		return nil, fmt.Errorf("unknown store type used: %q (check your storage configuration)", storeType)
+		return nil, fmt.Errorf("unknown store type used: %q (check your database configuration)", storeType)
 	}
 }
 
