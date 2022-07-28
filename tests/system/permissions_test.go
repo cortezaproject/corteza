@@ -69,20 +69,9 @@ func TestPermissionsReadWithFilter(t *testing.T) {
 	helpers.AllowMe(h, types.UserRbacResource(testID), "read")
 	helpers.AllowMe(h, types.UserRbacResource(id.Next()), "update")
 
-	// all rules
+	t.Log("all component-level and wildcard rules")
 	h.apiInit().
 		Getf("/permissions/%d/rules", h.roleID).
-		Header("Accept", "application/json").
-		Expect(t).
-		Status(http.StatusOK).
-		Assert(helpers.AssertNoErrors).
-		Assert(jsonpath.Len(`$.response`, 4)).
-		End()
-
-	// Resource related rules
-	h.apiInit().
-		Getf("/permissions/%d/rules", h.roleID).
-		Query("resource", "corteza::system:user/*").
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
@@ -90,7 +79,18 @@ func TestPermissionsReadWithFilter(t *testing.T) {
 		Assert(jsonpath.Len(`$.response`, 2)).
 		End()
 
-	// Only specific resource rules with `specific: 2` filter
+	t.Log("no rules for all-users")
+	h.apiInit().
+		Getf("/permissions/%d/rules", h.roleID).
+		Query("resource", "corteza::system:user/*").
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Len(`$.response`, 0)).
+		End()
+
+	t.Log("1 rule for specific user")
 	h.apiInit().
 		Getf("/permissions/%d/rules", h.roleID).
 		Query("resource", fmt.Sprintf("corteza::system:user/%d", testID)).

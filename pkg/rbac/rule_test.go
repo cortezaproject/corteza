@@ -38,3 +38,17 @@ func TestRuleSetSort(t *testing.T) {
 	req.Equal(":::/1/*/*", rr[i()].Resource)
 	req.Equal(":::/*/*/*", rr[i()].Resource)
 }
+
+func TestRuleSet_FilterResource(t *testing.T) {
+	var (
+		req = require.New(t)
+		rr  = RuleSet{
+			{Resource: ":::/*/*/*"},
+			{Resource: ":::/1/2/3"},
+		}
+	)
+
+	req.Len(rr.FilterResource(NewResource(":::/1/2/3")), 1)
+	req.Len(rr.FilterResource(NewResource(":::/*/*/*")), 1)
+	req.Len(rr.FilterResource(NewResource(":::/*")), 0)
+}

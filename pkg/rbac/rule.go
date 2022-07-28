@@ -60,23 +60,23 @@ func (set RuleSet) FilterAccess(a Access) (out RuleSet) {
 	return out
 }
 
+// FilterResource returns rules that match given list of resources
+// Wildcards are not used!
+//
+// Note that empty resource list will return ALL rules!
 func (set RuleSet) FilterResource(rr ...Resource) (out RuleSet) {
-	var (
-		ruleMap    = make(map[string]bool)
-		uniqRuleID = func(r *Rule) string {
-			return fmt.Sprintf("%s|%s|%d", r.Resource, r.Operation, r.RoleID)
-		}
-	)
+	if len(rr) == 0 {
+		return set
+	}
 
-	for _, res := range rr {
-		for _, rule := range set {
-			if !matchResource(res.RbacResource(), rule.Resource) {
+	out = RuleSet{}
+	for _, rule := range set {
+		for _, res := range rr {
+			if res.RbacResource() != rule.Resource {
 				continue
 			}
-			if _, ok := ruleMap[uniqRuleID(rule)]; !ok {
-				out = append(out, rule)
-				ruleMap[uniqRuleID(rule)] = true
-			}
+
+			out = append(out, rule)
 		}
 	}
 
