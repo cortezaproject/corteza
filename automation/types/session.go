@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"sync"
 	"time"
 
@@ -193,25 +194,8 @@ func (s *Session) CopyRuntimeStacktrace() {
 	}
 }
 
-func (set *Stacktrace) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*set = Stacktrace{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, set); err != nil {
-			return fmt.Errorf("cannot scan '%v' into Stacktrace: %w", string(b), err)
-		}
-	}
-
-	return nil
-}
-
-// Scan on WorkflowStepSet gracefully handles conversion from NULL
-func (set Stacktrace) Value() (driver.Value, error) {
-	return json.Marshal(set)
-}
+func (set *Stacktrace) Scan(src any) error          { return sql.ParseJSON(src, set) }
+func (set Stacktrace) Value() (driver.Value, error) { return json.Marshal(set) }
 
 func (set Stacktrace) String() (str string) {
 	for i, f := range set {

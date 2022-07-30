@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -173,50 +174,8 @@ func (r *AuthClient) Verify() error {
 	return nil
 }
 
-func (vv *AuthClientMeta) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*vv = AuthClientMeta{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, vv); err != nil {
-			return fmt.Errorf("cannot scan '%v' into AuthClientMeta: %w", string(b), err)
-		}
-	}
+func (vv *AuthClientMeta) Scan(src any) error           { return sql.ParseJSON(src, vv) }
+func (vv *AuthClientMeta) Value() (driver.Value, error) { return json.Marshal(vv) }
 
-	return nil
-}
-
-// Scan on AuthClientMeta gracefully handles conversion from NULL
-func (vv *AuthClientMeta) Value() (driver.Value, error) {
-	if vv == nil {
-		return []byte("null"), nil
-	}
-
-	return json.Marshal(vv)
-}
-
-func (vv *AuthClientSecurity) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*vv = AuthClientSecurity{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, vv); err != nil {
-			return fmt.Errorf("cannot scan '%v' into AuthClientSecurity: %w", string(b), err)
-		}
-	}
-
-	return nil
-}
-
-// Scan on AuthClientSecurity gracefully handles conversion from NULL
-func (vv *AuthClientSecurity) Value() (driver.Value, error) {
-	if vv == nil {
-		return []byte("null"), nil
-	}
-
-	return json.Marshal(vv)
-}
+func (vv *AuthClientSecurity) Scan(src any) error           { return sql.ParseJSON(src, vv) }
+func (vv *AuthClientSecurity) Value() (driver.Value, error) { return json.Marshal(vv) }

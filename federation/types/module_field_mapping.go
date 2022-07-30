@@ -3,8 +3,7 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"errors"
-	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 )
 
 const (
@@ -43,19 +42,5 @@ func (list *ModuleFieldMappingSet) FindByName(name string, findType ModuleFieldM
 	return nil, nil
 }
 
-func (list ModuleFieldMappingSet) Value() (driver.Value, error) {
-	return json.Marshal(list)
-}
-
-func (list *ModuleFieldMappingSet) Scan(value interface{}) error {
-	switch value.(type) {
-	case nil:
-		*list = ModuleFieldMappingSet{}
-	case []uint8:
-		if err := json.Unmarshal(value.([]byte), list); err != nil {
-			return errors.New(fmt.Sprintf("cannot scan '%v' into ModuleFieldMappingSet", value))
-		}
-	}
-
-	return nil
-}
+func (list *ModuleFieldMappingSet) Scan(src any) error          { return sql.ParseJSON(src, list) }
+func (list ModuleFieldMappingSet) Value() (driver.Value, error) { return json.Marshal(list) }

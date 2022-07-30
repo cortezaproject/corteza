@@ -3,13 +3,13 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/geolocation"
-	"github.com/pkg/errors"
 )
 
 type (
@@ -109,40 +109,8 @@ func ParseConnectionCapabilities(ss []string) (m ConnectionCapabilities, err err
 	return
 }
 
-func (nm *ConnectionConfig) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*nm = ConnectionConfig{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, nm); err != nil {
-			return errors.Wrapf(err, "cannot scan '%v' into ConnectionConfig", string(b))
-		}
-	}
+func (nm *ConnectionConfig) Scan(src any) error          { return sql.ParseJSON(src, nm) }
+func (nm ConnectionConfig) Value() (driver.Value, error) { return json.Marshal(nm) }
 
-	return nil
-}
-
-func (nm ConnectionConfig) Value() (driver.Value, error) {
-	return json.Marshal(nm)
-}
-
-func (nm *ConnectionCapabilities) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*nm = ConnectionCapabilities{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, nm); err != nil {
-			return errors.Wrapf(err, "cannot scan '%v' into ConnectionCapabilities", string(b))
-		}
-	}
-
-	return nil
-}
-
-func (nm ConnectionCapabilities) Value() (driver.Value, error) {
-	return json.Marshal(nm)
-}
+func (nm *ConnectionCapabilities) Scan(src any) error          { return sql.ParseJSON(src, nm) }
+func (nm ConnectionCapabilities) Value() (driver.Value, error) { return json.Marshal(nm) }

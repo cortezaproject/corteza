@@ -4,7 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"time"
 )
 
@@ -87,21 +87,5 @@ func (set NamespaceSet) FindByHandle(handle string) *Namespace {
 	return nil
 }
 
-func (nm *NamespaceMeta) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*nm = NamespaceMeta{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, nm); err != nil {
-			return errors.Wrapf(err, "cannot scan '%v' into NamespaceMeta", string(b))
-		}
-	}
-
-	return nil
-}
-
-func (nm NamespaceMeta) Value() (driver.Value, error) {
-	return json.Marshal(nm)
-}
+func (nm *NamespaceMeta) Scan(src any) error          { return sql.ParseJSON(src, nm) }
+func (nm NamespaceMeta) Value() (driver.Value, error) { return json.Marshal(nm) }

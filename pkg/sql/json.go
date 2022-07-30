@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func ParseJSON(raw any, dest any) (error) {
+func ParseJSON(raw any, dest any) error {
 	var (
 		data []byte
 	)

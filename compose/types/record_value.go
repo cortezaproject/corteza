@@ -4,13 +4,13 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 )
 
@@ -317,23 +317,8 @@ func (set RecordValueSet) merge(new RecordValueSet) (out RecordValueSet) {
 	return out
 }
 
-func (set *RecordValueSet) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*set = RecordValueSet{}
-	case []uint8:
-		if err := json.Unmarshal(value.([]byte), set); err != nil {
-			return errors.Wrapf(err, "cannot scan '%v' into RecordValueSet", value)
-		}
-	}
-
-	return nil
-}
-
-func (set RecordValueSet) Value() (driver.Value, error) {
-	return json.Marshal(set)
-}
+func (set *RecordValueSet) Scan(src any) error          { return sql.ParseJSON(src, set) }
+func (set RecordValueSet) Value() (driver.Value, error) { return json.Marshal(set) }
 
 // Simple RVS as string output utility fn that
 // can help with debugging

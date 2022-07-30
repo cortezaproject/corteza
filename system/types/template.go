@@ -3,10 +3,10 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/pkg/errors"
 )
 
 type (
@@ -73,24 +73,8 @@ const (
 	DocumentTypePDF   DocumentType = "application/pdf"
 )
 
-func (t *TemplateMeta) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*t = TemplateMeta{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, t); err != nil {
-			return errors.Wrapf(err, "cannot scan '%v' into TemplateMeta", string(b))
-		}
-	}
-
-	return nil
-}
-
-func (t TemplateMeta) Value() (driver.Value, error) {
-	return json.Marshal(t)
-}
+func (t *TemplateMeta) Scan(src any) error          { return sql.ParseJSON(src, t) }
+func (t TemplateMeta) Value() (driver.Value, error) { return json.Marshal(t) }
 
 func (t Template) Clone() *Template {
 	c := &t

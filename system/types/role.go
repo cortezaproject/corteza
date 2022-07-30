@@ -3,7 +3,7 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -101,26 +101,5 @@ func (set RoleSet) FindByHandle(handle string) *Role {
 	return nil
 }
 
-func (vv *RoleMeta) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*vv = RoleMeta{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, vv); err != nil {
-			return fmt.Errorf("cannot scan '%v' into RoleMeta: %w", string(b), err)
-		}
-	}
-
-	return nil
-}
-
-// Scan on RoleMeta gracefully handles conversion from NULL
-func (vv *RoleMeta) Value() (driver.Value, error) {
-	if vv == nil {
-		return []byte("null"), nil
-	}
-
-	return json.Marshal(vv)
-}
+func (vv *RoleMeta) Scan(src any) error           { return sql.ParseJSON(src, vv) }
+func (vv *RoleMeta) Value() (driver.Value, error) { return json.Marshal(vv) }

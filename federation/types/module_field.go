@@ -3,8 +3,7 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"errors"
-	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"strings"
 )
 
@@ -32,19 +31,5 @@ func (list ModuleFieldSet) HasField(name string) (bool, error) {
 	return false, nil
 }
 
-func (list ModuleFieldSet) Value() (driver.Value, error) {
-	return json.Marshal(list)
-}
-
-func (list *ModuleFieldSet) Scan(value interface{}) error {
-	switch value.(type) {
-	case nil:
-		*list = ModuleFieldSet{}
-	case []uint8:
-		if err := json.Unmarshal(value.([]byte), list); err != nil {
-			return errors.New(fmt.Sprintf("cannot scan '%v' into ModuleFieldSet", value))
-		}
-	}
-
-	return nil
-}
+func (list *ModuleFieldSet) Scan(src any) error          { return sql.ParseJSON(src, list) }
+func (list ModuleFieldSet) Value() (driver.Value, error) { return json.Marshal(list) }

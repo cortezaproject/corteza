@@ -3,10 +3,10 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/pkg/errors"
 )
 
 type (
@@ -49,21 +49,5 @@ type (
 	}
 )
 
-func (cc *ApigwRouteMeta) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*cc = ApigwRouteMeta{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, cc); err != nil {
-			return errors.Wrapf(err, "cannot scan '%v' into ApigwRouteMeta", string(b))
-		}
-	}
-
-	return nil
-}
-
-func (cc ApigwRouteMeta) Value() (driver.Value, error) {
-	return json.Marshal(cc)
-}
+func (cc *ApigwRouteMeta) Scan(src any) error          { return sql.ParseJSON(src, cc) }
+func (cc ApigwRouteMeta) Value() (driver.Value, error) { return json.Marshal(cc) }

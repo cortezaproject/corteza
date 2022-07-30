@@ -3,9 +3,9 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"time"
 )
 
@@ -89,49 +89,11 @@ func ParseTriggerConstraintSet(ss []string) (p TriggerConstraintSet, err error) 
 	return p, parseStringsInput(ss, &p)
 }
 
-func (vv *TriggerConstraintSet) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*vv = TriggerConstraintSet{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, vv); err != nil {
-			return fmt.Errorf("cannot scan '%v' into TriggerConstraintSet: %w", string(b), err)
-		}
-	}
+func (vv *TriggerConstraintSet) Scan(src any) error          { return sql.ParseJSON(src, vv) }
+func (vv TriggerConstraintSet) Value() (driver.Value, error) { return json.Marshal(vv) }
 
-	return nil
-}
-
-func (vv *TriggerMeta) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*vv = TriggerMeta{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, vv); err != nil {
-			return fmt.Errorf("cannot scan '%v' into TriggerMeta: %w", string(b), err)
-		}
-	}
-
-	return nil
-}
-
-// Scan on TriggerMeta gracefully handles conversion from NULL
-func (vv *TriggerMeta) Value() (driver.Value, error) {
-	if vv == nil {
-		return []byte("null"), nil
-	}
-
-	return json.Marshal(vv)
-}
-
-// Scan on TriggerConstraintSet gracefully handles conversion from NULL
-func (vv TriggerConstraintSet) Value() (driver.Value, error) {
-	return json.Marshal(vv)
-}
+func (vv *TriggerMeta) Scan(src any) error           { return sql.ParseJSON(src, vv) }
+func (vv *TriggerMeta) Value() (driver.Value, error) { return json.Marshal(vv) }
 
 func (set TriggerSet) FilterByWorkflowID(workflowID uint64) (vv TriggerSet) {
 	// Make sure we never return nil

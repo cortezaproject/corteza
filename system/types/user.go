@@ -4,11 +4,10 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-
-	"github.com/pkg/errors"
 )
 
 type (
@@ -156,26 +155,5 @@ func (u *User) Clone() *User {
 	}
 }
 
-func (meta *UserMeta) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*meta = UserMeta{}
-		return nil
-	case []uint8:
-		if err := json.Unmarshal(value.([]byte), meta); err != nil {
-			return errors.Wrapf(err, "cannot scan '%v' into User.Meta", value)
-		}
-		return nil
-	case string:
-		if err := json.Unmarshal([]byte(value.(string)), meta); err != nil {
-			return errors.Wrapf(err, "cannot scan '%v' into User.Meta", value)
-		}
-		return nil
-	}
-	return errors.Errorf("User.Meta: unknown type %T, expected []uint8", value)
-}
-
-func (meta *UserMeta) Value() (driver.Value, error) {
-	return json.Marshal(meta)
-}
+func (meta *UserMeta) Scan(src any) error           { return sql.ParseJSON(src, meta) }
+func (meta *UserMeta) Value() (driver.Value, error) { return json.Marshal(meta) }

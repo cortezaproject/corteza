@@ -3,10 +3,10 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/pkg/errors"
 )
 
 type (
@@ -171,21 +171,5 @@ func ParseDataPrivacyRequestPayload(ii []string) (out DataPrivacyRequestPayloadS
 	return out, err
 }
 
-func (bb *DataPrivacyRequestPayloadSet) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*bb = DataPrivacyRequestPayloadSet{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, bb); err != nil {
-			return errors.Wrapf(err, "cannot scan '%v' into DataPrivacyRequestPayloadSet", string(b))
-		}
-	}
-
-	return nil
-}
-
-func (bb DataPrivacyRequestPayloadSet) Value() (driver.Value, error) {
-	return json.Marshal(bb)
-}
+func (bb *DataPrivacyRequestPayloadSet) Scan(src any) error          { return sql.ParseJSON(src, bb) }
+func (bb DataPrivacyRequestPayloadSet) Value() (driver.Value, error) { return json.Marshal(bb) }

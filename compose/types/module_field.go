@@ -426,27 +426,11 @@ func (set ModuleFieldSet) Clone() (out ModuleFieldSet) {
 	return out
 }
 
-func (set *ModuleFieldSet) Scan(src interface{}) error {
-	if data, ok := src.([]byte); ok {
-		return json.Unmarshal(data, set)
-	}
-	return nil
-}
+func (set *ModuleFieldSet) Scan(src any) error          { return sql.ParseJSON(src, set) }
+func (set ModuleFieldSet) Value() (driver.Value, error) { return json.Marshal(set) }
 
-func (set ModuleFieldSet) Value() (driver.Value, error) {
-	return json.Marshal(set)
-}
-
-func (set *EncodingStrategy) Scan(src interface{}) error {
-	if data, ok := src.([]byte); ok {
-		return json.Unmarshal(data, set)
-	}
-	return nil
-}
-
-func (set EncodingStrategy) Value() (driver.Value, error) {
-	return json.Marshal(set)
-}
+func (set *EncodingStrategy) Scan(src any) error          { return sql.ParseJSON(src, set) }
+func (set EncodingStrategy) Value() (driver.Value, error) { return json.Marshal(set) }
 
 func (set ModuleFieldSet) Names() (names []string) {
 	names = make([]string, len(set))

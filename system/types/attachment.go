@@ -3,11 +3,10 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-
-	"github.com/pkg/errors"
 )
 
 type (
@@ -91,20 +90,8 @@ func (a *Attachment) imageMeta(in *AttachmentFileMeta, width, height int, animat
 	}
 }
 
-func (meta *AttachmentMeta) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*meta = AttachmentMeta{}
-	case []uint8:
-		if err := json.Unmarshal(value.([]byte), meta); err != nil {
-			return errors.Wrapf(err, "cannot scan '%v' into attachmentMeta", value)
-		}
-	}
-
-	return nil
-}
-
+func (meta *AttachmentMeta) Scan(src any) error { return sql.ParseJSON(src, meta) }
 func (meta AttachmentMeta) Value() (driver.Value, error) {
+
 	return json.Marshal(meta)
 }

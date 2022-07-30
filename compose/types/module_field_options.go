@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	discovery "github.com/cortezaproject/corteza-server/discovery/types"
-	"github.com/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"github.com/spf13/cast"
 	"strconv"
 )
@@ -43,24 +43,8 @@ const (
 	moduleFieldNumberOptionPrecisionMax uint = 6
 )
 
-func (opt *ModuleFieldOptions) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*opt = ModuleFieldOptions{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, opt); err != nil {
-			return errors.Wrapf(err, "cannot scan '%v' into ModuleFieldOptions", string(b))
-		}
-	}
-
-	return nil
-}
-
-func (opt ModuleFieldOptions) Value() (driver.Value, error) {
-	return json.Marshal(opt)
-}
+func (opt *ModuleFieldOptions) Scan(src any) error          { return sql.ParseJSON(src, opt) }
+func (opt ModuleFieldOptions) Value() (driver.Value, error) { return json.Marshal(opt) }
 
 // Bool returns option value for key as boolean true or false
 //

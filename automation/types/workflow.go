@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/expr"
@@ -137,53 +138,15 @@ func (r Workflow) Dict() map[string]interface{} {
 	}
 }
 
-func (vv *WorkflowMeta) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*vv = WorkflowMeta{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, vv); err != nil {
-			return fmt.Errorf("cannot scan '%v' into WorkflowMeta: %w", string(b), err)
-		}
-	}
-
-	return nil
-}
-
-// Scan on WorkflowMeta gracefully handles conversion from NULL
-func (vv *WorkflowMeta) Value() (driver.Value, error) {
-	if vv == nil {
-		return []byte("null"), nil
-	}
-
-	return json.Marshal(vv)
-}
-
-// Scan on WorkflowStepSet gracefully handles conversion from NULL
-func (set WorkflowIssueSet) Value() (driver.Value, error) {
-	return json.Marshal(set)
-}
+func (vv *WorkflowMeta) Scan(src any) error           { return sql.ParseJSON(src, vv) }
+func (vv *WorkflowMeta) Value() (driver.Value, error) { return json.Marshal(vv) }
 
 func (issue *WorkflowIssue) String() string {
 	return fmt.Sprintf("%s [%v]", issue.Description, issue.Culprit)
 }
 
-func (set *WorkflowIssueSet) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*set = WorkflowIssueSet{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, set); err != nil {
-			return fmt.Errorf("cannot scan '%v' into WorkflowIssueSet: %w", string(b), err)
-		}
-	}
-
-	return nil
-}
+func (set *WorkflowIssueSet) Scan(src any) error          { return sql.ParseJSON(src, set) }
+func (set WorkflowIssueSet) Value() (driver.Value, error) { return json.Marshal(set) }
 
 func (set WorkflowIssueSet) Error() string {
 	switch len(set) {

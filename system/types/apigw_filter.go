@@ -3,7 +3,7 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -46,21 +46,5 @@ type (
 	}
 )
 
-func (vv *ApigwFilterParams) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*vv = ApigwFilterParams{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, vv); err != nil {
-			return fmt.Errorf("cannot scan '%v' into ApigwFilterParams: %w", string(b), err)
-		}
-	}
-
-	return nil
-}
-
-func (vv ApigwFilterParams) Value() (driver.Value, error) {
-	return json.Marshal(vv)
-}
+func (vv *ApigwFilterParams) Scan(src any) error          { return sql.ParseJSON(src, vv) }
+func (vv ApigwFilterParams) Value() (driver.Value, error) { return json.Marshal(vv) }
