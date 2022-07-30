@@ -244,38 +244,37 @@ type (
 
 	// auxComposeModule is an auxiliary structure used for transporting to/from RDBMS store
 	auxComposeModule struct {
-		ID          uint64                        `db:"id"`
-		Handle      string                        `db:"handle"`
-		Meta        rawJson                       `db:"meta"`
-		ModelConfig composeType.ModelConfig       `db:"model_config"`
-		Privacy     composeType.DataPrivacyConfig `db:"privacy"`
-		NamespaceID uint64                        `db:"namespace_id"`
-		Name        string                        `db:"name"`
-		CreatedAt   time.Time                     `db:"created_at"`
-		UpdatedAt   *time.Time                    `db:"updated_at"`
-		DeletedAt   *time.Time                    `db:"deleted_at"`
+		ID          uint64                   `db:"id"`
+		Handle      string                   `db:"handle"`
+		Meta        rawJson                  `db:"meta"`
+		Config      composeType.ModuleConfig `db:"config"`
+		NamespaceID uint64                   `db:"namespace_id"`
+		Name        string                   `db:"name"`
+		CreatedAt   time.Time                `db:"created_at"`
+		UpdatedAt   *time.Time               `db:"updated_at"`
+		DeletedAt   *time.Time               `db:"deleted_at"`
 	}
 
 	// auxComposeModuleField is an auxiliary structure used for transporting to/from RDBMS store
 	auxComposeModuleField struct {
-		ID               uint64                         `db:"id"`
-		ModuleID         uint64                         `db:"module_id"`
-		Place            int                            `db:"place"`
-		Kind             string                         `db:"kind"`
-		Name             string                         `db:"name"`
-		Label            string                         `db:"label"`
-		Options          composeType.ModuleFieldOptions `db:"options"`
-		EncodingStrategy composeType.EncodingStrategy   `db:"encoding_strategy"`
-		Privacy          composeType.DataPrivacyConfig  `db:"privacy"`
-		Private          bool                           `db:"private"`
-		Required         bool                           `db:"required"`
-		Visible          bool                           `db:"visible"`
-		Multi            bool                           `db:"multi"`
-		DefaultValue     composeType.RecordValueSet     `db:"default_value"`
-		Expressions      composeType.ModuleFieldExpr    `db:"expressions"`
-		CreatedAt        time.Time                      `db:"created_at"`
-		UpdatedAt        *time.Time                     `db:"updated_at"`
-		DeletedAt        *time.Time                     `db:"deleted_at"`
+		ID               uint64                                   `db:"id"`
+		ModuleID         uint64                                   `db:"module_id"`
+		Place            int                                      `db:"place"`
+		Kind             string                                   `db:"kind"`
+		Name             string                                   `db:"name"`
+		Label            string                                   `db:"label"`
+		Options          composeType.ModuleFieldOptions           `db:"options"`
+		EncodingStrategy composeType.EncodingStrategy             `db:"encoding_strategy"`
+		Privacy          composeType.ModuleFieldConfigDataPrivacy `db:"privacy"`
+		Private          bool                                     `db:"private"`
+		Required         bool                                     `db:"required"`
+		Visible          bool                                     `db:"visible"`
+		Multi            bool                                     `db:"multi"`
+		DefaultValue     composeType.RecordValueSet               `db:"default_value"`
+		Expressions      composeType.ModuleFieldExpr              `db:"expressions"`
+		CreatedAt        time.Time                                `db:"created_at"`
+		UpdatedAt        *time.Time                               `db:"updated_at"`
+		DeletedAt        *time.Time                               `db:"deleted_at"`
 	}
 
 	// auxComposeNamespace is an auxiliary structure used for transporting to/from RDBMS store
@@ -1442,8 +1441,7 @@ func (aux *auxComposeModule) encode(res *composeType.Module) (_ error) {
 	aux.ID = res.ID
 	aux.Handle = res.Handle
 	aux.Meta = res.Meta
-	aux.ModelConfig = res.ModelConfig
-	aux.Privacy = res.Privacy
+	aux.Config = res.Config
 	aux.NamespaceID = res.NamespaceID
 	aux.Name = res.Name
 	aux.CreatedAt = res.CreatedAt
@@ -1460,8 +1458,7 @@ func (aux auxComposeModule) decode() (res *composeType.Module, _ error) {
 	res.ID = aux.ID
 	res.Handle = aux.Handle
 	res.Meta = aux.Meta
-	res.ModelConfig = aux.ModelConfig
-	res.Privacy = aux.Privacy
+	res.Config = aux.Config
 	res.NamespaceID = aux.NamespaceID
 	res.Name = aux.Name
 	res.CreatedAt = aux.CreatedAt
@@ -1478,8 +1475,7 @@ func (aux *auxComposeModule) scan(row scanner) error {
 		&aux.ID,
 		&aux.Handle,
 		&aux.Meta,
-		&aux.ModelConfig,
-		&aux.Privacy,
+		&aux.Config,
 		&aux.NamespaceID,
 		&aux.Name,
 		&aux.CreatedAt,

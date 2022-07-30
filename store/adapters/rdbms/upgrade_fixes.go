@@ -6,12 +6,11 @@ import (
 )
 
 func fix202209_extendComposeModuleForPrivacyAndDAL(ctx context.Context, s *Store) (err error) {
-	s.log(ctx).Info("extending compose_module table with privacy and model_config columns")
+	s.log(ctx).Info("extending compose_module table with config column")
 	return s.SchemaAPI.AddColumn(
 		ctx, s.DB,
 		&Table{Name: "compose_module"},
-		&Column{Type: ColumnType{Type: ColumnTypeJson}, DefaultValue: "'{}'", Name: "privacy"},
-		&Column{Type: ColumnType{Type: ColumnTypeJson}, DefaultValue: "'{}'", Name: "model_config"},
+		&Column{Type: ColumnType{Type: ColumnTypeJson}, DefaultValue: "'{}'", Name: "config"},
 	)
 }
 

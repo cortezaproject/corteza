@@ -88,37 +88,32 @@ type (
 
 		// Name POST parameter
 		//
-		// Module Name
+		// Name
 		Name string
 
 		// Handle POST parameter
 		//
-		// Module handle
+		// Handle
 		Handle string
 
-		// ModelConfig POST parameter
+		// Config POST parameter
 		//
-		// modelConfig
-		ModelConfig types.ModelConfig
-
-		// Privacy POST parameter
-		//
-		// Data privacy config
-		Privacy types.DataPrivacyConfig
-
-		// Fields POST parameter
-		//
-		// Fields JSON
-		Fields types.ModuleFieldSet
+		// Configuration
+		Config types.ModuleConfig
 
 		// Meta POST parameter
 		//
-		// Module meta data
+		// Meta data
 		Meta sqlxTypes.JSONText
+
+		// Fields POST parameter
+		//
+		// Fields
+		Fields types.ModuleFieldSet
 
 		// Labels POST parameter
 		//
-		// Module labels
+		// Labels
 		Labels map[string]string
 	}
 
@@ -147,43 +142,38 @@ type (
 
 		// Name POST parameter
 		//
-		// Module Name
+		// Name
 		Name string
 
 		// Handle POST parameter
 		//
-		// Module Handle
+		// Handle
 		Handle string
 
-		// ModelConfig POST parameter
+		// Config POST parameter
 		//
-		// modelConfig
-		ModelConfig types.ModelConfig
-
-		// Privacy POST parameter
-		//
-		// Data privacy config
-		Privacy types.DataPrivacyConfig
-
-		// Fields POST parameter
-		//
-		// Fields JSON
-		Fields types.ModuleFieldSet
+		// Configuration
+		Config types.ModuleConfig
 
 		// Meta POST parameter
 		//
-		// Module meta data
+		// Meta data
 		Meta sqlxTypes.JSONText
+
+		// Fields POST parameter
+		//
+		// Fields
+		Fields types.ModuleFieldSet
+
+		// Labels POST parameter
+		//
+		// Labels
+		Labels map[string]string
 
 		// UpdatedAt POST parameter
 		//
 		// Last update (or creation) date
 		UpdatedAt *time.Time
-
-		// Labels POST parameter
-		//
-		// Module labels
-		Labels map[string]string
 	}
 
 	ModuleDelete struct {
@@ -391,10 +381,9 @@ func (r ModuleCreate) Auditable() map[string]interface{} {
 		"namespaceID": r.NamespaceID,
 		"name":        r.Name,
 		"handle":      r.Handle,
-		"modelConfig": r.ModelConfig,
-		"privacy":     r.Privacy,
-		"fields":      r.Fields,
+		"config":      r.Config,
 		"meta":        r.Meta,
+		"fields":      r.Fields,
 		"labels":      r.Labels,
 	}
 }
@@ -415,23 +404,18 @@ func (r ModuleCreate) GetHandle() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ModuleCreate) GetModelConfig() types.ModelConfig {
-	return r.ModelConfig
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ModuleCreate) GetPrivacy() types.DataPrivacyConfig {
-	return r.Privacy
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ModuleCreate) GetFields() types.ModuleFieldSet {
-	return r.Fields
+func (r ModuleCreate) GetConfig() types.ModuleConfig {
+	return r.Config
 }
 
 // Auditable returns all auditable/loggable parameters
 func (r ModuleCreate) GetMeta() sqlxTypes.JSONText {
 	return r.Meta
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ModuleCreate) GetFields() types.ModuleFieldSet {
+	return r.Fields
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -474,25 +458,13 @@ func (r *ModuleCreate) Fill(req *http.Request) (err error) {
 				}
 			}
 
-			if val, ok := req.MultipartForm.Value["modelConfig[]"]; ok {
-				r.ModelConfig, err = types.ParseModelConfig(val)
+			if val, ok := req.MultipartForm.Value["config[]"]; ok {
+				r.Config, err = types.ParseModuleConfig(val)
 				if err != nil {
 					return err
 				}
-			} else if val, ok := req.MultipartForm.Value["modelConfig"]; ok {
-				r.ModelConfig, err = types.ParseModelConfig(val)
-				if err != nil {
-					return err
-				}
-			}
-
-			if val, ok := req.MultipartForm.Value["privacy[]"]; ok {
-				r.Privacy, err = types.ParseDataPrivacyConfig(val)
-				if err != nil {
-					return err
-				}
-			} else if val, ok := req.MultipartForm.Value["privacy"]; ok {
-				r.Privacy, err = types.ParseDataPrivacyConfig(val)
+			} else if val, ok := req.MultipartForm.Value["config"]; ok {
+				r.Config, err = types.ParseModuleConfig(val)
 				if err != nil {
 					return err
 				}
@@ -540,25 +512,20 @@ func (r *ModuleCreate) Fill(req *http.Request) (err error) {
 			}
 		}
 
-		if val, ok := req.Form["modelConfig[]"]; ok {
-			r.ModelConfig, err = types.ParseModelConfig(val)
+		if val, ok := req.Form["config[]"]; ok {
+			r.Config, err = types.ParseModuleConfig(val)
 			if err != nil {
 				return err
 			}
-		} else if val, ok := req.Form["modelConfig"]; ok {
-			r.ModelConfig, err = types.ParseModelConfig(val)
+		} else if val, ok := req.Form["config"]; ok {
+			r.Config, err = types.ParseModuleConfig(val)
 			if err != nil {
 				return err
 			}
 		}
 
-		if val, ok := req.Form["privacy[]"]; ok {
-			r.Privacy, err = types.ParseDataPrivacyConfig(val)
-			if err != nil {
-				return err
-			}
-		} else if val, ok := req.Form["privacy"]; ok {
-			r.Privacy, err = types.ParseDataPrivacyConfig(val)
+		if val, ok := req.Form["meta"]; ok && len(val) > 0 {
+			r.Meta, err = payload.ParseJSONTextWithErr(val[0])
 			if err != nil {
 				return err
 			}
@@ -570,13 +537,6 @@ func (r *ModuleCreate) Fill(req *http.Request) (err error) {
 		//        return err
 		//    }
 		//}
-
-		if val, ok := req.Form["meta"]; ok && len(val) > 0 {
-			r.Meta, err = payload.ParseJSONTextWithErr(val[0])
-			if err != nil {
-				return err
-			}
-		}
 
 		if val, ok := req.Form["labels[]"]; ok {
 			r.Labels, err = label.ParseStrings(val)
@@ -665,12 +625,11 @@ func (r ModuleUpdate) Auditable() map[string]interface{} {
 		"moduleID":    r.ModuleID,
 		"name":        r.Name,
 		"handle":      r.Handle,
-		"modelConfig": r.ModelConfig,
-		"privacy":     r.Privacy,
-		"fields":      r.Fields,
+		"config":      r.Config,
 		"meta":        r.Meta,
-		"updatedAt":   r.UpdatedAt,
+		"fields":      r.Fields,
 		"labels":      r.Labels,
+		"updatedAt":   r.UpdatedAt,
 	}
 }
 
@@ -695,18 +654,8 @@ func (r ModuleUpdate) GetHandle() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ModuleUpdate) GetModelConfig() types.ModelConfig {
-	return r.ModelConfig
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ModuleUpdate) GetPrivacy() types.DataPrivacyConfig {
-	return r.Privacy
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ModuleUpdate) GetFields() types.ModuleFieldSet {
-	return r.Fields
+func (r ModuleUpdate) GetConfig() types.ModuleConfig {
+	return r.Config
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -715,13 +664,18 @@ func (r ModuleUpdate) GetMeta() sqlxTypes.JSONText {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ModuleUpdate) GetUpdatedAt() *time.Time {
-	return r.UpdatedAt
+func (r ModuleUpdate) GetFields() types.ModuleFieldSet {
+	return r.Fields
 }
 
 // Auditable returns all auditable/loggable parameters
 func (r ModuleUpdate) GetLabels() map[string]string {
 	return r.Labels
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ModuleUpdate) GetUpdatedAt() *time.Time {
+	return r.UpdatedAt
 }
 
 // Fill processes request and fills internal variables
@@ -759,25 +713,13 @@ func (r *ModuleUpdate) Fill(req *http.Request) (err error) {
 				}
 			}
 
-			if val, ok := req.MultipartForm.Value["modelConfig[]"]; ok {
-				r.ModelConfig, err = types.ParseModelConfig(val)
+			if val, ok := req.MultipartForm.Value["config[]"]; ok {
+				r.Config, err = types.ParseModuleConfig(val)
 				if err != nil {
 					return err
 				}
-			} else if val, ok := req.MultipartForm.Value["modelConfig"]; ok {
-				r.ModelConfig, err = types.ParseModelConfig(val)
-				if err != nil {
-					return err
-				}
-			}
-
-			if val, ok := req.MultipartForm.Value["privacy[]"]; ok {
-				r.Privacy, err = types.ParseDataPrivacyConfig(val)
-				if err != nil {
-					return err
-				}
-			} else if val, ok := req.MultipartForm.Value["privacy"]; ok {
-				r.Privacy, err = types.ParseDataPrivacyConfig(val)
+			} else if val, ok := req.MultipartForm.Value["config"]; ok {
+				r.Config, err = types.ParseModuleConfig(val)
 				if err != nil {
 					return err
 				}
@@ -790,13 +732,6 @@ func (r *ModuleUpdate) Fill(req *http.Request) (err error) {
 				}
 			}
 
-			if val, ok := req.MultipartForm.Value["updatedAt"]; ok && len(val) > 0 {
-				r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
-				if err != nil {
-					return err
-				}
-			}
-
 			if val, ok := req.MultipartForm.Value["labels[]"]; ok {
 				r.Labels, err = label.ParseStrings(val)
 				if err != nil {
@@ -804,6 +739,13 @@ func (r *ModuleUpdate) Fill(req *http.Request) (err error) {
 				}
 			} else if val, ok := req.MultipartForm.Value["labels"]; ok {
 				r.Labels, err = label.ParseStrings(val)
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["updatedAt"]; ok && len(val) > 0 {
+				r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
 				if err != nil {
 					return err
 				}
@@ -832,25 +774,20 @@ func (r *ModuleUpdate) Fill(req *http.Request) (err error) {
 			}
 		}
 
-		if val, ok := req.Form["modelConfig[]"]; ok {
-			r.ModelConfig, err = types.ParseModelConfig(val)
+		if val, ok := req.Form["config[]"]; ok {
+			r.Config, err = types.ParseModuleConfig(val)
 			if err != nil {
 				return err
 			}
-		} else if val, ok := req.Form["modelConfig"]; ok {
-			r.ModelConfig, err = types.ParseModelConfig(val)
+		} else if val, ok := req.Form["config"]; ok {
+			r.Config, err = types.ParseModuleConfig(val)
 			if err != nil {
 				return err
 			}
 		}
 
-		if val, ok := req.Form["privacy[]"]; ok {
-			r.Privacy, err = types.ParseDataPrivacyConfig(val)
-			if err != nil {
-				return err
-			}
-		} else if val, ok := req.Form["privacy"]; ok {
-			r.Privacy, err = types.ParseDataPrivacyConfig(val)
+		if val, ok := req.Form["meta"]; ok && len(val) > 0 {
+			r.Meta, err = payload.ParseJSONTextWithErr(val[0])
 			if err != nil {
 				return err
 			}
@@ -863,20 +800,6 @@ func (r *ModuleUpdate) Fill(req *http.Request) (err error) {
 		//    }
 		//}
 
-		if val, ok := req.Form["meta"]; ok && len(val) > 0 {
-			r.Meta, err = payload.ParseJSONTextWithErr(val[0])
-			if err != nil {
-				return err
-			}
-		}
-
-		if val, ok := req.Form["updatedAt"]; ok && len(val) > 0 {
-			r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
-			if err != nil {
-				return err
-			}
-		}
-
 		if val, ok := req.Form["labels[]"]; ok {
 			r.Labels, err = label.ParseStrings(val)
 			if err != nil {
@@ -884,6 +807,13 @@ func (r *ModuleUpdate) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := req.Form["labels"]; ok {
 			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["updatedAt"]; ok && len(val) > 0 {
+			r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
 			if err != nil {
 				return err
 			}

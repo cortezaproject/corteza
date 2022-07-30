@@ -22,9 +22,11 @@ func Test_dal_crud_compose_record_create(t *testing.T) {
 	helpers.AllowMeRecordCRUD(h)
 
 	ns := h.createNamespace("test")
-	module := createModuleFromGenerics(ctx, t, "ok_module.json", ns.ID, &types.ModelConfig{
-		ConnectionID: 0,
-		Capabilities: capabilities.FullCapabilities(),
+	module := createModuleFromGenerics(ctx, t, "ok_module.json", ns.ID, &types.ModuleConfig{
+		DAL: types.ModuleConfigDAL{
+			ConnectionID: 0,
+			Capabilities: capabilities.FullCapabilities(),
+		},
 	})
 
 	// create
@@ -81,9 +83,11 @@ func Test_dal_crud_compose_record_update(t *testing.T) {
 	helpers.AllowMeRecordCRUD(h)
 
 	ns := h.createNamespace("test")
-	module := createModuleFromGenerics(ctx, t, "ok_module.json", ns.ID, &types.ModelConfig{
-		ConnectionID: 0,
-		Capabilities: capabilities.FullCapabilities(),
+	module := createModuleFromGenerics(ctx, t, "ok_module.json", ns.ID, &types.ModuleConfig{
+		DAL: types.ModuleConfigDAL{
+			ConnectionID: 0,
+			Capabilities: capabilities.FullCapabilities(),
+		},
 	})
 
 	record := createRecordFromGenerics(ctx, t, "ok_record.json", ns.ID, module.ID)
@@ -140,9 +144,11 @@ func Test_dal_crud_compose_record_delete(t *testing.T) {
 	helpers.AllowMeRecordCRUD(h)
 
 	ns := h.createNamespace("test")
-	module := createModuleFromGenerics(ctx, t, "ok_module.json", ns.ID, &types.ModelConfig{
-		ConnectionID: 0,
-		Capabilities: capabilities.FullCapabilities(),
+	module := createModuleFromGenerics(ctx, t, "ok_module.json", ns.ID, &types.ModuleConfig{
+		DAL: types.ModuleConfigDAL{
+			ConnectionID: 0,
+			Capabilities: capabilities.FullCapabilities(),
+		},
 	})
 
 	record := createRecordFromGenerics(ctx, t, "ok_record.json", ns.ID, module.ID)

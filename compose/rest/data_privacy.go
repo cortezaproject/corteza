@@ -75,7 +75,7 @@ func (ctrl *DataPrivacy) RecordList(ctx context.Context, r *request.DataPrivacyR
 
 	for _, s := range ss {
 		// Skip the ones we don't want
-		if hasReqConns && !reqConns[s.Module.ModelConfig.ConnectionID] {
+		if hasReqConns && !reqConns[s.Module.Config.DAL.ConnectionID] {
 			continue
 		}
 
