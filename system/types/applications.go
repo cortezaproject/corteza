@@ -3,11 +3,10 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-
-	"github.com/pkg/errors"
 )
 
 type (
@@ -77,23 +76,8 @@ func (a *Application) Valid() bool {
 	return a.ID > 0 && a.DeletedAt == nil
 }
 
-func (au *ApplicationUnify) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		au = nil
-	case []uint8:
-		if err := json.Unmarshal(value.([]byte), au); err != nil {
-			return errors.Wrapf(err, "cannot scan '%v' into ApplicationUnify", value)
-		}
-	}
-
-	return nil
-}
-
-func (au ApplicationUnify) Value() (driver.Value, error) {
-	return json.Marshal(au)
-}
+func (au *ApplicationUnify) Scan(src any) error          { return sql.ParseJSON(src, au) }
+func (au ApplicationUnify) Value() (driver.Value, error) { return json.Marshal(au) }
 
 // // // These will get generated later on
 

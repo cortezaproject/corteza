@@ -3,6 +3,7 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"strconv"
 	"strings"
 	"time"
@@ -10,8 +11,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/spf13/cast"
-
-	"github.com/pkg/errors"
 )
 
 type (
@@ -331,24 +330,8 @@ func (set PageSet) FindByHandle(handle string) *Page {
 	return nil
 }
 
-func (bb *PageBlocks) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*bb = PageBlocks{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, bb); err != nil {
-			return errors.Wrapf(err, "cannot scan '%v' into PageBlocks", string(b))
-		}
-	}
-
-	return nil
-}
-
-func (bb PageBlocks) Value() (driver.Value, error) {
-	return json.Marshal(bb)
-}
+func (bb *PageBlocks) Scan(src any) error          { return sql.ParseJSON(src, bb) }
+func (bb PageBlocks) Value() (driver.Value, error) { return json.Marshal(bb) }
 
 // Helper to extract old encoding to new one
 func (b *PageBlock) UnmarshalJSON(data []byte) (err error) {
@@ -412,24 +395,9 @@ func (set PageSet) RecursiveWalk(parent *Page, fn func(c *Page, parent *Page) er
 	return
 }
 
-func (bb *PageConfig) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*bb = PageConfig{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, bb); err != nil {
-			return errors.Wrapf(err, "cannot scan '%v' into PageConfig", string(b))
-		}
-	}
-
-	return nil
-}
-
+func (bb *PageConfig) Scan(src any) error { return sql.ParseJSON(src, bb) }
 func (bb PageConfig) Value() (driver.Value, error) {
 	// We're not saving button config to the DB; no need for it
 	bb.Buttons = nil
-
 	return json.Marshal(bb)
 }

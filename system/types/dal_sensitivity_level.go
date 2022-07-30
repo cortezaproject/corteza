@@ -3,10 +3,10 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/pkg/errors"
 )
 
 type (
@@ -57,24 +57,8 @@ func ParseDalSensitivityLevelMeta(ss []string) (m DalSensitivityLevelMeta, err e
 	return
 }
 
-func (nm *DalSensitivityLevelMeta) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*nm = DalSensitivityLevelMeta{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, nm); err != nil {
-			return errors.Wrapf(err, "cannot scan '%v' into DalSensitivityLevelMeta", string(b))
-		}
-	}
-
-	return nil
-}
-
-func (nm DalSensitivityLevelMeta) Value() (driver.Value, error) {
-	return json.Marshal(nm)
-}
+func (nm *DalSensitivityLevelMeta) Scan(src any) error          { return sql.ParseJSON(src, nm) }
+func (nm DalSensitivityLevelMeta) Value() (driver.Value, error) { return json.Marshal(nm) }
 
 func (ss DalSensitivityLevelSet) Len() int { return len(ss) }
 func (ss DalSensitivityLevelSet) Less(i, j int) bool {

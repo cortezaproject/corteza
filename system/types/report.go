@@ -3,7 +3,7 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -134,89 +134,18 @@ func (pp ReportBlockSet) ModelSteps() report.StepDefinitionSet {
 
 // Store stuff
 
-func (vv *ReportMeta) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*vv = ReportMeta{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, vv); err != nil {
-			return fmt.Errorf("cannot scan '%v' into ReportMeta: %w", string(b), err)
-		}
-	}
+func (vv *ReportMeta) Scan(src any) error           { return sql.ParseJSON(src, vv) }
+func (vv *ReportMeta) Value() (driver.Value, error) { return json.Marshal(vv) }
 
-	return nil
-}
-
-// Scan on ReportMeta gracefully handles conversion from NULL
-func (vv *ReportMeta) Value() (driver.Value, error) {
-	if vv == nil {
-		return []byte("null"), nil
-	}
-
-	return json.Marshal(vv)
-}
-
-// Scan on ReportBlockSet gracefully handles conversion from NULL
-func (vv ReportBlockSet) Value() (driver.Value, error) {
-	return json.Marshal(vv)
-}
-
-func (vv *ReportBlockSet) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*vv = ReportBlockSet{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, vv); err != nil {
-			return fmt.Errorf("cannot scan '%v' into ReportBlockSet: %w", string(b), err)
-		}
-	}
-
-	return nil
-}
+func (vv *ReportBlockSet) Scan(src any) error          { return sql.ParseJSON(src, vv) }
+func (vv ReportBlockSet) Value() (driver.Value, error) { return json.Marshal(vv) }
 
 // Scan on ReportDataSourceSet gracefully handles conversion from NULL
-func (vv ReportDataSourceSet) Value() (driver.Value, error) {
-	return json.Marshal(vv)
-}
+func (vv *ReportDataSourceSet) Scan(src any) error          { return sql.ParseJSON(src, vv) }
+func (vv ReportDataSourceSet) Value() (driver.Value, error) { return json.Marshal(vv) }
 
-func (vv *ReportDataSourceSet) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*vv = ReportDataSourceSet{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, vv); err != nil {
-			return fmt.Errorf("cannot scan '%v' into ReportDataSourceSet: %w", string(b), err)
-		}
-	}
-
-	return nil
-}
-
-// Scan on ReportScenarioSet gracefully handles conversion from NULL
-func (vv ReportScenarioSet) Value() (driver.Value, error) {
-	return json.Marshal(vv)
-}
-
-func (vv *ReportScenarioSet) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*vv = ReportScenarioSet{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, vv); err != nil {
-			return fmt.Errorf("cannot scan '%v' into ReportDataSourceSet: %w", string(b), err)
-		}
-	}
-
-	return nil
-}
+func (vv *ReportScenarioSet) Scan(src any) error          { return sql.ParseJSON(src, vv) }
+func (vv ReportScenarioSet) Value() (driver.Value, error) { return json.Marshal(vv) }
 
 // func (r *Report) decodeTranslations(tt locale.ResourceTranslationIndex) {
 // 	var aux *locale.ResourceTranslation

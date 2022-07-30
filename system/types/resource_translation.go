@@ -53,7 +53,7 @@ func (l Lang) Value() (driver.Value, error) {
 	return l.String(), nil
 }
 
-func (l *Lang) Scan(value interface{}) error {
+func (l *Lang) Scan(value any) error {
 	v := ""
 
 	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8

@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"reflect"
 	"strings"
 
@@ -248,20 +249,7 @@ func (t *Vars) Decode(dst interface{}) (err error) {
 	return
 }
 
-func (t *Vars) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*t = Vars{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, t); err != nil {
-			return fmt.Errorf("cannot scan '%v' into %T: %w", string(b), t, err)
-		}
-	}
-
-	return nil
-}
+func (t *Vars) Scan(src any) error { return sql.ParseJSON(src, t) }
 
 func (t *Vars) Value() (driver.Value, error) {
 	if t != nil {

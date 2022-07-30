@@ -3,8 +3,7 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"errors"
-	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -87,9 +86,8 @@ func (h *QueueMeta) UnmarshalJSON(s []byte) error {
 	return nil
 }
 
-func (m QueueMeta) Value() (driver.Value, error) {
-	return json.Marshal(m)
-}
+func (m *QueueMeta) Scan(src any) error          { return sql.ParseJSON(src, m) }
+func (m QueueMeta) Value() (driver.Value, error) { return json.Marshal(m) }
 
 func (m QueueMeta) MarshalJSON() ([]byte, error) {
 
@@ -105,19 +103,6 @@ func (m QueueMeta) MarshalJSON() ([]byte, error) {
 		PollDelay:      pollDelay,
 		DispatchEvents: m.DispatchEvents,
 	})
-}
-
-func (m *QueueMeta) Scan(value interface{}) error {
-	switch value.(type) {
-	case nil:
-		*m = QueueMeta{}
-	case []uint8:
-		if err := json.Unmarshal(value.([]byte), m); err != nil {
-			return errors.New(fmt.Sprintf("cannot scan '%v' into QueueMeta", value))
-		}
-	}
-
-	return nil
 }
 
 func (s *Queue) CanDispatch() bool {
