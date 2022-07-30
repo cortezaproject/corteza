@@ -548,36 +548,12 @@ endpoints:
     path: "/"
     parameters:
       post:
-      - type: string
-        name: name
-        required: true
-        title: Module Name
-      - type: string
-        name: handle
-        required: false
-        title: Module handle
-      - type: types.ModelConfig
-        name: modelConfig
-        required: false
-        title: modelConfig
-        parser: types.ParseModelConfig
-      - type: types.DataPrivacyConfig
-        name: privacy
-        required: false
-        title: Data privacy config
-        parser: types.ParseDataPrivacyConfig
-      - type: types.ModuleFieldSet
-        name: fields
-        required: true
-        title: Fields JSON
-      - type: sqlxTypes.JSONText
-        name: meta
-        required: true
-        title: Module meta data
-      - type: map[string]string
-        name: labels
-        title: Module labels
-        parser: label.ParseStrings
+      - { type: "string",               name: name,   title: Name,          required: true  }
+      - { type: "string",               name: handle, title: Handle }
+      - { type: "types.ModuleConfig",   name: config, title: Configuration, parser: types.ParseModuleConfig }
+      - { type: "sqlxTypes.JSONText",   name: meta,   title: Meta data,     required: true }
+      - { type: "types.ModuleFieldSet", name: fields, title: Fields,        required: true }
+      - { type: "map[string]string",    name: labels, title: Labels,        parser: label.ParseStrings }
   - name: read
     method: GET
     title: Read module
@@ -599,40 +575,13 @@ endpoints:
         required: true
         title: Module ID
       post:
-      - type: string
-        name: name
-        required: true
-        title: Module Name
-      - type: string
-        name: handle
-        required: false
-        title: Module Handle
-      - type: types.ModelConfig
-        name: modelConfig
-        required: false
-        title: modelConfig
-        parser: types.ParseModelConfig
-      - type: types.DataPrivacyConfig
-        name: privacy
-        required: false
-        title: Data privacy config
-        parser: types.ParseDataPrivacyConfig
-      - type: types.ModuleFieldSet
-        name: fields
-        required: true
-        title: Fields JSON
-      - type: sqlxTypes.JSONText
-        name: meta
-        required: true
-        title: Module meta data
-      - type: "*time.Time"
-        name: updatedAt
-        required: false
-        title: Last update (or creation) date
-      - type: map[string]string
-        name: labels
-        title: Module labels
-        parser: label.ParseStrings
+      - { type: "string",               name: name,      title: Name,          required: true  }
+      - { type: "string",               name: handle,    title: Handle }
+      - { type: "types.ModuleConfig",   name: config,    title: Configuration, parser: types.ParseModuleConfig }
+      - { type: "sqlxTypes.JSONText",   name: meta,      title: Meta data,     required: true }
+      - { type: "types.ModuleFieldSet", name: fields,    title: Fields,        required: true }
+      - { type: "map[string]string",    name: labels,    title: Labels,        parser: label.ParseStrings }
+      - { type: "*time.Time",           name: updatedAt, title: Last update (or creation) date }
   - name: delete
     method: DELETE
     title: Delete module

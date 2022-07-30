@@ -2,15 +2,17 @@
   "name": "internal_non_partitioned",
   "handle": "internal_non_partitioned",
 
-  "modelConfig": {
-    "connectionID": "0",
-    "capabilities": [],
-    "partitioned": false
-  },
+  "config": {
+    "dal": {
+      "connectionID": "0",
+      "capabilities": [],
+      "partitioned": false
+    },
 
-  "privacy": {
-    "sensitivityLevel": "42",
-    "usageDisclosure": "A"
+    "privacy": {
+      "sensitivityLevel": "42",
+      "usageDisclosure": "A"
+    }
   },
 
   "fields": [

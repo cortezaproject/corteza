@@ -295,15 +295,15 @@ func (svc module) procDal(m *types.Module) {
 		return
 	}
 
-	ii := svc.dal.SearchModelIssues(m.ModelConfig.ConnectionID, m.ID)
+	ii := svc.dal.SearchModelIssues(m.Config.DAL.ConnectionID, m.ID)
 	if len(ii) == 0 {
-		m.ModelConfig.Issues = nil
+		m.Config.DAL.Issues = nil
 		return
 	}
 
-	m.ModelConfig.Issues = make([]string, len(ii))
+	m.Config.DAL.Issues = make([]string, len(ii))
 	for i, err := range ii {
-		m.ModelConfig.Issues[i] = err.Error()
+		m.Config.DAL.Issues[i] = err.Error()
 	}
 }
 
@@ -453,7 +453,7 @@ func (svc module) FindSensitive(ctx context.Context, filter types.PrivacyModuleF
 		}
 
 		for _, m := range mm {
-			cMeta, err := svc.dal.GetConnectionMeta(ctx, m.ModelConfig.ConnectionID)
+			cMeta, err := svc.dal.GetConnectionMeta(ctx, m.Config.DAL.ConnectionID)
 			if err != nil {
 				return err
 			}
@@ -534,7 +534,24 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 		}
 
 		if changes&moduleChanged > 0 {
-			if old.ModelConfig.ConnectionID != m.ModelConfig.ConnectionID {
+			{
+				// properly resolve connection ID 0 to the actual ID of the default connection
+				var defConn dal.ConnectionMeta
+				defConn, err = svc.dal.GetConnectionMeta(ctx, 0)
+				if err != nil {
+					return err
+
+				}
+
+				if old.Config.DAL.ConnectionID == 0 {
+					old.Config.DAL.ConnectionID = defConn.ConnectionID
+				}
+				if m.Config.DAL.ConnectionID == 0 {
+					m.Config.DAL.ConnectionID = defConn.ConnectionID
+				}
+			}
+
+			if old.Config.DAL.ConnectionID != m.Config.DAL.ConnectionID {
 				return fmt.Errorf("unable to switch connection for existing models: run data migration")
 			}
 
@@ -551,7 +568,7 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 
 			// @todo rethink how model issues and attempted module update with records should interact.
 			// 			 this is a temporary solution but should be re-thinked.
-			modelIssues := svc.dal.SearchModelIssues(m.ModelConfig.ConnectionID, m.ID)
+			modelIssues := svc.dal.SearchModelIssues(m.Config.DAL.ConnectionID, m.ID)
 			if len(modelIssues) == 0 {
 				if set, _, err = dalutils.ComposeRecordsList(ctx, svc.dal, m, types.RecordFilter{Paging: filter.Paging{Limit: 1}, Check: func(r *types.Record) (bool, error) { return true, nil }}); err != nil {
 					return err
@@ -718,14 +735,9 @@ func (svc module) handleUpdate(ctx context.Context, upd *types.Module) moduleUpd
 
 		}
 
-		if !reflect.DeepEqual(res.ModelConfig, upd.ModelConfig) {
+		if !reflect.DeepEqual(res.Config, upd.Config) {
 			changes |= moduleChanged
-			res.ModelConfig = upd.ModelConfig
-		}
-
-		if !reflect.DeepEqual(res.Privacy, upd.Privacy) {
-			changes |= moduleChanged
-			res.Privacy = upd.Privacy
+			res.Config = upd.Config
 		}
 
 		// @todo make field-change detection more optimal
@@ -1148,7 +1160,7 @@ func dalAttributeReplace(ctx context.Context, dmm dalModelManager, ns *types.Nam
 // Removes a connection from DAL service
 func DalModelRemove(ctx context.Context, dmm dalModelManager, mm ...*types.Module) (err error) {
 	for _, m := range mm {
-		if err = dmm.RemoveModel(ctx, m.ModelConfig.ConnectionID, m.ID); err != nil {
+		if err = dmm.RemoveModel(ctx, m.Config.DAL.ConnectionID, m.ID); err != nil {
 			return err
 		}
 	}
@@ -1188,14 +1200,14 @@ func moduleToModel(ctx context.Context, dmm dalModelManager, ns *types.Namespace
 				Resource:         mod.RbacResource(),
 				ResourceID:       mod.ID,
 				ResourceType:     types.ModuleResourceType,
-				SensitivityLevel: mod.Privacy.SensitivityLevel,
-				Capabilities:     mod.ModelConfig.Capabilities,
+				SensitivityLevel: mod.Config.Privacy.SensitivityLevel,
+				Capabilities:     mod.Config.DAL.Capabilities,
 			}
 
 			// - make the model ident
 			ident := cm.DefaultModelIdent
-			if mod.ModelConfig.Partitioned {
-				tpl := mod.ModelConfig.PartitionFormat
+			if mod.Config.DAL.Partitioned {
+				tpl := mod.Config.DAL.PartitionFormat
 				if tpl == "" {
 					tpl = cm.DefaultPartitionFormat
 				}
@@ -1249,7 +1261,7 @@ func moduleFieldsToAttributes(ctx context.Context, cm dal.ConnectionMeta, ns *ty
 
 // moduleSystemFieldsToAttributes converts all system-defined module fields to attributes
 func moduleSystemFieldsToAttributes(ctx context.Context, cm dal.ConnectionMeta, ns *types.Namespace, mod *types.Module) (out dal.AttributeSet, err error) {
-	if mod.ModelConfig.Partitioned {
+	if mod.Config.DAL.Partitioned {
 		return partitionedModuleSystemFieldsToAttributes(cm, mod), nil
 	}
 	return defaultModuleSystemFieldsToAttributes(), nil
@@ -1258,7 +1270,7 @@ func moduleSystemFieldsToAttributes(ctx context.Context, cm dal.ConnectionMeta, 
 // partitionedModuleSystemFieldsToAttributes converts all system-defined module fields to attributes
 // keeping user-defined codec in mind
 func partitionedModuleSystemFieldsToAttributes(cm dal.ConnectionMeta, mod *types.Module) (out dal.AttributeSet) {
-	sysEnc := mod.ModelConfig.SystemFieldEncoding
+	sysEnc := mod.Config.DAL.SystemFieldEncoding
 
 	if sysEnc.ID != nil {
 		out = append(out, dal.PrimaryAttribute(sysID, modelFieldCodec(cm, mod, &types.ModuleField{Name: sysID, EncodingStrategy: *sysEnc.ID})))
@@ -1410,7 +1422,7 @@ func moduleFieldToAttribute(ctx context.Context, cm dal.ConnectionMeta, mod *typ
 func modulesByConnection(modules ...*types.Module) map[uint64]types.ModuleSet {
 	out := make(map[uint64]types.ModuleSet)
 	for _, mod := range modules {
-		out[mod.ModelConfig.ConnectionID] = append(out[mod.ModelConfig.ConnectionID], mod)
+		out[mod.Config.DAL.ConnectionID] = append(out[mod.Config.DAL.ConnectionID], mod)
 	}
 
 	return out
@@ -1452,7 +1464,7 @@ func modelFieldCodec(cm dal.ConnectionMeta, mod *types.Module, f *types.ModuleFi
 
 // baseModelFieldCodec returns the DAL codec the given module field should use by default
 func baseModelFieldCodec(cm dal.ConnectionMeta, mod *types.Module, f *types.ModuleField) dal.Codec {
-	if mod.ModelConfig.Partitioned {
+	if mod.Config.DAL.Partitioned {
 		return &dal.CodecPlain{}
 	}
 

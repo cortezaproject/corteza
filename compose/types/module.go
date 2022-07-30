@@ -3,44 +3,31 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	discovery "github.com/cortezaproject/corteza-server/discovery/types"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
+	"github.com/jmoiron/sqlx/types"
 	"time"
 
-	discovery "github.com/cortezaproject/corteza-server/discovery/types"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
-	"github.com/jmoiron/sqlx/types"
-	"github.com/pkg/errors"
 )
 
 type (
-	ModelConfig struct {
-		ConnectionID uint64           `json:"connectionID,string"`
-		Capabilities capabilities.Set `json:"capabilities"`
-
-		Issues []string `json:"issues,omitempty"`
-
-		Constraints map[string][]any `json:"constraints"`
-
-		Partitioned     bool   `json:"partitioned"`
-		PartitionFormat string `json:"partitionFormat"`
-
-		SystemFieldEncoding SystemFieldEncoding `json:"systemFieldEncoding"`
-	}
-
-	DataPrivacyConfig struct {
-		SensitivityLevel uint64 `json:"sensitivityLevel,string,omitempty"`
-		UsageDisclosure  string `json:"usageDisclosure"`
-	}
-
 	Module struct {
-		ID     uint64         `json:"moduleID,string"`
-		Handle string         `json:"handle"`
-		Meta   types.JSONText `json:"meta"`
+		ID     uint64 `json:"moduleID,string"`
+		Handle string `json:"handle"`
 
-		ModelConfig ModelConfig       `json:"modelConfig"`
-		Privacy     DataPrivacyConfig `json:"privacy"`
+		// collection of configurations for various subsystems that
+		// use this module and how it affects their behaviour
+		Config ModuleConfig `json:"config"`
+
+		// @todo should be removed and placed into a separate subsystem
+		//       mostly because we want to allow client apps to store
+		//       application configs away from the module config
+		//       using separate access-control
+		Meta types.JSONText `json:"meta"`
 
 		Fields ModuleFieldSet `json:"fields"`
 
@@ -76,9 +63,40 @@ type (
 		DeletedBy *EncodingStrategy `json:"deletedBy"`
 	}
 
-	ModuleMeta struct {
+	ModuleConfig struct {
+		// How and where the records of this module are stored in the database
+		DAL ModuleConfigDAL `json:"dal"`
+
+		// Record data privacy settings
+		Privacy ModuleConfigDataPrivacy `json:"privacy"`
+
+		// @todo we need to transfer this from meta!!
 		Discovery discovery.ModuleMeta `json:"discovery"`
 	}
+
+	ModuleConfigDAL struct {
+		ConnectionID uint64           `json:"connectionID,string"`
+		Capabilities capabilities.Set `json:"capabilities"`
+
+		Issues []string `json:"issues,omitempty"`
+
+		Constraints map[string][]any `json:"constraints"`
+
+		Partitioned     bool   `json:"partitioned"`
+		PartitionFormat string `json:"partitionFormat"`
+
+		SystemFieldEncoding SystemFieldEncoding `json:"systemFieldEncoding"`
+	}
+
+	ModuleConfigDataPrivacy struct {
+		// Define the highest sensitivity level which
+		// can be configured on the module fields
+		SensitivityLevel uint64 `json:"sensitivityLevel,string,omitempty"`
+
+		UsageDisclosure string `json:"usageDisclosure"`
+	}
+
+	ModelMeta map[string]any
 
 	ModuleFilter struct {
 		ModuleID    []uint64 `json:"moduleID"`
@@ -111,7 +129,7 @@ func (m Module) Clone() *Module {
 }
 
 func (m Module) HasIssues() bool {
-	return len(m.ModelConfig.Issues) > 0
+	return len(m.Config.DAL.Issues) > 0
 }
 
 // We won't worry about fields at this point
@@ -126,7 +144,7 @@ func (m *Module) encodeTranslations() (out locale.ResourceTranslationSet) {
 
 func (m *Module) ModelRef() dal.ModelRef {
 	return dal.ModelRef{
-		ConnectionID: m.ModelConfig.ConnectionID,
+		ConnectionID: m.Config.DAL.ConnectionID,
 
 		ResourceID: m.ID,
 
@@ -147,77 +165,17 @@ func (set ModuleSet) FindByHandle(handle string) *Module {
 	return nil
 }
 
-func (nm *ModuleMeta) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*nm = ModuleMeta{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, nm); err != nil {
-			return errors.Wrapf(err, "cannot scan '%v' into ModuleMeta", string(b))
-		}
-	}
+func (c *ModuleConfig) Scan(src any) error          { return sql.ParseJSON(src, c) }
+func (c ModuleConfig) Value() (driver.Value, error) { return json.Marshal(c) }
 
-	return nil
-}
+func (m *ModelMeta) Scan(src any) error          { return sql.ParseJSON(src, m) }
+func (m ModelMeta) Value() (driver.Value, error) { return json.Marshal(m) }
 
-func (nm ModuleMeta) Value() (driver.Value, error) {
-	return json.Marshal(nm)
-}
-
-func (nm *ModelConfig) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*nm = ModelConfig{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, nm); err != nil {
-			return errors.Wrapf(err, "cannot scan '%v' into ModelConfig", string(b))
-		}
-	}
-
-	return nil
-}
-
-func (nm ModelConfig) Value() (driver.Value, error) {
-	return json.Marshal(nm)
-}
-
-func ParseModelConfig(ss []string) (m ModelConfig, err error) {
+func ParseModuleConfig(ss []string) (m ModuleConfig, err error) {
 	if len(ss) == 0 {
 		return
 	}
 
 	err = json.Unmarshal([]byte(ss[0]), &m)
-	return
-}
-
-func (nm *DataPrivacyConfig) Scan(value interface{}) error {
-	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
-	switch value.(type) {
-	case nil:
-		*nm = DataPrivacyConfig{}
-	case []uint8:
-		b := value.([]byte)
-		if err := json.Unmarshal(b, nm); err != nil {
-			return errors.Wrapf(err, "cannot scan '%v' into DataPrivacyConfig", string(b))
-		}
-	}
-
-	return nil
-}
-
-func (nm DataPrivacyConfig) Value() (driver.Value, error) {
-	return json.Marshal(nm)
-}
-
-func ParseDataPrivacyConfig(ss []string) (dpc DataPrivacyConfig, err error) {
-	if len(ss) == 0 {
-		return
-	}
-
-	err = json.Unmarshal([]byte(ss[0]), &dpc)
 	return
 }

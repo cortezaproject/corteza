@@ -448,8 +448,7 @@ func tableComposeModule() *Table {
 		ColumnDef("handle", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
 		ColumnDef("name", ColumnTypeText),
 		ColumnDef("meta", ColumnTypeJson),
-		ColumnDef("privacy", ColumnTypeJson),
-		ColumnDef("model_config", ColumnTypeJson),
+		ColumnDef("config", ColumnTypeJson),
 		CUDTimestamps,
 
 		AddIndex("namespace", IColumn("rel_namespace")),

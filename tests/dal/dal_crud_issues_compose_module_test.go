@@ -27,7 +27,7 @@ func Test_dal_crud_issues_compose_module_missing_sensitivity(t *testing.T) {
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Present("$.response.moduleID")).
-		Assert(jsonpath.Len("$.response.modelConfig.issues", 1)).
+		Assert(jsonpath.Len("$.response.config.dal.issues", 1)).
 		End()
 
 	dd := json.NewDecoder(rsp.Response.Body)
@@ -42,7 +42,7 @@ func Test_dal_crud_issues_compose_module_missing_sensitivity(t *testing.T) {
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Present("$.response.moduleID")).
-		Assert(jsonpath.NotPresent("$.response.modelConfig.issues")).
+		Assert(jsonpath.NotPresent("$.response.config.dal.issues")).
 		End()
 
 	rsp = h.apiInit().
@@ -54,7 +54,7 @@ func Test_dal_crud_issues_compose_module_missing_sensitivity(t *testing.T) {
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Present("$.response.moduleID")).
-		Assert(jsonpath.Len("$.response.modelConfig.issues", 1)).
+		Assert(jsonpath.Len("$.response.config.dal.issues", 1)).
 		End()
 
 	rsp = h.apiInit().
@@ -84,7 +84,7 @@ func Test_dal_crud_issues_compose_module_field_missing_sensitivity(t *testing.T)
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Present("$.response.moduleID")).
-		Assert(jsonpath.Len("$.response.modelConfig.issues", 1)).
+		Assert(jsonpath.Len("$.response.config.dal.issues", 1)).
 		End()
 
 	dd := json.NewDecoder(rsp.Response.Body)
@@ -98,7 +98,7 @@ func Test_dal_crud_issues_compose_module_field_missing_sensitivity(t *testing.T)
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Present("$.response.moduleID")).
-		Assert(jsonpath.NotPresent("$.response.modelConfig.issues")).
+		Assert(jsonpath.NotPresent("$.response.config.dal.issues")).
 		End()
 
 	rsp = h.apiInit().
@@ -110,7 +110,7 @@ func Test_dal_crud_issues_compose_module_field_missing_sensitivity(t *testing.T)
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Present("$.response.moduleID")).
-		Assert(jsonpath.Len("$.response.modelConfig.issues", 1)).
+		Assert(jsonpath.Len("$.response.config.dal.issues", 1)).
 		End()
 
 	rsp = h.apiInit().
@@ -143,7 +143,7 @@ func Test_dal_crud_issues_compose_module_nok_connection(t *testing.T) {
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Present("$.response.moduleID")).
-		Assert(jsonpath.Len("$.response.modelConfig.issues", 1)).
+		Assert(jsonpath.Len("$.response.config.dal.issues", 1)).
 		End()
 
 	dd := json.NewDecoder(rsp.Response.Body)
@@ -170,7 +170,7 @@ func Test_dal_crud_issues_compose_module_nok_connection(t *testing.T) {
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Present("$.response.moduleID")).
-		Assert(jsonpath.NotPresent("$.response.modelConfig.issues")).
+		Assert(jsonpath.NotPresent("$.response.config.dal.issues")).
 		End()
 
 	rsp = h.apiInit().

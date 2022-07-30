@@ -3,6 +3,7 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"sort"
 	"strconv"
 	"strings"
@@ -28,7 +29,7 @@ type (
 
 		EncodingStrategy EncodingStrategy `json:"encodingStrategy"`
 
-		Privacy DataPrivacyConfig `json:"privacy"`
+		Privacy ModuleFieldConfigDataPrivacy `json:"privacy"`
 
 		Private      bool           `json:"isPrivate"`
 		Required     bool           `json:"isRequired"`
@@ -48,6 +49,14 @@ type (
 		//          struct field is kept for the convenience for now since it allows us
 		//          easy encoding/decoding of the outgoing/incoming values
 		Label string `json:"label"`
+	}
+
+	ModuleFieldConfigDataPrivacy struct {
+		// Define the highest sensitivity level which
+		// can be configured on the module fields
+		SensitivityLevel uint64 `json:"sensitivityLevel,string,omitempty"`
+
+		UsageDisclosure string `json:"usageDisclosure"`
 	}
 
 	EncodingStrategy struct {
@@ -520,3 +529,6 @@ func (f ModuleField) IsRef() bool {
 func (f ModuleField) IsSensitive() bool {
 	return f.Privacy.SensitivityLevel > 0
 }
+
+func (p *ModuleFieldConfigDataPrivacy) Scan(src any) error          { return sql.ParseJSON(src, p) }
+func (p ModuleFieldConfigDataPrivacy) Value() (driver.Value, error) { return json.Marshal(p) }

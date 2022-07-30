@@ -21,9 +21,11 @@ func Test_dal_crud_issues_compose_record_nok_connection(t *testing.T) {
 	ns := h.createNamespace("test")
 
 	connection := createConnectionFromGenerics(h.secCtx(), t, "nok_connection_connectivity.json")
-	module := createModuleFromGenerics(h.secCtx(), t, "ok_module.json", ns.ID, &types.ModelConfig{
-		ConnectionID: connection.ID,
-		Capabilities: capabilities.FullCapabilities(),
+	module := createModuleFromGenerics(h.secCtx(), t, "ok_module.json", ns.ID, &types.ModuleConfig{
+		DAL: types.ModuleConfigDAL{
+			ConnectionID: connection.ID,
+			Capabilities: capabilities.FullCapabilities(),
+		},
 	})
 
 	h.apiInit().
@@ -48,9 +50,11 @@ func Test_dal_crud_issues_compose_record_nok_model(t *testing.T) {
 	ns := h.createNamespace("test")
 
 	connection := createConnectionFromGenerics(h.secCtx(), t, "ok_connection.json")
-	module := createModuleFromGenerics(h.secCtx(), t, "nok_module_sensitivity_level.json", ns.ID, &types.ModelConfig{
-		ConnectionID: connection.ID,
-		Capabilities: capabilities.FullCapabilities(),
+	module := createModuleFromGenerics(h.secCtx(), t, "nok_module_sensitivity_level.json", ns.ID, &types.ModuleConfig{
+		DAL: types.ModuleConfigDAL{
+			ConnectionID: connection.ID,
+			Capabilities: capabilities.FullCapabilities(),
+		},
 	})
 
 	h.apiInit().
@@ -75,9 +79,11 @@ func Test_dal_crud_issues_compose_record_ok(t *testing.T) {
 	ns := h.createNamespace("test")
 
 	connection := createConnectionFromGenerics(h.secCtx(), t, "ok_connection.json")
-	module := createModuleFromGenerics(h.secCtx(), t, "ok_module.json", ns.ID, &types.ModelConfig{
-		ConnectionID: connection.ID,
-		Capabilities: capabilities.FullCapabilities(),
+	module := createModuleFromGenerics(h.secCtx(), t, "ok_module.json", ns.ID, &types.ModuleConfig{
+		DAL: types.ModuleConfigDAL{
+			ConnectionID: connection.ID,
+			Capabilities: capabilities.FullCapabilities(),
+		},
 	})
 
 	h.apiInit().

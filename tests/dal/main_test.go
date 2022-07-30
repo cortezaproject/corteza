@@ -129,7 +129,7 @@ func loadRequestFromScenarioWithConnection(t *testing.T, req string, connectionI
 	aux := &composeTypes.Module{}
 	require.NoError(t, json.Unmarshal([]byte(out), &aux))
 
-	aux.ModelConfig.ConnectionID = connectionID
+	aux.Config.DAL.ConnectionID = connectionID
 
 	a, err := json.Marshal(aux)
 	require.NoError(t, err)
@@ -158,13 +158,13 @@ func createRecordFrom(ctx context.Context, t *testing.T, suite, name string, nam
 	return record
 }
 
-func createModuleFromCase(ctx context.Context, t *testing.T, name string, namespaceID uint64, config *composeTypes.ModelConfig) (module *composeTypes.Module) {
+func createModuleFromCase(ctx context.Context, t *testing.T, name string, namespaceID uint64, config *composeTypes.ModuleConfig) (module *composeTypes.Module) {
 	return createModuleFrom(ctx, t, suiteFromT(t), name, namespaceID, config)
 }
-func createModuleFromGenerics(ctx context.Context, t *testing.T, name string, namespaceID uint64, config *composeTypes.ModelConfig) (module *composeTypes.Module) {
+func createModuleFromGenerics(ctx context.Context, t *testing.T, name string, namespaceID uint64, config *composeTypes.ModuleConfig) (module *composeTypes.Module) {
 	return createModuleFrom(ctx, t, "generic", name, namespaceID, config)
 }
-func createModuleFrom(ctx context.Context, t *testing.T, suite, name string, namespaceID uint64, config *composeTypes.ModelConfig) (module *composeTypes.Module) {
+func createModuleFrom(ctx context.Context, t *testing.T, suite, name string, namespaceID uint64, config *composeTypes.ModuleConfig) (module *composeTypes.Module) {
 	raw := loadRequestFrom(t, suite, name)
 
 	module = &composeTypes.Module{}
@@ -173,7 +173,8 @@ func createModuleFrom(ctx context.Context, t *testing.T, suite, name string, nam
 	module.NamespaceID = namespaceID
 
 	if config != nil {
-		module.ModelConfig = *config
+		// let's be careful not to override whole config
+		module.Config.DAL = config.DAL
 	}
 
 	module, err := composeService.DefaultModule.Create(ctx, module)

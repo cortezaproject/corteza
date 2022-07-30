@@ -101,8 +101,8 @@ func WalkIterator(ctx context.Context, iter dal.Iterator, mod *types.Module, f f
 
 func prepFilter(filter types.RecordFilter, mod *types.Module) (dalFilter filter.Filter) {
 	dalFilter = filter.ToFilter()
-	if mod.ModelConfig.Partitioned {
-		dalFilter = filter.ToConstraintedFilter(mod.ModelConfig.Constraints)
+	if mod.Config.DAL.Partitioned {
+		dalFilter = filter.ToConstraintedFilter(mod.Config.DAL.Constraints)
 	}
 
 	return
@@ -253,15 +253,15 @@ func recToGetters(rr ...*types.Record) (out []dal.ValueGetter) {
 }
 
 func recCreateCapabilities(m *types.Module) (out capabilities.Set) {
-	return capabilities.CreateCapabilities(m.ModelConfig.Capabilities...)
+	return capabilities.CreateCapabilities(m.Config.DAL.Capabilities...)
 }
 
 func recUpdateCapabilities(m *types.Module) (out capabilities.Set) {
-	return capabilities.UpdateCapabilities(m.ModelConfig.Capabilities...)
+	return capabilities.UpdateCapabilities(m.Config.DAL.Capabilities...)
 }
 
 func recDeleteCapabilities(m *types.Module) (out capabilities.Set) {
-	return capabilities.DeleteCapabilities(m.ModelConfig.Capabilities...)
+	return capabilities.DeleteCapabilities(m.Config.DAL.Capabilities...)
 }
 
 func recFilterCapabilities(f types.RecordFilter) (out capabilities.Set) {
@@ -285,10 +285,10 @@ func recFilterCapabilities(f types.RecordFilter) (out capabilities.Set) {
 }
 
 func recSearchCapabilities(m *types.Module, f types.RecordFilter) (out capabilities.Set) {
-	return capabilities.SearchCapabilities(m.ModelConfig.Capabilities...).
+	return capabilities.SearchCapabilities(m.Config.DAL.Capabilities...).
 		Union(recFilterCapabilities(f))
 }
 
 func recLookupCapabilities(m *types.Module) (out capabilities.Set) {
-	return capabilities.LookupCapabilities(m.ModelConfig.Capabilities...)
+	return capabilities.LookupCapabilities(m.Config.DAL.Capabilities...)
 }

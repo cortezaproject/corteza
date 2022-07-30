@@ -20,7 +20,7 @@ moduleField: schema.#Resource & {
 		label: {sortable: true}
 		options: { goType: "types.ModuleFieldOptions" }
 		encoding_strategy: { goType: "types.EncodingStrategy" }
-		privacy: { goType: "types.DataPrivacyConfig" }
+		privacy: { goType: "types.ModuleFieldConfigDataPrivacy" }
 		private: { goType: "bool", storeIdent: "is_private" }
 		required: { goType: "bool", storeIdent: "is_required" }
 		visible: { goType: "bool", storeIdent: "is_visible" }
