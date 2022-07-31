@@ -19,11 +19,8 @@ moduleField: schema.#Resource & {
 		name: {sortable: true}
 		label: {sortable: true}
 		options: { goType: "types.ModuleFieldOptions" }
-		encoding_strategy: { goType: "types.EncodingStrategy" }
-		privacy: { goType: "types.ModuleFieldConfigDataPrivacy" }
-		private: { goType: "bool", storeIdent: "is_private" }
+		config: { goType: "types.ModuleFieldConfig" }
 		required: { goType: "bool", storeIdent: "is_required" }
-		visible: { goType: "bool", storeIdent: "is_visible" }
 		multi: { goType: "bool", storeIdent: "is_multi" }
 		default_value: { goType: "types.RecordValueSet" }
 		expressions: { goType: "types.ModuleFieldExpr" }

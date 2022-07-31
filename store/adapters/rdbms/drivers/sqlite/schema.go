@@ -75,6 +75,31 @@ func (s *schema) AddColumn(ctx context.Context, db sqlx.ExtContext, t *ddl.Table
 	return ddl.Exec(ctx, db, aux...)
 }
 
+func (s *schema) DropColumn(ctx context.Context, db sqlx.ExtContext, t *ddl.Table, cc ...string) (err error) {
+	var (
+		aux    []any
+		exists bool
+	)
+
+	for _, c := range cc {
+		// check column existence
+		if exists, err = s.ColumnExists(ctx, db, c, t.Name); err != nil {
+			return
+		} else if !exists {
+			// column exists
+			continue
+		}
+
+		aux = append(aux, &ddl.DropColumn{
+			Dialect: dialect,
+			Table:   t,
+			Column:  c,
+		})
+	}
+
+	return ddl.Exec(ctx, db, aux...)
+}
+
 func columnTypeTranslator(ct ddl.ColumnType) string {
 	switch ct.Type {
 	case ddl.ColumnTypeTimestamp:

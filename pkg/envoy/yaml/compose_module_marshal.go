@@ -194,10 +194,9 @@ func (c *composeModuleField) MarshalYAML() (interface{}, error) {
 		"label", c.res.Label,
 
 		"options", nopt,
+		"config", c.res.Config,
 
-		"private", c.res.Private,
 		"required", c.res.Required,
-		"visible", c.res.Visible,
 		"multi", c.res.Multi,
 		"defaultValue", c.res.DefaultValue,
 

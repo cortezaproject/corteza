@@ -314,20 +314,19 @@ func (wrap *composeModuleField) UnmarshalYAML(n *yaml.Node) (err error) {
 		case "label":
 			return y7s.DecodeScalar(v, "module label", &wrap.res.Label)
 
-		case "private":
-			return y7s.DecodeScalar(v, "module private", &wrap.res.Private)
-
 		case "required":
 			return y7s.DecodeScalar(v, "module required", &wrap.res.Required)
-
-		case "visible":
-			return y7s.DecodeScalar(v, "module visible", &wrap.res.Visible)
 
 		case "multi":
 			return y7s.DecodeScalar(v, "module multi", &wrap.res.Multi)
 
 		case "options":
 			if err = v.Decode(&wrap.res.Options); err != nil {
+				return err
+			}
+
+		case "config":
+			if err = v.Decode(&wrap.res.Config); err != nil {
 				return err
 			}
 

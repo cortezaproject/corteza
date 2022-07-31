@@ -29,6 +29,7 @@ func (s *Store) Upgrade(ctx context.Context) (err error) {
 	fixes := []func(context.Context, *Store) error{
 		fix202209_extendComposeModuleForPrivacyAndDAL,
 		fix202209_extendComposeModuleFieldsForPrivacyAndDAL,
+		fix202209_dropObsoleteComposeModuleFields,
 	}
 
 	for _, fix := range fixes {

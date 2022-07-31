@@ -594,8 +594,6 @@ paths:
                         type: integer
                       isRequired:
                         type: boolean
-                      isPrivate:
-                        type: boolean
                       isMulti:
                         type: boolean
                       isSystem:

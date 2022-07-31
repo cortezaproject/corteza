@@ -1270,42 +1270,57 @@ func moduleSystemFieldsToAttributes(ctx context.Context, cm dal.ConnectionMeta, 
 // partitionedModuleSystemFieldsToAttributes converts all system-defined module fields to attributes
 // keeping user-defined codec in mind
 func partitionedModuleSystemFieldsToAttributes(cm dal.ConnectionMeta, mod *types.Module) (out dal.AttributeSet) {
-	sysEnc := mod.Config.DAL.SystemFieldEncoding
+	var (
+		sysEnc = mod.Config.DAL.SystemFieldEncoding
+
+		mf = func(name string, es *types.EncodingStrategy) *types.ModuleField {
+			return &types.ModuleField{
+				Name: name,
+				Config: types.ModuleFieldConfig{
+					DAL: types.ModuleFieldConfigDAL{EncodingStrategy: *es},
+				},
+			}
+		}
+	)
 
 	if sysEnc.ID != nil {
-		out = append(out, dal.PrimaryAttribute(sysID, modelFieldCodec(cm, mod, &types.ModuleField{Name: sysID, EncodingStrategy: *sysEnc.ID})))
+		out = append(out, dal.PrimaryAttribute(sysID, modelFieldCodec(cm, mod, mf(sysID, sysEnc.ID))))
 	}
 
 	if sysEnc.ModuleID != nil {
-		out = append(out, dal.FullAttribute(sysModuleID, &dal.TypeID{}, modelFieldCodec(cm, mod, &types.ModuleField{Name: sysModuleID, EncodingStrategy: *sysEnc.ModuleID})))
+		out = append(out, dal.FullAttribute(sysModuleID, &dal.TypeID{}, modelFieldCodec(cm, mod, mf(sysModuleID, sysEnc.ModuleID))))
 	}
+
 	if sysEnc.NamespaceID != nil {
-		out = append(out, dal.FullAttribute(sysNamespaceID, &dal.TypeID{}, modelFieldCodec(cm, mod, &types.ModuleField{Name: sysNamespaceID, EncodingStrategy: *sysEnc.NamespaceID})))
+		out = append(out, dal.FullAttribute(sysNamespaceID, &dal.TypeID{}, modelFieldCodec(cm, mod, mf(sysNamespaceID, sysEnc.NamespaceID))))
 	}
 
 	if sysEnc.OwnedBy != nil {
-		out = append(out, dal.FullAttribute(sysOwnedBy, &dal.TypeID{}, modelFieldCodec(cm, mod, &types.ModuleField{Name: sysOwnedBy, EncodingStrategy: *sysEnc.OwnedBy})))
+		out = append(out, dal.FullAttribute(sysOwnedBy, &dal.TypeID{}, modelFieldCodec(cm, mod, mf(sysOwnedBy, sysEnc.OwnedBy))))
 	}
 
 	if sysEnc.CreatedAt != nil {
-		out = append(out, dal.FullAttribute(sysCreatedAt, &dal.TypeTimestamp{}, modelFieldCodec(cm, mod, &types.ModuleField{Name: sysCreatedAt, EncodingStrategy: *sysEnc.CreatedAt})))
+		out = append(out, dal.FullAttribute(sysCreatedAt, &dal.TypeTimestamp{}, modelFieldCodec(cm, mod, mf(sysCreatedAt, sysEnc.CreatedAt))))
 	}
+
 	if sysEnc.CreatedBy != nil {
-		out = append(out, dal.FullAttribute(sysCreatedBy, &dal.TypeID{}, modelFieldCodec(cm, mod, &types.ModuleField{Name: sysCreatedBy, EncodingStrategy: *sysEnc.CreatedBy})))
+		out = append(out, dal.FullAttribute(sysCreatedBy, &dal.TypeID{}, modelFieldCodec(cm, mod, mf(sysCreatedBy, sysEnc.CreatedBy))))
 	}
 
 	if sysEnc.UpdatedAt != nil {
-		out = append(out, dal.FullAttribute(sysUpdatedAt, &dal.TypeTimestamp{Nullable: true}, modelFieldCodec(cm, mod, &types.ModuleField{Name: sysUpdatedAt, EncodingStrategy: *sysEnc.UpdatedAt})))
+		out = append(out, dal.FullAttribute(sysUpdatedAt, &dal.TypeTimestamp{Nullable: true}, modelFieldCodec(cm, mod, mf(sysUpdatedAt, sysEnc.UpdatedAt))))
 	}
+
 	if sysEnc.UpdatedBy != nil {
-		out = append(out, dal.FullAttribute(sysUpdatedBy, &dal.TypeID{Nullable: true}, modelFieldCodec(cm, mod, &types.ModuleField{Name: sysUpdatedBy, EncodingStrategy: *sysEnc.UpdatedBy})))
+		out = append(out, dal.FullAttribute(sysUpdatedBy, &dal.TypeID{Nullable: true}, modelFieldCodec(cm, mod, mf(sysUpdatedBy, sysEnc.UpdatedBy))))
 	}
 
 	if sysEnc.DeletedAt != nil {
-		out = append(out, dal.FullAttribute(sysDeletedAt, &dal.TypeTimestamp{Nullable: true}, modelFieldCodec(cm, mod, &types.ModuleField{Name: sysDeletedAt, EncodingStrategy: *sysEnc.DeletedAt})))
+		out = append(out, dal.FullAttribute(sysDeletedAt, &dal.TypeTimestamp{Nullable: true}, modelFieldCodec(cm, mod, mf(sysDeletedAt, sysEnc.DeletedAt))))
 	}
+
 	if sysEnc.DeletedBy != nil {
-		out = append(out, dal.FullAttribute(sysDeletedBy, &dal.TypeID{Nullable: true}, modelFieldCodec(cm, mod, &types.ModuleField{Name: sysDeletedBy, EncodingStrategy: *sysEnc.DeletedBy})))
+		out = append(out, dal.FullAttribute(sysDeletedBy, &dal.TypeID{Nullable: true}, modelFieldCodec(cm, mod, mf(sysDeletedBy, sysEnc.DeletedBy))))
 	}
 
 	return
@@ -1411,7 +1426,7 @@ func moduleFieldToAttribute(ctx context.Context, cm dal.ConnectionMeta, mod *typ
 		return nil, fmt.Errorf("invalid field %s: kind %s not supported", f.Name, f.Kind)
 	}
 
-	out.SensitivityLevel = f.Privacy.SensitivityLevel
+	out.SensitivityLevel = f.Config.Privacy.SensitivityLevel
 	out.Label = f.Name
 	out.MultiValue = f.Multi
 
@@ -1449,13 +1464,13 @@ func modelFieldCodec(cm dal.ConnectionMeta, mod *types.Module, f *types.ModuleFi
 	c = baseModelFieldCodec(cm, mod, f)
 
 	switch {
-	case f.EncodingStrategy.EncodingStrategyAlias != nil:
+	case f.Config.DAL.EncodingStrategy.EncodingStrategyAlias != nil:
 		c = &dal.CodecAlias{
-			Ident: f.EncodingStrategy.EncodingStrategyAlias.Ident,
+			Ident: f.Config.DAL.EncodingStrategy.EncodingStrategyAlias.Ident,
 		}
-	case f.EncodingStrategy.EncodingStrategyJSON != nil:
+	case f.Config.DAL.EncodingStrategy.EncodingStrategyJSON != nil:
 		c = &dal.CodecRecordValueSetJSON{
-			Ident: f.EncodingStrategy.EncodingStrategyJSON.Ident,
+			Ident: f.Config.DAL.EncodingStrategy.EncodingStrategyJSON.Ident,
 		}
 	}
 
