@@ -40,6 +40,12 @@ type (
 		Table   *Table
 		Column  *Column
 	}
+
+	DropColumn struct {
+		Dialect dialect
+		Table   *Table
+		Column  string
+	}
 )
 
 func CreateIndexTemplates(base *CreateIndex, ii ...*Index) []any {
@@ -281,6 +287,10 @@ func (c *AddColumn) String() string {
 	}
 
 	return sql
+}
+
+func (c *DropColumn) String() string {
+	return "ALTER TABLE" + " " + c.Table.Name + " DROP COLUMN " + c.Column
 }
 
 func GetBool(ctx context.Context, db sqlx.QueryerContext, query exp.SQLExpression) (bool, error) {

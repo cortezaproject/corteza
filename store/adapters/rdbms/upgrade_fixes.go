@@ -15,11 +15,20 @@ func fix202209_extendComposeModuleForPrivacyAndDAL(ctx context.Context, s *Store
 }
 
 func fix202209_extendComposeModuleFieldsForPrivacyAndDAL(ctx context.Context, s *Store) (err error) {
-	s.log(ctx).Info("extending compose_module_field table with privacy and encoding_strategy columns")
+	s.log(ctx).Info("extending compose_module_field table with config column")
 	return s.SchemaAPI.AddColumn(
 		ctx, s.DB,
 		&Table{Name: "compose_module_field"},
-		&Column{Type: ColumnType{Type: ColumnTypeJson}, DefaultValue: "'{}'", Name: "privacy"},
-		&Column{Type: ColumnType{Type: ColumnTypeJson}, DefaultValue: "'{}'", Name: "encoding_strategy"},
+		&Column{Type: ColumnType{Type: ColumnTypeJson}, DefaultValue: "'{}'", Name: "config"},
+	)
+}
+
+func fix202209_dropObsoleteComposeModuleFields(ctx context.Context, s *Store) (err error) {
+	s.log(ctx).Info("extending compose_module_field table with config column")
+	return s.SchemaAPI.DropColumn(
+		ctx, s.DB,
+		&Table{Name: "compose_module_field"},
+		"is_private",
+		"is_visible",
 	)
 }

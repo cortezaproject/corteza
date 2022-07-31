@@ -37,6 +37,7 @@ type (
 		TableExists(context.Context, sqlx.QueryerContext, string) (bool, error)
 		CreateTable(context.Context, sqlx.ExtContext, *ddl.Table) error
 		AddColumn(context.Context, sqlx.ExtContext, *ddl.Table, ...*ddl.Column) error
+		DropColumn(context.Context, sqlx.ExtContext, *ddl.Table, ...string) error
 	}
 
 	Store struct {

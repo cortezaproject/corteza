@@ -25,15 +25,14 @@ type (
 		Kind string `json:"kind"`
 		Name string `json:"name"`
 
+		// Options relevant to field type
 		Options ModuleFieldOptions `json:"options"`
 
-		EncodingStrategy EncodingStrategy `json:"encodingStrategy"`
+		// Configuration - how sub-services and sub-systems like DAL and record revisions
+		// are configured to work with this field
+		Config ModuleFieldConfig `json:"config"`
 
-		Privacy ModuleFieldConfigDataPrivacy `json:"privacy"`
-
-		Private      bool           `json:"isPrivate"`
 		Required     bool           `json:"isRequired"`
-		Visible      bool           `json:"isVisible"`
 		Multi        bool           `json:"isMulti"`
 		DefaultValue RecordValueSet `json:"defaultValue"`
 
@@ -49,6 +48,15 @@ type (
 		//          struct field is kept for the convenience for now since it allows us
 		//          easy encoding/decoding of the outgoing/incoming values
 		Label string `json:"label"`
+	}
+
+	ModuleFieldConfig struct {
+		DAL     ModuleFieldConfigDAL         `json:"dal"`
+		Privacy ModuleFieldConfigDataPrivacy `json:"privacy"`
+	}
+
+	ModuleFieldConfigDAL struct {
+		EncodingStrategy EncodingStrategy `json:"encodingStrategy"`
 	}
 
 	ModuleFieldConfigDataPrivacy struct {
@@ -429,9 +437,6 @@ func (set ModuleFieldSet) Clone() (out ModuleFieldSet) {
 func (set *ModuleFieldSet) Scan(src any) error          { return sql.ParseJSON(src, set) }
 func (set ModuleFieldSet) Value() (driver.Value, error) { return json.Marshal(set) }
 
-func (set *EncodingStrategy) Scan(src any) error          { return sql.ParseJSON(src, set) }
-func (set EncodingStrategy) Value() (driver.Value, error) { return json.Marshal(set) }
-
 func (set ModuleFieldSet) Names() (names []string) {
 	names = make([]string, len(set))
 
@@ -511,8 +516,8 @@ func (f ModuleField) IsRef() bool {
 }
 
 func (f ModuleField) IsSensitive() bool {
-	return f.Privacy.SensitivityLevel > 0
+	return f.Config.Privacy.SensitivityLevel > 0
 }
 
-func (p *ModuleFieldConfigDataPrivacy) Scan(src any) error          { return sql.ParseJSON(src, p) }
-func (p ModuleFieldConfigDataPrivacy) Value() (driver.Value, error) { return json.Marshal(p) }
+func (p *ModuleFieldConfig) Scan(src any) error          { return sql.ParseJSON(src, p) }
+func (p ModuleFieldConfig) Value() (driver.Value, error) { return json.Marshal(p) }

@@ -257,24 +257,21 @@ type (
 
 	// auxComposeModuleField is an auxiliary structure used for transporting to/from RDBMS store
 	auxComposeModuleField struct {
-		ID               uint64                                   `db:"id"`
-		ModuleID         uint64                                   `db:"module_id"`
-		Place            int                                      `db:"place"`
-		Kind             string                                   `db:"kind"`
-		Name             string                                   `db:"name"`
-		Label            string                                   `db:"label"`
-		Options          composeType.ModuleFieldOptions           `db:"options"`
-		EncodingStrategy composeType.EncodingStrategy             `db:"encoding_strategy"`
-		Privacy          composeType.ModuleFieldConfigDataPrivacy `db:"privacy"`
-		Private          bool                                     `db:"private"`
-		Required         bool                                     `db:"required"`
-		Visible          bool                                     `db:"visible"`
-		Multi            bool                                     `db:"multi"`
-		DefaultValue     composeType.RecordValueSet               `db:"default_value"`
-		Expressions      composeType.ModuleFieldExpr              `db:"expressions"`
-		CreatedAt        time.Time                                `db:"created_at"`
-		UpdatedAt        *time.Time                               `db:"updated_at"`
-		DeletedAt        *time.Time                               `db:"deleted_at"`
+		ID           uint64                         `db:"id"`
+		ModuleID     uint64                         `db:"module_id"`
+		Place        int                            `db:"place"`
+		Kind         string                         `db:"kind"`
+		Name         string                         `db:"name"`
+		Label        string                         `db:"label"`
+		Options      composeType.ModuleFieldOptions `db:"options"`
+		Config       composeType.ModuleFieldConfig  `db:"config"`
+		Required     bool                           `db:"required"`
+		Multi        bool                           `db:"multi"`
+		DefaultValue composeType.RecordValueSet     `db:"default_value"`
+		Expressions  composeType.ModuleFieldExpr    `db:"expressions"`
+		CreatedAt    time.Time                      `db:"created_at"`
+		UpdatedAt    *time.Time                     `db:"updated_at"`
+		DeletedAt    *time.Time                     `db:"deleted_at"`
 	}
 
 	// auxComposeNamespace is an auxiliary structure used for transporting to/from RDBMS store
@@ -1495,11 +1492,8 @@ func (aux *auxComposeModuleField) encode(res *composeType.ModuleField) (_ error)
 	aux.Name = res.Name
 	aux.Label = res.Label
 	aux.Options = res.Options
-	aux.EncodingStrategy = res.EncodingStrategy
-	aux.Privacy = res.Privacy
-	aux.Private = res.Private
+	aux.Config = res.Config
 	aux.Required = res.Required
-	aux.Visible = res.Visible
 	aux.Multi = res.Multi
 	aux.DefaultValue = res.DefaultValue
 	aux.Expressions = res.Expressions
@@ -1521,11 +1515,8 @@ func (aux auxComposeModuleField) decode() (res *composeType.ModuleField, _ error
 	res.Name = aux.Name
 	res.Label = aux.Label
 	res.Options = aux.Options
-	res.EncodingStrategy = aux.EncodingStrategy
-	res.Privacy = aux.Privacy
-	res.Private = aux.Private
+	res.Config = aux.Config
 	res.Required = aux.Required
-	res.Visible = aux.Visible
 	res.Multi = aux.Multi
 	res.DefaultValue = aux.DefaultValue
 	res.Expressions = aux.Expressions
@@ -1547,11 +1538,8 @@ func (aux *auxComposeModuleField) scan(row scanner) error {
 		&aux.Name,
 		&aux.Label,
 		&aux.Options,
-		&aux.EncodingStrategy,
-		&aux.Privacy,
-		&aux.Private,
+		&aux.Config,
 		&aux.Required,
-		&aux.Visible,
 		&aux.Multi,
 		&aux.DefaultValue,
 		&aux.Expressions,

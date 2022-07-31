@@ -96,8 +96,6 @@ type (
 		UsageDisclosure string `json:"usageDisclosure"`
 	}
 
-	ModelMeta map[string]any
-
 	ModuleFilter struct {
 		ModuleID    []uint64 `json:"moduleID"`
 		NamespaceID uint64   `json:"namespaceID,string"`
@@ -167,9 +165,6 @@ func (set ModuleSet) FindByHandle(handle string) *Module {
 
 func (c *ModuleConfig) Scan(src any) error          { return sql.ParseJSON(src, c) }
 func (c ModuleConfig) Value() (driver.Value, error) { return json.Marshal(c) }
-
-func (m *ModelMeta) Scan(src any) error          { return sql.ParseJSON(src, m) }
-func (m ModelMeta) Value() (driver.Value, error) { return json.Marshal(m) }
 
 func ParseModuleConfig(ss []string) (m ModuleConfig, err error) {
 	if len(ss) == 0 {
