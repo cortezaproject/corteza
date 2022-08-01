@@ -500,7 +500,7 @@ func (svc *auth) ChangePassword(ctx context.Context, userID uint64, oldPassword,
 			return err
 		}
 
-		if !isValidPassword(cc, oldPassword) {
+		if c := findValidPassword(cc, oldPassword); c == nil {
 			return AuthErrPasswordResetFailedOldPasswordCheckFailed(aam)
 		}
 
@@ -1039,12 +1039,16 @@ func validateToken(token string) (ID uint64, credentials string) {
 	return
 }
 
-// returns true if (hashed version of a) password is found in the
+// returns matching credential if (hashed version of a) password is found in the
 // list of (valid) credentials
 //
 // should be used as a parameter for credentialsFilter fn
-func isValidPassword(cc []*types.Credential, password string) bool {
-	return len(credentialsFilter(cc, 1, skipInvalid, compareHashedCredentials(password))) > 0
+func findValidPassword(cc []*types.Credential, password string) (c *types.Credential) {
+	cList := credentialsFilter(cc, 1, skipInvalid, compareHashedCredentials(password))
+	if len(cList) > 0 {
+		c = cList[0]
+	}
+	return
 }
 
 // returns true if (hashed version of a) password is found in the

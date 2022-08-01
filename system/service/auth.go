@@ -329,7 +329,8 @@ func (svc *auth) InternalSignUp(ctx context.Context, input *types.User, password
 			}
 
 			// does password match any of the valid credentials?
-			if !isValidPassword(cc, password) {
+			c = findValidPassword(cc, password)
+			if c == nil {
 				return AuthErrInvalidCredentials(aam)
 			}
 
@@ -480,7 +481,8 @@ func (svc *auth) InternalLogin(ctx context.Context, email string, password strin
 		}
 
 		// find 1st valid credentials that match the hashed password
-		if !isValidPassword(cc, password) {
+		c = findValidPassword(cc, password)
+		if c == nil {
 			return AuthErrInvalidCredentials(aam)
 		}
 

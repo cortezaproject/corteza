@@ -145,7 +145,7 @@ func (svc chart) Create(ctx context.Context, new *types.Chart) (*types.Chart, er
 	var (
 		err    error
 		ns     *types.Namespace
-		aProps = &chartActionProps{changed: new}
+		aProps = &chartActionProps{chart: new}
 	)
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
@@ -174,6 +174,8 @@ func (svc chart) Create(ctx context.Context, new *types.Chart) (*types.Chart, er
 
 		// generate config element IDs
 		new.Config.GenerateIDs(nextID)
+
+		aProps.setChanged(new)
 
 		if err = store.CreateComposeChart(ctx, s, new); err != nil {
 			return err

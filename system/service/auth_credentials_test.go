@@ -62,13 +62,13 @@ func Test_isValidPassword(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			var (
 				req = require.New(t)
-				rsp = isValidPassword(c.cc, c.password)
+				rsp = findValidPassword(c.cc, c.password)
 			)
 
 			if c.rval {
-				req.True(rsp)
+				req.NotNil(rsp)
 			} else {
-				req.False(rsp)
+				req.Nil(rsp)
 			}
 		})
 	}

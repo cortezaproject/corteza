@@ -62,7 +62,7 @@ func (svc *apigwRoute) FindByID(ctx context.Context, ID uint64) (q *types.ApigwR
 
 func (svc *apigwRoute) Create(ctx context.Context, new *types.ApigwRoute) (q *types.ApigwRoute, err error) {
 	var (
-		qProps = &apigwRouteActionProps{new: new}
+		qProps = &apigwRouteActionProps{route: new}
 	)
 
 	err = func() (err error) {
@@ -76,6 +76,8 @@ func (svc *apigwRoute) Create(ctx context.Context, new *types.ApigwRoute) (q *ty
 
 		// todo
 		new.Group = 0
+
+		qProps.setNew(new)
 
 		if err = store.CreateApigwRoute(ctx, svc.store, new); err != nil {
 			return err

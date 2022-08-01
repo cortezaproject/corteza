@@ -299,7 +299,7 @@ func (svc role) proc(ctx context.Context, r *types.Role, err error) (*types.Role
 
 func (svc role) Create(ctx context.Context, new *types.Role) (r *types.Role, err error) {
 	var (
-		raProps = &roleActionProps{new: new}
+		raProps = &roleActionProps{role: new}
 	)
 
 	err = func() (err error) {
@@ -328,6 +328,8 @@ func (svc role) Create(ctx context.Context, new *types.Role) (r *types.Role, err
 		new.ID = nextID()
 		new.CreatedAt = *now()
 
+		raProps.setNew(new)
+
 		if err = store.CreateRole(ctx, svc.store, new); err != nil {
 			return
 		}
@@ -352,6 +354,12 @@ func (svc role) Update(ctx context.Context, upd *types.Role) (r *types.Role, err
 	)
 
 	err = func() (err error) {
+		if r, err = loadRole(ctx, svc.store, upd.ID); err != nil {
+			return
+		}
+
+		raProps.setRole(r)
+
 		if !handle.IsValid(upd.Handle) {
 			return RoleErrInvalidHandle()
 		}
@@ -359,12 +367,6 @@ func (svc role) Update(ctx context.Context, upd *types.Role) (r *types.Role, err
 		if !svc.ac.CanUpdateRole(ctx, upd) {
 			return RoleErrNotAllowedToUpdate()
 		}
-
-		if r, err = loadRole(ctx, svc.store, upd.ID); err != nil {
-			return
-		}
-
-		raProps.setRole(r)
 
 		if svc.IsSystem(r) {
 			// prevent system role updates

@@ -183,7 +183,7 @@ func (svc *authClient) Search(ctx context.Context, af types.AuthClientFilter) (a
 
 func (svc *authClient) Create(ctx context.Context, new *types.AuthClient) (res *types.AuthClient, err error) {
 	var (
-		aaProps = &authClientActionProps{new: new}
+		aaProps = &authClientActionProps{authClient: new}
 	)
 
 	err = func() (err error) {
@@ -214,6 +214,8 @@ func (svc *authClient) Create(ctx context.Context, new *types.AuthClient) (res *
 				return errors.Internal("auth client security configuration invalid")
 			}
 		}
+
+		aaProps.setNew(new)
 
 		if err = store.CreateAuthClient(ctx, svc.store, new); err != nil {
 			return

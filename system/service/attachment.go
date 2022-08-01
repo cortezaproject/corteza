@@ -172,10 +172,6 @@ func (svc attachment) CreateApplicationAttachment(ctx context.Context, name stri
 	)
 
 	err = func() (err error) {
-		if !svc.ac.CanCreateApplication(ctx) {
-			return AttachmentErrNotAllowedToCreate()
-		}
-
 		att = &types.Attachment{
 			OwnerID: currentUserID,
 			Name:    strings.TrimSpace(name),
@@ -183,6 +179,10 @@ func (svc attachment) CreateApplicationAttachment(ctx context.Context, name stri
 		}
 
 		aaProps.setAttachment(att)
+
+		if !svc.ac.CanCreateApplication(ctx) {
+			return AttachmentErrNotAllowedToCreate()
+		}
 
 		if labels != nil {
 			att.Meta.Labels = labels

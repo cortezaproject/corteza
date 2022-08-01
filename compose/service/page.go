@@ -274,7 +274,7 @@ func (svc page) Reorder(ctx context.Context, namespaceID, parentID uint64, pageI
 func (svc page) Create(ctx context.Context, new *types.Page) (*types.Page, error) {
 	var (
 		ns     *types.Namespace
-		aProps = &pageActionProps{changed: new}
+		aProps = &pageActionProps{page: new}
 	)
 
 	new.ID = 0
@@ -311,6 +311,8 @@ func (svc page) Create(ctx context.Context, new *types.Page) (*types.Page, error
 		for i := range new.Blocks {
 			new.Blocks[i].BlockID = uint64(i) + 1
 		}
+
+		aProps.setChanged(new)
 
 		if err = store.CreateComposePage(ctx, s, new); err != nil {
 			return err
