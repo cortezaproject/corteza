@@ -161,6 +161,8 @@ func (h helper) makeRecord(module *types.Module, rvs ...*types.RecordValue) *typ
 		Values: values.Formatter().Run(module, rvs),
 	}
 
+	rec.SetModule(module)
+
 	h.noError(dalutils.ComposeRecordCreate(context.Background(), defDal, module, rec))
 
 	return rec
