@@ -308,8 +308,7 @@ func NewRecord(h RecordAPI) *Record {
 				return
 			}
 
-			value, err := h.
-				Revisions(r.Context(), params)
+			value, err := h.Revisions(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return

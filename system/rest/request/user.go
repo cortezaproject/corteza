@@ -280,6 +280,25 @@ type (
 		UserID uint64 `json:",string"`
 	}
 
+	UserListCredentials struct {
+		// UserID PATH parameter
+		//
+		// ID
+		UserID uint64 `json:",string"`
+	}
+
+	UserDeleteCredentials struct {
+		// UserID PATH parameter
+		//
+		// ID
+		UserID uint64 `json:",string"`
+
+		// CredentialsID PATH parameter
+		//
+		// Credentials ID
+		CredentialsID uint64 `json:",string"`
+	}
+
 	UserExport struct {
 		// Filename PATH parameter
 		//
@@ -1411,6 +1430,88 @@ func (r *UserSessionsRemove) Fill(req *http.Request) (err error) {
 
 		val = chi.URLParam(req, "userID")
 		r.UserID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewUserListCredentials request
+func NewUserListCredentials() *UserListCredentials {
+	return &UserListCredentials{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r UserListCredentials) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"userID": r.UserID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r UserListCredentials) GetUserID() uint64 {
+	return r.UserID
+}
+
+// Fill processes request and fills internal variables
+func (r *UserListCredentials) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "userID")
+		r.UserID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewUserDeleteCredentials request
+func NewUserDeleteCredentials() *UserDeleteCredentials {
+	return &UserDeleteCredentials{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r UserDeleteCredentials) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"userID":        r.UserID,
+		"credentialsID": r.CredentialsID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r UserDeleteCredentials) GetUserID() uint64 {
+	return r.UserID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r UserDeleteCredentials) GetCredentialsID() uint64 {
+	return r.CredentialsID
+}
+
+// Fill processes request and fills internal variables
+func (r *UserDeleteCredentials) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "userID")
+		r.UserID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "credentialsID")
+		r.CredentialsID, err = payload.ParseUint64(val), nil
 		if err != nil {
 			return err
 		}

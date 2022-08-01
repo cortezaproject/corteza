@@ -50,6 +50,7 @@ user: schema.#Resource & {
 			"email.unmask": description: "Unmask email"
 			"name.unmask": description:  "Unmask name"
 			"impersonate": description:  "Impersonate user"
+			"credentials.manage": description: "Manage user's credentials"
 		}
 	}
 
