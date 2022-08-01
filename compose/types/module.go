@@ -51,6 +51,8 @@ type (
 		ModuleID    *EncodingStrategy `json:"moduleID"`
 		NamespaceID *EncodingStrategy `json:"namespaceID"`
 
+		Revision *EncodingStrategy `json:"revision"`
+
 		OwnedBy *EncodingStrategy `json:"ownedBy"`
 
 		CreatedAt *EncodingStrategy `json:"createdAt"`
@@ -72,6 +74,8 @@ type (
 
 		// @todo we need to transfer this from meta!!
 		Discovery discovery.ModuleMeta `json:"discovery"`
+
+		RecordRevisions ModuleConfigRecordRevisions `json:"recordRevisions"`
 	}
 
 	ModuleConfigDAL struct {
@@ -86,6 +90,14 @@ type (
 		PartitionFormat string `json:"partitionFormat"`
 
 		SystemFieldEncoding SystemFieldEncoding `json:"systemFieldEncoding"`
+	}
+
+	ModuleConfigRecordRevisions struct {
+		// enable or disable revisions
+		Enabled bool `json:"enabled"`
+
+		// where are record revisions stored
+		Ident string `json:"ident"`
 	}
 
 	ModuleConfigDataPrivacy struct {

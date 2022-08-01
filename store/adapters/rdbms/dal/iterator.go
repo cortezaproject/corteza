@@ -161,7 +161,6 @@ func (i *iterator) fetch(ctx context.Context) (_ *sql.Rows, err error) {
 		}
 	}
 
-	sql, _, _ = query.Prepared(false).ToSQL()
 	if sql, args, err = query.ToSQL(); err != nil {
 		return nil, err
 	}

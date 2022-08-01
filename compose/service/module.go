@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/revisions"
 	"reflect"
 	"sort"
 	"strconv"
@@ -79,8 +80,8 @@ type (
 		SearchModelIssues(connectionID, ID uint64) []error
 	}
 
-	dalIdentFormatter interface {
-		Format(ctx context.Context, template string) (out string, ok bool)
+	identFormatter interface {
+		Format(context.Context, string, ...string) (string, bool)
 	}
 )
 
@@ -101,6 +102,7 @@ const (
 	sysID          = "ID"
 	sysNamespaceID = "namespaceID"
 	sysModuleID    = "moduleID"
+	sysRevision    = "revision"
 	sysCreatedAt   = "createdAt"
 	sysCreatedBy   = "createdBy"
 	sysUpdatedAt   = "updatedAt"
@@ -112,6 +114,7 @@ const (
 	colSysID          = "id"
 	colSysNamespaceID = "rel_namespace"
 	colSysModuleID    = "module_id"
+	colSysRevision    = "revision"
 	colSysCreatedAt   = "created_at"
 	colSysCreatedBy   = "created_by"
 	colSysUpdatedAt   = "updated_at"
@@ -125,6 +128,7 @@ var (
 	systemFields = slice.ToStringBoolMap([]string{
 		"recordID",
 		"ownedBy",
+		"revision",
 		"createdBy",
 		"createdAt",
 		"updatedBy",
@@ -1113,6 +1117,7 @@ func modulesForNamespace(ns *types.Namespace, mm types.ModuleSet) (out types.Mod
 			out = append(out, m)
 		}
 	}
+
 	return
 }
 
@@ -1172,7 +1177,6 @@ func moduleToModel(ctx context.Context, dmm dalModelManager, ns *types.Namespace
 	var (
 		cm      dal.ConnectionMeta
 		attrAux dal.AttributeSet
-		ok      bool
 	)
 
 	for connectionID, modules := range modulesByConnection(modules...) {
@@ -1204,21 +1208,13 @@ func moduleToModel(ctx context.Context, dmm dalModelManager, ns *types.Namespace
 				Capabilities:     mod.Config.DAL.Capabilities,
 			}
 
-			// - make the model ident
-			ident := cm.DefaultModelIdent
+			model.Ident = cm.DefaultModelIdent
 			if mod.Config.DAL.Partitioned {
-				tpl := mod.Config.DAL.PartitionFormat
-				if tpl == "" {
-					tpl = cm.DefaultPartitionFormat
-				}
-
-				ident, ok = ff.Format(ctx, tpl, formatterModuleParams(mod)...)
-				if !ok {
-					err = fmt.Errorf("invalid model ident generated: %s", ident)
+				model.Ident, err = makeModelIdent(ctx, ff, cm, mod, mod.Config.DAL.PartitionFormat)
+				if err != nil {
 					return
 				}
 			}
-			model.Ident = ident
 
 			// Convert user-defined fields to attributes
 			attrAux, err = moduleFieldsToAttributes(ctx, cm, ns, mod)
@@ -1235,10 +1231,51 @@ func moduleToModel(ctx context.Context, dmm dalModelManager, ns *types.Namespace
 			model.Attributes = append(model.Attributes, attrAux...)
 
 			out = append(out, model)
+
+			if mod.Config.RecordRevisions.Enabled {
+				rModel := revisions.Model()
+
+				// reuse the connection from the module
+				rModel.ConnectionID = connectionID
+				rModel.Resource = model.Resource
+
+				// a little trick to ensure revision model keeps t
+				// the same ID and to avoid collisions with the model
+				rModel.ResourceID = mod.ID + 1
+
+				if mod.Config.RecordRevisions.Ident == "" {
+					mod.Config.RecordRevisions.Ident = "compose_record_revisions"
+				}
+
+				rModel.Ident, err = makeModelIdent(ctx, ff, cm, mod, mod.Config.RecordRevisions.Ident)
+				if err != nil {
+					return
+				}
+
+				out = append(out, rModel)
+			}
 		}
 	}
 
 	return
+}
+
+func makeModelIdent(ctx context.Context, ff identFormatter, cm dal.ConnectionMeta, mod *types.Module, ident string) (_ string, err error) {
+	var (
+		ok bool
+	)
+
+	if ident == "" {
+		ident = cm.DefaultPartitionFormat
+	}
+
+	ident, ok = ff.Format(ctx, ident, formatterModuleParams(mod)...)
+	if !ok {
+		err = fmt.Errorf("invalid model ident generated: %s", ident)
+		return
+	}
+
+	return ident, nil
 }
 
 // moduleFieldsToAttributes converts all user-defined module fields to attributes
@@ -1295,6 +1332,10 @@ func partitionedModuleSystemFieldsToAttributes(cm dal.ConnectionMeta, mod *types
 		out = append(out, dal.FullAttribute(sysNamespaceID, &dal.TypeID{}, modelFieldCodec(cm, mod, mf(sysNamespaceID, sysEnc.NamespaceID))))
 	}
 
+	if sysEnc.Revision != nil {
+		out = append(out, dal.FullAttribute(sysRevision, &dal.TypeID{}, modelFieldCodec(cm, mod, mf(sysRevision, sysEnc.Revision))))
+	}
+
 	if sysEnc.OwnedBy != nil {
 		out = append(out, dal.FullAttribute(sysOwnedBy, &dal.TypeID{}, modelFieldCodec(cm, mod, mf(sysOwnedBy, sysEnc.OwnedBy))))
 	}
@@ -1334,6 +1375,8 @@ func defaultModuleSystemFieldsToAttributes() dal.AttributeSet {
 
 		dal.FullAttribute(sysModuleID, &dal.TypeID{}, &dal.CodecAlias{Ident: colSysModuleID}),
 		dal.FullAttribute(sysNamespaceID, &dal.TypeID{}, &dal.CodecAlias{Ident: colSysNamespaceID}),
+
+		dal.FullAttribute(sysRevision, &dal.TypeNumber{}, &dal.CodecAlias{Ident: colSysRevision}),
 
 		dal.FullAttribute(sysOwnedBy, &dal.TypeID{}, &dal.CodecAlias{Ident: colSysOwnedBy}),
 

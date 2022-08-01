@@ -72,6 +72,9 @@ actions:
   - action: import
     log: "records imported"
 
+  - action: searchRevisions
+    log: "record revisions searched"
+
   - action: export
     log: "records exported"
 
@@ -129,6 +132,14 @@ errors:
   - error: notAllowedToSearch
     message: "not allowed to search or list records"
     log: "failed to search or list records; insufficient permissions"
+
+  - error: notAllowedToSearchRevisions
+    message: "not allowed to search or list record revisions"
+    log: "failed to search or list record revisions; insufficient permissions"
+
+  - error: revisionsDisabledOnModule
+    message: "revisions are disabled on module"
+    log: "failed to search or list record revisions; disabled on module"
 
   - error: notAllowedToReadNamespace
     message: "not allowed to read this namespace"
