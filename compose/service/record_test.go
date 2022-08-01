@@ -819,6 +819,8 @@ func TestRecord_contextualRolesAccessControl(t *testing.T) {
 			ModuleID:    mod.ID,
 		}
 
+		rr[i].SetModule(mod)
+
 		if i%2 == 0 {
 			// let's own half of the records
 			rr[i].OwnedBy = user.ID
