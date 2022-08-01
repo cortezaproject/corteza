@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-resource_translation: schema.#Resource & {
+resource_translation: {
 	features: {
 		labels: false
 		checkFn: false

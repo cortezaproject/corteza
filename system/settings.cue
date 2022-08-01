@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-settings: schema.#Resource & {
+settings: {
 	ident: "settingValue"
 	expIdent: "SettingValue"
 

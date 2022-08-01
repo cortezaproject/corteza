@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-nodeSync: schema.#Resource & {
+nodeSync: {
 	features: {
 		labels: false
 	}

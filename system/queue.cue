@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-queue: schema.#Resource & {
+queue: {
 	features: {
 		labels: false
 	}

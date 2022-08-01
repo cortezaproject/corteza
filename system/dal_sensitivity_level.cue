@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-dal_sensitivity_level: schema.#Resource & {
+dal_sensitivity_level: {
 	struct: {
 		id:     schema.IdField
 		handle: schema.HandleField
@@ -29,8 +29,6 @@ dal_sensitivity_level: schema.#Resource & {
 		byValue: ["sensitivity_level_id"]
 		byNilState: ["deleted"]
 	}
-
-	rbac: false
 
 	features: {
 		labels: false

@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-role: schema.#Resource & {
+role: {
 	struct: {
 		id: schema.IdField
 		name: {sortable: true}

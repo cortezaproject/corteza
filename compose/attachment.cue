@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-attachment: schema.#Resource & {
+attachment: {
 	features: {
 		labels: false
 	}

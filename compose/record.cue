@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-record: schema.#Resource & {
+record: {
 	parents: [
 		{handle: "namespace"},
 		{handle: "module"},

@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-template: schema.#Resource & {
+template: {
 	struct: {
 		id:     schema.IdField
 		handle: schema.HandleField

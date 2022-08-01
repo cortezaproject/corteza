@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-node: schema.#Resource & {
+node: {
 	features: {
 		labels: false
 		paging: false
@@ -38,7 +38,6 @@ node: schema.#Resource & {
 		}
 
 		query: ["name", "base_url"]
-		byQuery: ["status"]
 		byNilState: ["deleted"]
 	}
 

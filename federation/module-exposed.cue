@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-exposedModule: schema.#Resource & {
+exposedModule: {
 	parents: [
 		{handle: "node"},
 	]

@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-namespace: schema.#Resource & {
+namespace: {
 	struct: {
 		id: schema.IdField
 		slug: { sortable: true, goType: "string" }

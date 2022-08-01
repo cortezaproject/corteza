@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-apigw_route: schema.#Resource & {
+apigw_route: {
 	features: {
 		labels: false
 	}
