@@ -9,7 +9,7 @@ moduleMapping: {
 		labels: false
 	}
 
-	struct: {
+	model: {
 		node_id: { ident: "nodeID", goType: "uint64", primaryKey: true, unique: true }
 		federation_module_id: { sortable: true, ident: "federationModuleID", goType: "uint64" }
 		compose_module_id: { sortable: true, ident: "composeModuleID", goType: "uint64" }
@@ -18,7 +18,7 @@ moduleMapping: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			compose_module_id:    { goType: "uint64", ident: "composeModuleID", storeIdent: "rel_compose_module" }
 			compose_namespace_id: { goType: "uint64", ident: "composeNamespaceID", storeIdent: "rel_compose_namespace" }
 			federation_module_id: { goType: "uint64", ident: "federationModuleID", storeIdent: "rel_federation_module" }

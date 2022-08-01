@@ -5,7 +5,7 @@ import (
 )
 
 dal_connection: {
-	struct: {
+	model: {
 		id:     schema.IdField
 		name: { sortable: true, goType: "string" }
 		handle: schema.HandleField
@@ -29,7 +29,7 @@ dal_connection: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			connection_id: {goType: "[]uint64", ident: "connectionID", storeIdent: "id"}
 			handle: {goType: "string"}
 			type: {goType: "string"}

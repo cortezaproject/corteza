@@ -11,7 +11,7 @@ node: {
 		sorting: false
 	}
 
-	struct: {
+	model: {
 		id:          schema.IdField
 		name: {sortable: true}
 		shared_node_id: { sortable: true, ident: "sharedNodeID", goType: "uint64" }
@@ -30,7 +30,7 @@ node: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			name: { goType: "string" }
 			base_url: { goType: "string", ident: "baseURL" }
 			status: { goType: "string" }

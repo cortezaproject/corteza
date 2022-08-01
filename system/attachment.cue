@@ -9,7 +9,7 @@ attachment: {
 		labels: false
 	}
 
-	struct: {
+	model: {
 		id:       schema.IdField
 		owner_id: { sortable: true, goType: "uint64", storeIdent: "rel_owner", ident: "ownerID"}
 		kind: {sortable: true}
@@ -23,7 +23,7 @@ attachment: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			kind: {}
 		}
 

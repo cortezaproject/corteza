@@ -5,7 +5,7 @@ import (
 )
 
 workflow: {
-	struct: {
+	model: {
 		id:          schema.IdField
 		handle:      schema.HandleField
 		meta: { goType: "*types.WorkflowMeta" }
@@ -28,7 +28,7 @@ workflow: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			deleted: { goType: "filter.State", storeIdent: "deleted_at" }
 			disabled: { goType: "filter.State", storeIdent: "enabled" }
 		}

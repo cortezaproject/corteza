@@ -5,7 +5,7 @@ import (
 )
 
 dal_sensitivity_level: {
-	struct: {
+	model: {
 		id:     schema.IdField
 		handle: schema.HandleField
 		level: { sortable: true, goType: "int" }
@@ -20,7 +20,7 @@ dal_sensitivity_level: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			sensitivity_level_id: {goType: "[]uint64", ident: "sensitivityLevelID", storeIdent: "id"}
 
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}

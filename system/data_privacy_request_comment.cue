@@ -9,7 +9,7 @@ data_privacy_request_comment: {
 		labels: false
 	}
 
-	struct: {
+	model: {
 		id: schema.IdField
 		request_id: { ident: "requestID", goType: "uint64", storeIdent: "rel_request" }
 		comment: { goType: "string" }
@@ -23,7 +23,7 @@ data_privacy_request_comment: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			request_id: {goType: "[]uint64", ident: "requestID", storeIdent: "rel_request" }
 		}
 

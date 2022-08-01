@@ -5,7 +5,7 @@ import (
 )
 
 application: {
-	struct: {
+	model: {
 		id: schema.IdField
 		name: {sortable: true}
 		owner_id: { ident: "ownerID", goType: "uint64", storeIdent: "rel_owner", sortable: true }
@@ -18,7 +18,7 @@ application: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			name: {goType: "string"}
 			// not sure about the type of flagged_ids
 			flagged_ids: {goType: "[]uint64"}

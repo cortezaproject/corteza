@@ -13,7 +13,7 @@ sharedModule: {
 		{handle: "node"},
 	]
 
-	struct: {
+	model: {
 		id:          schema.IdField
 		handle:      schema.HandleField
 		node_id: { sortable: true, ident: "nodeID", goType: "uint64", storeIdent: "rel_node" }
@@ -30,7 +30,7 @@ sharedModule: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			node_id:  { goType: "uint64", ident: "nodeID", storeIdent: "rel_node" }
 			handle:   { goType: "string" }
 			name:     { goType: "string" }

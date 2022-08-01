@@ -5,7 +5,7 @@ import (
 )
 
 credential: {
-	struct: {
+	model: {
 		id:     schema.IdField
 		owner_id: { goType: "uint64", ident: "ownerID", storeIdent: "rel_owner" }
 		kind: {}
@@ -21,7 +21,7 @@ credential: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			owner_id: {goType: "uint64", ident: "ownerID", storeIdent: "rel_owner"}
 			kind: {goType: "string"}
 			credentials: {goType: "string"}

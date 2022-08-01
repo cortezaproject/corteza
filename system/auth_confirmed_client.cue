@@ -12,14 +12,14 @@ auth_confirmed_client: {
 		checkFn: false
 	}
 
-	struct: {
+	model: {
 		user_id:      { goType: "uint64", primaryKey: true, ident: "userID", storeIdent: "rel_user" }
 		client_id:    { goType: "uint64", primaryKey: true, ident: "clientID", storeIdent: "rel_client" }
 		confirmed_at: schema.SortableTimestampField
 	}
 
 	filter: {
-		struct: {
+		model: {
 			user_id:   { goType: "uint64", ident: "userID", storeIdent: "rel_client" }
 		}
 

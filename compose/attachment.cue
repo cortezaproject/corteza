@@ -9,7 +9,7 @@ attachment: {
 		labels: false
 	}
 
-	struct: {
+	model: {
 		id:       schema.IdField
 		owner_id: { sortable: true, goType: "uint64", storeIdent: "rel_owner", ident: "ownerID" }
 		namespace_id: { sortable: true, goType: "uint64", storeIdent: "rel_namespace", ident: "namespaceID" }
@@ -24,7 +24,7 @@ attachment: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			kind: {}
 			namespace_id: { goType: "uint64", ident: "namespaceID" }
 			page_id: { goType: "uint64", ident: "pageID" }

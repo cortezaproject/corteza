@@ -9,7 +9,7 @@ page: {
 		{handle: "namespace"},
 	]
 
-	struct: {
+	model: {
 		id: schema.IdField
 		self_id: { sortable: true, ident: "selfID", goType: "uint64" }
 		module_id: { sortable: true, ident: "moduleID", goType: "uint64", storeIdent: "rel_module" }
@@ -29,7 +29,7 @@ page: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			namespace_id: { goType: "uint64", ident: "namespaceID", storeIdent: "rel_namespace" }
 			parent_id: { goType: "uint64", ident: "parentID" }
 			module_id: { goType: "uint64", ident: "moduleID", storeIdent: "rel_module" }

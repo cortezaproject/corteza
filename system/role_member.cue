@@ -8,13 +8,13 @@ role_member: {
 		checkFn: false
 	}
 
-	struct: {
+	model: {
 		user_id: { goType: "uint64", primaryKey: true, storeIdent: "rel_user", ident: "userID" }
 		role_id: { goType: "uint64", primaryKey: true, storeIdent: "rel_role", ident: "roleID" }
 	}
 
 	filter: {
-		struct: {
+		model: {
 			user_id: {goType: "uint64", ident: "userID", storeIdent: "rel_user" }
 			role_id: {goType: "uint64", ident: "roleID", storeIdent: "rel_role" }
 		}

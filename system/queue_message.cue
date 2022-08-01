@@ -10,7 +10,7 @@ queue_message: {
 		checkFn: false
 	}
 
-	struct: {
+	model: {
 		id:        schema.IdField
 		queue:     { sortable: true }
 		payload:   { goType: "[]byte" }
@@ -19,7 +19,7 @@ queue_message: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			queue: {}
 			processed: {goType: "filter.State", storeIdent: "processed"}
 		}

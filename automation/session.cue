@@ -9,7 +9,7 @@ session: {
 		labels: false
 	}
 
-	struct: {
+	model: {
 		id:          schema.IdField
 		workflow_id: { sortable: true, ident: "workflowID", goType: "uint64", storeIdent: "rel_workflow" }
 		event_type: { sortable: true, goType: "string" }
@@ -28,7 +28,7 @@ session: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			session_id: { goType: "[]uint64", storeIdent: "id", ident: "sessionID" }
 			completed: { schema.SortableTimestampNilField, storeIdent: "completed_at" }
 			created_by: { goType: "[]uint64" }

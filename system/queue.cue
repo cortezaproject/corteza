@@ -9,7 +9,7 @@ queue: {
 		labels: false
 	}
 
-	struct: {
+	model: {
 		id: schema.IdField
 		consumer: {sortable: true, goType: "string"}
 		queue: {sortable: true, goType: "string"}
@@ -24,7 +24,7 @@ queue: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			query: {goType: "string"}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}

@@ -4,13 +4,13 @@ import (
 	"strings"
 )
 
-#Struct: {
+#Model: {
 	// Each field can be
-	[name=_]: {"name": name} & #StructField
+	[name=_]: {"name": name} & #ModelAttribute
 }
 
 // logic in struct fields is a bit different
-#StructField: {
+#ModelAttribute: {
 	name:   #ident
 	_words: strings.Replace(strings.Replace(name, "_", " ", -1), ".", " ", -1)
 
@@ -35,10 +35,10 @@ import (
 	primaryKey: bool | *false
 	ignoreCase: bool | *false
 
-	#StructJsonTag
+	#ModelAttributeJsonTag
 }
 
-IdField: #StructField & {
+IdField: #ModelAttribute & {
 	// Expecting ID field to always have name ID
 	name:       "id"
 	expIdent:   "ID"
@@ -49,7 +49,7 @@ IdField: #StructField & {
 	goType: "uint64"
 }
 
-HandleField: #StructField & {
+HandleField: #ModelAttribute & {
 	// Expecting ID field to always have name handle
 	name:   "handle"
 	unique: true
@@ -58,17 +58,17 @@ HandleField: #StructField & {
 	goType: "string"
 }
 
-SortableTimestampField: #StructField & {
+SortableTimestampField: #ModelAttribute & {
 	sortable: true
 	goType: "time.Time"
 }
 
-SortableTimestampNilField: #StructField & {
+SortableTimestampNilField: #ModelAttribute & {
 	sortable: true
 	goType: "*time.Time"
 }
 
-#StructJsonTag: {
+#ModelAttributeJsonTag: {
 	name: string
 
 	_specs: {field: string | *name, omitEmpty: bool | *false, "string": bool | *false}

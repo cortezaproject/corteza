@@ -13,7 +13,7 @@ exposedModule: {
 		labels: false
 	}
 
-	struct: {
+	model: {
 		id:          schema.IdField
 		handle:      schema.HandleField
 		name: { sortable: true }
@@ -31,7 +31,7 @@ exposedModule: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			node_id:              { goType: "uint64", ident: "nodeID",             storeIdent: "rel_node" }
 			compose_module_id:    { goType: "uint64", ident: "composeModuleID",    storeIdent: "rel_compose_module" }
 			compose_namespace_id: { goType: "uint64", ident: "composeNamespaceID", storeIdent: "rel_compose_namespace" }

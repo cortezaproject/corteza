@@ -5,7 +5,7 @@ import (
 )
 
 report: {
-	struct: {
+	model: {
 		id:     schema.IdField
 		handle: schema.HandleField
 		meta: {goType: "*types.ReportMeta"}
@@ -24,7 +24,7 @@ report: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			report_id: {goType: "[]uint64", storeIdent: "id", ident: "reportID" }
 			handle: {goType: "string"}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
