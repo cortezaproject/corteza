@@ -23,6 +23,8 @@ type (
 	}
 
 	HttpServerOpt struct {
+		Domain                 string `env:"DOMAIN"`
+		DomainWebapp           string `env:"DOMAIN_WEBAPP"`
 		Addr                   string `env:"HTTP_ADDR"`
 		LogRequest             bool   `env:"HTTP_LOG_REQUEST"`
 		LogResponse            bool   `env:"HTTP_LOG_RESPONSE"`
@@ -327,6 +329,8 @@ func HTTPClient() (o *HTTPClientOpt) {
 // This function is auto-generated
 func HttpServer() (o *HttpServerOpt) {
 	o = &HttpServerOpt{
+		Domain:                 "localhost",
+		DomainWebapp:           "localhost",
 		Addr:                   ":80",
 		EnableHealthcheckRoute: true,
 		EnableVersionRoute:     true,
@@ -518,12 +522,12 @@ func Auth() (o *AuthOpt) {
 		Secret:                   getSecretFromEnv("jwt secret"),
 		AccessTokenLifetime:      time.Hour * 2,
 		RefreshTokenLifetime:     time.Hour * 24 * 3,
-		ExternalRedirectURL:      fullURL("/auth/external/{provider}/callback"),
+		ExternalRedirectURL:      FullURL("/auth/external/{provider}/callback"),
 		ExternalCookieSecret:     getSecretFromEnv("external cookie secret"),
-		BaseURL:                  fullURL("/auth"),
+		BaseURL:                  FullURL("/auth"),
 		SessionCookieName:        "session",
 		SessionCookiePath:        pathPrefix("/auth"),
-		SessionCookieDomain:      guessHostname(),
+		SessionCookieDomain:      GuessApiHostname(),
 		SessionCookieSecure:      isSecure(),
 		SessionLifetime:          24 * time.Hour,
 		SessionPermLifetime:      360 * 24 * time.Hour,

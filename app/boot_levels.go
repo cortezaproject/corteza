@@ -4,7 +4,9 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	authService "github.com/cortezaproject/corteza-server/auth"
@@ -34,6 +36,8 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/scheduler"
 	"github.com/cortezaproject/corteza-server/pkg/seeder"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
+	"github.com/cortezaproject/corteza-server/pkg/valuestore"
+	"github.com/cortezaproject/corteza-server/pkg/version"
 	"github.com/cortezaproject/corteza-server/pkg/websocket"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service"
@@ -291,6 +295,8 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	if err = app.initAuth(ctx); err != nil {
 		return fmt.Errorf("can not initialize auth: %w", err)
 	}
+
+	initValuestore(app.Opt)
 
 	app.WsServer = websocket.Server(
 		app.Log,
@@ -697,6 +703,77 @@ func updateLocaleSettings(opt options.LocaleOpt) {
 
 		updateResourceLanguages(appSettings)
 	})
+}
+
+// initValuestore initializes and sets the global valuestore with environment variables
+func initValuestore(opt *options.Options) {
+	s := valuestore.New()
+
+	apiHostname := options.GuessApiHostname()
+
+	// Base variables
+	vars := map[string]any{
+		// General environment variables such as environment name and version info
+		"name":           opt.Environment.Environment,
+		"is-development": opt.Environment.IsDevelopment(),
+		"is-test":        opt.Environment.IsTest(),
+		"is-production":  opt.Environment.IsProduction(),
+
+		"version":    version.Version,
+		"build-time": version.BuildTime,
+	}
+
+	// Auth variables
+	vars["auth.base-url"] = opt.Auth.BaseURL
+	vars["auth.domain"] = apiHostname
+
+	// In case there is a missmatch in the auth base URL and server domain,
+	// guess the domain from the auth baseURL.
+	if !strings.Contains(opt.Auth.BaseURL, apiHostname) {
+		u, err := url.Parse(opt.Auth.BaseURL)
+		if err != nil {
+			panic(err.Error())
+		}
+		vars["auth.domain"] = u.Host
+	}
+
+	// API variables
+
+	// API related values -- domain, base url, base sink route, ...
+	vars["api.domain"] = apiHostname
+	vars["api.base-url"] = options.FullURL(opt.HTTPServer.BaseUrl, opt.HTTPServer.ApiBaseUrl)
+
+	// Web applications
+	webappDomain := ""
+	webappBaseURL := ""
+	webappBaseURLWebapps := map[string]string{}
+
+	if opt.HTTPServer.WebappEnabled {
+		// When served from the server container, use server variables
+		webappDomain = apiHostname
+		webappBaseURL = options.FullURL(opt.HTTPServer.BaseUrl, opt.HTTPServer.WebappBaseUrl)
+	} else {
+		// When not served from the server, use client variables
+		webappDomain = options.GuessWebappHostname()
+		webappBaseURL = options.FullWebappURL(opt.HTTPServer.BaseUrl, opt.HTTPServer.WebappBaseUrl)
+	}
+	// Web applications
+	for _, w := range strings.Split(opt.HTTPServer.WebappList, ",") {
+		w = strings.TrimSpace(w)
+		webappBaseURLWebapps[w] = webappBaseURL + w
+	}
+
+	// Webapp related values -- domain, base url (for webapps), ...
+	// Splitting the two since the webapps can be served somewhere else on
+	// a completely different domain
+	vars["webapp.domain"] = webappDomain
+	vars["webapp.base-url"] = webappBaseURL
+	for k, v := range webappBaseURLWebapps {
+		vars[fmt.Sprintf("webapp.base-url.%s", k)] = v
+	}
+
+	s.SetEnv(vars)
+	valuestore.SetGlobal(s)
 }
 
 // takes current options (SMTP_* env variables) and copies their values to settings

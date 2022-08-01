@@ -15,7 +15,10 @@ func preprocPlainTemplate(tpl io.Reader, pp map[string]io.Reader) (*template.Tem
 	}
 
 	gtpl := template.New("text/plain_render").
-		Funcs(sprig.TxtFuncMap())
+		Funcs(sprig.TxtFuncMap()).
+		Funcs(template.FuncMap{
+			"env": envGetter(),
+		})
 
 	// Prep the original template
 	t, err := gtpl.Parse(string(bb))

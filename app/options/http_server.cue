@@ -13,6 +13,16 @@ HTTPServer: schema.#optionsGroup & {
 	]
 
 	options: {
+		domain: {
+			defaultValue: "localhost"
+			description:  "Domain for the HTTP server."
+			env:          "DOMAIN"
+		}
+		domainWebapp: {
+			defaultValue: "localhost"
+			description:  "Domain for the HTTP webapp."
+			env:          "DOMAIN_WEBAPP"
+		}
 		addr: {
 			defaultValue: ":80"
 			description:  "IP and port for the HTTP server."

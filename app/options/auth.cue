@@ -90,7 +90,7 @@ auth: schema.#optionsGroup & {
 
 				`provider` placeholder is replaced with the actual value when used.
 				"""
-			defaultGoExpr: "fullURL(\"/auth/external/{provider}/callback\")"
+			defaultGoExpr: "FullURL(\"/auth/external/{provider}/callback\")"
 		}
 		external_cookie_secret: {
 			description: """
@@ -111,7 +111,7 @@ auth: schema.#optionsGroup & {
 				This is used for some redirects and links in auth emails.
 				"""
 
-			defaultGoExpr: "fullURL(\"/auth\")"
+			defaultGoExpr: "FullURL(\"/auth\")"
 		}
 		session_cookie_name: {
 			description:  "Session cookie name"
@@ -122,7 +122,7 @@ auth: schema.#optionsGroup & {
 			defaultGoExpr: "pathPrefix(\"/auth\")"
 		}
 		session_cookie_domain: {
-			defaultGoExpr: "guessHostname()"
+			defaultGoExpr: "GuessApiHostname()"
 			description:   "Session cookie domain"
 		}
 		session_cookie_secure: {

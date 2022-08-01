@@ -7,8 +7,6 @@ package rdbms
 //
 
 import (
-	"time"
-
 	automationType "github.com/cortezaproject/corteza-server/automation/types"
 	composeType "github.com/cortezaproject/corteza-server/compose/types"
 	federationType "github.com/cortezaproject/corteza-server/federation/types"
@@ -19,6 +17,7 @@ import (
 	labelsType "github.com/cortezaproject/corteza-server/pkg/label/types"
 	rbacType "github.com/cortezaproject/corteza-server/pkg/rbac"
 	systemType "github.com/cortezaproject/corteza-server/system/types"
+	"time"
 )
 
 type (

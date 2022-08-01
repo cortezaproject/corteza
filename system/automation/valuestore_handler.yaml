@@ -1,0 +1,20 @@
+snippets:
+
+labels: &labels
+  templates:  "step,workflow"
+
+functions:
+  env:
+    meta:
+      short: Get ENV variable
+      description: Get ENV variable for the specified key. If the key doesn't correspond to any value, nil is returned
+    params:
+      key: 
+        required: true
+        types:
+          - { wf: String }
+    labels:
+      <<: *labels
+    results:
+      value:
+        wf: Any
