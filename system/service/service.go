@@ -7,6 +7,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/discovery"
+	"github.com/cortezaproject/corteza-server/pkg/valuestore"
 
 	automationService "github.com/cortezaproject/corteza-server/automation/service"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
@@ -253,6 +254,13 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		rbac.Global(),
 		DefaultUser,
 		DefaultRole,
+	)
+
+	// ValuestoreHandler isn't (yet) a system thing but this initialization resides
+	// here just so we can easily register it
+	automation.ValuestoreHandler(
+		automationService.Registry(),
+		valuestore.Global(),
 	)
 
 	if c.ActionLog.WorkflowFunctionsEnabled {

@@ -50,6 +50,7 @@ func preprocHTMLTemplate(pl *driverPayload) (*template.Template, error) {
 				raw := base64.RawStdEncoding.EncodeToString(bb)
 				return template.URL("data:" + rsp.Header.Get("Content-Type") + ";base64," + raw), nil
 			},
+			"env": envGetter(),
 		})
 
 	// Prep the original template
