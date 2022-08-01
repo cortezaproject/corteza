@@ -1,10 +1,6 @@
 package federation
 
-import (
-	"github.com/cortezaproject/corteza-server/codegen/schema"
-)
-
-moduleMapping: schema.#Resource & {
+moduleMapping: {
 	parents: [
 		{handle: "node"},
 	]

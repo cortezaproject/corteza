@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-workflow: schema.#Resource & {
+workflow: {
 	struct: {
 		id:          schema.IdField
 		handle:      schema.HandleField

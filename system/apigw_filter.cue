@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-apigw_filter: schema.#Resource & {
+apigw_filter: {
 	features: {
 		labels: false
 	}

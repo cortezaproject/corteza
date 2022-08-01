@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-session: schema.#Resource & {
+session: {
 	features: {
 		labels: false
 	}

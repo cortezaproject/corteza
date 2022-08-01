@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-queue_message: schema.#Resource & {
+queue_message: {
 	features: {
 		labels: false
 		checkFn: false
@@ -27,8 +27,6 @@ queue_message: schema.#Resource & {
 		byValue: ["queue"]
 		byNilState: ["processed"]
 	}
-
-	rbac: false
 
 	store: {
 		api: {

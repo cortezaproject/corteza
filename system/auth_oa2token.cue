@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-auth_oa2token: schema.#Resource & {
+auth_oa2token: {
 	features: {
 		labels: false
 		paging: false

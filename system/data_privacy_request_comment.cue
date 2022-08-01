@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-data_privacy_request_comment: schema.#Resource & {
+data_privacy_request_comment: {
 	features: {
 		labels: false
 	}
@@ -30,8 +30,6 @@ data_privacy_request_comment: schema.#Resource & {
 		query: []
 		byValue: ["request_id"]
 	}
-
-	rbac: false
 
 	store: {
 		api: {

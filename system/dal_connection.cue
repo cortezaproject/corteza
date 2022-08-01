@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-dal_connection: schema.#Resource & {
+dal_connection: {
 	struct: {
 		id:     schema.IdField
 		name: { sortable: true, goType: "string" }

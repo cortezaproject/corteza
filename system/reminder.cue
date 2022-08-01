@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-reminder: schema.#Resource & {
+reminder: {
 	features: {
 		labels: false
 	}

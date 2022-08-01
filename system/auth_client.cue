@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-auth_client: schema.#Resource & {
+auth_client: {
 	struct: {
 		id:     schema.IdField
 		handle: schema.HandleField

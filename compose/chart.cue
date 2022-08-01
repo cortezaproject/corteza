@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-chart: schema.#Resource & {
+chart: {
 	parents: [
 		{handle: "namespace"},
 	]

@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-credential: schema.#Resource & {
+credential: {
 	struct: {
 		id:     schema.IdField
 		owner_id: { goType: "uint64", ident: "ownerID", storeIdent: "rel_owner" }

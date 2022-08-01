@@ -1,10 +1,6 @@
 package system
 
-import (
-	"github.com/cortezaproject/corteza-server/codegen/schema"
-)
-
-role_member: schema.#Resource & {
+role_member: {
 	features: {
 		labels: false
 		paging: false

@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-sharedModule: schema.#Resource & {
+sharedModule: {
 	features: {
 		labels: false
 	}

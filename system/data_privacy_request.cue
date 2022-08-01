@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
-data_privacy_request: schema.#Resource & {
+data_privacy_request: {
 	features: {
 		labels: false
 	}
