@@ -59,6 +59,7 @@ func Tables() []*Table {
 		tableComposeNamespace(),
 		tableComposePage(),
 		tableComposeRecord(),
+		tableComposeRecordRevisions(),
 		tableFederationModuleShared(),
 		tableFederationModuleExposed(),
 		tableFederationModuleMapping(),
@@ -519,6 +520,7 @@ func tableComposeRecord() *Table {
 		ID,
 		ColumnDef("rel_namespace", ColumnTypeIdentifier),
 		ColumnDef("module_id", ColumnTypeIdentifier),
+		ColumnDef("revision", ColumnTypeInteger),
 		ColumnDef("values", ColumnTypeJson),
 		ColumnDef("owned_by", ColumnTypeIdentifier),
 		CUDTimestamps,
@@ -527,6 +529,21 @@ func tableComposeRecord() *Table {
 		AddIndex("namespace", IColumn("rel_namespace")),
 		AddIndex("module", IColumn("module_id")),
 		AddIndex("owner", IColumn("owned_by")),
+	)
+}
+
+func tableComposeRecordRevisions() *Table {
+	return TableDef("compose_record_revisions",
+		ID,
+		ColumnDef("ts", ColumnTypeTimestamp),
+		ColumnDef("rel_resource", ColumnTypeIdentifier),
+		ColumnDef("revision", ColumnTypeInteger),
+		ColumnDef("operation", ColumnTypeText),
+		ColumnDef("rel_user", ColumnTypeIdentifier),
+		ColumnDef("delta", ColumnTypeJson),
+		ColumnDef("comment", ColumnTypeText),
+
+		AddIndex("record", IColumn("rel_resource")),
 	)
 }
 

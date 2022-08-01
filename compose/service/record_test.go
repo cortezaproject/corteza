@@ -507,8 +507,8 @@ func TestRecord_refAccessControl(t *testing.T) {
 		req = require.New(t)
 
 		// uncomment to enable sql conn debugging
-		//ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
-		ctx    = context.Background()
+		ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
+		//ctx    = context.Background()
 		s, err = sqlite.ConnectInMemoryWithDebug(ctx)
 	)
 

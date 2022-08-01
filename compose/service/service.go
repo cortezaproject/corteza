@@ -112,19 +112,6 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 			tee = logger.MakeDebugLogger()
 		}
 
-		// Record log policy update
-		if !c.ActionLog.ComposeRecordEnabled {
-			policy = actionlog.NewPolicyAll(
-				policy,
-
-				actionlog.NewPolicyAll(
-					actionlog.NewPolicyMatchResource("compose:record"),
-					actionlog.NewPolicyMatchAction("create", "update", "delete"),
-					actionlog.NewPolicyMatchSeverity(actionlog.Emergency),
-				),
-			)
-		}
-
 		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
 	}
 

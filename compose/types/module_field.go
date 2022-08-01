@@ -53,6 +53,8 @@ type (
 	ModuleFieldConfig struct {
 		DAL     ModuleFieldConfigDAL         `json:"dal"`
 		Privacy ModuleFieldConfigDataPrivacy `json:"privacy"`
+
+		RecordRevisions ModuleFieldConfigRecordRevisions `json:"recordRevisions"`
 	}
 
 	ModuleFieldConfigDAL struct {
@@ -65,6 +67,11 @@ type (
 		SensitivityLevel uint64 `json:"sensitivityLevel,string,omitempty"`
 
 		UsageDisclosure string `json:"usageDisclosure"`
+	}
+
+	ModuleFieldConfigRecordRevisions struct {
+		// when true, skip record revisions for this field
+		Skip bool `json:"enabled"`
 	}
 
 	EncodingStrategy struct {

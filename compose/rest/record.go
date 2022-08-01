@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/revisions"
 	"io"
 	"math"
 	"net/http"
@@ -37,7 +38,9 @@ type (
 		CanUpdateRecord        bool `json:"canUpdateRecord"`
 		CanReadRecord          bool `json:"canReadRecord"`
 		CanDeleteRecord        bool `json:"canDeleteRecord"`
-		CanGrant               bool `json:"canGrant"`
+		CanSearchRevisions     bool `json:"canSearchRevisions"`
+
+		CanGrant bool `json:"canGrant"`
 	}
 
 	recordSetPayload struct {
@@ -61,6 +64,7 @@ type (
 		CanReadRecord(context.Context, *types.Record) bool
 		CanDeleteRecord(context.Context, *types.Record) bool
 		CanManageOwnerOnRecord(context.Context, *types.Record) bool
+		CanSearchRevisionsOnRecord(context.Context, *types.Record) bool
 	}
 )
 
@@ -567,6 +571,34 @@ func (ctrl *Record) TriggerScriptOnList(ctx context.Context, r *request.RecordTr
 	return api.OK(), err
 }
 
+func (ctrl *Record) Revisions(ctx context.Context, r *request.RecordRevisions) (interface{}, error) {
+	var (
+		makeRev = func() dal.ValueSetter { return &revisions.Revision{} }
+	)
+
+	iter, err := ctrl.record.SearchRevisions(ctx, r.NamespaceID, r.ModuleID, r.RecordID)
+	if err != nil {
+		return nil, err
+	}
+
+	return func(w http.ResponseWriter, req *http.Request) {
+		if _, err = w.Write([]byte(`{"set":[`)); err != nil {
+			return
+		}
+
+		err = dal.IteratorEncodeJSON(ctx, w, iter, makeRev)
+		if err != nil {
+			return
+		}
+
+		if _, err = w.Write([]byte(`]}`)); err != nil {
+			return
+		}
+
+		return
+	}, err
+}
+
 func (ctrl Record) makeBulkPayload(ctx context.Context, m *types.Module, err error, rr ...*types.Record) (*recordPayload, error) {
 	if err != nil || rr == nil {
 		return nil, err
@@ -580,6 +612,7 @@ func (ctrl Record) makeBulkPayload(ctx context.Context, m *types.Module, err err
 		CanUpdateRecord:        ctrl.ac.CanUpdateRecord(ctx, rr[0]),
 		CanReadRecord:          ctrl.ac.CanReadRecord(ctx, rr[0]),
 		CanDeleteRecord:        ctrl.ac.CanDeleteRecord(ctx, rr[0]),
+		CanSearchRevisions:     ctrl.ac.CanSearchRevisionsOnRecord(ctx, rr[0]),
 	}, nil
 }
 
@@ -597,6 +630,7 @@ func (ctrl Record) makePayload(ctx context.Context, m *types.Module, r *types.Re
 		CanUpdateRecord:        ctrl.ac.CanUpdateRecord(ctx, r),
 		CanReadRecord:          ctrl.ac.CanReadRecord(ctx, r),
 		CanDeleteRecord:        ctrl.ac.CanDeleteRecord(ctx, r),
+		CanSearchRevisions:     ctrl.ac.CanSearchRevisionsOnRecord(ctx, r),
 	}, nil
 }
 

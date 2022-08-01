@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/revisions"
 	"regexp"
 	"sort"
 	"strconv"
@@ -47,6 +48,8 @@ type (
 		namespace namespaceFinder
 		module    moduleFinder
 
+		revisions *recordRevisions
+
 		formatter recordValuesFormatter
 		sanitizer recordValuesSanitizer
 		validator recordValuesValidator
@@ -86,6 +89,7 @@ type (
 		CanReadRecord(context.Context, *types.Record) bool
 		CanUpdateRecord(context.Context, *types.Record) bool
 		CanDeleteRecord(context.Context, *types.Record) bool
+		CanSearchRevisionsOnRecord(context.Context, *types.Record) bool
 
 		recordManageOwnerAccessController
 		recordValueAccessController
@@ -105,6 +109,7 @@ type (
 		Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, filter string) (interface{}, error)
 		Find(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
 		FindSensitive(ctx context.Context) (set []types.SensitiveRecordSet, err error)
+		SearchRevisions(ctx context.Context, namespaceID, moduleID, recordID uint64) (dal.Iterator, error)
 		RecordExport(context.Context, types.RecordFilter) error
 		RecordImport(context.Context, error) error
 
@@ -176,6 +181,8 @@ func Record() *record {
 
 		namespace: DefaultNamespace,
 		module:    DefaultModule,
+
+		revisions: &recordRevisions{revisions.Service(dal.Service())},
 
 		formatter: values.Formatter(),
 		sanitizer: values.Sanitizer(),
@@ -435,6 +442,43 @@ func (svc record) findSensitive(ctx context.Context, userID uint64, namespace *t
 	return
 }
 
+// SearchRevisions returns iterator for revisions of a record
+//
+func (svc record) SearchRevisions(ctx context.Context, namespaceID, moduleID, recordID uint64) (dal.Iterator, error) {
+	var (
+		aProps = &recordActionProps{record: &types.Record{NamespaceID: namespaceID, ModuleID: moduleID, ID: recordID}}
+
+		rec  *types.Record
+		iter dal.Iterator
+		mod  *types.Module
+		ns   *types.Namespace
+	)
+
+	err := func() (err error) {
+		ns, mod, rec, err = loadRecordCombo(ctx, svc.store, svc.dal, namespaceID, moduleID, recordID)
+		if err != nil {
+			return
+		}
+
+		aProps.setModule(mod)
+		aProps.setNamespace(ns)
+		aProps.setRecord(rec)
+
+		if !mod.Config.RecordRevisions.Enabled {
+			return RecordErrRevisionsDisabledOnModule()
+		}
+
+		if !svc.ac.CanSearchRevisionsOnRecord(ctx, rec) {
+			return RecordErrNotAllowedToSearchRevisions()
+		}
+
+		iter, err = svc.revisions.search(ctx, rec)
+		return
+	}()
+
+	return iter, svc.recordAction(ctx, aProps, RecordActionSearchRevisions, err)
+}
+
 func (svc record) RecordImport(ctx context.Context, err error) error {
 	return svc.recordAction(ctx, &recordActionProps{}, RecordActionImport, err)
 }
@@ -615,6 +659,13 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 
 	if err = dalutils.ComposeRecordCreate(ctx, svc.dal, m, new); err != nil {
 		return
+	}
+
+	// store revision
+	if m.Config.RecordRevisions.Enabled {
+		if err = svc.revisions.created(ctx, new); err != nil {
+			return
+		}
 	}
 
 	if err = label.Create(ctx, svc.store, new); err != nil {
@@ -909,7 +960,18 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 			}
 		}
 
-		return dalutils.ComposeRecordUpdate(ctx, svc.dal, m, upd)
+		if err = dalutils.ComposeRecordUpdate(ctx, svc.dal, m, upd); err != nil {
+			return err
+		}
+
+		if m.Config.RecordRevisions.Enabled {
+			// Prepare record revision for update
+			if err = svc.revisions.updated(ctx, upd, old); err != nil {
+				return err
+			}
+		}
+
+		return nil
 	})
 
 	if err != nil {
@@ -982,6 +1044,7 @@ func (svc record) procCreate(ctx context.Context, invokerID uint64, m *types.Mod
 	// Reset values to new record
 	// to make sure nobody slips in something we do not want
 	new.ID = nextID()
+	new.Revision = 1
 	new.CreatedBy = invokerID
 	new.CreatedAt = *nowUTC()
 	new.UpdatedAt = nil
@@ -1023,6 +1086,8 @@ func (svc record) Update(ctx context.Context, upd *types.Record) (rec *types.Rec
 //
 // Both these points introduce external data that need to be checked fully in the same manner
 func (svc record) procUpdate(ctx context.Context, invokerID uint64, m *types.Module, upd *types.Record, old *types.Record) (rve *types.RecordValueErrorSet) {
+	upd.Revision = old.Revision + 1
+
 	// Mark all values as updated (new)
 	upd.Values.SetUpdatedFlag(true)
 
@@ -1096,12 +1161,25 @@ func (svc record) delete(ctx context.Context, namespaceID, moduleID, recordID ui
 	// ensure module ref is set before running through records workflows and scripts
 	del.SetModule(m)
 
+	// deleted, revision need to be set when RecordBeforeDelete is triggered
+	del.DeletedAt = nowUTC()
+	del.DeletedBy = invokerID
+	del.Revision = del.Revision + 1
+
 	{
 		// Calling before-record-delete scripts
 		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeDelete(nil, del, m, ns, nil, nil)); err != nil {
 			return nil, err
 		}
 	}
+
+	if m.Config.RecordRevisions.Enabled {
+		// Prepare record revision for update
+		if err = svc.revisions.softDeleted(ctx, del); err != nil {
+			return
+		}
+	}
+
 	if err = dalutils.ComposeRecordSoftDelete(ctx, svc.dal, m, del); err != nil {
 		return nil, err
 	}

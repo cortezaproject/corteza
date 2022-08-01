@@ -43,6 +43,7 @@ record: schema.#Resource & {
 			"update": {}
 			"delete": {}
 			"owner.manage": {}
+			"revisions.search": {}
 		}
 	}
 }

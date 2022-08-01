@@ -34,6 +34,7 @@ type (
 		Upload(context.Context, *request.RecordUpload) (interface{}, error)
 		TriggerScript(context.Context, *request.RecordTriggerScript) (interface{}, error)
 		TriggerScriptOnList(context.Context, *request.RecordTriggerScriptOnList) (interface{}, error)
+		Revisions(context.Context, *request.RecordRevisions) (interface{}, error)
 	}
 
 	// HTTP API interface
@@ -53,6 +54,7 @@ type (
 		Upload              func(http.ResponseWriter, *http.Request)
 		TriggerScript       func(http.ResponseWriter, *http.Request)
 		TriggerScriptOnList func(http.ResponseWriter, *http.Request)
+		Revisions           func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -298,6 +300,23 @@ func NewRecord(h RecordAPI) *Record {
 
 			api.Send(w, r, value)
 		},
+		Revisions: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewRecordRevisions()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.
+				Revisions(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -319,5 +338,6 @@ func (h Record) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/attachment", h.Upload)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/trigger", h.TriggerScript)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/trigger", h.TriggerScriptOnList)
+		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/revisions", h.Revisions)
 	})
 }

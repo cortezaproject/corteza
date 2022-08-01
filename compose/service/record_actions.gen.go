@@ -612,6 +612,26 @@ func RecordActionImport(props ...*recordActionProps) *recordAction {
 	return a
 }
 
+// RecordActionSearchRevisions returns "compose:record.searchRevisions" action
+//
+// This function is auto-generated.
+//
+func RecordActionSearchRevisions(props ...*recordActionProps) *recordAction {
+	a := &recordAction{
+		timestamp: time.Now(),
+		resource:  "compose:record",
+		action:    "searchRevisions",
+		log:       "record revisions searched",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // RecordActionExport returns "compose:record.export" action
 //
 // This function is auto-generated.
@@ -1092,6 +1112,78 @@ func RecordErrNotAllowedToSearch(mm ...*recordActionProps) *errors.Error {
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
 		errors.Meta(locale.ErrorMetaKey{}, "record.errors.notAllowedToSearch"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// RecordErrNotAllowedToSearchRevisions returns "compose:record.notAllowedToSearchRevisions" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func RecordErrNotAllowedToSearchRevisions(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to search or list record revisions", nil),
+
+		errors.Meta("type", "notAllowedToSearchRevisions"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "failed to search or list record revisions; insufficient permissions"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.notAllowedToSearchRevisions"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// RecordErrRevisionsDisabledOnModule returns "compose:record.revisionsDisabledOnModule" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func RecordErrRevisionsDisabledOnModule(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("revisions are disabled on module", nil),
+
+		errors.Meta("type", "revisionsDisabledOnModule"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "failed to search or list record revisions; disabled on module"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.revisionsDisabledOnModule"),
 
 		errors.StackSkip(1),
 	)

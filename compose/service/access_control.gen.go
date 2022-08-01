@@ -292,6 +292,11 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "owner.manage",
 		},
 		{
+			"type": types.RecordResourceType,
+			"any":  types.RecordRbacResource(0, 0, 0),
+			"op":   "revisions.search",
+		},
+		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "grant",
@@ -609,6 +614,13 @@ func (svc accessControl) CanManageOwnerOnRecord(ctx context.Context, r *types.Re
 	return svc.can(ctx, "owner.manage", r)
 }
 
+// CanSearchRevisionsOnRecord checks if current user can revisions.search
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchRevisionsOnRecord(ctx context.Context, r *types.Record) bool {
+	return svc.can(ctx, "revisions.search", r)
+}
+
 // CanGrant checks if current user can manage compose permissions
 //
 // This function is auto-generated
@@ -790,10 +802,11 @@ func rbacResourceOperations(r string) map[string]bool {
 		}
 	case types.RecordResourceType:
 		return map[string]bool{
-			"read":         true,
-			"update":       true,
-			"delete":       true,
-			"owner.manage": true,
+			"read":             true,
+			"update":           true,
+			"delete":           true,
+			"owner.manage":     true,
+			"revisions.search": true,
 		}
 	case types.ComponentResourceType:
 		return map[string]bool{
