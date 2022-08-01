@@ -75,6 +75,7 @@ var (
 	DefaultAuth                *auth
 	DefaultAuthClient          *authClient
 	DefaultUser                *user
+	DefaultCredentials         *credentials
 	DefaultDalConnection       *dalConnection
 	DefaultDalSensitivityLevel *dalSensitivityLevel
 	DefaultRole                *role
@@ -201,6 +202,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultAuth = Auth(AuthOptions{LimitUsers: c.Limit.SystemUsers})
 	DefaultAuthClient = AuthClient(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service(), c.Auth)
 	DefaultUser = User(UserOptions{LimitUsers: c.Limit.SystemUsers})
+	DefaultCredentials = Credentials()
 	DefaultReport = Report(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
 	DefaultRole = Role(rbac.Global())
 	DefaultApplication = Application(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())

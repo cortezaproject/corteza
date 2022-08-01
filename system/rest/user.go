@@ -35,6 +35,7 @@ type (
 	User struct {
 		user service.UserService
 		role service.RoleService
+		cred userCredentials
 
 		userAc userAccessController
 		roleAc roleAccessController
@@ -43,6 +44,11 @@ type (
 	userSetPayload struct {
 		Filter types.UserFilter `json:"filter"`
 		Set    types.UserSet    `json:"set"`
+	}
+
+	userCredentials interface {
+		List(ctx context.Context, userID uint64) (cc types.CredentialSet, err error)
+		Delete(ctx context.Context, userID, credentialsID uint64) (err error)
 	}
 
 	userAccessController interface {
@@ -55,6 +61,7 @@ func (User) New() *User {
 	return &User{
 		user: service.DefaultUser,
 		role: service.DefaultRole,
+		cred: service.DefaultCredentials,
 
 		userAc: service.DefaultAccessControl,
 		roleAc: service.DefaultAccessControl,
@@ -276,6 +283,14 @@ func (ctrl *User) SessionsRemove(ctx context.Context, r *request.UserSessionsRem
 	}
 
 	return
+}
+
+func (ctrl *User) ListCredentials(ctx context.Context, r *request.UserListCredentials) (rsp interface{}, err error) {
+	return ctrl.cred.List(ctx, r.UserID)
+}
+
+func (ctrl *User) DeleteCredentials(ctx context.Context, r *request.UserDeleteCredentials) (rsp interface{}, err error) {
+	return true, ctrl.cred.Delete(ctx, r.UserID, r.CredentialsID)
 }
 
 // Export exports users with optional role membership and related roles

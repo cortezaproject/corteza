@@ -686,6 +686,23 @@ endpoints:
           required: true
           title: ID
 
+  - name: listCredentials
+    method: GET
+    title: List user's credentials
+    path: "/{userID}/credentials"
+    parameters:
+      path:
+       - { type: uint64, name: userID, required: true, title: ID }
+
+  - name: deleteCredentials
+    method: DELETE
+    title: List user's credentials
+    path: "/{userID}/credentials/{credentialsID}"
+    parameters:
+      path:
+       - { type: uint64, name: userID,        required: true, title: ID }
+       - { type: uint64, name: credentialsID, required: true, title: Credentials ID }
+
   - name: export
     method: GET
     title: Export users

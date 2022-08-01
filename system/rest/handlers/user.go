@@ -34,29 +34,33 @@ type (
 		MembershipRemove(context.Context, *request.UserMembershipRemove) (interface{}, error)
 		TriggerScript(context.Context, *request.UserTriggerScript) (interface{}, error)
 		SessionsRemove(context.Context, *request.UserSessionsRemove) (interface{}, error)
+		ListCredentials(context.Context, *request.UserListCredentials) (interface{}, error)
+		DeleteCredentials(context.Context, *request.UserDeleteCredentials) (interface{}, error)
 		Export(context.Context, *request.UserExport) (interface{}, error)
 		Import(context.Context, *request.UserImport) (interface{}, error)
 	}
 
 	// HTTP API interface
 	User struct {
-		List             func(http.ResponseWriter, *http.Request)
-		Create           func(http.ResponseWriter, *http.Request)
-		Update           func(http.ResponseWriter, *http.Request)
-		PartialUpdate    func(http.ResponseWriter, *http.Request)
-		Read             func(http.ResponseWriter, *http.Request)
-		Delete           func(http.ResponseWriter, *http.Request)
-		Suspend          func(http.ResponseWriter, *http.Request)
-		Unsuspend        func(http.ResponseWriter, *http.Request)
-		Undelete         func(http.ResponseWriter, *http.Request)
-		SetPassword      func(http.ResponseWriter, *http.Request)
-		MembershipList   func(http.ResponseWriter, *http.Request)
-		MembershipAdd    func(http.ResponseWriter, *http.Request)
-		MembershipRemove func(http.ResponseWriter, *http.Request)
-		TriggerScript    func(http.ResponseWriter, *http.Request)
-		SessionsRemove   func(http.ResponseWriter, *http.Request)
-		Export           func(http.ResponseWriter, *http.Request)
-		Import           func(http.ResponseWriter, *http.Request)
+		List              func(http.ResponseWriter, *http.Request)
+		Create            func(http.ResponseWriter, *http.Request)
+		Update            func(http.ResponseWriter, *http.Request)
+		PartialUpdate     func(http.ResponseWriter, *http.Request)
+		Read              func(http.ResponseWriter, *http.Request)
+		Delete            func(http.ResponseWriter, *http.Request)
+		Suspend           func(http.ResponseWriter, *http.Request)
+		Unsuspend         func(http.ResponseWriter, *http.Request)
+		Undelete          func(http.ResponseWriter, *http.Request)
+		SetPassword       func(http.ResponseWriter, *http.Request)
+		MembershipList    func(http.ResponseWriter, *http.Request)
+		MembershipAdd     func(http.ResponseWriter, *http.Request)
+		MembershipRemove  func(http.ResponseWriter, *http.Request)
+		TriggerScript     func(http.ResponseWriter, *http.Request)
+		SessionsRemove    func(http.ResponseWriter, *http.Request)
+		ListCredentials   func(http.ResponseWriter, *http.Request)
+		DeleteCredentials func(http.ResponseWriter, *http.Request)
+		Export            func(http.ResponseWriter, *http.Request)
+		Import            func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -302,6 +306,38 @@ func NewUser(h UserAPI) *User {
 
 			api.Send(w, r, value)
 		},
+		ListCredentials: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewUserListCredentials()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.ListCredentials(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		DeleteCredentials: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewUserDeleteCredentials()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.DeleteCredentials(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 		Export: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewUserExport()
@@ -355,6 +391,8 @@ func (h User) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.H
 		r.Delete("/users/{userID}/membership/{roleID}", h.MembershipRemove)
 		r.Post("/users/{userID}/trigger", h.TriggerScript)
 		r.Delete("/users/{userID}/sessions", h.SessionsRemove)
+		r.Get("/users/{userID}/credentials", h.ListCredentials)
+		r.Delete("/users/{userID}/credentials/{credentialsID}", h.DeleteCredentials)
 		r.Get("/users/export/{filename}.zip", h.Export)
 		r.Post("/users/import", h.Import)
 	})

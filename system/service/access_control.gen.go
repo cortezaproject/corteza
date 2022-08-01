@@ -341,6 +341,11 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "impersonate",
 		},
 		{
+			"type": types.UserResourceType,
+			"any":  types.UserRbacResource(0),
+			"op":   "credentials.manage",
+		},
+		{
 			"type": types.DalConnectionResourceType,
 			"any":  types.DalConnectionRbacResource(0),
 			"op":   "read",
@@ -851,6 +856,13 @@ func (svc accessControl) CanImpersonateUser(ctx context.Context, r *types.User) 
 	return svc.can(ctx, "impersonate", r)
 }
 
+// CanManageCredentialsOnUser checks if current user can manage user's credentials
+//
+// This function is auto-generated
+func (svc accessControl) CanManageCredentialsOnUser(ctx context.Context, r *types.User) bool {
+	return svc.can(ctx, "credentials.manage", r)
+}
+
 // CanReadDalConnection checks if current user can read connection
 //
 // This function is auto-generated
@@ -1283,14 +1295,15 @@ func rbacResourceOperations(r string) map[string]bool {
 		}
 	case types.UserResourceType:
 		return map[string]bool{
-			"read":         true,
-			"update":       true,
-			"delete":       true,
-			"suspend":      true,
-			"unsuspend":    true,
-			"email.unmask": true,
-			"name.unmask":  true,
-			"impersonate":  true,
+			"read":               true,
+			"update":             true,
+			"delete":             true,
+			"suspend":            true,
+			"unsuspend":          true,
+			"email.unmask":       true,
+			"name.unmask":        true,
+			"impersonate":        true,
+			"credentials.manage": true,
 		}
 	case types.DalConnectionResourceType:
 		return map[string]bool{
