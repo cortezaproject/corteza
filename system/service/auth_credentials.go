@@ -16,7 +16,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/dgryski/dgoogauth"
 	"golang.org/x/crypto/bcrypt"
-	"math"
 	rand2 "math/rand"
 	"regexp"
 	"sort"
@@ -528,39 +527,7 @@ func (svc *auth) hashPassword(password string) (hash []byte, err error) {
 }
 
 func (svc *auth) CheckPasswordStrength(password string) bool {
-	pwdL := len(password)
-
-	// Ignore defined password constraints
-	if !svc.settings.Auth.Internal.PasswordConstraints.PasswordSecurity {
-		return true
-	}
-
-	// Check the password length
-	minL := math.Max(float64(passwordMinLength), float64(svc.settings.Auth.Internal.PasswordConstraints.MinLength))
-	if pwdL < int(minL) || pwdL > passwordMaxLength {
-		return false
-	}
-
-	// Check special constraints
-	// - numeric characters
-	count := svc.settings.Auth.Internal.PasswordConstraints.MinNumCount
-	if count > 0 {
-		rr := regexp.MustCompile("[0-9]")
-		if uint(len(rr.FindAllStringIndex(password, -1))) < count {
-			return false
-		}
-	}
-
-	// - special characters
-	count = svc.settings.Auth.Internal.PasswordConstraints.MinSpecialCount
-	if count > 0 {
-		rr := regexp.MustCompile("[^0-9a-zA-Z]")
-		if uint(len(rr.FindAllStringIndex(password, -1))) < count {
-			return false
-		}
-	}
-
-	return true
+	return checkPasswordStrength(password, svc.settings.Auth.Internal.PasswordConstraints)
 }
 
 // SetPasswordCredentials (soft) deletes old password entry and creates a new entry with new password on every change
@@ -1147,4 +1114,66 @@ func credentialsFilter(cc []*types.Credential, limit int, mm ...func(*types.Cred
 	}
 
 	return
+}
+
+func checkPasswordStrength(password string, pc types.PasswordConstraints) bool {
+	var (
+		length = len(password)
+		re     *regexp.Regexp
+		mt     [][]int
+	)
+
+	// Always check system constraints
+	if length < passwordMinLength || length > passwordMaxLength {
+		return false
+	}
+
+	// Ignore defined password constraints
+	if !pc.PasswordSecurity {
+		return true
+	}
+
+	// Check the password length
+	if length < int(pc.MinLength) {
+		return false
+	}
+
+	// Check special constraints
+	// - numeric characters
+	if count := int(pc.MinNumCount); count > 0 {
+		re = regexp.MustCompile("[0-9]")
+		mt = re.FindAllStringIndex(password, -1)
+		if len(mt) < count {
+			return false
+		}
+	}
+
+	// Check for lowercase characters
+	if count := int(pc.MinLowerCase); count > 0 {
+		re = regexp.MustCompile("[a-z]")
+		mt = re.FindAllStringIndex(password, -1)
+		if len(mt) < count {
+			return false
+		}
+	}
+
+	// Check for upper-case characters
+	if count := int(pc.MinUpperCase); count > 0 {
+		re = regexp.MustCompile("[A-Z]")
+		mt = re.FindAllStringIndex(password, -1)
+		if len(mt) < count {
+			return false
+		}
+	}
+
+	// - special characters
+	if count := int(pc.MinSpecialCount); count > 0 {
+		re = regexp.MustCompile("[^0-9a-zA-Z]")
+		mt = re.FindAllStringIndex(password, -1)
+		if len(mt) < count {
+			return false
+		}
+	}
+
+	return true
 }

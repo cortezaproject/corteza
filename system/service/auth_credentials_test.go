@@ -4,6 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
+	"strings"
 	"testing"
 	"time"
 )
@@ -192,6 +193,96 @@ func TestValidateToken(t *testing.T) {
 			}
 			if gotCredentials != tt.wantCredentials {
 				t.Errorf("auth.validateToken() gotCredentials = %v, want %v", gotCredentials, tt.wantCredentials)
+			}
+		})
+	}
+}
+
+func Test_checkPasswordStrength(t *testing.T) {
+	tests := []struct {
+		name     string
+		pc       types.PasswordConstraints
+		password string
+		want     bool
+	}{
+		{
+			name:     "empty",
+			pc:       types.PasswordConstraints{},
+			password: "",
+			want:     false,
+		},
+		{
+			name:     "sys too short",
+			pc:       types.PasswordConstraints{},
+			password: strings.Repeat("A", passwordMinLength-1),
+			want:     false,
+		},
+		{
+			name:     "sys too long",
+			pc:       types.PasswordConstraints{},
+			password: strings.Repeat("A", passwordMaxLength+1),
+			want:     false,
+		},
+		{
+			name:     "too short",
+			pc:       types.PasswordConstraints{MinLength: 10},
+			password: "123456789",
+			want:     false,
+		},
+		{
+			name:     "uc valid",
+			pc:       types.PasswordConstraints{MinUpperCase: 2},
+			password: "aaaAAAaaa",
+			want:     true,
+		},
+		{
+			name:     "uc invalid",
+			pc:       types.PasswordConstraints{MinUpperCase: 2},
+			password: "aaaaaaaa",
+			want:     false,
+		},
+		{
+			name:     "lc valid",
+			pc:       types.PasswordConstraints{MinLowerCase: 2},
+			password: "AAAaaAAAA",
+			want:     true,
+		},
+		{
+			name:     "lc invalid",
+			pc:       types.PasswordConstraints{MinLowerCase: 2},
+			password: "AAAAAAAAA",
+			want:     false,
+		},
+		{
+			name:     "digit valid",
+			pc:       types.PasswordConstraints{MinNumCount: 2},
+			password: "AAA12AAAA",
+			want:     true,
+		},
+		{
+			name:     "digit invalid",
+			pc:       types.PasswordConstraints{MinNumCount: 2},
+			password: "AAAaaAAAA",
+			want:     false,
+		},
+		{
+			name:     "special valid",
+			pc:       types.PasswordConstraints{MinSpecialCount: 2},
+			password: "AAA!!AAAA",
+			want:     true,
+		},
+		{
+			name:     "special invalid",
+			pc:       types.PasswordConstraints{MinSpecialCount: 2},
+			password: "AAAaaAAAA",
+			want:     false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.pc.PasswordSecurity = true
+			if got := checkPasswordStrength(tt.password, tt.pc); got != tt.want {
+				t.Errorf("checkPasswordStrength() = %v, want %v", got, tt.want)
 			}
 		})
 	}
