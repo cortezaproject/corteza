@@ -193,7 +193,7 @@ func (svc *workflow) LookupByID(ctx context.Context, workflowID uint64) (wf *typ
 // It updates service's cache
 func (svc *workflow) Create(ctx context.Context, new *types.Workflow) (wf *types.Workflow, err error) {
 	var (
-		wap   = &workflowActionProps{new: new}
+		wap   = &workflowActionProps{workflow: new}
 		cUser = intAuth.GetIdentityFromContext(ctx).Identity()
 		g     *wfexec.Graph
 		runAs intAuth.Identifiable
@@ -251,6 +251,8 @@ func (svc *workflow) Create(ctx context.Context, new *types.Workflow) (wf *types
 		if err = label.Create(ctx, s, wf); err != nil {
 			return
 		}
+
+		wap.setNew(wf)
 
 		return
 	})

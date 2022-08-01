@@ -131,7 +131,7 @@ func (svc *report) Search(ctx context.Context, rf types.ReportFilter) (rr types.
 
 func (svc *report) Create(ctx context.Context, new *types.Report) (report *types.Report, err error) {
 	var (
-		aaProps = &reportActionProps{new: new}
+		aaProps = &reportActionProps{report: new}
 	)
 
 	err = func() (err error) {
@@ -152,6 +152,8 @@ func (svc *report) Create(ctx context.Context, new *types.Report) (report *types
 		}
 
 		new = svc.setIDs(new)
+
+		aaProps.setNew(new)
 
 		if err = store.CreateReport(ctx, svc.store, new); err != nil {
 			return

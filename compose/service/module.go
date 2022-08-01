@@ -314,7 +314,7 @@ func (svc module) procDal(m *types.Module) {
 func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module, error) {
 	var (
 		ns     *types.Namespace
-		aProps = &moduleActionProps{changed: new}
+		aProps = &moduleActionProps{module: new}
 	)
 
 	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
@@ -382,7 +382,7 @@ func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module,
 			}
 		}
 
-		aProps.setModule(new)
+		aProps.setChanged(new)
 
 		if err = store.CreateComposeModule(ctx, s, new); err != nil {
 			return err

@@ -218,7 +218,7 @@ func (svc namespace) FindByAny(ctx context.Context, identifier interface{}) (r *
 // Create adds namespace and presets access rules for role everyone
 func (svc namespace) Create(ctx context.Context, new *types.Namespace) (*types.Namespace, error) {
 	var (
-		aProps = &namespaceActionProps{changed: new}
+		aProps = &namespaceActionProps{namespace: new}
 	)
 
 	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
@@ -242,6 +242,8 @@ func (svc namespace) Create(ctx context.Context, new *types.Namespace) (*types.N
 		new.CreatedAt = *now()
 		new.UpdatedAt = nil
 		new.DeletedAt = nil
+
+		aProps.setChanged(new)
 
 		if err = store.CreateComposeNamespace(ctx, svc.store, new); err != nil {
 			return err

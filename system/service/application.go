@@ -148,7 +148,7 @@ func (svc *application) Search(ctx context.Context, af types.ApplicationFilter) 
 
 func (svc *application) Create(ctx context.Context, new *types.Application) (app *types.Application, err error) {
 	var (
-		aaProps = &applicationActionProps{new: new}
+		aaProps = &applicationActionProps{application: new}
 	)
 
 	err = func() (err error) {
@@ -167,6 +167,8 @@ func (svc *application) Create(ctx context.Context, new *types.Application) (app
 		if new.Unify == nil {
 			new.Unify = &types.ApplicationUnify{}
 		}
+
+		aaProps.setNew(new)
 
 		if err = store.CreateApplication(ctx, svc.store, new); err != nil {
 			return
