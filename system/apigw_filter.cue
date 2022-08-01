@@ -9,7 +9,7 @@ apigw_filter: {
 		labels: false
 	}
 
-	struct: {
+	model: {
 		id: schema.IdField
 		route:  { sortable: true, goType: "uint64", storeIdent: "rel_route" }
 		weight: { sortable: true, goType: "uint64" }
@@ -27,7 +27,7 @@ apigw_filter: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			route_id: {goType: "uint64", ident: "routeID", storeIdent: "rel_route"}
 			deleted:  {goType: "filter.State", storeIdent: "deleted_at"}
 			disabled: {goType: "filter.State", storeIdent: "enabled"}

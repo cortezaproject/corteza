@@ -5,7 +5,7 @@ import (
 )
 
 template: {
-	struct: {
+	model: {
 		id:     schema.IdField
 		handle: schema.HandleField
 		language: {sortable: true, goType: "string"}
@@ -22,7 +22,7 @@ template: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			template_id: {goType: "[]uint64", ident: "templateID", storeIdent: "id"}
 			handle: {goType: "string"}
 			type: {goType: "string"}

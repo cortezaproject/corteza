@@ -12,7 +12,7 @@ auth_oa2token: {
 		checkFn: false
 	}
 
-	struct: {
+	model: {
 		id:     schema.IdField
 		code: {}
 		access: {}
@@ -27,7 +27,7 @@ auth_oa2token: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			user_id: { goType: "uint64", ident: "userID" }
 		}
 

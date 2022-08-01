@@ -9,7 +9,7 @@ chart: {
 		{handle: "namespace"},
 	]
 
-	struct: {
+	model: {
 		id: schema.IdField
 		handle: schema.HandleField
 		name: {sortable: true}
@@ -22,7 +22,7 @@ chart: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			chart_id: { goType: "[]uint64", ident: "chartID", storeIdent: "id" }
 			namespace_id: { goType: "uint64", ident: "namespaceID", storeIdent: "rel_namespace" }
 			handle: { goType: "string" }

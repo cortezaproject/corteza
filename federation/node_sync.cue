@@ -9,7 +9,7 @@ nodeSync: {
 		labels: false
 	}
 
-	struct: {
+	model: {
 		node_id: { sortable: true, ident: "nodeID", goType: "uint64", primaryKey: true }
 		module_id: { sortable: true, ident: "moduleID", goType: "uint64" }
 		sync_type: { sortable: true, goType: "string" }
@@ -19,7 +19,7 @@ nodeSync: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			node_id:     { goType: "uint64", storeIdent: "rel_node",   ident: "nodeID" }
 			module_id:   { goType: "uint64", storeIdent: "rel_module", ident: "moduleID" }
 			sync_status: { goType: "string", storeIdent: "sync_status" }

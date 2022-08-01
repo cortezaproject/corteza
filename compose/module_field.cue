@@ -10,7 +10,7 @@ moduleField: {
 		{handle: "module"},
 	]
 
-	struct: {
+	model: {
 		id: schema.IdField
 		namespace_id: { ident: "namespaceID", goType: "uint64", store: false }
 		module_id: { sortable: true, ident: "moduleID", goType: "uint64", storeIdent: "rel_module" }
@@ -30,7 +30,7 @@ moduleField: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			module_id: { goType: "[]uint64", ident: "moduleID", storeIdent: "rel_module" }
 			deleted: { goType: "filter.State", storeIdent: "deleted_at" }
 		}

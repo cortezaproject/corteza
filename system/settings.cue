@@ -15,7 +15,7 @@ settings: {
 		checkFn: false
 	}
 
-	struct: {
+	model: {
 		name:        { primaryKey: true, ignoreCase: true }
 		owned_by:    { primaryKey: true, goType: "uint64", storeIdent: "rel_owner" }
 		value:       { goType: "rawJson" }
@@ -26,7 +26,7 @@ settings: {
 	filter: {
 		expIdent: "SettingsFilter"
 
-		struct: {
+		model: {
 			prefix: {}
 			owned_by: { goType: "uint64", storeIdent: "rel_owner" }
 		}

@@ -9,7 +9,7 @@ reminder: {
 		labels: false
 	}
 
-	struct: {
+	model: {
 		id:     schema.IdField
 		resource: { sortable: true }
 		payload: { goType: "rawJson" }
@@ -26,7 +26,7 @@ reminder: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			reminder_id: {goType: "[]uint64", ident: "reminderID", storeIdent: "id"}
 			resource: {}
 			assigned_to: {goType: "uint64"}

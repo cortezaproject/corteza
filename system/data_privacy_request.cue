@@ -9,7 +9,7 @@ data_privacy_request: {
 		labels: false
 	}
 
-	struct: {
+	model: {
 		id: schema.IdField
 		kind: { goType: "types.RequestKind", sortable: true }
 		status: { goType: "types.RequestStatus", sortable: true }
@@ -29,7 +29,7 @@ data_privacy_request: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			request_id: {goType: "[]uint64", ident: "requestID", storeIdent: "id" }
 			requested_by: {goType: "[]uint64", ident: "requestedBy" }
 			kind: {goType: "[]types.RequestKind"}

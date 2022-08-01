@@ -5,7 +5,7 @@ import (
 )
 
 trigger: {
-	struct: {
+	model: {
 		id:          schema.IdField
 		workflow_id: { sortable: true, ident: "workflowID", goType: "uint64", storeIdent: "rel_workflow" }
 		step_id: { ident: "stepID", goType: "uint64", storeIdent: "rel_step" }
@@ -26,7 +26,7 @@ trigger: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			deleted: { goType: "filter.State", storeIdent: "deleted_at" }
 			disabled: { goType: "filter.State", storeIdent: "enabled" }
 			trigger_id: { goType: "[]uint64", ident: "triggerID", storeIdent: "id" }

@@ -5,7 +5,7 @@ import (
 )
 
 role: {
-	struct: {
+	model: {
 		id: schema.IdField
 		name: {sortable: true}
 		handle: schema.HandleField
@@ -18,7 +18,7 @@ role: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			role_id: {goType: "[]uint64", ident: "roleID", storeIdent: "id" }
 			member_id: {goType: "uint64" }
 			handle: {goType: "string"}

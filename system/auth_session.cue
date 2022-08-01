@@ -12,7 +12,7 @@ auth_session: {
 		checkFn: false
 	}
 
-	struct: {
+	model: {
 		id:      { primaryKey: true, expIdent: "ID" }
 		data:    { goType: "[]byte" }
 		user_id: { goType: "uint64", storeIdent: "rel_user", ident: "userID"}
@@ -23,7 +23,7 @@ auth_session: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			user_id: { goType: "uint64", ident: "userID" }
 		}
 

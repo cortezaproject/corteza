@@ -24,7 +24,7 @@ resources: {
 
 		features: _allFeaturesDisabled
 
-		struct: {
+		model: {
 			role_id:   { primaryKey: true, goType: "uint64", ident: "roleID", storeIdent: "rel_role" }
 			resource:  { primaryKey: true }
 			operation: { primaryKey: true }
@@ -67,7 +67,7 @@ resources: {
 
 		features: _allFeaturesDisabled
 
-		struct: {
+		model: {
 			kind:        { primaryKey: true }
 			resource_id: { primaryKey: true, goType: "uint64", ident: "resourceID", storeIdent: "rel_resource" }
 			name:        { primaryKey: true, ignoreCase: true  }
@@ -76,7 +76,7 @@ resources: {
 
 		filter: {
 			expIdent: "LabelFilter"
-			struct: {
+			model: {
 				kind: {}
 				rel_resource: { goType: "[]uint64", ident: "resourceID" }
 				limit: { goType: "uint" }
@@ -123,7 +123,7 @@ resources: {
 
 		features: _allFeaturesDisabled
 
-		struct: {
+		model: {
 			kind:        { primaryKey: true }
 			resource_id: { primaryKey: true, goType: "uint64", ident: "resourceID", storeIdent: "rel_resource" }
 			owned_by:    { primaryKey: true, goType: "uint64" }
@@ -133,7 +133,7 @@ resources: {
 
 		filter: {
 			expIdent: "FlagFilter"
-			struct: {
+			model: {
 				kind: {}
 				resource_id: { goType: "[]uint64", ident: "resourceID", storeIdent: "rel_resource" }
 				owned_by: { goType: "[]uint64", ident: "ownedBy" }
@@ -173,7 +173,7 @@ resources: {
 			checkFn: false
 		}
 
-		struct: {
+		model: {
   		id:           schema.IdField
 			timestamp:    schema.SortableTimestampField & { storeIdent: "ts" }
 			request_origin:  {}
@@ -190,7 +190,7 @@ resources: {
 
 		filter: {
 			expIdent: "Filter"
-			struct: {
+			model: {
 				from_timestamp: { goType: "*time.Time" }
 				to_timestamp: { goType: "*time.Time" }
 				before_action_id: { goType: "uint64", ident: "beforeActionID" }
@@ -240,7 +240,7 @@ resources: {
 
 		features: _allFeaturesDisabled
 
-		struct: {
+		model: {
   		id:           schema.IdField
 			timestamp:    schema.SortableTimestampField & { storeIdent: "ts" }
 			resource_type:   {}
@@ -251,7 +251,7 @@ resources: {
 
 		filter: {
 			expIdent: "ResourceActivityFilter"
-			struct: {
+			model: {
 				from_timestamp: { goType: "*time.Time" }
 				to_timestamp: { goType: "*time.Time" }
 			}

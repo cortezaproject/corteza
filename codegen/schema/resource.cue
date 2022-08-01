@@ -18,11 +18,11 @@ import (
 	// Fully qualified resource name
 	fqrn: string | *(platform + "::" + component + ":" + handle)
 
-	struct: #Struct
+	model: #Model
 	filter: {
 		"expIdent": #expIdent | *"\(expIdent)Filter"
 
-		struct: #Struct
+		model: #Model
 
 		// generate filtering by-nil-state for the specified fields
 		"byNilState": [...string]
@@ -86,7 +86,7 @@ import (
 
 		api?: {
 			lookups: [...{
-				_expFields: [ for f in fields {strings.ToTitle(struct[f].expIdent)}]
+				_expFields: [ for f in fields {strings.ToTitle(model[f].expIdent)}]
 
 				"expIdent":  "Lookup\(store.expIdent)By" + strings.Join(_expFields, "")
 				description: string | *""

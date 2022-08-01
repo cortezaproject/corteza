@@ -5,7 +5,7 @@ import (
 )
 
 namespace: {
-	struct: {
+	model: {
 		id: schema.IdField
 		slug: { sortable: true, goType: "string" }
 		enabled: { goType: "bool" }
@@ -18,7 +18,7 @@ namespace: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			namespace_id: { goType: "[]uint64", ident: "namespaceID" }
 			slug: { goType: "string" }
 			name: { goType: "string" }

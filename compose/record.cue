@@ -10,7 +10,7 @@ record: {
 		{handle: "module"},
 	]
 
-	struct: {
+	model: {
 		id: schema.IdField
 		module_id: { ident: "moduleID", goType: "uint64" }
 		module: { goType: "*types.Module", store: false }
@@ -27,7 +27,7 @@ record: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			module_id: { goType: "uint64" }
 			namespace_id: { goType: "uint64" }
 			query: { goType: "string" }

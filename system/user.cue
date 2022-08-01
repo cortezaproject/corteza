@@ -5,7 +5,7 @@ import (
 )
 
 user: {
-	struct: {
+	model: {
 		id:     schema.IdField
 		handle: schema.HandleField
 		email: {sortable: true, unique: true, ignoreCase: true}
@@ -21,7 +21,7 @@ user: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			user_id: {goType: "[]uint64", ident: "userID", storeIdent: "id"}
 			role_id: {goType: "[]uint64", ident: "roleID"}
 			email: {goType: "string"}

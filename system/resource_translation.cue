@@ -10,7 +10,7 @@ resource_translation: {
 		checkFn: false
 	}
 
-	struct: {
+	model: {
 		id: schema.IdField
 		lang:       { goType: "types.Lang" }
 		resource:   {}
@@ -27,7 +27,7 @@ resource_translation: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			translation_id: {goType: "[]uint64", ident: "translationID" }
 			lang: {}
 			resource: {}

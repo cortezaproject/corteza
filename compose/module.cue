@@ -10,7 +10,7 @@ module: {
 		{handle: "namespace"},
 	]
 
-	struct: {
+	model: {
 		id: schema.IdField
 		handle: schema.HandleField
 		meta: { goType: "rawJson" }
@@ -25,7 +25,7 @@ module: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			module_id: { goType: "[]uint64", ident: "moduleID", storeIdent: "id" }
 			namespace_id: { goType: "uint64", ident: "namespaceID", storeIdent: "rel_namespace" }
 			handle: { goType: "string" }

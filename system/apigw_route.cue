@@ -9,7 +9,7 @@ apigw_route: {
 		labels: false
 	}
 
-	struct: {
+	model: {
 		id:       schema.IdField
 		endpoint: {sortable: true}
 		method:   {sortable: true}
@@ -26,7 +26,7 @@ apigw_route: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			route: {}
 			query: {goType: "string"}
 

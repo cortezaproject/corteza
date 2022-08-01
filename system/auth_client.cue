@@ -5,7 +5,7 @@ import (
 )
 
 auth_client: {
-	struct: {
+	model: {
 		id:     schema.IdField
 		handle: schema.HandleField
 		meta: {goType: "*types.AuthClientMeta"}
@@ -29,7 +29,7 @@ auth_client: {
 	}
 
 	filter: {
-		struct: {
+		model: {
 			client_id: {goType: "[]uint64"}
 			handle: {goType: "string"}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
