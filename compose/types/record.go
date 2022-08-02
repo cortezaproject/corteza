@@ -241,14 +241,16 @@ func (r *Record) CountValues() (pos map[string]uint) {
 		"ownedBy":     1,
 	}
 
-	if mod == nil {
-		// count record values
-		// only when module is known
-		return
-	}
+	// if mod == nil {
+	// 	// count record values
+	// 	// only when module is known
+	// 	return
+	// }
 
-	for _, f := range mod.Fields {
-		pos[f.Name] = 0
+	if mod != nil {
+		for _, f := range mod.Fields {
+			pos[f.Name] = 0
+		}
 	}
 
 	for _, val := range r.Values {
