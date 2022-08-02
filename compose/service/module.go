@@ -3,11 +3,12 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/revisions"
 	"reflect"
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/cortezaproject/corteza-server/pkg/revisions"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
@@ -301,13 +302,13 @@ func (svc module) procDal(m *types.Module) {
 
 	ii := svc.dal.SearchModelIssues(m.Config.DAL.ConnectionID, m.ID)
 	if len(ii) == 0 {
-		m.Config.DAL.Issues = nil
+		m.Issues = nil
 		return
 	}
 
-	m.Config.DAL.Issues = make([]string, len(ii))
+	m.Issues = make([]string, len(ii))
 	for i, err := range ii {
-		m.Config.DAL.Issues[i] = err.Error()
+		m.Issues[i] = err.Error()
 	}
 }
 
