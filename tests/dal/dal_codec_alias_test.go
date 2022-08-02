@@ -6,7 +6,6 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 )
 
 func Test_dal_codec_alias(t *testing.T) {
@@ -54,9 +53,9 @@ func Test_dal_codec_alias(t *testing.T) {
 
 	bootstrap(t, func(ctx context.Context, t *testing.T, h helper, svc dalService) {
 		h.a.NoError(svc.ReplaceModel(ctx, model))
-		h.a.NoError(svc.Create(ctx, model.ToFilter(), capabilities.CreateCapabilities(model.Capabilities...), &rIn))
+		h.a.NoError(svc.Create(ctx, model.ToFilter(), dal.CreateOperations(model.Operations...), &rIn))
 
-		h.a.NoError(svc.Lookup(ctx, model.ToFilter(), capabilities.LookupCapabilities(model.Capabilities...), dal.PKValues{"id": rIn.ID}, &rOut))
+		h.a.NoError(svc.Lookup(ctx, model.ToFilter(), dal.LookupOperations(model.Operations...), dal.PKValues{"id": rIn.ID}, &rOut))
 
 		for _, inVal := range rIn.Values {
 			outVal := rOut.Values.Get(inVal.Name, 0)

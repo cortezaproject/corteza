@@ -3,11 +3,12 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
@@ -64,7 +65,7 @@ type (
 	ModuleFieldConfigDataPrivacy struct {
 		// Define the highest sensitivity level which
 		// can be configured on the module fields
-		SensitivityLevel uint64 `json:"sensitivityLevel,string,omitempty"`
+		SensitivityLevelID uint64 `json:"sensitivityLevelID,string,omitempty"`
 
 		UsageDisclosure string `json:"usageDisclosure"`
 	}
@@ -523,7 +524,7 @@ func (f ModuleField) IsRef() bool {
 }
 
 func (f ModuleField) IsSensitive() bool {
-	return f.Config.Privacy.SensitivityLevel > 0
+	return f.Config.Privacy.SensitivityLevelID > 0
 }
 
 func (p *ModuleFieldConfig) Scan(src any) error          { return sql.ParseJSON(src, p) }

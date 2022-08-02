@@ -5,12 +5,12 @@
   "config": {
     "dal": {
       "connectionID": "42",
-      "capabilities": [],
+      "operations": [],
       "partitioned": false
     },
 
     "privacy": {
-      "sensitivityLevel": "0",
+      "sensitivityLevelID": "0",
       "usageDisclosure": "A"
     }
   },
@@ -22,7 +22,7 @@
       "kind": "String",
 
       "privacy": {
-        "sensitivityLevel": "0",
+        "sensitivityLevelID": "0",
         "usageDisclosure": "A"
       }
     },

@@ -3,9 +3,10 @@ package types
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/cast2"
 	"strconv"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/cast2"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/modern-go/reflect2"

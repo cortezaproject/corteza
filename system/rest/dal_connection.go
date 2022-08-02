@@ -10,7 +10,6 @@ import (
 	federationTypes "github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
@@ -39,14 +38,24 @@ type (
 	}
 	connectionWrapSet []connectionWrap
 
+	connectionPayload struct {
+		*types.DalConnection
+
+		CanGrant            bool `json:"canGrant"`
+		CanUpdateConnection bool `json:"canUpdateConnection"`
+		CanDeleteConnection bool `json:"canDeleteConnection"`
+	}
+
 	connectionSetPayload struct {
 		Filter types.DalConnectionFilter `json:"filter"`
-		Set    types.DalConnectionSet    `json:"set"`
+		Set    []*connectionPayload      `json:"set"`
 	}
 
 	connectionAccessController interface {
+		CanGrant(context.Context) bool
 		CanCreateDalConnection(context.Context) bool
 		CanUpdateDalConnection(context.Context, *types.DalConnection) bool
+		CanDeleteDalConnection(context.Context, *types.DalConnection) bool
 	}
 
 	connectionService interface {
@@ -100,16 +109,10 @@ func (ctrl DalConnection) List(ctx context.Context, r *request.DalConnectionList
 
 func (ctrl DalConnection) Create(ctx context.Context, r *request.DalConnectionCreate) (interface{}, error) {
 	connection := &types.DalConnection{
-		Name:   r.Name,
 		Handle: r.Handle,
 		Type:   r.Type,
-
-		Location:         r.Location,
-		Ownership:        r.Ownership,
-		SensitivityLevel: r.SensitivityLevel,
-
-		Config:       r.Config,
-		Capabilities: r.Capabilities,
+		Meta:   r.Meta,
+		Config: r.Config,
 	}
 
 	return ctrl.svc.Create(ctx, connection)
@@ -118,16 +121,10 @@ func (ctrl DalConnection) Create(ctx context.Context, r *request.DalConnectionCr
 func (ctrl DalConnection) Update(ctx context.Context, r *request.DalConnectionUpdate) (interface{}, error) {
 	connection := &types.DalConnection{
 		ID:     r.ConnectionID,
-		Name:   r.Name,
 		Handle: r.Handle,
 		Type:   r.Type,
-
-		Location:         r.Location,
-		Ownership:        r.Ownership,
-		SensitivityLevel: r.SensitivityLevel,
-
-		Config:       r.Config,
-		Capabilities: r.Capabilities,
+		Meta:   r.Meta,
+		Config: r.Config,
 	}
 
 	return ctrl.svc.Update(ctx, connection)
@@ -148,36 +145,40 @@ func (ctrl DalConnection) Undelete(ctx context.Context, r *request.DalConnection
 func (ctrl DalConnection) makeFilterPayload(ctx context.Context, connections types.DalConnectionSet, f types.DalConnectionFilter) (out *connectionSetPayload, err error) {
 	out = &connectionSetPayload{
 		Filter: f,
-		Set:    make(types.DalConnectionSet, 0),
+		Set:    make([]*connectionPayload, 0, len(connections)),
 	}
 	for _, c := range connections {
-		if c.Capabilities.Enforced == nil {
-			c.Capabilities.Enforced = capabilities.Set{}
-		}
-		if c.Capabilities.Supported == nil {
-			c.Capabilities.Supported = capabilities.Set{}
-		}
-		if c.Capabilities.Unsupported == nil {
-			c.Capabilities.Unsupported = capabilities.Set{}
-		}
-		if c.Capabilities.Enabled == nil {
-			c.Capabilities.Enabled = capabilities.Set{}
-		}
+		c.Config.DAL.Operations = append(dal.OperationSet{}, c.Config.DAL.Operations...)
+
+		out.Set = append(out.Set, ctrl.makePayload(ctx, c))
 	}
-	out.Set = append(out.Set, connections...)
 
 	return
+}
+
+func (ctrl DalConnection) makePayload(ctx context.Context, c *types.DalConnection) *connectionPayload {
+	return &connectionPayload{
+		DalConnection: c,
+
+		CanGrant:            ctrl.connectionAc.CanGrant(ctx),
+		CanUpdateConnection: ctrl.connectionAc.CanUpdateDalConnection(ctx, c),
+		CanDeleteConnection: ctrl.connectionAc.CanDeleteDalConnection(ctx, c),
+	}
 }
 
 func (ctrl DalConnection) federatedNodeToConnection(f *federationTypes.Node) *types.DalConnection {
 	h, _ := handle.Cast(nil, f.Name)
 
 	return &types.DalConnection{
-		ID:        f.ID,
-		Name:      f.Name,
-		Handle:    h,
-		Type:      federationTypes.NodeResourceType,
-		Ownership: f.Contact,
+		ID: f.ID,
+
+		Meta: types.ConnectionMeta{
+			Name:      f.Name,
+			Ownership: f.Contact,
+		},
+
+		Handle: h,
+		Type:   federationTypes.NodeResourceType,
 
 		Config: types.ConnectionConfig{
 			Connection: dal.NewFederatedNodeCOnnection(f.BaseURL, f.PairToken, f.AuthToken),

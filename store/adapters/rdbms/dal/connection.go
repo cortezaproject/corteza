@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
 	"github.com/jmoiron/sqlx"
@@ -16,9 +15,9 @@ type (
 	//
 	// In other words: this allows Corteza to read Records from the supported SQL databases
 	connection struct {
-		mux          sync.RWMutex
-		models       map[string]*model
-		capabilities capabilities.Set
+		mux        sync.RWMutex
+		models     map[string]*model
+		operations dal.OperationSet
 
 		db      sqlx.ExtContext
 		dialect drivers.Dialect
@@ -27,18 +26,18 @@ type (
 
 func init() {
 	dal.RegisterDriver(dal.Driver{
-		Type:         "corteza::dal:driver:rdbms",
-		Capabilities: capabilities.FullCapabilities(),
-		Connection:   dal.NewDSNDriverConnectionConfig(),
+		Type:       "corteza::dal:driver:rdbms",
+		Operations: dal.FullOperations(),
+		Connection: dal.NewDSNDriverConnectionConfig(),
 	})
 }
 
-func Connection(db sqlx.ExtContext, dialect drivers.Dialect, cc ...capabilities.Capability) *connection {
+func Connection(db sqlx.ExtContext, dialect drivers.Dialect, cc ...dal.Operation) *connection {
 	return &connection{
-		db:           db,
-		dialect:      dialect,
-		models:       make(map[string]*model),
-		capabilities: cc,
+		db:         db,
+		dialect:    dialect,
+		models:     make(map[string]*model),
+		operations: cc,
 	}
 }
 
@@ -68,12 +67,12 @@ func (c *connection) model(m *dal.Model) *model {
 	return c.models[key]
 }
 
-func (c *connection) Capabilities() capabilities.Set {
-	return c.capabilities
+func (c *connection) Operations() dal.OperationSet {
+	return c.operations
 }
 
-func (c *connection) Can(capabilities ...capabilities.Capability) bool {
-	return c.capabilities.IsSuperset(capabilities...)
+func (c *connection) Can(operations ...dal.Operation) bool {
+	return c.operations.IsSuperset(operations...)
 }
 
 func (c *connection) Create(ctx context.Context, m *dal.Model, rr ...dal.ValueGetter) error {

@@ -5,11 +5,11 @@
   "config": {
     "dal": {
       "connectionID": "0",
-      "capabilities": [],
+      "operations": [],
       "partitioned": false
     },
     "privacy": {
-      "sensitivityLevel": "0",
+      "sensitivityLevelID": "0",
       "usageDisclosure": "A"
     }
   },

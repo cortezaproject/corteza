@@ -17,6 +17,6 @@ func Test_dal_crud_driver_list(t *testing.T) {
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.GreaterThan("$.response.set", 0)).
-		Assert(jsonpath.Present("$.response.set[0].capabilities")).
+		Assert(jsonpath.Present("$.response.set[0].operations")).
 		End()
 }

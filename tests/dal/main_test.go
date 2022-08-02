@@ -5,18 +5,18 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
-	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/steinfletcher/apitest"
 	"io/ioutil"
 	"os"
 	"path"
 	"testing"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
+	"github.com/cortezaproject/corteza-server/store"
+	"github.com/steinfletcher/apitest"
 
 	"github.com/cortezaproject/corteza-server/app"
 	"github.com/cortezaproject/corteza-server/auth/handlers"
@@ -240,8 +240,8 @@ func (h helper) createDalConnection(res *types.DalConnection) *types.DalConnecti
 		res.ID = id.Next()
 	}
 
-	if res.Name == "" {
-		res.Name = "Test Connection"
+	if res.Meta.Name == "" {
+		res.Meta.Name = "Test Connection"
 	}
 	if res.Handle == "" {
 		res.Handle = "test_connection"
@@ -249,40 +249,28 @@ func (h helper) createDalConnection(res *types.DalConnection) *types.DalConnecti
 	if res.Type == "" {
 		res.Type = types.DalConnectionResourceType
 	}
-	if res.Ownership == "" {
-		res.Ownership = "tester"
+	if res.Meta.Ownership == "" {
+		res.Meta.Ownership = "tester"
 	}
 
-	if res.Config.DefaultModelIdent == "" {
-		res.Config.DefaultModelIdent = "compose_records"
+	if res.Config.DAL.ModelIdent == "" {
+		res.Config.DAL.ModelIdent = "compose_records"
 	}
-	if res.Config.DefaultAttributeIdent == "" {
-		res.Config.DefaultAttributeIdent = "values"
+	if res.Config.DAL.AttributeIdent == "" {
+		res.Config.DAL.AttributeIdent = "values"
 	}
-	if res.Config.DefaultPartitionFormat == "" {
-		res.Config.DefaultPartitionFormat = "compose_records_{{namespace}}_{{module}}"
+	if res.Config.DAL.PartitionFormat == "" {
+		res.Config.DAL.PartitionFormat = "compose_records_{{namespace}}_{{module}}"
 	}
-	if res.Config.PartitionFormatValidator == "" {
-		res.Config.PartitionFormatValidator = ""
+	if res.Config.DAL.PartitionIdentValidator == "" {
+		res.Config.DAL.PartitionIdentValidator = ""
 	}
 	if res.Config.Connection.Params == nil {
 		res.Config.Connection = dal.NewDSNConnection("sqlite3://file::memory:?cache=shared&mode=memory")
 	}
 
-	if len(res.Capabilities.Enforced) == 0 {
-		res.Capabilities.Enforced = capabilities.FullCapabilities()
-	}
-
-	if len(res.Capabilities.Supported) == 0 {
-		res.Capabilities.Supported = capabilities.Set{}
-	}
-
-	if len(res.Capabilities.Unsupported) == 0 {
-		res.Capabilities.Unsupported = capabilities.Set{}
-	}
-
-	if len(res.Capabilities.Enabled) == 0 {
-		res.Capabilities.Enabled = capabilities.Set{}
+	if len(res.Config.DAL.Operations) == 0 {
+		res.Config.DAL.Operations = dal.FullOperations()
 	}
 
 	if res.CreatedAt.IsZero() {
@@ -313,17 +301,18 @@ func makeConnectionDefinition(dsn string) *types.DalConnection {
 		ID:   id.Next(),
 		Type: types.DalConnectionResourceType,
 		Config: types.ConnectionConfig{
-			DefaultModelIdent:     "compose_record",
-			DefaultAttributeIdent: "values",
+			DAL: types.ConnectionConfigDAL{
+				ModelIdent:     "compose_record",
+				AttributeIdent: "values",
 
-			DefaultPartitionFormat: "compose_record_{{namespace}}_{{module}}",
+				PartitionFormat: "compose_record_{{namespace}}_{{module}}",
 
-			PartitionFormatValidator: "",
+				PartitionIdentValidator: "",
+
+				Operations: dal.FullOperations(),
+			},
 
 			Connection: dal.NewDSNConnection(dsn),
-		},
-		Capabilities: types.ConnectionCapabilities{
-			Supported: capabilities.FullCapabilities(),
 		},
 	}
 }

@@ -103,15 +103,11 @@ func tableDalConnections() *Table {
 		ID,
 
 		ColumnDef("handle", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
-		ColumnDef("name", ColumnTypeText),
 		ColumnDef("type", ColumnTypeText),
 
-		ColumnDef("location", ColumnTypeJson, Null),
-		ColumnDef("ownership", ColumnTypeText),
-		ColumnDef("sensitivity_level", ColumnTypeIdentifier),
-
 		ColumnDef("config", ColumnTypeJson),
-		ColumnDef("capabilities", ColumnTypeJson),
+		ColumnDef("meta", ColumnTypeJson),
+
 		CUDTimestamps,
 		CUDUsers,
 

@@ -7,7 +7,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"go.uber.org/zap"
@@ -30,11 +29,11 @@ type (
 		// can work out of the box.
 		Models(context.Context) (ModelSet, error)
 
-		// Capabilities returns all of the capabilities the given store supports
-		Capabilities() capabilities.Set
+		// Operations returns all of the operations the given store supports
+		Operations() OperationSet
 
-		// Can returns true if this store can handle the given capabilities
-		Can(capabilities ...capabilities.Capability) bool
+		// Can returns true if this store can handle the given operations
+		Can(operations ...Operation) bool
 
 		// DML stuff
 
@@ -101,7 +100,7 @@ type (
 		SetValue(string, uint, any) error
 	}
 
-	ConnectorFn func(ctx context.Context, dsn string, cc ...capabilities.Capability) (Connection, error)
+	ConnectorFn func(ctx context.Context, dsn string, oo ...Operation) (Connection, error)
 
 	DriverConnectionParam struct {
 		Key        string `json:"key"`
@@ -115,9 +114,9 @@ type (
 	}
 
 	Driver struct {
-		Type         string                 `json:"type"`
-		Connection   DriverConnectionConfig `json:"connection"`
-		Capabilities capabilities.Set       `json:"capabilities"`
+		Type       string                 `json:"type"`
+		Connection DriverConnectionConfig `json:"connection"`
+		Operations OperationSet           `json:"operations"`
 	}
 )
 
@@ -157,7 +156,7 @@ func RegisterDriver(d Driver) {
 }
 
 // connect opens a new StoreConnection for the given CRS
-func connect(ctx context.Context, log *zap.Logger, isDevelopment bool, cp ConnectionParams, capabilities ...capabilities.Capability) (Connection, error) {
+func connect(ctx context.Context, log *zap.Logger, isDevelopment bool, cp ConnectionParams, operations ...Operation) (Connection, error) {
 	if cp.Type != "corteza::dal:connection:dsn" {
 		return nil, fmt.Errorf("cannot open connection: only DSN connections supported (got: %q)", cp.Type)
 	}
@@ -181,7 +180,7 @@ func connect(ctx context.Context, log *zap.Logger, isDevelopment bool, cp Connec
 	}
 
 	if conn, ok := registeredConnectors[storeType]; ok {
-		return conn(ctx, dsn, capabilities...)
+		return conn(ctx, dsn, operations...)
 	} else {
 		return nil, fmt.Errorf("unknown store type used: %q (check your database configuration)", storeType)
 	}

@@ -160,6 +160,7 @@ func (h helper) makeRecord(module *types.Module, rvs ...*types.RecordValue) *typ
 		// when stored through the service
 		Values: values.Formatter().Run(module, rvs),
 	}
+	rec.SetModule(module)
 
 	rec.SetModule(module)
 

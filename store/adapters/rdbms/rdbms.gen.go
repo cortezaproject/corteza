@@ -9270,7 +9270,6 @@ func (Store) sortableDalConnectionFields() map[string]string {
 		"deletedat":  "deleted_at",
 		"handle":     "handle",
 		"id":         "id",
-		"name":       "name",
 		"type":       "type",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
@@ -9302,8 +9301,6 @@ func (s *Store) collectDalConnectionCursorValues(res *systemType.DalConnection, 
 				case "id":
 					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
-				case "name":
-					cur.Set(c.Column, res.Name, c.Descending)
 				case "handle":
 					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true

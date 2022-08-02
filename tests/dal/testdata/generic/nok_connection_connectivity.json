@@ -1,43 +1,48 @@
 {
-  "name": "Test Connection",
   "handle": "test_connection",
   "type": "corteza::system:dal-connection",
-  "location": {
+
+  "meta": {
+    "name": "Test Connection",
+    "location": {
       "geometry": {
-          "type": "",
-          "coordinates": null
+        "type": "",
+        "coordinates": null
       },
       "properties": {
-          "name": ""
+        "name": ""
       }
+    },
+    "ownership": ""
   },
-  "ownership": "",
-  "sensitivityLevel": "0",
+
   "config": {
-      "defaultModelIdent": "compose_record",
-      "defaultAttributeIdent": "values",
-      "defaultPartitionFormat": "compose_record_{{namespace}}_{{module}}",
-      "partitionFormatValidator": "",
-      "connection": {
-          "type": "corteza::dal:connection:dsn",
-          "params": {
-              "dsn": "NO"
-          }
+    "connection": {
+      "type": "corteza::dal:connection:dsn",
+      "params": {
+        "dsn": "NO"
       }
-  },
-  "capabilities": {
-      "enforced": [],
-      "supported": [
-          "corteza::dal:capability:create",
-          "corteza::dal:capability:update",
-          "corteza::dal:capability:search",
-          "corteza::dal:capability:lookup",
-          "corteza::dal:capability:paging",
-          "corteza::dal:capability:stats",
-          "corteza::dal:capability:sorting",
-          "corteza::dal:capability:RBAC"
+    },
+    "privacy": {
+      "sensitivityLevelID": "0"
+    },
+    "dal": {
+      "properties": {},
+      "operations": [
+        "corteza::dal:operation:create",
+        "corteza::dal:operation:update",
+        "corteza::dal:operation:search",
+        "corteza::dal:operation:lookup",
+        "corteza::dal:operation:paging",
+        "corteza::dal:operation:stats",
+        "corteza::dal:operation:sorting",
+        "corteza::dal:operation:RBAC"
       ],
-      "unsupported": [],
-      "enabled": []
+
+      "modelIdent": "compose_record",
+      "attributeIdent": "values",
+      "partitionFormat": "compose_record_{{namespace}}_{{module}}",
+      "partitionIdentValidator": ""
+    }
   }
 }

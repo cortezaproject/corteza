@@ -93,7 +93,7 @@ func makeTestModuleService(t *testing.T, mods ...any) *module {
 				ctx,
 				dal.MakeConnection(1, svc.store.ToDalConn(),
 					dal.ConnectionParams{},
-					dal.ConnectionMeta{DefaultModelIdent: recordsTable, DefaultAttributeIdent: "values"},
+					dal.ConnectionConfig{ModelIdent: recordsTable, AttributeIdent: "values"},
 				),
 				true,
 			),

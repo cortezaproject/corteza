@@ -11,7 +11,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/revisions"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 
 	"github.com/cortezaproject/corteza-server/compose/dalutils"
@@ -72,8 +71,8 @@ type (
 
 	// Model management on DAL Service
 	dalModelManager interface {
-		GetConnectionMeta(ctx context.Context, ID uint64) (cm dal.ConnectionMeta, err error)
-		Search(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set, f filter.Filter) (dal.Iterator, error)
+		GetConnectionMeta(ctx context.Context, ID uint64) (cm dal.ConnectionConfig, err error)
+		Search(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, f filter.Filter) (dal.Iterator, error)
 
 		ReplaceModel(context.Context, *dal.Model) error
 		RemoveModel(ctx context.Context, connectionID, ID uint64) error
@@ -541,7 +540,7 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 		if changes&moduleChanged > 0 {
 			{
 				// properly resolve connection ID 0 to the actual ID of the default connection
-				var defConn dal.ConnectionMeta
+				var defConn dal.ConnectionConfig
 				defConn, err = svc.dal.GetConnectionMeta(ctx, 0)
 				if err != nil {
 					return err
@@ -1176,7 +1175,7 @@ func DalModelRemove(ctx context.Context, dmm dalModelManager, mm ...*types.Modul
 
 func moduleToModel(ctx context.Context, dmm dalModelManager, ns *types.Namespace, modules ...*types.Module) (out dal.ModelSet, err error) {
 	var (
-		cm      dal.ConnectionMeta
+		cm      dal.ConnectionConfig
 		attrAux dal.AttributeSet
 	)
 
@@ -1200,16 +1199,16 @@ func moduleToModel(ctx context.Context, dmm dalModelManager, ns *types.Namespace
 		for _, mod := range modules {
 			// - base params
 			model := &dal.Model{
-				ConnectionID:     connectionID,
-				Label:            mod.Handle,
-				Resource:         mod.RbacResource(),
-				ResourceID:       mod.ID,
-				ResourceType:     types.ModuleResourceType,
-				SensitivityLevel: mod.Config.Privacy.SensitivityLevel,
-				Capabilities:     mod.Config.DAL.Capabilities,
+				ConnectionID:       connectionID,
+				Label:              mod.Handle,
+				Resource:           mod.RbacResource(),
+				ResourceID:         mod.ID,
+				ResourceType:       types.ModuleResourceType,
+				SensitivityLevelID: mod.Config.Privacy.SensitivityLevelID,
+				Operations:         mod.Config.DAL.Operations,
 			}
 
-			model.Ident = cm.DefaultModelIdent
+			model.Ident = cm.ModelIdent
 			if mod.Config.DAL.Partitioned {
 				model.Ident, err = makeModelIdent(ctx, ff, cm, mod, mod.Config.DAL.PartitionFormat)
 				if err != nil {
@@ -1261,13 +1260,13 @@ func moduleToModel(ctx context.Context, dmm dalModelManager, ns *types.Namespace
 	return
 }
 
-func makeModelIdent(ctx context.Context, ff identFormatter, cm dal.ConnectionMeta, mod *types.Module, ident string) (_ string, err error) {
+func makeModelIdent(ctx context.Context, ff identFormatter, cm dal.ConnectionConfig, mod *types.Module, ident string) (_ string, err error) {
 	var (
 		ok bool
 	)
 
 	if ident == "" {
-		ident = cm.DefaultPartitionFormat
+		ident = cm.PartitionFormat
 	}
 
 	ident, ok = ff.Format(ctx, ident, formatterModuleParams(mod)...)
@@ -1280,7 +1279,7 @@ func makeModelIdent(ctx context.Context, ff identFormatter, cm dal.ConnectionMet
 }
 
 // moduleFieldsToAttributes converts all user-defined module fields to attributes
-func moduleFieldsToAttributes(ctx context.Context, cm dal.ConnectionMeta, ns *types.Namespace, mod *types.Module) (out dal.AttributeSet, err error) {
+func moduleFieldsToAttributes(ctx context.Context, cm dal.ConnectionConfig, ns *types.Namespace, mod *types.Module) (out dal.AttributeSet, err error) {
 	out = make(dal.AttributeSet, 0, len(mod.Fields))
 	var (
 		attr *dal.Attribute
@@ -1298,7 +1297,7 @@ func moduleFieldsToAttributes(ctx context.Context, cm dal.ConnectionMeta, ns *ty
 }
 
 // moduleSystemFieldsToAttributes converts all system-defined module fields to attributes
-func moduleSystemFieldsToAttributes(ctx context.Context, cm dal.ConnectionMeta, ns *types.Namespace, mod *types.Module) (out dal.AttributeSet, err error) {
+func moduleSystemFieldsToAttributes(ctx context.Context, cm dal.ConnectionConfig, ns *types.Namespace, mod *types.Module) (out dal.AttributeSet, err error) {
 	if mod.Config.DAL.Partitioned {
 		return partitionedModuleSystemFieldsToAttributes(cm, mod), nil
 	}
@@ -1307,7 +1306,7 @@ func moduleSystemFieldsToAttributes(ctx context.Context, cm dal.ConnectionMeta, 
 
 // partitionedModuleSystemFieldsToAttributes converts all system-defined module fields to attributes
 // keeping user-defined codec in mind
-func partitionedModuleSystemFieldsToAttributes(cm dal.ConnectionMeta, mod *types.Module) (out dal.AttributeSet) {
+func partitionedModuleSystemFieldsToAttributes(cm dal.ConnectionConfig, mod *types.Module) (out dal.AttributeSet) {
 	var (
 		sysEnc = mod.Config.DAL.SystemFieldEncoding
 
@@ -1393,7 +1392,7 @@ func defaultModuleSystemFieldsToAttributes() dal.AttributeSet {
 }
 
 // moduleFieldToAttribute converts the given module field to a DAL attribute
-func moduleFieldToAttribute(ctx context.Context, cm dal.ConnectionMeta, mod *types.Module, f *types.ModuleField) (out *dal.Attribute, err error) {
+func moduleFieldToAttribute(ctx context.Context, cm dal.ConnectionConfig, mod *types.Module, f *types.ModuleField) (out *dal.Attribute, err error) {
 	kind := f.Kind
 	if kind == "" {
 		kind = "String"
@@ -1470,7 +1469,7 @@ func moduleFieldToAttribute(ctx context.Context, cm dal.ConnectionMeta, mod *typ
 		return nil, fmt.Errorf("invalid field %s: kind %s not supported", f.Name, f.Kind)
 	}
 
-	out.SensitivityLevel = f.Config.Privacy.SensitivityLevel
+	out.SensitivityLevelID = f.Config.Privacy.SensitivityLevelID
 	out.Label = f.Name
 	out.MultiValue = f.Multi
 
@@ -1504,7 +1503,7 @@ func formatterModuleParams(mod *types.Module) []string {
 }
 
 // modelFieldCodec returns the DAL codec the given module field should use
-func modelFieldCodec(cm dal.ConnectionMeta, mod *types.Module, f *types.ModuleField) (c dal.Codec) {
+func modelFieldCodec(cm dal.ConnectionConfig, mod *types.Module, f *types.ModuleField) (c dal.Codec) {
 	c = baseModelFieldCodec(cm, mod, f)
 
 	switch {
@@ -1522,12 +1521,12 @@ func modelFieldCodec(cm dal.ConnectionMeta, mod *types.Module, f *types.ModuleFi
 }
 
 // baseModelFieldCodec returns the DAL codec the given module field should use by default
-func baseModelFieldCodec(cm dal.ConnectionMeta, mod *types.Module, f *types.ModuleField) dal.Codec {
+func baseModelFieldCodec(cm dal.ConnectionConfig, mod *types.Module, f *types.ModuleField) dal.Codec {
 	if mod.Config.DAL.Partitioned {
 		return &dal.CodecPlain{}
 	}
 
-	ident := cm.DefaultAttributeIdent
+	ident := cm.AttributeIdent
 	if ident == "" {
 		// @todo put in configs or something
 		ident = "values"

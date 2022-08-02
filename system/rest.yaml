@@ -856,7 +856,6 @@ endpoints:
   - Session ID
   imports:
     - github.com/cortezaproject/corteza-server/system/types
-    - github.com/cortezaproject/corteza-server/pkg/geolocation
   apis:
   - name: list
     method: GET
@@ -890,39 +889,21 @@ endpoints:
         type: string
         required: true
         title: handle
-      - name: name
-        type: string
-        required: true
-        title: name
       - name: type
         type: string
         required: true
         title: type
-
-      - name: location
-        type: "geolocation.Full"
+      - name: meta
+        type: types.ConnectionMeta
         required: true
-        title: location
-        parser: geolocation.Parse
-      - name: ownership
-        type: string
-        required: true
-        title: ownership
-      - name: sensitivityLevel
-        type: uint64
-        required: false
-        title: sensitivityLevel
-
+        title: meta
+        parser: types.ParseConnectionMeta
       - name: config
         type: types.ConnectionConfig
         required: true
         title: config
         parser: types.ParseConnectionConfig
-      - name: capabilities
-        type: types.ConnectionCapabilities
-        required: true
-        title: capabilities
-        parser: types.ParseConnectionCapabilities
+
   - name: update
     method: PUT
     title: Update connection details
@@ -938,39 +919,21 @@ endpoints:
         type: string
         required: true
         title: handle
-      - name: name
-        type: string
-        required: true
-        title: name
       - name: type
         type: string
         required: true
         title: type
-
-      - name: location
-        type: "geolocation.Full"
+      - name: meta
+        type: types.ConnectionMeta
         required: true
-        title: location
-        parser: geolocation.Parse
-      - name: ownership
-        type: string
-        required: true
-        title: ownership
-      - name: sensitivityLevel
-        type: uint64
-        required: false
-        title: sensitivityLevel
-
+        title: meta
+        parser: types.ParseConnectionMeta
       - name: config
         type: types.ConnectionConfig
         required: true
         title: config
         parser: types.ParseConnectionConfig
-      - name: capabilities
-        type: types.ConnectionCapabilities
-        required: true
-        title: capabilities
-        parser: types.ParseConnectionCapabilities
+
   - name: read
     method: GET
     title: Read connection details
