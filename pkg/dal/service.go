@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"go.uber.org/zap"
 )
@@ -14,30 +13,28 @@ type (
 	ConnectionWrap struct {
 		connectionID uint64
 
-		connection   Connection
-		params       ConnectionParams
-		meta         ConnectionMeta
-		capabilities capabilities.Set
+		connection Connection
+		params     ConnectionParams
+		meta       ConnectionConfig
+		operations OperationSet
 	}
 
-	ConnectionMeta struct {
-		ConnectionID     uint64
-		SensitivityLevel uint64
-		Label            string
+	ConnectionConfig struct {
+		ConnectionID       uint64
+		SensitivityLevelID uint64
+		Label              string
 
 		// When model does not specifiy the ident (table name for example), fallback to this
-		// @todo we can lose "Default" prefix
 		// @todo do we need a separate setting or can we get away with using just PartitionFormat
-		DefaultModelIdent string
+		ModelIdent string
 
 		// If model attribute(s) do not specify
 		// @todo needs to be more explicit that this is for  JSON encode attributes
-		// @todo we can lose "Default" prefix
-		DefaultAttributeIdent string
+		AttributeIdent string
 
 		// If data is partitioned we fallback to this,
 		// @todo we can lose "Default" prefix
-		DefaultPartitionFormat string
+		PartitionFormat string
 
 		PartitionValidator string
 	}
@@ -94,7 +91,7 @@ func New(log *zap.Logger, inDev bool) (*service, error) {
 // Function will panic if DAL service is not set (via SetGlobal)
 func Service() *service {
 	if gSvc == nil {
-		panic("DAL global service not initialized: call dal.InitGlobalService() first")
+		panic("DAL global service not initialized: call dal.SetGlobal first")
 	}
 
 	return gSvc
@@ -118,6 +115,10 @@ func (svc *service) Purge(ctx context.Context) {
 // // // // // // // // // // // // // // // // // // // // // // // // //
 // meta
 
+// Drivers returns a set of drivers registered to the DAL service
+//
+// The driver outlines connection params and operations supported by the
+// underlying system.
 func (svc *service) Drivers() (drivers []Driver) {
 	for _, d := range registeredDrivers {
 		drivers = append(drivers, d)
@@ -126,6 +127,7 @@ func (svc *service) Drivers() (drivers []Driver) {
 	return
 }
 
+// MakeSensitivityLevel prepares a new sensitivity level
 func MakeSensitivityLevel(ID uint64, level int, handle string) SensitivityLevel {
 	return SensitivityLevel{
 		ID:     ID,
@@ -134,6 +136,7 @@ func MakeSensitivityLevel(ID uint64, level int, handle string) SensitivityLevel 
 	}
 }
 
+// ReplaceSensitivityLevel creates or updates the provided sensitivity levels
 func (svc *service) ReplaceSensitivityLevel(levels ...SensitivityLevel) (err error) {
 	var (
 		log = svc.logger.Named("sensitivity level")
@@ -170,6 +173,7 @@ func (svc *service) ReplaceSensitivityLevel(levels ...SensitivityLevel) (err err
 	return
 }
 
+// RemoveSensitivityLevel removes the provided sensitivity levels
 func (svc *service) RemoveSensitivityLevel(levelIDs ...uint64) (err error) {
 	var (
 		log = svc.logger.Named("sensitivity level")
@@ -216,14 +220,14 @@ func (svc *service) RemoveSensitivityLevel(levelIDs ...uint64) (err error) {
 // Connection management
 
 // MakeConnection makes and returns a new connection (wrap)
-func MakeConnection(ID uint64, conn Connection, p ConnectionParams, m ConnectionMeta, cap ...capabilities.Capability) *ConnectionWrap {
+func MakeConnection(ID uint64, conn Connection, p ConnectionParams, m ConnectionConfig, oo ...Operation) *ConnectionWrap {
 	return &ConnectionWrap{
 		connectionID: ID,
 		connection:   conn,
 
-		params:       p,
-		meta:         m,
-		capabilities: cap,
+		params:     p,
+		meta:       m,
+		operations: oo,
 	}
 }
 
@@ -263,29 +267,29 @@ func (svc *service) ReplaceConnection(ctx context.Context, cw *ConnectionWrap, i
 	defer svc.updateIssues(issues)
 
 	// Sensitivity level validations
-	if !svc.sensitivityLevels.includes(cw.meta.SensitivityLevel) {
-		issues.addConnectionIssue(ID, errConnectionCreateMissingSensitivityLevel(ID, cw.meta.SensitivityLevel))
+	if !svc.sensitivityLevels.includes(cw.meta.SensitivityLevelID) {
+		issues.addConnectionIssue(ID, errConnectionCreateMissingSensitivityLevel(ID, cw.meta.SensitivityLevelID))
 	}
 
 	if oldConn = svc.getConnectionByID(ID); oldConn != nil {
 		// Connection exists, validate models and sensitivity levels and close and remove connection at the end
 		log.Debug("found existing")
 
-		// Check already registered models and their capabilities
+		// Check already registered models and their operations
 		//
 		// Defer the return till the end so we can get a nicer report of what all is wrong
 		errored := false
 		for _, model := range svc.models[ID] {
 			log.Debug("validating model before connection is updated", zap.String("ident", model.Ident))
 
-			// - capabilities
-			if !model.Capabilities.IsSubset(cw.capabilities...) {
+			// - operations
+			if !model.Operations.IsSubset(cw.operations...) {
 				issues.addConnectionIssue(ID, fmt.Errorf("cannot update connection %d: new connection does not support existing models", ID))
 				errored = true
 			}
 
 			// - sensitivity levels
-			if !svc.sensitivityLevels.isSubset(model.SensitivityLevel, cw.meta.SensitivityLevel) {
+			if !svc.sensitivityLevels.isSubset(model.SensitivityLevelID, cw.meta.SensitivityLevelID) {
 				issues.addConnectionIssue(ID, fmt.Errorf("cannot update connection %d: new connection sensitivity level does not support model %d", ID, model.ResourceID))
 				errored = true
 			}
@@ -311,7 +315,7 @@ func (svc *service) ReplaceConnection(ctx context.Context, cw *ConnectionWrap, i
 	}
 
 	if cw.connection == nil {
-		cw.connection, err = connect(ctx, svc.logger, svc.inDev, cw.params, cw.capabilities...)
+		cw.connection, err = connect(ctx, svc.logger, svc.inDev, cw.params, cw.operations...)
 		if err != nil {
 			log.Warn("could not connect", zap.Error(err))
 			issues.addConnectionIssue(ID, err)
@@ -320,7 +324,6 @@ func (svc *service) ReplaceConnection(ctx context.Context, cw *ConnectionWrap, i
 		}
 	} else {
 		log.Debug("using preexisting connection")
-
 	}
 
 	svc.addConnection(cw)
@@ -332,7 +335,7 @@ func (svc *service) ReplaceConnection(ctx context.Context, cw *ConnectionWrap, i
 //
 // The function is primarily used by services which need to know a little bit
 // about the connection their resources are located in (ident formatting for example).
-func (svc *service) GetConnectionMeta(_ context.Context, ID uint64) (cm ConnectionMeta, err error) {
+func (svc *service) GetConnectionMeta(_ context.Context, ID uint64) (cm ConnectionConfig, err error) {
 	if ID == 0 {
 		ID = svc.defConnID
 	}
@@ -389,12 +392,12 @@ func (svc *service) RemoveConnection(ctx context.Context, ID uint64) (err error)
 // DML
 
 // Create stores new data (create data entry)
-func (svc *service) Create(ctx context.Context, mf ModelRef, capabilities capabilities.Set, rr ...ValueGetter) (err error) {
+func (svc *service) Create(ctx context.Context, mf ModelRef, operations OperationSet, rr ...ValueGetter) (err error) {
 	if err = svc.canOpData(mf.ConnectionID, mf.ResourceID); err != nil {
 		return fmt.Errorf("cannot create data entry: %w", err)
 	}
 
-	model, cw, err := svc.storeOpPrep(ctx, mf, capabilities)
+	model, cw, err := svc.storeOpPrep(ctx, mf, operations)
 	if err != nil {
 		return fmt.Errorf("cannot create data entry: %w", err)
 	}
@@ -402,12 +405,12 @@ func (svc *service) Create(ctx context.Context, mf ModelRef, capabilities capabi
 	return cw.connection.Create(ctx, model, rr...)
 }
 
-func (svc *service) Update(ctx context.Context, mf ModelRef, capabilities capabilities.Set, rr ...ValueGetter) (err error) {
+func (svc *service) Update(ctx context.Context, mf ModelRef, operations OperationSet, rr ...ValueGetter) (err error) {
 	if err = svc.canOpData(mf.ConnectionID, mf.ResourceID); err != nil {
 		return fmt.Errorf("cannot update data entry: %w", err)
 	}
 
-	model, cw, err := svc.storeOpPrep(ctx, mf, capabilities)
+	model, cw, err := svc.storeOpPrep(ctx, mf, operations)
 	if err != nil {
 		return fmt.Errorf("cannot update data entry: %w", err)
 	}
@@ -421,13 +424,13 @@ func (svc *service) Update(ctx context.Context, mf ModelRef, capabilities capabi
 	return
 }
 
-func (svc *service) Search(ctx context.Context, mf ModelRef, capabilities capabilities.Set, f filter.Filter) (iter Iterator, err error) {
+func (svc *service) Search(ctx context.Context, mf ModelRef, operations OperationSet, f filter.Filter) (iter Iterator, err error) {
 	if err = svc.canOpData(mf.ConnectionID, mf.ResourceID); err != nil {
 		err = fmt.Errorf("cannot search data entry: %w", err)
 		return
 	}
 
-	model, cw, err := svc.storeOpPrep(ctx, mf, capabilities)
+	model, cw, err := svc.storeOpPrep(ctx, mf, operations)
 	if err != nil {
 		err = fmt.Errorf("cannot search data entry: %w", err)
 		return
@@ -436,24 +439,24 @@ func (svc *service) Search(ctx context.Context, mf ModelRef, capabilities capabi
 	return cw.connection.Search(ctx, model, f)
 }
 
-func (svc *service) Lookup(ctx context.Context, mf ModelRef, capabilities capabilities.Set, lookup ValueGetter, dst ValueSetter) (err error) {
+func (svc *service) Lookup(ctx context.Context, mf ModelRef, operations OperationSet, lookup ValueGetter, dst ValueSetter) (err error) {
 	if err = svc.canOpData(mf.ConnectionID, mf.ResourceID); err != nil {
 		return fmt.Errorf("cannot lookup data entry: %w", err)
 	}
 
-	model, cw, err := svc.storeOpPrep(ctx, mf, capabilities)
+	model, cw, err := svc.storeOpPrep(ctx, mf, operations)
 	if err != nil {
 		return fmt.Errorf("cannot lookup data entry: %w", err)
 	}
 	return cw.connection.Lookup(ctx, model, lookup, dst)
 }
 
-func (svc *service) Delete(ctx context.Context, mf ModelRef, capabilities capabilities.Set, vv ...ValueGetter) (err error) {
+func (svc *service) Delete(ctx context.Context, mf ModelRef, operations OperationSet, vv ...ValueGetter) (err error) {
 	if err = svc.canOpData(mf.ConnectionID, mf.ResourceID); err != nil {
 		return fmt.Errorf("cannot delete data entry: %w", err)
 	}
 
-	model, cw, err := svc.storeOpPrep(ctx, mf, capabilities)
+	model, cw, err := svc.storeOpPrep(ctx, mf, operations)
 	if err != nil {
 		return fmt.Errorf("cannot delete data entry: %w", err)
 	}
@@ -466,12 +469,12 @@ func (svc *service) Delete(ctx context.Context, mf ModelRef, capabilities capabi
 	return
 }
 
-func (svc *service) Truncate(ctx context.Context, mf ModelRef, capabilities capabilities.Set) (err error) {
+func (svc *service) Truncate(ctx context.Context, mf ModelRef, operations OperationSet) (err error) {
 	if err = svc.canOpData(mf.ConnectionID, mf.ResourceID); err != nil {
 		return fmt.Errorf("cannot truncate data entry: %w", err)
 	}
 
-	model, cw, err := svc.storeOpPrep(ctx, mf, capabilities)
+	model, cw, err := svc.storeOpPrep(ctx, mf, operations)
 	if err != nil {
 		return fmt.Errorf("cannot truncate data entry: %w", err)
 	}
@@ -479,14 +482,14 @@ func (svc *service) Truncate(ctx context.Context, mf ModelRef, capabilities capa
 	return cw.connection.Truncate(ctx, model)
 }
 
-func (svc *service) storeOpPrep(ctx context.Context, mf ModelRef, capabilities capabilities.Set) (model *Model, cw *ConnectionWrap, err error) {
+func (svc *service) storeOpPrep(ctx context.Context, mf ModelRef, operations OperationSet) (model *Model, cw *ConnectionWrap, err error) {
 	model = svc.getModelByFilter(mf)
 	if model == nil {
 		err = errModelNotFound(mf.ResourceID)
 		return
 	}
 
-	cw, _, err = svc.getConnection(model.ConnectionID, capabilities...)
+	cw, _, err = svc.getConnection(model.ConnectionID, operations...)
 	if err != nil {
 		return
 	}
@@ -650,22 +653,22 @@ func (svc *service) validateModel(issues *issueHelper, model, oldModel *Model) {
 	}
 
 	// Sensitivity level ok and valid?
-	if !svc.sensitivityLevels.includes(model.SensitivityLevel) {
-		issues.addModelIssue(model.ConnectionID, model.ResourceID, errModelCreateMissingSensitivityLevel(model.ConnectionID, model.ResourceID, model.SensitivityLevel))
+	if !svc.sensitivityLevels.includes(model.SensitivityLevelID) {
+		issues.addModelIssue(model.ConnectionID, model.ResourceID, errModelCreateMissingSensitivityLevel(model.ConnectionID, model.ResourceID, model.SensitivityLevelID))
 	} else {
 		// Only check if it is present
-		if !svc.sensitivityLevels.isSubset(model.SensitivityLevel, conn.meta.SensitivityLevel) {
-			issues.addModelIssue(model.ConnectionID, model.ResourceID, errModelCreateGreaterSensitivityLevel(model.ConnectionID, model.ResourceID, model.SensitivityLevel, conn.meta.SensitivityLevel))
+		if !svc.sensitivityLevels.isSubset(model.SensitivityLevelID, conn.meta.SensitivityLevelID) {
+			issues.addModelIssue(model.ConnectionID, model.ResourceID, errModelCreateGreaterSensitivityLevel(model.ConnectionID, model.ResourceID, model.SensitivityLevelID, conn.meta.SensitivityLevelID))
 		}
 	}
 }
 
 func (svc *service) validateAttribute(issues *issueHelper, model *Model, attr *Attribute) {
-	if !svc.sensitivityLevels.includes(attr.SensitivityLevel) {
-		issues.addModelIssue(model.ConnectionID, model.ResourceID, errModelCreateMissingAttributeSensitivityLevel(model.ConnectionID, model.ResourceID, attr.SensitivityLevel))
+	if !svc.sensitivityLevels.includes(attr.SensitivityLevelID) {
+		issues.addModelIssue(model.ConnectionID, model.ResourceID, errModelCreateMissingAttributeSensitivityLevel(model.ConnectionID, model.ResourceID, attr.SensitivityLevelID))
 	} else {
-		if !svc.sensitivityLevels.isSubset(attr.SensitivityLevel, model.SensitivityLevel) {
-			issues.addModelIssue(model.ConnectionID, model.ResourceID, errModelCreateGreaterAttributeSensitivityLevel(model.ConnectionID, model.ResourceID, attr.SensitivityLevel, model.SensitivityLevel))
+		if !svc.sensitivityLevels.isSubset(attr.SensitivityLevelID, model.SensitivityLevelID) {
+			issues.addModelIssue(model.ConnectionID, model.ResourceID, errModelCreateGreaterAttributeSensitivityLevel(model.ConnectionID, model.ResourceID, attr.SensitivityLevelID, model.SensitivityLevelID))
 		}
 	}
 
@@ -733,11 +736,11 @@ func (svc *service) ReplaceModelAttribute(ctx context.Context, model *Model, old
 
 		// In case we're deleting it we can ignore this check
 		if new != nil {
-			if !svc.sensitivityLevels.includes(new.SensitivityLevel) {
-				issues.addModelIssue(model.ConnectionID, model.ResourceID, errAttributeUpdateMissingSensitivityLevel(model.ConnectionID, model.ResourceID, new.SensitivityLevel))
+			if !svc.sensitivityLevels.includes(new.SensitivityLevelID) {
+				issues.addModelIssue(model.ConnectionID, model.ResourceID, errAttributeUpdateMissingSensitivityLevel(model.ConnectionID, model.ResourceID, new.SensitivityLevelID))
 			} else {
-				if !svc.sensitivityLevels.isSubset(new.SensitivityLevel, model.SensitivityLevel) {
-					issues.addModelIssue(model.ConnectionID, model.ResourceID, errAttributeUpdateGreaterSensitivityLevel(model.ConnectionID, model.ResourceID, new.SensitivityLevel, model.SensitivityLevel))
+				if !svc.sensitivityLevels.isSubset(new.SensitivityLevelID, model.SensitivityLevelID) {
+					issues.addModelIssue(model.ConnectionID, model.ResourceID, errAttributeUpdateGreaterSensitivityLevel(model.ConnectionID, model.ResourceID, new.SensitivityLevelID, model.SensitivityLevelID))
 				}
 			}
 		}
@@ -835,7 +838,7 @@ func (svc *service) getConnectionByID(connectionID uint64) (cw *ConnectionWrap) 
 	return svc.connections[connectionID]
 }
 
-func (svc *service) getConnection(connectionID uint64, cc ...capabilities.Capability) (cw *ConnectionWrap, can capabilities.Set, err error) {
+func (svc *service) getConnection(connectionID uint64, cc ...Operation) (cw *ConnectionWrap, can OperationSet, err error) {
 	err = func() error {
 		// get the requested connection
 		cw = svc.getConnectionByID(connectionID)
@@ -843,11 +846,11 @@ func (svc *service) getConnection(connectionID uint64, cc ...capabilities.Capabi
 			return fmt.Errorf("connection %d does not exist", connectionID)
 		}
 
-		// check if connection supports requested capabilities
+		// check if connection supports requested operations
 		if !cw.connection.Can(cc...) {
-			return fmt.Errorf("connection %d does not support requested capabilities %v", connectionID, capabilities.Set(cc).Diff(cw.connection.Capabilities()))
+			return fmt.Errorf("connection %d does not support requested operations %v", connectionID, OperationSet(cc).Diff(cw.connection.Operations()))
 		}
-		can = cw.connection.Capabilities()
+		can = cw.connection.Operations()
 		return nil
 	}()
 
@@ -910,27 +913,27 @@ func (svc *service) validateNewSensitivityLevels(levels *sensitivityLevelIndex) 
 			c := _c
 			cIndex[c.connectionID] = c
 
-			if !levels.includes(c.meta.SensitivityLevel) {
-				return fmt.Errorf("connection sensitivity level missing %d", c.meta.SensitivityLevel)
+			if !levels.includes(c.meta.SensitivityLevelID) {
+				return fmt.Errorf("connection sensitivity level missing %d", c.meta.SensitivityLevelID)
 			}
 		}
 
 		// - models
 		for _, mm := range svc.models {
 			for _, m := range mm {
-				if !levels.includes(m.SensitivityLevel) {
-					return fmt.Errorf("model sensitivity level missing %d", m.SensitivityLevel)
+				if !levels.includes(m.SensitivityLevelID) {
+					return fmt.Errorf("model sensitivity level missing %d", m.SensitivityLevelID)
 				}
-				if !levels.isSubset(m.SensitivityLevel, cIndex[m.ConnectionID].meta.SensitivityLevel) {
-					return fmt.Errorf("model sensitivity level missing %d", m.SensitivityLevel)
+				if !levels.isSubset(m.SensitivityLevelID, cIndex[m.ConnectionID].meta.SensitivityLevelID) {
+					return fmt.Errorf("model sensitivity level missing %d", m.SensitivityLevelID)
 				}
 
 				for _, attr := range m.Attributes {
-					if !levels.includes(attr.SensitivityLevel) {
-						return fmt.Errorf("attribute sensitivity level missing %d", attr.SensitivityLevel)
+					if !levels.includes(attr.SensitivityLevelID) {
+						return fmt.Errorf("attribute sensitivity level missing %d", attr.SensitivityLevelID)
 					}
-					if !levels.isSubset(attr.SensitivityLevel, m.SensitivityLevel) {
-						return fmt.Errorf("attribute sensitivity level %d greater then model sensitivity level %d", attr.SensitivityLevel, m.SensitivityLevel)
+					if !levels.isSubset(attr.SensitivityLevelID, m.SensitivityLevelID) {
+						return fmt.Errorf("attribute sensitivity level %d greater then model sensitivity level %d", attr.SensitivityLevelID, m.SensitivityLevelID)
 					}
 				}
 			}

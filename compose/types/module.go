@@ -10,7 +10,6 @@ import (
 	"github.com/jmoiron/sqlx/types"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 )
@@ -83,7 +82,7 @@ type (
 
 	ModuleConfigDAL struct {
 		ConnectionID uint64           `json:"connectionID,string"`
-		Capabilities capabilities.Set `json:"capabilities"`
+		Operations   dal.OperationSet `json:"operations"`
 
 		Constraints map[string][]any `json:"constraints"`
 
@@ -104,7 +103,7 @@ type (
 	ModuleConfigDataPrivacy struct {
 		// Define the highest sensitivity level which
 		// can be configured on the module fields
-		SensitivityLevel uint64 `json:"sensitivityLevel,string,omitempty"`
+		SensitivityLevelID uint64 `json:"sensitivityLevelID,string,omitempty"`
 
 		UsageDisclosure string `json:"usageDisclosure"`
 	}

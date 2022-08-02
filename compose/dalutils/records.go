@@ -2,32 +2,32 @@ package dalutils
 
 import (
 	"context"
+	"math"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"math"
 )
 
 type (
 	creator interface {
-		Create(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set, vv ...dal.ValueGetter) error
+		Create(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, vv ...dal.ValueGetter) error
 	}
 
 	updater interface {
-		Update(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set, rr ...dal.ValueGetter) (err error)
+		Update(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, rr ...dal.ValueGetter) (err error)
 	}
 
 	searcher interface {
-		Search(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set, f filter.Filter) (dal.Iterator, error)
+		Search(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, f filter.Filter) (dal.Iterator, error)
 	}
 
 	lookuper interface {
-		Lookup(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set, lookup dal.ValueGetter, dst dal.ValueSetter) (err error)
+		Lookup(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, lookup dal.ValueGetter, dst dal.ValueSetter) (err error)
 	}
 
 	deleter interface {
-		Delete(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set, pkv ...dal.ValueGetter) (err error)
+		Delete(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, pkv ...dal.ValueGetter) (err error)
 	}
 )
 
@@ -57,7 +57,7 @@ func ComposeRecordsIterator(ctx context.Context, s searcher, mod *types.Module, 
 func ComposeRecordsFind(ctx context.Context, l lookuper, mod *types.Module, recordID uint64) (out *types.Record, err error) {
 	out = prepareRecordTarget(mod)
 
-	err = l.Lookup(ctx, mod.ModelRef(), recLookupCapabilities(mod), dal.PKValues{"id": recordID}, out)
+	err = l.Lookup(ctx, mod.ModelRef(), recLookupOperations(mod), dal.PKValues{"id": recordID}, out)
 	if err != nil {
 		return
 	}
@@ -66,19 +66,19 @@ func ComposeRecordsFind(ctx context.Context, l lookuper, mod *types.Module, reco
 }
 
 func ComposeRecordCreate(ctx context.Context, c creator, mod *types.Module, records ...*types.Record) (err error) {
-	return c.Create(ctx, mod.ModelRef(), recCreateCapabilities(mod), recToGetters(records...)...)
+	return c.Create(ctx, mod.ModelRef(), recCreateOperations(mod), recToGetters(records...)...)
 }
 
 func ComposeRecordUpdate(ctx context.Context, u updater, mod *types.Module, records ...*types.Record) (err error) {
-	return u.Update(ctx, mod.ModelRef(), recUpdateCapabilities(mod), recToGetters(records...)...)
+	return u.Update(ctx, mod.ModelRef(), recUpdateOperations(mod), recToGetters(records...)...)
 }
 
 func ComposeRecordSoftDelete(ctx context.Context, u updater, mod *types.Module, records ...*types.Record) (err error) {
-	return u.Update(ctx, mod.ModelRef(), recUpdateCapabilities(mod), recToGetters(records...)...)
+	return u.Update(ctx, mod.ModelRef(), recUpdateOperations(mod), recToGetters(records...)...)
 }
 
 func ComposeRecordDelete(ctx context.Context, d deleter, mod *types.Module, records ...*types.Record) (err error) {
-	return d.Delete(ctx, mod.ModelRef(), recDeleteCapabilities(mod), recToGetters(records...)...)
+	return d.Delete(ctx, mod.ModelRef(), recDeleteOperations(mod), recToGetters(records...)...)
 }
 
 func WalkIterator(ctx context.Context, iter dal.Iterator, mod *types.Module, f func(r *types.Record) error) (err error) {
@@ -111,7 +111,7 @@ func prepFilter(filter types.RecordFilter, mod *types.Module) (dalFilter filter.
 func prepIterator(ctx context.Context, dal searcher, mod *types.Module, filter types.RecordFilter) (iter dal.Iterator, err error) {
 	dalFilter := prepFilter(filter, mod)
 
-	iter, err = dal.Search(ctx, mod.ModelRef(), recSearchCapabilities(mod, filter), dalFilter)
+	iter, err = dal.Search(ctx, mod.ModelRef(), recSearchOperations(mod, filter), dalFilter)
 	return
 }
 
@@ -252,43 +252,43 @@ func recToGetters(rr ...*types.Record) (out []dal.ValueGetter) {
 	return
 }
 
-func recCreateCapabilities(m *types.Module) (out capabilities.Set) {
-	return capabilities.CreateCapabilities(m.Config.DAL.Capabilities...)
+func recCreateOperations(m *types.Module) (out dal.OperationSet) {
+	return dal.CreateOperations(m.Config.DAL.Operations...)
 }
 
-func recUpdateCapabilities(m *types.Module) (out capabilities.Set) {
-	return capabilities.UpdateCapabilities(m.Config.DAL.Capabilities...)
+func recUpdateOperations(m *types.Module) (out dal.OperationSet) {
+	return dal.UpdateOperations(m.Config.DAL.Operations...)
 }
 
-func recDeleteCapabilities(m *types.Module) (out capabilities.Set) {
-	return capabilities.DeleteCapabilities(m.Config.DAL.Capabilities...)
+func recDeleteOperations(m *types.Module) (out dal.OperationSet) {
+	return dal.DeleteOperations(m.Config.DAL.Operations...)
 }
 
-func recFilterCapabilities(f types.RecordFilter) (out capabilities.Set) {
+func recFilterOperations(f types.RecordFilter) (out dal.OperationSet) {
 	if f.PageCursor != nil {
-		out = append(out, capabilities.Paging)
+		out = append(out, dal.Paging)
 	}
 
 	if f.IncPageNavigation {
-		out = append(out, capabilities.Paging)
+		out = append(out, dal.Paging)
 	}
 
 	if f.IncTotal {
-		out = append(out, capabilities.Stats)
+		out = append(out, dal.Analyze)
 	}
 
 	if f.Sort != nil {
-		out = append(out, capabilities.Sorting)
+		out = append(out, dal.Sorting)
 	}
 
 	return
 }
 
-func recSearchCapabilities(m *types.Module, f types.RecordFilter) (out capabilities.Set) {
-	return capabilities.SearchCapabilities(m.Config.DAL.Capabilities...).
-		Union(recFilterCapabilities(f))
+func recSearchOperations(m *types.Module, f types.RecordFilter) (out dal.OperationSet) {
+	return dal.SearchOperations(m.Config.DAL.Operations...).
+		Union(recFilterOperations(f))
 }
 
-func recLookupCapabilities(m *types.Module) (out capabilities.Set) {
-	return capabilities.LookupCapabilities(m.Config.DAL.Capabilities...)
+func recLookupOperations(m *types.Module) (out dal.OperationSet) {
+	return dal.LookupOperations(m.Config.DAL.Operations...)
 }

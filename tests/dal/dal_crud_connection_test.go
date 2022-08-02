@@ -143,7 +143,7 @@ func Test_dal_crud_connection_update_primary(t *testing.T) {
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
-		Assert(jsonpath.Equal("$.response.name", "Primary Connection EDITED")).
+		Assert(jsonpath.Equal("$.response.meta.name", "Primary Connection EDITED")).
 		End()
 }
 

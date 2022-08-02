@@ -6823,7 +6823,7 @@ SQLITE_API int sqlite3_table_column_metadata(
 ** interface.  The use of the [sqlite3_enable_load_extension()] interface
 ** should be avoided.  This will keep the SQL function [load_extension()]
 ** disabled and prevent SQL injections from giving attackers
-** access to extension loading capabilities.
+** access to extension loading dal.
 **
 ** See also the [load_extension() SQL function].
 */
@@ -6857,7 +6857,7 @@ SQLITE_API int sqlite3_load_extension(
 ** be enabled using the [SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION] method
 ** rather than this interface, so the [load_extension()] SQL function
 ** remains disabled. This will prevent SQL injections from giving attackers
-** access to extension loading capabilities.
+** access to extension loading dal.
 */
 SQLITE_API int sqlite3_enable_load_extension(sqlite3 *db, int onoff);
 

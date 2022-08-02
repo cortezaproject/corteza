@@ -10,7 +10,6 @@ import (
 	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
@@ -45,12 +44,12 @@ type (
 		FindModelByResourceIdent(connectionID uint64, resourceType, resourceIdent string) *dal.Model
 		FindModelByIdent(connectionID uint64, ident string) *dal.Model
 
-		Create(ctx context.Context, mf dal.ModelRef, capabilities capabilities.Set, rr ...dal.ValueGetter) (err error)
-		Update(ctx context.Context, mf dal.ModelRef, capabilities capabilities.Set, rr ...dal.ValueGetter) (err error)
-		Search(ctx context.Context, mf dal.ModelRef, capabilities capabilities.Set, f filter.Filter) (iter dal.Iterator, err error)
-		Lookup(ctx context.Context, mf dal.ModelRef, capabilities capabilities.Set, lookup dal.ValueGetter, dst dal.ValueSetter) (err error)
-		Delete(ctx context.Context, mf dal.ModelRef, capabilities capabilities.Set, vv ...dal.ValueGetter) (err error)
-		Truncate(ctx context.Context, mf dal.ModelRef, capabilities capabilities.Set) (err error)
+		Create(ctx context.Context, mf dal.ModelRef, operations dal.OperationSet, rr ...dal.ValueGetter) (err error)
+		Update(ctx context.Context, mf dal.ModelRef, operations dal.OperationSet, rr ...dal.ValueGetter) (err error)
+		Search(ctx context.Context, mf dal.ModelRef, operations dal.OperationSet, f filter.Filter) (iter dal.Iterator, err error)
+		Lookup(ctx context.Context, mf dal.ModelRef, operations dal.OperationSet, lookup dal.ValueGetter, dst dal.ValueSetter) (err error)
+		Delete(ctx context.Context, mf dal.ModelRef, operations dal.OperationSet, vv ...dal.ValueGetter) (err error)
+		Truncate(ctx context.Context, mf dal.ModelRef, operations dal.OperationSet) (err error)
 
 		SearchConnectionIssues(connectionID uint64) (out []error)
 		SearchModelIssues(connectionID, resourceID uint64) (out []error)
@@ -138,12 +137,12 @@ func (h helper) cleanupDal() {
 func initSvc(ctx context.Context, d driver) (dalService, error) {
 	c := makeConnectionDefinition(d.dsn)
 
-	cm := dal.ConnectionMeta{
-		DefaultModelIdent:      c.Config.DefaultModelIdent,
-		DefaultAttributeIdent:  c.Config.DefaultAttributeIdent,
-		DefaultPartitionFormat: c.Config.DefaultPartitionFormat,
-		SensitivityLevel:       c.SensitivityLevel,
-		Label:                  c.Handle,
+	cm := dal.ConnectionConfig{
+		ModelIdent:         c.Config.DAL.ModelIdent,
+		AttributeIdent:     c.Config.DAL.AttributeIdent,
+		PartitionFormat:    c.Config.DAL.PartitionFormat,
+		SensitivityLevelID: c.Config.Privacy.SensitivityLevelID,
+		Label:              c.Handle,
 	}
 
 	svc, err := dal.New(zap.NewNop(), false)
@@ -151,7 +150,7 @@ func initSvc(ctx context.Context, d driver) (dalService, error) {
 		return nil, err
 	}
 
-	err = svc.ReplaceConnection(ctx, dal.MakeConnection(c.ID, nil, c.Config.Connection, cm, capabilities.FullCapabilities()...), true)
+	err = svc.ReplaceConnection(ctx, dal.MakeConnection(c.ID, nil, c.Config.Connection, cm, dal.FullOperations()...), true)
 	if err != nil {
 		return nil, err
 	}

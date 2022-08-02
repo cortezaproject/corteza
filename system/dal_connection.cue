@@ -7,18 +7,11 @@ import (
 dal_connection: {
 	model: {
 		id:     schema.IdField
-		name: { sortable: true, goType: "string" }
 		handle: schema.HandleField
-
-		// omitting isPrimary and replacing with a special type
 		type: { sortable: true }
 
-		location: { goType: "geolocation.Full" }
-		ownership: {}
-		sensitivity_level: { goType: "uint64" }
-
-		config: {goType: "types.ConnectionConfig"}
-		capabilities: {goType: "types.ConnectionCapabilities"}
+		meta: { goType: "types.ConnectionMeta" }
+		config: { goType: "types.ConnectionConfig" }
 
 		created_at: schema.SortableTimestampField
 		updated_at: schema.SortableTimestampNilField

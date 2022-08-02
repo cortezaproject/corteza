@@ -2,8 +2,9 @@ package provision
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -32,18 +33,23 @@ func defaultDalConnection(ctx context.Context, s store.DalConnections) (err erro
 		// Using id.Next since we dropped "special" ids a while ago.
 		// If needed, use the handle
 		ID:     id.Next(),
-		Name:   "Primary Database",
 		Handle: types.DalPrimaryConnectionHandle,
 		Type:   types.DalPrimaryConnectionResourceType,
 
+		Meta: types.ConnectionMeta{
+			Name: "Primary Database",
+		},
+
 		Config: types.ConnectionConfig{
-			DefaultModelIdent:      DefaultComposeRecordTable,
-			DefaultAttributeIdent:  DefaultComposeRecordValueCol,
-			DefaultPartitionFormat: DefaultPartitionFormat,
+			DAL: types.ConnectionConfigDAL{
+				ModelIdent:      DefaultComposeRecordTable,
+				AttributeIdent:  DefaultComposeRecordValueCol,
+				PartitionFormat: DefaultPartitionFormat,
+
+				Operations: dal.FullOperations(),
+			},
 		},
-		Capabilities: types.ConnectionCapabilities{
-			Supported: capabilities.FullCapabilities(),
-		},
+
 		CreatedAt: *now(),
 		CreatedBy: auth.ServiceUser().ID,
 	}

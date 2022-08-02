@@ -76,7 +76,7 @@ func (a *Model) Diff(b *Model) (out ModelDiffSet) {
 
 		// Other stuff
 		// @todo improve; for now it'll do
-		if attrA.SensitivityLevel != attrBAux.attr.SensitivityLevel {
+		if attrA.SensitivityLevelID != attrBAux.attr.SensitivityLevelID {
 			out = append(out, &ModelDiff{
 				Type:     AttributeSensitivityMissmatch,
 				Original: attrA,

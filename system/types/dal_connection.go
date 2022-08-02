@@ -3,31 +3,25 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/geolocation"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
+
+	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 )
 
 type (
 	DalConnection struct {
 		ID     uint64 `json:"connectionID,string"`
-		Name   string `json:"name"`
 		Handle string `json:"handle"`
+		Type   string `json:"type"`
 
-		Type string `json:"type"`
-
-		Location         geolocation.Full `json:"location"`
-		Ownership        string           `json:"ownership"`
-		SensitivityLevel uint64           `json:"sensitivityLevel,string,omitempty"`
+		Meta   ConnectionMeta   `json:"meta"`
+		Config ConnectionConfig `json:"config"`
 
 		Issues []string `json:"issues,omitempty" db:"-"`
-
-		Config       ConnectionConfig       `json:"config"`
-		Capabilities ConnectionCapabilities `json:"capabilities"`
 
 		Labels map[string]string `json:"labels,omitempty"`
 
@@ -39,22 +33,45 @@ type (
 		DeletedBy uint64     `json:"deletedBy,string,omitempty" `
 	}
 
-	ConnectionCapabilities struct {
-		Enforced    capabilities.Set `json:"enforced"`
-		Supported   capabilities.Set `json:"supported"`
-		Unsupported capabilities.Set `json:"unsupported"`
-		Enabled     capabilities.Set `json:"enabled"`
+	ConnectionConfig struct {
+		Connection dal.ConnectionParams    `json:"connection"`
+		Privacy    ConnectionConfigPrivacy `json:"privacy"`
+		DAL        ConnectionConfigDAL     `json:"dal"`
 	}
 
-	ConnectionConfig struct {
-		DefaultModelIdent     string `json:"defaultModelIdent"`
-		DefaultAttributeIdent string `json:"defaultAttributeIdent"`
+	ConnectionProperties struct {
+		DataAtRestEncryption    ConnectionPropertyMeta `json:"dataAtRestEncryption"`
+		DataAtRestProtection    ConnectionPropertyMeta `json:"dataAtRestProtection"`
+		DataAtTransitEncryption ConnectionPropertyMeta `json:"dataAtTransitEncryption"`
+		DataRestoration         ConnectionPropertyMeta `json:"dataRestoration"`
+	}
 
-		DefaultPartitionFormat string `json:"defaultPartitionFormat"`
+	ConnectionPropertyMeta struct {
+		Enabled bool   `json:"enabled"`
+		Notes   string `json:"notes"`
+	}
 
-		PartitionFormatValidator string `json:"partitionFormatValidator"`
+	ConnectionMeta struct {
+		Location  geolocation.Full `json:"location"`
+		Ownership string           `json:"ownership"`
+		Name      string           `json:"name"`
+	}
 
-		Connection dal.ConnectionParams `json:"connection"`
+	ConnectionConfigPrivacy struct {
+		SensitivityLevelID uint64 `json:"sensitivityLevelID,string,omitempty"`
+	}
+
+	ConnectionConfigDAL struct {
+		Properties ConnectionProperties `json:"properties"`
+		// @note operations, for now, will only be available on connections
+		//       with a fallback on modules
+		Operations dal.OperationSet `json:"operations"`
+
+		ModelIdent     string `json:"modelIdent"`
+		AttributeIdent string `json:"attributeIdent"`
+
+		PartitionFormat         string `json:"partitionFormat"`
+		PartitionIdentValidator string `json:"partitionIdentValidator"`
 	}
 
 	DalConnectionFilter struct {
@@ -81,12 +98,6 @@ var (
 	DalPrimaryConnectionHandle       = "primary-database"
 )
 
-func (c DalConnection) ActiveCapabilities() capabilities.Set {
-	return c.Capabilities.Supported.
-		Union(c.Capabilities.Enforced).
-		Union(c.Capabilities.Enabled)
-}
-
 func (c DalConnection) HasIssues() bool {
 	return len(c.Issues) > 0
 }
@@ -100,7 +111,7 @@ func ParseConnectionConfig(ss []string) (m ConnectionConfig, err error) {
 	return
 }
 
-func ParseConnectionCapabilities(ss []string) (m ConnectionCapabilities, err error) {
+func ParseConnectionMeta(ss []string) (m ConnectionMeta, err error) {
 	if len(ss) == 0 {
 		return
 	}
@@ -112,5 +123,5 @@ func ParseConnectionCapabilities(ss []string) (m ConnectionCapabilities, err err
 func (nm *ConnectionConfig) Scan(src any) error          { return sql.ParseJSON(src, nm) }
 func (nm ConnectionConfig) Value() (driver.Value, error) { return json.Marshal(nm) }
 
-func (nm *ConnectionCapabilities) Scan(src any) error          { return sql.ParseJSON(src, nm) }
-func (nm ConnectionCapabilities) Value() (driver.Value, error) { return json.Marshal(nm) }
+func (nm *ConnectionMeta) Scan(src any) error          { return sql.ParseJSON(src, nm) }
+func (nm ConnectionMeta) Value() (driver.Value, error) { return json.Marshal(nm) }

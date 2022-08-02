@@ -197,7 +197,7 @@ search with the same path more than once.
 
 These are just a few examples of the things the etree package can do. See the
 [documentation](http://godoc.org/github.com/beevik/etree) for a complete
-description of its capabilities.
+description of its dal.
 
 ### Contributing
 

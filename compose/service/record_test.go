@@ -100,7 +100,7 @@ func makeTestRecordService(t *testing.T, mods ...any) *record {
 				ctx,
 				dal.MakeConnection(1, svc.store.ToDalConn(),
 					dal.ConnectionParams{},
-					dal.ConnectionMeta{DefaultModelIdent: recordsTable, DefaultAttributeIdent: "values"},
+					dal.ConnectionConfig{ModelIdent: recordsTable, AttributeIdent: "values"},
 				),
 				true,
 			),

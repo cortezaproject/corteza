@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms"
 	rdbmsdal "github.com/cortezaproject/corteza-server/store/adapters/rdbms/dal"
@@ -15,7 +14,7 @@ func init() {
 	dal.RegisterConnector(dalConnector, baseSchema, debugSchema)
 }
 
-func dalConnector(ctx context.Context, dsn string, cc ...capabilities.Capability) (_ dal.Connection, err error) {
+func dalConnector(ctx context.Context, dsn string, cc ...dal.Operation) (_ dal.Connection, err error) {
 	var (
 		db  *sqlx.DB
 		cfg *rdbms.ConnConfig

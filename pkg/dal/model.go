@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/modern-go/reflect2"
 )
@@ -30,11 +29,11 @@ type (
 		ResourceID   uint64
 		ResourceType string
 
-		SensitivityLevel uint64
+		SensitivityLevelID uint64
 
 		Attributes AttributeSet
 
-		Capabilities capabilities.Set
+		Operations OperationSet
 	}
 	ModelSet []*Model
 
@@ -43,7 +42,7 @@ type (
 		Ident string
 		Label string
 
-		SensitivityLevel uint64
+		SensitivityLevelID uint64
 
 		MultiValue bool
 

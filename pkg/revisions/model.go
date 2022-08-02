@@ -2,7 +2,6 @@ package revisions
 
 import (
 	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 )
 
@@ -32,9 +31,9 @@ func Model() *dal.Model {
 			&dal.Attribute{Ident: "comment", Store: &dal.CodecPlain{}, Type: &dal.TypeText{}},
 		},
 
-		Capabilities: capabilities.Set{
-			capabilities.Create,
-			capabilities.Search,
+		Operations: dal.OperationSet{
+			dal.Create,
+			dal.Search,
 		},
 	}
 }

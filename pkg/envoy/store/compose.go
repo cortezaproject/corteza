@@ -9,7 +9,6 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -34,10 +33,10 @@ type (
 	}
 
 	dalService interface {
-		Create(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set, vv ...dal.ValueGetter) error
-		Search(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set, f filter.Filter) (dal.Iterator, error)
-		Delete(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set, pkv ...dal.ValueGetter) (err error)
-		Update(ctx context.Context, m dal.ModelRef, capabilities capabilities.Set, pkv ...dal.ValueGetter) (err error)
+		Create(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, vv ...dal.ValueGetter) error
+		Search(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, f filter.Filter) (dal.Iterator, error)
+		Delete(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, pkv ...dal.ValueGetter) (err error)
+		Update(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, pkv ...dal.ValueGetter) (err error)
 	}
 
 	composeDecoder struct {
