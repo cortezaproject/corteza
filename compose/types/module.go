@@ -3,10 +3,11 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"time"
+
 	discovery "github.com/cortezaproject/corteza-server/discovery/types"
 	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"github.com/jmoiron/sqlx/types"
-	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/dal/capabilities"
@@ -32,6 +33,8 @@ type (
 		Fields ModuleFieldSet `json:"fields"`
 
 		Labels map[string]string `json:"labels,omitempty"`
+
+		Issues []string `json:"issues,omitempty"`
 
 		NamespaceID uint64 `json:"namespaceID,string"`
 
@@ -81,8 +84,6 @@ type (
 	ModuleConfigDAL struct {
 		ConnectionID uint64           `json:"connectionID,string"`
 		Capabilities capabilities.Set `json:"capabilities"`
-
-		Issues []string `json:"issues,omitempty"`
 
 		Constraints map[string][]any `json:"constraints"`
 
@@ -139,7 +140,7 @@ func (m Module) Clone() *Module {
 }
 
 func (m Module) HasIssues() bool {
-	return len(m.Config.DAL.Issues) > 0
+	return len(m.Issues) > 0
 }
 
 // We won't worry about fields at this point

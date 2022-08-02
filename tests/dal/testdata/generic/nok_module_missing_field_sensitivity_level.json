@@ -19,9 +19,11 @@
       "name": "name",
       "kind": "String",
 
-      "privacy": {
-        "sensitivityLevel": "42",
-        "usageDisclosure": "A"
+      "config": {
+        "privacy": {
+          "sensitivityLevel": "42",
+          "usageDisclosure": "A"
+        }
       }
     },
     {
