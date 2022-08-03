@@ -85,6 +85,11 @@ type (
 	// This type is auto-generated.
 	DataPrivacyRequestCommentSet []*DataPrivacyRequestComment
 
+	// PrivacyDalConnectionSet slice of PrivacyDalConnection
+	//
+	// This type is auto-generated.
+	PrivacyDalConnectionSet []*PrivacyDalConnection
+
 	// QueueSet slice of Queue
 	//
 	// This type is auto-generated.
@@ -863,6 +868,62 @@ func (set DataPrivacyRequestCommentSet) FindByID(ID uint64) *DataPrivacyRequestC
 //
 // This function is auto-generated.
 func (set DataPrivacyRequestCommentSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(PrivacyDalConnection) err
+//
+// This function is auto-generated.
+func (set PrivacyDalConnectionSet) Walk(w func(*PrivacyDalConnection) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(PrivacyDalConnection) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set PrivacyDalConnectionSet) Filter(f func(*PrivacyDalConnection) (bool, error)) (out PrivacyDalConnectionSet, err error) {
+	var ok bool
+	out = PrivacyDalConnectionSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set PrivacyDalConnectionSet) FindByID(ID uint64) *PrivacyDalConnection {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set PrivacyDalConnectionSet) IDs() (IDs []uint64) {
 	IDs = make([]uint64, len(set))
 
 	for i := range set {

@@ -3,6 +3,7 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"github.com/cortezaproject/corteza-server/pkg/geolocation"
 	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"time"
 
@@ -97,6 +98,25 @@ type (
 		// Standard helpers for paging and sorting
 		filter.Sorting
 		filter.Paging
+	}
+
+	PrivacyDalConnection struct {
+		ID     uint64 `json:"connectionID,string"`
+		Name   string `json:"name"`
+		Handle string `json:"handle"`
+
+		Type string `json:"type"`
+
+		Location         geolocation.Full `json:"location"`
+		Ownership        string           `json:"ownership"`
+		SensitivityLevel uint64           `json:"sensitivityLevel,string,omitempty"`
+
+		CreatedAt time.Time  `json:"createdAt,omitempty"`
+		CreatedBy uint64     `json:"createdBy,string" `
+		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+		UpdatedBy uint64     `json:"updatedBy,string,omitempty" `
+		DeletedAt *time.Time `json:"deletedAt,omitempty"`
+		DeletedBy uint64     `json:"deletedBy,string,omitempty" `
 	}
 
 	RequestStatus string

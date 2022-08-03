@@ -13,11 +13,11 @@ import (
 type (
 	dataPrivacy struct {
 		actionlog actionlog.Recorder
+		store     store.Storer
 
 		ac       dataPrivacyAccessController
 		eventbus eventDispatcher
-
-		store store.Storer
+		dalConn  dalConnectionService
 	}
 
 	dataPrivacyAccessController interface {
@@ -25,9 +25,17 @@ type (
 		CanCreateDataPrivacyRequest(context.Context) bool
 		CanReadDataPrivacyRequest(context.Context, *types.DataPrivacyRequest) bool
 		CanApproveDataPrivacyRequest(context.Context, *types.DataPrivacyRequest) bool
+
+		CanSearchDalConnections(context.Context) bool
+	}
+
+	dalConnectionService interface {
+		Search(ctx context.Context, filter types.DalConnectionFilter) (r types.DalConnectionSet, f types.DalConnectionFilter, err error)
 	}
 
 	DataPrivacyService interface {
+		FindConnections(ctx context.Context, filter types.DalConnectionFilter) (out types.PrivacyDalConnectionSet, f types.DalConnectionFilter, err error)
+
 		FindRequestByID(ctx context.Context, requestID uint64) (*types.DataPrivacyRequest, error)
 		FindRequests(context.Context, types.DataPrivacyRequestFilter) (types.DataPrivacyRequestSet, types.DataPrivacyRequestFilter, error)
 		CreateRequest(ctx context.Context, request *types.DataPrivacyRequest) (*types.DataPrivacyRequest, error)
@@ -41,10 +49,53 @@ type (
 func DataPrivacy(s store.Storer, ac dataPrivacyAccessController, al actionlog.Recorder, eb eventDispatcher) *dataPrivacy {
 	return &dataPrivacy{
 		actionlog: al,
+		store:     s,
 		ac:        ac,
 		eventbus:  eb,
-		store:     s,
 	}
+}
+
+func (svc dataPrivacy) FindConnections(ctx context.Context, filter types.DalConnectionFilter) (out types.PrivacyDalConnectionSet, f types.DalConnectionFilter, err error) {
+	var (
+		cc types.DalConnectionSet
+	)
+	err = func() error {
+		if !svc.ac.CanSearchDalConnections(ctx) {
+			return DalConnectionErrNotAllowedToSearch()
+		}
+
+		cc, f, err = svc.dalConn.Search(ctx, filter)
+		if err != nil {
+			return err
+		}
+
+		err = cc.Walk(func(c *types.DalConnection) error {
+			pc := types.PrivacyDalConnection{
+				ID:               c.ID,
+				Name:             c.Meta.Name,
+				Handle:           c.Handle,
+				Type:             c.Type,
+				Location:         c.Meta.Location,
+				Ownership:        c.Meta.Ownership,
+				SensitivityLevel: c.Config.Privacy.SensitivityLevelID,
+				CreatedAt:        c.CreatedAt,
+				CreatedBy:        c.CreatedBy,
+				UpdatedAt:        c.UpdatedAt,
+				UpdatedBy:        c.UpdatedBy,
+				DeletedAt:        c.DeletedAt,
+				DeletedBy:        c.DeletedBy,
+			}
+			out = append(out, &pc)
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}()
+
+	return
 }
 
 func (svc dataPrivacy) FindRequestByID(ctx context.Context, requestID uint64) (r *types.DataPrivacyRequest, err error) {
