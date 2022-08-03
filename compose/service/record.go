@@ -525,7 +525,7 @@ func (svc record) Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (r
 		for _, p := range oo {
 			r = p.Record
 
-			aProp.setChanged(r)
+			aProp.setRecord(r)
 
 			// Handle any pre processing, such as defining parent recordID.
 			if p.LinkBy != "" {
@@ -554,6 +554,8 @@ func (svc record) Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (r
 				action = RecordActionDelete
 				r, err = svc.delete(ctx, r.NamespaceID, r.ModuleID, r.ID)
 			}
+
+			aProp.setChanged(r)
 
 			if rve := types.IsRecordValueErrorSet(err); rve != nil {
 				// Attach additional meta to each value error for FE identification
@@ -591,7 +593,7 @@ func (svc record) Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (r
 	}()
 
 	if len(oo) == 1 {
-		// was not really a bulk operation and we already recorded the action
+		// was not really a bulk operation, and we already recorded the action
 		// inside transaction loop
 		return rr, err
 	} else {
@@ -608,7 +610,7 @@ func (svc record) Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (r
 // and creation.
 func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Record, err error) {
 	var (
-		aProps    = &recordActionProps{changed: new}
+		aProps    = &recordActionProps{record: new}
 		invokerID = auth.GetIdentityFromContext(ctx).Identity()
 
 		ns *types.Namespace
@@ -656,6 +658,8 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 	if rve = svc.procCreate(ctx, invokerID, m, new); !rve.IsValid() {
 		return nil, RecordErrValueInput().Wrap(rve)
 	}
+
+	aProps.setChanged(new)
 
 	if err = dalutils.ComposeRecordCreate(ctx, svc.dal, m, new); err != nil {
 		return
@@ -888,7 +892,7 @@ func RecordValueDefaults(m *types.Module, vv types.RecordValueSet) (out types.Re
 // and update.
 func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Record, err error) {
 	var (
-		aProps    = &recordActionProps{changed: upd}
+		aProps    = &recordActionProps{record: upd}
 		invokerID = auth.GetIdentityFromContext(ctx).Identity()
 
 		ns  *types.Namespace
@@ -960,6 +964,8 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 			}
 		}
 
+		aProps.setChanged(upd)
+
 		if err = dalutils.ComposeRecordUpdate(ctx, svc.dal, m, upd); err != nil {
 			return err
 		}
@@ -999,7 +1005,7 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 
 func (svc record) Create(ctx context.Context, new *types.Record) (rec *types.Record, err error) {
 	var (
-		aProps = &recordActionProps{changed: new}
+		aProps = &recordActionProps{record: new}
 	)
 
 	err = func() error {
@@ -1066,7 +1072,7 @@ func (svc record) procCreate(ctx context.Context, invokerID uint64, m *types.Mod
 
 func (svc record) Update(ctx context.Context, upd *types.Record) (rec *types.Record, err error) {
 	var (
-		aProps = &recordActionProps{changed: upd}
+		aProps = &recordActionProps{record: upd}
 	)
 
 	err = func() error {
