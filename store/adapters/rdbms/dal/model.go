@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
@@ -189,7 +190,7 @@ func (d *model) Lookup(ctx context.Context, pkv dal.ValueGetter, r dal.ValueSett
 
 	defer rows.Close()
 	if !rows.Next() {
-		return sql.ErrNoRows
+		return errors.NotFound("not found")
 	}
 
 	scanBuf := d.table.MakeScanBuffer()
