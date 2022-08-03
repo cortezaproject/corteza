@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -70,7 +71,7 @@ func (i *iterator) Preload(ctx context.Context) (err error) {
 	return i.err
 }
 
-func (i *iterator) fetch(ctx context.Context) (_ *sql.Rows, err error) {
+func (i *iterator) fetch(ctx context.Context) (rows *sql.Rows, err error) {
 	if i.err != nil {
 		return nil, i.err
 	}
@@ -89,19 +90,19 @@ func (i *iterator) fetch(ctx context.Context) (_ *sql.Rows, err error) {
 	var (
 		cur = i.cursor
 
-		tmp  exp.Expression
-		sql  string
-		args []any
+		tmp   exp.Expression
+		query string
+		args  []any
 
 		// contains query with ORDER BY and WHERE clauses
-		query = i.query
+		sqlExpr = i.query
 
 		sort = i.sorting.Clone()
 	)
 
 	{
 		// Apply limit from the filter
-		query = query.Limit(i.limit)
+		sqlExpr = sqlExpr.Limit(i.limit)
 
 		if cur != nil {
 			// @todo this needs to work with embedded attributes (non physical columns) as well!
@@ -127,7 +128,7 @@ func (i *iterator) fetch(ctx context.Context) (_ *sql.Rows, err error) {
 				return
 			}
 
-			query = query.Where(tmp)
+			sqlExpr = sqlExpr.Where(tmp)
 
 			if cur.IsROrder() {
 				if i.limit > 0 {
@@ -139,7 +140,7 @@ func (i *iterator) fetch(ctx context.Context) (_ *sql.Rows, err error) {
 					innerSort.Reverse()
 
 					// Wrap the fil & ordered sub-query with cursor-conditions
-					query = i.ms.dialect.GOQU().From(query.Order(i.orderByExp(innerSort)...).As(i.ms.model.Ident))
+					sqlExpr = i.ms.dialect.GOQU().From(sqlExpr.Order(i.orderByExp(innerSort)...).As(i.ms.model.Ident))
 
 					// make sure we don't reverse it again
 				} else {
@@ -157,15 +158,21 @@ func (i *iterator) fetch(ctx context.Context) (_ *sql.Rows, err error) {
 		// @todo is this going to be a problem? do we need to properly address the columns
 		//       from the sub-query?
 		if len(sort) > 0 {
-			query = query.Order(i.orderByExp(sort)...)
+			sqlExpr = sqlExpr.Order(i.orderByExp(sort)...)
 		}
 	}
 
-	if sql, args, err = query.ToSQL(); err != nil {
+	if query, args, err = sqlExpr.ToSQL(); err != nil {
 		return nil, err
 	}
 
-	return i.ms.conn.QueryContext(ctx, sql, args...)
+	rows, err = i.ms.conn.QueryContext(ctx, query, args...)
+	if errors.Is(err, sql.ErrNoRows) {
+		// no rows, no error
+		return nil, nil
+	}
+
+	return
 }
 
 // generates slice of ordered-expressions
