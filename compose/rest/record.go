@@ -582,7 +582,7 @@ func (ctrl *Record) Revisions(ctx context.Context, r *request.RecordRevisions) (
 	}
 
 	return func(w http.ResponseWriter, req *http.Request) {
-		if _, err = w.Write([]byte(`{"set":[`)); err != nil {
+		if _, err = w.Write([]byte(`{"response":{"set":[`)); err != nil {
 			return
 		}
 
@@ -591,7 +591,7 @@ func (ctrl *Record) Revisions(ctx context.Context, r *request.RecordRevisions) (
 			return
 		}
 
-		if _, err = w.Write([]byte(`]}`)); err != nil {
+		if _, err = w.Write([]byte(`]}}`)); err != nil {
 			return
 		}
 
