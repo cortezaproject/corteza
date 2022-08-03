@@ -2268,3 +2268,31 @@ endpoints:
         post:
           - { name: comment,            type: "string",   title: "Comment description", required: true }
 
+- title: Data Privacy
+  entrypoint: dataPrivacy
+  imports:
+    - github.com/cortezaproject/corteza-server/pkg/filter
+  path: "/data-privacy"
+  apis:
+    - name: connection list
+      method: GET
+      title: List connections for data privacy
+      path: "/connection/"
+      parameters:
+        get:
+          - name: connectionID
+            type: "[]string"
+            required: false
+            title: Filter by connection ID
+          - type: string
+            name: handle
+            required: false
+            title: Search handle to match against connections
+          - type: string
+            name: type
+            required: false
+            title: Search type to match against connections
+          - name: deleted
+            required: false
+            title: Exclude (0, default), include (1) or return only (2) deleted connections
+            type: filter.State

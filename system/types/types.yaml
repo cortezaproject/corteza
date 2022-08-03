@@ -37,3 +37,4 @@ types:
     noIdField: true
   DataPrivacyRequest: {}
   DataPrivacyRequestComment: {}
+  PrivacyDalConnection:
