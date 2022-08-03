@@ -1652,6 +1652,10 @@ func ComposeRecordFilterAC(ctx context.Context, ac recordValueAccessController, 
 
 // loadRecordCombo Loads namespace, module and record
 func loadRecordCombo(ctx context.Context, s store.Storer, dal dalDater, namespaceID, moduleID, recordID uint64) (ns *types.Namespace, m *types.Module, r *types.Record, err error) {
+	if recordID == 0 {
+		return nil, nil, nil, RecordErrInvalidID()
+	}
+
 	if ns, m, err = loadModuleCombo(ctx, s, namespaceID, moduleID); err != nil {
 		return
 	}
