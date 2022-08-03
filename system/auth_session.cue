@@ -24,7 +24,7 @@ auth_session: {
 
 	filter: {
 		model: {
-			user_id: { goType: "uint64", ident: "userID" }
+			user_id: { goType: "uint64", ident: "userID", storeIdent: "rel_user" }
 		}
 
 		byValue: ["user_id"]

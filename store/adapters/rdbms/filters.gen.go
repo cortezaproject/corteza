@@ -351,7 +351,7 @@ func AuthOa2tokenFilter(f systemType.AuthOa2tokenFilter) (ee []goqu.Expression, 
 func AuthSessionFilter(f systemType.AuthSessionFilter) (ee []goqu.Expression, _ systemType.AuthSessionFilter, err error) {
 
 	if f.UserID > 0 {
-		ee = append(ee, goqu.C("user_id").Eq(f.UserID))
+		ee = append(ee, goqu.C("rel_user").Eq(f.UserID))
 	}
 
 	return ee, f, err
