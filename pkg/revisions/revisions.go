@@ -19,7 +19,7 @@ type (
 		ResourceID uint64 `json:"resourceID,string"`
 
 		Revision  uint      `json:"revision"`
-		Operation Operation `json:"event"`
+		Operation Operation `json:"operation"`
 
 		UserID uint64 `json:"userID,string"`
 
