@@ -768,11 +768,13 @@ func applySmtpOptionsToSettings(ctx context.Context, log *zap.Logger, opt option
 			log.Warn(
 				"Environmental variables (SMTP_*) and SMTP settings " +
 					"(most likely changed via admin console) are not the same. " +
-					"When server was restarted, values from environmental" +
+					"When server was restarted, values from environmental " +
 					"variables were copied to settings for easier management. " +
 					"To avoid confusion and potential issues, we suggest you to " +
 					"remove all SMTP_* variables")
 		}
+
+		return
 	}
 
 	// SMTP server settings do not exist but
