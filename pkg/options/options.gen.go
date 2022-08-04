@@ -430,10 +430,7 @@ func SCIM() (o *SCIMOpt) {
 //
 // This function is auto-generated
 func SMTP() (o *SMTPOpt) {
-	o = &SMTPOpt{
-		Host: "localhost",
-		Port: 25,
-	}
+	o = &SMTPOpt{}
 
 	// Custom defaults
 	func(o interface{}) {
