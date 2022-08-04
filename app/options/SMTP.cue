@@ -21,12 +21,10 @@ SMTP: schema.#optionsGroup & {
 
 	options: {
 		host: {
-			defaultValue: "localhost"
 			description:  "The SMTP server hostname."
 		}
 		port: {
 			type:          "int"
-			defaultGoExpr: "25"
 			description:   "The SMTP post."
 		}
 		user: {
