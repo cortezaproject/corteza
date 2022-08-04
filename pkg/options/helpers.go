@@ -70,13 +70,10 @@ func GuessWebappHostname() string {
 }
 
 func guessHostname(base ...string) string {
-	// All env keys we'll check, first that has any value set, will be used as hostname
+	// All env keys we'll check, first one with a value set, will be used as hostname
 	candidates := append(base, []string{
-
 		os.Getenv("LETSENCRYPT_HOST"),
 		os.Getenv("VIRTUAL_HOST"),
-		os.Getenv("HOSTNAME"),
-		os.Getenv("HOST"),
 	}...)
 
 	for _, host := range candidates {
@@ -85,7 +82,7 @@ func guessHostname(base ...string) string {
 		}
 	}
 
-	return "local.cortezaproject.org"
+	return "localhost"
 }
 
 // returns path prefix
