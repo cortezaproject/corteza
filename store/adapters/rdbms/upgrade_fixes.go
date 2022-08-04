@@ -116,3 +116,12 @@ func fix202209_composeRecordRevisions(ctx context.Context, s *Store) (err error)
 	//// make a copy of records to changes table
 	//return s.Exec(ctx, copyAll)
 }
+
+func fix202209_extendDalConnectionsForMeta(ctx context.Context, s *Store) (err error) {
+	s.log(ctx).Info("extending dal_connections table with meta column")
+	return s.SchemaAPI.AddColumn(
+		ctx, s.DB,
+		&Table{Name: "dal_connections"},
+		&Column{Type: ColumnType{Type: ColumnTypeJson}, DefaultValue: "'{}'", Name: "meta"},
+	)
+}
