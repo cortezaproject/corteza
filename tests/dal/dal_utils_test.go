@@ -140,7 +140,6 @@ func initSvc(ctx context.Context, d driver) (dalService, error) {
 	cm := dal.ConnectionConfig{
 		ModelIdent:         c.Config.DAL.ModelIdent,
 		AttributeIdent:     c.Config.DAL.AttributeIdent,
-		PartitionFormat:    c.Config.DAL.PartitionFormat,
 		SensitivityLevelID: c.Config.Privacy.SensitivityLevelID,
 		Label:              c.Handle,
 	}

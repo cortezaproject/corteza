@@ -32,10 +32,6 @@ type (
 		// @todo needs to be more explicit that this is for  JSON encode attributes
 		AttributeIdent string
 
-		// If data is partitioned we fallback to this,
-		// @todo we can lose "Default" prefix
-		PartitionFormat string
-
 		PartitionValidator string
 	}
 

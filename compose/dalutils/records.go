@@ -99,13 +99,8 @@ func WalkIterator(ctx context.Context, iter dal.Iterator, mod *types.Module, f f
 // // // // // // // // // // // // // // // // // // // // // // // // //
 // Utils
 
-func prepFilter(filter types.RecordFilter, mod *types.Module) (dalFilter filter.Filter) {
-	dalFilter = filter.ToFilter()
-	if mod.Config.DAL.Partitioned {
-		dalFilter = filter.ToConstraintedFilter(mod.Config.DAL.Constraints)
-	}
-
-	return
+func prepFilter(filter types.RecordFilter, mod *types.Module) filter.Filter {
+	return filter.ToConstraintedFilter(mod.Config.DAL.Constraints)
 }
 
 func prepIterator(ctx context.Context, dal searcher, mod *types.Module, filter types.RecordFilter) (iter dal.Iterator, err error) {
