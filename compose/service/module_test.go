@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
@@ -287,4 +288,35 @@ func TestModule_LabelCRUD(t *testing.T) {
 	req.NoError(err)
 
 	req.Empty(findAndReturnLabel(res.ID))
+}
+
+func TestModuleToModel(t *testing.T) {
+	var (
+		req   = require.New(t)
+		model *dal.Model
+		err   error
+
+		cm = dal.ConnectionConfig{
+			ModelIdent: "ident-from-conn-config",
+		}
+
+		m = &types.Module{
+			ID:        1,
+			Handle:    "model-handle",
+			Config:    types.ModuleConfig{},
+			CreatedAt: time.Time{},
+			Fields:    []*types.ModuleField{},
+		}
+	)
+
+	t.Log("ident on DAL config not set, use ident from connection config")
+	model, err = moduleToModel(cm, m)
+	req.NoError(err)
+	req.Equal("ident-from-conn-config", model.Ident)
+
+	t.Log("explicit ident in module's DAL config should override the handle")
+	m.Config.DAL.Ident = "explicit-ident"
+	model, err = moduleToModel(cm, m)
+	req.NoError(err)
+	req.Equal("explicit-ident", model.Ident)
 }

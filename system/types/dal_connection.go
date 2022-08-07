@@ -70,7 +70,6 @@ type (
 		ModelIdent     string `json:"modelIdent"`
 		AttributeIdent string `json:"attributeIdent"`
 
-		PartitionFormat         string `json:"partitionFormat"`
 		PartitionIdentValidator string `json:"partitionIdentValidator"`
 	}
 

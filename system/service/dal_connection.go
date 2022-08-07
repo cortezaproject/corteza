@@ -339,7 +339,6 @@ func dalConnectionReplace(ctx context.Context, primary dal.Connection, dcm dalCo
 				SensitivityLevelID: c.Config.Privacy.SensitivityLevelID,
 				ModelIdent:         c.Config.DAL.ModelIdent,
 				AttributeIdent:     c.Config.DAL.AttributeIdent,
-				PartitionFormat:    c.Config.DAL.PartitionFormat,
 				Label:              c.Handle,
 			},
 			c.Config.DAL.Operations...,

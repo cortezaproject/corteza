@@ -259,9 +259,6 @@ func (h helper) createDalConnection(res *types.DalConnection) *types.DalConnecti
 	if res.Config.DAL.AttributeIdent == "" {
 		res.Config.DAL.AttributeIdent = "values"
 	}
-	if res.Config.DAL.PartitionFormat == "" {
-		res.Config.DAL.PartitionFormat = "compose_records_{{namespace}}_{{module}}"
-	}
 	if res.Config.DAL.PartitionIdentValidator == "" {
 		res.Config.DAL.PartitionIdentValidator = ""
 	}
@@ -305,7 +302,7 @@ func makeConnectionDefinition(dsn string) *types.DalConnection {
 				ModelIdent:     "compose_record",
 				AttributeIdent: "values",
 
-				PartitionFormat: "compose_record_{{namespace}}_{{module}}",
+				ModelIdent: "compose_record_{{namespace}}_{{module}}",
 
 				PartitionIdentValidator: "",
 

@@ -13,7 +13,6 @@ import (
 const (
 	DefaultComposeRecordTable    = "compose_record"
 	DefaultComposeRecordValueCol = "values"
-	DefaultPartitionFormat       = "compose_record"
 )
 
 // Injects primary connection
@@ -42,9 +41,8 @@ func defaultDalConnection(ctx context.Context, s store.DalConnections) (err erro
 
 		Config: types.ConnectionConfig{
 			DAL: types.ConnectionConfigDAL{
-				ModelIdent:      DefaultComposeRecordTable,
-				AttributeIdent:  DefaultComposeRecordValueCol,
-				PartitionFormat: DefaultPartitionFormat,
+				ModelIdent:     DefaultComposeRecordTable,
+				AttributeIdent: DefaultComposeRecordValueCol,
 
 				Operations: dal.FullOperations(),
 			},

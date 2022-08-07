@@ -1127,7 +1127,7 @@ func DalModelReplace(ctx context.Context, dmm dalModelManager, ns *types.Namespa
 		models dal.ModelSet
 	)
 
-	models, err = moduleToModel(ctx, dmm, ns, modules...)
+	models, err = modulesToModelSet(ctx, dmm, ns, modules...)
 	if err != nil {
 		return
 	}
@@ -1143,11 +1143,11 @@ func DalModelReplace(ctx context.Context, dmm dalModelManager, ns *types.Namespa
 }
 
 func dalAttributeReplace(ctx context.Context, dmm dalModelManager, ns *types.Namespace, old, new *types.Module) (err error) {
-	oldModel, err := moduleToModel(ctx, dmm, ns, old)
+	oldModel, err := modulesToModelSet(ctx, dmm, ns, old)
 	if err != nil {
 		return
 	}
-	newModel, err := moduleToModel(ctx, dmm, ns, new)
+	newModel, err := modulesToModelSet(ctx, dmm, ns, new)
 	if err != nil {
 		return
 	}
@@ -1173,13 +1173,13 @@ func DalModelRemove(ctx context.Context, dmm dalModelManager, mm ...*types.Modul
 	return
 }
 
-func moduleToModel(ctx context.Context, dmm dalModelManager, ns *types.Namespace, modules ...*types.Module) (out dal.ModelSet, err error) {
+func modulesToModelSet(ctx context.Context, dmm dalModelManager, ns *types.Namespace, mm ...*types.Module) (out dal.ModelSet, err error) {
 	var (
-		cm      dal.ConnectionConfig
-		attrAux dal.AttributeSet
+		cm    dal.ConnectionConfig
+		model *dal.Model
 	)
 
-	for connectionID, modules := range modulesByConnection(modules...) {
+	for connectionID, modules := range modulesByConnection(mm...) {
 		// Get the connection meta
 		cm, err = dmm.GetConnectionMeta(ctx, connectionID)
 		if err != nil {
@@ -1197,39 +1197,18 @@ func moduleToModel(ctx context.Context, dmm dalModelManager, ns *types.Namespace
 
 		// Convert all modules to models
 		for _, mod := range modules {
-			// - base params
-			model := &dal.Model{
-				ConnectionID:       connectionID,
-				Label:              mod.Handle,
-				Resource:           mod.RbacResource(),
-				ResourceID:         mod.ID,
-				ResourceType:       types.ModuleResourceType,
-				SensitivityLevelID: mod.Config.Privacy.SensitivityLevelID,
-				Operations:         mod.Config.DAL.Operations,
-			}
-
-			model.Ident = cm.ModelIdent
-			if mod.Config.DAL.Partitioned {
-				model.Ident, err = makeModelIdent(ctx, ff, cm, mod, mod.Config.DAL.PartitionFormat)
-				if err != nil {
-					return
-				}
-			}
-
-			// Convert user-defined fields to attributes
-			attrAux, err = moduleFieldsToAttributes(ctx, cm, ns, mod)
+			model, err = moduleToModel(cm, mod)
 			if err != nil {
 				return
 			}
-			model.Attributes = append(model.Attributes, attrAux...)
 
-			// Convert system fields to attribute
-			attrAux, err = moduleSystemFieldsToAttributes(ctx, cm, ns, mod)
+			// ensure partition placeholders are replaced with actual partition values
+			model.Ident, err = replaceModelIdentPlaceholders(ctx, ff, mod, model.Ident)
 			if err != nil {
 				return
 			}
-			model.Attributes = append(model.Attributes, attrAux...)
 
+			model.ConnectionID = connectionID
 			out = append(out, model)
 
 			if mod.Config.RecordRevisions.Enabled {
@@ -1243,11 +1222,12 @@ func moduleToModel(ctx context.Context, dmm dalModelManager, ns *types.Namespace
 				// the same ID and to avoid collisions with the model
 				rModel.ResourceID = mod.ID + 1
 
-				if mod.Config.RecordRevisions.Ident == "" {
-					mod.Config.RecordRevisions.Ident = "compose_record_revisions"
+				revIdent := mod.Config.RecordRevisions.Ident
+				if revIdent == "" {
+					revIdent = "compose_record_revisions"
 				}
 
-				rModel.Ident, err = makeModelIdent(ctx, ff, cm, mod, mod.Config.RecordRevisions.Ident)
+				rModel.Ident, err = replaceModelIdentPlaceholders(ctx, ff, mod, revIdent)
 				if err != nil {
 					return
 				}
@@ -1260,14 +1240,48 @@ func moduleToModel(ctx context.Context, dmm dalModelManager, ns *types.Namespace
 	return
 }
 
-func makeModelIdent(ctx context.Context, ff identFormatter, cm dal.ConnectionConfig, mod *types.Module, ident string) (_ string, err error) {
+// moduleToModel converts a module with fields to DAL model and attributes
+func moduleToModel(cm dal.ConnectionConfig, mod *types.Module) (model *dal.Model, err error) {
+	var (
+		attrAux dal.AttributeSet
+	)
+
+	model = &dal.Model{
+		Label:              mod.Handle,
+		Resource:           mod.RbacResource(),
+		ResourceID:         mod.ID,
+		ResourceType:       types.ModuleResourceType,
+		SensitivityLevelID: mod.Config.Privacy.SensitivityLevelID,
+		Operations:         mod.Config.DAL.Operations,
+	}
+
+	if model.Ident = mod.Config.DAL.Ident; model.Ident == "" {
+		// try with explicitly set ident on module's DAL config
+		// and fallback connection's default if it is empty
+		model.Ident = cm.ModelIdent
+	}
+
+	// Convert user-defined fields to attributes
+	attrAux, err = moduleFieldsToAttributes(cm, mod)
+	if err != nil {
+		return
+	}
+	model.Attributes = append(model.Attributes, attrAux...)
+
+	// Convert system fields to attribute
+	attrAux, err = moduleSystemFieldsToAttributes(mod)
+	if err != nil {
+		return
+	}
+	model.Attributes = append(model.Attributes, attrAux...)
+
+	return
+}
+
+func replaceModelIdentPlaceholders(ctx context.Context, ff identFormatter, mod *types.Module, ident string) (_ string, err error) {
 	var (
 		ok bool
 	)
-
-	if ident == "" {
-		ident = cm.PartitionFormat
-	}
 
 	ident, ok = ff.Format(ctx, ident, formatterModuleParams(mod)...)
 	if !ok {
@@ -1279,14 +1293,14 @@ func makeModelIdent(ctx context.Context, ff identFormatter, cm dal.ConnectionCon
 }
 
 // moduleFieldsToAttributes converts all user-defined module fields to attributes
-func moduleFieldsToAttributes(ctx context.Context, cm dal.ConnectionConfig, ns *types.Namespace, mod *types.Module) (out dal.AttributeSet, err error) {
+func moduleFieldsToAttributes(cm dal.ConnectionConfig, mod *types.Module) (out dal.AttributeSet, err error) {
 	out = make(dal.AttributeSet, 0, len(mod.Fields))
 	var (
 		attr *dal.Attribute
 	)
 
 	for _, f := range mod.Fields {
-		attr, err = moduleFieldToAttribute(ctx, cm, mod, f)
+		attr, err = moduleFieldToAttribute(cm, f)
 		if err != nil {
 			return
 		}
@@ -1297,137 +1311,104 @@ func moduleFieldsToAttributes(ctx context.Context, cm dal.ConnectionConfig, ns *
 }
 
 // moduleSystemFieldsToAttributes converts all system-defined module fields to attributes
-func moduleSystemFieldsToAttributes(ctx context.Context, cm dal.ConnectionConfig, ns *types.Namespace, mod *types.Module) (out dal.AttributeSet, err error) {
-	if mod.Config.DAL.Partitioned {
-		return partitionedModuleSystemFieldsToAttributes(cm, mod), nil
-	}
-	return defaultModuleSystemFieldsToAttributes(), nil
-}
-
-// partitionedModuleSystemFieldsToAttributes converts all system-defined module fields to attributes
-// keeping user-defined codec in mind
-func partitionedModuleSystemFieldsToAttributes(cm dal.ConnectionConfig, mod *types.Module) (out dal.AttributeSet) {
+func moduleSystemFieldsToAttributes(mod *types.Module) (out dal.AttributeSet, err error) {
 	var (
 		sysEnc = mod.Config.DAL.SystemFieldEncoding
 
-		mf = func(name string, es *types.EncodingStrategy) *types.ModuleField {
-			return &types.ModuleField{
-				Name: name,
-				Config: types.ModuleFieldConfig{
-					DAL: types.ModuleFieldConfigDAL{EncodingStrategy: *es},
-				},
+		// generate dal.Codec for each attribute
+		// using encoding strategy for that attribute
+		// with failsafe on CodecAlias
+		mfc = func(defStoreIdent string, es *types.EncodingStrategy) dal.Codec {
+			switch {
+			case es != nil && es.EncodingStrategyAlias != nil:
+				return &dal.CodecAlias{
+					Ident: es.EncodingStrategyAlias.Ident,
+				}
+			case es != nil && es.EncodingStrategyJSON != nil:
+				return &dal.CodecRecordValueSetJSON{
+					Ident: es.EncodingStrategyJSON.Ident,
+				}
+			default:
+				return &dal.CodecAlias{
+					Ident: defStoreIdent,
+				}
 			}
 		}
 	)
 
-	if sysEnc.ID != nil {
-		out = append(out, dal.PrimaryAttribute(sysID, modelFieldCodec(cm, mod, mf(sysID, sysEnc.ID))))
-	}
-
-	if sysEnc.ModuleID != nil {
-		out = append(out, dal.FullAttribute(sysModuleID, &dal.TypeID{}, modelFieldCodec(cm, mod, mf(sysModuleID, sysEnc.ModuleID))))
-	}
-
-	if sysEnc.NamespaceID != nil {
-		out = append(out, dal.FullAttribute(sysNamespaceID, &dal.TypeID{}, modelFieldCodec(cm, mod, mf(sysNamespaceID, sysEnc.NamespaceID))))
-	}
-
-	if sysEnc.Revision != nil {
-		out = append(out, dal.FullAttribute(sysRevision, &dal.TypeID{}, modelFieldCodec(cm, mod, mf(sysRevision, sysEnc.Revision))))
-	}
-
-	if sysEnc.OwnedBy != nil {
-		out = append(out, dal.FullAttribute(sysOwnedBy, &dal.TypeID{}, modelFieldCodec(cm, mod, mf(sysOwnedBy, sysEnc.OwnedBy))))
-	}
-
-	if sysEnc.CreatedAt != nil {
-		out = append(out, dal.FullAttribute(sysCreatedAt, &dal.TypeTimestamp{}, modelFieldCodec(cm, mod, mf(sysCreatedAt, sysEnc.CreatedAt))))
-	}
-
-	if sysEnc.CreatedBy != nil {
-		out = append(out, dal.FullAttribute(sysCreatedBy, &dal.TypeID{}, modelFieldCodec(cm, mod, mf(sysCreatedBy, sysEnc.CreatedBy))))
-	}
-
-	if sysEnc.UpdatedAt != nil {
-		out = append(out, dal.FullAttribute(sysUpdatedAt, &dal.TypeTimestamp{Nullable: true}, modelFieldCodec(cm, mod, mf(sysUpdatedAt, sysEnc.UpdatedAt))))
-	}
-
-	if sysEnc.UpdatedBy != nil {
-		out = append(out, dal.FullAttribute(sysUpdatedBy, &dal.TypeID{Nullable: true}, modelFieldCodec(cm, mod, mf(sysUpdatedBy, sysEnc.UpdatedBy))))
-	}
-
-	if sysEnc.DeletedAt != nil {
-		out = append(out, dal.FullAttribute(sysDeletedAt, &dal.TypeTimestamp{Nullable: true}, modelFieldCodec(cm, mod, mf(sysDeletedAt, sysEnc.DeletedAt))))
-	}
-
-	if sysEnc.DeletedBy != nil {
-		out = append(out, dal.FullAttribute(sysDeletedBy, &dal.TypeID{Nullable: true}, modelFieldCodec(cm, mod, mf(sysDeletedBy, sysEnc.DeletedBy))))
-	}
-
-	return
-}
-
-// defaultModuleSystemFieldsToAttributes converts all system-defined module fields to attributes
-// assuming no user-defined codec provided
-func defaultModuleSystemFieldsToAttributes() dal.AttributeSet {
-	return dal.AttributeSet{
-		dal.PrimaryAttribute(sysID, &dal.CodecAlias{Ident: colSysID}),
-
-		dal.FullAttribute(sysModuleID, &dal.TypeID{}, &dal.CodecAlias{Ident: colSysModuleID}),
-		dal.FullAttribute(sysNamespaceID, &dal.TypeID{}, &dal.CodecAlias{Ident: colSysNamespaceID}),
-
-		dal.FullAttribute(sysRevision, &dal.TypeNumber{}, &dal.CodecAlias{Ident: colSysRevision}),
-
-		dal.FullAttribute(sysOwnedBy, &dal.TypeID{}, &dal.CodecAlias{Ident: colSysOwnedBy}),
-
-		dal.FullAttribute(sysCreatedAt, &dal.TypeTimestamp{}, &dal.CodecAlias{Ident: colSysCreatedAt}),
-		dal.FullAttribute(sysCreatedBy, &dal.TypeID{}, &dal.CodecAlias{Ident: colSysCreatedBy}),
-
-		dal.FullAttribute(sysUpdatedAt, &dal.TypeTimestamp{Nullable: true}, &dal.CodecAlias{Ident: colSysUpdatedAt}),
-		dal.FullAttribute(sysUpdatedBy, &dal.TypeID{Nullable: true}, &dal.CodecAlias{Ident: colSysUpdatedBy}),
-
-		dal.FullAttribute(sysDeletedAt, &dal.TypeTimestamp{Nullable: true}, &dal.CodecAlias{Ident: colSysDeletedAt}),
-		dal.FullAttribute(sysDeletedBy, &dal.TypeID{Nullable: true}, &dal.CodecAlias{Ident: colSysDeletedBy}),
-	}
+	return append(out,
+		dal.PrimaryAttribute(sysID, mfc(colSysID, sysEnc.ID)),
+		dal.FullAttribute(sysModuleID, &dal.TypeID{}, mfc(colSysModuleID, sysEnc.ModuleID)),
+		dal.FullAttribute(sysDeletedBy, &dal.TypeID{Nullable: true}, mfc(colSysDeletedBy, sysEnc.DeletedBy)),
+		dal.FullAttribute(sysNamespaceID, &dal.TypeID{}, mfc(colSysNamespaceID, sysEnc.NamespaceID)),
+		dal.FullAttribute(sysRevision, &dal.TypeID{}, mfc(colSysRevision, sysEnc.Revision)),
+		dal.FullAttribute(sysOwnedBy, &dal.TypeID{}, mfc(colSysOwnedBy, sysEnc.OwnedBy)),
+		dal.FullAttribute(sysCreatedAt, &dal.TypeTimestamp{}, mfc(colSysCreatedAt, sysEnc.CreatedAt)),
+		dal.FullAttribute(sysCreatedBy, &dal.TypeID{}, mfc(colSysCreatedBy, sysEnc.CreatedBy)),
+		dal.FullAttribute(sysUpdatedAt, &dal.TypeTimestamp{Nullable: true}, mfc(colSysUpdatedAt, sysEnc.UpdatedAt)),
+		dal.FullAttribute(sysUpdatedBy, &dal.TypeID{Nullable: true}, mfc(colSysUpdatedBy, sysEnc.UpdatedBy)),
+		dal.FullAttribute(sysDeletedAt, &dal.TypeTimestamp{Nullable: true}, mfc(colSysDeletedAt, sysEnc.DeletedAt)),
+	), nil
 }
 
 // moduleFieldToAttribute converts the given module field to a DAL attribute
-func moduleFieldToAttribute(ctx context.Context, cm dal.ConnectionConfig, mod *types.Module, f *types.ModuleField) (out *dal.Attribute, err error) {
-	kind := f.Kind
-	if kind == "" {
-		kind = "String"
-	}
+func moduleFieldToAttribute(cc dal.ConnectionConfig, f *types.ModuleField) (out *dal.Attribute, err error) {
+	var (
+		// generate dal.Codec for each attribute
+		// using encoding strategy for that attribute
+		// with failsafe on JSON RVS.
+		mfc = func(f *types.ModuleField) dal.Codec {
+			var es = f.Config.DAL.EncodingStrategy
 
-	switch strings.ToLower(kind) {
+			switch {
+			case es.EncodingStrategyAlias != nil:
+				return &dal.CodecAlias{
+					Ident: es.EncodingStrategyAlias.Ident,
+				}
+			case es.EncodingStrategyJSON != nil:
+				return &dal.CodecRecordValueSetJSON{
+					Ident: es.EncodingStrategyJSON.Ident,
+				}
+			default:
+				// defaulting to RecordValueSetJSON with
+				// default attribute ident from connection
+				return &dal.CodecRecordValueSetJSON{
+					Ident: cc.AttributeIdent,
+				}
+			}
+		}
+	)
+
+	switch strings.ToLower(f.Kind) {
 	case "bool", "boolean":
 		at := &dal.TypeBoolean{}
-		out = dal.FullAttribute(f.Name, at, modelFieldCodec(cm, mod, f))
+		out = dal.FullAttribute(f.Name, at, mfc(f))
 	case "datetime":
 		switch {
 		case f.IsDateOnly():
 			at := &dal.TypeDate{}
-			out = dal.FullAttribute(f.Name, at, modelFieldCodec(cm, mod, f))
+			out = dal.FullAttribute(f.Name, at, mfc(f))
 		case f.IsTimeOnly():
 			at := &dal.TypeTime{}
-			out = dal.FullAttribute(f.Name, at, modelFieldCodec(cm, mod, f))
+			out = dal.FullAttribute(f.Name, at, mfc(f))
 		default:
 			at := &dal.TypeTimestamp{}
-			out = dal.FullAttribute(f.Name, at, modelFieldCodec(cm, mod, f))
+			out = dal.FullAttribute(f.Name, at, mfc(f))
 		}
 	case "email":
 		at := &dal.TypeText{Length: emailLength}
-		out = dal.FullAttribute(f.Name, at, modelFieldCodec(cm, mod, f))
+		out = dal.FullAttribute(f.Name, at, mfc(f))
 	case "file":
 		at := &dal.TypeRef{
 			RefModel:     &dal.Model{Resource: "corteza::system:attachment"},
 			RefAttribute: &dal.Attribute{Ident: "id"},
 		}
-		out = dal.FullAttribute(f.Name, at, modelFieldCodec(cm, mod, f))
+		out = dal.FullAttribute(f.Name, at, mfc(f))
 	case "number":
 		at := &dal.TypeNumber{
 			Precision: f.Options.Precision(),
 		}
-		out = dal.FullAttribute(f.Name, at, modelFieldCodec(cm, mod, f))
+		out = dal.FullAttribute(f.Name, at, mfc(f))
 	case "record":
 		at := &dal.TypeRef{
 			RefModel: &dal.Model{
@@ -1438,22 +1419,17 @@ func moduleFieldToAttribute(ctx context.Context, cm dal.ConnectionConfig, mod *t
 				Ident: "id",
 			},
 		}
-		out = dal.FullAttribute(f.Name, at, modelFieldCodec(cm, mod, f))
+		out = dal.FullAttribute(f.Name, at, mfc(f))
 	case "select":
 		at := &dal.TypeEnum{
 			Values: f.SelectOptions(),
 		}
-		out = dal.FullAttribute(f.Name, at, modelFieldCodec(cm, mod, f))
-	case "string":
-		at := &dal.TypeText{
-			Length: 0,
-		}
-		out = dal.FullAttribute(f.Name, at, modelFieldCodec(cm, mod, f))
+		out = dal.FullAttribute(f.Name, at, mfc(f))
 	case "url":
 		at := &dal.TypeText{
 			Length: urlLength,
 		}
-		out = dal.FullAttribute(f.Name, at, modelFieldCodec(cm, mod, f))
+		out = dal.FullAttribute(f.Name, at, mfc(f))
 	case "user":
 		at := &dal.TypeRef{
 			RefModel: &dal.Model{
@@ -1463,16 +1439,17 @@ func moduleFieldToAttribute(ctx context.Context, cm dal.ConnectionConfig, mod *t
 				Ident: "id",
 			},
 		}
-		out = dal.FullAttribute(f.Name, at, modelFieldCodec(cm, mod, f))
+		out = dal.FullAttribute(f.Name, at, mfc(f))
 
 	default:
-		return nil, fmt.Errorf("invalid field %s: kind %s not supported", f.Name, f.Kind)
+		at := &dal.TypeText{}
+		out = dal.FullAttribute(f.Name, at, mfc(f))
+
 	}
 
 	out.SensitivityLevelID = f.Config.Privacy.SensitivityLevelID
 	out.Label = f.Name
 	out.MultiValue = f.Multi
-
 	return
 }
 
@@ -1499,40 +1476,5 @@ func formatterModuleParams(mod *types.Module) []string {
 	modHandle, _ := handle.Cast(nil, mod.Handle, strconv.FormatUint(mod.ID, 10))
 	return []string{
 		"module", modHandle,
-	}
-}
-
-// modelFieldCodec returns the DAL codec the given module field should use
-func modelFieldCodec(cm dal.ConnectionConfig, mod *types.Module, f *types.ModuleField) (c dal.Codec) {
-	c = baseModelFieldCodec(cm, mod, f)
-
-	switch {
-	case f.Config.DAL.EncodingStrategy.EncodingStrategyAlias != nil:
-		c = &dal.CodecAlias{
-			Ident: f.Config.DAL.EncodingStrategy.EncodingStrategyAlias.Ident,
-		}
-	case f.Config.DAL.EncodingStrategy.EncodingStrategyJSON != nil:
-		c = &dal.CodecRecordValueSetJSON{
-			Ident: f.Config.DAL.EncodingStrategy.EncodingStrategyJSON.Ident,
-		}
-	}
-
-	return
-}
-
-// baseModelFieldCodec returns the DAL codec the given module field should use by default
-func baseModelFieldCodec(cm dal.ConnectionConfig, mod *types.Module, f *types.ModuleField) dal.Codec {
-	if mod.Config.DAL.Partitioned {
-		return &dal.CodecPlain{}
-	}
-
-	ident := cm.AttributeIdent
-	if ident == "" {
-		// @todo put in configs or something
-		ident = "values"
-	}
-
-	return &dal.CodecRecordValueSetJSON{
-		Ident: ident,
 	}
 }

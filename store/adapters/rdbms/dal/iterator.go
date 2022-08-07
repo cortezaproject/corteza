@@ -82,7 +82,7 @@ func (i *iterator) fetch(ctx context.Context) (rows *sql.Rows, err error) {
 
 	if i.scanBuf == nil {
 		// we're going to init scan buffer only once
-		// and rely on the sql.Rows.Scan function to
+		// and rely on the query.Rows.Scan function to
 		// fill it up with fresh values!
 		i.scanBuf = i.ms.table.MakeScanBuffer()
 	}

@@ -58,13 +58,10 @@ func (h helper) createDalConnection(res *types.DalConnection) *types.DalConnecti
 	}
 
 	if res.Config.DAL.ModelIdent == "" {
-		res.Config.DAL.ModelIdent = "compose_records"
+		res.Config.DAL.ModelIdent = "compose_records_{{namespace}}_{{module}}"
 	}
 	if res.Config.DAL.AttributeIdent == "" {
 		res.Config.DAL.AttributeIdent = "values"
-	}
-	if res.Config.DAL.PartitionFormat == "" {
-		res.Config.DAL.PartitionFormat = "compose_records_{{namespace}}_{{module}}"
 	}
 	if res.Config.DAL.PartitionIdentValidator == "" {
 		res.Config.DAL.PartitionIdentValidator = ""

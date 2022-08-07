@@ -86,8 +86,9 @@ type (
 
 		Constraints map[string][]any `json:"constraints"`
 
-		Partitioned     bool   `json:"partitioned"`
-		PartitionFormat string `json:"partitionFormat"`
+		// model identifier (table, collection on the database)
+		// can contain {{placeholders}}
+		Ident string `json:"ident"`
 
 		SystemFieldEncoding SystemFieldEncoding `json:"systemFieldEncoding"`
 	}
