@@ -1190,7 +1190,16 @@ func modulesToModelSet(ctx context.Context, dmm dalModelManager, ns *types.Names
 	for connectionID, modules := range modulesByConnection(mm...) {
 		// Get the connection meta
 		cm, err = dmm.GetConnectionMeta(ctx, connectionID)
-		if err != nil {
+
+		switch {
+		case err == nil:
+			// proceed
+		case errors.IsNotFound(err):
+			// connection does not exist, miss-configured module
+			// ignore and carry on.
+			err = nil
+			continue
+		default:
 			return
 		}
 
