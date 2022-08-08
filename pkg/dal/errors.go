@@ -2,16 +2,17 @@ package dal
 
 import (
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 )
 
 // Generic errors
 
 func errModelNotFound(modelID uint64) error {
-	return fmt.Errorf("model %d does not exist", modelID)
+	return errors.NotFound("model %d does not exist", modelID)
 }
 
 func errConnectionNotFound(connectionID uint64) error {
-	return fmt.Errorf("connection %d does not exist", connectionID)
+	return errors.NotFound("connection %d does not exist", connectionID)
 }
 
 // Sensitivity level errors
