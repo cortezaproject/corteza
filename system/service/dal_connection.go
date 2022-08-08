@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"regexp"
 
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 
@@ -318,10 +319,28 @@ func dalConnectionReplace(ctx context.Context, primary dal.Connection, dcm dalCo
 	var (
 		cw        *dal.ConnectionWrap
 		isPrimary bool
+
+		connConfig dal.ConnectionConfig
 	)
 
 	for _, c := range cc {
 		isPrimary = c.Type == types.DalPrimaryConnectionResourceType
+
+		connConfig = dal.ConnectionConfig{
+			SensitivityLevelID: c.Config.Privacy.SensitivityLevelID,
+			ModelIdent:         c.Config.DAL.ModelIdent,
+			AttributeIdent:     c.Config.DAL.AttributeIdent,
+			Label:              c.Handle,
+		}
+
+		if checks := len(c.Config.DAL.ModelIdentCheck); checks > 0 {
+			connConfig.ModelIdentCheck = make([]*regexp.Regexp, checks)
+			for i, m := range c.Config.DAL.ModelIdentCheck {
+				if connConfig.ModelIdentCheck[i], err = regexp.Compile(m); err != nil {
+					return fmt.Errorf("could not prepare connection model ident check for %q: %w", c.Handle, err)
+				}
+			}
+		}
 
 		cw = dal.MakeConnection(
 			c.ID,
@@ -335,12 +354,7 @@ func dalConnectionReplace(ctx context.Context, primary dal.Connection, dcm dalCo
 				return nil
 			}(),
 			c.Config.Connection,
-			dal.ConnectionConfig{
-				SensitivityLevelID: c.Config.Privacy.SensitivityLevelID,
-				ModelIdent:         c.Config.DAL.ModelIdent,
-				AttributeIdent:     c.Config.DAL.AttributeIdent,
-				Label:              c.Handle,
-			},
+			connConfig,
 			c.Config.DAL.Operations...,
 		)
 

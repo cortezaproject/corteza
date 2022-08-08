@@ -79,10 +79,6 @@ type (
 		ReplaceModelAttribute(ctx context.Context, model *dal.Model, old, new *dal.Attribute, trans ...dal.TransformationFunction) (err error)
 		SearchModelIssues(connectionID, ID uint64) []error
 	}
-
-	identFormatter interface {
-		Format(context.Context, string, ...string) (string, bool)
-	}
 )
 
 const (
@@ -1173,10 +1169,22 @@ func DalModelRemove(ctx context.Context, dmm dalModelManager, mm ...*types.Modul
 	return
 }
 
+// modulesToModelSet takes a modules for a namespace and converts all of them
+// into a model set for the DAL
+//
+// Ident partition placeholders are replaced here as well alongside
+// with the revision models where revisions are enabled
 func modulesToModelSet(ctx context.Context, dmm dalModelManager, ns *types.Namespace, mm ...*types.Module) (out dal.ModelSet, err error) {
 	var (
 		cm    dal.ConnectionConfig
 		model *dal.Model
+
+		// partition replace pairs
+		modPartition []string
+
+		// namespace partition replacement pairs
+		// {{namespace}} is replaced with the namespace handle (slug)
+		nsPartition = []string{"{{namespace}}", ns.Slug}
 	)
 
 	for connectionID, modules := range modulesByConnection(mm...) {
@@ -1186,27 +1194,22 @@ func modulesToModelSet(ctx context.Context, dmm dalModelManager, ns *types.Names
 			return
 		}
 
-		// Prepare the ident formatter for this connection
-		ff := dal.IdentFormatter(formatterNamespaceParams(ns)...)
-		if cm.PartitionValidator != "" {
-			ff, err = ff.WithValidationE(cm.PartitionValidator, nil)
-			if err != nil {
-				return
-			}
-		}
-
 		// Convert all modules to models
 		for _, mod := range modules {
+			// convert each module to model
 			model, err = moduleToModel(cm, mod)
 			if err != nil {
 				return
 			}
 
-			// ensure partition placeholders are replaced with actual partition values
-			model.Ident, err = replaceModelIdentPlaceholders(ctx, ff, mod, model.Ident)
-			if err != nil {
-				return
-			}
+			// construct partition replacement pairs from namespace & module handles
+			// {{module}} is replaced with module handle
+			modPartition = append(nsPartition, "{{module}}", mod.Handle)
+
+			// replace all partition replacement pairs
+			model.Ident = strings.NewReplacer(modPartition...).Replace(model.Ident)
+
+			// @todo validate ident with connection's ident validator
 
 			model.ConnectionID = connectionID
 			out = append(out, model)
@@ -1222,15 +1225,13 @@ func modulesToModelSet(ctx context.Context, dmm dalModelManager, ns *types.Names
 				// the same ID and to avoid collisions with the model
 				rModel.ResourceID = mod.ID + 1
 
-				revIdent := mod.Config.RecordRevisions.Ident
-				if revIdent == "" {
-					revIdent = "compose_record_revisions"
+				if rModel.Ident = mod.Config.RecordRevisions.Ident; rModel.Ident == "" {
+					rModel.Ident = "compose_record_revisions"
 				}
 
-				rModel.Ident, err = replaceModelIdentPlaceholders(ctx, ff, mod, revIdent)
-				if err != nil {
-					return
-				}
+				rModel.Ident = strings.NewReplacer(modPartition...).Replace(rModel.Ident)
+
+				// @todo validate ident with connection's ident validator
 
 				out = append(out, rModel)
 			}
@@ -1241,6 +1242,8 @@ func modulesToModelSet(ctx context.Context, dmm dalModelManager, ns *types.Names
 }
 
 // moduleToModel converts a module with fields to DAL model and attributes
+//
+// note: this function does not do any partition placeholder replacements
 func moduleToModel(cm dal.ConnectionConfig, mod *types.Module) (model *dal.Model, err error) {
 	var (
 		attrAux dal.AttributeSet
@@ -1276,20 +1279,6 @@ func moduleToModel(cm dal.ConnectionConfig, mod *types.Module) (model *dal.Model
 	model.Attributes = append(model.Attributes, attrAux...)
 
 	return
-}
-
-func replaceModelIdentPlaceholders(ctx context.Context, ff identFormatter, mod *types.Module, ident string) (_ string, err error) {
-	var (
-		ok bool
-	)
-
-	ident, ok = ff.Format(ctx, ident, formatterModuleParams(mod)...)
-	if !ok {
-		err = fmt.Errorf("invalid model ident generated: %s", ident)
-		return
-	}
-
-	return ident, nil
 }
 
 // moduleFieldsToAttributes converts all user-defined module fields to attributes
@@ -1461,20 +1450,4 @@ func modulesByConnection(modules ...*types.Module) map[uint64]types.ModuleSet {
 	}
 
 	return out
-}
-
-// formatterNamespaceParams returns the base namespace params used for ident formatting
-func formatterNamespaceParams(ns *types.Namespace) []string {
-	nsHandle, _ := handle.Cast(nil, ns.Slug, strconv.FormatUint(ns.ID, 10))
-	return []string{
-		"namespace", nsHandle,
-	}
-}
-
-// formatterModuleParams returns the base module params used for ident formatting
-func formatterModuleParams(mod *types.Module) []string {
-	modHandle, _ := handle.Cast(nil, mod.Handle, strconv.FormatUint(mod.ID, 10))
-	return []string{
-		"module", modHandle,
-	}
 }

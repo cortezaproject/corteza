@@ -70,7 +70,7 @@ type (
 		ModelIdent     string `json:"modelIdent"`
 		AttributeIdent string `json:"attributeIdent"`
 
-		PartitionIdentValidator string `json:"partitionIdentValidator"`
+		ModelIdentCheck []string `json:"modelIdentCheck"`
 	}
 
 	DalConnectionFilter struct {

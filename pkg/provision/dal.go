@@ -16,19 +16,18 @@ const (
 )
 
 // Injects primary connection
-func defaultDalConnection(ctx context.Context, s store.DalConnections) (err error) {
-	cc, err := store.LookupDalConnectionByHandle(ctx, s, types.DalPrimaryConnectionHandle)
+func defaultDalConnection(ctx context.Context, s store.DalConnections) error {
+	conn, err := store.LookupDalConnectionByHandle(ctx, s, types.DalPrimaryConnectionHandle)
 	if err != nil && err != store.ErrNotFound {
-		return
+		return err
 	}
 
 	// Already exists
-	if cc != nil {
-		return
+	if conn != nil {
+		return nil
 	}
 
-	// Create it
-	var conn = &types.DalConnection{
+	conn = &types.DalConnection{
 		// Using id.Next since we dropped "special" ids a while ago.
 		// If needed, use the handle
 		ID:     id.Next(),
@@ -43,8 +42,7 @@ func defaultDalConnection(ctx context.Context, s store.DalConnections) (err erro
 			DAL: types.ConnectionConfigDAL{
 				ModelIdent:     DefaultComposeRecordTable,
 				AttributeIdent: DefaultComposeRecordValueCol,
-
-				Operations: dal.FullOperations(),
+				Operations:     dal.FullOperations(),
 			},
 		},
 

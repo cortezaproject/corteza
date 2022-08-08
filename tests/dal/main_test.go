@@ -259,9 +259,6 @@ func (h helper) createDalConnection(res *types.DalConnection) *types.DalConnecti
 	if res.Config.DAL.AttributeIdent == "" {
 		res.Config.DAL.AttributeIdent = "values"
 	}
-	if res.Config.DAL.PartitionIdentValidator == "" {
-		res.Config.DAL.PartitionIdentValidator = ""
-	}
 	if res.Config.Connection.Params == nil {
 		res.Config.Connection = dal.NewDSNConnection("sqlite3://file::memory:?cache=shared&mode=memory")
 	}
@@ -301,12 +298,7 @@ func makeConnectionDefinition(dsn string) *types.DalConnection {
 			DAL: types.ConnectionConfigDAL{
 				ModelIdent:     "compose_record",
 				AttributeIdent: "values",
-
-				ModelIdent: "compose_record_{{namespace}}_{{module}}",
-
-				PartitionIdentValidator: "",
-
-				Operations: dal.FullOperations(),
+				Operations:     dal.FullOperations(),
 			},
 
 			Connection: dal.NewDSNConnection(dsn),
