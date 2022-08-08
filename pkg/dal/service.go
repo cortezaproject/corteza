@@ -3,6 +3,7 @@ package dal
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -10,31 +11,6 @@ import (
 )
 
 type (
-	ConnectionWrap struct {
-		connectionID uint64
-
-		connection Connection
-		params     ConnectionParams
-		meta       ConnectionConfig
-		operations OperationSet
-	}
-
-	ConnectionConfig struct {
-		ConnectionID       uint64
-		SensitivityLevelID uint64
-		Label              string
-
-		// When model does not specifiy the ident (table name for example), fallback to this
-		// @todo do we need a separate setting or can we get away with using just PartitionFormat
-		ModelIdent string
-
-		// If model attribute(s) do not specify
-		// @todo needs to be more explicit that this is for  JSON encode attributes
-		AttributeIdent string
-
-		PartitionValidator string
-	}
-
 	service struct {
 		connections map[uint64]*ConnectionWrap
 
@@ -567,6 +543,11 @@ func (svc *service) ReplaceModel(ctx context.Context, model *Model) (err error) 
 
 	connection := svc.getConnectionByID(model.ConnectionID)
 	if !modelIssues && !connectionIssues {
+		if !checkIdent(model.Ident, connection.meta.ModelIdentCheck...) {
+			log.Warn("can not add model to connection, invalid ident")
+			return nil
+		}
+
 		log.Debug("adding to connection")
 		auxIssues, err = svc.registerModelToConnection(ctx, connection, model)
 		issues.mergeWith(auxIssues)
@@ -877,6 +858,17 @@ func (svc *service) registerModelToConnection(ctx context.Context, cw *Connectio
 		}
 
 		return
+	}
+
+	// make sure connection supports model's ident
+	var (
+		rre []*regexp.Regexp
+	)
+
+	for _, re := range rre {
+		if re.MatchString(model.Ident) {
+			return
+		}
 	}
 
 	// Try to add to store

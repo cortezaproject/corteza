@@ -63,9 +63,6 @@ func (h helper) createDalConnection(res *types.DalConnection) *types.DalConnecti
 	if res.Config.DAL.AttributeIdent == "" {
 		res.Config.DAL.AttributeIdent = "values"
 	}
-	if res.Config.DAL.PartitionIdentValidator == "" {
-		res.Config.DAL.PartitionIdentValidator = ""
-	}
 	if res.Config.Connection.Params == nil {
 		res.Config.Connection = dal.NewDSNConnection("sqlite3://file::memory:?cache=shared&mode=memory")
 	}
