@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
@@ -39,4 +40,8 @@ func (t *TypeTime) Decode(raw any) (any, bool, error) {
 
 func (t *TypeTime) Encode(val any) (driver.Value, error) {
 	return val, nil
+}
+
+func columnTypeTranslator(ct ddl.ColumnType) string {
+	return ddl.ColumnTypeTranslator(ct)
 }

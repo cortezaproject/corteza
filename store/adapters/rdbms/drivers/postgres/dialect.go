@@ -74,7 +74,7 @@ func (postgresDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpress
 }
 
 func (postgresDialect) NativeColumnType(ct ddl.ColumnType) string {
-	return ddl.ColumnTypeTranslator(ct)
+	return columnTypeTranslator(ct)
 }
 
 func (postgresDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (exp.Expression, error) {
