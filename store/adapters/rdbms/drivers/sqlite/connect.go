@@ -21,13 +21,13 @@ import (
 
 const (
 	// base for our schemas
-	baseSchema = "sqlite3"
+	SCHEMA = "sqlite3"
 
 	// alternative s hema with custom driver
-	altSchema = baseSchema + "+alt"
+	altSchema = SCHEMA + "+alt"
 
 	// debug schema with verbose logging
-	debugSchema = baseSchema + "+debug"
+	debugSchema = SCHEMA + "+debug"
 )
 
 var (
@@ -50,7 +50,7 @@ func init() {
 	// register drbug driver
 	sql.Register(debugSchema, sqlmw.Driver(driver, instrumentation.Debug()))
 
-	store.Register(Connect, baseSchema, altSchema, debugSchema)
+	store.Register(Connect, SCHEMA, altSchema, debugSchema)
 }
 
 func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
@@ -87,7 +87,7 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 }
 
 func ConnectInMemory(ctx context.Context) (s store.Storer, err error) {
-	return Connect(ctx, baseSchema+"://file::memory:?cache=shared&mode=memory")
+	return Connect(ctx, SCHEMA+"://file::memory:?cache=shared&mode=memory")
 }
 
 func ConnectInMemoryWithDebug(ctx context.Context) (s store.Storer, err error) {
@@ -108,7 +108,7 @@ func NewConfig(in string) (*rdbms.ConnConfig, error) {
 	)
 
 	switch {
-	case strings.HasPrefix(in, baseSchema+schemaDel), strings.HasPrefix(in, altSchema+schemaDel):
+	case strings.HasPrefix(in, SCHEMA+schemaDel), strings.HasPrefix(in, altSchema+schemaDel):
 	// no special handlign
 	case strings.HasPrefix(in, debugSchema+schemaDel):
 		cfg.DriverName = debugSchema

@@ -21,14 +21,14 @@ import (
 
 const (
 	// base for our schemas
-	baseSchema = "postgres"
+	SCHEMA = "postgres"
 
 	// debug schema with verbose logging
-	debugSchema = baseSchema + "+debug"
+	debugSchema = SCHEMA + "+debug"
 )
 
 func init() {
-	store.Register(Connect, baseSchema, debugSchema)
+	store.Register(Connect, SCHEMA, debugSchema)
 	sql.Register(debugSchema, sqlmw.Driver(new(pq.Driver), instrumentation.Debug()))
 }
 
