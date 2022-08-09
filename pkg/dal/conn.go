@@ -4,16 +4,15 @@ import "regexp"
 
 type (
 	ConnectionWrap struct {
-		connectionID uint64
+		ID uint64
 
 		connection Connection
 		params     ConnectionParams
-		meta       ConnectionConfig
+		Config     ConnectionConfig
 		operations OperationSet
 	}
 
 	ConnectionConfig struct {
-		ConnectionID       uint64
 		SensitivityLevelID uint64
 		Label              string
 

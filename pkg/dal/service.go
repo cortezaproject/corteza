@@ -192,13 +192,13 @@ func (svc *service) RemoveSensitivityLevel(levelIDs ...uint64) (err error) {
 // Connection management
 
 // MakeConnection makes and returns a new connection (wrap)
-func MakeConnection(ID uint64, conn Connection, p ConnectionParams, m ConnectionConfig, oo ...Operation) *ConnectionWrap {
+func MakeConnection(ID uint64, conn Connection, p ConnectionParams, c ConnectionConfig, oo ...Operation) *ConnectionWrap {
 	return &ConnectionWrap{
-		connectionID: ID,
-		connection:   conn,
+		ID:         ID,
+		connection: conn,
 
 		params:     p,
-		meta:       m,
+		Config:     c,
 		operations: oo,
 	}
 }
@@ -210,17 +210,17 @@ func MakeConnection(ID uint64, conn Connection, p ConnectionParams, m Connection
 //
 // Is isDefault when adding a default connection. Service will then
 // compensate and use proper IDs when models refer to connection with ID=0
-func (svc *service) ReplaceConnection(ctx context.Context, cw *ConnectionWrap, isDefault bool) (err error) {
+func (svc *service) ReplaceConnection(ctx context.Context, conn *ConnectionWrap, isDefault bool) (err error) {
 	// @todo lock/unlock
 	var (
-		ID      = cw.connectionID
+		ID      = conn.ID
 		issues  = newIssueHelper().addConnection(ID)
 		oldConn *ConnectionWrap
 
 		log = svc.logger.Named("connection").With(
 			zap.Uint64("ID", ID),
-			zap.Any("params", cw.params),
-			zap.Any("meta", cw.meta),
+			zap.Any("params", conn.params),
+			zap.Any("config", conn.Config),
 		)
 	)
 
@@ -239,11 +239,11 @@ func (svc *service) ReplaceConnection(ctx context.Context, cw *ConnectionWrap, i
 	defer svc.updateIssues(issues)
 
 	// Sensitivity level validations
-	if !svc.sensitivityLevels.includes(cw.meta.SensitivityLevelID) {
-		issues.addConnectionIssue(ID, errConnectionCreateMissingSensitivityLevel(ID, cw.meta.SensitivityLevelID))
+	if !svc.sensitivityLevels.includes(conn.Config.SensitivityLevelID) {
+		issues.addConnectionIssue(ID, errConnectionCreateMissingSensitivityLevel(ID, conn.Config.SensitivityLevelID))
 	}
 
-	if oldConn = svc.getConnectionByID(ID); oldConn != nil {
+	if oldConn = svc.GetConnectionByID(ID); oldConn != nil {
 		// Connection exists, validate models and sensitivity levels and close and remove connection at the end
 		log.Debug("found existing")
 
@@ -255,13 +255,13 @@ func (svc *service) ReplaceConnection(ctx context.Context, cw *ConnectionWrap, i
 			log.Debug("validating model before connection is updated", zap.String("ident", model.Ident))
 
 			// - operations
-			if !model.Operations.IsSubset(cw.operations...) {
+			if !model.Operations.IsSubset(conn.operations...) {
 				issues.addConnectionIssue(ID, fmt.Errorf("cannot update connection %d: new connection does not support existing models", ID))
 				errored = true
 			}
 
 			// - sensitivity levels
-			if !svc.sensitivityLevels.isSubset(model.SensitivityLevelID, cw.meta.SensitivityLevelID) {
+			if !svc.sensitivityLevels.isSubset(model.SensitivityLevelID, conn.Config.SensitivityLevelID) {
 				issues.addConnectionIssue(ID, fmt.Errorf("cannot update connection %d: new connection sensitivity level does not support model %d", ID, model.ResourceID))
 				errored = true
 			}
@@ -286,8 +286,8 @@ func (svc *service) ReplaceConnection(ctx context.Context, cw *ConnectionWrap, i
 		svc.removeConnection(ID)
 	}
 
-	if cw.connection == nil {
-		cw.connection, err = connect(ctx, svc.logger, svc.inDev, cw.params, cw.operations...)
+	if conn.connection == nil {
+		conn.connection, err = connect(ctx, svc.logger, svc.inDev, conn.params, conn.operations...)
 		if err != nil {
 			log.Warn("could not connect", zap.Error(err))
 			issues.addConnectionIssue(ID, err)
@@ -298,29 +298,9 @@ func (svc *service) ReplaceConnection(ctx context.Context, cw *ConnectionWrap, i
 		log.Debug("using preexisting connection")
 	}
 
-	svc.addConnection(cw)
+	svc.addConnection(conn)
 	log.Debug("added")
 	return nil
-}
-
-// GetConnectionMeta returns the metadata of the given DAL connection
-//
-// The function is primarily used by services which need to know a little bit
-// about the connection their resources are located in (ident formatting for example).
-func (svc *service) GetConnectionMeta(_ context.Context, ID uint64) (cm ConnectionConfig, err error) {
-	if ID == 0 {
-		ID = svc.defConnID
-	}
-
-	cw := svc.getConnectionByID(ID)
-	if cw == nil {
-		err = errConnectionNotFound(ID)
-		return
-	}
-
-	cm = cw.meta
-	cm.ConnectionID = cw.connectionID
-	return
 }
 
 // RemoveConnection removes the given connection from the DAL
@@ -329,7 +309,7 @@ func (svc *service) RemoveConnection(ctx context.Context, ID uint64) (err error)
 		issues = newIssueHelper().addConnection(ID)
 	)
 
-	c := svc.getConnectionByID(ID)
+	c := svc.GetConnectionByID(ID)
 	if c == nil {
 		return errConnectionDeleteNotFound(ID)
 	}
@@ -337,7 +317,7 @@ func (svc *service) RemoveConnection(ctx context.Context, ID uint64) (err error)
 	// Potential cleanups
 	if cc, ok := c.connection.(ConnectionCloser); ok {
 		if err := cc.Close(ctx); err != nil {
-			svc.logger.Error(errConnectionDeleteCloserFailed(c.connectionID, err).Error())
+			svc.logger.Error(errConnectionDeleteCloserFailed(c.ID, err).Error())
 		}
 	}
 
@@ -352,7 +332,7 @@ func (svc *service) RemoveConnection(ctx context.Context, ID uint64) (err error)
 
 	svc.logger.Named("connection").Debug("deleted",
 		zap.Uint64("ID", ID),
-		zap.Any("meta", c.meta),
+		zap.Any("config", c.Config),
 	)
 
 	return nil
@@ -509,9 +489,11 @@ func (svc *service) ReplaceModel(ctx context.Context, model *Model) (err error) 
 
 	defer svc.updateIssues(issues)
 
-	// Replace model's connection ID with default one when zero
 	if model.ConnectionID == 0 {
-		model.ConnectionID = svc.defConnID
+		// model w/o connection:
+		// add model issue and carry on
+		issues.addModelIssue(model.ResourceID, errConnectionNotFound(model.ConnectionID))
+		return nil
 	}
 
 	// Check if update
@@ -541,9 +523,9 @@ func (svc *service) ReplaceModel(ctx context.Context, model *Model) (err error) 
 		log.Warn("not adding to connection due to model issues")
 	}
 
-	connection := svc.getConnectionByID(model.ConnectionID)
+	connection := svc.GetConnectionByID(model.ConnectionID)
 	if !modelIssues && !connectionIssues {
-		if !checkIdent(model.Ident, connection.meta.ModelIdentCheck...) {
+		if !checkIdent(model.Ident, connection.Config.ModelIdentCheck...) {
 			log.Warn("can not add model to connection, invalid ident")
 			return nil
 		}
@@ -614,38 +596,38 @@ func (svc *service) RemoveModel(ctx context.Context, connectionID, ID uint64) (e
 func (svc *service) validateModel(issues *issueHelper, model, oldModel *Model) {
 	// Connection ok?
 	if svc.hasConnectionIssues(model.ConnectionID) {
-		issues.addModelIssue(model.ConnectionID, model.ResourceID, errModelCreateProblematicConnection(model.ConnectionID, model.ResourceID))
+		issues.addModelIssue(model.ResourceID, errModelCreateProblematicConnection(model.ConnectionID, model.ResourceID))
 	}
 	// Connection exists?
-	conn := svc.getConnectionByID(model.ConnectionID)
+	conn := svc.GetConnectionByID(model.ConnectionID)
 	if conn == nil {
-		issues.addModelIssue(model.ConnectionID, model.ResourceID, errModelCreateMissingConnection(model.ConnectionID, model.ResourceID))
+		issues.addModelIssue(model.ResourceID, errModelCreateMissingConnection(model.ConnectionID, model.ResourceID))
 	}
 
 	// If ident changed, check for duplicate
 	if oldModel != nil && oldModel.Ident != model.Ident {
 		if tmp := svc.FindModelByIdent(model.ConnectionID, model.Ident); tmp == nil {
-			issues.addModelIssue(oldModel.ConnectionID, oldModel.ResourceID, errModelUpdateDuplicate(model.ConnectionID, model.ResourceID))
+			issues.addModelIssue(oldModel.ResourceID, errModelUpdateDuplicate(model.ConnectionID, model.ResourceID))
 		}
 	}
 
 	// Sensitivity level ok and valid?
 	if !svc.sensitivityLevels.includes(model.SensitivityLevelID) {
-		issues.addModelIssue(model.ConnectionID, model.ResourceID, errModelCreateMissingSensitivityLevel(model.ConnectionID, model.ResourceID, model.SensitivityLevelID))
+		issues.addModelIssue(model.ResourceID, errModelCreateMissingSensitivityLevel(model.ConnectionID, model.ResourceID, model.SensitivityLevelID))
 	} else {
 		// Only check if it is present
-		if !svc.sensitivityLevels.isSubset(model.SensitivityLevelID, conn.meta.SensitivityLevelID) {
-			issues.addModelIssue(model.ConnectionID, model.ResourceID, errModelCreateGreaterSensitivityLevel(model.ConnectionID, model.ResourceID, model.SensitivityLevelID, conn.meta.SensitivityLevelID))
+		if !svc.sensitivityLevels.isSubset(model.SensitivityLevelID, conn.Config.SensitivityLevelID) {
+			issues.addModelIssue(model.ResourceID, errModelCreateGreaterSensitivityLevel(model.ConnectionID, model.ResourceID, model.SensitivityLevelID, conn.Config.SensitivityLevelID))
 		}
 	}
 }
 
 func (svc *service) validateAttribute(issues *issueHelper, model *Model, attr *Attribute) {
 	if !svc.sensitivityLevels.includes(attr.SensitivityLevelID) {
-		issues.addModelIssue(model.ConnectionID, model.ResourceID, errModelCreateMissingAttributeSensitivityLevel(model.ConnectionID, model.ResourceID, attr.SensitivityLevelID))
+		issues.addModelIssue(model.ResourceID, errModelCreateMissingAttributeSensitivityLevel(model.ConnectionID, model.ResourceID, attr.SensitivityLevelID))
 	} else {
 		if !svc.sensitivityLevels.isSubset(attr.SensitivityLevelID, model.SensitivityLevelID) {
-			issues.addModelIssue(model.ConnectionID, model.ResourceID, errModelCreateGreaterAttributeSensitivityLevel(model.ConnectionID, model.ResourceID, attr.SensitivityLevelID, model.SensitivityLevelID))
+			issues.addModelIssue(model.ResourceID, errModelCreateGreaterAttributeSensitivityLevel(model.ConnectionID, model.ResourceID, attr.SensitivityLevelID, model.SensitivityLevelID))
 		}
 	}
 
@@ -702,27 +684,27 @@ func (svc *service) ReplaceModelAttribute(ctx context.Context, model *Model, old
 	{
 		// Connection issues
 		if svc.hasConnectionIssues(model.ConnectionID) {
-			issues.addModelIssue(model.ConnectionID, model.ResourceID, errAttributeUpdateProblematicConnection(model.ConnectionID, model.ResourceID))
+			issues.addModelIssue(model.ResourceID, errAttributeUpdateProblematicConnection(model.ConnectionID, model.ResourceID))
 		}
 
 		// Check if it exists
 		auxModel := svc.FindModelByResourceID(model.ConnectionID, model.ResourceID)
 		if auxModel == nil {
-			issues.addModelIssue(model.ConnectionID, model.ResourceID, errAttributeUpdateMissingModel(model.ConnectionID, model.ResourceID))
+			issues.addModelIssue(model.ResourceID, errAttributeUpdateMissingModel(model.ConnectionID, model.ResourceID))
 		}
 
 		// In case we're deleting it we can ignore this check
 		if new != nil {
 			if !svc.sensitivityLevels.includes(new.SensitivityLevelID) {
-				issues.addModelIssue(model.ConnectionID, model.ResourceID, errAttributeUpdateMissingSensitivityLevel(model.ConnectionID, model.ResourceID, new.SensitivityLevelID))
+				issues.addModelIssue(model.ResourceID, errAttributeUpdateMissingSensitivityLevel(model.ConnectionID, model.ResourceID, new.SensitivityLevelID))
 			} else {
 				if !svc.sensitivityLevels.isSubset(new.SensitivityLevelID, model.SensitivityLevelID) {
-					issues.addModelIssue(model.ConnectionID, model.ResourceID, errAttributeUpdateGreaterSensitivityLevel(model.ConnectionID, model.ResourceID, new.SensitivityLevelID, model.SensitivityLevelID))
+					issues.addModelIssue(model.ResourceID, errAttributeUpdateGreaterSensitivityLevel(model.ConnectionID, model.ResourceID, new.SensitivityLevelID, model.SensitivityLevelID))
 				}
 			}
 		}
 
-		conn = svc.getConnectionByID(model.ConnectionID)
+		conn = svc.GetConnectionByID(model.ConnectionID)
 	}
 
 	// Update attribute
@@ -735,7 +717,7 @@ func (svc *service) ReplaceModelAttribute(ctx context.Context, model *Model, old
 
 		err = conn.connection.UpdateModelAttribute(ctx, model, old, new, trans...)
 		if err != nil {
-			issues.addModelIssue(model.ConnectionID, model.ResourceID, err)
+			issues.addModelIssue(model.ResourceID, err)
 		}
 	} else {
 		if connectionIssues {
@@ -808,17 +790,21 @@ func (svc *service) removeConnection(connectionID uint64) {
 }
 
 func (svc *service) addConnection(cw *ConnectionWrap) {
-	svc.connections[cw.connectionID] = cw
+	svc.connections[cw.ID] = cw
 }
 
-func (svc *service) getConnectionByID(connectionID uint64) (cw *ConnectionWrap) {
+func (svc *service) GetConnectionByID(connectionID uint64) (cw *ConnectionWrap) {
+	if connectionID == 0 {
+		connectionID = svc.defConnID
+	}
+
 	return svc.connections[connectionID]
 }
 
 func (svc *service) getConnection(connectionID uint64, cc ...Operation) (cw *ConnectionWrap, can OperationSet, err error) {
 	err = func() error {
 		// get the requested connection
-		cw = svc.getConnectionByID(connectionID)
+		cw = svc.GetConnectionByID(connectionID)
 		if cw == nil {
 			return fmt.Errorf("connection %d does not exist", connectionID)
 		}
@@ -844,7 +830,7 @@ func (svc *service) registerModelToConnection(ctx context.Context, cw *Connectio
 
 	available, err := cw.connection.Models(ctx)
 	if err != nil {
-		issues.addModelIssue(model.ConnectionID, model.ResourceID, err)
+		issues.addModelIssue(model.ResourceID, err)
 		return issues, nil
 	}
 
@@ -853,7 +839,7 @@ func (svc *service) registerModelToConnection(ctx context.Context, cw *Connectio
 		// Assert validity
 		diff := existing.Diff(model)
 		if len(diff) > 0 {
-			issues.addModelIssue(model.ConnectionID, model.ResourceID, errModelCreateConnectionModelUnsupported(model.ConnectionID, model.ResourceID))
+			issues.addModelIssue(model.ResourceID, errModelCreateConnectionModelUnsupported(model.ConnectionID, model.ResourceID))
 			return issues, nil
 		}
 
@@ -874,7 +860,7 @@ func (svc *service) registerModelToConnection(ctx context.Context, cw *Connectio
 	// Try to add to store
 	err = cw.connection.CreateModel(ctx, model)
 	if err != nil {
-		issues.addModelIssue(model.ConnectionID, model.ResourceID, err)
+		issues.addModelIssue(model.ResourceID, err)
 		return issues, nil
 	}
 
@@ -899,10 +885,10 @@ func (svc *service) validateNewSensitivityLevels(levels *sensitivityLevelIndex) 
 		// - connections
 		for _, _c := range svc.connections {
 			c := _c
-			cIndex[c.connectionID] = c
+			cIndex[c.ID] = c
 
-			if !levels.includes(c.meta.SensitivityLevelID) {
-				return fmt.Errorf("connection sensitivity level missing %d", c.meta.SensitivityLevelID)
+			if !levels.includes(c.Config.SensitivityLevelID) {
+				return fmt.Errorf("connection sensitivity level missing %d", c.Config.SensitivityLevelID)
 			}
 		}
 
@@ -912,7 +898,7 @@ func (svc *service) validateNewSensitivityLevels(levels *sensitivityLevelIndex) 
 				if !levels.includes(m.SensitivityLevelID) {
 					return fmt.Errorf("model sensitivity level missing %d", m.SensitivityLevelID)
 				}
-				if !levels.isSubset(m.SensitivityLevelID, cIndex[m.ConnectionID].meta.SensitivityLevelID) {
+				if !levels.isSubset(m.SensitivityLevelID, cIndex[m.ConnectionID].Config.SensitivityLevelID) {
 					return fmt.Errorf("model sensitivity level missing %d", m.SensitivityLevelID)
 				}
 

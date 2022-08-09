@@ -32,7 +32,7 @@ type (
 	dalSvc interface {
 		Purge(ctx context.Context)
 
-		GetConnectionMeta(ctx context.Context, ID uint64) (cm dal.ConnectionConfig, err error)
+		GetConnectionByID(uint64) *dal.ConnectionWrap
 
 		SearchModels(ctx context.Context) (out dal.ModelSet, err error)
 		RemoveModel(ctx context.Context, connectionID, ID uint64) (err error)

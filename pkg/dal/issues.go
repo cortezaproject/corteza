@@ -102,7 +102,7 @@ func (rd *issueHelper) addConnectionIssue(connectionID uint64, err error) {
 	rd.connectionIssues[connectionID] = append(rd.connectionIssues[connectionID], makeIssue(connectionIssue, err))
 }
 
-func (rd *issueHelper) addModelIssue(connectionID, resourceID uint64, err error) {
+func (rd *issueHelper) addModelIssue(resourceID uint64, err error) {
 	rd.modelIssues[resourceID] = append(rd.modelIssues[resourceID], makeIssue(modelIssue, err))
 }
 

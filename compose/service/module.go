@@ -71,7 +71,7 @@ type (
 
 	// Model management on DAL Service
 	dalModelManager interface {
-		GetConnectionMeta(ctx context.Context, ID uint64) (cm dal.ConnectionConfig, err error)
+		GetConnectionByID(ID uint64) *dal.ConnectionWrap
 		Search(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, f filter.Filter) (dal.Iterator, error)
 
 		ReplaceModel(context.Context, *dal.Model) error
@@ -453,12 +453,12 @@ func (svc module) FindSensitive(ctx context.Context, filter types.PrivacyModuleF
 		}
 
 		for _, m := range mm {
-			cMeta, err := svc.dal.GetConnectionMeta(ctx, m.Config.DAL.ConnectionID)
+			conn := svc.dal.GetConnectionByID(m.Config.DAL.ConnectionID)
 			if err != nil {
 				return err
 			}
 
-			connID := cMeta.ConnectionID
+			connID := conn.ID
 			if hasReqConnes && !reqConnes[connID] {
 				continue
 			}
@@ -500,6 +500,8 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 		m, old *types.Module
 		aProps = &moduleActionProps{module: &types.Module{ID: moduleID, NamespaceID: namespaceID}}
 		err    error
+
+		defConn *dal.ConnectionWrap
 	)
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
@@ -536,18 +538,15 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 		if changes&moduleChanged > 0 {
 			{
 				// properly resolve connection ID 0 to the actual ID of the default connection
-				var defConn dal.ConnectionConfig
-				defConn, err = svc.dal.GetConnectionMeta(ctx, 0)
-				if err != nil {
-					return err
-
+				if defConn = svc.dal.GetConnectionByID(0); defConn == nil {
+					return fmt.Errorf("could not find default DAL connection")
 				}
 
 				if old.Config.DAL.ConnectionID == 0 {
-					old.Config.DAL.ConnectionID = defConn.ConnectionID
+					old.Config.DAL.ConnectionID = defConn.ID
 				}
 				if m.Config.DAL.ConnectionID == 0 {
-					m.Config.DAL.ConnectionID = defConn.ConnectionID
+					m.Config.DAL.ConnectionID = defConn.ID
 				}
 			}
 
@@ -1123,7 +1122,7 @@ func DalModelReplace(ctx context.Context, dmm dalModelManager, ns *types.Namespa
 		models dal.ModelSet
 	)
 
-	models, err = modulesToModelSet(ctx, dmm, ns, modules...)
+	models, err = modulesToModelSet(dmm, ns, modules...)
 	if err != nil {
 		return
 	}
@@ -1139,11 +1138,11 @@ func DalModelReplace(ctx context.Context, dmm dalModelManager, ns *types.Namespa
 }
 
 func dalAttributeReplace(ctx context.Context, dmm dalModelManager, ns *types.Namespace, old, new *types.Module) (err error) {
-	oldModel, err := modulesToModelSet(ctx, dmm, ns, old)
+	oldModel, err := modulesToModelSet(dmm, ns, old)
 	if err != nil {
 		return
 	}
-	newModel, err := modulesToModelSet(ctx, dmm, ns, new)
+	newModel, err := modulesToModelSet(dmm, ns, new)
 	if err != nil {
 		return
 	}
@@ -1174,9 +1173,9 @@ func DalModelRemove(ctx context.Context, dmm dalModelManager, mm ...*types.Modul
 //
 // Ident partition placeholders are replaced here as well alongside
 // with the revision models where revisions are enabled
-func modulesToModelSet(ctx context.Context, dmm dalModelManager, ns *types.Namespace, mm ...*types.Module) (out dal.ModelSet, err error) {
+func modulesToModelSet(dmm dalModelManager, ns *types.Namespace, mm ...*types.Module) (out dal.ModelSet, err error) {
 	var (
-		cm    dal.ConnectionConfig
+		conn  *dal.ConnectionWrap
 		model *dal.Model
 
 		// partition replace pairs
@@ -1189,24 +1188,26 @@ func modulesToModelSet(ctx context.Context, dmm dalModelManager, ns *types.Names
 
 	for connectionID, modules := range modulesByConnection(mm...) {
 		// Get the connection meta
-		cm, err = dmm.GetConnectionMeta(ctx, connectionID)
-
-		switch {
-		case err == nil:
-			// proceed
-		case errors.IsNotFound(err):
-			// connection does not exist, miss-configured module
-			// ignore and carry on.
-			err = nil
-			continue
-		default:
-			return
-		}
+		conn = dmm.GetConnectionByID(connectionID)
 
 		// Convert all modules to models
 		for _, mod := range modules {
+			if conn == nil {
+				// construct a simplified model w/o attributes, connction
+				// this will allow us to manage model's issues within
+				// the DAL service
+				model = &dal.Model{
+					Label:      mod.Handle,
+					Resource:   mod.RbacResource(),
+					ResourceID: mod.ID,
+				}
+
+				out = append(out, model)
+				continue
+			}
+
 			// convert each module to model
-			model, err = moduleToModel(cm, mod)
+			model, err = moduleToModel(mod, conn)
 			if err != nil {
 				return
 			}
@@ -1253,7 +1254,7 @@ func modulesToModelSet(ctx context.Context, dmm dalModelManager, ns *types.Names
 // moduleToModel converts a module with fields to DAL model and attributes
 //
 // note: this function does not do any partition placeholder replacements
-func moduleToModel(cm dal.ConnectionConfig, mod *types.Module) (model *dal.Model, err error) {
+func moduleToModel(mod *types.Module, conn *dal.ConnectionWrap) (model *dal.Model, err error) {
 	var (
 		attrAux dal.AttributeSet
 	)
@@ -1270,11 +1271,11 @@ func moduleToModel(cm dal.ConnectionConfig, mod *types.Module) (model *dal.Model
 	if model.Ident = mod.Config.DAL.Ident; model.Ident == "" {
 		// try with explicitly set ident on module's DAL config
 		// and fallback connection's default if it is empty
-		model.Ident = cm.ModelIdent
+		model.Ident = conn.Config.ModelIdent
 	}
 
 	// Convert user-defined fields to attributes
-	attrAux, err = moduleFieldsToAttributes(cm, mod)
+	attrAux, err = moduleFieldsToAttributes(mod, conn)
 	if err != nil {
 		return
 	}
@@ -1291,14 +1292,14 @@ func moduleToModel(cm dal.ConnectionConfig, mod *types.Module) (model *dal.Model
 }
 
 // moduleFieldsToAttributes converts all user-defined module fields to attributes
-func moduleFieldsToAttributes(cm dal.ConnectionConfig, mod *types.Module) (out dal.AttributeSet, err error) {
+func moduleFieldsToAttributes(mod *types.Module, conn *dal.ConnectionWrap) (out dal.AttributeSet, err error) {
 	out = make(dal.AttributeSet, 0, len(mod.Fields))
 	var (
 		attr *dal.Attribute
 	)
 
 	for _, f := range mod.Fields {
-		attr, err = moduleFieldToAttribute(cm, f)
+		attr, err = moduleFieldToAttribute(f, conn)
 		if err != nil {
 			return
 		}
@@ -1350,7 +1351,7 @@ func moduleSystemFieldsToAttributes(mod *types.Module) (out dal.AttributeSet, er
 }
 
 // moduleFieldToAttribute converts the given module field to a DAL attribute
-func moduleFieldToAttribute(cc dal.ConnectionConfig, f *types.ModuleField) (out *dal.Attribute, err error) {
+func moduleFieldToAttribute(f *types.ModuleField, conn *dal.ConnectionWrap) (out *dal.Attribute, err error) {
 	var (
 		// generate dal.Codec for each attribute
 		// using encoding strategy for that attribute
@@ -1371,7 +1372,7 @@ func moduleFieldToAttribute(cc dal.ConnectionConfig, f *types.ModuleField) (out 
 				// defaulting to RecordValueSetJSON with
 				// default attribute ident from connection
 				return &dal.CodecRecordValueSetJSON{
-					Ident: cc.AttributeIdent,
+					Ident: conn.Config.AttributeIdent,
 				}
 			}
 		}
