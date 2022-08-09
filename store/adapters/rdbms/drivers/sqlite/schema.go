@@ -99,15 +99,3 @@ func (s *schema) DropColumn(ctx context.Context, db sqlx.ExtContext, t *ddl.Tabl
 
 	return ddl.Exec(ctx, db, aux...)
 }
-
-func columnTypeTranslator(ct ddl.ColumnType) string {
-	switch ct.Type {
-	case ddl.ColumnTypeTimestamp:
-		return "TIMESTAMP"
-	case ddl.ColumnTypeBinary:
-		return "BLOB"
-	default:
-		return ddl.ColumnTypeTranslator(ct)
-	}
-
-}
