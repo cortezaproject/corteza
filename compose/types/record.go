@@ -109,10 +109,19 @@ const (
 	recordFieldNamespaceID = "namespaceID"
 )
 
-// ToFilter wraps RecordFilter with struct that
-// implements filter.Filter interface
-func (f RecordFilter) ToFilter() filter.Filter {
-	c := make(map[string][]any)
+func (f RecordFilter) ToConstraintedFilter(c map[string][]any) filter.Filter {
+	return &recordFilter{
+		RecordFilter: f,
+		constraints:  c,
+	}
+}
+
+func (f recordFilter) Constraints() map[string][]any {
+	c := f.constraints
+
+	if c == nil {
+		c = make(map[string][]any)
+	}
 
 	for _, id := range f.LabeledIDs {
 		c[recordFieldID] = append(c[recordFieldID], id)
@@ -126,18 +135,7 @@ func (f RecordFilter) ToFilter() filter.Filter {
 		c[recordFieldNamespaceID] = []any{f.NamespaceID}
 	}
 
-	return f.ToConstraintedFilter(c)
-}
-
-func (f RecordFilter) ToConstraintedFilter(c map[string][]any) filter.Filter {
-	return &recordFilter{
-		RecordFilter: f,
-		constraints:  c,
-	}
-}
-
-func (f recordFilter) Constraints() map[string][]any {
-	return f.constraints
+	return c
 }
 
 func (f recordFilter) Expression() string           { return f.Query }
