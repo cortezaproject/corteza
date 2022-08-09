@@ -191,6 +191,14 @@ func Test_dal_connection_update_primary(t *testing.T) {
 
 	helpers.AllowMe(h, types.DalConnectionRbacResource(0), "update")
 
+	// a bit of a problem with testing primary connection update
+	//
+	// when using (for running tests) anything else than connection params specified
+	// in the generic.json scenario, the update will fail
+	// with "can not update connection parameters for primary ..."
+	//
+	// see Update on dalConnection service.
+
 	h.apiInit().
 		Put(fmt.Sprintf("/dal/connections/%d", sl.ID)).
 		Header("Accept", "application/json").

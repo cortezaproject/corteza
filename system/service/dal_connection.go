@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"reflect"
 	"regexp"
 
 	"github.com/cortezaproject/corteza-server/pkg/errors"
@@ -139,14 +138,12 @@ func (svc *dalConnection) Update(ctx context.Context, upd *types.DalConnection) 
 		// validate
 		{
 			if old.Type == types.DalPrimaryConnectionResourceType {
-				if !reflect.DeepEqual(old.Config.Connection, upd.Config.Connection) {
-					// @todo err
-					return fmt.Errorf("can not update connection parameters for primary connection")
-				}
-
-				if old.Type != upd.Type {
-					return fmt.Errorf("can not update type for primary connection")
-				}
+				// when primary connection is updated,
+				// ignore configuration changes
+				//
+				// see Test_dal_connection_update_primary
+				// for more details
+				upd.Config = old.Config
 			}
 		}
 
