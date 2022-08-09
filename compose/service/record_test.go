@@ -88,6 +88,7 @@ func makeTestRecordService(t *testing.T, mods ...any) *record {
 	resourceMaker(ctx, t, svc.store, mods...)
 
 	if svc.dal == nil {
+		t.Log("adding default DAL service")
 		dalAux, err := dal.New(zap.NewNop(), true)
 		req.NoError(err)
 
@@ -250,7 +251,9 @@ func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 
 		ns = &types.Namespace{ID: nextID()}
 
-		mod         = &types.Module{ID: nextID(), NamespaceID: ns.ID}
+		modConf = types.ModuleConfig{DAL: types.ModuleConfigDAL{ConnectionID: 1}}
+
+		mod         = &types.Module{ID: nextID(), NamespaceID: ns.ID, Config: modConf}
 		stringField = &types.ModuleField{ID: nextID(), ModuleID: mod.ID, Name: "string", Kind: "String"}
 		boolField   = &types.ModuleField{ID: nextID(), ModuleID: mod.ID, Name: "bool", Kind: "Boolean"}
 
@@ -386,8 +389,10 @@ func TestRecord_defValueFieldPermissionIssue(t *testing.T) {
 
 		user = &sysTypes.User{ID: nextID()}
 
+		modConf = types.ModuleConfig{DAL: types.ModuleConfigDAL{ConnectionID: 1}}
+
 		ns            = &types.Namespace{ID: nextID()}
-		mod           = &types.Module{ID: nextID(), NamespaceID: ns.ID}
+		mod           = &types.Module{ID: nextID(), NamespaceID: ns.ID, Config: modConf}
 		writableField = &types.ModuleField{ID: nextID(), ModuleID: mod.ID, NamespaceID: ns.ID, Name: "writable", Kind: "String", DefaultValue: types.RecordValueSet{{Value: "def-w"}}}
 		readableField = &types.ModuleField{ID: nextID(), ModuleID: mod.ID, NamespaceID: ns.ID, Name: "readable", Kind: "String", DefaultValue: types.RecordValueSet{{Value: "def-r"}}}
 
@@ -531,10 +536,12 @@ func TestRecord_refAccessControl(t *testing.T) {
 			return nextIDi
 		}
 
+		modConf = types.ModuleConfig{DAL: types.ModuleConfigDAL{ConnectionID: 1}}
+
 		user         = &sysTypes.User{ID: nextID()}
 		ns           = &types.Namespace{ID: nextID()}
-		mod1         = &types.Module{ID: nextID(), NamespaceID: ns.ID, Name: "mod one"}
-		mod2         = &types.Module{ID: nextID(), NamespaceID: ns.ID, Name: "mod two"}
+		mod1         = &types.Module{ID: nextID(), NamespaceID: ns.ID, Name: "mod one", Config: modConf}
+		mod2         = &types.Module{ID: nextID(), NamespaceID: ns.ID, Name: "mod two", Config: modConf}
 		mod1strField = &types.ModuleField{ID: nextID(), NamespaceID: ns.ID, ModuleID: mod1.ID, Name: "str", Kind: "String"}
 		mod2refField = &types.ModuleField{ID: nextID(), NamespaceID: ns.ID, ModuleID: mod2.ID, Name: "ref", Kind: "Record"}
 
@@ -674,9 +681,11 @@ func TestRecord_searchAccessControl(t *testing.T) {
 			return nextIDi
 		}
 
+		modConf = types.ModuleConfig{DAL: types.ModuleConfigDAL{ConnectionID: 1}}
+
 		user     = &sysTypes.User{ID: nextID()}
 		ns       = &types.Namespace{ID: nextID()}
-		mod      = &types.Module{ID: nextID(), NamespaceID: ns.ID, Name: "mod one"}
+		mod      = &types.Module{ID: nextID(), NamespaceID: ns.ID, Name: "mod one", Config: modConf}
 		strField = &types.ModuleField{ID: nextID(), NamespaceID: ns.ID, ModuleID: mod.ID, Name: "str", Kind: "String"}
 
 		svc = makeTestRecordService(t,
@@ -759,9 +768,18 @@ func TestRecord_contextualRolesAccessControl(t *testing.T) {
 			return nextIDi
 		}
 
-		user      = &sysTypes.User{ID: nextID()}
-		ns        = &types.Namespace{ID: nextID()}
-		mod       = &types.Module{ID: nextID(), NamespaceID: ns.ID, Name: "mod one"}
+		user = &sysTypes.User{ID: nextID()}
+		ns   = &types.Namespace{ID: nextID()}
+
+		mod = &types.Module{
+			ID:          nextID(),
+			NamespaceID: ns.ID,
+			Name:        "mod one",
+			Config: types.ModuleConfig{
+				DAL: types.ModuleConfigDAL{ConnectionID: 1},
+			},
+		}
+
 		numField  = &types.ModuleField{ID: nextID(), NamespaceID: ns.ID, ModuleID: mod.ID, Name: "num", Kind: "String"}
 		boolField = &types.ModuleField{ID: nextID(), NamespaceID: ns.ID, ModuleID: mod.ID, Name: "yes", Kind: "String"}
 

@@ -44,6 +44,10 @@ func (h helper) createModule(ns *types.Namespace, res *types.Module) *types.Modu
 	res.CreatedAt = time.Now()
 	h.noError(store.CreateComposeModule(context.Background(), service.DefaultStore, res))
 
+	if res.Config.DAL.ConnectionID == 0 {
+		res.Config.DAL.ConnectionID = defDal.GetConnectionByID(0).ID
+	}
+
 	_ = res.Fields.Walk(func(f *types.ModuleField) error {
 		f.ID = id.Next()
 		f.ModuleID = res.ID

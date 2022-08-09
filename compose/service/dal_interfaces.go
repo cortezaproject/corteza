@@ -14,7 +14,7 @@ type (
 		RemoveModel(ctx context.Context, connectionID, ID uint64) (err error)
 		ReplaceModelAttribute(ctx context.Context, model *dal.Model, old, new *dal.Attribute, trans ...dal.TransformationFunction) (err error)
 
-		GetConnectionMeta(ctx context.Context, ID uint64) (cm dal.ConnectionConfig, err error)
+		GetConnectionByID(uint64) *dal.ConnectionWrap
 
 		SearchModelIssues(connectionID, resourceID uint64) (out []error)
 	}
