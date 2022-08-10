@@ -33,6 +33,7 @@ func (s *Store) Upgrade(ctx context.Context) (err error) {
 		fix202209_composeRecordRevisions,
 		fix202209_extendDalConnectionsForMeta,
 		fix202209_renameModuleColOnComposeRecords,
+		fix202209_addMetaOnComposeRecords,
 	}
 
 	for _, fix := range fixes {
