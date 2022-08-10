@@ -167,7 +167,7 @@ func CastToResourceActivity(dec ResDecoder) (a *ResourceActivity, err error) {
 				}
 			}
 		}
-	case (composeTypes.Record{}).LabelResourceKind():
+	case "compose:record":
 		if v, ok := dec.(recDecoder); ok {
 			rec := v.Record()
 			// fallback to OldRecord for afterDelete event

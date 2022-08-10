@@ -54,6 +54,7 @@ type (
 		NamespaceID *EncodingStrategy `json:"namespaceID"`
 
 		Revision *EncodingStrategy `json:"revision"`
+		Meta     *EncodingStrategy `json:"meta"`
 
 		OwnedBy *EncodingStrategy `json:"ownedBy"`
 

@@ -443,6 +443,58 @@ func decode(dst reflect.Value, src TypedValue) (err error) {
 	return nil
 }
 
+func CastToMeta(val interface{}) (out map[string]any, err error) {
+	val = UntypedValue(val)
+
+	if val == nil {
+		return make(map[string]any), nil
+	}
+
+	switch c := val.(type) {
+	case *Vars:
+		c.mux.RLock()
+		defer c.mux.RUnlock()
+
+		out = make(map[string]any)
+		for k, v := range c.value {
+			out[k] = v.Get()
+		}
+
+		return
+	case map[string]string:
+		out = make(map[string]any)
+		for k, v := range c {
+			out[k] = v
+		}
+
+		return
+	case map[string][]string:
+		out = make(map[string]any)
+		for k, v := range c {
+			out[k] = v
+		}
+
+		return
+	case KV:
+		out = make(map[string]any)
+		for k, v := range c.value {
+			out[k] = v
+		}
+
+		return
+	case KVV:
+		out = make(map[string]any)
+		for k, v := range c.value {
+			out[k] = v
+		}
+
+		return
+	case map[string]any:
+		return c, nil
+	}
+
+	return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
+}
 func CastToVars(val interface{}) (out map[string]TypedValue, err error) {
 	val = UntypedValue(val)
 

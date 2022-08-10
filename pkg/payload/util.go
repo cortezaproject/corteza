@@ -1,11 +1,14 @@
 package payload
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/spf13/cast"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -104,4 +107,37 @@ func ParseBool(s string) bool {
 
 func ParseFilterState(s string) filter.State {
 	return filter.State(cast.ToUint(s))
+}
+
+// similar to labels.ParseStrings but for map[string]any
+func ParseMeta(ss []string) (m map[string]any, err error) {
+	if len(ss) == 0 {
+		return nil, nil
+	}
+
+	m = make(map[string]any)
+
+	for _, s := range ss {
+		if strings.HasPrefix(s, "{") && strings.HasSuffix(s, "}") {
+			// assume json
+			if err = json.Unmarshal([]byte(s), &m); err != nil {
+				return nil, err
+			}
+
+			continue
+		}
+
+		kv := strings.SplitN(s, "=", 2)
+		if !handle.IsValid(kv[0]) {
+			return nil, fmt.Errorf("invalid metadata key format")
+		}
+
+		if len(kv) == 2 {
+			m[kv[0]] = kv[1]
+		} else {
+			m[kv[0]] = nil
+		}
+	}
+
+	return m, nil
 }

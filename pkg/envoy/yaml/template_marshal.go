@@ -67,7 +67,7 @@ func (c *template) MarshalYAML() (interface{}, error) {
 		"template", c.res.Template,
 
 		"meta", meta,
-		"Labels", c.res.Labels,
+		"Meta", c.res.Labels,
 	)
 	if err != nil {
 		return nil, err

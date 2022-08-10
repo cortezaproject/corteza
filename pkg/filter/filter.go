@@ -6,6 +6,7 @@ type (
 	filter struct {
 		constaints      map[string][]any
 		stateConditions map[string]State
+		metaConditions  map[string]any
 		expression      string
 		orderBy         SortExprSet
 		limit           uint
@@ -20,6 +21,9 @@ type (
 		// StateConstraints returns map of attribute idents and states
 		// used for structured filtering ({a1: s1, a2: s2} => "a1 = s1 AND a2 = s2")
 		StateConstraints() map[string]State
+
+		// MetaConstraints returns meta constraints
+		MetaConstraints() map[string]any
 
 		// Expression returns string, parseable by ql package
 		Expression() string
@@ -81,6 +85,13 @@ func WithStateConstraints(sc map[string]State) filterOpt {
 	}
 }
 
+// WithMetaConstraints sets multiple state constraints to filter
+func WithMetaConstraints(mc map[string]any) filterOpt {
+	return func(f *filter) {
+		f.metaConditions = mc
+	}
+}
+
 // WithExpression sets expression to filter
 func WithExpression(e string) filterOpt {
 	return func(f *filter) {
@@ -111,6 +122,7 @@ func WithCursor(p *PagingCursor) filterOpt {
 
 func (f *filter) Constraints() map[string][]any      { return f.constaints }
 func (f *filter) StateConstraints() map[string]State { return f.stateConditions }
+func (f *filter) MetaConstraints() map[string]any    { return f.metaConditions }
 func (f *filter) Expression() string                 { return f.expression }
 func (f *filter) OrderBy() SortExprSet               { return f.orderBy }
 func (f *filter) Limit() uint                        { return f.limit }

@@ -342,6 +342,7 @@ func (s seeder) CreateRecord(params RecordParams) (IDs []uint64, err error) {
 			NamespaceID: m.NamespaceID,
 			ModuleID:    m.ID,
 			CreatedAt:   time.Now(),
+			Meta:        map[string]any{FakeDataLabel: true},
 		}
 
 		for j, f := range m.Fields {
@@ -353,11 +354,6 @@ func (s seeder) CreateRecord(params RecordParams) (IDs []uint64, err error) {
 
 		IDs = append(IDs, rec.ID)
 		records = append(records, rec)
-		labels = append(labels, s.CreateLabel(
-			rec.ID,
-			rec.LabelResourceKind(),
-			FakeDataLabel,
-		))
 	}
 
 	// @todo remove this .ctx ptrn
@@ -415,7 +411,7 @@ func (s seeder) setRecordValues(rec *cTypes.Record, place uint, field *cTypes.Mo
 // DeleteAllRecord clear all the fake user from DB
 func (s seeder) DeleteAllRecord(mod *cTypes.Module) (err error) {
 	filter := cTypes.RecordFilter{
-		Labels: map[string]string{
+		Meta: map[string]any{
 			FakeDataLabel: FakeDataLabel,
 		},
 	}

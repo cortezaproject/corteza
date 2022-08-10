@@ -44,7 +44,7 @@ type (
 
 		Values RecordValueSet `json:"values,omitempty"`
 
-		Labels map[string]string `json:"labels,omitempty"`
+		Meta map[string]any `json:"meta,omitempty"`
 
 		NamespaceID uint64 `json:"namespaceID,string"`
 
@@ -62,8 +62,7 @@ type (
 		NamespaceID uint64 `json:"namespaceID,string"`
 		Query       string `json:"query"`
 
-		LabeledIDs []uint64          `json:"-"`
-		Labels     map[string]string `json:"labels,omitempty"`
+		Meta map[string]any `json:"meta,omitempty"`
 
 		Deleted filter.State `json:"deleted"`
 
@@ -76,12 +75,6 @@ type (
 		// Standard helpers for paging and sorting
 		filter.Sorting
 		filter.Paging
-	}
-
-	// wrapping struct for recordFilter that
-	recordFilter struct {
-		constraints map[string][]any
-		RecordFilter
 	}
 
 	SensitiveRecord struct {
@@ -110,43 +103,30 @@ const (
 )
 
 func (f RecordFilter) ToConstraintedFilter(c map[string][]any) filter.Filter {
-	return &recordFilter{
-		RecordFilter: f,
-		constraints:  c,
-	}
-}
+	return filter.Generic(
+		// combine constraints with namespace and module
+		filter.WithConstraints(func() map[string][]any {
+			if c == nil {
+				c = make(map[string][]any)
+			}
 
-func (f recordFilter) Constraints() map[string][]any {
-	c := f.constraints
+			if f.ModuleID > 0 {
+				c[recordFieldModuleID] = []any{f.ModuleID}
+			}
 
-	if c == nil {
-		c = make(map[string][]any)
-	}
+			if f.NamespaceID > 0 {
+				c[recordFieldNamespaceID] = []any{f.NamespaceID}
+			}
 
-	for _, id := range f.LabeledIDs {
-		c[recordFieldID] = append(c[recordFieldID], id)
-	}
-
-	if f.ModuleID > 0 {
-		c[recordFieldModuleID] = []any{f.ModuleID}
-	}
-
-	if f.NamespaceID > 0 {
-		c[recordFieldNamespaceID] = []any{f.NamespaceID}
-	}
-
-	return c
-}
-
-func (f recordFilter) Expression() string           { return f.Query }
-func (f recordFilter) OrderBy() filter.SortExprSet  { return f.Sort }
-func (f recordFilter) Limit() uint                  { return f.Paging.Limit }
-func (f recordFilter) Cursor() *filter.PagingCursor { return f.Paging.PageCursor }
-func (f recordFilter) StateConstraints() map[string]filter.State {
-	// @todo this needs to be model-dependant; if record's module
-	//       does not support deleted-at flag/timestamp,
-	//       this constraint should not be added
-	return map[string]filter.State{"deletedAt": f.Deleted}
+			return c
+		}()),
+		filter.WithExpression(f.Query),
+		filter.WithOrderBy(f.Sort),
+		filter.WithLimit(f.Limit),
+		filter.WithCursor(f.PageCursor),
+		filter.WithMetaConstraints(f.Meta),
+		filter.WithStateConstraint("deletedAt", f.Deleted),
+	)
 }
 
 // UserIDs returns a slice of user IDs from all items in the set
@@ -196,6 +176,8 @@ func (r *Record) GetValue(name string, pos uint) (any, error) {
 		return r.NamespaceID, nil
 	case "revision":
 		return r.Revision, nil
+	case "meta":
+		return r.Meta, nil
 	case "createdAt":
 		return r.CreatedAt, nil
 	case "createdBy":
@@ -229,6 +211,7 @@ func (r *Record) CountValues() (pos map[string]uint) {
 		"ID":          1,
 		"moduleID":    1,
 		"namespaceID": 1,
+		"meta":        1,
 		"revision":    1,
 		"createdAt":   1,
 		"createdBy":   1,
@@ -276,6 +259,8 @@ func (r *Record) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Uint64(value, &r.OwnedBy)
 	case "revision":
 		return cast2.Uint(value, &r.Revision)
+	case "meta":
+		return cast2.Meta(value, &r.Meta)
 	case "createdAt":
 		return cast2.Time(value, &r.CreatedAt)
 	case "updatedAt":
@@ -338,7 +323,7 @@ func (r Record) Dict() map[string]interface{} {
 		"recordID":    r.ID,
 		"moduleID":    r.ModuleID,
 		"revision":    r.Revision,
-		"labels":      r.Labels,
+		"meta":        r.Meta,
 		"namespaceID": r.NamespaceID,
 		"ownedBy":     r.OwnedBy,
 		"createdAt":   r.CreatedAt,
