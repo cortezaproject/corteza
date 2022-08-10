@@ -362,7 +362,7 @@ func (d composeResources) Records(ctx context.Context, namespaceID, moduleID uin
 				Namespace:    nsPartial,
 				Module:       modPartial,
 				Url:          d.getUrlToResource(pageDetail{moduleID: moduleID, recordID: recordID}),
-				Labels:       rec.Labels,
+				Meta:         rec.Meta,
 				//Values:       d.recordValues(ctx, rec, nil),
 				//Created:      makePartialChange(&rec.CreatedAt),
 				//Updated:      makePartialChange(rec.UpdatedAt),

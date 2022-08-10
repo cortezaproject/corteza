@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/modern-go/reflect2"
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
@@ -298,6 +299,31 @@ func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 		case filter.StateExcluded:
 			// exclude all non-null values
 			cnd = append(cnd, attrExpr.IsNull())
+		}
+	}
+
+	if mc := f.MetaConstraints(); len(mc) > 0 {
+		attr := d.model.Attributes.FindByIdent("meta")
+		if attr == nil {
+			return base.SetError(fmt.Errorf("can not filter records in this module by meta: no meta attribute defined"))
+		}
+
+		var (
+			metaKeyExpr   exp.LiteralExpression
+			metaAttrIdent = exp.NewIdentifierExpression("", d.model.Ident, attr.Ident)
+		)
+
+		for mKey, mVal := range f.MetaConstraints() {
+			metaKeyExpr, err = d.dialect.DeepIdentJSON(metaAttrIdent, mKey)
+			if err != nil {
+				return base.SetError(err)
+			}
+
+			if reflect2.IsNil(mVal) {
+				cnd = append(cnd, metaKeyExpr.IsNotNull())
+			} else {
+				cnd = append(cnd, metaKeyExpr.Eq(mVal))
+			}
 		}
 	}
 

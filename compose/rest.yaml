@@ -643,7 +643,6 @@ endpoints:
   path: "/namespace/{namespaceID}/module/{moduleID}/record"
   authentication: []
   imports:
-    - github.com/cortezaproject/corteza-server/pkg/label
     - github.com/cortezaproject/corteza-server/compose/types
   parameters:
     path:
@@ -680,33 +679,14 @@ endpoints:
     path: "/"
     parameters:
       get:
-      - name: query
-        type: string
-        required: false
-        title: Record filtering query
-      - type: map[string]string
-        name: labels
-        title: Labels
-        parser: label.ParseStrings
-      - name: deleted
-        required: false
-        title: Exclude (0, default), include (1) or return only (2) deleted records
-        type: uint
-      - type: uint
-        name: limit
-        title: Limit
-      - name: incTotal
-        type: bool
-        title: Include total records counter
-      - name: incPageNavigation
-        type: bool
-        title: Include page navigation
-      - type: string
-        name: pageCursor
-        title: Page cursor
-      - type: string
-        name: sort
-        title: Sort items
+      - { name: query,             type: "string",         title: "Record filtering query" }
+      - { name: meta,              type: "map[string]any", title: "Record meta data", parser: payload.ParseMeta }
+      - { name: deleted,           type: "uint",           title: "Exclude (0, default), include (1) or return only (2) deleted records" }
+      - { name: limit,             type: "uint",           title: "Limit" }
+      - { name: incTotal,          type: "bool",           title: "Include total records counter" }
+      - { name: incPageNavigation, type: "bool",           title: "Include page navigation" }
+      - { name: pageCursor,        type: "string",         title: "Page cursor" }
+      - { name: sort,              type: "string",         title: "Sort items" }
   - name: importInit
     path: "/import"
     method: POST
@@ -794,22 +774,10 @@ endpoints:
     path: "/"
     parameters:
       post:
-      - type: types.RecordValueSet
-        name: values
-        required: false
-        title: Record values
-      - type: uint64
-        name: ownedBy
-        required: false
-        title: Record Owner
-      - type: types.RecordBulkSet
-        name: records
-        required: false
-        title: Records
-      - type: map[string]string
-        name: labels
-        title: Labels
-        parser: label.ParseStrings
+      - { name: values,  type: "types.RecordValueSet",  title: Record values }
+      - { name: ownedBy, type: "uint64",                title: Record Owner }
+      - { name: records, type: "types.RecordBulkSet",   title: Records }
+      - { name: meta,    type: "map[string]any",        title: Record meta-data, parser: payload.ParseMeta }
   - name: read
     method: GET
     title: Read records by ID from module section
@@ -826,27 +794,12 @@ endpoints:
     path: "/{recordID}"
     parameters:
       path:
-      - type: uint64
-        name: recordID
-        required: true
-        title: Record ID
+      - { name: recordID, type: "uint64", required: true, title: Record ID }
       post:
-      - type: types.RecordValueSet
-        name: values
-        required: false
-        title: Record values
-      - type: uint64
-        name: ownedBy
-        required: false
-        title: Record Owner
-      - type: types.RecordBulkSet
-        name: records
-        required: false
-        title: Records
-      - type: map[string]string
-        name: labels
-        title: Labels
-        parser: label.ParseStrings
+      - { name: values,  type: "types.RecordValueSet",  title: Record values }
+      - { name: ownedBy, type: "uint64",                title: Record Owner }
+      - { name: meta,    type: "map[string]any",        title: Record meta-data, parser: payload.ParseMeta }
+      - { name: records, type: "types.RecordBulkSet",   title: Records }
   - name: bulkDelete
     method: DELETE
     title: Delete record row from module section

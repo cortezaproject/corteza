@@ -77,7 +77,7 @@ func (h recordsHandler) search(ctx context.Context, args *recordsSearchArgs) (re
 	var (
 		f = types.RecordFilter{
 			Query:   args.Query,
-			Labels:  args.Labels,
+			Meta:    args.Meta,
 			Deleted: filter.State(args.Deleted),
 		}
 	)
@@ -107,8 +107,8 @@ func (h recordsHandler) search(ctx context.Context, args *recordsSearchArgs) (re
 	f.IncTotal = args.IncTotal
 	f.IncPageNavigation = args.IncPageNavigation
 
-	if args.hasLabels {
-		f.Labels = args.Labels
+	if args.hasMeta {
+		f.Meta = args.Meta
 	}
 
 	if args.hasLimit {
@@ -171,7 +171,7 @@ func (h recordsHandler) each(ctx context.Context, args *recordsEachArgs) (out wf
 		i = &recordSetIterator{}
 		f = types.RecordFilter{
 			Query:   args.Query,
-			Labels:  args.Labels,
+			Meta:    args.Meta,
 			Deleted: filter.State(args.Deleted),
 		}
 	)
@@ -201,8 +201,8 @@ func (h recordsHandler) each(ctx context.Context, args *recordsEachArgs) (out wf
 	f.IncTotal = args.IncTotal
 	f.IncPageNavigation = args.IncPageNavigation
 
-	if args.hasLabels {
-		f.Labels = args.Labels
+	if args.hasMeta {
+		f.Meta = args.Meta
 	}
 
 	if args.hasLimit {

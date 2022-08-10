@@ -897,6 +897,55 @@ func (t *KVV) Assign(val interface{}) error {
 	}
 }
 
+// Meta is an expression type, wrapper for map[string]any type
+type Meta struct {
+	value map[string]any
+	mux   sync.RWMutex
+}
+
+// NewMeta creates new instance of Meta expression type
+func NewMeta(val interface{}) (*Meta, error) {
+	if c, err := CastToMeta(val); err != nil {
+		return nil, fmt.Errorf("unable to create Meta: %w", err)
+	} else {
+		return &Meta{value: c}, nil
+	}
+}
+
+// Get return underlying value on Meta
+func (t *Meta) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// GetValue returns underlying value on Meta
+func (t *Meta) GetValue() map[string]any {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// Type return type name
+func (Meta) Type() string { return "Meta" }
+
+// Cast converts value to map[string]any
+func (Meta) Cast(val interface{}) (TypedValue, error) {
+	return NewMeta(val)
+}
+
+// Assign new value to Meta
+//
+// value is first passed through CastToMeta
+func (t *Meta) Assign(val interface{}) error {
+	if c, err := CastToMeta(val); err != nil {
+		return err
+	} else {
+		t.value = c
+		return nil
+	}
+}
+
 // Reader is an expression type, wrapper for io.Reader type
 type Reader struct {
 	value io.Reader

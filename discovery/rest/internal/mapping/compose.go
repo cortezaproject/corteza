@@ -181,7 +181,7 @@ func (m composeMapping) records(ctx context.Context, mod *types.Module, mm types
 	mapping.Mapping["deleted"] = change()
 	mapping.Mapping["security"] = security()
 
-	mapping.Mapping["labels"] = &property{
+	mapping.Mapping["meta"] = &property{
 		Type: "object",
 	}
 	mapping.Mapping["values"] = &property{

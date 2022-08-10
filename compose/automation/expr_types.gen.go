@@ -663,7 +663,7 @@ func (t *ComposeRecord) Has(k string) bool {
 		return true
 	case "values":
 		return true
-	case "labels":
+	case "meta":
 		return true
 	case "ownedBy":
 		return true
@@ -697,8 +697,8 @@ func composeRecordGValSelector(res *types.Record, k string) (interface{}, error)
 		return res.NamespaceID, nil
 	case "values":
 		return res.Values, nil
-	case "labels":
-		return res.Labels, nil
+	case "meta":
+		return res.Meta, nil
 	case "ownedBy":
 		return res.OwnedBy, nil
 	case "createdAt":
@@ -732,8 +732,8 @@ func composeRecordTypedValueSelector(res *types.Record, k string) (TypedValue, e
 		return NewID(res.NamespaceID)
 	case "values":
 		return NewComposeRecordValues(res.Values)
-	case "labels":
-		return NewKV(res.Labels)
+	case "meta":
+		return NewMeta(res.Meta)
 	case "ownedBy":
 		return NewID(res.OwnedBy)
 	case "createdAt":
@@ -770,13 +770,13 @@ func assignToComposeRecord(res *types.Record, k string, val interface{}) error {
 
 		res.Values = aux
 		return nil
-	case "labels":
-		aux, err := CastToKV(val)
+	case "meta":
+		aux, err := CastToMeta(val)
 		if err != nil {
 			return err
 		}
 
-		res.Labels = aux
+		res.Meta = aux
 		return nil
 	case "ownedBy":
 		aux, err := CastToID(val)

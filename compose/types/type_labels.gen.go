@@ -127,27 +127,3 @@ func (Page) LabelResourceKind() string {
 func (m Page) LabelResourceID() uint64 {
 	return m.ID
 }
-
-// SetLabel adds new label to label map
-func (m *Record) SetLabel(key string, value string) {
-	if m.Labels == nil {
-		m.Labels = make(map[string]string)
-	}
-
-	m.Labels[key] = value
-}
-
-// GetLabels adds new label to label map
-func (m Record) GetLabels() map[string]string {
-	return m.Labels
-}
-
-// GetLabels adds new label to label map
-func (Record) LabelResourceKind() string {
-	return "compose:record"
-}
-
-// GetLabels adds new label to label map
-func (m Record) LabelResourceID() uint64 {
-	return m.ID
-}

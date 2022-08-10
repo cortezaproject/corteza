@@ -32,7 +32,7 @@ types:
       - { name: 'moduleID',        exprType: 'ID',                  goType: 'uint64',                 mode: ro }
       - { name: 'namespaceID',     exprType: 'ID',                  goType: 'uint64',                 mode: ro }
       - { name: 'values',          exprType: 'ComposeRecordValues', goType: 'map[string]interface{}' }
-      - { name: 'labels',          exprType: 'KV',                  goType: 'map[string]string' }
+      - { name: 'meta',             exprType: 'Meta',                goType: 'map[string]any' }
       - { name: 'ownedBy',         exprType: 'ID',                  goType: 'uint64' }
       - { name: 'createdAt',       exprType: 'DateTime',            goType: 'time.Time',              mode: ro }
       - { name: 'createdBy',       exprType: 'ID',                  goType: 'uint64',                 mode: ro }
