@@ -2,7 +2,11 @@ package rdbms
 
 import (
 	"context"
+	"encoding/json"
+	labelsType "github.com/cortezaproject/corteza-server/pkg/label/types"
+	"github.com/cortezaproject/corteza-server/store"
 	. "github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
+	"go.uber.org/zap"
 )
 
 func fix202209_extendComposeModuleForPrivacyAndDAL(ctx context.Context, s *Store) (err error) {
@@ -131,4 +135,57 @@ func fix202209_renameModuleColOnComposeRecords(ctx context.Context, s *Store) (e
 	return s.SchemaAPI.RenameColumn(
 		ctx, s.DB, &Table{Name: "compose_record"}, "module_id", "rel_module",
 	)
+}
+
+func fix202209_addMetaOnComposeRecords(ctx context.Context, s *Store) (err error) {
+	var (
+		log = s.log(ctx)
+
+		groupedMeta = make(map[uint64]map[string]any)
+		packed      []byte
+	)
+
+	log.Info("add meta column on compose_record table")
+	err = s.SchemaAPI.AddColumn(
+		ctx, s.DB,
+		&Table{Name: "compose_record"},
+		&Column{Type: ColumnType{Type: ColumnTypeJson}, DefaultValue: "'{}'", Name: "meta"},
+	)
+
+	if err != nil {
+		return
+	}
+
+	return s.Tx(ctx, func(ctx context.Context, s store.Storer) (err error) {
+		log.Info("collecting record labels")
+		ll, _, err := store.SearchLabels(ctx, s, labelsType.LabelFilter{Kind: "compose:record"})
+		if err != nil {
+			return
+		}
+
+		log.Info("grouping labels", zap.Int("count", len(ll)))
+		for _, l := range ll {
+			if _, has := groupedMeta[l.ResourceID]; !has {
+				groupedMeta[l.ResourceID] = make(map[string]any)
+			}
+
+			groupedMeta[l.ResourceID][l.Name] = l.Value
+			if err = store.DeleteLabel(ctx, s, l); err != nil {
+				return
+			}
+		}
+
+		log.Info("updating records with meta", zap.Int("count", len(ll)))
+		for recordID, labels := range groupedMeta {
+			packed, err = json.Marshal(labels)
+			_, err = s.(*Store).DB.ExecContext(ctx, "UPDATE compose_record SET meta = $1 WHERE id = $2", packed, recordID)
+			if err != nil {
+				return
+			}
+		}
+
+		return
+
+	})
+
 }
