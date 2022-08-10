@@ -515,7 +515,7 @@ func tableComposeRecord() *Table {
 	return TableDef("compose_record",
 		ID,
 		ColumnDef("rel_namespace", ColumnTypeIdentifier),
-		ColumnDef("module_id", ColumnTypeIdentifier),
+		ColumnDef("rel_module", ColumnTypeIdentifier),
 		ColumnDef("revision", ColumnTypeInteger),
 		ColumnDef("values", ColumnTypeJson),
 		ColumnDef("owned_by", ColumnTypeIdentifier),
@@ -523,7 +523,7 @@ func tableComposeRecord() *Table {
 		CUDUsers,
 
 		AddIndex("namespace", IColumn("rel_namespace")),
-		AddIndex("module", IColumn("module_id")),
+		AddIndex("module", IColumn("rel_module")),
 		AddIndex("owner", IColumn("owned_by")),
 	)
 }

@@ -12,7 +12,7 @@ record: {
 
 	model: {
 		id: schema.IdField
-		module_id: { ident: "moduleID", goType: "uint64" }
+		module_id: { ident: "moduleID", goType: "uint64", storeIdent: "rel_module" }
 		module: { goType: "*types.Module", store: false }
 		values: { goType: "types.RecordValueSet", store: false }
 		namespace_id: { ident: "namespaceID", goType: "uint64", storeIdent: "rel_namespace" }
