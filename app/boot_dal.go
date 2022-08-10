@@ -8,6 +8,11 @@ import (
 )
 
 func (app *CortezaApp) initDAL(ctx context.Context, log *zap.Logger) (err error) {
+	// no-op - if DAL is already initialized
+	if dal.Initialized() {
+		return
+	}
+
 	// Verify that primary store is connected
 	// or return error
 	if app.Store == nil {
@@ -15,12 +20,7 @@ func (app *CortezaApp) initDAL(ctx context.Context, log *zap.Logger) (err error)
 	}
 
 	// Init DAL and prepare default connection
-	svc, err := dal.New(log.Named("dal"), app.Opt.Environment.IsDevelopment())
-	if err != nil {
-		return err
-	}
-
-	dal.SetGlobal(svc)
+	dal.SetGlobal(dal.New(log.Named("dal"), app.Opt.Environment.IsDevelopment()))
 
 	return
 }

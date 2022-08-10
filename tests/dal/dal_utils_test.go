@@ -52,7 +52,7 @@ type (
 		Truncate(ctx context.Context, mf dal.ModelRef, operations dal.OperationSet) (err error)
 
 		SearchConnectionIssues(connectionID uint64) (out []error)
-		SearchModelIssues(connectionID, resourceID uint64) (out []error)
+		SearchModelIssues(resourceID uint64) (out []error)
 	}
 
 	dalConnectionRestRsp struct {

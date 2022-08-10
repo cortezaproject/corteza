@@ -38,7 +38,7 @@ type (
 		RemoveModel(ctx context.Context, connectionID, ID uint64) (err error)
 		ReplaceModel(ctx context.Context, model *dal.Model) (err error)
 		ReplaceModelAttribute(ctx context.Context, model *dal.Model, old, new *dal.Attribute, trans ...dal.TransformationFunction) (err error)
-		SearchModelIssues(connectionID, resourceID uint64) (out []error)
+		SearchModelIssues(resourceID uint64) (out []error)
 
 		Create(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, vv ...dal.ValueGetter) error
 		Update(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, rr ...dal.ValueGetter) (err error)
