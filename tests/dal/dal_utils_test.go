@@ -95,7 +95,7 @@ const (
 
 	colSysID          = "id"
 	colSysNamespaceID = "rel_namespace"
-	colSysModuleID    = "module_id"
+	colSysModuleID    = "rel_module"
 	colSysCreatedAt   = "created_at"
 	colSysCreatedBy   = "created_by"
 	colSysUpdatedAt   = "updated_at"

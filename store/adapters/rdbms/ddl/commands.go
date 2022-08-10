@@ -46,6 +46,13 @@ type (
 		Table   *Table
 		Column  string
 	}
+
+	RenameColumn struct {
+		Dialect dialect
+		Table   *Table
+		Old     string
+		New     string
+	}
 )
 
 func CreateIndexTemplates(base *CreateIndex, ii ...*Index) []any {
@@ -291,6 +298,10 @@ func (c *AddColumn) String() string {
 
 func (c *DropColumn) String() string {
 	return "ALTER TABLE" + " " + c.Table.Name + " DROP COLUMN " + c.Column
+}
+
+func (c *RenameColumn) String() string {
+	return "ALTER TABLE" + " " + c.Table.Name + " RENAME COLUMN " + c.Old + " TO " + c.New
 }
 
 func GetBool(ctx context.Context, db sqlx.QueryerContext, query exp.SQLExpression) (bool, error) {

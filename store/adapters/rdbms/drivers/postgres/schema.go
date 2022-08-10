@@ -91,3 +91,26 @@ func (s *schema) DropColumn(ctx context.Context, db sqlx.ExtContext, t *ddl.Tabl
 
 	return ddl.Exec(ctx, db, aux...)
 }
+
+func (s *schema) RenameColumn(ctx context.Context, db sqlx.ExtContext, t *ddl.Table, old, new string) (err error) {
+	var (
+		exists bool
+	)
+
+	if exists, err = s.ColumnExists(ctx, db, old, t.Name); err != nil || !exists {
+		// error or old column does not exist
+		return
+	}
+
+	if exists, err = s.ColumnExists(ctx, db, new, t.Name); err != nil || exists {
+		// error or new column already exists
+		return
+	}
+
+	return ddl.Exec(ctx, db, &ddl.RenameColumn{
+		Dialect: dialect,
+		Table:   t,
+		Old:     old,
+		New:     new,
+	})
+}

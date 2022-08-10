@@ -125,3 +125,10 @@ func fix202209_extendDalConnectionsForMeta(ctx context.Context, s *Store) (err e
 		&Column{Type: ColumnType{Type: ColumnTypeJson}, DefaultValue: "'{}'", Name: "meta"},
 	)
 }
+
+func fix202209_renameModuleColOnComposeRecords(ctx context.Context, s *Store) (err error) {
+	s.log(ctx).Info("rename module_id column on compose_record table")
+	return s.SchemaAPI.RenameColumn(
+		ctx, s.DB, &Table{Name: "compose_record"}, "module_id", "rel_module",
+	)
+}
