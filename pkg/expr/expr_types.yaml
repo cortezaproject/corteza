@@ -75,6 +75,9 @@ types:
     as: 'map[string][]string'
     assignFn: assignToKVV
 
+  Meta:
+    as: 'map[string]any'
+
   Reader:
     as: 'io.Reader'
 

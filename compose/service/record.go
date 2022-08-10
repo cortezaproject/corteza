@@ -23,7 +23,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
-	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/report"
 	"github.com/cortezaproject/corteza-server/store"
 )
@@ -262,10 +261,6 @@ func (svc record) lookup(ctx context.Context, namespaceID, moduleID uint64, look
 
 		ComposeRecordFilterAC(ctx, svc.ac, m, r)
 
-		if err = label.Load(ctx, svc.store, r); err != nil {
-			return err
-		}
-
 		r.SetModule(m)
 		r.Values = svc.sanitizer.RunXSS(m, r.Values)
 
@@ -308,29 +303,7 @@ func (svc record) Find(ctx context.Context, filter types.RecordFilter) (set type
 
 		filter.Check = ComposeRecordFilterChecker(ctx, svc.ac, m)
 
-		if len(filter.Labels) > 0 {
-			filter.LabeledIDs, err = label.Search(
-				ctx,
-				svc.store,
-				types.Record{}.LabelResourceKind(),
-				filter.Labels,
-			)
-
-			if err != nil {
-				return err
-			}
-
-			// labels specified but no labeled resources found
-			if len(filter.LabeledIDs) == 0 {
-				return nil
-			}
-		}
-
 		if set, f, err = dalutils.ComposeRecordsList(ctx, svc.dal, m, filter); err != nil {
-			return err
-		}
-
-		if err = label.Load(ctx, svc.store, toLabeledRecords(set)...); err != nil {
 			return err
 		}
 
@@ -672,10 +645,6 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 		}
 	}
 
-	if err = label.Create(ctx, svc.store, new); err != nil {
-		return
-	}
-
 	// ensure module ref is set before running through records workflows and scripts
 	new.SetModule(m)
 
@@ -958,12 +927,6 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 	}
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
-		if label.Changed(old.Labels, upd.Labels) {
-			if err = label.Update(ctx, s, upd); err != nil {
-				return err
-			}
-		}
-
 		aProps.setChanged(upd)
 
 		if err = dalutils.ComposeRecordUpdate(ctx, svc.dal, m, upd); err != nil {
@@ -1679,22 +1642,6 @@ func loadRecordCombo(ctx context.Context, s store.Storer, dal dalDater, namespac
 func loadRecord(ctx context.Context, s store.Storer, namespaceID, moduleID, recordID uint64) (res *types.Record, err error) {
 	_, _, res, err = loadRecordCombo(ctx, s, dal.Service(), namespaceID, moduleID, recordID)
 	return
-}
-
-// toLabeledRecords converts to []label.LabeledResource
-//
-// This function is auto-generated.
-func toLabeledRecords(set []*types.Record) []label.LabeledResource {
-	if len(set) == 0 {
-		return nil
-	}
-
-	ll := make([]label.LabeledResource, len(set))
-	for i := range set {
-		ll[i] = set[i]
-	}
-
-	return ll
 }
 
 func (ei ErrorIndex) Add(err string) {

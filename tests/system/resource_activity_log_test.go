@@ -2,7 +2,6 @@ package system
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/compose/types"
 	discoveryType "github.com/cortezaproject/corteza-server/pkg/discovery/types"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
@@ -18,7 +17,7 @@ func (h helper) repoMakeActivityLog() *discoveryType.ResourceActivity {
 	var res = &discoveryType.ResourceActivity{
 		ID:             id.Next(),
 		ResourceID:     id.Next(),
-		ResourceType:   (types.Record{}).LabelResourceKind(),
+		ResourceType:   "compose:record",
 		ResourceAction: "create",
 	}
 

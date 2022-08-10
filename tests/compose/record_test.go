@@ -6,14 +6,12 @@ import (
 	"fmt"
 	"mime/multipart"
 	"net/http"
-	"net/url"
 	"os"
 	"strconv"
 	"testing"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/dalutils"
-	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/id"
@@ -1388,7 +1386,7 @@ func TestRecordLabels(t *testing.T) {
 
 			rec = &types.Record{
 				Values: types.RecordValueSet{&types.RecordValue{Name: "dummy", Value: "dummy"}},
-				Labels: map[string]string{
+				Meta: map[string]any{
 					"foo": "bar",
 					"bar": "42",
 				},
@@ -1408,12 +1406,10 @@ func TestRecordLabels(t *testing.T) {
 		req.NotNil(payload.Response)
 		req.NotZero(payload.Response.ID)
 
-		h.a.Equal(payload.Response.Labels["foo"], "bar",
+		h.a.Equal(payload.Response.Meta["foo"], "bar",
 			"labels must contain foo with value bar")
-		h.a.Equal(payload.Response.Labels["bar"], "42",
+		h.a.Equal(payload.Response.Meta["bar"], "42",
 			"labels must contain bar with value 42")
-		req.Equal(payload.Response.Labels, helpers.LoadLabelsFromStore(t, service.DefaultStore, payload.Response.LabelResourceKind(), payload.Response.ID),
-			"response must match stored labels")
 
 		ID = payload.Response.ID
 	})
@@ -1433,7 +1429,7 @@ func TestRecordLabels(t *testing.T) {
 			rec = &types.Record{
 				ID:     ID,
 				Values: types.RecordValueSet{&types.RecordValue{Name: "dummy", Value: "dummy"}},
-				Labels: map[string]string{
+				Meta: map[string]any{
 					"foo": "baz",
 					"baz": "123",
 				},
@@ -1454,14 +1450,12 @@ func TestRecordLabels(t *testing.T) {
 		// disabled for now
 		//req.Nil(payload.Response.UpdatedAt, "updatedAt must not change after changing labels")
 
-		req.Equal(payload.Response.Labels["foo"], "baz",
-			"labels must contain foo with value baz")
-		req.NotContains(payload.Response.Labels, "bar",
-			"labels must not contain bar")
-		req.Equal(payload.Response.Labels["baz"], "123",
-			"labels must contain baz with value 123")
-		req.Equal(payload.Response.Labels, helpers.LoadLabelsFromStore(t, service.DefaultStore, payload.Response.LabelResourceKind(), payload.Response.ID),
-			"response must match stored labels")
+		req.Equal(payload.Response.Meta["foo"], "baz",
+			"meta must contain foo with value baz")
+		req.NotContains(payload.Response.Meta, "bar",
+			"meta must not contain bar")
+		req.Equal(payload.Response.Meta["baz"], "123",
+			"meta must contain baz with value 123")
 	})
 
 	t.Run("search", func(t *testing.T) {
@@ -1471,16 +1465,43 @@ func TestRecordLabels(t *testing.T) {
 
 		var (
 			req = require.New(t)
-			set = types.RecordSet{}
+
+			payload = struct {
+				Response struct {
+					Set types.RecordSet
+				}
+			}{}
+
+			get = func(meta string, p any) {
+				h.apiInit().
+					Getf("/namespace/%d/module/%d/record/", ns.ID, mod.ID).
+					Header("Accept", "application/json").
+					Query("meta", meta).
+					Expect(t).
+					Status(http.StatusOK).
+					Assert(helpers.AssertNoErrors).
+					End().
+					JSON(p)
+			}
 		)
 
-		helpers.SearchWithLabelsViaAPI(h.apiInit(), t,
-			fmt.Sprintf("/namespace/%d/module/%d/record/", ns.ID, mod.ID),
-			&set, url.Values{"labels": []string{"baz=123"}},
-		)
-		req.NotEmpty(set)
-		req.NotNil(set.FindByID(ID))
-		req.NotNil(set.FindByID(ID).Labels)
+		get("baz=123", &payload)
+		t.Log("is record included in search result?")
+		req.NotEmpty(payload.Response.Set)
+		req.Len(payload.Response.Set, 1)
+		req.NotNil(payload.Response.Set.FindByID(ID))
+
+		t.Log("is meta included")
+		req.NotNil(payload.Response.Set.FindByID(ID).Meta)
+
+		get("k2342341241241244=bar", &payload)
+		t.Log("no records with this meta constraints should exist")
+		req.Empty(payload.Response.Set)
+
+		get("baz", &payload)
+		t.Log("one record should be found")
+		req.Len(payload.Response.Set, 1)
+		req.NotNil(payload.Response.Set.FindByID(ID))
 	})
 }
 

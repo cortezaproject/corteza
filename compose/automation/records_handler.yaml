@@ -66,9 +66,9 @@ params:
     query:
       types:
         - { wf: String }
-    labels:
+    meta:
       types:
-        - { wf: KV }
+        - { wf: Meta }
     deleted:
       types:
         - { wf: UnsignedInteger }

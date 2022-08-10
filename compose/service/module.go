@@ -99,6 +99,7 @@ const (
 	sysNamespaceID = "namespaceID"
 	sysModuleID    = "moduleID"
 	sysRevision    = "revision"
+	sysMeta        = "meta"
 	sysCreatedAt   = "createdAt"
 	sysCreatedBy   = "createdBy"
 	sysUpdatedAt   = "updatedAt"
@@ -111,6 +112,7 @@ const (
 	colSysNamespaceID = "rel_namespace"
 	colSysModuleID    = "rel_module"
 	colSysRevision    = "revision"
+	colSysMeta        = "meta"
 	colSysCreatedAt   = "created_at"
 	colSysCreatedBy   = "created_by"
 	colSysUpdatedAt   = "updated_at"
@@ -125,6 +127,7 @@ var (
 		"recordID",
 		"ownedBy",
 		"revision",
+		"meta",
 		"createdBy",
 		"createdAt",
 		"updatedBy",
@@ -1341,6 +1344,7 @@ func moduleSystemFieldsToAttributes(mod *types.Module) (out dal.AttributeSet, er
 		dal.FullAttribute(sysDeletedBy, &dal.TypeID{Nullable: true}, mfc(colSysDeletedBy, sysEnc.DeletedBy)),
 		dal.FullAttribute(sysNamespaceID, &dal.TypeID{}, mfc(colSysNamespaceID, sysEnc.NamespaceID)),
 		dal.FullAttribute(sysRevision, &dal.TypeID{}, mfc(colSysRevision, sysEnc.Revision)),
+		dal.FullAttribute(sysMeta, &dal.TypeJSON{}, mfc(colSysMeta, sysEnc.Meta)),
 		dal.FullAttribute(sysOwnedBy, &dal.TypeID{}, mfc(colSysOwnedBy, sysEnc.OwnedBy)),
 		dal.FullAttribute(sysCreatedAt, &dal.TypeTimestamp{}, mfc(colSysCreatedAt, sysEnc.CreatedAt)),
 		dal.FullAttribute(sysCreatedBy, &dal.TypeID{}, mfc(colSysCreatedBy, sysEnc.CreatedBy)),

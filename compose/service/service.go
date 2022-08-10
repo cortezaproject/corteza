@@ -126,7 +126,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 		err = DefaultResourceActivityLog.InitResourceActivityLog(ctx, []string{
 			(types.Namespace{}).LabelResourceKind(),
 			(types.Module{}).LabelResourceKind(),
-			(types.Record{}).LabelResourceKind(),
+			"compose:record",
 		})
 		if err != nil {
 			return err

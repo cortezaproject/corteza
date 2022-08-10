@@ -112,7 +112,7 @@ type (
 		ResourceType string                   `json:"resourceType"`
 		RecordID     uint64                   `json:"recordID,string"`
 		Url          string                   `json:"url,omitempty"`
-		Labels       map[string]string        `json:"labels,omitempty"`
+		Meta         map[string]any           `json:"labels,omitempty"`
 		ValueLabels  map[string]string        `json:"valueLabels,omitempty"`
 		Values       map[string][]interface{} `json:"values"`
 		Updated      *docPartialChange        `json:"updated,omitempty"`

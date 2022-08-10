@@ -275,14 +275,14 @@ func TestModule_LabelCRUD(t *testing.T) {
 	// must contain the added label
 	req.Contains(findAndReturnLabel(res.ID), "label2")
 
-	// update with Labels:nil (should keep labels intact)
+	// update with Meta:nil (should keep labels intact)
 	res.Labels = nil
 	res, err = svc.Update(ctx, res)
 	req.NoError(err)
 
 	req.Contains(findAndReturnLabel(res.ID), "label2")
 
-	// update with Labels:empty-map (should remove all labels)
+	// update with Meta:empty-map (should remove all labels)
 	res.Labels = map[string]string{}
 	res, err = svc.Update(ctx, res)
 	req.NoError(err)

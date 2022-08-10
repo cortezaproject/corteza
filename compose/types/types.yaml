@@ -10,8 +10,7 @@ types:
     labelResourceType: compose:page
   Chart:
     labelResourceType: compose:chart
-  Record:
-    labelResourceType: compose:record
+  Record: {}
   RecordValue:
     noIdField: true
   PrivacyModule:
