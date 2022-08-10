@@ -29,15 +29,41 @@ type (
 		connectionIssues dalIssueIndex
 		modelIssues      dalIssueIndex
 	}
+
+	FullService interface {
+		Drivers() (drivers []Driver)
+
+		ReplaceSensitivityLevel(levels ...SensitivityLevel) (err error)
+		RemoveSensitivityLevel(levelIDs ...uint64) (err error)
+
+		GetConnectionByID(connectionID uint64) *ConnectionWrap
+
+		ReplaceConnection(ctx context.Context, cw *ConnectionWrap, isDefault bool) (err error)
+		RemoveConnection(ctx context.Context, ID uint64) (err error)
+
+		SearchModels(ctx context.Context) (out ModelSet, err error)
+		ReplaceModel(ctx context.Context, model *Model) (err error)
+		RemoveModel(ctx context.Context, connectionID, ID uint64) (err error)
+		ReplaceModelAttribute(ctx context.Context, model *Model, old, new *Attribute, trans ...TransformationFunction) (err error)
+		FindModelByResourceID(connectionID uint64, resourceID uint64) *Model
+		FindModelByResourceIdent(connectionID uint64, resourceType, resourceIdent string) *Model
+		FindModelByIdent(connectionID uint64, ident string) *Model
+
+		Create(ctx context.Context, mf ModelRef, operations OperationSet, rr ...ValueGetter) (err error)
+		Update(ctx context.Context, mf ModelRef, operations OperationSet, rr ...ValueGetter) (err error)
+		Search(ctx context.Context, mf ModelRef, operations OperationSet, f filter.Filter) (iter Iterator, err error)
+		Lookup(ctx context.Context, mf ModelRef, operations OperationSet, lookup ValueGetter, dst ValueSetter) (err error)
+		Delete(ctx context.Context, mf ModelRef, operations OperationSet, vv ...ValueGetter) (err error)
+		Truncate(ctx context.Context, mf ModelRef, operations OperationSet) (err error)
+
+		SearchConnectionIssues(connectionID uint64) (out []error)
+		SearchModelIssues(resourceID uint64) (out []error)
+	}
 )
 
 var (
 	gSvc *service
 )
-
-func SetGlobal(svc *service) {
-	gSvc = svc
-}
 
 // New creates a DAL service with the primary connection
 //
@@ -58,6 +84,10 @@ func New(log *zap.Logger, inDev bool) (*service, error) {
 	return svc, nil
 }
 
+func Initialized() bool {
+	return gSvc != nil
+}
+
 // Service returns the global initialized DAL service
 //
 // Function will panic if DAL service is not set (via SetGlobal)
@@ -67,6 +97,14 @@ func Service() *service {
 	}
 
 	return gSvc
+}
+
+func SetGlobal(svc *service, err error) {
+	if err != nil {
+		panic(err)
+	}
+
+	gSvc = svc
 }
 
 // Purge resets the service to the initial zero state
@@ -515,7 +553,7 @@ func (svc *service) ReplaceModel(ctx context.Context, model *Model) (err error) 
 
 	// Add to connection
 	connectionIssues := svc.hasConnectionIssues(model.ConnectionID)
-	modelIssues := svc.hasModelIssues(model.ConnectionID, model.ResourceID)
+	modelIssues := svc.hasModelIssues(model.ResourceID)
 	if connectionIssues {
 		log.Warn("not adding to connection due to connection issues")
 	}
@@ -677,7 +715,7 @@ func (svc *service) ReplaceModelAttribute(ctx context.Context, model *Model, old
 	defer svc.updateIssues(issues)
 
 	if model.ConnectionID == 0 {
-		model.ConnectionID = gSvc.defConnID
+		model.ConnectionID = svc.defConnID
 	}
 
 	// Validation
@@ -710,7 +748,7 @@ func (svc *service) ReplaceModelAttribute(ctx context.Context, model *Model, old
 	// Update attribute
 	// Update connection
 	connectionIssues := svc.hasConnectionIssues(model.ConnectionID)
-	modelIssues := svc.hasModelIssues(model.ConnectionID, model.ResourceID)
+	modelIssues := svc.hasModelIssues(model.ResourceID)
 
 	if !modelIssues && !connectionIssues {
 		svc.logger.Debug("updating model attribute", zap.Uint64("connection", model.ConnectionID), zap.Uint64("model", model.ResourceID))

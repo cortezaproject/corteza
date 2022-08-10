@@ -14,9 +14,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-
 	"github.com/cortezaproject/corteza-server/app"
 	"github.com/cortezaproject/corteza-server/compose/rest"
 	"github.com/cortezaproject/corteza-server/compose/service"
@@ -24,6 +21,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/api/server"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/csv"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/directory"
@@ -59,22 +57,9 @@ type (
 	}
 
 	dalSvc interface {
+		dal.FullService
+
 		Purge(ctx context.Context)
-
-		GetConnectionByID(uint64) *dal.ConnectionWrap
-
-		SearchModels(ctx context.Context) (out dal.ModelSet, err error)
-		RemoveModel(ctx context.Context, connectionID, ID uint64) (err error)
-		ReplaceModel(ctx context.Context, model *dal.Model) (err error)
-		ReplaceModelAttribute(ctx context.Context, model *dal.Model, old, new *dal.Attribute, trans ...dal.TransformationFunction) (err error)
-		SearchModelIssues(connectionID, resourceID uint64) (out []error)
-
-		Create(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, vv ...dal.ValueGetter) error
-		Update(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, rr ...dal.ValueGetter) (err error)
-		Search(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, f filter.Filter) (dal.Iterator, error)
-		Lookup(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, lookup dal.ValueGetter, dst dal.ValueSetter) (err error)
-		Delete(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, pkv ...dal.ValueGetter) (err error)
-		Truncate(ctx context.Context, m dal.ModelRef, operations dal.OperationSet) (err error)
 	}
 )
 

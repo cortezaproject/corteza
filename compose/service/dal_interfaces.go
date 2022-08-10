@@ -16,7 +16,7 @@ type (
 
 		GetConnectionByID(uint64) *dal.ConnectionWrap
 
-		SearchModelIssues(connectionID, resourceID uint64) (out []error)
+		SearchModelIssues(resourceID uint64) (out []error)
 	}
 
 	dalDater interface {

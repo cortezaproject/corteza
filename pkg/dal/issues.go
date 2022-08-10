@@ -47,12 +47,7 @@ func (svc *service) SearchConnectionIssues(connectionID uint64) (out []error) {
 	return
 }
 
-func (svc *service) SearchModelIssues(connectionID, resourceID uint64) (out []error) {
-	// @todo index by connection as well
-	// if _, ok := svc.modelIssues[connectionID]; !ok {
-	// 	return
-	// }
-
+func (svc *service) SearchModelIssues(resourceID uint64) (out []error) {
 	for _, issue := range svc.modelIssues[resourceID] {
 		out = append(out, issue.err)
 	}
@@ -64,8 +59,8 @@ func (svc *service) hasConnectionIssues(connectionID uint64) bool {
 	return len(svc.SearchConnectionIssues(connectionID)) > 0
 }
 
-func (svc *service) hasModelIssues(connectionID, modelID uint64) bool {
-	return len(svc.SearchModelIssues(connectionID, modelID)) > 0
+func (svc *service) hasModelIssues(modelID uint64) bool {
+	return len(svc.SearchModelIssues(modelID)) > 0
 }
 
 func (svc *service) updateIssues(issues *issueHelper) {
@@ -126,7 +121,7 @@ func (svc *service) canOpData(connectionID, modelID uint64) (err error) {
 	if svc.hasConnectionIssues(connectionID) {
 		return errRecordOpProblematicConnection(connectionID)
 	}
-	if svc.hasModelIssues(connectionID, modelID) {
+	if svc.hasModelIssues(modelID) {
 		return errRecordOpProblematicModel(modelID)
 	}
 

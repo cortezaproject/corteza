@@ -77,7 +77,7 @@ type (
 		ReplaceModel(context.Context, *dal.Model) error
 		RemoveModel(ctx context.Context, connectionID, ID uint64) error
 		ReplaceModelAttribute(ctx context.Context, model *dal.Model, old, new *dal.Attribute, trans ...dal.TransformationFunction) (err error)
-		SearchModelIssues(connectionID, ID uint64) []error
+		SearchModelIssues(ID uint64) []error
 	}
 )
 
@@ -295,7 +295,7 @@ func (svc module) procDal(m *types.Module) {
 		return
 	}
 
-	ii := svc.dal.SearchModelIssues(m.Config.DAL.ConnectionID, m.ID)
+	ii := svc.dal.SearchModelIssues(m.ID)
 	if len(ii) == 0 {
 		m.Issues = nil
 		return
@@ -567,7 +567,7 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 
 			// @todo rethink how model issues and attempted module update with records should interact.
 			// 			 this is a temporary solution but should be re-thinked.
-			modelIssues := svc.dal.SearchModelIssues(m.Config.DAL.ConnectionID, m.ID)
+			modelIssues := svc.dal.SearchModelIssues(m.ID)
 			if len(modelIssues) == 0 {
 				if set, _, err = dalutils.ComposeRecordsList(ctx, svc.dal, m, types.RecordFilter{Paging: filter.Paging{Limit: 1}, Check: func(r *types.Record) (bool, error) { return true, nil }}); err != nil {
 					return err
@@ -1353,6 +1353,18 @@ func moduleSystemFieldsToAttributes(mod *types.Module) (out dal.AttributeSet, er
 // moduleFieldToAttribute converts the given module field to a DAL attribute
 func moduleFieldToAttribute(f *types.ModuleField, conn *dal.ConnectionWrap) (out *dal.Attribute, err error) {
 	var (
+		// ensure JSON encoded record values always have ident to use
+		// either from the connection config or "values" as a failsafe
+		attribIdent = func() string {
+			var attribIdent = conn.Config.AttributeIdent
+
+			if len(attribIdent) > 0 {
+				return attribIdent
+			}
+
+			return "values"
+		}()
+
 		// generate dal.Codec for each attribute
 		// using encoding strategy for that attribute
 		// with failsafe on JSON RVS.
@@ -1372,7 +1384,7 @@ func moduleFieldToAttribute(f *types.ModuleField, conn *dal.ConnectionWrap) (out
 				// defaulting to RecordValueSetJSON with
 				// default attribute ident from connection
 				return &dal.CodecRecordValueSetJSON{
-					Ident: conn.Config.AttributeIdent,
+					Ident: attribIdent,
 				}
 			}
 		}
