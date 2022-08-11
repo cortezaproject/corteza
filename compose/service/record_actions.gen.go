@@ -452,6 +452,26 @@ func RecordActionSearch(props ...*recordActionProps) *recordAction {
 	return a
 }
 
+// RecordActionSearchSensitive returns "compose:record.searchSensitive" action
+//
+// This function is auto-generated.
+//
+func RecordActionSearchSensitive(props ...*recordActionProps) *recordAction {
+	a := &recordAction{
+		timestamp: time.Now(),
+		resource:  "compose:record",
+		action:    "searchSensitive",
+		log:       "searched for records with sensitive data",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // RecordActionLookup returns "compose:record.lookup" action
 //
 // This function is auto-generated.

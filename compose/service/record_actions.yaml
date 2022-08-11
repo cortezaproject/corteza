@@ -46,6 +46,10 @@ actions:
     log: "searched for records"
     severity: info
 
+  - action: searchSensitive
+    log: "searched for records with sensitive data"
+    severity: info
+
   - action: lookup
     log: "looked-up for a {{record}}"
     severity: info

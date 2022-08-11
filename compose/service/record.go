@@ -327,6 +327,8 @@ func (svc record) SearchSensitive(ctx context.Context) (set []types.SensitiveRec
 		namespaces types.NamespaceSet
 		modules    types.ModuleSet
 
+		aProps = &recordActionProps{}
+
 		userID = auth.GetIdentityFromContext(ctx).Identity()
 	)
 
@@ -364,7 +366,7 @@ func (svc record) SearchSensitive(ctx context.Context) (set []types.SensitiveRec
 		return nil
 	}()
 
-	return set, err
+	return set, svc.recordAction(ctx, aProps, RecordActionSearchSensitive, err)
 }
 
 func (svc record) searchSensitive(ctx context.Context, userID uint64, namespace *types.Namespace, module *types.Module, filter types.RecordFilter) (out types.SensitiveRecordSet, err error) {
