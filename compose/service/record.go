@@ -107,7 +107,7 @@ type (
 
 		Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, filter string) (interface{}, error)
 		Find(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
-		FindSensitive(ctx context.Context) (set []types.SensitiveRecordSet, err error)
+		SearchSensitive(ctx context.Context) (set []types.SensitiveRecordSet, err error)
 		SearchRevisions(ctx context.Context, namespaceID, moduleID, recordID uint64) (dal.Iterator, error)
 		RecordExport(context.Context, types.RecordFilter) error
 		RecordImport(context.Context, error) error
@@ -321,8 +321,8 @@ func (svc record) Find(ctx context.Context, filter types.RecordFilter) (set type
 	return set, f, svc.recordAction(ctx, aProps, RecordActionSearch, err)
 }
 
-// FindSensitive returns stripped down records for all namespaces/modules where fields define a sensitivity level
-func (svc record) FindSensitive(ctx context.Context) (set []types.SensitiveRecordSet, err error) {
+// SearchSensitive returns stripped down records for all namespaces/modules where fields define a sensitivity level
+func (svc record) SearchSensitive(ctx context.Context) (set []types.SensitiveRecordSet, err error) {
 	var (
 		namespaces types.NamespaceSet
 		modules    types.ModuleSet
@@ -346,7 +346,7 @@ func (svc record) FindSensitive(ctx context.Context) (set []types.SensitiveRecor
 
 			for _, module := range modules {
 				// Get sensitive record data
-				aux, err := svc.findSensitive(ctx, userID, namespace, module, types.RecordFilter{
+				aux, err := svc.searchSensitive(ctx, userID, namespace, module, types.RecordFilter{
 					ModuleID:    module.ID,
 					NamespaceID: namespace.ID,
 				})
@@ -367,7 +367,7 @@ func (svc record) FindSensitive(ctx context.Context) (set []types.SensitiveRecor
 	return set, err
 }
 
-func (svc record) findSensitive(ctx context.Context, userID uint64, namespace *types.Namespace, module *types.Module, filter types.RecordFilter) (out types.SensitiveRecordSet, err error) {
+func (svc record) searchSensitive(ctx context.Context, userID uint64, namespace *types.Namespace, module *types.Module, filter types.RecordFilter) (out types.SensitiveRecordSet, err error) {
 	out = types.SensitiveRecordSet{
 		Namespace: namespace,
 		Module:    module,

@@ -55,7 +55,7 @@ type (
 		FindByHandle(ctx context.Context, namespaceID uint64, handle string) (*types.Module, error)
 		FindByAny(ctx context.Context, namespaceID uint64, identifier interface{}) (*types.Module, error)
 		Find(ctx context.Context, filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error)
-		FindSensitive(ctx context.Context, filter types.PrivacyModuleFilter) (set []types.PrivacyModule, f types.PrivacyModuleFilter, err error)
+		SearchSensitive(ctx context.Context, filter types.PrivacyModuleFilter) (set []types.PrivacyModule, f types.PrivacyModuleFilter, err error)
 
 		Create(ctx context.Context, module *types.Module) (*types.Module, error)
 		Update(ctx context.Context, module *types.Module) (*types.Module, error)
@@ -436,8 +436,8 @@ func (svc *module) ReloadDALModels(ctx context.Context) (err error) {
 	return DalModelReload(ctx, svc.store, svc.dal)
 }
 
-// FindSensitive will list all module with at least one private module field
-func (svc module) FindSensitive(ctx context.Context, filter types.PrivacyModuleFilter) (set []types.PrivacyModule, f types.PrivacyModuleFilter, err error) {
+// SearchSensitive will list all module with at least one private module field
+func (svc module) SearchSensitive(ctx context.Context, filter types.PrivacyModuleFilter) (set []types.PrivacyModule, f types.PrivacyModuleFilter, err error) {
 	var (
 		mm types.ModuleSet
 
