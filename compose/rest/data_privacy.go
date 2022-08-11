@@ -35,7 +35,7 @@ type (
 	}
 
 	privateDataFinder interface {
-		FindSensitive(ctx context.Context) (set []types.SensitiveRecordSet, err error)
+		SearchSensitive(ctx context.Context) (set []types.SensitiveRecordSet, err error)
 	}
 
 	DataPrivacy struct {
@@ -64,7 +64,7 @@ func (ctrl *DataPrivacy) RecordList(ctx context.Context, r *request.DataPrivacyR
 	}
 
 	// Collect sensitive records
-	ss, err := ctrl.record.FindSensitive(ctx)
+	ss, err := ctrl.record.SearchSensitive(ctx)
 	if err != nil {
 		return
 	}

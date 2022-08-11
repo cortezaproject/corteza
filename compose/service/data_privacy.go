@@ -49,7 +49,7 @@ func (svc dataPrivacy) FindModules(ctx context.Context, filter types.PrivacyModu
 		tag := locale.GetAcceptLanguageFromContext(ctx)
 		n.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, n.ResourceTranslation()))
 
-		modules, f, err = svc.m.FindSensitive(ctx, types.PrivacyModuleFilter{
+		modules, f, err = svc.m.SearchSensitive(ctx, types.PrivacyModuleFilter{
 			NamespaceID:  n.ID,
 			ConnectionID: filter.ConnectionID,
 		})
