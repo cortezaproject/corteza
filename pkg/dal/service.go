@@ -553,12 +553,19 @@ func (svc *service) ReplaceModel(ctx context.Context, model *Model) (err error) 
 
 	// Add to connection
 	connectionIssues := svc.hasConnectionIssues(model.ConnectionID)
-	modelIssues := svc.hasModelIssues(model.ResourceID)
 	if connectionIssues {
-		log.Warn("not adding to connection due to connection issues")
+		log.Warn(
+			"not adding to connection due to connection issues",
+			zap.Any("issues", svc.SearchConnectionIssues(model.ConnectionID)),
+		)
 	}
+
+	modelIssues := svc.hasModelIssues(model.ResourceID)
 	if modelIssues {
-		log.Warn("not adding to connection due to model issues")
+		log.Warn(
+			"not adding to connection due to model issues",
+			zap.Any("issues", svc.SearchModelIssues(model.ResourceID)),
+		)
 	}
 
 	connection := svc.GetConnectionByID(model.ConnectionID)
@@ -868,7 +875,7 @@ func (svc *service) registerModelToConnection(ctx context.Context, cw *Connectio
 
 	available, err := cw.connection.Models(ctx)
 	if err != nil {
-		issues.addModelIssue(model.ResourceID, err)
+		issues.addConnectionIssue(model.ConnectionID, err)
 		return issues, nil
 	}
 

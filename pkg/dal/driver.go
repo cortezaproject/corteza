@@ -63,10 +63,10 @@ type (
 		// CreateModel adds support for the given models to the underlying database
 		//
 		// The operation returns an error if any of the models already exists.
-		CreateModel(context.Context, *Model, ...*Model) error
+		CreateModel(context.Context, ...*Model) error
 
 		// DeleteModel removes support for the given model from the underlying database
-		DeleteModel(context.Context, *Model, ...*Model) error
+		DeleteModel(context.Context, ...*Model) error
 
 		// UpdateModel requests for metadata changes to the existing model
 		//
