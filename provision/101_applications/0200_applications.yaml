@@ -61,3 +61,12 @@ applications:
       icon: applications/reporter.png
       logo: applications/reporter.png
       url: reporter/
+
+  - name: Privacy
+    (envoy): { skipIf: "!missing" }
+    enabled: true
+    unify:
+      listed: true
+      icon: applications/privacy.png
+      logo: applications/privacy.png
+      url: privacy/
