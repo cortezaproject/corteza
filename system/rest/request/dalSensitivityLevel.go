@@ -49,17 +49,17 @@ type (
 	DalSensitivityLevelCreate struct {
 		// Handle POST parameter
 		//
-		// handle
+		//
 		Handle string
 
 		// Level POST parameter
 		//
-		// level
+		//
 		Level int
 
 		// Meta POST parameter
 		//
-		// meta
+		//
 		Meta types.DalSensitivityLevelMeta
 	}
 
@@ -71,17 +71,17 @@ type (
 
 		// Handle POST parameter
 		//
-		// handle
+		//
 		Handle string
 
 		// Level POST parameter
 		//
-		// level
+		//
 		Level int
 
 		// Meta POST parameter
 		//
-		// meta
+		//
 		Meta types.DalSensitivityLevelMeta
 	}
 

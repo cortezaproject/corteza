@@ -59,22 +59,22 @@ type (
 	DalConnectionCreate struct {
 		// Handle POST parameter
 		//
-		// handle
+		//
 		Handle string
 
 		// Type POST parameter
 		//
-		// type
+		//
 		Type string
 
 		// Meta POST parameter
 		//
-		// meta
+		//
 		Meta types.ConnectionMeta
 
 		// Config POST parameter
 		//
-		// config
+		//
 		Config types.ConnectionConfig
 	}
 
@@ -86,22 +86,22 @@ type (
 
 		// Handle POST parameter
 		//
-		// handle
+		//
 		Handle string
 
 		// Type POST parameter
 		//
-		// type
+		//
 		Type string
 
 		// Meta POST parameter
 		//
-		// meta
+		//
 		Meta types.ConnectionMeta
 
 		// Config POST parameter
 		//
-		// config
+		//
 		Config types.ConnectionConfig
 	}
 

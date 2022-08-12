@@ -762,10 +762,8 @@ endpoints:
       get:
       - name: sensitivityLevelID
         type: "[]string"
-        required: false
         title: Filter by sensitivity level ID
       - name: deleted
-        required: false
         title: Exclude (0, default), include (1) or return only (2) deleted sensitivity levels
         type: uint
 
@@ -775,23 +773,12 @@ endpoints:
     path: "/"
     parameters:
       post:
-      - name: handle
-        type: string
-        required: true
-        title: handle
-      - name: level
-        type: int
-        required: true
-        title: level
-      - name: meta
-        type: types.DalSensitivityLevelMeta
-        parser: types.ParseDalSensitivityLevelMeta
-        required: true
-        title: meta
-
+      - { name: "handle", type: "string",                        required: true }
+      - { name: "level",  type: "int",                           required: true }
+      - { name: "meta",   type: "types.DalSensitivityLevelMeta", required: true,  parser: "types.ParseDalSensitivityLevelMeta" }
   - name: update
     method: PUT
-    title: Update connection details
+    title: Update sensitivity details
     path: "/{sensitivityLevelID}"
     parameters:
       path:
@@ -800,19 +787,9 @@ endpoints:
         required: true
         title: Connection ID
       post:
-      - name: handle
-        type: string
-        required: true
-        title: handle
-      - name: level
-        type: int
-        required: true
-        title: level
-      - name: meta
-        type: types.DalSensitivityLevelMeta
-        parser: types.ParseDalSensitivityLevelMeta
-        required: true
-        title: meta
+      - { name: "handle", type: "string",                        required: true }
+      - { name: "level",  type: "int",                           required: true }
+      - { name: "meta",   type: "types.DalSensitivityLevelMeta", required: true,  parser: "types.ParseDalSensitivityLevelMeta" }
 
   - name: read
     method: GET
@@ -865,18 +842,14 @@ endpoints:
       get:
       - name: connectionID
         type: "[]string"
-        required: false
         title: Filter by connection ID
       - type: string
         name: handle
-        required: false
         title: Search handle to match against connections
       - type: string
         name: type
-        required: false
         title: Search type to match against connections
       - name: deleted
-        required: false
         title: Exclude (0, default), include (1) or return only (2) deleted connections
         type: uint
   - name: create
@@ -885,85 +858,41 @@ endpoints:
     path: "/"
     parameters:
       post:
-      - name: handle
-        type: string
-        required: true
-        title: handle
-      - name: type
-        type: string
-        required: true
-        title: type
-      - name: meta
-        type: types.ConnectionMeta
-        required: true
-        title: meta
-        parser: types.ParseConnectionMeta
-      - name: config
-        type: types.ConnectionConfig
-        required: true
-        title: config
-        parser: types.ParseConnectionConfig
+      - { name: handle, type: "string",                 required: true }
+      - { name: type,   type: "string",                 required: true }
+      - { name: meta,   type: "types.ConnectionMeta",   required: true, parser: "types.ParseConnectionMeta" }
+      - { name: config, type: "types.ConnectionConfig", required: true, parser: "types.ParseConnectionConfig" }
 
   - name: update
     method: PUT
     title: Update connection details
     path: "/{connectionID}"
     parameters:
-      path:
-      - type: uint64
-        name: connectionID
-        required: true
-        title: Connection ID
+      path: [ { type: uint64, name: connectionID, required: true, title: "Connection ID" } ]
       post:
-      - name: handle
-        type: string
-        required: true
-        title: handle
-      - name: type
-        type: string
-        required: true
-        title: type
-      - name: meta
-        type: types.ConnectionMeta
-        required: true
-        title: meta
-        parser: types.ParseConnectionMeta
-      - name: config
-        type: types.ConnectionConfig
-        required: true
-        title: config
-        parser: types.ParseConnectionConfig
+      - { name: handle, type: "string",                 required: true }
+      - { name: type,   type: "string",                 required: true }
+      - { name: meta,   type: "types.ConnectionMeta",   required: true, parser: "types.ParseConnectionMeta" }
+      - { name: config, type: "types.ConnectionConfig", required: true, parser: "types.ParseConnectionConfig" }
 
   - name: read
     method: GET
     title: Read connection details
     path: "/{connectionID}"
     parameters:
-      path:
-      - type: uint64
-        name: connectionID
-        required: true
-        title: Connection ID
+      path: [ { type: uint64, name: connectionID, required: true, title: "Connection ID" } ]
   - name: delete
     method: DELETE
     title: Remove connection
     path: "/{connectionID}"
     parameters:
-      path:
-      - type: uint64
-        name: connectionID
-        required: true
-        title: Connection ID
+      path: [ { type: uint64, name: connectionID, required: true, title: "Connection ID" } ]
   - name: undelete
     method: POST
     title: Undelete connection
     path: "/{connectionID}/undelete"
     parameters:
-      path:
-      - type: uint64
-        name: connectionID
-        required: true
-        title: Connection ID
+      path: [ { type: uint64, name: connectionID, required: true, title: "Connection ID" } ]
 
 - title: Applications
   path: "/application"
