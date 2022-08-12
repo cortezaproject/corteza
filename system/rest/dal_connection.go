@@ -30,14 +30,6 @@ type (
 		connectionAc connectionAccessController
 	}
 
-	connectionWrap struct {
-		types.DalConnection
-
-		Type    string `json:"type"`
-		Primary bool   `json:"primary"`
-	}
-	connectionWrapSet []connectionWrap
-
 	connectionPayload struct {
 		*types.DalConnection
 
