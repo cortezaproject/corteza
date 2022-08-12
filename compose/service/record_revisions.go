@@ -96,6 +96,7 @@ func (svc *recordRevisions) skippedField(mod *types.Module) []string {
 		"namespaceID",
 		"moduleID",
 		"revision",
+		"meta",
 		"createdBy",
 		"createdAt",
 		"updatedBy",
