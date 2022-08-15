@@ -113,7 +113,7 @@ func NewConfig(in string) (*rdbms.ConnConfig, error) {
 	case strings.HasPrefix(in, debugSchema+schemaDel):
 		cfg.DriverName = debugSchema
 	default:
-		return nil, fmt.Errorf("expecting valid schema (sqlite3://) at the beginning of the DSN (%s)", in)
+		return nil, fmt.Errorf("expecting valid schema (sqlite3://) at the beginning of the DSN")
 	}
 
 	// reassemble DSN with base schema

@@ -13458,7 +13458,7 @@ func (s Store) TruncateLabels(ctx context.Context) error {
 	return s.Exec(ctx, labelTruncateQuery(s.Dialect))
 }
 
-// SearchLabels returns (filtered) set of Meta
+// SearchLabels returns (filtered) set of Labels
 //
 // This function is auto-generated
 func (s *Store) SearchLabels(ctx context.Context, f labelsType.LabelFilter) (set labelsType.LabelSet, _ labelsType.LabelFilter, err error) {

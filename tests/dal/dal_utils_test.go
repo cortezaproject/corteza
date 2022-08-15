@@ -139,7 +139,6 @@ func initSvc(ctx context.Context, d driver) (dalService, error) {
 
 	cm := dal.ConnectionConfig{
 		ModelIdent:         c.Config.DAL.ModelIdent,
-		AttributeIdent:     c.Config.DAL.AttributeIdent,
 		SensitivityLevelID: c.Config.Privacy.SensitivityLevelID,
 		Label:              c.Handle,
 	}
@@ -149,7 +148,17 @@ func initSvc(ctx context.Context, d driver) (dalService, error) {
 		return nil, err
 	}
 
-	err = svc.ReplaceConnection(ctx, dal.MakeConnection(c.ID, nil, c.Config.Connection, cm, dal.FullOperations()...), true)
+	err = svc.ReplaceConnection(
+		ctx,
+		dal.MakeConnection(
+			c.ID,
+			nil,
+			dal.ConnectionParams{},
+			cm,
+			dal.FullOperations()...,
+		),
+		true,
+	)
 	if err != nil {
 		return nil, err
 	}

@@ -18,10 +18,14 @@ type (
 		Handle string `json:"handle"`
 		Type   string `json:"type"`
 
-		Meta   ConnectionMeta   `json:"meta"`
+		// descriptions, notes, and other user-provided meta-data
+		Meta ConnectionMeta `json:"meta"`
+
+		// collection of configurations for various subsystems that
+		// use this connection and how it affects their behaviour
 		Config ConnectionConfig `json:"config"`
 
-		Issues []string `json:"issues,omitempty" db:"-"`
+		Issues []string `json:"issues,omitempty"`
 
 		Labels map[string]string `json:"labels,omitempty"`
 
@@ -33,45 +37,69 @@ type (
 		DeletedBy uint64     `json:"deletedBy,string,omitempty"`
 	}
 
-	ConnectionConfig struct {
-		Connection dal.ConnectionParams    `json:"connection"`
-		Privacy    ConnectionConfigPrivacy `json:"privacy"`
-		DAL        ConnectionConfigDAL     `json:"dal"`
+	// Meta ...................................................................
+
+	ConnectionMeta struct {
+		Name       string                   `json:"name"`
+		Ownership  string                   `json:"ownership"`
+		Location   geolocation.Full         `json:"location"`
+		Properties ConnectionMetaProperties `json:"properties"`
 	}
 
-	ConnectionProperties struct {
-		DataAtRestEncryption    ConnectionPropertyMeta `json:"dataAtRestEncryption"`
-		DataAtRestProtection    ConnectionPropertyMeta `json:"dataAtRestProtection"`
-		DataAtTransitEncryption ConnectionPropertyMeta `json:"dataAtTransitEncryption"`
-		DataRestoration         ConnectionPropertyMeta `json:"dataRestoration"`
+	ConnectionMetaProperties struct {
+		DataAtRestEncryption    ConnectionMetaProperty `json:"dataAtRestEncryption"`
+		DataAtRestProtection    ConnectionMetaProperty `json:"dataAtRestProtection"`
+		DataAtTransitEncryption ConnectionMetaProperty `json:"dataAtTransitEncryption"`
+		DataRestoration         ConnectionMetaProperty `json:"dataRestoration"`
 	}
 
-	ConnectionPropertyMeta struct {
+	ConnectionMetaProperty struct {
 		Enabled bool   `json:"enabled"`
 		Notes   string `json:"notes"`
 	}
 
-	ConnectionMeta struct {
-		Location  geolocation.Full `json:"location"`
-		Ownership string           `json:"ownership"`
-		Name      string           `json:"name"`
+	// Config .................................................................
+
+	ConnectionConfig struct {
+		// DAL configuration
+		// using ptr to allow nil values (when dealing with access-controlled data)
+		DAL *ConnectionConfigDAL `json:"dal,omitempty"`
+
+		// Privacy configuration
+		Privacy ConnectionConfigPrivacy `json:"privacy"`
 	}
 
 	ConnectionConfigPrivacy struct {
+		// Sets max-allowed data-sensitivity level for this connection
+		//
+		// Fields of the modules using this connection should have equal or
+		// lower sensitivity level
 		SensitivityLevelID uint64 `json:"sensitivityLevelID,string,omitempty"`
 	}
 
+	// ConnectionConfigDAL a set of connection parameters
+	// and model configuration
 	ConnectionConfigDAL struct {
-		Properties ConnectionProperties `json:"properties"`
+		// type of connection
+		Type string `json:"type"`
+
+		// parameters for th connection
+		Params map[string]any `json:"params"`
+
 		// @note operations, for now, will only be available on connections
 		//       with a fallback on modules
 		Operations dal.OperationSet `json:"operations"`
 
-		ModelIdent     string `json:"modelIdent"`
-		AttributeIdent string `json:"attributeIdent"`
+		// ident to be used when generating models from modules using this connection
+		// it can use {{module}} and {{namespace}} as placeholders
+		ModelIdent string `json:"modelIdent"`
 
+		// set of regular-expression strings that will be used to match against
+		// generated model identifiers
 		ModelIdentCheck []string `json:"modelIdentCheck"`
 	}
+
+	// ........................................................................
 
 	DalConnectionFilter struct {
 		ConnectionID []uint64 `json:"connectionID,string"`

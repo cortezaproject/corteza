@@ -195,48 +195,49 @@ func NewDSNDriverConnectionConfig() DriverConnectionConfig {
 		}},
 	}
 }
-func NewHTTPDriverConnectionConfig() DriverConnectionConfig {
-	panic("not implemented NewHTTPDriverConnectionConfig")
-	return DriverConnectionConfig{
-		Type:   "corteza::dal:connection:http",
-		Params: []DriverConnectionParam{{}},
-	}
-}
-func NewFederatedNodeDriverConnectionConfig() DriverConnectionConfig {
-	panic("not implemented NewFederatedNodeDriverConnectionConfig")
-	return DriverConnectionConfig{
-		Type:   "corteza::dal:connection:federated-node",
-		Params: []DriverConnectionParam{{}},
-	}
-}
 
-func NewDSNConnection(dsn string) ConnectionParams {
-	return ConnectionParams{
-		Type: "corteza::dal:connection:dsn",
-		Params: map[string]any{
-			"dsn": dsn,
-		},
-	}
-}
+//func NewHTTPDriverConnectionConfig() DriverConnectionConfig {
+//	panic("not implemented NewHTTPDriverConnectionConfig")
+//	return DriverConnectionConfig{
+//		Type:   "corteza::dal:connection:http",
+//		Params: []DriverConnectionParam{{}},
+//	}
+//}
+//func NewFederatedNodeDriverConnectionConfig() DriverConnectionConfig {
+//	panic("not implemented NewFederatedNodeDriverConnectionConfig")
+//	return DriverConnectionConfig{
+//		Type:   "corteza::dal:connection:federated-node",
+//		Params: []DriverConnectionParam{{}},
+//	}
+//}
 
-func NewHTTPConnection(url string, headers, query map[string][]string) ConnectionParams {
-	return ConnectionParams{
-		Type: "corteza::dal:connection:http",
-		Params: map[string]any{
-			"url":     url,
-			"headers": headers,
-			"query":   query,
-		},
-	}
-}
+//func NewDSNConnection(dsn string) ConnectionParams {
+//	return ConnectionParams{
+//		Type: "corteza::dal:connection:dsn",
+//		Params: map[string]any{
+//			"dsn": dsn,
+//		},
+//	}
+//}
 
-func NewFederatedNodeCOnnection(url string, pairToken, authToken string) ConnectionParams {
-	return ConnectionParams{
-		Type: "corteza::dal:connection:federation-node",
-		Params: map[string]any{
-			"baseURL":   url,
-			"pairToken": pairToken,
-			"authToken": authToken,
-		},
-	}
-}
+//func NewHTTPConnection(url string, headers, query map[string][]string) ConnectionParams {
+//	return ConnectionParams{
+//		Type: "corteza::dal:connection:http",
+//		Params: map[string]any{
+//			"url":     url,
+//			"headers": headers,
+//			"query":   query,
+//		},
+//	}
+//}
+//
+//func NewFederatedNodeConnection(url string, pairToken, authToken string) ConnectionParams {
+//	return ConnectionParams{
+//		Type: "corteza::dal:connection:federation-node",
+//		Params: map[string]any{
+//			"baseURL":   url,
+//			"pairToken": pairToken,
+//			"authToken": authToken,
+//		},
+//	}
+//}

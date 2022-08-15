@@ -101,7 +101,7 @@ func makeTestRecordService(t *testing.T, mods ...any) *record {
 				ctx,
 				dal.MakeConnection(1, svc.store.ToDalConn(),
 					dal.ConnectionParams{},
-					dal.ConnectionConfig{ModelIdent: recordsTable, AttributeIdent: "values"},
+					dal.ConnectionConfig{ModelIdent: recordsTable},
 				),
 				true,
 			),
@@ -109,7 +109,7 @@ func makeTestRecordService(t *testing.T, mods ...any) *record {
 
 		svc.dal = dalAux
 
-		// assuming store will alwats be RDBMS/SQLite and we can just run delete
+		// assuming store will always be RDBMS/SQLite and we can just run delete
 		//
 		// this could be done more "properly" by invoking DAL to truncate records
 		// but at the momment we need to provide the right model/module.

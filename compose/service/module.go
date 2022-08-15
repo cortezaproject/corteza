@@ -1357,18 +1357,6 @@ func moduleSystemFieldsToAttributes(mod *types.Module) (out dal.AttributeSet, er
 // moduleFieldToAttribute converts the given module field to a DAL attribute
 func moduleFieldToAttribute(f *types.ModuleField, conn *dal.ConnectionWrap) (out *dal.Attribute, err error) {
 	var (
-		// ensure JSON encoded record values always have ident to use
-		// either from the connection config or "values" as a failsafe
-		attribIdent = func() string {
-			var attribIdent = conn.Config.AttributeIdent
-
-			if len(attribIdent) > 0 {
-				return attribIdent
-			}
-
-			return "values"
-		}()
-
 		// generate dal.Codec for each attribute
 		// using encoding strategy for that attribute
 		// with failsafe on JSON RVS.
@@ -1388,7 +1376,9 @@ func moduleFieldToAttribute(f *types.ModuleField, conn *dal.ConnectionWrap) (out
 				// defaulting to RecordValueSetJSON with
 				// default attribute ident from connection
 				return &dal.CodecRecordValueSetJSON{
-					Ident: attribIdent,
+					// ensure JSON encoded record values always have
+					// "values" as col ident as a failsafe
+					Ident: "values",
 				}
 			}
 		}

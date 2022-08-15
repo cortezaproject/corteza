@@ -33,6 +33,7 @@ type (
 		CanReadDalConnection(context.Context, *types.DalConnection) bool
 		CanUpdateDalConnection(context.Context, *types.DalConnection) bool
 		CanDeleteDalConnection(context.Context, *types.DalConnection) bool
+		CanManageDalConfigOnDalConnection(context.Context, *types.DalConnection) bool
 	}
 
 	// Connection management on DAL Service
@@ -69,7 +70,7 @@ func (svc *dalConnection) FindByID(ctx context.Context, ID uint64) (q *types.Dal
 			return DalConnectionErrNotAllowedToRead(rProps)
 		}
 
-		svc.proc(q)
+		svc.proc(ctx, q)
 		return nil
 	}()
 	return q, svc.recordAction(ctx, rProps, DalConnectionActionLookup, err)
@@ -107,7 +108,7 @@ func (svc *dalConnection) Create(ctx context.Context, new *types.DalConnection) 
 		if err = dalConnectionReplace(ctx, svc.store.ToDalConn(), svc.dal, new); err != nil {
 			return err
 		}
-		svc.proc(q)
+		svc.proc(ctx, q)
 		return
 	}()
 
@@ -125,8 +126,6 @@ func (svc *dalConnection) Update(ctx context.Context, upd *types.DalConnection) 
 			return DalConnectionErrNotFound(cProps)
 		}
 
-		svc.proc(old)
-
 		if !svc.ac.CanUpdateDalConnection(ctx, old) {
 			return DalConnectionErrNotAllowedToUpdate(cProps)
 		}
@@ -139,11 +138,15 @@ func (svc *dalConnection) Update(ctx context.Context, upd *types.DalConnection) 
 		{
 			if old.Type == types.DalPrimaryConnectionResourceType {
 				// when primary connection is updated,
-				// ignore configuration changes
+				// ignore connection & DAL config changes
 				//
 				// see Test_dal_connection_update_primary
 				// for more details
-				upd.Config = old.Config
+				upd.Config.DAL = old.Config.DAL
+			} else if upd.Config.DAL == nil {
+				upd.Config.DAL = old.Config.DAL
+			} else if !svc.ac.CanManageDalConfigOnDalConnection(ctx, old) {
+				return DalConnectionErrNotAllowedToUpdate()
 			}
 		}
 
@@ -152,9 +155,14 @@ func (svc *dalConnection) Update(ctx context.Context, upd *types.DalConnection) 
 		}
 
 		q = upd
-		defer svc.proc(q)
+
 		return dalConnectionReplace(ctx, svc.store.ToDalConn(), svc.dal, upd)
 	}()
+
+	if q != nil {
+		svc.proc(ctx, q)
+	}
+
 	return q, svc.recordAction(ctx, cProps, DalConnectionActionUpdate, err)
 }
 
@@ -247,7 +255,7 @@ func (svc *dalConnection) Search(ctx context.Context, filter types.DalConnection
 			return err
 		}
 
-		svc.proc(r...)
+		svc.proc(ctx, r...)
 		return nil
 	}()
 	return r, f, svc.recordAction(ctx, aProps, DalConnectionActionSearch, err)
@@ -257,22 +265,32 @@ func (svc *dalConnection) ReloadConnections(ctx context.Context) (err error) {
 	return dalConnectionReload(ctx, svc.store, svc.dal)
 }
 
-func (svc *dalConnection) proc(connections ...*types.DalConnection) {
+// proc is a helper function that processes the given connection set
+// before connections are returned to the caller.
+func (svc *dalConnection) proc(ctx context.Context, connections ...*types.DalConnection) {
 	for _, c := range connections {
 		svc.procPrimaryConnection(c)
-		svc.procDal(c)
+		svc.procDal(ctx, c)
 		svc.procLocale(c)
 	}
 }
 
 func (svc *dalConnection) procPrimaryConnection(c *types.DalConnection) {
 	if c.Type == types.DalPrimaryConnectionResourceType {
-		c.Config.Connection = dal.NewDSNConnection(svc.dbConf.DSN)
+		if c.Config.DAL == nil {
+			c.Config.DAL = &types.ConnectionConfigDAL{}
+		}
+
 		return
 	}
 }
 
-func (svc *dalConnection) procDal(c *types.DalConnection) {
+func (svc *dalConnection) procDal(ctx context.Context, c *types.DalConnection) {
+	if !svc.ac.CanManageDalConfigOnDalConnection(ctx, c) {
+		c.Config.DAL = nil
+		return
+	}
+
 	ii := svc.dal.SearchConnectionIssues(c.ID)
 	if len(ii) == 0 {
 		c.Issues = nil
@@ -318,6 +336,8 @@ func dalConnectionReplace(ctx context.Context, primary dal.Connection, dcm dalCo
 		isPrimary bool
 
 		connConfig dal.ConnectionConfig
+
+		conn dal.Connection
 	)
 
 	for _, c := range cc {
@@ -326,7 +346,6 @@ func dalConnectionReplace(ctx context.Context, primary dal.Connection, dcm dalCo
 		connConfig = dal.ConnectionConfig{
 			SensitivityLevelID: c.Config.Privacy.SensitivityLevelID,
 			ModelIdent:         c.Config.DAL.ModelIdent,
-			AttributeIdent:     c.Config.DAL.AttributeIdent,
 			Label:              c.Handle,
 		}
 
@@ -339,18 +358,20 @@ func dalConnectionReplace(ctx context.Context, primary dal.Connection, dcm dalCo
 			}
 		}
 
+		if isPrimary {
+			// reuse primary connection
+			conn = primary
+		} else {
+			conn = nil
+		}
+
 		cw = dal.MakeConnection(
 			c.ID,
-			// When connection is primary (type) we use the primary connection
-			// passed in to the fn
-			func() dal.Connection {
-				if isPrimary {
-					return primary
-				}
-
-				return nil
-			}(),
-			c.Config.Connection,
+			conn,
+			dal.ConnectionParams{
+				Type:   c.Config.DAL.Type,
+				Params: c.Config.DAL.Params,
+			},
 			connConfig,
 			c.Config.DAL.Operations...,
 		)
