@@ -10,11 +10,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
-const (
-	DefaultComposeRecordTable    = "compose_record"
-	DefaultComposeRecordValueCol = "values"
-)
-
 // Injects primary connection
 func defaultDalConnection(ctx context.Context, s store.DalConnections) error {
 	conn, err := store.LookupDalConnectionByHandle(ctx, s, types.DalPrimaryConnectionHandle)
@@ -39,10 +34,9 @@ func defaultDalConnection(ctx context.Context, s store.DalConnections) error {
 		},
 
 		Config: types.ConnectionConfig{
-			DAL: types.ConnectionConfigDAL{
-				ModelIdent:     DefaultComposeRecordTable,
-				AttributeIdent: DefaultComposeRecordValueCol,
-				Operations:     dal.FullOperations(),
+			DAL: &types.ConnectionConfigDAL{
+				ModelIdent: "compose_record",
+				Operations: dal.FullOperations(),
 			},
 		},
 

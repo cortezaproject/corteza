@@ -9,7 +9,6 @@ import (
 	federationService "github.com/cortezaproject/corteza-server/federation/service"
 	federationTypes "github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/api"
-	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
@@ -36,6 +35,7 @@ type (
 		CanGrant            bool `json:"canGrant"`
 		CanUpdateConnection bool `json:"canUpdateConnection"`
 		CanDeleteConnection bool `json:"canDeleteConnection"`
+		CanManageDalConfig  bool `json:"canManageDalConfig"`
 	}
 
 	connectionSetPayload struct {
@@ -48,6 +48,7 @@ type (
 		CanCreateDalConnection(context.Context) bool
 		CanUpdateDalConnection(context.Context, *types.DalConnection) bool
 		CanDeleteDalConnection(context.Context, *types.DalConnection) bool
+		CanManageDalConfigOnDalConnection(context.Context, *types.DalConnection) bool
 	}
 
 	connectionService interface {
@@ -107,7 +108,12 @@ func (ctrl DalConnection) Create(ctx context.Context, r *request.DalConnectionCr
 		Config: r.Config,
 	}
 
-	return ctrl.svc.Create(ctx, connection)
+	res, err := ctrl.svc.Create(ctx, connection)
+	if err != nil {
+		return nil, err
+	}
+
+	return ctrl.makePayload(ctx, res), nil
 }
 
 func (ctrl DalConnection) Update(ctx context.Context, r *request.DalConnectionUpdate) (interface{}, error) {
@@ -119,11 +125,21 @@ func (ctrl DalConnection) Update(ctx context.Context, r *request.DalConnectionUp
 		Config: r.Config,
 	}
 
-	return ctrl.svc.Update(ctx, connection)
+	res, err := ctrl.svc.Update(ctx, connection)
+	if err != nil {
+		return nil, err
+	}
+
+	return ctrl.makePayload(ctx, res), nil
 }
 
 func (ctrl DalConnection) Read(ctx context.Context, r *request.DalConnectionRead) (interface{}, error) {
-	return ctrl.svc.FindByID(ctx, r.ConnectionID)
+	res, err := ctrl.svc.FindByID(ctx, r.ConnectionID)
+	if err != nil {
+		return nil, err
+	}
+
+	return ctrl.makePayload(ctx, res), nil
 }
 
 func (ctrl DalConnection) Delete(ctx context.Context, r *request.DalConnectionDelete) (interface{}, error) {
@@ -139,15 +155,19 @@ func (ctrl DalConnection) makeFilterPayload(ctx context.Context, connections typ
 		Filter: f,
 		Set:    make([]*connectionPayload, 0, len(connections)),
 	}
-	for _, c := range connections {
-		c.Config.DAL.Operations = append(dal.OperationSet{}, c.Config.DAL.Operations...)
 
+	for _, c := range connections {
 		out.Set = append(out.Set, ctrl.makePayload(ctx, c))
 	}
 
 	return
 }
 
+// Make payload for dal-connection
+//
+// Payload is without connection params on the config prop
+//
+// An explicit call to /params
 func (ctrl DalConnection) makePayload(ctx context.Context, c *types.DalConnection) *connectionPayload {
 	return &connectionPayload{
 		DalConnection: c,
@@ -155,6 +175,7 @@ func (ctrl DalConnection) makePayload(ctx context.Context, c *types.DalConnectio
 		CanGrant:            ctrl.connectionAc.CanGrant(ctx),
 		CanUpdateConnection: ctrl.connectionAc.CanUpdateDalConnection(ctx, c),
 		CanDeleteConnection: ctrl.connectionAc.CanDeleteDalConnection(ctx, c),
+		CanManageDalConfig:  ctrl.connectionAc.CanManageDalConfigOnDalConnection(ctx, c),
 	}
 }
 
@@ -172,9 +193,9 @@ func (ctrl DalConnection) federatedNodeToConnection(f *federationTypes.Node) *ty
 		Handle: h,
 		Type:   federationTypes.NodeResourceType,
 
-		Config: types.ConnectionConfig{
-			Connection: dal.NewFederatedNodeCOnnection(f.BaseURL, f.PairToken, f.AuthToken),
-		},
+		//Config: types.ConnectionConfig{
+		//	Connection: dal.NewFederatedNodeConnection(f.BaseURL, f.PairToken, f.AuthToken),
+		//},
 
 		CreatedAt: f.CreatedAt,
 		CreatedBy: f.CreatedBy,

@@ -45,6 +45,7 @@ dal_connection: {
 			"read": description:         "Read connection"
 			"update": description:       "Update connection"
 			"delete": description:       "Delete connection"
+			"dal-config.manage": description: "Manage DAL configuration"
 		}
 	}
 

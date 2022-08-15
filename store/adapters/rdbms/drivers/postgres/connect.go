@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"net/url"
 	"strings"
 
@@ -80,6 +81,8 @@ func NewConfig(dsn string) (c *rdbms.ConnConfig, err error) {
 	if strings.HasPrefix(dsn, "postgres") {
 		scheme = u.Scheme
 		u.Scheme = validScheme
+	} else {
+		return nil, fmt.Errorf("expecting valid schema (postgres://) at the beginning of the DSN")
 	}
 
 	c = &rdbms.ConnConfig{

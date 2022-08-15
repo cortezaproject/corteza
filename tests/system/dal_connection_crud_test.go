@@ -60,11 +60,14 @@ func (h helper) createDalConnection(res *types.DalConnection) *types.DalConnecti
 	if res.Config.DAL.ModelIdent == "" {
 		res.Config.DAL.ModelIdent = "compose_records_{{namespace}}_{{module}}"
 	}
-	if res.Config.DAL.AttributeIdent == "" {
-		res.Config.DAL.AttributeIdent = "values"
-	}
-	if res.Config.Connection.Params == nil {
-		res.Config.Connection = dal.NewDSNConnection("sqlite3://file::memory:?cache=shared&mode=memory")
+	if res.Config.DAL == nil {
+		res.Config.DAL = &types.ConnectionConfigDAL{
+			Type: "corteza::dal:connection:dsn",
+			Params: map[string]any{
+				"dsn": "sqlite3://file::memory:?cache=shared&mode=memory",
+			},
+		}
+
 	}
 
 	if len(res.Config.DAL.Operations) == 0 {

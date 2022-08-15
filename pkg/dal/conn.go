@@ -25,10 +25,6 @@ type (
 		// ident is considered valid if it matches one of the expressions
 		// or if the list of checks is empty
 		ModelIdentCheck []*regexp.Regexp
-
-		// If model attribute(s) do not specify
-		// @todo needs to be more explicit that this is for JSON encode attributes
-		AttributeIdent string
 	}
 )
 

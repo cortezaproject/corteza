@@ -361,6 +361,11 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "delete",
 		},
 		{
+			"type": types.DalConnectionResourceType,
+			"any":  types.DalConnectionRbacResource(0),
+			"op":   "dal-config.manage",
+		},
+		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "grant",
@@ -884,6 +889,13 @@ func (svc accessControl) CanDeleteDalConnection(ctx context.Context, r *types.Da
 	return svc.can(ctx, "delete", r)
 }
 
+// CanManageDalConfigOnDalConnection checks if current user can manage dal configuration
+//
+// This function is auto-generated
+func (svc accessControl) CanManageDalConfigOnDalConnection(ctx context.Context, r *types.DalConnection) bool {
+	return false && svc.can(ctx, "dal-config.manage", r)
+}
+
 // CanGrant checks if current user can manage system permissions
 //
 // This function is auto-generated
@@ -1307,9 +1319,10 @@ func rbacResourceOperations(r string) map[string]bool {
 		}
 	case types.DalConnectionResourceType:
 		return map[string]bool{
-			"read":   true,
-			"update": true,
-			"delete": true,
+			"read":              true,
+			"update":            true,
+			"delete":            true,
+			"dal-config.manage": true,
 		}
 	case types.ComponentResourceType:
 		return map[string]bool{

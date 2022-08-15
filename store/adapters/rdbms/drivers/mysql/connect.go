@@ -97,7 +97,7 @@ func NewConfig(in string) (*rdbms.ConnConfig, error) {
 		c.DriverName = in[:endOfSchema]
 		c.DataSourceName = in[endOfSchema+len(schemeDel):]
 	} else {
-		return nil, fmt.Errorf("expecting valid schema (mysql://) at the beginning of the DSN (%s)", in)
+		return nil, fmt.Errorf("expecting valid schema (mysql://) at the beginning of the DSN")
 	}
 
 	if pdsn, err := mysql.ParseDSN(c.DataSourceName); err != nil {
