@@ -13,11 +13,15 @@ import (
 type (
 	ApigwRoute struct {
 		svc routeService
-		ac  templateAccessController
+		ac  apiGwRouteAccessController
 	}
 
 	routePayload struct {
 		*types.ApigwRoute
+
+		CanGrant            bool `json:"canGrant"`
+		CanUpdateApigwRoute bool `json:"canUpdateApigwRoute"`
+		CanDeleteApigwRoute bool `json:"canDeleteApigwRoute"`
 	}
 
 	routeSetPayload struct {
@@ -32,6 +36,14 @@ type (
 		DeleteByID(ctx context.Context, ID uint64) error
 		UndeleteByID(ctx context.Context, ID uint64) error
 		Search(ctx context.Context, filter types.ApigwRouteFilter) (types.ApigwRouteSet, types.ApigwRouteFilter, error)
+	}
+
+	apiGwRouteAccessController interface {
+		CanGrant(context.Context) bool
+
+		CanCreateApigwRoute(context.Context) bool
+		CanUpdateApigwRoute(context.Context, *types.ApigwRoute) bool
+		CanDeleteApigwRoute(context.Context, *types.ApigwRoute) bool
 	}
 )
 
@@ -94,7 +106,7 @@ func (ctrl *ApigwRoute) Update(ctx context.Context, r *request.ApigwRouteUpdate)
 			ID:       r.RouteID,
 			Endpoint: r.Endpoint,
 			Method:   r.Method,
-			Group:    uint64(r.Group),
+			Group:    r.Group,
 			Enabled:  r.Enabled,
 		}
 	)
@@ -119,6 +131,11 @@ func (ctrl *ApigwRoute) makePayload(ctx context.Context, q *types.ApigwRoute, er
 
 	qq := &routePayload{
 		ApigwRoute: q,
+
+		CanGrant: ctrl.ac.CanGrant(ctx),
+
+		CanUpdateApigwRoute: ctrl.ac.CanUpdateApigwRoute(ctx, q),
+		CanDeleteApigwRoute: ctrl.ac.CanDeleteApigwRoute(ctx, q),
 	}
 
 	return qq, nil

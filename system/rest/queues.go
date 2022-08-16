@@ -13,11 +13,15 @@ import (
 type (
 	Queue struct {
 		svc queueService
-		ac  templateAccessController
+		ac  queueAccessController
 	}
 
 	queuePayload struct {
 		*types.Queue
+
+		CanGrant       bool `json:"canGrant"`
+		CanUpdateQueue bool `json:"canUpdateQueue"`
+		CanDeleteQueue bool `json:"canDeleteQueue"`
 	}
 
 	queueSetPayload struct {
@@ -32,6 +36,14 @@ type (
 		DeleteByID(ctx context.Context, ID uint64) (err error)
 		UndeleteByID(ctx context.Context, ID uint64) (err error)
 		Search(ctx context.Context, filter types.QueueFilter) (q types.QueueSet, f types.QueueFilter, err error)
+	}
+
+	queueAccessController interface {
+		CanGrant(context.Context) bool
+
+		CanCreateQueue(context.Context) bool
+		CanUpdateQueue(context.Context, *types.Queue) bool
+		CanDeleteQueue(context.Context, *types.Queue) bool
 	}
 )
 
@@ -114,6 +126,11 @@ func (ctrl *Queue) makePayload(ctx context.Context, q *types.Queue, err error) (
 
 	qq := &queuePayload{
 		Queue: q,
+
+		CanGrant: ctrl.ac.CanGrant(ctx),
+
+		CanUpdateQueue: ctrl.ac.CanUpdateQueue(ctx, q),
+		CanDeleteQueue: ctrl.ac.CanDeleteQueue(ctx, q),
 	}
 
 	return qq, nil
