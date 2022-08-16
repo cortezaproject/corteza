@@ -14,10 +14,6 @@ import (
 var _ = errors.Wrap
 
 type (
-	tokenGenerator interface {
-		Generate(ctx context.Context, i auth.Identifiable, clientID uint64, scope ...string) (token []byte, err error)
-	}
-
 	Auth struct {
 		settings *types.AppSettings
 		authSvc  authUserService
@@ -29,22 +25,18 @@ type (
 	}
 
 	authUserPayload struct {
-		*userPayload
+		ID       uint64 `json:"userID,string"`
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Username string `json:"username"`
+		Handle   string `json:"handle"`
+
 		Roles []string `json:"roles"`
 	}
 
 	authUserService interface {
 		Impersonate(ctx context.Context, userID uint64) (*types.User, error)
 		LoadRoleMemberships(ctx context.Context, user *types.User) error
-	}
-
-	userPayload struct {
-		// Channel to part (nil) for ALL channels
-		ID       uint64 `json:"userID,string"`
-		Name     string `json:"name"`
-		Email    string `json:"email"`
-		Username string `json:"username"`
-		Handle   string `json:"handle"`
 	}
 )
 
@@ -81,14 +73,12 @@ func (ctrl *Auth) makePayload(ctx context.Context, user *types.User) (*authUserR
 	return &authUserResponse{
 		JWT: string(t),
 		User: &authUserPayload{
-			userPayload: &userPayload{
-				ID:       user.ID,
-				Name:     user.Name,
-				Handle:   user.Handle,
-				Username: user.Username,
-				Email:    user.Email,
-			},
-			Roles: payload.Uint64stoa(user.Roles()),
+			ID:       user.ID,
+			Name:     user.Name,
+			Handle:   user.Handle,
+			Username: user.Username,
+			Email:    user.Email,
+			Roles:    payload.Uint64stoa(user.Roles()),
 		},
 	}, nil
 }
