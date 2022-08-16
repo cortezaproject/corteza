@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	federationService "github.com/cortezaproject/corteza-server/federation/service"
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
@@ -20,13 +19,16 @@ var _ = errors.Wrap
 
 type (
 	SensitivityLevel struct {
-		svc           sensitivityLevelService
-		federationSvc federationNodeService
+		svc sensitivityLevelService
 	}
 
 	sensitivityLevelSetPayload struct {
 		Filter types.DalSensitivityLevelFilter `json:"filter"`
-		Set    types.DalSensitivityLevelSet    `json:"set"`
+		Set    []*sensitivityLevelPayload      `json:"set"`
+	}
+
+	sensitivityLevelPayload struct {
+		*types.DalSensitivityLevel
 	}
 
 	sensitivityLevelService interface {
@@ -41,8 +43,7 @@ type (
 
 func (SensitivityLevel) New() *SensitivityLevel {
 	return &SensitivityLevel{
-		svc:           service.DefaultDalSensitivityLevel,
-		federationSvc: federationService.DefaultNode,
+		svc: service.DefaultDalSensitivityLevel,
 	}
 }
 
@@ -99,16 +100,27 @@ func (ctrl SensitivityLevel) Undelete(ctx context.Context, r *request.DalSensiti
 	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.SensitivityLevelID)
 }
 
-func (ctrl SensitivityLevel) makeFilterPayload(ctx context.Context, ll types.DalSensitivityLevelSet, f types.DalSensitivityLevelFilter, err error) (*sensitivityLevelSetPayload, error) {
+func (ctrl SensitivityLevel) makePayload(ctx context.Context, res *types.DalSensitivityLevel, err error) (*sensitivityLevelPayload, error) {
+	if err != nil || res == nil {
+		return nil, err
+	}
+
+	pl := &sensitivityLevelPayload{res}
+
+	return pl, nil
+}
+
+func (ctrl SensitivityLevel) makeFilterPayload(ctx context.Context, rr types.DalSensitivityLevelSet, f types.DalSensitivityLevelFilter, err error) (*sensitivityLevelSetPayload, error) {
 	if err != nil {
 		return nil, err
 	}
 
-	if len(ll) == 0 {
-		ll = make([]*types.DalSensitivityLevel, 0)
-	}
+	out := &sensitivityLevelSetPayload{Filter: f, Set: make([]*sensitivityLevelPayload, len(rr))}
 
-	return &sensitivityLevelSetPayload{Filter: f, Set: ll}, nil
+	for i := range rr {
+		out.Set[i], _ = ctrl.makePayload(ctx, rr[i], nil)
+	}
+	return out, nil
 }
 
 func (ctrl SensitivityLevel) serve(ctx context.Context, fn string, archive io.ReadSeeker, err error) (interface{}, error) {
