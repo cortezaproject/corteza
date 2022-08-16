@@ -515,7 +515,7 @@ func (ctrl User) makeFilterPayload(ctx context.Context, rr types.UserSet, f type
 		return nil, err
 	}
 
-	out := &userSetPayload{Filter: f, Set: make([]*userPayload, 0)}
+	out := &userSetPayload{Filter: f, Set: make([]*userPayload, len(rr))}
 	for i := range rr {
 		out.Set[i], _ = ctrl.makePayload(ctx, rr[i], nil)
 	}
