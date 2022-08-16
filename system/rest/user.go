@@ -41,9 +41,17 @@ type (
 		roleAc roleAccessController
 	}
 
+	userPayload struct {
+		*types.User
+
+		CanGrant      bool `json:"canGrant"`
+		CanUpdateUser bool `json:"canUpdateUser"`
+		CanDeleteUser bool `json:"canDeleteUser"`
+	}
+
 	userSetPayload struct {
 		Filter types.UserFilter `json:"filter"`
-		Set    types.UserSet    `json:"set"`
+		Set    []*userPayload   `json:"set"`
 	}
 
 	userCredentials interface {
@@ -52,8 +60,11 @@ type (
 	}
 
 	userAccessController interface {
+		CanGrant(context.Context) bool
+
 		CanCreateUser(context.Context) bool
 		CanUpdateUser(context.Context, *types.User) bool
+		CanDeleteUser(context.Context, *types.User) bool
 	}
 )
 
@@ -482,16 +493,34 @@ func (ctrl *User) Import(ctx context.Context, r *request.UserImport) (rsp interf
 	return api.OK(), err
 }
 
-func (ctrl User) makeFilterPayload(ctx context.Context, uu types.UserSet, f types.UserFilter, err error) (*userSetPayload, error) {
+func (ctrl User) makePayload(ctx context.Context, res *types.User, err error) (*userPayload, error) {
+	if err != nil || res == nil {
+		return nil, err
+	}
+
+	pl := &userPayload{
+		User: res,
+
+		CanGrant: ctrl.userAc.CanGrant(ctx),
+
+		CanUpdateUser: ctrl.userAc.CanUpdateUser(ctx, res),
+		CanDeleteUser: ctrl.userAc.CanDeleteUser(ctx, res),
+	}
+
+	return pl, nil
+}
+
+func (ctrl User) makeFilterPayload(ctx context.Context, rr types.UserSet, f types.UserFilter, err error) (*userSetPayload, error) {
 	if err != nil {
 		return nil, err
 	}
 
-	if len(uu) == 0 {
-		uu = make([]*types.User, 0)
+	out := &userSetPayload{Filter: f, Set: make([]*userPayload, 0)}
+	for i := range rr {
+		out.Set[i], _ = ctrl.makePayload(ctx, rr[i], nil)
 	}
 
-	return &userSetPayload{Filter: f, Set: uu}, nil
+	return out, nil
 }
 
 func (ctrl User) serve(ctx context.Context, fn string, archive io.ReadSeeker, err error) (interface{}, error) {
