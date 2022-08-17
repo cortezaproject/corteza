@@ -126,7 +126,8 @@ func (ctrl User) Create(ctx context.Context, r *request.UserCreate) (interface{}
 		Labels: r.Labels,
 	}
 
-	return ctrl.user.Create(ctx, user)
+	res, err := ctrl.user.Create(ctx, user)
+	return ctrl.makePayload(ctx, res, err)
 }
 
 func (ctrl User) Update(ctx context.Context, r *request.UserUpdate) (interface{}, error) {
@@ -139,7 +140,8 @@ func (ctrl User) Update(ctx context.Context, r *request.UserUpdate) (interface{}
 		Labels: r.Labels,
 	}
 
-	return ctrl.user.Update(ctx, user)
+	res, err := ctrl.user.Update(ctx, user)
+	return ctrl.makePayload(ctx, res, err)
 }
 
 type (
@@ -218,7 +220,8 @@ func (ctrl User) PartialUpdate(ctx context.Context, r *request.UserPartialUpdate
 }
 
 func (ctrl User) Read(ctx context.Context, r *request.UserRead) (interface{}, error) {
-	return ctrl.user.FindByID(ctx, r.UserID)
+	res, err := ctrl.user.FindByID(ctx, r.UserID)
+	return ctrl.makePayload(ctx, res, err)
 }
 
 func (ctrl User) Delete(ctx context.Context, r *request.UserDelete) (interface{}, error) {

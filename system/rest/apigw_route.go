@@ -96,7 +96,8 @@ func (ctrl *ApigwRoute) Create(ctx context.Context, r *request.ApigwRouteCreate)
 }
 
 func (ctrl *ApigwRoute) Read(ctx context.Context, r *request.ApigwRouteRead) (interface{}, error) {
-	return ctrl.svc.FindByID(ctx, r.RouteID)
+	res, err := ctrl.svc.FindByID(ctx, r.RouteID)
+	return ctrl.makePayload(ctx, res, err)
 }
 
 func (ctrl *ApigwRoute) Update(ctx context.Context, r *request.ApigwRouteUpdate) (interface{}, error) {
