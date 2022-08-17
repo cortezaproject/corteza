@@ -23,11 +23,6 @@ var (
 	_ = strconv.FormatUint
 )
 
-const (
-	WorkflowResourceType  = "corteza::automation:workflow"
-	ComponentResourceType = "corteza::automation"
-)
-
 // RbacResource returns string representation of RBAC resource for Workflow by calling WorkflowRbacResource fn
 //
 // RBAC resource is in the corteza::automation:workflow/... format

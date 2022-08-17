@@ -23,16 +23,6 @@ var (
 	_ = strconv.FormatUint
 )
 
-const (
-	ChartResourceType       = "corteza::compose:chart"
-	ModuleResourceType      = "corteza::compose:module"
-	ModuleFieldResourceType = "corteza::compose:module-field"
-	NamespaceResourceType   = "corteza::compose:namespace"
-	PageResourceType        = "corteza::compose:page"
-	RecordResourceType      = "corteza::compose:record"
-	ComponentResourceType   = "corteza::compose"
-)
-
 // RbacResource returns string representation of RBAC resource for Chart by calling ChartRbacResource fn
 //
 // RBAC resource is in the corteza::compose:chart/... format

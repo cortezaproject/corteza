@@ -23,20 +23,6 @@ var (
 	_ = strconv.FormatUint
 )
 
-const (
-	ApplicationResourceType        = "corteza::system:application"
-	ApigwRouteResourceType         = "corteza::system:apigw-route"
-	AuthClientResourceType         = "corteza::system:auth-client"
-	DataPrivacyRequestResourceType = "corteza::system:data-privacy-request"
-	QueueResourceType              = "corteza::system:queue"
-	ReportResourceType             = "corteza::system:report"
-	RoleResourceType               = "corteza::system:role"
-	TemplateResourceType           = "corteza::system:template"
-	UserResourceType               = "corteza::system:user"
-	DalConnectionResourceType      = "corteza::system:dal-connection"
-	ComponentResourceType          = "corteza::system"
-)
-
 // RbacResource returns string representation of RBAC resource for Application by calling ApplicationRbacResource fn
 //
 // RBAC resource is in the corteza::system:application/... format
