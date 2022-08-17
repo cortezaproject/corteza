@@ -23,13 +23,6 @@ var (
 	_ = strconv.FormatUint
 )
 
-const (
-	NodeResourceType          = "corteza::federation:node"
-	ExposedModuleResourceType = "corteza::federation:exposed-module"
-	SharedModuleResourceType  = "corteza::federation:shared-module"
-	ComponentResourceType     = "corteza::federation"
-)
-
 // RbacResource returns string representation of RBAC resource for Node by calling NodeRbacResource fn
 //
 // RBAC resource is in the corteza::federation:node/... format

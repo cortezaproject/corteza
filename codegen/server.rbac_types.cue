@@ -8,7 +8,7 @@ import (
 [...schema.#codegen] &
 [
 	for cmp in app.corteza.components {
-		template: "gocode/rbac/$component_types.go.tpl"
+		template: "gocode/rbac/$component_types_rbac.go.tpl"
 		output:   "\(cmp.ident)/types/rbac.gen.go"
 		payload: {
 			package: "types"

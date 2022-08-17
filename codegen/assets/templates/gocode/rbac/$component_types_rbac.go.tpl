@@ -23,13 +23,6 @@ var (
 	_ = strconv.FormatUint
 )
 
-const (
-{{- range .types }}
-	{{ .const }} = {{ printf "%q" .type }}
-{{- end }}
-)
-
-
 {{- range .types }}
 
 // RbacResource returns string representation of RBAC resource for {{ .goType }} by calling {{ .resFunc }} fn
