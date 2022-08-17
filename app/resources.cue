@@ -24,21 +24,19 @@ resources: {
 
 		features: _allFeaturesDisabled
 
+
 		model: {
-			role_id:   { primaryKey: true, goType: "uint64", ident: "roleID", storeIdent: "rel_role" }
-			resource:  { primaryKey: true }
-			operation: { primaryKey: true }
-			access:    {                   goType: "types.Access" }
+			ident: "rbac_rules"
+			attributes: {
+				role_id:   { primaryKey: true, goType: "uint64", ident: "roleID", storeIdent: "rel_role" }
+				resource:  { primaryKey: true }
+				operation: { primaryKey: true }
+				access:    {                   goType: "types.Access" }
+			}
 		}
 
 		store: {
 			ident: "rbacRule"
-
-			settings: {
-				rdbms: {
-					table: "rbac_rules"
-				}
-			}
 
 			api: {
 				functions: [
@@ -68,15 +66,17 @@ resources: {
 		features: _allFeaturesDisabled
 
 		model: {
-			kind:        { primaryKey: true }
-			resource_id: { primaryKey: true, goType: "uint64", ident: "resourceID", storeIdent: "rel_resource" }
-			name:        { primaryKey: true, ignoreCase: true  }
-			value:       {}
+			attributes: {
+				kind:        { primaryKey: true }
+				resource_id: { primaryKey: true, goType: "uint64", ident: "resourceID", storeIdent: "rel_resource" }
+				name:        { primaryKey: true, ignoreCase: true  }
+				value:       {}
+			}
 		}
 
 		filter: {
 			expIdent: "LabelFilter"
-			model: {
+			struct: {
 				kind: {}
 				rel_resource: { goType: "[]uint64", ident: "resourceID" }
 				limit: { goType: "uint" }
@@ -124,16 +124,18 @@ resources: {
 		features: _allFeaturesDisabled
 
 		model: {
-			kind:        { primaryKey: true }
-			resource_id: { primaryKey: true, goType: "uint64", ident: "resourceID", storeIdent: "rel_resource" }
-			owned_by:    { primaryKey: true, goType: "uint64" }
-		  name:        { primaryKey: true, ignoreCase: true }
-			active:      {                   goType: "bool"}
+			attributes: {
+				kind:        { primaryKey: true }
+				resource_id: { primaryKey: true, goType: "uint64", ident: "resourceID", storeIdent: "rel_resource" }
+				owned_by:    { primaryKey: true, goType: "uint64" }
+		  	name:        { primaryKey: true, ignoreCase: true }
+				active:      {                   goType: "bool"}
+			}
 		}
 
 		filter: {
 			expIdent: "FlagFilter"
-			model: {
+			struct: {
 				kind: {}
 				resource_id: { goType: "[]uint64", ident: "resourceID", storeIdent: "rel_resource" }
 				owned_by: { goType: "[]uint64", ident: "ownedBy" }
@@ -174,23 +176,26 @@ resources: {
 		}
 
 		model: {
-  		id:           schema.IdField
-			timestamp:    schema.SortableTimestampField & { storeIdent: "ts" }
-			request_origin:  {}
-			request_id:  { ident: "requestID" }
-			actor_ip_addr:  { ident: "actorIPAddr"}
-			actor_id:  { goType: "uint64", ident: "actorID" }
-			resource:  {}
-			action:  {}
-			error:  {}
-			severity:  { goType: "types.Severity" }
-			description:  {}
-			meta:  { goType: "types.Meta" }
+			ident: "actionlog"
+			attributes: {
+  			id:           schema.IdField
+				timestamp:    schema.SortableTimestampField & { storeIdent: "ts" }
+				request_origin:  {}
+				request_id:  { ident: "requestID" }
+				actor_ip_addr:  { ident: "actorIPAddr"}
+				actor_id:  { goType: "uint64", ident: "actorID" }
+				resource:  {}
+				action:  {}
+				error:  {}
+				severity:  { goType: "types.Severity" }
+				description:  {}
+				meta:  { goType: "types.Meta" }
+			}
 		}
 
 		filter: {
 			expIdent: "Filter"
-			model: {
+			struct: {
 				from_timestamp: { goType: "*time.Time" }
 				to_timestamp: { goType: "*time.Time" }
 				before_action_id: { goType: "uint64", ident: "beforeActionID" }
@@ -206,13 +211,6 @@ resources: {
 
 		store: {
 			ident: "actionlog"
-
-			settings: {
-				rdbms: {
-					table: "actionlog"
-
-				}
-			}
 
 			api: {
 				lookups: [
@@ -241,17 +239,20 @@ resources: {
 		features: _allFeaturesDisabled
 
 		model: {
-  		id:           schema.IdField
-			timestamp:    schema.SortableTimestampField & { storeIdent: "ts" }
-			resource_type:   {}
-			resource_action: {}
-			resource_id:     { goType: "uint64", ident: "resourceID", storeIdent: "rel_resource" }
-			meta:            { goType: "rawJson" }
+			ident: "resource_activity_log"
+			attributes: {
+				id:           schema.IdField
+				timestamp:    schema.SortableTimestampField & { storeIdent: "ts" }
+				resource_type:   {}
+				resource_action: {}
+				resource_id:     { goType: "uint64", ident: "resourceID", storeIdent: "rel_resource" }
+				meta:            { goType: "rawJson" }
+			}
 		}
 
 		filter: {
 			expIdent: "ResourceActivityFilter"
-			model: {
+			struct: {
 				from_timestamp: { goType: "*time.Time" }
 				to_timestamp: { goType: "*time.Time" }
 			}
@@ -259,12 +260,6 @@ resources: {
 
 		store: {
 			ident: "resourceActivity"
-
-			settings: {
-				rdbms: {
-					table: "resource_activity_log"
-				}
-			}
 
 			api: {
 				lookups: []

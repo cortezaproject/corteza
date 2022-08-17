@@ -10,24 +10,27 @@ chart: {
 	]
 
 	model: {
-		id: schema.IdField
-		handle: schema.HandleField
-		name: {sortable: true}
-		config: { goType: "types.ChartConfig" }
-		namespace_id: { sortable: true, ident: "namespaceID", goType: "uint64", storeIdent: "rel_namespace" }
+		ident: "compose_chart"
+		attributes: {
+				id: schema.IdField
+				handle: schema.HandleField
+				name: {sortable: true}
+				config: { goType: "types.ChartConfig" }
+				namespace_id: { sortable: true, ident: "namespaceID", goType: "uint64", storeIdent: "rel_namespace" }
 
-		created_at: schema.SortableTimestampField
-		updated_at: schema.SortableTimestampNilField
-		deleted_at: schema.SortableTimestampNilField
+				created_at: schema.SortableTimestampField
+				updated_at: schema.SortableTimestampNilField
+				deleted_at: schema.SortableTimestampNilField
+		}
 	}
 
 	filter: {
-		model: {
-			chart_id: { goType: "[]uint64", ident: "chartID", storeIdent: "id" }
-			namespace_id: { goType: "uint64", ident: "namespaceID", storeIdent: "rel_namespace" }
-			handle: { goType: "string" }
-			name: { goType: "string" }
-			deleted: { goType: "filter.State", storeIdent: "deleted_at" }
+		struct: {
+				chart_id: { goType: "[]uint64", ident: "chartID", storeIdent: "id" }
+				namespace_id: { goType: "uint64", ident: "namespaceID", storeIdent: "rel_namespace" }
+				handle: { goType: "string" }
+				name: { goType: "string" }
+				deleted: { goType: "filter.State", storeIdent: "deleted_at" }
 		}
 
 		query: ["handle", "name"]
@@ -64,12 +67,6 @@ chart: {
 
 	store: {
 		ident: "composeChart"
-
-		settings: {
-			rdbms: {
-				table: "compose_chart"
-			}
-		}
 
 		api: {
 			lookups: [

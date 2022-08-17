@@ -10,26 +10,29 @@ page: {
 	]
 
 	model: {
-		id: schema.IdField
-		self_id: { sortable: true, ident: "selfID", goType: "uint64" }
-		module_id: { sortable: true, ident: "moduleID", goType: "uint64", storeIdent: "rel_module" }
-		namespace_id: { sortable: true, ident: "namespaceID", goType: "uint64", storeIdent: "rel_namespace" }
-		handle: schema.HandleField
-		config: { goType: "types.PageConfig" }
-		blocks: { goType: "types.PageBlocks" }
-		children: { goType: "types.PageSet", store: false }
-		visible: { goType: "bool" }
-		weight: { goType: "int", sortable: true }
-		title: { goType: "string", sortable: true }
-		description: { goType: "string" }
+		ident: "compose_page"
+		attributes: {
+				id: schema.IdField
+				self_id: { sortable: true, ident: "selfID", goType: "uint64" }
+				module_id: { sortable: true, ident: "moduleID", goType: "uint64", storeIdent: "rel_module" }
+				namespace_id: { sortable: true, ident: "namespaceID", goType: "uint64", storeIdent: "rel_namespace" }
+				handle: schema.HandleField
+				config: { goType: "types.PageConfig" }
+				blocks: { goType: "types.PageBlocks" }
+				children: { goType: "types.PageSet", store: false }
+				visible: { goType: "bool" }
+				weight: { goType: "int", sortable: true }
+				title: { goType: "string", sortable: true }
+				description: { goType: "string" }
 
-		created_at: schema.SortableTimestampField
-		updated_at: schema.SortableTimestampNilField
-		deleted_at: schema.SortableTimestampNilField
+				created_at: schema.SortableTimestampField
+				updated_at: schema.SortableTimestampNilField
+				deleted_at: schema.SortableTimestampNilField
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			namespace_id: { goType: "uint64", ident: "namespaceID", storeIdent: "rel_namespace" }
 			parent_id: { goType: "uint64", ident: "parentID" }
 			module_id: { goType: "uint64", ident: "moduleID", storeIdent: "rel_module" }
@@ -103,12 +106,6 @@ page: {
 
 	store: {
 		ident: "composePage"
-
-		settings: {
-			rdbms: {
-				table: "compose_page"
-			}
-		}
 
 		api: {
 			lookups: [

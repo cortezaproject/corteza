@@ -6,30 +6,33 @@ import (
 
 auth_client: {
 	model: {
-		id:     schema.IdField
-		handle: schema.HandleField
-		meta: {goType: "*types.AuthClientMeta"}
-		secret: {goType: "string"}
-		scope: {goType: "string"}
-		valid_grant: {goType: "string"}
-		redirect_uri: {goType: "string", ident: "redirectURI"}
-		enabled: {sortable: true, goType: "bool"}
-		trusted: {sortable: true, goType: "bool"}
-		valid_from: { goType: "*time.Time" }
-		expires_at: schema.SortableTimestampNilField
-		security: {goType: "*types.AuthClientSecurity"}
+		attributes: {
+				id:     schema.IdField
+				handle: schema.HandleField
+				meta: {goType: "*types.AuthClientMeta"}
+				secret: {goType: "string"}
+				scope: {goType: "string"}
+				valid_grant: {goType: "string"}
+				redirect_uri: {goType: "string", ident: "redirectURI"}
+				enabled: {sortable: true, goType: "bool"}
+				trusted: {sortable: true, goType: "bool"}
+				valid_from: { goType: "*time.Time" }
+				expires_at: schema.SortableTimestampNilField
+				security: {goType: "*types.AuthClientSecurity"}
 
-		created_at: schema.SortableTimestampField
-		updated_at: schema.SortableTimestampNilField
-		deleted_at: schema.SortableTimestampNilField
-		owned_by: { goType: "uint64" }
-		created_by: { goType: "uint64" }
-		updated_by: { goType: "uint64" }
-		deleted_by: { goType: "uint64" }
+				created_at: schema.SortableTimestampField
+				updated_at: schema.SortableTimestampNilField
+				deleted_at: schema.SortableTimestampNilField
+				owned_by: { goType: "uint64" }
+				created_by: { goType: "uint64" }
+				updated_by: { goType: "uint64" }
+				deleted_by: { goType: "uint64" }
+
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			client_id: {goType: "[]uint64"}
 			handle: {goType: "string"}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}

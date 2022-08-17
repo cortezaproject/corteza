@@ -11,26 +11,30 @@ moduleField: {
 	]
 
 	model: {
-		id: schema.IdField
-		namespace_id: { ident: "namespaceID", goType: "uint64", store: false }
-		module_id: { sortable: true, ident: "moduleID", goType: "uint64", storeIdent: "rel_module" }
-		place: { sortable: true, goType: "int" }
-		kind: { sortable: true, goType: "string" }
-		name: {sortable: true}
-		label: {sortable: true}
-		options: { goType: "types.ModuleFieldOptions" }
-		config: { goType: "types.ModuleFieldConfig" }
-		required: { goType: "bool", storeIdent: "is_required" }
-		multi: { goType: "bool", storeIdent: "is_multi" }
-		default_value: { goType: "types.RecordValueSet" }
-		expressions: { goType: "types.ModuleFieldExpr" }
-		created_at: { goType: "time.Time" }
-		updated_at: { goType: "*time.Time" }
-		deleted_at: { goType: "*time.Time" }
+		ident: "compose_module_field"
+		attributes: {
+				id: schema.IdField
+				namespace_id: { ident: "namespaceID", goType: "uint64", store: false }
+				module_id: { sortable: true, ident: "moduleID", goType: "uint64", storeIdent: "rel_module" }
+				place: { sortable: true, goType: "int" }
+				kind: { sortable: true, goType: "string" }
+				name: {sortable: true}
+				label: {sortable: true}
+				options: { goType: "types.ModuleFieldOptions" }
+				config: { goType: "types.ModuleFieldConfig" }
+				required: { goType: "bool", storeIdent: "is_required" }
+				multi: { goType: "bool", storeIdent: "is_multi" }
+				default_value: { goType: "types.RecordValueSet" }
+				expressions: { goType: "types.ModuleFieldExpr" }
+				created_at: { goType: "time.Time" }
+				updated_at: { goType: "*time.Time" }
+				deleted_at: { goType: "*time.Time" }
+
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			module_id: { goType: "[]uint64", ident: "moduleID", storeIdent: "rel_module" }
 			deleted: { goType: "filter.State", storeIdent: "deleted_at" }
 		}
@@ -91,12 +95,6 @@ moduleField: {
 
 	store: {
 		ident: "composeModuleField"
-
-		settings: {
-			rdbms: {
-				table: "compose_module_field"
-			}
-		}
 
 		api: {
 			lookups: [

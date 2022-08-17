@@ -16,11 +16,13 @@ _StoreResource: {
 		identPlural:    res.store.identPlural
 		expIdent:       res.store.expIdent
 		expIdentPlural: res.store.expIdentPlural
+		modelIdent:     res.model.ident
 		goType:         "\(typePkg).\(res.expIdent)"
 		goSetType:      "\(typePkg).\(res.expIdent)Set"
 		goFilterType:   "\(typePkg).\(res.filter.expIdent)"
 
-		struct: [ for f in res.model if f.store {
+
+		struct: [ for f in res.model.attributes if f.store {
 			"ident":      f.ident
 			"expIdent":   f.expIdent
 			"storeIdent": f.storeIdent
@@ -32,17 +34,17 @@ _StoreResource: {
 
 		filter: {
 			// query fields as defined in struct
-			"query":        [ for name in res.filter.query   {res.model[name]}],
+			"query":        [ for name in res.filter.query   {res.model.attributes[name]}],
 
 			// filter by nil state as defined in filter
-			"byNilState":   [ for name in res.filter.byNilState {res.filter.model[name]}]
+			"byNilState":   [ for name in res.filter.byNilState {res.filter.struct[name]}]
 
 			// filter by false as defined in filter
-			"byFalseState": [ for name in res.filter.byFalseState {res.filter.model[name]}]
+			"byFalseState": [ for name in res.filter.byFalseState {res.filter.struct[name]}]
 
 			// filter by value as defined in filter
 			// @todo this should be pulled from the struct
-			"byValue":      [ for name in res.filter.byValue {res.filter.model[name]}]
+			"byValue":      [ for name in res.filter.byValue {res.filter.struct[name]}]
 			"byLabel": res.features.labels
 			"byFlag":  res.features.flags
 		}
@@ -67,7 +69,7 @@ _StoreResource: {
 				}
 
 				deleteByPK: {
-					primaryKeys: [ for f in res.model if f.primaryKey {f} ]
+					primaryKeys: [ for f in res.model.attributes if f.primaryKey {f} ]
 					_pkExpNames: strings.Join([ for f in primaryKeys { f.expIdent } ], "")
 					"expFnIdent":  "Delete\(res.store.expIdent)By\(_pkExpNames)"
 				}
@@ -85,7 +87,7 @@ _StoreResource: {
 						// Copy all relevant fields from the struct
 						"args": [
 							for name in l.fields {
-								let f = res.model[name]
+								let f = res.model.attributes[name]
 
 								"ident":  f.ident
 								"storeIdent":  f.storeIdent
@@ -126,7 +128,7 @@ _StoreResource: {
 					"fnIdent": "sortable\(expIdent)Fields"
 
 					fields: {
-						for f in res.model if f.sortable || f.unique || f.primaryKey {
+						for f in res.model.attributes if f.sortable || f.unique || f.primaryKey {
 							{
 								"\(strings.ToLower(f.name))":  f.name
 								"\(strings.ToLower(f.ident))": f.name
@@ -140,8 +142,8 @@ _StoreResource: {
 
 					"fnIdent": "collect\(expIdent)CursorValues"
 
-					fields: [ for f in res.model if f.sortable || f.unique || f.primaryKey {f} ]
-					primaryKeys: [ for f in res.model if f.primaryKey {f} ]
+					fields: [ for f in res.model.attributes if f.sortable || f.unique || f.primaryKey {f} ]
+					primaryKeys: [ for f in res.model.attributes if f.primaryKey {f} ]
 				}
 
 				checkConstraints: {
@@ -152,9 +154,9 @@ _StoreResource: {
 					checks: [
 						for lookup in res.store.api.lookups if lookup.constraintCheck {
 							lookupFnIdent: lookup.expIdent
-							fields: [ for name in lookup.fields {res.model[name]}]
+							fields: [ for name in lookup.fields {res.model.attributes[name]}]
 							nullConstraint: [
-								for f in res.model if list.Contains(lookup.nullConstraint, f.name) {
+								for f in res.model.attributes if list.Contains(lookup.nullConstraint, f.name) {
 									"expIdent": f.expIdent
 								},
 							]
@@ -163,8 +165,6 @@ _StoreResource: {
 				}
 			}
 		}
-
-		settings: res.store.settings
 	}
 }
 

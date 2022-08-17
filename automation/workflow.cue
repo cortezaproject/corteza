@@ -6,29 +6,32 @@ import (
 
 workflow: {
 	model: {
-		id:          schema.IdField
-		handle:      schema.HandleField
-		meta: { goType: "*types.WorkflowMeta" }
-		enabled: { sortable: true, goType: "bool" }
-		trace: { goType: "bool" }
-		keep_sessions: { goType: "int" }
-		scope: { goType: "*expr.Vars" }
-		steps: { goType: "types.WorkflowStepSet" }
-		paths: { goType: "types.WorkflowPathSet" }
-		issues: { goType: "types.WorkflowIssueSet" }
-		run_as: { goType: "uint64" }
+		ident: "automation_workflows"
+		attributes: {
+			id:          schema.IdField
+			handle:      schema.HandleField
+			meta: { goType: "*types.WorkflowMeta" }
+			enabled: { sortable: true, goType: "bool" }
+			trace: { goType: "bool" }
+			keep_sessions: { goType: "int" }
+			scope: { goType: "*expr.Vars" }
+			steps: { goType: "types.WorkflowStepSet" }
+			paths: { goType: "types.WorkflowPathSet" }
+			issues: { goType: "types.WorkflowIssueSet" }
+			run_as: { goType: "uint64" }
 
-		owned_by: { goType: "uint64" }
-		created_at: schema.SortableTimestampField
-		updated_at: schema.SortableTimestampNilField
-		deleted_at: schema.SortableTimestampNilField
-		created_by: { goType: "uint64" }
-		updated_by: { goType: "uint64" }
-		deleted_by: { goType: "uint64" }
+			owned_by: { goType: "uint64" }
+			created_at: schema.SortableTimestampField
+			updated_at: schema.SortableTimestampNilField
+			deleted_at: schema.SortableTimestampNilField
+			created_by: { goType: "uint64" }
+			updated_by: { goType: "uint64" }
+			deleted_by: { goType: "uint64" }
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			deleted: { goType: "filter.State", storeIdent: "deleted_at" }
 			disabled: { goType: "filter.State", storeIdent: "enabled" }
 		}
@@ -52,12 +55,6 @@ workflow: {
 
 	store: {
 		ident: "automationWorkflow"
-
-		settings: {
-			rdbms: {
-				table: "automation_workflows"
-			}
-		}
 
 		api: {
 			lookups: [

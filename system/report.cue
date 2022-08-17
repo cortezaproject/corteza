@@ -6,25 +6,27 @@ import (
 
 report: {
 	model: {
-		id:     schema.IdField
-		handle: schema.HandleField
-		meta: {goType: "*types.ReportMeta"}
-		scenarios: {goType: "types.ReportScenarioSet"}
-		sources: {goType: "types.ReportDataSourceSet"}
-		blocks: {goType: "types.ReportBlockSet"}
+		attributes: {
+			id:     schema.IdField
+			handle: schema.HandleField
+			meta: {goType: "*types.ReportMeta"}
+			scenarios: {goType: "types.ReportScenarioSet"}
+			sources: {goType: "types.ReportDataSourceSet"}
+			blocks: {goType: "types.ReportBlockSet"}
 
 
-		created_at: schema.SortableTimestampField
-		updated_at: schema.SortableTimestampNilField
-		deleted_at: schema.SortableTimestampNilField
-		owned_by: { goType: "uint64" }
-		created_by: { goType: "uint64" }
-		updated_by: { goType: "uint64" }
-		deleted_by: { goType: "uint64" }
+			created_at: schema.SortableTimestampField
+			updated_at: schema.SortableTimestampNilField
+			deleted_at: schema.SortableTimestampNilField
+			owned_by: { goType: "uint64" }
+			created_by: { goType: "uint64" }
+			updated_by: { goType: "uint64" }
+			deleted_by: { goType: "uint64" }
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			report_id: {goType: "[]uint64", storeIdent: "id", ident: "reportID" }
 			handle: {goType: "string"}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}

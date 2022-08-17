@@ -14,7 +14,7 @@ var (
 // {{ .ident }}Table represents {{ .identPlural }} store table
 //
 // This value is auto-generated
-{{ .ident }}Table = goqu.T({{ printf "%q" .settings.rdbms.table }})
+{{ .ident }}Table = goqu.T({{ printf "%q" .modelIdent }})
 
 // {{ .ident }}SelectQuery assembles select query for fetching {{ .identPlural }}
 //

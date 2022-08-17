@@ -5,8 +5,10 @@ import (
 )
 
 #Model: {
-	// Each field can be
-	[name=_]: {"name": name} & #ModelAttribute
+	ident: string
+	attributes: {
+		[name=_]: {"name": name} & #ModelAttribute
+	}
 }
 
 // logic in struct fields is a bit different
@@ -38,7 +40,7 @@ import (
 	#ModelAttributeJsonTag
 }
 
-IdField: #ModelAttribute & {
+IdField: {
 	// Expecting ID field to always have name ID
 	name:       "id"
 	expIdent:   "ID"
@@ -49,7 +51,7 @@ IdField: #ModelAttribute & {
 	goType: "uint64"
 }
 
-HandleField: #ModelAttribute & {
+HandleField: {
 	// Expecting ID field to always have name handle
 	name:   "handle"
 	unique: true
@@ -58,12 +60,12 @@ HandleField: #ModelAttribute & {
 	goType: "string"
 }
 
-SortableTimestampField: #ModelAttribute & {
+SortableTimestampField: {
 	sortable: true
 	goType: "time.Time"
 }
 
-SortableTimestampNilField: #ModelAttribute & {
+SortableTimestampNilField: {
 	sortable: true
 	goType: "*time.Time"
 }

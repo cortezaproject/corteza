@@ -16,17 +16,20 @@ settings: {
 	}
 
 	model: {
-		name:        { primaryKey: true, ignoreCase: true }
-		owned_by:    { primaryKey: true, goType: "uint64", storeIdent: "rel_owner" }
-		value:       { goType: "rawJson" }
-		updated_by:  {                   goType: "uint64" }
-		updated_at:  schema.SortableTimestampField
+		ident: "settings"
+		attributes: {
+			name:        { primaryKey: true, ignoreCase: true }
+			owned_by:    { primaryKey: true, goType: "uint64", storeIdent: "rel_owner" }
+			value:       { goType: "rawJson" }
+			updated_by:  {                   goType: "uint64" }
+			updated_at:  schema.SortableTimestampField
+		}
 	}
 
 	filter: {
 		expIdent: "SettingsFilter"
 
-		model: {
+		struct: {
 			prefix: {}
 			owned_by: { goType: "uint64", storeIdent: "rel_owner" }
 		}
@@ -35,12 +38,6 @@ settings: {
 	}
 
 	store: {
-		settings: {
-			rdbms: {
-				table: "settings"
-			}
-		}
-
 		api: {
 			lookups: [
 				{

@@ -13,17 +13,19 @@ auth_session: {
 	}
 
 	model: {
-		id:      { primaryKey: true, expIdent: "ID" }
-		data:    { goType: "[]byte" }
-		user_id: { goType: "uint64", storeIdent: "rel_user", ident: "userID"}
-		expires_at: schema.SortableTimestampField
-		created_at: schema.SortableTimestampField
-		remote_addr: {}
-		user_agent: {}
+		attributes: {
+				id:      { primaryKey: true, expIdent: "ID" }
+				data:    { goType: "[]byte" }
+				user_id: { goType: "uint64", storeIdent: "rel_user", ident: "userID"}
+				expires_at: schema.SortableTimestampField
+				created_at: schema.SortableTimestampField
+				remote_addr: {}
+				user_agent: {}
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			user_id: { goType: "uint64", ident: "userID", storeIdent: "rel_user" }
 		}
 

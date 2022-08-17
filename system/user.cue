@@ -6,22 +6,24 @@ import (
 
 user: {
 	model: {
-		id:     schema.IdField
-		handle: schema.HandleField
-		email: {sortable: true, unique: true, ignoreCase: true}
-		email_confirmed: {goType: "bool"}
-		username: {sortable: true, unique: true, ignoreCase: true}
-		name: {sortable: true}
-		kind: {sortable: true, goType: "types.UserKind"}
-		meta: {goType: "*types.UserMeta"}
-		created_at: schema.SortableTimestampField
-		updated_at: schema.SortableTimestampNilField
-		deleted_at: schema.SortableTimestampNilField
-		suspended_at: schema.SortableTimestampNilField
+		attributes: {
+				id:     schema.IdField
+				handle: schema.HandleField
+				email: {sortable: true, unique: true, ignoreCase: true}
+				email_confirmed: {goType: "bool"}
+				username: {sortable: true, unique: true, ignoreCase: true}
+				name: {sortable: true}
+				kind: {sortable: true, goType: "types.UserKind"}
+				meta: {goType: "*types.UserMeta"}
+				created_at: schema.SortableTimestampField
+				updated_at: schema.SortableTimestampNilField
+				deleted_at: schema.SortableTimestampNilField
+				suspended_at: schema.SortableTimestampNilField
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			user_id: {goType: "[]uint64", ident: "userID", storeIdent: "id"}
 			role_id: {goType: "[]uint64", ident: "roleID"}
 			email: {goType: "string"}
