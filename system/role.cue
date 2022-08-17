@@ -6,19 +6,21 @@ import (
 
 role: {
 	model: {
-		id: schema.IdField
-		name: {sortable: true}
-		handle: schema.HandleField
-		meta: {goType: "*types.RoleMeta"}
+		attributes: {
+				id: schema.IdField
+				name: {sortable: true}
+				handle: schema.HandleField
+				meta: {goType: "*types.RoleMeta"}
 
-		created_at: schema.SortableTimestampField
-		updated_at: schema.SortableTimestampNilField
-		deleted_at: schema.SortableTimestampNilField
-		archived_at: schema.SortableTimestampNilField
+				created_at: schema.SortableTimestampField
+				updated_at: schema.SortableTimestampNilField
+				deleted_at: schema.SortableTimestampNilField
+				archived_at: schema.SortableTimestampNilField
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			role_id: {goType: "[]uint64", ident: "roleID", storeIdent: "id" }
 			member_id: {goType: "uint64" }
 			handle: {goType: "string"}

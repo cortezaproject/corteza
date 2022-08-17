@@ -6,19 +6,22 @@ import (
 
 namespace: {
 	model: {
-		id: schema.IdField
-		slug: { sortable: true, goType: "string" }
-		enabled: { goType: "bool" }
-		meta: { goType: "types.NamespaceMeta" }
-		name: {}
-	} & {
-		created_at: schema.SortableTimestampField
-		updated_at: schema.SortableTimestampNilField
-		deleted_at: schema.SortableTimestampNilField
+		ident: "compose_namespace"
+		attributes: {
+				id: schema.IdField
+				slug: { sortable: true, goType: "string" }
+				enabled: { goType: "bool" }
+				meta: { goType: "types.NamespaceMeta" }
+				name: {}
+
+				created_at: schema.SortableTimestampField
+				updated_at: schema.SortableTimestampNilField
+				deleted_at: schema.SortableTimestampNilField
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			namespace_id: { goType: "[]uint64", ident: "namespaceID" }
 			slug: { goType: "string" }
 			name: { goType: "string" }
@@ -59,12 +62,6 @@ namespace: {
 
 	store: {
 		ident: "composeNamespace"
-
-		settings: {
-			rdbms: {
-				table: "compose_namespace"
-			}
-		}
 
 		api: {
 			lookups: [

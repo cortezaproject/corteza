@@ -11,23 +11,25 @@ resource_translation: {
 	}
 
 	model: {
-		id: schema.IdField
-		lang:       { goType: "types.Lang" }
-		resource:   {}
-		k:          {}
-		message:    {}
+		attributes: {
+				id: schema.IdField
+				lang:       { goType: "types.Lang" }
+				resource:   {}
+				k:          {}
+				message:    {}
 
-		created_at: schema.SortableTimestampField
-		updated_at: schema.SortableTimestampNilField
-		deleted_at: schema.SortableTimestampNilField
-		owned_by: { goType: "uint64" }
-		created_by: { goType: "uint64" }
-		updated_by: { goType: "uint64" }
-		deleted_by: { goType: "uint64" }
+				created_at: schema.SortableTimestampField
+				updated_at: schema.SortableTimestampNilField
+				deleted_at: schema.SortableTimestampNilField
+				owned_by: { goType: "uint64" }
+				created_by: { goType: "uint64" }
+				updated_by: { goType: "uint64" }
+				deleted_by: { goType: "uint64" }
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			translation_id: {goType: "[]uint64", ident: "translationID" }
 			lang: {}
 			resource: {}

@@ -6,22 +6,24 @@ import (
 
 credential: {
 	model: {
-		id:     schema.IdField
-		owner_id: { goType: "uint64", ident: "ownerID", storeIdent: "rel_owner" }
-		kind: {}
-		label: {}
-		credentials: {}
-		meta: { goType: "rawJson" }
+		attributes: {
+				id:     schema.IdField
+				owner_id: { goType: "uint64", ident: "ownerID", storeIdent: "rel_owner" }
+				kind: {}
+				label: {}
+				credentials: {}
+				meta: { goType: "rawJson" }
 
-		created_at: schema.SortableTimestampField
-		updated_at: schema.SortableTimestampNilField
-		deleted_at: schema.SortableTimestampNilField
-		last_used_at: schema.SortableTimestampNilField
-		expires_at: schema.SortableTimestampNilField
+				created_at: schema.SortableTimestampField
+				updated_at: schema.SortableTimestampNilField
+				deleted_at: schema.SortableTimestampNilField
+				last_used_at: schema.SortableTimestampNilField
+				expires_at: schema.SortableTimestampNilField
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			owner_id: {goType: "uint64", ident: "ownerID", storeIdent: "rel_owner"}
 			kind: {goType: "string"}
 			credentials: {goType: "string"}

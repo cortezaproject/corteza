@@ -13,21 +13,23 @@ auth_oa2token: {
 	}
 
 	model: {
-		id:     schema.IdField
-		code: {}
-		access: {}
-		refresh: {}
-		expires_at: schema.SortableTimestampField
-		created_at: schema.SortableTimestampField
-		data: { goType: "rawJson" }
-		client_id: { goType: "uint64", ident: "clientID", storeIdent: "rel_client" }
-		user_id: { goType: "uint64", ident: "userID", storeIdent: "rel_user" }
-		remote_addr: {}
-		user_agent: {}
+		attributes: {
+				id:     schema.IdField
+				code: {}
+				access: {}
+				refresh: {}
+				expires_at: schema.SortableTimestampField
+				created_at: schema.SortableTimestampField
+				data: { goType: "rawJson" }
+				client_id: { goType: "uint64", ident: "clientID", storeIdent: "rel_client" }
+				user_id: { goType: "uint64", ident: "userID", storeIdent: "rel_user" }
+				remote_addr: {}
+				user_agent: {}
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			user_id: { goType: "uint64", ident: "userID" }
 		}
 

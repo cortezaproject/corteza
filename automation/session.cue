@@ -10,25 +10,28 @@ session: {
 	}
 
 	model: {
-		id:          schema.IdField
-		workflow_id: { sortable: true, ident: "workflowID", goType: "uint64", storeIdent: "rel_workflow" }
-		event_type: { sortable: true, goType: "string" }
-		resource_type: { sortable: true, goType: "string" }
-		status: { sortable: true, goType: "types.SessionStatus" }
-		input: { goType: "*expr.Vars" }
-		output: { goType: "*expr.Vars" }
-		stacktrace: { goType: "types.Stacktrace" }
+		ident: "automation_sessions"
+ 		attributes: {
+			id:          schema.IdField
+			workflow_id: { sortable: true, ident: "workflowID", goType: "uint64", storeIdent: "rel_workflow" }
+			event_type: { sortable: true, goType: "string" }
+			resource_type: { sortable: true, goType: "string" }
+			status: { sortable: true, goType: "types.SessionStatus" }
+			input: { goType: "*expr.Vars" }
+			output: { goType: "*expr.Vars" }
+			stacktrace: { goType: "types.Stacktrace" }
 
-		created_by: { goType: "uint64" }
-		created_at: schema.SortableTimestampField
-		purge_at: schema.SortableTimestampNilField
-		completed_at: schema.SortableTimestampNilField
-		suspended_at: schema.SortableTimestampNilField
-		error: {}
+			created_by: { goType: "uint64" }
+			created_at: schema.SortableTimestampField
+			purge_at: schema.SortableTimestampNilField
+			completed_at: schema.SortableTimestampNilField
+			suspended_at: schema.SortableTimestampNilField
+			error: {}
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			session_id: { goType: "[]uint64", storeIdent: "id", ident: "sessionID" }
 			completed: { schema.SortableTimestampNilField, storeIdent: "completed_at" }
 			created_by: { goType: "[]uint64" }
@@ -44,12 +47,6 @@ session: {
 
 	store: {
 		ident: "automationSession"
-
-		settings: {
-			rdbms: {
-				table: "automation_sessions"
-			}
-		}
 
 		api: {
 			lookups: [

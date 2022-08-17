@@ -11,15 +11,17 @@ queue_message: {
 	}
 
 	model: {
-		id:        schema.IdField
-		queue:     { sortable: true }
-		payload:   { goType: "[]byte" }
-		processed: schema.SortableTimestampNilField
-		created:   schema.SortableTimestampNilField
+		attributes: {
+				id:        schema.IdField
+				queue:     { sortable: true }
+				payload:   { goType: "[]byte" }
+				processed: schema.SortableTimestampNilField
+				created:   schema.SortableTimestampNilField
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			queue: {}
 			processed: {goType: "filter.State", storeIdent: "processed"}
 		}

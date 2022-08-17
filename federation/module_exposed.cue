@@ -14,24 +14,27 @@ exposedModule: {
 	}
 
 	model: {
-		id:          schema.IdField
-		handle:      schema.HandleField
-		name: { sortable: true }
-		node_id: { sortable: true, ident: "nodeID", goType: "uint64", storeIdent: "rel_node" }
-		compose_module_id: { ident: "composeModuleID", goType: "uint64", storeIdent: "rel_compose_module" }
-		compose_namespace_id: { ident: "composeNamespaceID", goType: "uint64", storeIdent: "rel_compose_namespace" }
-		fields: { goType: "types.ModuleFieldSet" }
+		ident: "federation_module_exposed"
+		attributes: {
+				id:          schema.IdField
+				handle:      schema.HandleField
+				name: { sortable: true }
+				node_id: { sortable: true, ident: "nodeID", goType: "uint64", storeIdent: "rel_node" }
+				compose_module_id: { ident: "composeModuleID", goType: "uint64", storeIdent: "rel_compose_module" }
+				compose_namespace_id: { ident: "composeNamespaceID", goType: "uint64", storeIdent: "rel_compose_namespace" }
+				fields: { goType: "types.ModuleFieldSet" }
 
-		created_at: schema.SortableTimestampField
-		updated_at: schema.SortableTimestampNilField
-		deleted_at: schema.SortableTimestampNilField
-		created_by: { goType: "uint64" }
-		updated_by: { goType: "uint64" }
-		deleted_by: { goType: "uint64" }
+				created_at: schema.SortableTimestampField
+				updated_at: schema.SortableTimestampNilField
+				deleted_at: schema.SortableTimestampNilField
+				created_by: { goType: "uint64" }
+				updated_by: { goType: "uint64" }
+				deleted_by: { goType: "uint64" }
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			node_id:              { goType: "uint64", ident: "nodeID",             storeIdent: "rel_node" }
 			compose_module_id:    { goType: "uint64", ident: "composeModuleID",    storeIdent: "rel_compose_module" }
 			compose_namespace_id: { goType: "uint64", ident: "composeNamespaceID", storeIdent: "rel_compose_namespace" }
@@ -49,12 +52,6 @@ exposedModule: {
 
 	store: {
 		ident: "federationExposedModule"
-
-		settings: {
-			rdbms: {
-				table: "federation_module_exposed"
-			}
-		}
 
 		api: {
 			lookups: [

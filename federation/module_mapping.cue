@@ -10,15 +10,18 @@ moduleMapping: {
 	}
 
 	model: {
-		node_id: { ident: "nodeID", goType: "uint64", primaryKey: true, unique: true }
-		federation_module_id: { sortable: true, ident: "federationModuleID", goType: "uint64" }
-		compose_module_id: { sortable: true, ident: "composeModuleID", goType: "uint64" }
-		compose_namespace_id: { sortable: true, ident: "composeNamespaceID", goType: "uint64" }
-		field_mapping: { goType: "types.ModuleFieldMappingSet" }
+		ident: "federation_module_mapping"
+		attributes: {
+				node_id: { ident: "nodeID", goType: "uint64", primaryKey: true, unique: true }
+				federation_module_id: { sortable: true, ident: "federationModuleID", goType: "uint64" }
+				compose_module_id: { sortable: true, ident: "composeModuleID", goType: "uint64" }
+				compose_namespace_id: { sortable: true, ident: "composeNamespaceID", goType: "uint64" }
+				field_mapping: { goType: "types.ModuleFieldMappingSet" }
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			compose_module_id:    { goType: "uint64", ident: "composeModuleID", storeIdent: "rel_compose_module" }
 			compose_namespace_id: { goType: "uint64", ident: "composeNamespaceID", storeIdent: "rel_compose_namespace" }
 			federation_module_id: { goType: "uint64", ident: "federationModuleID", storeIdent: "rel_federation_module" }
@@ -29,12 +32,6 @@ moduleMapping: {
 
 	store: {
 		ident: "federationModuleMapping"
-
-		settings: {
-			rdbms: {
-				table: "federation_module_mapping"
-			}
-		}
 
 		api: {
 			lookups: [

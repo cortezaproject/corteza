@@ -6,19 +6,21 @@ import (
 
 application: {
 	model: {
-		id: schema.IdField
-		name: {sortable: true}
-		owner_id: { ident: "ownerID", goType: "uint64", storeIdent: "rel_owner", sortable: true }
-		enabled: {sortable: true, goType: "bool"}
-		weight: {goType: "int", sortable: true}
-		unify: {goType: "*types.ApplicationUnify"}
-		created_at: schema.SortableTimestampField
-		updated_at: schema.SortableTimestampNilField
-		deleted_at: schema.SortableTimestampNilField
+		attributes: {
+				id: schema.IdField
+				name: {sortable: true}
+				owner_id: { ident: "ownerID", goType: "uint64", storeIdent: "rel_owner", sortable: true }
+				enabled: {sortable: true, goType: "bool"}
+				weight: {goType: "int", sortable: true}
+				unify: {goType: "*types.ApplicationUnify"}
+				created_at: schema.SortableTimestampField
+				updated_at: schema.SortableTimestampNilField
+				deleted_at: schema.SortableTimestampNilField
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			name: {goType: "string"}
 			// not sure about the type of flagged_ids
 			flagged_ids: {goType: "[]uint64"}

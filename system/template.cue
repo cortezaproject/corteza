@@ -6,23 +6,25 @@ import (
 
 template: {
 	model: {
-		id:     schema.IdField
-		handle: schema.HandleField
-		language: {sortable: true, goType: "string"}
-		type: {sortable: true, goType: "types.DocumentType"}
-		partial: {goType: "bool"}
-		meta: {goType: "types.TemplateMeta"}
-		template: {sortable: true, goType: "string"}
+		attributes: {
+				id:     schema.IdField
+				handle: schema.HandleField
+				language: {sortable: true, goType: "string"}
+				type: {sortable: true, goType: "types.DocumentType"}
+				partial: {goType: "bool"}
+				meta: {goType: "types.TemplateMeta"}
+				template: {sortable: true, goType: "string"}
 
-		owner_id: { ident: "ownerID", goType: "uint64", storeIdent: "rel_owner" }
-		created_at: schema.SortableTimestampField
-		updated_at: schema.SortableTimestampNilField
-		deleted_at: schema.SortableTimestampNilField
-		last_used_at: schema.SortableTimestampNilField
+				owner_id: { ident: "ownerID", goType: "uint64", storeIdent: "rel_owner" }
+				created_at: schema.SortableTimestampField
+				updated_at: schema.SortableTimestampNilField
+				deleted_at: schema.SortableTimestampNilField
+				last_used_at: schema.SortableTimestampNilField
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			template_id: {goType: "[]uint64", ident: "templateID", storeIdent: "id"}
 			handle: {goType: "string"}
 			type: {goType: "string"}

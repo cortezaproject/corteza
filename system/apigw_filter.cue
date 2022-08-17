@@ -10,24 +10,26 @@ apigw_filter: {
 	}
 
 	model: {
-		id: schema.IdField
-		route:  { sortable: true, goType: "uint64", storeIdent: "rel_route" }
-		weight: { sortable: true, goType: "uint64" }
-		ref: {}
-		kind: {sortable: true}
-		enabled: {sortable: true, goType: "bool"}
-		params: {goType: "types.ApigwFilterParams"}
+		attributes: {
+				id: schema.IdField
+				route:  { sortable: true, goType: "uint64", storeIdent: "rel_route" }
+				weight: { sortable: true, goType: "uint64" }
+				ref: {}
+				kind: {sortable: true}
+				enabled: {sortable: true, goType: "bool"}
+				params: {goType: "types.ApigwFilterParams"}
 
-		created_at: schema.SortableTimestampField
-		updated_at: schema.SortableTimestampNilField
-		deleted_at: schema.SortableTimestampNilField
-		created_by: { goType: "uint64" }
-		updated_by: { goType: "uint64" }
-		deleted_by: { goType: "uint64" }
+				created_at: schema.SortableTimestampField
+				updated_at: schema.SortableTimestampNilField
+				deleted_at: schema.SortableTimestampNilField
+				created_by: { goType: "uint64" }
+				updated_by: { goType: "uint64" }
+				deleted_by: { goType: "uint64" }
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			route_id: {goType: "uint64", ident: "routeID", storeIdent: "rel_route"}
 			deleted:  {goType: "filter.State", storeIdent: "deleted_at"}
 			disabled: {goType: "filter.State", storeIdent: "enabled"}

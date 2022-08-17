@@ -14,23 +14,26 @@ sharedModule: {
 	]
 
 	model: {
-		id:          schema.IdField
-		handle:      schema.HandleField
-		node_id: { sortable: true, ident: "nodeID", goType: "uint64", storeIdent: "rel_node" }
-		name: {sortable: true}
-		external_federation_module_id: { sortable: true, ident: "externalFederationModuleID", goType: "uint64", storeIdent: "xref_module",  }
-		fields: { goType: "types.ModuleFieldSet" }
+		ident: "federation_module_shared"
+		attributes: {
+				id:          schema.IdField
+				handle:      schema.HandleField
+				node_id: { sortable: true, ident: "nodeID", goType: "uint64", storeIdent: "rel_node" }
+				name: {sortable: true}
+				external_federation_module_id: { sortable: true, ident: "externalFederationModuleID", goType: "uint64", storeIdent: "xref_module",  }
+				fields: { goType: "types.ModuleFieldSet" }
 
-		created_at: schema.SortableTimestampField
-		updated_at: schema.SortableTimestampNilField
-		deleted_at: schema.SortableTimestampNilField
-		created_by: { goType: "uint64" }
-		updated_by: { goType: "uint64" }
-		deleted_by: { goType: "uint64" }
+				created_at: schema.SortableTimestampField
+				updated_at: schema.SortableTimestampNilField
+				deleted_at: schema.SortableTimestampNilField
+				created_by: { goType: "uint64" }
+				updated_by: { goType: "uint64" }
+				deleted_by: { goType: "uint64" }
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			node_id:  { goType: "uint64", ident: "nodeID", storeIdent: "rel_node" }
 			handle:   { goType: "string" }
 			name:     { goType: "string" }
@@ -49,12 +52,6 @@ sharedModule: {
 
 	store: {
 		ident: "federationSharedModule"
-
-		settings: {
-			rdbms: {
-				table: "federation_module_shared"
-			}
-		}
 
 		api: {
 			lookups: [

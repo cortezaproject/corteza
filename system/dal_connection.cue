@@ -6,23 +6,25 @@ import (
 
 dal_connection: {
 	model: {
-		id:     schema.IdField
-		handle: schema.HandleField
-		type: { sortable: true }
+		attributes: {
+				id:     schema.IdField
+				handle: schema.HandleField
+				type: { sortable: true }
 
-		meta: { goType: "types.ConnectionMeta" }
-		config: { goType: "types.ConnectionConfig" }
+				meta: { goType: "types.ConnectionMeta" }
+				config: { goType: "types.ConnectionConfig" }
 
-		created_at: schema.SortableTimestampField
-		updated_at: schema.SortableTimestampNilField
-		deleted_at: schema.SortableTimestampNilField
-		created_by: { goType: "uint64" }
-		updated_by: { goType: "uint64" }
-		deleted_by: { goType: "uint64" }
+				created_at: schema.SortableTimestampField
+				updated_at: schema.SortableTimestampNilField
+				deleted_at: schema.SortableTimestampNilField
+				created_by: { goType: "uint64" }
+				updated_by: { goType: "uint64" }
+				deleted_by: { goType: "uint64" }
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			connection_id: {goType: "[]uint64", ident: "connectionID", storeIdent: "id"}
 			handle: {goType: "string"}
 			type: {goType: "string"}

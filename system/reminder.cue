@@ -10,23 +10,25 @@ reminder: {
 	}
 
 	model: {
-		id:     schema.IdField
-		resource: { sortable: true }
-		payload: { goType: "rawJson" }
-		snooze_count: { goType: "uint" }
-		assigned_to: { goType: "uint64" }
-		assigned_by: { goType: "uint64" }
-		assigned_at: schema.SortableTimestampField
-		dismissed_by: { goType: "uint64" }
-		dismissed_at: schema.SortableTimestampNilField
-		remind_at: schema.SortableTimestampNilField
-		created_at: schema.SortableTimestampField
-		updated_at: schema.SortableTimestampNilField
-		deleted_at: schema.SortableTimestampNilField
+		attributes: {
+				id:     schema.IdField
+				resource: { sortable: true }
+				payload: { goType: "rawJson" }
+				snooze_count: { goType: "uint" }
+				assigned_to: { goType: "uint64" }
+				assigned_by: { goType: "uint64" }
+				assigned_at: schema.SortableTimestampField
+				dismissed_by: { goType: "uint64" }
+				dismissed_at: schema.SortableTimestampNilField
+				remind_at: schema.SortableTimestampNilField
+				created_at: schema.SortableTimestampField
+				updated_at: schema.SortableTimestampNilField
+				deleted_at: schema.SortableTimestampNilField
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			reminder_id: {goType: "[]uint64", ident: "reminderID", storeIdent: "id"}
 			resource: {}
 			assigned_to: {goType: "uint64"}

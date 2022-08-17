@@ -10,16 +10,18 @@ nodeSync: {
 	}
 
 	model: {
-		node_id: { sortable: true, ident: "nodeID", goType: "uint64", primaryKey: true }
-		module_id: { sortable: true, ident: "moduleID", goType: "uint64" }
-		sync_type: { sortable: true, goType: "string" }
-		sync_status: { sortable: true, goType: "string" }
-	} & {
-		time_of_action: schema.SortableTimestampField
+		ident: "federation_nodes_sync"
+		attributes: {
+			node_id: { sortable: true, ident: "nodeID", goType: "uint64", primaryKey: true }
+			module_id: { sortable: true, ident: "moduleID", goType: "uint64" }
+			sync_type: { sortable: true, goType: "string" }
+			sync_status: { sortable: true, goType: "string" }
+			time_of_action: schema.SortableTimestampField
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			node_id:     { goType: "uint64", storeIdent: "rel_node",   ident: "nodeID" }
 			module_id:   { goType: "uint64", storeIdent: "rel_module", ident: "moduleID" }
 			sync_status: { goType: "string", storeIdent: "sync_status" }
@@ -31,12 +33,6 @@ nodeSync: {
 
 	store: {
 		ident: "federationNodeSync"
-
-		settings: {
-			rdbms: {
-				table: "federation_nodes_sync"
-			}
-		}
 
 		api: {
 			lookups: [

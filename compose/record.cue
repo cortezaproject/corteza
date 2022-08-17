@@ -11,23 +11,25 @@ record: {
 	]
 
 	model: {
-		id: schema.IdField
-		module_id: { ident: "moduleID", goType: "uint64", storeIdent: "rel_module" }
-		module: { goType: "*types.Module", store: false }
-		values: { goType: "types.RecordValueSet", store: false }
-		namespace_id: { ident: "namespaceID", goType: "uint64", storeIdent: "rel_namespace" }
+		attributes: {
+			id: schema.IdField
+			module_id: { ident: "moduleID", goType: "uint64", storeIdent: "rel_module" }
+			module: { goType: "*types.Module", store: false }
+			values: { goType: "types.RecordValueSet", store: false }
+			namespace_id: { ident: "namespaceID", goType: "uint64", storeIdent: "rel_namespace" }
 
-		owned_by: { goType: "uint64" }
-		created_at: schema.SortableTimestampField
-		updated_at: schema.SortableTimestampNilField
-		deleted_at: schema.SortableTimestampNilField
-		created_by: { goType: "uint64" }
-		updated_by: { goType: "uint64" }
-		deleted_by: { goType: "uint64" }
+			owned_by: { goType: "uint64" }
+			created_at: schema.SortableTimestampField
+			updated_at: schema.SortableTimestampNilField
+			deleted_at: schema.SortableTimestampNilField
+			created_by: { goType: "uint64" }
+			updated_by: { goType: "uint64" }
+			deleted_by: { goType: "uint64" }
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			module_id: { goType: "uint64" }
 			namespace_id: { goType: "uint64" }
 			query: { goType: "string" }

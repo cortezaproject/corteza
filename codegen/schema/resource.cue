@@ -18,11 +18,18 @@ import (
 	// Fully qualified resource name
 	fqrn: string | *(platform + "::" + component + ":" + handle)
 
-	model: #Model
+	model: #Model & {
+		// use resource handle (plural) as model ident as default
+		// model ident represents a db table or a container name
+		ident: string | *"\(strings.Replace(handle, "-", "_", -1))s"
+	}
+
 	filter: {
 		"expIdent": #expIdent | *"\(expIdent)Filter"
 
-		model: #Model
+		struct: {
+			[name=_]: {"name": name} & #ModelAttribute
+		}
 
 		// generate filtering by-nil-state for the specified fields
 		"byNilState": [...string]
@@ -86,7 +93,7 @@ import (
 
 		api?: {
 			lookups: [...{
-				_expFields: [ for f in fields {strings.ToTitle(model[f].expIdent)}]
+				_expFields: [ for f in fields {strings.ToTitle(model.attributes[f].expIdent)}]
 
 				"expIdent":  "Lookup\(store.expIdent)By" + strings.Join(_expFields, "")
 				description: string | *""
@@ -107,15 +114,6 @@ import (
 				args: [...{ident: #ident, goType: string, spread: bool | *false}]
 				return: [...string]
 			}]
-		}
-
-		settings: {
-			defaultOrder: [...{ field: string, descending: bool | *false }]
-
-			rdbms: {
-				// use resource handle (plural) as RDBMS table name as default
-				table: string | *"\(strings.Replace(handle, "-", "_", -1))s"
-			}
 		}
 	}
 }

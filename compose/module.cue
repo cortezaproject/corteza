@@ -11,21 +11,24 @@ module: {
 	]
 
 	model: {
-		id: schema.IdField
-		handle: schema.HandleField
-		meta: { goType: "rawJson" }
-		config: { goType: "types.ModuleConfig" }
-		fields: { goType: "types.ModuleFieldSet", store: false }
-		namespace_id: { ident: "namespaceID", goType: "uint64", storeIdent: "rel_namespace" }
-		name: {sortable: true}
+		ident: "compose_module"
+		attributes: {
+			id: schema.IdField
+			handle: schema.HandleField
+			meta: { goType: "rawJson" }
+			config: { goType: "types.ModuleConfig" }
+			fields: { goType: "types.ModuleFieldSet", store: false }
+			namespace_id: { ident: "namespaceID", goType: "uint64", storeIdent: "rel_namespace" }
+			name: {sortable: true}
 
-		created_at: schema.SortableTimestampField
-		updated_at: schema.SortableTimestampNilField
-		deleted_at: schema.SortableTimestampNilField
+			created_at: schema.SortableTimestampField
+			updated_at: schema.SortableTimestampNilField
+			deleted_at: schema.SortableTimestampNilField
+		}
 	}
 
 	filter: {
-		model: {
+		struct: {
 			module_id: { goType: "[]uint64", ident: "moduleID", storeIdent: "id" }
 			namespace_id: { goType: "uint64", ident: "namespaceID", storeIdent: "rel_namespace" }
 			handle: { goType: "string" }
@@ -51,12 +54,6 @@ module: {
 
 	store: {
 		ident: "composeModule"
-
-		settings: {
-			rdbms: {
-				table: "compose_module"
-			}
-		}
 
 		api: {
 			lookups: [
