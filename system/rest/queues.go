@@ -72,7 +72,6 @@ func (ctrl *Queue) List(ctx context.Context, r *request.QueuesList) (interface{}
 	}
 
 	set, filter, err := ctrl.svc.Search(ctx, f)
-
 	return ctrl.makeFilterPayload(ctx, set, filter, err)
 }
 
@@ -92,7 +91,8 @@ func (ctrl *Queue) Create(ctx context.Context, r *request.QueuesCreate) (interfa
 }
 
 func (ctrl *Queue) Read(ctx context.Context, r *request.QueuesRead) (interface{}, error) {
-	return ctrl.svc.FindByID(ctx, r.QueueID)
+	res, err := ctrl.svc.FindByID(ctx, r.QueueID)
+	return ctrl.makePayload(ctx, res, err)
 }
 
 func (ctrl *Queue) Update(ctx context.Context, r *request.QueuesUpdate) (interface{}, error) {
