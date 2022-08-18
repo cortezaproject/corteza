@@ -37,7 +37,9 @@ import (
 	primaryKey: bool | *false
 	ignoreCase: bool | *false
 
-	#ModelAttributeJsonTag
+	// currently disabled since not used by anything
+	// it adds more than 4x overhead to the time it takes to generate the store code!
+	// #ModelAttributeJsonTag
 }
 
 IdField: {
