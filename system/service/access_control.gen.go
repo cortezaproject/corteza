@@ -893,7 +893,7 @@ func (svc accessControl) CanDeleteDalConnection(ctx context.Context, r *types.Da
 //
 // This function is auto-generated
 func (svc accessControl) CanManageDalConfigOnDalConnection(ctx context.Context, r *types.DalConnection) bool {
-	return false && svc.can(ctx, "dal-config.manage", r)
+	return svc.can(ctx, "dal-config.manage", r)
 }
 
 // CanGrant checks if current user can manage system permissions
