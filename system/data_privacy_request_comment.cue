@@ -11,16 +11,16 @@ data_privacy_request_comment: {
 
 	model: {
 		attributes: {
-				id: schema.IdField
-				request_id: { ident: "requestID", goType: "uint64", storeIdent: "rel_request" }
-				comment: { goType: "string" }
+			id: schema.IdField
+			request_id: { ident: "requestID", goType: "uint64", storeIdent: "rel_request" }
+			comment: { goType: "string" }
 
-				created_at: schema.SortableTimestampField
-				updated_at: schema.SortableTimestampNilField
-				deleted_at: schema.SortableTimestampNilField
-				created_by: { goType: "uint64" }
-				updated_by: { goType: "uint64" }
-				deleted_by: { goType: "uint64" }
+			created_at: schema.SortableTimestampField
+			updated_at: schema.SortableTimestampNilField
+			deleted_at: schema.SortableTimestampNilField
+			created_by: schema.AttributeUserRef
+			updated_by: schema.AttributeUserRef
+			deleted_by: schema.AttributeUserRef
 		}
 	}
 

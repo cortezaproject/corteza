@@ -22,5 +22,21 @@ func (app *CortezaApp) initDAL(ctx context.Context, log *zap.Logger) (err error)
 	// Init DAL and prepare default connection
 	dal.SetGlobal(dal.New(log.Named("dal"), app.Opt.Environment.IsDevelopment()))
 
+	// disabled for now until we have a real need (RDBMS table gen for example) for it
+	//
+	//// Register all models
+	//if err = atmModels.Register(ctx, dal.Service()); err != nil {
+	//	return
+	//}
+	//if err = sysModels.Register(ctx, dal.Service()); err != nil {
+	//	return
+	//}
+	//if err = cmpModels.Register(ctx, dal.Service()); err != nil {
+	//	return
+	//}
+	//if err = fdrModels.Register(ctx, dal.Service()); err != nil {
+	//	return
+	//}
+
 	return
 }

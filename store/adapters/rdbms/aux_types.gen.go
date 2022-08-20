@@ -183,10 +183,10 @@ type (
 		Meta         *automationType.TriggerMeta         `db:"meta"`
 		Constraints  automationType.TriggerConstraintSet `db:"constraints"`
 		Input        *expr.Vars                          `db:"input"`
-		OwnedBy      uint64                              `db:"owned_by"`
 		CreatedAt    time.Time                           `db:"created_at"`
 		UpdatedAt    *time.Time                          `db:"updated_at"`
 		DeletedAt    *time.Time                          `db:"deleted_at"`
+		OwnedBy      uint64                              `db:"owned_by"`
 		CreatedBy    uint64                              `db:"created_by"`
 		UpdatedBy    uint64                              `db:"updated_by"`
 		DeletedBy    uint64                              `db:"deleted_by"`
@@ -205,10 +205,10 @@ type (
 		Paths        automationType.WorkflowPathSet  `db:"paths"`
 		Issues       automationType.WorkflowIssueSet `db:"issues"`
 		RunAs        uint64                          `db:"run_as"`
-		OwnedBy      uint64                          `db:"owned_by"`
 		CreatedAt    time.Time                       `db:"created_at"`
 		UpdatedAt    *time.Time                      `db:"updated_at"`
 		DeletedAt    *time.Time                      `db:"deleted_at"`
+		OwnedBy      uint64                          `db:"owned_by"`
 		CreatedBy    uint64                          `db:"created_by"`
 		UpdatedBy    uint64                          `db:"updated_by"`
 		DeletedBy    uint64                          `db:"deleted_by"`
@@ -1188,10 +1188,10 @@ func (aux *auxAutomationTrigger) encode(res *automationType.Trigger) (_ error) {
 	aux.Meta = res.Meta
 	aux.Constraints = res.Constraints
 	aux.Input = res.Input
-	aux.OwnedBy = res.OwnedBy
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
 	aux.DeletedAt = res.DeletedAt
+	aux.OwnedBy = res.OwnedBy
 	aux.CreatedBy = res.CreatedBy
 	aux.UpdatedBy = res.UpdatedBy
 	aux.DeletedBy = res.DeletedBy
@@ -1212,10 +1212,10 @@ func (aux auxAutomationTrigger) decode() (res *automationType.Trigger, _ error) 
 	res.Meta = aux.Meta
 	res.Constraints = aux.Constraints
 	res.Input = aux.Input
-	res.OwnedBy = aux.OwnedBy
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
 	res.DeletedAt = aux.DeletedAt
+	res.OwnedBy = aux.OwnedBy
 	res.CreatedBy = aux.CreatedBy
 	res.UpdatedBy = aux.UpdatedBy
 	res.DeletedBy = aux.DeletedBy
@@ -1236,10 +1236,10 @@ func (aux *auxAutomationTrigger) scan(row scanner) error {
 		&aux.Meta,
 		&aux.Constraints,
 		&aux.Input,
-		&aux.OwnedBy,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,
+		&aux.OwnedBy,
 		&aux.CreatedBy,
 		&aux.UpdatedBy,
 		&aux.DeletedBy,
@@ -1261,10 +1261,10 @@ func (aux *auxAutomationWorkflow) encode(res *automationType.Workflow) (_ error)
 	aux.Paths = res.Paths
 	aux.Issues = res.Issues
 	aux.RunAs = res.RunAs
-	aux.OwnedBy = res.OwnedBy
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
 	aux.DeletedAt = res.DeletedAt
+	aux.OwnedBy = res.OwnedBy
 	aux.CreatedBy = res.CreatedBy
 	aux.UpdatedBy = res.UpdatedBy
 	aux.DeletedBy = res.DeletedBy
@@ -1287,10 +1287,10 @@ func (aux auxAutomationWorkflow) decode() (res *automationType.Workflow, _ error
 	res.Paths = aux.Paths
 	res.Issues = aux.Issues
 	res.RunAs = aux.RunAs
-	res.OwnedBy = aux.OwnedBy
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
 	res.DeletedAt = aux.DeletedAt
+	res.OwnedBy = aux.OwnedBy
 	res.CreatedBy = aux.CreatedBy
 	res.UpdatedBy = aux.UpdatedBy
 	res.DeletedBy = aux.DeletedBy
@@ -1313,10 +1313,10 @@ func (aux *auxAutomationWorkflow) scan(row scanner) error {
 		&aux.Paths,
 		&aux.Issues,
 		&aux.RunAs,
-		&aux.OwnedBy,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,
+		&aux.OwnedBy,
 		&aux.CreatedBy,
 		&aux.UpdatedBy,
 		&aux.DeletedBy,

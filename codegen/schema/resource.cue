@@ -4,8 +4,13 @@ import (
 	"strings"
 )
 
+// fully qualified resource type
+#FQRT: =~ "^corteza::(compose|system|federation|automation):[a-z][a-z0-9-]*$"
+
 #Resource: {
 	#_base
+
+	// type: #resourceType | *""
 
 	imports: [...{ import: string }]
 
@@ -16,7 +21,7 @@ import (
 	platform:  #baseHandle | *"corteza"
 
 	// Fully qualified resource name
-	fqrn: string | *(platform + "::" + component + ":" + handle)
+	fqrt: #FQRT | *(platform + "::" + component + ":" + handle)
 
 	model: #Model & {
 		// use resource handle (plural) as model ident as default

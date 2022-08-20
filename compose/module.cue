@@ -18,7 +18,12 @@ module: {
 			meta: { goType: "rawJson" }
 			config: { goType: "types.ModuleConfig" }
 			fields: { goType: "types.ModuleFieldSet", store: false }
-			namespace_id: { ident: "namespaceID", goType: "uint64", storeIdent: "rel_namespace" }
+			namespace_id: {
+				ident: "namespaceID",
+				goType: "uint64",
+				storeIdent: "rel_namespace"
+				dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
+			}
 			name: {sortable: true}
 
 			created_at: schema.SortableTimestampField

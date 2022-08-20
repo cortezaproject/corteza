@@ -13,8 +13,19 @@ attachment: {
 		ident: "compose_attachment"
 		attributes: {
 			id:       schema.IdField
-			owner_id: { sortable: true, goType: "uint64", storeIdent: "rel_owner", ident: "ownerID" }
-			namespace_id: { sortable: true, goType: "uint64", storeIdent: "rel_namespace", ident: "namespaceID" }
+			owner_id: {
+				sortable: true,
+				goType: "uint64",
+				storeIdent: "rel_owner",
+				ident: "ownerID"
+				dal: { type: "Ref", refModelResType: "corteza::system:user" }
+			}
+			namespace_id: {
+				ident: "namespaceID",
+				goType: "uint64",
+				storeIdent: "rel_namespace"
+				dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
+			}
 			kind: {sortable: true}
 			url:  {}
 			preview_url: {}
