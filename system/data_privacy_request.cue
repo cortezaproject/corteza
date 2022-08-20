@@ -11,22 +11,22 @@ data_privacy_request: {
 
 	model: {
 		attributes: {
-				id: schema.IdField
-				kind: { goType: "types.RequestKind", sortable: true }
-				status: { goType: "types.RequestStatus", sortable: true }
-				payload: { goType: "types.DataPrivacyRequestPayloadSet" }
+			id: schema.IdField
+			kind: { goType: "types.RequestKind", sortable: true }
+			status: { goType: "types.RequestStatus", sortable: true }
+			payload: { goType: "types.DataPrivacyRequestPayloadSet" }
 
-				requested_at: schema.SortableTimestampField
-				requested_by: { goType: "uint64" }
-				completed_at: schema.SortableTimestampNilField
-				completed_by: { goType: "uint64" }
+			requested_at: schema.SortableTimestampField
+			requested_by: { goType: "uint64" }
+			completed_at: schema.SortableTimestampNilField
+			completed_by: { goType: "uint64" }
 
-				created_at: schema.SortableTimestampField
-				updated_at: schema.SortableTimestampNilField
-				deleted_at: schema.SortableTimestampNilField
-				created_by: { goType: "uint64" }
-				updated_by: { goType: "uint64" }
-				deleted_by: { goType: "uint64" }
+			created_at: schema.SortableTimestampField
+			updated_at: schema.SortableTimestampNilField
+			deleted_at: schema.SortableTimestampNilField
+			created_by: schema.AttributeUserRef
+			updated_by: schema.AttributeUserRef
+			deleted_by: schema.AttributeUserRef
 		}
 	}
 

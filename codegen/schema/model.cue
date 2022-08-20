@@ -11,6 +11,18 @@ import (
 	}
 }
 
+#ModelAttributeDalType:
+	"ID" | "Ref" |
+	"Timestamp" | "Time" | "Date" |
+	"Number" |
+	"Text" |
+	"Boolean" |
+	"Enum" |
+	"Geometry" |
+	"JSON" |
+	"Blob" |
+	"UUID"
+
 // logic in struct fields is a bit different
 #ModelAttribute: {
 	name:   #ident
@@ -40,6 +52,55 @@ import (
 	// currently disabled since not used by anything
 	// it adds more than 4x overhead to the time it takes to generate the store code!
 	// #ModelAttributeJsonTag
+
+	dal: {
+		type: #ModelAttributeDalType | * "Text"
+
+		fqType: "dal.Type\(type)"
+
+		nullable: bool | *false
+
+		if type == "ID" {
+			generatedByStore: bool | *false
+		}
+
+		if type == "Ref" {
+			refModelResType: #FQRT
+			attribute: #handle | *"id"
+		}
+
+		if type == "Timestamp" {
+			timezone: bool | *false
+			precision: number | *0
+		}
+
+		if type == "Time" {
+			timezone: bool | *false
+			precision: number | *0
+		}
+
+		if type == "Date" {}
+
+		if type == "Number" {
+			precision: number | *0
+			scale: number | *0
+		}
+
+		if type == "Text" {
+			length: number | *0
+		}
+
+		if type == "Boolean" {}
+
+		if type == "Enum" {
+			values: []
+		}
+
+		if type == "Geometry" {}
+		if type == "JSON" {}
+		if type == "Blob" {}
+		if type == "UUID" {}
+	}
 }
 
 IdField: {
@@ -51,6 +112,7 @@ IdField: {
 
 	// @todo someday we'll replace this with the "ID" type
 	goType: "uint64"
+	dal: { type: "ID" }
 }
 
 HandleField: {
@@ -60,16 +122,24 @@ HandleField: {
 	ignoreCase: true
 
 	goType: "string"
+	dal: { type: "Text", length: 255 }
+}
+
+AttributeUserRef: {
+	goType: "uint64"
+	dal: { type: "Ref", refModelResType: "corteza::system:user" }
 }
 
 SortableTimestampField: {
 	sortable: true
 	goType: "time.Time"
+	dal: { type: "Timestamp", precision: 0, timezone: true, nullable: false }
 }
 
 SortableTimestampNilField: {
 	sortable: true
 	goType: "*time.Time"
+	dal: { type: "Timestamp", precision: 0, timezone: true, nullable: true }
 }
 
 #ModelAttributeJsonTag: {

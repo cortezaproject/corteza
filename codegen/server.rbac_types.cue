@@ -18,7 +18,7 @@ import (
 			types: [
 				for res in cmp.resources if res.rbac != _|_ {
 					const:   "\(res.expIdent)ResourceType"
-					type:    res.fqrn
+					type:    res.fqrt
 					resFunc: "\(res.expIdent)RbacResource"
 					tplFunc: "\(res.expIdent)RbacResourceTpl"
 					attFunc: "\(res.expIdent)RbacAttributes"
@@ -28,7 +28,7 @@ import (
 				},
 				{
 					const:     "ComponentResourceType"
-					type:      cmp.fqrn
+					type:      cmp.fqrt
 					resFunc:   "ComponentRbacResource"
 					tplFunc:   "ComponentRbacResourceTpl"
 					attFunc:   "ComponentRbacAttributes"

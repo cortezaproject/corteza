@@ -18,11 +18,11 @@ import (
 			types: [
 				for res in cmp.resources {
 					const:   "\(res.expIdent)ResourceType"
-					type:    res.fqrn
+					type:    res.fqrt
 				},
 				{
 					const:     "ComponentResourceType"
-					type:      cmp.fqrn
+					type:      cmp.fqrt
 				},
 			]
 		}

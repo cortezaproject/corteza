@@ -7,17 +7,17 @@ import (
 dal_sensitivity_level: {
 	model: {
 		attributes: {
-				id:     schema.IdField
-				handle: schema.HandleField
-				level: { sortable: true, goType: "int" }
-				meta: {goType: "types.DalSensitivityLevelMeta"}
+			id:     schema.IdField
+			handle: schema.HandleField
+			level: { sortable: true, goType: "int" }
+			meta: {goType: "types.DalSensitivityLevelMeta"}
 
-				created_at: schema.SortableTimestampField
-				updated_at: schema.SortableTimestampNilField
-				deleted_at: schema.SortableTimestampNilField
-				created_by: { goType: "uint64" }
-				updated_by: { goType: "uint64" }
-				deleted_by: { goType: "uint64" }
+			created_at: schema.SortableTimestampField
+			updated_at: schema.SortableTimestampNilField
+			deleted_at: schema.SortableTimestampNilField
+			created_by: schema.AttributeUserRef
+			updated_by: schema.AttributeUserRef
+			deleted_by: schema.AttributeUserRef
 		}
 	}
 

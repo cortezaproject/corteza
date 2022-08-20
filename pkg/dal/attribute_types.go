@@ -27,9 +27,11 @@ type (
 	//  1) underlying store (and dialect)
 	//  2) value codec (raw, json ...)
 	TypeRef struct {
-		RefModel     *Model
-		RefAttribute *Attribute
-		Nullable     bool
+		// defaults to ID
+		RefAttribute string
+		RefModel     *ModelRef
+
+		Nullable bool
 	}
 
 	// TypeTimestamp handles timestamp coding

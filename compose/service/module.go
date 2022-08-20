@@ -1405,8 +1405,7 @@ func moduleFieldToAttribute(f *types.ModuleField, conn *dal.ConnectionWrap) (out
 		out = dal.FullAttribute(f.Name, at, mfc(f))
 	case "file":
 		at := &dal.TypeRef{
-			RefModel:     &dal.Model{Resource: "corteza::system:attachment"},
-			RefAttribute: &dal.Attribute{Ident: "id"},
+			RefModel: &dal.ModelRef{Resource: "corteza::system:attachment"},
 		}
 		out = dal.FullAttribute(f.Name, at, mfc(f))
 	case "number":
@@ -1416,12 +1415,9 @@ func moduleFieldToAttribute(f *types.ModuleField, conn *dal.ConnectionWrap) (out
 		out = dal.FullAttribute(f.Name, at, mfc(f))
 	case "record":
 		at := &dal.TypeRef{
-			RefModel: &dal.Model{
+			RefModel: &dal.ModelRef{
 				ResourceID:   f.Options.UInt64("moduleID"),
 				ResourceType: types.ModuleResourceType,
-			},
-			RefAttribute: &dal.Attribute{
-				Ident: "id",
 			},
 		}
 		out = dal.FullAttribute(f.Name, at, mfc(f))
@@ -1437,11 +1433,8 @@ func moduleFieldToAttribute(f *types.ModuleField, conn *dal.ConnectionWrap) (out
 		out = dal.FullAttribute(f.Name, at, mfc(f))
 	case "user":
 		at := &dal.TypeRef{
-			RefModel: &dal.Model{
+			RefModel: &dal.ModelRef{
 				ResourceType: systemTypes.UserResourceType,
-			},
-			RefAttribute: &dal.Attribute{
-				Ident: "id",
 			},
 		}
 		out = dal.FullAttribute(f.Name, at, mfc(f))

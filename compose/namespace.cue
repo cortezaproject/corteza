@@ -8,15 +8,15 @@ namespace: {
 	model: {
 		ident: "compose_namespace"
 		attributes: {
-				id: schema.IdField
-				slug: { sortable: true, goType: "string" }
-				enabled: { goType: "bool" }
-				meta: { goType: "types.NamespaceMeta" }
-				name: {}
+			id: schema.IdField
+			slug: { sortable: true, goType: "string" }
+			enabled: { goType: "bool" }
+			meta: { goType: "types.NamespaceMeta" }
+			name: {}
 
-				created_at: schema.SortableTimestampField
-				updated_at: schema.SortableTimestampNilField
-				deleted_at: schema.SortableTimestampNilField
+			created_at: schema.SortableTimestampField
+			updated_at: schema.SortableTimestampNilField
+			deleted_at: schema.SortableTimestampNilField
 		}
 	}
 

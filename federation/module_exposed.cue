@@ -16,20 +16,20 @@ exposedModule: {
 	model: {
 		ident: "federation_module_exposed"
 		attributes: {
-				id:          schema.IdField
-				handle:      schema.HandleField
-				name: { sortable: true }
-				node_id: { sortable: true, ident: "nodeID", goType: "uint64", storeIdent: "rel_node" }
-				compose_module_id: { ident: "composeModuleID", goType: "uint64", storeIdent: "rel_compose_module" }
-				compose_namespace_id: { ident: "composeNamespaceID", goType: "uint64", storeIdent: "rel_compose_namespace" }
-				fields: { goType: "types.ModuleFieldSet" }
+			id:          schema.IdField
+			handle:      schema.HandleField
+			name: { sortable: true }
+			node_id: { sortable: true, ident: "nodeID", goType: "uint64", storeIdent: "rel_node" }
+			compose_module_id: { ident: "composeModuleID", goType: "uint64", storeIdent: "rel_compose_module" }
+			compose_namespace_id: { ident: "composeNamespaceID", goType: "uint64", storeIdent: "rel_compose_namespace" }
+			fields: { goType: "types.ModuleFieldSet" }
 
-				created_at: schema.SortableTimestampField
-				updated_at: schema.SortableTimestampNilField
-				deleted_at: schema.SortableTimestampNilField
-				created_by: { goType: "uint64" }
-				updated_by: { goType: "uint64" }
-				deleted_by: { goType: "uint64" }
+			created_at: schema.SortableTimestampField
+			updated_at: schema.SortableTimestampNilField
+			deleted_at: schema.SortableTimestampNilField
+			created_by: schema.AttributeUserRef
+			updated_by: schema.AttributeUserRef
+			deleted_by: schema.AttributeUserRef
 		}
 	}
 

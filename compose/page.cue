@@ -13,9 +13,25 @@ page: {
 		ident: "compose_page"
 		attributes: {
 				id: schema.IdField
-				self_id: { sortable: true, ident: "selfID", goType: "uint64" }
-				module_id: { sortable: true, ident: "moduleID", goType: "uint64", storeIdent: "rel_module" }
-				namespace_id: { sortable: true, ident: "namespaceID", goType: "uint64", storeIdent: "rel_namespace" }
+			  self_id: {
+			  	ident: "selfID",
+					goType: "uint64",
+					dal: { type: "Ref", refModelResType: "corteza::compose:page" }
+					sortable: true
+				}
+			  module_id: {
+			  	ident: "moduleID",
+					goType: "uint64",
+					storeIdent: "rel_module"
+					dal: { type: "Ref", refModelResType: "corteza::compose:module" }
+				}
+			  namespace_id: {
+			  	ident: "namespaceID",
+					goType: "uint64",
+					storeIdent: "rel_namespace"
+					dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
+				}
+
 				handle: schema.HandleField
 				config: { goType: "types.PageConfig" }
 				blocks: { goType: "types.PageBlocks" }

@@ -12,15 +12,19 @@ chart: {
 	model: {
 		ident: "compose_chart"
 		attributes: {
-				id: schema.IdField
-				handle: schema.HandleField
-				name: {sortable: true}
-				config: { goType: "types.ChartConfig" }
-				namespace_id: { sortable: true, ident: "namespaceID", goType: "uint64", storeIdent: "rel_namespace" }
-
-				created_at: schema.SortableTimestampField
-				updated_at: schema.SortableTimestampNilField
-				deleted_at: schema.SortableTimestampNilField
+			id: schema.IdField
+			handle: schema.HandleField
+			name: {sortable: true}
+			config: { goType: "types.ChartConfig" }
+			  namespace_id: {
+			  ident: "namespaceID",
+				goType: "uint64",
+				storeIdent: "rel_namespace"
+				dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
+			}
+			created_at: schema.SortableTimestampField
+			updated_at: schema.SortableTimestampNilField
+			deleted_at: schema.SortableTimestampNilField
 		}
 	}
 

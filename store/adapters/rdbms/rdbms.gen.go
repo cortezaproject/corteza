@@ -5952,19 +5952,17 @@ func (s *Store) LookupComposeAttachmentByID(ctx context.Context, id uint64) (_ *
 // This function is auto-generated
 func (Store) sortableComposeAttachmentFields() map[string]string {
 	return map[string]string{
-		"created_at":   "created_at",
-		"createdat":    "created_at",
-		"deleted_at":   "deleted_at",
-		"deletedat":    "deleted_at",
-		"id":           "id",
-		"kind":         "kind",
-		"name":         "name",
-		"namespace_id": "namespace_id",
-		"namespaceid":  "namespace_id",
-		"owner_id":     "owner_id",
-		"ownerid":      "owner_id",
-		"updated_at":   "updated_at",
-		"updatedat":    "updated_at",
+		"created_at": "created_at",
+		"createdat":  "created_at",
+		"deleted_at": "deleted_at",
+		"deletedat":  "deleted_at",
+		"id":         "id",
+		"kind":       "kind",
+		"name":       "name",
+		"owner_id":   "owner_id",
+		"ownerid":    "owner_id",
+		"updated_at": "updated_at",
+		"updatedat":  "updated_at",
 	}
 }
 
@@ -5995,8 +5993,6 @@ func (s *Store) collectComposeAttachmentCursorValues(res *composeType.Attachment
 					pkID = true
 				case "ownerID":
 					cur.Set(c.Column, res.OwnerID, c.Descending)
-				case "namespaceID":
-					cur.Set(c.Column, res.NamespaceID, c.Descending)
 				case "kind":
 					cur.Set(c.Column, res.Kind, c.Descending)
 				case "name":
@@ -6492,17 +6488,15 @@ func (s *Store) LookupComposeChartByNamespaceIDHandle(ctx context.Context, names
 // This function is auto-generated
 func (Store) sortableComposeChartFields() map[string]string {
 	return map[string]string{
-		"created_at":   "created_at",
-		"createdat":    "created_at",
-		"deleted_at":   "deleted_at",
-		"deletedat":    "deleted_at",
-		"handle":       "handle",
-		"id":           "id",
-		"name":         "name",
-		"namespace_id": "namespace_id",
-		"namespaceid":  "namespace_id",
-		"updated_at":   "updated_at",
-		"updatedat":    "updated_at",
+		"created_at": "created_at",
+		"createdat":  "created_at",
+		"deleted_at": "deleted_at",
+		"deletedat":  "deleted_at",
+		"handle":     "handle",
+		"id":         "id",
+		"name":       "name",
+		"updated_at": "updated_at",
+		"updatedat":  "updated_at",
 	}
 }
 
@@ -6536,8 +6530,6 @@ func (s *Store) collectComposeChartCursorValues(res *composeType.Chart, cc ...*f
 					hasUnique = true
 				case "name":
 					cur.Set(c.Column, res.Name, c.Descending)
-				case "namespaceID":
-					cur.Set(c.Column, res.NamespaceID, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":
@@ -7440,13 +7432,11 @@ func (s *Store) LookupComposeModuleFieldByID(ctx context.Context, id uint64) (_ 
 // This function is auto-generated
 func (Store) sortableComposeModuleFieldFields() map[string]string {
 	return map[string]string{
-		"id":        "id",
-		"kind":      "kind",
-		"label":     "label",
-		"module_id": "module_id",
-		"moduleid":  "module_id",
-		"name":      "name",
-		"place":     "place",
+		"id":    "id",
+		"kind":  "kind",
+		"label": "label",
+		"name":  "name",
+		"place": "place",
 	}
 }
 
@@ -7475,8 +7465,6 @@ func (s *Store) collectComposeModuleFieldCursorValues(res *composeType.ModuleFie
 				case "id":
 					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
-				case "moduleID":
-					cur.Set(c.Column, res.ModuleID, c.Descending)
 				case "place":
 					cur.Set(c.Column, res.Place, c.Descending)
 				case "kind":
@@ -8599,22 +8587,18 @@ func (s *Store) LookupComposePageByID(ctx context.Context, id uint64) (_ *compos
 // This function is auto-generated
 func (Store) sortableComposePageFields() map[string]string {
 	return map[string]string{
-		"created_at":   "created_at",
-		"createdat":    "created_at",
-		"deleted_at":   "deleted_at",
-		"deletedat":    "deleted_at",
-		"handle":       "handle",
-		"id":           "id",
-		"module_id":    "module_id",
-		"moduleid":     "module_id",
-		"namespace_id": "namespace_id",
-		"namespaceid":  "namespace_id",
-		"self_id":      "self_id",
-		"selfid":       "self_id",
-		"title":        "title",
-		"updated_at":   "updated_at",
-		"updatedat":    "updated_at",
-		"weight":       "weight",
+		"created_at": "created_at",
+		"createdat":  "created_at",
+		"deleted_at": "deleted_at",
+		"deletedat":  "deleted_at",
+		"handle":     "handle",
+		"id":         "id",
+		"self_id":    "self_id",
+		"selfid":     "self_id",
+		"title":      "title",
+		"updated_at": "updated_at",
+		"updatedat":  "updated_at",
+		"weight":     "weight",
 	}
 }
 
@@ -8645,10 +8629,6 @@ func (s *Store) collectComposePageCursorValues(res *composeType.Page, cc ...*fil
 					pkID = true
 				case "selfID":
 					cur.Set(c.Column, res.SelfID, c.Descending)
-				case "moduleID":
-					cur.Set(c.Column, res.ModuleID, c.Descending)
-				case "namespaceID":
-					cur.Set(c.Column, res.NamespaceID, c.Descending)
 				case "handle":
 					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true

@@ -15,7 +15,7 @@ import (
 		[key=_]: {"handle": key, "component": handle, "platform": platform} & #Resource
 	}
 
-	fqrn: platform + "::" + handle
+	fqrt: platform + "::" + handle
 
 	// All known RBAC operations for this component
 	rbac: #rbacComponent & {
