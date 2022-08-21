@@ -256,6 +256,13 @@ func (svc resourceTranslationsManager) pageExtended(ctx context.Context, res *ty
 				}
 
 				out = append(out, aux...)
+			case "RecordList":
+				aux, err = svc.pageExtendedRecordListBlock(tag, res, block, pbContentID)
+				if err != nil {
+					return nil, err
+				}
+
+				out = append(out, aux...)
 			case "Content":
 				k = types.LocaleKeyPagePageBlockBlockIDContentBody
 				out = append(out, &locale.ResourceTranslation{
@@ -326,15 +333,30 @@ func (svc resourceTranslationsManager) chartExtended(_ context.Context, res *typ
 
 func (svc resourceTranslationsManager) pageExtendedAutomationBlock(tag language.Tag, res *types.Page, block types.PageBlock, blockID uint64) (locale.ResourceTranslationSet, error) {
 	var (
-		k     = types.LocaleKeyPagePageBlockBlockIDButtonButtonIDLabel
-		out   = make(locale.ResourceTranslationSet, 0, 10)
 		bb, _ = block.Options["buttons"].([]interface{})
+	)
+
+	return svc.pageBlockButtons(tag, res, blockID, bb)
+}
+
+func (svc resourceTranslationsManager) pageExtendedRecordListBlock(tag language.Tag, res *types.Page, block types.PageBlock, blockID uint64) (locale.ResourceTranslationSet, error) {
+	var (
+		bb, _ = block.Options["selectionButtons"].([]interface{})
+	)
+
+	return svc.pageBlockButtons(tag, res, blockID, bb)
+}
+
+func (svc resourceTranslationsManager) pageBlockButtons(tag language.Tag, res *types.Page, blockID uint64, bb []interface{}) (locale.ResourceTranslationSet, error) {
+	var (
+		k   = types.LocaleKeyPagePageBlockBlockIDButtonButtonIDLabel
+		out = make(locale.ResourceTranslationSet, 0, 10)
 	)
 
 	for j, auxBtn := range bb {
 		btn := auxBtn.(map[string]interface{})
 
-		bContentID := uint64(0)
+		bContentID := uint64(1)
 		if aux, ok := btn["buttonID"]; ok {
 			bContentID = cast.ToUint64(aux)
 		}
