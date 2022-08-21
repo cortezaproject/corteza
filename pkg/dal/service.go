@@ -575,19 +575,20 @@ func (svc *service) ReplaceModel(ctx context.Context, model *Model) (err error) 
 			return nil
 		}
 
-		log.Debug("adding to connection")
 		auxIssues, err = svc.registerModelToConnection(ctx, connection, model)
 		issues.mergeWith(auxIssues)
 		if err != nil {
 			log.Error("failed with errors", zap.Error(err))
 			return
 		}
-		log.Debug("added to connection")
 	}
 
 	// Add to registry
 	svc.addModelToRegistry(model, upd)
-	log.Debug("added")
+	log.Debug(
+		"added",
+		zap.Uint64("connectionID", model.ConnectionID),
+	)
 
 	return
 }
@@ -851,7 +852,7 @@ func (svc *service) getConnection(connectionID uint64, cc ...Operation) (cw *Con
 		// get the requested connection
 		cw = svc.GetConnectionByID(connectionID)
 		if cw == nil {
-			return fmt.Errorf("connection %d does not exist", connectionID)
+			return errConnectionNotFound(connectionID)
 		}
 
 		// check if connection supports requested operations
