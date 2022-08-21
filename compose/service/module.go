@@ -1090,6 +1090,7 @@ func DalModelReload(ctx context.Context, s store.Storer, dmm dalModelManager) (e
 	if err != nil {
 		return
 	}
+
 	err = loadModuleFields(ctx, s, mm...)
 	if err != nil {
 		return err
@@ -1187,16 +1188,23 @@ func modulesToModelSet(dmm dalModelManager, ns *types.Namespace, mm ...*types.Mo
 		// namespace partition replacement pairs
 		// {{namespace}} is replaced with the namespace handle (slug)
 		nsPartition = []string{"{{namespace}}", ns.Slug}
+
+		defConnID uint64
+		defConn   = dmm.GetConnectionByID(0)
 	)
 
-	for connectionID, modules := range modulesByConnection(mm...) {
+	if defConn != nil {
+		defConnID = defConn.ID
+	}
+
+	for connectionID, modules := range modulesByConnection(defConnID, mm...) {
 		// Get the connection meta
 		conn = dmm.GetConnectionByID(connectionID)
 
 		// Convert all modules to models
 		for _, mod := range modules {
 			if conn == nil {
-				// construct a simplified model w/o attributes, connction
+				// construct a simplified model w/o attributes, connection
 				// this will allow us to manage model's issues within
 				// the DAL service
 				model = &dal.Model{
@@ -1452,10 +1460,19 @@ func moduleFieldToAttribute(f *types.ModuleField, conn *dal.ConnectionWrap) (out
 }
 
 // modulesByConnection groups given modules by the common connectionID
-func modulesByConnection(modules ...*types.Module) map[uint64]types.ModuleSet {
-	out := make(map[uint64]types.ModuleSet)
+func modulesByConnection(defConnID uint64, modules ...*types.Module) map[uint64]types.ModuleSet {
+	var (
+		id  uint64
+		out = make(map[uint64]types.ModuleSet)
+	)
 	for _, mod := range modules {
-		out[mod.Config.DAL.ConnectionID] = append(out[mod.Config.DAL.ConnectionID], mod)
+		if id = mod.Config.DAL.ConnectionID; id == 0 {
+			// connection not explicitly set on module
+			// use default
+			id = defConnID
+		}
+
+		out[id] = append(out[id], mod)
 	}
 
 	return out
