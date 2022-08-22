@@ -223,6 +223,13 @@ func (app *CortezaApp) InitStore(ctx context.Context) (err error) {
 		}
 	}
 
+	{
+		// Initialize Data Access Layer (DAL)
+		if err = app.initDAL(ctx, app.Log); err != nil {
+			return fmt.Errorf("can not initialize DAL: %w", err)
+		}
+	}
+
 	app.lvl = bootLevelStoreInitialized
 	return nil
 }
@@ -350,13 +357,6 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	locale.Global().BindStore(app.Store)
 	if err = locale.Global().ReloadResourceTranslations(ctx); err != nil {
 		return fmt.Errorf("could not reload resource translations: %w", err)
-	}
-
-	{
-		// Initialize Data Access Layer (DAL)
-		if err = app.initDAL(ctx, app.Log); err != nil {
-			return fmt.Errorf("can not initialize DAL: %w", err)
-		}
 	}
 
 	// Initializes system services

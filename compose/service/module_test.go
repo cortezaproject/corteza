@@ -296,12 +296,6 @@ func TestModuleToModel(t *testing.T) {
 		model *dal.Model
 		err   error
 
-		w = &dal.ConnectionWrap{
-			Config: dal.ConnectionConfig{
-				ModelIdent: "ident-from-conn-config",
-			},
-		}
-
 		m = &types.Module{
 			ID:        1,
 			Handle:    "model-handle",
@@ -312,13 +306,13 @@ func TestModuleToModel(t *testing.T) {
 	)
 
 	t.Log("ident on DAL config not set, use ident from connection config")
-	model, err = moduleToModel(m, w)
+	model, err = ModuleToModel(m, "ident-from-conn-config")
 	req.NoError(err)
 	req.Equal("ident-from-conn-config", model.Ident)
 
 	t.Log("explicit ident in module's DAL config should override the handle")
 	m.Config.DAL.Ident = "explicit-ident"
-	model, err = moduleToModel(m, w)
+	model, err = ModuleToModel(m, "ident-from-conn-config")
 	req.NoError(err)
 	req.Equal("explicit-ident", model.Ident)
 }
