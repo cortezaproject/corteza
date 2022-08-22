@@ -162,6 +162,15 @@ func Test_processerPayload(t *testing.T) {
 				params: prepareFuncPayload(t, ``),
 				errv:   `could not register function, body empty`,
 			},
+			{
+				name: "payload processer invalid body",
+				rq: &http.Request{
+					Method: "POST",
+					Body:   ioutil.NopCloser(strings.NewReader(`[{"name":"johnny", "surname":"mnemonic"},{"name":"johnny", "surname":"knoxville"}]`)),
+				},
+				params: prepareFuncPayload(t, `.foo`),
+				errv:   `could not register function, invalid body: could not transform payload: Unexpected "."`,
+			},
 		}
 	)
 

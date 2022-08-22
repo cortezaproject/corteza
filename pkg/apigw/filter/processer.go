@@ -203,7 +203,9 @@ func (h *processerPayload) Merge(params []byte) (types.Handler, error) {
 		return nil, errors.New("could not register function, body empty")
 	}
 
-	h.fn, _ = h.vm.RegisterFunction(h.params.Func)
+	if h.fn, err = h.vm.RegisterFunction(h.params.Func); err != nil {
+		return nil, fmt.Errorf("could not register function, invalid body: %s", err)
+	}
 
 	return h, err
 }
