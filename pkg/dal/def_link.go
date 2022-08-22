@@ -48,6 +48,10 @@ type (
 		// as the data is provided in the correct order.
 		partialScan bool
 	}
+
+	rowLink struct {
+		a, b ValueGetter
+	}
 )
 
 func (def *Link) Identifier() string {
@@ -126,5 +130,42 @@ func (def *Link) validate(ii []Iterator) (err error) {
 	if err != nil {
 		return fmt.Errorf("invalid definition: %v", err)
 	}
+	return
+}
+
+func (r *rowLink) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+	return r.GetValue(k, 0)
+}
+
+func (r *rowLink) GetValue(name string, pos uint) (v any, err error) {
+	a := r.a.CountValues()
+	if cc, ok := a[name]; ok {
+		if pos >= cc {
+			return nil, nil
+		}
+		return r.a.GetValue(name, pos)
+	}
+
+	b := r.b.CountValues()
+	if cc, ok := b[name]; ok {
+		if pos >= cc {
+			return nil, nil
+		}
+		return r.b.GetValue(name, pos)
+	}
+
+	return
+}
+
+func (r *rowLink) CountValues() (out map[string]uint) {
+	out = make(map[string]uint)
+
+	for k, c := range r.a.CountValues() {
+		out[k] = c
+	}
+	for k, c := range r.b.CountValues() {
+		out[k] = c
+	}
+
 	return
 }
