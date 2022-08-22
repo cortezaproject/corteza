@@ -759,8 +759,7 @@ func initValuestore(opt *options.Options) {
 	}
 	// Web applications
 	for _, w := range strings.Split(opt.HTTPServer.WebappList, ",") {
-		w = strings.TrimSpace(w)
-		webappBaseURLWebapps[w] = webappBaseURL + w
+		webappBaseURLWebapps[w] = fmt.Sprintf("%s/%s", strings.TrimRight(webappBaseURL, "/"), strings.TrimSpace(w))
 	}
 
 	// Webapp related values -- domain, base url (for webapps), ...
