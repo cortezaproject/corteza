@@ -92,11 +92,11 @@ func pathPrefix(pp ...string) string {
 
 // will return base URL with domain and prefix path
 func FullURL(pp ...string) string {
-	return fullUrl(GuessApiHostname())
+	return fullUrl(GuessApiHostname(), pp...)
 }
 
 func FullWebappURL(pp ...string) string {
-	return fullUrl(GuessWebappHostname())
+	return fullUrl(GuessWebappHostname(), pp...)
 }
 
 // will return base URL with domain and prefix path
