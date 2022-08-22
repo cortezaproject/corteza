@@ -37,6 +37,9 @@ type (
 		Search(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, f filter.Filter) (dal.Iterator, error)
 		Delete(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, pkv ...dal.ValueGetter) (err error)
 		Update(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, pkv ...dal.ValueGetter) (err error)
+
+		ReplaceModel(context.Context, *dal.Model) error
+		GetConnectionByID(uint64) *dal.ConnectionWrap
 	}
 
 	composeDecoder struct {

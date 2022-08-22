@@ -3,6 +3,7 @@ package provision
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"path/filepath"
 	"strings"
 
@@ -32,7 +33,7 @@ func importConfig(ctx context.Context, log *zap.Logger, s store.Storer, paths st
 		yd = yaml.Decoder()
 		nn = make([]resource.Interface, 0, 200)
 		// @todo
-		se  = es.NewStoreEncoder(s, nil, &es.EncoderConfig{OnExisting: resource.MergeLeft})
+		se  = es.NewStoreEncoder(s, dal.Service(), &es.EncoderConfig{OnExisting: resource.MergeLeft})
 		bld = envoy.NewBuilder(se)
 
 		sources = make([]string, 0, 16)

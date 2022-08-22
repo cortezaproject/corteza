@@ -1218,7 +1218,7 @@ func modulesToModelSet(dmm dalModelManager, ns *types.Namespace, mm ...*types.Mo
 			}
 
 			// convert each module to model
-			model, err = moduleToModel(mod, conn)
+			model, err = ModuleToModel(mod, conn.Config.ModelIdent)
 			if err != nil {
 				return
 			}
@@ -1262,10 +1262,10 @@ func modulesToModelSet(dmm dalModelManager, ns *types.Namespace, mm ...*types.Mo
 	return
 }
 
-// moduleToModel converts a module with fields to DAL model and attributes
+// ModuleToModel converts a module with fields to DAL model and attributes
 //
 // note: this function does not do any partition placeholder replacements
-func moduleToModel(mod *types.Module, conn *dal.ConnectionWrap) (model *dal.Model, err error) {
+func ModuleToModel(mod *types.Module, inhIdent string) (model *dal.Model, err error) {
 	var (
 		attrAux dal.AttributeSet
 	)
@@ -1282,11 +1282,11 @@ func moduleToModel(mod *types.Module, conn *dal.ConnectionWrap) (model *dal.Mode
 	if model.Ident = mod.Config.DAL.Ident; model.Ident == "" {
 		// try with explicitly set ident on module's DAL config
 		// and fallback connection's default if it is empty
-		model.Ident = conn.Config.ModelIdent
+		model.Ident = inhIdent
 	}
 
 	// Convert user-defined fields to attributes
-	attrAux, err = moduleFieldsToAttributes(mod, conn)
+	attrAux, err = moduleFieldsToAttributes(mod)
 	if err != nil {
 		return
 	}
@@ -1303,14 +1303,14 @@ func moduleToModel(mod *types.Module, conn *dal.ConnectionWrap) (model *dal.Mode
 }
 
 // moduleFieldsToAttributes converts all user-defined module fields to attributes
-func moduleFieldsToAttributes(mod *types.Module, conn *dal.ConnectionWrap) (out dal.AttributeSet, err error) {
+func moduleFieldsToAttributes(mod *types.Module) (out dal.AttributeSet, err error) {
 	out = make(dal.AttributeSet, 0, len(mod.Fields))
 	var (
 		attr *dal.Attribute
 	)
 
 	for _, f := range mod.Fields {
-		attr, err = moduleFieldToAttribute(f, conn)
+		attr, err = moduleFieldToAttribute(f)
 		if err != nil {
 			return
 		}
@@ -1363,7 +1363,7 @@ func moduleSystemFieldsToAttributes(mod *types.Module) (out dal.AttributeSet, er
 }
 
 // moduleFieldToAttribute converts the given module field to a DAL attribute
-func moduleFieldToAttribute(f *types.ModuleField, conn *dal.ConnectionWrap) (out *dal.Attribute, err error) {
+func moduleFieldToAttribute(f *types.ModuleField) (out *dal.Attribute, err error) {
 	var (
 		// generate dal.Codec for each attribute
 		// using encoding strategy for that attribute

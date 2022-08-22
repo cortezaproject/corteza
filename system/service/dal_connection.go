@@ -334,52 +334,59 @@ func dalConnectionReplace(ctx context.Context, primary dal.Connection, dcm dalCo
 	var (
 		cw        *dal.ConnectionWrap
 		isPrimary bool
-
-		connConfig dal.ConnectionConfig
-
-		conn dal.Connection
 	)
 
 	for _, c := range cc {
 		isPrimary = c.Type == types.DalPrimaryConnectionResourceType
 
+		if isPrimary {
+			// reuse primary connection
+			cw, err = MakeDalConnection(c, primary)
+		} else {
+			cw, err = MakeDalConnection(c, nil)
+		}
+
+		if err != nil {
+			return
+		}
+
+		if err = dcm.ReplaceConnection(ctx, cw, isPrimary); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// MakeDalConnection converts types.DalConnection to dal.ConnectionWrap and returns it.
+func MakeDalConnection(c *types.DalConnection, existing dal.Connection) (cw *dal.ConnectionWrap, err error) {
+	var (
 		connConfig = dal.ConnectionConfig{
 			SensitivityLevelID: c.Config.Privacy.SensitivityLevelID,
 			ModelIdent:         c.Config.DAL.ModelIdent,
 			Label:              c.Handle,
 		}
+	)
 
-		if checks := len(c.Config.DAL.ModelIdentCheck); checks > 0 {
-			connConfig.ModelIdentCheck = make([]*regexp.Regexp, checks)
-			for i, m := range c.Config.DAL.ModelIdentCheck {
-				if connConfig.ModelIdentCheck[i], err = regexp.Compile(m); err != nil {
-					return fmt.Errorf("could not prepare connection model ident check for %q: %w", c.Handle, err)
-				}
+	if checks := len(c.Config.DAL.ModelIdentCheck); checks > 0 {
+		connConfig.ModelIdentCheck = make([]*regexp.Regexp, checks)
+		for i, m := range c.Config.DAL.ModelIdentCheck {
+			if connConfig.ModelIdentCheck[i], err = regexp.Compile(m); err != nil {
+				return nil, fmt.Errorf("could not prepare connection model ident check for %q: %w", c.Handle, err)
 			}
 		}
-
-		if isPrimary {
-			// reuse primary connection
-			conn = primary
-		} else {
-			conn = nil
-		}
-
-		cw = dal.MakeConnection(
-			c.ID,
-			conn,
-			dal.ConnectionParams{
-				Type:   c.Config.DAL.Type,
-				Params: c.Config.DAL.Params,
-			},
-			connConfig,
-			c.Config.DAL.Operations...,
-		)
-
-		if err = dcm.ReplaceConnection(ctx, cw, isPrimary); err != nil {
-			return err
-		}
 	}
+
+	cw = dal.MakeConnection(
+		c.ID,
+		existing,
+		dal.ConnectionParams{
+			Type:   c.Config.DAL.Type,
+			Params: c.Config.DAL.Params,
+		},
+		connConfig,
+		c.Config.DAL.Operations...,
+	)
 
 	return
 }

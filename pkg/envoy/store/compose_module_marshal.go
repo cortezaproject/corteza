@@ -2,6 +2,8 @@ package store
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/compose/service"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"strconv"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -260,38 +262,49 @@ func (n *composeModule) Encode(ctx context.Context, pl *payload) (err error) {
 		if err != nil {
 			return err
 		}
+	} else {
+		// Update existing module
+		switch n.cfg.OnExisting {
+		case resource.Skip:
+			return nil
 
-		return nil
+		case resource.MergeLeft:
+			res = mergeComposeModule(n.mod, res)
+			res.Fields = mergeComposeModuleFields(n.mod.Fields, res.Fields)
+
+		case resource.MergeRight:
+			res = mergeComposeModule(res, n.mod)
+			res.Fields = mergeComposeModuleFields(res.Fields, n.mod.Fields)
+		}
+
+		err = store.UpdateComposeModule(ctx, pl.s, res)
+		if err != nil {
+			return err
+		}
+
+		err = store.DeleteComposeModuleField(ctx, pl.s, n.mod.Fields...)
+		if err != nil {
+			return err
+		}
+		err = store.CreateComposeModuleField(ctx, pl.s, res.Fields...)
+		if err != nil {
+			return err
+		}
+
+		n.res.Res = res
 	}
 
-	// Update existing module
-	switch n.cfg.OnExisting {
-	case resource.Skip:
-		return nil
-
-	case resource.MergeLeft:
-		res = mergeComposeModule(n.mod, res)
-		res.Fields = mergeComposeModuleFields(n.mod.Fields, res.Fields)
-
-	case resource.MergeRight:
-		res = mergeComposeModule(res, n.mod)
-		res.Fields = mergeComposeModuleFields(res.Fields, n.mod.Fields)
+	var model *dal.Model
+	// convert module to model and assume compose_record for default ident
+	if model, err = service.ModuleToModel(res, "compose_record"); err != nil {
+		return
 	}
 
-	err = store.UpdateComposeModule(ctx, pl.s, res)
-	if err != nil {
-		return err
+	model.ConnectionID = pl.dal.GetConnectionByID(0).ID
+
+	if err = pl.dal.ReplaceModel(ctx, model); err != nil {
+		return
 	}
 
-	err = store.DeleteComposeModuleField(ctx, pl.s, n.mod.Fields...)
-	if err != nil {
-		return err
-	}
-	err = store.CreateComposeModuleField(ctx, pl.s, res.Fields...)
-	if err != nil {
-		return err
-	}
-
-	n.res.Res = res
 	return nil
 }
