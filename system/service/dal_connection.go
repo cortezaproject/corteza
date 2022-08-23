@@ -363,16 +363,27 @@ func MakeDalConnection(c *types.DalConnection, existing dal.Connection) (cw *dal
 	var (
 		connConfig = dal.ConnectionConfig{
 			SensitivityLevelID: c.Config.Privacy.SensitivityLevelID,
-			ModelIdent:         c.Config.DAL.ModelIdent,
 			Label:              c.Handle,
 		}
+		connParams     dal.ConnectionParams
+		connOperations dal.OperationSet
 	)
 
-	if checks := len(c.Config.DAL.ModelIdentCheck); checks > 0 {
-		connConfig.ModelIdentCheck = make([]*regexp.Regexp, checks)
-		for i, m := range c.Config.DAL.ModelIdentCheck {
-			if connConfig.ModelIdentCheck[i], err = regexp.Compile(m); err != nil {
-				return nil, fmt.Errorf("could not prepare connection model ident check for %q: %w", c.Handle, err)
+	if c.Config.DAL != nil {
+		connConfig.ModelIdent = c.Config.DAL.ModelIdent
+
+		connOperations = c.Config.DAL.Operations
+		connParams = dal.ConnectionParams{
+			Type:   c.Config.DAL.Type,
+			Params: c.Config.DAL.Params,
+		}
+
+		if checks := len(c.Config.DAL.ModelIdentCheck); checks > 0 {
+			connConfig.ModelIdentCheck = make([]*regexp.Regexp, checks)
+			for i, m := range c.Config.DAL.ModelIdentCheck {
+				if connConfig.ModelIdentCheck[i], err = regexp.Compile(m); err != nil {
+					return nil, fmt.Errorf("could not prepare connection model ident check for %q: %w", c.Handle, err)
+				}
 			}
 		}
 	}
@@ -380,12 +391,9 @@ func MakeDalConnection(c *types.DalConnection, existing dal.Connection) (cw *dal
 	cw = dal.MakeConnection(
 		c.ID,
 		existing,
-		dal.ConnectionParams{
-			Type:   c.Config.DAL.Type,
-			Params: c.Config.DAL.Params,
-		},
+		connParams,
 		connConfig,
-		c.Config.DAL.Operations...,
+		connOperations...,
 	)
 
 	return
