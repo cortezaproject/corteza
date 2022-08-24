@@ -663,6 +663,8 @@ func (svc user) SetPassword(ctx context.Context, userID uint64, newPassword stri
 
 		uaProps = &userActionProps{user: &types.User{ID: userID}}
 		a       = UserActionSetPassword
+
+		self = internalAuth.GetIdentityFromContext(ctx).Identity() == userID
 	)
 
 	err = func() (err error) {
@@ -680,8 +682,16 @@ func (svc user) SetPassword(ctx context.Context, userID uint64, newPassword stri
 			return UserErrNotAllowedToUpdateSystem()
 		}
 
-		if err = svc.auth.RemoveAccessTokens(ctx, u); err != nil {
-			return
+		if !self {
+			// when user is changing password for herself
+			// we should not remove the tokens!
+			//
+			// without this, user needs to log-in again
+			// and we do not want that if he is using general
+			// user management API/UI
+			if err = svc.auth.RemoveAccessTokens(ctx, u); err != nil {
+				return
+			}
 		}
 
 		if newPassword == "" {
