@@ -15,4 +15,5 @@ types:
     noIdField: true
   PrivacyModule:
     noIdField: true
-
+  DeDupRule:
+    noIdField: true

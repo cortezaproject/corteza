@@ -43,9 +43,10 @@ func Proc() {
 
 		// workaround because
 		// filepath.Join merges "*","*" into "**" instead of "*/*"
-		typeSrcPath = filepath.Join("*"+string(filepath.Separator)+"*", "types.yaml")
-		typeSrc     []string
-		typeDefs    []*typesDef
+		pkgTypeSrcPath = filepath.Join("*"+string(filepath.Separator)+"*"+string(filepath.Separator)+"*", "types.yaml")
+		typeSrcPath    = filepath.Join("*"+string(filepath.Separator)+"*", "types.yaml")
+		typeSrc        []string
+		typeDefs       []*typesDef
 
 		// workaround because
 		// filepath.Join merges "*","*" into "**" instead of "*/*"
@@ -144,6 +145,7 @@ func Proc() {
 		output("loaded %d event definitions from %s\n", len(eventSrc), eventSrcPath)
 
 		typeSrc = glob(typeSrcPath)
+		typeSrc = append(typeSrc, glob(pkgTypeSrcPath)...)
 		output("loaded %d type definitions from %s\n", len(typeSrc), typeSrcPath)
 
 		exprTypeSrc = glob(exprTypeSrcPath)
