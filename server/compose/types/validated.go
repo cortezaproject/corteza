@@ -29,6 +29,13 @@ func (v *RecordValueErrorSet) IsValid() bool {
 	return v == nil || len(v.Set) == 0
 }
 
+func (v *RecordValueErrorSet) Len() int {
+	if v == nil {
+		return 0
+	}
+	return len(v.Set)
+}
+
 func (v *RecordValueErrorSet) Error() string {
 	var no = 0
 	if v != nil {
@@ -60,6 +67,20 @@ func (v *RecordValueErrorSet) HasKind(kind string) bool {
 	}
 
 	return false
+}
+
+func (v *RecordValueErrorSet) Merge(errs ...*RecordValueErrorSet) {
+	if v == nil {
+		return
+	}
+
+	for _, e := range errs {
+		if e == nil || e.IsValid() {
+			continue
+		}
+
+		v.Push(e.Set...)
+	}
 }
 
 // IsRecordValueErrorSet tests if given error is RecordValueErrorSet (or it wraps it) and it has errors
