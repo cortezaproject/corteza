@@ -198,8 +198,8 @@ func TestProcesserData_persist(t *testing.T) {
 }
 
 // create success
-func (s testRecordServicePersistSuccess) Create(_ context.Context, record *ct.Record) (*ct.Record, error) {
-	return nil, nil
+func (s testRecordServicePersistSuccess) Create(_ context.Context, record *ct.Record) (*ct.Record, *ct.RecordValueErrorSet, error) {
+	return nil, nil, nil
 }
 
 func (s testRecordServicePersistSuccess) Find(_ context.Context, filter ct.RecordFilter) (ct.RecordSet, ct.RecordFilter, error) {
@@ -207,8 +207,8 @@ func (s testRecordServicePersistSuccess) Find(_ context.Context, filter ct.Recor
 }
 
 // update success
-func (s testRecordServiceUpdateSuccess) Update(_ context.Context, record *ct.Record) (*ct.Record, error) {
-	return nil, nil
+func (s testRecordServiceUpdateSuccess) Update(_ context.Context, record *ct.Record) (*ct.Record, *ct.RecordValueErrorSet, error) {
+	return nil, nil, nil
 }
 
 func (s testRecordServiceUpdateSuccess) Find(_ context.Context, filter ct.RecordFilter) (ct.RecordSet, ct.RecordFilter, error) {
@@ -225,6 +225,6 @@ func (s testRecordServiceDeleteSuccess) Find(_ context.Context, filter ct.Record
 }
 
 // create error
-func (s testRecordServicePersistError) Create(_ context.Context, record *ct.Record) (*ct.Record, error) {
-	return nil, errors.New("mocked error")
+func (s testRecordServicePersistError) Create(_ context.Context, record *ct.Record) (*ct.Record, *ct.RecordValueErrorSet, error) {
+	return nil, nil, errors.New("mocked error")
 }

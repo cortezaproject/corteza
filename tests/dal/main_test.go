@@ -351,7 +351,7 @@ func createRecordFrom(ctx context.Context, t *testing.T, suite, name string, nam
 	record.NamespaceID = namespaceID
 	record.ModuleID = moduleID
 
-	record, err := composeService.DefaultRecord.Create(ctx, record)
+	record, _, err := composeService.DefaultRecord.Create(ctx, record)
 	require.NoError(t, err)
 
 	return record

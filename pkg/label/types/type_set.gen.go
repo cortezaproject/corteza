@@ -6,7 +6,7 @@ package types
 // the code is regenerated.
 //
 // Definitions file that controls how this file is generated:
-// pkg/label/types.yaml
+// pkg/label/types/types.yaml
 
 type (
 
@@ -14,8 +14,6 @@ type (
 	//
 	// This type is auto-generated.
 	LabelSet []*Label
-
-	Map map[string]string
 )
 
 // Walk iterates through every slice item and calls w(Label) err
@@ -31,7 +29,7 @@ func (set LabelSet) Walk(w func(*Label) error) (err error) {
 	return
 }
 
-// LabelFilter iterates through every slice item, calls f(Label) (bool, err) and return filtered slice
+// Filter iterates through every slice item, calls f(Label) (bool, err) and return filtered slice
 //
 // This function is auto-generated.
 func (set LabelSet) Filter(f func(*Label) (bool, error)) (out LabelSet, err error) {

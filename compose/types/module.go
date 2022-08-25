@@ -6,6 +6,7 @@ import (
 	"time"
 
 	discovery "github.com/cortezaproject/corteza-server/discovery/types"
+
 	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"github.com/jmoiron/sqlx/types"
 
@@ -58,6 +59,9 @@ type (
 		Discovery discovery.ModuleMeta `json:"discovery"`
 
 		RecordRevisions ModuleConfigRecordRevisions `json:"recordRevisions"`
+
+		// RecordDeDup value duplicate detection settings
+		RecordDeDup ModuleConfigRecordDeDup `json:"recordDeDup"`
 	}
 
 	ModuleConfigDAL struct {
@@ -86,6 +90,18 @@ type (
 		SensitivityLevelID uint64 `json:"sensitivityLevelID,string,omitempty"`
 
 		UsageDisclosure string `json:"usageDisclosure"`
+	}
+
+	ModuleConfigRecordDeDup struct {
+		// enable or disable duplicate detection
+		Enabled bool `json:"enabled"`
+
+		// strictly restrict record saving
+		// 		otherwise show a warning with list of duplicated records
+		Strict bool `json:"strict"`
+
+		// list of duplicate detection rules applied to module's fields
+		Rules DeDupRuleSet `json:"rules,omitempty"`
 	}
 
 	ModuleFilter struct {

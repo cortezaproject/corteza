@@ -51,9 +51,10 @@ type (
 
 		revisions *recordRevisions
 
-		formatter recordValuesFormatter
-		sanitizer recordValuesSanitizer
-		validator recordValuesValidator
+		formatter   recordValuesFormatter
+		sanitizer   recordValuesSanitizer
+		validator   recordValuesValidator
+		dupDetector recordValuesDupDetector
 	}
 
 	recordValuesFormatter interface {
@@ -70,6 +71,10 @@ type (
 		UniqueChecker(fn values.UniqueChecker)
 		RecordRefChecker(fn values.ReferenceChecker)
 		UserRefChecker(fn values.ReferenceChecker)
+	}
+
+	recordValuesDupDetector interface {
+		CheckDuplication(context.Context, types.DeDupRuleSet, types.Record, types.RecordSet) (*types.RecordValueErrorSet, error)
 	}
 
 	recordValueAccessController interface {
@@ -105,7 +110,7 @@ type (
 	}
 
 	RecordService interface {
-		FindByID(ctx context.Context, namespaceID, moduleID, recordID uint64) (*types.Record, error)
+		FindByID(ctx context.Context, namespaceID, moduleID, recordID uint64) (*types.Record, *types.RecordValueErrorSet, error)
 
 		Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, filter string) (any, error)
 		Find(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
@@ -114,9 +119,9 @@ type (
 		RecordExport(context.Context, types.RecordFilter) error
 		RecordImport(context.Context, error) error
 
-		Create(ctx context.Context, record *types.Record) (*types.Record, error)
-		Update(ctx context.Context, record *types.Record) (*types.Record, error)
-		Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (types.RecordSet, error)
+		Create(ctx context.Context, record *types.Record) (*types.Record, *types.RecordValueErrorSet, error)
+		Update(ctx context.Context, record *types.Record) (*types.Record, *types.RecordValueErrorSet, error)
+		Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (types.RecordSet, *types.RecordValueErrorSet, error)
 
 		Validate(ctx context.Context, rec *types.Record) error
 
@@ -185,8 +190,9 @@ func Record() *record {
 
 		revisions: &recordRevisions{revisions.Service(dal.Service())},
 
-		formatter: values.Formatter(),
-		sanitizer: values.Sanitizer(),
+		formatter:   values.Formatter(),
+		sanitizer:   values.Sanitizer(),
+		dupDetector: types.DeDup(),
 	}
 
 	svc.validator = defaultValidator(svc)
@@ -212,7 +218,7 @@ func defaultValidator(svc RecordService) recordValuesValidator {
 			return false, nil
 		}
 
-		r, err := svc.FindByID(ctx, f.NamespaceID, f.ModuleID, v.Ref)
+		r, _, err := svc.FindByID(ctx, f.NamespaceID, f.ModuleID, v.Ref)
 		return r != nil, err
 	})
 
@@ -234,7 +240,7 @@ func defaultValidator(svc RecordService) recordValuesValidator {
 }
 
 // lookup fn() orchestrates record lookup, namespace preload and check
-func (svc record) lookup(ctx context.Context, namespaceID, moduleID uint64, lookup func(*types.Module, *recordActionProps) (*types.Record, error)) (r *types.Record, err error) {
+func (svc record) lookup(ctx context.Context, namespaceID, moduleID uint64, lookup func(*types.Module, *recordActionProps) (*types.Record, error)) (r *types.Record, dd *types.RecordValueErrorSet, err error) {
 	var (
 		ns     *types.Namespace
 		m      *types.Module
@@ -266,13 +272,15 @@ func (svc record) lookup(ctx context.Context, namespaceID, moduleID uint64, look
 		r.SetModule(m)
 		r.Values = svc.sanitizer.RunXSS(m, r.Values)
 
+		dd, err = svc.DupDetection(ctx, m, r)
+
 		return nil
 	}()
 
-	return r, svc.recordAction(ctx, aProps, RecordActionLookup, err)
+	return r, dd, svc.recordAction(ctx, aProps, RecordActionLookup, err)
 }
 
-func (svc record) FindByID(ctx context.Context, namespaceID, moduleID, recordID uint64) (r *types.Record, err error) {
+func (svc record) FindByID(ctx context.Context, namespaceID, moduleID, recordID uint64) (r *types.Record, dd *types.RecordValueErrorSet, err error) {
 	return svc.lookup(ctx, namespaceID, moduleID, func(m *types.Module, props *recordActionProps) (*types.Record, error) {
 		props.record.ID = recordID
 
@@ -509,7 +517,7 @@ func (svc record) RecordExport(ctx context.Context, f types.RecordFilter) (err e
 
 // Bulk handles provided set of bulk record operations.
 // It's able to create, update or delete records in a single transaction.
-func (svc record) Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (rr types.RecordSet, err error) {
+func (svc record) Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (rr types.RecordSet, dd *types.RecordValueErrorSet, err error) {
 	var pr *types.Record
 
 	err = func() error {
@@ -563,11 +571,11 @@ func (svc record) Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (r
 			switch p.Operation {
 			case types.OperationTypeCreate:
 				action = RecordActionCreate
-				r, err = svc.create(ctx, r)
+				r, dd, err = svc.create(ctx, r)
 
 			case types.OperationTypeUpdate:
 				action = RecordActionUpdate
-				r, err = svc.update(ctx, r)
+				r, dd, err = svc.update(ctx, r)
 
 			case types.OperationTypeDelete:
 				action = RecordActionDelete
@@ -614,20 +622,20 @@ func (svc record) Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (r
 	if len(oo) == 1 {
 		// was not really a bulk operation, and we already recorded the action
 		// inside transaction loop
-		return rr, err
+		return rr, dd, err
 	} else {
 		// when doing bulk op (updating and/or creating more than one record at once),
 		// we already log action for each operation
 		//
 		// to log the fact that the bulk op was done, we do one additional recording
 		// without any props
-		return rr, svc.recordAction(ctx, &recordActionProps{}, RecordActionBulk, err)
+		return rr, dd, svc.recordAction(ctx, &recordActionProps{}, RecordActionBulk, err)
 	}
 }
 
 // Raw create function that is responsible for value validation, event dispatching
 // and creation.
-func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Record, err error) {
+func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Record, dd *types.RecordValueErrorSet, err error) {
 	var (
 		aProps    = &recordActionProps{record: new}
 		invokerID = auth.GetIdentityFromContext(ctx).Identity()
@@ -645,7 +653,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 	aProps.setModule(m)
 
 	if !svc.ac.CanCreateRecordOnModule(ctx, m) {
-		return nil, RecordErrNotAllowedToCreate()
+		return nil, dd, RecordErrNotAllowedToCreate()
 	}
 
 	if err = RecordValueSanitization(m, new.Values); err != nil {
@@ -661,21 +669,26 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 
 	{
 		if rve = svc.procCreate(ctx, invokerID, m, new); !rve.IsValid() {
-			return nil, RecordErrValueInput().Wrap(rve)
+			return nil, dd, RecordErrValueInput().Wrap(rve)
 		}
 
 		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeCreate(new, nil, m, ns, rve, nil)); err != nil {
 			return
 		} else if !rve.IsValid() {
-			return nil, RecordErrValueInput().Wrap(rve)
+			return nil, dd, RecordErrValueInput().Wrap(rve)
 		}
 	}
 
 	new.Values = RecordValueDefaults(m, new.Values)
 
+	dd, err = svc.DupDetection(ctx, m, new)
+	if err != nil {
+		return
+	}
+
 	// Handle payload from automation scripts
 	if rve = svc.procCreate(ctx, invokerID, m, new); !rve.IsValid() {
-		return nil, RecordErrValueInput().Wrap(rve)
+		return nil, dd, RecordErrValueInput().Wrap(rve)
 	}
 
 	aProps.setChanged(new)
@@ -828,6 +841,7 @@ func CalcRecordOwner(current, new, invoker uint64) uint64 {
 	return new
 }
 
+// @todo: ?? this might be a good place for detection too
 func RecordValueUpdateOpCheck(ctx context.Context, ac recordValueAccessController, m *types.Module, vv types.RecordValueSet) *types.RecordValueErrorSet {
 	rve := &types.RecordValueErrorSet{}
 	if ac == nil {
@@ -905,7 +919,7 @@ func RecordValueDefaults(m *types.Module, vv types.RecordValueSet) (out types.Re
 
 // Raw update function that is responsible for value validation, event dispatching
 // and update.
-func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Record, err error) {
+func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Record, dd *types.RecordValueErrorSet, err error) {
 	var (
 		aProps    = &recordActionProps{record: upd}
 		invokerID = auth.GetIdentityFromContext(ctx).Identity()
@@ -916,7 +930,7 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 	)
 
 	if upd.ID == 0 {
-		return nil, RecordErrInvalidID()
+		return nil, dd, RecordErrInvalidID()
 	}
 
 	ns, m, old, err = loadRecordCombo(ctx, svc.store, svc.dal, upd.NamespaceID, upd.ModuleID, upd.ID)
@@ -929,12 +943,12 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 	aProps.setRecord(old)
 
 	if !svc.ac.CanUpdateRecord(ctx, old) {
-		return nil, RecordErrNotAllowedToUpdate()
+		return nil, dd, RecordErrNotAllowedToUpdate()
 	}
 
 	// Test if stale (update has an older version of data)
 	if isStale(upd.UpdatedAt, old.UpdatedAt, old.CreatedAt) {
-		return nil, RecordErrStaleData()
+		return nil, dd, RecordErrStaleData()
 	}
 
 	if err = RecordValueSanitization(m, upd.Values); err != nil {
@@ -949,10 +963,15 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 	upd.SetModule(m)
 	old.SetModule(m)
 
+	dd, err = svc.DupDetection(ctx, m, upd)
+	if err != nil {
+		return
+	}
+
 	{
 		// Handle input payload
 		if rve = svc.procUpdate(ctx, invokerID, m, upd, old); !rve.IsValid() {
-			return nil, RecordErrValueInput().Wrap(rve)
+			return nil, dd, RecordErrValueInput().Wrap(rve)
 		}
 
 		// Scripts can (besides simple error value) return complex record value error set
@@ -963,13 +982,13 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeUpdate(upd, old, m, ns, rve, nil)); err != nil {
 			return
 		} else if !rve.IsValid() {
-			return nil, RecordErrValueInput().Wrap(rve)
+			return nil, dd, RecordErrValueInput().Wrap(rve)
 		}
 	}
 
 	// Handle payload from automation scripts
 	if rve = svc.procUpdate(ctx, invokerID, m, upd, old); !rve.IsValid() {
-		return nil, RecordErrValueInput().Wrap(rve)
+		return nil, dd, RecordErrValueInput().Wrap(rve)
 	}
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
@@ -990,7 +1009,7 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, dd, err
 	}
 
 	// ensure module ref is set before running through records workflows and scripts
@@ -1012,18 +1031,18 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 	return
 }
 
-func (svc record) Create(ctx context.Context, new *types.Record) (rec *types.Record, err error) {
+func (svc record) Create(ctx context.Context, new *types.Record) (rec *types.Record, dd *types.RecordValueErrorSet, err error) {
 	var (
 		aProps = &recordActionProps{record: new}
 	)
 
 	err = func() error {
-		rec, err = svc.create(ctx, new)
+		rec, dd, err = svc.create(ctx, new)
 		aProps.setRecord(rec)
 		return err
 	}()
 
-	return rec, svc.recordAction(ctx, aProps, RecordActionCreate, err)
+	return rec, dd, svc.recordAction(ctx, aProps, RecordActionCreate, err)
 }
 
 // Runs value sanitization, sets values that should be used
@@ -1079,18 +1098,18 @@ func (svc record) procCreate(ctx context.Context, invokerID uint64, m *types.Mod
 	return rve
 }
 
-func (svc record) Update(ctx context.Context, upd *types.Record) (rec *types.Record, err error) {
+func (svc record) Update(ctx context.Context, upd *types.Record) (rec *types.Record, dd *types.RecordValueErrorSet, err error) {
 	var (
 		aProps = &recordActionProps{record: upd}
 	)
 
 	err = func() error {
-		rec, err = svc.update(ctx, upd)
+		rec, dd, err = svc.update(ctx, upd)
 		aProps.setRecord(rec)
 		return err
 	}()
 
-	return rec, svc.recordAction(ctx, aProps, RecordActionUpdate, err)
+	return rec, dd, svc.recordAction(ctx, aProps, RecordActionUpdate, err)
 }
 
 // Runs value sanitization, copies values that should updated
@@ -1626,6 +1645,49 @@ func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbu
 	}()
 
 	return svc.recordAction(ctx, aProps, RecordActionIteratorInvoked, err)
+}
+
+// DupDetection check for any duplicate records and returns error for strict duplication
+func (svc record) DupDetection(ctx context.Context, m *types.Module, rec *types.Record) (out *types.RecordValueErrorSet, err error) {
+	if m == nil || rec == nil {
+		return
+	}
+
+	// @todo: improve per records duplicate detection,
+	//  	since it is bit too extreme besides we do have bulk operations
+	var (
+		records types.RecordSet
+
+		rProps = &recordActionProps{}
+		config = m.Config.RecordDeDup
+	)
+
+	if config.Enabled {
+		records, _, err = svc.Find(ctx, types.RecordFilter{
+			ModuleID:    m.ID,
+			NamespaceID: m.NamespaceID,
+		})
+		if err != nil {
+			return
+		}
+
+		out, err = svc.dupDetector.CheckDuplication(ctx, config.Rules, *rec, records)
+		if err != nil {
+			return
+		}
+
+		// @todo: improve error string with details
+		rProps.setValueErrors(out)
+
+		// Error out if duplicate record exist
+		if (config.Strict && !out.IsValid()) || out.HasStrictErrors() {
+			return out, types.IsRecordValueErrorSet(out)
+		} else {
+			return out, nil
+		}
+	}
+
+	return
 }
 
 func ComposeRecordFilterChecker(ctx context.Context, ac recordAccessController, m *types.Module) func(*types.Record) (bool, error) {
