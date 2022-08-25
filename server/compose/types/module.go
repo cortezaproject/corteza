@@ -93,12 +93,9 @@ type (
 	}
 
 	ModuleConfigRecordDeDup struct {
-		// enable or disable duplicate detection
-		Enabled bool `json:"enabled"`
-
 		// strictly restrict record saving
 		// 		otherwise show a warning with list of duplicated records
-		Strict bool `json:"strict"`
+		Strict bool `json:"-"`
 
 		// list of duplicate detection rules applied to module's fields
 		Rules DeDupRuleSet `json:"rules,omitempty"`

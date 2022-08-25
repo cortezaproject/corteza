@@ -570,6 +570,12 @@ func (svc record) Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (r
 			//       before we start storing any changes
 			rves = &types.RecordValueErrorSet{}
 
+			// duplication errors
+			ddes = &types.RecordValueErrorSet{}
+
+			// merge of record value errors and duplication errors
+			ee = &types.RecordValueErrorSet{}
+
 			action func(props ...*recordActionProps) *recordAction
 			r      *types.Record
 
@@ -598,11 +604,11 @@ func (svc record) Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (r
 			switch p.Operation {
 			case types.OperationTypeCreate:
 				action = RecordActionCreate
-				r, dd, err = svc.create(ctx, r)
+				r, ddes, err = svc.create(ctx, r)
 
 			case types.OperationTypeUpdate:
 				action = RecordActionUpdate
-				r, dd, err = svc.update(ctx, r)
+				r, ddes, err = svc.update(ctx, r)
 
 			case types.OperationTypeDelete:
 				action = RecordActionDelete
@@ -612,8 +618,13 @@ func (svc record) Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (r
 			aProp.setChanged(r)
 
 			// Attach meta ID to each value error for FE identification
-			if !dd.HasStrictErrors() && r != nil {
-				dd.SetMetaID(r.ID)
+			if !ddes.HasStrictErrors() && r != nil {
+				ddes.SetMetaID(r.ID)
+			}
+			if !ddes.IsValid() && dd == nil {
+				dd = ddes
+			} else {
+				dd.Merge(ddes)
 			}
 
 			if rve := types.IsRecordValueErrorSet(err); rve != nil {
@@ -643,9 +654,11 @@ func (svc record) Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (r
 			}
 		}
 
-		if !rves.IsValid() {
+		// merge record value errors and duplication errors
+		ee.Merge(rves, dd)
+		if !ee.IsValid() {
 			// Any errors gathered?
-			return RecordErrValueInput().Wrap(rves)
+			return RecordErrValueInput().Wrap(ee)
 		}
 
 		return nil
@@ -700,8 +713,17 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 	new.SetModule(m)
 
 	{
+		// handle deDup error/warnings
+		dd, err = svc.DupDetection(ctx, m, new)
+
+		// handle input payload errors
 		if rve = svc.procCreate(ctx, invokerID, m, new); !rve.IsValid() {
 			return nil, dd, RecordErrValueInput().Wrap(rve)
+		}
+
+		// record value errors from dup detection
+		if err != nil {
+			return
 		}
 
 		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeCreate(new, nil, m, ns, rve, nil)); err != nil {
@@ -712,11 +734,6 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 	}
 
 	new.Values = RecordValueDefaults(m, new.Values)
-
-	dd, err = svc.DupDetection(ctx, m, new)
-	if err != nil {
-		return
-	}
 
 	// Handle payload from automation scripts
 	if rve = svc.procCreate(ctx, invokerID, m, new); !rve.IsValid() {
@@ -995,15 +1012,18 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 	upd.SetModule(m)
 	old.SetModule(m)
 
-	dd, err = svc.DupDetection(ctx, m, upd)
-	if err != nil {
-		return
-	}
-
 	{
-		// Handle input payload
+		// handle deDup error/warnings
+		dd, err = svc.DupDetection(ctx, m, upd)
+
+		// handle input payload errors
 		if rve = svc.procUpdate(ctx, invokerID, m, upd, old); !rve.IsValid() {
 			return nil, dd, RecordErrValueInput().Wrap(rve)
+		}
+
+		// record value errors from dup detection
+		if err != nil {
+			return
 		}
 
 		// Scripts can (besides simple error value) return complex record value error set
@@ -1708,7 +1728,6 @@ func (svc record) DupDetection(ctx context.Context, m *types.Module, rec *types.
 			return
 		}
 
-		// @todo: improve error string with details
 		rProps.setValueErrors(out)
 
 		// Error out if duplicate record exist
@@ -1911,7 +1930,7 @@ fields:
 				val.Value = pickRandomID(recRefs[refModID])
 
 			case "select":
-				//val.Value = src.Select(f.Options)
+				// val.Value = src.Select(f.Options)
 				continue fields
 
 			case "url":
