@@ -538,6 +538,8 @@ var (
 			&dal.Attribute{
 				Ident: "Name",
 
+				Sortable: true,
+
 				Type: dal.TypeText{},
 
 				Store: &dal.CodecAlias{Ident: "name"},

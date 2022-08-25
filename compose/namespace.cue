@@ -12,7 +12,7 @@ namespace: {
 			slug: { sortable: true, goType: "string" }
 			enabled: { goType: "bool" }
 			meta: { goType: "types.NamespaceMeta" }
-			name: {}
+			name: { sortable: true }
 
 			created_at: schema.SortableTimestampField
 			updated_at: schema.SortableTimestampNilField
