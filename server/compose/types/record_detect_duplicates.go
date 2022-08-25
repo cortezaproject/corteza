@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/cortezaproject/corteza/server/pkg/locale"
+	"github.com/cortezaproject/corteza/server/pkg/str"
 	"github.com/spf13/cast"
 	"strings"
 )
@@ -18,23 +19,44 @@ type (
 	}
 
 	DeDupRule struct {
-		Name       DeDupRuleName `json:"name"`
-		Strict     bool          `json:"strict"`
-		Attributes []string      `json:"attributes"`
+		Name          DeDupRuleName          `json:"name"`
+		Strict        bool                   `json:"strict"`
+		ErrorMessage  string                 `json:"errorMessage"`
+		ConstraintSet DeDupRuleConstraintSet `json:"constraints"`
 	}
+
+	DeDupRuleConstraint struct {
+		Attribute  string                    `json:"attribute"`
+		Modifier   DeDupValueModifier        `json:"modifier"`
+		MultiValue DeDupMultiValueConstraint `json:"multiValue"`
+	}
+
+	DeDupRuleConstraintSet []*DeDupRuleConstraint
 
 	// DeDupRuleName represent the identifier for duplicate detection rule
 	DeDupRuleName string
+
+	// DeDupValueModifier represent the algorithm used to check value string
+	DeDupValueModifier string
+
+	// DeDupMultiValueConstraint for matching multi values accordingly
+	DeDupMultiValueConstraint string
 
 	// DeDupIssueKind based on strict mode rule or duplication config
 	DeDupIssueKind string
 )
 
 const (
-	caseSensitive DeDupRuleName = "case-sensitive"
+	ignoreCase    DeDupValueModifier = "ignore-case"
+	caseSensitive DeDupValueModifier = "case-sensitive"
+	fuzzyMatch    DeDupValueModifier = "fuzzy-match"
+	soundsLike    DeDupValueModifier = "sounds-like"
 
-	dupWarning DeDupIssueKind = "duplication_warning"
-	dupError   DeDupIssueKind = "duplication_error"
+	oneOf DeDupMultiValueConstraint = "one-of"
+	equal DeDupMultiValueConstraint = "equal"
+
+	deDupWarning DeDupIssueKind = "duplication_warning"
+	deDupError   DeDupIssueKind = "duplication_error"
 )
 
 func DeDup() *deDup {
@@ -47,7 +69,7 @@ func (d deDup) CheckDuplication(ctx context.Context, rules DeDupRuleSet, rec Rec
 	out = &RecordValueErrorSet{}
 	err = rules.Walk(func(rule *DeDupRule) error {
 		if rule.HasAttributes() {
-			values := rr.GetValuesByName(distinct(rule.Attributes)...)
+			values := rr.GetValuesByName(distinct(rule.Attributes())...)
 
 			set := rule.validateValue(ctx, d.ls, rec, values)
 
@@ -72,7 +94,14 @@ func (rule DeDupIssueKind) String() string {
 }
 
 func (rule DeDupRule) HasAttributes() bool {
-	return len(rule.Attributes) > 0
+	return len(rule.ConstraintSet) > 0 && len(rule.Attributes()) > 0
+}
+
+func (rule DeDupRule) Attributes() (out []string) {
+	for _, c := range rule.ConstraintSet {
+		out = append(out, c.Attribute)
+	}
+	return
 }
 
 func (rule DeDupRule) IsStrict() bool {
@@ -80,9 +109,9 @@ func (rule DeDupRule) IsStrict() bool {
 }
 
 func (rule DeDupRule) IssueKind() string {
-	out := dupWarning
+	out := deDupWarning
 	if rule.Strict {
-		out = dupError
+		out = deDupError
 	}
 
 	return out.String()
@@ -93,43 +122,56 @@ func (rule DeDupRule) IssueMessage() (out string) {
 }
 
 func (rule DeDupRule) String() string {
-	return fmt.Sprintf("%s duplicate detection on `%s` field", rule.Name, strings.Join(rule.Attributes, ", "))
+	return fmt.Sprintf("%s duplicate detection on `%s` field", rule.Name, strings.Join(rule.Attributes(), ", "))
 }
 
 // validateValue will check duplicate detection based on rules name
 func (rule DeDupRule) validateValue(ctx context.Context, ls localeService, rec Record, vv RecordValueSet) (out *RecordValueErrorSet) {
-	switch rule.Name {
-	case caseSensitive:
-		return rule.checkCaseSensitiveDuplication(ctx, ls, rec, vv)
-	default:
-		return rule.checkCaseSensitiveDuplication(ctx, ls, rec, vv)
-	}
+	return rule.checkCaseSensitiveDuplication(ctx, ls, rec, vv)
 }
 
 func (rule DeDupRule) checkCaseSensitiveDuplication(ctx context.Context, ls localeService, rec Record, vv RecordValueSet) (out *RecordValueErrorSet) {
-	out = &RecordValueErrorSet{}
-	recVal := rec.Values
+	var (
+		recVal = rec.Values
+	)
 
-	for _, a := range rule.Attributes {
-		rv := recVal.Get(a, 0)
-		if rv == nil {
+	for _, c := range rule.ConstraintSet {
+		rvv := recVal.FilterByName(c.Attribute)
+		if rvv.Len() == 0 {
 			continue
 		}
 
+		var (
+			valErr = &RecordValueErrorSet{}
+		)
+
 		_ = vv.Walk(func(v *RecordValue) error {
 			if v.RecordID != rec.ID {
-				if toLower(v.Value) == toLower(rv.Value) {
-					out.Push(RecordValueError{
-						Kind:    rule.IssueKind(),
-						Message: ls.T(ctx, "compose", rule.IssueMessage()),
-						Meta: map[string]interface{}{
-							"field":         v.Name,
-							"value":         v.Value,
-							"dupValueField": rv.Name,
-							"recordID":      cast.ToString(v.RecordID),
-							"rule":          rule.String(),
-						},
-					})
+				_ = rvv.Walk(func(rv *RecordValue) error {
+					if len(rv.Value) > 0 && matchValue(c.Modifier, rv.Value, v.Value) {
+						valErr.Push(RecordValueError{
+							Kind:    rule.IssueKind(),
+							Message: ls.T(ctx, "compose", rule.IssueMessage()),
+							Meta: map[string]interface{}{
+								"field":         v.Name,
+								"value":         v.Value,
+								"dupValueField": rv.Name,
+								"recordID":      cast.ToString(v.RecordID),
+								"rule":          rule.String(),
+							},
+						})
+					}
+					return nil
+				})
+
+				// 1. multiValue is empty, then all value needs to be a match then return error/warning
+				// 2. multiValue is oneOf, then one or more value needs to be a match then return error/warning
+				// 3. multiValue is equal, then all value needs to be a match then return error/warning
+				if (!valErr.IsValid() && (!c.HasMultiValue() || c.IsAllEqual()) && valErr.Len() == rvv.Len()) || (c.IsOneOf() && valErr.Len() > 0) {
+					if out == nil {
+						out = &RecordValueErrorSet{}
+					}
+					out.Push(valErr.Set...)
 				}
 			}
 			return nil
@@ -137,6 +179,23 @@ func (rule DeDupRule) checkCaseSensitiveDuplication(ctx context.Context, ls loca
 	}
 
 	return
+}
+
+func (c DeDupRuleConstraint) HasMultiValue() bool {
+	switch c.MultiValue {
+	case oneOf, equal:
+		return true
+	default:
+		return false
+	}
+}
+
+func (c DeDupRuleConstraint) IsAllEqual() bool {
+	return c.MultiValue == equal
+}
+
+func (c DeDupRuleConstraint) IsOneOf() bool {
+	return c.MultiValue == oneOf
 }
 
 func (v *RecordValueErrorSet) SetMetaID(id uint64) {
@@ -154,21 +213,7 @@ func (v *RecordValueErrorSet) SetMetaID(id uint64) {
 }
 
 func (v *RecordValueErrorSet) HasStrictErrors() bool {
-	return v.HasKind(dupError.String())
-}
-
-// CaseSensitiveDuplicationRule prepares the case-sensitive duplicate detection rule
-func CaseSensitiveDuplicationRule(strict bool, identifiers ...string) DeDupRule {
-	return makeDuplicationRule(caseSensitive, strict, identifiers...)
-}
-
-// makeDuplicationRule prepares duplication detection rules
-func makeDuplicationRule(name DeDupRuleName, strict bool, attributes ...string) DeDupRule {
-	return DeDupRule{
-		Name:       name,
-		Strict:     strict,
-		Attributes: attributes,
-	}
+	return v.HasKind(deDupError.String())
 }
 
 // distinct only list the different (distinct) values
@@ -183,6 +228,19 @@ func distinct(input []string) (out []string) {
 	return
 }
 
-func toLower(s string) string {
-	return strings.ToLower(s)
+// matchValue will check if the input matches with target string as per the modifier
+func matchValue(modifier DeDupValueModifier, input string, target string) bool {
+	switch modifier {
+	case ignoreCase:
+		return str.Match(input, target, str.CaseInSensitiveMatch)
+	case caseSensitive:
+		return str.Match(input, target, str.CaseSensitiveMatch)
+	case fuzzyMatch:
+		return str.Match(input, target, str.LevenshteinDistance)
+	case soundsLike:
+		return str.Match(input, target, str.Soundex)
+	default:
+		// ignoreCase as default, if not specified
+		return str.Match(input, target, str.CaseInSensitiveMatch)
+	}
 }
