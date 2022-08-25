@@ -6,7 +6,7 @@ package types
 // the code is regenerated.
 //
 // Definitions file that controls how this file is generated:
-// pkg/label/types.yaml
+// pkg/label/types/types.yaml
 
 import (
 	"fmt"

@@ -323,13 +323,13 @@ func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 		// security context w/ writer role
 		ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(u.ID, writerRole.ID, authRoleID))
 
-		recChecked, err = svc.Create(ctx, &types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: valChecked})
+		recChecked, _, err = svc.Create(ctx, &types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: valChecked})
 		verifyRecErrSet(t, err)
 
 		req.NotNil(recChecked.Values.Get("bool", 0), "should be checked")
 		req.Equal("1", recChecked.Values.Get("bool", 0).Value)
 
-		recUnchecked, err = svc.Create(ctx, &types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: valUnchecked})
+		recUnchecked, _, err = svc.Create(ctx, &types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: valUnchecked})
 		req.NoError(err)
 
 		req.Nil(recUnchecked.Values.Get("bool", 0))
@@ -343,7 +343,7 @@ func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 			&types.RecordValue{Name: "string", Value: "abc"},
 		}
 
-		recChecked, err = svc.Update(ctx, recChecked)
+		recChecked, _, err = svc.Update(ctx, recChecked)
 		req.NoError(err)
 
 		req.NotNil(recChecked.Values.Get("bool", 0), "should still be checked")
@@ -353,7 +353,7 @@ func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 			&types.RecordValue{Name: "string", Value: "abc"},
 		}
 
-		recUnchecked, err = svc.Update(ctx, recUnchecked)
+		recUnchecked, _, err = svc.Update(ctx, recUnchecked)
 		req.NoError(err)
 		req.Nil(recUnchecked.Values.Get("bool", 0), "should not be checked anymore")
 
@@ -367,7 +367,7 @@ func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 			&types.RecordValue{Name: "bool", Value: "1"},
 		}
 
-		recChecked, err = svc.Update(ctx, recChecked)
+		recChecked, _, err = svc.Update(ctx, recChecked)
 		req.NoError(err)
 
 		req.NotNil(recChecked.Values.Get("bool", 0), "should checked again")
@@ -462,13 +462,13 @@ func TestRecord_defValueFieldPermissionIssue(t *testing.T) {
 
 		ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(user.ID, authRoleID))
 
-		recPartial, err = svc.Create(ctx, &types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: types.RecordValueSet{}})
+		recPartial, _, err = svc.Create(ctx, &types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: types.RecordValueSet{}})
 		verifyRecErrSet(t, err)
 		req.Equal("<def-w><def-r>", valueExtractor(recPartial, "writable", "readable"))
 
 		t.Log("creating record with w/o editor role (must be able to crate & update record and modify both fields)")
 
-		recPartial, err = svc.Create(ctx, &types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: types.RecordValueSet{
+		recPartial, _, err = svc.Create(ctx, &types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: types.RecordValueSet{
 			&types.RecordValue{Name: "writable", Value: "w"},
 			&types.RecordValue{Name: "readable", Value: "r"},
 		}})
@@ -480,7 +480,7 @@ func TestRecord_defValueFieldPermissionIssue(t *testing.T) {
 
 		recPartial.Values = types.RecordValueSet{&types.RecordValue{Name: "writable", Value: "w2"}}
 
-		recPartial, err = svc.Update(ctx, recPartial)
+		recPartial, _, err = svc.Update(ctx, recPartial)
 		verifyRecErrSet(t, err)
 		req.Equal("<w2><NULL>", valueExtractor(recPartial, "writable", "readable"))
 	}
@@ -490,13 +490,13 @@ func TestRecord_defValueFieldPermissionIssue(t *testing.T) {
 
 		ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(user.ID, authRoleID, editorRole.ID))
 
-		recPartial, err = svc.Create(ctx, &types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: types.RecordValueSet{}})
+		recPartial, _, err = svc.Create(ctx, &types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: types.RecordValueSet{}})
 		verifyRecErrSet(t, err)
 		req.Equal("<def-w><def-r>", valueExtractor(recPartial, "writable", "readable"))
 
 		t.Log("creating record with editor role (must be able to crate & update record and modify both fields)")
 
-		recPartial, err = svc.Create(ctx, &types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: types.RecordValueSet{
+		recPartial, _, err = svc.Create(ctx, &types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: types.RecordValueSet{
 			// this is the def. value set
 			&types.RecordValue{Name: "writable", Value: "def-w"},
 			&types.RecordValue{Name: "readable", Value: "r"},
@@ -582,14 +582,14 @@ func TestRecord_refAccessControl(t *testing.T) {
 
 	{
 		t.Log("creating record on 1st module; should failed because we do not have permissions to create records")
-		_, err = svc.Create(ctx, mod1rec1)
+		_, _, err = svc.Create(ctx, mod1rec1)
 		req.EqualError(err, "not allowed to create records")
 
 		t.Logf("granting permissions to create records on this module")
 		req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, mod1.RbacResource(), "record.create")))
 
 		t.Log("retry creating record on 1st module; should fail because we do not have permissions to update field")
-		_, err = svc.Create(ctx, mod1rec1)
+		_, _, err = svc.Create(ctx, mod1rec1)
 		req.Error(err)
 		req.True(types.IsRecordValueErrorSet(err).HasKind("updateDenied"))
 
@@ -597,12 +597,12 @@ func TestRecord_refAccessControl(t *testing.T) {
 		req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, mod1strField.RbacResource(), "record.value.update")))
 
 		t.Log("retry creating record on 1st module; should succeed")
-		mod1rec1, err = svc.Create(ctx, mod1rec1)
+		mod1rec1, _, err = svc.Create(ctx, mod1rec1)
 		req.NoError(err)
 	}
 	{
 		t.Log("can record be read")
-		_, err = svc.FindByID(ctx, mod1rec1.NamespaceID, mod1rec1.ModuleID, mod1rec1.ID)
+		_, _, err = svc.FindByID(ctx, mod1rec1.NamespaceID, mod1rec1.ModuleID, mod1rec1.ID)
 		req.EqualError(err, "not allowed to read this record")
 	}
 	{
@@ -610,7 +610,7 @@ func TestRecord_refAccessControl(t *testing.T) {
 		mod2rec1.Values = mod2rec1.Values.Set(&types.RecordValue{Name: "ref", Value: fmt.Sprintf("%d", mod1rec1.ID)})
 
 		t.Log("create record on 2nd module with ref to record on the 1st module; must fail, no create perm")
-		_, err = svc.Create(ctx, mod2rec1)
+		_, _, err = svc.Create(ctx, mod2rec1)
 		req.EqualError(err, "not allowed to create records")
 
 		t.Log("grant record.create on namespace level")
@@ -620,36 +620,36 @@ func TestRecord_refAccessControl(t *testing.T) {
 		req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, types.ModuleFieldRbacResource(ns.ID, 0, 0), "record.value.update")))
 
 		t.Log("create record on 2nd module with ref to record on the 1st module; most fail, not allowed to read (referenced) mod1rec1")
-		_, err = svc.Create(ctx, mod2rec1)
+		_, _, err = svc.Create(ctx, mod2rec1)
 		req.EqualError(err, "invalid record value input")
 
 		t.Log("grant read on record")
 		req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, mod1rec1.RbacResource(), "read")))
 
 		t.Log("create record on 2nd module with ref to record on the 1st module")
-		mod2rec1, err = svc.Create(ctx, mod2rec1)
+		mod2rec1, _, err = svc.Create(ctx, mod2rec1)
 		verifyRecErrSet(t, err)
 	}
 	{
 		t.Log("update record on 2nd module with unchanged values; must fail, no update permissions")
-		_, err = svc.Update(ctx, mod2rec1)
+		_, _, err = svc.Update(ctx, mod2rec1)
 		req.EqualError(err, "not allowed to update this record")
 
 		t.Log("grant update on namespace level")
 		req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, types.RecordRbacResource(ns.ID, 0, 0), "update")))
 
 		t.Log("update record on 2nd module with unchanged values")
-		mod2rec1, err = svc.Update(ctx, mod2rec1)
+		mod2rec1, _, err = svc.Update(ctx, mod2rec1)
 		verifyRecErrSet(t, err)
 
 		t.Log("update record on 2nd module with unchanged values; unset record value")
 		mod2rec1.Values = nil
-		mod2rec1, err = svc.Update(ctx, mod2rec1)
+		mod2rec1, _, err = svc.Update(ctx, mod2rec1)
 		verifyRecErrSet(t, err)
 
 		t.Log("link 2nd record to 1st one again")
 		mod2rec1.Values = mod2rec1.Values.Set(&types.RecordValue{Name: "ref", Value: fmt.Sprintf("%d", mod1rec1.ID)})
-		mod2rec1, err = svc.Update(ctx, mod2rec1)
+		mod2rec1, _, err = svc.Update(ctx, mod2rec1)
 		verifyRecErrSet(t, err)
 	}
 	{
@@ -658,7 +658,7 @@ func TestRecord_refAccessControl(t *testing.T) {
 
 		t.Log("link 2nd record to 1st one again but w/o permissions; must work, value did not change")
 		mod2rec1.Values = mod2rec1.Values.Set(&types.RecordValue{Name: "ref", Value: fmt.Sprintf("%d", mod1rec1.ID)})
-		mod2rec1, err = svc.Update(ctx, mod2rec1)
+		mod2rec1, _, err = svc.Update(ctx, mod2rec1)
 		verifyRecErrSet(t, err)
 	}
 }

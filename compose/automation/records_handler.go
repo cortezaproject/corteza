@@ -13,12 +13,12 @@ import (
 
 type (
 	recordService interface {
-		FindByID(ctx context.Context, namespaceID, moduleID, recordID uint64) (*types.Record, error)
+		FindByID(ctx context.Context, namespaceID, moduleID, recordID uint64) (*types.Record, *types.RecordValueErrorSet, error)
 		Find(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
 
-		Create(ctx context.Context, record *types.Record) (*types.Record, error)
-		Update(ctx context.Context, record *types.Record) (*types.Record, error)
-		Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (types.RecordSet, error)
+		Create(ctx context.Context, record *types.Record) (*types.Record, *types.RecordValueErrorSet, error)
+		Update(ctx context.Context, record *types.Record) (*types.Record, *types.RecordValueErrorSet, error)
+		Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (types.RecordSet, *types.RecordValueErrorSet, error)
 		Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, filter string) (out any, err error)
 
 		Validate(ctx context.Context, rec *types.Record) error
@@ -273,13 +273,13 @@ func (h recordsHandler) new(ctx context.Context, args *recordsNewArgs) (*records
 
 func (h recordsHandler) create(ctx context.Context, args *recordsCreateArgs) (results *recordsCreateResults, err error) {
 	results = &recordsCreateResults{}
-	results.Record, err = h.rec.Create(ctx, args.Record)
+	results.Record, _, err = h.rec.Create(ctx, args.Record)
 	return
 }
 
 func (h recordsHandler) update(ctx context.Context, args *recordsUpdateArgs) (results *recordsUpdateResults, err error) {
 	results = &recordsUpdateResults{}
-	results.Record, err = h.rec.Update(ctx, args.Record)
+	results.Record, _, err = h.rec.Update(ctx, args.Record)
 	return
 }
 
@@ -322,7 +322,8 @@ func (h recordsHandler) lookupRecord(ctx context.Context, args recordLookup) (re
 		return
 	}
 
-	return h.rec.FindByID(ctx, namespace.ID, module.ID, recordID)
+	record, _, err = h.rec.FindByID(ctx, namespace.ID, module.ID, recordID)
+	return
 }
 
 func (h recordsHandler) loadCombo(ctx context.Context, args interface{}) (namespace *types.Namespace, module *types.Module, err error) {

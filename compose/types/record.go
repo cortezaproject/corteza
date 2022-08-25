@@ -380,3 +380,29 @@ func (set RecordBulkSet) ToBulkOperations(dftModule uint64, dftNamespace uint64)
 
 	return
 }
+
+// GetValuesByName filters values for records by names
+func (set RecordSet) GetValuesByName(names ...string) (out RecordValueSet) {
+	nameMap := make(map[string]bool)
+	for _, n := range names {
+		if len(n) > 0 {
+			nameMap[n] = true
+		}
+	}
+
+	err := set.Walk(func(rec *Record) error {
+		_ = rec.Values.Walk(func(val *RecordValue) error {
+			if val != nil && nameMap[val.Name] {
+				val.RecordID = rec.ID
+				out = append(out, val)
+			}
+			return nil
+		})
+		return nil
+	})
+	if err != nil {
+		return
+	}
+
+	return
+}

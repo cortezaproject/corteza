@@ -79,13 +79,15 @@ func (s *Sync) FetchUrl(ctx context.Context, url string) (io.Reader, error) {
 }
 
 // CreateRecord wraps the compose Record service Create
-func (s *Sync) CreateRecord(ctx context.Context, rec *ct.Record) (*ct.Record, error) {
-	return s.composeRecordService.Create(ctx, rec)
+func (s *Sync) CreateRecord(ctx context.Context, rec *ct.Record) (out *ct.Record, err error) {
+	out, _, err = s.composeRecordService.Create(ctx, rec)
+	return
 }
 
 // UpdateRecord wraps the compose Record service Update
-func (s *Sync) UpdateRecord(ctx context.Context, rec *ct.Record) (*ct.Record, error) {
-	return s.composeRecordService.Update(ctx, rec)
+func (s *Sync) UpdateRecord(ctx context.Context, rec *ct.Record) (out *ct.Record, err error) {
+	out, _, err = s.composeRecordService.Update(ctx, rec)
+	return
 }
 
 // DeleteRecord wraps the compose Record service Update
