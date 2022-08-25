@@ -7994,6 +7994,7 @@ func (Store) sortableComposeNamespaceFields() map[string]string {
 		"deleted_at": "deleted_at",
 		"deletedat":  "deleted_at",
 		"id":         "id",
+		"name":       "name",
 		"slug":       "slug",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
@@ -8027,6 +8028,8 @@ func (s *Store) collectComposeNamespaceCursorValues(res *composeType.Namespace, 
 					pkID = true
 				case "slug":
 					cur.Set(c.Column, res.Slug, c.Descending)
+				case "name":
+					cur.Set(c.Column, res.Name, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":
