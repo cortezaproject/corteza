@@ -34,6 +34,8 @@ type (
 		Attributes AttributeSet
 
 		Operations OperationSet
+
+		Constraints map[string][]any
 	}
 	ModelSet []*Model
 

@@ -86,6 +86,11 @@ const (
 	moduleChanged       moduleChanges = 1
 	moduleLabelsChanged moduleChanges = 2
 	moduleFieldsChanged moduleChanges = 4
+
+	recordTable            = "compose_record"
+	recordFieldID          = "ID"
+	recordFieldModuleID    = "moduleID"
+	recordFieldNamespaceID = "namespaceID"
 )
 
 const (
@@ -1232,6 +1237,8 @@ func modulesToModelSet(dmm dalModelManager, ns *types.Namespace, mm ...*types.Mo
 
 			// @todo validate ident with connection's ident validator
 
+			model.Constraints = modelBaseConstraints(model, mod)
+
 			model.ConnectionID = connectionID
 			out = append(out, model)
 
@@ -1253,6 +1260,21 @@ func modulesToModelSet(dmm dalModelManager, ns *types.Namespace, mm ...*types.Mo
 
 				out = append(out, rModel)
 			}
+		}
+	}
+
+	return
+}
+
+func modelBaseConstraints(model *dal.Model, mod *types.Module) (out map[string][]any) {
+
+	// If we're writting to the default table apply additional constraints
+	// @todo there should be more logic here, but for now this is what we had
+	//       elsewhere.
+	if model.Ident == recordTable {
+		out = map[string][]any{
+			recordFieldModuleID:    {mod.ID},
+			recordFieldNamespaceID: {mod.NamespaceID},
 		}
 	}
 
