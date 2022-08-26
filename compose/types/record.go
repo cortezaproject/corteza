@@ -96,30 +96,12 @@ const (
 	OperationTypeCreate OperationType = "create"
 	OperationTypeUpdate OperationType = "update"
 	OperationTypeDelete OperationType = "delete"
-
-	recordFieldID          = "ID"
-	recordFieldModuleID    = "moduleID"
-	recordFieldNamespaceID = "namespaceID"
 )
 
 func (f RecordFilter) ToConstraintedFilter(c map[string][]any) filter.Filter {
 	return filter.Generic(
 		// combine constraints with namespace and module
-		filter.WithConstraints(func() map[string][]any {
-			if c == nil {
-				c = make(map[string][]any)
-			}
-
-			if f.ModuleID > 0 {
-				c[recordFieldModuleID] = []any{f.ModuleID}
-			}
-
-			if f.NamespaceID > 0 {
-				c[recordFieldNamespaceID] = []any{f.NamespaceID}
-			}
-
-			return c
-		}()),
+		filter.WithConstraints(c),
 		filter.WithExpression(f.Query),
 		filter.WithOrderBy(f.Sort),
 		filter.WithLimit(f.Limit),
