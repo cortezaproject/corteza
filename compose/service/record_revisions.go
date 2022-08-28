@@ -37,11 +37,12 @@ func (svc *recordRevisions) modelRef(mod *types.Module) (mf dal.ModelRef) {
 }
 
 func (svc *recordRevisions) search(ctx context.Context, rec *types.Record) (_ dal.Iterator, err error) {
-	return svc.r.Search(
-		ctx,
-		svc.modelRef(rec.GetModule()),
-		filter.Generic(filter.WithConstraint("rel_resource", rec.ID)),
+	var (
+		revModRef = svc.modelRef(rec.GetModule())
+		revFilter = filter.Generic(filter.WithConstraint("rel_resource", rec.ID))
 	)
+
+	return svc.r.Search(ctx, revModRef, revFilter)
 }
 
 func (svc *recordRevisions) created(ctx context.Context, new *types.Record) (err error) {
