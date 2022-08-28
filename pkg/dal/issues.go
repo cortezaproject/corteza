@@ -116,13 +116,18 @@ func (a *issueHelper) mergeWith(b *issueHelper) {
 }
 
 // Op check utils
-
-func (svc *service) canOpData(connectionID, modelID uint64) (err error) {
-	if svc.hasConnectionIssues(connectionID) {
-		return errRecordOpProblematicConnection(connectionID)
+func (svc *service) canOpData(ref ModelRef) (err error) {
+	if svc.hasConnectionIssues(ref.ConnectionID) {
+		return errRecordOpProblematicConnection(ref.ConnectionID)
 	}
-	if svc.hasModelIssues(modelID) {
-		return errRecordOpProblematicModel(modelID)
+
+	var mod = svc.FindModelByRef(ref)
+	if mod == nil {
+		return errModelNotFound(ref.ResourceID)
+	}
+
+	if svc.hasModelIssues(mod.ResourceID) {
+		return errRecordOpProblematicModel(mod.ResourceID)
 	}
 
 	return nil

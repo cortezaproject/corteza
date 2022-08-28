@@ -383,7 +383,7 @@ func (svc *service) RemoveConnection(ctx context.Context, ID uint64) (err error)
 
 // Create stores new data (create data entry)
 func (svc *service) Create(ctx context.Context, mf ModelRef, operations OperationSet, rr ...ValueGetter) (err error) {
-	if err = svc.canOpData(mf.ConnectionID, mf.ResourceID); err != nil {
+	if err = svc.canOpData(mf); err != nil {
 		return fmt.Errorf("cannot create data entry: %w", err)
 	}
 
@@ -396,7 +396,7 @@ func (svc *service) Create(ctx context.Context, mf ModelRef, operations Operatio
 }
 
 func (svc *service) Update(ctx context.Context, mf ModelRef, operations OperationSet, rr ...ValueGetter) (err error) {
-	if err = svc.canOpData(mf.ConnectionID, mf.ResourceID); err != nil {
+	if err = svc.canOpData(mf); err != nil {
 		return fmt.Errorf("cannot update data entry: %w", err)
 	}
 
@@ -415,7 +415,7 @@ func (svc *service) Update(ctx context.Context, mf ModelRef, operations Operatio
 }
 
 func (svc *service) Search(ctx context.Context, mf ModelRef, operations OperationSet, f filter.Filter) (iter Iterator, err error) {
-	if err = svc.canOpData(mf.ConnectionID, mf.ResourceID); err != nil {
+	if err = svc.canOpData(mf); err != nil {
 		err = fmt.Errorf("cannot search data entry: %w", err)
 		return
 	}
@@ -430,7 +430,7 @@ func (svc *service) Search(ctx context.Context, mf ModelRef, operations Operatio
 }
 
 func (svc *service) Lookup(ctx context.Context, mf ModelRef, operations OperationSet, lookup ValueGetter, dst ValueSetter) (err error) {
-	if err = svc.canOpData(mf.ConnectionID, mf.ResourceID); err != nil {
+	if err = svc.canOpData(mf); err != nil {
 		return fmt.Errorf("cannot lookup data entry: %w", err)
 	}
 
@@ -442,7 +442,7 @@ func (svc *service) Lookup(ctx context.Context, mf ModelRef, operations Operatio
 }
 
 func (svc *service) Delete(ctx context.Context, mf ModelRef, operations OperationSet, vv ...ValueGetter) (err error) {
-	if err = svc.canOpData(mf.ConnectionID, mf.ResourceID); err != nil {
+	if err = svc.canOpData(mf); err != nil {
 		return fmt.Errorf("cannot delete data entry: %w", err)
 	}
 
@@ -460,7 +460,7 @@ func (svc *service) Delete(ctx context.Context, mf ModelRef, operations Operatio
 }
 
 func (svc *service) Truncate(ctx context.Context, mf ModelRef, operations OperationSet) (err error) {
-	if err = svc.canOpData(mf.ConnectionID, mf.ResourceID); err != nil {
+	if err = svc.canOpData(mf); err != nil {
 		return fmt.Errorf("cannot truncate data entry: %w", err)
 	}
 
@@ -818,6 +818,19 @@ func (svc *service) FindModelByResourceIdent(connectionID uint64, resourceType, 
 	}
 
 	return svc.models[connectionID].FindByResourceIdent(resourceType, resourceIdent)
+}
+
+func (svc *service) FindModelByRef(ref ModelRef) *Model {
+	connectionID := ref.ConnectionID
+	if connectionID == 0 {
+		connectionID = svc.defConnID
+	}
+
+	if ref.ResourceID > 0 {
+		return svc.models[connectionID].FindByResourceID(ref.ResourceID)
+	}
+
+	return svc.models[connectionID].FindByResourceIdent(ref.ResourceType, ref.Resource)
 }
 
 func (svc *service) FindModelByIdent(connectionID uint64, ident string) *Model {
