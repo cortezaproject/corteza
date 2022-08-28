@@ -1241,10 +1241,7 @@ func modulesToModelSet(dmm dalModelManager, ns *types.Namespace, mm ...*types.Mo
 				// reuse the connection from the module
 				rModel.ConnectionID = connectionID
 				rModel.Resource = model.Resource
-
-				// a little trick to ensure revision model keeps t
-				// the same ID and to avoid collisions with the model
-				rModel.ResourceID = mod.ID + 1
+				rModel.ResourceID = nextID()
 
 				if rModel.Ident = mod.Config.RecordRevisions.Ident; rModel.Ident == "" {
 					rModel.Ident = "compose_record_revisions"
