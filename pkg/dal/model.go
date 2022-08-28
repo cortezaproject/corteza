@@ -110,9 +110,15 @@ func (mm ModelSet) FindByResourceID(resourceID uint64) *Model {
 
 func (mm ModelSet) FindByResourceIdent(resourceType, resourceIdent string) *Model {
 	for _, m := range mm {
-		if m.ResourceType == resourceType && m.Resource == resourceIdent {
-			return m
+		if m.ResourceType != resourceType {
+			continue
 		}
+
+		if m.Resource != resourceIdent {
+			continue
+		}
+
+		return m
 	}
 	return nil
 }
