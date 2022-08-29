@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
-	"github.com/cortezaproject/corteza-server/pkg/report"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/go-chi/chi/v5"
 	"io"
@@ -167,7 +166,7 @@ type (
 		// Steps POST parameter
 		//
 		// Report steps definition
-		Steps report.StepDefinitionSet
+		Steps types.ReportStepSet
 
 		// Describe POST parameter
 		//
@@ -184,7 +183,7 @@ type (
 		// Frames POST parameter
 		//
 		// Report data frame definitions
-		Frames report.FrameDefinitionSet
+		Frames types.ReportFrameDefinitionSet
 	}
 )
 
@@ -759,7 +758,7 @@ func (r ReportDescribe) GetSources() types.ReportDataSourceSet {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ReportDescribe) GetSteps() report.StepDefinitionSet {
+func (r ReportDescribe) GetSteps() types.ReportStepSet {
 	return r.Steps
 }
 
@@ -807,7 +806,7 @@ func (r *ReportDescribe) Fill(req *http.Request) (err error) {
 		//}
 
 		//if val, ok := req.Form["steps[]"]; ok && len(val) > 0  {
-		//    r.Steps, err = report.StepDefinitionSet(val), nil
+		//    r.Steps, err = types.ReportStepSet(val), nil
 		//    if err != nil {
 		//        return err
 		//    }
@@ -843,7 +842,7 @@ func (r ReportRun) GetReportID() uint64 {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ReportRun) GetFrames() report.FrameDefinitionSet {
+func (r ReportRun) GetFrames() types.ReportFrameDefinitionSet {
 	return r.Frames
 }
 
@@ -879,7 +878,7 @@ func (r *ReportRun) Fill(req *http.Request) (err error) {
 		// POST params
 
 		//if val, ok := req.Form["frames[]"]; ok && len(val) > 0  {
-		//    r.Frames, err = report.FrameDefinitionSet(val), nil
+		//    r.Frames, err = types.ReportFrameDefinitionSet(val), nil
 		//    if err != nil {
 		//        return err
 		//    }

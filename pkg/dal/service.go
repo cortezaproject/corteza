@@ -445,23 +445,23 @@ func (svc *service) datasource(ctx context.Context, mf ModelRef, f filter.Filter
 	return iter, model, err
 }
 
-// RunPipeline returns an iterator based on the provided Pipeline
+// Run returns an iterator based on the provided Pipeline
 // @todo consider moving the Search method to utilize this also
-func (svc *service) RunPipeline(ctx context.Context, pp Pipeline) (iter Iterator, err error) {
-	return svc.runPipeline(ctx, pp.root(), false)
+func (svc *service) Run(ctx context.Context, pp Pipeline) (iter Iterator, err error) {
+	return svc.run(ctx, pp.root(), false)
 }
 
-// DryrunPipeline processes the Pipeline but doesn't return the iterator
+// Dryrun processes the Pipeline but doesn't return the iterator
 // @todo consider reworking this; I'm not the biggest fan of this one
 //
 // The method is primarily used by system reports to obtain some metadata
-func (svc *service) DryrunPipeline(ctx context.Context, pp Pipeline) (err error) {
-	_, err = svc.runPipeline(ctx, pp.root(), true)
+func (svc *service) Dryrun(ctx context.Context, pp Pipeline) (err error) {
+	_, err = svc.run(ctx, pp.root(), true)
 	return
 }
 
-// runPipeline is the recursive counterpart to RunPipeline
-func (svc *service) runPipeline(ctx context.Context, s PipelineStep, dry bool) (it Iterator, err error) {
+// run is the recursive counterpart to run
+func (svc *service) run(ctx context.Context, s PipelineStep, dry bool) (it Iterator, err error) {
 	switch s := s.(type) {
 	case *Datasource:
 		err = s.init(ctx, svc.datasource)
@@ -474,7 +474,7 @@ func (svc *service) runPipeline(ctx context.Context, s PipelineStep, dry bool) (
 		return s.exec(ctx)
 
 	case *Aggregate:
-		it, err = svc.runPipeline(ctx, s.rel, dry)
+		it, err = svc.run(ctx, s.rel, dry)
 		if err != nil {
 			return
 		}
@@ -492,11 +492,11 @@ func (svc *service) runPipeline(ctx context.Context, s PipelineStep, dry bool) (
 	case *Join:
 		var left Iterator
 		var right Iterator
-		left, err = svc.runPipeline(ctx, s.relLeft, dry)
+		left, err = svc.run(ctx, s.relLeft, dry)
 		if err != nil {
 			return
 		}
-		right, err = svc.runPipeline(ctx, s.relRight, dry)
+		right, err = svc.run(ctx, s.relRight, dry)
 		if err != nil {
 			return
 		}
@@ -513,11 +513,11 @@ func (svc *service) runPipeline(ctx context.Context, s PipelineStep, dry bool) (
 	case *Link:
 		var left Iterator
 		var right Iterator
-		left, err = svc.runPipeline(ctx, s.relLeft, dry)
+		left, err = svc.run(ctx, s.relLeft, dry)
 		if err != nil {
 			return
 		}
-		right, err = svc.runPipeline(ctx, s.relRight, dry)
+		right, err = svc.run(ctx, s.relRight, dry)
 		if err != nil {
 			return
 		}

@@ -239,6 +239,13 @@ func (vv ReportDataSourceSet) Value() (driver.Value, error) { return json.Marsha
 func (vv *ReportScenarioSet) Scan(src any) error          { return sql.ParseJSON(src, vv) }
 func (vv ReportScenarioSet) Value() (driver.Value, error) { return json.Marshal(vv) }
 
+func (f *qlExprWrap) Node() *ql.ASTNode {
+	if f == nil {
+		return nil
+	}
+	return f.ASTNode
+}
+
 func (f *qlExprWrap) UnmarshalJSON(data []byte) (err error) {
 	var aux interface{}
 	if err = json.Unmarshal(data, &aux); err != nil {
