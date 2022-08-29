@@ -414,6 +414,10 @@ func (svc *service) Update(ctx context.Context, mf ModelRef, operations Operatio
 	return
 }
 
+func (svc *service) FindModel(mf ModelRef) *Model {
+	return svc.getModelByFilter(mf)
+}
+
 func (svc *service) Search(ctx context.Context, mf ModelRef, operations OperationSet, f filter.Filter) (iter Iterator, err error) {
 	if err = svc.canOpData(mf); err != nil {
 		err = fmt.Errorf("cannot search data entry: %w", err)
@@ -427,6 +431,126 @@ func (svc *service) Search(ctx context.Context, mf ModelRef, operations Operatio
 	}
 
 	return cw.connection.Search(ctx, model, f)
+}
+
+// datasource provides a way for the pipeline steps to access DAL's model iterators
+func (svc *service) datasource(ctx context.Context, mf ModelRef, f filter.Filter) (iter Iterator, mod *Model, err error) {
+	model, cw, err := svc.storeOpPrep(ctx, mf, nil)
+	if err != nil {
+		err = fmt.Errorf("cannot search data entry: %w", err)
+		return
+	}
+
+	iter, err = cw.connection.Search(ctx, model, f)
+	return iter, model, err
+}
+
+// RunPipeline returns an iterator based on the provided Pipeline
+// @todo consider moving the Search method to utilize this also
+func (svc *service) RunPipeline(ctx context.Context, pp Pipeline) (iter Iterator, err error) {
+	return svc.runPipeline(ctx, pp.root(), false)
+}
+
+// DryrunPipeline processes the Pipeline but doesn't return the iterator
+// @todo consider reworking this; I'm not the biggest fan of this one
+//
+// The method is primarily used by system reports to obtain some metadata
+func (svc *service) DryrunPipeline(ctx context.Context, pp Pipeline) (err error) {
+	_, err = svc.runPipeline(ctx, pp.root(), true)
+	return
+}
+
+// runPipeline is the recursive counterpart to RunPipeline
+func (svc *service) runPipeline(ctx context.Context, s PipelineStep, dry bool) (it Iterator, err error) {
+	switch s := s.(type) {
+	case *Datasource:
+		err = s.init(ctx, svc.datasource)
+		if err != nil {
+			return
+		}
+		if dry {
+			return nil, nil
+		}
+		return s.exec(ctx)
+
+	case *Aggregate:
+		it, err = svc.runPipeline(ctx, s.rel, dry)
+		if err != nil {
+			return
+		}
+
+		err = s.init(ctx)
+		if err != nil {
+			return
+		}
+
+		if dry {
+			return nil, nil
+		}
+		return s.exec(ctx, it)
+
+	case *Join:
+		var left Iterator
+		var right Iterator
+		left, err = svc.runPipeline(ctx, s.relLeft, dry)
+		if err != nil {
+			return
+		}
+		right, err = svc.runPipeline(ctx, s.relRight, dry)
+		if err != nil {
+			return
+		}
+
+		err = s.init(ctx)
+		if err != nil {
+			return
+		}
+		if dry {
+			return nil, nil
+		}
+		return s.exec(ctx, left, right)
+
+	case *Link:
+		var left Iterator
+		var right Iterator
+		left, err = svc.runPipeline(ctx, s.relLeft, dry)
+		if err != nil {
+			return
+		}
+		right, err = svc.runPipeline(ctx, s.relRight, dry)
+		if err != nil {
+			return
+		}
+
+		err = s.init(ctx)
+		if err != nil {
+			return
+		}
+		if dry {
+			return nil, nil
+		}
+		return s.exec(ctx, left, right)
+	}
+
+	return nil, fmt.Errorf("unsupported step")
+}
+
+func collectAttributes(s PipelineStep) (out []AttributeMapping) {
+	switch s := s.(type) {
+	case *Datasource:
+		return s.OutAttributes
+
+	case *Aggregate:
+		return append(s.Group, s.OutAttributes...)
+
+	case *Join:
+		return s.OutAttributes
+
+	case *Link:
+		panic("impossible state; link can not be nested")
+	}
+
+	return
 }
 
 func (svc *service) Lookup(ctx context.Context, mf ModelRef, operations OperationSet, lookup ValueGetter, dst ValueSetter) (err error) {

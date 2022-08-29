@@ -37,7 +37,7 @@ func (xs *aggregate) init(ctx context.Context) (err error) {
 	xs.scanRow = xs.initScanRow()
 	xs.groupIndex = btree.NewGeneric[*aggregateGroup](xs.compareGroupKeys)
 	xs.groups = make([]*aggregateGroup, 0, 128)
-	xs.rowTester, err = prepareGenericRowTester(xs.def.Filter)
+	xs.rowTester, err = prepareGenericRowTester(xs.filter)
 	if err != nil {
 		return
 	}
@@ -108,13 +108,13 @@ func (xs *aggregate) next(ctx context.Context) (more bool, err error) {
 
 func (xs *aggregate) More(limit uint, v ValueGetter) (err error) {
 	// Redo the cursor
-	xs.def.Filter.cursor, err = filter.PagingCursorFrom(xs.def.Filter.OrderBy(), v, xs.collectPrimaryAttributes()...)
+	xs.filter.cursor, err = filter.PagingCursorFrom(xs.filter.OrderBy(), v, xs.collectPrimaryAttributes()...)
 	if err != nil {
 		return
 	}
 
 	// Redo the row tester
-	xs.rowTester, err = prepareGenericRowTester(xs.def.Filter)
+	xs.rowTester, err = prepareGenericRowTester(xs.filter)
 	if err != nil {
 		return
 	}
@@ -159,19 +159,19 @@ func (s *aggregate) Close() error {
 }
 
 func (s *aggregate) BackCursor(v ValueGetter) (*filter.PagingCursor, error) {
-	c, err := filter.PagingCursorFrom(s.def.Filter.OrderBy(), v, s.collectPrimaryAttributes()...)
+	c, err := filter.PagingCursorFrom(s.filter.OrderBy(), v, s.collectPrimaryAttributes()...)
 	if err != nil {
 		return nil, err
 	}
 
 	c.ROrder = true
-	c.LThen = s.def.Filter.OrderBy().Reversed()
+	c.LThen = s.filter.OrderBy().Reversed()
 
 	return c, nil
 }
 
 func (s *aggregate) ForwardCursor(v ValueGetter) (*filter.PagingCursor, error) {
-	c, err := filter.PagingCursorFrom(s.def.Filter.OrderBy(), v, s.collectPrimaryAttributes()...)
+	c, err := filter.PagingCursorFrom(s.filter.OrderBy(), v, s.collectPrimaryAttributes()...)
 	if err != nil {
 		return nil, err
 	}
@@ -378,7 +378,7 @@ func (s *aggregate) sortGroups() {
 			vb any
 		)
 
-		for _, o := range s.def.Filter.OrderBy() {
+		for _, o := range s.filter.OrderBy() {
 			x := inKeys(s.def.Group, o.Column)
 			if x > -1 {
 				va = ga.key[x]

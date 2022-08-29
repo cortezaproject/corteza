@@ -3,20 +3,28 @@ package dal
 import (
 	"context"
 	"fmt"
+
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 )
 
 type (
 	// Datasource is a simple passthrough step for underlaying datasources.
 	// It exists primarily to make operations consistent.
 	Datasource struct {
-		Ident  string
-		Filter internalFilter
+		Ident    string
+		Filter   filter.Filter
+		ModelRef ModelRef
+		filter   internalFilter
 
-		Attributes []AttributeMapping
-		Source     func(context.Context) (Iterator, error)
+		OutAttributes []AttributeMapping
 
 		analysis stepAnalysis
+
+		// provided in the init step so we can omit some code in the exec step
+		auxIter Iterator
 	}
+
+	iterProvider func(ctx context.Context, mf ModelRef, f filter.Filter) (iter Iterator, model *Model, err error)
 )
 
 func (def *Datasource) Identifier() string {
@@ -25,6 +33,10 @@ func (def *Datasource) Identifier() string {
 
 func (def *Datasource) Sources() []string {
 	return []string{}
+}
+
+func (def *Datasource) Attributes() [][]AttributeMapping {
+	return [][]AttributeMapping{def.OutAttributes}
 }
 
 func (def *Datasource) Analyze(ctx context.Context) (err error) {
@@ -47,22 +59,42 @@ func (def *Datasource) Optimize(req internalFilter) (res internalFilter, err err
 	return internalFilter{}, fmt.Errorf("optimization not implemented")
 }
 
-func (def *Datasource) Initialize(ctx context.Context, ii ...Iterator) (out Iterator, err error) {
-	err = def.validate(ii)
+func (def *Datasource) init(ctx context.Context, s iterProvider) (err error) {
+	err = def.validate()
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	return def.Source(ctx)
+	def.filter, err = toInternalFilter(def.Filter)
+	if err != nil {
+		return
+	}
+
+	iter, model, err := s(ctx, def.ModelRef, def.filter)
+	if err != nil {
+		return
+	}
+
+	if len(def.OutAttributes) == 0 {
+		def.OutAttributes = def.outAttrsFromModel(model)
+	}
+
+	def.auxIter = iter
+
+	return nil
 }
 
-func (def *Datasource) validate(ii []Iterator) (err error) {
-	err = func() (err error) {
-		if len(ii) != 0 {
-			return fmt.Errorf("expected 0 iterators, got %d", len(ii))
-		}
+func (def *Datasource) exec(ctx context.Context) (out Iterator, err error) {
+	if def.auxIter == nil {
+		return nil, fmt.Errorf("datasource not initialized")
+	}
 
-		if len(def.Attributes) == 0 {
+	return def.auxIter, nil
+}
+
+func (def *Datasource) validate() (err error) {
+	err = func() (err error) {
+		if len(def.OutAttributes) == 0 {
 			return fmt.Errorf("no attributes specified")
 		}
 
@@ -70,6 +102,26 @@ func (def *Datasource) validate(ii []Iterator) (err error) {
 	}()
 	if err != nil {
 		return fmt.Errorf("invalid definition: %v", err)
+	}
+
+	return
+}
+
+func (def *Datasource) outAttrsFromModel(model *Model) (attrs []AttributeMapping) {
+	for _, attr := range model.Attributes {
+		if attr.Type == nil {
+			panic(fmt.Sprintf("impossible state: attribute %s has no type", attr.Ident))
+		}
+
+		attrs = append(attrs, SimpleAttr{
+			Ident: attr.Ident,
+			Src:   attr.Ident,
+			Props: MapProperties{
+				IsPrimary: attr.PrimaryKey,
+				Nullable:  attr.Type.IsNullable(),
+				Type:      attr.Type,
+			},
+		})
 	}
 
 	return

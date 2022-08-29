@@ -54,12 +54,20 @@ type (
 	}
 )
 
+const (
+	LinkRefIdent = "$sys.ref"
+)
+
 func (def *Link) Identifier() string {
 	return def.Ident
 }
 
 func (def *Link) Sources() []string {
 	return []string{def.RelLeft, def.RelRight}
+}
+
+func (def *Link) Attributes() [][]AttributeMapping {
+	return [][]AttributeMapping{def.OutLeftAttributes, def.OutRightAttributes}
 }
 
 func (def *Link) Analyze(ctx context.Context) (err error) {
@@ -82,29 +90,42 @@ func (def *Link) Optimize(req internalFilter) (res internalFilter, err error) {
 	return
 }
 
-func (def *Link) Initialize(ctx context.Context, ii ...Iterator) (_ Iterator, err error) {
-	err = def.validate(ii)
+func (def *Link) init(ctx context.Context) (err error) {
+	if len(def.LeftAttributes) == 0 {
+		def.LeftAttributes = collectAttributes(def.relLeft)
+	}
+	if len(def.RightAttributes) == 0 {
+		def.RightAttributes = collectAttributes(def.relRight)
+	}
+
+	if len(def.OutLeftAttributes) == 0 {
+		def.OutLeftAttributes = def.LeftAttributes
+	}
+	if len(def.OutRightAttributes) == 0 {
+		def.OutRightAttributes = def.RightAttributes
+	}
+	err = def.validate()
 	if err != nil {
 		return
 	}
 
+	return nil
+}
+
+func (def *Link) exec(ctx context.Context, left, right Iterator) (_ Iterator, err error) {
 	// @todo adjust the used exec based on other strategies when added
 	exec := &linkLeft{
 		def:         *def,
 		filter:      def.Filter,
-		leftSource:  ii[0],
-		rightSource: ii[1],
+		leftSource:  left,
+		rightSource: right,
 	}
 
 	return exec, exec.init(ctx)
 }
 
-func (def *Link) validate(ii []Iterator) (err error) {
+func (def *Link) validate() (err error) {
 	err = func() (err error) {
-		if len(ii) != 2 {
-			return fmt.Errorf("expected 2 iterators, got %d", len(ii))
-		}
-
 		if len(def.OutLeftAttributes) == 0 {
 			return fmt.Errorf("no left output attributes specified")
 		}
