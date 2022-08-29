@@ -84,7 +84,9 @@ func (r *Row) SetValue(name string, pos uint, v any) error {
 	}
 
 	r.values[name][pos] = v
-	r.counters[name]++
+	if pos >= r.counters[name] {
+		r.counters[name]++
+	}
 
 	return nil
 }
@@ -105,6 +107,16 @@ func (r *Row) CountValues() map[string]uint {
 }
 
 func (r *Row) GetValue(name string, pos uint) (any, error) {
+	if r.values == nil {
+		return nil, nil
+	}
+	if r.counters == nil {
+		return nil, nil
+	}
+	if pos >= r.counters[name] {
+		return nil, nil
+	}
+
 	return r.values[name][pos], nil
 }
 
