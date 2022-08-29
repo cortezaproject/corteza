@@ -331,14 +331,19 @@ func (svc *service) LocalizedList(ctx context.Context) []*Language {
 		}
 
 		l = &Language{
-			Tag:           l.Tag,
-			Name:          l.Name,
-			LocalizedName: display.Languages(reqLang).Name(l.Tag),
+			Tag:  l.Tag,
+			Name: l.Name,
+		}
+
+		if nl := display.Languages(reqLang); nl != nil {
+			l.LocalizedName = nl.Name(l.Tag)
 		}
 
 		if l.Name == "" {
-			// for cases when language name is not configured
-			l.Name = display.Languages(l.Tag).Name(l.Tag)
+			if nl := display.Languages(l.Tag); nl != nil {
+				// for cases when language name is not configured
+				l.Name = nl.Name(l.Tag)
+			}
 		}
 
 		ll = append(ll, l)
