@@ -15,15 +15,18 @@ import (
 )
 
 type (
+	wfExecutor interface {
+		handleToID(string) uint64
+		Exec(ctx context.Context, workflowID uint64, p types.WorkflowExecParams) (*expr.Vars, uint64, types.Stacktrace, error)
+	}
+
 	workflowConverter struct {
 		// workflow function registry
 		reg    *registry
 		parser expr.Parsable
 		log    *zap.Logger
 
-		graphs interface {
-			handleToID(string) uint64
-		}
+		graphs wfExecutor
 	}
 )
 
@@ -204,6 +207,9 @@ func (svc workflowConverter) workflowStepDefConv(g *wfexec.Graph, def *types.Wor
 
 		case types.WorkflowStepKindContinue:
 			return svc.convContinueStep()
+
+		case types.WorkflowStepKindExecWorkflow:
+			return svc.convExecWorkflowStep(def, s)
 
 		default:
 			return nil, errors.Internal("unsupported step kind %q", s.Kind)
@@ -506,6 +512,92 @@ func (svc workflowConverter) convContinueStep() (wfexec.Step, error) {
 
 }
 
+// creates workflow-executor step
+//
+// Expects max ONE outgoing paths and ONE incoming path
+//
+//
+func (svc workflowConverter) convExecWorkflowStep(wf *types.Workflow, s *types.WorkflowStep) (_ wfexec.Step, err error) {
+	const (
+		// sub-workflow's scope
+		// expecting expr.Vars
+		argNameScope = "scope"
+
+		// run workflow from a specific step
+		// must be an orphan step
+		argNameStepID = "stepID"
+
+		// workflow id or handle
+		argNameWorkflowID     = "workflowID"
+		argNameWorkflowHandle = "workflowHandle"
+	)
+
+	return wfexec.NewGenericStep(func(ctx context.Context, r *wfexec.ExecRequest) (resp wfexec.ExecResponse, err error) {
+		var (
+			p = types.WorkflowExecParams{
+				// sub-workflows should not be executed asynchronously
+				// might lead to uncontrolled resource consumption
+				Async: false,
+
+				// @todo figure out how check if trace is enabled
+				Trace: false,
+
+				// always wait for the sub-workflow even when deferred
+				Wait: true,
+
+				Input: expr.EmptyVars(),
+
+				// who's calling sub-workflow?
+				CallerSessionID:  r.SessionID,
+				CallerStepID:     s.ID,
+				CallerWorkflowID: wf.ID,
+			}
+
+			result *expr.Vars
+
+			workflowID     uint64
+			workflowHandle string
+		)
+
+		if ap, err := processArguments(ctx, s.Arguments, r.Scope); err != nil {
+			return nil, err
+		} else {
+			ap.string(argNameWorkflowHandle, &workflowHandle)
+			ap.uint64(argNameWorkflowID, &workflowID)
+
+			// optional stepID, follows login in Exec when 0
+			ap.uint64(argNameStepID, &p.StepID)
+
+			// scope for the sub-workflow
+			ap.vars(argNameScope, p.Input)
+		}
+
+		if workflowID > 0 && workflowHandle != "" {
+			return nil, fmt.Errorf("cannot provide both workflowID and workflowHandle")
+		}
+
+		if workflowID == 0 {
+			if workflowHandle == "" {
+				return nil, fmt.Errorf("workflowID or workflowHandle must be provided")
+			}
+
+			workflowID = svc.graphs.handleToID(workflowHandle)
+		}
+
+		result, _, _, err = svc.graphs.Exec(ctx, workflowID, p)
+		if err != nil {
+			return
+		}
+
+		result, err = types.ExprSet(s.Results).Eval(ctx, result)
+		if err != nil {
+			return
+		}
+
+		return result, nil
+	}), nil
+}
+
 func (svc workflowConverter) parseExpressions(ee ...*types.Expr) (err error) {
 	for _, e := range ee {
 
@@ -752,6 +844,12 @@ func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.Work
 			zero(results),
 			count(0, 1, outbound),
 			last,
+		)
+
+	case types.WorkflowStepKindExecWorkflow:
+		checks = append(checks,
+			noRef,
+			count(0, 1, outbound),
 		)
 
 	case "":

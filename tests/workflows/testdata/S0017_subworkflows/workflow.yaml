@@ -1,0 +1,45 @@
+workflows:
+  sub:
+    enabled: true
+    trace: true
+
+    steps:
+      - stepID: 1
+        kind: expressions
+        arguments:
+          - { target: breadcrumbs, expr: 'breadcrumbs + " + sub"' }
+      - stepID: 2
+        kind: termination
+
+    paths:
+      - { parentID: 1, childID: 2 }
+
+  main:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: expressions
+        arguments:
+          - { target: scope4sub, type: Vars }
+          - { target: scope4sub.breadcrumbs, value: 'main' }
+
+      - stepID: 2
+        kind: exec-workflow
+        arguments:
+          - { target: workflowHandle, type: Handle, value: "sub" }
+          - { target: stepID,         type: ID,     value: 1 }
+          - { target: scope,          type: Vars,   source: scope4sub }
+        results:
+          - { target: out, source: breadcrumbs }
+
+      - stepID: 3
+        kind: termination
+
+    paths:
+      - { parentID: 1, childID: 2 }
+      - { parentID: 2, childID: 3 }

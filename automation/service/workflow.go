@@ -564,12 +564,21 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 		// Find the trigger.
 		// @todo can we cache this as well?
 		t, err = func() (*types.Trigger, error) {
+			if p.CallerWorkflowID > 0 {
+				// skip triggers checking when executed as sub-workflow
+				// @todo be more strict and allow this ONLY when workflow is flagged as a sub-workflow
+			}
+
 			var tt types.TriggerSet
 			// Load triggers directly from the store. At this point we do not care
 			// about trigger search or read permissions
 			tt, err = loadWorkflowTriggers(ctx, svc.store, workflowID)
 			if err != nil {
 				return nil, err
+			}
+
+			if len(tt) == 0 {
+				return nil, nil
 			}
 
 			if p.StepID == 0 && len(tt) > 0 {
@@ -582,32 +591,32 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 				}
 			}
 
+			if !p.Trace {
+				if t == nil {
+					return nil, WorkflowErrUnknownWorkflowStep()
+				} else if !t.Enabled {
+					return nil, WorkflowErrDisabled()
+				}
+			}
+
+			if t != nil {
+				wap.setTrigger(t)
+				p.StepID = t.StepID
+				p.EventType = t.EventType
+				p.ResourceType = t.ResourceType
+
+				// merge with input from trigger
+				// with trigger input vars are overwritten by input vars
+				p.Input = t.Input.MustMerge(p.Input)
+			} else {
+				p.EventType = "onTrace"
+			}
+
 			return nil, nil
 		}()
 
 		if err != nil {
 			return
-		}
-
-		if !p.Trace {
-			if t == nil {
-				return WorkflowErrUnknownWorkflowStep()
-			} else if !t.Enabled {
-				return WorkflowErrDisabled()
-			}
-		}
-
-		if t != nil {
-			wap.setTrigger(t)
-			p.StepID = t.StepID
-			p.EventType = t.EventType
-			p.ResourceType = t.ResourceType
-
-			// merge with input from trigger
-			// with trigger input vars are overwritten by input vars
-			p.Input = t.Input.MustMerge(p.Input)
-		} else {
-			p.EventType = "onTrace"
 		}
 
 		wait, sessionID, err = svc.exec(ctx, wf, p)
