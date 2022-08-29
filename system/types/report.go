@@ -1,13 +1,15 @@
 package types
 
 import (
+	"bytes"
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"time"
 
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/report"
+	"github.com/cortezaproject/corteza-server/pkg/ql"
+	"github.com/cortezaproject/corteza-server/pkg/sql"
 	"github.com/spf13/cast"
 )
 
@@ -21,7 +23,6 @@ type (
 		Sources   ReportDataSourceSet `json:"sources"`
 		Blocks    ReportBlockSet      `json:"blocks"`
 
-		// Report labels
 		Labels map[string]string `json:"labels,omitempty"`
 
 		OwnedBy   uint64     `json:"ownedBy"`
@@ -33,38 +34,89 @@ type (
 		DeletedAt *time.Time `json:"deletedAt,omitempty"`
 	}
 
+	ReportMeta struct {
+		Name        string `json:"name"`
+		Description string `json:"description"`
+	}
+
 	ReportScenarioSet []*ReportScenario
-	ScenarioFilterMap map[string]*report.Filter
+	ScenarioFilterMap map[string]qlExprWrap
 	ReportScenario    struct {
 		ScenarioID uint64            `json:"scenarioID,string,omitempty"`
 		Label      string            `json:"label"`
 		Filters    ScenarioFilterMap `json:"filters,omitempty"`
 	}
 
-	ReportDataSource struct {
-		Meta interface{}            `json:"meta,omitempty"`
-		Step *report.StepDefinition `json:"step"`
-	}
 	ReportDataSourceSet []*ReportDataSource
-
-	ReportMeta struct {
-		Name        string `json:"name"`
-		Description string `json:"description"`
+	ReportDataSource    struct {
+		Meta interface{} `json:"meta,omitempty"`
+		Step *ReportStep `json:"step"`
 	}
 
-	ReportBlock struct {
-		BlockID     uint64                   `json:"blockID,string"`
-		Title       string                   `json:"title"`
-		Description string                   `json:"description"`
-		Key         string                   `json:"key"`
-		Kind        string                   `json:"kind"`
-		Options     map[string]interface{}   `json:"options,omitempty"`
-		Elements    []interface{}            `json:"elements"`
-		Sources     report.StepDefinitionSet `json:"sources"`
-		XYWH        [4]int                   `json:"xywh"`
-		Layout      string                   `json:"layout"`
-	}
 	ReportBlockSet []*ReportBlock
+	ReportBlock    struct {
+		BlockID     uint64                 `json:"blockID,string"`
+		Title       string                 `json:"title"`
+		Description string                 `json:"description"`
+		Key         string                 `json:"key"`
+		Kind        string                 `json:"kind"`
+		Options     map[string]interface{} `json:"options,omitempty"`
+		Elements    []interface{}          `json:"elements"`
+		Sources     ReportStepSet          `json:"sources"`
+		XYWH        [4]int                 `json:"xywh"`
+		Layout      string                 `json:"layout"`
+	}
+
+	ReportStepSet []*ReportStep
+	ReportStep    struct {
+		Kind string `json:"kind,omitempty"`
+
+		Load      *ReportStepLoad      `json:"load,omitempty"`
+		Join      *ReportStepJoin      `json:"join,omitempty"`
+		Link      *ReportStepLink      `json:"link,omitempty"`
+		Aggregate *ReportStepAggregate `json:"aggregate,omitempty"`
+	}
+
+	ReportStepLoad struct {
+		Name       string                 `json:"name"`
+		Source     string                 `json:"source"`
+		Definition map[string]interface{} `json:"definition"`
+		Columns    ReportFrameColumnSet   `json:"columns"`
+		Filter     *qlExprWrap            `json:"filter,omitempty"`
+	}
+
+	ReportStepJoin struct {
+		Name          string      `json:"name"`
+		LocalSource   string      `json:"localSource"`
+		LocalColumn   string      `json:"localColumn"`
+		ForeignSource string      `json:"foreignSource"`
+		ForeignColumn string      `json:"foreignColumn"`
+		Filter        *qlExprWrap `json:"filter,omitempty"`
+	}
+
+	ReportStepLink struct {
+		Name          string      `json:"name"`
+		LocalSource   string      `json:"localSource"`
+		LocalColumn   string      `json:"localColumn"`
+		ForeignSource string      `json:"foreignSource"`
+		ForeignColumn string      `json:"foreignColumn"`
+		Filter        *qlExprWrap `json:"filter,omitempty"`
+	}
+
+	ReportStepAggregate struct {
+		Name    string                   `json:"name"`
+		Source  string                   `json:"source"`
+		Keys    ReportAggregateColumnSet `json:"keys"`
+		Columns ReportAggregateColumnSet `json:"columns"`
+		Filter  *qlExprWrap              `json:"filter,omitempty"`
+	}
+
+	ReportAggregateColumnSet []*ReportAggregateColumn
+	ReportAggregateColumn    struct {
+		Name  string      `json:"name"`
+		Label string      `json:"label"`
+		Def   *qlExprWrap `json:"def"`
+	}
 
 	ReportFilter struct {
 		ReportID []uint64 `json:"reportID"`
@@ -86,7 +138,67 @@ type (
 		filter.Sorting
 		filter.Paging
 	}
+
+	// qlExprWrap is a wrapper for ql.ASTNode to implement custom JSON unmarshal
+	// required by reporter.
+	// @todo consider moving this to the ql package
+	qlExprWrap struct {
+		*ql.ASTNode
+		Error string `json:"error,omitempty"`
+	}
 )
+
+// @todo redo/rething these col methods along with the rest of the attr
+//       interface rethinking.
+func (c ReportAggregateColumn) Identifier() string {
+	return c.Name
+}
+
+func (c ReportAggregateColumn) Expression() (expression string) {
+	// @todo!!!
+	return c.Def.String()
+}
+
+func (c ReportAggregateColumn) Source() (ident string) {
+	return c.Name
+}
+
+func (c ReportAggregateColumn) Properties() dal.MapProperties {
+	// @todo!!!
+	return dal.MapProperties{}
+}
+
+func (cc ReportAggregateColumnSet) DalMapping() []dal.AttributeMapping {
+	out := make([]dal.AttributeMapping, 0, len(cc))
+
+	for _, c := range cc {
+		out = append(out, c)
+	}
+
+	return out
+}
+
+// // // // // // // // // // // // // // // // // // // // // // // // //
+
+func (ss ReportDataSourceSet) ModelSteps() ReportStepSet {
+	out := make(ReportStepSet, 0, 124)
+
+	for _, s := range ss {
+		out = append(out, s.Step)
+	}
+
+	return out
+}
+
+func (pp ReportBlockSet) ModelSteps() ReportStepSet {
+	out := make(ReportStepSet, 0, 124)
+
+	for _, p := range pp {
+		out = append(out, p.Sources...)
+	}
+
+	return out
+}
 
 // Initial ReportBlock struct definition omitted string casting for the BlockID (sorry)
 // so we need to handle that edge case when reading from DB.
@@ -112,26 +224,6 @@ func (b *ReportBlock) UnmarshalJSON(data []byte) (err error) {
 	return nil
 }
 
-func (ss ReportDataSourceSet) ModelSteps() report.StepDefinitionSet {
-	out := make(report.StepDefinitionSet, 0, 124)
-
-	for _, s := range ss {
-		out = append(out, s.Step)
-	}
-
-	return out
-}
-
-func (pp ReportBlockSet) ModelSteps() report.StepDefinitionSet {
-	out := make(report.StepDefinitionSet, 0, 124)
-
-	for _, p := range pp {
-		out = append(out, p.Sources...)
-	}
-
-	return out
-}
-
 // Store stuff
 
 func (vv *ReportMeta) Scan(src any) error           { return sql.ParseJSON(src, vv) }
@@ -147,48 +239,65 @@ func (vv ReportDataSourceSet) Value() (driver.Value, error) { return json.Marsha
 func (vv *ReportScenarioSet) Scan(src any) error          { return sql.ParseJSON(src, vv) }
 func (vv ReportScenarioSet) Value() (driver.Value, error) { return json.Marshal(vv) }
 
-// func (r *Report) decodeTranslations(tt locale.ResourceTranslationIndex) {
-// 	var aux *locale.ResourceTranslation
+func (f *qlExprWrap) UnmarshalJSON(data []byte) (err error) {
+	var aux interface{}
+	if err = json.Unmarshal(data, &aux); err != nil {
+		return
+	}
 
-// 	for i, p := range r.Blocks {
-// 		blockID := locale.ContentID(p.BlockID, i)
-// 		rpl := strings.NewReplacer(
-// 			"{{blockID}}", strconv.FormatUint(blockID, 10),
-// 		)
+	p := ql.NewParser()
 
-// 		// - generic page block stuff
-// 		if aux = tt.FindByKey(rpl.Replace(LocaleKeyReportBlockTitle.Path)); aux != nil {
-// 			p.Title = aux.Msg
-// 		}
-// 		if aux = tt.FindByKey(rpl.Replace(LocaleKeyReportBlockDescription.Path)); aux != nil {
-// 			p.Description = aux.Msg
-// 		}
-// 	}
-// }
+	// String expr. needs to be parsed to the AST
+	switch v := aux.(type) {
+	case string:
+		if v == "" {
+			return
+		}
 
-// func (r *Report) encodeTranslations() (out locale.ResourceTranslationSet) {
-// 	out = make(locale.ResourceTranslationSet, 0, 3)
+		f.ASTNode, err = p.Parse(v)
+		f.ASTNode.Raw = v
+		if err != nil {
+			f.Error = err.Error()
+		}
+		return nil
+	}
 
-// 	// Page blocks
-// 	for i, block := range r.Blocks {
-// 		blockID := locale.ContentID(block.BlockID, i)
-// 		rpl := strings.NewReplacer(
-// 			"{{blockID}}", strconv.FormatUint(blockID, 10),
-// 		)
+	// special case for empty JSON
+	if bytes.Equal([]byte{'{', '}'}, data) {
+		return
+	}
 
-// 		// - generic page block stuff
-// 		out = append(out, &locale.ResourceTranslation{
-// 			Resource: r.ResourceTranslation(),
-// 			Key:      rpl.Replace(rpl.Replace(LocaleKeyReportBlockTitle.Path)),
-// 			Msg:      block.Title,
-// 		})
+	// non-string is considered an AST and we parse that
+	if err = json.Unmarshal(data, &f.ASTNode); err != nil {
+		f.Error = err.Error()
+		return nil
+	}
 
-// 		out = append(out, &locale.ResourceTranslation{
-// 			Resource: r.ResourceTranslation(),
-// 			Key:      rpl.Replace(rpl.Replace(LocaleKeyReportBlockDescription.Path)),
-// 			Msg:      block.Description,
-// 		})
-// 	}
+	// traverse the AST to parse any raw exprs.
+	if f.ASTNode == nil {
+		return nil
+	}
 
-// 	return
-// }
+	// A raw expression takes priority and replaces the original AST sub-tree
+	err = f.ASTNode.Traverse(func(n *ql.ASTNode) (bool, *ql.ASTNode, error) {
+		if n.Raw == "" {
+			return true, n, nil
+		}
+
+		aux, err := p.Parse(n.Raw)
+		if err != nil {
+			return false, n, err
+		}
+		aux.Raw = n.Raw
+
+		return false, aux, nil
+	})
+
+	if err != nil {
+		f.Error = err.Error()
+	} else {
+		f.Error = ""
+	}
+
+	return nil
+}
