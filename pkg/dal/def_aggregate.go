@@ -3,6 +3,8 @@ package dal
 import (
 	"context"
 	"fmt"
+
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 )
 
 type (
@@ -11,7 +13,8 @@ type (
 	Aggregate struct {
 		Ident     string
 		RelSource string
-		Filter    internalFilter
+		Filter    filter.Filter
+		filter    internalFilter
 
 		Group         []AttributeMapping
 		OutAttributes []AttributeMapping
@@ -46,6 +49,10 @@ func (def *Aggregate) Sources() []string {
 	return []string{def.RelSource}
 }
 
+func (def *Aggregate) Attributes() [][]AttributeMapping {
+	return [][]AttributeMapping{append(def.Group, def.OutAttributes...)}
+}
+
 func (def *Aggregate) Analyze(ctx context.Context) (err error) {
 	// @todo proper analysis; for now we'll leave this as defaults
 	def.analysis = stepAnalysis{
@@ -67,27 +74,36 @@ func (def *Aggregate) Optimize(reqFilter internalFilter) (rspFilter internalFilt
 	return
 }
 
-func (def *Aggregate) Initialize(ctx context.Context, ii ...Iterator) (out Iterator, err error) {
-	err = def.validate(ii)
+func (def *Aggregate) init(ctx context.Context) (err error) {
+	err = def.validate()
 	if err != nil {
 		return
 	}
 
+	def.filter, err = toInternalFilter(def.Filter)
+	if err != nil {
+		return
+	}
+
+	if len(def.SourceAttributes) == 0 {
+		def.SourceAttributes = collectAttributes(def.rel)
+	}
+
+	return nil
+}
+
+func (def *Aggregate) exec(ctx context.Context, src Iterator) (out Iterator, err error) {
 	exec := &aggregate{
 		def:    *def,
-		filter: def.Filter,
-		source: ii[0],
+		filter: def.filter,
+		source: src,
 	}
 
 	return exec, exec.init(ctx)
 }
 
-func (def *Aggregate) validate(ii []Iterator) (err error) {
+func (def *Aggregate) validate() (err error) {
 	err = func() (err error) {
-		if len(ii) != 1 {
-			return fmt.Errorf("expected 1 iterator, got %d", len(ii))
-		}
-
 		if len(def.Group) == 0 {
 			return fmt.Errorf("no group attributes specified")
 		}

@@ -253,6 +253,10 @@ func (xs *linkLeft) nextBuffered() (more bool, err error) {
 		xs.rightRow = xs.relScanBuffer.rows[xs.rightIndex]
 		xs.rightIndex++
 		xs.scanRow = xs.rightRow
+
+		// Sys defined value to indicate the source
+		// @todo consider using some wrap struct instead
+		xs.scanRow.SetValue(LinkRefIdent, 0, xs.def.RelRight)
 		break
 	}
 	return true, nil
@@ -267,22 +271,22 @@ func (xs *linkLeft) getRelatedBuffer(l *Row) (out *relIndexBuffer, ok bool, err 
 	v, _ := l.GetValue(attrIdent, 0)
 
 	switch attrType.(type) {
-	case TypeNumber:
+	case TypeNumber, *TypeNumber:
 		out, ok = xs.relIndex.GetInt(cast.ToInt64(v))
 		return
 
-	case TypeText:
+	case TypeText, *TypeText:
 		out, ok = xs.relIndex.GetString(cast.ToString(v))
 		return
 
-	case TypeID,
-		TypeRef:
+	case TypeID, *TypeID,
+		TypeRef, *TypeRef:
 		out, ok = xs.relIndex.GetID(cast.ToUint64(v))
 		return
 
 	default:
 		// @note this should be validated way before
-		err = fmt.Errorf("cannot use type %s ad join predicate", attrType.Type())
+		err = fmt.Errorf("cannot use type %s as link predicate", attrType.Type())
 	}
 
 	return
@@ -396,16 +400,16 @@ func (xs *linkLeft) indexRightRow(r *Row) (err error) {
 
 	// @todo not so sure about this switch; see above coment about moving this out
 	switch attrType.(type) {
-	case TypeNumber:
+	case TypeNumber, *TypeNumber:
 		xs.relIndex.AddInt(cast.ToInt64(v), r)
 		return
 
-	case TypeText:
+	case TypeText, *TypeText:
 		xs.relIndex.AddString(cast.ToString(v), r)
 		return
 
-	case TypeID,
-		TypeRef:
+	case TypeID, *TypeID,
+		TypeRef, *TypeRef:
 		xs.relIndex.AddID(cast.ToUint64(v), r)
 		return
 

@@ -3,6 +3,8 @@ package dal
 import (
 	"context"
 	"fmt"
+
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 )
 
 type (
@@ -18,7 +20,8 @@ type (
 		// @todo allow multiple join predicates; for now (for easier indexing)
 		// only allow one (this is the same as we had before)
 		On     JoinPredicate
-		Filter internalFilter
+		Filter filter.Filter
+		filter internalFilter
 
 		OutAttributes   []AttributeMapping
 		LeftAttributes  []AttributeMapping
@@ -56,6 +59,10 @@ func (def *Join) Sources() []string {
 	return []string{def.RelLeft, def.RelRight}
 }
 
+func (def *Join) Attributes() [][]AttributeMapping {
+	return [][]AttributeMapping{def.OutAttributes}
+}
+
 func (def *Join) Analyze(ctx context.Context) (err error) {
 	def.analysis = stepAnalysis{
 		scanCost:   costUnknown,
@@ -76,29 +83,40 @@ func (def *Join) Optimize(req internalFilter) (res internalFilter, err error) {
 	return
 }
 
-func (def *Join) Initialize(ctx context.Context, ii ...Iterator) (out Iterator, err error) {
-	err = def.validate(ii)
+func (def *Join) init(ctx context.Context) (err error) {
+	err = def.validate()
 	if err != nil {
 		return
 	}
 
+	if len(def.LeftAttributes) == 0 {
+		def.LeftAttributes = collectAttributes(def.relLeft)
+	}
+	if len(def.RightAttributes) == 0 {
+		def.RightAttributes = collectAttributes(def.relRight)
+	}
+
+	if len(def.OutAttributes) == 0 {
+		def.OutAttributes = append(def.LeftAttributes, def.RightAttributes...)
+	}
+
+	return nil
+}
+
+func (def *Join) exec(ctx context.Context, left, right Iterator) (out Iterator, err error) {
 	// @todo adjust the used exec based on other strategies when added
 	exec := &joinLeft{
 		def:         *def,
-		filter:      def.Filter,
-		leftSource:  ii[0],
-		rightSource: ii[1],
+		filter:      def.filter,
+		leftSource:  left,
+		rightSource: right,
 	}
 
 	return exec, exec.init(ctx)
 }
 
-func (def *Join) validate(ii []Iterator) (err error) {
+func (def *Join) validate() (err error) {
 	err = func() (err error) {
-		if len(ii) != 2 {
-			return fmt.Errorf("expected 2 iterators, got %d", len(ii))
-		}
-
 		if len(def.OutAttributes) == 0 {
 			return fmt.Errorf("no attributes specified")
 		}

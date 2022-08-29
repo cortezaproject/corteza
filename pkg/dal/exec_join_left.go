@@ -57,7 +57,7 @@ func (xs *joinLeft) init(ctx context.Context) (err error) {
 	xs.relIndex = newRelIndex()
 	xs.indexAttributes()
 
-	xs.rowTester, err = prepareGenericRowTester(xs.def.Filter)
+	xs.rowTester, err = prepareGenericRowTester(xs.filter)
 	if err != nil {
 		return
 	}
@@ -66,7 +66,7 @@ func (xs *joinLeft) init(ctx context.Context) (err error) {
 	//       Enabling locks does have a performance impact so you might be better off by
 	//       constructing multiple of these but then you'll also need to complicate
 	//       the .Next methods a bit.
-	xs.outSorted = btree.NewGenericOptions[*row](makeRowComparator(xs.filter.OrderBy()...), btree.Options{NoLocks: true})
+	xs.outSorted = btree.NewGenericOptions[*Row](makeRowComparator(xs.filter.OrderBy()...), btree.Options{NoLocks: true})
 
 	xs.joinLeftAttr = xs.def.LeftAttributes[xs.leftAttrIndex[xs.def.On.Left]]
 	xs.joinRightAttr = xs.def.RightAttributes[xs.rightAttrIndex[xs.def.On.Right]]
@@ -85,13 +85,13 @@ func (xs *joinLeft) Next(ctx context.Context) (more bool) {
 }
 
 func (xs *joinLeft) More(limit uint, v ValueGetter) (err error) {
-	xs.def.Filter.cursor, err = filter.PagingCursorFrom(xs.def.Filter.OrderBy(), v, xs.collectPrimaryAttributes()...)
+	xs.filter.cursor, err = filter.PagingCursorFrom(xs.filter.OrderBy(), v, xs.collectPrimaryAttributes()...)
 	if err != nil {
 		return
 	}
 
 	// Redo row tester
-	xs.rowTester, err = prepareGenericRowTester(xs.def.Filter)
+	xs.rowTester, err = prepareGenericRowTester(xs.filter)
 	if err != nil {
 		return
 	}
@@ -147,19 +147,19 @@ func (xs *joinLeft) Close() (err error) {
 }
 
 func (xs *joinLeft) BackCursor(v ValueGetter) (pc *filter.PagingCursor, err error) {
-	pc, err = filter.PagingCursorFrom(xs.def.Filter.OrderBy(), v, xs.collectPrimaryAttributes()...)
+	pc, err = filter.PagingCursorFrom(xs.filter.OrderBy(), v, xs.collectPrimaryAttributes()...)
 	if err != nil {
 		return nil, err
 	}
 
 	pc.ROrder = true
-	pc.LThen = xs.def.Filter.OrderBy().Reversed()
+	pc.LThen = xs.filter.OrderBy().Reversed()
 
 	return
 }
 
 func (xs *joinLeft) ForwardCursor(v ValueGetter) (pc *filter.PagingCursor, err error) {
-	pc, err = filter.PagingCursorFrom(xs.def.Filter.OrderBy(), v, xs.collectPrimaryAttributes()...)
+	pc, err = filter.PagingCursorFrom(xs.filter.OrderBy(), v, xs.collectPrimaryAttributes()...)
 	if err != nil {
 		return nil, err
 	}
@@ -317,7 +317,7 @@ func (xs *joinLeft) getRelatedBuffers(l *Row) (out []*relIndexBuffer, ok bool, e
 		v, _ := l.GetValue(attrIdent, c)
 
 		switch attrType.(type) {
-		case TypeNumber:
+		case TypeNumber, *TypeNumber:
 			aux, ok = xs.relIndex.GetInt(cast.ToInt64(v))
 			if !ok {
 				continue
@@ -325,7 +325,7 @@ func (xs *joinLeft) getRelatedBuffers(l *Row) (out []*relIndexBuffer, ok bool, e
 			out = append(out, aux)
 			continue
 
-		case TypeText:
+		case TypeText, *TypeText:
 			aux, ok = xs.relIndex.GetString(cast.ToString(v))
 			if !ok {
 				continue
@@ -333,8 +333,8 @@ func (xs *joinLeft) getRelatedBuffers(l *Row) (out []*relIndexBuffer, ok bool, e
 			out = append(out, aux)
 			continue
 
-		case TypeID,
-			TypeRef:
+		case TypeID, *TypeID,
+			TypeRef, *TypeRef:
 			aux, ok = xs.relIndex.GetID(cast.ToUint64(v))
 			if !ok {
 				continue
@@ -344,7 +344,7 @@ func (xs *joinLeft) getRelatedBuffers(l *Row) (out []*relIndexBuffer, ok bool, e
 
 		default:
 			// @note this should be validated way before
-			err = fmt.Errorf("cannot use type %s ad join predicate", attrType.Type())
+			err = fmt.Errorf("cannot use type %s as join predicate", attrType.Type())
 		}
 
 		return
@@ -367,16 +367,16 @@ func (xs *joinLeft) indexRightRow(r *Row) (err error) {
 
 		// @todo not so sure about this switch; see above coment about moving this out
 		switch attrType.(type) {
-		case TypeNumber:
+		case TypeNumber, *TypeNumber:
 			xs.relIndex.AddInt(cast.ToInt64(v), r)
 			continue
 
-		case TypeText:
+		case TypeText, *TypeText:
 			xs.relIndex.AddString(cast.ToString(v), r)
 			continue
 
-		case TypeID,
-			TypeRef:
+		case TypeID, *TypeID,
+			TypeRef, *TypeRef:
 			xs.relIndex.AddID(cast.ToUint64(v), r)
 			continue
 

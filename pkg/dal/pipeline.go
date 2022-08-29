@@ -21,7 +21,7 @@ type (
 	PipelineStep interface {
 		Identifier() string
 		Sources() []string
-		Initialize(context.Context, ...Iterator) (Iterator, error)
+		Attributes() [][]AttributeMapping
 
 		Analyze(ctx context.Context) error
 		Analysis() stepAnalysis
@@ -141,62 +141,63 @@ func (base Pipeline) OptimizeSteps(ctx context.Context) (optimized Pipeline, err
 	return optimized, optimized.optimizeSteps(base.root(), internalFilter{})
 }
 
-// Iterator constructs and returns an iterator based on the pipeline
-func (pp Pipeline) Iterator(ctx context.Context) (out Iterator, err error) {
-	return pp.iterator(ctx, pp.root())
-}
-
 // // // // // // // // // // // // // // // // // // // // // // // // //
 // Utilities
 
-// iterator is the recursive counterpart to the .Iterator method
-func (p Pipeline) iterator(ctx context.Context, s PipelineStep) (it Iterator, err error) {
-	switch s := s.(type) {
-	case *Datasource:
-		return s.Initialize(ctx)
+func (pp Pipeline) root() PipelineStep {
+	ix := make(map[string]PipelineStep)
 
-	case *Aggregate:
-		it, err = p.iterator(ctx, s.rel)
-		if err != nil {
-			return
-		}
-		return s.Initialize(ctx, it)
-
-	case *Join:
-		var left Iterator
-		var right Iterator
-		left, err = p.iterator(ctx, s.relLeft)
-		if err != nil {
-			return
-		}
-		right, err = p.iterator(ctx, s.relRight)
-		if err != nil {
-			return
-		}
-
-		return s.Initialize(ctx, left, right)
-
-	case *Link:
-		var left Iterator
-		var right Iterator
-		left, err = p.iterator(ctx, s.relLeft)
-		if err != nil {
-			return
-		}
-		right, err = p.iterator(ctx, s.relRight)
-		if err != nil {
-			return
-		}
-
-		return s.Initialize(ctx, left, right)
+	for _, s := range pp {
+		ix[s.Identifier()] = s
 	}
 
-	return nil, fmt.Errorf("unsupported step")
+	for _, s := range pp {
+		for _, src := range s.Sources() {
+			delete(ix, src)
+		}
+	}
+
+	for _, s := range ix {
+		return ix[s.Identifier()]
+	}
+
+	panic("impossible state: no root-level pipeline step")
 }
 
-func (pp Pipeline) root() PipelineStep {
-	// @todo this is not ok; we need to analyze the tree, but I was lazy :seenoevil:
-	return pp[len(pp)-1]
+// Slice returns a new pipeline with all steps of the subtree with ident as root
+func (pp Pipeline) Slice(ident string) (out Pipeline) {
+	var r PipelineStep
+
+	// Find root
+	for _, p := range pp {
+		if p.Identifier() == ident {
+			r = p
+			break
+		}
+	}
+
+	return pp.slice(r)
+}
+
+// slice is the recursive counterpart for the Slice method
+func (pp Pipeline) slice(s PipelineStep) (out Pipeline) {
+	out = append(out, s)
+
+	switch n := s.(type) {
+	case *Datasource:
+		return
+
+	case *Aggregate:
+		return append(out, pp.slice(n.rel)...)
+
+	case *Join:
+		return append(out, append(pp.slice(n.relLeft), pp.slice(n.relRight)...)...)
+
+	case *Link:
+		return append(out, append(pp.slice(n.relLeft), pp.slice(n.relRight)...)...)
+	}
+
+	return
 }
 
 // optimizeSteps is the recursive counterpart to the .OptimizeSteps method

@@ -10,6 +10,21 @@ import (
 	"github.com/spf13/cast"
 )
 
+type (
+	// @todo consider reworking this
+	SimpleAttr struct {
+		Ident string
+		Expr  string
+		Src   string
+		Props MapProperties
+	}
+)
+
+func (sa SimpleAttr) Identifier() string              { return sa.Ident }
+func (sa SimpleAttr) Expression() (expression string) { return sa.Expr }
+func (sa SimpleAttr) Source() (ident string)          { return sa.Src }
+func (sa SimpleAttr) Properties() MapProperties       { return sa.Props }
+
 // compareGetters compares the two ValueGetters
 // @todo multi-value support?
 // -1: a is less then b
