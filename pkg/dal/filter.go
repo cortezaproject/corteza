@@ -23,6 +23,7 @@ type (
 
 func (f internalFilter) Constraints() map[string][]any             { return f.constraints }
 func (f internalFilter) StateConstraints() map[string]filter.State { return f.stateConstraints }
+func (f internalFilter) MetaConstraints() map[string]any           { return nil }
 func (f internalFilter) Expression() string                        { return f.expression }
 func (f internalFilter) OrderBy() filter.SortExprSet               { return f.orderBy }
 func (f internalFilter) Limit() uint                               { return f.limit }
@@ -55,6 +56,18 @@ func toInternalFilter(f filter.Filter) (out internalFilter, err error) {
 	}
 
 	return
+}
+
+func FilterForExpr(n *ql.ASTNode) internalFilter {
+	// @todo consider adding string expr for consistency
+	return internalFilter{
+		expParsed: n,
+	}
+}
+
+func (a internalFilter) WithConstraints(c map[string][]any) internalFilter {
+	a.constraints = c
+	return a
 }
 
 // mergeFilters returns a new filter based on a overwritten by values from b
