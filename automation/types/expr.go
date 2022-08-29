@@ -54,6 +54,10 @@ func NewExpr(target, typ, expr string) (e *Expr, err error) {
 	return &Expr{Expr: expr, Target: target, Type: typ}, nil
 }
 
+func NewTypedExpr(target string, expr string, typ expr.Type) *Expr {
+	return &Expr{Expr: expr, Target: target, typ: typ}
+}
+
 func (e *Expr) SetType(fn func(string) (expr.Type, error)) error {
 	if typ, err := fn(e.Type); err != nil {
 		return err
