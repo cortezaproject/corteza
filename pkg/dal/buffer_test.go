@@ -9,27 +9,27 @@ import (
 func TestMergeRows(t *testing.T) {
 	tcc := []struct {
 		name    string
-		a       *row
-		b       *row
+		a       *Row
+		b       *Row
 		mapping []AttributeMapping
-		out     *row
+		out     *Row
 	}{{
 		name: "full merge; no mapping",
-		a:    (&row{}).WithValue("attr1", 0, 10).WithValue("attr2", 0, "hi").WithValue("attr2", 1, "hello"),
-		b:    (&row{}).WithValue("attr3", 0, true).WithValue("attr4", 0, "ee").WithValue("attr4", 1, 25),
-		out:  (&row{}).WithValue("attr1", 0, 10).WithValue("attr2", 0, "hi").WithValue("attr2", 1, "hello").WithValue("attr3", 0, true).WithValue("attr4", 0, "ee").WithValue("attr4", 1, 25),
+		a:    (&Row{}).WithValue("attr1", 0, 10).WithValue("attr2", 0, "hi").WithValue("attr2", 1, "hello"),
+		b:    (&Row{}).WithValue("attr3", 0, true).WithValue("attr4", 0, "ee").WithValue("attr4", 1, 25),
+		out:  (&Row{}).WithValue("attr1", 0, 10).WithValue("attr2", 0, "hi").WithValue("attr2", 1, "hello").WithValue("attr3", 0, true).WithValue("attr4", 0, "ee").WithValue("attr4", 1, 25),
 	}, {
 		name: "full merge; no mapping; collision",
-		a:    (&row{}).WithValue("attr1", 0, 10).WithValue("attr2", 0, "hi").WithValue("attr2", 1, "hello"),
-		b:    (&row{}).WithValue("attr2", 0, true).WithValue("attr3", 0, "ee").WithValue("attr3", 1, 25),
-		out:  (&row{}).WithValue("attr1", 0, 10).WithValue("attr2", 0, true).WithValue("attr3", 0, "ee").WithValue("attr3", 1, 25),
+		a:    (&Row{}).WithValue("attr1", 0, 10).WithValue("attr2", 0, "hi").WithValue("attr2", 1, "hello"),
+		b:    (&Row{}).WithValue("attr2", 0, true).WithValue("attr3", 0, "ee").WithValue("attr3", 1, 25),
+		out:  (&Row{}).WithValue("attr1", 0, 10).WithValue("attr2", 0, true).WithValue("attr3", 0, "ee").WithValue("attr3", 1, 25),
 	},
 
 		{
 			name: "mapped merge",
-			a:    (&row{}).WithValue("attr1", 0, 10).WithValue("attr2", 0, "hi").WithValue("attr2", 1, "hello"),
-			b:    (&row{}).WithValue("attr3", 0, true).WithValue("attr4", 0, "ee").WithValue("attr4", 1, 25),
-			out:  (&row{}).WithValue("a", 0, 10).WithValue("b", 0, "hi").WithValue("b", 1, "hello").WithValue("c", 0, true).WithValue("d", 0, "ee").WithValue("d", 1, 25),
+			a:    (&Row{}).WithValue("attr1", 0, 10).WithValue("attr2", 0, "hi").WithValue("attr2", 1, "hello"),
+			b:    (&Row{}).WithValue("attr3", 0, true).WithValue("attr4", 0, "ee").WithValue("attr4", 1, 25),
+			out:  (&Row{}).WithValue("a", 0, 10).WithValue("b", 0, "hi").WithValue("b", 1, "hello").WithValue("c", 0, true).WithValue("d", 0, "ee").WithValue("d", 1, 25),
 			mapping: saToMapping([]simpleAttribute{{
 				ident:  "a",
 				source: "attr1",
@@ -45,9 +45,9 @@ func TestMergeRows(t *testing.T) {
 			}}...),
 		}, {
 			name: "mapped merge with conflicts",
-			a:    (&row{}).WithValue("attr1", 0, 10).WithValue("attr2", 0, "hi").WithValue("attr2", 1, "hello"),
-			b:    (&row{}).WithValue("attr3", 0, true).WithValue("attr4", 0, "ee").WithValue("attr4", 1, 25),
-			out:  (&row{}).WithValue("a", 0, 10).WithValue("b", 0, true).WithValue("c", 0, "ee").WithValue("c", 1, 25),
+			a:    (&Row{}).WithValue("attr1", 0, 10).WithValue("attr2", 0, "hi").WithValue("attr2", 1, "hello"),
+			b:    (&Row{}).WithValue("attr3", 0, true).WithValue("attr4", 0, "ee").WithValue("attr4", 1, 25),
+			out:  (&Row{}).WithValue("a", 0, 10).WithValue("b", 0, true).WithValue("c", 0, "ee").WithValue("c", 1, 25),
 			mapping: saToMapping([]simpleAttribute{{
 				ident:  "a",
 				source: "attr1",
@@ -65,7 +65,7 @@ func TestMergeRows(t *testing.T) {
 
 	for _, c := range tcc {
 		t.Run(c.name, func(t *testing.T) {
-			out := &row{}
+			out := &Row{}
 			err := mergeRows(c.mapping, out, c.a, c.b)
 			require.NoError(t, err)
 			require.Equal(t, c.out, out)

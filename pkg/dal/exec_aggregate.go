@@ -16,7 +16,7 @@ type (
 
 		source  Iterator
 		err     error
-		scanRow *row
+		scanRow *Row
 		planned bool
 
 		rowTester tester
@@ -218,7 +218,7 @@ func (xs *aggregate) pullEntireSource(ctx context.Context) (err error) {
 	}
 
 	// @todo consider pre-populating the hashmaps
-	r := &row{
+	r := &Row{
 		counters: make(map[string]uint),
 		values:   make(valueSet),
 	}
@@ -341,7 +341,7 @@ func (xs *aggregate) nextGroup(ctx context.Context) (_ *aggregateGroup, err erro
 	return xs.groups[xs.i-1], nil
 }
 
-func (s *aggregate) scanKey(g *aggregateGroup, dst *row) (err error) {
+func (s *aggregate) scanKey(g *aggregateGroup, dst *Row) (err error) {
 	for i, attr := range s.def.Group {
 		// @todo multi value support?
 		dst.SetValue(attr.Identifier(), 0, g.key[i])
@@ -351,7 +351,7 @@ func (s *aggregate) scanKey(g *aggregateGroup, dst *row) (err error) {
 	return nil
 }
 
-func (s *aggregate) keep(ctx context.Context, r *row) bool {
+func (s *aggregate) keep(ctx context.Context, r *Row) bool {
 	if s.rowTester == nil {
 		return true
 	}
@@ -416,9 +416,9 @@ func inKeys(kk []AttributeMapping, ident string) int {
 	return -1
 }
 
-func (xs *aggregate) initScanRow() (out *row) {
+func (xs *aggregate) initScanRow() (out *Row) {
 	// base
-	out = &row{
+	out = &Row{
 		counters: make(map[string]uint),
 		values:   make(valueSet),
 	}

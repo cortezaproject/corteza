@@ -35,7 +35,7 @@ type (
 		Add(context.Context, ValueGetter) (err error)
 	}
 
-	row struct {
+	Row struct {
 		counters map[string]uint
 		values   valueSet
 
@@ -48,7 +48,7 @@ type (
 	valueSet map[string][]any
 )
 
-func (r row) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+func (r Row) SelectGVal(ctx context.Context, k string) (interface{}, error) {
 	if r.values[k] == nil {
 		return nil, nil
 	}
@@ -61,13 +61,13 @@ func (r row) SelectGVal(ctx context.Context, k string) (interface{}, error) {
 	return o, nil
 }
 
-func (r *row) Reset() {
+func (r *Row) Reset() {
 	for k := range r.counters {
 		r.counters[k] = 0
 	}
 }
 
-func (r *row) SetValue(name string, pos uint, v any) error {
+func (r *Row) SetValue(name string, pos uint, v any) error {
 	if r.values == nil {
 		r.values = make(valueSet)
 	}
@@ -91,7 +91,7 @@ func (r *row) SetValue(name string, pos uint, v any) error {
 
 // WithValue is a simple helper to construct rows with populated values
 // The main use is for tests so restrain from using it in code.
-func (r *row) WithValue(name string, pos uint, v any) *row {
+func (r *Row) WithValue(name string, pos uint, v any) *Row {
 	err := r.SetValue(name, pos, v)
 	if err != nil {
 		panic(err)
@@ -100,15 +100,15 @@ func (r *row) WithValue(name string, pos uint, v any) *row {
 	return r
 }
 
-func (r *row) CountValues() map[string]uint {
+func (r *Row) CountValues() map[string]uint {
 	return r.counters
 }
 
-func (r *row) GetValue(name string, pos uint) (any, error) {
+func (r *Row) GetValue(name string, pos uint) (any, error) {
 	return r.values[name][pos], nil
 }
 
-func (r *row) String() string {
+func (r *Row) String() string {
 	out := make([]string, 0, 20)
 	for k, vv := range r.values {
 		for i, v := range vv {
@@ -119,7 +119,7 @@ func (r *row) String() string {
 	return strings.Join(out, " | ")
 }
 
-func (r row) Copy() *row {
+func (r Row) Copy() *Row {
 	out := &r
 
 	out.values = out.values.Copy()
@@ -137,7 +137,7 @@ func (vv valueSet) Copy() valueSet {
 	return out
 }
 
-func mergeRows(mapping []AttributeMapping, dst *row, ss ...*row) (err error) {
+func mergeRows(mapping []AttributeMapping, dst *Row, ss ...*Row) (err error) {
 	if len(mapping) == 0 {
 		return mergeRowsFull(dst, ss...)
 	}
@@ -145,7 +145,7 @@ func mergeRows(mapping []AttributeMapping, dst *row, ss ...*row) (err error) {
 	return mergeRowsMapped(mapping, dst, ss...)
 }
 
-func mergeRowsFull(dst *row, rows ...*row) (err error) {
+func mergeRowsFull(dst *Row, rows ...*Row) (err error) {
 	for _, r := range rows {
 		for name, vv := range r.values {
 			for i, values := range vv {
@@ -170,7 +170,7 @@ func mergeRowsFull(dst *row, rows ...*row) (err error) {
 	return
 }
 
-func mergeRowsMapped(mapping []AttributeMapping, out *row, rows ...*row) (err error) {
+func mergeRowsMapped(mapping []AttributeMapping, out *Row, rows ...*Row) (err error) {
 
 	for _, mp := range mapping {
 		name := mp.Source()
@@ -193,8 +193,8 @@ func mergeRowsMapped(mapping []AttributeMapping, out *row, rows ...*row) (err er
 
 // makeRowComparator is a utility for easily making a row comparator for
 // the given sort expression
-func makeRowComparator(ss ...*filter.SortExpr) func(a, b *row) bool {
-	return func(a, b *row) bool {
+func makeRowComparator(ss ...*filter.SortExpr) func(a, b *Row) bool {
+	return func(a, b *Row) bool {
 		for _, s := range ss {
 			cmp := compareGetters(a, b, a.counters, b.counters, s.Column)
 
