@@ -308,7 +308,7 @@ func (g genericUpgrades) AddScenariosField(ctx context.Context) error {
 			Name:         "scenarios",
 			Type:         ddl.ColumnType{Type: ddl.ColumnTypeJson},
 			IsNull:       false,
-			DefaultValue: "NULL",
+			DefaultValue: "'[]'",
 		}
 	)
 
