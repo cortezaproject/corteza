@@ -15,7 +15,7 @@ type (
 		// should be ok ig...
 		//
 		// Probably don't need to sort yet
-		rows []*row
+		rows []*Row
 	}
 )
 
@@ -29,7 +29,7 @@ func newRelIndexBuffer(tt ...string) *relIndexBuffer {
 }
 
 // add adds a new *row to the buffer
-func (lc *relIndexBuffer) add(r *row) {
+func (lc *relIndexBuffer) add(r *Row) {
 	if len(lc.rows) == 0 {
 		for _, ix := range lc.track {
 			lc.min[ix] = r.values[ix][0]
@@ -47,7 +47,7 @@ func (lc *relIndexBuffer) add(r *row) {
 }
 
 // updMin updates the min stat
-func (lc *relIndexBuffer) updMin(r *row) {
+func (lc *relIndexBuffer) updMin(r *Row) {
 	for _, ix := range lc.track {
 		for i := uint(0); i < r.CountValues()[ix]; i++ {
 			v := r.values[ix][i]
@@ -59,7 +59,7 @@ func (lc *relIndexBuffer) updMin(r *row) {
 }
 
 // updMax updates the max stat
-func (lc *relIndexBuffer) updMax(r *row) {
+func (lc *relIndexBuffer) updMax(r *Row) {
 	for _, ix := range lc.track {
 		for i := uint(0); i < r.CountValues()[ix]; i++ {
 			v := r.values[ix][i]

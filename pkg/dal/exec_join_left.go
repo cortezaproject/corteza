@@ -27,7 +27,7 @@ type (
 		leftSource  Iterator
 		rightSource Iterator
 		err         error
-		scanRow     *row
+		scanRow     *Row
 		planned     bool
 		filtered    bool
 
@@ -48,7 +48,7 @@ type (
 		// @todo consider a generic slice for cases when sorting is not needed.
 		//       This will probably save up on memory/time since we don't even need
 		//       to pull everything.
-		outSorted *btree.Generic[*row]
+		outSorted *btree.Generic[*Row]
 		i         int
 	}
 )
@@ -99,7 +99,7 @@ func (xs *joinLeft) More(limit uint, v ValueGetter) (err error) {
 	// Redo the state
 	// @todo adjust based on aggregation plan; reuse buffered, etc.
 	xs.relIndex = newRelIndex()
-	xs.outSorted = btree.NewGenericOptions[*row](makeRowComparator(xs.filter.OrderBy()...), btree.Options{NoLocks: true})
+	xs.outSorted = btree.NewGenericOptions[*Row](makeRowComparator(xs.filter.OrderBy()...), btree.Options{NoLocks: true})
 	xs.scanRow = nil
 	xs.planned = false
 	xs.i = 0
@@ -237,7 +237,7 @@ func (xs *joinLeft) pullEntireSource(ctx context.Context) (err error) {
 // pullEntireRightSource pulls and indexes all of the right bits
 func (xs *joinLeft) pullEntireRightSource(ctx context.Context) (err error) {
 	for xs.rightSource.Next(ctx) {
-		r := &row{
+		r := &Row{
 			counters: make(map[string]uint),
 			values:   make(valueSet),
 		}
@@ -259,7 +259,7 @@ func (xs *joinLeft) pullEntireRightSource(ctx context.Context) (err error) {
 // work on this stage
 func (xs *joinLeft) pullEntireLeftSource(ctx context.Context) (err error) {
 	for xs.leftSource.Next(ctx) {
-		l := &row{
+		l := &Row{
 			counters: make(map[string]uint),
 			values:   make(valueSet),
 		}
@@ -281,7 +281,7 @@ func (xs *joinLeft) pullEntireLeftSource(ctx context.Context) (err error) {
 //
 // @note for sorting, we use a b-tree as it's self sorting.
 //			 Benchmarking shows that using a slice is negligibly faster if faster at all.
-func (xs *joinLeft) joinRight(ctx context.Context, left *row) (err error) {
+func (xs *joinLeft) joinRight(ctx context.Context, left *Row) (err error) {
 	bb, ok, err := xs.getRelatedBuffers(left)
 	if err != nil || !ok {
 		return
@@ -308,7 +308,7 @@ func (xs *joinLeft) joinRight(ctx context.Context, left *row) (err error) {
 }
 
 // getRelatedBuffers returns all of the right rows corresponding to the given left row
-func (xs *joinLeft) getRelatedBuffers(l *row) (out []*relIndexBuffer, ok bool, err error) {
+func (xs *joinLeft) getRelatedBuffers(l *Row) (out []*relIndexBuffer, ok bool, err error) {
 	attrIdent := xs.joinLeftAttr.Identifier()
 	attrType := xs.joinLeftAttr.Properties().Type
 	var aux *relIndexBuffer
@@ -355,7 +355,7 @@ func (xs *joinLeft) getRelatedBuffers(l *row) (out []*relIndexBuffer, ok bool, e
 
 // indexRightRow pushes the provided row onto the rel index
 // @todo consider moving most of this logic to the relIndex struct.
-func (xs *joinLeft) indexRightRow(r *row) (err error) {
+func (xs *joinLeft) indexRightRow(r *Row) (err error) {
 	attrIdent := xs.joinRightAttr.Identifier()
 	attrType := xs.joinRightAttr.Properties().Type
 
@@ -390,7 +390,7 @@ func (xs *joinLeft) indexRightRow(r *row) (err error) {
 }
 
 // keep checks if the row should be kept or discarded
-func (xs *joinLeft) keep(ctx context.Context, r *row) bool {
+func (xs *joinLeft) keep(ctx context.Context, r *Row) bool {
 	if xs.rowTester == nil {
 		return true
 	}

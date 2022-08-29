@@ -18,7 +18,7 @@ type (
 		leftSource  Iterator
 		rightSource Iterator
 		err         error
-		scanRow     *row
+		scanRow     *Row
 		planned     bool
 		filtered    bool
 
@@ -35,15 +35,15 @@ type (
 		rowTester tester
 
 		// Buffer to keep track of pulled left rows
-		leftRows   []*row
+		leftRows   []*Row
 		relIndex   *relIndex
 		keepLeft   bool
 		leftIndex  int
 		rightIndex int
 
 		// Some helper fields for temporary data
-		leftRow       *row
-		rightRow      *row
+		leftRow       *Row
+		rightRow      *Row
 		relScanBuffer *relIndexBuffer
 	}
 )
@@ -97,7 +97,7 @@ func (xs *linkLeft) More(limit uint, v ValueGetter) (err error) {
 	// Redo the state
 	// @todo adjust based on aggregation plan; reuse buffered, etc.
 	xs.relIndex = newRelIndex(xs.rightSortAttrs...)
-	xs.leftRows = make([]*row, 0, 128)
+	xs.leftRows = make([]*Row, 0, 128)
 	xs.scanRow = nil
 	xs.planned = false
 	xs.keepLeft = false
@@ -259,7 +259,7 @@ func (xs *linkLeft) nextBuffered() (more bool, err error) {
 }
 
 // getRelatedBuffer returns all of the right rows corresponding to the given left row
-func (xs *linkLeft) getRelatedBuffer(l *row) (out *relIndexBuffer, ok bool, err error) {
+func (xs *linkLeft) getRelatedBuffer(l *Row) (out *relIndexBuffer, ok bool, err error) {
 	attrIdent := xs.linkLeftAttr.Identifier()
 	attrType := xs.linkLeftAttr.Properties().Type
 
@@ -328,7 +328,7 @@ func (xs *linkLeft) pullEntireSource(ctx context.Context) (err error) {
 func (xs *linkLeft) pullEntireRightSource(ctx context.Context) (err error) {
 	// Drain the source
 	for xs.rightSource.Next(ctx) {
-		r := &row{
+		r := &Row{
 			counters: make(map[string]uint),
 			values:   make(valueSet),
 		}
@@ -355,7 +355,7 @@ func (xs *linkLeft) pullEntireLeftSource(ctx context.Context) (err error) {
 
 	// Drain the source
 	for xs.leftSource.Next(ctx) {
-		l := &row{
+		l := &Row{
 			counters: make(map[string]uint),
 			values:   make(valueSet),
 		}
@@ -384,7 +384,7 @@ func (xs *linkLeft) pullEntireLeftSource(ctx context.Context) (err error) {
 
 // indexRightRow pushes the provided row onto the rel index
 // @todo consider moving most of this logic to the relIndex struct.
-func (xs *linkLeft) indexRightRow(r *row) (err error) {
+func (xs *linkLeft) indexRightRow(r *Row) (err error) {
 	attrIdent := xs.linkRightAttr.Identifier()
 	attrType := xs.linkRightAttr.Properties().Type
 
@@ -490,7 +490,7 @@ func (xs *linkLeft) sortLeftRows() (err error) {
 // keep checks if the row should be kept or discarded
 //
 // Link's keep is a bit more complicated and it looks at the related buffer as well.
-func (xs *linkLeft) keep(ctx context.Context, left *row, buffer *relIndexBuffer) (keep bool) {
+func (xs *linkLeft) keep(ctx context.Context, left *Row, buffer *relIndexBuffer) (keep bool) {
 	// If no buffer, we won't keep -- left inner join like behavior
 	if buffer == nil {
 		return false

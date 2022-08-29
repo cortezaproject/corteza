@@ -34,7 +34,7 @@ func newRelIndex(tt ...string) *relIndex {
 }
 
 // AddInt adds a new row under the int key
-func (ri *relIndex) AddInt(k int64, r *row) {
+func (ri *relIndex) AddInt(k int64, r *Row) {
 	c, ok := ri.GetInt(k)
 	if !ok {
 		c = newRelIndexBuffer(ri.track...)
@@ -48,7 +48,7 @@ func (ri *relIndex) GetInt(k int64) (out *relIndexBuffer, ok bool) {
 	return
 }
 
-func (ri *relIndex) AddString(k string, r *row) {
+func (ri *relIndex) AddString(k string, r *Row) {
 	c, ok := ri.GetString(k)
 	if !ok {
 		c = newRelIndexBuffer(ri.track...)
@@ -62,7 +62,7 @@ func (ri *relIndex) GetString(k string) (out *relIndexBuffer, ok bool) {
 	return
 }
 
-func (ri *relIndex) AddID(k uint64, r *row) {
+func (ri *relIndex) AddID(k uint64, r *Row) {
 	c, ok := ri.GetID(k)
 	if !ok {
 		c = newRelIndexBuffer(ri.track...)
