@@ -427,12 +427,14 @@ func TestStepJoinLocal(t *testing.T) {
 				OutAttributes:   saToMapping(tc.outAttributes...),
 				LeftAttributes:  saToMapping(tc.leftAttributes...),
 				RightAttributes: saToMapping(tc.rightAttributes...),
-				Filter:          tc.f,
+				filter:          tc.f,
 
 				plan: joinPlan{},
 			}
 
-			xs, err := def.Initialize(ctx, l, f)
+			err := def.init(ctx)
+			require.NoError(t, err)
+			xs, err := def.exec(ctx, l, f)
 			require.NoError(t, err)
 
 			i := 0
@@ -480,7 +482,7 @@ func TestStepJoinLocal_cursorCollect_forward(t *testing.T) {
 
 			jj := &joinLeft{
 				def: Join{
-					Filter: internalFilter{
+					filter: internalFilter{
 						orderBy: c.ss,
 					},
 					OutAttributes: saToMapping(c.attrs...),
@@ -525,7 +527,7 @@ func TestStepJoinLocal_cursorCollect_back(t *testing.T) {
 
 			jj := &joinLeft{
 				def: Join{
-					Filter: internalFilter{
+					filter: internalFilter{
 						orderBy: c.ss,
 					},
 					OutAttributes: saToMapping(c.attrs...),
@@ -622,10 +624,12 @@ func TestStepJoinLocal_more(t *testing.T) {
 				OutAttributes:   saToMapping(tc.attributes...),
 				LeftAttributes:  saToMapping(tc.localAttributes...),
 				RightAttributes: saToMapping(tc.foreignAttributes...),
-				Filter:          tc.f,
+				filter:          tc.f,
 			}
 
-			xs, err := def.Initialize(ctx, l, f)
+			err := def.init(ctx)
+			require.NoError(t, err)
+			xs, err := def.exec(ctx, l, f)
 			require.NoError(t, err)
 
 			require.True(t, xs.Next(ctx))

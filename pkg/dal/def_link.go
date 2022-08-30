@@ -3,6 +3,8 @@ package dal
 import (
 	"context"
 	"fmt"
+
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 )
 
 type (
@@ -17,8 +19,10 @@ type (
 		RelRight string
 		// @todo allow multiple link predicates; for now (for easier indexing)
 		// only allow one (this is the same as we had before)
-		On     LinkPredicate
-		Filter internalFilter
+		On LinkPredicate
+		// @todo consider splitting filter into left and right filter
+		filter internalFilter
+		Filter filter.Filter
 
 		OutLeftAttributes  []AttributeMapping
 		OutRightAttributes []AttributeMapping
@@ -104,6 +108,14 @@ func (def *Link) init(ctx context.Context) (err error) {
 	if len(def.OutRightAttributes) == 0 {
 		def.OutRightAttributes = def.RightAttributes
 	}
+
+	if def.Filter != nil {
+		def.filter, err = toInternalFilter(def.Filter)
+		if err != nil {
+			return
+		}
+	}
+
 	err = def.validate()
 	if err != nil {
 		return
@@ -116,7 +128,7 @@ func (def *Link) exec(ctx context.Context, left, right Iterator) (_ Iterator, er
 	// @todo adjust the used exec based on other strategies when added
 	exec := &linkLeft{
 		def:         *def,
-		filter:      def.Filter,
+		filter:      def.filter,
 		leftSource:  left,
 		rightSource: right,
 	}
