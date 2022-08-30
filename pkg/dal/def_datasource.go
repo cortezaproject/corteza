@@ -65,9 +65,11 @@ func (def *Datasource) init(ctx context.Context, s iterProvider) (err error) {
 		return
 	}
 
-	def.filter, err = toInternalFilter(def.Filter)
-	if err != nil {
-		return
+	if def.Filter != nil {
+		def.filter, err = toInternalFilter(def.Filter)
+		if err != nil {
+			return
+		}
 	}
 
 	iter, model, err := s(ctx, def.ModelRef, def.filter)

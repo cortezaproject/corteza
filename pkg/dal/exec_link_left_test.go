@@ -69,9 +69,9 @@ func TestStepLinkleft(t *testing.T) {
 			},
 			out: []simpleRow{
 				{"l_pk": 1, "l_val": "l1 v1"},
-				{"f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"$sys.ref": "right", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
 				{"l_pk": 2, "l_val": "l2 v1"},
-				{"f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+				{"$sys.ref": "right", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
 			},
 		},
 		{
@@ -94,12 +94,12 @@ func TestStepLinkleft(t *testing.T) {
 			},
 			out: []simpleRow{
 				{"l_pk": 1, "l_val": "l1 v1"},
-				{"f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
-				{"f_pk": 2, "f_fk": 1, "f_val": "f2 v1"},
-				{"f_pk": 3, "f_fk": 1, "f_val": "f3 v1"},
+				{"$sys.ref": "right", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"$sys.ref": "right", "f_pk": 2, "f_fk": 1, "f_val": "f2 v1"},
+				{"$sys.ref": "right", "f_pk": 3, "f_fk": 1, "f_val": "f3 v1"},
 
 				{"l_pk": 2, "l_val": "l2 v1"},
-				{"f_pk": 4, "f_fk": 2, "f_val": "f4 v1"},
+				{"$sys.ref": "right", "f_pk": 4, "f_fk": 2, "f_val": "f4 v1"},
 			},
 		},
 		{
@@ -121,7 +121,7 @@ func TestStepLinkleft(t *testing.T) {
 
 			out: []simpleRow{
 				{"l_pk": 1, "l_val": "l1 v1"},
-				{"f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"$sys.ref": "right", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
 			},
 		},
 		{
@@ -201,7 +201,7 @@ func TestStepLinkleft(t *testing.T) {
 
 			out: []simpleRow{
 				{"l_pk": 1, "l_const": "c1", "l_val": "l1 v1"},
-				{"f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"$sys.ref": "right", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
 			},
 
 			f: internalFilter{
@@ -229,7 +229,7 @@ func TestStepLinkleft(t *testing.T) {
 
 			out: []simpleRow{
 				{"l_pk": 1, "l_const": "c1", "l_val": "l1 v1"},
-				{"f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"$sys.ref": "right", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
 			},
 
 			f: internalFilter{
@@ -252,7 +252,7 @@ func TestStepLinkleft(t *testing.T) {
 			},
 			fIn: []simpleRow{
 				{"f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
-				{"f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+				{"$sys.ref": "right", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
 			},
 
 			out: []simpleRow{},
@@ -284,7 +284,7 @@ func TestStepLinkleft(t *testing.T) {
 
 			out: []simpleRow{
 				{"l_pk": 1, "l_const_a": "cac1", "l_const_b": "cbc1", "l_val": "l1 v1"},
-				{"f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"$sys.ref": "right", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
 			},
 
 			f: internalFilter{
@@ -312,9 +312,9 @@ func TestStepLinkleft(t *testing.T) {
 
 			out: []simpleRow{
 				{"l_pk": 1, "l_const_a": "cac1", "l_const_b": "cbc1", "l_val": "l1 v1"},
-				{"f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"$sys.ref": "right", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
 				{"l_pk": 2, "l_const_a": "cac1", "l_const_b": "cbc2", "l_val": "l2 v1"},
-				{"f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+				{"$sys.ref": "right", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
 			},
 
 			f: internalFilter{
@@ -341,9 +341,9 @@ func TestStepLinkleft(t *testing.T) {
 
 			out: []simpleRow{
 				{"l_pk": 1, "l_val": "l1 v1"},
-				{"f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"$sys.ref": "right", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
 				{"l_pk": 2, "l_val": "l2 v1"},
-				{"f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+				{"$sys.ref": "right", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
 			},
 
 			f: internalFilter{
@@ -394,7 +394,7 @@ func TestStepLinkleft(t *testing.T) {
 
 			out: []simpleRow{
 				{"l_pk": 2, "l_val": "l2 v1"},
-				{"f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+				{"$sys.ref": "right", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
 			},
 
 			f: internalFilter{
@@ -421,7 +421,7 @@ func TestStepLinkleft(t *testing.T) {
 
 			out: []simpleRow{
 				{"l_pk": 1, "l_val": "l1 v1"},
-				{"f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"$sys.ref": "right", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
 			},
 
 			f: internalFilter{
@@ -454,7 +454,7 @@ func TestStepLinkleft(t *testing.T) {
 			},
 			out: []simpleRow{
 				{"l_pk": 2, "l_val": "l2 v1"},
-				{"f_pk": 4, "f_fk": 2, "f_val": "f4 v1"},
+				{"$sys.ref": "right", "f_pk": 4, "f_fk": 2, "f_val": "f4 v1"},
 			},
 		},
 		{
@@ -482,7 +482,7 @@ func TestStepLinkleft(t *testing.T) {
 			},
 			out: []simpleRow{
 				{"l_pk": 2, "l_val": "l2 v1"},
-				{"f_pk": 4, "f_fk": 2, "f_val": "f4 v1"},
+				{"$sys.ref": "right", "f_pk": 4, "f_fk": 2, "f_val": "f4 v1"},
 			},
 		},
 		{
@@ -525,16 +525,21 @@ func TestStepLinkleft(t *testing.T) {
 			}
 
 			def := Link{
-				Ident:              "foo",
+				Ident:    "foo",
+				RelLeft:  "left",
+				RelRight: "right",
+
 				On:                 tc.linkPred,
 				LeftAttributes:     saToMapping(tc.leftAttributes...),
 				RightAttributes:    saToMapping(tc.rightAttributes...),
 				OutLeftAttributes:  saToMapping(tc.leftOutAttributes...),
 				OutRightAttributes: saToMapping(tc.rightOutAttributes...),
-				Filter:             tc.f,
+				filter:             tc.f,
 			}
 
-			xs, err := def.Initialize(ctx, l, f)
+			err := def.init(ctx)
+			require.NoError(t, err)
+			xs, err := def.exec(ctx, l, f)
 			require.NoError(t, err)
 
 			i := 0
@@ -599,7 +604,7 @@ func TestStepLinkleft_cursorCollect_forward(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			xs := &linkLeft{
 				def: Link{
-					Filter: internalFilter{
+					filter: internalFilter{
 						orderBy: c.ss,
 					},
 					LeftAttributes:     saToMapping(c.leftAttrs...),
@@ -665,7 +670,7 @@ func TestStepLinkleft_cursorCollect_back(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			jj := &linkLeft{
 				def: Link{
-					Filter: internalFilter{
+					filter: internalFilter{
 						orderBy: c.ss,
 					},
 					LeftAttributes:     saToMapping(c.leftAttrs...),
@@ -744,11 +749,11 @@ func TestStepLinkleft_more(t *testing.T) {
 
 			out1: []simpleRow{
 				{"l_pk": 1, "l_val": "l1 v1"},
-				{"f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"$sys.ref": "right", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
 			},
 			out2: []simpleRow{
 				{"l_pk": 2, "l_val": "l2 v1"},
-				{"f_pk": 4, "f_fk": 2, "f_val": "f4 v1"},
+				{"$sys.ref": "right", "f_pk": 4, "f_fk": 2, "f_val": "f4 v1"},
 			},
 		},
 	}
@@ -767,16 +772,21 @@ func TestStepLinkleft_more(t *testing.T) {
 			}
 
 			def := Link{
-				Ident:              "foo",
+				Ident:    "foo",
+				RelLeft:  "left",
+				RelRight: "right",
+
 				On:                 tc.linkPred,
 				LeftAttributes:     saToMapping(tc.leftAttrs...),
 				RightAttributes:    saToMapping(tc.rightAttrs...),
 				OutLeftAttributes:  saToMapping(tc.outleftAttrs...),
 				OutRightAttributes: saToMapping(tc.outrightAttrs...),
-				Filter:             tc.f,
+				filter:             tc.f,
 			}
 
-			xs, err := def.Initialize(ctx, l, f)
+			err := def.init(ctx)
+			require.NoError(t, err)
+			xs, err := def.exec(ctx, l, f)
 			require.NoError(t, err)
 
 			require.True(t, xs.Next(ctx))
@@ -810,8 +820,8 @@ func TestStepLinkleft_more(t *testing.T) {
 	}
 }
 
-func simpleToRow(in simpleRow) (out *row) {
-	out = &row{}
+func simpleToRow(in simpleRow) (out *Row) {
+	out = &Row{}
 	for k, v := range in {
 		out.SetValue(k, 0, v)
 	}

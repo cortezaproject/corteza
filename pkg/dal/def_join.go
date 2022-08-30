@@ -100,6 +100,13 @@ func (def *Join) init(ctx context.Context) (err error) {
 		def.OutAttributes = append(def.LeftAttributes, def.RightAttributes...)
 	}
 
+	if def.Filter != nil {
+		def.filter, err = toInternalFilter(def.Filter)
+		if err != nil {
+			return
+		}
+	}
+
 	return nil
 }
 

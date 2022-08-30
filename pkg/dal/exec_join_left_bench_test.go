@@ -49,11 +49,12 @@ func benchmarkExecJoin_local(b *testing.B, n int) {
 			OutAttributes:   saToMapping(attrs...),
 			LeftAttributes:  saToMapping(la...),
 			RightAttributes: saToMapping(fa...),
-			Filter:          internalFilter{orderBy: filter.SortExprSet{{Column: "f_k"}}},
+			filter:          internalFilter{orderBy: filter.SortExprSet{{Column: "f_k"}}},
 			On:              JoinPredicate{Left: "l_k", Right: "f_ref"},
 		}
 
-		def.Initialize(ctx, l, f)
+		def.init(ctx)
+		def.exec(ctx, l, f)
 
 		l.Seek(ctx, 0)
 		f.Seek(ctx, 0)

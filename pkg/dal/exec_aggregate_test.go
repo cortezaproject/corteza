@@ -458,9 +458,11 @@ func TestStepAggregate(t *testing.T) {
 				sa.SourceAttributes = saToMapping(tc.sourceAttributes...)
 				sa.Group = saToMapping(tc.group...)
 				sa.OutAttributes = saToMapping(tc.outAttributes...)
-				sa.Filter = tc.f
+				sa.filter = tc.f
 
-				aa, err := sa.Initialize(ctx, b)
+				err := sa.init(ctx)
+				require.NoError(t, err)
+				aa, err := sa.exec(ctx, b)
 				require.NoError(t, err)
 
 				i := 0
@@ -509,7 +511,7 @@ func TestStepAggregate_cursorCollect_forward(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 
 			def := Aggregate{
-				Filter: internalFilter{
+				filter: internalFilter{
 					orderBy: c.ss,
 				},
 				Group:         saToMapping(c.group...),
@@ -557,7 +559,7 @@ func TestStepAggregate_cursorCollect_back(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 
 			def := Aggregate{
-				Filter: internalFilter{
+				filter: internalFilter{
 					orderBy: c.ss,
 				},
 				Group:         saToMapping(c.group...),
@@ -643,10 +645,12 @@ func TestStepAggregate_more(t *testing.T) {
 			d.OutAttributes = saToMapping(tc.outAttributes...)
 			d.SourceAttributes = saToMapping(tc.sourceAttributes...)
 			for _, k := range tc.group {
-				d.Filter.orderBy = append(d.Filter.orderBy, &filter.SortExpr{Column: k.ident})
+				d.filter.orderBy = append(d.filter.orderBy, &filter.SortExpr{Column: k.ident})
 			}
 
-			aa, err := d.Initialize(ctx, buff)
+			err := d.init(ctx)
+			require.NoError(t, err)
+			aa, err := d.exec(ctx, buff)
 			require.NoError(t, err)
 
 			require.True(t, aa.Next(ctx))

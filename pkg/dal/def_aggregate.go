@@ -80,9 +80,11 @@ func (def *Aggregate) init(ctx context.Context) (err error) {
 		return
 	}
 
-	def.filter, err = toInternalFilter(def.Filter)
-	if err != nil {
-		return
+	if def.Filter != nil {
+		def.filter, err = toInternalFilter(def.Filter)
+		if err != nil {
+			return
+		}
 	}
 
 	if len(def.SourceAttributes) == 0 {
