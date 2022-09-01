@@ -1,4 +1,4 @@
-package reportutils
+package reporter
 
 import (
 	"fmt"
@@ -10,20 +10,33 @@ import (
 )
 
 type (
-	// reportFrameBuilder is a helper struct for building report frames from
-	// dal iterators
+	// reportFrameBuilder assist in frame construction from iterators
+	//
+	// Primarily simplifies mapping the correct iterator attributes to correct
+	// frame row columns and having them encoded properly.
 	reportFrameBuilder struct {
-		def         *types.ReportFrameDefinition
-		frame       *types.ReportFrame
+		def   *types.ReportFrameDefinition
+		frame *types.ReportFrame
+
 		attrMapping map[string]int
+		attrMvDel   map[string]string
 	}
 )
 
+// newReportFrameBuilder initializes a new report frame builder
 func newReportFrameBuilder(def *types.ReportFrameDefinition) *reportFrameBuilder {
-	// Index requested columns for easier lookup
+	// Index cols for easier lookups
 	attrMap := make(map[string]int)
+	mvDelMap := make(map[string]string)
 	for i, c := range def.Columns {
 		attrMap[c.Name] = i
+
+		if c.Multivalue {
+			mvDelMap[c.Name] = c.MultivalueDelimiter
+			if mvDelMap[c.Name] == "" {
+				mvDelMap[c.Name] = "\n"
+			}
+		}
 	}
 
 	out := &reportFrameBuilder{
@@ -31,13 +44,13 @@ func newReportFrameBuilder(def *types.ReportFrameDefinition) *reportFrameBuilder
 		attrMapping: attrMap,
 	}
 
+	// Init output frame
 	out.freshFrame()
-
 	return out
 }
 
-// withRefs includes additional metadata required by the link step
-func (b *reportFrameBuilder) withRefs(col string) {
+// linked includes additional metadata required by the link step
+func (b *reportFrameBuilder) linked(col string) {
 	b.frame.RelColumn = col
 }
 
@@ -67,16 +80,6 @@ func (b *reportFrameBuilder) addRow(r *dal.Row) {
 	}
 }
 
-func (b *reportFrameBuilder) stringifyVal(col string, val any) string {
-	// @todo nicer formatting and such? V1 didn't do much different
-	return fmt.Sprintf("%v", val)
-}
-
-func (b *reportFrameBuilder) joinMultiVal(col string, vals []string) string {
-	// @todo add delimiter (extend attrs)
-	return strings.Join(vals, "\n")
-}
-
 // done returns the constructed frame and prepares a new frame with the same
 // metadata as the original one
 func (b *reportFrameBuilder) done() *types.ReportFrame {
@@ -86,7 +89,17 @@ func (b *reportFrameBuilder) done() *types.ReportFrame {
 	return out
 }
 
+func (b *reportFrameBuilder) stringifyVal(col string, val any) string {
+	// @todo nicer formatting and such? V1 didn't do much different
+	return fmt.Sprintf("%v", val)
+}
+
+func (b *reportFrameBuilder) joinMultiVal(col string, vals []string) string {
+	return strings.Join(vals, b.attrMvDel[col])
+}
+
 func (b *reportFrameBuilder) freshFrame() {
+	// reuse the old frame metadata and clears out the rows
 	if b.frame != nil {
 		aux := *b.frame
 		b.frame = &aux

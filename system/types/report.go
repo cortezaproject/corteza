@@ -139,14 +139,16 @@ type (
 		filter.Paging
 	}
 
-	// qlExprWrap is a wrapper for ql.ASTNode to implement custom JSON unmarshal
-	// required by reporter.
+	// qlExprWrap is a wrapper for ql.ASTNode to implement custom JSON
+	// unmarshal required by reporter.
 	// @todo consider moving this to the ql package
 	qlExprWrap struct {
 		*ql.ASTNode
 		Error string `json:"error,omitempty"`
 	}
 )
+
+// // // // // // // // // // // // // // // // // // // // // // // // //
 
 // @todo redo/rething these col methods along with the rest of the attr
 //       interface rethinking.
@@ -155,7 +157,9 @@ func (c ReportAggregateColumn) Identifier() string {
 }
 
 func (c ReportAggregateColumn) Expression() (expression string) {
-	// @todo!!!
+	if c.Def == nil || c.Def.ASTNode == nil {
+		return
+	}
 	return c.Def.String()
 }
 
@@ -180,7 +184,8 @@ func (cc ReportAggregateColumnSet) DalMapping() []dal.AttributeMapping {
 
 // // // // // // // // // // // // // // // // // // // // // // // // //
 
-func (ss ReportDataSourceSet) ModelSteps() ReportStepSet {
+// ReportSteps returns a ReportStepSet collected from the ReportDataSourceSet
+func (ss ReportDataSourceSet) ReportSteps() ReportStepSet {
 	out := make(ReportStepSet, 0, 124)
 
 	for _, s := range ss {
@@ -190,7 +195,8 @@ func (ss ReportDataSourceSet) ModelSteps() ReportStepSet {
 	return out
 }
 
-func (pp ReportBlockSet) ModelSteps() ReportStepSet {
+// ReportSteps returns a ReportStepSet collected from the ReportBlockSet
+func (pp ReportBlockSet) ReportSteps() ReportStepSet {
 	out := make(ReportStepSet, 0, 124)
 
 	for _, p := range pp {
@@ -202,6 +208,7 @@ func (pp ReportBlockSet) ModelSteps() ReportStepSet {
 
 // Initial ReportBlock struct definition omitted string casting for the BlockID (sorry)
 // so we need to handle that edge case when reading from DB.
+// @todo consider dropping this in the next/one of the following releases
 func (b *ReportBlock) UnmarshalJSON(data []byte) (err error) {
 	type internalReportBlock ReportBlock
 	i := struct {
@@ -239,6 +246,7 @@ func (vv ReportDataSourceSet) Value() (driver.Value, error) { return json.Marsha
 func (vv *ReportScenarioSet) Scan(src any) error          { return sql.ParseJSON(src, vv) }
 func (vv ReportScenarioSet) Value() (driver.Value, error) { return json.Marshal(vv) }
 
+// Node is a helper for accessing the wrapped QL node to omit nil checks
 func (f *qlExprWrap) Node() *ql.ASTNode {
 	if f == nil {
 		return nil
@@ -246,6 +254,10 @@ func (f *qlExprWrap) Node() *ql.ASTNode {
 	return f.ASTNode
 }
 
+// UnmarshalJSON parses the wrap into a proper QL node and an optional error
+//
+// The function can work over JSON strings (where FE provides a QL node) or
+// raw expression strings (where FE sends over the easeier stringified expression).
 func (f *qlExprWrap) UnmarshalJSON(data []byte) (err error) {
 	var aux interface{}
 	if err = json.Unmarshal(data, &aux); err != nil {

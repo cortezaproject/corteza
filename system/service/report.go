@@ -6,7 +6,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
-	"github.com/cortezaproject/corteza-server/pkg/reportutils"
+	"github.com/cortezaproject/corteza-server/system/reporter"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -26,7 +26,7 @@ type (
 
 		users UserService
 
-		pipelineRunner reportutils.PipelineRunner
+		pipelineRunner pipelineRunner
 	}
 
 	reportAccessController interface {
@@ -37,10 +37,12 @@ type (
 		CanDeleteReport(context.Context, *types.Report) bool
 		CanRunReport(context.Context, *types.Report) bool
 	}
-)
 
-var (
-	reporters = make(map[string]any)
+	pipelineRunner interface {
+		Run(context.Context, dal.Pipeline) (dal.Iterator, error)
+		Dryrun(context.Context, dal.Pipeline) error
+		FindModel(dal.ModelRef) *dal.Model
+	}
 )
 
 // Report is a default report service initializer
@@ -55,10 +57,6 @@ func Report(s store.Storer, ac reportAccessController, al actionlog.Recorder, eb
 
 		pipelineRunner: dal.Service(),
 	}
-}
-
-func (svc *report) RegisterReporter(key string, r any) {
-	reporters[key] = r
 }
 
 func (svc *report) LookupByID(ctx context.Context, ID uint64) (report *types.Report, err error) {
@@ -294,7 +292,7 @@ func (svc *report) Undelete(ctx context.Context, ID uint64) (err error) {
 	return svc.recordAction(ctx, aaProps, ReportActionUndelete, err)
 }
 
-// actionlog?
+// @todo actionlog?
 func (svc *report) Describe(ctx context.Context, src types.ReportDataSourceSet, st types.ReportStepSet, sources ...string) (out types.FrameDescriptionSet, err error) {
 	out = make(types.FrameDescriptionSet, 0, len(sources)*2)
 
@@ -303,26 +301,10 @@ func (svc *report) Describe(ctx context.Context, src types.ReportDataSourceSet, 
 			return ReportErrNotAllowedToCreate()
 		}
 
-		ss := src.ModelSteps()
+		ss := src.ReportSteps()
 		ss = append(ss, st...)
 
-		pp, err := reportutils.Pipeline(svc.pipelineRunner, ss)
-		if err != nil {
-			return
-		}
-
-		err = pp.LinkSteps()
-		if err != nil {
-			return
-		}
-
-		// Dryrun the pipeline to go over all init steps
-		err = svc.pipelineRunner.Dryrun(ctx, pp)
-		if err != nil {
-			return
-		}
-
-		out, err = reportutils.DescribePipeline(pp, sources)
+		out, err = reporter.Describe(ctx, svc.pipelineRunner, ss, sources)
 		return err
 	}()
 
@@ -351,23 +333,24 @@ func (svc *report) Run(ctx context.Context, reportID uint64, dd types.ReportFram
 		}
 
 		// Get all of the steps
-		ss := r.Sources.ModelSteps()
-		ss = append(ss, r.Blocks.ModelSteps()...)
+		ss := r.Sources.ReportSteps()
+		ss = append(ss, r.Blocks.ReportSteps()...)
 
-		// Prepare required pipelines
-		workloads, err := reportutils.Workloads(svc.pipelineRunner, ss, dd)
+		// Prepare a set of runs for the provided definitions
+		runs, err := reporter.Runs(svc.pipelineRunner, ss, dd)
 		if err != nil {
 			return
 		}
 
-		// Run the pipelines and produce report frames
-		for _, workload := range workloads {
-			iter, err = svc.pipelineRunner.Run(ctx, workload.Pipeline)
+		// Run the reports and produce the frames
+		// @todo this can be ran in paralel
+		for _, run := range runs {
+			iter, err = svc.pipelineRunner.Run(ctx, run.Pipeline)
 			if err != nil {
 				return
 			}
 
-			ff, err = reportutils.Frames(ctx, iter, workload)
+			ff, err = reporter.Frames(ctx, iter, run)
 			if err != nil {
 				return
 			}
