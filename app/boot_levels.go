@@ -445,10 +445,6 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		}
 	}
 
-	// Register reporters
-	// @todo additional datasource providers; generate?
-	sysService.DefaultReport.RegisterReporter("composeRecords", cmpService.DefaultRecord)
-
 	// Initializing seeder
 	_ = seeder.Seeder(ctx, app.Store, dal.Service(), seeder.Faker())
 

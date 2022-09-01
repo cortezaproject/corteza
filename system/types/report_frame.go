@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/ql"
 )
 
 type (
@@ -26,7 +25,7 @@ type (
 
 		Paging *filter.Paging     `json:"paging"`
 		Sort   filter.SortExprSet `json:"sort"`
-		Filter *ql.ASTNode        `json:"filter"`
+		Filter *qlExprWrap        `json:"filter"`
 	}
 
 	FrameDescriptionSet    []ReportFrameDescription
@@ -46,6 +45,9 @@ type (
 		Primary bool   `json:"primary"`
 		Unique  bool   `json:"unique"`
 		System  bool   `json:"system"`
+
+		Multivalue          bool   `json:"multivalue"`
+		MultivalueDelimiter string `json:"multivalueDelimiter"`
 	}
 
 	ReportFrameDefinitionSet []*ReportFrameDefinition
@@ -55,7 +57,7 @@ type (
 		Ref     string               `json:"ref"`
 		Columns ReportFrameColumnSet `json:"columns"`
 
-		Filter *ql.ASTNode        `json:"filter"`
+		Filter *qlExprWrap        `json:"filter"`
 		Paging *filter.Paging     `json:"paging"`
 		Sort   filter.SortExprSet `json:"sort"`
 	}
@@ -122,4 +124,16 @@ func (cc ReportFrameColumnSet) OmitSys() ReportFrameColumnSet {
 
 func (r ReportFrameRow) String() string {
 	return strings.Join(r, ", ")
+}
+
+// FilterBySource returns a set of definitions for the requested identifier
+func (dd ReportFrameDefinitionSet) FilterBySource(ident string) ReportFrameDefinitionSet {
+	out := make(ReportFrameDefinitionSet, 0, len(dd))
+	for _, d := range dd {
+		if d.Source == ident {
+			out = append(out, d)
+		}
+	}
+
+	return out
 }
