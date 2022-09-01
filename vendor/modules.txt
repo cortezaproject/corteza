@@ -426,6 +426,9 @@ github.com/steinfletcher/apitest-jsonpath/jsonpath
 ## explicit; go 1.13
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
+# github.com/tidwall/btree v1.3.1
+## explicit; go 1.18
+github.com/tidwall/btree
 # github.com/valyala/fasthttp v1.35.0
 ## explicit; go 1.15
 # go.uber.org/atomic v1.9.0

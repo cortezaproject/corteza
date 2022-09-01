@@ -121,6 +121,7 @@ require (
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
+	github.com/tidwall/btree v1.3.1 // indirect
 	github.com/valyala/fasthttp v1.35.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
 	golang.org/x/image v0.0.0-20191009234506-e7c1f5e7dbb8 // indirect

@@ -128,6 +128,22 @@ type (
 	}
 )
 
+const (
+	AttributeTypeID        AttributeType = "corteza::dal:attribute-type:id"
+	AttributeTypeRef       AttributeType = "corteza::dal:attribute-type:ref"
+	AttributeTypeTimestamp AttributeType = "corteza::dal:attribute-type:timestamp"
+	AttributeTypeTime      AttributeType = "corteza::dal:attribute-type:time"
+	AttributeTypeDate      AttributeType = "corteza::dal:attribute-type:date"
+	AttributeTypeNumber    AttributeType = "corteza::dal:attribute-type:number"
+	AttributeTypeText      AttributeType = "corteza::dal:attribute-type:text"
+	AttributeTypeBoolean   AttributeType = "corteza::dal:attribute-type:boolean"
+	AttributeTypeEnum      AttributeType = "corteza::dal:attribute-type:enum"
+	AttributeTypeGeometry  AttributeType = "corteza::dal:attribute-type:geometry"
+	AttributeTypeJSON      AttributeType = "corteza::dal:attribute-type:json"
+	AttributeTypeBlob      AttributeType = "corteza::dal:attribute-type:blob"
+	AttributeTypeUUID      AttributeType = "corteza::dal:attribute-type:uuid"
+)
+
 func (t TypeID) IsNullable() bool        { return t.Nullable }
 func (t TypeRef) IsNullable() bool       { return t.Nullable }
 func (t TypeTimestamp) IsNullable() bool { return t.Nullable }
@@ -142,16 +158,16 @@ func (t TypeJSON) IsNullable() bool      { return t.Nullable }
 func (t TypeBlob) IsNullable() bool      { return t.Nullable }
 func (t TypeUUID) IsNullable() bool      { return t.Nullable }
 
-func (t TypeID) Type() AttributeType        { return "corteza::dal:attribute-type:id" }
-func (t TypeRef) Type() AttributeType       { return "corteza::dal:attribute-type:ref" }
-func (t TypeTimestamp) Type() AttributeType { return "corteza::dal:attribute-type:timestamp" }
-func (t TypeTime) Type() AttributeType      { return "corteza::dal:attribute-type:time" }
-func (t TypeDate) Type() AttributeType      { return "corteza::dal:attribute-type:date" }
-func (t TypeNumber) Type() AttributeType    { return "corteza::dal:attribute-type:number" }
-func (t TypeText) Type() AttributeType      { return "corteza::dal:attribute-type:text" }
-func (t TypeBoolean) Type() AttributeType   { return "corteza::dal:attribute-type:boolean" }
-func (t TypeEnum) Type() AttributeType      { return "corteza::dal:attribute-type:enum" }
-func (t TypeGeometry) Type() AttributeType  { return "corteza::dal:attribute-type:geometry" }
-func (t TypeJSON) Type() AttributeType      { return "corteza::dal:attribute-type:json" }
-func (t TypeBlob) Type() AttributeType      { return "corteza::dal:attribute-type:blob" }
-func (t TypeUUID) Type() AttributeType      { return "corteza::dal:attribute-type:uuid" }
+func (t TypeID) Type() AttributeType        { return AttributeTypeID }
+func (t TypeRef) Type() AttributeType       { return AttributeTypeRef }
+func (t TypeTimestamp) Type() AttributeType { return AttributeTypeTimestamp }
+func (t TypeTime) Type() AttributeType      { return AttributeTypeTime }
+func (t TypeDate) Type() AttributeType      { return AttributeTypeDate }
+func (t TypeNumber) Type() AttributeType    { return AttributeTypeNumber }
+func (t TypeText) Type() AttributeType      { return AttributeTypeText }
+func (t TypeBoolean) Type() AttributeType   { return AttributeTypeBoolean }
+func (t TypeEnum) Type() AttributeType      { return AttributeTypeEnum }
+func (t TypeGeometry) Type() AttributeType  { return AttributeTypeGeometry }
+func (t TypeJSON) Type() AttributeType      { return AttributeTypeJSON }
+func (t TypeBlob) Type() AttributeType      { return AttributeTypeBlob }
+func (t TypeUUID) Type() AttributeType      { return AttributeTypeUUID }

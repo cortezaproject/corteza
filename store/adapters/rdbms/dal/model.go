@@ -4,9 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/modern-go/reflect2"
-	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -252,7 +253,19 @@ func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 		//}
 	}
 
-	for ident, vv := range f.Constraints() {
+	cc := f.Constraints()
+	if d.model.Constraints != nil {
+		if cc == nil {
+			cc = d.model.Constraints
+		} else {
+			for k, c := range d.model.Constraints {
+				// Overwrite user-provided constraints as the system ones are more important
+				cc[k] = c
+			}
+		}
+	}
+
+	for ident, vv := range cc {
 		attr := d.model.Attributes.FindByIdent(ident)
 		if attr == nil {
 			return base.SetError(fmt.Errorf("unknown attribute %q used for constrant", ident))

@@ -4,6 +4,11 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza-server/pkg/ql"
+	"github.com/modern-go/reflect2"
 )
 
 type (
@@ -55,6 +60,12 @@ type (
 
 	pagingCursorValue struct {
 		v interface{}
+	}
+
+	// copy of the DAL valueGetter so we don't need a reference to pkg/dal
+	valueGetter interface {
+		GetValue(string, uint) (any, error)
+		CountValues() map[string]uint
 	}
 )
 
@@ -287,6 +298,258 @@ func (p *PagingCursor) Sort(sort SortExprSet) (SortExprSet, error) {
 	}
 
 	return sort, nil
+}
+
+// ToAST converts the given PagingCursor to a corresponding AST tree
+//
+// The method should be used as the base for generating filtering expressions
+// when working with databases, DAL reports, ...
+//
+// @todo discuss this one
+func (cur *PagingCursor) ToAST(identLookup func(i string) (string, error), castFn func(i string, val any) (expr.TypedValue, error)) (out *ql.ASTNode, err error) {
+	var (
+		cc = cur.Keys()
+		vv = cur.Values()
+
+		value expr.TypedValue
+
+		ident string
+
+		ltOp = map[bool]string{
+			true:  "lt",
+			false: "gt",
+		}
+
+		isValueNull = func(i int, neg bool) expr.TypedValue {
+			if (reflect2.IsNil(vv[i]) && !neg) || (!reflect2.IsNil(vv[i]) && neg) {
+				return expr.Must(expr.NewBoolean(true))
+			}
+			return expr.Must(expr.NewBoolean(false))
+		}
+	)
+
+	_ = value
+
+	if len(cc) == 0 {
+		return
+	}
+
+	// going from the last key/column to the 1st one
+	for i := len(cc) - 1; i >= 0; i-- {
+		if identLookup != nil {
+			// Get the key context so we know how to format fields and format typecasts
+			ident, err = identLookup(cc[i])
+			if err != nil {
+				return
+			}
+		} else {
+			ident = cc[i]
+		}
+
+		if castFn == nil {
+			value, err = cur.guessTypedValue(vv[i])
+		} else {
+			value, err = castFn(cc[i], vv[i])
+		}
+		if err != nil {
+			return
+		}
+
+		// We need to cut off the values that are before the cursor (when ascending)
+		// and vice-versa for descending.
+		lt := cur.Desc()[i]
+		if cur.IsROrder() {
+			lt = !lt
+		}
+
+		op := ltOp[lt]
+
+		//// Typecast the value so comparison can work properly
+
+		// Either BOTH (field and value) are NULL or field is grater-then value
+		base := &ql.ASTNode{
+			Ref: "group",
+			Args: ql.ASTNodeSet{
+				&ql.ASTNode{
+					Ref: "or",
+					Args: ql.ASTNodeSet{
+						&ql.ASTNode{
+							Ref: "group",
+							Args: ql.ASTNodeSet{
+								&ql.ASTNode{
+									Ref: "and",
+									Args: ql.ASTNodeSet{
+										&ql.ASTNode{
+											Ref: "nnull",
+											Args: ql.ASTNodeSet{
+												&ql.ASTNode{
+													Symbol: ident,
+												},
+											},
+										},
+										&ql.ASTNode{
+											Value: ql.WrapValue(isValueNull(i, false)),
+										},
+									},
+								},
+							},
+						},
+						&ql.ASTNode{
+							Ref: op,
+							Args: ql.ASTNodeSet{{
+								Symbol: ident,
+							}, {
+								Value: ql.WrapValue(value),
+							}},
+						},
+					},
+				},
+			},
+		}
+
+		if out == nil {
+			out = base
+		} else {
+			out = &ql.ASTNode{
+				Ref: "group",
+				Args: ql.ASTNodeSet{
+					&ql.ASTNode{
+						Ref: "or",
+						Args: ql.ASTNodeSet{
+							base,
+							&ql.ASTNode{
+								Ref: "group",
+								Args: ql.ASTNodeSet{
+									&ql.ASTNode{
+										Ref: "and",
+										Args: ql.ASTNodeSet{
+											&ql.ASTNode{
+												Ref: "group",
+												Args: ql.ASTNodeSet{
+													&ql.ASTNode{
+														Ref: "or",
+														Args: ql.ASTNodeSet{
+															&ql.ASTNode{
+																Ref: "and",
+																Args: ql.ASTNodeSet{
+																	&ql.ASTNode{
+																		Ref: "null",
+																		Args: ql.ASTNodeSet{
+																			&ql.ASTNode{
+																				Symbol: ident,
+																			},
+																		},
+																	},
+																	&ql.ASTNode{
+																		Value: ql.WrapValue(isValueNull(i, false)),
+																	},
+																},
+															},
+
+															&ql.ASTNode{
+																Ref: "eq",
+																Args: ql.ASTNodeSet{{
+																	Symbol: ident,
+																}, {
+																	Value: ql.WrapValue(value),
+																}},
+															},
+														},
+													},
+												},
+											},
+											out,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+
+		}
+	}
+
+	return
+}
+
+func (PagingCursor) guessTypedValue(v any) (expr.TypedValue, error) {
+	// handle boolean edgecases
+	if v == "true" || v == true {
+		return expr.NewBoolean(true)
+	} else if v == "false" || v == false {
+		return expr.NewBoolean(false)
+	}
+
+	// other types
+	switch v.(type) {
+	case int, int8, int16, int32, int64:
+		return expr.NewInteger(v)
+	case float32, float64:
+		return expr.NewFloat(v)
+	case string:
+		return expr.NewString(v)
+
+	case time.Time,
+		*time.Time:
+		return expr.NewDateTime(v)
+	}
+
+	return nil, fmt.Errorf("failed to determine value type for %v", v)
+}
+
+// PagingCursorFrom constructs a new paging cursor for the given valueGetter
+func PagingCursorFrom(ss SortExprSet, v valueGetter, primaries ...string) (_ *PagingCursor, err error) {
+	var (
+		cur     = &PagingCursor{LThen: ss.Reversed()}
+		pkUsed  = make(map[string]bool)
+		pkIndex = make(map[string]bool)
+
+		value any
+	)
+
+	// Index all of the primary keys for easier code
+	for _, a := range primaries {
+		pkIndex[a] = true
+	}
+
+	if len(pkIndex) == 0 {
+		err = fmt.Errorf("can not construct cursor without primary key attributes")
+		return
+	}
+
+	for _, s := range ss {
+		if ok := pkIndex[s.Column]; ok {
+			pkUsed[s.Column] = true
+		}
+
+		// @todo multi values?
+		value, err = v.GetValue(s.Column, 0)
+		if err != nil {
+			return
+		}
+
+		cur.Set(s.Column, value, s.Descending)
+	}
+
+	// Make sure the rest of the unused primary keys are applied
+	if len(pkUsed) != len(pkIndex) {
+		for _, ident := range primaries {
+			if _, ok := pkUsed[ident]; ok {
+				continue
+			}
+
+			value, err = v.GetValue(ident, 0)
+			if err != nil {
+				return
+			}
+
+			cur.Set(ident, value, false)
+		}
+	}
+
+	return cur, nil
 }
 
 func parseCursor(in string) (p *PagingCursor, err error) {

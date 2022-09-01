@@ -56,6 +56,9 @@ type (
 		Delete(ctx context.Context, mf ModelRef, operations OperationSet, vv ...ValueGetter) (err error)
 		Truncate(ctx context.Context, mf ModelRef, operations OperationSet) (err error)
 
+		Run(ctx context.Context, pp Pipeline) (iter Iterator, err error)
+		Dryrun(ctx context.Context, pp Pipeline) (err error)
+
 		SearchConnectionIssues(connectionID uint64) (out []error)
 		SearchModelIssues(resourceID uint64) (out []error)
 	}
@@ -414,6 +417,10 @@ func (svc *service) Update(ctx context.Context, mf ModelRef, operations Operatio
 	return
 }
 
+func (svc *service) FindModel(mr ModelRef) *Model {
+	return svc.getModelByRef(mr)
+}
+
 func (svc *service) Search(ctx context.Context, mf ModelRef, operations OperationSet, f filter.Filter) (iter Iterator, err error) {
 	if err = svc.canOpData(mf); err != nil {
 		err = fmt.Errorf("cannot search data entry: %w", err)
@@ -427,6 +434,126 @@ func (svc *service) Search(ctx context.Context, mf ModelRef, operations Operatio
 	}
 
 	return cw.connection.Search(ctx, model, f)
+}
+
+// datasource provides a way for the pipeline steps to access DAL's model iterators
+func (svc *service) datasource(ctx context.Context, mf ModelRef, f filter.Filter) (iter Iterator, mod *Model, err error) {
+	model, cw, err := svc.storeOpPrep(ctx, mf, nil)
+	if err != nil {
+		err = fmt.Errorf("cannot search data entry: %w", err)
+		return
+	}
+
+	iter, err = cw.connection.Search(ctx, model, f)
+	return iter, model, err
+}
+
+// Run returns an iterator based on the provided Pipeline
+// @todo consider moving the Search method to utilize this also
+func (svc *service) Run(ctx context.Context, pp Pipeline) (iter Iterator, err error) {
+	return svc.run(ctx, pp.root(), false)
+}
+
+// Dryrun processes the Pipeline but doesn't return the iterator
+// @todo consider reworking this; I'm not the biggest fan of this one
+//
+// The method is primarily used by system reports to obtain some metadata
+func (svc *service) Dryrun(ctx context.Context, pp Pipeline) (err error) {
+	_, err = svc.run(ctx, pp.root(), true)
+	return
+}
+
+// run is the recursive counterpart to run
+func (svc *service) run(ctx context.Context, s PipelineStep, dry bool) (it Iterator, err error) {
+	switch s := s.(type) {
+	case *Datasource:
+		err = s.init(ctx, svc.datasource)
+		if err != nil {
+			return
+		}
+		if dry {
+			return nil, nil
+		}
+		return s.exec(ctx)
+
+	case *Aggregate:
+		it, err = svc.run(ctx, s.rel, dry)
+		if err != nil {
+			return
+		}
+
+		err = s.init(ctx)
+		if err != nil {
+			return
+		}
+
+		if dry {
+			return nil, nil
+		}
+		return s.exec(ctx, it)
+
+	case *Join:
+		var left Iterator
+		var right Iterator
+		left, err = svc.run(ctx, s.relLeft, dry)
+		if err != nil {
+			return
+		}
+		right, err = svc.run(ctx, s.relRight, dry)
+		if err != nil {
+			return
+		}
+
+		err = s.init(ctx)
+		if err != nil {
+			return
+		}
+		if dry {
+			return nil, nil
+		}
+		return s.exec(ctx, left, right)
+
+	case *Link:
+		var left Iterator
+		var right Iterator
+		left, err = svc.run(ctx, s.relLeft, dry)
+		if err != nil {
+			return
+		}
+		right, err = svc.run(ctx, s.relRight, dry)
+		if err != nil {
+			return
+		}
+
+		err = s.init(ctx)
+		if err != nil {
+			return
+		}
+		if dry {
+			return nil, nil
+		}
+		return s.exec(ctx, left, right)
+	}
+
+	return nil, fmt.Errorf("unsupported step")
+}
+
+func collectAttributes(s PipelineStep) (out []AttributeMapping) {
+	switch s := s.(type) {
+	case *Datasource:
+		return s.OutAttributes
+
+	case *Aggregate:
+		return append(s.Group, s.OutAttributes...)
+
+	case *Join:
+		return s.OutAttributes
+
+	case *Link:
+		panic("impossible state; link can not be nested")
+	}
+
+	return
 }
 
 func (svc *service) Lookup(ctx context.Context, mf ModelRef, operations OperationSet, lookup ValueGetter, dst ValueSetter) (err error) {
@@ -473,7 +600,7 @@ func (svc *service) Truncate(ctx context.Context, mf ModelRef, operations Operat
 }
 
 func (svc *service) storeOpPrep(ctx context.Context, mf ModelRef, operations OperationSet) (model *Model, cw *ConnectionWrap, err error) {
-	model = svc.getModelByFilter(mf)
+	model = svc.getModelByRef(mf)
 	if model == nil {
 		err = errModelNotFound(mf.ResourceID)
 		return
@@ -804,6 +931,14 @@ func (svc *service) ReplaceModelAttribute(ctx context.Context, model *Model, old
 	return
 }
 
+// FindModelByRefs returns the model with all of the given refs matching
+//
+// @note refs are primarily used for DAL pipelines where steps can reference models
+//       by handles and slugs such as module and namespace.
+func (svc *service) FindModelByRefs(connectionID uint64, refs map[string]any) *Model {
+	return svc.models[connectionID].FindByRefs(refs)
+}
+
 func (svc *service) FindModelByResourceID(connectionID uint64, resourceID uint64) *Model {
 	if connectionID == 0 {
 		connectionID = svc.defConnID
@@ -926,15 +1061,17 @@ func (svc *service) registerModelToConnection(ctx context.Context, cw *Connectio
 	return nil, nil
 }
 
-func (svc *service) getModelByFilter(mf ModelRef) *Model {
-	if mf.ConnectionID == 0 {
-		mf.ConnectionID = svc.defConnID
+func (svc *service) getModelByRef(mr ModelRef) *Model {
+	if mr.ConnectionID == 0 {
+		mr.ConnectionID = svc.defConnID
 	}
 
-	if mf.ResourceID > 0 {
-		return svc.FindModelByResourceID(mf.ConnectionID, mf.ResourceID)
+	if mr.Refs != nil {
+		return svc.FindModelByRefs(mr.ConnectionID, mr.Refs)
+	} else if mr.ResourceID > 0 {
+		return svc.FindModelByResourceID(mr.ConnectionID, mr.ResourceID)
 	}
-	return svc.FindModelByResourceIdent(mf.ConnectionID, mf.ResourceType, mf.Resource)
+	return svc.FindModelByResourceIdent(mr.ConnectionID, mr.ResourceType, mr.Resource)
 }
 
 func (svc *service) validateNewSensitivityLevels(levels *sensitivityLevelIndex) (err error) {

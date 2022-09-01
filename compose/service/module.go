@@ -86,6 +86,11 @@ const (
 	moduleChanged       moduleChanges = 1
 	moduleLabelsChanged moduleChanges = 2
 	moduleFieldsChanged moduleChanges = 4
+
+	recordTable            = "compose_record"
+	recordFieldID          = "ID"
+	recordFieldModuleID    = "moduleID"
+	recordFieldNamespaceID = "namespaceID"
 )
 
 const (
@@ -1218,7 +1223,7 @@ func modulesToModelSet(dmm dalModelManager, ns *types.Namespace, mm ...*types.Mo
 			}
 
 			// convert each module to model
-			model, err = ModuleToModel(mod, conn.Config.ModelIdent)
+			model, err = ModuleToModel(ns, mod, conn.Config.ModelIdent)
 			if err != nil {
 				return
 			}
@@ -1231,6 +1236,8 @@ func modulesToModelSet(dmm dalModelManager, ns *types.Namespace, mm ...*types.Mo
 			model.Ident = strings.NewReplacer(modPartition...).Replace(model.Ident)
 
 			// @todo validate ident with connection's ident validator
+
+			model.Constraints = modelBaseConstraints(model, mod)
 
 			model.ConnectionID = connectionID
 			out = append(out, model)
@@ -1259,10 +1266,25 @@ func modulesToModelSet(dmm dalModelManager, ns *types.Namespace, mm ...*types.Mo
 	return
 }
 
+func modelBaseConstraints(model *dal.Model, mod *types.Module) (out map[string][]any) {
+
+	// If we're writting to the default table apply additional constraints
+	// @todo there should be more logic here, but for now this is what we had
+	//       elsewhere.
+	if model.Ident == recordTable {
+		out = map[string][]any{
+			recordFieldModuleID:    {mod.ID},
+			recordFieldNamespaceID: {mod.NamespaceID},
+		}
+	}
+
+	return
+}
+
 // ModuleToModel converts a module with fields to DAL model and attributes
 //
 // note: this function does not do any partition placeholder replacements
-func ModuleToModel(mod *types.Module, inhIdent string) (model *dal.Model, err error) {
+func ModuleToModel(ns *types.Namespace, mod *types.Module, inhIdent string) (model *dal.Model, err error) {
 	var (
 		attrAux dal.AttributeSet
 	)
@@ -1280,6 +1302,22 @@ func ModuleToModel(mod *types.Module, inhIdent string) (model *dal.Model, err er
 		// try with explicitly set ident on module's DAL config
 		// and fallback connection's default if it is empty
 		model.Ident = inhIdent
+	}
+
+	// Refs for lookups
+	var (
+		nsSlug = ""
+		nsID   = uint64(0)
+	)
+	if ns != nil {
+		nsSlug = ns.Slug
+		nsID = ns.ID
+	}
+	model.Refs = map[string]any{
+		"module":      mod.Handle,
+		"moduleID":    mod.ID,
+		"namespace":   nsSlug,
+		"namespaceID": nsID,
 	}
 
 	// Convert user-defined fields to attributes
@@ -1346,15 +1384,15 @@ func moduleSystemFieldsToAttributes(mod *types.Module) (out dal.AttributeSet, er
 	return append(out,
 		dal.PrimaryAttribute(sysID, mfc(colSysID, sysEnc.ID)),
 		dal.FullAttribute(sysModuleID, &dal.TypeID{}, mfc(colSysModuleID, sysEnc.ModuleID)),
-		dal.FullAttribute(sysDeletedBy, &dal.TypeID{Nullable: true}, mfc(colSysDeletedBy, sysEnc.DeletedBy)),
+		dal.FullAttribute(sysDeletedBy, &dal.TypeRef{RefModel: &dal.ModelRef{ResourceType: "corteza::system:user"}, Nullable: true}, mfc(colSysDeletedBy, sysEnc.DeletedBy)),
 		dal.FullAttribute(sysNamespaceID, &dal.TypeID{}, mfc(colSysNamespaceID, sysEnc.NamespaceID)),
 		dal.FullAttribute(sysRevision, &dal.TypeID{}, mfc(colSysRevision, sysEnc.Revision)),
 		dal.FullAttribute(sysMeta, &dal.TypeJSON{}, mfc(colSysMeta, sysEnc.Meta)),
-		dal.FullAttribute(sysOwnedBy, &dal.TypeID{}, mfc(colSysOwnedBy, sysEnc.OwnedBy)),
+		dal.FullAttribute(sysOwnedBy, &dal.TypeRef{RefModel: &dal.ModelRef{ResourceType: "corteza::system:user"}}, mfc(colSysOwnedBy, sysEnc.OwnedBy)),
 		dal.FullAttribute(sysCreatedAt, &dal.TypeTimestamp{}, mfc(colSysCreatedAt, sysEnc.CreatedAt)),
-		dal.FullAttribute(sysCreatedBy, &dal.TypeID{}, mfc(colSysCreatedBy, sysEnc.CreatedBy)),
+		dal.FullAttribute(sysCreatedBy, &dal.TypeRef{RefModel: &dal.ModelRef{ResourceType: "corteza::system:user"}}, mfc(colSysCreatedBy, sysEnc.CreatedBy)),
 		dal.FullAttribute(sysUpdatedAt, &dal.TypeTimestamp{Nullable: true}, mfc(colSysUpdatedAt, sysEnc.UpdatedAt)),
-		dal.FullAttribute(sysUpdatedBy, &dal.TypeID{Nullable: true}, mfc(colSysUpdatedBy, sysEnc.UpdatedBy)),
+		dal.FullAttribute(sysUpdatedBy, &dal.TypeRef{RefModel: &dal.ModelRef{ResourceType: "corteza::system:user"}, Nullable: true}, mfc(colSysUpdatedBy, sysEnc.UpdatedBy)),
 		dal.FullAttribute(sysDeletedAt, &dal.TypeTimestamp{Nullable: true}, mfc(colSysDeletedAt, sysEnc.DeletedAt)),
 	), nil
 }

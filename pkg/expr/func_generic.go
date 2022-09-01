@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/PaesslerAG/gval"
+	"github.com/cortezaproject/corteza-server/pkg/gvalfnc"
 )
 
 type (
@@ -46,15 +47,7 @@ func length(i interface{}) int {
 }
 
 func isNil(i interface{}) bool {
-	if i == nil {
-		return true
-	}
-	switch reflect.TypeOf(i).Kind() {
-	case reflect.Slice, reflect.Array, reflect.Ptr, reflect.Map:
-		return reflect.ValueOf(i).IsNil()
-	}
-
-	return false
+	return gvalfnc.IsNil(i)
 }
 
 // empty checks values and slices

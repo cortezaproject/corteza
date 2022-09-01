@@ -2,9 +2,10 @@ package store
 
 import (
 	"context"
+	"strconv"
+
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"strconv"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
@@ -126,9 +127,11 @@ func (n *composeModule) Encode(ctx context.Context, pl *payload) (err error) {
 		res.ID = NextID()
 	}
 
-	res.NamespaceID = n.relNS.ID
+	ns := n.relNS
+
+	res.NamespaceID = ns.ID
 	if res.NamespaceID <= 0 {
-		ns := resource.FindComposeNamespace(pl.state.ParentResources, n.res.RefNs.Identifiers)
+		ns = resource.FindComposeNamespace(pl.state.ParentResources, n.res.RefNs.Identifiers)
 		res.NamespaceID = ns.ID
 	}
 	if res.NamespaceID <= 0 {
@@ -296,7 +299,7 @@ func (n *composeModule) Encode(ctx context.Context, pl *payload) (err error) {
 
 	var model *dal.Model
 	// convert module to model and assume compose_record for default ident
-	if model, err = service.ModuleToModel(res, "compose_record"); err != nil {
+	if model, err = service.ModuleToModel(ns, res, "compose_record"); err != nil {
 		return
 	}
 
