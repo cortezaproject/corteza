@@ -35,6 +35,10 @@ type (
 )
 
 func (n *ASTNode) String() string {
+	if n == nil {
+		return "<nil>"
+	}
+
 	// Leaf edge-cases
 	switch {
 	case n.Symbol != "":

@@ -1,16 +1,19 @@
 package filter
 
+import "github.com/cortezaproject/corteza-server/pkg/ql"
+
 type (
 	filterOpt func(*filter)
 
 	filter struct {
-		constaints      map[string][]any
-		stateConditions map[string]State
-		metaConditions  map[string]any
-		expression      string
-		orderBy         SortExprSet
-		limit           uint
-		cursor          *PagingCursor
+		constaints       map[string][]any
+		stateConditions  map[string]State
+		metaConditions   map[string]any
+		expression       string
+		expressionParsed *ql.ASTNode
+		orderBy          SortExprSet
+		limit            uint
+		cursor           *PagingCursor
 	}
 
 	Filter interface {
@@ -39,7 +42,7 @@ type (
 	}
 )
 
-func Generic(oo ...filterOpt) Filter {
+func Generic(oo ...filterOpt) *filter {
 	f := &filter{}
 
 	for _, o := range oo {
@@ -99,6 +102,13 @@ func WithExpression(e string) filterOpt {
 	}
 }
 
+// WithExpressionParsed sets parsed expression to filter
+func WithExpressionParsed(e *ql.ASTNode) filterOpt {
+	return func(f *filter) {
+		f.expressionParsed = e
+	}
+}
+
 // WithOrderBy sets order by expression
 func WithOrderBy(o SortExprSet) filterOpt {
 	return func(f *filter) {
@@ -120,10 +130,19 @@ func WithCursor(p *PagingCursor) filterOpt {
 	}
 }
 
+func (f *filter) With(oo ...filterOpt) *filter {
+	for _, o := range oo {
+		o(f)
+	}
+
+	return f
+}
+
 func (f *filter) Constraints() map[string][]any      { return f.constaints }
 func (f *filter) StateConstraints() map[string]State { return f.stateConditions }
 func (f *filter) MetaConstraints() map[string]any    { return f.metaConditions }
 func (f *filter) Expression() string                 { return f.expression }
+func (f *filter) ExpressionParsed() string           { return f.expression }
 func (f *filter) OrderBy() SortExprSet               { return f.orderBy }
 func (f *filter) Limit() uint                        { return f.limit }
 func (f *filter) Cursor() *PagingCursor              { return f.cursor }

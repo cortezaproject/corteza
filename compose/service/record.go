@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/revisions"
 	"regexp"
 	"sort"
 	"strconv"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/revisions"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
@@ -23,7 +24,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
-	"github.com/cortezaproject/corteza-server/pkg/report"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -111,8 +111,6 @@ type (
 		SearchRevisions(ctx context.Context, namespaceID, moduleID, recordID uint64) (dal.Iterator, error)
 		RecordExport(context.Context, types.RecordFilter) error
 		RecordImport(context.Context, error) error
-
-		Datasource(context.Context, *report.LoadStepDefinition) (report.Datasource, error)
 
 		Create(ctx context.Context, record *types.Record) (*types.Record, error)
 		Update(ctx context.Context, record *types.Record) (*types.Record, error)

@@ -1610,7 +1610,6 @@ endpoints:
   authentication: []
   imports:
     - github.com/cortezaproject/corteza-server/pkg/label
-    - github.com/cortezaproject/corteza-server/pkg/report
     - github.com/cortezaproject/corteza-server/system/types
   apis:
   - name: list
@@ -1705,9 +1704,9 @@ endpoints:
     path: "/describe"
     parameters:
       post:
-      - { name: sources,  type: "types.ReportDataSourceSet",  title: Report steps definition }
-      - { name: steps,    type: "report.StepDefinitionSet",   title: Report steps definition  }
-      - { name: describe, type: "[]string",                   title: The source descriptions to generate }
+      - { name: sources,  type: "types.ReportDataSourceSet", title: Report steps definition }
+      - { name: steps,    type: "types.ReportStepSet",       title: Report steps definition  }
+      - { name: describe, type: "[]string",                  title: The source descriptions to generate }
 
   - name: run
     method: POST
@@ -1720,7 +1719,7 @@ endpoints:
         required: true
         title: Report ID
       post:
-      - { name: frames,       type: "report.FrameDefinitionSet",  title: Report data frame definitions }
+      - { name: frames,       type: "types.ReportFrameDefinitionSet",  title: Report data frame definitions }
 - title: Statistics
   entrypoint: stats
   path: "/stats"

@@ -306,13 +306,13 @@ func TestModuleToModel(t *testing.T) {
 	)
 
 	t.Log("ident on DAL config not set, use ident from connection config")
-	model, err = ModuleToModel(m, "ident-from-conn-config")
+	model, err = ModuleToModel(nil, m, "ident-from-conn-config")
 	req.NoError(err)
 	req.Equal("ident-from-conn-config", model.Ident)
 
 	t.Log("explicit ident in module's DAL config should override the handle")
 	m.Config.DAL.Ident = "explicit-ident"
-	model, err = ModuleToModel(m, "ident-from-conn-config")
+	model, err = ModuleToModel(nil, m, "ident-from-conn-config")
 	req.NoError(err)
 	req.Equal("explicit-ident", model.Ident)
 }
