@@ -1223,7 +1223,7 @@ func modulesToModelSet(dmm dalModelManager, ns *types.Namespace, mm ...*types.Mo
 			}
 
 			// convert each module to model
-			model, err = ModuleToModel(mod, conn.Config.ModelIdent)
+			model, err = ModuleToModel(ns, mod, conn.Config.ModelIdent)
 			if err != nil {
 				return
 			}
@@ -1284,7 +1284,7 @@ func modelBaseConstraints(model *dal.Model, mod *types.Module) (out map[string][
 // ModuleToModel converts a module with fields to DAL model and attributes
 //
 // note: this function does not do any partition placeholder replacements
-func ModuleToModel(mod *types.Module, inhIdent string) (model *dal.Model, err error) {
+func ModuleToModel(ns *types.Namespace, mod *types.Module, inhIdent string) (model *dal.Model, err error) {
 	var (
 		attrAux dal.AttributeSet
 	)
@@ -1302,6 +1302,22 @@ func ModuleToModel(mod *types.Module, inhIdent string) (model *dal.Model, err er
 		// try with explicitly set ident on module's DAL config
 		// and fallback connection's default if it is empty
 		model.Ident = inhIdent
+	}
+
+	// Refs for lookups
+	var (
+		nsSlug = ""
+		nsID   = uint64(0)
+	)
+	if ns != nil {
+		nsSlug = ns.Slug
+		nsID = ns.ID
+	}
+	model.Refs = map[string]any{
+		"module":      mod.Handle,
+		"moduleID":    mod.ID,
+		"namespace":   nsSlug,
+		"namespaceID": nsID,
 	}
 
 	// Convert user-defined fields to attributes
