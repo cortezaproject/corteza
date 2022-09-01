@@ -33,21 +33,24 @@ func TestStepJoinLocal(t *testing.T) {
 		{ident: "f_val", t: TypeText{}},
 	}
 
-	tcc := []struct {
-		name string
+	type (
+		testCase struct {
+			name string
 
-		outAttributes   []simpleAttribute
-		leftAttributes  []simpleAttribute
-		rightAttributes []simpleAttribute
-		joinPred        JoinPredicate
+			outAttributes   []simpleAttribute
+			leftAttributes  []simpleAttribute
+			rightAttributes []simpleAttribute
+			joinPred        JoinPredicate
 
-		lIn []simpleRow
-		fIn []simpleRow
-		out []simpleRow
+			lIn []simpleRow
+			fIn []simpleRow
+			out []simpleRow
 
-		f internalFilter
-	}{
-		// Basic behavior
+			f internalFilter
+		}
+	)
+
+	baseBehavior := []testCase{
 		{
 			name:            "basic link",
 			outAttributes:   basicAttrs,
@@ -145,8 +148,325 @@ func TestStepJoinLocal(t *testing.T) {
 			fIn: []simpleRow{},
 			out: []simpleRow{},
 		},
+	}
+	sorting := []testCase{
+		{
+			name:            "sorting single key full asc",
+			outAttributes:   basicAttrs,
+			leftAttributes:  basicLocalAttrs,
+			rightAttributes: basicForeignAttrs,
+			joinPred:        JoinPredicate{Left: "l_pk", Right: "f_fk"},
 
-		// Filtering
+			lIn: []simpleRow{
+				{"l_pk": 1, "l_val": "l1 v1"},
+				{"l_pk": 2, "l_val": "l2 v1"},
+			},
+			fIn: []simpleRow{
+				{"f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+			},
+			out: []simpleRow{
+				{"l_pk": 1, "l_val": "l1 v1", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"l_pk": 2, "l_val": "l2 v1", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+			},
+
+			f: internalFilter{
+				orderBy: filter.SortExprSet{{Column: "l_pk", Descending: false}},
+			},
+		},
+		{
+			name:            "sorting single key full desc",
+			outAttributes:   basicAttrs,
+			leftAttributes:  basicLocalAttrs,
+			rightAttributes: basicForeignAttrs,
+			joinPred:        JoinPredicate{Left: "l_pk", Right: "f_fk"},
+
+			lIn: []simpleRow{
+				{"l_pk": 1, "l_val": "l1 v1"},
+				{"l_pk": 2, "l_val": "l2 v1"},
+			},
+			fIn: []simpleRow{
+				{"f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+			},
+			out: []simpleRow{
+				{"l_pk": 2, "l_val": "l2 v1", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+				{"l_pk": 1, "l_val": "l1 v1", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+			},
+
+			f: internalFilter{
+				orderBy: filter.SortExprSet{{Column: "l_pk", Descending: true}},
+			},
+		},
+
+		{
+			name:            "sorting multiple key left first all asc",
+			outAttributes:   append(basicAttrs, simpleAttribute{ident: "left_order", t: TypeText{}}, simpleAttribute{ident: "right_order", t: TypeText{}}),
+			leftAttributes:  append(basicLocalAttrs, simpleAttribute{ident: "left_order", t: TypeText{}}),
+			rightAttributes: append(basicForeignAttrs, simpleAttribute{ident: "right_order", t: TypeText{}}),
+			joinPred:        JoinPredicate{Left: "l_pk", Right: "f_fk"},
+
+			lIn: []simpleRow{
+				{"l_pk": 1, "left_order": "a", "l_val": "l1 v1"},
+				{"l_pk": 2, "left_order": "b", "l_val": "l2 v1"},
+				{"l_pk": 3, "left_order": "b", "l_val": "l3 v1"},
+			},
+			fIn: []simpleRow{
+				{"f_pk": 1, "right_order": "a", "f_fk": 1, "f_val": "f1 v1"},
+				{"f_pk": 2, "right_order": "c", "f_fk": 2, "f_val": "f2 v1"},
+				{"f_pk": 3, "right_order": "b", "f_fk": 3, "f_val": "f3 v1"},
+			},
+			out: []simpleRow{
+				{"l_pk": 1, "left_order": "a", "right_order": "a", "l_val": "l1 v1", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"l_pk": 3, "left_order": "b", "right_order": "b", "l_val": "l3 v1", "f_pk": 3, "f_fk": 3, "f_val": "f3 v1"},
+				{"l_pk": 2, "left_order": "b", "right_order": "c", "l_val": "l2 v1", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+			},
+
+			f: internalFilter{
+				orderBy: filter.SortExprSet{{Column: "left_order", Descending: false}, {Column: "right_order", Descending: false}},
+			},
+		},
+		{
+			name:            "sorting multiple key left first all desc",
+			outAttributes:   append(basicAttrs, simpleAttribute{ident: "left_order", t: TypeText{}}, simpleAttribute{ident: "right_order", t: TypeText{}}),
+			leftAttributes:  append(basicLocalAttrs, simpleAttribute{ident: "left_order", t: TypeText{}}),
+			rightAttributes: append(basicForeignAttrs, simpleAttribute{ident: "right_order", t: TypeText{}}),
+			joinPred:        JoinPredicate{Left: "l_pk", Right: "f_fk"},
+
+			lIn: []simpleRow{
+				{"l_pk": 1, "left_order": "a", "l_val": "l1 v1"},
+				{"l_pk": 2, "left_order": "b", "l_val": "l2 v1"},
+				{"l_pk": 3, "left_order": "b", "l_val": "l3 v1"},
+			},
+			fIn: []simpleRow{
+				{"f_pk": 1, "right_order": "a", "f_fk": 1, "f_val": "f1 v1"},
+				{"f_pk": 2, "right_order": "c", "f_fk": 2, "f_val": "f2 v1"},
+				{"f_pk": 3, "right_order": "b", "f_fk": 3, "f_val": "f3 v1"},
+			},
+			out: []simpleRow{
+				{"l_pk": 2, "left_order": "b", "right_order": "c", "l_val": "l2 v1", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+				{"l_pk": 3, "left_order": "b", "right_order": "b", "l_val": "l3 v1", "f_pk": 3, "f_fk": 3, "f_val": "f3 v1"},
+				{"l_pk": 1, "left_order": "a", "right_order": "a", "l_val": "l1 v1", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+			},
+
+			f: internalFilter{
+				orderBy: filter.SortExprSet{{Column: "left_order", Descending: true}, {Column: "right_order", Descending: true}},
+			},
+		},
+		{
+			name:            "sorting multiple key left first asc desc",
+			outAttributes:   append(basicAttrs, simpleAttribute{ident: "left_order", t: TypeText{}}, simpleAttribute{ident: "right_order", t: TypeText{}}),
+			leftAttributes:  append(basicLocalAttrs, simpleAttribute{ident: "left_order", t: TypeText{}}),
+			rightAttributes: append(basicForeignAttrs, simpleAttribute{ident: "right_order", t: TypeText{}}),
+			joinPred:        JoinPredicate{Left: "l_pk", Right: "f_fk"},
+
+			lIn: []simpleRow{
+				{"l_pk": 1, "left_order": "a", "l_val": "l1 v1"},
+				{"l_pk": 2, "left_order": "b", "l_val": "l2 v1"},
+				{"l_pk": 3, "left_order": "b", "l_val": "l3 v1"},
+			},
+			fIn: []simpleRow{
+				{"f_pk": 1, "right_order": "a", "f_fk": 1, "f_val": "f1 v1"},
+				{"f_pk": 2, "right_order": "c", "f_fk": 2, "f_val": "f2 v1"},
+				{"f_pk": 3, "right_order": "b", "f_fk": 3, "f_val": "f3 v1"},
+			},
+			out: []simpleRow{
+				{"l_pk": 1, "left_order": "a", "right_order": "a", "l_val": "l1 v1", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"l_pk": 2, "left_order": "b", "right_order": "c", "l_val": "l2 v1", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+				{"l_pk": 3, "left_order": "b", "right_order": "b", "l_val": "l3 v1", "f_pk": 3, "f_fk": 3, "f_val": "f3 v1"},
+			},
+
+			f: internalFilter{
+				orderBy: filter.SortExprSet{{Column: "left_order", Descending: false}, {Column: "right_order", Descending: true}},
+			},
+		},
+		{
+			name:            "sorting multiple key left first desc asc",
+			outAttributes:   append(basicAttrs, simpleAttribute{ident: "left_order", t: TypeText{}}, simpleAttribute{ident: "right_order", t: TypeText{}}),
+			leftAttributes:  append(basicLocalAttrs, simpleAttribute{ident: "left_order", t: TypeText{}}),
+			rightAttributes: append(basicForeignAttrs, simpleAttribute{ident: "right_order", t: TypeText{}}),
+			joinPred:        JoinPredicate{Left: "l_pk", Right: "f_fk"},
+
+			lIn: []simpleRow{
+				{"l_pk": 1, "left_order": "a", "l_val": "l1 v1"},
+				{"l_pk": 2, "left_order": "b", "l_val": "l2 v1"},
+				{"l_pk": 3, "left_order": "b", "l_val": "l3 v1"},
+			},
+			fIn: []simpleRow{
+				{"f_pk": 1, "right_order": "a", "f_fk": 1, "f_val": "f1 v1"},
+				{"f_pk": 2, "right_order": "c", "f_fk": 2, "f_val": "f2 v1"},
+				{"f_pk": 3, "right_order": "b", "f_fk": 3, "f_val": "f3 v1"},
+			},
+			out: []simpleRow{
+				{"l_pk": 3, "left_order": "b", "right_order": "b", "l_val": "l3 v1", "f_pk": 3, "f_fk": 3, "f_val": "f3 v1"},
+				{"l_pk": 2, "left_order": "b", "right_order": "c", "l_val": "l2 v1", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+				{"l_pk": 1, "left_order": "a", "right_order": "a", "l_val": "l1 v1", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+			},
+
+			f: internalFilter{
+				orderBy: filter.SortExprSet{{Column: "left_order", Descending: true}, {Column: "right_order", Descending: false}},
+			},
+		},
+
+		{
+			name:            "sorting multiple key right first all asc",
+			outAttributes:   append(basicAttrs, simpleAttribute{ident: "left_order", t: TypeText{}}, simpleAttribute{ident: "right_order", t: TypeText{}}),
+			leftAttributes:  append(basicLocalAttrs, simpleAttribute{ident: "left_order", t: TypeText{}}),
+			rightAttributes: append(basicForeignAttrs, simpleAttribute{ident: "right_order", t: TypeText{}}),
+			joinPred:        JoinPredicate{Left: "l_pk", Right: "f_fk"},
+
+			lIn: []simpleRow{
+				{"l_pk": 1, "left_order": "a", "l_val": "l1 v1"},
+				{"l_pk": 2, "left_order": "c", "l_val": "l2 v1"},
+				{"l_pk": 3, "left_order": "b", "l_val": "l3 v1"},
+			},
+			fIn: []simpleRow{
+				{"f_pk": 1, "right_order": "a", "f_fk": 1, "f_val": "f1 v1"},
+				{"f_pk": 2, "right_order": "b", "f_fk": 2, "f_val": "f2 v1"},
+				{"f_pk": 3, "right_order": "b", "f_fk": 3, "f_val": "f3 v1"},
+			},
+			out: []simpleRow{
+				{"l_pk": 1, "left_order": "a", "right_order": "a", "l_val": "l1 v1", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"l_pk": 3, "left_order": "b", "right_order": "b", "l_val": "l3 v1", "f_pk": 3, "f_fk": 3, "f_val": "f3 v1"},
+				{"l_pk": 2, "left_order": "c", "right_order": "b", "l_val": "l2 v1", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+			},
+
+			f: internalFilter{
+				orderBy: filter.SortExprSet{{Column: "right_order", Descending: false}, {Column: "left_order", Descending: false}},
+			},
+		},
+		{
+			name:            "sorting multiple key right first all desc",
+			outAttributes:   append(basicAttrs, simpleAttribute{ident: "left_order", t: TypeText{}}, simpleAttribute{ident: "right_order", t: TypeText{}}),
+			leftAttributes:  append(basicLocalAttrs, simpleAttribute{ident: "left_order", t: TypeText{}}),
+			rightAttributes: append(basicForeignAttrs, simpleAttribute{ident: "right_order", t: TypeText{}}),
+			joinPred:        JoinPredicate{Left: "l_pk", Right: "f_fk"},
+
+			lIn: []simpleRow{
+				{"l_pk": 1, "left_order": "a", "l_val": "l1 v1"},
+				{"l_pk": 2, "left_order": "c", "l_val": "l2 v1"},
+				{"l_pk": 3, "left_order": "b", "l_val": "l3 v1"},
+			},
+			fIn: []simpleRow{
+				{"f_pk": 1, "right_order": "a", "f_fk": 1, "f_val": "f1 v1"},
+				{"f_pk": 2, "right_order": "b", "f_fk": 2, "f_val": "f2 v1"},
+				{"f_pk": 3, "right_order": "b", "f_fk": 3, "f_val": "f3 v1"},
+			},
+			out: []simpleRow{
+				{"l_pk": 2, "left_order": "c", "right_order": "b", "l_val": "l2 v1", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+				{"l_pk": 3, "left_order": "b", "right_order": "b", "l_val": "l3 v1", "f_pk": 3, "f_fk": 3, "f_val": "f3 v1"},
+				{"l_pk": 1, "left_order": "a", "right_order": "a", "l_val": "l1 v1", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+			},
+
+			f: internalFilter{
+				orderBy: filter.SortExprSet{{Column: "right_order", Descending: true}, {Column: "left_order", Descending: true}},
+			},
+		},
+		{
+			name:            "sorting multiple key right first asc desc",
+			outAttributes:   append(basicAttrs, simpleAttribute{ident: "left_order", t: TypeText{}}, simpleAttribute{ident: "right_order", t: TypeText{}}),
+			leftAttributes:  append(basicLocalAttrs, simpleAttribute{ident: "left_order", t: TypeText{}}),
+			rightAttributes: append(basicForeignAttrs, simpleAttribute{ident: "right_order", t: TypeText{}}),
+			joinPred:        JoinPredicate{Left: "l_pk", Right: "f_fk"},
+
+			lIn: []simpleRow{
+				{"l_pk": 1, "left_order": "a", "l_val": "l1 v1"},
+				{"l_pk": 2, "left_order": "c", "l_val": "l2 v1"},
+				{"l_pk": 3, "left_order": "b", "l_val": "l3 v1"},
+			},
+			fIn: []simpleRow{
+				{"f_pk": 1, "right_order": "a", "f_fk": 1, "f_val": "f1 v1"},
+				{"f_pk": 2, "right_order": "b", "f_fk": 2, "f_val": "f2 v1"},
+				{"f_pk": 3, "right_order": "b", "f_fk": 3, "f_val": "f3 v1"},
+			},
+			out: []simpleRow{
+				{"l_pk": 1, "left_order": "a", "right_order": "a", "l_val": "l1 v1", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"l_pk": 2, "left_order": "c", "right_order": "b", "l_val": "l2 v1", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+				{"l_pk": 3, "left_order": "b", "right_order": "b", "l_val": "l3 v1", "f_pk": 3, "f_fk": 3, "f_val": "f3 v1"},
+			},
+
+			f: internalFilter{
+				orderBy: filter.SortExprSet{{Column: "right_order", Descending: false}, {Column: "left_order", Descending: true}},
+			},
+		},
+		{
+			name:            "sorting multiple key right first desc asc",
+			outAttributes:   append(basicAttrs, simpleAttribute{ident: "left_order", t: TypeText{}}, simpleAttribute{ident: "right_order", t: TypeText{}}),
+			leftAttributes:  append(basicLocalAttrs, simpleAttribute{ident: "left_order", t: TypeText{}}),
+			rightAttributes: append(basicForeignAttrs, simpleAttribute{ident: "right_order", t: TypeText{}}),
+			joinPred:        JoinPredicate{Left: "l_pk", Right: "f_fk"},
+
+			lIn: []simpleRow{
+				{"l_pk": 1, "left_order": "a", "l_val": "l1 v1"},
+				{"l_pk": 2, "left_order": "c", "l_val": "l2 v1"},
+				{"l_pk": 3, "left_order": "b", "l_val": "l3 v1"},
+			},
+			fIn: []simpleRow{
+				{"f_pk": 1, "right_order": "a", "f_fk": 1, "f_val": "f1 v1"},
+				{"f_pk": 2, "right_order": "b", "f_fk": 2, "f_val": "f2 v1"},
+				{"f_pk": 3, "right_order": "b", "f_fk": 3, "f_val": "f3 v1"},
+			},
+			out: []simpleRow{
+				{"l_pk": 3, "left_order": "b", "right_order": "b", "l_val": "l3 v1", "f_pk": 3, "f_fk": 3, "f_val": "f3 v1"},
+				{"l_pk": 2, "left_order": "c", "right_order": "b", "l_val": "l2 v1", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+				{"l_pk": 1, "left_order": "a", "right_order": "a", "l_val": "l1 v1", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+			},
+
+			f: internalFilter{
+				orderBy: filter.SortExprSet{{Column: "right_order", Descending: true}, {Column: "left_order", Descending: false}},
+			},
+		},
+
+		{
+			name:            "sorting nulls asc",
+			outAttributes:   basicAttrs,
+			leftAttributes:  basicLocalAttrs,
+			rightAttributes: basicForeignAttrs,
+			joinPred:        JoinPredicate{Left: "l_pk", Right: "f_fk"},
+
+			lIn: []simpleRow{
+				{"l_pk": 1, "l_val": "l1 v1"},
+				{"l_pk": 2, "l_val": nil},
+			},
+			fIn: []simpleRow{
+				{"f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+			},
+			out: []simpleRow{
+				{"l_pk": 2, "l_val": nil, "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+				{"l_pk": 1, "l_val": "l1 v1", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+			},
+
+			f: internalFilter{
+				orderBy: filter.SortExprSet{{Column: "l_val", Descending: false}},
+			},
+		},
+		{
+			name:            "sorting nulls desc",
+			outAttributes:   basicAttrs,
+			leftAttributes:  basicLocalAttrs,
+			rightAttributes: basicForeignAttrs,
+			joinPred:        JoinPredicate{Left: "l_pk", Right: "f_fk"},
+
+			lIn: []simpleRow{
+				{"l_pk": 1, "l_val": nil},
+				{"l_pk": 2, "l_val": "l2 v1"},
+			},
+			fIn: []simpleRow{
+				{"f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+			},
+			out: []simpleRow{
+				{"l_pk": 2, "l_val": "l2 v1", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+				{"l_pk": 1, "l_val": nil, "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+			},
+
+			f: internalFilter{
+				orderBy: filter.SortExprSet{{Column: "l_val", Descending: true}},
+			},
+		},
+	}
+	filtering := []testCase{
 		{
 			name:            "filtering constraints single attr",
 			outAttributes:   append(basicAttrs, simpleAttribute{ident: "l_const"}),
@@ -319,8 +639,8 @@ func TestStepJoinLocal(t *testing.T) {
 				expression: "l_val == 'l2 v1'",
 			},
 		},
-
-		// Paging
+	}
+	paging := []testCase{
 		{
 			name:            "paging cut off first entry",
 			outAttributes:   basicAttrs,
@@ -402,54 +722,107 @@ func TestStepJoinLocal(t *testing.T) {
 			},
 		},
 	}
+	nilValues := []testCase{
+		{
+			name:            "basic nil left join value",
+			outAttributes:   basicAttrs,
+			leftAttributes:  basicLocalAttrs,
+			rightAttributes: basicForeignAttrs,
+			joinPred:        JoinPredicate{Left: "l_pk", Right: "f_fk"},
+
+			lIn: []simpleRow{
+				{"l_pk": nil, "l_val": "l1 v1"},
+				{"l_pk": 2, "l_val": "l2 v1"},
+			},
+			fIn: []simpleRow{
+				{"f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+			},
+			out: []simpleRow{
+				{"l_pk": 2, "l_val": "l2 v1", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+			},
+		},
+		{
+			name:            "basic nil right join value",
+			outAttributes:   basicAttrs,
+			leftAttributes:  basicLocalAttrs,
+			rightAttributes: basicForeignAttrs,
+			joinPred:        JoinPredicate{Left: "l_pk", Right: "f_fk"},
+
+			lIn: []simpleRow{
+				{"l_pk": 1, "l_val": "l1 v1"},
+				{"l_pk": 2, "l_val": "l2 v1"},
+			},
+			fIn: []simpleRow{
+				{"f_pk": 1, "f_fk": nil, "f_val": "f1 v1"},
+				{"f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+			},
+			out: []simpleRow{
+				{"l_pk": 2, "l_val": "l2 v1", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+			},
+		},
+	}
+
+	batches := [][]testCase{
+		baseBehavior,
+		sorting,
+		filtering,
+		paging,
+		nilValues,
+	}
 
 	ctx := context.Background()
-	for _, tc := range tcc {
-		t.Run(tc.name, func(t *testing.T) {
-			l := InMemoryBuffer()
-			for _, r := range tc.lIn {
-				require.NoError(t, l.Add(ctx, r))
-			}
+	for _, batch := range batches {
+		for _, tc := range batch {
+			t.Run(tc.name, func(t *testing.T) {
+				l := InMemoryBuffer()
+				for _, r := range tc.lIn {
+					require.NoError(t, l.Add(ctx, r))
+				}
 
-			f := InMemoryBuffer()
-			for _, r := range tc.fIn {
-				require.NoError(t, f.Add(ctx, r))
-			}
+				f := InMemoryBuffer()
+				for _, r := range tc.fIn {
+					require.NoError(t, f.Add(ctx, r))
+				}
 
-			tc.f.orderBy = filter.SortExprSet{
-				{Column: "l_pk"},
-				{Column: "f_pk"},
-			}
+				// @todo please, move this into test cases; this was a cheat
+				if len(tc.f.orderBy) == 0 {
+					tc.f.orderBy = filter.SortExprSet{
+						{Column: "l_pk"},
+						{Column: "f_pk"},
+					}
+				}
 
-			def := Join{
-				Ident:           "foo",
-				On:              tc.joinPred,
-				OutAttributes:   saToMapping(tc.outAttributes...),
-				LeftAttributes:  saToMapping(tc.leftAttributes...),
-				RightAttributes: saToMapping(tc.rightAttributes...),
-				filter:          tc.f,
+				def := Join{
+					Ident:           "foo",
+					On:              tc.joinPred,
+					OutAttributes:   saToMapping(tc.outAttributes...),
+					LeftAttributes:  saToMapping(tc.leftAttributes...),
+					RightAttributes: saToMapping(tc.rightAttributes...),
+					filter:          tc.f,
 
-				plan: joinPlan{},
-			}
+					plan: joinPlan{},
+				}
 
-			err := def.init(ctx)
-			require.NoError(t, err)
-			xs, err := def.exec(ctx, l, f)
-			require.NoError(t, err)
+				err := def.init(ctx)
+				require.NoError(t, err)
+				xs, err := def.exec(ctx, l, f)
+				require.NoError(t, err)
 
-			i := 0
-			for xs.Next(ctx) {
-				require.NoError(t, xs.Err())
-				out := simpleRow{}
-				require.NoError(t, xs.Err())
-				require.NoError(t, xs.Scan(out))
+				i := 0
+				for xs.Next(ctx) {
+					require.NoError(t, xs.Err())
+					out := simpleRow{}
+					require.NoError(t, xs.Err())
+					require.NoError(t, xs.Scan(out))
 
-				require.Equal(t, tc.out[i], out)
+					require.Equal(t, tc.out[i], out)
 
-				i++
-			}
-			require.Equal(t, len(tc.out), i)
-		})
+					i++
+				}
+				require.Equal(t, len(tc.out), i)
+			})
+		}
 	}
 }
 

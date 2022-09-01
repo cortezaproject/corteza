@@ -27,7 +27,7 @@ type (
 		leftSource  Iterator
 		rightSource Iterator
 		err         error
-		scanRow     *Row
+		scanRow     ValueGetter
 		planned     bool
 		filtered    bool
 
@@ -48,7 +48,7 @@ type (
 		// @todo consider a generic slice for cases when sorting is not needed.
 		//       This will probably save up on memory/time since we don't even need
 		//       to pull everything.
-		outSorted *btree.Generic[*Row]
+		outSorted *btree.Generic[ValueGetter]
 		i         int
 	}
 )
@@ -66,7 +66,7 @@ func (xs *joinLeft) init(ctx context.Context) (err error) {
 	//       Enabling locks does have a performance impact so you might be better off by
 	//       constructing multiple of these but then you'll also need to complicate
 	//       the .Next methods a bit.
-	xs.outSorted = btree.NewGenericOptions[*Row](makeRowComparator(xs.filter.OrderBy()...), btree.Options{NoLocks: true})
+	xs.outSorted = btree.NewGenericOptions[ValueGetter](makeRowComparator(xs.filter.OrderBy()...), btree.Options{NoLocks: true})
 
 	xs.joinLeftAttr = xs.def.LeftAttributes[xs.leftAttrIndex[xs.def.On.Left]]
 	xs.joinRightAttr = xs.def.RightAttributes[xs.rightAttrIndex[xs.def.On.Right]]
@@ -99,7 +99,7 @@ func (xs *joinLeft) More(limit uint, v ValueGetter) (err error) {
 	// Redo the state
 	// @todo adjust based on aggregation plan; reuse buffered, etc.
 	xs.relIndex = newRelIndex()
-	xs.outSorted = btree.NewGenericOptions[*Row](makeRowComparator(xs.filter.OrderBy()...), btree.Options{NoLocks: true})
+	xs.outSorted = btree.NewGenericOptions[ValueGetter](makeRowComparator(xs.filter.OrderBy()...), btree.Options{NoLocks: true})
 	xs.scanRow = nil
 	xs.planned = false
 	xs.i = 0
@@ -296,7 +296,11 @@ func (xs *joinLeft) joinRight(ctx context.Context, left *Row) (err error) {
 			}
 
 			// Assert if we want to keep
-			if !xs.keep(ctx, r) {
+			k, err := xs.keep(ctx, r)
+			if err != nil {
+				return err
+			}
+			if !k {
 				continue
 			}
 
@@ -390,9 +394,9 @@ func (xs *joinLeft) indexRightRow(r *Row) (err error) {
 }
 
 // keep checks if the row should be kept or discarded
-func (xs *joinLeft) keep(ctx context.Context, r *Row) bool {
+func (xs *joinLeft) keep(ctx context.Context, r *Row) (bool, error) {
 	if xs.rowTester == nil {
-		return true
+		return true, nil
 	}
 
 	return xs.rowTester.Test(ctx, r)

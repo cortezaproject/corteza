@@ -56,6 +56,9 @@ type (
 		Delete(ctx context.Context, mf ModelRef, operations OperationSet, vv ...ValueGetter) (err error)
 		Truncate(ctx context.Context, mf ModelRef, operations OperationSet) (err error)
 
+		Run(ctx context.Context, pp Pipeline) (iter Iterator, err error)
+		Dryrun(ctx context.Context, pp Pipeline) (err error)
+
 		SearchConnectionIssues(connectionID uint64) (out []error)
 		SearchModelIssues(resourceID uint64) (out []error)
 	}
@@ -414,8 +417,8 @@ func (svc *service) Update(ctx context.Context, mf ModelRef, operations Operatio
 	return
 }
 
-func (svc *service) FindModel(mf ModelRef) *Model {
-	return svc.getModelByFilter(mf)
+func (svc *service) FindModel(mr ModelRef) *Model {
+	return svc.getModelByRef(mr)
 }
 
 func (svc *service) Search(ctx context.Context, mf ModelRef, operations OperationSet, f filter.Filter) (iter Iterator, err error) {
@@ -597,7 +600,7 @@ func (svc *service) Truncate(ctx context.Context, mf ModelRef, operations Operat
 }
 
 func (svc *service) storeOpPrep(ctx context.Context, mf ModelRef, operations OperationSet) (model *Model, cw *ConnectionWrap, err error) {
-	model = svc.getModelByFilter(mf)
+	model = svc.getModelByRef(mf)
 	if model == nil {
 		err = errModelNotFound(mf.ResourceID)
 		return
@@ -928,6 +931,14 @@ func (svc *service) ReplaceModelAttribute(ctx context.Context, model *Model, old
 	return
 }
 
+// FindModelByRefs returns the model with all of the given refs matching
+//
+// @note refs are primarily used for DAL pipelines where steps can reference models
+//       by handles and slugs such as module and namespace.
+func (svc *service) FindModelByRefs(connectionID uint64, refs map[string]any) *Model {
+	return svc.models[connectionID].FindByRefs(refs)
+}
+
 func (svc *service) FindModelByResourceID(connectionID uint64, resourceID uint64) *Model {
 	if connectionID == 0 {
 		connectionID = svc.defConnID
@@ -1050,15 +1061,17 @@ func (svc *service) registerModelToConnection(ctx context.Context, cw *Connectio
 	return nil, nil
 }
 
-func (svc *service) getModelByFilter(mf ModelRef) *Model {
-	if mf.ConnectionID == 0 {
-		mf.ConnectionID = svc.defConnID
+func (svc *service) getModelByRef(mr ModelRef) *Model {
+	if mr.ConnectionID == 0 {
+		mr.ConnectionID = svc.defConnID
 	}
 
-	if mf.ResourceID > 0 {
-		return svc.FindModelByResourceID(mf.ConnectionID, mf.ResourceID)
+	if mr.Refs != nil {
+		return svc.FindModelByRefs(mr.ConnectionID, mr.Refs)
+	} else if mr.ResourceID > 0 {
+		return svc.FindModelByResourceID(mr.ConnectionID, mr.ResourceID)
 	}
-	return svc.FindModelByResourceIdent(mf.ConnectionID, mf.ResourceType, mf.Resource)
+	return svc.FindModelByResourceIdent(mr.ConnectionID, mr.ResourceType, mr.Resource)
 }
 
 func (svc *service) validateNewSensitivityLevels(levels *sensitivityLevelIndex) (err error) {

@@ -1,6 +1,7 @@
 package dal
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -18,6 +19,20 @@ type (
 		Src   string
 		Props MapProperties
 	}
+
+	// Row is a generic implementation for ValueGetter and ValueSetter
+	//
+	// Primarily used within DAL pipeline execution steps, but may also be used
+	// outside.
+	Row struct {
+		counters map[string]uint
+		values   valueSet
+
+		// Metadata to make it easier to work with
+		// @todo add when needed
+	}
+
+	valueSet map[string][]any
 )
 
 func (sa SimpleAttr) Identifier() string              { return sa.Ident }
@@ -25,42 +40,153 @@ func (sa SimpleAttr) Expression() (expression string) { return sa.Expr }
 func (sa SimpleAttr) Source() (ident string)          { return sa.Src }
 func (sa SimpleAttr) Properties() MapProperties       { return sa.Props }
 
+// WithValue is a simple helper to construct rows with populated values
+//
+// @note The main use is for tests so restrain from using it in code.
+func (r *Row) WithValue(name string, pos uint, v any) *Row {
+	err := r.SetValue(name, pos, v)
+	if err != nil {
+		panic(err)
+	}
+
+	return r
+}
+
+func (r Row) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+	return r.GetValue(k, 0)
+}
+
+// Reset clears out the row so the same instance can be reused where possible
+//
+// Important: Reset only clears out the counters and does not re-init/clear out
+// the underlaying values. Don't directly iterate over the values, but use the
+// counters.
+func (r *Row) Reset() {
+	for k := range r.counters {
+		r.counters[k] = 0
+	}
+}
+
+func (r *Row) SetValue(name string, pos uint, v any) error {
+	if r.values == nil {
+		r.values = make(valueSet)
+	}
+	if r.counters == nil {
+		r.counters = make(map[string]uint)
+	}
+
+	// Make sure there is space for it
+	// @note benchmarking proves that the rest of the function introduces a lot of memory pressure.
+	//       Investigate options on reworking this/reducing allocations.
+	if int(pos)+1 > len(r.values[name]) {
+		r.values[name] = append(r.values[name], make([]any, (int(pos)+1)-len(r.values[name]))...)
+	}
+
+	r.values[name][pos] = v
+	if pos >= r.counters[name] {
+		r.counters[name]++
+	}
+
+	return nil
+}
+
+func (r *Row) CountValues() map[string]uint {
+	return r.counters
+}
+
+func (r *Row) GetValue(name string, pos uint) (any, error) {
+	if r.values == nil {
+		return nil, nil
+	}
+	if r.counters == nil {
+		return nil, nil
+	}
+	if pos >= r.counters[name] {
+		return nil, nil
+	}
+
+	return r.values[name][pos], nil
+}
+
+func (r *Row) String() string {
+	out := make([]string, 0, 20)
+
+	for k, cc := range r.counters {
+		for i := uint(0); i < cc; i++ {
+			v := r.values[k][i]
+			out = append(out, fmt.Sprintf("%s [%d] %v", k, i, v))
+		}
+	}
+
+	return strings.Join(out, " | ")
+}
+
 // compareGetters compares the two ValueGetters
-// @todo multi-value support?
 // -1: a is less then b
 // 0: a is equal to b
 // 1: a is greater then b
+//
+// Multi value rules:
+// - if a has less items then b, a is less then b (-1)
+// - if a has more items then b, a is more then b (1)
+// - if a and b have the same amount of items; if any of the corresponding values
+//   are different, that outcome is used as the result
 //
 // This function is used to satisfy sort's less function requirement.
 func compareGetters(a, b ValueGetter, ac, bc map[string]uint, attr string) int {
-	va, err := a.GetValue(attr, 0)
-	if err != nil {
+	// If a has less values then b, then a is less then b
+	if ac[attr] < bc[attr] {
+		return -1
+	} else if ac[attr] > bc[attr] {
 		return 1
 	}
 
-	vb, err := b.GetValue(attr, 0)
-	if err != nil {
-		return 1
+	// If a and b have the same number of values, then we need to compare them
+	for i := uint(0); i < ac[attr]; i++ {
+		va, err := a.GetValue(attr, i)
+		if err != nil {
+			return 1
+		}
+
+		vb, err := b.GetValue(attr, i)
+		if err != nil {
+			return 1
+		}
+
+		// Continue the cmp. until we find two values that are different
+		cmp := compareValues(va, vb)
+		if cmp != 0 {
+			return cmp
+		}
 	}
 
-	return compareValues(va, vb)
+	// If any value is different from the other, the loop above would end; so
+	// here, we can safely say they are the same
+	return 0
 }
 
 // compareValues compares the two values
-// @todo support for other types and slices
+// @todo identify what other types we should support
 // -1: a is less then b
 // 0: a is equal to b
 // 1: a is greater then b
 //
-// @note I considered using gval here but using gval proved to bring
-// a bit too much overhead.
-//
+// @note I considered using GVal here but it introduces more overhead then
+//       what I've conjured here.
 // @todo look into using generics or some wrapping types here
 func compareValues(va, vb any) int {
+	// simple/edge cases
 	if va == vb {
 		return 0
 	}
+	if va == nil {
+		return -1
+	}
+	if vb == nil {
+		return 1
+	}
 
+	// Compare based on type
 	switch ca := va.(type) {
 	case string:
 		cb, err := cast.ToStringE(vb)
@@ -123,9 +249,6 @@ func compareValues(va, vb any) int {
 		if err != nil {
 			return -1
 		}
-		if xa.Equal(cb) {
-			return 0
-		}
 		if xa.Before(cb) {
 			return -1
 		}
@@ -133,10 +256,9 @@ func compareValues(va, vb any) int {
 			return 1
 		}
 	}
-	return -1
-}
 
-// // // // // // // // // // // // // // // // // // // // // // // // //
+	panic(fmt.Sprintf("unsupported type for values %v, %v", va, vb))
+}
 
 // constraintsToExpression converts the given constraints map to a ql parsable expression
 func constraintsToExpression(cc map[string][]any) string {
@@ -247,19 +369,90 @@ func prepareGenericRowTester(f internalFilter) (_ tester, err error) {
 	return newRunnerGval(expr)
 }
 
-func valueGetterCounterComparator(ss filter.SortExprSet, a, b ValueGetter, ca, cb map[string]uint) bool {
-	// @todo we can probably remove the branching here and write a bool alg. expr.
-	for _, s := range ss {
-		cmp := compareGetters(a, b, ca, cb, s.Column)
+// makeRowComparator returns a ValueGetter comparator for the given sort expr
+func makeRowComparator(ss ...*filter.SortExpr) func(a, b ValueGetter) bool {
+	return func(a, b ValueGetter) bool {
+		for _, s := range ss {
+			cmp := compareGetters(a, b, a.CountValues(), b.CountValues(), s.Column)
 
-		if cmp != 0 {
-			if s.Descending {
-				return cmp > 0
+			less, skip := evalCmpResult(cmp, s)
+			if !skip {
+				return less
 			}
-			return cmp < 0
 		}
 
+		return false
+	}
+}
+
+func evalCmpResult(cmp int, s *filter.SortExpr) (less, skip bool) {
+	if cmp != 0 {
+		if s.Descending {
+			return cmp > 0, false
+		}
+		return cmp < 0, false
 	}
 
-	return false
+	return false, true
+}
+
+// mergeRows merges all of the provided rows into the destination row
+//
+// If AttributeMapping is provided, that is taken into account, else
+// everything is merged together with the last value winning.
+func mergeRows(mapping []AttributeMapping, dst *Row, rows ...*Row) (err error) {
+	if len(mapping) == 0 {
+		return mergeRowsFull(dst, rows...)
+	}
+
+	return mergeRowsMapped(mapping, dst, rows...)
+}
+
+// mergeRowsFull merges all of the provided rows into the destination row
+// The last provided value takes priority.
+func mergeRowsFull(dst *Row, rows ...*Row) (err error) {
+	for _, r := range rows {
+		for name, vv := range r.values {
+			for i, values := range vv {
+				if dst.values == nil {
+					dst.values = make(valueSet)
+					dst.counters = make(map[string]uint)
+				}
+
+				if i == 0 {
+					dst.values[name] = make([]any, len(vv))
+					dst.counters[name] = 0
+				}
+
+				err = dst.SetValue(name, uint(i), values)
+				if err != nil {
+					return
+				}
+			}
+		}
+	}
+
+	return
+}
+
+// mergeRowsMapped merges all of the provided rows into the destination row using the provided mapping
+// The last provided value takes priority.
+func mergeRowsMapped(mapping []AttributeMapping, out *Row, rows ...*Row) (err error) {
+	for _, mp := range mapping {
+		name := mp.Source()
+		for _, r := range rows {
+			if r.values[name] != nil {
+				if out.values == nil {
+					out.values = make(valueSet)
+					out.counters = make(map[string]uint)
+				}
+
+				out.values[mp.Identifier()] = r.values[name]
+				out.counters[mp.Identifier()] = r.counters[name]
+				break
+			}
+		}
+	}
+
+	return
 }

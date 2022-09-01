@@ -130,18 +130,18 @@ type (
 
 const (
 	AttributeTypeID        AttributeType = "corteza::dal:attribute-type:id"
-	AttributeTypeRef                     = "corteza::dal:attribute-type:ref"
-	AttributeTypeTimestamp               = "corteza::dal:attribute-type:timestamp"
-	AttributeTypeTime                    = "corteza::dal:attribute-type:time"
-	AttributeTypeDate                    = "corteza::dal:attribute-type:date"
-	AttributeTypeNumber                  = "corteza::dal:attribute-type:number"
-	AttributeTypeText                    = "corteza::dal:attribute-type:text"
-	AttributeTypeBoolean                 = "corteza::dal:attribute-type:boolean"
-	AttributeTypeEnum                    = "corteza::dal:attribute-type:enum"
-	AttributeTypeGeometry                = "corteza::dal:attribute-type:geometry"
-	AttributeTypeJSON                    = "corteza::dal:attribute-type:json"
-	AttributeTypeBlob                    = "corteza::dal:attribute-type:blob"
-	AttributeTypeUUID                    = "corteza::dal:attribute-type:uuid"
+	AttributeTypeRef       AttributeType = "corteza::dal:attribute-type:ref"
+	AttributeTypeTimestamp AttributeType = "corteza::dal:attribute-type:timestamp"
+	AttributeTypeTime      AttributeType = "corteza::dal:attribute-type:time"
+	AttributeTypeDate      AttributeType = "corteza::dal:attribute-type:date"
+	AttributeTypeNumber    AttributeType = "corteza::dal:attribute-type:number"
+	AttributeTypeText      AttributeType = "corteza::dal:attribute-type:text"
+	AttributeTypeBoolean   AttributeType = "corteza::dal:attribute-type:boolean"
+	AttributeTypeEnum      AttributeType = "corteza::dal:attribute-type:enum"
+	AttributeTypeGeometry  AttributeType = "corteza::dal:attribute-type:geometry"
+	AttributeTypeJSON      AttributeType = "corteza::dal:attribute-type:json"
+	AttributeTypeBlob      AttributeType = "corteza::dal:attribute-type:blob"
+	AttributeTypeUUID      AttributeType = "corteza::dal:attribute-type:uuid"
 )
 
 func (t TypeID) IsNullable() bool        { return t.Nullable }

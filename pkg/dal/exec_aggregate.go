@@ -96,7 +96,11 @@ func (xs *aggregate) next(ctx context.Context) (more bool, err error) {
 		}
 
 		// Check if we want to keep it
-		if !xs.keep(ctx, xs.scanRow) {
+		k, err := xs.keep(ctx, xs.scanRow)
+		if err != nil {
+			return false, err
+		}
+		if !k {
 			continue
 		}
 
@@ -125,6 +129,7 @@ func (xs *aggregate) More(limit uint, v ValueGetter) (err error) {
 	xs.groupIndex = btree.NewGeneric[*aggregateGroup](xs.compareGroupKeys)
 	xs.groups = make([]*aggregateGroup, 0, 128)
 	xs.planned = false
+	xs.i = 0
 
 	return
 }
@@ -304,15 +309,27 @@ func (t *aggregate) compareGroupKeys(a, b *aggregateGroup) (out bool) {
 }
 
 func (s *aggregate) getGroupKey(ctx context.Context, r ValueGetter, key groupKey) (err error) {
+	var out any
+
 	for i, attr := range s.def.Group {
-		// @todo support expressions?
-		v, err := r.GetValue(attr.Expression(), 0)
-		if err != nil {
-			return err
+
+		expr := attr.Expression()
+		if expr != "" {
+			rnr, err := newRunnerGval(attr.Expression())
+			if err != nil {
+				return err
+			}
+
+			out, err = rnr.Eval(ctx, r)
+			if err != nil {
+				return err
+			}
+		} else {
+			out, _ = r.GetValue(attr.Identifier(), 0)
 		}
 
 		// @todo multi-value support?
-		key[i] = v
+		key[i] = out
 	}
 
 	return nil
@@ -351,9 +368,9 @@ func (s *aggregate) scanKey(g *aggregateGroup, dst *Row) (err error) {
 	return nil
 }
 
-func (s *aggregate) keep(ctx context.Context, r *Row) bool {
+func (s *aggregate) keep(ctx context.Context, r *Row) (bool, error) {
 	if s.rowTester == nil {
-		return true
+		return true, nil
 	}
 	return s.rowTester.Test(ctx, r)
 }
