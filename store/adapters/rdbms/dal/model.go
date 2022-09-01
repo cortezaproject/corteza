@@ -255,9 +255,13 @@ func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 
 	cc := f.Constraints()
 	if d.model.Constraints != nil {
-		for k, c := range d.model.Constraints {
-			// Overwrite user-provided constraints as the system ones are more important
-			cc[k] = c
+		if cc == nil {
+			cc = d.model.Constraints
+		} else {
+			for k, c := range d.model.Constraints {
+				// Overwrite user-provided constraints as the system ones are more important
+				cc[k] = c
+			}
 		}
 	}
 
