@@ -60,11 +60,6 @@ func (def *Datasource) Optimize(req internalFilter) (res internalFilter, err err
 }
 
 func (def *Datasource) init(ctx context.Context, s iterProvider) (err error) {
-	err = def.validate()
-	if err != nil {
-		return
-	}
-
 	if def.Filter != nil {
 		def.filter, err = toInternalFilter(def.Filter)
 		if err != nil {
@@ -82,6 +77,11 @@ func (def *Datasource) init(ctx context.Context, s iterProvider) (err error) {
 	}
 
 	def.auxIter = iter
+
+	err = def.validate()
+	if err != nil {
+		return
+	}
 
 	return nil
 }

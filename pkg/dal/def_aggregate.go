@@ -75,11 +75,6 @@ func (def *Aggregate) Optimize(reqFilter internalFilter) (rspFilter internalFilt
 }
 
 func (def *Aggregate) init(ctx context.Context) (err error) {
-	err = def.validate()
-	if err != nil {
-		return
-	}
-
 	if def.Filter != nil {
 		def.filter, err = toInternalFilter(def.Filter)
 		if err != nil {
@@ -89,6 +84,11 @@ func (def *Aggregate) init(ctx context.Context) (err error) {
 
 	if len(def.SourceAttributes) == 0 {
 		def.SourceAttributes = collectAttributes(def.rel)
+	}
+
+	err = def.validate()
+	if err != nil {
+		return
 	}
 
 	return nil

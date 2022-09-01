@@ -84,11 +84,6 @@ func (def *Join) Optimize(req internalFilter) (res internalFilter, err error) {
 }
 
 func (def *Join) init(ctx context.Context) (err error) {
-	err = def.validate()
-	if err != nil {
-		return
-	}
-
 	if len(def.LeftAttributes) == 0 {
 		def.LeftAttributes = collectAttributes(def.relLeft)
 	}
@@ -105,6 +100,11 @@ func (def *Join) init(ctx context.Context) (err error) {
 		if err != nil {
 			return
 		}
+	}
+
+	err = def.validate()
+	if err != nil {
+		return
 	}
 
 	return nil
