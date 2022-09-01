@@ -13,6 +13,7 @@ type (
 	internalFilter struct {
 		constraints      map[string][]any
 		stateConstraints map[string]filter.State
+		metaConstraints  map[string]any
 		expression       string
 		expParsed        *ql.ASTNode
 		orderBy          filter.SortExprSet
@@ -23,7 +24,7 @@ type (
 
 func (f internalFilter) Constraints() map[string][]any             { return f.constraints }
 func (f internalFilter) StateConstraints() map[string]filter.State { return f.stateConstraints }
-func (f internalFilter) MetaConstraints() map[string]any           { return nil }
+func (f internalFilter) MetaConstraints() map[string]any           { return f.metaConstraints }
 func (f internalFilter) Expression() string                        { return f.expression }
 func (f internalFilter) OrderBy() filter.SortExprSet               { return f.orderBy }
 func (f internalFilter) Limit() uint                               { return f.limit }
@@ -58,20 +59,30 @@ func toInternalFilter(f filter.Filter) (out internalFilter, err error) {
 	return
 }
 
-func FilterForExpr(n *ql.ASTNode) internalFilter {
+func FilterFromExpr(n *ql.ASTNode) internalFilter {
 	// @todo consider adding string expr for consistency
 	return internalFilter{
 		expParsed: n,
 	}
 }
 
-func (a internalFilter) WithConstraints(c map[string][]any) internalFilter {
-	a.constraints = c
-	return a
+// MergeFilters returns a new filter based on a overwritten by b
+func (a internalFilter) MergeFilters(b filter.Filter) (c internalFilter, err error) {
+	// In case we got a generic b filter, convert it to the internal one for easier handling
+	aux, ok := b.(internalFilter)
+	if !ok {
+		var err error
+		aux, err = toInternalFilter(b)
+		if err != nil {
+			return c, err
+		}
+	}
+
+	return a.mergeFilters(aux), nil
 }
 
-// mergeFilters returns a new filter based on a overwritten by values from b
 func (a internalFilter) mergeFilters(b internalFilter) (c internalFilter) {
+
 	c = a
 
 	// expression

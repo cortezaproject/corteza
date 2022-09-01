@@ -17,6 +17,32 @@ func TestAggregator(t *testing.T) {
 	}{
 		// Plain operations
 		{
+			name: "simple count",
+			rows: []simpleRow{
+				{"v": 1},
+				{"v": 5},
+				{"v": 35},
+				{"v": 11.5},
+			},
+			out: simpleRow{"count": float64(4)},
+			attrubutes: []simpleAttribute{
+				{ident: "count", expr: "count(v)"},
+			},
+		},
+		{
+			name: "simple count nulls",
+			rows: []simpleRow{
+				{"v": nil},
+				{"v": 5},
+				{"v": 35},
+				{"v": 11.5},
+			},
+			out: simpleRow{"count": float64(3)},
+			attrubutes: []simpleAttribute{
+				{ident: "count", expr: "count(v)"},
+			},
+		},
+		{
 			name: "simple sum",
 			rows: []simpleRow{
 				{"v": 1},
@@ -25,6 +51,19 @@ func TestAggregator(t *testing.T) {
 				{"v": 11.5},
 			},
 			out: simpleRow{"sum": float64(52.5)},
+			attrubutes: []simpleAttribute{
+				{ident: "sum", expr: "sum(v)"},
+			},
+		},
+		{
+			name: "simple sum nulls",
+			rows: []simpleRow{
+				{"v": nil},
+				{"v": 5},
+				{"v": 35},
+				{"v": 11.5},
+			},
+			out: simpleRow{"sum": float64(51.5)},
 			attrubutes: []simpleAttribute{
 				{ident: "sum", expr: "sum(v)"},
 			},
@@ -43,6 +82,19 @@ func TestAggregator(t *testing.T) {
 			},
 		},
 		{
+			name: "simple min nulls",
+			rows: []simpleRow{
+				{"v": nil},
+				{"v": 5},
+				{"v": 35},
+				{"v": 11.5},
+			},
+			out: simpleRow{"min": float64(5)},
+			attrubutes: []simpleAttribute{
+				{ident: "min", expr: "min(v)"},
+			},
+		},
+		{
 			name: "simple max",
 			rows: []simpleRow{
 				{"v": 1},
@@ -51,6 +103,19 @@ func TestAggregator(t *testing.T) {
 				{"v": 11.5},
 			},
 			out: simpleRow{"max": float64(35)},
+			attrubutes: []simpleAttribute{
+				{ident: "max", expr: "max(v)"},
+			},
+		},
+		{
+			name: "simple max nulls",
+			rows: []simpleRow{
+				{"v": 1},
+				{"v": 5},
+				{"v": nil},
+				{"v": 11.5},
+			},
+			out: simpleRow{"max": float64(11.5)},
 			attrubutes: []simpleAttribute{
 				{ident: "max", expr: "max(v)"},
 			},
@@ -68,8 +133,22 @@ func TestAggregator(t *testing.T) {
 				{ident: "avg", expr: "avg(v)"},
 			},
 		},
+		{
+			name: "simple avg nulls",
+			rows: []simpleRow{
+				{"v": nil},
+				{"v": 5},
+				{"v": 35},
+				{"v": nil},
+			},
+			out: simpleRow{"avg": float64(20)},
+			attrubutes: []simpleAttribute{
+				{ident: "avg", expr: "avg(v)"},
+			},
+		},
 
 		// With a nested expression
+		// @todo tests to assure nil values; omitting due to the gval issue
 		{
 			name: "nested expression",
 			rows: []simpleRow{

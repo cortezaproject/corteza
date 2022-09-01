@@ -377,7 +377,11 @@ func (xs *linkLeft) pullEntireLeftSource(ctx context.Context) (err error) {
 			continue
 		}
 
-		if !xs.keep(ctx, l, rel) {
+		k, err := xs.keep(ctx, l, rel)
+		if err != nil {
+			return err
+		}
+		if !k {
 			continue
 		}
 
@@ -494,24 +498,28 @@ func (xs *linkLeft) sortLeftRows() (err error) {
 // keep checks if the row should be kept or discarded
 //
 // Link's keep is a bit more complicated and it looks at the related buffer as well.
-func (xs *linkLeft) keep(ctx context.Context, left *Row, buffer *relIndexBuffer) (keep bool) {
+func (xs *linkLeft) keep(ctx context.Context, left *Row, buffer *relIndexBuffer) (keep bool, err error) {
 	// If no buffer, we won't keep -- left inner join like behavior
 	if buffer == nil {
-		return false
+		return false, nil
 	}
 	// No tester include all ok rows
 	if xs.rowTester == nil {
-		return true
+		return true, nil
 	}
 
 	ch := &rowLink{a: left}
 	for _, ch.b = range buffer.rows {
-		if !xs.rowTester.Test(ctx, ch) {
-			return false
+		k, err := xs.rowTester.Test(ctx, ch)
+		if err != nil {
+			return false, err
+		}
+		if !k {
+			return false, nil
 		}
 	}
 
-	return true
+	return true, nil
 }
 
 func (xs *linkLeft) collectPrimaryAttributes() (out []string) {

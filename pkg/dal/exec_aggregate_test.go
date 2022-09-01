@@ -16,18 +16,22 @@ func TestStepAggregate(t *testing.T) {
 		{ident: "txt"},
 	}
 
-	tcc := []struct {
-		name string
+	type (
+		testCase struct {
+			name string
 
-		group            []simpleAttribute
-		outAttributes    []simpleAttribute
-		sourceAttributes []simpleAttribute
+			group            []simpleAttribute
+			outAttributes    []simpleAttribute
+			sourceAttributes []simpleAttribute
 
-		in  []simpleRow
-		out []simpleRow
+			in  []simpleRow
+			out []simpleRow
 
-		f internalFilter
-	}{
+			f internalFilter
+		}
+	)
+
+	baseBehavior := []testCase{
 		// Basic behavior
 		{
 			name:             "basic one key group",
@@ -52,6 +56,31 @@ func TestStepAggregate(t *testing.T) {
 			},
 
 			f: internalFilter{orderBy: filter.SortExprSet{{Column: "k1"}}},
+		},
+		{
+			name:             "basic one key group rename values",
+			sourceAttributes: basicAttrs,
+			group: []simpleAttribute{{
+				ident:  "key_one",
+				source: "k1",
+			}},
+			outAttributes: []simpleAttribute{{
+				ident: "something_something",
+				expr:  "sum(v1)",
+			}},
+
+			in: []simpleRow{
+				{"k1": "g1", "v1": 10, "txt": "foo"},
+				{"k1": "g1", "v1": 20, "txt": "fas"},
+				{"k1": "g2", "v1": 15, "txt": "bar"},
+			},
+
+			out: []simpleRow{
+				{"key_one": "g1", "something_something": float64(30)},
+				{"key_one": "g2", "something_something": float64(15)},
+			},
+
+			f: internalFilter{orderBy: filter.SortExprSet{{Column: "key_one"}}},
 		},
 		{
 			name:             "basic multi key group",
@@ -109,8 +138,9 @@ func TestStepAggregate(t *testing.T) {
 
 			f: internalFilter{orderBy: filter.SortExprSet{{Column: "k1"}}},
 		},
+	}
 
-		// Filtering
+	filtering := []testCase{
 		{
 			name:             "filtering constraints single attr",
 			sourceAttributes: basicAttrs,
@@ -240,6 +270,38 @@ func TestStepAggregate(t *testing.T) {
 			},
 		},
 		{
+			name:             "filtering expression check renamed aggregate",
+			sourceAttributes: basicAttrs,
+			group: []simpleAttribute{{
+				ident: "k1",
+			}, {
+				ident: "k2",
+			}},
+			outAttributes: []simpleAttribute{{
+				ident: "some_sum_value",
+				expr:  "sum(v1)",
+			}},
+
+			in: []simpleRow{
+				{"k1": "a", "k2": "a", "v1": 10, "txt": "foo"},
+				{"k1": "a", "k2": "a", "v1": 2, "txt": "fas"},
+				{"k1": "a", "k2": "b", "v1": 3, "txt": "fas"},
+				{"k1": "a", "k2": "b", "v1": 3, "txt": "fas"},
+
+				// ---
+				{"k1": "b", "k2": "a", "v1": 20, "txt": "fas"},
+				{"k1": "b", "k2": "a", "v1": 31, "txt": "fas"},
+			},
+
+			out: []simpleRow{
+				{"k1": "a", "k2": "a", "some_sum_value": float64(12)},
+			},
+
+			f: internalFilter{
+				expression: "some_sum_value > 10 && some_sum_value < 20",
+			},
+		},
+		{
 			name:             "filtering expression constant true",
 			sourceAttributes: basicAttrs,
 			group: []simpleAttribute{{
@@ -305,8 +367,9 @@ func TestStepAggregate(t *testing.T) {
 				expression: "false",
 			},
 		},
+	}
 
-		// Sorting
+	sorting := []testCase{
 		{
 			name:             "sorting single key full key asc",
 			sourceAttributes: basicAttrs,
@@ -331,6 +394,58 @@ func TestStepAggregate(t *testing.T) {
 
 			f: internalFilter{
 				orderBy: filter.SortExprSet{{Column: "k1", Descending: false}},
+			},
+		},
+		{
+			name:             "sorting single aggregate full asc",
+			sourceAttributes: basicAttrs,
+			group: []simpleAttribute{{
+				ident: "k1",
+			}},
+			outAttributes: []simpleAttribute{{
+				ident: "some_sum_value",
+				expr:  "sum(v1)",
+			}},
+
+			in: []simpleRow{
+				{"k1": "a", "v1": 10, "txt": "foo"},
+				{"k1": "a", "v1": 2, "txt": "fas"},
+				{"k1": "b", "v1": 3, "txt": "fas"},
+			},
+
+			out: []simpleRow{
+				{"k1": "b", "some_sum_value": float64(3)},
+				{"k1": "a", "some_sum_value": float64(12)},
+			},
+
+			f: internalFilter{
+				orderBy: filter.SortExprSet{{Column: "some_sum_value", Descending: false}},
+			},
+		},
+		{
+			name:             "sorting single aggregate full desc",
+			sourceAttributes: basicAttrs,
+			group: []simpleAttribute{{
+				ident: "k1",
+			}},
+			outAttributes: []simpleAttribute{{
+				ident: "some_sum_value",
+				expr:  "sum(v1)",
+			}},
+
+			in: []simpleRow{
+				{"k1": "a", "v1": 10, "txt": "foo"},
+				{"k1": "a", "v1": 2, "txt": "fas"},
+				{"k1": "b", "v1": 3, "txt": "fas"},
+			},
+
+			out: []simpleRow{
+				{"k1": "a", "some_sum_value": float64(12)},
+				{"k1": "b", "some_sum_value": float64(3)},
+			},
+
+			f: internalFilter{
+				orderBy: filter.SortExprSet{{Column: "some_sum_value", Descending: true}},
 			},
 		},
 		{
@@ -448,34 +563,262 @@ func TestStepAggregate(t *testing.T) {
 		},
 	}
 
-	for _, tc := range tcc {
-		t.Run(tc.name, func(t *testing.T) {
-			bootstrapAggregate(t, func(ctx context.Context, t *testing.T, sa *Aggregate, b Buffer) {
-				for _, r := range tc.in {
-					require.NoError(t, b.Add(ctx, r))
-				}
-				sa.Ident = tc.name
-				sa.SourceAttributes = saToMapping(tc.sourceAttributes...)
-				sa.Group = saToMapping(tc.group...)
-				sa.OutAttributes = saToMapping(tc.outAttributes...)
-				sa.filter = tc.f
+	exprGroups := []testCase{
+		{
+			name: "expression as key year",
+			sourceAttributes: []simpleAttribute{
+				{ident: "dob"},
+				{ident: "name"},
+			},
+			group: []simpleAttribute{{
+				ident: "dob_y",
+				expr:  "year(dob)",
+			}},
+			outAttributes: []simpleAttribute{{
+				ident: "users",
+				expr:  "count(name)",
+			}},
 
-				err := sa.init(ctx)
-				require.NoError(t, err)
-				aa, err := sa.exec(ctx, b)
-				require.NoError(t, err)
+			in: []simpleRow{
+				{"dob": "2022-10-20T09:44:49Z", "name": "Ana"},
+				{"dob": "2022-10-20T09:44:49Z", "name": "John"},
+				{"dob": "2021-10-20T09:44:49Z", "name": "Jane"},
+			},
 
-				i := 0
-				for aa.Next(ctx) {
-					out := simpleRow{}
-					require.NoError(t, aa.Scan(out))
-					require.Equal(t, tc.out[i], out)
-					i++
-				}
-				require.NoError(t, aa.Err())
-				require.Equal(t, len(tc.out), i)
+			out: []simpleRow{
+				{"dob_y": 2021, "users": float64(1)},
+				{"dob_y": 2022, "users": float64(2)},
+			},
+
+			f: internalFilter{
+				orderBy: filter.SortExprSet{{Column: "dob_y", Descending: false}, {Column: "k2", Descending: true}},
+			},
+		},
+		{
+			name: "expression as key year with calc",
+			sourceAttributes: []simpleAttribute{
+				{ident: "dob"},
+				{ident: "name"},
+			},
+			group: []simpleAttribute{{
+				ident: "dob_y",
+				expr:  "year(dob)/10",
+			}},
+			outAttributes: []simpleAttribute{{
+				ident: "users",
+				expr:  "count(name)",
+			}},
+
+			in: []simpleRow{
+				{"dob": "2022-10-20T09:44:49Z", "name": "Ana"},
+				{"dob": "2022-10-20T09:44:49Z", "name": "John"},
+				{"dob": "2021-10-20T09:44:49Z", "name": "Jane"},
+			},
+
+			out: []simpleRow{
+				{"dob_y": 202.1, "users": float64(1)},
+				{"dob_y": 202.2, "users": float64(2)},
+			},
+
+			f: internalFilter{
+				orderBy: filter.SortExprSet{{Column: "dob_y", Descending: false}, {Column: "k2", Descending: true}},
+			},
+		},
+		{
+			name: "same group expression",
+			sourceAttributes: []simpleAttribute{
+				{ident: "name"},
+			},
+			group: []simpleAttribute{{
+				ident: "d",
+				// @note will only run for a year then will need to be changed
+				expr: "year(now())",
+			}},
+			outAttributes: []simpleAttribute{{
+				ident: "users",
+				expr:  "count(name)",
+			}},
+
+			in: []simpleRow{
+				{"name": "Ana"},
+				{"name": "John"},
+				{"name": "Jane"},
+			},
+
+			out: []simpleRow{
+				{"d": 2022, "users": float64(3)},
+			},
+
+			f: internalFilter{
+				orderBy: filter.SortExprSet{{Column: "dob_y", Descending: false}, {Column: "k2", Descending: true}},
+			},
+		},
+		{
+			name: "same group constant",
+			sourceAttributes: []simpleAttribute{
+				{ident: "name"},
+			},
+			group: []simpleAttribute{{
+				ident: "d",
+				expr:  "'a'",
+			}},
+			outAttributes: []simpleAttribute{{
+				ident: "users",
+				expr:  "count(name)",
+			}},
+
+			in: []simpleRow{
+				{"name": "Ana"},
+				{"name": "John"},
+				{"name": "Jane"},
+			},
+
+			out: []simpleRow{
+				{"d": "a", "users": float64(3)},
+			},
+
+			f: internalFilter{
+				orderBy: filter.SortExprSet{{Column: "dob_y", Descending: false}, {Column: "k2", Descending: true}},
+			},
+		},
+		{
+			name: "expression as key concatenated",
+			sourceAttributes: []simpleAttribute{
+				{ident: "dob"},
+				{ident: "name"},
+			},
+			group: []simpleAttribute{{
+				ident: "dob_y",
+				expr:  "concat(string(year(dob)), '-', string(month(dob)))",
+			}},
+			outAttributes: []simpleAttribute{{
+				ident: "users",
+				expr:  "count(name)",
+			}},
+
+			in: []simpleRow{
+				{"dob": "2022-10-20T09:44:49Z", "name": "Ana"},
+				{"dob": "2022-10-20T09:44:49Z", "name": "John"},
+				{"dob": "2021-10-20T09:44:49Z", "name": "Jane"},
+			},
+
+			out: []simpleRow{
+				{"dob_y": "2021-10", "users": float64(1)},
+				{"dob_y": "2022-10", "users": float64(2)},
+			},
+
+			f: internalFilter{
+				orderBy: filter.SortExprSet{{Column: "dob_y", Descending: false}, {Column: "k2", Descending: true}},
+			},
+		},
+	}
+
+	nilValues := []testCase{
+		{
+			name: "nil in group key single value",
+			sourceAttributes: []simpleAttribute{
+				{ident: "thing"},
+				{ident: "name"},
+			},
+			group: []simpleAttribute{{
+				ident: "thing",
+			}},
+			outAttributes: []simpleAttribute{{
+				ident: "users",
+				expr:  "count(name)",
+			}},
+
+			in: []simpleRow{
+				{"thing": "A", "name": "Ana"},
+				{"name": "John"},
+				{"name": "Jane"},
+			},
+
+			out: []simpleRow{
+				{"thing": nil, "users": float64(2)},
+				{"thing": "A", "users": float64(1)},
+			},
+
+			f: internalFilter{
+				orderBy: filter.SortExprSet{{Column: "thing", Descending: false}},
+			},
+		},
+		{
+			name: "nil in group key multiple value",
+			sourceAttributes: []simpleAttribute{
+				{ident: "thing"},
+				{ident: "another"},
+				{ident: "name"},
+			},
+			group: []simpleAttribute{{
+				ident: "thing",
+			}, {
+				ident: "another",
+			}},
+			outAttributes: []simpleAttribute{{
+				ident: "users",
+				expr:  "count(name)",
+			}},
+
+			in: []simpleRow{
+				{"thing": "A", "another": "A", "name": "Ana"},
+				{"thing": "A", "name": "Ana"},
+				{"another": "A", "name": "Ana"},
+				{"name": "John"},
+				{"name": "Jane"},
+			},
+
+			out: []simpleRow{
+				{"thing": nil, "another": nil, "users": float64(2)},
+				{"thing": nil, "another": "A", "users": float64(1)},
+				{"thing": "A", "another": nil, "users": float64(1)},
+				{"thing": "A", "another": "A", "users": float64(1)},
+			},
+
+			f: internalFilter{
+				orderBy: filter.SortExprSet{{Column: "thing", Descending: false}, {Column: "another", Descending: false}},
+			},
+		},
+	}
+
+	batches := [][]testCase{
+		baseBehavior,
+		filtering,
+		sorting,
+		exprGroups,
+		nilValues,
+	}
+
+	for _, batch := range batches {
+		for _, tc := range batch {
+			t.Run(tc.name, func(t *testing.T) {
+				bootstrapAggregate(t, func(ctx context.Context, t *testing.T, sa *Aggregate, b Buffer) {
+					for _, r := range tc.in {
+						require.NoError(t, b.Add(ctx, r))
+					}
+					sa.Ident = tc.name
+					sa.SourceAttributes = saToMapping(tc.sourceAttributes...)
+					sa.Group = saToMapping(tc.group...)
+					sa.OutAttributes = saToMapping(tc.outAttributes...)
+					sa.filter = tc.f
+
+					err := sa.init(ctx)
+					require.NoError(t, err)
+					aa, err := sa.exec(ctx, b)
+					require.NoError(t, err)
+
+					i := 0
+					for aa.Next(ctx) {
+						out := simpleRow{}
+						require.NoError(t, aa.Scan(out))
+						require.Equal(t, tc.out[i], out)
+						i++
+					}
+					require.NoError(t, aa.Err())
+					require.Equal(t, len(tc.out), i)
+				})
 			})
-		})
+		}
 	}
 }
 
@@ -672,6 +1015,7 @@ func TestStepAggregate_more(t *testing.T) {
 
 				i++
 			}
+			require.NoError(t, aa.Err())
 			require.Equal(t, len(tc.out2), i)
 		})
 	}

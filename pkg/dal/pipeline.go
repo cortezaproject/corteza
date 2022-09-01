@@ -166,17 +166,19 @@ func (pp Pipeline) root() PipelineStep {
 
 // Slice returns a new pipeline with all steps of the subtree with ident as root
 func (pp Pipeline) Slice(ident string) (out Pipeline) {
-	var r PipelineStep
+	// Make a copy so we can assure the caller can go ham over the pipeline
+	ppc := pp.Clone()
 
 	// Find root
-	for _, p := range pp {
+	var r PipelineStep
+	for _, p := range ppc {
 		if p.Identifier() == ident {
 			r = p
 			break
 		}
 	}
 
-	return pp.slice(r)
+	return ppc.slice(r)
 }
 
 // slice is the recursive counterpart for the Slice method
@@ -340,6 +342,10 @@ func (p Pipeline) Clone() (out Pipeline) {
 			out = append(out, &aux)
 
 		case *Link:
+			aux := *s
+			out = append(out, &aux)
+
+		case *Datasource:
 			aux := *s
 			out = append(out, &aux)
 

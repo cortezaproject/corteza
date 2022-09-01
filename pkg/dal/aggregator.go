@@ -6,11 +6,13 @@ import (
 	"math"
 
 	"github.com/cortezaproject/corteza-server/pkg/ql"
+	"github.com/modern-go/reflect2"
 	"github.com/spf13/cast"
 )
 
 type (
-	// aggregator performs value aggregation primarily used in the pipeline aggregate step
+	// aggregator performs value aggregation primarily used for the aggregate step
+	// @todo consider moving into a separate package
 	//
 	// The aggregator performs the requested value expressions as well as
 	// aggregation operations over the evaluated values.
@@ -18,11 +20,11 @@ type (
 	// The aggregator computes the values on the fly (for the ones it can).
 	aggregator struct {
 		// aggregates holds output aggregation values
-		// @todo we'll use float64 for all values, but this is not the best way to do it (probably).
+		// @note we'll use float64 for all values, but it might make more sense to split it up
+		//       in the future. For now, it'll be ok.
 		aggregates []float64
 
-		// counts holds the number of values for each aggregate including
-		// multi value fields.
+		// counts holds the number of values for each aggregate including multi value fields.
 		// Counts are currently only used for average.
 		counts []int
 
@@ -30,12 +32,12 @@ type (
 		//
 		// Eac index corresponds to the aggregates and counts slices
 		def []aggregateDef
-		// scanned indicates whether the aggregator has been scanned as some ops
-		// must be blocked after the fact
+		// scanned indicates whether the aggregator has been scanned since
+		// we need to block writes after the first scan.
 		scanned bool
 	}
 
-	// aggregateDef defines a single aggregate (output attribute when aggregating)
+	// aggregateDef is a wrapper to outline some aggregate value
 	aggregateDef struct {
 		outIdent string
 
@@ -51,10 +53,11 @@ var (
 	//
 	// @todo consider making this expandable via some registry/plugin/...
 	aggregateFunctionIndex = map[string]bool{
-		"sum": true,
-		"min": true,
-		"max": true,
-		"avg": true,
+		"count": true,
+		"sum":   true,
+		"min":   true,
+		"max":   true,
+		"avg":   true,
 	}
 )
 
@@ -129,6 +132,9 @@ func (a *aggregator) Scan(s ValueSetter) (err error) {
 // aggregate applies the provided value into the requested aggregate
 func (a *aggregator) aggregate(ctx context.Context, attr aggregateDef, i int, v ValueGetter) (err error) {
 	switch attr.aggOp {
+	case "count":
+		return a.count(ctx, attr, i, v)
+
 	case "sum":
 		return a.sum(ctx, attr, i, v)
 
@@ -146,9 +152,15 @@ func (a *aggregator) aggregate(ctx context.Context, attr aggregateDef, i int, v 
 }
 
 // walkValues traverses the available values for the specified attribute
-func (a *aggregator) walkValues(ctx context.Context, r ValueGetter, cc map[string]uint, attr aggregateDef, run func(v any)) (err error) {
+func (a *aggregator) walkValues(ctx context.Context, r ValueGetter, cc map[string]uint, attr aggregateDef, run func(v any, isNil bool)) (err error) {
+	var out any
 	if attr.inIdent == "" {
-		run(attr.eval.Eval(ctx, r))
+		out, err = attr.eval.Eval(ctx, r)
+		if err != nil {
+			return
+		}
+
+		run(out, reflect2.IsNil(out))
 		return nil
 	}
 
@@ -157,7 +169,7 @@ func (a *aggregator) walkValues(ctx context.Context, r ValueGetter, cc map[strin
 		if err != nil {
 			return err
 		}
-		run(v)
+		run(v, reflect2.IsNil(v))
 	}
 
 	return nil
@@ -165,10 +177,28 @@ func (a *aggregator) walkValues(ctx context.Context, r ValueGetter, cc map[strin
 
 // Aggregate methods
 
-func (a *aggregator) sum(ctx context.Context, attr aggregateDef, i int, v ValueGetter) (err error) {
-	err = a.walkValues(ctx, v, v.CountValues(), attr, func(v any) {
-		a.aggregates[i] += cast.ToFloat64(v)
+func (a *aggregator) count(ctx context.Context, attr aggregateDef, i int, v ValueGetter) (err error) {
+	err = a.walkValues(ctx, v, v.CountValues(), attr, func(v any, isNil bool) {
+		if isNil {
+			return
+		}
 
+		a.aggregates[i]++
+		a.counts[i]++
+	})
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (a *aggregator) sum(ctx context.Context, attr aggregateDef, i int, v ValueGetter) (err error) {
+	err = a.walkValues(ctx, v, v.CountValues(), attr, func(v any, isNil bool) {
+		if isNil {
+			return
+		}
+		a.aggregates[i] += cast.ToFloat64(v)
 		a.counts[i]++
 	})
 	if err != nil {
@@ -179,7 +209,11 @@ func (a *aggregator) sum(ctx context.Context, attr aggregateDef, i int, v ValueG
 }
 
 func (a *aggregator) min(ctx context.Context, attr aggregateDef, i int, v ValueGetter) (err error) {
-	err = a.walkValues(ctx, v, v.CountValues(), attr, func(v any) {
+	err = a.walkValues(ctx, v, v.CountValues(), attr, func(v any, isNil bool) {
+		if isNil {
+			return
+		}
+
 		if a.counts[i] == 0 {
 			a.aggregates[i] = cast.ToFloat64(v)
 		} else {
@@ -195,7 +229,11 @@ func (a *aggregator) min(ctx context.Context, attr aggregateDef, i int, v ValueG
 }
 
 func (a *aggregator) max(ctx context.Context, attr aggregateDef, i int, v ValueGetter) (err error) {
-	err = a.walkValues(ctx, v, v.CountValues(), attr, func(v any) {
+	err = a.walkValues(ctx, v, v.CountValues(), attr, func(v any, isNil bool) {
+		if isNil {
+			return
+		}
+
 		if a.counts[i] == 0 {
 			a.aggregates[i] = cast.ToFloat64(v)
 		} else {
@@ -211,7 +249,11 @@ func (a *aggregator) max(ctx context.Context, attr aggregateDef, i int, v ValueG
 }
 
 func (a *aggregator) avg(ctx context.Context, attr aggregateDef, i int, v ValueGetter) (err error) {
-	err = a.walkValues(ctx, v, v.CountValues(), attr, func(v any) {
+	err = a.walkValues(ctx, v, v.CountValues(), attr, func(v any, isNil bool) {
+		if isNil {
+			return
+		}
+
 		a.aggregates[i] += cast.ToFloat64(v)
 
 		a.counts[i]++
@@ -240,6 +282,8 @@ func (a *aggregator) completeAverage() {
 
 // Utilities
 
+// mappingToAggregateDef constructs an aggregate definition from the provided mapping
+// @note this will probably change when I change this AttributeMapping thing
 func mappingToAggregateDef(a AttributeMapping) (def aggregateDef, err error) {
 	def = aggregateDef{
 		outIdent: a.Identifier(),
@@ -278,7 +322,8 @@ func unpackMappingSource(a AttributeMapping) (ident string, expr *ql.ASTNode, er
 		return
 	}
 
-	expr, err = newConverterGval().parser.Parse(base)
+	// @note the converter is being reused so this is ok
+	expr, err = newConverterGval().Parse(base)
 	return
 }
 

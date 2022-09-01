@@ -17,6 +17,8 @@ type (
 
 		ResourceType string
 		Resource     string
+
+		Refs map[string]any
 	}
 
 	// Model describes the underlying data and its shape
@@ -28,6 +30,10 @@ type (
 		Resource     string
 		ResourceID   uint64
 		ResourceType string
+
+		// Refs is an arbitrary map to identify a model
+		// @todo consider reworking this; I'm not the biggest fan
+		Refs map[string]any
 
 		SensitivityLevelID uint64
 
@@ -132,6 +138,26 @@ func (mm ModelSet) FindByIdent(ident string) *Model {
 		}
 	}
 
+	return nil
+}
+
+// FindByRefs returns the first Model that matches the given refs
+func (mm ModelSet) FindByRefs(refs map[string]any) *Model {
+	for _, model := range mm {
+		for k, v := range refs {
+			ref, ok := model.Refs[k]
+			if !ok {
+				goto skip
+			}
+			if v != ref {
+				goto skip
+			}
+		}
+
+		return model
+
+	skip:
+	}
 	return nil
 }
 

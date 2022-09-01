@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestStepLinkleft(t *testing.T) {
+func TestStepLinkLeft(t *testing.T) {
 	crs1 := &filter.PagingCursor{}
 	crs1.Set("l_pk", 1, false)
 	crs1.Set("l_val", "l1 v1", false)
@@ -35,22 +35,25 @@ func TestStepLinkleft(t *testing.T) {
 		{ident: "f_val", t: TypeText{}},
 	}
 
-	tcc := []struct {
-		name string
+	type (
+		testCase struct {
+			name string
 
-		leftAttributes     []simpleAttribute
-		rightAttributes    []simpleAttribute
-		leftOutAttributes  []simpleAttribute
-		rightOutAttributes []simpleAttribute
-		linkPred           LinkPredicate
+			leftAttributes     []simpleAttribute
+			rightAttributes    []simpleAttribute
+			leftOutAttributes  []simpleAttribute
+			rightOutAttributes []simpleAttribute
+			linkPred           LinkPredicate
 
-		lIn []simpleRow
-		fIn []simpleRow
-		out []simpleRow
+			lIn []simpleRow
+			fIn []simpleRow
+			out []simpleRow
 
-		f internalFilter
-	}{
-		// Basic behavior
+			f internalFilter
+		}
+	)
+
+	baseBehavior := []testCase{
 		{
 			name:               "basic link",
 			leftAttributes:     basicLeftAttrs,
@@ -180,8 +183,9 @@ func TestStepLinkleft(t *testing.T) {
 			fIn:                []simpleRow{},
 			out:                []simpleRow{},
 		},
+	}
 
-		// Filtering
+	filtering := []testCase{
 		{
 			name:               "filtering constraints single attr",
 			leftAttributes:     basicLeftAttrs,
@@ -428,8 +432,66 @@ func TestStepLinkleft(t *testing.T) {
 				expression: "f_val == 'f1 v1'",
 			},
 		},
+	}
 
-		// Paging
+	sorting := []testCase{
+		{
+			name:               "sorting single key full asc",
+			leftAttributes:     basicLeftAttrs,
+			rightAttributes:    basicRightAttrs,
+			leftOutAttributes:  basicOutLeftAttrs,
+			rightOutAttributes: basicOutRightAttrs,
+			linkPred:           LinkPredicate{Left: "l_pk", Right: "f_fk"},
+
+			lIn: []simpleRow{
+				{"l_pk": 1, "l_val": "l1 v1"},
+				{"l_pk": 2, "l_val": "l2 v1"},
+			},
+			fIn: []simpleRow{
+				{"f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+			},
+			out: []simpleRow{
+				{"l_pk": 1, "l_val": "l1 v1"},
+				{"$sys.ref": "right", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"l_pk": 2, "l_val": "l2 v1"},
+				{"$sys.ref": "right", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+			},
+
+			f: internalFilter{
+				orderBy: filter.SortExprSet{{Column: "l_pk", Descending: false}},
+			},
+		},
+		{
+			name:               "sorting single key full desc",
+			leftAttributes:     basicLeftAttrs,
+			rightAttributes:    basicRightAttrs,
+			leftOutAttributes:  basicOutLeftAttrs,
+			rightOutAttributes: basicOutRightAttrs,
+			linkPred:           LinkPredicate{Left: "l_pk", Right: "f_fk"},
+
+			lIn: []simpleRow{
+				{"l_pk": 1, "l_val": "l1 v1"},
+				{"l_pk": 2, "l_val": "l2 v1"},
+			},
+			fIn: []simpleRow{
+				{"f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+			},
+			out: []simpleRow{
+				{"l_pk": 2, "l_val": "l2 v1"},
+				{"$sys.ref": "right", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+				{"l_pk": 1, "l_val": "l1 v1"},
+				{"$sys.ref": "right", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+			},
+
+			f: internalFilter{
+				orderBy: filter.SortExprSet{{Column: "l_pk", Descending: true}},
+			},
+		},
+	}
+
+	paging := []testCase{
 		{
 			name:               "paging cut off first entry",
 			leftAttributes:     basicLeftAttrs,
@@ -511,50 +573,59 @@ func TestStepLinkleft(t *testing.T) {
 		},
 	}
 
+	batches := [][]testCase{
+		baseBehavior,
+		filtering,
+		sorting,
+		paging,
+	}
+
 	ctx := context.Background()
-	for _, tc := range tcc {
-		t.Run(tc.name, func(t *testing.T) {
-			l := InMemoryBuffer()
-			for _, r := range tc.lIn {
-				require.NoError(t, l.Add(ctx, r))
-			}
+	for _, batch := range batches {
+		for _, tc := range batch {
+			t.Run(tc.name, func(t *testing.T) {
+				l := InMemoryBuffer()
+				for _, r := range tc.lIn {
+					require.NoError(t, l.Add(ctx, r))
+				}
 
-			f := InMemoryBuffer()
-			for _, r := range tc.fIn {
-				require.NoError(t, f.Add(ctx, r))
-			}
+				f := InMemoryBuffer()
+				for _, r := range tc.fIn {
+					require.NoError(t, f.Add(ctx, r))
+				}
 
-			def := Link{
-				Ident:    "foo",
-				RelLeft:  "left",
-				RelRight: "right",
+				def := Link{
+					Ident:    "foo",
+					RelLeft:  "left",
+					RelRight: "right",
 
-				On:                 tc.linkPred,
-				LeftAttributes:     saToMapping(tc.leftAttributes...),
-				RightAttributes:    saToMapping(tc.rightAttributes...),
-				OutLeftAttributes:  saToMapping(tc.leftOutAttributes...),
-				OutRightAttributes: saToMapping(tc.rightOutAttributes...),
-				filter:             tc.f,
-			}
+					On:                 tc.linkPred,
+					LeftAttributes:     saToMapping(tc.leftAttributes...),
+					RightAttributes:    saToMapping(tc.rightAttributes...),
+					OutLeftAttributes:  saToMapping(tc.leftOutAttributes...),
+					OutRightAttributes: saToMapping(tc.rightOutAttributes...),
+					filter:             tc.f,
+				}
 
-			err := def.init(ctx)
-			require.NoError(t, err)
-			xs, err := def.exec(ctx, l, f)
-			require.NoError(t, err)
+				err := def.init(ctx)
+				require.NoError(t, err)
+				xs, err := def.exec(ctx, l, f)
+				require.NoError(t, err)
 
-			i := 0
-			for xs.Next(ctx) {
-				require.NoError(t, xs.Err())
-				out := simpleRow{}
-				require.NoError(t, xs.Err())
-				require.NoError(t, xs.Scan(out))
+				i := 0
+				for xs.Next(ctx) {
+					require.NoError(t, xs.Err())
+					out := simpleRow{}
+					require.NoError(t, xs.Err())
+					require.NoError(t, xs.Scan(out))
 
-				require.Equal(t, tc.out[i], out)
+					require.Equal(t, tc.out[i], out)
 
-				i++
-			}
-			require.Equal(t, len(tc.out), i)
-		})
+					i++
+				}
+				require.Equal(t, len(tc.out), i)
+			})
+		}
 	}
 }
 

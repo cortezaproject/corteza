@@ -193,25 +193,17 @@ func (b *inmemBuffer) Len() int {
 }
 
 func (b *inmemBuffer) Less(i, j int) bool {
-	var (
-		err error
-		ra  ValueGetter
-		rb  ValueGetter
-		rac map[string]uint
-		rbc map[string]uint
-	)
-
-	ra, rac, err = b.rowAt(i)
+	ra, _, err := b.rowAt(i)
 	if err != nil {
 		panic(err)
 	}
 
-	rb, rbc, err = b.rowAt(j)
+	rb, _, err := b.rowAt(j)
 	if err != nil {
 		panic(err)
 	}
 
-	return valueGetterCounterComparator(b.sort, ra, rb, rac, rbc)
+	return makeRowComparator(b.sort...)(ra, rb)
 }
 
 func (b *inmemBuffer) Swap(i, j int) {
