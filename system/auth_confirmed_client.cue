@@ -22,7 +22,7 @@ auth_confirmed_client: {
 
 	filter: {
 		struct: {
-			user_id:   { goType: "uint64", ident: "userID", storeIdent: "rel_client" }
+			user_id:   { goType: "uint64", ident: "userID", storeIdent: "rel_user" }
 		}
 
 		byValue: ["user_id"]
