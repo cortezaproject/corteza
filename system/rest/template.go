@@ -72,6 +72,7 @@ func (ctrl *Template) List(ctx context.Context, r *request.TemplateList) (interf
 	var (
 		err error
 		f   = types.TemplateFilter{
+			Query:   r.Query,
 			Handle:  r.Handle,
 			Type:    r.Type,
 			OwnerID: r.OwnerID,
