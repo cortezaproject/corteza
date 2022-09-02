@@ -319,7 +319,7 @@ func AuthClientFilter(f systemType.AuthClientFilter) (ee []goqu.Expression, _ sy
 func AuthConfirmedClientFilter(f systemType.AuthConfirmedClientFilter) (ee []goqu.Expression, _ systemType.AuthConfirmedClientFilter, err error) {
 
 	if f.UserID > 0 {
-		ee = append(ee, goqu.C("rel_client").Eq(f.UserID))
+		ee = append(ee, goqu.C("rel_user").Eq(f.UserID))
 	}
 
 	return ee, f, err
