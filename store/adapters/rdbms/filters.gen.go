@@ -1221,6 +1221,13 @@ func TemplateFilter(f systemType.TemplateFilter) (ee []goqu.Expression, _ system
 		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
 	}
 
+	if f.Query != "" {
+		ee = append(ee, goqu.Or(
+			goqu.C("handle").ILike("%"+f.Query+"%"),
+			goqu.C("type").ILike("%"+f.Query+"%"),
+		))
+	}
+
 	return ee, f, err
 }
 

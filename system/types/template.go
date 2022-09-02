@@ -45,6 +45,7 @@ type (
 
 	TemplateFilter struct {
 		TemplateID []uint64 `json:"templateID"`
+		Query      string   `json:"query"`
 		Handle     string   `json:"handle"`
 		Type       string   `json:"type"`
 		OwnerID    uint64   `json:"ownerID,string"`

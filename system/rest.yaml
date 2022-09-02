@@ -1443,6 +1443,9 @@ endpoints:
     path: "/"
     parameters:
       get:
+      - name: query
+        type: string
+        title: Query
       - name: handle
         type: string
         title: Handle
