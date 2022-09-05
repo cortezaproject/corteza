@@ -15,9 +15,18 @@ module: {
 		attributes: {
 			id: schema.IdField
 			handle: schema.HandleField
-			meta: { goType: "rawJson" }
-			config: { goType: "types.ModuleConfig" }
-			fields: { goType: "types.ModuleFieldSet", store: false }
+			meta: {
+				goType: "rawJson"
+				dal: { type: "JSON" }
+			}
+			config: {
+				goType: "types.ModuleConfig"
+				dal: { type: "JSON" }
+			}
+			fields: {
+				goType: "types.ModuleFieldSet",
+				store: false
+			}
 			namespace_id: {
 				ident: "namespaceID",
 				goType: "uint64",
@@ -29,6 +38,16 @@ module: {
 			created_at: schema.SortableTimestampField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
+		}
+
+		indexes: {
+			"primary": "id"
+			"namespace": "namespace_id",
+			"unique_handle": {
+				unique: true
+				attributes: ["handle", "namespace_id"]
+				predicate: "handle <> '' AND deleted_at IS NULL"
+			}
 		}
 	}
 

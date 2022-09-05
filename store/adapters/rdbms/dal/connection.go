@@ -3,6 +3,8 @@ package dal
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
 	"sync"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
@@ -22,6 +24,8 @@ type (
 
 		db      sqlx.ExtContext
 		dialect drivers.Dialect
+
+		dataDefiner ddl.DataDefiner
 	}
 )
 
@@ -33,12 +37,13 @@ func init() {
 	})
 }
 
-func Connection(db sqlx.ExtContext, dialect drivers.Dialect, cc ...dal.Operation) *connection {
+func Connection(db sqlx.ExtContext, dialect drivers.Dialect, dd ddl.DataDefiner, cc ...dal.Operation) *connection {
 	return &connection{
-		db:         db,
-		dialect:    dialect,
-		models:     make(map[string]*model),
-		operations: cc,
+		db:          db,
+		dialect:     dialect,
+		dataDefiner: dd,
+		models:      make(map[string]*model),
+		operations:  cc,
 	}
 }
 
@@ -117,36 +122,44 @@ func (c *connection) Models(ctx context.Context) (dal.ModelSet, error) {
 // CreateModel checks/creates db tables in the database and catches the processed model
 //
 // @todo DDL operations
-func (c *connection) CreateModel(ctx context.Context, mm ...*dal.Model) error {
+func (c *connection) CreateModel(ctx context.Context, mm ...*dal.Model) (err error) {
 	c.mux.Lock()
 	defer c.mux.Unlock()
 	for _, m := range mm {
-		// @todo check if table exists and if the structure matches the model
-		// @todo check if table's columns are compatible with model's attributes
-		// @todo if table does not exist, create it
+		err = ddl.UpdateModel(ctx, c.dataDefiner, m)
+		if err == nil || !errors.IsNotFound(err) {
+			return
+		}
+
+		if err = ddl.CreateModel(ctx, c.dataDefiner, m); err != nil {
+			return
+		}
 
 		// cache the model
 		c.models[cacheKey(m)] = Model(m, c.db, c.dialect)
 	}
 
-	return nil
+	return
 }
 
 // DeleteModel removes db tables from the database and removes the processed model from cache
 //
 // @todo DDL operations
 // @todo some tables should not be removed (like compose_record on primary connection)
-func (c *connection) DeleteModel(ctx context.Context, mm ...*dal.Model) error {
+func (c *connection) DeleteModel(ctx context.Context, mm ...*dal.Model) (err error) {
 	c.mux.Lock()
 	defer c.mux.Unlock()
 	for _, m := range mm {
 		// @todo check if table exists and if it can be removed
+		if err = c.DeleteModel(ctx, m); err != nil {
+			return
+		}
 
 		// remove from cache
 		delete(c.models, cacheKey(m))
 	}
 
-	return nil
+	return
 }
 
 // UpdateModel alters db tables from the database and refreshes the processed model in the cache

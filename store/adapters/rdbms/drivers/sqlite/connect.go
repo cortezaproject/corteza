@@ -70,7 +70,7 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 	s := &rdbms.Store{
 		DB: db,
 
-		DAL: dal.Connection(db, Dialect(), pkgdal.FullOperations()...),
+		DAL: dal.Connection(db, Dialect(), DataDefiner(cfg.DBName, db), pkgdal.FullOperations()...),
 
 		Dialect:      goquDialectWrapper,
 		ErrorHandler: errorHandler,
@@ -78,7 +78,7 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 		TxRetryLimit: -1,
 		//TxRetryErrHandler: txRetryErrHandler,
 
-		SchemaAPI: &schema{},
+		//SchemaAPI: &schema{},
 	}
 
 	s.SetDefaults()

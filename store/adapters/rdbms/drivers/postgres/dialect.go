@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
@@ -73,8 +74,67 @@ func (postgresDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpress
 	return exp.NewLiteralExpression("?", c), nil
 }
 
-func (postgresDialect) NativeColumnType(ct ddl.ColumnType) string {
-	return columnTypeTranslator(ct)
+func (postgresDialect) NativeColumnType(t dal.Type) (ct *ddl.ColumnType, err error) {
+	ct = &ddl.ColumnType{
+		Null: t.IsNullable(),
+	}
+
+	switch c := t.(type) {
+	case *dal.TypeID, *dal.TypeRef:
+		ct.Name = "BIGINT"
+
+	case *dal.TypeTimestamp:
+		ct.Name = "TIMESTAMP"
+
+		if c.Timezone {
+			ct.Name += "TZ"
+		}
+		ct.Name += fmt.Sprintf("(%d)", c.Precision)
+
+	case *TypeTime:
+		ct.Name = "TIME"
+
+		if c.Timezone {
+			ct.Name += "TZ"
+		}
+		ct.Name += fmt.Sprintf("(%d)", c.Precision)
+
+	case *dal.TypeDate:
+		ct.Name = "DATE"
+
+	case *dal.TypeNumber:
+		ct.Name = "NUMERIC"
+		// @todo precision, scale?
+
+	case *dal.TypeText:
+		if c.Length > 0 {
+			// VARCHAR(0) is useless
+			ct.Name = fmt.Sprintf("VARCHAR(%d)", c.Length)
+		} else {
+			ct.Name = "TEXT"
+		}
+
+	case *dal.TypeJSON:
+		ct.Name = "JSONB"
+
+	case *dal.TypeGeometry:
+		// @todo geometry type
+		ct.Name = "JSONB"
+
+	case *dal.TypeBlob:
+		ct.Name = "BYTEA"
+
+	case *dal.TypeBoolean:
+		ct.Name = "BOOLEAN"
+
+	case *dal.TypeUUID:
+		ct.Name = "UUID"
+
+	default:
+		return nil, fmt.Errorf("unsupported column type: %s ", c.Type())
+	}
+
+	return
 }
 
 func (postgresDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (exp.Expression, error) {

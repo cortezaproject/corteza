@@ -40,7 +40,12 @@ import (
 	expIdent: #expIdent | *strings.ToTitle(ident)
 
 	// store identifier
+	// @todo this should be moved to dal.ident
 	storeIdent: #ident | *name
+
+	// enable or disable store for this attribute
+	// @todo we should use dal prop for this, and extend it to support bool "false"
+	//       so that it can be disabled
 	store: bool | *true
 
 	unique:     bool | *false
@@ -59,6 +64,8 @@ import (
 		fqType: "dal.Type\(type)"
 
 		nullable: bool | *false
+
+		default?: string
 
 		if type == "ID" {
 			generatedByStore: bool | *false

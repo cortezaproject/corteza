@@ -31,35 +31,19 @@ func (app *CortezaApp) initDAL(ctx context.Context, log *zap.Logger) (err error)
 
 	// load/create primary connection
 	if conn, err = provisionPrimaryDalConnection(ctx, app.Store); err != nil {
-		return
+		return fmt.Errorf("could not provision primary connection: %w", err)
 	}
 
 	// Convert connection to dal.ConnectionWrap
 	if cw, err = service.MakeDalConnection(conn, app.Store.ToDalConn()); err != nil {
-		return
+		return fmt.Errorf("could not convert connection: %w", err)
 	}
 
 	// Init DAL and prepare default connection
 	dal.SetGlobal(dal.New(log.Named("dal"), app.Opt.Environment.IsDevelopment()))
 	if err = dal.Service().ReplaceConnection(ctx, cw, true); err != nil {
-		return err
+		return fmt.Errorf("could not set primary connection: %w", err)
 	}
-
-	// disabled for now until we have a real need (RDBMS table gen for example) for it
-	//
-	//// Register all models
-	//if err = atmModels.Register(ctx, dal.Service()); err != nil {
-	//	return
-	//}
-	//if err = sysModels.Register(ctx, dal.Service()); err != nil {
-	//	return
-	//}
-	//if err = cmpModels.Register(ctx, dal.Service()); err != nil {
-	//	return
-	//}
-	//if err = fdrModels.Register(ctx, dal.Service()); err != nil {
-	//	return
-	//}
 
 	return
 }

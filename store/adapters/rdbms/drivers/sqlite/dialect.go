@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
@@ -57,8 +58,55 @@ func (sqliteDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpressio
 	return drivers.AttributeCast(attr, val)
 }
 
-func (sqliteDialect) NativeColumnType(ct ddl.ColumnType) string {
-	return columnTypeTranslator(ct)
+func (sqliteDialect) NativeColumnType(t dal.Type) (ct *ddl.ColumnType, err error) {
+	ct = &ddl.ColumnType{
+		Null: t.IsNullable(),
+	}
+
+	switch c := t.(type) {
+	case *dal.TypeID, *dal.TypeRef:
+		ct.Name = "BIGINT"
+
+	case *dal.TypeTimestamp:
+		ct.Name = "TIMESTAMP"
+
+	case *dal.TypeTime:
+		ct.Name = "TIMESTAMP"
+
+	case *dal.TypeDate:
+		ct.Name = "DATE"
+
+	case *dal.TypeNumber:
+		ct.Name = "NUMERIC"
+		// @todo precision, scale?
+
+	case *dal.TypeText:
+		if c.Length > 0 {
+			ct.Name = fmt.Sprintf("VARCHAR(%d)", c.Length)
+		} else {
+			ct.Name = "TEXT"
+		}
+
+	case *dal.TypeJSON:
+		ct.Name = "TEXT"
+
+	case *dal.TypeGeometry:
+		ct.Name = "TEXT"
+
+	case *dal.TypeBlob:
+		ct.Name = "BLOB"
+
+	case *dal.TypeBoolean:
+		ct.Name = "BOOLEAN"
+
+	case *dal.TypeUUID:
+		ct.Name = "CHAR(36)"
+
+	default:
+		return nil, fmt.Errorf("unsupported column type: %s ", c.Type())
+	}
+
+	return
 }
 
 func (sqliteDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (exp.Expression, error) {

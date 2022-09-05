@@ -33,14 +33,6 @@ type (
 		DATE func(interface{}) exp.SQLFunctionExpression
 	}
 
-	schemaAPI interface {
-		TableExists(context.Context, sqlx.QueryerContext, string) (bool, error)
-		CreateTable(context.Context, sqlx.ExtContext, *ddl.Table) error
-		AddColumn(context.Context, sqlx.ExtContext, *ddl.Table, ...*ddl.Column) error
-		RenameColumn(context.Context, sqlx.ExtContext, *ddl.Table, string, string) error
-		DropColumn(context.Context, sqlx.ExtContext, *ddl.Table, ...string) error
-	}
-
 	Store struct {
 		DB sqlx.ExtContext
 
@@ -50,9 +42,8 @@ type (
 		// Logger for connection
 		Logger *zap.Logger
 
-		// tools to modify DB schema (create tables, indexes..)
-		// @todo maybe this does not need to be here
-		SchemaAPI schemaAPI
+		// data definer interface use for schema information lookups and modification
+		DataDefiner ddl.DataDefiner
 
 		Dialect goqu.DialectWrapper
 
@@ -102,7 +93,7 @@ func (s *Store) withTx(tx sqlx.ExtContext) *Store {
 		DB: tx,
 
 		Logger:            s.Logger,
-		SchemaAPI:         s.SchemaAPI,
+		DataDefiner:       s.DataDefiner,
 		Dialect:           s.Dialect,
 		TxRetryErrHandler: s.TxRetryErrHandler,
 		ErrorHandler:      s.ErrorHandler,
