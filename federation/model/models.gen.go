@@ -24,138 +24,103 @@ var (
 		ResourceType: types.NodeResourceType,
 
 		Attributes: dal.AttributeSet{
-
 			&dal.Attribute{
-				Ident: "ID",
-
+				Ident:      "ID",
 				PrimaryKey: true,
-
-				Type: dal.TypeID{},
-
-				Store: &dal.CodecAlias{Ident: "id"},
+				Type:       &dal.TypeID{},
+				Store:      &dal.CodecAlias{Ident: "id"},
 			},
 
 			&dal.Attribute{
-				Ident: "Name",
-
+				Ident:    "Name",
 				Sortable: true,
-
-				Type: dal.TypeText{},
-
-				Store: &dal.CodecAlias{Ident: "name"},
+				Type:     &dal.TypeText{},
+				Store:    &dal.CodecAlias{Ident: "name"},
 			},
 
 			&dal.Attribute{
-				Ident: "SharedNodeID",
-
+				Ident:    "SharedNodeID",
 				Sortable: true,
-
-				Type: dal.TypeText{},
-
-				Store: &dal.CodecAlias{Ident: "shared_node_id"},
+				Type:     &dal.TypeText{},
+				Store:    &dal.CodecAlias{Ident: "shared_node_id"},
 			},
 
 			&dal.Attribute{
-				Ident: "BaseURL",
-
+				Ident:    "BaseURL",
 				Sortable: true,
-
-				Type: dal.TypeText{},
-
-				Store: &dal.CodecAlias{Ident: "base_url"},
+				Type:     &dal.TypeText{},
+				Store:    &dal.CodecAlias{Ident: "base_url"},
 			},
 
 			&dal.Attribute{
-				Ident: "Status",
-
+				Ident:    "Status",
 				Sortable: true,
-
-				Type: dal.TypeText{},
-
-				Store: &dal.CodecAlias{Ident: "status"},
+				Type:     &dal.TypeText{},
+				Store:    &dal.CodecAlias{Ident: "status"},
 			},
 
 			&dal.Attribute{
-				Ident: "Contact",
-
+				Ident:    "Contact",
 				Sortable: true,
-
-				Type: dal.TypeText{},
-
-				Store: &dal.CodecAlias{Ident: "contact"},
+				Type:     &dal.TypeText{},
+				Store:    &dal.CodecAlias{Ident: "contact"},
 			},
 
 			&dal.Attribute{
 				Ident: "PairToken",
 
-				Type: dal.TypeText{},
-
+				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "pair_token"},
 			},
 
 			&dal.Attribute{
 				Ident: "AuthToken",
 
-				Type: dal.TypeText{},
-
+				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "auth_token"},
 			},
 
 			&dal.Attribute{
-				Ident: "CreatedAt",
-
+				Ident:    "CreatedAt",
 				Sortable: true,
-
-				Type: dal.TypeTimestamp{},
-
-				Store: &dal.CodecAlias{Ident: "created_at"},
+				Type:     &dal.TypeTimestamp{},
+				Store:    &dal.CodecAlias{Ident: "created_at"},
 			},
 
 			&dal.Attribute{
-				Ident: "UpdatedAt",
-
+				Ident:    "UpdatedAt",
 				Sortable: true,
-
-				Type: dal.TypeTimestamp{
-					Nullable: true,
-				},
-
+				Type: &dal.TypeTimestamp{
+					Nullable: true},
 				Store: &dal.CodecAlias{Ident: "updated_at"},
 			},
 
 			&dal.Attribute{
-				Ident: "DeletedAt",
-
+				Ident:    "DeletedAt",
 				Sortable: true,
-
-				Type: dal.TypeTimestamp{
-					Nullable: true,
-				},
-
+				Type: &dal.TypeTimestamp{
+					Nullable: true},
 				Store: &dal.CodecAlias{Ident: "deleted_at"},
 			},
 
 			&dal.Attribute{
 				Ident: "CreatedBy",
 
-				Type: dal.TypeText{},
-
+				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "created_by"},
 			},
 
 			&dal.Attribute{
 				Ident: "UpdatedBy",
 
-				Type: dal.TypeText{},
-
+				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "updated_by"},
 			},
 
 			&dal.Attribute{
 				Ident: "DeletedBy",
 
-				Type: dal.TypeText{},
-
+				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "deleted_by"},
 			},
 		},
@@ -166,55 +131,39 @@ var (
 		ResourceType: types.NodeSyncResourceType,
 
 		Attributes: dal.AttributeSet{
-
 			&dal.Attribute{
-				Ident: "NodeID",
-
+				Ident:      "NodeID",
 				PrimaryKey: true, Sortable: true,
-
-				Type: dal.TypeText{},
-
+				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "node_id"},
 			},
 
 			&dal.Attribute{
-				Ident: "ModuleID",
-
+				Ident:    "ModuleID",
 				Sortable: true,
-
-				Type: dal.TypeText{},
-
-				Store: &dal.CodecAlias{Ident: "module_id"},
+				Type:     &dal.TypeText{},
+				Store:    &dal.CodecAlias{Ident: "module_id"},
 			},
 
 			&dal.Attribute{
-				Ident: "SyncType",
-
+				Ident:    "SyncType",
 				Sortable: true,
-
-				Type: dal.TypeText{},
-
-				Store: &dal.CodecAlias{Ident: "sync_type"},
+				Type:     &dal.TypeText{},
+				Store:    &dal.CodecAlias{Ident: "sync_type"},
 			},
 
 			&dal.Attribute{
-				Ident: "SyncStatus",
-
+				Ident:    "SyncStatus",
 				Sortable: true,
-
-				Type: dal.TypeText{},
-
-				Store: &dal.CodecAlias{Ident: "sync_status"},
+				Type:     &dal.TypeText{},
+				Store:    &dal.CodecAlias{Ident: "sync_status"},
 			},
 
 			&dal.Attribute{
-				Ident: "TimeOfAction",
-
+				Ident:    "TimeOfAction",
 				Sortable: true,
-
-				Type: dal.TypeTimestamp{},
-
-				Store: &dal.CodecAlias{Ident: "time_of_action"},
+				Type:     &dal.TypeTimestamp{},
+				Store:    &dal.CodecAlias{Ident: "time_of_action"},
 			},
 		},
 	}
@@ -224,142 +173,114 @@ var (
 		ResourceType: types.ExposedModuleResourceType,
 
 		Attributes: dal.AttributeSet{
-
 			&dal.Attribute{
-				Ident: "ID",
-
+				Ident:      "ID",
 				PrimaryKey: true,
-
-				Type: dal.TypeID{},
-
-				Store: &dal.CodecAlias{Ident: "id"},
+				Type:       &dal.TypeID{},
+				Store:      &dal.CodecAlias{Ident: "id"},
 			},
 
 			&dal.Attribute{
 				Ident: "Handle",
 
-				Type: dal.TypeText{},
-
+				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "handle"},
 			},
 
 			&dal.Attribute{
-				Ident: "Name",
-
+				Ident:    "Name",
 				Sortable: true,
-
-				Type: dal.TypeText{},
-
-				Store: &dal.CodecAlias{Ident: "name"},
+				Type:     &dal.TypeText{},
+				Store:    &dal.CodecAlias{Ident: "name"},
 			},
 
 			&dal.Attribute{
-				Ident: "NodeID",
-
+				Ident:    "NodeID",
 				Sortable: true,
-
-				Type: dal.TypeText{},
-
-				Store: &dal.CodecAlias{Ident: "rel_node"},
+				Type:     &dal.TypeText{},
+				Store:    &dal.CodecAlias{Ident: "rel_node"},
 			},
 
 			&dal.Attribute{
 				Ident: "ComposeModuleID",
 
-				Type: dal.TypeText{},
-
+				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "rel_compose_module"},
 			},
 
 			&dal.Attribute{
 				Ident: "ComposeNamespaceID",
 
-				Type: dal.TypeText{},
-
+				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "rel_compose_namespace"},
 			},
 
 			&dal.Attribute{
 				Ident: "Fields",
 
-				Type: dal.TypeText{},
-
+				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "fields"},
 			},
 
 			&dal.Attribute{
-				Ident: "CreatedAt",
-
+				Ident:    "CreatedAt",
 				Sortable: true,
-
-				Type: dal.TypeTimestamp{},
-
-				Store: &dal.CodecAlias{Ident: "created_at"},
+				Type:     &dal.TypeTimestamp{},
+				Store:    &dal.CodecAlias{Ident: "created_at"},
 			},
 
 			&dal.Attribute{
-				Ident: "UpdatedAt",
-
+				Ident:    "UpdatedAt",
 				Sortable: true,
-
-				Type: dal.TypeTimestamp{
-					Nullable: true,
-				},
-
+				Type: &dal.TypeTimestamp{
+					Nullable: true},
 				Store: &dal.CodecAlias{Ident: "updated_at"},
 			},
 
 			&dal.Attribute{
-				Ident: "DeletedAt",
-
+				Ident:    "DeletedAt",
 				Sortable: true,
-
-				Type: dal.TypeTimestamp{
-					Nullable: true,
-				},
-
+				Type: &dal.TypeTimestamp{
+					Nullable: true},
 				Store: &dal.CodecAlias{Ident: "deleted_at"},
 			},
 
 			&dal.Attribute{
 				Ident: "CreatedBy",
 
-				Type: dal.TypeRef{
+				Type: &dal.TypeRef{
 
 					RefAttribute: "id",
 					RefModel: &dal.ModelRef{
 						ResourceType: "corteza::system:user",
 					},
 				},
-
 				Store: &dal.CodecAlias{Ident: "created_by"},
 			},
 
 			&dal.Attribute{
 				Ident: "UpdatedBy",
 
-				Type: dal.TypeRef{
+				Type: &dal.TypeRef{
 
 					RefAttribute: "id",
 					RefModel: &dal.ModelRef{
 						ResourceType: "corteza::system:user",
 					},
 				},
-
 				Store: &dal.CodecAlias{Ident: "updated_by"},
 			},
 
 			&dal.Attribute{
 				Ident: "DeletedBy",
 
-				Type: dal.TypeRef{
+				Type: &dal.TypeRef{
 
 					RefAttribute: "id",
 					RefModel: &dal.ModelRef{
 						ResourceType: "corteza::system:user",
 					},
 				},
-
 				Store: &dal.CodecAlias{Ident: "deleted_by"},
 			},
 		},
@@ -370,136 +291,107 @@ var (
 		ResourceType: types.SharedModuleResourceType,
 
 		Attributes: dal.AttributeSet{
-
 			&dal.Attribute{
-				Ident: "ID",
-
+				Ident:      "ID",
 				PrimaryKey: true,
-
-				Type: dal.TypeID{},
-
-				Store: &dal.CodecAlias{Ident: "id"},
+				Type:       &dal.TypeID{},
+				Store:      &dal.CodecAlias{Ident: "id"},
 			},
 
 			&dal.Attribute{
 				Ident: "Handle",
 
-				Type: dal.TypeText{},
-
+				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "handle"},
 			},
 
 			&dal.Attribute{
-				Ident: "NodeID",
-
+				Ident:    "NodeID",
 				Sortable: true,
-
-				Type: dal.TypeText{},
-
-				Store: &dal.CodecAlias{Ident: "rel_node"},
+				Type:     &dal.TypeText{},
+				Store:    &dal.CodecAlias{Ident: "rel_node"},
 			},
 
 			&dal.Attribute{
-				Ident: "Name",
-
+				Ident:    "Name",
 				Sortable: true,
-
-				Type: dal.TypeText{},
-
-				Store: &dal.CodecAlias{Ident: "name"},
+				Type:     &dal.TypeText{},
+				Store:    &dal.CodecAlias{Ident: "name"},
 			},
 
 			&dal.Attribute{
-				Ident: "ExternalFederationModuleID",
-
+				Ident:    "ExternalFederationModuleID",
 				Sortable: true,
-
-				Type: dal.TypeText{},
-
-				Store: &dal.CodecAlias{Ident: "xref_module"},
+				Type:     &dal.TypeText{},
+				Store:    &dal.CodecAlias{Ident: "xref_module"},
 			},
 
 			&dal.Attribute{
 				Ident: "Fields",
 
-				Type: dal.TypeText{},
-
+				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "fields"},
 			},
 
 			&dal.Attribute{
-				Ident: "CreatedAt",
-
+				Ident:    "CreatedAt",
 				Sortable: true,
-
-				Type: dal.TypeTimestamp{},
-
-				Store: &dal.CodecAlias{Ident: "created_at"},
+				Type:     &dal.TypeTimestamp{},
+				Store:    &dal.CodecAlias{Ident: "created_at"},
 			},
 
 			&dal.Attribute{
-				Ident: "UpdatedAt",
-
+				Ident:    "UpdatedAt",
 				Sortable: true,
-
-				Type: dal.TypeTimestamp{
-					Nullable: true,
-				},
-
+				Type: &dal.TypeTimestamp{
+					Nullable: true},
 				Store: &dal.CodecAlias{Ident: "updated_at"},
 			},
 
 			&dal.Attribute{
-				Ident: "DeletedAt",
-
+				Ident:    "DeletedAt",
 				Sortable: true,
-
-				Type: dal.TypeTimestamp{
-					Nullable: true,
-				},
-
+				Type: &dal.TypeTimestamp{
+					Nullable: true},
 				Store: &dal.CodecAlias{Ident: "deleted_at"},
 			},
 
 			&dal.Attribute{
 				Ident: "CreatedBy",
 
-				Type: dal.TypeRef{
+				Type: &dal.TypeRef{
 
 					RefAttribute: "id",
 					RefModel: &dal.ModelRef{
 						ResourceType: "corteza::system:user",
 					},
 				},
-
 				Store: &dal.CodecAlias{Ident: "created_by"},
 			},
 
 			&dal.Attribute{
 				Ident: "UpdatedBy",
 
-				Type: dal.TypeRef{
+				Type: &dal.TypeRef{
 
 					RefAttribute: "id",
 					RefModel: &dal.ModelRef{
 						ResourceType: "corteza::system:user",
 					},
 				},
-
 				Store: &dal.CodecAlias{Ident: "updated_by"},
 			},
 
 			&dal.Attribute{
 				Ident: "DeletedBy",
 
-				Type: dal.TypeRef{
+				Type: &dal.TypeRef{
 
 					RefAttribute: "id",
 					RefModel: &dal.ModelRef{
 						ResourceType: "corteza::system:user",
 					},
 				},
-
 				Store: &dal.CodecAlias{Ident: "deleted_by"},
 			},
 		},
@@ -510,57 +402,53 @@ var (
 		ResourceType: types.ModuleMappingResourceType,
 
 		Attributes: dal.AttributeSet{
-
 			&dal.Attribute{
-				Ident: "NodeID",
-
+				Ident:      "NodeID",
 				PrimaryKey: true,
-
-				Type: dal.TypeText{},
-
-				Store: &dal.CodecAlias{Ident: "node_id"},
+				Type:       &dal.TypeText{},
+				Store:      &dal.CodecAlias{Ident: "node_id"},
 			},
 
 			&dal.Attribute{
-				Ident: "FederationModuleID",
-
+				Ident:    "FederationModuleID",
 				Sortable: true,
-
-				Type: dal.TypeText{},
-
-				Store: &dal.CodecAlias{Ident: "federation_module_id"},
+				Type:     &dal.TypeText{},
+				Store:    &dal.CodecAlias{Ident: "federation_module_id"},
 			},
 
 			&dal.Attribute{
-				Ident: "ComposeModuleID",
-
+				Ident:    "ComposeModuleID",
 				Sortable: true,
-
-				Type: dal.TypeText{},
-
-				Store: &dal.CodecAlias{Ident: "compose_module_id"},
+				Type:     &dal.TypeText{},
+				Store:    &dal.CodecAlias{Ident: "compose_module_id"},
 			},
 
 			&dal.Attribute{
-				Ident: "ComposeNamespaceID",
-
+				Ident:    "ComposeNamespaceID",
 				Sortable: true,
-
-				Type: dal.TypeText{},
-
-				Store: &dal.CodecAlias{Ident: "compose_namespace_id"},
+				Type:     &dal.TypeText{},
+				Store:    &dal.CodecAlias{Ident: "compose_namespace_id"},
 			},
 
 			&dal.Attribute{
 				Ident: "FieldMapping",
 
-				Type: dal.TypeText{},
-
+				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "field_mapping"},
 			},
 		},
 	}
 )
+
+func All() dal.ModelSet {
+	return dal.ModelSet{
+		Node,
+		NodeSync,
+		ExposedModule,
+		SharedModule,
+		ModuleMapping,
+	}
+}
 
 func Register(ctx context.Context, mr modelReplacer) (err error) {
 	if err = mr.ReplaceModel(ctx, Node); err != nil {

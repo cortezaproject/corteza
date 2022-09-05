@@ -14,9 +14,9 @@ type (
 	// Encoding/decoding might be different depending on
 	//  1) underlying store (and dialect)
 	//  2) value codec (raw, json ...)
+	//
+	// It is always Corteza ID
 	TypeID struct {
-		// @todo need to figure out how to support when IDs
-		//       generated/provided by store (SERIAL/AUTOINCREMENT)
 		GeneratedByStore bool
 		Nullable         bool
 	}

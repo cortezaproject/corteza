@@ -42,7 +42,9 @@ type (
 		Operations OperationSet
 
 		Constraints map[string][]any
+		Indexes     IndexSet
 	}
+
 	ModelSet []*Model
 
 	// Attribute describes a specific value of the dataset
@@ -77,6 +79,14 @@ type (
 	}
 
 	AttributeSet []*Attribute
+
+	Index struct {
+		Ident       string
+		Expressions []string
+		Predicate   string
+	}
+
+	IndexSet []*Index
 )
 
 func PrimaryAttribute(ident string, codec Codec) *Attribute {
@@ -105,6 +115,20 @@ func (a *Attribute) WithSoftDelete() *Attribute {
 func (a *Attribute) WithMultiValue() *Attribute {
 	a.MultiValue = true
 	return a
+}
+
+func (a *Attribute) StoreIdent() string {
+	switch s := a.Store.(type) {
+	case *CodecRecordValueSetJSON:
+		return s.Ident
+
+	case *CodecAlias:
+		return s.Ident
+
+	default:
+		return a.Ident
+
+	}
 }
 
 func (mm ModelSet) FindByResourceID(resourceID uint64) *Model {

@@ -34,7 +34,7 @@ type (
 		TypeWrap(dal.Type) Type
 
 		// NativeColumnType converts column type to type that can be used in the underlying rdbms
-		NativeColumnType(columnType ddl.ColumnType) string
+		NativeColumnType(columnType dal.Type) (*ddl.ColumnType, error)
 
 		// ExprHandler returns driver specific expression handling
 		ExprHandler(*ql.ASTNode, ...exp.Expression) (exp.Expression, error)

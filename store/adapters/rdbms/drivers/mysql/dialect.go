@@ -99,10 +99,6 @@ func (mysqlDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpression
 	return exp.NewLiteralExpression("?", c), nil
 }
 
-func (mysqlDialect) NativeColumnType(ct ddl.ColumnType) string {
-	return columnTypeTranslator(ct)
-}
-
 func (mysqlDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (exp.Expression, error) {
 	return ql.DefaultRefHandler(n, args...)
 }
@@ -130,4 +126,56 @@ func JSONPath(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression,
 
 	sql.WriteString(`'`)
 	return exp.NewLiteralExpression(sql.String(), ident), nil
+}
+
+func (mysqlDialect) NativeColumnType(t dal.Type) (ct *ddl.ColumnType, err error) {
+	ct = &ddl.ColumnType{
+		Null: t.IsNullable(),
+	}
+
+	switch c := t.(type) {
+	case *dal.TypeID, *dal.TypeRef:
+		ct.Name = "BIGINT"
+
+	case *dal.TypeTimestamp:
+		ct.Name = "DATETIME"
+
+	case *TypeTime:
+		ct.Name = "TIME"
+
+	case *dal.TypeDate:
+		ct.Name = "DATE"
+
+	case *dal.TypeNumber:
+		ct.Name = "DECIMAL"
+		// @todo precision, scale?
+
+	case *dal.TypeText:
+		if c.Length > 0 {
+			// VARCHAR(0) is useless
+			ct.Name = fmt.Sprintf("VARCHAR(%d)", c.Length)
+		} else {
+			ct.Name = "TEXT"
+		}
+
+	case *dal.TypeJSON:
+		ct.Name = "JSON"
+
+	case *dal.TypeGeometry:
+		ct.Name = "JSON"
+
+	case *dal.TypeBlob:
+		ct.Name = "BLOB"
+
+	case *dal.TypeBoolean:
+		ct.Name = "TINYINT(1)"
+
+	case *dal.TypeUUID:
+		ct.Name = "CHAR(36)"
+
+	default:
+		return nil, fmt.Errorf("unsupported column type: %s ", c.Type())
+	}
+
+	return
 }
