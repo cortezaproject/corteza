@@ -35,6 +35,11 @@ attachment: {
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
 		}
+
+		indexes: {
+			"primary": { attribute: "id" }
+			"namespace": { attribute: "namespace_id" },
+		}
 	}
 
 	filter: {

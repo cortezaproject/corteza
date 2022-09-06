@@ -55,6 +55,31 @@ var (
 			},
 		{{ end -}}
 		},
+
+		Indexes: dal.IndexSet{
+		{{- range .indexes }}
+			&dal.Index{
+				Ident: {{ printf "%q" .ident }},
+				Type: {{ printf "%q" .type }},
+				{{ if .unique }}Unique: true,{{ end }}
+				{{ if .predicate }}Predicate: {{ printf "%q" .predicate }},{{ end }}
+				Fields:    []*dal.IndexField{
+				{{- range .fields }}
+					{
+						AttributeIdent: {{ printf "%q" .attribute }},
+						{{- if .modifiers }}
+						Modifiers: []dal.IndexFieldModifier{ {{- range .modifiers }}{{ printf "%q" . }},{{- end }}  },
+						{{- end }}
+						{{- if eq .sort  "ASC"   }}Sort:  dal.IndexFieldSortAsc,   {{ end }}
+						{{- if eq .sort  "DESC"  }}Sort:  dal.IndexFieldSortDesc,  {{ end }}
+						{{- if eq .nulls "FIRST" }}Nulls: dal.IndexFieldNullsFirst,{{ end }}
+						{{- if eq .nulls "LAST"  }}Nulls: dal.IndexFieldNullsLast, {{ end }}
+					},
+				{{ end -}}
+				},
+			},
+		{{ end -}}
+		},
 	}
 {{ end }}
 )

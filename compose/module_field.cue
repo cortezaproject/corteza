@@ -14,7 +14,7 @@ moduleField: {
 		ident: "compose_module_field"
 		attributes: {
 			id: schema.IdField
-			  module_id: {
+			module_id: {
 			  ident: "moduleID",
 				goType: "uint64",
 				storeIdent: "rel_module"
@@ -39,7 +39,15 @@ moduleField: {
 			created_at: { goType: "time.Time" }
 			updated_at: { goType: "*time.Time" }
 			deleted_at: { goType: "*time.Time" }
+		}
 
+		indexes: {
+			"primary": { attribute: "id" }
+			"module": { attribute: "module_id" },
+			"unique_name": {
+				fields: [{ attribute: "name", modifiers: ["LOWERCASE"] }, { attribute: "module_id" }]
+				predicate: "name != '' AND deleted_at IS NULL"
+			}
 		}
 	}
 

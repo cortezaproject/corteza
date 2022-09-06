@@ -36,7 +36,7 @@ func (dd *dataDefiner) ConvertModel(m *dal.Model) (*ddl.Table, error) {
 }
 
 func (dd *dataDefiner) TableCreate(ctx context.Context, t *ddl.Table) error {
-	return ddl.Exec(ctx, dd.conn, &ddl.CreateTable{Table: t})
+	return ddl.Exec(ctx, dd.conn, &ddl.CreateTable{Table: t, Dialect: dd.d})
 }
 
 func (dd *dataDefiner) TableLookup(ctx context.Context, t string) (*ddl.Table, error) {
@@ -52,16 +52,18 @@ func (dd *dataDefiner) ColumnAdd(ctx context.Context, t string, c *ddl.Column) e
 
 func (dd *dataDefiner) ColumnDrop(ctx context.Context, t, col string) error {
 	return ddl.Exec(ctx, dd.conn, &ddl.DropColumn{
-		Table:  exp.NewIdentifierExpression("", t, ""),
-		Column: exp.NewIdentifierExpression("", "", col),
+		Dialect: dd.d,
+		Table:   exp.NewIdentifierExpression("", t, ""),
+		Column:  exp.NewIdentifierExpression("", "", col),
 	})
 }
 
 func (dd *dataDefiner) ColumnRename(ctx context.Context, t string, o string, n string) error {
 	return ddl.Exec(ctx, dd.conn, &ddl.RenameColumn{
-		Table: exp.NewIdentifierExpression("", t, ""),
-		Old:   exp.NewIdentifierExpression("", "", o),
-		New:   exp.NewIdentifierExpression("", "", n),
+		Dialect: dd.d,
+		Table:   exp.NewIdentifierExpression("", t, ""),
+		Old:     exp.NewIdentifierExpression("", "", o),
+		New:     exp.NewIdentifierExpression("", "", n),
 	})
 }
 
@@ -74,11 +76,17 @@ func (dd *dataDefiner) IndexLookup(ctx context.Context, i, t string) (*ddl.Index
 }
 
 func (dd *dataDefiner) IndexCreate(ctx context.Context, t string, i *ddl.Index) error {
-	return ddl.Exec(ctx, dd.conn, &ddl.CreateIndex{Index: i})
+	return ddl.Exec(ctx, dd.conn, &ddl.CreateIndex{
+		Index:   i,
+		Dialect: dd.d,
+	})
 }
 
 func (dd *dataDefiner) IndexDrop(ctx context.Context, t, i string) error {
-	return ddl.Exec(ctx, dd.conn, &ddl.DropIndex{Ident: exp.NewIdentifierExpression("", t, i)})
+	return ddl.Exec(ctx, dd.conn, &ddl.DropIndex{
+		Ident:   exp.NewIdentifierExpression("", t, i),
+		Dialect: dd.d,
+	})
 }
 
 //

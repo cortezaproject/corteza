@@ -6,6 +6,7 @@ package drivers
 
 import (
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"strconv"
 	"strings"
 
@@ -84,4 +85,16 @@ func JsonPath(pp ...any) string {
 	}
 
 	return path.String()
+}
+
+func IndexFieldModifiers(attr *dal.Attribute, quoteIdent func(i string) string, mm ...dal.IndexFieldModifier) (string, error) {
+	var (
+		out = quoteIdent(attr.StoreIdent())
+	)
+
+	for _, m := range mm {
+		out = fmt.Sprintf("%s(%s)", m, out)
+	}
+
+	return out, nil
 }

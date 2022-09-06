@@ -32,7 +32,7 @@ var (
 
 			&dal.Attribute{
 				Ident: "Handle",
-				Type:  &dal.TypeText{Length: 255},
+				Type:  &dal.TypeText{Length: 64},
 				Store: &dal.CodecAlias{Ident: "handle"},
 			},
 
@@ -155,6 +155,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "deleted_by"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	Session = &dal.Model{
@@ -249,6 +251,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "error"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	Trigger = &dal.Model{
@@ -375,6 +379,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "deleted_by"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 )
 

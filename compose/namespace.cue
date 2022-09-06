@@ -18,6 +18,14 @@ namespace: {
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
 		}
+
+		indexes: {
+			"primary": { attribute: "id" }
+			"unique_handle": {
+				fields: [{ attribute: "slug", modifiers: ["LOWERCASE"] }]
+				predicate: "handle != '' AND deleted_at IS NULL"
+			}
+		}
 	}
 
 	filter: {

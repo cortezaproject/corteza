@@ -3,6 +3,7 @@ package sqlite
 import (
 	"context"
 	"database/sql"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
@@ -117,9 +118,9 @@ func (i *informationSchema) scanIndexes(ctx context.Context, sd *goqu.SelectData
 
 		switch a.ColumnCollation.String {
 		case "A":
-			col.Sorted = ddl.IndexFieldSortAsc
+			col.Sort = dal.IndexFieldSortAsc
 		case "D":
-			col.Sorted = ddl.IndexFieldSortDesc
+			col.Sort = dal.IndexFieldSortDesc
 		}
 
 		if a.Expression.Valid {

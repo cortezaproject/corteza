@@ -111,6 +111,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "deleted_by"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	NodeSync = &dal.Model{
@@ -148,6 +150,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "time_of_action"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	ExposedModule = &dal.Model{
@@ -163,7 +167,7 @@ var (
 
 			&dal.Attribute{
 				Ident: "Handle",
-				Type:  &dal.TypeText{Length: 255},
+				Type:  &dal.TypeText{Length: 64},
 				Store: &dal.CodecAlias{Ident: "handle"},
 			},
 
@@ -251,6 +255,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "deleted_by"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	SharedModule = &dal.Model{
@@ -266,7 +272,7 @@ var (
 
 			&dal.Attribute{
 				Ident: "Handle",
-				Type:  &dal.TypeText{Length: 255},
+				Type:  &dal.TypeText{Length: 64},
 				Store: &dal.CodecAlias{Ident: "handle"},
 			},
 
@@ -348,6 +354,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "deleted_by"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	ModuleMapping = &dal.Model{
@@ -385,6 +393,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "field_mapping"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 )
 

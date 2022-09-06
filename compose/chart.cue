@@ -16,7 +16,7 @@ chart: {
 			handle: schema.HandleField
 			name: {sortable: true}
 			config: { goType: "types.ChartConfig" }
-			  namespace_id: {
+			namespace_id: {
 			  ident: "namespaceID",
 				goType: "uint64",
 				storeIdent: "rel_namespace"
@@ -25,6 +25,15 @@ chart: {
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
+			"namespace": { attribute: "namespace_id" },
+			"unique_handle": {
+				fields: [{ attribute: "handle", modifiers: ["LOWERCASE"] }]
+				predicate: "handle != '' AND deleted_at IS NULL"
+			}
 		}
 	}
 
