@@ -9,6 +9,10 @@ import (
 	attributes: {
 		[name=_]: {"name": name} & #ModelAttribute
 	}
+
+	indexes?: {
+		[name=_]: {"name": name} & #ModelIndex
+	}
 }
 
 #ModelAttributeDalType:
@@ -205,4 +209,50 @@ SortableTimestampNilField: {
 
 		jsonTag: "json:\"\(json.field)\(_omitEmpty)\(_string)\""
 	}
+}
+
+#ModelIndex: {
+	name:   #ident
+
+	_attributes: { [_]: #ModelAttribute }
+	_words: strings.Replace(strings.Replace(name, "_", " ", -1), ".", " ", -1)
+
+	_ident: strings.ToCamel(strings.Replace(strings.ToTitle(_words), " ", "", -1))
+
+	// lowercase (unexported, golang) identifier
+	ident: #ident | *_ident
+
+	primary: bool | *(strings.ToLower(name) == "primary")
+	unique: bool  | *(strings.Contains(name, "unique") || primary)
+
+	type: "BTREE" | *"BTREE"
+
+	attribute?: string
+	attributes?: [string, ...]
+
+	if attribute != _|_ {
+		attributes: [attribute]
+	}
+
+	fields: [#ModelIndexField, ...] | *([
+ 		if attributes != _|_ {
+				for a in attributes {
+					"attribute": a
+
+					#ModelIndexField
+				}
+ 		}
+	])
+
+	predicate?: string
+}
+
+#IndexFieldModifier: "LOWERCASE"
+
+#ModelIndexField: {
+  attribute: string
+	modifiers?: [#IndexFieldModifier, ...]
+	length?: number
+	sort?: "DESC" | "ASC"
+	nulls?: "FIRST" | "LAST"
 }

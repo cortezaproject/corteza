@@ -20,6 +20,7 @@ var (
 
 	dialect            = &sqliteDialect{}
 	goquDialectWrapper = goqu.Dialect("sqlite3")
+	quoteIdent         = string(sqlite3.DialectOptions().QuoteRune)
 )
 
 func init() {
@@ -36,8 +37,11 @@ func Dialect() *sqliteDialect {
 	return dialect
 }
 
-func (sqliteDialect) GOQU() goqu.DialectWrapper {
-	return goquDialectWrapper
+func (sqliteDialect) GOQU() goqu.DialectWrapper  { return goquDialectWrapper }
+func (sqliteDialect) QuoteIdent(i string) string { return quoteIdent + i + quoteIdent }
+
+func (d sqliteDialect) IndexFieldModifiers(attr *dal.Attribute, mm ...dal.IndexFieldModifier) (string, error) {
+	return drivers.IndexFieldModifiers(attr, d.QuoteIdent, mm...)
 }
 
 func (sqliteDialect) DeepIdentJSON(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression, error) {

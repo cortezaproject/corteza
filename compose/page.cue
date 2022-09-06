@@ -45,6 +45,16 @@ page: {
 				updated_at: schema.SortableTimestampNilField
 				deleted_at: schema.SortableTimestampNilField
 		}
+
+		indexes: {
+			"primary": { attribute: "id" }
+			"namespace": { attribute: "namespace_id" },
+			"module": { attribute: "module_id" },
+			"unique_handle": {
+				fields: [{ attribute: "handle", modifiers: ["LOWERCASE"] }, { attribute: "namespace_id" }]
+				predicate: "handle != '' AND deleted_at IS NULL"
+			}
+		}
 	}
 
 	filter: {

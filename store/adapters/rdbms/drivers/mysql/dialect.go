@@ -2,15 +2,15 @@ package mysql
 
 import (
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ql"
+	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/dialect/mysql"
+	"github.com/doug-martin/goqu/v9/exp"
 	"strconv"
 	"strings"
-
-	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
-	"github.com/doug-martin/goqu/v9"
-	"github.com/doug-martin/goqu/v9/exp"
 )
 
 type (
@@ -22,14 +22,18 @@ var (
 
 	dialect            = &mysqlDialect{}
 	goquDialectWrapper = goqu.Dialect("mysql")
+	quoteIdent         = string(mysql.DialectOptions().QuoteRune)
 )
 
 func Dialect() *mysqlDialect {
 	return dialect
 }
 
-func (mysqlDialect) GOQU() goqu.DialectWrapper {
-	return goquDialectWrapper
+func (mysqlDialect) GOQU() goqu.DialectWrapper  { return goquDialectWrapper }
+func (mysqlDialect) QuoteIdent(i string) string { return quoteIdent + i + quoteIdent }
+
+func (d mysqlDialect) IndexFieldModifiers(attr *dal.Attribute, mm ...dal.IndexFieldModifier) (string, error) {
+	return drivers.IndexFieldModifiers(attr, d.QuoteIdent, mm...)
 }
 
 func (mysqlDialect) DeepIdentJSON(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression, error) {

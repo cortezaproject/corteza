@@ -87,6 +87,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "deleted_at"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	Application = &dal.Model{
@@ -151,6 +153,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "deleted_at"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	ApigwRoute = &dal.Model{
@@ -248,6 +252,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "deleted_by"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	ApigwFilter = &dal.Model{
@@ -351,6 +357,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "deleted_by"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	AuthClient = &dal.Model{
@@ -366,7 +374,7 @@ var (
 
 			&dal.Attribute{
 				Ident: "Handle",
-				Type:  &dal.TypeText{Length: 255},
+				Type:  &dal.TypeText{Length: 64},
 				Store: &dal.CodecAlias{Ident: "handle"},
 			},
 
@@ -495,6 +503,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "deleted_by"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	AuthConfirmedClient = &dal.Model{
@@ -520,6 +530,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "confirmed_at"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	AuthSession = &dal.Model{
@@ -572,6 +584,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "user_agent"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	AuthOa2token = &dal.Model{
@@ -648,6 +662,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "user_agent"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	Credential = &dal.Model{
@@ -724,6 +740,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "expires_at"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	DataPrivacyRequest = &dal.Model{
@@ -833,6 +851,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "deleted_by"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	DataPrivacyRequestComment = &dal.Model{
@@ -912,6 +932,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "deleted_by"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	Queue = &dal.Model{
@@ -997,6 +1019,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "deleted_by"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	QueueMessage = &dal.Model{
@@ -1034,6 +1058,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "created"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	Reminder = &dal.Model{
@@ -1122,6 +1148,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "deleted_at"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	Report = &dal.Model{
@@ -1137,7 +1165,7 @@ var (
 
 			&dal.Attribute{
 				Ident: "Handle",
-				Type:  &dal.TypeText{Length: 255},
+				Type:  &dal.TypeText{Length: 64},
 				Store: &dal.CodecAlias{Ident: "handle"},
 			},
 
@@ -1230,6 +1258,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "deleted_by"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	ResourceTranslation = &dal.Model{
@@ -1332,6 +1362,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "deleted_by"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	Role = &dal.Model{
@@ -1353,7 +1385,7 @@ var (
 
 			&dal.Attribute{
 				Ident: "Handle",
-				Type:  &dal.TypeText{Length: 255},
+				Type:  &dal.TypeText{Length: 64},
 				Store: &dal.CodecAlias{Ident: "handle"},
 			},
 
@@ -1390,6 +1422,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "archived_at"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	RoleMember = &dal.Model{
@@ -1409,6 +1443,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "rel_role"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	SettingValue = &dal.Model{
@@ -1446,6 +1482,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "updated_at"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	Template = &dal.Model{
@@ -1461,7 +1499,7 @@ var (
 
 			&dal.Attribute{
 				Ident: "Handle",
-				Type:  &dal.TypeText{Length: 255},
+				Type:  &dal.TypeText{Length: 64},
 				Store: &dal.CodecAlias{Ident: "handle"},
 			},
 
@@ -1528,6 +1566,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "last_used_at"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	User = &dal.Model{
@@ -1543,7 +1583,7 @@ var (
 
 			&dal.Attribute{
 				Ident: "Handle",
-				Type:  &dal.TypeText{Length: 255},
+				Type:  &dal.TypeText{Length: 64},
 				Store: &dal.CodecAlias{Ident: "handle"},
 			},
 
@@ -1610,6 +1650,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "suspended_at"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	DalConnection = &dal.Model{
@@ -1625,7 +1667,7 @@ var (
 
 			&dal.Attribute{
 				Ident: "Handle",
-				Type:  &dal.TypeText{Length: 255},
+				Type:  &dal.TypeText{Length: 64},
 				Store: &dal.CodecAlias{Ident: "handle"},
 			},
 
@@ -1701,6 +1743,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "deleted_by"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 
 	DalSensitivityLevel = &dal.Model{
@@ -1716,7 +1760,7 @@ var (
 
 			&dal.Attribute{
 				Ident: "Handle",
-				Type:  &dal.TypeText{Length: 255},
+				Type:  &dal.TypeText{Length: 64},
 				Store: &dal.CodecAlias{Ident: "handle"},
 			},
 
@@ -1786,6 +1830,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "deleted_by"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 )
 

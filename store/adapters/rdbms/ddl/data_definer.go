@@ -9,8 +9,10 @@ import (
 
 type (
 	driverDialect interface {
-		// Column converts column type to type that can be used in the underlying rdbms
-		AttributeToColumn(attr *dal.Attribute) (col *Column, err error)
+		QuoteIdent(string) string
+		// AttributeToColumn converts attribute to column
+		AttributeToColumn(*dal.Attribute) (*Column, error)
+		IndexFieldModifiers(*dal.Attribute, ...dal.IndexFieldModifier) (string, error)
 	}
 
 	// DataDefiner describes an interface for all DDL commands
@@ -76,8 +78,6 @@ type (
 		Meta map[string]interface{}
 	}
 
-	IndexFieldSorted int
-
 	// IndexField describes a single field (column or expression) of the SQL index
 	IndexField struct {
 		// Expression or a single column
@@ -89,7 +89,8 @@ type (
 		Expression string
 
 		// Ascending or descending
-		Sorted IndexFieldSorted
+		Sort  dal.IndexFieldSort
+		Nulls dal.IndexFieldNulls
 
 		Statistics *IndexFieldStatistics
 
@@ -109,10 +110,6 @@ type (
 
 const (
 	PRIMARY_KEY = "PRIMARY"
-
-	IndexFieldSortDesc = -1
-	IndexFieldUnsorted = 0
-	IndexFieldSortAsc  = 1
 )
 
 func (t *Table) ColumnByIdent(i string) *Column {
@@ -129,6 +126,7 @@ func (t *Table) ColumnByIdent(i string) *Column {
 func ConvertModel(m *dal.Model, d driverDialect) (t *Table, err error) {
 	var (
 		col *Column
+		idx *Index
 	)
 
 	t = &Table{Ident: m.Ident}
@@ -147,7 +145,53 @@ func ConvertModel(m *dal.Model, d driverDialect) (t *Table, err error) {
 		t.Columns = append(t.Columns, col)
 	}
 
-	// @todo indexes
+	for _, i := range m.Indexes {
+		if idx, err = ConvertIndex(i, m.Attributes, m.Ident, d); err != nil {
+			return nil, fmt.Errorf("could not convert index %q: %w", i.Ident, err)
+		}
+
+		t.Indexes = append(t.Indexes, idx)
+	}
+
+	return
+}
+
+// ConvertIndex converts dal.Index to ddl.Index
+func ConvertIndex(i *dal.Index, aa dal.AttributeSet, table string, d driverDialect) (idx *Index, err error) {
+	var (
+		a        *dal.Attribute
+		idxField *IndexField
+	)
+
+	idx = &Index{
+		TableIdent: table,
+		Ident:      i.Ident,
+		Type:       i.Type,
+		Unique:     i.Unique,
+		Predicate:  i.Predicate,
+	}
+
+	for _, f := range i.Fields {
+		// ensure attribute exists
+		if a = aa.FindByIdent(f.AttributeIdent); a == nil {
+			return nil, fmt.Errorf("referenced attribute %q does not exist", f.AttributeIdent)
+		}
+
+		idxField = &IndexField{
+			Sort:  f.Sort,
+			Nulls: f.Nulls,
+		}
+
+		if len(f.Modifiers) > 0 {
+			if idxField.Expression, err = d.IndexFieldModifiers(a, f.Modifiers...); err != nil {
+				return nil, fmt.Errorf("could not convert index field modifiers: %w", err)
+			}
+		} else {
+			idxField.Column = a.StoreIdent()
+		}
+
+		idx.Fields = append(idx.Fields, idxField)
+	}
 
 	return
 }
@@ -178,7 +222,7 @@ func DefaultNumber(set bool, precision uint, value float64) string {
 	case precision > 0:
 		return fmt.Sprintf("%f", value)
 	default:
-		return fmt.Sprintf("%d", value)
+		return fmt.Sprintf("%0.0f", value)
 	}
 }
 

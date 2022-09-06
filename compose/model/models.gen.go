@@ -103,6 +103,30 @@ var (
 				Store: &dal.CodecAlias{Ident: "deleted_at"},
 			},
 		},
+
+		Indexes: dal.IndexSet{
+			&dal.Index{
+				Ident: "PRIMARY",
+				Type:  "BTREE",
+
+				Fields: []*dal.IndexField{
+					{
+						AttributeIdent: "ID",
+					},
+				},
+			},
+
+			&dal.Index{
+				Ident: "namespace",
+				Type:  "BTREE",
+
+				Fields: []*dal.IndexField{
+					{
+						AttributeIdent: "NamespaceID",
+					},
+				},
+			},
+		},
 	}
 
 	Chart = &dal.Model{
@@ -118,7 +142,7 @@ var (
 
 			&dal.Attribute{
 				Ident: "Handle",
-				Type:  &dal.TypeText{Length: 255},
+				Type:  &dal.TypeText{Length: 64},
 				Store: &dal.CodecAlias{Ident: "handle"},
 			},
 
@@ -166,6 +190,42 @@ var (
 				Store: &dal.CodecAlias{Ident: "deleted_at"},
 			},
 		},
+
+		Indexes: dal.IndexSet{
+			&dal.Index{
+				Ident: "PRIMARY",
+				Type:  "BTREE",
+
+				Fields: []*dal.IndexField{
+					{
+						AttributeIdent: "ID",
+					},
+				},
+			},
+
+			&dal.Index{
+				Ident: "namespace",
+				Type:  "BTREE",
+
+				Fields: []*dal.IndexField{
+					{
+						AttributeIdent: "NamespaceID",
+					},
+				},
+			},
+
+			&dal.Index{
+				Ident:  "uniqueHandle",
+				Type:   "BTREE",
+				Unique: true,
+
+				Fields: []*dal.IndexField{
+					{
+						AttributeIdent: "Handle",
+					},
+				},
+			},
+		},
 	}
 
 	Module = &dal.Model{
@@ -181,7 +241,7 @@ var (
 
 			&dal.Attribute{
 				Ident: "Handle",
-				Type:  &dal.TypeText{Length: 255},
+				Type:  &dal.TypeText{Length: 64},
 				Store: &dal.CodecAlias{Ident: "handle"},
 			},
 
@@ -251,6 +311,46 @@ var (
 				Ident: "DeletedAt", Sortable: true,
 				Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true},
 				Store: &dal.CodecAlias{Ident: "deleted_at"},
+			},
+		},
+
+		Indexes: dal.IndexSet{
+			&dal.Index{
+				Ident: "PRIMARY",
+				Type:  "BTREE",
+
+				Fields: []*dal.IndexField{
+					{
+						AttributeIdent: "ID",
+					},
+				},
+			},
+
+			&dal.Index{
+				Ident: "namespace",
+				Type:  "BTREE",
+
+				Fields: []*dal.IndexField{
+					{
+						AttributeIdent: "NamespaceID",
+					},
+				},
+			},
+
+			&dal.Index{
+				Ident:  "uniqueHandle",
+				Type:   "BTREE",
+				Unique: true,
+
+				Fields: []*dal.IndexField{
+					{
+						AttributeIdent: "Handle",
+					},
+
+					{
+						AttributeIdent: "NamespaceID",
+					},
+				},
 			},
 		},
 	}
@@ -361,6 +461,46 @@ var (
 				Store: &dal.CodecAlias{Ident: "deleted_at"},
 			},
 		},
+
+		Indexes: dal.IndexSet{
+			&dal.Index{
+				Ident: "PRIMARY",
+				Type:  "BTREE",
+
+				Fields: []*dal.IndexField{
+					{
+						AttributeIdent: "ID",
+					},
+				},
+			},
+
+			&dal.Index{
+				Ident: "module",
+				Type:  "BTREE",
+
+				Fields: []*dal.IndexField{
+					{
+						AttributeIdent: "ModuleID",
+					},
+				},
+			},
+
+			&dal.Index{
+				Ident:  "uniqueName",
+				Type:   "BTREE",
+				Unique: true,
+
+				Fields: []*dal.IndexField{
+					{
+						AttributeIdent: "Name",
+					},
+
+					{
+						AttributeIdent: "ModuleID",
+					},
+				},
+			},
+		},
 	}
 
 	Namespace = &dal.Model{
@@ -419,6 +559,31 @@ var (
 				Store: &dal.CodecAlias{Ident: "deleted_at"},
 			},
 		},
+
+		Indexes: dal.IndexSet{
+			&dal.Index{
+				Ident: "PRIMARY",
+				Type:  "BTREE",
+
+				Fields: []*dal.IndexField{
+					{
+						AttributeIdent: "ID",
+					},
+				},
+			},
+
+			&dal.Index{
+				Ident:  "uniqueHandle",
+				Type:   "BTREE",
+				Unique: true,
+
+				Fields: []*dal.IndexField{
+					{
+						AttributeIdent: "Slug",
+					},
+				},
+			},
+		},
 	}
 
 	Page = &dal.Model{
@@ -467,7 +632,7 @@ var (
 
 			&dal.Attribute{
 				Ident: "Handle",
-				Type:  &dal.TypeText{Length: 255},
+				Type:  &dal.TypeText{Length: 64},
 				Store: &dal.CodecAlias{Ident: "handle"},
 			},
 
@@ -532,6 +697,57 @@ var (
 				Ident: "DeletedAt", Sortable: true,
 				Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true},
 				Store: &dal.CodecAlias{Ident: "deleted_at"},
+			},
+		},
+
+		Indexes: dal.IndexSet{
+			&dal.Index{
+				Ident: "PRIMARY",
+				Type:  "BTREE",
+
+				Fields: []*dal.IndexField{
+					{
+						AttributeIdent: "ID",
+					},
+				},
+			},
+
+			&dal.Index{
+				Ident: "namespace",
+				Type:  "BTREE",
+
+				Fields: []*dal.IndexField{
+					{
+						AttributeIdent: "NamespaceID",
+					},
+				},
+			},
+
+			&dal.Index{
+				Ident: "module",
+				Type:  "BTREE",
+
+				Fields: []*dal.IndexField{
+					{
+						AttributeIdent: "ModuleID",
+					},
+				},
+			},
+
+			&dal.Index{
+				Ident:  "uniqueHandle",
+				Type:   "BTREE",
+				Unique: true,
+
+				Fields: []*dal.IndexField{
+					{
+						AttributeIdent: "Handle",
+					},
+
+					{
+						AttributeIdent: "NamespaceID",
+					},
+				},
 			},
 		},
 	}
@@ -636,6 +852,8 @@ var (
 				Store: &dal.CodecAlias{Ident: "deleted_by"},
 			},
 		},
+
+		Indexes: dal.IndexSet{},
 	}
 )
 

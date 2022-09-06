@@ -81,6 +81,12 @@ func createTablesFromModels(ctx context.Context, log *zap.Logger, dd ddl.DataDef
 			if err = dd.TableCreate(ctx, tbl); err != nil {
 				return fmt.Errorf("can not create table from model %q: %w", m.Ident, err)
 			}
+
+			for _, idx := range tbl.Indexes {
+				if err = dd.IndexCreate(ctx, tbl.Ident, idx); err != nil {
+					return fmt.Errorf("can not create index %q on table %q: %w", idx.Ident, tbl.Ident, err)
+				}
+			}
 		}
 	}
 

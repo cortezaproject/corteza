@@ -7,6 +7,7 @@ import (
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ql"
 	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/dialect/postgres"
 	"github.com/doug-martin/goqu/v9/exp"
 )
 
@@ -19,14 +20,18 @@ var (
 
 	dialect            = &postgresDialect{}
 	goquDialectWrapper = goqu.Dialect("postgres")
+	quoteIdent         = string(postgres.DialectOptions().QuoteRune)
 )
 
 func Dialect() *postgresDialect {
 	return dialect
 }
 
-func (postgresDialect) GOQU() goqu.DialectWrapper {
-	return goquDialectWrapper
+func (postgresDialect) GOQU() goqu.DialectWrapper  { return goquDialectWrapper }
+func (postgresDialect) QuoteIdent(i string) string { return quoteIdent + i + quoteIdent }
+
+func (d postgresDialect) IndexFieldModifiers(attr *dal.Attribute, mm ...dal.IndexFieldModifier) (string, error) {
+	return drivers.IndexFieldModifiers(attr, d.QuoteIdent, mm...)
 }
 
 func (postgresDialect) DeepIdentJSON(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression, error) {

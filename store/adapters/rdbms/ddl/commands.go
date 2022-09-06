@@ -3,49 +3,53 @@ package ddl
 import (
 	"context"
 	"fmt"
-	"github.com/doug-martin/goqu/v9"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/jmoiron/sqlx"
 )
 
 type (
 	dialect interface {
-		// GOQU returns goqu's dialect wrapper struct
-		GOQU() goqu.DialectWrapper
+		QuoteIdent(i string) string
 	}
 
 	CreateTable struct {
-		Table *Table
-
+		Dialect               dialect
+		Table                 *Table
 		OmitIfNotExistsClause bool
 		SuffixClause          string
 	}
 
 	CreateIndex struct {
+		Dialect               dialect
 		Index                 *Index
 		OmitIfNotExistsClause bool
 		OmitFieldLength       bool
 	}
 
 	DropIndex struct {
+		Dialect    dialect
 		Ident      exp.IdentifierExpression
 		TableIdent exp.IdentifierExpression
 	}
 
 	AddColumn struct {
-		Table  exp.IdentifierExpression
-		Column *Column
+		Dialect dialect
+		Table   exp.IdentifierExpression
+		Column  *Column
 	}
 
 	DropColumn struct {
-		Table  exp.IdentifierExpression
-		Column exp.IdentifierExpression
+		Dialect dialect
+		Table   exp.IdentifierExpression
+		Column  exp.IdentifierExpression
 	}
 
 	RenameColumn struct {
-		Table exp.IdentifierExpression
-		Old   exp.IdentifierExpression
-		New   exp.IdentifierExpression
+		Dialect dialect
+		Table   exp.IdentifierExpression
+		Old     exp.IdentifierExpression
+		New     exp.IdentifierExpression
 	}
 )
 
@@ -106,15 +110,15 @@ func (t *CreateTable) String() string {
 		sql += "IF NOT EXISTS "
 	}
 
-	sql += "\"" + t.Table.Ident + "\" (\n"
-	sql += GenCreateTableBody(t.Table)
-	sql += "\n)"
+	sql += t.Dialect.QuoteIdent(t.Table.Ident) + " (\n"
+	sql += GenCreateTableBody(t.Dialect, t.Table)
+	sql += ")"
 	sql += t.SuffixClause
 
 	return sql
 }
 
-func GenCreateTableBody(t *Table) string {
+func GenCreateTableBody(d dialect, t *Table) string {
 	sql := ""
 
 	for c, col := range t.Columns {
@@ -124,7 +128,7 @@ func GenCreateTableBody(t *Table) string {
 			sql += ", "
 		}
 
-		sql += GenTableColumn(col)
+		sql += GenTableColumn(d, col)
 
 		sql += "\n"
 	}
@@ -135,15 +139,16 @@ func GenCreateTableBody(t *Table) string {
 			continue
 		}
 
-		sql += ", " + GenPrimaryKey(pk) + "\n"
+		sql += "\n"
+		sql += ", " + GenPrimaryKey(d, pk) + "\n"
 		break
 	}
 
 	return sql
 }
 
-func GenTableColumn(col *Column) string {
-	sql := `"` + col.Ident + `"` + col.Type.Name + ` `
+func GenTableColumn(d dialect, col *Column) string {
+	sql := d.QuoteIdent(col.Ident) + " " + col.Type.Name + " "
 
 	if col.Type.Null {
 		sql += "    NULL"
@@ -158,13 +163,14 @@ func GenTableColumn(col *Column) string {
 	return sql
 }
 
-func GenPrimaryKey(pk *Index) string {
+func GenPrimaryKey(d dialect, pk *Index) string {
 	sql := "PRIMARY KEY ("
 	for f, field := range pk.Fields {
 		if f > 0 {
 			sql += ", "
 		}
-		sql += field.Column
+
+		sql += d.QuoteIdent(field.Column)
 	}
 	sql += ")"
 
@@ -184,7 +190,7 @@ func (t *CreateIndex) String() string {
 		sql += "IF NOT EXISTS "
 	}
 
-	sql += "\"" + t.Index.Ident + "\" ON \"" + t.Index.TableIdent + "\" ("
+	sql += t.Dialect.QuoteIdent(t.Index.Ident) + " ON " + t.Dialect.QuoteIdent(t.Index.TableIdent) + " ("
 
 	for f, field := range t.Index.Fields {
 		isExpr := len(field.Expression) > 0
@@ -197,15 +203,7 @@ func (t *CreateIndex) String() string {
 			sql += "("
 			sql += field.Expression
 		} else {
-			sql += field.Column
-
-		}
-
-		switch field.Sorted {
-		case IndexFieldSortDesc:
-			sql += " DESC"
-		case IndexFieldSortAsc:
-			sql += " ASC"
+			sql += t.Dialect.QuoteIdent(field.Column)
 		}
 
 		if field.Length > 0 && !t.OmitFieldLength {
@@ -215,6 +213,21 @@ func (t *CreateIndex) String() string {
 		if isExpr {
 			sql += ")"
 		}
+
+		switch field.Sort {
+		case dal.IndexFieldSortDesc:
+			sql += " DESC"
+		case dal.IndexFieldSortAsc:
+			sql += " ASC"
+		}
+
+		switch field.Nulls {
+		case dal.IndexFieldNullsLast:
+			sql += " NULLS LAST"
+		case dal.IndexFieldNullsFirst:
+			sql += " NULLS FIRST"
+		}
+
 	}
 	sql += ")"
 
