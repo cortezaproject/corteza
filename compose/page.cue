@@ -41,7 +41,7 @@ page: {
 				title: { goType: "string", sortable: true }
 				description: { goType: "string" }
 
-				created_at: schema.SortableTimestampField
+				created_at: schema.SortableTimestampNowField
 				updated_at: schema.SortableTimestampNilField
 				deleted_at: schema.SortableTimestampNilField
 		}

@@ -21,7 +21,7 @@ data_privacy_request: {
 			completed_at: schema.SortableTimestampNilField
 			completed_by: { goType: "uint64" }
 
-			created_at: schema.SortableTimestampField
+			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
 			created_by: schema.AttributeUserRef

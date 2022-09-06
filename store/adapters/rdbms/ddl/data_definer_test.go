@@ -11,7 +11,7 @@ type (
 	mockDriver struct{}
 )
 
-func (mockDriver) NativeColumnType(ct dal.Type) (*ColumnType, error) {
+func (mockDriver) Column(ct dal.Type) (*ColumnType, error) {
 	col := &ColumnType{
 		Name: string(ct.Type()),
 		Null: ct.IsNullable(),

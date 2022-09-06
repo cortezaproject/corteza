@@ -21,7 +21,7 @@ reminder: {
 				dismissed_by: { goType: "uint64" }
 				dismissed_at: schema.SortableTimestampNilField
 				remind_at: schema.SortableTimestampNilField
-				created_at: schema.SortableTimestampField
+				created_at: schema.SortableTimestampNowField
 				updated_at: schema.SortableTimestampNilField
 				deleted_at: schema.SortableTimestampNilField
 		}

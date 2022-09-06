@@ -29,6 +29,14 @@ import (
 					attributes: [
 						for attr in res.model.attributes {
 							attr
+
+							dal: {
+								attr.dal
+
+								if attr.dal.default != _|_ {
+									quotedDefault: attr.dal.type == "String"
+								}
+							}
 						}
 					]
 				},

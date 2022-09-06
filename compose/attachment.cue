@@ -31,7 +31,7 @@ attachment: {
 			preview_url: {}
 			name:        {sortable: true}
 			meta:        { goType: "types.AttachmentMeta" }
-			created_at: schema.SortableTimestampField
+			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
 		}

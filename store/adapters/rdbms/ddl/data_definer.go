@@ -2,14 +2,15 @@ package ddl
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 )
 
 type (
 	driverDialect interface {
-		// NativeColumnType converts column type to type that can be used in the underlying rdbms
-		NativeColumnType(columnType dal.Type) (*ColumnType, error)
+		// Column converts column type to type that can be used in the underlying rdbms
+		AttributeToColumn(attr *dal.Attribute) (col *Column, err error)
 	}
 
 	// DataDefiner describes an interface for all DDL commands
@@ -41,9 +42,10 @@ type (
 	}
 
 	Column struct {
-		Ident        string
-		Type         *ColumnType
-		DefaultValue string
+		Ident string
+		Type  *ColumnType
+
+		Default string
 
 		// implementation variations
 		Meta map[string]interface{}
@@ -53,9 +55,6 @@ type (
 
 	ColumnType struct {
 		Name string
-
-		// additional params for type
-		Parameters []any
 
 		Null bool
 
@@ -128,18 +127,19 @@ func (t *Table) ColumnByIdent(i string) *Column {
 
 // ConvertModel is generic model converter
 func ConvertModel(m *dal.Model, d driverDialect) (t *Table, err error) {
+	var (
+		col *Column
+	)
+
 	t = &Table{Ident: m.Ident}
 	for _, a := range m.Attributes {
 		if a.Type == nil {
 			continue
 		}
 
-		col := &Column{
-			Ident:   a.StoreIdent(),
-			Comment: a.Label,
-		}
+		// @todo filter out store-strategy
 
-		col.Type, err = d.NativeColumnType(a.Type)
+		col, err = d.AttributeToColumn(a)
 		if err != nil {
 			return nil, fmt.Errorf("could not convert attribute %q to column: %w", a.Ident, err)
 		}
@@ -150,4 +150,52 @@ func ConvertModel(m *dal.Model, d driverDialect) (t *Table, err error) {
 	// @todo indexes
 
 	return
+}
+
+func DefaultValueCurrentTimestamp(set bool) string {
+	if !set {
+		return ""
+	}
+
+	return "CURRENT_TIMESTAMP"
+}
+
+func DefaultBoolean(set, value bool) string {
+	switch {
+	case !set:
+		return ""
+	case value:
+		return "true"
+	default:
+		return "false"
+	}
+}
+
+func DefaultNumber(set bool, precision uint, value float64) string {
+	switch {
+	case !set:
+		return ""
+	case precision > 0:
+		return fmt.Sprintf("%f", value)
+	default:
+		return fmt.Sprintf("%d", value)
+	}
+}
+
+func DefaultJSON(set bool, value any) (_ string, err error) {
+	if str, is := value.(string); is {
+		return "'" + str + "'", nil
+	}
+
+	switch {
+	case !set:
+		return "", nil
+	default:
+		var aux []byte
+		if aux, err = json.Marshal(value); err != nil {
+			return "", fmt.Errorf("could not serialize default value for JSON field: %w", err)
+		}
+
+		return string(aux), nil
+	}
 }

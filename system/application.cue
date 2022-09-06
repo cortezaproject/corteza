@@ -13,7 +13,7 @@ application: {
 				enabled: {sortable: true, goType: "bool"}
 				weight: {goType: "int", sortable: true}
 				unify: {goType: "*types.ApplicationUnify"}
-				created_at: schema.SortableTimestampField
+				created_at: schema.SortableTimestampNowField
 				updated_at: schema.SortableTimestampNilField
 				deleted_at: schema.SortableTimestampNilField
 		}

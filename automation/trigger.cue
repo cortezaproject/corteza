@@ -18,7 +18,7 @@ trigger: {
 			constraints: { goType: "types.TriggerConstraintSet" }
 			input: { goType: "*expr.Vars" }
 
-			created_at: schema.SortableTimestampField
+			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
 			owned_by:   schema.AttributeUserRef

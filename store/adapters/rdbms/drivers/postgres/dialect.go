@@ -74,64 +74,81 @@ func (postgresDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpress
 	return exp.NewLiteralExpression("?", c), nil
 }
 
-func (postgresDialect) NativeColumnType(t dal.Type) (ct *ddl.ColumnType, err error) {
-	ct = &ddl.ColumnType{
-		Null: t.IsNullable(),
+func (postgresDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err error) {
+	col = &ddl.Column{
+		Ident:   attr.StoreIdent(),
+		Comment: attr.Label,
+		Type: &ddl.ColumnType{
+			Null: attr.Type.IsNullable(),
+		},
 	}
 
-	switch c := t.(type) {
+	switch t := attr.Type.(type) {
 	case *dal.TypeID, *dal.TypeRef:
-		ct.Name = "BIGINT"
+		col.Type.Name = "BIGINT"
 
 	case *dal.TypeTimestamp:
-		ct.Name = "TIMESTAMP"
+		col.Type.Name = "TIMESTAMP"
 
-		if c.Timezone {
-			ct.Name += "TZ"
+		if t.Timezone {
+			col.Type.Name += "TZ"
 		}
-		ct.Name += fmt.Sprintf("(%d)", c.Precision)
+		col.Type.Name += fmt.Sprintf("(%d)", t.Precision)
+		col.Default = ddl.DefaultValueCurrentTimestamp(t.DefaultCurrentTimestamp)
 
 	case *TypeTime:
-		ct.Name = "TIME"
+		col.Type.Name = "TIME"
 
-		if c.Timezone {
-			ct.Name += "TZ"
+		if t.Timezone {
+			col.Type.Name += "TZ"
 		}
-		ct.Name += fmt.Sprintf("(%d)", c.Precision)
+		col.Type.Name += fmt.Sprintf("(%d)", t.Precision)
+		col.Default = ddl.DefaultValueCurrentTimestamp(t.DefaultCurrentTimestamp)
 
 	case *dal.TypeDate:
-		ct.Name = "DATE"
+		col.Type.Name = "DATE"
+		col.Default = ddl.DefaultValueCurrentTimestamp(t.DefaultCurrentTimestamp)
 
 	case *dal.TypeNumber:
-		ct.Name = "NUMERIC"
+		col.Type.Name = "NUMERIC"
 		// @todo precision, scale?
 
+		col.Default = ddl.DefaultNumber(t.HasDefault, t.Precision, t.DefaultValue)
+
 	case *dal.TypeText:
-		if c.Length > 0 {
-			// VARCHAR(0) is useless
-			ct.Name = fmt.Sprintf("VARCHAR(%d)", c.Length)
+		if t.Length > 0 {
+			col.Type.Name = fmt.Sprintf("VARCHAR(%d)", t.Length)
 		} else {
-			ct.Name = "TEXT"
+			col.Type.Name = "TEXT"
+		}
+
+		if t.HasDefault {
+			// @todo use proper quote type
+			col.Default = fmt.Sprintf("%q", t.DefaultValue)
 		}
 
 	case *dal.TypeJSON:
-		ct.Name = "JSONB"
+		col.Type.Name = "JSONB"
+		if col.Default, err = ddl.DefaultJSON(t.HasDefault, t.DefaultValue); err != nil {
+			return nil, err
+		}
 
 	case *dal.TypeGeometry:
 		// @todo geometry type
-		ct.Name = "JSONB"
+		col.Type.Name = "JSONB"
 
 	case *dal.TypeBlob:
-		ct.Name = "BYTEA"
+		col.Type.Name = "BYTEA"
 
 	case *dal.TypeBoolean:
-		ct.Name = "BOOLEAN"
+		col.Type.Name = "BOOLEAN"
+		col.Default = ddl.DefaultBoolean(t.HasDefault, t.DefaultValue)
 
 	case *dal.TypeUUID:
-		ct.Name = "UUID"
+		col.Type.Name = "UUID"
 
 	default:
-		return nil, fmt.Errorf("unsupported column type: %s ", c.Type())
+		return nil, fmt.Errorf("unsupported column type: %s ", t.Type())
 	}
 
 	return

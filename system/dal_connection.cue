@@ -14,7 +14,7 @@ dal_connection: {
 			meta: { goType: "types.ConnectionMeta" }
 			config: { goType: "types.ConnectionConfig" }
 
-			created_at: schema.SortableTimestampField
+			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
 			created_by: schema.AttributeUserRef

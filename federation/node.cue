@@ -23,7 +23,7 @@ node: {
 				pair_token: { goType: "string" }
 				auth_token: { goType: "string" }
 
-				created_at: schema.SortableTimestampField
+				created_at: schema.SortableTimestampNowField
 				updated_at: schema.SortableTimestampNilField
 				deleted_at: schema.SortableTimestampNilField
 				created_by: { goType: "uint64" }

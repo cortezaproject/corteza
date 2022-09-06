@@ -25,17 +25,14 @@ var (
 
 		Attributes: dal.AttributeSet{
 			&dal.Attribute{
-				Ident:      "ID",
-				PrimaryKey: true,
-				Type:       &dal.TypeID{},
-				Store:      &dal.CodecAlias{Ident: "id"},
+				Ident: "ID", PrimaryKey: true,
+				Type:  &dal.TypeID{},
+				Store: &dal.CodecAlias{Ident: "id"},
 			},
 
 			&dal.Attribute{
-				Ident:    "OwnerID",
-				Sortable: true,
+				Ident: "OwnerID", Sortable: true,
 				Type: &dal.TypeRef{
-
 					RefAttribute: "id",
 					RefModel: &dal.ModelRef{
 						ResourceType: "corteza::system:user",
@@ -46,9 +43,7 @@ var (
 
 			&dal.Attribute{
 				Ident: "NamespaceID",
-
 				Type: &dal.TypeRef{
-
 					RefAttribute: "id",
 					RefModel: &dal.ModelRef{
 						ResourceType: "corteza::compose:namespace",
@@ -58,60 +53,53 @@ var (
 			},
 
 			&dal.Attribute{
-				Ident:    "Kind",
-				Sortable: true,
-				Type:     &dal.TypeText{},
-				Store:    &dal.CodecAlias{Ident: "kind"},
+				Ident: "Kind", Sortable: true,
+				Type:  &dal.TypeText{},
+				Store: &dal.CodecAlias{Ident: "kind"},
 			},
 
 			&dal.Attribute{
 				Ident: "Url",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "url"},
 			},
 
 			&dal.Attribute{
 				Ident: "PreviewUrl",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "preview_url"},
 			},
 
 			&dal.Attribute{
-				Ident:    "Name",
-				Sortable: true,
-				Type:     &dal.TypeText{},
-				Store:    &dal.CodecAlias{Ident: "name"},
+				Ident: "Name", Sortable: true,
+				Type:  &dal.TypeText{},
+				Store: &dal.CodecAlias{Ident: "name"},
 			},
 
 			&dal.Attribute{
 				Ident: "Meta",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "meta"},
 			},
 
 			&dal.Attribute{
-				Ident:    "CreatedAt",
-				Sortable: true,
-				Type:     &dal.TypeTimestamp{},
-				Store:    &dal.CodecAlias{Ident: "created_at"},
+				Ident: "CreatedAt", Sortable: true,
+				Type: &dal.TypeTimestamp{
+					DefaultCurrentTimestamp: true,
+					Timezone:                true,
+				},
+				Store: &dal.CodecAlias{Ident: "created_at"},
 			},
 
 			&dal.Attribute{
-				Ident:    "UpdatedAt",
-				Sortable: true,
-				Type: &dal.TypeTimestamp{
-					Nullable: true},
+				Ident: "UpdatedAt", Sortable: true,
+				Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true},
 				Store: &dal.CodecAlias{Ident: "updated_at"},
 			},
 
 			&dal.Attribute{
-				Ident:    "DeletedAt",
-				Sortable: true,
-				Type: &dal.TypeTimestamp{
-					Nullable: true},
+				Ident: "DeletedAt", Sortable: true,
+				Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true},
 				Store: &dal.CodecAlias{Ident: "deleted_at"},
 			},
 		},
@@ -123,38 +111,32 @@ var (
 
 		Attributes: dal.AttributeSet{
 			&dal.Attribute{
-				Ident:      "ID",
-				PrimaryKey: true,
-				Type:       &dal.TypeID{},
-				Store:      &dal.CodecAlias{Ident: "id"},
+				Ident: "ID", PrimaryKey: true,
+				Type:  &dal.TypeID{},
+				Store: &dal.CodecAlias{Ident: "id"},
 			},
 
 			&dal.Attribute{
 				Ident: "Handle",
-
-				Type:  &dal.TypeText{},
+				Type:  &dal.TypeText{Length: 255},
 				Store: &dal.CodecAlias{Ident: "handle"},
 			},
 
 			&dal.Attribute{
-				Ident:    "Name",
-				Sortable: true,
-				Type:     &dal.TypeText{},
-				Store:    &dal.CodecAlias{Ident: "name"},
+				Ident: "Name", Sortable: true,
+				Type:  &dal.TypeText{},
+				Store: &dal.CodecAlias{Ident: "name"},
 			},
 
 			&dal.Attribute{
 				Ident: "Config",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "config"},
 			},
 
 			&dal.Attribute{
 				Ident: "NamespaceID",
-
 				Type: &dal.TypeRef{
-
 					RefAttribute: "id",
 					RefModel: &dal.ModelRef{
 						ResourceType: "corteza::compose:namespace",
@@ -164,25 +146,23 @@ var (
 			},
 
 			&dal.Attribute{
-				Ident:    "CreatedAt",
-				Sortable: true,
-				Type:     &dal.TypeTimestamp{},
-				Store:    &dal.CodecAlias{Ident: "created_at"},
+				Ident: "CreatedAt", Sortable: true,
+				Type: &dal.TypeTimestamp{
+					DefaultCurrentTimestamp: true,
+					Timezone:                true,
+				},
+				Store: &dal.CodecAlias{Ident: "created_at"},
 			},
 
 			&dal.Attribute{
-				Ident:    "UpdatedAt",
-				Sortable: true,
-				Type: &dal.TypeTimestamp{
-					Nullable: true},
+				Ident: "UpdatedAt", Sortable: true,
+				Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true},
 				Store: &dal.CodecAlias{Ident: "updated_at"},
 			},
 
 			&dal.Attribute{
-				Ident:    "DeletedAt",
-				Sortable: true,
-				Type: &dal.TypeTimestamp{
-					Nullable: true},
+				Ident: "DeletedAt", Sortable: true,
+				Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true},
 				Store: &dal.CodecAlias{Ident: "deleted_at"},
 			},
 		},
@@ -194,45 +174,50 @@ var (
 
 		Attributes: dal.AttributeSet{
 			&dal.Attribute{
-				Ident:      "ID",
-				PrimaryKey: true,
-				Type:       &dal.TypeID{},
-				Store:      &dal.CodecAlias{Ident: "id"},
+				Ident: "ID", PrimaryKey: true,
+				Type:  &dal.TypeID{},
+				Store: &dal.CodecAlias{Ident: "id"},
 			},
 
 			&dal.Attribute{
 				Ident: "Handle",
-
-				Type:  &dal.TypeText{},
+				Type:  &dal.TypeText{Length: 255},
 				Store: &dal.CodecAlias{Ident: "handle"},
 			},
 
 			&dal.Attribute{
 				Ident: "Meta",
-
-				Type:  &dal.TypeJSON{},
+				Type: &dal.TypeJSON{
+					DefaultValue: "{}",
+				},
 				Store: &dal.CodecAlias{Ident: "meta"},
 			},
 
 			&dal.Attribute{
 				Ident: "Config",
-
-				Type:  &dal.TypeJSON{},
+				Type: &dal.TypeJSON{
+					DefaultValue: "{}",
+				},
 				Store: &dal.CodecAlias{Ident: "config"},
 			},
 
 			&dal.Attribute{
-				Ident: "Fields",
+				Ident: "Privacy",
+				Type: &dal.TypeJSON{
+					DefaultValue: "{}",
+				},
+				Store: &dal.CodecAlias{Ident: "privacy"},
+			},
 
+			&dal.Attribute{
+				Ident: "Fields",
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "fields"},
 			},
 
 			&dal.Attribute{
 				Ident: "NamespaceID",
-
 				Type: &dal.TypeRef{
-
 					RefAttribute: "id",
 					RefModel: &dal.ModelRef{
 						ResourceType: "corteza::compose:namespace",
@@ -242,32 +227,29 @@ var (
 			},
 
 			&dal.Attribute{
-				Ident:    "Name",
-				Sortable: true,
-				Type:     &dal.TypeText{},
-				Store:    &dal.CodecAlias{Ident: "name"},
+				Ident: "Name", Sortable: true,
+				Type:  &dal.TypeText{},
+				Store: &dal.CodecAlias{Ident: "name"},
 			},
 
 			&dal.Attribute{
-				Ident:    "CreatedAt",
-				Sortable: true,
-				Type:     &dal.TypeTimestamp{},
-				Store:    &dal.CodecAlias{Ident: "created_at"},
-			},
-
-			&dal.Attribute{
-				Ident:    "UpdatedAt",
-				Sortable: true,
+				Ident: "CreatedAt", Sortable: true,
 				Type: &dal.TypeTimestamp{
-					Nullable: true},
+					DefaultCurrentTimestamp: true,
+					Timezone:                true,
+				},
+				Store: &dal.CodecAlias{Ident: "created_at"},
+			},
+
+			&dal.Attribute{
+				Ident: "UpdatedAt", Sortable: true,
+				Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true},
 				Store: &dal.CodecAlias{Ident: "updated_at"},
 			},
 
 			&dal.Attribute{
-				Ident:    "DeletedAt",
-				Sortable: true,
-				Type: &dal.TypeTimestamp{
-					Nullable: true},
+				Ident: "DeletedAt", Sortable: true,
+				Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true},
 				Store: &dal.CodecAlias{Ident: "deleted_at"},
 			},
 		},
@@ -279,17 +261,14 @@ var (
 
 		Attributes: dal.AttributeSet{
 			&dal.Attribute{
-				Ident:      "ID",
-				PrimaryKey: true,
-				Type:       &dal.TypeID{},
-				Store:      &dal.CodecAlias{Ident: "id"},
+				Ident: "ID", PrimaryKey: true,
+				Type:  &dal.TypeID{},
+				Store: &dal.CodecAlias{Ident: "id"},
 			},
 
 			&dal.Attribute{
 				Ident: "ModuleID",
-
 				Type: &dal.TypeRef{
-
 					RefAttribute: "id",
 					RefModel: &dal.ModelRef{
 						ResourceType: "corteza::compose:module",
@@ -300,98 +279,84 @@ var (
 
 			&dal.Attribute{
 				Ident: "NamespaceID",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "rel_namespace"},
 			},
 
 			&dal.Attribute{
-				Ident:    "Place",
-				Sortable: true,
-				Type:     &dal.TypeText{},
-				Store:    &dal.CodecAlias{Ident: "place"},
+				Ident: "Place", Sortable: true,
+				Type:  &dal.TypeText{},
+				Store: &dal.CodecAlias{Ident: "place"},
 			},
 
 			&dal.Attribute{
-				Ident:    "Kind",
-				Sortable: true,
-				Type:     &dal.TypeText{},
-				Store:    &dal.CodecAlias{Ident: "kind"},
+				Ident: "Kind", Sortable: true,
+				Type:  &dal.TypeText{},
+				Store: &dal.CodecAlias{Ident: "kind"},
 			},
 
 			&dal.Attribute{
-				Ident:    "Name",
-				Sortable: true,
-				Type:     &dal.TypeText{},
-				Store:    &dal.CodecAlias{Ident: "name"},
+				Ident: "Name", Sortable: true,
+				Type:  &dal.TypeText{},
+				Store: &dal.CodecAlias{Ident: "name"},
 			},
 
 			&dal.Attribute{
-				Ident:    "Label",
-				Sortable: true,
-				Type:     &dal.TypeText{},
-				Store:    &dal.CodecAlias{Ident: "label"},
+				Ident: "Label", Sortable: true,
+				Type:  &dal.TypeText{},
+				Store: &dal.CodecAlias{Ident: "label"},
 			},
 
 			&dal.Attribute{
 				Ident: "Options",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "options"},
 			},
 
 			&dal.Attribute{
 				Ident: "Config",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "config"},
 			},
 
 			&dal.Attribute{
 				Ident: "Required",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "is_required"},
 			},
 
 			&dal.Attribute{
 				Ident: "Multi",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "is_multi"},
 			},
 
 			&dal.Attribute{
 				Ident: "DefaultValue",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "default_value"},
 			},
 
 			&dal.Attribute{
 				Ident: "Expressions",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "expressions"},
 			},
 
 			&dal.Attribute{
 				Ident: "CreatedAt",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "created_at"},
 			},
 
 			&dal.Attribute{
 				Ident: "UpdatedAt",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "updated_at"},
 			},
 
 			&dal.Attribute{
 				Ident: "DeletedAt",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "deleted_at"},
 			},
@@ -404,60 +369,53 @@ var (
 
 		Attributes: dal.AttributeSet{
 			&dal.Attribute{
-				Ident:      "ID",
-				PrimaryKey: true,
-				Type:       &dal.TypeID{},
-				Store:      &dal.CodecAlias{Ident: "id"},
+				Ident: "ID", PrimaryKey: true,
+				Type:  &dal.TypeID{},
+				Store: &dal.CodecAlias{Ident: "id"},
 			},
 
 			&dal.Attribute{
-				Ident:    "Slug",
-				Sortable: true,
-				Type:     &dal.TypeText{},
-				Store:    &dal.CodecAlias{Ident: "slug"},
+				Ident: "Slug", Sortable: true,
+				Type:  &dal.TypeText{},
+				Store: &dal.CodecAlias{Ident: "slug"},
 			},
 
 			&dal.Attribute{
 				Ident: "Enabled",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "enabled"},
 			},
 
 			&dal.Attribute{
 				Ident: "Meta",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "meta"},
 			},
 
 			&dal.Attribute{
-				Ident:    "Name",
-				Sortable: true,
-				Type:     &dal.TypeText{},
-				Store:    &dal.CodecAlias{Ident: "name"},
+				Ident: "Name", Sortable: true,
+				Type:  &dal.TypeText{},
+				Store: &dal.CodecAlias{Ident: "name"},
 			},
 
 			&dal.Attribute{
-				Ident:    "CreatedAt",
-				Sortable: true,
-				Type:     &dal.TypeTimestamp{},
-				Store:    &dal.CodecAlias{Ident: "created_at"},
-			},
-
-			&dal.Attribute{
-				Ident:    "UpdatedAt",
-				Sortable: true,
+				Ident: "CreatedAt", Sortable: true,
 				Type: &dal.TypeTimestamp{
-					Nullable: true},
+					DefaultCurrentTimestamp: true,
+					Timezone:                true,
+				},
+				Store: &dal.CodecAlias{Ident: "created_at"},
+			},
+
+			&dal.Attribute{
+				Ident: "UpdatedAt", Sortable: true,
+				Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true},
 				Store: &dal.CodecAlias{Ident: "updated_at"},
 			},
 
 			&dal.Attribute{
-				Ident:    "DeletedAt",
-				Sortable: true,
-				Type: &dal.TypeTimestamp{
-					Nullable: true},
+				Ident: "DeletedAt", Sortable: true,
+				Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true},
 				Store: &dal.CodecAlias{Ident: "deleted_at"},
 			},
 		},
@@ -469,17 +427,14 @@ var (
 
 		Attributes: dal.AttributeSet{
 			&dal.Attribute{
-				Ident:      "ID",
-				PrimaryKey: true,
-				Type:       &dal.TypeID{},
-				Store:      &dal.CodecAlias{Ident: "id"},
+				Ident: "ID", PrimaryKey: true,
+				Type:  &dal.TypeID{},
+				Store: &dal.CodecAlias{Ident: "id"},
 			},
 
 			&dal.Attribute{
-				Ident:    "SelfID",
-				Sortable: true,
+				Ident: "SelfID", Sortable: true,
 				Type: &dal.TypeRef{
-
 					RefAttribute: "id",
 					RefModel: &dal.ModelRef{
 						ResourceType: "corteza::compose:page",
@@ -490,9 +445,7 @@ var (
 
 			&dal.Attribute{
 				Ident: "ModuleID",
-
 				Type: &dal.TypeRef{
-
 					RefAttribute: "id",
 					RefModel: &dal.ModelRef{
 						ResourceType: "corteza::compose:module",
@@ -503,9 +456,7 @@ var (
 
 			&dal.Attribute{
 				Ident: "NamespaceID",
-
 				Type: &dal.TypeRef{
-
 					RefAttribute: "id",
 					RefModel: &dal.ModelRef{
 						ResourceType: "corteza::compose:namespace",
@@ -516,80 +467,70 @@ var (
 
 			&dal.Attribute{
 				Ident: "Handle",
-
-				Type:  &dal.TypeText{},
+				Type:  &dal.TypeText{Length: 255},
 				Store: &dal.CodecAlias{Ident: "handle"},
 			},
 
 			&dal.Attribute{
 				Ident: "Config",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "config"},
 			},
 
 			&dal.Attribute{
 				Ident: "Blocks",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "blocks"},
 			},
 
 			&dal.Attribute{
 				Ident: "Children",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "children"},
 			},
 
 			&dal.Attribute{
 				Ident: "Visible",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "visible"},
 			},
 
 			&dal.Attribute{
-				Ident:    "Weight",
-				Sortable: true,
-				Type:     &dal.TypeText{},
-				Store:    &dal.CodecAlias{Ident: "weight"},
+				Ident: "Weight", Sortable: true,
+				Type:  &dal.TypeText{},
+				Store: &dal.CodecAlias{Ident: "weight"},
 			},
 
 			&dal.Attribute{
-				Ident:    "Title",
-				Sortable: true,
-				Type:     &dal.TypeText{},
-				Store:    &dal.CodecAlias{Ident: "title"},
+				Ident: "Title", Sortable: true,
+				Type:  &dal.TypeText{},
+				Store: &dal.CodecAlias{Ident: "title"},
 			},
 
 			&dal.Attribute{
 				Ident: "Description",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "description"},
 			},
 
 			&dal.Attribute{
-				Ident:    "CreatedAt",
-				Sortable: true,
-				Type:     &dal.TypeTimestamp{},
-				Store:    &dal.CodecAlias{Ident: "created_at"},
+				Ident: "CreatedAt", Sortable: true,
+				Type: &dal.TypeTimestamp{
+					DefaultCurrentTimestamp: true,
+					Timezone:                true,
+				},
+				Store: &dal.CodecAlias{Ident: "created_at"},
 			},
 
 			&dal.Attribute{
-				Ident:    "UpdatedAt",
-				Sortable: true,
-				Type: &dal.TypeTimestamp{
-					Nullable: true},
+				Ident: "UpdatedAt", Sortable: true,
+				Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true},
 				Store: &dal.CodecAlias{Ident: "updated_at"},
 			},
 
 			&dal.Attribute{
-				Ident:    "DeletedAt",
-				Sortable: true,
-				Type: &dal.TypeTimestamp{
-					Nullable: true},
+				Ident: "DeletedAt", Sortable: true,
+				Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true},
 				Store: &dal.CodecAlias{Ident: "deleted_at"},
 			},
 		},
@@ -601,68 +542,59 @@ var (
 
 		Attributes: dal.AttributeSet{
 			&dal.Attribute{
-				Ident:      "ID",
-				PrimaryKey: true,
-				Type:       &dal.TypeID{},
-				Store:      &dal.CodecAlias{Ident: "id"},
+				Ident: "ID", PrimaryKey: true,
+				Type:  &dal.TypeID{},
+				Store: &dal.CodecAlias{Ident: "id"},
 			},
 
 			&dal.Attribute{
 				Ident: "ModuleID",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "rel_module"},
 			},
 
 			&dal.Attribute{
 				Ident: "Module",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "module"},
 			},
 
 			&dal.Attribute{
 				Ident: "Values",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "values"},
 			},
 
 			&dal.Attribute{
 				Ident: "NamespaceID",
-
 				Type:  &dal.TypeText{},
 				Store: &dal.CodecAlias{Ident: "rel_namespace"},
 			},
 
 			&dal.Attribute{
-				Ident:    "CreatedAt",
-				Sortable: true,
-				Type:     &dal.TypeTimestamp{},
-				Store:    &dal.CodecAlias{Ident: "created_at"},
+				Ident: "CreatedAt", Sortable: true,
+				Type: &dal.TypeTimestamp{
+					DefaultCurrentTimestamp: true,
+					Timezone:                true,
+				},
+				Store: &dal.CodecAlias{Ident: "created_at"},
 			},
 
 			&dal.Attribute{
-				Ident:    "UpdatedAt",
-				Sortable: true,
-				Type: &dal.TypeTimestamp{
-					Nullable: true},
+				Ident: "UpdatedAt", Sortable: true,
+				Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true},
 				Store: &dal.CodecAlias{Ident: "updated_at"},
 			},
 
 			&dal.Attribute{
-				Ident:    "DeletedAt",
-				Sortable: true,
-				Type: &dal.TypeTimestamp{
-					Nullable: true},
+				Ident: "DeletedAt", Sortable: true,
+				Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true},
 				Store: &dal.CodecAlias{Ident: "deleted_at"},
 			},
 
 			&dal.Attribute{
 				Ident: "OwnedBy",
-
 				Type: &dal.TypeRef{
-
 					RefAttribute: "id",
 					RefModel: &dal.ModelRef{
 						ResourceType: "corteza::system:user",
@@ -673,9 +605,7 @@ var (
 
 			&dal.Attribute{
 				Ident: "CreatedBy",
-
 				Type: &dal.TypeRef{
-
 					RefAttribute: "id",
 					RefModel: &dal.ModelRef{
 						ResourceType: "corteza::system:user",
@@ -686,9 +616,7 @@ var (
 
 			&dal.Attribute{
 				Ident: "UpdatedBy",
-
 				Type: &dal.TypeRef{
-
 					RefAttribute: "id",
 					RefModel: &dal.ModelRef{
 						ResourceType: "corteza::system:user",
@@ -699,9 +627,7 @@ var (
 
 			&dal.Attribute{
 				Ident: "DeletedBy",
-
 				Type: &dal.TypeRef{
-
 					RefAttribute: "id",
 					RefModel: &dal.ModelRef{
 						ResourceType: "corteza::system:user",

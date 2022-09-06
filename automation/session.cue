@@ -22,7 +22,7 @@ session: {
 			stacktrace: { goType: "types.Stacktrace" }
 
 			created_by: { goType: "uint64" }
-			created_at: schema.SortableTimestampField
+			created_at: schema.SortableTimestampNowField
 			purge_at: schema.SortableTimestampNilField
 			completed_at: schema.SortableTimestampNilField
 			suspended_at: schema.SortableTimestampNilField

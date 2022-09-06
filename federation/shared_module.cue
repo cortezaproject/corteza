@@ -23,7 +23,7 @@ sharedModule: {
 			external_federation_module_id: { sortable: true, ident: "externalFederationModuleID", goType: "uint64", storeIdent: "xref_module",  }
 			fields: { goType: "types.ModuleFieldSet" }
 
-			created_at: schema.SortableTimestampField
+			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
 			created_by: schema.AttributeUserRef
