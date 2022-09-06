@@ -18,7 +18,7 @@ auth_session: {
 				data:    { goType: "[]byte" }
 				user_id: { goType: "uint64", storeIdent: "rel_user", ident: "userID"}
 				expires_at: schema.SortableTimestampField
-				created_at: schema.SortableTimestampField
+				created_at: schema.SortableTimestampNowField
 				remote_addr: {}
 				user_agent: {}
 		}

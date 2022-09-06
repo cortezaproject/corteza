@@ -43,6 +43,8 @@ type (
 		Timezone  bool
 		Precision uint
 		Nullable  bool
+
+		DefaultCurrentTimestamp bool
 	}
 
 	// TypeTime handles time coding
@@ -54,6 +56,8 @@ type (
 		Timezone  bool
 		Precision uint
 		Nullable  bool
+
+		DefaultCurrentTimestamp bool
 	}
 
 	// TypeDate handles date coding
@@ -64,6 +68,8 @@ type (
 	TypeDate struct {
 		//
 		Nullable bool
+
+		DefaultCurrentTimestamp bool
 	}
 
 	// TypeNumber handles number coding
@@ -75,6 +81,9 @@ type (
 		Precision uint
 		Scale     uint
 		Nullable  bool
+
+		HasDefault   bool
+		DefaultValue float64
 	}
 
 	// TypeText handles string coding
@@ -85,18 +94,27 @@ type (
 	TypeText struct {
 		Length   uint
 		Nullable bool
+
+		HasDefault   bool
+		DefaultValue string
 	}
 
 	// TypeBoolean
 	TypeBoolean struct {
 		//
 		Nullable bool
+
+		HasDefault   bool
+		DefaultValue bool
 	}
 
 	// TypeEnum
 	TypeEnum struct {
 		Values   []string
 		Nullable bool
+
+		HasDefault   bool
+		DefaultValue string
 	}
 
 	// TypeGeometry
@@ -114,6 +132,9 @@ type (
 	TypeJSON struct {
 		//
 		Nullable bool
+
+		HasDefault   bool
+		DefaultValue any
 	}
 
 	// TypeBlob store/return data as

@@ -24,7 +24,7 @@ exposedModule: {
 			compose_namespace_id: { ident: "composeNamespaceID", goType: "uint64", storeIdent: "rel_compose_namespace" }
 			fields: { goType: "types.ModuleFieldSet" }
 
-			created_at: schema.SortableTimestampField
+			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
 			created_by: schema.AttributeUserRef

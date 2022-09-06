@@ -14,7 +14,7 @@ namespace: {
 			meta: { goType: "types.NamespaceMeta" }
 			name: { sortable: true }
 
-			created_at: schema.SortableTimestampField
+			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
 		}

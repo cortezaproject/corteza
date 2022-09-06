@@ -151,8 +151,8 @@ func GenTableColumn(col *Column) string {
 		sql += "NOT NULL"
 	}
 
-	if col.DefaultValue > "" {
-		sql += " DEFAULT " + col.DefaultValue
+	if col.Default > "" {
+		sql += " DEFAULT " + col.Default
 	}
 
 	return sql

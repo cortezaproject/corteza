@@ -79,7 +79,7 @@ func createTablesFromModels(ctx context.Context, log *zap.Logger, dd ddl.DataDef
 			}
 
 			if err = dd.TableCreate(ctx, tbl); err != nil {
-				return fmt.Errorf("can not create table from mdoel model %q: %w", m.Ident, err)
+				return fmt.Errorf("can not create table from model %q: %w", m.Ident, err)
 			}
 		}
 	}

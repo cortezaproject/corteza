@@ -19,7 +19,7 @@ auth_oa2token: {
 				access: {}
 				refresh: {}
 				expires_at: schema.SortableTimestampField
-				created_at: schema.SortableTimestampField
+				created_at: schema.SortableTimestampNowField
 				data: { goType: "rawJson" }
 				client_id: { goType: "uint64", ident: "clientID", storeIdent: "rel_client" }
 				user_id: { goType: "uint64", ident: "userID", storeIdent: "rel_user" }

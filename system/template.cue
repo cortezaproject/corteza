@@ -16,7 +16,7 @@ template: {
 				template: {sortable: true, goType: "string"}
 
 				owner_id: { ident: "ownerID", goType: "uint64", storeIdent: "rel_owner" }
-				created_at: schema.SortableTimestampField
+				created_at: schema.SortableTimestampNowField
 				updated_at: schema.SortableTimestampNilField
 				deleted_at: schema.SortableTimestampNilField
 				last_used_at: schema.SortableTimestampNilField

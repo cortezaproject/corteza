@@ -18,7 +18,7 @@ apigw_route: {
 			group:    {sortable: true, goType: "uint64", storeIdent: "rel_group"}
 			meta:     {goType: "types.ApigwRouteMeta"}
 
-			created_at: schema.SortableTimestampField
+			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
 			created_by: schema.AttributeUserRef

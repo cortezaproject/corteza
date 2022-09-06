@@ -17,11 +17,15 @@ module: {
 			handle: schema.HandleField
 			meta: {
 				goType: "rawJson"
-				dal: { type: "JSON" }
+				dal: { type: "JSON", defaultEmptyObject: true }
 			}
 			config: {
 				goType: "types.ModuleConfig"
-				dal: { type: "JSON" }
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			privacy: {
+				goType: "types.ModuleConfig"
+				dal: { type: "JSON", defaultEmptyObject: true }
 			}
 			fields: {
 				goType: "types.ModuleFieldSet",
@@ -35,20 +39,20 @@ module: {
 			}
 			name: {sortable: true}
 
-			created_at: schema.SortableTimestampField
+			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
 		}
 
-		indexes: {
-			"primary": "id"
-			"namespace": "namespace_id",
-			"unique_handle": {
-				unique: true
-				attributes: ["handle", "namespace_id"]
-				predicate: "handle <> '' AND deleted_at IS NULL"
-			}
-		}
+//		indexes: {
+//			"primary": "id"
+//			"namespace": "namespace_id",
+//			"unique_handle": {
+//				unique: true
+//				attributes: ["handle", "namespace_id"]
+//				predicate: "handle <> '' AND deleted_at IS NULL"
+//			}
+//		}
 	}
 
 	filter: {

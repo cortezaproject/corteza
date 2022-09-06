@@ -15,7 +15,7 @@ data_privacy_request_comment: {
 			request_id: { ident: "requestID", goType: "uint64", storeIdent: "rel_request" }
 			comment: { goType: "string" }
 
-			created_at: schema.SortableTimestampField
+			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
 			created_by: schema.AttributeUserRef

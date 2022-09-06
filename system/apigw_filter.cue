@@ -19,7 +19,7 @@ apigw_filter: {
 			enabled: {sortable: true, goType: "bool"}
 			params: {goType: "types.ApigwFilterParams"}
 
-			created_at: schema.SortableTimestampField
+			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
 			created_by: schema.AttributeUserRef

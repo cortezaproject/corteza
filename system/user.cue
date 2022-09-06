@@ -15,7 +15,7 @@ user: {
 				name: {sortable: true}
 				kind: {sortable: true, goType: "types.UserKind"}
 				meta: {goType: "*types.UserMeta"}
-				created_at: schema.SortableTimestampField
+				created_at: schema.SortableTimestampNowField
 				updated_at: schema.SortableTimestampNilField
 				deleted_at: schema.SortableTimestampNilField
 				suspended_at: schema.SortableTimestampNilField

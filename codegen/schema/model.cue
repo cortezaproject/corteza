@@ -65,48 +65,66 @@ import (
 
 		nullable: bool | *false
 
-		default?: string
-
 		if type == "ID" {
 			generatedByStore: bool | *false
+			default?: number
 		}
 
 		if type == "Ref" {
 			refModelResType: #FQRT
 			attribute: #handle | *"id"
+			default?: number
 		}
 
 		if type == "Timestamp" {
 			timezone: bool | *false
 			precision: number | *0
+			defaultCurrentTimestamp?: true
 		}
 
 		if type == "Time" {
 			timezone: bool | *false
 			precision: number | *0
+			defaultCurrentTimestamp?: true
 		}
 
-		if type == "Date" {}
+		if type == "Date" {
+			defaultCurrentTimestamp?: true
+		}
 
 		if type == "Number" {
 			precision: number | *0
 			scale: number | *0
+			default?: number
 		}
 
 		if type == "Text" {
 			length: number | *0
+			default?: string
 		}
 
-		if type == "Boolean" {}
+		if type == "Boolean" {
+			default?: bool
+		}
 
 		if type == "Enum" {
 			values: []
+			default?: string
 		}
 
 		if type == "Geometry" {}
-		if type == "JSON" {}
-		if type == "Blob" {}
+
+		if type == "JSON" {
+			default?: string | bytes
+			defaultEmptyObject?: true
+		}
+
+		if type == "Blob" {
+			default?: bytes
+		}
+
 		if type == "UUID" {}
+
 	}
 }
 
@@ -129,7 +147,7 @@ HandleField: {
 	ignoreCase: true
 
 	goType: "string"
-	dal: { type: "Text", length: 255 }
+	dal: { type: "Text", length: 64 }
 }
 
 AttributeUserRef: {
@@ -141,6 +159,12 @@ SortableTimestampField: {
 	sortable: true
 	goType: "time.Time"
 	dal: { type: "Timestamp", precision: 0, timezone: true, nullable: false }
+}
+
+SortableTimestampNowField: {
+	sortable: true
+	goType: "time.Time"
+	dal: { type: "Timestamp", precision: 0, timezone: true, nullable: false, defaultCurrentTimestamp: true }
 }
 
 SortableTimestampNilField: {
