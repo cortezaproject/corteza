@@ -170,6 +170,9 @@ session:
     error: Session fetch failed
   trigger:
     error: Trigger fetch failed
+  cancel:
+    success: Session canceled
+    error: Session cancel failed
 federation:
   fetch:
     error: Node fetch failed
