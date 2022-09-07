@@ -5,6 +5,7 @@ label:
   actions: Actions
   active: Active
   add: Add
+  add-with-plus: + Add
   addNew: Add new
   addValue: Add new value
   ascending: Ascending
@@ -99,6 +100,7 @@ reminder:
   snooze: Snooze
 tooltip:
   dragAndDrop: Drag and drop to change order
+  field: Configure field
 fieldKinds:
   Bool:
     label: Checkbox (Y/N)
@@ -124,6 +126,8 @@ fieldKinds:
     label: Geometry
 field:
   selectAll: Select all
+  tooltip:
+    permissions: Field permissions
   unselectAll: Unselect all
   kind:
     user:

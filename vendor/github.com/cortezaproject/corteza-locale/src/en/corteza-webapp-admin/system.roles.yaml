@@ -40,6 +40,11 @@ list:
     enabled: Enabled
     handle: Handle
     name: Name
+    state: State
+  rows:
+    filters:
+      archived: Archived
+      deleted: Deleted
   filterForm:
     archived:
       label: archived roles

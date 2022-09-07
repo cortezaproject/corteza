@@ -42,6 +42,11 @@ notVisible: Hidden
 pageMoveFailed: Could not move this page
 reordered: Page reordered
 title: List of Pages
+tooltip:
+  view: View page
+  edit:
+    page: Edit page
+    block: Edit block
 view: View
 visible: Visible
 delete:

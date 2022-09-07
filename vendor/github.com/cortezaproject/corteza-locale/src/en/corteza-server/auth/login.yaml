@@ -1,5 +1,5 @@
 template:
-  title: Log in
+  title: Log in to continue
   form:
     email:
       label: E-mail
@@ -8,9 +8,9 @@ template:
       label: Password
       placeholder: password
     button:
-       login-and-remember: Log in and remember me
-       login: Log in
-       continue: Continue
+      login-and-remember: Log in and remember me
+      login: Log in
+      continue: Continue
   links:
     request-password-reset: Forgot your password?
     signup: Create a new account

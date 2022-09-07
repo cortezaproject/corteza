@@ -3,9 +3,39 @@
 #  - inline permission table (admin interface only)
 #  - modal permission table (common perm. interface)
 ui:
-  reset-back: Reset back to "{{current}}"
-  save-changes: Save changes
+  save: Save changes
+  cancel: Cancel
   set-for: Set permissions for {{target}}
+  loading: Loading permissions
+
+  edit:
+    title: Edit permissions
+    label: User roles
+    description: Select role to set permissions
+
+  evaluate:
+    title: Evaluated permissions
+    description: Evaluate applied permissions
+
+  add:
+    label: Add
+    title: Evaluate permissions
+    save: Save & Close
+    edit:
+      description: Select a role that you wish to edit permissions for
+    evaluate:
+      description: Select a combination of roles or a user to evaluate
+    role:
+      label: Roles
+      placeholder: Select role(s)
+    user:
+      label: Users
+      placeholder: Search or select a user
+
+  tooltip:
+    unknown-context:
+      user: Can not evaluate permission for a user with contextual role on a non-specific resource
+      role: Can not evaluate permission for contextual role on a non-specific resource
 
   access:
     allow: Allow
@@ -16,14 +46,6 @@ ui:
   # Inline permission table UI:
   click-on-cell-to-allow: Click on permission/role cell to allow a specific operation
   alt-click-to-deny: Use Alt-Click to set explicit deny on operation
-
-  not-allowed: Not allowed to set permissions
-  loading: Loading permissions
-
-  role:
-    add-new: Add new role
-    add: Add role
-    no-role-selected: No role selected
 
   title:
     automation: Automation permissions
@@ -333,6 +355,9 @@ resources:
       all: all users
       specific: user "{{target}}"
       operations:
+        credentials:
+          manage:
+            specific: Manage {{target}}'s credentials
         delete:
           description: 'Default: deny'
           specific: Delete {{target}}
@@ -504,3 +529,5 @@ resources:
           title: Update any record
         owner.manage:
           title: Manage ownership of any record
+        revisions.search:
+          title: Access revisions of any record

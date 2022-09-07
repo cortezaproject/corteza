@@ -12,3 +12,5 @@ report:
   edit: Edit Report
 placeholder-handle: handle (a - z, 0 - 9, underscore, dash)
 title: Edit report
+tooltip:
+  view-report: View report

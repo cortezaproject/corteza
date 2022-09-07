@@ -6,4 +6,6 @@ report:
   new: New Report
 searchPlaceholder: Type here to search reports
 title: Reports
+tooltip:
+  permissions: Report permissions
 untitledTitle: Untitled report

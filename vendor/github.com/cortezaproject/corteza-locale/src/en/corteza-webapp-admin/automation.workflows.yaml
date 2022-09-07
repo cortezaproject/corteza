@@ -31,6 +31,10 @@ list:
     enabled: Enabled
     handle: Handle
     name: Name
+    state: State
+  rows:
+    filters:
+      deleted: Deleted
   filterForm:
     deleted:
       label: deleted workflows

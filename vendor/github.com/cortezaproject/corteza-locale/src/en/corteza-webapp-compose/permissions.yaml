@@ -1,7 +1,31 @@
 ui:
-  reset-back: Reset back to "{{current}}"
-  save-changes: Save changes
+  save: Save changes
+  cancel: Cancel
   set-for: Set permissions for {{target}}
+  loading: Loading permissions
+
+  edit:
+    label: User roles
+    description: Select role to set permissions
+
+  evaluate:
+    description: Evaluate applied permissions
+
+  add:
+    label: Add
+    title: Evaluate permissions
+    save: Save & Close
+    role:
+      label: Roles
+      placeholder: Select role(s)
+    user:
+      label: Users
+      placeholder: Search or select a user
+
+  tooltip:
+    unknown-context:
+      user: Can not evaluate permission for a user with contextual role on a non-specific resource
+      role: Can not evaluate permission for contextual role on a non-specific resource
 
   access:
     allow: Allow
@@ -30,6 +54,7 @@ resources:
     module:
       all: all modules
       specific: module "{{target}}"
+      tooltip: Module permissions
       operations:
         delete:
           description: 'Default: deny'
@@ -51,11 +76,17 @@ resources:
           description: 'Default: deny'
           specific: Update module "{{target}}"
           title: Update any module
+        'owned-record.create':
+          description: 'Default: deny'
+          specific: Manage owner when creating record "{{target}}"
+          title: Manage owner when creating record of any module
+          all-specific: Manage owner when creating record of module "{{ target }}"
 
     module-field:
       all: all module fields
       specific: field "{{target}}"
       all-specific: all module fields of module "{{ target }}"
+      tooltip: Module field permissions
       operations:
         record.value.read:
           description: 'Default: deny'
@@ -71,6 +102,7 @@ resources:
     namespace:
       all: all namespaces
       specific: namespace "{{target}}"
+      tooltip: Namespace permissions
       operations:
         chart.create:
           description: ""
@@ -116,6 +148,7 @@ resources:
     page:
       all: all pages
       specific: page "{{target}}"
+      tooltip: Page permissions
       operations:
         delete:
           description: 'Default: deny'
@@ -134,6 +167,7 @@ resources:
       all: all records
       specific: record "{{target}}"
       all-specific: all records of module "{{ target }}"
+      tooltip: Record permissions
       operations:
         delete:
           description: 'Default: deny'
@@ -155,3 +189,8 @@ resources:
           specific: Manage owner of record "{{target}}"
           title: Manage record owners of any module
           all-specific: Manage record owners of module "{{ target }}"
+        'revisions.search':
+          description: 'Default: deny'
+          specific: Access revisions of record "{{target}}"
+          title: Access record revisions
+          all-specific: Access record revisions

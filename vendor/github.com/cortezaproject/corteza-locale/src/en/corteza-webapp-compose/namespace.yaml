@@ -1,7 +1,8 @@
+manage-view:
+  label: Edit namespaces
 application:
   label: Enable on application list
 clickOpen: Click to open
-create: Create new namespace
 import:
   buttonLabel: Import namespace
   title: Import namespace
@@ -47,4 +48,26 @@ subtitle:
   label: Subtitle
   placeholder: Enter namespace subtitle
 title: Low Code Namespaces
+tooltip:
+  translations: Namespace translations
 visit: Visit namespace
+
+
+manage:
+  title: Manage namespaces
+  list-view: Back to namespace list
+
+  disabled: Disabled
+
+  toolbar:
+    buttons:
+      create: Create new namespace
+      permissions: Permissions
+    search:
+      placeholder: Type here to search among all namespaces...
+
+  table:
+    columns:
+      name: Name
+      handle: Handle
+      last-change: Last change

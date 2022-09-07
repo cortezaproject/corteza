@@ -6,15 +6,18 @@ translator:
 resources:
   chart:
     title: Chart "{{ handle }}"
-
   namespace:
     title: Namespace "{{ handle }}"
+    tooltip: Namespace translations
   module:
     title: Module "{{ handle }}"
+    tooltip: Module translations
     field:
       title: Module field "{{ name }}"
-
+      tooltip: Field translations
   page:
     title: Page "{{ handle }}"
+    tooltip: Page translations
     block:
       title: "Page block #{{ blockID }}"
+      tooltip: Block translations

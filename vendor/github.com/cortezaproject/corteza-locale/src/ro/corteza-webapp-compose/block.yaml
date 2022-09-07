@@ -154,7 +154,7 @@ record:
   deleteRecord: Delete record
   label: Record
   preview:
-    blockNoRecord: Can not render this block without a record
+    blockNoRecord: Cannot render this block without a record
     fieldsFromModule: Single record block, displaying fields ({{0}}) from module {{1}}
     untitled: Untitled
   recordDeleted: This record was deleted
