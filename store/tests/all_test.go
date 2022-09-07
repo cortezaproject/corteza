@@ -13,7 +13,6 @@ import (
 )
 
 func testAllGenerated(t *testing.T, s store.Storer) {
-
 	t.Run("actionlog", func(t *testing.T) {
 		testActionlogs(t, s)
 	})
