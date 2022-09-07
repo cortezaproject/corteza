@@ -52,6 +52,7 @@ func DataPrivacy(s store.Storer, ac dataPrivacyAccessController, al actionlog.Re
 		store:     s,
 		ac:        ac,
 		eventbus:  eb,
+		dalConn:   DefaultDalConnection,
 	}
 }
 
@@ -71,19 +72,23 @@ func (svc dataPrivacy) FindConnections(ctx context.Context, filter types.DalConn
 
 		err = cc.Walk(func(c *types.DalConnection) error {
 			pc := types.PrivacyDalConnection{
-				ID:               c.ID,
-				Name:             c.Meta.Name,
-				Handle:           c.Handle,
-				Type:             c.Type,
-				Location:         c.Meta.Location,
-				Ownership:        c.Meta.Ownership,
-				SensitivityLevel: c.Config.Privacy.SensitivityLevelID,
-				CreatedAt:        c.CreatedAt,
-				CreatedBy:        c.CreatedBy,
-				UpdatedAt:        c.UpdatedAt,
-				UpdatedBy:        c.UpdatedBy,
-				DeletedAt:        c.DeletedAt,
-				DeletedBy:        c.DeletedBy,
+				ID:     c.ID,
+				Handle: c.Handle,
+				Type:   c.Type,
+				Meta: types.PrivacyDalConnectionMeta{
+					Name:      c.Meta.Name,
+					Ownership: c.Meta.Ownership,
+					Location:  c.Meta.Location,
+				},
+				Config: types.PrivacyDalConnectionConfig{
+					Privacy: c.Config.Privacy,
+				},
+				CreatedAt: c.CreatedAt,
+				CreatedBy: c.CreatedBy,
+				UpdatedAt: c.UpdatedAt,
+				UpdatedBy: c.UpdatedBy,
+				DeletedAt: c.DeletedAt,
+				DeletedBy: c.DeletedBy,
 			}
 			out = append(out, &pc)
 			return nil

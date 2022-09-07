@@ -102,14 +102,15 @@ type (
 
 	PrivacyDalConnection struct {
 		ID     uint64 `json:"connectionID,string"`
-		Name   string `json:"name"`
 		Handle string `json:"handle"`
+		Type   string `json:"type"`
 
-		Type string `json:"type"`
+		// descriptions, notes, and other user-provided meta-data
+		Meta PrivacyDalConnectionMeta `json:"meta"`
 
-		Location         geolocation.Full `json:"location"`
-		Ownership        string           `json:"ownership"`
-		SensitivityLevel uint64           `json:"sensitivityLevel,string,omitempty"`
+		// collection of configurations for various subsystems that
+		// use this connection and how it affects their behaviour
+		Config PrivacyDalConnectionConfig `json:"config"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		CreatedBy uint64     `json:"createdBy,string" `
@@ -117,6 +118,16 @@ type (
 		UpdatedBy uint64     `json:"updatedBy,string,omitempty" `
 		DeletedAt *time.Time `json:"deletedAt,omitempty"`
 		DeletedBy uint64     `json:"deletedBy,string,omitempty" `
+	}
+
+	PrivacyDalConnectionMeta struct {
+		Name      string           `json:"name"`
+		Ownership string           `json:"ownership"`
+		Location  geolocation.Full `json:"location"`
+	}
+
+	PrivacyDalConnectionConfig struct {
+		Privacy ConnectionConfigPrivacy `json:"privacy"`
 	}
 
 	RequestStatus string
