@@ -39,6 +39,10 @@ list:
     enabled: Enabled
     name: Name
     appListName: App selector name
+    state: State
+  rows:
+    filters:
+      deleted: Deleted
   filterForm:
     deleted:
       label: deleted applications

@@ -81,7 +81,7 @@ reminder:
     titleLabel: Title
     titlePlaceholder: Title
   listLabel: Reminders
-  routesTo: 'Includes link to:'
+  routesTo: Link label
   snooze: Snooze
 tooltip:
   dragAndDrop: Drag and drop to change order

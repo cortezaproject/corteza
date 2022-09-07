@@ -22,3 +22,7 @@ step:
   page:
     create: Build Page
     view: Your Pages
+tooltip:
+  page-configuration:
+    edit: Edit page
+    list: Page translations

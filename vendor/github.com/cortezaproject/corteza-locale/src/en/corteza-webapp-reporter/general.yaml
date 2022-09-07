@@ -1,5 +1,6 @@
 label:
   add: Add
+  and: And
   ascending: Ascending
   back: Back
   clear: Clear
@@ -9,6 +10,7 @@ label:
   none: None
   now: Now
   ok: Ok
+  or: Or
   openLinkInNewTab: Open link in a new tab
   save: Save
   today: Today

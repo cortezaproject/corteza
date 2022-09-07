@@ -1,6 +1,9 @@
 configuration: Configuration
 edge: Edge
 target: Target
+tooltip:
+  run-workflow: Run workflow
+  configure-step: Configure step
 workflow:
   'run-as': Run as
   'not-setup-properly': When not explicitly set, workflow will be executed by user that invoked it

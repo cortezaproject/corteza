@@ -108,6 +108,7 @@ general:
   descriptionLabel: Description
   descriptionPlaceholder: Block description
   headerStyle: Block header style (color)
+  wrap: Display block as a card
   label:
     add: Add
     back: Back
@@ -134,6 +135,7 @@ general:
   titlePlaceholder: Block title
   tooltip:
     dragAndDrop: Drag and drop to change order
+    translations: Field translations
 iframe:
   label: IFrame
   pickURLField: Pick an URL field
@@ -191,7 +193,7 @@ record:
   moduleOrPageNotSet: 'RecordList block error: module or page option not set'
   moduleMismatch: Module incompatible, module mismatch
   preview:
-    blockNoRecord: Can not render this block without a record
+    blockNoRecord: Cannot render this block without a record
     fieldsFromModule: Single record block, displaying fields ({{0}}) from module {{1}}
     untitled: Untitled
   recordDeleted: This record was deleted
@@ -346,12 +348,22 @@ recordList:
     presortLabel: Presort records
     presortPlaceholder: field1 DESC, field2 ASC
     showTotalCount: Show total record count
+    openInNewTab: Open records in a new tab
+    linkToParent: Link to parent record
+    tooltip:
+      clone: Clone record
+      edit: Edit record
+      undelete: Undelete record
+      reminder: Reminder
+      view: View record
   recordPage: record page
   refField:
     footnote: Field that links records with the parent record
     label: Parent field
   selectable: Enable record selection
   selected: '{{count}} of {{total}} records selected'
+  sort:
+    tooltip: Sort column
 recordOrganizer:
   descriptionField:
     footnote: Field value will be used as record description
@@ -375,6 +387,53 @@ recordOrganizer:
     label: 'Record Organizer block for module {{0}}. Label field {{1}}, Description field {{2}}. Value setting field: {{3}}, Sorted by position field: {{4}}.'
     moduleNotSelected: Record Organizer module not selected.
   addNewRecord: + Add new record
+
+recordRevisions:
+  label: Record revisions
+
+  viewer:
+    errors:
+      no-record: No record found to display revisions for.
+      disabled-on-module: Record revisions are disabled on this module.
+
+    show-revisions: Show record revisions ({{ revision }}).
+    show-changes: "{{ count }} change(s)"
+    revisions:
+      columns:
+        timestamp:
+          label: Timestamp
+        operation:
+          label: Operation
+        user:
+          label: User
+    changes:
+      columns:
+        field:
+          label: Field
+        old-value:
+          label: Old value
+        new-value:
+          label: New value
+
+  configurator:
+    label: Record revisions
+    preload: Preload record revisions
+    errors:
+      invalid-module-id: Field does not contain a valid module ID.
+    fields:
+      label: Configure fields to display in record revisions changes
+      show-all:
+        label: Show changes for all fields
+      columns:
+        label:
+          label: Label
+        kind:
+          label: Type
+        displayed-fields:
+          label: Show
+        expanded-references:
+          label: Expand references
+
 socialFeed:
   label: Twitter feed
   noInput: No input for displaying social feed...
@@ -416,3 +475,6 @@ report:
   element:
     label: Display element
     description: Display elements are grouped by their respective block
+
+progress:
+  label: Progress bar

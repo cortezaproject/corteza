@@ -6,26 +6,26 @@ description:
 user-options:
   data-overview:
     title: Data Overview
-    description: Morbi quis diam fermentum, luctus marius nnec, fringilla urnna. Nullam quis risus sit amet neque sodales
+    description: Review your profile information and your personal data stored in Corteza applications
     button-label: View your data
   privacy-requests:
     title: Privacy Requests
-    description: Morbi quis diam fermentum, luctus marius nnec, fringilla urnna. Nullam quis risus sit amet neque sodales
+    description: Access, manage or export a list of all your privacy-related (deletion, export, correction) requests
     button-label: Your privacy requests
   export:
     title: Data Export
-    description: Morbi quis diam fermentum, luctus marius nnec, fringilla urnna. Nullam quis risus sit amet neque sodales
+    description: Open a new data export request by selecting the data type, date range and outcome file format
     button-label: Request data export
   delete:
     title: Data Deletion
-    description: Morbi quis diam fermentum, luctus marius nnec, fringilla urnna. Nullam quis risus sit amet neque sodales
+    description: Request for your selected personal data to be deleted from the system
     button-label: Request data deletion
 dc-options:
   privacy-requests:
     title: Privacy Requests
-    description: Morbi quis diam fermentum, luctus marius nnec, fringilla urnna. Nullam quis risus sit amet neque sodales
+    description: Access, manage or export a list of all privacy-related (deletion, export, correction) requests
     button-label: Incoming privacy requests
   sensitive-data:
     title: Sensitive Data
-    description: Morbi quis diam fermentum, luctus marius nnec, fringilla urnna. Nullam quis risus sit amet neque sodales
+    description: Overview of all modules with sensitive data fields
     button-label: List of sensitive data

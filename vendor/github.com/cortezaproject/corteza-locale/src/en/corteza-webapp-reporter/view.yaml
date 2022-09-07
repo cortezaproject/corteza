@@ -2,3 +2,6 @@ pick-scenario: Pick a scenario
 report:
   builder: Report Builder
   view: Report View
+tooltip:
+  edit:
+    report: Edit report

@@ -32,7 +32,7 @@ kind:
       grid: Grid
       list: List
       maxSizeLabel: Maximum file size
-      mimetypesFootnote: 'MIME types, sepparated with ",". Example: "text/plain,text/csv"'
+      mimetypesFootnote: 'MIME types, separated with ",". Example: "text/plain,text/csv"'
       mimetypesLabel: File type allow list
       modeFootnote: How files are represented in record page blocks
       modeLabel: View mode
@@ -53,6 +53,31 @@ kind:
     prefixPlaceholder: Prefix
     suffixLabel: Suffix
     suffixPlaceholder: Suffix
+    displayType:
+      label: Display type
+      number: Number
+      progress: Progress bar
+    maximumValue: Maximum value
+    progress:
+      animated: Animated
+      show:
+        value: Show value
+        relative: Show relative
+        progress: Show progress
+      showRelative: Show relative
+      variants:
+        default: Default variant
+        danger: Danger
+        dark: Dark
+        info: Info
+        light: Light
+        primary: Primary
+        secondary: Secondary
+        success: Success
+        warning: Warning
+      thresholds:
+        label: Thresholds
+        description: Set which variant to show if value exceeds the threshold
   record:
     currentUnnamedModule: (Current unnamed module)
     label: Record

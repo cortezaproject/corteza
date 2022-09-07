@@ -28,6 +28,10 @@ list:
     enabled: 'Enabled'
     method: 'Method'
     actions: ''
+    state: State
+  rows:
+    filters:
+      deleted: Deleted
 
 editor:
   title: 'Edit route'

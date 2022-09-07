@@ -23,7 +23,11 @@ list:
     actions: Actions
     consumer: Consumer
     createdAt: Created At
+    state: State
     queue: Queue
+  rows:
+    filters:
+      deleted: Deleted
   filterForm:
     deleted:
       label: deleted queues

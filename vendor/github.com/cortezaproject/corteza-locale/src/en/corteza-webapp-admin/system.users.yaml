@@ -1,4 +1,8 @@
 editor:
+  external-auth-providers:
+    label: Label
+    title: Manage external auth providers
+    type: Type
   info:
     confirmEmail: Confirm email address
     createdAt: Created at
@@ -64,6 +68,11 @@ list:
     enabled: Enabled
     handle: Handle
     name: Name
+    state: State
+  rows:
+    filters:
+      deleted: Deleted
+      suspended: Suspended
   filterForm:
     deleted:
       label: deleted users

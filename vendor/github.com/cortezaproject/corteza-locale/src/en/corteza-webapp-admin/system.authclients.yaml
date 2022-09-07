@@ -40,6 +40,9 @@ editor:
         description: Only roles in this list will be added into security context when user authorizes this client
         label: Permitted roles
     title: Basic information
+    tooltip:
+      regenerate-secret: Regenerate secret
+      reset-value: Reset value
     trusted:
       description: When client is trusted users do not see authorization step
       label: Trusted
@@ -69,6 +72,10 @@ list:
     handle: Handle
     meta:
       name: Name
+    state: State
+  rows:
+    filters:
+      deleted: Deleted
   filterForm:
     deleted:
       label: deleted clients

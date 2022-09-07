@@ -83,3 +83,5 @@ trigger:
     'select-resource-type': Select resource type
   label: Trigger (Start)
   tooltip: Trigger the workflow execution based on configuration
+tooltip:
+  configure-step: Configure step

@@ -12,4 +12,6 @@ card:
   email: Email
   record: Record
   fields: Fields
+tooltip:
+  map: Toggle map
 

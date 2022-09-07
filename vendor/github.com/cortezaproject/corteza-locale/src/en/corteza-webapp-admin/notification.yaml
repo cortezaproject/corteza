@@ -3,10 +3,13 @@ general:
   success: Success
   warning: Warning
 notAllowed: Not allowed to access Admin Area. Redirecting
-list: 
+list:
   load:
     error: 'Failed to load resource list'
 user:
+  external-auth-providers:
+    error: External auth providers fetch failed
+    success: External auth providers updated
   fetch:
     error: User fetch failed
   roles:
@@ -170,6 +173,9 @@ session:
     error: Session fetch failed
   trigger:
     error: Trigger fetch failed
+  cancel:
+    success: Session canceled
+    error: Session cancel failed
 federation:
   fetch:
     error: Node fetch failed
@@ -244,7 +250,4 @@ connection:
   undelete:
     success: Connection restored
     error: Connection restore failed
-  operations:
-    success: Connection operations updated
-    error: Connection operation update failed
 

@@ -13,10 +13,14 @@ editor:
         ignored-security: The system is configured to ignore password security constraints which is insecure on production deployments. If this is a production deployment, please contact your administrator to update the system configuration (the AUTH_PASSWORD_SECURITY .env variable).
         min-length: Minimum length
         min-length-description: Must be at least 8 characters
-        min-num-count: Minimum number of numbers
-        min-num-count-description: The password must include the specified number of numbers (disabled if set to 0)
+        min-num-count: Minimum number of digits
+        min-num-count-description: The password must include the specified number of digits (disabled if set to 0)
         min-special-count: Minimum number of special characters
         min-special-count-description: The password must include the specified number of special characters (disabled if set to 0)
+        min-upper-case-length: Minimum upper case length
+        min-upper-case-description: The password must include the specified number of upper case characters (disabled if set to 0)
+        min-lower-case-length: Minimum lower case length
+        min-lower-case-description: The password must include the specified number of lower case characters (disabled if set to 0)
       signup:
         email-confirmation-required: Signup email confirmation required
         enabled: Signup enabled

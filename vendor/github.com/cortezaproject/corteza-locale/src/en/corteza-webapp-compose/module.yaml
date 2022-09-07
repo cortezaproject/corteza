@@ -74,6 +74,39 @@ edit:
     private: Sensitive data
     required: Required field
     title: The name displayed in form input / data lists
+
+  config:
+    dal:
+      title: Data store
+      connection: Connection
+      ident: Identifier
+      ident-placeholder: compose_record
+      ident-description: "Name of the database table or collection where records can be accessed and stored. Supports partitioning placeholders: {{module}} for module handle and {{namespace}} for namespace handle"
+
+      connections:
+        fetch-failed: Could not fetch available connections
+
+    privacy:
+      title: Privacy Settings
+      sensitivity-level: Maximum allowed sensitivity level
+      sensitivity-level-description: Maximum sensitivity level for fields on this module
+      usage-disclosure: Sensitive data usage disclosure (visible on data-privacy console)
+      usage-disclosure-placeholder:
+
+      data-source: Data Source
+      select-data-source: Select a Data Source
+
+      sensitivity-levels:
+        fetch-failed: Could not fetch available connections
+
+
+    record-revisions:
+      title: Record Revisions
+      enabled: Enable record revisions
+      ident: Identifier
+      ident-placeholder: compose_record_revisions
+      ident-description: "Name of the database table or collection where revisions records can be accessed and stored. Supports partitioning placeholders: {{module}} for module handle and {{namespace}} for namespace handle"
+
 federated: Federated
 forModule:
   recordList: Record List for module
@@ -100,17 +133,16 @@ newLabel: Module Name *
 newPlaceholder: Name used on the list of modules
 noModule: No modules
 noModuleFilter: No module matches your search
-privacy:
-  title: Privacy Settings
-  data-source: Data Source
-  select-data-source: Select a Data Source
-  location: Location
-  ownership: Ownership
+
 recordPage:
   create: Create record page
   edit: Edit record page
 recordListPage:
   create: Create record list page
   edit: Edit record list page
+related-pages: Related Pages
 searchPlaceholder: Type here to search all modules in this namespace
 title: List of Modules
+tooltip:
+  permissions: Module permissions
+
