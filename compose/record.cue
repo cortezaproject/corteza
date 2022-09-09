@@ -17,7 +17,7 @@ record: {
 			id: schema.IdField
 			revision: {
 				goType: "uint"
-				dal: { type: "Number" }
+				dal: { type: "Number", meta: { "rdbms:type": "integer" } }
 			}
 			module_id: {
 			 	ident: "moduleID",

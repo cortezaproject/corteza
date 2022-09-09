@@ -25,7 +25,7 @@ workflow: {
 			}
 			keep_sessions: {
 				goType: "int"
-				dal: { type: "Number", default: 0 }
+				dal: { type: "Number", default: 0, meta: { "rdbms:type": "integer" } }
 		  }
 			scope: {
 				goType: "*expr.Vars"

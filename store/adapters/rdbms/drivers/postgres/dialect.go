@@ -9,6 +9,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/dialect/postgres"
 	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/spf13/cast"
 )
 
 type (
@@ -143,6 +144,12 @@ func (postgresDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, 
 		col.Default = ddl.DefaultValueCurrentTimestamp(t.DefaultCurrentTimestamp)
 
 	case *dal.TypeNumber:
+		if numType := cast.ToString(t.Meta["rdbms:type"]); numType != "" {
+			col.Type.Name = numType
+			col.Default = ddl.DefaultNumber(t.HasDefault, 0, t.DefaultValue)
+			break
+		}
+
 		col.Type.Name = "NUMERIC"
 
 		switch {

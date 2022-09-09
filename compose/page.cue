@@ -55,7 +55,7 @@ page: {
 			}
 			weight: {
 				goType: "int", sortable: true
-				dal: { type: "Number", default: 0 }
+				dal: { type: "Number", default: 0, meta: { "rdbms:type": "integer" } }
 			}
 			description: {
 				goType: "string"

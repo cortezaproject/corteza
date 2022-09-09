@@ -10,8 +10,9 @@ dal_sensitivity_level: {
 			id:     schema.IdField
 			handle: schema.HandleField
 			level: {
-				sortable: true, goType: "int"
-				dal: { type: "Number" }
+				sortable: true,
+				goType: "int"
+				dal: { type: "Number", meta: { "rdbms:type": "integer" } }
 			}
 
 			meta: {

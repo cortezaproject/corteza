@@ -35,7 +35,7 @@ var ApigwFilter = &dal.Model{
 
 		&dal.Attribute{
 			Ident: "Weight", Sortable: true,
-			Type:  &dal.TypeNumber{Precision: -1, Scale: -1},
+			Type:  &dal.TypeNumber{Precision: -1, Scale: -1, Meta: map[string]interface{}{"rdbms:type": "integer"}},
 			Store: &dal.CodecAlias{Ident: "weight"},
 		},
 
@@ -290,7 +290,7 @@ var Application = &dal.Model{
 			Ident: "Weight", Sortable: true,
 			Type: &dal.TypeNumber{HasDefault: true,
 				DefaultValue: 0,
-				Precision:    -1, Scale: -1,
+				Precision:    -1, Scale: -1, Meta: map[string]interface{}{"rdbms:type": "integer"},
 			},
 			Store: &dal.CodecAlias{Ident: "weight"},
 		},
@@ -1136,7 +1136,7 @@ var DalSensitivityLevel = &dal.Model{
 
 		&dal.Attribute{
 			Ident: "Level", Sortable: true,
-			Type:  &dal.TypeNumber{Precision: -1, Scale: -1},
+			Type:  &dal.TypeNumber{Precision: -1, Scale: -1, Meta: map[string]interface{}{"rdbms:type": "integer"}},
 			Store: &dal.CodecAlias{Ident: "level"},
 		},
 
@@ -1643,7 +1643,7 @@ var Reminder = &dal.Model{
 
 		&dal.Attribute{
 			Ident: "SnoozeCount",
-			Type:  &dal.TypeNumber{Precision: -1, Scale: -1},
+			Type:  &dal.TypeNumber{Precision: -1, Scale: -1, Meta: map[string]interface{}{"rdbms:type": "integer"}},
 			Store: &dal.CodecAlias{Ident: "snooze_count"},
 		},
 

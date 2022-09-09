@@ -16,8 +16,10 @@ apigw_filter: {
 				sortable: true, goType: "uint64", storeIdent: "rel_route"
 				dal: { type: "Ref", refModelResType: "corteza::system:apigw-route" }
 		  }
-			weight: { sortable: true, goType: "uint64"
-			  dal: { type: "Number" }
+			weight: {
+			  sortable: true,
+			  goType: "uint64"
+			  dal: { type: "Number", meta: { "rdbms:type": "integer" } }
 			}
 			kind: {
 				sortable: true

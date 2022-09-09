@@ -42,7 +42,7 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 				}
 				access:    {
 					goType: "types.Access"
-					dal: { type: "Number" }
+					dal: { type: "Number", meta: { "rdbms:type": "integer" } }
 				}
 			}
 
@@ -271,7 +271,7 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 				}
 				severity: {
 					goType: "types.Severity"
-					dal: { type: "Number", default: 0 }
+					dal: { type: "Number", default: 0, meta: { "rdbms:type": "integer" } }
 				}
 				description: {
 					dal: {}
@@ -351,7 +351,7 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 					goType: "uint64",
 					ident: "resourceID",
 					storeIdent: "rel_resource"
-					dal: { type: "Number" }
+					dal: { type: "ID" }
 				}
 				meta: {
 					goType: "rawJson"

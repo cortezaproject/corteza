@@ -22,7 +22,7 @@ reminder: {
 			}
 			snooze_count: {
 				goType: "uint"
-				dal: { type: "Number" }
+				dal: { type: "Number", meta: { "rdbms:type": "integer" } }
 			}
 			assigned_to: schema.AttributeUserRef
 			assigned_by: schema.AttributeUserRef

@@ -23,7 +23,7 @@ moduleField: {
 			place: {
 				sortable: true,
 				goType: "int"
-				dal: { type: "Number" }
+				dal: { type: "Number", meta: { "rdbms:type": "integer" } }
 			}
 			kind: {
 				sortable: true,

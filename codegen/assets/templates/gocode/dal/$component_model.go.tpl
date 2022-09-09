@@ -38,6 +38,7 @@ var {{ .var }} = &dal.Model{
 				{{- if .dal.precision }} Precision: {{ .dal.precision }}, {{ end }}
 				{{- if .dal.scale }}     Scale:     {{ .dal.scale }},     {{ end }}
 				{{- if .dal.length }}    Length:    {{ .dal.length }},    {{ end }}
+				{{- if .dal.meta }}  Meta: {{ printf "%#v" .dal.meta }},  {{ end }}
 				{{- if eq .dal.type "Ref" }}
 					RefAttribute: {{ printf "%q" .dal.attribute }},
 					RefModel: &dal.ModelRef{
