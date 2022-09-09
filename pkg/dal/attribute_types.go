@@ -91,6 +91,7 @@ type (
 
 		HasDefault   bool
 		DefaultValue float64
+		Meta         map[string]any
 	}
 
 	// TypeText handles string coding
@@ -151,9 +152,10 @@ type (
 	}
 
 	TypeUUID struct {
-		//
 		Nullable bool
 	}
+
+	TypeNumberStoreNativeType string
 )
 
 const (

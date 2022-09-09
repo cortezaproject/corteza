@@ -29,6 +29,10 @@ _dalModelFn: {
 				if attr.dal.default != _|_ {
 					"quotedDefault": attr.dal.type == "String"
 				}
+
+				if attr.dal.meta != _|_ {
+					"meta": attr.dal.meta
+				}
 			}
 		}
 	]

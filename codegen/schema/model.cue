@@ -65,7 +65,6 @@ import (
 	nullable: bool | *false
 
 
-
 	if type == "ID" {
 		generatedByStore: bool | *false
 		default?: 0
@@ -97,6 +96,7 @@ import (
 		precision: number | *(-1)
 		scale: number | *(-1)
 		default?: number
+		meta?: { [string]: _ }
 	}
 
 	if type == "Text" {

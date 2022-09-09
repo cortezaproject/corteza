@@ -83,7 +83,7 @@ var Action = &dal.Model{
 			Ident: "Severity",
 			Type: &dal.TypeNumber{HasDefault: true,
 				DefaultValue: 0,
-				Precision:    -1, Scale: -1,
+				Precision:    -1, Scale: -1, Meta: map[string]interface{}{"rdbms:type": "integer"},
 			},
 			Store: &dal.CodecAlias{Ident: "severity"},
 		},
@@ -315,7 +315,7 @@ var ResourceActivity = &dal.Model{
 
 		&dal.Attribute{
 			Ident: "ResourceID",
-			Type:  &dal.TypeNumber{Precision: -1, Scale: -1},
+			Type:  &dal.TypeID{},
 			Store: &dal.CodecAlias{Ident: "rel_resource"},
 		},
 
@@ -383,7 +383,7 @@ var Rule = &dal.Model{
 
 		&dal.Attribute{
 			Ident: "Access",
-			Type:  &dal.TypeNumber{Precision: -1, Scale: -1},
+			Type:  &dal.TypeNumber{Precision: -1, Scale: -1, Meta: map[string]interface{}{"rdbms:type": "integer"}},
 			Store: &dal.CodecAlias{Ident: "access"},
 		},
 	},

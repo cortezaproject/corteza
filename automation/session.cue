@@ -23,7 +23,7 @@ session: {
 			status: {
 				sortable: true,
 				goType: "types.SessionStatus"
-				dal: { type: "Number", default: 0 }
+				dal: { type: "Number", default: 0, meta: { "rdbms:type": "integer" } }
 			}
 			event_type: {
 				sortable: true,

@@ -18,7 +18,7 @@ record_revision: {
 			}
 			revision: {
 				goType: "uint"
-				dal: { type: "Number" }
+				dal: { type: "Number", meta: { "rdbms:type": "integer" } }
 			}
 			operation: {
 				dal: {}
