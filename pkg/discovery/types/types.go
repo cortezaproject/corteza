@@ -86,6 +86,8 @@ const (
 	AfterCreate ResourceAction = "afterCreate"
 	AfterUpdate ResourceAction = "afterUpdate"
 	AfterDelete ResourceAction = "afterDelete"
+
+	ResourceActivityResourceType = "corteza::generic:resource-activity"
 )
 
 func (s ResourceAction) String() string {

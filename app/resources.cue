@@ -11,8 +11,8 @@ _allFeaturesDisabled: {
 	checkFn: false
 }
 
-resources: {
-	"rbac-rule": schema.#PkgResource & {
+resources: { [key=_]: {"handle": key, "component": "system", "platform": "corteza" } & schema.#PkgResource } & {
+	"rbac-rule": {
 		package: {
 			ident: "rbac"
 			import: "github.com/cortezaproject/corteza-server/pkg/rbac"
@@ -28,10 +28,26 @@ resources: {
 		model: {
 			ident: "rbac_rules"
 			attributes: {
-				role_id:   { primaryKey: true, goType: "uint64", ident: "roleID", storeIdent: "rel_role" }
-				resource:  { primaryKey: true }
-				operation: { primaryKey: true }
-				access:    {                   goType: "types.Access" }
+				role_id:   {
+					goType: "uint64",
+					ident: "roleID",
+					storeIdent: "rel_role"
+					dal: { type: "Ref", refModelResType: "corteza::system:role" }
+				}
+				resource:  {
+					dal: { length: 512 }
+				}
+				operation: {
+					dal: { length: 50 }
+				}
+				access:    {
+					goType: "types.Access"
+					dal: { type: "Number" }
+				}
+			}
+
+			indexes: {
+				"primary": { attributes: [ "role_id", "resource", "operation" ] }
 			}
 		}
 
@@ -53,7 +69,7 @@ resources: {
 		}
 	}
 
-	"label": schema.#PkgResource & {
+	"label": {
 		package: {
 			ident: "labels"
 			import: "github.com/cortezaproject/corteza-server/pkg/label/types"
@@ -67,10 +83,33 @@ resources: {
 
 		model: {
 			attributes: {
-				kind:        { primaryKey: true }
-				resource_id: { primaryKey: true, goType: "uint64", ident: "resourceID", storeIdent: "rel_resource" }
-				name:        { primaryKey: true, ignoreCase: true  }
-				value:       {}
+				kind: {
+			 		dal: { length: 64 }
+				}
+				resource_id: {
+			 		goType: "uint64",
+			 		ident: "resourceID",
+			 		storeIdent: "rel_resource"
+			 		dal: { type: "ID" }
+			 	}
+				name: {
+			 		ignoreCase: true
+			 		dal: { length: 512 }
+				}
+				value: {
+			 		dal: {}
+				}
+			}
+
+			indexes: {
+				"unique_kind_res_name": {
+					fields: [
+					  { attribute: "kind" },
+						{ attribute: "resource_id" },
+					 	{ attribute: "name", modifiers: [ "LOWERCASE" ] },
+					]
+
+				}
 			}
 		}
 
@@ -111,7 +150,7 @@ resources: {
 		}
 	}
 
-	"flag": schema.#PkgResource & {
+	"flag": {
 		package: {
 			ident: "flag"
 			import: "github.com/cortezaproject/corteza-server/pkg/flag/types"
@@ -125,11 +164,35 @@ resources: {
 
 		model: {
 			attributes: {
-				kind:        { primaryKey: true }
-				resource_id: { primaryKey: true, goType: "uint64", ident: "resourceID", storeIdent: "rel_resource" }
-				owned_by:    { primaryKey: true, goType: "uint64" }
-		  	name:        { primaryKey: true, ignoreCase: true }
-				active:      {                   goType: "bool"}
+				kind:        {
+					dal: {}
+				}
+				resource_id: {
+					goType: "uint64",
+					ident: "resourceID",
+					storeIdent: "rel_resource"
+					dal: { type: "ID" }
+				}
+				owned_by:   schema.AttributeUserRef
+		  	name:        {
+		  		ignoreCase: true
+					dal: {}
+				}
+				active: {
+					goType: "bool"
+					dal: { type: "Boolean" }
+				}
+			}
+
+			indexes: {
+				"unique_kind_res_owner_name": {
+					 fields: [
+						 { attribute: "kind" },
+						 { attribute: "resource_id" },
+						 { attribute: "owned_by" },
+						 { attribute: "name", modifiers: [ "LOWERCASE" ] },
+					 ]
+				}
 			}
 		}
 
@@ -137,7 +200,8 @@ resources: {
 			expIdent: "FlagFilter"
 			struct: {
 				kind: {}
-				resource_id: { goType: "[]uint64", ident: "resourceID", storeIdent: "rel_resource" }
+				resource_id: { goType: "[]uint64",
+				ident: "resourceID", storeIdent: "rel_resource" }
 				owned_by: { goType: "[]uint64", ident: "ownedBy" }
 				name: { goType: "[]string", ident: "name" }
 			}
@@ -159,7 +223,7 @@ resources: {
 		}
 	}
 
-	"actionlog": schema.#PkgResource & {
+	"actionlog": {
 		package: {
 			ident: "actionlog"
 			import: "github.com/cortezaproject/corteza-server/pkg/actionlog"
@@ -178,18 +242,52 @@ resources: {
 		model: {
 			ident: "actionlog"
 			attributes: {
-  			id:           schema.IdField
-				timestamp:    schema.SortableTimestampField & { storeIdent: "ts" }
-				request_origin:  {}
-				request_id:  { ident: "requestID" }
-				actor_ip_addr:  { ident: "actorIPAddr"}
-				actor_id:  { goType: "uint64", ident: "actorID" }
-				resource:  {}
-				action:  {}
-				error:  {}
-				severity:  { goType: "types.Severity" }
-				description:  {}
-				meta:  { goType: "types.Meta" }
+  			id:        schema.IdField
+				timestamp: schema.SortableTimestampField & { storeIdent: "ts" }
+				actor_ip_addr: {
+					ident: "actorIPAddr"
+					dal: { type: "Text", length: 64 }
+				}
+				actor_id: {
+					goType: "uint64",
+					ident: "actorID"
+					dal: { type: "Ref", refModelResType: "corteza::system:user" }
+				}
+				request_origin: {
+					dal: { type: "Text", length: 32 }
+				}
+				request_id:  {
+					ident: "requestID"
+					dal: { type: "Text", length: 256 }
+				}
+				resource:  {
+					dal: { type: "Text", length: 512 }
+				}
+				action: {
+					dal: { type: "Text", length: 64 }
+				}
+				error: {
+					dal: {}
+				}
+				severity: {
+					goType: "types.Severity"
+					dal: { type: "Number", default: 0 }
+				}
+				description: {
+					dal: {}
+				}
+				meta:  {
+					goType: "types.Meta"
+					dal: { type: "JSON", defaultEmptyObject: true }
+				}
+			}
+
+			indexes: {
+				"primary": { attribute: "id" }
+				"action": { attribute: "action"}
+				"actor_id": { attribute: "actor_id"}
+				"rel_resource": { attribute: "resource"}
+				"ts": { attribute: "timestamp"}
 			}
 		}
 
@@ -225,7 +323,7 @@ resources: {
 		}
 	}
 
-	"resource-activity": schema.#PkgResource & {
+	"resource-activity": {
 		package: {
 			ident: "discovery"
 			import: "github.com/cortezaproject/corteza-server/pkg/discovery/types"
@@ -241,12 +339,29 @@ resources: {
 		model: {
 			ident: "resource_activity_log"
 			attributes: {
-				id:           schema.IdField
-				timestamp:    schema.SortableTimestampField & { storeIdent: "ts" }
-				resource_type:   {}
-				resource_action: {}
-				resource_id:     { goType: "uint64", ident: "resourceID", storeIdent: "rel_resource" }
-				meta:            { goType: "rawJson" }
+				id: schema.IdField
+				timestamp: schema.SortableTimestampField & { storeIdent: "ts" }
+				resource_type: {
+					dal: {}
+				}
+				resource_action: {
+					dal: {}
+				}
+				resource_id: {
+					goType: "uint64",
+					ident: "resourceID",
+					storeIdent: "rel_resource"
+					dal: { type: "Number" }
+				}
+				meta: {
+					goType: "rawJson"
+					dal: { type: "JSON", defaultEmptyObject: true }
+				}
+			}
+
+			indexes: {
+				"primary": { attribute: "id" }
+				"resource": { attribute: "resource_id" }
 			}
 		}
 

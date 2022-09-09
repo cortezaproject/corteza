@@ -7,19 +7,52 @@ import (
 template: {
 	model: {
 		attributes: {
-				id:     schema.IdField
-				handle: schema.HandleField
-				language: {sortable: true, goType: "string"}
-				type: {sortable: true, goType: "types.DocumentType"}
-				partial: {goType: "bool"}
-				meta: {goType: "types.TemplateMeta"}
-				template: {sortable: true, goType: "string"}
+			id:     schema.IdField
+			owner_id:   {
+				storeIdent: "rel_owner",
+				ident: "ownerID"
+				schema.AttributeUserRef,
+			}
+			handle: schema.HandleField
+			language: {
+				sortable: true,
+				goType: "string"
+				dal: {}
+			}
+			type: {
+				sortable: true,
+				goType: "types.DocumentType"
+				dal: {}
+			}
+			partial: {
+				goType: "bool"
+				dal: { type: "Boolean" }
+			}
+			meta: {
+				goType: "types.TemplateMeta"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			template: {
+				sortable: true,
+				goType: "string"
+				dal: {}
+			}
 
-				owner_id: { ident: "ownerID", goType: "uint64", storeIdent: "rel_owner" }
-				created_at: schema.SortableTimestampNowField
-				updated_at: schema.SortableTimestampNilField
-				deleted_at: schema.SortableTimestampNilField
-				last_used_at: schema.SortableTimestampNilField
+			created_at: schema.SortableTimestampNowField
+			updated_at: schema.SortableTimestampNilField
+			deleted_at: schema.SortableTimestampNilField
+			last_used_at: schema.SortableTimestampNilField
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
+			"unique_language_handle": {
+				unique: true
+				fields: [
+					{ attribute: "language" },
+					{ attribute: "handle", modifier: [ "LOWERCASE" ] }
+				]
+			}
 		}
 	}
 

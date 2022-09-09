@@ -258,7 +258,7 @@ func (t *TypeJSON) Encode(val any) (driver.Value, error) {
 		return c.MarshalJSON()
 
 	default:
-		// Last reasort - just encode with JSON pkg
+		// Last resort - just encode with JSON pkg
 		return json.Marshal(val)
 	}
 }
@@ -295,14 +295,14 @@ const (
 	DateLayout = "2006-01-02"
 )
 
-func TimestampLayout(tz bool, precision uint) string {
+func TimestampLayout(tz bool, precision int) string {
 	return DateLayout + "T" + TimeLayout(tz, precision)
 }
 
-func TimeLayout(tz bool, precision uint) string {
+func TimeLayout(tz bool, precision int) string {
 	var layout = "15:04:05"
 	if precision > 0 {
-		layout += "." + strings.Repeat("9", int(precision))
+		layout += "." + strings.Repeat("9", precision)
 	}
 
 	if tz {

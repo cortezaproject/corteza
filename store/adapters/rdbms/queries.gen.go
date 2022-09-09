@@ -32,10 +32,10 @@ var (
 		return d.Select(
 			"id",
 			"ts",
-			"request_origin",
-			"request_id",
 			"actor_ip_addr",
 			"actor_id",
+			"request_origin",
+			"request_id",
 			"resource",
 			"action",
 			"error",
@@ -53,10 +53,10 @@ var (
 			Rows(goqu.Record{
 				"id":             res.ID,
 				"ts":             res.Timestamp,
-				"request_origin": res.RequestOrigin,
-				"request_id":     res.RequestID,
 				"actor_ip_addr":  res.ActorIPAddr,
 				"actor_id":       res.ActorID,
+				"request_origin": res.RequestOrigin,
+				"request_id":     res.RequestID,
 				"resource":       res.Resource,
 				"action":         res.Action,
 				"error":          res.Error,
@@ -77,10 +77,10 @@ var (
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
 						"ts":             res.Timestamp,
-						"request_origin": res.RequestOrigin,
-						"request_id":     res.RequestID,
 						"actor_ip_addr":  res.ActorIPAddr,
 						"actor_id":       res.ActorID,
+						"request_origin": res.RequestOrigin,
+						"request_id":     res.RequestID,
 						"resource":       res.Resource,
 						"action":         res.Action,
 						"error":          res.Error,
@@ -99,10 +99,10 @@ var (
 		return d.Update(actionlogTable).
 			Set(goqu.Record{
 				"ts":             res.Timestamp,
-				"request_origin": res.RequestOrigin,
-				"request_id":     res.RequestID,
 				"actor_ip_addr":  res.ActorIPAddr,
 				"actor_id":       res.ActorID,
+				"request_origin": res.RequestOrigin,
+				"request_id":     res.RequestID,
 				"resource":       res.Resource,
 				"action":         res.Action,
 				"error":          res.Error,
@@ -149,8 +149,8 @@ var (
 			"id",
 			"rel_route",
 			"weight",
-			"ref",
 			"kind",
+			"ref",
 			"enabled",
 			"params",
 			"created_at",
@@ -171,8 +171,8 @@ var (
 				"id":         res.ID,
 				"rel_route":  res.Route,
 				"weight":     res.Weight,
-				"ref":        res.Ref,
 				"kind":       res.Kind,
+				"ref":        res.Ref,
 				"enabled":    res.Enabled,
 				"params":     res.Params,
 				"created_at": res.CreatedAt,
@@ -196,8 +196,8 @@ var (
 					goqu.Record{
 						"rel_route":  res.Route,
 						"weight":     res.Weight,
-						"ref":        res.Ref,
 						"kind":       res.Kind,
+						"ref":        res.Ref,
 						"enabled":    res.Enabled,
 						"params":     res.Params,
 						"created_at": res.CreatedAt,
@@ -219,8 +219,8 @@ var (
 			Set(goqu.Record{
 				"rel_route":  res.Route,
 				"weight":     res.Weight,
-				"ref":        res.Ref,
 				"kind":       res.Kind,
+				"ref":        res.Ref,
 				"enabled":    res.Enabled,
 				"params":     res.Params,
 				"created_at": res.CreatedAt,
@@ -270,8 +270,8 @@ var (
 			"endpoint",
 			"method",
 			"enabled",
-			"rel_group",
 			"meta",
+			"rel_group",
 			"created_at",
 			"updated_at",
 			"deleted_at",
@@ -291,8 +291,8 @@ var (
 				"endpoint":   res.Endpoint,
 				"method":     res.Method,
 				"enabled":    res.Enabled,
-				"rel_group":  res.Group,
 				"meta":       res.Meta,
+				"rel_group":  res.Group,
 				"created_at": res.CreatedAt,
 				"updated_at": res.UpdatedAt,
 				"deleted_at": res.DeletedAt,
@@ -315,8 +315,8 @@ var (
 						"endpoint":   res.Endpoint,
 						"method":     res.Method,
 						"enabled":    res.Enabled,
-						"rel_group":  res.Group,
 						"meta":       res.Meta,
+						"rel_group":  res.Group,
 						"created_at": res.CreatedAt,
 						"updated_at": res.UpdatedAt,
 						"deleted_at": res.DeletedAt,
@@ -337,8 +337,8 @@ var (
 				"endpoint":   res.Endpoint,
 				"method":     res.Method,
 				"enabled":    res.Enabled,
-				"rel_group":  res.Group,
 				"meta":       res.Meta,
+				"rel_group":  res.Group,
 				"created_at": res.CreatedAt,
 				"updated_at": res.UpdatedAt,
 				"deleted_at": res.DeletedAt,
@@ -384,10 +384,10 @@ var (
 		return d.Select(
 			"id",
 			"name",
-			"rel_owner",
 			"enabled",
 			"weight",
 			"unify",
+			"rel_owner",
 			"created_at",
 			"updated_at",
 			"deleted_at",
@@ -402,10 +402,10 @@ var (
 			Rows(goqu.Record{
 				"id":         res.ID,
 				"name":       res.Name,
-				"rel_owner":  res.OwnerID,
 				"enabled":    res.Enabled,
 				"weight":     res.Weight,
 				"unify":      res.Unify,
+				"rel_owner":  res.OwnerID,
 				"created_at": res.CreatedAt,
 				"updated_at": res.UpdatedAt,
 				"deleted_at": res.DeletedAt,
@@ -423,10 +423,10 @@ var (
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
 						"name":       res.Name,
-						"rel_owner":  res.OwnerID,
 						"enabled":    res.Enabled,
 						"weight":     res.Weight,
 						"unify":      res.Unify,
+						"rel_owner":  res.OwnerID,
 						"created_at": res.CreatedAt,
 						"updated_at": res.UpdatedAt,
 						"deleted_at": res.DeletedAt,
@@ -442,10 +442,10 @@ var (
 		return d.Update(applicationTable).
 			Set(goqu.Record{
 				"name":       res.Name,
-				"rel_owner":  res.OwnerID,
 				"enabled":    res.Enabled,
 				"weight":     res.Weight,
 				"unify":      res.Unify,
+				"rel_owner":  res.OwnerID,
 				"created_at": res.CreatedAt,
 				"updated_at": res.UpdatedAt,
 				"deleted_at": res.DeletedAt,
@@ -606,10 +606,10 @@ var (
 			"valid_from",
 			"expires_at",
 			"security",
+			"owned_by",
 			"created_at",
 			"updated_at",
 			"deleted_at",
-			"owned_by",
 			"created_by",
 			"updated_by",
 			"deleted_by",
@@ -634,10 +634,10 @@ var (
 				"valid_from":   res.ValidFrom,
 				"expires_at":   res.ExpiresAt,
 				"security":     res.Security,
+				"owned_by":     res.OwnedBy,
 				"created_at":   res.CreatedAt,
 				"updated_at":   res.UpdatedAt,
 				"deleted_at":   res.DeletedAt,
-				"owned_by":     res.OwnedBy,
 				"created_by":   res.CreatedBy,
 				"updated_by":   res.UpdatedBy,
 				"deleted_by":   res.DeletedBy,
@@ -665,10 +665,10 @@ var (
 						"valid_from":   res.ValidFrom,
 						"expires_at":   res.ExpiresAt,
 						"security":     res.Security,
+						"owned_by":     res.OwnedBy,
 						"created_at":   res.CreatedAt,
 						"updated_at":   res.UpdatedAt,
 						"deleted_at":   res.DeletedAt,
-						"owned_by":     res.OwnedBy,
 						"created_by":   res.CreatedBy,
 						"updated_by":   res.UpdatedBy,
 						"deleted_by":   res.DeletedBy,
@@ -694,10 +694,10 @@ var (
 				"valid_from":   res.ValidFrom,
 				"expires_at":   res.ExpiresAt,
 				"security":     res.Security,
+				"owned_by":     res.OwnedBy,
 				"created_at":   res.CreatedAt,
 				"updated_at":   res.UpdatedAt,
 				"deleted_at":   res.DeletedAt,
-				"owned_by":     res.OwnedBy,
 				"created_by":   res.CreatedBy,
 				"updated_by":   res.UpdatedBy,
 				"deleted_by":   res.DeletedBy,
@@ -821,13 +821,13 @@ var (
 			"code",
 			"access",
 			"refresh",
-			"expires_at",
-			"created_at",
 			"data",
-			"rel_client",
-			"rel_user",
 			"remote_addr",
 			"user_agent",
+			"rel_client",
+			"rel_user",
+			"expires_at",
+			"created_at",
 		).From(authOa2tokenTable)
 	}
 
@@ -841,13 +841,13 @@ var (
 				"code":        res.Code,
 				"access":      res.Access,
 				"refresh":     res.Refresh,
-				"expires_at":  res.ExpiresAt,
-				"created_at":  res.CreatedAt,
 				"data":        res.Data,
-				"rel_client":  res.ClientID,
-				"rel_user":    res.UserID,
 				"remote_addr": res.RemoteAddr,
 				"user_agent":  res.UserAgent,
+				"rel_client":  res.ClientID,
+				"rel_user":    res.UserID,
+				"expires_at":  res.ExpiresAt,
+				"created_at":  res.CreatedAt,
 			})
 	}
 
@@ -864,13 +864,13 @@ var (
 						"code":        res.Code,
 						"access":      res.Access,
 						"refresh":     res.Refresh,
-						"expires_at":  res.ExpiresAt,
-						"created_at":  res.CreatedAt,
 						"data":        res.Data,
-						"rel_client":  res.ClientID,
-						"rel_user":    res.UserID,
 						"remote_addr": res.RemoteAddr,
 						"user_agent":  res.UserAgent,
+						"rel_client":  res.ClientID,
+						"rel_user":    res.UserID,
+						"expires_at":  res.ExpiresAt,
+						"created_at":  res.CreatedAt,
 					},
 				),
 			)
@@ -885,13 +885,13 @@ var (
 				"code":        res.Code,
 				"access":      res.Access,
 				"refresh":     res.Refresh,
-				"expires_at":  res.ExpiresAt,
-				"created_at":  res.CreatedAt,
 				"data":        res.Data,
-				"rel_client":  res.ClientID,
-				"rel_user":    res.UserID,
 				"remote_addr": res.RemoteAddr,
 				"user_agent":  res.UserAgent,
+				"rel_client":  res.ClientID,
+				"rel_user":    res.UserID,
+				"expires_at":  res.ExpiresAt,
+				"created_at":  res.CreatedAt,
 			}).
 			Where(authOa2tokenPrimaryKeys(res))
 	}
@@ -932,10 +932,10 @@ var (
 			"id",
 			"data",
 			"rel_user",
-			"expires_at",
-			"created_at",
 			"remote_addr",
 			"user_agent",
+			"expires_at",
+			"created_at",
 		).From(authSessionTable)
 	}
 
@@ -948,10 +948,10 @@ var (
 				"id":          res.ID,
 				"data":        res.Data,
 				"rel_user":    res.UserID,
-				"expires_at":  res.ExpiresAt,
-				"created_at":  res.CreatedAt,
 				"remote_addr": res.RemoteAddr,
 				"user_agent":  res.UserAgent,
+				"expires_at":  res.ExpiresAt,
+				"created_at":  res.CreatedAt,
 			})
 	}
 
@@ -967,10 +967,10 @@ var (
 					goqu.Record{
 						"data":        res.Data,
 						"rel_user":    res.UserID,
-						"expires_at":  res.ExpiresAt,
-						"created_at":  res.CreatedAt,
 						"remote_addr": res.RemoteAddr,
 						"user_agent":  res.UserAgent,
+						"expires_at":  res.ExpiresAt,
+						"created_at":  res.CreatedAt,
 					},
 				),
 			)
@@ -984,10 +984,10 @@ var (
 			Set(goqu.Record{
 				"data":        res.Data,
 				"rel_user":    res.UserID,
-				"expires_at":  res.ExpiresAt,
-				"created_at":  res.CreatedAt,
 				"remote_addr": res.RemoteAddr,
 				"user_agent":  res.UserAgent,
+				"expires_at":  res.ExpiresAt,
+				"created_at":  res.CreatedAt,
 			}).
 			Where(authSessionPrimaryKeys(res))
 	}
@@ -2091,8 +2091,8 @@ var (
 		return d.Select(
 			"id",
 			"rel_owner",
-			"kind",
 			"label",
+			"kind",
 			"credentials",
 			"meta",
 			"created_at",
@@ -2111,8 +2111,8 @@ var (
 			Rows(goqu.Record{
 				"id":           res.ID,
 				"rel_owner":    res.OwnerID,
-				"kind":         res.Kind,
 				"label":        res.Label,
+				"kind":         res.Kind,
 				"credentials":  res.Credentials,
 				"meta":         res.Meta,
 				"created_at":   res.CreatedAt,
@@ -2134,8 +2134,8 @@ var (
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
 						"rel_owner":    res.OwnerID,
-						"kind":         res.Kind,
 						"label":        res.Label,
+						"kind":         res.Kind,
 						"credentials":  res.Credentials,
 						"meta":         res.Meta,
 						"created_at":   res.CreatedAt,
@@ -2155,8 +2155,8 @@ var (
 		return d.Update(credentialTable).
 			Set(goqu.Record{
 				"rel_owner":    res.OwnerID,
-				"kind":         res.Kind,
 				"label":        res.Label,
+				"kind":         res.Kind,
 				"credentials":  res.Credentials,
 				"meta":         res.Meta,
 				"created_at":   res.CreatedAt,
@@ -2204,8 +2204,8 @@ var (
 			"id",
 			"handle",
 			"type",
-			"meta",
 			"config",
+			"meta",
 			"created_at",
 			"updated_at",
 			"deleted_at",
@@ -2224,8 +2224,8 @@ var (
 				"id":         res.ID,
 				"handle":     res.Handle,
 				"type":       res.Type,
-				"meta":       res.Meta,
 				"config":     res.Config,
+				"meta":       res.Meta,
 				"created_at": res.CreatedAt,
 				"updated_at": res.UpdatedAt,
 				"deleted_at": res.DeletedAt,
@@ -2247,8 +2247,8 @@ var (
 					goqu.Record{
 						"handle":     res.Handle,
 						"type":       res.Type,
-						"meta":       res.Meta,
 						"config":     res.Config,
+						"meta":       res.Meta,
 						"created_at": res.CreatedAt,
 						"updated_at": res.UpdatedAt,
 						"deleted_at": res.DeletedAt,
@@ -2268,8 +2268,8 @@ var (
 			Set(goqu.Record{
 				"handle":     res.Handle,
 				"type":       res.Type,
-				"meta":       res.Meta,
 				"config":     res.Config,
+				"meta":       res.Meta,
 				"created_at": res.CreatedAt,
 				"updated_at": res.UpdatedAt,
 				"deleted_at": res.DeletedAt,
@@ -3756,10 +3756,10 @@ var (
 			"scenarios",
 			"sources",
 			"blocks",
+			"owned_by",
 			"created_at",
 			"updated_at",
 			"deleted_at",
-			"owned_by",
 			"created_by",
 			"updated_by",
 			"deleted_by",
@@ -3778,10 +3778,10 @@ var (
 				"scenarios":  res.Scenarios,
 				"sources":    res.Sources,
 				"blocks":     res.Blocks,
+				"owned_by":   res.OwnedBy,
 				"created_at": res.CreatedAt,
 				"updated_at": res.UpdatedAt,
 				"deleted_at": res.DeletedAt,
-				"owned_by":   res.OwnedBy,
 				"created_by": res.CreatedBy,
 				"updated_by": res.UpdatedBy,
 				"deleted_by": res.DeletedBy,
@@ -3803,10 +3803,10 @@ var (
 						"scenarios":  res.Scenarios,
 						"sources":    res.Sources,
 						"blocks":     res.Blocks,
+						"owned_by":   res.OwnedBy,
 						"created_at": res.CreatedAt,
 						"updated_at": res.UpdatedAt,
 						"deleted_at": res.DeletedAt,
-						"owned_by":   res.OwnedBy,
 						"created_by": res.CreatedBy,
 						"updated_by": res.UpdatedBy,
 						"deleted_by": res.DeletedBy,
@@ -3826,10 +3826,10 @@ var (
 				"scenarios":  res.Scenarios,
 				"sources":    res.Sources,
 				"blocks":     res.Blocks,
+				"owned_by":   res.OwnedBy,
 				"created_at": res.CreatedAt,
 				"updated_at": res.UpdatedAt,
 				"deleted_at": res.DeletedAt,
-				"owned_by":   res.OwnedBy,
 				"created_by": res.CreatedBy,
 				"updated_by": res.UpdatedBy,
 				"deleted_by": res.DeletedBy,
@@ -4082,10 +4082,10 @@ var (
 			"name",
 			"handle",
 			"meta",
+			"archived_at",
 			"created_at",
 			"updated_at",
 			"deleted_at",
-			"archived_at",
 		).From(roleTable)
 	}
 
@@ -4099,10 +4099,10 @@ var (
 				"name":        res.Name,
 				"handle":      res.Handle,
 				"meta":        res.Meta,
+				"archived_at": res.ArchivedAt,
 				"created_at":  res.CreatedAt,
 				"updated_at":  res.UpdatedAt,
 				"deleted_at":  res.DeletedAt,
-				"archived_at": res.ArchivedAt,
 			})
 	}
 
@@ -4119,10 +4119,10 @@ var (
 						"name":        res.Name,
 						"handle":      res.Handle,
 						"meta":        res.Meta,
+						"archived_at": res.ArchivedAt,
 						"created_at":  res.CreatedAt,
 						"updated_at":  res.UpdatedAt,
 						"deleted_at":  res.DeletedAt,
-						"archived_at": res.ArchivedAt,
 					},
 				),
 			)
@@ -4137,10 +4137,10 @@ var (
 				"name":        res.Name,
 				"handle":      res.Handle,
 				"meta":        res.Meta,
+				"archived_at": res.ArchivedAt,
 				"created_at":  res.CreatedAt,
 				"updated_at":  res.UpdatedAt,
 				"deleted_at":  res.DeletedAt,
-				"archived_at": res.ArchivedAt,
 			}).
 			Where(rolePrimaryKeys(res))
 	}
@@ -4251,8 +4251,8 @@ var (
 	// This function is auto-generated
 	settingValueSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
-			"name",
 			"rel_owner",
+			"name",
 			"value",
 			"updated_by",
 			"updated_at",
@@ -4265,8 +4265,8 @@ var (
 	settingValueInsertQuery = func(d goqu.DialectWrapper, res *systemType.SettingValue) *goqu.InsertDataset {
 		return d.Insert(settingValueTable).
 			Rows(goqu.Record{
-				"name":       res.Name,
 				"rel_owner":  res.OwnedBy,
+				"name":       res.Name,
 				"value":      res.Value,
 				"updated_by": res.UpdatedBy,
 				"updated_at": res.UpdatedAt,
@@ -4277,7 +4277,7 @@ var (
 	//
 	// This function is auto-generated
 	settingValueUpsertQuery = func(d goqu.DialectWrapper, res *systemType.SettingValue) *goqu.InsertDataset {
-		var target = `,LOWER(name),rel_owner`
+		var target = `,rel_owner,LOWER(name)`
 
 		return settingValueInsertQuery(d, res).
 			OnConflict(
@@ -4323,8 +4323,8 @@ var (
 	// This function is auto-generated
 	settingValuePrimaryKeys = func(res *systemType.SettingValue) goqu.Ex {
 		return goqu.Ex{
-			"name":      res.Name,
 			"rel_owner": res.OwnedBy,
+			"name":      res.Name,
 		}
 	}
 
@@ -4339,13 +4339,13 @@ var (
 	templateSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
+			"rel_owner",
 			"handle",
 			"language",
 			"type",
 			"partial",
 			"meta",
 			"template",
-			"rel_owner",
 			"created_at",
 			"updated_at",
 			"deleted_at",
@@ -4360,13 +4360,13 @@ var (
 		return d.Insert(templateTable).
 			Rows(goqu.Record{
 				"id":           res.ID,
+				"rel_owner":    res.OwnerID,
 				"handle":       res.Handle,
 				"language":     res.Language,
 				"type":         res.Type,
 				"partial":      res.Partial,
 				"meta":         res.Meta,
 				"template":     res.Template,
-				"rel_owner":    res.OwnerID,
 				"created_at":   res.CreatedAt,
 				"updated_at":   res.UpdatedAt,
 				"deleted_at":   res.DeletedAt,
@@ -4384,13 +4384,13 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
+						"rel_owner":    res.OwnerID,
 						"handle":       res.Handle,
 						"language":     res.Language,
 						"type":         res.Type,
 						"partial":      res.Partial,
 						"meta":         res.Meta,
 						"template":     res.Template,
-						"rel_owner":    res.OwnerID,
 						"created_at":   res.CreatedAt,
 						"updated_at":   res.UpdatedAt,
 						"deleted_at":   res.DeletedAt,
@@ -4406,13 +4406,13 @@ var (
 	templateUpdateQuery = func(d goqu.DialectWrapper, res *systemType.Template) *goqu.UpdateDataset {
 		return d.Update(templateTable).
 			Set(goqu.Record{
+				"rel_owner":    res.OwnerID,
 				"handle":       res.Handle,
 				"language":     res.Language,
 				"type":         res.Type,
 				"partial":      res.Partial,
 				"meta":         res.Meta,
 				"template":     res.Template,
-				"rel_owner":    res.OwnerID,
 				"created_at":   res.CreatedAt,
 				"updated_at":   res.UpdatedAt,
 				"deleted_at":   res.DeletedAt,
@@ -4455,17 +4455,17 @@ var (
 	userSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"id",
-			"handle",
 			"email",
 			"email_confirmed",
 			"username",
 			"name",
+			"handle",
 			"kind",
 			"meta",
+			"suspended_at",
 			"created_at",
 			"updated_at",
 			"deleted_at",
-			"suspended_at",
 		).From(userTable)
 	}
 
@@ -4476,17 +4476,17 @@ var (
 		return d.Insert(userTable).
 			Rows(goqu.Record{
 				"id":              res.ID,
-				"handle":          res.Handle,
 				"email":           res.Email,
 				"email_confirmed": res.EmailConfirmed,
 				"username":        res.Username,
 				"name":            res.Name,
+				"handle":          res.Handle,
 				"kind":            res.Kind,
 				"meta":            res.Meta,
+				"suspended_at":    res.SuspendedAt,
 				"created_at":      res.CreatedAt,
 				"updated_at":      res.UpdatedAt,
 				"deleted_at":      res.DeletedAt,
-				"suspended_at":    res.SuspendedAt,
 			})
 	}
 
@@ -4500,17 +4500,17 @@ var (
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
-						"handle":          res.Handle,
 						"email":           res.Email,
 						"email_confirmed": res.EmailConfirmed,
 						"username":        res.Username,
 						"name":            res.Name,
+						"handle":          res.Handle,
 						"kind":            res.Kind,
 						"meta":            res.Meta,
+						"suspended_at":    res.SuspendedAt,
 						"created_at":      res.CreatedAt,
 						"updated_at":      res.UpdatedAt,
 						"deleted_at":      res.DeletedAt,
-						"suspended_at":    res.SuspendedAt,
 					},
 				),
 			)
@@ -4522,17 +4522,17 @@ var (
 	userUpdateQuery = func(d goqu.DialectWrapper, res *systemType.User) *goqu.UpdateDataset {
 		return d.Update(userTable).
 			Set(goqu.Record{
-				"handle":          res.Handle,
 				"email":           res.Email,
 				"email_confirmed": res.EmailConfirmed,
 				"username":        res.Username,
 				"name":            res.Name,
+				"handle":          res.Handle,
 				"kind":            res.Kind,
 				"meta":            res.Meta,
+				"suspended_at":    res.SuspendedAt,
 				"created_at":      res.CreatedAt,
 				"updated_at":      res.UpdatedAt,
 				"deleted_at":      res.DeletedAt,
-				"suspended_at":    res.SuspendedAt,
 			}).
 			Where(userPrimaryKeys(res))
 	}

@@ -13,10 +13,19 @@ resource_translation: {
 	model: {
 		attributes: {
 			id: schema.IdField
-			lang:       { goType: "types.Lang" }
-			resource:   {}
-			k:          {}
-			message:    {}
+			lang: {
+		 		goType: "types.Lang"
+				dal: { type: "Text", length: 128 }
+		 	}
+			resource: {
+				dal: { type: "Text", length: 512 }
+			}
+			k: {
+				dal: { type: "Text", length: 256 }
+			}
+			message: {
+				dal: {}
+			}
 
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
@@ -25,6 +34,17 @@ resource_translation: {
 			created_by: schema.AttributeUserRef
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
+			"unique_translation": {
+				 fields: [
+				   { attribute: "lang",     modifiers: [ "LOWERCASE" ] },
+				   { attribute: "resource", modifiers: [ "LOWERCASE" ] },
+				 	 { attribute: "k",        modifiers: [ "LOWERCASE" ] },
+				 ]
+		 	}
 		}
 	}
 

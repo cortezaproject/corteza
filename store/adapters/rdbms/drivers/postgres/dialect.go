@@ -31,7 +31,23 @@ func (postgresDialect) GOQU() goqu.DialectWrapper  { return goquDialectWrapper }
 func (postgresDialect) QuoteIdent(i string) string { return quoteIdent + i + quoteIdent }
 
 func (d postgresDialect) IndexFieldModifiers(attr *dal.Attribute, mm ...dal.IndexFieldModifier) (string, error) {
-	return drivers.IndexFieldModifiers(attr, d.QuoteIdent, mm...)
+	var (
+		modifier string
+		out      = d.QuoteIdent(attr.StoreIdent())
+	)
+
+	for _, m := range mm {
+		switch m {
+		case dal.IndexFieldModifierLower:
+			modifier = "LOWER"
+		default:
+			return "", fmt.Errorf("unknown index field modifier: %s", m)
+		}
+
+		out = fmt.Sprintf("%s(%s)", modifier, out)
+	}
+
+	return out, nil
 }
 
 func (postgresDialect) DeepIdentJSON(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression, error) {
@@ -89,8 +105,12 @@ func (postgresDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, 
 	}
 
 	switch t := attr.Type.(type) {
-	case *dal.TypeID, *dal.TypeRef:
+	case *dal.TypeID:
 		col.Type.Name = "BIGINT"
+		col.Default = ddl.DefaultID(t.HasDefault, t.DefaultValue)
+	case *dal.TypeRef:
+		col.Type.Name = "BIGINT"
+		col.Default = ddl.DefaultID(t.HasDefault, t.DefaultValue)
 
 	case *dal.TypeTimestamp:
 		col.Type.Name = "TIMESTAMP"
@@ -98,7 +118,11 @@ func (postgresDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, 
 		if t.Timezone {
 			col.Type.Name += "TZ"
 		}
-		col.Type.Name += fmt.Sprintf("(%d)", t.Precision)
+
+		if t.Precision >= 0 {
+			col.Type.Name += fmt.Sprintf("(%d)", t.Precision)
+		}
+
 		col.Default = ddl.DefaultValueCurrentTimestamp(t.DefaultCurrentTimestamp)
 
 	case *TypeTime:
@@ -107,7 +131,11 @@ func (postgresDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, 
 		if t.Timezone {
 			col.Type.Name += "TZ"
 		}
-		col.Type.Name += fmt.Sprintf("(%d)", t.Precision)
+
+		if t.Precision >= 0 {
+			col.Type.Name += fmt.Sprintf("(%d)", t.Precision)
+		}
+
 		col.Default = ddl.DefaultValueCurrentTimestamp(t.DefaultCurrentTimestamp)
 
 	case *dal.TypeDate:
@@ -116,7 +144,15 @@ func (postgresDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, 
 
 	case *dal.TypeNumber:
 		col.Type.Name = "NUMERIC"
-		// @todo precision, scale?
+
+		switch {
+		case t.Precision >= 0 && t.Scale >= 0:
+			col.Type.Name += fmt.Sprintf("(%d, %d)", t.Precision, t.Scale)
+		case t.Precision >= 0:
+			col.Type.Name += fmt.Sprintf("(%d)", t.Precision)
+		case t.Scale >= 0:
+			col.Type.Name += fmt.Sprintf("(%d)", t.Scale)
+		}
 
 		col.Default = ddl.DefaultNumber(t.HasDefault, t.Precision, t.DefaultValue)
 

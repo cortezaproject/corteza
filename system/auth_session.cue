@@ -14,13 +14,30 @@ auth_session: {
 
 	model: {
 		attributes: {
-				id:      { primaryKey: true, expIdent: "ID" }
-				data:    { goType: "[]byte" }
-				user_id: { goType: "uint64", storeIdent: "rel_user", ident: "userID"}
-				expires_at: schema.SortableTimestampField
-				created_at: schema.SortableTimestampNowField
-				remote_addr: {}
-				user_agent: {}
+			id: schema.IdField
+			data:    {
+				goType: "[]byte"
+				dal: { type: "Blob" }
+			}
+			user_id: {
+				goType: "uint64",
+				ident: "userID",
+				storeIdent: "rel_user"
+				dal: { type: "Ref", refModelResType: "corteza::system:user", default: 0 }
+			}
+			remote_addr: {
+				dal: {}
+			}
+			user_agent: {
+				dal: {}
+			}
+			expires_at: schema.SortableTimestampField
+			created_at: schema.SortableTimestampNowField
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
+			"expires_at": { attribute: "expires_at" }
 		}
 	}
 

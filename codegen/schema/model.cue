@@ -7,25 +7,18 @@ import (
 #Model: {
 	ident: string
 	attributes: {
-		[name=_]: {"name": name} & #ModelAttribute
+		[name=_]: { "name": name }
+	} & {
+		[string]: #ModelAttribute
 	}
 
-	indexes?: {
-		[name=_]: {"name": name} & #ModelIndex
-	}
+	indexes: ({
+		[name=_]: { "name": name } & #ModelIndex
+	} & {
+		[string]: #ModelIndex
+	}) | *({})
 }
 
-#ModelAttributeDalType:
-	"ID" | "Ref" |
-	"Timestamp" | "Time" | "Date" |
-	"Number" |
-	"Text" |
-	"Boolean" |
-	"Enum" |
-	"Geometry" |
-	"JSON" |
-	"Blob" |
-	"UUID"
 
 // logic in struct fields is a bit different
 #ModelAttribute: {
@@ -55,95 +48,108 @@ import (
 	unique:     bool | *false
 	sortable:   bool | *false
 	descending: bool | *false
-	primaryKey: bool | *false
 	ignoreCase: bool | *false
 
 	// currently disabled since not used by anything
 	// it adds more than 4x overhead to the time it takes to generate the store code!
 	// #ModelAttributeJsonTag
 
-	dal: {
-		type: #ModelAttributeDalType | * "Text"
-
-		fqType: "dal.Type\(type)"
-
-		nullable: bool | *false
-
-		if type == "ID" {
-			generatedByStore: bool | *false
-			default?: number
-		}
-
-		if type == "Ref" {
-			refModelResType: #FQRT
-			attribute: #handle | *"id"
-			default?: number
-		}
-
-		if type == "Timestamp" {
-			timezone: bool | *false
-			precision: number | *0
-			defaultCurrentTimestamp?: true
-		}
-
-		if type == "Time" {
-			timezone: bool | *false
-			precision: number | *0
-			defaultCurrentTimestamp?: true
-		}
-
-		if type == "Date" {
-			defaultCurrentTimestamp?: true
-		}
-
-		if type == "Number" {
-			precision: number | *0
-			scale: number | *0
-			default?: number
-		}
-
-		if type == "Text" {
-			length: number | *0
-			default?: string
-		}
-
-		if type == "Boolean" {
-			default?: bool
-		}
-
-		if type == "Enum" {
-			values: []
-			default?: string
-		}
-
-		if type == "Geometry" {}
-
-		if type == "JSON" {
-			default?: string | bytes
-			defaultEmptyObject?: true
-		}
-
-		if type == "Blob" {
-			default?: bytes
-		}
-
-		if type == "UUID" {}
-
-	}
+	dal?: #ModelAttributeDal
 }
+
+#ModelAttributeDal: {
+	type: #ModelAttributeDalType | *"Text"
+
+	fqType: "dal.Type\(type)"
+
+	nullable: bool | *false
+
+
+
+	if type == "ID" {
+		generatedByStore: bool | *false
+		default?: 0
+	}
+
+	if type == "Ref" {
+		refModelResType: #FQRT
+		attribute: #handle | *"id"
+		default?: 0
+	}
+
+	if type == "Timestamp" {
+		timezone: bool | *false
+		precision: number | *(-1)
+		defaultCurrentTimestamp?: true
+	}
+
+	if type == "Time" {
+		timezone: bool | *false
+		precision: number | *(-1)
+		defaultCurrentTimestamp?: true
+	}
+
+	if type == "Date" {
+		defaultCurrentTimestamp?: true
+	}
+
+	if type == "Number" {
+		precision: number | *(-1)
+		scale: number | *(-1)
+		default?: number
+	}
+
+	if type == "Text" {
+		length: number | *0
+		default?: string
+	}
+
+	if type == "Boolean" {
+		default?: bool
+	}
+
+	if type == "Enum" {
+		values: []
+		default?: string
+	}
+
+	if type == "Geometry" {}
+
+	if type == "JSON" {
+		default?: string | bytes
+		defaultEmptyObject?: true
+	}
+
+	if type == "Blob" {
+		default?: bytes
+	}
+
+	if type == "UUID" {}
+}
+
+#ModelAttributeDalType:
+	"ID" | "Ref" |
+	"Timestamp" | "Time" | "Date" |
+	"Number" |
+	"Text" |
+	"Boolean" |
+	"Enum" |
+	"Geometry" |
+	"JSON" |
+	"Blob" |
+	"UUID"
+
 
 IdField: {
 	// Expecting ID field to always have name ID
 	name:       "id"
 	expIdent:   "ID"
-	primaryKey: true
 	unique:     true
 
 	// @todo someday we'll replace this with the "ID" type
 	goType: "uint64"
 	dal: { type: "ID" }
 }
-
 HandleField: {
 	// Expecting ID field to always have name handle
 	name:   "handle"
@@ -156,25 +162,25 @@ HandleField: {
 
 AttributeUserRef: {
 	goType: "uint64"
-	dal: { type: "Ref", refModelResType: "corteza::system:user" }
+	dal: { type: "Ref", refModelResType: "corteza::system:user", default: 0 }
 }
 
 SortableTimestampField: {
 	sortable: true
 	goType: "time.Time"
-	dal: { type: "Timestamp", precision: 0, timezone: true, nullable: false }
+	dal: { type: "Timestamp", timezone: true, nullable: false }
 }
 
 SortableTimestampNowField: {
 	sortable: true
 	goType: "time.Time"
-	dal: { type: "Timestamp", precision: 0, timezone: true, nullable: false, defaultCurrentTimestamp: true }
+	dal: { type: "Timestamp", timezone: true, nullable: false, defaultCurrentTimestamp: true }
 }
 
 SortableTimestampNilField: {
 	sortable: true
 	goType: "*time.Time"
-	dal: { type: "Timestamp", precision: 0, timezone: true, nullable: true }
+	dal: { type: "Timestamp", timezone: true, nullable: true }
 }
 
 #ModelAttributeJsonTag: {
@@ -211,7 +217,7 @@ SortableTimestampNilField: {
 	}
 }
 
-#ModelIndex: {
+#ModelIndex: close({
 	name:   #ident
 
 	_attributes: { [_]: #ModelAttribute }
@@ -227,32 +233,33 @@ SortableTimestampNilField: {
 
 	type: "BTREE" | *"BTREE"
 
+ 	// index predicate,
+ 	// condition that must be met for the index to be used
+	predicate?: string
+
 	attribute?: string
 	attributes?: [string, ...]
+	fields: [#ModelIndexField, ...]
 
 	if attribute != _|_ {
-		attributes: [attribute]
+		attributes: [string, ...] & [attribute]
 	}
 
-	fields: [#ModelIndexField, ...] | *([
- 		if attributes != _|_ {
-				for a in attributes {
-					"attribute": a
-
-					#ModelIndexField
-				}
- 		}
-	])
-
-	predicate?: string
-}
+	if fields != _|_ && attributes != _|_ {
+		fields: [
+			for a in attributes {
+				{"attribute": a} & #ModelIndexField
+			}
+		]
+	}
+})
 
 #IndexFieldModifier: "LOWERCASE"
 
-#ModelIndexField: {
+#ModelIndexField: close({
   attribute: string
 	modifiers?: [#IndexFieldModifier, ...]
 	length?: number
 	sort?: "DESC" | "ASC"
 	nulls?: "FIRST" | "LAST"
-}
+})

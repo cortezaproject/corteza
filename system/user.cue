@@ -7,18 +7,58 @@ import (
 user: {
 	model: {
 		attributes: {
-				id:     schema.IdField
-				handle: schema.HandleField
-				email: {sortable: true, unique: true, ignoreCase: true}
-				email_confirmed: {goType: "bool"}
-				username: {sortable: true, unique: true, ignoreCase: true}
-				name: {sortable: true}
-				kind: {sortable: true, goType: "types.UserKind"}
-				meta: {goType: "*types.UserMeta"}
-				created_at: schema.SortableTimestampNowField
-				updated_at: schema.SortableTimestampNilField
-				deleted_at: schema.SortableTimestampNilField
-				suspended_at: schema.SortableTimestampNilField
+		  id:     schema.IdField
+		  email: {
+		  	sortable: true,
+		  	unique: true,
+		  	ignoreCase: true
+				dal: { length: 254 }
+			}
+		  email_confirmed: {
+		  	goType: "bool"
+				dal: { type: "Boolean" }
+			}
+		  username: {
+		  	sortable: true,
+		  	unique: true,
+		  	ignoreCase: true
+				dal: {}
+
+			}
+		  name: {
+		  	sortable: true
+				dal: {}
+			}
+		  handle: schema.HandleField
+		  kind: {
+		  	sortable: true,
+		  	goType: "types.UserKind"
+				dal: { length: 8 }
+			}
+		  meta: {
+		  	goType: "*types.UserMeta"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+		  suspended_at: schema.SortableTimestampNilField
+		  created_at: schema.SortableTimestampNowField
+		  updated_at: schema.SortableTimestampNilField
+		  deleted_at: schema.SortableTimestampNilField
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
+			"unique_email": {
+				 fields: [{ attribute: "email", modifiers: ["LOWERCASE"] }]
+				 predicate: "email != '' AND deleted_at IS NULL"
+		 	}
+			"unique_handle": {
+				 fields: [{ attribute: "handle", modifiers: ["LOWERCASE"] }]
+				 predicate: "handle != '' AND deleted_at IS NULL"
+		 	}
+			"unique_username": {
+				 fields: [{ attribute: "username", modifiers: ["LOWERCASE"] }]
+				 predicate: "username != '' AND deleted_at IS NULL"
+		 	}
 		}
 	}
 

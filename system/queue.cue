@@ -13,9 +13,20 @@ queue: {
 		ident: "queue_settings"
 		attributes: {
 			id: schema.IdField
-			consumer: {sortable: true, goType: "string"}
-			queue: {sortable: true, goType: "string"}
-			meta: {goType: "types.QueueMeta"}
+			consumer: {
+				sortable: true,
+				goType: "string"
+				dal: {}
+			}
+			queue: {
+				sortable: true,
+				goType: "string"
+				dal: {}
+			}
+			meta: {
+				goType: "types.QueueMeta"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
 
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
@@ -23,6 +34,10 @@ queue: {
 			created_by: schema.AttributeUserRef
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
 		}
 	}
 

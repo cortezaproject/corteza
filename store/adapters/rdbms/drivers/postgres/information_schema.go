@@ -64,7 +64,7 @@ func (i *informationSchema) scanColumns(ctx context.Context, sd *goqu.SelectData
 		aux = make([]struct {
 			Table      string `db:"table_name"`
 			Column     string `db:"column_name"`
-			IsNullable bool   `db:"is_nullable"`
+			IsNullable string `db:"is_nullable"`
 			Type       string `db:"data_type"`
 		}, 0)
 	)
@@ -86,7 +86,7 @@ func (i *informationSchema) scanColumns(ctx context.Context, sd *goqu.SelectData
 			Ident: v.Column,
 			Type: &ddl.ColumnType{
 				Name: v.Type,
-				Null: v.IsNullable,
+				Null: v.IsNullable == "YES",
 			},
 		})
 	}

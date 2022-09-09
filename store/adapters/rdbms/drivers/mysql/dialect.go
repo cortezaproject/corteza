@@ -142,8 +142,12 @@ func (mysqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err
 	}
 
 	switch t := attr.Type.(type) {
-	case *dal.TypeID, *dal.TypeRef:
+	case *dal.TypeID:
 		col.Type.Name = "BIGINT"
+		col.Default = ddl.DefaultID(t.HasDefault, t.DefaultValue)
+	case *dal.TypeRef:
+		col.Type.Name = "BIGINT"
+		col.Default = ddl.DefaultID(t.HasDefault, t.DefaultValue)
 
 	case *dal.TypeTimestamp:
 		col.Type.Name = "DATETIME"

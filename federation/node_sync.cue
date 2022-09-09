@@ -12,10 +12,28 @@ nodeSync: {
 	model: {
 		ident: "federation_nodes_sync"
 		attributes: {
-			node_id: { sortable: true, ident: "nodeID", goType: "uint64", primaryKey: true }
-			module_id: { sortable: true, ident: "moduleID", goType: "uint64" }
-			sync_type: { sortable: true, goType: "string" }
-			sync_status: { sortable: true, goType: "string" }
+			node_id: {
+				sortable: true,
+				ident: "nodeID",
+				goType: "uint64",
+				dal: { type: "ID" }
+			}
+			module_id: {
+				sortable: true,
+				ident: "moduleID",
+				goType: "uint64"
+				dal: { type: "ID" }
+			}
+			sync_type: {
+				sortable: true,
+				goType: "string"
+				dal: {}
+			}
+			sync_status: {
+				sortable: true,
+				goType: "string"
+				dal: {}
+			}
 			time_of_action: schema.SortableTimestampField
 		}
 	}

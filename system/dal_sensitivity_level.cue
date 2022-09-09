@@ -9,15 +9,25 @@ dal_sensitivity_level: {
 		attributes: {
 			id:     schema.IdField
 			handle: schema.HandleField
-			level: { sortable: true, goType: "int" }
-			meta: {goType: "types.DalSensitivityLevelMeta"}
+			level: {
+				sortable: true, goType: "int"
+				dal: { type: "Number" }
+			}
 
+			meta: {
+				goType: "types.DalSensitivityLevelMeta"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
 			created_by: schema.AttributeUserRef
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
 		}
 	}
 

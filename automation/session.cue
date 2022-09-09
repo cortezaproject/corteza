@@ -12,21 +12,61 @@ session: {
 	model: {
 		ident: "automation_sessions"
  		attributes: {
-			id:          schema.IdField
-			workflow_id: { sortable: true, ident: "workflowID", goType: "uint64", storeIdent: "rel_workflow" }
-			event_type: { sortable: true, goType: "string" }
-			resource_type: { sortable: true, goType: "string" }
-			status: { sortable: true, goType: "types.SessionStatus" }
-			input: { goType: "*expr.Vars" }
-			output: { goType: "*expr.Vars" }
-			stacktrace: { goType: "types.Stacktrace" }
+			id: schema.IdField
+			workflow_id: {
+				sortable: true,
+				ident: "workflowID",
+				goType: "uint64",
+				storeIdent: "rel_workflow"
+				dal: { type: "Ref", refModelResType: "corteza::automation:workflow" }
+			}
+			status: {
+				sortable: true,
+				goType: "types.SessionStatus"
+				dal: { type: "Number", default: 0 }
+			}
+			event_type: {
+				sortable: true,
+				goType: "string"
+				dal: {}
+			}
+			resource_type: {
+				sortable: true,
+				goType: "string"
+				dal: {}
+			}
+			input: {
+				goType: "*expr.Vars"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			output: {
+				goType: "*expr.Vars"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			stacktrace: {
+				goType: "types.Stacktrace"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
 
-			created_by: { goType: "uint64" }
+			created_by: schema.AttributeUserRef
 			created_at: schema.SortableTimestampNowField
 			purge_at: schema.SortableTimestampNilField
-			completed_at: schema.SortableTimestampNilField
 			suspended_at: schema.SortableTimestampNilField
-			error: {}
+			completed_at: schema.SortableTimestampNilField
+			error: {
+				dal: {}
+			}
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
+			"completed_at": { attribute: "completed_at" }
+			"created_at": { attribute: "created_at" }
+			"event_type": { attribute: "event_type" }
+			"resource_type": { attribute: "resource_type" }
+			"status": { attribute: "status" }
+			"suspended_at": { attribute: "suspended_at" }
+			"resource_type": { attribute: "resource_type" }
 		}
 	}
 

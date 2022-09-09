@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"strconv"
 )
 
 type (
@@ -127,6 +128,10 @@ func ConvertModel(m *dal.Model, d driverDialect) (t *Table, err error) {
 	var (
 		col *Column
 		idx *Index
+
+		// keeps track of embedded attributes
+		// key is storeIdent
+		embeds = make(map[string]bool)
 	)
 
 	t = &Table{Ident: m.Ident}
@@ -135,7 +140,23 @@ func ConvertModel(m *dal.Model, d driverDialect) (t *Table, err error) {
 			continue
 		}
 
-		// @todo filter out store-strategy
+		if embeds[a.StoreIdent()] {
+			continue
+		}
+
+		switch a.Store.(type) {
+		case *dal.CodecRecordValueSetJSON:
+			// add to embeds and make sure we do not add the column again!
+			embeds[a.StoreIdent()] = true
+
+			// throw away the attribute and create a new one
+			// to for JSON storage
+			a = &dal.Attribute{
+				Ident: a.StoreIdent(),
+				Type:  &dal.TypeJSON{Nullable: false},
+				Store: &dal.CodecPlain{},
+			}
+		}
 
 		col, err = d.AttributeToColumn(a)
 		if err != nil {
@@ -215,14 +236,23 @@ func DefaultBoolean(set, value bool) string {
 	}
 }
 
-func DefaultNumber(set bool, precision uint, value float64) string {
+func DefaultID(set bool, value uint64) string {
 	switch {
 	case !set:
 		return ""
-	case precision > 0:
-		return fmt.Sprintf("%f", value)
 	default:
-		return fmt.Sprintf("%0.0f", value)
+		return strconv.FormatUint(value, 10)
+	}
+}
+
+func DefaultNumber(set bool, precision int, value float64) string {
+	switch {
+	case !set:
+		return ""
+	case precision >= 0:
+		return strconv.FormatFloat(value, 'f', precision, 64)
+	default:
+		return strconv.FormatFloat(value, 'f', -1, 64)
 	}
 }
 

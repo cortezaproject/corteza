@@ -20,25 +20,53 @@ moduleField: {
 				storeIdent: "rel_module"
 				dal: { type: "Ref", refModelResType: "corteza::compose:module" }
 			}
-			namespace_id: {
-			  ident: "namespaceID",
-				goType: "uint64",
-				storeIdent: "rel_namespace"
-				store: false
+			place: {
+				sortable: true,
+				goType: "int"
+				dal: { type: "Number" }
 			}
-			place: { sortable: true, goType: "int" }
-			kind: { sortable: true, goType: "string" }
-			name: {sortable: true}
-			label: {sortable: true}
-			options: { goType: "types.ModuleFieldOptions" }
-			config: { goType: "types.ModuleFieldConfig" }
-			required: { goType: "bool", storeIdent: "is_required" }
-			multi: { goType: "bool", storeIdent: "is_multi" }
-			default_value: { goType: "types.RecordValueSet" }
-			expressions: { goType: "types.ModuleFieldExpr" }
-			created_at: { goType: "time.Time" }
-			updated_at: { goType: "*time.Time" }
-			deleted_at: { goType: "*time.Time" }
+			kind: {
+				sortable: true,
+				goType: "string"
+				dal: {}
+			}
+			options: {
+				goType: "types.ModuleFieldOptions"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			name: {
+				sortable: true
+				dal: {}
+			}
+			label: {
+				sortable: true
+				dal: {}
+			}
+			config: {
+				goType: "types.ModuleFieldConfig"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			required: {
+				goType: "bool",
+				storeIdent: "is_required"
+				dal: { type: "Boolean" }
+			}
+			multi: {
+				goType: "bool",
+				storeIdent: "is_multi"
+				dal: { type: "Boolean" }
+			}
+			default_value: {
+				goType: "types.RecordValueSet"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			expressions: {
+				goType: "types.ModuleFieldExpr"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			created_at: schema.SortableTimestampNowField
+			updated_at: schema.SortableTimestampNilField
+			deleted_at: schema.SortableTimestampNilField
 		}
 
 		indexes: {

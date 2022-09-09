@@ -14,17 +14,47 @@ auth_oa2token: {
 
 	model: {
 		attributes: {
-				id:     schema.IdField
-				code: {}
-				access: {}
-				refresh: {}
-				expires_at: schema.SortableTimestampField
-				created_at: schema.SortableTimestampNowField
-				data: { goType: "rawJson" }
-				client_id: { goType: "uint64", ident: "clientID", storeIdent: "rel_client" }
-				user_id: { goType: "uint64", ident: "userID", storeIdent: "rel_user" }
-				remote_addr: {}
-				user_agent: {}
+			id:     schema.IdField
+			code: {
+				dal: { type: "Text", length: 48 }
+			}
+			access: {
+				dal: { type: "Text", length: 2048 }
+			}
+			refresh: {
+				dal: { type: "Text", length: 48 }
+			}
+			data: {
+				goType: "rawJson"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			remote_addr: {
+				dal: { type: "Text", length: 64 }
+			}
+			user_agent: {
+				dal: {}
+			}
+			client_id: {
+				goType: "uint64",
+				ident: "clientID",
+				storeIdent: "rel_client"
+				dal: { type: "Ref", refModelResType: "corteza::system:auth-client", default: 0 }
+			}
+			user_id: {
+				goType: "uint64",
+				ident: "userID",
+				storeIdent: "rel_user"
+				dal: { type: "Ref", refModelResType: "corteza::system:user", default: 0 }
+			}
+			created_at: schema.SortableTimestampNowField
+			expires_at: schema.SortableTimestampField
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
+			"client_id": { attribute: "client_id" }
+			"code": { attribute: "code" }
+			"refresh": { attribute: "refresh" }
 		}
 	}
 

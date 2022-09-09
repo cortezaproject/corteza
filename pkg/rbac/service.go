@@ -47,6 +47,8 @@ var (
 
 const (
 	watchInterval = time.Hour
+
+	RuleResourceType = "corteza::generic:rbac-rule"
 )
 
 // Global returns global RBAC service
