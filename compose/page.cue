@@ -12,44 +12,66 @@ page: {
 	model: {
 		ident: "compose_page"
 		attributes: {
-				id: schema.IdField
-			  self_id: {
-			  	ident: "selfID",
-					goType: "uint64",
-					dal: { type: "Ref", refModelResType: "corteza::compose:page" }
-					sortable: true
-				}
-			  module_id: {
-			  	ident: "moduleID",
-					goType: "uint64",
-					storeIdent: "rel_module"
-					dal: { type: "Ref", refModelResType: "corteza::compose:module" }
-				}
-			  namespace_id: {
-			  	ident: "namespaceID",
-					goType: "uint64",
-					storeIdent: "rel_namespace"
-					dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
-				}
+			id: schema.IdField
+			title: {
+				goType: "string",
+				sortable: true
+				dal: {}
+			}
+			handle: schema.HandleField
+			self_id: {
+				ident: "selfID",
+				goType: "uint64",
+				dal: { type: "Ref", refModelResType: "corteza::compose:page" }
+				sortable: true
+			}
+			module_id: {
+				ident: "moduleID",
+				goType: "uint64",
+				storeIdent: "rel_module"
+				dal: { type: "Ref", refModelResType: "corteza::compose:module" }
+			}
+			namespace_id: {
+				ident: "namespaceID",
+				goType: "uint64",
+				storeIdent: "rel_namespace"
+				dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
+			}
 
-				handle: schema.HandleField
-				config: { goType: "types.PageConfig" }
-				blocks: { goType: "types.PageBlocks" }
-				children: { goType: "types.PageSet", store: false }
-				visible: { goType: "bool" }
-				weight: { goType: "int", sortable: true }
-				title: { goType: "string", sortable: true }
-				description: { goType: "string" }
+			config: {
+				goType: "types.PageConfig"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			blocks: {
+				goType: "types.PageBlocks"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			children: {
+				goType: "types.PageSet", store: false
+			}
+			visible: {
+				goType: "bool"
+				dal: { type: "Boolean", default: true }
+			}
+			weight: {
+				goType: "int", sortable: true
+				dal: { type: "Number", default: 0 }
+			}
+			description: {
+				goType: "string"
+				dal: {}
+			}
 
-				created_at: schema.SortableTimestampNowField
-				updated_at: schema.SortableTimestampNilField
-				deleted_at: schema.SortableTimestampNilField
+			created_at: schema.SortableTimestampNowField
+			updated_at: schema.SortableTimestampNilField
+			deleted_at: schema.SortableTimestampNilField
 		}
 
 		indexes: {
 			"primary": { attribute: "id" }
 			"namespace": { attribute: "namespace_id" },
 			"module": { attribute: "module_id" },
+			"self_id": { attribute: "self_id" },
 			"unique_handle": {
 				fields: [{ attribute: "handle", modifiers: ["LOWERCASE"] }, { attribute: "namespace_id" }]
 				predicate: "handle != '' AND deleted_at IS NULL"

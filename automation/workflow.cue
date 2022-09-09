@@ -8,25 +8,55 @@ workflow: {
 	model: {
 		ident: "automation_workflows"
 		attributes: {
-			id:          schema.IdField
-			handle:      schema.HandleField
-			meta: { goType: "*types.WorkflowMeta" }
-			enabled: { sortable: true, goType: "bool" }
-			trace: { goType: "bool" }
-			keep_sessions: { goType: "int" }
-			scope: { goType: "*expr.Vars" }
-			steps: { goType: "types.WorkflowStepSet" }
-			paths: { goType: "types.WorkflowPathSet" }
-			issues: { goType: "types.WorkflowIssueSet" }
-			run_as: { goType: "uint64" }
+			id: schema.IdField
+			handle: schema.HandleField
+			meta: {
+				goType: "*types.WorkflowMeta"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			enabled: {
+				sortable: true,
+				goType: "bool"
+				dal: { type: "Boolean", default: true }
+			}
+			trace: {
+				goType: "bool"
+				dal: { type: "Boolean", default: false }
+			}
+			keep_sessions: {
+				goType: "int"
+				dal: { type: "Number", default: 0 }
+		  }
+			scope: {
+				goType: "*expr.Vars"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			steps: {
+				goType: "types.WorkflowStepSet"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			paths: {
+				goType: "types.WorkflowPathSet"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			issues: {
+				goType: "types.WorkflowIssueSet"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
 
+			run_as: schema.AttributeUserRef
+
+			owned_by:   schema.AttributeUserRef
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
-			owned_by:   schema.AttributeUserRef
 			created_by: schema.AttributeUserRef
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
 		}
 	}
 

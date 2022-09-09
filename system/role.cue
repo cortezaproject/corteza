@@ -7,15 +7,25 @@ import (
 role: {
 	model: {
 		attributes: {
-				id: schema.IdField
-				name: {sortable: true}
-				handle: schema.HandleField
-				meta: {goType: "*types.RoleMeta"}
+			id: schema.IdField
+			name: {
+				sortable: true
+				dal: {}
+			}
+			handle: schema.HandleField
+			meta: {
+				goType: "*types.RoleMeta"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
 
-				created_at: schema.SortableTimestampNowField
-				updated_at: schema.SortableTimestampNilField
-				deleted_at: schema.SortableTimestampNilField
-				archived_at: schema.SortableTimestampNilField
+			archived_at: schema.SortableTimestampNilField
+			created_at: schema.SortableTimestampNowField
+			updated_at: schema.SortableTimestampNilField
+			deleted_at: schema.SortableTimestampNilField
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
 		}
 	}
 

@@ -11,17 +11,37 @@ attachment: {
 
 	model: {
 		attributes: {
-				id:       schema.IdField
-				owner_id: { sortable: true, goType: "uint64", storeIdent: "rel_owner", ident: "ownerID"}
-				kind: {sortable: true}
-				url:  {}
-				preview_url: {}
-				name:        {sortable: true}
-				meta:        { goType: "types.AttachmentMeta" }
-				created_at: schema.SortableTimestampNowField
-				updated_at: schema.SortableTimestampNilField
-				deleted_at: schema.SortableTimestampNilField
+			id: schema.IdField
+			owner_id:   {
+				storeIdent: "rel_owner",
+				ident: "ownerID"
+				schema.AttributeUserRef,
+			}
+			kind: {
+				sortable: true
+				dal: {}
+			}
+			url: {
+				dal: {}
+			}
+			preview_url: {
+				dal: {}
+			}
+			name: {
+				sortable: true
+				dal: {}
+			}
+			meta: {
+				goType: "types.AttachmentMeta"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			created_at: schema.SortableTimestampNowField
+			updated_at: schema.SortableTimestampNilField
+			deleted_at: schema.SortableTimestampNilField
+		}
 
+		indexes: {
+			"primary": { attribute: "id" }
 		}
 	}
 

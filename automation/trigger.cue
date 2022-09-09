@@ -8,23 +8,59 @@ trigger: {
 	model: {
 		ident: "automation_triggers"
 		attributes: {
-			id:          schema.IdField
-			workflow_id: { sortable: true, ident: "workflowID", goType: "uint64", storeIdent: "rel_workflow" }
-			step_id: { ident: "stepID", goType: "uint64", storeIdent: "rel_step" }
-			enabled: { sortable: true, goType: "bool" }
-			resource_type: { sortable: true, goType: "string" }
-			event_type: { sortable: true, goType: "string" }
-			meta: { goType: "*types.TriggerMeta" }
-			constraints: { goType: "types.TriggerConstraintSet" }
-			input: { goType: "*expr.Vars" }
+			id:  schema.IdField
+			workflow_id: {
+				sortable: true,
+				ident: "workflowID",
+				goType: "uint64",
+				storeIdent: "rel_workflow"
+				dal: { type: "Ref", refModelResType: "corteza::automation:workflow" }
+			}
+			step_id: {
+				ident: "stepID",
+				goType: "uint64",
+				storeIdent: "rel_step"
+				dal: { type: "ID" }
+			}
+			enabled: {
+				sortable: true,
+				goType: "bool"
+				dal: { type: "Boolean", default: true }
+			}
+			meta: {
+				goType: "*types.TriggerMeta"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			resource_type: {
+				sortable: true,
+				goType: "string"
+				dal: {}
+			}
+			event_type: {
+				sortable: true,
+				goType: "string"
+				dal: {}
+			}
+			constraints: {
+				goType: "types.TriggerConstraintSet"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			input: {
+				goType: "*expr.Vars"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
 
+			owned_by:   schema.AttributeUserRef
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
-			owned_by:   schema.AttributeUserRef
 			created_by: schema.AttributeUserRef
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
 		}
 	}
 

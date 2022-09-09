@@ -9,10 +9,19 @@ dal_connection: {
 		attributes: {
 			id:     schema.IdField
 			handle: schema.HandleField
-			type: { sortable: true }
+			type: {
+				sortable: true
+				dal: {}
+			}
 
-			meta: { goType: "types.ConnectionMeta" }
-			config: { goType: "types.ConnectionConfig" }
+			config: {
+				goType: "types.ConnectionConfig"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			meta: {
+				goType: "types.ConnectionMeta"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
 
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
@@ -20,6 +29,10 @@ dal_connection: {
 			created_by: schema.AttributeUserRef
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
 		}
 	}
 

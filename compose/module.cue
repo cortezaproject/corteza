@@ -14,7 +14,17 @@ module: {
 		ident: "compose_module"
 		attributes: {
 			id: schema.IdField
+			namespace_id: {
+				ident: "namespaceID",
+				goType: "uint64",
+				storeIdent: "rel_namespace"
+				dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
+			}
 			handle: schema.HandleField
+			name: {
+				sortable: true
+				dal: {}
+			}
 			meta: {
 				goType: "rawJson"
 				dal: { type: "JSON", defaultEmptyObject: true }
@@ -23,22 +33,10 @@ module: {
 				goType: "types.ModuleConfig"
 				dal: { type: "JSON", defaultEmptyObject: true }
 			}
-			privacy: {
-				goType: "types.ModuleConfig"
-				dal: { type: "JSON", defaultEmptyObject: true }
-			}
 			fields: {
 				goType: "types.ModuleFieldSet",
 				store: false
 			}
-			namespace_id: {
-				ident: "namespaceID",
-				goType: "uint64",
-				storeIdent: "rel_namespace"
-				dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
-			}
-			name: {sortable: true}
-
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField

@@ -18,10 +18,10 @@ func (s *Store) Upgrade(ctx context.Context) (err error) {
 		ctx,
 		s.log(ctx),
 		s.DataDefiner,
-		systemModels.All(),
-		composeModels.All(),
-		automationModels.All(),
-		federationModels.All(),
+		systemModels.Models(),
+		composeModels.Models(),
+		automationModels.Models(),
+		federationModels.Models(),
 	)
 
 	if err != nil {

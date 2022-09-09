@@ -8,7 +8,11 @@ end_of_line = lf
 insert_final_newline = true
 
 [*.go]
-ident_style = space
+indent_style = space
+
+[*.cue]
+indent_style = space
+indent_size = 2
 
 # Tab indentation (no size specified)
 [Makefile]

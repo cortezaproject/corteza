@@ -19,6 +19,9 @@ type (
 	TypeID struct {
 		GeneratedByStore bool
 		Nullable         bool
+
+		HasDefault   bool
+		DefaultValue uint64
 	}
 
 	// TypeRef handles ID (uint64) coding + reference info
@@ -32,6 +35,9 @@ type (
 		RefModel     *ModelRef
 
 		Nullable bool
+
+		HasDefault   bool
+		DefaultValue uint64
 	}
 
 	// TypeTimestamp handles timestamp coding
@@ -41,7 +47,7 @@ type (
 	//  2) value codec (raw, json ...)
 	TypeTimestamp struct {
 		Timezone  bool
-		Precision uint
+		Precision int
 		Nullable  bool
 
 		DefaultCurrentTimestamp bool
@@ -53,9 +59,10 @@ type (
 	//  1) underlying store (and dialect)
 	//  2) value codec (raw, json ...)
 	TypeTime struct {
-		Timezone  bool
-		Precision uint
-		Nullable  bool
+		Timezone          bool
+		TimezonePrecision bool
+		Precision         int
+		Nullable          bool
 
 		DefaultCurrentTimestamp bool
 	}
@@ -64,7 +71,7 @@ type (
 	//
 	// Encoding/decoding might be different depending on
 	//  1) underlying store (and dialect)
-	//  2) value codec (raw, json ...)
+	//  2) value codec (raw, jsonb...)
 	TypeDate struct {
 		//
 		Nullable bool
@@ -76,10 +83,10 @@ type (
 	//
 	// Encoding/decoding might be different depending on
 	//  1) underlying store (and dialect)
-	//  2) value codec (raw, json ...)
+	//  2) value codec (raw, jsonb...)
 	TypeNumber struct {
-		Precision uint
-		Scale     uint
+		Precision int
+		Scale     int
 		Nullable  bool
 
 		HasDefault   bool
@@ -90,7 +97,7 @@ type (
 	//
 	// Encoding/decoding might be different depending on
 	//  1) underlying store (and dialect)
-	//  2) value codec (raw, json ...)
+	//  2) value codec (raw, jsonb...)
 	TypeText struct {
 		Length   uint
 		Nullable bool
@@ -160,7 +167,7 @@ const (
 	AttributeTypeBoolean   AttributeType = "corteza::dal:attribute-type:boolean"
 	AttributeTypeEnum      AttributeType = "corteza::dal:attribute-type:enum"
 	AttributeTypeGeometry  AttributeType = "corteza::dal:attribute-type:geometry"
-	AttributeTypeJSON      AttributeType = "corteza::dal:attribute-type:json"
+	AttributeTypejson      AttributeType = "corteza::dal:attribute-type:json"
 	AttributeTypeBlob      AttributeType = "corteza::dal:attribute-type:blob"
 	AttributeTypeUUID      AttributeType = "corteza::dal:attribute-type:uuid"
 )
@@ -189,6 +196,6 @@ func (t TypeText) Type() AttributeType      { return AttributeTypeText }
 func (t TypeBoolean) Type() AttributeType   { return AttributeTypeBoolean }
 func (t TypeEnum) Type() AttributeType      { return AttributeTypeEnum }
 func (t TypeGeometry) Type() AttributeType  { return AttributeTypeGeometry }
-func (t TypeJSON) Type() AttributeType      { return AttributeTypeJSON }
+func (t TypeJSON) Type() AttributeType      { return AttributeTypejson }
 func (t TypeBlob) Type() AttributeType      { return AttributeTypeBlob }
 func (t TypeUUID) Type() AttributeType      { return AttributeTypeUUID }

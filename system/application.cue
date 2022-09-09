@@ -7,15 +7,37 @@ import (
 application: {
 	model: {
 		attributes: {
-				id: schema.IdField
-				name: {sortable: true}
-				owner_id: { ident: "ownerID", goType: "uint64", storeIdent: "rel_owner", sortable: true }
-				enabled: {sortable: true, goType: "bool"}
-				weight: {goType: "int", sortable: true}
-				unify: {goType: "*types.ApplicationUnify"}
-				created_at: schema.SortableTimestampNowField
-				updated_at: schema.SortableTimestampNilField
-				deleted_at: schema.SortableTimestampNilField
+			id: schema.IdField
+			name: {
+				sortable: true
+				dal: {}
+			}
+			enabled: {
+				goType: "bool"
+				sortable: true,
+				dal: { type: "Boolean", default: true }
+			}
+			weight: {
+				goType: "int",
+				sortable: true
+				dal: { type: "Number", default: 0 }
+			}
+			unify: {
+				goType: "*types.ApplicationUnify"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			owner_id:   {
+				schema.AttributeUserRef,
+				storeIdent: "rel_owner",
+				ident: "ownerID"
+			}
+			created_at: schema.SortableTimestampNowField
+			updated_at: schema.SortableTimestampNilField
+			deleted_at: schema.SortableTimestampNilField
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
 		}
 	}
 

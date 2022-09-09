@@ -14,21 +14,46 @@ node: {
 	model: {
 		ident: "federation_nodes"
 		attributes: {
-				id:          schema.IdField
-				name: {sortable: true}
-				shared_node_id: { sortable: true, ident: "sharedNodeID", goType: "uint64" }
-				base_url: { sortable: true, goType: "string", ident: "baseURL" }
-				status: { sortable: true, goType: "string" }
-				contact: { sortable: true, goType: "string" }
-				pair_token: { goType: "string" }
-				auth_token: { goType: "string" }
+      id: schema.IdField
+      shared_node_id: {
+      	sortable: true,
+      	ident: "sharedNodeID",
+      	goType: "uint64"
+				dal: { type: "ID" }
+			}
+      name: {
+      	sortable: true
+      	dal: {}
+			}
+      base_url: {
+      	sortable: true,
+      	ident: "baseURL"
+      	dal: {}
+			}
+      status: {
+      	sortable: true,
+      	dal: {}
+			}
+      contact: {
+      	sortable: true,
+      	dal: {}
+			}
+      pair_token: {
+      	dal: {}
+			}
+      auth_token: {
+      	dal: {}
+			}
+      created_at: schema.SortableTimestampNowField
+      updated_at: schema.SortableTimestampNilField
+      deleted_at: schema.SortableTimestampNilField
+			created_by: schema.AttributeUserRef
+			updated_by: schema.AttributeUserRef
+			deleted_by: schema.AttributeUserRef
+		}
 
-				created_at: schema.SortableTimestampNowField
-				updated_at: schema.SortableTimestampNilField
-				deleted_at: schema.SortableTimestampNilField
-				created_by: { goType: "uint64" }
-				updated_by: { goType: "uint64" }
-				deleted_by: { goType: "uint64" }
+		indexes: {
+			"primary": { attribute: "id" }
 		}
 	}
 

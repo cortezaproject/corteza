@@ -12,14 +12,35 @@ data_privacy_request: {
 	model: {
 		attributes: {
 			id: schema.IdField
-			kind: { goType: "types.RequestKind", sortable: true }
-			status: { goType: "types.RequestStatus", sortable: true }
-			payload: { goType: "types.DataPrivacyRequestPayloadSet" }
+
+			kind: {
+				goType: "types.RequestKind",
+				sortable: true
+				dal: {}
+			}
+
+			status: {
+				goType: "types.RequestStatus",
+				sortable: true
+				dal: { type: "Text", length: 64 }
+
+			}
+			payload: {
+				goType: "types.DataPrivacyRequestPayloadSet"
+				dal: { type: "JSON" }
+			}
 
 			requested_at: schema.SortableTimestampField
-			requested_by: { goType: "uint64" }
+			requested_by: {
+				goType: "uint64"
+				dal: { type: "Ref", refModelResType: "corteza::system:user" }
+			}
+
 			completed_at: schema.SortableTimestampNilField
-			completed_by: { goType: "uint64" }
+			completed_by: {
+				goType: "uint64"
+				dal: { type: "Ref", refModelResType: "corteza::system:user" }
+			}
 
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
@@ -27,6 +48,10 @@ data_privacy_request: {
 			created_by: schema.AttributeUserRef
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
 		}
 	}
 

@@ -9,19 +9,34 @@ report: {
 		attributes: {
 			id:     schema.IdField
 			handle: schema.HandleField
-			meta: {goType: "*types.ReportMeta"}
-			scenarios: {goType: "types.ReportScenarioSet"}
-			sources: {goType: "types.ReportDataSourceSet"}
-			blocks: {goType: "types.ReportBlockSet"}
+			meta: {
+				goType: "*types.ReportMeta"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			scenarios: {
+				goType: "types.ReportScenarioSet"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			sources: {
+				goType: "types.ReportDataSourceSet"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			blocks: {
+				goType: "types.ReportBlockSet"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
 
-
+			owned_by:   schema.AttributeUserRef
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
-			owned_by:   schema.AttributeUserRef
 			created_by: schema.AttributeUserRef
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
 		}
 	}
 

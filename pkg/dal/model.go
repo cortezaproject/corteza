@@ -111,7 +111,7 @@ const (
 	IndexFieldNullsLast  IndexFieldNulls = -1
 	IndexFieldNullsFirst IndexFieldNulls = 1
 
-	IndexFieldModifierLower = "LOWER"
+	IndexFieldModifierLower = "LOWERCASE"
 )
 
 func PrimaryAttribute(ident string, codec Codec) *Attribute {

@@ -1861,8 +1861,6 @@ func (Store) sortableApplicationFields() map[string]string {
 		"enabled":    "enabled",
 		"id":         "id",
 		"name":       "name",
-		"owner_id":   "owner_id",
-		"ownerid":    "owner_id",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
 		"weight":     "weight",
@@ -1896,8 +1894,6 @@ func (s *Store) collectApplicationCursorValues(res *systemType.Application, cc .
 					pkID = true
 				case "name":
 					cur.Set(c.Column, res.Name, c.Descending)
-				case "ownerID":
-					cur.Set(c.Column, res.OwnerID, c.Descending)
 				case "enabled":
 					cur.Set(c.Column, res.Enabled, c.Descending)
 				case "weight":
@@ -2356,8 +2352,6 @@ func (Store) sortableAttachmentFields() map[string]string {
 		"id":         "id",
 		"kind":       "kind",
 		"name":       "name",
-		"owner_id":   "owner_id",
-		"ownerid":    "owner_id",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
 	}
@@ -2388,8 +2382,6 @@ func (s *Store) collectAttachmentCursorValues(res *systemType.Attachment, cc ...
 				case "id":
 					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
-				case "ownerID":
-					cur.Set(c.Column, res.OwnerID, c.Descending)
 				case "kind":
 					cur.Set(c.Column, res.Kind, c.Descending)
 				case "name":
@@ -2898,6 +2890,8 @@ func (Store) sortableAuthClientFields() map[string]string {
 		"trusted":    "trusted",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
+		"valid_from": "valid_from",
+		"validfrom":  "valid_from",
 	}
 }
 
@@ -2933,6 +2927,8 @@ func (s *Store) collectAuthClientCursorValues(res *systemType.AuthClient, cc ...
 					cur.Set(c.Column, res.Enabled, c.Descending)
 				case "trusted":
 					cur.Set(c.Column, res.Trusted, c.Descending)
+				case "validFrom":
+					cur.Set(c.Column, res.ValidFrom, c.Descending)
 				case "expiresAt":
 					cur.Set(c.Column, res.ExpiresAt, c.Descending)
 				case "createdAt":
@@ -17181,14 +17177,14 @@ func (s *Store) collectRoleCursorValues(res *systemType.Role, cc ...*filter.Sort
 				case "handle":
 					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+				case "archivedAt":
+					cur.Set(c.Column, res.ArchivedAt, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":
 					cur.Set(c.Column, res.UpdatedAt, c.Descending)
 				case "deletedAt":
 					cur.Set(c.Column, res.DeletedAt, c.Descending)
-				case "archivedAt":
-					cur.Set(c.Column, res.ArchivedAt, c.Descending)
 				}
 			}
 		}
@@ -17582,10 +17578,10 @@ func (s *Store) DeleteSettingValue(ctx context.Context, rr ...*systemType.Settin
 // DeleteSettingValueByID deletes single entry from settingValue collection
 //
 // This function is auto-generated
-func (s *Store) DeleteSettingValueByNameOwnedBy(ctx context.Context, name string, ownedBy uint64) error {
+func (s *Store) DeleteSettingValueByOwnedByName(ctx context.Context, ownedBy uint64, name string) error {
 	return s.Exec(ctx, settingValueDeleteQuery(s.Dialect, goqu.Ex{
-		"name":      name,
 		"rel_owner": ownedBy,
+		"name":      name,
 	}))
 }
 
@@ -17764,18 +17760,18 @@ func (s *Store) collectSettingValueCursorValues(res *systemType.SettingValue, cc
 
 		hasUnique bool
 
-		pkName    bool
 		pkOwnedBy bool
+		pkName    bool
 
 		collect = func(cc ...*filter.SortExpr) {
 			for _, c := range cc {
 				switch c.Column {
-				case "name":
-					cur.Set(c.Column, res.Name, c.Descending)
-					pkName = true
 				case "ownedBy":
 					cur.Set(c.Column, res.OwnedBy, c.Descending)
 					pkOwnedBy = true
+				case "name":
+					cur.Set(c.Column, res.Name, c.Descending)
+					pkName = true
 				case "updatedAt":
 					cur.Set(c.Column, res.UpdatedAt, c.Descending)
 				}
@@ -17784,11 +17780,11 @@ func (s *Store) collectSettingValueCursorValues(res *systemType.SettingValue, cc
 	)
 
 	collect(cc...)
-	if !hasUnique || !pkName {
-		collect(&filter.SortExpr{Column: "name", Descending: false})
-	}
 	if !hasUnique || !pkOwnedBy {
 		collect(&filter.SortExpr{Column: "ownedBy", Descending: false})
+	}
+	if !hasUnique || !pkName {
+		collect(&filter.SortExpr{Column: "name", Descending: false})
 	}
 
 	return cur
@@ -18966,9 +18962,6 @@ func (s *Store) collectUserCursorValues(res *systemType.User, cc ...*filter.Sort
 				case "id":
 					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
-				case "handle":
-					cur.Set(c.Column, res.Handle, c.Descending)
-					hasUnique = true
 				case "email":
 					cur.Set(c.Column, res.Email, c.Descending)
 					hasUnique = true
@@ -18977,16 +18970,19 @@ func (s *Store) collectUserCursorValues(res *systemType.User, cc ...*filter.Sort
 					hasUnique = true
 				case "name":
 					cur.Set(c.Column, res.Name, c.Descending)
+				case "handle":
+					cur.Set(c.Column, res.Handle, c.Descending)
+					hasUnique = true
 				case "kind":
 					cur.Set(c.Column, res.Kind, c.Descending)
+				case "suspendedAt":
+					cur.Set(c.Column, res.SuspendedAt, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":
 					cur.Set(c.Column, res.UpdatedAt, c.Descending)
 				case "deletedAt":
 					cur.Set(c.Column, res.DeletedAt, c.Descending)
-				case "suspendedAt":
-					cur.Set(c.Column, res.SuspendedAt, c.Descending)
 				}
 			}
 		}

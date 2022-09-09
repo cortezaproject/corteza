@@ -12,11 +12,39 @@ moduleMapping: {
 	model: {
 		ident: "federation_module_mapping"
 		attributes: {
-				node_id: { ident: "nodeID", goType: "uint64", primaryKey: true, unique: true }
-				federation_module_id: { sortable: true, ident: "federationModuleID", goType: "uint64" }
-				compose_module_id: { sortable: true, ident: "composeModuleID", goType: "uint64" }
-				compose_namespace_id: { sortable: true, ident: "composeNamespaceID", goType: "uint64" }
-				field_mapping: { goType: "types.ModuleFieldMappingSet" }
+			node_id: {
+				ident: "nodeID",
+				goType: "uint64",
+				unique: true
+			}
+			federation_module_id: {
+				sortable: true,
+				ident: "federationModuleID",
+				goType: "uint64"
+				dal: { type: "ID" }
+			}
+			compose_module_id: {
+				sortable: true,
+				ident: "composeModuleID",
+				goType: "uint64"
+				dal: { type: "ID" }
+			}
+			compose_namespace_id: {
+				sortable: true,
+				ident: "composeNamespaceID",
+				goType: "uint64"
+				dal: { type: "ID" }
+			}
+			field_mapping: {
+				goType: "types.ModuleFieldMappingSet"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+		}
+
+		indexes: {
+			"unique_module_compose_module": {
+				attributes: ["federation_module_id", "compose_module_id", "compose_namespace_id" ]
+			}
 		}
 	}
 

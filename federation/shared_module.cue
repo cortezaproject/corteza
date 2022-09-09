@@ -16,12 +16,30 @@ sharedModule: {
 	model: {
 		ident: "federation_module_shared"
 		attributes: {
-			id:          schema.IdField
-			handle:      schema.HandleField
-			node_id: { sortable: true, ident: "nodeID", goType: "uint64", storeIdent: "rel_node" }
-			name: {sortable: true}
-			external_federation_module_id: { sortable: true, ident: "externalFederationModuleID", goType: "uint64", storeIdent: "xref_module",  }
-			fields: { goType: "types.ModuleFieldSet" }
+			id: schema.IdField
+			handle: schema.HandleField
+			node_id: {
+				sortable: true,
+				ident: "nodeID",
+				goType: "uint64",
+				storeIdent: "rel_node"
+				dal: { type: "ID" }
+			}
+			name: {
+				sortable: true
+				dal: {}
+			}
+			external_federation_module_id: {
+				sortable: true,
+				ident: "externalFederationModuleID",
+				goType: "uint64",
+				storeIdent: "xref_module",
+				dal: { type: "ID" }
+			}
+			fields: {
+				goType: "types.ModuleFieldSet"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
 
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
@@ -29,6 +47,10 @@ sharedModule: {
 			created_by: schema.AttributeUserRef
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
 		}
 	}
 

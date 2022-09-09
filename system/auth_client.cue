@@ -7,26 +7,56 @@ import (
 auth_client: {
 	model: {
 		attributes: {
-				id:     schema.IdField
-				handle: schema.HandleField
-				meta: {goType: "*types.AuthClientMeta"}
-				secret: {goType: "string"}
-				scope: {goType: "string"}
-				valid_grant: {goType: "string"}
-				redirect_uri: {goType: "string", ident: "redirectURI"}
-				enabled: {sortable: true, goType: "bool"}
-				trusted: {sortable: true, goType: "bool"}
-				valid_from: { goType: "*time.Time" }
-				expires_at: schema.SortableTimestampNilField
-				security: {goType: "*types.AuthClientSecurity"}
+			id:     schema.IdField
+			handle: schema.HandleField
+			meta: {
+				goType: "*types.AuthClientMeta"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			secret: {
+				goType: "string"
+				dal: { type: "Text", length: 64 }
+			}
+			scope: {
+				goType: "string"
+				dal: { type: "Text", length: 512 }
+			}
+			valid_grant: {
+				goType: "string"
+				dal: { type: "Text", length: 32 }
+			}
+			redirect_uri: {
+				goType: "string",
+				ident: "redirectURI"
+				dal: {}
+			}
+			enabled: {
+				sortable: true,
+				goType: "bool"
+				dal: { type: "Boolean", default: false }
+			}
+			trusted: {
+				sortable: true,
+				goType: "bool"
+				dal: { type: "Boolean", default: false }
+			}
+			valid_from: schema.SortableTimestampNilField
+			expires_at: schema.SortableTimestampNilField
+			security: {
+				goType: "*types.AuthClientSecurity"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			owned_by:   schema.AttributeUserRef
+			created_at: schema.SortableTimestampNowField
+			updated_at: schema.SortableTimestampNilField
+			deleted_at: schema.SortableTimestampNilField
+			created_by: schema.AttributeUserRef
+			updated_by: schema.AttributeUserRef
+			deleted_by: schema.AttributeUserRef
+		}
 
-				created_at: schema.SortableTimestampNowField
-				updated_at: schema.SortableTimestampNilField
-				deleted_at: schema.SortableTimestampNilField
-				owned_by:   schema.AttributeUserRef
-				created_by: schema.AttributeUserRef
-				updated_by: schema.AttributeUserRef
-				deleted_by: schema.AttributeUserRef
+		indexes: {
+			"primary": { attribute: "id" }
 		}
 	}
 

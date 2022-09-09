@@ -9,10 +9,23 @@ namespace: {
 		ident: "compose_namespace"
 		attributes: {
 			id: schema.IdField
-			slug: { sortable: true, goType: "string" }
-			enabled: { goType: "bool" }
-			meta: { goType: "types.NamespaceMeta" }
-			name: { sortable: true }
+			slug: {
+				sortable: true,
+				goType: "string"
+				dal: {}
+			}
+			enabled: {
+				goType: "bool"
+				dal: { type: "Boolean" }
+			}
+			meta: {
+				goType: "types.NamespaceMeta"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			name: {
+				sortable: true
+				dal: {}
+			}
 
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
@@ -23,7 +36,7 @@ namespace: {
 			"primary": { attribute: "id" }
 			"unique_handle": {
 				fields: [{ attribute: "slug", modifiers: ["LOWERCASE"] }]
-				predicate: "handle != '' AND deleted_at IS NULL"
+				predicate: "slug != '' AND deleted_at IS NULL"
 			}
 		}
 	}

@@ -15,6 +15,7 @@ component: schema.#component & {
 		"namespace":           namespace
 		"page":                page
 		"record":              record
+		"record-revision":     record_revision
 	}
 
 	rbac: operations: {

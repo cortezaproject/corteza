@@ -11,19 +11,34 @@ reminder: {
 
 	model: {
 		attributes: {
-				id:     schema.IdField
-				resource: { sortable: true }
-				payload: { goType: "rawJson" }
-				snooze_count: { goType: "uint" }
-				assigned_to: { goType: "uint64" }
-				assigned_by: { goType: "uint64" }
-				assigned_at: schema.SortableTimestampField
-				dismissed_by: { goType: "uint64" }
-				dismissed_at: schema.SortableTimestampNilField
-				remind_at: schema.SortableTimestampNilField
-				created_at: schema.SortableTimestampNowField
-				updated_at: schema.SortableTimestampNilField
-				deleted_at: schema.SortableTimestampNilField
+			id:     schema.IdField
+			resource: {
+				sortable: true
+				dal: { type: "Text", length: 512 }
+			}
+			payload: {
+				goType: "rawJson"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			snooze_count: {
+				goType: "uint"
+				dal: { type: "Number" }
+			}
+			assigned_to: schema.AttributeUserRef
+			assigned_by: schema.AttributeUserRef
+			assigned_at: schema.SortableTimestampField
+			dismissed_by: schema.AttributeUserRef
+			dismissed_at: schema.SortableTimestampNilField
+			remind_at: schema.SortableTimestampNilField
+			created_at: schema.SortableTimestampNowField
+			updated_at: schema.SortableTimestampNilField
+			deleted_at: schema.SortableTimestampNilField
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
+			"assigned_to": { attribute: "assigned_to" }
+			"resource": { attribute: "resource" }
 		}
 	}
 

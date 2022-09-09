@@ -20,12 +20,12 @@ component: schema.#component & {
     "data-privacy-request":  				data_privacy_request
     "data-privacy-request-comment": data_privacy_request_comment
     "queue":                 				queue
-    "queue_message":         				queue_message
+    "queue-message":         				queue_message
     "reminder":              				reminder
     "report":                				report
     "resource-translation":  				resource_translation
     "role":                  				role
-    "role_member":           				role_member
+    "role-member":           				role_member
     "settings":              				settings
     "template":              				template
     "user":                  				user

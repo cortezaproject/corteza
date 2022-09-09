@@ -12,11 +12,21 @@ queue_message: {
 
 	model: {
 		attributes: {
-				id:        schema.IdField
-				queue:     { sortable: true }
-				payload:   { goType: "[]byte" }
-				processed: schema.SortableTimestampNilField
-				created:   schema.SortableTimestampNilField
+		  id:        schema.IdField
+		  queue:     {
+		  	sortable: true
+		  	dal: {}
+		  }
+		  payload:   {
+		  	goType: "[]byte"
+		  	dal: { type: "Blob" }
+		  }
+		  created:   schema.SortableTimestampNilField
+		  processed: schema.SortableTimestampNilField
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
 		}
 	}
 

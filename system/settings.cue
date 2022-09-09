@@ -18,11 +18,30 @@ settings: {
 	model: {
 		ident: "settings"
 		attributes: {
-			name:        { primaryKey: true, ignoreCase: true }
-			owned_by:    { primaryKey: true, goType: "uint64", storeIdent: "rel_owner" }
-			value:       { goType: "rawJson" }
-			updated_by:  {                   goType: "uint64" }
+			owned_by:    {
+				goType: "uint64",
+				storeIdent: "rel_owner"
+				dal: { type: "Ref", refModelResType: "corteza::system:user" }
+			}
+			name:        {
+				ignoreCase: true
+				dal: { type: "Text", length: 512 }
+			}
+			value:       {
+				goType: "rawJson"
+				dal: { type: "JSON" }
+			}
+			updated_by:  schema.AttributeUserRef
 			updated_at:  schema.SortableTimestampField
+		}
+
+		indexes: {
+			"unique_kind_res_name": {
+				fields: [
+					{ attribute: "owned_by" },
+				 	{ attribute: "name", modifiers: [ "LOWERCASE" ] },
+				]
+			}
 		}
 	}
 

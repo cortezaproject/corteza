@@ -91,6 +91,8 @@ const (
 	Notice
 	Info
 	Debug
+
+	ActionResourceType = "corteza::generic:action"
 )
 
 func (a *Action) ToAction() *Action { return a }

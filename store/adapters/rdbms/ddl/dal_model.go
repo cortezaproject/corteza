@@ -44,7 +44,7 @@ func UpdateModel(ctx context.Context, dd DataDefiner, m *dal.Model) (err error) 
 	// @todo check model against table structure
 	for _, attr := range m.Attributes {
 		// iterate over attributes and check if they exist in the table
-		col := t.ColumnByIdent(attr.Ident)
+		col := t.ColumnByIdent(attr.StoreIdent())
 		if col != nil {
 			// @todo check if column type matches
 			// @todo check if column is nullable

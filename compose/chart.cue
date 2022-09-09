@@ -14,14 +14,20 @@ chart: {
 		attributes: {
 			id: schema.IdField
 			handle: schema.HandleField
-			name: {sortable: true}
-			config: { goType: "types.ChartConfig" }
 			namespace_id: {
 			  ident: "namespaceID",
 				goType: "uint64",
 				storeIdent: "rel_namespace"
 				dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
 			}
+			name: {
+				sortable: true
+				dal: {}
+		  }
+			config: {
+				goType: "types.ChartConfig"
+				dal: {}
+		  }
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
@@ -34,6 +40,10 @@ chart: {
 				fields: [{ attribute: "handle", modifiers: ["LOWERCASE"] }]
 				predicate: "handle != '' AND deleted_at IS NULL"
 			}
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
 		}
 	}
 

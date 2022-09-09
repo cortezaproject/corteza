@@ -162,7 +162,7 @@ func (dd *dataDefiner) IndexDrop(ctx context.Context, t, i string) error {
 //		}
 //
 //		// Sadly, some column types in MySQL can not have default values
-//		if c.Type.Type == ddl.ColumnTypeJson || c.Type.Type == ddl.ColumnTypeBinary || c.Type.Type == ddl.ColumnTypeText {
+//		if c.Type.Type == ddl.ColumnTypejsonb|| c.Type.Type == ddl.ColumnTypeBinary || c.Type.Type == ddl.ColumnTypeText {
 //			c.DefaultValue = ""
 //		}
 //

@@ -12,12 +12,29 @@ apigw_filter: {
 	model: {
 		attributes: {
 			id: schema.IdField
-			route:  { sortable: true, goType: "uint64", storeIdent: "rel_route" }
-			weight: { sortable: true, goType: "uint64" }
-			ref: {}
-			kind: {sortable: true}
-			enabled: {sortable: true, goType: "bool"}
-			params: {goType: "types.ApigwFilterParams"}
+			route:  {
+				sortable: true, goType: "uint64", storeIdent: "rel_route"
+				dal: { type: "Ref", refModelResType: "corteza::system:apigw-route" }
+		  }
+			weight: { sortable: true, goType: "uint64"
+			  dal: { type: "Number" }
+			}
+			kind: {
+				sortable: true
+				dal: { type: "Text", length: 64 }
+			}
+			ref: {
+				dal: { type: "Text", length: 64 }
+			}
+			enabled: {
+				sortable: true,
+				goType: "bool"
+				dal: { type: "Boolean" }
+			}
+			params: {
+				goType: "types.ApigwFilterParams"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
 
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
@@ -25,6 +42,10 @@ apigw_filter: {
 			created_by: schema.AttributeUserRef
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
 		}
 	}
 
