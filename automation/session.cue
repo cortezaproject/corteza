@@ -10,6 +10,8 @@ session: {
 	}
 
 	model: {
+		// length for the lang is now a bit shorter
+		// Reason for that is supported index length in MySQL
 		ident: "automation_sessions"
  		attributes: {
 			id: schema.IdField
@@ -28,12 +30,12 @@ session: {
 			event_type: {
 				sortable: true,
 				goType: "string"
-				dal: {}
+				dal: { length: 32 }
 			}
 			resource_type: {
 				sortable: true,
 				goType: "string"
-				dal: {}
+				dal: { length: 64 }
 			}
 			input: {
 				goType: "*expr.Vars"
