@@ -2,8 +2,8 @@ package sqlite
 
 import (
 	"context"
-	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/jmoiron/sqlx"
@@ -44,7 +44,8 @@ func (dd *dataDefiner) TableCreate(ctx context.Context, t *ddl.Table) error {
 }
 
 func (dd *dataDefiner) TableLookup(ctx context.Context, t string) (*ddl.Table, error) {
-	return nil, fmt.Errorf("not implemented")
+	// for now, assume tables never exist
+	return nil, errors.NotFound("table does not exist")
 }
 
 func (dd *dataDefiner) ColumnAdd(ctx context.Context, t string, c *ddl.Column) error {
