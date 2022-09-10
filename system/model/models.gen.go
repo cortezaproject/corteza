@@ -1910,13 +1910,13 @@ var ResourceTranslation = &dal.Model{
 
 		&dal.Attribute{
 			Ident: "Lang",
-			Type:  &dal.TypeText{Length: 128},
+			Type:  &dal.TypeText{Length: 32},
 			Store: &dal.CodecAlias{Ident: "lang"},
 		},
 
 		&dal.Attribute{
 			Ident: "Resource",
-			Type:  &dal.TypeText{Length: 512},
+			Type:  &dal.TypeText{Length: 256},
 			Store: &dal.CodecAlias{Ident: "resource"},
 		},
 
@@ -2258,7 +2258,7 @@ var Template = &dal.Model{
 
 		&dal.Attribute{
 			Ident: "Language", Sortable: true,
-			Type:  &dal.TypeText{},
+			Type:  &dal.TypeText{Length: 32},
 			Store: &dal.CodecAlias{Ident: "language"},
 		},
 

@@ -32,12 +32,34 @@ func DataDefiner(dbName string, conn *sqlx.DB) *dataDefiner {
 	}
 }
 
-func (dd *dataDefiner) ConvertModel(m *dal.Model) (*ddl.Table, error) {
-	return ddl.ConvertModel(m, dd.d)
+func (dd *dataDefiner) ConvertModel(m *dal.Model) (tbl *ddl.Table, err error) {
+	tbl, err = ddl.ConvertModel(m, dd.d)
+	if err != nil {
+		return
+	}
+
+	// Sadly, MySQL does not support conditional indexes
+	// We'll solve that on an app level.
+	//
+	// We need to prevent these indexes from adding
+	//
+	// loop through indexes and remove all with predicate
+
+	for i := len(tbl.Indexes) - 1; i >= 0; i-- {
+		if tbl.Indexes[i].Predicate != "" {
+			tbl.Indexes = append(tbl.Indexes[:i], tbl.Indexes[i+1:]...)
+		}
+	}
+
+	return
 }
 
 func (dd *dataDefiner) TableCreate(ctx context.Context, t *ddl.Table) error {
-	return ddl.Exec(ctx, dd.conn, &ddl.CreateTable{Table: t})
+	return ddl.Exec(ctx, dd.conn, &ddl.CreateTable{
+		Table:                 t,
+		Dialect:               dd.d,
+		OmitIfNotExistsClause: true,
+	})
 }
 
 func (dd *dataDefiner) TableLookup(ctx context.Context, t string) (*ddl.Table, error) {
@@ -75,11 +97,18 @@ func (dd *dataDefiner) IndexLookup(ctx context.Context, i, t string) (*ddl.Index
 }
 
 func (dd *dataDefiner) IndexCreate(ctx context.Context, t string, i *ddl.Index) error {
-	return ddl.Exec(ctx, dd.conn, &ddl.CreateIndex{Index: i})
+	return ddl.Exec(ctx, dd.conn, &ddl.CreateIndex{
+		Index:                 i,
+		Dialect:               dd.d,
+		OmitIfNotExistsClause: true,
+	})
 }
 
 func (dd *dataDefiner) IndexDrop(ctx context.Context, t, i string) error {
-	return ddl.Exec(ctx, dd.conn, &ddl.DropIndex{Ident: exp.NewIdentifierExpression("", t, i)})
+	return ddl.Exec(ctx, dd.conn, &ddl.DropIndex{
+		Ident:   exp.NewIdentifierExpression("", t, i),
+		Dialect: dd.d,
+	})
 }
 
 //

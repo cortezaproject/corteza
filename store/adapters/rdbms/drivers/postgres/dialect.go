@@ -32,23 +32,7 @@ func (postgresDialect) GOQU() goqu.DialectWrapper  { return goquDialectWrapper }
 func (postgresDialect) QuoteIdent(i string) string { return quoteIdent + i + quoteIdent }
 
 func (d postgresDialect) IndexFieldModifiers(attr *dal.Attribute, mm ...dal.IndexFieldModifier) (string, error) {
-	var (
-		modifier string
-		out      = d.QuoteIdent(attr.StoreIdent())
-	)
-
-	for _, m := range mm {
-		switch m {
-		case dal.IndexFieldModifierLower:
-			modifier = "LOWER"
-		default:
-			return "", fmt.Errorf("unknown index field modifier: %s", m)
-		}
-
-		out = fmt.Sprintf("%s(%s)", modifier, out)
-	}
-
-	return out, nil
+	return drivers.IndexFieldModifiers(attr, d.QuoteIdent, mm...)
 }
 
 func (postgresDialect) DeepIdentJSON(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression, error) {

@@ -37,7 +37,10 @@ func (dd *dataDefiner) ConvertModel(m *dal.Model) (*ddl.Table, error) {
 }
 
 func (dd *dataDefiner) TableCreate(ctx context.Context, t *ddl.Table) error {
-	return ddl.Exec(ctx, dd.conn, &ddl.CreateTable{Table: t})
+	return ddl.Exec(ctx, dd.conn, &ddl.CreateTable{
+		Table:   t,
+		Dialect: dd.d,
+	})
 }
 
 func (dd *dataDefiner) TableLookup(ctx context.Context, t string) (*ddl.Table, error) {
@@ -75,11 +78,17 @@ func (dd *dataDefiner) IndexLookup(ctx context.Context, i, t string) (*ddl.Index
 }
 
 func (dd *dataDefiner) IndexCreate(ctx context.Context, t string, i *ddl.Index) error {
-	return ddl.Exec(ctx, dd.conn, &ddl.CreateIndex{Index: i})
+	return ddl.Exec(ctx, dd.conn, &ddl.CreateIndex{
+		Index:   i,
+		Dialect: dd.d,
+	})
 }
 
 func (dd *dataDefiner) IndexDrop(ctx context.Context, t, i string) error {
-	return ddl.Exec(ctx, dd.conn, &ddl.DropIndex{Ident: exp.NewIdentifierExpression("", t, i)})
+	return ddl.Exec(ctx, dd.conn, &ddl.DropIndex{
+		Ident:   exp.NewIdentifierExpression("", t, i),
+		Dialect: dd.d,
+	})
 }
 
 //

@@ -168,7 +168,7 @@ var Flag = &dal.Model{
 	Attributes: dal.AttributeSet{
 		&dal.Attribute{
 			Ident: "Kind",
-			Type:  &dal.TypeText{},
+			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "kind"},
 		},
 
@@ -193,7 +193,7 @@ var Flag = &dal.Model{
 
 		&dal.Attribute{
 			Ident: "Name",
-			Type:  &dal.TypeText{},
+			Type:  &dal.TypeText{Length: 512},
 			Store: &dal.CodecAlias{Ident: "name"},
 		},
 
