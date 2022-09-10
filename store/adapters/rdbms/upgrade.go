@@ -83,6 +83,11 @@ func createTablesFromModels(ctx context.Context, log *zap.Logger, dd ddl.DataDef
 			}
 
 			for _, idx := range tbl.Indexes {
+				if idx.Ident == ddl.PRIMARY_KEY {
+					// @todo move this decision to drivers!
+					continue
+				}
+
 				if err = dd.IndexCreate(ctx, tbl.Ident, idx); err != nil {
 					return fmt.Errorf("can not create index %q on table %q: %w", idx.Ident, tbl.Ident, err)
 				}

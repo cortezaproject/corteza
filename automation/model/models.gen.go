@@ -44,13 +44,13 @@ var Session = &dal.Model{
 
 		&dal.Attribute{
 			Ident: "EventType", Sortable: true,
-			Type:  &dal.TypeText{},
+			Type:  &dal.TypeText{Length: 32},
 			Store: &dal.CodecAlias{Ident: "event_type"},
 		},
 
 		&dal.Attribute{
 			Ident: "ResourceType", Sortable: true,
-			Type:  &dal.TypeText{},
+			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "resource_type"},
 		},
 
@@ -250,7 +250,7 @@ var Trigger = &dal.Model{
 
 		&dal.Attribute{
 			Ident: "ResourceType", Sortable: true,
-			Type:  &dal.TypeText{},
+			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "resource_type"},
 		},
 

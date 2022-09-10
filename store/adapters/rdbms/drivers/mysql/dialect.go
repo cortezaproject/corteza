@@ -143,10 +143,10 @@ func (mysqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err
 
 	switch t := attr.Type.(type) {
 	case *dal.TypeID:
-		col.Type.Name = "BIGINT"
+		col.Type.Name = "BIGINT UNSIGNED"
 		col.Default = ddl.DefaultID(t.HasDefault, t.DefaultValue)
 	case *dal.TypeRef:
-		col.Type.Name = "BIGINT"
+		col.Type.Name = "BIGINT UNSIGNED"
 		col.Default = ddl.DefaultID(t.HasDefault, t.DefaultValue)
 
 	case *dal.TypeTimestamp:
@@ -180,9 +180,6 @@ func (mysqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err
 
 	case *dal.TypeJSON:
 		col.Type.Name = "JSON"
-		if col.Default, err = ddl.DefaultJSON(t.HasDefault, t.DefaultValue); err != nil {
-			return nil, err
-		}
 
 	case *dal.TypeGeometry:
 		col.Type.Name = "JSON"

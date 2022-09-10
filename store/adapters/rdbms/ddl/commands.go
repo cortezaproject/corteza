@@ -69,7 +69,7 @@ func CreateIndexTemplates(base *CreateIndex, ii ...*Index) []any {
 	return tt
 }
 
-// Exec is an utility for executing series of commands
+// Exec is a utility for executing series of commands
 //
 // Parameters can be string, Stringer interface or goqu's exp.SQLExpression
 //

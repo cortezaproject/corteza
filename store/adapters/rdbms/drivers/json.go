@@ -89,11 +89,19 @@ func JsonPath(pp ...any) string {
 
 func IndexFieldModifiers(attr *dal.Attribute, quoteIdent func(i string) string, mm ...dal.IndexFieldModifier) (string, error) {
 	var (
-		out = quoteIdent(attr.StoreIdent())
+		modifier string
+		out      = quoteIdent(attr.StoreIdent())
 	)
 
 	for _, m := range mm {
-		out = fmt.Sprintf("%s(%s)", m, out)
+		switch m {
+		case dal.IndexFieldModifierLower:
+			modifier = "LOWER"
+		default:
+			return "", fmt.Errorf("unknown index field modifier: %s", m)
+		}
+
+		out = fmt.Sprintf("%s(%s)", modifier, out)
 	}
 
 	return out, nil
