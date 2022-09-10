@@ -76,9 +76,7 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 		ErrorHandler: errorHandler,
 
 		TxRetryLimit: -1,
-		//TxRetryErrHandler: txRetryErrHandler,
-
-		//SchemaAPI: &schema{},
+		DataDefiner:  DataDefiner(cfg.DBName, db),
 	}
 
 	s.SetDefaults()
