@@ -6,6 +6,8 @@ import (
 
 template: {
 	model: {
+		// length for the lang is now a bit shorter
+		// Reason for that is supported index length in MySQL
 		attributes: {
 			id:     schema.IdField
 			owner_id:   {
@@ -17,7 +19,7 @@ template: {
 			language: {
 				sortable: true,
 				goType: "string"
-				dal: {}
+				dal: { length: 32 }
 			}
 			type: {
 				sortable: true,

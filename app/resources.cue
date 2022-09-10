@@ -164,8 +164,8 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 
 		model: {
 			attributes: {
-				kind:        {
-					dal: {}
+				kind: {
+					dal: { length: 64 }
 				}
 				resource_id: {
 					goType: "uint64",
@@ -176,7 +176,7 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 				owned_by:   schema.AttributeUserRef
 		  	name:        {
 		  		ignoreCase: true
-					dal: {}
+					dal: { length: 512 }
 				}
 				active: {
 					goType: "bool"

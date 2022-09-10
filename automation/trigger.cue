@@ -34,7 +34,7 @@ trigger: {
 			resource_type: {
 				sortable: true,
 				goType: "string"
-				dal: {}
+				dal: { length: 64 }
 			}
 			event_type: {
 				sortable: true,
