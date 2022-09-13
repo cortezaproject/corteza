@@ -13,7 +13,7 @@ import (
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
-	"github.com/steinfletcher/apitest-jsonpath"
+	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 	"github.com/stretchr/testify/require"
 )
 
@@ -375,7 +375,12 @@ func TestRoleUnarchive(t *testing.T) {
 	h := newHelper(t)
 	helpers.AllowMe(h, types.RoleRbacResource(0), "delete")
 
-	res := h.repoMakeRole()
+	n := time.Now()
+	res := h.createRole(&types.Role{
+		Name:       "test_role",
+		Handle:     "test_role",
+		ArchivedAt: &n,
+	})
 
 	h.apiInit().
 		Post(fmt.Sprintf("/roles/%d/unarchive", res.ID)).

@@ -595,7 +595,7 @@ func (svc role) Unarchive(ctx context.Context, roleID uint64) (err error) {
 			return RoleErrNotAllowedToUndelete()
 		}
 
-		r.ArchivedAt = nil
+		upd.ArchivedAt = nil
 		if err = store.UpdateRole(ctx, svc.store, upd); err != nil {
 			return
 		}
