@@ -102,6 +102,7 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 			}
 
 			indexes: {
+				"primary": { attributes: ["kind", "resource_id", "name"] }
 				"unique_kind_res_name": {
 					fields: [
 					  { attribute: "kind" },
@@ -185,6 +186,7 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 			}
 
 			indexes: {
+				"primary": { attributes: ["kind", "resource_id", "owned_by", "name"] }
 				"unique_kind_res_owner_name": {
 					 fields: [
 						 { attribute: "kind" },

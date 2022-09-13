@@ -554,7 +554,7 @@ type (
 		UpdateSettingValue(ctx context.Context, rr ...*systemType.SettingValue) error
 		UpsertSettingValue(ctx context.Context, rr ...*systemType.SettingValue) error
 		DeleteSettingValue(ctx context.Context, rr ...*systemType.SettingValue) error
-		DeleteSettingValueByOwnedByName(ctx context.Context, ownedBy uint64, name string) error
+		DeleteSettingValueByNameOwnedBy(ctx context.Context, name string, ownedBy uint64) error
 		TruncateSettingValues(ctx context.Context) error
 		LookupSettingValueByNameOwnedBy(ctx context.Context, name string, ownedBy uint64) (*systemType.SettingValue, error)
 	}
@@ -3102,8 +3102,8 @@ func DeleteSettingValue(ctx context.Context, s SettingValues, rr ...*systemType.
 // DeleteSettingValueByID deletes one or more SettingValues from store
 //
 // This function is auto-generated
-func DeleteSettingValueByOwnedByName(ctx context.Context, s SettingValues, ownedBy uint64, name string) error {
-	return s.DeleteSettingValueByOwnedByName(ctx, ownedBy, name)
+func DeleteSettingValueByNameOwnedBy(ctx context.Context, s SettingValues, name string, ownedBy uint64) error {
+	return s.DeleteSettingValueByNameOwnedBy(ctx, name, ownedBy)
 }
 
 // TruncateSettingValues Deletes all SettingValues from store

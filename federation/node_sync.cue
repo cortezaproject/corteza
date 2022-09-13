@@ -36,6 +36,10 @@ nodeSync: {
 			}
 			time_of_action: schema.SortableTimestampField
 		}
+
+		indexes: {
+			"primary": { attribute: "node_id" }
+		}
 	}
 
 	filter: {

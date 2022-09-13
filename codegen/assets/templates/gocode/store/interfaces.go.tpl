@@ -54,7 +54,7 @@ type (
 		Update{{ .expIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} rr ...*{{ .goType }}) error
 		Upsert{{ .expIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} rr ...*{{ .goType }}) error
 		Delete{{ .expIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} rr ...*{{ .goType }}) error
-		{{ .api.deleteByPK.expFnIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} {{ range .api.deleteByPK.primaryKeys }}{{ .ident }} {{ .goType }},{{ end }}) error
+		{{ .api.deleteByPK.expFnIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} {{ range .api.deleteByPK.attributes }}{{ .ident }} {{ .goType }},{{ end }}) error
 		Truncate{{ .expIdentPlural }}(ctx context.Context, {{ template "extraArgs" .ident }}) error
 
 		{{- range .api.lookups }}
@@ -106,8 +106,8 @@ type (
 	// Delete{{ .expIdent }}ByID deletes one or more {{ .expIdentPlural }} from store
 	//
 	// This function is auto-generated
-	func {{ .api.deleteByPK.expFnIdent }}(ctx context.Context, s {{ .expIdentPlural }}, {{ template "extraArgs" .ident }} {{ range .api.deleteByPK.primaryKeys }}{{ .ident }} {{ .goType }},{{ end }}) error {
-		return s.{{ .api.deleteByPK.expFnIdent }}(ctx, {{ template "extraParams" .ident }}{{ range .api.deleteByPK.primaryKeys }}{{ .ident }},{{ end }})
+	func {{ .api.deleteByPK.expFnIdent }}(ctx context.Context, s {{ .expIdentPlural }}, {{ template "extraArgs" .ident }} {{ range .api.deleteByPK.attributes }}{{ .ident }} {{ .goType }},{{ end }}) error {
+		return s.{{ .api.deleteByPK.expFnIdent }}(ctx, {{ template "extraParams" .ident }}{{ range .api.deleteByPK.attributes }}{{ .ident }},{{ end }})
 	}
 
 	// Truncate{{ .expIdentPlural }} Deletes all {{ .expIdentPlural }} from store

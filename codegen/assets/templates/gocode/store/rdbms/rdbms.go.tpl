@@ -103,9 +103,9 @@ func (s *Store) Delete{{ .expIdent }}(ctx context.Context, {{ template "extraArg
 // Delete{{ .expIdent }}ByID deletes single entry from {{ .ident }} collection
 //
 // This function is auto-generated
-func (s *Store) {{ .api.deleteByPK.expFnIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} {{ range .api.deleteByPK.primaryKeys }}{{ .ident }} {{ .goType }},{{ end }}) error {
+func (s *Store) {{ .api.deleteByPK.expFnIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} {{ range .api.deleteByPK.attributes }}{{ .ident }} {{ .goType }},{{ end }}) error {
 	return s.Exec(ctx, {{ .ident }}DeleteQuery(s.Dialect, goqu.Ex{
-	{{- range .api.deleteByPK.primaryKeys }}
+	{{- range .api.deleteByPK.attributes }}
 		{{ printf "%q" .storeIdent }}: {{ .ident }},
 	{{- end }}
 	}))

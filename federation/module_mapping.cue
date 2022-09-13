@@ -13,9 +13,10 @@ moduleMapping: {
 		ident: "federation_module_mapping"
 		attributes: {
 			node_id: {
-				ident: "nodeID",
-				goType: "uint64",
-				unique: true
+				ident:   "nodeID"
+				unique:  true
+				goType:  "uint64"
+				dal: { type: "ID" }
 			}
 			federation_module_id: {
 				sortable: true,
@@ -42,6 +43,7 @@ moduleMapping: {
 		}
 
 		indexes: {
+			"primary": { attribute: "node_id" }
 			"unique_module_compose_module": {
 				attributes: ["federation_module_id", "compose_module_id", "compose_namespace_id" ]
 			}
