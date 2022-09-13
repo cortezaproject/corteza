@@ -174,10 +174,6 @@ func (app *CortezaApp) Setup() (err error) {
 		}
 	}
 
-	if err = app.plugins.Setup(app.Log.Named("plugin")); err != nil {
-		return fmt.Errorf("plugins setup failed: %w", err)
-	}
-
 	app.lvl = bootLevelSetup
 	return
 }
@@ -447,14 +443,6 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 
 	// Initializing seeder
 	_ = seeder.Seeder(ctx, app.Store, dal.Service(), seeder.Faker())
-
-	if err = app.plugins.Initialize(ctx, app.Log); err != nil {
-		return fmt.Errorf("could not initialize plugins: %w", err)
-	}
-
-	if err = app.plugins.RegisterAutomation(autService.Registry()); err != nil {
-		return fmt.Errorf("could not register automation plugins: %w", err)
-	}
 
 	app.lvl = bootLevelServicesInitialized
 	return

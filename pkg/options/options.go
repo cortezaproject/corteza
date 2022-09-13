@@ -26,7 +26,6 @@ type (
 		RBAC        RbacOpt
 		Locale      LocaleOpt
 		Limit       LimitOpt
-		Plugins     PluginsOpt
 		Discovery   DiscoveryOpt
 		Apigw       ApigwOpt
 	}
@@ -58,7 +57,6 @@ func Init() *Options {
 		RBAC:        *Rbac(),
 		Locale:      *Locale(),
 		Limit:       *Limit(),
-		Plugins:     *Plugins(),
 		Discovery:   *Discovery(),
 		Apigw:       *Apigw(),
 	}

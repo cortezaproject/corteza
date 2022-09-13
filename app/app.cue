@@ -32,7 +32,6 @@ corteza: schema.#platform & {
 		options.messagebus,
 		options.monitor,
 		options.objectStore,
-		options.plugins,
 		options.provision,
 		options.seeder,
 		options.sentry,

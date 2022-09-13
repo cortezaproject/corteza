@@ -11,7 +11,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/api/server"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/options"
-	"github.com/cortezaproject/corteza-server/pkg/plugin"
 	fakerCommands "github.com/cortezaproject/corteza-server/pkg/seeder/commands"
 	"github.com/cortezaproject/corteza-server/store"
 	systemCommands "github.com/cortezaproject/corteza-server/system/commands"
@@ -29,25 +28,8 @@ func (app *CortezaApp) InitCLI() {
 		envs []string
 	)
 
-	app.Command = cli.RootCommand(func() (err error) {
-		log := app.Log.Named("plugins")
-		if app.Opt.Plugins.Enabled && len(app.Opt.Plugins.Paths) > 0 {
-			log.Warn("loading", zap.String("paths", app.Opt.Plugins.Paths))
-
-			var paths []string
-			paths, err = plugin.Resolve(app.Opt.Plugins.Paths)
-			log.Warn("loading", zap.Strings("resolved-paths", paths))
-
-			app.plugins, err = plugin.Load(paths...)
-			if err != nil {
-				return err
-			}
-		} else {
-			// Empty set of plugins
-			app.plugins = plugin.Set{}
-		}
-
-		return err
+	app.Command = cli.RootCommand(func() error {
+		return nil
 	})
 
 	// Environmental variables (from the env, files, see cli.LoadEnv) MUST be
