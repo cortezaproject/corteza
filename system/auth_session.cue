@@ -16,7 +16,7 @@ auth_session: {
 		attributes: {
 			id: {
 				expIdent: "ID",
-				goType: string
+				goType: "string"
 				dal: { length: 64 }
 			}
 			data:    {

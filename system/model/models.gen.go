@@ -764,7 +764,7 @@ var AuthOa2token = &dal.Model{
 
 	Indexes: dal.IndexSet{
 		&dal.Index{
-			Ident: "clientId",
+			Ident: "auth_oa2tokens_clientId",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{
@@ -775,7 +775,7 @@ var AuthOa2token = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident: "code",
+			Ident: "auth_oa2tokens_code",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{
@@ -797,7 +797,7 @@ var AuthOa2token = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident: "refresh",
+			Ident: "auth_oa2tokens_refresh",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{
@@ -816,7 +816,7 @@ var AuthSession = &dal.Model{
 	Attributes: dal.AttributeSet{
 		&dal.Attribute{
 			Ident: "ID",
-			Type:  &dal.TypeID{},
+			Type:  &dal.TypeText{Length: 64},
 			Store: &dal.CodecAlias{Ident: "id"},
 		},
 
@@ -868,7 +868,7 @@ var AuthSession = &dal.Model{
 
 	Indexes: dal.IndexSet{
 		&dal.Index{
-			Ident: "expiresAt",
+			Ident: "auth_sessions_expiresAt",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{
@@ -976,7 +976,7 @@ var Credential = &dal.Model{
 
 	Indexes: dal.IndexSet{
 		&dal.Index{
-			Ident: "ownerKind",
+			Ident: "credentials_ownerKind",
 			Type:  "BTREE",
 
 			Predicate: "deleted_at IS NULL",
@@ -1727,7 +1727,7 @@ var Reminder = &dal.Model{
 
 	Indexes: dal.IndexSet{
 		&dal.Index{
-			Ident: "assignedTo",
+			Ident: "reminders_assignedTo",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{
@@ -1749,7 +1749,7 @@ var Reminder = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident: "resource",
+			Ident: "reminders_resource",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{
@@ -2018,8 +2018,9 @@ var ResourceTranslation = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident: "uniqueTranslation",
-			Type:  "BTREE",
+			Ident:  "resource_translations_uniqueTranslation",
+			Type:   "BTREE",
+			Unique: true,
 
 			Fields: []*dal.IndexField{
 				{
@@ -2209,8 +2210,9 @@ var SettingValue = &dal.Model{
 
 	Indexes: dal.IndexSet{
 		&dal.Index{
-			Ident: "uniqueKindResName",
-			Type:  "BTREE",
+			Ident:  "settings_uniqueKindResName",
+			Type:   "BTREE",
+			Unique: true,
 
 			Fields: []*dal.IndexField{
 				{
@@ -2328,8 +2330,9 @@ var Template = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident: "uniqueLanguageHandle",
-			Type:  "BTREE",
+			Ident:  "templates_uniqueLanguageHandle",
+			Type:   "BTREE",
+			Unique: true,
 
 			Fields: []*dal.IndexField{
 				{
@@ -2439,9 +2442,9 @@ var User = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident: "uniqueEmail",
-			Type:  "BTREE",
-
+			Ident:     "users_uniqueEmail",
+			Type:      "BTREE",
+			Unique:    true,
 			Predicate: "email != '' AND deleted_at IS NULL",
 			Fields: []*dal.IndexField{
 				{
@@ -2452,9 +2455,9 @@ var User = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident: "uniqueHandle",
-			Type:  "BTREE",
-
+			Ident:     "users_uniqueHandle",
+			Type:      "BTREE",
+			Unique:    true,
 			Predicate: "handle != '' AND deleted_at IS NULL",
 			Fields: []*dal.IndexField{
 				{
@@ -2465,9 +2468,9 @@ var User = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident: "uniqueUsername",
-			Type:  "BTREE",
-
+			Ident:     "users_uniqueUsername",
+			Type:      "BTREE",
+			Unique:    true,
 			Predicate: "username != '' AND deleted_at IS NULL",
 			Fields: []*dal.IndexField{
 				{

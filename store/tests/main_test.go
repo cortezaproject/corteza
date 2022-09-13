@@ -27,17 +27,14 @@ func init() {
 }
 
 func Test_RDBMS_SQLITE(t *testing.T) {
-	t.Skip("skipping this for dev.2 release")
 	testAllGenerated(t, setup(t, sqlite.Connect))
 }
 
 func Test_RDBMS_MYSQL(t *testing.T) {
-	t.Skip("skipping this for dev.2 release")
 	testAllGenerated(t, setup(t, mysql.Connect))
 }
 
 func Test_RDBMS_PGSQL(t *testing.T) {
-	t.Skip("skipping this for dev.2 release")
 	testAllGenerated(t, setup(t, postgres.Connect))
 }
 
@@ -46,7 +43,6 @@ func Test_RDBMS_COCKROACHDB(t *testing.T) {
 }
 
 func Test_MEMORY(t *testing.T) {
-	t.Skip("skipping this for dev.2 release")
 	testAllGenerated(t, setup(t, nil))
 }
 

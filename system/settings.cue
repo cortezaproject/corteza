@@ -36,7 +36,6 @@ settings: {
 		}
 
 		indexes: {
-			"primary": { attributes: ["name", "owned_by"] }
 			"unique_kind_res_name": {
 				fields: [
 					{ attribute: "owned_by" },

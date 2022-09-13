@@ -13,7 +13,7 @@ import (
 	}
 
 	indexes: ({
-		[name=_]: { "name": name } & #ModelIndex
+		[name=_]: { "name": name, "modelIdent": ident } & #ModelIndex
 	} & {
 		[string]: #ModelIndex
 	}) | *({})
@@ -219,14 +219,14 @@ SortableTimestampNilField: {
 
 #ModelIndex: close({
 	name:   #ident
-
+	modelIdent: #ident
 	_attributes: { [_]: #ModelAttribute }
 	_words: strings.Replace(strings.Replace(name, "_", " ", -1), ".", " ", -1)
 
 	_ident: strings.ToCamel(strings.Replace(strings.ToTitle(_words), " ", "", -1))
 
 	// lowercase (unexported, golang) identifier
-	ident: #ident | *_ident
+	ident: #ident | *"\(modelIdent)_\(_ident)"
 
 	primary: bool | *(strings.ToLower(name) == "primary")
 	unique: bool  | *(strings.Contains(name, "unique") || primary)

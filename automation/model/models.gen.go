@@ -126,7 +126,7 @@ var Session = &dal.Model{
 
 	Indexes: dal.IndexSet{
 		&dal.Index{
-			Ident: "completedAt",
+			Ident: "automation_sessions_completedAt",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{
@@ -137,7 +137,7 @@ var Session = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident: "createdAt",
+			Ident: "automation_sessions_createdAt",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{
@@ -148,7 +148,7 @@ var Session = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident: "eventType",
+			Ident: "automation_sessions_eventType",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{
@@ -170,7 +170,7 @@ var Session = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident: "resourceType",
+			Ident: "automation_sessions_resourceType",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{
@@ -181,7 +181,7 @@ var Session = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident: "status",
+			Ident: "automation_sessions_status",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{
@@ -192,7 +192,7 @@ var Session = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident: "suspendedAt",
+			Ident: "automation_sessions_suspendedAt",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{

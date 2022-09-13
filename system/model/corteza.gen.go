@@ -105,7 +105,7 @@ var Action = &dal.Model{
 
 	Indexes: dal.IndexSet{
 		&dal.Index{
-			Ident: "action",
+			Ident: "actionlog_action",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{
@@ -116,7 +116,7 @@ var Action = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident: "actorId",
+			Ident: "actionlog_actorId",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{
@@ -138,7 +138,7 @@ var Action = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident: "relResource",
+			Ident: "actionlog_relResource",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{
@@ -149,7 +149,7 @@ var Action = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident: "ts",
+			Ident: "actionlog_ts",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{
@@ -206,8 +206,32 @@ var Flag = &dal.Model{
 
 	Indexes: dal.IndexSet{
 		&dal.Index{
-			Ident: "uniqueKindResOwnerName",
+			Ident: "PRIMARY",
 			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "Kind",
+				},
+
+				{
+					AttributeIdent: "ResourceID",
+				},
+
+				{
+					AttributeIdent: "OwnedBy",
+				},
+
+				{
+					AttributeIdent: "Name",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident:  "flags_uniqueKindResOwnerName",
+			Type:   "BTREE",
+			Unique: true,
 
 			Fields: []*dal.IndexField{
 				{
@@ -263,8 +287,28 @@ var Label = &dal.Model{
 
 	Indexes: dal.IndexSet{
 		&dal.Index{
-			Ident: "uniqueKindResName",
+			Ident: "PRIMARY",
 			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "Kind",
+				},
+
+				{
+					AttributeIdent: "ResourceID",
+				},
+
+				{
+					AttributeIdent: "Name",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident:  "labels_uniqueKindResName",
+			Type:   "BTREE",
+			Unique: true,
 
 			Fields: []*dal.IndexField{
 				{
@@ -341,7 +385,7 @@ var ResourceActivity = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident: "resource",
+			Ident: "resource_activity_log_resource",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{

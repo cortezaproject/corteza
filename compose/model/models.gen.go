@@ -99,7 +99,7 @@ var Attachment = &dal.Model{
 
 	Indexes: dal.IndexSet{
 		&dal.Index{
-			Ident: "namespace",
+			Ident: "compose_attachment_namespace",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{
@@ -185,7 +185,7 @@ var Chart = &dal.Model{
 
 	Indexes: dal.IndexSet{
 		&dal.Index{
-			Ident: "namespace",
+			Ident: "compose_chart_namespace",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{
@@ -207,9 +207,9 @@ var Chart = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident: "uniqueHandle",
-			Type:  "BTREE",
-
+			Ident:     "compose_chart_uniqueHandle",
+			Type:      "BTREE",
+			Unique:    true,
 			Predicate: "handle != '' AND deleted_at IS NULL",
 			Fields: []*dal.IndexField{
 				{
@@ -294,7 +294,7 @@ var Module = &dal.Model{
 
 	Indexes: dal.IndexSet{
 		&dal.Index{
-			Ident: "namespace",
+			Ident: "compose_module_namespace",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{
@@ -316,9 +316,9 @@ var Module = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident: "uniqueHandle",
-			Type:  "BTREE",
-
+			Ident:     "compose_module_uniqueHandle",
+			Type:      "BTREE",
+			Unique:    true,
 			Predicate: "handle != '' AND deleted_at IS NULL",
 			Fields: []*dal.IndexField{
 				{
@@ -447,7 +447,7 @@ var ModuleField = &dal.Model{
 
 	Indexes: dal.IndexSet{
 		&dal.Index{
-			Ident: "module",
+			Ident: "compose_module_field_module",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{
@@ -469,9 +469,9 @@ var ModuleField = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident: "uniqueName",
-			Type:  "BTREE",
-
+			Ident:     "compose_module_field_uniqueName",
+			Type:      "BTREE",
+			Unique:    true,
 			Predicate: "name != '' AND deleted_at IS NULL",
 			Fields: []*dal.IndexField{
 				{
@@ -558,9 +558,9 @@ var Namespace = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident: "uniqueHandle",
-			Type:  "BTREE",
-
+			Ident:     "compose_namespace_uniqueHandle",
+			Type:      "BTREE",
+			Unique:    true,
 			Predicate: "slug != '' AND deleted_at IS NULL",
 			Fields: []*dal.IndexField{
 				{
@@ -690,7 +690,7 @@ var Page = &dal.Model{
 
 	Indexes: dal.IndexSet{
 		&dal.Index{
-			Ident: "module",
+			Ident: "compose_page_module",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{
@@ -701,7 +701,7 @@ var Page = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident: "namespace",
+			Ident: "compose_page_namespace",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{
@@ -723,7 +723,7 @@ var Page = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident: "selfId",
+			Ident: "compose_page_selfId",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{
@@ -734,9 +734,9 @@ var Page = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident: "uniqueHandle",
-			Type:  "BTREE",
-
+			Ident:     "compose_page_uniqueHandle",
+			Type:      "BTREE",
+			Unique:    true,
 			Predicate: "handle != '' AND deleted_at IS NULL",
 			Fields: []*dal.IndexField{
 				{
@@ -882,7 +882,7 @@ var Record = &dal.Model{
 
 	Indexes: dal.IndexSet{
 		&dal.Index{
-			Ident: "idxComposeRecordBase",
+			Ident: "compose_record_idxComposeRecordBase",
 			Type:  "BTREE",
 
 			Predicate: "deleted_at IS NULL",
