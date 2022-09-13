@@ -3656,10 +3656,10 @@ func (s *Store) collectAuthOa2tokenCursorValues(res *systemType.AuthOa2token, cc
 				case "id":
 					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
-				case "expiresAt":
-					cur.Set(c.Column, res.ExpiresAt, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
+				case "expiresAt":
+					cur.Set(c.Column, res.ExpiresAt, c.Descending)
 				}
 			}
 		}
@@ -4433,20 +4433,20 @@ func (s *Store) collectAutomationSessionCursorValues(res *automationType.Session
 					pkID = true
 				case "workflowID":
 					cur.Set(c.Column, res.WorkflowID, c.Descending)
+				case "status":
+					cur.Set(c.Column, res.Status, c.Descending)
 				case "eventType":
 					cur.Set(c.Column, res.EventType, c.Descending)
 				case "resourceType":
 					cur.Set(c.Column, res.ResourceType, c.Descending)
-				case "status":
-					cur.Set(c.Column, res.Status, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "purgeAt":
 					cur.Set(c.Column, res.PurgeAt, c.Descending)
-				case "completedAt":
-					cur.Set(c.Column, res.CompletedAt, c.Descending)
 				case "suspendedAt":
 					cur.Set(c.Column, res.SuspendedAt, c.Descending)
+				case "completedAt":
+					cur.Set(c.Column, res.CompletedAt, c.Descending)
 				}
 			}
 		}
@@ -7428,11 +7428,17 @@ func (s *Store) LookupComposeModuleFieldByID(ctx context.Context, id uint64) (_ 
 // This function is auto-generated
 func (Store) sortableComposeModuleFieldFields() map[string]string {
 	return map[string]string{
-		"id":    "id",
-		"kind":  "kind",
-		"label": "label",
-		"name":  "name",
-		"place": "place",
+		"created_at": "created_at",
+		"createdat":  "created_at",
+		"deleted_at": "deleted_at",
+		"deletedat":  "deleted_at",
+		"id":         "id",
+		"kind":       "kind",
+		"label":      "label",
+		"name":       "name",
+		"place":      "place",
+		"updated_at": "updated_at",
+		"updatedat":  "updated_at",
 	}
 }
 
@@ -7469,6 +7475,12 @@ func (s *Store) collectComposeModuleFieldCursorValues(res *composeType.ModuleFie
 					cur.Set(c.Column, res.Name, c.Descending)
 				case "label":
 					cur.Set(c.Column, res.Label, c.Descending)
+				case "createdAt":
+					cur.Set(c.Column, res.CreatedAt, c.Descending)
+				case "updatedAt":
+					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+				case "deletedAt":
+					cur.Set(c.Column, res.DeletedAt, c.Descending)
 				}
 			}
 		}
@@ -8626,15 +8638,15 @@ func (s *Store) collectComposePageCursorValues(res *composeType.Page, cc ...*fil
 				case "id":
 					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
-				case "selfID":
-					cur.Set(c.Column, res.SelfID, c.Descending)
+				case "title":
+					cur.Set(c.Column, res.Title, c.Descending)
 				case "handle":
 					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+				case "selfID":
+					cur.Set(c.Column, res.SelfID, c.Descending)
 				case "weight":
 					cur.Set(c.Column, res.Weight, c.Descending)
-				case "title":
-					cur.Set(c.Column, res.Title, c.Descending)
 				case "createdAt":
 					cur.Set(c.Column, res.CreatedAt, c.Descending)
 				case "updatedAt":
@@ -11975,10 +11987,10 @@ func (s *Store) collectFederationNodeCursorValues(res *federationType.Node, cc .
 				case "id":
 					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
-				case "name":
-					cur.Set(c.Column, res.Name, c.Descending)
 				case "sharedNodeID":
 					cur.Set(c.Column, res.SharedNodeID, c.Descending)
+				case "name":
+					cur.Set(c.Column, res.Name, c.Descending)
 				case "baseURL":
 					cur.Set(c.Column, res.BaseURL, c.Descending)
 				case "status":
@@ -14580,10 +14592,10 @@ func (s *Store) collectQueueMessageCursorValues(res *systemType.QueueMessage, cc
 					pkID = true
 				case "queue":
 					cur.Set(c.Column, res.Queue, c.Descending)
-				case "processed":
-					cur.Set(c.Column, res.Processed, c.Descending)
 				case "created":
 					cur.Set(c.Column, res.Created, c.Descending)
+				case "processed":
+					cur.Set(c.Column, res.Processed, c.Descending)
 				}
 			}
 		}
@@ -17578,10 +17590,10 @@ func (s *Store) DeleteSettingValue(ctx context.Context, rr ...*systemType.Settin
 // DeleteSettingValueByID deletes single entry from settingValue collection
 //
 // This function is auto-generated
-func (s *Store) DeleteSettingValueByOwnedByName(ctx context.Context, ownedBy uint64, name string) error {
+func (s *Store) DeleteSettingValueByNameOwnedBy(ctx context.Context, name string, ownedBy uint64) error {
 	return s.Exec(ctx, settingValueDeleteQuery(s.Dialect, goqu.Ex{
-		"rel_owner": ownedBy,
 		"name":      name,
+		"rel_owner": ownedBy,
 	}))
 }
 

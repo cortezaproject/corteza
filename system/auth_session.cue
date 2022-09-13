@@ -14,7 +14,11 @@ auth_session: {
 
 	model: {
 		attributes: {
-			id: schema.IdField
+			id: {
+				expIdent: "ID",
+				goType: string
+				dal: { length: 64 }
+			}
 			data:    {
 				goType: "[]byte"
 				dal: { type: "Blob" }

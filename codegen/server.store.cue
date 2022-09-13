@@ -7,9 +7,21 @@ import (
 	"github.com/cortezaproject/corteza-server/codegen/schema"
 )
 
+
 _StoreResource: {
 	res     = "res":     schema.#Resource
 	typePkg = "typePkg": string
+
+
+	pkAttrNames: [string, ...]
+
+	if res.model.indexes.primary != _|_ {
+		// primary key flag is no longer explicitly set on
+		// the attribute but via model.indexes.primary
+		pkAttrNames: [
+			for f in res.model.indexes.primary.fields { f.attribute }
+		]
+	}
 
 	result: {
 		ident:          res.store.ident
@@ -22,31 +34,31 @@ _StoreResource: {
 		goFilterType:   "\(typePkg).\(res.filter.expIdent)"
 
 
-		struct: [ for f in res.model.attributes if f.store {
-			"ident":      f.ident
-			"expIdent":   f.expIdent
-			"storeIdent": f.storeIdent
-			"name":       f.name
-			"primaryKey": f.primaryKey
-			"ignoreCase": f.ignoreCase
-			"goType":     strings.Replace(f.goType, "types.", "\(typePkg).", 1)
+		struct: [ for attr in res.model.attributes if attr.store {
+			"ident":      attr.ident
+			"expIdent":   attr.expIdent
+			"storeIdent": attr.storeIdent
+			"name":       attr.name
+			"primaryKey": list.Contains(pkAttrNames, attr.name)
+			"ignoreCase": attr.ignoreCase
+			"goType":     strings.Replace(attr.goType, "types.", "\(typePkg).", 1)
 		}]
 
 		filter: {
 			// query fields as defined in struct
-			"query":        [ for name in res.filter.query   {res.model.attributes[name]}],
+			"query":        [ for name in res.filter.query        {res.model.attributes[name]}],
 
 			// filter by nil state as defined in filter
-			"byNilState":   [ for name in res.filter.byNilState {res.filter.struct[name]}]
+			"byNilState":   [ for name in res.filter.byNilState   {res.filter.struct[name]}]
 
 			// filter by false as defined in filter
 			"byFalseState": [ for name in res.filter.byFalseState {res.filter.struct[name]}]
 
 			// filter by value as defined in filter
 			// @todo this should be pulled from the struct
-			"byValue":      [ for name in res.filter.byValue {res.filter.struct[name]}]
-			"byLabel": res.features.labels
-			"byFlag":  res.features.flags
+			"byValue":      [ for name in res.filter.byValue      {res.filter.struct[name]}]
+			"byLabel":      res.features.labels
+			"byFlag":       res.features.flags
 		}
 
 		auxIdent:  "aux\(expIdent)"
@@ -69,9 +81,9 @@ _StoreResource: {
 				}
 
 				deleteByPK: {
-					primaryKeys: [ for f in res.model.attributes if f.primaryKey {f} ]
-					_pkExpNames: strings.Join([ for f in primaryKeys { f.expIdent } ], "")
-					"expFnIdent":  "Delete\(res.store.expIdent)By\(_pkExpNames)"
+					attributes:    [ for attr in pkAttrNames { res.model.attributes[attr] } ]
+					_expIdents:    strings.Join([ for attr in pkAttrNames { res.model.attributes[attr].expIdent } ], "")
+					"expFnIdent":  "Delete\(res.store.expIdent)By\(_expIdents)"
 				}
 
 				lookups: [
@@ -87,12 +99,12 @@ _StoreResource: {
 						// Copy all relevant fields from the struct
 						"args": [
 							for name in l.fields {
-								let f = res.model.attributes[name]
+								let attr = res.model.attributes[name]
 
-								"ident":  f.ident
-								"storeIdent":  f.storeIdent
-								"goType": f.goType
-								"ignoreCase": f.ignoreCase
+								"ident":  attr.ident
+								"storeIdent":  attr.storeIdent
+								"goType": attr.goType
+								"ignoreCase": attr.ignoreCase
 							},
 						]
 
@@ -128,10 +140,10 @@ _StoreResource: {
 					"fnIdent": "sortable\(expIdent)Fields"
 
 					fields: {
-						for f in res.model.attributes if f.sortable || f.unique || f.primaryKey {
+						for attr in res.model.attributes if attr.sortable || attr.unique || list.Contains(pkAttrNames, attr.name) {
 							{
-								"\(strings.ToLower(f.name))":  f.name
-								"\(strings.ToLower(f.ident))": f.name
+								"\(strings.ToLower(attr.name))":  attr.name
+								"\(strings.ToLower(attr.ident))": attr.name
 							}
 						}
 					}
@@ -142,8 +154,12 @@ _StoreResource: {
 
 					"fnIdent": "collect\(expIdent)CursorValues"
 
-					fields: [ for f in res.model.attributes if f.sortable || f.unique || f.primaryKey {f} ]
-					primaryKeys: [ for f in res.model.attributes if f.primaryKey {f} ]
+					fields: [ for attr in res.model.attributes if attr.sortable || attr.unique || list.Contains(pkAttrNames, attr.name) {
+						attr
+						"primaryKey": list.Contains(pkAttrNames, attr.name)
+					} ]
+
+					primaryKeys: [ for attr in res.model.attributes if list.Contains(pkAttrNames, attr.name) {attr} ]
 				}
 
 				checkConstraints: {
