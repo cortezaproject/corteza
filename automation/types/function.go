@@ -15,7 +15,7 @@ type (
 	FunctionHandler func(ctx context.Context, in *expr.Vars) (*expr.Vars, error)
 	IteratorHandler func(ctx context.Context, in *expr.Vars) (wfexec.IteratorHandler, error)
 
-	// workflow functions are defined in the core code and through plugins
+	// workflow functions are defined in the core code
 	Function struct {
 		Ref        string        `json:"ref,omitempty"`
 		Kind       string        `json:"kind,omitempty"`

@@ -202,11 +202,6 @@ type (
 		MinioStrict     bool   `env:"MINIO_STRICT"`
 	}
 
-	PluginsOpt struct {
-		Enabled bool   `env:"PLUGINS_ENABLED"`
-		Paths   string `env:"PLUGINS_PATHS"`
-	}
-
 	ProvisionOpt struct {
 		Always bool   `env:"PROVISION_ALWAYS"`
 		Path   string `env:"PROVISION_PATH"`
@@ -824,33 +819,6 @@ func ObjectStore() (o *ObjectStoreOpt) {
 		Path:        "var/store",
 		MinioSecure: true,
 		MinioBucket: "{component}",
-	}
-
-	// Custom defaults
-	func(o interface{}) {
-		if def, ok := o.(interface{ Defaults() }); ok {
-			def.Defaults()
-		}
-	}(o)
-
-	fill(o)
-
-	// Custom cleanup
-	func(o interface{}) {
-		if def, ok := o.(interface{ Cleanup() }); ok {
-			def.Cleanup()
-		}
-	}(o)
-
-	return
-}
-
-// Plugins initializes and returns a PluginsOpt with default values
-//
-// This function is auto-generated
-func Plugins() (o *PluginsOpt) {
-	o = &PluginsOpt{
-		Enabled: true,
 	}
 
 	// Custom defaults
