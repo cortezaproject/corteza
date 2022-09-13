@@ -7,6 +7,7 @@ import (
 	composeModels "github.com/cortezaproject/corteza-server/compose/model"
 	federationModels "github.com/cortezaproject/corteza-server/federation/model"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
 	systemModels "github.com/cortezaproject/corteza-server/system/model"
 	"go.uber.org/zap"
@@ -78,8 +79,12 @@ func createTablesFromModels(ctx context.Context, log *zap.Logger, dd ddl.DataDef
 				return fmt.Errorf("can not convert model %q to table: %w", m.Ident, err)
 			}
 
-			if err = dd.TableCreate(ctx, tbl); err != nil {
-				return fmt.Errorf("can not create table from model %q: %w", m.Ident, err)
+			if _, err = dd.TableLookup(ctx, m.Ident); errors.IsNotFound(err) {
+				if err = dd.TableCreate(ctx, tbl); err != nil {
+					return fmt.Errorf("can not create table from model %q: %w", m.Ident, err)
+				}
+			} else if err == nil {
+				return
 			}
 
 			for _, idx := range tbl.Indexes {

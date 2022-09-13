@@ -147,6 +147,12 @@ var ModuleMapping = &dal.Model{
 
 	Attributes: dal.AttributeSet{
 		&dal.Attribute{
+			Ident: "NodeID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "node_id"},
+		},
+
+		&dal.Attribute{
 			Ident: "FederationModuleID", Sortable: true,
 			Type:  &dal.TypeID{},
 			Store: &dal.CodecAlias{Ident: "federation_module_id"},
@@ -175,8 +181,20 @@ var ModuleMapping = &dal.Model{
 
 	Indexes: dal.IndexSet{
 		&dal.Index{
-			Ident: "uniqueModuleComposeModule",
+			Ident: "PRIMARY",
 			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "NodeID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident:  "federation_module_mapping_uniqueModuleComposeModule",
+			Type:   "BTREE",
+			Unique: true,
 
 			Fields: []*dal.IndexField{
 				{
@@ -358,7 +376,18 @@ var NodeSync = &dal.Model{
 		},
 	},
 
-	Indexes: dal.IndexSet{},
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "NodeID",
+				},
+			},
+		},
+	},
 }
 
 var SharedModule = &dal.Model{
