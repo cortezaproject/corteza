@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/revisions"
 	"io"
 	"math"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/revisions"
 
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
@@ -66,6 +67,8 @@ type (
 		CanManageOwnerOnRecord(context.Context, *types.Record) bool
 		CanSearchRevisionsOnRecord(context.Context, *types.Record) bool
 	}
+
+	recordReportEntry map[string]any
 )
 
 const (
@@ -85,7 +88,33 @@ func (Record) New() *Record {
 }
 
 func (ctrl *Record) Report(ctx context.Context, r *request.RecordReport) (interface{}, error) {
-	return ctrl.record.Report(ctx, r.NamespaceID, r.ModuleID, r.Metrics, r.Dimensions, r.Filter)
+	var (
+		makeRev = func() dal.ValueSetter { return make(recordReportEntry, 3) }
+	)
+
+	iter, err := ctrl.record.Report(ctx, r.NamespaceID, r.ModuleID, r.Metrics, r.Dimensions, r.Filter)
+	if err != nil {
+		return nil, err
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		if _, err = w.Write([]byte(`{"response":[`)); err != nil {
+			return
+		}
+
+		err = dal.IteratorEncodeJSON(ctx, w, iter, makeRev)
+		if err != nil {
+			return
+		}
+
+		if _, err = w.Write([]byte(`]}`)); err != nil {
+			return
+		}
+
+		return
+	}, nil
 }
 
 func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{}, error) {
@@ -669,4 +698,16 @@ func (ctrl Record) handleValidationError(rve *types.RecordValueErrorSet) interfa
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(rval)
 	}
+}
+
+func (rr recordReportEntry) SetValue(n string, pos uint, v any) error {
+	if pos > 0 {
+		// When aggregated, multi value fields are collapsed into a single value
+		// so we don't need to support multi values here
+		panic("impossible case")
+	}
+
+	rr[n] = v
+
+	return nil
 }

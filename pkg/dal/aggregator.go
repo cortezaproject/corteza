@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/modern-go/reflect2"
@@ -330,7 +331,7 @@ func unpackMappingSource(a AttributeMapping) (ident string, expr *ql.ASTNode, er
 func unpackExpressionNode(n *ql.ASTNode) (aggOp string, expr *ql.ASTNode, err error) {
 	// @todo check for supported aggregators
 	if n.Ref != "" {
-		aggOp = n.Ref
+		aggOp = strings.ToLower(n.Ref)
 	}
 	if !aggregateFunctionIndex[aggOp] {
 		err = fmt.Errorf("root expression must be an aggregate function")

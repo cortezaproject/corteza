@@ -2,9 +2,10 @@ package postgres
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ql"
 	"github.com/doug-martin/goqu/v9/exp"
-	"strings"
 )
 
 var (
@@ -18,21 +19,21 @@ var (
 		"quarter": {
 			Handler: func(args ...exp.Expression) exp.Expression {
 				return exp.NewSQLFunctionExpression("EXTRACT",
-					exp.NewLiteralExpression("QUARTER FROM TIMESTAMP ?", args[0]),
+					exp.NewLiteralExpression("QUARTER FROM ?", args[0]),
 				)
 			},
 		},
 		"year": {
 			Handler: func(args ...exp.Expression) exp.Expression {
 				return exp.NewSQLFunctionExpression("EXTRACT",
-					exp.NewLiteralExpression("YEAR FROM TIMESTAMP ?", args[0]),
+					exp.NewLiteralExpression("YEAR FROM ?", args[0]),
 				)
 			},
 		},
 		"month": {
 			Handler: func(args ...exp.Expression) exp.Expression {
 				return exp.NewSQLFunctionExpression("EXTRACT",
-					exp.NewLiteralExpression("MONTH FROM TIMESTAMP ?", args[0]),
+					exp.NewLiteralExpression("MONTH FROM ?", args[0]),
 				)
 			},
 		},

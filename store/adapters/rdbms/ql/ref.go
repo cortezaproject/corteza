@@ -2,6 +2,8 @@ package ql
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/doug-martin/goqu/v9/exp"
 )
@@ -203,10 +205,13 @@ var (
 )
 
 func (ee ExprHandlerMap) ExprHandlers() (out ExprHandlerMap) {
-	out = ref2exp
-	if out == nil {
-		out = make(map[string]*ExprHandler)
+	// Set the default values; make sure to copy the global map
+	out = make(map[string]*ExprHandler, len(ref2exp))
+	for name, expr := range ref2exp {
+		out[name] = expr
 	}
+
+	// Overwrite with customs
 	for name, expr := range ee {
 		out[name] = expr
 	}
@@ -214,13 +219,15 @@ func (ee ExprHandlerMap) ExprHandlers() (out ExprHandlerMap) {
 }
 
 func (ee ExprHandlerMap) RefHandler(n *ql.ASTNode, args ...exp.Expression) (exp.Expression, error) {
-	if ref2exp[n.Ref] == nil {
-		return nil, fmt.Errorf("unknown ref %q", n.Ref)
+	r := strings.ToLower(n.Ref)
+
+	if ee[r] == nil {
+		return nil, fmt.Errorf("unknown ref %q", r)
 	}
 
-	if ref2exp[n.Ref].Handler != nil {
-		return ref2exp[n.Ref].Handler(args...), nil
+	if ee[r].Handler != nil {
+		return ee[r].Handler(args...), nil
 	}
 
-	return ref2exp[n.Ref].HandlerE(args...)
+	return ee[r].HandlerE(args...)
 }
