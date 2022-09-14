@@ -42,10 +42,13 @@ func Connect(ctx context.Context, log *zap.Logger, cfg *ConnConfig) (db *sqlx.DB
 
 	db = sqlx.NewDb(base, cfg.DriverName)
 	log.Debug(
-		"setting connection parameters",
+		"setting database connection parameters",
 		zap.Int("MaxOpenConns", cfg.MaxOpenConns),
 		zap.Duration("MaxLifetime", cfg.ConnMaxLifetime),
 		zap.Int("MaxIdleConns", cfg.MaxIdleConns),
+
+		// log DSN with masked username and password
+		zap.String("DSN", cfg.MaskedDSN),
 	)
 
 	db.SetMaxOpenConns(cfg.MaxOpenConns)

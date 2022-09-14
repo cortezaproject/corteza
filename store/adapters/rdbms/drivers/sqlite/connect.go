@@ -100,31 +100,34 @@ func NewConfig(in string) (*rdbms.ConnConfig, error) {
 	)
 
 	var (
-		cfg = &rdbms.ConnConfig{
+		c = &rdbms.ConnConfig{
 			DriverName: altSchema,
 		}
 	)
 
 	switch {
 	case strings.HasPrefix(in, SCHEMA+schemaDel), strings.HasPrefix(in, altSchema+schemaDel):
-	// no special handlign
+	// no special handling
 	case strings.HasPrefix(in, debugSchema+schemaDel):
-		cfg.DriverName = debugSchema
+		c.DriverName = debugSchema
 	default:
 		return nil, fmt.Errorf("expecting valid schema (sqlite3://) at the beginning of the DSN")
 	}
 
 	// reassemble DSN with base schema
-	cfg.DataSourceName = in[strings.Index(in, schemaDel)+len(schemaDel):]
+	c.DataSourceName = in[strings.Index(in, schemaDel)+len(schemaDel):]
+
+	// Nothing to mask for sqlite3 DSN
+	c.MaskedDSN = c.DataSourceName
 
 	// Set to zero
 	// Otherwise SQLite (in-memory) disconnects
 	// and all tables and data is lost
-	cfg.ConnMaxLifetime = 0
+	c.ConnMaxLifetime = 0
 
-	cfg.SetDefaults()
+	c.SetDefaults()
 
-	return cfg, nil
+	return c, nil
 }
 
 // Transactions are disabled on SQLite

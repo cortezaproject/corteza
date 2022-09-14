@@ -89,6 +89,7 @@ func NewConfig(dsn string) (c *rdbms.ConnConfig, err error) {
 		DriverName:     scheme,
 		DataSourceName: u.String(),
 		DBName:         strings.Trim(u.Path, "/"),
+		MaskedDSN:      u.Redacted(),
 	}
 
 	c.SetDefaults()
