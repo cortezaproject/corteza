@@ -81,6 +81,7 @@ _StoreResource: {
 				}
 
 				deleteByPK: {
+				  "pkAttrNames": pkAttrNames,
 					attributes:    [ for attr in pkAttrNames { res.model.attributes[attr] } ]
 					_expIdents:    strings.Join([ for attr in pkAttrNames { res.model.attributes[attr].expIdent } ], "")
 					"expFnIdent":  "Delete\(res.store.expIdent)By\(_expIdents)"

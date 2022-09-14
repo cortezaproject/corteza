@@ -217,6 +217,8 @@ func (app *CortezaApp) InitStore(ctx context.Context) (err error) {
 		if err = store.Upgrade(ctx, log, app.Store); err != nil {
 			return fmt.Errorf("could not upgrade primary store: %w", err)
 		}
+
+		healthcheck.Defaults().Add(app.Store.Healthcheck, "Primary store")
 	}
 
 	{

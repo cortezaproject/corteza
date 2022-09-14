@@ -17590,10 +17590,10 @@ func (s *Store) DeleteSettingValue(ctx context.Context, rr ...*systemType.Settin
 // DeleteSettingValueByID deletes single entry from settingValue collection
 //
 // This function is auto-generated
-func (s *Store) DeleteSettingValueByNameOwnedBy(ctx context.Context, name string, ownedBy uint64) error {
+func (s *Store) DeleteSettingValueByOwnedByName(ctx context.Context, ownedBy uint64, name string) error {
 	return s.Exec(ctx, settingValueDeleteQuery(s.Dialect, goqu.Ex{
-		"name":      name,
 		"rel_owner": ownedBy,
+		"name":      name,
 	}))
 }
 

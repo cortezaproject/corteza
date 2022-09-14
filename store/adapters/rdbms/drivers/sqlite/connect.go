@@ -77,6 +77,8 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 
 		TxRetryLimit: -1,
 		DataDefiner:  DataDefiner(cfg.DBName, db),
+
+		Ping: db.PingContext,
 	}
 
 	s.SetDefaults()

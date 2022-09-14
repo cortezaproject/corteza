@@ -2210,9 +2210,8 @@ var SettingValue = &dal.Model{
 
 	Indexes: dal.IndexSet{
 		&dal.Index{
-			Ident:  "settings_uniqueKindResName",
-			Type:   "BTREE",
-			Unique: true,
+			Ident: "PRIMARY",
+			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{
 				{
