@@ -119,6 +119,7 @@ func NewConfig(in string) (*rdbms.ConnConfig, error) {
 
 		c.DataSourceName = pdsn.FormatDSN()
 		c.DBName = pdsn.DBName
+		c.MaskedDSN = maskDSN(pdsn)
 	}
 
 	c.SetDefaults()
@@ -134,6 +135,19 @@ func connSetup(ctx context.Context, db sqlx.ExecerContext) (err error) {
 	}
 
 	return
+}
+
+func maskDSN(myCnf *mysql.Config) string {
+	var (
+		maskedDSN = myCnf.Clone()
+	)
+
+	if maskedDSN.Passwd != "" {
+		// following the same logic as url.Redacted (used for postgresql)
+		maskedDSN.Passwd = "xxxxx"
+	}
+
+	return myCnf.FormatDSN()
 }
 
 func txRetryErrHandler(try int, err error) bool {
