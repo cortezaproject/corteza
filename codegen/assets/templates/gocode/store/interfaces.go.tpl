@@ -42,6 +42,8 @@ type (
 		// Upgrade store's schema to the latest version
 		Upgrade(context.Context) error
 
+		Healthcheck(context.Context) error
+
 		{{- range .types }}
 			{{ .expIdentPlural }}
 		{{- end }}

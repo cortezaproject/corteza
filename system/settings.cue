@@ -36,7 +36,7 @@ settings: {
 		}
 
 		indexes: {
-			"unique_kind_res_name": {
+			"primary": {
 				fields: [
 					{ attribute: "owned_by" },
 				 	{ attribute: "name", modifiers: [ "LOWERCASE" ] },

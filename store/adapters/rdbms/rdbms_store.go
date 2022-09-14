@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
 	"github.com/doug-martin/goqu/v9"
@@ -65,6 +66,8 @@ type (
 		// additional (per-resource-type) filters used when searching
 		// these filters can modify expression used for querying the database
 		Filters *extendedFilters
+
+		Ping func(ctx context.Context) error
 	}
 )
 
@@ -100,6 +103,14 @@ func (s *Store) withTx(tx sqlx.ExtContext) *Store {
 		Functions:         s.Functions,
 		Filters:           s.Filters,
 	}
+}
+
+func (s Store) Healthcheck(ctx context.Context) error {
+	if s.Ping == nil {
+		return errors.Internal("no store ping function defined")
+	}
+
+	return s.Ping(ctx)
 }
 
 func (s Store) Exec(ctx context.Context, q sqlizer) error {
