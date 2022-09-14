@@ -176,6 +176,11 @@ var (
 		//},
 
 		// - filtering
+		"date_format": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("DATE_FORMAT", args[0], args[1])
+			},
+		},
 		"now": {
 			Handler: func(args ...exp.Expression) exp.Expression {
 				return exp.NewSQLFunctionExpression("NOW")
