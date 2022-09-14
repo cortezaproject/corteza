@@ -19,6 +19,7 @@ type (
 	// DataDefiner describes an interface for all DDL commands
 	DataDefiner interface {
 		ConvertModel(*dal.Model) (*Table, error)
+		ConvertAttribute(attr *dal.Attribute) (*Column, error)
 
 		// Tables(ctx context.Context) ([]*Table, error)
 		TableLookup(context.Context, string) (*Table, error)
@@ -158,9 +159,8 @@ func ConvertModel(m *dal.Model, d driverDialect) (t *Table, err error) {
 			}
 		}
 
-		col, err = d.AttributeToColumn(a)
-		if err != nil {
-			return nil, fmt.Errorf("could not convert attribute %q to column: %w", a.Ident, err)
+		if col, err = ConvertAttribute(a, d); err != nil {
+			return
 		}
 
 		t.Columns = append(t.Columns, col)
@@ -172,6 +172,15 @@ func ConvertModel(m *dal.Model, d driverDialect) (t *Table, err error) {
 		}
 
 		t.Indexes = append(t.Indexes, idx)
+	}
+
+	return
+}
+
+func ConvertAttribute(attr *dal.Attribute, d driverDialect) (col *Column, err error) {
+	col, err = d.AttributeToColumn(attr)
+	if err != nil {
+		return nil, fmt.Errorf("could not convert attribute %q to column: %w", attr.Ident, err)
 	}
 
 	return
