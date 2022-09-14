@@ -613,6 +613,8 @@ func (ctrl *Record) Revisions(ctx context.Context, r *request.RecordRevisions) (
 	}
 
 	return func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
 		if _, err = w.Write([]byte(`{"response":{"set":[`)); err != nil {
 			return
 		}
