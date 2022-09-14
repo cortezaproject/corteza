@@ -216,6 +216,10 @@ var Chart = &dal.Model{
 					AttributeIdent: "Handle",
 					Modifiers:      []dal.IndexFieldModifier{"LOWERCASE"},
 				},
+
+				{
+					AttributeIdent: "NamespaceID",
+				},
 			},
 		},
 	},
