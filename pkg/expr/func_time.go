@@ -6,7 +6,6 @@ import (
 
 	"github.com/PaesslerAG/gval"
 	"github.com/cortezaproject/corteza-server/pkg/gvalfnc"
-	"github.com/lestrrat-go/strftime"
 )
 
 func TimeFunctions() []gval.Language {
@@ -20,7 +19,7 @@ func TimeFunctions() []gval.Language {
 		gval.Function("modMonth", modMonth),
 		gval.Function("modYear", modYear),
 		gval.Function("parseDuration", time.ParseDuration),
-		gval.Function("strftime", strfTime),
+		gval.Function("strftime", gvalfnc.StrfTime),
 		gval.Function("isLeapYear", isLeapYear),
 		gval.Function("now", now),
 		gval.Function("isWeekDay", isWeekDay),
@@ -161,23 +160,6 @@ func modYear(base interface{}, mod interface{}) (*time.Time, error) {
 
 	tmp := t.AddDate(m, 0, 0)
 	return &tmp, nil
-}
-
-// Strftime formats time with POSIX standard format
-// More details here:
-// https://github.com/lestrrat-go/strftime#supported-conversion-specifications
-func strfTime(base interface{}, f string) (string, error) {
-	t, _, err := gvalfnc.PrepMod(base, 0)
-
-	if err != nil {
-		return "", err
-	}
-
-	o, _ := strftime.Format(f, *t,
-		strftime.WithMilliseconds('b'),
-		strftime.WithUnixSeconds('L'))
-
-	return o, nil
 }
 
 // sub returns difference between two date into milliseconds

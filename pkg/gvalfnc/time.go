@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/lestrrat-go/strftime"
 	"github.com/spf13/cast"
 )
 
@@ -75,4 +76,21 @@ func PrepMod(base interface{}, mod interface{}) (*time.Time, int, error) {
 	}
 
 	return t, m, nil
+}
+
+// Strftime formats time with POSIX standard format
+// More details here:
+// https://github.com/lestrrat-go/strftime#supported-conversion-specifications
+func StrfTime(base interface{}, f string) (string, error) {
+	t, _, err := PrepMod(base, 0)
+
+	if err != nil {
+		return "", err
+	}
+
+	o, _ := strftime.Format(f, *t,
+		strftime.WithMilliseconds('b'),
+		strftime.WithUnixSeconds('L'))
+
+	return o, nil
 }
