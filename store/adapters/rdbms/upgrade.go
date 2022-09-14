@@ -51,12 +51,12 @@ func createTablesFromModels(ctx context.Context, log *zap.Logger, dd ddl.DataDef
 				return fmt.Errorf("can not convert model %q to table: %w", m.Ident, err)
 			}
 
-			if _, err = dd.TableLookup(ctx, m.Ident); errors.IsNotFound(err) {
-				if err = dd.TableCreate(ctx, tbl); err != nil {
-					return fmt.Errorf("can not create table from model %q: %w", m.Ident, err)
-				}
-			} else if err == nil {
-				return
+			if _, err = dd.TableLookup(ctx, m.Ident); err != nil && errors.IsNotFound(err) {
+				err = dd.TableCreate(ctx, tbl)
+			}
+
+			if err != nil {
+				return fmt.Errorf("can not create table from model %q: %w", m.Ident, err)
 			}
 
 			for _, idx := range tbl.Indexes {
