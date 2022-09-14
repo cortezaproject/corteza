@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	. "github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
@@ -19,7 +20,7 @@ type (
 		Create(ctx context.Context, record *types.Record) (*types.Record, error)
 		Update(ctx context.Context, record *types.Record) (*types.Record, error)
 		Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (types.RecordSet, error)
-		Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, filter string) (out interface{}, err error)
+		Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, filter string) (out dal.Iterator, err error)
 
 		Validate(ctx context.Context, rec *types.Record) error
 

@@ -7,8 +7,10 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/revisions"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
@@ -105,7 +107,7 @@ type (
 	RecordService interface {
 		FindByID(ctx context.Context, namespaceID, moduleID, recordID uint64) (*types.Record, error)
 
-		Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, filter string) (interface{}, error)
+		Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, filter string) (dal.Iterator, error)
 		Find(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
 		SearchSensitive(ctx context.Context) (set []types.SensitiveRecordSet, err error)
 		SearchRevisions(ctx context.Context, namespaceID, moduleID, recordID uint64) (dal.Iterator, error)
@@ -277,11 +279,95 @@ func (svc record) FindByID(ctx context.Context, namespaceID, moduleID, recordID 
 }
 
 // Report generates report for a given module using metrics, dimensions and filter
-//
-// @todo remove; will be replaced with reporter endpoints
-func (svc record) Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, filter string) (out interface{}, err error) {
-	err = fmt.Errorf("record report endpoints pending removal")
-	return
+// @note will eventually be removed in favor of the system report endpoints
+func (svc record) Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, f string) (out dal.Iterator, err error) {
+	var (
+		ns     *types.Namespace
+		m      *types.Module
+		aProps = &recordActionProps{record: &types.Record{NamespaceID: namespaceID}}
+	)
+
+	err = func() error {
+		if ns, m, err = loadModuleCombo(ctx, svc.store, namespaceID, moduleID); err != nil {
+			return err
+		}
+
+		aProps.setNamespace(ns)
+		aProps.setModule(m)
+
+		if !svc.ac.CanSearchRecordsOnModule(ctx, m) {
+			return RecordErrNotAllowedToSearch()
+		}
+
+		// Map dimension to the aggregate group
+		// @note we only ever used a single dimension so this is ok
+		dim := []dal.AttributeMapping{
+			dal.SimpleAttr{
+				Ident: "dimension_0",
+				Expr:  dimensions,
+			},
+		}
+
+		// Map metrics to the aggregate attrs
+		// - count is always present
+		mms := []dal.AttributeMapping{
+			dal.SimpleAttr{
+				Ident: "count",
+				Expr:  "count(ID)",
+				Props: dal.MapProperties{
+					Type: dal.TypeNumber{},
+				},
+			},
+		}
+
+		// - other requested metrices
+		if len(metrics) > 0 {
+			pts := strings.Split(metrics, " AS ")
+			expr := strings.TrimSpace(pts[0])
+			ident := expr
+			if len(pts) > 1 {
+				ident = strings.TrimSpace(pts[1])
+			}
+
+			mms = append(mms, dal.SimpleAttr{
+				Ident: ident,
+				Expr:  expr,
+				Props: dal.MapProperties{
+					Type: dal.TypeNumber{},
+				},
+			})
+		}
+
+		// Build the pipeline
+		pp := dal.Pipeline{
+			&dal.Datasource{
+				Ident:  "ds",
+				Filter: filter.Generic(filter.WithExpression(f)),
+				ModelRef: dal.ModelRef{
+					ConnectionID: m.Config.DAL.ConnectionID,
+					ResourceID:   m.ID,
+					ResourceType: types.ModuleResourceType,
+				},
+			},
+			&dal.Aggregate{
+				Ident:         "agg",
+				RelSource:     "ds",
+				Group:         dim,
+				OutAttributes: mms,
+			},
+		}
+
+		err = pp.LinkSteps()
+		if err != nil {
+			return err
+		}
+
+		// Run it
+		out, err = svc.dal.Run(ctx, pp)
+		return err
+	}()
+
+	return out, svc.recordAction(ctx, aProps, RecordActionReport, err)
 }
 
 func (svc record) Find(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error) {
