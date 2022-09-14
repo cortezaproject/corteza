@@ -29,27 +29,27 @@ type (
 
 	DropIndex struct {
 		Dialect    dialect
-		Ident      exp.IdentifierExpression
-		TableIdent exp.IdentifierExpression
+		Ident      string
+		TableIdent string
 	}
 
 	AddColumn struct {
 		Dialect dialect
-		Table   exp.IdentifierExpression
+		Table   string
 		Column  *Column
 	}
 
 	DropColumn struct {
 		Dialect dialect
-		Table   exp.IdentifierExpression
-		Column  exp.IdentifierExpression
+		Table   string
+		Column  string
 	}
 
 	RenameColumn struct {
 		Dialect dialect
-		Table   exp.IdentifierExpression
-		Old     exp.IdentifierExpression
-		New     exp.IdentifierExpression
+		Table   string
+		Old     string
+		New     string
 	}
 )
 
@@ -238,30 +238,30 @@ func (t *CreateIndex) String() string {
 	return sql
 }
 
-//func (c *AddColumn) String() string {
-//	sql := "ALTER TABLE" + " " + c.Table + " ADD COLUMN " + c.Column.Name + " " + c.Column.Type
-//	if !c.Column.IsNull {
-//		sql += " NOT NULL"
-//	}
-//
-//	if len(c.Column.DefaultValue) > 0 {
-//		sql += " DEFAULT " + c.Column.DefaultValue
-//	}
-//
-//	return sql
-//}
+func (c *AddColumn) String() string {
+	sql := "ALTER TABLE" + " " + c.Table + " ADD COLUMN " + c.Column.Ident + " " + c.Column.Type.Name
+	if !c.Column.Type.Null {
+		sql += " NOT NULL"
+	}
 
-//func (c *DropColumn) String() string {
-//	return "ALTER TABLE" + " " + c.Table.Name + " DROP COLUMN " + c.Column
-//}
+	if len(c.Column.Default) > 0 {
+		sql += " DEFAULT " + c.Column.Default
+	}
+
+	return sql
+}
+
+func (c *DropColumn) String() string {
+	return "ALTER TABLE" + " " + c.Table + " DROP COLUMN " + c.Column
+}
 
 func (c *DropIndex) Express() exp.SQLExpression {
 	return SQLExpression(exp.NewLiteralExpression("DROP INDEX ? ON ?", c.Ident, c.TableIdent))
 }
 
-//func (c *RenameColumn) String() string {
-//	return "ALTER TABLE" + " " + c.Table.Name + " RENAME COLUMN " + c.Old + " TO " + c.New
-//}
+func (c *RenameColumn) String() string {
+	return "ALTER TABLE" + " " + c.Table + " RENAME COLUMN " + c.Old + " TO " + c.New
+}
 
 // GetBool is a utility function to simplify getting a boolean value from a query result.
 func GetBool(ctx context.Context, db sqlx.QueryerContext, query exp.SQLExpression) (bool, error) {

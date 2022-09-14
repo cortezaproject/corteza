@@ -29,40 +29,12 @@ func (s *Store) Upgrade(ctx context.Context) (err error) {
 		return err
 	}
 
-	//var (
-	//	tableExists bool
-	//)
-	//
-	//for _, t := range Tables() {
-	//	tableExists, err = s.SchemaAPI.TableExists(ctx, s.DB, t.Name)
-	//	if err != nil {
-	//		return fmt.Errorf("could not check table %q existance: %w", t.Name, err)
-	//	}
-	//
-	//	if !tableExists {
-	//		s.log(ctx).Debug("creating table", zap.String("table", t.Name))
-	//		if err = s.SchemaAPI.CreateTable(ctx, s.DB, t); err != nil {
-	//			return fmt.Errorf("could not create table %q: %w", t.Name, err)
-	//		}
-	//	}
-	//}
-	//
-	//fixes := []func(context.Context, *Store) error{
-	//	fix202209_extendComposeModuleForPrivacyAndDAL,
-	//	fix202209_extendComposeModuleFieldsForPrivacyAndDAL,
-	//	fix202209_dropObsoleteComposeModuleFields,
-	//	fix202209_composeRecordRevisions,
-	//	fix202209_extendDalConnectionsForMeta,
-	//	fix202209_renameModuleColOnComposeRecords,
-	//	fix202209_addMetaOnComposeRecords,
-	//}
-	//
-	//for _, fix := range fixes {
-	//	if err = fix(ctx, s); err != nil {
-	//		return
-	//	}
-	//}
-	//
+	for _, fix := range fixes {
+		if err = fix(ctx, s); err != nil {
+			return
+		}
+	}
+
 	return
 }
 
@@ -98,6 +70,70 @@ func createTablesFromModels(ctx context.Context, log *zap.Logger, dd ddl.DataDef
 				}
 			}
 		}
+	}
+
+	return nil
+}
+
+func addColumn(ctx context.Context, s *Store, table string, attr *dal.Attribute) error {
+	tbl, err := s.DataDefiner.TableLookup(ctx, table)
+	if err != nil {
+		return err
+	}
+
+	if tbl.ColumnByIdent(attr.StoreIdent()) != nil {
+		return nil
+	}
+
+	s.log(ctx).Info(fmt.Sprintf("extending %q table with %q column", table, attr.StoreIdent()))
+
+	col, err := s.DataDefiner.ConvertAttribute(attr)
+	if err != nil {
+		return err
+	}
+
+	return s.DataDefiner.ColumnAdd(ctx, table, col)
+}
+
+func dropColumns(ctx context.Context, s *Store, table string, cc ...string) error {
+	tbl, err := s.DataDefiner.TableLookup(ctx, table)
+	if err != nil {
+		return err
+	}
+
+	for _, c := range cc {
+		if tbl.ColumnByIdent(c) == nil {
+			// column does not exist, nothing to do
+			continue
+		}
+
+		s.log(ctx).Info(fmt.Sprintf("dropping %q column from %q", c, table))
+		if err := s.DataDefiner.ColumnDrop(ctx, table, c); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func renameColumn(ctx context.Context, s *Store, table string, from, to string) error {
+	tbl, err := s.DataDefiner.TableLookup(ctx, table)
+	if err != nil {
+		return err
+	}
+
+	if tbl.ColumnByIdent(from) == nil {
+		// from column does not exist, nothing to do
+		return nil
+	}
+
+	if tbl.ColumnByIdent(to) != nil {
+		// to column already exists, nothing to do
+		return nil
+	}
+
+	s.log(ctx).Info(fmt.Sprintf("renaming %q column on table %q to %q", from, table, to))
+	if err := s.DataDefiner.ColumnRename(ctx, table, from, to); err != nil {
+		return err
 	}
 
 	return nil
