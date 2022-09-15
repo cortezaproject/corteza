@@ -1,4 +1,4 @@
-package reporter
+package reporting
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -15,8 +14,8 @@ type (
 	// Primarily simplifies mapping the correct iterator attributes to correct
 	// frame row columns and having them encoded properly.
 	reportFrameBuilder struct {
-		def   *types.ReportFrameDefinition
-		frame *types.ReportFrame
+		def   *FrameDefinition
+		frame *Frame
 
 		attrMapping map[string]int
 		attrMvDel   map[string]string
@@ -24,7 +23,7 @@ type (
 )
 
 // newReportFrameBuilder initializes a new report frame builder
-func newReportFrameBuilder(def *types.ReportFrameDefinition) *reportFrameBuilder {
+func newReportFrameBuilder(def *FrameDefinition) *reportFrameBuilder {
 	// Index cols for easier lookups
 	attrMap := make(map[string]int)
 	mvDelMap := make(map[string]string)
@@ -56,7 +55,7 @@ func (b *reportFrameBuilder) linked(col string) {
 
 // addRow adds a new dal.Row to the frame
 func (b *reportFrameBuilder) addRow(r *dal.Row) {
-	rrow := make(types.ReportFrameRow, len(b.def.Columns))
+	rrow := make(FrameRow, len(b.def.Columns))
 
 	for k, cc := range r.CountValues() {
 		ix, ok := b.attrMapping[k]
@@ -64,7 +63,7 @@ func (b *reportFrameBuilder) addRow(r *dal.Row) {
 			continue
 		}
 
-		auxRow := make(types.ReportFrameRow, cc)
+		auxRow := make(FrameRow, cc)
 		for i := uint(0); i < cc; i++ {
 			val, _ := r.GetValue(k, i)
 			auxRow[i] = b.stringifyVal(k, val)
@@ -82,7 +81,7 @@ func (b *reportFrameBuilder) addRow(r *dal.Row) {
 
 // done returns the constructed frame and prepares a new frame with the same
 // metadata as the original one
-func (b *reportFrameBuilder) done() *types.ReportFrame {
+func (b *reportFrameBuilder) done() *Frame {
 	out := b.frame
 	b.freshFrame()
 
@@ -107,7 +106,7 @@ func (b *reportFrameBuilder) freshFrame() {
 		return
 	}
 
-	b.frame = &types.ReportFrame{
+	b.frame = &Frame{
 		Name:   b.def.Name,
 		Source: b.def.Source,
 		Ref:    b.def.Ref,

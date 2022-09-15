@@ -1,14 +1,15 @@
-package types
+package reporting
 
 import (
 	"fmt"
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
-	ReportFrame struct {
+	Frame struct {
 		Name   string `json:"name"`
 		Source string `json:"source"`
 		Ref    string `json:"ref,omitempty"`
@@ -20,25 +21,24 @@ type (
 		// RelSource is the ds that this frame is related to
 		RelSource string `json:"relSource,omitempty"`
 
-		Columns ReportFrameColumnSet `json:"columns"`
-		Rows    []ReportFrameRow     `json:"rows"`
+		Columns FrameColumnSet `json:"columns"`
+		Rows    []FrameRow     `json:"rows"`
 
-		Paging *filter.Paging     `json:"paging"`
-		Sort   filter.SortExprSet `json:"sort"`
-		Filter *qlExprWrap        `json:"filter"`
+		Paging *filter.Paging          `json:"paging"`
+		Sort   filter.SortExprSet      `json:"sort"`
+		Filter *types.ReportFilterExpr `json:"filter"`
 	}
 
-	FrameDescriptionSet    []ReportFrameDescription
-	ReportFrameDescription struct {
-		Source  string               `json:"source"`
-		Ref     string               `json:"ref,omitempty"`
-		Columns ReportFrameColumnSet `json:"columns"`
+	FrameDescription struct {
+		Source  string         `json:"source"`
+		Ref     string         `json:"ref,omitempty"`
+		Columns FrameColumnSet `json:"columns"`
 	}
 
-	ReportFrameRow []string
+	FrameRow []string
 
-	ReportFrameColumnSet []ReportFrameColumn
-	ReportFrameColumn    struct {
+	FrameColumnSet []FrameColumn
+	FrameColumn    struct {
 		Name    string `json:"name"`
 		Label   string `json:"label"`
 		Kind    string `json:"kind"`
@@ -50,21 +50,21 @@ type (
 		MultivalueDelimiter string `json:"multivalueDelimiter"`
 	}
 
-	ReportFrameDefinitionSet []*ReportFrameDefinition
-	ReportFrameDefinition    struct {
-		Name    string               `json:"name"`
-		Source  string               `json:"source"`
-		Ref     string               `json:"ref"`
-		Columns ReportFrameColumnSet `json:"columns"`
+	FrameDefinitionSet []*FrameDefinition
+	FrameDefinition    struct {
+		Name    string         `json:"name"`
+		Source  string         `json:"source"`
+		Ref     string         `json:"ref"`
+		Columns FrameColumnSet `json:"columns"`
 
-		Filter *qlExprWrap        `json:"filter"`
-		Paging *filter.Paging     `json:"paging"`
-		Sort   filter.SortExprSet `json:"sort"`
+		Filter *types.ReportFilterExpr `json:"filter"`
+		Paging *filter.Paging          `json:"paging"`
+		Sort   filter.SortExprSet      `json:"sort"`
 	}
 )
 
 // @todo nicer formatting and alignment
-func (f ReportFrame) String() string {
+func (f Frame) String() string {
 	out := fmt.Sprintf("n: %10s; src: %10s\n", f.Name, f.Source)
 
 	if f.Ref != "" {
@@ -102,7 +102,7 @@ func (f ReportFrame) String() string {
 	return out
 }
 
-func (cc ReportFrameColumnSet) String() string {
+func (cc FrameColumnSet) String() string {
 	out := ""
 	for _, c := range cc {
 		out += fmt.Sprintf("%s<%s>, ", c.Name, c.Kind)
@@ -111,8 +111,8 @@ func (cc ReportFrameColumnSet) String() string {
 }
 
 // OmitSys returns the columns that are not system defined
-func (cc ReportFrameColumnSet) OmitSys() ReportFrameColumnSet {
-	out := make(ReportFrameColumnSet, 0, len(cc))
+func (cc FrameColumnSet) OmitSys() FrameColumnSet {
+	out := make(FrameColumnSet, 0, len(cc))
 	for _, c := range cc {
 		if !c.System {
 			out = append(out, c)
@@ -122,13 +122,13 @@ func (cc ReportFrameColumnSet) OmitSys() ReportFrameColumnSet {
 	return out
 }
 
-func (r ReportFrameRow) String() string {
+func (r FrameRow) String() string {
 	return strings.Join(r, ", ")
 }
 
 // FilterBySource returns a set of definitions for the requested identifier
-func (dd ReportFrameDefinitionSet) FilterBySource(ident string) ReportFrameDefinitionSet {
-	out := make(ReportFrameDefinitionSet, 0, len(dd))
+func (dd FrameDefinitionSet) FilterBySource(ident string) FrameDefinitionSet {
+	out := make(FrameDefinitionSet, 0, len(dd))
 	for _, d := range dd {
 		if d.Source == ident {
 			out = append(out, d)
