@@ -1014,3 +1014,45 @@ func TestSetRecordOwner(t *testing.T) {
 		req.Equal(upd.OwnedBy, invoker.ID)
 	})
 }
+
+func TestRecordReportToDalPipeline(t *testing.T) {
+	mod := &types.Module{
+		ID:          10,
+		NamespaceID: 42,
+	}
+
+	t.Run("no additional metrics", func(t *testing.T) {
+		pp, err := recordReportToDalPipeline(mod, "", "created_at", "")
+		require.NoError(t, err)
+
+		require.Len(t, pp, 2)
+
+		agg := pp[1].(*dal.Aggregate)
+		require.Len(t, agg.OutAttributes, 1)
+		require.Equal(t, "count", agg.OutAttributes[0].Identifier())
+	})
+
+	t.Run("additional metrics with alias", func(t *testing.T) {
+		pp, err := recordReportToDalPipeline(mod, "MAX(numbers) AS   something", "created_at", "")
+		require.NoError(t, err)
+
+		require.Len(t, pp, 2)
+
+		agg := pp[1].(*dal.Aggregate)
+		require.Len(t, agg.OutAttributes, 2)
+		require.Equal(t, "something", agg.OutAttributes[1].Identifier())
+		require.Equal(t, "MAX(numbers)", agg.OutAttributes[1].Expression())
+	})
+
+	t.Run("additional metrics without alias", func(t *testing.T) {
+		pp, err := recordReportToDalPipeline(mod, "MAX(numbers)", "created_at", "")
+		require.NoError(t, err)
+
+		require.Len(t, pp, 2)
+
+		agg := pp[1].(*dal.Aggregate)
+		require.Len(t, agg.OutAttributes, 2)
+		require.Equal(t, "MAX(numbers)", agg.OutAttributes[1].Identifier())
+		require.Equal(t, "MAX(numbers)", agg.OutAttributes[1].Expression())
+	})
+}

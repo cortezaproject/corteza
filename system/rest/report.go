@@ -28,7 +28,7 @@ type (
 		Delete(ctx context.Context, ID uint64) (err error)
 		Undelete(ctx context.Context, ID uint64) (err error)
 		Run(ctx context.Context, ID uint64, dd reporting.FrameDefinitionSet) (rr []*reporting.Frame, err error)
-		Describe(ctx context.Context, src types.ReportDataSourceSet, st types.ReportStepSet, sources ...string) (out reporting.[]FrameDescription, err error)
+		Describe(ctx context.Context, src types.ReportDataSourceSet, st types.ReportStepSet, sources ...string) (out []reporting.FrameDescription, err error)
 	}
 
 	reportAccessController interface {

@@ -293,8 +293,8 @@ func (svc *report) Undelete(ctx context.Context, ID uint64) (err error) {
 }
 
 // @todo actionlog?
-func (svc *report) Describe(ctx context.Context, src types.ReportDataSourceSet, st types.ReportStepSet, sources ...string) (out reporting.[]FrameDescription, err error) {
-	out = make(reporting.[]FrameDescription, 0, len(sources)*2)
+func (svc *report) Describe(ctx context.Context, src types.ReportDataSourceSet, st types.ReportStepSet, sources ...string) (out []reporting.FrameDescription, err error) {
+	out = make([]reporting.FrameDescription, 0, len(sources)*2)
 
 	err = func() (err error) {
 		if !svc.ac.CanCreateReport(ctx) {
