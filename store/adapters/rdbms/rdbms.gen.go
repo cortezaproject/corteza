@@ -17785,7 +17785,7 @@ func (s *Store) LookupSettingValueByNameOwnedBy(ctx context.Context, name string
 		rows   *sql.Rows
 		aux    = new(auxSettingValue)
 		lookup = settingValueSelectQuery(s.Dialect).Where(
-			s.Functions.LOWER(goqu.I("name")).Eq(strings.ToLower(name)),
+			goqu.I("name").Eq(name),
 			goqu.I("rel_owner").Eq(ownedBy),
 		).Limit(1)
 	)

@@ -24,7 +24,6 @@ settings: {
 				dal: { type: "Ref", refModelResType: "corteza::system:user" }
 			}
 			name:        {
-				ignoreCase: true
 				dal: { type: "Text", length: 512 }
 			}
 			value:       {

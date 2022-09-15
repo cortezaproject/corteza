@@ -4277,7 +4277,7 @@ var (
 	//
 	// This function is auto-generated
 	settingValueUpsertQuery = func(d goqu.DialectWrapper, res *systemType.SettingValue) *goqu.InsertDataset {
-		var target = `,rel_owner,LOWER(name)`
+		var target = `,rel_owner,name`
 
 		return settingValueInsertQuery(d, res).
 			OnConflict(
