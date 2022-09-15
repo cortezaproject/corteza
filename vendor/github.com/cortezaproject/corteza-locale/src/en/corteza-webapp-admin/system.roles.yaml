@@ -40,6 +40,7 @@ list:
     enabled: Enabled
     handle: Handle
     name: Name
+  export: Export
   filterForm:
     archived:
       label: archived roles

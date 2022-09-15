@@ -8,3 +8,5 @@ label:
   refresh: Refresh
   loadMore: Load more
   loading: Loading
+  fileTypeNotAllowed: File type not allowed
+

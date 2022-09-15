@@ -85,6 +85,7 @@ kind:
     multiLine: Multi line
     richText: Use Rich Text Editor
   url:
+    example: 'Example URL: https://example.com'
     label: URL
     preventToLink: Don't turn Url into a link
     sshOnly: Only allow SSL (https) Url

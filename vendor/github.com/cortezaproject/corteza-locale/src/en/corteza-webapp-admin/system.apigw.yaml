@@ -1,4 +1,5 @@
 list:
+  export: Export
   title: 'Integration Gateway'
   new: 'New'
   permissions: 'Permissions'

@@ -51,6 +51,7 @@ list:
     language: Language
     meta:
       short: Short name
+  export: Export
   filterForm:
     deleted:
       label: deleted templates

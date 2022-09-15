@@ -39,6 +39,7 @@ list:
     enabled: Enabled
     name: Name
     appListName: App selector name
+  export: Export
   filterForm:
     deleted:
       label: deleted applications
