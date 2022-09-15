@@ -2,15 +2,17 @@ package mysql
 
 import (
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"strconv"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
-	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ql"
+
+	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/dialect/mysql"
 	"github.com/doug-martin/goqu/v9/exp"
-	"strconv"
-	"strings"
 )
 
 type (
@@ -94,6 +96,13 @@ func (mysqlDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpression
 			Else(drivers.LiteralNULL)
 
 		c = exp.NewCastExpression(ce, "SIGNED")
+
+	case *dal.TypeID, *dal.TypeRef:
+		ce := exp.NewCaseExpression().
+			When(val.RegexpLike(drivers.CheckID), val).
+			Else(drivers.LiteralNULL)
+
+		c = exp.NewCastExpression(ce, "UNSIGNED")
 
 	default:
 		return drivers.AttributeCast(attr, val)
