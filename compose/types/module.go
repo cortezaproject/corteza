@@ -82,8 +82,7 @@ type (
 	}
 
 	ModuleConfigDAL struct {
-		ConnectionID uint64           `json:"connectionID,string"`
-		Operations   dal.OperationSet `json:"operations"`
+		ConnectionID uint64 `json:"connectionID,string"`
 
 		Constraints map[string][]any `json:"constraints"`
 

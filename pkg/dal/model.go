@@ -39,8 +39,6 @@ type (
 
 		Attributes AttributeSet
 
-		Operations OperationSet
-
 		Constraints map[string][]any
 		Indexes     IndexSet
 	}

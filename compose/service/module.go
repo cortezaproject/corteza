@@ -1298,7 +1298,6 @@ func ModuleToModel(ns *types.Namespace, mod *types.Module, inhIdent string) (mod
 		ResourceID:         mod.ID,
 		ResourceType:       types.ModuleResourceType,
 		SensitivityLevelID: mod.Config.Privacy.SensitivityLevelID,
-		Operations:         mod.Config.DAL.Operations,
 	}
 
 	if model.Ident = mod.Config.DAL.Ident; model.Ident == "" {

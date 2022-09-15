@@ -248,15 +248,15 @@ func recToGetters(rr ...*types.Record) (out []dal.ValueGetter) {
 }
 
 func recCreateOperations(m *types.Module) (out dal.OperationSet) {
-	return dal.CreateOperations(m.Config.DAL.Operations...)
+	return dal.CreateOperations()
 }
 
 func recUpdateOperations(m *types.Module) (out dal.OperationSet) {
-	return dal.UpdateOperations(m.Config.DAL.Operations...)
+	return dal.UpdateOperations()
 }
 
 func recDeleteOperations(m *types.Module) (out dal.OperationSet) {
-	return dal.DeleteOperations(m.Config.DAL.Operations...)
+	return dal.DeleteOperations()
 }
 
 func recFilterOperations(f types.RecordFilter) (out dal.OperationSet) {
@@ -280,10 +280,10 @@ func recFilterOperations(f types.RecordFilter) (out dal.OperationSet) {
 }
 
 func recSearchOperations(m *types.Module, f types.RecordFilter) (out dal.OperationSet) {
-	return dal.SearchOperations(m.Config.DAL.Operations...).
+	return dal.SearchOperations().
 		Union(recFilterOperations(f))
 }
 
 func recLookupOperations(m *types.Module) (out dal.OperationSet) {
-	return dal.LookupOperations(m.Config.DAL.Operations...)
+	return dal.LookupOperations()
 }

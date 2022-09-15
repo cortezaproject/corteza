@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"testing"
 
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/stretchr/testify/require"
 )
 

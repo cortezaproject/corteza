@@ -3,9 +3,10 @@ package dal
 import (
 	"context"
 	"fmt"
+	"sync"
+
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
-	"sync"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -18,9 +19,9 @@ type (
 	//
 	// In other words: this allows Corteza to read Records from the supported SQL databases
 	connection struct {
-		mux        sync.RWMutex
-		models     map[string]*model
-		operations dal.OperationSet
+		mux    sync.RWMutex
+		models map[string]*model
+		driver dal.Driver
 
 		db      sqlx.ExtContext
 		dialect drivers.Dialect
@@ -29,21 +30,26 @@ type (
 	}
 )
 
+var (
+	dalDriver dal.Driver
+)
+
 func init() {
-	dal.RegisterDriver(dal.Driver{
+	dalDriver = dal.Driver{
 		Type:       "corteza::dal:driver:rdbms",
 		Operations: dal.FullOperations(),
 		Connection: dal.NewDSNDriverConnectionConfig(),
-	})
+	}
+	dal.RegisterDriver(dalDriver)
 }
 
-func Connection(db sqlx.ExtContext, dialect drivers.Dialect, dd ddl.DataDefiner, cc ...dal.Operation) *connection {
+func Connection(db sqlx.ExtContext, dialect drivers.Dialect, dd ddl.DataDefiner) *connection {
 	return &connection{
 		db:          db,
 		dialect:     dialect,
 		dataDefiner: dd,
 		models:      make(map[string]*model),
-		operations:  cc,
+		driver:      dalDriver,
 	}
 }
 
@@ -68,11 +74,11 @@ func (c *connection) withModel(m *dal.Model, fn func(m *model) error) error {
 }
 
 func (c *connection) Operations() dal.OperationSet {
-	return c.operations
+	return c.driver.Operations
 }
 
 func (c *connection) Can(operations ...dal.Operation) bool {
-	return c.operations.IsSuperset(operations...)
+	return c.Operations().IsSuperset(operations...)
 }
 
 func (c *connection) Create(ctx context.Context, m *dal.Model, rr ...dal.ValueGetter) (err error) {

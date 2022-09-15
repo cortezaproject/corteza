@@ -233,14 +233,13 @@ func (svc *service) RemoveSensitivityLevel(levelIDs ...uint64) (err error) {
 // Connection management
 
 // MakeConnection makes and returns a new connection (wrap)
-func MakeConnection(ID uint64, conn Connection, p ConnectionParams, c ConnectionConfig, oo ...Operation) *ConnectionWrap {
+func MakeConnection(ID uint64, conn Connection, p ConnectionParams, c ConnectionConfig) *ConnectionWrap {
 	return &ConnectionWrap{
 		ID:         ID,
 		connection: conn,
 
-		params:     p,
-		Config:     c,
-		operations: oo,
+		params: p,
+		Config: c,
 	}
 }
 
@@ -295,12 +294,6 @@ func (svc *service) ReplaceConnection(ctx context.Context, conn *ConnectionWrap,
 		for _, model := range svc.models[ID] {
 			log.Debug("validating model before connection is updated", zap.String("ident", model.Ident))
 
-			// - operations
-			if !model.Operations.IsSubset(conn.operations...) {
-				issues.addConnectionIssue(ID, fmt.Errorf("cannot update connection %d: new connection does not support existing models", ID))
-				errored = true
-			}
-
 			// - sensitivity levels
 			if !svc.sensitivityLevels.isSubset(model.SensitivityLevelID, conn.Config.SensitivityLevelID) {
 				issues.addConnectionIssue(ID, fmt.Errorf("cannot update connection %d: new connection sensitivity level does not support model %d", ID, model.ResourceID))
@@ -328,7 +321,7 @@ func (svc *service) ReplaceConnection(ctx context.Context, conn *ConnectionWrap,
 	}
 
 	if conn.connection == nil {
-		conn.connection, err = connect(ctx, svc.logger, svc.inDev, conn.params, conn.operations...)
+		conn.connection, err = connect(ctx, svc.logger, svc.inDev, conn.params)
 		if err != nil {
 			log.Warn("could not connect", zap.Error(err))
 			issues.addConnectionIssue(ID, err)
@@ -995,7 +988,7 @@ func (svc *service) GetConnectionByID(connectionID uint64) (cw *ConnectionWrap) 
 	return svc.connections[connectionID]
 }
 
-func (svc *service) getConnection(connectionID uint64, cc ...Operation) (cw *ConnectionWrap, can OperationSet, err error) {
+func (svc *service) getConnection(connectionID uint64, oo ...Operation) (cw *ConnectionWrap, can OperationSet, err error) {
 	err = func() error {
 		// get the requested connection
 		cw = svc.GetConnectionByID(connectionID)
@@ -1004,8 +997,8 @@ func (svc *service) getConnection(connectionID uint64, cc ...Operation) (cw *Con
 		}
 
 		// check if connection supports requested operations
-		if !cw.connection.Can(cc...) {
-			return fmt.Errorf("connection %d does not support requested operations %v", connectionID, OperationSet(cc).Diff(cw.connection.Operations()))
+		if !cw.connection.Can(oo...) {
+			return fmt.Errorf("connection %d does not support requested operations %v", connectionID, OperationSet(oo).Diff(cw.connection.Operations()))
 		}
 		can = cw.connection.Operations()
 		return nil

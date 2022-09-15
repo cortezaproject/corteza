@@ -30,10 +30,5 @@ func Model() *dal.Model {
 			&dal.Attribute{Ident: "delta", Store: &dal.CodecPlain{}, Type: &dal.TypeJSON{}},
 			&dal.Attribute{Ident: "comment", Store: &dal.CodecPlain{}, Type: &dal.TypeText{}},
 		},
-
-		Operations: dal.OperationSet{
-			dal.Create,
-			dal.Search,
-		},
 	}
 }

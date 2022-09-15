@@ -9,7 +9,6 @@ type (
 		connection Connection
 		params     ConnectionParams
 		Config     ConnectionConfig
-		operations OperationSet
 	}
 
 	ConnectionConfig struct {

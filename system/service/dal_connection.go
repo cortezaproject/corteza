@@ -365,14 +365,12 @@ func MakeDalConnection(c *types.DalConnection, existing dal.Connection) (cw *dal
 			SensitivityLevelID: c.Config.Privacy.SensitivityLevelID,
 			Label:              c.Handle,
 		}
-		connParams     dal.ConnectionParams
-		connOperations dal.OperationSet
+		connParams dal.ConnectionParams
 	)
 
 	if c.Config.DAL != nil {
 		connConfig.ModelIdent = c.Config.DAL.ModelIdent
 
-		connOperations = c.Config.DAL.Operations
 		connParams = dal.ConnectionParams{
 			Type:   c.Config.DAL.Type,
 			Params: c.Config.DAL.Params,
@@ -393,7 +391,6 @@ func MakeDalConnection(c *types.DalConnection, existing dal.Connection) (cw *dal
 		existing,
 		connParams,
 		connConfig,
-		connOperations...,
 	)
 
 	return

@@ -11,7 +11,7 @@ func init() {
 	dal.RegisterConnector(dalConnector, SCHEMA, debugSchema)
 }
 
-func dalConnector(ctx context.Context, dsn string, cc ...dal.Operation) (_ dal.Connection, err error) {
+func dalConnector(ctx context.Context, dsn string) (_ dal.Connection, err error) {
 	cfg, err := NewConfig(dsn)
 	if err != nil {
 		return
@@ -27,5 +27,5 @@ func dalConnector(ctx context.Context, dsn string, cc ...dal.Operation) (_ dal.C
 	if err != nil {
 		return
 	}
-	return rdbmsdal.Connection(db, Dialect(), DataDefiner(cfg.DBName, db), cc...), nil
+	return rdbmsdal.Connection(db, Dialect(), DataDefiner(cfg.DBName, db)), nil
 }
