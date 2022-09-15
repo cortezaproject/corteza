@@ -56,7 +56,9 @@ func Model(m *dal.Model, c queryRunner, d drivers.Dialect) *model {
 
 	ms.queryParser = ql.Converter(
 		ql.SymHandler(func(node *ql.ASTNode) (exp.Expression, error) {
-			sym := node.Symbol
+			// @note normalize system idents on the RDBMS level for filters
+			//       offloaded to the database.
+			sym := dal.NormalizeAttrNames(node.Symbol)
 			if ms.model.ResourceType == "corteza::compose:module" {
 				// temporary solution
 				//

@@ -48,9 +48,10 @@ func toInternalFilter(f filter.Filter) (out internalFilter, err error) {
 		cursor:           f.Cursor(),
 	}
 
-	// Parse expression foe later use
+	// Parse expression for later use
 	if out.expression != "" {
-		out.expParsed, err = ql.NewParser().Parse(out.expression)
+		pp := newQlParser()
+		out.expParsed, err = pp.Parse(out.expression)
 		if err != nil {
 			return
 		}
