@@ -2220,7 +2220,6 @@ var SettingValue = &dal.Model{
 
 				{
 					AttributeIdent: "Name",
-					Modifiers:      []dal.IndexFieldModifier{"LOWERCASE"},
 				},
 			},
 		},
