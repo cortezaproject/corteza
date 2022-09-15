@@ -148,7 +148,7 @@ func (i *informationSchema) scanIndexes(ctx context.Context, sd *goqu.SelectData
 			Comment string `db:"INDEX_COMMENT"`
 
 			Expression      sql.NullString `db:"EXPRESSION"`
-			ColumnName      string         `db:"COLUMN_NAME"`
+			ColumnName      sql.NullString `db:"COLUMN_NAME"`
 			ColumnSubPart   sql.NullInt32  `db:"SUB_PART"`
 			ColumnCollation sql.NullString `db:"COLLATION"`
 
@@ -197,7 +197,7 @@ func (i *informationSchema) scanIndexes(ctx context.Context, sd *goqu.SelectData
 		if a.Expression.Valid {
 			col.Expression = a.Expression.String
 		} else {
-			col.Column = a.ColumnName
+			col.Column = a.ColumnName.String
 		}
 
 		out[at].Fields = append(out[at].Fields, col)
