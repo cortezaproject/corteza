@@ -100,7 +100,7 @@ type (
 		SetValue(string, uint, any) error
 	}
 
-	ConnectorFn func(ctx context.Context, dsn string, oo ...Operation) (Connection, error)
+	ConnectorFn func(ctx context.Context, dsn string) (Connection, error)
 
 	DriverConnectionParam struct {
 		Key        string `json:"key"`
@@ -156,7 +156,7 @@ func RegisterDriver(d Driver) {
 }
 
 // connect opens a new StoreConnection for the given CRS
-func connect(ctx context.Context, log *zap.Logger, isDevelopment bool, cp ConnectionParams, operations ...Operation) (Connection, error) {
+func connect(ctx context.Context, log *zap.Logger, isDevelopment bool, cp ConnectionParams) (Connection, error) {
 	if cp.Type != "corteza::dal:connection:dsn" {
 		return nil, fmt.Errorf("cannot open connection: only DSN connections supported (got: %q)", cp.Type)
 	}
@@ -180,7 +180,7 @@ func connect(ctx context.Context, log *zap.Logger, isDevelopment bool, cp Connec
 	}
 
 	if conn, ok := registeredConnectors[storeType]; ok {
-		return conn(ctx, dsn, operations...)
+		return conn(ctx, dsn)
 	} else {
 		return nil, fmt.Errorf("unknown store type used: %q (check your database configuration)", storeType)
 	}

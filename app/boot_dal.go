@@ -3,13 +3,14 @@ package app
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
-	"time"
 )
 
 func (app *CortezaApp) initDAL(ctx context.Context, log *zap.Logger) (err error) {
@@ -74,7 +75,6 @@ func provisionPrimaryDalConnection(ctx context.Context, s store.DalConnections) 
 		Config: types.ConnectionConfig{
 			DAL: &types.ConnectionConfigDAL{
 				ModelIdent: "compose_record",
-				Operations: dal.FullOperations(),
 			},
 		},
 

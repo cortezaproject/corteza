@@ -8,7 +8,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/geolocation"
 	"github.com/cortezaproject/corteza-server/pkg/sql"
 
-	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 )
 
@@ -85,10 +84,6 @@ type (
 
 		// parameters for th connection
 		Params map[string]any `json:"params"`
-
-		// @note operations, for now, will only be available on connections
-		//       with a fallback on modules
-		Operations dal.OperationSet `json:"operations"`
 
 		// ident to be used when generating models from modules using this connection
 		// it can use {{module}} and {{namespace}} as placeholders

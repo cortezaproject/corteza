@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/dal"
 	"strings"
 
-	pkgdal "github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/dal"
+
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/store"
@@ -45,7 +45,7 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 	s := &rdbms.Store{
 		DB: db,
 
-		DAL: dal.Connection(db, Dialect(), DataDefiner(cfg.DBName, db), pkgdal.FullOperations()...),
+		DAL: dal.Connection(db, Dialect(), DataDefiner(cfg.DBName, db)),
 
 		Dialect:           goquDialectWrapper,
 		TxRetryErrHandler: txRetryErrHandler,
