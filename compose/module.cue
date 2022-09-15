@@ -14,21 +14,41 @@ module: {
 		ident: "compose_module"
 		attributes: {
 			id: schema.IdField
-			handle: schema.HandleField
-			meta: { goType: "rawJson" }
-			config: { goType: "types.ModuleConfig" }
-			fields: { goType: "types.ModuleFieldSet", store: false }
 			namespace_id: {
 				ident: "namespaceID",
 				goType: "uint64",
 				storeIdent: "rel_namespace"
 				dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
 			}
-			name: {sortable: true}
-
-			created_at: schema.SortableTimestampField
+			handle: schema.HandleField
+			name: {
+				sortable: true
+				dal: {}
+			}
+			meta: {
+				goType: "rawJson"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			config: {
+				goType: "types.ModuleConfig"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			fields: {
+				goType: "types.ModuleFieldSet",
+				store: false
+			}
+			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
+			"namespace": { attribute: "namespace_id" },
+			"unique_handle": {
+				fields: [{ attribute: "handle", modifiers: ["LOWERCASE"] }, { attribute: "namespace_id" }]
+				predicate: "handle != '' AND deleted_at IS NULL"
+			}
 		}
 	}
 

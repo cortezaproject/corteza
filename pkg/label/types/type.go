@@ -20,6 +20,10 @@ type (
 	}
 )
 
+const (
+	LabelResourceType = "corteza::generic:label"
+)
+
 func (set LabelSet) ResourceIDs() (rr []uint64) {
 	rr = make([]uint64, len(set))
 	for r := range set {

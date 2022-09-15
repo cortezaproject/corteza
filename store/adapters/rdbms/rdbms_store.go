@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
 	"github.com/doug-martin/goqu/v9"
@@ -33,14 +34,6 @@ type (
 		DATE func(interface{}) exp.SQLFunctionExpression
 	}
 
-	schemaAPI interface {
-		TableExists(context.Context, sqlx.QueryerContext, string) (bool, error)
-		CreateTable(context.Context, sqlx.ExtContext, *ddl.Table) error
-		AddColumn(context.Context, sqlx.ExtContext, *ddl.Table, ...*ddl.Column) error
-		RenameColumn(context.Context, sqlx.ExtContext, *ddl.Table, string, string) error
-		DropColumn(context.Context, sqlx.ExtContext, *ddl.Table, ...string) error
-	}
-
 	Store struct {
 		DB sqlx.ExtContext
 
@@ -50,9 +43,8 @@ type (
 		// Logger for connection
 		Logger *zap.Logger
 
-		// tools to modify DB schema (create tables, indexes..)
-		// @todo maybe this does not need to be here
-		SchemaAPI schemaAPI
+		// data definer interface use for schema information lookups and modification
+		DataDefiner ddl.DataDefiner
 
 		Dialect goqu.DialectWrapper
 
@@ -74,6 +66,8 @@ type (
 		// additional (per-resource-type) filters used when searching
 		// these filters can modify expression used for querying the database
 		Filters *extendedFilters
+
+		Ping func(ctx context.Context) error
 	}
 )
 
@@ -102,13 +96,21 @@ func (s *Store) withTx(tx sqlx.ExtContext) *Store {
 		DB: tx,
 
 		Logger:            s.Logger,
-		SchemaAPI:         s.SchemaAPI,
+		DataDefiner:       s.DataDefiner,
 		Dialect:           s.Dialect,
 		TxRetryErrHandler: s.TxRetryErrHandler,
 		ErrorHandler:      s.ErrorHandler,
 		Functions:         s.Functions,
 		Filters:           s.Filters,
 	}
+}
+
+func (s Store) Healthcheck(ctx context.Context) error {
+	if s.Ping == nil {
+		return errors.Internal("no store ping function defined")
+	}
+
+	return s.Ping(ctx)
 }
 
 func (s Store) Exec(ctx context.Context, q sqlizer) error {
