@@ -304,65 +304,7 @@ func (svc record) Report(ctx context.Context, namespaceID, moduleID uint64, metr
 			return RecordErrNotAllowedToSearch()
 		}
 
-		// Map dimension to the aggregate group
-		// @note we only ever used a single dimension so this is ok
-		dim := []dal.AttributeMapping{
-			dal.SimpleAttr{
-				Ident: "dimension_0",
-				Expr:  dimensions,
-			},
-		}
-
-		// Map metrics to the aggregate attrs
-		// - count is always present
-		mms := []dal.AttributeMapping{
-			dal.SimpleAttr{
-				Ident: "count",
-				Expr:  "count(ID)",
-				Props: dal.MapProperties{
-					Type: dal.TypeNumber{},
-				},
-			},
-		}
-
-		// - other requested metrices
-		if len(metrics) > 0 {
-			pts := strings.Split(metrics, " AS ")
-			expr := strings.TrimSpace(pts[0])
-			ident := expr
-			if len(pts) > 1 {
-				ident = strings.TrimSpace(pts[1])
-			}
-
-			mms = append(mms, dal.SimpleAttr{
-				Ident: ident,
-				Expr:  expr,
-				Props: dal.MapProperties{
-					Type: dal.TypeNumber{},
-				},
-			})
-		}
-
-		// Build the pipeline
-		pp := dal.Pipeline{
-			&dal.Datasource{
-				Ident:  "ds",
-				Filter: filter.Generic(filter.WithExpression(f)),
-				ModelRef: dal.ModelRef{
-					ConnectionID: m.Config.DAL.ConnectionID,
-					ResourceID:   m.ID,
-					ResourceType: types.ModuleResourceType,
-				},
-			},
-			&dal.Aggregate{
-				Ident:         "agg",
-				RelSource:     "ds",
-				Group:         dim,
-				OutAttributes: mms,
-			},
-		}
-
-		err = pp.LinkSteps()
+		pp, err := recordReportToDalPipeline(m, metrics, dimensions, f)
 		if err != nil {
 			return err
 		}
@@ -1751,6 +1693,68 @@ func loadRecordCombo(ctx context.Context, s store.Storer, dal dalDater, namespac
 func loadRecord(ctx context.Context, s store.Storer, namespaceID, moduleID, recordID uint64) (res *types.Record, err error) {
 	_, _, res, err = loadRecordCombo(ctx, s, dal.Service(), namespaceID, moduleID, recordID)
 	return
+}
+
+func recordReportToDalPipeline(m *types.Module, metrics, dimensions, f string) (pp dal.Pipeline, err error) {
+	// Map dimension to the aggregate group
+	// @note we only ever used a single dimension so this is ok
+	dim := []dal.AttributeMapping{
+		dal.SimpleAttr{
+			Ident: "dimension_0",
+			Expr:  dimensions,
+		},
+	}
+
+	// Map metrics to the aggregate attrs
+	// - count is always present
+	mms := []dal.AttributeMapping{
+		dal.SimpleAttr{
+			Ident: "count",
+			Expr:  "count(ID)",
+			Props: dal.MapProperties{
+				Type: dal.TypeNumber{},
+			},
+		},
+	}
+
+	// - other requested metrices
+	if len(metrics) > 0 {
+		pts := strings.Split(metrics, " AS ")
+		expr := strings.TrimSpace(pts[0])
+		ident := expr
+		if len(pts) > 1 {
+			ident = strings.TrimSpace(pts[1])
+		}
+
+		mms = append(mms, dal.SimpleAttr{
+			Ident: ident,
+			Expr:  expr,
+			Props: dal.MapProperties{
+				Type: dal.TypeNumber{},
+			},
+		})
+	}
+
+	// Build the pipeline
+	pp = dal.Pipeline{
+		&dal.Datasource{
+			Ident:  "ds",
+			Filter: filter.Generic(filter.WithExpression(f)),
+			ModelRef: dal.ModelRef{
+				ConnectionID: m.Config.DAL.ConnectionID,
+				ResourceID:   m.ID,
+				ResourceType: types.ModuleResourceType,
+			},
+		},
+		&dal.Aggregate{
+			Ident:         "agg",
+			RelSource:     "ds",
+			Group:         dim,
+			OutAttributes: mms,
+		},
+	}
+
+	return pp, pp.LinkSteps()
 }
 
 func (ei ErrorIndex) Add(err string) {
