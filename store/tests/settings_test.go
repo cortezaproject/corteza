@@ -103,14 +103,6 @@ func testSettingValues(t *testing.T, s store.SettingValues) {
 			req.NoError(err)
 			req.Len(set, 0)
 		})
-
-		t.Run("by name and ownedBy", func(t *testing.T) {
-			req, setting := truncAndCreate(t)
-			req.NoError(s.DeleteSettingValueByNameOwnedBy(ctx, setting.Name, setting.OwnedBy))
-			set, _, err := s.SearchSettingValues(ctx, types.SettingsFilter{OwnedBy: setting.OwnedBy})
-			req.NoError(err)
-			req.Len(set, 0)
-		})
 	})
 
 	t.Run("search", func(t *testing.T) {

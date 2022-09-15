@@ -51,7 +51,8 @@ func createTablesFromModels(ctx context.Context, log *zap.Logger, dd ddl.DataDef
 				return fmt.Errorf("can not convert model %q to table: %w", m.Ident, err)
 			}
 
-			if _, err = dd.TableLookup(ctx, m.Ident); err != nil && errors.IsNotFound(err) {
+			_, err = dd.TableLookup(ctx, m.Ident)
+			if err != nil && errors.IsNotFound(err) {
 				err = dd.TableCreate(ctx, tbl)
 			}
 
@@ -65,8 +66,13 @@ func createTablesFromModels(ctx context.Context, log *zap.Logger, dd ddl.DataDef
 					continue
 				}
 
-				if err = dd.IndexCreate(ctx, tbl.Ident, idx); err != nil {
-					return fmt.Errorf("can not create index %q on table %q: %w", idx.Ident, tbl.Ident, err)
+				_, err = dd.IndexLookup(ctx, idx.Ident, idx.TableIdent)
+				if err != nil && !errors.IsNotFound(err) {
+					return
+				} else if errors.IsNotFound(err) {
+					if err = dd.IndexCreate(ctx, tbl.Ident, idx); err != nil {
+						return fmt.Errorf("can not create index %q on table %q: %w", idx.Ident, tbl.Ident, err)
+					}
 				}
 			}
 		}
