@@ -558,9 +558,11 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 				}
 			}
 
-			if old.Config.DAL.ConnectionID != m.Config.DAL.ConnectionID {
-				return fmt.Errorf("unable to switch connection for existing models: run data migration")
-			}
+			// we'll allow connection change on an existing module for now
+			//
+			//if old.Config.DAL.ConnectionID != m.Config.DAL.ConnectionID {
+			//	return fmt.Errorf("unable to switch connection for existing models: run data migration")
+			//}
 
 			if err = store.UpdateComposeModule(ctx, svc.store, m); err != nil {
 				return err
@@ -578,7 +580,7 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 			modelIssues := svc.dal.SearchModelIssues(m.ID)
 			if len(modelIssues) == 0 {
 				if set, _, err = dalutils.ComposeRecordsList(ctx, svc.dal, m, types.RecordFilter{Paging: filter.Paging{Limit: 1}, Check: func(r *types.Record) (bool, error) { return true, nil }}); err != nil {
-					return err
+					return errors.Internal("module: could not list records").Wrap(err)
 				}
 				hasRecords = len(set) > 0
 			} else {
@@ -747,8 +749,9 @@ func (svc module) handleUpdate(ctx context.Context, upd *types.Module) moduleUpd
 			res.Config = upd.Config
 		}
 
+		// check by size first in case if one is nil and other len(0)
 		// @todo make field-change detection more optimal
-		if !reflect.DeepEqual(res.Fields, upd.Fields) {
+		if len(upd.Fields) > 0 && len(res.Fields) > 0 && !reflect.DeepEqual(res.Fields, upd.Fields) {
 			changes |= moduleFieldsChanged
 			res.Fields = upd.Fields
 		}
@@ -1373,27 +1376,41 @@ func moduleSystemFieldsToAttributes(mod *types.Module) (out dal.AttributeSet, er
 				return &dal.CodecRecordValueSetJSON{
 					Ident: es.EncodingStrategyJSON.Ident,
 				}
+			case es != nil && es.Omit:
+				return nil
 			default:
 				return &dal.CodecAlias{
 					Ident: defStoreIdent,
 				}
 			}
 		}
+
+		// takes a slice of attributes removes one with nil store codec
+		filterSkippedAttribtues = func(in ...*dal.Attribute) (out dal.AttributeSet) {
+			for _, attr := range in {
+				if attr.Store != nil {
+					out = append(out, attr)
+				}
+			}
+			return
+		}
 	)
 
 	return append(out,
-		dal.PrimaryAttribute(sysID, mfc(colSysID, sysEnc.ID)),
-		dal.FullAttribute(sysModuleID, &dal.TypeID{}, mfc(colSysModuleID, sysEnc.ModuleID)),
-		dal.FullAttribute(sysDeletedBy, &dal.TypeRef{RefModel: &dal.ModelRef{ResourceType: "corteza::system:user"}, Nullable: true}, mfc(colSysDeletedBy, sysEnc.DeletedBy)),
-		dal.FullAttribute(sysNamespaceID, &dal.TypeID{}, mfc(colSysNamespaceID, sysEnc.NamespaceID)),
-		dal.FullAttribute(sysRevision, &dal.TypeID{}, mfc(colSysRevision, sysEnc.Revision)),
-		dal.FullAttribute(sysMeta, &dal.TypeJSON{}, mfc(colSysMeta, sysEnc.Meta)),
-		dal.FullAttribute(sysOwnedBy, &dal.TypeRef{RefModel: &dal.ModelRef{ResourceType: "corteza::system:user"}}, mfc(colSysOwnedBy, sysEnc.OwnedBy)),
-		dal.FullAttribute(sysCreatedAt, &dal.TypeTimestamp{}, mfc(colSysCreatedAt, sysEnc.CreatedAt)),
-		dal.FullAttribute(sysCreatedBy, &dal.TypeRef{RefModel: &dal.ModelRef{ResourceType: "corteza::system:user"}}, mfc(colSysCreatedBy, sysEnc.CreatedBy)),
-		dal.FullAttribute(sysUpdatedAt, &dal.TypeTimestamp{Nullable: true}, mfc(colSysUpdatedAt, sysEnc.UpdatedAt)),
-		dal.FullAttribute(sysUpdatedBy, &dal.TypeRef{RefModel: &dal.ModelRef{ResourceType: "corteza::system:user"}, Nullable: true}, mfc(colSysUpdatedBy, sysEnc.UpdatedBy)),
-		dal.FullAttribute(sysDeletedAt, &dal.TypeTimestamp{Nullable: true}, mfc(colSysDeletedAt, sysEnc.DeletedAt)),
+		filterSkippedAttribtues(
+			dal.PrimaryAttribute(sysID, mfc(colSysID, sysEnc.ID)),
+			dal.FullAttribute(sysModuleID, &dal.TypeID{}, mfc(colSysModuleID, sysEnc.ModuleID)),
+			dal.FullAttribute(sysDeletedBy, &dal.TypeRef{RefModel: &dal.ModelRef{ResourceType: "corteza::system:user"}, Nullable: true}, mfc(colSysDeletedBy, sysEnc.DeletedBy)),
+			dal.FullAttribute(sysNamespaceID, &dal.TypeID{}, mfc(colSysNamespaceID, sysEnc.NamespaceID)),
+			dal.FullAttribute(sysRevision, &dal.TypeID{}, mfc(colSysRevision, sysEnc.Revision)),
+			dal.FullAttribute(sysMeta, &dal.TypeJSON{}, mfc(colSysMeta, sysEnc.Meta)),
+			dal.FullAttribute(sysOwnedBy, &dal.TypeRef{RefModel: &dal.ModelRef{ResourceType: "corteza::system:user"}}, mfc(colSysOwnedBy, sysEnc.OwnedBy)),
+			dal.FullAttribute(sysCreatedAt, &dal.TypeTimestamp{}, mfc(colSysCreatedAt, sysEnc.CreatedAt)),
+			dal.FullAttribute(sysCreatedBy, &dal.TypeRef{RefModel: &dal.ModelRef{ResourceType: "corteza::system:user"}}, mfc(colSysCreatedBy, sysEnc.CreatedBy)),
+			dal.FullAttribute(sysUpdatedAt, &dal.TypeTimestamp{Nullable: true}, mfc(colSysUpdatedAt, sysEnc.UpdatedAt)),
+			dal.FullAttribute(sysUpdatedBy, &dal.TypeRef{RefModel: &dal.ModelRef{ResourceType: "corteza::system:user"}, Nullable: true}, mfc(colSysUpdatedBy, sysEnc.UpdatedBy)),
+			dal.FullAttribute(sysDeletedAt, &dal.TypeTimestamp{Nullable: true}, mfc(colSysDeletedAt, sysEnc.DeletedAt)),
+		)...,
 	), nil
 }
 
