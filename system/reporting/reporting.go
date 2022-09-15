@@ -1,4 +1,9 @@
-package reporter
+// Package reporting implements utilities for working with system reports and
+// DAL pipelines
+//
+// The package exists primarily for making the system service codebase smaller
+// and prepare for reusability with compose record reports.
+package reporting
 
 import (
 	"context"
@@ -11,29 +16,33 @@ import (
 )
 
 type (
+	// run is a wrapper around the pipeline and corresponding
+	// output frame definitions
 	run struct {
 		Pipeline dal.Pipeline
-		Defs     types.ReportFrameDefinitionSet
+		Defs     FrameDefinitionSet
 	}
 
 	modelFinder interface {
 		FindModel(dal.ModelRef) *dal.Model
 	}
 
+	// @todo not a fan of this anymore; consider reworking pkg/dal/service to
+	//       provide a more sequential approach we can use.
 	dryRunner interface {
 		modelFinder
 		Dryrun(context.Context, dal.Pipeline) error
 	}
 )
 
-// Runs create a set of runs based on step and frame definitions
-func Runs(pr modelFinder, steps types.ReportStepSet, defs types.ReportFrameDefinitionSet) (out []run, err error) {
+// Runs create a set of report runs based on step and frame definitions
+func Runs(pr modelFinder, steps types.ReportStepSet, defs FrameDefinitionSet) (out []run, err error) {
 	// Prepare runs based on the provided definitions
 	//
 	// - If consecutive definitions point to the same source with the same name
 	//   consider them to fall under the same workload (the link step)
 	// - else, one def per workload
-	auxDefs := make(types.ReportFrameDefinitionSet, 0)
+	auxDefs := make(FrameDefinitionSet, 0)
 	var aux run
 	for i, def := range defs {
 		if i == 0 {
@@ -55,7 +64,7 @@ func Runs(pr modelFinder, steps types.ReportStepSet, defs types.ReportFrameDefin
 		out = append(out, aux)
 
 		// Prepare next definition batch including the current one
-		auxDefs = make(types.ReportFrameDefinitionSet, 0)
+		auxDefs = make(FrameDefinitionSet, 0)
 		auxDefs = append(auxDefs, def)
 	}
 
@@ -71,8 +80,8 @@ func Runs(pr modelFinder, steps types.ReportStepSet, defs types.ReportFrameDefin
 	return
 }
 
-// Frames returns a set of ReportFrame for the given workload & iterator combo
-func Frames(ctx context.Context, iter dal.Iterator, r run) (ff []*types.ReportFrame, err error) {
+// Frames returns a set of Frame for the given workload & iterator combo
+func Frames(ctx context.Context, iter dal.Iterator, r run) (ff []*Frame, err error) {
 	// Preprocessing on the workload's frame definitions; assure all
 	// columns/metdata are there to avoid nonesense later down the line
 	updateDefinitionColumns(r)
@@ -87,20 +96,18 @@ func Frames(ctx context.Context, iter dal.Iterator, r run) (ff []*types.ReportFr
 }
 
 // Describe returns a set of frame descriptions based on the given pipeline
-func Describe(ctx context.Context, rr dryRunner, ss types.ReportStepSet, sources []string) (out types.FrameDescriptionSet, err error) {
+func Describe(ctx context.Context, rr dryRunner, ss types.ReportStepSet, sources []string) (out []FrameDescription, err error) {
 	// Make a run for the whole thing
 	pp, err := makePipeline(rr, ss, nil)
 	if err != nil {
 		return
 	}
-	var aux types.FrameDescriptionSet
 
+	var aux []FrameDescription
 	for _, src := range sources {
 		// Use the requested source as root
 		sub := pp.Slice(src)
 		s := sub[0]
-
-		// Describe
 		aux, err = describePipeline(s, src)
 		if err != nil {
 			return
@@ -112,7 +119,7 @@ func Describe(ctx context.Context, rr dryRunner, ss types.ReportStepSet, sources
 }
 
 // stepLinkFrames is dedicated for the link step due to it's unique output
-func stepLinkFrames(ctx context.Context, iter dal.Iterator, r run) (ff []*types.ReportFrame, err error) {
+func stepLinkFrames(ctx context.Context, iter dal.Iterator, r run) (ff []*Frame, err error) {
 	defs := r.Defs
 	// @note this will only be called for the link step so it can freely panic if violated
 	defLink := r.Pipeline[0].(*dal.Link)
@@ -202,17 +209,17 @@ func stepLinkFrames(ctx context.Context, iter dal.Iterator, r run) (ff []*types.
 	// Complete the output with the left frame
 	// @note the left frame goes to the start and the right frames are in the same order
 	//       as the related rows from the left frame.
-	return append([]*types.ReportFrame{builders[true].done()}, ff...), nil
+	return append([]*Frame{builders[true].done()}, ff...), nil
 }
 
 // unpackLinkDefs returns the left and the right frame definition disregarding
 // the order of the definitions in the input
-func unpackLinkDefs(defs types.ReportFrameDefinitionSet, pp dal.Pipeline) (left, right *types.ReportFrameDefinition) {
+func unpackLinkDefs(defs FrameDefinitionSet, pp dal.Pipeline) (left, right *FrameDefinition) {
 	r := pp[0]
 
 	l := r.(*dal.Link)
 
-	find := func(defs types.ReportFrameDefinitionSet, ref string) *types.ReportFrameDefinition {
+	find := func(defs FrameDefinitionSet, ref string) *FrameDefinition {
 		for _, def := range defs {
 			if def.Ref == ref {
 				return def
@@ -224,8 +231,8 @@ func unpackLinkDefs(defs types.ReportFrameDefinitionSet, pp dal.Pipeline) (left,
 	return find(defs, l.RelLeft), find(defs, l.RelRight)
 }
 
-// stepFrames is a generic iter to frame converter
-func stepFrames(ctx context.Context, iter dal.Iterator, r run) (ff []*types.ReportFrame, err error) {
+// stepFrames is a generic iter to Frame converter
+func stepFrames(ctx context.Context, iter dal.Iterator, r run) (ff []*Frame, err error) {
 	defs := r.Defs
 
 	// @note only the link step takes multiple defs and that one is not covered
@@ -278,10 +285,10 @@ func stepFrames(ctx context.Context, iter dal.Iterator, r run) (ff []*types.Repo
 	return append(ff, builder.done()), nil
 }
 
-func describePipeline(s dal.PipelineStep, src string) (out types.FrameDescriptionSet, err error) {
+func describePipeline(s dal.PipelineStep, src string) (out []FrameDescription, err error) {
 	aa := s.Attributes()
 
-	out = make(types.FrameDescriptionSet, len(aa))
+	out = make([]FrameDescription, len(aa))
 	for i, a := range aa {
 		out[i].Source = src
 		out[i].Columns = mappingToFrameCols(a)
@@ -297,7 +304,7 @@ func describePipeline(s dal.PipelineStep, src string) (out types.FrameDescriptio
 	return
 }
 
-func makeRun(pr modelFinder, ss types.ReportStepSet, defs types.ReportFrameDefinitionSet) (out run, err error) {
+func makeRun(pr modelFinder, ss types.ReportStepSet, defs FrameDefinitionSet) (out run, err error) {
 	var pp dal.Pipeline
 	pp, err = makePipeline(pr, ss, defs)
 	if err != nil {
@@ -309,7 +316,8 @@ func makeRun(pr modelFinder, ss types.ReportStepSet, defs types.ReportFrameDefin
 	return
 }
 
-func makePipeline(mf modelFinder, ss types.ReportStepSet, defs types.ReportFrameDefinitionSet) (pp dal.Pipeline, err error) {
+// makePipeline converts the given report steps into the DAL pipeline
+func makePipeline(mf modelFinder, ss types.ReportStepSet, defs FrameDefinitionSet) (pp dal.Pipeline, err error) {
 	for _, step := range ss {
 		switch {
 		case step.Load != nil:
@@ -339,15 +347,19 @@ func makePipeline(mf modelFinder, ss types.ReportStepSet, defs types.ReportFrame
 				return nil, err
 			}
 			pp = append(pp, aux)
+
+		default:
+			// this should never happen
+			panic(fmt.Errorf("unknown step type: %v", step.Kind))
 		}
 	}
 
 	return pp, pp.LinkSteps()
 }
 
-// mappingToFrameCols converts pipeline AttributeMapping to ReportFrameColumnSet
-func mappingToFrameCols(mm []dal.AttributeMapping) types.ReportFrameColumnSet {
-	out := make(types.ReportFrameColumnSet, 0, len(mm))
+// mappingToFrameCols converts pipeline AttributeMapping to FrameColumnSet
+func mappingToFrameCols(mm []dal.AttributeMapping) FrameColumnSet {
+	out := make(FrameColumnSet, 0, len(mm))
 
 	for _, m := range mm {
 		out = append(out, mappingToFrameCol(m))
@@ -358,7 +370,7 @@ func mappingToFrameCols(mm []dal.AttributeMapping) types.ReportFrameColumnSet {
 
 // @note current implementation a bit _rushed_ since I'll probably rethink
 //       how the pipeline handles attributes -- will revisit then.
-func mappingToFrameCol(m dal.AttributeMapping) types.ReportFrameColumn {
+func mappingToFrameCol(m dal.AttributeMapping) FrameColumn {
 	p := m.Properties()
 
 	const (
@@ -371,7 +383,7 @@ func mappingToFrameCol(m dal.AttributeMapping) types.ReportFrameColumn {
 		moduleResType     = "corteza::compose:module"
 	)
 
-	out := types.ReportFrameColumn{
+	out := FrameColumn{
 		Name: m.Identifier(),
 		// @todo use another method/push into meta?
 		Label: m.Identifier(),
@@ -419,7 +431,7 @@ func mappingToFrameCol(m dal.AttributeMapping) types.ReportFrameColumn {
 // Report step -> DAL step conversion
 
 // convStepLoad converts ReportStepLoad to dal.Datasource
-func convStepLoad(pr modelFinder, step types.ReportStepLoad, defs types.ReportFrameDefinitionSet) (out *dal.Datasource, err error) {
+func convStepLoad(pr modelFinder, step types.ReportStepLoad, defs FrameDefinitionSet) (out *dal.Datasource, err error) {
 	// Validation
 	if len(defs) > 1 {
 		err = fmt.Errorf("cannot convert load step: expecting at most one definition, got %d", len(defs))
@@ -449,12 +461,12 @@ func convStepLoad(pr modelFinder, step types.ReportStepLoad, defs types.ReportFr
 		Ident:         step.Name,
 		Filter:        f,
 		ModelRef:      mfr,
-		OutAttributes: filteredModelAttributes(pr, step, mfr),
+		OutAttributes: modelAttributes(pr, step, mfr),
 	}, nil
 }
 
 // convStepAggregate converts ReportStepAggregate to dal.Aggregate
-func convStepAggregate(step types.ReportStepAggregate, defs types.ReportFrameDefinitionSet) (out *dal.Aggregate, err error) {
+func convStepAggregate(step types.ReportStepAggregate, defs FrameDefinitionSet) (out *dal.Aggregate, err error) {
 	// Validation
 	if len(defs) > 1 {
 		err = fmt.Errorf("cannot convert aggregate step: expecting at most one definition, got %d", len(defs))
@@ -486,7 +498,7 @@ func convStepAggregate(step types.ReportStepAggregate, defs types.ReportFrameDef
 }
 
 // convStepJoin converts ReportStepJoin to dal.Join
-func convStepJoin(step types.ReportStepJoin, defs types.ReportFrameDefinitionSet) (out *dal.Join, err error) {
+func convStepJoin(step types.ReportStepJoin, defs FrameDefinitionSet) (out *dal.Join, err error) {
 	// Validation
 	if len(defs) > 1 {
 		err = fmt.Errorf("cannot convert join step: expecting at most one definition, got %d", len(defs))
@@ -522,7 +534,7 @@ func convStepJoin(step types.ReportStepJoin, defs types.ReportFrameDefinitionSet
 }
 
 // convStepLink converts ReportStepLink to dal.Link
-func convStepLink(step types.ReportStepLink, defs types.ReportFrameDefinitionSet) (out *dal.Link, err error) {
+func convStepLink(step types.ReportStepLink, defs FrameDefinitionSet) (out *dal.Link, err error) {
 	// Validation
 	if len(defs) > 2 {
 		err = fmt.Errorf("cannot convert join step: expecting at most two definitions, got %d", len(defs))
@@ -582,7 +594,7 @@ func makeModelRef(step types.ReportStepLoad) (out dal.ModelRef, err error) {
 
 	if aux, ok = step.Definition["namespaceID"]; ok {
 		namespaceID = cast.ToUint64(aux)
-	} else if aux, ok = step.Definition["module"]; ok {
+	} else if aux, ok = step.Definition["namespace"]; ok {
 		namespace = cast.ToString(aux)
 	} else {
 		err = fmt.Errorf("step definition is missing namespaceID or namespace")
@@ -613,37 +625,15 @@ func makeModelRef(step types.ReportStepLoad) (out dal.ModelRef, err error) {
 	return
 }
 
-// filteredModelAttributes returns the requested attributes based on the step
-// definition or all attributes if none are specified
-//
-// The function collects the attributes from the DAL model to omit the attribute
-// construction step.
-func filteredModelAttributes(pr modelFinder, step types.ReportStepLoad, mfr dal.ModelRef) (out []dal.AttributeMapping) {
-	out = make([]dal.AttributeMapping, 0, 100)
-
+// modelAttributes returns the attributes defined on the referenced model
+func modelAttributes(pr modelFinder, step types.ReportStepLoad, mfr dal.ModelRef) []dal.AttributeMapping {
 	// All of the attributes
-	fullAttrs, err := getModelAttrs(pr, mfr)
+	attrs, err := getModelAttrs(pr, mfr)
 	if err != nil {
-		return
+		return nil
 	}
 
-	// No filtering, return all
-	if len(step.Columns) == 0 {
-		return attrToMapping(fullAttrs...)
-	}
-
-	// Filter out the ones we don't want
-	reqIndex := make(map[string]bool)
-	for _, col := range step.Columns {
-		reqIndex[col.Name] = true
-	}
-	for _, attr := range fullAttrs {
-		if reqIndex[attr.Ident] {
-			out = append(out, attrToMapping(attr)...)
-		}
-	}
-
-	return
+	return attrToMapping(attrs...)
 }
 
 func getModelAttrs(pr modelFinder, mfr dal.ModelRef) (attrs dal.AttributeSet, err error) {
@@ -670,7 +660,7 @@ func attrToMapping(aa ...*dal.Attribute) (out []dal.AttributeMapping) {
 	return
 }
 
-func filterFromDef(def *types.ReportFrameDefinition) (out filter.Filter) {
+func filterFromDef(def *FrameDefinition) (out filter.Filter) {
 	aux := filter.Generic(
 		filter.WithExpressionParsed(def.Filter.Node()),
 		filter.WithOrderBy(def.Sort),

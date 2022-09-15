@@ -6,12 +6,12 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
-	"github.com/cortezaproject/corteza-server/system/reporter"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/system/reporting"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/modern-go/reflect2"
 	"github.com/spf13/cast"
@@ -293,8 +293,8 @@ func (svc *report) Undelete(ctx context.Context, ID uint64) (err error) {
 }
 
 // @todo actionlog?
-func (svc *report) Describe(ctx context.Context, src types.ReportDataSourceSet, st types.ReportStepSet, sources ...string) (out types.FrameDescriptionSet, err error) {
-	out = make(types.FrameDescriptionSet, 0, len(sources)*2)
+func (svc *report) Describe(ctx context.Context, src types.ReportDataSourceSet, st types.ReportStepSet, sources ...string) (out reporting.[]FrameDescription, err error) {
+	out = make(reporting.[]FrameDescription, 0, len(sources)*2)
 
 	err = func() (err error) {
 		if !svc.ac.CanCreateReport(ctx) {
@@ -304,21 +304,21 @@ func (svc *report) Describe(ctx context.Context, src types.ReportDataSourceSet, 
 		ss := src.ReportSteps()
 		ss = append(ss, st...)
 
-		out, err = reporter.Describe(ctx, svc.pipelineRunner, ss, sources)
+		out, err = reporting.Describe(ctx, svc.pipelineRunner, ss, sources)
 		return err
 	}()
 
 	return out, err
 }
 
-func (svc *report) Run(ctx context.Context, reportID uint64, dd types.ReportFrameDefinitionSet) (out []*types.ReportFrame, err error) {
+func (svc *report) Run(ctx context.Context, reportID uint64, dd reporting.FrameDefinitionSet) (_ []*reporting.Frame, err error) {
 	var (
 		aaProps = &reportActionProps{}
 
 		iter dal.Iterator
-		ff   []*types.ReportFrame
+		ff   []*reporting.Frame
+		out  = make([]*reporting.Frame, 0, 4)
 	)
-	out = make([]*types.ReportFrame, 0, 4)
 
 	err = func() (err error) {
 		// Load the report
@@ -337,7 +337,7 @@ func (svc *report) Run(ctx context.Context, reportID uint64, dd types.ReportFram
 		ss = append(ss, r.Blocks.ReportSteps()...)
 
 		// Prepare a set of runs for the provided definitions
-		runs, err := reporter.Runs(svc.pipelineRunner, ss, dd)
+		runs, err := reporting.Runs(svc.pipelineRunner, ss, dd)
 		if err != nil {
 			return
 		}
@@ -350,7 +350,7 @@ func (svc *report) Run(ctx context.Context, reportID uint64, dd types.ReportFram
 				return
 			}
 
-			ff, err = reporter.Frames(ctx, iter, run)
+			ff, err = reporting.Frames(ctx, iter, run)
 			if err != nil {
 				return
 			}
@@ -373,7 +373,7 @@ func (svc *report) Run(ctx context.Context, reportID uint64, dd types.ReportFram
 // @todo extend core implementation to support such operatons
 //
 // - userID is replaced by the user name || username || email || handle || userID
-func (svc *report) enhance(ctx context.Context, ff []*types.ReportFrame) (err error) {
+func (svc *report) enhance(ctx context.Context, ff []*reporting.Frame) (err error) {
 	// Preload sys users
 	uIndex := make(map[uint64]*types.User)
 	uu, uf, err := svc.users.Find(ctx, types.UserFilter{Paging: filter.Paging{Limit: 1024}})

@@ -40,7 +40,7 @@ type (
 	}
 
 	ReportScenarioSet []*ReportScenario
-	ScenarioFilterMap map[string]qlExprWrap
+	ScenarioFilterMap map[string]ReportFilterExpr
 	ReportScenario    struct {
 		ScenarioID uint64            `json:"scenarioID,string,omitempty"`
 		Label      string            `json:"label"`
@@ -79,28 +79,26 @@ type (
 
 	ReportStepLoad struct {
 		Name       string                 `json:"name"`
-		Source     string                 `json:"source"`
 		Definition map[string]interface{} `json:"definition"`
-		Columns    ReportFrameColumnSet   `json:"columns"`
-		Filter     *qlExprWrap            `json:"filter,omitempty"`
+		Filter     *ReportFilterExpr      `json:"filter,omitempty"`
 	}
 
 	ReportStepJoin struct {
-		Name          string      `json:"name"`
-		LocalSource   string      `json:"localSource"`
-		LocalColumn   string      `json:"localColumn"`
-		ForeignSource string      `json:"foreignSource"`
-		ForeignColumn string      `json:"foreignColumn"`
-		Filter        *qlExprWrap `json:"filter,omitempty"`
+		Name          string            `json:"name"`
+		LocalSource   string            `json:"localSource"`
+		LocalColumn   string            `json:"localColumn"`
+		ForeignSource string            `json:"foreignSource"`
+		ForeignColumn string            `json:"foreignColumn"`
+		Filter        *ReportFilterExpr `json:"filter,omitempty"`
 	}
 
 	ReportStepLink struct {
-		Name          string      `json:"name"`
-		LocalSource   string      `json:"localSource"`
-		LocalColumn   string      `json:"localColumn"`
-		ForeignSource string      `json:"foreignSource"`
-		ForeignColumn string      `json:"foreignColumn"`
-		Filter        *qlExprWrap `json:"filter,omitempty"`
+		Name          string            `json:"name"`
+		LocalSource   string            `json:"localSource"`
+		LocalColumn   string            `json:"localColumn"`
+		ForeignSource string            `json:"foreignSource"`
+		ForeignColumn string            `json:"foreignColumn"`
+		Filter        *ReportFilterExpr `json:"filter,omitempty"`
 	}
 
 	ReportStepAggregate struct {
@@ -108,14 +106,14 @@ type (
 		Source  string                   `json:"source"`
 		Keys    ReportAggregateColumnSet `json:"keys"`
 		Columns ReportAggregateColumnSet `json:"columns"`
-		Filter  *qlExprWrap              `json:"filter,omitempty"`
+		Filter  *ReportFilterExpr        `json:"filter,omitempty"`
 	}
 
 	ReportAggregateColumnSet []*ReportAggregateColumn
 	ReportAggregateColumn    struct {
-		Name  string      `json:"name"`
-		Label string      `json:"label"`
-		Def   *qlExprWrap `json:"def"`
+		Name  string            `json:"name"`
+		Label string            `json:"label"`
+		Def   *ReportFilterExpr `json:"def"`
 	}
 
 	ReportFilter struct {
@@ -139,10 +137,10 @@ type (
 		filter.Paging
 	}
 
-	// qlExprWrap is a wrapper for ql.ASTNode to implement custom JSON
-	// unmarshal required by reporter.
+	// ReportFilterExpr is a wrapper for ql.ASTNode to implement custom JSON
+	// unmarshal required by reporting.
 	// @todo consider moving this to the ql package
-	qlExprWrap struct {
+	ReportFilterExpr struct {
 		*ql.ASTNode
 		Error string `json:"error,omitempty"`
 	}
@@ -247,7 +245,7 @@ func (vv *ReportScenarioSet) Scan(src any) error          { return sql.ParseJSON
 func (vv ReportScenarioSet) Value() (driver.Value, error) { return json.Marshal(vv) }
 
 // Node is a helper for accessing the wrapped QL node to omit nil checks
-func (f *qlExprWrap) Node() *ql.ASTNode {
+func (f *ReportFilterExpr) Node() *ql.ASTNode {
 	if f == nil {
 		return nil
 	}
@@ -258,7 +256,7 @@ func (f *qlExprWrap) Node() *ql.ASTNode {
 //
 // The function can work over JSON strings (where FE provides a QL node) or
 // raw expression strings (where FE sends over the easeier stringified expression).
-func (f *qlExprWrap) UnmarshalJSON(data []byte) (err error) {
+func (f *ReportFilterExpr) UnmarshalJSON(data []byte) (err error) {
 	var aux interface{}
 	if err = json.Unmarshal(data, &aux); err != nil {
 		return

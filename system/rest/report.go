@@ -5,6 +5,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/system/reporting"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -26,8 +27,8 @@ type (
 		Update(ctx context.Context, upd *types.Report) (app *types.Report, err error)
 		Delete(ctx context.Context, ID uint64) (err error)
 		Undelete(ctx context.Context, ID uint64) (err error)
-		Run(ctx context.Context, ID uint64, dd types.ReportFrameDefinitionSet) (rr []*types.ReportFrame, err error)
-		Describe(ctx context.Context, src types.ReportDataSourceSet, st types.ReportStepSet, sources ...string) (out types.FrameDescriptionSet, err error)
+		Run(ctx context.Context, ID uint64, dd reporting.FrameDefinitionSet) (rr []*reporting.Frame, err error)
+		Describe(ctx context.Context, src types.ReportDataSourceSet, st types.ReportStepSet, sources ...string) (out reporting.[]FrameDescription, err error)
 	}
 
 	reportAccessController interface {
@@ -55,7 +56,7 @@ type (
 	}
 
 	reportFramePayload struct {
-		Frames []*types.ReportFrame `json:"frames"`
+		Frames []*reporting.Frame `json:"frames"`
 	}
 )
 
@@ -176,7 +177,7 @@ func (ctrl Report) makeFilterPayload(ctx context.Context, nn types.ReportSet, f 
 	return msp, nil
 }
 
-func (ctrl Report) makeReportFramePayload(ctx context.Context, ff []*types.ReportFrame, err error) (*reportFramePayload, error) {
+func (ctrl Report) makeReportFramePayload(ctx context.Context, ff []*reporting.Frame, err error) (*reportFramePayload, error) {
 	if err != nil || len(ff) == 0 {
 		return nil, err
 	}

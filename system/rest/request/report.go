@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/cortezaproject/corteza-server/system/reporting"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/go-chi/chi/v5"
 	"io"
@@ -183,7 +184,7 @@ type (
 		// Frames POST parameter
 		//
 		// Report data frame definitions
-		Frames types.ReportFrameDefinitionSet
+		Frames reporting.FrameDefinitionSet
 	}
 )
 
@@ -842,7 +843,7 @@ func (r ReportRun) GetReportID() uint64 {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ReportRun) GetFrames() types.ReportFrameDefinitionSet {
+func (r ReportRun) GetFrames() reporting.FrameDefinitionSet {
 	return r.Frames
 }
 
@@ -878,7 +879,7 @@ func (r *ReportRun) Fill(req *http.Request) (err error) {
 		// POST params
 
 		//if val, ok := req.Form["frames[]"]; ok && len(val) > 0  {
-		//    r.Frames, err = types.ReportFrameDefinitionSet(val), nil
+		//    r.Frames, err = reporting.FrameDefinitionSet(val), nil
 		//    if err != nil {
 		//        return err
 		//    }

@@ -55,7 +55,7 @@ func TestQLWrapParsing(t *testing.T) {
 
 	for _, tc := range tcc {
 		t.Run(tc.name, func(t *testing.T) {
-			w := &qlExprWrap{}
+			w := &ReportFilterExpr{}
 
 			err := json.Unmarshal([]byte(tc.in), &w)
 			if tc.err {
