@@ -100,7 +100,8 @@ func (s *Store) Delete{{ .expIdent }}(ctx context.Context, {{ template "extraArg
 	return nil
 }
 
-// Delete{{ .expIdent }}ByID deletes single entry from {{ .ident }} collection
+{{ if .api.deleteByPK.expFnIdent }}
+// {{ .api.deleteByPK.expFnIdent }} deletes single entry from {{ .ident }} collection
 //
 // This function is auto-generated
 func (s *Store) {{ .api.deleteByPK.expFnIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} {{ range .api.deleteByPK.attributes }}{{ .ident }} {{ .goType }},{{ end }}) error {
@@ -110,9 +111,10 @@ func (s *Store) {{ .api.deleteByPK.expFnIdent }}(ctx context.Context, {{ templat
 	{{- end }}
 	}))
 }
+{{ end }}
 
 // Truncate{{ .expIdentPlural }} Deletes all rows from the {{ .ident }} collection
-func (s Store) Truncate{{ .expIdentPlural }}(ctx context.Context, {{ template "extraArgs" .ident }}) error {
+func (s *Store) Truncate{{ .expIdentPlural }}(ctx context.Context, {{ template "extraArgs" .ident }}) error {
 	return s.Exec(ctx, {{ .ident }}TruncateQuery(s.Dialect))
 }
 
@@ -539,6 +541,9 @@ func (s *Store) {{ .fnIdent }}(res *{{ .goType }}, cc ...*filter.SortExpr) *filt
 			}
 		}
 	)
+
+
+	_ = hasUnique
 
 	collect(cc...)
 	{{- range .primaryKeys }}

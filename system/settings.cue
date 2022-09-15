@@ -39,7 +39,7 @@ settings: {
 			"primary": {
 				fields: [
 					{ attribute: "owned_by" },
-				 	{ attribute: "name", modifiers: [ "LOWERCASE" ] },
+				 	{ attribute: "name" },
 				]
 			}
 		}

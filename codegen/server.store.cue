@@ -14,8 +14,9 @@ _StoreResource: {
 
 
 	pkAttrNames: [string, ...]
+	hasPrimaryKey: res.model.indexes.primary != _|_
 
-	if res.model.indexes.primary != _|_ {
+	if hasPrimaryKey {
 		// primary key flag is no longer explicitly set on
 		// the attribute but via model.indexes.primary
 		pkAttrNames: [
@@ -80,11 +81,13 @@ _StoreResource: {
 					"auxIdent":      auxIdent
 				}
 
-				deleteByPK: {
-				  "pkAttrNames": pkAttrNames,
-					attributes:    [ for attr in pkAttrNames { res.model.attributes[attr] } ]
-					_expIdents:    strings.Join([ for attr in pkAttrNames { res.model.attributes[attr].expIdent } ], "")
-					"expFnIdent":  "Delete\(res.store.expIdent)By\(_expIdents)"
+				if hasPrimaryKey {
+					deleteByPK: {
+						"pkAttrNames": pkAttrNames,
+						attributes:    [ for attr in pkAttrNames { res.model.attributes[attr] } ]
+						_expIdents:    strings.Join([ for attr in pkAttrNames { res.model.attributes[attr].expIdent } ], "")
+						"expFnIdent":  "Delete\(res.store.expIdent)By\(_expIdents)"
+					}
 				}
 
 				lookups: [

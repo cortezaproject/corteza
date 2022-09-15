@@ -94,6 +94,7 @@ type (
 		UpdateActionlog(ctx context.Context, rr ...*actionlogType.Action) error
 		UpsertActionlog(ctx context.Context, rr ...*actionlogType.Action) error
 		DeleteActionlog(ctx context.Context, rr ...*actionlogType.Action) error
+
 		DeleteActionlogByID(ctx context.Context, id uint64) error
 		TruncateActionlogs(ctx context.Context) error
 		LookupActionlogByID(ctx context.Context, id uint64) (*actionlogType.Action, error)
@@ -105,6 +106,7 @@ type (
 		UpdateApigwFilter(ctx context.Context, rr ...*systemType.ApigwFilter) error
 		UpsertApigwFilter(ctx context.Context, rr ...*systemType.ApigwFilter) error
 		DeleteApigwFilter(ctx context.Context, rr ...*systemType.ApigwFilter) error
+
 		DeleteApigwFilterByID(ctx context.Context, id uint64) error
 		TruncateApigwFilters(ctx context.Context) error
 		LookupApigwFilterByID(ctx context.Context, id uint64) (*systemType.ApigwFilter, error)
@@ -117,6 +119,7 @@ type (
 		UpdateApigwRoute(ctx context.Context, rr ...*systemType.ApigwRoute) error
 		UpsertApigwRoute(ctx context.Context, rr ...*systemType.ApigwRoute) error
 		DeleteApigwRoute(ctx context.Context, rr ...*systemType.ApigwRoute) error
+
 		DeleteApigwRouteByID(ctx context.Context, id uint64) error
 		TruncateApigwRoutes(ctx context.Context) error
 		LookupApigwRouteByID(ctx context.Context, id uint64) (*systemType.ApigwRoute, error)
@@ -129,6 +132,7 @@ type (
 		UpdateApplication(ctx context.Context, rr ...*systemType.Application) error
 		UpsertApplication(ctx context.Context, rr ...*systemType.Application) error
 		DeleteApplication(ctx context.Context, rr ...*systemType.Application) error
+
 		DeleteApplicationByID(ctx context.Context, id uint64) error
 		TruncateApplications(ctx context.Context) error
 		LookupApplicationByID(ctx context.Context, id uint64) (*systemType.Application, error)
@@ -142,6 +146,7 @@ type (
 		UpdateAttachment(ctx context.Context, rr ...*systemType.Attachment) error
 		UpsertAttachment(ctx context.Context, rr ...*systemType.Attachment) error
 		DeleteAttachment(ctx context.Context, rr ...*systemType.Attachment) error
+
 		DeleteAttachmentByID(ctx context.Context, id uint64) error
 		TruncateAttachments(ctx context.Context) error
 		LookupAttachmentByID(ctx context.Context, id uint64) (*systemType.Attachment, error)
@@ -153,6 +158,7 @@ type (
 		UpdateAuthClient(ctx context.Context, rr ...*systemType.AuthClient) error
 		UpsertAuthClient(ctx context.Context, rr ...*systemType.AuthClient) error
 		DeleteAuthClient(ctx context.Context, rr ...*systemType.AuthClient) error
+
 		DeleteAuthClientByID(ctx context.Context, id uint64) error
 		TruncateAuthClients(ctx context.Context) error
 		LookupAuthClientByID(ctx context.Context, id uint64) (*systemType.AuthClient, error)
@@ -165,6 +171,7 @@ type (
 		UpdateAuthConfirmedClient(ctx context.Context, rr ...*systemType.AuthConfirmedClient) error
 		UpsertAuthConfirmedClient(ctx context.Context, rr ...*systemType.AuthConfirmedClient) error
 		DeleteAuthConfirmedClient(ctx context.Context, rr ...*systemType.AuthConfirmedClient) error
+
 		DeleteAuthConfirmedClientByUserIDClientID(ctx context.Context, userID uint64, clientID uint64) error
 		TruncateAuthConfirmedClients(ctx context.Context) error
 		LookupAuthConfirmedClientByUserIDClientID(ctx context.Context, userID uint64, clientID uint64) (*systemType.AuthConfirmedClient, error)
@@ -176,6 +183,7 @@ type (
 		UpdateAuthOa2token(ctx context.Context, rr ...*systemType.AuthOa2token) error
 		UpsertAuthOa2token(ctx context.Context, rr ...*systemType.AuthOa2token) error
 		DeleteAuthOa2token(ctx context.Context, rr ...*systemType.AuthOa2token) error
+
 		DeleteAuthOa2tokenByID(ctx context.Context, id uint64) error
 		TruncateAuthOa2tokens(ctx context.Context) error
 		LookupAuthOa2tokenByID(ctx context.Context, id uint64) (*systemType.AuthOa2token, error)
@@ -195,6 +203,7 @@ type (
 		UpdateAuthSession(ctx context.Context, rr ...*systemType.AuthSession) error
 		UpsertAuthSession(ctx context.Context, rr ...*systemType.AuthSession) error
 		DeleteAuthSession(ctx context.Context, rr ...*systemType.AuthSession) error
+
 		DeleteAuthSessionByID(ctx context.Context, id string) error
 		TruncateAuthSessions(ctx context.Context) error
 		LookupAuthSessionByID(ctx context.Context, id string) (*systemType.AuthSession, error)
@@ -208,6 +217,7 @@ type (
 		UpdateAutomationSession(ctx context.Context, rr ...*automationType.Session) error
 		UpsertAutomationSession(ctx context.Context, rr ...*automationType.Session) error
 		DeleteAutomationSession(ctx context.Context, rr ...*automationType.Session) error
+
 		DeleteAutomationSessionByID(ctx context.Context, id uint64) error
 		TruncateAutomationSessions(ctx context.Context) error
 		LookupAutomationSessionByID(ctx context.Context, id uint64) (*automationType.Session, error)
@@ -219,6 +229,7 @@ type (
 		UpdateAutomationTrigger(ctx context.Context, rr ...*automationType.Trigger) error
 		UpsertAutomationTrigger(ctx context.Context, rr ...*automationType.Trigger) error
 		DeleteAutomationTrigger(ctx context.Context, rr ...*automationType.Trigger) error
+
 		DeleteAutomationTriggerByID(ctx context.Context, id uint64) error
 		TruncateAutomationTriggers(ctx context.Context) error
 		LookupAutomationTriggerByID(ctx context.Context, id uint64) (*automationType.Trigger, error)
@@ -230,6 +241,7 @@ type (
 		UpdateAutomationWorkflow(ctx context.Context, rr ...*automationType.Workflow) error
 		UpsertAutomationWorkflow(ctx context.Context, rr ...*automationType.Workflow) error
 		DeleteAutomationWorkflow(ctx context.Context, rr ...*automationType.Workflow) error
+
 		DeleteAutomationWorkflowByID(ctx context.Context, id uint64) error
 		TruncateAutomationWorkflows(ctx context.Context) error
 		LookupAutomationWorkflowByID(ctx context.Context, id uint64) (*automationType.Workflow, error)
@@ -242,6 +254,7 @@ type (
 		UpdateComposeAttachment(ctx context.Context, rr ...*composeType.Attachment) error
 		UpsertComposeAttachment(ctx context.Context, rr ...*composeType.Attachment) error
 		DeleteComposeAttachment(ctx context.Context, rr ...*composeType.Attachment) error
+
 		DeleteComposeAttachmentByID(ctx context.Context, id uint64) error
 		TruncateComposeAttachments(ctx context.Context) error
 		LookupComposeAttachmentByID(ctx context.Context, id uint64) (*composeType.Attachment, error)
@@ -253,6 +266,7 @@ type (
 		UpdateComposeChart(ctx context.Context, rr ...*composeType.Chart) error
 		UpsertComposeChart(ctx context.Context, rr ...*composeType.Chart) error
 		DeleteComposeChart(ctx context.Context, rr ...*composeType.Chart) error
+
 		DeleteComposeChartByID(ctx context.Context, id uint64) error
 		TruncateComposeCharts(ctx context.Context) error
 		LookupComposeChartByID(ctx context.Context, id uint64) (*composeType.Chart, error)
@@ -265,6 +279,7 @@ type (
 		UpdateComposeModule(ctx context.Context, rr ...*composeType.Module) error
 		UpsertComposeModule(ctx context.Context, rr ...*composeType.Module) error
 		DeleteComposeModule(ctx context.Context, rr ...*composeType.Module) error
+
 		DeleteComposeModuleByID(ctx context.Context, id uint64) error
 		TruncateComposeModules(ctx context.Context) error
 		LookupComposeModuleByNamespaceIDHandle(ctx context.Context, namespaceID uint64, handle string) (*composeType.Module, error)
@@ -278,6 +293,7 @@ type (
 		UpdateComposeModuleField(ctx context.Context, rr ...*composeType.ModuleField) error
 		UpsertComposeModuleField(ctx context.Context, rr ...*composeType.ModuleField) error
 		DeleteComposeModuleField(ctx context.Context, rr ...*composeType.ModuleField) error
+
 		DeleteComposeModuleFieldByID(ctx context.Context, id uint64) error
 		TruncateComposeModuleFields(ctx context.Context) error
 		LookupComposeModuleFieldByModuleIDName(ctx context.Context, moduleID uint64, name string) (*composeType.ModuleField, error)
@@ -290,6 +306,7 @@ type (
 		UpdateComposeNamespace(ctx context.Context, rr ...*composeType.Namespace) error
 		UpsertComposeNamespace(ctx context.Context, rr ...*composeType.Namespace) error
 		DeleteComposeNamespace(ctx context.Context, rr ...*composeType.Namespace) error
+
 		DeleteComposeNamespaceByID(ctx context.Context, id uint64) error
 		TruncateComposeNamespaces(ctx context.Context) error
 		LookupComposeNamespaceBySlug(ctx context.Context, slug string) (*composeType.Namespace, error)
@@ -302,6 +319,7 @@ type (
 		UpdateComposePage(ctx context.Context, rr ...*composeType.Page) error
 		UpsertComposePage(ctx context.Context, rr ...*composeType.Page) error
 		DeleteComposePage(ctx context.Context, rr ...*composeType.Page) error
+
 		DeleteComposePageByID(ctx context.Context, id uint64) error
 		TruncateComposePages(ctx context.Context) error
 		LookupComposePageByNamespaceIDHandle(ctx context.Context, namespaceID uint64, handle string) (*composeType.Page, error)
@@ -316,6 +334,7 @@ type (
 		UpdateCredential(ctx context.Context, rr ...*systemType.Credential) error
 		UpsertCredential(ctx context.Context, rr ...*systemType.Credential) error
 		DeleteCredential(ctx context.Context, rr ...*systemType.Credential) error
+
 		DeleteCredentialByID(ctx context.Context, id uint64) error
 		TruncateCredentials(ctx context.Context) error
 		LookupCredentialByID(ctx context.Context, id uint64) (*systemType.Credential, error)
@@ -327,6 +346,7 @@ type (
 		UpdateDalConnection(ctx context.Context, rr ...*systemType.DalConnection) error
 		UpsertDalConnection(ctx context.Context, rr ...*systemType.DalConnection) error
 		DeleteDalConnection(ctx context.Context, rr ...*systemType.DalConnection) error
+
 		DeleteDalConnectionByID(ctx context.Context, id uint64) error
 		TruncateDalConnections(ctx context.Context) error
 		LookupDalConnectionByID(ctx context.Context, id uint64) (*systemType.DalConnection, error)
@@ -339,6 +359,7 @@ type (
 		UpdateDalSensitivityLevel(ctx context.Context, rr ...*systemType.DalSensitivityLevel) error
 		UpsertDalSensitivityLevel(ctx context.Context, rr ...*systemType.DalSensitivityLevel) error
 		DeleteDalSensitivityLevel(ctx context.Context, rr ...*systemType.DalSensitivityLevel) error
+
 		DeleteDalSensitivityLevelByID(ctx context.Context, id uint64) error
 		TruncateDalSensitivityLevels(ctx context.Context) error
 		LookupDalSensitivityLevelByID(ctx context.Context, id uint64) (*systemType.DalSensitivityLevel, error)
@@ -350,6 +371,7 @@ type (
 		UpdateDataPrivacyRequest(ctx context.Context, rr ...*systemType.DataPrivacyRequest) error
 		UpsertDataPrivacyRequest(ctx context.Context, rr ...*systemType.DataPrivacyRequest) error
 		DeleteDataPrivacyRequest(ctx context.Context, rr ...*systemType.DataPrivacyRequest) error
+
 		DeleteDataPrivacyRequestByID(ctx context.Context, id uint64) error
 		TruncateDataPrivacyRequests(ctx context.Context) error
 		LookupDataPrivacyRequestByID(ctx context.Context, id uint64) (*systemType.DataPrivacyRequest, error)
@@ -361,6 +383,7 @@ type (
 		UpdateDataPrivacyRequestComment(ctx context.Context, rr ...*systemType.DataPrivacyRequestComment) error
 		UpsertDataPrivacyRequestComment(ctx context.Context, rr ...*systemType.DataPrivacyRequestComment) error
 		DeleteDataPrivacyRequestComment(ctx context.Context, rr ...*systemType.DataPrivacyRequestComment) error
+
 		DeleteDataPrivacyRequestCommentByID(ctx context.Context, id uint64) error
 		TruncateDataPrivacyRequestComments(ctx context.Context) error
 	}
@@ -371,6 +394,7 @@ type (
 		UpdateFederationExposedModule(ctx context.Context, rr ...*federationType.ExposedModule) error
 		UpsertFederationExposedModule(ctx context.Context, rr ...*federationType.ExposedModule) error
 		DeleteFederationExposedModule(ctx context.Context, rr ...*federationType.ExposedModule) error
+
 		DeleteFederationExposedModuleByID(ctx context.Context, id uint64) error
 		TruncateFederationExposedModules(ctx context.Context) error
 		LookupFederationExposedModuleByID(ctx context.Context, id uint64) (*federationType.ExposedModule, error)
@@ -382,6 +406,7 @@ type (
 		UpdateFederationModuleMapping(ctx context.Context, rr ...*federationType.ModuleMapping) error
 		UpsertFederationModuleMapping(ctx context.Context, rr ...*federationType.ModuleMapping) error
 		DeleteFederationModuleMapping(ctx context.Context, rr ...*federationType.ModuleMapping) error
+
 		DeleteFederationModuleMappingByNodeID(ctx context.Context, nodeID uint64) error
 		TruncateFederationModuleMappings(ctx context.Context) error
 		LookupFederationModuleMappingByFederationModuleIDComposeModuleIDComposeNamespaceID(ctx context.Context, federationModuleID uint64, composeModuleID uint64, composeNamespaceID uint64) (*federationType.ModuleMapping, error)
@@ -394,6 +419,7 @@ type (
 		UpdateFederationNode(ctx context.Context, rr ...*federationType.Node) error
 		UpsertFederationNode(ctx context.Context, rr ...*federationType.Node) error
 		DeleteFederationNode(ctx context.Context, rr ...*federationType.Node) error
+
 		DeleteFederationNodeByID(ctx context.Context, id uint64) error
 		TruncateFederationNodes(ctx context.Context) error
 		LookupFederationNodeByID(ctx context.Context, id uint64) (*federationType.Node, error)
@@ -407,6 +433,7 @@ type (
 		UpdateFederationNodeSync(ctx context.Context, rr ...*federationType.NodeSync) error
 		UpsertFederationNodeSync(ctx context.Context, rr ...*federationType.NodeSync) error
 		DeleteFederationNodeSync(ctx context.Context, rr ...*federationType.NodeSync) error
+
 		DeleteFederationNodeSyncByNodeID(ctx context.Context, nodeID uint64) error
 		TruncateFederationNodeSyncs(ctx context.Context) error
 		LookupFederationNodeSyncByNodeID(ctx context.Context, nodeID uint64) (*federationType.NodeSync, error)
@@ -419,6 +446,7 @@ type (
 		UpdateFederationSharedModule(ctx context.Context, rr ...*federationType.SharedModule) error
 		UpsertFederationSharedModule(ctx context.Context, rr ...*federationType.SharedModule) error
 		DeleteFederationSharedModule(ctx context.Context, rr ...*federationType.SharedModule) error
+
 		DeleteFederationSharedModuleByID(ctx context.Context, id uint64) error
 		TruncateFederationSharedModules(ctx context.Context) error
 		LookupFederationSharedModuleByID(ctx context.Context, id uint64) (*federationType.SharedModule, error)
@@ -430,6 +458,7 @@ type (
 		UpdateFlag(ctx context.Context, rr ...*flagType.Flag) error
 		UpsertFlag(ctx context.Context, rr ...*flagType.Flag) error
 		DeleteFlag(ctx context.Context, rr ...*flagType.Flag) error
+
 		DeleteFlagByKindResourceIDOwnedByName(ctx context.Context, kind string, resourceID uint64, ownedBy uint64, name string) error
 		TruncateFlags(ctx context.Context) error
 		LookupFlagByKindResourceIDOwnedByName(ctx context.Context, kind string, resourceID uint64, ownedBy uint64, name string) (*flagType.Flag, error)
@@ -441,6 +470,7 @@ type (
 		UpdateLabel(ctx context.Context, rr ...*labelsType.Label) error
 		UpsertLabel(ctx context.Context, rr ...*labelsType.Label) error
 		DeleteLabel(ctx context.Context, rr ...*labelsType.Label) error
+
 		DeleteLabelByKindResourceIDName(ctx context.Context, kind string, resourceID uint64, name string) error
 		TruncateLabels(ctx context.Context) error
 		LookupLabelByKindResourceIDName(ctx context.Context, kind string, resourceID uint64, name string) (*labelsType.Label, error)
@@ -453,6 +483,7 @@ type (
 		UpdateQueue(ctx context.Context, rr ...*systemType.Queue) error
 		UpsertQueue(ctx context.Context, rr ...*systemType.Queue) error
 		DeleteQueue(ctx context.Context, rr ...*systemType.Queue) error
+
 		DeleteQueueByID(ctx context.Context, id uint64) error
 		TruncateQueues(ctx context.Context) error
 		LookupQueueByID(ctx context.Context, id uint64) (*systemType.Queue, error)
@@ -465,6 +496,7 @@ type (
 		UpdateQueueMessage(ctx context.Context, rr ...*systemType.QueueMessage) error
 		UpsertQueueMessage(ctx context.Context, rr ...*systemType.QueueMessage) error
 		DeleteQueueMessage(ctx context.Context, rr ...*systemType.QueueMessage) error
+
 		DeleteQueueMessageByID(ctx context.Context, id uint64) error
 		TruncateQueueMessages(ctx context.Context) error
 	}
@@ -475,6 +507,7 @@ type (
 		UpdateRbacRule(ctx context.Context, rr ...*rbacType.Rule) error
 		UpsertRbacRule(ctx context.Context, rr ...*rbacType.Rule) error
 		DeleteRbacRule(ctx context.Context, rr ...*rbacType.Rule) error
+
 		DeleteRbacRuleByRoleIDResourceOperation(ctx context.Context, roleID uint64, resource string, operation string) error
 		TruncateRbacRules(ctx context.Context) error
 		TransferRbacRules(ctx context.Context, src uint64, dst uint64) error
@@ -486,6 +519,7 @@ type (
 		UpdateReminder(ctx context.Context, rr ...*systemType.Reminder) error
 		UpsertReminder(ctx context.Context, rr ...*systemType.Reminder) error
 		DeleteReminder(ctx context.Context, rr ...*systemType.Reminder) error
+
 		DeleteReminderByID(ctx context.Context, id uint64) error
 		TruncateReminders(ctx context.Context) error
 		LookupReminderByID(ctx context.Context, id uint64) (*systemType.Reminder, error)
@@ -497,6 +531,7 @@ type (
 		UpdateReport(ctx context.Context, rr ...*systemType.Report) error
 		UpsertReport(ctx context.Context, rr ...*systemType.Report) error
 		DeleteReport(ctx context.Context, rr ...*systemType.Report) error
+
 		DeleteReportByID(ctx context.Context, id uint64) error
 		TruncateReports(ctx context.Context) error
 		LookupReportByID(ctx context.Context, id uint64) (*systemType.Report, error)
@@ -509,6 +544,7 @@ type (
 		UpdateResourceActivity(ctx context.Context, rr ...*discoveryType.ResourceActivity) error
 		UpsertResourceActivity(ctx context.Context, rr ...*discoveryType.ResourceActivity) error
 		DeleteResourceActivity(ctx context.Context, rr ...*discoveryType.ResourceActivity) error
+
 		DeleteResourceActivityByID(ctx context.Context, id uint64) error
 		TruncateResourceActivitys(ctx context.Context) error
 	}
@@ -519,6 +555,7 @@ type (
 		UpdateResourceTranslation(ctx context.Context, rr ...*systemType.ResourceTranslation) error
 		UpsertResourceTranslation(ctx context.Context, rr ...*systemType.ResourceTranslation) error
 		DeleteResourceTranslation(ctx context.Context, rr ...*systemType.ResourceTranslation) error
+
 		DeleteResourceTranslationByID(ctx context.Context, id uint64) error
 		TruncateResourceTranslations(ctx context.Context) error
 		LookupResourceTranslationByID(ctx context.Context, id uint64) (*systemType.ResourceTranslation, error)
@@ -531,6 +568,7 @@ type (
 		UpdateRole(ctx context.Context, rr ...*systemType.Role) error
 		UpsertRole(ctx context.Context, rr ...*systemType.Role) error
 		DeleteRole(ctx context.Context, rr ...*systemType.Role) error
+
 		DeleteRoleByID(ctx context.Context, id uint64) error
 		TruncateRoles(ctx context.Context) error
 		LookupRoleByID(ctx context.Context, id uint64) (*systemType.Role, error)
@@ -545,6 +583,7 @@ type (
 		UpdateRoleMember(ctx context.Context, rr ...*systemType.RoleMember) error
 		UpsertRoleMember(ctx context.Context, rr ...*systemType.RoleMember) error
 		DeleteRoleMember(ctx context.Context, rr ...*systemType.RoleMember) error
+
 		DeleteRoleMemberByUserIDRoleID(ctx context.Context, userID uint64, roleID uint64) error
 		TruncateRoleMembers(ctx context.Context) error
 		TransferRoleMembers(ctx context.Context, src uint64, dst uint64) error
@@ -556,6 +595,7 @@ type (
 		UpdateSettingValue(ctx context.Context, rr ...*systemType.SettingValue) error
 		UpsertSettingValue(ctx context.Context, rr ...*systemType.SettingValue) error
 		DeleteSettingValue(ctx context.Context, rr ...*systemType.SettingValue) error
+
 		DeleteSettingValueByOwnedByName(ctx context.Context, ownedBy uint64, name string) error
 		TruncateSettingValues(ctx context.Context) error
 		LookupSettingValueByNameOwnedBy(ctx context.Context, name string, ownedBy uint64) (*systemType.SettingValue, error)
@@ -567,6 +607,7 @@ type (
 		UpdateTemplate(ctx context.Context, rr ...*systemType.Template) error
 		UpsertTemplate(ctx context.Context, rr ...*systemType.Template) error
 		DeleteTemplate(ctx context.Context, rr ...*systemType.Template) error
+
 		DeleteTemplateByID(ctx context.Context, id uint64) error
 		TruncateTemplates(ctx context.Context) error
 		LookupTemplateByID(ctx context.Context, id uint64) (*systemType.Template, error)
@@ -579,6 +620,7 @@ type (
 		UpdateUser(ctx context.Context, rr ...*systemType.User) error
 		UpsertUser(ctx context.Context, rr ...*systemType.User) error
 		DeleteUser(ctx context.Context, rr ...*systemType.User) error
+
 		DeleteUserByID(ctx context.Context, id uint64) error
 		TruncateUsers(ctx context.Context) error
 		LookupUserByID(ctx context.Context, id uint64) (*systemType.User, error)

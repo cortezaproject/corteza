@@ -147,7 +147,7 @@ func (s *Store) DeleteActionlogByID(ctx context.Context, id uint64) error {
 }
 
 // TruncateActionlogs Deletes all rows from the actionlog collection
-func (s Store) TruncateActionlogs(ctx context.Context) error {
+func (s *Store) TruncateActionlogs(ctx context.Context) error {
 	return s.Exec(ctx, actionlogTruncateQuery(s.Dialect))
 }
 
@@ -344,6 +344,8 @@ func (s *Store) collectActionlogCursorValues(res *actionlogType.Action, cc ...*f
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -438,7 +440,7 @@ func (s *Store) DeleteApigwFilterByID(ctx context.Context, id uint64) error {
 }
 
 // TruncateApigwFilters Deletes all rows from the apigwFilter collection
-func (s Store) TruncateApigwFilters(ctx context.Context) error {
+func (s *Store) TruncateApigwFilters(ctx context.Context) error {
 	return s.Exec(ctx, apigwFilterTruncateQuery(s.Dialect))
 }
 
@@ -878,6 +880,8 @@ func (s *Store) collectApigwFilterCursorValues(res *systemType.ApigwFilter, cc .
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -972,7 +976,7 @@ func (s *Store) DeleteApigwRouteByID(ctx context.Context, id uint64) error {
 }
 
 // TruncateApigwRoutes Deletes all rows from the apigwRoute collection
-func (s Store) TruncateApigwRoutes(ctx context.Context) error {
+func (s *Store) TruncateApigwRoutes(ctx context.Context) error {
 	return s.Exec(ctx, apigwRouteTruncateQuery(s.Dialect))
 }
 
@@ -1416,6 +1420,8 @@ func (s *Store) collectApigwRouteCursorValues(res *systemType.ApigwRoute, cc ...
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -1510,7 +1516,7 @@ func (s *Store) DeleteApplicationByID(ctx context.Context, id uint64) error {
 }
 
 // TruncateApplications Deletes all rows from the application collection
-func (s Store) TruncateApplications(ctx context.Context) error {
+func (s *Store) TruncateApplications(ctx context.Context) error {
 	return s.Exec(ctx, applicationTruncateQuery(s.Dialect))
 }
 
@@ -1909,6 +1915,8 @@ func (s *Store) collectApplicationCursorValues(res *systemType.Application, cc .
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -2003,7 +2011,7 @@ func (s *Store) DeleteAttachmentByID(ctx context.Context, id uint64) error {
 }
 
 // TruncateAttachments Deletes all rows from the attachment collection
-func (s Store) TruncateAttachments(ctx context.Context) error {
+func (s *Store) TruncateAttachments(ctx context.Context) error {
 	return s.Exec(ctx, attachmentTruncateQuery(s.Dialect))
 }
 
@@ -2397,6 +2405,8 @@ func (s *Store) collectAttachmentCursorValues(res *systemType.Attachment, cc ...
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -2491,7 +2501,7 @@ func (s *Store) DeleteAuthClientByID(ctx context.Context, id uint64) error {
 }
 
 // TruncateAuthClients Deletes all rows from the authClient collection
-func (s Store) TruncateAuthClients(ctx context.Context) error {
+func (s *Store) TruncateAuthClients(ctx context.Context) error {
 	return s.Exec(ctx, authClientTruncateQuery(s.Dialect))
 }
 
@@ -2942,6 +2952,8 @@ func (s *Store) collectAuthClientCursorValues(res *systemType.AuthClient, cc ...
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -3053,7 +3065,7 @@ func (s *Store) DeleteAuthConfirmedClient(ctx context.Context, rr ...*systemType
 	return nil
 }
 
-// DeleteAuthConfirmedClientByID deletes single entry from authConfirmedClient collection
+// DeleteAuthConfirmedClientByUserIDClientID deletes single entry from authConfirmedClient collection
 //
 // This function is auto-generated
 func (s *Store) DeleteAuthConfirmedClientByUserIDClientID(ctx context.Context, userID uint64, clientID uint64) error {
@@ -3064,7 +3076,7 @@ func (s *Store) DeleteAuthConfirmedClientByUserIDClientID(ctx context.Context, u
 }
 
 // TruncateAuthConfirmedClients Deletes all rows from the authConfirmedClient collection
-func (s Store) TruncateAuthConfirmedClients(ctx context.Context) error {
+func (s *Store) TruncateAuthConfirmedClients(ctx context.Context) error {
 	return s.Exec(ctx, authConfirmedClientTruncateQuery(s.Dialect))
 }
 
@@ -3258,6 +3270,8 @@ func (s *Store) collectAuthConfirmedClientCursorValues(res *systemType.AuthConfi
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkUserID {
 		collect(&filter.SortExpr{Column: "userID", Descending: false})
@@ -3355,7 +3369,7 @@ func (s *Store) DeleteAuthOa2tokenByID(ctx context.Context, id uint64) error {
 }
 
 // TruncateAuthOa2tokens Deletes all rows from the authOa2token collection
-func (s Store) TruncateAuthOa2tokens(ctx context.Context) error {
+func (s *Store) TruncateAuthOa2tokens(ctx context.Context) error {
 	return s.Exec(ctx, authOa2tokenTruncateQuery(s.Dialect))
 }
 
@@ -3665,6 +3679,8 @@ func (s *Store) collectAuthOa2tokenCursorValues(res *systemType.AuthOa2token, cc
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -3759,7 +3775,7 @@ func (s *Store) DeleteAuthSessionByID(ctx context.Context, id string) error {
 }
 
 // TruncateAuthSessions Deletes all rows from the authSession collection
-func (s Store) TruncateAuthSessions(ctx context.Context) error {
+func (s *Store) TruncateAuthSessions(ctx context.Context) error {
 	return s.Exec(ctx, authSessionTruncateQuery(s.Dialect))
 }
 
@@ -3949,6 +3965,8 @@ func (s *Store) collectAuthSessionCursorValues(res *systemType.AuthSession, cc .
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -4043,7 +4061,7 @@ func (s *Store) DeleteAutomationSessionByID(ctx context.Context, id uint64) erro
 }
 
 // TruncateAutomationSessions Deletes all rows from the automationSession collection
-func (s Store) TruncateAutomationSessions(ctx context.Context) error {
+func (s *Store) TruncateAutomationSessions(ctx context.Context) error {
 	return s.Exec(ctx, automationSessionTruncateQuery(s.Dialect))
 }
 
@@ -4452,6 +4470,8 @@ func (s *Store) collectAutomationSessionCursorValues(res *automationType.Session
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -4546,7 +4566,7 @@ func (s *Store) DeleteAutomationTriggerByID(ctx context.Context, id uint64) erro
 }
 
 // TruncateAutomationTriggers Deletes all rows from the automationTrigger collection
-func (s Store) TruncateAutomationTriggers(ctx context.Context) error {
+func (s *Store) TruncateAutomationTriggers(ctx context.Context) error {
 	return s.Exec(ctx, automationTriggerTruncateQuery(s.Dialect))
 }
 
@@ -4951,6 +4971,8 @@ func (s *Store) collectAutomationTriggerCursorValues(res *automationType.Trigger
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -5045,7 +5067,7 @@ func (s *Store) DeleteAutomationWorkflowByID(ctx context.Context, id uint64) err
 }
 
 // TruncateAutomationWorkflows Deletes all rows from the automationWorkflow collection
-func (s Store) TruncateAutomationWorkflows(ctx context.Context) error {
+func (s *Store) TruncateAutomationWorkflows(ctx context.Context) error {
 	return s.Exec(ctx, automationWorkflowTruncateQuery(s.Dialect))
 }
 
@@ -5485,6 +5507,8 @@ func (s *Store) collectAutomationWorkflowCursorValues(res *automationType.Workfl
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -5606,7 +5630,7 @@ func (s *Store) DeleteComposeAttachmentByID(ctx context.Context, id uint64) erro
 }
 
 // TruncateComposeAttachments Deletes all rows from the composeAttachment collection
-func (s Store) TruncateComposeAttachments(ctx context.Context) error {
+func (s *Store) TruncateComposeAttachments(ctx context.Context) error {
 	return s.Exec(ctx, composeAttachmentTruncateQuery(s.Dialect))
 }
 
@@ -6004,6 +6028,8 @@ func (s *Store) collectComposeAttachmentCursorValues(res *composeType.Attachment
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -6098,7 +6124,7 @@ func (s *Store) DeleteComposeChartByID(ctx context.Context, id uint64) error {
 }
 
 // TruncateComposeCharts Deletes all rows from the composeChart collection
-func (s Store) TruncateComposeCharts(ctx context.Context) error {
+func (s *Store) TruncateComposeCharts(ctx context.Context) error {
 	return s.Exec(ctx, composeChartTruncateQuery(s.Dialect))
 }
 
@@ -6537,6 +6563,8 @@ func (s *Store) collectComposeChartCursorValues(res *composeType.Chart, cc ...*f
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -6631,7 +6659,7 @@ func (s *Store) DeleteComposeModuleByID(ctx context.Context, id uint64) error {
 }
 
 // TruncateComposeModules Deletes all rows from the composeModule collection
-func (s Store) TruncateComposeModules(ctx context.Context) error {
+func (s *Store) TruncateComposeModules(ctx context.Context) error {
 	return s.Exec(ctx, composeModuleTruncateQuery(s.Dialect))
 }
 
@@ -7112,6 +7140,8 @@ func (s *Store) collectComposeModuleCursorValues(res *composeType.Module, cc ...
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -7238,7 +7268,7 @@ func (s *Store) DeleteComposeModuleFieldByID(ctx context.Context, id uint64) err
 }
 
 // TruncateComposeModuleFields Deletes all rows from the composeModuleField collection
-func (s Store) TruncateComposeModuleFields(ctx context.Context) error {
+func (s *Store) TruncateComposeModuleFields(ctx context.Context) error {
 	return s.Exec(ctx, composeModuleFieldTruncateQuery(s.Dialect))
 }
 
@@ -7486,6 +7516,8 @@ func (s *Store) collectComposeModuleFieldCursorValues(res *composeType.ModuleFie
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -7612,7 +7644,7 @@ func (s *Store) DeleteComposeNamespaceByID(ctx context.Context, id uint64) error
 }
 
 // TruncateComposeNamespaces Deletes all rows from the composeNamespace collection
-func (s Store) TruncateComposeNamespaces(ctx context.Context) error {
+func (s *Store) TruncateComposeNamespaces(ctx context.Context) error {
 	return s.Exec(ctx, composeNamespaceTruncateQuery(s.Dialect))
 }
 
@@ -8049,6 +8081,8 @@ func (s *Store) collectComposeNamespaceCursorValues(res *composeType.Namespace, 
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -8170,7 +8204,7 @@ func (s *Store) DeleteComposePageByID(ctx context.Context, id uint64) error {
 }
 
 // TruncateComposePages Deletes all rows from the composePage collection
-func (s Store) TruncateComposePages(ctx context.Context) error {
+func (s *Store) TruncateComposePages(ctx context.Context) error {
 	return s.Exec(ctx, composePageTruncateQuery(s.Dialect))
 }
 
@@ -8658,6 +8692,8 @@ func (s *Store) collectComposePageCursorValues(res *composeType.Page, cc ...*fil
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -8752,7 +8788,7 @@ func (s *Store) DeleteCredentialByID(ctx context.Context, id uint64) error {
 }
 
 // TruncateCredentials Deletes all rows from the credential collection
-func (s Store) TruncateCredentials(ctx context.Context) error {
+func (s *Store) TruncateCredentials(ctx context.Context) error {
 	return s.Exec(ctx, credentialTruncateQuery(s.Dialect))
 }
 
@@ -8956,6 +8992,8 @@ func (s *Store) collectCredentialCursorValues(res *systemType.Credential, cc ...
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -9050,7 +9088,7 @@ func (s *Store) DeleteDalConnectionByID(ctx context.Context, id uint64) error {
 }
 
 // TruncateDalConnections Deletes all rows from the dalConnection collection
-func (s Store) TruncateDalConnections(ctx context.Context) error {
+func (s *Store) TruncateDalConnections(ctx context.Context) error {
 	return s.Exec(ctx, dalConnectionTruncateQuery(s.Dialect))
 }
 
@@ -9308,6 +9346,8 @@ func (s *Store) collectDalConnectionCursorValues(res *systemType.DalConnection, 
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -9429,7 +9469,7 @@ func (s *Store) DeleteDalSensitivityLevelByID(ctx context.Context, id uint64) er
 }
 
 // TruncateDalSensitivityLevels Deletes all rows from the dalSensitivityLevel collection
-func (s Store) TruncateDalSensitivityLevels(ctx context.Context) error {
+func (s *Store) TruncateDalSensitivityLevels(ctx context.Context) error {
 	return s.Exec(ctx, dalSensitivityLevelTruncateQuery(s.Dialect))
 }
 
@@ -9644,6 +9684,8 @@ func (s *Store) collectDalSensitivityLevelCursorValues(res *systemType.DalSensit
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -9738,7 +9780,7 @@ func (s *Store) DeleteDataPrivacyRequestByID(ctx context.Context, id uint64) err
 }
 
 // TruncateDataPrivacyRequests Deletes all rows from the dataPrivacyRequest collection
-func (s Store) TruncateDataPrivacyRequests(ctx context.Context) error {
+func (s *Store) TruncateDataPrivacyRequests(ctx context.Context) error {
 	return s.Exec(ctx, dataPrivacyRequestTruncateQuery(s.Dialect))
 }
 
@@ -10142,6 +10184,8 @@ func (s *Store) collectDataPrivacyRequestCursorValues(res *systemType.DataPrivac
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -10236,7 +10280,7 @@ func (s *Store) DeleteDataPrivacyRequestCommentByID(ctx context.Context, id uint
 }
 
 // TruncateDataPrivacyRequestComments Deletes all rows from the dataPrivacyRequestComment collection
-func (s Store) TruncateDataPrivacyRequestComments(ctx context.Context) error {
+func (s *Store) TruncateDataPrivacyRequestComments(ctx context.Context) error {
 	return s.Exec(ctx, dataPrivacyRequestCommentTruncateQuery(s.Dialect))
 }
 
@@ -10584,6 +10628,8 @@ func (s *Store) collectDataPrivacyRequestCommentCursorValues(res *systemType.Dat
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -10678,7 +10724,7 @@ func (s *Store) DeleteFederationExposedModuleByID(ctx context.Context, id uint64
 }
 
 // TruncateFederationExposedModules Deletes all rows from the federationExposedModule collection
-func (s Store) TruncateFederationExposedModules(ctx context.Context) error {
+func (s *Store) TruncateFederationExposedModules(ctx context.Context) error {
 	return s.Exec(ctx, federationExposedModuleTruncateQuery(s.Dialect))
 }
 
@@ -11079,6 +11125,8 @@ func (s *Store) collectFederationExposedModuleCursorValues(res *federationType.E
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -11163,7 +11211,7 @@ func (s *Store) DeleteFederationModuleMapping(ctx context.Context, rr ...*federa
 	return nil
 }
 
-// DeleteFederationModuleMappingByID deletes single entry from federationModuleMapping collection
+// DeleteFederationModuleMappingByNodeID deletes single entry from federationModuleMapping collection
 //
 // This function is auto-generated
 func (s *Store) DeleteFederationModuleMappingByNodeID(ctx context.Context, nodeID uint64) error {
@@ -11173,7 +11221,7 @@ func (s *Store) DeleteFederationModuleMappingByNodeID(ctx context.Context, nodeI
 }
 
 // TruncateFederationModuleMappings Deletes all rows from the federationModuleMapping collection
-func (s Store) TruncateFederationModuleMappings(ctx context.Context) error {
+func (s *Store) TruncateFederationModuleMappings(ctx context.Context) error {
 	return s.Exec(ctx, federationModuleMappingTruncateQuery(s.Dialect))
 }
 
@@ -11608,6 +11656,8 @@ func (s *Store) collectFederationModuleMappingCursorValues(res *federationType.M
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkNodeID {
 		collect(&filter.SortExpr{Column: "nodeID", Descending: false})
@@ -11702,7 +11752,7 @@ func (s *Store) DeleteFederationNodeByID(ctx context.Context, id uint64) error {
 }
 
 // TruncateFederationNodes Deletes all rows from the federationNode collection
-func (s Store) TruncateFederationNodes(ctx context.Context) error {
+func (s *Store) TruncateFederationNodes(ctx context.Context) error {
 	return s.Exec(ctx, federationNodeTruncateQuery(s.Dialect))
 }
 
@@ -12008,6 +12058,8 @@ func (s *Store) collectFederationNodeCursorValues(res *federationType.Node, cc .
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -12092,7 +12144,7 @@ func (s *Store) DeleteFederationNodeSync(ctx context.Context, rr ...*federationT
 	return nil
 }
 
-// DeleteFederationNodeSyncByID deletes single entry from federationNodeSync collection
+// DeleteFederationNodeSyncByNodeID deletes single entry from federationNodeSync collection
 //
 // This function is auto-generated
 func (s *Store) DeleteFederationNodeSyncByNodeID(ctx context.Context, nodeID uint64) error {
@@ -12102,7 +12154,7 @@ func (s *Store) DeleteFederationNodeSyncByNodeID(ctx context.Context, nodeID uin
 }
 
 // TruncateFederationNodeSyncs Deletes all rows from the federationNodeSync collection
-func (s Store) TruncateFederationNodeSyncs(ctx context.Context) error {
+func (s *Store) TruncateFederationNodeSyncs(ctx context.Context) error {
 	return s.Exec(ctx, federationNodeSyncTruncateQuery(s.Dialect))
 }
 
@@ -12542,6 +12594,8 @@ func (s *Store) collectFederationNodeSyncCursorValues(res *federationType.NodeSy
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkNodeID {
 		collect(&filter.SortExpr{Column: "nodeID", Descending: false})
@@ -12636,7 +12690,7 @@ func (s *Store) DeleteFederationSharedModuleByID(ctx context.Context, id uint64)
 }
 
 // TruncateFederationSharedModules Deletes all rows from the federationSharedModule collection
-func (s Store) TruncateFederationSharedModules(ctx context.Context) error {
+func (s *Store) TruncateFederationSharedModules(ctx context.Context) error {
 	return s.Exec(ctx, federationSharedModuleTruncateQuery(s.Dialect))
 }
 
@@ -13041,6 +13095,8 @@ func (s *Store) collectFederationSharedModuleCursorValues(res *federationType.Sh
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -13125,7 +13181,7 @@ func (s *Store) DeleteFlag(ctx context.Context, rr ...*flagType.Flag) (err error
 	return nil
 }
 
-// DeleteFlagByID deletes single entry from flag collection
+// DeleteFlagByKindResourceIDOwnedByName deletes single entry from flag collection
 //
 // This function is auto-generated
 func (s *Store) DeleteFlagByKindResourceIDOwnedByName(ctx context.Context, kind string, resourceID uint64, ownedBy uint64, name string) error {
@@ -13138,7 +13194,7 @@ func (s *Store) DeleteFlagByKindResourceIDOwnedByName(ctx context.Context, kind 
 }
 
 // TruncateFlags Deletes all rows from the flag collection
-func (s Store) TruncateFlags(ctx context.Context) error {
+func (s *Store) TruncateFlags(ctx context.Context) error {
 	return s.Exec(ctx, flagTruncateQuery(s.Dialect))
 }
 
@@ -13340,6 +13396,8 @@ func (s *Store) collectFlagCursorValues(res *flagType.Flag, cc ...*filter.SortEx
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkKind {
 		collect(&filter.SortExpr{Column: "kind", Descending: false})
@@ -13433,7 +13491,7 @@ func (s *Store) DeleteLabel(ctx context.Context, rr ...*labelsType.Label) (err e
 	return nil
 }
 
-// DeleteLabelByID deletes single entry from label collection
+// DeleteLabelByKindResourceIDName deletes single entry from label collection
 //
 // This function is auto-generated
 func (s *Store) DeleteLabelByKindResourceIDName(ctx context.Context, kind string, resourceID uint64, name string) error {
@@ -13445,7 +13503,7 @@ func (s *Store) DeleteLabelByKindResourceIDName(ctx context.Context, kind string
 }
 
 // TruncateLabels Deletes all rows from the label collection
-func (s Store) TruncateLabels(ctx context.Context) error {
+func (s *Store) TruncateLabels(ctx context.Context) error {
 	return s.Exec(ctx, labelTruncateQuery(s.Dialect))
 }
 
@@ -13640,6 +13698,8 @@ func (s *Store) collectLabelCursorValues(res *labelsType.Label, cc ...*filter.So
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkKind {
 		collect(&filter.SortExpr{Column: "kind", Descending: false})
@@ -13740,7 +13800,7 @@ func (s *Store) DeleteQueueByID(ctx context.Context, id uint64) error {
 }
 
 // TruncateQueues Deletes all rows from the queue collection
-func (s Store) TruncateQueues(ctx context.Context) error {
+func (s *Store) TruncateQueues(ctx context.Context) error {
 	return s.Exec(ctx, queueTruncateQuery(s.Dialect))
 }
 
@@ -14174,6 +14234,8 @@ func (s *Store) collectQueueCursorValues(res *systemType.Queue, cc ...*filter.So
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -14268,7 +14330,7 @@ func (s *Store) DeleteQueueMessageByID(ctx context.Context, id uint64) error {
 }
 
 // TruncateQueueMessages Deletes all rows from the queueMessage collection
-func (s Store) TruncateQueueMessages(ctx context.Context) error {
+func (s *Store) TruncateQueueMessages(ctx context.Context) error {
 	return s.Exec(ctx, queueMessageTruncateQuery(s.Dialect))
 }
 
@@ -14601,6 +14663,8 @@ func (s *Store) collectQueueMessageCursorValues(res *systemType.QueueMessage, cc
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -14685,7 +14749,7 @@ func (s *Store) DeleteRbacRule(ctx context.Context, rr ...*rbacType.Rule) (err e
 	return nil
 }
 
-// DeleteRbacRuleByID deletes single entry from rbacRule collection
+// DeleteRbacRuleByRoleIDResourceOperation deletes single entry from rbacRule collection
 //
 // This function is auto-generated
 func (s *Store) DeleteRbacRuleByRoleIDResourceOperation(ctx context.Context, roleID uint64, resource string, operation string) error {
@@ -14697,7 +14761,7 @@ func (s *Store) DeleteRbacRuleByRoleIDResourceOperation(ctx context.Context, rol
 }
 
 // TruncateRbacRules Deletes all rows from the rbacRule collection
-func (s Store) TruncateRbacRules(ctx context.Context) error {
+func (s *Store) TruncateRbacRules(ctx context.Context) error {
 	return s.Exec(ctx, rbacRuleTruncateQuery(s.Dialect))
 }
 
@@ -14850,6 +14914,8 @@ func (s *Store) collectRbacRuleCursorValues(res *rbacType.Rule, cc ...*filter.So
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkRoleID {
 		collect(&filter.SortExpr{Column: "roleID", Descending: false})
@@ -14950,7 +15016,7 @@ func (s *Store) DeleteReminderByID(ctx context.Context, id uint64) error {
 }
 
 // TruncateReminders Deletes all rows from the reminder collection
-func (s Store) TruncateReminders(ctx context.Context) error {
+func (s *Store) TruncateReminders(ctx context.Context) error {
 	return s.Exec(ctx, reminderTruncateQuery(s.Dialect))
 }
 
@@ -15353,6 +15419,8 @@ func (s *Store) collectReminderCursorValues(res *systemType.Reminder, cc ...*fil
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -15447,7 +15515,7 @@ func (s *Store) DeleteReportByID(ctx context.Context, id uint64) error {
 }
 
 // TruncateReports Deletes all rows from the report collection
-func (s Store) TruncateReports(ctx context.Context) error {
+func (s *Store) TruncateReports(ctx context.Context) error {
 	return s.Exec(ctx, reportTruncateQuery(s.Dialect))
 }
 
@@ -15884,6 +15952,8 @@ func (s *Store) collectReportCursorValues(res *systemType.Report, cc ...*filter.
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -16005,7 +16075,7 @@ func (s *Store) DeleteResourceActivityByID(ctx context.Context, id uint64) error
 }
 
 // TruncateResourceActivitys Deletes all rows from the resourceActivity collection
-func (s Store) TruncateResourceActivitys(ctx context.Context) error {
+func (s *Store) TruncateResourceActivitys(ctx context.Context) error {
 	return s.Exec(ctx, resourceActivityTruncateQuery(s.Dialect))
 }
 
@@ -16150,6 +16220,8 @@ func (s *Store) collectResourceActivityCursorValues(res *discoveryType.ResourceA
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -16244,7 +16316,7 @@ func (s *Store) DeleteResourceTranslationByID(ctx context.Context, id uint64) er
 }
 
 // TruncateResourceTranslations Deletes all rows from the resourceTranslation collection
-func (s Store) TruncateResourceTranslations(ctx context.Context) error {
+func (s *Store) TruncateResourceTranslations(ctx context.Context) error {
 	return s.Exec(ctx, resourceTranslationTruncateQuery(s.Dialect))
 }
 
@@ -16621,6 +16693,8 @@ func (s *Store) collectResourceTranslationCursorValues(res *systemType.ResourceT
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -16715,7 +16789,7 @@ func (s *Store) DeleteRoleByID(ctx context.Context, id uint64) error {
 }
 
 // TruncateRoles Deletes all rows from the role collection
-func (s Store) TruncateRoles(ctx context.Context) error {
+func (s *Store) TruncateRoles(ctx context.Context) error {
 	return s.Exec(ctx, roleTruncateQuery(s.Dialect))
 }
 
@@ -17202,6 +17276,8 @@ func (s *Store) collectRoleCursorValues(res *systemType.Role, cc ...*filter.Sort
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -17340,7 +17416,7 @@ func (s *Store) DeleteRoleMember(ctx context.Context, rr ...*systemType.RoleMemb
 	return nil
 }
 
-// DeleteRoleMemberByID deletes single entry from roleMember collection
+// DeleteRoleMemberByUserIDRoleID deletes single entry from roleMember collection
 //
 // This function is auto-generated
 func (s *Store) DeleteRoleMemberByUserIDRoleID(ctx context.Context, userID uint64, roleID uint64) error {
@@ -17351,7 +17427,7 @@ func (s *Store) DeleteRoleMemberByUserIDRoleID(ctx context.Context, userID uint6
 }
 
 // TruncateRoleMembers Deletes all rows from the roleMember collection
-func (s Store) TruncateRoleMembers(ctx context.Context) error {
+func (s *Store) TruncateRoleMembers(ctx context.Context) error {
 	return s.Exec(ctx, roleMemberTruncateQuery(s.Dialect))
 }
 
@@ -17500,6 +17576,8 @@ func (s *Store) collectRoleMemberCursorValues(res *systemType.RoleMember, cc ...
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkUserID {
 		collect(&filter.SortExpr{Column: "userID", Descending: false})
@@ -17587,7 +17665,7 @@ func (s *Store) DeleteSettingValue(ctx context.Context, rr ...*systemType.Settin
 	return nil
 }
 
-// DeleteSettingValueByID deletes single entry from settingValue collection
+// DeleteSettingValueByOwnedByName deletes single entry from settingValue collection
 //
 // This function is auto-generated
 func (s *Store) DeleteSettingValueByOwnedByName(ctx context.Context, ownedBy uint64, name string) error {
@@ -17598,7 +17676,7 @@ func (s *Store) DeleteSettingValueByOwnedByName(ctx context.Context, ownedBy uin
 }
 
 // TruncateSettingValues Deletes all rows from the settingValue collection
-func (s Store) TruncateSettingValues(ctx context.Context) error {
+func (s *Store) TruncateSettingValues(ctx context.Context) error {
 	return s.Exec(ctx, settingValueTruncateQuery(s.Dialect))
 }
 
@@ -17791,6 +17869,8 @@ func (s *Store) collectSettingValueCursorValues(res *systemType.SettingValue, cc
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkOwnedBy {
 		collect(&filter.SortExpr{Column: "ownedBy", Descending: false})
@@ -17888,7 +17968,7 @@ func (s *Store) DeleteTemplateByID(ctx context.Context, id uint64) error {
 }
 
 // TruncateTemplates Deletes all rows from the template collection
-func (s Store) TruncateTemplates(ctx context.Context) error {
+func (s *Store) TruncateTemplates(ctx context.Context) error {
 	return s.Exec(ctx, templateTruncateQuery(s.Dialect))
 }
 
@@ -18338,6 +18418,8 @@ func (s *Store) collectTemplateCursorValues(res *systemType.Template, cc ...*fil
 		}
 	)
 
+	_ = hasUnique
+
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(&filter.SortExpr{Column: "id", Descending: false})
@@ -18459,7 +18541,7 @@ func (s *Store) DeleteUserByID(ctx context.Context, id uint64) error {
 }
 
 // TruncateUsers Deletes all rows from the user collection
-func (s Store) TruncateUsers(ctx context.Context) error {
+func (s *Store) TruncateUsers(ctx context.Context) error {
 	return s.Exec(ctx, userTruncateQuery(s.Dialect))
 }
 
@@ -18999,6 +19081,8 @@ func (s *Store) collectUserCursorValues(res *systemType.User, cc ...*filter.Sort
 			}
 		}
 	)
+
+	_ = hasUnique
 
 	collect(cc...)
 	if !hasUnique || !pkID {
