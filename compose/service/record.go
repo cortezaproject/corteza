@@ -107,7 +107,7 @@ type (
 	RecordService interface {
 		FindByID(ctx context.Context, namespaceID, moduleID, recordID uint64) (*types.Record, error)
 
-		Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, filter string) (dal.Iterator, error)
+		Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, filter string) (any, error)
 		Find(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
 		SearchSensitive(ctx context.Context) (set []types.SensitiveRecordSet, err error)
 		SearchRevisions(ctx context.Context, namespaceID, moduleID, recordID uint64) (dal.Iterator, error)
@@ -168,6 +168,8 @@ type (
 
 	RecordIndex []int
 	ErrorIndex  map[string]int
+
+	recordReportEntry map[string]any
 )
 
 func Record() *record {
@@ -280,11 +282,14 @@ func (svc record) FindByID(ctx context.Context, namespaceID, moduleID, recordID 
 
 // Report generates report for a given module using metrics, dimensions and filter
 // @note will eventually be removed in favor of the system report endpoints
-func (svc record) Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, f string) (out dal.Iterator, err error) {
+func (svc record) Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, f string) (_ any, err error) {
 	var (
 		ns     *types.Namespace
 		m      *types.Module
 		aProps = &recordActionProps{record: &types.Record{NamespaceID: namespaceID}}
+
+		iter        dal.Iterator
+		reportItems []recordReportEntry
 	)
 
 	err = func() error {
@@ -363,11 +368,24 @@ func (svc record) Report(ctx context.Context, namespaceID, moduleID uint64, metr
 		}
 
 		// Run it
-		out, err = svc.dal.Run(ctx, pp)
-		return err
+		iter, err = svc.dal.Run(ctx, pp)
+		if err != nil {
+			return err
+		}
+
+		for iter.Next(ctx) {
+			item := recordReportEntry{}
+			err = iter.Scan(item)
+			if err != nil {
+				return err
+			}
+
+			reportItems = append(reportItems, item)
+		}
+		return iter.Err()
 	}()
 
-	return out, svc.recordAction(ctx, aProps, RecordActionReport, err)
+	return reportItems, svc.recordAction(ctx, aProps, RecordActionReport, err)
 }
 
 func (svc record) Find(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error) {
@@ -1768,4 +1786,16 @@ func (ri RecordIndex) MarshalJSON() ([]byte, error) {
 
 	rr = append(rr, []int{start, crt})
 	return json.Marshal(rr)
+}
+
+func (rr recordReportEntry) SetValue(n string, pos uint, v any) error {
+	if pos > 0 {
+		// When aggregated, multi value fields are collapsed into a single value
+		// so we don't need to support multi values here
+		panic("impossible case")
+	}
+
+	rr[n] = v
+
+	return nil
 }
