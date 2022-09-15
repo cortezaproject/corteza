@@ -218,7 +218,7 @@ var (
 func newConverterGval() converterGval {
 	if globalGvalConverter.parser == nil {
 		globalGvalConverter = converterGval{
-			parser: ql.NewParser(),
+			parser: newQlParser(),
 		}
 	}
 
@@ -283,6 +283,16 @@ func newGval(expr string) (gval.Evaluable, error) {
 		gval.Function("string", gvalfnc.CastString),
 		gval.Function("concat", gvalfnc.ConcatStrings),
 	).NewEvaluable(expr)
+}
+
+func newQlParser() *ql.Parser {
+	pp := ql.NewParser()
+	pp.OnIdent = func(ident ql.Ident) (ql.Ident, error) {
+		ident.Value = NormalizeAttrNames(ident.Value)
+		return ident, nil
+	}
+
+	return pp
 }
 
 func (e *runnerGval) Test(ctx context.Context, rows any) (bool, error) {
