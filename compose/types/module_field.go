@@ -76,6 +76,8 @@ type (
 	}
 
 	EncodingStrategy struct {
+		Omit bool `json:"omit,omitempty"`
+
 		*EncodingStrategyAlias `json:"alias,omitempty"`
 		*EncodingStrategyJSON  `json:"json,omitempty"`
 	}
