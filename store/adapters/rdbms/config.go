@@ -15,6 +15,10 @@ type (
 		DataSourceName string
 		DBName         string
 
+		// MaskedDSN is a DSN with sensitive data masked
+		// each connection is handling that independently
+		MaskedDSN string
+
 		// MaxOpenConns sets maximum number of open connections to the database
 		// defaults to same value as set in the db/sql
 		MaxOpenConns int
@@ -42,15 +46,14 @@ type (
 )
 
 var (
-	dsnMasker = regexp.MustCompile("(.)(?:.*)(.):(.)(?:.*)(.)@")
+	dsnMasker = regexp.MustCompile(`(.)(?:.*)(.):(.)(?:.*)(.)@`)
 )
 
-// MaskedDSN replaces username & password from DSN string  dso it's usable for logging
-func (c *ConnConfig) MaskedDSN() string {
-	return dsnMasker.ReplaceAllString(c.DataSourceName, "$1****$2:$3****$4@")
-}
-
 func (c *ConnConfig) SetDefaults() {
+	if c.MaskedDSN == "" {
+		c.MaskedDSN = c.DBName + "://********:********@********:********/********"
+	}
+
 	if c.MaxIdleConns == 0 {
 		// Same as default in the db/sql
 		c.MaxIdleConns = 32

@@ -1,5 +1,7 @@
 package dal
 
+import "go.uber.org/zap"
+
 type (
 	issue struct {
 		kind issueKind
@@ -118,6 +120,13 @@ func (a *issueHelper) mergeWith(b *issueHelper) {
 // Op check utils
 func (svc *service) canOpData(ref ModelRef) (err error) {
 	if svc.hasConnectionIssues(ref.ConnectionID) {
+		for _, i := range svc.connectionIssues[ref.ConnectionID] {
+			svc.logger.Debug(
+				"can not perform data operation due to connection issue: "+i.err.Error(),
+				zap.Any("ref", ref.ResourceID),
+			)
+		}
+
 		return errRecordOpProblematicConnection(ref.ConnectionID)
 	}
 
@@ -127,6 +136,13 @@ func (svc *service) canOpData(ref ModelRef) (err error) {
 	}
 
 	if svc.hasModelIssues(mod.ResourceID) {
+		for _, i := range svc.modelIssues[mod.ResourceID] {
+			svc.logger.Debug(
+				"can not perform data operation due to model issue: "+i.err.Error(),
+				zap.Any("ref", ref.ResourceID),
+			)
+		}
+
 		return errRecordOpProblematicModel(mod.ResourceID)
 	}
 

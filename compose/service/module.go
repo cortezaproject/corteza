@@ -1453,7 +1453,7 @@ func moduleFieldToAttribute(f *types.ModuleField) (out *dal.Attribute, err error
 		out = dal.FullAttribute(f.Name, at, mfc(f))
 	case "number":
 		at := &dal.TypeNumber{
-			Precision: f.Options.Precision(),
+			Precision: int(f.Options.Precision()),
 		}
 		out = dal.FullAttribute(f.Name, at, mfc(f))
 	case "record":

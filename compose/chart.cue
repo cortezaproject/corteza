@@ -14,17 +14,36 @@ chart: {
 		attributes: {
 			id: schema.IdField
 			handle: schema.HandleField
-			name: {sortable: true}
-			config: { goType: "types.ChartConfig" }
-			  namespace_id: {
+			namespace_id: {
 			  ident: "namespaceID",
 				goType: "uint64",
 				storeIdent: "rel_namespace"
 				dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
 			}
-			created_at: schema.SortableTimestampField
+			name: {
+				sortable: true
+				dal: {}
+		  }
+			config: {
+				goType: "types.ChartConfig"
+				dal: {}
+		  }
+			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
+			"namespace": { attribute: "namespace_id" },
+			"unique_handle": {
+				fields: [{ attribute: "handle", modifiers: ["LOWERCASE"] }, { attribute: "namespace_id" }]
+				predicate: "handle != '' AND deleted_at IS NULL"
+			}
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
 		}
 	}
 

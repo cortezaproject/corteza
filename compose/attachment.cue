@@ -13,6 +13,12 @@ attachment: {
 		ident: "compose_attachment"
 		attributes: {
 			id:       schema.IdField
+			namespace_id: {
+				ident: "namespaceID",
+				goType: "uint64",
+				storeIdent: "rel_namespace"
+				dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
+			}
 			owner_id: {
 				sortable: true,
 				goType: "uint64",
@@ -20,20 +26,32 @@ attachment: {
 				ident: "ownerID"
 				dal: { type: "Ref", refModelResType: "corteza::system:user" }
 			}
-			namespace_id: {
-				ident: "namespaceID",
-				goType: "uint64",
-				storeIdent: "rel_namespace"
-				dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
+			kind: {
+				sortable: true
+				dal: {}
 			}
-			kind: {sortable: true}
-			url:  {}
-			preview_url: {}
-			name:        {sortable: true}
-			meta:        { goType: "types.AttachmentMeta" }
-			created_at: schema.SortableTimestampField
+			url:  {
+				dal: {}
+			}
+			preview_url: {
+				dal: {}
+			}
+			name:        {
+				sortable: true
+				dal: {}
+			}
+			meta:        {
+				goType: "types.AttachmentMeta"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
+			"namespace": { attribute: "namespace_id" },
 		}
 	}
 

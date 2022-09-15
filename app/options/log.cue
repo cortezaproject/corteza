@@ -10,7 +10,7 @@ log: schema.#optionsGroup & {
 		debug: {
 			type: "bool"
 			description: """
-				Disables JSON format for logging and enables more human-readable output with colors.
+				Disables json format for logging and enables more human-readable output with colors.
 
 				Disable for production.
 

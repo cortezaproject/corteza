@@ -27,5 +27,5 @@ func dalConnector(ctx context.Context, dsn string, cc ...dal.Operation) (_ dal.C
 	if err != nil {
 		return
 	}
-	return rdbmsdal.Connection(db, Dialect(), cc...), nil
+	return rdbmsdal.Connection(db, Dialect(), DataDefiner(cfg.DBName, db), cc...), nil
 }

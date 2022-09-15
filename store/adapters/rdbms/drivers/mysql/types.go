@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
@@ -42,17 +41,17 @@ func (t *TypeTime) Encode(val any) (driver.Value, error) {
 	return val, nil
 }
 
-func columnTypeTranslator(ct ddl.ColumnType) string {
-	switch ct.Type {
-	case ddl.ColumnTypeIdentifier:
-		return "BIGINT UNSIGNED"
-	case ddl.ColumnTypeBinary:
-		return "BLOB"
-	case ddl.ColumnTypeTimestamp:
-		return "DATETIME"
-	case ddl.ColumnTypeBoolean:
-		return "TINYINT(1)"
-	default:
-		return ddl.ColumnTypeTranslator(ct)
-	}
-}
+//func columnTypeTranslator(ct ddl.ColumnType) string {
+//	switch ct.Type {
+//	case ddl.ColumnTypeIdentifier:
+//		return "BIGINT UNSIGNED"
+//	case ddl.ColumnTypeBinary:
+//		return "BLOB"
+//	case ddl.ColumnTypeTimestamp:
+//		return "DATETIME"
+//	case ddl.ColumnTypeBoolean:
+//		return "TINYINT(1)"
+//	default:
+//		return ddl.ColumnTypeTranslator(ct)
+//	}
+//}

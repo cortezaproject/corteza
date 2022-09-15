@@ -2,15 +2,15 @@ package mysql
 
 import (
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ql"
+	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/dialect/mysql"
+	"github.com/doug-martin/goqu/v9/exp"
 	"strconv"
 	"strings"
-
-	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
-	"github.com/doug-martin/goqu/v9"
-	"github.com/doug-martin/goqu/v9/exp"
 )
 
 type (
@@ -22,14 +22,18 @@ var (
 
 	dialect            = &mysqlDialect{}
 	goquDialectWrapper = goqu.Dialect("mysql")
+	quoteIdent         = string(mysql.DialectOptions().QuoteRune)
 )
 
 func Dialect() *mysqlDialect {
 	return dialect
 }
 
-func (mysqlDialect) GOQU() goqu.DialectWrapper {
-	return goquDialectWrapper
+func (mysqlDialect) GOQU() goqu.DialectWrapper  { return goquDialectWrapper }
+func (mysqlDialect) QuoteIdent(i string) string { return quoteIdent + i + quoteIdent }
+
+func (d mysqlDialect) IndexFieldModifiers(attr *dal.Attribute, mm ...dal.IndexFieldModifier) (string, error) {
+	return drivers.IndexFieldModifiers(attr, d.QuoteIdent, mm...)
 }
 
 func (mysqlDialect) DeepIdentJSON(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression, error) {
@@ -99,10 +103,6 @@ func (mysqlDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpression
 	return exp.NewLiteralExpression("?", c), nil
 }
 
-func (mysqlDialect) NativeColumnType(ct ddl.ColumnType) string {
-	return columnTypeTranslator(ct)
-}
-
 func (mysqlDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (exp.Expression, error) {
 	return ql.DefaultRefHandler(n, args...)
 }
@@ -130,4 +130,72 @@ func JSONPath(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression,
 
 	sql.WriteString(`'`)
 	return exp.NewLiteralExpression(sql.String(), ident), nil
+}
+
+func (mysqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err error) {
+	col = &ddl.Column{
+		Ident:   attr.StoreIdent(),
+		Comment: attr.Label,
+		Type: &ddl.ColumnType{
+			Null: attr.Type.IsNullable(),
+		},
+	}
+
+	switch t := attr.Type.(type) {
+	case *dal.TypeID:
+		col.Type.Name = "BIGINT UNSIGNED"
+		col.Default = ddl.DefaultID(t.HasDefault, t.DefaultValue)
+	case *dal.TypeRef:
+		col.Type.Name = "BIGINT UNSIGNED"
+		col.Default = ddl.DefaultID(t.HasDefault, t.DefaultValue)
+
+	case *dal.TypeTimestamp:
+		col.Type.Name = "DATETIME"
+		col.Default = ddl.DefaultValueCurrentTimestamp(t.DefaultCurrentTimestamp)
+
+	case *TypeTime:
+		col.Type.Name = "TIME"
+		col.Default = ddl.DefaultValueCurrentTimestamp(t.DefaultCurrentTimestamp)
+
+	case *dal.TypeDate:
+		col.Type.Name = "DATE"
+		col.Default = ddl.DefaultValueCurrentTimestamp(t.DefaultCurrentTimestamp)
+
+	case *dal.TypeNumber:
+		col.Type.Name = "DECIMAL"
+		// @todo precision, scale?
+		col.Default = ddl.DefaultNumber(t.HasDefault, t.Precision, t.DefaultValue)
+
+	case *dal.TypeText:
+		if t.Length > 0 {
+			col.Type.Name = fmt.Sprintf("VARCHAR(%d)", t.Length)
+		} else {
+			col.Type.Name = "TEXT"
+		}
+
+		if t.HasDefault {
+			// @todo use proper quote type
+			col.Default = fmt.Sprintf("%q", t.DefaultValue)
+		}
+
+	case *dal.TypeJSON:
+		col.Type.Name = "JSON"
+
+	case *dal.TypeGeometry:
+		col.Type.Name = "JSON"
+
+	case *dal.TypeBlob:
+		col.Type.Name = "BLOB"
+
+	case *dal.TypeBoolean:
+		col.Type.Name = "TINYINT(1)"
+
+	case *dal.TypeUUID:
+		col.Type.Name = "CHAR(36)"
+
+	default:
+		return nil, fmt.Errorf("unsupported column type: %s ", t.Type())
+	}
+
+	return
 }

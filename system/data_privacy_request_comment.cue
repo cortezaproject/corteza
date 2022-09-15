@@ -12,15 +12,27 @@ data_privacy_request_comment: {
 	model: {
 		attributes: {
 			id: schema.IdField
-			request_id: { ident: "requestID", goType: "uint64", storeIdent: "rel_request" }
-			comment: { goType: "string" }
+			request_id: {
+				ident: "requestID",
+				goType: "uint64",
+				storeIdent: "rel_request"
+				dal: { type: "Ref", refModelResType: "corteza::system:user" }
+			}
+			comment: {
+				goType: "string"
+				dal: {}
+			}
 
-			created_at: schema.SortableTimestampField
+			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
 			created_by: schema.AttributeUserRef
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
 		}
 	}
 

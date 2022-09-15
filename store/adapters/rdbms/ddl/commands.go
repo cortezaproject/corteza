@@ -3,27 +3,19 @@ package ddl
 import (
 	"context"
 	"fmt"
-
-	"github.com/doug-martin/goqu/v9"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/jmoiron/sqlx"
 )
 
 type (
-	trColTypeFn func(ColumnType) string
-
 	dialect interface {
-		// GOQU returns goqu's dialect wrapper struct
-		GOQU() goqu.DialectWrapper
-
-		NativeColumnType(columnType ColumnType) string
+		QuoteIdent(i string) string
 	}
 
 	CreateTable struct {
-		Dialect dialect
-
-		Table *Table
-
+		Dialect               dialect
+		Table                 *Table
 		OmitIfNotExistsClause bool
 		SuffixClause          string
 	}
@@ -35,21 +27,27 @@ type (
 		OmitFieldLength       bool
 	}
 
+	DropIndex struct {
+		Dialect    dialect
+		Ident      string
+		TableIdent string
+	}
+
 	AddColumn struct {
 		Dialect dialect
-		Table   *Table
+		Table   string
 		Column  *Column
 	}
 
 	DropColumn struct {
 		Dialect dialect
-		Table   *Table
+		Table   string
 		Column  string
 	}
 
 	RenameColumn struct {
 		Dialect dialect
-		Table   *Table
+		Table   string
 		Old     string
 		New     string
 	}
@@ -71,7 +69,7 @@ func CreateIndexTemplates(base *CreateIndex, ii ...*Index) []any {
 	return tt
 }
 
-// Exec is an utility for executing series of commands
+// Exec is a utility for executing series of commands
 //
 // Parameters can be string, Stringer interface or goqu's exp.SQLExpression
 //
@@ -105,73 +103,6 @@ func Exec(ctx context.Context, db sqlx.ExtContext, ss ...any) (err error) {
 	return
 }
 
-func TableExists(ctx context.Context, db sqlx.QueryerContext, d dialect, table, schema string) (bool, error) {
-	return GetBool(ctx, db, GenTableCheck(d, table, schema))
-}
-
-func ColumnExists(ctx context.Context, db sqlx.QueryerContext, d dialect, column, table, schema string) (bool, error) {
-	return GetBool(ctx, db, GenColumnCheck(d, column, table, schema))
-}
-
-func GenTableCheck(d dialect, table, schema string) *goqu.SelectDataset {
-	return d.GOQU().Select(goqu.COUNT(goqu.Star()).Gt(0)).
-		From("information_schema.tables").
-		Where(
-			exp.ParseIdentifier("table_name").Eq(table),
-			exp.ParseIdentifier("table_schema").Eq(schema),
-		)
-}
-
-func GenColumnCheck(d dialect, column, table, schema string) *goqu.SelectDataset {
-	return d.GOQU().Select(goqu.COUNT(goqu.Star()).Gt(0)).
-		From("information_schema.columns").
-		Where(
-			exp.ParseIdentifier("table_name").Eq(table),
-			exp.ParseIdentifier("table_schema").Eq(schema),
-			exp.ParseIdentifier("column_name").Eq(column),
-		)
-}
-
-//
-//func GenAddColumn(ctx context.Context, dialect dialect, db sqlx.ExtContext, t *Table, cc ...*Column) (err error) {
-//	var (
-//		aux    []any
-//		exists bool
-//	)
-//
-//	for _, c := range cc {
-//		// check column existence
-//		if exists, err = ColumnExists(ctx, db, dialect, c.Name, t.Name, "public"); err != nil {
-//			return
-//		} else if exists {
-//			// column exists
-//			continue
-//		}
-//
-//		aux = append(aux, &AddColumn{
-//			Dialect: dialect,
-//			Table:   t,
-//			Column:  c,
-//		})
-//	}
-//
-//	return Exec(ctx, db, aux...)
-//}
-
-func IndexExists(ctx context.Context, db sqlx.QueryerContext, d dialect, index, table, schema string) (bool, error) {
-	return GetBool(ctx, db, GenIndexCheck(d, index, table, schema))
-}
-
-func GenIndexCheck(d dialect, index, table, schema string) *goqu.SelectDataset {
-	return d.GOQU().Select(goqu.COUNT(goqu.Star()).Gt(0)).
-		From("information_schema.statistics").
-		Where(
-			exp.ParseIdentifier("index_name").Eq(index),
-			exp.ParseIdentifier("table_name").Eq(table),
-			exp.ParseIdentifier("table_schema").Eq(schema),
-		)
-}
-
 func (t *CreateTable) String() string {
 	sql := "CREATE TABLE "
 
@@ -179,15 +110,15 @@ func (t *CreateTable) String() string {
 		sql += "IF NOT EXISTS "
 	}
 
-	sql += "\"" + t.Table.Name + "\" (\n"
-	sql += GenCreateTableBody(t.Table, t.Dialect.NativeColumnType)
-	sql += "\n)"
+	sql += t.Dialect.QuoteIdent(t.Table.Ident) + " (\n"
+	sql += GenCreateTableBody(t.Dialect, t.Table)
+	sql += ")"
 	sql += t.SuffixClause
 
 	return sql
 }
 
-func GenCreateTableBody(t *Table, trColType trColTypeFn) string {
+func GenCreateTableBody(d dialect, t *Table) string {
 	sql := ""
 
 	for c, col := range t.Columns {
@@ -197,39 +128,49 @@ func GenCreateTableBody(t *Table, trColType trColTypeFn) string {
 			sql += ", "
 		}
 
-		sql += GenTableColumn(col, trColType)
+		sql += GenTableColumn(d, col)
 
 		sql += "\n"
 	}
 
-	if t.PrimaryKey != nil {
-		sql += "\n, " + GenPrimaryKey(t.PrimaryKey)
+	// check if any of the indexes is a primary key
+	for _, pk := range t.Indexes {
+		if pk.Ident != PRIMARY_KEY {
+			continue
+		}
+
+		sql += "\n"
+		sql += ", " + GenPrimaryKey(d, pk) + "\n"
+		break
 	}
 
 	return sql
 }
 
-func GenTableColumn(col *Column, trType trColTypeFn) string {
-	sql := "\"" + col.Name + "\" " + trType(col.Type)
+func GenTableColumn(d dialect, col *Column) string {
+	sql := d.QuoteIdent(col.Ident) + " " + col.Type.Name + " "
 
-	if !col.IsNull {
-		sql += " NOT NULL"
+	if col.Type.Null {
+		sql += "    NULL"
+	} else {
+		sql += "NOT NULL"
 	}
 
-	if col.DefaultValue > "" {
-		sql += " DEFAULT " + col.DefaultValue
+	if col.Default > "" {
+		sql += " DEFAULT " + col.Default
 	}
 
 	return sql
 }
 
-func GenPrimaryKey(pk *Index) string {
+func GenPrimaryKey(d dialect, pk *Index) string {
 	sql := "PRIMARY KEY ("
 	for f, field := range pk.Fields {
 		if f > 0 {
 			sql += ", "
 		}
-		sql += field.Field
+
+		sql += d.QuoteIdent(field.Column)
 	}
 	sql += ")"
 
@@ -249,61 +190,80 @@ func (t *CreateIndex) String() string {
 		sql += "IF NOT EXISTS "
 	}
 
-	sql += "\"" + t.Index.Name + "\" ON \"" + t.Index.Table + "\" ("
+	sql += t.Dialect.QuoteIdent(t.Index.Ident) + " ON " + t.Dialect.QuoteIdent(t.Index.TableIdent) + " ("
 
 	for f, field := range t.Index.Fields {
+		isExpr := len(field.Expression) > 0
+
 		if f > 0 {
 			sql += ", "
 		}
 
-		if field.Expr {
+		if isExpr {
 			sql += "("
-		}
-
-		sql += field.Field
-
-		if field.Desc {
-			sql += " DESC"
+			sql += field.Expression
+		} else {
+			sql += t.Dialect.QuoteIdent(field.Column)
 		}
 
 		if field.Length > 0 && !t.OmitFieldLength {
 			sql += fmt.Sprintf("(%d)", field.Length)
 		}
 
-		if field.Expr {
+		if isExpr {
 			sql += ")"
 		}
+
+		switch field.Sort {
+		case dal.IndexFieldSortDesc:
+			sql += " DESC"
+		case dal.IndexFieldSortAsc:
+			sql += " ASC"
+		}
+
+		switch field.Nulls {
+		case dal.IndexFieldNullsLast:
+			sql += " NULLS LAST"
+		case dal.IndexFieldNullsFirst:
+			sql += " NULLS FIRST"
+		}
+
 	}
 	sql += ")"
 
-	if t.Index.Condition != "" {
-		sql += " WHERE " + t.Index.Condition
+	if t.Index.Predicate != "" {
+		sql += " WHERE " + t.Index.Predicate
 	}
 
 	return sql
 }
 
 func (c *AddColumn) String() string {
-	sql := "ALTER TABLE" + " " + c.Table.Name + " ADD COLUMN " + c.Column.Name + " " + c.Dialect.NativeColumnType(c.Column.Type)
-	if !c.Column.IsNull {
+	sql := "ALTER TABLE" + " " + c.Table + " ADD COLUMN " + c.Column.Ident + " " + c.Column.Type.Name
+	if !c.Column.Type.Null {
 		sql += " NOT NULL"
 	}
 
-	if len(c.Column.DefaultValue) > 0 {
-		sql += " DEFAULT " + c.Column.DefaultValue
+	if len(c.Column.Default) > 0 {
+		sql += " DEFAULT " + c.Column.Default
 	}
 
 	return sql
 }
 
 func (c *DropColumn) String() string {
-	return "ALTER TABLE" + " " + c.Table.Name + " DROP COLUMN " + c.Column
+	return "ALTER TABLE" + " " + c.Table + " DROP COLUMN " + c.Column
+}
+
+func (c *DropIndex) Express() exp.SQLExpression {
+	return SQLExpression(exp.NewLiteralExpression("DROP INDEX ? ON ?", c.Ident, c.TableIdent))
 }
 
 func (c *RenameColumn) String() string {
-	return "ALTER TABLE" + " " + c.Table.Name + " RENAME COLUMN " + c.Old + " TO " + c.New
+	return "ALTER TABLE" + " " + c.Table + " RENAME COLUMN " + c.Old + " TO " + c.New
 }
 
+// GetBool is a utility function to simplify getting a boolean value from a query result.
 func GetBool(ctx context.Context, db sqlx.QueryerContext, query exp.SQLExpression) (bool, error) {
 	var (
 		exists         bool
@@ -311,7 +271,7 @@ func GetBool(ctx context.Context, db sqlx.QueryerContext, query exp.SQLExpressio
 	)
 
 	if err != nil {
-		return false, fmt.Errorf("could not generate SQLk")
+		return false, fmt.Errorf("could not generate SQL: %v", err)
 	}
 
 	if err = sqlx.GetContext(ctx, db, &exists, sql, args...); err != nil {
@@ -321,38 +281,15 @@ func GetBool(ctx context.Context, db sqlx.QueryerContext, query exp.SQLExpressio
 	return exists, nil
 }
 
-// ColumnTypeTranslator is the most generic translator of "corteza types"
-// to db-native column types.
-//
-// @todo it might be smart to merge this with data.AttributeType (part of CRS feature)
-func ColumnTypeTranslator(ct ColumnType) string {
-	switch ct.Type {
-	case ColumnTypeIdentifier:
-		return "BIGINT"
-	case ColumnTypeVarchar:
-		if ct.Length > 0 {
-			// VARCHAR(0) is useless
-			return fmt.Sprintf("VARCHAR(%d)", ct.Length)
-		}
-		return "VARCHAR"
-	case ColumnTypeText:
-		return "TEXT"
-	case ColumnTypeJson:
-		return "JSON"
-	case ColumnTypeBinary:
-		return "BYTEA"
-	case ColumnTypeTimestamp:
-		if ct.Length > -1 {
-			// TIMESTAMPTZ(0) strips out milliseconds
-			return fmt.Sprintf("TIMESTAMPTZ(%d)", ct.Length)
-		}
+// Structs is a utility function to simplify selecting data into slice of structs
+func Structs(ctx context.Context, db sqlx.QueryerContext, query exp.SQLExpression, t any) error {
+	var (
+		sql, args, err = query.ToSQL()
+	)
 
-		return "TIMESTAMPTZ"
-	case ColumnTypeInteger:
-		return "INTEGER"
-	case ColumnTypeBoolean:
-		return "BOOLEAN"
-	default:
-		panic(fmt.Sprintf("unhandled column type: %d ", ct.Type))
+	if err != nil {
+		return fmt.Errorf("could not generate SQL: %v", err)
 	}
+
+	return sqlx.SelectContext(ctx, db, t, sql, args...)
 }

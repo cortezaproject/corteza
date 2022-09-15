@@ -12,18 +12,44 @@ apigw_route: {
 	model: {
 		attributes: {
 			id:       schema.IdField
-			endpoint: {sortable: true}
-			method:   {sortable: true}
-			enabled:  {sortable: true, goType: "bool"}
-			group:    {sortable: true, goType: "uint64", storeIdent: "rel_group"}
-			meta:     {goType: "types.ApigwRouteMeta"}
+			endpoint: {
+				sortable: true
+				dal: {}
+			}
+			method:   {
+				sortable: true
+				dal: {}
+			}
+			enabled: {
+				sortable: true,
+				goType: "bool"
+				dal: { type: "Boolean" }
+			}
+			meta: {
+				goType: "types.ApigwRouteMeta"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
+			group:    {
+				sortable: true,
+				goType: "uint64",
+				storeIdent: "rel_group"
+			  dal: {
+			  	type: "Ref",
+			  	// @todo what does this do?
+			  	refModelResType: "corteza::system:apigw-group"
+				}
+			}
 
-			created_at: schema.SortableTimestampField
+			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
 			created_by: schema.AttributeUserRef
 			updated_by: schema.AttributeUserRef
 			deleted_by: schema.AttributeUserRef
+		}
+
+		indexes: {
+			"primary": { attribute: "id" }
 		}
 	}
 

@@ -33,8 +33,10 @@ type (
 		// TypeWrap returns driver's type implementation for a particular attribute type
 		TypeWrap(dal.Type) Type
 
-		// NativeColumnType converts column type to type that can be used in the underlying rdbms
-		NativeColumnType(columnType ddl.ColumnType) string
+		QuoteIdent(string) string
+
+		// AttributeToColumn converts attribute to column defunition
+		AttributeToColumn(*dal.Attribute) (*ddl.Column, error)
 
 		// ExprHandler returns driver specific expression handling
 		ExprHandler(*ql.ASTNode, ...exp.Expression) (exp.Expression, error)

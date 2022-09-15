@@ -24,3 +24,7 @@ type (
 		Limit      uint
 	}
 )
+
+const (
+	FlagResourceType = "corteza::generic:flag"
+)

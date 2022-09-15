@@ -6,6 +6,7 @@ package drivers
 
 import (
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"strconv"
 	"strings"
 
@@ -84,4 +85,24 @@ func JsonPath(pp ...any) string {
 	}
 
 	return path.String()
+}
+
+func IndexFieldModifiers(attr *dal.Attribute, quoteIdent func(i string) string, mm ...dal.IndexFieldModifier) (string, error) {
+	var (
+		modifier string
+		out      = quoteIdent(attr.StoreIdent())
+	)
+
+	for _, m := range mm {
+		switch m {
+		case dal.IndexFieldModifierLower:
+			modifier = "LOWER"
+		default:
+			return "", fmt.Errorf("unknown index field modifier: %s", m)
+		}
+
+		out = fmt.Sprintf("%s(%s)", modifier, out)
+	}
+
+	return out, nil
 }

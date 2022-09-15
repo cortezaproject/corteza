@@ -4,11 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/dal"
 	"strings"
 
 	pkgdal "github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/dal"
-
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/store"
@@ -46,13 +45,14 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 	s := &rdbms.Store{
 		DB: db,
 
-		DAL: dal.Connection(db, Dialect(), pkgdal.FullOperations()...),
+		DAL: dal.Connection(db, Dialect(), DataDefiner(cfg.DBName, db), pkgdal.FullOperations()...),
 
 		Dialect:           goquDialectWrapper,
 		TxRetryErrHandler: txRetryErrHandler,
 		ErrorHandler:      errorHandler,
 
-		SchemaAPI: &schema{dbName: cfg.DBName},
+		DataDefiner: DataDefiner(cfg.DBName, db),
+		Ping:        db.PingContext,
 	}
 
 	s.SetDefaults()
@@ -120,6 +120,7 @@ func NewConfig(in string) (*rdbms.ConnConfig, error) {
 
 		c.DataSourceName = pdsn.FormatDSN()
 		c.DBName = pdsn.DBName
+		c.MaskedDSN = maskDSN(pdsn)
 	}
 
 	c.SetDefaults()
@@ -135,6 +136,19 @@ func connSetup(ctx context.Context, db sqlx.ExecerContext) (err error) {
 	}
 
 	return
+}
+
+func maskDSN(myCnf *mysql.Config) string {
+	var (
+		maskedDSN = myCnf.Clone()
+	)
+
+	if maskedDSN.Passwd != "" {
+		// following the same logic as url.Redacted (used for postgresql)
+		maskedDSN.Passwd = "xxxxx"
+	}
+
+	return myCnf.FormatDSN()
 }
 
 func txRetryErrHandler(try int, err error) bool {

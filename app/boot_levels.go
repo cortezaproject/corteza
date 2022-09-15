@@ -217,6 +217,8 @@ func (app *CortezaApp) InitStore(ctx context.Context) (err error) {
 		if err = store.Upgrade(ctx, log, app.Store); err != nil {
 			return fmt.Errorf("could not upgrade primary store: %w", err)
 		}
+
+		healthcheck.Defaults().Add(app.Store.Healthcheck, "Primary store")
 	}
 
 	{
@@ -571,12 +573,12 @@ func (app *CortezaApp) initSystemEntities(ctx context.Context) (err error) {
 
 	// Basic provision for system resources that we need before anything else
 	if rr, err = provision.SystemRoles(ctx, app.Log, app.Store); err != nil {
-		return fmt.Errorf("could not provision system roles")
+		return fmt.Errorf("could not provision system roles: %w", err)
 	}
 
 	// Basic provision for system users that we need before anything else
 	if uu, err = provision.SystemUsers(ctx, app.Log, app.Store); err != nil {
-		return fmt.Errorf("could not provision system users")
+		return fmt.Errorf("could not provision system users: %w", err)
 	}
 
 	// set system users & roles with so that the whole app knows what to use

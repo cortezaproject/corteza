@@ -10,8 +10,22 @@ role_member: {
 
 	model: {
 		attributes: {
-				user_id: { goType: "uint64", primaryKey: true, storeIdent: "rel_user", ident: "userID" }
-				role_id: { goType: "uint64", primaryKey: true, storeIdent: "rel_role", ident: "roleID" }
+			user_id: {
+				goType: "uint64",
+				storeIdent: "rel_user",
+				ident: "userID"
+				dal: { type: "Ref", refModelResType: "corteza::system:user" }
+			}
+			role_id: {
+				goType: "uint64",
+				storeIdent: "rel_role",
+				ident: "roleID"
+				dal: { type: "Ref", refModelResType: "corteza::system:role" }
+			}
+		}
+
+		indexes: {
+			"primary": { attributes: ["user_id", "role_id"] }
 		}
 	}
 
