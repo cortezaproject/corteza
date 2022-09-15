@@ -127,11 +127,11 @@ func (c *connection) CreateModel(ctx context.Context, mm ...*dal.Model) (err err
 	defer c.mux.Unlock()
 	for _, m := range mm {
 		err = ddl.UpdateModel(ctx, c.dataDefiner, m)
-		if !errors.IsNotFound(err) && err != nil {
-			return
-		}
-
-		if err = ddl.CreateModel(ctx, c.dataDefiner, m); err != nil {
+		if errors.IsNotFound(err) {
+			if err = ddl.CreateModel(ctx, c.dataDefiner, m); err != nil {
+				return
+			}
+		} else if err != nil {
 			return
 		}
 
