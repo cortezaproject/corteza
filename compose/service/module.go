@@ -3,6 +3,9 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/compose/dalutils"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"go.uber.org/zap"
 	"reflect"
 	"sort"
 	"strconv"
@@ -13,7 +16,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 
-	"github.com/cortezaproject/corteza-server/compose/dalutils"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -573,14 +575,24 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 			var (
 				hasRecords bool
 				set        types.RecordSet
+
+				recFilter = types.RecordFilter{
+					Paging: filter.Paging{Limit: 1},
+					Check:  func(r *types.Record) (bool, error) { return true, nil },
+				}
 			)
 
-			// @todo rethink how model issues and attempted module update with records should interact.
-			// 			 this is a temporary solution but should be re-thinked.
-			modelIssues := svc.dal.SearchModelIssues(m.ID)
-			if len(modelIssues) == 0 {
-				if set, _, err = dalutils.ComposeRecordsList(ctx, svc.dal, m, types.RecordFilter{Paging: filter.Paging{Limit: 1}, Check: func(r *types.Record) (bool, error) { return true, nil }}); err != nil {
-					return errors.Internal("module: could not list records").Wrap(err)
+			if modelIssues := svc.dal.SearchModelIssues(m.ID); len(modelIssues) == 0 {
+				if set, _, err = dalutils.ComposeRecordsList(ctx, svc.dal, m, recFilter); err != nil {
+					// we should not really abort the update here.
+					//
+					// if we do, in case of a misconfigured module
+					// a model issue is raised and the module cannot be updated.
+					//
+					// a solution similar to soft(warning)/hard(error) issues that
+					// we introduced on record could be used here.
+					logger.Default().Warn("could not list records due to DAL model issues", zap.Error(err))
+					err = nil
 				}
 				hasRecords = len(set) > 0
 			} else {
