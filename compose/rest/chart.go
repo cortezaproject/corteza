@@ -73,6 +73,8 @@ func (ctrl Chart) List(ctx context.Context, r *request.ChartList) (interface{}, 
 		return nil, err
 	}
 
+	f.IncTotal = r.IncTotal
+
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
 		return nil, err
 	}

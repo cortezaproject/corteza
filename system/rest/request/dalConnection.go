@@ -54,6 +54,11 @@ type (
 		//
 		// Exclude (0, default), include (1) or return only (2) deleted connections
 		Deleted uint
+
+		// IncTotal GET parameter
+		//
+		// Include total counter
+		IncTotal bool
 	}
 
 	DalConnectionCreate struct {
@@ -139,6 +144,7 @@ func (r DalConnectionList) Auditable() map[string]interface{} {
 		"handle":       r.Handle,
 		"type":         r.Type,
 		"deleted":      r.Deleted,
+		"incTotal":     r.IncTotal,
 	}
 }
 
@@ -160,6 +166,11 @@ func (r DalConnectionList) GetType() string {
 // Auditable returns all auditable/loggable parameters
 func (r DalConnectionList) GetDeleted() uint {
 	return r.Deleted
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DalConnectionList) GetIncTotal() bool {
+	return r.IncTotal
 }
 
 // Fill processes request and fills internal variables
@@ -194,6 +205,12 @@ func (r *DalConnectionList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["deleted"]; ok && len(val) > 0 {
 			r.Deleted, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["incTotal"]; ok && len(val) > 0 {
+			r.IncTotal, err = payload.ParseBool(val[0]), nil
 			if err != nil {
 				return err
 			}

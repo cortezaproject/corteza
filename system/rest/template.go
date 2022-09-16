@@ -85,6 +85,8 @@ func (ctrl *Template) List(ctx context.Context, r *request.TemplateList) (interf
 		return nil, err
 	}
 
+	f.IncTotal = r.IncTotal
+
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
 		return nil, err
 	}

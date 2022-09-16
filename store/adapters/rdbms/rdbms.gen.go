@@ -488,6 +488,25 @@ func (s *Store) SearchApigwFilters(ctx context.Context, f systemType.ApigwFilter
 		return nil, f, err
 	}
 
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet systemType.ApigwFilterSet
+			if navSet, _, _, err = s.fetchFullPageOfApigwFilters(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
 	return set, f, nil
 }
 
@@ -1022,6 +1041,25 @@ func (s *Store) SearchApigwRoutes(ctx context.Context, f systemType.ApigwRouteFi
 	f.PageCursor = nil
 	if err != nil {
 		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet systemType.ApigwRouteSet
+			if navSet, _, _, err = s.fetchFullPageOfApigwRoutes(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
 	}
 
 	return set, f, nil
@@ -1564,6 +1602,25 @@ func (s *Store) SearchApplications(ctx context.Context, f systemType.Application
 		return nil, f, err
 	}
 
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet systemType.ApplicationSet
+			if navSet, _, _, err = s.fetchFullPageOfApplications(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
 	return set, f, nil
 }
 
@@ -2059,6 +2116,25 @@ func (s *Store) SearchAttachments(ctx context.Context, f systemType.AttachmentFi
 		return nil, f, err
 	}
 
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet systemType.AttachmentSet
+			if navSet, _, _, err = s.fetchFullPageOfAttachments(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
 	return set, f, nil
 }
 
@@ -2547,6 +2623,25 @@ func (s *Store) SearchAuthClients(ctx context.Context, f systemType.AuthClientFi
 	f.PageCursor = nil
 	if err != nil {
 		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet systemType.AuthClientSet
+			if navSet, _, _, err = s.fetchFullPageOfAuthClients(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
 	}
 
 	return set, f, nil
@@ -4109,6 +4204,25 @@ func (s *Store) SearchAutomationSessions(ctx context.Context, f automationType.S
 		return nil, f, err
 	}
 
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet automationType.SessionSet
+			if navSet, _, _, err = s.fetchFullPageOfAutomationSessions(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
 	return set, f, nil
 }
 
@@ -4614,6 +4728,25 @@ func (s *Store) SearchAutomationTriggers(ctx context.Context, f automationType.T
 		return nil, f, err
 	}
 
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet automationType.TriggerSet
+			if navSet, _, _, err = s.fetchFullPageOfAutomationTriggers(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
 	return set, f, nil
 }
 
@@ -5113,6 +5246,25 @@ func (s *Store) SearchAutomationWorkflows(ctx context.Context, f automationType.
 	f.PageCursor = nil
 	if err != nil {
 		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet automationType.WorkflowSet
+			if navSet, _, _, err = s.fetchFullPageOfAutomationWorkflows(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
 	}
 
 	return set, f, nil
@@ -5678,6 +5830,25 @@ func (s *Store) SearchComposeAttachments(ctx context.Context, f composeType.Atta
 		return nil, f, err
 	}
 
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet composeType.AttachmentSet
+			if navSet, _, _, err = s.fetchFullPageOfComposeAttachments(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
 	return set, f, nil
 }
 
@@ -6170,6 +6341,25 @@ func (s *Store) SearchComposeCharts(ctx context.Context, f composeType.ChartFilt
 	f.PageCursor = nil
 	if err != nil {
 		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet composeType.ChartSet
+			if navSet, _, _, err = s.fetchFullPageOfComposeCharts(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
 	}
 
 	return set, f, nil
@@ -6705,6 +6895,25 @@ func (s *Store) SearchComposeModules(ctx context.Context, f composeType.ModuleFi
 	f.PageCursor = nil
 	if err != nil {
 		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet composeType.ModuleSet
+			if navSet, _, _, err = s.fetchFullPageOfComposeModules(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
 	}
 
 	return set, f, nil
@@ -7692,6 +7901,25 @@ func (s *Store) SearchComposeNamespaces(ctx context.Context, f composeType.Names
 		return nil, f, err
 	}
 
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet composeType.NamespaceSet
+			if navSet, _, _, err = s.fetchFullPageOfComposeNamespaces(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
 	return set, f, nil
 }
 
@@ -8250,6 +8478,25 @@ func (s *Store) SearchComposePages(ctx context.Context, f composeType.PageFilter
 	f.PageCursor = nil
 	if err != nil {
 		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet composeType.PageSet
+			if navSet, _, _, err = s.fetchFullPageOfComposePages(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
 	}
 
 	return set, f, nil
@@ -9828,6 +10075,25 @@ func (s *Store) SearchDataPrivacyRequests(ctx context.Context, f systemType.Data
 		return nil, f, err
 	}
 
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet systemType.DataPrivacyRequestSet
+			if navSet, _, _, err = s.fetchFullPageOfDataPrivacyRequests(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
 	return set, f, nil
 }
 
@@ -10328,6 +10594,25 @@ func (s *Store) SearchDataPrivacyRequestComments(ctx context.Context, f systemTy
 		return nil, f, err
 	}
 
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet systemType.DataPrivacyRequestCommentSet
+			if navSet, _, _, err = s.fetchFullPageOfDataPrivacyRequestComments(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
 	return set, f, nil
 }
 
@@ -10770,6 +11055,25 @@ func (s *Store) SearchFederationExposedModules(ctx context.Context, f federation
 	f.PageCursor = nil
 	if err != nil {
 		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet federationType.ExposedModuleSet
+			if navSet, _, _, err = s.fetchFullPageOfFederationExposedModules(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
 	}
 
 	return set, f, nil
@@ -11267,6 +11571,25 @@ func (s *Store) SearchFederationModuleMappings(ctx context.Context, f federation
 	f.PageCursor = nil
 	if err != nil {
 		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet federationType.ModuleMappingSet
+			if navSet, _, _, err = s.fetchFullPageOfFederationModuleMappings(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
 	}
 
 	return set, f, nil
@@ -12202,6 +12525,25 @@ func (s *Store) SearchFederationNodeSyncs(ctx context.Context, f federationType.
 		return nil, f, err
 	}
 
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet federationType.NodeSyncSet
+			if navSet, _, _, err = s.fetchFullPageOfFederationNodeSyncs(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
 	return set, f, nil
 }
 
@@ -12736,6 +13078,25 @@ func (s *Store) SearchFederationSharedModules(ctx context.Context, f federationT
 	f.PageCursor = nil
 	if err != nil {
 		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet federationType.SharedModuleSet
+			if navSet, _, _, err = s.fetchFullPageOfFederationSharedModules(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
 	}
 
 	return set, f, nil
@@ -13848,6 +14209,25 @@ func (s *Store) SearchQueues(ctx context.Context, f systemType.QueueFilter) (set
 		return nil, f, err
 	}
 
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet systemType.QueueSet
+			if navSet, _, _, err = s.fetchFullPageOfQueues(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
 	return set, f, nil
 }
 
@@ -14376,6 +14756,25 @@ func (s *Store) SearchQueueMessages(ctx context.Context, f systemType.QueueMessa
 	f.PageCursor = nil
 	if err != nil {
 		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet systemType.QueueMessageSet
+			if navSet, _, _, err = s.fetchFullPageOfQueueMessages(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
 	}
 
 	return set, f, nil
@@ -15064,6 +15463,25 @@ func (s *Store) SearchReminders(ctx context.Context, f systemType.ReminderFilter
 		return nil, f, err
 	}
 
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet systemType.ReminderSet
+			if navSet, _, _, err = s.fetchFullPageOfReminders(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
 	return set, f, nil
 }
 
@@ -15561,6 +15979,25 @@ func (s *Store) SearchReports(ctx context.Context, f systemType.ReportFilter) (s
 	f.PageCursor = nil
 	if err != nil {
 		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet systemType.ReportSet
+			if navSet, _, _, err = s.fetchFullPageOfReports(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
 	}
 
 	return set, f, nil
@@ -16364,6 +16801,25 @@ func (s *Store) SearchResourceTranslations(ctx context.Context, f systemType.Res
 		return nil, f, err
 	}
 
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet systemType.ResourceTranslationSet
+			if navSet, _, _, err = s.fetchFullPageOfResourceTranslations(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
 	return set, f, nil
 }
 
@@ -16835,6 +17291,25 @@ func (s *Store) SearchRoles(ctx context.Context, f systemType.RoleFilter) (set s
 	f.PageCursor = nil
 	if err != nil {
 		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet systemType.RoleSet
+			if navSet, _, _, err = s.fetchFullPageOfRoles(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
 	}
 
 	return set, f, nil
@@ -18016,6 +18491,25 @@ func (s *Store) SearchTemplates(ctx context.Context, f systemType.TemplateFilter
 		return nil, f, err
 	}
 
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet systemType.TemplateSet
+			if navSet, _, _, err = s.fetchFullPageOfTemplates(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
 	return set, f, nil
 }
 
@@ -18587,6 +19081,25 @@ func (s *Store) SearchUsers(ctx context.Context, f systemType.UserFilter) (set s
 	f.PageCursor = nil
 	if err != nil {
 		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet systemType.UserSet
+			if navSet, _, _, err = s.fetchFullPageOfUsers(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
 	}
 
 	return set, f, nil

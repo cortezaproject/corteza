@@ -67,6 +67,8 @@ func (ctrl Session) List(ctx context.Context, r *request.SessionList) (interface
 		return nil, err
 	}
 
+	f.IncTotal = r.IncTotal
+
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
 		return nil, err
 	}

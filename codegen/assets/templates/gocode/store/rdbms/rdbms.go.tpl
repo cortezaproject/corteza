@@ -162,6 +162,26 @@ func (s *Store) Search{{ .expIdentPlural }}(ctx context.Context, {{ template "ex
 	if err != nil {
 		return nil, f, err
 	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet {{ .goSetType }}
+			if navSet, _, _, err = s.fetchFullPageOf{{ .expIdentPlural }}(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
 	{{ else }}
 	set, _, err = s.Query{{ .expIdentPlural }}(ctx, f)
 	if err != nil {

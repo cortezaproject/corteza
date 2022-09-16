@@ -92,6 +92,8 @@ func (ctrl DalConnection) List(ctx context.Context, r *request.DalConnectionList
 		f.Deleted = filter.StateInclusive
 	}
 
+	f.IncTotal = r.IncTotal
+
 	dalConnections, err = ctrl.collectConnections(ctx, f)
 	if err != nil {
 		return nil, err
