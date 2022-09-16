@@ -33,6 +33,9 @@ endpoints:
       - type: uint
         name: limit
         title: Limit
+      - type: bool
+        name: incTotal
+        title: Include total counter
       - type: map[string]string
         name: labels
         title: Labels
@@ -532,6 +535,9 @@ endpoints:
       - type: uint
         name: limit
         title: Limit
+      - type: bool
+        name: incTotal
+        title: Include total counter
       - type: string
         name: pageCursor
         title: Page cursor
@@ -943,6 +949,9 @@ endpoints:
       - type: uint
         name: limit
         title: Limit
+      - type: bool
+        name: incTotal
+        title: Include total counter
       - type: string
         name: pageCursor
         title: Page cursor

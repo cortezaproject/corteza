@@ -53,6 +53,11 @@ type (
 		// Limit
 		Limit uint
 
+		// IncTotal GET parameter
+		//
+		// Include total counter
+		IncTotal bool
+
 		// Labels GET parameter
 		//
 		// Labels
@@ -260,6 +265,7 @@ func (r NamespaceList) Auditable() map[string]interface{} {
 		"query":      r.Query,
 		"slug":       r.Slug,
 		"limit":      r.Limit,
+		"incTotal":   r.IncTotal,
 		"labels":     r.Labels,
 		"pageCursor": r.PageCursor,
 		"sort":       r.Sort,
@@ -279,6 +285,11 @@ func (r NamespaceList) GetSlug() string {
 // Auditable returns all auditable/loggable parameters
 func (r NamespaceList) GetLimit() uint {
 	return r.Limit
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceList) GetIncTotal() bool {
+	return r.IncTotal
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -317,6 +328,12 @@ func (r *NamespaceList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["limit"]; ok && len(val) > 0 {
 			r.Limit, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["incTotal"]; ok && len(val) > 0 {
+			r.IncTotal, err = payload.ParseBool(val[0]), nil
 			if err != nil {
 				return err
 			}

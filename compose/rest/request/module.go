@@ -64,6 +64,11 @@ type (
 		// Limit
 		Limit uint
 
+		// IncTotal GET parameter
+		//
+		// Include total counter
+		IncTotal bool
+
 		// PageCursor GET parameter
 		//
 		// Page cursor
@@ -253,6 +258,7 @@ func (r ModuleList) Auditable() map[string]interface{} {
 		"name":        r.Name,
 		"handle":      r.Handle,
 		"limit":       r.Limit,
+		"incTotal":    r.IncTotal,
 		"pageCursor":  r.PageCursor,
 		"labels":      r.Labels,
 		"sort":        r.Sort,
@@ -282,6 +288,11 @@ func (r ModuleList) GetHandle() string {
 // Auditable returns all auditable/loggable parameters
 func (r ModuleList) GetLimit() uint {
 	return r.Limit
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ModuleList) GetIncTotal() bool {
+	return r.IncTotal
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -326,6 +337,12 @@ func (r *ModuleList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["limit"]; ok && len(val) > 0 {
 			r.Limit, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["incTotal"]; ok && len(val) > 0 {
+			r.IncTotal, err = payload.ParseBool(val[0]), nil
 			if err != nil {
 				return err
 			}

@@ -101,6 +101,8 @@ func (ctrl User) List(ctx context.Context, r *request.UserList) (interface{}, er
 		return nil, err
 	}
 
+	f.IncTotal = r.IncTotal
+
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
 		return nil, err
 	}

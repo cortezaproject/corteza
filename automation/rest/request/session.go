@@ -76,6 +76,11 @@ type (
 		// Limit
 		Limit uint
 
+		// IncTotal GET parameter
+		//
+		// Include total rows counter
+		IncTotal bool
+
 		// PageCursor GET parameter
 		//
 		// Page cursor
@@ -138,6 +143,7 @@ func (r SessionList) Auditable() map[string]interface{} {
 		"eventType":    r.EventType,
 		"resourceType": r.ResourceType,
 		"limit":        r.Limit,
+		"incTotal":     r.IncTotal,
 		"pageCursor":   r.PageCursor,
 		"sort":         r.Sort,
 	}
@@ -181,6 +187,11 @@ func (r SessionList) GetResourceType() string {
 // Auditable returns all auditable/loggable parameters
 func (r SessionList) GetLimit() uint {
 	return r.Limit
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r SessionList) GetIncTotal() bool {
+	return r.IncTotal
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -264,6 +275,12 @@ func (r *SessionList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["limit"]; ok && len(val) > 0 {
 			r.Limit, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["incTotal"]; ok && len(val) > 0 {
+			r.IncTotal, err = payload.ParseBool(val[0]), nil
 			if err != nil {
 				return err
 			}
