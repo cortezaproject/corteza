@@ -58,8 +58,12 @@ type (
 		RecordRevisions ModuleFieldConfigRecordRevisions `json:"recordRevisions"`
 	}
 
+	// ModuleFieldConfigDAL holds DAL configuration for a specific field
+	//
+	// If strategy is not set for a specific field (nil)
+	// then a default strategy is used
 	ModuleFieldConfigDAL struct {
-		EncodingStrategy EncodingStrategy `json:"encodingStrategy"`
+		EncodingStrategy *EncodingStrategy `json:"encodingStrategy"`
 	}
 
 	ModuleFieldConfigDataPrivacy struct {
@@ -75,11 +79,42 @@ type (
 		Skip bool `json:"enabled"`
 	}
 
+	// SystemFieldEncoding holds configuration for encoding record system fields
+	//
+	// If strategy is not set for a specific field (nil)
+	// then a default strategy is used, assuming system field/column presence
+	SystemFieldEncoding struct {
+		ID *EncodingStrategy `json:"id"`
+
+		ModuleID    *EncodingStrategy `json:"moduleID"`
+		NamespaceID *EncodingStrategy `json:"namespaceID"`
+
+		Revision *EncodingStrategy `json:"revision"`
+		Meta     *EncodingStrategy `json:"meta"`
+
+		OwnedBy *EncodingStrategy `json:"ownedBy"`
+
+		CreatedAt *EncodingStrategy `json:"createdAt"`
+		CreatedBy *EncodingStrategy `json:"createdBy"`
+
+		UpdatedAt *EncodingStrategy `json:"updatedAt"`
+		UpdatedBy *EncodingStrategy `json:"updatedBy"`
+
+		DeletedAt *EncodingStrategy `json:"deletedAt"`
+		DeletedBy *EncodingStrategy `json:"deletedBy"`
+	}
+
+	// EncodingStrategy is used by both: Module (for system fields) and ModuleField
+	//
 	EncodingStrategy struct {
+		//Type       string         `json:"type"`
+		//TypeParams map[string]any `json:"typeParams"`
+
 		Omit bool `json:"omit,omitempty"`
 
 		*EncodingStrategyAlias `json:"alias,omitempty"`
 		*EncodingStrategyJSON  `json:"json,omitempty"`
+		*EncodingStrategyPlain `json:"plain,omitempty"`
 	}
 
 	EncodingStrategyAlias struct {
@@ -89,6 +124,8 @@ type (
 	EncodingStrategyJSON struct {
 		Ident string `json:"ident"`
 	}
+
+	EncodingStrategyPlain struct{}
 
 	ModuleFieldFilter struct {
 		ModuleID []uint64
