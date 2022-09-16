@@ -763,7 +763,7 @@ func (svc module) handleUpdate(ctx context.Context, upd *types.Module) moduleUpd
 
 		// check by size first in case if one is nil and other len(0)
 		// @todo make field-change detection more optimal
-		if len(upd.Fields) > 0 && len(res.Fields) > 0 && !reflect.DeepEqual(res.Fields, upd.Fields) {
+		if (len(upd.Fields) > 0 || len(res.Fields) > 0) && !reflect.DeepEqual(res.Fields, upd.Fields) {
 			changes |= moduleFieldsChanged
 			res.Fields = upd.Fields
 		}
@@ -1363,6 +1363,13 @@ func moduleFieldsToAttributes(mod *types.Module) (out dal.AttributeSet, err erro
 		if err != nil {
 			return
 		}
+
+		if attr == nil {
+			// when instructed to omit the attribute
+			// by field's encoding strategy
+			continue
+		}
+
 		out = append(out, attr)
 	}
 
@@ -1387,7 +1394,8 @@ func moduleSystemFieldsToAttributes(mod *types.Module) (out dal.AttributeSet, er
 				return &dal.CodecRecordValueSetJSON{
 					Ident: es.EncodingStrategyJSON.Ident,
 				}
-			case es != nil && es.Omit:
+			case es != nil:
+				// assuming omit!
 				return nil
 			default:
 				return &dal.CodecAlias{
@@ -1431,18 +1439,23 @@ func moduleFieldToAttribute(f *types.ModuleField) (out *dal.Attribute, err error
 		// generate dal.Codec for each attribute
 		// using encoding strategy for that attribute
 		// with failsafe on JSON RVS.
-		mfc = func(f *types.ModuleField) dal.Codec {
+		codec = func(f *types.ModuleField) dal.Codec {
 			var es = f.Config.DAL.EncodingStrategy
 
 			switch {
-			case es.EncodingStrategyAlias != nil:
+			case es != nil && es.EncodingStrategyPlain != nil:
+				return &dal.CodecPlain{}
+			case es != nil && es.EncodingStrategyAlias != nil:
 				return &dal.CodecAlias{
 					Ident: es.EncodingStrategyAlias.Ident,
 				}
-			case es.EncodingStrategyJSON != nil:
+			case es != nil && es.EncodingStrategyJSON != nil:
 				return &dal.CodecRecordValueSetJSON{
 					Ident: es.EncodingStrategyJSON.Ident,
 				}
+			case es != nil:
+				// assuming omit!
+				return nil
 			default:
 				// defaulting to RecordValueSetJSON with
 				// default attribute ident from connection
@@ -1452,38 +1465,42 @@ func moduleFieldToAttribute(f *types.ModuleField) (out *dal.Attribute, err error
 					Ident: "values",
 				}
 			}
-		}
+		}(f)
 	)
+
+	if codec == nil {
+		return
+	}
 
 	switch strings.ToLower(f.Kind) {
 	case "bool", "boolean":
 		at := &dal.TypeBoolean{}
-		out = dal.FullAttribute(f.Name, at, mfc(f))
+		out = dal.FullAttribute(f.Name, at, codec)
 	case "datetime":
 		switch {
 		case f.IsDateOnly():
 			at := &dal.TypeDate{}
-			out = dal.FullAttribute(f.Name, at, mfc(f))
+			out = dal.FullAttribute(f.Name, at, codec)
 		case f.IsTimeOnly():
 			at := &dal.TypeTime{}
-			out = dal.FullAttribute(f.Name, at, mfc(f))
+			out = dal.FullAttribute(f.Name, at, codec)
 		default:
 			at := &dal.TypeTimestamp{}
-			out = dal.FullAttribute(f.Name, at, mfc(f))
+			out = dal.FullAttribute(f.Name, at, codec)
 		}
 	case "email":
 		at := &dal.TypeText{Length: emailLength}
-		out = dal.FullAttribute(f.Name, at, mfc(f))
+		out = dal.FullAttribute(f.Name, at, codec)
 	case "file":
 		at := &dal.TypeRef{
 			RefModel: &dal.ModelRef{Resource: "corteza::system:attachment"},
 		}
-		out = dal.FullAttribute(f.Name, at, mfc(f))
+		out = dal.FullAttribute(f.Name, at, codec)
 	case "number":
 		at := &dal.TypeNumber{
 			Precision: int(f.Options.Precision()),
 		}
-		out = dal.FullAttribute(f.Name, at, mfc(f))
+		out = dal.FullAttribute(f.Name, at, codec)
 	case "record":
 		at := &dal.TypeRef{
 			RefModel: &dal.ModelRef{
@@ -1491,28 +1508,28 @@ func moduleFieldToAttribute(f *types.ModuleField) (out *dal.Attribute, err error
 				ResourceType: types.ModuleResourceType,
 			},
 		}
-		out = dal.FullAttribute(f.Name, at, mfc(f))
+		out = dal.FullAttribute(f.Name, at, codec)
 	case "select":
 		at := &dal.TypeEnum{
 			Values: f.SelectOptions(),
 		}
-		out = dal.FullAttribute(f.Name, at, mfc(f))
+		out = dal.FullAttribute(f.Name, at, codec)
 	case "url":
 		at := &dal.TypeText{
 			Length: urlLength,
 		}
-		out = dal.FullAttribute(f.Name, at, mfc(f))
+		out = dal.FullAttribute(f.Name, at, codec)
 	case "user":
 		at := &dal.TypeRef{
 			RefModel: &dal.ModelRef{
 				ResourceType: systemTypes.UserResourceType,
 			},
 		}
-		out = dal.FullAttribute(f.Name, at, mfc(f))
+		out = dal.FullAttribute(f.Name, at, codec)
 
 	default:
 		at := &dal.TypeText{}
-		out = dal.FullAttribute(f.Name, at, mfc(f))
+		out = dal.FullAttribute(f.Name, at, codec)
 
 	}
 
