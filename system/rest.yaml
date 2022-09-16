@@ -51,6 +51,9 @@ endpoints:
       - type: uint
         name: limit
         title: Limit
+      - type: bool
+        name: incTotal
+        title: Include total counter
       - type: string
         name: pageCursor
         title: Page cursor
@@ -233,6 +236,7 @@ endpoints:
       - { type: "uint",              name: "archived",   title: "Exclude (0, default), include (1) or return only (2) archived roles" }
       - { type: "map[string]string", name: "labels",     title: "Labels", parser: "label.ParseStrings" }
       - { type: "uint",              name: "limit",      title: "Limit" }
+      - { name: "incTotal",          type: "bool",       title: "Include total counter" }
       - { type: "string",            name: "pageCursor", title: "Page cursor" }
       - { type: "string",            name: "sort",       title: "Sort items" }
   - name: create
@@ -478,6 +482,9 @@ endpoints:
       - type: uint
         name: limit
         title: Limit
+      - type: bool
+        name: incTotal
+        title: Include total counter
       - type: string
         name: pageCursor
         title: Page cursor
@@ -852,6 +859,9 @@ endpoints:
       - name: deleted
         title: Exclude (0, default), include (1) or return only (2) deleted connections
         type: uint
+      - type: bool
+        name: incTotal
+        title: Include total counter
   - name: create
     method: POST
     title: Create connection
@@ -934,6 +944,9 @@ endpoints:
       - type: uint
         name: limit
         title: Limit
+      - type: bool
+        name: incTotal
+        title: Include total counter
       - type: string
         name: pageCursor
         title: Page cursor
@@ -1470,6 +1483,9 @@ endpoints:
       - name: limit
         type: uint
         title: Limit
+      - type: bool
+        name: incTotal
+        title: Include total counter
       - name: pageCursor
         type: string
         title: Page cursor
@@ -1637,6 +1653,9 @@ endpoints:
       - type: uint
         name: limit
         title: Limit
+      - type: bool
+        name: incTotal
+        title: Include total counter
       - type: string
         name: pageCursor
         title: Page cursor
@@ -1845,11 +1864,12 @@ endpoints:
     path: "/"
     parameters:
       get:
-      - { type: string,            name: query,      required: false, title: Search query }
-      - { type: uint,              name: limit,      required: false, title: Limit }
-      - { type: string,            name: pageCursor, required: false, title: Page cursor }
-      - { type: string,            name: sort,       required: false, title: Sort items }
-      - { type: uint,              name: deleted,    required: false, title: Exclude (0, default), include (1) or return only (2) deleted queues }
+      - { type: string,            name: query,      title: Search query }
+      - { type: uint,              name: limit,      title: Limit }
+      - { type: bool,              name: incTotal,   title: Include total counter }
+      - { type: string,            name: pageCursor, title: Page cursor }
+      - { type: string,            name: sort,       title: Sort items }
+      - { type: uint,              name: deleted,    title: Exclude (0, default), include (1) or return only (2) deleted queues }
   - name: create
     method: POST
     title: Create messaging queue
@@ -1912,6 +1932,7 @@ endpoints:
       - { name: disabled,   type: "uint64",            title: "Exclude (0, default), include (1) or return only (2) disabled routes" }
       - { name: labels,     type: "map[string]string", title: "Labels", parser: "label.ParseStrings" }
       - { name: limit,      type: "uint",              title: "Limit" }
+      - { name: incTotal,   type: "bool",              title: "Include total counter" }
       - { name: pageCursor, type: "string",            title: "Page cursor" }
       - { name: sort,       type: "string",            title: "Sort items" }
   - name: create

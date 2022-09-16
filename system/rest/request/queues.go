@@ -45,6 +45,11 @@ type (
 		// Limit
 		Limit uint
 
+		// IncTotal GET parameter
+		//
+		// Include total counter
+		IncTotal bool
+
 		// PageCursor GET parameter
 		//
 		// Page cursor
@@ -132,6 +137,7 @@ func (r QueuesList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"query":      r.Query,
 		"limit":      r.Limit,
+		"incTotal":   r.IncTotal,
 		"pageCursor": r.PageCursor,
 		"sort":       r.Sort,
 		"deleted":    r.Deleted,
@@ -146,6 +152,11 @@ func (r QueuesList) GetQuery() string {
 // Auditable returns all auditable/loggable parameters
 func (r QueuesList) GetLimit() uint {
 	return r.Limit
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r QueuesList) GetIncTotal() bool {
+	return r.IncTotal
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -178,6 +189,12 @@ func (r *QueuesList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["limit"]; ok && len(val) > 0 {
 			r.Limit, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["incTotal"]; ok && len(val) > 0 {
+			r.IncTotal, err = payload.ParseBool(val[0]), nil
 			if err != nil {
 				return err
 			}

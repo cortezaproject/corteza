@@ -27,6 +27,7 @@ endpoints:
       - { name: disabled,   type: "uint",              title: "Exclude (0, default), include (1) or return only (2) disabled workflows" }
       - { name: labels,     type: "map[string]string", title: "Labels", parser: "label.ParseStrings" }
       - { name: limit,      type: "uint",              title: "Limit" }
+      - { name: incTotal,   type: "bool",              title: "Include total rows counter" }
       - { name: pageCursor, type: "string",            title: "Page cursor" }
       - { name: sort,       type: "string",            title: "Sort items" }
   - name: create
@@ -199,6 +200,7 @@ endpoints:
       - { name: eventType,    type: "string",              title: "Filter event type" }
       - { name: resourceType, type: "string",              title: "Filter resource type" }
       - { name: limit,        type: "uint",                title: "Limit" }
+      - { name: incTotal,     type: "bool",                title: "Include total rows counter" }
       - { name: pageCursor,   type: "string",              title: "Page cursor" }
       - { name: sort,         type: "string",              title: "Sort items" }
   - name: read
