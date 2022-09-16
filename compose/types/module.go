@@ -47,27 +47,6 @@ type (
 		Name string `json:"name"`
 	}
 
-	SystemFieldEncoding struct {
-		ID *EncodingStrategy `json:"id"`
-
-		ModuleID    *EncodingStrategy `json:"moduleID"`
-		NamespaceID *EncodingStrategy `json:"namespaceID"`
-
-		Revision *EncodingStrategy `json:"revision"`
-		Meta     *EncodingStrategy `json:"meta"`
-
-		OwnedBy *EncodingStrategy `json:"ownedBy"`
-
-		CreatedAt *EncodingStrategy `json:"createdAt"`
-		CreatedBy *EncodingStrategy `json:"createdBy"`
-
-		UpdatedAt *EncodingStrategy `json:"updatedAt"`
-		UpdatedBy *EncodingStrategy `json:"updatedBy"`
-
-		DeletedAt *EncodingStrategy `json:"deletedAt"`
-		DeletedBy *EncodingStrategy `json:"deletedBy"`
-	}
-
 	ModuleConfig struct {
 		// How and where the records of this module are stored in the database
 		DAL ModuleConfigDAL `json:"dal"`
