@@ -11,6 +11,7 @@ type (
 	// source/destination of the value (table column, json document property)
 	Codec interface {
 		Type() AttributeCodecType
+		SingleValueOnly() bool
 	}
 
 	CodecPlain struct{}
@@ -56,3 +57,7 @@ func (*CodecRecordValueSetJSON) Type() AttributeCodecType {
 	return "corteza::dal:attribute-codec:record-value-set-json"
 }
 func (*CodecAlias) Type() AttributeCodecType { return "corteza::dal:attribute-codec:alias" }
+
+func (*CodecPlain) SingleValueOnly() bool              { return true }
+func (*CodecRecordValueSetJSON) SingleValueOnly() bool { return false }
+func (*CodecAlias) SingleValueOnly() bool              { return true }

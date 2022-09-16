@@ -129,6 +129,12 @@ func (c *connection) Models(ctx context.Context) (dal.ModelSet, error) {
 //
 // @todo DDL operations
 func (c *connection) CreateModel(ctx context.Context, mm ...*dal.Model) (err error) {
+	for _, m := range mm {
+		if err = validate(m); err != nil {
+			return
+		}
+	}
+
 	c.mux.Lock()
 	defer c.mux.Unlock()
 	for _, m := range mm {
@@ -172,7 +178,11 @@ func (c *connection) DeleteModel(ctx context.Context, mm ...*dal.Model) (err err
 //
 // @todo DDL operations
 // @todo some tables should not be removed (like compose_record on primary connection)
-func (c *connection) UpdateModel(ctx context.Context, old *dal.Model, new *dal.Model) error {
+func (c *connection) UpdateModel(ctx context.Context, old *dal.Model, new *dal.Model) (err error) {
+	if err = validate(new); err != nil {
+		return
+	}
+
 	c.mux.Lock()
 	defer c.mux.Unlock()
 
@@ -183,7 +193,7 @@ func (c *connection) UpdateModel(ctx context.Context, old *dal.Model, new *dal.M
 
 	// update the cache
 	c.models[cacheKey(new)] = Model(new, c.db, c.dialect)
-	return nil
+	return
 }
 
 // UpdateModelAttribute alters column on a db table and runs data transformations

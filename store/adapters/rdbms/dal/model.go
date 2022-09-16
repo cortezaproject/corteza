@@ -39,6 +39,34 @@ type (
 	}
 )
 
+func validate(m *dal.Model) error {
+	var (
+		c2c = make(map[string]*dal.Attribute, len(m.Attributes))
+	)
+
+	for _, a := range m.Attributes {
+		if a.StoreIdent() == "" {
+			return fmt.Errorf("attribute %q has no ident", a.Ident)
+		}
+
+		if a.Store == nil {
+			return fmt.Errorf("attribute %q has no store codec", a.Ident)
+		}
+
+		usedBy, has := c2c[a.StoreIdent()]
+		if has {
+			// column already in the map
+			if a.Store.SingleValueOnly() {
+				return fmt.Errorf("attribute %q has single value codec but column %q is already used by attribute %q", a.Ident, a.StoreIdent(), usedBy.Ident)
+			}
+		}
+
+		c2c[a.StoreIdent()] = a
+	}
+
+	return nil
+}
+
 // Model returns fully initialized model store
 //
 // It abstracts database table and its columns and provides unified interface

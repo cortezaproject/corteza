@@ -48,11 +48,11 @@ func UpdateModel(ctx context.Context, dd DataDefiner, m *dal.Model) (err error) 
 		if col != nil {
 			// @todo check if column type matches
 			// @todo check if column is nullable
-			break
+			continue
 		}
 
 		// @todo add column to table
-		return fmt.Errorf("column %q on table %q not found; adding columns is not jet supported", attr.Ident, m.Ident)
+		return fmt.Errorf("column %q on table %q not found; adding columns is not yet supported", attr.Ident, m.Ident)
 	}
 
 	if err = EnsureIndexes(ctx, dd, m.Indexes...); err != nil {
