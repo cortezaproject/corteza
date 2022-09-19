@@ -709,7 +709,7 @@ func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.Work
 					}
 				}
 
-				return errors.Internal("unexpected type %q for argument %q no step type %q", msgArg.Type, argName, s.Kind)
+				return errors.Internal("unexpected type %q for argument %q on step type %q", msgArg.Type, argName, s.Kind)
 			}
 		}
 
@@ -846,7 +846,7 @@ func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.Work
 		checks = append(checks,
 			noRef,
 			// required "workflow" with handle or ID
-			requiredArg("workflow", expr.String{}, expr.ID{}),
+			requiredArg("workflow", expr.Handle{}, expr.ID{}),
 
 			// optional "scope" as expr.Vars
 			checkArg("scope", expr.Vars{}),
