@@ -149,9 +149,9 @@ func loadScenarioWithName(ctx context.Context, t *testing.T, scenario string) {
 	}
 
 	// Reload and register workflows
-	// if err = service.DefaultWorkflow.Load(ctx); err != nil {
-	// 	t.Fatalf("failed to reload workflows: %v", err)
-	// }
+	if err = service.DefaultWorkflow.Load(ctx); err != nil {
+		t.Fatalf("failed to reload workflows: %v", err)
+	}
 }
 
 func bypassRBAC(ctx context.Context) context.Context {

@@ -35,6 +35,7 @@ func Test0001_basics_detect_datarace_issues(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		wg.Add(1)
 		go t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
+			defer wg.Done()
 			var (
 				aux     = struct{ Foo int64 }{}
 				req     = require.New(t)
@@ -42,7 +43,6 @@ func Test0001_basics_detect_datarace_issues(t *testing.T) {
 			)
 			req.NoError(vars.Decode(&aux))
 			req.Equal(int64(42), aux.Foo)
-			wg.Done()
 		})
 	}
 
