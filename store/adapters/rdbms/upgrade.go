@@ -52,12 +52,14 @@ func createTablesFromModels(ctx context.Context, log *zap.Logger, dd ddl.DataDef
 			}
 
 			_, err = dd.TableLookup(ctx, m.Ident)
-			if err != nil && errors.IsNotFound(err) {
-				err = dd.TableCreate(ctx, tbl)
-			}
-
 			if err != nil {
-				return fmt.Errorf("can not create table from model %q: %w", m.Ident, err)
+				if !errors.IsNotFound(err) {
+					return fmt.Errorf("can not do a table lookup: %w", err)
+				}
+
+				if err = dd.TableCreate(ctx, tbl); err != nil {
+					return fmt.Errorf("can not create table from model %q: %w", m.Ident, err)
+				}
 			}
 
 			for _, idx := range tbl.Indexes {
