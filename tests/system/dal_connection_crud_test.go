@@ -167,7 +167,7 @@ func Test_dal_connection_update(t *testing.T) {
 		Handle: "test_connection",
 	})
 
-	helpers.AllowMe(h, types.DalConnectionRbacResource(0), "update")
+	helpers.AllowMe(h, types.DalConnectionRbacResource(0), "update", "dal-config.manage")
 
 	h.apiInit().
 		Put(fmt.Sprintf("/dal/connections/%d", sl.ID)).

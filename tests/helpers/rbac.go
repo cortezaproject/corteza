@@ -100,9 +100,15 @@ func AllowMeDalConnectionSearch(mrg myRoleGetter) {
 }
 
 func AllowMeDalConnectionCRUD(mrg myRoleGetter) {
-	AllowMe(mrg, types.ComponentRbacResource(), "dal-connection.create")
-	AllowMe(mrg, types.ComponentRbacResource(), "dal-connections.search")
-	AllowMe(mrg, types.DalConnectionRbacResource(0), "read")
-	AllowMe(mrg, types.DalConnectionRbacResource(0), "update")
-	AllowMe(mrg, types.DalConnectionRbacResource(0), "delete")
+	AllowMe(mrg, types.ComponentRbacResource(),
+		"dal-connection.create",
+		"dal-connections.search",
+	)
+
+	AllowMe(mrg, types.DalConnectionRbacResource(0),
+		"read",
+		"update",
+		"delete",
+		"dal-config.manage",
+	)
 }
