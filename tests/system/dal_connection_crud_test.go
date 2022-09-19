@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service"
@@ -57,9 +56,6 @@ func (h helper) createDalConnection(res *types.DalConnection) *types.DalConnecti
 		res.Meta.Ownership = "tester"
 	}
 
-	if res.Config.DAL.ModelIdent == "" {
-		res.Config.DAL.ModelIdent = "compose_records_{{namespace}}_{{module}}"
-	}
 	if res.Config.DAL == nil {
 		res.Config.DAL = &types.ConnectionConfigDAL{
 			Type: "corteza::dal:connection:dsn",
@@ -67,11 +63,10 @@ func (h helper) createDalConnection(res *types.DalConnection) *types.DalConnecti
 				"dsn": "sqlite3://file::memory:?cache=shared&mode=memory",
 			},
 		}
-
 	}
 
-	if len(res.Config.DAL.Operations) == 0 {
-		res.Config.DAL.Operations = dal.FullOperations()
+	if res.Config.DAL.ModelIdent == "" {
+		res.Config.DAL.ModelIdent = "compose_records_{{namespace}}_{{module}}"
 	}
 
 	if res.CreatedAt.IsZero() {
