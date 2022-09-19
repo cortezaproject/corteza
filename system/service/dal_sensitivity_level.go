@@ -311,22 +311,23 @@ func (svc *dalSensitivityLevel) prepare(ctx context.Context, s store.Storer, sl 
 		// Sort by level for easier normalization
 		sort.Sort(set)
 
-		// Normalize sensitivity level
-		offset := 0
-		for i := range set {
-			if set[i].DeletedAt != nil {
-				offset++
-			}
+		// @todo uncomment sensitivity level normalization after we redo the user interface
+		// // Normalize sensitivity level
+		// offset := 0
+		// for i := range set {
+		// 	if set[i].DeletedAt != nil {
+		// 		offset++
+		// 	}
 
-			nxtLvl := i + 1 - offset
-			if nxtLvl != set[i].Level {
-				set[i].UpdatedAt = now()
-				// Same user so we can cheat a bit
-				set[i].UpdatedBy = sl.CreatedBy
-			}
+		// 	nxtLvl := i + 1 - offset
+		// 	if nxtLvl != set[i].Level {
+		// 		set[i].UpdatedAt = now()
+		// 		// Same user so we can cheat a bit
+		// 		set[i].UpdatedBy = sl.CreatedBy
+		// 	}
 
-			set[i].Level = nxtLvl
-		}
+		// 	set[i].Level = nxtLvl
+		// }
 	}
 
 	return set, err
