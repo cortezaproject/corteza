@@ -31,14 +31,14 @@ type (
 
 		// def provides a list of aggregates.
 		//
-		// Eac index corresponds to the aggregates and counts slices
+		// Each index corresponds to the aggregates and counts slices
 		def []aggregateDef
 		// scanned indicates whether the aggregator has been scanned since
 		// we need to block writes after the first scan.
 		scanned bool
 	}
 
-	// aggregateDef is a wrapper to outline some aggregate value
+	// aggregateDef is a wrapper for the provided value aggregation
 	aggregateDef struct {
 		outIdent string
 
@@ -66,26 +66,58 @@ var (
 //
 // The aggregator is not routine safe; consider defining multiple aggregators
 // and then combining them together.
-func Aggregator(attributes ...AttributeMapping) (_ *aggregator, err error) {
-	// Convert attribute mappings into an internal structure
-	// @todo consider dropping this internal structure; not sure how much I like it
-	//       but I think having something in between is best.
-	attrs := make([]aggregateDef, len(attributes))
+func Aggregator() *aggregator {
+	return &aggregator{
+		aggregates: make([]float64, 0, 16),
+		counts:     make([]int, 0, 16),
+	}
+}
 
-	for i, a := range attributes {
-		attrs[i], err = mappingToAggregateDef(a)
-		if err != nil {
-			return
-		}
+// AddAggregateE adds a new aggregate from a raw expression
+func (a *aggregator) AddAggregateE(ident, expr string) (err error) {
+	// @note the converter is reused so we can safely do this
+	n, err := newConverterGval().Parse(expr)
+	if err != nil {
+		return
 	}
 
-	return &aggregator{
-		def: attrs,
+	return a.AddAggregate(ident, n)
+}
 
-		// init appropriate slices
-		aggregates: make([]float64, len(attributes)),
-		counts:     make([]int, len(attributes)),
-	}, nil
+// AddAggregate adds a new aggregate from an already parsed expression
+func (a *aggregator) AddAggregate(ident string, expr *ql.ASTNode) (err error) {
+	def := aggregateDef{
+		outIdent: ident,
+	}
+
+	inIdent, expr, err := unpackMappingSource(expr)
+	if err != nil {
+		return
+	}
+
+	// Take it from the source
+	if inIdent != "" {
+		def.inIdent = inIdent
+		return
+	}
+
+	// Take it from the expression
+	// - agg. op.
+	def.aggOp, expr, err = unpackExpressionNode(expr)
+	if err != nil {
+		return
+	}
+	// - make evaluator
+	def.eval, err = newRunnerGvalParsed(expr)
+	if err != nil {
+		return
+	}
+
+	a.aggregates = append(a.aggregates, 0)
+	a.counts = append(a.counts, 0)
+	a.def = append(a.def, def)
+
+	return
 }
 
 // Aggregate aggregates the given value
@@ -283,48 +315,12 @@ func (a *aggregator) completeAverage() {
 
 // Utilities
 
-// mappingToAggregateDef constructs an aggregate definition from the provided mapping
-// @note this will probably change when I change this AttributeMapping thing
-func mappingToAggregateDef(a AttributeMapping) (def aggregateDef, err error) {
-	def = aggregateDef{
-		outIdent: a.Identifier(),
+func unpackMappingSource(n *ql.ASTNode) (ident string, expr *ql.ASTNode, err error) {
+	if n.Symbol != "" {
+		return n.Symbol, nil, nil
 	}
 
-	inIdent, expr, err := unpackMappingSource(a)
-	if err != nil {
-		return
-	}
-
-	// Take it from the source
-	if inIdent != "" {
-		def.inIdent = inIdent
-		return
-	}
-
-	// Take it from the expression
-	// - agg. op.
-	def.aggOp, expr, err = unpackExpressionNode(expr)
-	if err != nil {
-		return
-	}
-	// - make evaluator
-	def.eval, err = newRunnerGvalParsed(expr)
-	if err != nil {
-		return
-	}
-
-	return
-}
-
-func unpackMappingSource(a AttributeMapping) (ident string, expr *ql.ASTNode, err error) {
-	base := a.Expression()
-	if base == "" {
-		ident = a.Identifier()
-		return
-	}
-
-	// @note the converter is being reused so this is ok
-	expr, err = newConverterGval().Parse(base)
+	expr = n
 	return
 }
 

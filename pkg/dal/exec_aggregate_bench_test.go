@@ -38,9 +38,7 @@ func benchmarkExecAggregate(b *testing.B, n int) {
 		}
 
 		b.StartTimer()
-		err := def.init(ctx)
-		require.NoError(b, err)
-		_, err = def.exec(ctx, buff)
+		_, err := def.iterator(ctx, buff)
 		require.NoError(b, err)
 		b.StopTimer()
 

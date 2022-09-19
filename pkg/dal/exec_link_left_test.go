@@ -607,9 +607,7 @@ func TestStepLinkLeft(t *testing.T) {
 					filter:             tc.f,
 				}
 
-				err := def.init(ctx)
-				require.NoError(t, err)
-				xs, err := def.exec(ctx, l, f)
+				xs, err := def.iterator(ctx, l, f)
 				require.NoError(t, err)
 
 				i := 0
@@ -627,6 +625,118 @@ func TestStepLinkLeft(t *testing.T) {
 			})
 		}
 	}
+}
+
+func TestStepLinkValidation(t *testing.T) {
+	ctx := context.Background()
+
+	basicLocalAttrs := []simpleAttribute{
+		{ident: "l_pk", t: TypeID{}},
+		{ident: "l_val", t: TypeText{}},
+	}
+	basicForeignAttrs := []simpleAttribute{
+		{ident: "f_pk", t: TypeID{}},
+		{ident: "f_fk", t: TypeRef{}},
+		{ident: "f_val", t: TypeText{}},
+	}
+	basicPred := LinkPredicate{Left: "l_pk", Right: "f_fk"}
+
+	run := func(t *testing.T, ll, rr []simpleAttribute) (err error) {
+		sa := &Link{
+			Ident:           "jn",
+			LeftAttributes:  saToMapping(basicLocalAttrs...),
+			RightAttributes: saToMapping(basicForeignAttrs...),
+
+			On: basicPred,
+
+			OutLeftAttributes:  saToMapping(ll...),
+			OutRightAttributes: saToMapping(rr...),
+		}
+
+		return sa.dryrun(ctx)
+	}
+
+	runP := func(t *testing.T, pred LinkPredicate, ll, rr []simpleAttribute) (err error) {
+		sa := &Link{
+			Ident:           "jn",
+			LeftAttributes:  saToMapping(basicLocalAttrs...),
+			RightAttributes: saToMapping(basicForeignAttrs...),
+
+			On: pred,
+
+			OutLeftAttributes:  saToMapping(ll...),
+			OutRightAttributes: saToMapping(rr...),
+		}
+
+		return sa.dryrun(ctx)
+	}
+
+	runF := func(t *testing.T, f internalFilter, ll, rr []simpleAttribute) (err error) {
+		sa := &Link{
+			Ident:           "jn",
+			LeftAttributes:  saToMapping(basicLocalAttrs...),
+			RightAttributes: saToMapping(basicForeignAttrs...),
+
+			On: basicPred,
+
+			Filter: f,
+
+			OutLeftAttributes:  saToMapping(ll...),
+			OutRightAttributes: saToMapping(rr...),
+		}
+
+		return sa.dryrun(ctx)
+	}
+
+	basicOutLeftAttrs := []simpleAttribute{
+		{ident: "l_pk", t: TypeID{}},
+		{ident: "l_val", t: TypeText{}},
+	}
+	basicOutRightAttrs := []simpleAttribute{
+		{ident: "f_pk", t: TypeID{}},
+		{ident: "f_fk", t: TypeRef{}},
+		{ident: "f_val", t: TypeText{}},
+	}
+	_ = basicOutLeftAttrs
+	_ = basicOutRightAttrs
+
+	t.Run("out left ident doesn't exist", func(t *testing.T) {
+		basicOutLeftAttrs := []simpleAttribute{
+			{ident: "i_not_real"},
+		}
+
+		err := run(t, basicOutLeftAttrs, basicOutRightAttrs)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "i_not_real")
+	})
+
+	t.Run("right left ident doesn't exist", func(t *testing.T) {
+		basicOutRightAttrs := []simpleAttribute{
+			{ident: "i_not_real"},
+		}
+
+		err := run(t, basicOutLeftAttrs, basicOutRightAttrs)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "i_not_real")
+	})
+
+	t.Run("left predicate doesn't exist", func(t *testing.T) {
+		err := runP(t, LinkPredicate{Left: "i_not_exist", Right: "f_fk"}, basicOutLeftAttrs, basicOutRightAttrs)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "i_not_exist")
+	})
+
+	t.Run("right predicate doesn't exist", func(t *testing.T) {
+		err := runP(t, LinkPredicate{Left: "l_pk", Right: "i_not_exist"}, basicOutLeftAttrs, basicOutRightAttrs)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "i_not_exist")
+	})
+
+	t.Run("sort ident does not exist", func(t *testing.T) {
+		err := runF(t, internalFilter{orderBy: filter.SortExprSet{{Column: "i_not_yes"}}}, basicOutLeftAttrs, basicOutRightAttrs)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "i_not_yes")
+	})
 }
 
 func TestStepLinkleft_cursorCollect_forward(t *testing.T) {
@@ -855,9 +965,7 @@ func TestStepLinkleft_more(t *testing.T) {
 				filter:             tc.f,
 			}
 
-			err := def.init(ctx)
-			require.NoError(t, err)
-			xs, err := def.exec(ctx, l, f)
+			xs, err := def.iterator(ctx, l, f)
 			require.NoError(t, err)
 
 			require.True(t, xs.Next(ctx))

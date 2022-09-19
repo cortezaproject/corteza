@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/tidwall/btree"
 )
 
@@ -19,7 +20,11 @@ type (
 		scanRow *Row
 		planned bool
 
+		groupDefs     []aggregateAttr
+		aggregateDefs []aggregateAttr
+
 		rowTester tester
+		keyMaker  keyMaker
 
 		// Keep track of the registered groupIndex so we can easier implement the iterator.
 		// Simple index tracking won't be enough, because btree is self-balancing -- things change
@@ -29,6 +34,8 @@ type (
 		groups     []*aggregateGroup
 		i          int
 	}
+
+	keyMaker func(context.Context, ValueGetter) (groupKey, error)
 )
 
 // init initializes the execution step's state
@@ -38,6 +45,16 @@ func (xs *aggregate) init(ctx context.Context) (err error) {
 	xs.groupIndex = btree.NewGeneric[*aggregateGroup](xs.compareGroupKeys)
 	xs.groups = make([]*aggregateGroup, 0, 128)
 	xs.rowTester, err = prepareGenericRowTester(xs.filter)
+	if err != nil {
+		return
+	}
+
+	// Initialize the key maker
+	kk := make([]*ql.ASTNode, 0, len(xs.groupDefs))
+	for _, a := range xs.groupDefs {
+		kk = append(kk, a.expr)
+	}
+	xs.keyMaker, err = aggregateGroupKeyMaker(kk...)
 	if err != nil {
 		return
 	}
@@ -229,6 +246,7 @@ func (xs *aggregate) pullEntireSource(ctx context.Context) (err error) {
 	}
 
 	// Drain the source
+	var k groupKey
 	for xs.source.Next(ctx) {
 		err = xs.source.Scan(r)
 		if err != nil {
@@ -236,9 +254,9 @@ func (xs *aggregate) pullEntireSource(ctx context.Context) (err error) {
 		}
 
 		// Get the key for this row
-		// @todo try to reuse key; probably a much simpler thing could work
-		k := make(groupKey, len(xs.def.Group))
-		err = xs.getGroupKey(ctx, r, k)
+		// @todo we probably can reuse the key or at least cache keys and avoid re-computation.
+		//       My fairly hacky attempt boosted performance by ~20%
+		k, err = xs.keyMaker(ctx, r)
 		if err != nil {
 			return
 		}
@@ -308,37 +326,14 @@ func (t *aggregate) compareGroupKeys(a, b *aggregateGroup) (out bool) {
 	return
 }
 
-func (s *aggregate) getGroupKey(ctx context.Context, r ValueGetter, key groupKey) (err error) {
-	var out any
-
-	for i, attr := range s.def.Group {
-
-		expr := attr.Expression()
-		if expr != "" {
-			rnr, err := newRunnerGval(attr.Expression())
-			if err != nil {
-				return err
-			}
-
-			out, err = rnr.Eval(ctx, r)
-			if err != nil {
-				return err
-			}
-		} else {
-			out, _ = r.GetValue(attr.Identifier(), 0)
-		}
-
-		// @todo multi-value support?
-		key[i] = out
-	}
-
-	return nil
-}
-
 func (s *aggregate) wrapGroup(ctx context.Context, key groupKey) (g *aggregateGroup, err error) {
-	agg, err := Aggregator(s.def.OutAttributes...)
-	if err != nil {
-		return
+	agg := Aggregator()
+
+	for _, a := range s.aggregateDefs {
+		err = agg.AddAggregate(a.ident, a.expr)
+		if err != nil {
+			return
+		}
 	}
 
 	g = &aggregateGroup{
@@ -358,11 +353,11 @@ func (xs *aggregate) nextGroup(ctx context.Context) (_ *aggregateGroup, err erro
 	return xs.groups[xs.i-1], nil
 }
 
-func (s *aggregate) scanKey(g *aggregateGroup, dst *Row) (err error) {
-	for i, attr := range s.def.Group {
+func (xs *aggregate) scanKey(g *aggregateGroup, dst *Row) (err error) {
+	for i, attr := range xs.groupDefs {
 		// @todo multi value support?
-		dst.SetValue(attr.Identifier(), 0, g.key[i])
 		// omitting err; internal row won't raise them
+		dst.SetValue(attr.ident, 0, g.key[i])
 	}
 
 	return nil
@@ -444,6 +439,35 @@ func (xs *aggregate) initScanRow() (out *Row) {
 	for _, attr := range append(xs.def.Group, xs.def.OutAttributes...) {
 		out.values[attr.Identifier()] = make([]any, 0, 2)
 		out.counters[attr.Identifier()] = 0
+	}
+
+	return
+}
+
+// aggregateGroupKeyMaker returns a function that computes a group key for the given row
+func aggregateGroupKeyMaker(kk ...*ql.ASTNode) (out keyMaker, err error) {
+	runners := make([]*runnerGval, len(kk))
+
+	// Initialize evaluators for every key definition
+	// @todo option to copy constants and idents
+	for i, k := range kk {
+		runners[i], err = newRunnerGvalParsed(k)
+		if err != nil {
+			return
+		}
+	}
+
+	out = func(ctx context.Context, vg ValueGetter) (gk groupKey, err error) {
+		gk = make(groupKey, len(runners))
+		for i, r := range runners {
+			v, err := r.Eval(ctx, vg)
+			if err != nil {
+				return nil, err
+			}
+
+			gk[i] = v
+		}
+		return gk, nil
 	}
 
 	return

@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/spf13/cast"
 	"github.com/tidwall/btree"
 )
 
@@ -31,14 +30,6 @@ type (
 		planned     bool
 		filtered    bool
 
-		// Index the attributes for easier lookups later on
-		outAttrIndex   map[string]int
-		leftAttrIndex  map[string]int
-		rightAttrIndex map[string]int
-
-		joinRightAttr AttributeMapping
-		joinLeftAttr  AttributeMapping
-
 		rowTester tester
 
 		// Index to keep track of related rows
@@ -53,9 +44,11 @@ type (
 	}
 )
 
-func (xs *joinLeft) init(ctx context.Context) (err error) {
-	xs.relIndex = newRelIndex()
-	xs.indexAttributes()
+func (xs *joinLeft) init(ctx context.Context, joinPredType Type) (err error) {
+	xs.relIndex, err = newRelIndex(joinPredType)
+	if err != nil {
+		return
+	}
 
 	xs.rowTester, err = prepareGenericRowTester(xs.filter)
 	if err != nil {
@@ -67,9 +60,6 @@ func (xs *joinLeft) init(ctx context.Context) (err error) {
 	//       constructing multiple of these but then you'll also need to complicate
 	//       the .Next methods a bit.
 	xs.outSorted = btree.NewGenericOptions[ValueGetter](makeRowComparator(xs.filter.OrderBy()...), btree.Options{NoLocks: true})
-
-	xs.joinLeftAttr = xs.def.LeftAttributes[xs.leftAttrIndex[xs.def.On.Left]]
-	xs.joinRightAttr = xs.def.RightAttributes[xs.rightAttrIndex[xs.def.On.Right]]
 
 	return xs.applyPlan(ctx)
 }
@@ -98,7 +88,7 @@ func (xs *joinLeft) More(limit uint, v ValueGetter) (err error) {
 
 	// Redo the state
 	// @todo adjust based on aggregation plan; reuse buffered, etc.
-	xs.relIndex = newRelIndex()
+	xs.relIndex.Clear()
 	xs.outSorted = btree.NewGenericOptions[ValueGetter](makeRowComparator(xs.filter.OrderBy()...), btree.Options{NoLocks: true})
 	xs.scanRow = nil
 	xs.planned = false
@@ -313,45 +303,15 @@ func (xs *joinLeft) joinRight(ctx context.Context, left *Row) (err error) {
 
 // getRelatedBuffers returns all of the right rows corresponding to the given left row
 func (xs *joinLeft) getRelatedBuffers(l *Row) (out []*relIndexBuffer, ok bool, err error) {
-	attrIdent := xs.joinLeftAttr.Identifier()
-	attrType := xs.joinLeftAttr.Properties().Type
 	var aux *relIndexBuffer
-
-	for c := uint(0); c < l.counters[attrIdent]; c++ {
-		v, _ := l.GetValue(attrIdent, c)
-
-		switch attrType.(type) {
-		case TypeNumber, *TypeNumber:
-			aux, ok = xs.relIndex.GetInt(cast.ToInt64(v))
-			if !ok {
-				continue
-			}
-			out = append(out, aux)
+	for c := uint(0); c < l.counters[xs.def.On.Left]; c++ {
+		// @note internal Row struct never errors
+		v, _ := l.GetValue(xs.def.On.Left, c)
+		aux, ok = xs.relIndex.Get(v)
+		if !ok {
 			continue
-
-		case TypeText, *TypeText:
-			aux, ok = xs.relIndex.GetString(cast.ToString(v))
-			if !ok {
-				continue
-			}
-			out = append(out, aux)
-			continue
-
-		case TypeID, *TypeID,
-			TypeRef, *TypeRef:
-			aux, ok = xs.relIndex.GetID(cast.ToUint64(v))
-			if !ok {
-				continue
-			}
-			out = append(out, aux)
-			continue
-
-		default:
-			// @note this should be validated way before
-			err = fmt.Errorf("cannot use type %s as join predicate", attrType.Type())
 		}
-
-		return
+		out = append(out, aux)
 	}
 
 	return
@@ -360,34 +320,13 @@ func (xs *joinLeft) getRelatedBuffers(l *Row) (out []*relIndexBuffer, ok bool, e
 // indexRightRow pushes the provided row onto the rel index
 // @todo consider moving most of this logic to the relIndex struct.
 func (xs *joinLeft) indexRightRow(r *Row) (err error) {
-	attrIdent := xs.joinRightAttr.Identifier()
-	attrType := xs.joinRightAttr.Properties().Type
-
-	for i := uint(0); i < r.CountValues()[attrIdent]; i++ {
-		v, err := r.GetValue(attrIdent, i)
+	for i := uint(0); i < r.CountValues()[xs.def.On.Right]; i++ {
+		v, err := r.GetValue(xs.def.On.Right, i)
 		if err != nil {
 			return err
 		}
 
-		// @todo not so sure about this switch; see above coment about moving this out
-		switch attrType.(type) {
-		case TypeNumber, *TypeNumber:
-			xs.relIndex.AddInt(cast.ToInt64(v), r)
-			continue
-
-		case TypeText, *TypeText:
-			xs.relIndex.AddString(cast.ToString(v), r)
-			continue
-
-		case TypeID, *TypeID,
-			TypeRef, *TypeRef:
-			xs.relIndex.AddID(cast.ToUint64(v), r)
-			continue
-
-		default:
-			// @note this should be validated way before
-			return fmt.Errorf("cannot use type %s as join predicate", attrType.Type())
-		}
+		xs.relIndex.Add(v, r)
 	}
 
 	return
@@ -418,21 +357,4 @@ func (xs *joinLeft) collectPrimaryAttributes() (out []string) {
 	}
 
 	return
-}
-
-func (xs *joinLeft) indexAttributes() {
-	xs.outAttrIndex = make(map[string]int)
-	for i, a := range xs.def.OutAttributes {
-		xs.outAttrIndex[a.Identifier()] = i
-	}
-
-	xs.leftAttrIndex = make(map[string]int)
-	for i, a := range xs.def.LeftAttributes {
-		xs.leftAttrIndex[a.Identifier()] = i
-	}
-
-	xs.rightAttrIndex = make(map[string]int)
-	for i, a := range xs.def.RightAttributes {
-		xs.rightAttrIndex[a.Identifier()] = i
-	}
 }

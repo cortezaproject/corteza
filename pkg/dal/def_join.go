@@ -83,18 +83,40 @@ func (def *Join) Optimize(req internalFilter) (res internalFilter, err error) {
 	return
 }
 
-func (def *Join) init(ctx context.Context) (err error) {
-	if len(def.LeftAttributes) == 0 {
-		def.LeftAttributes = collectAttributes(def.relLeft)
-	}
-	if len(def.RightAttributes) == 0 {
-		def.RightAttributes = collectAttributes(def.relRight)
-	}
-
-	if len(def.OutAttributes) == 0 {
-		def.OutAttributes = append(def.LeftAttributes, def.RightAttributes...)
+// iterator initializes an iterator based on the provided pipeline step definition
+func (def *Join) iterator(ctx context.Context, left, right Iterator) (out Iterator, err error) {
+	exec, err := def.init(ctx, left, right)
+	if err != nil {
+		return
 	}
 
+	// Get pred. type
+	// @todo should validate that both pred. types are the same/compatible
+	var pt Type
+	for _, a := range def.LeftAttributes {
+		if a.Identifier() == def.On.Left {
+			pt = a.Properties().Type
+			break
+		}
+	}
+
+	return exec, exec.init(ctx, pt)
+}
+
+// dryrun performs step execution without interacting with the data
+// @todo consider rewording this
+func (def *Join) dryrun(ctx context.Context) (err error) {
+	_, err = def.init(ctx, nil, nil)
+	return
+}
+
+func (def *Join) init(ctx context.Context, left, right Iterator) (exec *joinLeft, err error) {
+	exec = &joinLeft{
+		leftSource:  left,
+		rightSource: right,
+	}
+
+	// Convert the provided filter into an internal filter
 	if def.Filter != nil {
 		def.filter, err = toInternalFilter(def.Filter)
 		if err != nil {
@@ -102,50 +124,64 @@ func (def *Join) init(ctx context.Context) (err error) {
 		}
 	}
 
-	err = def.validate()
-	if err != nil {
-		return
+	// Collect attributes from the underlaying step in case own are not provided
+	if len(def.LeftAttributes) == 0 {
+		def.LeftAttributes = collectAttributes(def.relLeft)
+	}
+	if len(def.RightAttributes) == 0 {
+		def.RightAttributes = collectAttributes(def.relRight)
 	}
 
-	return nil
-}
-
-func (def *Join) exec(ctx context.Context, left, right Iterator) (out Iterator, err error) {
-	// @todo adjust the used exec based on other strategies when added
-	exec := &joinLeft{
-		def:         *def,
-		filter:      def.filter,
-		leftSource:  left,
-		rightSource: right,
+	// @todo this isn't quite ok -- the ident of left/right must become the src of the out.
+	//       An edge-case but it should be covered.
+	if len(def.OutAttributes) == 0 {
+		def.OutAttributes = append(def.LeftAttributes, def.RightAttributes...)
 	}
 
-	return exec, exec.init(ctx)
-}
+	// Index attrs for validations
+	leftSrcAttrs := indexAttrs(def.LeftAttributes...)
+	rightSrcAttrs := indexAttrs(def.RightAttributes...)
+	outAttrs := indexAttrs(def.OutAttributes...)
 
-func (def *Join) validate() (err error) {
-	err = func() (err error) {
-		if len(def.OutAttributes) == 0 {
-			return fmt.Errorf("no attributes specified")
+	for _, a := range def.OutAttributes {
+		if !leftSrcAttrs[a.Source()] && !rightSrcAttrs[a.Source()] {
+			return nil, fmt.Errorf("unknown attribute %s", a.Source())
 		}
-		if len(def.LeftAttributes) == 0 {
-			return fmt.Errorf("no left attributes specified")
-		}
-		if len(def.RightAttributes) == 0 {
-			return fmt.Errorf("no right attributes specified")
-		}
-
-		if def.On.Left == "" {
-			return fmt.Errorf("no left attribute in the join predicate specified")
-		}
-		if def.On.Right == "" {
-			return fmt.Errorf("no right attribute in the join predicate specified")
-		}
-
-		return
-	}()
-	if err != nil {
-		return fmt.Errorf("invalid definition: %v", err)
 	}
 
+	// Generic validation
+	if !leftSrcAttrs[def.On.Left] {
+		return nil, fmt.Errorf("unknown join predicate attribute %s", def.On.Left)
+	}
+	if !rightSrcAttrs[def.On.Right] {
+		return nil, fmt.Errorf("unknown join predicate attribute %s", def.On.Right)
+	}
+
+	if len(def.OutAttributes) == 0 {
+		return nil, fmt.Errorf("no attributes specified")
+	}
+	if len(def.LeftAttributes) == 0 {
+		return nil, fmt.Errorf("no left attributes specified")
+	}
+	if len(def.RightAttributes) == 0 {
+		return nil, fmt.Errorf("no right attributes specified")
+	}
+
+	if def.On.Left == "" {
+		return nil, fmt.Errorf("no left attribute in the join predicate specified")
+	}
+	if def.On.Right == "" {
+		return nil, fmt.Errorf("no right attribute in the join predicate specified")
+	}
+
+	// order
+	for _, s := range def.filter.OrderBy() {
+		if _, ok := outAttrs[s.Column]; !ok {
+			return nil, fmt.Errorf("order attribute %s does not exist", s.Column)
+		}
+	}
+
+	exec.filter = def.filter
+	exec.def = *def
 	return
 }

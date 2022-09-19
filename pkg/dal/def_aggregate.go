@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/ql"
 )
 
 type (
@@ -38,6 +39,13 @@ type (
 	aggregateGroup struct {
 		key groupKey
 		agg *aggregator
+	}
+
+	// aggregateAttr is a simple wrapper to outline aggregated attribute definitions
+	aggregateAttr struct {
+		ident    string
+		expr     *ql.ASTNode
+		attrType Type
 	}
 )
 
@@ -74,7 +82,29 @@ func (def *Aggregate) Optimize(reqFilter internalFilter) (rspFilter internalFilt
 	return
 }
 
-func (def *Aggregate) init(ctx context.Context) (err error) {
+// iterator initializes an iterator based on the provided pipeline step definition
+func (def *Aggregate) iterator(ctx context.Context, src Iterator) (out Iterator, err error) {
+	exec, err := def.init(ctx, src)
+	if err != nil {
+		return
+	}
+
+	return exec, exec.init(ctx)
+}
+
+// dryrun performs step execution without interacting with the data
+// @todo consider rewording this
+func (def *Aggregate) dryrun(ctx context.Context) (err error) {
+	_, err = def.init(ctx, nil)
+	return
+}
+
+func (def *Aggregate) init(ctx context.Context, src Iterator) (exec *aggregate, err error) {
+	exec = &aggregate{
+		source: src,
+	}
+
+	// Convert the provided filter into an internal filter
 	if def.Filter != nil {
 		def.filter, err = toInternalFilter(def.Filter)
 		if err != nil {
@@ -82,47 +112,83 @@ func (def *Aggregate) init(ctx context.Context) (err error) {
 		}
 	}
 
+	// Collect attributes from the underlaying step in case own are not provided
 	if len(def.SourceAttributes) == 0 {
 		def.SourceAttributes = collectAttributes(def.rel)
 	}
 
-	err = def.validate()
-	if err != nil {
+	// Index source attributes for group/aggregate definition validation
+	srcAttrs := indexAttrs(def.SourceAttributes...)
+	pp := newQlParser(func(ident ql.Ident) (_ ql.Ident, err error) {
+		if _, ok := srcAttrs[ident.Value]; !ok {
+			return ident, fmt.Errorf("unknown attribute %s", ident.Value)
+		}
+		return ident, nil
+	})
+
+	// Convert & validate group definitions
+	// - groups
+	var gd aggregateAttr
+	outAttrs := make(map[string]bool, len(def.Group)+len(def.OutAttributes))
+	for _, attr := range def.Group {
+		idtf := attr.Identifier()
+		gd, err = aggregateAttrFromExpr(pp, attr.Properties().Type, idtf, attr.Expression())
+		if err != nil {
+			return
+		}
+		exec.groupDefs = append(exec.groupDefs, gd)
+		outAttrs[idtf] = true
+	}
+	// - aggregates
+	for _, attr := range def.OutAttributes {
+		idtf := attr.Identifier()
+		gd, err = aggregateAttrFromExpr(pp, attr.Properties().Type, idtf, attr.Expression())
+		if err != nil {
+			return
+		}
+		exec.aggregateDefs = append(exec.aggregateDefs, gd)
+		outAttrs[idtf] = true
+	}
+
+	// Generic validation
+	if len(def.Group) == 0 {
+		err = fmt.Errorf("no group attributes specified")
 		return
 	}
 
-	return nil
-}
-
-func (def *Aggregate) exec(ctx context.Context, src Iterator) (out Iterator, err error) {
-	exec := &aggregate{
-		def:    *def,
-		filter: def.filter,
-		source: src,
-	}
-
-	return exec, exec.init(ctx)
-}
-
-func (def *Aggregate) validate() (err error) {
-	err = func() (err error) {
-		if len(def.Group) == 0 {
-			return fmt.Errorf("no group attributes specified")
-		}
-
-		if len(def.OutAttributes) == 0 {
-			return fmt.Errorf("no output attributes specified")
-		}
-
-		if len(def.SourceAttributes) == 0 {
-			return fmt.Errorf("no source attributes specified")
-		}
-
+	if len(def.OutAttributes) == 0 {
+		err = fmt.Errorf("no output attributes specified")
 		return
-	}()
-	if err != nil {
-		return fmt.Errorf("invalid definition: %v", err)
 	}
 
+	if len(def.SourceAttributes) == 0 {
+		err = fmt.Errorf("no source attributes specified")
+		return
+	}
+
+	// order
+	for _, s := range def.filter.OrderBy() {
+		if _, ok := outAttrs[s.Column]; !ok {
+			err = fmt.Errorf("order by attribute %s does not exist", s.Column)
+			return
+		}
+	}
+
+	// Finishup
+	exec.filter = def.filter
+	exec.def = *def
 	return
+}
+
+func aggregateAttrFromExpr(pp *ql.Parser, t Type, ident, expr string) (out aggregateAttr, err error) {
+	n, err := pp.Parse(expr)
+	if err != nil {
+		return
+	}
+
+	return aggregateAttr{
+		ident:    ident,
+		expr:     n,
+		attrType: t,
+	}, nil
 }

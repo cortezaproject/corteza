@@ -7,7 +7,6 @@ import (
 	"sort"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/spf13/cast"
 )
 
 type (
@@ -22,14 +21,6 @@ type (
 		planned     bool
 		filtered    bool
 
-		// Index the attributes for easier lookups later on
-		outLeftAttrIndex  map[string]int
-		outRightAttrIndex map[string]int
-		leftAttrIndex     map[string]int
-		rightAttrIndex    map[string]int
-
-		linkRightAttr  AttributeMapping
-		linkLeftAttr   AttributeMapping
 		rightSortAttrs []string
 
 		rowTester tester
@@ -48,21 +39,15 @@ type (
 	}
 )
 
-func (xs *linkLeft) init(ctx context.Context) (err error) {
+func (xs *linkLeft) init(ctx context.Context, linkPredType Type, rightSort []string) (err error) {
 	// @note the index is keeping track of the right source attributes so we can
 	//       simplify the sorting logic.
-	xs.relIndex = newRelIndex(xs.rightSortAttrs...)
-	xs.indexAttributes()
-
-	// basic sort breadown
-	for _, o := range xs.filter.OrderBy() {
-		if _, ok := xs.rightAttrIndex[o.Column]; ok {
-			xs.rightSortAttrs = append(xs.rightSortAttrs, o.Column)
-		}
+	xs.relIndex, err = newRelIndex(linkPredType, rightSort...)
+	if err != nil {
+		return
 	}
 
-	xs.linkLeftAttr = xs.def.LeftAttributes[xs.leftAttrIndex[xs.def.On.Left]]
-	xs.linkRightAttr = xs.def.RightAttributes[xs.rightAttrIndex[xs.def.On.Right]]
+	xs.rightSortAttrs = rightSort
 
 	xs.rowTester, err = prepareGenericRowTester(xs.filter)
 	if err != nil {
@@ -96,7 +81,7 @@ func (xs *linkLeft) More(limit uint, v ValueGetter) (err error) {
 
 	// Redo the state
 	// @todo adjust based on aggregation plan; reuse buffered, etc.
-	xs.relIndex = newRelIndex(xs.rightSortAttrs...)
+	xs.relIndex.Clear()
 	xs.leftRows = make([]*Row, 0, 128)
 	xs.scanRow = nil
 	xs.planned = false
@@ -264,31 +249,10 @@ func (xs *linkLeft) nextBuffered() (more bool, err error) {
 
 // getRelatedBuffer returns all of the right rows corresponding to the given left row
 func (xs *linkLeft) getRelatedBuffer(l *Row) (out *relIndexBuffer, ok bool, err error) {
-	attrIdent := xs.linkLeftAttr.Identifier()
-	attrType := xs.linkLeftAttr.Properties().Type
 
 	// @todo mv link predicate attrs
-	v, _ := l.GetValue(attrIdent, 0)
-
-	switch attrType.(type) {
-	case TypeNumber, *TypeNumber:
-		out, ok = xs.relIndex.GetInt(cast.ToInt64(v))
-		return
-
-	case TypeText, *TypeText:
-		out, ok = xs.relIndex.GetString(cast.ToString(v))
-		return
-
-	case TypeID, *TypeID,
-		TypeRef, *TypeRef:
-		out, ok = xs.relIndex.GetID(cast.ToUint64(v))
-		return
-
-	default:
-		// @note this should be validated way before
-		err = fmt.Errorf("cannot use type %s as link predicate", attrType.Type())
-	}
-
+	v, _ := l.GetValue(xs.def.On.Left, 0)
+	out, ok = xs.relIndex.Get(v)
 	return
 }
 
@@ -393,35 +357,13 @@ func (xs *linkLeft) pullEntireLeftSource(ctx context.Context) (err error) {
 // indexRightRow pushes the provided row onto the rel index
 // @todo consider moving most of this logic to the relIndex struct.
 func (xs *linkLeft) indexRightRow(r *Row) (err error) {
-	attrIdent := xs.linkRightAttr.Identifier()
-	attrType := xs.linkRightAttr.Properties().Type
-
 	// @todo mv link predicate attrs; should be prevented higher up for now
-	v, err := r.GetValue(attrIdent, 0)
+	v, err := r.GetValue(xs.def.On.Right, 0)
 	if err != nil {
 		return err
 	}
 
-	// @todo not so sure about this switch; see above coment about moving this out
-	switch attrType.(type) {
-	case TypeNumber, *TypeNumber:
-		xs.relIndex.AddInt(cast.ToInt64(v), r)
-		return
-
-	case TypeText, *TypeText:
-		xs.relIndex.AddString(cast.ToString(v), r)
-		return
-
-	case TypeID, *TypeID,
-		TypeRef, *TypeRef:
-		xs.relIndex.AddID(cast.ToUint64(v), r)
-		return
-
-	default:
-		// @note this should be validated way before
-		return fmt.Errorf("cannot use type %s as link predicate", attrType.Type())
-	}
-
+	xs.relIndex.Add(v, r)
 	return
 }
 
@@ -463,7 +405,7 @@ func (xs *linkLeft) sortLeftRows() (err error) {
 		}
 
 		for _, s := range xs.filter.OrderBy() {
-			if _, ok := xs.leftAttrIndex[s.Column]; ok {
+			if !xs.isRightSortAttr(s.Column) {
 				// This bit here orders based on the left attributes
 				less, skip := evalCmpResult(compareGetters(leftRowA, leftRowB, leftRowA.counters, leftRowB.counters, s.Column), s)
 				if !skip {
@@ -493,6 +435,15 @@ func (xs *linkLeft) sortLeftRows() (err error) {
 	})
 
 	return
+}
+
+func (xs *linkLeft) isRightSortAttr(ident string) bool {
+	for _, i := range xs.rightSortAttrs {
+		if i == ident {
+			return true
+		}
+	}
+	return false
 }
 
 // keep checks if the row should be kept or discarded
@@ -537,25 +488,4 @@ func (xs *linkLeft) collectPrimaryAttributes() (out []string) {
 	}
 
 	return
-}
-
-func (xs *linkLeft) indexAttributes() {
-	xs.outLeftAttrIndex = make(map[string]int)
-	for i, a := range xs.def.LeftAttributes {
-		xs.outLeftAttrIndex[a.Identifier()] = i
-	}
-	xs.outRightAttrIndex = make(map[string]int)
-	for i, a := range xs.def.RightAttributes {
-		xs.outRightAttrIndex[a.Identifier()] = i
-	}
-
-	xs.leftAttrIndex = make(map[string]int)
-	for i, a := range xs.def.LeftAttributes {
-		xs.leftAttrIndex[a.Identifier()] = i
-	}
-
-	xs.rightAttrIndex = make(map[string]int)
-	for i, a := range xs.def.RightAttributes {
-		xs.rightAttrIndex[a.Identifier()] = i
-	}
 }
