@@ -167,16 +167,17 @@ func TestAggregator(t *testing.T) {
 	ctx := context.Background()
 	for _, tc := range tcc {
 		t.Run(tc.name, func(t *testing.T) {
-			agg, err := Aggregator(saToMapping(tc.attrubutes...)...)
-			require.NoError(t, err)
+			agg := Aggregator()
+			for _, a := range tc.attrubutes {
+				require.NoError(t, agg.AddAggregateE(a.ident, a.expr))
+			}
 
 			for _, r := range tc.rows {
 				require.NoError(t, agg.Aggregate(ctx, r))
 			}
 
 			out := make(simpleRow)
-			err = agg.Scan(out)
-			require.NoError(t, err)
+			require.NoError(t, agg.Scan(out))
 			require.Equal(t, tc.out, out)
 		})
 	}
@@ -184,20 +185,12 @@ func TestAggregator(t *testing.T) {
 
 func TestAggregatorInit(t *testing.T) {
 	t.Run("non supported agg. op.", func(t *testing.T) {
-		_, err := Aggregator(
-			simpleAttribute{
-				expr: "div(v)",
-			},
-		)
-		require.Error(t, err)
+		agg := Aggregator()
+		require.Error(t, agg.AddAggregateE("count", "div(v)"))
 	})
 
 	t.Run("invalid expression", func(t *testing.T) {
-		_, err := Aggregator(
-			simpleAttribute{
-				expr: "sum(q we)",
-			},
-		)
-		require.Error(t, err)
+		agg := Aggregator()
+		require.Error(t, agg.AddAggregateE("x", "sum(q we)"))
 	})
 }

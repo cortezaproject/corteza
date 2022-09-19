@@ -475,15 +475,10 @@ func (svc *service) run(ctx context.Context, s PipelineStep, dry bool) (it Itera
 			return
 		}
 
-		err = s.init(ctx)
-		if err != nil {
-			return
-		}
-
 		if dry {
-			return nil, nil
+			return nil, s.dryrun(ctx)
 		}
-		return s.exec(ctx, it)
+		return s.iterator(ctx, it)
 
 	case *Join:
 		var left Iterator
@@ -497,14 +492,10 @@ func (svc *service) run(ctx context.Context, s PipelineStep, dry bool) (it Itera
 			return
 		}
 
-		err = s.init(ctx)
-		if err != nil {
-			return
-		}
 		if dry {
-			return nil, nil
+			return nil, s.dryrun(ctx)
 		}
-		return s.exec(ctx, left, right)
+		return s.iterator(ctx, left, right)
 
 	case *Link:
 		var left Iterator
@@ -518,14 +509,10 @@ func (svc *service) run(ctx context.Context, s PipelineStep, dry bool) (it Itera
 			return
 		}
 
-		err = s.init(ctx)
-		if err != nil {
-			return
-		}
 		if dry {
-			return nil, nil
+			return nil, s.dryrun(ctx)
 		}
-		return s.exec(ctx, left, right)
+		return s.iterator(ctx, left, right)
 	}
 
 	return nil, fmt.Errorf("unsupported step")

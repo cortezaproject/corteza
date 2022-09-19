@@ -804,9 +804,7 @@ func TestStepJoinLocal(t *testing.T) {
 					plan: joinPlan{},
 				}
 
-				err := def.init(ctx)
-				require.NoError(t, err)
-				xs, err := def.exec(ctx, l, f)
+				xs, err := def.iterator(ctx, l, f)
 				require.NoError(t, err)
 
 				i := 0
@@ -824,6 +822,102 @@ func TestStepJoinLocal(t *testing.T) {
 			})
 		}
 	}
+}
+
+func TestStepJoinValidation(t *testing.T) {
+	ctx := context.Background()
+
+	basicLocalAttrs := []simpleAttribute{
+		{ident: "l_pk", t: TypeID{}},
+		{ident: "l_val", t: TypeText{}},
+	}
+	basicForeignAttrs := []simpleAttribute{
+		{ident: "f_pk", t: TypeID{}},
+		{ident: "f_fk", t: TypeRef{}},
+		{ident: "f_val", t: TypeText{}},
+	}
+	basicPred := JoinPredicate{Left: "l_pk", Right: "f_fk"}
+
+	run := func(t *testing.T, attrs []simpleAttribute) (err error) {
+		sa := &Join{
+			Ident:           "jn",
+			LeftAttributes:  saToMapping(basicLocalAttrs...),
+			RightAttributes: saToMapping(basicForeignAttrs...),
+
+			On: basicPred,
+
+			OutAttributes: saToMapping(attrs...),
+		}
+
+		return sa.dryrun(ctx)
+	}
+
+	runP := func(t *testing.T, pred JoinPredicate, attrs []simpleAttribute) (err error) {
+		sa := &Join{
+			Ident:           "jn",
+			LeftAttributes:  saToMapping(basicLocalAttrs...),
+			RightAttributes: saToMapping(basicForeignAttrs...),
+
+			On: pred,
+
+			OutAttributes: saToMapping(attrs...),
+		}
+
+		return sa.dryrun(ctx)
+	}
+
+	runF := func(t *testing.T, f internalFilter, attrs []simpleAttribute) (err error) {
+		sa := &Join{
+			Ident:           "jn",
+			LeftAttributes:  saToMapping(basicLocalAttrs...),
+			RightAttributes: saToMapping(basicForeignAttrs...),
+
+			On: basicPred,
+
+			Filter: f,
+
+			OutAttributes: saToMapping(attrs...),
+		}
+
+		return sa.dryrun(ctx)
+	}
+
+	basicAttrs := []simpleAttribute{
+		{ident: "l_pk", t: TypeID{}},
+		{ident: "l_val", t: TypeText{}},
+		{ident: "f_pk", t: TypeID{}},
+		{ident: "f_fk", t: TypeRef{}},
+		{ident: "f_val", t: TypeText{}},
+	}
+	_ = basicAttrs
+
+	t.Run("out ident doesn't exist", func(t *testing.T) {
+		basicAttrs := []simpleAttribute{
+			{ident: "i_not_real"},
+		}
+
+		err := run(t, basicAttrs)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "i_not_real")
+	})
+
+	t.Run("left predicate doesn't exist", func(t *testing.T) {
+		err := runP(t, JoinPredicate{Left: "i_not_exist", Right: "f_fk"}, basicAttrs)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "i_not_exist")
+	})
+
+	t.Run("right predicate doesn't exist", func(t *testing.T) {
+		err := runP(t, JoinPredicate{Left: "l_pk", Right: "i_not_exist"}, basicAttrs)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "i_not_exist")
+	})
+
+	t.Run("sort ident does not exist", func(t *testing.T) {
+		err := runF(t, internalFilter{orderBy: filter.SortExprSet{{Column: "i_not_yes"}}}, basicAttrs)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "i_not_yes")
+	})
 }
 
 func TestStepJoinLocal_cursorCollect_forward(t *testing.T) {
@@ -1000,9 +1094,7 @@ func TestStepJoinLocal_more(t *testing.T) {
 				filter:          tc.f,
 			}
 
-			err := def.init(ctx)
-			require.NoError(t, err)
-			xs, err := def.exec(ctx, l, f)
+			xs, err := def.iterator(ctx, l, f)
 			require.NoError(t, err)
 
 			require.True(t, xs.Next(ctx))

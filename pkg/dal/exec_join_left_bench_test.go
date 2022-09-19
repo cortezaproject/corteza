@@ -53,8 +53,7 @@ func benchmarkExecJoin_local(b *testing.B, n int) {
 			On:              JoinPredicate{Left: "l_k", Right: "f_ref"},
 		}
 
-		def.init(ctx)
-		def.exec(ctx, l, f)
+		def.iterator(ctx, l, f)
 
 		l.Seek(ctx, 0)
 		f.Seek(ctx, 0)

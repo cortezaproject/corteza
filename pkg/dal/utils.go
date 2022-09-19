@@ -456,3 +456,15 @@ func mergeRowsMapped(mapping []AttributeMapping, out *Row, rows ...*Row) (err er
 
 	return
 }
+
+func indexAttrs(aa ...AttributeMapping) (out map[string]bool) {
+	out = make(map[string]bool, len(aa))
+	indexAttrsInto(out, aa...)
+	return
+}
+
+func indexAttrsInto(dst map[string]bool, aa ...AttributeMapping) {
+	for _, a := range aa {
+		dst[a.Identifier()] = true
+	}
+}

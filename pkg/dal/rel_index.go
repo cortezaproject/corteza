@@ -1,5 +1,11 @@
 package dal
 
+import (
+	"fmt"
+
+	"github.com/spf13/cast"
+)
+
 type (
 	// relIndex is a generic struct for indexing data which join/link can use
 	//
@@ -16,6 +22,8 @@ type (
 	relIndex struct {
 		track []string
 
+		keyType Type
+
 		ints    map[int64]*relIndexBuffer
 		strings map[string]*relIndexBuffer
 		ids     map[uint64]*relIndexBuffer
@@ -24,18 +32,79 @@ type (
 
 // newRelIndex initializes a new relIndex with the specified tracked attributes
 // @todo benchmark with generics as key
-func newRelIndex(tt ...string) *relIndex {
-	return &relIndex{
-		track:   tt,
-		ints:    make(map[int64]*relIndexBuffer),
-		strings: make(map[string]*relIndexBuffer),
-		ids:     make(map[uint64]*relIndexBuffer),
+func newRelIndex(t Type, track ...string) (out *relIndex, err error) {
+	out = &relIndex{
+		track:   track,
+		keyType: t,
 	}
+
+	return out, out.initHashmaps()
 }
 
-// AddInt adds a new row under the int key
-func (ri *relIndex) AddInt(k int64, r *Row) {
-	c, ok := ri.GetInt(k)
+// Add adds a new row to the index under the specified key
+func (ri *relIndex) Add(k any, r *Row) {
+	switch ri.keyType.(type) {
+	case TypeNumber, *TypeNumber:
+		ri.addInt(cast.ToInt64(k), r)
+		return
+
+	case TypeText, *TypeText:
+		ri.addString(cast.ToString(k), r)
+		return
+
+	case TypeID, *TypeID,
+		TypeRef, *TypeRef:
+		ri.addID(cast.ToUint64(k), r)
+		return
+	}
+
+	// @note this is validated when initializing
+	panic(fmt.Sprintf("cannot use type %s as index key", ri.keyType.Type()))
+}
+
+func (ri *relIndex) Get(k any) (out *relIndexBuffer, ok bool) {
+	switch ri.keyType.(type) {
+	case TypeNumber, *TypeNumber:
+		return ri.getInt(cast.ToInt64(k))
+
+	case TypeText, *TypeText:
+		return ri.getString(cast.ToString(k))
+
+	case TypeID, *TypeID,
+		TypeRef, *TypeRef:
+		return ri.getID(cast.ToUint64(k))
+	}
+
+	// @note this is validated when initializing
+	panic(fmt.Sprintf("cannot use type %s as index key", ri.keyType.Type()))
+}
+
+// Clear clears out the index omitting the need to reinitialize
+func (ri *relIndex) Clear() (err error) {
+	return ri.initHashmaps()
+}
+
+func (ri *relIndex) initHashmaps() (err error) {
+	// @note initHashmaps initializes only the ones we need to save up on space
+	switch ri.keyType.(type) {
+	case TypeNumber, *TypeNumber:
+		ri.ints = make(map[int64]*relIndexBuffer, 512)
+		return
+
+	case TypeText, *TypeText:
+		ri.strings = make(map[string]*relIndexBuffer, 512)
+		return
+
+	case TypeID, *TypeID,
+		TypeRef, *TypeRef:
+		ri.ids = make(map[uint64]*relIndexBuffer, 512)
+		return
+	}
+	return fmt.Errorf("cannot use type %s as index key", ri.keyType.Type())
+}
+
+func (ri *relIndex) addInt(k int64, r *Row) {
+	c, ok := ri.getInt(k)
 	if !ok {
 		c = newRelIndexBuffer(ri.track...)
 		ri.ints[k] = c
@@ -43,13 +112,13 @@ func (ri *relIndex) AddInt(k int64, r *Row) {
 	c.add(r)
 }
 
-func (ri *relIndex) GetInt(k int64) (out *relIndexBuffer, ok bool) {
+func (ri *relIndex) getInt(k int64) (out *relIndexBuffer, ok bool) {
 	out, ok = ri.ints[k]
 	return
 }
 
-func (ri *relIndex) AddString(k string, r *Row) {
-	c, ok := ri.GetString(k)
+func (ri *relIndex) addString(k string, r *Row) {
+	c, ok := ri.getString(k)
 	if !ok {
 		c = newRelIndexBuffer(ri.track...)
 		ri.strings[k] = c
@@ -57,13 +126,13 @@ func (ri *relIndex) AddString(k string, r *Row) {
 	c.add(r)
 }
 
-func (ri *relIndex) GetString(k string) (out *relIndexBuffer, ok bool) {
+func (ri *relIndex) getString(k string) (out *relIndexBuffer, ok bool) {
 	out, ok = ri.strings[k]
 	return
 }
 
-func (ri *relIndex) AddID(k uint64, r *Row) {
-	c, ok := ri.GetID(k)
+func (ri *relIndex) addID(k uint64, r *Row) {
+	c, ok := ri.getID(k)
 	if !ok {
 		c = newRelIndexBuffer(ri.track...)
 		ri.ids[k] = c
@@ -71,7 +140,7 @@ func (ri *relIndex) AddID(k uint64, r *Row) {
 	c.add(r)
 }
 
-func (ri *relIndex) GetID(k uint64) (out *relIndexBuffer, ok bool) {
+func (ri *relIndex) getID(k uint64) (out *relIndexBuffer, ok bool) {
 	out, ok = ri.ids[k]
 	return
 }

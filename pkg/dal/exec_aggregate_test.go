@@ -591,7 +591,7 @@ func TestStepAggregate(t *testing.T) {
 			},
 
 			f: internalFilter{
-				orderBy: filter.SortExprSet{{Column: "dob_y", Descending: false}, {Column: "k2", Descending: true}},
+				orderBy: filter.SortExprSet{{Column: "dob_y", Descending: false}},
 			},
 		},
 		{
@@ -621,7 +621,7 @@ func TestStepAggregate(t *testing.T) {
 			},
 
 			f: internalFilter{
-				orderBy: filter.SortExprSet{{Column: "dob_y", Descending: false}, {Column: "k2", Descending: true}},
+				orderBy: filter.SortExprSet{{Column: "dob_y", Descending: false}},
 			},
 		},
 		{
@@ -650,7 +650,7 @@ func TestStepAggregate(t *testing.T) {
 			},
 
 			f: internalFilter{
-				orderBy: filter.SortExprSet{{Column: "dob_y", Descending: false}, {Column: "k2", Descending: true}},
+				orderBy: filter.SortExprSet{{Column: "d", Descending: false}},
 			},
 		},
 		{
@@ -678,7 +678,7 @@ func TestStepAggregate(t *testing.T) {
 			},
 
 			f: internalFilter{
-				orderBy: filter.SortExprSet{{Column: "dob_y", Descending: false}, {Column: "k2", Descending: true}},
+				orderBy: filter.SortExprSet{{Column: "d", Descending: false}},
 			},
 		},
 		{
@@ -708,7 +708,7 @@ func TestStepAggregate(t *testing.T) {
 			},
 
 			f: internalFilter{
-				orderBy: filter.SortExprSet{{Column: "dob_y", Descending: false}, {Column: "k2", Descending: true}},
+				orderBy: filter.SortExprSet{{Column: "dob_y", Descending: false}},
 			},
 		},
 	}
@@ -802,9 +802,7 @@ func TestStepAggregate(t *testing.T) {
 					sa.OutAttributes = saToMapping(tc.outAttributes...)
 					sa.filter = tc.f
 
-					err := sa.init(ctx)
-					require.NoError(t, err)
-					aa, err := sa.exec(ctx, b)
+					aa, err := sa.iterator(ctx, b)
 					require.NoError(t, err)
 
 					i := 0
@@ -820,6 +818,97 @@ func TestStepAggregate(t *testing.T) {
 			})
 		}
 	}
+}
+
+func TestStepAggregateValidation(t *testing.T) {
+	ctx := context.Background()
+
+	basicAttrs := []simpleAttribute{
+		{ident: "k1"},
+		{ident: "k2"},
+		{ident: "v1"},
+		{ident: "txt"},
+	}
+
+	run := func(t *testing.T, groups []simpleAttribute, attr []simpleAttribute) (err error) {
+		sa := &Aggregate{
+			Ident:            "agg",
+			SourceAttributes: saToMapping(basicAttrs...),
+			Group:            saToMapping(groups...),
+			OutAttributes:    saToMapping(attr...),
+		}
+
+		return sa.dryrun(ctx)
+	}
+
+	runF := func(t *testing.T, f internalFilter, groups []simpleAttribute, attr []simpleAttribute) (err error) {
+		sa := &Aggregate{
+			Ident:            "agg",
+			SourceAttributes: saToMapping(basicAttrs...),
+			Group:            saToMapping(groups...),
+			OutAttributes:    saToMapping(attr...),
+			Filter:           f,
+		}
+
+		return sa.dryrun(ctx)
+	}
+
+	groups := []simpleAttribute{{
+		ident: "k1",
+	}}
+
+	aggregates := []simpleAttribute{{
+		ident: "v1",
+		expr:  "sum(v1)",
+	}}
+
+	t.Run("no group attrs", func(t *testing.T) {
+		err := run(t, nil, nil)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "no group attributes specified")
+	})
+	t.Run("no aggregates", func(t *testing.T) {
+		err := run(t, groups, nil)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "no output attributes specified")
+	})
+
+	t.Run("group ident doesn't exist", func(t *testing.T) {
+		groups := []simpleAttribute{{
+			ident: "i_not_real",
+		}}
+
+		err := run(t, groups, aggregates)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "i_not_real")
+	})
+
+	t.Run("group func ident doesn't exist", func(t *testing.T) {
+		groups := []simpleAttribute{{
+			ident: "month(i_not_real)",
+		}}
+
+		err := run(t, groups, aggregates)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "i_not_real")
+	})
+
+	t.Run("aggregate func ident does not exist", func(t *testing.T) {
+		aggregates := []simpleAttribute{{
+			ident: "i_not_here",
+			expr:  "sum(i_not_here)",
+		}}
+
+		err := run(t, groups, aggregates)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "i_not_here")
+	})
+
+	t.Run("sort ident does not exist", func(t *testing.T) {
+		err := runF(t, internalFilter{orderBy: filter.SortExprSet{{Column: "i_not_yes"}}}, groups, aggregates)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "i_not_yes")
+	})
 }
 
 func TestStepAggregate_cursorCollect_forward(t *testing.T) {
@@ -991,9 +1080,7 @@ func TestStepAggregate_more(t *testing.T) {
 				d.filter.orderBy = append(d.filter.orderBy, &filter.SortExpr{Column: k.ident})
 			}
 
-			err := d.init(ctx)
-			require.NoError(t, err)
-			aa, err := d.exec(ctx, buff)
+			aa, err := d.iterator(ctx, buff)
 			require.NoError(t, err)
 
 			require.True(t, aa.Next(ctx))
