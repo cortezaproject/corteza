@@ -155,7 +155,6 @@ func initSvc(ctx context.Context, d driver) (dalService, error) {
 			nil,
 			dal.ConnectionParams{},
 			cm,
-			dal.FullOperations()...,
 		),
 		true,
 	)

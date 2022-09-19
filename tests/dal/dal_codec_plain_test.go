@@ -53,9 +53,9 @@ func Test_dal_codec_plain(t *testing.T) {
 
 	bootstrap(t, func(ctx context.Context, t *testing.T, h helper, svc dalService) {
 		h.a.NoError(svc.ReplaceModel(ctx, model))
-		h.a.NoError(svc.Create(ctx, model.ToFilter(), dal.CreateOperations(model.Operations...), &rIn))
+		h.a.NoError(svc.Create(ctx, model.ToFilter(), dal.CreateOperations(), &rIn))
 
-		h.a.NoError(svc.Lookup(ctx, model.ToFilter(), dal.LookupOperations(model.Operations...), dal.PKValues{"id": rIn.ID}, &rOut))
+		h.a.NoError(svc.Lookup(ctx, model.ToFilter(), dal.LookupOperations(), dal.PKValues{"id": rIn.ID}, &rOut))
 
 		for _, inVal := range rIn.Values {
 			outVal := rOut.Values.Get(inVal.Name, 0)
@@ -121,7 +121,7 @@ func benchmark_dal_codec_plain(b *testing.B, count int) {
 			}
 
 			b.StartTimer()
-			h.a.NoError(svc.Create(ctx, model.ToFilter(), dal.CreateOperations(model.Operations...), insert...))
+			h.a.NoError(svc.Create(ctx, model.ToFilter(), dal.CreateOperations(), insert...))
 			b.StopTimer()
 		}
 	})

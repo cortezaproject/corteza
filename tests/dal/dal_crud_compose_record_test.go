@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 )
 
@@ -25,7 +24,6 @@ func Test_dal_crud_compose_record_create(t *testing.T) {
 	module := createModuleFromGenerics(ctx, t, "ok_module.json", ns.ID, &types.ModuleConfig{
 		DAL: types.ModuleConfigDAL{
 			ConnectionID: 0,
-			Operations:   dal.FullOperations(),
 		},
 	})
 
@@ -86,7 +84,6 @@ func Test_dal_crud_compose_record_update(t *testing.T) {
 	module := createModuleFromGenerics(ctx, t, "ok_module.json", ns.ID, &types.ModuleConfig{
 		DAL: types.ModuleConfigDAL{
 			ConnectionID: 0,
-			Operations:   dal.FullOperations(),
 		},
 	})
 
@@ -147,7 +144,6 @@ func Test_dal_crud_compose_record_delete(t *testing.T) {
 	module := createModuleFromGenerics(ctx, t, "ok_module.json", ns.ID, &types.ModuleConfig{
 		DAL: types.ModuleConfigDAL{
 			ConnectionID: 0,
-			Operations:   dal.FullOperations(),
 		},
 	})
 

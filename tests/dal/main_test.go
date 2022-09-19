@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
@@ -253,21 +252,18 @@ func (h helper) createDalConnection(res *types.DalConnection) *types.DalConnecti
 		res.Meta.Ownership = "tester"
 	}
 
-	if res.Config.DAL.ModelIdent == "" {
-		res.Config.DAL.ModelIdent = "compose_records"
-	}
-
-	if res.Config.DAL.Params == nil {
+	if res.Config.DAL == nil {
 		res.Config.DAL = &types.ConnectionConfigDAL{
 			Type: "corteza::dal:connection:dsn",
 			Params: map[string]any{
 				"dsn": "sqlite3://file::memory:?cache=shared&mode=memory",
 			},
 		}
+
 	}
 
-	if len(res.Config.DAL.Operations) == 0 {
-		res.Config.DAL.Operations = dal.FullOperations()
+	if res.Config.DAL.ModelIdent == "" {
+		res.Config.DAL.ModelIdent = "compose_records"
 	}
 
 	if res.CreatedAt.IsZero() {
@@ -300,7 +296,6 @@ func makeConnectionDefinition(dsn string) *types.DalConnection {
 		Config: types.ConnectionConfig{
 			DAL: &types.ConnectionConfigDAL{
 				ModelIdent: "compose_record",
-				Operations: dal.FullOperations(),
 			},
 		},
 	}
