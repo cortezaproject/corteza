@@ -98,7 +98,6 @@ func (a *aggregator) AddAggregate(ident string, expr *ql.ASTNode) (err error) {
 	// Take it from the source
 	if inIdent != "" {
 		def.inIdent = inIdent
-		return
 	}
 
 	// Take it from the expression
@@ -107,16 +106,18 @@ func (a *aggregator) AddAggregate(ident string, expr *ql.ASTNode) (err error) {
 	if err != nil {
 		return
 	}
-	// - make evaluator
-	def.eval, err = newRunnerGvalParsed(expr)
-	if err != nil {
-		return
+	// Prepare a runner in case we're not simply copying values
+	if inIdent == "" {
+		// - make evaluator
+		def.eval, err = newRunnerGvalParsed(expr)
+		if err != nil {
+			return
+		}
 	}
 
 	a.aggregates = append(a.aggregates, 0)
 	a.counts = append(a.counts, 0)
 	a.def = append(a.def, def)
-
 	return
 }
 
@@ -316,8 +317,9 @@ func (a *aggregator) completeAverage() {
 // Utilities
 
 func unpackMappingSource(n *ql.ASTNode) (ident string, expr *ql.ASTNode, err error) {
-	if n.Symbol != "" {
-		return n.Symbol, nil, nil
+	// Check if first arg of agg. fnc. is an attr.
+	if len(n.Args) == 1 && n.Args[0].Symbol != "" {
+		return n.Args[0].Symbol, n, nil
 	}
 
 	expr = n
@@ -325,7 +327,6 @@ func unpackMappingSource(n *ql.ASTNode) (ident string, expr *ql.ASTNode, err err
 }
 
 func unpackExpressionNode(n *ql.ASTNode) (aggOp string, expr *ql.ASTNode, err error) {
-	// @todo check for supported aggregators
 	if n.Ref != "" {
 		aggOp = strings.ToLower(n.Ref)
 	}
