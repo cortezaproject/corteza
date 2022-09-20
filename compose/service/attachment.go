@@ -61,8 +61,8 @@ type (
 		CreatePageAttachment(ctx context.Context, namespaceID uint64, name string, size int64, fh io.ReadSeeker, pageID uint64) (*types.Attachment, error)
 		CreateRecordAttachment(ctx context.Context, namespaceID uint64, name string, size int64, fh io.ReadSeeker, moduleID, recordID uint64, fieldName string) (*types.Attachment, error)
 		CreateNamespaceAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker) (*types.Attachment, error)
-		OpenOriginal(att *types.Attachment) (io.ReadSeeker, error)
-		OpenPreview(att *types.Attachment) (io.ReadSeeker, error)
+		OpenOriginal(att *types.Attachment) (io.ReadSeekCloser, error)
+		OpenPreview(att *types.Attachment) (io.ReadSeekCloser, error)
 		DeleteByID(ctx context.Context, namespaceID, attachmentID uint64) error
 	}
 )
@@ -231,7 +231,7 @@ func (svc attachment) DeleteByID(ctx context.Context, namespaceID, attachmentID 
 //	return r, nil
 //}
 
-func (svc attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error) {
+func (svc attachment) OpenOriginal(att *types.Attachment) (io.ReadSeekCloser, error) {
 	if len(att.Url) == 0 {
 		return nil, nil
 	}
@@ -239,7 +239,7 @@ func (svc attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error)
 	return svc.objects.Open(att.Url)
 }
 
-func (svc attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) {
+func (svc attachment) OpenPreview(att *types.Attachment) (io.ReadSeekCloser, error) {
 	if len(att.PreviewUrl) == 0 {
 		return nil, nil
 	}

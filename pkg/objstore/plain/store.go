@@ -90,7 +90,7 @@ func (s *store) Remove(filename string) error {
 	return s.fs.Remove(filename)
 }
 
-func (s *store) Open(filename string) (io.ReadSeeker, error) {
+func (s *store) Open(filename string) (io.ReadSeekCloser, error) {
 	// check filename for validity
 	if err := s.check(filename); err != nil {
 		return nil, err

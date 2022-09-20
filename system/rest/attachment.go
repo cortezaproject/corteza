@@ -110,13 +110,15 @@ func (ctrl Attachment) serve(ctx context.Context, attachmentID uint64, preview, 
 			return
 		}
 
-		var fh io.ReadSeeker
+		var fh io.ReadSeekCloser
 
 		if preview {
 			fh, err = ctrl.attachment.OpenPreview(att)
 		} else {
 			fh, err = ctrl.attachment.OpenOriginal(att)
 		}
+
+		defer fh.Close()
 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
