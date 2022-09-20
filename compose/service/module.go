@@ -1454,8 +1454,8 @@ func moduleFieldToAttribute(f *types.ModuleField) (out *dal.Attribute, err error
 				return &dal.CodecRecordValueSetJSON{
 					Ident: es.EncodingStrategyJSON.Ident,
 				}
-			case es != nil:
-				// assuming omit!
+			// Only omit if explicitly told to; for module fields, default to JSON
+			case es != nil && es.Omit:
 				return nil
 			default:
 				// defaulting to RecordValueSetJSON with
