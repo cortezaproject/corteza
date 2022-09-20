@@ -19,7 +19,7 @@ type Store interface {
 	Remove(filename string) error
 
 	// Open returns file handle
-	Open(filename string) (io.ReadSeeker, error)
+	Open(filename string) (io.ReadSeekCloser, error)
 
 	// Healthcheck checks health status of the store
 	Healthcheck(ctx context.Context) error

@@ -123,7 +123,7 @@ func (ctrl Attachment) serve(ctx context.Context, namespaceID, attachmentID uint
 			return
 		}
 
-		var fh io.ReadSeeker
+		var fh io.ReadSeekCloser
 
 		if preview {
 			fh, err = ctrl.attachment.OpenPreview(att)
@@ -135,6 +135,8 @@ func (ctrl Attachment) serve(ctx context.Context, namespaceID, attachmentID uint
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		defer fh.Close()
 
 		name := url.QueryEscape(att.Name)
 
