@@ -82,7 +82,7 @@ type (
 		// type of connection
 		Type string `json:"type"`
 
-		// parameters for th connection
+		// parameters for the connection
 		Params map[string]any `json:"params"`
 
 		// ident to be used when generating models from modules using this connection

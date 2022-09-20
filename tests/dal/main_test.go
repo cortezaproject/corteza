@@ -416,7 +416,7 @@ func rs(a ...int) string {
 	return string(rand.Bytes(l))
 }
 
-func loadScenarioSources(t aaaa, driver, ext string) (src string) {
+func loadScenarioSources(t wrapTest, driver, ext string) (src string) {
 	scenarioName := t.Name()[5:]
 
 	src = loadScenarioSource(t, "generic", fmt.Sprintf("_.%s", ext))
@@ -430,7 +430,7 @@ func loadScenarioSources(t aaaa, driver, ext string) (src string) {
 	return
 }
 
-func loadScenarioSource(t aaaa, scenarioName, srcName string) (src string) {
+func loadScenarioSource(t wrapTest, scenarioName, srcName string) (src string) {
 	f, err := os.Open(path.Join("testdata", scenarioName, srcName))
 	if err != nil && os.IsNotExist(err) {
 		return ""
