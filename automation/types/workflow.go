@@ -53,6 +53,9 @@ type (
 		Deleted  filter.State `json:"deleted"`
 		Disabled filter.State `json:"disabled"`
 
+		// include sub-workflows
+		SubWorkflow filter.State `json:"subWorkflow"`
+
 		LabeledIDs []uint64          `json:"-"`
 		Labels     map[string]string `json:"labels,omitempty"`
 
@@ -71,6 +74,10 @@ type (
 		Name        string                 `json:"name"`
 		Description string                 `json:"description"`
 		Visual      map[string]interface{} `json:"visual"`
+
+		// list as one of the sub-workflows, when set to true
+		// there should be no enabled triggers on this workflow
+		SubWorkflow bool `json:"subWorkflow,omitempty"`
 	}
 
 	WorkflowIssue struct {

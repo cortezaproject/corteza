@@ -2,6 +2,7 @@ package rdbms
 
 import (
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"strings"
 	"time"
 
@@ -299,6 +300,27 @@ func DefaultFilters() (f *extendedFilters) {
 
 		if f.Limit == 0 || f.Limit > MaxLimit {
 			f.Limit = MaxLimit
+		}
+
+		return ee, f, err
+	}
+
+	f.AutomationWorkflow = func(s *Store, f automationType.WorkflowFilter) (ee []goqu.Expression, _ automationType.WorkflowFilter, err error) {
+		if ee, f, err = AutomationWorkflowFilter(f); err != nil {
+			return
+		}
+
+		if f.SubWorkflow != filter.StateInclusive {
+			vattr := &dal.Attribute{Type: &dal.TypeBoolean{}}
+			litexp, _ := s.Dialect.DeepIdentJSON(goqu.C("meta"), "subWorkflow")
+			litexp, _ = s.Dialect.AttributeCast(vattr, litexp)
+
+			switch f.SubWorkflow {
+			case filter.StateExcluded:
+				ee = append(ee, goqu.Or(litexp.IsFalse(), litexp.IsNull()))
+			case filter.StateExclusive:
+				ee = append(ee, litexp.IsTrue())
+			}
 		}
 
 		return ee, f, err

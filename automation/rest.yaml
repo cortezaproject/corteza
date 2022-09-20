@@ -21,15 +21,16 @@ endpoints:
     path: "/"
     parameters:
       get:
-      - { name: workflowID, type: "[]string",          title: "Filter by workflow ID" }
-      - { name: query,      type: "string",            title: "Filter workflows" }
-      - { name: deleted,    type: "uint",              title: "Exclude (0, default), include (1) or return only (2) deleted workflows" }
-      - { name: disabled,   type: "uint",              title: "Exclude (0, default), include (1) or return only (2) disabled workflows" }
-      - { name: labels,     type: "map[string]string", title: "Labels", parser: "label.ParseStrings" }
-      - { name: limit,      type: "uint",              title: "Limit" }
-      - { name: incTotal,   type: "bool",              title: "Include total rows counter" }
-      - { name: pageCursor, type: "string",            title: "Page cursor" }
-      - { name: sort,       type: "string",            title: "Sort items" }
+      - { name: workflowID,  type: "[]string",          title: "Filter by workflow ID" }
+      - { name: query,       type: "string",            title: "Filter workflows" }
+      - { name: deleted,     type: "uint",              title: "Exclude (0, default), include (1) or return only (2) deleted workflows" }
+      - { name: disabled,    type: "uint",              title: "Exclude (0, default), include (1) or return only (2) disabled workflows" }
+      - { name: subWorkflow, type: "uint",              title: "Exclude (0, default), include (1) or return only (2) sub workflows" }
+      - { name: labels,      type: "map[string]string", title: "Labels", parser: "label.ParseStrings" }
+      - { name: limit,       type: "uint",              title: "Limit" }
+      - { name: incTotal,    type: "bool",              title: "Include total rows counter" }
+      - { name: pageCursor,  type: "string",            title: "Page cursor" }
+      - { name: sort,        type: "string",            title: "Sort items" }
   - name: create
     method: POST
     title: Create workflow

@@ -57,6 +57,11 @@ type (
 		// Exclude (0, default), include (1) or return only (2) disabled workflows
 		Disabled uint
 
+		// SubWorkflow GET parameter
+		//
+		// Exclude (0, default), include (1) or return only (2) sub workflows
+		SubWorkflow uint
+
 		// Labels GET parameter
 		//
 		// Labels
@@ -281,15 +286,16 @@ func NewWorkflowList() *WorkflowList {
 // Auditable returns all auditable/loggable parameters
 func (r WorkflowList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"workflowID": r.WorkflowID,
-		"query":      r.Query,
-		"deleted":    r.Deleted,
-		"disabled":   r.Disabled,
-		"labels":     r.Labels,
-		"limit":      r.Limit,
-		"incTotal":   r.IncTotal,
-		"pageCursor": r.PageCursor,
-		"sort":       r.Sort,
+		"workflowID":  r.WorkflowID,
+		"query":       r.Query,
+		"deleted":     r.Deleted,
+		"disabled":    r.Disabled,
+		"subWorkflow": r.SubWorkflow,
+		"labels":      r.Labels,
+		"limit":       r.Limit,
+		"incTotal":    r.IncTotal,
+		"pageCursor":  r.PageCursor,
+		"sort":        r.Sort,
 	}
 }
 
@@ -311,6 +317,11 @@ func (r WorkflowList) GetDeleted() uint {
 // Auditable returns all auditable/loggable parameters
 func (r WorkflowList) GetDisabled() uint {
 	return r.Disabled
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r WorkflowList) GetSubWorkflow() uint {
+	return r.SubWorkflow
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -370,6 +381,12 @@ func (r *WorkflowList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["disabled"]; ok && len(val) > 0 {
 			r.Disabled, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["subWorkflow"]; ok && len(val) > 0 {
+			r.SubWorkflow, err = payload.ParseUint(val[0]), nil
 			if err != nil {
 				return err
 			}
