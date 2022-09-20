@@ -16,7 +16,7 @@ func (s Store) RoleMetrics(ctx context.Context) (m *systemType.RoleMetrics, err 
 			Archived uint `db:"archived"`
 		}{}
 
-		query = roleSelectQuery(s.Dialect).
+		query = roleSelectQuery(s.Dialect.GOQU()).
 			Select(timestampStatExpr("deleted", "archived")...)
 	)
 
@@ -57,7 +57,7 @@ func (s Store) RoleMetrics(ctx context.Context) (m *systemType.RoleMetrics, err 
 
 func (s Store) TransferRoleMembers(ctx context.Context, src, dst uint64) (err error) {
 	var (
-		transfer = s.Dialect.Update(roleMemberTable).
+		transfer = s.Dialect.GOQU().Update(roleMemberTable).
 			Set(goqu.Record{"rel_role": dst}).
 			Where(goqu.Ex{"rel_role": src})
 	)

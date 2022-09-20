@@ -15,7 +15,7 @@ func (s *Store) CountUsers(ctx context.Context, f systemType.UserFilter) (c uint
 
 		expr, _, err = s.Filters.User(s, f)
 
-		query = s.Dialect.
+		query = s.Dialect.GOQU().
 			From(userTable).
 			Select(goqu.COUNT(goqu.Star()).As("count"))
 	)
@@ -40,7 +40,7 @@ func (s *Store) UserMetrics(ctx context.Context) (m *systemType.UserMetrics, err
 			Suspended uint `db:"suspended"`
 		}{}
 
-		query = userSelectQuery(s.Dialect).
+		query = userSelectQuery(s.Dialect.GOQU()).
 			Select(timestampStatExpr("deleted", "suspended")...)
 	)
 

@@ -82,7 +82,7 @@ func (s *Store) CreateActionlog(ctx context.Context, rr ...*actionlogType.Action
 			return
 		}
 
-		if err = s.Exec(ctx, actionlogInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, actionlogInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -99,7 +99,7 @@ func (s *Store) UpdateActionlog(ctx context.Context, rr ...*actionlogType.Action
 			return
 		}
 
-		if err = s.Exec(ctx, actionlogUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, actionlogUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -116,7 +116,7 @@ func (s *Store) UpsertActionlog(ctx context.Context, rr ...*actionlogType.Action
 			return
 		}
 
-		if err = s.Exec(ctx, actionlogUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, actionlogUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -129,7 +129,7 @@ func (s *Store) UpsertActionlog(ctx context.Context, rr ...*actionlogType.Action
 // This function is auto-generated
 func (s *Store) DeleteActionlog(ctx context.Context, rr ...*actionlogType.Action) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, actionlogDeleteQuery(s.Dialect, actionlogPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, actionlogDeleteQuery(s.Dialect.GOQU(), actionlogPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -141,14 +141,14 @@ func (s *Store) DeleteActionlog(ctx context.Context, rr ...*actionlogType.Action
 //
 // This function is auto-generated
 func (s *Store) DeleteActionlogByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, actionlogDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, actionlogDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateActionlogs Deletes all rows from the actionlog collection
 func (s *Store) TruncateActionlogs(ctx context.Context) error {
-	return s.Exec(ctx, actionlogTruncateQuery(s.Dialect))
+	return s.Exec(ctx, actionlogTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchActionlogs returns (filtered) set of Actionlogs
@@ -200,7 +200,7 @@ func (s *Store) QueryActionlogs(
 
 	expr = append(expr, tExpr...)
 
-	query := actionlogSelectQuery(s.Dialect).Where(expr...)
+	query := actionlogSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableActionlogFields()); err != nil {
@@ -267,7 +267,7 @@ func (s *Store) LookupActionlogByID(ctx context.Context, id uint64) (_ *actionlo
 	var (
 		rows   *sql.Rows
 		aux    = new(auxActionlog)
-		lookup = actionlogSelectQuery(s.Dialect).Where(
+		lookup = actionlogSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -375,7 +375,7 @@ func (s *Store) CreateApigwFilter(ctx context.Context, rr ...*systemType.ApigwFi
 			return
 		}
 
-		if err = s.Exec(ctx, apigwFilterInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, apigwFilterInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -392,7 +392,7 @@ func (s *Store) UpdateApigwFilter(ctx context.Context, rr ...*systemType.ApigwFi
 			return
 		}
 
-		if err = s.Exec(ctx, apigwFilterUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, apigwFilterUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -409,7 +409,7 @@ func (s *Store) UpsertApigwFilter(ctx context.Context, rr ...*systemType.ApigwFi
 			return
 		}
 
-		if err = s.Exec(ctx, apigwFilterUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, apigwFilterUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -422,7 +422,7 @@ func (s *Store) UpsertApigwFilter(ctx context.Context, rr ...*systemType.ApigwFi
 // This function is auto-generated
 func (s *Store) DeleteApigwFilter(ctx context.Context, rr ...*systemType.ApigwFilter) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, apigwFilterDeleteQuery(s.Dialect, apigwFilterPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, apigwFilterDeleteQuery(s.Dialect.GOQU(), apigwFilterPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -434,14 +434,14 @@ func (s *Store) DeleteApigwFilter(ctx context.Context, rr ...*systemType.ApigwFi
 //
 // This function is auto-generated
 func (s *Store) DeleteApigwFilterByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, apigwFilterDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, apigwFilterDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateApigwFilters Deletes all rows from the apigwFilter collection
 func (s *Store) TruncateApigwFilters(ctx context.Context) error {
-	return s.Exec(ctx, apigwFilterTruncateQuery(s.Dialect))
+	return s.Exec(ctx, apigwFilterTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchApigwFilters returns (filtered) set of ApigwFilters
@@ -684,7 +684,7 @@ func (s *Store) QueryApigwFilters(
 		}
 	}
 
-	query := apigwFilterSelectQuery(s.Dialect).Where(expr...)
+	query := apigwFilterSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableApigwFilterFields()); err != nil {
@@ -761,7 +761,7 @@ func (s *Store) LookupApigwFilterByID(ctx context.Context, id uint64) (_ *system
 	var (
 		rows   *sql.Rows
 		aux    = new(auxApigwFilter)
-		lookup = apigwFilterSelectQuery(s.Dialect).Where(
+		lookup = apigwFilterSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -801,7 +801,7 @@ func (s *Store) LookupApigwFilterByRoute(ctx context.Context, route uint64) (_ *
 	var (
 		rows   *sql.Rows
 		aux    = new(auxApigwFilter)
-		lookup = apigwFilterSelectQuery(s.Dialect).Where(
+		lookup = apigwFilterSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("rel_route").Eq(route),
 		).Limit(1)
 	)
@@ -930,7 +930,7 @@ func (s *Store) CreateApigwRoute(ctx context.Context, rr ...*systemType.ApigwRou
 			return
 		}
 
-		if err = s.Exec(ctx, apigwRouteInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, apigwRouteInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -947,7 +947,7 @@ func (s *Store) UpdateApigwRoute(ctx context.Context, rr ...*systemType.ApigwRou
 			return
 		}
 
-		if err = s.Exec(ctx, apigwRouteUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, apigwRouteUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -964,7 +964,7 @@ func (s *Store) UpsertApigwRoute(ctx context.Context, rr ...*systemType.ApigwRou
 			return
 		}
 
-		if err = s.Exec(ctx, apigwRouteUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, apigwRouteUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -977,7 +977,7 @@ func (s *Store) UpsertApigwRoute(ctx context.Context, rr ...*systemType.ApigwRou
 // This function is auto-generated
 func (s *Store) DeleteApigwRoute(ctx context.Context, rr ...*systemType.ApigwRoute) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, apigwRouteDeleteQuery(s.Dialect, apigwRoutePrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, apigwRouteDeleteQuery(s.Dialect.GOQU(), apigwRoutePrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -989,14 +989,14 @@ func (s *Store) DeleteApigwRoute(ctx context.Context, rr ...*systemType.ApigwRou
 //
 // This function is auto-generated
 func (s *Store) DeleteApigwRouteByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, apigwRouteDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, apigwRouteDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateApigwRoutes Deletes all rows from the apigwRoute collection
 func (s *Store) TruncateApigwRoutes(ctx context.Context) error {
-	return s.Exec(ctx, apigwRouteTruncateQuery(s.Dialect))
+	return s.Exec(ctx, apigwRouteTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchApigwRoutes returns (filtered) set of ApigwRoutes
@@ -1239,7 +1239,7 @@ func (s *Store) QueryApigwRoutes(
 		}
 	}
 
-	query := apigwRouteSelectQuery(s.Dialect).Where(expr...)
+	query := apigwRouteSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableApigwRouteFields()); err != nil {
@@ -1318,7 +1318,7 @@ func (s *Store) LookupApigwRouteByID(ctx context.Context, id uint64) (_ *systemT
 	var (
 		rows   *sql.Rows
 		aux    = new(auxApigwRoute)
-		lookup = apigwRouteSelectQuery(s.Dialect).Where(
+		lookup = apigwRouteSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -1360,7 +1360,7 @@ func (s *Store) LookupApigwRouteByEndpoint(ctx context.Context, endpoint string)
 	var (
 		rows   *sql.Rows
 		aux    = new(auxApigwRoute)
-		lookup = apigwRouteSelectQuery(s.Dialect).Where(
+		lookup = apigwRouteSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("endpoint").Eq(endpoint),
 		).Limit(1)
 	)
@@ -1489,7 +1489,7 @@ func (s *Store) CreateApplication(ctx context.Context, rr ...*systemType.Applica
 			return
 		}
 
-		if err = s.Exec(ctx, applicationInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, applicationInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -1506,7 +1506,7 @@ func (s *Store) UpdateApplication(ctx context.Context, rr ...*systemType.Applica
 			return
 		}
 
-		if err = s.Exec(ctx, applicationUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, applicationUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -1523,7 +1523,7 @@ func (s *Store) UpsertApplication(ctx context.Context, rr ...*systemType.Applica
 			return
 		}
 
-		if err = s.Exec(ctx, applicationUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, applicationUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -1536,7 +1536,7 @@ func (s *Store) UpsertApplication(ctx context.Context, rr ...*systemType.Applica
 // This function is auto-generated
 func (s *Store) DeleteApplication(ctx context.Context, rr ...*systemType.Application) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, applicationDeleteQuery(s.Dialect, applicationPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, applicationDeleteQuery(s.Dialect.GOQU(), applicationPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -1548,14 +1548,14 @@ func (s *Store) DeleteApplication(ctx context.Context, rr ...*systemType.Applica
 //
 // This function is auto-generated
 func (s *Store) DeleteApplicationByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, applicationDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, applicationDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateApplications Deletes all rows from the application collection
 func (s *Store) TruncateApplications(ctx context.Context) error {
-	return s.Exec(ctx, applicationTruncateQuery(s.Dialect))
+	return s.Exec(ctx, applicationTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchApplications returns (filtered) set of Applications
@@ -1798,7 +1798,7 @@ func (s *Store) QueryApplications(
 		}
 	}
 
-	query := applicationSelectQuery(s.Dialect).Where(expr...)
+	query := applicationSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableApplicationFields()); err != nil {
@@ -1877,7 +1877,7 @@ func (s *Store) LookupApplicationByID(ctx context.Context, id uint64) (_ *system
 	var (
 		rows   *sql.Rows
 		aux    = new(auxApplication)
-		lookup = applicationSelectQuery(s.Dialect).Where(
+		lookup = applicationSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -2003,7 +2003,7 @@ func (s *Store) CreateAttachment(ctx context.Context, rr ...*systemType.Attachme
 			return
 		}
 
-		if err = s.Exec(ctx, attachmentInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, attachmentInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -2020,7 +2020,7 @@ func (s *Store) UpdateAttachment(ctx context.Context, rr ...*systemType.Attachme
 			return
 		}
 
-		if err = s.Exec(ctx, attachmentUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, attachmentUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -2037,7 +2037,7 @@ func (s *Store) UpsertAttachment(ctx context.Context, rr ...*systemType.Attachme
 			return
 		}
 
-		if err = s.Exec(ctx, attachmentUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, attachmentUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -2050,7 +2050,7 @@ func (s *Store) UpsertAttachment(ctx context.Context, rr ...*systemType.Attachme
 // This function is auto-generated
 func (s *Store) DeleteAttachment(ctx context.Context, rr ...*systemType.Attachment) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, attachmentDeleteQuery(s.Dialect, attachmentPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, attachmentDeleteQuery(s.Dialect.GOQU(), attachmentPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -2062,14 +2062,14 @@ func (s *Store) DeleteAttachment(ctx context.Context, rr ...*systemType.Attachme
 //
 // This function is auto-generated
 func (s *Store) DeleteAttachmentByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, attachmentDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, attachmentDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateAttachments Deletes all rows from the attachment collection
 func (s *Store) TruncateAttachments(ctx context.Context) error {
-	return s.Exec(ctx, attachmentTruncateQuery(s.Dialect))
+	return s.Exec(ctx, attachmentTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchAttachments returns (filtered) set of Attachments
@@ -2312,7 +2312,7 @@ func (s *Store) QueryAttachments(
 		}
 	}
 
-	query := attachmentSelectQuery(s.Dialect).Where(expr...)
+	query := attachmentSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableAttachmentFields()); err != nil {
@@ -2389,7 +2389,7 @@ func (s *Store) LookupAttachmentByID(ctx context.Context, id uint64) (_ *systemT
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAttachment)
-		lookup = attachmentSelectQuery(s.Dialect).Where(
+		lookup = attachmentSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -2512,7 +2512,7 @@ func (s *Store) CreateAuthClient(ctx context.Context, rr ...*systemType.AuthClie
 			return
 		}
 
-		if err = s.Exec(ctx, authClientInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, authClientInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -2529,7 +2529,7 @@ func (s *Store) UpdateAuthClient(ctx context.Context, rr ...*systemType.AuthClie
 			return
 		}
 
-		if err = s.Exec(ctx, authClientUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, authClientUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -2546,7 +2546,7 @@ func (s *Store) UpsertAuthClient(ctx context.Context, rr ...*systemType.AuthClie
 			return
 		}
 
-		if err = s.Exec(ctx, authClientUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, authClientUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -2559,7 +2559,7 @@ func (s *Store) UpsertAuthClient(ctx context.Context, rr ...*systemType.AuthClie
 // This function is auto-generated
 func (s *Store) DeleteAuthClient(ctx context.Context, rr ...*systemType.AuthClient) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, authClientDeleteQuery(s.Dialect, authClientPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, authClientDeleteQuery(s.Dialect.GOQU(), authClientPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -2571,14 +2571,14 @@ func (s *Store) DeleteAuthClient(ctx context.Context, rr ...*systemType.AuthClie
 //
 // This function is auto-generated
 func (s *Store) DeleteAuthClientByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, authClientDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, authClientDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateAuthClients Deletes all rows from the authClient collection
 func (s *Store) TruncateAuthClients(ctx context.Context) error {
-	return s.Exec(ctx, authClientTruncateQuery(s.Dialect))
+	return s.Exec(ctx, authClientTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchAuthClients returns (filtered) set of AuthClients
@@ -2821,7 +2821,7 @@ func (s *Store) QueryAuthClients(
 		}
 	}
 
-	query := authClientSelectQuery(s.Dialect).Where(expr...)
+	query := authClientSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableAuthClientFields()); err != nil {
@@ -2900,7 +2900,7 @@ func (s *Store) LookupAuthClientByID(ctx context.Context, id uint64) (_ *systemT
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAuthClient)
-		lookup = authClientSelectQuery(s.Dialect).Where(
+		lookup = authClientSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -2942,7 +2942,7 @@ func (s *Store) LookupAuthClientByHandle(ctx context.Context, handle string) (_ 
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAuthClient)
-		lookup = authClientSelectQuery(s.Dialect).Where(
+		lookup = authClientSelectQuery(s.Dialect.GOQU()).Where(
 			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
 			goqu.I("deleted_at").IsNull(),
 		).Limit(1)
@@ -3105,7 +3105,7 @@ func (s *Store) CreateAuthConfirmedClient(ctx context.Context, rr ...*systemType
 			return
 		}
 
-		if err = s.Exec(ctx, authConfirmedClientInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, authConfirmedClientInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -3122,7 +3122,7 @@ func (s *Store) UpdateAuthConfirmedClient(ctx context.Context, rr ...*systemType
 			return
 		}
 
-		if err = s.Exec(ctx, authConfirmedClientUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, authConfirmedClientUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -3139,7 +3139,7 @@ func (s *Store) UpsertAuthConfirmedClient(ctx context.Context, rr ...*systemType
 			return
 		}
 
-		if err = s.Exec(ctx, authConfirmedClientUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, authConfirmedClientUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -3152,7 +3152,7 @@ func (s *Store) UpsertAuthConfirmedClient(ctx context.Context, rr ...*systemType
 // This function is auto-generated
 func (s *Store) DeleteAuthConfirmedClient(ctx context.Context, rr ...*systemType.AuthConfirmedClient) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, authConfirmedClientDeleteQuery(s.Dialect, authConfirmedClientPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, authConfirmedClientDeleteQuery(s.Dialect.GOQU(), authConfirmedClientPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -3164,7 +3164,7 @@ func (s *Store) DeleteAuthConfirmedClient(ctx context.Context, rr ...*systemType
 //
 // This function is auto-generated
 func (s *Store) DeleteAuthConfirmedClientByUserIDClientID(ctx context.Context, userID uint64, clientID uint64) error {
-	return s.Exec(ctx, authConfirmedClientDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, authConfirmedClientDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"rel_user":   userID,
 		"rel_client": clientID,
 	}))
@@ -3172,7 +3172,7 @@ func (s *Store) DeleteAuthConfirmedClientByUserIDClientID(ctx context.Context, u
 
 // TruncateAuthConfirmedClients Deletes all rows from the authConfirmedClient collection
 func (s *Store) TruncateAuthConfirmedClients(ctx context.Context) error {
-	return s.Exec(ctx, authConfirmedClientTruncateQuery(s.Dialect))
+	return s.Exec(ctx, authConfirmedClientTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchAuthConfirmedClients returns (filtered) set of AuthConfirmedClients
@@ -3222,7 +3222,7 @@ func (s *Store) QueryAuthConfirmedClients(
 
 	expr = append(expr, tExpr...)
 
-	query := authConfirmedClientSelectQuery(s.Dialect).Where(expr...)
+	query := authConfirmedClientSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	if f.Limit > 0 {
 		query = query.Limit(f.Limit)
@@ -3279,7 +3279,7 @@ func (s *Store) LookupAuthConfirmedClientByUserIDClientID(ctx context.Context, u
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAuthConfirmedClient)
-		lookup = authConfirmedClientSelectQuery(s.Dialect).Where(
+		lookup = authConfirmedClientSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("rel_user").Eq(userID),
 			goqu.I("rel_client").Eq(clientID),
 		).Limit(1)
@@ -3399,7 +3399,7 @@ func (s *Store) CreateAuthOa2token(ctx context.Context, rr ...*systemType.AuthOa
 			return
 		}
 
-		if err = s.Exec(ctx, authOa2tokenInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, authOa2tokenInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -3416,7 +3416,7 @@ func (s *Store) UpdateAuthOa2token(ctx context.Context, rr ...*systemType.AuthOa
 			return
 		}
 
-		if err = s.Exec(ctx, authOa2tokenUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, authOa2tokenUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -3433,7 +3433,7 @@ func (s *Store) UpsertAuthOa2token(ctx context.Context, rr ...*systemType.AuthOa
 			return
 		}
 
-		if err = s.Exec(ctx, authOa2tokenUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, authOa2tokenUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -3446,7 +3446,7 @@ func (s *Store) UpsertAuthOa2token(ctx context.Context, rr ...*systemType.AuthOa
 // This function is auto-generated
 func (s *Store) DeleteAuthOa2token(ctx context.Context, rr ...*systemType.AuthOa2token) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, authOa2tokenDeleteQuery(s.Dialect, authOa2tokenPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, authOa2tokenDeleteQuery(s.Dialect.GOQU(), authOa2tokenPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -3458,14 +3458,14 @@ func (s *Store) DeleteAuthOa2token(ctx context.Context, rr ...*systemType.AuthOa
 //
 // This function is auto-generated
 func (s *Store) DeleteAuthOa2tokenByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, authOa2tokenDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, authOa2tokenDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateAuthOa2tokens Deletes all rows from the authOa2token collection
 func (s *Store) TruncateAuthOa2tokens(ctx context.Context) error {
-	return s.Exec(ctx, authOa2tokenTruncateQuery(s.Dialect))
+	return s.Exec(ctx, authOa2tokenTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchAuthOa2tokens returns (filtered) set of AuthOa2tokens
@@ -3515,7 +3515,7 @@ func (s *Store) QueryAuthOa2tokens(
 
 	expr = append(expr, tExpr...)
 
-	query := authOa2tokenSelectQuery(s.Dialect).Where(expr...)
+	query := authOa2tokenSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	if f.Limit > 0 {
 		query = query.Limit(f.Limit)
@@ -3572,7 +3572,7 @@ func (s *Store) LookupAuthOa2tokenByID(ctx context.Context, id uint64) (_ *syste
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAuthOa2token)
-		lookup = authOa2tokenSelectQuery(s.Dialect).Where(
+		lookup = authOa2tokenSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -3612,7 +3612,7 @@ func (s *Store) LookupAuthOa2tokenByCode(ctx context.Context, code string) (_ *s
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAuthOa2token)
-		lookup = authOa2tokenSelectQuery(s.Dialect).Where(
+		lookup = authOa2tokenSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("code").Eq(code),
 		).Limit(1)
 	)
@@ -3652,7 +3652,7 @@ func (s *Store) LookupAuthOa2tokenByAccess(ctx context.Context, access string) (
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAuthOa2token)
-		lookup = authOa2tokenSelectQuery(s.Dialect).Where(
+		lookup = authOa2tokenSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("access").Eq(access),
 		).Limit(1)
 	)
@@ -3692,7 +3692,7 @@ func (s *Store) LookupAuthOa2tokenByRefresh(ctx context.Context, refresh string)
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAuthOa2token)
-		lookup = authOa2tokenSelectQuery(s.Dialect).Where(
+		lookup = authOa2tokenSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("refresh").Eq(refresh),
 		).Limit(1)
 	)
@@ -3805,7 +3805,7 @@ func (s *Store) CreateAuthSession(ctx context.Context, rr ...*systemType.AuthSes
 			return
 		}
 
-		if err = s.Exec(ctx, authSessionInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, authSessionInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -3822,7 +3822,7 @@ func (s *Store) UpdateAuthSession(ctx context.Context, rr ...*systemType.AuthSes
 			return
 		}
 
-		if err = s.Exec(ctx, authSessionUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, authSessionUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -3839,7 +3839,7 @@ func (s *Store) UpsertAuthSession(ctx context.Context, rr ...*systemType.AuthSes
 			return
 		}
 
-		if err = s.Exec(ctx, authSessionUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, authSessionUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -3852,7 +3852,7 @@ func (s *Store) UpsertAuthSession(ctx context.Context, rr ...*systemType.AuthSes
 // This function is auto-generated
 func (s *Store) DeleteAuthSession(ctx context.Context, rr ...*systemType.AuthSession) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, authSessionDeleteQuery(s.Dialect, authSessionPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, authSessionDeleteQuery(s.Dialect.GOQU(), authSessionPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -3864,14 +3864,14 @@ func (s *Store) DeleteAuthSession(ctx context.Context, rr ...*systemType.AuthSes
 //
 // This function is auto-generated
 func (s *Store) DeleteAuthSessionByID(ctx context.Context, id string) error {
-	return s.Exec(ctx, authSessionDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, authSessionDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateAuthSessions Deletes all rows from the authSession collection
 func (s *Store) TruncateAuthSessions(ctx context.Context) error {
-	return s.Exec(ctx, authSessionTruncateQuery(s.Dialect))
+	return s.Exec(ctx, authSessionTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchAuthSessions returns (filtered) set of AuthSessions
@@ -3921,7 +3921,7 @@ func (s *Store) QueryAuthSessions(
 
 	expr = append(expr, tExpr...)
 
-	query := authSessionSelectQuery(s.Dialect).Where(expr...)
+	query := authSessionSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	if f.Limit > 0 {
 		query = query.Limit(f.Limit)
@@ -3978,7 +3978,7 @@ func (s *Store) LookupAuthSessionByID(ctx context.Context, id string) (_ *system
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAuthSession)
-		lookup = authSessionSelectQuery(s.Dialect).Where(
+		lookup = authSessionSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -4091,7 +4091,7 @@ func (s *Store) CreateAutomationSession(ctx context.Context, rr ...*automationTy
 			return
 		}
 
-		if err = s.Exec(ctx, automationSessionInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, automationSessionInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -4108,7 +4108,7 @@ func (s *Store) UpdateAutomationSession(ctx context.Context, rr ...*automationTy
 			return
 		}
 
-		if err = s.Exec(ctx, automationSessionUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, automationSessionUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -4125,7 +4125,7 @@ func (s *Store) UpsertAutomationSession(ctx context.Context, rr ...*automationTy
 			return
 		}
 
-		if err = s.Exec(ctx, automationSessionUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, automationSessionUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -4138,7 +4138,7 @@ func (s *Store) UpsertAutomationSession(ctx context.Context, rr ...*automationTy
 // This function is auto-generated
 func (s *Store) DeleteAutomationSession(ctx context.Context, rr ...*automationType.Session) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, automationSessionDeleteQuery(s.Dialect, automationSessionPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, automationSessionDeleteQuery(s.Dialect.GOQU(), automationSessionPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -4150,14 +4150,14 @@ func (s *Store) DeleteAutomationSession(ctx context.Context, rr ...*automationTy
 //
 // This function is auto-generated
 func (s *Store) DeleteAutomationSessionByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, automationSessionDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, automationSessionDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateAutomationSessions Deletes all rows from the automationSession collection
 func (s *Store) TruncateAutomationSessions(ctx context.Context) error {
-	return s.Exec(ctx, automationSessionTruncateQuery(s.Dialect))
+	return s.Exec(ctx, automationSessionTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchAutomationSessions returns (filtered) set of AutomationSessions
@@ -4400,7 +4400,7 @@ func (s *Store) QueryAutomationSessions(
 		}
 	}
 
-	query := automationSessionSelectQuery(s.Dialect).Where(expr...)
+	query := automationSessionSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableAutomationSessionFields()); err != nil {
@@ -4479,7 +4479,7 @@ func (s *Store) LookupAutomationSessionByID(ctx context.Context, id uint64) (_ *
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAutomationSession)
-		lookup = automationSessionSelectQuery(s.Dialect).Where(
+		lookup = automationSessionSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -4615,7 +4615,7 @@ func (s *Store) CreateAutomationTrigger(ctx context.Context, rr ...*automationTy
 			return
 		}
 
-		if err = s.Exec(ctx, automationTriggerInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, automationTriggerInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -4632,7 +4632,7 @@ func (s *Store) UpdateAutomationTrigger(ctx context.Context, rr ...*automationTy
 			return
 		}
 
-		if err = s.Exec(ctx, automationTriggerUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, automationTriggerUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -4649,7 +4649,7 @@ func (s *Store) UpsertAutomationTrigger(ctx context.Context, rr ...*automationTy
 			return
 		}
 
-		if err = s.Exec(ctx, automationTriggerUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, automationTriggerUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -4662,7 +4662,7 @@ func (s *Store) UpsertAutomationTrigger(ctx context.Context, rr ...*automationTy
 // This function is auto-generated
 func (s *Store) DeleteAutomationTrigger(ctx context.Context, rr ...*automationType.Trigger) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, automationTriggerDeleteQuery(s.Dialect, automationTriggerPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, automationTriggerDeleteQuery(s.Dialect.GOQU(), automationTriggerPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -4674,14 +4674,14 @@ func (s *Store) DeleteAutomationTrigger(ctx context.Context, rr ...*automationTy
 //
 // This function is auto-generated
 func (s *Store) DeleteAutomationTriggerByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, automationTriggerDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, automationTriggerDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateAutomationTriggers Deletes all rows from the automationTrigger collection
 func (s *Store) TruncateAutomationTriggers(ctx context.Context) error {
-	return s.Exec(ctx, automationTriggerTruncateQuery(s.Dialect))
+	return s.Exec(ctx, automationTriggerTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchAutomationTriggers returns (filtered) set of AutomationTriggers
@@ -4924,7 +4924,7 @@ func (s *Store) QueryAutomationTriggers(
 		}
 	}
 
-	query := automationTriggerSelectQuery(s.Dialect).Where(expr...)
+	query := automationTriggerSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableAutomationTriggerFields()); err != nil {
@@ -5003,7 +5003,7 @@ func (s *Store) LookupAutomationTriggerByID(ctx context.Context, id uint64) (_ *
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAutomationTrigger)
-		lookup = automationTriggerSelectQuery(s.Dialect).Where(
+		lookup = automationTriggerSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -5135,7 +5135,7 @@ func (s *Store) CreateAutomationWorkflow(ctx context.Context, rr ...*automationT
 			return
 		}
 
-		if err = s.Exec(ctx, automationWorkflowInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, automationWorkflowInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -5152,7 +5152,7 @@ func (s *Store) UpdateAutomationWorkflow(ctx context.Context, rr ...*automationT
 			return
 		}
 
-		if err = s.Exec(ctx, automationWorkflowUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, automationWorkflowUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -5169,7 +5169,7 @@ func (s *Store) UpsertAutomationWorkflow(ctx context.Context, rr ...*automationT
 			return
 		}
 
-		if err = s.Exec(ctx, automationWorkflowUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, automationWorkflowUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -5182,7 +5182,7 @@ func (s *Store) UpsertAutomationWorkflow(ctx context.Context, rr ...*automationT
 // This function is auto-generated
 func (s *Store) DeleteAutomationWorkflow(ctx context.Context, rr ...*automationType.Workflow) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, automationWorkflowDeleteQuery(s.Dialect, automationWorkflowPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, automationWorkflowDeleteQuery(s.Dialect.GOQU(), automationWorkflowPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -5194,14 +5194,14 @@ func (s *Store) DeleteAutomationWorkflow(ctx context.Context, rr ...*automationT
 //
 // This function is auto-generated
 func (s *Store) DeleteAutomationWorkflowByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, automationWorkflowDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, automationWorkflowDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateAutomationWorkflows Deletes all rows from the automationWorkflow collection
 func (s *Store) TruncateAutomationWorkflows(ctx context.Context) error {
-	return s.Exec(ctx, automationWorkflowTruncateQuery(s.Dialect))
+	return s.Exec(ctx, automationWorkflowTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchAutomationWorkflows returns (filtered) set of AutomationWorkflows
@@ -5444,7 +5444,7 @@ func (s *Store) QueryAutomationWorkflows(
 		}
 	}
 
-	query := automationWorkflowSelectQuery(s.Dialect).Where(expr...)
+	query := automationWorkflowSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableAutomationWorkflowFields()); err != nil {
@@ -5523,7 +5523,7 @@ func (s *Store) LookupAutomationWorkflowByID(ctx context.Context, id uint64) (_ 
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAutomationWorkflow)
-		lookup = automationWorkflowSelectQuery(s.Dialect).Where(
+		lookup = automationWorkflowSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -5565,7 +5565,7 @@ func (s *Store) LookupAutomationWorkflowByHandle(ctx context.Context, handle str
 	var (
 		rows   *sql.Rows
 		aux    = new(auxAutomationWorkflow)
-		lookup = automationWorkflowSelectQuery(s.Dialect).Where(
+		lookup = automationWorkflowSelectQuery(s.Dialect.GOQU()).Where(
 			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
 			goqu.I("deleted_at").IsNull(),
 		).Limit(1)
@@ -5717,7 +5717,7 @@ func (s *Store) CreateComposeAttachment(ctx context.Context, rr ...*composeType.
 			return
 		}
 
-		if err = s.Exec(ctx, composeAttachmentInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, composeAttachmentInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -5734,7 +5734,7 @@ func (s *Store) UpdateComposeAttachment(ctx context.Context, rr ...*composeType.
 			return
 		}
 
-		if err = s.Exec(ctx, composeAttachmentUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, composeAttachmentUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -5751,7 +5751,7 @@ func (s *Store) UpsertComposeAttachment(ctx context.Context, rr ...*composeType.
 			return
 		}
 
-		if err = s.Exec(ctx, composeAttachmentUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, composeAttachmentUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -5764,7 +5764,7 @@ func (s *Store) UpsertComposeAttachment(ctx context.Context, rr ...*composeType.
 // This function is auto-generated
 func (s *Store) DeleteComposeAttachment(ctx context.Context, rr ...*composeType.Attachment) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, composeAttachmentDeleteQuery(s.Dialect, composeAttachmentPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, composeAttachmentDeleteQuery(s.Dialect.GOQU(), composeAttachmentPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -5776,14 +5776,14 @@ func (s *Store) DeleteComposeAttachment(ctx context.Context, rr ...*composeType.
 //
 // This function is auto-generated
 func (s *Store) DeleteComposeAttachmentByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, composeAttachmentDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, composeAttachmentDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateComposeAttachments Deletes all rows from the composeAttachment collection
 func (s *Store) TruncateComposeAttachments(ctx context.Context) error {
-	return s.Exec(ctx, composeAttachmentTruncateQuery(s.Dialect))
+	return s.Exec(ctx, composeAttachmentTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchComposeAttachments returns (filtered) set of ComposeAttachments
@@ -6026,7 +6026,7 @@ func (s *Store) QueryComposeAttachments(
 		}
 	}
 
-	query := composeAttachmentSelectQuery(s.Dialect).Where(expr...)
+	query := composeAttachmentSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableComposeAttachmentFields()); err != nil {
@@ -6103,7 +6103,7 @@ func (s *Store) LookupComposeAttachmentByID(ctx context.Context, id uint64) (_ *
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposeAttachment)
-		lookup = composeAttachmentSelectQuery(s.Dialect).Where(
+		lookup = composeAttachmentSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -6230,7 +6230,7 @@ func (s *Store) CreateComposeChart(ctx context.Context, rr ...*composeType.Chart
 			return
 		}
 
-		if err = s.Exec(ctx, composeChartInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, composeChartInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -6247,7 +6247,7 @@ func (s *Store) UpdateComposeChart(ctx context.Context, rr ...*composeType.Chart
 			return
 		}
 
-		if err = s.Exec(ctx, composeChartUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, composeChartUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -6264,7 +6264,7 @@ func (s *Store) UpsertComposeChart(ctx context.Context, rr ...*composeType.Chart
 			return
 		}
 
-		if err = s.Exec(ctx, composeChartUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, composeChartUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -6277,7 +6277,7 @@ func (s *Store) UpsertComposeChart(ctx context.Context, rr ...*composeType.Chart
 // This function is auto-generated
 func (s *Store) DeleteComposeChart(ctx context.Context, rr ...*composeType.Chart) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, composeChartDeleteQuery(s.Dialect, composeChartPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, composeChartDeleteQuery(s.Dialect.GOQU(), composeChartPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -6289,14 +6289,14 @@ func (s *Store) DeleteComposeChart(ctx context.Context, rr ...*composeType.Chart
 //
 // This function is auto-generated
 func (s *Store) DeleteComposeChartByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, composeChartDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, composeChartDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateComposeCharts Deletes all rows from the composeChart collection
 func (s *Store) TruncateComposeCharts(ctx context.Context) error {
-	return s.Exec(ctx, composeChartTruncateQuery(s.Dialect))
+	return s.Exec(ctx, composeChartTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchComposeCharts returns (filtered) set of ComposeCharts
@@ -6539,7 +6539,7 @@ func (s *Store) QueryComposeCharts(
 		}
 	}
 
-	query := composeChartSelectQuery(s.Dialect).Where(expr...)
+	query := composeChartSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableComposeChartFields()); err != nil {
@@ -6618,7 +6618,7 @@ func (s *Store) LookupComposeChartByID(ctx context.Context, id uint64) (_ *compo
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposeChart)
-		lookup = composeChartSelectQuery(s.Dialect).Where(
+		lookup = composeChartSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -6658,7 +6658,7 @@ func (s *Store) LookupComposeChartByNamespaceIDHandle(ctx context.Context, names
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposeChart)
-		lookup = composeChartSelectQuery(s.Dialect).Where(
+		lookup = composeChartSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("rel_namespace").Eq(namespaceID),
 			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
 			goqu.I("deleted_at").IsNull(),
@@ -6784,7 +6784,7 @@ func (s *Store) CreateComposeModule(ctx context.Context, rr ...*composeType.Modu
 			return
 		}
 
-		if err = s.Exec(ctx, composeModuleInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, composeModuleInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -6801,7 +6801,7 @@ func (s *Store) UpdateComposeModule(ctx context.Context, rr ...*composeType.Modu
 			return
 		}
 
-		if err = s.Exec(ctx, composeModuleUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, composeModuleUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -6818,7 +6818,7 @@ func (s *Store) UpsertComposeModule(ctx context.Context, rr ...*composeType.Modu
 			return
 		}
 
-		if err = s.Exec(ctx, composeModuleUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, composeModuleUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -6831,7 +6831,7 @@ func (s *Store) UpsertComposeModule(ctx context.Context, rr ...*composeType.Modu
 // This function is auto-generated
 func (s *Store) DeleteComposeModule(ctx context.Context, rr ...*composeType.Module) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, composeModuleDeleteQuery(s.Dialect, composeModulePrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, composeModuleDeleteQuery(s.Dialect.GOQU(), composeModulePrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -6843,14 +6843,14 @@ func (s *Store) DeleteComposeModule(ctx context.Context, rr ...*composeType.Modu
 //
 // This function is auto-generated
 func (s *Store) DeleteComposeModuleByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, composeModuleDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, composeModuleDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateComposeModules Deletes all rows from the composeModule collection
 func (s *Store) TruncateComposeModules(ctx context.Context) error {
-	return s.Exec(ctx, composeModuleTruncateQuery(s.Dialect))
+	return s.Exec(ctx, composeModuleTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchComposeModules returns (filtered) set of ComposeModules
@@ -7093,7 +7093,7 @@ func (s *Store) QueryComposeModules(
 		}
 	}
 
-	query := composeModuleSelectQuery(s.Dialect).Where(expr...)
+	query := composeModuleSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableComposeModuleFields()); err != nil {
@@ -7170,7 +7170,7 @@ func (s *Store) LookupComposeModuleByNamespaceIDHandle(ctx context.Context, name
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposeModule)
-		lookup = composeModuleSelectQuery(s.Dialect).Where(
+		lookup = composeModuleSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("rel_namespace").Eq(namespaceID),
 			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
 			goqu.I("deleted_at").IsNull(),
@@ -7212,7 +7212,7 @@ func (s *Store) LookupComposeModuleByNamespaceIDName(ctx context.Context, namesp
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposeModule)
-		lookup = composeModuleSelectQuery(s.Dialect).Where(
+		lookup = composeModuleSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("rel_namespace").Eq(namespaceID),
 			goqu.I("name").Eq(name),
 			goqu.I("deleted_at").IsNull(),
@@ -7256,7 +7256,7 @@ func (s *Store) LookupComposeModuleByID(ctx context.Context, id uint64) (_ *comp
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposeModule)
-		lookup = composeModuleSelectQuery(s.Dialect).Where(
+		lookup = composeModuleSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -7412,7 +7412,7 @@ func (s *Store) CreateComposeModuleField(ctx context.Context, rr ...*composeType
 			return
 		}
 
-		if err = s.Exec(ctx, composeModuleFieldInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, composeModuleFieldInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -7429,7 +7429,7 @@ func (s *Store) UpdateComposeModuleField(ctx context.Context, rr ...*composeType
 			return
 		}
 
-		if err = s.Exec(ctx, composeModuleFieldUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, composeModuleFieldUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -7446,7 +7446,7 @@ func (s *Store) UpsertComposeModuleField(ctx context.Context, rr ...*composeType
 			return
 		}
 
-		if err = s.Exec(ctx, composeModuleFieldUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, composeModuleFieldUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -7459,7 +7459,7 @@ func (s *Store) UpsertComposeModuleField(ctx context.Context, rr ...*composeType
 // This function is auto-generated
 func (s *Store) DeleteComposeModuleField(ctx context.Context, rr ...*composeType.ModuleField) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, composeModuleFieldDeleteQuery(s.Dialect, composeModuleFieldPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, composeModuleFieldDeleteQuery(s.Dialect.GOQU(), composeModuleFieldPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -7471,14 +7471,14 @@ func (s *Store) DeleteComposeModuleField(ctx context.Context, rr ...*composeType
 //
 // This function is auto-generated
 func (s *Store) DeleteComposeModuleFieldByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, composeModuleFieldDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, composeModuleFieldDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateComposeModuleFields Deletes all rows from the composeModuleField collection
 func (s *Store) TruncateComposeModuleFields(ctx context.Context) error {
-	return s.Exec(ctx, composeModuleFieldTruncateQuery(s.Dialect))
+	return s.Exec(ctx, composeModuleFieldTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchComposeModuleFields returns (filtered) set of ComposeModuleFields
@@ -7528,7 +7528,7 @@ func (s *Store) QueryComposeModuleFields(
 
 	expr = append(expr, tExpr...)
 
-	query := composeModuleFieldSelectQuery(s.Dialect).Where(expr...)
+	query := composeModuleFieldSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	if f.Limit > 0 {
 		query = query.Limit(f.Limit)
@@ -7585,7 +7585,7 @@ func (s *Store) LookupComposeModuleFieldByModuleIDName(ctx context.Context, modu
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposeModuleField)
-		lookup = composeModuleFieldSelectQuery(s.Dialect).Where(
+		lookup = composeModuleFieldSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("rel_module").Eq(moduleID),
 			goqu.I("name").Eq(name),
 			goqu.I("deleted_at").IsNull(),
@@ -7627,7 +7627,7 @@ func (s *Store) LookupComposeModuleFieldByID(ctx context.Context, id uint64) (_ 
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposeModuleField)
-		lookup = composeModuleFieldSelectQuery(s.Dialect).Where(
+		lookup = composeModuleFieldSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -7788,7 +7788,7 @@ func (s *Store) CreateComposeNamespace(ctx context.Context, rr ...*composeType.N
 			return
 		}
 
-		if err = s.Exec(ctx, composeNamespaceInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, composeNamespaceInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -7805,7 +7805,7 @@ func (s *Store) UpdateComposeNamespace(ctx context.Context, rr ...*composeType.N
 			return
 		}
 
-		if err = s.Exec(ctx, composeNamespaceUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, composeNamespaceUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -7822,7 +7822,7 @@ func (s *Store) UpsertComposeNamespace(ctx context.Context, rr ...*composeType.N
 			return
 		}
 
-		if err = s.Exec(ctx, composeNamespaceUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, composeNamespaceUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -7835,7 +7835,7 @@ func (s *Store) UpsertComposeNamespace(ctx context.Context, rr ...*composeType.N
 // This function is auto-generated
 func (s *Store) DeleteComposeNamespace(ctx context.Context, rr ...*composeType.Namespace) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, composeNamespaceDeleteQuery(s.Dialect, composeNamespacePrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, composeNamespaceDeleteQuery(s.Dialect.GOQU(), composeNamespacePrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -7847,14 +7847,14 @@ func (s *Store) DeleteComposeNamespace(ctx context.Context, rr ...*composeType.N
 //
 // This function is auto-generated
 func (s *Store) DeleteComposeNamespaceByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, composeNamespaceDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, composeNamespaceDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateComposeNamespaces Deletes all rows from the composeNamespace collection
 func (s *Store) TruncateComposeNamespaces(ctx context.Context) error {
-	return s.Exec(ctx, composeNamespaceTruncateQuery(s.Dialect))
+	return s.Exec(ctx, composeNamespaceTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchComposeNamespaces returns (filtered) set of ComposeNamespaces
@@ -8097,7 +8097,7 @@ func (s *Store) QueryComposeNamespaces(
 		}
 	}
 
-	query := composeNamespaceSelectQuery(s.Dialect).Where(expr...)
+	query := composeNamespaceSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableComposeNamespaceFields()); err != nil {
@@ -8174,7 +8174,7 @@ func (s *Store) LookupComposeNamespaceBySlug(ctx context.Context, slug string) (
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposeNamespace)
-		lookup = composeNamespaceSelectQuery(s.Dialect).Where(
+		lookup = composeNamespaceSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("slug").Eq(slug),
 			goqu.I("deleted_at").IsNull(),
 		).Limit(1)
@@ -8217,7 +8217,7 @@ func (s *Store) LookupComposeNamespaceByID(ctx context.Context, id uint64) (_ *c
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposeNamespace)
-		lookup = composeNamespaceSelectQuery(s.Dialect).Where(
+		lookup = composeNamespaceSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -8367,7 +8367,7 @@ func (s *Store) CreateComposePage(ctx context.Context, rr ...*composeType.Page) 
 			return
 		}
 
-		if err = s.Exec(ctx, composePageInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, composePageInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -8384,7 +8384,7 @@ func (s *Store) UpdateComposePage(ctx context.Context, rr ...*composeType.Page) 
 			return
 		}
 
-		if err = s.Exec(ctx, composePageUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, composePageUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -8401,7 +8401,7 @@ func (s *Store) UpsertComposePage(ctx context.Context, rr ...*composeType.Page) 
 			return
 		}
 
-		if err = s.Exec(ctx, composePageUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, composePageUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -8414,7 +8414,7 @@ func (s *Store) UpsertComposePage(ctx context.Context, rr ...*composeType.Page) 
 // This function is auto-generated
 func (s *Store) DeleteComposePage(ctx context.Context, rr ...*composeType.Page) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, composePageDeleteQuery(s.Dialect, composePagePrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, composePageDeleteQuery(s.Dialect.GOQU(), composePagePrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -8426,14 +8426,14 @@ func (s *Store) DeleteComposePage(ctx context.Context, rr ...*composeType.Page) 
 //
 // This function is auto-generated
 func (s *Store) DeleteComposePageByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, composePageDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, composePageDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateComposePages Deletes all rows from the composePage collection
 func (s *Store) TruncateComposePages(ctx context.Context) error {
-	return s.Exec(ctx, composePageTruncateQuery(s.Dialect))
+	return s.Exec(ctx, composePageTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchComposePages returns (filtered) set of ComposePages
@@ -8676,7 +8676,7 @@ func (s *Store) QueryComposePages(
 		}
 	}
 
-	query := composePageSelectQuery(s.Dialect).Where(expr...)
+	query := composePageSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableComposePageFields()); err != nil {
@@ -8753,7 +8753,7 @@ func (s *Store) LookupComposePageByNamespaceIDHandle(ctx context.Context, namesp
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposePage)
-		lookup = composePageSelectQuery(s.Dialect).Where(
+		lookup = composePageSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("rel_namespace").Eq(namespaceID),
 			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
 			goqu.I("deleted_at").IsNull(),
@@ -8795,7 +8795,7 @@ func (s *Store) LookupComposePageByNamespaceIDModuleID(ctx context.Context, name
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposePage)
-		lookup = composePageSelectQuery(s.Dialect).Where(
+		lookup = composePageSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("rel_namespace").Eq(namespaceID),
 			goqu.I("rel_module").Eq(moduleID),
 			goqu.I("deleted_at").IsNull(),
@@ -8839,7 +8839,7 @@ func (s *Store) LookupComposePageByID(ctx context.Context, id uint64) (_ *compos
 	var (
 		rows   *sql.Rows
 		aux    = new(auxComposePage)
-		lookup = composePageSelectQuery(s.Dialect).Where(
+		lookup = composePageSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -8970,7 +8970,7 @@ func (s *Store) CreateCredential(ctx context.Context, rr ...*systemType.Credenti
 			return
 		}
 
-		if err = s.Exec(ctx, credentialInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, credentialInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -8987,7 +8987,7 @@ func (s *Store) UpdateCredential(ctx context.Context, rr ...*systemType.Credenti
 			return
 		}
 
-		if err = s.Exec(ctx, credentialUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, credentialUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -9004,7 +9004,7 @@ func (s *Store) UpsertCredential(ctx context.Context, rr ...*systemType.Credenti
 			return
 		}
 
-		if err = s.Exec(ctx, credentialUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, credentialUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -9017,7 +9017,7 @@ func (s *Store) UpsertCredential(ctx context.Context, rr ...*systemType.Credenti
 // This function is auto-generated
 func (s *Store) DeleteCredential(ctx context.Context, rr ...*systemType.Credential) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, credentialDeleteQuery(s.Dialect, credentialPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, credentialDeleteQuery(s.Dialect.GOQU(), credentialPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -9029,14 +9029,14 @@ func (s *Store) DeleteCredential(ctx context.Context, rr ...*systemType.Credenti
 //
 // This function is auto-generated
 func (s *Store) DeleteCredentialByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, credentialDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, credentialDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateCredentials Deletes all rows from the credential collection
 func (s *Store) TruncateCredentials(ctx context.Context) error {
-	return s.Exec(ctx, credentialTruncateQuery(s.Dialect))
+	return s.Exec(ctx, credentialTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchCredentials returns (filtered) set of Credentials
@@ -9086,7 +9086,7 @@ func (s *Store) QueryCredentials(
 
 	expr = append(expr, tExpr...)
 
-	query := credentialSelectQuery(s.Dialect).Where(expr...)
+	query := credentialSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	if f.Limit > 0 {
 		query = query.Limit(f.Limit)
@@ -9145,7 +9145,7 @@ func (s *Store) LookupCredentialByID(ctx context.Context, id uint64) (_ *systemT
 	var (
 		rows   *sql.Rows
 		aux    = new(auxCredential)
-		lookup = credentialSelectQuery(s.Dialect).Where(
+		lookup = credentialSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -9270,7 +9270,7 @@ func (s *Store) CreateDalConnection(ctx context.Context, rr ...*systemType.DalCo
 			return
 		}
 
-		if err = s.Exec(ctx, dalConnectionInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, dalConnectionInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -9287,7 +9287,7 @@ func (s *Store) UpdateDalConnection(ctx context.Context, rr ...*systemType.DalCo
 			return
 		}
 
-		if err = s.Exec(ctx, dalConnectionUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, dalConnectionUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -9304,7 +9304,7 @@ func (s *Store) UpsertDalConnection(ctx context.Context, rr ...*systemType.DalCo
 			return
 		}
 
-		if err = s.Exec(ctx, dalConnectionUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, dalConnectionUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -9317,7 +9317,7 @@ func (s *Store) UpsertDalConnection(ctx context.Context, rr ...*systemType.DalCo
 // This function is auto-generated
 func (s *Store) DeleteDalConnection(ctx context.Context, rr ...*systemType.DalConnection) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, dalConnectionDeleteQuery(s.Dialect, dalConnectionPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, dalConnectionDeleteQuery(s.Dialect.GOQU(), dalConnectionPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -9329,14 +9329,14 @@ func (s *Store) DeleteDalConnection(ctx context.Context, rr ...*systemType.DalCo
 //
 // This function is auto-generated
 func (s *Store) DeleteDalConnectionByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, dalConnectionDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, dalConnectionDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateDalConnections Deletes all rows from the dalConnection collection
 func (s *Store) TruncateDalConnections(ctx context.Context) error {
-	return s.Exec(ctx, dalConnectionTruncateQuery(s.Dialect))
+	return s.Exec(ctx, dalConnectionTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchDalConnections returns (filtered) set of DalConnections
@@ -9388,7 +9388,7 @@ func (s *Store) QueryDalConnections(
 
 	expr = append(expr, tExpr...)
 
-	query := dalConnectionSelectQuery(s.Dialect).Where(expr...)
+	query := dalConnectionSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	if f.Limit > 0 {
 		query = query.Limit(f.Limit)
@@ -9457,7 +9457,7 @@ func (s *Store) LookupDalConnectionByID(ctx context.Context, id uint64) (_ *syst
 	var (
 		rows   *sql.Rows
 		aux    = new(auxDalConnection)
-		lookup = dalConnectionSelectQuery(s.Dialect).Where(
+		lookup = dalConnectionSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -9499,7 +9499,7 @@ func (s *Store) LookupDalConnectionByHandle(ctx context.Context, handle string) 
 	var (
 		rows   *sql.Rows
 		aux    = new(auxDalConnection)
-		lookup = dalConnectionSelectQuery(s.Dialect).Where(
+		lookup = dalConnectionSelectQuery(s.Dialect.GOQU()).Where(
 			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
 			goqu.I("deleted_at").IsNull(),
 		).Limit(1)
@@ -9651,7 +9651,7 @@ func (s *Store) CreateDalSensitivityLevel(ctx context.Context, rr ...*systemType
 			return
 		}
 
-		if err = s.Exec(ctx, dalSensitivityLevelInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, dalSensitivityLevelInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -9668,7 +9668,7 @@ func (s *Store) UpdateDalSensitivityLevel(ctx context.Context, rr ...*systemType
 			return
 		}
 
-		if err = s.Exec(ctx, dalSensitivityLevelUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, dalSensitivityLevelUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -9685,7 +9685,7 @@ func (s *Store) UpsertDalSensitivityLevel(ctx context.Context, rr ...*systemType
 			return
 		}
 
-		if err = s.Exec(ctx, dalSensitivityLevelUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, dalSensitivityLevelUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -9698,7 +9698,7 @@ func (s *Store) UpsertDalSensitivityLevel(ctx context.Context, rr ...*systemType
 // This function is auto-generated
 func (s *Store) DeleteDalSensitivityLevel(ctx context.Context, rr ...*systemType.DalSensitivityLevel) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, dalSensitivityLevelDeleteQuery(s.Dialect, dalSensitivityLevelPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, dalSensitivityLevelDeleteQuery(s.Dialect.GOQU(), dalSensitivityLevelPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -9710,14 +9710,14 @@ func (s *Store) DeleteDalSensitivityLevel(ctx context.Context, rr ...*systemType
 //
 // This function is auto-generated
 func (s *Store) DeleteDalSensitivityLevelByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, dalSensitivityLevelDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, dalSensitivityLevelDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateDalSensitivityLevels Deletes all rows from the dalSensitivityLevel collection
 func (s *Store) TruncateDalSensitivityLevels(ctx context.Context) error {
-	return s.Exec(ctx, dalSensitivityLevelTruncateQuery(s.Dialect))
+	return s.Exec(ctx, dalSensitivityLevelTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchDalSensitivityLevels returns (filtered) set of DalSensitivityLevels
@@ -9769,7 +9769,7 @@ func (s *Store) QueryDalSensitivityLevels(
 
 	expr = append(expr, tExpr...)
 
-	query := dalSensitivityLevelSelectQuery(s.Dialect).Where(expr...)
+	query := dalSensitivityLevelSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	if f.Limit > 0 {
 		query = query.Limit(f.Limit)
@@ -9838,7 +9838,7 @@ func (s *Store) LookupDalSensitivityLevelByID(ctx context.Context, id uint64) (_
 	var (
 		rows   *sql.Rows
 		aux    = new(auxDalSensitivityLevel)
-		lookup = dalSensitivityLevelSelectQuery(s.Dialect).Where(
+		lookup = dalSensitivityLevelSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -9962,7 +9962,7 @@ func (s *Store) CreateDataPrivacyRequest(ctx context.Context, rr ...*systemType.
 			return
 		}
 
-		if err = s.Exec(ctx, dataPrivacyRequestInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, dataPrivacyRequestInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -9979,7 +9979,7 @@ func (s *Store) UpdateDataPrivacyRequest(ctx context.Context, rr ...*systemType.
 			return
 		}
 
-		if err = s.Exec(ctx, dataPrivacyRequestUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, dataPrivacyRequestUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -9996,7 +9996,7 @@ func (s *Store) UpsertDataPrivacyRequest(ctx context.Context, rr ...*systemType.
 			return
 		}
 
-		if err = s.Exec(ctx, dataPrivacyRequestUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, dataPrivacyRequestUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -10009,7 +10009,7 @@ func (s *Store) UpsertDataPrivacyRequest(ctx context.Context, rr ...*systemType.
 // This function is auto-generated
 func (s *Store) DeleteDataPrivacyRequest(ctx context.Context, rr ...*systemType.DataPrivacyRequest) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, dataPrivacyRequestDeleteQuery(s.Dialect, dataPrivacyRequestPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, dataPrivacyRequestDeleteQuery(s.Dialect.GOQU(), dataPrivacyRequestPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -10021,14 +10021,14 @@ func (s *Store) DeleteDataPrivacyRequest(ctx context.Context, rr ...*systemType.
 //
 // This function is auto-generated
 func (s *Store) DeleteDataPrivacyRequestByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, dataPrivacyRequestDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, dataPrivacyRequestDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateDataPrivacyRequests Deletes all rows from the dataPrivacyRequest collection
 func (s *Store) TruncateDataPrivacyRequests(ctx context.Context) error {
-	return s.Exec(ctx, dataPrivacyRequestTruncateQuery(s.Dialect))
+	return s.Exec(ctx, dataPrivacyRequestTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchDataPrivacyRequests returns (filtered) set of DataPrivacyRequests
@@ -10271,7 +10271,7 @@ func (s *Store) QueryDataPrivacyRequests(
 		}
 	}
 
-	query := dataPrivacyRequestSelectQuery(s.Dialect).Where(expr...)
+	query := dataPrivacyRequestSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableDataPrivacyRequestFields()); err != nil {
@@ -10350,7 +10350,7 @@ func (s *Store) LookupDataPrivacyRequestByID(ctx context.Context, id uint64) (_ 
 	var (
 		rows   *sql.Rows
 		aux    = new(auxDataPrivacyRequest)
-		lookup = dataPrivacyRequestSelectQuery(s.Dialect).Where(
+		lookup = dataPrivacyRequestSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -10481,7 +10481,7 @@ func (s *Store) CreateDataPrivacyRequestComment(ctx context.Context, rr ...*syst
 			return
 		}
 
-		if err = s.Exec(ctx, dataPrivacyRequestCommentInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, dataPrivacyRequestCommentInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -10498,7 +10498,7 @@ func (s *Store) UpdateDataPrivacyRequestComment(ctx context.Context, rr ...*syst
 			return
 		}
 
-		if err = s.Exec(ctx, dataPrivacyRequestCommentUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, dataPrivacyRequestCommentUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -10515,7 +10515,7 @@ func (s *Store) UpsertDataPrivacyRequestComment(ctx context.Context, rr ...*syst
 			return
 		}
 
-		if err = s.Exec(ctx, dataPrivacyRequestCommentUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, dataPrivacyRequestCommentUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -10528,7 +10528,7 @@ func (s *Store) UpsertDataPrivacyRequestComment(ctx context.Context, rr ...*syst
 // This function is auto-generated
 func (s *Store) DeleteDataPrivacyRequestComment(ctx context.Context, rr ...*systemType.DataPrivacyRequestComment) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, dataPrivacyRequestCommentDeleteQuery(s.Dialect, dataPrivacyRequestCommentPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, dataPrivacyRequestCommentDeleteQuery(s.Dialect.GOQU(), dataPrivacyRequestCommentPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -10540,14 +10540,14 @@ func (s *Store) DeleteDataPrivacyRequestComment(ctx context.Context, rr ...*syst
 //
 // This function is auto-generated
 func (s *Store) DeleteDataPrivacyRequestCommentByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, dataPrivacyRequestCommentDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, dataPrivacyRequestCommentDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateDataPrivacyRequestComments Deletes all rows from the dataPrivacyRequestComment collection
 func (s *Store) TruncateDataPrivacyRequestComments(ctx context.Context) error {
-	return s.Exec(ctx, dataPrivacyRequestCommentTruncateQuery(s.Dialect))
+	return s.Exec(ctx, dataPrivacyRequestCommentTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchDataPrivacyRequestComments returns (filtered) set of DataPrivacyRequestComments
@@ -10790,7 +10790,7 @@ func (s *Store) QueryDataPrivacyRequestComments(
 		}
 	}
 
-	query := dataPrivacyRequestCommentSelectQuery(s.Dialect).Where(expr...)
+	query := dataPrivacyRequestCommentSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableDataPrivacyRequestCommentFields()); err != nil {
@@ -10944,7 +10944,7 @@ func (s *Store) CreateFederationExposedModule(ctx context.Context, rr ...*federa
 			return
 		}
 
-		if err = s.Exec(ctx, federationExposedModuleInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, federationExposedModuleInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -10961,7 +10961,7 @@ func (s *Store) UpdateFederationExposedModule(ctx context.Context, rr ...*federa
 			return
 		}
 
-		if err = s.Exec(ctx, federationExposedModuleUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, federationExposedModuleUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -10978,7 +10978,7 @@ func (s *Store) UpsertFederationExposedModule(ctx context.Context, rr ...*federa
 			return
 		}
 
-		if err = s.Exec(ctx, federationExposedModuleUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, federationExposedModuleUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -10991,7 +10991,7 @@ func (s *Store) UpsertFederationExposedModule(ctx context.Context, rr ...*federa
 // This function is auto-generated
 func (s *Store) DeleteFederationExposedModule(ctx context.Context, rr ...*federationType.ExposedModule) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, federationExposedModuleDeleteQuery(s.Dialect, federationExposedModulePrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, federationExposedModuleDeleteQuery(s.Dialect.GOQU(), federationExposedModulePrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -11003,14 +11003,14 @@ func (s *Store) DeleteFederationExposedModule(ctx context.Context, rr ...*federa
 //
 // This function is auto-generated
 func (s *Store) DeleteFederationExposedModuleByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, federationExposedModuleDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, federationExposedModuleDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateFederationExposedModules Deletes all rows from the federationExposedModule collection
 func (s *Store) TruncateFederationExposedModules(ctx context.Context) error {
-	return s.Exec(ctx, federationExposedModuleTruncateQuery(s.Dialect))
+	return s.Exec(ctx, federationExposedModuleTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchFederationExposedModules returns (filtered) set of FederationExposedModules
@@ -11253,7 +11253,7 @@ func (s *Store) QueryFederationExposedModules(
 		}
 	}
 
-	query := federationExposedModuleSelectQuery(s.Dialect).Where(expr...)
+	query := federationExposedModuleSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableFederationExposedModuleFields()); err != nil {
@@ -11332,7 +11332,7 @@ func (s *Store) LookupFederationExposedModuleByID(ctx context.Context, id uint64
 	var (
 		rows   *sql.Rows
 		aux    = new(auxFederationExposedModule)
-		lookup = federationExposedModuleSelectQuery(s.Dialect).Where(
+		lookup = federationExposedModuleSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -11460,7 +11460,7 @@ func (s *Store) CreateFederationModuleMapping(ctx context.Context, rr ...*federa
 			return
 		}
 
-		if err = s.Exec(ctx, federationModuleMappingInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, federationModuleMappingInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -11477,7 +11477,7 @@ func (s *Store) UpdateFederationModuleMapping(ctx context.Context, rr ...*federa
 			return
 		}
 
-		if err = s.Exec(ctx, federationModuleMappingUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, federationModuleMappingUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -11494,7 +11494,7 @@ func (s *Store) UpsertFederationModuleMapping(ctx context.Context, rr ...*federa
 			return
 		}
 
-		if err = s.Exec(ctx, federationModuleMappingUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, federationModuleMappingUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -11507,7 +11507,7 @@ func (s *Store) UpsertFederationModuleMapping(ctx context.Context, rr ...*federa
 // This function is auto-generated
 func (s *Store) DeleteFederationModuleMapping(ctx context.Context, rr ...*federationType.ModuleMapping) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, federationModuleMappingDeleteQuery(s.Dialect, federationModuleMappingPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, federationModuleMappingDeleteQuery(s.Dialect.GOQU(), federationModuleMappingPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -11519,14 +11519,14 @@ func (s *Store) DeleteFederationModuleMapping(ctx context.Context, rr ...*federa
 //
 // This function is auto-generated
 func (s *Store) DeleteFederationModuleMappingByNodeID(ctx context.Context, nodeID uint64) error {
-	return s.Exec(ctx, federationModuleMappingDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, federationModuleMappingDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"node_id": nodeID,
 	}))
 }
 
 // TruncateFederationModuleMappings Deletes all rows from the federationModuleMapping collection
 func (s *Store) TruncateFederationModuleMappings(ctx context.Context) error {
-	return s.Exec(ctx, federationModuleMappingTruncateQuery(s.Dialect))
+	return s.Exec(ctx, federationModuleMappingTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchFederationModuleMappings returns (filtered) set of FederationModuleMappings
@@ -11769,7 +11769,7 @@ func (s *Store) QueryFederationModuleMappings(
 		}
 	}
 
-	query := federationModuleMappingSelectQuery(s.Dialect).Where(expr...)
+	query := federationModuleMappingSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableFederationModuleMappingFields()); err != nil {
@@ -11848,7 +11848,7 @@ func (s *Store) LookupFederationModuleMappingByFederationModuleIDComposeModuleID
 	var (
 		rows   *sql.Rows
 		aux    = new(auxFederationModuleMapping)
-		lookup = federationModuleMappingSelectQuery(s.Dialect).Where(
+		lookup = federationModuleMappingSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("federation_module_id").Eq(federationModuleID),
 			goqu.I("compose_module_id").Eq(composeModuleID),
 			goqu.I("compose_namespace_id").Eq(composeNamespaceID),
@@ -11892,7 +11892,7 @@ func (s *Store) LookupFederationModuleMappingByFederationModuleID(ctx context.Co
 	var (
 		rows   *sql.Rows
 		aux    = new(auxFederationModuleMapping)
-		lookup = federationModuleMappingSelectQuery(s.Dialect).Where(
+		lookup = federationModuleMappingSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("federation_module_id").Eq(federationModuleID),
 		).Limit(1)
 	)
@@ -12010,7 +12010,7 @@ func (s *Store) CreateFederationNode(ctx context.Context, rr ...*federationType.
 			return
 		}
 
-		if err = s.Exec(ctx, federationNodeInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, federationNodeInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -12027,7 +12027,7 @@ func (s *Store) UpdateFederationNode(ctx context.Context, rr ...*federationType.
 			return
 		}
 
-		if err = s.Exec(ctx, federationNodeUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, federationNodeUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -12044,7 +12044,7 @@ func (s *Store) UpsertFederationNode(ctx context.Context, rr ...*federationType.
 			return
 		}
 
-		if err = s.Exec(ctx, federationNodeUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, federationNodeUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -12057,7 +12057,7 @@ func (s *Store) UpsertFederationNode(ctx context.Context, rr ...*federationType.
 // This function is auto-generated
 func (s *Store) DeleteFederationNode(ctx context.Context, rr ...*federationType.Node) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, federationNodeDeleteQuery(s.Dialect, federationNodePrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, federationNodeDeleteQuery(s.Dialect.GOQU(), federationNodePrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -12069,14 +12069,14 @@ func (s *Store) DeleteFederationNode(ctx context.Context, rr ...*federationType.
 //
 // This function is auto-generated
 func (s *Store) DeleteFederationNodeByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, federationNodeDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, federationNodeDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateFederationNodes Deletes all rows from the federationNode collection
 func (s *Store) TruncateFederationNodes(ctx context.Context) error {
-	return s.Exec(ctx, federationNodeTruncateQuery(s.Dialect))
+	return s.Exec(ctx, federationNodeTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchFederationNodes returns (filtered) set of FederationNodes
@@ -12128,7 +12128,7 @@ func (s *Store) QueryFederationNodes(
 
 	expr = append(expr, tExpr...)
 
-	query := federationNodeSelectQuery(s.Dialect).Where(expr...)
+	query := federationNodeSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	if f.Limit > 0 {
 		query = query.Limit(f.Limit)
@@ -12197,7 +12197,7 @@ func (s *Store) LookupFederationNodeByID(ctx context.Context, id uint64) (_ *fed
 	var (
 		rows   *sql.Rows
 		aux    = new(auxFederationNode)
-		lookup = federationNodeSelectQuery(s.Dialect).Where(
+		lookup = federationNodeSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -12237,7 +12237,7 @@ func (s *Store) LookupFederationNodeByBaseURLSharedNodeID(ctx context.Context, b
 	var (
 		rows   *sql.Rows
 		aux    = new(auxFederationNode)
-		lookup = federationNodeSelectQuery(s.Dialect).Where(
+		lookup = federationNodeSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("base_url").Eq(baseURL),
 			goqu.I("shared_node_id").Eq(sharedNodeID),
 		).Limit(1)
@@ -12278,7 +12278,7 @@ func (s *Store) LookupFederationNodeBySharedNodeID(ctx context.Context, sharedNo
 	var (
 		rows   *sql.Rows
 		aux    = new(auxFederationNode)
-		lookup = federationNodeSelectQuery(s.Dialect).Where(
+		lookup = federationNodeSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("shared_node_id").Eq(sharedNodeID),
 		).Limit(1)
 	)
@@ -12412,7 +12412,7 @@ func (s *Store) CreateFederationNodeSync(ctx context.Context, rr ...*federationT
 			return
 		}
 
-		if err = s.Exec(ctx, federationNodeSyncInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, federationNodeSyncInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -12429,7 +12429,7 @@ func (s *Store) UpdateFederationNodeSync(ctx context.Context, rr ...*federationT
 			return
 		}
 
-		if err = s.Exec(ctx, federationNodeSyncUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, federationNodeSyncUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -12446,7 +12446,7 @@ func (s *Store) UpsertFederationNodeSync(ctx context.Context, rr ...*federationT
 			return
 		}
 
-		if err = s.Exec(ctx, federationNodeSyncUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, federationNodeSyncUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -12459,7 +12459,7 @@ func (s *Store) UpsertFederationNodeSync(ctx context.Context, rr ...*federationT
 // This function is auto-generated
 func (s *Store) DeleteFederationNodeSync(ctx context.Context, rr ...*federationType.NodeSync) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, federationNodeSyncDeleteQuery(s.Dialect, federationNodeSyncPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, federationNodeSyncDeleteQuery(s.Dialect.GOQU(), federationNodeSyncPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -12471,14 +12471,14 @@ func (s *Store) DeleteFederationNodeSync(ctx context.Context, rr ...*federationT
 //
 // This function is auto-generated
 func (s *Store) DeleteFederationNodeSyncByNodeID(ctx context.Context, nodeID uint64) error {
-	return s.Exec(ctx, federationNodeSyncDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, federationNodeSyncDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"node_id": nodeID,
 	}))
 }
 
 // TruncateFederationNodeSyncs Deletes all rows from the federationNodeSync collection
 func (s *Store) TruncateFederationNodeSyncs(ctx context.Context) error {
-	return s.Exec(ctx, federationNodeSyncTruncateQuery(s.Dialect))
+	return s.Exec(ctx, federationNodeSyncTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchFederationNodeSyncs returns (filtered) set of FederationNodeSyncs
@@ -12721,7 +12721,7 @@ func (s *Store) QueryFederationNodeSyncs(
 		}
 	}
 
-	query := federationNodeSyncSelectQuery(s.Dialect).Where(expr...)
+	query := federationNodeSyncSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableFederationNodeSyncFields()); err != nil {
@@ -12800,7 +12800,7 @@ func (s *Store) LookupFederationNodeSyncByNodeID(ctx context.Context, nodeID uin
 	var (
 		rows   *sql.Rows
 		aux    = new(auxFederationNodeSync)
-		lookup = federationNodeSyncSelectQuery(s.Dialect).Where(
+		lookup = federationNodeSyncSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("node_id").Eq(nodeID),
 		).Limit(1)
 	)
@@ -12842,7 +12842,7 @@ func (s *Store) LookupFederationNodeSyncByNodeIDModuleIDSyncTypeSyncStatus(ctx c
 	var (
 		rows   *sql.Rows
 		aux    = new(auxFederationNodeSync)
-		lookup = federationNodeSyncSelectQuery(s.Dialect).Where(
+		lookup = federationNodeSyncSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("node_id").Eq(nodeID),
 			goqu.I("module_id").Eq(moduleID),
 			goqu.I("sync_type").Eq(syncType),
@@ -12967,7 +12967,7 @@ func (s *Store) CreateFederationSharedModule(ctx context.Context, rr ...*federat
 			return
 		}
 
-		if err = s.Exec(ctx, federationSharedModuleInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, federationSharedModuleInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -12984,7 +12984,7 @@ func (s *Store) UpdateFederationSharedModule(ctx context.Context, rr ...*federat
 			return
 		}
 
-		if err = s.Exec(ctx, federationSharedModuleUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, federationSharedModuleUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -13001,7 +13001,7 @@ func (s *Store) UpsertFederationSharedModule(ctx context.Context, rr ...*federat
 			return
 		}
 
-		if err = s.Exec(ctx, federationSharedModuleUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, federationSharedModuleUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -13014,7 +13014,7 @@ func (s *Store) UpsertFederationSharedModule(ctx context.Context, rr ...*federat
 // This function is auto-generated
 func (s *Store) DeleteFederationSharedModule(ctx context.Context, rr ...*federationType.SharedModule) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, federationSharedModuleDeleteQuery(s.Dialect, federationSharedModulePrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, federationSharedModuleDeleteQuery(s.Dialect.GOQU(), federationSharedModulePrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -13026,14 +13026,14 @@ func (s *Store) DeleteFederationSharedModule(ctx context.Context, rr ...*federat
 //
 // This function is auto-generated
 func (s *Store) DeleteFederationSharedModuleByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, federationSharedModuleDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, federationSharedModuleDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateFederationSharedModules Deletes all rows from the federationSharedModule collection
 func (s *Store) TruncateFederationSharedModules(ctx context.Context) error {
-	return s.Exec(ctx, federationSharedModuleTruncateQuery(s.Dialect))
+	return s.Exec(ctx, federationSharedModuleTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchFederationSharedModules returns (filtered) set of FederationSharedModules
@@ -13276,7 +13276,7 @@ func (s *Store) QueryFederationSharedModules(
 		}
 	}
 
-	query := federationSharedModuleSelectQuery(s.Dialect).Where(expr...)
+	query := federationSharedModuleSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableFederationSharedModuleFields()); err != nil {
@@ -13355,7 +13355,7 @@ func (s *Store) LookupFederationSharedModuleByID(ctx context.Context, id uint64)
 	var (
 		rows   *sql.Rows
 		aux    = new(auxFederationSharedModule)
-		lookup = federationSharedModuleSelectQuery(s.Dialect).Where(
+		lookup = federationSharedModuleSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -13487,7 +13487,7 @@ func (s *Store) CreateFlag(ctx context.Context, rr ...*flagType.Flag) (err error
 			return
 		}
 
-		if err = s.Exec(ctx, flagInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, flagInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -13504,7 +13504,7 @@ func (s *Store) UpdateFlag(ctx context.Context, rr ...*flagType.Flag) (err error
 			return
 		}
 
-		if err = s.Exec(ctx, flagUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, flagUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -13521,7 +13521,7 @@ func (s *Store) UpsertFlag(ctx context.Context, rr ...*flagType.Flag) (err error
 			return
 		}
 
-		if err = s.Exec(ctx, flagUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, flagUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -13534,7 +13534,7 @@ func (s *Store) UpsertFlag(ctx context.Context, rr ...*flagType.Flag) (err error
 // This function is auto-generated
 func (s *Store) DeleteFlag(ctx context.Context, rr ...*flagType.Flag) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, flagDeleteQuery(s.Dialect, flagPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, flagDeleteQuery(s.Dialect.GOQU(), flagPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -13546,7 +13546,7 @@ func (s *Store) DeleteFlag(ctx context.Context, rr ...*flagType.Flag) (err error
 //
 // This function is auto-generated
 func (s *Store) DeleteFlagByKindResourceIDOwnedByName(ctx context.Context, kind string, resourceID uint64, ownedBy uint64, name string) error {
-	return s.Exec(ctx, flagDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, flagDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"kind":         kind,
 		"rel_resource": resourceID,
 		"owned_by":     ownedBy,
@@ -13556,7 +13556,7 @@ func (s *Store) DeleteFlagByKindResourceIDOwnedByName(ctx context.Context, kind 
 
 // TruncateFlags Deletes all rows from the flag collection
 func (s *Store) TruncateFlags(ctx context.Context) error {
-	return s.Exec(ctx, flagTruncateQuery(s.Dialect))
+	return s.Exec(ctx, flagTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchFlags returns (filtered) set of Flags
@@ -13606,7 +13606,7 @@ func (s *Store) QueryFlags(
 
 	expr = append(expr, tExpr...)
 
-	query := flagSelectQuery(s.Dialect).Where(expr...)
+	query := flagSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	if f.Limit > 0 {
 		query = query.Limit(f.Limit)
@@ -13663,7 +13663,7 @@ func (s *Store) LookupFlagByKindResourceIDOwnedByName(ctx context.Context, kind 
 	var (
 		rows   *sql.Rows
 		aux    = new(auxFlag)
-		lookup = flagSelectQuery(s.Dialect).Where(
+		lookup = flagSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("kind").Eq(kind),
 			goqu.I("rel_resource").Eq(resourceID),
 			goqu.I("owned_by").Eq(ownedBy),
@@ -13797,7 +13797,7 @@ func (s *Store) CreateLabel(ctx context.Context, rr ...*labelsType.Label) (err e
 			return
 		}
 
-		if err = s.Exec(ctx, labelInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, labelInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -13814,7 +13814,7 @@ func (s *Store) UpdateLabel(ctx context.Context, rr ...*labelsType.Label) (err e
 			return
 		}
 
-		if err = s.Exec(ctx, labelUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, labelUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -13831,7 +13831,7 @@ func (s *Store) UpsertLabel(ctx context.Context, rr ...*labelsType.Label) (err e
 			return
 		}
 
-		if err = s.Exec(ctx, labelUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, labelUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -13844,7 +13844,7 @@ func (s *Store) UpsertLabel(ctx context.Context, rr ...*labelsType.Label) (err e
 // This function is auto-generated
 func (s *Store) DeleteLabel(ctx context.Context, rr ...*labelsType.Label) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, labelDeleteQuery(s.Dialect, labelPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, labelDeleteQuery(s.Dialect.GOQU(), labelPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -13856,7 +13856,7 @@ func (s *Store) DeleteLabel(ctx context.Context, rr ...*labelsType.Label) (err e
 //
 // This function is auto-generated
 func (s *Store) DeleteLabelByKindResourceIDName(ctx context.Context, kind string, resourceID uint64, name string) error {
-	return s.Exec(ctx, labelDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, labelDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"kind":         kind,
 		"rel_resource": resourceID,
 		"name":         name,
@@ -13865,7 +13865,7 @@ func (s *Store) DeleteLabelByKindResourceIDName(ctx context.Context, kind string
 
 // TruncateLabels Deletes all rows from the label collection
 func (s *Store) TruncateLabels(ctx context.Context) error {
-	return s.Exec(ctx, labelTruncateQuery(s.Dialect))
+	return s.Exec(ctx, labelTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchLabels returns (filtered) set of Labels
@@ -13915,7 +13915,7 @@ func (s *Store) QueryLabels(
 
 	expr = append(expr, tExpr...)
 
-	query := labelSelectQuery(s.Dialect).Where(expr...)
+	query := labelSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	if f.Limit > 0 {
 		query = query.Limit(f.Limit)
@@ -13972,7 +13972,7 @@ func (s *Store) LookupLabelByKindResourceIDName(ctx context.Context, kind string
 	var (
 		rows   *sql.Rows
 		aux    = new(auxLabel)
-		lookup = labelSelectQuery(s.Dialect).Where(
+		lookup = labelSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("kind").Eq(kind),
 			goqu.I("rel_resource").Eq(resourceID),
 			s.Functions.LOWER(goqu.I("name")).Eq(strings.ToLower(name)),
@@ -14096,7 +14096,7 @@ func (s *Store) CreateQueue(ctx context.Context, rr ...*systemType.Queue) (err e
 			return
 		}
 
-		if err = s.Exec(ctx, queueInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, queueInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -14113,7 +14113,7 @@ func (s *Store) UpdateQueue(ctx context.Context, rr ...*systemType.Queue) (err e
 			return
 		}
 
-		if err = s.Exec(ctx, queueUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, queueUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -14130,7 +14130,7 @@ func (s *Store) UpsertQueue(ctx context.Context, rr ...*systemType.Queue) (err e
 			return
 		}
 
-		if err = s.Exec(ctx, queueUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, queueUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -14143,7 +14143,7 @@ func (s *Store) UpsertQueue(ctx context.Context, rr ...*systemType.Queue) (err e
 // This function is auto-generated
 func (s *Store) DeleteQueue(ctx context.Context, rr ...*systemType.Queue) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, queueDeleteQuery(s.Dialect, queuePrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, queueDeleteQuery(s.Dialect.GOQU(), queuePrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -14155,14 +14155,14 @@ func (s *Store) DeleteQueue(ctx context.Context, rr ...*systemType.Queue) (err e
 //
 // This function is auto-generated
 func (s *Store) DeleteQueueByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, queueDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, queueDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateQueues Deletes all rows from the queue collection
 func (s *Store) TruncateQueues(ctx context.Context) error {
-	return s.Exec(ctx, queueTruncateQuery(s.Dialect))
+	return s.Exec(ctx, queueTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchQueues returns (filtered) set of Queues
@@ -14405,7 +14405,7 @@ func (s *Store) QueryQueues(
 		}
 	}
 
-	query := queueSelectQuery(s.Dialect).Where(expr...)
+	query := queueSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableQueueFields()); err != nil {
@@ -14482,7 +14482,7 @@ func (s *Store) LookupQueueByID(ctx context.Context, id uint64) (_ *systemType.Q
 	var (
 		rows   *sql.Rows
 		aux    = new(auxQueue)
-		lookup = queueSelectQuery(s.Dialect).Where(
+		lookup = queueSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -14522,7 +14522,7 @@ func (s *Store) LookupQueueByQueue(ctx context.Context, queue string) (_ *system
 	var (
 		rows   *sql.Rows
 		aux    = new(auxQueue)
-		lookup = queueSelectQuery(s.Dialect).Where(
+		lookup = queueSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("queue").Eq(queue),
 		).Limit(1)
 	)
@@ -14645,7 +14645,7 @@ func (s *Store) CreateQueueMessage(ctx context.Context, rr ...*systemType.QueueM
 			return
 		}
 
-		if err = s.Exec(ctx, queueMessageInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, queueMessageInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -14662,7 +14662,7 @@ func (s *Store) UpdateQueueMessage(ctx context.Context, rr ...*systemType.QueueM
 			return
 		}
 
-		if err = s.Exec(ctx, queueMessageUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, queueMessageUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -14679,7 +14679,7 @@ func (s *Store) UpsertQueueMessage(ctx context.Context, rr ...*systemType.QueueM
 			return
 		}
 
-		if err = s.Exec(ctx, queueMessageUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, queueMessageUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -14692,7 +14692,7 @@ func (s *Store) UpsertQueueMessage(ctx context.Context, rr ...*systemType.QueueM
 // This function is auto-generated
 func (s *Store) DeleteQueueMessage(ctx context.Context, rr ...*systemType.QueueMessage) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, queueMessageDeleteQuery(s.Dialect, queueMessagePrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, queueMessageDeleteQuery(s.Dialect.GOQU(), queueMessagePrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -14704,14 +14704,14 @@ func (s *Store) DeleteQueueMessage(ctx context.Context, rr ...*systemType.QueueM
 //
 // This function is auto-generated
 func (s *Store) DeleteQueueMessageByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, queueMessageDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, queueMessageDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateQueueMessages Deletes all rows from the queueMessage collection
 func (s *Store) TruncateQueueMessages(ctx context.Context) error {
-	return s.Exec(ctx, queueMessageTruncateQuery(s.Dialect))
+	return s.Exec(ctx, queueMessageTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchQueueMessages returns (filtered) set of QueueMessages
@@ -14952,7 +14952,7 @@ func (s *Store) QueryQueueMessages(
 		}
 	}
 
-	query := queueMessageSelectQuery(s.Dialect).Where(expr...)
+	query := queueMessageSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableQueueMessageFields()); err != nil {
@@ -15093,7 +15093,7 @@ func (s *Store) CreateRbacRule(ctx context.Context, rr ...*rbacType.Rule) (err e
 			return
 		}
 
-		if err = s.Exec(ctx, rbacRuleInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, rbacRuleInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -15110,7 +15110,7 @@ func (s *Store) UpdateRbacRule(ctx context.Context, rr ...*rbacType.Rule) (err e
 			return
 		}
 
-		if err = s.Exec(ctx, rbacRuleUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, rbacRuleUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -15127,7 +15127,7 @@ func (s *Store) UpsertRbacRule(ctx context.Context, rr ...*rbacType.Rule) (err e
 			return
 		}
 
-		if err = s.Exec(ctx, rbacRuleUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, rbacRuleUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -15140,7 +15140,7 @@ func (s *Store) UpsertRbacRule(ctx context.Context, rr ...*rbacType.Rule) (err e
 // This function is auto-generated
 func (s *Store) DeleteRbacRule(ctx context.Context, rr ...*rbacType.Rule) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, rbacRuleDeleteQuery(s.Dialect, rbacRulePrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, rbacRuleDeleteQuery(s.Dialect.GOQU(), rbacRulePrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -15152,7 +15152,7 @@ func (s *Store) DeleteRbacRule(ctx context.Context, rr ...*rbacType.Rule) (err e
 //
 // This function is auto-generated
 func (s *Store) DeleteRbacRuleByRoleIDResourceOperation(ctx context.Context, roleID uint64, resource string, operation string) error {
-	return s.Exec(ctx, rbacRuleDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, rbacRuleDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"rel_role":  roleID,
 		"resource":  resource,
 		"operation": operation,
@@ -15161,7 +15161,7 @@ func (s *Store) DeleteRbacRuleByRoleIDResourceOperation(ctx context.Context, rol
 
 // TruncateRbacRules Deletes all rows from the rbacRule collection
 func (s *Store) TruncateRbacRules(ctx context.Context) error {
-	return s.Exec(ctx, rbacRuleTruncateQuery(s.Dialect))
+	return s.Exec(ctx, rbacRuleTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchRbacRules returns (filtered) set of RbacRules
@@ -15211,7 +15211,7 @@ func (s *Store) QueryRbacRules(
 
 	expr = append(expr, tExpr...)
 
-	query := rbacRuleSelectQuery(s.Dialect).Where(expr...)
+	query := rbacRuleSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	if f.Limit > 0 {
 		query = query.Limit(f.Limit)
@@ -15350,7 +15350,7 @@ func (s *Store) CreateReminder(ctx context.Context, rr ...*systemType.Reminder) 
 			return
 		}
 
-		if err = s.Exec(ctx, reminderInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, reminderInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -15367,7 +15367,7 @@ func (s *Store) UpdateReminder(ctx context.Context, rr ...*systemType.Reminder) 
 			return
 		}
 
-		if err = s.Exec(ctx, reminderUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, reminderUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -15384,7 +15384,7 @@ func (s *Store) UpsertReminder(ctx context.Context, rr ...*systemType.Reminder) 
 			return
 		}
 
-		if err = s.Exec(ctx, reminderUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, reminderUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -15397,7 +15397,7 @@ func (s *Store) UpsertReminder(ctx context.Context, rr ...*systemType.Reminder) 
 // This function is auto-generated
 func (s *Store) DeleteReminder(ctx context.Context, rr ...*systemType.Reminder) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, reminderDeleteQuery(s.Dialect, reminderPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, reminderDeleteQuery(s.Dialect.GOQU(), reminderPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -15409,14 +15409,14 @@ func (s *Store) DeleteReminder(ctx context.Context, rr ...*systemType.Reminder) 
 //
 // This function is auto-generated
 func (s *Store) DeleteReminderByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, reminderDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, reminderDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateReminders Deletes all rows from the reminder collection
 func (s *Store) TruncateReminders(ctx context.Context) error {
-	return s.Exec(ctx, reminderTruncateQuery(s.Dialect))
+	return s.Exec(ctx, reminderTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchReminders returns (filtered) set of Reminders
@@ -15659,7 +15659,7 @@ func (s *Store) QueryReminders(
 		}
 	}
 
-	query := reminderSelectQuery(s.Dialect).Where(expr...)
+	query := reminderSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableReminderFields()); err != nil {
@@ -15736,7 +15736,7 @@ func (s *Store) LookupReminderByID(ctx context.Context, id uint64) (_ *systemTyp
 	var (
 		rows   *sql.Rows
 		aux    = new(auxReminder)
-		lookup = reminderSelectQuery(s.Dialect).Where(
+		lookup = reminderSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -15868,7 +15868,7 @@ func (s *Store) CreateReport(ctx context.Context, rr ...*systemType.Report) (err
 			return
 		}
 
-		if err = s.Exec(ctx, reportInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, reportInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -15885,7 +15885,7 @@ func (s *Store) UpdateReport(ctx context.Context, rr ...*systemType.Report) (err
 			return
 		}
 
-		if err = s.Exec(ctx, reportUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, reportUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -15902,7 +15902,7 @@ func (s *Store) UpsertReport(ctx context.Context, rr ...*systemType.Report) (err
 			return
 		}
 
-		if err = s.Exec(ctx, reportUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, reportUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -15915,7 +15915,7 @@ func (s *Store) UpsertReport(ctx context.Context, rr ...*systemType.Report) (err
 // This function is auto-generated
 func (s *Store) DeleteReport(ctx context.Context, rr ...*systemType.Report) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, reportDeleteQuery(s.Dialect, reportPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, reportDeleteQuery(s.Dialect.GOQU(), reportPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -15927,14 +15927,14 @@ func (s *Store) DeleteReport(ctx context.Context, rr ...*systemType.Report) (err
 //
 // This function is auto-generated
 func (s *Store) DeleteReportByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, reportDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, reportDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateReports Deletes all rows from the report collection
 func (s *Store) TruncateReports(ctx context.Context) error {
-	return s.Exec(ctx, reportTruncateQuery(s.Dialect))
+	return s.Exec(ctx, reportTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchReports returns (filtered) set of Reports
@@ -16177,7 +16177,7 @@ func (s *Store) QueryReports(
 		}
 	}
 
-	query := reportSelectQuery(s.Dialect).Where(expr...)
+	query := reportSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableReportFields()); err != nil {
@@ -16256,7 +16256,7 @@ func (s *Store) LookupReportByID(ctx context.Context, id uint64) (_ *systemType.
 	var (
 		rows   *sql.Rows
 		aux    = new(auxReport)
-		lookup = reportSelectQuery(s.Dialect).Where(
+		lookup = reportSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -16298,7 +16298,7 @@ func (s *Store) LookupReportByHandle(ctx context.Context, handle string) (_ *sys
 	var (
 		rows   *sql.Rows
 		aux    = new(auxReport)
-		lookup = reportSelectQuery(s.Dialect).Where(
+		lookup = reportSelectQuery(s.Dialect.GOQU()).Where(
 			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
 			goqu.I("deleted_at").IsNull(),
 		).Limit(1)
@@ -16447,7 +16447,7 @@ func (s *Store) CreateResourceActivity(ctx context.Context, rr ...*discoveryType
 			return
 		}
 
-		if err = s.Exec(ctx, resourceActivityInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, resourceActivityInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -16464,7 +16464,7 @@ func (s *Store) UpdateResourceActivity(ctx context.Context, rr ...*discoveryType
 			return
 		}
 
-		if err = s.Exec(ctx, resourceActivityUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, resourceActivityUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -16481,7 +16481,7 @@ func (s *Store) UpsertResourceActivity(ctx context.Context, rr ...*discoveryType
 			return
 		}
 
-		if err = s.Exec(ctx, resourceActivityUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, resourceActivityUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -16494,7 +16494,7 @@ func (s *Store) UpsertResourceActivity(ctx context.Context, rr ...*discoveryType
 // This function is auto-generated
 func (s *Store) DeleteResourceActivity(ctx context.Context, rr ...*discoveryType.ResourceActivity) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, resourceActivityDeleteQuery(s.Dialect, resourceActivityPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, resourceActivityDeleteQuery(s.Dialect.GOQU(), resourceActivityPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -16506,14 +16506,14 @@ func (s *Store) DeleteResourceActivity(ctx context.Context, rr ...*discoveryType
 //
 // This function is auto-generated
 func (s *Store) DeleteResourceActivityByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, resourceActivityDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, resourceActivityDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateResourceActivitys Deletes all rows from the resourceActivity collection
 func (s *Store) TruncateResourceActivitys(ctx context.Context) error {
-	return s.Exec(ctx, resourceActivityTruncateQuery(s.Dialect))
+	return s.Exec(ctx, resourceActivityTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchResourceActivitys returns (filtered) set of ResourceActivitys
@@ -16563,7 +16563,7 @@ func (s *Store) QueryResourceActivitys(
 
 	expr = append(expr, tExpr...)
 
-	query := resourceActivitySelectQuery(s.Dialect).Where(expr...)
+	query := resourceActivitySelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	if f.Limit > 0 {
 		query = query.Limit(f.Limit)
@@ -16688,7 +16688,7 @@ func (s *Store) CreateResourceTranslation(ctx context.Context, rr ...*systemType
 			return
 		}
 
-		if err = s.Exec(ctx, resourceTranslationInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, resourceTranslationInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -16705,7 +16705,7 @@ func (s *Store) UpdateResourceTranslation(ctx context.Context, rr ...*systemType
 			return
 		}
 
-		if err = s.Exec(ctx, resourceTranslationUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, resourceTranslationUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -16722,7 +16722,7 @@ func (s *Store) UpsertResourceTranslation(ctx context.Context, rr ...*systemType
 			return
 		}
 
-		if err = s.Exec(ctx, resourceTranslationUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, resourceTranslationUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -16735,7 +16735,7 @@ func (s *Store) UpsertResourceTranslation(ctx context.Context, rr ...*systemType
 // This function is auto-generated
 func (s *Store) DeleteResourceTranslation(ctx context.Context, rr ...*systemType.ResourceTranslation) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, resourceTranslationDeleteQuery(s.Dialect, resourceTranslationPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, resourceTranslationDeleteQuery(s.Dialect.GOQU(), resourceTranslationPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -16747,14 +16747,14 @@ func (s *Store) DeleteResourceTranslation(ctx context.Context, rr ...*systemType
 //
 // This function is auto-generated
 func (s *Store) DeleteResourceTranslationByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, resourceTranslationDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, resourceTranslationDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateResourceTranslations Deletes all rows from the resourceTranslation collection
 func (s *Store) TruncateResourceTranslations(ctx context.Context) error {
-	return s.Exec(ctx, resourceTranslationTruncateQuery(s.Dialect))
+	return s.Exec(ctx, resourceTranslationTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchResourceTranslations returns (filtered) set of ResourceTranslations
@@ -16995,7 +16995,7 @@ func (s *Store) QueryResourceTranslations(
 		}
 	}
 
-	query := resourceTranslationSelectQuery(s.Dialect).Where(expr...)
+	query := resourceTranslationSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableResourceTranslationFields()); err != nil {
@@ -17063,7 +17063,7 @@ func (s *Store) LookupResourceTranslationByID(ctx context.Context, id uint64) (_
 	var (
 		rows   *sql.Rows
 		aux    = new(auxResourceTranslation)
-		lookup = resourceTranslationSelectQuery(s.Dialect).Where(
+		lookup = resourceTranslationSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -17180,7 +17180,7 @@ func (s *Store) CreateRole(ctx context.Context, rr ...*systemType.Role) (err err
 			return
 		}
 
-		if err = s.Exec(ctx, roleInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, roleInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -17197,7 +17197,7 @@ func (s *Store) UpdateRole(ctx context.Context, rr ...*systemType.Role) (err err
 			return
 		}
 
-		if err = s.Exec(ctx, roleUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, roleUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -17214,7 +17214,7 @@ func (s *Store) UpsertRole(ctx context.Context, rr ...*systemType.Role) (err err
 			return
 		}
 
-		if err = s.Exec(ctx, roleUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, roleUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -17227,7 +17227,7 @@ func (s *Store) UpsertRole(ctx context.Context, rr ...*systemType.Role) (err err
 // This function is auto-generated
 func (s *Store) DeleteRole(ctx context.Context, rr ...*systemType.Role) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, roleDeleteQuery(s.Dialect, rolePrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, roleDeleteQuery(s.Dialect.GOQU(), rolePrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -17239,14 +17239,14 @@ func (s *Store) DeleteRole(ctx context.Context, rr ...*systemType.Role) (err err
 //
 // This function is auto-generated
 func (s *Store) DeleteRoleByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, roleDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, roleDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateRoles Deletes all rows from the role collection
 func (s *Store) TruncateRoles(ctx context.Context) error {
-	return s.Exec(ctx, roleTruncateQuery(s.Dialect))
+	return s.Exec(ctx, roleTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchRoles returns (filtered) set of Roles
@@ -17489,7 +17489,7 @@ func (s *Store) QueryRoles(
 		}
 	}
 
-	query := roleSelectQuery(s.Dialect).Where(expr...)
+	query := roleSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableRoleFields()); err != nil {
@@ -17568,7 +17568,7 @@ func (s *Store) LookupRoleByID(ctx context.Context, id uint64) (_ *systemType.Ro
 	var (
 		rows   *sql.Rows
 		aux    = new(auxRole)
-		lookup = roleSelectQuery(s.Dialect).Where(
+		lookup = roleSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -17610,7 +17610,7 @@ func (s *Store) LookupRoleByHandle(ctx context.Context, handle string) (_ *syste
 	var (
 		rows   *sql.Rows
 		aux    = new(auxRole)
-		lookup = roleSelectQuery(s.Dialect).Where(
+		lookup = roleSelectQuery(s.Dialect.GOQU()).Where(
 			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
 			goqu.I("deleted_at").IsNull(),
 		).Limit(1)
@@ -17653,7 +17653,7 @@ func (s *Store) LookupRoleByName(ctx context.Context, name string) (_ *systemTyp
 	var (
 		rows   *sql.Rows
 		aux    = new(auxRole)
-		lookup = roleSelectQuery(s.Dialect).Where(
+		lookup = roleSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("name").Eq(name),
 			goqu.I("deleted_at").IsNull(),
 		).Limit(1)
@@ -17836,7 +17836,7 @@ func (s *Store) CreateRoleMember(ctx context.Context, rr ...*systemType.RoleMemb
 			return
 		}
 
-		if err = s.Exec(ctx, roleMemberInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, roleMemberInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -17853,7 +17853,7 @@ func (s *Store) UpdateRoleMember(ctx context.Context, rr ...*systemType.RoleMemb
 			return
 		}
 
-		if err = s.Exec(ctx, roleMemberUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, roleMemberUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -17870,7 +17870,7 @@ func (s *Store) UpsertRoleMember(ctx context.Context, rr ...*systemType.RoleMemb
 			return
 		}
 
-		if err = s.Exec(ctx, roleMemberUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, roleMemberUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -17883,7 +17883,7 @@ func (s *Store) UpsertRoleMember(ctx context.Context, rr ...*systemType.RoleMemb
 // This function is auto-generated
 func (s *Store) DeleteRoleMember(ctx context.Context, rr ...*systemType.RoleMember) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, roleMemberDeleteQuery(s.Dialect, roleMemberPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, roleMemberDeleteQuery(s.Dialect.GOQU(), roleMemberPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -17895,7 +17895,7 @@ func (s *Store) DeleteRoleMember(ctx context.Context, rr ...*systemType.RoleMemb
 //
 // This function is auto-generated
 func (s *Store) DeleteRoleMemberByUserIDRoleID(ctx context.Context, userID uint64, roleID uint64) error {
-	return s.Exec(ctx, roleMemberDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, roleMemberDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"rel_user": userID,
 		"rel_role": roleID,
 	}))
@@ -17903,7 +17903,7 @@ func (s *Store) DeleteRoleMemberByUserIDRoleID(ctx context.Context, userID uint6
 
 // TruncateRoleMembers Deletes all rows from the roleMember collection
 func (s *Store) TruncateRoleMembers(ctx context.Context) error {
-	return s.Exec(ctx, roleMemberTruncateQuery(s.Dialect))
+	return s.Exec(ctx, roleMemberTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchRoleMembers returns (filtered) set of RoleMembers
@@ -17953,7 +17953,7 @@ func (s *Store) QueryRoleMembers(
 
 	expr = append(expr, tExpr...)
 
-	query := roleMemberSelectQuery(s.Dialect).Where(expr...)
+	query := roleMemberSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	if f.Limit > 0 {
 		query = query.Limit(f.Limit)
@@ -18085,7 +18085,7 @@ func (s *Store) CreateSettingValue(ctx context.Context, rr ...*systemType.Settin
 			return
 		}
 
-		if err = s.Exec(ctx, settingValueInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, settingValueInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -18102,7 +18102,7 @@ func (s *Store) UpdateSettingValue(ctx context.Context, rr ...*systemType.Settin
 			return
 		}
 
-		if err = s.Exec(ctx, settingValueUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, settingValueUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -18119,7 +18119,7 @@ func (s *Store) UpsertSettingValue(ctx context.Context, rr ...*systemType.Settin
 			return
 		}
 
-		if err = s.Exec(ctx, settingValueUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, settingValueUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -18132,7 +18132,7 @@ func (s *Store) UpsertSettingValue(ctx context.Context, rr ...*systemType.Settin
 // This function is auto-generated
 func (s *Store) DeleteSettingValue(ctx context.Context, rr ...*systemType.SettingValue) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, settingValueDeleteQuery(s.Dialect, settingValuePrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, settingValueDeleteQuery(s.Dialect.GOQU(), settingValuePrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -18144,7 +18144,7 @@ func (s *Store) DeleteSettingValue(ctx context.Context, rr ...*systemType.Settin
 //
 // This function is auto-generated
 func (s *Store) DeleteSettingValueByOwnedByName(ctx context.Context, ownedBy uint64, name string) error {
-	return s.Exec(ctx, settingValueDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, settingValueDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"rel_owner": ownedBy,
 		"name":      name,
 	}))
@@ -18152,7 +18152,7 @@ func (s *Store) DeleteSettingValueByOwnedByName(ctx context.Context, ownedBy uin
 
 // TruncateSettingValues Deletes all rows from the settingValue collection
 func (s *Store) TruncateSettingValues(ctx context.Context) error {
-	return s.Exec(ctx, settingValueTruncateQuery(s.Dialect))
+	return s.Exec(ctx, settingValueTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchSettingValues returns (filtered) set of SettingValues
@@ -18202,7 +18202,7 @@ func (s *Store) QuerySettingValues(
 
 	expr = append(expr, tExpr...)
 
-	query := settingValueSelectQuery(s.Dialect).Where(expr...)
+	query := settingValueSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	if f.Limit > 0 {
 		query = query.Limit(f.Limit)
@@ -18259,7 +18259,7 @@ func (s *Store) LookupSettingValueByNameOwnedBy(ctx context.Context, name string
 	var (
 		rows   *sql.Rows
 		aux    = new(auxSettingValue)
-		lookup = settingValueSelectQuery(s.Dialect).Where(
+		lookup = settingValueSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("name").Eq(name),
 			goqu.I("rel_owner").Eq(ownedBy),
 		).Limit(1)
@@ -18378,7 +18378,7 @@ func (s *Store) CreateTemplate(ctx context.Context, rr ...*systemType.Template) 
 			return
 		}
 
-		if err = s.Exec(ctx, templateInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, templateInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -18395,7 +18395,7 @@ func (s *Store) UpdateTemplate(ctx context.Context, rr ...*systemType.Template) 
 			return
 		}
 
-		if err = s.Exec(ctx, templateUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, templateUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -18412,7 +18412,7 @@ func (s *Store) UpsertTemplate(ctx context.Context, rr ...*systemType.Template) 
 			return
 		}
 
-		if err = s.Exec(ctx, templateUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, templateUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -18425,7 +18425,7 @@ func (s *Store) UpsertTemplate(ctx context.Context, rr ...*systemType.Template) 
 // This function is auto-generated
 func (s *Store) DeleteTemplate(ctx context.Context, rr ...*systemType.Template) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, templateDeleteQuery(s.Dialect, templatePrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, templateDeleteQuery(s.Dialect.GOQU(), templatePrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -18437,14 +18437,14 @@ func (s *Store) DeleteTemplate(ctx context.Context, rr ...*systemType.Template) 
 //
 // This function is auto-generated
 func (s *Store) DeleteTemplateByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, templateDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, templateDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateTemplates Deletes all rows from the template collection
 func (s *Store) TruncateTemplates(ctx context.Context) error {
-	return s.Exec(ctx, templateTruncateQuery(s.Dialect))
+	return s.Exec(ctx, templateTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchTemplates returns (filtered) set of Templates
@@ -18687,7 +18687,7 @@ func (s *Store) QueryTemplates(
 		}
 	}
 
-	query := templateSelectQuery(s.Dialect).Where(expr...)
+	query := templateSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableTemplateFields()); err != nil {
@@ -18766,7 +18766,7 @@ func (s *Store) LookupTemplateByID(ctx context.Context, id uint64) (_ *systemTyp
 	var (
 		rows   *sql.Rows
 		aux    = new(auxTemplate)
-		lookup = templateSelectQuery(s.Dialect).Where(
+		lookup = templateSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -18808,7 +18808,7 @@ func (s *Store) LookupTemplateByHandle(ctx context.Context, handle string) (_ *s
 	var (
 		rows   *sql.Rows
 		aux    = new(auxTemplate)
-		lookup = templateSelectQuery(s.Dialect).Where(
+		lookup = templateSelectQuery(s.Dialect.GOQU()).Where(
 			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
 			goqu.I("deleted_at").IsNull(),
 		).Limit(1)
@@ -18970,7 +18970,7 @@ func (s *Store) CreateUser(ctx context.Context, rr ...*systemType.User) (err err
 			return
 		}
 
-		if err = s.Exec(ctx, userInsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, userInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -18987,7 +18987,7 @@ func (s *Store) UpdateUser(ctx context.Context, rr ...*systemType.User) (err err
 			return
 		}
 
-		if err = s.Exec(ctx, userUpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, userUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -19004,7 +19004,7 @@ func (s *Store) UpsertUser(ctx context.Context, rr ...*systemType.User) (err err
 			return
 		}
 
-		if err = s.Exec(ctx, userUpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, userUpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -19017,7 +19017,7 @@ func (s *Store) UpsertUser(ctx context.Context, rr ...*systemType.User) (err err
 // This function is auto-generated
 func (s *Store) DeleteUser(ctx context.Context, rr ...*systemType.User) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, userDeleteQuery(s.Dialect, userPrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, userDeleteQuery(s.Dialect.GOQU(), userPrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -19029,14 +19029,14 @@ func (s *Store) DeleteUser(ctx context.Context, rr ...*systemType.User) (err err
 //
 // This function is auto-generated
 func (s *Store) DeleteUserByID(ctx context.Context, id uint64) error {
-	return s.Exec(ctx, userDeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, userDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 		"id": id,
 	}))
 }
 
 // TruncateUsers Deletes all rows from the user collection
 func (s *Store) TruncateUsers(ctx context.Context) error {
-	return s.Exec(ctx, userTruncateQuery(s.Dialect))
+	return s.Exec(ctx, userTruncateQuery(s.Dialect.GOQU()))
 }
 
 // SearchUsers returns (filtered) set of Users
@@ -19279,7 +19279,7 @@ func (s *Store) QueryUsers(
 		}
 	}
 
-	query := userSelectQuery(s.Dialect).Where(expr...)
+	query := userSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
 	if sortExpr, err = order(f.Sort, s.sortableUserFields()); err != nil {
@@ -19358,7 +19358,7 @@ func (s *Store) LookupUserByID(ctx context.Context, id uint64) (_ *systemType.Us
 	var (
 		rows   *sql.Rows
 		aux    = new(auxUser)
-		lookup = userSelectQuery(s.Dialect).Where(
+		lookup = userSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("id").Eq(id),
 		).Limit(1)
 	)
@@ -19400,7 +19400,7 @@ func (s *Store) LookupUserByEmail(ctx context.Context, email string) (_ *systemT
 	var (
 		rows   *sql.Rows
 		aux    = new(auxUser)
-		lookup = userSelectQuery(s.Dialect).Where(
+		lookup = userSelectQuery(s.Dialect.GOQU()).Where(
 			s.Functions.LOWER(goqu.I("email")).Eq(strings.ToLower(email)),
 			goqu.I("deleted_at").IsNull(),
 		).Limit(1)
@@ -19443,7 +19443,7 @@ func (s *Store) LookupUserByHandle(ctx context.Context, handle string) (_ *syste
 	var (
 		rows   *sql.Rows
 		aux    = new(auxUser)
-		lookup = userSelectQuery(s.Dialect).Where(
+		lookup = userSelectQuery(s.Dialect.GOQU()).Where(
 			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
 			goqu.I("deleted_at").IsNull(),
 		).Limit(1)
@@ -19486,7 +19486,7 @@ func (s *Store) LookupUserByUsername(ctx context.Context, username string) (_ *s
 	var (
 		rows   *sql.Rows
 		aux    = new(auxUser)
-		lookup = userSelectQuery(s.Dialect).Where(
+		lookup = userSelectQuery(s.Dialect.GOQU()).Where(
 			s.Functions.LOWER(goqu.I("username")).Eq(strings.ToLower(username)),
 			goqu.I("deleted_at").IsNull(),
 		).Limit(1)

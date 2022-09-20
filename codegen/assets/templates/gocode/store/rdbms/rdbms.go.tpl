@@ -44,7 +44,7 @@ func (s *Store) Create{{ .expIdent }}(ctx context.Context, {{ template "extraArg
 			return
 		}
 
-		if err = s.Exec(ctx, {{ .ident }}InsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, {{ .ident }}InsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -62,7 +62,7 @@ func (s *Store) Update{{ .expIdent }}(ctx context.Context, {{ template "extraArg
 			return
 		}
 
-		if err = s.Exec(ctx, {{ .ident }}UpdateQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, {{ .ident }}UpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -79,7 +79,7 @@ func (s *Store) Upsert{{ .expIdent }}(ctx context.Context, {{ template "extraArg
 			return
 		}
 
-		if err = s.Exec(ctx, {{ .ident }}UpsertQuery(s.Dialect, rr[i])); err != nil {
+		if err = s.Exec(ctx, {{ .ident }}UpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
 			return
 		}
 	}
@@ -92,7 +92,7 @@ func (s *Store) Upsert{{ .expIdent }}(ctx context.Context, {{ template "extraArg
 // This function is auto-generated
 func (s *Store) Delete{{ .expIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} rr ...*{{ .goType }}) (err error) {
 	for i := range rr {
-		if err = s.Exec(ctx, {{ .ident }}DeleteQuery(s.Dialect, {{ .ident }}PrimaryKeys(rr[i]))); err != nil {
+		if err = s.Exec(ctx, {{ .ident }}DeleteQuery(s.Dialect.GOQU(), {{ .ident }}PrimaryKeys(rr[i]))); err != nil {
 			return
 		}
 	}
@@ -105,7 +105,7 @@ func (s *Store) Delete{{ .expIdent }}(ctx context.Context, {{ template "extraArg
 //
 // This function is auto-generated
 func (s *Store) {{ .api.deleteByPK.expFnIdent }}(ctx context.Context, {{ template "extraArgs" .ident }} {{ range .api.deleteByPK.attributes }}{{ .ident }} {{ .goType }},{{ end }}) error {
-	return s.Exec(ctx, {{ .ident }}DeleteQuery(s.Dialect, goqu.Ex{
+	return s.Exec(ctx, {{ .ident }}DeleteQuery(s.Dialect.GOQU(), goqu.Ex{
 	{{- range .api.deleteByPK.attributes }}
 		{{ printf "%q" .storeIdent }}: {{ .ident }},
 	{{- end }}
@@ -115,7 +115,7 @@ func (s *Store) {{ .api.deleteByPK.expFnIdent }}(ctx context.Context, {{ templat
 
 // Truncate{{ .expIdentPlural }} Deletes all rows from the {{ .ident }} collection
 func (s *Store) Truncate{{ .expIdentPlural }}(ctx context.Context, {{ template "extraArgs" .ident }}) error {
-	return s.Exec(ctx, {{ .ident }}TruncateQuery(s.Dialect))
+	return s.Exec(ctx, {{ .ident }}TruncateQuery(s.Dialect.GOQU()))
 }
 
 // Search{{ .expIdentPlural }} returns (filtered) set of {{ .expIdentPlural }}
@@ -377,7 +377,7 @@ func (s *Store) Query{{ .expIdentPlural }}(
 	{{ end }}
 
 
-	query := {{ .ident }}SelectQuery(s.Dialect).Where(expr...)
+	query := {{ .ident }}SelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	{{ if .features.sorting }}
 	// sorting feature is enabled
@@ -463,7 +463,7 @@ func (s *Store) Query{{ .expIdentPlural }}(
 		var (
 			rows *sql.Rows
 			aux = new({{ .auxIdent }})
-			lookup = {{ .ident }}SelectQuery(s.Dialect).Where(
+			lookup = {{ .ident }}SelectQuery(s.Dialect.GOQU()).Where(
 				{{- range .args }}
 					{{- if .ignoreCase }}
 					s.Functions.LOWER(goqu.I({{ printf "%q" .storeIdent }})).Eq(strings.ToLower({{ .ident }})),

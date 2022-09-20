@@ -71,7 +71,7 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 
 		DAL: dal.Connection(db, Dialect(), DataDefiner(cfg.DBName, db)),
 
-		Dialect:      goquDialectWrapper,
+		Dialect:      Dialect(),
 		ErrorHandler: errorHandler,
 
 		TxRetryLimit: -1,

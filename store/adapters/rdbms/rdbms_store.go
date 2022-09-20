@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exec"
 	"github.com/doug-martin/goqu/v9/exp"
@@ -46,7 +47,7 @@ type (
 		// data definer interface use for schema information lookups and modification
 		DataDefiner ddl.DataDefiner
 
-		Dialect goqu.DialectWrapper
+		Dialect drivers.Dialect
 
 		// set to -1 to disable transactions
 		TxRetryLimit int

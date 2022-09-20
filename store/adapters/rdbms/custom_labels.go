@@ -18,5 +18,5 @@ func (s Store) DeleteExtraLabels(ctx context.Context, kind string, resourceId ui
 		expr = append(expr, goqu.C("name").NotIn(name))
 	}
 
-	return s.Exec(ctx, labelDeleteQuery(s.Dialect, expr...))
+	return s.Exec(ctx, labelDeleteQuery(s.Dialect.GOQU(), expr...))
 }
