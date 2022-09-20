@@ -49,7 +49,7 @@ func (s Store) dailyMetrics(ctx context.Context, tbl exp.IdentifierExpression, e
 
 	return rval, func() (err error) {
 		daily := s.Functions.DATE(goqu.C(field))
-		query := s.Dialect.
+		query := s.Dialect.GOQU().
 			Select(daily, goqu.COUNT(goqu.Star()).As("value")).
 			From(tbl).
 			Where(goqu.C(field).IsNotNull(), goqu.And(expr...)).

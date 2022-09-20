@@ -199,7 +199,7 @@ func DefaultFilters() (f *extendedFilters) {
 		}
 
 		if f.MemberID > 0 {
-			memberships := roleMemberSelectQuery(s.Dialect).
+			memberships := roleMemberSelectQuery(s.Dialect.GOQU()).
 				Select("rel_role").
 				Where(goqu.C("rel_user").In(f.MemberID))
 
@@ -219,7 +219,7 @@ func DefaultFilters() (f *extendedFilters) {
 		}
 
 		if len(f.RoleID) > 0 {
-			members := roleMemberSelectQuery(s.Dialect).
+			members := roleMemberSelectQuery(s.Dialect.GOQU()).
 				Select("rel_user").
 				Where(goqu.C("rel_role").In(f.RoleID))
 
