@@ -24,7 +24,7 @@ type (
 	driver struct {
 		name  string
 		dsn   string
-		setup func(ctx context.Context, t aaaa, dsn string)
+		setup func(ctx context.Context, t wrapTest, dsn string)
 	}
 
 	dalService interface {
@@ -72,7 +72,7 @@ type (
 		}
 	}
 
-	aaaa interface {
+	wrapTest interface {
 		require.TestingT
 		Name() string
 	}
@@ -153,7 +153,12 @@ func initSvc(ctx context.Context, d driver) (dalService, error) {
 		dal.MakeConnection(
 			c.ID,
 			nil,
-			dal.ConnectionParams{},
+			dal.ConnectionParams{
+				Type: "corteza::dal:connection:dsn",
+				Params: map[string]any{
+					"dsn": d.dsn,
+				},
+			},
 			cm,
 		),
 		true,
@@ -284,7 +289,7 @@ func collectDrivers() []driver {
 		{
 			name: "mysql",
 			dsn:  os.Getenv("DAL_TEST_DSN_MYSQL"),
-			setup: func(ctx context.Context, t aaaa, dsn string) {
+			setup: func(ctx context.Context, t wrapTest, dsn string) {
 				conn, err := mysql.Setup(ctx, dsn)
 				require.NoError(t, err)
 

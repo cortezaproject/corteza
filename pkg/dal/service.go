@@ -635,10 +635,7 @@ func (svc *service) ReplaceModel(ctx context.Context, model *Model) (err error) 
 	defer svc.updateIssues(issues)
 
 	if model.ConnectionID == 0 {
-		// model w/o connection:
-		// add model issue and carry on
-		issues.addModelIssue(model.ResourceID, errConnectionNotFound(model.ConnectionID))
-		return nil
+		model.ConnectionID = svc.defConnID
 	}
 
 	// Check if update

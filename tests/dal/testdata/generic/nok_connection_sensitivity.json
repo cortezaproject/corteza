@@ -17,7 +17,9 @@
   },
 
   "config": {
-    "connection": {
+    "dal": {
+      "modelIdent": "compose_record",
+
       "type": "corteza::dal:connection:dsn",
       "params": {
         "dsn": "sqlite3://file::memory:?cache=shared&mode=memory"
@@ -25,24 +27,6 @@
     },
     "privacy": {
       "sensitivityLevelID": "42"
-    },
-    "dal": {
-      "properties": {},
-      "operations": [
-        "corteza::dal:operation:create",
-        "corteza::dal:operation:update",
-        "corteza::dal:operation:search",
-        "corteza::dal:operation:lookup",
-        "corteza::dal:operation:paging",
-        "corteza::dal:operation:stats",
-        "corteza::dal:operation:sorting",
-        "corteza::dal:operation:RBAC"
-      ],
-
-      "modelIdent": "compose_record",
-      "attributeIdent": "values",
-      "partitionFormat": "compose_record_{{namespace}}_{{module}}",
-      "partitionIdentValidator": ""
     }
   }
 }
