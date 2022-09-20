@@ -383,10 +383,13 @@ func mappingToFrameCol(m dal.AttributeMapping) FrameColumn {
 		moduleResType     = "corteza::compose:module"
 	)
 
+	l := m.Properties().Label
+	if l == "" {
+		l = m.Identifier()
+	}
 	out := FrameColumn{
-		Name: m.Identifier(),
-		// @todo use another method/push into meta?
-		Label: m.Identifier(),
+		Name:  m.Identifier(),
+		Label: l,
 		Kind:  "String",
 
 		Primary: p.IsPrimary,
@@ -651,6 +654,7 @@ func attrToMapping(aa ...*dal.Attribute) (out []dal.AttributeMapping) {
 			Ident: a.Ident,
 			Src:   a.Ident,
 			Props: dal.MapProperties{
+				Label:     a.Label,
 				Type:      a.Type,
 				Nullable:  a.Type.IsNullable(),
 				IsPrimary: a.PrimaryKey,
