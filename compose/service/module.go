@@ -3,13 +3,14 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/compose/dalutils"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
-	"go.uber.org/zap"
 	"reflect"
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/cortezaproject/corteza-server/compose/dalutils"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/pkg/revisions"
 
@@ -1534,7 +1535,7 @@ func moduleFieldToAttribute(f *types.ModuleField) (out *dal.Attribute, err error
 	}
 
 	out.SensitivityLevelID = f.Config.Privacy.SensitivityLevelID
-	out.Label = f.Name
+	out.Label = f.Label
 	out.MultiValue = f.Multi
 	return
 }

@@ -38,6 +38,7 @@ type (
 
 	// MapProperties describe the attribute such as it's type and constraints
 	MapProperties struct {
+		Label     string
 		IsPrimary bool
 		Nullable  bool
 		Type      Type
