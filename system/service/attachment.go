@@ -43,8 +43,8 @@ type (
 		Find(ctx context.Context, filter types.AttachmentFilter) (types.AttachmentSet, types.AttachmentFilter, error)
 		CreateSettingsAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker, labels map[string]string) (*types.Attachment, error)
 		CreateApplicationAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker, labels map[string]string) (*types.Attachment, error)
-		OpenOriginal(att *types.Attachment) (io.ReadSeeker, error)
-		OpenPreview(att *types.Attachment) (io.ReadSeeker, error)
+		OpenOriginal(att *types.Attachment) (io.ReadSeekCloser, error)
+		OpenPreview(att *types.Attachment) (io.ReadSeekCloser, error)
 		DeleteByID(ctx context.Context, ID uint64) error
 	}
 )
@@ -116,7 +116,7 @@ func (svc attachment) Find(ctx context.Context, filter types.AttachmentFilter) (
 	return aa, f, svc.recordAction(ctx, aaProps, AttachmentActionSearch, err)
 }
 
-func (svc attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error) {
+func (svc attachment) OpenOriginal(att *types.Attachment) (io.ReadSeekCloser, error) {
 	if len(att.Url) == 0 {
 		return nil, nil
 	}
@@ -124,7 +124,7 @@ func (svc attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error)
 	return svc.files.Open(att.Url)
 }
 
-func (svc attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) {
+func (svc attachment) OpenPreview(att *types.Attachment) (io.ReadSeekCloser, error) {
 	if len(att.PreviewUrl) == 0 {
 		return nil, nil
 	}

@@ -132,7 +132,7 @@ func (s store) Remove(name string) error {
 	return s.mc.RemoveObject(s.bucket, s.getObjectName(name))
 }
 
-func (s store) Open(name string) (io.ReadSeeker, error) {
+func (s store) Open(name string) (io.ReadSeekCloser, error) {
 	return s.mc.GetObject(s.bucket, s.getObjectName(name), minio.GetObjectOptions{
 		ServerSideEncryption: s.sse,
 	})

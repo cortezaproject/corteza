@@ -18,8 +18,8 @@ type (
 		FindByID(ctx context.Context, namespaceID, attachmentID uint64) (*types.Attachment, error)
 		CreateRecordAttachment(ctx context.Context, namespaceID uint64, name string, size int64, fh io.ReadSeeker, moduleID, recordID uint64, fieldName string) (att *types.Attachment, err error)
 		DeleteByID(ctx context.Context, namespaceID uint64, attachmentID uint64) error
-		OpenOriginal(att *types.Attachment) (io.ReadSeeker, error)
-		OpenPreview(att *types.Attachment) (io.ReadSeeker, error)
+		OpenOriginal(att *types.Attachment) (io.ReadSeekCloser, error)
+		OpenPreview(att *types.Attachment) (io.ReadSeekCloser, error)
 	}
 
 	attachmentHandler struct {
@@ -64,6 +64,9 @@ func (h attachmentHandler) openOriginal(ctx context.Context, args *attachmentOpe
 		return nil, err
 	}
 
+	// @todo we need to call Close() when file is read (or at the end of the workflow)
+	//       some kind of workflow-cleanup facility is needed
+
 	return r, nil
 }
 
@@ -78,6 +81,9 @@ func (h attachmentHandler) openPreview(ctx context.Context, args *attachmentOpen
 	if err != nil {
 		return nil, err
 	}
+
+	// @todo we need to call Close() when file is read (or at the end of the workflow)
+	//       some kind of workflow-cleanup facility is needed
 
 	return r, nil
 }
