@@ -83,11 +83,12 @@ func (ctrl Workflow) List(ctx context.Context, r *request.WorkflowList) (interfa
 	var (
 		err error
 		f   = types.WorkflowFilter{
-			WorkflowID: payload.ParseUint64s(r.WorkflowID),
-			Query:      r.Query,
-			Labels:     r.Labels,
-			Deleted:    filter.State(r.Deleted),
-			Disabled:   filter.State(r.Disabled),
+			WorkflowID:  payload.ParseUint64s(r.WorkflowID),
+			Query:       r.Query,
+			Labels:      r.Labels,
+			Deleted:     filter.State(r.Deleted),
+			Disabled:    filter.State(r.Disabled),
+			SubWorkflow: filter.State(r.SubWorkflow),
 		}
 	)
 

@@ -712,6 +712,13 @@ func validateWorkflowTriggers(wf *types.Workflow, tt ...*types.Trigger) (wis typ
 				}
 			}
 		}
+
+		if wf.Meta != nil && wf.Meta.SubWorkflow {
+			wis = wis.Append(
+				errors.InvalidData("workflow marked as sub-workflow cannot have triggers"),
+				map[string]int{"trigger": i},
+			)
+		}
 	}
 
 	return

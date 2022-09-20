@@ -89,12 +89,17 @@ func testAutomationWorkflows(t *testing.T, s store.AutomationWorkflows) {
 			makeNew("two-one"),
 			makeNew("two-two"),
 			makeNew("two-deleted"),
+			func() *types.Workflow {
+				wf := makeNew("subwf")
+				wf.Meta = &types.WorkflowMeta{SubWorkflow: true}
+				return wf
+			}(),
 		}
 
 		count := len(prefill)
 
 		prefill[4].DeletedAt = &prefill[4].CreatedAt
-		valid := count - 1
+		valid := count - 2
 
 		req.NoError(s.TruncateAutomationWorkflows(ctx))
 		req.NoError(s.CreateAutomationWorkflow(ctx, prefill...))
@@ -102,12 +107,15 @@ func testAutomationWorkflows(t *testing.T, s store.AutomationWorkflows) {
 		// search for all valid
 		set, f, err := s.SearchAutomationWorkflows(ctx, types.WorkflowFilter{})
 		req.NoError(err)
-		req.Len(set, valid) // we've deleted one
+		req.Len(set, valid) // all but deleted or workflows
 
-		// search for ALL
-		set, f, err = s.SearchAutomationWorkflows(ctx, types.WorkflowFilter{Deleted: filter.StateInclusive})
+		// search for ALL, including deleted and sub-workflows
+		set, f, err = s.SearchAutomationWorkflows(ctx, types.WorkflowFilter{
+			Deleted:     filter.StateInclusive,
+			SubWorkflow: filter.StateInclusive,
+		})
 		req.NoError(err)
-		req.Len(set, count) // we've deleted one
+		req.Len(set, count)
 
 		// search for deleted only
 		set, f, err = s.SearchAutomationWorkflows(ctx, types.WorkflowFilter{Deleted: filter.StateExclusive})
@@ -118,6 +126,11 @@ func testAutomationWorkflows(t *testing.T, s store.AutomationWorkflows) {
 		set, f, err = s.SearchAutomationWorkflows(ctx, types.WorkflowFilter{Query: "two-"})
 		req.NoError(err)
 		req.Len(set, 2)
+
+		// find just sub-workflows (one)
+		set, f, err = s.SearchAutomationWorkflows(ctx, types.WorkflowFilter{SubWorkflow: filter.StateExclusive})
+		req.NoError(err)
+		req.Len(set, 1)
 
 		_ = f // dummy
 	})
