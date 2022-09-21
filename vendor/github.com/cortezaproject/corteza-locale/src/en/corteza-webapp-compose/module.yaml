@@ -19,6 +19,8 @@ createLabel: New Module
 edit:
   create: Create module
   edit: Edit module
+  fields:
+    label: Fields
   federationSettings:
     downstream:
       allFields: All Fields
@@ -75,37 +77,89 @@ edit:
     required: Required field
     title: The name displayed in form input / data lists
 
+  issues:
+    label: Issues ({{count}})
+
+
   config:
     dal:
       title: Data store
-      connection: Connection
-      ident: Identifier
-      ident-placeholder: compose_record
-      ident-description: "Name of the database table or collection where records can be accessed and stored. Supports partitioning placeholders: {{module}} for module handle and {{namespace}} for namespace handle"
+      connection:
+        label: Database connection
+        placeholder: Select a database connection
+        description: Changing the connection will reset the sensitivity level configuration on the module and fields, if the sensitivity level is incompatible with the new connection
+      ident:
+        label: Collection or database table name
+        placeholder: compose_record
+        description: "Name of the database table or collection where records can be accessed and stored. Supports partitioning placeholders: {{module}} for module handle and {{namespace}} for namespace handle"
 
       connections:
         fetch-failed: Could not fetch available connections
 
+
+      module-fields:
+        label: Module field mapping and encoding
+        description: |
+          Configure how record fields are stored and read from the database. 
+          Default behaviour is to encode values into JSON and store them in a single field.
+          Alternatively you can use columns with the same name as the field name (Column) 
+          or use an Alias and store the value directly in the column.
+
+      system-fields:
+        label: System field mapping and encoding
+        description: |
+          System fields are used to store metadata about the record. 
+          Configure to skip or store them into a column with the same name (Column),
+          a different column (Alias) or encode them into JSON.
+
+      encoding-strategy:
+        ident:
+          placeholder: Field or database table column name
+
+        strategies:
+          plain:
+            label: Column
+          alias:
+            label: Alias
+          json:
+            label: JSON
+
+
     privacy:
       title: Privacy Settings
-      sensitivity-level: Maximum allowed sensitivity level
-      sensitivity-level-description: Maximum sensitivity level for fields on this module
-      usage-disclosure: Sensitive data usage disclosure (visible on data-privacy console)
-      usage-disclosure-placeholder:
+      sensitivity-level:
+        label: Highest allowed allowed sensitivity level
+        placeholder: Select a sensitivity level
+        description: Highest allowed level of sensitivity for fields on this module, changing this value will reset the sensitivity level of fields if they are incompatible.
+      usage-disclosure:
+        label: Sensitive data usage disclosure (visible on data-privacy console)
 
       data-source: Data Source
       select-data-source: Select a Data Source
 
       sensitivity-levels:
-        fetch-failed: Could not fetch available connections
-
+        fetch-failed: Could not fetch sensitivity levels
 
     record-revisions:
       title: Record Revisions
       enabled: Enable record revisions
-      ident: Identifier
-      ident-placeholder: compose_record_revisions
-      ident-description: "Name of the database table or collection where revisions records can be accessed and stored. Supports partitioning placeholders: {{module}} for module handle and {{namespace}} for namespace handle"
+      ident:
+        label: Identifier
+        placeholder: compose_record_revisions
+        description: 'Name of the database table or collection where revisions records can be accessed and stored. Supports partitioning placeholders: {{module}} for module handle and {{namespace}} for namespace handle'
+
+    validation:
+      title: Validation
+
+      record-duplication:
+        title: Record duplication detection
+        strict-fields:
+          label: Strict fields
+          description: These fields will raise a validation error when duplicate value is detected
+        non-strict-fields:
+          label: Non strict fields
+          description: These fields will display a warning under the field when duplicate value is detected
+
 
 federated: Federated
 forModule:

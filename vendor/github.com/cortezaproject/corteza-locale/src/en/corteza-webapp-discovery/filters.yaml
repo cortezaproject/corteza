@@ -10,3 +10,5 @@ types:
 aggregation-groups:
   modules: Modules
   namespaces: Namespaces
+
+reset: Reset

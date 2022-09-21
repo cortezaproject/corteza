@@ -77,7 +77,7 @@ kind:
         warning: Warning
       thresholds:
         label: Thresholds
-        description: Set which variant to show if value exceeds the threshold
+        description: Set which variant to show if value is equal or larger than the threshold
   record:
     currentUnnamedModule: (Current unnamed module)
     label: Record
@@ -110,6 +110,7 @@ kind:
     multiLine: Multi line
     richText: Use Rich Text Editor
   url:
+    example: 'Example URL: https://example.com'
     label: URL
     preventToLink: Don't turn Url into a link
     sshOnly: Only allow SSL (https) Url
@@ -175,7 +176,18 @@ selector:
   selected: Selected fields
   systemField: (system field)
   unselectAll: Unselect all
+privacy:
+  sensitivity-level:
+    label: Sensitivity level
+    placeholder: Select a sensitivity level
+  usage-disclosure:
+    label: Sensitive field usage disclosure (visible on data-privacy console)
 system:
+  id: Record ID
+  moduleID: Module ID
+  namespaceID: Namespace ID
+  revision: Record revision
+  meta: Meta data
   recordID: Record ID
   createdAt: Created at
   createdBy: Created by

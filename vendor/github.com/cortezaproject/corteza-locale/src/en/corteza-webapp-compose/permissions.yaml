@@ -9,6 +9,7 @@ ui:
     description: Select role to set permissions
 
   evaluate:
+    label: Evaluate
     description: Evaluate applied permissions
 
   add:

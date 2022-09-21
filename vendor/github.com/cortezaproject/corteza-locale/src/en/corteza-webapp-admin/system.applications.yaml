@@ -40,6 +40,7 @@ list:
     name: Name
     appListName: App selector name
     state: State
+  export: Export
   rows:
     filters:
       deleted: Deleted

@@ -51,6 +51,7 @@ label:
   pageBuilder: Page builder
   permissions: Permissions
   private: Private
+  privacy: Privacy
   processing: Processing...
   record: Record
   recordPage: Record page
