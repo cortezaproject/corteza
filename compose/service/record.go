@@ -297,7 +297,7 @@ func (svc record) Report(ctx context.Context, namespaceID, moduleID uint64, metr
 		aProps = &recordActionProps{record: &types.Record{NamespaceID: namespaceID}}
 
 		iter        dal.Iterator
-		reportItems []recordReportEntry
+		reportItems = make([]recordReportEntry, 0, 16)
 	)
 
 	err = func() error {
