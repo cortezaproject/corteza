@@ -52,6 +52,7 @@ list:
     meta:
       short: Short name
     state: State
+  export: Export
   rows:
     filters:
       deleted: Deleted

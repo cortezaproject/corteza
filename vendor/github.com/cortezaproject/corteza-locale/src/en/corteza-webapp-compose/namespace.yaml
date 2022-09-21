@@ -1,5 +1,5 @@
 manage-view:
-  label: Edit namespaces
+  label: Manage namespaces
 application:
   label: Enable on application list
 clickOpen: Click to open

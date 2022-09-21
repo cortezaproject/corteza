@@ -30,7 +30,7 @@ editor:
         placeholder: Data lake
         description: ''
       handle:
-        label: Handle
+        label: Handle *
         placeholder: simplified_connection_name
         description:
         invalid-characters: Should be at least 2 characters long and start with a letter. Can contain only letters, numbers, dashes, underscores and dots
@@ -48,7 +48,7 @@ editor:
         description: Name of the company or person who owns the data
       sensitivity-level:
         label: Highest allowed sensitivity level
-        placeholder:
+        placeholder: Select a sensitivity level
         description: Highest allowed level of sensitivity for the data stored (as set on fields of the module that uses this connection)
 
   properties:

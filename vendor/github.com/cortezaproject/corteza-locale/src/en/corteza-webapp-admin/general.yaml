@@ -11,3 +11,5 @@ label:
   submit: Submit
   delete: Delete
   undelete: Undelete
+  fileTypeNotAllowed: File type not allowed
+

@@ -25,6 +25,7 @@ list:
     createdAt: Created At
     state: State
     queue: Queue
+  export: Export
   rows:
     filters:
       deleted: Deleted

@@ -7,3 +7,5 @@ search:
 list:
   load:
     error: Failed to load resource list
+connection-load-failed: Failed to load connections
+sensitive-data-fetch-failed: Failed to fetch sensitive data

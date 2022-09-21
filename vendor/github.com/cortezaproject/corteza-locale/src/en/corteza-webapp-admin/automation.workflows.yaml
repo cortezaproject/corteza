@@ -32,6 +32,7 @@ list:
     handle: Handle
     name: Name
     state: State
+  export: Export
   rows:
     filters:
       deleted: Deleted

@@ -97,3 +97,8 @@ report:
 translations:
   saved: Translations saved
   saveFailed: Could not save translations
+connection:
+  read-failed: Failed to read connection
+sensitivity-level:
+  fetch-failed: Failed to fetch sensitivity levels
+

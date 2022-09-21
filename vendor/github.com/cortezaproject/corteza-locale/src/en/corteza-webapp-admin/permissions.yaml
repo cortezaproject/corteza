@@ -12,6 +12,7 @@ ui:
     title: Edit permissions
     label: User roles
     description: Select role to set permissions
+  edit-or-eval: Edit or evaluate permissions
 
   evaluate:
     title: Evaluated permissions
@@ -56,6 +57,7 @@ ui:
   clone:
     clone: Clone
     label: Clone permissions
+    pick-role: Pick a role
     title: Clone permissions to
     description: This will clone all the permissions of the current role and apply them  to the selected
 
@@ -253,6 +255,9 @@ resources:
           description: 'Default: deny'
           specific: Delete connection "{{target}}
           title: Delete any connection
+        dal-config:
+          manage:
+            title: Manage any connections
     role:
       label: Roles
       all: all roles
@@ -358,6 +363,7 @@ resources:
         credentials:
           manage:
             specific: Manage {{target}}'s credentials
+            title: Manage any user
         delete:
           description: 'Default: deny'
           specific: Delete {{target}}
@@ -471,6 +477,8 @@ resources:
       operations:
         delete:
           title: Delete any module
+        owned-record.create:
+          title: Manage owner when creating record of any module
         read:
           title: Read any module
         record.create:

@@ -1,3 +1,15 @@
+comments:
+  enter: Enter comment...
+  label: Comments
+  sort:
+    first:
+      newest: Newest first
+      oldest: Oldest first
+  submit: Submit
+  unknown:
+    date: Unknown date
+    user: Unknown user
+
 kind:
   correct: Correction Request
   delete: Deletion Request
@@ -19,17 +31,20 @@ list:
     status: Status
   request:
     approve: Approve Requests
+    cancel: Cancel Request
     reject: Reject Requests
 
 edit:
   correct:
     private-fields: Private Fields
+    no-data-available: No data available
     submit: Submit Correction Request
     data-source:
       label: Data Source
       placeholder: Select a Data Source
   delete:
     private-fields: Private Fields
+    no-data-available: No data available
     submit: Delete Selected Data
     data-source:
       label: Data Source
@@ -50,6 +65,7 @@ edit:
 
 view:
   approve: Approve request
+  cancel: Cancel request
   reject: Reject request
   export:
     data-type:

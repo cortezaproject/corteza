@@ -12,13 +12,13 @@ datasource:
   types:
     load: 
       label: Load
-      loads-data-from-specified-resource-such-as-compose-records: Loads data from a specified resource, such as Compose records
+      data-from-resource: Loads data from a specified resource, such as Compose records
     link:
       label: Link
-      links-two-load-datasources-such-as-compose-record-selector: Links two Load datasources with a unique column that links them together, such as a Compose record selector
+      load-datasources: Links two Load datasources with a unique column that links them together, such as a Compose record selector
     aggregate:
       label: Aggregate
-      aggregates-data-from-load-datasource-like-counting-number-of-accounts-with-same-status: Aggregates data from a load datasource based on a column value and aggregates it, such as counting the number of Accounts with the same status
+      load-datasource: Aggregates data from a load datasource based on a column value and aggregates it, such as counting the number of Accounts with the same status
 datasources:
   label: Datasources
   save: Save Datasources

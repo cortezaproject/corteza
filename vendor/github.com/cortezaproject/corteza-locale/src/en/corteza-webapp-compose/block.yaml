@@ -396,7 +396,7 @@ recordRevisions:
       no-record: No record found to display revisions for.
       disabled-on-module: Record revisions are disabled on this module.
 
-    show-revisions: Show record revisions ({{ revision }}).
+    show-revisions: Show record revisions ({{ revision }})
     show-changes: "{{ count }} change(s)"
     revisions:
       columns:
@@ -477,4 +477,42 @@ report:
     description: Display elements are grouped by their respective block
 
 progress:
+  add: + Add
+  aggregate:
+    label: Aggregation operation
+    select: Select aggregation operation
+  animated: Animated
+  default-variant: Default variant
+  display-options: Display options
+  fetch-failed: Failed to fetch progress bar report
+  field:
+    label: Field
+    select: Select field
   label: Progress bar
+  module:
+    select: Select module
+    label: Module
+  preview: Preview
+  show:
+    value: Show value
+    relative: Show relative
+    progress: Show progress
+  tab:
+    label: Progress
+  thresholds: Thresholds
+  threshold:
+    label: Threshold
+    variant: Set which variant to show if value is equal or larger than the threshold
+  value:
+    label: Value
+    max: Maximum value
+  variant:
+    default: Dark
+    danger: Danger
+    dark: Dark
+    info: Info
+    light: Light
+    primary: Primary
+    secondary: Secondary
+    success: Success
+    warning: Warning
