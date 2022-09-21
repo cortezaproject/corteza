@@ -60,7 +60,7 @@ func (ctrl SensitivityLevel) List(ctx context.Context, r *request.DalSensitivity
 	)
 
 	if f.Deleted == 0 {
-		f.Deleted = filter.StateInclusive
+		f.Deleted = filter.StateExcluded
 	}
 
 	set, f, err = ctrl.svc.Search(ctx, f)
