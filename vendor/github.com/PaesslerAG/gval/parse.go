@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"strconv"
 	"text/scanner"
+
+	"github.com/shopspring/decimal"
 )
 
 //ParseExpression scans an expression into an Evaluable.
@@ -88,6 +90,14 @@ func parseNumber(c context.Context, p *Parser) (Evaluable, error) {
 		return nil, err
 	}
 	return p.Const(n), nil
+}
+
+func parseDecimal(c context.Context, p *Parser) (Evaluable, error) {
+	n, err := strconv.ParseFloat(p.TokenText(), 64)
+	if err != nil {
+		return nil, err
+	}
+	return p.Const(decimal.NewFromFloat(n)), nil
 }
 
 func parseParentheses(c context.Context, p *Parser) (Evaluable, error) {

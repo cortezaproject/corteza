@@ -1,4 +1,3 @@
-//go:build arm64 && linux
 // +build arm64,linux
 
 // Minio Cloud Storage, (C) 2016 Minio, Inc.
@@ -35,7 +34,7 @@ func xgetbv(index uint32) (eax, edx uint32) {
 	return 0, 0
 }
 
-// File to check for cpu dal.
+// File to check for cpu capabilities.
 const procCPUInfo = "/proc/cpuinfo"
 
 // Feature to check for.
