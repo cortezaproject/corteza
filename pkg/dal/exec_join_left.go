@@ -162,7 +162,7 @@ func (xs *joinLeft) ForwardCursor(v ValueGetter) (pc *filter.PagingCursor, err e
 
 // next prepares the next scan row based on the defined join plan
 func (xs *joinLeft) next(ctx context.Context) (more bool, err error) {
-	if xs.i >= int(xs.filter.limit) {
+	if !xs.limitExceeded() {
 		return false, nil
 	}
 
@@ -174,6 +174,10 @@ func (xs *joinLeft) next(ctx context.Context) (more bool, err error) {
 	xs.scanRow, _ = xs.outSorted.GetAt(xs.i)
 	xs.i++
 	return true, nil
+}
+
+func (xs *joinLeft) limitExceeded() bool {
+	return xs.filter.limit > 0 && xs.i >= int(xs.filter.limit)
 }
 
 // pullNext pulls additional data so we can produce more
