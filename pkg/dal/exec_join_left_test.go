@@ -1122,3 +1122,273 @@ func TestStepJoinLocal_more(t *testing.T) {
 		})
 	}
 }
+
+func TestStepJoin_paging(t *testing.T) {
+	basicLeftSrcAttrs := []simpleAttribute{
+		{ident: "l_pk", t: TypeID{}},
+		{ident: "l_val", t: TypeText{}},
+	}
+	basicRightSrcAttrs := []simpleAttribute{
+		{ident: "f_pk", t: TypeID{}},
+		{ident: "f_fk", t: TypeRef{}},
+		{ident: "f_val", t: TypeText{}},
+	}
+
+	basicAttrs := []simpleAttribute{
+		{ident: "l_pk", primary: true},
+		{ident: "l_val"},
+		{ident: "f_pk", primary: true},
+		{ident: "f_fk"},
+		{ident: "f_val"},
+	}
+
+	tcc := []struct {
+		name string
+
+		outAttributes   []simpleAttribute
+		leftAttributes  []simpleAttribute
+		rightAttributes []simpleAttribute
+		joinPred        JoinPredicate
+
+		lIn []simpleRow
+		fIn []simpleRow
+
+		f internalFilter
+
+		outF1 []simpleRow
+		outF2 []simpleRow
+		outB1 []simpleRow
+	}{
+		{
+			name:            "key asc",
+			outAttributes:   basicAttrs,
+			leftAttributes:  basicLeftSrcAttrs,
+			rightAttributes: basicRightSrcAttrs,
+
+			joinPred: JoinPredicate{Left: "l_pk", Right: "f_fk"},
+			lIn: []simpleRow{
+				{"l_pk": 1, "l_val": "l1 v1"},
+				{"l_pk": 2, "l_val": "l2 v1"},
+				{"l_pk": 3, "l_val": "l3 v1"},
+				{"l_pk": 4, "l_val": "l4 v1"},
+			},
+			fIn: []simpleRow{
+				{"f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+				{"f_pk": 3, "f_fk": 3, "f_val": "f3 v1"},
+				{"f_pk": 4, "f_fk": 4, "f_val": "f4 v1"},
+			},
+
+			f: internalFilter{
+				limit:   2,
+				orderBy: filter.SortExprSet{{Column: "l_pk", Descending: false}},
+			},
+
+			outF1: []simpleRow{
+				{"l_pk": 1, "l_val": "l1 v1", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"l_pk": 2, "l_val": "l2 v1", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+			},
+			outF2: []simpleRow{
+				{"l_pk": 3, "l_val": "l3 v1", "f_pk": 3, "f_fk": 3, "f_val": "f3 v1"},
+				{"l_pk": 4, "l_val": "l4 v1", "f_pk": 4, "f_fk": 4, "f_val": "f4 v1"},
+			},
+			outB1: []simpleRow{
+				{"l_pk": 1, "l_val": "l1 v1", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"l_pk": 2, "l_val": "l2 v1", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+			},
+		},
+		{
+			name:            "key desc",
+			outAttributes:   basicAttrs,
+			leftAttributes:  basicLeftSrcAttrs,
+			rightAttributes: basicRightSrcAttrs,
+
+			joinPred: JoinPredicate{Left: "l_pk", Right: "f_fk"},
+			lIn: []simpleRow{
+				{"l_pk": 1, "l_val": "l1 v1"},
+				{"l_pk": 2, "l_val": "l2 v1"},
+				{"l_pk": 3, "l_val": "l3 v1"},
+				{"l_pk": 4, "l_val": "l4 v1"},
+			},
+			fIn: []simpleRow{
+				{"f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+				{"f_pk": 3, "f_fk": 3, "f_val": "f3 v1"},
+				{"f_pk": 4, "f_fk": 4, "f_val": "f4 v1"},
+			},
+
+			f: internalFilter{
+				limit:   2,
+				orderBy: filter.SortExprSet{{Column: "l_pk", Descending: true}},
+			},
+
+			outF1: []simpleRow{
+				{"l_pk": 4, "l_val": "l4 v1", "f_pk": 4, "f_fk": 4, "f_val": "f4 v1"},
+				{"l_pk": 3, "l_val": "l3 v1", "f_pk": 3, "f_fk": 3, "f_val": "f3 v1"},
+			},
+			outF2: []simpleRow{
+				{"l_pk": 2, "l_val": "l2 v1", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+				{"l_pk": 1, "l_val": "l1 v1", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+			},
+			outB1: []simpleRow{
+				{"l_pk": 4, "l_val": "l4 v1", "f_pk": 4, "f_fk": 4, "f_val": "f4 v1"},
+				{"l_pk": 3, "l_val": "l3 v1", "f_pk": 3, "f_fk": 3, "f_val": "f3 v1"},
+			},
+		},
+
+		{
+			name:            "val asc",
+			outAttributes:   basicAttrs,
+			leftAttributes:  basicLeftSrcAttrs,
+			rightAttributes: basicRightSrcAttrs,
+
+			joinPred: JoinPredicate{Left: "l_pk", Right: "f_fk"},
+			lIn: []simpleRow{
+				{"l_pk": 1, "l_val": "l1 v1"},
+				{"l_pk": 2, "l_val": "l2 v1"},
+				{"l_pk": 3, "l_val": "l3 v1"},
+				{"l_pk": 4, "l_val": "l4 v1"},
+			},
+			fIn: []simpleRow{
+				{"f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+				{"f_pk": 3, "f_fk": 3, "f_val": "f3 v1"},
+				{"f_pk": 4, "f_fk": 4, "f_val": "f4 v1"},
+			},
+
+			f: internalFilter{
+				limit:   2,
+				orderBy: filter.SortExprSet{{Column: "f_val", Descending: false}},
+			},
+
+			outF1: []simpleRow{
+				{"l_pk": 1, "l_val": "l1 v1", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"l_pk": 2, "l_val": "l2 v1", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+			},
+			outF2: []simpleRow{
+				{"l_pk": 3, "l_val": "l3 v1", "f_pk": 3, "f_fk": 3, "f_val": "f3 v1"},
+				{"l_pk": 4, "l_val": "l4 v1", "f_pk": 4, "f_fk": 4, "f_val": "f4 v1"},
+			},
+			outB1: []simpleRow{
+				{"l_pk": 1, "l_val": "l1 v1", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"l_pk": 2, "l_val": "l2 v1", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+			},
+		},
+		{
+			name:            "val desc",
+			outAttributes:   basicAttrs,
+			leftAttributes:  basicLeftSrcAttrs,
+			rightAttributes: basicRightSrcAttrs,
+
+			joinPred: JoinPredicate{Left: "l_pk", Right: "f_fk"},
+			lIn: []simpleRow{
+				{"l_pk": 1, "l_val": "l1 v1"},
+				{"l_pk": 2, "l_val": "l2 v1"},
+				{"l_pk": 3, "l_val": "l3 v1"},
+				{"l_pk": 4, "l_val": "l4 v1"},
+			},
+			fIn: []simpleRow{
+				{"f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+				{"f_pk": 3, "f_fk": 3, "f_val": "f3 v1"},
+				{"f_pk": 4, "f_fk": 4, "f_val": "f4 v1"},
+			},
+
+			f: internalFilter{
+				limit:   2,
+				orderBy: filter.SortExprSet{{Column: "f_val", Descending: true}},
+			},
+
+			outF1: []simpleRow{
+				{"l_pk": 4, "l_val": "l4 v1", "f_pk": 4, "f_fk": 4, "f_val": "f4 v1"},
+				{"l_pk": 3, "l_val": "l3 v1", "f_pk": 3, "f_fk": 3, "f_val": "f3 v1"},
+			},
+			outF2: []simpleRow{
+				{"l_pk": 2, "l_val": "l2 v1", "f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+				{"l_pk": 1, "l_val": "l1 v1", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+			},
+			outB1: []simpleRow{
+				{"l_pk": 4, "l_val": "l4 v1", "f_pk": 4, "f_fk": 4, "f_val": "f4 v1"},
+				{"l_pk": 3, "l_val": "l3 v1", "f_pk": 3, "f_fk": 3, "f_val": "f3 v1"},
+			},
+		},
+	}
+
+	ctx := context.Background()
+	for _, tc := range tcc {
+		t.Run(tc.name, func(t *testing.T) {
+			buffL := InMemoryBuffer()
+			for _, r := range tc.lIn {
+				require.NoError(t, buffL.Add(ctx, r))
+			}
+			buffR := InMemoryBuffer()
+			for _, r := range tc.fIn {
+				require.NoError(t, buffR.Add(ctx, r))
+			}
+
+			var d Join
+
+			prep := func(f internalFilter) {
+				d = Join{
+					Filter:          f,
+					On:              tc.joinPred,
+					OutAttributes:   saToMapping(tc.outAttributes...),
+					LeftAttributes:  saToMapping(tc.leftAttributes...),
+					RightAttributes: saToMapping(tc.rightAttributes...),
+				}
+			}
+			check := func(iter Iterator, assert []simpleRow) (first, last simpleRow) {
+				i := 0
+				for iter.Next(ctx) {
+					out := simpleRow{}
+
+					require.NoError(t, iter.Scan(out))
+
+					require.Equal(t, assert[i], out)
+					if i == 0 {
+						first = out
+					}
+					last = out
+					i++
+				}
+				require.NoError(t, iter.Err())
+				require.Equal(t, len(assert), i)
+
+				return
+			}
+
+			f := tc.f
+			var (
+				first, last simpleRow
+			)
+
+			// First page, no cursor
+			prep(f)
+			aa, err := d.iterator(ctx, buffL, buffR)
+			require.NoError(t, err)
+			_, last = check(aa, tc.outF1)
+
+			// Second page, cursor
+			require.NoError(t, buffL.Seek(ctx, 0))
+			require.NoError(t, buffR.Seek(ctx, 0))
+			f.cursor, err = aa.ForwardCursor(last)
+			require.NoError(t, err)
+
+			prep(f)
+			aa, err = d.iterator(ctx, buffL, buffR)
+			require.NoError(t, err)
+			first, _ = check(aa, tc.outF2)
+
+			// Third page, back, cursor
+			require.NoError(t, buffL.Seek(ctx, 0))
+			require.NoError(t, buffR.Seek(ctx, 0))
+			f.cursor, err = aa.BackCursor(first)
+			require.NoError(t, err)
+
+			prep(f)
+			aa, err = d.iterator(ctx, buffL, buffR)
+			require.NoError(t, err)
+			check(aa, tc.outB1)
+		})
+	}
+}

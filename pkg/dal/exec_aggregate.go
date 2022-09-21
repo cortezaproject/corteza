@@ -33,6 +33,8 @@ type (
 		groupIndex *btree.Generic[*aggregateGroup]
 		groups     []*aggregateGroup
 		i          int
+
+		ctr int
 	}
 
 	keyMaker func(context.Context, ValueGetter) (groupKey, error)
@@ -85,6 +87,10 @@ func (xs *aggregate) Next(ctx context.Context) (more bool) {
 func (xs *aggregate) next(ctx context.Context) (more bool, err error) {
 	var g *aggregateGroup
 	for {
+		if xs.ctr >= int(xs.filter.limit) {
+			return false, nil
+		}
+
 		// Make sure it's cleared out and ready for fresh data
 		xs.scanRow.Reset()
 
@@ -121,6 +127,7 @@ func (xs *aggregate) next(ctx context.Context) (more bool, err error) {
 			continue
 		}
 
+		xs.ctr++
 		break
 	}
 
