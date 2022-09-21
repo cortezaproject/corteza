@@ -87,7 +87,7 @@ func (xs *aggregate) Next(ctx context.Context) (more bool) {
 func (xs *aggregate) next(ctx context.Context) (more bool, err error) {
 	var g *aggregateGroup
 	for {
-		if xs.ctr >= int(xs.filter.limit) {
+		if xs.limitExceeded() {
 			return false, nil
 		}
 
@@ -132,6 +132,10 @@ func (xs *aggregate) next(ctx context.Context) (more bool, err error) {
 	}
 
 	return true, nil
+}
+
+func (xs *aggregate) limitExceeded() bool {
+	return xs.filter.limit > 0 && xs.ctr >= int(xs.filter.limit)
 }
 
 func (xs *aggregate) More(limit uint, v ValueGetter) (err error) {
