@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/shopspring/decimal"
 )
 
 type stage struct {
@@ -79,6 +81,9 @@ func (op *infix) initiate(name string) {
 		}
 		if op.number != nil {
 			f = getFloatOpFunc(op.number, f, typeConvertion)
+		}
+		if op.decimal != nil {
+			f = getDecimalOpFunc(op.decimal, f, typeConvertion)
 		}
 	}
 	if op.shortCircuit == nil {
@@ -229,6 +234,59 @@ func getFloatOpFunc(o func(a, b float64) (interface{}, error), f opFunc, typeCon
 		return f(a, b)
 	}
 }
+func convertToDecimal(o interface{}) (decimal.Decimal, bool) {
+	if i, ok := o.(decimal.Decimal); ok {
+		return i, true
+	}
+	if i, ok := o.(float64); ok {
+		return decimal.NewFromFloat(i), true
+	}
+	v := reflect.ValueOf(o)
+	for o != nil && v.Kind() == reflect.Ptr {
+		v = v.Elem()
+		if !v.IsValid() {
+			return decimal.Zero, false
+		}
+		o = v.Interface()
+	}
+	switch v.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return decimal.NewFromInt(v.Int()), true
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return decimal.NewFromFloat(float64(v.Uint())), true
+	case reflect.Float32, reflect.Float64:
+		return decimal.NewFromFloat(v.Float()), true
+	}
+	if s, ok := o.(string); ok {
+		f, err := strconv.ParseFloat(s, 64)
+		if err == nil {
+			return decimal.NewFromFloat(f), true
+		}
+	}
+	return decimal.Zero, false
+}
+func getDecimalOpFunc(o func(a, b decimal.Decimal) (interface{}, error), f opFunc, typeConversion bool) opFunc {
+	if typeConversion {
+		return func(a, b interface{}) (interface{}, error) {
+			x, k := convertToDecimal(a)
+			y, l := convertToDecimal(b)
+			if k && l {
+				return o(x, y)
+			}
+
+			return f(a, b)
+		}
+	}
+	return func(a, b interface{}) (interface{}, error) {
+		x, k := a.(decimal.Decimal)
+		y, l := b.(decimal.Decimal)
+		if k && l {
+			return o(x, y)
+		}
+
+		return f(a, b)
+	}
+}
 
 type operator interface {
 	merge(operator) operator
@@ -260,6 +318,7 @@ func (pre operatorPrecedence) initiate(name string) {}
 type infix struct {
 	operatorPrecedence
 	number       func(a, b float64) (interface{}, error)
+	decimal      func(a, b decimal.Decimal) (interface{}, error)
 	boolean      func(a, b bool) (interface{}, error)
 	text         func(a, b string) (interface{}, error)
 	arbitrary    func(a, b interface{}) (interface{}, error)
@@ -272,6 +331,9 @@ func (op infix) merge(op2 operator) operator {
 	case *infix:
 		if op.number == nil {
 			op.number = op2.number
+		}
+		if op.decimal == nil {
+			op.decimal = op2.decimal
 		}
 		if op.boolean == nil {
 			op.boolean = op2.boolean

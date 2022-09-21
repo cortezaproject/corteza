@@ -1,7 +1,7 @@
 // Package gval provides a generic expression language.
 // All functions, infix and prefix operators can be replaced by composing languages into a new one.
 //
-// The package contains concrete expression languages for common application in text, arithmetic, propositional logic and so on.
+// The package contains concrete expression languages for common application in text, arithmetic, decimal arithmetic, propositional logic and so on.
 // They can be used as basis for a custom expression language or to evaluate expressions directly.
 package gval
 
@@ -12,6 +12,8 @@ import (
 	"reflect"
 	"text/scanner"
 	"time"
+
+	"github.com/shopspring/decimal"
 )
 
 //Evaluate given parameter with given expression in gval full language
@@ -49,6 +51,17 @@ func Full(extensions ...Language) Language {
 // They can parse strings and convert any type of int or float.
 func Arithmetic() Language {
 	return arithmetic
+}
+
+// DecimalArithmetic contains base, plus(+), minus(-), divide(/), power(**), negative(-)
+// and numerical order (<=,<,>,>=)
+//
+// DecimalArithmetic operators expect decimal.Decimal operands (github.com/shopspring/decimal)
+// and are used to calculate money/decimal rather than floating point calculations.
+// Called with unfitting input, they try to convert the input to decimal.Decimal.
+// They can parse strings and convert any type of int or float.
+func DecimalArithmetic() Language {
+	return decimalArithmetic
 }
 
 // Bitmask contains base, bitwise and(&), bitwise or(|) and bitwise not(^).
@@ -170,6 +183,34 @@ var arithmetic = NewLanguage(
 	InfixNumberOperator("!=", func(a, b float64) (interface{}, error) { return a != b, nil }),
 
 	base,
+)
+
+var decimalArithmetic = NewLanguage(
+	InfixDecimalOperator("+", func(a, b decimal.Decimal) (interface{}, error) { return a.Add(b), nil }),
+	InfixDecimalOperator("-", func(a, b decimal.Decimal) (interface{}, error) { return a.Sub(b), nil }),
+	InfixDecimalOperator("*", func(a, b decimal.Decimal) (interface{}, error) { return a.Mul(b), nil }),
+	InfixDecimalOperator("/", func(a, b decimal.Decimal) (interface{}, error) { return a.Div(b), nil }),
+	InfixDecimalOperator("%", func(a, b decimal.Decimal) (interface{}, error) { return a.Mod(b), nil }),
+	InfixDecimalOperator("**", func(a, b decimal.Decimal) (interface{}, error) { return a.Pow(b), nil }),
+
+	InfixDecimalOperator(">", func(a, b decimal.Decimal) (interface{}, error) { return a.GreaterThan(b), nil }),
+	InfixDecimalOperator(">=", func(a, b decimal.Decimal) (interface{}, error) { return a.GreaterThanOrEqual(b), nil }),
+	InfixDecimalOperator("<", func(a, b decimal.Decimal) (interface{}, error) { return a.LessThan(b), nil }),
+	InfixDecimalOperator("<=", func(a, b decimal.Decimal) (interface{}, error) { return a.LessThanOrEqual(b), nil }),
+
+	InfixDecimalOperator("==", func(a, b decimal.Decimal) (interface{}, error) { return a.Equal(b), nil }),
+	InfixDecimalOperator("!=", func(a, b decimal.Decimal) (interface{}, error) { return !a.Equal(b), nil }),
+	base,
+	//Base is before these overrides so that the Base options are overridden
+	PrefixExtension(scanner.Int, parseDecimal),
+	PrefixExtension(scanner.Float, parseDecimal),
+	PrefixOperator("-", func(c context.Context, v interface{}) (interface{}, error) {
+		i, ok := convertToFloat(v)
+		if !ok {
+			return nil, fmt.Errorf("unexpected %v(%T) expected number", v, v)
+		}
+		return decimal.NewFromFloat(i).Neg(), nil
+	}),
 )
 
 var bitmask = NewLanguage(

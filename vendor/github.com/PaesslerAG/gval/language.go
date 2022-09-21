@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"text/scanner"
 	"unicode"
+
+	"github.com/shopspring/decimal"
 )
 
 // Language is an expression language
@@ -54,9 +56,14 @@ func newLanguage() Language {
 
 // NewEvaluable returns an Evaluable for given expression in the specified language
 func (l Language) NewEvaluable(expression string) (Evaluable, error) {
+	return l.NewEvaluableWithContext(context.Background(), expression)
+}
+
+// NewEvaluableWithContext returns an Evaluable for given expression in the specified language using context
+func (l Language) NewEvaluableWithContext(c context.Context, expression string) (Evaluable, error) {
 	p := newParser(expression, l)
 
-	eval, err := p.parse(context.Background())
+	eval, err := p.parse(c)
 	if err == nil && p.isCamouflaged() && p.lastScan != scanner.EOF {
 		err = p.camouflage
 	}
@@ -75,7 +82,7 @@ func (l Language) Evaluate(expression string, parameter interface{}) (interface{
 
 // Evaluate given parameter with given expression using context
 func (l Language) EvaluateWithContext(c context.Context, expression string, parameter interface{}) (interface{}, error) {
-	eval, err := l.NewEvaluable(expression)
+	eval, err := l.NewEvaluableWithContext(c, expression)
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +187,7 @@ func PrefixOperator(name string, e Evaluable) Language {
 			return e(c, a)
 		}
 		if eval.IsConst() {
-			v, err := prefix(context.Background(), nil)
+			v, err := prefix(c, nil)
 			if err != nil {
 				return nil, err
 			}
@@ -220,6 +227,11 @@ func InfixTextOperator(name string, f func(a, b string) (interface{}, error)) La
 // InfixNumberOperator for two number values.
 func InfixNumberOperator(name string, f func(a, b float64) (interface{}, error)) Language {
 	return newLanguageOperator(name, &infix{number: f})
+}
+
+// InfixDecimalOperator for two decimal values.
+func InfixDecimalOperator(name string, f func(a, b decimal.Decimal) (interface{}, error)) Language {
+	return newLanguageOperator(name, &infix{decimal: f})
 }
 
 // InfixBoolOperator for two bool values.

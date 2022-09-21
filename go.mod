@@ -10,7 +10,7 @@ require (
 	github.com/766b/chi-prometheus v0.0.0-20211217152057-87afa9aa2ca8
 	github.com/99designs/basicauth-go v0.0.0-20160802081356-2a93ba0f464d
 	github.com/Masterminds/sprig v2.22.0+incompatible
-	github.com/PaesslerAG/gval v1.1.2
+	github.com/PaesslerAG/gval v1.2.1
 	github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/brianvoe/gofakeit/v6 v6.16.0
@@ -119,6 +119,7 @@ require (
 	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/russellhaering/goxmldsig v1.1.1 // indirect
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd // indirect
+	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/tidwall/btree v1.3.1 // indirect
