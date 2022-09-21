@@ -9,7 +9,6 @@ import (
 )
 
 func TestStepJoinLocal(t *testing.T) {
-	t.Skip("skipping this for dev.3 release")
 	crs1 := &filter.PagingCursor{}
 	crs1.Set("l_pk", 1, false)
 	crs1.Set("l_val", "l1 v1", false)
@@ -1011,7 +1010,6 @@ func TestStepJoinLocal_cursorCollect_back(t *testing.T) {
 }
 
 func TestStepJoinLocal_more(t *testing.T) {
-	t.Skip("skipping this for dev.3 release")
 	tcc := []struct {
 		name string
 
