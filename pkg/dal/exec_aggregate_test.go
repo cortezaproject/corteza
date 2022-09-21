@@ -9,7 +9,6 @@ import (
 )
 
 func TestStepAggregate(t *testing.T) {
-	t.Skip("skipping this for dev.3 release")
 	basicAttrs := []simpleAttribute{
 		{ident: "k1"},
 		{ident: "k2"},
@@ -1007,7 +1006,6 @@ func TestStepAggregate_cursorCollect_back(t *testing.T) {
 }
 
 func TestStepAggregate_more(t *testing.T) {
-	t.Skip("skipping this for dev.3 release")
 	basicAttrs := []simpleAttribute{
 		{ident: "k1"},
 		{ident: "k2"},
