@@ -32,7 +32,6 @@ func TestStepAggregate(t *testing.T) {
 	)
 
 	baseBehavior := []testCase{
-		// Basic behavior
 		{
 			name:             "basic one key group",
 			sourceAttributes: basicAttrs,
@@ -1104,6 +1103,243 @@ func TestStepAggregate_more(t *testing.T) {
 			}
 			require.NoError(t, aa.Err())
 			require.Equal(t, len(tc.out2), i)
+		})
+	}
+}
+
+func TestStepAggregate_paging(t *testing.T) {
+	basicAttrs := []simpleAttribute{
+		{ident: "k1"},
+		{ident: "k2"},
+		{ident: "v1"},
+		{ident: "txt"},
+	}
+
+	tcc := []struct {
+		name string
+		in   []simpleRow
+
+		sourceAttributes []simpleAttribute
+		group            []simpleAttribute
+		outAttributes    []simpleAttribute
+
+		f internalFilter
+
+		outF1 []simpleRow
+		outF2 []simpleRow
+		outB1 []simpleRow
+	}{
+		{
+			name:             "group asc",
+			sourceAttributes: basicAttrs,
+			in: []simpleRow{
+				{"k1": "a", "v1": 1, "txt": "a1"},
+				{"k1": "b", "v1": 2, "txt": "b2"},
+				{"k1": "c", "v1": 3, "txt": "c3"},
+				{"k1": "d", "v1": 4, "txt": "d4"},
+			},
+
+			group: []simpleAttribute{
+				{ident: "k1", source: "k1"},
+			},
+			outAttributes: []simpleAttribute{
+				{ident: "cc", expr: "count(k1)"},
+			},
+
+			f: internalFilter{
+				limit:   2,
+				orderBy: filter.SortExprSet{{Column: "k1", Descending: false}},
+			},
+
+			outF1: []simpleRow{
+				{"k1": "a", "cc": float64(1)},
+				{"k1": "b", "cc": float64(1)},
+			},
+			outF2: []simpleRow{
+				{"k1": "c", "cc": float64(1)},
+				{"k1": "d", "cc": float64(1)},
+			},
+			outB1: []simpleRow{
+				{"k1": "a", "cc": float64(1)},
+				{"k1": "b", "cc": float64(1)},
+			},
+		},
+		{
+			name:             "group desc",
+			sourceAttributes: basicAttrs,
+			in: []simpleRow{
+				{"k1": "a", "v1": 1, "txt": "a1"},
+				{"k1": "b", "v1": 2, "txt": "b2"},
+				{"k1": "c", "v1": 3, "txt": "c3"},
+				{"k1": "d", "v1": 4, "txt": "d4"},
+			},
+
+			group: []simpleAttribute{
+				{ident: "k1", source: "k1"},
+			},
+			outAttributes: []simpleAttribute{
+				{ident: "cc", expr: "count(k1)"},
+			},
+
+			f: internalFilter{
+				limit:   2,
+				orderBy: filter.SortExprSet{{Column: "k1", Descending: true}},
+			},
+
+			outF1: []simpleRow{
+				{"k1": "d", "cc": float64(1)},
+				{"k1": "c", "cc": float64(1)},
+			},
+			outF2: []simpleRow{
+				{"k1": "b", "cc": float64(1)},
+				{"k1": "a", "cc": float64(1)},
+			},
+			outB1: []simpleRow{
+				{"k1": "d", "cc": float64(1)},
+				{"k1": "c", "cc": float64(1)},
+			},
+		},
+
+		{
+			name:             "agg asc",
+			sourceAttributes: basicAttrs,
+			in: []simpleRow{
+				{"k1": "a", "v1": 1, "txt": "a1"},
+				{"k1": "b", "v1": 2, "txt": "b2"},
+				{"k1": "c", "v1": 3, "txt": "c3"},
+				{"k1": "d", "v1": 4, "txt": "d4"},
+			},
+
+			group: []simpleAttribute{
+				{ident: "k1", source: "k1"},
+			},
+			outAttributes: []simpleAttribute{
+				{ident: "mm", expr: "max(v1)"},
+			},
+
+			f: internalFilter{
+				limit:   2,
+				orderBy: filter.SortExprSet{{Column: "mm", Descending: false}},
+			},
+
+			outF1: []simpleRow{
+				{"k1": "a", "mm": float64(1)},
+				{"k1": "b", "mm": float64(2)},
+			},
+			outF2: []simpleRow{
+				{"k1": "c", "mm": float64(3)},
+				{"k1": "d", "mm": float64(4)},
+			},
+			outB1: []simpleRow{
+				{"k1": "a", "mm": float64(1)},
+				{"k1": "b", "mm": float64(2)},
+			},
+		},
+		{
+			name:             "agg desc",
+			sourceAttributes: basicAttrs,
+			in: []simpleRow{
+				{"k1": "a", "v1": 1, "txt": "a1"},
+				{"k1": "b", "v1": 2, "txt": "b2"},
+				{"k1": "c", "v1": 3, "txt": "c3"},
+				{"k1": "d", "v1": 4, "txt": "d4"},
+			},
+
+			group: []simpleAttribute{
+				{ident: "k1", source: "k1"},
+			},
+			outAttributes: []simpleAttribute{
+				{ident: "mm", expr: "max(v1)"},
+			},
+
+			f: internalFilter{
+				limit:   2,
+				orderBy: filter.SortExprSet{{Column: "mm", Descending: true}},
+			},
+
+			outF1: []simpleRow{
+				{"k1": "d", "mm": float64(4)},
+				{"k1": "c", "mm": float64(3)},
+			},
+			outF2: []simpleRow{
+				{"k1": "b", "mm": float64(2)},
+				{"k1": "a", "mm": float64(1)},
+			},
+			outB1: []simpleRow{
+				{"k1": "d", "mm": float64(4)},
+				{"k1": "c", "mm": float64(3)},
+			},
+		},
+	}
+
+	ctx := context.Background()
+	for _, tc := range tcc {
+		t.Run(tc.name, func(t *testing.T) {
+			buff := InMemoryBuffer()
+			for _, r := range tc.in {
+				require.NoError(t, buff.Add(ctx, r))
+			}
+
+			var d Aggregate
+
+			prep := func(f internalFilter) {
+				d = Aggregate{
+					Filter:           f,
+					Group:            saToMapping(tc.group...),
+					OutAttributes:    saToMapping(tc.outAttributes...),
+					SourceAttributes: saToMapping(tc.sourceAttributes...),
+				}
+			}
+			check := func(iter Iterator, assert []simpleRow) (first, last simpleRow) {
+				i := 0
+				for iter.Next(ctx) {
+					out := simpleRow{}
+
+					require.NoError(t, iter.Scan(out))
+
+					require.Equal(t, assert[i], out)
+					if i == 0 {
+						first = out
+					}
+					last = out
+					i++
+				}
+				require.NoError(t, iter.Err())
+				require.Equal(t, len(assert), i)
+
+				return
+			}
+
+			f := tc.f
+			var (
+				first, last simpleRow
+			)
+
+			// First page, no cursor
+			prep(f)
+			aa, err := d.iterator(ctx, buff)
+			require.NoError(t, err)
+			_, last = check(aa, tc.outF1)
+
+			// Second page, cursor
+			require.NoError(t, buff.Seek(ctx, 0))
+			f.cursor, err = aa.ForwardCursor(last)
+			require.NoError(t, err)
+
+			prep(f)
+			aa, err = d.iterator(ctx, buff)
+			require.NoError(t, err)
+			first, _ = check(aa, tc.outF2)
+
+			// Third page, back, cursor
+			require.NoError(t, buff.Seek(ctx, 0))
+			f.cursor, err = aa.BackCursor(first)
+			require.NoError(t, err)
+
+			prep(f)
+			aa, err = d.iterator(ctx, buff)
+			require.NoError(t, err)
+			check(aa, tc.outB1)
 		})
 	}
 }
