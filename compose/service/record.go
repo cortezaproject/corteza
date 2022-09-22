@@ -1801,7 +1801,7 @@ func recordReportToDalPipeline(m *types.Module, metrics, dimensions, f string) (
 	pp = dal.Pipeline{
 		&dal.Datasource{
 			Ident:  "ds",
-			Filter: filter.Generic(filter.WithExpression(f)),
+			Filter: filter.Generic(filter.WithExpression(f), filter.WithStateConstraint("deletedAt", filter.StateExcluded)),
 			ModelRef: dal.ModelRef{
 				ConnectionID: m.Config.DAL.ConnectionID,
 				ResourceID:   m.ID,
