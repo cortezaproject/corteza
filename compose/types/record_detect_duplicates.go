@@ -117,7 +117,6 @@ func (rule DeDupRule) checkCaseSensitiveDuplication(ctx context.Context, ls loca
 						Meta: map[string]interface{}{
 							"dupValueField": newV.Name,
 							"recordID":      cast.ToString(v.RecordID),
-							"id":            cast.ToString(v.RecordID),
 							"field":         v.Name,
 							"value":         v.Value,
 							"rule":          rule.String(),
@@ -130,6 +129,20 @@ func (rule DeDupRule) checkCaseSensitiveDuplication(ctx context.Context, ls loca
 		return nil
 	})
 	return
+}
+
+func (v *RecordValueErrorSet) SetMetaID(id string) {
+	if v.IsValid() {
+		return
+	}
+
+	for _, val := range v.Set {
+		if val.Meta != nil {
+			if _, ok := val.Meta["id"]; !ok {
+				val.Meta["id"] = id
+			}
+		}
+	}
 }
 
 func (v *RecordValueErrorSet) HasStrictErrors() bool {
