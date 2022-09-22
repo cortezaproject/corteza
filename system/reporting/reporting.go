@@ -459,6 +459,12 @@ func convStepLoad(pr modelFinder, step types.ReportStepLoad, defs FrameDefinitio
 		return
 	}
 
+	// @todo refactor this out after we support other resources with potentially missing soft delete fields
+	f, err = f.MergeFilters(filter.Generic(filter.WithStateConstraint("deletedAt", filter.StateExcluded)))
+	if err != nil {
+		return
+	}
+
 	// Make pipeline step
 	return &dal.Datasource{
 		Ident:         step.Name,
