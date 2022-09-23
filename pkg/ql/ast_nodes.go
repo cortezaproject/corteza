@@ -118,6 +118,20 @@ func (t *typedValue) MarshalJSON() ([]byte, error) {
 	return json.Marshal(aux)
 }
 
+func (n *ASTNode) CollectSymbols() (out []string) {
+	out = make([]string, 0, 8)
+
+	n.Traverse(func(a *ASTNode) (bool, *ASTNode, error) {
+		if a.Symbol != "" {
+			out = append(out, a.Symbol)
+		}
+
+		return true, a, nil
+	})
+
+	return
+}
+
 // Traverse traverses the AST down to leaf nodes.
 //
 // If fnc. returns false, the traversal of the current branch ends.

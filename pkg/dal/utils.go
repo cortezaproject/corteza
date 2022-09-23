@@ -468,3 +468,29 @@ func indexAttrsInto(dst map[string]bool, aa ...AttributeMapping) {
 		dst[a.Identifier()] = true
 	}
 }
+
+// keysFromExpr returns all of the identifiers used in agg. group expressions
+//
+// The hasConstants return argument is true if any of the expressions returns a
+// constant value, such as year(now()) or 42
+func keysFromExpr(nn ...*ql.ASTNode) (out []string, hasConstants bool) {
+	out = make([]string, 0, (len(nn)+1)*2)
+	auxOut := make(map[string]bool, (len(nn)+1)*2)
+
+	for _, n := range nn {
+		symbols := n.CollectSymbols()
+		if len(symbols) == 0 {
+			hasConstants = true
+		}
+
+		for _, s := range symbols {
+			auxOut[s] = true
+		}
+	}
+
+	for k := range auxOut {
+		out = append(out, k)
+	}
+
+	return
+}

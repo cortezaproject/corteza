@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/stretchr/testify/require"
 )
 
@@ -24,8 +25,9 @@ func TestStepAggregate(t *testing.T) {
 			outAttributes    []simpleAttribute
 			sourceAttributes []simpleAttribute
 
-			in  []simpleRow
-			out []simpleRow
+			inSimple  []simpleRow
+			inComplex []*Row
+			out       []simpleRow
 
 			f internalFilter
 		}
@@ -43,7 +45,7 @@ func TestStepAggregate(t *testing.T) {
 				expr:  "sum(v1)",
 			}},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"k1": "g1", "v1": 10, "txt": "foo"},
 				{"k1": "g1", "v1": 20, "txt": "fas"},
 				{"k1": "g2", "v1": 15, "txt": "bar"},
@@ -68,7 +70,7 @@ func TestStepAggregate(t *testing.T) {
 				expr:  "sum(v1)",
 			}},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"k1": "g1", "v1": 10, "txt": "foo"},
 				{"k1": "g1", "v1": 20, "txt": "fas"},
 				{"k1": "g2", "v1": 15, "txt": "bar"},
@@ -94,7 +96,7 @@ func TestStepAggregate(t *testing.T) {
 				expr:  "sum(v1)",
 			}},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"k1": "a", "k2": "a", "v1": 10, "txt": "foo"},
 				{"k1": "a", "k2": "a", "v1": 2, "txt": "fas"},
 				{"k1": "a", "k2": "b", "v1": 3, "txt": "fas"},
@@ -124,7 +126,7 @@ func TestStepAggregate(t *testing.T) {
 				expr:  "sum(add(v1, 2))",
 			}},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"k1": "g1", "v1": 10, "txt": "foo"},
 				{"k1": "g1", "v1": 20, "txt": "fas"},
 				{"k1": "g2", "v1": 15, "txt": "bar"},
@@ -154,7 +156,7 @@ func TestStepAggregate(t *testing.T) {
 			},
 			},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"k1": "a", "k2": "a", "v1": 10, "txt": "foo"},
 				{"k1": "a", "k2": "a", "v1": 2, "txt": "fas"},
 				{"k1": "a", "k2": "b", "v1": 3, "txt": "fas"},
@@ -186,7 +188,7 @@ func TestStepAggregate(t *testing.T) {
 				expr:  "sum(v1)",
 			}},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"k1": "a", "k2": "a", "v1": 10, "txt": "foo"},
 				{"k1": "a", "k2": "a", "v1": 2, "txt": "fas"},
 				{"k1": "a", "k2": "b", "v1": 3, "txt": "fas"},
@@ -218,7 +220,7 @@ func TestStepAggregate(t *testing.T) {
 				expr:  "sum(v1)",
 			}},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"k1": "a", "k2": "a", "v1": 10, "txt": "foo"},
 				{"k1": "a", "k2": "b", "v1": 2, "txt": "fas"},
 				{"k1": "b", "k2": "a", "v1": 3, "txt": "fas"},
@@ -249,7 +251,7 @@ func TestStepAggregate(t *testing.T) {
 				expr:  "sum(v1)",
 			}},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"k1": "a", "k2": "a", "v1": 10, "txt": "foo"},
 				{"k1": "a", "k2": "a", "v1": 2, "txt": "fas"},
 				{"k1": "a", "k2": "b", "v1": 3, "txt": "fas"},
@@ -281,7 +283,7 @@ func TestStepAggregate(t *testing.T) {
 				expr:  "sum(v1)",
 			}},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"k1": "a", "k2": "a", "v1": 10, "txt": "foo"},
 				{"k1": "a", "k2": "a", "v1": 2, "txt": "fas"},
 				{"k1": "a", "k2": "b", "v1": 3, "txt": "fas"},
@@ -313,7 +315,7 @@ func TestStepAggregate(t *testing.T) {
 				expr:  "sum(v1)",
 			}},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"k1": "a", "k2": "a", "v1": 10, "txt": "foo"},
 				{"k1": "a", "k2": "a", "v1": 2, "txt": "fas"},
 				{"k1": "a", "k2": "b", "v1": 3, "txt": "fas"},
@@ -349,7 +351,7 @@ func TestStepAggregate(t *testing.T) {
 				expr:  "sum(v1)",
 			}},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"k1": "a", "k2": "a", "v1": 10, "txt": "foo"},
 				{"k1": "a", "k2": "a", "v1": 2, "txt": "fas"},
 				{"k1": "a", "k2": "b", "v1": 3, "txt": "fas"},
@@ -380,7 +382,7 @@ func TestStepAggregate(t *testing.T) {
 				expr:  "sum(v1)",
 			}},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"k1": "a", "v1": 10, "txt": "foo"},
 				{"k1": "a", "v1": 2, "txt": "fas"},
 				{"k1": "b", "v1": 3, "txt": "fas"},
@@ -406,7 +408,7 @@ func TestStepAggregate(t *testing.T) {
 				expr:  "sum(v1)",
 			}},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"k1": "a", "v1": 10, "txt": "foo"},
 				{"k1": "a", "v1": 2, "txt": "fas"},
 				{"k1": "b", "v1": 3, "txt": "fas"},
@@ -432,7 +434,7 @@ func TestStepAggregate(t *testing.T) {
 				expr:  "sum(v1)",
 			}},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"k1": "a", "v1": 10, "txt": "foo"},
 				{"k1": "a", "v1": 2, "txt": "fas"},
 				{"k1": "b", "v1": 3, "txt": "fas"},
@@ -458,7 +460,7 @@ func TestStepAggregate(t *testing.T) {
 				expr:  "sum(v1)",
 			}},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"k1": "a", "v1": 10, "txt": "foo"},
 				{"k1": "a", "v1": 2, "txt": "fas"},
 				{"k1": "b", "v1": 3, "txt": "fas"},
@@ -486,7 +488,7 @@ func TestStepAggregate(t *testing.T) {
 				expr:  "sum(v1)",
 			}},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"k1": "a", "k2": "a", "v1": 10, "txt": "foo"},
 				{"k1": "a", "k2": "b", "v1": 2, "txt": "fas"},
 				{"k1": "b", "k2": "c", "v1": 3, "txt": "fas"},
@@ -515,7 +517,7 @@ func TestStepAggregate(t *testing.T) {
 				expr:  "sum(v1)",
 			}},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"k1": "a", "k2": "a", "v1": 10, "txt": "foo"},
 				{"k1": "a", "k2": "b", "v1": 2, "txt": "fas"},
 				{"k1": "b", "k2": "c", "v1": 3, "txt": "fas"},
@@ -544,7 +546,7 @@ func TestStepAggregate(t *testing.T) {
 				expr:  "sum(v1)",
 			}},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"k1": "a", "k2": "a", "v1": 10, "txt": "foo"},
 				{"k1": "a", "k2": "b", "v1": 2, "txt": "fas"},
 				{"k1": "b", "k2": "c", "v1": 3, "txt": "fas"},
@@ -578,7 +580,7 @@ func TestStepAggregate(t *testing.T) {
 				expr:  "count(name)",
 			}},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"dob": "2022-10-20T09:44:49Z", "name": "Ana"},
 				{"dob": "2022-10-20T09:44:49Z", "name": "John"},
 				{"dob": "2021-10-20T09:44:49Z", "name": "Jane"},
@@ -608,7 +610,7 @@ func TestStepAggregate(t *testing.T) {
 				expr:  "count(name)",
 			}},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"dob": "2022-10-20T09:44:49Z", "name": "Ana"},
 				{"dob": "2022-10-20T09:44:49Z", "name": "John"},
 				{"dob": "2021-10-20T09:44:49Z", "name": "Jane"},
@@ -638,7 +640,7 @@ func TestStepAggregate(t *testing.T) {
 				expr:  "count(name)",
 			}},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"name": "Ana"},
 				{"name": "John"},
 				{"name": "Jane"},
@@ -666,7 +668,7 @@ func TestStepAggregate(t *testing.T) {
 				expr:  "count(name)",
 			}},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"name": "Ana"},
 				{"name": "John"},
 				{"name": "Jane"},
@@ -695,7 +697,7 @@ func TestStepAggregate(t *testing.T) {
 				expr:  "count(name)",
 			}},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"dob": "2022-10-20T09:44:49Z", "name": "Ana"},
 				{"dob": "2022-10-20T09:44:49Z", "name": "John"},
 				{"dob": "2021-10-20T09:44:49Z", "name": "Jane"},
@@ -727,7 +729,7 @@ func TestStepAggregate(t *testing.T) {
 				expr:  "count(name)",
 			}},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"thing": "A", "name": "Ana"},
 				{"name": "John"},
 				{"name": "Jane"},
@@ -759,7 +761,7 @@ func TestStepAggregate(t *testing.T) {
 				expr:  "count(name)",
 			}},
 
-			in: []simpleRow{
+			inSimple: []simpleRow{
 				{"thing": "A", "another": "A", "name": "Ana"},
 				{"thing": "A", "name": "Ana"},
 				{"another": "A", "name": "Ana"},
@@ -780,20 +782,76 @@ func TestStepAggregate(t *testing.T) {
 		},
 	}
 
+	multiValues := []testCase{
+		{
+			name:             "multi value val",
+			sourceAttributes: basicAttrs,
+			group: []simpleAttribute{{
+				ident: "k1",
+			}},
+			outAttributes: []simpleAttribute{{
+				ident: "v1",
+				expr:  "sum(v1)",
+			}},
+
+			inComplex: []*Row{
+				(&Row{}).WithValue("k1", 0, "g1").WithValue("v1", 0, 10).WithValue("v1", 1, 10),
+				(&Row{}).WithValue("k1", 0, "g2").WithValue("v1", 0, 10),
+			},
+
+			out: []simpleRow{
+				{"k1": "g1", "v1": float64(20)},
+				{"k1": "g2", "v1": float64(10)},
+			},
+
+			f: internalFilter{orderBy: filter.SortExprSet{{Column: "k1"}}},
+		},
+		{
+			name:             "multi value group",
+			sourceAttributes: basicAttrs,
+			group: []simpleAttribute{{
+				ident: "k1",
+			}},
+			outAttributes: []simpleAttribute{{
+				ident: "v1",
+				expr:  "sum(v1)",
+			}},
+
+			inComplex: []*Row{
+				(&Row{}).WithValue("k1", 0, "g1").WithValue("k1", 1, "g2").WithValue("v1", 0, 10),
+				(&Row{}).WithValue("k1", 0, "g2").WithValue("v1", 0, 10),
+			},
+
+			out: []simpleRow{
+				{"k1": "g1", "v1": float64(10)},
+				{"k1": "g2", "v1": float64(20)},
+			},
+
+			f: internalFilter{orderBy: filter.SortExprSet{{Column: "k1"}}},
+		},
+	}
+
 	batches := [][]testCase{
 		baseBehavior,
 		filtering,
 		sorting,
 		exprGroups,
 		nilValues,
+		multiValues,
 	}
 
 	for _, batch := range batches {
 		for _, tc := range batch {
 			t.Run(tc.name, func(t *testing.T) {
 				bootstrapAggregate(t, func(ctx context.Context, t *testing.T, sa *Aggregate, b Buffer) {
-					for _, r := range tc.in {
-						require.NoError(t, b.Add(ctx, r))
+					if len(tc.inComplex) > 0 {
+						for _, r := range tc.inComplex {
+							require.NoError(t, b.Add(ctx, r))
+						}
+					} else {
+						for _, r := range tc.inSimple {
+							require.NoError(t, b.Add(ctx, r))
+						}
 					}
 					sa.Ident = tc.name
 					sa.SourceAttributes = saToMapping(tc.sourceAttributes...)
@@ -1340,6 +1398,81 @@ func TestStepAggregate_paging(t *testing.T) {
 			aa, err = d.iterator(ctx, buff)
 			require.NoError(t, err)
 			check(aa, tc.outB1)
+		})
+	}
+}
+
+func TestAggregate_groupKeyWalker(t *testing.T) {
+	tcc := []struct {
+		name string
+		defs []*ql.ASTNode
+		in   ValueGetter
+		out  []groupKey
+	}{
+		{
+			name: "all constants",
+			defs: []*ql.ASTNode{
+				{Value: ql.MakeValueOf("Number", 10)},
+				{Value: ql.MakeValueOf("Number", 20)},
+			},
+			in:  (&Row{}).WithValue("k1", 0, "a"),
+			out: []groupKey{{float64(10), float64(20)}},
+		},
+		{
+			name: "multiple values 1 2 1",
+			defs: []*ql.ASTNode{
+				{Symbol: "k1"},
+				{Symbol: "k2"},
+				{Symbol: "k3"},
+			},
+			in: (&Row{}).WithValue("k1", 0, "k1 1").
+				WithValue("k2", 0, "k2 1").
+				WithValue("k2", 1, "k2 2").
+				WithValue("k3", 0, "k3 1"),
+			out: []groupKey{
+				{"k1 1", "k2 1", "k3 1"},
+				{"k1 1", "k2 2", "k3 1"},
+			},
+		},
+		{
+			name: "single value with constant",
+			defs: []*ql.ASTNode{
+				{Symbol: "k1"},
+				{Value: ql.MakeValueOf("Number", 10)},
+			},
+			in: (&Row{}).WithValue("k1", 0, "k1 1"),
+			out: []groupKey{
+				{"k1 1", float64(10)},
+			},
+		},
+		{
+			name: "multi value with constant",
+			defs: []*ql.ASTNode{
+				{Symbol: "k2"},
+				{Value: ql.MakeValueOf("Number", 10)},
+			},
+			in: (&Row{}).WithValue("k2", 0, "k2 1").
+				WithValue("k2", 1, "k2 2"),
+			out: []groupKey{
+				{"k2 1", float64(10)},
+				{"k2 2", float64(10)},
+			},
+		},
+	}
+
+	ctx := context.Background()
+	for _, tc := range tcc {
+		t.Run(tc.name, func(t *testing.T) {
+			w, err := aggregateGroupKeyWalker(tc.defs...)
+			require.NoError(t, err)
+
+			i := 0
+			w(ctx, tc.in, func(ctx context.Context, k groupKey, vg ValueGetter) error {
+				require.Equal(t, tc.out[i], k)
+				i++
+				return nil
+			})
+			require.Equal(t, len(tc.out), i)
 		})
 	}
 }
