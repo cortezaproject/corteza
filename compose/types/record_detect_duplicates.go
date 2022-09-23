@@ -61,6 +61,9 @@ func (d deDup) CheckDuplication(ctx context.Context, rules DeDupRuleSet, rec Rec
 		return
 	}
 
+	if out.IsValid() {
+		out = nil
+	}
 	return
 }
 
@@ -131,7 +134,7 @@ func (rule DeDupRule) checkCaseSensitiveDuplication(ctx context.Context, ls loca
 	return
 }
 
-func (v *RecordValueErrorSet) SetMetaID(id string) {
+func (v *RecordValueErrorSet) SetMetaID(id uint64) {
 	if v.IsValid() {
 		return
 	}
@@ -139,7 +142,7 @@ func (v *RecordValueErrorSet) SetMetaID(id string) {
 	for _, val := range v.Set {
 		if val.Meta != nil {
 			if _, ok := val.Meta["id"]; !ok {
-				val.Meta["id"] = id
+				val.Meta["id"] = cast.ToString(id)
 			}
 		}
 	}
