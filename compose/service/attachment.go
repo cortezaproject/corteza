@@ -278,7 +278,7 @@ func (svc attachment) CreatePageAttachment(ctx context.Context, namespaceID uint
 			var (
 				maxSize      = int64(systemService.CurrentSettings.Compose.Page.Attachments.MaxSize) * megabyte
 				allowedTypes = systemService.CurrentSettings.Compose.Page.Attachments.Mimetypes
-				mimeType     string
+				mimeType     *mimetype.MIME
 			)
 
 			if maxSize > 0 && maxSize < size {
@@ -366,7 +366,7 @@ func (svc attachment) CreateRecordAttachment(ctx context.Context, namespaceID ui
 			var (
 				maxSize      = int64(systemService.CurrentSettings.Compose.Record.Attachments.MaxSize) * megabyte
 				allowedTypes = systemService.CurrentSettings.Compose.Record.Attachments.Mimetypes
-				mimeType     string
+				mimeType     *mimetype.MIME
 			)
 
 			f := m.Fields.FindByName(fieldName)
@@ -428,7 +428,7 @@ func (svc attachment) CreateNamespaceAttachment(ctx context.Context, name string
 			var (
 				// use max-file-size from page attachments for now
 				maxSize  = int64(systemService.CurrentSettings.Compose.Page.Attachments.MaxSize) * megabyte
-				mimeType string
+				mimeType *mimetype.MIME
 			)
 
 			if maxSize > 0 && maxSize < size {
@@ -486,7 +486,7 @@ func (svc attachment) create(ctx context.Context, s store.ComposeAttachments, na
 	att.Meta.Original.Extension = strings.Trim(path.Ext(strings.Trim(name, ".")), ".")
 
 	att.Meta.Original.Size = size
-	if att.Meta.Original.Mimetype, err = svc.extractMimetype(fh); err != nil {
+	if att.Meta.Original.Mimetype, err = svc.extractMimetypeS(fh); err != nil {
 		return AttachmentErrFailedToExtractMimeType(aProps).Wrap(err)
 	}
 
@@ -510,7 +510,7 @@ func (svc attachment) create(ctx context.Context, s store.ComposeAttachments, na
 	return nil
 }
 
-func (svc attachment) extractMimetype(file io.ReadSeeker) (mType string, err error) {
+func (svc attachment) extractMimetype(file io.ReadSeeker) (mType *mimetype.MIME, err error) {
 	if _, err = file.Seek(0, 0); err != nil {
 		return
 	}
@@ -525,7 +525,15 @@ func (svc attachment) extractMimetype(file io.ReadSeeker) (mType string, err err
 		return
 	}
 
-	return mime.String(), nil
+	return mime, nil
+}
+
+func (svc attachment) extractMimetypeS(file io.ReadSeeker) (mType string, err error) {
+	aux, err := svc.extractMimetype(file)
+	if err != nil {
+		return
+	}
+	return aux.String(), nil
 }
 
 func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment) (err error) {
@@ -626,20 +634,14 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 	return svc.objects.Save(att.PreviewUrl, buf)
 }
 
-func (attachment) checkMimeType(test string, vv ...string) bool {
+func (attachment) checkMimeType(test *mimetype.MIME, vv ...string) bool {
 	if len(vv) == 0 {
 		// return true if there are no type constraints to check against
 		return true
 	}
 
 	for _, v := range vv {
-		v = strings.TrimSpace(v)
-
-		if !reMimeType.MatchString(v) {
-			continue
-		}
-
-		if v == test {
+		if test.Is(v) {
 			return true
 		}
 	}
