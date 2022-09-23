@@ -585,7 +585,9 @@ func (svc record) Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (r
 			aProp.setChanged(r)
 
 			// Attach meta ID to each value error for FE identification
-			dd.SetMetaID(p.ID)
+			if !dd.HasStrictErrors() && r != nil {
+				dd.SetMetaID(r.ID)
+			}
 
 			if rve := types.IsRecordValueErrorSet(err); rve != nil {
 				// Attach additional meta to each value error for FE identification
