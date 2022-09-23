@@ -344,14 +344,12 @@ func dalSensitivityLevelReload(ctx context.Context, s store.Storer, dsm dalSensi
 }
 
 func dalSensitivityLevelReplace(ctx context.Context, dsm dalSensitivityLevelManager, ll ...*types.DalSensitivityLevel) (err error) {
-	for _, l := range ll {
-		sl := dal.MakeSensitivityLevel(l.ID, l.Level, l.Handle)
-		if err = dsm.ReplaceSensitivityLevel(sl); err != nil {
-			return
-		}
+	levels := make(dal.SensitivityLevelSet, len(ll))
+	for i, l := range ll {
+		levels[i] = dal.MakeSensitivityLevel(l.ID, l.Level, l.Handle)
 	}
 
-	return nil
+	return dsm.ReplaceSensitivityLevel(levels...)
 }
 
 func dalSensitivityLevelRemove(ctx context.Context, dsm dalSensitivityLevelManager, ll ...*types.DalSensitivityLevel) (err error) {
