@@ -24,7 +24,7 @@ type (
 		aggregateDefs []aggregateAttr
 
 		rowTester tester
-		keyMaker  keyMaker
+		keyWalker keyWalker
 
 		// Keep track of the registered groupIndex so we can easier implement the iterator.
 		// Simple index tracking won't be enough, because btree is self-balancing -- things change
@@ -37,7 +37,7 @@ type (
 		ctr int
 	}
 
-	keyMaker func(context.Context, ValueGetter) (groupKey, error)
+	keyWalker func(context.Context, ValueGetter, func(context.Context, groupKey, ValueGetter) error) error
 )
 
 // init initializes the execution step's state
@@ -56,7 +56,8 @@ func (xs *aggregate) init(ctx context.Context) (err error) {
 	for _, a := range xs.groupDefs {
 		kk = append(kk, a.expr)
 	}
-	xs.keyMaker, err = aggregateGroupKeyMaker(kk...)
+
+	xs.keyWalker, err = aggregateGroupKeyWalker(kk...)
 	if err != nil {
 		return
 	}
@@ -257,7 +258,6 @@ func (xs *aggregate) pullEntireSource(ctx context.Context) (err error) {
 	}
 
 	// Drain the source
-	var k groupKey
 	for xs.source.Next(ctx) {
 		err = xs.source.Scan(r)
 		if err != nil {
@@ -267,13 +267,7 @@ func (xs *aggregate) pullEntireSource(ctx context.Context) (err error) {
 		// Get the key for this row
 		// @todo we probably can reuse the key or at least cache keys and avoid re-computation.
 		//       My fairly hacky attempt boosted performance by ~20%
-		k, err = xs.keyMaker(ctx, r)
-		if err != nil {
-			return
-		}
-
-		// Add the row to the group
-		err = xs.addToGroup(ctx, k, r)
+		err = xs.keyWalker(ctx, r, xs.addToGroup)
 		if err != nil {
 			return
 		}
@@ -455,31 +449,141 @@ func (xs *aggregate) initScanRow() (out *Row) {
 	return
 }
 
-// aggregateGroupKeyMaker returns a function that computes a group key for the given row
-func aggregateGroupKeyMaker(kk ...*ql.ASTNode) (out keyMaker, err error) {
-	runners := make([]*runnerGval, len(kk))
-
-	// Initialize evaluators for every key definition
+// aggregateGroupKeyWalker prepares a function which runs the provided function over all group keys
+//
+// This is required to handle multi-value attributes when used in group keys.
+//
+// Algorithm TL;DR
+//
+// We're going backwards in the slice of idents we need to handle (going the other way around)
+// should also work but I chose to do it like so.
+//
+// For every ident, keep track of the number of elements and the index of the last unhandled ident.
+//
+// For every iteration, collect all of the values pointed to by the unused index.
+// After the key is processed, increment the counter for the current ident.
+// If the counter exceeds the number of elements, reset the counter for the current ident and move
+// the ident pointer backwards (repeat if that ident's counter also exceeds the limit).
+//
+// When we find an indent which still has some items to process (counter doesn't exceed limit),
+// reset the ident pointer to the end of the slice and repeat the whole thing.
+func aggregateGroupKeyWalker(kk ...*ql.ASTNode) (out keyWalker, err error) {
 	// @todo option to copy constants and idents
+	runners, err := makeExprRunners(kk...)
+	if err != nil {
+		return
+	}
+
+	// We'll sort the idents to keep the output consistent; the order doesn't matter
+	// but it will simplify testing.
+	idents, hasConstants := keysFromExpr(kk...)
+	sort.Strings(idents)
+
+	out = func(ctx context.Context, vg ValueGetter, run func(context.Context, groupKey, ValueGetter) error) error {
+		// Edgecase for when all of the expressions return constant values
+		if len(idents) == 0 {
+			// This should be impossible but better safe then sorry
+			if !hasConstants {
+				return nil
+			}
+
+			k, err := makeGroupKey(ctx, runners, vg)
+			if err != nil {
+				return err
+			}
+
+			return run(ctx, k, vg)
+		}
+
+		// For every value combination of idents used in agg. key expressions
+		// construct a key and run the runner.
+
+		limits := vg.CountValues()
+		ptr := len(idents) - 1
+		counts := make(map[string]uint, len(limits))
+		for k := range limits {
+			counts[k] = 0
+		}
+
+		handle := func() (err error) {
+			aux := make(map[string]any, len(limits))
+
+			for k, i := range counts {
+				aux[k], err = vg.GetValue(k, i)
+				if err != nil {
+					return
+				}
+			}
+
+			kk, err := makeGroupKey(ctx, runners, aux)
+			if err != nil {
+				return err
+			}
+
+			return run(ctx, kk, vg)
+		}
+
+	outer:
+		for ptr >= 0 {
+			handle()
+
+			counts[idents[ptr]]++
+			for {
+				// There are still values to process so we can skip the rest
+				if counts[idents[ptr]] < limits[idents[ptr]] {
+					continue outer
+				}
+
+				// Reset the counter for the current ptr since we'll move back.
+				// The outer loop will have this reset all of the counters after the current ptr.
+				counts[idents[ptr]] = 0
+
+				ptr--
+				if ptr < 0 {
+					break outer
+				}
+
+				counts[idents[ptr]]++
+
+				if counts[idents[ptr]] >= limits[idents[ptr]] {
+					continue
+				}
+
+				// We need to reset to the end so the next ident gets all of the values
+				// that appear after it.
+				ptr = len(idents) - 1
+				break
+			}
+		}
+
+		return nil
+	}
+
+	return
+}
+
+func makeExprRunners(kk ...*ql.ASTNode) (out []*runnerGval, err error) {
+	out = make([]*runnerGval, len(kk))
+
 	for i, k := range kk {
-		runners[i], err = newRunnerGvalParsed(k)
+		out[i], err = newRunnerGvalParsed(k)
 		if err != nil {
 			return
 		}
 	}
 
-	out = func(ctx context.Context, vg ValueGetter) (gk groupKey, err error) {
-		gk = make(groupKey, len(runners))
-		for i, r := range runners {
-			v, err := r.Eval(ctx, vg)
-			if err != nil {
-				return nil, err
-			}
-
-			gk[i] = v
-		}
-		return gk, nil
-	}
-
 	return
+}
+
+func makeGroupKey(ctx context.Context, runners []*runnerGval, vals any) (gk groupKey, err error) {
+	gk = make(groupKey, len(runners))
+	for i, r := range runners {
+		v, err := r.Eval(ctx, vals)
+		if err != nil {
+			return nil, err
+		}
+
+		gk[i] = v
+	}
+	return gk, nil
 }
