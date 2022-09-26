@@ -176,10 +176,10 @@ func (def *Link) init(ctx context.Context, left, right Iterator) (exec *linkLeft
 
 	// Check link predicates
 	if !leftSrcAttrs[def.On.Left] {
-		return nil, fmt.Errorf("left pred not below %s", def.On.Left)
+		return nil, fmt.Errorf("left link predicate %s does not exist", def.On.Left)
 	}
 	if !rightSrcAttrs[def.On.Right] {
-		return nil, fmt.Errorf("right pred not below %s", def.On.Right)
+		return nil, fmt.Errorf("right link predicate %s does not exist", def.On.Right)
 	}
 
 	// General validation
