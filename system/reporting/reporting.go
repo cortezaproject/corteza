@@ -107,6 +107,11 @@ func Describe(ctx context.Context, rr dryRunner, ss types.ReportStepSet, sources
 	for _, src := range sources {
 		// Use the requested source as root
 		sub := pp.Slice(src)
+		err = rr.Dryrun(ctx, sub)
+		if err != nil {
+			return
+		}
+
 		s := sub[0]
 		aux, err = describePipeline(s, src)
 		if err != nil {
