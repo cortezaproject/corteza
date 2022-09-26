@@ -49,8 +49,9 @@ func newReportFrameBuilder(def *FrameDefinition) *reportFrameBuilder {
 }
 
 // linked includes additional metadata required by the link step
-func (b *reportFrameBuilder) linked(col string) {
+func (b *reportFrameBuilder) linked(col, src string) {
 	b.frame.RelColumn = col
+	b.frame.RelSource = src
 }
 
 // addRow adds a new dal.Row to the frame
