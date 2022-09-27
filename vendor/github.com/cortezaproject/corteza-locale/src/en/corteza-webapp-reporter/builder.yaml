@@ -10,12 +10,15 @@ block:
 datasource: 
   label: Datasource
   types:
-    load: 
+    load:
       label: Load
       data-from-resource: Loads data from a specified resource, such as Compose records
     link:
       label: Link
       load-datasources: Links two Load datasources with a unique column that links them together, such as a Compose record selector
+    join:
+      label: Join
+      load-datasources: Joins two datasources with a unique column that joins them together, such as a Compose record selector. The join step produces a single set of rows in contrast to the link step which produces an independent data frame for each local row
     aggregate:
       label: Aggregate
       load-datasource: Aggregates data from a load datasource based on a column value and aggregates it, such as counting the number of Accounts with the same status

@@ -58,6 +58,7 @@ manage:
   list-view: Back to namespace list
 
   disabled: Disabled
+  noResults: No namespaces found
 
   toolbar:
     buttons:

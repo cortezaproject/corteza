@@ -86,6 +86,7 @@ record:
   unexpectedValue: Unexpected value for record module ({{type}})
   updateFailed: Could not update record
   validationErrors: check error messages on the form
+  validationWarnings: Record saved successfully, check warning messages on the form
   staleDataRefresh: Stale record data, all unsaved changes will be lost. Do you wish to refresh the data now?
 record-list:
   corrupted-filter: Corrupted filter
