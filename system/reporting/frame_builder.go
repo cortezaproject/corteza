@@ -14,8 +14,9 @@ type (
 	// Primarily simplifies mapping the correct iterator attributes to correct
 	// frame row columns and having them encoded properly.
 	reportFrameBuilder struct {
-		def   *FrameDefinition
-		frame *Frame
+		def    *FrameDefinition
+		frame  *Frame
+		ownCol string
 
 		attrMapping map[string]int
 		attrMvDel   map[string]string
@@ -49,9 +50,10 @@ func newReportFrameBuilder(def *FrameDefinition) *reportFrameBuilder {
 }
 
 // linked includes additional metadata required by the link step
-func (b *reportFrameBuilder) linked(col, src string) {
-	b.frame.RelColumn = col
-	b.frame.RelSource = src
+func (b *reportFrameBuilder) linked(ownCol, relCol, relSrc string) {
+	b.ownCol = ownCol
+	b.frame.RelColumn = relCol
+	b.frame.RelSource = relSrc
 }
 
 // addRow adds a new dal.Row to the frame
@@ -74,9 +76,9 @@ func (b *reportFrameBuilder) addRow(r *dal.Row) {
 
 	b.frame.Rows = append(b.frame.Rows, rrow)
 
-	if b.frame.RelColumn != "" {
-		v, _ := r.GetValue(b.frame.RelColumn, 0)
-		b.frame.RefValue = b.stringifyVal(b.frame.RelColumn, v)
+	if b.ownCol != "" {
+		v, _ := r.GetValue(b.ownCol, 0)
+		b.frame.RefValue = b.stringifyVal(b.ownCol, v)
 	}
 }
 
