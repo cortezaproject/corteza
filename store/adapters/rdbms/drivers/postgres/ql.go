@@ -63,17 +63,41 @@ var (
 			},
 		},
 
+		"interval": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				// The problem here is that PGSQL, to my findings, doesn't have functions to add/sub dates
+				// like MySQL for example.
+				//
+				// We need to construct an expression in the lines of `INTERVAL 'N UNIT'` which
+				// then becomes, for example, d + INTERVAL 'N UNIT'.
+				//
+				// The problem #2 is that we can't just use value placeholders in string literals
+				// nor is there a 2 arg function to make an interval. There is a make_interval function
+				// but that one won't do.
+				//
+				// So...
+				// (?  || 'S') makes the interval label a plural because MySQL uses singular and that
+				// is what QL supports. PgSQL uses plural, such as years, months, and days.
+				//
+				// The rest of the expression is just to construct the string which can then be casted to INTERVAL
+				// which can then be used in date math, which is done with regular math operators.
+				return exp.NewLiteralExpression("(?::INTEGER || ' ' || (?  || 'S'))::INTERVAL", args[1], args[0])
+			},
+		},
+
+		"date_add": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewLiteralExpression("(? + ?)", args[0], args[1])
+			},
+		},
+
+		"date_sub": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewLiteralExpression("(? - ?)", args[0], args[1])
+			},
+		},
+
 		// functions currently unsupported in PostgreSQL store backend
-		//"DATE_ADD": {
-		//	Handler: func(args ...exp.Expression) exp.Expression {
-		//		return exp.NewLiteralExpression("")
-		//	},
-		//},
-		//"DATE_SUB": {
-		//	Handler: func(args ...exp.Expression) exp.Expression {
-		//		return exp.NewLiteralExpression("")
-		//	},
-		//},
 		//"STD": {
 		//	Handler: func(args ...exp.Expression) exp.Expression {
 		//		return exp.NewLiteralExpression("")
