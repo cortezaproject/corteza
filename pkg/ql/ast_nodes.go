@@ -236,7 +236,10 @@ func (n interval) ToAST() (out *ASTNode) {
 	return &ASTNode{
 		Ref: "interval",
 		Args: ASTNodeSet{
-			{Symbol: n.unit},
+			// @todo consider introducing a new concept on the ASTNode to cover
+			//       system defined symbols/keywords. This is a temporary solutions
+			//       to fix reporting interval definitions; it should eventually be reworked
+			{Value: MakeValueOf("String", n.unit)},
 			{Value: MakeValueOf("Number", n.value)},
 		},
 	}

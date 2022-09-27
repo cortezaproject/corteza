@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/ql"
+	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 )
 
@@ -114,6 +115,38 @@ var (
 				}
 
 				return exp.NewSQLFunctionExpression("CONCAT", aa...)
+			},
+		},
+
+		"interval": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+
+				// The problem here is similar to the one with PgSQL... but more complicated...
+				// The interval duration identifiers are keywords and can't be bound via value placeholders.
+				// This forces us to interpolate the thing when building the literal expression below.
+				//
+				// Since goqu doesn't let me get the raw value of the expression... I was forced
+				// to do this calamity
+				_, aa, err := goqu.Select(args[0]).ToSQL()
+				if err != nil {
+					// This error should never occur
+					panic(err)
+				}
+				intv := aa[0].(string)
+
+				return exp.NewLiteralExpression(fmt.Sprintf("INTERVAL ? %s", intv), args[1])
+			},
+		},
+
+		"date_add": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("DATE_ADD", args[0], args[1])
+			},
+		},
+
+		"date_sub": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("DATE_SUB", args[0], args[1])
 			},
 		},
 
