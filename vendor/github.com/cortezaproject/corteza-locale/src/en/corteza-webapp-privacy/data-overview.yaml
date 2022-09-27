@@ -10,9 +10,10 @@ data-types:
 
 application:
   title: Application Data
-  data-source: Data Source
+  connection:
+    label: Connection
+    placeholder: Select a Connection
   no-data-available: No data available
-  select-data-source: Select a Data Source
   private-fields: Private Fields
   request-correction: Request Correction
   request-deletion: Request Deletion

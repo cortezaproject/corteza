@@ -39,16 +39,16 @@ edit:
     private-fields: Private Fields
     no-data-available: No data available
     submit: Submit Correction Request
-    data-source:
-      label: Data Source
-      placeholder: Select a Data Source
+    connection:
+      label: Connection
+      placeholder: Select a Connection
   delete:
     private-fields: Private Fields
     no-data-available: No data available
     submit: Delete Selected Data
-    data-source:
-      label: Data Source
-      placeholder: Select a Data Source
+    connection:
+      label: Connection
+      placeholder: Select a Connection
   export:
     submit: Export Selected Data
     data-type:

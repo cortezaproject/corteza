@@ -209,6 +209,15 @@ sensitivityLevel:
   delete:
     success: Sensitivity level deleted
     error: Sensitivity level delete failed
+  fetch:
+    success: Sensitivity level fetched
+    error: Sensitivity level fetch failed
+  undelete:
+    success: Sensitivity level restored
+    error: Sensitivity level restore failed
+  update:
+    success: Sensitivity level updated
+    error: Sensitivity level update failed
 settings:
   system:
     fetch:
@@ -257,6 +266,3 @@ connection:
   undelete:
     success: Connection restored
     error: Connection restore failed
-sensitivity-level:
-  fetch:
-    error: Sensitivity level fetch failed

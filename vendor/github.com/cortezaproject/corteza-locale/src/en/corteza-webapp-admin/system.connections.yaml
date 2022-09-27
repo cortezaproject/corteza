@@ -68,7 +68,7 @@ editor:
           description: Internal notes on data-at-rest protection (physical protection)
       data-at-transit-encryption:
         checkbox:
-          label: Encrypt data at rest enabled
+          label: Encrypt data at transit enabled
         notes:
           label: Notes on data at transit encryption (network encryption)
           description: Internal notes on data-at-transit encryption (network encryption)

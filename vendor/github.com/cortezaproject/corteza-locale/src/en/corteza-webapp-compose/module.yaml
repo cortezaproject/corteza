@@ -134,9 +134,6 @@ edit:
       usage-disclosure:
         label: Sensitive data usage disclosure (visible on data-privacy console)
 
-      data-source: Data Source
-      select-data-source: Select a Data Source
-
       sensitivity-levels:
         fetch-failed: Could not fetch sensitivity levels
 
@@ -154,11 +151,11 @@ edit:
       record-duplication:
         title: Record duplication detection
         strict-fields:
-          label: Strict fields
-          description: These fields will raise a validation error when duplicate value is detected
+          label: Strict duplicate value validation
+          description: Record will not be saved when a duplicate value is detected in the selected fields in any existing record of this module
         non-strict-fields:
-          label: Non strict fields
-          description: These fields will display a warning under the field when duplicate value is detected
+          label: Soft duplicate value validation
+          description: Record will be saved and user will be presented with a warning when a duplicate value is detected in the selected fields in any existing record of this module
 
 
 federated: Federated
