@@ -139,7 +139,7 @@ func stepLinkFrames(ctx context.Context, iter dal.Iterator, r run) (ff []*Frame,
 	builders := make(map[bool]*reportFrameBuilder)
 	builders[true] = newReportFrameBuilder(defLeft)
 	builders[false] = newReportFrameBuilder(defRight)
-	builders[false].linked(defLink.On.Right, defLink.RelLeft)
+	builders[false].linked(defLink.On.Right, defLink.On.Left, defLink.RelLeft)
 
 	limits := make(map[bool]uint)
 	if defLeft.Paging != nil {
