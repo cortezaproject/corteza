@@ -66,7 +66,7 @@ func (c *connection) withModel(m *dal.Model, fn func(m *model) error) error {
 	)
 	c.mux.RLock()
 	defer c.mux.RUnlock()
-	if cached, ok := c.models[cacheKey(m)]; ok {
+	if cached, ok := c.models[key]; ok {
 		return fn(cached)
 	}
 

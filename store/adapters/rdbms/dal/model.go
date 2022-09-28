@@ -24,16 +24,11 @@ type (
 		sqlx.ExecerContext
 	}
 
-	queryParser interface {
-		Parse(string) (exp.Expression, error)
-	}
-
 	model struct {
 		model *dal.Model
 		conn  queryRunner
 
-		queryParser queryParser
-		dialect     drivers.Dialect
+		dialect drivers.Dialect
 
 		table drivers.TableCodec
 	}
@@ -74,20 +69,35 @@ func validate(m *dal.Model) error {
 func Model(m *dal.Model, c queryRunner, d drivers.Dialect) *model {
 	var (
 		ms = &model{
-			model:       m,
-			conn:        c,
-			dialect:     d,
-			queryParser: ql.Converter(),
-			table:       drivers.NewTableCodec(m, d),
+			model:   m,
+			conn:    c,
+			dialect: d,
+			table:   drivers.NewTableCodec(m, d),
 		}
 	)
 
-	ms.queryParser = ql.Converter(
+	return ms
+}
+
+// parseQuery parses the query into the goqu expression
+//
+// The parse query initializes a fresh converter instance because QL converter
+// uses some internal state to keep track of symbols and stuff.
+//
+// When doing parallel requests over the same model, unexpected... stuff happens.
+//
+// Alternative solution would introduce a mutes on the internal model but that
+// is probably the same or worse as this.
+//
+// @todo benchmark to see if this re-init is a bad idea; I don't think it should be
+//       since we're just initializing fairly light structs.
+func (d *model) parseQuery(q string) (out exp.Expression, err error) {
+	pp := ql.Converter(
 		ql.SymHandler(func(node *ql.ASTNode) (exp.Expression, error) {
 			// @note normalize system idents on the RDBMS level for filters
 			//       offloaded to the database.
 			sym := dal.NormalizeAttrNames(node.Symbol)
-			if ms.model.ResourceType == "corteza::compose:module" {
+			if d.model.ResourceType == "corteza::compose:module" {
 				// temporary solution
 				//
 				// before DAL some fields were aliased (recordID => ID)
@@ -97,7 +107,7 @@ func Model(m *dal.Model, c queryRunner, d drivers.Dialect) *model {
 				}
 			}
 
-			attr := ms.model.Attributes.FindByIdent(sym)
+			attr := d.model.Attributes.FindByIdent(sym)
 			if attr == nil {
 				return nil, fmt.Errorf("unknown attribute %q used in query expression", node.Symbol)
 			}
@@ -106,12 +116,12 @@ func Model(m *dal.Model, c queryRunner, d drivers.Dialect) *model {
 				return nil, fmt.Errorf("attribute %q can not be used in query expression", attr.Ident)
 			}
 
-			return ms.table.AttributeExpression(sym)
+			return d.table.AttributeExpression(sym)
 		}),
-		ql.RefHandler(d.ExprHandler),
+		ql.RefHandler(d.dialect.ExprHandler),
 	)
 
-	return ms
+	return pp.Parse(q)
 }
 
 func (d *model) Truncate(ctx context.Context) error {
@@ -382,7 +392,7 @@ func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 	}
 
 	if q := strings.TrimSpace(f.Expression()); len(q) > 0 {
-		if tmp, err = d.queryParser.Parse(q); err != nil {
+		if tmp, err = d.parseQuery(q); err != nil {
 			return base.SetError(err)
 		}
 
