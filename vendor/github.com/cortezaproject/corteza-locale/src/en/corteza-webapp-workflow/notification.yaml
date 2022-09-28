@@ -17,6 +17,10 @@ general:
   error: Error
   success: Success
   warning: Warning
+  info: Info
+list:
+  load:
+    error: Failed to fetch workflows
 import:
   'failed-import': Failed to import
   'imported-workflows': Workflows imported
@@ -33,3 +37,6 @@ import:
 'trigger-paths-changed': Trigger paths changed
 'updated-workflow': Workflow updated
 'workflow-test-completed': Workflow test completed
+undelete:
+  success: Workflow restored
+  failed: Failed to restore workflow

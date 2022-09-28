@@ -21,11 +21,28 @@ offset: Offset
 offset-expression: Offset (expression)
 permissions: Permissions
 search-workflows: Type here to search all workflows...
+subworkflow: Subworkflow
+subworkflows: Subworkflows
+deleted: Deleted
+disabled: Disabled
+without: Without
+only: Only
+including: Including
 unnamed-workflow: Unnamed Workflow
 workflow-list: List of Workflows
 save: Save
 today: Today
 cancel: Cancel
+resource-list:
+  no-items: No matches for your search
+  not-found: Not found
+  loading: Loading
+  pagination:
+    next: Next
+    prev: Prev
+    showing: '{{count}} of {{total}} items'
+    single: One item
+    single_plural: '{{count}} items'
 
 tooltip:
   permissions: Workflow permissions
