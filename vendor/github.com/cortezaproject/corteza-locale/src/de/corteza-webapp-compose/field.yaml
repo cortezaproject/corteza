@@ -139,6 +139,12 @@ selector:
   systemField: (system field)
   unselectAll: Unselect all
 system:
+  id: Record ID
+  moduleID: Module ID
+  namespaceID: Namespace ID
+  revision: Record revision
+  meta: Meta data
+  recordID: Record ID
   createdAt: Created at
   createdBy: Erstellt bei
   deletedAt: Deleted at
