@@ -121,7 +121,7 @@ func (t *TypeTimestamp) Decode(raw any) (any, bool, error) {
 	}
 
 	if dec.Valid {
-		return dec.Time.Format(TimestampLayout(t.Timezone, t.Precision)), dec.Valid, nil
+		return dec.Time.UTC().Format(TimestampLayout(t.Timezone, t.Precision)), dec.Valid, nil
 	}
 
 	return nil, false, nil
@@ -300,7 +300,7 @@ func TimestampLayout(tz bool, precision int) string {
 }
 
 func TimeLayout(tz bool, precision int) string {
-	var layout = "15:04:05"
+	var layout = "15:04:05.00000"
 	if precision > 0 {
 		layout += "." + strings.Repeat("9", precision)
 	}

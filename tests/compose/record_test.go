@@ -160,8 +160,6 @@ func (h helper) makeRecord(module *types.Module, rvs ...*types.RecordValue) *typ
 	}
 	rec.SetModule(module)
 
-	rec.SetModule(module)
-
 	h.noError(dalutils.ComposeRecordCreate(context.Background(), defDal, module, rec))
 
 	return rec
@@ -208,6 +206,72 @@ func TestRecordList(t *testing.T) {
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Equal(`$.response.filter.total`, float64(2))).
+		End()
+}
+
+func TestRecordListWithPaginationAndSorting(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	module := h.repoMakeRecordModuleWithFields("record testing module")
+	helpers.AllowMe(h, module.RbacResource(), "records.search")
+
+	var aux = struct {
+		Response struct {
+			Filter struct {
+				NextPage       *string
+				PrevPage       *string
+				PageNavigation []struct {
+					Page   int
+					Items  int
+					Cursor *string
+				}
+			}
+		}
+	}{}
+
+	for i := 0; i < 7; i++ {
+		h.makeRecord(module, &types.RecordValue{Name: "name", Value: fmt.Sprintf("%d", i+1)})
+	}
+
+	// 1st page
+	h.apiInit().
+		Get(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
+		Query("incTotal", "true").
+		Query("incPageNavigation", "true").
+		Query("limit", "2").
+		Query("sort", "createdAt DESC").
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Equal(`$.response.set[0].values[0].value`, "7")).
+		Assert(jsonpath.Equal(`$.response.set[1].values[0].value`, "6")).
+		Assert(jsonpath.Equal(`$.response.filter.total`, float64(7))).
+		Assert(jsonpath.Present(`$.response.filter.pageNavigation`)).
+		Assert(jsonpath.Len(`$.response.filter.pageNavigation`, 4)).
+		End().
+		JSON(&aux)
+
+	h.a.Len(aux.Response.Filter.PageNavigation, 4)
+	h.a.NotNil(aux.Response.Filter.PageNavigation[1].Cursor)
+
+	// 2nd page
+	h.apiInit().
+		Get(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
+		Query("incTotal", "false").
+		Query("incPageNavigation", "false").
+		Query("limit", "2").
+		Query("pageCursor", *aux.Response.Filter.PageNavigation[1].Cursor).
+		Query("sort", "createdAt DESC").
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Equal(`$.response.set[0].values[0].value`, "5")).
+		Assert(jsonpath.Equal(`$.response.set[1].values[0].value`, "4")).
+		Assert(jsonpath.NotPresent(`$.response.filter.total`)).
+		Assert(jsonpath.NotPresent(`$.response.filter.pageNavigation`)).
 		End()
 }
 
