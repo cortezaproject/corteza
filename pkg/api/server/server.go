@@ -16,6 +16,9 @@ type (
 		opts      *options.Options
 		endpoints []func(r chi.Router)
 
+		// last error
+		err error
+
 		demux *demux
 	}
 )
@@ -31,9 +34,8 @@ const (
 // that demultiplexes request to one of the configured routers according to the server state.
 //
 // Waiting state
-// This is initial state that with some simple route handlers:
+// This is initial state with the ofllowing route handlers:
 //  - /version
-//  - /healthcheck
 //  - /healthcheck
 
 func New(log *zap.Logger, opts *options.Options) *server {
@@ -48,6 +50,23 @@ func New(log *zap.Logger, opts *options.Options) *server {
 	s.demux.Router(shutdown, shutdownRoutes())
 
 	return s
+}
+
+func (s *server) LastError() error {
+	return s.err
+}
+
+func Test(o *options.Options) error {
+	listener, err := net.Listen("tcp", o.HTTPServer.Addr)
+	if err != nil {
+		return err
+	}
+
+	if err = listener.Close(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Activate reconfigures server to use active routes
@@ -65,6 +84,10 @@ func (s *server) Shutdown() {
 }
 
 func (s server) Serve(ctx context.Context) {
+	var (
+		listener net.Listener
+	)
+
 	s.log.Info(
 		"starting HTTP server",
 
@@ -72,9 +95,9 @@ func (s server) Serve(ctx context.Context) {
 		zap.String("address", s.opts.HTTPServer.Addr),
 	)
 
-	listener, err := net.Listen("tcp", s.opts.HTTPServer.Addr)
-	if err != nil {
-		s.log.Error("cannot start server", zap.Error(err))
+	listener, s.err = net.Listen("tcp", s.opts.HTTPServer.Addr)
+	if s.err != nil {
+		s.log.Error("cannot start server", zap.Error(s.err))
 		return
 	}
 
@@ -87,16 +110,16 @@ func (s server) Serve(ctx context.Context) {
 			// this enables us to send cancellation down to every request
 			BaseContext: func(listener net.Listener) context.Context { return ctx },
 		}
-		err = srv.Serve(listener)
+		s.err = srv.Serve(listener)
 	}()
 	<-ctx.Done()
 
-	if err == nil {
-		err = ctx.Err()
-		if err == context.Canceled {
-			err = nil
+	if s.err == nil {
+		s.err = ctx.Err()
+		if s.err == context.Canceled {
+			s.err = nil
 		}
 	}
 
-	s.log.Info("HTTP server stopped", zap.Error(err))
+	s.log.Info("HTTP server stopped", zap.Error(s.err))
 }
