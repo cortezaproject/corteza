@@ -89,7 +89,7 @@ func (ctrl DalConnection) List(ctx context.Context, r *request.DalConnectionList
 	)
 
 	if f.Deleted == 0 {
-		f.Deleted = filter.StateInclusive
+		f.Deleted = filter.StateExcluded
 	}
 
 	f.IncTotal = r.IncTotal
