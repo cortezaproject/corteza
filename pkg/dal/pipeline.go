@@ -40,6 +40,7 @@ type (
 	MapProperties struct {
 		Label     string
 		IsPrimary bool
+		IsSystem  bool
 		Nullable  bool
 		Type      Type
 	}

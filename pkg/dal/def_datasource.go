@@ -120,6 +120,7 @@ func (def *Datasource) outAttrsFromModel(model *Model) (attrs []AttributeMapping
 			Src:   attr.Ident,
 			Props: MapProperties{
 				IsPrimary: attr.PrimaryKey,
+				IsSystem:  attr.System,
 				Nullable:  attr.Type.IsNullable(),
 				Type:      attr.Type,
 			},
