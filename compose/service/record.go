@@ -460,6 +460,10 @@ func (svc record) searchSensitive(ctx context.Context, userID uint64, namespace 
 			})
 		}
 
+		if len(vv) == 0 {
+			continue
+		}
+
 		out.Records = append(out.Records, types.SensitiveRecord{
 			RecordID: r.ID,
 			Values:   vv,
