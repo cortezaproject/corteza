@@ -398,6 +398,7 @@ func mappingToFrameCol(m dal.AttributeMapping) FrameColumn {
 		Kind:  "String",
 
 		Primary: p.IsPrimary,
+		System:  p.IsSystem,
 	}
 
 	switch t := p.Type.(type) {
@@ -667,6 +668,7 @@ func attrToMapping(aa ...*dal.Attribute) (out []dal.AttributeMapping) {
 			Props: dal.MapProperties{
 				Label:     a.Label,
 				Type:      a.Type,
+				IsSystem:  a.System,
 				Nullable:  a.Type.IsNullable(),
 				IsPrimary: a.PrimaryKey,
 			},

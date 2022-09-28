@@ -60,6 +60,9 @@ type (
 		// when filtering out deleted items
 		SoftDeleteFlag bool
 
+		// System indicates the attribute was defined by the system
+		System bool
+
 		// Is attribute sortable?
 		// Note: all primary keys are sortable
 		Sortable bool

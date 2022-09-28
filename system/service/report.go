@@ -2,10 +2,12 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -23,6 +25,7 @@ type (
 		eventbus  eventDispatcher
 		actionlog actionlog.Recorder
 		store     store.Storer
+		locale    locale.Locale
 
 		users UserService
 
@@ -52,6 +55,7 @@ func Report(s store.Storer, ac reportAccessController, al actionlog.Recorder, eb
 		ac:        ac,
 		actionlog: al,
 		eventbus:  eb,
+		locale:    locale.Global(),
 
 		users: DefaultUser,
 
@@ -389,6 +393,13 @@ func (svc *report) enhance(ctx context.Context, ff []*reporting.Frame) (err erro
 	for _, f := range ff {
 		userCols := make([]int, 0, len(f.Columns))
 		for i, c := range f.Columns {
+			// Translate system columns
+			if c.System {
+				c.Label = svc.locale.T(ctx, "compose", fmt.Sprintf("field.system.%s", c.Name))
+				f.Columns[i] = c
+			}
+
+			// Collect user columns to replace IDs with labels
 			if c.Kind != "User" {
 				continue
 			}
