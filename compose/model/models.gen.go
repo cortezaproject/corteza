@@ -769,7 +769,10 @@ var Record = &dal.Model{
 
 		&dal.Attribute{
 			Ident: "Revision",
-			Type:  &dal.TypeNumber{Precision: -1, Scale: -1, Meta: map[string]interface{}{"rdbms:type": "integer"}},
+			Type: &dal.TypeNumber{HasDefault: true,
+				DefaultValue: 0,
+				Precision:    -1, Scale: -1, Meta: map[string]interface{}{"rdbms:type": "integer"},
+			},
 			Store: &dal.CodecAlias{Ident: "revision"},
 		},
 

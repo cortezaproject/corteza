@@ -34,7 +34,9 @@ func DeleteModel(ctx context.Context, dd DataDefiner, m *dal.Model) (err error) 
 // UpdateModel alters existing table's columns and indexes to match Model definition
 func UpdateModel(ctx context.Context, dd DataDefiner, m *dal.Model) (err error) {
 	var (
-		t *Table
+		t        *Table
+		col      *Column
+		colIdent string
 	)
 
 	if t, err = dd.TableLookup(ctx, m.Ident); err != nil {
@@ -44,7 +46,8 @@ func UpdateModel(ctx context.Context, dd DataDefiner, m *dal.Model) (err error) 
 	// @todo check model against table structure
 	for _, attr := range m.Attributes {
 		// iterate over attributes and check if they exist in the table
-		col := t.ColumnByIdent(attr.StoreIdent())
+		colIdent = attr.StoreIdent()
+		col = t.ColumnByIdent(colIdent)
 		if col != nil {
 			// @todo check if column type matches
 			// @todo check if column is nullable

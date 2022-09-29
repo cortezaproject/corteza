@@ -3,6 +3,7 @@ package rdbms
 import (
 	"context"
 	"encoding/json"
+	"github.com/cortezaproject/corteza-server/compose/model"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	labelsType "github.com/cortezaproject/corteza-server/pkg/label/types"
@@ -26,6 +27,8 @@ var (
 		fix_2022_09_00_dropObsoleteComposeModuleFields,
 		fix_2022_09_00_extendDalConnectionsForMeta,
 		fix_2022_09_00_renameModuleColOnComposeRecords,
+		fix_2022_09_00_addValuesOnComposeRecords,
+		fix_2022_09_00_addRevisionOnComposeRecords,
 		fix_2022_09_00_addMetaOnComposeRecords,
 		fix_2022_09_00_addMissingNodeIdOnFederationMapping,
 	}
@@ -64,6 +67,20 @@ func fix_2022_09_00_renameModuleColOnComposeRecords(ctx context.Context, s *Stor
 	return renameColumn(ctx, s, "compose_record", "module_id", "rel_module")
 }
 
+func fix_2022_09_00_addValuesOnComposeRecords(ctx context.Context, s *Store) (err error) {
+	return addColumn(ctx, s,
+		"compose_record",
+		model.Record.Attributes.FindByIdent("Values"),
+	)
+}
+
+func fix_2022_09_00_addRevisionOnComposeRecords(ctx context.Context, s *Store) (err error) {
+	return addColumn(ctx, s,
+		"compose_record",
+		model.Record.Attributes.FindByIdent("Revision"),
+	)
+}
+
 func fix_2022_09_00_addMetaOnComposeRecords(ctx context.Context, s *Store) (err error) {
 	var (
 		log = s.log(ctx)
@@ -82,7 +99,7 @@ func fix_2022_09_00_addMetaOnComposeRecords(ctx context.Context, s *Store) (err 
 
 	err = addColumn(ctx, s,
 		"compose_record",
-		&dal.Attribute{Ident: "meta", Type: &dal.TypeJSON{DefaultValue: "{}"}},
+		model.Record.Attributes.FindByIdent("Meta"),
 	)
 
 	if err != nil {
