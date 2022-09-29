@@ -17,8 +17,8 @@ type (
 		Filter    filter.Filter
 		filter    internalFilter
 
-		Group         []AttributeMapping
-		OutAttributes []AttributeMapping
+		Group         []AggregateAttr
+		OutAttributes []AggregateAttr
 
 		SourceAttributes []AttributeMapping
 
@@ -41,11 +41,17 @@ type (
 		agg *aggregator
 	}
 
-	// aggregateAttr is a simple wrapper to outline aggregated attribute definitions
-	aggregateAttr struct {
-		ident    string
-		expr     *ql.ASTNode
-		attrType Type
+	// AggregateAttr is a simple wrapper to outline aggregated attribute definitions
+	AggregateAttr struct {
+		Key bool
+
+		// @todo change; temporary for compose service
+		RawExpr string
+
+		Identifier string
+		Label      string
+		Expression *ql.ASTNode
+		Type       Type
 	}
 )
 
@@ -58,7 +64,14 @@ func (def *Aggregate) Sources() []string {
 }
 
 func (def *Aggregate) Attributes() [][]AttributeMapping {
-	return [][]AttributeMapping{append(def.Group, def.OutAttributes...)}
+	aa := append(def.Group, def.OutAttributes...)
+	out := make([]AttributeMapping, 0, len(aa))
+
+	for _, a := range aa {
+		out = append(out, a.toSimpleAttr())
+	}
+
+	return [][]AttributeMapping{out}
 }
 
 func (def *Aggregate) Analyze(ctx context.Context) (err error) {
@@ -126,27 +139,58 @@ func (def *Aggregate) init(ctx context.Context, src Iterator) (exec *aggregate, 
 		return ident, nil
 	})
 
-	// Convert & validate group definitions
-	// - groups
-	var gd aggregateAttr
-	outAttrs := make(map[string]bool, len(def.Group)+len(def.OutAttributes))
-	for _, attr := range def.Group {
-		idtf := attr.Identifier()
-		gd, err = aggregateAttrFromExpr(pp, attr.Properties().Type, idtf, attr.Expression())
+	prepAttr := func(attr AggregateAttr) (_ AggregateAttr, err error) {
+		if attr.RawExpr != "" {
+			// Parse (it already validates) raw expressions
+			attr.Expression, err = pp.Parse(attr.RawExpr)
+			if err != nil {
+				return
+			}
+		} else {
+			// Manually validate already parsed expressions
+			err = attr.Expression.Traverse(func(a *ql.ASTNode) (bool, *ql.ASTNode, error) {
+				if a.Symbol == "" {
+					return true, a, nil
+				}
+				if _, ok := srcAttrs[a.Symbol]; !ok {
+					return false, nil, fmt.Errorf("unknown attribute %s", a.Symbol)
+				}
+
+				return true, a, nil
+			})
+		}
 		if err != nil {
 			return
 		}
-		exec.groupDefs = append(exec.groupDefs, gd)
+		return def.determineAttrType(attr, def.SourceAttributes)
+	}
+
+	// Convert & validate group definitions
+	// - groups
+	outAttrs := make(map[string]bool, len(def.Group)+len(def.OutAttributes))
+	for i, attr := range def.Group {
+		attr, err = prepAttr(attr)
+		if err != nil {
+			return
+		}
+
+		def.Group[i] = attr
+		idtf := attr.Identifier
+
+		exec.groupDefs = append(exec.groupDefs, attr)
 		outAttrs[idtf] = true
 	}
 	// - aggregates
-	for _, attr := range def.OutAttributes {
-		idtf := attr.Identifier()
-		gd, err = aggregateAttrFromExpr(pp, attr.Properties().Type, idtf, attr.Expression())
+	for i, attr := range def.OutAttributes {
+		attr, err = prepAttr(attr)
 		if err != nil {
 			return
 		}
-		exec.aggregateDefs = append(exec.aggregateDefs, gd)
+
+		def.OutAttributes[i] = attr
+		idtf := attr.Identifier
+
+		exec.aggregateDefs = append(exec.aggregateDefs, attr)
 		outAttrs[idtf] = true
 	}
 
@@ -180,15 +224,69 @@ func (def *Aggregate) init(ctx context.Context, src Iterator) (exec *aggregate, 
 	return
 }
 
-func aggregateAttrFromExpr(pp *ql.Parser, t Type, ident, expr string) (out aggregateAttr, err error) {
-	n, err := pp.Parse(expr)
-	if err != nil {
+// determineAttrType determines the type of the AggregateAttr based on it's definition
+// and source attributes
+func (def *Aggregate) determineAttrType(base AggregateAttr, ss []AttributeMapping) (out AggregateAttr, err error) {
+	out = base
+	if out.Type != nil {
 		return
 	}
 
-	return aggregateAttr{
-		ident:    ident,
-		expr:     n,
-		attrType: t,
-	}, nil
+	var root *ql.ASTNode
+	var t Type
+
+	// If we have a symbol, then we'll use it to determine the type.
+	// All current operations should return the same output type as the input one.
+	//
+	// In case of a function, use the output type of the root most function which has
+	// a known type.
+	//
+	// Note, some refs (group and add for example) may not know their types so we need
+	// to dig deeper.
+	base.Expression.Traverse(func(a *ql.ASTNode) (bool, *ql.ASTNode, error) {
+		if a.Symbol != "" {
+			root = a
+			return false, a, nil
+		}
+
+		if a.Ref != "" {
+			tmp := refToGvalExp[a.Ref]
+			if tmp == nil || tmp.OutType == nil || tmp.OutTypeUnknown {
+				return true, a, nil
+			}
+
+			if tmp.OutType != nil {
+				t = tmp.OutType
+				return false, a, nil
+			}
+		}
+		return true, a, nil
+	})
+
+	if root != nil {
+		for _, s := range ss {
+			if s.Identifier() == root.Symbol {
+				t = s.Properties().Type
+				break
+			}
+		}
+	}
+
+	out.Type = t
+	return
+}
+
+func (a AggregateAttr) toSimpleAttr() SimpleAttr {
+	return SimpleAttr{
+		Ident: a.Identifier,
+		Props: MapProperties{
+			Label:     a.Label,
+			IsPrimary: a.Key,
+			Type:      a.Type,
+		},
+
+		// @todo won't matter for now
+		Expr: "",
+		Src:  "",
+	}
 }

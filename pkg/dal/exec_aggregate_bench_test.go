@@ -32,8 +32,8 @@ func benchmarkExecAggregate(b *testing.B, n int) {
 	for n := 0; n < b.N; n++ {
 		def := Aggregate{
 			Ident:            "agg",
-			Group:            saToMapping(group...),
-			OutAttributes:    saToMapping(outAttributes...),
+			Group:            saToAggAttr(group...),
+			OutAttributes:    saToAggAttr(outAttributes...),
 			SourceAttributes: saToMapping(sourceAttributes...),
 		}
 

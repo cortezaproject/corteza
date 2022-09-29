@@ -855,8 +855,8 @@ func TestStepAggregate(t *testing.T) {
 					}
 					sa.Ident = tc.name
 					sa.SourceAttributes = saToMapping(tc.sourceAttributes...)
-					sa.Group = saToMapping(tc.group...)
-					sa.OutAttributes = saToMapping(tc.outAttributes...)
+					sa.Group = saToAggAttr(tc.group...)
+					sa.OutAttributes = saToAggAttr(tc.outAttributes...)
 					sa.filter = tc.f
 
 					aa, err := sa.iterator(ctx, b)
@@ -891,8 +891,8 @@ func TestStepAggregateValidation(t *testing.T) {
 		sa := &Aggregate{
 			Ident:            "agg",
 			SourceAttributes: saToMapping(basicAttrs...),
-			Group:            saToMapping(groups...),
-			OutAttributes:    saToMapping(attr...),
+			Group:            saToAggAttr(groups...),
+			OutAttributes:    saToAggAttr(attr...),
 		}
 
 		return sa.dryrun(ctx)
@@ -902,8 +902,8 @@ func TestStepAggregateValidation(t *testing.T) {
 		sa := &Aggregate{
 			Ident:            "agg",
 			SourceAttributes: saToMapping(basicAttrs...),
-			Group:            saToMapping(groups...),
-			OutAttributes:    saToMapping(attr...),
+			Group:            saToAggAttr(groups...),
+			OutAttributes:    saToAggAttr(attr...),
 			Filter:           f,
 		}
 
@@ -1003,8 +1003,8 @@ func TestStepAggregate_cursorCollect_forward(t *testing.T) {
 				filter: internalFilter{
 					orderBy: c.ss,
 				},
-				Group:         saToMapping(c.group...),
-				OutAttributes: saToMapping(c.outAttributes...),
+				Group:         saToAggAttr(c.group...),
+				OutAttributes: saToAggAttr(c.outAttributes...),
 			}
 
 			out, err := (&aggregate{def: def}).ForwardCursor(c.in)
@@ -1051,8 +1051,8 @@ func TestStepAggregate_cursorCollect_back(t *testing.T) {
 				filter: internalFilter{
 					orderBy: c.ss,
 				},
-				Group:         saToMapping(c.group...),
-				OutAttributes: saToMapping(c.outAttributes...),
+				Group:         saToAggAttr(c.group...),
+				OutAttributes: saToAggAttr(c.outAttributes...),
 			}
 
 			out, err := (&aggregate{def: def}).BackCursor(c.in)
@@ -1130,8 +1130,8 @@ func TestStepAggregate_more(t *testing.T) {
 			}
 
 			d := tc.def
-			d.Group = saToMapping(tc.group...)
-			d.OutAttributes = saToMapping(tc.outAttributes...)
+			d.Group = saToAggAttr(tc.group...)
+			d.OutAttributes = saToAggAttr(tc.outAttributes...)
 			d.SourceAttributes = saToMapping(tc.sourceAttributes...)
 			for _, k := range tc.group {
 				d.filter.orderBy = append(d.filter.orderBy, &filter.SortExpr{Column: k.ident})
@@ -1343,8 +1343,8 @@ func TestStepAggregate_paging(t *testing.T) {
 			prep := func(f internalFilter) {
 				d = Aggregate{
 					Filter:           f,
-					Group:            saToMapping(tc.group...),
-					OutAttributes:    saToMapping(tc.outAttributes...),
+					Group:            saToAggAttr(tc.group...),
+					OutAttributes:    saToAggAttr(tc.outAttributes...),
 					SourceAttributes: saToMapping(tc.sourceAttributes...),
 				}
 			}

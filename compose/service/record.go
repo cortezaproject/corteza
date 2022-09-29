@@ -1769,22 +1769,21 @@ func loadRecord(ctx context.Context, s store.Storer, namespaceID, moduleID, reco
 func recordReportToDalPipeline(m *types.Module, metrics, dimensions, f string) (pp dal.Pipeline, err error) {
 	// Map dimension to the aggregate group
 	// @note we only ever used a single dimension so this is ok
-	dim := []dal.AttributeMapping{
-		dal.SimpleAttr{
-			Ident: "dimension_0",
-			Expr:  dimensions,
+	dim := []dal.AggregateAttr{
+		{
+			Identifier: "dimension_0",
+			RawExpr:    dimensions,
+			Key:        true,
 		},
 	}
 
 	// Map metrics to the aggregate attrs
 	// - count is always present
-	mms := []dal.AttributeMapping{
-		dal.SimpleAttr{
-			Ident: "count",
-			Expr:  "count(ID)",
-			Props: dal.MapProperties{
-				Type: dal.TypeNumber{},
-			},
+	mms := []dal.AggregateAttr{
+		{
+			Identifier: "count",
+			RawExpr:    "count(ID)",
+			Type:       dal.TypeNumber{},
 		},
 	}
 
@@ -1797,12 +1796,10 @@ func recordReportToDalPipeline(m *types.Module, metrics, dimensions, f string) (
 			ident = strings.TrimSpace(pts[1])
 		}
 
-		mms = append(mms, dal.SimpleAttr{
-			Ident: ident,
-			Expr:  expr,
-			Props: dal.MapProperties{
-				Type: dal.TypeNumber{},
-			},
+		mms = append(mms, dal.AggregateAttr{
+			Identifier: ident,
+			RawExpr:    expr,
+			Type:       dal.TypeNumber{},
 		})
 	}
 
