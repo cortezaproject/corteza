@@ -53,22 +53,6 @@ type (
 	}
 )
 
-func CreateIndexTemplates(base *CreateIndex, ii ...*Index) []any {
-	var (
-		tt = make([]any, len(ii))
-	)
-
-	for i := range ii {
-		tt[i] = &CreateIndex{
-			Index:                 ii[i],
-			OmitIfNotExistsClause: base.OmitIfNotExistsClause,
-			OmitFieldLength:       base.OmitFieldLength,
-		}
-	}
-
-	return tt
-}
-
 // Exec is a utility for executing series of commands
 //
 // Parameters can be string, Stringer interface or goqu's exp.SQLExpression
@@ -82,15 +66,15 @@ func Exec(ctx context.Context, db sqlx.ExtContext, ss ...any) (err error) {
 		)
 
 		switch c := s.(type) {
-		case string:
-			sql = c
-		case fmt.Stringer:
-			sql = c.String()
-		case exp.SQLExpression:
+		case interface{ ToSQL() (string, []any, error) }:
 			sql, args, err = c.ToSQL()
 			if err != nil {
 				return
 			}
+		case fmt.Stringer:
+			sql = c.String()
+		case string:
+			sql = c
 		default:
 			panic(fmt.Sprintf("unexecutable input (%T)", s))
 		}
@@ -238,29 +222,50 @@ func (t *CreateIndex) String() string {
 	return sql
 }
 
-func (c *AddColumn) String() string {
-	sql := "ALTER TABLE" + " " + c.Table + " ADD COLUMN " + c.Column.Ident + " " + c.Column.Type.Name
+func (c *AddColumn) ToSQL() (sql string, aa []interface{}, err error) {
+	sql = fmt.Sprintf(
+		`ALTER TABLE %s ADD COLUMN %s %s`,
+		c.Dialect.QuoteIdent(c.Table),
+		c.Dialect.QuoteIdent(c.Column.Ident),
+		c.Column.Type.Name,
+	)
+
 	if !c.Column.Type.Null {
 		sql += " NOT NULL"
 	}
 
 	if len(c.Column.Default) > 0 {
+		// @todo right now we can (and need to) trust that default
+		//       values are unharmful!
 		sql += " DEFAULT " + c.Column.Default
 	}
 
-	return sql
+	return
 }
 
-func (c *DropColumn) String() string {
-	return "ALTER TABLE" + " " + c.Table + " DROP COLUMN " + c.Column
+func (c *DropColumn) ToSQL() (sql string, aa []interface{}, err error) {
+	return fmt.Sprintf(
+		`ALTER TABLE %s DROP COLUMN %s`,
+		c.Dialect.QuoteIdent(c.Table),
+		c.Dialect.QuoteIdent(c.Column),
+	), nil, nil
 }
 
-func (c *DropIndex) Express() exp.SQLExpression {
-	return SQLExpression(exp.NewLiteralExpression("DROP INDEX ? ON ?", c.Ident, c.TableIdent))
+func (c *DropIndex) ToSQL() (sql string, aa []interface{}, err error) {
+	return fmt.Sprintf(
+		`DROP INDEX %s ON %s`,
+		c.Dialect.QuoteIdent(c.Ident),
+		c.Dialect.QuoteIdent(c.TableIdent),
+	), nil, nil
 }
 
-func (c *RenameColumn) String() string {
-	return "ALTER TABLE" + " " + c.Table + " RENAME COLUMN " + c.Old + " TO " + c.New
+func (c *RenameColumn) ToSQL() (sql string, aa []interface{}, err error) {
+	return fmt.Sprintf(
+		`ALTER TABLE %s RENAME %s TO %s`,
+		c.Dialect.QuoteIdent(c.Table),
+		c.Dialect.QuoteIdent(c.Old),
+		c.Dialect.QuoteIdent(c.New),
+	), nil, nil
 }
 
 // GetBool is a utility function to simplify getting a boolean value from a query result.

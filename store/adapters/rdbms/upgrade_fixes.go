@@ -32,14 +32,14 @@ var (
 func fix_2022_09_00_extendComposeModuleForPrivacyAndDAL(ctx context.Context, s *Store) (err error) {
 	return addColumn(ctx, s,
 		"compose_module",
-		&dal.Attribute{Ident: "config", Type: &dal.TypeJSON{DefaultValue: "'{}'"}},
+		&dal.Attribute{Ident: "config", Type: &dal.TypeJSON{DefaultValue: "{}"}},
 	)
 }
 
 func fix_2022_09_00_extendComposeModuleFieldsForPrivacyAndDAL(ctx context.Context, s *Store) (err error) {
 	return addColumn(ctx, s,
 		"compose_module",
-		&dal.Attribute{Ident: "config", Type: &dal.TypeJSON{DefaultValue: "'{}'"}},
+		&dal.Attribute{Ident: "config", Type: &dal.TypeJSON{DefaultValue: "{}"}},
 	)
 }
 
@@ -54,7 +54,7 @@ func fix_2022_09_00_dropObsoleteComposeModuleFields(ctx context.Context, s *Stor
 func fix_2022_09_00_extendDalConnectionsForMeta(ctx context.Context, s *Store) (err error) {
 	return addColumn(ctx, s,
 		"dal_connections",
-		&dal.Attribute{Ident: "meta", Type: &dal.TypeJSON{DefaultValue: "'{}'"}},
+		&dal.Attribute{Ident: "meta", Type: &dal.TypeJSON{DefaultValue: "{}"}},
 	)
 }
 
@@ -72,7 +72,7 @@ func fix_2022_09_00_addMetaOnComposeRecords(ctx context.Context, s *Store) (err 
 
 	err = addColumn(ctx, s,
 		"compose_record",
-		&dal.Attribute{Ident: "meta", Type: &dal.TypeJSON{DefaultValue: "'{}'"}},
+		&dal.Attribute{Ident: "meta", Type: &dal.TypeJSON{DefaultValue: "{}"}},
 	)
 
 	if err != nil {

@@ -14,6 +14,11 @@ import (
 )
 
 func (s *Store) Upgrade(ctx context.Context) (err error) {
+	for _, fix := range fixes {
+		if err = fix(ctx, s); err != nil {
+			return
+		}
+	}
 
 	err = createTablesFromModels(
 		ctx,
@@ -27,12 +32,6 @@ func (s *Store) Upgrade(ctx context.Context) (err error) {
 
 	if err != nil {
 		return err
-	}
-
-	for _, fix := range fixes {
-		if err = fix(ctx, s); err != nil {
-			return
-		}
 	}
 
 	return
