@@ -48,23 +48,26 @@ func (dd *dataDefiner) TableLookup(ctx context.Context, t string) (*ddl.Table, e
 
 func (dd *dataDefiner) ColumnAdd(ctx context.Context, t string, c *ddl.Column) error {
 	return ddl.Exec(ctx, dd.conn, &ddl.AddColumn{
-		Table:  dd.d.QuoteIdent(t),
-		Column: c,
+		Dialect: dd.d,
+		Table:   t,
+		Column:  c,
 	})
 }
 
 func (dd *dataDefiner) ColumnDrop(ctx context.Context, t, col string) error {
 	return ddl.Exec(ctx, dd.conn, &ddl.DropColumn{
-		Table:  dd.d.QuoteIdent(t),
-		Column: dd.d.QuoteIdent(col),
+		Dialect: dd.d,
+		Table:   t,
+		Column:  col,
 	})
 }
 
 func (dd *dataDefiner) ColumnRename(ctx context.Context, t string, o string, n string) error {
 	return ddl.Exec(ctx, dd.conn, &ddl.RenameColumn{
-		Table: dd.d.QuoteIdent(t),
-		Old:   dd.d.QuoteIdent(o),
-		New:   dd.d.QuoteIdent(n),
+		Dialect: dd.d,
+		Table:   t,
+		Old:     o,
+		New:     n,
 	})
 }
 
@@ -78,14 +81,14 @@ func (dd *dataDefiner) IndexLookup(ctx context.Context, i, t string) (*ddl.Index
 
 func (dd *dataDefiner) IndexCreate(ctx context.Context, t string, i *ddl.Index) error {
 	return ddl.Exec(ctx, dd.conn, &ddl.CreateIndex{
-		Index:   i,
 		Dialect: dd.d,
+		Index:   i,
 	})
 }
 
 func (dd *dataDefiner) IndexDrop(ctx context.Context, t, i string) error {
 	return ddl.Exec(ctx, dd.conn, &ddl.DropIndex{
-		Ident:   dd.d.QuoteIdent(i),
 		Dialect: dd.d,
+		Ident:   i,
 	})
 }
