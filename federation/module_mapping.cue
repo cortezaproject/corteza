@@ -22,18 +22,21 @@ moduleMapping: {
 				sortable: true,
 				ident: "federationModuleID",
 				goType: "uint64"
+				storeIdent: "rel_federation_module"
 				dal: { type: "ID" }
 			}
 			compose_module_id: {
 				sortable: true,
 				ident: "composeModuleID",
 				goType: "uint64"
+				storeIdent: "rel_compose_module"
 				dal: { type: "ID" }
 			}
 			compose_namespace_id: {
 				sortable: true,
 				ident: "composeNamespaceID",
 				goType: "uint64"
+				storeIdent: "rel_compose_namespace"
 				dal: { type: "ID" }
 			}
 			field_mapping: {
@@ -43,7 +46,6 @@ moduleMapping: {
 		}
 
 		indexes: {
-			"primary": { attribute: "node_id" }
 			"unique_module_compose_module": {
 				attributes: ["federation_module_id", "compose_module_id", "compose_namespace_id" ]
 			}

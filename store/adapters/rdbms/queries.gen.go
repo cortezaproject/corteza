@@ -2770,9 +2770,9 @@ var (
 	federationModuleMappingSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
 			"node_id",
-			"federation_module_id",
-			"compose_module_id",
-			"compose_namespace_id",
+			"rel_federation_module",
+			"rel_compose_module",
+			"rel_compose_namespace",
 			"field_mapping",
 		).From(federationModuleMappingTable)
 	}
@@ -2783,11 +2783,11 @@ var (
 	federationModuleMappingInsertQuery = func(d goqu.DialectWrapper, res *federationType.ModuleMapping) *goqu.InsertDataset {
 		return d.Insert(federationModuleMappingTable).
 			Rows(goqu.Record{
-				"node_id":              res.NodeID,
-				"federation_module_id": res.FederationModuleID,
-				"compose_module_id":    res.ComposeModuleID,
-				"compose_namespace_id": res.ComposeNamespaceID,
-				"field_mapping":        res.FieldMapping,
+				"node_id":               res.NodeID,
+				"rel_federation_module": res.FederationModuleID,
+				"rel_compose_module":    res.ComposeModuleID,
+				"rel_compose_namespace": res.ComposeNamespaceID,
+				"field_mapping":         res.FieldMapping,
 			})
 	}
 
@@ -2795,16 +2795,17 @@ var (
 	//
 	// This function is auto-generated
 	federationModuleMappingUpsertQuery = func(d goqu.DialectWrapper, res *federationType.ModuleMapping) *goqu.InsertDataset {
-		var target = `,node_id`
+		var target = ``
 
 		return federationModuleMappingInsertQuery(d, res).
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
-						"federation_module_id": res.FederationModuleID,
-						"compose_module_id":    res.ComposeModuleID,
-						"compose_namespace_id": res.ComposeNamespaceID,
-						"field_mapping":        res.FieldMapping,
+						"node_id":               res.NodeID,
+						"rel_federation_module": res.FederationModuleID,
+						"rel_compose_module":    res.ComposeModuleID,
+						"rel_compose_namespace": res.ComposeNamespaceID,
+						"field_mapping":         res.FieldMapping,
 					},
 				),
 			)
@@ -2816,10 +2817,11 @@ var (
 	federationModuleMappingUpdateQuery = func(d goqu.DialectWrapper, res *federationType.ModuleMapping) *goqu.UpdateDataset {
 		return d.Update(federationModuleMappingTable).
 			Set(goqu.Record{
-				"federation_module_id": res.FederationModuleID,
-				"compose_module_id":    res.ComposeModuleID,
-				"compose_namespace_id": res.ComposeNamespaceID,
-				"field_mapping":        res.FieldMapping,
+				"node_id":               res.NodeID,
+				"rel_federation_module": res.FederationModuleID,
+				"rel_compose_module":    res.ComposeModuleID,
+				"rel_compose_namespace": res.ComposeNamespaceID,
+				"field_mapping":         res.FieldMapping,
 			}).
 			Where(federationModuleMappingPrimaryKeys(res))
 	}
@@ -2842,9 +2844,7 @@ var (
 	//
 	// This function is auto-generated
 	federationModuleMappingPrimaryKeys = func(res *federationType.ModuleMapping) goqu.Ex {
-		return goqu.Ex{
-			"node_id": res.NodeID,
-		}
+		return goqu.Ex{}
 	}
 
 	// federationNodeTable represents federationNodes store table

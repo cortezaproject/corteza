@@ -11515,15 +11515,6 @@ func (s *Store) DeleteFederationModuleMapping(ctx context.Context, rr ...*federa
 	return nil
 }
 
-// DeleteFederationModuleMappingByNodeID deletes single entry from federationModuleMapping collection
-//
-// This function is auto-generated
-func (s *Store) DeleteFederationModuleMappingByNodeID(ctx context.Context, nodeID uint64) error {
-	return s.Exec(ctx, federationModuleMappingDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
-		"node_id": nodeID,
-	}))
-}
-
 // TruncateFederationModuleMappings Deletes all rows from the federationModuleMapping collection
 func (s *Store) TruncateFederationModuleMappings(ctx context.Context) error {
 	return s.Exec(ctx, federationModuleMappingTruncateQuery(s.Dialect.GOQU()))
@@ -11849,9 +11840,9 @@ func (s *Store) LookupFederationModuleMappingByFederationModuleIDComposeModuleID
 		rows   *sql.Rows
 		aux    = new(auxFederationModuleMapping)
 		lookup = federationModuleMappingSelectQuery(s.Dialect.GOQU()).Where(
-			goqu.I("federation_module_id").Eq(federationModuleID),
-			goqu.I("compose_module_id").Eq(composeModuleID),
-			goqu.I("compose_namespace_id").Eq(composeNamespaceID),
+			goqu.I("rel_federation_module").Eq(federationModuleID),
+			goqu.I("rel_compose_module").Eq(composeModuleID),
+			goqu.I("rel_compose_namespace").Eq(composeNamespaceID),
 		).Limit(1)
 	)
 
@@ -11893,7 +11884,7 @@ func (s *Store) LookupFederationModuleMappingByFederationModuleID(ctx context.Co
 		rows   *sql.Rows
 		aux    = new(auxFederationModuleMapping)
 		lookup = federationModuleMappingSelectQuery(s.Dialect.GOQU()).Where(
-			goqu.I("federation_module_id").Eq(federationModuleID),
+			goqu.I("rel_federation_module").Eq(federationModuleID),
 		).Limit(1)
 	)
 
@@ -11960,14 +11951,12 @@ func (s *Store) collectFederationModuleMappingCursorValues(res *federationType.M
 
 		hasUnique bool
 
-		pkNodeID bool
-
 		collect = func(cc ...*filter.SortExpr) {
 			for _, c := range cc {
 				switch c.Column {
 				case "nodeID":
 					cur.Set(c.Column, res.NodeID, c.Descending)
-					pkNodeID = true
+					hasUnique = true
 				case "federationModuleID":
 					cur.Set(c.Column, res.FederationModuleID, c.Descending)
 				case "composeModuleID":
@@ -11982,9 +11971,6 @@ func (s *Store) collectFederationModuleMappingCursorValues(res *federationType.M
 	_ = hasUnique
 
 	collect(cc...)
-	if !hasUnique || !pkNodeID {
-		collect(&filter.SortExpr{Column: "nodeID", Descending: false})
-	}
 
 	return cur
 
