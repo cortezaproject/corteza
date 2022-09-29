@@ -162,8 +162,8 @@ func TestHandlers(t *testing.T) {
 			out:  mnt,
 		},
 		{
-			name: "date",
-			expr: `date(now())`,
+			name: "day",
+			expr: `day(now())`,
 			in:   simpleRow{},
 			out:  dy,
 		},

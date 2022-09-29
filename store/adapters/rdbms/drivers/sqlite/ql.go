@@ -2,10 +2,11 @@ package sqlite
 
 import (
 	"fmt"
-	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ql"
-	"github.com/doug-martin/goqu/v9/exp"
 	"regexp"
 	"strings"
+
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ql"
+	"github.com/doug-martin/goqu/v9/exp"
 )
 
 var (
@@ -43,6 +44,14 @@ var (
 			Handler: func(args ...exp.Expression) exp.Expression {
 				return exp.NewSQLFunctionExpression("STRFTIME",
 					exp.NewLiteralExpression("'%Y-%m-%dT00:00:00Z'"),
+					args[0],
+				)
+			},
+		},
+		"day": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("STRFTIME",
+					exp.NewLiteralExpression("'%d'"),
 					args[0],
 				)
 			},
