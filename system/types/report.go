@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/cortezaproject/corteza-server/pkg/sql"
@@ -146,42 +145,6 @@ type (
 		Error string `json:"error,omitempty"`
 	}
 )
-
-// // // // // // // // // // // // // // // // // // // // // // // // //
-
-// @todo redo/rething these col methods along with the rest of the attr
-//       interface rethinking.
-func (c ReportAggregateColumn) Identifier() string {
-	return c.Name
-}
-
-func (c ReportAggregateColumn) Expression() (expression string) {
-	if c.Def == nil || c.Def.ASTNode == nil {
-		return
-	}
-	return c.Def.String()
-}
-
-func (c ReportAggregateColumn) Source() (ident string) {
-	return c.Name
-}
-
-func (c ReportAggregateColumn) Properties() dal.MapProperties {
-	// @todo!!!
-	return dal.MapProperties{}
-}
-
-func (cc ReportAggregateColumnSet) DalMapping() []dal.AttributeMapping {
-	out := make([]dal.AttributeMapping, 0, len(cc))
-
-	for _, c := range cc {
-		out = append(out, c)
-	}
-
-	return out
-}
-
-// // // // // // // // // // // // // // // // // // // // // // // // //
 
 // ReportSteps returns a ReportStepSet collected from the ReportDataSourceSet
 func (ss ReportDataSourceSet) ReportSteps() ReportStepSet {

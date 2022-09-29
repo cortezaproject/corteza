@@ -524,7 +524,14 @@ func collectAttributes(s PipelineStep) (out []AttributeMapping) {
 		return s.OutAttributes
 
 	case *Aggregate:
-		return append(s.Group, s.OutAttributes...)
+		out = make([]AttributeMapping, 0, 24)
+		for _, a := range s.Group {
+			out = append(out, a.toSimpleAttr())
+		}
+		for _, a := range s.OutAttributes {
+			out = append(out, a.toSimpleAttr())
+		}
+		return
 
 	case *Join:
 		return s.OutAttributes

@@ -20,8 +20,8 @@ type (
 		scanRow *Row
 		planned bool
 
-		groupDefs     []aggregateAttr
-		aggregateDefs []aggregateAttr
+		groupDefs     []AggregateAttr
+		aggregateDefs []AggregateAttr
 
 		rowTester tester
 		keyWalker keyWalker
@@ -54,7 +54,7 @@ func (xs *aggregate) init(ctx context.Context) (err error) {
 	// Initialize the key maker
 	kk := make([]*ql.ASTNode, 0, len(xs.groupDefs))
 	for _, a := range xs.groupDefs {
-		kk = append(kk, a.expr)
+		kk = append(kk, a.Expression)
 	}
 
 	xs.keyWalker, err = aggregateGroupKeyWalker(kk...)
@@ -335,7 +335,7 @@ func (s *aggregate) wrapGroup(ctx context.Context, key groupKey) (g *aggregateGr
 	agg := Aggregator()
 
 	for _, a := range s.aggregateDefs {
-		err = agg.AddAggregate(a.ident, a.expr)
+		err = agg.AddAggregate(a.Identifier, a.Expression)
 		if err != nil {
 			return
 		}
@@ -362,7 +362,7 @@ func (xs *aggregate) scanKey(g *aggregateGroup, dst *Row) (err error) {
 	for i, attr := range xs.groupDefs {
 		// @todo multi value support?
 		// omitting err; internal row won't raise them
-		dst.SetValue(attr.ident, 0, g.key[i])
+		dst.SetValue(attr.Identifier, 0, g.key[i])
 	}
 
 	return nil
@@ -379,7 +379,7 @@ func (s *aggregate) keep(ctx context.Context, r *Row) (bool, error) {
 func (s *aggregate) collectPrimaryAttributes() (out []string) {
 	out = make([]string, 0, 2)
 	for _, m := range s.def.Group {
-		out = append(out, m.Identifier())
+		out = append(out, m.Identifier)
 	}
 
 	return
@@ -424,9 +424,9 @@ func (s *aggregate) sortGroups() {
 	})
 }
 
-func inKeys(kk []AttributeMapping, ident string) int {
+func inKeys(kk []AggregateAttr, ident string) int {
 	for i, k := range kk {
-		if k.Identifier() == ident {
+		if k.Identifier == ident {
 			return i
 		}
 	}
@@ -442,8 +442,8 @@ func (xs *aggregate) initScanRow() (out *Row) {
 
 	// pre-populate with known attrs
 	for _, attr := range append(xs.def.Group, xs.def.OutAttributes...) {
-		out.values[attr.Identifier()] = make([]any, 0, 2)
-		out.counters[attr.Identifier()] = 0
+		out.values[attr.Identifier] = make([]any, 0, 2)
+		out.counters[attr.Identifier] = 0
 	}
 
 	return

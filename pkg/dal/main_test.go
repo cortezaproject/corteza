@@ -26,6 +26,26 @@ func saToMapping(sa ...simpleAttribute) []AttributeMapping {
 	return out
 }
 
+func saToAggAttr(sa ...simpleAttribute) []AggregateAttr {
+	out := make([]AggregateAttr, 0, len(sa))
+	for _, a := range sa {
+		aux := AggregateAttr{
+			RawExpr:    a.expr,
+			Identifier: a.ident,
+			Type:       a.t,
+		}
+		if aux.RawExpr == "" {
+			aux.RawExpr = a.source
+		}
+		if aux.RawExpr == "" {
+			aux.RawExpr = a.ident
+		}
+		out = append(out, aux)
+	}
+
+	return out
+}
+
 func (sa simpleAttribute) Properties() MapProperties {
 	return MapProperties{
 		IsPrimary: sa.primary,

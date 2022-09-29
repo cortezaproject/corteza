@@ -500,14 +500,33 @@ func convStepAggregate(step types.ReportStepAggregate, defs FrameDefinitionSet) 
 		return
 	}
 
+	ggs := make([]dal.AggregateAttr, 0, len(step.Keys))
+	for _, c := range step.Keys {
+		ggs = append(ggs, dal.AggregateAttr{
+			Key:        true,
+			Identifier: c.Name,
+			Label:      c.Label,
+			Expression: c.Def.Node(),
+		})
+	}
+
+	vvs := make([]dal.AggregateAttr, 0, len(step.Columns))
+	for _, c := range step.Columns {
+		vvs = append(vvs, dal.AggregateAttr{
+			Identifier: c.Name,
+			Label:      c.Label,
+			Expression: c.Def.Node(),
+		})
+	}
+
 	// Make pipeline step
 	out = &dal.Aggregate{
 		Ident:     step.Name,
 		RelSource: step.Source,
 		Filter:    f,
 
-		Group:         step.Keys.DalMapping(),
-		OutAttributes: step.Columns.DalMapping(),
+		Group:         ggs,
+		OutAttributes: vvs,
 	}
 	return
 }
