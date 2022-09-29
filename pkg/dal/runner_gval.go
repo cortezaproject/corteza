@@ -218,7 +218,14 @@ var (
 func newConverterGval(ii ...ql.IdentHandler) converterGval {
 	if globalGvalConverter.parser == nil {
 		globalGvalConverter = converterGval{
-			parser: newQlParser(ii...),
+			parser: newQlParser(append(
+				ii,
+				// This should always happen for gval expressions
+				func(i ql.Ident) (ql.Ident, error) {
+					i.Value = wrapNestedGvalIdent(i.Value)
+					return i, nil
+				},
+			)...),
 		}
 	}
 

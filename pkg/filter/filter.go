@@ -142,7 +142,7 @@ func (f *filter) Constraints() map[string][]any      { return f.constaints }
 func (f *filter) StateConstraints() map[string]State { return f.stateConditions }
 func (f *filter) MetaConstraints() map[string]any    { return f.metaConditions }
 func (f *filter) Expression() string                 { return f.expression }
-func (f *filter) ExpressionParsed() string           { return f.expression }
+func (f *filter) ExpressionParsed() *ql.ASTNode      { return f.expressionParsed }
 func (f *filter) OrderBy() SortExprSet               { return f.orderBy }
 func (f *filter) Limit() uint                        { return f.limit }
 func (f *filter) Cursor() *PagingCursor              { return f.cursor }

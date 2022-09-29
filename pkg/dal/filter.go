@@ -20,12 +20,17 @@ type (
 		limit            uint
 		cursor           *filter.PagingCursor
 	}
+
+	parsedFilter interface {
+		ExpressionParsed() *ql.ASTNode
+	}
 )
 
 func (f internalFilter) Constraints() map[string][]any             { return f.constraints }
 func (f internalFilter) StateConstraints() map[string]filter.State { return f.stateConstraints }
 func (f internalFilter) MetaConstraints() map[string]any           { return f.metaConstraints }
 func (f internalFilter) Expression() string                        { return f.expression }
+func (f internalFilter) ExpressionParsed() *ql.ASTNode             { return f.expParsed }
 func (f internalFilter) OrderBy() filter.SortExprSet               { return f.orderBy }
 func (f internalFilter) Limit() uint                               { return f.limit }
 func (f internalFilter) Cursor() *filter.PagingCursor              { return f.cursor }
@@ -48,12 +53,25 @@ func toInternalFilter(f filter.Filter) (out internalFilter, err error) {
 		cursor:           f.Cursor(),
 	}
 
+	pf, ok := f.(parsedFilter)
+	if ok {
+		out.expParsed = pf.ExpressionParsed()
+
+		// In case the filter was already provided, we need to make sure the idents
+		// are wrapped
+		out.expParsed.Traverse(func(a *ql.ASTNode) (bool, *ql.ASTNode, error) {
+			a.Symbol = wrapNestedGvalIdent(a.Symbol)
+			return true, a, nil
+		})
+	}
+	if out.expParsed != nil {
+		// We can't mix the two so just clear it out to avoid confusion
+		out.expression = ""
+	}
+
 	// Parse expression for later use
 	if out.expression != "" {
-		pp := newQlParser(nil)
-		pp := newQlParser()
-
-		out.expParsed, err = pp.Parse(out.expression)
+		out.expParsed, err = newQlParser().Parse(out.expression)
 		if err != nil {
 			return
 		}

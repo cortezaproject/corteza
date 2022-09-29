@@ -35,6 +35,11 @@ type (
 	valueSet map[string][]any
 )
 
+const (
+	attributeNestingSeparator     = "."
+	attributeNestingGvalSeparator = "___DLTR___"
+)
+
 func (sa SimpleAttr) Identifier() string              { return sa.Ident }
 func (sa SimpleAttr) Expression() (expression string) { return sa.Expr }
 func (sa SimpleAttr) Source() (ident string)          { return sa.Src }
@@ -53,7 +58,7 @@ func (r *Row) WithValue(name string, pos uint, v any) *Row {
 }
 
 func (r Row) SelectGVal(ctx context.Context, k string) (interface{}, error) {
-	return r.GetValue(k, 0)
+	return r.GetValue(unwrapNestedGvalIdent(k), 0)
 }
 
 // Reset clears out the row so the same instance can be reused where possible
@@ -310,8 +315,9 @@ func stateConstraintsToExpression(cc map[string]filter.State) string {
 //       like the cursor one does.
 func prepareGenericRowTester(f internalFilter) (_ tester, err error) {
 	var (
-		parts  = make([]string, 0, 5)
-		pcNode *ql.ASTNode
+		parts    = make([]string, 0, 5)
+		pcNode   *ql.ASTNode
+		exprNode *ql.ASTNode
 	)
 
 	{
@@ -326,9 +332,12 @@ func prepareGenericRowTester(f internalFilter) (_ tester, err error) {
 			parts = append(parts, stateConstraintsToExpression(sc))
 		}
 
-		// Convert the expression
-		if expr := f.Expression(); len(expr) != 0 {
-			parts = append(parts, expr)
+		exprNode = f.ExpressionParsed()
+		if exprNode == nil {
+			expr := f.Expression()
+			if expr != "" {
+				parts = append(parts, f.Expression())
+			}
 		}
 
 		// Convert the paging cursor
@@ -337,36 +346,49 @@ func prepareGenericRowTester(f internalFilter) (_ tester, err error) {
 			if err != nil {
 				return
 			}
+			pcNode.Traverse(func(a *ql.ASTNode) (bool, *ql.ASTNode, error) {
+				if a.Symbol != "" {
+					a.Symbol = strings.Replace(a.Symbol, ".", "___DLMTR___", -1)
+				}
+				return true, a, nil
+			})
 		}
 	}
 
 	expr := strings.Join(parts, " && ")
 
 	// Everything is empty, not doing anything
-	if len(expr) == 0 && pcNode == nil {
+	if len(expr) == 0 && exprNode == nil && pcNode == nil {
 		return nil, nil
 	}
 
-	// Parse the base expression and prepare the QL node
-	if pcNode != nil {
-		// Use just the paging cursor node
-		if len(expr) == 0 {
-			return newRunnerGvalParsed(pcNode)
-		}
+	args := make([]*ql.ASTNode, 0, 5)
 
-		// Use both the expression and the paging cursor node and-ed together
+	// Paging cursors
+	if pcNode != nil {
+		args = append(args, pcNode)
+	}
+
+	// Parsed filter expression
+	if exprNode != nil {
+		args = append(args, exprNode)
+	}
+
+	// Rest of the generated expression string
+	if len(expr) > 0 {
 		expr, err := newConverterGval().Parse(expr)
 		if err != nil {
 			return nil, err
 		}
-		return newRunnerGvalParsed(&ql.ASTNode{
-			Ref:  "and",
-			Args: ql.ASTNodeSet{pcNode, expr},
-		})
+		args = append(args, expr)
 	}
 
-	// Default, parse the expr from source
-	return newRunnerGval(expr)
+	return newRunnerGvalParsed(
+		&ql.ASTNode{
+			Ref:  "and",
+			Args: args,
+		},
+	)
 }
 
 // makeRowComparator returns a ValueGetter comparator for the given sort expr
@@ -394,67 +416,6 @@ func evalCmpResult(cmp int, s *filter.SortExpr) (less, skip bool) {
 	}
 
 	return false, true
-}
-
-// mergeRows merges all of the provided rows into the destination row
-//
-// If AttributeMapping is provided, that is taken into account, else
-// everything is merged together with the last value winning.
-func mergeRows(mapping []AttributeMapping, dst *Row, rows ...*Row) (err error) {
-	if len(mapping) == 0 {
-		return mergeRowsFull(dst, rows...)
-	}
-
-	return mergeRowsMapped(mapping, dst, rows...)
-}
-
-// mergeRowsFull merges all of the provided rows into the destination row
-// The last provided value takes priority.
-func mergeRowsFull(dst *Row, rows ...*Row) (err error) {
-	for _, r := range rows {
-		for name, vv := range r.values {
-			for i, values := range vv {
-				if dst.values == nil {
-					dst.values = make(valueSet)
-					dst.counters = make(map[string]uint)
-				}
-
-				if i == 0 {
-					dst.values[name] = make([]any, len(vv))
-					dst.counters[name] = 0
-				}
-
-				err = dst.SetValue(name, uint(i), values)
-				if err != nil {
-					return
-				}
-			}
-		}
-	}
-
-	return
-}
-
-// mergeRowsMapped merges all of the provided rows into the destination row using the provided mapping
-// The last provided value takes priority.
-func mergeRowsMapped(mapping []AttributeMapping, out *Row, rows ...*Row) (err error) {
-	for _, mp := range mapping {
-		name := mp.Source()
-		for _, r := range rows {
-			if r.values[name] != nil {
-				if out.values == nil {
-					out.values = make(valueSet)
-					out.counters = make(map[string]uint)
-				}
-
-				out.values[mp.Identifier()] = r.values[name]
-				out.counters[mp.Identifier()] = r.counters[name]
-				break
-			}
-		}
-	}
-
-	return
 }
 
 func indexAttrs(aa ...AttributeMapping) (out map[string]bool) {
@@ -493,4 +454,41 @@ func keysFromExpr(nn ...*ql.ASTNode) (out []string, hasConstants bool) {
 	}
 
 	return
+}
+
+// Assure sort validates that the filter's definition includes all of the primary
+// keys and that the paging cursor's sort is compatible
+func assureSort(f internalFilter, primaries []string) (out internalFilter, err error) {
+	out = f
+
+	// make sure all primary keys are in there
+	for _, p := range primaries {
+		if out.orderBy.Get(p) == nil {
+			out.orderBy = append(out.orderBy, &filter.SortExpr{
+				Column:     p,
+				Descending: out.orderBy.LastDescending(),
+			})
+		}
+	}
+
+	// No cursor, no problem
+	if f.cursor == nil {
+		return
+	}
+
+	// Make sure the cursor can handle this sort def
+	out.orderBy, err = out.cursor.Sort(out.orderBy)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func wrapNestedGvalIdent(ident string) string {
+	return strings.ReplaceAll(ident, attributeNestingSeparator, attributeNestingGvalSeparator)
+}
+
+func unwrapNestedGvalIdent(ident string) string {
+	return strings.ReplaceAll(ident, attributeNestingGvalSeparator, attributeNestingSeparator)
 }

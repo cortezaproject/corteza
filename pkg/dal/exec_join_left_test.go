@@ -17,9 +17,9 @@ func TestStepJoinLocal(t *testing.T) {
 	crs1.Set("f_val", "f1 v1", false)
 
 	basicAttrs := []simpleAttribute{
-		{ident: "l_pk", t: TypeID{}},
+		{ident: "l_pk", t: TypeID{}, primary: true},
 		{ident: "l_val", t: TypeText{}},
-		{ident: "f_pk", t: TypeID{}},
+		{ident: "f_pk", t: TypeID{}, primary: true},
 		{ident: "f_fk", t: TypeRef{}},
 		{ident: "f_val", t: TypeText{}},
 	}
@@ -667,6 +667,13 @@ func TestStepJoinLocal(t *testing.T) {
 
 			f: internalFilter{
 				cursor: crs1,
+				orderBy: filter.SortExprSet{
+					{Column: "l_pk", Descending: false},
+					{Column: "l_val", Descending: false},
+					{Column: "f_pk", Descending: false},
+					{Column: "f_fk", Descending: false},
+					{Column: "f_val", Descending: false},
+				},
 			},
 		},
 		{
@@ -696,6 +703,13 @@ func TestStepJoinLocal(t *testing.T) {
 			f: internalFilter{
 				expression: "true",
 				cursor:     crs1,
+				orderBy: filter.SortExprSet{
+					{Column: "l_pk", Descending: false},
+					{Column: "l_val", Descending: false},
+					{Column: "f_pk", Descending: false},
+					{Column: "f_fk", Descending: false},
+					{Column: "f_val", Descending: false},
+				},
 			},
 		},
 		{
@@ -719,6 +733,13 @@ func TestStepJoinLocal(t *testing.T) {
 			f: internalFilter{
 				expression: "false",
 				cursor:     crs1,
+				orderBy: filter.SortExprSet{
+					{Column: "l_pk", Descending: false},
+					{Column: "l_val", Descending: false},
+					{Column: "f_pk", Descending: false},
+					{Column: "f_fk", Descending: false},
+					{Column: "f_val", Descending: false},
+				},
 			},
 		},
 	}
@@ -799,7 +820,7 @@ func TestStepJoinLocal(t *testing.T) {
 					OutAttributes:   saToMapping(tc.outAttributes...),
 					LeftAttributes:  saToMapping(tc.leftAttributes...),
 					RightAttributes: saToMapping(tc.rightAttributes...),
-					filter:          tc.f,
+					Filter:          tc.f,
 
 					plan: joinPlan{},
 				}
@@ -1181,7 +1202,7 @@ func TestStepJoin_paging(t *testing.T) {
 
 			f: internalFilter{
 				limit:   2,
-				orderBy: filter.SortExprSet{{Column: "l_pk", Descending: false}},
+				orderBy: filter.SortExprSet{{Column: "l_pk", Descending: false}, {Column: "f_pk", Descending: false}},
 			},
 
 			outF1: []simpleRow{
@@ -1219,7 +1240,7 @@ func TestStepJoin_paging(t *testing.T) {
 
 			f: internalFilter{
 				limit:   2,
-				orderBy: filter.SortExprSet{{Column: "l_pk", Descending: true}},
+				orderBy: filter.SortExprSet{{Column: "l_pk", Descending: true}, {Column: "f_pk", Descending: true}},
 			},
 
 			outF1: []simpleRow{
@@ -1258,7 +1279,7 @@ func TestStepJoin_paging(t *testing.T) {
 
 			f: internalFilter{
 				limit:   2,
-				orderBy: filter.SortExprSet{{Column: "f_val", Descending: false}},
+				orderBy: filter.SortExprSet{{Column: "f_val", Descending: false}, {Column: "l_pk", Descending: false}, {Column: "f_pk", Descending: false}},
 			},
 
 			outF1: []simpleRow{
@@ -1296,7 +1317,7 @@ func TestStepJoin_paging(t *testing.T) {
 
 			f: internalFilter{
 				limit:   2,
-				orderBy: filter.SortExprSet{{Column: "f_val", Descending: true}},
+				orderBy: filter.SortExprSet{{Column: "f_val", Descending: true}, {Column: "l_pk", Descending: true}, {Column: "f_pk", Descending: true}},
 			},
 
 			outF1: []simpleRow{
