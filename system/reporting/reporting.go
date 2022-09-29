@@ -578,6 +578,26 @@ func convStepLink(step types.ReportStepLink, defs FrameDefinitionSet) (out *dal.
 	// @todo additional filtering; will need to split the dal.Link filter into
 	//       left and right for more control and clarity
 
+	var extf filter.Filter
+	if len(defs) > 0 {
+		extf = filterFromDef(defs[0])
+	}
+
+	// Get additional filtering
+	f, err := dal.FilterFromExpr(step.Filter.Node()).
+		MergeFilters(extf)
+	if err != nil {
+		return
+	}
+
+	// @todo temporary constraint
+	if len(defs) == 2 {
+		d := defs[1]
+		if d.Filter != nil && d.Filter.Node() != nil || len(d.Sort) > 0 {
+			return nil, fmt.Errorf("temporary constraint: cannot apply sorting/filtering to foreign frame definition")
+		}
+	}
+
 	// Make pipeline step
 	out = &dal.Link{
 		Ident:    step.Name,
@@ -588,7 +608,7 @@ func convStepLink(step types.ReportStepLink, defs FrameDefinitionSet) (out *dal.
 			Left:  step.LocalColumn,
 			Right: step.ForeignColumn,
 		},
-		Filter: dal.FilterFromExpr(step.Filter.Node()),
+		Filter: f,
 	}
 	return
 }
