@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/tidwall/btree"
@@ -286,15 +287,12 @@ func (xs *joinLeft) joinRight(ctx context.Context, left *Row) (err error) {
 	}
 
 	for _, b := range bb {
-		for _, r := range b.rows {
+		for _, right := range b.rows {
 			// Merge the two
-			err = mergeRows(xs.def.OutAttributes, r, left, r)
-			if err != nil {
-				return
-			}
+			xs.mergeRows(xs.def.OutAttributes, right, left, right)
 
 			// Assert if we want to keep
-			k, err := xs.keep(ctx, r)
+			k, err := xs.keep(ctx, right)
 			if err != nil {
 				return err
 			}
@@ -302,7 +300,7 @@ func (xs *joinLeft) joinRight(ctx context.Context, left *Row) (err error) {
 				continue
 			}
 
-			xs.outSorted.Set(r)
+			xs.outSorted.Set(right)
 		}
 	}
 
@@ -312,7 +310,7 @@ func (xs *joinLeft) joinRight(ctx context.Context, left *Row) (err error) {
 // getRelatedBuffers returns all of the right rows corresponding to the given left row
 func (xs *joinLeft) getRelatedBuffers(l *Row) (out []*relIndexBuffer, ok bool, err error) {
 	var aux *relIndexBuffer
-	for c := uint(0); c < l.counters[xs.def.On.Left]; c++ {
+	for c := uint(0); c < l.CountValues()[xs.def.On.Left]; c++ {
 		// @note internal Row struct never errors
 		v, _ := l.GetValue(xs.def.On.Left, c)
 		aux, ok = xs.relIndex.Get(v)
@@ -365,4 +363,55 @@ func (xs *joinLeft) collectPrimaryAttributes() (out []string) {
 	}
 
 	return
+}
+
+// mergeRows merges the left and right rows based on the provided attrs
+func (xs *joinLeft) mergeRows(attrs []AttributeMapping, out, left, right *Row) {
+	var (
+		identSide int
+		srcIdent  string
+	)
+
+	for _, attr := range attrs {
+		srcIdent = attr.Identifier()
+		identSide = xs.identSide(srcIdent)
+
+		if identSide == -1 {
+			xs.mergeValuesFrom(srcIdent, out, left)
+		} else if identSide == 1 {
+			xs.mergeValuesFrom(srcIdent, out, right)
+		} else {
+			xs.mergeValuesFrom(srcIdent, out, left, right)
+		}
+	}
+}
+
+func (xs *joinLeft) mergeValuesFrom(ident string, out *Row, sources ...*Row) {
+	var (
+		aux any
+	)
+	for _, src := range sources {
+		for c := uint(0); c < src.CountValues()[ident]; c++ {
+			aux, _ = src.GetValue(ident, c)
+			out.SetValue(ident, c, aux)
+		}
+	}
+}
+
+// identSide returns -1 if the ident belongs to the left source, 1 if it belongs
+// to the right side, and 0 if it's either.
+//
+// @todo consider adding an additional flag to identify what side it is on.
+//       For now, this should be fine.
+func (xs *joinLeft) identSide(ident string) int {
+	pp := strings.Split(ident, attributeNestingSeparator)
+	if len(pp) > 1 {
+		if pp[0] == xs.def.RelLeft {
+			return -1
+		} else if pp[0] == xs.def.RelRight {
+			return 1
+		}
+	}
+
+	return 0
 }

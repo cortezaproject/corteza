@@ -12,38 +12,18 @@ func TestRowEvaluatorTest(t *testing.T) {
 	tc := []struct {
 		name string
 		expr string
-		in   map[string]ValueGetter
+		in   *Row
 		out  bool
 	}{{
 		name: "single row ok",
-		expr: `row.test == 10`,
-		in: map[string]ValueGetter{
-			"row": (&Row{}).WithValue("test", 0, 10),
-		},
-		out: true,
+		expr: `test == 10`,
+		in:   (&Row{}).WithValue("test", 0, 10),
+		out:  true,
 	}, {
 		name: "single row nok",
-		expr: `row.test == 11`,
-		in: map[string]ValueGetter{
-			"row": (&Row{}).WithValue("test", 0, 10),
-		},
-		out: false,
-	}, {
-		name: "two rows ok",
-		expr: `local.key == foreign.ref`,
-		in: map[string]ValueGetter{
-			"local":   (&Row{}).WithValue("key", 0, 10),
-			"foreign": (&Row{}).WithValue("ref", 0, 10),
-		},
-		out: true,
-	}, {
-		name: "two rows nok",
-		expr: `local.key == foreign.ref`,
-		in: map[string]ValueGetter{
-			"local":   (&Row{}).WithValue("key", 0, 10),
-			"foreign": (&Row{}).WithValue("ref", 0, 11),
-		},
-		out: false,
+		expr: `test == 11`,
+		in:   (&Row{}).WithValue("test", 0, 10),
+		out:  false,
 	}}
 
 	ctx := context.Background()

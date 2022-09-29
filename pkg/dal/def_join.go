@@ -132,10 +132,37 @@ func (def *Join) init(ctx context.Context, left, right Iterator) (exec *joinLeft
 		def.RightAttributes = collectAttributes(def.relRight)
 	}
 
-	// @todo this isn't quite ok -- the ident of left/right must become the src of the out.
-	//       An edge-case but it should be covered.
+	// When the output attributes are not provided, we determine them based on the input
+	// attributes.
+	//
+	// The join step prefixes each attribute with the identifier of the source they came from.
+	// This avoids name collisions.
+	// @todo consider improving this to only prefix when there is a name collision
+	//       and allow the nested attr. to be more permissive; for example, instead of
+	//       requiring a.b.c only b.c or c would be enough.
 	if len(def.OutAttributes) == 0 {
-		def.OutAttributes = append(def.LeftAttributes, def.RightAttributes...)
+		ins := func(srcIdent string, aa []AttributeMapping) {
+			for _, a := range aa {
+				p := a.Properties()
+				def.OutAttributes = append(def.OutAttributes, SimpleAttr{
+					Ident: fmt.Sprintf("%s%s%s", srcIdent, attributeNestingSeparator, a.Identifier()),
+					Expr:  a.Expression(),
+					Src:   a.Identifier(),
+					Props: p,
+				})
+			}
+		}
+
+		def.OutAttributes = make([]AttributeMapping, 0, len(def.LeftAttributes)+len(def.RightAttributes))
+		ins(def.RelLeft, def.LeftAttributes)
+		ins(def.RelRight, def.RightAttributes)
+	}
+
+	// Assure and attempt to correct the provided sort to conform with the data set and the
+	// paging cursor (if any)
+	def.filter, err = assureSort(def.filter, exec.collectPrimaryAttributes())
+	if err != nil {
+		return
 	}
 
 	// Index attrs for validations
