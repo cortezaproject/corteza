@@ -484,6 +484,10 @@ func (PagingCursor) guessTypedValue(v any) (expr.TypedValue, error) {
 
 	// other types
 	switch v.(type) {
+	case uint64:
+		return expr.NewID(v)
+	case uint, uint8, uint16, uint32:
+		return expr.NewUnsignedInteger(v)
 	case int, int8, int16, int32, int64:
 		return expr.NewInteger(v)
 	case float32, float64:
