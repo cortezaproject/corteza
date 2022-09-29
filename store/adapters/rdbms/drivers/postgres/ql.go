@@ -47,6 +47,13 @@ var (
 				return exp.NewLiteralExpression("?::DATE", args[0])
 			},
 		},
+		"day": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("EXTRACT",
+					exp.NewLiteralExpression("DAY FROM ?", args[0]),
+				)
+			},
+		},
 		"time": {
 			Handler: func(args ...exp.Expression) exp.Expression {
 				return exp.NewLiteralExpression("DATE_TRUNC('second', ?::TIME)::TIME", args[0])

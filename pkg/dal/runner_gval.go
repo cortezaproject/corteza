@@ -166,6 +166,11 @@ var (
 				return fmt.Sprintf("date(%s)", args[0])
 			},
 		},
+		"day": {
+			Handler: func(args ...string) string {
+				return fmt.Sprintf("day(%s)", args[0])
+			},
+		},
 		"date_format": {
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("strftime(%s, %s)", args[0], args[1])
@@ -284,6 +289,7 @@ func newGval(expr string) (gval.Evaluable, error) {
 		gval.Function("month", gvalfnc.Month),
 		gval.Function("strftime", gvalfnc.StrfTime),
 		gval.Function("date", gvalfnc.Date),
+		gval.Function("day", gvalfnc.Day),
 		gval.Function("isNil", gvalfnc.IsNil),
 		gval.Function("float", gvalfnc.CastFloat),
 		gval.Function("int", gvalfnc.CastInt),

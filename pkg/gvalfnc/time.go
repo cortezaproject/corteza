@@ -39,7 +39,12 @@ func Month(in any) (int, error) {
 	return int(t.Month()), nil
 }
 
-func Date(in any) (int, error) {
+func Date(in any) (time.Time, error) {
+	t, _, err := PrepMod(in, 0)
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location()), err
+}
+
+func Day(in any) (int, error) {
 	t, _, err := PrepMod(in, 0)
 	if err != nil {
 		return 0, err

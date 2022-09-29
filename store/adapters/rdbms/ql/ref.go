@@ -180,34 +180,6 @@ var (
 			},
 		},
 
-		// functions
-		// - aggregation
-		//"count": {
-		//	Args:    collectParams(false, "Any"),
-		//	Result:  wrapRes("Number"),
-		//	Handler: makeGenericAggFncHandler("COUNT"),
-		//},
-		//"sum": {
-		//	Args:    collectParams(true, "Any"),
-		//	Result:  wrapRes("Number"),
-		//	Handler: makeGenericAggFncHandler("SUM"),
-		//},
-		//"max": {
-		//	Args:    collectParams(true, "Any"),
-		//	Result:  wrapRes("Number"),
-		//	Handler: makeGenericAggFncHandler("MAX"),
-		//},
-		//"min": {
-		//	Args:    collectParams(true, "Any"),
-		//	Result:  wrapRes("Number"),
-		//	Handler: makeGenericAggFncHandler("MIN"),
-		//},
-		//"avg": {
-		//	Args:    collectParams(true, "Any"),
-		//	Result:  wrapRes("Number"),
-		//	Handler: makeGenericAggFncHandler("AVG"),
-		//},
-
 		// - filtering
 		"date_format": {
 			Handler: func(args ...exp.Expression) exp.Expression {
@@ -234,9 +206,14 @@ var (
 				return exp.NewSQLFunctionExpression("MONTH", args[0])
 			},
 		},
-		"date": {
+		"day": {
 			Handler: func(args ...exp.Expression) exp.Expression {
 				return exp.NewSQLFunctionExpression("DAY", args[0])
+			},
+		},
+		"date": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("DATE", args[0])
 			},
 		},
 	}
