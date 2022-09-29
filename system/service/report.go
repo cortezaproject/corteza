@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
@@ -395,7 +396,8 @@ func (svc *report) enhance(ctx context.Context, ff []*reporting.Frame) (err erro
 		for i, c := range f.Columns {
 			// Translate system columns
 			if c.System {
-				c.Label = svc.locale.T(ctx, "compose", fmt.Sprintf("field.system.%s", c.Name))
+				pp := strings.Split(c.Name, ".")
+				c.Label = svc.locale.T(ctx, "compose", fmt.Sprintf("field.system.%s", pp[len(pp)-1]))
 				f.Columns[i] = c
 			}
 
