@@ -6,6 +6,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/modern-go/reflect2"
 )
 
 type (
@@ -92,6 +93,11 @@ func (b *reportFrameBuilder) done() *Frame {
 }
 
 func (b *reportFrameBuilder) stringifyVal(col string, val any) string {
+	// Edgecase for when values are nil since the stringer uses <nil> for those
+	if reflect2.IsNil(val) {
+		return ""
+	}
+
 	// @todo nicer formatting and such? V1 didn't do much different
 	return fmt.Sprintf("%v", val)
 }
