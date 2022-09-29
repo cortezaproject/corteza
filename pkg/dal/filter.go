@@ -51,6 +51,8 @@ func toInternalFilter(f filter.Filter) (out internalFilter, err error) {
 	// Parse expression for later use
 	if out.expression != "" {
 		pp := newQlParser(nil)
+		pp := newQlParser()
+
 		out.expParsed, err = pp.Parse(out.expression)
 		if err != nil {
 			return

@@ -215,10 +215,10 @@ var (
 )
 
 // newConverterGval initializes a new gval exp. converter
-func newConverterGval() converterGval {
+func newConverterGval(ii ...ql.IdentHandler) converterGval {
 	if globalGvalConverter.parser == nil {
 		globalGvalConverter = converterGval{
-			parser: newQlParser(nil),
+			parser: newQlParser(ii...),
 		}
 	}
 
@@ -285,13 +285,16 @@ func newGval(expr string) (gval.Evaluable, error) {
 	).NewEvaluable(expr)
 }
 
-func newQlParser(onIdent ql.IdentHandler) *ql.Parser {
+func newQlParser(onIdent ...ql.IdentHandler) *ql.Parser {
 	pp := ql.NewParser()
 	pp.OnIdent = func(ident ql.Ident) (_ ql.Ident, err error) {
 		ident.Value = NormalizeAttrNames(ident.Value)
 
-		if onIdent != nil {
-			ident, err = onIdent(ident)
+		for _, oi := range onIdent {
+			ident, err = oi(ident)
+			if err != nil {
+				return
+			}
 		}
 
 		return ident, err
