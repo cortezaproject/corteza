@@ -407,7 +407,6 @@ type (
 		UpsertFederationModuleMapping(ctx context.Context, rr ...*federationType.ModuleMapping) error
 		DeleteFederationModuleMapping(ctx context.Context, rr ...*federationType.ModuleMapping) error
 
-		DeleteFederationModuleMappingByNodeID(ctx context.Context, nodeID uint64) error
 		TruncateFederationModuleMappings(ctx context.Context) error
 		LookupFederationModuleMappingByFederationModuleIDComposeModuleIDComposeNamespaceID(ctx context.Context, federationModuleID uint64, composeModuleID uint64, composeNamespaceID uint64) (*federationType.ModuleMapping, error)
 		LookupFederationModuleMappingByFederationModuleID(ctx context.Context, federationModuleID uint64) (*federationType.ModuleMapping, error)
@@ -2215,13 +2214,6 @@ func UpsertFederationModuleMapping(ctx context.Context, s FederationModuleMappin
 // This function is auto-generated
 func DeleteFederationModuleMapping(ctx context.Context, s FederationModuleMappings, rr ...*federationType.ModuleMapping) error {
 	return s.DeleteFederationModuleMapping(ctx, rr...)
-}
-
-// DeleteFederationModuleMappingByID deletes one or more FederationModuleMappings from store
-//
-// This function is auto-generated
-func DeleteFederationModuleMappingByNodeID(ctx context.Context, s FederationModuleMappings, nodeID uint64) error {
-	return s.DeleteFederationModuleMappingByNodeID(ctx, nodeID)
 }
 
 // TruncateFederationModuleMappings Deletes all FederationModuleMappings from store

@@ -155,19 +155,19 @@ var ModuleMapping = &dal.Model{
 		&dal.Attribute{
 			Ident: "FederationModuleID", Sortable: true,
 			Type:  &dal.TypeID{},
-			Store: &dal.CodecAlias{Ident: "federation_module_id"},
+			Store: &dal.CodecAlias{Ident: "rel_federation_module"},
 		},
 
 		&dal.Attribute{
 			Ident: "ComposeModuleID", Sortable: true,
 			Type:  &dal.TypeID{},
-			Store: &dal.CodecAlias{Ident: "compose_module_id"},
+			Store: &dal.CodecAlias{Ident: "rel_compose_module"},
 		},
 
 		&dal.Attribute{
 			Ident: "ComposeNamespaceID", Sortable: true,
 			Type:  &dal.TypeID{},
-			Store: &dal.CodecAlias{Ident: "compose_namespace_id"},
+			Store: &dal.CodecAlias{Ident: "rel_compose_namespace"},
 		},
 
 		&dal.Attribute{
@@ -180,17 +180,6 @@ var ModuleMapping = &dal.Model{
 	},
 
 	Indexes: dal.IndexSet{
-		&dal.Index{
-			Ident: "PRIMARY",
-			Type:  "BTREE",
-
-			Fields: []*dal.IndexField{
-				{
-					AttributeIdent: "NodeID",
-				},
-			},
-		},
-
 		&dal.Index{
 			Ident:  "federation_module_mapping_uniqueModuleComposeModule",
 			Type:   "BTREE",
