@@ -32,6 +32,10 @@ type (
 
 		table drivers.TableCodec
 	}
+
+	parsedFilter interface {
+		ExpressionParsed() *ql.ASTNode
+	}
 )
 
 func validate(m *dal.Model) error {
@@ -93,35 +97,48 @@ func Model(m *dal.Model, c queryRunner, d drivers.Dialect) *model {
 //       since we're just initializing fairly light structs.
 func (d *model) parseQuery(q string) (out exp.Expression, err error) {
 	pp := ql.Converter(
-		ql.SymHandler(func(node *ql.ASTNode) (exp.Expression, error) {
-			// @note normalize system idents on the RDBMS level for filters
-			//       offloaded to the database.
-			sym := dal.NormalizeAttrNames(node.Symbol)
-			if d.model.ResourceType == "corteza::compose:module" {
-				// temporary solution
-				//
-				// before DAL some fields were aliased (recordID => ID)
-				switch sym {
-				case "recordID":
-					sym = "ID"
-				}
-			}
-
-			attr := d.model.Attributes.FindByIdent(sym)
-			if attr == nil {
-				return nil, fmt.Errorf("unknown attribute %q used in query expression", node.Symbol)
-			}
-
-			if !attr.Filterable {
-				return nil, fmt.Errorf("attribute %q can not be used in query expression", attr.Ident)
-			}
-
-			return d.table.AttributeExpression(sym)
-		}),
+		ql.SymHandler(d.qlConverterGenericHandlers()),
 		ql.RefHandler(d.dialect.ExprHandler),
 	)
 
 	return pp.Parse(q)
+}
+
+func (d *model) convertQuery(n *ql.ASTNode) (out exp.Expression, err error) {
+	pp := ql.Converter(
+		ql.SymHandler(d.qlConverterGenericHandlers()),
+		ql.RefHandler(d.dialect.ExprHandler),
+	)
+
+	return pp.Convert(n)
+}
+
+func (d *model) qlConverterGenericHandlers() func(node *ql.ASTNode) (exp.Expression, error) {
+	return func(node *ql.ASTNode) (exp.Expression, error) {
+		// @note normalize system idents on the RDBMS level for filters
+		//       offloaded to the database.
+		sym := dal.NormalizeAttrNames(node.Symbol)
+		if d.model.ResourceType == "corteza::compose:module" {
+			// temporary solution
+			//
+			// before DAL some fields were aliased (recordID => ID)
+			switch sym {
+			case "recordID":
+				sym = "ID"
+			}
+		}
+
+		attr := d.model.Attributes.FindByIdent(sym)
+		if attr == nil {
+			return nil, fmt.Errorf("unknown attribute %q used in query expression", node.Symbol)
+		}
+
+		if !attr.Filterable {
+			return nil, fmt.Errorf("attribute %q can not be used in query expression", attr.Ident)
+		}
+
+		return d.table.AttributeExpression(sym)
+	}
 }
 
 func (d *model) Truncate(ctx context.Context) error {
@@ -388,6 +405,17 @@ func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 			} else {
 				cnd = append(cnd, metaKeyExpr.Eq(mVal))
 			}
+		}
+	}
+
+	if pf, ok := f.(parsedFilter); ok {
+		tmp := pf.ExpressionParsed()
+		if tmp != nil {
+			n, err := d.convertQuery(tmp)
+			if err != nil {
+				return base.SetError(err)
+			}
+			cnd = append(cnd, n)
 		}
 	}
 

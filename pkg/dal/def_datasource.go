@@ -67,7 +67,11 @@ func (def *Datasource) init(ctx context.Context, s iterProvider) (err error) {
 		}
 	}
 
-	iter, model, err := s(ctx, def.ModelRef, def.filter)
+	// Do the first init to get the model.
+	// For now, this is a ~free operation, but it should change when we allow things
+	// like nesting reports, etc.
+	// @todo refactor datasource descriptors to avoid this
+	_, model, err := s(ctx, def.ModelRef, def.filter)
 	if err != nil {
 		return
 	}
@@ -76,7 +80,25 @@ func (def *Datasource) init(ctx context.Context, s iterProvider) (err error) {
 		def.OutAttributes = def.outAttrsFromModel(model)
 	}
 
-	def.auxIter = iter
+	pp := make([]string, 0, len(def.OutAttributes)/2+1)
+	for _, a := range def.OutAttributes {
+		if a.Properties().IsPrimary {
+			pp = append(pp, a.Identifier())
+		}
+	}
+
+	// Assure and attempt to correct the provided sort to conform with the data set and the
+	// paging cursor (if any)
+	def.filter, err = assureSort(def.filter, pp)
+	if err != nil {
+		return
+	}
+
+	// Get the iterator for actual use
+	def.auxIter, _, err = s(ctx, def.ModelRef, def.filter)
+	if err != nil {
+		return
+	}
 
 	err = def.validate()
 	if err != nil {
