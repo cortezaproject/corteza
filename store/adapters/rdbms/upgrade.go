@@ -82,9 +82,17 @@ func createTablesFromModels(ctx context.Context, log *zap.Logger, dd ddl.DataDef
 	return nil
 }
 
+// addColumn adds column on a table but only if table exists!
+//
+// If table does not exist adding column can be skipped
+// We can assume that 2nd step of the upgrade process will include the column
 func addColumn(ctx context.Context, s *Store, table string, attr *dal.Attribute) error {
 	tbl, err := s.DataDefiner.TableLookup(ctx, table)
 	if err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+
 		return err
 	}
 
@@ -102,9 +110,17 @@ func addColumn(ctx context.Context, s *Store, table string, attr *dal.Attribute)
 	return s.DataDefiner.ColumnAdd(ctx, table, col)
 }
 
+// dropColumns removes columns from a table but only if table exists!
+//
+// If table does not exist column removing can be skipped
+// We can assume that 2nd step of the upgrade process will omit the column
 func dropColumns(ctx context.Context, s *Store, table string, cc ...string) error {
 	tbl, err := s.DataDefiner.TableLookup(ctx, table)
 	if err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+
 		return err
 	}
 
@@ -122,9 +138,17 @@ func dropColumns(ctx context.Context, s *Store, table string, cc ...string) erro
 	return nil
 }
 
+// renameColumn renames columns from a table but only if table exists!
+//
+// If table does not exist column renaming can be skipped
+// We can assume that 2nd step of the upgrade process will have columns properly nameed
 func renameColumn(ctx context.Context, s *Store, table string, from, to string) error {
 	tbl, err := s.DataDefiner.TableLookup(ctx, table)
 	if err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+
 		return err
 	}
 

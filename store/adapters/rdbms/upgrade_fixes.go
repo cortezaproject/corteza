@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	labelsType "github.com/cortezaproject/corteza-server/pkg/label/types"
 	"github.com/cortezaproject/corteza-server/store"
 	"go.uber.org/zap"
@@ -26,6 +27,7 @@ var (
 		fix_2022_09_00_extendDalConnectionsForMeta,
 		fix_2022_09_00_renameModuleColOnComposeRecords,
 		fix_2022_09_00_addMetaOnComposeRecords,
+		fix_2022_09_00_addMissingNodeIdOnFederationMapping,
 	}
 )
 
@@ -38,7 +40,7 @@ func fix_2022_09_00_extendComposeModuleForPrivacyAndDAL(ctx context.Context, s *
 
 func fix_2022_09_00_extendComposeModuleFieldsForPrivacyAndDAL(ctx context.Context, s *Store) (err error) {
 	return addColumn(ctx, s,
-		"compose_module",
+		"compose_module_field",
 		&dal.Attribute{Ident: "config", Type: &dal.TypeJSON{DefaultValue: "{}"}},
 	)
 }
@@ -69,6 +71,14 @@ func fix_2022_09_00_addMetaOnComposeRecords(ctx context.Context, s *Store) (err 
 		groupedMeta = make(map[uint64]map[string]any)
 		packed      []byte
 	)
+
+	_, err = s.DataDefiner.TableLookup(ctx, "labels")
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
 
 	err = addColumn(ctx, s,
 		"compose_record",
@@ -110,5 +120,11 @@ func fix_2022_09_00_addMetaOnComposeRecords(ctx context.Context, s *Store) (err 
 		return
 
 	})
+}
 
+func fix_2022_09_00_addMissingNodeIdOnFederationMapping(ctx context.Context, s *Store) (err error) {
+	return addColumn(ctx, s,
+		"federation_module_mapping",
+		&dal.Attribute{Ident: "node_id", Type: &dal.TypeID{}},
+	)
 }
