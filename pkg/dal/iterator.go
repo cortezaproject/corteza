@@ -124,7 +124,7 @@ func IteratorPaging(ctx context.Context, iter Iterator, pp *filter.Paging, ss fi
 			return
 		}
 
-		if total%pp.Limit == 0 {
+		if pp.Limit > 0 && total%pp.Limit == 0 {
 			pp.PageNavigation = append(pp.PageNavigation, &filter.Page{
 				Page:   page.Page,
 				Count:  page.Count,
