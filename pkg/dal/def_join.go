@@ -160,7 +160,7 @@ func (def *Join) init(ctx context.Context, left, right Iterator) (exec *joinLeft
 
 	// Assure and attempt to correct the provided sort to conform with the data set and the
 	// paging cursor (if any)
-	def.filter, err = assureSort(def.filter, exec.collectPrimaryAttributes())
+	def.filter, err = assureSort(def.filter, exec.collectPrimaryAttributes(def.OutAttributes))
 	if err != nil {
 		return
 	}
