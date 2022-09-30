@@ -39,7 +39,7 @@ list:
     query:
       label: Filter servers list
       placeholder: Filter servers by name
-  loading: Loading servers
+  loading: Loading federated nodes
   new: New
   numFound: '{{count}} server found'
   numFound_plural: '{{count}} servers found'

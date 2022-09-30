@@ -9,9 +9,16 @@ primary:
 list:
   title: List of database connections
   add-button: Add connection
-  filter-form:
-    query:
-      placeholder: Search by name
+  loading: Loading connections
+  filterForm:
+    deleted:
+      label: deleted connections
+    excluded:
+      label: Without
+    exclusive:
+      label: Only
+    inclusive:
+      label: Including
   columns:
     name: Name
     location: Location
