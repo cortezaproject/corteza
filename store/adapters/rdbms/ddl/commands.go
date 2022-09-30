@@ -261,7 +261,7 @@ func (c *DropIndex) ToSQL() (sql string, aa []interface{}, err error) {
 
 func (c *RenameColumn) ToSQL() (sql string, aa []interface{}, err error) {
 	return fmt.Sprintf(
-		`ALTER TABLE %s RENAME %s TO %s`,
+		`ALTER TABLE %s RENAME COLUMN %s TO %s`,
 		c.Dialect.QuoteIdent(c.Table),
 		c.Dialect.QuoteIdent(c.Old),
 		c.Dialect.QuoteIdent(c.New),
