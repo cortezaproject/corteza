@@ -20,6 +20,11 @@ type (
 		SuffixClause          string
 	}
 
+	DropTable struct {
+		Dialect dialect
+		Table   string
+	}
+
 	CreateIndex struct {
 		Dialect               dialect
 		Index                 *Index
@@ -100,6 +105,13 @@ func (t *CreateTable) String() string {
 	sql += t.SuffixClause
 
 	return sql
+}
+
+func (c *DropTable) ToSQL() (sql string, aa []interface{}, err error) {
+	return fmt.Sprintf(
+		`DROP TABLE %s`,
+		c.Dialect.QuoteIdent(c.Table),
+	), nil, nil
 }
 
 func GenCreateTableBody(d dialect, t *Table) string {

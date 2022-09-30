@@ -24,6 +24,7 @@ type (
 		// Tables(ctx context.Context) ([]*Table, error)
 		TableLookup(context.Context, string) (*Table, error)
 		TableCreate(context.Context, *Table) error
+		TableDrop(context.Context, string) error
 
 		ColumnAdd(context.Context, string, *Column) error
 		ColumnDrop(context.Context, string, string) error
