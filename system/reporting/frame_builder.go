@@ -111,7 +111,7 @@ func (b *reportFrameBuilder) freshFrame() {
 	if b.frame != nil {
 		aux := *b.frame
 		b.frame = &aux
-		b.frame.Rows = nil
+		b.frame.Rows = []FrameRow{}
 		return
 	}
 
@@ -119,6 +119,8 @@ func (b *reportFrameBuilder) freshFrame() {
 		Name:   b.def.Name,
 		Source: b.def.Source,
 		Ref:    b.def.Ref,
+
+		Rows: []FrameRow{},
 
 		Columns: b.def.Columns,
 		Sort:    b.def.Sort,
