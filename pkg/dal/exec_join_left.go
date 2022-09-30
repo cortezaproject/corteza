@@ -76,7 +76,7 @@ func (xs *joinLeft) Next(ctx context.Context) (more bool) {
 }
 
 func (xs *joinLeft) More(limit uint, v ValueGetter) (err error) {
-	xs.filter.cursor, err = filter.PagingCursorFrom(xs.filter.OrderBy(), v, xs.collectPrimaryAttributes()...)
+	xs.filter.cursor, err = filter.PagingCursorFrom(xs.filter.OrderBy(), v, xs.collectPrimaryAttributes(xs.def.OutAttributes)...)
 	if err != nil {
 		return
 	}
@@ -138,7 +138,7 @@ func (xs *joinLeft) Close() (err error) {
 }
 
 func (xs *joinLeft) BackCursor(v ValueGetter) (pc *filter.PagingCursor, err error) {
-	pc, err = filter.PagingCursorFrom(xs.filter.OrderBy(), v, xs.collectPrimaryAttributes()...)
+	pc, err = filter.PagingCursorFrom(xs.filter.OrderBy(), v, xs.collectPrimaryAttributes(xs.def.OutAttributes)...)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +150,7 @@ func (xs *joinLeft) BackCursor(v ValueGetter) (pc *filter.PagingCursor, err erro
 }
 
 func (xs *joinLeft) ForwardCursor(v ValueGetter) (pc *filter.PagingCursor, err error) {
-	pc, err = filter.PagingCursorFrom(xs.filter.OrderBy(), v, xs.collectPrimaryAttributes()...)
+	pc, err = filter.PagingCursorFrom(xs.filter.OrderBy(), v, xs.collectPrimaryAttributes(xs.def.OutAttributes)...)
 	if err != nil {
 		return nil, err
 	}
@@ -354,9 +354,9 @@ func (xs *joinLeft) keep(ctx context.Context, r *Row) (bool, error) {
 //
 // @todo consider applying PK candidates and filter out some of these. I don't
 //       think it'll provide much of a performance boost but worth a shot later on.
-func (xs *joinLeft) collectPrimaryAttributes() (out []string) {
+func (xs *joinLeft) collectPrimaryAttributes(mm []AttributeMapping) (out []string) {
 	out = make([]string, 0, 2)
-	for _, m := range xs.def.OutAttributes {
+	for _, m := range mm {
 		if m.Properties().IsPrimary {
 			out = append(out, m.Identifier())
 		}
@@ -377,23 +377,23 @@ func (xs *joinLeft) mergeRows(attrs []AttributeMapping, out, left, right *Row) {
 		identSide = xs.identSide(srcIdent)
 
 		if identSide == -1 {
-			xs.mergeValuesFrom(srcIdent, out, left)
+			xs.mergeValuesFrom(attr.Source(), attr.Identifier(), out, left)
 		} else if identSide == 1 {
-			xs.mergeValuesFrom(srcIdent, out, right)
+			xs.mergeValuesFrom(attr.Source(), attr.Identifier(), out, right)
 		} else {
-			xs.mergeValuesFrom(srcIdent, out, left, right)
+			xs.mergeValuesFrom(attr.Source(), attr.Identifier(), out, left, right)
 		}
 	}
 }
 
-func (xs *joinLeft) mergeValuesFrom(ident string, out *Row, sources ...*Row) {
+func (xs *joinLeft) mergeValuesFrom(inIdent, outIdent string, out *Row, sources ...*Row) {
 	var (
 		aux any
 	)
 	for _, src := range sources {
-		for c := uint(0); c < src.CountValues()[ident]; c++ {
-			aux, _ = src.GetValue(ident, c)
-			out.SetValue(ident, c, aux)
+		for c := uint(0); c < src.CountValues()[inIdent]; c++ {
+			aux, _ = src.GetValue(inIdent, c)
+			out.SetValue(outIdent, c, aux)
 		}
 	}
 }
