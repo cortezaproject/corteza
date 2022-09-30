@@ -89,9 +89,7 @@ func TestDataPrivacyRequestListWithPaging(t *testing.T) {
 	h.apiInit().
 		Get("/data-privacy/requests/").
 		Query("limit", "10").
-		// @todo skipped because this breaks paging cursors
-		// Query("sort", "kind,createdAt+DESC").
-		Query("sort", "kind").
+		Query("sort", "kind,createdAt+DESC").
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
@@ -109,9 +107,7 @@ func TestDataPrivacyRequestListWithPaging(t *testing.T) {
 		Get("/data-privacy/requests/").
 		Header("Accept", "application/json").
 		Query("limit", "10").
-		// @todo skipped because this breaks paging cursors
-		// Query("sort", "kind,createdAt+DESC").
-		Query("sort", "kind").
+		Query("sort", "kind,createdAt+DESC").
 		Query("pageCursor", *aux.Response.Filter.NextPage).
 		Expect(t).
 		Status(http.StatusOK).
