@@ -246,6 +246,11 @@ func (d *composeDecoder) decodeComposeRecord(ctx context.Context, s store.Storer
 				err: err,
 			}
 		}
+
+		_ = ff.Walk(func(f *types.ModuleField) error {
+			f.NamespaceID = mod.NamespaceID
+			return nil
+		})
 		mod.Fields = ff
 
 		aux.Check = service.ComposeRecordFilterChecker(ctx, ac, mod)
