@@ -1789,18 +1789,22 @@ func recordReportToDalPipeline(m *types.Module, metrics, dimensions, f string) (
 
 	// - other requested metrices
 	if len(metrics) > 0 {
-		pts := strings.Split(metrics, " AS ")
-		expr := strings.TrimSpace(pts[0])
-		ident := expr
-		if len(pts) > 1 {
-			ident = strings.TrimSpace(pts[1])
-		}
+		mm := strings.Split(metrics, ",")
+		for _, m := range mm {
+			m = strings.TrimSpace(m)
+			pts := strings.Split(m, " AS ")
+			expr := strings.TrimSpace(pts[0])
+			ident := expr
+			if len(pts) > 1 {
+				ident = strings.TrimSpace(pts[1])
+			}
 
-		mms = append(mms, dal.AggregateAttr{
-			Identifier: ident,
-			RawExpr:    expr,
-			Type:       dal.TypeNumber{},
-		})
+			mms = append(mms, dal.AggregateAttr{
+				Identifier: ident,
+				RawExpr:    expr,
+				Type:       dal.TypeNumber{},
+			})
+		}
 	}
 
 	// Build the pipeline
