@@ -1029,7 +1029,7 @@ func TestRecordReportToDalPipeline(t *testing.T) {
 
 		agg := pp[1].(*dal.Aggregate)
 		require.Len(t, agg.OutAttributes, 1)
-		require.Equal(t, "count", agg.OutAttributes[0].Identifier())
+		require.Equal(t, "count", agg.OutAttributes[0].Identifier)
 	})
 
 	t.Run("additional metrics with alias", func(t *testing.T) {
@@ -1040,8 +1040,8 @@ func TestRecordReportToDalPipeline(t *testing.T) {
 
 		agg := pp[1].(*dal.Aggregate)
 		require.Len(t, agg.OutAttributes, 2)
-		require.Equal(t, "something", agg.OutAttributes[1].Identifier())
-		require.Equal(t, "MAX(numbers)", agg.OutAttributes[1].Expression())
+		require.Equal(t, "something", agg.OutAttributes[1].Identifier)
+		require.Equal(t, "MAX(numbers)", agg.OutAttributes[1].RawExpr)
 	})
 
 	t.Run("additional metrics without alias", func(t *testing.T) {
@@ -1052,7 +1052,7 @@ func TestRecordReportToDalPipeline(t *testing.T) {
 
 		agg := pp[1].(*dal.Aggregate)
 		require.Len(t, agg.OutAttributes, 2)
-		require.Equal(t, "MAX(numbers)", agg.OutAttributes[1].Identifier())
-		require.Equal(t, "MAX(numbers)", agg.OutAttributes[1].Expression())
+		require.Equal(t, "MAX(numbers)", agg.OutAttributes[1].Identifier)
+		require.Equal(t, "MAX(numbers)", agg.OutAttributes[1].RawExpr)
 	})
 }
