@@ -240,7 +240,7 @@ func TestRecordListWithPaginationAndSorting(t *testing.T) {
 		Query("incTotal", "true").
 		Query("incPageNavigation", "true").
 		Query("limit", "2").
-		Query("sort", "createdAt DESC").
+		Query("sort", "name DESC").
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
@@ -263,7 +263,7 @@ func TestRecordListWithPaginationAndSorting(t *testing.T) {
 		Query("incPageNavigation", "false").
 		Query("limit", "2").
 		Query("pageCursor", *aux.Response.Filter.PageNavigation[1].Cursor).
-		Query("sort", "createdAt DESC").
+		Query("sort", "name DESC").
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
