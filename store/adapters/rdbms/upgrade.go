@@ -44,7 +44,7 @@ func createTablesFromModels(ctx context.Context, log *zap.Logger, dd ddl.DataDef
 
 	for _, mm := range sets {
 		for _, m := range mm {
-			log.Debug("creating table", zap.String("table", m.Ident))
+			log.Debug("verifying primary store table", zap.String("table", m.Ident))
 
 			if tbl, err = dd.ConvertModel(m); err != nil {
 				return fmt.Errorf("can not convert model %q to table: %w", m.Ident, err)
@@ -80,6 +80,19 @@ func createTablesFromModels(ctx context.Context, log *zap.Logger, dd ddl.DataDef
 	}
 
 	return nil
+}
+
+func dropTable(ctx context.Context, s *Store, table string) error {
+	_, err := s.DataDefiner.TableLookup(ctx, table)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+
+		return err
+	}
+
+	return s.DataDefiner.TableDrop(ctx, table)
 }
 
 // addColumn adds column on a table but only if table exists!

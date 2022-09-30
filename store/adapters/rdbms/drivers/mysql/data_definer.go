@@ -64,6 +64,13 @@ func (dd *dataDefiner) TableCreate(ctx context.Context, t *ddl.Table) error {
 	})
 }
 
+func (dd *dataDefiner) TableDrop(ctx context.Context, t string) error {
+	return ddl.Exec(ctx, dd.conn, &ddl.DropTable{
+		Dialect: dd.d,
+		Table:   t,
+	})
+}
+
 func (dd *dataDefiner) TableLookup(ctx context.Context, t string) (*ddl.Table, error) {
 	return dd.is.TableLookup(ctx, t, dd.dbName)
 }
