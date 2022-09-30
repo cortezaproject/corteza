@@ -74,6 +74,10 @@ type (
 		Join      *ReportStepJoin      `json:"join,omitempty"`
 		Link      *ReportStepLink      `json:"link,omitempty"`
 		Aggregate *ReportStepAggregate `json:"aggregate,omitempty"`
+
+		// @todo remove for the next set of patch/major releases.
+		//       it exists just for the migration as we need to rename this one.
+		Group_legacy *ReportLegacyStepGroup `json:"group,omitempty"`
 	}
 
 	ReportStepLoad struct {
@@ -99,6 +103,14 @@ type (
 		ForeignSource string            `json:"foreignSource"`
 		ForeignColumn string            `json:"foreignColumn"`
 		Filter        *ReportFilterExpr `json:"filter,omitempty"`
+	}
+
+	ReportLegacyStepGroup struct {
+		Name    string                   `json:"name"`
+		Source  string                   `json:"source"`
+		Keys    ReportAggregateColumnSet `json:"keys"`
+		Columns ReportAggregateColumnSet `json:"columns"`
+		Filter  *ReportFilterExpr        `json:"filter,omitempty"`
 	}
 
 	ReportStepAggregate struct {
