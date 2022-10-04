@@ -347,3 +347,51 @@ func TestVars_MarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestVars_Dict(t *testing.T) {
+	cases := []struct {
+		name     string
+		input    *Vars
+		expected map[string]any
+	}{
+		{
+			name:     "empty",
+			input:    nil,
+			expected: nil,
+		},
+		{
+			name: "string",
+			input: &Vars{value: map[string]TypedValue{
+				"k1": &String{value: "v1"},
+			}},
+			expected: map[string]any{"k1": "v1"},
+		},
+		{
+			name: "string",
+			input: &Vars{value: map[string]TypedValue{
+				"k1": &String{value: "v1"},
+			}},
+			expected: map[string]any{"k1": "v1"},
+		},
+		{
+			name: "array",
+			input: &Vars{value: map[string]TypedValue{
+				"arr": &Array{value: []TypedValue{&String{value: "foo"}}},
+			}},
+			expected: map[string]any{
+				"arr": []any{"foo"},
+			},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var (
+				r   = require.New(t)
+				out = c.input.Dict()
+			)
+
+			r.Equal(c.expected, out)
+		})
+	}
+}
