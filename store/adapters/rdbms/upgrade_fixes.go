@@ -16,7 +16,7 @@ import (
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
-	"math"
+	"time"
 )
 
 // RDBMS database fixes
@@ -96,14 +96,15 @@ func fix_2022_09_00_migrateOldComposeRecordValues(ctx context.Context, s *Store)
 	}
 
 	const (
+		recordSliceSize = 1000
+
 		crvTableIdent = "compose_record_value"
 
 		// used with sprintf because it has to work with mysql & postgresql
 		recValuesPerModule = `
 	SELECT v.record_id, v.name, v.value, v.ref, v.place
-	  FROM compose_record_value AS v INNER JOIN compose_record AS r ON (r.id = v.record_id)
-	 WHERE r.rel_module = %d 
-	   AND r.deleted_at IS NULL
+	  FROM compose_record_value AS v
+	 WHERE v.record_id IN (SELECT id FROM compose_record WHERE rel_namespace = %d AND rel_module = %d AND id > %d AND deleted_at IS NULL ORDER BY id LIMIT %d) 
 	 ORDER BY v.record_id, v.name, v.place`
 	)
 
@@ -125,47 +126,15 @@ func fix_2022_09_00_migrateOldComposeRecordValues(ctx context.Context, s *Store)
 		field   *types.ModuleField
 		rows    *sql.Rows
 
-		procRecID, recordID, ref uint64
-		place                    uint
-		value, name              string
+		sliceLastRecordID uint64
 
-		values map[string][]any
+		recordID, ref uint64
+		place         uint
+		value, name   string
+
+		values map[uint64]map[string][]any
 		intVal any
 
-		updateRecord = func(ID uint64, values map[string][]any) error {
-			if len(values) == 0 {
-				return nil
-			}
-
-			encoded, err := json.Marshal(values)
-			if err != nil {
-				return err
-			}
-
-			upd := s.Dialect.GOQU().
-				Update(model.Record.Ident).
-				// postgresql gets a bit confused
-				Prepared(false).
-				Where(exp.Ex{"id": ID}).
-				Set(exp.Record{"values": encoded})
-
-			sql, aa, err := upd.ToSQL()
-			if err != nil {
-				return err
-			}
-
-			_, err = s.DB.ExecContext(ctx, sql, aa...)
-			_ = aa
-			_ = sql
-
-			if err != nil {
-				return err
-			}
-
-			return nil
-		}
-
-		totalValues  = count(ctx, s, crvTableIdent)
 		totalRecords = count(ctx, s, model.Record.Ident)
 		countRecords = 0
 	)
@@ -178,88 +147,131 @@ func fix_2022_09_00_migrateOldComposeRecordValues(ctx context.Context, s *Store)
 	log.Info(
 		"preparing to migrate record values",
 		zap.Int("modules", len(modules)),
-		zap.Int("values", totalValues),
 		zap.Int("records", totalRecords),
 	)
 
 	// iterate through modules
 	for _, mod := range modules {
-		countModuleRecords := 0
 		fields, _, err = s.SearchComposeModuleFields(ctx, types.ModuleFieldFilter{ModuleID: []uint64{mod.ID}})
 		if err != nil {
 			return
 		}
 
+		perModLog := log.With(
+			zap.String("handle", mod.Handle),
+			zap.Uint64("id", mod.ID),
+		)
+
 		err = func() (err error) {
-			// search for all records
-			rows, err = s.DB.QueryContext(ctx, fmt.Sprintf(recValuesPerModule, mod.ID))
-			if err != nil {
-				return
-			}
+			sliceLastRecordID = 0
 
-			defer func() {
-				// assign error to return value...
-				err = rows.Close()
-			}()
+			for {
+				bmStart := time.Now()
+				values = make(map[uint64]map[string][]any, recordSliceSize)
 
-			values = make(map[string][]any)
+				err = func() (err error) {
+					query := fmt.Sprintf(recValuesPerModule, mod.NamespaceID, mod.ID, sliceLastRecordID, recordSliceSize)
+					//println(query)
+					rows, err = s.DB.QueryContext(ctx, query)
+					if err != nil {
+						return
+					}
 
-			// iterate through all records
-			for rows.Next() {
-				if err = rows.Err(); err != nil {
+					defer func() {
+						// assign error to return value...
+						err = rows.Close()
+					}()
+
+					for rows.Next() {
+						if err = rows.Err(); err != nil {
+							return
+						}
+
+						err = rows.Scan(&recordID, &name, &value, &ref, &place)
+						if err != nil {
+							return
+						}
+
+						sliceLastRecordID = recordID
+						if values[recordID] == nil {
+							values[recordID] = make(map[string][]any)
+						}
+
+						// mimicking behaviour of
+						// SimpleJsonDocColumn.Encode function
+						field = fields.FindByName(name)
+						if field == nil {
+							continue
+						}
+
+						if !field.Multi && len(values[recordID][name]) > 0 {
+							// constraint single-value fields
+							continue
+						}
+
+						switch {
+						case field.IsBoolean():
+							intVal = cast.ToBool(value)
+						default:
+							intVal = value
+						}
+
+						values[recordID][name] = append(values[recordID][name], intVal)
+						sliceLastRecordID = recordID
+					}
+
 					return
-				}
+				}()
 
-				err = rows.Scan(&recordID, &name, &value, &ref, &place)
 				if err != nil {
 					return
 				}
 
-				if procRecID == 0 {
-					procRecID = recordID
-				}
-
-				if procRecID != recordID {
-					countRecords++
-					countModuleRecords++
-					if err = updateRecord(procRecID, values); err != nil {
-						return
+				// Update records with collected values
+				var encoded []byte
+				for ID, kv := range values {
+					if len(values) == 0 {
+						return nil
 					}
 
-					// move needle to next record
-					procRecID = recordID
-					continue
+					encoded, err = json.Marshal(kv)
+					if err != nil {
+						return err
+					}
+
+					upd := s.Dialect.GOQU().
+						Update(model.Record.Ident).
+						// postgresql gets a bit confused
+						Prepared(false).
+						Where(exp.Ex{"id": ID}).
+						Set(exp.Record{"values": encoded})
+
+					sql, aa, err := upd.ToSQL()
+					if err != nil {
+						return err
+					}
+
+					_, err = s.DB.ExecContext(ctx, sql, aa...)
+					_ = aa
+					_ = sql
+					_ = upd
+
+					if err != nil {
+						return err
+					}
 				}
 
-				// mimicking behaviour of
-				// SimpleJsonDocColumn.Encode function
-				field = fields.FindByName(name)
-				if field == nil {
-					continue
+				countRecords += len(values)
+
+				perModLog.Debug("migrating record values",
+					zap.Int("records", len(values)),
+					zap.Duration("dur", time.Now().Sub(bmStart).Round(time.Millisecond)),
+					zap.Float64("%", float64(countRecords)/float64(totalRecords)*100),
+				)
+
+				if len(values) < recordSliceSize {
+					break
 				}
-
-				if !field.Multi && len(values[name]) > 0 {
-					// constraint single-value fields
-					continue
-				}
-
-				switch {
-				case field.IsBoolean():
-					intVal = cast.ToBool(value)
-				default:
-					intVal = value
-				}
-
-				values[name] = append(values[name], intVal)
-			}
-
-			// last one
-			if err = updateRecord(procRecID, values); err != nil {
-				return
-			}
-
-			if err != nil {
-				return err
 			}
 
 			return nil
@@ -268,19 +280,6 @@ func fix_2022_09_00_migrateOldComposeRecordValues(ctx context.Context, s *Store)
 		if err != nil {
 			return
 		}
-
-		if rows != nil && rows.Err() != nil {
-			err = rows.Err()
-			return
-		}
-
-		log.Debug(
-			"migrated compose record values on module",
-			zap.String("handle", mod.Handle),
-			zap.Uint64("id", mod.ID),
-			zap.Int("records", countModuleRecords),
-			zap.Float64("progress-%", math.Floor(float64(countRecords)/float64(totalRecords)*10000)/100),
-		)
 	}
 
 	err = dropTable(ctx, s, "compose_record_value")
