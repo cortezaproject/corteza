@@ -58,6 +58,15 @@ func (h *AuthHandlers) signupProc(req *request.AuthReq) error {
 		return nil
 	}
 
+	fallback := func(req *request.AuthReq) {
+		req.SetKV(map[string]string{
+			"error":  err.Error(),
+			"email":  payload.Email,
+			"handle": payload.Handle,
+			"name":   payload.Name,
+		})
+	}
+
 	switch {
 	case service.AuthErrInternalSignupDisabledByConfig().Is(err):
 		h.signupDisabledAlert(req)
@@ -66,17 +75,14 @@ func (h *AuthHandlers) signupProc(req *request.AuthReq) error {
 		service.AuthErrInvalidHandle().Is(err),
 		service.AuthErrPasswordNotSecure().Is(err),
 		service.AuthErrInvalidCredentials().Is(err):
-		req.SetKV(map[string]string{
-			"error":  err.Error(),
-			"email":  payload.Email,
-			"handle": payload.Handle,
-			"name":   payload.Name,
-		})
+		fallback(req)
 
 		h.Log.Warn("handled error", zap.Error(err))
 		return nil
 
 	default:
+		fallback(req)
+
 		h.Log.Error("unhandled error", zap.Error(err))
 		return err
 	}

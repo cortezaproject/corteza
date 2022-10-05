@@ -170,6 +170,44 @@ func Test_signupProc(t *testing.T) {
 				}
 			},
 		},
+		{
+			name:    "handle not unique",
+			err:     "handle not unique",
+			alerts:  []request.Alert(nil),
+			link:    GetLinks().Signup,
+			payload: map[string]string{"email": "test@mail.com", "error": "handle not unique", "handle": "test-user", "name": "Test User"},
+			postForm: url.Values{
+				"email":  {"test@mail.com"},
+				"handle": {"test-user"},
+				"name":   {"Test User"},
+			},
+			fn: func(_ *settings.Settings) {
+				authService = &authServiceMocked{
+					internalSignUp: func(c context.Context, user *types.User, s string) (u *types.User, err error) {
+						return nil, service.UserErrHandleNotUnique()
+					},
+				}
+			},
+		},
+		{
+			name:    "email not unique",
+			err:     "email not unique",
+			alerts:  []request.Alert(nil),
+			link:    GetLinks().Signup,
+			payload: map[string]string{"email": "test@mail.com", "error": "email not unique", "handle": "test-user", "name": "Test User"},
+			postForm: url.Values{
+				"email":  {"test@mail.com"},
+				"handle": {"test-user"},
+				"name":   {"Test User"},
+			},
+			fn: func(_ *settings.Settings) {
+				authService = &authServiceMocked{
+					internalSignUp: func(c context.Context, user *types.User, s string) (u *types.User, err error) {
+						return nil, service.UserErrEmailNotUnique()
+					},
+				}
+			},
+		},
 	}
 
 	for _, tc := range tcc {
@@ -178,7 +216,7 @@ func Test_signupProc(t *testing.T) {
 
 			// reset from previous
 			req.Form = url.Values{}
-			req.PostForm = url.Values{}
+			req.PostForm = tc.postForm
 
 			authSettings := &settings.Settings{}
 
@@ -189,7 +227,11 @@ func Test_signupProc(t *testing.T) {
 
 			err := authHandlers.signupProc(authReq)
 
-			rq.NoError(err)
+			if len(tc.err) > 0 {
+				rq.Equal(tc.err, err.Error())
+			} else {
+				rq.NoError(err)
+			}
 			rq.Equal(tc.template, authReq.Template)
 			rq.Equal(tc.payload, authReq.GetKV())
 			rq.Equal(tc.alerts, authReq.NewAlerts)

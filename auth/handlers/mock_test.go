@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 
 	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/auth/settings"
@@ -67,6 +68,7 @@ type (
 		template    string
 		alerts      []request.Alert
 		userService userService
+		postForm    url.Values
 		fn          func(*settings.Settings)
 	}
 
