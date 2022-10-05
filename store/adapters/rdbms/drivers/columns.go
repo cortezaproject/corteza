@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/spf13/cast"
+	"github.com/valyala/fastjson"
 )
 
 type (
@@ -159,6 +159,77 @@ func (c *SimpleJsonDocColumn) Encode(r dal.ValueGetter) (_ any, err error) {
 }
 
 func (c *SimpleJsonDocColumn) Decode(raw any, r dal.ValueSetter) (err error) {
+	rawJson, is := raw.(*sql.RawBytes)
+	if !is {
+		return fmt.Errorf("incompatible input value type (%T), expecting *sql.RawBytes", raw)
+	}
+
+	if len(*rawJson) == 0 {
+		// gracefully handle empty strings as valid input
+		return
+	}
+
+	var (
+		root, auxvv *fastjson.Value
+		vv          []*fastjson.Value
+		v           string
+		obj         *fastjson.Object
+	)
+
+	if root, err = fastjson.ParseBytes(*rawJson); err != nil {
+		return
+	}
+
+	if obj, err = root.Object(); err != nil {
+		return
+	}
+
+	for _, attr := range c.attributes {
+		auxvv = obj.Get(attr.Ident)
+		if auxvv == nil {
+			// no values for the attribute
+			continue
+		}
+
+		if vv, err = auxvv.Array(); err != nil {
+			return
+		}
+
+		for pos, val := range vv {
+			switch val.Type() {
+			case fastjson.TypeString:
+				v = string(val.GetStringBytes())
+			default:
+				v = val.String()
+			}
+
+			switch attr.Type.(type) {
+			case *dal.TypeBoolean:
+				// for backward compatibility reasons
+				// we need to cast true bool values to "1"
+				// and use "" for other (false) values
+				if cast.ToBool(v) {
+					v = "1"
+				} else {
+					v = ""
+				}
+			}
+
+			if err = r.SetValue(attr.Ident, uint(pos), v); err != nil {
+				return
+			}
+
+			if !attr.MultiValue {
+				// model attribute supports storing of single values only.
+				break
+			}
+		}
+	}
+
+	return
+}
+
+func (c *SimpleJsonDocColumn) DecodeOld(raw any, r dal.ValueSetter) (err error) {
 	rawJson, is := raw.(*sql.RawBytes)
 	if !is {
 		return fmt.Errorf("incompatible input value type (%T), expecting *sql.RawBytes", raw)
