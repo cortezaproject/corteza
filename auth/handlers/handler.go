@@ -209,7 +209,6 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 			req.PrevAlerts = req.PopAlerts()
 			if err = fn(req); err != nil {
 				h.Log.Error("error in handler", zap.Error(err))
-				return
 			}
 
 			if req.RedirectTo != "" && len(req.PrevAlerts) > 0 {
