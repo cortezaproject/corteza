@@ -434,6 +434,10 @@ github.com/stretchr/testify/require
 github.com/tidwall/btree
 # github.com/valyala/fasthttp v1.35.0
 ## explicit; go 1.15
+# github.com/valyala/fastjson v1.6.3
+## explicit; go 1.12
+github.com/valyala/fastjson
+github.com/valyala/fastjson/fastfloat
 # go.uber.org/atomic v1.9.0
 ## explicit; go 1.13
 go.uber.org/atomic
