@@ -323,6 +323,8 @@ func (svc record) Report(ctx context.Context, namespaceID, moduleID uint64, metr
 			return err
 		}
 
+		defer iter.Close()
+
 		for iter.Next(ctx) {
 			item := recordReportEntry{}
 			err = iter.Scan(item)

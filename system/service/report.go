@@ -350,22 +350,26 @@ func (svc *report) Run(ctx context.Context, reportID uint64, dd reporting.FrameD
 		// Run the reports and produce the frames
 		// @todo this can be ran in paralel
 		for _, run := range runs {
-			iter, err = svc.pipelineRunner.Run(ctx, run.Pipeline)
-			if err != nil {
-				return
-			}
+			func() (err error) {
+				iter, err = svc.pipelineRunner.Run(ctx, run.Pipeline)
+				if err != nil {
+					return
+				}
+				defer iter.Close()
 
-			ff, err = reporting.Frames(ctx, iter, run)
-			if err != nil {
-				return
-			}
+				ff, err = reporting.Frames(ctx, iter, run)
+				if err != nil {
+					return
+				}
 
-			err = svc.enhance(ctx, ff)
-			if err != nil {
-				return
-			}
+				err = svc.enhance(ctx, ff)
+				if err != nil {
+					return
+				}
 
-			out = append(out, ff...)
+				out = append(out, ff...)
+				return
+			}()
 		}
 
 		return nil
