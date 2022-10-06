@@ -7,6 +7,7 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms"
 	"os"
+	"sort"
 	"testing"
 
 	_ "github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers/mysql"
@@ -34,8 +35,8 @@ func TestMain(m *testing.M) {
 	if len(dsn) == 0 {
 		// a temporary solution to make sure all tests are ran inside sqlite
 		dsn = "sqlite3+debug://file::memory:?cache=shared&mode=memory"
-		fmt.Fprintln(os.Stderr, "can not run store/adapters/rdbms/dal tests without DB_DSN, skip")
-		return
+		//fmt.Fprintln(os.Stderr, "can not run store/adapters/rdbms/dal tests without DB_DSN, skip")
+		//return
 	}
 
 	// ctx = logger.ContextWithValue(context.Background(), log)
@@ -67,4 +68,23 @@ func (r kv) GetValue(k string, place uint) (any, error) {
 func (r kv) SetValue(k string, place uint, v any) error {
 	r[k] = v
 	return nil
+}
+
+// String function returns string representation of the kv with sorted keys
+func (r kv) String() string {
+	// sort keys from map
+	keys := make([]string, 0, len(r))
+	for k := range r {
+		keys = append(keys, k)
+	}
+
+	sort.Strings(keys)
+
+	// build string by iterating over sorted keys and appending values
+	var out string
+	for _, k := range keys {
+		out += fmt.Sprintf("%s=%v ", k, r[k])
+	}
+
+	return out
 }

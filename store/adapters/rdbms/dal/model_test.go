@@ -7,12 +7,15 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	. "github.com/cortezaproject/corteza-server/store/adapters/rdbms/dal"
+	"github.com/spf13/cast"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 )
 
 func TestModel_Aggregate(t *testing.T) {
+	_ = logger.Default()
+
 	var (
 		req = require.New(t)
 
@@ -33,10 +36,10 @@ func TestModel_Aggregate(t *testing.T) {
 		i dal.Iterator
 
 		table, err = s.DataDefiner.ConvertModel(baseModel)
-		row        *kv
+		row        kv
 	)
 
-	ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
+	//ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
 
 	table.Temporary = true
 	req.NoError(s.DataDefiner.TableCreate(ctx, table))
@@ -71,8 +74,11 @@ func TestModel_Aggregate(t *testing.T) {
 		},
 		// aggregation expressions
 		[]*dal.AggregateAttr{
+			{Identifier: "count", RawExpr: "COUNT(*)", Type: &dal.TypeNumber{}},
 			{Identifier: "max", RawExpr: "MAX(price)", Type: &dal.TypeNumber{}},
 			{Identifier: "min", RawExpr: "MIN(price)", Type: &dal.TypeNumber{}},
+			{Identifier: "avg", RawExpr: "AVG(price)", Type: &dal.TypeNumber{}},
+			{Identifier: "sum", RawExpr: "SUM(price)", Type: &dal.TypeNumber{}},
 		},
 		"", // <== here be having condition
 	)
@@ -81,20 +87,25 @@ func TestModel_Aggregate(t *testing.T) {
 
 	defer req.NoError(i.Close())
 
-	// ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
+	ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
 
 	t.Log("Iterating over results")
-	rows := make([]*kv, 0, 5)
+	rows := make([]kv, 0, 5)
 	for i.Next(ctx) {
-		row = &kv{}
+		row = kv{}
 		req.NoError(i.Scan(row))
+
+		// due to difference of number of decimal digits in different DBs, we need to do this
+		// to make sure we get the same result
+		row["avg"] = fmt.Sprintf("%.2f", cast.ToFloat64(row["avg"]))
+
 		rows = append(rows, row)
 	}
 
 	req.Len(rows, 5)
-	req.Equal(&kv{"group": "g5", "max": "501000", "min": "500001"}, rows[0])
-	req.Equal(&kv{"group": "g4", "max": "401000", "min": "400001"}, rows[1])
-	req.Equal(&kv{"group": "g3", "max": "301000", "min": "300001"}, rows[2])
-	req.Equal(&kv{"group": "g2", "max": "201000", "min": "200001"}, rows[3])
-	req.Equal(&kv{"group": "g1", "max": "101000", "min": "100001"}, rows[4])
+	req.Equal("avg=500500.50 count=1000 group=g5 max=501000 min=500001 sum=500500500 ", rows[0].String())
+	req.Equal("avg=400500.50 count=1000 group=g4 max=401000 min=400001 sum=400500500 ", rows[1].String())
+	req.Equal("avg=300500.50 count=1000 group=g3 max=301000 min=300001 sum=300500500 ", rows[2].String())
+	req.Equal("avg=200500.50 count=1000 group=g2 max=201000 min=200001 sum=200500500 ", rows[3].String())
+	req.Equal("avg=100500.50 count=1000 group=g1 max=101000 min=100001 sum=100500500 ", rows[4].String())
 }
