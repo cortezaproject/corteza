@@ -216,6 +216,16 @@ var (
 				return exp.NewSQLFunctionExpression("DATE", args[0])
 			},
 		},
+		"max": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("MAX", args[0])
+			},
+		},
+		"min": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("MIN", args[0])
+			},
+		},
 	}
 )
 
