@@ -63,7 +63,7 @@ func (postgresDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpress
 	case *dal.TypeBoolean:
 		// we need to be strictly dealing with strings here!
 		// 1) postgresql's JSON op ->> (last one) returns any JSON value as string
-		//    so booleans are casted to 'true' & 'false'
+		//    so booleans are cast to 'true' & 'false'
 		// 2) postgresql will complain about true == 'true' expressions
 		ce := exp.NewCaseExpression().
 			When(val.In(exp.NewLiteralExpression(`'true'`)), drivers.LiteralTRUE).
@@ -137,12 +137,10 @@ func (postgresDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, 
 		col.Type.Name = "NUMERIC"
 
 		switch {
-		case t.Precision >= 0 && t.Scale >= 0:
+		case t.Precision > 0 && t.Scale > 0:
 			col.Type.Name += fmt.Sprintf("(%d, %d)", t.Precision, t.Scale)
-		case t.Precision >= 0:
+		case t.Precision > 0:
 			col.Type.Name += fmt.Sprintf("(%d)", t.Precision)
-		case t.Scale >= 0:
-			col.Type.Name += fmt.Sprintf("(%d)", t.Scale)
 		}
 
 		col.Default = ddl.DefaultNumber(t.HasDefault, t.Precision, t.DefaultValue)
