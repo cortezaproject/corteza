@@ -38,6 +38,11 @@ type (
 		sorting filter.SortExprSet
 		cursor  *filter.PagingCursor
 		limit   uint
+
+		// set this flag when iterating over aggregated results
+		// it will affect how
+		//  - cursor conditions are applied (WHERE )
+		aggregated bool
 	}
 )
 
@@ -137,7 +142,11 @@ func (i *iterator) fetch(ctx context.Context) (rows *sql.Rows, err error) {
 				return
 			}
 
-			sqlExpr = sqlExpr.Where(tmp)
+			if i.aggregated {
+				sqlExpr = sqlExpr.Having(tmp)
+			} else {
+				sqlExpr = sqlExpr.Where(tmp)
+			}
 
 			if cur.IsROrder() {
 				if i.limit > 0 {
@@ -266,7 +275,7 @@ func (i *iterator) collectCursorValues(r dal.ValueGetter) (_ *filter.PagingCurso
 	}
 
 	if len(pKeys) == 0 {
-		return nil, fmt.Errorf("can not construct cursor without primary key attributes")
+		//return nil, fmt.Errorf("can not construct cursor without primary key attributes")
 	}
 
 	for _, c := range i.sorting {
