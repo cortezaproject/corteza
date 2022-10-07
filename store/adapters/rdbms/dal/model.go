@@ -248,7 +248,7 @@ func (d *model) Search(f filter.Filter) (i *iterator, err error) {
 // expressions when constructing expressions & columns to select from.
 //
 // Passing in filter with cursor, empty groupBy or aggrExpr slice will result in an error
-func (d *model) Aggregate(f filter.Filter, groupBy []*dal.AggregateAttr, aggrExpr []*dal.AggregateAttr, having string) (i *iterator, err error) {
+func (d *model) Aggregate(f filter.Filter, groupBy []*dal.AggregateAttr, aggrExpr []*dal.AggregateAttr, having *ql.ASTNode) (i *iterator, err error) {
 	if f.Cursor() != nil {
 		return nil, fmt.Errorf("can not use cursors when aggregating")
 	}
@@ -491,7 +491,7 @@ func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 	return base.Where(cnd...)
 }
 
-func (d *model) aggregateSql(f filter.Filter, groupBy []*dal.AggregateAttr, out []*dal.AggregateAttr, having string) (q *goqu.SelectDataset) {
+func (d *model) aggregateSql(f filter.Filter, groupBy []*dal.AggregateAttr, out []*dal.AggregateAttr, having *ql.ASTNode) (q *goqu.SelectDataset) {
 	// get SELECT query based on
 	// the given filter
 	q = d.searchSql(f)
@@ -541,8 +541,8 @@ func (d *model) aggregateSql(f filter.Filter, groupBy []*dal.AggregateAttr, out 
 		q = q.SelectAppend(expr)
 	}
 
-	if len(having) > 0 {
-		if expr, err = d.parseQuery(having); err != nil {
+	if having != nil {
+		if expr, err = d.convertQuery(having); err != nil {
 			return q.SetError(err)
 		}
 
