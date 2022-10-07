@@ -257,10 +257,6 @@ func (d *model) Aggregate(f filter.Filter, groupBy []*dal.AggregateAttr, aggrExp
 		return nil, fmt.Errorf("can not run aggregation without group-by")
 	}
 
-	if len(aggrExpr) == 0 {
-		return nil, fmt.Errorf("can not run aggregation without aggregation expressions")
-	}
-
 	i = &iterator{
 		sorting: f.OrderBy(),
 		limit:   f.Limit(),

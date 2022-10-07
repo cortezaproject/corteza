@@ -185,3 +185,78 @@ func TestModel_Aggregate(t *testing.T) {
 	req.Equal("avg=5000.00 count=1 date=2022-10-07 group=g2 max=5000 min=5000 stock=50.00", rows[1].String())
 	req.Equal("avg=2000.00 count=2 date=2022-10-06 group=g1 max=3000 min=1000 stock=40.00", rows[2].String())
 }
+
+func TestModel_Distinct(t *testing.T) {
+	_ = logger.Default()
+
+	var (
+		req = require.New(t)
+
+		ctx = context.Background()
+
+		baseModel = &dal.Model{
+			Ident: "test_dal_distinct",
+			Attributes: []*dal.Attribute{
+				{Ident: "item", Type: &dal.TypeText{}},
+				{Ident: "group", Type: &dal.TypeText{}, Store: &dal.CodecRecordValueSetJSON{Ident: "values"}, Sortable: true},
+				{Ident: "published", Type: &dal.TypeBoolean{}, Filterable: true},
+			},
+		}
+
+		m = Model(baseModel, s.DB, s.Dialect)
+
+		i dal.Iterator
+
+		table, err = s.DataDefiner.ConvertModel(baseModel)
+		row        kv
+	)
+
+	ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
+
+	t.Logf("Creating temporary table %q", table.Ident)
+	table.Temporary = true
+	req.NoError(s.DataDefiner.TableCreate(ctx, table))
+
+	req.NoError(m.Create(ctx, &kv{"item": "i1", "group": "g1", "published": true}))
+	req.NoError(m.Create(ctx, &kv{"item": "i2", "group": "g1", "published": true}))
+	req.NoError(m.Create(ctx, &kv{"item": "i3", "group": "g2", "published": true}))
+	req.NoError(m.Create(ctx, &kv{"item": "i4", "group": "g2", "published": true}))
+	req.NoError(m.Create(ctx, &kv{"item": "i5", "group": "g3", "published": false}))
+	req.NoError(m.Create(ctx, &kv{"item": "i6", "group": "g3", "published": false}))
+
+	t.Log("Aggregating all records, returning distinct groups")
+	i, err = m.Aggregate(
+		filter.Generic(
+			filter.WithExpression("published"),
+			filter.WithOrderBy(filter.SortExprSet{
+				&filter.SortExpr{Column: "group"},
+			})),
+		// group-by
+		[]*dal.AggregateAttr{
+			{Identifier: "group", Type: &dal.TypeText{}, Store: &dal.CodecRecordValueSetJSON{Ident: "values"}},
+		},
+		nil,
+		"", // <== here be having condition
+	)
+	req.NoError(err)
+	req.NotNil(i)
+
+	defer req.NoError(i.Close())
+
+	// uncomment to se generated query
+	ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
+
+	t.Log("Iterating over results")
+	rows := make([]kv, 0, 2)
+	for i.Next(ctx) {
+		row = kv{}
+		req.NoError(i.Scan(row))
+
+		rows = append(rows, row)
+	}
+
+	req.NoError(i.Err())
+	req.Len(rows, 2)
+	req.Equal("group=g1", rows[0].String())
+	req.Equal("group=g2", rows[1].String())
+}
