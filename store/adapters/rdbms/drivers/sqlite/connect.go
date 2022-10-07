@@ -31,7 +31,7 @@ const (
 
 var (
 	// make a custom driver with REGEX support
-	driver = &sqlite3.SQLiteDriver{
+	customDriver = &sqlite3.SQLiteDriver{
 		ConnectHook: func(conn *sqlite3.SQLiteConn) (err error) {
 			// register regexp function and use Go's regexp fn
 			if err = conn.RegisterFunc("regexp", regexp.MatchString, true); err != nil {
@@ -45,9 +45,9 @@ var (
 
 func init() {
 	// register alter driver
-	sql.Register(altSchema, driver)
+	sql.Register(altSchema, customDriver)
 	// register drbug driver
-	sql.Register(debugSchema, sqlmw.Driver(driver, instrumentation.Debug()))
+	sql.Register(debugSchema, sqlmw.Driver(customDriver, instrumentation.Debug()))
 
 	store.Register(Connect, SCHEMA, altSchema, debugSchema)
 }
