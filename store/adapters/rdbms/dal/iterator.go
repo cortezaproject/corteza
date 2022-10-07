@@ -16,20 +16,28 @@ import (
 
 type (
 	iterator struct {
-		ms   *model
+		// source model; how data we are reading from is shaped
+		src *model
+
+		// destination model; how data we are reading into is shaped
+		// this is used to create scan buffer
+		// when not doing plain selection from one table final results might
+		// require a different list of columns and scanning needs to be adjusted
+		dst *model
+
+		// buffer for scanned rows
+		scanBuf []any
+
+		// results from the last read
 		rows *sql.Rows
 
+		// last error
 		err error
 
 		query   *goqu.SelectDataset
 		sorting filter.SortExprSet
 		cursor  *filter.PagingCursor
 		limit   uint
-
-		// @todo should filter also be here?
-
-		// buffer for scanned rows
-		scanBuf []any
 	}
 )
 
@@ -85,7 +93,7 @@ func (i *iterator) fetch(ctx context.Context) (rows *sql.Rows, err error) {
 		// we're going to init scan buffer only once
 		// and rely on the query.Rows.Scan function to
 		// fill it up with fresh values!
-		i.scanBuf = i.ms.table.MakeScanBuffer()
+		i.scanBuf = i.dst.table.MakeScanBuffer()
 	}
 
 	var (
@@ -109,14 +117,14 @@ func (i *iterator) fetch(ctx context.Context) (rows *sql.Rows, err error) {
 			// @todo this needs to work with embedded attributes (non physical columns) as well!
 			tmp, err = rdbms.CursorExpression(
 				cur,
-				func(ident string) (exp.LiteralExpression, error) { return i.ms.table.AttributeExpression(ident) },
+				func(ident string) (exp.LiteralExpression, error) { return i.src.table.AttributeExpression(ident) },
 				func(ident string, val any) (exp.LiteralExpression, error) {
-					attr := i.ms.model.Attributes.FindByIdent(ident)
+					attr := i.dst.model.Attributes.FindByIdent(ident)
 					if attr == nil {
 						panic("unknown attribute " + ident + " used in cursor expression cast callback")
 					}
 
-					enc, err := i.ms.dialect.TypeWrap(attr.Type).Encode(val)
+					enc, err := i.dst.dialect.TypeWrap(attr.Type).Encode(val)
 					if err != nil {
 						return nil, err
 					}
@@ -141,7 +149,7 @@ func (i *iterator) fetch(ctx context.Context) (rows *sql.Rows, err error) {
 					innerSort.Reverse()
 
 					// Wrap the fil & ordered sub-query with cursor-conditions
-					sqlExpr = i.ms.dialect.GOQU().From(sqlExpr.Order(i.orderByExp(innerSort)...).As(i.ms.model.Ident))
+					sqlExpr = i.src.dialect.GOQU().From(sqlExpr.Order(i.orderByExp(innerSort)...).As(i.src.model.Ident))
 
 					// make sure we don't reverse it again
 				} else {
@@ -167,7 +175,7 @@ func (i *iterator) fetch(ctx context.Context) (rows *sql.Rows, err error) {
 		return nil, err
 	}
 
-	rows, err = i.ms.conn.QueryContext(ctx, query, args...)
+	rows, err = i.src.conn.QueryContext(ctx, query, args...)
 	if errors.Is(err, sql.ErrNoRows) {
 		// no rows, no error
 		return nil, nil
@@ -180,7 +188,7 @@ func (i *iterator) fetch(ctx context.Context) (rows *sql.Rows, err error) {
 func (i *iterator) orderByExp(sort filter.SortExprSet) (oe []exp.OrderedExpression) {
 	for _, s := range sort {
 		// assuming all columns were pre-validated!
-		tmp, _ := i.ms.table.AttributeExpression(s.Column)
+		tmp, _ := i.src.table.AttributeExpression(s.Column)
 
 		if s.Descending {
 			oe = append(oe, exp.NewOrderedExpression(tmp, exp.DescSortDir, exp.NoNullsSortType))
@@ -201,7 +209,7 @@ func (i *iterator) Scan(r dal.ValueSetter) (err error) {
 		return err
 	}
 
-	if err = i.ms.table.Decode(i.scanBuf, r); err != nil {
+	if err = i.dst.table.Decode(i.scanBuf, r); err != nil {
 		return
 	}
 
@@ -250,7 +258,7 @@ func (i *iterator) collectCursorValues(r dal.ValueGetter) (_ *filter.PagingCurso
 		pKeys = make(map[string]bool)
 	)
 
-	for _, c := range i.ms.table.Columns() {
+	for _, c := range i.dst.table.Columns() {
 		if c.IsPrimaryKey() {
 			attrIdent := c.Attribute().Ident
 			pKeys[attrIdent] = true
