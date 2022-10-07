@@ -82,8 +82,12 @@ func (r kv) String() string {
 
 	// build string by iterating over sorted keys and appending values
 	var out string
-	for _, k := range keys {
-		out += fmt.Sprintf("%s=%v ", k, r[k])
+	for i, k := range keys {
+		if i > 0 {
+			out += " "
+		}
+
+		out += fmt.Sprintf("%s=%v", k, r[k])
 	}
 
 	return out

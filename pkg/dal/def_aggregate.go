@@ -52,6 +52,7 @@ type (
 		Label      string
 		Expression *ql.ASTNode
 		Type       Type
+		Store      Codec
 	}
 )
 

@@ -224,22 +224,22 @@ func (d *model) Search(f filter.Filter) (i *iterator, err error) {
 		orderBy = append(orderBy, &filter.SortExpr{Column: attrIdent, Descending: orderBy.LastDescending()})
 	}
 
-	var (
-		q *goqu.SelectDataset
-	)
+	i = &iterator{
+		// source and destination is the same
+		src: d,
+		dst: d,
 
-	q = d.searchSql(f)
-	if err = q.Error(); err != nil {
-		return
-	}
-
-	return &iterator{
-		ms:      d,
-		query:   q,
 		sorting: orderBy,
 		cursor:  f.Cursor(),
 		limit:   f.Limit(),
-	}, nil
+	}
+
+	i.query = d.searchSql(f)
+	if err = i.query.Error(); err != nil {
+		return
+	}
+
+	return
 }
 
 // Aggregate constructs SELECT sql with group-by and an optional having CLAUSE
@@ -262,25 +262,35 @@ func (d *model) Aggregate(f filter.Filter, groupBy []*dal.AggregateAttr, aggrExp
 	}
 
 	i = &iterator{
-		ms:      &model{},
 		sorting: f.OrderBy(),
 		limit:   f.Limit(),
 	}
 
 	var (
-		dalModel = &dal.Model{}
-		attr     *dal.Attribute
+		// source model; how data we are reading from is shaped
+		srcModel = &dal.Model{}
+
+		// destination model; how data we are reading into is shaped
+		dstModel = &dal.Model{}
+
+		srcAttr, dstAttr *dal.Attribute
 	)
 
 	// prepare a bit modified module that
 	// describes aggregated columns (prepending attributes used for group-by)
 	for _, c := range append(groupBy, aggrExpr...) {
-		attr = &dal.Attribute{
+		srcAttr = &dal.Attribute{
+			Ident: c.Identifier,
+			Type:  c.Type,
+			Store: c.Store,
+		}
+		srcModel.Attributes = append(srcModel.Attributes, srcAttr)
+
+		dstAttr = &dal.Attribute{
 			Ident: c.Identifier,
 			Type:  c.Type,
 		}
-
-		dalModel.Attributes = append(dalModel.Attributes, attr)
+		dstModel.Attributes = append(dstModel.Attributes, dstAttr)
 	}
 
 	i.query = d.aggregateSql(f, groupBy, aggrExpr, having)
@@ -288,7 +298,8 @@ func (d *model) Aggregate(f filter.Filter, groupBy []*dal.AggregateAttr, aggrExp
 		return
 	}
 
-	i.ms = Model(dalModel, d.conn, d.dialect)
+	i.src = Model(srcModel, d.conn, d.dialect)
+	i.dst = Model(dstModel, d.conn, d.dialect)
 
 	return
 }
@@ -494,47 +505,43 @@ func (d *model) aggregateSql(f filter.Filter, groupBy []*dal.AggregateAttr, out 
 		expr exp.Expression
 
 		selected []any
+
+		field = func(c *dal.AggregateAttr) (expr exp.Expression, err error) {
+			switch {
+			case len(c.RawExpr) > 0:
+				// @todo could probably be removed since RawExpr is only a temporary solution?
+				return d.parseQuery(c.RawExpr)
+			case c.Expression != nil:
+				return d.convertQuery(c.Expression)
+			}
+
+			return d.table.AttributeExpression(c.Identifier)
+		}
 	)
 
-	for _, c := range groupBy {
-		if len(c.RawExpr) > 0 {
-			// @todo could probably be removed since RawExpr is only a temporary solution?
-			if expr, err = d.parseQuery(c.RawExpr); err != nil {
-				return q.SetError(err)
-			}
-		} else if c.Expression != nil {
-			if expr, err = d.convertQuery(c.Expression); err != nil {
-				return q.SetError(err)
-			}
-		} else {
-			expr = d.table.Ident().Col(c.Identifier)
+	for i, c := range groupBy {
+		if expr, err = field(c); err != nil {
+			return q.SetError(err)
 		}
 
 		// Add all group-by columns at the start
-		q = q.GroupByAppend(expr)
+		alias := fmt.Sprintf("group_by_%d_%s", i, c.Identifier)
+		expr = exp.NewAliasExpression(expr, alias)
 		selected = append(selected, expr)
+
+		// grouping by selected
+		q = q.GroupByAppend(alias)
 	}
 
 	q = q.Select(selected...)
 
-	for _, c := range out {
-		if len(c.RawExpr) > 0 {
-			// @todo could probably be removed since RawExpr is only a temporary solution?
-			if expr, err = d.parseQuery(c.RawExpr); err != nil {
-				return q.SetError(err)
-			}
-		} else {
-			if c.Expression == nil {
-				// expecting expression
-				return q.SetError(fmt.Errorf("expecting expression for aggregation"))
-			}
-
-			if expr, err = d.convertQuery(c.Expression); err != nil {
-				return q.SetError(err)
-			}
+	for i, c := range out {
+		if expr, err = field(c); err != nil {
+			return q.SetError(err)
 		}
 
-		// Add all group-by columns at the start
+		alias := fmt.Sprintf("aggr_%d_%s", i, c.Identifier)
+		expr = exp.NewAliasExpression(expr, alias)
 		q = q.SelectAppend(expr)
 	}
 
