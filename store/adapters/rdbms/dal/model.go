@@ -249,15 +249,12 @@ func (d *model) Search(f filter.Filter) (i *iterator, err error) {
 //
 // Passing in filter with cursor, empty groupBy or aggrExpr slice will result in an error
 func (d *model) Aggregate(f filter.Filter, groupBy []*dal.AggregateAttr, aggrExpr []*dal.AggregateAttr, having *ql.ASTNode) (i *iterator, err error) {
-	if f.Cursor() != nil {
-		return nil, fmt.Errorf("can not use cursors when aggregating")
-	}
-
 	if len(groupBy) == 0 {
 		return nil, fmt.Errorf("can not run aggregation without group-by")
 	}
 
 	i = &iterator{
+		cursor:  f.Cursor(),
 		sorting: f.OrderBy(),
 		limit:   f.Limit(),
 	}
