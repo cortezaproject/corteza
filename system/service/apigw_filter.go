@@ -95,9 +95,11 @@ func (svc *apigwFilter) Create(ctx context.Context, new *types.ApigwFilter) (q *
 
 		q = new
 
-		// send the signal to reload all routes
+		// send the signal to reload current route
 		if r.Enabled {
-			apigw.Service().Reload(ctx)
+			if err = apigw.Service().ReloadEndpoint(ctx, r.Method, r.Endpoint); err != nil {
+				return err
+			}
 		}
 
 		return nil
@@ -168,9 +170,11 @@ func (svc *apigwFilter) Update(ctx context.Context, upd *types.ApigwFilter) (q *
 
 		q = upd
 
-		// send the signal to reload all routes
+		// send the signal to reload current route
 		if r.Enabled {
-			apigw.Service().Reload(ctx)
+			if err = apigw.Service().ReloadEndpoint(ctx, r.Method, r.Endpoint); err != nil {
+				return err
+			}
 		}
 
 		return nil
@@ -210,9 +214,11 @@ func (svc *apigwFilter) DeleteByID(ctx context.Context, ID uint64) (err error) {
 			return
 		}
 
-		// send the signal to reload all routes
+		// send the signal to reload current route
 		if r.Enabled {
-			apigw.Service().Reload(ctx)
+			if err = apigw.Service().ReloadEndpoint(ctx, r.Method, r.Endpoint); err != nil {
+				return err
+			}
 		}
 
 		return nil
@@ -252,9 +258,11 @@ func (svc *apigwFilter) UndeleteByID(ctx context.Context, ID uint64) (err error)
 			return
 		}
 
-		// send the signal to reload all routes
+		// send the signal to reload current route
 		if r.Enabled {
-			apigw.Service().Reload(ctx)
+			if err = apigw.Service().ReloadEndpoint(ctx, r.Method, r.Endpoint); err != nil {
+				return err
+			}
 		}
 
 		return nil
