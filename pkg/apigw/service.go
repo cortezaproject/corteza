@@ -134,6 +134,52 @@ func (s *apigw) Reload(ctx context.Context) (err error) {
 	return nil
 }
 
+// ReloadEndpoint reload a route and its filters
+//
+// The procedure use existing chi mux
+func (s *apigw) ReloadEndpoint(ctx context.Context, endpoint string) (err error) {
+	var (
+		routes []*route
+	)
+
+	routes, err = s.loadRoutes(ctx, endpoint)
+
+	if err != nil {
+		s.log.Error("could not reload Integration Gateway routes", zap.Error(err))
+		return
+	}
+
+	// rr := append(s.routes, routes...)
+	s.PrepRoutes(ctx, routes...)
+
+	if s.mx == nil {
+		// Rebuild the mux
+		s.mx = chi.NewMux()
+	}
+
+	for _, r := range routes {
+		// Register route handler on endpoint & method
+		s.mx.Method(r.method, r.endpoint, r)
+	}
+
+	// Make sure to append newly registered routes
+	s.AppendRoutes(routes...)
+
+	// handling missed hits
+	// profiler gets the missed hit info also
+	{
+		var (
+			defaultMethodResponse = helperMethodNotAllowed(s.opts, s.pr, s.log)
+			defaultResponse       = helperDefaultResponse(s.opts, s.pr, s.log)
+		)
+
+		s.mx.NotFound(defaultResponse)
+		s.mx.MethodNotAllowed(defaultMethodResponse)
+	}
+
+	return nil
+}
+
 // Init all routes
 func (s *apigw) Init(ctx context.Context, routes ...*route) {
 	var (
@@ -214,6 +260,135 @@ func (s *apigw) Init(ctx context.Context, routes ...*route) {
 	}
 }
 
+func (s *apigw) PrepRoutes(ctx context.Context, routes ...*route) {
+	var (
+		err               error
+		defaultPostFilter types.Handler
+	)
+
+	s.loadInfo()
+	s.log.Debug("preparing routes", zap.Int("count", len(routes)))
+
+	defaultPostFilter, err = s.reg.Get("defaultJsonResponse")
+
+	if err != nil {
+		s.log.Error("could not register default filter", zap.Error(err))
+	}
+
+	for _, r := range routes {
+		var (
+			log  = s.log.With(zap.String("route", r.String()))
+			pipe = pipeline.NewPipeline(log, chain.NewDefault())
+
+			regFilters []*st.ApigwFilter
+		)
+
+		// pipeline needs to know how to handle
+		// async processers
+		pipe.Async(r.meta.async)
+
+		r.opts = s.opts
+		r.log = log
+		r.pr = s.pr
+
+		regFilters, err = s.loadFilters(ctx, r.ID)
+		if err != nil {
+			log.Error("could not load filters for route", zap.Error(err))
+			continue
+		}
+
+		for _, rf := range regFilters {
+			flog := log.With(zap.String("ref", rf.Ref))
+
+			// make sure there is only one postfilter
+			// on async routes
+			if r.meta.async && rf.Kind == string(types.PostFilter) {
+				flog.Debug("not registering filter for async route")
+				continue
+			}
+
+			var ff *pipeline.Worker
+			ff, err = s.registerFilter(rf, r)
+			if err != nil {
+				flog.Error("could not register filter", zap.Error(err))
+				continue
+			}
+
+			pipe.Add(ff)
+
+			flog.Debug("registered filter")
+		}
+
+		// add default postfilter on async
+		// routes if not present
+		if r.meta.async {
+			log.Info("registering default postfilter", zap.Error(err))
+
+			pipe.Add(&pipeline.Worker{
+				Handler: defaultPostFilter.Handler(),
+				Name:    defaultPostFilter.String(),
+				Type:    types.PostFilter,
+				Weight:  math.MaxInt8,
+			})
+		}
+
+		r.handler = pipe.Handler()
+		r.errHandler = pipe.Error()
+
+		log.Debug("successfully registered route")
+	}
+}
+
+func (s *apigw) AppendRoutes(routes ...*route) {
+	var (
+		rMap = make(map[string]*route)
+		uniq = func(r *route) string {
+			if routes == nil {
+				return ""
+			}
+			return r.method + r.endpoint
+		}
+	)
+
+	for _, r := range routes {
+		if r == nil {
+			continue
+		}
+		rMap[uniq(r)] = r
+	}
+
+	// update existing routes
+	for i, r := range s.routes {
+		if val, ok := rMap[uniq(r)]; ok && val != nil {
+			s.routes[i] = val
+			rMap[uniq(r)] = nil
+		}
+	}
+
+	// add new routes
+	for _, r := range rMap {
+		if r == nil {
+			continue
+		}
+		s.routes = append(s.routes, r)
+	}
+
+	return
+}
+
+func (s *apigw) NotFound(_ context.Context, method, endpoint string) {
+	if s.mx == nil || len(method) == 0 || len(endpoint) == 0 {
+		return
+	}
+
+	var (
+		defaultResponse = helperDefaultResponse(s.opts, s.pr, s.log)
+	)
+
+	// Attach 404 handler
+	s.mx.Method(method, endpoint, defaultResponse)
+}
+
 func (s *apigw) registerFilter(f *st.ApigwFilter, r *route) (ff *pipeline.Worker, err error) {
 	handler, err := s.reg.Get(f.Ref)
 
@@ -263,12 +438,20 @@ func (s *apigw) ProxyAuthDef() (list []*proxy.ProxyAuthDefinition) {
 	return
 }
 
-func (s *apigw) loadRoutes(ctx context.Context) (rr []*route, err error) {
-	routes, _, err := s.storer.SearchApigwRoutes(ctx, st.ApigwRouteFilter{
-		Deleted:  f.StateExcluded,
-		Disabled: f.StateExcluded,
-	})
+func (s *apigw) loadRoutes(ctx context.Context, endpoint ...string) (rr []*route, err error) {
+	var (
+		routes st.ApigwRouteSet
+		agwf   = st.ApigwRouteFilter{
+			Deleted:  f.StateExcluded,
+			Disabled: f.StateExcluded,
+		}
+	)
 
+	if len(endpoint) == 1 {
+		agwf.Route = endpoint[0]
+	}
+
+	routes, _, err = s.storer.SearchApigwRoutes(ctx, agwf)
 	if err != nil {
 		return
 	}
