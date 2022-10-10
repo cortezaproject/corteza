@@ -37,7 +37,7 @@ var (
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("(! %s)", args[0])
 			},
-			OutType: TypeBoolean{},
+			OutType: &TypeBoolean{},
 		},
 
 		// - bool
@@ -45,19 +45,19 @@ var (
 			Handler: func(args ...string) string {
 				return strings.Join(args, " && ")
 			},
-			OutType: TypeBoolean{},
+			OutType: &TypeBoolean{},
 		},
 		"or": {
 			Handler: func(args ...string) string {
 				return strings.Join(args, " || ")
 			},
-			OutType: TypeBoolean{},
+			OutType: &TypeBoolean{},
 		},
 		"xor": {
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("(%s != %s)", args[0], args[1])
 			},
-			OutType: TypeBoolean{},
+			OutType: &TypeBoolean{},
 		},
 
 		// - comp.
@@ -65,38 +65,38 @@ var (
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("%s == %s", args[0], args[1])
 			},
-			OutType: TypeBoolean{},
+			OutType: &TypeBoolean{},
 		},
 		"ne": {
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("%s != %s", args[0], args[1])
 			},
-			OutType: TypeBoolean{},
+			OutType: &TypeBoolean{},
 		},
 		"lt": {
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("%s < %s", args[0], args[1])
 			},
-			OutType: TypeBoolean{},
+			OutType: &TypeBoolean{},
 		},
 		"le": {
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("%s <= %s", args[0], args[1])
 			},
-			OutType: TypeBoolean{},
+			OutType: &TypeBoolean{},
 		},
 		"gt": {
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("%s > %s", args[0], args[1])
 			},
-			OutType: TypeBoolean{},
+			OutType: &TypeBoolean{},
 		},
 		"ge": {
 			//Handler: makeGenericCompHandler(">="),
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("%s >= %s", args[0], args[1])
 			},
-			OutType: TypeBoolean{},
+			OutType: &TypeBoolean{},
 		},
 
 		// - math
@@ -130,7 +130,7 @@ var (
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("concat(%s)", strings.Join(args, ", "))
 			},
-			OutType: TypeText{},
+			OutType: &TypeText{},
 		},
 
 		// @todo implement; the commented versions are not good enough
@@ -164,43 +164,43 @@ var (
 			Handler: func(args ...string) string {
 				return "now()"
 			},
-			OutType: TypeTimestamp{},
+			OutType: &TypeTimestamp{},
 		},
 		"quarter": {
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("quarter(%s)", args[0])
 			},
-			OutType: TypeNumber{},
+			OutType: &TypeNumber{},
 		},
 		"year": {
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("year(%s)", args[0])
 			},
-			OutType: TypeNumber{},
+			OutType: &TypeNumber{},
 		},
 		"month": {
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("month(%s)", args[0])
 			},
-			OutType: TypeNumber{},
+			OutType: &TypeNumber{},
 		},
 		"date": {
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("date(%s)", args[0])
 			},
-			OutType: TypeDate{},
+			OutType: &TypeDate{},
 		},
 		"day": {
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("day(%s)", args[0])
 			},
-			OutType: TypeNumber{},
+			OutType: &TypeNumber{},
 		},
 		"date_format": {
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("strftime(%s, %s)", args[0], args[1])
 			},
-			OutType: TypeText{},
+			OutType: &TypeText{},
 		},
 
 		// generic stuff
@@ -208,19 +208,19 @@ var (
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("isNil(%s)", args[0])
 			},
-			OutType: TypeBoolean{},
+			OutType: &TypeBoolean{},
 		},
 		"nnull": {
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("!isNil(%s)", args[0])
 			},
-			OutType: TypeBoolean{},
+			OutType: &TypeBoolean{},
 		},
 		"exists": {
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("!isNil(%s)", args[0])
 			},
-			OutType: TypeBoolean{},
+			OutType: &TypeBoolean{},
 		},
 
 		// - typecast
@@ -228,19 +228,19 @@ var (
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("float(%s)", args[0])
 			},
-			OutType: TypeNumber{},
+			OutType: &TypeNumber{},
 		},
 		"int": {
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("int(%s)", args[0])
 			},
-			OutType: TypeNumber{},
+			OutType: &TypeNumber{},
 		},
 		"string": {
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("string(%s)", args[0])
 			},
-			OutType: TypeText{},
+			OutType: &TypeText{},
 		},
 
 		"group": {
