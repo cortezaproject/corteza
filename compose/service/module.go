@@ -1531,6 +1531,11 @@ func moduleFieldToAttribute(f *types.ModuleField) (out *dal.Attribute, err error
 			},
 		}
 		out = dal.FullAttribute(f.Name, at, codec)
+	case "geometry":
+		at := &dal.TypeGeometry{}
+		out = dal.FullAttribute(f.Name, at, codec)
+		out.Filterable = false
+		out.Sortable = false
 
 	default:
 		at := &dal.TypeText{}
