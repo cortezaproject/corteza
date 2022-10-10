@@ -248,7 +248,7 @@ func (d *model) Search(f filter.Filter) (i *iterator, err error) {
 // expressions when constructing expressions & columns to select from.
 //
 // Passing in filter with cursor, empty groupBy or aggrExpr slice will result in an error
-func (d *model) Aggregate(f filter.Filter, groupBy []*dal.AggregateAttr, aggrExpr []*dal.AggregateAttr, having *ql.ASTNode) (i *iterator, err error) {
+func (d *model) Aggregate(f filter.Filter, groupBy []dal.AggregateAttr, aggrExpr []dal.AggregateAttr, having *ql.ASTNode) (i *iterator, err error) {
 	if len(groupBy) == 0 {
 		return nil, fmt.Errorf("can not run aggregation without group-by")
 	}
@@ -488,7 +488,7 @@ func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 	return base.Where(cnd...)
 }
 
-func (d *model) aggregateSql(f filter.Filter, groupBy []*dal.AggregateAttr, out []*dal.AggregateAttr, having *ql.ASTNode) (q *goqu.SelectDataset) {
+func (d *model) aggregateSql(f filter.Filter, groupBy []dal.AggregateAttr, out []dal.AggregateAttr, having *ql.ASTNode) (q *goqu.SelectDataset) {
 	// get SELECT query based on
 	// the given filter
 	q = d.searchSql(f)
@@ -499,7 +499,7 @@ func (d *model) aggregateSql(f filter.Filter, groupBy []*dal.AggregateAttr, out 
 
 		selected []any
 
-		field = func(c *dal.AggregateAttr) (expr exp.Expression, err error) {
+		field = func(c dal.AggregateAttr) (expr exp.Expression, err error) {
 			switch {
 			case len(c.RawExpr) > 0:
 				// @todo could probably be removed since RawExpr is only a temporary solution?
