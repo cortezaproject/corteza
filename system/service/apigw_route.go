@@ -2,10 +2,10 @@ package service
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/apigw"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/pkg/apigw"
 	a "github.com/cortezaproject/corteza-server/pkg/auth"
 
 	"github.com/cortezaproject/corteza-server/store"
@@ -85,9 +85,9 @@ func (svc *apigwRoute) Create(ctx context.Context, new *types.ApigwRoute) (q *ty
 
 		q = new
 
-		// send the signal to reload all routes
+		// send the signal to reload new route
 		if new.Enabled {
-			if err = apigw.Service().Reload(ctx); err != nil {
+			if err = apigw.Service().ReloadEndpoint(ctx, new.Method, new.Endpoint); err != nil {
 				return err
 			}
 		}
@@ -129,9 +129,16 @@ func (svc *apigwRoute) Update(ctx context.Context, upd *types.ApigwRoute) (q *ty
 
 		q = upd
 
-		// send the signal to reload all route
-		if qq.Enabled != upd.Enabled || qq.Enabled && upd.Enabled {
-			if err = apigw.Service().Reload(ctx); err != nil {
+		ags := apigw.Service()
+
+		// If method or endpoint doesn't match then attach 404 handler
+		if qq.Enabled != upd.Enabled || qq.Method != upd.Method || qq.Endpoint != upd.Endpoint {
+			ags.NotFound(ctx, qq.Method, qq.Endpoint)
+		}
+
+		// send the signal to reload updated route
+		if upd.Enabled {
+			if err = ags.ReloadEndpoint(ctx, upd.Method, upd.Endpoint); err != nil {
 				return err
 			}
 		}
@@ -166,11 +173,9 @@ func (svc *apigwRoute) DeleteByID(ctx context.Context, ID uint64) (err error) {
 			return
 		}
 
-		// send the signal to reload all queues
+		// send the signal to reload deleted route
 		if q.Enabled {
-			if err = apigw.Service().Reload(ctx); err != nil {
-				return err
-			}
+			apigw.Service().NotFound(ctx, q.Method, q.Endpoint)
 		}
 
 		return nil
@@ -205,7 +210,7 @@ func (svc *apigwRoute) UndeleteByID(ctx context.Context, ID uint64) (err error) 
 
 		// send the signal to reload all queues
 		if q.Enabled {
-			if err = apigw.Service().Reload(ctx); err != nil {
+			if err = apigw.Service().ReloadEndpoint(ctx, q.Method, q.Endpoint); err != nil {
 				return err
 			}
 		}
