@@ -190,15 +190,26 @@ func (set ExprSet) Eval(ctx context.Context, in *expr.Vars) (*expr.Vars, error) 
 		}
 
 		if e.typ != nil {
+
+			// @note handling special case for when we're dealing with arrays but in reality
+			//       we're expecting specific types (function results).
+			//       If we're dealing with an array but the expression doesn't want an array,
+			//       make it want an array.
+			typ := e.typ
+			array := &expr.Array{}
+			if typedValue.Type() == array.Type() && typ.Type() != array.Type() {
+				typ = array
+			}
+
 			if !knownType(typedValue) {
 				// Expression has fixed type but value does not
 				// cast the value of evaluation to type of the expressicason
-				if typedValue, err = e.typ.Cast(value); err != nil {
+				if typedValue, err = typ.Cast(value); err != nil {
 					return nil, err
 				}
-			} else if e.typ.Type() != typedValue.Type() && e.typ.Type() != (expr.Any{}).Type() {
+			} else if typ.Type() != typedValue.Type() && typ.Type() != (expr.Any{}).Type() {
 				//
-				if typedValue, err = e.typ.Cast(value); err != nil {
+				if typedValue, err = typ.Cast(value); err != nil {
 					return nil, err
 				}
 			}
