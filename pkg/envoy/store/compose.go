@@ -187,7 +187,17 @@ func (d *composeDecoder) decodeComposeRecord(ctx context.Context, s store.Storer
 			for _, f := range ff {
 				fNs := *f
 				fNs.NamespaceID = nsID
-				ffNs = append(ffNs, &fNs)
+
+				nn, _, err := s.SearchComposeModules(ctx, types.ModuleFilter{
+					NamespaceID: nsID,
+				})
+				if err != nil {
+					continue
+				}
+				for _, n := range nn {
+					fNs.ModuleID = n.ID
+					ffNs = append(ffNs, &fNs)
+				}
 			}
 		}
 		ff = ffNs
@@ -300,8 +310,8 @@ func (d *composeDecoder) decodeComposeRecord(ctx context.Context, s store.Storer
 			}
 			return nil
 		}
-
 		mm = append(mm, newComposeRecordFromAux(auxRecord))
+
 	}
 
 	return &auxRsp{
