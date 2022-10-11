@@ -10,6 +10,7 @@ import (
 	"github.com/doug-martin/goqu/v9/dialect/postgres"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/spf13/cast"
+	"strings"
 )
 
 type (
@@ -185,5 +186,16 @@ func (postgresDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, 
 }
 
 func (postgresDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (exp.Expression, error) {
+	switch strings.ToLower(n.Ref) {
+	case "concat":
+		// need to force text type on all arguments
+		aa := make([]any, len(args))
+		for a := range args {
+			aa[a] = exp.NewCastExpression(exp.NewLiteralExpression("?", args[a]), "TEXT")
+		}
+
+		return exp.NewSQLFunctionExpression("CONCAT", aa...), nil
+	}
+
 	return ref2exp.RefHandler(n, args...)
 }
