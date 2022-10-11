@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms"
+	"github.com/stretchr/testify/require"
 	"os"
 	"sort"
 	"testing"
@@ -91,4 +93,10 @@ func (r kv) String() string {
 	}
 
 	return out
+}
+
+func qlParse(req *require.Assertions, q string) *ql.ASTNode {
+	n, err := ql.NewParser().Parse(q)
+	req.NoError(err)
+	return n
 }
