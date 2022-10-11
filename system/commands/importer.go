@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
@@ -31,6 +32,9 @@ func Import(ctx context.Context, storeInit func(ctx context.Context) (store.Stor
 
 		Run: func(cmd *cobra.Command, args []string) {
 			s, err := storeInit(ctx)
+			cli.HandleError(err)
+
+			err = service.DalModelReload(ctx, s, dal.Service())
 			cli.HandleError(err)
 
 			yd := yaml.Decoder()
