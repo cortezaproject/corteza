@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/cast2"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
@@ -9,6 +10,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/dialect/sqlite3"
 	"github.com/doug-martin/goqu/v9/exp"
+	"strings"
 )
 
 type (
@@ -158,5 +160,10 @@ func (sqliteDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, er
 }
 
 func (sqliteDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (exp.Expression, error) {
+	switch strings.ToLower(n.Ref) {
+	case "concat":
+		return exp.NewLiteralExpression("?"+strings.Repeat(" || ?", len(args)-1), cast2.Anys(args...)...), nil
+	}
+
 	return ref2exp.RefHandler(n, args...)
 }
