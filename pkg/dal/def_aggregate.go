@@ -3,6 +3,7 @@ package dal
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
@@ -255,7 +256,7 @@ func (def *Aggregate) determineAttrType(base AggregateAttr, ss []AttributeMappin
 		}
 
 		if a.Ref != "" {
-			tmp := refToGvalExp[a.Ref]
+			tmp := refToGvalExp[strings.ToLower(a.Ref)]
 			if tmp == nil || tmp.OutType == nil || tmp.OutTypeUnknown {
 				return true, a, nil
 			}
