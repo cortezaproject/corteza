@@ -286,7 +286,11 @@ func (d *model) Aggregate(f filter.Filter, groupBy []dal.AggregateAttr, aggrExpr
 		dstModel.Attributes = append(dstModel.Attributes, dstAttr)
 	}
 
+	i.src = Model(srcModel, d.conn, d.dialect)
+	i.dst = Model(dstModel, d.conn, d.dialect)
+
 	i.query = d.aggregateSql(f, groupBy, aggrExpr, having)
+
 	if err = i.query.Error(); err != nil {
 		return
 	}
@@ -497,6 +501,13 @@ func (d *model) aggregateSql(f filter.Filter, groupBy []dal.AggregateAttr, out [
 		err  error
 		expr exp.Expression
 
+		alias string
+
+		// store map alias-expression pairs to power-up
+		// HAVING clause query parsing (but only for the
+		// aggregation expression!)
+		a2expr = make(map[string]exp.Expression)
+
 		selected []any
 
 		field = func(c dal.AggregateAttr) (expr exp.Expression, err error) {
@@ -517,13 +528,20 @@ func (d *model) aggregateSql(f filter.Filter, groupBy []dal.AggregateAttr, out [
 			return q.SetError(err)
 		}
 
-		// Add all group-by columns at the start
-		alias := fmt.Sprintf("group_by_%d_%s", i, c.Identifier)
-		expr = exp.NewAliasExpression(expr, alias)
-		selected = append(selected, expr)
+		alias = c.Identifier
+		if alias == "" {
+			alias = fmt.Sprintf("group_by_%d", i)
+		}
+
+		a2expr[alias] = expr
 
 		// grouping by selected
 		q = q.GroupByAppend(alias)
+
+		expr = exp.NewAliasExpression(expr, alias)
+
+		// Add all group-by columns at the start of selection fields
+		selected = append(selected, expr)
 	}
 
 	q = q.Select(selected...)
@@ -533,14 +551,39 @@ func (d *model) aggregateSql(f filter.Filter, groupBy []dal.AggregateAttr, out [
 			return q.SetError(err)
 		}
 
-		alias := fmt.Sprintf("aggr_%d_%s", i, c.Identifier)
+		alias = c.Identifier
+		if alias == "" {
+			alias = fmt.Sprintf("aggr_%d", i)
+		}
+
+		a2expr[alias] = expr
+
 		expr = exp.NewAliasExpression(expr, alias)
 		q = q.SelectAppend(expr)
 	}
 
 	if having != nil {
-		if expr, err = d.convertQuery(having); err != nil {
-			return q.SetError(err)
+		var (
+			converter = ql.Converter(
+				ql.SymHandler(func(node *ql.ASTNode) (exp.Expression, error) {
+					sym := dal.NormalizeAttrNames(node.Symbol)
+					if a2expr[sym] != nil {
+						// is aliased expression?
+						return a2expr[sym], nil
+					}
+
+					// if not, use the default handler
+					return d.qlConverterGenericHandlers()(node)
+				}),
+				ql.RefHandler(d.dialect.ExprHandler),
+			)
+		)
+
+		// using special symbol handler that when converting HAVING clause expression
+		// this handler looks at the
+		if expr, err = converter.Convert(having); err != nil {
+			q.SetError(err)
+			return
 		}
 
 		q = q.Having(expr)

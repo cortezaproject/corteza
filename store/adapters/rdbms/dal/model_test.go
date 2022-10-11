@@ -144,12 +144,12 @@ func TestModel_Aggregate(t *testing.T) {
 			}),
 		),
 		// group-by
-		[]*dal.AggregateAttr{
+		[]dal.AggregateAttr{
 			{Identifier: "date", Type: &dal.TypeDate{}, Store: &dal.CodecRecordValueSetJSON{Ident: "values"}},
 			{Identifier: "group", Type: &dal.TypeText{}, Store: &dal.CodecRecordValueSetJSON{Ident: "values"}},
 		},
 		// aggregation expressions
-		[]*dal.AggregateAttr{
+		[]dal.AggregateAttr{
 			{Identifier: "count", RawExpr: "COUNT(*)", Type: &dal.TypeNumber{}},
 			{Identifier: "max", RawExpr: "MAX(price)", Type: &dal.TypeNumber{}},
 			{Identifier: "min", RawExpr: "MIN(price)", Type: &dal.TypeNumber{}},
@@ -182,6 +182,78 @@ func TestModel_Aggregate(t *testing.T) {
 	req.Equal("avg=1000.00 count=1 date=2022-10-06 group=g2 max=1000 min=1000 stock=10.00", rows[0].String())
 	req.Equal("avg=5000.00 count=1 date=2022-10-07 group=g2 max=5000 min=5000 stock=50.00", rows[1].String())
 	req.Equal("avg=2000.00 count=2 date=2022-10-06 group=g1 max=3000 min=1000 stock=40.00", rows[2].String())
+}
+
+func TestModel_AggregationModelIdentifiers(t *testing.T) {
+	_ = logger.Default()
+
+	var (
+		req = require.New(t)
+
+		ctx = context.Background()
+
+		baseModel = &dal.Model{
+			Ident: "t",
+			Attributes: []*dal.Attribute{
+				{Ident: "group", Type: &dal.TypeText{}, Filterable: true},
+			},
+		}
+
+		m = Model(baseModel, s.DB, s.Dialect)
+
+		i dal.Iterator
+
+		table, err = s.DataDefiner.ConvertModel(baseModel)
+		row        kv
+	)
+
+	ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
+
+	t.Logf("Creating temporary table %q", table.Ident)
+	table.Temporary = true
+	req.NoError(s.DataDefiner.TableCreate(ctx, table))
+
+	req.NoError(m.Create(ctx, &kv{"group": "g1"}))
+	req.NoError(m.Create(ctx, &kv{"group": "g1"}))
+	req.NoError(m.Create(ctx, &kv{"group": "g2"}))
+	req.NoError(m.Create(ctx, &kv{"group": "g2"}))
+	req.NoError(m.Create(ctx, &kv{"group": "g2"}))
+
+	t.Log("Aggregating all records, calculating min & max price per group")
+	i, err = m.Aggregate(
+		filter.Generic(
+			filter.WithOrderBy(filter.SortExprSet{
+				&filter.SortExpr{Column: "grp", Descending: true},
+			}),
+		),
+		// group-by
+		[]dal.AggregateAttr{
+			{Identifier: "grp", RawExpr: "CONCAT(group, 'x')", Type: &dal.TypeText{}},
+		},
+		// aggregation expressions
+		[]dal.AggregateAttr{
+			{Identifier: "total", RawExpr: "COUNT(*)", Type: &dal.TypeNumber{}},
+		},
+		// having
+		qlParse(req, "total = 3"),
+	)
+	req.NoError(err)
+	req.NotNil(i)
+
+	defer req.NoError(i.Close())
+
+	t.Log("Iterating over results")
+	rows := make([]kv, 0)
+	for i.Next(ctx) {
+		row = kv{}
+		req.NoError(i.Scan(row))
+
+		rows = append(rows, row)
+	}
+
+	req.NoError(i.Err())
+	req.Len(rows, 1)
+	req.Equal("grp=g2x total=3", rows[0].String())
 }
 
 func TestModel_AggregateWithHaving(t *testing.T) {
@@ -235,24 +307,20 @@ func TestModel_AggregateWithHaving(t *testing.T) {
 			}),
 		),
 		// group-by
-		[]*dal.AggregateAttr{
+		[]dal.AggregateAttr{
 			{Identifier: "date", Type: &dal.TypeDate{}, Store: &dal.CodecRecordValueSetJSON{Ident: "values"}},
 			{Identifier: "group", Type: &dal.TypeText{}, Store: &dal.CodecRecordValueSetJSON{Ident: "values"}},
 		},
 		// aggregation expressions
-		[]*dal.AggregateAttr{
+		[]dal.AggregateAttr{
 			{Identifier: "count", RawExpr: "COUNT(*)", Type: &dal.TypeNumber{}},
 			{Identifier: "max", RawExpr: "MAX(price)", Type: &dal.TypeNumber{}},
 			{Identifier: "min", RawExpr: "MIN(price)", Type: &dal.TypeNumber{}},
 			{Identifier: "avg", RawExpr: "AVG(price)", Type: &dal.TypeNumber{}},
 			{Identifier: "stock", RawExpr: "SUM(quantity)", Type: &dal.TypeNumber{}},
 		},
-		//
-		func() *ql.ASTNode {
-			n, err := ql.NewParser().Parse("SUM(quantity) > 0")
-			req.NoError(err)
-			return n
-		}(),
+		// having
+		qlParse(req, "SUM(quantity) > 0"),
 	)
 	req.NoError(err)
 	req.NotNil(i)
@@ -277,6 +345,82 @@ func TestModel_AggregateWithHaving(t *testing.T) {
 	req.Len(rows, 2)
 	req.Equal("avg=1000.00 count=1 date=2022-10-06 group=g2 max=1000 min=1000 stock=10.00", rows[0].String())
 	req.Equal("avg=5000.00 count=1 date=2022-10-07 group=g2 max=5000 min=5000 stock=50.00", rows[1].String())
+}
+
+func TestModel_AggregateHavingGroup(t *testing.T) {
+	_ = logger.Default()
+
+	var (
+		req = require.New(t)
+
+		ctx = context.Background()
+
+		baseModel = &dal.Model{
+			Ident: t.Name(),
+			Attributes: []*dal.Attribute{
+				{Ident: "item", Type: &dal.TypeText{}},
+				{Ident: "date", Type: &dal.TypeDate{}, Store: &dal.CodecRecordValueSetJSON{Ident: "values"}, Sortable: true},
+				{Ident: "grp", Type: &dal.TypeText{}, Store: &dal.CodecRecordValueSetJSON{Ident: "values"}, Sortable: true, Filterable: true},
+				{Ident: "quantity", Type: &dal.TypeNumber{}, Store: &dal.CodecRecordValueSetJSON{Ident: "values"}, Filterable: true},
+				{Ident: "price", Type: &dal.TypeNumber{}, Filterable: true},
+				{Ident: "published", Type: &dal.TypeBoolean{}, Filterable: true},
+			},
+		}
+
+		m = Model(baseModel, s.DB, s.Dialect)
+
+		i dal.Iterator
+
+		table, err = s.DataDefiner.ConvertModel(baseModel)
+		row        kv
+	)
+
+	ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
+
+	t.Logf("Creating temporary table %q", table.Ident)
+	table.Temporary = true
+	req.NoError(s.DataDefiner.TableCreate(ctx, table))
+
+	req.NoError(m.Create(ctx, &kv{"item": "i1", "date": "2022-10-06", "grp": "g1", "price": "1000", "quantity": "10", "published": true}))
+	req.NoError(m.Create(ctx, &kv{"item": "i2", "date": "2022-10-06", "grp": "g1", "price": "3000", "quantity": "30", "published": true}))
+	req.NoError(m.Create(ctx, &kv{"item": "i3", "date": "2022-10-06", "grp": "g2", "price": "4000", "quantity": "40", "published": false}))
+	req.NoError(m.Create(ctx, &kv{"item": "i4", "date": "2022-10-06", "grp": "g2", "price": "1000", "quantity": "10", "published": true}))
+	req.NoError(m.Create(ctx, &kv{"item": "i5", "date": "2022-10-07", "grp": "g2", "price": "1000", "quantity": "10", "published": false}))
+	req.NoError(m.Create(ctx, &kv{"item": "i6", "date": "2022-10-07", "grp": "g2", "price": "5000", "quantity": "50", "published": true}))
+
+	t.Log("Aggregating all records, calculating min & max price per group")
+	i, err = m.Aggregate(
+		filter.Generic(),
+		// group-by
+		[]dal.AggregateAttr{
+			{Identifier: "agg", Expression: &ql.ASTNode{Symbol: "grp"}, Type: &dal.TypeText{}, Store: &dal.CodecRecordValueSetJSON{Ident: "values"}},
+		},
+		// aggregation expressions
+		[]dal.AggregateAttr{
+			{Identifier: "count", RawExpr: "COUNT(*)", Type: &dal.TypeNumber{}},
+		},
+		qlParse(req, "agg = 'g1'"),
+	)
+	req.NoError(err)
+	req.NotNil(i)
+
+	defer req.NoError(i.Close())
+
+	t.Log("Iterating over results")
+	rows := make([]kv, 0, 1)
+	for i.Next(ctx) {
+		row = kv{}
+		req.NoError(i.Scan(row))
+
+		// due to difference of number of decimal digits in different DBs, we need to do this
+		// to make sure we get the same result
+
+		rows = append(rows, row)
+	}
+
+	req.NoError(i.Err())
+	req.Len(rows, 1)
+	req.Equal("agg=g1 count=2", rows[0].String())
 }
 
 func TestModel_Distinct(t *testing.T) {
@@ -325,7 +469,7 @@ func TestModel_Distinct(t *testing.T) {
 				&filter.SortExpr{Column: "group"},
 			})),
 		// group-by
-		[]*dal.AggregateAttr{
+		[]dal.AggregateAttr{
 			{Identifier: "group", Type: &dal.TypeText{}, Store: &dal.CodecRecordValueSetJSON{Ident: "values"}},
 		},
 		nil,
@@ -414,24 +558,20 @@ func TestModel_AggregateWithCursors(t *testing.T) {
 				}),
 			),
 			// group-by
-			[]*dal.AggregateAttr{
+			[]dal.AggregateAttr{
 				{Identifier: "date", Type: &dal.TypeDate{}, Store: &dal.CodecRecordValueSetJSON{Ident: "values"}},
 				{Identifier: "group", Type: &dal.TypeText{}, Store: &dal.CodecRecordValueSetJSON{Ident: "values"}},
 			},
 			// aggregation expressions
-			[]*dal.AggregateAttr{
+			[]dal.AggregateAttr{
 				{Identifier: "count", RawExpr: "COUNT(*)", Type: &dal.TypeNumber{}},
 				{Identifier: "max", RawExpr: "MAX(price)", Type: &dal.TypeNumber{}},
 				{Identifier: "min", RawExpr: "MIN(price)", Type: &dal.TypeNumber{}},
 				{Identifier: "avg", RawExpr: "AVG(price)", Type: &dal.TypeNumber{}},
 				{Identifier: "stock", RawExpr: "SUM(quantity)", Type: &dal.TypeNumber{}},
 			},
-			//
-			func() *ql.ASTNode {
-				n, err := ql.NewParser().Parse("SUM(quantity) > 0")
-				req.NoError(err)
-				return n
-			}(),
+			// having
+			qlParse(req, "SUM(quantity) > 0"),
 		)
 		req.NoError(err)
 		req.NotNil(i)
