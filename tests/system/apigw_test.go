@@ -83,7 +83,7 @@ func TestApigwRouteRead(t *testing.T) {
 		End()
 }
 
-func TestApigwRouteRead_forbiden(t *testing.T) {
+func TestApigwRouteRead_forbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearRoutes()
 
@@ -145,7 +145,7 @@ func TestApigwRouteSearch_includeDisabled(t *testing.T) {
 		End()
 }
 
-func TestApigwRouteSearch_forbiden(t *testing.T) {
+func TestApigwRouteSearch_forbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearRoutes()
 
@@ -161,7 +161,7 @@ func TestApigwRouteSearch_forbiden(t *testing.T) {
 		End()
 }
 
-func TestApigwRouteSearch_forbidenSpecific(t *testing.T) {
+func TestApigwRouteSearch_forbiddenSpecific(t *testing.T) {
 	h := newHelper(t)
 	h.clearRoutes()
 
@@ -205,7 +205,7 @@ func TestApigwRouteCreate(t *testing.T) {
 		End()
 }
 
-func TestApigwRouteCreate_forbiden(t *testing.T) {
+func TestApigwRouteCreate_forbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearRoutes()
 
@@ -244,7 +244,7 @@ func TestApigwRouteUpdate(t *testing.T) {
 		End()
 }
 
-func TestApigwRouteUpdate_forbiden(t *testing.T) {
+func TestApigwRouteUpdate_forbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearRoutes()
 
@@ -278,7 +278,7 @@ func TestApigwRouteDelete(t *testing.T) {
 		End()
 }
 
-func TestApigwRouteDelete_forbiden(t *testing.T) {
+func TestApigwRouteDelete_forbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearRoutes()
 
@@ -310,7 +310,7 @@ func TestApigwRouteUnDelete(t *testing.T) {
 		End()
 }
 
-func TestApigwRouteUnDelete_forbiden(t *testing.T) {
+func TestApigwRouteUnDelete_forbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearRoutes()
 
@@ -346,7 +346,7 @@ func TestApigwFilterRead(t *testing.T) {
 		End()
 }
 
-func TestApigwFilterRead_forbiden(t *testing.T) {
+func TestApigwFilterRead_forbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearRoutes()
 
@@ -406,7 +406,7 @@ func TestApigwFilterSearch_includeDisabled(t *testing.T) {
 		End()
 }
 
-func TestApigwFilterSearch_forbiden(t *testing.T) {
+func TestApigwFilterSearch_forbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearRoutes()
 
@@ -486,7 +486,7 @@ func TestApigwFilterCreate_disabled(t *testing.T) {
 		End()
 }
 
-func TestApigwFilterCreate_forbiden(t *testing.T) {
+func TestApigwFilterCreate_forbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearRoutes()
 
@@ -567,7 +567,7 @@ func TestApigwFilterUpdate_disabled(t *testing.T) {
 		End()
 }
 
-func TestApigwFilterUpdate_forbiden(t *testing.T) {
+func TestApigwFilterUpdate_forbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearRoutes()
 
@@ -601,7 +601,7 @@ func TestApigwFilterDelete(t *testing.T) {
 		End()
 }
 
-func TestApigwFilterDelete_forbiden(t *testing.T) {
+func TestApigwFilterDelete_forbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearRoutes()
 
@@ -633,7 +633,7 @@ func TestApigwFilterUnDelete(t *testing.T) {
 		End()
 }
 
-func TestApigwFilterUnDelete_forbiden(t *testing.T) {
+func TestApigwFilterUnDelete_forbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearRoutes()
 

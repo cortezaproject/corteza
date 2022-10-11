@@ -86,7 +86,7 @@ func TestUserRead(t *testing.T) {
 		End()
 }
 
-func TestUserRead_forbiden(t *testing.T) {
+func TestUserRead_forbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
 
