@@ -1,4 +1,4 @@
-package dal
+package system
 
 import (
 	"net/http"
@@ -9,10 +9,10 @@ import (
 )
 
 func Test_dal_crud_driver_list(t *testing.T) {
-	h := newHelperT(t)
+	h := newHelper(t)
 
 	h.apiInit().
-		Get("/system/dal/drivers/").
+		Get("/dal/drivers/").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).

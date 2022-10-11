@@ -144,6 +144,23 @@ func Test_dal_connection_create(t *testing.T) {
 		End()
 }
 
+func Test_dal_connection_create_invalid_type(t *testing.T) {
+	h := newHelper(t)
+	defer h.clearDalConnections()
+
+	helpers.AllowMe(h, types.ComponentRbacResource(), "dal-connection.create")
+
+	h.apiInit().
+		Post("/dal/connections/").
+		Body(loadScenarioRequest(t, "generic.json")).
+		Header("Accept", "application/json").
+		Header("Content-Type", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertErrorP("corteza::system:primary-dal-connection")).
+		End()
+}
+
 func Test_dal_connection_create_forbidden(t *testing.T) {
 	h := newHelper(t)
 	defer h.clearDalConnections()
