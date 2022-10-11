@@ -248,7 +248,7 @@ func Test_dal_connection_read(t *testing.T) {
 		End()
 }
 
-func Test_dal_connection_read_forbiden(t *testing.T) {
+func Test_dal_connection_read_forbidden(t *testing.T) {
 	h := newHelper(t)
 	defer h.clearDalConnections()
 

@@ -133,7 +133,7 @@ func Test_dal_crud_sensitivity_level_read(t *testing.T) {
 		End()
 }
 
-func Test_dal_crud_sensitivity_level_read_forbiden(t *testing.T) {
+func Test_dal_crud_sensitivity_level_read_forbidden(t *testing.T) {
 	h := newHelperT(t)
 	defer h.cleanupDal()
 
