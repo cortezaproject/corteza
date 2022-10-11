@@ -7,6 +7,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/yaml"
@@ -37,6 +38,12 @@ func Export(ctx context.Context, storeInit func(ctx context.Context) (store.Stor
 
 			s, err := storeInit(ctx)
 			cli.HandleError(err)
+
+			// init dal models
+			err = service.DalModelReload(ctx, s, dal.Service())
+			cli.HandleError(err)
+
+			// TODO: init rbac, which is required by compose reocrd export
 
 			f = f.FromResource(args...)
 
