@@ -9,6 +9,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"go.uber.org/zap"
 )
 
@@ -48,6 +49,12 @@ type (
 
 		// Search returns an iterator which can be used to access all if the bits
 		Search(context.Context, *Model, filter.Filter) (Iterator, error)
+
+		// Analyze returns the operation analysis the connection can perform for the model
+		Analyze(ctx context.Context, m *Model) (map[string]OpAnalysis, error)
+
+		// Aggregate returns the iterator with aggregated data from the base model
+		Aggregate(ctx context.Context, m *Model, f filter.Filter, groupBy []AggregateAttr, aggrExpr []AggregateAttr, having *ql.ASTNode) (i Iterator, _ error)
 
 		// Delete deletes the given value
 		Delete(ctx context.Context, m *Model, pkv ValueGetter) error

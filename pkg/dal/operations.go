@@ -13,9 +13,6 @@ const (
 	Lookup  Operation = "corteza::dal:operation:lookup"
 	Paging  Operation = "corteza::dal:operation:paging"
 	Sorting Operation = "corteza::dal:operation:sorting"
-	Analyze Operation = "corteza::dal:operation:analyze"
-
-	// @todo reporter operations
 )
 
 var (
@@ -27,7 +24,6 @@ var (
 		Lookup,
 		Paging,
 		Sorting,
-		Analyze,
 	}
 
 	createOperations = OperationSet{
@@ -46,7 +42,6 @@ var (
 		Search,
 		Paging,
 		Sorting,
-		Analyze,
 	}
 
 	lookupOperations = OperationSet{

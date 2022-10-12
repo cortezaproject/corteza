@@ -97,6 +97,15 @@ var (
 		},
 		"mult": {
 			Handler: func(args ...exp.Expression) exp.Expression {
+				// Handling COUNT(*) scenario:
+				// ql parser interprets * as a multiplier
+				//
+				// in situations where there are 0 arguments we'll just
+				// return star
+				if len(args) == 0 {
+					return exp.Star()
+				}
+
 				return exp.NewLiteralExpression("? * ?", args[0], args[1])
 			},
 		},
@@ -214,6 +223,31 @@ var (
 		"date": {
 			Handler: func(args ...exp.Expression) exp.Expression {
 				return exp.NewSQLFunctionExpression("DATE", args[0])
+			},
+		},
+		"count": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("COUNT", args[0])
+			},
+		},
+		"sum": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("SUM", args[0])
+			},
+		},
+		"avg": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("AVG", args[0])
+			},
+		},
+		"min": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("MIN", args[0])
+			},
+		},
+		"max": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("MAX", args[0])
 			},
 		},
 	}

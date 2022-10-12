@@ -42,6 +42,8 @@ type (
 		Indexes []*Index
 		Comment string
 
+		Temporary bool
+
 		// implementation variations
 		Meta map[string]interface{}
 	}

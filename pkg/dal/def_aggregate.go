@@ -3,6 +3,7 @@ package dal
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
@@ -24,7 +25,7 @@ type (
 
 		rel      PipelineStep
 		plan     aggregatePlan
-		analysis stepAnalysis
+		analysis map[string]OpAnalysis
 	}
 
 	// aggregatePlan outlines how the optimizer determined the dataset should be
@@ -52,6 +53,7 @@ type (
 		Label      string
 		Expression *ql.ASTNode
 		Type       Type
+		Store      Codec
 	}
 )
 
@@ -76,17 +78,19 @@ func (def *Aggregate) Attributes() [][]AttributeMapping {
 
 func (def *Aggregate) Analyze(ctx context.Context) (err error) {
 	// @todo proper analysis; for now we'll leave this as defaults
-	def.analysis = stepAnalysis{
-		scanCost:   costUnknown,
-		searchCost: costUnknown,
-		filterCost: costUnknown,
-		sortCost:   costUnknown,
-		outputSize: sizeUnknown,
+	def.analysis = map[string]OpAnalysis{
+		OpAnalysisIterate: {
+			ScanCost:   CostUnknown,
+			SearchCost: CostUnknown,
+			FilterCost: CostUnknown,
+			SortCost:   CostUnknown,
+			OutputSize: SizeUnknown,
+		},
 	}
 	return
 }
 
-func (def *Aggregate) Analysis() stepAnalysis {
+func (def *Aggregate) Analysis() map[string]OpAnalysis {
 	return def.analysis
 }
 
@@ -182,6 +186,8 @@ func (def *Aggregate) init(ctx context.Context, src Iterator) (exec *aggregate, 
 	}
 	// - aggregates
 	for i, attr := range def.OutAttributes {
+		// @todo change when needed; currently, all aggregates are numbers
+		attr.Type = &TypeNumber{}
 		attr, err = prepAttr(attr)
 		if err != nil {
 			return
@@ -250,7 +256,7 @@ func (def *Aggregate) determineAttrType(base AggregateAttr, ss []AttributeMappin
 		}
 
 		if a.Ref != "" {
-			tmp := refToGvalExp[a.Ref]
+			tmp := refToGvalExp[strings.ToLower(a.Ref)]
 			if tmp == nil || tmp.OutType == nil || tmp.OutTypeUnknown {
 				return true, a, nil
 			}
