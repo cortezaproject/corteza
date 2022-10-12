@@ -72,6 +72,10 @@ func TypeWrap(dt dal.Type) Type {
 		return &TypeUUID{c}
 	}
 
+	if dt == nil {
+		panic(fmt.Sprintf("attribute type not set (nil)"))
+	}
+
 	panic(fmt.Sprintf("type implementation missing: %s", dt.Type()))
 }
 

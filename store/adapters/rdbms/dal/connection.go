@@ -7,6 +7,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
+	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ql"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -102,6 +103,28 @@ func (c *connection) Lookup(ctx context.Context, m *dal.Model, pkv dal.ValueGett
 func (c *connection) Search(ctx context.Context, m *dal.Model, f filter.Filter) (i dal.Iterator, _ error) {
 	return i, c.withModel(m, func(m *model) (err error) {
 		i, err = m.Search(f)
+		return
+	})
+}
+
+func (c *connection) Analyze(ctx context.Context, m *dal.Model) (a map[string]dal.OpAnalysis, err error) {
+	// @todo somehow (probably operations) bring in the info what can be done
+	//       for now, since we're quite rigid on the drivers, this will do.
+	a = map[string]dal.OpAnalysis{
+		dal.OpAnalysisAggregate: {
+			ScanCost:   dal.CostCheep,
+			SearchCost: dal.CostCheep,
+			FilterCost: dal.CostCheep,
+			SortCost:   dal.CostCheep,
+		},
+	}
+
+	return
+}
+
+func (c *connection) Aggregate(ctx context.Context, m *dal.Model, f filter.Filter, groupBy []dal.AggregateAttr, aggrExpr []dal.AggregateAttr, having *ql.ASTNode) (i dal.Iterator, _ error) {
+	return i, c.withModel(m, func(m *model) (err error) {
+		i, err = m.Aggregate(f, groupBy, aggrExpr, having)
 		return
 	})
 }

@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
@@ -347,7 +346,7 @@ func (cur *PagingCursor) ToAST(identLookup func(i string) (string, error), castF
 		}
 
 		if castFn == nil {
-			value, err = cur.guessTypedValue(vv[i])
+			value, err = expr.Typify(vv[i])
 		} else {
 			value, err = castFn(cc[i], vv[i])
 		}
@@ -472,35 +471,6 @@ func (cur *PagingCursor) ToAST(identLookup func(i string) (string, error), castF
 	}
 
 	return
-}
-
-func (PagingCursor) guessTypedValue(v any) (expr.TypedValue, error) {
-	// handle boolean edgecases
-	if v == "true" || v == true {
-		return expr.NewBoolean(true)
-	} else if v == "false" || v == false {
-		return expr.NewBoolean(false)
-	}
-
-	// other types
-	switch v.(type) {
-	case uint64:
-		return expr.NewID(v)
-	case uint, uint8, uint16, uint32:
-		return expr.NewUnsignedInteger(v)
-	case int, int8, int16, int32, int64:
-		return expr.NewInteger(v)
-	case float32, float64:
-		return expr.NewFloat(v)
-	case string:
-		return expr.NewString(v)
-
-	case time.Time,
-		*time.Time:
-		return expr.NewDateTime(v)
-	}
-
-	return nil, fmt.Errorf("failed to determine value type for %v", v)
 }
 
 // PagingCursorFrom constructs a new paging cursor for the given valueGetter
