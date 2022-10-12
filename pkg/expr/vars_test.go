@@ -352,7 +352,7 @@ func TestVars_Dict(t *testing.T) {
 	cases := []struct {
 		name     string
 		input    *Vars
-		expected map[string]any
+		expected map[string]interface{}
 	}{
 		{
 			name:     "empty",
@@ -364,22 +364,22 @@ func TestVars_Dict(t *testing.T) {
 			input: &Vars{value: map[string]TypedValue{
 				"k1": &String{value: "v1"},
 			}},
-			expected: map[string]any{"k1": "v1"},
+			expected: map[string]interface{}{"k1": "v1"},
 		},
 		{
 			name: "string",
 			input: &Vars{value: map[string]TypedValue{
 				"k1": &String{value: "v1"},
 			}},
-			expected: map[string]any{"k1": "v1"},
+			expected: map[string]interface{}{"k1": "v1"},
 		},
 		{
 			name: "array",
 			input: &Vars{value: map[string]TypedValue{
 				"arr": &Array{value: []TypedValue{&String{value: "foo"}}},
 			}},
-			expected: map[string]any{
-				"arr": []any{"foo"},
+			expected: map[string]interface{}{
+				"arr": []interface{}{"foo"},
 			},
 		},
 	}
