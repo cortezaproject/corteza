@@ -226,10 +226,16 @@ func ApigwRouteFilter(f systemType.ApigwRouteFilter) (ee []goqu.Expression, _ sy
 		ee = append(ee, expr)
 	}
 
-	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("endpoint").ILike("%"+f.Query+"%"),
-		))
+	if val := strings.TrimSpace(f.Route); len(val) > 0 {
+		ee = append(ee, goqu.C("id").Eq(f.Route))
+	}
+
+	if val := strings.TrimSpace(f.Endpoint); len(val) > 0 {
+		ee = append(ee, goqu.C("endpoint").Eq(f.Endpoint))
+	}
+
+	if val := strings.TrimSpace(f.Method); len(val) > 0 {
+		ee = append(ee, goqu.C("method").Eq(f.Method))
 	}
 
 	return ee, f, err
