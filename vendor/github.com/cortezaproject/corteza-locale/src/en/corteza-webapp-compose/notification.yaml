@@ -7,6 +7,7 @@ chart:
   invalidConfig:
     missingDimensionsField: Dimensions field not defined
     missingDimensionsModifier: Dimensions modifier not defined
+    missingDimensionsSteps: Dimensions steps are not defined
     missingMetricsAggregate: Metrics aggregate not defined
     missingMetricsField: Metrics field not defined
     missingMetricsType: Metrics chart type not defined
