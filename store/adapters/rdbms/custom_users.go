@@ -40,7 +40,10 @@ func (s *Store) UserMetrics(ctx context.Context) (m *systemType.UserMetrics, err
 			Suspended uint `db:"suspended"`
 		}{}
 
+		genericExcl = goqu.C("kind").Eq("")
+
 		query = userSelectQuery(s.Dialect.GOQU()).
+			Where(genericExcl).
 			Select(timestampStatExpr("deleted", "suspended")...)
 	)
 
@@ -60,7 +63,7 @@ func (s *Store) UserMetrics(ctx context.Context) (m *systemType.UserMetrics, err
 		ctx,
 		userTable,
 		[]goqu.Expression{
-			goqu.C("kind").Eq(""),
+			genericExcl,
 		},
 		[]string{
 			"created_at",
