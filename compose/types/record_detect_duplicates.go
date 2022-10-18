@@ -110,18 +110,23 @@ func (rule DeDupRule) checkCaseSensitiveDuplication(ctx context.Context, ls loca
 	out = &RecordValueErrorSet{}
 	recVal := rec.Values
 
-	_ = recVal.Walk(func(newV *RecordValue) error {
+	for _, a := range rule.Attributes {
+		rv := recVal.Get(a, 0)
+		if rv == nil {
+			continue
+		}
+
 		_ = vv.Walk(func(v *RecordValue) error {
 			if v.RecordID != rec.ID {
-				if toLower(v.Value) == toLower(newV.Value) {
+				if toLower(v.Value) == toLower(rv.Value) {
 					out.Push(RecordValueError{
 						Kind:    rule.IssueKind(),
 						Message: ls.T(ctx, "compose", rule.IssueMessage()),
 						Meta: map[string]interface{}{
-							"dupValueField": newV.Name,
-							"recordID":      cast.ToString(v.RecordID),
 							"field":         v.Name,
 							"value":         v.Value,
+							"dupValueField": rv.Name,
+							"recordID":      cast.ToString(v.RecordID),
 							"rule":          rule.String(),
 						},
 					})
@@ -129,8 +134,8 @@ func (rule DeDupRule) checkCaseSensitiveDuplication(ctx context.Context, ls loca
 			}
 			return nil
 		})
-		return nil
-	})
+	}
+
 	return
 }
 
