@@ -493,8 +493,9 @@ func (svc workflow) handleUndelete(ctx context.Context, res *types.Workflow) (wo
 func (svc *workflow) Load(ctx context.Context) error {
 	var (
 		set, _, err = store.SearchAutomationWorkflows(ctx, svc.store, types.WorkflowFilter{
-			Deleted:  filter.StateInclusive,
-			Disabled: filter.StateExcluded,
+			Deleted:     filter.StateInclusive,
+			Disabled:    filter.StateExcluded,
+			SubWorkflow: filter.StateInclusive,
 		})
 		g     *wfexec.Graph
 		runAs intAuth.Identifiable
