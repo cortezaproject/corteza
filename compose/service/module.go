@@ -1479,31 +1479,44 @@ func moduleFieldToAttribute(f *types.ModuleField) (out *dal.Attribute, err error
 
 	switch strings.ToLower(f.Kind) {
 	case "bool", "boolean":
-		at := &dal.TypeBoolean{}
+		at := &dal.TypeBoolean{
+			Nullable: !f.Required,
+		}
 		out = dal.FullAttribute(f.Name, at, codec)
 	case "datetime":
 		switch {
 		case f.IsDateOnly():
-			at := &dal.TypeDate{}
+			at := &dal.TypeDate{
+				Nullable: !f.Required,
+			}
 			out = dal.FullAttribute(f.Name, at, codec)
 		case f.IsTimeOnly():
-			at := &dal.TypeTime{}
+			at := &dal.TypeTime{
+				Nullable: !f.Required,
+			}
 			out = dal.FullAttribute(f.Name, at, codec)
 		default:
-			at := &dal.TypeTimestamp{}
+			at := &dal.TypeTimestamp{
+				Nullable: !f.Required,
+			}
 			out = dal.FullAttribute(f.Name, at, codec)
 		}
 	case "email":
-		at := &dal.TypeText{Length: emailLength}
+		at := &dal.TypeText{
+			Length: emailLength,
+			Nullable: !f.Required,
+		}
 		out = dal.FullAttribute(f.Name, at, codec)
 	case "file":
 		at := &dal.TypeRef{
 			RefModel: &dal.ModelRef{Resource: "corteza::system:attachment"},
+			Nullable: !f.Required,
 		}
 		out = dal.FullAttribute(f.Name, at, codec)
 	case "number":
 		at := &dal.TypeNumber{
 			Precision: int(f.Options.Precision()),
+			Nullable: !f.Required,
 		}
 		out = dal.FullAttribute(f.Name, at, codec)
 	case "record":
@@ -1512,16 +1525,19 @@ func moduleFieldToAttribute(f *types.ModuleField) (out *dal.Attribute, err error
 				ResourceID:   f.Options.UInt64("moduleID"),
 				ResourceType: types.ModuleResourceType,
 			},
+			Nullable: !f.Required,
 		}
 		out = dal.FullAttribute(f.Name, at, codec)
 	case "select":
 		at := &dal.TypeEnum{
 			Values: f.SelectOptions(),
+			Nullable: !f.Required,
 		}
 		out = dal.FullAttribute(f.Name, at, codec)
 	case "url":
 		at := &dal.TypeText{
 			Length: urlLength,
+			Nullable: !f.Required,
 		}
 		out = dal.FullAttribute(f.Name, at, codec)
 	case "user":
@@ -1529,16 +1545,21 @@ func moduleFieldToAttribute(f *types.ModuleField) (out *dal.Attribute, err error
 			RefModel: &dal.ModelRef{
 				ResourceType: systemTypes.UserResourceType,
 			},
+			Nullable: !f.Required,
 		}
 		out = dal.FullAttribute(f.Name, at, codec)
 	case "geometry":
-		at := &dal.TypeGeometry{}
+		at := &dal.TypeGeometry{
+			Nullable: !f.Required,
+		}
 		out = dal.FullAttribute(f.Name, at, codec)
 		out.Filterable = false
 		out.Sortable = false
 
 	default:
-		at := &dal.TypeText{}
+		at := &dal.TypeText{
+			Nullable: !f.Required,
+		}
 		out = dal.FullAttribute(f.Name, at, codec)
 
 	}
