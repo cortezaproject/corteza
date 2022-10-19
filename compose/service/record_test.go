@@ -543,7 +543,16 @@ func TestRecord_refAccessControl(t *testing.T) {
 		mod1         = &types.Module{ID: nextID(), NamespaceID: ns.ID, Name: "mod one", Config: modConf}
 		mod2         = &types.Module{ID: nextID(), NamespaceID: ns.ID, Name: "mod two", Config: modConf}
 		mod1strField = &types.ModuleField{ID: nextID(), NamespaceID: ns.ID, ModuleID: mod1.ID, Name: "str", Kind: "String"}
-		mod2refField = &types.ModuleField{ID: nextID(), NamespaceID: ns.ID, ModuleID: mod2.ID, Name: "ref", Kind: "Record"}
+		mod2refField = &types.ModuleField{
+			ID:          nextID(),
+			NamespaceID: ns.ID,
+			ModuleID:    mod2.ID,
+			Name:        "ref",
+			Kind:        "Record",
+			Options: types.ModuleFieldOptions{
+				"moduleID": mod1.ID,
+			},
+		}
 
 		testerRole = &sysTypes.Role{Name: "tester", ID: nextID()}
 

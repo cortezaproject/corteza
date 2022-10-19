@@ -218,7 +218,12 @@ func defaultValidator(svc RecordService) recordValuesValidator {
 			return false, nil
 		}
 
-		r, _, err := svc.FindByID(ctx, f.NamespaceID, f.ModuleID, v.Ref)
+		var (
+			referencedModuleID = f.Options.Uint64("moduleID")
+
+			r, _, err = svc.FindByID(ctx, f.NamespaceID, referencedModuleID, v.Ref)
+		)
+
 		return r != nil, err
 	})
 

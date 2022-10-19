@@ -682,7 +682,7 @@ func TestRecordUpdate_refUnchanged(t *testing.T) {
 			Name: "ref",
 			Kind: "Record",
 			Options: types.ModuleFieldOptions{
-				"moduleID": mRef.ID,
+				"moduleID": strconv.FormatUint(mRef.ID, 10),
 			},
 		},
 	)
@@ -725,7 +725,7 @@ func TestRecordUpdate_refChanged(t *testing.T) {
 	namespace := h.makeNamespace("record testing namespace")
 
 	// mods
-	mRef := h.makeRecordModuleWithFieldsOnNs("record testing module", namespace)
+	mRef := h.makeRecordModuleWithFieldsOnNs("record testing module (ref)", namespace)
 	module := h.makeRecordModuleWithFieldsOnNs("record testing module", namespace,
 		&types.ModuleField{
 			Name: "name",
@@ -735,7 +735,7 @@ func TestRecordUpdate_refChanged(t *testing.T) {
 			Name: "ref",
 			Kind: "Record",
 			Options: types.ModuleFieldOptions{
-				"moduleID": mRef.ID,
+				"moduleID": strconv.FormatUint(mRef.ID, 10),
 			},
 		},
 	)
@@ -758,6 +758,7 @@ func TestRecordUpdate_refChanged(t *testing.T) {
 	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "update")
 
 	h.apiInit().
+		Debug().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
 		JSON(fmt.Sprintf(`{"values": [{"name": "name", "value": "changed-val"}, {"name": "ref", "value": "%d"}]}`, rRef2.ID)).
 		Header("Accept", "application/json").
