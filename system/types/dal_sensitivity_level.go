@@ -45,6 +45,7 @@ type (
 
 		// Standard helpers for paging and sorting
 		filter.Paging
+		filter.Sorting
 	}
 )
 

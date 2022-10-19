@@ -773,6 +773,9 @@ endpoints:
       - name: deleted
         title: Exclude (0, default), include (1) or return only (2) deleted sensitivity levels
         type: uint
+      - type: bool
+        name: incTotal
+        title: Include total counter
 
   - name: create
     method: POST

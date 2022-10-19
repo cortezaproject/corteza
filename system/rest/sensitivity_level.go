@@ -63,6 +63,8 @@ func (ctrl SensitivityLevel) List(ctx context.Context, r *request.DalSensitivity
 		f.Deleted = filter.StateExcluded
 	}
 
+	f.IncTotal = r.IncTotal
+
 	set, f, err = ctrl.svc.Search(ctx, f)
 	return ctrl.makeFilterPayload(ctx, set, f, err)
 }

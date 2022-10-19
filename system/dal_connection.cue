@@ -51,8 +51,6 @@ dal_connection: {
 
 	features: {
 		labels: false
-		paging: false
-		sorting: false
 	}
 
 	rbac: {
