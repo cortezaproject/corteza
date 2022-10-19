@@ -46,7 +46,7 @@ type (
 	}
 
 	WorkflowFilter struct {
-		WorkflowID []uint64 `json:"workflowID"`
+		WorkflowID []string `json:"workflowID"`
 
 		Query string `json:"query"`
 

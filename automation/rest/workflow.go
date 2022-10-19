@@ -12,7 +12,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/payload"
 )
 
 type (
@@ -83,7 +82,7 @@ func (ctrl Workflow) List(ctx context.Context, r *request.WorkflowList) (interfa
 	var (
 		err error
 		f   = types.WorkflowFilter{
-			WorkflowID:  payload.ParseUint64s(r.WorkflowID),
+			WorkflowID:  r.WorkflowID,
 			Query:       r.Query,
 			Labels:      r.Labels,
 			Deleted:     filter.State(r.Deleted),
