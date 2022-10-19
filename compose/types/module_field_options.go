@@ -105,6 +105,7 @@ func (opt ModuleFieldOptions) Int64Def(key string, def int64) int64 {
 
 // Uint64 returns option value for key casted to uint64
 func (opt ModuleFieldOptions) Uint64(key string) uint64 {
+
 	if val, has := opt[key]; has {
 		return cast.ToUint64(val)
 	}

@@ -16,14 +16,26 @@ func TestBatchRecordCreate(t *testing.T) {
 	h.clearRecords()
 
 	ns := h.makeNamespace("batch testing namespace")
-	module := h.makeRecordModuleWithFieldsOnNs("record testing module", ns)
-	childModule := h.makeRecordModuleWithFieldsOnNs("record testing module child", ns)
+	parentModule := h.makeRecordModuleWithFieldsOnNs("record testing module", ns)
+	childModule := h.makeRecordModuleWithFieldsOnNs("record testing module child", ns,
+		&types.ModuleField{
+			Name: "name",
+		},
+		&types.ModuleField{
+			Name: "parent_ref",
+			Kind: "Record",
+			Options: types.ModuleFieldOptions{
+				"moduleID": strconv.FormatUint(parentModule.ID, 10),
+			},
+		},
+	)
+
 	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "record.create")
 	helpers.AllowMe(h, types.ModuleFieldRbacResource(0, 0, 0), "record.value.update")
 
 	h.apiInit().
-		Post(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
-		JSON(fmt.Sprintf(`{"values": [], "records": [{"refField": "another_record", "set": [{"moduleID": "%d", "values": []}]}]}`, childModule.ID)).
+		Post(fmt.Sprintf("/namespace/%d/module/%d/record/", parentModule.NamespaceID, parentModule.ID)).
+		JSON(fmt.Sprintf(`{"values": [], "records": [{"refField": "parent_ref", "set": [{"moduleID": "%d", "values": []}]}]}`, childModule.ID)).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -38,8 +50,8 @@ func TestBatchRecordUpdate(t *testing.T) {
 	h.clearRecords()
 
 	ns := h.makeNamespace("batch testing namespace")
-	module := h.makeRecordModuleWithFieldsOnNs("record testing module", ns)
 	childModule := h.makeRecordModuleWithFieldsOnNs("record testing module child", ns)
+	module := h.makeRecordModuleWithFieldsOnNs("record testing module", ns)
 	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "update")
 	helpers.AllowMe(h, types.ModuleFieldRbacResource(0, 0, 0), "record.value.update")
 
@@ -93,18 +105,29 @@ func TestBatchRecordMixed(t *testing.T) {
 	h.clearRecords()
 
 	ns := h.makeNamespace("batch testing namespace")
-	module := h.makeRecordModuleWithFieldsOnNs("record testing module", ns)
-	childModule := h.makeRecordModuleWithFieldsOnNs("record testing module child", ns)
+	parentModule := h.makeRecordModuleWithFieldsOnNs("record testing module", ns)
+	childModule := h.makeRecordModuleWithFieldsOnNs("record testing module child", ns,
+		&types.ModuleField{
+			Name: "name",
+		},
+		&types.ModuleField{
+			Name: "parent_ref",
+			Kind: "Record",
+			Options: types.ModuleFieldOptions{
+				"moduleID": strconv.FormatUint(parentModule.ID, 10),
+			},
+		}, )
 	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "record.create")
 	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "update", "delete")
 
-	record := h.makeRecord(module)
-	childRecord := h.makeRecord(childModule, &types.RecordValue{Name: "another_record", Value: strconv.FormatUint(record.ID, 10), Ref: record.ID})
+	record := h.makeRecord(parentModule)
+	childRecord := h.makeRecord(childModule, &types.RecordValue{Name: "parent_ref", Value: strconv.FormatUint(record.ID, 10)})
 
 	h.apiInit().
-		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
+		Debug().
+		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", parentModule.NamespaceID, parentModule.ID, record.ID)).
 		Header("Accept", "application/json").
-		JSON(fmt.Sprintf(`{"values": [{"name": "name", "value": "Some Name"}], "records": [{"refField": "another_record", "set": [{"moduleID": "%d", "values": [{"name": "name", "value": "Added Name"}]},{"moduleID": "%d", "recordID": "%d", "values": [{"name": "name", "value": "Another Name"}]}]}]}`, childModule.ID, childModule.ID, childRecord.ID)).
+		JSON(fmt.Sprintf(`{"values": [{"name": "name", "value": "Some Name"}], "records": [{"refField": "parent_ref", "set": [{"moduleID": "%d", "values": [{"name": "name", "value": "Added Name"}]},{"moduleID": "%d", "recordID": "%d", "values": [{"name": "name", "value": "Another Name"}]}]}]}`, childModule.ID, childModule.ID, childRecord.ID)).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
