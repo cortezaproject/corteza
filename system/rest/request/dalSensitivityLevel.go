@@ -44,6 +44,11 @@ type (
 		//
 		// Exclude (0, default), include (1) or return only (2) deleted sensitivity levels
 		Deleted uint
+
+		// IncTotal GET parameter
+		//
+		// Include total counter
+		IncTotal bool
 	}
 
 	DalSensitivityLevelCreate struct {
@@ -117,6 +122,7 @@ func (r DalSensitivityLevelList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"sensitivityLevelID": r.SensitivityLevelID,
 		"deleted":            r.Deleted,
+		"incTotal":           r.IncTotal,
 	}
 }
 
@@ -128,6 +134,11 @@ func (r DalSensitivityLevelList) GetSensitivityLevelID() []string {
 // Auditable returns all auditable/loggable parameters
 func (r DalSensitivityLevelList) GetDeleted() uint {
 	return r.Deleted
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DalSensitivityLevelList) GetIncTotal() bool {
+	return r.IncTotal
 }
 
 // Fill processes request and fills internal variables
@@ -150,6 +161,12 @@ func (r *DalSensitivityLevelList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["deleted"]; ok && len(val) > 0 {
 			r.Deleted, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["incTotal"]; ok && len(val) > 0 {
+			r.IncTotal, err = payload.ParseBool(val[0]), nil
 			if err != nil {
 				return err
 			}

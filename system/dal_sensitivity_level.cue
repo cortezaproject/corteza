@@ -45,8 +45,6 @@ dal_sensitivity_level: {
 
 	features: {
 		labels: false
-		paging: false
-		sorting: false
 	}
 
 	store: {
