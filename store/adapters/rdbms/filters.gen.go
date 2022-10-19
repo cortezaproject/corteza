@@ -451,8 +451,16 @@ func AutomationWorkflowFilter(f automationType.WorkflowFilter) (ee []goqu.Expres
 		ee = append(ee, expr)
 	}
 
+	if expr := stateNilComparison("deleted_at", f.SubWorkflow); expr != nil {
+		ee = append(ee, expr)
+	}
+
 	if expr := stateFalseComparison("enabled", f.Disabled); expr != nil {
 		ee = append(ee, expr)
+	}
+
+	if ss := trimStringSlice(f.WorkflowID); len(ss) > 0 {
+		ee = append(ee, goqu.C("id").In(ss))
 	}
 
 	if len(f.LabeledIDs) > 0 {
