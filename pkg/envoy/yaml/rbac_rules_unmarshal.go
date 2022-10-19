@@ -46,6 +46,7 @@ func (rr rbacRuleSet) decodeRbac(a rbac.Access, rules *yaml.Node) (oo rbacRuleSe
 				res: &rbac.Rule{
 					Access:    a,
 					Operation: op.Value,
+					Resource:  res,
 				},
 				refRole: resource.MakeRef(types.RoleResourceType, resource.MakeIdentifiers(roleRef)),
 			}
