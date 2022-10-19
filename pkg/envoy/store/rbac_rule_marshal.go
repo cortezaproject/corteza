@@ -373,7 +373,7 @@ func (n *rbacRule) makeRBACResource(pl *payload) (string, error) {
 
 	// @todo if we wish to support rbac for external stuff, this needs to pass through.
 	//       this also requires some tweaks in the path ID thing.
-	return "", fmt.Errorf("unsupported resource type '%s' for RBAC store encode", n.rule.Resource)
+	return "", fmt.Errorf("unsupported resource type '%s' for RBAC store encode", rt)
 }
 
 func (n *rbacRule) handleComposeRecord(pp []resource.Interface) bool {

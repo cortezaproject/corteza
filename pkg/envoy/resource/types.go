@@ -16,6 +16,10 @@ type (
 		ReRef(old RefSet, new RefSet)
 	}
 
+	ErrorWrapper interface {
+		WrapError(act string, err error) error
+	}
+
 	InterfaceSet []Interface
 
 	IdentifiableInterface interface {
