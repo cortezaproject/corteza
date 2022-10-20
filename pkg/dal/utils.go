@@ -348,7 +348,7 @@ func prepareGenericRowTester(f internalFilter) (_ tester, err error) {
 			}
 			pcNode.Traverse(func(a *ql.ASTNode) (bool, *ql.ASTNode, error) {
 				if a.Symbol != "" {
-					a.Symbol = strings.Replace(a.Symbol, ".", "___DLMTR___", -1)
+					a.Symbol = wrapNestedGvalIdent(a.Symbol)
 				}
 				return true, a, nil
 			})
