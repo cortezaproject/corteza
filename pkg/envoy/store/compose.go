@@ -185,9 +185,6 @@ func (d *composeDecoder) decodeComposeRecord(ctx context.Context, s store.Storer
 		ffNs := make([]*composeRecordFilter, 0, len(ff)+len(d.namespaceID))
 		for _, nsID := range d.namespaceID {
 			for _, f := range ff {
-				fNs := *f
-				fNs.NamespaceID = nsID
-
 				nn, _, err := s.SearchComposeModules(ctx, types.ModuleFilter{
 					NamespaceID: nsID,
 				})
@@ -195,6 +192,8 @@ func (d *composeDecoder) decodeComposeRecord(ctx context.Context, s store.Storer
 					continue
 				}
 				for _, n := range nn {
+					fNs := *f
+					fNs.NamespaceID = nsID
 					fNs.ModuleID = n.ID
 					ffNs = append(ffNs, &fNs)
 				}
