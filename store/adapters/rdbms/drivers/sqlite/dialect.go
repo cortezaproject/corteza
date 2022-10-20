@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/cast2"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
@@ -9,6 +10,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/dialect/sqlite3"
 	"github.com/doug-martin/goqu/v9/exp"
+	"strings"
 )
 
 type (
@@ -52,14 +54,41 @@ func (d sqliteDialect) TableCodec(m *dal.Model) drivers.TableCodec {
 	return drivers.NewTableCodec(m, d)
 }
 
-func (d sqliteDialect) TypeWrap(t dal.Type) drivers.Type {
+func (d sqliteDialect) TypeWrap(dt dal.Type) drivers.Type {
 	// Any exception to general type-wrap implementation in the drivers package
 	// should be placed here
-	return drivers.TypeWrap(t)
+
+	// Any exception to general type-wrap implementation in the drivers package
+	// should be placed here
+	switch c := dt.(type) {
+	case *dal.TypeDate:
+		return &TypeDate{c}
+	}
+
+	return drivers.TypeWrap(dt)
 }
 
 func (sqliteDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpression) (exp.LiteralExpression, error) {
-	return drivers.AttributeCast(attr, val)
+	var (
+		c exp.CastExpression
+	)
+
+	switch attr.Type.(type) {
+	case *dal.TypeDate:
+		ce := exp.NewCaseExpression().
+			When(val.RegexpLike(drivers.CheckDateISO8061), val).
+			Else(drivers.LiteralNULL)
+
+		// if we cast to DATE result value is treated like number (int64) and
+		// we only get the year part. So we need to cast to TEXT first
+		// and the the full-date is parsed into time.Time
+		c = exp.NewCastExpression(ce, "TEXT")
+	default:
+		return drivers.AttributeCast(attr, val)
+	}
+
+	return exp.NewLiteralExpression("?", c), nil
+
 }
 
 func (sqliteDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err error) {
@@ -84,12 +113,12 @@ func (sqliteDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, er
 		col.Default = ddl.DefaultValueCurrentTimestamp(t.DefaultCurrentTimestamp)
 
 	case *dal.TypeDate:
-		col.Type.Name = "DATE"
+		col.Type.Name = "TEXT"
 		col.Default = ddl.DefaultValueCurrentTimestamp(t.DefaultCurrentTimestamp)
 
 	case *dal.TypeNumber:
 		col.Type.Name = "NUMERIC"
-		// @todo precision, scale?
+		// @todo precision, scale? x
 		col.Default = ddl.DefaultNumber(t.HasDefault, t.Precision, t.DefaultValue)
 
 	case *dal.TypeText:
@@ -131,5 +160,10 @@ func (sqliteDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, er
 }
 
 func (sqliteDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (exp.Expression, error) {
+	switch strings.ToLower(n.Ref) {
+	case "concat":
+		return exp.NewLiteralExpression("?"+strings.Repeat(" || ?", len(args)-1), cast2.Anys(args...)...), nil
+	}
+
 	return ref2exp.RefHandler(n, args...)
 }

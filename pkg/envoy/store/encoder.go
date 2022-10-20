@@ -216,7 +216,13 @@ func (se *storeEncoder) makePayload(ctx context.Context, s store.Storer, dal dal
 }
 
 func (se *storeEncoder) WrapError(act string, res resource.Interface, err error) error {
-	return fmt.Errorf("store encoder %s %s %v: %s", act, res.ResourceType(), res.Identifiers().StringSlice(), err)
+	if ww, ok := res.(resource.ErrorWrapper); ok {
+		err = ww.WrapError(act, err)
+	} else {
+		err = fmt.Errorf("%s %s %v: %s", act, res.ResourceType(), res.Identifiers().StringSlice(), err)
+	}
+
+	return fmt.Errorf("store encoder %s", err)
 }
 
 func resourceErrIdentifierNotUnique(i string) error {

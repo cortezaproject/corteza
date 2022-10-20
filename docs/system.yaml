@@ -2,12 +2,12 @@ openapi: 3.0.0
 info:
   title: Corteza system API
   description: Corteza system REST API definition
-  version: 2021.3
+  version: '2022.9'
   contact:
-    email: contact@mail.com
+    email: info@cortezaproject.org
   license:
     name: Apache 2.0
-    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
 paths:
   /system/auth/impersonate:
     post:
@@ -49,7 +49,7 @@ paths:
             type: string
         - in: query
           name: deleted
-          description: 'Exclude (0, default), include (1) or return only (2) deleted roles'
+          description: Exclude (0, default), include (1) or return only (2) deleted clients
           required: false
           schema: &ref_2
             type: string
@@ -63,6 +63,12 @@ paths:
           description: Limit
           required: false
           schema: *ref_2
+        - in: query
+          name: incTotal
+          description: Include total counter
+          required: false
+          schema: &ref_8
+            type: boolean
         - in: query
           name: pageCursor
           description: Page cursor
@@ -125,7 +131,7 @@ paths:
             schema:
               type: object
               properties: *ref_3
-  '/system/auth/clients/{clientID}':
+  /system/auth/clients/{clientID}:
     put:
       tags:
         - Authentication clients
@@ -211,7 +217,7 @@ paths:
           description: Client ID
           required: true
           schema: *ref_5
-  '/system/auth/clients/{clientID}/undelete':
+  /system/auth/clients/{clientID}/undelete:
     post:
       tags:
         - Authentication clients
@@ -225,7 +231,7 @@ paths:
           description: Client ID
           required: true
           schema: *ref_5
-  '/system/auth/clients/{clientID}/secret':
+  /system/auth/clients/{clientID}/secret:
     post:
       tags:
         - Authentication clients
@@ -297,7 +303,7 @@ paths:
             schema:
               type: object
               properties: *ref_6
-  '/system/settings/{key}':
+  /system/settings/{key}:
     get:
       tags:
         - Settings
@@ -354,14 +360,6 @@ paths:
       responses:
         '200':
           description: OK
-  /system/subscription/:
-    get:
-      tags:
-        - Subscription
-      summary: Returns current subscription status
-      responses:
-        '200':
-          description: OK
   /system/roles/:
     get:
       tags:
@@ -377,13 +375,18 @@ paths:
           required: false
           schema: *ref_1
         - in: query
+          name: memberID
+          description: Search roles for member
+          required: false
+          schema: *ref_5
+        - in: query
           name: deleted
-          description: 'Exclude (0, default), include (1) or return only (2) deleted roles'
+          description: Exclude (0, default), include (1) or return only (2) deleted roles
           required: false
           schema: *ref_2
         - in: query
           name: archived
-          description: 'Exclude (0, default), include (1) or return only (2) achived roles'
+          description: Exclude (0, default), include (1) or return only (2) archived roles
           required: false
           schema: *ref_2
         - in: query
@@ -396,6 +399,11 @@ paths:
           description: Limit
           required: false
           schema: *ref_2
+        - in: query
+          name: incTotal
+          description: Include total counter
+          required: false
+          schema: *ref_8
         - in: query
           name: pageCursor
           description: Page cursor
@@ -418,17 +426,20 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_8
+              properties: &ref_9
                 name:
                   type: string
-                  description: Name of Role
+                  description: Name of role
                 handle:
                   type: string
-                  description: Handle for Role
+                  description: Handle for role
                 members:
                   type: array
                   items: *ref_1
-                  description: Role member IDs
+                  description: role member IDs
+                meta:
+                  type: string
+                  description: Meta
                 labels:
                   type: string
                   description: Labels
@@ -438,8 +449,8 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_8
-  '/system/roles/{roleID}':
+              properties: *ref_9
+  /system/roles/{roleID}:
     put:
       tags:
         - Roles
@@ -458,24 +469,27 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_9
+              properties: &ref_10
                 name:
                   type: string
-                  description: Name of Role
+                  description: Name of role
                 handle:
                   type: string
-                  description: Handle for Role
+                  description: Handle for role
                 members:
                   type: array
                   items: *ref_1
-                  description: Role member IDs
+                  description: role member IDs
+                meta:
+                  type: string
+                  description: Meta
                 labels:
                   type: string
                   description: Labels
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_9
+              properties: *ref_10
     get:
       tags:
         - Roles
@@ -502,7 +516,7 @@ paths:
           description: Role ID
           required: true
           schema: *ref_5
-  '/system/roles/{roleID}/archive':
+  /system/roles/{roleID}/archive:
     post:
       tags:
         - Roles
@@ -516,7 +530,7 @@ paths:
           description: Role ID
           required: true
           schema: *ref_5
-  '/system/roles/{roleID}/unarchive':
+  /system/roles/{roleID}/unarchive:
     post:
       tags:
         - Roles
@@ -530,7 +544,7 @@ paths:
           description: Role ID
           required: true
           schema: *ref_5
-  '/system/roles/{roleID}/undelete':
+  /system/roles/{roleID}/undelete:
     post:
       tags:
         - Roles
@@ -544,7 +558,7 @@ paths:
           description: Role ID
           required: true
           schema: *ref_5
-  '/system/roles/{roleID}/move':
+  /system/roles/{roleID}/move:
     post:
       tags:
         - Roles
@@ -563,7 +577,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_10
+              properties: &ref_11
                 organisationID:
                   type: string
                   description: Role ID
@@ -572,8 +586,8 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_10
-  '/system/roles/{roleID}/merge':
+              properties: *ref_11
+  /system/roles/{roleID}/merge:
     post:
       tags:
         - Roles
@@ -592,7 +606,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_11
+              properties: &ref_12
                 destination:
                   type: string
                   description: Destination Role ID
@@ -601,8 +615,8 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_11
-  '/system/roles/{roleID}/members':
+              properties: *ref_12
+  /system/roles/{roleID}/members:
     get:
       tags:
         - Roles
@@ -616,7 +630,7 @@ paths:
           description: Source Role ID
           required: true
           schema: *ref_5
-  '/system/roles/{roleID}/member/{userID}':
+  /system/roles/{roleID}/member/{userID}:
     post:
       tags:
         - Roles
@@ -653,11 +667,11 @@ paths:
           description: User ID
           required: true
           schema: *ref_5
-  '/system/roles/{roleID}/trigger':
+  /system/roles/{roleID}/trigger:
     post:
       tags:
         - Roles
-      summary: 'Fire system:role trigger'
+      summary: Fire system:role trigger
       responses:
         '200':
           description: OK
@@ -672,16 +686,40 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_12
+              properties: &ref_13
                 script:
                   type: string
                   description: Script to execute
+                args:
+                  type: string
+                  description: Arguments to pass to the script
               required:
                 - script
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_12
+              properties: *ref_13
+  /system/roles/{roleID}/rules/clone:
+    post:
+      tags:
+        - Roles
+      summary: Clone permission settings to a role
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: roleID
+          description: Role ID
+          required: true
+          schema: *ref_5
+        - in: query
+          name: cloneToRoleID
+          description: Clone set of rules to roleID
+          required: true
+          schema:
+            type: array
+            items: *ref_1
   /system/users/:
     get:
       tags:
@@ -727,7 +765,7 @@ paths:
           schema: *ref_1
         - in: query
           name: kind
-          description: 'Kind (normal, bot)'
+          description: Kind (normal, bot)
           required: false
           schema:
             type: string
@@ -735,21 +773,20 @@ paths:
           name: incDeleted
           description: '[Deprecated] Include deleted users (requires ''access'' permission)'
           required: false
-          schema: &ref_13
-            type: boolean
+          schema: *ref_8
         - in: query
           name: incSuspended
           description: '[Deprecated] Include suspended users'
           required: false
-          schema: *ref_13
+          schema: *ref_8
         - in: query
           name: deleted
-          description: 'Exclude (0, default), include (1) or return only (2) deleted users'
+          description: Exclude (0, default), include (1) or return only (2) deleted users
           required: false
           schema: *ref_2
         - in: query
           name: suspended
-          description: 'Exclude (0, default), include (1) or return only (2) suspended users'
+          description: Exclude (0, default), include (1) or return only (2) suspended users
           required: false
           schema: *ref_2
         - in: query
@@ -762,6 +799,11 @@ paths:
           description: Limit
           required: false
           schema: *ref_2
+        - in: query
+          name: incTotal
+          description: Include total counter
+          required: false
+          schema: *ref_8
         - in: query
           name: pageCursor
           description: Page cursor
@@ -796,7 +838,7 @@ paths:
                   description: Handle
                 kind:
                   type: string
-                  description: 'Kind (normal, bot)'
+                  description: Kind (normal, bot)
                 labels:
                   type: string
                   description: Labels
@@ -806,7 +848,7 @@ paths:
             schema:
               type: object
               properties: *ref_14
-  '/system/users/{userID}':
+  /system/users/{userID}:
     put:
       tags:
         - Users
@@ -837,7 +879,7 @@ paths:
                   description: Handle
                 kind:
                   type: string
-                  description: 'Kind (normal, bot)'
+                  description: Kind (normal, bot)
                 labels:
                   type: string
                   description: Labels
@@ -848,6 +890,19 @@ paths:
             schema:
               type: object
               properties: *ref_15
+    patch:
+      tags:
+        - Users
+      summary: Patch user (experimental)
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: userID
+          description: User ID
+          required: true
+          schema: *ref_5
     get:
       tags:
         - Users
@@ -874,7 +929,7 @@ paths:
           description: User ID
           required: true
           schema: *ref_5
-  '/system/users/{userID}/suspend':
+  /system/users/{userID}/suspend:
     post:
       tags:
         - Users
@@ -888,7 +943,7 @@ paths:
           description: User ID
           required: true
           schema: *ref_5
-  '/system/users/{userID}/unsuspend':
+  /system/users/{userID}/unsuspend:
     post:
       tags:
         - Users
@@ -902,7 +957,7 @@ paths:
           description: User ID
           required: true
           schema: *ref_5
-  '/system/users/{userID}/undelete':
+  /system/users/{userID}/undelete:
     post:
       tags:
         - Users
@@ -916,7 +971,7 @@ paths:
           description: User ID
           required: true
           schema: *ref_5
-  '/system/users/{userID}/password':
+  /system/users/{userID}/password:
     post:
       tags:
         - Users
@@ -939,14 +994,12 @@ paths:
                 password:
                   type: string
                   format: password
-                  description: New password
-              required:
-                - password
+                  description: New password or empty to unset
           application/x-www-form-urlencoded:
             schema:
               type: object
               properties: *ref_16
-  '/system/users/{userID}/membership':
+  /system/users/{userID}/membership:
     get:
       tags:
         - Users
@@ -960,7 +1013,7 @@ paths:
           description: User ID
           required: true
           schema: *ref_5
-  '/system/users/{userID}/membership/{roleID}':
+  /system/users/{userID}/membership/{roleID}:
     post:
       tags:
         - Users
@@ -997,11 +1050,11 @@ paths:
           description: User ID
           required: true
           schema: *ref_5
-  '/system/users/{userID}/trigger':
+  /system/users/{userID}/trigger:
     post:
       tags:
         - Users
-      summary: 'Fire system:user trigger'
+      summary: Fire system:user trigger
       responses:
         '200':
           description: OK
@@ -1020,12 +1073,387 @@ paths:
                 script:
                   type: string
                   description: Script to execute
+                args:
+                  type: string
+                  description: Arguments to pass to the script
               required:
                 - script
           application/x-www-form-urlencoded:
             schema:
               type: object
               properties: *ref_17
+  /system/users/{userID}/sessions:
+    delete:
+      tags:
+        - Users
+      summary: Remove all auth sessions of user
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: userID
+          description: ID
+          required: true
+          schema: *ref_5
+  /system/users/{userID}/credentials:
+    get:
+      tags:
+        - Users
+      summary: List user's credentials
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: userID
+          description: ID
+          required: true
+          schema: *ref_5
+  /system/users/{userID}/credentials/{credentialsID}:
+    delete:
+      tags:
+        - Users
+      summary: List user's credentials
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: userID
+          description: ID
+          required: true
+          schema: *ref_5
+        - in: path
+          name: credentialsID
+          description: Credentials ID
+          required: true
+          schema: *ref_5
+  /system/users/export/{filename}.zip:
+    get:
+      tags:
+        - Users
+      summary: Export users
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: filename
+          description: Output filename
+          required: true
+          schema: *ref_1
+        - in: query
+          name: inclRoleMembership
+          description: Include role membership
+          required: false
+          schema: *ref_8
+        - in: query
+          name: inclRoles
+          description: Include roles
+          required: false
+          schema: *ref_8
+  /system/users/import:
+    post:
+      tags:
+        - Users
+      summary: Import users
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_18
+                upload:
+                  type: string
+                  format: binary
+                  description: File import
+              required:
+                - upload
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_18
+  /system/dal/drivers/:
+    get:
+      tags:
+        - Data access layer drivers
+      summary: Search drivers
+      responses:
+        '200':
+          description: OK
+  /system/dal/sensitivity-levels/:
+    get:
+      tags:
+        - Data access layer sensitivity levels
+      summary: Search sensitivity levels
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: query
+          name: sensitivityLevelID
+          description: Filter by sensitivity level ID
+          required: false
+          schema:
+            type: array
+            items: *ref_1
+        - in: query
+          name: deleted
+          description: >-
+            Exclude (0, default), include (1) or return only (2) deleted
+            sensitivity levels
+          required: false
+          schema: *ref_2
+    post:
+      tags:
+        - Data access layer sensitivity levels
+      summary: Create sensitivity level
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_19
+                handle:
+                  type: string
+                level:
+                  type: integer
+                meta:
+                  type: string
+              required:
+                - handle
+                - level
+                - meta
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_19
+  /system/dal/sensitivity-levels/{sensitivityLevelID}:
+    put:
+      tags:
+        - Data access layer sensitivity levels
+      summary: Update sensitivity details
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: sensitivityLevelID
+          description: Connection ID
+          required: true
+          schema: *ref_5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_20
+                handle:
+                  type: string
+                level:
+                  type: integer
+                meta:
+                  type: string
+              required:
+                - handle
+                - level
+                - meta
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_20
+    get:
+      tags:
+        - Data access layer sensitivity levels
+      summary: Read connection details
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: sensitivityLevelID
+          description: Connection ID
+          required: true
+          schema: *ref_5
+    delete:
+      tags:
+        - Data access layer sensitivity levels
+      summary: Remove sensitivity level
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: sensitivityLevelID
+          description: Connection ID
+          required: true
+          schema: *ref_5
+  /system/dal/sensitivity-levels/{sensitivityLevelID}/undelete:
+    post:
+      tags:
+        - Data access layer sensitivity levels
+      summary: Undelete sensitivity level
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: sensitivityLevelID
+          description: Connection ID
+          required: true
+          schema: *ref_5
+  /system/dal/connections/:
+    get:
+      tags:
+        - Data access layer connections
+      summary: Search connections (Directory)
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: query
+          name: connectionID
+          description: Filter by connection ID
+          required: false
+          schema:
+            type: array
+            items: *ref_1
+        - in: query
+          name: handle
+          description: Search handle to match against connections
+          required: false
+          schema: *ref_1
+        - in: query
+          name: type
+          description: Search type to match against connections
+          required: false
+          schema: *ref_1
+        - in: query
+          name: deleted
+          description: >-
+            Exclude (0, default), include (1) or return only (2) deleted
+            connections
+          required: false
+          schema: *ref_2
+        - in: query
+          name: incTotal
+          description: Include total counter
+          required: false
+          schema: *ref_8
+    post:
+      tags:
+        - Data access layer connections
+      summary: Create connection
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_21
+                handle:
+                  type: string
+                type:
+                  type: string
+                meta:
+                  type: string
+                config:
+                  type: string
+              required:
+                - handle
+                - type
+                - meta
+                - config
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_21
+  /system/dal/connections/{connectionID}:
+    put:
+      tags:
+        - Data access layer connections
+      summary: Update connection details
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: connectionID
+          description: Connection ID
+          required: true
+          schema: *ref_5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_22
+                handle:
+                  type: string
+                type:
+                  type: string
+                meta:
+                  type: string
+                config:
+                  type: string
+              required:
+                - handle
+                - type
+                - meta
+                - config
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_22
+    get:
+      tags:
+        - Data access layer connections
+      summary: Read connection details
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: connectionID
+          description: Connection ID
+          required: true
+          schema: *ref_5
+    delete:
+      tags:
+        - Data access layer connections
+      summary: Remove connection
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: connectionID
+          description: Connection ID
+          required: true
+          schema: *ref_5
+  /system/dal/connections/{connectionID}/undelete:
+    post:
+      tags:
+        - Data access layer connections
+      summary: Undelete connection
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: connectionID
+          description: Connection ID
+          required: true
+          schema: *ref_5
   /system/application/:
     get:
       tags:
@@ -1047,7 +1475,7 @@ paths:
           schema: *ref_1
         - in: query
           name: deleted
-          description: 'Exclude (0, default), include (1) or return only (2) deleted roles'
+          description: Exclude (0, default), include (1) or return only (2) deleted roles
           required: false
           schema: *ref_2
         - in: query
@@ -1056,10 +1484,27 @@ paths:
           required: false
           schema: *ref_1
         - in: query
+          name: flags
+          description: Flags
+          required: false
+          schema:
+            type: array
+            items: *ref_1
+        - in: query
+          name: incFlags
+          description: Calculated (0, default), global (1) or return only (2) own flags
+          required: false
+          schema: *ref_2
+        - in: query
           name: limit
           description: Limit
           required: false
           schema: *ref_2
+        - in: query
+          name: incTotal
+          description: Include total counter
+          required: false
+          schema: *ref_8
         - in: query
           name: pageCursor
           description: Page cursor
@@ -1082,13 +1527,16 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_18
+              properties: &ref_23
                 name:
                   type: string
                   description: Application name
                 enabled:
                   type: boolean
                   description: Enabled
+                weight:
+                  type: integer
+                  description: Weight for sorting
                 unify:
                   type: string
                   format: json
@@ -1105,8 +1553,8 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_18
-  '/system/application/{applicationID}':
+              properties: *ref_23
+  /system/application/{applicationID}:
     put:
       tags:
         - Applications
@@ -1125,13 +1573,16 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_19
+              properties: &ref_24
                 name:
                   type: string
                   description: Email
                 enabled:
                   type: boolean
                   description: Enabled
+                weight:
+                  type: integer
+                  description: Weight for sorting
                 unify:
                   type: string
                   format: json
@@ -1148,7 +1599,7 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_19
+              properties: *ref_24
     get:
       tags:
         - Applications
@@ -1162,6 +1613,11 @@ paths:
           description: Application ID
           required: true
           schema: *ref_5
+        - in: query
+          name: incFlags
+          description: Calculated (0, default), global (1) or return only (2) own flags
+          required: false
+          schema: *ref_2
     delete:
       tags:
         - Applications
@@ -1175,7 +1631,78 @@ paths:
           description: Application ID
           required: true
           schema: *ref_5
-  '/system/application/{applicationID}/undelete':
+  /system/application/upload:
+    post:
+      tags:
+        - Applications
+      summary: Upload application assets
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_25
+                upload:
+                  type: string
+                  format: binary
+                  description: File to upload
+              required:
+                - upload
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_25
+  /system/application/{applicationID}/flag/{ownedBy}/{flag}:
+    post:
+      tags:
+        - Applications
+      summary: Flag application
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: applicationID
+          description: Application ID
+          required: true
+          schema: *ref_5
+        - in: path
+          name: flag
+          description: Flag
+          required: true
+          schema: *ref_1
+        - in: path
+          name: ownedBy
+          description: Owner; 0 = everyone
+          required: true
+          schema: *ref_5
+    delete:
+      tags:
+        - Applications
+      summary: Unflag application
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: applicationID
+          description: Application ID
+          required: true
+          schema: *ref_5
+        - in: path
+          name: flag
+          description: Flag
+          required: true
+          schema: *ref_1
+        - in: path
+          name: ownedBy
+          description: Owner; 0 = everyone
+          required: true
+          schema: *ref_5
+  /system/application/{applicationID}/undelete:
     post:
       tags:
         - Applications
@@ -1189,11 +1716,11 @@ paths:
           description: Application ID
           required: true
           schema: *ref_5
-  '/system/application/{applicationID}/trigger':
+  /system/application/{applicationID}/trigger:
     post:
       tags:
         - Applications
-      summary: 'Fire system:application trigger'
+      summary: Fire system:application trigger
       responses:
         '200':
           description: OK
@@ -1208,16 +1735,43 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_20
+              properties: &ref_26
                 script:
                   type: string
                   description: Script to execute
+                args:
+                  type: string
+                  description: Arguments to pass to the script
               required:
                 - script
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_20
+              properties: *ref_26
+  /system/application/reorder:
+    post:
+      tags:
+        - Applications
+      summary: Reorder applications
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_27
+                applicationIDs:
+                  type: array
+                  items: *ref_1
+                  description: Application order
+              required:
+                - applicationIDs
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_27
   /system/permissions/:
     get:
       tags:
@@ -1240,7 +1794,33 @@ paths:
           description: Show only rules for a specific resource
           required: false
           schema: *ref_1
-  '/system/permissions/{roleID}/rules':
+  /system/permissions/trace:
+    get:
+      tags:
+        - Permissions
+      summary: Evaluate rules for given user/role combo
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: query
+          name: resource
+          description: Show only rules for a specific resource
+          required: false
+          schema:
+            type: array
+            items: *ref_1
+        - in: query
+          name: userID
+          required: false
+          schema: *ref_5
+        - in: query
+          name: roleID
+          required: false
+          schema:
+            type: array
+            items: *ref_5
+  /system/permissions/{roleID}/rules:
     get:
       tags:
         - Permissions
@@ -1254,6 +1834,13 @@ paths:
           description: Role ID
           required: true
           schema: *ref_5
+        - in: query
+          name: resource
+          description: Show only rules for a specific resource
+          required: false
+          schema:
+            type: array
+            items: *ref_1
     delete:
       tags:
         - Permissions
@@ -1285,7 +1872,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_21
+              properties: &ref_28
                 rules:
                   type: string
                   description: List of permission rules to set
@@ -1294,7 +1881,7 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_21
+              properties: *ref_28
   /system/reminder/:
     get:
       tags:
@@ -1325,24 +1912,29 @@ paths:
           name: scheduledFrom
           description: Only reminders from this time (included)
           required: false
-          schema: &ref_22
+          schema: &ref_29
             type: string
             format: date-time
         - in: query
           name: scheduledUntil
           description: Only reminders up to this time (included)
           required: false
-          schema: *ref_22
+          schema: *ref_29
         - in: query
           name: scheduledOnly
           description: Only scheduled reminders
           required: false
-          schema: *ref_13
+          schema: *ref_8
         - in: query
           name: excludeDismissed
           description: Filter out dismissed reminders
           required: false
-          schema: *ref_13
+          schema: *ref_8
+        - in: query
+          name: includeDeleted
+          description: Includes deleted reminders
+          required: false
+          schema: *ref_8
         - in: query
           name: limit
           description: Limit
@@ -1370,7 +1962,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_23
+              properties: &ref_30
                 resource:
                   type: string
                   description: Resource
@@ -1392,8 +1984,8 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_23
-  '/system/reminder/{reminderID}':
+              properties: *ref_30
+  /system/reminder/{reminderID}:
     put:
       tags:
         - Reminders
@@ -1412,7 +2004,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_24
+              properties: &ref_31
                 resource:
                   type: string
                   description: Resource
@@ -1434,7 +2026,7 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_24
+              properties: *ref_31
     get:
       tags:
         - Reminders
@@ -1461,7 +2053,7 @@ paths:
           description: Reminder ID
           required: true
           schema: *ref_5
-  '/system/reminder/{reminderID}/dismiss':
+  /system/reminder/{reminderID}/dismiss:
     patch:
       tags:
         - Reminders
@@ -1475,7 +2067,7 @@ paths:
           description: reminder ID
           required: true
           schema: *ref_5
-  '/system/reminder/{reminderID}/snooze':
+  /system/reminder/{reminderID}/snooze:
     patch:
       tags:
         - Reminders
@@ -1494,7 +2086,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_25
+              properties: &ref_32
                 remindAt:
                   type: string
                   format: date-time
@@ -1504,8 +2096,8 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_25
-  '/system/attachment/{kind}/{attachmentID}':
+              properties: *ref_32
+  /system/attachment/{kind}/{attachmentID}:
     get:
       tags:
         - Attachments
@@ -1562,7 +2154,7 @@ paths:
           description: User ID
           required: false
           schema: *ref_5
-  '/system/attachment/{kind}/{attachmentID}/original/{name}':
+  /system/attachment/{kind}/{attachmentID}/original/{name}:
     get:
       tags:
         - Attachments
@@ -1600,8 +2192,8 @@ paths:
           name: download
           description: Force file download
           required: false
-          schema: *ref_13
-  '/system/attachment/{kind}/{attachmentID}/preview.{ext}':
+          schema: *ref_8
+  /system/attachment/{kind}/{attachmentID}/preview.{ext}:
     get:
       tags:
         - Attachments
@@ -1645,6 +2237,11 @@ paths:
           description: OK
       parameters:
         - in: query
+          name: query
+          description: Query
+          required: false
+          schema: *ref_1
+        - in: query
           name: handle
           description: Handle
           required: false
@@ -1663,7 +2260,7 @@ paths:
           name: partial
           description: Show partial templates
           required: false
-          schema: *ref_13
+          schema: *ref_8
         - in: query
           name: deleted
           description: >-
@@ -1681,6 +2278,11 @@ paths:
           description: Limit
           required: false
           schema: *ref_2
+        - in: query
+          name: incTotal
+          description: Include total counter
+          required: false
+          schema: *ref_8
         - in: query
           name: pageCursor
           description: Page cursor
@@ -1703,7 +2305,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_26
+              properties: &ref_33
                 handle:
                   type: string
                   description: Handle
@@ -1731,8 +2333,8 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_26
-  '/system/template/{templateID}':
+              properties: *ref_33
+  /system/template/{templateID}:
     get:
       tags:
         - Template
@@ -1764,7 +2366,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_27
+              properties: &ref_34
                 handle:
                   type: string
                   description: Handle
@@ -1792,7 +2394,7 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_27
+              properties: *ref_34
     delete:
       tags:
         - Template
@@ -1806,7 +2408,7 @@ paths:
           description: ID
           required: true
           schema: *ref_5
-  '/system/template/{templateID}/undelete':
+  /system/template/{templateID}/undelete:
     post:
       tags:
         - Template
@@ -1820,7 +2422,15 @@ paths:
           description: Template ID
           required: true
           schema: *ref_5
-  '/system/template/{templateID}/render/{filename}.{ext}':
+  /system/template/render/drivers:
+    get:
+      tags:
+        - Template
+      summary: Render drivers
+      responses:
+        '200':
+          description: OK
+  /system/template/{templateID}/render/{filename}.{ext}:
     post:
       tags:
         - Template
@@ -1849,7 +2459,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_28
+              properties: &ref_35
                 variables:
                   type: string
                   format: json
@@ -1863,7 +2473,223 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_28
+              properties: *ref_35
+  /system/reports/:
+    get:
+      tags:
+        - Reports
+      summary: List reports
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: query
+          name: handle
+          description: Report handle
+          required: false
+          schema: *ref_1
+        - in: query
+          name: deleted
+          description: Exclude (0, default), include (1) or return only (2) deleted reports
+          required: false
+          schema: *ref_2
+        - in: query
+          name: labels
+          description: Labels
+          required: false
+          schema: *ref_1
+        - in: query
+          name: limit
+          description: Limit
+          required: false
+          schema: *ref_2
+        - in: query
+          name: incTotal
+          description: Include total counter
+          required: false
+          schema: *ref_8
+        - in: query
+          name: pageCursor
+          description: Page cursor
+          required: false
+          schema: *ref_1
+        - in: query
+          name: sort
+          description: Sort items
+          required: false
+          schema: *ref_1
+    post:
+      tags:
+        - Reports
+      summary: Create report
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_36
+                handle:
+                  type: string
+                  description: Client handle
+                meta:
+                  type: string
+                  description: Additional info
+                scenarios:
+                  type: string
+                  description: Report scenarios
+                sources:
+                  type: string
+                  description: Report source definitions
+                blocks:
+                  type: string
+                  description: Report blocks definition
+                labels:
+                  type: string
+                  description: Labels
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_36
+  /system/reports/{reportID}:
+    put:
+      tags:
+        - Reports
+      summary: Update report
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: reportID
+          description: Report ID
+          required: true
+          schema: *ref_5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_37
+                handle:
+                  type: string
+                  description: Client handle
+                meta:
+                  type: string
+                  description: Additional info
+                scenarios:
+                  type: string
+                  description: Report scenarios
+                sources:
+                  type: string
+                  description: Report sources definition
+                blocks:
+                  type: string
+                  description: Report blocks definition
+                labels:
+                  type: string
+                  description: Labels
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_37
+    get:
+      tags:
+        - Reports
+      summary: Read report details
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: reportID
+          description: Report ID
+          required: true
+          schema: *ref_5
+    delete:
+      tags:
+        - Reports
+      summary: Remove report
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: reportID
+          description: Report ID
+          required: true
+          schema: *ref_5
+  /system/reports/{reportID}/undelete:
+    post:
+      tags:
+        - Reports
+      summary: Undelete report
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: reportID
+          description: Report ID
+          required: true
+          schema: *ref_5
+  /system/reports/describe:
+    post:
+      tags:
+        - Reports
+      summary: Describe report
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_38
+                sources:
+                  type: string
+                  description: Report steps definition
+                steps:
+                  type: string
+                  description: Report steps definition
+                describe:
+                  type: array
+                  items: *ref_1
+                  description: The source descriptions to generate
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_38
+  /system/reports/{reportID}/run:
+    post:
+      tags:
+        - Reports
+      summary: Run report
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: reportID
+          description: Report ID
+          required: true
+          schema: *ref_5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_39
+                frames:
+                  type: string
+                  description: Report data frame definitions
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_39
   /system/stats/:
     get:
       tags:
@@ -1906,18 +2732,18 @@ paths:
           name: excludeInvalid
           description: Exclude scripts that cannot be used (errors)
           required: false
-          schema: *ref_13
+          schema: *ref_8
         - in: query
           name: excludeClientScripts
           description: Do not include client scripts
           required: false
-          schema: *ref_13
+          schema: *ref_8
         - in: query
           name: excludeServerScripts
           description: Do not include server scripts
           required: false
-          schema: *ref_13
-  '/system/automation/{bundle}-{type}.{ext}':
+          schema: *ref_8
+  /system/automation/{bundle}-{type}.{ext}:
     get:
       tags:
         - System automation scripts
@@ -1954,16 +2780,19 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_29
+              properties: &ref_40
                 script:
                   type: string
                   description: Script to execute
+                args:
+                  type: string
+                  description: Arguments to pass to the script
               required:
                 - script
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_29
+              properties: *ref_40
   /system/actionlog/:
     get:
       tags:
@@ -1977,12 +2806,12 @@ paths:
           name: from
           description: From
           required: false
-          schema: *ref_22
+          schema: *ref_29
         - in: query
           name: to
           description: To
           required: false
-          schema: *ref_22
+          schema: *ref_29
         - in: query
           name: beforeActionID
           description: Entries before specified action ID
@@ -2010,3 +2839,980 @@ paths:
           description: Limit
           required: false
           schema: *ref_2
+  /system/queues/:
+    get:
+      tags:
+        - Messaging queues
+      summary: Messaging queues
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: query
+          name: query
+          description: Search query
+          required: false
+          schema: *ref_1
+        - in: query
+          name: limit
+          description: Limit
+          required: false
+          schema: *ref_2
+        - in: query
+          name: incTotal
+          description: Include total counter
+          required: false
+          schema: *ref_8
+        - in: query
+          name: pageCursor
+          description: Page cursor
+          required: false
+          schema: *ref_1
+        - in: query
+          name: sort
+          description: Sort items
+          required: false
+          schema: *ref_1
+        - in: query
+          name: deleted
+          description: Exclude (0
+          required: false
+          schema: *ref_2
+  /system/queues:
+    post:
+      tags:
+        - Messaging queues
+      summary: Create messaging queue
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_41
+                queue:
+                  type: string
+                  description: Name of queue
+                consumer:
+                  type: string
+                  description: Queue consumer
+                meta:
+                  type: string
+                  description: Meta data for queue
+              required:
+                - queue
+                - consumer
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_41
+  /system/queues/{queueID}:
+    get:
+      tags:
+        - Messaging queues
+      summary: Messaging queue details
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: queueID
+          description: Queue ID
+          required: true
+          schema: *ref_5
+    put:
+      tags:
+        - Messaging queues
+      summary: Update queue details
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: queueID
+          description: Queue ID
+          required: true
+          schema: *ref_5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_42
+                queue:
+                  type: string
+                  description: Name of queue
+                consumer:
+                  type: string
+                  description: Queue consumer
+                meta:
+                  type: string
+                  description: Meta data for queue
+              required:
+                - queue
+                - consumer
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_42
+    delete:
+      tags:
+        - Messaging queues
+      summary: Messaging queue delete
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: queueID
+          description: Queue ID
+          required: true
+          schema: *ref_5
+  /system/queues/{queueID}/undelete:
+    post:
+      tags:
+        - Messaging queues
+      summary: Messaging queue undelete
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: queueID
+          description: Queue ID
+          required: true
+          schema: *ref_5
+  /system/apigw/route/:
+    get:
+      tags:
+        - Integration gateway routes
+      summary: List routes
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: query
+          name: routeID
+          description: Filter by route ID
+          required: false
+          schema:
+            type: array
+            items: *ref_5
+        - in: query
+          name: query
+          description: Filter routes
+          required: false
+          schema: *ref_1
+        - in: query
+          name: deleted
+          description: Exclude (0, default), include (1) or return only (2) deleted routes
+          required: false
+          schema: *ref_5
+        - in: query
+          name: disabled
+          description: Exclude (0, default), include (1) or return only (2) disabled routes
+          required: false
+          schema: *ref_5
+        - in: query
+          name: labels
+          description: Labels
+          required: false
+          schema: *ref_1
+        - in: query
+          name: limit
+          description: Limit
+          required: false
+          schema: *ref_2
+        - in: query
+          name: incTotal
+          description: Include total counter
+          required: false
+          schema: *ref_8
+        - in: query
+          name: pageCursor
+          description: Page cursor
+          required: false
+          schema: *ref_1
+        - in: query
+          name: sort
+          description: Sort items
+          required: false
+          schema: *ref_1
+  /system/apigw/route:
+    post:
+      tags:
+        - Integration gateway routes
+      summary: Create route
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_43
+                endpoint:
+                  type: string
+                  description: Route endpoint
+                method:
+                  type: string
+                  description: Route method
+                enabled:
+                  type: boolean
+                  description: Is route enabled
+                group:
+                  type: string
+                  description: Route group
+                meta:
+                  type: string
+                  description: Route meta
+              required:
+                - endpoint
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_43
+  /system/apigw/route/{routeID}:
+    put:
+      tags:
+        - Integration gateway routes
+      summary: Update route details
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: routeID
+          description: Route ID
+          required: true
+          schema: *ref_5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_44
+                endpoint:
+                  type: string
+                  description: Route endpoint
+                method:
+                  type: string
+                  description: Route method
+                enabled:
+                  type: boolean
+                  description: Is route enabled
+                group:
+                  type: string
+                  description: Route group
+                meta:
+                  type: string
+                  description: Route meta
+              required:
+                - endpoint
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_44
+    get:
+      tags:
+        - Integration gateway routes
+      summary: Read route details
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: routeID
+          description: Route ID
+          required: true
+          schema: *ref_5
+    delete:
+      tags:
+        - Integration gateway routes
+      summary: Remove route
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: routeID
+          description: Route ID
+          required: true
+          schema: *ref_5
+  /system/apigw/route/{routeID}/undelete:
+    post:
+      tags:
+        - Integration gateway routes
+      summary: Undelete route
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: routeID
+          description: Route ID
+          required: true
+          schema: *ref_5
+  /system/apigw/filter/:
+    get:
+      tags:
+        - Integration gateway filters
+      summary: List filters
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: query
+          name: routeID
+          description: Filter by route ID
+          required: true
+          schema: *ref_5
+        - in: query
+          name: deleted
+          description: Exclude (0, default), include (1) or return only (2) deleted filters
+          required: false
+          schema: *ref_5
+        - in: query
+          name: disabled
+          description: >-
+            Exclude (0, default), include (1) or return only (2) disabled
+            filters
+          required: false
+          schema: *ref_5
+        - in: query
+          name: limit
+          description: Limit
+          required: false
+          schema: *ref_2
+        - in: query
+          name: pageCursor
+          description: Page cursor
+          required: false
+          schema: *ref_1
+        - in: query
+          name: sort
+          description: Sort items
+          required: false
+          schema: *ref_1
+  /system/apigw/filter:
+    put:
+      tags:
+        - Integration gateway filters
+      summary: Create filter
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_45
+                routeID:
+                  type: string
+                  description: Route
+                weight:
+                  type: string
+                  description: Filter priority
+                kind:
+                  type: string
+                  description: Filter kind
+                ref:
+                  type: string
+                  description: Filter ref
+                enabled:
+                  type: boolean
+                  description: Is Filter enabled
+                params:
+                  type: string
+                  description: Filter parameters
+              required:
+                - routeID
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_45
+  /system/apigw/filter/{filterID}:
+    post:
+      tags:
+        - Integration gateway filters
+      summary: Update filter details
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: filterID
+          description: Filter ID
+          required: true
+          schema: *ref_5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_46
+                routeID:
+                  type: string
+                  description: Route
+                weight:
+                  type: string
+                  description: Filter priority
+                kind:
+                  type: string
+                  description: Filter kind
+                ref:
+                  type: string
+                  description: Filter ref
+                enabled:
+                  type: boolean
+                  description: Is Filter enabled
+                params:
+                  type: string
+                  description: Filter parameters
+              required:
+                - routeID
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_46
+    get:
+      tags:
+        - Integration gateway filters
+      summary: Read filter details
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: filterID
+          description: Filter ID
+          required: true
+          schema: *ref_5
+    delete:
+      tags:
+        - Integration gateway filters
+      summary: Remove filter
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: filterID
+          description: Filter ID
+          required: true
+          schema: *ref_5
+  /system/apigw/filter/{filterID}/undelete:
+    post:
+      tags:
+        - Integration gateway filters
+      summary: Undelete filter
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: filterID
+          description: Filter ID
+          required: true
+          schema: *ref_5
+  /system/apigw/filter/def:
+    get:
+      tags:
+        - Integration gateway filters
+      summary: Filter definitions
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: query
+          name: kind
+          description: Filter filters by kind
+          required: false
+          schema: *ref_1
+  /system/apigw/filter/proxy_auth/def:
+    get:
+      tags:
+        - Integration gateway filters
+      summary: Proxy auth definitions
+      responses:
+        '200':
+          description: OK
+  /system/apigw/profiler/:
+    get:
+      tags:
+        - Integration gateway profiler
+      summary: List aggregated list of routes
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: query
+          name: path
+          description: Filter by request path
+          required: false
+          schema: *ref_1
+        - in: query
+          name: before
+          description: Entries before specified route
+          required: false
+          schema: *ref_1
+        - in: query
+          name: sort
+          description: Sort items
+          required: false
+          schema: *ref_1
+        - in: query
+          name: limit
+          description: Limit
+          required: false
+          schema: *ref_2
+  /system/apigw/profiler/route/{routeID}:
+    get:
+      tags:
+        - Integration gateway profiler
+      summary: List hits per route
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: routeID
+          description: Route ID
+          required: true
+          schema: *ref_1
+        - in: query
+          name: path
+          description: Filter by request path
+          required: false
+          schema: *ref_1
+        - in: query
+          name: before
+          description: Entries before specified hit ID
+          required: false
+          schema: *ref_1
+        - in: query
+          name: sort
+          description: Sort items
+          required: false
+          schema: *ref_1
+        - in: query
+          name: limit
+          description: Limit
+          required: false
+          schema: *ref_2
+  /system/apigw/profiler/hit/{hitID}:
+    get:
+      tags:
+        - Integration gateway profiler
+      summary: Hit details
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: hitID
+          description: Hit ID
+          required: true
+          schema: *ref_1
+  /system/locale/resource:
+    get:
+      tags:
+        - Locale
+      summary: List resources translations
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: query
+          name: lang
+          description: Language
+          required: false
+          schema: *ref_1
+        - in: query
+          name: resource
+          description: Resource
+          required: false
+          schema: *ref_1
+        - in: query
+          name: resourceType
+          description: Resource type
+          required: false
+          schema: *ref_1
+        - in: query
+          name: ownerID
+          description: OwnerID
+          required: false
+          schema: *ref_5
+        - in: query
+          name: deleted
+          description: >-
+            Exclude (0, default), include (1) or return only (2) deleted
+            resource translations
+          required: false
+          schema: *ref_5
+        - in: query
+          name: limit
+          description: Limit
+          required: false
+          schema: *ref_2
+        - in: query
+          name: pageCursor
+          description: Page cursor
+          required: false
+          schema: *ref_1
+        - in: query
+          name: sort
+          description: Sort items
+          required: false
+          schema: *ref_1
+    post:
+      tags:
+        - Locale
+      summary: Create resource translation
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_47
+                lang:
+                  type: string
+                  description: Lang
+                resource:
+                  type: string
+                  description: Resource
+                key:
+                  type: string
+                  description: Key
+                place:
+                  type: integer
+                  description: place
+                message:
+                  type: string
+                  description: Message
+                ownerID:
+                  type: string
+                  description: OwnerID
+              required:
+                - lang
+                - resource
+                - key
+                - message
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_47
+  /system/locale/resource/{translationID}:
+    put:
+      tags:
+        - Locale
+      summary: Update resource translation
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: translationID
+          description: ID
+          required: true
+          schema: *ref_5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_48
+                lang:
+                  type: string
+                  description: Lang
+                resource:
+                  type: string
+                  description: Resource
+                key:
+                  type: string
+                  description: Key
+                place:
+                  type: integer
+                  description: place
+                message:
+                  type: string
+                  description: Message
+                ownerID:
+                  type: string
+                  description: OwnerID
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_48
+    get:
+      tags:
+        - Locale
+      summary: Read resource translation details
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: translationID
+          description: ID
+          required: true
+          schema: *ref_5
+    delete:
+      tags:
+        - Locale
+      summary: Remove resource translation
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: translationID
+          description: ID
+          required: true
+          schema: *ref_5
+  /system/locale/resource/{translationID}/undelete:
+    post:
+      tags:
+        - Locale
+      summary: Undelete resource translation
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: translationID
+          description: ID
+          required: true
+          schema: *ref_5
+  /system/locale/:
+    get:
+      tags:
+        - Locale
+      summary: List all available languages
+      responses:
+        '200':
+          description: OK
+  /system/locale/{lang}/{application}:
+    get:
+      tags:
+        - Locale
+      summary: List all available translation in a language for a specific webapp
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: lang
+          description: Language
+          required: true
+          schema: *ref_1
+        - in: path
+          name: application
+          description: Application name
+          required: true
+          schema: *ref_1
+  /system/data-privacy/requests/:
+    get:
+      tags:
+        - Data Privacy Request
+      summary: List data privacy requests
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: query
+          name: requestedBy
+          description: Filter by user ID
+          required: false
+          schema:
+            type: array
+            items: *ref_1
+        - in: query
+          name: query
+          description: Filter requests
+          required: false
+          schema: *ref_1
+        - in: query
+          name: kind
+          description: 'Filter by kind: correct, delete, export'
+          required: false
+          schema:
+            type: array
+            items: *ref_1
+        - in: query
+          name: status
+          description: 'Filter by status: pending, cancel, approve, reject'
+          required: false
+          schema:
+            type: array
+            items: *ref_1
+        - in: query
+          name: limit
+          description: Limit
+          required: false
+          schema: *ref_2
+        - in: query
+          name: pageCursor
+          description: Page cursor
+          required: false
+          schema: *ref_1
+        - in: query
+          name: sort
+          description: Sort items
+          required: false
+          schema: *ref_1
+    post:
+      tags:
+        - Data Privacy Request
+      summary: Create data privacy request
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_49
+                kind:
+                  type: string
+                  description: Request Kind
+                payload:
+                  type: string
+                  description: Request
+              required:
+                - kind
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_49
+  /system/data-privacy/requests/{requestID}/status/{status}:
+    patch:
+      tags:
+        - Data Privacy Request
+      summary: Update data privacy request status
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: requestID
+          description: ID
+          required: true
+          schema: *ref_5
+        - in: path
+          name: status
+          description: Request Status
+          required: true
+          schema: *ref_1
+  /system/data-privacy/requests/{requestID}:
+    get:
+      tags:
+        - Data Privacy Request
+      summary: Get details about specific request
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: requestID
+          description: Request ID
+          required: true
+          schema: *ref_5
+  /system/data-privacy/requests/{requestID}/comments/:
+    get:
+      tags:
+        - Data Privacy Request Comment
+      summary: List data privacy request comments
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: query
+          name: limit
+          description: Limit
+          required: false
+          schema: *ref_2
+        - in: query
+          name: pageCursor
+          description: Page cursor
+          required: false
+          schema: *ref_1
+        - in: query
+          name: sort
+          description: Sort items
+          required: false
+          schema: *ref_1
+        - in: path
+          name: requestID
+          description: Request ID
+          required: true
+          schema: *ref_5
+    post:
+      tags:
+        - Data Privacy Request Comment
+      summary: Create data privacy request comment
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_50
+                comment:
+                  type: string
+                  description: Comment description
+              required:
+                - comment
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_50
+      parameters:
+        - in: path
+          name: requestID
+          description: Request ID
+          required: true
+          schema: *ref_5
+  /system/data-privacy/connection/:
+    get:
+      tags:
+        - Data Privacy
+      summary: List connections for data privacy
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: query
+          name: connectionID
+          description: Filter by connection ID
+          required: false
+          schema:
+            type: array
+            items: *ref_1
+        - in: query
+          name: handle
+          description: Search handle to match against connections
+          required: false
+          schema: *ref_1
+        - in: query
+          name: type
+          description: Search type to match against connections
+          required: false
+          schema: *ref_1
+        - in: query
+          name: deleted
+          description: >-
+            Exclude (0, default), include (1) or return only (2) deleted
+            connections
+          required: false
+          schema: *ref_1

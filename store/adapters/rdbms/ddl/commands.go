@@ -93,8 +93,12 @@ func Exec(ctx context.Context, db sqlx.ExtContext, ss ...any) (err error) {
 }
 
 func (t *CreateTable) String() string {
-	sql := "CREATE TABLE "
+	sql := "CREATE "
+	if t.Table.Temporary {
+		sql += "TEMPORARY "
+	}
 
+	sql += "TABLE "
 	if !t.OmitIfNotExistsClause {
 		sql += "IF NOT EXISTS "
 	}

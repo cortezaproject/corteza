@@ -186,3 +186,65 @@ func Test_serviceInit(t *testing.T) {
 func (h mockExistingHandler) Merge(params []byte) (types.Handler, error) {
 	return h.merge(params)
 }
+
+func Test_serviceAppendRoutes(t *testing.T) {
+	var (
+		req = require.New(t)
+
+		routes = func(rr ...*route) []*route {
+			return rr
+		}
+
+		r1 = &route{
+			method:   "GET",
+			endpoint: "/test",
+		}
+		r2 = &route{
+			method:   "POST",
+			endpoint: "/test",
+		}
+		r3 = &route{
+			method:   "PUT",
+			endpoint: "/test",
+		}
+		r4 = &route{
+			method:   "DELETE",
+			endpoint: "/test",
+		}
+		r5 = &route{
+			endpoint: "GET",
+			method:   "/test2",
+		}
+
+		tests = []struct {
+			name     string
+			ag       apigw
+			routes   []*route
+			expected []*route
+		}{
+			{
+				name: "add new",
+				ag: apigw{
+					routes: routes(r1, r2, r3),
+				},
+				routes:   routes(r4),
+				expected: routes(r1, r2, r3, r4),
+			},
+			{
+				name: "no duplicates",
+				ag: apigw{
+					routes: routes(r1, r2, r3, r4, r5),
+				},
+				routes:   routes(r1, r5),
+				expected: routes(r1, r2, r3, r4, r5),
+			},
+		}
+	)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.ag.AppendRoutes(tt.routes...)
+			req.Equal(tt.expected, tt.ag.routes)
+		})
+	}
+}

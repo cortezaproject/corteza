@@ -36,6 +36,11 @@ type (
 	parsedFilter interface {
 		ExpressionParsed() *ql.ASTNode
 	}
+
+	queryParser interface {
+		Convert(*ql.ASTNode) (out exp.Expression, err error)
+		Parse(string) (out exp.Expression, err error)
+	}
 )
 
 func validate(m *dal.Model) error {
@@ -93,24 +98,22 @@ func Model(m *dal.Model, c queryRunner, d drivers.Dialect) *model {
 // Alternative solution would introduce a mutes on the internal model but that
 // is probably the same or worse as this.
 //
-// @todo benchmark to see if this re-init is a bad idea; I don't think it should be
-//       since we're just initializing fairly light structs.
 func (d *model) parseQuery(q string) (out exp.Expression, err error) {
-	pp := ql.Converter(
-		ql.SymHandler(d.qlConverterGenericHandlers()),
-		ql.RefHandler(d.dialect.ExprHandler),
-	)
-
-	return pp.Parse(q)
+	return d.QueryParser().Parse(q)
 }
 
 func (d *model) convertQuery(n *ql.ASTNode) (out exp.Expression, err error) {
-	pp := ql.Converter(
+	return d.QueryParser().Convert(n)
+}
+
+// QueryParser returns ql struct that allows parsing query strings or converting AST into expression
+// @todo benchmark to see if this re-init is a bad idea; I don't think it should be
+//       since we're just initializing fairly light structs.
+func (d *model) QueryParser() queryParser {
+	return ql.Converter(
 		ql.SymHandler(d.qlConverterGenericHandlers()),
 		ql.RefHandler(d.dialect.ExprHandler),
 	)
-
-	return pp.Convert(n)
 }
 
 func (d *model) qlConverterGenericHandlers() func(node *ql.ASTNode) (exp.Expression, error) {
@@ -221,22 +224,81 @@ func (d *model) Search(f filter.Filter) (i *iterator, err error) {
 		orderBy = append(orderBy, &filter.SortExpr{Column: attrIdent, Descending: orderBy.LastDescending()})
 	}
 
-	var (
-		q *goqu.SelectDataset
-	)
+	i = &iterator{
+		// source and destination is the same
+		src: d,
+		dst: d,
 
-	q = d.searchSql(f)
-	if err = q.Error(); err != nil {
-		return
-	}
-
-	return &iterator{
-		ms:      d,
-		query:   q,
 		sorting: orderBy,
 		cursor:  f.Cursor(),
 		limit:   f.Limit(),
-	}, nil
+	}
+
+	i.query = d.searchSql(f)
+	if err = i.query.Error(); err != nil {
+		return
+	}
+
+	return
+}
+
+// Aggregate constructs SELECT sql with group-by and an optional having CLAUSE
+//
+// All group-by attributes are prepended to aggregation
+// expressions when constructing expressions & columns to select from.
+//
+// Passing in filter with cursor, empty groupBy or aggrExpr slice will result in an error
+func (d *model) Aggregate(f filter.Filter, groupBy []dal.AggregateAttr, aggrExpr []dal.AggregateAttr, having *ql.ASTNode) (i *iterator, err error) {
+	if len(groupBy) == 0 {
+		return nil, fmt.Errorf("can not run aggregation without group-by")
+	}
+
+	i = &iterator{
+		cursor:  f.Cursor(),
+		sorting: f.OrderBy(),
+		limit:   f.Limit(),
+	}
+
+	var (
+		// source model; how data we are reading from is shaped
+		srcModel = &dal.Model{}
+
+		// destination model; how data we are reading into is shaped
+		dstModel = &dal.Model{}
+
+		srcAttr, dstAttr *dal.Attribute
+	)
+
+	// prepare a bit modified module that
+	// describes aggregated columns (prepending attributes used for group-by)
+	for _, c := range append(groupBy, aggrExpr...) {
+		srcAttr = &dal.Attribute{
+			Ident: c.Identifier,
+			Type:  c.Type,
+			Store: c.Store,
+		}
+		srcModel.Attributes = append(srcModel.Attributes, srcAttr)
+
+		dstAttr = &dal.Attribute{
+			Ident: c.Identifier,
+			Type:  c.Type,
+		}
+		dstModel.Attributes = append(dstModel.Attributes, dstAttr)
+	}
+
+	i.src = Model(srcModel, d.conn, d.dialect)
+	i.dst = Model(dstModel, d.conn, d.dialect)
+
+	i.query = d.aggregateSql(f, groupBy, aggrExpr, having)
+
+	if err = i.query.Error(); err != nil {
+		return
+	}
+
+	i.src = Model(srcModel, d.conn, d.dialect)
+	i.dst = Model(dstModel, d.conn, d.dialect)
+
+	return
 }
 
 func (d *model) Lookup(ctx context.Context, pkv dal.ValueGetter, r dal.ValueSetter) (err error) {
@@ -430,6 +492,106 @@ func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 	return base.Where(cnd...)
 }
 
+func (d *model) aggregateSql(f filter.Filter, groupBy []dal.AggregateAttr, out []dal.AggregateAttr, having *ql.ASTNode) (q *goqu.SelectDataset) {
+	// get SELECT query based on
+	// the given filter
+	q = d.searchSql(f)
+
+	var (
+		err  error
+		expr exp.Expression
+
+		alias string
+
+		// store map alias-expression pairs to power-up
+		// HAVING clause query parsing (but only for the
+		// aggregation expression!)
+		a2expr = make(map[string]exp.Expression)
+
+		selected []any
+
+		field = func(c dal.AggregateAttr) (expr exp.Expression, err error) {
+			switch {
+			case len(c.RawExpr) > 0:
+				// @todo could probably be removed since RawExpr is only a temporary solution?
+				return d.parseQuery(c.RawExpr)
+			case c.Expression != nil:
+				return d.convertQuery(c.Expression)
+			}
+
+			return d.table.AttributeExpression(c.Identifier)
+		}
+	)
+
+	for i, c := range groupBy {
+		if expr, err = field(c); err != nil {
+			return q.SetError(err)
+		}
+
+		alias = c.Identifier
+		if alias == "" {
+			alias = fmt.Sprintf("group_by_%d", i)
+		}
+
+		a2expr[alias] = expr
+
+		// grouping by selected
+		q = q.GroupByAppend(alias)
+
+		expr = exp.NewAliasExpression(expr, alias)
+
+		// Add all group-by columns at the start of selection fields
+		selected = append(selected, expr)
+	}
+
+	q = q.Select(selected...)
+
+	for i, c := range out {
+		if expr, err = field(c); err != nil {
+			return q.SetError(err)
+		}
+
+		alias = c.Identifier
+		if alias == "" {
+			alias = fmt.Sprintf("aggr_%d", i)
+		}
+
+		a2expr[alias] = expr
+
+		expr = exp.NewAliasExpression(expr, alias)
+		q = q.SelectAppend(expr)
+	}
+
+	if having != nil {
+		var (
+			converter = ql.Converter(
+				ql.SymHandler(func(node *ql.ASTNode) (exp.Expression, error) {
+					sym := dal.NormalizeAttrNames(node.Symbol)
+					if a2expr[sym] != nil {
+						// is aliased expression?
+						return a2expr[sym], nil
+					}
+
+					// if not, use the default handler
+					return d.qlConverterGenericHandlers()(node)
+				}),
+				ql.RefHandler(d.dialect.ExprHandler),
+			)
+		)
+
+		// using special symbol handler that when converting HAVING clause expression
+		// this handler looks at the
+		if expr, err = converter.Convert(having); err != nil {
+			q.SetError(err)
+			return
+		}
+
+		q = q.Having(expr)
+	}
+
+	return
+}
+
 func (d *model) lookupSql(pkv dal.ValueGetter) *goqu.SelectDataset {
 	var (
 		sel       = d.selectSql().Limit(1)
@@ -451,10 +613,14 @@ func (d *model) selectSql() *goqu.SelectDataset {
 		// * to the list of columns to be selected
 		// even if we clear the columns first
 		q = d.dialect.GOQU().
-			From(d.table.Ident()).
-			Select(d.table.Ident().Col(cols[0].Name()))
+			From(d.table.Ident())
 	)
 
+	if len(cols) == 0 {
+		return q.SetError(fmt.Errorf("can not create SELECT without columns"))
+	}
+
+	q = q.Select(d.table.Ident().Col(cols[0].Name()))
 	for _, col := range cols[1:] {
 		q = q.SelectAppend(d.table.Ident().Col(col.Name()))
 	}

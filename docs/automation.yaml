@@ -1,0 +1,813 @@
+openapi: 3.0.0
+info:
+  title: Corteza automation API
+  description: Corteza automation REST API definition
+  version: '2022.9'
+  contact:
+    email: info@cortezaproject.org
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+paths:
+  /automation/workflows/:
+    get:
+      tags:
+        - Workflows
+      summary: List workflows
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: query
+          name: workflowID
+          description: Filter by workflow ID
+          required: false
+          schema:
+            type: array
+            items: &ref_0
+              type: string
+        - in: query
+          name: query
+          description: Filter workflows
+          required: false
+          schema: *ref_0
+        - in: query
+          name: deleted
+          description: >-
+            Exclude (0, default), include (1) or return only (2) deleted
+            workflows
+          required: false
+          schema: &ref_1
+            type: string
+        - in: query
+          name: disabled
+          description: >-
+            Exclude (0, default), include (1) or return only (2) disabled
+            workflows
+          required: false
+          schema: *ref_1
+        - in: query
+          name: subWorkflow
+          description: Exclude (0, default), include (1) or return only (2) sub workflows
+          required: false
+          schema: *ref_1
+        - in: query
+          name: labels
+          description: Labels
+          required: false
+          schema: *ref_0
+        - in: query
+          name: limit
+          description: Limit
+          required: false
+          schema: *ref_1
+        - in: query
+          name: incTotal
+          description: Include total rows counter
+          required: false
+          schema: &ref_9
+            type: boolean
+        - in: query
+          name: pageCursor
+          description: Page cursor
+          required: false
+          schema: *ref_0
+        - in: query
+          name: sort
+          description: Sort items
+          required: false
+          schema: *ref_0
+    post:
+      tags:
+        - Workflows
+      summary: Create workflow
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_2
+                handle:
+                  type: string
+                  description: Workflow name
+                labels:
+                  type: string
+                  description: Labels
+                meta:
+                  type: string
+                  description: Workflow meta data
+                enabled:
+                  type: boolean
+                  description: Is workflow enabled
+                trace:
+                  type: boolean
+                  description: Trace workflow execution
+                keepSessions:
+                  type: integer
+                  description: Keep old workflow sessions
+                scope:
+                  type: string
+                  description: Workflow meta data
+                steps:
+                  type: string
+                  description: Workflow steps definition
+                paths:
+                  type: string
+                  description: Workflow step paths definition
+                runAs:
+                  type: string
+                  description: Is workflow enabled
+                ownedBy:
+                  type: string
+                  description: Owner of the workflow
+              required:
+                - handle
+                - runAs
+                - ownedBy
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_2
+  /automation/workflows/{workflowID}:
+    put:
+      tags:
+        - Workflows
+      summary: Update triger details
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: workflowID
+          description: Workflow ID
+          required: true
+          schema: &ref_4
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_3
+                handle:
+                  type: string
+                  description: Workflow name
+                labels:
+                  type: string
+                  description: Labels
+                meta:
+                  type: string
+                  description: Workflow meta data
+                enabled:
+                  type: boolean
+                  description: Is workflow enabled
+                trace:
+                  type: boolean
+                  description: Trace workflow execution
+                keepSessions:
+                  type: integer
+                  description: Keep old workflow sessions
+                scope:
+                  type: string
+                  description: Workflow meta data
+                steps:
+                  type: string
+                  description: Workflow steps definition
+                paths:
+                  type: string
+                  description: Workflow step paths definition
+                runAs:
+                  type: string
+                  description: Is workflow enabled
+                ownedBy:
+                  type: string
+                  description: Owner of the workflow
+              required:
+                - handle
+                - runAs
+                - ownedBy
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_3
+    get:
+      tags:
+        - Workflows
+      summary: Read workflow details
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: workflowID
+          description: Workflow ID
+          required: true
+          schema: *ref_4
+    delete:
+      tags:
+        - Workflows
+      summary: Remove workflow
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: workflowID
+          description: Workflow ID
+          required: true
+          schema: *ref_4
+  /automation/workflows/{workflowID}/undelete:
+    post:
+      tags:
+        - Workflows
+      summary: Undelete workflow
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: workflowID
+          description: Workflow ID
+          required: true
+          schema: *ref_4
+  /automation/workflows/{workflowID}/test:
+    post:
+      tags:
+        - Workflows
+      summary: Test workflow details
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: workflowID
+          description: Workflow ID
+          required: true
+          schema: *ref_4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_5
+                scope:
+                  type: string
+                  description: Workflow meta data
+                runAs:
+                  type: boolean
+                  description: Is workflow enabled
+              required:
+                - runAs
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_5
+  /automation/workflows/{workflowID}/exec:
+    post:
+      tags:
+        - Workflows
+      summary: >-
+        Executes workflow on a specific step (must be orphan step and connected
+        to 'onManual' trigger)
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: workflowID
+          description: Workflow ID
+          required: true
+          schema: *ref_4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_6
+                stepID:
+                  type: string
+                  description: Step ID
+                input:
+                  type: string
+                  description: Input
+                trace:
+                  type: boolean
+                  description: Trace workflow execution
+                wait:
+                  type: boolean
+                  description: Wait for workflow to complete
+                async:
+                  type: boolean
+                  description: Execute step and return immediately
+              required:
+                - stepID
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_6
+  /automation/triggers/:
+    get:
+      tags:
+        - Triggers
+      summary: List triggers
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: query
+          name: triggerID
+          description: Filter by trigger ID
+          required: false
+          schema:
+            type: array
+            items: *ref_0
+        - in: query
+          name: workflowID
+          description: Filter by workflow ID
+          required: false
+          schema:
+            type: array
+            items: *ref_0
+        - in: query
+          name: deleted
+          description: >-
+            Exclude (0, default), include (1) or return only (2) deleted
+            triggers
+          required: false
+          schema: *ref_1
+        - in: query
+          name: disabled
+          description: >-
+            Exclude (0, default), include (1) or return only (2) disabled
+            triggers
+          required: false
+          schema: *ref_1
+        - in: query
+          name: eventType
+          description: Filter triggers by event type
+          required: false
+          schema: *ref_0
+        - in: query
+          name: resourceType
+          description: Filter triggers by resource type
+          required: false
+          schema: *ref_0
+        - in: query
+          name: query
+          description: Filter workflows,
+          required: false
+          schema: *ref_0
+        - in: query
+          name: labels
+          description: Labels
+          required: false
+          schema: *ref_0
+        - in: query
+          name: limit
+          description: Limit
+          required: false
+          schema: *ref_1
+        - in: query
+          name: pageCursor
+          description: Page cursor
+          required: false
+          schema: *ref_0
+        - in: query
+          name: sort
+          description: Sort items
+          required: false
+          schema: *ref_0
+    post:
+      tags:
+        - Triggers
+      summary: Create trigger
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_7
+                eventType:
+                  type: string
+                  description: Event type
+                resourceType:
+                  type: string
+                  description: Resource type
+                enabled:
+                  type: boolean
+                  description: Is trigger enabled
+                workflowID:
+                  type: string
+                  description: Workflow to be triggered
+                workflowStepID:
+                  type: string
+                  description: Start workflow in a specific step
+                input:
+                  type: string
+                  description: Workflow meta data
+                labels:
+                  type: string
+                  description: Labels
+                meta:
+                  type: string
+                  description: Trigger meta data
+                constraints:
+                  type: string
+                  description: Workflow steps definition
+                ownedBy:
+                  type: string
+                  description: Owner of the trigger
+              required:
+                - eventType
+                - resourceType
+                - workflowID
+                - workflowStepID
+                - ownedBy
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_7
+  /automation/triggers/{triggerID}:
+    put:
+      tags:
+        - Triggers
+      summary: Update trigger details
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: triggerID
+          description: Trigger ID
+          required: true
+          schema: *ref_4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_8
+                eventType:
+                  type: string
+                  description: Event type
+                resourceType:
+                  type: string
+                  description: Resource type
+                enabled:
+                  type: boolean
+                  description: Is trigger enabled
+                workflowID:
+                  type: string
+                  description: Workflow to be triggered
+                workflowStepID:
+                  type: string
+                  description: Start workflow in a specific step
+                input:
+                  type: string
+                  description: Workflow meta data
+                labels:
+                  type: string
+                  description: Labels
+                meta:
+                  type: string
+                  description: Trigger meta data
+                constraints:
+                  type: string
+                  description: Workflow steps definition
+                ownedBy:
+                  type: string
+                  description: Owner of the trigger
+              required:
+                - eventType
+                - resourceType
+                - workflowID
+                - workflowStepID
+                - ownedBy
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_8
+    get:
+      tags:
+        - Triggers
+      summary: Read trigger details
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: triggerID
+          description: Trigger ID
+          required: true
+          schema: *ref_4
+    delete:
+      tags:
+        - Triggers
+      summary: Remove trigger
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: triggerID
+          description: Trigger ID
+          required: true
+          schema: *ref_4
+  /automation/triggers/{triggerID}/undelete:
+    post:
+      tags:
+        - Triggers
+      summary: Undelete trigger
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: triggerID
+          description: Trigger ID
+          required: true
+          schema: *ref_4
+  /automation/sessions/:
+    get:
+      tags:
+        - Sessions
+      summary: List sessions
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: query
+          name: sessionID
+          description: Filter by session ID
+          required: false
+          schema:
+            type: array
+            items: *ref_0
+        - in: query
+          name: workflowID
+          description: Filter by workflow ID
+          required: false
+          schema:
+            type: array
+            items: *ref_0
+        - in: query
+          name: createdBy
+          description: Filter by creators ID
+          required: false
+          schema:
+            type: array
+            items: *ref_0
+        - in: query
+          name: completed
+          description: >-
+            Exclude (0, default), include (1) or return only (2) completed
+            sessions
+          required: false
+          schema: *ref_1
+        - in: query
+          name: status
+          description: >-
+            Filter by status: started (0), prompted (1), suspended (2), failed
+            (3) and completed (4)
+          required: false
+          schema:
+            type: array
+            items: *ref_1
+        - in: query
+          name: eventType
+          description: Filter event type
+          required: false
+          schema: *ref_0
+        - in: query
+          name: resourceType
+          description: Filter resource type
+          required: false
+          schema: *ref_0
+        - in: query
+          name: limit
+          description: Limit
+          required: false
+          schema: *ref_1
+        - in: query
+          name: incTotal
+          description: Include total rows counter
+          required: false
+          schema: *ref_9
+        - in: query
+          name: pageCursor
+          description: Page cursor
+          required: false
+          schema: *ref_0
+        - in: query
+          name: sort
+          description: Sort items
+          required: false
+          schema: *ref_0
+  /automation/sessions/{sessionID}:
+    get:
+      tags:
+        - Sessions
+      summary: Read session details
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: sessionID
+          description: Session ID
+          required: true
+          schema: *ref_4
+  /automation/sessions/{sessionID}/cancel:
+    post:
+      tags:
+        - Sessions
+      summary: Cancel session
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: sessionID
+          description: Session ID
+          required: true
+          schema: *ref_4
+  /automation/sessions/prompts:
+    get:
+      tags:
+        - Sessions
+      summary: Returns pending prompts from all sessions
+      responses:
+        '200':
+          description: OK
+  /automation/sessions/{sessionID}/state/{stateID}:
+    post:
+      tags:
+        - Sessions
+      summary: Resume session
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: sessionID
+          description: Session ID
+          required: true
+          schema: *ref_4
+        - in: path
+          name: stateID
+          description: State ID
+          required: true
+          schema: *ref_4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_10
+                input:
+                  type: string
+                  description: Prompt variables
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_10
+  /automation/functions/:
+    get:
+      tags:
+        - Functions
+      summary: Available workflow functions
+      responses:
+        '200':
+          description: OK
+  /automation/types/:
+    get:
+      tags:
+        - Types
+      summary: Available workflow types
+      responses:
+        '200':
+          description: OK
+  /automation/event-types/:
+    get:
+      tags:
+        - Event types
+      summary: Available workflow types
+      responses:
+        '200':
+          description: OK
+  /automation/permissions/:
+    get:
+      tags:
+        - Permissions
+      summary: Retrieve defined permissions
+      responses:
+        '200':
+          description: OK
+  /automation/permissions/effective:
+    get:
+      tags:
+        - Permissions
+      summary: Effective rules for current user
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: query
+          name: resource
+          description: Show only rules for a specific resource
+          required: false
+          schema: *ref_0
+  /automation/permissions/trace:
+    get:
+      tags:
+        - Permissions
+      summary: Evaluate rules for given user/role combo
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: query
+          name: resource
+          description: Show only rules for a specific resource
+          required: false
+          schema:
+            type: array
+            items: *ref_0
+        - in: query
+          name: userID
+          required: false
+          schema: *ref_4
+        - in: query
+          name: roleID
+          required: false
+          schema:
+            type: array
+            items: *ref_4
+  /automation/permissions/{roleID}/rules:
+    get:
+      tags:
+        - Permissions
+      summary: Retrieve role permissions
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: roleID
+          description: Role ID
+          required: true
+          schema: *ref_4
+        - in: query
+          name: resource
+          description: Show only rules for a specific resource
+          required: false
+          schema:
+            type: array
+            items: *ref_0
+    delete:
+      tags:
+        - Permissions
+      summary: Remove all defined role permissions
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: roleID
+          description: Role ID
+          required: true
+          schema: *ref_4
+    patch:
+      tags:
+        - Permissions
+      summary: Update permission settings
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: roleID
+          description: Role ID
+          required: true
+          schema: *ref_4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_11
+                rules:
+                  type: string
+                  description: List of permission rules to set
+              required:
+                - rules
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_11

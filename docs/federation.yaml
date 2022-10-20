@@ -2,14 +2,14 @@ openapi: 3.0.0
 info:
   title: Corteza federation API
   description: Corteza federation REST API definition
-  version: 2020.12
+  version: '2022.9'
   contact:
     email: info@cortezaproject.org
   license:
     name: Apache 2.0
-    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
 paths:
-  '/federation/nodes/{nodeID}/handshake':
+  /federation/nodes/{nodeID}/handshake:
     post:
       tags:
         - Federation node handshake
@@ -98,7 +98,7 @@ paths:
             schema:
               type: object
               properties: *ref_2
-  '/federation/nodes/{nodeID}':
+  /federation/nodes/{nodeID}:
     get:
       tags:
         - Federation nodes
@@ -157,7 +157,7 @@ paths:
           description: NodeID
           required: true
           schema: *ref_3
-  '/federation/nodes/{nodeID}/uri':
+  /federation/nodes/{nodeID}/uri:
     post:
       tags:
         - Federation nodes
@@ -171,7 +171,7 @@ paths:
           description: NodeID
           required: true
           schema: *ref_3
-  '/federation/nodes/{nodeID}/undelete':
+  /federation/nodes/{nodeID}/undelete:
     post:
       tags:
         - Federation nodes
@@ -185,7 +185,7 @@ paths:
           description: NodeID
           required: true
           schema: *ref_3
-  '/federation/nodes/{nodeID}/pair':
+  /federation/nodes/{nodeID}/pair:
     post:
       tags:
         - Federation nodes
@@ -199,7 +199,7 @@ paths:
           description: NodeID
           required: true
           schema: *ref_3
-  '/federation/nodes/{nodeID}/handshake-confirm':
+  /federation/nodes/{nodeID}/handshake-confirm:
     post:
       tags:
         - Federation nodes
@@ -213,7 +213,7 @@ paths:
           description: NodeID
           required: true
           schema: *ref_3
-  '/federation/nodes/{nodeID}/handshake-complete':
+  /federation/nodes/{nodeID}/handshake-complete:
     post:
       tags:
         - Federation nodes
@@ -242,7 +242,7 @@ paths:
             schema:
               type: object
               properties: *ref_5
-  '/federation/nodes/{nodeID}/modules/{moduleID}/exposed':
+  /federation/nodes/{nodeID}/modules/{moduleID}/exposed:
     get:
       tags:
         - Manage structure
@@ -319,6 +319,8 @@ paths:
                         type: integer
                       isRequired:
                         type: boolean
+                      isPrivate:
+                        type: boolean
                       isMulti:
                         type: boolean
                       isSystem:
@@ -353,7 +355,7 @@ paths:
           description: Module ID
           required: true
           schema: *ref_3
-  '/federation/nodes/{nodeID}/modules/':
+  /federation/nodes/{nodeID}/modules/:
     put:
       tags:
         - Manage structure
@@ -401,7 +403,7 @@ paths:
     get:
       tags:
         - Manage structure
-      summary: List of shared/exposed modules
+      summary: List of shared/exposed/mapped modules
       responses:
         '200':
           description: OK
@@ -422,7 +424,12 @@ paths:
           description: List exposed modules
           required: false
           schema: *ref_9
-  '/federation/nodes/{nodeID}/modules/{moduleID}/shared':
+        - in: query
+          name: mapped
+          description: List mapped modules
+          required: false
+          schema: *ref_9
+  /federation/nodes/{nodeID}/modules/{moduleID}/shared:
     get:
       tags:
         - Manage structure
@@ -441,7 +448,7 @@ paths:
           description: Module ID
           required: true
           schema: *ref_3
-  '/federation/nodes/{nodeID}/modules/{moduleID}/mapped':
+  /federation/nodes/{nodeID}/modules/{moduleID}/mapped:
     put:
       tags:
         - Manage structure
@@ -500,7 +507,12 @@ paths:
           description: Module ID
           required: true
           schema: *ref_3
-  '/federation/nodes/{nodeID}/modules/exposed/':
+        - in: query
+          name: composeModuleID
+          description: Compose module id
+          required: false
+          schema: *ref_3
+  /federation/nodes/{nodeID}/modules/exposed/:
     get:
       tags:
         - Sync structure
@@ -540,7 +552,46 @@ paths:
           description: Sort items
           required: false
           schema: *ref_1
-  '/federation/nodes/{nodeID}/modules/exposed/records/':
+  /federation/nodes/{nodeID}/modules/exposed/activity-stream:
+    get:
+      tags:
+        - Sync structure
+      summary: List all exposed modules changes in activity streams format
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: nodeID
+          description: Node ID
+          required: true
+          schema: *ref_3
+        - in: query
+          name: lastSync
+          description: Last sync timestamp
+          required: false
+          schema: *ref_3
+        - in: query
+          name: query
+          description: Search query
+          required: false
+          schema: *ref_1
+        - in: query
+          name: limit
+          description: Limit
+          required: false
+          schema: *ref_11
+        - in: query
+          name: pageCursor
+          description: Page cursor
+          required: false
+          schema: *ref_1
+        - in: query
+          name: sort
+          description: Sort items
+          required: false
+          schema: *ref_1
+  /federation/nodes/{nodeID}/modules/exposed/records/:
     get:
       tags:
         - Sync data
@@ -579,11 +630,55 @@ paths:
           description: Sort items
           required: false
           schema: *ref_1
-  '/federation/nodes/{nodeID}/modules/{moduleID}/records/':
+  /federation/nodes/{nodeID}/modules/{moduleID}/records/:
     get:
       tags:
         - Sync data
       summary: List all records per module
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: nodeID
+          description: Node ID
+          required: true
+          schema: *ref_3
+        - in: path
+          name: moduleID
+          description: Module ID
+          required: true
+          schema: *ref_3
+        - in: query
+          name: lastSync
+          description: Last sync timestamp
+          required: false
+          schema: *ref_3
+        - in: query
+          name: query
+          description: Search query
+          required: false
+          schema: *ref_1
+        - in: query
+          name: limit
+          description: Limit
+          required: false
+          schema: *ref_11
+        - in: query
+          name: pageCursor
+          description: Page cursor
+          required: false
+          schema: *ref_1
+        - in: query
+          name: sort
+          description: Sort items
+          required: false
+          schema: *ref_1
+  /federation/nodes/{nodeID}/modules/{moduleID}/records/activity-stream/:
+    get:
+      tags:
+        - Sync data
+      summary: List all records per module in activitystreams format
       responses:
         '200':
           description: OK
@@ -645,7 +740,33 @@ paths:
           description: Show only rules for a specific resource
           required: false
           schema: *ref_1
-  '/federation/permissions/{roleID}/rules':
+  /federation/permissions/trace:
+    get:
+      tags:
+        - Permissions
+      summary: Evaluate rules for given user/role combo
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: query
+          name: resource
+          description: Show only rules for a specific resource
+          required: false
+          schema:
+            type: array
+            items: *ref_1
+        - in: query
+          name: userID
+          required: false
+          schema: *ref_3
+        - in: query
+          name: roleID
+          required: false
+          schema:
+            type: array
+            items: *ref_3
+  /federation/permissions/{roleID}/rules:
     get:
       tags:
         - Permissions
@@ -659,6 +780,13 @@ paths:
           description: Role ID
           required: true
           schema: *ref_3
+        - in: query
+          name: resource
+          description: Show only rules for a specific resource
+          required: false
+          schema:
+            type: array
+            items: *ref_1
     delete:
       tags:
         - Permissions

@@ -55,14 +55,15 @@ apigw_route: {
 
 	filter: {
 		struct: {
-			route: {}
-			query: {goType: "string"}
+			route: {goType: "string", storeIdent: "id"}
+			endpoint: {goType: "string"}
+			method: {goType: "string"}
 
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 			disabled: {goType: "filter.State", storeIdent: "enabled"}
 		}
 
-		query: ["endpoint"]
+		byValue: ["route", "endpoint", "method"]
 		byNilState: ["deleted"]
 		byFalseState: ["disabled"]
 	}

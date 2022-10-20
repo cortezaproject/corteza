@@ -54,6 +54,7 @@ type (
 
 var (
 	invalidLinkChars        = regexp.MustCompile(`[^-A-Za-z0-9+&@#/%?=~_|!:,.;\\(\\)]`)
+	stripSchema             = regexp.MustCompile(`(.*\/\/)`)
 	BasePath         string = "/"
 )
 
@@ -112,5 +113,5 @@ func tbp(s string) string {
 }
 
 func sanitizeLink(l string) string {
-	return invalidLinkChars.ReplaceAllString(l, "")
+	return `//` + stripSchema.ReplaceAllString(invalidLinkChars.ReplaceAllString(l, ""), "")
 }

@@ -94,7 +94,7 @@ func (ctrl DalConnection) List(ctx context.Context, r *request.DalConnectionList
 
 	f.IncTotal = r.IncTotal
 
-	dalConnections, err = ctrl.collectConnections(ctx, f)
+	dalConnections, f, err = ctrl.collectConnections(ctx, f)
 	if err != nil {
 		return nil, err
 	}
@@ -208,14 +208,14 @@ func (ctrl DalConnection) federatedNodeToConnection(f *federationTypes.Node) *ty
 	}
 }
 
-func (ctrl DalConnection) collectConnections(ctx context.Context, f types.DalConnectionFilter) (out types.DalConnectionSet, err error) {
+func (ctrl DalConnection) collectConnections(ctx context.Context, filter types.DalConnectionFilter) (out types.DalConnectionSet, f types.DalConnectionFilter, err error) {
 	var (
 		dalConnections types.DalConnectionSet
 		federatedNodes federationTypes.NodeSet
 	)
 
-	if dalConnections, f, err = ctrl.svc.Search(ctx, f); err != nil {
-		return nil, err
+	if dalConnections, f, err = ctrl.svc.Search(ctx, filter); err != nil {
+		return nil, f, err
 	}
 
 	if !reflect2.IsNil(ctrl.federationSvc) {
@@ -223,7 +223,7 @@ func (ctrl DalConnection) collectConnections(ctx context.Context, f types.DalCon
 			// @todo IDs?
 			Deleted: f.Deleted,
 		}); err != nil {
-			return nil, err
+			return nil, f, err
 		}
 	}
 
@@ -233,8 +233,8 @@ func (ctrl DalConnection) collectConnections(ctx context.Context, f types.DalCon
 	// a unified output.
 	//
 	// Eventually federation nodes will become connections, so this is ok
-	for _, f := range federatedNodes {
-		out = append(out, ctrl.federatedNodeToConnection(f))
+	for _, nn := range federatedNodes {
+		out = append(out, ctrl.federatedNodeToConnection(nn))
 	}
 
 	out = ctrl.filterConnections(out, f)

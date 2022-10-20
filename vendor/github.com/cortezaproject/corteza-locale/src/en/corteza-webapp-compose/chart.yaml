@@ -41,7 +41,7 @@ edit:
   filter:
     customize: Customize filter
     label: Filters
-    noFilter: (no filter)
+    noFilter: Select a predefined filter or make a custom one
     recordsCreatedLastMonth: Records created last month
     recordsCreatedLastQuarter: Records created last quarter
     recordsCreatedLastYear: Records created last year

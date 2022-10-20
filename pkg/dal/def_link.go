@@ -33,7 +33,7 @@ type (
 		relRight PipelineStep
 
 		plan     linkPlan
-		analysis stepAnalysis
+		analysis map[string]OpAnalysis
 	}
 
 	// LinkPredicate determines the attributes the two datasets should get joined on
@@ -75,17 +75,21 @@ func (def *Link) Attributes() [][]AttributeMapping {
 }
 
 func (def *Link) Analyze(ctx context.Context) (err error) {
-	def.analysis = stepAnalysis{
-		scanCost:   costUnknown,
-		searchCost: costUnknown,
-		filterCost: costUnknown,
-		sortCost:   costUnknown,
-		outputSize: sizeUnknown,
+	// @todo proper analysis; for now we'll leave this as defaults
+	def.analysis = map[string]OpAnalysis{
+		OpAnalysisIterate: {
+			ScanCost:   CostUnknown,
+			SearchCost: CostUnknown,
+			FilterCost: CostUnknown,
+			SortCost:   CostUnknown,
+			OutputSize: SizeUnknown,
+		},
 	}
+
 	return
 }
 
-func (def *Link) Analysis() stepAnalysis {
+func (def *Link) Analysis() map[string]OpAnalysis {
 	return def.analysis
 }
 

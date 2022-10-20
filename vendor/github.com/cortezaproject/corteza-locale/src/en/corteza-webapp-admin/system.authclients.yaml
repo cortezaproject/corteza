@@ -27,9 +27,9 @@ editor:
     remove: Remove
     secret: Secret
     security:
-      forbiddenRoles:
+      prohibitedRoles:
         description: Roles from this list will be removed from security context when user authorizes this client
-        label: Forbidden roles
+        label: Prohibited roles
       forcedRoles:
         description: Roles from this list will be always added to security context when user authorizes this client
         label: Forced roles

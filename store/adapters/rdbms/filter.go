@@ -2,9 +2,10 @@ package rdbms
 
 import (
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/dal"
 
 	automationType "github.com/cortezaproject/corteza-server/automation/types"
 	composeType "github.com/cortezaproject/corteza-server/compose/types"
@@ -40,7 +41,7 @@ func DefaultFilters() (f *extendedFilters) {
 		}
 
 		if f.ToTimestamp != nil {
-			ee = append(ee, goqu.C("ts").Lte(f.FromTimestamp))
+			ee = append(ee, goqu.C("ts").Lte(f.ToTimestamp))
 		}
 
 		if f.Limit == 0 || f.Limit > MaxLimit {

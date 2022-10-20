@@ -62,12 +62,15 @@ workflow: {
 
 	filter: {
 		struct: {
+			workflow_id: { goType: "[]string", ident: "workflowID", storeIdent: "id" }
+			sub_workflow: { goType: "filter.State", storeIdent: "deleted_at" }
 			deleted: { goType: "filter.State", storeIdent: "deleted_at" }
 			disabled: { goType: "filter.State", storeIdent: "enabled" }
 		}
 
 		query: ["handle"]
-		byNilState: ["deleted"]
+		byValue: ["workflow_id"]
+		byNilState: ["deleted", "sub_workflow"]
 		byFalseState: ["disabled"]
 	}
 

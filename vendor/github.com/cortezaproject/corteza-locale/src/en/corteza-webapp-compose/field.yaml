@@ -127,7 +127,6 @@ kind:
       placeholder: Filter by user roles
   geometry:
     label: Geometry
-    openMap: Open map
     latitude: Latitude
     longitude: Longitude
     clickToPlaceMarker: Click to place a marker or click on a marker to remove it

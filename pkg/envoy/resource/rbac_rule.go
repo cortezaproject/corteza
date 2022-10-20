@@ -62,6 +62,15 @@ func NewRbacRule(res *rbac.Rule, refRole, refRes *Ref, refResource string, refPa
 	return r
 }
 
+func (r *RbacRule) WrapError(act string, err error) error {
+	return fmt.Errorf("%s %s %v: %s",
+		act,
+		r.ResourceType(),
+		fmt.Sprintf("{ role: %s, resource: %s, operation: %s, access: %s }", r.RefRole.Identifiers.First(), r.RefResource, r.Res.Operation, r.Res.Access),
+		err,
+	)
+}
+
 func (r *RbacRule) Resource() interface{} {
 	return r.Res
 }

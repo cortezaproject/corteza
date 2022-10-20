@@ -429,21 +429,24 @@ func (svc *service) Search(ctx context.Context, mf ModelRef, operations Operatio
 	return cw.connection.Search(ctx, model, f)
 }
 
-// datasource provides a way for the pipeline steps to access DAL's model iterators
-func (svc *service) datasource(ctx context.Context, mf ModelRef, f filter.Filter) (iter Iterator, mod *Model, err error) {
-	model, cw, err := svc.storeOpPrep(ctx, mf, nil)
-	if err != nil {
-		err = fmt.Errorf("cannot search data entry: %w", err)
-		return
-	}
-
-	iter, err = cw.connection.Search(ctx, model, f)
-	return iter, model, err
-}
-
 // Run returns an iterator based on the provided Pipeline
 // @todo consider moving the Search method to utilize this also
 func (svc *service) Run(ctx context.Context, pp Pipeline) (iter Iterator, err error) {
+	pp, err = svc.pipelinePrerun(ctx, pp)
+	if err != nil {
+		return
+	}
+
+	err = svc.analyzePipeline(ctx, pp)
+	if err != nil {
+		return
+	}
+
+	pp, err = svc.optimizePipeline(ctx, pp)
+	if err != nil {
+		return
+	}
+
 	return svc.run(ctx, pp.root(), false)
 }
 
@@ -452,6 +455,12 @@ func (svc *service) Run(ctx context.Context, pp Pipeline) (iter Iterator, err er
 //
 // The method is primarily used by system reports to obtain some metadata
 func (svc *service) Dryrun(ctx context.Context, pp Pipeline) (err error) {
+	// @note we don't need to do any optimization or analisis here
+	pp, err = svc.pipelinePrerun(ctx, pp)
+	if err != nil {
+		return
+	}
+
 	_, err = svc.run(ctx, pp.root(), true)
 	return
 }
@@ -460,7 +469,7 @@ func (svc *service) Dryrun(ctx context.Context, pp Pipeline) (err error) {
 func (svc *service) run(ctx context.Context, s PipelineStep, dry bool) (it Iterator, err error) {
 	switch s := s.(type) {
 	case *Datasource:
-		err = s.init(ctx, svc.datasource)
+		err = s.init(ctx)
 		if err != nil {
 			return
 		}
@@ -920,6 +929,9 @@ func (svc *service) ReplaceModelAttribute(ctx context.Context, model *Model, old
 // @note refs are primarily used for DAL pipelines where steps can reference models
 //       by handles and slugs such as module and namespace.
 func (svc *service) FindModelByRefs(connectionID uint64, refs map[string]any) *Model {
+	if connectionID == 0 {
+		connectionID = svc.defConnID
+	}
 	return svc.models[connectionID].FindByRefs(refs)
 }
 
@@ -943,6 +955,10 @@ func (svc *service) FindModelByRef(ref ModelRef) *Model {
 	connectionID := ref.ConnectionID
 	if connectionID == 0 {
 		connectionID = svc.defConnID
+	}
+
+	if ref.Refs != nil {
+		return svc.FindModelByRefs(connectionID, ref.Refs)
 	}
 
 	if ref.ResourceID > 0 {
@@ -1098,5 +1114,83 @@ func (svc *service) validateNewSensitivityLevels(levels *sensitivityLevelIndex) 
 	if err != nil {
 		return fmt.Errorf("cannot reload sensitivity levels: %v", err)
 	}
+	return
+}
+
+// pipelinePrerun performs the common operations for both the Run and Dryrun
+func (svc *service) pipelinePrerun(ctx context.Context, pp Pipeline) (_ Pipeline, err error) {
+	err = pp.LinkSteps()
+	if err != nil {
+		return
+	}
+	err = svc.bindDatasourceConnections(ctx, pp)
+	if err != nil {
+		return
+	}
+
+	return pp, nil
+}
+
+// optimizePipeline runs optimization over the given Pipeline
+func (svc *service) optimizePipeline(ctx context.Context, pp Pipeline) (_ Pipeline, err error) {
+	pp, err = svc.optimizePipelineStructure(ctx, pp)
+	if err != nil {
+		return
+	}
+
+	// @todo add step-based optimization such as filter pushdown; omitting for now
+	//       since we don't have any of it in place yet
+
+	return pp, nil
+}
+
+// optimizePipelineStructure performs general pipeline structure optimizations
+// such as restructuring and clobbering steps onto the datasource layer
+func (svc *service) optimizePipelineStructure(ctx context.Context, pp Pipeline) (_ Pipeline, err error) {
+	for _, o := range pipelineOptimizers {
+		pp, err = o(pp)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return pp, nil
+}
+
+// bindDatasourceConnections special handles datasource pipeline steps and binds
+// a DAL connection to them
+func (svc *service) bindDatasourceConnections(ctx context.Context, pp Pipeline) error {
+	for _, p := range pp {
+		ds, ok := p.(*Datasource)
+		if !ok {
+			continue
+		}
+
+		ds.model = svc.FindModelByRef(ds.ModelRef)
+		if ds.model == nil {
+			return fmt.Errorf("model %v does not exist", ds.ModelRef)
+		}
+
+		ds.connection = svc.GetConnectionByID(ds.model.ConnectionID)
+		if ds.connection == nil {
+			return fmt.Errorf("connection %d does not exist", ds.model.ConnectionID)
+		}
+	}
+
+	return nil
+}
+
+// analyzePipeline runs analysis over each step in the pipeline
+//
+// Step analysis hints to the optimizers as to how expensive specific operations
+// are and the general dataset size involved.
+func (svc *service) analyzePipeline(ctx context.Context, pp Pipeline) (err error) {
+	for _, p := range pp {
+		err = p.Analyze(ctx)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

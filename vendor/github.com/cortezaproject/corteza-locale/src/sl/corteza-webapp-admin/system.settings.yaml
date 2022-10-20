@@ -101,9 +101,9 @@ editor:
           ident-identifier: Name of the IdP field used for filling and matching Corteza user email
           ident-name: Name of the IdP field used for filling Corteza user full name
     security:
-      forbidden-roles:
+      prohibited-roles:
         description: Roles from this list will be removed from security context when authenticates with this provider
-        label: Forbidden roles
+        label: Prohibited roles
       forced-roles:
         description: Roles from this list will be always added to security context when authenticates with this provider
         label: Forced roles

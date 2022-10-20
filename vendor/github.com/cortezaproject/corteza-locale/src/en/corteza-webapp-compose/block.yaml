@@ -492,7 +492,7 @@ progress:
   module:
     select: Select module
     label: Module
-  preview: Preview
+  preview: Live example
   show:
     value: Show value
     relative: Show relative
