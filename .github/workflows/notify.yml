@@ -32,7 +32,7 @@ jobs:
         channel: ${{ secrets.MATRIX_ROOM_ID }}
         message: |
           ### [ ${{ github.event.repository.name }} ]
-          An issue has been **${{ github.event.action }}** by ${{ github.event.issue.user.login }}\
+          An issue has been **${{ github.event.action }}** by ${{ github.triggering_actor }}\
           More info [here](${{ github.event.issue.html_url }})
 
     # only for comments
@@ -46,7 +46,7 @@ jobs:
         channel: ${{ secrets.MATRIX_ROOM_ID }}
         message: |
           ### [ ${{ github.event.repository.name }} ]
-          An issue comment has been **${{ github.event.action }}** by ${{ github.event.issue.user.login }}\
+          An issue comment has been **${{ github.event.action }}** by ${{ github.triggering_actor }}\
           More info [here](${{ github.event.issue.html_url }})
 
     # only for releases
