@@ -94,7 +94,7 @@ func TestApigwRouteRead_forbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("apigwRoute.errors.notAllowedToRead")).
+		Assert(helpers.AssertError("apigw-route.errors.notAllowedToRead")).
 		End()
 }
 
@@ -157,7 +157,7 @@ func TestApigwRouteSearch_forbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("apigwRoute.errors.notAllowedToSearch")).
+		Assert(helpers.AssertError("apigw-route.errors.notAllowedToSearch")).
 		End()
 }
 
@@ -218,7 +218,7 @@ func TestApigwRouteCreate_forbidden(t *testing.T) {
 		FormData("group", "g1").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("apigwRoute.errors.notAllowedToCreate")).
+		Assert(helpers.AssertError("apigw-route.errors.notAllowedToCreate")).
 		End()
 }
 
@@ -257,7 +257,7 @@ func TestApigwRouteUpdate_forbidden(t *testing.T) {
 		FormData("enabled", "false").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("apigwRoute.errors.notAllowedToUpdate")).
+		Assert(helpers.AssertError("apigw-route.errors.notAllowedToUpdate")).
 		End()
 }
 
@@ -289,7 +289,7 @@ func TestApigwRouteDelete_forbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("apigwRoute.errors.notAllowedToDelete")).
+		Assert(helpers.AssertError("apigw-route.errors.notAllowedToDelete")).
 		End()
 }
 
@@ -321,7 +321,7 @@ func TestApigwRouteUnDelete_forbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("apigwRoute.errors.notAllowedToUndelete")).
+		Assert(helpers.AssertError("apigw-route.errors.notAllowedToUndelete")).
 		End()
 }
 
@@ -357,7 +357,7 @@ func TestApigwFilterRead_forbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("apigwRoute.errors.notAllowedToRead")).
+		Assert(helpers.AssertError("apigw-route.errors.notAllowedToRead")).
 		End()
 }
 
@@ -418,7 +418,7 @@ func TestApigwFilterSearch_forbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("apigwRoute.errors.notAllowedToRead")).
+		Assert(helpers.AssertError("apigw-route.errors.notAllowedToRead")).
 		End()
 }
 
@@ -499,7 +499,7 @@ func TestApigwFilterCreate_forbidden(t *testing.T) {
 		FormData("routeID", strconv.FormatUint(r.ID, 10)).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("apigwRoute.errors.notAllowedToUpdate")).
+		Assert(helpers.AssertError("apigw-route.errors.notAllowedToUpdate")).
 		End()
 }
 
@@ -580,7 +580,7 @@ func TestApigwFilterUpdate_forbidden(t *testing.T) {
 		FormData("routeID", strconv.FormatUint(r.ID, 10)).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("apigwRoute.errors.notAllowedToUpdate")).
+		Assert(helpers.AssertError("apigw-route.errors.notAllowedToUpdate")).
 		End()
 }
 
@@ -612,7 +612,7 @@ func TestApigwFilterDelete_forbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("apigwRoute.errors.notAllowedToDelete")).
+		Assert(helpers.AssertError("apigw-route.errors.notAllowedToDelete")).
 		End()
 }
 
@@ -645,6 +645,6 @@ func TestApigwFilterUnDelete_forbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("apigwRoute.errors.notAllowedToUndelete")).
+		Assert(helpers.AssertError("apigw-route.errors.notAllowedToUndelete")).
 		End()
 }

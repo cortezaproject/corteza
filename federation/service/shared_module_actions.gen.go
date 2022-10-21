@@ -386,7 +386,7 @@ func SharedModuleErrGeneric(mm ...*sharedModuleActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "sharedModule.errors.generic"),
+		errors.Meta(locale.ErrorMetaKey{}, "shared-module.errors.generic"),
 
 		errors.StackSkip(1),
 	)
@@ -420,7 +420,7 @@ func SharedModuleErrNotFound(mm ...*sharedModuleActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "sharedModule.errors.notFound"),
+		errors.Meta(locale.ErrorMetaKey{}, "shared-module.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -454,7 +454,7 @@ func SharedModuleErrInvalidID(mm ...*sharedModuleActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "sharedModule.errors.invalidID"),
+		errors.Meta(locale.ErrorMetaKey{}, "shared-module.errors.invalidID"),
 
 		errors.StackSkip(1),
 	)
@@ -488,7 +488,7 @@ func SharedModuleErrStaleData(mm ...*sharedModuleActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "sharedModule.errors.staleData"),
+		errors.Meta(locale.ErrorMetaKey{}, "shared-module.errors.staleData"),
 
 		errors.StackSkip(1),
 	)
@@ -524,7 +524,7 @@ func SharedModuleErrFederationSyncStructureChanged(mm ...*sharedModuleActionProp
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "sharedModule.errors.federationSyncStructureChanged"),
+		errors.Meta(locale.ErrorMetaKey{}, "shared-module.errors.federationSyncStructureChanged"),
 
 		errors.StackSkip(1),
 	)
@@ -560,7 +560,7 @@ func SharedModuleErrNotUnique(mm ...*sharedModuleActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "sharedModule.errors.notUnique"),
+		errors.Meta(locale.ErrorMetaKey{}, "shared-module.errors.notUnique"),
 
 		errors.StackSkip(1),
 	)
@@ -594,7 +594,7 @@ func SharedModuleErrNodeNotFound(mm ...*sharedModuleActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "sharedModule.errors.nodeNotFound"),
+		errors.Meta(locale.ErrorMetaKey{}, "shared-module.errors.nodeNotFound"),
 
 		errors.StackSkip(1),
 	)
@@ -630,7 +630,7 @@ func SharedModuleErrNotAllowedToCreate(mm ...*sharedModuleActionProps) *errors.E
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "sharedModule.errors.notAllowedToCreate"),
+		errors.Meta(locale.ErrorMetaKey{}, "shared-module.errors.notAllowedToCreate"),
 
 		errors.StackSkip(1),
 	)
@@ -666,7 +666,7 @@ func SharedModuleErrNotAllowedToManage(mm ...*sharedModuleActionProps) *errors.E
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "sharedModule.errors.notAllowedToManage"),
+		errors.Meta(locale.ErrorMetaKey{}, "shared-module.errors.notAllowedToManage"),
 
 		errors.StackSkip(1),
 	)
@@ -702,7 +702,7 @@ func SharedModuleErrNotAllowedToMap(mm ...*sharedModuleActionProps) *errors.Erro
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "sharedModule.errors.notAllowedToMap"),
+		errors.Meta(locale.ErrorMetaKey{}, "shared-module.errors.notAllowedToMap"),
 
 		errors.StackSkip(1),
 	)

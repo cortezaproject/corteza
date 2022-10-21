@@ -254,7 +254,7 @@ func {{ camelCase "" $.Service "Err" $e.Error }}(mm ... *{{ $.Service }}ActionPr
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, {{ printf "%q" $.Component }}),
-		errors.Meta(locale.ErrorMetaKey{}, "{{ $.Service }}.errors.{{ $e.Error }}"),
+		errors.Meta(locale.ErrorMetaKey{}, "{{ kebabCase $.Service }}.errors.{{ $e.Error }}"),
 
 		errors.StackSkip(1),
 	)

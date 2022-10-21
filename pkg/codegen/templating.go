@@ -81,6 +81,22 @@ func camelCase(pp ...string) (out string) {
 	return out
 }
 
+func kebabCase(pp string) (out string) {
+	var buf bytes.Buffer
+	for _, p := range pp {
+		if 'A' <= p && p <= 'Z' {
+			// just convert [A-Z] to _[a-z]
+			if buf.Len() > 0 {
+				buf.WriteRune('-')
+			}
+			buf.WriteRune(p - 'A' + 'a')
+		} else {
+			buf.WriteRune(p)
+		}
+	}
+	return buf.String()
+}
+
 // PubIdent returns published identifier by uppercasing
 // input, cammelcasing it and removing ident unfriendly characters
 var nonIdentChars = regexp.MustCompile(`[\s\\/]+`)

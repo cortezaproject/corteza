@@ -382,7 +382,7 @@ func DalSensitivityLevelErrGeneric(mm ...*dalSensitivityLevelActionProps) *error
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dalSensitivityLevel.errors.generic"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-sensitivity-level.errors.generic"),
 
 		errors.StackSkip(1),
 	)
@@ -416,7 +416,7 @@ func DalSensitivityLevelErrNotFound(mm ...*dalSensitivityLevelActionProps) *erro
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dalSensitivityLevel.errors.notFound"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-sensitivity-level.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -450,7 +450,7 @@ func DalSensitivityLevelErrInvalidID(mm ...*dalSensitivityLevelActionProps) *err
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dalSensitivityLevel.errors.invalidID"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-sensitivity-level.errors.invalidID"),
 
 		errors.StackSkip(1),
 	)
@@ -484,7 +484,7 @@ func DalSensitivityLevelErrInvalidEndpoint(mm ...*dalSensitivityLevelActionProps
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dalSensitivityLevel.errors.invalidEndpoint"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-sensitivity-level.errors.invalidEndpoint"),
 
 		errors.StackSkip(1),
 	)
@@ -518,7 +518,7 @@ func DalSensitivityLevelErrExistsEndpoint(mm ...*dalSensitivityLevelActionProps)
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dalSensitivityLevel.errors.existsEndpoint"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-sensitivity-level.errors.existsEndpoint"),
 
 		errors.StackSkip(1),
 	)
@@ -552,7 +552,7 @@ func DalSensitivityLevelErrAlreadyExists(mm ...*dalSensitivityLevelActionProps) 
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dalSensitivityLevel.errors.alreadyExists"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-sensitivity-level.errors.alreadyExists"),
 
 		errors.StackSkip(1),
 	)
@@ -588,7 +588,7 @@ func DalSensitivityLevelErrNotAllowedToManage(mm ...*dalSensitivityLevelActionPr
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dalSensitivityLevel.errors.notAllowedToManage"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-sensitivity-level.errors.notAllowedToManage"),
 
 		errors.StackSkip(1),
 	)

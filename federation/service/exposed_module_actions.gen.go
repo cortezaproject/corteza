@@ -476,7 +476,7 @@ func ExposedModuleErrGeneric(mm ...*exposedModuleActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "exposedModule.errors.generic"),
+		errors.Meta(locale.ErrorMetaKey{}, "exposed-module.errors.generic"),
 
 		errors.StackSkip(1),
 	)
@@ -510,7 +510,7 @@ func ExposedModuleErrNotFound(mm ...*exposedModuleActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "exposedModule.errors.notFound"),
+		errors.Meta(locale.ErrorMetaKey{}, "exposed-module.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -544,7 +544,7 @@ func ExposedModuleErrInvalidID(mm ...*exposedModuleActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "exposedModule.errors.invalidID"),
+		errors.Meta(locale.ErrorMetaKey{}, "exposed-module.errors.invalidID"),
 
 		errors.StackSkip(1),
 	)
@@ -578,7 +578,7 @@ func ExposedModuleErrStaleData(mm ...*exposedModuleActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "exposedModule.errors.staleData"),
+		errors.Meta(locale.ErrorMetaKey{}, "exposed-module.errors.staleData"),
 
 		errors.StackSkip(1),
 	)
@@ -614,7 +614,7 @@ func ExposedModuleErrNotUnique(mm ...*exposedModuleActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "exposedModule.errors.notUnique"),
+		errors.Meta(locale.ErrorMetaKey{}, "exposed-module.errors.notUnique"),
 
 		errors.StackSkip(1),
 	)
@@ -648,7 +648,7 @@ func ExposedModuleErrNodeNotFound(mm ...*exposedModuleActionProps) *errors.Error
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "exposedModule.errors.nodeNotFound"),
+		errors.Meta(locale.ErrorMetaKey{}, "exposed-module.errors.nodeNotFound"),
 
 		errors.StackSkip(1),
 	)
@@ -682,7 +682,7 @@ func ExposedModuleErrComposeModuleNotFound(mm ...*exposedModuleActionProps) *err
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "exposedModule.errors.composeModuleNotFound"),
+		errors.Meta(locale.ErrorMetaKey{}, "exposed-module.errors.composeModuleNotFound"),
 
 		errors.StackSkip(1),
 	)
@@ -716,7 +716,7 @@ func ExposedModuleErrComposeNamespaceNotFound(mm ...*exposedModuleActionProps) *
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "exposedModule.errors.composeNamespaceNotFound"),
+		errors.Meta(locale.ErrorMetaKey{}, "exposed-module.errors.composeNamespaceNotFound"),
 
 		errors.StackSkip(1),
 	)
@@ -750,7 +750,7 @@ func ExposedModuleErrRequestParametersInvalid(mm ...*exposedModuleActionProps) *
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "exposedModule.errors.requestParametersInvalid"),
+		errors.Meta(locale.ErrorMetaKey{}, "exposed-module.errors.requestParametersInvalid"),
 
 		errors.StackSkip(1),
 	)
@@ -786,7 +786,7 @@ func ExposedModuleErrNotAllowedToCreate(mm ...*exposedModuleActionProps) *errors
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "exposedModule.errors.notAllowedToCreate"),
+		errors.Meta(locale.ErrorMetaKey{}, "exposed-module.errors.notAllowedToCreate"),
 
 		errors.StackSkip(1),
 	)
@@ -822,7 +822,7 @@ func ExposedModuleErrNotAllowedToManage(mm ...*exposedModuleActionProps) *errors
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "exposedModule.errors.notAllowedToManage"),
+		errors.Meta(locale.ErrorMetaKey{}, "exposed-module.errors.notAllowedToManage"),
 
 		errors.StackSkip(1),
 	)

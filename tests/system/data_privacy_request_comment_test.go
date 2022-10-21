@@ -97,6 +97,6 @@ func TestDataPrivacyRequestCreateCommentForbidden(t *testing.T) {
 		FormData("comment", comment).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("dataPrivacy.errors.notFound")).
+		Assert(helpers.AssertError("data-privacy.errors.notFound")).
 		End()
 }

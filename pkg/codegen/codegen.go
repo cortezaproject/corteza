@@ -66,6 +66,7 @@ func Proc() {
 		tplBase = template.New("").
 			Funcs(map[string]interface{}{
 				"camelCase":       camelCase,
+				"kebabCase":       kebabCase,
 				"export":          export,
 				"unexport":        unexport,
 				"removePtr":       removePtr,

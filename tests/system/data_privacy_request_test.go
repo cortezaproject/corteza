@@ -236,6 +236,6 @@ func TestDataPrivacyRequestUpdateStatusForbidden(t *testing.T) {
 		JSON(helpers.JSON(req)).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("dataPrivacy.errors.notAllowedToApprove")).
+		Assert(helpers.AssertError("data-privacy.errors.notAllowedToApprove")).
 		End()
 }

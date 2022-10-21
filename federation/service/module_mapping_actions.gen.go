@@ -372,7 +372,7 @@ func ModuleMappingErrGeneric(mm ...*moduleMappingActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "moduleMapping.errors.generic"),
+		errors.Meta(locale.ErrorMetaKey{}, "module-mapping.errors.generic"),
 
 		errors.StackSkip(1),
 	)
@@ -406,7 +406,7 @@ func ModuleMappingErrNotFound(mm ...*moduleMappingActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "moduleMapping.errors.notFound"),
+		errors.Meta(locale.ErrorMetaKey{}, "module-mapping.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -440,7 +440,7 @@ func ModuleMappingErrComposeModuleNotFound(mm ...*moduleMappingActionProps) *err
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "moduleMapping.errors.composeModuleNotFound"),
+		errors.Meta(locale.ErrorMetaKey{}, "module-mapping.errors.composeModuleNotFound"),
 
 		errors.StackSkip(1),
 	)
@@ -474,7 +474,7 @@ func ModuleMappingErrComposeNamespaceNotFound(mm ...*moduleMappingActionProps) *
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "moduleMapping.errors.composeNamespaceNotFound"),
+		errors.Meta(locale.ErrorMetaKey{}, "module-mapping.errors.composeNamespaceNotFound"),
 
 		errors.StackSkip(1),
 	)
@@ -508,7 +508,7 @@ func ModuleMappingErrFederationModuleNotFound(mm ...*moduleMappingActionProps) *
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "moduleMapping.errors.federationModuleNotFound"),
+		errors.Meta(locale.ErrorMetaKey{}, "module-mapping.errors.federationModuleNotFound"),
 
 		errors.StackSkip(1),
 	)
@@ -542,7 +542,7 @@ func ModuleMappingErrNodeNotFound(mm ...*moduleMappingActionProps) *errors.Error
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "moduleMapping.errors.nodeNotFound"),
+		errors.Meta(locale.ErrorMetaKey{}, "module-mapping.errors.nodeNotFound"),
 
 		errors.StackSkip(1),
 	)
@@ -576,7 +576,7 @@ func ModuleMappingErrModuleMappingExists(mm ...*moduleMappingActionProps) *error
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "moduleMapping.errors.moduleMappingExists"),
+		errors.Meta(locale.ErrorMetaKey{}, "module-mapping.errors.moduleMappingExists"),
 
 		errors.StackSkip(1),
 	)
@@ -612,7 +612,7 @@ func ModuleMappingErrNotAllowedToMap(mm ...*moduleMappingActionProps) *errors.Er
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "moduleMapping.errors.notAllowedToMap"),
+		errors.Meta(locale.ErrorMetaKey{}, "module-mapping.errors.notAllowedToMap"),
 
 		errors.StackSkip(1),
 	)

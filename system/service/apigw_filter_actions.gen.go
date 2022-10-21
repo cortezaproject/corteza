@@ -322,7 +322,7 @@ func ApigwFilterErrGeneric(mm ...*apigwFilterActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "apigwFilter.errors.generic"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigw-filter.errors.generic"),
 
 		errors.StackSkip(1),
 	)
@@ -356,7 +356,7 @@ func ApigwFilterErrNotFound(mm ...*apigwFilterActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "apigwFilter.errors.notFound"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigw-filter.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -390,7 +390,7 @@ func ApigwFilterErrInvalidID(mm ...*apigwFilterActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "apigwFilter.errors.invalidID"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigw-filter.errors.invalidID"),
 
 		errors.StackSkip(1),
 	)
@@ -424,7 +424,7 @@ func ApigwFilterErrInvalidRoute(mm ...*apigwFilterActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "apigwFilter.errors.invalidRoute"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigw-filter.errors.invalidRoute"),
 
 		errors.StackSkip(1),
 	)
@@ -460,7 +460,7 @@ func ApigwFilterErrAsyncRouteTooManyProcessers(mm ...*apigwFilterActionProps) *e
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "apigwFilter.errors.asyncRouteTooManyProcessers"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigw-filter.errors.asyncRouteTooManyProcessers"),
 
 		errors.StackSkip(1),
 	)
@@ -496,7 +496,7 @@ func ApigwFilterErrAsyncRouteTooManyAfterFilters(mm ...*apigwFilterActionProps) 
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "apigwFilter.errors.asyncRouteTooManyAfterFilters"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigw-filter.errors.asyncRouteTooManyAfterFilters"),
 
 		errors.StackSkip(1),
 	)

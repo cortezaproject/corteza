@@ -107,7 +107,7 @@ func Test_dal_connection_list_forbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("dalConnection.errors.notAllowedToSearch")).
+		Assert(helpers.AssertError("dal-connection.errors.notAllowedToSearch")).
 		End()
 }
 
@@ -172,7 +172,7 @@ func Test_dal_connection_create_forbidden(t *testing.T) {
 		Header("Content-Type", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("dalConnection.errors.notAllowedToCreate")).
+		Assert(helpers.AssertError("dal-connection.errors.notAllowedToCreate")).
 		End()
 }
 
@@ -241,7 +241,7 @@ func Test_dal_connection_update_forbidden(t *testing.T) {
 		Body(loadScenarioRequest(t, "generic.json")).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("dalConnection.errors.notAllowedToUpdate")).
+		Assert(helpers.AssertError("dal-connection.errors.notAllowedToUpdate")).
 		End()
 }
 
@@ -278,7 +278,7 @@ func Test_dal_connection_read_forbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("dalConnection.errors.notAllowedToRead")).
+		Assert(helpers.AssertError("dal-connection.errors.notAllowedToRead")).
 		End()
 }
 
@@ -315,7 +315,7 @@ func Test_dal_connection_delete_forbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("dalConnection.errors.notAllowedToDelete")).
+		Assert(helpers.AssertError("dal-connection.errors.notAllowedToDelete")).
 		End()
 }
 
@@ -356,6 +356,6 @@ func Test_dal_connection_undelete_forbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("dalConnection.errors.notAllowedToUndelete")).
+		Assert(helpers.AssertError("dal-connection.errors.notAllowedToUndelete")).
 		End()
 }

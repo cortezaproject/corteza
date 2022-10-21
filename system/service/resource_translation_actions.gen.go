@@ -422,7 +422,7 @@ func ResourceTranslationErrGeneric(mm ...*resourceTranslationActionProps) *error
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "resourceTranslation.errors.generic"),
+		errors.Meta(locale.ErrorMetaKey{}, "resource-translation.errors.generic"),
 
 		errors.StackSkip(1),
 	)
@@ -456,7 +456,7 @@ func ResourceTranslationErrNotFound(mm ...*resourceTranslationActionProps) *erro
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "resourceTranslation.errors.notFound"),
+		errors.Meta(locale.ErrorMetaKey{}, "resource-translation.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -490,7 +490,7 @@ func ResourceTranslationErrInvalidID(mm ...*resourceTranslationActionProps) *err
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "resourceTranslation.errors.invalidID"),
+		errors.Meta(locale.ErrorMetaKey{}, "resource-translation.errors.invalidID"),
 
 		errors.StackSkip(1),
 	)
@@ -526,7 +526,7 @@ func ResourceTranslationErrNotAllowedToRead(mm ...*resourceTranslationActionProp
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "resourceTranslation.errors.notAllowedToRead"),
+		errors.Meta(locale.ErrorMetaKey{}, "resource-translation.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)
@@ -562,7 +562,7 @@ func ResourceTranslationErrNotAllowedToSearch(mm ...*resourceTranslationActionPr
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "resourceTranslation.errors.notAllowedToSearch"),
+		errors.Meta(locale.ErrorMetaKey{}, "resource-translation.errors.notAllowedToSearch"),
 
 		errors.StackSkip(1),
 	)
@@ -598,7 +598,7 @@ func ResourceTranslationErrNotAllowedToManage(mm ...*resourceTranslationActionPr
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "resourceTranslation.errors.notAllowedToManage"),
+		errors.Meta(locale.ErrorMetaKey{}, "resource-translation.errors.notAllowedToManage"),
 
 		errors.StackSkip(1),
 	)

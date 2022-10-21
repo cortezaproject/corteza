@@ -205,7 +205,7 @@ func AccessControlErrGeneric(mm ...*accessControlActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
-		errors.Meta(locale.ErrorMetaKey{}, "accessControl.errors.generic"),
+		errors.Meta(locale.ErrorMetaKey{}, "access-control.errors.generic"),
 
 		errors.StackSkip(1),
 	)
@@ -239,7 +239,7 @@ func AccessControlErrNotAllowedToSetPermissions(mm ...*accessControlActionProps)
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
-		errors.Meta(locale.ErrorMetaKey{}, "accessControl.errors.notAllowedToSetPermissions"),
+		errors.Meta(locale.ErrorMetaKey{}, "access-control.errors.notAllowedToSetPermissions"),
 
 		errors.StackSkip(1),
 	)

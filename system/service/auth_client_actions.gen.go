@@ -432,7 +432,7 @@ func AuthClientErrGeneric(mm ...*authClientActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.generic"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth-client.errors.generic"),
 
 		errors.StackSkip(1),
 	)
@@ -466,7 +466,7 @@ func AuthClientErrNotFound(mm ...*authClientActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.notFound"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth-client.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -500,7 +500,7 @@ func AuthClientErrInvalidID(mm ...*authClientActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.invalidID"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth-client.errors.invalidID"),
 
 		errors.StackSkip(1),
 	)
@@ -534,7 +534,7 @@ func AuthClientErrUnknownGrantType(mm ...*authClientActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.unknownGrantType"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth-client.errors.unknownGrantType"),
 
 		errors.StackSkip(1),
 	)
@@ -568,7 +568,7 @@ func AuthClientErrUnknownScope(mm ...*authClientActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.unknownScope"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth-client.errors.unknownScope"),
 
 		errors.StackSkip(1),
 	)
@@ -604,7 +604,7 @@ func AuthClientErrUnableToChangeDefaultClientHandle(mm ...*authClientActionProps
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.unableToChangeDefaultClientHandle"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth-client.errors.unableToChangeDefaultClientHandle"),
 
 		errors.StackSkip(1),
 	)
@@ -640,7 +640,7 @@ func AuthClientErrUnableToDisableDefaultClient(mm ...*authClientActionProps) *er
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.unableToDisableDefaultClient"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth-client.errors.unableToDisableDefaultClient"),
 
 		errors.StackSkip(1),
 	)
@@ -676,7 +676,7 @@ func AuthClientErrUnableToDeleteDefaultClient(mm ...*authClientActionProps) *err
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.unableToDeleteDefaultClient"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth-client.errors.unableToDeleteDefaultClient"),
 
 		errors.StackSkip(1),
 	)
@@ -712,7 +712,7 @@ func AuthClientErrNotAllowedToRead(mm ...*authClientActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.notAllowedToRead"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth-client.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)
@@ -748,7 +748,7 @@ func AuthClientErrNotAllowedToSearch(mm ...*authClientActionProps) *errors.Error
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.notAllowedToSearch"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth-client.errors.notAllowedToSearch"),
 
 		errors.StackSkip(1),
 	)
@@ -784,7 +784,7 @@ func AuthClientErrNotAllowedToCreate(mm ...*authClientActionProps) *errors.Error
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.notAllowedToCreate"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth-client.errors.notAllowedToCreate"),
 
 		errors.StackSkip(1),
 	)
@@ -820,7 +820,7 @@ func AuthClientErrNotAllowedToUpdate(mm ...*authClientActionProps) *errors.Error
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.notAllowedToUpdate"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth-client.errors.notAllowedToUpdate"),
 
 		errors.StackSkip(1),
 	)
@@ -856,7 +856,7 @@ func AuthClientErrNotAllowedToDelete(mm ...*authClientActionProps) *errors.Error
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.notAllowedToDelete"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth-client.errors.notAllowedToDelete"),
 
 		errors.StackSkip(1),
 	)
@@ -892,7 +892,7 @@ func AuthClientErrNotAllowedToUndelete(mm ...*authClientActionProps) *errors.Err
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.notAllowedToUndelete"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth-client.errors.notAllowedToUndelete"),
 
 		errors.StackSkip(1),
 	)
