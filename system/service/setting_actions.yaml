@@ -35,6 +35,14 @@ errors:
     message: "password constraint minimum length should be at least 8 characters"
     severity: warning
 
+  - error: invalidPasswordMinUpperCase
+    message: "password constraint minimum upper case count should not be a negative number"
+    severity: warning
+
+  - error: invalidPasswordMinLowerCase
+    message: "password constraint minimum lower case count should not be a negative number"
+    severity: warning
+
   - error: invalidPasswordMinNumCount
     message: "password constraint minimum number count should not be a negative number"
     severity: warning

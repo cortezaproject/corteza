@@ -316,6 +316,74 @@ func SettingsErrInvalidPasswordMinLength(mm ...*settingsActionProps) *errors.Err
 	return e
 }
 
+// SettingsErrInvalidPasswordMinUpperCase returns "system:setting.invalidPasswordMinUpperCase" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func SettingsErrInvalidPasswordMinUpperCase(mm ...*settingsActionProps) *errors.Error {
+	var p = &settingsActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("password constraint minimum upper case count should not be a negative number", nil),
+
+		errors.Meta("type", "invalidPasswordMinUpperCase"),
+		errors.Meta("resource", "system:setting"),
+
+		errors.Meta(settingsPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "settings.errors.invalidPasswordMinUpperCase"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// SettingsErrInvalidPasswordMinLowerCase returns "system:setting.invalidPasswordMinLowerCase" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func SettingsErrInvalidPasswordMinLowerCase(mm ...*settingsActionProps) *errors.Error {
+	var p = &settingsActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("password constraint minimum lower case count should not be a negative number", nil),
+
+		errors.Meta("type", "invalidPasswordMinLowerCase"),
+		errors.Meta("resource", "system:setting"),
+
+		errors.Meta(settingsPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "settings.errors.invalidPasswordMinLowerCase"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // SettingsErrInvalidPasswordMinNumCount returns "system:setting.invalidPasswordMinNumCount" as *errors.Error
 //
 //

@@ -93,7 +93,17 @@ func TestSettingsUpdate_validation(t *testing.T) {
 	helpers.AllowMe(h, types.ComponentRbacResource(), "settings.manage")
 	helpers.AllowMe(h, types.ComponentRbacResource(), "settings.read")
 
-	// Password constraints: The min password length should be 8
+	// Password constraints: The min password length should be 8 or more
+	h.apiInit().
+		Patch("/settings/").
+		Header("Accept", "application/json").
+		JSON(`{"values":[{"name":"auth.internal.password-constraints.min-length","value": 8}]}`).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	// Password constraints: The min password length should be not be less than 8
 	h.apiInit().
 		Patch("/settings/").
 		Header("Accept", "application/json").
@@ -101,6 +111,46 @@ func TestSettingsUpdate_validation(t *testing.T) {
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("settings.errors.invalidPasswordMinLength")).
+		End()
+
+	// Password constraints: The min upper case count
+	h.apiInit().
+		Patch("/settings/").
+		Header("Accept", "application/json").
+		JSON(`{"values":[{"name":"auth.internal.password-constraints.min-upper-case","value": 2}]}`).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	// Password constraints: The min upper case count should not be a negative number
+	h.apiInit().
+		Patch("/settings/").
+		Header("Accept", "application/json").
+		JSON(`{"values":[{"name":"auth.internal.password-constraints.min-upper-case","value":-1}]}`).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("settings.errors.invalidPasswordMinUpperCase")).
+		End()
+
+	// Password constraints: The min upper case count should not be a negative number string
+	h.apiInit().
+		Patch("/settings/").
+		Header("Accept", "application/json").
+		JSON(`{"values":[{"name":"auth.internal.password-constraints.min-upper-case","value":"-1"}]}`).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("settings.errors.invalidPasswordMinUpperCase")).
+		End()
+
+	// Password constraints: The min lower case count should not be a negative number
+	h.apiInit().
+		Patch("/settings/").
+		Header("Accept", "application/json").
+		JSON(`{"values":[{"name":"auth.internal.password-constraints.min-lower-case","value":"-1"}]}`).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("settings.errors.invalidPasswordMinLowerCase")).
 		End()
 
 	// Password constraints: The min number of numeric characters should not be a negative number
