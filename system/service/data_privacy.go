@@ -61,12 +61,7 @@ func (svc dataPrivacy) FindConnections(ctx context.Context, filter types.DalConn
 		cc types.DalConnectionSet
 	)
 	err = func() error {
-		if !svc.ac.CanSearchDalConnections(ctx) {
-			return DalConnectionErrNotAllowedToSearch()
-		}
-
-		cc, f, err = svc.dalConn.Search(ctx, filter)
-		if err != nil {
+		if cc, f, err = store.SearchDalConnections(ctx, svc.store, filter); err != nil {
 			return err
 		}
 
