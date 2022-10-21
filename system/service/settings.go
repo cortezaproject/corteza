@@ -288,37 +288,46 @@ func (svc *settings) Delete(ctx context.Context, name string, ownedBy uint64) er
 func check(vv ...*types.SettingValue) (ok bool, err error) {
 	set := append(types.SettingValueSet{}, vv...)
 	err = set.Walk(func(val *types.SettingValue) error {
+		if val == nil || val.Value == nil {
+			return err
+		}
+
+		vs := val.String()
+		if len(vs) == 0 && len(val.Value.String()) > 0 {
+			vs = val.Value.String()
+		}
+
 		// Password constraints: The min password length should be 8
 		if val.Name == "auth.internal.password-constraints.min-length" {
-			if cast.ToUint64(val.String()) < passwordMinLength {
+			if cast.ToInt(vs) < passwordMinLength {
 				return SettingsErrInvalidPasswordMinLength()
 			}
 		}
 
 		// Password constraints: The min upper case count should not be a negative number
 		if val.Name == "auth.internal.password-constraints.min-upper-case" {
-			if cast.ToInt(val.String()) < 0 {
+			if cast.ToInt(vs) < 0 {
 				return SettingsErrInvalidPasswordMinUpperCase()
 			}
 		}
 
 		// Password constraints: The min lower case count should not be a negative number
 		if val.Name == "auth.internal.password-constraints.min-lower-case" {
-			if cast.ToInt(val.String()) < 0 {
+			if cast.ToInt(vs) < 0 {
 				return SettingsErrInvalidPasswordMinLowerCase()
 			}
 		}
 
 		// Password constraints: The min number of numeric characters should not be a negative number
 		if val.Name == "auth.internal.password-constraints.min-num-count" {
-			if cast.ToInt(val.String()) < 0 {
+			if cast.ToInt(vs) < 0 {
 				return SettingsErrInvalidPasswordMinNumCount()
 			}
 		}
 
 		// Password constraints: The min number of special characters should not be a negative number
 		if val.Name == "auth.internal.password-constraints.min-special-count" {
-			if cast.ToInt(val.String()) < 0 {
+			if cast.ToInt(vs) < 0 {
 				return SettingsErrInvalidPasswordMinSpecialCharCount()
 			}
 		}
