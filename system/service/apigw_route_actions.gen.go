@@ -382,7 +382,7 @@ func ApigwRouteErrGeneric(mm ...*apigwRouteActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.generic"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigw-route.errors.generic"),
 
 		errors.StackSkip(1),
 	)
@@ -416,7 +416,7 @@ func ApigwRouteErrNotFound(mm ...*apigwRouteActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.notFound"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigw-route.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -450,7 +450,7 @@ func ApigwRouteErrInvalidID(mm ...*apigwRouteActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.invalidID"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigw-route.errors.invalidID"),
 
 		errors.StackSkip(1),
 	)
@@ -484,7 +484,7 @@ func ApigwRouteErrInvalidEndpoint(mm ...*apigwRouteActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.invalidEndpoint"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigw-route.errors.invalidEndpoint"),
 
 		errors.StackSkip(1),
 	)
@@ -518,7 +518,7 @@ func ApigwRouteErrExistsEndpoint(mm ...*apigwRouteActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.existsEndpoint"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigw-route.errors.existsEndpoint"),
 
 		errors.StackSkip(1),
 	)
@@ -552,7 +552,7 @@ func ApigwRouteErrAlreadyExists(mm ...*apigwRouteActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.alreadyExists"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigw-route.errors.alreadyExists"),
 
 		errors.StackSkip(1),
 	)
@@ -588,7 +588,7 @@ func ApigwRouteErrNotAllowedToCreate(mm ...*apigwRouteActionProps) *errors.Error
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.notAllowedToCreate"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigw-route.errors.notAllowedToCreate"),
 
 		errors.StackSkip(1),
 	)
@@ -624,7 +624,7 @@ func ApigwRouteErrNotAllowedToRead(mm ...*apigwRouteActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.notAllowedToRead"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigw-route.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)
@@ -660,7 +660,7 @@ func ApigwRouteErrNotAllowedToSearch(mm ...*apigwRouteActionProps) *errors.Error
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.notAllowedToSearch"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigw-route.errors.notAllowedToSearch"),
 
 		errors.StackSkip(1),
 	)
@@ -696,7 +696,7 @@ func ApigwRouteErrNotAllowedToUpdate(mm ...*apigwRouteActionProps) *errors.Error
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.notAllowedToUpdate"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigw-route.errors.notAllowedToUpdate"),
 
 		errors.StackSkip(1),
 	)
@@ -732,7 +732,7 @@ func ApigwRouteErrNotAllowedToDelete(mm ...*apigwRouteActionProps) *errors.Error
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.notAllowedToDelete"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigw-route.errors.notAllowedToDelete"),
 
 		errors.StackSkip(1),
 	)
@@ -768,7 +768,7 @@ func ApigwRouteErrNotAllowedToUndelete(mm ...*apigwRouteActionProps) *errors.Err
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.notAllowedToUndelete"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigw-route.errors.notAllowedToUndelete"),
 
 		errors.StackSkip(1),
 	)
@@ -804,7 +804,7 @@ func ApigwRouteErrNotAllowedToExec(mm ...*apigwRouteActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.notAllowedToExec"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigw-route.errors.notAllowedToExec"),
 
 		errors.StackSkip(1),
 	)

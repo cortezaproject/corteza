@@ -369,7 +369,7 @@ func DataPrivacyErrGeneric(mm ...*dataPrivacyActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dataPrivacy.errors.generic"),
+		errors.Meta(locale.ErrorMetaKey{}, "data-privacy.errors.generic"),
 
 		errors.StackSkip(1),
 	)
@@ -403,7 +403,7 @@ func DataPrivacyErrNotFound(mm ...*dataPrivacyActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dataPrivacy.errors.notFound"),
+		errors.Meta(locale.ErrorMetaKey{}, "data-privacy.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -437,7 +437,7 @@ func DataPrivacyErrInvalidID(mm ...*dataPrivacyActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dataPrivacy.errors.invalidID"),
+		errors.Meta(locale.ErrorMetaKey{}, "data-privacy.errors.invalidID"),
 
 		errors.StackSkip(1),
 	)
@@ -471,7 +471,7 @@ func DataPrivacyErrInvalidKind(mm ...*dataPrivacyActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dataPrivacy.errors.invalidKind"),
+		errors.Meta(locale.ErrorMetaKey{}, "data-privacy.errors.invalidKind"),
 
 		errors.StackSkip(1),
 	)
@@ -505,7 +505,7 @@ func DataPrivacyErrInvalidStatus(mm ...*dataPrivacyActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dataPrivacy.errors.invalidStatus"),
+		errors.Meta(locale.ErrorMetaKey{}, "data-privacy.errors.invalidStatus"),
 
 		errors.StackSkip(1),
 	)
@@ -541,7 +541,7 @@ func DataPrivacyErrNotAllowedToRead(mm ...*dataPrivacyActionProps) *errors.Error
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dataPrivacy.errors.notAllowedToRead"),
+		errors.Meta(locale.ErrorMetaKey{}, "data-privacy.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)
@@ -577,7 +577,7 @@ func DataPrivacyErrNotAllowedToSearch(mm ...*dataPrivacyActionProps) *errors.Err
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dataPrivacy.errors.notAllowedToSearch"),
+		errors.Meta(locale.ErrorMetaKey{}, "data-privacy.errors.notAllowedToSearch"),
 
 		errors.StackSkip(1),
 	)
@@ -613,7 +613,7 @@ func DataPrivacyErrNotAllowedToCreate(mm ...*dataPrivacyActionProps) *errors.Err
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dataPrivacy.errors.notAllowedToCreate"),
+		errors.Meta(locale.ErrorMetaKey{}, "data-privacy.errors.notAllowedToCreate"),
 
 		errors.StackSkip(1),
 	)
@@ -649,7 +649,7 @@ func DataPrivacyErrNotAllowedToApprove(mm ...*dataPrivacyActionProps) *errors.Er
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dataPrivacy.errors.notAllowedToApprove"),
+		errors.Meta(locale.ErrorMetaKey{}, "data-privacy.errors.notAllowedToApprove"),
 
 		errors.StackSkip(1),
 	)

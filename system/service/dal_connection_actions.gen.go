@@ -382,7 +382,7 @@ func DalConnectionErrGeneric(mm ...*dalConnectionActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.generic"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-connection.errors.generic"),
 
 		errors.StackSkip(1),
 	)
@@ -416,7 +416,7 @@ func DalConnectionErrNotFound(mm ...*dalConnectionActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.notFound"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-connection.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -450,7 +450,7 @@ func DalConnectionErrInvalidID(mm ...*dalConnectionActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.invalidID"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-connection.errors.invalidID"),
 
 		errors.StackSkip(1),
 	)
@@ -484,7 +484,7 @@ func DalConnectionErrInvalidEndpoint(mm ...*dalConnectionActionProps) *errors.Er
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.invalidEndpoint"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-connection.errors.invalidEndpoint"),
 
 		errors.StackSkip(1),
 	)
@@ -518,7 +518,7 @@ func DalConnectionErrExistsEndpoint(mm ...*dalConnectionActionProps) *errors.Err
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.existsEndpoint"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-connection.errors.existsEndpoint"),
 
 		errors.StackSkip(1),
 	)
@@ -552,7 +552,7 @@ func DalConnectionErrAlreadyExists(mm ...*dalConnectionActionProps) *errors.Erro
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.alreadyExists"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-connection.errors.alreadyExists"),
 
 		errors.StackSkip(1),
 	)
@@ -588,7 +588,7 @@ func DalConnectionErrNotAllowedToCreate(mm ...*dalConnectionActionProps) *errors
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.notAllowedToCreate"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-connection.errors.notAllowedToCreate"),
 
 		errors.StackSkip(1),
 	)
@@ -624,7 +624,7 @@ func DalConnectionErrNotAllowedToRead(mm ...*dalConnectionActionProps) *errors.E
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.notAllowedToRead"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-connection.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)
@@ -660,7 +660,7 @@ func DalConnectionErrNotAllowedToSearch(mm ...*dalConnectionActionProps) *errors
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.notAllowedToSearch"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-connection.errors.notAllowedToSearch"),
 
 		errors.StackSkip(1),
 	)
@@ -696,7 +696,7 @@ func DalConnectionErrNotAllowedToUpdate(mm ...*dalConnectionActionProps) *errors
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.notAllowedToUpdate"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-connection.errors.notAllowedToUpdate"),
 
 		errors.StackSkip(1),
 	)
@@ -732,7 +732,7 @@ func DalConnectionErrNotAllowedToDelete(mm ...*dalConnectionActionProps) *errors
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.notAllowedToDelete"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-connection.errors.notAllowedToDelete"),
 
 		errors.StackSkip(1),
 	)
@@ -768,7 +768,7 @@ func DalConnectionErrNotAllowedToUndelete(mm ...*dalConnectionActionProps) *erro
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.notAllowedToUndelete"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-connection.errors.notAllowedToUndelete"),
 
 		errors.StackSkip(1),
 	)
@@ -804,7 +804,7 @@ func DalConnectionErrNotAllowedToExec(mm ...*dalConnectionActionProps) *errors.E
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dalConnection.errors.notAllowedToExec"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-connection.errors.notAllowedToExec"),
 
 		errors.StackSkip(1),
 	)

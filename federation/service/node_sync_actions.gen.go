@@ -252,7 +252,7 @@ func NodeSyncErrGeneric(mm ...*nodeSyncActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "nodeSync.errors.generic"),
+		errors.Meta(locale.ErrorMetaKey{}, "node-sync.errors.generic"),
 
 		errors.StackSkip(1),
 	)
@@ -286,7 +286,7 @@ func NodeSyncErrNotFound(mm ...*nodeSyncActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "nodeSync.errors.notFound"),
+		errors.Meta(locale.ErrorMetaKey{}, "node-sync.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -320,7 +320,7 @@ func NodeSyncErrNodeNotFound(mm ...*nodeSyncActionProps) *errors.Error {
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
-		errors.Meta(locale.ErrorMetaKey{}, "nodeSync.errors.nodeNotFound"),
+		errors.Meta(locale.ErrorMetaKey{}, "node-sync.errors.nodeNotFound"),
 
 		errors.StackSkip(1),
 	)

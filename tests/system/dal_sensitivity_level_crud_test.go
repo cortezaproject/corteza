@@ -56,7 +56,7 @@ func Test_dal_sensitivity_level_list_forbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("dalSensitivityLevel.errors.notAllowedToManage")).
+		Assert(helpers.AssertError("dal-sensitivity-level.errors.notAllowedToManage")).
 		End()
 }
 
@@ -89,7 +89,7 @@ func Test_dal_sensitivity_level_create_forbidden(t *testing.T) {
 		Header("Content-Type", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("dalSensitivityLevel.errors.notAllowedToManage")).
+		Assert(helpers.AssertError("dal-sensitivity-level.errors.notAllowedToManage")).
 		End()
 }
 
@@ -131,7 +131,7 @@ func Test_dal_sensitivity_level_update_forbidden(t *testing.T) {
 		Body(loadScenarioRequest(t, "generic.json")).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("dalSensitivityLevel.errors.notAllowedToManage")).
+		Assert(helpers.AssertError("dal-sensitivity-level.errors.notAllowedToManage")).
 		End()
 }
 
@@ -168,7 +168,7 @@ func Test_dal_sensitivity_level_read_forbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("dalSensitivityLevel.errors.notAllowedToManage")).
+		Assert(helpers.AssertError("dal-sensitivity-level.errors.notAllowedToManage")).
 		End()
 }
 
@@ -205,7 +205,7 @@ func Test_dal_sensitivity_level_delete_forbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("dalSensitivityLevel.errors.notAllowedToManage")).
+		Assert(helpers.AssertError("dal-sensitivity-level.errors.notAllowedToManage")).
 		End()
 }
 
@@ -246,6 +246,6 @@ func Test_dal_sensitivity_level_undelete_forbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("dalSensitivityLevel.errors.notAllowedToManage")).
+		Assert(helpers.AssertError("dal-sensitivity-level.errors.notAllowedToManage")).
 		End()
 }
