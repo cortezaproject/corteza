@@ -13,6 +13,9 @@ func JsonFunctions() []gval.Language {
 }
 
 func toJSON(f interface{}) string {
+	if _, is := f.(json.Marshaler); !is {
+		f = UntypedValue(f)
+	}
 	b, _ := json.Marshal(f)
 	return string(b)
 }
