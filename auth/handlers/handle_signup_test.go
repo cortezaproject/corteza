@@ -147,7 +147,7 @@ func Test_signupProc(t *testing.T) {
 			err:     "",
 			alerts:  []request.Alert(nil),
 			link:    GetLinks().Signup,
-			payload: map[string]string{"email": "", "error": "provided password is not secure; use longer password with more special characters", "handle": "", "name": ""},
+			payload: map[string]string{"email": "", "error": "provided password is not secure; use longer password to follow the password policy", "handle": "", "name": ""},
 			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
 					internalSignUp: func(c context.Context, user *types.User, s string) (u *types.User, err error) {
