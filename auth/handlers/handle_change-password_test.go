@@ -73,7 +73,7 @@ func Test_changePasswordProc(t *testing.T) {
 		},
 		{
 			name:    "provided password is not secure",
-			payload: map[string]string{"error": "provided password is not secure; use longer password with more special characters"},
+			payload: map[string]string{"error": "provided password is not secure; use longer password to follow the password policy"},
 			link:    GetLinks().ChangePassword,
 			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{

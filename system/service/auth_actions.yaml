@@ -146,7 +146,7 @@ errors:
     message: "password create is disabled"
 
   - error: passwordNotSecure
-    message: "provided password is not secure; use longer password with more special characters"
+    message: "provided password is not secure; use longer password to follow the password policy"
 
   - error: externalDisabledByConfig
     message: "external authentication (using external authentication provider) is disabled"
