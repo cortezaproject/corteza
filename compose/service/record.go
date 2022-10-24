@@ -1790,7 +1790,7 @@ func recordReportToDalPipeline(m *types.Module, metrics, dimensions, f string) (
 		{
 			Identifier: "count",
 			RawExpr:    "count(ID)",
-			Type:       dal.TypeNumber{},
+			Type:       &dal.TypeNumber{},
 		},
 	}
 
@@ -1809,7 +1809,7 @@ func recordReportToDalPipeline(m *types.Module, metrics, dimensions, f string) (
 			mms = append(mms, dal.AggregateAttr{
 				Identifier: ident,
 				RawExpr:    expr,
-				Type:       dal.TypeNumber{},
+				Type:       &dal.TypeNumber{},
 			})
 		}
 	}
