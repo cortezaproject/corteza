@@ -529,7 +529,7 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 
 		default:
 			// force update on every F new frames (F=sessionStateFlushFrequency) but only when stacktrace is not nil
-			update = ses.RuntimeStacktrace != nil && len(ses.RuntimeStacktrace)%sessionStateFlushFrequency == 0
+			update = ses.RuntimeStacktrace != nil && len(ses.RuntimeStacktrace)%sessionStateFlushFrequency == 1
 		}
 
 		if !update {
