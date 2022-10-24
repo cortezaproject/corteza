@@ -1282,7 +1282,7 @@ func AuthErrPasswordNotSecure(mm ...*authActionProps) *errors.Error {
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("provided password is not secure; use longer password with more special characters", nil),
+		p.Format("provided password is not secure; use longer password to follow the password policy", nil),
 
 		errors.Meta("type", "passwordNotSecure"),
 		errors.Meta("resource", "system:auth"),
