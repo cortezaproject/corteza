@@ -227,7 +227,12 @@ var (
 		},
 		"count": {
 			Handler: func(args ...exp.Expression) exp.Expression {
-				return exp.NewSQLFunctionExpression("COUNT", args[0])
+				var arg exp.Expression = exp.NewLiteralExpression("*")
+				if len(args) > 0 {
+					arg = args[0]
+				}
+
+				return exp.NewSQLFunctionExpression("COUNT", arg)
 			},
 		},
 		"sum": {

@@ -188,9 +188,4 @@ func TestAggregatorInit(t *testing.T) {
 		agg := Aggregator()
 		require.Error(t, agg.AddAggregateE("count", "div(v)"))
 	})
-
-	t.Run("invalid expression", func(t *testing.T) {
-		agg := Aggregator()
-		require.Error(t, agg.AddAggregateE("x", "sum(q we)"))
-	})
 }
