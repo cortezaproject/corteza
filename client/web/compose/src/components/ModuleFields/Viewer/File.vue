@@ -8,6 +8,7 @@
       :namespace="namespace"
       :mode="field.options.mode"
       :hide-file-name="field.options.hideFileName"
+      :preview-options="options"
     />
 
     <errors :errors="errors" />

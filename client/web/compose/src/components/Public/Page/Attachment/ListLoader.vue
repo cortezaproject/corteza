@@ -83,7 +83,6 @@
             :icon="['far', 'file-'+ext(a)]"
             class="text-dark float-left mr-2"
           />
-          {{ a.name }}
         </attachment-link>
         <i18next
           path="general.label.attachmentFileInfo"
@@ -111,7 +110,7 @@
           :meta="a.meta"
           :name="a.name"
           :alt="a.name"
-          :preview-style="{ width: 'unset' }"
+          :preview-style="{ width: 'unset', ...inlineCustomStyles(a) }"
           :labels="previewLabels"
           @openPreview="openLightbox({ ...a, ...$event })"
         />
@@ -188,6 +187,11 @@ export default {
     hideFileName: {
       type: Boolean,
       default: false,
+    },
+
+    previewOptions: {
+      type: Object,
+      default: () => ({}),
     },
   },
 
@@ -320,6 +324,34 @@ export default {
           return 'image'
         default: return 'alt'
       }
+    },
+
+    inlineCustomStyles (a) {
+      const {
+        height,
+        width,
+        maxHeight,
+        maxWidth,
+        borderRadius,
+        backgroundColor,
+        margin,
+      } = this.previewOptions
+
+      if (this.ext(a) === 'image') {
+        return {
+          ...(height && { height: `${height}px` }),
+          ...(width && { width: `${width}px` }),
+          ...(maxHeight && { maxHeight: `${maxHeight}px` }),
+          ...(maxWidth && { maxWidth: `${maxWidth}px` }),
+          ...(borderRadius && { borderRadius: `${borderRadius}px` }),
+          ...(backgroundColor && { backgroundColor: backgroundColor }),
+          ...(margin && { margin: `${margin}px` }),
+          objectFit: 'cover',
+          objectPosition: 'center',
+        }
+      }
+
+      return {}
     },
   },
 }

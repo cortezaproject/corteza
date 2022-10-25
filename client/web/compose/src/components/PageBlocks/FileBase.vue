@@ -7,12 +7,13 @@
       class="p-2 h-100"
     >
       <list-loader
-        class="h-100"
         kind="page"
         :set="options.attachments"
         :namespace="namespace"
         :mode="options.mode"
         :hide-file-name="options.hideFileName"
+        :preview-options="options"
+        class="h-100"
       />
     </div>
   </wrap>

@@ -67,6 +67,10 @@ export default {
       }
       return []
     },
+
+    options () {
+      return this.field.options
+    },
   },
 }
 </script>

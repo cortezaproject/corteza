@@ -22,6 +22,13 @@ interface FileOptions extends Options {
   inline: boolean;
   hideFileName: boolean;
   mimetypes?: string;
+  height?: number;
+  width?: number;
+  maxHeight?: number;
+  maxWidth?: number;
+  borderRadius?: number;
+  margin?: number;
+  backgroundColor?: string;
 }
 
 const defaults = (): Readonly<FileOptions> => Object.freeze({
@@ -33,6 +40,13 @@ const defaults = (): Readonly<FileOptions> => Object.freeze({
   inline: true,
   hideFileName: false,
   mimetypes: '',
+  height: undefined,
+  width: undefined,
+  maxHeight: undefined,
+  maxWidth: undefined,
+  borderRadius: undefined,
+  margin: undefined,
+  backgroundColor: undefined,
 })
 
 export class ModuleFieldFile extends ModuleField {
@@ -49,9 +63,9 @@ export class ModuleFieldFile extends ModuleField {
     if (!o) return
     super.applyOptions(o)
 
-    Apply(this.options, o, Number, 'maxSize')
+    Apply(this.options, o, Number, 'maxSize', 'height', 'width', 'maxHeight', 'maxWidth', 'borderRadius', 'margin')
     Apply(this.options, o, Boolean, 'allowImages', 'allowDocuments', 'inline', 'hideFileName')
-    Apply(this.options, o, String, 'mimetypes')
+    Apply(this.options, o, String, 'mimetypes', 'backgroundColor')
     ApplyWhitelisted(this.options, o, modes, 'mode')
   }
 }

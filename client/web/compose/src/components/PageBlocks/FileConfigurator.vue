@@ -16,7 +16,7 @@
     </b-form-group>
     <b-form-checkbox
       v-model="options.hideFileName"
-      :disabled="!enableFileNameHiding"
+      :disabled="!currentPreviewMode"
       class="mb-3"
     >
       {{ $t('kind.file.view.showName') }}
@@ -35,6 +35,154 @@
       mode="list"
       class="mt-2"
     />
+
+    <template v-if="currentPreviewMode">
+      <hr>
+
+      <h5 class="mb-2">
+        {{ $t('kind.file.view.previewStyle') }}
+      </h5>
+
+      <b-row
+        align-v="center"
+        class="mb-2 mt-2"
+      >
+        <b-col
+          sm="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('kind.file.view.height')"
+          >
+            <b-input-group
+              :append="$t('kind.file.view.px')"
+            >
+              <b-form-input
+                v-model="options.height"
+                type="number"
+                number
+                :placeholder="$t('kind.file.view.height')"
+              />
+            </b-input-group>
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          sm="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('kind.file.view.width')"
+          >
+            <b-input-group
+              :append="$t('kind.file.view.px')"
+            >
+              <b-form-input
+                v-model="options.width"
+                type="number"
+                number
+                :placeholder="$t('kind.file.view.width')"
+              />
+            </b-input-group>
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          sm="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('kind.file.view.maxHeight')"
+          >
+            <b-input-group
+              :append="$t('kind.file.view.px')"
+            >
+              <b-form-input
+                v-model="options.maxHeight"
+                type="number"
+                number
+                :placeholder="$t('kind.file.view.maxHeight')"
+              />
+            </b-input-group>
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          sm="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('kind.file.view.maxWidth')"
+          >
+            <b-input-group
+              :append="$t('kind.file.view.px')"
+            >
+              <b-form-input
+                v-model="options.maxWidth"
+                type="number"
+                number
+                :placeholder="$t('kind.file.view.maxWidth')"
+              />
+            </b-input-group>
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          sm="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('kind.file.view.borderRadius')"
+          >
+            <b-input-group
+              :append="$t('kind.file.view.px')"
+            >
+              <b-form-input
+                v-model="options.borderRadius"
+                type="number"
+                number
+                :placeholder="$t('kind.file.view.borderRadius')"
+              />
+            </b-input-group>
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          sm="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('kind.file.view.background')"
+          >
+            <b-form-input
+              v-model="options.backgroundColor"
+              type="color"
+              debounce="300"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          sm="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('kind.file.view.margin')"
+          >
+            <b-input-group
+              :append="$t('kind.file.view.px')"
+            >
+              <b-form-input
+                v-model="options.margin"
+                type="number"
+                number
+                :placeholder="$t('kind.file.view.margin')"
+              />
+            </b-input-group>
+          </b-form-group>
+        </b-col>
+      </b-row>
+    </template>
   </b-tab>
 </template>
 <script>
@@ -75,8 +223,9 @@ export default {
       ]
     },
 
-    enableFileNameHiding () {
-      return (this.options.mode === 'single') || (this.options.mode === 'gallery')
+    currentPreviewMode () {
+      const { mode } = this.options
+      return (mode === 'single') || (mode === 'gallery')
     },
   },
 
