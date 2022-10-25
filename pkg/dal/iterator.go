@@ -4,8 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"io"
+
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 )
 
 type (
@@ -85,9 +86,10 @@ func IteratorPaging(ctx context.Context, iter Iterator, pp *filter.Paging, ss fi
 	const howMuchMore = 1000
 
 	var (
-		counter   uint
-		total     uint
-		fetchMore bool
+		counter uint
+		total   uint
+
+		overfetch = pp.IncTotal || pp.IncPageNavigation
 
 		cur  *filter.PagingCursor
 		page = filter.Page{
@@ -110,6 +112,7 @@ func IteratorPaging(ctx context.Context, iter Iterator, pp *filter.Paging, ss fi
 		counter++
 		total++
 		page.Count++
+		nextPage := pp.Limit > 0 && total%pp.Limit == 0
 
 		if pp.PrevPage == nil {
 			pp.PrevPage, err = iter.BackCursor(r)
@@ -124,31 +127,42 @@ func IteratorPaging(ctx context.Context, iter Iterator, pp *filter.Paging, ss fi
 			return
 		}
 
-		if pp.Limit > 0 && total%pp.Limit == 0 {
-			pp.PageNavigation = append(pp.PageNavigation, &filter.Page{
-				Page:   page.Page,
-				Count:  page.Count,
-				Cursor: page.Cursor,
-			})
-
-			// prep next page
-			page = filter.Page{
-				Page:   uint(len(pp.PageNavigation) + 1),
-				Count:  0,
-				Cursor: cur,
-			}
-
-			// fetch more records
-			fetchMore = true
-
-			if pp.NextPage == nil {
-				pp.NextPage = cur
-			}
+		// We fetched enough and we don't need count/all pages; end because anything
+		// extra would be useless processing
+		if nextPage && !overfetch {
+			break
 		}
 
-		if (len(pp.PageNavigation) == 1 && fetchMore) || counter == howMuchMore {
+		// Additional processing only happens when we get to the next page so we can
+		// safely skip it
+		if !nextPage {
+			continue
+		}
+
+		// Update paging params for the initial filtering
+		if pp.NextPage == nil {
+			pp.NextPage = cur
+		}
+
+		// Paging params for the current chunk
+		pp.PageNavigation = append(pp.PageNavigation, &filter.Page{
+			Page:   page.Page,
+			Count:  page.Count,
+			Cursor: page.Cursor,
+		})
+
+		// Prepare paging params for the next chunk
+		page = filter.Page{
+			Page:   uint(len(pp.PageNavigation) + 1),
+			Count:  0,
+			Cursor: cur,
+		}
+
+		// Request more
+		// If this was the first page, request more because the limit was exceeded
+		// If this wasn't the first page, request more after we've reached the refetch count
+		if len(pp.PageNavigation) == 1 || counter == howMuchMore {
 			counter = 0
-			fetchMore = false
 
 			// request more items
 			if err = iter.More(howMuchMore, r); err != nil {
