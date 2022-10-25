@@ -3,9 +3,10 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/sql"
-	"time"
 )
 
 type (
@@ -58,6 +59,7 @@ type (
 		Logo        string `json:"logo,omitempty"`
 		LogoID      uint64 `json:"logoID,string"`
 		LogoEnabled bool   `json:"logoEnabled,omitempty"`
+		HideSidebar bool   `json:"hideSidebar"`
 
 		// Warning: value of this field is now handled via resource-translation facility
 		//          struct field is kept for the convenience for now since it allows us
