@@ -109,9 +109,11 @@ func (a *aggregator) AddAggregate(ident string, expr *ql.ASTNode) (err error) {
 	// Prepare a runner in case we're not simply copying values
 	if inIdent == "" {
 		// - make evaluator
-		def.eval, err = newRunnerGvalParsed(expr)
-		if err != nil {
-			return
+		if expr != nil {
+			def.eval, err = newRunnerGvalParsed(expr)
+			if err != nil {
+				return
+			}
 		}
 	}
 
@@ -189,9 +191,13 @@ func (a *aggregator) aggregate(ctx context.Context, attr aggregateDef, i int, v 
 func (a *aggregator) walkValues(ctx context.Context, r ValueGetter, cc map[string]uint, attr aggregateDef, run func(v any, isNil bool)) (err error) {
 	var out any
 	if attr.inIdent == "" {
-		out, err = attr.eval.Eval(ctx, r)
-		if err != nil {
-			return
+		if attr.eval != nil {
+			out, err = attr.eval.Eval(ctx, r)
+			if err != nil {
+				return
+			}
+		} else {
+			out = r
 		}
 
 		run(out, reflect2.IsNil(out))
@@ -335,12 +341,9 @@ func unpackExpressionNode(n *ql.ASTNode) (aggOp string, expr *ql.ASTNode, err er
 		return
 	}
 
-	if len(n.Args) != 1 {
-		err = fmt.Errorf("impossible state: aggregate function must have exactly one argument")
-		return
+	if len(n.Args) > 0 {
+		expr = n.Args[0]
 	}
-
-	expr = n.Args[0]
 	return
 }
 
