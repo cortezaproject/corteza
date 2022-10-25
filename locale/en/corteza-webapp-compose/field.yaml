@@ -38,6 +38,16 @@ kind:
       modeLabel: View mode
       showName: Hide file name
       single: Single image
+      previewStyle: Preview style
+      height: Height
+      width: Width
+      maxHeight: Max height
+      maxWidth: Max width
+      borderRadius: Border radius
+      background: Background color
+      margin: Margin
+      unitType: Unit type
+      px: px
   number:
     exampleFormat: Format
     exampleInput: Input
