@@ -167,3 +167,6 @@ allow:
     corteza::system:data-privacy-request/*:
       - read
       - approve
+
+    corteza::system/:
+      - data-privacy-requests.search
