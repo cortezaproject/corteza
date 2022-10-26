@@ -16,6 +16,7 @@ import (
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
+	"strings"
 	"time"
 )
 
@@ -100,12 +101,22 @@ func fix_2022_09_00_migrateOldComposeRecordValues(ctx context.Context, s *Store)
 
 		crvTableIdent = "compose_record_value"
 
-		// used with sprintf because it has to work with mysql & postgresql
+		recordsPerModule = `
+	SELECT id 
+	  FROM compose_record 
+	 WHERE rel_namespace = %d AND rel_module = %d AND id > %d AND deleted_at IS NULL ORDER BY id LIMIT %d
+`
+
+		// used with sprintf and 2 queries because of some limitation in pg driver & percona
+		//
+		// using subquery does not work:
+		// This version of MySQL doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'
 		recValuesPerModule = `
-	SELECT v.record_id, v.name, v.value, v.ref, v.place
-	  FROM compose_record_value AS v
-	 WHERE v.record_id IN (SELECT id FROM compose_record WHERE rel_namespace = %d AND rel_module = %d AND id > %d AND deleted_at IS NULL ORDER BY id LIMIT %d) 
-	 ORDER BY v.record_id, v.name, v.place`
+	SELECT record_id, name, value, ref, place
+	  FROM compose_record_value
+	 WHERE record_id IN (%s) 
+	   AND deleted_at IS NULL
+	 ORDER BY record_id, name, place`
 	)
 
 	// check if old record-value table exists
@@ -121,6 +132,9 @@ func fix_2022_09_00_migrateOldComposeRecordValues(ctx context.Context, s *Store)
 	}
 
 	var (
+		query     string
+		recordIDs []string
+
 		modules types.ModuleSet
 		fields  types.ModuleFieldSet
 		field   *types.ModuleField
@@ -168,9 +182,39 @@ func fix_2022_09_00_migrateOldComposeRecordValues(ctx context.Context, s *Store)
 			for {
 				bmStart := time.Now()
 				values = make(map[uint64]map[string][]any, recordSliceSize)
+				recordIDs = make([]string, 0, recordSliceSize)
 
 				err = func() (err error) {
-					query := fmt.Sprintf(recValuesPerModule, mod.NamespaceID, mod.ID, sliceLastRecordID, recordSliceSize)
+					query = fmt.Sprintf(recordsPerModule, mod.NamespaceID, mod.ID, sliceLastRecordID, recordSliceSize)
+					//println(query)
+					rows, err = s.DB.QueryContext(ctx, query)
+					if err != nil {
+						return
+					}
+
+					defer func() {
+						// assign error to return value...
+						err = rows.Close()
+					}()
+
+					for rows.Next() {
+						if err = rows.Err(); err != nil {
+							return
+						}
+
+						err = rows.Scan(&value)
+						if err != nil {
+							return
+						}
+
+						recordIDs = append(recordIDs, value)
+					}
+
+					if len(recordIDs) == 0 {
+						return nil
+					}
+
+					query = fmt.Sprintf(recValuesPerModule, strings.Join(recordIDs, ","))
 					//println(query)
 					rows, err = s.DB.QueryContext(ctx, query)
 					if err != nil {
