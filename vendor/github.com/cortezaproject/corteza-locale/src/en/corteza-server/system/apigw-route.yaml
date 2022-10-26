@@ -9,4 +9,5 @@ errors:
   notAllowedToRead: not allowed to read this route
   notAllowedToUndelete: not allowed to undelete this route
   notAllowedToUpdate: not allowed to update this route
+  notAllowedToSearch: not allowed to list or search routes
   notFound: route not found

@@ -17,9 +17,9 @@ editor:
         min-num-count-description: The password must include the specified number of digits (disabled if set to 0)
         min-special-count: Minimum number of special characters
         min-special-count-description: The password must include the specified number of special characters (disabled if set to 0)
-        min-upper-case-length: Minimum upper case length
+        min-upper-case-length: Minimum number of upper case characters
         min-upper-case-description: The password must include the specified number of upper case characters (disabled if set to 0)
-        min-lower-case-length: Minimum lower case length
+        min-lower-case-length: Minimum number of lower case characters
         min-lower-case-description: The password must include the specified number of lower case characters (disabled if set to 0)
       signup:
         email-confirmation-required: Signup email confirmation required
