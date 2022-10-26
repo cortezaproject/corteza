@@ -12,6 +12,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/revisions"
+	"github.com/spf13/cast"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
@@ -317,7 +318,7 @@ func (svc record) Report(ctx context.Context, namespaceID, moduleID uint64, metr
 			return RecordErrNotAllowedToSearch()
 		}
 
-		pp, err := recordReportToDalPipeline(m, metrics, dimensions, f)
+		pp, agg, err := recordReportToDalPipeline(m, metrics, dimensions, f)
 		if err != nil {
 			return err
 		}
@@ -333,6 +334,7 @@ func (svc record) Report(ctx context.Context, namespaceID, moduleID uint64, metr
 		for iter.Next(ctx) {
 			item := recordReportEntry{}
 			err = iter.Scan(item)
+			recordReportCorrectTypes(agg, item)
 			if err != nil {
 				return err
 			}
@@ -1773,7 +1775,7 @@ func loadRecord(ctx context.Context, s store.Storer, namespaceID, moduleID, reco
 	return
 }
 
-func recordReportToDalPipeline(m *types.Module, metrics, dimensions, f string) (pp dal.Pipeline, err error) {
+func recordReportToDalPipeline(m *types.Module, metrics, dimensions, f string) (pp dal.Pipeline, _ *dal.Aggregate, err error) {
 	// Map dimension to the aggregate group
 	// @note we only ever used a single dimension so this is ok
 	dim := []dal.AggregateAttr{
@@ -1814,6 +1816,13 @@ func recordReportToDalPipeline(m *types.Module, metrics, dimensions, f string) (
 		}
 	}
 
+	agg := &dal.Aggregate{
+		Ident:         "agg",
+		RelSource:     "ds",
+		Group:         dim,
+		OutAttributes: mms,
+	}
+
 	// Build the pipeline
 	pp = dal.Pipeline{
 		&dal.Datasource{
@@ -1825,15 +1834,46 @@ func recordReportToDalPipeline(m *types.Module, metrics, dimensions, f string) (
 				ResourceType: types.ModuleResourceType,
 			},
 		},
-		&dal.Aggregate{
-			Ident:         "agg",
-			RelSource:     "ds",
-			Group:         dim,
-			OutAttributes: mms,
-		},
+		agg,
 	}
 
-	return pp, pp.LinkSteps()
+	return pp, agg, pp.LinkSteps()
+}
+
+// recordReportCorrectTypes assures the types are casted to what Compose charts expect
+// @todo this is a temporary solution
+//
+// This addresses:
+// - output metrics are presented as numbers
+// - dimenssion values are presented as strings for ID and ref., float for number, string for rest
+func recordReportCorrectTypes(def *dal.Aggregate, entry recordReportEntry) {
+	for _, a := range def.OutAttributes {
+		if _, ok := entry[a.Identifier]; !ok {
+			continue
+		}
+		// Metrics are currently always numbers so we don't need to be fancy
+		entry[a.Identifier] = cast.ToFloat64(entry[a.Identifier])
+	}
+
+	for _, a := range def.Group {
+		if _, ok := entry[a.Identifier]; !ok {
+			continue
+		}
+
+		switch a.Type.(type) {
+		case *dal.TypeNumber:
+			entry[a.Identifier] = cast.ToFloat64(entry[a.Identifier])
+			return
+
+		case *dal.TypeText:
+			entry[a.Identifier] = cast.ToString(entry[a.Identifier])
+			return
+
+		case *dal.TypeID, *dal.TypeRef:
+			entry[a.Identifier] = cast.ToString(entry[a.Identifier])
+			return
+		}
+	}
 }
 
 func (ei ErrorIndex) Add(err string) {
