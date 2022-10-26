@@ -66,7 +66,7 @@ func TestRecordValueSet_Merge(t *testing.T) {
 			},
 			want: RecordValueSet{
 				{Name: "n", Value: "2", OldValue: "1", Updated: true},
-				{Name: "accessible", Value: "skip me", OldValue: "skip me", Updated: true, DeletedAt: &time.Time{}},
+				{Name: "accessible", Value: "skip me", OldValue: "skip me", Updated: true, DeletedAt: nil},
 				{Name: "inaccessible", Value: "don't skip me", OldValue: "don't skip me"},
 			},
 		},
@@ -104,7 +104,7 @@ func TestRecordValueSet_merge(t *testing.T) {
 			name: "update with nil",
 			set:  RecordValueSet{{Name: "n", Value: "v"}},
 			new:  nil,
-			want: RecordValueSet{{Name: "n", Value: "v", OldValue: "v", DeletedAt: &time.Time{}, Updated: true}},
+			want: RecordValueSet{{Name: "n", Value: "v", OldValue: "v", DeletedAt: nil, Updated: true}},
 		},
 		{
 			name: "update with new value",
@@ -116,7 +116,7 @@ func TestRecordValueSet_merge(t *testing.T) {
 			name: "update with less values",
 			set:  RecordValueSet{{Name: "n", Value: "1"}, {Name: "deleted", Value: "d"}},
 			new:  RecordValueSet{{Name: "n", Value: "2"}},
-			want: RecordValueSet{{Name: "n", Value: "2", OldValue: "1", Updated: true}, {Name: "deleted", Value: "d", OldValue: "d", Updated: true, DeletedAt: &time.Time{}}},
+			want: RecordValueSet{{Name: "n", Value: "2", OldValue: "1", Updated: true}, {Name: "deleted", Value: "d", OldValue: "d", Updated: true, DeletedAt: nil}},
 		},
 		{
 			name: "update multi value",
@@ -126,7 +126,7 @@ func TestRecordValueSet_merge(t *testing.T) {
 				{Name: "c", Value: "1st", Place: 1, OldValue: "1st"},
 				{Name: "c", Value: "2nd", Place: 2, OldValue: "2nd"},
 				{Name: "c", Value: "4th", Place: 3, OldValue: "3rd", Updated: true},
-				{Name: "c", Value: "4th", Place: 4, OldValue: "4th", Updated: true, DeletedAt: &time.Time{}},
+				{Name: "c", Value: "4th", Place: 4, OldValue: "4th", Updated: true, DeletedAt: nil},
 			},
 		},
 	}

@@ -275,7 +275,7 @@ func (set RecordValueSet) merge(new RecordValueSet) (out RecordValueSet) {
 			Value:     set[s].Value,
 			Ref:       set[s].Ref,
 			Place:     set[s].Place,
-			DeletedAt: &time.Time{},
+			DeletedAt: nil,
 			Updated:   true,
 			OldValue:  set[s].Value,
 		})

@@ -482,7 +482,7 @@ func TestRecord_defValueFieldPermissionIssue(t *testing.T) {
 
 		recPartial, _, err = svc.Update(ctx, recPartial)
 		verifyRecErrSet(t, err)
-		req.Equal("<w2><NULL>", valueExtractor(recPartial, "writable", "readable"))
+		req.Equal("<w2><r>", valueExtractor(recPartial, "writable", "readable"))
 	}
 
 	{
