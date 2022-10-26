@@ -10,3 +10,5 @@ errors:
   unableToChangeDefaultClientHandle: unable to change the handle of the default auth client
   unableToDeleteDefaultClient: unable to delete the default auth client
   unableToDisableDefaultClient: unable to disable the default auth client
+  unknownGrantType: unknown grant type
+  unknownScope: unknown scope

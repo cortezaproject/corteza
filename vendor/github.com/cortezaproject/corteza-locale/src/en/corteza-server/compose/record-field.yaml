@@ -3,4 +3,4 @@ errors:
   invalidValue: Invalid field value
   invalidRef: Invalid field reference
   duplicateValueInSet: This value already exists in list
-  duplicateValue: This value already exists
+  duplicateValue: The value "{{value}}" already exists in another record
