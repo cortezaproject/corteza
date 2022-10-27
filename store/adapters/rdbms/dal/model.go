@@ -199,10 +199,16 @@ func (d *model) Search(f filter.Filter) (i *iterator, err error) {
 		}
 	}
 
+	// validate order-by
 	for _, s := range orderBy {
 		if _, err = d.table.AttributeExpression(s.Column); err != nil {
 			return nil, err
 		}
+
+		if att := d.model.Attributes.FindByIdent(s.Column); att != nil && att.MultiValue {
+			return nil, fmt.Errorf("not allowed to sort by multi-value attribute: %s", s.Column)
+		}
+
 	}
 
 	// sanitize filter a bit
@@ -359,17 +365,17 @@ func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 		// 2) Model has model and/or namespace attribute and saves records
 		//    from different modules in the same table
 
-		//if d.sysExprNamespaceID != nil {
+		// if d.sysExprNamespaceID != nil {
 		//	cnd = append(cnd, d.sysExprNamespaceID.Eq(f.NamespaceID))
-		//} else {
+		// } else {
 		//	// @todo check if f.NamespaceID is compatible
-		//}
+		// }
 		//
-		//if d.sysExprModuleID != nil {
+		// if d.sysExprModuleID != nil {
 		//	cnd = append(cnd, d.sysExprModuleID.Eq(f.ModuleID))
-		//} else {
+		// } else {
 		//	// @todo check if f.ModuleID is compatible
-		//}
+		// }
 	}
 
 	cc := f.Constraints()

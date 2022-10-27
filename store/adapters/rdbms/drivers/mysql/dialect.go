@@ -104,6 +104,13 @@ func (mysqlDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpression
 
 		c = exp.NewCastExpression(ce, "UNSIGNED")
 
+	case *dal.TypeTime:
+		ce := exp.NewCaseExpression().
+			When(val.RegexpLike(drivers.CheckTimeISO8061), val).
+			Else(drivers.LiteralNULL)
+
+		c = exp.NewCastExpression(ce, "TIME")
+
 	default:
 		return drivers.AttributeCast(attr, val)
 
@@ -207,4 +214,8 @@ func (mysqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err
 	}
 
 	return
+}
+
+func (d mysqlDialect) OrderedExpression(expr exp.Expression, dir exp.SortDirection, _ exp.NullSortType) exp.OrderedExpression {
+	return exp.NewOrderedExpression(expr, dir, exp.NoNullsSortType)
 }

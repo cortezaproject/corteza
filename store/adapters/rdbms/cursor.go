@@ -225,6 +225,11 @@ func CursorExpression(
 			false: exp.GtOp,
 		}
 
+		notOp = map[bool]exp.LiteralExpression{
+			true:  exp.NewLiteralExpression("NOT NULL"),
+			false: exp.NewLiteralExpression("NULL"),
+		}
+
 		// Little utility to know for sure if some value is nil or not
 		//
 		// Interface variables can be a bit tricky here, so this is required.
@@ -294,8 +299,8 @@ func CursorExpression(
 			// both NULL
 			exp.NewExpressionList(
 				exp.AndType,
-				exp.NewLiteralExpression(`? IS NOT NULL`, ident),
-				isValueNull(i, false),
+				exp.NewLiteralExpression(`? IS ?`, ident, notOp[!lt]),
+				isValueNull(i, lt),
 			),
 			// or GT/LT value
 			exp.NewBooleanExpression(op, ident, value),
