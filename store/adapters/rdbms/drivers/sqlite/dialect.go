@@ -10,6 +10,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/dialect/sqlite3"
 	"github.com/doug-martin/goqu/v9/exp"
+	"regexp"
 	"strings"
 )
 
@@ -63,6 +64,8 @@ func (d sqliteDialect) TypeWrap(dt dal.Type) drivers.Type {
 	switch c := dt.(type) {
 	case *dal.TypeDate:
 		return &TypeDate{c}
+	case *dal.TypeTimestamp:
+		return &TypeTimestamp{c}
 	}
 
 	return drivers.TypeWrap(dt)
@@ -70,19 +73,39 @@ func (d sqliteDialect) TypeWrap(dt dal.Type) drivers.Type {
 
 func (sqliteDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpression) (exp.LiteralExpression, error) {
 	var (
-		c exp.CastExpression
+		c exp.Expression
 	)
 
-	switch attr.Type.(type) {
+	switch t := attr.Type.(type) {
+	case *dal.TypeTimestamp:
+		// we have way of handling TZ here (not sure how to do that with strftime() function)
+		// if we use %Z at the end strftime will always return NULL
+		if t.Precision == 0 {
+			c = exp.NewSQLFunctionExpression("strftime", "%Y-%m-%dT%H:%M:%S", val)
+		} else {
+			c = exp.NewSQLFunctionExpression("strftime", "%Y-%m-%dT%H:%M:%f", val)
+		}
+
+	case *dal.TypeTime:
+		// we have way of handling TZ here (not sure how to do that with strftime() function)
+		// if we use %Z at the end strftime will always return NULL
+		if t.Precision == 0 {
+			c = exp.NewSQLFunctionExpression("strftime", "%H:%M:%S", val)
+		} else {
+			c = exp.NewSQLFunctionExpression("strftime", "%H:%M:%f", val)
+		}
+
 	case *dal.TypeDate:
+		c = exp.NewSQLFunctionExpression("strftime", "%Y-%m-%d", val)
+
+	case *dal.TypeNumber:
+		match, _ := regexp.Match(drivers.CheckNumber.Literal(), []byte(val.Literal()))
 		ce := exp.NewCaseExpression().
-			When(val.RegexpLike(drivers.CheckDateISO8061), val).
+			When(val.In(match, val), val).
 			Else(drivers.LiteralNULL)
 
-		// if we cast to DATE result value is treated like number (int64) and
-		// we only get the year part. So we need to cast to TEXT first
-		// and the the full-date is parsed into time.Time
-		c = exp.NewCastExpression(ce, "TEXT")
+		c = exp.NewCastExpression(ce, "NUMERIC")
+
 	default:
 		return drivers.AttributeCast(attr, val)
 	}
@@ -166,4 +189,8 @@ func (sqliteDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (exp.Exp
 	}
 
 	return ref2exp.RefHandler(n, args...)
+}
+
+func (d sqliteDialect) OrderedExpression(expr exp.Expression, dir exp.SortDirection, nst exp.NullSortType) exp.OrderedExpression {
+	return exp.NewOrderedExpression(expr, dir, exp.NoNullsSortType)
 }

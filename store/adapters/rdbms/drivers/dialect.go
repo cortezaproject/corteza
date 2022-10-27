@@ -40,5 +40,11 @@ type (
 
 		// ExprHandler returns driver specific expression handling
 		ExprHandler(*ql.ASTNode, ...exp.Expression) (exp.Expression, error)
+
+		// OrderedExpression returns compatible expression for ordering
+		//
+		// Database understand order modifiers differently. For example, MySQL does not know
+		// about NULLS FIRST/LAST. Drivers should gracefully handle this.
+		OrderedExpression(exp.Expression, exp.SortDirection, exp.NullSortType) exp.OrderedExpression
 	}
 )
