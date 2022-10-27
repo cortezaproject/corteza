@@ -127,6 +127,10 @@ func (s *Store) Search{{ .expIdentPlural }}(ctx context.Context, {{ template "ex
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
