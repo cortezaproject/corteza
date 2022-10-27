@@ -453,6 +453,10 @@ func (s *Store) SearchApigwFilters(ctx context.Context, f systemType.ApigwFilter
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -1008,6 +1012,10 @@ func (s *Store) SearchApigwRoutes(ctx context.Context, f systemType.ApigwRouteFi
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -1567,6 +1575,10 @@ func (s *Store) SearchApplications(ctx context.Context, f systemType.Application
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -2081,6 +2093,10 @@ func (s *Store) SearchAttachments(ctx context.Context, f systemType.AttachmentFi
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -2590,6 +2606,10 @@ func (s *Store) SearchAuthClients(ctx context.Context, f systemType.AuthClientFi
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -4169,6 +4189,10 @@ func (s *Store) SearchAutomationSessions(ctx context.Context, f automationType.S
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -4693,6 +4717,10 @@ func (s *Store) SearchAutomationTriggers(ctx context.Context, f automationType.T
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -5213,6 +5241,10 @@ func (s *Store) SearchAutomationWorkflows(ctx context.Context, f automationType.
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -5795,6 +5827,10 @@ func (s *Store) SearchComposeAttachments(ctx context.Context, f composeType.Atta
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -6308,6 +6344,10 @@ func (s *Store) SearchComposeCharts(ctx context.Context, f composeType.ChartFilt
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -6862,6 +6902,10 @@ func (s *Store) SearchComposeModules(ctx context.Context, f composeType.ModuleFi
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -7866,6 +7910,10 @@ func (s *Store) SearchComposeNamespaces(ctx context.Context, f composeType.Names
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -8445,6 +8493,10 @@ func (s *Store) SearchComposePages(ctx context.Context, f composeType.PageFilter
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -9348,6 +9400,10 @@ func (s *Store) SearchDalConnections(ctx context.Context, f systemType.DalConnec
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -9930,6 +9986,10 @@ func (s *Store) SearchDalSensitivityLevels(ctx context.Context, f systemType.Dal
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -10442,6 +10502,10 @@ func (s *Store) SearchDataPrivacyRequests(ctx context.Context, f systemType.Data
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -10961,6 +11025,10 @@ func (s *Store) SearchDataPrivacyRequestComments(ctx context.Context, f systemTy
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -11424,6 +11492,10 @@ func (s *Store) SearchFederationExposedModules(ctx context.Context, f federation
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -11931,6 +12003,10 @@ func (s *Store) SearchFederationModuleMappings(ctx context.Context, f federation
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -12878,6 +12954,10 @@ func (s *Store) SearchFederationNodeSyncs(ctx context.Context, f federationType.
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -13433,6 +13513,10 @@ func (s *Store) SearchFederationSharedModules(ctx context.Context, f federationT
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -14562,6 +14646,10 @@ func (s *Store) SearchQueues(ctx context.Context, f systemType.QueueFilter) (set
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -15111,6 +15199,10 @@ func (s *Store) SearchQueueMessages(ctx context.Context, f systemType.QueueMessa
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -15816,6 +15908,10 @@ func (s *Store) SearchReminders(ctx context.Context, f systemType.ReminderFilter
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -16334,6 +16430,10 @@ func (s *Store) SearchReports(ctx context.Context, f systemType.ReportFilter) (s
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -17154,6 +17254,10 @@ func (s *Store) SearchResourceTranslations(ctx context.Context, f systemType.Res
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -17646,6 +17750,10 @@ func (s *Store) SearchRoles(ctx context.Context, f systemType.RoleFilter) (set s
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -18844,6 +18952,10 @@ func (s *Store) SearchTemplates(ctx context.Context, f systemType.TemplateFilter
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
@@ -19436,6 +19548,10 @@ func (s *Store) SearchUsers(ctx context.Context, f systemType.UserFilter) (set s
 	f.PrevPage, f.NextPage = nil, nil
 
 	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
 		// Page cursor exists; we need to validate it against used sort
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
