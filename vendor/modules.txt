@@ -1,9 +1,6 @@
 # cloud.google.com/go v0.99.0
 ## explicit; go 1.11
 cloud.google.com/go/compute/metadata
-# github.com/766b/chi-prometheus v0.0.0-20211217152057-87afa9aa2ca8
-## explicit
-github.com/766b/chi-prometheus
 # github.com/99designs/basicauth-go v0.0.0-20160802081356-2a93ba0f464d
 ## explicit
 github.com/99designs/basicauth-go
@@ -147,8 +144,6 @@ github.com/getsentry/sentry-go/internal/debug
 github.com/getsentry/sentry-go/internal/ratelimit
 # github.com/go-chi/chi v3.3.4+incompatible
 ## explicit
-github.com/go-chi/chi
-github.com/go-chi/chi/middleware
 # github.com/go-chi/chi/v5 v5.0.7
 ## explicit; go 1.14
 github.com/go-chi/chi/v5
@@ -364,6 +359,9 @@ github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
 github.com/pmezard/go-difflib/difflib
+# github.com/ppaanngggg/chi-prometheus v0.0.0-20221020042937-f4c7b7b4b782
+## explicit
+github.com/ppaanngggg/chi-prometheus
 # github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35
 ## explicit
 github.com/pquerna/cachecontrol

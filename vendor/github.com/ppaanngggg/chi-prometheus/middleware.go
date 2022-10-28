@@ -1,4 +1,3 @@
-// Port https://github.com/zbindenren/negroni-prometheus for chi router
 package chiprometheus
 
 import (
@@ -6,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -104,6 +103,10 @@ func (c Middleware) patternHandler(next http.Handler) http.Handler {
 		next.ServeHTTP(ww, r)
 
 		rctx := chi.RouteContext(r.Context())
+		if rctx == nil {
+			// avoid nil panic
+			return
+		}
 		routePattern := strings.Join(rctx.RoutePatterns, "")
 		routePattern = strings.Replace(routePattern, "/*/", "/", -1)
 

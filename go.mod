@@ -7,7 +7,6 @@ go 1.18
 // replace github.com/cortezaproject/corteza-locale => ../locale
 
 require (
-	github.com/766b/chi-prometheus v0.0.0-20211217152057-87afa9aa2ca8
 	github.com/99designs/basicauth-go v0.0.0-20160802081356-2a93ba0f464d
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/PaesslerAG/gval v1.2.1
@@ -54,6 +53,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2
 	github.com/ngrok/sqlmw v0.0.0-20211220175533-9d16fdc47b31
 	github.com/pkg/errors v0.9.1
+	github.com/ppaanngggg/chi-prometheus v0.0.0-20221020042937-f4c7b7b4b782
 	github.com/prometheus/client_golang v1.12.1
 	github.com/sony/sonyflake v1.0.0
 	github.com/spf13/afero v1.8.2
