@@ -25,8 +25,9 @@ type (
 	}
 
 	model struct {
-		model *dal.Model
-		conn  queryRunner
+		model  *dal.Model
+		conn   queryRunner
+		models map[string]*model
 
 		dialect drivers.Dialect
 
@@ -75,10 +76,11 @@ func validate(m *dal.Model) error {
 //
 // It abstracts database table and its columns and provides unified interface
 // for fetching and storing records.
-func Model(m *dal.Model, c queryRunner, d drivers.Dialect) *model {
+func Model(m *dal.Model, models map[string]*model, c queryRunner, d drivers.Dialect) *model {
 	var (
 		ms = &model{
 			model:   m,
+			models:  models,
 			conn:    c,
 			dialect: d,
 			table:   drivers.NewTableCodec(m, d),
@@ -116,31 +118,54 @@ func (d *model) QueryParser() queryParser {
 	)
 }
 
+func qlConverter(m *model, alias, sym string) (exp.Expression, error) {
+	if m.model.ResourceType == "corteza::compose:module" {
+		// temporary solution
+		//
+		// before DAL some fields were aliased (recordID => ID)
+		switch sym {
+		case "recordID":
+			sym = "ID"
+		}
+	}
+
+	attr := m.model.Attributes.FindByIdent(sym)
+	if attr == nil {
+		return nil, fmt.Errorf("unknown attribute %q used in query expression", sym)
+	}
+
+	if !attr.Filterable {
+		return nil, fmt.Errorf("attribute %q can not be used in query expression", attr.Ident)
+	}
+
+	return m.table.AttributeExpression(sym, alias)
+}
+
 func (d *model) qlConverterGenericHandlers() func(node *ql.ASTNode) (exp.Expression, error) {
 	return func(node *ql.ASTNode) (exp.Expression, error) {
 		// @note normalize system idents on the RDBMS level for filters
 		//       offloaded to the database.
 		sym := dal.NormalizeAttrNames(node.Symbol)
-		if d.model.ResourceType == "corteza::compose:module" {
-			// temporary solution
-			//
-			// before DAL some fields were aliased (recordID => ID)
-			switch sym {
-			case "recordID":
-				sym = "ID"
+
+		if strings.Contains(sym, ".") {
+			tmp := strings.SplitN(sym, ".", 2) // TODO: support multi sub-levels
+			refModelIdent := tmp[0]
+			refModelField := tmp[1]
+			attr := d.model.Attributes.FindByIdent(refModelIdent)
+			if attr == nil {
+				return nil, fmt.Errorf("unknown attribute %q used in query expression", sym)
 			}
+			if attr.System || attr.Type.Type() != dal.AttributeTypeRef || !attr.Filterable {
+				return nil, fmt.Errorf("attribute %q can not be used in query expression", attr.Ident)
+			}
+			refModel, ok := d.models[modelRefKey(attr.Type.(*dal.TypeRef).RefModel)]
+			if !ok {
+				return nil, fmt.Errorf("attribute %q can not be used in query expression", attr.Ident)
+			}
+			return qlConverter(refModel, refModelIdent, refModelField)
+		} else {
+			return qlConverter(d, "", sym)
 		}
-
-		attr := d.model.Attributes.FindByIdent(sym)
-		if attr == nil {
-			return nil, fmt.Errorf("unknown attribute %q used in query expression", node.Symbol)
-		}
-
-		if !attr.Filterable {
-			return nil, fmt.Errorf("attribute %q can not be used in query expression", attr.Ident)
-		}
-
-		return d.table.AttributeExpression(sym)
 	}
 }
 
@@ -200,7 +225,7 @@ func (d *model) Search(f filter.Filter) (i *iterator, err error) {
 	}
 
 	for _, s := range orderBy {
-		if _, err = d.table.AttributeExpression(s.Column); err != nil {
+		if _, err = d.table.AttributeExpression(s.Column, ""); err != nil {
 			return nil, err
 		}
 	}
@@ -286,8 +311,8 @@ func (d *model) Aggregate(f filter.Filter, groupBy []dal.AggregateAttr, aggrExpr
 		dstModel.Attributes = append(dstModel.Attributes, dstAttr)
 	}
 
-	i.src = Model(srcModel, d.conn, d.dialect)
-	i.dst = Model(dstModel, d.conn, d.dialect)
+	i.src = Model(srcModel, d.models, d.conn, d.dialect)
+	i.dst = Model(dstModel, d.models, d.conn, d.dialect)
 
 	i.query = d.aggregateSql(f, groupBy, aggrExpr, having)
 
@@ -295,8 +320,8 @@ func (d *model) Aggregate(f filter.Filter, groupBy []dal.AggregateAttr, aggrExpr
 		return
 	}
 
-	i.src = Model(srcModel, d.conn, d.dialect)
-	i.dst = Model(dstModel, d.conn, d.dialect)
+	i.src = Model(srcModel, d.models, d.conn, d.dialect)
+	i.dst = Model(dstModel, d.models, d.conn, d.dialect)
 
 	return
 }
@@ -372,6 +397,22 @@ func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 		//}
 	}
 
+	for _, attr := range d.model.Attributes {
+		// join with sub-models, ready for sub-models fields filters
+		if !attr.System && attr.Type.Type() == dal.AttributeTypeRef {
+			// find ref model from local connections
+			refModel, ok := d.models[modelRefKey(attr.Type.(*dal.TypeRef).RefModel)]
+			if !ok {
+				// TODO: not support join with model from remote connection
+				continue
+			}
+			base = d.joinSql(base, attr.Ident, refModel)
+			if base.Error() != nil {
+				return base
+			}
+		}
+	}
+
 	cc := f.Constraints()
 	if d.model.Constraints != nil {
 		if cc == nil {
@@ -396,7 +437,7 @@ func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 		// }
 
 		var attrExpr exp.LiteralExpression
-		attrExpr, err = d.table.AttributeExpression(attr.Ident)
+		attrExpr, err = d.table.AttributeExpression(attr.Ident, "")
 		if err != nil {
 			return base.SetError(err)
 		}
@@ -429,7 +470,7 @@ func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 		}
 
 		var attrExpr exp.LiteralExpression
-		attrExpr, err = d.table.AttributeExpression(attr.Ident)
+		attrExpr, err = d.table.AttributeExpression(attr.Ident, "")
 		if err != nil {
 			return base.SetError(err)
 		}
@@ -519,7 +560,7 @@ func (d *model) aggregateSql(f filter.Filter, groupBy []dal.AggregateAttr, out [
 				return d.convertQuery(c.Expression)
 			}
 
-			return d.table.AttributeExpression(c.Identifier)
+			return d.table.AttributeExpression(c.Identifier, "")
 		}
 	)
 
@@ -628,6 +669,17 @@ func (d *model) selectSql() *goqu.SelectDataset {
 	return q
 }
 
+func (d *model) joinSql(q *goqu.SelectDataset, ident string, ref *model) *goqu.SelectDataset {
+	attrExp, err := d.table.AttributeExpression(ident, "")
+	if err != nil {
+		return q.SetError(err)
+	}
+	return q.LeftJoin(
+		ref.table.Ident().As(ident),
+		exp.NewJoinOnCondition(attrExp.Eq(exp.NewIdentifierExpression("", ident, "id"))),
+	)
+}
+
 func (d *model) truncateSql() (_ *goqu.TruncateDataset) {
 	return d.dialect.GOQU().Truncate(d.table.Ident())
 }
@@ -717,4 +769,8 @@ func (d *model) pkLookupCondition(pkv dal.ValueGetter) (_ exp.Expression, err er
 	}
 
 	return cnd, nil
+}
+
+func modelRefKey(ref *dal.ModelRef) string {
+	return fmt.Sprintf("%s|%v", ref.ResourceType, ref.ResourceID)
 }

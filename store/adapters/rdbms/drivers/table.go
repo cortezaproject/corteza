@@ -15,7 +15,7 @@ type (
 		MakeScanBuffer() []any
 		Encode(r dal.ValueGetter) (_ []any, err error)
 		Decode(buf []any, r dal.ValueSetter) (err error)
-		AttributeExpression(string) (exp.LiteralExpression, error)
+		AttributeExpression(string, string) (exp.LiteralExpression, error)
 	}
 
 	// GenericTableCodec is a generic implementation of TableCodec
@@ -123,21 +123,25 @@ func (t *GenericTableCodec) Decode(buf []any, r dal.ValueSetter) (err error) {
 	return
 }
 
-func (t *GenericTableCodec) AttributeExpression(ident string) (exp.LiteralExpression, error) {
+func (t *GenericTableCodec) AttributeExpression(ident string, as string) (exp.LiteralExpression, error) {
 	attr := t.model.Attributes.FindByIdent(ident)
-
 	if attr == nil {
 		return nil, fmt.Errorf("unknown attribute %q", ident)
 	}
 
+    table := t.model.Ident
+    if as != "" {
+        table = as
+    }
+
 	switch s := attr.Store.(type) {
 	case *dal.CodecAlias:
 		// using column directly
-		return exp.NewLiteralExpression("?", exp.NewIdentifierExpression("", t.model.Ident, s.Ident)), nil
+		return exp.NewLiteralExpression("?", exp.NewIdentifierExpression("", table, s.Ident)), nil
 
 	case *dal.CodecRecordValueSetJSON:
 		// using JSON to handle embedded values
-		lit, err := t.dialect.DeepIdentJSON(exp.NewIdentifierExpression("", t.model.Ident, s.Ident), attr.Ident, 0)
+		lit, err := t.dialect.DeepIdentJSON(exp.NewIdentifierExpression("", table, s.Ident), attr.Ident, 0)
 		if err != nil {
 			return nil, err
 		}
@@ -145,7 +149,7 @@ func (t *GenericTableCodec) AttributeExpression(ident string) (exp.LiteralExpres
 		return t.dialect.AttributeCast(attr, lit)
 	}
 
-	return exp.NewLiteralExpression("?", exp.NewIdentifierExpression("", t.model.Ident, ident)), nil
+	return exp.NewLiteralExpression("?", exp.NewIdentifierExpression("", table, ident)), nil
 }
 
 func attrColumnIdent(att *dal.Attribute) string {

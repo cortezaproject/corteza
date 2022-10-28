@@ -171,7 +171,7 @@ func (c *connection) CreateModel(ctx context.Context, mm ...*dal.Model) (err err
 		}
 
 		// cache the model
-		c.models[cacheKey(m)] = Model(m, c.db, c.dialect)
+		c.models[cacheKey(m)] = Model(m, c.models, c.db, c.dialect)
 	}
 
 	return
@@ -215,7 +215,7 @@ func (c *connection) UpdateModel(ctx context.Context, old *dal.Model, new *dal.M
 	// @todo check if column exists and if it can be removed
 
 	// update the cache
-	c.models[cacheKey(new)] = Model(new, c.db, c.dialect)
+	c.models[cacheKey(new)] = Model(new, c.models, c.db, c.dialect)
 	return
 }
 
@@ -230,7 +230,7 @@ func (c *connection) UpdateModelAttribute(ctx context.Context, sch *dal.Model, o
 }
 
 func cacheKey(m *dal.Model) (key string) {
-	key = m.ResourceType + "|" + m.Resource + "|" + m.Ident
+	key = fmt.Sprintf("%s|%v", m.ResourceType, m.ResourceID)
 	if key == "" {
 		panic("can not add model without a key (combo of resource type, resource and ident)")
 	}
