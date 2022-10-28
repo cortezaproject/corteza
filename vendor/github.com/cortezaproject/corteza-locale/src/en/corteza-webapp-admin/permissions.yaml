@@ -176,9 +176,9 @@ resources:
         dal-sensitivity-level.manage:
           title: Manage connection sensitivity level
         data-privacy-requests.search:
-          title: Search connections
+          title: Search data privacy requests
         data-privacy-request.create:
-          title: Create connections
+          title: Create data privacy requests
 
     application:
       label: Applications

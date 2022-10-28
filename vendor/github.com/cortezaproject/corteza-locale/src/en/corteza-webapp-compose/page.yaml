@@ -52,3 +52,11 @@ visible: Visible
 delete:
   rebase: Update parent of sub-pages
   cascade: Delete sub-pages
+public:
+  record:
+    create:
+      title: Creating record for module "{{name}}"
+    edit:
+      title: Editing record for module "{{name}}"
+    view:
+      title: Viewing record for module "{{name}}"
