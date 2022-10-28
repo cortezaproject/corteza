@@ -58,7 +58,8 @@ Quick references:
 
 ## Upgrading Corteza
 
-[![Latest Version Card](https://img.shields.io/github/v/tag/cortezaproject/corteza-locale?label=latest%20stable%20version)](https://img.shields.io/github/v/tag/cortezaproject/corteza-locale?label=latest%20stable%20version)
+[//]: # (intentionaly using using tags from corteza server here!)
+[![Latest Version Card](https://img.shields.io/github/v/tag/cortezaproject/corteza-server?label=latest%20stable%20version)](https://img.shields.io/github/v/tag/cortezaproject/corteza-server?label=latest%20stable%20version)
 
 Refer to the [changelog](https://docs.cortezaproject.org/corteza-docs/2022.3/changelog/index.html) and the [upgrade guide](https://docs.cortezaproject.org/corteza-docs/2022.3/devops-guide/upgrade/index.html) to upgrade your Corteza instance.
 
