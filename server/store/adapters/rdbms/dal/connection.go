@@ -161,7 +161,11 @@ func (c *connection) CreateModel(ctx context.Context, mm ...*dal.Model) (err err
 	c.mux.Lock()
 	defer c.mux.Unlock()
 	for _, m := range mm {
-		err = ddl.UpdateModel(ctx, c.dataDefiner, m)
+
+        if err != nil {
+            return
+        }
+        _, err = c.dataDefiner.TableLookup(ctx, m.Ident)
 		if errors.IsNotFound(err) {
 			if err = ddl.CreateModel(ctx, c.dataDefiner, m); err != nil {
 				return
@@ -169,6 +173,9 @@ func (c *connection) CreateModel(ctx context.Context, mm ...*dal.Model) (err err
 		} else if err != nil {
 			return
 		}
+        if err=ddl.EnsureIndexes(ctx, c.dataDefiner, m.Indexes...);err!=nil{
+            return
+        }
 
 		// cache the model
 		c.models[cacheKey(m)] = Model(m, c.db, c.dialect)
