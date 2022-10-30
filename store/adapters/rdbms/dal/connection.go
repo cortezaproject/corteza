@@ -227,12 +227,66 @@ func (c *connection) UpdateModel(ctx context.Context, old *dal.Model, new *dal.M
 }
 
 // UpdateModelAttribute alters column on a db table and runs data transformations
-func (c *connection) UpdateModelAttribute(ctx context.Context, sch *dal.Model, old, new *dal.Attribute, trans ...dal.TransformationFunction) error {
-	// not raising not-supported error
-	// because we do not want to break
-	// DAL service model adding procedure
+func (c *connection) UpdateModelAttribute(ctx context.Context, sch *dal.Model,diff *dal.ModelDiff,allowDestructiveChanges bool,hasRecords bool, trans ...dal.TransformationFunction) error {
+	// @todo apply transformations
 
-	// @todo implement model column altering
+    var (
+        sampleAttribute *dal.Attribute
+        old = diff.Original
+        _new = diff.Asserted
+    )
+
+    // this is mainly for messages code-paths where we don't care which attribute provides the information
+    if old!=nil{
+        sampleAttribute =old
+    }else{
+        sampleAttribute =_new
+    }
+
+
+    if diff.Type==dal.AttributeCodecMismatch{
+        return fmt.Errorf("cannot alter storage codec of attribute %s from %v to %v. ", sampleAttribute.Ident,old.Store.Type(),_new.Store.Type())
+    }
+    // we're guaranteed by the check above that both codecs are the same
+    if sampleAttribute.Store.Type()!=(&dal.CodecPlain{}).Type(){
+        // no need to alter column since this is not a normal column. It's a value column.
+        // Don't raise not-supported error in order to keep feature parity with previous implementation.
+        // i.e. we don't want to break DAL service model adding procedure
+        return nil
+    }
+    if !allowDestructiveChanges{
+        return fmt.Errorf("cannot modify %s. Changing physical schemas is not yet supported", sampleAttribute.Ident)
+    }
+
+    // @todo don't use a string literal. Receive the name from somewhere else
+    if sch.Ident=="compose_record"{
+        return fmt.Errorf(`issue adding %s. Cannot modify the schema of the generic "compose_record" table. Try setting your table name to a non-default value`, sampleAttribute.Ident)
+    }
+
+    switch diff.Modification {
+        case dal.AttributeChanged:
+            if diff.Modification==dal.AttributeChanged{
+                // @todo implement model column altering
+                return fmt.Errorf("cannot alter %s, physical column modification is not yet supported", sampleAttribute.Ident)
+            }
+        case dal.AttributeAdded:
+            if !diff.Asserted.Type.IsNullable() && hasRecords{
+                return fmt.Errorf("cannot add non-nullable attribute %s since there are records in the table", diff.Asserted.Ident)
+            }
+            col,err:=c.dataDefiner.ConvertAttribute(_new)
+            if err!=nil{
+                return err
+            }
+            err=c.dataDefiner.ColumnAdd(ctx, sch.Ident, col)
+            if err!=nil{
+                return err
+            }
+        case dal.AttributeDeleted:
+            err:=c.dataDefiner.ColumnDrop(ctx, sch.Ident,old.StoreIdent())
+            if err!=nil{
+                return err
+            }
+    }
 	return nil
 }
 
