@@ -177,6 +177,7 @@ func (svc *queue) Update(ctx context.Context, upd *types.Queue) (q *types.Queue,
 		// Set new values after beforeCreate events are emitted
 		upd.UpdatedAt = now()
 		upd.CreatedAt = qq.CreatedAt
+		upd.DeletedAt = qq.DeletedAt
 
 		if err = store.UpdateQueue(ctx, svc.store, upd); err != nil {
 			return
