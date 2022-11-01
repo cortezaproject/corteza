@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -611,6 +612,10 @@ func updateAuthSettings(svc authServicer, current *types.AppSettings) {
 				Enforced: current.Auth.MultiFactor.EmailOTP.Enforced,
 			},
 		},
+		BackgroundUI: authSettings.BackgroundUI{
+			BackgroundImageSrcUrl: setAuthBgImageSrcUrl(current.Auth.UI.BackgroundImageSrc),
+			Styles:                setAuthBgStyles(current.Auth.UI.Styles),
+		},
 	}
 
 	for _, p := range current.Auth.External.Providers {
@@ -879,4 +884,26 @@ func setupSmtpDialer(log *zap.Logger, servers ...types.SmtpServers) {
 		},
 	)
 
+}
+
+func setAuthBgImageSrcUrl(imgAttachment string) string {
+	if imgAttachment == "" {
+		return ""
+	}
+	imgAttachmentValues := strings.Split(imgAttachment, ":")
+	imgSrcUrl := fmt.Sprintf("/api/system/%s/settings/%s/original/auth.ui.background-image-src", imgAttachmentValues[0], imgAttachmentValues[1])
+	return imgSrcUrl
+}
+
+func setAuthBgStyles(styles string) string {
+	re := regexp.MustCompile(`\{(.*?)\}`)
+
+	styles = strings.Replace(styles, "\n", "", -1)
+	matches := re.FindAllStringSubmatch(styles, -1)
+
+	if matches != nil {
+		return matches[0][1]
+	}
+
+	return ""
 }
