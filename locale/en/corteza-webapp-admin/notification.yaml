@@ -231,6 +231,10 @@ settings:
     external:
       success: External settings updated
       error: External settings update failed
+    bgScreen:
+      style:
+        success: Auth background styles updated
+        error: Auth background styles update failed
   compose:
     fetch:
       error: Compose settings fetch failed

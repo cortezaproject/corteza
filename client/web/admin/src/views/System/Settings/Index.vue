@@ -22,12 +22,22 @@
       :can-manage="canManage"
       @submit="onExternalSubmit"
     />
+
+    <c-system-editor-auth-bg-screen
+      :settings="getAuthBackground"
+      :can-manage="canManage"
+      class="mt-3"
+      @onUpload="onBackgroundImageUpload"
+      @resetAttachment="onResetBackgroundImage"
+      @submit="onAuthBackgroundSubmit"
+    />
   </b-container>
 </template>
 <script>
 import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
 import CSystemEditorAuth from 'corteza-webapp-admin/src/components/Settings/System/CSystemEditorAuth'
 import CSystemEditorExternal from 'corteza-webapp-admin/src/components/Settings/System/CSystemEditorExternal'
+import CSystemEditorAuthBgScreen from 'corteza-webapp-admin/src/components/Settings/System/CSystemEditorAuthBgScreen'
 import { mapGetters } from 'vuex'
 
 export default {
@@ -39,6 +49,7 @@ export default {
   components: {
     CSystemEditorAuth,
     CSystemEditorExternal,
+    CSystemEditorAuthBgScreen,
   },
 
   mixins: [
@@ -58,6 +69,11 @@ export default {
         processing: false,
         success: false,
       },
+
+      authBackground: {
+        processing: false,
+        success: false,
+      },
     }
   },
 
@@ -71,18 +87,13 @@ export default {
     },
 
     getAuth () {
-      if (this.settings.length > 0) {
-        return this.settings.reduce((map, obj) => {
-          const { name, value } = obj
-          const split = name.split('.')
-          if (split[0] === 'auth' && split[1] !== 'external') {
-            map[name] = value
-          }
-          return map
-        }, {})
-      }
-      return {}
+      return this.filterSettings('auth')
     },
+
+    getAuthBackground () {
+      return this.filterSettings('auth.ui')
+    },
+
   },
 
   created () {
@@ -104,6 +115,19 @@ export default {
         .finally(() => {
           this.decLoader()
         })
+    },
+
+    filterSettings (prefix) {
+      if (this.settings.length > 0) {
+        return this.settings.reduce((map, obj) => {
+          const { name, value } = obj
+          if (name.startsWith(prefix)) {
+            map[name] = value
+          }
+          return map
+        }, {})
+      }
+      return {}
     },
 
     onAuthSubmit (auth) {
@@ -130,12 +154,47 @@ export default {
       this.$SystemAPI.settingsUpdate({ values: external })
         .then(() => {
           this.animateSuccess('external')
-          this.toastSuccess(this.$t('notification:settings.system.external.success'))
+          this.toastSuccess(
+            this.$t('notification:settings.system.external.success')
+          )
         })
         .catch(this.toastErrorHandler(this.$t('notification:settings.system.external.error')))
         .finally(() => {
           this.external.processing = false
           this.fetchSettings()
+        })
+    },
+
+    onBackgroundImageUpload () {
+      this.fetchSettings()
+    },
+
+    onResetBackgroundImage (name) {
+      this.$SystemAPI.settingsUpdate({ values: [{ name, value: undefined }], upload: {} })
+        .then(() => {
+          this.fetchSettings()
+        })
+    },
+
+    onAuthBackgroundSubmit (authBackground) {
+      this.authBackground.processing = true
+
+      const values = ([
+        {
+          name: 'auth.ui.styles',
+          value: authBackground,
+        },
+      ])
+
+      this.$SystemAPI.settingsUpdate({ values })
+        .then(() => {
+          this.animateSuccess('authBackground')
+          this.toastSuccess(this.$t('notification:settings.system.bgScreen.style.success'))
+          this.$Settings.fetch()
+        })
+        .catch(this.toastErrorHandler(this.$t('notification:settings.system.bgScreen.style.error')))
+        .finally(() => {
+          this.authBackground.processing = false
         })
     },
   },

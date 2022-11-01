@@ -148,6 +148,12 @@ type (
 				FromAddress string `kv:"from-address"`
 				FromName    string `kv:"from-name"`
 			} `json:"-"`
+
+			//Auth Background Image settings
+			UI struct {
+				BackgroundImageSrc string `kv:"background-image-src" json:"backgroundImageSrc"`
+				Styles             string `kv:"styles" json:"styles"`
+			} `kv:"ui" json:"ui"`
 		} `json:"auth"`
 
 		Compose struct {

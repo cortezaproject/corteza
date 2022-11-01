@@ -12,6 +12,7 @@ type (
 		Providers                 []Provider
 		Saml                      SAML
 		MultiFactor               MultiFactor
+		BackgroundUI              BackgroundUI
 	}
 
 	SAML struct {
@@ -78,5 +79,10 @@ type (
 		RedirectUrl string
 		Secret      string
 		Scope       string
+	}
+
+	BackgroundUI struct {
+		BackgroundImageSrcUrl string
+		Styles                string
 	}
 )
