@@ -16,6 +16,7 @@
       v-if="!disabled"
       :endpoint="endpoint"
       :labels="labels"
+      :accepted-files="['image/*']"
       @upload="$emit('upload', $event)"
     />
   </b-form>

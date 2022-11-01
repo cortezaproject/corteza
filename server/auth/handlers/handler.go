@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/gob"
+	"fmt"
 	"html/template"
 	"io"
 	"net/http"
@@ -305,7 +306,7 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 	}
 }
 
-// Add alerts, settings, providers, csrf token
+// Add alerts, settings, providers, csrf token, Bg
 func (h *AuthHandlers) enrichTmplData(req *request.AuthReq) interface{} {
 	d := req.Data
 	if req.AuthUser != nil {
@@ -362,7 +363,19 @@ func (h *AuthHandlers) enrichTmplData(req *request.AuthReq) interface{} {
 	dSettings.Providers = nil
 	d["settings"] = dSettings
 
+	d["authBg"] = h.bgStylesData()
+
 	return d
+}
+
+func (h *AuthHandlers) bgStylesData() string {
+	if h.Settings.BackgroundUI.BackgroundImageSrcUrl == "" {
+		return fmt.Sprintf("background: url(%s/release-background.png) no-repeat top; %s",
+			GetLinks().Assets, h.Settings.BackgroundUI.Styles)
+	}
+
+	return fmt.Sprintf("background: url('%s') no-repeat top;  %s",
+		h.Settings.BackgroundUI.BackgroundImageSrcUrl, h.Settings.BackgroundUI.Styles)
 }
 
 // Handle successful auth (on any factor)

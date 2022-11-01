@@ -122,3 +122,15 @@ editor:
       permitted-roles:
         description: Only roles in this list will be added into security context when authenticates with this provider
         label: Permitted roles
+
+  bgScreen:
+      title: Auth Background Screen
+
+      image:
+        uploader:
+          title: Background Image
+          instructions: Click or drop background image here to upload
+          uploading: Uploading auth background image
+
+        editor:
+          title: Styles editor
