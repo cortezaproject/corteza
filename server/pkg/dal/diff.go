@@ -59,6 +59,10 @@ func (a *Model) Diff(b *Model) (out ModelDiffSet) {
 	// Deleted and update ones
 	for _, _attrA := range a.Attributes {
 		attrA := _attrA
+		// store is an interface to something that could be a pointer.
+		// we need to copy it to make sure we don't get a nil pointer
+		// make sure not to modify this since it would modify the original
+		attrA.Store = _attrA.Store
 
 		// Missmatches
 		attrBAux, ok := bIndex[attrA.Ident]
@@ -91,7 +95,6 @@ func (a *Model) Diff(b *Model) (out ModelDiffSet) {
 				Inserted:     attrBAux.attr,
 			})
 		}
-
 		if attrA.Store.Type() != attrBAux.attr.Store.Type() {
 			out = append(out, &ModelDiff{
 				Type:         AttributeCodecMismatch,
