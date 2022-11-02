@@ -21,9 +21,8 @@ type (
 		// Indexed by corresponding storeID
 		models map[uint64]ModelSet
 
-		logger                  *zap.Logger
-		inDev                   bool
-		allowDestructiveChanges bool
+		logger *zap.Logger
+		inDev  bool
 
 		sensitivityLevels *sensitivityLevelIndex
 
@@ -72,15 +71,14 @@ var (
 // New creates a DAL service with the primary connection
 //
 // It needs an established and working connection to the primary store
-func New(log *zap.Logger, inDev, allowDestructiveChanges bool) (*service, error) {
+func New(log *zap.Logger, inDev bool) (*service, error) {
 	svc := &service{
 		connections:       make(map[uint64]*ConnectionWrap),
 		models:            make(map[uint64]ModelSet),
 		sensitivityLevels: SensitivityLevelIndex(),
 
-		logger:                  log,
-		inDev:                   inDev,
-		allowDestructiveChanges: allowDestructiveChanges,
+		logger: log,
+		inDev:  inDev,
 
 		connectionIssues: make(dalIssueIndex),
 		modelIssues:      make(dalIssueIndex),
@@ -839,17 +837,9 @@ func (svc *service) ReplaceModelAttribute(ctx context.Context, model *Model, dif
 	svc.logger.Debug("updating model attribute", zap.Uint64("model", model.ResourceID))
 
 	var (
-		conn            *ConnectionWrap
-		issues          = newIssueHelper().addModel(model.ResourceID)
-		sampleAttribute *Attribute
+		conn   *ConnectionWrap
+		issues = newIssueHelper().addModel(model.ResourceID)
 	)
-	// this is mainly for messages code-paths where we don't care which attribute provides the information
-	if diff.Original != nil {
-		sampleAttribute = diff.Original
-	} else {
-		sampleAttribute = diff.Asserted
-	}
-
 	defer svc.updateIssues(issues)
 
 	if model.ConnectionID == 0 {
@@ -891,19 +881,6 @@ func (svc *service) ReplaceModelAttribute(ctx context.Context, model *Model, dif
 	if !modelIssues && !connectionIssues {
 		svc.logger.Debug("updating model attribute", zap.Uint64("connection", model.ConnectionID), zap.Uint64("model", model.ResourceID))
 
-		if diff.Type == AttributeCodecMismatch {
-			return fmt.Errorf("cannot alter storage codec of attribute %s from %v to %v. ", sampleAttribute.Ident, diff.Original.Store.Type(), diff.Asserted.Store.Type())
-		}
-		// we're guaranteed by the check above that both codecs are the same
-		if sampleAttribute.Store.Type() != (&CodecPlain{}).Type() {
-			// no need to alter column since this is not a normal column. It's a value column.
-			// Don't raise not-supported error in order to keep feature parity with previous implementation.
-			// i.e. we don't want to break DAL service model adding procedure
-			return nil
-		}
-		if !svc.allowDestructiveChanges {
-			return fmt.Errorf("cannot modify %s. Changing physical schemas is not yet supported", sampleAttribute.Ident)
-		}
 		err = conn.connection.UpdateModelAttribute(ctx, model, diff, hasRecords, trans...)
 		if err != nil {
 			issues.addModelIssue(model.ResourceID, err)

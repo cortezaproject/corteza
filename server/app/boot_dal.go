@@ -41,9 +41,7 @@ func (app *CortezaApp) initDAL(ctx context.Context, log *zap.Logger) (err error)
 	}
 
 	// Init DAL and prepare default connection
-	isDev := app.Opt.Environment.IsDevelopment()
-	allowDestructiveSchemaChanges := app.Opt.DB.AllowDestructiveSchemaChanges
-	dal.SetGlobal(dal.New(log.Named("dal"), isDev, allowDestructiveSchemaChanges))
+	dal.SetGlobal(dal.New(log.Named("dal"), app.Opt.Environment.IsDevelopment()))
 	if err = dal.Service().ReplaceConnection(ctx, cw, true); err != nil {
 		return fmt.Errorf("could not set primary connection: %w", err)
 	}
