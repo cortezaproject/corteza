@@ -860,12 +860,12 @@ func (svc *service) ReplaceModelAttribute(ctx context.Context, model *Model, dif
 		}
 
 		// In case we're deleting it we can ignore this check
-		if diff.Asserted != nil {
-			if !svc.sensitivityLevels.includes(diff.Asserted.SensitivityLevelID) {
-				issues.addModelIssue(model.ResourceID, errAttributeUpdateMissingSensitivityLevel(model.ConnectionID, model.ResourceID, diff.Asserted.SensitivityLevelID))
+		if diff.Inserted != nil {
+			if !svc.sensitivityLevels.includes(diff.Inserted.SensitivityLevelID) {
+				issues.addModelIssue(model.ResourceID, errAttributeUpdateMissingSensitivityLevel(model.ConnectionID, model.ResourceID, diff.Inserted.SensitivityLevelID))
 			} else {
-				if !svc.sensitivityLevels.isSubset(diff.Asserted.SensitivityLevelID, model.SensitivityLevelID) {
-					issues.addModelIssue(model.ResourceID, errAttributeUpdateGreaterSensitivityLevel(model.ConnectionID, model.ResourceID, diff.Asserted.SensitivityLevelID, model.SensitivityLevelID))
+				if !svc.sensitivityLevels.isSubset(diff.Inserted.SensitivityLevelID, model.SensitivityLevelID) {
+					issues.addModelIssue(model.ResourceID, errAttributeUpdateGreaterSensitivityLevel(model.ConnectionID, model.ResourceID, diff.Inserted.SensitivityLevelID, model.SensitivityLevelID))
 				}
 			}
 		}
@@ -913,7 +913,7 @@ func (svc *service) ReplaceModelAttribute(ctx context.Context, model *Model, dif
 		model = svc.FindModelByResourceID(model.ConnectionID, model.ResourceID)
 		for i, attribute := range model.Attributes {
 			if attribute.Ident == diff.Original.Ident {
-				model.Attributes[i] = diff.Asserted
+				model.Attributes[i] = diff.Inserted
 				break
 			}
 		}

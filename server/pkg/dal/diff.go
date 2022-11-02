@@ -9,8 +9,8 @@ type (
 		Modification ModelModification
 		// Original will be nil when a new attribute is being added
 		Original *Attribute
-		// Asserted will be nil wen an existing attribute is being removed
-		Asserted *Attribute
+		// Inserted will be nil wen an existing attribute is being removed
+		Inserted *Attribute
 	}
 
 	ModelDiffSet []*ModelDiff
@@ -77,7 +77,7 @@ func (a *Model) Diff(b *Model) (out ModelDiffSet) {
 				Type:         AttributeTypeMissmatch,
 				Modification: AttributeChanged,
 				Original:     attrA,
-				Asserted:     attrBAux.attr,
+				Inserted:     attrBAux.attr,
 			})
 		}
 
@@ -88,7 +88,7 @@ func (a *Model) Diff(b *Model) (out ModelDiffSet) {
 				Type:         AttributeSensitivityMismatch,
 				Modification: AttributeChanged,
 				Original:     attrA,
-				Asserted:     attrBAux.attr,
+				Inserted:     attrBAux.attr,
 			})
 		}
 
@@ -97,7 +97,7 @@ func (a *Model) Diff(b *Model) (out ModelDiffSet) {
 				Type:         AttributeCodecMismatch,
 				Modification: AttributeChanged,
 				Original:     attrA,
-				Asserted:     attrBAux.attr,
+				Inserted:     attrBAux.attr,
 			})
 		}
 	}
@@ -113,7 +113,7 @@ func (a *Model) Diff(b *Model) (out ModelDiffSet) {
 				Type:         AttributeMissing,
 				Modification: AttributeAdded,
 				Original:     nil,
-				Asserted:     attrB,
+				Inserted:     attrB,
 			})
 			continue
 		}

@@ -58,7 +58,7 @@ func TestDiff_removedAttr(t *testing.T) {
 	require.Len(t, dd, 1)
 	require.Equal(t, AttributeMissing, dd[0].Type)
 	require.NotNil(t, dd[0].Original)
-	require.Nil(t, dd[0].Asserted)
+	require.Nil(t, dd[0].Inserted)
 }
 
 func TestDiff_addedAttr(t *testing.T) {
@@ -82,5 +82,5 @@ func TestDiff_addedAttr(t *testing.T) {
 	require.Len(t, dd, 1)
 	require.Equal(t, AttributeMissing, dd[0].Type)
 	require.Nil(t, dd[0].Original)
-	require.NotNil(t, dd[0].Asserted)
+	require.NotNil(t, dd[0].Inserted)
 }

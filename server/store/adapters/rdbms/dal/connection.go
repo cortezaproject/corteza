@@ -239,10 +239,10 @@ func (c *connection) UpdateModelAttribute(ctx context.Context, sch *dal.Model, d
 	if diff.Original != nil {
 		sampleAttribute = diff.Original
 	} else {
-		sampleAttribute = diff.Asserted
+		sampleAttribute = diff.Inserted
 	}
 	if diff.Type == dal.AttributeCodecMismatch {
-		return fmt.Errorf("cannot alter storage codec of attribute %s from %v to %v. ", sampleAttribute.Ident, diff.Original.Store.Type(), diff.Asserted.Store.Type())
+		return fmt.Errorf("cannot alter storage codec of attribute %s from %v to %v. ", sampleAttribute.Ident, diff.Original.Store.Type(), diff.Inserted.Store.Type())
 	}
 	// we're guaranteed by the check above that both codecs are the same
 	if sampleAttribute.Store.Type() != (&dal.CodecPlain{}).Type() {
@@ -267,10 +267,10 @@ func (c *connection) UpdateModelAttribute(ctx context.Context, sch *dal.Model, d
 			return fmt.Errorf("cannot alter %s, physical column modification is not yet supported", sampleAttribute.Ident)
 		}
 	case dal.AttributeAdded:
-		if !diff.Asserted.Type.IsNullable() && hasRecords {
-			return fmt.Errorf("cannot add non-nullable attribute %s since there are records in the table", diff.Asserted.Ident)
+		if !diff.Inserted.Type.IsNullable() && hasRecords {
+			return fmt.Errorf("cannot add non-nullable attribute %s since there are records in the table", diff.Inserted.Ident)
 		}
-		col, err := c.dataDefiner.ConvertAttribute(diff.Asserted)
+		col, err := c.dataDefiner.ConvertAttribute(diff.Inserted)
 		if err != nil {
 			return err
 		}
