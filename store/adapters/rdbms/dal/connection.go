@@ -3,6 +3,7 @@ package dal
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"sync"
 
 	"github.com/cortezaproject/corteza-server/pkg/errors"
@@ -233,11 +234,25 @@ func (c *connection) UpdateModelAttribute(ctx context.Context, sch *dal.Model, d
 	var (
 		sampleAttribute *dal.Attribute
 	)
+
 	// this is mainly for messages code-paths where we don't care which attribute provides the information
 	if diff.Original != nil {
 		sampleAttribute = diff.Original
 	} else {
 		sampleAttribute = diff.Asserted
+	}
+	if diff.Type == dal.AttributeCodecMismatch {
+		return fmt.Errorf("cannot alter storage codec of attribute %s from %v to %v. ", sampleAttribute.Ident, diff.Original.Store.Type(), diff.Asserted.Store.Type())
+	}
+	// we're guaranteed by the check above that both codecs are the same
+	if sampleAttribute.Store.Type() != (&dal.CodecPlain{}).Type() {
+		// no need to alter column since this is not a normal column. It's a value column.
+		// Don't raise not-supported error in order to keep feature parity with previous implementation.
+		// i.e. we don't want to break DAL service model adding procedure
+		return nil
+	}
+	if !options.DB().AllowDestructiveSchemaChanges {
+		return fmt.Errorf("cannot modify %s. Changing physical schemas is not yet supported", sampleAttribute.Ident)
 	}
 
 	// @todo don't use a string literal. Receive the name from somewhere else
