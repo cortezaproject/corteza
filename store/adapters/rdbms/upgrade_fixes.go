@@ -16,6 +16,7 @@ import (
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
+	"os"
 	"strings"
 	"time"
 )
@@ -86,19 +87,31 @@ func fix_2022_09_00_addValuesOnComposeRecords(ctx context.Context, s *Store) (er
 
 func fix_2022_09_00_migrateOldComposeRecordValues(ctx context.Context, s *Store) (err error) {
 	var (
+		// default value, should be enough for most cases
+		// we'll allow users to override this value if they need to
+		// with UPGRADE_MIGRATE_OLD_COMPOSE_RECORD_VALUES_BATCH_SIZE env var
+		recordSliceSize = 1000
+
 		log = s.log(ctx)
 	)
+
 	_, err = s.DataDefiner.TableLookup(ctx, model.Record.Ident)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
+
+	}
+
+	// parse UPGRADE_MIGRATE_OLD_COMPOSE_RECORD_VALUES_BATCH_SIZE and set value to recordSliceSize if valid
+	if aux, set := os.LookupEnv("UPGRADE_MIGRATE_OLD_COMPOSE_RECORD_VALUES_BATCH_SIZE"); set {
+		if auxInt := cast.ToInt(aux); auxInt > 0 {
+			recordSliceSize = auxInt
+		}
 	}
 
 	const (
-		recordSliceSize = 1000
-
 		crvTableIdent = "compose_record_value"
 
 		recordsPerModule = `
@@ -153,6 +166,14 @@ func fix_2022_09_00_migrateOldComposeRecordValues(ctx context.Context, s *Store)
 		countRecords = 0
 	)
 
+	// parse UPGRADE_MIGRATE_OLD_COMPOSE_RECORD_VALUES_BATCH_SIZE and set value
+	// to recordSliceSize if valid
+	if aux, set := os.LookupEnv("UPGRADE_MIGRATE_OLD_COMPOSE_RECORD_VALUES_BATCH_SIZE"); set {
+		if auxInt := cast.ToInt(aux); auxInt > 0 {
+			recordSliceSize = auxInt
+		}
+	}
+
 	modules, _, err = s.SearchComposeModules(ctx, types.ModuleFilter{Deleted: filter.StateInclusive})
 	if err != nil {
 		return
@@ -162,6 +183,7 @@ func fix_2022_09_00_migrateOldComposeRecordValues(ctx context.Context, s *Store)
 		"preparing to migrate record values",
 		zap.Int("modules", len(modules)),
 		zap.Int("records", totalRecords),
+		zap.Int("batch-size", recordSliceSize),
 	)
 
 	// iterate through modules
