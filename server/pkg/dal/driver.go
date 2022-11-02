@@ -85,7 +85,7 @@ type (
 		// Specific operations require data transformations (type change).
 		// Some basic ops. should be implemented on DB driver level, but greater controll can be
 		// achieved via the trans functions.
-		UpdateModelAttribute(ctx context.Context, sch *Model, diff *ModelDiff,allowDestructiveChanges bool, hasRecords bool,trans ...TransformationFunction) error
+		UpdateModelAttribute(ctx context.Context, sch *Model, diff *ModelDiff, hasRecords bool, trans ...TransformationFunction) error
 	}
 
 	ConnectionCloser interface {
