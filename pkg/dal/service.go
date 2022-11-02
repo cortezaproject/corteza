@@ -21,9 +21,9 @@ type (
 		// Indexed by corresponding storeID
 		models map[uint64]ModelSet
 
-		logger *zap.Logger
-		inDev            bool
-        allowDestructiveChanges bool
+		logger                  *zap.Logger
+		inDev                   bool
+		allowDestructiveChanges bool
 
 		sensitivityLevels *sensitivityLevelIndex
 
@@ -45,7 +45,7 @@ type (
 		SearchModels(ctx context.Context) (out ModelSet, err error)
 		ReplaceModel(ctx context.Context, model *Model) (err error)
 		RemoveModel(ctx context.Context, connectionID, ID uint64) (err error)
-		ReplaceModelAttribute(ctx context.Context, model *Model,dif *ModelDiff, hasRecords bool,trans ...TransformationFunction) (err error)
+		ReplaceModelAttribute(ctx context.Context, model *Model, dif *ModelDiff, hasRecords bool, trans ...TransformationFunction) (err error)
 		FindModelByResourceID(connectionID uint64, resourceID uint64) *Model
 		FindModelByResourceIdent(connectionID uint64, resourceType, resourceIdent string) *Model
 		FindModelByIdent(connectionID uint64, ident string) *Model
@@ -78,9 +78,9 @@ func New(log *zap.Logger, inDev, allowDestructiveChanges bool) (*service, error)
 		models:            make(map[uint64]ModelSet),
 		sensitivityLevels: SensitivityLevelIndex(),
 
-		logger: log,
-		inDev:  inDev,
-        allowDestructiveChanges: allowDestructiveChanges,
+		logger:                  log,
+		inDev:                   inDev,
+		allowDestructiveChanges: allowDestructiveChanges,
 
 		connectionIssues: make(dalIssueIndex),
 		modelIssues:      make(dalIssueIndex),
@@ -835,15 +835,21 @@ func (svc *service) removeModelFromRegistry(model *Model) {
 // ReplaceModelAttribute adds new or updates an existing attribute for the given model
 //
 // We rely on the user to provide stable and valid attribute definitions.
-func (svc *service) ReplaceModelAttribute(ctx context.Context, model *Model, diff *ModelDiff, hasRecords bool,trans ...TransformationFunction) (err error) {
+func (svc *service) ReplaceModelAttribute(ctx context.Context, model *Model, diff *ModelDiff, hasRecords bool, trans ...TransformationFunction) (err error) {
 	svc.logger.Debug("updating model attribute", zap.Uint64("model", model.ResourceID))
 
 	var (
-		conn   *ConnectionWrap
-		issues = newIssueHelper().addModel(model.ResourceID)
-        _new   = diff.Asserted
-        old    = diff.Original
+		conn            *ConnectionWrap
+		issues          = newIssueHelper().addModel(model.ResourceID)
+		sampleAttribute *Attribute
 	)
+	// this is mainly for messages code-paths where we don't care which attribute provides the information
+	if diff.Original != nil {
+		sampleAttribute = diff.Original
+	} else {
+		sampleAttribute = diff.Asserted
+	}
+
 	defer svc.updateIssues(issues)
 
 	if model.ConnectionID == 0 {
@@ -864,12 +870,12 @@ func (svc *service) ReplaceModelAttribute(ctx context.Context, model *Model, dif
 		}
 
 		// In case we're deleting it we can ignore this check
-		if _new != nil {
-			if !svc.sensitivityLevels.includes(_new.SensitivityLevelID) {
-				issues.addModelIssue(model.ResourceID, errAttributeUpdateMissingSensitivityLevel(model.ConnectionID, model.ResourceID, _new.SensitivityLevelID))
+		if diff.Asserted != nil {
+			if !svc.sensitivityLevels.includes(diff.Asserted.SensitivityLevelID) {
+				issues.addModelIssue(model.ResourceID, errAttributeUpdateMissingSensitivityLevel(model.ConnectionID, model.ResourceID, diff.Asserted.SensitivityLevelID))
 			} else {
-				if !svc.sensitivityLevels.isSubset(_new.SensitivityLevelID, model.SensitivityLevelID) {
-					issues.addModelIssue(model.ResourceID, errAttributeUpdateGreaterSensitivityLevel(model.ConnectionID, model.ResourceID, _new.SensitivityLevelID, model.SensitivityLevelID))
+				if !svc.sensitivityLevels.isSubset(diff.Asserted.SensitivityLevelID, model.SensitivityLevelID) {
+					issues.addModelIssue(model.ResourceID, errAttributeUpdateGreaterSensitivityLevel(model.ConnectionID, model.ResourceID, diff.Asserted.SensitivityLevelID, model.SensitivityLevelID))
 				}
 			}
 		}
@@ -885,7 +891,20 @@ func (svc *service) ReplaceModelAttribute(ctx context.Context, model *Model, dif
 	if !modelIssues && !connectionIssues {
 		svc.logger.Debug("updating model attribute", zap.Uint64("connection", model.ConnectionID), zap.Uint64("model", model.ResourceID))
 
-		err = conn.connection.UpdateModelAttribute(ctx, model, diff,svc.allowDestructiveChanges,hasRecords,trans...)
+		if diff.Type == AttributeCodecMismatch {
+			return fmt.Errorf("cannot alter storage codec of attribute %s from %v to %v. ", sampleAttribute.Ident, diff.Original.Store.Type(), diff.Asserted.Store.Type())
+		}
+		// we're guaranteed by the check above that both codecs are the same
+		if sampleAttribute.Store.Type() != (&CodecPlain{}).Type() {
+			// no need to alter column since this is not a normal column. It's a value column.
+			// Don't raise not-supported error in order to keep feature parity with previous implementation.
+			// i.e. we don't want to break DAL service model adding procedure
+			return nil
+		}
+		if !svc.allowDestructiveChanges {
+			return fmt.Errorf("cannot modify %s. Changing physical schemas is not yet supported", sampleAttribute.Ident)
+		}
+		err = conn.connection.UpdateModelAttribute(ctx, model, diff, hasRecords, trans...)
 		if err != nil {
 			issues.addModelIssue(model.ResourceID, err)
 		}
@@ -899,15 +918,15 @@ func (svc *service) ReplaceModelAttribute(ctx context.Context, model *Model, dif
 	}
 
 	// Update registry
-	if old == nil {
+	if diff.Original == nil {
 		// adding
-		model.Attributes = append(model.Attributes, _new)
-	} else if _new == nil {
+		model.Attributes = append(model.Attributes, diff.Original)
+	} else if diff.Original == nil {
 		// removing
 		model = svc.FindModelByResourceID(model.ConnectionID, model.ResourceID)
 		nSet := make(AttributeSet, 0, len(model.Attributes))
 		for _, attribute := range model.Attributes {
-			if attribute.Ident != old.Ident {
+			if attribute.Ident != diff.Original.Ident {
 				nSet = append(nSet, attribute)
 			}
 		}
@@ -916,8 +935,8 @@ func (svc *service) ReplaceModelAttribute(ctx context.Context, model *Model, dif
 		// updating
 		model = svc.FindModelByResourceID(model.ConnectionID, model.ResourceID)
 		for i, attribute := range model.Attributes {
-			if attribute.Ident == old.Ident {
-				model.Attributes[i] = _new
+			if attribute.Ident == diff.Original.Ident {
+				model.Attributes[i] = diff.Asserted
 				break
 			}
 		}

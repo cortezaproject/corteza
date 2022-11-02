@@ -12,7 +12,7 @@ type (
 		SearchModels(ctx context.Context) (out dal.ModelSet, err error)
 		ReplaceModel(ctx context.Context, model *dal.Model) (err error)
 		RemoveModel(ctx context.Context, connectionID, ID uint64) (err error)
-		ReplaceModelAttribute(ctx context.Context, model *dal.Model, diff *dal.ModelDiff,hasRecords bool, trans ...dal.TransformationFunction) (err error)
+		ReplaceModelAttribute(ctx context.Context, model *dal.Model, diff *dal.ModelDiff, hasRecords bool, trans ...dal.TransformationFunction) (err error)
 
 		GetConnectionByID(uint64) *dal.ConnectionWrap
 

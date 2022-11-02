@@ -2,30 +2,28 @@ package dal
 
 type (
 	modelDiffType     string
-    ModelModification string
+	ModelModification string
 	// ModelDiff defines one identified missmatch between two models
 	ModelDiff struct {
 		Type         modelDiffType
-        Modification ModelModification
-        // Original will be nil when a new attribute is being added
+		Modification ModelModification
+		// Original will be nil when a new attribute is being added
 		Original *Attribute
 		// Asserted will be nil wen an existing attribute is being removed
 		Asserted *Attribute
 	}
 
 	ModelDiffSet []*ModelDiff
-
-    ModelDiffMap map[ModelModification]ModelDiffSet
 )
 
 const (
-	AttributeMissing              modelDiffType = "attributeMissing"
-	AttributeTypeMissmatch       modelDiffType = "typeMissmatch"
-	AttributeSensitivityMismatch modelDiffType = "sensitivityMismatch"
-	AttributeCodecMismatch modelDiffType     = "sensitivityMismatch"
-    AttributeDeleted       ModelModification = "deleted"
-    AttributeAdded         ModelModification = "added"
-    AttributeChanged       ModelModification = "changed"
+	AttributeMissing             modelDiffType     = "attributeMissing"
+	AttributeTypeMissmatch       modelDiffType     = "typeMissmatch"
+	AttributeSensitivityMismatch modelDiffType     = "sensitivityMismatch"
+	AttributeCodecMismatch       modelDiffType     = "sensitivityMismatch"
+	AttributeDeleted             ModelModification = "deleted"
+	AttributeAdded               ModelModification = "added"
+	AttributeChanged             ModelModification = "changed"
 )
 
 // Diff calculates the diff between models a and b where a is used as base
@@ -67,8 +65,8 @@ func (a *Model) Diff(b *Model) (out ModelDiffSet) {
 		if !ok {
 			out = append(out, &ModelDiff{
 				Type:         AttributeMissing,
-                Modification: AttributeDeleted,
-                Original:     attrA,
+				Modification: AttributeDeleted,
+				Original:     attrA,
 			})
 			continue
 		}
@@ -77,8 +75,8 @@ func (a *Model) Diff(b *Model) (out ModelDiffSet) {
 		if attrA.Type.Type() != attrBAux.attr.Type.Type() {
 			out = append(out, &ModelDiff{
 				Type:         AttributeTypeMissmatch,
-                Modification: AttributeChanged,
-                Original:     attrA,
+				Modification: AttributeChanged,
+				Original:     attrA,
 				Asserted:     attrBAux.attr,
 			})
 		}
@@ -88,20 +86,20 @@ func (a *Model) Diff(b *Model) (out ModelDiffSet) {
 		if attrA.SensitivityLevelID != attrBAux.attr.SensitivityLevelID {
 			out = append(out, &ModelDiff{
 				Type:         AttributeSensitivityMismatch,
-                Modification: AttributeChanged,
-                Original:     attrA,
+				Modification: AttributeChanged,
+				Original:     attrA,
 				Asserted:     attrBAux.attr,
 			})
 		}
 
-        if attrA.Store.Type() != attrBAux.attr.Store.Type() {
-            out = append(out, &ModelDiff{
-                Type:         AttributeCodecMismatch,
-                Modification: AttributeChanged,
-                Original:     attrA,
-                Asserted:     attrBAux.attr,
-            })
-        }
+		if attrA.Store.Type() != attrBAux.attr.Store.Type() {
+			out = append(out, &ModelDiff{
+				Type:         AttributeCodecMismatch,
+				Modification: AttributeChanged,
+				Original:     attrA,
+				Asserted:     attrBAux.attr,
+			})
+		}
 	}
 
 	// New
@@ -113,8 +111,8 @@ func (a *Model) Diff(b *Model) (out ModelDiffSet) {
 		if !ok {
 			out = append(out, &ModelDiff{
 				Type:         AttributeMissing,
-                Modification: AttributeAdded,
-                Original:     nil,
+				Modification: AttributeAdded,
+				Original:     nil,
 				Asserted:     attrB,
 			})
 			continue
@@ -122,20 +120,4 @@ func (a *Model) Diff(b *Model) (out ModelDiffSet) {
 	}
 
 	return
-}
-
-// DiffAsMap calculates the diff between models a and b where a is used as base.
-// The output is a map that represents the differences as ModelDiffSet's
-func (a *Model) DiffAsMap(b *Model) (out ModelDiffMap) {
-    out= map[ModelModification]ModelDiffSet{
-        AttributeAdded:   {},
-        AttributeDeleted: {},
-        AttributeChanged: {},
-    }
-
-    diff:=a.Diff(b)
-    for _,d:=range diff{
-        out[d.Modification] = append(out[d.Modification],d)
-    }
-    return
 }
