@@ -7,7 +7,7 @@ import (
 
 var (
 	CheckID          = exp.NewLiteralExpression(`'^[0-9]+$'`)
-	CheckNumber      = exp.NewLiteralExpression(`'^[0-9]+(\.[0-9])*$'`)
+    CheckNumber      = exp.NewLiteralExpression(`'^[0-9]+(\.[0-9]+)?$'`)
 	CheckFullISO8061 = exp.NewLiteralExpression(`'^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2}(?:\.[0-9]*)?)((-([0-9]{2}):([0-9]{2})|Z)?)$'`)
 	CheckDateISO8061 = exp.NewLiteralExpression(`'^([0-9]{4})-([0-9]{2})-([0-9]{2})(T([0-9]{2}):([0-9]{2}):([0-9]{2}(?:\.[0-9]*)?)((-([0-9]{2}):([0-9]{2})|Z)?))?$'`)
 	CheckTimeISO8061 = exp.NewLiteralExpression(`'^(([0-9]{4})-([0-9]{2})-([0-9]{2}))?T([0-9]{2}):([0-9]{2}):([0-9]{2}(?:\.[0-9]*)?)((-([0-9]{2}):([0-9]{2})|Z)?)$'`)
