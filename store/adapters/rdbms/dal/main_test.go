@@ -35,10 +35,7 @@ func TestMain(m *testing.M) {
 	)
 
 	if len(dsn) == 0 {
-		// a temporary solution to make sure all tests are ran inside sqlite
 		dsn = "sqlite3+debug://file::memory:?cache=shared&mode=memory"
-		//fmt.Fprintln(os.Stderr, "can not run store/adapters/rdbms/dal tests without DB_DSN, skip")
-		//return
 	}
 
 	// ctx = logger.ContextWithValue(context.Background(), log)
