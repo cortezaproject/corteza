@@ -132,6 +132,7 @@ type (
 		ReportID []uint64 `json:"reportID"`
 
 		Handle string `json:"handle"`
+		Query  string `json:"query"`
 
 		Deleted filter.State `json:"deleted"`
 

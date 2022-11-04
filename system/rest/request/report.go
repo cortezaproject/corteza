@@ -42,6 +42,11 @@ type (
 		// Report handle
 		Handle string
 
+		// Query GET parameter
+		//
+		// Report query
+		Query string
+
 		// Deleted GET parameter
 		//
 		// Exclude (0, default), include (1) or return only (2) deleted reports
@@ -202,6 +207,7 @@ func NewReportList() *ReportList {
 func (r ReportList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"handle":     r.Handle,
+		"query":      r.Query,
 		"deleted":    r.Deleted,
 		"labels":     r.Labels,
 		"limit":      r.Limit,
@@ -214,6 +220,11 @@ func (r ReportList) Auditable() map[string]interface{} {
 // Auditable returns all auditable/loggable parameters
 func (r ReportList) GetHandle() string {
 	return r.Handle
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ReportList) GetQuery() string {
+	return r.Query
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -255,6 +266,12 @@ func (r *ReportList) Fill(req *http.Request) (err error) {
 
 		if val, ok := tmp["handle"]; ok && len(val) > 0 {
 			r.Handle, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["query"]; ok && len(val) > 0 {
+			r.Query, err = val[0], nil
 			if err != nil {
 				return err
 			}
