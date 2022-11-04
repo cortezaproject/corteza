@@ -1645,6 +1645,10 @@ endpoints:
         required: false
         title: Report handle
         type: string
+      - name: query
+        required: false
+        title: Report query
+        type: string
       - name: deleted
         required: false
         title: Exclude (0, default), include (1) or return only (2) deleted reports

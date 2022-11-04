@@ -72,6 +72,7 @@ func (ctrl *Report) List(ctx context.Context, r *request.ReportList) (interface{
 		err error
 		f   = types.ReportFilter{
 			Handle:  r.Handle,
+			Query:   r.Query,
 			Labels:  r.Labels,
 			Deleted: filter.State(r.Deleted),
 		}

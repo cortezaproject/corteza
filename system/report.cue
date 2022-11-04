@@ -47,6 +47,7 @@ report: {
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
 
+		query: ["handle"]
 		byValue: ["handle", "report_id"]
 		byNilState: ["deleted"]
 	}
