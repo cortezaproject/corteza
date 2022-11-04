@@ -167,6 +167,13 @@ func connect(ctx context.Context, log *zap.Logger, isDevelopment bool, cp Connec
 	if cp.Type != "corteza::dal:connection:dsn" {
 		return nil, fmt.Errorf("cannot open connection: only DSN connections supported (got: %q)", cp.Type)
 	}
+	if cp.Params == nil {
+		return nil, fmt.Errorf("cannot open connection: connection parameters not defined")
+	}
+	if _, ok := cp.Params["dsn"]; !ok {
+		return nil, fmt.Errorf("cannot open connection: DSN not provided")
+	}
+
 	dsn := cp.Params["dsn"].(string)
 
 	if isDevelopment {
