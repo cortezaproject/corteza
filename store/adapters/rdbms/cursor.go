@@ -209,8 +209,8 @@ func (c *cursorCondition) sql() (cnd string, err error) {
 // check (on app-side) if value is nil to replace "? IS (NOT) NULL" check with TRUE/FALSE constants.
 func CursorExpression(
 	cur *filter.PagingCursor,
-	identLookup func(i string) (exp.LiteralExpression, error),
-	castFn func(i string, val any) (exp.LiteralExpression, error),
+	identLookup func(i string) (exp.Expression, error),
+	castFn func(i string, val any) (exp.Expression, error),
 ) (e exp.Expression, err error) {
 	var (
 		cc = cur.Keys()
@@ -218,7 +218,7 @@ func CursorExpression(
 
 		value any
 
-		ident exp.LiteralExpression
+		ident exp.Expression
 
 		ltOp = map[bool]exp.BooleanOperation{
 			true:  exp.LtOp,
@@ -244,7 +244,7 @@ func CursorExpression(
 			return false
 		}
 
-		isValueNull = func(i int, neg bool) exp.LiteralExpression {
+		isValueNull = func(i int, neg bool) exp.Expression {
 			if (nilCheck(vv[i]) && !neg) || (!nilCheck(vv[i]) && neg) {
 				return exp.NewLiteralExpression("TRUE")
 			}
