@@ -395,14 +395,14 @@ func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 		// 	continue
 		// }
 
-		var attrExpr exp.LiteralExpression
+		var attrExpr exp.Expression
 		attrExpr, err = d.table.AttributeExpression(attr.Ident)
 		if err != nil {
 			return base.SetError(err)
 		}
 
 		if len(vv) > 0 {
-			cnd = append(cnd, attrExpr.In(vv...))
+			cnd = append(cnd, exp.NewBooleanExpression(exp.InOp, attrExpr, vv))
 		}
 	}
 
@@ -428,7 +428,7 @@ func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 			continue
 		}
 
-		var attrExpr exp.LiteralExpression
+		var attrExpr exp.Expression
 		attrExpr, err = d.table.AttributeExpression(attr.Ident)
 		if err != nil {
 			return base.SetError(err)
@@ -437,11 +437,11 @@ func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 		switch state {
 		case filter.StateExclusive:
 			// only not-null values
-			cnd = append(cnd, attrExpr.IsNotNull())
+			cnd = append(cnd, exp.NewBooleanExpression(exp.IsNotOp, attrExpr, nil))
 
 		case filter.StateExcluded:
 			// exclude all non-null values
-			cnd = append(cnd, attrExpr.IsNull())
+			cnd = append(cnd, exp.NewBooleanExpression(exp.IsOp, attrExpr, nil))
 		}
 	}
 
@@ -452,20 +452,20 @@ func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 		}
 
 		var (
-			metaKeyExpr   exp.LiteralExpression
+			metaKeyExpr   exp.Expression
 			metaAttrIdent = exp.NewIdentifierExpression("", d.model.Ident, attr.Ident)
 		)
 
 		for mKey, mVal := range f.MetaConstraints() {
-			metaKeyExpr, err = d.dialect.DeepIdentJSON(metaAttrIdent, mKey)
+			metaKeyExpr, err = d.dialect.JsonExtractUnquote(metaAttrIdent, mKey)
 			if err != nil {
 				return base.SetError(err)
 			}
 
 			if reflect2.IsNil(mVal) {
-				cnd = append(cnd, metaKeyExpr.IsNotNull())
+				cnd = append(cnd, exp.NewBooleanExpression(exp.IsNotOp, metaKeyExpr, nil))
 			} else {
-				cnd = append(cnd, metaKeyExpr.Eq(mVal))
+				cnd = append(cnd, exp.NewBooleanExpression(exp.EqOp, metaKeyExpr, mVal))
 			}
 		}
 	}

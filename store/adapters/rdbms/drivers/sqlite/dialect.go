@@ -46,8 +46,29 @@ func (d sqliteDialect) IndexFieldModifiers(attr *dal.Attribute, mm ...dal.IndexF
 	return drivers.IndexFieldModifiers(attr, d.QuoteIdent, mm...)
 }
 
-func (sqliteDialect) DeepIdentJSON(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression, error) {
-	return drivers.DeepIdentJSON(ident, pp...), nil
+func (sqliteDialect) JsonExtract(ident exp.Expression, pp ...any) (exp.Expression, error) {
+	return DeepIdentJSON(true, ident, pp...), nil
+}
+
+func (sqliteDialect) JsonExtractUnquote(ident exp.Expression, pp ...any) (exp.Expression, error) {
+	return DeepIdentJSON(false, ident, pp...), nil
+}
+
+// JsonArrayContains prepares SQLite compatible comparison of value and JSON array
+//
+// # literal value = multi-value field / plain
+// # multi-value field = single-value field / plain
+//
+// 'aaa' in (select value from json_each(v->'f2'))
+//
+// # single-value field = multi-value field / plain
+// # multi-value field = single-value field / plain
+// json_extract(v, '$.f3[0]') in (select value from json_each(v->'f2'));
+//
+// Unfortunately SQLite converts boolean values into 0 and 1 when decoding from
+// JSON and we need a special handler for that.
+func (sqliteDialect) JsonArrayContains(needle, haystack exp.Expression) (exp.Expression, error) {
+	return exp.NewLiteralExpression("JSON_ARRAY_CONTAINS(?, ?)", needle, haystack), nil
 }
 
 func (d sqliteDialect) TableCodec(m *dal.Model) drivers.TableCodec {
@@ -68,7 +89,7 @@ func (d sqliteDialect) TypeWrap(dt dal.Type) drivers.Type {
 	return drivers.TypeWrap(dt)
 }
 
-func (sqliteDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpression) (exp.LiteralExpression, error) {
+func (sqliteDialect) AttributeCast(attr *dal.Attribute, val exp.Expression) (exp.Expression, error) {
 	var (
 		c exp.CastExpression
 	)
@@ -76,12 +97,12 @@ func (sqliteDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpressio
 	switch attr.Type.(type) {
 	case *dal.TypeDate:
 		ce := exp.NewCaseExpression().
-			When(val.RegexpLike(drivers.CheckDateISO8061), val).
+			When(drivers.RegexpLike(drivers.CheckDateISO8061, val), val).
 			Else(drivers.LiteralNULL)
 
 		// if we cast to DATE result value is treated like number (int64) and
 		// we only get the year part. So we need to cast to TEXT first
-		// and the the full-date is parsed into time.Time
+		// and the full-date is parsed into time.Time
 		c = exp.NewCastExpression(ce, "TEXT")
 	default:
 		return drivers.AttributeCast(attr, val)

@@ -313,14 +313,19 @@ func DefaultFilters() (f *extendedFilters) {
 
 		if f.SubWorkflow != filter.StateInclusive {
 			vattr := &dal.Attribute{Type: &dal.TypeBoolean{}}
-			litexp, _ := s.Dialect.DeepIdentJSON(goqu.C("meta"), "subWorkflow")
-			litexp, _ = s.Dialect.AttributeCast(vattr, litexp)
+			expr, _ := s.Dialect.JsonExtractUnquote(goqu.C("meta"), "subWorkflow")
+			expr, _ = s.Dialect.AttributeCast(vattr, expr)
 
 			switch f.SubWorkflow {
 			case filter.StateExcluded:
-				ee = append(ee, goqu.Or(litexp.IsFalse(), litexp.IsNull()))
+				ee = append(ee, goqu.Or(
+					exp.NewBooleanExpression(exp.EqOp, expr, false),
+					exp.NewBooleanExpression(exp.IsOp, expr, nil),
+				))
 			case filter.StateExclusive:
-				ee = append(ee, litexp.IsTrue())
+				ee = append(ee,
+					exp.NewBooleanExpression(exp.EqOp, expr, true),
+				)
 			}
 		}
 
