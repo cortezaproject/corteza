@@ -38,6 +38,10 @@ var (
 				return
 			}
 
+			if err = conn.RegisterFunc("json_array_contains", sqliteFuncJsonArrayContains, true); err != nil {
+				return
+			}
+
 			return
 		},
 	}
@@ -46,7 +50,7 @@ var (
 func init() {
 	// register alter driver
 	sql.Register(altSchema, customDriver)
-	// register drbug driver
+	// register debug driver
 	sql.Register(debugSchema, sqlmw.Driver(customDriver, instrumentation.Debug()))
 
 	store.Register(Connect, SCHEMA, altSchema, debugSchema)
@@ -86,7 +90,7 @@ func Connect(ctx context.Context, dsn string) (_ store.Storer, err error) {
 }
 
 func ConnectInMemory(ctx context.Context) (s store.Storer, err error) {
-	return Connect(ctx, SCHEMA+"://file::memory:?cache=shared&mode=memory")
+	return Connect(ctx, altSchema+"://file::memory:?cache=shared&mode=memory")
 }
 
 func ConnectInMemoryWithDebug(ctx context.Context) (s store.Storer, err error) {
