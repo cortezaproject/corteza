@@ -10,7 +10,20 @@ import (
 )
 
 type (
+	Nuances struct {
+		// HavingClauseMustUseAlias
+		// For example, Postgres and SQLite require
+		// use of aliases inside HAVING clause and
+		// MySQL does not.
+		HavingClauseMustUseAlias bool
+	}
+
 	Dialect interface {
+		// Nuances returns dialect nuances
+		// subtle differences between RDBMS implementations that
+		// should be handled on common code
+		Nuances() Nuances
+
 		// GOQU returns goqu's dialect wrapper struct
 		GOQU() goqu.DialectWrapper
 

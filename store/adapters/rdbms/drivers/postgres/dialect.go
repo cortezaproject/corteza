@@ -22,10 +22,18 @@ var (
 	dialect            = &postgresDialect{}
 	goquDialectWrapper = goqu.Dialect("postgres")
 	quoteIdent         = string(postgres.DialectOptions().QuoteRune)
+
+	nuances = drivers.Nuances{
+		HavingClauseMustUseAlias: true,
+	}
 )
 
 func Dialect() *postgresDialect {
 	return dialect
+}
+
+func (postgresDialect) Nuances() drivers.Nuances {
+	return nuances
 }
 
 func (postgresDialect) GOQU() goqu.DialectWrapper  { return goquDialectWrapper }

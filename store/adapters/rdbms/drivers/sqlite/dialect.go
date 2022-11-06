@@ -23,6 +23,10 @@ var (
 	dialect            = &sqliteDialect{}
 	goquDialectWrapper = goqu.Dialect("sqlite3")
 	quoteIdent         = string(sqlite3.DialectOptions().QuoteRune)
+
+	nuances = drivers.Nuances{
+		HavingClauseMustUseAlias: true,
+	}
 )
 
 func init() {
@@ -37,6 +41,10 @@ func init() {
 
 func Dialect() *sqliteDialect {
 	return dialect
+}
+
+func (sqliteDialect) Nuances() drivers.Nuances {
+	return nuances
 }
 
 func (sqliteDialect) GOQU() goqu.DialectWrapper  { return goquDialectWrapper }

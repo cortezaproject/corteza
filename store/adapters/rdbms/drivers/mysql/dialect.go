@@ -22,10 +22,18 @@ var (
 	dialect            = &mysqlDialect{}
 	goquDialectWrapper = goqu.Dialect("mysql")
 	quoteIdent         = string(mysql.DialectOptions().QuoteRune)
+
+	nuances = drivers.Nuances{
+		HavingClauseMustUseAlias: false,
+	}
 )
 
 func Dialect() *mysqlDialect {
 	return dialect
+}
+
+func (mysqlDialect) Nuances() drivers.Nuances {
+	return nuances
 }
 
 func (mysqlDialect) GOQU() goqu.DialectWrapper  { return goquDialectWrapper }
