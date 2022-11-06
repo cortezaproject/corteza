@@ -34,7 +34,7 @@ var (
 	customDriver = &sqlite3.SQLiteDriver{
 		ConnectHook: func(conn *sqlite3.SQLiteConn) (err error) {
 			// register regexp function and use Go's regexp fn
-			if err = conn.RegisterFunc("regexp", regexp.MatchString, true); err != nil {
+			if err = conn.RegisterFunc("regexp", fnRegExp, true); err != nil {
 				return
 			}
 
@@ -46,6 +46,11 @@ var (
 		},
 	}
 )
+
+func fnRegExp(pattern string, s string) (matched bool, err error) {
+	matched, err = regexp.MatchString(pattern, s)
+	return
+}
 
 func init() {
 	// register alter driver
