@@ -18,7 +18,8 @@ import (
 )
 
 type (
-	kv map[string]any
+	kv  map[string]any
+	kvv map[string][]any
 )
 
 var (
@@ -71,6 +72,64 @@ func (r kv) SetValue(k string, place uint, v any) error {
 
 // String function returns string representation of the kv with sorted keys
 func (r kv) String() string {
+	// sort keys from map
+	keys := make([]string, 0, len(r))
+	for k := range r {
+		keys = append(keys, k)
+	}
+
+	sort.Strings(keys)
+
+	// build string by iterating over sorted keys and appending values
+	var out string
+	for i, k := range keys {
+		if i > 0 {
+			out += " "
+		}
+
+		out += fmt.Sprintf("%s=%v", k, r[k])
+	}
+
+	return out
+}
+
+func (r kvv) Set(k string, v ...any) kvv {
+	r[k] = v
+	return r
+}
+
+func (r kvv) CountValues() map[string]uint {
+	out := make(map[string]uint)
+
+	for k := range r {
+		out[k] = uint(len(r[k]))
+	}
+
+	return out
+}
+
+func (r kvv) GetValue(k string, p uint) (any, error) {
+	if r[k] == nil || len(r[k]) <= int(p) {
+		return nil, fmt.Errorf("kvv: out of bounds")
+	}
+
+	return r[k][p], nil
+}
+
+func (r kvv) SetValue(k string, p uint, v any) error {
+	if r[k] == nil {
+		r[k] = make([]any, 0, 1)
+	} else if len(r[k]) < int(p) {
+		r[k][p] = v
+	} else {
+		r[k] = append(r[k], v)
+	}
+
+	return nil
+}
+
+// String function returns string representation of the kv with sorted keys
+func (r kvv) String() string {
 	// sort keys from map
 	keys := make([]string, 0, len(r))
 	for k := range r {

@@ -80,12 +80,19 @@ func (d postgresDialect) TypeWrap(dt dal.Type) drivers.Type {
 
 func (postgresDialect) AttributeCast(attr *dal.Attribute, val exp.Expression) (exp.Expression, error) {
 	var (
-		c exp.CastExpression
+		c exp.Expression
 	)
 
 	switch attr.Type.(type) {
 	case *dal.TypeText:
 		c = exp.NewCastExpression(val, "TEXT")
+
+	case *dal.TypeBoolean:
+		// convert to text first
+		c = exp.NewCastExpression(val, "TEXT")
+
+		// compare to text repr of true
+		c = exp.NewBooleanExpression(exp.EqOp, c, exp.NewLiteralExpression(`true::TEXT`))
 
 	default:
 		return drivers.AttributeCast(attr, val)

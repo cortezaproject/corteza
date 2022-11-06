@@ -103,6 +103,9 @@ func (sqliteDialect) AttributeCast(attr *dal.Attribute, val exp.Expression) (exp
 	)
 
 	switch attr.Type.(type) {
+	case *dal.TypeNumber:
+		c = exp.NewCastExpression(val, "NUMERIC")
+
 	case *dal.TypeDate:
 		ce := exp.NewCaseExpression().
 			When(drivers.RegexpLike(drivers.CheckDateISO8061, val), val).
