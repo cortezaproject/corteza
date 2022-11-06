@@ -127,11 +127,7 @@ func (sqliteDialect) AttributeCast(attr *dal.Attribute, val exp.Expression) (exp
 		c = exp.NewSQLFunctionExpression("strftime", "%Y-%m-%d", val)
 
 	case *dal.TypeNumber:
-		ce := exp.NewCaseExpression().
-			When(drivers.RegexpLike(drivers.CheckNumber, val), val).
-			Else(drivers.LiteralNULL)
-
-		c = exp.NewCastExpression(ce, "NUMERIC")
+		c = exp.NewCastExpression(val, "NUMERIC")
 
 	default:
 		return drivers.AttributeCast(attr, val)

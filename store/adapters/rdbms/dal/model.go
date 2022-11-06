@@ -573,9 +573,14 @@ func (d *model) aggregateSql(f filter.Filter, groupBy []dal.AggregateAttr, out [
 			converter = ql.Converter(
 				ql.SymHandler(func(node *ql.ASTNode) (exp.Expression, error) {
 					sym := dal.NormalizeAttrNames(node.Symbol)
+
 					if a2expr[sym] != nil {
-						// is aliased expression?
-						return a2expr[sym], nil
+						if d.dialect.Nuances().HavingClauseMustUseAlias {
+							// is aliased expression?
+							return a2expr[sym], nil
+						} else {
+							return exp.NewIdentifierExpression("", "", sym), nil
+						}
 					}
 
 					// if not, use the default handler
