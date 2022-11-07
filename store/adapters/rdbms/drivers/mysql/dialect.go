@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ql"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
@@ -41,6 +42,14 @@ func (mysqlDialect) QuoteIdent(i string) string { return quoteIdent + i + quoteI
 
 func (d mysqlDialect) IndexFieldModifiers(attr *dal.Attribute, mm ...dal.IndexFieldModifier) (string, error) {
 	return drivers.IndexFieldModifiers(attr, d.QuoteIdent, mm...)
+}
+
+func (d mysqlDialect) JsonQuote(expr exp.Expression) exp.Expression {
+	return exp.NewSQLFunctionExpression(
+		"JSON_EXTRACT",
+		exp.NewSQLFunctionExpression("JSON_ARRAY", expr),
+		exp.NewLiteralExpression("'$[0]'"),
+	)
 }
 
 func (d mysqlDialect) JsonExtract(jsonDoc exp.Expression, pp ...any) (path exp.Expression, err error) {
@@ -146,10 +155,6 @@ func (mysqlDialect) AttributeCast(attr *dal.Attribute, val exp.Expression) (exp.
 	return exp.NewLiteralExpression("?", c), nil
 }
 
-func (mysqlDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (exp.Expression, error) {
-	return ql.DefaultRefHandler(n, args...)
-}
-
 func (mysqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err error) {
 	col = &ddl.Column{
 		Ident:   attr.StoreIdent(),
@@ -216,6 +221,18 @@ func (mysqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err
 	}
 
 	return
+}
+
+func (d mysqlDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (expr exp.Expression, err error) {
+	switch ref := strings.ToLower(n.Ref); ref {
+	case "in":
+		return drivers.OpHandlerIn(d, n, args...)
+
+	case "nin":
+		return drivers.OpHandlerNotIn(d, n, args...)
+	}
+
+	return ql.DefaultRefHandler(n, args...)
 }
 
 func (d mysqlDialect) OrderedExpression(expr exp.Expression, dir exp.SortDirection, _ exp.NullSortType) exp.OrderedExpression {

@@ -89,7 +89,7 @@ func (TokenConsumerIdent) Consume(s RuneReader) Token {
 		return Token{code: LNULL}
 	case "TRUE", "FALSE":
 		return Token{code: LBOOL, literal: lit}
-	case "IS", "LIKE", "NOT", "AND", "OR", "XOR":
+	case "IS", "LIKE", "NOT", "AND", "OR", "XOR", "IN":
 		return Token{code: OPERATOR, literal: lit}
 	case "DESC", "ASC", "INTERVAL":
 		return Token{code: KEYWORD, literal: lit}

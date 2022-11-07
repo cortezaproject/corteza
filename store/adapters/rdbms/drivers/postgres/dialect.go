@@ -10,6 +10,7 @@ import (
 	"github.com/doug-martin/goqu/v9/dialect/postgres"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/spf13/cast"
+	"strings"
 )
 
 type (
@@ -41,6 +42,10 @@ func (postgresDialect) QuoteIdent(i string) string { return quoteIdent + i + quo
 
 func (d postgresDialect) IndexFieldModifiers(attr *dal.Attribute, mm ...dal.IndexFieldModifier) (string, error) {
 	return drivers.IndexFieldModifiers(attr, d.QuoteIdent, mm...)
+}
+
+func (d postgresDialect) JsonQuote(expr exp.Expression) exp.Expression {
+	return exp.NewSQLFunctionExpression("TO_JSON", expr)
 }
 
 func (d postgresDialect) JsonExtract(ident exp.Expression, pp ...any) (exp.Expression, error) {
@@ -201,7 +206,25 @@ func (postgresDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, 
 	return
 }
 
-func (postgresDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (exp.Expression, error) {
+func (d postgresDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (expr exp.Expression, err error) {
+	switch ref := strings.ToLower(n.Ref); ref {
+	case "concat":
+		// need to force text type on all arguments
+		aa := make([]any, len(args))
+		for a := range args {
+			aa[a] = exp.NewCastExpression(exp.NewLiteralExpression("?", args[a]), "TEXT")
+		}
+
+		return exp.NewSQLFunctionExpression("CONCAT", aa...), nil
+
+	case "in":
+		return drivers.OpHandlerIn(d, n, args...)
+
+	case "nin":
+		return drivers.OpHandlerNotIn(d, n, args...)
+
+	}
+
 	return ref2exp.RefHandler(n, args...)
 }
 
