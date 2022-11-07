@@ -96,9 +96,14 @@ func InitTestApp() {
 			return nil
 		})
 
+		if err := store.TruncateUsers(context.Background(), service.DefaultStore); err != nil {
+			panic(fmt.Errorf("could not cleanup users: %v", err))
+		}
+
 		if err := testApp.Activate(ctx); err != nil {
 			panic(fmt.Errorf("could not activate corteza: %v", err))
 		}
+
 	}
 
 	hh = &handlers.AuthHandlers{
@@ -146,9 +151,10 @@ func newHelper(_ require.TestingT, a *require.Assertions) helper {
 
 	if testUser == nil {
 		testUser = &types.User{
-			Handle: "test_user",
-			Name:   "test_user",
-			ID:     id.Next(),
+			Handle:    "test_user",
+			Name:      "test_user",
+			ID:        id.Next(),
+			CreatedAt: time.Now(),
 		}
 
 		err := store.CreateUser(ctx, service.DefaultStore, testUser)
