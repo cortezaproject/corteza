@@ -150,7 +150,7 @@ func (r Record) Clone() *Record {
 
 func (r *Record) GetValue(name string, pos uint) (any, error) {
 	switch name {
-	case "ID":
+	case "ID", "id", "recordID":
 		return r.ID, nil
 	case "moduleID":
 		return r.ModuleID, nil

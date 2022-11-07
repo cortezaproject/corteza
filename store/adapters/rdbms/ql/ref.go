@@ -225,6 +225,16 @@ var (
 				return exp.NewSQLFunctionExpression("DATE", args[0])
 			},
 		},
+		"timestamp": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewLiteralExpression("TIMESTAMP(?)", args[0])
+			},
+		},
+		"time": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewLiteralExpression("TIME(?)", args[0])
+			},
+		},
 		"count": {
 			Handler: func(args ...exp.Expression) exp.Expression {
 				var arg exp.Expression = exp.NewLiteralExpression("*")

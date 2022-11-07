@@ -10,6 +10,18 @@ import (
 
 var (
 	ref2exp = ql.ExprHandlerMap{
+		"concat": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				// need to force text type on all arguments
+				aa := make([]any, len(args))
+				for a := range args {
+					aa[a] = exp.NewCastExpression(exp.NewLiteralExpression("?", args[a]), "TEXT")
+				}
+
+				return exp.NewSQLFunctionExpression("CONCAT", aa...)
+			},
+		},
+
 		// filtering
 		"now": {
 			Handler: func(args ...exp.Expression) exp.Expression {
