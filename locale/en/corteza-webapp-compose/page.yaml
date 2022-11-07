@@ -12,6 +12,7 @@ block:
     title: Add new block
     invalid-handle-characters: Should be at least 2 characters long and start with a letter. Can contain only letters, numbers, dashes, underscores and dots
 changeBlock: Change existing block
+copyOf: "Copy of {{title}}"
 build:
   addBlock: Add block
   selectBlockTitle: Select type of the new block
@@ -47,6 +48,7 @@ tooltip:
   edit:
     page: Edit page
     block: Edit block
+  saveAsCopy: Cannot duplicate record page
 view: View
 visible: Visible
 delete:

@@ -51,13 +51,14 @@
         <b-button
           v-if="!hideClone"
           data-test-id="button-clone"
+          :title="cloneTooltip"
           :disabled="disableClone || processing"
           variant="light"
           size="lg"
           class="ml-2"
           @click="$emit('clone')"
         >
-          {{ $t('label.clone') }}
+          {{ $t('label.saveAsCopy') }}
         </b-button>
         <b-button
           v-if="!hideSave"
@@ -128,12 +129,15 @@ export default {
     },
     disableClone: {
       type: Boolean,
-      required: false,
       default: false,
     },
     deleteTooltip: {
       type: String,
       required: false,
+      default: '',
+    },
+    cloneTooltip: {
+      type: String,
       default: '',
     },
   },

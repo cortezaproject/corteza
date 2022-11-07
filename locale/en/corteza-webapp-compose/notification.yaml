@@ -68,6 +68,7 @@ namespace:
   importFailed: Namespace failed to import
 page:
   createFailed: Could not create a page
+  cloneFailed: Could not clone this page
   deleteFailed: Could not delete this page
   loadFailed: Could not load the page tree
   noPages: No pages found

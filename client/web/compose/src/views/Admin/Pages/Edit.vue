@@ -132,9 +132,9 @@
       <editor-toolbar
         :back-link="{ name: 'admin.pages' }"
         :hide-delete="hideDelete"
-        hide-clone
         :hide-save="!page.canUpdatePage"
         :disable-save="disableSave"
+        @clone="handleClone()"
         @delete="handleDeletePage"
         @save="handleSave()"
         @saveAndClose="handleSave({ closeOnSuccess: true })"
@@ -259,6 +259,7 @@ export default {
       findPageByID: 'page/findByID',
       updatePage: 'page/update',
       deletePage: 'page/delete',
+      createPage: 'page/create',
     }),
 
     handleSave ({ closeOnSuccess = false } = {}) {
@@ -281,6 +282,25 @@ export default {
       this.deletePage({ ...this.page, strategy }).then(() => {
         this.$router.push({ name: 'admin.pages' })
       }).catch(this.toastErrorHandler(this.$t('notification:page.deleteFailed')))
+    },
+
+    handleClone () {
+      let page = this.page.clone()
+      page = {
+        ...page,
+        pageID: NoID,
+        title: this.$t('copyOf', { title: this.page.title }),
+        handle: '',
+      }
+
+      const { namespaceID = NoID } = this.namespace
+      this.createPage({ namespaceID, ...page })
+        .then(page => {
+          this.page = new compose.Page(page)
+          const { pageID = '' } = page
+          this.$router.push({ name: 'admin.pages.edit', params: { pageID } })
+        })
+        .catch(this.toastErrorHandler(this.$t('notification:page.cloneFailed')))
     },
   },
 }
