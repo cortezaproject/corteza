@@ -49,6 +49,7 @@ func TestModel_Search(t *testing.T) {
 	t.Logf("Creating temporary table %q", table.Ident)
 	table.Temporary = true
 	req.NoError(s.DataDefiner.TableCreate(ctx, table))
+	req.NoError(truncate(ctx, table.Ident))
 
 	bm := time.Now()
 	ctx = context.Background() // no need to log inserts
@@ -93,6 +94,151 @@ func TestModel_Search(t *testing.T) {
 	req.Equal("group=g0 item=i1000 price=1000 published=1", rows[0].String())
 }
 
+// Should be part of general DAL testing (not only RDBMS)
+func TestModel_Search2(t *testing.T) {
+	var (
+		req = require.New(t)
+
+		ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
+
+		baseModel = &dal.Model{
+			Ident: t.Name(),
+			Attributes: func() (aa []*dal.Attribute) {
+				s := &dal.CodecRecordValueSetJSON{Ident: "values"}
+				aa = []*dal.Attribute{
+					{Ident: "phyTxt", Type: &dal.TypeText{}},
+					{Ident: "phyNum", Type: &dal.TypeNumber{}},
+					{Ident: "phyBool", Type: &dal.TypeBoolean{}},
+					{Ident: "jsonEncTxt", Type: &dal.TypeText{}, Store: s},
+					{Ident: "jsonEncTxtMV", Type: &dal.TypeText{}, Store: s, MultiValue: true},
+					{Ident: "jsonEncNum", Type: &dal.TypeNumber{}, Store: s},
+					{Ident: "jsonEncNumMV", Type: &dal.TypeNumber{}, Store: s, MultiValue: true},
+					{Ident: "jsonEncBool", Type: &dal.TypeBoolean{}, Store: s},
+					{Ident: "jsonEncBoolMV", Type: &dal.TypeBoolean{}, Store: s, MultiValue: true},
+				}
+
+				// iterate through all attributsand set Filterable flag to true
+				for _, a := range aa {
+					a.Filterable = true
+					a.Sortable = true
+				}
+
+				return
+			}(),
+		}
+
+		m = Model(baseModel, s.DB, s.Dialect)
+
+		search = func(t *testing.T, f filter.Filter) []kv {
+			req := require.New(t)
+			i, err := m.Search(f)
+
+			req.NoError(err)
+			req.NotNil(i)
+
+			defer req.NoError(i.Close())
+
+			ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
+
+			rows := make([]kv, 0, 5)
+			for i.Next(ctx) {
+				row := kv{}
+				req.NoError(i.Scan(row))
+				rows = append(rows, row)
+			}
+
+			req.NoError(i.Err())
+			return rows
+		}
+	)
+
+	table, err := s.DataDefiner.ConvertModel(baseModel)
+	req.NoError(err)
+
+	t.Logf("Creating temporary table %q", table.Ident)
+	table.Temporary = true
+	req.NoError(s.DataDefiner.TableCreate(ctx, table))
+	req.NoError(truncate(ctx, table.Ident))
+
+	{
+		noLogCtx := context.Background() // no need to log inserts
+		req.NoError(m.Create(noLogCtx, (&kvv{}).
+			Set("phyTxt", "bar").
+			Set("phyNum", 42).
+			Set("phyBool", false).
+			Set("jsonEncTxt", "bar").
+			Set("jsonEncTxtMV", "bar", "foo").
+			Set("jsonEncNum", 42).
+			Set("jsonEncNumMV", 21, 42).
+			Set("jsonEncBool", false).
+			Set("jsonEncBoolMV", false, true),
+		))
+	}
+
+	t.Run("comparing single value attributes", func(t *testing.T) {
+		req.Len(search(t, filter.Generic(filter.WithExpression("phyTxt = 'bar'"))), 1)
+		req.Len(search(t, filter.Generic(filter.WithExpression("phyTxt = 'baz'"))), 0)
+		req.Len(search(t, filter.Generic(filter.WithExpression("phyNum = 42"))), 1)
+		req.Len(search(t, filter.Generic(filter.WithExpression("phyNum = 21"))), 0)
+		req.Len(search(t, filter.Generic(filter.WithExpression("!phyBool"))), 1)
+		req.Len(search(t, filter.Generic(filter.WithExpression("phyBool"))), 0)
+		req.Len(search(t, filter.Generic(filter.WithExpression("jsonEncTxt = 'bar'"))), 1)
+		req.Len(search(t, filter.Generic(filter.WithExpression("jsonEncTxt = 'baz'"))), 0)
+		req.Len(search(t, filter.Generic(filter.WithExpression("jsonEncNum = 42"))), 1)
+		req.Len(search(t, filter.Generic(filter.WithExpression("jsonEncNum = 21"))), 0)
+	})
+
+	t.Run("comparing 1st value in multi value attributes", func(t *testing.T) {
+		req.Len(search(t, filter.Generic(filter.WithExpression("jsonEncTxtMV = 'bar'"))), 1)
+		req.Len(search(t, filter.Generic(filter.WithExpression("jsonEncTxtMV = 'baz'"))), 0)
+		req.Len(search(t, filter.Generic(filter.WithExpression("jsonEncTxtMV = 'foo'"))), 0)
+		req.Len(search(t, filter.Generic(filter.WithExpression("jsonEncNumMV = 21"))), 1)
+		req.Len(search(t, filter.Generic(filter.WithExpression("jsonEncNumMV = 22"))), 0)
+		req.Len(search(t, filter.Generic(filter.WithExpression("jsonEncNumMV = 42"))), 0)
+		req.Len(search(t, filter.Generic(filter.WithExpression("jsonEncBoolMV"))), 0)
+	})
+
+	t.Run("comparing all values in multi value attributes", func(t *testing.T) {
+		req.Len(search(t, filter.Generic(filter.WithExpression("42 IN jsonEncNumMV"))), 1)
+		req.Len(search(t, filter.Generic(filter.WithExpression("84 IN jsonEncNumMV"))), 0)
+		req.Len(search(t, filter.Generic(filter.WithExpression("84 NOT IN jsonEncNumMV"))), 1)
+		req.Len(search(t, filter.Generic(filter.WithExpression("'foo' IN jsonEncTxtMV"))), 1)
+		req.Len(search(t, filter.Generic(filter.WithExpression("'baz' IN jsonEncTxtMV"))), 0)
+		req.Len(search(t, filter.Generic(filter.WithExpression("true IN jsonEncBoolMV"))), 1)
+		req.Len(search(t, filter.Generic(filter.WithExpression("false IN jsonEncBoolMV"))), 1)
+	})
+
+	t.Run("comparing all values in multi value attributes with another attribute", func(t *testing.T) {
+		req.Len(search(t, filter.Generic(filter.WithExpression("phyNum IN jsonEncNumMV"))), 1)
+		req.Len(search(t, filter.Generic(filter.WithExpression("phyTxt IN jsonEncNumMV"))), 0)
+		req.Len(search(t, filter.Generic(filter.WithExpression("phyTxt IN jsonEncTxtMV"))), 1)
+		req.Len(search(t, filter.Generic(filter.WithExpression("phyBool IN jsonEncTxtMV"))), 0)
+		req.Len(search(t, filter.Generic(filter.WithExpression("phyBool IN jsonEncBoolMV"))), 1)
+		req.Len(search(t, filter.Generic(filter.WithExpression("phyTxt IN jsonEncBoolMV"))), 0)
+	})
+
+	t.Run("comparing with list of values", func(t *testing.T) {
+		t.Skip("this is unsupported on pkg/ql level")
+		req.Len(search(t, filter.Generic(filter.WithExpression("phyTxt IN (null, 'bar')"))), 1)
+		req.Len(search(t, filter.Generic(filter.WithExpression("phyTxt IN (null, 'baz')"))), 0)
+		req.Len(search(t, filter.Generic(filter.WithExpression("phyNum IN (null, 42)"))), 1)
+		req.Len(search(t, filter.Generic(filter.WithExpression("phyNum IN (null, 21)"))), 0)
+		req.Len(search(t, filter.Generic(filter.WithExpression("!phyBool IN (false))"))), 1)
+		req.Len(search(t, filter.Generic(filter.WithExpression("phyBool IN (true))"))), 1)
+		req.Len(search(t, filter.Generic(filter.WithExpression("jsonEncTxt IN (null, 'bar')"))), 1)
+		req.Len(search(t, filter.Generic(filter.WithExpression("jsonEncTxt IN (null, 'baz')"))), 0)
+		req.Len(search(t, filter.Generic(filter.WithExpression("jsonEncTxtMV IN (null, 'bar')"))), 1)
+		req.Len(search(t, filter.Generic(filter.WithExpression("jsonEncTxtMV IN (null, 'baz')"))), 0)
+		req.Len(search(t, filter.Generic(filter.WithExpression("jsonEncTxtMV IN (null, 'foo')"))), 0)
+		req.Len(search(t, filter.Generic(filter.WithExpression("jsonEncNum IN (null, 42)"))), 1)
+		req.Len(search(t, filter.Generic(filter.WithExpression("jsonEncNum IN (null, 21)"))), 0)
+		req.Len(search(t, filter.Generic(filter.WithExpression("jsonEncNumMV IN (null, 21)"))), 1)
+		req.Len(search(t, filter.Generic(filter.WithExpression("jsonEncNumMV IN (null, 22)"))), 0)
+		req.Len(search(t, filter.Generic(filter.WithExpression("jsonEncNumMV IN (null, 42)"))), 0)
+	})
+
+}
+
 func TestModel_Aggregate(t *testing.T) {
 	_ = logger.Default()
 
@@ -126,6 +272,7 @@ func TestModel_Aggregate(t *testing.T) {
 	t.Logf("Creating temporary table %q", table.Ident)
 	table.Temporary = true
 	req.NoError(s.DataDefiner.TableCreate(ctx, table))
+	req.NoError(truncate(ctx, table.Ident))
 
 	req.NoError(m.Create(ctx, &kv{"item": "i1", "date": "2022-10-06", "group": "g1", "price": "1000", "quantity": "10", "published": true}))
 	req.NoError(m.Create(ctx, &kv{"item": "i2", "date": "2022-10-06", "group": "g1", "price": "3000", "quantity": "30", "published": true}))
@@ -212,6 +359,7 @@ func TestModel_AggregationModelIdentifiers(t *testing.T) {
 	t.Logf("Creating temporary table %q", table.Ident)
 	table.Temporary = true
 	req.NoError(s.DataDefiner.TableCreate(ctx, table))
+	req.NoError(truncate(ctx, table.Ident))
 
 	req.NoError(m.Create(ctx, &kv{"group": "g1"}))
 	req.NoError(m.Create(ctx, &kv{"group": "g1"}))
@@ -289,6 +437,7 @@ func TestModel_AggregateWithHaving(t *testing.T) {
 	t.Logf("Creating temporary table %q", table.Ident)
 	table.Temporary = true
 	req.NoError(s.DataDefiner.TableCreate(ctx, table))
+	req.NoError(truncate(ctx, table.Ident))
 
 	req.NoError(m.Create(ctx, &kv{"item": "i1", "date": "2022-10-06", "group": "g1", "price": "1000", "quantity": "0", "published": true}))
 	req.NoError(m.Create(ctx, &kv{"item": "i2", "date": "2022-10-06", "group": "g1", "price": "3000", "quantity": "0", "published": true}))
@@ -349,7 +498,6 @@ func TestModel_AggregateWithHaving(t *testing.T) {
 
 func TestModel_AggregateHavingGroup(t *testing.T) {
 	_ = logger.Default()
-
 	var (
 		req = require.New(t)
 
@@ -380,6 +528,7 @@ func TestModel_AggregateHavingGroup(t *testing.T) {
 	t.Logf("Creating temporary table %q", table.Ident)
 	table.Temporary = true
 	req.NoError(s.DataDefiner.TableCreate(ctx, table))
+	req.NoError(truncate(ctx, table.Ident))
 
 	req.NoError(m.Create(ctx, &kv{"item": "i1", "date": "2022-10-06", "grp": "g1", "price": "1000", "quantity": "10", "published": true}))
 	req.NoError(m.Create(ctx, &kv{"item": "i2", "date": "2022-10-06", "grp": "g1", "price": "3000", "quantity": "30", "published": true}))
@@ -411,9 +560,6 @@ func TestModel_AggregateHavingGroup(t *testing.T) {
 	for i.Next(ctx) {
 		row = kv{}
 		req.NoError(i.Scan(row))
-
-		// due to difference of number of decimal digits in different DBs, we need to do this
-		// to make sure we get the same result
 
 		rows = append(rows, row)
 	}
@@ -453,6 +599,7 @@ func TestModel_Distinct(t *testing.T) {
 	t.Logf("Creating temporary table %q", table.Ident)
 	table.Temporary = true
 	req.NoError(s.DataDefiner.TableCreate(ctx, table))
+	req.NoError(truncate(ctx, table.Ident))
 
 	req.NoError(m.Create(ctx, &kv{"item": "i1", "group": "g1", "published": true}))
 	req.NoError(m.Create(ctx, &kv{"item": "i2", "group": "g1", "published": true}))
@@ -536,6 +683,7 @@ func TestModel_AggregateWithCursors(t *testing.T) {
 	t.Logf("Creating temporary table %q", table.Ident)
 	table.Temporary = true
 	req.NoError(s.DataDefiner.TableCreate(ctx, table))
+	req.NoError(truncate(ctx, table.Ident))
 
 	req.NoError(m.Create(ctx, &kv{"item": "i1", "date": "2022-10-06", "group": "g1", "price": "1000", "quantity": "0", "published": true}))
 	req.NoError(m.Create(ctx, &kv{"item": "i2", "date": "2022-10-06", "group": "g1", "price": "3000", "quantity": "0", "published": true}))

@@ -10,7 +10,6 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/dialect/sqlite3"
 	"github.com/doug-martin/goqu/v9/exp"
-	"regexp"
 	"strings"
 )
 
@@ -24,6 +23,10 @@ var (
 	dialect            = &sqliteDialect{}
 	goquDialectWrapper = goqu.Dialect("sqlite3")
 	quoteIdent         = string(sqlite3.DialectOptions().QuoteRune)
+
+	nuances = drivers.Nuances{
+		HavingClauseMustUseAlias: true,
+	}
 )
 
 func init() {
@@ -40,6 +43,10 @@ func Dialect() *sqliteDialect {
 	return dialect
 }
 
+func (sqliteDialect) Nuances() drivers.Nuances {
+	return nuances
+}
+
 func (sqliteDialect) GOQU() goqu.DialectWrapper  { return goquDialectWrapper }
 func (sqliteDialect) QuoteIdent(i string) string { return quoteIdent + i + quoteIdent }
 
@@ -47,8 +54,35 @@ func (d sqliteDialect) IndexFieldModifiers(attr *dal.Attribute, mm ...dal.IndexF
 	return drivers.IndexFieldModifiers(attr, d.QuoteIdent, mm...)
 }
 
-func (sqliteDialect) DeepIdentJSON(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression, error) {
-	return drivers.DeepIdentJSON(ident, pp...), nil
+func (d sqliteDialect) JsonQuote(expr exp.Expression) exp.Expression {
+	return exp.NewSQLFunctionExpression("JSON_QUOTE", expr)
+}
+
+func (sqliteDialect) JsonExtract(ident exp.Expression, pp ...any) (exp.Expression, error) {
+	return DeepIdentJSON(true, ident, pp...), nil
+}
+
+func (sqliteDialect) JsonExtractUnquote(ident exp.Expression, pp ...any) (exp.Expression, error) {
+	return DeepIdentJSON(false, ident, pp...), nil
+}
+
+// JsonArrayContains prepares SQLite compatible comparison of value and JSON array
+//
+// # literal value = multi-value field / plain
+// # multi-value field = single-value field / plain
+//
+// 'aaa' in (select value from json_each(v->'f2'))
+//
+// # single-value field = multi-value field / plain
+// # multi-value field = single-value field / plain
+// json_extract(v, '$.f3[0]') in (select value from json_each(v->'f2'));
+//
+// Unfortunately SQLite converts boolean values into 0 and 1 when decoding from
+// JSON and we need a special handler for that.
+func (sqliteDialect) JsonArrayContains(needle, haystack exp.Expression) (exp.Expression, error) {
+	// @todo should be implemented using native SQLite capabilties and
+	//       not through custom JSON_ARRAY_CONTAINS function
+	return exp.NewLiteralExpression("JSON_ARRAY_CONTAINS(?, ?)", needle, haystack), nil
 }
 
 func (d sqliteDialect) TableCodec(m *dal.Model) drivers.TableCodec {
@@ -71,7 +105,7 @@ func (d sqliteDialect) TypeWrap(dt dal.Type) drivers.Type {
 	return drivers.TypeWrap(dt)
 }
 
-func (sqliteDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpression) (exp.LiteralExpression, error) {
+func (sqliteDialect) AttributeCast(attr *dal.Attribute, val exp.Expression) (exp.Expression, error) {
 	var (
 		c exp.Expression
 	)
@@ -99,12 +133,7 @@ func (sqliteDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpressio
 		c = exp.NewSQLFunctionExpression("strftime", "%Y-%m-%d", val)
 
 	case *dal.TypeNumber:
-		match, _ := regexp.Match(drivers.CheckNumber.Literal(), []byte(val.Literal()))
-		ce := exp.NewCaseExpression().
-			When(val.In(match, val), val).
-			Else(drivers.LiteralNULL)
-
-		c = exp.NewCastExpression(ce, "NUMERIC")
+		c = exp.NewCastExpression(val, "NUMERIC")
 
 	default:
 		return drivers.AttributeCast(attr, val)
@@ -182,10 +211,17 @@ func (sqliteDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, er
 	return
 }
 
-func (sqliteDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (exp.Expression, error) {
-	switch strings.ToLower(n.Ref) {
+func (d sqliteDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (expr exp.Expression, err error) {
+	switch ref := strings.ToLower(n.Ref); ref {
 	case "concat":
 		return exp.NewLiteralExpression("?"+strings.Repeat(" || ?", len(args)-1), cast2.Anys(args...)...), nil
+
+	case "in":
+		return drivers.OpHandlerIn(d, n, args...)
+
+	case "nin":
+		return drivers.OpHandlerNotIn(d, n, args...)
+
 	}
 
 	return ref2exp.RefHandler(n, args...)

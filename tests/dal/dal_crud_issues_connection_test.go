@@ -11,6 +11,8 @@ import (
 )
 
 func Test_dal_crud_issues_connection_connectivity(t *testing.T) {
+	t.Skip("needs refactoring")
+
 	h := newHelperT(t)
 	defer h.cleanupDal()
 
@@ -68,6 +70,8 @@ func Test_dal_crud_issues_connection_connectivity(t *testing.T) {
 }
 
 func Test_dal_crud_issues_connection_sensitivity(t *testing.T) {
+	t.Skip("needs refactoring")
+
 	h := newHelperT(t)
 	defer h.cleanupDal()
 

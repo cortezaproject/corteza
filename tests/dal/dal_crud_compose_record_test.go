@@ -12,6 +12,8 @@ import (
 )
 
 func Test_dal_crud_compose_record_create(t *testing.T) {
+	t.Skip("needs refactoring")
+
 	h := newHelperT(t)
 	defer h.cleanupDal()
 
@@ -72,6 +74,8 @@ func Test_dal_crud_compose_record_create(t *testing.T) {
 }
 
 func Test_dal_crud_compose_record_update(t *testing.T) {
+	t.Skip("needs refactoring")
+
 	h := newHelperT(t)
 	defer h.cleanupDal()
 
@@ -132,6 +136,8 @@ func Test_dal_crud_compose_record_update(t *testing.T) {
 }
 
 func Test_dal_crud_compose_record_delete(t *testing.T) {
+	t.Skip("needs refactoring")
+
 	h := newHelperT(t)
 	defer h.cleanupDal()
 

@@ -10,6 +10,7 @@ import (
 	"github.com/doug-martin/goqu/v9/dialect/postgres"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/spf13/cast"
+	"strings"
 )
 
 type (
@@ -22,10 +23,18 @@ var (
 	dialect            = &postgresDialect{}
 	goquDialectWrapper = goqu.Dialect("postgres")
 	quoteIdent         = string(postgres.DialectOptions().QuoteRune)
+
+	nuances = drivers.Nuances{
+		HavingClauseMustUseAlias: true,
+	}
 )
 
 func Dialect() *postgresDialect {
 	return dialect
+}
+
+func (postgresDialect) Nuances() drivers.Nuances {
+	return nuances
 }
 
 func (postgresDialect) GOQU() goqu.DialectWrapper  { return goquDialectWrapper }
@@ -35,8 +44,27 @@ func (d postgresDialect) IndexFieldModifiers(attr *dal.Attribute, mm ...dal.Inde
 	return drivers.IndexFieldModifiers(attr, d.QuoteIdent, mm...)
 }
 
-func (postgresDialect) DeepIdentJSON(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression, error) {
-	return drivers.DeepIdentJSON(ident, pp...), nil
+func (d postgresDialect) JsonQuote(expr exp.Expression) exp.Expression {
+	return exp.NewSQLFunctionExpression("TO_JSON", expr)
+}
+
+func (d postgresDialect) JsonExtract(ident exp.Expression, pp ...any) (exp.Expression, error) {
+	return DeepIdentJSON(true, ident, pp...), nil
+}
+
+func (d postgresDialect) JsonExtractUnquote(ident exp.Expression, pp ...any) (exp.Expression, error) {
+	return DeepIdentJSON(false, ident, pp...), nil
+}
+
+// JsonArrayContains prepares postgresql compatible comparison of value and JSON array
+//
+// literal value = multi-value field / plain
+// 'value' <@ (v->'f0')::JSONB
+//
+// single-value field = multi-value field / plain
+// v->'f1'->0 <@ (v->'f0')::JSONB
+func (d postgresDialect) JsonArrayContains(needle, haystack exp.Expression) (exp.Expression, error) {
+	return exp.NewLiteralExpression("(?)::JSONB <@ (?)::JSONB", needle, haystack), nil
 }
 
 func (d postgresDialect) TableCodec(m *dal.Model) drivers.TableCodec {
@@ -54,30 +82,24 @@ func (d postgresDialect) TypeWrap(dt dal.Type) drivers.Type {
 	return drivers.TypeWrap(dt)
 }
 
-func (postgresDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpression) (exp.LiteralExpression, error) {
-	var (
-		c exp.CastExpression
-	)
-
+func (postgresDialect) AttributeCast(attr *dal.Attribute, val exp.Expression) (expr exp.Expression, err error) {
 	switch attr.Type.(type) {
-	case *dal.TypeBoolean:
-		// we need to be strictly dealing with strings here!
-		// 1) postgresql's JSON op ->> (last one) returns any JSON value as string
-		//    so booleans are cast to 'true' & 'false'
-		// 2) postgresql will complain about true == 'true' expressions
-		ce := exp.NewCaseExpression().
-			When(val.In(exp.NewLiteralExpression(`'true'`)), drivers.LiteralTRUE).
-			When(val.In(exp.NewLiteralExpression(`'false'`)), drivers.LiteralFALSE).
-			Else(drivers.LiteralNULL)
+	case *dal.TypeText:
+		expr = exp.NewCastExpression(val, "TEXT")
 
-		c = exp.NewCastExpression(ce, "BOOLEAN")
+	case *dal.TypeBoolean:
+		// convert to text first
+		expr = exp.NewCastExpression(val, "TEXT")
+
+		// compare to text representation of true
+		expr = exp.NewBooleanExpression(exp.EqOp, expr, exp.NewLiteralExpression(`true::TEXT`))
 
 	default:
 		return drivers.AttributeCast(attr, val)
 
 	}
 
-	return exp.NewLiteralExpression("?", c), nil
+	return
 }
 
 func (postgresDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err error) {
@@ -184,7 +206,25 @@ func (postgresDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, 
 	return
 }
 
-func (postgresDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (exp.Expression, error) {
+func (d postgresDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (expr exp.Expression, err error) {
+	switch ref := strings.ToLower(n.Ref); ref {
+	case "concat":
+		// need to force text type on all arguments
+		aa := make([]any, len(args))
+		for a := range args {
+			aa[a] = exp.NewCastExpression(exp.NewLiteralExpression("?", args[a]), "TEXT")
+		}
+
+		return exp.NewSQLFunctionExpression("CONCAT", aa...), nil
+
+	case "in":
+		return drivers.OpHandlerIn(d, n, args...)
+
+	case "nin":
+		return drivers.OpHandlerNotIn(d, n, args...)
+
+	}
+
 	return ref2exp.RefHandler(n, args...)
 }
 

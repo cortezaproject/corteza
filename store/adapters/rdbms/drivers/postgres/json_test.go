@@ -1,4 +1,4 @@
-package drivers
+package postgres
 
 import (
 	"testing"
@@ -17,9 +17,10 @@ func Test_DeepIdentJSON(t *testing.T) {
 		post = ` FROM "test"`
 
 		cc = []struct {
-			input []interface{}
-			sql   string
-			args  []interface{}
+			input  []interface{}
+			sql    string
+			asJSON bool
+			args   []interface{}
 		}{
 			{
 				input: []interface{}{"one"},
@@ -41,6 +42,35 @@ func Test_DeepIdentJSON(t *testing.T) {
 				sql:   `"one"->'two'->>3`,
 				args:  []interface{}{},
 			},
+			{
+				input:  []interface{}{"one"},
+				asJSON: true,
+				sql:    `"one"`,
+				args:   []interface{}{},
+			},
+			{
+				input:  []interface{}{"one", "two"},
+				asJSON: true,
+				sql:    `"one"->'two'`,
+				args:   []interface{}{},
+			},
+			{
+				input:  []interface{}{"one", 2, "three"},
+				asJSON: true,
+				sql:    `"one"->2->'three'`,
+				args:   []interface{}{},
+			},
+			{
+				input:  []interface{}{"one", "two", 3},
+				asJSON: true,
+				sql:    `"one"->'two'->3`,
+				args:   []interface{}{},
+			},
+		}
+
+		conv = func(asJSON bool, pp ...any) exp.SQLExpression {
+			return goqu.Dialect("postgres").
+				Select(DeepIdentJSON(asJSON, exp.ParseIdentifier(pp[0].(string)), pp[1:]...)).From("test")
 		}
 	)
 
@@ -50,40 +80,10 @@ func Test_DeepIdentJSON(t *testing.T) {
 				r = require.New(t)
 			)
 
-			sql, args, err := goqu.Dialect("postgres").Select(DeepIdentJSON(exp.ParseIdentifier(c.input[0].(string)), c.input[1:]...)).From("test").ToSQL()
+			sql, args, err := conv(c.asJSON, c.input...).ToSQL()
 			r.NoError(err)
 			r.Equal(pre+c.sql+post, sql)
 			r.Equal(c.args, args)
-		})
-	}
-}
-
-// test deep ident expression generator
-func Test_JsonPath(t *testing.T) {
-
-	var (
-		cc = []struct {
-			input []interface{}
-			path  string
-		}{
-			{
-				input: []interface{}{"two"},
-				path:  `$.two`,
-			},
-			{
-				input: []interface{}{2, "three"},
-				path:  `$[2].three`,
-			},
-			{
-				input: []interface{}{"two", 3},
-				path:  `$.two[3]`,
-			},
-		}
-	)
-
-	for _, c := range cc {
-		t.Run(c.path, func(t *testing.T) {
-			require.Equal(t, c.path, JsonPath(c.input...))
 		})
 	}
 }
