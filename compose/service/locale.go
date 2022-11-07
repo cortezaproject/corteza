@@ -356,7 +356,7 @@ func (svc resourceTranslationsManager) pageBlockButtons(tag language.Tag, res *t
 	for j, auxBtn := range bb {
 		btn := auxBtn.(map[string]interface{})
 
-		bContentID := uint64(1)
+		bContentID := uint64(0)
 		if aux, ok := btn["buttonID"]; ok {
 			bContentID = cast.ToUint64(aux)
 		}
