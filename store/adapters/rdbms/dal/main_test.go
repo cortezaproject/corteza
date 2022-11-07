@@ -18,6 +18,8 @@ import (
 )
 
 type (
+	// @todo refactor tests that use kv and migrate to kvv
+	//       no need to keep and maintain both.
 	kv  map[string]any
 	kvv map[string][]any
 )
@@ -26,6 +28,9 @@ var (
 	s *rdbms.Store
 )
 
+// @todo refactor tests to follow rdbms/tests, using connectionInfo...
+// @todo should be part of the general DAL testing suite
+// @todo new ENV var for enabling(def)/disabling temp. model (table) creation (DB_PERSIST_MODELS=true)
 func TestMain(m *testing.M) {
 	var (
 		dsn = os.Getenv("DB_DSN")
@@ -49,6 +54,13 @@ func TestMain(m *testing.M) {
 	s = aux.(*rdbms.Store)
 
 	m.Run()
+}
+
+// truncates table
+func truncate(ctx context.Context, table string) error {
+	table = s.Dialect.QuoteIdent(table)
+	_, err := s.DB.ExecContext(ctx, fmt.Sprintf("DELETE FROM %s", table))
+	return err
 }
 
 func (r kv) CountValues() map[string]uint {

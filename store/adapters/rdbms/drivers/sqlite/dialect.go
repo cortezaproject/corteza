@@ -54,6 +54,10 @@ func (d sqliteDialect) IndexFieldModifiers(attr *dal.Attribute, mm ...dal.IndexF
 	return drivers.IndexFieldModifiers(attr, d.QuoteIdent, mm...)
 }
 
+func (d sqliteDialect) JsonQuote(expr exp.Expression) exp.Expression {
+	return exp.NewSQLFunctionExpression("JSON_QUOTE", expr)
+}
+
 func (sqliteDialect) JsonExtract(ident exp.Expression, pp ...any) (exp.Expression, error) {
 	return DeepIdentJSON(true, ident, pp...), nil
 }
@@ -76,6 +80,8 @@ func (sqliteDialect) JsonExtractUnquote(ident exp.Expression, pp ...any) (exp.Ex
 // Unfortunately SQLite converts boolean values into 0 and 1 when decoding from
 // JSON and we need a special handler for that.
 func (sqliteDialect) JsonArrayContains(needle, haystack exp.Expression) (exp.Expression, error) {
+	// @todo should be implemented using native SQLite capabilties and
+	//       not through custom JSON_ARRAY_CONTAINS function
 	return exp.NewLiteralExpression("JSON_ARRAY_CONTAINS(?, ?)", needle, haystack), nil
 }
 
@@ -191,10 +197,17 @@ func (sqliteDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, er
 	return
 }
 
-func (sqliteDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (exp.Expression, error) {
-	switch strings.ToLower(n.Ref) {
+func (d sqliteDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (expr exp.Expression, err error) {
+	switch ref := strings.ToLower(n.Ref); ref {
 	case "concat":
 		return exp.NewLiteralExpression("?"+strings.Repeat(" || ?", len(args)-1), cast2.Anys(args...)...), nil
+
+	case "in":
+		return drivers.OpHandlerIn(d, n, args...)
+
+	case "nin":
+		return drivers.OpHandlerNotIn(d, n, args...)
+
 	}
 
 	return ref2exp.RefHandler(n, args...)

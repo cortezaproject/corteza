@@ -111,12 +111,12 @@ func (d *model) convertQuery(n *ql.ASTNode) (out exp.Expression, err error) {
 //       since we're just initializing fairly light structs.
 func (d *model) QueryParser() queryParser {
 	return ql.Converter(
-		ql.SymHandler(d.qlConverterGenericHandlers()),
-		ql.RefHandler(d.dialect.ExprHandler),
+		ql.SymHandler(d.qlConverterGenericSymHandler()),
+		ql.RefHandler(d.qlConverterGenericRefHandler()),
 	)
 }
 
-func (d *model) qlConverterGenericHandlers() func(node *ql.ASTNode) (exp.Expression, error) {
+func (d *model) qlConverterGenericSymHandler() func(node *ql.ASTNode) (exp.Expression, error) {
 	return func(node *ql.ASTNode) (exp.Expression, error) {
 		// @note normalize system idents on the RDBMS level for filters
 		//       offloaded to the database.
@@ -131,16 +131,29 @@ func (d *model) qlConverterGenericHandlers() func(node *ql.ASTNode) (exp.Express
 			}
 		}
 
+		if node.Meta == nil {
+			node.Meta = make(map[string]any)
+		}
+
 		attr := d.model.Attributes.FindByIdent(sym)
 		if attr == nil {
 			return nil, fmt.Errorf("unknown attribute %q used in query expression", node.Symbol)
 		}
+
+		node.Meta["dal.Attribute"] = attr
+		node.Meta["dal.Model"] = d.model
 
 		if !attr.Filterable {
 			return nil, fmt.Errorf("attribute %q can not be used in query expression", attr.Ident)
 		}
 
 		return d.table.AttributeExpression(sym)
+	}
+}
+
+func (d *model) qlConverterGenericRefHandler() func(*ql.ASTNode, ...exp.Expression) (exp.Expression, error) {
+	return func(node *ql.ASTNode, args ...exp.Expression) (exp.Expression, error) {
+		return d.dialect.ExprHandler(node, args...)
 	}
 }
 
@@ -564,7 +577,11 @@ func (d *model) aggregateSql(f filter.Filter, groupBy []dal.AggregateAttr, out [
 
 	if having != nil {
 		var (
+			symHandler = d.qlConverterGenericSymHandler()
+
 			converter = ql.Converter(
+				// we need a more specialized symbol handler for the HAVING clause
+				// since it can contain aggregation expressions
 				ql.SymHandler(func(node *ql.ASTNode) (exp.Expression, error) {
 					sym := dal.NormalizeAttrNames(node.Symbol)
 
@@ -578,9 +595,9 @@ func (d *model) aggregateSql(f filter.Filter, groupBy []dal.AggregateAttr, out [
 					}
 
 					// if not, use the default handler
-					return d.qlConverterGenericHandlers()(node)
+					return symHandler(node)
 				}),
-				ql.RefHandler(d.dialect.ExprHandler),
+				ql.RefHandler(d.qlConverterGenericRefHandler()),
 			)
 		)
 

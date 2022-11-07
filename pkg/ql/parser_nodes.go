@@ -73,6 +73,8 @@ var (
 		`>=`:     {name: `ge`, weight: 30},
 		`IS`:     {name: `is`, weight: 40},
 		`IS NOT`: {name: `nis`, weight: 40},
+		`IN`:     {name: `in`, weight: 40},
+		`NOT IN`: {name: `nin`, weight: 40},
 
 		// conjunction
 		`AND`: {name: `and`, weight: 50},
