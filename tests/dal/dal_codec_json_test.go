@@ -9,6 +9,8 @@ import (
 )
 
 func Test_dal_codec_json(t *testing.T) {
+	t.Skip("needs refactoring")
+
 	model := &dal.Model{
 		Ident: "compose_record",
 		Attributes: dal.AttributeSet{

@@ -10,6 +10,8 @@ import (
 )
 
 func Test_dal_crud_issues_compose_record_nok_connection(t *testing.T) {
+	t.Skip("needs refactoring")
+
 	h := newHelperT(t)
 	defer h.cleanupDal()
 
@@ -38,6 +40,8 @@ func Test_dal_crud_issues_compose_record_nok_connection(t *testing.T) {
 }
 
 func Test_dal_crud_issues_compose_record_nok_model(t *testing.T) {
+	t.Skip("needs refactoring")
+
 	h := newHelperT(t)
 	defer h.cleanupDal()
 
@@ -66,6 +70,8 @@ func Test_dal_crud_issues_compose_record_nok_model(t *testing.T) {
 }
 
 func Test_dal_crud_issues_compose_record_ok(t *testing.T) {
+	t.Skip("needs refactoring")
+
 	h := newHelperT(t)
 	defer h.cleanupDal()
 
