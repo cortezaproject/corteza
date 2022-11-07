@@ -25,7 +25,7 @@ automation:
   removeAll: Remove all
   searchPlaceholder: Filter available scripts by label, script name and description
   secondaryButton: Secondary
-  stepID: 'stepID: {{stepID}}'
+  stepID: 'Starting step ID: {{stepID}}'
   successButton: Success
   warningButton: Warning
 calendar:
