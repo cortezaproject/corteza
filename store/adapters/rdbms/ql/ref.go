@@ -84,6 +84,13 @@ var (
 			},
 		},
 
+		"in": {
+			//Handler: makeGenericCompHandler(">="),
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewBooleanExpression(exp.InOp, args[0], args[1])
+			},
+		},
+
 		// - math
 		"add": {
 			Handler: func(args ...exp.Expression) exp.Expression {

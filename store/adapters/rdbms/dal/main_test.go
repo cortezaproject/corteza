@@ -18,13 +18,19 @@ import (
 )
 
 type (
-	kv map[string]any
+	// @todo refactor tests that use kv and migrate to kvv
+	//       no need to keep and maintain both.
+	kv  map[string]any
+	kvv map[string][]any
 )
 
 var (
 	s *rdbms.Store
 )
 
+// @todo refactor tests to follow rdbms/tests, using connectionInfo...
+// @todo should be part of the general DAL testing suite
+// @todo new ENV var for enabling(def)/disabling temp. model (table) creation (DB_PERSIST_MODELS=true)
 func TestMain(m *testing.M) {
 	var (
 		dsn = os.Getenv("DB_DSN")
@@ -35,10 +41,7 @@ func TestMain(m *testing.M) {
 	)
 
 	if len(dsn) == 0 {
-		// a temporary solution to make sure all tests are ran inside sqlite
 		dsn = "sqlite3+debug://file::memory:?cache=shared&mode=memory"
-		//fmt.Fprintln(os.Stderr, "can not run store/adapters/rdbms/dal tests without DB_DSN, skip")
-		//return
 	}
 
 	// ctx = logger.ContextWithValue(context.Background(), log)
@@ -51,6 +54,13 @@ func TestMain(m *testing.M) {
 	s = aux.(*rdbms.Store)
 
 	m.Run()
+}
+
+// truncates table
+func truncate(ctx context.Context, table string) error {
+	table = s.Dialect.QuoteIdent(table)
+	_, err := s.DB.ExecContext(ctx, fmt.Sprintf("DELETE FROM %s", table))
+	return err
 }
 
 func (r kv) CountValues() map[string]uint {
@@ -74,6 +84,64 @@ func (r kv) SetValue(k string, place uint, v any) error {
 
 // String function returns string representation of the kv with sorted keys
 func (r kv) String() string {
+	// sort keys from map
+	keys := make([]string, 0, len(r))
+	for k := range r {
+		keys = append(keys, k)
+	}
+
+	sort.Strings(keys)
+
+	// build string by iterating over sorted keys and appending values
+	var out string
+	for i, k := range keys {
+		if i > 0 {
+			out += " "
+		}
+
+		out += fmt.Sprintf("%s=%v", k, r[k])
+	}
+
+	return out
+}
+
+func (r kvv) Set(k string, v ...any) kvv {
+	r[k] = v
+	return r
+}
+
+func (r kvv) CountValues() map[string]uint {
+	out := make(map[string]uint)
+
+	for k := range r {
+		out[k] = uint(len(r[k]))
+	}
+
+	return out
+}
+
+func (r kvv) GetValue(k string, p uint) (any, error) {
+	if r[k] == nil || len(r[k]) <= int(p) {
+		return nil, fmt.Errorf("kvv: out of bounds")
+	}
+
+	return r[k][p], nil
+}
+
+func (r kvv) SetValue(k string, p uint, v any) error {
+	if r[k] == nil {
+		r[k] = make([]any, 0, 1)
+	} else if len(r[k]) < int(p) {
+		r[k][p] = v
+	} else {
+		r[k] = append(r[k], v)
+	}
+
+	return nil
+}
+
+// String function returns string representation of the kv with sorted keys
+func (r kvv) String() string {
 	// sort keys from map
 	keys := make([]string, 0, len(r))
 	for k := range r {

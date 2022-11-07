@@ -22,9 +22,8 @@ import (
 
 type (
 	// test utility struct for testing various RDBMS implementations
-	conn struct {
-		label string
-		dsn   string
+	connectionInfo struct {
+		dsn string
 
 		config  *rdbms.ConnConfig
 		store   *rdbms.Store
@@ -37,19 +36,21 @@ type (
 		isMySQL    bool
 		isPostgres bool
 	}
-
-	// callback funnction used in eachDB() test utility function
-	connFn func(*testing.T, *conn) error
 )
 
 const (
-	// connection environment variable prefix
-	envVarPrefix = "TEST_STORE_ADAPTERS_RDBMS_"
+	DB_DSN_DEFAULT = "sqlite3://file::memory:?cache=shared&mode=memory"
 )
 
 var (
 	// all connections, preloaded
-	connections []*conn
+	conn *connectionInfo
+
+	log = logger.MakeDebugLogger()
+
+	// all tests should use this context to pass
+	// into DB calls to ensure commands are logged
+	ctx = logger.ContextWithValue(context.Background(), log)
 )
 
 func init() {
@@ -57,117 +58,71 @@ func init() {
 }
 
 func TestMain(m *testing.M) {
-	var (
-		err error
-	)
-
-	connections, err = getConnections()
-	cli.HandleError(err)
-
+	cli.HandleError(connect())
 	os.Exit(m.Run())
 }
 
-// eachConnection calls connFun with a new connection to each configured
-// test database
-func eachDB(t *testing.T, fn connFn) {
-	for _, c := range connections {
-		t.Run(c.label, func(t *testing.T) {
-			if err := fn(t, c); err != nil {
-				t.Fatalf("%v", err)
-			}
-		})
-	}
-}
-
-func getConnections() (configs []*conn, err error) {
+func connect() (err error) {
 	var (
-		log = logger.Default()
-		ctx = context.Background()
+		is bool
 
 		s store.Storer
-
-		is bool
 	)
 
-	for _, pair := range os.Environ() {
-		if !strings.HasPrefix(pair, envVarPrefix) {
-			continue
-		}
+	conn = &connectionInfo{}
 
-		kv := strings.SplitN(pair, "=", 2)
-		if len(kv) != 2 {
-			continue
-		}
-
-		configs = append(configs, &conn{
-			label: kv[0][len(envVarPrefix):],
-			dsn:   kv[1],
-		})
+	if conn.dsn, is = os.LookupEnv("DB_DSN"); !is {
+		conn.dsn = DB_DSN_DEFAULT
 	}
 
-	if len(configs) == 0 {
-		// append in-memory sqlite3 to have at least on implementation to test
-		configs = append(configs, &conn{
-			label: "sqlite-in-memory",
-			dsn:   "sqlite3://file::memory:?cache=shared&mode=memory",
-		})
+	switch {
+	case strings.HasPrefix(conn.dsn, sqlite.SCHEMA):
+		conn.config, err = sqlite.NewConfig(conn.dsn)
+		conn.dialect = sqlite.Dialect()
+		conn.isSQLite = true
+	case strings.HasPrefix(conn.dsn, postgres.SCHEMA):
+		conn.config, err = postgres.NewConfig(conn.dsn)
+		conn.dialect = postgres.Dialect()
+		conn.isPostgres = true
+	case strings.HasPrefix(conn.dsn, mysql.SCHEMA):
+		conn.config, err = mysql.NewConfig(conn.dsn)
+		conn.dialect = mysql.Dialect()
+		conn.isMySQL = true
+	default:
+		return fmt.Errorf("unsupported DB (dns: %q)", conn.dsn)
 	}
 
-	for _, c := range configs {
-		err = func() error {
-			// check each dsn by prefix and use newConnConfig from
-			// appropriate driver
-			switch {
-			case strings.HasPrefix(c.dsn, sqlite.SCHEMA):
-				c.config, err = sqlite.NewConfig(c.dsn)
-				c.dialect = sqlite.Dialect()
-				c.isSQLite = true
-			case strings.HasPrefix(c.dsn, postgres.SCHEMA):
-				c.config, err = postgres.NewConfig(c.dsn)
-				c.dialect = postgres.Dialect()
-				c.isPostgres = true
-			case strings.HasPrefix(c.dsn, mysql.SCHEMA):
-				c.config, err = mysql.NewConfig(c.dsn)
-				c.dialect = mysql.Dialect()
-				c.isMySQL = true
-			default:
-				return fmt.Errorf("unsupported DB: %s", c.dsn)
-			}
+	// check each dsn by prefix and use newConnConfig from
+	// appropriate driver
 
-			if err != nil {
-				return fmt.Errorf("can not create config from %s: %w", c.dsn, err)
-			}
-
-			// need to connect in under 1 second
-			toCtx, cfn := context.WithTimeout(ctx, time.Second*5)
-			defer cfn()
-
-			s, err = store.Connect(toCtx, log, c.dsn, true)
-			if err != nil {
-				return fmt.Errorf("can not connect to %q: %w", c.config.DriverName, err)
-			}
-
-			if c.store, is = s.(*rdbms.Store); !is {
-				return fmt.Errorf("can not extract *store.RDBMS from store")
-			}
-
-			if c.db, is = c.store.DB.(*sqlx.DB); !is {
-				return fmt.Errorf("can not extract *sqlx.DB from store")
-			}
-
-			return nil
-		}()
-
-		if err != nil {
-			return nil, err
-		}
+	if err != nil {
+		return fmt.Errorf("can not create config from %s: %w", conn.dsn, err)
 	}
 
-	return
+	// need to connect in under 1 second
+	toCtx, cfn := context.WithTimeout(ctx, time.Second*5)
+	defer cfn()
+
+	s, err = store.Connect(toCtx, log, conn.dsn, true)
+	if err != nil {
+		return fmt.Errorf("can not connect to %q: %w", conn.config.DriverName, err)
+	}
+
+	if conn.store, is = s.(*rdbms.Store); !is {
+		return fmt.Errorf("can not extract *store.RDBMS from store")
+	}
+
+	if conn.db, is = conn.store.DB.(*sqlx.DB); !is {
+		return fmt.Errorf("can not extract *sqlx.DB from store")
+	}
+
+	log.Debug("connected to " + conn.dsn)
+
+	return nil
 }
 
-func exec(c *conn, q string) error {
-	_, err := c.db.ExecContext(context.Background(), q)
+func exec(q string) error {
+	_, err := conn.db.ExecContext(ctx, q)
 	return err
 
 }

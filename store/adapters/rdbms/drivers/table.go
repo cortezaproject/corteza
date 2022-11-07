@@ -15,7 +15,7 @@ type (
 		MakeScanBuffer() []any
 		Encode(r dal.ValueGetter) (_ []any, err error)
 		Decode(buf []any, r dal.ValueSetter) (err error)
-		AttributeExpression(string) (exp.LiteralExpression, error)
+		AttributeExpression(string) (exp.Expression, error)
 	}
 
 	// GenericTableCodec is a generic implementation of TableCodec
@@ -123,7 +123,7 @@ func (t *GenericTableCodec) Decode(buf []any, r dal.ValueSetter) (err error) {
 	return
 }
 
-func (t *GenericTableCodec) AttributeExpression(ident string) (exp.LiteralExpression, error) {
+func (t *GenericTableCodec) AttributeExpression(ident string) (exp.Expression, error) {
 	attr := t.model.Attributes.FindByIdent(ident)
 
 	if attr == nil {
@@ -137,7 +137,7 @@ func (t *GenericTableCodec) AttributeExpression(ident string) (exp.LiteralExpres
 
 	case *dal.CodecRecordValueSetJSON:
 		// using JSON to handle embedded values
-		lit, err := t.dialect.DeepIdentJSON(exp.NewIdentifierExpression("", t.model.Ident, s.Ident), attr.Ident, 0)
+		lit, err := t.dialect.JsonExtractUnquote(exp.NewIdentifierExpression("", t.model.Ident, s.Ident), attr.Ident, 0)
 		if err != nil {
 			return nil, err
 		}

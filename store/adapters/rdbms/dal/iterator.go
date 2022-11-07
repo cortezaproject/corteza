@@ -134,11 +134,8 @@ func (i *iterator) fetch(ctx context.Context) (rows *sql.Rows, err error) {
 			// @todo this needs to work with embedded attributes (non physical columns) as well!
 			tmp, err = rdbms.CursorExpression(
 				cur,
-				func(ident string) (exp.LiteralExpression, error) { return i.src.table.AttributeExpression(ident) },
-				func(ident string, val any) (exp.LiteralExpression, error) {
-					// @fixme vvv
-					// attr := i.dst.model.Attributes.FindByStoreIdent(ident)
-
+				func(ident string) (exp.Expression, error) { return i.src.table.AttributeExpression(ident) },
+				func(ident string, val any) (exp.Expression, error) {
 					attr := i.dst.model.Attributes.FindByIdent(ident)
 					if attr == nil {
 						panic("unknown attribute " + ident + " used in cursor expression cast callback")

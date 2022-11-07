@@ -2,11 +2,9 @@ package mysql
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
-
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ql"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
@@ -25,10 +23,18 @@ var (
 	dialect            = &mysqlDialect{}
 	goquDialectWrapper = goqu.Dialect("mysql")
 	quoteIdent         = string(mysql.DialectOptions().QuoteRune)
+
+	nuances = drivers.Nuances{
+		HavingClauseMustUseAlias: false,
+	}
 )
 
 func Dialect() *mysqlDialect {
 	return dialect
+}
+
+func (mysqlDialect) Nuances() drivers.Nuances {
+	return nuances
 }
 
 func (mysqlDialect) GOQU() goqu.DialectWrapper  { return goquDialectWrapper }
@@ -38,8 +44,43 @@ func (d mysqlDialect) IndexFieldModifiers(attr *dal.Attribute, mm ...dal.IndexFi
 	return drivers.IndexFieldModifiers(attr, d.QuoteIdent, mm...)
 }
 
-func (mysqlDialect) DeepIdentJSON(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression, error) {
-	return JSONPath(ident, pp...)
+func (d mysqlDialect) JsonQuote(expr exp.Expression) exp.Expression {
+	return exp.NewSQLFunctionExpression(
+		"JSON_EXTRACT",
+		exp.NewSQLFunctionExpression("JSON_ARRAY", expr),
+		exp.NewLiteralExpression("'$[0]'"),
+	)
+}
+
+func (d mysqlDialect) JsonExtract(jsonDoc exp.Expression, pp ...any) (path exp.Expression, err error) {
+	if path, err = jsonPathExpr(pp...); err != nil {
+		return
+	} else {
+		return exp.NewSQLFunctionExpression("JSON_EXTRACT", jsonDoc, path), nil
+	}
+}
+
+func (d mysqlDialect) JsonExtractUnquote(jsonDoc exp.Expression, pp ...any) (_ exp.Expression, err error) {
+	if jsonDoc, err = d.JsonExtract(jsonDoc, pp...); err != nil {
+		return
+	} else {
+		return exp.NewSQLFunctionExpression("JSON_UNQUOTE", jsonDoc), nil
+	}
+}
+
+// JsonArrayContains prepares MySQL compatible comparison of value (or ident) and JSON array
+//
+// # literal value = multi-value field / plain
+// # multi-value field = single-value field / plain
+// JSON_CONTAINS(v, JSON_EXTRACT(needle, '$.f3'), '$.f2')
+//
+// # single-value field = multi-value field / plain
+// # multi-value field = single-value field / plain
+// JSON_CONTAINS(v, '"needle"', '$.f2')
+//
+// This approach is not optimal, but it is the only way to make it work
+func (d mysqlDialect) JsonArrayContains(needle, haystack exp.Expression) (_ exp.Expression, err error) {
+	return exp.NewSQLFunctionExpression("JSON_CONTAINS", haystack, needle), nil
 }
 
 func (d mysqlDialect) TableCodec(m *dal.Model) drivers.TableCodec {
@@ -68,7 +109,7 @@ func (d mysqlDialect) TypeWrap(dt dal.Type) drivers.Type {
 // AttributeCast for mySQL
 //
 // https://dev.mysql.com/doc/refman/8.0/en/cast-functions.html#function_cast
-func (mysqlDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpression) (exp.LiteralExpression, error) {
+func (mysqlDialect) AttributeCast(attr *dal.Attribute, val exp.Expression) (exp.Expression, error) {
 	var (
 		c exp.CastExpression
 	)
@@ -77,36 +118,31 @@ func (mysqlDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpression
 
 	case *dal.TypeNumber:
 		ce := exp.NewCaseExpression().
-			When(val.RegexpLike(drivers.CheckNumber), val).
+			When(drivers.RegexpLike(drivers.CheckNumber, val), val).
 			Else(drivers.LiteralNULL)
 
 		c = exp.NewCastExpression(ce, "DECIMAL(65,10)")
 
 	case *dal.TypeTimestamp:
 		ce := exp.NewCaseExpression().
-			When(val.RegexpLike(drivers.CheckFullISO8061), val).
+			When(drivers.RegexpLike(drivers.CheckFullISO8061, val), val).
 			Else(drivers.LiteralNULL)
 
 		c = exp.NewCastExpression(ce, "DATETIME")
 
 	case *dal.TypeBoolean:
-		ce := exp.NewCaseExpression().
-			When(val.In(drivers.LiteralTRUE, exp.NewLiteralExpression(`'true'`)), drivers.LiteralTRUE).
-			When(val.In(drivers.LiteralFALSE, exp.NewLiteralExpression(`'false'`)), drivers.LiteralFALSE).
-			Else(drivers.LiteralNULL)
-
-		c = exp.NewCastExpression(ce, "SIGNED")
+		c = exp.NewCastExpression(drivers.BooleanCheck(val), "SIGNED")
 
 	case *dal.TypeID, *dal.TypeRef:
 		ce := exp.NewCaseExpression().
-			When(val.RegexpLike(drivers.CheckID), val).
+			When(drivers.RegexpLike(drivers.CheckID, val), val).
 			Else(drivers.LiteralNULL)
 
 		c = exp.NewCastExpression(ce, "UNSIGNED")
 
 	case *dal.TypeTime:
 		ce := exp.NewCaseExpression().
-			When(val.RegexpLike(drivers.CheckTimeISO8061), val).
+			When(drivers.RegexpLike(drivers.CheckTimeISO8061, val), val).
 			Else(drivers.LiteralNULL)
 
 		c = exp.NewCastExpression(ce, "TIME")
@@ -117,35 +153,6 @@ func (mysqlDialect) AttributeCast(attr *dal.Attribute, val exp.LiteralExpression
 	}
 
 	return exp.NewLiteralExpression("?", c), nil
-}
-
-func (mysqlDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (exp.Expression, error) {
-	return ql.DefaultRefHandler(n, args...)
-}
-
-func JSONPath(ident exp.IdentifierExpression, pp ...any) (exp.LiteralExpression, error) {
-	var (
-		sql strings.Builder
-	)
-
-	sql.WriteString(`?->>'$`)
-
-	for _, p := range pp {
-		switch path := p.(type) {
-		case string:
-			sql.WriteString(".")
-			sql.WriteString(strings.ReplaceAll(path, "'", `\'`))
-		case int:
-			sql.WriteString("[")
-			sql.WriteString(strconv.Itoa(path))
-			sql.WriteString("]")
-		default:
-			return nil, fmt.Errorf("unexpected path part (%q) type: %T", p, p)
-		}
-	}
-
-	sql.WriteString(`'`)
-	return exp.NewLiteralExpression(sql.String(), ident), nil
 }
 
 func (mysqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err error) {
@@ -214,6 +221,18 @@ func (mysqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err
 	}
 
 	return
+}
+
+func (d mysqlDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (expr exp.Expression, err error) {
+	switch ref := strings.ToLower(n.Ref); ref {
+	case "in":
+		return drivers.OpHandlerIn(d, n, args...)
+
+	case "nin":
+		return drivers.OpHandlerNotIn(d, n, args...)
+	}
+
+	return ql.DefaultRefHandler(n, args...)
 }
 
 func (d mysqlDialect) OrderedExpression(expr exp.Expression, dir exp.SortDirection, _ exp.NullSortType) exp.OrderedExpression {
