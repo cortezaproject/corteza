@@ -2,7 +2,7 @@ package dalutils
 
 import (
 	"context"
-
+	"fmt"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -117,8 +117,17 @@ func drainIterator(ctx context.Context, iter dal.Iterator, mod *types.Module, f 
 	// close iterator after we've drained it
 	defer iter.Close()
 
+	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			err = fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+			return
+		}
+	}
+
 	var (
-		r *types.Record
+		ok      bool
+		fetched uint
+		r       *types.Record
 	)
 
 	// Get the requested number of record
@@ -128,36 +137,202 @@ func drainIterator(ctx context.Context, iter dal.Iterator, mod *types.Module, f 
 		set = make(types.RecordSet, 0, 1000)
 	}
 
-	// Make out filter
-	outFilter = f
-	pp := f.Paging.Clone()
+	for f.Limit == 0 || uint(len(set)) < f.Limit {
+		// reset counters every drain
+		fetched = 0
 
-	err = dal.IteratorPaging(ctx, iter, pp, f.Sorting, func(i dal.Iterator) (out dal.ValueGetter, ok bool) {
-		r = prepareRecordTarget(mod)
-		if err = i.Scan(r); err != nil {
+		err = WalkIterator(ctx, iter, mod, func(r *types.Record) error {
+			// check fetched record
+			if f.Check != nil {
+				if ok, err = f.Check(r); err != nil {
+					return err
+				} else if !ok {
+					return nil
+				}
+			}
+
+			fetched++
+			set = append(set, r)
+			return err
+		})
+
+		// if an error occurred inside Next()/WalkIterator,
+		// we need to stop draining
+		if err != nil {
 			return
 		}
 
-		// check fetched record
-		if f.Check != nil {
-			if ok, err = f.Check(r); err != nil {
-				return nil, false
-			} else if !ok {
-				return nil, ok
+		if fetched == 0 || f.Limit == 0 || (0 < f.Limit && fetched < f.Limit) {
+			// do not re-fetch if:
+			// 1) nothing was fetch in the previous run
+			// 2) there was no limit (everything was fetched)
+			// 3) there are less fetched items then value of limit
+			break
+		}
+
+		// Fetch more records
+		setLen := uint(len(set))
+		if setLen > 0 && setLen < f.Limit {
+			fetchMore := f.Limit - setLen
+
+			// request more items
+			if err = iter.More(fetchMore, r); err != nil {
+				return
 			}
 		}
+	}
 
-		if f.Limit == 0 || uint(len(set)) < f.Limit {
-			set = append(set, r)
-		}
-
-		return r, true
-	})
+	// Get the page nav/total/next-prev cursors
+	nav, err := generatePageNavigation(ctx, iter, mod, f, set)
 	if err != nil {
 		return
 	}
 
-	outFilter.Paging = *pp
+	// Make out filter
+	outFilter = f
+	outFilter.Paging = nav.Paging
+	outFilter.Sorting = nav.Sorting
+
+	return
+}
+
+// generatePageNavigation page nav for given record set using iterator
+func generatePageNavigation(ctx context.Context, iter dal.Iterator, mod *types.Module, p types.RecordFilter, set types.RecordSet) (out types.RecordFilter, err error) {
+	const (
+		howMuchMore = 1000
+	)
+	var (
+		ok      bool
+		total   = uint(len(set))
+		setLen  = len(set)
+		counter = 0
+
+		first *types.Record
+		last  *types.Record
+		page  filter.Page
+
+		pageNavigation = []*filter.Page{
+			{
+				Page:   1,
+				Count:  0,
+				Cursor: nil,
+			},
+		}
+
+		generatePage = func(last *types.Record) (err error) {
+			if !p.IncPageNavigation || p.Limit == 0 || len(pageNavigation) == 0 {
+				return
+			}
+
+			lastNavPageNo := len(pageNavigation) - 1
+			nextPage, err := iter.ForwardCursor(last)
+			if err != nil {
+				return
+			}
+
+			// prep page
+			if (total % p.Limit) == 0 {
+				pageNavigation[lastNavPageNo].Count = p.Limit
+				page = filter.Page{
+					Page:   uint(len(pageNavigation) + 1),
+					Count:  0,
+					Cursor: nextPage,
+				}
+			} else {
+				page.Count += 1
+			}
+
+			// push page when limit is matched with page item size
+			if p.Limit == 1 || pageNavigation[lastNavPageNo].Count == p.Limit {
+				pageNavigation = append(pageNavigation, &filter.Page{
+					Page:   page.Page,
+					Count:  page.Count,
+					Cursor: page.Cursor,
+				})
+			}
+
+			return
+		}
+	)
+
+	if setLen == 0 {
+		return
+	} else {
+		first = set[0]
+		last = set[setLen-1]
+	}
+
+	// Limit
+	out.Limit = p.Limit
+
+	// Sorting
+	out.Sort = dal.IteratorSorting(iter)
+
+	if p.IncTotal || p.IncPageNavigation {
+		// For the first page nav
+		err = generatePage(last)
+		if err != nil {
+			return
+		}
+
+		for counter == 0 || counter < howMuchMore {
+			counter++
+
+			interLoop := 0
+
+			if err = iter.More(howMuchMore, last); err != nil {
+				return
+			}
+
+			err = WalkIterator(ctx, iter, mod, func(rec *types.Record) error {
+				// check fetched record
+				if p.Check != nil {
+					if ok, err = p.Check(rec); err != nil {
+						return err
+					} else if !ok {
+						return nil
+					}
+				}
+
+				interLoop++
+				total++
+				return generatePage(rec)
+			})
+			if err != nil {
+				return
+			}
+
+			if interLoop < howMuchMore {
+				break
+			}
+		}
+	}
+
+	// No need to generate prev/next cursor
+	// 		if limit is not defined and set is empty
+	if p.Limit > 0 && len(set) > 0 {
+		// PrevPage
+		out.PrevPage, err = dal.PreLoadCursor(ctx, iter, 1, true, first)
+		if err != nil {
+			return
+		}
+
+		// NextPage
+		out.NextPage, err = dal.PreLoadCursor(ctx, iter, 1, false, last)
+		if err != nil {
+			return
+		}
+	}
+
+	// Total
+	if p.IncTotal {
+		out.Total = total
+	}
+
+	// Page navigation
+	if p.IncPageNavigation {
+		out.PageNavigation = pageNavigation
+	}
 
 	return
 }

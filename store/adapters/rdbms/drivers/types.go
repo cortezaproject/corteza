@@ -209,6 +209,9 @@ func (t *TypeBoolean) Decode(raw any) (any, bool, error) {
 }
 
 func (t *TypeBoolean) Encode(val any) (driver.Value, error) {
+	if val == nil {
+		return nil, nil
+	}
 	return cast.ToBool(val), nil
 }
 
@@ -304,7 +307,7 @@ func TimestampLayout(tz bool, precision int) string {
 }
 
 func TimeLayout(tz bool, precision int) string {
-	var layout = "15:04:05.00000"
+	var layout = "15:04:05"
 	if precision > 0 {
 		layout += "." + strings.Repeat("9", precision)
 	}

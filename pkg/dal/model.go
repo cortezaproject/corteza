@@ -257,6 +257,16 @@ func (aa AttributeSet) FindByIdent(ident string) *Attribute {
 	return nil
 }
 
+func (aa AttributeSet) FindByStoreIdent(ident string) *Attribute {
+	for _, a := range aa {
+		if strings.EqualFold(a.StoreIdent(), ident) {
+			return a
+		}
+	}
+
+	return nil
+}
+
 // Validate performs a base model validation before it is passed down
 func (m Model) Validate() error {
 	if m.Resource == "" {

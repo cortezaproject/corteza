@@ -77,12 +77,24 @@ func (i *iterator) More(max uint, last dal.ValueGetter) (err error) {
 	return nil
 }
 
-func (i *iterator) Preload(ctx context.Context) (err error) {
-	if i.err == nil && i.rows == nil {
-		i.rows, i.err = i.fetch(ctx)
+func (i *iterator) Preload(_ context.Context, max uint, cur *filter.PagingCursor) (err error) {
+	if i.rows != nil {
+		if err = i.rows.Close(); err != nil {
+			return fmt.Errorf("could not close previous query: %w", err)
+		}
+		i.rows = nil
+	}
+
+	i.limit = max
+	if cur != nil {
+		i.cursor = cur
 	}
 
 	return i.err
+}
+
+func (i *iterator) Sorting() filter.SortExprSet {
+	return i.sorting
 }
 
 func (i *iterator) fetch(ctx context.Context) (rows *sql.Rows, err error) {
@@ -124,6 +136,9 @@ func (i *iterator) fetch(ctx context.Context) (rows *sql.Rows, err error) {
 				cur,
 				func(ident string) (exp.LiteralExpression, error) { return i.src.table.AttributeExpression(ident) },
 				func(ident string, val any) (exp.LiteralExpression, error) {
+					// @fixme vvv
+					// attr := i.dst.model.Attributes.FindByStoreIdent(ident)
+
 					attr := i.dst.model.Attributes.FindByIdent(ident)
 					if attr == nil {
 						panic("unknown attribute " + ident + " used in cursor expression cast callback")
@@ -200,9 +215,9 @@ func (i *iterator) orderByExp(sort filter.SortExprSet) (oe []exp.OrderedExpressi
 		tmp, _ := i.src.table.AttributeExpression(s.Column)
 
 		if s.Descending {
-			oe = append(oe, exp.NewOrderedExpression(tmp, exp.DescSortDir, exp.NoNullsSortType))
+			oe = append(oe, i.src.dialect.OrderedExpression(tmp, exp.DescSortDir, exp.NullsLastSortType))
 		} else {
-			oe = append(oe, exp.NewOrderedExpression(tmp, exp.AscDir, exp.NoNullsSortType))
+			oe = append(oe, i.src.dialect.OrderedExpression(tmp, exp.AscDir, exp.NullsFirstSortType))
 		}
 	}
 
