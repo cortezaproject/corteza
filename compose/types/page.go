@@ -222,31 +222,40 @@ func (p *Page) decodeTranslations(tt locale.ResourceTranslationIndex) {
 		switch block.Kind {
 		case "Automation":
 			bb, _ := block.Options["buttons"].([]interface{})
-			for j, auxBtn := range bb {
-				btn := auxBtn.(map[string]interface{})
+			p.decodeRecordListButtons(tt, bb, blockID)
 
-				buttonID := uint64(0)
-				if aux, ok := btn["buttonID"]; ok {
-					buttonID = cast.ToUint64(aux)
-				}
-				buttonID = locale.ContentID(buttonID, j)
-
-				rpl := strings.NewReplacer(
-					"{{blockID}}", strconv.FormatUint(blockID, 10),
-					"{{buttonID}}", strconv.FormatUint(buttonID, 10),
-				)
-
-				if aux = tt.FindByKey(rpl.Replace(LocaleKeyPagePageBlockBlockIDButtonButtonIDLabel.Path)); aux != nil {
-					btn["label"] = aux.Msg
-				}
-			}
+		case "RecordList":
+			bb, _ := block.Options["selectionButtons"].([]interface{})
+			p.decodeRecordListButtons(tt, bb, blockID)
 
 		case "Content":
 			if aux = tt.FindByKey(rpl.Replace(LocaleKeyPagePageBlockBlockIDContentBody.Path)); aux != nil {
 				block.Options["body"] = aux.Msg
 			}
 		}
+	}
+}
 
+func (p *Page) decodeRecordListButtons(tt locale.ResourceTranslationIndex, bb []interface{}, blockID uint64) {
+	var aux *locale.ResourceTranslation
+
+	for j, auxBtn := range bb {
+		btn := auxBtn.(map[string]interface{})
+
+		buttonID := uint64(0)
+		if aux, ok := btn["buttonID"]; ok {
+			buttonID = cast.ToUint64(aux)
+		}
+		buttonID = locale.ContentID(buttonID, j)
+
+		rpl := strings.NewReplacer(
+			"{{blockID}}", strconv.FormatUint(blockID, 10),
+			"{{buttonID}}", strconv.FormatUint(buttonID, 10),
+		)
+
+		if aux = tt.FindByKey(rpl.Replace(LocaleKeyPagePageBlockBlockIDButtonButtonIDLabel.Path)); aux != nil {
+			btn["label"] = aux.Msg
+		}
 	}
 }
 
@@ -281,31 +290,12 @@ func (p *Page) encodeTranslations() (out locale.ResourceTranslationSet) {
 		switch block.Kind {
 		case "Automation":
 			bb, _ := block.Options["buttons"].([]interface{})
-			for j, auxBtn := range bb {
-				btn := auxBtn.(map[string]interface{})
+			out = append(out, p.encodeRecordListButtons(bb, blockID)...)
 
-				if _, ok := btn["label"]; !ok {
-					continue
-				}
+		case "RecordList":
+			bb, _ := block.Options["selectionButtons"].([]interface{})
+			out = append(out, p.encodeRecordListButtons(bb, blockID)...)
 
-				buttonID := uint64(0)
-				if aux, ok := btn["buttonID"]; ok {
-					buttonID = cast.ToUint64(aux)
-				}
-				buttonID = locale.ContentID(buttonID, j)
-
-				rpl := strings.NewReplacer(
-					"{{blockID}}", strconv.FormatUint(blockID, 10),
-					"{{buttonID}}", strconv.FormatUint(buttonID, 10),
-				)
-
-				out = append(out, &locale.ResourceTranslation{
-					Resource: p.ResourceTranslation(),
-					Key:      rpl.Replace(LocaleKeyPagePageBlockBlockIDButtonButtonIDLabel.Path),
-					Msg:      btn["label"].(string),
-				})
-
-			}
 		case "Content":
 			body, _ := block.Options["body"].(string)
 			out = append(out, &locale.ResourceTranslation{
@@ -314,6 +304,36 @@ func (p *Page) encodeTranslations() (out locale.ResourceTranslationSet) {
 				Msg:      body,
 			})
 		}
+	}
+
+	return
+}
+
+func (p *Page) encodeRecordListButtons(bb []interface{}, blockID uint64) (out locale.ResourceTranslationSet) {
+	for j, auxBtn := range bb {
+		btn := auxBtn.(map[string]interface{})
+
+		if _, ok := btn["label"]; !ok {
+			continue
+		}
+
+		buttonID := uint64(0)
+		if aux, ok := btn["buttonID"]; ok {
+			buttonID = cast.ToUint64(aux)
+		}
+		buttonID = locale.ContentID(buttonID, j)
+
+		rpl := strings.NewReplacer(
+			"{{blockID}}", strconv.FormatUint(blockID, 10),
+			"{{buttonID}}", strconv.FormatUint(buttonID, 10),
+		)
+
+		out = append(out, &locale.ResourceTranslation{
+			Resource: p.ResourceTranslation(),
+			Key:      rpl.Replace(LocaleKeyPagePageBlockBlockIDButtonButtonIDLabel.Path),
+			Msg:      btn["label"].(string),
+		})
+
 	}
 
 	return
