@@ -151,10 +151,12 @@
         :back-link="{name: 'admin.pages'}"
         :hide-delete="hideDelete"
         :hide-save="!page.canUpdatePage"
-        hide-clone
+        :disable-clone="disableClone"
+        :clone-tooltip="cloneTooltip"
         @save="handleSave()"
         @delete="handleDeletePage"
         @saveAndClose="handleSave({ closeOnSuccess: true })"
+        @clone="handleClone()"
       >
         <b-button
           v-if="page.canUpdatePage"
@@ -315,6 +317,14 @@ export default {
     showDeleteDropdown () {
       return this.hasChildren && this.page.canDeletePage && !this.page.deletedAt
     },
+
+    disableClone () {
+      return !!this.module
+    },
+
+    cloneTooltip () {
+      return this.disableClone ? this.$t('tooltip.saveAsCopy') : ''
+    },
   },
 
   watch: {
@@ -342,6 +352,7 @@ export default {
       updatePage: 'page/update',
       deletePage: 'page/delete',
       updatePageSet: 'page/updateSet',
+      createPage: 'page/create',
     }),
 
     addBlock (block, index = undefined) {
@@ -461,6 +472,23 @@ export default {
       }
 
       return true
+    },
+
+    handleClone () {
+      let page = this.page.clone()
+      page = {
+        ...page,
+        pageID: NoID,
+        title: this.$t('copyOf', { title: this.page.title }),
+        handle: '',
+      }
+
+      const { namespaceID = NoID } = this.namespace
+      this.createPage({ namespaceID, ...page })
+        .then(({ pageID }) => {
+          this.$router.push({ name: 'admin.pages.builder', params: { pageID } })
+        })
+        .catch(this.toastErrorHandler(this.$t('notification:page.cloneFailed')))
     },
   },
 }

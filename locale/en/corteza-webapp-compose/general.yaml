@@ -63,6 +63,7 @@ label:
   sensitive: Sensitive
   save: Save
   saveAndClose: Save and close
+  saveAsCopy: Save as copy
   status: Status
   timeHour: '{{t}}h'
   timeMinute: '{{t}}min'
