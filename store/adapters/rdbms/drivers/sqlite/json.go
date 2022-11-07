@@ -68,7 +68,6 @@ func jsonPath(pp ...any) (string, error) {
 }
 
 func sqliteFuncJsonArrayContains(needle, haystack []byte) (_ bool, err error) {
-	println("FOO")
 	var n, h, i *fastjson.Value
 
 	if h, err = fastjson.ParseBytes(haystack); err != nil {

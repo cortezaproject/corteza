@@ -1,6 +1,7 @@
 package drivers
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
@@ -27,6 +28,8 @@ type (
 		// GOQU returns goqu's dialect wrapper struct
 		GOQU() goqu.DialectWrapper
 
+		JsonQuote(exp.Expression) exp.Expression
+
 		// JsonExtract returns expression that returns a value from  inside JSON document
 		//
 		// Use this when you want use JSON encoded value
@@ -40,6 +43,8 @@ type (
 		// JsonArrayContains generates expression JSON array containment check expression
 		//
 		// Literal values need to be JSON docs!
+		//
+		// @todo recheck if we really need JsonArrayContains on Dialect interface
 		JsonArrayContains(needle, haystack exp.Expression) (exp.Expression, error)
 
 		// AttributeCast prepares complex SQL expression that verifies
@@ -91,4 +96,98 @@ func IndexFieldModifiers(attr *dal.Attribute, quoteIdent func(i string) string, 
 	}
 
 	return out, nil
+}
+
+func OpHandlerIn(d Dialect, n *ql.ASTNode, args ...exp.Expression) (expr exp.Expression, err error) {
+	return opHandlerIn(d, n, false, args...)
+}
+
+func OpHandlerNotIn(d Dialect, n *ql.ASTNode, args ...exp.Expression) (expr exp.Expression, err error) {
+	return opHandlerIn(d, n, true, args...)
+}
+
+func opHandlerIn(d Dialect, n *ql.ASTNode, negate bool, args ...exp.Expression) (expr exp.Expression, err error) {
+	if len(n.Args) == 2 && n.Args[1] != nil && n.Args[1].Meta["dal.Attribute"] != nil && n.Args[1].Meta["dal.Attribute"].(*dal.Attribute).MultiValue {
+		// if right-side argument is multi-value attribute,
+		// then we need to adjust the arguments a bit:
+		// 1) left side, if it is a value, is encoded as JSON
+		// 2)            if ref we access JSON encoded value
+		//
+		// right side, access JSON encoded array of values.
+		//
+		//
+		//
+		//
+		for a := range n.Args {
+			left := a == 0
+
+			switch {
+			case n.Args[a].Meta != nil && n.Args[a].Meta["dal.Attribute"] != nil:
+				// symbol, ident probably...
+				var (
+					attr       = n.Args[a].Meta["dal.Attribute"].(*dal.Attribute)
+					model      = n.Args[a].Meta["dal.Model"].(*dal.Model)
+					storeIdent = exp.NewIdentifierExpression(
+						"",
+						model.Ident,
+						attr.StoreIdent(),
+					)
+
+					_, isJSON = attr.Store.(*dal.CodecRecordValueSetJSON)
+				)
+
+				if attr.MultiValue {
+					if left {
+						return nil, fmt.Errorf("multi-value attribute %s cannot be used as left-side argument of IN operator", attr.Ident)
+					}
+
+					args[a], err = d.JsonExtract(storeIdent, attr.Ident)
+				} else {
+					if !left {
+						return nil, fmt.Errorf("single-value attribute %s cannot be used as right-side argument of IN operator", attr.Ident)
+					}
+
+					if isJSON {
+						args[a], err = d.JsonExtract(storeIdent, attr.Ident, 0)
+					} else if attr.Type.Type() == dal.AttributeTypeBoolean {
+						// SQLite converts boolean to integer but JSON stores boolean as boolean
+						args[a] = exp.NewCaseExpression().
+							When(exp.NewBooleanExpression(exp.EqOp, args[a], LiteralTRUE), exp.NewLiteralExpression(`'true'`)).
+							When(exp.NewBooleanExpression(exp.EqOp, args[a], LiteralFALSE), exp.NewLiteralExpression(`'false'`)).
+							Else(LiteralNULL)
+					} else {
+						args[a] = d.JsonQuote(args[a])
+					}
+				}
+
+				if err != nil {
+					return nil, err
+				}
+
+			case a == 0 && n.Args[a].Value != nil:
+				// for 1st arg only, when value
+				var jsonDoc []byte
+				jsonDoc, err = json.Marshal(n.Args[a].Value.V.Get())
+				if err != nil {
+					return nil, err
+				}
+
+				// encode it as json
+				args[a] = exp.NewLiteralExpression("?", string(jsonDoc))
+			}
+		}
+
+		expr, err = d.JsonArrayContains(args[0], args[1])
+		if err != nil {
+			return
+		}
+
+		if negate {
+			expr = exp.NewLiteralExpression("NOT ?", expr)
+		}
+
+		return
+	}
+
+	return nil, fmt.Errorf("unsupported IN operator")
 }

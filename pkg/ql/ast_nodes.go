@@ -15,6 +15,10 @@ type (
 	ASTNode struct {
 		pMeta *parserMeta
 
+		// Meta holds additional node data
+		// while processing the AST
+		Meta map[string]any
+
 		Ref  string     `json:"ref,omitempty"`
 		Args ASTNodeSet `json:"args,omitempty"`
 
