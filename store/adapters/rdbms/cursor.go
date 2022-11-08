@@ -299,7 +299,7 @@ func CursorExpression(
 			// both NULL
 			exp.NewExpressionList(
 				exp.AndType,
-				exp.NewLiteralExpression(`? IS ?`, ident, notOp[!lt]),
+				exp.NewLiteralExpression(`(? IS ?)`, ident, notOp[!lt]),
 				isValueNull(i, lt),
 			),
 			// or GT/LT value
@@ -319,7 +319,7 @@ func CursorExpression(
 						// both NULL
 						exp.NewExpressionList(
 							exp.AndType,
-							exp.NewLiteralExpression(`? IS NULL`, ident),
+							exp.NewLiteralExpression(`(? IS NULL)`, ident),
 							isValueNull(i, false),
 						),
 						exp.NewBooleanExpression(exp.EqOp, ident, value),
