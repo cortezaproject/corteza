@@ -1,5 +1,8 @@
 <template>
-  <div class="d-flex flex-grow-1 w-100">
+  <div
+    :class="{ 'flex-column': showRecordModal }"
+    class="d-flex flex-grow-1 w-100 h-100"
+  >
     <b-alert
       v-if="isDeleted"
       show
@@ -8,7 +11,9 @@
       {{ $t('record.recordDeleted') }}
     </b-alert>
 
-    <portal to="topbar-title">
+    <portal
+      :to="portalTopbarTitle"
+    >
       {{ title }}
     </portal>
 
@@ -20,7 +25,9 @@
       @reload="loadRecord()"
     />
 
-    <portal to="toolbar">
+    <portal
+      :to="portalRecordToolbar"
+    >
       <record-toolbar
         :module="module"
         :record="record"
@@ -32,6 +39,7 @@
         :in-editing="inEditing"
         :hide-clone="inCreating"
         :hide-add="inCreating"
+        :show-record-modal="showRecordModal"
         @add="handleAdd()"
         @clone="handleClone()"
         @edit="handleEdit()"
@@ -87,6 +95,11 @@ export default {
       required: false,
       default: '',
     },
+    // Open record in a modal
+    showRecordModal: {
+      type: Boolean,
+      required: false,
+    },
   },
 
   data () {
@@ -97,6 +110,14 @@ export default {
   },
 
   computed: {
+    portalTopbarTitle () {
+      return this.showRecordModal ? 'record-modal-header' : 'topbar-title'
+    },
+
+    portalRecordToolbar () {
+      return this.showRecordModal ? 'record-modal-footer' : 'toolbar'
+    },
+
     newRouteParams () {
       // Remove recordID and values from route params
       const { recordID, values, ...params } = this.$route.params
@@ -119,7 +140,9 @@ export default {
 
     title () {
       const { name, handle } = this.module
-      return this.$t('page:public.record.view.title', { name: name || handle, interpolation: { escapeValue: false } })
+      const titlePrefix = this.inCreating ? 'create' : this.inEditing ? 'edit' : 'view'
+
+      return this.$t(`page:public.record.${titlePrefix}.title`, { name: name || handle, interpolation: { escapeValue: false } })
     },
   },
 
@@ -183,19 +206,42 @@ export default {
        * Not the best way since we can not always know where we
        * came from (and "were" is back).
        */
-      this.$router.back()
+      if (this.showRecordModal) {
+        this.inEditing = false
+        this.inCreating = false
+        this.$bvModal.hide('record-modal')
+      } else {
+        this.$router.back()
+      }
     },
 
     handleAdd () {
-      this.$router.push({ name: 'page.record.create', params: this.newRouteParams })
+      if (this.showRecordModal) {
+        this.inEditing = true
+        this.inCreating = true
+        this.record = new compose.Record(this.module, { values: this.values })
+      } else {
+        this.$router.push({ name: 'page.record.create', params: this.newRouteParams })
+      }
     },
 
     handleClone () {
-      this.$router.push({ name: 'page.record.create', params: { pageID: this.page.pageID, values: this.record.values } })
+      if (this.showRecordModal) {
+        this.inEditing = true
+        this.inCreating = true
+        this.record = new compose.Record(this.module, { values: this.record.values })
+      } else {
+        this.$router.push({ name: 'page.record.create', params: { pageID: this.page.pageID, values: this.record.values } })
+      }
     },
 
     handleEdit () {
-      this.$router.push({ name: 'page.record.edit', params: this.$route.params })
+      if (this.showRecordModal) {
+        this.inCreating = false
+        this.inEditing = true
+      } else {
+        this.$router.push({ name: 'page.record.edit', params: this.$route.params })
+      }
     },
   },
 }

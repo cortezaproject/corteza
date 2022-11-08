@@ -23,6 +23,7 @@ interface Options {
   hideRecordPermissionsButton: boolean;
   allowExport: boolean;
   perPage: number;
+  recordDisplayOption: string;
 
   fullPageNavigation: boolean;
   showTotalCount: boolean;
@@ -38,6 +39,7 @@ interface Options {
   linkToParent: boolean;
 
   // Should records be opened in a new tab
+  // legacy field that has been removed but we keep it for backwards compatibility
   openInNewTab: boolean;
 
   // Are table rows selectable
@@ -66,6 +68,7 @@ const defaults: Readonly<Options> = Object.freeze({
   hideRecordPermissionsButton: true,
   allowExport: false,
   perPage: 20,
+  recordDisplayOption: 'sameTab',
 
   fullPageNavigation: true,
   showTotalCount: true,
@@ -100,7 +103,7 @@ export class PageBlockRecordList extends PageBlock {
     if (!o) return
 
     Apply(this.options, o, CortezaID, 'moduleID')
-    Apply(this.options, o, String, 'prefilter', 'presort', 'selectMode', 'positionField', 'refField')
+    Apply(this.options, o, String, 'prefilter', 'presort', 'selectMode', 'positionField', 'refField', 'recordDisplayOption')
     Apply(this.options, o, Number, 'perPage')
 
     if (o.fields) {
@@ -109,6 +112,10 @@ export class PageBlockRecordList extends PageBlock {
 
     if (o.editFields) {
       this.options.editFields = o.editFields
+    }
+
+    if (o.openInNewTab) {
+      this.options.recordDisplayOption = 'newTab'
     }
 
     Apply(this.options, o, Boolean,
@@ -129,7 +136,6 @@ export class PageBlockRecordList extends PageBlock {
       'hideRecordPermissionsButton',
       'editable',
       'draggable',
-      'openInNewTab',
       'linkToParent',
     )
 
