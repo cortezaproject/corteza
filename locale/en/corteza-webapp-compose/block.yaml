@@ -350,7 +350,9 @@ recordList:
     presortLabel: Presort records
     presortPlaceholder: field1 DESC, field2 ASC
     showTotalCount: Show total record count
+    openInSameTab: Open records in the same tab
     openInNewTab: Open records in a new tab
+    openInModal: Open records in a modal
     linkToParent: Link to parent record
     tooltip:
       clone: Clone record
@@ -358,6 +360,7 @@ recordList:
       undelete: Undelete record
       reminder: Reminder
       view: View record
+    recordDisplayOptions: Record display options
   recordPage: record page
   refField:
     footnote: Field that links records with the parent record

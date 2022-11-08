@@ -30,13 +30,6 @@ export default {
     }
   },
 
-  computed: {
-    title () {
-      const { name, handle } = this.module
-      return this.$t('page:public.record.create.title', { name: name || handle, interpolation: { escapeValue: false } })
-    },
-  },
-
   created () {
     this.record = new compose.Record(this.module, { values: this.values })
 

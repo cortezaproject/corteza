@@ -594,6 +594,7 @@ import { components, url } from '@cortezaproject/corteza-vue'
 import draggable from 'vuedraggable'
 import RecordListFilter from 'corteza-webapp-compose/src/components/Common/RecordListFilter'
 import ColumnPicker from 'corteza-webapp-compose/src/components/Admin/Module/Records/ColumnPicker'
+
 const { CInputSearch } = components
 
 export default {
@@ -1150,8 +1151,14 @@ export default {
         query: null,
       }
 
-      if (this.options.openInNewTab) {
+      if (this.options.recordDisplayOption === 'newTab') {
         window.open(this.$router.resolve(route).href)
+      } else if (this.options.recordDisplayOption === 'modal') {
+        this.$root.$emit('show-record-modal', {
+          moduleID: this.recordListModule.moduleID,
+          recordPageID: this.recordPageID,
+          recordID,
+        })
       } else {
         this.$router.push(route)
       }
