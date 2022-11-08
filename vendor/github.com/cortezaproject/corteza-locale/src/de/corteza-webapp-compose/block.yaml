@@ -25,7 +25,7 @@ automation:
   removeAll: Remove all
   searchPlaceholder: Filter available scripts by label, script name and description
   secondaryButton: Secondary
-  stepID: 'stepID: {{stepID}}'
+  stepID: 'Starting step ID: {{stepID}}'
   successButton: Success
   warningButton: Warning
 calendar:
@@ -206,7 +206,10 @@ recordList:
     note: 'Note: If Field value is undefined, the filter will look for records where that field value is undefined.'
     only: Only
     operators:
+      like: Like
+      notLike: Not Like
       contains: Contains
+      notContains: Not contains
       equal: Equal
       greaterThan: Greater than
       lessThan: Less than

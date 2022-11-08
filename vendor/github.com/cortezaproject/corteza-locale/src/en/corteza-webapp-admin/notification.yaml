@@ -132,6 +132,9 @@ queue:
   delete:
     success: Queue deleted
     error: Queue delete failed
+  undelete:
+    success: Queue restored
+    error: Queue restore failed
 gateway:
   fetch:
     error: Route fetch failed
