@@ -389,6 +389,9 @@ func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module,
 			}
 		}
 
+		// Verify dal system field mappings
+		_ = handleDalSysFieldEncodingUpdate(new)
+
 		aProps.setChanged(new)
 
 		if err = store.CreateComposeModule(ctx, s, new); err != nil {
@@ -756,6 +759,9 @@ func (svc module) handleUpdate(ctx context.Context, upd *types.Module) moduleUpd
 			}
 
 		}
+
+		// Verify dal system field mappings
+		_ = handleDalSysFieldEncodingUpdate(upd)
 
 		if !reflect.DeepEqual(res.Config, upd.Config) {
 			changes |= moduleChanged
@@ -1587,4 +1593,13 @@ func modulesByConnection(defConnID uint64, modules ...*types.Module) map[uint64]
 	}
 
 	return out
+}
+
+// handleDalSysFieldEncodingUpdate prevents the mapping from being disabled for certain system field
+//		IE. `recordID` -> `Module.Config.DAL.SystemFieldEncoding.ID`
+func handleDalSysFieldEncodingUpdate(mod *types.Module) error {
+	if mod.Config.DAL.SystemFieldEncoding.ID != nil && mod.Config.DAL.SystemFieldEncoding.ID.Omit {
+		mod.Config.DAL.SystemFieldEncoding.ID.Omit = false
+	}
+	return nil
 }
