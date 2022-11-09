@@ -450,6 +450,10 @@ func (f ModuleField) setOptionKey(v interface{}, kk ...string) {
 }
 
 func (f ModuleField) getOptionKey(kk ...string) interface{} {
+	if len(f.Options) == 0 {
+		return nil
+	}
+
 	opt := f.Options
 
 	for _, k := range kk[0 : len(kk)-1] {
