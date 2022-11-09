@@ -37,7 +37,7 @@ endpoints:
     path: "/"
     parameters:
       post:
-      - { name: handle,       type: string, required: true,     title: "Workflow name" }
+      - { name: handle,       type: string,                     title: "Workflow name" }
       - { name: labels,       type: "map[string]string",        title: "Labels",                         parser: "label.ParseStrings" }
       - { name: meta,         type: "*types.WorkflowMeta",      title: "Workflow meta data",             parser: "types.ParseWorkflowMeta" }
       - { name: enabled,      type: bool,                       title: "Is workflow enabled" }
@@ -55,7 +55,7 @@ endpoints:
     parameters:
       path: [ { name: workflowID, type: uint64, required: true, title: "Workflow ID" } ]
       post:
-      - { name: handle,       type: string, required: true,     title: "Workflow name" }
+      - { name: handle,       type: string,                     title: "Workflow name" }
       - { name: labels,       type: "map[string]string",        title: "Labels",                         parser: "label.ParseStrings" }
       - { name: meta,         type: "*types.WorkflowMeta",      title: "Workflow meta data",             parser: "types.ParseWorkflowMeta" }
       - { name: enabled,      type: bool,                       title: "Is workflow enabled" }
