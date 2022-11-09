@@ -332,6 +332,16 @@ func DefaultFilters() (f *extendedFilters) {
 		return ee, f, err
 	}
 
+	f.ApigwRoute = func(s *Store, f systemType.ApigwRouteFilter) (ee []goqu.Expression, _ systemType.ApigwRouteFilter, err error) {
+		if ee, f, err = ApigwRouteFilter(f); err != nil {
+			return
+		}
+
+		ee = append(ee, goqu.C("endpoint").Like("%"+f.Endpoint+"%"))
+
+		return ee, f, nil
+	}
+
 	return
 }
 

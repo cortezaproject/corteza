@@ -63,7 +63,7 @@ apigw_route: {
 			disabled: {goType: "filter.State", storeIdent: "enabled"}
 		}
 
-		byValue: ["route", "endpoint", "method"]
+		byValue: ["route", "method"]
 		byNilState: ["deleted"]
 		byFalseState: ["disabled"]
 	}
