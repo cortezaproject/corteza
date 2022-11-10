@@ -90,7 +90,7 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 		Short: "Add new user",
 		Args:  cobra.MinimumNArgs(1),
 
-		PreRunE: commandPreRunInitService(app),
+		PreRunE: commandPreRunInitActivate(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
 
@@ -164,6 +164,10 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 				if err = authSvc.SetPassword(ctx, user.ID, string(password)); err != nil {
 					cli.HandleError(err)
 				}
+			}
+
+			if flagMakePasswordLink {
+				authSvc.SendPasswordResetToken(ctx, user.Email)
 			}
 		},
 	}
