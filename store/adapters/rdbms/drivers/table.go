@@ -54,12 +54,12 @@ func NewTableCodec(m *dal.Model, d Dialect) *GenericTableCodec {
 		attr = m.Attributes[a]
 		colIdent = attr.StoreIdent()
 
-		if done[colIdent] {
-			continue
-		}
-
 		switch attr.Store.(type) {
 		case *dal.CodecRecordValueSetJSON:
+			if done[colIdent] {
+				continue
+			}
+
 			// when dealing with encoded types there is probably
 			// a different column that can handle the encoded payload
 			cols = append(cols, &SimpleJsonDocColumn{
