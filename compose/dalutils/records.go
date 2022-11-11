@@ -268,6 +268,22 @@ func generatePageNavigation(ctx context.Context, iter dal.Iterator, mod *types.M
 	// Sorting
 	out.Sort = dal.IteratorSorting(iter)
 
+	// No need to generate prev/next cursor
+	// 		if limit is not defined and set is empty
+	if p.Limit > 0 && len(set) > 0 {
+		// PrevPage
+		out.PrevPage, err = dal.PreLoadCursor(ctx, iter, 1, true, first)
+		if err != nil {
+			return
+		}
+
+		// NextPage
+		out.NextPage, err = dal.PreLoadCursor(ctx, iter, 1, false, last)
+		if err != nil {
+			return
+		}
+	}
+
 	if p.IncTotal || p.IncPageNavigation {
 		// For the first page nav
 		err = generatePage(last)
@@ -296,6 +312,7 @@ func generatePageNavigation(ctx context.Context, iter dal.Iterator, mod *types.M
 
 				interLoop++
 				total++
+				last = rec
 				return generatePage(rec)
 			})
 			if err != nil {
@@ -305,22 +322,6 @@ func generatePageNavigation(ctx context.Context, iter dal.Iterator, mod *types.M
 			if interLoop < howMuchMore {
 				break
 			}
-		}
-	}
-
-	// No need to generate prev/next cursor
-	// 		if limit is not defined and set is empty
-	if p.Limit > 0 && len(set) > 0 {
-		// PrevPage
-		out.PrevPage, err = dal.PreLoadCursor(ctx, iter, 1, true, first)
-		if err != nil {
-			return
-		}
-
-		// NextPage
-		out.NextPage, err = dal.PreLoadCursor(ctx, iter, 1, false, last)
-		if err != nil {
-			return
 		}
 	}
 
