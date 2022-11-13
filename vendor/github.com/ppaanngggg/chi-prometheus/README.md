@@ -4,6 +4,8 @@
 
 This is a port of [negroni-prometheus](https://github.com/zbindenren/negroni-prometheus) middleware (written by [Rene Zbinden](https://github.com/zbindenren)).
 
+Fork from [chi-prometheus](https://github.com/766b/chi-prometheus) thanks to 766b.
+
 ## Why
 
 [Logging v. instrumentation](http://peter.bourgon.org/blog/2016/02/07/logging-v-instrumentation.html)
@@ -12,7 +14,7 @@ Instead of logging request times, it is considered best practice to provide an e
 
 ## Installation
 
-    go get github.com/766b/chi-prometheus
+    go get github.com/ppaannggggg/chi-prometheus
 
 ## Usage
 
