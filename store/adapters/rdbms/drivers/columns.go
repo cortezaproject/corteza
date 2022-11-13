@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/spf13/cast"
 	"github.com/valyala/fastjson"
 )
@@ -180,6 +181,15 @@ func (c *SimpleJsonDocColumn) Decode(raw any, r dal.ValueSetter) (err error) {
 		return
 	}
 
+	if root.Type() == fastjson.TypeNull {
+		// ignore NULL
+		return
+	}
+
+	if root.Type() != fastjson.TypeObject {
+		return errors.InvalidData("expecting valid JSON object for record-values")
+	}
+
 	if obj, err = root.Object(); err != nil {
 		return
 	}
@@ -189,6 +199,15 @@ func (c *SimpleJsonDocColumn) Decode(raw any, r dal.ValueSetter) (err error) {
 		if auxvv == nil {
 			// no values for the attribute
 			continue
+		}
+
+		if auxvv.Type() == fastjson.TypeNull {
+			// ignore NULL
+			return
+		}
+
+		if auxvv.Type() != fastjson.TypeArray {
+			return errors.InvalidData("expecting valid JSON array for record-values at key %s, got %s", attr.Ident, root.Type())
 		}
 
 		if vv, err = auxvv.Array(); err != nil {
