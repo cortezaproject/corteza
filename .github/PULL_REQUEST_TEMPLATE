@@ -1,0 +1,16 @@
+Please take a look.
+
+<!--
+Checklist:
+
+1. API changes have been discussed,
+2. Source code must be formatted (`go fmt`, `yarn lint`),
+3. Codegen shouldn't produce modified files,
+4. Builds pass,
+5. Tests pass,
+6. Linked to relevant issues
+
+When you are writing pull request title and describing changes, follow
+commit message format in the CONTRIBUTING.md in the codebase root.
+
+-->
