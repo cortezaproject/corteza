@@ -1,0 +1,679 @@
+//paste the rest of icomoon here
+
+$icon-grid-interface-close: "\e920";
+$icon-grid-interface-absent: "\e921";
+$icon-grid-interface-open: "\e922";
+$icon-search: "\e91f";
+$icon-fatlock: "\e91d";
+$icon-Fichier-2: "\e91e";
+$icon-settings-horizontal: "\e914";
+$icon-tabs: "\e915";
+$icon-menu4: "\e916";
+$icon-message-circle-left-speak: "\e917";
+$icon-message-circle-right-speak: "\e918";
+$icon-message-circle-right: "\e919";
+$icon-menu3: "\e91a";
+$icon-menu-dots: "\e900";
+$icon-images: "\e91b";
+$icon-camera: "\e91c";
+$icon-location: "\e947";
+$icon-location2: "\e948";
+$icon-undo: "\e965";
+$icon-redo: "\e966";
+$icon-bubble1: "\e96c";
+$icon-bubbles: "\e96d";
+$icon-bubbles2: "\e96f";
+$icon-bubble21: "\e970";
+$icon-bubbles3: "\e972";
+$icon-bubbles4: "\e973";
+$icon-zoom: "\e986";
+$icon-lock: "\e98f";
+$icon-menu1: "\e9be";
+$icon-earth: "\e9ca";
+$icon-cross: "\ea0f";
+$icon-checkmark: "\ea10";
+$icon-circle-up: "\ea41";
+$icon-circle-right: "\ea42";
+$icon-circle-down: "\ea43";
+$icon-circle-left: "\ea44";
+$icon-checkbox-checked: "\ea52";
+$icon-checkbox-unchecked: "\ea53";
+$icon-radio-checked: "\ea54";
+$icon-radio-checked2: "\ea55";
+$icon-google: "\ea88";
+$icon-facebook: "\ea90";
+$icon-youtube: "\ea9d";
+$icon-files-empty: "\e925";
+$icon-bell: "\e951";
+$icon-bubble: "\e96b";
+$icon-bubble2: "\e96e";
+$icon-user: "\e971";
+$icon-equalizer: "\e992";
+$icon-menu2: "\e9bd";
+$icon-info2: "\ea0c";
+$icon-play3: "\ea1c";
+$icon-indent-decrease: "\ea7c";
+$icon-align-justify: "\e903";
+$icon-bell2: "\e901";
+$icon-chevron-down: "\e904";
+$icon-chevron-left: "\e905";
+$icon-chevron-right: "\e906";
+$icon-chevron-up: "\e907";
+$icon-copy: "\e908";
+$icon-film: "\e909";
+$icon-git-commit: "\e90a";
+$icon-info: "\e90b";
+$icon-menu: "\e90c";
+$icon-message-circle: "\e90d";
+$icon-more-vertical: "\e90e";
+$icon-plus: "\e90f";
+$icon-plus-circle: "\e910";
+$icon-square: "\e911";
+$icon-terminal: "\e912";
+$icon-user2: "\e902";
+$icon-x: "\e913";
+
+@font-face
+{
+  font-family: '#{$icomoon-font-family}';
+  src:
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.ttf?yjnewp') format('truetype'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.woff?yjnewp') format('woff'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.svg?yjnewp##{$icomoon-font-family}') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+[class^="icon-"],
+[class*=" icon-"]
+{
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: '#{$icomoon-font-family}' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  color: $secondary;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-grid-interface-close
+{
+  &::before
+  {
+    content: $icon-grid-interface-close;
+  }
+}
+
+.icon-grid-interface-absent
+{
+  &::before
+  {
+    content: $icon-grid-interface-absent;
+  }
+}
+
+.icon-grid-interface-open
+{
+  &::before
+  {
+    content: $icon-grid-interface-open;
+  }
+}
+
+.icon-search
+{
+  &::before
+  {
+    content: $icon-search;
+  }
+}
+
+.icon-fatlock
+{
+  &::before
+  {
+    content: $icon-fatlock;
+  }
+}
+
+.icon-Fichier-2
+{
+  &::before
+  {
+    content: $icon-Fichier-2;
+  }
+}
+
+.icon-settings-horizontal
+{
+  &::before
+  {
+    content: $icon-settings-horizontal;
+  }
+}
+
+.icon-tabs
+{
+  &::before
+  {
+    content: $icon-tabs;
+  }
+}
+
+.icon-menu4
+{
+  &::before
+  {
+    content: $icon-menu4;
+  }
+}
+
+.icon-message-circle-left-speak
+{
+  &::before
+  {
+    content: $icon-message-circle-left-speak;
+  }
+}
+
+.icon-message-circle-right-speak
+{
+  &::before
+  {
+    content: $icon-message-circle-right-speak;
+  }
+}
+
+.icon-message-circle-right
+{
+  &::before
+  {
+    content: $icon-message-circle-right;
+  }
+}
+
+.icon-menu3
+{
+  &::before
+  {
+    content: $icon-menu3;
+  }
+}
+
+.icon-menu-dots
+{
+  &::before
+  {
+    content: $icon-menu-dots;
+  }
+}
+
+.icon-images
+{
+  &::before
+  {
+    content: $icon-images;
+  }
+}
+
+.icon-camera
+{
+  &::before
+  {
+    content: $icon-camera;
+  }
+}
+
+.icon-location
+{
+  &::before
+  {
+    content: $icon-location;
+  }
+}
+
+.icon-location2
+{
+  &::before
+  {
+    content: $icon-location2;
+  }
+}
+
+.icon-undo
+{
+  &::before
+  {
+    content: $icon-undo;
+  }
+}
+
+.icon-redo
+{
+  &::before
+  {
+    content: $icon-redo;
+  }
+}
+
+.icon-bubble1
+{
+  &::before
+  {
+    content: $icon-bubble1;
+  }
+}
+
+.icon-bubbles
+{
+  &::before
+  {
+    content: $icon-bubbles;
+  }
+}
+
+.icon-bubbles2
+{
+  &::before
+  {
+    content: $icon-bubbles2;
+  }
+}
+
+.icon-bubble21
+{
+  &::before
+  {
+    content: $icon-bubble21;
+  }
+}
+
+.icon-bubbles3
+{
+  &::before
+  {
+    content: $icon-bubbles3;
+  }
+}
+
+.icon-bubbles4
+{
+  &::before
+  {
+    content: $icon-bubbles4;
+  }
+}
+
+.icon-zoom
+{
+  &::before
+  {
+    content: $icon-zoom;
+  }
+}
+
+.icon-lock
+{
+  &::before
+  {
+    content: $icon-lock;
+  }
+}
+
+.icon-menu1
+{
+  &::before
+  {
+    content: $icon-menu1;
+  }
+}
+
+.icon-earth
+{
+  &::before
+  {
+    content: $icon-earth;
+  }
+}
+
+.icon-cross
+{
+  &::before
+  {
+    content: $icon-cross;
+  }
+}
+
+.icon-checkmark
+{
+  &::before
+  {
+    content: $icon-checkmark;
+  }
+}
+
+.icon-circle-up
+{
+  &::before
+  {
+    content: $icon-circle-up;
+  }
+}
+
+.icon-circle-right
+{
+  &::before
+  {
+    content: $icon-circle-right;
+  }
+}
+
+.icon-circle-down
+{
+  &::before
+  {
+    content: $icon-circle-down;
+  }
+}
+
+.icon-circle-left
+{
+  &::before
+  {
+    content: $icon-circle-left;
+  }
+}
+
+.icon-checkbox-checked
+{
+  &::before
+  {
+    content: $icon-checkbox-checked;
+  }
+}
+
+.icon-checkbox-unchecked
+{
+  &::before
+  {
+    content: $icon-checkbox-unchecked;
+  }
+}
+
+.icon-radio-checked
+{
+  &::before
+  {
+    content: $icon-radio-checked;
+  }
+}
+
+.icon-radio-checked2
+{
+  &::before
+  {
+    content: $icon-radio-checked2;
+  }
+}
+
+.icon-google
+{
+  &::before
+  {
+    content: $icon-google;
+  }
+}
+
+.icon-facebook
+{
+  &::before
+  {
+    content: $icon-facebook;
+  }
+}
+
+.icon-youtube
+{
+  &::before
+  {
+    content: $icon-youtube;
+  }
+}
+
+.icon-files-empty
+{
+  &::before
+  {
+    content: $icon-files-empty;
+  }
+}
+
+.icon-bell
+{
+  &::before
+  {
+    content: $icon-bell;
+  }
+}
+
+.icon-bubble
+{
+  &::before
+  {
+    content: $icon-bubble;
+  }
+}
+
+.icon-bubble2
+{
+  &::before
+  {
+    content: $icon-bubble2;
+  }
+}
+
+.icon-user
+{
+  &::before
+  {
+    content: $icon-user;
+  }
+}
+
+.icon-equalizer
+{
+  &::before
+  {
+    content: $icon-equalizer;
+  }
+}
+
+.icon-menu2
+{
+  &::before
+  {
+    content: $icon-menu2;
+  }
+}
+
+.icon-info2
+{
+  &::before
+  {
+    content: $icon-info2;
+  }
+}
+
+.icon-play3
+{
+  &::before
+  {
+    content: $icon-play3;
+  }
+}
+
+.icon-indent-decrease
+{
+  &::before
+  {
+    content: $icon-indent-decrease;
+  }
+}
+
+.icon-align-justify
+{
+  &::before
+  {
+    content: $icon-align-justify;
+  }
+}
+
+.icon-bell2
+{
+  &::before
+  {
+    content: $icon-bell2;
+  }
+}
+
+.icon-chevron-down
+{
+  &::before
+  {
+    content: $icon-chevron-down;
+  }
+}
+
+.icon-chevron-left
+{
+  &::before
+  {
+    content: $icon-chevron-left;
+  }
+}
+
+.icon-chevron-right
+{
+  &::before
+  {
+    content: $icon-chevron-right;
+  }
+}
+
+.icon-chevron-up
+{
+  &::before
+  {
+    content: $icon-chevron-up;
+  }
+}
+
+.icon-copy
+{
+  &::before
+  {
+    content: $icon-copy;
+  }
+}
+
+.icon-film
+{
+  &::before
+  {
+    content: $icon-film;
+  }
+}
+
+.icon-git-commit
+{
+  &::before
+  {
+    content: $icon-git-commit;
+  }
+}
+
+.icon-info
+{
+  &::before
+  {
+    content: $icon-info;
+  }
+}
+
+.icon-menu
+{
+  &::before
+  {
+    content: $icon-menu;
+  }
+}
+
+.icon-message-circle
+{
+  &::before
+  {
+    content: $icon-message-circle;
+  }
+}
+
+.icon-more-vertical
+{
+  &::before
+  {
+    content: $icon-more-vertical;
+  }
+}
+
+.icon-plus
+{
+  &::before
+  {
+    content: $icon-plus;
+  }
+}
+
+.icon-plus-circle
+{
+  &::before
+  {
+    content: $icon-plus-circle;
+  }
+}
+
+.icon-square
+{
+  &::before
+  {
+    content: $icon-square;
+  }
+}
+
+.icon-terminal
+{
+  &::before
+  {
+    content: $icon-terminal;
+  }
+}
+
+.icon-user2
+{
+  &::before
+  {
+    content: $icon-user2;
+  }
+}
+
+.icon-x
+{
+  &::before
+  {
+    content: $icon-x;
+  }
+}

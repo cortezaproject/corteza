@@ -1,0 +1,68 @@
+$wideminwidth: 768px !default;
+
+// Paths
+$fonts_dir : '/fonts/' !default;
+$icomoon-font-path: $fonts_dir + 'icomoon' !default;
+$icomoon-font-family: "icomoon" !default;
+
+// Typography
+$font-light: 'Poppins-Light' !default;
+$font-regular: 'Poppins-Regular' !default;
+$font-medium: 'Poppins-Medium' !default;
+$font-semibold: 'Poppins-Semibold' !default;
+$font-bold: 'Poppins-Bold' !default;
+$font-size-base: 0.9rem !default;
+
+$font-family-base:      $font-regular !default;
+$headings-font-family:  $font-semibold !default;
+
+// Color system
+$white:         #FFF !default;
+$black:         #000 !default;
+$primary:       #0B344E !default;
+$secondary:     #758D9B !default;
+$success:       #43AA8B !default;
+$warning:       #F5D380 !default;
+$danger:        #E24646 !default;
+$light:         #E4E9EF !default;
+$dark:          #162425 !default;
+
+$gray-200:      #F3F3F5 !default;
+
+// Options
+$enable-rounded:   true !default;
+$enable-gradients: false !default;
+$enable-responsive-font-sizes: true !default;
+
+// Body
+$body-bg: $gray-200 !default;
+
+// Card
+$card-border-radius: 1rem !default;
+$card-border-width:  0 !default;
+$card-cap-bg:        $gray-200 !default;
+
+// Buttons
+$btn-font-size: $font-size-base !default;
+$btn-padding-y: 0.25em !default;
+$btn-padding-x: 1em !default;
+
+$btn-focus-width:       0.2rem !default;
+$btn-focus-box-shadow:  none !default;
+$btn-active-box-shadow: none !default;
+
+$btn-font-size-lg:  16px !default;
+$btn-font-family:   $font-semibold !default;
+
+$topbar-height:         64px !default;
+
+
+// Forms
+$input-font-size: $font-size-base !default;
+
+$input-border-color:  $light !default;
+$input-border-width:  2px !default;
+
+$input-btn-focus-width:     0 !default;
+$input-focus-box-shadow:    none !default;
+$input-focus-border-color:  $primary !default;
