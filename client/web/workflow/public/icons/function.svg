@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="32" height="32" viewBox="0 0 32 32">
+  <defs>
+    <clipPath id="clip-path">
+      <rect id="Rectangle_262" data-name="Rectangle 262" width="26.102" height="16.706" fill="#2D2D2D"/>
+    </clipPath>
+  </defs>
+  <g id="Group_6220" data-name="Group 6220" transform="translate(-333 -5834)">
+    <rect id="Rectangle_260" data-name="Rectangle 260" width="32" height="32" transform="translate(333 5834)" fill="rgba(255,255,255,0)"/>
+    <g id="Group_6218" data-name="Group 6218" transform="translate(336 5842)">
+      <g id="Group_6217" data-name="Group 6217" transform="translate(0 0)" clip-path="url(#clip-path)">
+        <path id="Path_5686" data-name="Path 5686" d="M5.664,5.292v-1.6H3.719v-.6a1.556,1.556,0,0,1,.344-1.149A1.882,1.882,0,0,1,5.353,1.6h.176V0H5.353A4.067,4.067,0,0,0,2.684.736a2.941,2.941,0,0,0-.874,2.35v.6H.609v1.6h1.2V13.62a1.565,1.565,0,0,1-.343,1.149A1.9,1.9,0,0,1,.176,15.1H0v1.606H.176a4.064,4.064,0,0,0,2.669-.736,2.937,2.937,0,0,0,.874-2.35V5.292Z" transform="translate(0 0.001)" fill="#2D2D2D"/>
+        <path id="Path_5687" data-name="Path 5687" d="M8.146,12.7a10.534,10.534,0,0,1,0-8.562A9.09,9.09,0,0,1,10.9.658L10.971.6V.22H9.411L9.365.254A8.615,8.615,0,0,0,6.681,3.667a11.287,11.287,0,0,0-1,4.745,11.322,11.322,0,0,0,1,4.751,8.6,8.6,0,0,0,2.684,3.42l.045.034h1.561v-.385l-.068-.054A9,9,0,0,1,8.146,12.7" transform="translate(2.328 0.091)" fill="#2D2D2D"/>
+        <path id="Path_5688" data-name="Path 5688" d="M14.359,7.428l3.108-4.813H15.386L13.417,5.924,11.3,2.616H9.143l3.106,4.862-3.11,4.777h2.1l1.952-3.29,2.1,3.29h2.16Z" transform="translate(3.744 1.072)" fill="#2D2D2D"/>
+        <path id="Path_5689" data-name="Path 5689" d="M19.054,3.667A8.612,8.612,0,0,0,16.371.254L16.325.22H14.764V.6l.066.054A9.213,9.213,0,0,1,17.583,4.14a10.489,10.489,0,0,1,0,8.562,9.082,9.082,0,0,1-2.753,3.475l-.066.054v.385h1.561l.047-.034a8.6,8.6,0,0,0,2.683-3.42,11.31,11.31,0,0,0,1-4.751,11.275,11.275,0,0,0-1-4.745" transform="translate(6.048 0.091)" fill="#2D2D2D"/>
+      </g>
+    </g>
+  </g>
+</svg>
