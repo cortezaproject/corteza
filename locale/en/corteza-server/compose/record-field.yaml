@@ -1,0 +1,6 @@
+errors:
+  empty: This field is required
+  invalidValue: Invalid field value
+  invalidRef: Invalid field reference
+  duplicateValueInSet: This value already exists in list
+  duplicateValue: This value already exists

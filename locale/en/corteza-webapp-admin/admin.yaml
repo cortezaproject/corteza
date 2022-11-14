@@ -1,0 +1,105 @@
+automation:
+  add: Add script
+  edit:
+    asyncHelp: Do not wait for results and ignore errors. Incompatible with critical flag.
+    asyncLabel: Run this script asynchronously
+    codeTabLabel: Code
+    criticalHelp: Wait until this script is executed. In case of errors, abort execution of other scripts and before* trigger
+    criticalLabel: Critical script
+    delete: Delete script
+    enabledHelp: Disabled scripts will be ignored
+    enabledLabel: Enabled
+    mailAutomationTriggers:
+      addMatcher: Add condition
+      addTrigger: Add trigger
+      delete: Delete trigger
+      deleteTrigger: Delete
+      enable: Enable trigger
+      matchAll: Must match all conditions
+      matcher:
+        fields:
+          bcc: BCC
+          cc: CC
+          from: From
+          placeholder: Mail header field
+          replyTo: Reply To
+          subject: Subject
+          to: To
+        match: Value to match
+        operators:
+          equal-ci: Match full
+          placeholder: Operator
+          prefix-ci: Match prefix
+          regex: Regex
+          suffix-ci: Match suffix
+          user: Existing user
+      tabLabel: Mail triggers
+    nameLabel: Name
+    namePlaceholder: Automation script name
+    runAsCurrentUser: Run as "{{ user }}"
+    runAsHelp: Script runner
+    scheduledTriggers:
+      tabLabel: Scheduled
+    securityLabel: Security
+    settingsTabLabel: Settings
+    timeoutHelp: How much time do we wait before aborting the script? Value in milliseconds (1000ms = 1s). It defaults (when 0) to 2s with 30s as maximum. Consult with your administrator for exact numbers and limitations.
+    timeoutLabel: Script execution timeout
+    timeoutPlaceholder: "1500"
+    title: Automation script
+    userPickerPlaceholder: Select user
+  import: Import automation script(s)
+  list:
+    column:
+      label:
+        async: Async.
+        critical: Critical
+        enabled: Enabled
+        runAs: Run As
+        runInUA: In browser
+    unnamed: (Unnamed script)
+  manage: Manage automation scripts ({{count}})
+  manage-id-permissions: Manage permissions for this script
+  manage-wc-permissions: Manage permissions for all scripts
+  newLabel: Create a new script
+  newPlaceholder: Script name
+  testing:
+    load: Load
+    parametersHeadline: 'Parameters & payload:'
+    resultsHeadline: 'Results:'
+    testInBrowser: Test in Browser
+    testInCorredor: Test in Corredor
+    warning: ""
+  title: List of automation script
+general:
+  notFound: 'Not found'
+  label:
+    "no": "No"
+    submit: Submit
+    "yes": "Yes"
+    selectOption: "Please select an option"
+  logout: Logout
+  noAccess: You do not have permissions to access Admin panel
+  pagination:
+    next: Next
+    prev: Prev
+navigation:
+  adminPanel: Admin panel
+  automation: Automation
+  chart: Charts
+  configuration: Configuration
+  help:
+    documentation: Documentation
+    feedback: Send feedback
+    forum: Help
+    version: 'Version:'
+  module: Modules
+  more: More
+  namespace: Namespaces
+  noPageTitle: No page title
+  page: Pages
+  publicPages: Public pages
+  userSettings:
+    changePassword: Change password
+    loggedInAs: Logged in as {{user}}
+    logout: Logout
+    profile: Profile

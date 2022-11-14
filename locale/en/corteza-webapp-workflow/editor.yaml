@@ -1,0 +1,31 @@
+
+'auto-initialize-empty-variable': Variables that can't be loaded will be auto initialized as empty
+back: Back
+'click-to-save': Click here to save.
+deferred: Deferred
+delete: Delete
+deleted: Deleted
+'detected-changes': "Changes detected "
+'detected-issues': Issues detected
+disabled: Disabled
+help: Help
+handle: (Handle)
+id: "ID:"
+'id-parenthesis': " (ID)"
+'initial-scope': Initial scope
+'input-ids-or-handles': The initial scope gets injected into the workflow at execution. To load available variables, input the related IDs/Handles below
+issues: Issues
+'load-and-configure': Load and Configure
+'modify-initial-scope-if-no-variables-are-loaded': If you do not wish to load any variables, click "Configure" to modify the initial scope before running workflow
+'open-webapp-on-prompt-use' : "WARNING: If prompts are used in the workflow, make sure that the related webapp is also opened. Otherwise workflow will timeout"
+reset: Reset
+'run-as': "Run as:"
+'run-workflow': Run Workflow
+'required-namespace': Namespace required
+'required-namespace-and-module': Namespace and Module required
+save: Save
+spinning: Spinning
+'test-in-progress': "Testing in progress. If your workflow includes Prompt or Delay steps, it may be waiting for them to complete"
+'unsupported-browser': Browser is not supported!
+'workflow-configuration': Workflow Configuration
+'editor': Editor

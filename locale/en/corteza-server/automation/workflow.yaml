@@ -1,0 +1,16 @@
+errors:
+  disabled: disabled workflow or trigger
+  handleNotUnique: workflow handle not unique
+  invalidHandle: invalid handle
+  invalidID: invalid ID
+  notAllowedToCreate: not allowed to create workflows
+  notAllowedToDelete: not allowed to delete this workflow
+  notAllowedToExecute: not allowed to execute this workflow
+  notAllowedToExecuteCorredorStep: not allowed to run corredorExec function, corredor is disabled
+  notAllowedToRead: not allowed to read this workflow
+  notAllowedToSearch: not allowed to search or list workflows
+  notAllowedToUndelete: not allowed to undelete this workflow
+  notAllowedToUpdate: not allowed to update this workflow
+  notFound: workflow not found
+  staleData: stale data
+  unknownWorkflowStep: unknown workflow step

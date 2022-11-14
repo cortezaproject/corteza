@@ -1,0 +1,12 @@
+label:
+  clear: Clear
+  none: None
+  now: Now
+  today: Today
+  routes: Routes
+  requests: Requests
+  refresh: Refresh
+  loadMore: Load more
+  loading: Loading
+  fileTypeNotAllowed: File type not allowed
+
