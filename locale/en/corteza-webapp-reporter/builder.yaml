@@ -1,0 +1,71 @@
+add:
+  datasource: Add datasource
+  display-element: Add display element
+available: Available
+block:
+  description: Block description
+  save: Save Block
+  title: Block title
+  configuration: Block configuration
+datasource: 
+  label: Datasource
+  types:
+    load:
+      label: Load
+      data-from-resource: Loads data from a specified resource, such as Compose records
+    link:
+      label: Link
+      load-datasources: Links two Load datasources with a unique column that links them together, such as a Compose record selector
+    join:
+      label: Join
+      load-datasources: Joins two datasources with a unique column that joins them together, such as a Compose record selector. The join step produces a single set of rows in contrast to the link step which produces an independent data frame for each local row
+    aggregate:
+      label: Aggregate
+      load-datasource: Aggregates data from a load datasource based on a column value and aggregates it, such as counting the number of Accounts with the same status
+datasources:
+  label: Datasources
+  save: Save Datasources
+description: Description
+display-elements:
+  types:
+    text: Text
+    metric: Metric
+    table: Table
+    chart: Chart
+element: Element
+elements: Elements
+filter-expression: Filter expression
+general: General
+joined-datasource-handling: Joined datasource handling
+layout: Layout
+layout-options:
+  horizontal: Horizontal
+  vertical: Vertical
+limit: Limit
+no-blocks-added: No blocks added yet
+or: Or
+pick-scenario: Pick a scenario
+prefilter: Prefilter
+presort-order: Presort order
+report:
+  builder: Report Builder
+  view: View Report
+save-button: Save
+scenarios:
+  label: Scenarios
+  save: Save Scenarios
+title: Title
+tooltip:
+  edit:
+    report: Edit report
+    block: Edit block
+  configure-scenarios: Configure scenarios
+available-columns: Available columns
+selected-columns: Selected columns
+no-columns-found: No columns found
+type-to-search: Type here to search among columns
+selected: Selected
+select-all: Select all
+unselect-all: Unselect all
+value: Value
+name: Name

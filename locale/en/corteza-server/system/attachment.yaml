@@ -1,0 +1,9 @@
+errors:
+  failedToExtractMimeType: could not extract mime type
+  failedToProcessImage: could not process image
+  failedToStoreFile: could not extract store file
+  invalidID: invalid ID
+  notAllowedToCreate: not allowed to create attachments
+  notAllowedToCreateEmptyAttachment: not allowed to create empty attachments
+  notAllowedToListAttachments: not allowed to list attachments
+  notFound: attachment not found
