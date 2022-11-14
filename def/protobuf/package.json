@@ -1,0 +1,6 @@
+{
+  "name": "@cortezaproject/corteza-protobuf",
+  "version": "2020.3.0-rc.1",
+  "private": true,
+  "description": "Corteza Protobuf dummy package"
+}

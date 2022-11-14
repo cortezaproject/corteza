@@ -1,0 +1,150 @@
+syntax = "proto3";
+
+package corredor;
+
+// Executing and listing server-scripts
+service ServerScripts {
+	// Executes server script
+	rpc Exec(ExecRequest) returns (ExecResponse);
+
+	// List of server scripts
+	rpc List(ServerScriptListRequest) returns (ServerScriptListResponse);
+}
+
+// Executing and listing client-scripts
+service ClientScripts {
+	// Bundles
+	rpc Bundle (BundleRequest) returns (BundleResponse);
+
+	// List of client scripts
+	rpc List(ClientScriptListRequest) returns (ClientScriptListResponse);
+}
+
+service Storage {
+	// rpc List(path) returns (list of dirs/files);
+	// rpc Store(path, content) returns (bool);
+	// rpc Delete(path, content) returns (bool);
+	// rpc Get(path) returns (file);
+}
+
+// ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
+
+message ExecRequest {
+	string name              = 1;
+	map<string, string> args = 2;
+}
+
+message ExecResponse {
+	map<string, string> result = 2;
+}
+
+// ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
+
+message ServerScriptListRequest {
+	// query by name, label, description
+	string query = 1;
+
+	// filter by resource - exact match
+	string resourceType = 2;
+
+	// filter by events - script must contain all specified events
+	repeated string eventTypes = 3;
+}
+
+message ServerScriptListResponse {
+	repeated ServerScript scripts = 1;
+}
+
+// ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
+
+message ClientScriptListRequest {
+	// query by name, label, description
+	string query = 1;
+
+	// filter by resource - exact match
+	string resourceType = 2;
+
+	// filter by events - script must contain all specified events
+	repeated string eventTypes = 3;
+
+	// filter by bundle - exact match
+	string bundle = 4;
+}
+
+message ClientScriptListResponse {
+	repeated ClientScript scripts = 1;
+}
+
+// ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
+
+message BundleRequest {
+	string name = 1;
+}
+
+message BundleResponse {
+	repeated Bundle bundles = 1;
+}
+
+// ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
+
+message ServerScript {
+	         string  name        =  1;
+	         string  label       =  2;
+	         string  description =  3;
+	         string  updatedAt   = 12;
+	       Security  security    = 13;
+    repeated Trigger triggers    = 14;
+            Iterator iterator    = 11;
+	repeated string  errors      = 15;
+}
+
+message ClientScript {
+	         string  name        =  1;
+	         string  label       =  2;
+	         string  description =  3;
+	         string  bundle      =  4;
+	         string  type        =  6;
+	         string  updatedAt   = 12;
+	       Security  security    = 13;
+    repeated Trigger triggers    = 14;
+	repeated string  errors      = 15;
+}
+
+message Security {
+	         string  runAs =  1;
+	repeated string  deny  =  2;
+	repeated string  allow =  3;
+}
+
+message Trigger {
+	repeated string      eventTypes    =  1;
+	repeated string      resourceTypes =  2;
+	repeated TUIProp     uiProps       = 14;
+	repeated TConstraint constraints   = 15;
+}
+
+message Iterator {
+	         string      eventType     =  1;
+	         string      resourceType  =  2;
+	repeated string      deferred      =  3;
+	 map<string, string> filter        =  4;
+			 string      action        =  5;
+	repeated TUIProp     uiProps       = 14;
+}
+
+message TConstraint {
+	         string name  = 1;
+	         string op    = 2;
+	repeated string value = 3;
+}
+
+message TUIProp {
+    string name  = 1;
+    string value = 2;
+}
+
+message Bundle {
+	string name = 1;
+	string type = 2;
+	string code = 3;
+}
