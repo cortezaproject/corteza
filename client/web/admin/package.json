@@ -1,0 +1,126 @@
+{
+  "name": "corteza-webapp-admin",
+  "description": "Corteza Admin WebApp",
+  "private": true,
+  "version": "2022.9.2",
+  "license": "Apache-2.0",
+  "author": "Denis Arh <denis.arh@gmail.com>",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "dev-env": "vue-cli-service serve src/dev-env.js",
+    "build": "vue-cli-service build --mode production",
+    "lint": "vue-cli-service lint",
+    "test:unit": "vue-cli-service test:unit",
+    "test:unit:cc": "nyc vue-cli-service test:unit",
+    "cdeps": "yarn upgrade @cortezaproject/corteza-js @cortezaproject/corteza-vue"
+  },
+  "gitHooks": {
+    "pre-commit": "yarn lint"
+  },
+  "dependencies": {
+    "@cortezaproject/corteza-js": "^2022.9.2",
+    "@cortezaproject/corteza-vue": "^2022.9.2",
+    "@fortawesome/fontawesome-svg-core": "1.2.27",
+    "@fortawesome/free-regular-svg-icons": "^5.14.0",
+    "@fortawesome/free-solid-svg-icons": "5.12.1",
+    "@fortawesome/vue-fontawesome": "0.1.9",
+    "acorn": "^6.4.1",
+    "axios": "0.21.2",
+    "bootstrap-vue": "^2.21.2",
+    "brace": "^0.11.1",
+    "chart.js": "^2.9.3",
+    "copy-to-clipboard": "^3.3.1",
+    "flush-promises": "^1.0.2",
+    "fstream": "^1.0.12",
+    "kind-of": "^6.0.3",
+    "leaflet": "^1.7.1",
+    "lodash": "^4.17.21",
+    "minimalist": "^1.0.0",
+    "minimist": "^1.2.6",
+    "moment": "2.29.2",
+    "portal-vue": "^2.1.7",
+    "postcss-rtl": "^1.7.3",
+    "resolve-url-loader": "^3.1.2",
+    "serialize-javascript": "^3.1.0",
+    "set-value": "^4.0.1",
+    "sinon": "^7.3.2",
+    "stylelint": "^9.10.1",
+    "stylelint-config-standard": "^18.2.0",
+    "stylelint-scss": "3.14.2",
+    "stylelint-webpack-plugin": "^0.10.5",
+    "vue": "2.6.14",
+    "vue-native-websocket": "^2.0.15",
+    "vue-router": "3.1.5",
+    "vue-select": "3.4.0",
+    "vue2-brace-editor": "^2.0.2",
+    "vue2-dropzone": "^3.6.0",
+    "vue2-leaflet": "^2.7.1",
+    "vuedraggable": "^2.23.2",
+    "vuex": "3.1.2"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "^3.10.0",
+    "@vue/cli-plugin-eslint": "^3.10.0",
+    "@vue/cli-plugin-unit-mocha": "^3.10.0",
+    "@vue/cli-service": "^3.10.0",
+    "@vue/eslint-config-standard": "^4.0.0",
+    "@vue/test-utils": "^1.0.0-beta.25",
+    "babel-eslint": "^10.0.2",
+    "babel-plugin-istanbul": "^5.2.0",
+    "chai": "^4.1.2",
+    "eslint": "^5.8.0",
+    "eslint-plugin-vue": "5.2.3",
+    "null-loader": "^4.0.1",
+    "nyc": "^14.1.1",
+    "sass": "^1.49.9",
+    "sass-loader": "^10",
+    "vue-template-compiler": "2.6.14"
+  },
+  "resolutions": {
+    "**/**/node-forge": "^0.10.0",
+    "**/**/yargs-parser": "^13.1.2",
+    "**/**/moment": "2.29.2",
+    "**/**/pdfjs-dist": "2.2.228"
+  },
+  "stylelint": {
+    "plugins": [
+      "stylelint-scss"
+    ],
+    "extends": "stylelint-config-standard",
+    "rules": {
+      "color-hex-case": null,
+      "color-hex-length": null,
+      "no-empty-source": null,
+      "selector-list-comma-newline-after": null
+    }
+  },
+  "nyc": {
+    "all": true,
+    "reporter": [
+      "lcov",
+      "text"
+    ],
+    "include": [
+      "src/**/*.{js,vue}"
+    ],
+    "exclude": [
+      "**/index.js",
+      "**/*.spec.js"
+    ],
+    "extension": [
+      ".js",
+      ".vue"
+    ],
+    "check-coverage": true,
+    "per-file": true,
+    "branches": 0,
+    "lines": 0,
+    "functions": 0,
+    "statements": 0
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not ie <= 8"
+  ]
+}

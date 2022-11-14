@@ -1,0 +1,196 @@
+/* stylelint-disable no-descending-specificity */
+html {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+body {
+  height: 100%;
+}
+
+:focus {
+  outline-color: $primary;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  pointer-events: all !important;
+}
+
+.btn-link {
+  &:focus {
+    text-decoration: none;
+  }
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.grab {
+  cursor: grab;
+}
+
+thead th,
+legend,
+label,
+.btn {
+  font-family: $font-medium;
+}
+
+strong,
+b,
+.font-weight-bold {
+  font-family: $font-semibold;
+}
+
+th {
+  white-space: nowrap;
+}
+
+.v-select {
+  .vs__search {
+    margin-top: 0.375rem;
+  }
+
+  .vs__dropdown-toggle {
+    padding: 0.375rem;
+    padding-top: 0;
+    border-width: 2px;
+    border-color: $light;
+
+    .vs__selected {
+      margin-top: 0.375rem;
+    }
+
+    .vs__actions {
+      padding-top: 0.375rem;
+    }
+  }
+
+  .vs__clear,
+  .vs__open-indicator {
+    fill: $gray-900;
+    display: inline-flex;
+  }
+}
+
+.vs__dropdown-menu {
+  z-index: 1090;
+}
+
+.loader {
+  height: calc(100vh - 2 * #{$topbar-height});
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+
+  .pending {
+    width: 30px;
+  }
+
+  .logo {
+    height: 30px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 130px;
+  }
+}
+
+.ProseMirror.ProseMirror-focused {
+  outline: none;
+}
+
+// Pagination
+.page-item {
+  &.disabled {
+    cursor: not-allowed;
+  }
+}
+
+fieldset.required {
+  &.error {
+    legend::before {
+      color: $danger;
+    }
+  }
+
+  label::after {
+    content: "*";
+    display: inline-block;
+    color: $danger;
+    width: 10px;
+    height: 18px;
+    overflow: hidden;
+  }
+}
+
+.alert-holder {
+  position: absolute;
+  top: 0;
+  width: 100%;
+
+  .alert {
+    z-index: 1040;
+    box-shadow: 0 0 2px 0 rgba($secondary, 0.75);
+  }
+}
+
+// Over-ride Bootstrap clear search input icon
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  height: 13px;
+  width: 13px;
+  background: url("data:image/svg+xml;charset=UTF-8,%3csvg viewPort='0 0 12 12' version='1.1' xmlns='http://www.w3.org/2000/svg'%3e%3cline x1='1' y1='11' x2='11' y2='1' stroke='black' stroke-width='2'/%3e%3cline x1='1' y1='1' x2='11' y2='11' stroke='black' stroke-width='2'/%3e%3c/svg%3e");
+}
+
+.b-toaster.b-toaster-bottom-right {
+  bottom: 75px;
+}
+
+.loading {
+  display: inline-block;
+}
+
+.loading::after {
+  display: inline-block;
+  animation: ellipsis steps(1,end) 1s infinite;
+  content: '';
+}
+
+.bg-extra-light {
+  background-color: $extra-light;
+}
+
+@keyframes ellipsis {
+    0%   { content: ''; }
+    25%  { content: '.'; }
+    50%  { content: '..'; }
+    75%  { content: '...'; }
+    100% { content: ''; }
+}
+
+// Supporting CSS to improve print-to-PDF option
+@media print {
+  @page {
+    size: auto;
+  }
+
+  body {
+    margin: 0;
+  }
+
+  main {
+    padding-top: 64px;
+  }
+
+  header, footer, aside, nav {
+    display: none;
+  }
+
+  .block {
+    break-inside: avoid;
+    width: 100%;
+  }
+}
