@@ -1,0 +1,290 @@
+/* stylelint-disable no-descending-specificity */
+html {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+body {
+  height: 100%;
+}
+
+:focus {
+  outline-color: $primary;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  pointer-events: all !important;
+}
+
+.btn-link {
+  &:focus {
+    text-decoration: none;
+  }
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.grab {
+  cursor: grab;
+}
+
+thead th,
+legend,
+label,
+.btn {
+  font-family: $font-medium;
+}
+
+strong,
+b,
+.font-weight-bold {
+  font-family: $font-semibold;
+}
+
+th {
+  white-space: nowrap;
+}
+
+.vue-grid-layout {
+  transition: none !important;
+}
+
+.vue-grid-item {
+  transition: none !important;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.v-select {
+  min-width: 15vw;
+
+  .vs__search {
+    margin: 0;
+  }
+
+  .vs__selected-options {
+    word-wrap: break-word;
+    flex-wrap: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.vs__dropdown-menu {
+  z-index: 1090;
+  min-width: 15vw;
+}
+
+.vs__dropdown-option {
+  padding: 0.375rem 0.375rem 0.375rem 0.625rem;
+}
+
+.vs__dropdown-toggle {
+  padding: 0.375rem;
+  border-width: 2px;
+  border-color: $light;
+  background-color: white;
+
+  .vs__selected {
+    margin: 0;
+  }
+}
+
+.vs__clear,
+.vs__open-indicator {
+  fill: $gray-900;
+  display: inline-flex;
+}
+
+.loader {
+  height: calc(100vh - 2 * #{$topbar-height});
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+
+  .pending {
+    width: 30px;
+  }
+
+  .logo {
+    height: 30px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 130px;
+  }
+}
+
+.ProseMirror.ProseMirror-focused {
+  outline: none;
+}
+
+// Pagination
+.page-item {
+  &.disabled {
+    cursor: not-allowed;
+  }
+}
+
+// Rich text content styling
+.rt-content {
+  &.editor {
+    border-radius: 4px;
+    border: 2px solid $light;
+  }
+
+  .editor__content {
+    min-height: 200px;
+  }
+
+  .btn {
+    width: 60px;
+  }
+
+  p {
+    margin: 0;
+    padding: 0;
+  }
+
+  // blockquote
+  blockquote {
+    border-left: 3px solid rgba($black, 0.1);
+    padding-left: 0.8rem;
+    font-style: italic;
+  }
+
+  // Code
+  pre {
+    background-color: #23241f;
+    color: #f8f8f2;
+    overflow: visible;
+    white-space: pre-wrap;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    padding: 5px 10px;
+    border-radius: 3px;
+  }
+
+  // todo list - https://github.com/scrumpy/tiptap/blob/master/examples/Components/Routes/TodoList/index.vue
+  li[data-type="todo_item"] {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .todo-checkbox {
+    border: 2px solid $black;
+    height: 0.9em;
+    width: 0.9em;
+    box-sizing: border-box;
+    margin-right: 10px;
+    margin-top: 0.3rem;
+    user-select: none;
+    cursor: pointer;
+    border-radius: 0.2em;
+    background-color: transparent;
+    transition: 0.4s background;
+  }
+
+  .todo-content {
+    flex: 1;
+
+    > p:last-of-type {
+      margin-bottom: 0;
+    }
+
+    > ul[data-type="todo_list"] {
+      margin: 0.5rem 0;
+    }
+  }
+
+  li[data-done="true"] {
+    > .todo-content {
+      > p {
+        text-decoration: line-through;
+      }
+    }
+
+    > .todo-checkbox {
+      background-color: $black;
+    }
+  }
+
+  li[data-done="false"] {
+    text-decoration: none;
+  }
+}
+
+fieldset.required {
+  &.error {
+    legend::before {
+      color: $danger;
+    }
+  }
+
+  label::after {
+    content: "*";
+    display: inline-block;
+    color: $danger;
+    width: 10px;
+    height: 18px;
+    overflow: hidden;
+  }
+}
+
+.alert-holder {
+  position: absolute;
+  top: 0;
+  width: 100%;
+
+  .alert {
+    z-index: 1040;
+    box-shadow: 0 0 2px 0 rgba($secondary, 0.75);
+  }
+}
+
+// Over-ride Bootstrap clear search input icon
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  height: 13px;
+  width: 13px;
+  background: url("data:image/svg+xml;charset=UTF-8,%3csvg viewPort='0 0 12 12' version='1.1' xmlns='http://www.w3.org/2000/svg'%3e%3cline x1='1' y1='11' x2='11' y2='1' stroke='black' stroke-width='2'/%3e%3cline x1='1' y1='1' x2='11' y2='11' stroke='black' stroke-width='2'/%3e%3c/svg%3e");
+}
+
+.b-toaster.b-toaster-bottom-right {
+  bottom: 75px;
+}
+
+.vs__spinner, .vs__spinner::after {
+  width: 4em;
+  height: 4em;
+}
+
+.wrap-with-vertical-gutters {
+  margin-top: -0.25rem;
+
+  > * {
+    margin-top: 0.25rem;
+  }
+}
+
+// Supporting CSS to improve print-to-PDF option
+@media print {
+  @page {
+    size: auto;
+  }
+
+  body {
+    margin: 0;
+    color: #000;
+    background-color: #fff;
+  }
+
+  .block {
+    break-inside: avoid;
+    width: 100%;
+  }
+}

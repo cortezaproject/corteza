@@ -1,0 +1,36 @@
+div.mxRubberband {
+  visibility: visible;
+  position: absolute;
+  z-index: 9999;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #0000FF;
+  background: #0077FF;
+}
+
+img.mxToolbarMode {
+  cursor: pointer;
+  margin: 2px;
+}
+
+img.mxToolbarModeSelected {
+  cursor: pointer;
+  margin: 2px;
+}
+
+div.mxTooltip {
+  font-family: $font-family-base;
+  -webkit-box-shadow: 3px 3px 12px #C0C0C0;
+  -moz-box-shadow: 3px 3px 12px #C0C0C0;
+  box-shadow: 3px 3px 12px #C0C0C0;
+  background: #FFF;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #A7D0E3;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  position: absolute;
+  cursor: default;
+  padding: 10px;
+  color: #2D2D2D;
+}
