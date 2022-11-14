@@ -1,0 +1,109 @@
+{
+  "name": "corteza-privacy",
+  "version": "2022.9.2",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "dev-env": "vue-cli-service serve src/dev-env.js",
+    "build": "vue-cli-service build --mode production",
+    "lint": "vue-cli-service lint && stylelint '**/*.{vue,scss}' --fix",
+    "test:unit": "vue-cli-service test:unit",
+    "test:unit:cc": "nyc vue-cli-service test:unit",
+    "cdeps": "yarn upgrade @cortezaproject/corteza-js @cortezaproject/corteza-vue"
+  },
+  "gitHooks": {
+    "pre-commit": "yarn lint"
+  },
+  "dependencies": {
+    "@cortezaproject/corteza-js": "^2022.9.2",
+    "@cortezaproject/corteza-vue": "^2022.9.2",
+    "@fortawesome/fontawesome-svg-core": "^1.2.21",
+    "@fortawesome/free-regular-svg-icons": "^5.10.1",
+    "@fortawesome/free-solid-svg-icons": "^5.10.1",
+    "@fortawesome/vue-fontawesome": "^0.1.9",
+    "@panter/vue-i18next": "^0.15.0",
+    "bootstrap-vue": "^2.21.2",
+    "i18next": "^17.0.9",
+    "i18next-browser-languagedetector": "^3.0.2",
+    "leaflet": "^1.7.1",
+    "portal-vue": "^2.1.7",
+    "vue": "2.6.14",
+    "vue-grid-layout": "^2.3.12",
+    "vue-router": "3.1.5",
+    "vue-select": "^3.12.2",
+    "vue2-leaflet": "^2.7.1",
+    "vuex": "^3.1.1"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~4.5.0",
+    "@vue/cli-plugin-eslint": "~4.5.0",
+    "@vue/cli-plugin-unit-mocha": "^4.5.13",
+    "@vue/cli-service": "~4.5.0",
+    "@vue/eslint-config-prettier": "^6.0.0",
+    "@vue/eslint-config-standard": "^5.1.0",
+    "@vue/test-utils": "^1.0.0-beta.25",
+    "babel-eslint": "10.0.3",
+    "babel-plugin-istanbul": "^5.2.0",
+    "babel-preset-vue": "^2.0.2",
+    "chai": "^4.2.0",
+    "eslint": "^6.7.2",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.0.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "eslint-plugin-vue": "^6.2.2",
+    "flush-promises": "^1.0.2",
+    "null-loader": "^4.0.1",
+    "nyc": "^14.1.1",
+    "resolve-url-loader": "^3.1.2",
+    "sass": "^1.49.9",
+    "sass-loader": "^10",
+    "sinon": "^7.3.2",
+    "stylelint": "^8.0.0",
+    "stylelint-config-standard": "^18.3.0",
+    "stylelint-scss": "^3.14.2",
+    "stylelint-webpack-plugin": "^0.10.5",
+    "vue-template-compiler": "2.6.14"
+  },
+  "stylelint": {
+    "plugins": [
+      "stylelint-scss"
+    ],
+    "extends": "stylelint-config-standard",
+    "rules": {
+      "color-hex-case": null,
+      "color-hex-length": null,
+      "no-empty-source": null,
+      "selector-list-comma-newline-after": null
+    }
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ],
+  "nyc": {
+    "all": true,
+    "reporter": [
+      "lcov",
+      "text"
+    ],
+    "include": [
+      "src/**/*.{js,vue}"
+    ],
+    "exclude": [
+      "**/index.js",
+      "**/*.spec.js"
+    ],
+    "extension": [
+      ".js",
+      ".vue"
+    ],
+    "check-coverage": true,
+    "per-file": true,
+    "branches": 0,
+    "lines": 0,
+    "functions": 0,
+    "statements": 0
+  }
+}
