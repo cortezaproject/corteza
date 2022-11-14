@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package system;
+option go_package = "proto";
+
+service Roles {
+    rpc Find(FindRoleRequest) returns (FindRoleResponse);
+}
+
+message FindRoleRequest {}
+
+message FindRoleResponse {
+    repeated Role roles = 1;
+}
+
+message Role {
+    uint64  ID          = 1;
+    string  handle      = 2;
+    string  name        = 3;
+}
+
