@@ -314,9 +314,6 @@ func (d *model) Aggregate(f filter.Filter, groupBy []dal.AggregateAttr, aggrExpr
 		return
 	}
 
-	i.src = Model(srcModel, d.conn, d.dialect)
-	i.dst = Model(dstModel, d.conn, d.dialect)
-
 	return
 }
 

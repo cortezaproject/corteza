@@ -52,7 +52,7 @@ func NewTableCodec(m *dal.Model, d Dialect) *GenericTableCodec {
 
 	for a := range m.Attributes {
 		attr = m.Attributes[a]
-		colIdent = attrColumnIdent(attr)
+		colIdent = attr.StoreIdent()
 
 		if done[colIdent] {
 			continue
@@ -146,19 +146,6 @@ func (t *GenericTableCodec) AttributeExpression(ident string) (exp.Expression, e
 	}
 
 	return exp.NewLiteralExpression("?", exp.NewIdentifierExpression("", t.model.Ident, ident)), nil
-}
-
-func attrColumnIdent(att *dal.Attribute) string {
-	switch ss := att.Store.(type) {
-	case *dal.CodecRecordValueSetJSON:
-		return ss.Ident
-
-	case *dal.CodecAlias:
-		return ss.Ident
-
-	default:
-		return att.Ident
-	}
 }
 
 func collectStdRecordValueJSONColumns(ident string, aa ...*dal.Attribute) []*dal.Attribute {
