@@ -1,0 +1,15 @@
+/.idea
+/coverage.txt
+/*.iml
+/.env*
+/.dev*
+/.*cover.out*
+/overalls*
+profile.coverprofile
+/public_html
+/build
+/var
+/TODO
+/gin-bin
+/.vscode
+/federation/etc/.env*

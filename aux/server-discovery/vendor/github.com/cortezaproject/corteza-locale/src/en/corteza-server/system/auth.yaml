@@ -1,0 +1,25 @@
+errors:
+  credentialsLinkedToInvalidUser: credentials {credentials.kind} linked to disabled or deleted user {user}
+  disabledMFAWithEmailOTP: multi factor authentication with email OTP is disabled
+  disabledMFAWithTOTP: multi factor authentication with TOTP is disabled
+  enforcedMFAWithEmailOTP: OTP over email is enforced and cannot be disabled
+  enforcedMFAWithTOTP: TOTP is enforced and cannot be disabled
+  externalDisabledByConfig: external authentication (using external authentication provider) is disabled
+  failedUnconfirmedEmail: system requires confirmed email before logging in
+  internalLoginDisabledByConfig: internal login (username/password) is disabled
+  internalSignupDisabledByConfig: internal sign-up (username/password) is disabled
+  invalidCredentials: invalid username and password combination
+  invalidEmailFormat: invalid email
+  invalidEmailOTP: invalid code
+  invalidHandle: invalid handle
+  invalidTOTP: invalid code
+  invalidToken: invalid token
+  notAllowedToConfigureTOTP: not allowed to configure TOTP
+  notAllowedToImpersonate: not allowed to impersonate this user
+  notAllowedToRemoveTOTP: not allowed to remove TOTP
+  passwodResetFailedOldPasswordCheckFailed: failed to change password, old password does not match
+  passwordChangeFailedForUnknownUser: failed to change password for the unknown user
+  passwordNotSecure: provided password is not secure; use longer password with more special characters
+  passwordResetDisabledByConfig: password reset is disabled
+  profileWithoutValidEmail: external authentication provider returned profile without valid email
+  unconfiguredTOTP: TOTP not configured

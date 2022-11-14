@@ -1,0 +1,123 @@
+---
+label:
+  actions: Actions
+  active: Active
+  add: Add
+  addNew: Add new
+  addValue: Neue Variable hinzufügen
+  attachmentFileInfo: '(Dateigöße {{0}}, hochgeladen am {{1}})'
+  attributes: Attributes
+  back: Back
+  backWithoutSave: Back (without saving changes)
+  browse: Browse
+  buttons: Buttons
+  cancel: Cancel
+  clone: Clone
+  close: Close
+  create: Create
+  delete: Delete
+  description: Beschreibung
+  download: Download
+  dropFiles: Click or drop files here to upload
+  edit: Edit
+  enabled: Aktiviert
+  export: Export
+  fileTypeNotAllowed: File type not allowed
+  uploadError: 'Issue with file upload: "{{message}}"'
+  general: General
+  handle: Handle
+  here: here
+  import: Import
+  importPlaceholder: Upload files to import
+  label: Label
+  loading: Loading
+  makeDefault: Make default
+  moduleName: Module name
+  multi: Multi value
+  name: Name
+  next: Next
+  "no": "No"
+  noHandle: No handle
+  none: None
+  ok: Ok
+  openBookmarks: Open bookmarks
+  pageBuilder: Page builder
+  permissions: Permissions
+  private: Private
+  processing: Processing...
+  recordPage: Record page
+  remove: Remove
+  removeDefault: Remove default
+  required: Required
+  save: Save
+  saveAndClose: Save and close
+  search: Search
+  status: Status
+  timeHour: '{{t}}h'
+  timeMinute: '{{t}}min'
+  title: Title
+  type: Type
+  updatedAt: '$t(field.system.updatedAt)'
+  uploading: Uploading
+  urlPlaceholder: https://example.tld
+  validation: Validation
+  value: Value
+  view: View
+  welcome: Welcome!
+  "yes": "Yes"
+placeholder:
+  handle: handle (a - z, 0 - 9, underscore, dash)
+  sample: Sample
+reminder:
+  add: Add a new reminder
+  dismiss: Dismiss
+  edit:
+    assigneeLabel: Assignee
+    assigneePlaceholder: Myself (default)
+    notesLabel: Notes
+    notesPlaceholder: Notes
+    remindAtLabel: Notify me
+    remindAtNone: Never
+    titleLabel: Title
+    titlePlaceholder: Title
+  listLabel: Reminders
+  routesTo: 'Includes link to:'
+  snooze: Snooze
+tooltip:
+  dragAndDrop: Drag and drop to change order
+fieldKinds:
+  Bool:
+    label: Checkbox (Y/N)
+  DateTime:
+    label: Date and time
+  Email:
+    label: Email input
+  File:
+    label: File upload
+  Number:
+    label: Number input
+  Record:
+    label: Record selector
+  Select:
+    label: Select / dropdown
+  String:
+    label: Text input (string)
+  Url:
+    label: URL input
+  User:
+    label: User selector
+  Geometry:
+    label: Geometry
+field:
+  selectAll: Select all
+  unselectAll: Unselect all
+  kind:
+    user:
+      suggestionPlaceholder: Start typing to search for users by email or name
+notification:
+  composeAccessNotAllowed: Not allowed to access Compose
+  import:
+    failed: Import failed
+    readingError: Error reading file
+    successful: Import successful
+    typeMissmatch: 'Import error: trying to import object of type "{{type1}}" into a list of objects of type "{{type2}}"'

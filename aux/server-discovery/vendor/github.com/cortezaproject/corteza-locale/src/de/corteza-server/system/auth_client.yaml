@@ -1,0 +1,13 @@
+---
+errors:
+  invalidID: Ungültige ID
+  notAllowedToCreate: Erstellen von Auth-Clients ist nicht zulässig
+  notAllowedToDelete: dieser Auth-Client kann nicht gelöscht werden
+  notAllowedToRead: dieser Auth-Client kann nicht gelesen werden
+  notAllowedToSearch: Auth-Clients können nicht gesucht oder aufgelistet werden
+  notAllowedToUndelete: dieser Auth-Client kann nicht wiederhergestellt werden
+  notAllowedToUpdate: dieser Auth-Client kann nicht aktualisiert werden
+  notFound: Auth-Client nicht gefunden
+  unableToChangeDefaultClientHandle: Handle des Standard-Auth-Clients kann nicht geändert werden
+  unableToDeleteDefaultClient: Standard-Auth-Client kann nicht gelöscht werden
+  unableToDisableDefaultClient: Standard-Auth-Client kann nicht deaktiviert werden

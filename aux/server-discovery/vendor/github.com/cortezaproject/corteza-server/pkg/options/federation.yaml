@@ -1,0 +1,45 @@
+imports:
+  - time
+
+props:
+  - name: Enabled
+    type: bool
+    default: false
+    env: FEDERATION_ENABLED
+    description: Federation enabled on system, it toggles rest API endpoints, possibility to map modules in Compose and sync itself
+
+  - name: Label
+    type: string
+    default: "Federation label"
+    env: FEDERATION_LABEL
+    description: Federation label
+
+  - name: Host
+    type: string
+    default: "local.cortezaproject.org"
+    env: FEDERATION_HOST
+    description: Host that is used during node pairing, also included in invitation
+
+  - name: StructureMonitorInterval
+    type: time.Duration
+    default: time.Minute * 2
+    env: FEDERATION_SYNC_STRUCTURE_MONITOR_INTERVAL
+    description: Delay in seconds for structure sync
+
+  - name: StructurePageSize
+    type: int
+    default: 1
+    env: FEDERATION_SYNC_STRUCTURE_PAGE_SIZE
+    description: Bulk size in fetching for structure sync
+
+  - name: DataMonitorInterval
+    type: time.Duration
+    default: time.Second * 60
+    env: FEDERATION_SYNC_DATA_MONITOR_INTERVAL
+    description: Delay in seconds for data sync
+
+  - name: DataPageSize
+    type: int
+    default: 100
+    env: FEDERATION_SYNC_DATA_PAGE_SIZE
+    description: Bulk size in fetching for data sync

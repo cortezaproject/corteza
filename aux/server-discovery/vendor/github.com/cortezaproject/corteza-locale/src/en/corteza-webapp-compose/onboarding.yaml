@@ -1,0 +1,24 @@
+message:
+  noPages: It seems this namespace has no visible pages yet.
+  notifyAdministrator: Notify your system administrator.
+  startBuilding: Follow these steps to start building
+label:
+  pageBuilder: Page builder
+  welcome: Welcome!
+navigation:
+  noPageTitle: No page title
+notification:
+  module:
+    createFailed: Could not create a module
+    saveFailed: Could not save this module
+step:
+  chart:
+    create: Make Chart
+    view: Your Charts
+  module:
+    create: Create Module
+    view: Your Modules
+  optional: This step is optional!
+  page:
+    create: Build Page
+    view: Your Pages

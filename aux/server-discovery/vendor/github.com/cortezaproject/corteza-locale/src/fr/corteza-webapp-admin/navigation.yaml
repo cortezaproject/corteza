@@ -1,0 +1,39 @@
+---
+dashboard: Dashboard
+system:
+  group: System
+  items:
+    users: Users
+    actionlog: Action log
+    apigw: API Gateway
+    applications: Applications
+    authclients: Auth Clients
+    permissions: Permissions
+    queues: Messaging Queues
+    roles: Roles
+    settings: Settings
+    stats: Stats
+    templates: Templates
+compose:
+  group: Compose
+  items:
+    automation: Automation
+    permissions: Permissions
+    settings: Settings
+automation:
+  group: Automation
+  items:
+    permissions: Permissions
+    scripts: Corredor Scripts
+    sessions: Sessions
+    workflows: Workflows
+federation:
+  group: Federation
+  items:
+    nodes: Nodes
+    permissions: Permissions
+ui:
+  group: User interface
+  items:
+    settings: Settings
+

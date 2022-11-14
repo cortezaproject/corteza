@@ -1,0 +1,19 @@
+---
+template:
+  title: Your profile
+  form:
+    email:
+      label: Email
+      placeholder: email@domain.ltd
+      resend-confirmation-link: Email is not verified, <a href="{{link}}?resend">resend confirmation link.</a>
+    name:
+      label: Ime
+      placeholder: Tvoje ime
+    handle:
+      label: Handle
+      placeholder: Kratko ime ali vzdevek
+    buttons:
+      submit: Posodobi profil
+alerts:
+  profile-updated: Profil uspešno posodobljen.
+  profile-update-fail: Could not update profile due to input errors

@@ -1,0 +1,19 @@
+---
+applications:
+  applications: Anwendung(en)
+  deleted: Gelöscht
+  title: Aktive Anwendung(en)
+  total: Gesamt
+roles:
+  archived: Archiviert
+  deleted: Gelöscht
+  roles: Rolle(n)
+  title: Aktive Rolle(n)
+  total: Gesamt
+title: Dashboard
+users:
+  deleted: Gelöscht
+  suspended: Gesperrt
+  title: Aktive(r) Benutzer
+  total: Gesamt
+  users: Benutzer

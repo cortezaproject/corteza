@@ -1,0 +1,51 @@
+editor:
+  info:
+    completedAt: Completed at
+    createdAt: Created at
+    createdByUserID: Created by - ID
+    createdByUserName: Created by - Name
+    delete: Delete
+    deletedAt: Deleted at
+    error: Error
+    eventType: Event type
+    id: ID
+    resourceType: Resource type
+    status: Status
+    title: Basic information
+    workflowID: WorkflowID
+  title: Session
+list:
+  columns:
+    actions: ""
+    createdAt: Created At
+    eventType: Event type
+    sessionID: SessionID
+    status: Status
+    workflowID: WorkflowID
+  filterForm:
+    all:
+      label: All
+    completed:
+      label: Completed
+    excluded:
+      label: Without
+    exclusive:
+      label: Only
+    failed:
+      label: Failed
+    inProgress:
+      label: completed sessions
+    inclusive:
+      label: Including
+    prompted:
+      label: Prompted
+    sessions:
+      label: sessions
+    started:
+      label: Started
+    suspended:
+      label: Suspended
+  loading: Loading sessions
+  numFound: '{{count}} session found'
+  numFound_plural: '{{count}} sessions found'
+  title: Sessions

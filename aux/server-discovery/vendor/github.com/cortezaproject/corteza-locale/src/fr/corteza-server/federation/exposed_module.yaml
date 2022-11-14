@@ -1,0 +1,12 @@
+---
+errors:
+  composeModuleNotFound: compose module not found
+  composeNamespaceNotFound: compose namespace not found
+  invalidID: invalid ID
+  nodeNotFound: node does not exist
+  notAllowedToCreate: not allowed to create modules
+  notAllowedToManage: not allowed to manage this module
+  notFound: module does not exist
+  notUnique: node not unique
+  requestParametersInvalid: request parameters invalid
+  staleData: stale data

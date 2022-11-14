@@ -1,0 +1,9 @@
+permissions: Permissions
+report:
+  builder: Report Builder
+  edit: Edit
+  list: List of Reports
+  new: New Report
+searchPlaceholder: Type here to search reports
+title: Reports
+untitledTitle: Untitled report

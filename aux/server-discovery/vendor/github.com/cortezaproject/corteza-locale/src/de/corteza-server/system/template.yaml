@@ -1,0 +1,13 @@
+---
+errors:
+  cannotRenderPartial: Teil-Templates können nicht wiedergegeben werden
+  invalidHandle: ungültiger Handle
+  invalidID: ungültige ID
+  notAllowedToCreate: Erstellen von Templates ist nicht zulässig
+  notAllowedToDelete: dieses Template kann nicht gelöscht werden
+  notAllowedToRead: dieses Template kann nicht gelesen werden
+  notAllowedToRender: dieses Template kann nicht wiedergegeben werden
+  notAllowedToSearch: Templates können nicht gesucht oder aufgelistet werden
+  notAllowedToUndelete: dieses Template kann nicht wiederhergestellt werden
+  notAllowedToUpdate: dieses Template kann nicht aktualisiert werden
+  notFound: Template nicht gefunden

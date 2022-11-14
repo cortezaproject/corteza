@@ -1,0 +1,13 @@
+---
+errors:
+  invalidID: invalid ID
+  notAllowedToCreate: not allowed to create auth clients
+  notAllowedToDelete: not allowed to delete this auth client
+  notAllowedToRead: not allowed to read this auth client
+  notAllowedToSearch: not allowed to search or list auth clients
+  notAllowedToUndelete: not allowed to undelete this auth client
+  notAllowedToUpdate: not allowed to update this auth client
+  notFound: auth client not found
+  unableToChangeDefaultClientHandle: unable to change the handle of the default auth client
+  unableToDeleteDefaultClient: unable to delete the default auth client
+  unableToDisableDefaultClient: unable to disable the default auth client

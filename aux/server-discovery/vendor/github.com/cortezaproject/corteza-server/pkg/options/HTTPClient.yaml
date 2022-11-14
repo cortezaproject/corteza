@@ -1,0 +1,24 @@
+imports:
+  - time
+
+docs:
+  title: HTTP Client
+
+props:
+  - name: clientTSLInsecure
+    type: bool
+    env: HTTP_CLIENT_TLS_INSECURE
+    default: false
+    description: |-
+      Allow insecure (invalid, expired TLS/SSL certificates) connections.
+
+      [IMPORTANT]
+      ====
+      We strongly recommend keeping this value set to false except for local development or demos.
+      ====
+
+  - name: httpClientTimeout
+    type: time.Duration
+    env: HTTP_CLIENT_TIMEOUT
+    default: 30 * time.Second
+    description: Default timeout for clients.

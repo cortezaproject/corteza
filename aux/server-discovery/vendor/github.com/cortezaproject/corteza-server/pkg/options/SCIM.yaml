@@ -1,0 +1,18 @@
+docs:
+  title: SCIM Server
+
+props:
+  - name: enabled
+    type: bool
+    description: Enable SCIM subsystem
+  - name: baseURL
+    default: "/scim"
+    description: Prefix for SCIM API endpoints
+  - name: secret
+    description: Secret to use to validate requests on SCIM API endpoints
+  - name: externalIdAsPrimary
+    type: bool
+    description: Use external IDs in SCIM API endpoints
+  - name: externalIdValidation
+    default: "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+    description: Validates format of external IDs. Defaults to UUID

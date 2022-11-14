@@ -1,0 +1,44 @@
+ui:
+  reset-back: Reset back to "{{current}}"
+  save-changes: Save changes
+  set-for: Set permissions for {{target}}
+
+  access:
+    allow: Allow
+    inherit: Inherit
+    deny: Deny
+
+resources:
+  automation:
+    workflow:
+      all: all workflows
+      specific: workflow "{{target}}"
+      operations:
+        delete:
+          description: 'Default: deny'
+          specific: Delete this workflow
+          title: Delete any workflow
+        execute:
+          description: 'Default: deny'
+          specific: Execute this workflow
+          title: Execute any workflow
+        read:
+          description: 'Default: deny'
+          specific: Read this workflow
+          title: Read any workflow
+        sessions.manage:
+          description: 'Default: deny'
+          specific: Manage sessions for this workflow
+          title: Manage all sessions
+        triggers.manage:
+          description: 'Default: deny'
+          specific: Manage triggers for this workflow
+          title: Manage all triggers
+        undelete:
+          description: 'Default: deny'
+          specific: Undelete this workflow
+          title: Undelete any workflow
+        update:
+          description: 'Default: deny'
+          specific: Update this workflow
+          title: Update any workflow

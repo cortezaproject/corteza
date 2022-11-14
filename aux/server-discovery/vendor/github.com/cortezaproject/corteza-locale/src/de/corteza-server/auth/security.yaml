@@ -1,0 +1,23 @@
+---
+template:
+  title: Sicherheit
+  password:
+    title: Passwort
+    change-link: Passwort ändern
+  mfa:
+    title: Multi-Faktor-Authentifizierung
+    totp:
+      title: Zusätzliche Sicherheit mit der mobilen App (Time-based One-time Password)
+      enforced: Eingerichtet und bei Anmeldung erforderlich.
+      disabled: Derzeit deaktiviert.
+      configure: Einrichten
+      disable: Deaktivieren
+    email:
+      title: Zusätzliche Sicherheit mit Einmalpasswort (OTP) per E-Mail
+      enforced: Aktiviert und bei Anmeldung benötigt.
+      disabled: Derzeit deaktiviert.
+      enable: Einrichten
+      disable: Deaktivieren
+    all-disabled: Die Multi-Faktor-Authentifizierung (MFA) ist derzeit deaktiviert. Bitten Sie Ihren Administrator, sie zu aktivieren.
+alerts:
+  topt-disabled: Zwei-Faktor-Authentifizierung mit TOTP ist deaktiviert

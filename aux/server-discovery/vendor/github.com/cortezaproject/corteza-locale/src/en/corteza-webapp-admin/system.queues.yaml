@@ -1,0 +1,40 @@
+editor:
+  info:
+    consumer: Consumer
+    createdAt: Created at
+    delete: Delete
+    deletedAt: Deleted at
+    dispatch_events: Dispatch events
+    dispatch_events_desc: Dispatch events notifies the eventbus of queue message changes (new, processed, ...)
+    name: Queue name
+    poll_delay: Polling changes delay
+    poll_delay_empty: 'Poll delay will not be used; to enable, use duration format (ie: 1h / 1m15s / 1h90s)'
+    poll_delay_set: Poll delay will be used; if empty, it will not be used.
+    title: Basic information
+    undelete: Undelete
+    updatedAt: Updated at
+  new: New
+  title:
+    edit: Edit queue
+    new: Add a queue
+list:
+  columns:
+    actions: Actions
+    consumer: Consumer
+    createdAt: Created At
+    queue: Queue
+  filterForm:
+    deleted:
+      label: deleted queues
+    excluded:
+      label: Without
+    exclusive:
+      label: Only
+    handle:
+      label: Filter queues list
+      placeholder: Filter queues by name
+    inclusive:
+      label: Including
+  loading: Loading messaging queues
+  new: New
+  title: Messaging queues

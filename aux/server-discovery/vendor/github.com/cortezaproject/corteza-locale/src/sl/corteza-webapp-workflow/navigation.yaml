@@ -1,0 +1,11 @@
+---
+help:
+  documentation: Dokumentacija
+  feedback: Pošlji povratno informacijo
+  forum: Pomoč
+  version: 'Verzija:'
+userSettings:
+  changePassword: Spremeni geslo
+  loggedInAs: Prijavljen kot {{user}}
+  logout: Odjavi
+  profile: Profil

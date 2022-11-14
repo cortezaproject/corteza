@@ -1,0 +1,45 @@
+docs:
+  title: RBAC options
+
+props:
+# Maybe someday we'll allow RBAC to be disabled
+#
+# Boolean might not be the best way but providing a secret here that would
+# protect the entire corteza with a simple basic HTTP out while RBAC check are disabled
+# would make sense?
+#
+#  - name: enabled
+#    type: bool
+#    default: true
+#    description: When disabled all operations on all resources are allowed
+
+  - name: log
+    type: bool
+    description: Log RBAC related events and actions
+
+  - name: serviceUser
+  - name: bypassRoles
+    # Using literal string instead of DefaultBypassRole constant for clarity & documentation
+    default: "super-admin"
+    description: |-
+      Space delimited list of role handles.
+      These roles causes short-circuiting access control check and allowing all operations.
+      System will refuse to start if check-bypassing roles are also listed as authenticated or anonymous auto-assigned roles.
+
+  - name: authenticatedRoles
+    # Using literal string instead of DefaultAuthenticatedRole constant for clarity & documentation
+    default: "authenticated"
+    description: |-
+      Space delimited list of role handles.
+      These roles are automatically assigned to authenticated user.
+      Memberships can not be managed for these roles.
+      System will refuse to start if roles listed here are also listed under anonymous roles
+
+  - name: anonymousRoles
+    # Using literal string instead of DefaultAnonymousRole constant for clarity & documentation
+    default: "anonymous"
+    description: |-
+      Space delimited list of role handles.
+      These roles are automatically assigned to anonymous user.
+      Memberships can not be managed for these roles.
+

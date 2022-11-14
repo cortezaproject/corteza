@@ -1,0 +1,7 @@
+---
+errors:
+  invalidID: ungültige ID
+  notAllowedToAssign: Erinnerungen können anderen Benutzern nicht zugewiesen werden
+  notAllowedToDismiss: Erinnerungen von anderen Benutzern können nicht abgewiesen werden
+  notAllowedToRead: Erinnerungen von anderen Benutzern können nicht gelesen werden
+  notFound: Erinnerung nicht gefunden

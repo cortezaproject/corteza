@@ -1,0 +1,8 @@
+configuration: Configuration
+edge: Edge
+target: Target
+workflow:
+  'run-as': Run as
+  'not-setup-properly': When not explicitly set, workflow will be executed by user that invoked it
+  invalid-handle-characters: Should be at least 2 characters long and start with a letter. Can contains only letters, numbers, dash, underscore and dot
+  placeholder-handle: handle (a - z, 0 - 9, underscore, dash)

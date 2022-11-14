@@ -1,0 +1,227 @@
+general:
+  error: Error
+  success: Success
+  warning: Warning
+notAllowed: Not allowed to access Admin Area. Redirecting
+list: 
+  load:
+    error: 'Failed to load resource list'
+user:
+  fetch:
+    error: User fetch failed
+  roles:
+    error: Role fetch failed
+  update:
+    success: User updated
+    error: User update failed
+  create:
+    success: User created
+    error: User create failed
+  delete:
+    success: User deleted
+    error: User delete failed
+  undelete:
+    success: User restored
+    error: User restore failed
+  membershipUpdate:
+    success: Membership updated
+    error: Membership update failed
+  passwordChange:
+    success: Password changed
+    error: Password change failed
+  sessionsRevoke:
+    success: Sessions revoked
+    error: Session revoke failed
+  suspend:
+    success: User suspended
+    error: User suspension failed
+  unsuspend:
+    success: User unsuspended
+    error: User suspension failed
+role:
+  fetch:
+    error: Role fetch failed
+  create:
+    success: Role created
+    error: Role create failed
+  update:
+    success: Role updated
+    error: Role update failed
+  delete:
+    success: Role deleted
+    error: Role delete failed
+  undelete:
+    success: Role restored
+    error: Role restore failed
+  archive:
+    success: Role archived
+    error: Role archive failed
+  unarchive:
+    success: Role unarchived
+    error: Role unarchive failed
+  membershipUpdate:
+    success: Membership updated
+    error: Membership update failed
+application:
+  fetch:
+    error: Application fetch failed
+  update:
+    success: Application updated
+    error: Application update failed
+  create:
+    success: Application created
+    error: Application create failed
+  delete:
+    success: Application deleted
+    error: Application delete failed
+  undelete:
+    success: Application restored
+    error: Application restore failed
+  assetsUpload:
+    error: Application assets upload failed
+template:
+  fetch:
+    error: Template fetch failed
+  fetchPartials:
+    error: Partial templates fetch failed
+  create:
+    success: Template created
+    error: Template create failed
+  update:
+    success: Template updated
+    error: Template update failed
+  delete:
+    success: Template deleted
+    error: Template delete failed
+  undelete:
+    success: Template restored
+    error: Template restore failed
+  driver:
+    error: Template render drivers fetch failed
+  preview:
+    error: Template preview fetch failed
+authclient:
+  fetch:
+    error: Auth Client fetch failed
+  create:
+    success: Auth Client created
+    error: Auth Client create failed
+  update:
+    success: Auth Client updated
+    error: Auth Client update failed
+  delete:
+    success: Auth Client deleted
+    error: Auth Client delete failed
+  undelete:
+    success: Auth Client restored
+    error: Auth Client restore failed
+queue:
+  fetch:
+    error: Queue fetch failed
+  create:
+    success: Queue created
+    error: Queue create failed
+  update:
+    success: Queue updated
+    error: Queue update failed
+  delete:
+    success: Queue deleted
+    error: Queue delete failed
+gateway:
+  fetch:
+    error: Route fetch failed
+  create:
+    success: Route created
+    error: Route create failed
+  update:
+    success: Route updated
+    error: Route update failed
+  filter:
+    fetch:
+      error: Filter fetch failed
+    update:
+      success: Filters updated
+      error: Filters update failed
+  delete:
+    success: Route deleted
+    error: Route delete failed
+  undelete:
+    success: Route restored
+    error: Route restore failed
+workflow:
+  fetch:
+    error: Workflow fetch failed
+  create:
+    success: Workflow created
+    error: Workflow create failed
+  update:
+    success: Workflow updated
+    error: Workflow update failed
+  delete:
+    success: Workflow deleted
+    error: Workflow delete failed
+  undelete:
+    success: Workflow restored
+    error: Workflow restore failed
+session:
+  fetch:
+    error: Session fetch failed
+  trigger:
+    error: Trigger fetch failed
+federation:
+  fetch:
+    error: Node fetch failed
+  create:
+    success: Node created
+    error: Node create failed
+  update:
+    success: Node updated
+    error: Node update failed
+  delete:
+    success: Node deleted
+    error: Node delete failed
+  undelete:
+    success: Node restored
+    error: Node restore failed
+  url:
+    error: Generated URL fetch failed
+  email:
+    success: Email sent
+    error: Failed to send email
+  pair:
+    success: Node paired
+    error: Failed to pair node
+  handshake:
+    success: Handshake complete paired
+    error: Handshake failed
+settings:
+  system:
+    fetch:
+      error: System settings fetch failed
+    auth:
+      success: Auth settings updated
+      error: Auth settings update failed
+    external:
+      success: External settings updated
+      error: External settings update failed
+  compose:
+    fetch:
+      error: Compose settings fetch failed
+    update:
+      success: Compose settings updated
+      error: Compose settings update failed
+  ui:
+    fetch:
+      error: UI settings fetch failed
+permissions:
+  fetch:
+    error: Permissions fetch failed
+  update:
+    success: Permissions updated
+    error: Permissions update failed
+  clone:
+    success: Permissions cloned
+    error: Permissions clone failed
+  role:
+    error: Failed to add role
+

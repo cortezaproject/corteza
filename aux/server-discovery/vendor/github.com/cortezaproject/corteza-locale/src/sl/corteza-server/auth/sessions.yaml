@@ -1,0 +1,17 @@
+---
+template:
+  title: Tvoja seja
+  list:
+    current: Trenutna seja
+    authorized-on: Authorized on
+    same-machine: This machine
+    ip-address: IP naslov
+    same-browser: Ta brskalnik
+    browser: Brskalnik
+    expires: Poteče
+    expired: Poteklo
+    today: Danes
+    tomorrow: Čez 1 dan
+    soon: Čez {{days}} dni
+    delete: Izbriši to sejo
+  delete-all: Izbriši vse seje

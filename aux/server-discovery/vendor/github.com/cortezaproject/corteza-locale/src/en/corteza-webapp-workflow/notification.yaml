@@ -1,0 +1,35 @@
+'configure-triggers': Make sure all trigger steps are properly configured
+'confirm-unsaved-changes': You have unsaved changes, are you sure you want to exit?
+'delete-failed': Failed to delete workflow
+'deleted-workflow': Workflow deleted
+error: " - ERROR: "
+'event-type-not-found': Event type not found
+'event-type-fetch-failed': Failed to fetch event types
+'failed-fetch-functions': Failed to fetch functions
+'failed-fetch-triggers': Failed to fetch triggers
+'failed-fetch-workflow': Failed to fetch workflow
+'failed-fetch-workflows': Failed to fetch workflows
+'failed-load-file': Failed to load file
+'failed-save': Save failed
+'failed-test': Test failed
+'fetch-types-failed': Failed to fetch types
+general:
+  error: Error
+  success: Success
+  warning: Warning
+import:
+  'failed-import': Failed to import
+  'imported-workflows': Workflows imported
+  'skipped-workflows': Skipped workflows
+'imported-workflow': Workflow imported
+'import-failed': Import failed
+'initial-scope-load-failed': Failed to load initial scope
+'resolve-issues': Resolve issues to test workflow
+'save-workflow': Save workflow first to test it
+'started-test': Workflow test started
+'test-completed': Test completed
+'test-in-progress': Test in progress
+'trace-unavailable': Trace not available
+'trigger-paths-changed': Trigger paths changed
+'updated-workflow': Workflow updated
+'workflow-test-completed': Workflow test completed

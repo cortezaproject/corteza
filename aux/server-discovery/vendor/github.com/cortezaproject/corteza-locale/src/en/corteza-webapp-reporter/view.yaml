@@ -1,0 +1,4 @@
+pick-scenario: Pick a scenario
+report:
+  builder: Report Builder
+  view: Report View

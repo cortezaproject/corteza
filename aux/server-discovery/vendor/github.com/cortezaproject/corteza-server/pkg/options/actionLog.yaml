@@ -1,0 +1,21 @@
+docs:
+  title: Actionlog
+
+props:
+  - name: enabled
+    type: bool
+    default: true
+    docs:
+      description: Enable action logging.
+
+  - name: debug
+    type: bool
+    default: false
+    docs:
+      description: Enable debug action logging.
+
+  - name: workflowFunctionsEnabled
+    type: bool
+    default: false
+    docs:
+      description: Enable workflow function for searching and recording actions

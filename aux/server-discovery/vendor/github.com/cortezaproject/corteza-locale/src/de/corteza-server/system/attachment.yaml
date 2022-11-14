@@ -1,0 +1,10 @@
+---
+errors:
+  failedToExtractMimeType: MIME-Typ konnte nicht extrahiert werden
+  failedToProcessImage: Bild konnte nicht verarbeitet werden
+  failedToStoreFile: Speicherdatei konnte nicht extrahiert werden
+  invalidID: Ungültige ID
+  notAllowedToCreate: Erstellen von Anlagen ist nicht zulässig
+  notAllowedToCreateEmptyAttachment: Erstellen von leeren Anlagen ist nicht zulässig
+  notAllowedToListAttachments: Anlagen können nicht aufgelistet werden
+  notFound: Anlage nicht gefunden

@@ -1,0 +1,16 @@
+docs:
+  title: Data store (database) upgrade
+
+props:
+  - name: Debug
+    type: bool
+    default: false
+    description: |-
+      Enable/disable debug logging.
+          To enable debug logging set `UPGRADE_DEBUG=true`.
+
+  - name: Always
+    type: bool
+    default: true
+    description: |-
+      Controls if the upgradable systems should be upgraded when the server starts.

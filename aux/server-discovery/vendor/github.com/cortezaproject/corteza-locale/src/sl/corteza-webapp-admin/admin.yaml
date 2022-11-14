@@ -1,0 +1,272 @@
+---
+automation:
+  add: Add script
+  edit:
+    asyncHelp: Do not wait for results and ignore errors. Incompatible with critical flag.
+    asyncLabel: Run this script asynchronously
+    codeTabLabel: Code
+    criticalHelp: Wait until this script is executed. In case of errors, abort execution of other scripts and before* trigger
+    criticalLabel: Critical script
+    delete: Delete script
+    enabledHelp: Disabled scripts will be ignored
+    enabledLabel: Enabled
+    mailAutomationTriggers:
+      addMatcher: Add condition
+      addTrigger: Add trigger
+      delete: Delete trigger
+      deleteTrigger: Delete
+      enable: Enable trigger
+      matchAll: Must match all conditions
+      matcher:
+        fields:
+          bcc: BCC
+          cc: CC
+          from: From
+          placeholder: Mail header field
+          replyTo: Reply To
+          subject: Subject
+          to: To
+        match: Value to match
+        operators:
+          equal-ci: Match full
+          placeholder: Operator
+          prefix-ci: Match prefix
+          regex: Regex
+          suffix-ci: Match suffix
+          user: Existing user
+      tabLabel: Mail triggers
+    nameLabel: Name
+    namePlaceholder: Automation script name
+    runAsCurrentUser: Run as "{{ user }}"
+    runAsHelp: Script runner
+    scheduledTriggers:
+      tabLabel: Scheduled
+    securityLabel: Security
+    settingsTabLabel: Settings
+    timeoutHelp: How much time do we wait before aborting the script? Value in milliseconds (1000ms = 1s). It defaults (when 0) to 2s with 30s as maximum. Consult with your administrator for exact numbers and limitations.
+    timeoutLabel: Script execution timeout
+    timeoutPlaceholder: "1500"
+    title: Automation script
+    userPickerPlaceholder: Select user
+  import: Import automation script(s)
+  list:
+    column:
+      label:
+        async: Async.
+        critical: Critical
+        enabled: Enabled
+        runAs: Run As
+        runInUA: In browser
+    unnamed: (Unnamed script)
+  manage: Manage automation scripts ({{count}})
+  manage-id-permissions: Manage permissions for this script
+  manage-wc-permissions: Manage permissions for all scripts
+  newLabel: Create a new script
+  newPlaceholder: Script name
+  testing:
+    load: Load
+    parametersHeadline: 'Parameters & payload:'
+    resultsHeadline: 'Results:'
+    testInBrowser: Test in Browser
+    testInCorredor: Test in Corredor
+    warning: ""
+  title: List of automation script
+general:
+  notFound: 'Not found'
+  label:
+    "no": "No"
+    submit: Submit
+    "yes": "Yes"
+  logout: Logout
+  noAccess: You do not have permissions to access Admin panel
+  pagination:
+    next: Next
+    prev: Prev
+navigation:
+  adminPanel: Admin panel
+  automation: Automation
+  chart: Charts
+  configuration: Configuration
+  help:
+    documentation: Documentation
+    feedback: Send feedback
+    forum: Help
+    version: 'Version:'
+  module: Modules
+  more: More
+  namespace: Namespaces
+  noPageTitle: No page title
+  page: Pages
+  publicPages: Public pages
+  userSettings:
+    changePassword: Change password
+    loggedInAs: Logged in as {{user}}
+    logout: Logout
+    profile: Profile
+permission:
+  automationWorkflow:
+    all: all workflows
+    operations:
+      delete:
+        description: 'Default: deny'
+        specific: Delete this workflow
+        title: Delete any workflow
+      execute:
+        description: 'Default: deny'
+        specific: Execute this workflow
+        title: Execute any workflow
+      read:
+        description: 'Default: deny'
+        specific: Read this workflow
+        title: Read any workflow
+      sessionsManage:
+        description: 'Default: deny'
+        specific: Manage sessions for this workflow
+        title: Manage all sessions
+      triggersManage:
+        description: 'Default: deny'
+        specific: Manage triggers for this workflow
+        title: Manage all triggers
+      undelete:
+        description: 'Default: deny'
+        specific: Undelete this workflow
+        title: Undelete any workflow
+      update:
+        description: 'Default: deny'
+        specific: Update this workflow
+        title: Update any workflow
+    specific: workflow "{{target}}"
+  base:
+    compose: Compose
+    system: System
+  resetBack: Reset back to "{{current}}"
+  saveChanges: Save changes
+  setFor: Set permissions for {{target}}
+  systemApplication:
+    all: all applications
+    operations:
+      delete:
+        description: 'Default: deny'
+        specific: Delete {{target}}
+        title: Delete any application
+      read:
+        description: 'Default: deny'
+        specific: Read {{target}}
+        title: Read any application
+      update:
+        description: 'Default: deny'
+        specific: Update {{target}}
+        title: Update any application
+    specific: application "{{target}}"
+  systemApigwRoute:
+    all: all routes
+    operations:
+      delete:
+        description: 'Default: deny'
+        specific: Delete {{target}}
+        title: Delete any route
+      read:
+        description: 'Default: deny'
+        specific: Read {{target}}
+        title: Read any route
+      update:
+        description: 'Default: deny'
+        specific: Update {{target}}
+        title: Update any route
+    specific: route "{{target}}"
+  systemAuthClient:
+    all: all auth clients
+    operations:
+      authorize:
+        description: 'User can authorize (use) this client. Default: deny'
+        specific: Authorize client "{{target}}
+        title: Authorize any client
+      delete:
+        description: 'Default: deny'
+        specific: Delete client "{{target}}
+        title: Delete any client
+      read:
+        description: 'Default: deny'
+        specific: Read client "{{target}}
+        title: Read any client
+      update:
+        description: 'Default: deny'
+        specific: Update client "{{target}}
+        title: Update any client
+    specific: auth client "{{target}}"
+  systemRole:
+    all: all roles
+    operations:
+      delete:
+        description: 'Default: deny'
+        specific: Delete {{target}}
+        title: Delete any role
+      membersManage:
+        description: 'Default: deny'
+        specific: Manage members for {{target}}
+        title: Manage members for any role
+      read:
+        description: 'Default: deny'
+        specific: Read {{target}}
+        title: Read any role
+      update:
+        description: 'Default: deny'
+        specific: Update {{target}}
+        title: Update any role
+    specific: role "{{target}}"
+  systemTemplate:
+    all: all templates
+    operations:
+      delete:
+        description: 'Default: deny'
+        specific: Delete {{target}}
+        title: Delete any template
+      read:
+        description: 'Default: deny'
+        specific: Read {{target}}
+        title: Read any template
+      render:
+        description: 'Default: deny'
+        specific: Render {{target}}
+        title: Render any template
+      update:
+        description: 'Default: deny'
+        specific: Update {{target}}
+        title: Update any template
+    specific: template "{{target}}"
+  systemUser:
+    all: all users
+    operations:
+      delete:
+        description: 'Default: deny'
+        specific: Delete {{target}}
+        title: Delete any user
+      emailUnmask:
+        description: 'Default: deny'
+        specific: Show email details for {{target}}
+        title: Show email details for any user
+      impersonate:
+        description: 'Default: deny'
+        specific: Impersonate this user {{target}}
+        title: Impersonate any user
+      nameUnmask:
+        description: 'Default: deny'
+        specific: Show name details for {{target}}
+        title: Show name details for any user
+      read:
+        description: 'Default: deny'
+        specific: Read {{target}}
+        title: Read any user
+      suspend:
+        description: 'Default: deny'
+        specific: Suspend {{target}}
+        title: Suspend any user
+      unsuspend:
+        description: 'Default: deny'
+        specific: Unsuspend {{target}}
+        title: Unsuspend any user
+      update:
+        description: 'Default: deny'
+        specific: Update {{target}}
+        title: Update any user
+    specific: user "{{target}}"

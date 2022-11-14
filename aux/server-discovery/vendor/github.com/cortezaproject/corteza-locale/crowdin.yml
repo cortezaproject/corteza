@@ -1,0 +1,23 @@
+files:
+  - source: /src/en/corteza-server/auth
+    translation: /src/%two_letters_code%/corteza-server/auth/%file_name%.%file_extension%
+  - source: '*/corteza-server/automation'
+    translation: /src/%two_letters_code%/corteza-server/automation/%original_file_name%
+  - source: '*/corteza-server/compose'
+    translation: /src/%two_letters_code%/corteza-server/compose/%original_file_name%
+  - source: '*/corteza-server/federation'
+    translation: /src/%two_letters_code%/corteza-server/federation/%original_file_name%
+  - source: '*/corteza-server/internal'
+    translation: /src/%two_letters_code%/corteza-server/internal/%original_file_name%
+  - source: '*/corteza-server/system'
+    translation: /src/%two_letters_code%/corteza-server/system/%original_file_name%
+  - source: '*/corteza-webapp-admin'
+    translation: /src/%two_letters_code%/corteza-webapp-admin/%original_file_name%
+  - source: '*/corteza-webapp-compose'
+    translation: /src/%two_letters_code%/corteza-webapp-compose/%original_file_name%
+  - source: '*/corteza-webapp-one'
+    translation: /src/%two_letters_code%/corteza-webapp-one/%original_file_name%
+  - source: '*/corteza-webapp-reporter'
+    translation: /src/%two_letters_code%/corteza-webapp-reporter/%original_file_name%
+  - source: '*/corteza-webapp-workflow'
+    translation: /src/%two_letters_code%/corteza-webapp-workflow/%original_file_name%

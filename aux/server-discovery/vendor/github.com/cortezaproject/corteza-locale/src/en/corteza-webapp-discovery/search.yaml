@@ -1,0 +1,15 @@
+notification:
+  search-error: There was problem getting search result
+input-placeholder: Enter search text
+search-results: Search Results
+card: 
+  button-text: Show more
+  type: Type
+  handle: Handle
+  namespace: Namespace
+  module: Module
+  user: User
+  email: Email
+  record: Record
+  fields: Fields
+
