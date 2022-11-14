@@ -1,0 +1,163 @@
+<template>
+  <b-container
+    class="py-3"
+  >
+    <c-content-header
+      :title="$t('title')"
+    >
+      <span
+        class="text-nowrap"
+      >
+        <b-button
+          v-if="canCreate"
+          data-test-id="button-add"
+          variant="primary"
+          class="mr-2"
+          :to="{ name: 'system.queue.new' }"
+        >
+          {{ $t('new') }}
+        </b-button>
+      </span>
+      <b-dropdown
+        v-if="false"
+        variant="link"
+        right
+        menu-class="shadow-sm"
+        :text="$t('export')"
+      >
+        <b-dropdown-item-button variant="link">
+          {{ $t('yaml') }}
+        </b-dropdown-item-button>
+      </b-dropdown>
+    </c-content-header>
+    <c-resource-list
+      :primary-key="primaryKey"
+      :filter="filter"
+      :sorting="sorting"
+      :pagination="pagination"
+      :fields="fields"
+      :items="items"
+      :row-class="genericRowClass"
+      :translations="{
+        searchPlaceholder: $t('filterForm.handle.placeholder'),
+        notFound: $t('admin:general.notFound'),
+        noItems: $t('admin:general.resource-list.no-items'),
+        loading: $t('loading'),
+        showingPagination: 'admin:general.pagination.showing',
+        singlePluralPagination: 'admin:general.pagination.single',
+        prevPagination: $t('admin:general.pagination.prev'),
+        nextPagination: $t('admin:general.pagination.next'),
+      }"
+      @search="filterList"
+    >
+      <template #header>
+        <c-resource-list-status-filter
+          v-model="filter.deleted"
+          data-test-id="filter-deleted-queues"
+          :label="$t('filterForm.deleted.label')"
+          :excluded-label="$t('filterForm.excluded.label')"
+          :inclusive-label="$t('filterForm.inclusive.label')"
+          :exclusive-label="$t('filterForm.exclusive.label')"
+          @change="filterList"
+        />
+      </template>
+
+      <template #actions="{ item }">
+        <b-button
+          size="sm"
+          variant="link"
+          :to="{ name: editRoute, params: { [primaryKey]: item[primaryKey] } }"
+        >
+          <font-awesome-icon
+            :icon="['fas', 'pen']"
+          />
+        </b-button>
+      </template>
+    </c-resource-list>
+  </b-container>
+</template>
+
+<script>
+import * as moment from 'moment'
+import listHelpers from 'corteza-webapp-admin/src/mixins/listHelpers'
+import { mapGetters } from 'vuex'
+import { components } from '@cortezaproject/corteza-vue'
+const { CResourceList } = components
+
+export default {
+  components: {
+    CResourceList,
+  },
+
+  mixins: [
+    listHelpers,
+  ],
+
+  i18nOptions: {
+    namespaces: 'system.queues',
+    keyPrefix: 'list',
+  },
+
+  data () {
+    return {
+      id: 'queues',
+
+      primaryKey: 'queueID',
+      editRoute: 'system.queue.edit',
+
+      filter: {
+        query: '',
+        archived: 0,
+        deleted: 0,
+      },
+
+      sorting: {
+        sortBy: 'createdAt',
+        sortDesc: true,
+      },
+
+      fields: [
+        {
+          key: 'queue',
+          sortable: true,
+        },
+        {
+          key: 'consumer',
+          sortable: false,
+        },
+        {
+          key: 'createdAt',
+          label: 'Created',
+          sortable: true,
+          formatter: (v) => moment(v).fromNow(),
+        },
+        {
+          key: 'actions',
+          label: '',
+          tdClass: 'text-right',
+        },
+      ].map(c => ({
+        ...c,
+        // Generate column label translation key
+        label: this.$t(`columns.${c.key}`),
+      })),
+    }
+  },
+
+  computed: {
+    ...mapGetters({
+      can: 'rbac/can',
+    }),
+
+    canCreate () {
+      return this.can('system/', 'queue.create')
+    },
+  },
+
+  methods: {
+    items () {
+      return this.procListResults(this.$SystemAPI.queuesList(this.encodeListParams()))
+    },
+  },
+}
+</script>
