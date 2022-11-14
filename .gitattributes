@@ -1,0 +1,10 @@
+server/**/*gen.go linguist-generated=true
+server/**/*gen_test.go linguist-generated=true
+
+server/vendor/** linguist-vendored=true
+server/go.mod linguist-vendored=true
+server/go.sum linguist-vendored=true
+
+server/docs/*.yaml linguist-documentation=true
+server/docs/README.adoc linguist-documentation=true
+server/docs/index.html linguist-documentation=true
