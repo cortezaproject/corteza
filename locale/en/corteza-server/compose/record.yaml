@@ -1,0 +1,24 @@
+errors:
+  fieldNotFound: no such field {field}
+  importSessionAlreadActive: import session already active
+  invalidID: invalid ID
+  invalidModuleID: invalid or missing module ID
+  invalidNamespaceID: invalid or missing namespace ID
+  invalidReferenceFormat: invalid reference format
+  invalidValueStructure: more than one value for a single-value field {field}
+  moduleNotFoundModule: module not found
+  namespaceNotFound: namespace not found
+  notAllowedToChangeFieldValue: not allowed to change value of field {field}
+  notAllowedToCreate: not allowed to create records
+  notAllowedToDelete: not allowed to delete this record
+  notAllowedToListRecords: not allowed to list records
+  notAllowedToRead: not allowed to read this record
+  notAllowedToReadModule: not allowed to read module
+  notAllowedToReadNamespace: not allowed to read this namespace
+  notAllowedToSearch: not allowed to search or list records
+  notAllowedToUndelete: not allowed to undelete this record
+  notAllowedToUpdate: not allowed to update this record
+  notFound: record not found
+  staleData: stale data
+  unknownBulkOperation: unknown bulk operation {bulkOperation}
+  valueInput: invalid record value input

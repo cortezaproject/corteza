@@ -1,0 +1,29 @@
+editor:
+  title: Email settings
+
+  server:
+    title: SMTP Server
+
+    host:
+      label: Server
+      description: Server name and port. Port are usually 25 (insecure), 465 or 587 (secure).
+
+    user:
+      label: User
+      description: Optional, authentication credentials for your email server.
+
+    password:
+      label: Password
+      description: Optional, authentication credentials for your email server.
+
+    from:
+      label: Sender address
+      description: Options, a default sender address (FROM header) used when sending emails.
+
+    tlsInsecure:
+      label: Allow use of invalid certificates
+      description: Suppress error if Corteza can not verify the TLS certificate used by SMTP server.
+
+    tlsServerName:
+      label: TLS Server name
+      description: Optional, If SMTP server uses a different value than used for the server name.

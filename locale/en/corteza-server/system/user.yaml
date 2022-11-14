@@ -1,0 +1,20 @@
+errors:
+  emailNotUnique: email not unique
+  handleNotUnique: handle not unique
+  invalidEmail: Invalid email! {{resource}}
+  invalidHandle: invalid handle
+  invalidID: invalid ID
+  notAllowedToCreate: not allowed to create users
+  notAllowedToCreateSystem: not allowed to create system users
+  notAllowedToDelete: not allowed to delete this user
+  notAllowedToListUsers: not allowed to list users
+  notAllowedToRead: not allowed to read this user
+  notAllowedToSearch: not allowed to list or search users
+  notAllowedToSuspend: not allowed to suspend this user
+  notAllowedToUndelete: not allowed to undelete this user
+  notAllowedToUnsuspend: not allowed to unsuspend this user
+  notAllowedToUpdate: not allowed to update this user
+  notAllowedToUpdateSystem: not allowed to update system users
+  notFound: user not found
+  passwordNotSecure: provided password is not secure; use longer password with more special characters
+  usernameNotUnique: username not unique

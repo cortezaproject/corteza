@@ -1,0 +1,91 @@
+chart:
+  configurator:
+    begin-axis-at-zero: Always begin axis scale at zero
+    chart-title: Chart title
+    color-scheme: Color scheme
+    data: Data
+    data-columns: Data columns
+    default: Default
+    default-value: Default value
+    general: General
+    label-column: Label column
+    logarithmic-scale: Logarithmic scale
+    none: None
+    place-axis-on-right-side: Place axis on the right side
+    show:
+      tooltips: Show tooltips
+      legend: Show legend
+    skip-missing-values: Skip missing values
+    step-size: Step size
+    time:
+      label: Time
+      unit: 
+        label: Time unit
+        types:
+          date: Date
+          month: Month
+          quarter: Quarter
+          week: Week
+          year: Year
+    type: Type
+    types:
+      bar: Bar
+      doughnut: Doughnut
+      funnel: Funnel
+      line: Line
+      pie: Pie
+    value:
+      max: Max
+      min: Min value
+    x-axis: 
+      name: X-Axis
+      label: Axis label
+      type: Axis type
+    y-axis:
+      name: Y-Axis
+      label: Axis label
+metric:
+  configurator:
+    color:
+      background: Background color
+      text: Text color
+    format: Format
+    label-column: Label column
+    none: None
+    prefix: Prefix
+    suffix: Suffix
+table:
+  configurator:
+    general: General
+    data: Data
+    columns: Columns
+    dark: Dark
+    head-variant: Head Variant
+    joined-datasource-handling: Joined datasource handling
+    light: Light
+    none: None
+    table:
+      options: 
+        bordered: Bordered
+        borderless: Borderless
+        dark: Dark
+        fixed: Fixed
+        hover: Hover
+        label: Table Options
+        no-collapse: No border collapse
+        responsive: Responsive
+        small: Small
+        striped: Striped
+      variant: Table Variant
+      variants:
+        danger: Danger
+        dark: Dark
+        info: Info
+        light: Light
+        primary: Primary
+        secondary: Secondary
+        success: Success
+        warning: Warning
+  view:
+    next: Next
+    previous: Previous

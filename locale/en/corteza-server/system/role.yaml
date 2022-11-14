@@ -1,0 +1,15 @@
+errors:
+  handleNotUnique: role handle not unique
+  invalidHandle: invalid handle
+  invalidID: invalid ID
+  nameNotUnique: role name not unique
+  notAllowedToArchive: not allowed to archive this role
+  notAllowedToCreate: not allowed to create roles
+  notAllowedToDelete: not allowed to delete this role
+  notAllowedToManageMembers: not allowed to manage role members
+  notAllowedToRead: not allowed to read this role
+  notAllowedToSearch: not allowed to search or list roles
+  notAllowedToUnarchive: not allowed to unarchive this role
+  notAllowedToUndelete: not allowed to undelete this role
+  notAllowedToUpdate: not allowed to update this role
+  notFound: role not found
