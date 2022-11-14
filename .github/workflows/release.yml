@@ -1,0 +1,456 @@
+name: "Release"
+
+# These jobs can be tested with nektos/act tool
+# https://github.com/nektos/act
+#
+# Look for "!env.ACT" in the DRY_RUN expression below
+
+on:
+  push:
+    tags:
+      - '**'
+
+env:
+  BUILD_OS: linux
+  BUILD_ARCH: amd64
+
+  GO_VERSION: 1.18
+  GOFLAGS: -mod=readonly
+
+  NODE_VERSION: 16
+
+  RELEASE_BASE_URL: "https://releases.cortezaproject.org/files"
+
+jobs:
+  server-test:
+    name: "Server tests"
+    runs-on: ubuntu-latest
+    env:
+      GOFLAGS: -mod=readonly
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with: { go-version: "${{ env.GO_VERSION }}" }
+      - name: "Unit"
+        working-directory: server
+        run: make test.unit
+      - name: "Store"
+        working-directory: server
+        run: make test.store
+      - name: "Integration"
+        working-directory: server
+        run: make test.integration
+
+  # Building web console for server and cache it for release-* steps
+  # we'll do this in parallel with tests to gain a few seconds
+  server-web-console-build:
+    name: "Server Web Console Build"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with: { node-version: "${{ env.NODE_VERSION }}" }
+      - uses: actions/cache@v3
+        if: ${{ !env.ACT }}
+        with:
+          path: ~/.npm
+          key: ${{ runner.OS }}-node-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: ${{ runner.OS }}-node-
+      - name: "Setup YARN"
+        run: npm install -g yarn @vue/cli-service
+      - name: "Install dependencies"
+        working-directory: server/webconsole
+        run: yarn install
+      - name: "Build Package"
+        working-directory: server/webconsole
+        run: yarn build
+      - name: "Cache console build"
+        uses: actions/cache@v3
+        with: { path: ./server/webconsole/dist, key: console-build }
+
+  server-release:
+    name: "Server Release (${{ matrix.os }})"
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - { runsOn: "ubuntu-latest", os: "linux" }
+          - { runsOn: "macos-latest",  os: "darwin" }
+    runs-on: ${{ matrix.runsOn }}
+    needs: [ server-web-console-build, server-test ]
+    env:
+      BUILD_OS: ${{ matrix.os }}
+      RELEASE_SFTP_KEY: ${{ secrets.RELEASE_SFTP_KEY }}
+      RELEASE_SFTP_URI: ${{ secrets.RELEASE_SFTP_URI }}
+    steps:
+      - run: echo "BUILD_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with: { go-version: "${{ env.GO_VERSION }}" }
+#      - name: "Restore web console dist from cache"
+#        uses: actions/cache@v3
+#        with: { path: ./server/webconsole/dist, key: console-build }
+
+      - name: "Copy essentials"
+        run: cp *.md DCO LICENSE server/
+      - name: "Build"
+        working-directory: server
+        run: make release-clean release
+      - name: "Upload"
+        working-directory: server
+        run: make upload
+        if: ${{ !env.ACT }}
+
+
+########################################################################################################################
+########################################################################################################################
+# Libs
+
+  lib-test:
+    name: "Library test (${{ matrix.lib }})"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        lib: [ "js", "vue" ]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - uses: actions/cache@v3
+        if: ${{ !env.ACT }}
+        with:
+          path: ~/.npm
+          key: ${{ runner.OS }}-node-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: ${{ runner.OS }}-node-${{ matrix.lib }}
+      - name: "Setup YARN"
+        run: npm install -g yarn @vue/cli-service
+      - name: "Install dependencies"
+        working-directory: lib/${{ matrix.lib }}
+        run: yarn install
+      - name: "Run all tests"
+        working-directory: lib/${{ matrix.lib }}
+        run: yarn test:unit
+
+  lib-build-and-publish:
+    name: "Publish libraries (${{ matrix.lib }})"
+    runs-on: ubuntu-latest
+    needs: [ lib-test ]
+    strategy:
+      matrix:
+        lib: [ "js", "vue" ]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          registry-url: 'https://registry.npmjs.org/'
+      - uses: actions/cache@v3
+        if: ${{ !env.ACT }}
+        with:
+          path: ~/.npm
+          key: ${{ runner.OS }}-node-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: ${{ runner.OS }}-node-${{ matrix.lib }}
+      - name: "Setup YARN"
+        run: npm install -g yarn @vue/cli-service
+      - name: "Install dependencies"
+        working-directory: lib/${{ matrix.lib }}
+        run: yarn install
+      - name: "Build Package"
+        working-directory: lib/${{ matrix.lib }}
+        run: yarn build
+      - name: "Dry Run Publish"
+        working-directory: lib/${{ matrix.lib }}
+        run: npm publish --dry-run
+
+# invalid secret?
+#      - name: "Publish"
+#        working-directory: lib/${{ matrix.lib }}
+#        run: npm publish
+#        env: { NODE_AUTH_TOKEN: "${{ secrets.NPM_TOKEN }}" }
+#        if: ${{ !env.ACT }}
+
+
+########################################################################################################################
+########################################################################################################################
+# Web clients
+
+
+  client-web-test:
+    name: "Web client test (${{ matrix.app }})"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix: { app: [ admin, compose, discovery, privacy, reporter, one, workflow ] }
+    needs: [ "lib-build-and-publish" ]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with: { node-version: "${{ env.NODE_VERSION }}" }
+      - name: "Setup YARN"
+        working-directory: client/web/${{ matrix.app }}
+        run: npm install -g yarn @vue/cli-service
+      - name: "Cache"
+        uses: actions/cache@v3
+        if: ${{ !env.ACT }}
+        with:
+          path: ~/.npm
+          key: ${{ runner.OS }}-node-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: ${{ runner.OS }}-node-
+      - name: "Dependencies"
+        working-directory: client/web/${{ matrix.app }}
+        run: make dep
+      - name: "Tests"
+        working-directory: client/web/${{ matrix.app }}
+        run: make test
+
+
+  client-web-release:
+    name: "Web client (${{ matrix.app }})"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix: { app: [ admin, compose, discovery, privacy, reporter, one, workflow ] }
+    needs: [ client-web-test ]
+    env:
+      RELEASE_SFTP_KEY: ${{ secrets.RELEASE_SFTP_KEY }}
+      RELEASE_SFTP_URI: ${{ secrets.RELEASE_SFTP_URI }}
+    steps:
+      - run: echo "BUILD_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with: { node-version: "${{ env.NODE_VERSION }}" }
+      - name: "Setup YARN"
+        run: npm install -g yarn @vue/cli-service
+      - name: "Cache"
+        uses: actions/cache@v3
+        if: ${{ !env.ACT }}
+        with:
+          path: ~/.npm
+          key: ${{ runner.OS }}-node-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: ${{ runner.OS }}-node-
+      - name: "Dependencies"
+        working-directory: client/web/${{ matrix.app }}
+        run: make dep
+      - name: "Build"
+        working-directory: client/web/${{ matrix.app }}
+        run: make build
+      - name: "Copy essentials"
+        run: cp *.md DCO LICENSE client/web/${{ matrix.app }}
+      - name: "Release"
+        working-directory: client/web/${{ matrix.app }}
+        run: make release
+      - name: "Upload"
+        working-directory: client/web/${{ matrix.app }}
+        run: make upload
+        if: ${{ !env.ACT }}
+
+########################################################################################################################
+
+  client-web-aio-release:
+    name: "Web clients (all-in-one release)"
+    runs-on: ubuntu-latest
+    needs: [ client-web-release ]
+    env:
+      RELEASE_SFTP_KEY: ${{ secrets.RELEASE_SFTP_KEY }}
+      RELEASE_SFTP_URI: ${{ secrets.RELEASE_SFTP_URI }}
+    steps:
+      - uses: actions/checkout@v3
+      - run: echo "BUILD_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+      - name: "Prepare dist dir"
+        run: |
+          mkdir -p \
+            client/web/dist/admin \
+            client/web/dist/compose \
+            client/web/dist/workflow \
+            client/web/dist/reporter \
+            client/web/dist/discovery \
+            client/web/dist/privacy
+      - name: "Download & unpack one"
+        run: |
+          curl --location "${{ env.RELEASE_BASE_URL }}/corteza-webapp-one-${{ env.BUILD_VERSION }}.tar.gz" | \
+            tar -xzmok -C client/web/dist
+      - name: "Download & unpack admin"
+        run: |
+          curl --silent --location "${{ env.RELEASE_BASE_URL }}/corteza-webapp-admin-${{ env.BUILD_VERSION }}.tar.gz" | \
+            tar -xzmok -C client/web/dist/admin
+      - name: "Download & unpack compose"
+        run: |
+          curl --silent --location "${{ env.RELEASE_BASE_URL }}/corteza-webapp-compose-${{ env.BUILD_VERSION }}.tar.gz" | \
+            tar -xzmok -C client/web/dist/compose
+      - name: "Download & unpack workflow"
+        run: |
+          curl --silent --location "${{ env.RELEASE_BASE_URL }}/corteza-webapp-workflow-${{ env.BUILD_VERSION }}.tar.gz" | \
+            tar -xzmok -C client/web/dist/workflow
+      - name: "Download & unpack reporter"
+        run: |
+          curl --silent --location "${{ env.RELEASE_BASE_URL }}/corteza-webapp-reporter-${{ env.BUILD_VERSION }}.tar.gz" | \
+            tar -xzmok -C client/web/dist/reporter
+      - name: "Download & unpack discovery"
+        run: |
+          curl --silent --location "${{ env.RELEASE_BASE_URL }}/corteza-webapp-discovery-${{ env.BUILD_VERSION }}.tar.gz" | \
+            tar -xzmok -C client/web/dist/discovery
+      - name: "Download & unpack privacy"
+        run: |
+          curl --silent --location "${{ env.RELEASE_BASE_URL }}/corteza-webapp-privacy-${{ env.BUILD_VERSION }}.tar.gz" | \
+            tar -xzmok -C client/web/dist/privacy
+      - name: "Copy essentials"
+        run: cp *.md DCO LICENSE client/web/dist/
+      - name: "Pack all web clients"
+        working-directory: client/web
+        run: tar -C dist -czf corteza-webapp-${{ env.BUILD_VERSION }}.tar.gz $(dir dist)
+      - name: "Upload"
+        working-directory: client/web
+        run: |
+          echo ${{ env.RELEASE_SFTP_KEY }} | base64 -d > .upload-rsa && chmod 0400 .upload-rsa
+          echo "put corteza-webapp-${{ env.BUILD_VERSION }}.tar.gz" | \
+            sftp -q -o "StrictHostKeyChecking no" -i .upload-rsa ${{ env.RELEASE_SFTP_URI }}
+          rm -f .upload-rsa
+        if: ${{ !env.ACT }}
+
+
+########################################################################################################################
+########################################################################################################################
+# This is where it all comes together
+
+
+  release:
+    name: "Corteza (${{ matrix.os }})"
+    runs-on: ubuntu-latest
+    needs: [ server-release, client-web-aio-release ]
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ "linux" ]
+    env:
+      ENDPOINT: https://releases.cortezaproject.org/files
+      RELEASE_SFTP_KEY: ${{ secrets.RELEASE_SFTP_KEY }}
+      RELEASE_SFTP_URI: ${{ secrets.RELEASE_SFTP_URI }}
+    steps:
+      - run: echo "BUILD_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+      - uses: actions/checkout@v3
+      - name: "Download"
+        run: |
+          curl --silent --location "${{ env.RELEASE_BASE_URL }}/corteza-server-${{ env.BUILD_VERSION }}-${{ matrix.os }}-amd64.tar.gz" | \
+            tar -xzmok -C .
+          mv corteza-server dist
+          rm -rf dist/webapp
+          mkdir dist/webapp
+          curl --silent --location "${{ env.RELEASE_BASE_URL }}/corteza-webapp-${{ env.BUILD_VERSION }}.tar.gz" | \
+            tar -xzmok -C dist/webapp
+      - name: "Pack"
+        run: | 
+          tar -C dist -czf corteza-${{ env.BUILD_VERSION }}-linux-amd64.tar.gz $(dir dist)
+      - name: "Upload"
+        run: |
+          echo ${{ env.RELEASE_SFTP_KEY }} | base64 -d > .upload-rsa
+          chmod 0400 .upload-rsa
+          echo "put corteza-${{ env.BUILD_VERSION }}-linux-amd64.tar.gz" | \
+            sftp -q -o "StrictHostKeyChecking no" -i .upload-rsa ${{ env.RELEASE_SFTP_URI }}
+          rm -f .upload-rsa
+        if: ${{ !env.ACT }}
+
+########################################################################################################################
+########################################################################################################################
+# Discovery
+
+  aux-server-discovery-test:
+    name: "Discovery Server test"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Placeholder"
+        run: echo "@todo add tests"
+
+  aux-server-discovery-release:
+    name: "Discovery Server release ${{ matrix.os }}"
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - { runsOn: "ubuntu-latest", os: "linux" }
+          - { runsOn: "macos-latest",  os: "darwin" }
+    runs-on: ${{ matrix.runsOn }}
+    needs: [ aux-server-discovery-test ]
+    env:
+      BUILD_OS: ${{ matrix.os }}
+      BUILD_VERSION: ${{ format(github.ref, 'refs/tags/', '') }}
+      RELEASE_SFTP_KEY: ${{ secrets.RELEASE_SFTP_KEY }}
+      RELEASE_SFTP_URI: ${{ secrets.RELEASE_SFTP_URI }}
+    steps:
+      - run: echo "BUILD_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with: { go-version: "${{ env.GO_VERSION }}" }
+      - name: "Copy essentials"
+        run: cp *.md DCO LICENSE aux/server-discovery/
+      - name: "Build & release"
+        working-directory: aux/server-discovery/
+        run: make release-clean release
+      - name: "Upload"
+        working-directory: aux/server-discovery/
+        run: make upload
+        if: ${{ !env.ACT }}
+
+
+########################################################################################################################
+
+
+  docker-imags:
+    name: "Docker image ${{ matrix.image }}"
+
+    runs-on: ubuntu-latest
+    needs:
+      - server-release
+      - client-web-aio-release
+      - aux-server-discovery-release
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - { context: "aux/server-discovery", image: "cortezaproject/corteza-server-discovery" }
+          - { context: "client/web",                 image: "cortezaproject/corteza-webapp" }
+          - { context: "server",                     image: "cortezaproject/corteza-server" }
+          - { context: ".",                          image: "cortezaproject/corteza" }
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: "Parse version tag"
+        id: version
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+        
+          echo "DOCKER_IMAGE_TAG=${TAG}" >> $GITHUB_ENV
+
+          if [[ "$(echo ${TAG} | grep '-')" == "" ]]; then
+            # when releasing patched version (YYYY.MM.PATCH) we
+            # tag alias (YYYY.MM) as well 
+            echo "DOCKER_IMAGE_ALIAS=$(echo ${TAG} | cut -d '.' -f -2)" >> $GITHUB_ENV
+          fi
+
+      - name: "Build"
+        run: |
+          docker build \
+            --build-arg "VERSION=${{ env.DOCKER_IMAGE_TAG }}" \
+            --tag ${{ matrix.image }}:${{ env.DOCKER_IMAGE_TAG }} \
+            ${{ matrix.context }}
+
+      - name: "Login"
+        uses: docker/login-action@v2
+        if: ${{ !env.ACT && env.DOCKER_IMAGE_TAG }}
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: "Push ${{ env.DOCKER_IMAGE_TAG }}"
+        if: ${{ !env.ACT }}
+        run: |
+          docker push \
+            ${{ matrix.image }}:${{ env.DOCKER_IMAGE_TAG }}
+
+      - name: "Push ${{ env.DOCKER_IMAGE_ALIAS }}"
+        if: ${{ !env.ACT && env.DOCKER_IMAGE_ALIAS }}
+        run: |
+          docker tag \
+            ${{ matrix.image }}:${{ env.DOCKER_IMAGE_TAG }} \
+            ${{ matrix.image }}:${{ env.DOCKER_IMAGE_ALIAS }}
+        
+          docker push \
+            ${{ matrix.image }}:${{ env.DOCKER_IMAGE_ALIAS }}
+
