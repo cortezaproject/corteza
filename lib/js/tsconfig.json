@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "esnext",
+    "lib": [
+      "es2017",
+      "es2015"
+    ],
+    "moduleResolution": "node",
+    "declaration": true,
+    "strict": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "esModuleInterop": true
+  },
+
+  "include": [
+    "./src/**/*"
+  ],
+
+  "typeRoots": ["./node_modules/@types"],
+
+  "exclude": [
+    "./src/**/*.test.ts",
+    "node_modules",
+    "usr"
+  ]
+}
