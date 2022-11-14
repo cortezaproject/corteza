@@ -1,0 +1,35 @@
+[dir] {
+  margin: 0;
+  background-color: $body-bg;
+}
+
+[dir="rtl"] {
+  text-align: right;
+
+  .popover,
+  ul.vs__dropdown-menu,
+  .dropdown-menu {
+    right: auto !important;
+  }
+
+  .vs__dropdown-toggle {
+    flex-direction: row-reverse;
+
+    input {
+      text-align: right;
+    }
+  }
+
+  .vs__selected-options {
+    flex-direction: row-reverse;
+  }
+
+  .vs__clear {
+    margin: 0 5px;
+  }
+
+  .fa-angle-left,
+  .fa-angle-right {
+    transform: rotate(180deg);
+  }
+}
