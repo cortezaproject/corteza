@@ -1,0 +1,54 @@
+---
+editor:
+  info:
+    archive: Archive
+    archivedAt: Archived at
+    createdAt: Created at
+    delete: Delete
+    deletedAt: Deleted at
+    handle: Handle
+    name: Role name
+    title: Grundlegende Informationen
+    unarchive: Unarchive
+    undelete: Undelete
+    updatedAt: Updated at
+  members:
+    add: Add
+    count: Members ({{count}})
+    remove: Remove
+    searchUsers: Search users
+    title: Role members
+    unnamed: Unnamed user
+  new: New
+  permissions: Permissions
+  title:
+    create: Create role
+    edit: Edit role
+list:
+  columns:
+    actions: ""
+    createdAt: Erstellt
+    enabled: Aktiviert
+    handle: Handle
+    name: Name
+  filterForm:
+    archived:
+      label: archived roles
+    deleted:
+      label: deleted roles
+    excluded:
+      label: Without
+    exclusive:
+      label: Only
+    inclusive:
+      label: Including
+    query:
+      label: Filter roles list
+      placeholder: Filter roles by name
+  loading: Loading roles
+  new: New
+  numFound: '{{count}} role found'
+  numFound_plural: '{{count}} roles found'
+  permissions: Permissions
+  title: Roles
+  yaml: YAML

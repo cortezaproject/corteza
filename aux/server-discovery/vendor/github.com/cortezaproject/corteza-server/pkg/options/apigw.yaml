@@ -1,0 +1,49 @@
+docs:
+  title: API Gateway
+
+imports:
+  - time
+
+props:
+  - name: Enabled
+    type: bool
+    default: true
+    description: |-
+      Enable API Gateway
+
+  - name: Debug
+    type: bool
+    default: false
+    description: |-
+      Enable API Gateway debugging info
+
+  - name: logEnabled
+    type: bool
+    default: false
+    description: |-
+      Enable extra logging
+
+  - name: logRequestBody
+    type: bool
+    default: false
+    description: |-
+      Enable incoming request body output in logs
+
+  - name: proxyEnableDebugLog
+    type: bool
+    default: false
+    description: |-
+      Enable full debug log on requests / responses - warning, includes sensitive data
+
+  - name: proxyFollowRedirects
+    type: bool
+    default: true
+    description: |-
+      Follow redirects on proxy requests
+
+  - name: proxyOutboundTimeout
+    type: time.Duration
+    default: time.Second * 30
+    description: |-
+      Outbound request timeout
+

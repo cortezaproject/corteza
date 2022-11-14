@@ -1,0 +1,9 @@
+---
+errors:
+  invalidID: ID invalid
+  notAllowedToDelete: nu ai permisiunea pentru a șterge această sesiune
+  notAllowedToManage: nu ai permisiunea pentru a administra fluxul de lucru al acestei sesiuni
+  notAllowedToRead: nu ai permisiunea pentru a citi această sesiune
+  notAllowedToSearch: nu ai permisiunea pentru a căuta sau afișa sesiuni
+  notFound: sesiunea nu a putut fi găsită
+  staleData: date învechite

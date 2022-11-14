@@ -1,0 +1,25 @@
+---
+errors:
+  fieldNotFound: Feld {field} existiert nicht
+  importSessionAlreadActive: Importsitzung ist bereits aktiv
+  invalidID: ungültige ID
+  invalidModuleID: ungültige oder fehlende Modul-ID
+  invalidNamespaceID: ungültige oder fehlende Namespace-ID
+  invalidReferenceFormat: ungültiges Referenzformat
+  invalidValueStructure: mehr als ein Wert für ein Einzelwertfeld {field}
+  moduleNotFoundModule: Modul nicht gefunden
+  namespaceNotFound: Namespace nicht gefunden
+  notAllowedToChangeFieldValue: Wert des Feldes {field} kann nicht geändert werden
+  notAllowedToCreate: Erstellen von Datensätzen ist nicht zulässig
+  notAllowedToDelete: dieser Datensatz kann nicht gelöscht werden
+  notAllowedToListRecords: Datensätze können nicht aufgelistet werden
+  notAllowedToRead: dieser Datensatz kann nicht gelesen werden
+  notAllowedToReadModule: Modul kann nicht gelesen werden
+  notAllowedToReadNamespace: dieser Namespace kann nicht gelesen werden
+  notAllowedToSearch: Datensätze können nicht gesucht oder aufgelistet werden
+  notAllowedToUndelete: dieser Datensatz kann nicht wiederhergestellt werden
+  notAllowedToUpdate: dieser Datensatz kann nicht aktualisiert werden
+  notFound: Datensatz nicht gefunden
+  staleData: alte Daten
+  unknownBulkOperation: unbekannte Bulk-Operation {bulkOperation}
+  valueInput: ungültiger Datensatzeintrag

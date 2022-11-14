@@ -1,0 +1,11 @@
+---
+errors:
+  invalidID: Ungültige ID
+  notAllowedToCreate: Erstellen von Triggern ist nicht zulässig
+  notAllowedToDelete: dieser Trigger kann nicht gelöscht werden
+  notAllowedToRead: dieser Trigger kann nicht gelesen werden
+  notAllowedToSearch: Triggers können nicht gesucht oder aufgelistet werden
+  notAllowedToUndelete: dieser Trigger kann nicht wiederhergestellt werden
+  notAllowedToUpdate: dieser Trigger kann nicht aktualisiert werden
+  notFound: Trigger nicht gefunden
+  staleData: alte Daten

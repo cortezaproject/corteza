@@ -1,0 +1,14 @@
+---
+general:
+  error: Fehler
+  success: Vorgang erfolgreich
+  warning: Warnung
+report:
+  createFailed: Fehler beim Erstellen des Berichts
+  created: Bericht erstellt
+  delete: Bericht gelöscht
+  deleteFailed: Fehler beim Löschen des Berichts
+  fetchFailed: Fehler beim Abrufen des Berichts
+  listFetchFailed: Fehler beim Abrufen von Berichten
+  updateFailed: Fehler beim Aktualisieren des Berichts
+  updated: Bericht aktualisiert

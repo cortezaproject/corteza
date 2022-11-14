@@ -1,0 +1,33 @@
+props:
+  - name: languages
+    default: "en"
+    description: |
+      List of compa delimited languages (language tags) to enable.
+      In case when an enabled language can not be loaded, error is logged.
+
+      When loading language configurations (config.xml) from the configured path(s).
+
+  - name: path
+    description: One or more paths to locale config and translation files, separated by colon
+
+  - name: queryStringParam
+    description: |
+      Name of the query string parameter used to pass the language tag (it overrides Accept-Language header).
+      Set it to empty string to disable detection from the query string.
+      This parameter is ignored if only one language is enabled
+    default: "lng"
+
+  - name: resourceTranslationsEnabled
+    type: bool
+    description: |-
+      When enabled, Corteza all
+
+  - name: log
+    type: bool
+    description: Log locale related events and actions
+
+  - name: developmentMode
+    type: bool
+    description: |-
+      When enabled, Corteza reloads language files on every request
+      Enable this for debugging or developing.

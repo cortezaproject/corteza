@@ -1,0 +1,20 @@
+---
+build:
+  addBlock: Add block
+  selectBlockFootnote: Some types might be disabled for non-record pages
+  selectBlockTitle: Select type of the new block
+createLabel: Create page
+edit:
+  create: Create page
+  edit: Edit page
+  pageDescription: Page description
+  visible: Page visibility
+import: 'Import page(s):'
+instructions: Drag and drop pages to adjust the order and hierarchy.
+invalid: Invalid configuration
+newPlaceholder: Page title
+noBlock: No block added yet
+notVisible: Hidden
+title: List of Pages
+view: View
+visible: Visible

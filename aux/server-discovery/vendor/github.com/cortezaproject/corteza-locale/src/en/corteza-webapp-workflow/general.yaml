@@ -1,0 +1,22 @@
+description: Description
+enabled: Enabled
+error: Error
+'error-expression': Error message(expression)
+export: Export
+general: General
+handle: Handle
+import:
+  json: Import JSON
+  label: Import
+  'reassign-run-as': "NOTE: the Run as workflow property won't be imported and should be reassigned"
+  'upload-files': Browse or drop files to upload...
+label: Label
+name: Name
+'new-workflow': New Workflow 
+offset: Offset
+permissions: Permissions
+'search-workflows': Type here to search all workflows...
+'unnamed-workflow': Unnamed Workflow
+'workflow-list': List of Workflows
+save: Save
+cancel: Cancel

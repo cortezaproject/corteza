@@ -1,0 +1,22 @@
+datasource:
+  describe-failed: Failed to describe datasource
+general:
+  error: Error
+  success: Success
+  warning: Warning
+module:
+  fetch-failed: Failed to fetch modules
+namespace:
+  fetch-failed: Failed to fetch namespaces
+report:
+  createFailed: Failed to create report
+  created: Report created
+  delete: Report deleted
+  deleteFailed: Failed to delete report
+  fetchFailed: Failed to fetch report
+  listFetchFailed: Failed to fetch reports
+  run-failed: Failed to run report
+  updateFailed: Failed to update report
+  updated: Report updated
+  notAllowed:
+    read: Not allowed to read report

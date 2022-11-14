@@ -1,0 +1,4 @@
+---
+template:
+  log-out: Abmeldung erfolgreich.
+  log-in: Hier klicken um sich <a href="{{link}}">anzumelden</a>.

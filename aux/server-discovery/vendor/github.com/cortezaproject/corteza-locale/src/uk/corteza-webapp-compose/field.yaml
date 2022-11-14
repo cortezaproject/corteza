@@ -1,0 +1,160 @@
+---
+defaultFieldValue: Default field value
+defaultValue: Default value
+kind:
+  bool:
+    checkedValueLabel: Value when checked
+    checkedValuePlaceholder: Checked value
+    label: Checkbox (Y/N)
+    uncheckedValueLabel: Value when unchecked
+    uncheckedValuePlaceholder: Unchecked value
+  dateTime:
+    dateOnly: Date Only
+    futureValuesOnly: Future Value Only
+    label: Date and time
+    outputFormat: 'Output format:'
+    outputFormatFootnote: See {{0}} for formatting options
+    pastValuesOnly: Past Values Only
+    relativeOutput: 'Output Relative value (eg: 3 days ago)'
+    timeOnly: Time Only
+    warning:
+      futureValuesOnly: Only dates in the future will be saved
+      pastValuesOnly: Only dates in the past will be saved
+  email:
+    label: Email
+    preventToLink: Don't turn email into a link
+  file:
+    label: File
+    view:
+      gallery: Gallery of images
+      grid: Grid
+      list: List
+      maxSizeLabel: Maximum file size
+      mimetypesFootnote: 'MIME types, sepparated with ",". Example: "text/plain,text/csv"'
+      mimetypesLabel: File type allow list
+      modeFootnote: How files are represented in record page blocks
+      modeLabel: View mode
+      showName: Hide file name
+      single: Single image
+  number:
+    exampleFormat: Format
+    exampleInput: Input
+    exampleResult: Result
+    examplesLabel: 'Format examples:'
+    formatLabel: Format
+    formatPlaceholder: Format
+    label: Number
+    precisionLabel: Precision
+    precisionPlaceholder: Precision
+    prefixLabel: Prefix
+    prefixPlaceholder: Prefix
+    suffixLabel: Suffix
+    suffixPlaceholder: Suffix
+  record:
+    currentUnnamedModule: (Current unnamed module)
+    label: Record
+    moduleLabel: Module name
+    modulePlaceholder: Pick module
+    prefilterFootnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {{0}}, {{1}} and {{2}} are evaluated (when available)
+    prefilterLabel: Prefilter records
+    prefilterPlaceholder: field1 = 1 AND field2 = 232
+    queryFieldsLabel: Query fields on search
+    recordFieldLabel: Record label from field
+    recordFieldPlaceholder: Pick field
+    suggestionPlaceholder: Start typing to search for records
+  select:
+    label: Select
+    optionAdd: Add
+    optionLabelPlaceholder: Label
+    optionNotSelected: No option selected
+    optionRemove: Remove
+    optionType:
+      default: Single input
+      each: Input for each value
+      label: Multiple value input type
+      multiple: Multiple select
+    optionValuePlaceholder: Value
+    optionsLabel: Options to select from
+    placeholder: Select an option by clicking here
+  string:
+    label: String
+    multiLine: Multi line
+    richText: Use Rich Text Editor
+  url:
+    label: URL
+    preventToLink: Don't turn Url into a link
+    sshOnly: Only allow SSL (https) Url
+    trimHash: 'Trim ''#'' from the Url'
+    trimQuestionMark: Trim '?' from the Url
+    trimToDomain: Trim Url down to domain only
+  user:
+    label: User
+    na: N/A
+    presetWithCurrentUser: Preset with current user
+    suggestionPlaceholder: Start typing to search for users by email or name
+    roles:
+      label: User roles
+      placeholder: Filter by user roles
+noPermission: No permission to read field value
+options:
+  description:
+    label:
+      default: Description
+      edit: Description edit
+      view: Description view
+    placeholder:
+      default: Description text...
+      edit: Description when editing record field...
+      view: Description when viewing record field...
+    same: Show same description on view and edit
+  hint:
+    label:
+      default: Hint
+      edit: Hint edit
+      view: Hint view
+    placeholder:
+      default: Hint text...
+      edit: Hint when editing record field...
+      view: Hint when viewing record field...
+    same: Show same hint on view and edit
+  multiDelimiter:
+    comma: Separated by a comma
+    custom: A custom delimiter
+    customLabel: Or use a custom delimiter
+    customPlaceholder: Enter a custom delimiter
+    label: Multiple value delimiter
+    newline: Each value in a new line
+sanitizers:
+  add: + Add
+  description: Trim spaces from text or do other kinds of value manipulation before validation
+  examples: Examples
+  expression:
+    placeholder: trim(value)
+  label: Value sanitization
+selector:
+  available: Columns available
+  footnote: Add fields by dragging or double-clicking on them. Selected fields can also be reordered
+  selectAll: Select all
+  selected: Columns selected
+  systemField: (system field)
+  unselectAll: Unselect all
+system:
+  createdAt: Created at
+  createdBy: Created by
+  deletedAt: Deleted at
+  deletedBy: Deleted by
+  ownedBy: Owned by
+  updatedAt: Updated at
+  updatedBy: Updated by
+validators:
+  description: Set of expressions and error pairs that test validity of the input value.
+  disableBuiltIn: Disable built-in validators
+  error:
+    placeholder: Text displayed when expression is true
+  expression:
+    placeholder: value == ""
+  label: Value validation
+valueExpr:
+  description: Insert a formula or expression that calculates numeric values or combines and manipulates text values
+  label: Field value expression
+  placeholder: ((floor(numField1) + numField2) / 10) + 0.5

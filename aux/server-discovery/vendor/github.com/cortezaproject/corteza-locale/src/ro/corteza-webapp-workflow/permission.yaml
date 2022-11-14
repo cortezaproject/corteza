@@ -1,0 +1,36 @@
+---
+automationWorkflow:
+  all: toate fluxurile de lucru
+  operations:
+    delete:
+      description: 'Implicit: refuză'
+      specific: Șterge acest flux de lucru
+      title: Șterge orice flux de lucru
+    execute:
+      description: 'Implicit: refuză'
+      specific: Execută acest flux de lucru
+      title: Execută orice flux de lucru
+    read:
+      description: 'Implicit: refuză'
+      specific: Citește acest flux de lucru
+      title: Citește orice flux de lucru
+    sessionsManage:
+      description: 'Implicit: refuză'
+      specific: Administrare sesiuni pentru acest flux de lucru
+      title: Administează toate sesiunile
+    triggersManage:
+      description: 'Implicit: refuză'
+      specific: Administrare declanșator pentru acest flux de lucru
+      title: Administrează toate declanșatoarele
+    undelete:
+      description: 'Implicit: refuză'
+      specific: Recuperează acest flux de lucru
+      title: Recuperează orice flux de lucru
+    update:
+      description: 'Implicit: refuză'
+      specific: Actualizează acest flux de lucru
+      title: Actualizează orice flux de lucru
+  specific: flux de lucru "{{target}}"
+resetBack: Revenire la "{{current}}"
+saveChanges: Salvare modificări
+setFor: Stabilește permisiuni pentru {{target}}

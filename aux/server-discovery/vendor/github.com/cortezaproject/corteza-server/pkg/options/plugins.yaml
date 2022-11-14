@@ -1,0 +1,12 @@
+docs:
+  title: Plugins
+  description: Server plugins
+
+props:
+  - name: Enabled
+    type: bool
+    default: true
+    description: Enable plugins
+
+  - name: Paths
+    description: List of colon seperated paths or patterns where plugins could be found

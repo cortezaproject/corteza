@@ -1,0 +1,8 @@
+errors:
+  composeModuleNotFound: compose module not found
+  composeNamespaceNotFound: compose namespace not found
+  federationModuleNotFound: federation module not found
+  moduleMappingExists: module mapping already exists
+  nodeNotFound: node does not exist
+  notAllowedToMap: not allowed to map this module
+  notFound: module mapping does not exist

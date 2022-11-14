@@ -1,0 +1,43 @@
+---
+list:
+  rules:
+    add: Add role
+    addRole: Add new role
+    component:
+      operations:
+        grant: Grant permissions on federation service
+        nodeCreate: Create nodes
+        nodesSearch: List or create nodes
+        pair: Pair nodes
+        settingsManage: Manage all settings
+        settingsRead: Access all settings
+      type:
+        label: Federation service
+    exposedModule:
+      operations:
+        manage: Manage any module
+      type:
+        label: Modules
+    loading: Loading permissions
+    noRole: No role selected
+    node:
+      operations:
+        delete: Delete any node
+        manage: Manage any node
+        moduleCreate: Create modules
+        pair: Pair nodes
+        read: Access any node
+        update: Update any node
+      type:
+        label: Nodes
+    notAllowed: Not allowed to set permissions
+    sharedModule:
+      operations:
+        map: Map any module
+      type:
+        label: Modules
+    submit: Submit
+    tip1: Click on permission/role cell to allow a specific operation
+    tip2: Use Alt-Click to set explicit deny on operation
+    title: List of rules
+  title: Federation permissions

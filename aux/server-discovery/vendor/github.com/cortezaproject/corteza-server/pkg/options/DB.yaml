@@ -1,0 +1,7 @@
+docs:
+  title: Connection to data store backend
+
+props:
+  - name: DSN
+    default: "sqlite3://file::memory:?cache=shared&mode=memory"
+    description: Database connection string.

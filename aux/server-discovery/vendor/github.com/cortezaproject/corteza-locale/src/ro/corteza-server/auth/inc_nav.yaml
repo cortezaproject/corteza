@@ -1,0 +1,8 @@
+---
+template:
+  authorize-client: Finalizare autorizare pentru
+  class:
+    your-profile: Profilul tău
+    security: Securitate
+    login-session: Sesiuni conectare
+    authorized-clients: Clienți autorizați

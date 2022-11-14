@@ -1,0 +1,114 @@
+---
+list:
+  rules:
+    add: Add role
+    addRole: Add new role
+    application:
+      operations:
+        delete: Delete any application
+        read: Read any application
+        update: Update any application
+      type:
+        label: Applications
+    authClient:
+      operations:
+        authorize: Authorize any client
+        delete: Delete any client
+        read: Read any client
+        update: Update any client
+      type:
+        label: Auth clients
+    component:
+      operations:
+        actionLogRead: Access action log
+        applicationCreate: Create new application
+        applicationFlagGlobal: Can pin application for everyone
+        applicationFlagSelf: Can pin application for themselves
+        applicationsSearch: List and search applications
+        authClientCreate: Create new auth client
+        authClientsSearch: List and search auth clients
+        apigwRouteCreate: Create new route
+        apigwRoutesSearch: List and search routes
+        apigwFilterCreate: Create new filter
+        apigwFiltersSearch: List and search filters
+        grant: Grant permission on system service
+        queueCreate: Create new messaging queue
+        queuesSearch: List and search messaging queues
+        reminderAssign: Allow reminder assignment
+        roleCreate: Create new role
+        rolesSearch: List and search roles
+        settingsManage: Manage all settings
+        settingsRead: Access all settings
+        templateCreate: Create new template
+        templatesSearch: List and search templates
+        userCreate: Create new user
+        usersSearch: List and search users
+      type:
+        label: System service
+    loading: Loading permissions
+    noRole: No role selected
+    notAllowed: Not allowed to set permissions
+    queue:
+      operations:
+        delete: Delete any queue
+        queueRead: Read messages from queue
+        queueWrite: Write messages to queue
+        read: Read any queue
+        update: Update any queue
+      type:
+        label: Messaging queues
+    role:
+      operations:
+        delete: Delete any role
+        membersManage: Manage members for any role
+        read: Read any role
+        update: Update any role
+      type:
+        label: Roles
+    submit: Submit
+    apigwRoute:
+      type:
+        label: 'API gateway Routes'
+      operations:
+        read: 'Read any route'
+        update: 'Update any route'
+        delete: 'Delete any route'
+    apigwFilter:
+      type:
+        label: 'API gateway filters'
+      operations:
+        read: 'Read any filters'
+        update: 'Update any filters'
+        delete: 'Delete any filters'
+    template:
+      operations:
+        delete: Delete any template
+        read: Read any template
+        render: Render any template
+        update: Update any template
+      type:
+        label: Templates
+    tip1: Click on permission/role cell to allow a specific operation
+    tip2: Use Alt-Click to set explicit deny on operation
+    title: List of rules
+    user:
+      operations:
+        delete: Delete any user
+        emailUnmask: Show email details
+        impersonate: Impersonate any user
+        nameUnmask: Show name details
+        read: Read any user
+        suspend: Suspend any user
+        unsuspend: Unsuspend any user
+        update: Update any user
+      type:
+        label: Users
+    report:
+      operations:
+        read: Read any report
+        update: Update any report
+        delete: Delete any report
+        run: Run any report
+      type:
+        label: Reports
+  title: System permissions

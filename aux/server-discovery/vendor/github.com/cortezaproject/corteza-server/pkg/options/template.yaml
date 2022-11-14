@@ -1,0 +1,11 @@
+docs:
+  title: Rendering engine
+
+props:
+  - name: rendererGotenbergAddress
+    default: ""
+    description: Gotenberg rendering container address.
+  - name: rendererGotenbergEnabled
+    type: bool
+    default: false
+    description: Is Gotenberg rendering container enabled.

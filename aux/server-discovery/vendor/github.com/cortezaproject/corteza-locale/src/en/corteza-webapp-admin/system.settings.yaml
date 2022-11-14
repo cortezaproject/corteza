@@ -1,0 +1,120 @@
+editor:
+  title: System settings
+  auth:
+    title: Authentication
+    url: URL
+    internal:
+      title: Internal
+      enabled: Internal authentication enabled
+      password-reset:
+        enabled: Password reset enabled
+      password-constraints:
+        title: Password constraints
+        ignored-security: The system is configured to ignore password security constraints which is insecure on production deployments. If this is a production deployment, please contact your administrator to update the system configuration (the AUTH_PASSWORD_SECURITY .env variable).
+        min-length: Minimum length
+        min-length-description: Must be at least 8 characters
+        min-num-count: Minimum number of numbers
+        min-num-count-description: The password must include the specified number of numbers (disabled if set to 0)
+        min-special-count: Minimum number of special characters
+        min-special-count-description: The password must include the specified number of special characters (disabled if set to 0)
+      signup:
+        email-confirmation-required: Signup email confirmation required
+        enabled: Signup enabled
+        split-credentials-check:
+          description: 'Split login into two steps: collect the email input first and show the input for the password on the 2nd screen. Automatically forward user to external identity provider when user does not have his password set and there is only one IdP present'
+          label: Enable split-credentials check
+    mail:
+      title: Authentication email sender mail
+      from-address: Sender's address
+      from-name: Sender's name
+      validate-email: Please enter valid email address.
+    mfa:
+      title: Multi-factor authentication
+      TOTP:
+        enabled: Allow users to use time based one-time-password (using mobile application)
+        enforced: Force users to use time based one-time-password (using mobile application)
+        issuer:
+          description: Issuer name will be send to authenticator app when user configures it.
+          label: Issuer
+      emailOTP:
+        enabled: Allow users to use one-time-password over email
+        enforced: Force users to use one-time-password over email
+        expires:
+          description: How long will password be valid before it expires.
+          label: Valid for
+
+  external:
+    title: External Authentication Providers
+    enabled: Enable external authentication
+
+    table:
+      header:
+        provider: Provider
+        info: Issuer, client ID
+
+
+    standard:
+      enabled: Enabled
+      clientKey: Client key
+      clientSecret: Secret
+
+    oidc:
+      add: Add an OIDC provider
+      enabled: Enabled
+      handle: Handle
+      title: OpenID Connect
+      issuer: OIDC Issuer URL
+      issuerHint: Where to find the /.well-known/openid-configuration (without the /.well-known/openid-configuration part)
+      clientKey: Client key
+      clientSecret: Secret
+      scope: Scope
+      scopePlaceholder: List out supported OAuth scope values
+      scopeHint: Use space delimited string
+
+    saml:
+      enabled: Enabled
+      title: SAML
+      requests:
+        title: Requests
+        sign-requests: Sign requests
+        sign-method: Signature method
+        binding: Binding
+        binding-redirect: HTTP Redirect
+        binding-post: HTTP POST
+      cert:
+        public: Public key
+        private: Private key
+      name: Name
+      certificate: Certificate
+      idp:
+        title: Identity provider
+        ident-handle: Handle field
+        ident-identifier: Identifier field
+        ident-name: Name field
+        url: URL
+      desc:
+        name: IdP name used on the login screen (Login with <name>)
+        cert:
+          public: Content will be minimized
+          private: Content will be minimized
+        requests:
+          sign-requests: Sign AuthNRequest and assertion
+          sign-method: Method to use on signed requests
+          binding: The type of HTTP binding to use on AuthNRequest, defaults to HTTP Redirect (GET)
+        idp:
+          url: Location of IdP metadata
+          ident-handle: Name of the IdP field used for filling Corteza user handle or nickname
+          ident-identifier: Name of the IdP field used for filling and matching Corteza user email
+          ident-name: Name of the IdP field used for filling Corteza user full name
+
+
+    security:
+      forbidden-roles:
+        description: Roles from this list will be removed from security context when authenticates with this provider
+        label: Forbidden roles
+      forced-roles:
+        description: Roles from this list will be always added to security context when authenticates with this provider
+        label: Forced roles
+      permitted-roles:
+        description: Only roles in this list will be added into security context when authenticates with this provider
+        label: Permitted roles

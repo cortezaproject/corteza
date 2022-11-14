@@ -1,0 +1,59 @@
+editor:
+  info:
+    createdAt: Created at
+    delete: Delete
+    deletedAt: Deleted at
+    enabled: Enabled
+    id: ID
+    name: Name
+    title: Basic information
+    undelete: Undelete
+    updatedAt: Updated at
+  new: New
+  permissions: Permissions
+  title:
+    create: Create application
+    edit: Edit application
+  unify:
+    config:
+      description: Application configuration (JSON)
+      label: Configuration
+    listed: Listed
+    logo:
+      description: Logo used in the application selector
+      label: Logo
+      placeholder: Choose a logo or drop it here...
+    name:
+      description: Name used in the application selector
+      label: Name
+    pinned: Pinned
+    title: App selector
+    url:
+      description: Application URL
+      label: URL
+list:
+  columns:
+    actions: ""
+    createdAt: Created
+    enabled: Enabled
+    name: Name
+    appListName: App selector name
+  filterForm:
+    deleted:
+      label: deleted applications
+    excluded:
+      label: Without
+    exclusive:
+      label: Only
+    inclusive:
+      label: Including
+    query:
+      label: Filter applications list
+      placeholder: Filter applications by name
+  loading: Loading applications
+  new: New
+  numFound: '{{count}} application found'
+  numFound_plural: '{{count}} applications found'
+  permissions: Permissions
+  title: Applications
+  yaml: YAML

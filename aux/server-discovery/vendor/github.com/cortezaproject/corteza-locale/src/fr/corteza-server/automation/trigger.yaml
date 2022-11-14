@@ -1,0 +1,11 @@
+---
+errors:
+  invalidID: invalid ID
+  notAllowedToCreate: not allowed to create triggers
+  notAllowedToDelete: not allowed to delete this trigger
+  notAllowedToRead: not allowed to read this trigger
+  notAllowedToSearch: not allowed to search or list triggers
+  notAllowedToUndelete: not allowed to undelete this trigger
+  notAllowedToUpdate: not allowed to update this trigger
+  notFound: trigger not found
+  staleData: stale data

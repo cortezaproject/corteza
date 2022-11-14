@@ -1,0 +1,24 @@
+---
+template:
+  title: Sign up
+  form:
+    email:
+      label: E-mail
+      placeholder: email@domain.ltd
+    password:
+      label: Password
+      placeholder: Password
+    name:
+      label: Full name
+      placeholder: Your full name
+    nickname:
+      label: Short name, nickname or handle
+      placeholder: Short name, nickname or handle
+    button:
+      sign-up: Submit
+  log-in: Already have an account? <a href="{{link}}">Log in</a>
+alerts:
+  signup-successful: Sign-up successful.
+  email-confirmed-logged-in: Email address confirmed, you're now logged-in.
+  invalid-expired-token: Invalid or expired email confirmation token, please resend confirmation request.
+  signup-disabled: Signup disabled

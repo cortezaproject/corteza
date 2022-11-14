@@ -1,0 +1,52 @@
+---
+editor:
+  info:
+    completedAt: Abgeschlossen am
+    createdAt: Erstellt am
+    createdByUserID: Erstellt bei - ID
+    createdByUserName: Erstellt bei - Name
+    delete: Löschen
+    deletedAt: Deleted at
+    error: Fehler
+    eventType: Ereignistyp
+    id: ID
+    resourceType: Ressourcentyp
+    status: Status
+    title: Grundlegende Informationen
+    workflowID: WorkflowID
+  title: Sitzung
+list:
+  columns:
+    actions: ""
+    createdAt: Created At
+    eventType: Ereignistyp
+    sessionID: SitzungsID
+    status: Status
+    workflowID: WorkflowID
+  filterForm:
+    all:
+      label: Alle
+    completed:
+      label: Abgeschlossen
+    excluded:
+      label: Ohne
+    exclusive:
+      label: Nur
+    failed:
+      label: Fehlgeschlagen
+    inProgress:
+      label: Abgeschlossene Sitzungen
+    inclusive:
+      label: Einschließlich
+    prompted:
+      label: Aufgefordert
+    sessions:
+      label: Sitzungen
+    started:
+      label: Gestartet
+    suspended:
+      label: Gesperrt
+  loading: Sitzungen werden geladen
+  numFound: '{{count}} Sitzung gefunden'
+  numFound_plural: '{{count}} Sitzungen gefunden'
+  title: Sitzungen
