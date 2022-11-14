@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/pkg/apigw"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 
@@ -119,15 +120,12 @@ func (svc *apigwRoute) Update(ctx context.Context, upd *types.ApigwRoute) (q *ty
 		// 	return ApigwRouteErrExistsEndpoint(qProps)
 		// }
 
-		upd.UpdatedAt = now()
-		upd.CreatedAt = qq.CreatedAt
-		upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+		qq.UpdatedAt = now()
+		qq.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-		if err = store.UpdateApigwRoute(ctx, svc.store, upd); err != nil {
+		if err = store.UpdateApigwRoute(ctx, svc.store, qq); err != nil {
 			return
 		}
-
-		q = upd
 
 		ags := apigw.Service()
 
@@ -146,7 +144,7 @@ func (svc *apigwRoute) Update(ctx context.Context, upd *types.ApigwRoute) (q *ty
 		return nil
 	}()
 
-	return q, svc.recordAction(ctx, qProps, ApigwRouteActionUpdate, err)
+	return qq, svc.recordAction(ctx, qProps, ApigwRouteActionUpdate, err)
 }
 
 func (svc *apigwRoute) DeleteByID(ctx context.Context, ID uint64) (err error) {
