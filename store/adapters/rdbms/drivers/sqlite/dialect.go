@@ -144,6 +144,7 @@ func (sqliteDialect) AttributeCast(attr *dal.Attribute, val exp.Expression) (exp
 }
 
 func (sqliteDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err error) {
+
 	col = &ddl.Column{
 		Ident:   attr.StoreIdent(),
 		Comment: attr.Label,
@@ -204,6 +205,8 @@ func (sqliteDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, er
 	case *dal.TypeUUID:
 		col.Type.Name = "CHAR(36)"
 
+	case *dal.TypeEnum:
+		col.Type.Name = "TEXT"
 	default:
 		return nil, fmt.Errorf("unsupported column type: %s ", t.Type())
 	}
