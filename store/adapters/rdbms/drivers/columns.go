@@ -36,7 +36,7 @@ func NewSingleValueColumn(d Dialect, a *dal.Attribute) *SingleValueColumn {
 	return &SingleValueColumn{
 		typ:  d.TypeWrap(a.Type),
 		attr: a,
-		name: attrColumnIdent(a),
+		name: a.StoreIdent(),
 	}
 }
 
