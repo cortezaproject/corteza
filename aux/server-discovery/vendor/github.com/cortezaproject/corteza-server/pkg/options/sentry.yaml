@@ -1,0 +1,49 @@
+imports:
+  - github.com/cortezaproject/corteza-server/pkg/version
+
+docs:
+  title: Sentry monitoring
+  intro: |-
+    [NOTE]
+    ====
+    These parameters help in the development and testing process.
+    When you are deploying to production, these should be disabled to improve performance and reduce storage usage.
+
+    You should configure external services such as Sentry or ELK to keep track of logs and error reports.
+    ====
+
+props:
+  - name: DSN
+    description: Set to enable Sentry client.
+
+  - name: debug
+    type: bool
+    description: Print out debugging information.
+
+  - name: attachStacktrace
+    type: bool
+    default: true
+    description: Attach stacktraces
+
+  - name: sampleRate
+    type: float32
+    description: Sample rate for event submission (0.0 - 1.0. defaults to 1.0)
+
+  - name: maxBreadcrumbs
+    type: int
+    default: 0
+    description: Maximum number of bredcrumbs.
+
+  - name: serverName
+    env: SENTRY_SERVERNAME
+    description: Set reported Server name.
+
+  - name: release
+    default: version.Version
+    description: Set reported Release.
+
+  - name: dist
+    description: Set reported distribution.
+
+  - name: environment
+    description: Set reported environment.

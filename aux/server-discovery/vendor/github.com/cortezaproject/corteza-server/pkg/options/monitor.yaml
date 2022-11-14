@@ -1,0 +1,11 @@
+imports:
+  - time
+
+docs:
+  title: Monitoring
+
+props:
+  - name: interval
+    type: time.Duration
+    default: 300 * time.Second
+    description: Output (log) interval for monitoring.

@@ -1,0 +1,17 @@
+---
+template:
+  title: Ihre Sitzung
+  list:
+    current: Derzeitige Sitzung
+    authorized-on: Autorisiert am
+    same-machine: Dieser Computer
+    ip-address: IP Adresse
+    same-browser: Dieser Browser
+    browser: Browser
+    expires: Läuft ab
+    expired: Abgelaufen
+    today: Heute
+    tomorrow: In einem Tag
+    soon: In {{days}} Tagen
+    delete: Diese Sitzung Löschen
+  delete-all: Alle Sitzungen Löschen

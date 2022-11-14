@@ -1,0 +1,50 @@
+application:
+  label: Enable on application list
+clickOpen: Click to open
+create: Create new namespace
+import:
+  buttonLabel: Import namespace
+  title: Import namespace
+  uploadFileLabel: Upload the file you want to import (.zip format)
+  uploadFilePlaceholder: Click or drop file here to upload (.zip format)
+  back: Back
+  import: Import
+description:
+  label: Namespace description
+  placeholder: Enter namespace description
+disabled: Namespace is disabled
+edit: Edit namespace
+clone: Clone namespace
+cloneSuffix: copy
+cloneWarning:
+  wfInclusion: Workflows and other automation are not cloned. Use the workflow editor interface to clone the ones you need.
+export: Export namespace
+enabled:
+  label: Enable namespace
+icon:
+  label: Icon
+  placeholder: Choose an image for namespace icon or drop it here...
+label:
+  permissions: Permissions
+logo:
+  label: Logo
+  placeholder: Choose an image for namespace logo or drop it here...
+  show: Show logo
+  preview: Preview
+  reset: Reset
+name:
+  label: Full namespace name *
+  placeholder: Enter namespace name
+noResults: No namespaces found
+searchPlaceholder: Type here to search among all namespaces...
+setPermissions: Set namespace permissions
+slug:
+  description: The short name will be used in the URL
+  label: Short name *
+  placeholder: Enter a short name for the namespace
+  invalid-handle-characters: Should be at least 2 characters long and start with a letter. Can contains only letters, numbers, dash, underscore and dot
+subtitle:
+  label: Subtitle
+  placeholder: Enter namespace subtitle
+title: Low Code Namespaces
+visit: Visit namespace

@@ -1,0 +1,14 @@
+---
+errors:
+  alreadyExists: Warteschlange mit diesem Namen bereits vorhanden
+  invalidConsumer: ungültiger Verbraucher
+  invalidID: ungültige ID
+  notAllowedToCreate: Erstellen von Warteschleifen ist nicht zulässig
+  notAllowedToDelete: diese Warteschleife kann nicht gelöscht werden
+  notAllowedToRead: diese Warteschleife kann nicht gelesen werden
+  notAllowedToReadFrom: Nachrichten aus dieser Warteschleife können nicht gelesen werden
+  notAllowedToSearch: Warteschleifen können nicht gesucht oder aufgelistet werden
+  notAllowedToUndelete: diese Warteschleife kann nicht wiederhergestellt werden
+  notAllowedToUpdate: diese Warteschleife kann nicht aktualisiert werden
+  notAllowedToWriteTo: Nachrichten können dieser Warteschleife nicht hinzugefügt werden
+  notFound: Warteschleife nicht gefunden

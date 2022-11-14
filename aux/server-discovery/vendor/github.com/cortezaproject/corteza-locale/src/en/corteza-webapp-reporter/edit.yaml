@@ -1,0 +1,14 @@
+description: Description
+handle-with-star: 'Handle*'
+invalid-handle-characters: Should be at least 2 characters long and start with a letter. Can contains only letters, numbers, dash, underscore and dot
+name: Name
+name-with-star: 'Name*'
+new-report: New Report
+permissions: Permissions
+report:
+  create: Create Report
+  builder: Report Builder
+  description: Report description...
+  edit: Edit Report
+placeholder-handle: handle (a - z, 0 - 9, underscore, dash)
+title: Edit report

@@ -1,0 +1,6 @@
+---
+errors:
+  failedToDownloadAttachment: 'Anlage konnte nicht heruntergeladen werden von {attachmentURL}: {err}'
+  failedToLoadUser: Nutzer konnte nicht geladen werden für {recipient}
+  invalidReceipientFormat: ungültiges Empfängerformat ({recipient})
+  noRecipients: E-Mail-Nachrichten ohne Empfänger können nicht gesendet werden

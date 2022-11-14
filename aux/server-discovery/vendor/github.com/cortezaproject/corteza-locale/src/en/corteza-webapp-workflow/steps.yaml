@@ -1,0 +1,82 @@
+break:
+  label: Break
+  tooltip: Stop iterator execution and continue with workflow
+continue:
+  label: Continue
+  tooltip: Stop current iteration and continue with the next one
+debug:
+  label: Debug
+  tooltip: Logs current workflow scope into server logs. If workflow debug is enabled
+delay:
+  label: Delay
+  tooltip: Delays workflow execution
+error:
+  label: Error 
+  tooltip: Throws error and stops workflow execution, also prevents saving of records triggered with before trigger
+'error-handler':
+  label: Error Handler
+  tooltip: Continue workflow from this step if an error is triggered
+expressions:
+  configurator:
+    'add-expression': + Add Expression
+    expression: Expression
+    'expression-placeholder': Expression...
+  label: Expressions
+  tooltip: Define and mutate scope variables
+function:
+  configurator:
+    arguments: Arguments
+    constant: Constant
+    expression: Expression
+    name: Name
+    'option-select': Select an option
+    result: Result
+    results: Results
+    'select-function': Select function
+    type: Type
+    'type*': 'Type*'
+  label: Function
+  tooltip: Execute the chosen predefined function
+gatewayExclusive:
+  label: Gateway (Exclusive)
+  tooltip: Workflow execution can continue on first path that fits condition
+gatewayInclusive:
+  label: Gateway (Inclusive)
+  tooltip: Workflow execution can continue on all paths that fit condition
+gatewayParallel:
+  label: Gateway (Fork/Join)
+  tooltip: Splits workflow execution into two parallel paths or merges multiple paths into one
+gateway:
+  configurator:
+    condition: Condition
+    'two-paths': Gateway must be source of at least two paths
+iterator:
+  label: Iterator
+  tooltip: Iterate over items
+prompt:
+  label: Prompt
+  tooltip: Prompts user and waits for input
+swimlane:
+  label: Swimlane
+  tooltip: Visually group steps
+termination:
+  label: Termination (End)
+  tooltip: Terminate workflow execution
+trigger:
+  configurator:
+    add: + Add
+    'add-constraints': + Add Constraints
+    constraints: Constraints
+    'event*': 'Event*'
+    'failed-fetch-event-types': Failed to fetch event types
+    'initial-scope': Initial Scope
+    like: Like
+    'not-like': Not like
+    operator: Operator
+    resource:  Resource
+    'resource*':  'Resource*'
+    'select-constraint-type': Select constraint type
+    'select-event-type': Select event type
+    'select-resource-type': Select resource type
+  label: Trigger (Start)
+  tooltip: Trigger the workflow execution based on configuration

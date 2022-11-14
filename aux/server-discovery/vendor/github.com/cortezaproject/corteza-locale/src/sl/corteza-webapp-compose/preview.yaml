@@ -1,0 +1,8 @@
+sl:
+  clickToRetry: Click to retry
+  downloadForAll: Download to see all pages
+  firstPagePreview: First page preview
+  loading: Loading
+  noPages: This document is empty
+  pageLoadFailed: Page failed to load
+  pageLoading: '$t(preview.pdf.loading)'

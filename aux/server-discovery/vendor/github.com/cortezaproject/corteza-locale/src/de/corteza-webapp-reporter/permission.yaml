@@ -1,0 +1,24 @@
+---
+report:
+  all: Alle Berichte
+  specific: Bericht "{{target}}"
+resetBack: Zurücksetzen auf"{{current}}"
+saveChanges: Änderungen speichern
+setFor: Berechtigungen festlegen für {{target}}
+system-report:
+  delete:
+    description: ""
+    specific: Bericht "{{target}}" löschen
+    title: Delete any report
+  read:
+    description: ""
+    specific: Bericht "{{target}}" lesen
+    title: Read any report
+  run:
+    description: ""
+    specific: Bericht "{{target}}" ausführen
+    title: Run any report
+  update:
+    description: ""
+    specific: Bericht "{{target}}" aktualisieren
+    title: Update any report

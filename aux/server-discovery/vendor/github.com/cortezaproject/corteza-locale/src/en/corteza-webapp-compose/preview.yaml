@@ -1,0 +1,14 @@
+general:
+  label:
+    attachmentFileInfo: '(File size: {{0}}, uploaded {{1}})'
+    download: Download
+  tooltip:
+    dragAndDrop: Drag and drop to change order
+pdf:
+  clickToRetry: Click to retry
+  downloadForAll: Download to see all pages
+  firstPagePreview: First page preview
+  loading: Loading
+  noPages: This document is empty
+  pageLoadFailed: Page failed to load
+  pageLoading: Loading

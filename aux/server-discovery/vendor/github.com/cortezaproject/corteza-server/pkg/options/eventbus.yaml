@@ -1,0 +1,16 @@
+imports:
+  - time
+
+docs:
+  title: Events and scheduler
+
+props:
+  - name: schedulerEnabled
+    type: bool
+    default: true
+    description: Enable eventbus sheduler.
+
+  - name: schedulerInterval
+    type: time.Duration
+    default: time.Minute
+    description: Set time interval for `eventbus` scheduler.

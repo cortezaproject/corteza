@@ -1,0 +1,47 @@
+block:
+  general:
+    changeBlock: Change existing block
+    label:
+      cancel: Cancel
+      noHandle: No handle
+      pageBuilder: Page builder
+      saveAndClose: Save and close
+    placeholder:
+      handle: handle (a - z, 0 - 9, underscore, dash)
+      sample: Sample
+    title: Add new block
+    invalid-handle-characters: Should be at least 2 characters long and start with a letter. Can contains only letters, numbers, dash, underscore and dot
+changeBlock: Change existing block
+build:
+  addBlock: Add block
+  selectBlockTitle: Select type of the new block
+createLabel: Create page
+edit:
+  create: Create page
+  edit: Edit page
+  pageDescription: Page description
+  visible: Page visibility
+import: 'Import page(s):'
+instructions: Drag and drop pages to adjust the order and hierarchy.
+invalid: Invalid configuration
+label:
+  cancel: Cancel
+  description: Description
+  handle: Handle
+  pageBuilder: Page builder
+  permissions: Permissions
+  saveAndClose: Save and close
+moduleEdit: Edit module
+navigation:
+  page: Pages
+  viewPage: View Page
+newPlaceholder: Page title
+noBlock: No block added yet
+noPages: No pages
+notVisible: Hidden
+pageMoveFailed: Could not move this page
+reordered: Page reordered
+title: List of Pages
+view: View
+visible: Visible
+deleteDisabled: Remove the sub-pages to delete this page

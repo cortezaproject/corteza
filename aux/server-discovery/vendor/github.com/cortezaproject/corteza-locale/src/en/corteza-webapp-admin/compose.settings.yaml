@@ -1,0 +1,11 @@
+editor:
+  basic:
+    attachments:
+      max-size: Max size (MB)
+      page: Page attachments
+      record: Record attachments
+      type:
+        description: 'MIME types, separated with ",". Example: "text/plain,text/csv"'
+        whitelist: File type whitelist
+    title: Basic
+  title: Compose settings

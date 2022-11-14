@@ -1,0 +1,12 @@
+---
+errors:
+  composeModuleNotFound: Modul compose nicht gefunden
+  composeNamespaceNotFound: Namespace compose nicht gefunden
+  invalidID: ungültige ID
+  nodeNotFound: Knoten nicht vorhanden
+  notAllowedToCreate: Erstellen von Modulen ist nicht zulässig
+  notAllowedToManage: dieses Modul kann nicht verwaltet werden
+  notFound: Modul nicht vorhanden
+  notUnique: Knoten nicht eindeutig
+  requestParametersInvalid: Anforderungsparameter sind ungültig
+  staleData: alte Daten

@@ -1,0 +1,88 @@
+automation:
+  scriptFailed: Could not execute automation
+chart:
+  createFailed: Could not create a chart
+  deleteFailed: Could not delete this chart
+  deleted: Chart deleted
+  invalidConfig:
+    missingDimensionsField: Dimensions field not defined
+    missingDimensionsModifier: Dimensions modifier not defined
+    missingMetricsAggregate: Metrics aggregate not defined
+    missingMetricsField: Metrics field not defined
+    missingMetricsType: Metrics chart type not defined
+    missingModuleID: Module not defined
+    missingReports: Reports not defined
+  loadFailed: Could not load chart
+  optionsBuildFailed: Could not build chart options
+  saveFailed: Could not save this chart
+  saved: Chart saved
+  unsupportedRenderer: Unsupported renderer
+color:
+  RGBA:
+    invalid: Invalid RGBA color format
+field:
+  missingRequired: Missing value on required field
+  unknownFieldKind: 'Error: Unknown field kind "{{kind}}", no viewer component found.'
+  unsupportedKind: Unsupported field kind {{kind}}
+field-datetime:
+  valueNotFuture: Past value on future only field
+  valueNotPast: Future value on past only field
+general:
+  composeAccessNotAllowed: Not allowed to access Compose
+  error: Error
+  success: Success
+  warning: Warning
+  import:
+    failed: Import failed
+    readingError: Error reading file
+    successful: Import successful
+    typeMissmatch: 'Import error: trying to import object of type "{{type1}}" into a list of objects of type "{{type2}}"'
+module:
+  createFailed: Could not create a module
+  deleteFailed: Could not delete this module
+  deleted: Module deleted
+  saveFailed: Could not save this module
+  saved: Module saved
+  columns:
+    saved: Columns saved
+    saveFailed: Could not save columns
+  recordPage:
+    createFailed: Could not create module record page
+namespace:
+  application:
+    createFailed: Could not create namespace application
+    fetchFailed: Could not fetch namespace application
+    saveFailed: Could not save namespace application
+  assetUploadFailed: Could not upload attached assets
+  createFailed: Could not create namespace
+  deleteFailed: Could not delete this namespace
+  disabled: Namespace disabled - redirecting
+  saveFailed: Could not save this namespace
+  saved: Namespace saved
+  cloneFailed: Could not clone this namespace
+  imported: Namespace imported
+  importFailed: Namespace failed to import
+page:
+  createFailed: Could not create a page
+  deleteFailed: Could not delete this page
+  loadFailed: Could not load the page tree
+  noPages: No pages found
+  saveFailed: Could not save this page
+  saveFailedRequired: Could not save this page, all required module fields must be present
+  saved: Page saved
+record:
+  createFailed: Could not create record
+  deleteFailed: Could not delete record
+  deleteBulkFailed: Could not delete selected records
+  deleteBulkSuccess: Successfully deleted selected records
+  invalidOwnerVar: Can not use ${ownerID} variable in non-record pages
+  invalidRecordVar: Can not use ${record...} variable in non-record pages
+  listLoadFailed: Could not load record list
+  loadFailed: Could not load record
+  moduleMismatch: Module incompatible, module mismatch
+  moduleNotDefined: Record module not defined
+  moduleOrPageNotSet: 'RecordList block error: module or page option not set'
+  unexpectedInput: Unexpected input for values property, should be an array with name-value object pairs
+  unexpectedValue: Unexpected value for record module ({{type}})
+  updateFailed: Could not update record
+  validationErrors: check error messages on the form

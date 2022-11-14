@@ -1,0 +1,27 @@
+---
+errors:
+  failedToExtractMimeType: could not extract mime type
+  failedToProcessImage: napaka pri procesiranju datoteke
+  failedToStoreFile: could not extract store file
+  invalidID: neveljaven ID
+  invalidModuleID: neveljaven modul ID
+  invalidNamespaceID: neveljaven namespace ID
+  invalidPageID: invalid page ID
+  invalidRecordID: invalid record ID
+  moduleNotFound: module not found
+  namespaceNotFound: namespace not found
+  notAllowedToCreate: not allowed to create attachments
+  notAllowedToCreateEmptyAttachment: not allowed to create empty attachments
+  notAllowedToCreateRecords: not allowed to create records
+  notAllowedToListAttachments: not allowed to list attachments
+  notAllowedToRead: not allowed to read this module
+  notAllowedToReadNamespace: not allowed to read this namespace
+  notAllowedToReadPage: not allowed to read this page
+  notAllowedToReadRecord: not allowed to read this record
+  notAllowedToSearch: not allowed to search or list modules
+  notAllowedToUpdateNamespace: not allowed to update this namespace
+  notAllowedToUpdatePage: not allowed to update this page
+  notAllowedToUpdateRecord: not allowed to update this record
+  notFound: attachment not found
+  pageNotFound: strani ni mogoče najti
+  recordNotFound: vnosa ni mogoče najti

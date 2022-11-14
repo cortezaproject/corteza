@@ -1,0 +1,152 @@
+ui:
+  reset-back: Reset back to "{{current}}"
+  save-changes: Save changes
+  set-for: Set permissions for {{target}}
+
+  access:
+    allow: Allow
+    inherit: Inherit
+    deny: Deny
+
+resources:
+  compose:
+    chart:
+      all: all charts
+      specific: chart "{{target}}"
+      operations:
+        delete:
+          description: 'Default: deny'
+          specific: Delete chart "{{target}}"
+          title: Delete any chart
+        read:
+          description: 'Default: deny'
+          specific: Read chart "{{target}}"
+          title: Read any chart
+        update:
+          description: 'Default: deny'
+          specific: Update chart "{{target}}"
+          title: Update any chart
+
+    module:
+      all: all modules
+      specific: module "{{target}}"
+      operations:
+        delete:
+          description: 'Default: deny'
+          specific: Delete module "{{target}}"
+          title: Delete any module
+        read:
+          description: 'Default: deny'
+          specific: Read module "{{target}}"
+          title: Read any module
+        record.create:
+          description: 'Default: deny'
+          specific: Create record of module "{{target}}"
+          title: Create record of any module
+        records.search:
+          description: 'Default: deny'
+          specific: List and search records of module "{{target}}"
+          title: List and search records of any module
+        update:
+          description: 'Default: deny'
+          specific: Update module "{{target}}"
+          title: Update any module
+
+    module-field:
+      all: all module fields
+      specific: field "{{target}}"
+      all-specific: all module fields of module "{{ target }}"
+      operations:
+        record.value.read:
+          description: 'Default: deny'
+          specific: 'Read "{{target}}" record fields '
+          title: Read record fields of any module
+          all-specific: Read record fields of module "{{ target }}"
+        record.value.update:
+          description: 'Default: deny'
+          specific: 'Update "{{target}}" record fields '
+          title: Update record fields of any module
+          all-specific: Update record fields of module "{{ target }}"
+
+    namespace:
+      all: all namespaces
+      specific: namespace "{{target}}"
+      operations:
+        chart.create:
+          description: ""
+          specific: Create charts under namespace "{{target}}"
+          title: Create charts under any namespace
+        charts.search:
+          description: ""
+          specific: List and search charts under namespace "{{target}}"
+          title: List and search charts under any namespace
+        delete:
+          description: ""
+          specific: Delete namespace "{{target}}"
+          title: Delete any namespace
+        manage:
+          description: Allow access to namespace's admin pages
+          specific: Manage namespace "{{target}}"
+          title: Manage any namespace
+        module.create:
+          description: ""
+          specific: Create modules under namespace "{{target}}"
+          title: Create modules under any namespace
+        modules.search:
+          description: ""
+          specific: List and search modules under namespace "{{target}}"
+          title: List and search modules under any namespace
+        page.create:
+          description: ""
+          specific: Create pages under namespace "{{target}}"
+          title: Create pages under any namespace
+        pages.search:
+          description: ""
+          specific: List and search pages under namespace "{{target}}"
+          title: List and search pages under any namespace
+        read:
+          description: ""
+          specific: Read namespace "{{target}}"
+          title: Read any namespace
+        update:
+          description: ""
+          specific: Update namespace "{{target}}"
+          title: Update any namespace
+
+    page:
+      all: all pages
+      specific: page "{{target}}"
+      operations:
+        delete:
+          description: 'Default: deny'
+          specific: Delete page "{{target}}"
+          title: Delete any page
+        read:
+          description: 'Default: deny'
+          specific: Read page "{{target}}"
+          title: Read any page
+        update:
+          description: 'Default: deny'
+          specific: Update page "{{target}}"
+          title: Update any page
+
+    record:
+      all: all records
+      specific: record "{{target}}"
+      all-specific: all records of module "{{ target }}"
+      operations:
+        delete:
+          description: 'Default: deny'
+          specific: Delete record "{{target}}"
+          title: Delete records of any module
+          all-specific: Delete records of module "{{ target }}"
+        read:
+          description: 'Default: deny'
+          specific: Read record "{{target}}"
+          title: Read records of any module
+          all-specific: Read records of module "{{ target }}"
+        update:
+          description: 'Default: deny'
+          specific: Update record "{{target}}"
+          title: Update records of any module
+          all-specific: Update records of module "{{ target }}"

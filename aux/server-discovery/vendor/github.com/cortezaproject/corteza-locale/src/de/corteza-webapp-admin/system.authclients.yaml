@@ -1,0 +1,87 @@
+---
+editor:
+  info:
+    add: Add
+    api: Allow client access to Corteza API on behalf of user
+    choose-date: Choose a date
+    createdAt: Created at
+    delete: Delete
+    deletedAt: Deleted at
+    enabled:
+      disabledFootnote: Unable to disable the default client
+      label: Aktiviert
+    expiresAt:
+      description: If not defined the client has no expiration date
+      label: Expires at
+    grant:
+      authorization_code: Will be used to authenticate users (grant type = authorization_code)
+      client_credentials: Will be used to authenticate machines (grant type = client_credentials)
+    handle:
+      disabledFootnote: Unable to change the handle of the default auth client
+      label: Handle
+    name: Name
+    no-time: No time selected
+    profile: Allow client access to user's profile
+    redirectURI: Redirect URI's
+    remove: Remove
+    secret: Secret
+    security:
+      forbiddenRoles:
+        description: Roles from this list will be removed from security context when user authorizes this client
+        label: Forbidden roles
+      forcedRoles:
+        description: Roles from this list will be always added to security context when user authorizes this client
+        label: Forced roles
+      impersonateUser:
+        description: When authenticating with client credentials, act in the name of the impersonated user
+        label: Impersonate user
+      permittedRoles:
+        description: Only roles in this list will be added into security context when user authorizes this client
+        label: Permitted roles
+    title: Grundlegende Informationen
+    trusted:
+      description: When client is trusted users do not see authorization step
+      label: Trusted
+    undelete: Undelete
+    unnamed: Unnamed role
+    updatedAt: Updated at
+    uri: URI
+    validFrom:
+      description: If not defined the client is valid until expiration
+      label: Valid from
+    generateCurl: Generate cURL snippet
+    hideCurl: Hide cURL snippet
+    cUrl: Generated cURL
+    testCurl: Test auth
+  new: New
+  permissions: Permissions
+  title:
+    create: Create client
+    edit: Edit client
+list:
+  columns:
+    actions: ""
+    createdAt: Erstellt
+    enabled: Aktiviert
+    handle: Handle
+    meta:
+      name: Name
+  filterForm:
+    deleted:
+      label: deleted clients
+    excluded:
+      label: Without
+    exclusive:
+      label: Only
+    inclusive:
+      label: Including
+    query:
+      label: Filter clients list
+      placeholder: Filter clients
+  loading: Loading clients
+  new: New
+  numFound: '{{count}} clients found'
+  numFound_plural: '{{count}} clients found'
+  permissions: Permissions
+  title: Auth Clients
+  yaml: YAML

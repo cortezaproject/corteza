@@ -1,0 +1,36 @@
+---
+automationWorkflow:
+  all: Alle Workflows
+  operations:
+    delete:
+      description: 'Standard: verweigern'
+      specific: Diesen Workflow löschen
+      title: Delete any workflow
+    execute:
+      description: 'Standard: verweigern'
+      specific: Diesen Workflow ausführen
+      title: Execute any workflow
+    read:
+      description: 'Standard: verweigern'
+      specific: Diesen Workflow lesen
+      title: Read any workflow
+    sessionsManage:
+      description: 'Standard: verweigern'
+      specific: Sitzungen für diesen Workflow verwalten
+      title: Alle Sitzungen verwalten
+    triggersManage:
+      description: 'Standard: verweigern'
+      specific: Trigger für diesen Workflow verwalten
+      title: Alle Trigger verwalten
+    undelete:
+      description: 'Standard: verweigern'
+      specific: Diesen Workflow wiederherstellen
+      title: Undelete any workflow
+    update:
+      description: 'Standard: verweigern'
+      specific: Diesen Workflow aktualisieren
+      title: Update any workflow
+  specific: Workflow "{{target}}"
+resetBack: Zurücksetzen auf"{{current}}"
+saveChanges: Änderungen speichern
+setFor: Berechtigungen festlegen für {{target}}

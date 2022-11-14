@@ -1,0 +1,26 @@
+---
+errors:
+  credentialsLinkedToInvalidUser: Anmeldeinformationen {credentials.kind}mit deaktiviertem oder gelöschtem Benutzer verknüpft  {user}
+  disabledMFAWithEmailOTP: Multi-Faktor-Authentifizierung mit E-Mail-OTP ist deaktiviert
+  disabledMFAWithTOTP: Multi-Faktor-Authentifizierung mit TOTP ist deaktiviert
+  enforcedMFAWithEmailOTP: OTP per E-Mail wird erzwungen und kann nicht deaktiviert werden
+  enforcedMFAWithTOTP: TOTP wird erzwungen und kann nicht deaktiviert werden
+  externalDisabledByConfig: externe Authentifizierung (mittels externem Authentifizierungsanbieter) ist deaktiviert
+  failedUnconfirmedEmail: System erfordert eine bestätigte E-Mail vor dem Anmelden
+  internalLoginDisabledByConfig: internes Anmelden (Benutzername/Passwort) ist deaktiviert
+  internalSignupDisabledByConfig: internes Registrieren (Benutzername/Passwort) ist deaktiviert
+  invalidCredentials: Kombination aus Benutzernamen und Passwort ist ungültig
+  invalidEmailFormat: ungültige E-Mail
+  invalidEmailOTP: ungültiger Code
+  invalidHandle: ungültiger Alias
+  invalidTOTP: ungültiger Code
+  invalidToken: ungültiger Token
+  notAllowedToConfigureTOTP: TOTP kann nicht eingerichtet werden
+  notAllowedToImpersonate: die Identität dieses Benutzers kann nicht angenommen werden
+  notAllowedToRemoveTOTP: TOTP kann nicht entfernt werden
+  passwodResetFailedOldPasswordCheckFailed: Passwort kann nicht geändert werden. Das alte Passwort stimmt nicht überein.
+  passwordChangeFailedForUnknownUser: Passwort für den unbekannten Benutzer konnte nicht geändert werden
+  passwordNotSecure: Das angegebene Passwort ist nicht sicher; verwenden Sie ein längeres Passwort mit mehr nicht alphanumerischen Zeichen.
+  passwordResetDisabledByConfig: die Passwortzurücksetzung ist deaktiviert
+  profileWithoutValidEmail: externer Authentifizierungsanbieter sendet Profil ohne gültige E-Mail zurück
+  unconfiguredTOTP: TOTP nicht eingerichtet

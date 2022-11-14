@@ -1,0 +1,69 @@
+---
+allRecords:
+  create:
+    title: Create record for module "{{name}}"
+  edit:
+    title: Edit record for module "{{name}}"
+  label: All records
+  list:
+    title: All records for module "{{name}}"
+  selectFields:
+    title: Configure columns
+  view:
+    title: View record for module "{{name}}"
+createLabel: New Module
+edit:
+  create: Create module
+  edit: Edit module
+  federationSettings:
+    downstream:
+      allFields: All Fields
+      description: 'Match federated fields with existing ones:'
+      title: Map
+    errorFetchingData: Error fetching server data
+    general:
+      receive: Receive new records from another organization (downstream)
+      send: Send new records to the federated network (upstream)
+      title: General
+    noNodes: No federated servers available
+    noPermission: No permission to manage exposed module
+    pickModule: Pick a federated module
+    pickModuleField: Pick a module field
+    pickServer: Pick a federated server
+    specificTitle: Federation Settings ({{handle}})
+    title: Federation Settings
+    upstream:
+      allFields: All Fields
+      description: Select the fields you want to share with the selected network
+      title: Expose
+  fieldPermissions: Field permissions
+  manageRecordFields: Manage record fields
+  moduleFieldSettings: Module field settings
+  moduleInfo: Module info
+  newField: Add new field
+  recordPermissions: Record permissions
+  reorderFields: Reorder fields
+  specificFieldSettings: Field settings ({{name}})
+  steps:
+    recordList: Page with record list
+    recordPage: Record page
+  systemFields: 'System fields:'
+  tooltip:
+    attributes: Select if the field can hold multiple values, if it's required field or if contains sensitive data
+    name: Must be a-z/A-Z, 0-9 or underscore
+    private: Sensitive data
+    required: Required field
+    title: The name displayed in form input / data lists
+federated: Federated
+forModule:
+  recordList: Record List for module
+  recordListPage: Record List page for module
+  recordPage: Record page for module
+import: Module import
+newLabel: Module Name *
+newPlaceholder: Name used on the list of modules
+recordPage:
+  create: Create record page
+  edit: Page builder
+searchPlaceholder: Type here to search all modules in this namespace
+title: List of Modules

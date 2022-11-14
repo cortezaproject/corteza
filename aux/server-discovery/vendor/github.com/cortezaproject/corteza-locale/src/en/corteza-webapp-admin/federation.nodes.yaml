@@ -1,0 +1,64 @@
+editor:
+  generate:
+    body: '{{ userLabel }} is sending you an invitation for Corteza Federated Network. To start sharing data between organizations, go to the admin panel of your Corteza application, click on “Federation” and select “Pair Federation Network” on top right corner. Copy the link below and await confirmation from another administrator.'
+    description: To add your organization to a federated network send an email invite or share the link below with an administrator of another organization.
+    hello: Hello,
+    invitation: Invitation to Federated Network
+    kindRegards: Kind regards, Corteza team.
+    notGenerated: Link not generated
+    sendEmail: Send Email
+    subject: 'Subject:'
+  generateUri: Generate Federation Link
+  info:
+    createdAt: Created at
+    delete: Delete
+    deletedAt: Deleted at
+    email: Admin Email
+    enabled: Enabled
+    name: Server name
+    status: Status
+    tags:
+      label: Tags
+      placeholder: +Add
+    title: Basic information
+    undelete: Undelete
+    updatedAt: Updated at
+    url: Server URL
+  title:
+    create: Create Federated Node
+    edit: Edit Federated Node
+list:
+  columns:
+    actions: ""
+    createdAt: Created
+    enabled: Enabled
+    name: Name
+    status: Status
+    tags: ""
+  filterForm:
+    query:
+      label: Filter servers list
+      placeholder: Filter servers by name
+  loading: Loading servers
+  new: New
+  numFound: '{{count}} server found'
+  numFound_plural: '{{count}} servers found'
+  pair:
+    confirm: Confirm
+    label: Pair Federation Node
+    networkEstablished: Federated network will be established after the final confirmation from the administrator of another Corteza Federation Node.
+    note: 'Note:'
+    status:
+      confirmPending:
+        description: |-
+          {{ email }} accepted the invitation to join “{{ name }}” Federated Network.
+           Click on “Confirm” to start sharing the data.
+        descriptionNoMail: |-
+          Admin of “{{ name }}” accepted the invitation to join the Federated Network.
+           Click on “Confirm” to start sharing the data
+      none:
+        description: To pair your organization with a federated network, paste the generated URL of another organization below.
+      pending:
+        description: Pairing successful, pending final confirmation by administrator
+  title: Federated Networks
+  yaml: YAML

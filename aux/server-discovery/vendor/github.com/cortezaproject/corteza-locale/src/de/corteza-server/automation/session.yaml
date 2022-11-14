@@ -1,0 +1,9 @@
+---
+errors:
+  invalidID: ungültige ID
+  notAllowedToDelete: diese Sitzung kann nicht gelöscht werden
+  notAllowedToManage: Workflow der Sitzung kann nicht verwaltet werden
+  notAllowedToRead: auf diese Sitzung kann nicht zugegriffen werden
+  notAllowedToSearch: Sitzungen können nicht gesucht oder aufgelistet werden
+  notFound: Sitzung nicht gefunden
+  staleData: alte Daten

@@ -1,0 +1,65 @@
+---
+editor:
+  generate:
+    body: '{{ userLabel }} is sending you an invitation for Corteza Federated Network. To start sharing data between organizations, go to the admin panel of your Corteza application, click on “Federation” and select “Pair Federation Network” on top right corner. Copy the link below and await confirmation from another administrator.'
+    description: Um Ihre Organisation zu einem Verbundnetzwerk hinzuzufügen, senden Sie eine E-Mail-Einladung oder teilen Sie den unten stehenden Link mit einem Administrator einer anderen Organisation.
+    hello: Hallo,
+    invitation: Einladung zum Verbundnetzwerk
+    kindRegards: "Freundliche Grüße, Corteza Team.\n"
+    notGenerated: Link wurde nicht generiert.
+    sendEmail: E-Mail senden
+    subject: 'Betreff:'
+  generateUri: Verbundlink generieren
+  info:
+    createdAt: Erstellt am
+    delete: Löschen
+    deletedAt: Gelöscht am
+    email: Admin Email
+    enabled: Aktiviert
+    name: Servername
+    status: Status
+    tags:
+      label: Tags
+      placeholder: +Hinzufügen
+    title: Grundlegende Informationen
+    undelete: Wiederherstellen
+    updatedAt: Aktualisiert am
+    url: Server-URL
+  title:
+    create: Create Federated Node
+    edit: Edit Federated Node
+list:
+  columns:
+    actions: ""
+    createdAt: Erstellt
+    enabled: Aktiviert
+    name: Name
+    status: Status
+    tags: ""
+  filterForm:
+    query:
+      label: Serverliste filtern
+      placeholder: Server nach Name filtern
+  loading: Server werden geladen
+  new: Neu
+  numFound: '{{count}} Server gefunden'
+  numFound_plural: '{{count}} Server gefunden'
+  pair:
+    confirm: Bestätigen
+    label: Pair Federation Node
+    networkEstablished: Federated network will be established after the final confirmation from the administrator of another Corteza Federation Node.
+    note: 'Hinweis:'
+    status:
+      confirmPending:
+        description: |-
+          {{ E-Mail }} hat die Einladung zur Teilnahme am Verbundnetzwerk „{{ Name }}“ angenommen.
+          Klicken Sie auf „Bestätigen“, um mit der Freigabe der Daten zu beginnen.
+        descriptionNoMail: |-
+          Der Administrator von „{{ Name }}“ hat die Einladung zur Teilnahme am Verbundnetzwerk angenommen.
+          Klicken Sie auf „Bestätigen“, um mit der Freigabe der Daten zu beginnen.
+      none:
+        description: "Um Ihre Organisation mit einem Verbundnetzwerk zu verbinden, fügen Sie die generierte URL einer anderen Organisation unten ein.\n"
+      pending:
+        description: Verbindung erfolgreich, endgültige Bestätigung durch den Administrator ist noch erforderlich
+  title: Federated Networks
+  yaml: YAML

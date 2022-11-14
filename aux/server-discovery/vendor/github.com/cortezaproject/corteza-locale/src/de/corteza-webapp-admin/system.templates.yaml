@@ -1,0 +1,71 @@
+---
+editor:
+  content:
+    editor:
+      unsupported: Unsupported editor
+    partial: Partial template
+    preview:
+      html: Preview HTML
+      pdf: Preview PDF
+      title: Preview output
+    title: Template content
+    toolbox:
+      partials: Partials
+      samples:
+        defaultHTML: Default HTML
+        label: Samples
+      snippets:
+        funcCall: Call a function
+        interpolate: Interpolate value
+        iterator: Iterate over a set
+        label: Snippets
+      title: Toolbox
+  info:
+    contentType:
+      text_html: HTML
+      text_plain: Plain text
+    createdAt: Created at
+    delete: Delete
+    deletedAt: Deleted at
+    handle: Handle
+    meta:
+      description: Beschreibung
+      short: Short name
+    partial: Partial template
+    partialDescription: Partial templates may be used inside other templates such as headers and footers. Partial templates may not be used on their own.
+    title: Grundlegende Informationen
+    type: Template type
+    undelete: Undelete
+    updatedAt: Updated at
+  new: New
+  permissions: Permissions
+  title:
+    create: Create template
+    edit: Edit template
+list:
+  columns:
+    actions: ""
+    createdAt: Erstellt
+    handle: Handle
+    language: Language
+    meta:
+      short: Short name
+  filterForm:
+    deleted:
+      label: deleted templates
+    excluded:
+      label: Without
+    exclusive:
+      label: Only
+    handle:
+      label: Filter templates list
+      placeholder: Filter templates by handle
+    inclusive:
+      label: Including
+  loading: Loading templates
+  new: New
+  numFound: '{{count}} template found'
+  numFound_plural: '{{count}} templates found'
+  permissions: Permissions
+  title: Templates
+  yaml: YAML

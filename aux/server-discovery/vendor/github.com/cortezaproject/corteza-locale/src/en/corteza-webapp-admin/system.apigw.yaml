@@ -1,0 +1,113 @@
+list:
+  title: 'Integration Gateway'
+  new: 'New'
+  permissions: 'Permissions'
+  yaml: 'YAML'
+  loading: 'Loading routes'
+  numFound: '{{count}} route found'
+  numFound_plural: '{{count}} routes found'
+
+  filterForm:
+    query:
+      label: 'Filter route list'
+      placeholder: 'Filter routes by name'
+
+
+    excluded:
+      label: 'Without'
+
+
+    inclusive:
+      label: 'Including'
+
+
+    exclusive:
+      label: 'Only'
+
+
+    deleted:
+      label: 'Deleted routes'
+
+
+  columns:
+    endpoint: 'Endpoint'
+    createdAt: 'Created'
+    enabled: 'Enabled'
+    actions: ''
+
+editor:
+  title: 'Edit route'
+  new: 'New'
+  permissions: 'Permissions'
+
+  info:
+    title: 'Basic information'
+
+    id: 'ID'
+    endpoint: 'Endpoint'
+    method: 'Method'
+    enabled: 'Enabled'
+
+    delete: 'Delete'
+    undelete: 'Undelete'
+    deletedAt: 'Deleted at'
+
+    updatedAt: 'Updated at'
+    createdAt: 'Created at'
+
+    tooltip: 'Endpoint must begin with a slash "/" and can not contain any special characters except for the underscore "_" and hyphen "-"'
+    validation:
+      slash: 'Endpoint must begin with a slash "/"'
+      minLength: 'Endpoint must contain at least one character'
+      invalidCharacters: 'Endpoint contains invalid characters'
+  filters:
+    title: 'Filter list'
+    enabled: 'Enabled'
+    disabled: 'Disabled'
+
+    modal:
+      title: 'Query parameters verifier'
+      ok: 'Save & Close'
+
+    step_title:
+      prefilter: 'Prefiltering'
+      processer: 'Processing'
+      postfilter: 'Postfiltering'
+
+    list:
+      remove: 'Remove'
+      filters: 'Filters'
+      status: 'Status'
+      actions: 'Actions'
+      active: 'Active'
+      noFilters: 'No filters'
+
+    labels:
+      expr: 'Expression'
+      location: 'URL'
+      workflow: 'Workflow'
+      status: 'HTTP Status'
+      jsfunc: 'Function'
+
+    httpStatus:
+      none: No Status
+      '300': 300 - Multiple Choices
+      '301': 301 - Moved Permanently
+      '302': 302 - Found
+      '303': 303 - See Other
+      '304': 304 - Not Modified
+      '307': 307 - Temporary Redirect
+      '308': 308 - Permanent Redirect
+
+    placeholders:
+      workflow: 'Select a workflow'
+
+    add: 'Add'
+    addFilter: 'Add filter'
+    params: 'Params'
+    filterListEmpty: 'Filter list is empty!'
+
+    help:
+      expression:
+        example: Example == "match string" && match(SecondParam, "^foo\\s.*$")
+        link: Documentation

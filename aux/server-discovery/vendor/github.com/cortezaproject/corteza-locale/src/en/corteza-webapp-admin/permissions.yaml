@@ -1,0 +1,464 @@
+# Admin "permissions" translation namespace
+# Holds mix of translations for two ui component types:
+#  - inline permission table (admin interface only)
+#  - modal permission table (common perm. interface)
+ui:
+  reset-back: Reset back to "{{current}}"
+  save-changes: Save changes
+  set-for: Set permissions for {{target}}
+
+  access:
+    allow: Allow
+    inherit: Inherit
+    deny: Deny
+
+  #############################################################################
+  # Inline permission table UI:
+  click-on-cell-to-allow: Click on permission/role cell to allow a specific operation
+  alt-click-to-deny: Use Alt-Click to set explicit deny on operation
+
+  not-allowed: Not allowed to set permissions
+  loading: Loading permissions
+
+  role:
+    add-new: Add new role
+    add: Add role
+    no-role-selected: No role selected
+
+  title:
+    automation: Automation permissions
+    system: System permissions
+    compose: Compose permissions
+    federation: Federation permissions
+
+  clone:
+    clone: Clone
+    label: Clone permissions
+    title: Clone permissions to
+    description: This will clone all the permissions of the current role and apply them  to the selected
+
+resources:
+  automation:
+    component:
+      label: Automation component
+      operations:
+        grant:
+          title: Grant permissions on automation
+        sessions.search:
+          title: Search sessions
+        triggers.search:
+          title: Search triggers
+        workflow.create:
+          title: Create new workflow
+        workflows.search:
+          title: Search workflows
+        resource-translations.manage:
+          title: Manage resource translations
+
+    workflow:
+      label: Workflows
+      all: all workflows
+      specific: workflow "{{target}}"
+      operations:
+        delete:
+          description: 'Default: deny'
+          specific: Delete this workflow
+          title: Delete any workflow
+        execute:
+          description: 'Default: deny'
+          specific: Execute this workflow
+          title: Execute any workflow
+        read:
+          description: 'Default: deny'
+          specific: Read this workflow
+          title: Read any workflow
+        sessions.manage:
+          description: 'Default: deny'
+          specific: Manage sessions for this workflow
+          title: Manage all sessions
+        triggers.manage:
+          description: 'Default: deny'
+          specific: Manage triggers for this workflow
+          title: Manage all triggers
+        undelete:
+          description: 'Default: deny'
+          specific: Undelete this workflow
+          title: Undelete any workflow
+        update:
+          description: 'Default: deny'
+          specific: Update this workflow
+          title: Update any workflow
+
+  system:
+    component:
+      label: System component
+      operations:
+        action-log.read:
+          title: Access action log
+        application.create:
+          title: Create new application
+        application.flag.global:
+          title: Can pin application for everyone
+        application.flag.self:
+          title: Can pin application for themselves
+        applications.search:
+          title: List and search applications
+        auth-client.create:
+          title: Create new auth client
+        auth-clients.search:
+          title: List and search auth clients
+        apigw-route.create:
+          title: Create new route
+        apigw-routes.search:
+          title: List and search routes
+        apigw-filter.create:
+          title: Create new filter
+        apigw-filters.search:
+          title: List and search filters
+        grant:
+          title: Grant permission on system component
+        queue.create:
+          title: Create new messaging queue
+        queues.search:
+          title: List and search messaging queues
+        reminder.assign:
+          title: Allow reminder assignment
+        role.create:
+          title: Create new role
+        roles.search:
+          title: List and search roles
+        settings.manage:
+          title: Manage all settings
+        settings.read:
+          title: Access all settings
+        template.create:
+          title: Create new template
+        templates.search:
+          title: List and search templates
+        user.create:
+          title: Create new user
+        users.search:
+          title: List and search users
+        resource-translations.manage:
+          title: Manage resource translations
+        report.create:
+          title: Create new report
+        reports.search:
+          title: List and search reports
+
+    application:
+      label: Applications
+      all: all applications
+      specific: application "{{target}}"
+      operations:
+        delete:
+          description: 'Default: deny'
+          specific: Delete {{target}}
+          title: Delete any application
+        read:
+          description: 'Default: deny'
+          specific: Read {{target}}
+          title: Read any application
+        update:
+          description: 'Default: deny'
+          specific: Update {{target}}
+          title: Update any application
+
+    apigw-route:
+      label: Gateway routes
+      all: all routes
+      specific: route "{{target}}"
+      operations:
+        delete:
+          description: 'Default: deny'
+          specific: Delete {{target}}
+          title: Delete any route
+        read:
+          description: 'Default: deny'
+          specific: Read {{target}}
+          title: Read any route
+        update:
+          description: 'Default: deny'
+          specific: Update {{target}}
+          title: Update any route
+
+    auth-client:
+      label: Auth Clients
+      all: all auth clients
+      specific: auth client "{{target}}"
+      operations:
+        authorize:
+          description: 'User can authorize (use) this client. Default: deny'
+          specific: Authorize client "{{target}}
+          title: Authorize any client
+        delete:
+          description: 'Default: deny'
+          specific: Delete client "{{target}}
+          title: Delete any client
+        read:
+          description: 'Default: deny'
+          specific: Read client "{{target}}
+          title: Read any client
+        update:
+          description: 'Default: deny'
+          specific: Update client "{{target}}
+          title: Update any client
+
+    role:
+      label: Roles
+      all: all roles
+      specific: role "{{target}}"
+      operations:
+        delete:
+          description: 'Default: deny'
+          specific: Delete {{target}}
+          title: Delete any role
+        members.manage:
+          description: 'Default: deny'
+          specific: Manage members for {{target}}
+          title: Manage members for any role
+        read:
+          description: 'Default: deny'
+          specific: Read {{target}}
+          title: Read any role
+        update:
+          description: 'Default: deny'
+          specific: Update {{target}}
+          title: Update any role
+
+    queue:
+      label: Queues
+      all: all queues
+      specific: queue "{{target}}"
+      operations:
+        delete:
+          description: 'Default: deny'
+          specific: Delete {{target}}
+          title: Delete any role
+        members.manage:
+          description: 'Default: deny'
+          specific: Manage members for {{target}}
+          title: Manage members for any role
+        read:
+          description: 'Default: deny'
+          specific: Read {{target}}
+          title: Read any role
+        update:
+          description: 'Default: deny'
+          specific: Update {{target}}
+          title: Update any role
+        queue.read:
+          description: 'Default: deny'
+          specific: Read messages from {{target}}
+          title: Read messages from any role
+        queue.write:
+          description: 'Default: deny'
+          specific: Write messages to {{target}}
+          title: Write messages to any role
+
+    template:
+      label: Templates
+      all: all templates
+      specific: template "{{target}}"
+      operations:
+        delete:
+          description: 'Default: deny'
+          specific: Delete {{target}}
+          title: Delete any template
+        read:
+          description: 'Default: deny'
+          specific: Read {{target}}
+          title: Read any template
+        render:
+          description: 'Default: deny'
+          specific: Render {{target}}
+          title: Render any template
+        update:
+          description: 'Default: deny'
+          specific: Update {{target}}
+          title: Update any template
+
+
+    report:
+      label: Reports
+      all: all reports
+      specific: report "{{target}}"
+      operations:
+        delete:
+          description: 'Default: deny'
+          specific: Delete {{target}}
+          title: Delete any report
+        read:
+          description: 'Default: deny'
+          specific: Read {{target}}
+          title: Read any report
+        run:
+          description: 'Default: deny'
+          specific: Run {{target}}
+          title: Run any report
+        update:
+          description: 'Default: deny'
+          specific: Update {{target}}
+          title: Update any report
+
+    user:
+      label: Users
+      all: all users
+      specific: user "{{target}}"
+      operations:
+        delete:
+          description: 'Default: deny'
+          specific: Delete {{target}}
+          title: Delete any user
+        email.unmask:
+          description: 'Default: deny'
+          specific: Show email details for {{target}}
+          title: Show email details for any user
+        name.unmask:
+          description: 'Default: deny'
+          specific: Show name details for {{target}}
+          title: Show name details for any user
+        impersonate:
+          description: 'Default: deny'
+          specific: Impersonate this user {{target}}
+          title: Impersonate any user
+        read:
+          description: 'Default: deny'
+          specific: Read {{target}}
+          title: Read any user
+        suspend:
+          description: 'Default: deny'
+          specific: Suspend {{target}}
+          title: Suspend any user
+        unsuspend:
+          description: 'Default: deny'
+          specific: Unsuspend {{target}}
+          title: Unsuspend any user
+        update:
+          description: 'Default: deny'
+          specific: Update {{target}}
+          title: Update any user
+
+  federation:
+    component:
+      label: Federation component
+      operations:
+        grant:
+          title: Grant permissions on federation component
+        node.create:
+          title: Create nodes
+        nodes.search:
+          title: List or create nodes
+        pair:
+          title: Pair nodes
+        settings.manage:
+          title: Manage all settings
+        settings.read:
+          title: Access all settings
+
+    node:
+      label: Nodes
+      operations:
+        manage:
+          title: Manage any node
+        module.create:
+          title: Create modules
+
+    exposed-module:
+      label: Modules
+      operations:
+        manage:
+          title: Manage any module
+
+    shared-module:
+      label: Modules
+      operations:
+        map:
+          title: Map any module
+
+  compose:
+    component:
+      label: Compose component
+      operations:
+        grant:
+          title: Grant permissions on compose component
+        namespace.create:
+          title: Create namespaces
+        namespaces.search:
+          title: List and search namespaces
+        settings.manage:
+          title: Manage all settings
+        settings.read:
+          title: Access all settings
+        resource-translations.manage:
+          title: Manage resource translations
+    chart:
+      label: Charts
+      operations:
+        delete:
+          title: Delete any chart
+        read:
+          title: Read any chart
+        update:
+          title: Update any chart
+    module:
+      label: Modules
+      operations:
+        delete:
+          title: Delete any module
+        read:
+          title: Read any module
+        record.create:
+          title: Create record under any module
+        records.search:
+          title: List and search records under any module
+        update:
+          title: Update any module
+    module-field:
+      label: Module fields
+      operations:
+        record.value.read:
+          title: Read any module field
+        record.value.update:
+          title: Update any module field
+    namespace:
+      label: Namespaces
+      operations:
+        chart.create:
+          title: Create charts under any namespace
+        charts.search:
+          title: List and search charts under any namespace
+        delete:
+          title: Delete any namespace
+        manage:
+          title: Manage any namespace
+        module.create:
+          title: Create modules under any namespace
+        modules.search:
+          title: List and search modules under any namespace
+        page.create:
+          title: Create pages under any namespace
+        pages.search:
+          title: List and search pages under any namespace
+        read:
+          title: Access any namespace
+        update:
+          title: Update any namespace
+    page:
+      label: Pages
+      operations:
+        delete:
+          title: Delete any page
+        read:
+          title: Read any page
+        update:
+          title: Update any page
+    record:
+      label: Records
+      operations:
+        delete:
+          title: Delete any record
+        read:
+          title: Read any record
+        update:
+          title: Update any record

@@ -1,0 +1,118 @@
+colorLabel: '{{count}} colors'
+colorScheme:
+  label: Color scheme
+  placeholder: Pick a color scheme
+configure:
+  reportsLabel: Reports
+general:
+  label:
+    title: Label
+    add: Add
+  value: Value
+  placeholder:
+    handle: handle (a - z, 0 - 9, underscore, dash)
+    invalid-handle-characters: Should be at least 2 characters long and start with a letter. Can contains only letters, numbers, dash, underscore and dot
+edit:
+  dimension:
+    calculateLabelCount: Calculate how many labels can be shown
+    defaultValueFootnote: Use this value for missing dimension values
+    defaultValueLabel: Default value
+    fieldLabel: Field
+    fieldPlaceholder: Select a dimension field
+    function:
+      date: DATE
+      label: Function
+      month: MONTH
+      none: (no grouping / buckets)
+      placeholder: Select dimension modifier (bucket size)
+      quarter: QUARTER
+      week: WEEK
+      year: YEAR
+    gaugeSteps: Steps
+    label: Dimensions
+    skipMissingValues: Skip missing values
+  filter:
+    customize: Customize filter
+    label: Filters
+    noFilter: (no filter)
+    recordsCreatedLastMonth: Records created last month
+    recordsCreatedLastQuarter: Records created last quarter
+    recordsCreatedLastYear: Records created last year
+    recordsCreatedThisMonth: Records created this month
+    recordsCreatedThisQuarter: Records created this quarter
+    recordsCreatedThisYear: Records created this year
+  loadData: Load data
+  metric:
+    add: Add metric
+    fieldLabel: Field
+    fieldPlaceholder: Select metric field
+    fillArea: Fill area below the line
+    fixTooltips: Always show tooltips
+    function:
+      avg: AVG
+      label: Function
+      max: MAX
+      min: MIN
+      placeholder: Select metric aggregate function
+      std: STD
+      sum: SUM
+    fx:
+      description: n - current dataset value, m - previous dataset value
+      label: Post processing function
+    gaugeColor: Color
+    label: Metric
+    labelColor: Label color
+    labelLabel: Label
+    labelPlaceholder: Total
+    legend:
+      bottom: Bottom
+      left: Left
+      positionPlaceholder: Legend position
+      right: Right
+      top: Top
+    lineTension:
+      curvy: Big curvatures
+      label: Line tension
+      medium: Medium curvatures
+      placeholder: Line tension
+      slight: Small curvatures
+      straight: Straight lines
+    output:
+      bar: Bar
+      doughnut: Doughnut
+      label: Output
+      line: Line
+      pie: Pie
+      placeholder: Select metric output
+    relative: Show relative value
+    relativePrecision: 'Precision:'
+    title: Metrics
+  module:
+    label: Module
+    placeholder: Pick a module
+  title: Chart builder
+  unconfiguredReport: Unconfigured report
+  yAxis:
+    axisOnRight: Place axis on the right side
+    axisScaleFromZero: Always begin axis scale at zero
+    label: Y-axis
+    labelLabel: Axis label
+    labelPlaceholder: Axis label
+    logarithmicScale: Logarithmic scale
+    maxLabel: Max value
+    maxPlaceholder: Maximum value
+    minLabel: Min value
+    minPlaceholder: Minimum value
+import: 'Import chart(s):'
+newLabel: 'Create a new chart:'
+name: Chart name *
+handle: Handle *
+notification:
+  loadFailed: Could not load chart
+  saveFailed: Could not save this chart
+  saved: Chart saved
+  deleteFailed: Could not delete this chart
+  deleted: Chart deleted
+searchPlaceholder: Type here to search all charts in this namespace
+title: List of Charts
+undefined: undefined

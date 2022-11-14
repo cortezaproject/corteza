@@ -1,0 +1,67 @@
+add:
+  label: Add
+  with-plus: '+ Add'
+  datasource: Add datasource
+  display-element: Add display element
+ascending: Ascending
+available: Available
+block:
+  description: Block description
+  save: Save Block
+  title: Block title
+  configuration: Block configuration
+datasource: 
+  label: Datasource
+  types:
+    load: 
+      label: Load
+      loads-data-from-specified-resource-such-as-compose-records: Loads data from a specified resource, such as Compose records
+    join:
+      label: Join
+      joins-two-load-datasources-such-as-compose-record-selector: Joins two Load datasources with a unique column that links them together, such as a Compose record selector
+    group:
+      label: Group
+      groups-data-from-load-datasource-like-counting-number-of-accounts-with-same-status: Groups data from a load datasource based on a column value and aggregates it, such as counting the number of Accounts with the same status
+datasources:
+  label: Datasources
+  save: Save Datasources
+descending: Descending
+description: Description
+display-elements:
+  types:
+    text: Text
+    metric: Metric
+    table: Table
+    chart: Chart
+element: Element
+elements: Elements
+filter-expression: Filter expression
+general: General
+grab: '.grab'
+joined-datasource-handling: Joined datasource handling
+layout: Layout
+layout-options:
+  horizontal: Horizontal
+  vertical: Vertical
+limit: Limit
+no-blocks-added: No blocks added yet
+none: None
+or: Or
+pick-scenario: Pick a scenario
+prefilter: Prefilter
+presort-order: Presort order
+report:
+  builder: Report Builder
+  view: View Report
+save-button: Save
+scenarios:
+  label: Scenarios
+  save: Save Scenarios
+title: Title
+available-columns: Available columns
+selected-columns: Selected columns
+type-to-search: Type here to search among columns
+selected: Selected
+select-all: Select all
+unselect-all: Unselect all
+value: Value

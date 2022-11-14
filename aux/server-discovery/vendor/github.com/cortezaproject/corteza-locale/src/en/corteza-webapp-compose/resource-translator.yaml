@@ -1,0 +1,17 @@
+translator:
+  save-changes: Save
+  add-language: Add language
+  missing-translation: Missing translation
+
+resources:
+  namespace:
+    title: Namespace "{{ handle }}"
+  module:
+    title: Module "{{ handle }}"
+    field:
+      title: Module field "{{ name }}"
+
+  page:
+    title: Page "{{ handle }}"
+    block:
+      title: "Page block #{{ blockID }}"

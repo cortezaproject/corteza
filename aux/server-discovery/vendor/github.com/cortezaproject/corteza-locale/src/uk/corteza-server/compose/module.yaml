@@ -1,0 +1,18 @@
+---
+errors:
+  handleNotUnique: handle not unique
+  invalidHandle: invalid handle
+  invalidID: invalid ID
+  invalidNamespaceID: invalid or missing namespace ID
+  nameNotUnique: name not unique
+  namespaceNotFound: namespace does not exist
+  notAllowedToCreate: not allowed to create modules
+  notAllowedToDelete: not allowed to delete this module
+  notAllowedToListModules: not allowed to list modules
+  notAllowedToRead: not allowed to read this module
+  notAllowedToReadNamespace: not allowed to read this namespace
+  notAllowedToSearch: not allowed to search or list modules
+  notAllowedToUndelete: not allowed to undelete this module
+  notAllowedToUpdate: not allowed to update this module
+  notFound: module does not exist
+  staleData: stale data

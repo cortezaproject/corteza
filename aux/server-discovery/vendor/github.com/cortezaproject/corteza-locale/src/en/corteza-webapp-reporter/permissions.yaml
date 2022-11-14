@@ -1,0 +1,32 @@
+ui:
+  reset-back: Reset back to "{{current}}"
+  save-changes: Save changes
+  set-for: Set permissions for {{target}}
+
+  access:
+    allow: Allow
+    inherit: Inherit
+    deny: Deny
+
+resources:
+  system:
+    report:
+      all: all reports
+      specific: report "{{target}}"
+      operations:
+        delete:
+          description: ""
+          specific: Delete report "{{target}}"
+          title: Delete any report
+        read:
+          description: ""
+          specific: Read report "{{target}}"
+          title: Read any report
+        run:
+          description: ""
+          specific: Run report "{{target}}"
+          title: Run any report
+        update:
+          description: ""
+          specific: Update report "{{target}}"
+          title: Update any report

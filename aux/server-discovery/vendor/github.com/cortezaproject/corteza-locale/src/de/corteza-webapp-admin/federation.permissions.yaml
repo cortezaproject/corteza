@@ -1,0 +1,43 @@
+---
+list:
+  rules:
+    add: Rolle hinzufügen
+    addRole: Neue Rolle hinzufügen
+    component:
+      operations:
+        grant: "Berechtigungen Verbundservices erteilen\n"
+        nodeCreate: Knoten erstellen
+        nodesSearch: Knoten auflisten oder erstellen
+        pair: Knoten verknüpfen
+        settingsManage: Alle Einstellungen verwalten
+        settingsRead: Alle Einstellungen aufrufen
+      type:
+        label: Federation service
+    exposedModule:
+      operations:
+        manage: Manage any module
+      type:
+        label: Module
+    loading: Berechtigungen werden geladen
+    noRole: Keine Rolle ausgewählt
+    node:
+      operations:
+        delete: Delete any node
+        manage: Manage any node
+        moduleCreate: Module erstellen
+        pair: Knoten verknüpfen
+        read: Access any node
+        update: Update any node
+      type:
+        label: Knoten
+    notAllowed: Festlegen von Berechtigungen ist nicht zulässig
+    sharedModule:
+      operations:
+        map: Map any module
+      type:
+        label: Module
+    submit: Übermitteln
+    tip1: Click on permission/role cell to allow a specific operation
+    tip2: Use Alt-Click to set explicit deny on operation
+    title: Regelliste
+  title: Federation permissions

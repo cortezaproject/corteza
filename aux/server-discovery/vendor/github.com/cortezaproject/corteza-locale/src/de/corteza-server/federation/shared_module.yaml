@@ -1,0 +1,11 @@
+---
+errors:
+  federationSyncStructureChanged: Modulstruktur geändert
+  invalidID: Ungültige ID
+  nodeNotFound: Knoten nicht vorhanden
+  notAllowedToCreate: Erstellen von Modulen ist nicht zulässig
+  notAllowedToManage: dieses Modul kann nicht verwaltet werden
+  notAllowedToMap: dieses Modul kann nicht zugeordnet werden
+  notFound: Modul nicht vorhanden
+  notUnique: Knoten nicht eindeutig
+  staleData: alte Daten

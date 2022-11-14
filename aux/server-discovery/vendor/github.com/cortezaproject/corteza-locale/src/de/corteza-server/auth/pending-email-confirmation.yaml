@@ -1,0 +1,5 @@
+---
+template:
+  title: Bestätigen Sie Ihre E-Mail
+  instructions: Sie sollten in Kürze eine E-Mail mit einem Bestätigungslink in Ihrem Posteingang erhalten.
+  links: <a href="{{signup}}">Erstellen Sie einen neuen Account</a> oder <a href="{{login}}">melden Sie sich an</a>.

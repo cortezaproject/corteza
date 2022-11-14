@@ -1,0 +1,72 @@
+---
+list:
+  rules:
+    add: Rolle hinzufügen
+    addRole: Neue Rolle hinzufügen
+    chart:
+      operations:
+        delete: Delete any chart
+        read: Read any chart
+        update: Update any chart
+      type:
+        label: Charts
+    component:
+      operations:
+        grant: Grant permissions on compose service
+        namespaceCreate: Namespaces erstellen
+        namespacesSearch: Namespaces auflisten und durchsuchen
+        settingsManage: Alle Einstellungen verwalten
+        settingsRead: Alle Einstellungen aufrufen
+      type:
+        label: Compose service
+    loading: Berechtigungen werden geladen
+    module:
+      operations:
+        delete: Delete any module
+        read: Read any module
+        recordCreate: Create record under any module
+        recordsSearch: List and search records under any module
+        update: Update any module
+      type:
+        label: Module
+    moduleField:
+      operations:
+        recordValueRead: Read any module field
+        recordValueUpdate: Update any module field
+      type:
+        label: Modulfelder
+    namespace:
+      operations:
+        chartCreate: Create charts under any namespace
+        chartsSearch: List and search charts under any namespace
+        delete: Delete any namespace
+        manage: Manage any namespace
+        moduleCreate: Create modules under any namespace
+        modulesSearch: List and search modules under any namespace
+        pageCreate: Create pages under any namespace
+        pagesSearch: List and search pages under any namespace
+        read: Access any namespace
+        update: Update any namespace
+      type:
+        label: Namespaces
+    noRole: Keine Rolle ausgewählt
+    notAllowed: Festlegen von Berechtigungen ist nicht zulässig
+    page:
+      operations:
+        delete: Delete any page
+        read: Read any page
+        update: Update any page
+      type:
+        label: Seiten
+    record:
+      operations:
+        delete: Delete any record
+        read: Read any record
+        update: Update any record
+      type:
+        label: Datensätze
+    submit: Übermitteln
+    tip1: Click on permission/role cell to allow a specific operation
+    tip2: Use Alt-Click to set explicit deny on operation
+    title: Regelliste
+  title: Compose permissions

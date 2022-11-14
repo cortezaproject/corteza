@@ -1,0 +1,337 @@
+---
+automation:
+  addPlaceholderLabel: Add placeholder (dummy button)
+  availableScriptsAndWorkflow: Available scripts and workflows ({{count}})
+  badge:
+    script: script
+    workflow: workflow
+  buttonLabel: Label
+  buttonVariant: Variant
+  configuredButtons: Configured buttons
+  dangerButton: Danger
+  darkButton: Dunkel
+  dummyButtonLabel: Dummy
+  editButton: Edit
+  editTitle:
+    script: Edit automation script button
+    workflow: Edit workflow button
+  label: Automation
+  lightButton: Light
+  noDescription: No description
+  noLabel: Unlabeled
+  noScript: There is no script or workflow configured for this button
+  noScripts: There are no manual scripts compatible with this page block
+  primaryButton: Primary
+  removeAll: Remove all
+  searchPlaceholder: Filter available scripts by label, script name and description
+  secondaryButton: Secondary
+  stepID: 'stepID: {{stepID}}'
+  successButton: Success
+  warningButton: Warning
+calendar:
+  addEventsSource: Add events source
+  calendarHeader: Calendar header
+  feedLabel: Configure events source
+  feedPlaceholder: Select a feed source
+  hideHeader: Hide calendar header
+  hideNavigation: Hide prev/next button
+  hideTitle: Hide title text
+  hideToday: Hide today button
+  label: Calendar
+  recordFeed:
+    colorLabel: Event color
+    eventAllDay: Show as all-day-events
+    eventEndFieldLabel: Event end
+    eventEndFieldPlaceholder: (No field, event will last 1 hour)
+    eventStartFieldLabel: Event start
+    eventStartFieldPlaceholder: (Kein Feld)
+    moduleLabel: Select module
+    modulePlaceholder: (No module)
+    noMultiFields: Multi-value fields are currently not supported
+    optionLabel: Records
+    prefilterLabel: Prefilter events
+    prefilterPlaceholder: field1 = 1 AND field2 = 232
+    titleLabel: Title
+    titlePlaceholder: (Kein Feld)
+  reminderFeed:
+    colorLabel: Event color
+    optionLabel: Reminders
+  today: Today
+  view:
+    dayGridMonth: Month
+    default: Default view
+    enabled: Enabled views
+    footnote: Make sure default is one of the available views
+    listMonth: Agenda
+    timeGridDay: Day
+    timeGridWeek: Week
+  viewLabel: '$t(block.calendar.label)'
+chart:
+  add: New Chart
+  addFunnel: Funnel chart
+  addGauge: Gauge chart
+  addGeneric: Generic chart
+  configure:
+    label: Configure chart
+    reportLabel: Report {{l}}
+    reportsLabel: Reports
+  display: 'Chart to display inside this block:'
+  edit: Edit chart
+  label: Chart
+  pick: Pick a chart
+  preview:
+    chartId: Chart preview (ID {{0}})
+content:
+  label: Content
+file:
+  label: File
+  preview:
+    label: File block
+general:
+  changeBlock: Change existing block
+  descriptionLabel: '$t(general.label.description)'
+  descriptionPlaceholder: Block description
+  headerStyle: Block header style (color)
+  module: Module
+  style:
+    danger: Danger variant
+    default: Dark variant
+    primary: Primary variant
+    secondary: Secondary variant
+    success: Success variant
+    warning: Warning variant
+  title: Add new block
+  titleLabel: '$t(general.label.title)'
+  titlePlaceholder: Block title
+iframe:
+  label: IFrame
+  pickURLField: Pick an URL field
+  srcDesc: Used as a fallback when set in combination with record field.
+  srcFieldDesc: Only available on record pages and on modules with existing "url" field kind
+  srcFieldLabel: Field (URL) from record to use for the iframe
+  srcLabel: URL to show in the iframe
+metric:
+  defaultMetricLabel: Unnamed metric
+  edit:
+    bucketLabel: Bucket size
+    bucketPlaceholder: Select a bucket size
+    dateFormat: Date format
+    dimensionFieldLabel: Field
+    dimensionFieldPlaceholder: Dimension field
+    dimensionLabel: Dimension
+    filterFootnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {{0}}, {{1}} and {{2}} are evaluated (when available)
+    filterLabel: Filter
+    labelLabel: Label
+    labelPlaceholder: Label
+    metricFieldLabel: Field
+    metricFieldPlaceholder: Dimension field
+    metricLabel: Metric
+    moduleLabel: Module
+    modulePlaceholder: Pick a module
+    numberFormat: Number format
+    operationAvg: Avg
+    operationLabel: Aggregation operation
+    operationMax: Max
+    operationMin: Min
+    operationPlaceholder: Aggregation operation
+    operationStd: Std
+    operationSum: Sum
+    prefixLabel: Prefix
+    refreshData: Refresh data
+    suffixLabel: Suffix
+    tabTitle: Metric
+    transformFunctionDescription: v - current value; label - current value's label
+    transformFunctionLabel: Transform value
+  editStyle:
+    backgroundColor: Background color
+    color: Text color
+    fontSize: Font size in pixels
+    labelLabel: Label style
+    valueLabel: Value style
+  label: Metric
+record:
+  confirmDelete: Are you sure you want to delete this record?
+  deleteRecord: Delete record
+  label: Record
+  preview:
+    blockNoRecord: Can not render this block without a record
+    fieldsFromModule: Single record block, displaying fields ({{0}}) from module {{1}}
+    untitled: Untitled
+  recordDeleted: This record was deleted
+recordList:
+  addRecord: Add
+  cancelSelection: Cancel
+  editFields: Editable module fields
+  export:
+    all: Export all records
+    allow: Allow records export
+    csv: CSV Export
+    dateRange: 'Select date range:'
+    filter:
+      createdAt: Record created
+      custom: Custom
+      lastMonth: Last month
+      lastWeek: Last week
+      thisMonth: This month
+      thisWeek: This week
+      today: Today
+      updatedAt: Record updated
+    inRange: Set date range
+    includeQuery: Filter by search query
+    json: JSON Export
+    limitations: 'CSV export limitation: only the first value in the multi value fields will be exported'
+    query: Search query
+    rangeBy: 'Set range by:'
+    recordCount: '{{count}} records ready for export'
+    selectFields: 'Select fields you want to export:'
+    selection: Selected records
+    specifyTimezone: Export to timezone
+    timezonePlaceholder: Select timezone
+  federated: Federated
+  fields: Module fields
+  filter:
+    addField: Add new filter field
+    addFilter: + Add filter
+    byValue: Filter records based on field value
+    conditions:
+      and: AND
+      or: OR
+    deletedRecords: Deleted records
+    field: Filter field
+    fieldPlaceholder: Pick a field
+    fieldValue: Field value
+    fieldValuePlaceholder: Input field filter
+    including: Including
+    label: Filter
+    note: 'Note: If Field value is undefined, the filter will look for records where that field value is undefined.'
+    only: Only
+    operators:
+      contains: Contains
+      equal: Equal
+      greaterThan: Greater than
+      lessThan: Less than
+      notEqual: Not equal
+    title: Record list filter
+    update: Update filter
+    where: Where
+    without: Without
+  hideRecordCloneButton: Hide clone record button
+  hideRecordEditButton: Hide edit record button
+  hideRecordPermissionsButton: Hide record permissions button
+  hideRecordReminderButton: Hide record reminder button
+  hideRecordViewButton: Hide view record button
+  import:
+    dropzoneFileAdded: '{{name}} was uploaded and is ready for import ({{count}} record)'
+    dropzoneFileAdded_plural: '{{name}} was uploaded and is ready for import ({{count}} records)'
+    dropzoneLabel: Click or drop file here to upload (.csv or JSON)
+    failed: 'Something went wrong during the import. Please try again: {{failReason}}'
+    fileColumns: File columns
+    hasRequiredFileFields: This module has required file upload fields that are not yet supported via the importer
+    matchFields: 'Match imported columns with existing ones:'
+    moduleFields: Module fields
+    onError: 'If any record fails to import:'
+    onErrorFail: Cancel import
+    onErrorSkip: Skip record
+    pickModuleField: Pick a module field
+    progressRatio: '{{completed}} / {{entryCount}} rows'
+    report:
+      count: Number of records
+      detectedErrors: Detected errors
+      error: Error
+      failedEntries: Failed source entries
+      failedEntriesLine: Entry
+      failedEntriesLines: Entries from to (inclusive)
+      failedRecords: Failed records
+      finishedAt: Finished At
+      importedRecords: Imported records
+      startedAt: Started At
+      title: Record import error report
+      totalRecords: Total records
+    success: Import successful.
+    to: Import to {{modulename}}
+    uploadFile: Upload the file you want to import (.csv or JSON format)
+  label: Record list
+  moduleFootnote: Modules without a {{0}} can only be used in a record list as an inline editor
+  pagination:
+    next: Next
+    prev: Previous
+    showing: '{{from}} - {{to}} of {{count}} records'
+    single: One record
+    single_plural: '{{count}} records'
+  positionField:
+    footnote: Records will be sorted based on this field
+    label: Record sort field
+  preview:
+    addRecordButton: Add record button
+    bePaged: '{{0}} be paged.'
+    isDisabled: '{{0}} is disabled.'
+    isEnabled: '{{0}} is enabled.'
+    isHidden: '{{0}} is hidden.'
+    isShown: '{{0}} is shown'
+    moduleNotSelected: Block with table of records, module not selected.
+    recordFromModule: 'Showing records from {{0}} module with columns: {{1}}'
+    recordsPerPage: '{{0}} records are shown per page.'
+    resultsCan: Results can
+    resultsCant: Results can not
+    resultsPrefiltered: 'Results are prefiltered:'
+    searchInput: Search inputbox
+    sorting: Sorting
+    tableHeader: Table header
+    usersSearchThrough: Users search through the records.
+    usersSee: Users see {{0}}.
+    withPresortedRecords: with presorted ({{0}}) records.
+  record:
+    draggable: Can drag & drop records to order them
+    fullPageNavigation: Full page navigation
+    hideAddButton: Hide add record button
+    hidePaging: Hide paging
+    inlineEditor: Inline editor
+    inlineEditorAllow: Allow inline record editing
+    inlineEditorFootnote: Only one inline editor with the same module can be present the same page
+    newLabel: New records
+    noPermission: No permission to read record
+    perPage: Records per page
+    prefilterFootnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {{0}}, {{1}} and {{2}} are evaluated (when available)
+    prefilterHideSearch: Hide search box
+    prefilterLabel: Prefilter records
+    prefilterPlaceholder: field1 = 1 AND field2 = 232
+    presortFootnote: Simplified SQL condition (ORDER BY ...) syntax is supported.
+    presortHideSort: Hide sorting
+    presortLabel: Presort records
+    presortPlaceholder: field1 DESC, field2 ASC
+    showTotalCount: Show total record count
+  recordPage: record page
+  refField:
+    footnote: Field that links records with the parent record
+    label: Parent field
+  selectable: Enable record selection
+  selected: '{{count}} of {{total}} records selected'
+recordOrganizer:
+  descriptionField:
+    footnote: Field value will be used as record description
+    label: Description field
+  group:
+    footnote: Value that will be set to the key field. This does not affect the filtering. Make sure to specify the prefilter where needed.
+    label: Key value
+  groupField:
+    footnote: Field whose value will change when a record is moved into the record organizer
+    label: Key field
+  label: Record organizer
+  labelField:
+    footnote: Field value will be used as record label
+    label: Label field
+  noRecords: No records in module linked with record organizer. Drag and drop records here.
+  notConfigured: Record organizer is not configured correctly.
+  positionField:
+    footnote: Records will be sorted based on this field
+    label: Record sort field
+  preview:
+    label: 'Record Organizer block for module {{0}}. Label field {{1}}, Description field {{2}}. Value setting field: {{3}}, Sorted by position field: {{4}}.'
+    moduleNotSelected: Record Organizer module not selected.
+socialFeed:
+  label: Twitter feed
+  noInput: No input for displaying social feed...
+  preview:
+    socialFeed: Twitterblo feed
+  twitterProfileField: Field that contains Twitter Profile URL for a record
+  twitterProfileLabel: Twitter Profile URL for list pages i.e (https://twitter.com/bloomberg)

@@ -1,0 +1,13 @@
+---
+errors:
+  alreadyExists: route by that endpoint already exists
+  existsEndpoint: route with this endpoint already exists
+  invalidEndpoint: invalid endpoint
+  invalidID: invalid ID
+  notAllowedToCreate: not allowed to create a route
+  notAllowedToDelete: not allowed to delete this route
+  notAllowedToExec: not allowed to execute this route
+  notAllowedToRead: not allowed to read this route
+  notAllowedToUndelete: not allowed to undelete this route
+  notAllowedToUpdate: not allowed to update this route
+  notFound: route not found

@@ -1,0 +1,17 @@
+---
+errors:
+  disabled: deaktivierter Workflow oder Trigger
+  handleNotUnique: Workflow-Handle ist nicht eindeutig
+  invalidHandle: ungültiger Handle
+  invalidID: ungültige ID
+  notAllowedToCreate: Erstellen von Workflows ist nicht zulässig
+  notAllowedToDelete: dieser Workflow kann nicht gelöscht werden
+  notAllowedToExecute: dieser Workflow kann nicht ausgeführt werden
+  notAllowedToExecuteCorredorStep: Funktion corredorExec kann nicht ausgeführt werden, corredor ist deaktiviert
+  notAllowedToRead: dieser Workflow kann nicht gelesen werden
+  notAllowedToSearch: Workflows können nicht gesucht oder aufgelistet werden
+  notAllowedToUndelete: dieser Workflow kann nicht wiederhergestellt werden
+  notAllowedToUpdate: dieser Workflow kann nicht aktualisiert werden
+  notFound: Workflow nicht gefunden
+  staleData: alte Daten
+  unknownWorkflowStep: unbekannter Workflowschritt

@@ -1,0 +1,132 @@
+---
+composeChart:
+  all: all charts
+  operations:
+    delete:
+      description: 'Standard: verweigern'
+      specific: Delete chart "{{target}}"
+      title: Delete any chart
+    read:
+      description: 'Standard: verweigern'
+      specific: Read chart "{{target}}"
+      title: Read any chart
+    update:
+      description: 'Standard: verweigern'
+      specific: Update chart "{{target}}"
+      title: Update any chart
+  specific: chart "{{target}}"
+composeModule:
+  all: all modules
+  operations:
+    delete:
+      description: 'Standard: verweigern'
+      specific: Delete module "{{target}}"
+      title: Delete any module
+    read:
+      description: 'Standard: verweigern'
+      specific: Read module "{{target}}"
+      title: Read any module
+    recordCreate:
+      description: 'Standard: verweigern'
+      specific: Create record of module "{{target}}"
+      title: Create record of any module
+    recordsSearch:
+      description: 'Standard: verweigern'
+      specific: List and search records of module "{{target}}"
+      title: List and search records of any module
+    update:
+      description: 'Standard: verweigern'
+      specific: Update module "{{target}}"
+      title: Update any module
+  specific: module "{{target}}"
+composeModuleField:
+  all: all module fields
+  operations:
+    recordValueRead:
+      description: 'Standard: verweigern'
+      specific: 'Read "{{target}}" record fields '
+      title: Read record fields of any module
+    recordValueUpdate:
+      description: 'Standard: verweigern'
+      specific: 'Update "{{target}}" record fields '
+      title: Update record fields of any module
+  specific: field "{{target}}"
+composeNamespace:
+  all: all namespaces
+  operations:
+    chartCreate:
+      description: ""
+      specific: Create charts under namespace "{{target}}"
+      title: Create charts under any namespace
+    chartsSearch:
+      description: ""
+      specific: List and search charts under namespace "{{target}}"
+      title: List and search charts under any namespace
+    delete:
+      description: ""
+      specific: Delete namespace "{{target}}"
+      title: Delete any namespace
+    manage:
+      description: Allow access to namespace's admin pages
+      specific: Manage namespace "{{target}}"
+      title: Manage any namespace
+    moduleCreate:
+      description: ""
+      specific: Create modules under namespace "{{target}}"
+      title: Create modules under any namespace
+    modulesSearch:
+      description: ""
+      specific: List and search modules under namespace "{{target}}"
+      title: List and search modules under any namespace
+    pageCreate:
+      description: ""
+      specific: Create pages under namespace "{{target}}"
+      title: Create pages under any namespace
+    pagesSearch:
+      description: ""
+      specific: List and search pages under namespace "{{target}}"
+      title: List and search pages under any namespace
+    read:
+      description: ""
+      specific: Read namespace "{{target}}"
+      title: Read any namespace
+    update:
+      description: ""
+      specific: Update namespace "{{target}}"
+      title: Update any namespace
+  specific: namespace "{{target}}"
+composePage:
+  all: all pages
+  operations:
+    delete:
+      description: 'Standard: verweigern'
+      specific: Delete page "{{target}}"
+      title: Delete any page
+    read:
+      description: 'Standard: verweigern'
+      specific: Read page "{{target}}"
+      title: Read any page
+    update:
+      description: 'Standard: verweigern'
+      specific: Update page "{{target}}"
+      title: Update any page
+  specific: page "{{target}}"
+composeRecord:
+  all: all records
+  operations:
+    delete:
+      description: 'Standard: verweigern'
+      specific: Delete record
+      title: Delete records of any module
+    read:
+      description: 'Standard: verweigern'
+      specific: Read record
+      title: Read records of any module
+    update:
+      description: 'Standard: verweigern'
+      specific: Update record
+      title: Update records of any module
+  specific: record
+resetBack: Reset back to "{{current}}"
+saveChanges: Save changes
+setFor: Set permissions for {{target}}

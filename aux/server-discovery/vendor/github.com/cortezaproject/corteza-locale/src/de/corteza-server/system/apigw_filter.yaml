@@ -1,0 +1,10 @@
+---
+errors:
+  invalidID: ungültige ID
+  invalidRoute: ungültige Route
+  notAllowedToCreate: Erstellen von Filtern ist nicht zulässig
+  notAllowedToDelete: dieser Filter kann nicht gelöscht werden
+  notAllowedToRead: dieser Filter kann nicht gelesen werden
+  notAllowedToUndelete: dieser Filter kann nicht wiederhergestellt werden
+  notAllowedToUpdate: dieser Filter kann nicht aktualisiert werden
+  notFound: Filter nicht gefunden
