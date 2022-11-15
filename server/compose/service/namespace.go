@@ -39,10 +39,11 @@ type (
 	}
 
 	namespaceImportSession struct {
-		Name      string `json:"name"`
-		Slug      string `json:"handle"`
-		SessionID uint64 `json:"sessionID,string"`
-		UserID    uint64 `json:"userID,string"`
+		Name        string `json:"name"`
+		Slug        string `json:"handle"`
+		NamespaceID uint64 `json:"namespaceID,string"`
+		SessionID   uint64 `json:"sessionID,string"`
+		UserID      uint64 `json:"userID,string"`
 
 		CreatedAt time.Time `json:"createdAt"`
 		UpdatedAt time.Time `json:"updatedAt"`
@@ -285,12 +286,14 @@ func (svc namespace) Clone(ctx context.Context, namespaceID uint64, dup *types.N
 		aProps.setNamespace(targetNs)
 
 		// - destination namespace
-		dstNs, err := store.LookupComposeNamespaceBySlug(ctx, svc.store, dup.Slug)
-		if err != nil && err != store.ErrNotFound {
-			return err
-		}
-		if dstNs != nil {
-			return NamespaceErrHandleNotUnique()
+		if dup.Slug != "" {
+			dstNs, err := store.LookupComposeNamespaceBySlug(ctx, svc.store, dup.Slug)
+			if err != nil && err != store.ErrNotFound {
+				return err
+			}
+			if dstNs != nil {
+				return NamespaceErrHandleNotUnique()
+			}
 		}
 
 		// Access control
@@ -403,6 +406,8 @@ func (svc namespace) ImportInit(ctx context.Context, f multipart.File, size int6
 			return NamespaceErrImportMissingNamespace()
 		}
 
+		// session needs to have namespaceID if ns Handle is not provided
+		session.NamespaceID = ns.ID
 		session.Name = ns.Name
 		session.Slug = ns.Slug
 		namespaceSessionStore[session.SessionID] = session
@@ -425,17 +430,19 @@ func (svc namespace) ImportRun(ctx context.Context, sessionID uint64, dup *types
 			return err
 		}
 
-		if dup.Slug == "" || !handle.IsValid(dup.Slug) {
+		if !handle.IsValid(dup.Slug) {
 			return NamespaceErrInvalidHandle()
 		}
 
-		// check for duplicate
-		dstNs, err := store.LookupComposeNamespaceBySlug(ctx, svc.store, dup.Slug)
-		if err != nil && err != store.ErrNotFound {
-			return err
-		}
-		if dstNs != nil {
-			return NamespaceErrHandleNotUnique()
+		if dup.Slug != "" {
+			// check for duplicate
+			dstNs, err := store.LookupComposeNamespaceBySlug(ctx, svc.store, dup.Slug)
+			if err != nil && err != store.ErrNotFound {
+				return err
+			}
+			if dstNs != nil {
+				return NamespaceErrHandleNotUnique()
+			}
 		}
 
 		// session
@@ -453,7 +460,7 @@ func (svc namespace) ImportRun(ctx context.Context, sessionID uint64, dup *types
 
 		aProps.setNamespace(dup)
 
-		newNS, err = svc.envoyRun(ctx, session.Resources, &types.Namespace{Slug: session.Slug, Name: session.Name}, dup, encoder)
+		newNS, err = svc.envoyRun(ctx, session.Resources, &types.Namespace{ID: session.NamespaceID, Slug: session.Slug, Name: session.Name}, dup, encoder)
 		if err != nil {
 			return err
 		}

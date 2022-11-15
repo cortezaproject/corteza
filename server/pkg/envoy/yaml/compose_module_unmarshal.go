@@ -63,6 +63,9 @@ func (wrap *composeModule) UnmarshalYAML(n *yaml.Node) (err error) {
 
 	return y7s.EachMap(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
+		case "moduleID":
+			return y7s.DecodeScalar(v, "module ID", &wrap.res.ID)
+
 		case "name":
 			return y7s.DecodeScalar(v, "module name", &wrap.res.Name)
 
