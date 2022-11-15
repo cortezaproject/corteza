@@ -51,15 +51,15 @@ func RbacHandler(reg rbacHandlerRegistry, rbac rbacService, user rbacUserService
 }
 
 func (h rbacHandler) allow(ctx context.Context, args *rbacAllowArgs) (err error) {
-	return h.grant(ctx, rbac.AllowRule(args.roleID, args.Operation, args.Resource.RbacResource()))
+	return h.grant(ctx, rbac.AllowRule(args.roleID, args.Resource.RbacResource(), args.Operation))
 }
 
 func (h rbacHandler) deny(ctx context.Context, args *rbacDenyArgs) (err error) {
-	return h.grant(ctx, rbac.DenyRule(args.roleID, args.Operation, args.Resource.RbacResource()))
+	return h.grant(ctx, rbac.DenyRule(args.roleID, args.Resource.RbacResource(), args.Operation))
 }
 
 func (h rbacHandler) inherit(ctx context.Context, args *rbacInheritArgs) (err error) {
-	return h.grant(ctx, rbac.InheritRule(args.roleID, args.Operation, args.Resource.RbacResource()))
+	return h.grant(ctx, rbac.InheritRule(args.roleID, args.Resource.RbacResource(), args.Operation))
 }
 
 // verifies grant op (granter needs to be allowed to grant on the component
