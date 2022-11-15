@@ -52,11 +52,11 @@ kind:
     exampleFormat: Format
     exampleInput: Input
     exampleResult: Result
-    examplesLabel: 'Format examples:'
+    examplesLabel: Format examples
     formatLabel: Format
     formatPlaceholder: Format
     label: Number
-    liveExample: 'Live example:'
+    liveExample: Live example
     precisionLabel: Precision
     precisionPlaceholder: Precision
     prefixLabel: Prefix
@@ -67,8 +67,9 @@ kind:
       label: Display type
       number: Number
       progress: Progress bar
-    maximumValue: Maximum value
     progress:
+      maximumValue: Maximum value
+      minimumValue: Minimum value
       animated: Animated
       show:
         value: Show value

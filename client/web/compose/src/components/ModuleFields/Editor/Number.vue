@@ -42,6 +42,7 @@
           v-model="value[ctx.index]"
           autocomplete="off"
           type="number"
+          number
           class="mr-2"
         />
       </b-input-group>
@@ -56,6 +57,7 @@
         v-model="value"
         autocomplete="off"
         type="number"
+        number
       />
     </b-input-group>
     <errors :errors="errors" />

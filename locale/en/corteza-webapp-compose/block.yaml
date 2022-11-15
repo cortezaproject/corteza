@@ -491,6 +491,7 @@ report:
 
 progress:
   add: + Add
+  count: Count
   aggregate:
     label: Aggregation operation
     select: Select aggregation operation
@@ -518,7 +519,11 @@ progress:
     variant: Set which variant to show if value is equal or larger than the threshold
   value:
     label: Value
+    min: Minimum value
     max: Maximum value
+    default:
+      label: Default value
+      description: This value will be used if metric is not configured
   variant:
     default: Dark
     danger: Danger
