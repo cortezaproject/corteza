@@ -178,14 +178,31 @@ export default {
      */
     this.$root.$on('alert', ({ message, ...params }) => this.toast(message, params))
     this.$root.$on('reminder.show', this.showReminder)
+
+    this.$root.$on('check-namespace-sidebar', this.checkNamespaceSidebar)
   },
 
   beforeDestroy () {
     this.$root.$off('alert')
     this.$root.$off('reminder.show', this.showReminder)
+    this.$root.$off('check-namespace-sidebar', this.checkNamespaceSidebar)
   },
 
   methods: {
+    checkNamespaceSidebar (showSidebar) {
+      const defaultDisabledRoutes = [
+        'namespaces',
+        'namespace.list',
+        'namespace.edit',
+        'namespace.create',
+        'namespace.clone',
+        'namespace.manage',
+      ]
+      const namespaceRoutes = ['page', 'pages', 'page.record', 'page.record.create', 'page.record.edit']
+
+      this.disabledRoutes = [...defaultDisabledRoutes, ...(showSidebar ? [] : namespaceRoutes)]
+    },
+
     removeToast (reminderID) {
       const i = this.toasts.findIndex(r => r.reminderID === reminderID)
       if (i > -1) {

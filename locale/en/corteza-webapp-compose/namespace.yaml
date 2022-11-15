@@ -51,7 +51,7 @@ title: Low Code Namespaces
 tooltip:
   translations: Namespace translations
 visit: Visit namespace
-
+configure: Configure namespace
 
 manage:
   title: Manage namespaces
@@ -69,3 +69,7 @@ manage:
       name: Name
       handle: Handle
       last-change: Last change
+
+sidebar:
+  configure: Namespace pages
+  hide: Hide sidebar on namespace public pages

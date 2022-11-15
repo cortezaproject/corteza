@@ -12,7 +12,7 @@ interface MetaAdmin {
 interface Meta {
   subtitle: string;
   description: string;
-
+  hideSidebar: boolean;
   // Temporary icon & logo URLs
   // @todo rework this when we rework attachment management
   icon: string;
