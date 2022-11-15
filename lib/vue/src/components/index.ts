@@ -77,4 +77,8 @@ export {
   CChart,
 } from './chart'
 
+export {
+  CProgress,
+} from './progress'
+
 export { default as C3 } from './c3'

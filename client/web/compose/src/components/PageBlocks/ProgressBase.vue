@@ -12,22 +12,22 @@
 
     <div
       v-else
-      class="h-100"
+      class="d-flex h-100"
       :class="{ 'p-2': block.style.wrap.kind === 'card' }"
     >
-      <b-progress
+      <c-progress
+        :value="value"
+        :min="min"
         :max="max"
-        class="h-100 bg-light"
-      >
-        <b-progress-bar
-          :value="value"
-          :striped="options.display.striped"
-          :animated="options.display.animated"
-          :variant="progressVariant"
-        >
-          {{ progressLabel }}
-        </b-progress-bar>
-      </b-progress>
+        :labeled="options.display.showValue"
+        :relative="options.display.showRelative"
+        :progress="options.display.showProgress"
+        :striped="options.display.striped"
+        :animated="options.display.animated"
+        :variant="options.display.variant"
+        :thresholds="options.display.thresholds"
+        class="flex-fill h-100"
+      />
     </div>
   </wrap>
 </template>
@@ -35,69 +35,37 @@
 <script>
 import base from './base'
 import { NoID } from '@cortezaproject/corteza-js'
+import { components } from '@cortezaproject/corteza-vue'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
+const { CProgress } = components
 
 export default {
-  extends: base,
-
-  props: {
+  components: {
+    CProgress,
   },
+
+  extends: base,
 
   data () {
     return {
       processing: false,
 
       value: undefined,
+      min: undefined,
       max: undefined,
     }
-  },
-
-  computed: {
-    progress () {
-      const { value = 0, max = 100 } = this
-      return 100 * (value / max)
-    },
-
-    progressLabel () {
-      let { value } = this
-      const { showValue, showRelative, showProgress } = this.options.display || {}
-
-      if (!showValue) {
-        return
-      }
-
-      if (showRelative) {
-        // https://stackoverflow.com/a/21907972/17926309
-        value = `${Math.round(((value / this.max) * 100) * 100) / 100}%`
-      }
-
-      if (showProgress) {
-        value = `${value} / ${showRelative ? '100' : this.max}${showRelative ? '%' : ''}`
-      }
-
-      return value
-    },
-
-    sortedVariants () {
-      return [...this.options.display.thresholds].filter(t => t.value >= 0).sort((a, b) => b.value - a.value)
-    },
-
-    progressVariant () {
-      const { variant } = this.options.display || {}
-      let progressVariant = variant
-
-      if (this.options.display.thresholds.length) {
-        const { variant } = this.sortedVariants.find(t => this.progress >= t.value) || {}
-        progressVariant = variant || progressVariant
-      }
-
-      return progressVariant
-    },
   },
 
   watch: {
     'record.recordID': {
       immediate: true,
+      handler () {
+        this.update()
+      },
+    },
+
+    options: {
+      deep: true,
       handler () {
         this.update()
       },
@@ -130,6 +98,14 @@ export default {
             userID: (this.$auth.user || {}).userID || NoID,
           }),
         },
+        minValue: {
+          filter: evaluatePrefilter(this.options.minValue.filter, {
+            record: this.record,
+            recordID: (this.record || {}).recordID || NoID,
+            ownerID: (this.record || {}).ownedBy || NoID,
+            userID: (this.$auth.user || {}).userID || NoID,
+          }),
+        },
         maxValue: {
           filter: evaluatePrefilter(this.options.maxValue.filter, {
             record: this.record,
@@ -140,10 +116,12 @@ export default {
         },
       }
 
-      return this.block.fetch(additionalOptions, this.$ComposeAPI, namespaceID).then(({ value, max }) => {
-        this.value = value
-        this.max = max
-      }).catch(this.toastErrorHandler(this.$t('progress.fetch-failed')))
+      return this.block.fetch(additionalOptions, this.$ComposeAPI, namespaceID)
+        .then(({ value, min = 0, max = 100 }) => {
+          this.min = min
+          this.max = max
+          this.value = value
+        }).catch(this.toastErrorHandler(this.$t('progress.fetch-failed')))
         .finally(() => {
           this.processing = false
         })
