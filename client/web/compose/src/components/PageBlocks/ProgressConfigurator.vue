@@ -10,6 +10,22 @@
 
       <b-row>
         <b-col
+          v-if="!options.value.moduleID"
+          cols="12"
+        >
+          <b-form-group
+            :label="$t('progress.value.default.label')"
+            :description="$t('progress.value.default.description')"
+          >
+            <b-form-input
+              v-model="options.value.default"
+              type="number"
+              number
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
           cols="12"
         >
           <b-form-group
@@ -93,10 +109,130 @@
 
     <template>
       <h5 class="text-primary">
+        {{ $t('progress.value.min') }}
+      </h5>
+
+      <b-row>
+        <b-col
+          v-if="!options.minValue.moduleID"
+          cols="12"
+        >
+          <b-form-group
+            :label="$t('progress.value.default.label')"
+            :description="$t('progress.value.default.description')"
+          >
+            <b-form-input
+              v-model="options.minValue.default"
+              type="number"
+              number
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+        >
+          <b-form-group
+            :label="$t('progress.module.label')"
+          >
+            <vue-select
+              v-model="options.minValue.moduleID"
+              label="name"
+              :placeholder="$t('progress.module.select')"
+              :options="modules"
+              :reduce="m => m.moduleID"
+              class="bg-white"
+            />
+          </b-form-group>
+        </b-col>
+
+        <template v-if="options.minValue.moduleID">
+          <b-col
+            cols="12"
+          >
+            <b-form-group :label="$t('metric.edit.filterLabel')">
+              <b-form-textarea
+                v-model="options.minValue.filter"
+                placeholder="(A > B) OR (A < C)"
+                class="mb-1"
+              />
+              <b-form-text>
+                <i18next
+                  path="metric.edit.filterFootnote"
+                  tag="label"
+                >
+                  <code>${recordID}</code>
+                  <code>${ownerID}</code>
+                  <code>${userID}</code>
+                </i18next>
+              </b-form-text>
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            sm="6"
+          >
+            <b-form-group
+              :label="$t('progress.field.label')"
+            >
+              <vue-select
+                v-model="options.minValue.field"
+                :placeholder="$t('progress.field.select')"
+                :options="minValueModuleFields"
+                :reduce="f => f.name"
+                class="bg-white"
+                @input="fieldChanged($event, options.minValue)"
+              />
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            sm="6"
+          >
+            <b-form-group
+              :label="$t('progress.aggregate.label')"
+            >
+              <vue-select
+                v-model="options.minValue.operation"
+                label="name"
+                :disabled="!options.minValue.field || options.minValue.field === 'count'"
+                :placeholder="$t('progress.aggregate.select')"
+                :options="aggregationOperations"
+                :reduce="a => a.operation"
+                class="bg-white"
+              />
+            </b-form-group>
+          </b-col>
+        </template>
+      </b-row>
+    </template>
+
+    <hr>
+
+    <template>
+      <h5 class="text-primary">
         {{ $t('progress.value.max') }}
       </h5>
 
       <b-row>
+        <b-col
+          v-if="!options.maxValue.moduleID"
+          cols="12"
+        >
+          <b-form-group
+            :label="$t('progress.value.default.label')"
+            :description="$t('progress.value.default.description')"
+          >
+            <b-form-input
+              v-model="options.maxValue.default"
+              type="number"
+              number
+            />
+          </b-form-group>
+        </b-col>
+
         <b-col
           cols="12"
         >
@@ -307,60 +443,66 @@
         </b-col>
       </b-row>
 
-      <!-- Don't remove, makes sure preview doesn't cover content -->
-      <div class="w-501 my-5 py-5 py-sm-3" />
+      <hr>
 
       <template>
-        <div
-          class="preview bg-white position-absolute p-3"
-        >
-          <h6 class="text-primary">
-            {{ $t('progress.preview') }}
-          </h6>
+        <h6 class="text-primary">
+          {{ $t('progress.preview') }}
+        </h6>
 
-          <b-progress
-            :max="preview.max"
-            height="1.5rem"
-            class="mb-2 bg-light"
+        <b-row>
+          <b-col
+            cols="12"
           >
-            <b-progress-bar
-              :value="preview.value"
-              :striped="options.display.striped"
-              :animated="options.display.animated"
-              :variant="progressVariant"
-            >
-              {{ progressLabel }}
-            </b-progress-bar>
-          </b-progress>
+            <field-viewer
+              value-only
+              v-bind="mock"
+              class="mb-2"
+            />
+          </b-col>
 
-          <b-row>
-            <b-col
-              cols="12"
-              sm="6"
-            >
-              {{ $t('progress.value.label') }}
-              <b-form-input
-                v-model="preview.value"
-                :placeholder="$t('progress.value.label')"
-                type="number"
-                size="sm"
-              />
-            </b-col>
+          <b-col
+            cols="12"
+            sm="4"
+          >
+            {{ $t('progress.value.label') }}
+            <b-form-input
+              v-model="mock.record.values.mockField"
+              :placeholder="$t('progress.value.label')"
+              size="sm"
+              type="number"
+              number
+            />
+          </b-col>
 
-            <b-col
-              cols="12"
-              sm="6"
-            >
-              {{ $t('progress.value.max') }}
-              <b-form-input
-                v-model="preview.max"
-                :placeholder="$t('progress.value.max')"
-                type="number"
-                size="sm"
-              />
-            </b-col>
-          </b-row>
-        </div>
+          <b-col
+            cols="12"
+            sm="4"
+          >
+            {{ $t('progress.value.min') }}
+            <b-form-input
+              v-model="mock.field.options.min"
+              :placeholder="$t('progress.value.min')"
+              size="sm"
+              type="number"
+              number
+            />
+          </b-col>
+
+          <b-col
+            cols="12"
+            sm="4"
+          >
+            {{ $t('progress.value.max') }}
+            <b-form-input
+              v-model="mock.field.options.max"
+              :placeholder="$t('progress.value.max')"
+              size="sm"
+              type="number"
+              number
+            />
+          </b-col>
+        </b-row>
       </template>
     </template>
   </b-tab>
@@ -369,7 +511,9 @@
 <script>
 import base from './base'
 import { mapGetters } from 'vuex'
+import { compose, validator } from '@cortezaproject/corteza-js'
 import { VueSelect } from 'vue-select'
+import FieldViewer from '../ModuleFields/Viewer'
 
 export default {
   i18nOptions: {
@@ -380,17 +524,13 @@ export default {
 
   components: {
     VueSelect,
+    FieldViewer,
   },
 
   extends: base,
 
   data () {
     return {
-      preview: {
-        value: 15,
-        max: 50,
-      },
-
       aggregationOperations: [
         {
           name: this.$t('metric.edit.operationSum'),
@@ -420,6 +560,14 @@ export default {
         { text: this.$t('progress.variant.light'), value: 'light' },
         { text: this.$t('progress.variant.dark'), value: 'dark' },
       ],
+
+      mock: {
+        namespace: undefined,
+        module: undefined,
+        field: undefined,
+        record: undefined,
+        errors: new validator.Validated(),
+      },
     }
   },
 
@@ -431,61 +579,58 @@ export default {
 
     sharedModuleFields () {
       return [
-        { name: 'count', label: 'Count' },
+        { name: 'count', label: this.$t('progress.count') },
       ]
     },
 
     valueModuleFields () {
       return [
         ...this.sharedModuleFields,
-        ...this.moduleByID(this.options.value.moduleID).fields.filter(f => f.kind === 'Number').sort((a, b) => a.name.localeCompare(b.name)),
+        ...this.moduleByID(this.options.value.moduleID).fields.filter(f => f.kind === 'Number').sort((a, b) => a.label.localeCompare(b.label)),
+      ]
+    },
+
+    minValueModuleFields () {
+      return [
+        ...this.sharedModuleFields,
+        ...this.moduleByID(this.options.minValue.moduleID).fields.filter(f => f.kind === 'Number').sort((a, b) => a.label.localeCompare(b.label)),
       ]
     },
 
     maxValueModuleFields () {
       return [
         ...this.sharedModuleFields,
-        ...this.moduleByID(this.options.maxValue.moduleID).fields.filter(f => f.kind === 'Number').sort((a, b) => a.name.localeCompare(b.name)),
+        ...this.moduleByID(this.options.maxValue.moduleID).fields.filter(f => f.kind === 'Number').sort((a, b) => a.label.localeCompare(b.label)),
       ]
     },
+  },
 
-    progress () {
-      const { value = 0, max = 100 } = this.preview
-      return 100 * (value / max)
+  watch: {
+    options: {
+      deep: true,
+      handler ({ display = {} }) {
+        if (this.mock.field) {
+          this.mock.field.options = {
+            ...this.mock.field.options,
+            ...display,
+          }
+        }
+      },
     },
+  },
 
-    progressLabel () {
-      let { value, max } = this.preview
-      const { showValue, showRelative, showProgress } = this.options.display || {}
-
-      if (!showValue) {
-        return
-      }
-
-      if (showRelative) {
-        // https://stackoverflow.com/a/21907972/17926309
-        value = `${Math.round(((value / max) * 100) * 100) / 100}%`
-      }
-
-      if (showProgress) {
-        value = `${value} / ${showRelative ? '100' : max}${showRelative ? '%' : ''}`
-      }
-
-      return value
-    },
-
-    progressVariant () {
-      const { variant } = this.options.display || {}
-      let progressVariant = variant
-
-      if (this.options.display.thresholds.length) {
-        const sortedVariants = [...this.options.display.thresholds].filter(t => t.value >= 0).sort((a, b) => b.value - a.value)
-        const { variant } = sortedVariants.find(t => this.progress >= t.value) || {}
-        progressVariant = variant || progressVariant
-      }
-
-      return progressVariant
-    },
+  created () {
+    this.mock.namespace = this.namespace
+    this.mock.field = compose.ModuleFieldMaker({ kind: 'Number' })
+    this.mock.field.apply({ name: 'mockField' })
+    this.mock.field.options.display = 'progress'
+    this.mock.field.options = {
+      display: 'progress',
+      ...this.mock.field.options,
+      ...this.options.display,
+    }
+    this.mock.module = new compose.Module({ fields: [this.mock.field] }, this.namespace)
+    this.mock.record = new compose.Record(this.mock.module, { mockField: 15 })
   },
 
   methods: {
@@ -500,7 +645,7 @@ export default {
     },
 
     fieldChanged (value, optionsType) {
-      if (!value) {
+      if (!value || value === 'count') {
         optionsType.operation = ''
       }
     },

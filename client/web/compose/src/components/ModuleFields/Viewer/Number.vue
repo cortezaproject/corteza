@@ -5,23 +5,22 @@
     <div v-if="field.options.display === 'number'" :class="classes">{{ formatted }}</div>
 
     <div v-else>
-      <b-progress
+      <c-progress
         v-for="(v, i) in formatted"
         :key="i"
-        :max="field.options.max"
-        height="1.5rem"
-        class="bg-light"
+        :value="parseFloat(v)"
+        :min="parseFloat(field.options.min)"
+        :max="parseFloat(field.options.max)"
+        :labeled="field.options.showValue"
+        :relative="field.options.showRelative"
+        :progress="field.options.showProgress"
+        :striped="field.options.striped"
+        :animated="field.options.animated"
+        :variant="field.options.variant"
+        :thresholds="field.options.thresholds"
         :class="{ 'mt-2': i }"
-      >
-        <b-progress-bar
-          :value="v"
-          :striped="field.options.striped"
-          :animated="field.options.animated"
-          :variant="getProgressVariant(v)"
-        >
-          {{ getProgressLabel(v) }}
-        </b-progress-bar>
-      </b-progress>
+        style="height: 1.5rem;"
+      />
     </div>
 
     <errors :errors="errors" />
@@ -30,14 +29,20 @@
 
 <script>
 import base from './base'
+import { components } from '@cortezaproject/corteza-vue'
+const { CProgress } = components
 
 export default {
+  components: {
+    CProgress,
+  },
+
   extends: base,
 
   computed: {
     formatted () {
-      if (!this.value) {
-        return
+      if (this.value === undefined) {
+        return this.field.options.display === 'number' ? undefined : [this.field.options.min]
       }
 
       const value = this.field.isMulti ? this.value : [this.value]
@@ -45,44 +50,8 @@ export default {
       if (this.field.options.display === 'number') {
         return value.map(v => this.field.formatValue(v)).join(this.field.options.multiDelimiter)
       } else {
-        return value
+        return value.length ? value : [this.field.options.min]
       }
-    },
-
-    sortedVariants () {
-      return [...this.field.options.thresholds].filter(t => t.value >= 0).sort((a, b) => b.value - a.value)
-    },
-  },
-
-  methods: {
-    getProgressLabel (value) {
-      const { max, showValue, showRelative, showProgress } = this.field.options
-
-      if (!showValue) {
-        return
-      }
-
-      if (showRelative) {
-        // https://stackoverflow.com/a/21907972/17926309
-        value = `${Math.round(((value / max) * 100) * 100) / 100}%`
-      }
-
-      if (showProgress) {
-        value = `${value} / ${showRelative ? '100' : max}${showRelative ? '%' : ''}`
-      }
-
-      return value
-    },
-
-    getProgressVariant (value) {
-      let progressVariant = this.field.options.variant
-
-      if (this.field.options.thresholds.length) {
-        const { variant } = this.sortedVariants.find(t => value >= t.value) || {}
-        progressVariant = variant || progressVariant
-      }
-
-      return progressVariant
     },
   },
 }
