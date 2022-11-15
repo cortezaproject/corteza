@@ -75,6 +75,9 @@ func (wrap *composeNamespace) UnmarshalYAML(n *yaml.Node) (err error) {
 
 	return y7s.Each(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
+		case "namespaceID":
+			return y7s.DecodeScalar(v, "namespace ID", &wrap.res.ID)
+
 		case "modules":
 			return v.Decode(&wrap.modules)
 

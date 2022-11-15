@@ -73,7 +73,7 @@ func (wrap *composePage) UnmarshalYAML(n *yaml.Node) (err error) {
 
 	return y7s.EachMap(n, func(k, v *yaml.Node) (err error) {
 		switch strings.ToLower(k.Value) {
-		case "id", "pageid":
+		case "id", "pageid", "pageID":
 			return y7s.DecodeScalar(v, "page ID", &wrap.res.ID)
 
 		case "title":

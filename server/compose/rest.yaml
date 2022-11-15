@@ -154,7 +154,6 @@ endpoints:
         title: Duplicate name
       - type: string
         name: slug
-        required: true
         title: Duplicate slug
   - name: export
     path: "/{namespaceID}/export/{filename}.zip"
@@ -201,7 +200,6 @@ endpoints:
         title: Imported namespace name
       - type: string
         name: slug
-        required: true
         title: Imported namespace slug
   - name: triggerScript
     method: POST

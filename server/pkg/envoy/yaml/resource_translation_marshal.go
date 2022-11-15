@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 
 	composeTypes "github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/envoy"
 	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
+	"github.com/spf13/cast"
 	"golang.org/x/text/language"
 )
 
@@ -92,7 +92,11 @@ func (r *resourceTranslation) makeResourceTranslationResource(state *envoy.Resou
 			if p1 == nil {
 				return "", resource.ComposeNamespaceErrUnresolved(res.RefRes.Identifiers)
 			}
-			p1ID = p1.Slug
+			if p1.Slug == "" {
+				p1ID = cast.ToString(p1.ID)
+			} else {
+				p1ID = p1.Slug
+			}
 		}
 
 		return fmt.Sprintf(composeTypes.NamespaceResourceTranslationTpl(), composeTypes.NamespaceResourceTranslationType, p1ID), nil
@@ -103,7 +107,12 @@ func (r *resourceTranslation) makeResourceTranslationResource(state *envoy.Resou
 			if p0 == nil {
 				return "", resource.ComposeNamespaceErrUnresolved(res.RefPath[0].Identifiers)
 			}
-			p0ID = p0.Slug
+
+			if p0.Slug == "" {
+				p0ID = cast.ToString(p0.ID)
+			} else {
+				p0ID = p0.Slug
+			}
 		}
 
 		if res.RefRes != nil {
@@ -111,7 +120,12 @@ func (r *resourceTranslation) makeResourceTranslationResource(state *envoy.Resou
 			if p1 == nil {
 				return "", resource.ComposeModuleErrUnresolved(res.RefRes.Identifiers)
 			}
-			p1ID = p1.Handle
+
+			if p1.Handle == "" {
+				p1ID = cast.ToString(p1.ID)
+			} else {
+				p1ID = p1.Handle
+			}
 		}
 
 		return fmt.Sprintf(composeTypes.ModuleResourceTranslationTpl(), composeTypes.ModuleResourceTranslationType, p0ID, p1ID), nil
@@ -122,7 +136,12 @@ func (r *resourceTranslation) makeResourceTranslationResource(state *envoy.Resou
 			if p0 == nil {
 				return "", resource.ComposeNamespaceErrUnresolved(res.RefPath[0].Identifiers)
 			}
-			p0ID = p0.Slug
+
+			if p0.Slug == "" {
+				p0ID = cast.ToString(p0.ID)
+			} else {
+				p0ID = p0.Slug
+			}
 		}
 
 		if res.RefRes != nil {
@@ -132,7 +151,7 @@ func (r *resourceTranslation) makeResourceTranslationResource(state *envoy.Resou
 			}
 
 			if p1.Handle == "" {
-				p1ID = strconv.FormatUint(p1.ID, 10)
+				p1ID = cast.ToString(p1.ID)
 			} else {
 				p1ID = p1.Handle
 			}
@@ -145,13 +164,23 @@ func (r *resourceTranslation) makeResourceTranslationResource(state *envoy.Resou
 		if p0 == nil {
 			return "", resource.ComposeNamespaceErrUnresolved(res.RefPath[0].Identifiers)
 		}
-		p0ID = p0.Slug
+
+		if p0.Slug == "" {
+			p0ID = cast.ToString(p0.ID)
+		} else {
+			p0ID = p0.Slug
+		}
 
 		p1 := resource.FindComposeModule(state.ParentResources, res.RefPath[1].Identifiers)
 		if p1 == nil {
 			return "", resource.ComposeModuleErrUnresolved(res.RefPath[1].Identifiers)
 		}
-		p1ID = p1.Handle
+
+		if p1.Handle == "" {
+			p1ID = cast.ToString(p1.ID)
+		} else {
+			p1ID = p1.Handle
+		}
 
 		// field
 		f := resource.FindComposeModuleField(state.ParentResources, res.RefPath[1].Identifiers, res.RefRes.Identifiers)
@@ -168,7 +197,12 @@ func (r *resourceTranslation) makeResourceTranslationResource(state *envoy.Resou
 			if p0 == nil {
 				return "", resource.ComposeNamespaceErrUnresolved(res.RefPath[0].Identifiers)
 			}
-			p0ID = p0.Slug
+
+			if p0.Slug == "" {
+				p0ID = cast.ToString(p0.ID)
+			} else {
+				p0ID = p0.Slug
+			}
 		}
 
 		if res.RefRes != nil {
@@ -176,7 +210,12 @@ func (r *resourceTranslation) makeResourceTranslationResource(state *envoy.Resou
 			if p1 == nil {
 				return "", resource.ComposeChartErrUnresolved(res.RefRes.Identifiers)
 			}
-			p1ID = p1.Handle
+
+			if p1.Handle == "" {
+				p1ID = cast.ToString(p1.ID)
+			} else {
+				p1ID = p1.Handle
+			}
 		}
 
 		return fmt.Sprintf(composeTypes.ChartResourceTranslationTpl(), composeTypes.ChartResourceTranslationType, p0ID, p1ID), nil
