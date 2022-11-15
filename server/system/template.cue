@@ -49,11 +49,11 @@ template: {
 		indexes: {
 			"primary": { attribute: "id" }
 			"unique_language_handle": {
-				unique: true
 				fields: [
 					{ attribute: "language" },
 					{ attribute: "handle", modifier: [ "LOWERCASE" ] }
 				]
+				predicate: "handle != '' AND deleted_at IS NULL"
 			}
 		}
 	}

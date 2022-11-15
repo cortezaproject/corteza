@@ -58,6 +58,9 @@ func (wrap *composeChart) UnmarshalYAML(n *yaml.Node) (err error) {
 
 	return y7s.EachMap(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
+		case "chartID":
+			return y7s.DecodeScalar(v, "chart ID", &wrap.res.ID)
+
 		case "handle":
 			return y7s.DecodeScalar(v, "chart handle", &wrap.res.Handle)
 

@@ -3,9 +3,9 @@ package yaml
 import (
 	"context"
 	"io"
+	"regexp"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/handle"
 	"github.com/cortezaproject/corteza/server/pkg/y7s"
 	. "github.com/cortezaproject/corteza/server/pkg/y7s"
 
@@ -21,6 +21,10 @@ type (
 	EnvoyMarshler interface {
 		MarshalEnvoy() ([]resource.Interface, error)
 	}
+)
+
+var (
+	validReference = regexp.MustCompile(`^[A-Za-z1-9][0-9A-Za-z_\-.]*[A-Za-z0-9]$`)
 )
 
 func Decoder() *decoder {
@@ -68,10 +72,14 @@ func decodeRef(n *yaml.Node, refType string, ref *string) error {
 		return y7s.NodeErr(n, "%s reference must be scalar", refType)
 	}
 
-	if !handle.IsValid(n.Value) {
-		return y7s.NodeErr(n, "%s reference must be a valid handle", refType)
+	if !IsValidRef(n.Value) {
+		return y7s.NodeErr(n, "%s reference must be a valid ID or Handle", refType)
 	}
 
 	*ref = n.Value
 	return nil
+}
+
+func IsValidRef(s string) bool {
+	return len(s) >= 2 && validReference.MatchString(s)
 }

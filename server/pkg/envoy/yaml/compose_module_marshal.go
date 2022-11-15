@@ -123,6 +123,7 @@ func (c *composeModule) MarshalYAML() (interface{}, error) {
 	}
 
 	nn, err := makeMap(
+		"moduleID", c.res.ID,
 		"handle", c.res.Handle,
 		"name", c.res.Name,
 		"meta", auxMeta,

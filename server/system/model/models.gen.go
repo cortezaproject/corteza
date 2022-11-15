@@ -2328,10 +2328,10 @@ var Template = &dal.Model{
 		},
 
 		&dal.Index{
-			Ident:  "templates_uniqueLanguageHandle",
-			Type:   "BTREE",
-			Unique: true,
-
+			Ident:     "templates_uniqueLanguageHandle",
+			Type:      "BTREE",
+			Unique:    true,
+			Predicate: "handle != '' AND deleted_at IS NULL",
 			Fields: []*dal.IndexField{
 				{
 					AttributeIdent: "Language",

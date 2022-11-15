@@ -85,6 +85,7 @@ func (n *composeChart) Encode(ctx context.Context, doc *Document, state *envoy.R
 
 func (c *composeChart) MarshalYAML() (interface{}, error) {
 	nn, err := makeMap(
+		"chartID", c.res.ID,
 		"handle", c.res.Handle,
 		"name", c.res.Name,
 		"config", c.chartConfig,

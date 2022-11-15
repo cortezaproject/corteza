@@ -871,7 +871,7 @@ endpoints:
     path: "/"
     parameters:
       post:
-      - { name: handle, type: "string",                 required: true }
+      - { name: handle, type: "string",                 }
       - { name: type,   type: "string",                 required: true }
       - { name: meta,   type: "types.ConnectionMeta",   required: true, parser: "types.ParseConnectionMeta" }
       - { name: config, type: "types.ConnectionConfig", required: true, parser: "types.ParseConnectionConfig" }
@@ -883,7 +883,7 @@ endpoints:
     parameters:
       path: [ { type: uint64, name: connectionID, required: true, title: "Connection ID" } ]
       post:
-      - { name: handle, type: "string",                 required: true }
+      - { name: handle, type: "string",                 }
       - { name: type,   type: "string",                 required: true }
       - { name: meta,   type: "types.ConnectionMeta",   required: true, parser: "types.ParseConnectionMeta" }
       - { name: config, type: "types.ConnectionConfig", required: true, parser: "types.ParseConnectionConfig" }

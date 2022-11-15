@@ -40,6 +40,7 @@ func (c *composeNamespace) MarshalYAML() (interface{}, error) {
 	var err error
 
 	nn, err := makeMap(
+		"namespaceID", c.res.ID,
 		"name", c.res.Name,
 		"slug", c.res.Slug,
 		"enabled", c.res.Enabled,
