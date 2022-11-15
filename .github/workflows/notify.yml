@@ -24,8 +24,9 @@ jobs:
       run: |
         echo "$GITHUB_CONTEXT"
 
+    #########################################################################################################
     # only if not a comment
-    - name: Send message on issue
+    - name: Issue created, edited or deleted
       if: ${{ !github.event.comment && github.event.issue }}
       id: matrix-chat-issue
       uses: fadenb/matrix-chat-message@v0.0.6
@@ -34,12 +35,11 @@ jobs:
         token: ${{ secrets.MATRIX_ACCESS_TOKEN }}
         channel: ${{ secrets.MATRIX_ROOM_ID }}
         message: |
-          ### [ ${{ github.event.repository.name }} ]
-          An issue has been **${{ github.event.action }}** by ${{ github.triggering_actor }}\
-          More info [here](${{ github.event.issue.html_url }})
+          **${{ github.triggering_actor }}** ${{ github.event.action }} an issue **[#${{ github.event.issue.number }} ${{ github.event.issue.title }} ](${{ github.event.issue.html_url }})** in ${{ github.event.repository.name }}:
+          
+          > ${{ github.event.issue.body }}
 
-    # only for comments
-    - name: Send message on issue comment
+    - name: Issue comment created, edited or deleted
       if: github.event_name == 'issue_comment'
       id: matrix-chat-issue-comment
       uses: fadenb/matrix-chat-message@v0.0.6
@@ -48,40 +48,14 @@ jobs:
         token: ${{ secrets.MATRIX_ACCESS_TOKEN }}
         channel: ${{ secrets.MATRIX_ROOM_ID }}
         message: |
-          ### [ ${{ github.event.repository.name }} ]
-          An issue comment has been **${{ github.event.action }}** by ${{ github.triggering_actor }}\
-          More info [here](${{ github.event.issue.html_url }})
+          **${{ github.triggering_actor }}** ${{ github.event.action }} a comment on issue **[#${{ github.event.issue.number }} ${{ github.event.issue.title }} ](${{ github.event.issue.html_url }})** in ${{ github.event.repository.name }}:          
+          
+          > ${{ github.event.comment.body }}
 
-    # only for releases
-    - name: Send message on release
-      if: github.event_name == 'release'
-      id: matrix-chat-release
-      uses: fadenb/matrix-chat-message@v0.0.6
-      with:
-        homeserver: ${{ secrets.MATRIX_HOME_SERVER }}
-        token: ${{ secrets.MATRIX_ACCESS_TOKEN }}
-        channel: ${{ secrets.MATRIX_ROOM_ID }}
-        message: |
-          ### [ ${{ github.event.repository.name }} ]
-          A release **${{ github.event.release.tag_name }}** has been **${{ github.event.action }}** by ${{ github.event.release.author.login }}\
-          More info [here](${{ github.event.release.html_url }})
 
-    # only for PR comments
-    - name: Send message on PR comment
-      if: github.event_name == 'pull_request_review_comment'
-      id: matrix-chat-pr-commented
-      uses: fadenb/matrix-chat-message@v0.0.6
-      with:
-        homeserver: ${{ secrets.MATRIX_HOME_SERVER }}
-        token: ${{ secrets.MATRIX_ACCESS_TOKEN }}
-        channel: ${{ secrets.MATRIX_ROOM_ID }}
-        message: |
-          ### [ ${{ github.event.repository.name }} ]
-          A Pull Request has been **commented on** by ${{ github.event.sender.login }}\
-          More info [here](${{ github.event.pull_request._links.html.href }})
-
+    #########################################################################################################
     # only for PR actions
-    - name: Send message on PR action
+    - name: Pull Request created, edited or deleted
       if: github.event_name == 'pull_request'
       id: matrix-chat-pr
       uses: fadenb/matrix-chat-message@v0.0.6
@@ -90,6 +64,36 @@ jobs:
         token: ${{ secrets.MATRIX_ACCESS_TOKEN }}
         channel: ${{ secrets.MATRIX_ROOM_ID }}
         message: |
-          ### [ ${{ github.event.repository.name }} ]
-          A Pull Request has been **${{ github.event.action }}** by ${{ github.event.sender.login }}\
-          More info [here](${{ github.event.pull_request._links.html.href }})
+          **${{ github.triggering_actor }}** ${{ github.event.action }} a PR **[#${{ github.event.pull_request.number }} ${{ github.event.pull_request.title }} ](${{ github.event.pull_request._links.html.href }})** in ${{ github.event.repository.name }}:
+
+          > ${{ github.event.pull_request.body }}
+
+    # only for PR comments
+    - name: Send message on PR review
+      if: github.event_name == 'pull_request_review'
+      id: matrix-chat-pr-reviewed
+      uses: fadenb/matrix-chat-message@v0.0.6
+      with:
+        homeserver: ${{ secrets.MATRIX_HOME_SERVER }}
+        token: ${{ secrets.MATRIX_ACCESS_TOKEN }}
+        channel: ${{ secrets.MATRIX_ROOM_ID }}
+        message: |
+          **${{ github.triggering_actor }}** ${{ github.event.action }} a PR review **[#${{ github.event.pull_request.number }} ${{ github.event.pull_request.title }} ](${{ github.event.pull_request._links.html.href }})** in ${{ github.event.repository.name }}:
+
+          > ${{ github.event.pull_request.body }}
+
+
+    #########################################################################################################
+    # only for releases
+#    - name: Send message on release
+#      if: github.event_name == 'release'
+#      id: matrix-chat-release
+#      uses: fadenb/matrix-chat-message@v0.0.6
+#      with:
+#        homeserver: ${{ secrets.MATRIX_HOME_SERVER }}
+#        token: ${{ secrets.MATRIX_ACCESS_TOKEN }}
+#        channel: ${{ secrets.MATRIX_ROOM_ID }}
+#        message: |
+#          ### [ ${{ github.event.repository.name }} ]
+#          A release **${{ github.event.release.tag_name }}** has been **${{ github.event.action }}** by ${{ github.event.release.author.login }}\
+#          More info [here](${{ github.event.release.html_url }})
