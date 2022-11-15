@@ -137,6 +137,8 @@ export default {
       this.$store.dispatch('chart/clearSet')
       this.$store.dispatch('page/clearSet')
 
+      this.$root.$emit('check-namespace-sidebar', !this.namespace.meta.hideSidebar)
+
       // Preload all data we need.
       Promise.all([
         this.$store.dispatch('module/load', p)

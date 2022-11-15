@@ -22,6 +22,19 @@
         >
           {{ $t('visit') }}
         </b-button>
+        <b-button
+          v-if="namespace.canManageNamespace"
+          :title="$t('configure')"
+          data-test-id="button-visit-admin-panel"
+          variant="primary"
+          class="d-flex align-items-center"
+          :to="{ name: 'admin.modules', params: { slug: namespace.slug } }"
+          style="margin-left:2px;"
+        >
+          <font-awesome-icon
+            :icon="['fas', 'cogs']"
+          />
+        </b-button>
         <namespace-translator
           v-if="namespace"
           :namespace="namespace"
@@ -213,7 +226,7 @@
 
             <b-form-group
               :label="$t('description.label')"
-              class="mb-0"
+              class="mb-3"
             >
               <b-input-group>
                 <b-form-textarea
@@ -231,6 +244,18 @@
                   />
                 </b-input-group-append>
               </b-input-group>
+            </b-form-group>
+            <hr>
+
+            <b-form-group
+              :label="$t('sidebar.configure')"
+            >
+              <b-form-checkbox
+                v-model="namespace.meta.hideSidebar"
+                data-test-id="checkbox-show-sidebar"
+              >
+                {{ $t('sidebar.hide') }}
+              </b-form-checkbox>
             </b-form-group>
           </b-form>
 
@@ -432,6 +457,7 @@ export default {
       this.namespace.meta = {
         subtitle: '',
         description: '',
+        hideSidebar: false,
         ...this.namespace.meta,
       }
 
@@ -550,6 +576,7 @@ export default {
       this.namespace.meta = {
         subtitle: '',
         description: '',
+        hideSidebar: false,
         ...this.namespace.meta,
       }
     },

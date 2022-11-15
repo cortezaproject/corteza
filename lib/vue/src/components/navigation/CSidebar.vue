@@ -226,19 +226,29 @@ export default {
   watch: {
     '$route.name': {
       immediate: true,
-      handler (name) {
-        // If sidebar should be disabled on route, close and unpin when navigating to route
-        if (this.disabledRoutes.includes(name)) {
-          this.isPinned = false
-          this.isExpanded = false
-        } else if(this.expandOnHover){
-          this.defaultSidebarAppearance()
-        }
+      handler () {
+        this.checkSidebar()
       },
     },
+
+    disabledRoutes: {
+      handler () {
+        this.checkSidebar()
+      },
+    }
   },
 
   methods: {
+    checkSidebar () {
+      // If sidebar should be disabled on route, close and unpin when navigating to route
+      if (this.disabledRoutes.includes(this.$route.name)) {
+        this.isPinned = false
+        this.isExpanded = false
+      } else if(this.expandOnHover){
+        this.defaultSidebarAppearance()
+      }
+    },
+
     onHover: throttle(function (expand) {
       if (!this.pinned && this.expandOnHover) {
         setTimeout(() => {
