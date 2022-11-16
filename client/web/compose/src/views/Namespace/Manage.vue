@@ -38,7 +38,7 @@
           :fields="namespacesFields"
           :items="namespaceList"
           :translations="{
-            searchPlaceholder: $t('toolbar.search.placeholder'),
+            searchPlaceholder: $t('namespace:searchPlaceholder'),
             notFound: $t('general:resourceList.notFound'),
             noItems: $t('general:resourceList.noItems'),
             loading: $t('general:label.loading'),
