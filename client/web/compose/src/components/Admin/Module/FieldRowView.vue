@@ -3,6 +3,13 @@
     <td />
     <td class="pl-3">
       {{ field.name }}
+      <b-badge
+        v-if="field.omit"
+        variant="info"
+        class="ml-2 align-middle"
+      >
+        {{ $t('unavailable') }}
+      </b-badge>
     </td>
     <td class="pl-3">
       {{ field.label }}
