@@ -47,17 +47,33 @@
     </b-form-group>
 
     <b-form-group
-      :label="$t('system-fields.label')"
       :description="$t('system-fields.description')"
     >
+      <div class="my-4 d-flex justify-content-between align-items-center flex-wrap">
+        <label>
+          {{ $t('system-fields.label') }}
+        </label>
+        <b-form-radio-group
+          v-model="selectedGroup"
+          buttons
+          button-variant="outline-secondary"
+          size="sm"
+          name="buttons"
+          :options="optionsGroups"
+          class="mb-3"
+          @change="applySelectedSystemFields"
+        />
+      </div>
+
       <dal-field-store-encoding
-        v-for="({ field, storeIdent, label }) in systemFields"
+        v-for="({ field, storeIdent, label, disabled }) in systemFields"
         :key="field"
         :config="systemFieldEncoding[field] || {}"
         :field="field"
         :label="label"
         :store-ident="storeIdent"
         :allow-omit-strategy="true"
+        :disabled="disabled"
         @change="applySystemFieldStrategyConfig(field, $event)"
       />
     </b-form-group>
@@ -93,18 +109,18 @@ export default {
   data () {
     const systemFieldEncoding = this.module.config.dal.systemFieldEncoding || {}
     const systemFields = [
-      { field: 'id', storeIdent: 'id' },
-      { field: 'namespaceID', storeIdent: 'rel_namespace' },
-      { field: 'moduleID', storeIdent: 'rel_module' },
-      { field: 'revision', storeIdent: 'revision' },
-      { field: 'meta', storeIdent: 'meta' },
-      { field: 'ownedBy', storeIdent: 'owned_by' },
-      { field: 'createdAt', storeIdent: 'created_at' },
-      { field: 'createdBy', storeIdent: 'created_by' },
-      { field: 'updatedAt', storeIdent: 'updated_at' },
-      { field: 'updatedBy', storeIdent: 'updated_by' },
-      { field: 'deletedAt', storeIdent: 'deleted_at' },
-      { field: 'deletedBy', storeIdent: 'deleted_by' },
+      { field: 'id', storeIdent: 'id', disabled: true },
+      { field: 'namespaceID', storeIdent: 'rel_namespace', group: 'partition' },
+      { field: 'moduleID', storeIdent: 'rel_module', group: 'partition' },
+      { field: 'revision', storeIdent: 'revision', group: 'extras' },
+      { field: 'meta', storeIdent: 'meta', group: 'extras' },
+      { field: 'ownedBy', storeIdent: 'owned_by', group: 'user_reference' },
+      { field: 'createdAt', storeIdent: 'created_at', group: 'timestamps' },
+      { field: 'createdBy', storeIdent: 'created_by', group: 'user_reference' },
+      { field: 'updatedAt', storeIdent: 'updated_at', group: 'timestamps' },
+      { field: 'updatedBy', storeIdent: 'updated_by', group: 'user_reference' },
+      { field: 'deletedAt', storeIdent: 'deleted_at', group: 'timestamps' },
+      { field: 'deletedBy', storeIdent: 'deleted_by', group: 'user_reference' },
     ].map(sf => ({ ...sf, label: this.$t(`field:system.${sf.field}`) }))
 
     return {
@@ -113,12 +129,20 @@ export default {
 
       moduleFields: [],
       moduleFieldEncoding: [],
+      selectedGroup: '',
 
       systemFields,
       systemFieldEncoding: systemFields.reduce((enc, { field }) => {
         enc[field] = systemFieldEncoding[field] || {}
         return enc
       }, {}),
+      optionsGroups: [
+        { text: this.$t('system-fields.grouptypes.all'), value: 'all' },
+        { text: this.$t('system-fields.grouptypes.partition'), value: 'partition' },
+        { text: this.$t('system-fields.grouptypes.userReference'), value: 'user_reference' },
+        { text: this.$t('system-fields.grouptypes.timestamps'), value: 'timestamps' },
+        { text: this.$t('system-fields.grouptypes.extras'), value: 'extras' },
+      ],
     }
   },
 
@@ -217,6 +241,19 @@ export default {
           }
           return enc
         }, {})
+    },
+
+    applySelectedSystemFields (selectedOption) {
+      this.systemFieldEncoding = this.systemFields.reduce((enc, { field, group }) => {
+        if (field !== 'id') {
+          if (selectedOption === 'all') {
+            enc[field] = {}
+          } else {
+            enc[field] = group === selectedOption ? {} : { omit: true }
+          }
+        }
+        return enc
+      }, {})
     },
   },
 }

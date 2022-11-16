@@ -111,8 +111,16 @@ edit:
           System fields are used to store metadata about the record. 
           Configure to skip or store them into a column with the same name (Column),
           a different column (Alias) or encode them into JSON.
+        grouptypes:
+          all: All
+          partition: Partition
+          userReference: User reference
+          timestamps: Timestamps
+          extras: Extras
+
 
       encoding-strategy:
+        unavailable: unavailable
         ident:
           placeholder: Field or database table column name
 
