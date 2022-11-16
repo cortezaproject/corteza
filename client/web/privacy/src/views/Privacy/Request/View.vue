@@ -50,6 +50,7 @@
           :borderless="false"
           :disabled="!request || !isPending"
           variant="primary"
+          variant-ok="primary"
           size="lg"
           size-confirm="lg"
           class="ml-2"
