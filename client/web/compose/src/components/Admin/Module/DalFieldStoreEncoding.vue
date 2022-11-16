@@ -10,8 +10,17 @@
       <b-form-checkbox
         v-if="allowOmitStrategy"
         v-model="use"
+        :disabled="disabled"
       >
         {{ label }}
+
+        <b-badge
+          v-if="!use"
+          variant="info"
+          class="ml-2 align-middle"
+        >
+          {{ $t('unavailable') }}
+        </b-badge>
       </b-form-checkbox>
       <div
         v-else
@@ -97,6 +106,11 @@ export default {
     allowOmitStrategy: {
       type: Boolean,
       default: true,
+    },
+
+    disabled: {
+      type: Boolean,
+      default: false,
     },
   },
 
