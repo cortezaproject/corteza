@@ -3,9 +3,9 @@ package provision
 import (
 	"testing"
 
-	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
-	federationTypes "github.com/cortezaproject/corteza-server/federation/types"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
+	composeTypes "github.com/cortezaproject/corteza/server/compose/types"
+	federationTypes "github.com/cortezaproject/corteza/server/federation/types"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/stretchr/testify/require"
 )
 

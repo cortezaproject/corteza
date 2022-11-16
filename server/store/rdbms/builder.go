@@ -3,7 +3,7 @@ package rdbms
 import (
 	"fmt"
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza/server/store"
 	"strings"
 )
 

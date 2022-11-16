@@ -6,11 +6,11 @@ import (
 	"github.com/spf13/cast"
 	"strings"
 
-	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
-	federationTypes "github.com/cortezaproject/corteza-server/federation/types"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
-	"github.com/cortezaproject/corteza-server/store"
+	composeTypes "github.com/cortezaproject/corteza/server/compose/types"
+	federationTypes "github.com/cortezaproject/corteza/server/federation/types"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
+	"github.com/cortezaproject/corteza/server/store"
 	"go.uber.org/zap"
 )
 

@@ -49,7 +49,7 @@ package tests
 //
 
 import (
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza/server/store"
 	"testing"
 )
 

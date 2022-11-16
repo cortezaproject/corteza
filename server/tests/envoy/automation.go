@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/automation/types"
-	su "github.com/cortezaproject/corteza-server/pkg/envoy/store"
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza/server/automation/types"
+	su "github.com/cortezaproject/corteza/server/pkg/envoy/store"
+	"github.com/cortezaproject/corteza/server/store"
 )
 
 func sTestAutomationWorkflow(ctx context.Context, t *testing.T, s store.Storer, pfx string) *types.Workflow {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/pkg/ql"
+	"github.com/cortezaproject/corteza/server/pkg/ql"
 )
 
 func sqlFunctionHandler(f ql.Function) (ql.ASTNode, error) {

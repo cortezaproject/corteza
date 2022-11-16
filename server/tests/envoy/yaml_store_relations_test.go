@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
-	su "github.com/cortezaproject/corteza-server/pkg/envoy/store"
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/auth"
+	su "github.com/cortezaproject/corteza/server/pkg/envoy/store"
+	"github.com/cortezaproject/corteza/server/store"
 	"github.com/stretchr/testify/require"
 )
 

@@ -8,9 +8,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/pkg/options"
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/crusttech/go-oidc"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"

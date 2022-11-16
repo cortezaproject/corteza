@@ -6,9 +6,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/pkg/expr"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/qlng"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/qlng"
 	"github.com/spf13/cast"
 )
 

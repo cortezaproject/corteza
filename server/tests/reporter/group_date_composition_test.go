@@ -3,7 +3,7 @@ package reporter
 import (
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/pkg/report"
+	"github.com/cortezaproject/corteza/server/pkg/report"
 )
 
 func Test_group_date_composition(t *testing.T) {

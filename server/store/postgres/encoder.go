@@ -1,6 +1,6 @@
 package postgres
 
-import "github.com/cortezaproject/corteza-server/pkg/ql"
+import "github.com/cortezaproject/corteza/server/pkg/ql"
 
 type (
 	// QueryEncoder provides query parts encoding rules for Postgres

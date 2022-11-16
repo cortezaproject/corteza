@@ -1,4 +1,4 @@
-module github.com/cortezaproject/corteza-server
+module github.com/cortezaproject/corteza/server
 
 go 1.17
 

@@ -4,8 +4,8 @@ package plugin
 // that exec plugin functions
 
 import (
-	"github.com/cortezaproject/corteza-server/automation/types"
-	sdk "github.com/cortezaproject/corteza-server/sdk/plugin"
+	"github.com/cortezaproject/corteza/server/automation/types"
+	sdk "github.com/cortezaproject/corteza/server/sdk/plugin"
 )
 
 type (

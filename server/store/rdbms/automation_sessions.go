@@ -2,8 +2,8 @@ package rdbms
 
 import (
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/automation/types"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/automation/types"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 )
 
 func (s Store) convertAutomationSessionFilter(f types.SessionFilter) (query squirrel.SelectBuilder, err error) {

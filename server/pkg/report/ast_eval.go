@@ -1,8 +1,8 @@
 package report
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/expr"
-	"github.com/cortezaproject/corteza-server/pkg/qlng"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/pkg/qlng"
 )
 
 type (

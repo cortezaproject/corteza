@@ -3,7 +3,7 @@ package reporter
 import (
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/pkg/report"
+	"github.com/cortezaproject/corteza/server/pkg/report"
 )
 
 func Test_load_paging_no_sort(t *testing.T) {

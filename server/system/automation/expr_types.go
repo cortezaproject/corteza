@@ -6,10 +6,10 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/pkg/expr"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
+	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/spf13/cast"
 )
 

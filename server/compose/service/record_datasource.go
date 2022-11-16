@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/errors"
-	"github.com/cortezaproject/corteza-server/pkg/report"
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/cortezaproject/corteza/server/pkg/report"
+	"github.com/cortezaproject/corteza/server/store"
 	"github.com/spf13/cast"
 )
 

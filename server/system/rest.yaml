@@ -26,8 +26,8 @@ endpoints:
   entrypoint: authClient
   authentication: []
   imports:
-    - github.com/cortezaproject/corteza-server/pkg/label
-    - github.com/cortezaproject/corteza-server/system/types
+    - github.com/cortezaproject/corteza/server/pkg/label
+    - github.com/cortezaproject/corteza/server/system/types
     - time
   apis:
   - name: list
@@ -152,7 +152,7 @@ endpoints:
   entrypoint: settings
   authentication: []
   imports:
-    - github.com/cortezaproject/corteza-server/system/types
+    - github.com/cortezaproject/corteza/server/system/types
   apis:
   - name: list
     method: GET
@@ -218,8 +218,8 @@ endpoints:
   - Client ID
   - Session ID
   imports:
-    - github.com/cortezaproject/corteza-server/pkg/label
-    - github.com/cortezaproject/corteza-server/system/types
+    - github.com/cortezaproject/corteza/server/pkg/label
+    - github.com/cortezaproject/corteza/server/system/types
   apis:
   - name: list
     method: GET
@@ -403,8 +403,8 @@ endpoints:
   - Client ID
   - Session ID
   imports:
-    - github.com/cortezaproject/corteza-server/pkg/label
-    - github.com/cortezaproject/corteza-server/system/types
+    - github.com/cortezaproject/corteza/server/pkg/label
+    - github.com/cortezaproject/corteza/server/system/types
   apis:
   - name: list
     method: GET
@@ -706,7 +706,7 @@ endpoints:
   entrypoint: application
   authentication: []
   imports:
-    - github.com/cortezaproject/corteza-server/pkg/label
+    - github.com/cortezaproject/corteza/server/pkg/label
     - sqlxTypes github.com/jmoiron/sqlx/types
   apis:
   - name: list
@@ -935,7 +935,7 @@ endpoints:
   - Client ID
   - Session ID
   imports:
-    - github.com/cortezaproject/corteza-server/pkg/rbac
+    - github.com/cortezaproject/corteza/server/pkg/rbac
   apis:
   - name: list
     path: "/"
@@ -1232,8 +1232,8 @@ endpoints:
   path: "/template"
   entrypoint: template
   imports:
-    - github.com/cortezaproject/corteza-server/system/types
-    - github.com/cortezaproject/corteza-server/pkg/label
+    - github.com/cortezaproject/corteza/server/system/types
+    - github.com/cortezaproject/corteza/server/pkg/label
   authentication:
   - Client ID
   - SessionID
@@ -1410,9 +1410,9 @@ endpoints:
   entrypoint: report
   authentication: []
   imports:
-    - github.com/cortezaproject/corteza-server/pkg/label
-    - github.com/cortezaproject/corteza-server/pkg/report
-    - github.com/cortezaproject/corteza-server/system/types
+    - github.com/cortezaproject/corteza/server/pkg/label
+    - github.com/cortezaproject/corteza/server/pkg/report
+    - github.com/cortezaproject/corteza/server/system/types
   apis:
   - name: list
     method: GET
@@ -1635,7 +1635,7 @@ endpoints:
   entrypoint: queues
   path: "/queues"
   imports:
-    - github.com/cortezaproject/corteza-server/system/types
+    - github.com/cortezaproject/corteza/server/system/types
   apis:
   - name: list
     method: GET
@@ -1695,8 +1695,8 @@ endpoints:
   entrypoint: apigwRoute
   authentication: []
   imports:
-    - github.com/cortezaproject/corteza-server/system/types
-    - github.com/cortezaproject/corteza-server/pkg/label
+    - github.com/cortezaproject/corteza/server/system/types
+    - github.com/cortezaproject/corteza/server/pkg/label
   apis:
   - name: list
     method: GET
@@ -1756,7 +1756,7 @@ endpoints:
   entrypoint: apigwFilter
   authentication: []
   imports:
-    - github.com/cortezaproject/corteza-server/system/types
+    - github.com/cortezaproject/corteza/server/system/types
   apis:
   - name: list
     method: GET

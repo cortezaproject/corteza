@@ -1,6 +1,6 @@
 package report
 
-import "github.com/cortezaproject/corteza-server/pkg/qlng"
+import "github.com/cortezaproject/corteza/server/pkg/qlng"
 
 func (a *Filter) mergeAnd(b *Filter) *Filter {
 	return merger(a, b, "and")

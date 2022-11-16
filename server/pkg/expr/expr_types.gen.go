@@ -11,7 +11,7 @@ package expr
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/http"
+	"github.com/cortezaproject/corteza/server/pkg/http"
 	"io"
 	"net/url"
 	"sync"

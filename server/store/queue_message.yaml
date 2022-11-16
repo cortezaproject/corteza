@@ -1,5 +1,5 @@
 import:
-  - github.com/cortezaproject/corteza-server/system/types
+  - github.com/cortezaproject/corteza/server/system/types
 
 fields:
   - { field: ID,        sortable: false }

@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 )
 
 type (

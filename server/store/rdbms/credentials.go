@@ -2,8 +2,8 @@ package rdbms
 
 import (
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/system/types"
 )
 
 func (s Store) convertCredentialsFilter(f types.CredentialsFilter) (query squirrel.SelectBuilder, err error) {

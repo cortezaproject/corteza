@@ -10,7 +10,7 @@ package request
 
 import (
 	"encoding/json"
-	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/cortezaproject/corteza/server/pkg/payload"
 	"github.com/go-chi/chi/v5"
 	"io"
 	"fmt"

@@ -1,7 +1,7 @@
 package store
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/slice"
+	"github.com/cortezaproject/corteza/server/pkg/slice"
 )
 
 type (

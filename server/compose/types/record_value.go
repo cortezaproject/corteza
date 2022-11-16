@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/expr"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 )

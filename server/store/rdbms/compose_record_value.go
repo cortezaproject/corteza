@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 )
 
 func (s Store) convertComposeRecordValueFilter(_ *types.Module, f types.RecordValueFilter) (query squirrel.SelectBuilder, err error) {

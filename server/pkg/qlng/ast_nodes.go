@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/spf13/cast"
 )
 

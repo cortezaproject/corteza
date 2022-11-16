@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
-	"github.com/cortezaproject/corteza-server/system/types"
-	"github.com/cortezaproject/corteza-server/tests/helpers"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
+	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/cortezaproject/corteza/server/tests/helpers"
 	"github.com/steinfletcher/apitest-jsonpath"
 )
 

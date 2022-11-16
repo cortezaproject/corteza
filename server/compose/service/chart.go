@@ -2,13 +2,13 @@ package service
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/pkg/errors"
-	"github.com/cortezaproject/corteza-server/pkg/handle"
-	"github.com/cortezaproject/corteza-server/pkg/label"
-	"github.com/cortezaproject/corteza-server/pkg/locale"
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/cortezaproject/corteza/server/pkg/handle"
+	"github.com/cortezaproject/corteza/server/pkg/label"
+	"github.com/cortezaproject/corteza/server/pkg/locale"
+	"github.com/cortezaproject/corteza/server/store"
 	"reflect"
 	"strconv"
 )

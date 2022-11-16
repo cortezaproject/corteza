@@ -10,7 +10,7 @@ package store
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/flag/types"
+	"github.com/cortezaproject/corteza/server/pkg/flag/types"
 )
 
 type (

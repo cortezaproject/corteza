@@ -1,6 +1,6 @@
 package: automation
 imports:
-  - github.com/cortezaproject/corteza-server/compose/types
+  - github.com/cortezaproject/corteza/server/compose/types
 
 types:
   ComposeNamespace:

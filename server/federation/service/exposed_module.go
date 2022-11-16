@@ -4,15 +4,15 @@ import (
 	"context"
 	"strconv"
 
-	cs "github.com/cortezaproject/corteza-server/compose/service"
-	ct "github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/federation/types"
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
-	"github.com/cortezaproject/corteza-server/store"
-	ss "github.com/cortezaproject/corteza-server/system/service"
-	st "github.com/cortezaproject/corteza-server/system/types"
+	cs "github.com/cortezaproject/corteza/server/compose/service"
+	ct "github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/federation/types"
+	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	"github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
+	"github.com/cortezaproject/corteza/server/store"
+	ss "github.com/cortezaproject/corteza/server/system/service"
+	st "github.com/cortezaproject/corteza/server/system/types"
 )
 
 type (

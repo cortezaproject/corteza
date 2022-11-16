@@ -3,9 +3,9 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	discovery "github.com/cortezaproject/corteza-server/discovery/types"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/locale"
+	discovery "github.com/cortezaproject/corteza/server/discovery/types"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/pkg/errors"
 	"time"

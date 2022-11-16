@@ -1,7 +1,7 @@
 package builders
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/stretchr/testify/require"
 	"testing"
 )

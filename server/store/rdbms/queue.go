@@ -4,8 +4,8 @@ import (
 	"strings"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/system/types"
 )
 
 func (s Store) convertQueueFilter(f types.QueueFilter) (query squirrel.SelectBuilder, err error) {

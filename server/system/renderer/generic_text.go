@@ -6,7 +6,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/system/types"
 )
 
 type (

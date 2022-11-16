@@ -6,13 +6,13 @@ import (
 	"strconv"
 	"testing"
 
-	atypes "github.com/cortezaproject/corteza-server/automation/types"
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
-	su "github.com/cortezaproject/corteza-server/pkg/envoy/store"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
-	"github.com/cortezaproject/corteza-server/store"
-	stypes "github.com/cortezaproject/corteza-server/system/types"
+	atypes "github.com/cortezaproject/corteza/server/automation/types"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/auth"
+	su "github.com/cortezaproject/corteza/server/pkg/envoy/store"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
+	"github.com/cortezaproject/corteza/server/store"
+	stypes "github.com/cortezaproject/corteza/server/system/types"
 	"github.com/stretchr/testify/require"
 )
 

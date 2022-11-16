@@ -3,9 +3,9 @@ package store
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/system/types"
 )
 
 func NewUserFromResource(res *resource.User, cfg *EncoderConfig) resourceState {

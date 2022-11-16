@@ -3,7 +3,7 @@ package plugin
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza-server/automation/types"
+	"github.com/cortezaproject/corteza/server/automation/types"
 	"go.uber.org/zap"
 )
 

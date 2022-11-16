@@ -7,14 +7,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/envoy"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/csv"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
-	su "github.com/cortezaproject/corteza-server/pkg/envoy/store"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/pkg/envoy"
+	"github.com/cortezaproject/corteza/server/pkg/envoy/csv"
+	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
+	su "github.com/cortezaproject/corteza/server/pkg/envoy/store"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/store"
 	"github.com/stretchr/testify/require"
 )
 

@@ -3,14 +3,14 @@ package seeder
 import (
 	"context"
 	"fmt"
-	cService "github.com/cortezaproject/corteza-server/compose/service"
+	cService "github.com/cortezaproject/corteza/server/compose/service"
 	"time"
 
-	cTypes "github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/id"
-	lTypes "github.com/cortezaproject/corteza-server/pkg/label/types"
-	"github.com/cortezaproject/corteza-server/store"
-	sTypes "github.com/cortezaproject/corteza-server/system/types"
+	cTypes "github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/id"
+	lTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
+	"github.com/cortezaproject/corteza/server/store"
+	sTypes "github.com/cortezaproject/corteza/server/system/types"
 )
 
 type (

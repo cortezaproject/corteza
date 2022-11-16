@@ -2,11 +2,11 @@ package tests
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/pkg/rand"
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/cortezaproject/corteza/server/pkg/rand"
+	"github.com/cortezaproject/corteza/server/store"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
@@ -105,9 +105,9 @@ func testComposeModules(t *testing.T, s store.ComposeModules) {
 		t.Run("existing", func(t *testing.T) {
 			req, composeModule := truncAndCreate(t)
 			composeModule.Name = "ComposeModuleCRUD+2"
-	
+
 			req.NoError(s.UpsertComposeModule(ctx, composeModule))
-	
+
 			updated, err := s.LookupComposeModuleByID(ctx, composeModule.ID)
 			req.NoError(err)
 			req.Equal(composeModule.Name, updated.Name)
@@ -118,7 +118,7 @@ func testComposeModules(t *testing.T, s store.ComposeModules) {
 			composeModule.Name = "ComposeChartCRUD+2"
 
 			req.NoError(s.UpsertComposeModule(ctx, composeModule))
-	
+
 			upserted, err := s.LookupComposeModuleByID(ctx, composeModule.ID)
 			req.NoError(err)
 			req.Equal(composeModule.Name, upserted.Name)

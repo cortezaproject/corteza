@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 	"strings"

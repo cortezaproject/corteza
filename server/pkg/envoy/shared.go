@@ -1,6 +1,6 @@
 package envoy
 
-import "github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+import "github.com/cortezaproject/corteza/server/pkg/envoy/resource"
 
 // procResSet is a little utility to run some op over given resources
 //

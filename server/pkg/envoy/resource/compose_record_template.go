@@ -1,7 +1,7 @@
 package resource
 
 import (
-	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza/server/compose/types"
 )
 
 type (

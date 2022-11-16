@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/system/types"
 )
 
 func (s Store) convertRoleMemberFilter(f types.RoleMemberFilter) (query squirrel.SelectBuilder, err error) {

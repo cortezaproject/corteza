@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/system/service"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/system/service"
+	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/lestrrat-go/jwx/jwt"
 
-	"github.com/cortezaproject/corteza-server/tests/helpers"
+	"github.com/cortezaproject/corteza/server/tests/helpers"
 )
 
 func TestAuthImpersonate(t *testing.T) {

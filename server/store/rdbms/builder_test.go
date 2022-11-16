@@ -2,7 +2,7 @@ package rdbms
 
 import (
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza/server/store"
 	"github.com/stretchr/testify/require"
 	"testing"
 )

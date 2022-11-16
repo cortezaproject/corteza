@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	autTypes "github.com/cortezaproject/corteza-server/automation/types"
+	autTypes "github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/stretchr/testify/require"
 )
 

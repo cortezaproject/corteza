@@ -3,7 +3,7 @@ package types
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 )
 
 type (

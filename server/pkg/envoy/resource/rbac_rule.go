@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
+	composeTypes "github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
 )
 
 type (

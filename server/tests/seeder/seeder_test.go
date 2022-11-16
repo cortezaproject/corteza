@@ -1,8 +1,8 @@
 package seeder
 
 import (
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/seeder"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/seeder"
 	"testing"
 )
 

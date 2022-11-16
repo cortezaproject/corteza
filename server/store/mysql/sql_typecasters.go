@@ -3,7 +3,7 @@ package mysql
 import (
 	"fmt"
 
-	"github.com/cortezaproject/corteza-server/store/rdbms"
+	"github.com/cortezaproject/corteza/server/store/rdbms"
 )
 
 // fieldToColumnTypeCaster handles special ComposeModule field query representations

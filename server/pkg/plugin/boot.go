@@ -6,7 +6,7 @@ package plugin
 import (
 	"context"
 
-	sdk "github.com/cortezaproject/corteza-server/sdk/plugin"
+	sdk "github.com/cortezaproject/corteza/server/sdk/plugin"
 	"go.uber.org/zap"
 )
 

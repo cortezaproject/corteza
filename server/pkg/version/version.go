@@ -9,7 +9,7 @@ var (
 	BuildTime = time.Now().Format(time.RFC3339)
 
 	// Version is set as LDFLAG at build time:
-	// -X github.com/cortezaproject/corteza-server/pkg/version.Version=....
+	// -X github.com/cortezaproject/corteza/server/pkg/version.Version=....
 	// See Makefile for details
 	Version = "development"
 )

@@ -2,8 +2,8 @@ package rdbms
 
 import (
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/system/types"
 )
 
 func (s Store) convertApigwFilterFilter(f types.ApigwFilterFilter) (query squirrel.SelectBuilder, err error) {

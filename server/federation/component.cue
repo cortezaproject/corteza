@@ -1,7 +1,7 @@
 package federation
 
 import (
-	"github.com/cortezaproject/corteza-server/codegen/schema"
+	"github.com/cortezaproject/corteza/server/codegen/schema"
 )
 
 component: schema.#component & {

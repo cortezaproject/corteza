@@ -8,7 +8,7 @@ import (
 	"path"
 	"text/template"
 
-	"github.com/cortezaproject/corteza-server/pkg/cli"
+	"github.com/cortezaproject/corteza/server/pkg/cli"
 )
 
 type (

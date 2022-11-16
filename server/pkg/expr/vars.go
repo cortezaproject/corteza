@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/PaesslerAG/gval"
-	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/spf13/cast"
 )
 

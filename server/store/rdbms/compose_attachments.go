@@ -3,7 +3,7 @@ package rdbms
 import (
 	"fmt"
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza/server/compose/types"
 )
 
 func (s Store) convertComposeAttachmentFilter(f types.AttachmentFilter) (query squirrel.SelectBuilder, err error) {

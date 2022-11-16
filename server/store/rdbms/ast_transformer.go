@@ -3,7 +3,7 @@ package rdbms
 import (
 	"fmt"
 
-	"github.com/cortezaproject/corteza-server/pkg/qlng"
+	"github.com/cortezaproject/corteza/server/pkg/qlng"
 )
 
 type (

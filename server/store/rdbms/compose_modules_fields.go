@@ -3,8 +3,8 @@ package rdbms
 import (
 	"fmt"
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 )
 
 func (s Store) convertComposeModuleFieldFilter(f types.ModuleFieldFilter) (query squirrel.SelectBuilder, err error) {

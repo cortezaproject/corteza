@@ -3,13 +3,13 @@ package service
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/pkg/eventbus"
-	"github.com/cortezaproject/corteza-server/pkg/messagebus"
-	mt "github.com/cortezaproject/corteza-server/pkg/messagebus/types"
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/system/service/event"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	"github.com/cortezaproject/corteza/server/pkg/eventbus"
+	"github.com/cortezaproject/corteza/server/pkg/messagebus"
+	mt "github.com/cortezaproject/corteza/server/pkg/messagebus/types"
+	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/system/service/event"
+	"github.com/cortezaproject/corteza/server/system/types"
 )
 
 type (

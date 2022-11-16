@@ -2,8 +2,8 @@ package event
 
 import (
 	"fmt"
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

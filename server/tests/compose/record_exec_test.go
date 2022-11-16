@@ -8,12 +8,12 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/compose/rest/request"
-	"github.com/cortezaproject/corteza-server/compose/service"
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/tests/helpers"
+	"github.com/cortezaproject/corteza/server/compose/rest/request"
+	"github.com/cortezaproject/corteza/server/compose/service"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/tests/helpers"
 	"github.com/steinfletcher/apitest"
 )
 

@@ -11,7 +11,7 @@ package automation
 import (
 	"context"
 	"fmt"
-	. "github.com/cortezaproject/corteza-server/pkg/expr"
+	. "github.com/cortezaproject/corteza/server/pkg/expr"
 	"sync"
 )
 

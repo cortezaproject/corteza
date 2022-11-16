@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	"github.com/cortezaproject/corteza/server/store"
 )
 
 func (s Store) convertActionlogFilter(f actionlog.Filter) (query squirrel.SelectBuilder, err error) {

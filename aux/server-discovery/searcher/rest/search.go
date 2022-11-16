@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server-discovery/searcher"
-	"github.com/cortezaproject/corteza-server-discovery/searcher/rest/request"
+	"github.com/cortezaproject/corteza/server-discovery/searcher"
+	"github.com/cortezaproject/corteza/server-discovery/searcher/rest/request"
 	"github.com/jmoiron/sqlx/types"
 	"net/http"
 )

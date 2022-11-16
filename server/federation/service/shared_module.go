@@ -3,11 +3,11 @@ package service
 import (
 	"context"
 
-	composeService "github.com/cortezaproject/corteza-server/compose/service"
-	"github.com/cortezaproject/corteza-server/federation/types"
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/store"
+	composeService "github.com/cortezaproject/corteza/server/compose/service"
+	"github.com/cortezaproject/corteza/server/federation/types"
+	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	"github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/store"
 )
 
 type (

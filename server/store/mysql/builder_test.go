@@ -2,8 +2,8 @@ package mysql
 
 import (
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/store/rdbms"
+	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/store/rdbms"
 	"github.com/stretchr/testify/require"
 	"testing"
 )

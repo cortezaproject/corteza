@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/report"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/report"
 	"github.com/spf13/cast"
 )
 

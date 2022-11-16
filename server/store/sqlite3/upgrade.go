@@ -8,8 +8,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/cortezaproject/corteza-server/store/rdbms"
-	"github.com/cortezaproject/corteza-server/store/rdbms/ddl"
+	"github.com/cortezaproject/corteza/server/store/rdbms"
+	"github.com/cortezaproject/corteza/server/store/rdbms/ddl"
 	"go.uber.org/zap"
 )
 

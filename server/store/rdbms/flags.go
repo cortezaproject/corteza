@@ -2,7 +2,7 @@ package rdbms
 
 import (
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/pkg/flag/types"
+	"github.com/cortezaproject/corteza/server/pkg/flag/types"
 )
 
 func (s Store) convertFlagFilter(f types.FlagFilter) (query squirrel.SelectBuilder, err error) {

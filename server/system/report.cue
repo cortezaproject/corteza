@@ -1,7 +1,7 @@
 package system
 
 import (
-	"github.com/cortezaproject/corteza-server/codegen/schema"
+	"github.com/cortezaproject/corteza/server/codegen/schema"
 )
 
 report: schema.#resource & {

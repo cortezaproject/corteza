@@ -3,10 +3,10 @@ package app
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server-discovery/indexer"
-	"github.com/cortezaproject/corteza-server-discovery/pkg/auth"
-	"github.com/cortezaproject/corteza-server-discovery/pkg/healthcheck"
-	"github.com/cortezaproject/corteza-server-discovery/searcher"
+	"github.com/cortezaproject/corteza/server-discovery/indexer"
+	"github.com/cortezaproject/corteza/server-discovery/pkg/auth"
+	"github.com/cortezaproject/corteza/server-discovery/pkg/healthcheck"
+	"github.com/cortezaproject/corteza/server-discovery/searcher"
 )
 
 const (

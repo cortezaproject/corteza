@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/pkg/ql"
-	"github.com/cortezaproject/corteza-server/pkg/qlng"
-	"github.com/cortezaproject/corteza-server/store/rdbms"
+	"github.com/cortezaproject/corteza/server/pkg/ql"
+	"github.com/cortezaproject/corteza/server/pkg/qlng"
+	"github.com/cortezaproject/corteza/server/store/rdbms"
 )
 
 var (

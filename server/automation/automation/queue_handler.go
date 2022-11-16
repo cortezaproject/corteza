@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cortezaproject/corteza-server/pkg/messagebus"
+	"github.com/cortezaproject/corteza/server/pkg/messagebus"
 )
 
 type (

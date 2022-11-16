@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	cmpTypes "github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/pkg/locale"
-	"github.com/cortezaproject/corteza-server/store"
-	sysTypes "github.com/cortezaproject/corteza-server/system/types"
+	cmpTypes "github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/cortezaproject/corteza/server/pkg/locale"
+	"github.com/cortezaproject/corteza/server/store"
+	sysTypes "github.com/cortezaproject/corteza/server/system/types"
 	"go.uber.org/zap"
 )
 

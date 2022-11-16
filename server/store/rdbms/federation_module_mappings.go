@@ -2,7 +2,7 @@ package rdbms
 
 import (
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/federation/types"
+	"github.com/cortezaproject/corteza/server/federation/types"
 )
 
 func (s Store) convertFederationModuleMappingFilter(f types.ModuleMappingFilter) (query squirrel.SelectBuilder, err error) {

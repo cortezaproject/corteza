@@ -1,7 +1,7 @@
 prefix: compose
 
 imports:
-  - github.com/cortezaproject/corteza-server/compose/types
+  - github.com/cortezaproject/corteza/server/compose/types
 
 params:
   moduleLookup: &moduleLookup

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/cortezaproject/corteza-server/pkg/messagebus/consumer"
-	"github.com/cortezaproject/corteza-server/pkg/messagebus/store"
-	"github.com/cortezaproject/corteza-server/pkg/messagebus/types"
-	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/cortezaproject/corteza/server/pkg/messagebus/consumer"
+	"github.com/cortezaproject/corteza/server/pkg/messagebus/store"
+	"github.com/cortezaproject/corteza/server/pkg/messagebus/types"
+	"github.com/cortezaproject/corteza/server/pkg/options"
 	"go.uber.org/zap"
 )
 

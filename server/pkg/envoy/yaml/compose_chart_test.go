@@ -3,7 +3,7 @@ package yaml
 import (
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 )

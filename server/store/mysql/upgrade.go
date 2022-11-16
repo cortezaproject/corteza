@@ -8,8 +8,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/cortezaproject/corteza-server/store/rdbms"
-	"github.com/cortezaproject/corteza-server/store/rdbms/ddl"
+	"github.com/cortezaproject/corteza/server/store/rdbms"
+	"github.com/cortezaproject/corteza/server/store/rdbms/ddl"
 	_ "github.com/go-sql-driver/mysql"
 	"go.uber.org/zap"
 )

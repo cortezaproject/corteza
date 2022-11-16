@@ -6,13 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/expr"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
-	"github.com/cortezaproject/corteza-server/pkg/xss"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
+	"github.com/cortezaproject/corteza/server/pkg/xss"
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
 
-	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza/server/compose/types"
 )
 
 type (

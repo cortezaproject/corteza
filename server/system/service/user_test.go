@@ -4,12 +4,12 @@ import (
 	"context"
 	"testing"
 
-	a "github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/eventbus"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/store/sqlite3"
-	"github.com/cortezaproject/corteza-server/system/types"
+	a "github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/pkg/eventbus"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
+	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/store/sqlite3"
+	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )

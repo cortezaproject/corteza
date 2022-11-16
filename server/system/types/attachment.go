@@ -3,7 +3,7 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"time"
 
 	"github.com/pkg/errors"

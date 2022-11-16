@@ -1,5 +1,5 @@
 import:
-  - github.com/cortezaproject/corteza-server/system/types
+  - github.com/cortezaproject/corteza/server/system/types
 
 types:
   type: types.ResourceTranslation
@@ -36,7 +36,7 @@ functions:
   - name: TransformResource
     import:
     - golang.org/x/text/language
-    - github.com/cortezaproject/corteza-server/pkg/locale
+    - github.com/cortezaproject/corteza/server/pkg/locale
     return: [ "map[string]map[string]*locale.ResourceTranslation", error ]
     arguments:
     - { name: lang, type: "language.Tag" }

@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/pkg/ql"
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza/server/pkg/ql"
+	"github.com/cortezaproject/corteza/server/store"
 )
 
 // persistance layer

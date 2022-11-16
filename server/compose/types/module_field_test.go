@@ -3,7 +3,7 @@ package types
 import (
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/pkg/locale"
+	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"github.com/stretchr/testify/require"
 )
 

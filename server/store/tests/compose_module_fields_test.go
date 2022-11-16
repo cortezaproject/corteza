@@ -2,10 +2,10 @@ package tests
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/pkg/rand"
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/cortezaproject/corteza/server/pkg/rand"
+	"github.com/cortezaproject/corteza/server/store"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
@@ -83,7 +83,7 @@ func testComposeModuleFields(t *testing.T, s store.ComposeModuleFields) {
 			composeModuleField.Name = "ComposeModuleFieldCRUD+2"
 
 			req.NoError(s.UpsertComposeModuleField(ctx, composeModuleField))
-	
+
 			upserted, err := s.LookupComposeModuleFieldByModuleIDName(ctx, composeModuleField.ModuleID, composeModuleField.Name)
 			req.NoError(err)
 			req.Equal(composeModuleField.Name, upserted.Name)
@@ -94,7 +94,7 @@ func testComposeModuleFields(t *testing.T, s store.ComposeModuleFields) {
 			composeModuleField.Name = "ComposeModuleFieldCRUD+3"
 
 			req.NoError(s.UpsertComposeModuleField(ctx, composeModuleField))
-	
+
 			upserted, err := s.LookupComposeModuleFieldByModuleIDName(ctx, composeModuleField.ModuleID, composeModuleField.Name)
 			req.NoError(err)
 			req.Equal(composeModuleField.Name, upserted.Name)

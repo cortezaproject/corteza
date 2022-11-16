@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/compose/service"
-	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza/server/compose/service"
+	"github.com/cortezaproject/corteza/server/compose/types"
 )
 
 type (

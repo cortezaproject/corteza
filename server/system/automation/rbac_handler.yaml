@@ -1,6 +1,6 @@
 imports:
-  - github.com/cortezaproject/corteza-server/system/types
-  - github.com/cortezaproject/corteza-server/pkg/rbac
+  - github.com/cortezaproject/corteza/server/system/types
+  - github.com/cortezaproject/corteza/server/pkg/rbac
 
 params:
   manageParams: &manageParams

@@ -7,11 +7,11 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/federation/service"
-	"github.com/cortezaproject/corteza-server/federation/types"
-	"github.com/cortezaproject/corteza-server/store"
-	st "github.com/cortezaproject/corteza-server/system/types"
-	"github.com/cortezaproject/corteza-server/tests/helpers"
+	"github.com/cortezaproject/corteza/server/federation/service"
+	"github.com/cortezaproject/corteza/server/federation/types"
+	"github.com/cortezaproject/corteza/server/store"
+	st "github.com/cortezaproject/corteza/server/system/types"
+	"github.com/cortezaproject/corteza/server/tests/helpers"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 	"github.com/stretchr/testify/require"
 )

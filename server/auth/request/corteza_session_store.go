@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/options"
-	"github.com/cortezaproject/corteza-server/pkg/rand"
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/cortezaproject/corteza/server/pkg/rand"
+	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 )

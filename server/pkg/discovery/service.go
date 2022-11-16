@@ -3,10 +3,10 @@ package discovery
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/discovery/types"
-	"github.com/cortezaproject/corteza-server/pkg/eventbus"
-	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/cortezaproject/corteza/server/pkg/discovery/types"
+	"github.com/cortezaproject/corteza/server/pkg/eventbus"
+	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/cortezaproject/corteza/server/pkg/options"
 	"sync"
 	"time"
 

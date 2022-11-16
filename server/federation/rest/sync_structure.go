@@ -4,12 +4,12 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/cortezaproject/corteza-server/federation/rest/request"
-	"github.com/cortezaproject/corteza-server/federation/service"
-	"github.com/cortezaproject/corteza-server/federation/types"
-	"github.com/cortezaproject/corteza-server/pkg/errors"
-	"github.com/cortezaproject/corteza-server/pkg/federation"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/federation/rest/request"
+	"github.com/cortezaproject/corteza/server/federation/service"
+	"github.com/cortezaproject/corteza/server/federation/types"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/cortezaproject/corteza/server/pkg/federation"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 )
 
 type (

@@ -7,14 +7,14 @@ import (
 	"path"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/yaml"
+	"github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/pkg/envoy/yaml"
 	"github.com/spf13/cobra"
 
-	"github.com/cortezaproject/corteza-server/pkg/cli"
-	"github.com/cortezaproject/corteza-server/pkg/envoy"
-	su "github.com/cortezaproject/corteza-server/pkg/envoy/store"
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza/server/pkg/cli"
+	"github.com/cortezaproject/corteza/server/pkg/envoy"
+	su "github.com/cortezaproject/corteza/server/pkg/envoy/store"
+	"github.com/cortezaproject/corteza/server/store"
 )
 
 func Export(ctx context.Context, storeInit func(ctx context.Context) (store.Storer, error)) *cobra.Command {

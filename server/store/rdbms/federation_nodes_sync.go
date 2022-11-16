@@ -2,7 +2,7 @@ package rdbms
 
 import (
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/federation/types"
+	"github.com/cortezaproject/corteza/server/federation/types"
 )
 
 func (s Store) convertFederationNodesSyncFilter(f types.NodeSyncFilter) (query squirrel.SelectBuilder, err error) {

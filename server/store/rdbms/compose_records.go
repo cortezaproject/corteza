@@ -7,12 +7,12 @@ import (
 	"strings"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/ql"
-	"github.com/cortezaproject/corteza-server/pkg/report"
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/store/rdbms/builders"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/ql"
+	"github.com/cortezaproject/corteza/server/pkg/report"
+	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/store/rdbms/builders"
 )
 
 const (

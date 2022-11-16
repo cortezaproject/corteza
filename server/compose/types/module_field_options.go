@@ -4,7 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	discovery "github.com/cortezaproject/corteza-server/discovery/types"
+	discovery "github.com/cortezaproject/corteza/server/discovery/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 	"strconv"

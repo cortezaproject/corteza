@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/cortezaproject/corteza-server/pkg/envoy"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza/server/pkg/envoy"
+	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
 )
 
 func settingFromResource(r *resource.Setting, cfg *EncoderConfig) *setting {

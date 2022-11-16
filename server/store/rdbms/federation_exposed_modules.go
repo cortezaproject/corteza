@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/federation/types"
+	"github.com/cortezaproject/corteza/server/federation/types"
 )
 
 func (s Store) convertFederationExposedModuleFilter(f types.ExposedModuleFilter) (query squirrel.SelectBuilder, err error) {

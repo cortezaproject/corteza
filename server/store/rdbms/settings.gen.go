@@ -12,9 +12,9 @@ import (
 	"context"
 	"database/sql"
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/pkg/errors"
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/system/types"
 )
 
 var _ = errors.Is

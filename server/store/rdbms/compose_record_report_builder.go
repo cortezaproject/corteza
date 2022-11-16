@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/ql"
-	"github.com/cortezaproject/corteza-server/pkg/slice"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/ql"
+	"github.com/cortezaproject/corteza/server/pkg/slice"
 	"github.com/jmoiron/sqlx"
 )
 

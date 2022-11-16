@@ -3,7 +3,7 @@
 #       from system & compose components into one single service
 
 imports:
-  - github.com/cortezaproject/corteza-server/compose/types
+  - github.com/cortezaproject/corteza/server/compose/types
   - io
 
 labels: &labels

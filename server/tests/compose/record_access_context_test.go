@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/system/service"
-	systemTypes "github.com/cortezaproject/corteza-server/system/types"
-	"github.com/cortezaproject/corteza-server/tests/helpers"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
+	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/system/service"
+	systemTypes "github.com/cortezaproject/corteza/server/system/types"
+	"github.com/cortezaproject/corteza/server/tests/helpers"
 )
 
 func crissCrossUserRoles(ctx context.Context, s store.Storer, h helper, uu systemTypes.UserSet, rr systemTypes.RoleSet) (map[string]*systemTypes.User, map[string]*systemTypes.Role) {

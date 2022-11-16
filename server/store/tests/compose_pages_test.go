@@ -2,11 +2,11 @@ package tests
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/pkg/rand"
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/cortezaproject/corteza/server/pkg/rand"
+	"github.com/cortezaproject/corteza/server/store"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
@@ -111,7 +111,7 @@ func testComposePages(t *testing.T, s store.ComposePages) {
 			composePage.Title = "ComposePageCRUD+2"
 
 			req.NoError(s.UpsertComposePage(ctx, composePage))
-	
+
 			upserted, err := s.LookupComposePageByID(ctx, composePage.ID)
 			req.NoError(err)
 			req.Equal(composePage.Title, upserted.Title)
@@ -122,7 +122,7 @@ func testComposePages(t *testing.T, s store.ComposePages) {
 			composePage.Title = "ComposePageCRUD+2"
 
 			req.NoError(s.UpsertComposePage(ctx, composePage))
-	
+
 			upserted, err := s.LookupComposePageByID(ctx, composePage.ID)
 			req.NoError(err)
 			req.Equal(composePage.Title, upserted.Title)

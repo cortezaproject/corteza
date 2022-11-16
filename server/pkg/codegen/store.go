@@ -8,7 +8,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/cortezaproject/corteza-server/pkg/slice"
+	"github.com/cortezaproject/corteza/server/pkg/slice"
 	"gopkg.in/yaml.v3"
 )
 

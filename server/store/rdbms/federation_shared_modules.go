@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/federation/types"
+	"github.com/cortezaproject/corteza/server/federation/types"
 )
 
 func (s Store) convertFederationSharedModuleFilter(f types.SharedModuleFilter) (query squirrel.SelectBuilder, err error) {

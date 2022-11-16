@@ -12,12 +12,12 @@ import (
 	"context"
 	"database/sql"
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
 {{- if $.Search.EnablePaging }}
-	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 {{- if and $.Search.Enable (not $.Search.Custom) }}
-	"github.com/cortezaproject/corteza-server/store/rdbms/builders"
+	"github.com/cortezaproject/corteza/server/store/rdbms/builders"
 {{- end }}
 {{- end }}
 {{- range .Import }}

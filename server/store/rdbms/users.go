@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/system/types"
 )
 
 func (s Store) convertUserFilter(f types.UserFilter) (query squirrel.SelectBuilder, err error) {

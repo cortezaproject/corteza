@@ -4,8 +4,8 @@ import (
 	"strings"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 )
 
 func (s Store) convertComposeChartFilter(f types.ChartFilter) (query squirrel.SelectBuilder, err error) {

@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cortezaproject/corteza-server/compose/rest/request"
-	"github.com/cortezaproject/corteza-server/compose/service"
-	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza/server/compose/rest/request"
+	"github.com/cortezaproject/corteza/server/compose/service"
+	"github.com/cortezaproject/corteza/server/compose/types"
 )
 
 type (

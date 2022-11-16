@@ -7,10 +7,10 @@ import (
 	"strings"
 	"testing"
 
-	agctx "github.com/cortezaproject/corteza-server/pkg/apigw/ctx"
-	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
-	"github.com/cortezaproject/corteza-server/pkg/expr"
-	"github.com/cortezaproject/corteza-server/pkg/options"
+	agctx "github.com/cortezaproject/corteza/server/pkg/apigw/ctx"
+	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/stretchr/testify/require"
 )
 

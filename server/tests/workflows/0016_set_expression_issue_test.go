@@ -2,12 +2,12 @@ package workflows
 
 import (
 	"context"
-	cmpTypes "github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/expr"
+	cmpTypes "github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/stretchr/testify/require"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/automation/types"
+	"github.com/cortezaproject/corteza/server/automation/types"
 )
 
 func Test0016_set_expression_issue(t *testing.T) {

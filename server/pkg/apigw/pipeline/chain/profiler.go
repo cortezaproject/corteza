@@ -3,7 +3,7 @@ package chain
 import (
 	"net/http"
 
-	"github.com/cortezaproject/corteza-server/pkg/apigw/profiler"
+	"github.com/cortezaproject/corteza/server/pkg/apigw/profiler"
 )
 
 type (

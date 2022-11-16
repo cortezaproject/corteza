@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/cortezaproject/corteza-server/automation/types"
+	"github.com/cortezaproject/corteza/server/automation/types"
 )
 
 type (

@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
-	ctypes "github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/store"
-	stypes "github.com/cortezaproject/corteza-server/system/types"
+	ctypes "github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/store"
+	stypes "github.com/cortezaproject/corteza/server/system/types"
 	"github.com/stretchr/testify/require"
 )
 

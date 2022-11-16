@@ -3,8 +3,8 @@ package envoy
 import (
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
-	resutil "github.com/cortezaproject/corteza-server/pkg/resource"
+	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
+	resutil "github.com/cortezaproject/corteza/server/pkg/resource"
 )
 
 // NormalizeResourceTranslations takes the provided resource.ResourceTranslation

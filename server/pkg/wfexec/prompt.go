@@ -3,7 +3,7 @@ package wfexec
 import (
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
 )
 
 type (

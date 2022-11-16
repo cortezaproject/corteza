@@ -2,8 +2,8 @@ package rdbms
 
 import (
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/pkg/discovery/types"
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza/server/pkg/discovery/types"
+	"github.com/cortezaproject/corteza/server/store"
 )
 
 func (s Store) convertResourceActivityLogFilter(f types.ResourceActivityFilter) (query squirrel.SelectBuilder, err error) {

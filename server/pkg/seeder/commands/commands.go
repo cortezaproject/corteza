@@ -3,7 +3,7 @@ package commands
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza-server/pkg/cli"
+	"github.com/cortezaproject/corteza/server/pkg/cli"
 	"github.com/spf13/cobra"
 )
 

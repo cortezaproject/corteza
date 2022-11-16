@@ -4,10 +4,10 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/store"
-	sysTypes "github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/cortezaproject/corteza/server/store"
+	sysTypes "github.com/cortezaproject/corteza/server/system/types"
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
 )

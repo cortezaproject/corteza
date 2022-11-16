@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/auth/external"
-	"github.com/cortezaproject/corteza-server/auth/request"
-	"github.com/cortezaproject/corteza-server/pkg/api"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/auth/external"
+	"github.com/cortezaproject/corteza/server/auth/request"
+	"github.com/cortezaproject/corteza/server/pkg/api"
+	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 )

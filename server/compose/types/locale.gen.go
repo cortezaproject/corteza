@@ -8,7 +8,7 @@ package types
 
 import (
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/locale"
+	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"strconv"
 )
 

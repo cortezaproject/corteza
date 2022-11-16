@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/pkg/ql"
+	"github.com/cortezaproject/corteza/server/pkg/ql"
 	"time"
 )
 

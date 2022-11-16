@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/qlng"
+	"github.com/cortezaproject/corteza/server/pkg/qlng"
 )
 
 func (t *astTransformer) handleSymbol(n *qlng.ASTNode) (string, []interface{}, error) {

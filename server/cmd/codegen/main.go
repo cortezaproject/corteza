@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/codegen"
+	"github.com/cortezaproject/corteza/server/pkg/codegen"
 )
 
 func main() {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/pkg/resource"
+	"github.com/cortezaproject/corteza/server/pkg/resource"
 )
 
 type (

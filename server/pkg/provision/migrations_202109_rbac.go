@@ -6,12 +6,12 @@ import (
 	"strconv"
 	"strings"
 
-	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
-	federationTypes "github.com/cortezaproject/corteza-server/federation/types"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
-	"github.com/cortezaproject/corteza-server/store"
-	systemTypes "github.com/cortezaproject/corteza-server/system/types"
+	composeTypes "github.com/cortezaproject/corteza/server/compose/types"
+	federationTypes "github.com/cortezaproject/corteza/server/federation/types"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
+	"github.com/cortezaproject/corteza/server/store"
+	systemTypes "github.com/cortezaproject/corteza/server/system/types"
 	"go.uber.org/zap"
 )
 

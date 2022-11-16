@@ -3,7 +3,7 @@ package rdbms
 import (
 	"context"
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/pkg/label/types"
+	"github.com/cortezaproject/corteza/server/pkg/label/types"
 )
 
 func (s Store) convertLabelFilter(f types.LabelFilter) (query squirrel.SelectBuilder, err error) {

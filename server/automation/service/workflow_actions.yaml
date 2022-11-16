@@ -4,7 +4,7 @@ resource: automation:workflow
 service: workflow
 
 import:
-  - github.com/cortezaproject/corteza-server/automation/types
+  - github.com/cortezaproject/corteza/server/automation/types
 
 # Default sensitivity for actions
 defaultActionSeverity: info

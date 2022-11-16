@@ -7,8 +7,8 @@ import (
 	"github.com/spf13/cast"
 	"strings"
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
+	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 {{- range .imports }}
     {{ . }}
 {{- end }}
