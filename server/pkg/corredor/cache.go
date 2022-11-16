@@ -1,7 +1,7 @@
 package corredor
 
 import (
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/system/types"
 )
 
 type (

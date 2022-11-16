@@ -1,7 +1,7 @@
 package ql
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/ql"
+	"github.com/cortezaproject/corteza/server/pkg/ql"
 	"github.com/doug-martin/goqu/v9/exp"
 )
 

@@ -3,10 +3,10 @@ package yaml
 import (
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/pkg/envoy"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
-	"github.com/cortezaproject/corteza-server/pkg/y7s"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/pkg/envoy"
+	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza/server/pkg/y7s"
+	"github.com/cortezaproject/corteza/server/system/types"
 	"gopkg.in/yaml.v3"
 )
 

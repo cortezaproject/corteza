@@ -1,6 +1,6 @@
 package filter
 
-import "github.com/cortezaproject/corteza-server/pkg/ql"
+import "github.com/cortezaproject/corteza/server/pkg/ql"
 
 type (
 	filterOpt func(*filter)

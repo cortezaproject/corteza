@@ -3,7 +3,7 @@ package request
 import (
 	"net/url"
 
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/gorilla/sessions"
 )
 

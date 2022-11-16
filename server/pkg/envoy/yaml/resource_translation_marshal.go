@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"strings"
 
-	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/envoy"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	composeTypes "github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/envoy"
+	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
 	"golang.org/x/text/language"
 )
 

@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/cortezaproject/corteza-server/pkg/options"
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/gorilla/sessions"
 	"go.uber.org/zap"
 )

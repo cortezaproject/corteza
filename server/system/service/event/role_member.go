@@ -1,7 +1,7 @@
 package event
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 )
 
 // Match returns false if given conditions do not match event & resource internals

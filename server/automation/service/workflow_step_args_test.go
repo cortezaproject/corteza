@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/automation/types"
-	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/automation/types"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/stretchr/testify/require"
 	"testing"
 )

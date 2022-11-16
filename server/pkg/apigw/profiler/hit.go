@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	h "github.com/cortezaproject/corteza-server/pkg/http"
+	h "github.com/cortezaproject/corteza/server/pkg/http"
 )
 
 type (

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/stretchr/testify/require"
 )
 

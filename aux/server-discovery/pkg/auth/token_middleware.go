@@ -6,7 +6,7 @@ import (
 	"github.com/lestrrat-go/jwx/jwa"
 	"net/http"
 
-	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/go-chi/jwtauth"
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jwt"

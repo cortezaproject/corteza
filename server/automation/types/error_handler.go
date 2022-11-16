@@ -2,7 +2,7 @@ package types
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/wfexec"
+	"github.com/cortezaproject/corteza/server/pkg/wfexec"
 )
 
 type (

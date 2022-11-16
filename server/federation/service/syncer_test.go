@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/federation/types"
+	"github.com/cortezaproject/corteza/server/federation/types"
 	"github.com/stretchr/testify/require"
 )
 

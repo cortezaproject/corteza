@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/stretchr/testify/require"
 )
 
@@ -62,7 +62,7 @@ func benchmarkExecJoin_local(b *testing.B, n int) {
 
 // goos: linux
 // goarch: amd64
-// pkg: github.com/cortezaproject/corteza-server/pkg/dal
+// pkg: github.com/cortezaproject/corteza/server/pkg/dal
 // cpu: Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz
 // BenchmarkExecJoin_local_200-12     	    1620	    718632 ns/op
 // BenchmarkExecJoin_local_400-12     	     801	   1474321 ns/op

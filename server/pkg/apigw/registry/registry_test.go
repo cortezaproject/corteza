@@ -3,8 +3,8 @@ package registry
 import (
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
-	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
+	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/stretchr/testify/require"
 )
 

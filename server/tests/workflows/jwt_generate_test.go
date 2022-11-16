@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/automation/types"
+	"github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/stretchr/testify/require"
 )
 

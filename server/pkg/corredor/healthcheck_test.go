@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/cortezaproject/corteza/server/pkg/options"
 	"go.uber.org/zap"
 )
 

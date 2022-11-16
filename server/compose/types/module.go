@@ -5,14 +5,14 @@ import (
 	"encoding/json"
 	"time"
 
-	discovery "github.com/cortezaproject/corteza-server/discovery/types"
+	discovery "github.com/cortezaproject/corteza/server/discovery/types"
 
-	"github.com/cortezaproject/corteza-server/pkg/sql"
+	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"github.com/jmoiron/sqlx/types"
 
-	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/locale"
+	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/locale"
 )
 
 type (

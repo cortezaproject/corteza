@@ -3,14 +3,14 @@ package documents
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/discovery/service"
-	"github.com/cortezaproject/corteza-server/pkg/errors"
-	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/cortezaproject/corteza/server/discovery/service"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/cortezaproject/corteza/server/pkg/options"
 
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
-	sysService "github.com/cortezaproject/corteza-server/system/service"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
+	sysService "github.com/cortezaproject/corteza/server/system/service"
+	"github.com/cortezaproject/corteza/server/system/types"
 )
 
 type (

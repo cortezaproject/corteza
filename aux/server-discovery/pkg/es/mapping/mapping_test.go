@@ -2,7 +2,7 @@ package mapping
 
 import (
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/cortezaproject/corteza/server/pkg/options"
 	"os"
 	"strings"
 	"testing"

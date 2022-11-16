@@ -5,7 +5,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/cortezaproject/corteza/server/pkg/options"
 )
 
 type (

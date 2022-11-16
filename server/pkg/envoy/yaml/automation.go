@@ -3,8 +3,8 @@ package yaml
 import (
 	"reflect"
 
-	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
-	"github.com/cortezaproject/corteza-server/pkg/y7s"
+	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza/server/pkg/y7s"
 	"gopkg.in/yaml.v3"
 )
 

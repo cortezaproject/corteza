@@ -3,9 +3,9 @@ package postgres
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza-server/pkg/logger"
-	"github.com/cortezaproject/corteza-server/store/adapters/rdbms"
-	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers/postgres"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
+	"github.com/cortezaproject/corteza/server/store/adapters/rdbms"
+	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/postgres"
 	"github.com/jmoiron/sqlx"
 )
 

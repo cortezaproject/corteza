@@ -2,7 +2,7 @@ package scim
 
 import (
 	"fmt"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/system/types"
 	"net/http"
 	"time"
 )

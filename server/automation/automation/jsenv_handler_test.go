@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/pkg/expr"
-	h "github.com/cortezaproject/corteza-server/pkg/http"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
+	h "github.com/cortezaproject/corteza/server/pkg/http"
 	"github.com/stretchr/testify/require"
 )
 

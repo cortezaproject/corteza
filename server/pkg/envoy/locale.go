@@ -1,7 +1,7 @@
 package envoy
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
 )
 
 // NormalizeResourceTranslations takes the provided resource.ResourceTranslation

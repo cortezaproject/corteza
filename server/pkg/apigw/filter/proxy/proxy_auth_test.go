@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
+	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
 	"github.com/stretchr/testify/require"
 )
 

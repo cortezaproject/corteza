@@ -3,7 +3,7 @@ package federation
 import (
 	"io"
 
-	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/cortezaproject/corteza/server/pkg/options"
 )
 
 type (

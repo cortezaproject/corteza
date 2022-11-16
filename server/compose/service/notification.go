@@ -11,11 +11,11 @@ import (
 
 	gomail "gopkg.in/mail.v2"
 
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	httpClient "github.com/cortezaproject/corteza-server/pkg/http"
-	"github.com/cortezaproject/corteza-server/pkg/mail"
-	systemTypes "github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	httpClient "github.com/cortezaproject/corteza/server/pkg/http"
+	"github.com/cortezaproject/corteza/server/pkg/mail"
+	systemTypes "github.com/cortezaproject/corteza/server/system/types"
 )
 
 type (

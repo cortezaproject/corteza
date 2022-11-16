@@ -1,6 +1,6 @@
 package renderer
 
-import "github.com/cortezaproject/corteza-server/pkg/valuestore"
+import "github.com/cortezaproject/corteza/server/pkg/valuestore"
 
 func envGetter() func(k string) any {
 	return func(k string) any {

@@ -3,8 +3,8 @@ package types
 import (
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	h "github.com/cortezaproject/corteza-server/pkg/http"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	h "github.com/cortezaproject/corteza/server/pkg/http"
 )
 
 type (

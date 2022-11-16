@@ -3,7 +3,7 @@ package dal
 import (
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/stretchr/testify/require"
 )
 

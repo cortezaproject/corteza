@@ -1,8 +1,8 @@
 package store
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/envoy"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza/server/pkg/envoy"
+	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
 )
 
 func newComposeRecordFromAux(rec *composeRecordAux) *composeRecord {

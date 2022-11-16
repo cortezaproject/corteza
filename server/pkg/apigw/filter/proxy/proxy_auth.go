@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
-	"github.com/cortezaproject/corteza-server/pkg/http/auth"
+	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
+	"github.com/cortezaproject/corteza/server/pkg/http/auth"
 )
 
 const (

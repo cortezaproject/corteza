@@ -1,7 +1,7 @@
 package feed
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/jmoiron/sqlx/types"
 	"time"
 )

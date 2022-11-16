@@ -7,7 +7,7 @@ package resource
 //
 
 import (
-	"github.com/cortezaproject/corteza-server/automation/types"
+	"github.com/cortezaproject/corteza/server/automation/types"
 )
 
 // AutomationWorkflowRbacReferences generates RBAC references

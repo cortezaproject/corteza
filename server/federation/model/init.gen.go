@@ -8,7 +8,7 @@ package model
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/pkg/dal"
 )
 
 type (

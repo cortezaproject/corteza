@@ -5,7 +5,7 @@ import (
 	"path"
 	"sort"
 
-	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 )

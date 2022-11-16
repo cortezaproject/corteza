@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cortezaproject/corteza-server/pkg/flag/types"
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza/server/pkg/flag/types"
+	"github.com/cortezaproject/corteza/server/store"
 )
 
 type (

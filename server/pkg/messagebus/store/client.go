@@ -3,7 +3,7 @@ package store
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza-server/pkg/messagebus/types"
+	"github.com/cortezaproject/corteza/server/pkg/messagebus/types"
 )
 
 type (
