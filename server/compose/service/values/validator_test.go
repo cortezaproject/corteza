@@ -2,8 +2,8 @@ package values
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/locale"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"github.com/stretchr/testify/require"
 	"reflect"
 	"testing"

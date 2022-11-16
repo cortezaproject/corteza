@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/sentry"
+	"github.com/cortezaproject/corteza/server/pkg/sentry"
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 )

@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/system/types"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/stretchr/testify/require"
 )

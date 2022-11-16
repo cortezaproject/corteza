@@ -1,7 +1,7 @@
 package postgres
 
 import (
-	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ql"
+	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ql"
 	"strings"
 	"testing"
 

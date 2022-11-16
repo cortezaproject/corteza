@@ -5,12 +5,12 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/sql"
+	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"reflect"
 	"strings"
 
 	"github.com/PaesslerAG/gval"
-	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/spf13/cast"
 )
 

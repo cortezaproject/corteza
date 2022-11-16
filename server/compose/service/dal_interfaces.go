@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 )
 
 type (

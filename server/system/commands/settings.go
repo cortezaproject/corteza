@@ -6,13 +6,13 @@ import (
 	"os"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/system/types"
 
 	"github.com/spf13/cobra"
 
-	"github.com/cortezaproject/corteza-server/pkg/cli"
-	"github.com/cortezaproject/corteza-server/system/service"
+	"github.com/cortezaproject/corteza/server/pkg/cli"
+	"github.com/cortezaproject/corteza/server/system/service"
 )
 
 func Settings(ctx context.Context, app serviceInitializer) *cobra.Command {

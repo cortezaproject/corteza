@@ -48,7 +48,7 @@ func benchmarkExecAggregate(b *testing.B, n int) {
 
 // goos: linux
 // goarch: amd64
-// pkg: github.com/cortezaproject/corteza-server/pkg/dal
+// pkg: github.com/cortezaproject/corteza/server/pkg/dal
 // cpu: Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz
 // BenchmarkExecAggregate_20000-12     	      63	  17902131 ns/op	 1423343 B/op	   80432 allocs/op
 // BenchmarkExecAggregate_40000-12     	      33	  36179481 ns/op	 2783435 B/op	  160432 allocs/op

@@ -7,12 +7,12 @@ package model
 //
 
 import (
-	actionlogtype "github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/pkg/dal"
-	discoverytype "github.com/cortezaproject/corteza-server/pkg/discovery/types"
-	flagtype "github.com/cortezaproject/corteza-server/pkg/flag/types"
-	labelstype "github.com/cortezaproject/corteza-server/pkg/label/types"
-	rbactype "github.com/cortezaproject/corteza-server/pkg/rbac"
+	actionlogtype "github.com/cortezaproject/corteza/server/pkg/actionlog"
+	"github.com/cortezaproject/corteza/server/pkg/dal"
+	discoverytype "github.com/cortezaproject/corteza/server/pkg/discovery/types"
+	flagtype "github.com/cortezaproject/corteza/server/pkg/flag/types"
+	labelstype "github.com/cortezaproject/corteza/server/pkg/label/types"
+	rbactype "github.com/cortezaproject/corteza/server/pkg/rbac"
 )
 
 var Action = &dal.Model{

@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"go.uber.org/zap"
 )
 

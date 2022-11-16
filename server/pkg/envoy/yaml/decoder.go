@@ -5,12 +5,12 @@ import (
 	"io"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/pkg/handle"
-	"github.com/cortezaproject/corteza-server/pkg/y7s"
-	. "github.com/cortezaproject/corteza-server/pkg/y7s"
+	"github.com/cortezaproject/corteza/server/pkg/handle"
+	"github.com/cortezaproject/corteza/server/pkg/y7s"
+	. "github.com/cortezaproject/corteza/server/pkg/y7s"
 
-	"github.com/cortezaproject/corteza-server/pkg/envoy"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza/server/pkg/envoy"
+	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
 	"gopkg.in/yaml.v3"
 )
 

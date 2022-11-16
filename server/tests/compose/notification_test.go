@@ -2,7 +2,7 @@ package compose
 
 import (
 	"encoding/json"
-	"github.com/cortezaproject/corteza-server/compose/rest/request"
+	"github.com/cortezaproject/corteza/server/compose/rest/request"
 	sqlxTypes "github.com/jmoiron/sqlx/types"
 	"github.com/steinfletcher/apitest"
 	"net/http"

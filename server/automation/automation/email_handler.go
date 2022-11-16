@@ -7,8 +7,8 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/pkg/mail"
-	sysTypes "github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/pkg/mail"
+	sysTypes "github.com/cortezaproject/corteza/server/system/types"
 	gomail "gopkg.in/mail.v2"
 )
 

@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/sql"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/sql"
 )
 
 type (

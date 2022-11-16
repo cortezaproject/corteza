@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/stretchr/testify/require"
 )
 

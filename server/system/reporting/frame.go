@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/system/types"
 )
 
 type (

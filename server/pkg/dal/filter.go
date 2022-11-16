@@ -3,8 +3,8 @@ package dal
 import (
 	"fmt"
 
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/ql"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/ql"
 )
 
 type (

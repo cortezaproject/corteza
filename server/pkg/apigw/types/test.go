@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/cortezaproject/corteza-server/pkg/options"
-	st "github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/pkg/options"
+	st "github.com/cortezaproject/corteza/server/system/types"
 )
 
 type (

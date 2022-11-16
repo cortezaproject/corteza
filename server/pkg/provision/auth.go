@@ -4,9 +4,9 @@ import (
 	"context"
 	"os"
 
-	"github.com/cortezaproject/corteza-server/pkg/errors"
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/system/types"
 )
 
 // Sets email-related settings (if not set) under "auth.internal..."

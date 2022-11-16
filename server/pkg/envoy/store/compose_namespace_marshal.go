@@ -3,8 +3,8 @@ package store
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza/server/store"
 )
 
 func newComposeNamespaceFromResource(res *resource.ComposeNamespace, cfg *EncoderConfig) resourceState {

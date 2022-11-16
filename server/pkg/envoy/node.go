@@ -1,6 +1,6 @@
 package envoy
 
-import "github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+import "github.com/cortezaproject/corteza/server/pkg/envoy/resource"
 
 type (
 	// the node struct is used for nicer graph state management

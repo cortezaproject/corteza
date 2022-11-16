@@ -10,7 +10,7 @@ package resource
 // - automation.workflow.yaml
 
 import (
-	"github.com/cortezaproject/corteza-server/automation/types"
+	"github.com/cortezaproject/corteza/server/automation/types"
 )
 
 // AutomationWorkflowResourceTranslationReferences generates Locale references

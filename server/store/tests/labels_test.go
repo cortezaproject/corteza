@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/pkg/label/types"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza/server/pkg/label/types"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
+	"github.com/cortezaproject/corteza/server/store"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/stretchr/testify/require"
 )

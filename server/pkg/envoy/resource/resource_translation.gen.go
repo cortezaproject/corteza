@@ -7,7 +7,7 @@ package resource
 //
 
 import (
-	systemTypes "github.com/cortezaproject/corteza-server/system/types"
+	systemTypes "github.com/cortezaproject/corteza/server/system/types"
 )
 
 func (r *ComposeChart) EncodeTranslations() ([]*ResourceTranslation, error) {

@@ -3,11 +3,11 @@ package actionlog
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza-server/pkg/sql"
+	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"strconv"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 )
 
 type (

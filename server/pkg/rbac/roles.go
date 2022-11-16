@@ -1,7 +1,7 @@
 package rbac
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/slice"
+	"github.com/cortezaproject/corteza/server/pkg/slice"
 	"go.uber.org/zap"
 )
 

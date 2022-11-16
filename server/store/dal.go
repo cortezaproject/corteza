@@ -1,6 +1,6 @@
 package store
 
-import "github.com/cortezaproject/corteza-server/pkg/dal"
+import "github.com/cortezaproject/corteza/server/pkg/dal"
 
 // DAL uses given store as DAL connection
 //

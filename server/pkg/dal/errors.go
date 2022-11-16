@@ -2,7 +2,7 @@ package dal
 
 import (
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
 )
 
 // Generic errors

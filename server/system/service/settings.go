@@ -3,16 +3,16 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	"github.com/spf13/cast"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/errors"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
+	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/system/types"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

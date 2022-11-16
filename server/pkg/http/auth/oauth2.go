@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
+	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 )

@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cortezaproject/corteza-server/automation/types"
+	"github.com/cortezaproject/corteza/server/automation/types"
 )
 
 func Test0015_step_issue(t *testing.T) {

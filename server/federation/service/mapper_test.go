@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	ct "github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/federation/types"
+	ct "github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/federation/types"
 	"github.com/stretchr/testify/require"
 )
 

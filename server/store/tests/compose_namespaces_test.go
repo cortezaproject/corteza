@@ -2,11 +2,11 @@ package tests
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/pkg/rand"
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/cortezaproject/corteza/server/pkg/rand"
+	"github.com/cortezaproject/corteza/server/store"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
@@ -95,7 +95,7 @@ func testComposeNamespaces(t *testing.T, s store.ComposeNamespaces) {
 			composeNamespace.Name = "ComposeNamespaceCRUD+2"
 
 			req.NoError(s.UpsertComposeNamespace(ctx, composeNamespace))
-	
+
 			upserted, err := s.LookupComposeNamespaceByID(ctx, composeNamespace.ID)
 			req.NoError(err)
 			req.Equal(composeNamespace.Name, upserted.Name)
@@ -106,7 +106,7 @@ func testComposeNamespaces(t *testing.T, s store.ComposeNamespaces) {
 			composeNamespace.Name = "ComposeNamespaceCRUD+3"
 
 			req.NoError(s.UpsertComposeNamespace(ctx, composeNamespace))
-	
+
 			upserted, err := s.LookupComposeNamespaceByID(ctx, composeNamespace.ID)
 			req.NoError(err)
 			req.Equal(composeNamespace.Name, upserted.Name)

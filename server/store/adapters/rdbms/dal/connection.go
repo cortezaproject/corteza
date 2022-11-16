@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/cortezaproject/corteza-server/pkg/errors"
-	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
-	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ql"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
+	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ql"
 
-	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers"
+	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers"
 	"github.com/jmoiron/sqlx"
 )
 

@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/pkg/http/auth"
+	"github.com/cortezaproject/corteza/server/pkg/http/auth"
 	"golang.org/x/oauth2"
 )
 

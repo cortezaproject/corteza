@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/google/uuid"
 	"github.com/spf13/cast"
 )

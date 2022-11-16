@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/version"
+	"github.com/cortezaproject/corteza/server/pkg/version"
 	"github.com/spf13/cobra"
 )
 

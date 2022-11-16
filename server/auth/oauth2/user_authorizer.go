@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/cortezaproject/corteza-server/auth/request"
-	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/cortezaproject/corteza/server/auth/request"
+	internalAuth "github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/pkg/payload"
 	"github.com/go-oauth2/oauth2/v4/server"
 )
 

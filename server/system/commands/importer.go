@@ -6,16 +6,16 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/cortezaproject/corteza-server/compose/service"
-	"github.com/cortezaproject/corteza-server/pkg/cli"
-	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/envoy"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/csv"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/directory"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
-	es "github.com/cortezaproject/corteza-server/pkg/envoy/store"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/yaml"
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza/server/compose/service"
+	"github.com/cortezaproject/corteza/server/pkg/cli"
+	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/pkg/envoy"
+	"github.com/cortezaproject/corteza/server/pkg/envoy/csv"
+	"github.com/cortezaproject/corteza/server/pkg/envoy/directory"
+	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
+	es "github.com/cortezaproject/corteza/server/pkg/envoy/store"
+	"github.com/cortezaproject/corteza/server/pkg/envoy/yaml"
+	"github.com/cortezaproject/corteza/server/store"
 )
 
 func Import(ctx context.Context, storeInit func(ctx context.Context) (store.Storer, error)) *cobra.Command {

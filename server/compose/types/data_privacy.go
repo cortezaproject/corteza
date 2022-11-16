@@ -1,8 +1,8 @@
 package types
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	sysTypes "github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	sysTypes "github.com/cortezaproject/corteza/server/system/types"
 )
 
 type (

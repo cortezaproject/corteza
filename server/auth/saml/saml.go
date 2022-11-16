@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/cortezaproject/corteza-server/auth/settings"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/auth/settings"
+	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/crewjam/saml"
 	"github.com/crewjam/saml/samlsp"
 )

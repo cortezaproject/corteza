@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server-discovery/pkg/options"
+	"github.com/cortezaproject/corteza/server-discovery/pkg/options"
 	"net/http"
 	"net/url"
 	"strings"

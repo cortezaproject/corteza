@@ -5,14 +5,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
 
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/eventbus"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/drivers/sqlite"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/eventbus"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
+	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/sqlite"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )

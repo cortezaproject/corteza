@@ -2,9 +2,9 @@ package tests
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/system/types"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/stretchr/testify/require"
 	"testing"

@@ -1,7 +1,7 @@
 package event
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 )
 
 var _ = eventbus.ConstraintMaker

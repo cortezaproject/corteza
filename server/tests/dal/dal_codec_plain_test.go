@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/dal"
 )
 
 func Test_dal_codec_plain(t *testing.T) {

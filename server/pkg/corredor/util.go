@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/eventbus"
-	"github.com/cortezaproject/corteza-server/pkg/slice"
+	"github.com/cortezaproject/corteza/server/pkg/eventbus"
+	"github.com/cortezaproject/corteza/server/pkg/slice"
 	"github.com/pkg/errors"
 	"net/http"
 )

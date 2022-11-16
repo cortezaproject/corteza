@@ -3,7 +3,7 @@ package envoy
 import (
 	"fmt"
 
-	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
 )
 
 // FilterRequestedRBACRules returns only RBAC rules relevant for the given resources

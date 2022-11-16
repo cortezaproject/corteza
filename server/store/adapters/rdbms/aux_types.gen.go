@@ -7,16 +7,16 @@ package rdbms
 //
 
 import (
-	automationType "github.com/cortezaproject/corteza-server/automation/types"
-	composeType "github.com/cortezaproject/corteza-server/compose/types"
-	federationType "github.com/cortezaproject/corteza-server/federation/types"
-	actionlogType "github.com/cortezaproject/corteza-server/pkg/actionlog"
-	discoveryType "github.com/cortezaproject/corteza-server/pkg/discovery/types"
-	"github.com/cortezaproject/corteza-server/pkg/expr"
-	flagType "github.com/cortezaproject/corteza-server/pkg/flag/types"
-	labelsType "github.com/cortezaproject/corteza-server/pkg/label/types"
-	rbacType "github.com/cortezaproject/corteza-server/pkg/rbac"
-	systemType "github.com/cortezaproject/corteza-server/system/types"
+	automationType "github.com/cortezaproject/corteza/server/automation/types"
+	composeType "github.com/cortezaproject/corteza/server/compose/types"
+	federationType "github.com/cortezaproject/corteza/server/federation/types"
+	actionlogType "github.com/cortezaproject/corteza/server/pkg/actionlog"
+	discoveryType "github.com/cortezaproject/corteza/server/pkg/discovery/types"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
+	flagType "github.com/cortezaproject/corteza/server/pkg/flag/types"
+	labelsType "github.com/cortezaproject/corteza/server/pkg/label/types"
+	rbacType "github.com/cortezaproject/corteza/server/pkg/rbac"
+	systemType "github.com/cortezaproject/corteza/server/system/types"
 	"time"
 )
 

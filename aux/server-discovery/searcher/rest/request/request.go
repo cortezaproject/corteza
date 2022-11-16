@@ -1,7 +1,7 @@
 package request
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/cortezaproject/corteza/server/pkg/payload"
 	"net/http"
 )
 

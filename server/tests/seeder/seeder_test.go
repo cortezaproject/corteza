@@ -3,9 +3,9 @@ package seeder
 import (
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/seeder"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/pkg/seeder"
 )
 
 func TestCreateUser(t *testing.T) {

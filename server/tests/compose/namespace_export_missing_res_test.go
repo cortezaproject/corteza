@@ -3,7 +3,7 @@ package compose
 import (
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza/server/store"
 )
 
 func Test_namespace_export_missing_res(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 )
 
 type (

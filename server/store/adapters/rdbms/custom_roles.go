@@ -3,7 +3,7 @@ package rdbms
 import (
 	"context"
 
-	systemType "github.com/cortezaproject/corteza-server/system/types"
+	systemType "github.com/cortezaproject/corteza/server/system/types"
 	"github.com/doug-martin/goqu/v9"
 )
 

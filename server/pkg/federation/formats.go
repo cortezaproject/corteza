@@ -3,8 +3,8 @@ package federation
 import (
 	"time"
 
-	ct "github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/federation/types"
+	ct "github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/federation/types"
 )
 
 type (

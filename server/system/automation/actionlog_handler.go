@@ -3,9 +3,9 @@ package automation
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	. "github.com/cortezaproject/corteza-server/pkg/expr"
-	"github.com/cortezaproject/corteza-server/pkg/wfexec"
+	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	. "github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/pkg/wfexec"
 )
 
 type (

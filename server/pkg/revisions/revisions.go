@@ -3,10 +3,10 @@ package revisions
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/cast2"
-	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza/server/pkg/cast2"
+	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"time"
 )
 
