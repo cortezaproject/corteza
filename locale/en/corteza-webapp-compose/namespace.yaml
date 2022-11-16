@@ -37,6 +37,7 @@ name:
   label: Full namespace name *
   placeholder: Enter namespace name
 noResults: No namespaces found
+searchPlaceholder: Type here to search among all namespaces...
 setPermissions: Set namespace permissions
 slug:
   description: The short name will be used in the URL
@@ -62,8 +63,6 @@ manage:
     buttons:
       create: Create new namespace
       permissions: Permissions
-    search:
-      placeholder: Type here to search among all namespaces...
 
   table:
     columns:
