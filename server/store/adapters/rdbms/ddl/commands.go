@@ -3,7 +3,7 @@ package ddl
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/jmoiron/sqlx"
 )

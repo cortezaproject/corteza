@@ -3,12 +3,12 @@ package dal
 import (
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 )
 
 // goos: linux
 // goarch: amd64
-// pkg: github.com/cortezaproject/corteza-server/pkg/dal
+// pkg: github.com/cortezaproject/corteza/server/pkg/dal
 // cpu: Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz
 // BenchmarkRowComparator-12    	  161826	      7015 ns/op	    5120 B/op	      40 allocs/op
 // PASS

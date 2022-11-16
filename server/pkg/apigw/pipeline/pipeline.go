@@ -6,10 +6,10 @@ import (
 	"sort"
 	"time"
 
-	actx "github.com/cortezaproject/corteza-server/pkg/apigw/ctx"
-	"github.com/cortezaproject/corteza-server/pkg/apigw/pipeline/chain"
-	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
+	actx "github.com/cortezaproject/corteza/server/pkg/apigw/ctx"
+	"github.com/cortezaproject/corteza/server/pkg/apigw/pipeline/chain"
+	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
+	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"go.uber.org/zap"
 )
 

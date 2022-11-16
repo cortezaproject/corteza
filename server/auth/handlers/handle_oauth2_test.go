@@ -6,9 +6,9 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/auth/request"
-	"github.com/cortezaproject/corteza-server/auth/settings"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/auth/request"
+	"github.com/cortezaproject/corteza/server/auth/settings"
+	"github.com/cortezaproject/corteza/server/system/types"
 	oauth2models "github.com/go-oauth2/oauth2/v4/models"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"

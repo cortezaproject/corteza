@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/stretchr/testify/require"
 )
 

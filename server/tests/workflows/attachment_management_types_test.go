@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/automation/types"
-	cmpTypes "github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/automation/types"
+	cmpTypes "github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/stretchr/testify/require"
 )
 

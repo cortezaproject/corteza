@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 )
 
 type (

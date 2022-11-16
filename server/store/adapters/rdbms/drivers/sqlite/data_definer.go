@@ -2,8 +2,8 @@ package sqlite
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
+	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
 	"github.com/jmoiron/sqlx"
 )
 

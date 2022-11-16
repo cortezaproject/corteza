@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/stretchr/testify/require"
 )
 

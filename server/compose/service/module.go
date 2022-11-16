@@ -8,27 +8,27 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/compose/dalutils"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza/server/compose/dalutils"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"go.uber.org/zap"
 
-	"github.com/cortezaproject/corteza-server/pkg/revisions"
+	"github.com/cortezaproject/corteza/server/pkg/revisions"
 
-	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 
-	"github.com/cortezaproject/corteza-server/compose/service/event"
-	"github.com/cortezaproject/corteza-server/compose/service/values"
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/pkg/errors"
-	"github.com/cortezaproject/corteza-server/pkg/eventbus"
-	"github.com/cortezaproject/corteza-server/pkg/handle"
-	"github.com/cortezaproject/corteza-server/pkg/label"
-	"github.com/cortezaproject/corteza-server/pkg/locale"
-	"github.com/cortezaproject/corteza-server/pkg/slice"
-	"github.com/cortezaproject/corteza-server/store"
-	systemTypes "github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/compose/service/event"
+	"github.com/cortezaproject/corteza/server/compose/service/values"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/cortezaproject/corteza/server/pkg/eventbus"
+	"github.com/cortezaproject/corteza/server/pkg/handle"
+	"github.com/cortezaproject/corteza/server/pkg/label"
+	"github.com/cortezaproject/corteza/server/pkg/locale"
+	"github.com/cortezaproject/corteza/server/pkg/slice"
+	"github.com/cortezaproject/corteza/server/store"
+	systemTypes "github.com/cortezaproject/corteza/server/system/types"
 )
 
 type (
@@ -1503,7 +1503,7 @@ func moduleFieldToAttribute(f *types.ModuleField) (out *dal.Attribute, err error
 		}
 	case "email":
 		at := &dal.TypeText{
-			Length: emailLength,
+			Length:   emailLength,
 			Nullable: !f.Required,
 		}
 		out = dal.FullAttribute(f.Name, at, codec)
@@ -1516,7 +1516,7 @@ func moduleFieldToAttribute(f *types.ModuleField) (out *dal.Attribute, err error
 	case "number":
 		at := &dal.TypeNumber{
 			Precision: int(f.Options.Precision()),
-			Nullable: !f.Required,
+			Nullable:  !f.Required,
 		}
 		out = dal.FullAttribute(f.Name, at, codec)
 	case "record":
@@ -1530,13 +1530,13 @@ func moduleFieldToAttribute(f *types.ModuleField) (out *dal.Attribute, err error
 		out = dal.FullAttribute(f.Name, at, codec)
 	case "select":
 		at := &dal.TypeEnum{
-			Values: f.SelectOptions(),
+			Values:   f.SelectOptions(),
 			Nullable: !f.Required,
 		}
 		out = dal.FullAttribute(f.Name, at, codec)
 	case "url":
 		at := &dal.TypeText{
-			Length: urlLength,
+			Length:   urlLength,
 			Nullable: !f.Required,
 		}
 		out = dal.FullAttribute(f.Name, at, codec)

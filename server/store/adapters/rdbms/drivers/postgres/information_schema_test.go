@@ -1,7 +1,7 @@
 package postgres
 
 import (
-	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/ddl"
+	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
 	"github.com/stretchr/testify/require"
 	"testing"
 )

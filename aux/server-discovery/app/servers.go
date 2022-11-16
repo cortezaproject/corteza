@@ -2,7 +2,7 @@ package app
 
 import (
 	searcherRest "github.com/cortezaproject/corteza-server-discovery/searcher/rest"
-	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 	"strings"

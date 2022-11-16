@@ -1,6 +1,6 @@
 package store
 
-import "github.com/cortezaproject/corteza-server/pkg/errors"
+import "github.com/cortezaproject/corteza/server/pkg/errors"
 
 type (
 	// ErrorHandler

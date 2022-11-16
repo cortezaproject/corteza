@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/messagebus/store"
-	"github.com/cortezaproject/corteza-server/pkg/messagebus/types"
+	"github.com/cortezaproject/corteza/server/pkg/messagebus/store"
+	"github.com/cortezaproject/corteza/server/pkg/messagebus/types"
 	"github.com/stretchr/testify/require"
 )
 

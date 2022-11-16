@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/pkg/handle"
+	"github.com/cortezaproject/corteza/server/pkg/handle"
 	"github.com/modern-go/reflect2"
 )
 

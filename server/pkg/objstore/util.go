@@ -7,7 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/cortezaproject/corteza-server/pkg/http"
+	"github.com/cortezaproject/corteza/server/pkg/http"
 )
 
 func FromURL(fileURL string) (io.ReadCloser, error) {

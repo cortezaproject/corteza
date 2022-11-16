@@ -1,7 +1,7 @@
 package store
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/messagebus/types"
+	"github.com/cortezaproject/corteza/server/pkg/messagebus/types"
 )
 
 type (

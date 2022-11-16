@@ -8,14 +8,14 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/cortezaproject/corteza-server/automation/automation"
-	atypes "github.com/cortezaproject/corteza-server/automation/types"
-	agctx "github.com/cortezaproject/corteza-server/pkg/apigw/ctx"
-	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
-	pe "github.com/cortezaproject/corteza-server/pkg/errors"
-	"github.com/cortezaproject/corteza-server/pkg/expr"
-	"github.com/cortezaproject/corteza-server/pkg/jsenv"
-	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/cortezaproject/corteza/server/automation/automation"
+	atypes "github.com/cortezaproject/corteza/server/automation/types"
+	agctx "github.com/cortezaproject/corteza/server/pkg/apigw/ctx"
+	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
+	pe "github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/pkg/jsenv"
+	"github.com/cortezaproject/corteza/server/pkg/options"
 	"go.uber.org/zap"
 )
 

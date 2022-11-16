@@ -6,10 +6,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/pkg/apigw/pipeline"
-	"github.com/cortezaproject/corteza-server/pkg/apigw/pipeline/chain"
-	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
-	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/cortezaproject/corteza/server/pkg/apigw/pipeline"
+	"github.com/cortezaproject/corteza/server/pkg/apigw/pipeline/chain"
+	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
+	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )

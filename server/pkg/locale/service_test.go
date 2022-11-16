@@ -3,7 +3,7 @@ package locale
 import (
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"golang.org/x/text/language"

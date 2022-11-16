@@ -1,8 +1,8 @@
 package event
 
 import (
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"strings"
 	"time"
 )

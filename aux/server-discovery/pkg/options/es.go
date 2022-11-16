@@ -1,7 +1,7 @@
 package options
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/cortezaproject/corteza/server/pkg/options"
 	"strings"
 )
 

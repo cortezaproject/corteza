@@ -3,11 +3,11 @@ package rest
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/cortezaproject/corteza/server/pkg/api"
 
-	"github.com/cortezaproject/corteza-server/compose/rest/request"
-	"github.com/cortezaproject/corteza-server/compose/service/event"
-	"github.com/cortezaproject/corteza-server/pkg/corredor"
+	"github.com/cortezaproject/corteza/server/compose/rest/request"
+	"github.com/cortezaproject/corteza/server/compose/service/event"
+	"github.com/cortezaproject/corteza/server/pkg/corredor"
 	"github.com/pkg/errors"
 )
 

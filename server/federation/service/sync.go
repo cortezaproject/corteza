@@ -7,13 +7,13 @@ import (
 	"io"
 	"time"
 
-	cs "github.com/cortezaproject/corteza-server/compose/service"
-	ct "github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/federation/types"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	ss "github.com/cortezaproject/corteza-server/system/service"
-	st "github.com/cortezaproject/corteza-server/system/types"
+	cs "github.com/cortezaproject/corteza/server/compose/service"
+	ct "github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/federation/types"
+	"github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	ss "github.com/cortezaproject/corteza/server/system/service"
+	st "github.com/cortezaproject/corteza/server/system/types"
 )
 
 type (

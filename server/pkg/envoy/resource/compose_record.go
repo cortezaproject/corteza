@@ -3,9 +3,9 @@ package resource
 import (
 	"fmt"
 
-	"github.com/cortezaproject/corteza-server/compose/types"
-	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
-	systemTypes "github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	composeTypes "github.com/cortezaproject/corteza/server/compose/types"
+	systemTypes "github.com/cortezaproject/corteza/server/system/types"
 )
 
 type (

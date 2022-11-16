@@ -2,7 +2,7 @@ package service
 
 import (
 	"fmt"
-	"github.com/cortezaproject/corteza-server/federation/types"
+	"github.com/cortezaproject/corteza/server/federation/types"
 	"github.com/stretchr/testify/require"
 	"testing"
 )

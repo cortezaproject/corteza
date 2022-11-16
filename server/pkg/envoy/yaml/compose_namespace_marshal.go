@@ -3,9 +3,9 @@ package yaml
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/envoy"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/envoy"
+	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
 )
 
 func (n *composeNamespace) Prepare(ctx context.Context, state *envoy.ResourceState) (err error) {

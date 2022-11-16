@@ -3,7 +3,7 @@ package rbac
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/pkg/auth"
 )
 
 type (

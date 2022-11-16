@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/tests/helpers"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/tests/helpers"
 	"github.com/steinfletcher/apitest-jsonpath"
 )
 
@@ -116,7 +116,7 @@ func TestBatchRecordMixed(t *testing.T) {
 			Options: types.ModuleFieldOptions{
 				"moduleID": strconv.FormatUint(parentModule.ID, 10),
 			},
-		}, )
+		})
 	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "record.create")
 	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "update", "delete")
 

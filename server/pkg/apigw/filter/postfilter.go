@@ -7,12 +7,12 @@ import (
 	"net/http"
 	"net/url"
 
-	atypes "github.com/cortezaproject/corteza-server/automation/types"
-	agctx "github.com/cortezaproject/corteza-server/pkg/apigw/ctx"
-	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
-	errors "github.com/cortezaproject/corteza-server/pkg/errors"
-	"github.com/cortezaproject/corteza-server/pkg/expr"
-	"github.com/cortezaproject/corteza-server/pkg/options"
+	atypes "github.com/cortezaproject/corteza/server/automation/types"
+	agctx "github.com/cortezaproject/corteza/server/pkg/apigw/ctx"
+	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
+	errors "github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/pkg/options"
 )
 
 type (

@@ -3,9 +3,9 @@ package yaml
 import (
 	"context"
 
-	automationTypes "github.com/cortezaproject/corteza-server/automation/types"
-	"github.com/cortezaproject/corteza-server/pkg/envoy"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	automationTypes "github.com/cortezaproject/corteza/server/automation/types"
+	"github.com/cortezaproject/corteza/server/pkg/envoy"
+	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
 )
 
 func reportFromResource(r *resource.Report, cfg *EncoderConfig) *report {

@@ -3,9 +3,9 @@ package rest
 import (
 	"github.com/go-chi/chi/v5"
 
-	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/system/rest/handlers"
-	"github.com/cortezaproject/corteza-server/system/service"
+	"github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/system/rest/handlers"
+	"github.com/cortezaproject/corteza/server/system/service"
 )
 
 func MountRoutes() func(r chi.Router) {

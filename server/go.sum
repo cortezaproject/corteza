@@ -114,16 +114,6 @@ github.com/cncf/xds/go v0.0.0-20210312221358-fbca930ec8ed/go.mod h1:eXthEFrGJvWH
 github.com/cncf/xds/go v0.0.0-20210922020428-25de7278fc84/go.mod h1:eXthEFrGJvWHgFFCl3hGmgk+/aYT6PnTQLykKQRLhEs=
 github.com/cncf/xds/go v0.0.0-20211001041855-01bcc9b48dfe/go.mod h1:eXthEFrGJvWHgFFCl3hGmgk+/aYT6PnTQLykKQRLhEs=
 github.com/cncf/xds/go v0.0.0-20211011173535-cb28da3451f1/go.mod h1:eXthEFrGJvWHgFFCl3hGmgk+/aYT6PnTQLykKQRLhEs=
-github.com/cortezaproject/corteza-locale v0.0.0-20220930135020-6f4d92edd5b4 h1:FJSAEVsGOxxuJe5Thv+iueTlCMhF1S3kBPpvhU0K4N8=
-github.com/cortezaproject/corteza-locale v0.0.0-20220930135020-6f4d92edd5b4/go.mod h1:wsI1UftEdBqTuEDKBZmx2LfNu/kZun5pRbCAi420JCg=
-github.com/cortezaproject/corteza-locale v0.0.0-20221012174025-3ac04a48dbf2 h1:gs9uyW9DN413tbKMsR+ZRFubrlbguWehUzNb1BumCsI=
-github.com/cortezaproject/corteza-locale v0.0.0-20221012174025-3ac04a48dbf2/go.mod h1:wsI1UftEdBqTuEDKBZmx2LfNu/kZun5pRbCAi420JCg=
-github.com/cortezaproject/corteza-locale v0.0.0-20221013092948-9ccdcae2b2b4 h1:yYX5kXcFhTpQx1LJsvu9xQqmok3bUZ6JbvUqS/T6FNE=
-github.com/cortezaproject/corteza-locale v0.0.0-20221013092948-9ccdcae2b2b4/go.mod h1:wsI1UftEdBqTuEDKBZmx2LfNu/kZun5pRbCAi420JCg=
-github.com/cortezaproject/corteza-locale v0.0.0-20221026122439-c3b0d9b15a4f h1:vH+jAx/EYDYDAOTyfW1yrsyUSEu6J2U0AGKRYSMUJSs=
-github.com/cortezaproject/corteza-locale v0.0.0-20221026122439-c3b0d9b15a4f/go.mod h1:wsI1UftEdBqTuEDKBZmx2LfNu/kZun5pRbCAi420JCg=
-github.com/cortezaproject/corteza-locale v0.0.0-20221028080428-f7a520f4dd45 h1:qflhq7ByHkuDyPK6RetuE6MJRB0rcBTF3Cv5+SYzphQ=
-github.com/cortezaproject/corteza-locale v0.0.0-20221028080428-f7a520f4dd45/go.mod h1:wsI1UftEdBqTuEDKBZmx2LfNu/kZun5pRbCAi420JCg=
 github.com/cortezaproject/corteza-locale v0.0.0-20221108130701-3981db126651 h1:gLeXW6H7chSMkod/FyK0fCssykvdNhrvc0+0SghrBNo=
 github.com/cortezaproject/corteza-locale v0.0.0-20221108130701-3981db126651/go.mod h1:wsI1UftEdBqTuEDKBZmx2LfNu/kZun5pRbCAi420JCg=
 github.com/cortezaproject/goqu/v9 v9.18.4 h1:HV7Ocf6xYHIqU4buxYkg3Ght/en93Yr1m71KPhJXW0Y=

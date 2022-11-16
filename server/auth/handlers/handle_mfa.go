@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/cortezaproject/corteza-server/auth/request"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/auth/request"
+	"github.com/cortezaproject/corteza/server/pkg/auth"
 )
 
 // Handles MFA TOTP configuration form

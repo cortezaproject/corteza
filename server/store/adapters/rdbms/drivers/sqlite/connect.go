@@ -7,12 +7,12 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/dal"
+	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/dal"
 
-	"github.com/cortezaproject/corteza-server/pkg/logger"
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/store/adapters/rdbms"
-	"github.com/cortezaproject/corteza-server/store/adapters/rdbms/instrumentation"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
+	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/store/adapters/rdbms"
+	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/instrumentation"
 	"github.com/jmoiron/sqlx"
 	"github.com/mattn/go-sqlite3"
 	"github.com/ngrok/sqlmw"

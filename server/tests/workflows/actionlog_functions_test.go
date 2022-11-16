@@ -4,11 +4,11 @@ import (
 	"context"
 	"testing"
 
-	automationService "github.com/cortezaproject/corteza-server/automation/service"
-	"github.com/cortezaproject/corteza-server/automation/types"
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
-	"github.com/cortezaproject/corteza-server/system/automation"
+	automationService "github.com/cortezaproject/corteza/server/automation/service"
+	"github.com/cortezaproject/corteza/server/automation/types"
+	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
+	"github.com/cortezaproject/corteza/server/system/automation"
 	"github.com/stretchr/testify/require"
 )
 

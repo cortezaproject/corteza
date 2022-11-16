@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/tests/helpers"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/tests/helpers"
 )
 
 func Test_dal_crud_compose_record_create(t *testing.T) {

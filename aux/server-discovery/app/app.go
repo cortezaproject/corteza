@@ -3,7 +3,7 @@ package app
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server-discovery/pkg/options"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v7/esutil"
 	"github.com/go-chi/chi/v5"

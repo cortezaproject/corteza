@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/compose/dalutils"
-	cService "github.com/cortezaproject/corteza-server/compose/service"
+	"github.com/cortezaproject/corteza/server/compose/dalutils"
+	cService "github.com/cortezaproject/corteza/server/compose/service"
 
-	cTypes "github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/dal"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/id"
-	lTypes "github.com/cortezaproject/corteza-server/pkg/label/types"
-	"github.com/cortezaproject/corteza-server/store"
-	sTypes "github.com/cortezaproject/corteza-server/system/types"
+	cTypes "github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/id"
+	lTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
+	"github.com/cortezaproject/corteza/server/store"
+	sTypes "github.com/cortezaproject/corteza/server/system/types"
 )
 
 type (

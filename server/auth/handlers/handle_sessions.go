@@ -6,8 +6,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/auth/request"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/auth/request"
+	"github.com/cortezaproject/corteza/server/system/types"
 )
 
 type (

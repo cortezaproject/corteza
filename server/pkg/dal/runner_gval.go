@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/PaesslerAG/gval"
-	"github.com/cortezaproject/corteza-server/pkg/gvalfnc"
-	"github.com/cortezaproject/corteza-server/pkg/ql"
+	"github.com/cortezaproject/corteza/server/pkg/gvalfnc"
+	"github.com/cortezaproject/corteza/server/pkg/ql"
 )
 
 type (

@@ -5,7 +5,7 @@ import (
 	"reflect"
 
 	"github.com/PaesslerAG/gval"
-	"github.com/cortezaproject/corteza-server/pkg/gvalfnc"
+	"github.com/cortezaproject/corteza/server/pkg/gvalfnc"
 )
 
 type (

@@ -14,9 +14,9 @@ import (
 	"time"
 
 	"github.com/PaesslerAG/gval"
-	"github.com/cortezaproject/corteza-server/pkg/errors"
-	"github.com/cortezaproject/corteza-server/pkg/handle"
-	h "github.com/cortezaproject/corteza-server/pkg/http"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/cortezaproject/corteza/server/pkg/handle"
+	h "github.com/cortezaproject/corteza/server/pkg/http"
 	"github.com/spf13/cast"
 )
 

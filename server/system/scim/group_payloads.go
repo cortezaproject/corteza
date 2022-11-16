@@ -3,7 +3,7 @@ package scim
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza/server/system/types"
 	"io"
 	"strconv"
 )
