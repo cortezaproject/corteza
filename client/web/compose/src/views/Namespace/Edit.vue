@@ -420,7 +420,7 @@ export default {
 
             if (this.isClone) {
               this.namespace.name = `${ns.name} (${this.$t('cloneSuffix')})`
-              this.namespace.slug = `${ns.slug}_${this.$t('cloneSuffix')}`
+              this.namespace.slug = ns.slug ? `${ns.slug}_${this.$t('cloneSuffix')}` : ''
             }
 
             this.fetchApplication()

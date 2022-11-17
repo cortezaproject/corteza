@@ -41,7 +41,7 @@ searchPlaceholder: Type here to search among all namespaces...
 setPermissions: Set namespace permissions
 slug:
   description: The short name will be used in the URL
-  label: Short name *
+  label: Short name
   placeholder: Enter a short name for the namespace
   invalid-handle-characters: Should be at least 2 characters long and start with a letter. Can contain only letters, numbers, dashes, underscores and dots
 subtitle:
