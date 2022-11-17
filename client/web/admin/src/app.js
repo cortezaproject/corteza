@@ -21,7 +21,7 @@ export default (options = {}) => {
   options = {
     el: '#app',
     name: 'admin',
-    template: '<div><router-view v-if="loaded && i18nLoaded && isRbacLoaded" /></div>',
+    template: '<router-view v-if="loaded && i18nLoaded && isRbacLoaded" />',
 
     mixins: [
       mixins.corredor,

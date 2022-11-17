@@ -16,7 +16,7 @@ export default (options = {}) => {
   options = {
     el: '#app',
     name: 'workflow',
-    template: '<div v-if="loaded && i18nLoaded" class="h-100"><router-view/></div>',
+    template: '<router-view v-if="loaded && i18nLoaded" />',
 
     data: () => ({
       loaded: false,

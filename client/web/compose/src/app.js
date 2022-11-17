@@ -21,7 +21,7 @@ export default (options = {}) => {
   options = {
     el: '#app',
     name: 'compose',
-    template: '<div><router-view v-if="loaded && i18nLoaded" /></div>',
+    template: '<router-view v-if="loaded && i18nLoaded" />',
 
     mixins: [
       mixins.corredor,
