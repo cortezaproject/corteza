@@ -133,7 +133,7 @@ export default {
     },
 
     handleState () {
-      return this.connection.handle ? handle.handleState(this.connection.handle) : false
+      return handle.handleState(this.connection.handle)
     },
 
     saveDisabled () {

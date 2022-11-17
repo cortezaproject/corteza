@@ -1745,9 +1745,6 @@ export default class System {
       meta,
       config,
     } = (a as KV) || {}
-    if (!handle) {
-      throw Error('field handle is empty')
-    }
     if (!type) {
       throw Error('field type is empty')
     }
@@ -1786,9 +1783,6 @@ export default class System {
     } = (a as KV) || {}
     if (!connectionID) {
       throw Error('field connectionID is empty')
-    }
-    if (!handle) {
-      throw Error('field handle is empty')
     }
     if (!type) {
       throw Error('field type is empty')
@@ -1985,9 +1979,6 @@ export default class System {
     } = (a as KV) || {}
     if (!applicationID) {
       throw Error('field applicationID is empty')
-    }
-    if (!name) {
-      throw Error('field name is empty')
     }
     const cfg: AxiosRequestConfig = {
       ...extra,

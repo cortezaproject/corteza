@@ -288,12 +288,6 @@ export default class Compose {
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
-    if (!name) {
-      throw Error('field name is empty')
-    }
-    if (!slug) {
-      throw Error('field slug is empty')
-    }
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
@@ -386,9 +380,6 @@ export default class Compose {
     }
     if (!name) {
       throw Error('field name is empty')
-    }
-    if (!slug) {
-      throw Error('field slug is empty')
     }
     const cfg: AxiosRequestConfig = {
       ...extra,
