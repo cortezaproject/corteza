@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	internalAuth "github.com/cortezaproject/corteza/server/pkg/auth"
@@ -44,6 +45,12 @@ type (
 		//
 		// It also does negative caching by assigning empty User structs
 		preloaded map[string]*types.User
+	}
+
+	synteticUserDataGen interface {
+		Name() string
+		Username() string
+		Number(int, int) int
 	}
 
 	UserOptions struct {
@@ -813,6 +820,111 @@ func (svc user) checkLimits(ctx context.Context) error {
 	return nil
 }
 
+// CreateSynthetic generates, saves and returns new user
+//
+// Generated users will have their handles prefixed with "synthetic_" and email domain "synthetic.tld"
+//
+// Function checks if user can create users but avoids all other checks (besides unique value)
+func (svc user) CreateSynthetic(ctx context.Context, src synteticUserDataGen, total uint) error {
+	if !svc.ac.CanCreateUser(ctx) {
+		return UserErrNotAllowedToCreate()
+	}
+
+	const maxRetries = 10
+
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		var retry uint
+		for total > 0 || maxRetries < retry {
+			// even with pre-check for unique users this one
+			// still returns not unique error from time to time ?!
+			err = store.CreateUser(ctx, s, syntheticUser(src))
+			if errors.IsDuplicateData(err) {
+				retry++
+				continue
+			}
+
+			if err != nil {
+				return
+			}
+
+			retry = 0
+			total--
+		}
+
+		return
+	})
+}
+
+func syntheticUser(src synteticUserDataGen) (r *types.User) {
+	r = &types.User{
+		ID:             nextID(),
+		Kind:           types.NormalUser,
+		Name:           src.Name(),
+		Handle:         "synthetic_" + src.Username(),
+		EmailConfirmed: src.Number(0, 1) > 0,
+
+		// Make sure all users are created in the past
+		CreatedAt: time.Now().Add(time.Hour * time.Duration(src.Number(100000, 1000000)*-1)),
+	}
+
+	r.Email = strings.ToLower(strings.ReplaceAll(r.Name, " ", ".")) + "@synthetic.tld"
+
+	if src.Number(0, 1) > 0 {
+		aux := time.Now().Add(time.Hour * time.Duration(src.Number(100, 100000)*-1))
+		r.UpdatedAt = &aux
+	}
+
+	return
+}
+
+// CreateSynthetic generates, saves and returns new user
+//
+// Generated users will have their handles prefixed with "synthetic_" and email domain "synthetic.tld"
+func (svc user) RemoveSynthetic(ctx context.Context) error {
+	// not a mistake, we do not need or want to check if user can be deleted
+	if !svc.ac.CanCreateUser(ctx) {
+		return UserErrNotAllowedToCreate()
+	}
+
+	var (
+		f  = types.UserFilter{Query: "@synthetic.tld"}
+		uu types.UserSet
+	)
+
+	f.Limit = 1000
+
+	// @todo this should be optimized by using store.DeleteUserByFilter
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		for {
+			uu, _, err = store.SearchUsers(ctx, s, f)
+			if len(uu) == 0 || err != nil {
+				// when nothing is fetch or error returned
+				// break out of the loop
+				return
+			}
+
+			for _, u := range uu {
+				// check if handle starts with synthetic_
+				if !strings.HasPrefix(u.Handle, "synthetic_") {
+					continue
+				}
+
+				// check if email ends with synthetic.tld
+				if !strings.HasSuffix(u.Email, "@synthetic.tld") {
+					continue
+				}
+
+				if err = store.DeleteUser(ctx, s, u); err != nil {
+					return
+				}
+			}
+		}
+
+		return
+	})
+
+}
+
 func loadUser(ctx context.Context, s store.Users, ID uint64) (res *types.User, err error) {
 	if ID == 0 {
 		return nil, UserErrInvalidID()
@@ -839,6 +951,8 @@ func uniqueUserCheck(ctx context.Context, s store.Storer, u *types.User) (err er
 			// If user exists and is suspended -- duplicate
 			Suspended: filter.StateInclusive,
 		}
+
+		f.Limit = 1
 
 		switch field {
 		case "email":

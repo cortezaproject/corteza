@@ -43,7 +43,7 @@ func (f faker) fakeValueByName(name string) (val string, ok bool) {
 	// Ensure randomization on initial
 	f.seed()
 
-	// Generate & return value from mapped methods
+	// Generator & return value from mapped methods
 	method, ok := f.methods[name]
 	if ok {
 		return method(), ok
@@ -54,7 +54,7 @@ func (f faker) fakeValueByName(name string) (val string, ok bool) {
 // @todo: currently its dependent on predefined methods but custom kind fake gen can be improved!
 // generateValue generate value based on name or given type
 func (f faker) fakeValue(name, kind string, opt valueOptions) (val string, err error) {
-	// Generate & return value from mapped methods
+	// Generator & return value from mapped methods
 	val, ok := f.fakeValueByName(name)
 	if ok {
 		return
