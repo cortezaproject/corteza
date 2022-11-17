@@ -2256,3 +2256,21 @@ endpoints:
             required: false
             title: Exclude (0, default), include (1) or return only (2) deleted connections
             type: filter.State
+
+- title: SMTP Configuration Checker
+  entrypoint: smtpConfigurationChecker
+  path: "/smtp"
+  apis:
+    - name: check
+      method: POST
+      title: Check SMTP server configuration settings
+      path: "/configuration-checker/"
+      parameters:
+        post:
+          - { name: host,           type: string,       title: SMTP server host name,  required: true }
+          - { name: port,           type: uint,         title: SMTP server port, }
+          - { name: recipients,     type: "[]string",   title: List of recipients email addresses that should recieve test email }
+          - { name: username,       type: string,       title: SMTP server authentication username }
+          - { name: password,       type: string,       title: SMTP server authentication password }
+          - { name: tlsInsecure,    type: bool,         title: TLS mode }
+          - { name: tlsServerName,  type: string,       title: TLS server name }

@@ -91,6 +91,7 @@ var (
 	DefaultApigwProfiler       *apigwProfiler
 	DefaultReport              *report
 	DefaultDataPrivacy         *dataPrivacy
+	DefaultSMTPChecker         *smtpConfigurationChecker
 
 	DefaultStatistics *statistics
 
@@ -216,6 +217,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultApigwProfiler = Profiler()
 	DefaultApigwFilter = Filter()
 	DefaultDataPrivacy = DataPrivacy(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
+	DefaultSMTPChecker = SmtpConfigurationChecker(CurrentSettings, DefaultRenderer, DefaultAccessControl, c.Auth)
 
 	if err = initRoles(ctx, log.Named("rbac.roles"), c.RBAC, eventbus.Service(), rbac.Global()); err != nil {
 		return err

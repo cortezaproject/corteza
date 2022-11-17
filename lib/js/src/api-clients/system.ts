@@ -4522,4 +4522,39 @@ export default class System {
     return '/data-privacy/connection/'
   }
 
+  // Check SMTP server configuration settings
+  async smtpConfigurationCheckerCheck (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      host,
+      port,
+      recipients,
+      username,
+      password,
+      tlsInsecure,
+      tlsServerName,
+    } = (a as KV) || {}
+    if (!host) {
+      throw Error('field host is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.smtpConfigurationCheckerCheckEndpoint(),
+    }
+    cfg.data = {
+      host,
+      port,
+      recipients,
+      username,
+      password,
+      tlsInsecure,
+      tlsServerName,
+    }
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  smtpConfigurationCheckerCheckEndpoint (): string {
+    return '/smtp/configuration-checker/'
+  }
+
 }
