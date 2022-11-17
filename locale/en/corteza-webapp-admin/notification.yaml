@@ -231,6 +231,9 @@ settings:
     external:
       success: External settings updated
       error: External settings update failed
+    smtpCheck:
+      success: SMTP configuration check  passed
+      error: SMTP configuration check failed
   compose:
     fetch:
       error: Compose settings fetch failed

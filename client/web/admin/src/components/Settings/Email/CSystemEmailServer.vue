@@ -1,8 +1,8 @@
 <template>
   <b-card
-    class="shadow-sm"
     header-bg-variant="white"
     footer-bg-variant="white"
+    class="shadow-sm"
   >
     <b-form
       @submit.prevent="submit()"
@@ -34,6 +34,7 @@
           </b-input-group-append>
         </b-input-group>
       </b-form-group>
+
       <b-form-group
         :label="$t('user.label')"
         :description="$t('user.description')"
@@ -45,6 +46,7 @@
           autocomplete="off"
         />
       </b-form-group>
+
       <b-form-group
         :label="$t('password.label')"
         :description="$t('password.description')"
@@ -86,6 +88,7 @@
           {{ $t('tlsInsecure.label') }}
         </b-form-checkbox>
       </b-form-group>
+
       <b-form-group
         :label="$t('tlsServerName.label')"
         :description="$t('tlsServerName.description')"
@@ -106,10 +109,21 @@
 
     <template #footer>
       <c-submit-button
-        class="float-right"
         :disabled="disabled"
         :processing="processing"
         :success="success"
+        variant="light"
+        class="float-left"
+        @submit="smtpConnectionCheck()"
+      >
+        {{ $t('testSmtpConfigs.button') }}
+      </c-submit-button>
+
+      <c-submit-button
+        :disabled="disabled"
+        :processing="processing"
+        :success="success"
+        class="float-right"
         @submit="submit()"
       />
     </template>
@@ -171,6 +185,10 @@ export default {
   methods: {
     submit () {
       this.$emit('submit', this.server)
+    },
+
+    smtpConnectionCheck () {
+      this.$emit('smtpConnectionCheck', this.server)
     },
   },
 }

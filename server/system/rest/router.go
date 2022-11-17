@@ -51,6 +51,7 @@ func MountRoutes() func(r chi.Router) {
 			// @todo move these two to dataPrivacy routes
 			handlers.NewDataPrivacyRequest(DataPrivacyRequest{}.New()).MountRoutes(r)
 			handlers.NewDataPrivacyRequestComment(DataPrivacyRequestComment{}.New()).MountRoutes(r)
+			handlers.NewSmtpConfigurationChecker(SmtpConfigurationChecker{}.New()).MountRoutes(r)
 		})
 	}
 }
