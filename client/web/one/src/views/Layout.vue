@@ -1,10 +1,7 @@
 <template>
-  <div
-    class="d-flex flex-column w-100 vh-100"
-  >
+  <div class="d-flex flex-column w-100 vh-100 overflow-hidden">
     <header
       v-show="loaded"
-      class="mw-100"
     >
       <c-topbar
         hide-app-selector
