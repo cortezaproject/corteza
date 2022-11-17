@@ -235,6 +235,9 @@ settings:
       style:
         success: Auth background styles updated
         error: Auth background styles update failed
+    smtpCheck:
+      success: SMTP configuration check  passed
+      error: SMTP configuration check failed
   compose:
     fetch:
       error: Compose settings fetch failed

@@ -27,3 +27,6 @@ editor:
     tlsServerName:
       label: TLS Server name
       description: Optional, If SMTP server uses a different value than used for the server name.
+    
+    testSmtpConfigs:
+      button: Test SMTP Server

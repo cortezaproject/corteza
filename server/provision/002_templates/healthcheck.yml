@@ -1,0 +1,17 @@
+templates:
+  smtp_configuration_check_subject:
+    type: text/plain
+    meta:
+      short: SMTP configuration check content
+    template: SMTP connection check
+
+  smtp_configuration_check_content:
+    type: text/html
+    meta:
+      short: SMTP configuration check content
+    template: |-
+      {{template "email_general_header" .}}
+        <h2 style="color: #568ba2;text-align: center;">SMTP configurations check</h2>
+        <p>Hello,</p>
+        <p>Your SMTP configuration test passed</p>
+      {{template "email_general_footer" .}}
