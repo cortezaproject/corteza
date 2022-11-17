@@ -3,8 +3,10 @@ package commands
 import (
 	"context"
 	"fmt"
+	"github.com/brianvoe/gofakeit/v6"
 	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/cli"
@@ -26,8 +28,9 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 
 	// User management commands.
 	cmd := &cobra.Command{
-		Use:   "users",
-		Short: "User management",
+		Use:     "users",
+		Aliases: []string{"user"},
+		Short:   "User management",
 	}
 
 	// List users.
@@ -233,7 +236,62 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 		listCmd,
 		addCmd,
 		pwdCmd,
+		UsersSynthetic(ctx, app),
 	)
 
 	return cmd
+}
+
+func UsersSynthetic(ctx context.Context, app serviceInitializer) *cobra.Command {
+	var (
+		total uint
+		faker = gofakeit.NewCrypto()
+
+		synth = &cobra.Command{
+			Use:     "synthetic",
+			Aliases: []string{"synth"},
+			Short:   "Generate or remove synthetic users",
+			PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
+				return app.InitServices(ctx)
+			},
+		}
+
+		gen = &cobra.Command{
+			Use:     "generate",
+			Aliases: []string{"gen"},
+			Short:   "Generate synthetic users",
+			Run: func(cmd *cobra.Command, args []string) {
+				cmd.Printf("Generating %d users ...", total)
+				bm := time.Now()
+
+				ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
+				cli.HandleError(service.DefaultUser.CreateSynthetic(ctx, faker, total))
+
+				cmd.Printf("done in %s", time.Since(bm).Round(time.Millisecond))
+				cmd.Println()
+			},
+		}
+
+		rem = &cobra.Command{
+			Use:     "remove",
+			Aliases: []string{"rm", "d", "delete", "del"},
+			Short:   "Remove synthetic users",
+			Run: func(cmd *cobra.Command, args []string) {
+				cmd.Printf("Removing all synthetic users ...")
+				bm := time.Now()
+
+				ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
+				cli.HandleError(service.DefaultUser.RemoveSynthetic(ctx))
+
+				cmd.Printf("done in %s", time.Since(bm).Round(time.Millisecond))
+				cmd.Println()
+			},
+		}
+	)
+
+	gen.Flags().UintVarP(&total, "total", "t", 1, "Number of synthetic users generated")
+
+	synth.AddCommand(gen, rem)
+
+	return synth
 }
