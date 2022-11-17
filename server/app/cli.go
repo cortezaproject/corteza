@@ -134,7 +134,7 @@ func (app *CortezaApp) InitCLI() {
 		cli.EnvCommand(),
 		cli.VersionCommand(),
 		seeder.BaseCommand(
-			systemCommands.SeedUsers(ctx, app),
+			systemCommands.GenerateSyntheticUsers(ctx, app),
 			composeCommands.SeedRecords(ctx, app),
 		),
 	)
