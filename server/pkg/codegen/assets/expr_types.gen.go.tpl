@@ -16,7 +16,7 @@ import (
   {{ normalizeImport . }}
 {{- end }}
 {{- if ne .Package "expr" }}
-	. "github.com/cortezaproject/corteza-server/pkg/expr"
+	. "github.com/cortezaproject/corteza/server/pkg/expr"
 {{- end }}
 )
 

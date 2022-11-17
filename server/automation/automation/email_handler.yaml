@@ -2,7 +2,7 @@ name: email
 
 imports:
   - io
-  - sysTypes github.com/cortezaproject/corteza-server/system/types
+  - sysTypes github.com/cortezaproject/corteza/server/system/types
 
 
 messageParams: &messageParams

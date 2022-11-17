@@ -11,9 +11,9 @@ endpoints:
   entrypoint: workflow
   authentication: []
   imports:
-    - github.com/cortezaproject/corteza-server/pkg/expr
-    - github.com/cortezaproject/corteza-server/automation/types
-    - github.com/cortezaproject/corteza-server/pkg/label
+    - github.com/cortezaproject/corteza/server/pkg/expr
+    - github.com/cortezaproject/corteza/server/automation/types
+    - github.com/cortezaproject/corteza/server/pkg/label
   apis:
   - name: list
     method: GET
@@ -109,9 +109,9 @@ endpoints:
   entrypoint: trigger
   authentication: []
   imports:
-    - github.com/cortezaproject/corteza-server/automation/types
-    - github.com/cortezaproject/corteza-server/pkg/expr
-    - github.com/cortezaproject/corteza-server/pkg/label
+    - github.com/cortezaproject/corteza/server/automation/types
+    - github.com/cortezaproject/corteza/server/pkg/expr
+    - github.com/cortezaproject/corteza/server/pkg/label
   apis:
   - name: list
     method: GET
@@ -184,8 +184,8 @@ endpoints:
   entrypoint: session
   authentication: []
   imports:
-    - github.com/cortezaproject/corteza-server/pkg/expr
-    - github.com/cortezaproject/corteza-server/automation/types
+    - github.com/cortezaproject/corteza/server/pkg/expr
+    - github.com/cortezaproject/corteza/server/automation/types
   apis:
   - name: list
     method: GET
@@ -285,7 +285,7 @@ endpoints:
   - Client ID
   - Session ID
   imports:
-    - github.com/cortezaproject/corteza-server/pkg/rbac
+    - github.com/cortezaproject/corteza/server/pkg/rbac
   apis:
   - name: list
     path: "/"

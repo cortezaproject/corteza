@@ -1,14 +1,14 @@
 package options
 
 import (
-	"github.com/cortezaproject/corteza-server/codegen/schema"
+	"github.com/cortezaproject/corteza/server/codegen/schema"
 )
 
 sentry: schema.#optionsGroup & {
 	handle: "sentry"
 
 	imports: [
-		"\"github.com/cortezaproject/corteza-server/pkg/version\"",
+		"\"github.com/cortezaproject/corteza/server/pkg/version\"",
 	]
 
 	title: "Sentry monitoring"

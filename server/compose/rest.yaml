@@ -11,8 +11,8 @@ endpoints:
   path: "/namespace"
   authentication: []
   imports:
-    - github.com/cortezaproject/corteza-server/pkg/label
-    - github.com/cortezaproject/corteza-server/pkg/locale
+    - github.com/cortezaproject/corteza/server/pkg/label
+    - github.com/cortezaproject/corteza/server/pkg/locale
     - sqlxTypes github.com/jmoiron/sqlx/types
     - time
   apis:
@@ -255,8 +255,8 @@ endpoints:
   authentication: []
   imports:
     - sqlxTypes github.com/jmoiron/sqlx/types
-    - github.com/cortezaproject/corteza-server/pkg/locale
-    - github.com/cortezaproject/corteza-server/pkg/label
+    - github.com/cortezaproject/corteza/server/pkg/locale
+    - github.com/cortezaproject/corteza/server/pkg/label
   parameters:
     path:
     - type: uint64
@@ -509,9 +509,9 @@ endpoints:
       title: Namespace ID
   imports:
     - sqlxTypes github.com/jmoiron/sqlx/types
-    - github.com/cortezaproject/corteza-server/compose/types
-    - github.com/cortezaproject/corteza-server/pkg/locale
-    - github.com/cortezaproject/corteza-server/pkg/label
+    - github.com/cortezaproject/corteza/server/compose/types
+    - github.com/cortezaproject/corteza/server/pkg/locale
+    - github.com/cortezaproject/corteza/server/pkg/label
     - time
   apis:
   - name: list
@@ -649,7 +649,7 @@ endpoints:
   path: "/namespace/{namespaceID}/module/{moduleID}/record"
   authentication: []
   imports:
-    - github.com/cortezaproject/corteza-server/compose/types
+    - github.com/cortezaproject/corteza/server/compose/types
   parameters:
     path:
     - type: uint64
@@ -918,8 +918,8 @@ endpoints:
   authentication: []
   imports:
     - sqlxTypes github.com/jmoiron/sqlx/types
-    - github.com/cortezaproject/corteza-server/pkg/label
-    - github.com/cortezaproject/corteza-server/pkg/locale
+    - github.com/cortezaproject/corteza/server/pkg/label
+    - github.com/cortezaproject/corteza/server/pkg/locale
     - time
   parameters:
     path:
@@ -1209,7 +1209,7 @@ endpoints:
   - Client ID
   - Session ID
   imports:
-    - github.com/cortezaproject/corteza-server/pkg/rbac
+    - github.com/cortezaproject/corteza/server/pkg/rbac
   apis:
   - name: list
     path: "/"
