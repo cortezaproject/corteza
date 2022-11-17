@@ -13,6 +13,7 @@
       :success="auth.success"
       :disabled="!canManage"
       @submit="onEmailServerSubmit($event)"
+      @smtpConnectionCheck="onSmtpConnectionCheck($event)"
     />
   </b-container>
 </template>
@@ -113,6 +114,41 @@ export default {
           this.external.processing = false
         })
     },
+
+    onSmtpConnectionCheck (server) {
+      this.external.processing = true
+
+      // Append the list of recepient's email  Addresses
+      const recepients = []
+      recepients.push(server.from)
+
+      this.$SystemAPI.smtpConfigurationCheckerCheck({
+        host: server.host,
+        port: parseInt(server.port),
+        recipients: recepients,
+        username: server.user,
+        password: server.pass,
+        tlsInsecure: server.tlsInsecure,
+        tlsServerName: server.tlsServerName,
+      })
+        .then(response => {
+          if (Object.values(response).every(resp => resp === '')) {
+            this.animateSuccess('external')
+            this.toastSuccess(this.$t('notification:settings.system.smtpCheck.success'))
+          }
+
+          Object.keys(response).forEach(key => {
+            if (response[key]) {
+              this.toastWarning(`${key}: ${response[key]}`)
+            }
+          })
+        })
+        .catch(this.toastErrorHandler(this.$t('notification:settings.system.smtpCheck.error')))
+        .finally(() => {
+          this.external.processing = false
+        })
+    },
   },
+
 }
 </script>
