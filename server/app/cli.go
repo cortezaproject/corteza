@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	composeCommands "github.com/cortezaproject/corteza/server/compose/commands"
-	"github.com/cortezaproject/corteza/server/pkg/seeder"
 	"sync"
 
 	authCommands "github.com/cortezaproject/corteza/server/auth/commands"
@@ -131,12 +130,9 @@ func (app *CortezaApp) InitCLI() {
 		provisionCmd,
 		authCommands.Command(ctx, app, storeInit),
 		federationCommands.Sync(ctx, app),
+		composeCommands.Base(ctx, app),
 		cli.EnvCommand(),
 		cli.VersionCommand(),
-		seeder.BaseCommand(
-			systemCommands.GenerateSyntheticUsers(ctx, app),
-			composeCommands.SeedRecords(ctx, app),
-		),
 	)
 
 }
