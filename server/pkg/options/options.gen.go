@@ -7,8 +7,8 @@ package options
 //
 
 import (
-	"github.com/cortezaproject/corteza/server/pkg/rand"
-	"github.com/cortezaproject/corteza/server/pkg/version"
+	"github.com/cortezaproject/corteza-server/pkg/rand"
+	"github.com/cortezaproject/corteza-server/pkg/version"
 	"time"
 )
 
@@ -205,10 +205,6 @@ type (
 	ProvisionOpt struct {
 		Always bool   `env:"PROVISION_ALWAYS"`
 		Path   string `env:"PROVISION_PATH"`
-	}
-
-	SeederOpt struct {
-		LogEnabled bool `env:"SEEDER_LOG_ENABLED"`
 	}
 
 	SentryOpt struct {
@@ -848,31 +844,6 @@ func Provision() (o *ProvisionOpt) {
 		Always: true,
 		Path:   "provision/*",
 	}
-
-	// Custom defaults
-	func(o interface{}) {
-		if def, ok := o.(interface{ Defaults() }); ok {
-			def.Defaults()
-		}
-	}(o)
-
-	fill(o)
-
-	// Custom cleanup
-	func(o interface{}) {
-		if def, ok := o.(interface{ Cleanup() }); ok {
-			def.Cleanup()
-		}
-	}(o)
-
-	return
-}
-
-// Seeder initializes and returns a SeederOpt with default values
-//
-// This function is auto-generated
-func Seeder() (o *SeederOpt) {
-	o = &SeederOpt{}
 
 	// Custom defaults
 	func(o interface{}) {

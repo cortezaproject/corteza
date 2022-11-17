@@ -8,31 +8,23 @@ import (
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/cli"
-	"github.com/cortezaproject/corteza/server/pkg/seeder"
 	"time"
 
 	"github.com/spf13/cobra"
 )
 
-type (
-	serviceInitializer interface {
-		InitServices(ctx context.Context) error
+func Records(ctx context.Context, app serviceInitializer) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "records",
+		Aliases: []string{"rec", "record"},
 	}
 
-	seederService interface {
-		CreateUser(seeder.Params) ([]uint64, error)
-		CreateRecord(seeder.RecordParams) ([]uint64, error)
-		DeleteAllUser() error
-		DeleteAllRecord(*types.Module) error
-		DeleteAll(*seeder.RecordParams) (err error)
-	}
-)
+	cmd.AddCommand(RecordsSynthetic(ctx, app))
 
-var (
-	svc seederService
-)
+	return
+}
 
-func SeedRecords(ctx context.Context, app serviceInitializer) (cmd *cobra.Command) {
+func RecordsSynthetic(ctx context.Context, app serviceInitializer) *cobra.Command {
 	var (
 		total uint
 		faker = gofakeit.NewCrypto()
@@ -40,9 +32,9 @@ func SeedRecords(ctx context.Context, app serviceInitializer) (cmd *cobra.Comman
 		namespace string
 		module    string
 
-		base = &cobra.Command{
-			Use:     "records",
-			Aliases: []string{"rec"},
+		synth = &cobra.Command{
+			Use:     "synthetic",
+			Aliases: []string{"synth"},
 
 			PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
 				if err = app.InitServices(ctx); err != nil {
@@ -114,15 +106,15 @@ func SeedRecords(ctx context.Context, app serviceInitializer) (cmd *cobra.Comman
 		}
 	)
 
-	for _, cmd = range []*cobra.Command{gen, rem} {
+	for _, cmd := range []*cobra.Command{gen, rem} {
 		cmd.Flags().StringVarP(&namespace, "namespace", "n", "", "namespace IS or handle for recode generation")
 		cmd.Flags().StringVarP(&module, "module", "m", "", "module IS or handle for recode generation")
 	}
 
 	gen.Flags().UintVarP(&total, "total", "t", 1, "Number of synthetic records generated")
 
-	base.AddCommand(gen, rem)
-	return base
+	synth.AddCommand(gen, rem)
+	return synth
 }
 
 func resolveModule(ctx context.Context, nsSvc service.NamespaceService, modSvc service.ModuleService, nsIdent, modIdent string) (ns *types.Namespace, mod *types.Module, err error) {
