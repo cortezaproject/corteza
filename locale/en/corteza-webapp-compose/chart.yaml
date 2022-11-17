@@ -153,7 +153,7 @@ edit:
 import: 'Import chart(s):'
 newLabel: 'Create a new chart:'
 name: Chart name *
-handle: Handle *
+handle: Handle
 notification:
   loadFailed: Could not load chart
   saveFailed: Could not save this chart
