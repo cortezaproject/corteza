@@ -29,11 +29,6 @@ body {
   right: 0;
 }
 
-.user {
-  top: 0;
-  right: 0;
-}
-
 .h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
   font-family: 'Poppins';
   font-weight: 600;
