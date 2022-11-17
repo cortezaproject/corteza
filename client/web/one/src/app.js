@@ -15,7 +15,7 @@ export default (options = {}) => {
   options = {
     el: '#app',
     name: 'one',
-    template: '<div v-if="loaded && i18nLoaded"><router-view/></div>',
+    template: '<router-view v-if="loaded && i18nLoaded" />',
 
     data: () => ({
       loaded: false,

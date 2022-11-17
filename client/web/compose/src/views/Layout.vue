@@ -1,8 +1,6 @@
 <template>
-  <div class="d-flex flex-column w-100 vh-100">
-    <header
-      class="mw-100"
-    >
+  <div class="d-flex flex-column w-100 vh-100 overflow-hidden">
+    <header>
       <c-topbar
         :sidebar-pinned="pinned"
         :settings="$Settings.get('ui.topbar', {})"
@@ -70,10 +68,13 @@
       </template>
       <router-view />
     </main>
+
     <c-prompts />
+
     <c-toaster
       :toasts="toasts"
     />
+
     <c-permissions-modal
       :labels="{
         save: $t('permissions:ui.save'),
@@ -102,6 +103,7 @@
         },
       }"
     />
+
     <c-translation-modal />
   </div>
 </template>
