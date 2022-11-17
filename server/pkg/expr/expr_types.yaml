@@ -2,7 +2,7 @@ package: expr
 imports:
   - io
   - time
-  - github.com/cortezaproject/corteza-server/pkg/http
+  - github.com/cortezaproject/corteza/server/pkg/http
   - net/url
 
 types:

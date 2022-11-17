@@ -1,12 +1,11 @@
 package options
 
 import (
-	"github.com/cortezaproject/corteza-server/codegen/schema"
+	"github.com/cortezaproject/corteza/server/codegen/schema"
 )
 
 DB: schema.#optionsGroup & {
-	handle: "db"
-	expIdent: "DB"
+	handle: "DB"
 	options: {
 		DSN: {
 			defaultValue: "sqlite3://file::memory:?cache=shared&mode=memory"

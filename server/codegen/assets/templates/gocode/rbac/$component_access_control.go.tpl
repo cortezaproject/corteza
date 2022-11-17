@@ -7,11 +7,11 @@ import (
 	"github.com/spf13/cast"
 	"strings"
 	"context"
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	systemTypes "github.com/cortezaproject/corteza-server/system/types"
-	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
+	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	systemTypes "github.com/cortezaproject/corteza/server/system/types"
+	internalAuth "github.com/cortezaproject/corteza/server/pkg/auth"
 {{- range .imports }}
     {{ . }}
 {{- end }}

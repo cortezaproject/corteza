@@ -3,7 +3,7 @@ package {{ .package }}
 {{ template "gocode/header-gentext.tpl" }}
 
 import (
-	systemTypes "github.com/cortezaproject/corteza-server/system/types"
+	systemTypes "github.com/cortezaproject/corteza/server/system/types"
 )
 
 {{- range .resources }}

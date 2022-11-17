@@ -1,6 +1,6 @@
 imports:
   - time
-  - github.com/cortezaproject/corteza-server/pkg/actionlog
+  - github.com/cortezaproject/corteza/server/pkg/actionlog
 
 snippets:
   filterParams: &filterParams
