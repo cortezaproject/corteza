@@ -26,8 +26,8 @@ endpoints:
   entrypoint: authClient
   authentication: []
   imports:
-    - github.com/cortezaproject/corteza-server/pkg/label
-    - github.com/cortezaproject/corteza-server/system/types
+    - github.com/cortezaproject/corteza/server/pkg/label
+    - github.com/cortezaproject/corteza/server/system/types
     - time
   apis:
   - name: list
@@ -155,7 +155,7 @@ endpoints:
   entrypoint: settings
   authentication: []
   imports:
-    - github.com/cortezaproject/corteza-server/system/types
+    - github.com/cortezaproject/corteza/server/system/types
   apis:
   - name: list
     method: GET
@@ -221,8 +221,8 @@ endpoints:
   - Client ID
   - Session ID
   imports:
-    - github.com/cortezaproject/corteza-server/pkg/label
-    - github.com/cortezaproject/corteza-server/system/types
+    - github.com/cortezaproject/corteza/server/pkg/label
+    - github.com/cortezaproject/corteza/server/system/types
   apis:
   - name: list
     method: GET
@@ -422,8 +422,8 @@ endpoints:
   - Client ID
   - Session ID
   imports:
-    - github.com/cortezaproject/corteza-server/pkg/label
-    - github.com/cortezaproject/corteza-server/system/types
+    - github.com/cortezaproject/corteza/server/pkg/label
+    - github.com/cortezaproject/corteza/server/system/types
   apis:
   - name: list
     method: GET
@@ -759,7 +759,7 @@ endpoints:
   - Client ID
   - Session ID
   imports:
-    - github.com/cortezaproject/corteza-server/system/types
+    - github.com/cortezaproject/corteza/server/system/types
   apis:
   - name: list
     method: GET
@@ -842,7 +842,7 @@ endpoints:
   - Client ID
   - Session ID
   imports:
-    - github.com/cortezaproject/corteza-server/system/types
+    - github.com/cortezaproject/corteza/server/system/types
   apis:
   - name: list
     method: GET
@@ -912,7 +912,7 @@ endpoints:
   entrypoint: application
   authentication: []
   imports:
-    - github.com/cortezaproject/corteza-server/pkg/label
+    - github.com/cortezaproject/corteza/server/pkg/label
     - sqlxTypes github.com/jmoiron/sqlx/types
   apis:
   - name: list
@@ -1144,7 +1144,7 @@ endpoints:
   - Client ID
   - Session ID
   imports:
-    - github.com/cortezaproject/corteza-server/pkg/rbac
+    - github.com/cortezaproject/corteza/server/pkg/rbac
   apis:
   - name: list
     path: "/"
@@ -1447,8 +1447,8 @@ endpoints:
   path: "/template"
   entrypoint: template
   imports:
-    - github.com/cortezaproject/corteza-server/system/types
-    - github.com/cortezaproject/corteza-server/pkg/label
+    - github.com/cortezaproject/corteza/server/system/types
+    - github.com/cortezaproject/corteza/server/pkg/label
   authentication:
   - Client ID
   - SessionID
@@ -1631,9 +1631,9 @@ endpoints:
   entrypoint: report
   authentication: []
   imports:
-    - github.com/cortezaproject/corteza-server/pkg/label
-    - github.com/cortezaproject/corteza-server/system/types
-    - github.com/cortezaproject/corteza-server/system/reporting
+    - github.com/cortezaproject/corteza/server/pkg/label
+    - github.com/cortezaproject/corteza/server/system/types
+    - github.com/cortezaproject/corteza/server/system/reporting
   apis:
   - name: list
     method: GET
@@ -1863,7 +1863,7 @@ endpoints:
   entrypoint: queues
   path: "/queues"
   imports:
-    - github.com/cortezaproject/corteza-server/system/types
+    - github.com/cortezaproject/corteza/server/system/types
   apis:
   - name: list
     method: GET
@@ -1924,8 +1924,8 @@ endpoints:
   entrypoint: apigwRoute
   authentication: []
   imports:
-    - github.com/cortezaproject/corteza-server/system/types
-    - github.com/cortezaproject/corteza-server/pkg/label
+    - github.com/cortezaproject/corteza/server/system/types
+    - github.com/cortezaproject/corteza/server/pkg/label
   apis:
   - name: list
     method: GET
@@ -1986,7 +1986,7 @@ endpoints:
   entrypoint: apigwFilter
   authentication: []
   imports:
-    - github.com/cortezaproject/corteza-server/system/types
+    - github.com/cortezaproject/corteza/server/system/types
   apis:
   - name: list
     method: GET
@@ -2163,7 +2163,7 @@ endpoints:
 - title: Data Privacy Request
   entrypoint: dataPrivacyRequest
   imports:
-    - github.com/cortezaproject/corteza-server/system/types
+    - github.com/cortezaproject/corteza/server/system/types
   path: "/data-privacy/requests"
   apis:
     - name: list
@@ -2231,7 +2231,7 @@ endpoints:
 - title: Data Privacy
   entrypoint: dataPrivacy
   imports:
-    - github.com/cortezaproject/corteza-server/pkg/filter
+    - github.com/cortezaproject/corteza/server/pkg/filter
   path: "/data-privacy"
   apis:
     - name: connection list

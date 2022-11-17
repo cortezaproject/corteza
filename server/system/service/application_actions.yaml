@@ -10,7 +10,7 @@ defaultActionSeverity: notice
 defaultErrorSeverity: error
 
 import:
-  - github.com/cortezaproject/corteza-server/system/types
+  - github.com/cortezaproject/corteza/server/system/types
 
 props:
   - name: application

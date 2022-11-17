@@ -10,7 +10,7 @@ defaultActionSeverity: notice
 defaultErrorSeverity: error
 
 import:
-  - github.com/cortezaproject/corteza-server/compose/types
+  - github.com/cortezaproject/corteza/server/compose/types
 
 props:
   - name: record

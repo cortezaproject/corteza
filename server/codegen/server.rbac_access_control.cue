@@ -1,8 +1,8 @@
 package codegen
 
 import (
-	"github.com/cortezaproject/corteza-server/codegen/schema"
-	"github.com/cortezaproject/corteza-server/app"
+	"github.com/cortezaproject/corteza/server/codegen/schema"
+	"github.com/cortezaproject/corteza/server/app"
 )
 
 [...schema.#codegen] &
@@ -13,7 +13,7 @@ import (
 		payload: {
 			package: "service"
 			imports: [
-				"\"github.com/cortezaproject/corteza-server/\(cmp.ident)/types\"",
+				"\"github.com/cortezaproject/corteza/server/\(cmp.ident)/types\"",
 			]
 
 			// All known RBAC resources

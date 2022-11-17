@@ -3,8 +3,8 @@ package codegen
 import (
 	"strings"
 	"list"
-	"github.com/cortezaproject/corteza-server/app"
-	"github.com/cortezaproject/corteza-server/codegen/schema"
+	"github.com/cortezaproject/corteza/server/app"
+	"github.com/cortezaproject/corteza/server/codegen/schema"
 )
 
 
@@ -195,7 +195,7 @@ _payload: {
 	imports: {
 		// per-component type imports
 		for cmp in app.corteza.components for res in cmp.resources if res.store != _|_ {
-			"github.com/cortezaproject/corteza-server/\(cmp.ident)/types": "\(cmp.ident)Type"
+			"github.com/cortezaproject/corteza/server/\(cmp.ident)/types": "\(cmp.ident)Type"
 		}
 
 		for res in app.corteza.resources if res.store != _|_ {

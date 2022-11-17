@@ -1,7 +1,7 @@
 name: apigwBody
 
 imports:
-  - github.com/cortezaproject/corteza-server/pkg/http
+  - github.com/cortezaproject/corteza/server/pkg/http
 
 functions:
   read:
