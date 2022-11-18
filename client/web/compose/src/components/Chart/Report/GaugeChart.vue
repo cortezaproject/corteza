@@ -9,7 +9,7 @@
     <template #dimension-options="{ dimension }">
       <b-form-group
         :label="$t('edit.dimension.gaugeSteps')"
-        :label-cols="2"
+        :label-cols="3"
       >
         <b-input-group
           v-for="(step, i) in dimension.meta.steps"

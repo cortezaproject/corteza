@@ -38,6 +38,9 @@ edit:
       selectedItems: Selected options
       unselectAllItems: Unselect all
       noItemsFound: No options found
+    rotate:
+      label: Rotate label
+      description: Labels can be rotated from -90 to 90 degrees. Applied to bar and line charts
   filter:
     customize: Customize filter
     label: Filters
@@ -54,7 +57,7 @@ edit:
     fieldLabel: Field
     fieldPlaceholder: Select metric field
     fillArea: Fill area below the line
-    fixTooltips: Always show tooltips
+    fixTooltips: Show tooltips
     function:
       avg: AVG
       label: Function
@@ -104,6 +107,9 @@ edit:
     axisOnRight: Place axis on the right side
     axisScaleFromZero: Always begin axis scale at zero
     label: Y-axis
+    rotate:
+      label: Rotate label
+      description: Labels can be rotated from -90 to 90 degrees. Applied to bar and line charts
     labelLabel: Axis label
     labelPlaceholder: Axis label
     labelPosition:
@@ -116,6 +122,34 @@ edit:
     maxPlaceholder: Maximum value
     minLabel: Min value
     minPlaceholder: Minimum value
+  additionalConfig:
+    legend:
+      label: Legend
+      hide: Hide legend
+      showAsList: Show as list
+      position:
+        customize: Customize position
+        top: Top
+        right: Right
+        bottom: Bottom
+        left: Left
+      valueRange: Values can be set a pixels 20 or as percentages 20%
+    tooltip:
+      label: Tooltip
+      labelNextToChartPartition: Show labels next to chart partition
+      formatting:
+        label: Formatting
+        description: '{a} - metrics field value, {b} - dimension field value, {c} - value of dimension field, {d} - percentage'
+        placeholder: '{a}<br />{b} : {c} ({d}%)'
+    offset:
+      label: Offset
+      default: Default offset
+      position:
+        top: Top
+        right: Right
+        bottom: Bottom
+        left: Left
+      valueRange: Values can be set a pixels 20 or as percentages 20%
 import: 'Import chart(s):'
 newLabel: 'Create a new chart:'
 name: Chart name *
