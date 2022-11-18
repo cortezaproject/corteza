@@ -1,182 +1,172 @@
 <template>
-  <div class="header-navigation d-flex align-items-center justify-content-between sticky-top pr-3 pl-5 ">
+  <div class="header-navigation d-flex align-items-center sticky-top pr-3">
     <div
-      class="d-flex text-nowrap flex-grow-1 align-items-center header h-100 w-100"
+      class="spacer"
+      :class="{
+        'expanded': sidebarPinned,
+      }"
+    />
+
+    <h2
+      class="d-none d-sm-inline-block text-truncate mb-0"
     >
-      <template>
-        <div
-          class="spacer"
-          :class="{
-            'expanded': sidebarPinned,
-          }"
-        />
-      </template>
+      <slot name="title" />
+    </h2>
 
-      <div
-        class="d-flex align-items-center ml-2 text-truncate mr-auto h-100"
-      >
-        <h2
-          class="d-none d-sm-block mb-0"
-        >
-          <slot name="title" />
-        </h2>
 
-      </div>
-
-      <div class="topbar-tools ml-3">
-        <slot name="tools" />
-      </div>
-
-      <b-button
-        v-if="!hideAppSelector && !settings.hideAppSelector"
-        variant="outline-light"
-        :href="appSelectorURL"
-        size="lg"
-        class="d-flex align-items-center justify-content-center text-dark border-0 nav-icon rounded-circle ml-2"
-      >
-        <font-awesome-icon
-          class="m-0 h5"
-          :icon="['fas', 'grip-horizontal']"
-        />
-      </b-button>
-
-      <b-dropdown
-        data-test-id="dropdown-helper"
-        v-if="!settings.hideHelp"
-        size="lg"
-        variant="outline-light"
-        class="nav-icon mx-1"
-        toggle-class="text-decoration-none text-dark rounded-circle border-0 w-100"
-        menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark font-weight-bold mt-2"
-        right
-        no-caret
-      >
-        <template #button-content>
-          <div
-            class="d-flex align-items-center justify-content-center"
-          >
-            <font-awesome-icon
-              class="m-0 h5"
-              :icon="['far', 'question-circle']"
-            />
-            <span class="sr-only">
-              {{ labels.helpForum }}
-            </span>
-          </div>
-        </template>
-        <div>
-          <slot name="help-dropdown" />
-        </div>
-        <b-dropdown-item
-          v-for="(helpLink, index) in helpLinks"
-          :key="index"
-          :href="helpLink.url"
-          :target="helpLink.newTab ? '_blank' : ''"
-        >
-          {{ helpLink.handle }}
-        </b-dropdown-item>
-        <b-dropdown-item
-          data-test-id="dropdown-helper-forum"
-          v-if="!settings.hideForumLink"
-          href="https://forum.cortezaproject.org/"
-          target="_blank"
-        >
-          {{ labels.helpForum }}
-        </b-dropdown-item>
-        <b-dropdown-item
-          data-test-id="dropdown-helper-docs"
-          v-if="!settings.hideDocumentationLink"
-          :href="documentationURL"
-          target="_blank"
-        >
-          {{ labels.helpDocumentation }}
-        </b-dropdown-item>
-        <b-dropdown-item
-          data-test-id="dropdown-helper-feedback"
-          v-if="!settings.hideFeedbackLink"
-          href="mailto:info@crust.tech"
-          target="_blank"
-        >
-          {{ labels.helpFeedback }}
-        </b-dropdown-item>
-        <b-dropdown-divider
-          v-if="!onlyVersion"
-        />
-        <b-dropdown-item
-          disabled
-          class="small"
-        >
-          {{ labels.helpVersion }}
-          <br>
-          {{ frontendVersion }}
-        </b-dropdown-item>
-      </b-dropdown>
-      <b-dropdown
-        data-test-id="dropdown-profile"
-        v-if="!settings.hideProfile"
-        data-v-onboarding="profile"
-        size="lg"
-        variant="outline-light"
-        class="nav-user-icon"
-        toggle-class="nav-icon text-decoration-none text-dark rounded-circle border"
-        menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark font-weight-bold mt-2"
-        right
-        no-caret
-      >
-        <template #button-content>
-          <div
-            class="d-flex align-items-center justify-content-center"
-          >
-            <font-awesome-icon
-              class="m-0 h5"
-              :icon="['far', 'user']"
-            />
-            <span class="sr-only">
-              {{ labels.helpForum }}
-            </span>
-          </div>
-        </template>
-        <b-dropdown-text class="text-muted mb-2">
-          {{ labels.userSettingsLoggedInAs }}
-        </b-dropdown-text>
-        <div>
-          <slot name="avatar-dropdown" />
-        </div>
-        <b-dropdown-item
-          v-for="(profileLink, index) in profileLinks"
-          :key="index"
-          :href="profileLink.url"
-          :target="profileLink.newTab ? '_blank' : ''"
-        >
-          {{ profileLink.handle }}
-        </b-dropdown-item>
-        <b-dropdown-item
-          data-test-id="dropdown-profile-user"
-          v-if="!settings.hideProfileLink"
-          :href="userProfileURL"
-          target="_blank"
-        >
-          {{ labels.userSettingsProfile }}
-        </b-dropdown-item>
-        <b-dropdown-item
-          data-test-id="dropdown-profile-change-password"
-          v-if="!settings.hideChangePasswordLink"
-          :href="changePasswordURL"
-          target="_blank"
-        >
-          {{ labels.userSettingsChangePassword }}
-        </b-dropdown-item>
-        <b-dropdown-divider />
-        <b-dropdown-item
-          data-test-id="dropdown-profile-logout"
-          href=""
-          @click="$auth.logout()"
-          class="mt-2"
-        >
-          {{ labels.userSettingsLogout }}
-        </b-dropdown-item>
-      </b-dropdown>
+    <div class="ml-auto text-sm-nowrap">
+      <slot name="tools" />
     </div>
+
+    <b-button
+      v-if="!hideAppSelector && !settings.hideAppSelector"
+      variant="outline-light"
+      :href="appSelectorURL"
+      size="lg"
+      class="d-flex align-items-center justify-content-center text-dark border-0 nav-icon rounded-circle"
+    >
+      <font-awesome-icon
+        class="m-0 h5"
+        :icon="['fas', 'grip-horizontal']"
+      />
+    </b-button>
+
+    <b-dropdown
+      v-if="!settings.hideHelp"
+      data-test-id="dropdown-helper"
+      size="lg"
+      variant="outline-light"
+      class="nav-icon mx-1"
+      toggle-class="text-decoration-none text-dark rounded-circle border-0 w-100"
+      menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark font-weight-bold mt-2"
+      right
+      no-caret
+    >
+      <template #button-content>
+        <div
+          class="d-flex align-items-center justify-content-center"
+        >
+          <font-awesome-icon
+            class="m-0 h5"
+            :icon="['far', 'question-circle']"
+          />
+          <span class="sr-only">
+            {{ labels.helpForum }}
+          </span>
+        </div>
+      </template>
+      <div>
+        <slot name="help-dropdown" />
+      </div>
+      <b-dropdown-item
+        v-for="(helpLink, index) in helpLinks"
+        :key="index"
+        :href="helpLink.url"
+        :target="helpLink.newTab ? '_blank' : ''"
+      >
+        {{ helpLink.handle }}
+      </b-dropdown-item>
+      <b-dropdown-item
+        v-if="!settings.hideForumLink"
+        data-test-id="dropdown-helper-forum"
+        href="https://forum.cortezaproject.org/"
+        target="_blank"
+      >
+        {{ labels.helpForum }}
+      </b-dropdown-item>
+      <b-dropdown-item
+        v-if="!settings.hideDocumentationLink"
+        data-test-id="dropdown-helper-docs"
+        :href="documentationURL"
+        target="_blank"
+      >
+        {{ labels.helpDocumentation }}
+      </b-dropdown-item>
+      <b-dropdown-item
+        v-if="!settings.hideFeedbackLink"
+        data-test-id="dropdown-helper-feedback"
+        href="mailto:info@crust.tech"
+        target="_blank"
+      >
+        {{ labels.helpFeedback }}
+      </b-dropdown-item>
+      <b-dropdown-divider
+        v-if="!onlyVersion"
+      />
+      <b-dropdown-item
+        disabled
+        class="small"
+      >
+        {{ labels.helpVersion }}
+        <br>
+        {{ frontendVersion }}
+      </b-dropdown-item>
+    </b-dropdown>
+    <b-dropdown
+      v-if="!settings.hideProfile"
+      data-test-id="dropdown-profile"
+      data-v-onboarding="profile"
+      size="lg"
+      variant="outline-light"
+      class="nav-user-icon"
+      toggle-class="nav-icon text-decoration-none text-dark rounded-circle border"
+      menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark font-weight-bold mt-2"
+      right
+      no-caret
+    >
+      <template #button-content>
+        <div
+          class="d-flex align-items-center justify-content-center"
+        >
+          <font-awesome-icon
+            class="m-0 h5"
+            :icon="['far', 'user']"
+          />
+          <span class="sr-only">
+            {{ labels.helpForum }}
+          </span>
+        </div>
+      </template>
+      <b-dropdown-text class="text-muted mb-2">
+        {{ labels.userSettingsLoggedInAs }}
+      </b-dropdown-text>
+      <div>
+        <slot name="avatar-dropdown" />
+      </div>
+      <b-dropdown-item
+        v-for="(profileLink, index) in profileLinks"
+        :key="index"
+        :href="profileLink.url"
+        :target="profileLink.newTab ? '_blank' : ''"
+      >
+        {{ profileLink.handle }}
+      </b-dropdown-item>
+      <b-dropdown-item
+        v-if="!settings.hideProfileLink"
+        data-test-id="dropdown-profile-user"
+        :href="userProfileURL"
+        target="_blank"
+      >
+        {{ labels.userSettingsProfile }}
+      </b-dropdown-item>
+      <b-dropdown-item
+        v-if="!settings.hideChangePasswordLink"
+        data-test-id="dropdown-profile-change-password"
+        :href="changePasswordURL"
+        target="_blank"
+      >
+        {{ labels.userSettingsChangePassword }}
+      </b-dropdown-item>
+      <b-dropdown-divider />
+      <b-dropdown-item
+        data-test-id="dropdown-profile-logout"
+        href=""
+        @click="$auth.logout()"
+        class="mt-2"
+      >
+        {{ labels.userSettingsLogout }}
+      </b-dropdown-item>
+    </b-dropdown>
   </div>
 </template>
 
@@ -279,10 +269,6 @@ $nav-user-icon-size: 50px;
   width: 100vw;
   height: $header-height;
   background-color: #F3F3F5 !important;
-
-  h2 {
-    padding-left: calc(0.5rem + 2px);
-  }
 }
 
 .topbar-dropdown-menu {
@@ -291,7 +277,7 @@ $nav-user-icon-size: 50px;
 }
 
 .spacer {
-  min-width: 0px;
+  min-width: 66px;
   -webkit-transition: min-width 0.15s ease-in-out;
   -moz-transition: min-width 0.15s ease-in-out;
   -o-transition: min-width 0.15s ease-in-out;
