@@ -21,7 +21,6 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/apigw"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/corredor"
-	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza/server/pkg/http"
@@ -34,7 +33,6 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/provision"
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/cortezaproject/corteza/server/pkg/scheduler"
-	"github.com/cortezaproject/corteza/server/pkg/seeder"
 	"github.com/cortezaproject/corteza/server/pkg/sentry"
 	"github.com/cortezaproject/corteza/server/pkg/valuestore"
 	"github.com/cortezaproject/corteza/server/pkg/version"
@@ -442,9 +440,6 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 			return fmt.Errorf("could not initialize discovery services: %w", err)
 		}
 	}
-
-	// Initializing seeder
-	_ = seeder.Seeder(ctx, app.Store, dal.Service(), seeder.Faker())
 
 	app.lvl = bootLevelServicesInitialized
 	return

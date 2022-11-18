@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	composeCommands "github.com/cortezaproject/corteza/server/compose/commands"
 	"sync"
 
 	authCommands "github.com/cortezaproject/corteza/server/auth/commands"
@@ -11,7 +12,6 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/api/server"
 	"github.com/cortezaproject/corteza/server/pkg/cli"
 	"github.com/cortezaproject/corteza/server/pkg/options"
-	fakerCommands "github.com/cortezaproject/corteza/server/pkg/seeder/commands"
 	"github.com/cortezaproject/corteza/server/store"
 	systemCommands "github.com/cortezaproject/corteza/server/system/commands"
 	"go.uber.org/zap"
@@ -130,9 +130,9 @@ func (app *CortezaApp) InitCLI() {
 		provisionCmd,
 		authCommands.Command(ctx, app, storeInit),
 		federationCommands.Sync(ctx, app),
+		composeCommands.Base(ctx, app),
 		cli.EnvCommand(),
 		cli.VersionCommand(),
-		fakerCommands.Seeder(ctx, app),
 	)
 
 }
