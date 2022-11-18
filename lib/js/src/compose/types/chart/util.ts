@@ -30,6 +30,7 @@ export interface Dimension {
   default?: string;
   skipMissing?: boolean;
   autoSkip?: boolean;
+  rotateLabel?: string;
 }
 
 export interface Metric {
@@ -55,6 +56,34 @@ export interface YAxis {
   labelPosition?: string;
   min?: string;
   max?: string;
+  rotateLabel?: string;
+}
+
+export interface ChartOffset {
+  top?: string;
+  right?: string;
+  bottom?: string;
+  left?: string;
+  isDefault?: boolean;
+}
+
+export interface Position {
+  top?: string;
+  right?: string;
+  bottom?: string;
+  left?: string;
+}
+
+export interface Legend {
+  isHidden?: boolean;
+  isList?: boolean;
+  isCustomized?: boolean;
+  position?: Position;
+}
+
+export interface Tooltip {
+  formatting?: string;
+  labelsNextToPartition?: boolean;
 }
 
 export interface Report {
@@ -63,6 +92,9 @@ export interface Report {
   dimensions?: Array<Dimension>;
   metrics?: Array<Metric>;
   yAxis?: YAxis;
+  tooltip?: Tooltip;
+  legend?: Legend;
+  offset?: ChartOffset;
 }
 
 export interface ChartConfig {
@@ -212,3 +244,4 @@ const chartUtil = {
 export {
   chartUtil,
 }
+

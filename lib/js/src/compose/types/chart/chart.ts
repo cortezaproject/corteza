@@ -105,7 +105,13 @@ export default class Chart extends BaseChart {
     }
 
     const { labels, datasets = [] } = data
-    const { dimensions: [dimension] = [], yAxis } = reports[0] || {}
+    const {
+      dimensions: [dimension] = [],
+      yAxis, metrics: [metric] = [],
+      offset,
+      tooltip: t,
+      legend: l,
+    } = reports[0] || {}
 
     const hasAxis = datasets.some(({ type }: any) => ['bar', 'line'].includes(type))
     const timeDimension = (dimensionFunctions.lookup(dimension) || {}).time
@@ -135,6 +141,7 @@ export default class Chart extends BaseChart {
             interval: 0,
             overflow: 'truncate',
             hideOverlap: true,
+            rotate: yAxis.rotateLabel,
           },
           axisLine: {
             show: true,
@@ -143,7 +150,7 @@ export default class Chart extends BaseChart {
           nameTextStyle: {
             align: labelPosition === 'center' ? 'center' : position,
             padding: labelPosition !== 'center' ? (position === 'left' ? [0, 0, 2, -20] : [0, -20, 2, 0]) : undefined,
-          }
+          },
         }
 
         // If we provide undefined, log scale breaks
@@ -156,6 +163,8 @@ export default class Chart extends BaseChart {
       }
     }
 
+    let pieLegend = {}
+
     options.series = datasets.map(({ type, label, data, fill, tooltip }: any, index: number) => {
       const { fixed, relative } = tooltip
 
@@ -163,6 +172,30 @@ export default class Chart extends BaseChart {
         const startRadius = type === 'doughnut' ? 40 : 0
 
         options.tooltip.trigger = 'item'
+
+        let lbl =  {}
+
+        if (t?.labelsNextToPartition) {
+          lbl = { show: true }
+        } else {
+          lbl = {
+            show: fixed,
+            position: 'inside',
+            align: 'center',
+            verticalAlign: 'middle',
+          }
+        }
+
+        const formatter = t?.formatting 
+          ? t.formatting
+          : `{a}<br />{b} : {c}${relative ? ' ({d}%)' : ''}`
+
+        pieLegend = {
+          top: l?.position?.top || 'auto',
+          right: l?.position?.right || 'auto',
+          bottom: l?.position?.bottom || 'auto',
+          left: l?.position?.left || 'auto',
+        }
 
         return {
           z: index,
@@ -172,13 +205,10 @@ export default class Chart extends BaseChart {
           center: ['50%', '55%'],
           tooltip: {
             trigger: 'item',
-            formatter: `{a}<br />{b} : {c}${relative ? ' ({d}%)' : ''}`,
+            formatter,
           },
           label: {
-            show: fixed,
-            position: 'inside',
-            align: 'center',
-            verticalAlign: 'middle',
+            ...lbl,
             fontSize: 14,
           },
           itemStyle: {
@@ -196,6 +226,10 @@ export default class Chart extends BaseChart {
           data: labels.map((name: string, i: number) => {
             return { name, value: data[i] }
           }),
+          top: offset?.isDefault ? 45 : offset?.top,
+          right: offset?.isDefault ? 25 : offset?.right,
+          bottom: offset?.isDefault ? 40 : offset?.bottom,
+          left: offset?.isDefault ? 40 : offset?.left,
         }
       } else if (['bar', 'line'].includes(type)) {
         options.tooltip.trigger = 'axis'
@@ -209,15 +243,17 @@ export default class Chart extends BaseChart {
               interval: 0,
               overflow: 'truncate',
               hideOverlap: true,
+              rotate: dimension.rotateLabel,
             },
           })
         }
 
         options.grid = {
-          top: 45,
-          bottom: 25,
-          left: 40,
-          right: 40,
+          top: offset?.isDefault ? 45 : offset?.top,
+          right: offset?.isDefault ? 25 : offset?.right,
+          bottom: offset?.isDefault ? 40 : offset?.bottom,
+          left: offset?.isDefault ? 40 : offset?.left,
+          // prevents long labels like dates from being cut off
           containLabel: true,
         }
 
@@ -247,8 +283,9 @@ export default class Chart extends BaseChart {
         fontFamily: 'Poppins-Regular',
       },
       legend: {
-        show: true,
-        type: 'scroll',
+        show: !l?.isHidden,
+        type: l?.isList ? 'plain' : 'scroll',
+        ...pieLegend,
       },
       ...options,
     }

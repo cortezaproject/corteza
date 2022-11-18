@@ -142,6 +142,19 @@
                 :type="defaultValueInputType(d)"
               />
             </b-form-group>
+            <b-form-group
+              horizontal
+              :label-cols="3"
+              breakpoint="md"
+              :label="$t('edit.dimension.rotate.label')"
+              :description="$t('edit.dimension.rotate.description')"
+            >
+              <b-input
+                v-model="d.rotateLabel"
+                type="number"
+                placeholder="0"
+              />
+            </b-form-group>
           </template>
         </template>
 
@@ -246,6 +259,12 @@
         </fieldset>
       </draggable>
     </div>
+
+    <slot
+      name="additional-config"
+      :report="editReport"
+      :metrics="metrics"
+    />
   </div>
 </template>
 
