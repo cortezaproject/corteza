@@ -28,6 +28,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/store"
+	systemTypes "github.com/cortezaproject/corteza/server/system/types"
 )
 
 const (
@@ -133,6 +134,19 @@ type (
 		Iterator(ctx context.Context, f types.RecordFilter, fn eventbus.HandlerFn, action string) (err error)
 
 		TriggerScript(ctx context.Context, namespaceID, moduleID, recordID uint64, rvs types.RecordValueSet, script string) (*types.Module, *types.Record, error)
+	}
+
+	synteticRecordDataGen interface {
+		LoremIpsumSentence(int) string
+		IntRange(int, int) int
+		DigitN(uint) string
+		Email() string
+		URL() string
+		Date() time.Time
+		Number(int, int) int
+		Street() string
+		City() string
+		Country() string
 	}
 
 	recordImportSession struct {
@@ -1706,6 +1720,240 @@ func (svc record) DupDetection(ctx context.Context, m *types.Module, rec *types.
 	}
 
 	return
+}
+
+func (svc record) CreateSynthetic(ctx context.Context, src synteticRecordDataGen, mod *types.Module, total uint) error {
+	if !svc.ac.CanCreateRecordOnModule(ctx, mod) {
+		return RecordErrNotAllowedToCreate()
+	}
+
+	const (
+		maxRetries = 10
+
+		preloadUsers   = 100
+		preloadRecords = 100
+	)
+
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		var (
+			retry uint
+			synth *types.Record
+
+			uu systemTypes.UserSet
+			rr types.RecordSet
+
+			refUsers   []uint64
+			refRecords map[uint64][]uint64
+		)
+
+		refRecords = make(map[uint64][]uint64)
+
+		for _, f := range mod.Fields {
+
+			switch strings.ToLower(f.Kind) {
+			case "user":
+				if len(refUsers) == 0 {
+					// preload 100 users
+					flt := systemTypes.UserFilter{}
+					flt.Limit = preloadUsers
+					if uu, _, err = store.SearchUsers(ctx, s, flt); err != nil {
+						return
+					}
+					refUsers = uu.IDs()
+				}
+
+			case "record":
+				refModID := f.Options.Uint64("moduleID")
+
+				if len(refRecords[refModID]) == 0 {
+					// preload 100 records
+					flt := types.RecordFilter{}
+					flt.Limit = preloadRecords
+					if rr, _, err = dalutils.ComposeRecordsList(ctx, svc.dal, mod, flt); err != nil {
+						return
+					}
+
+					refRecords[refModID] = rr.IDs()
+				}
+			}
+
+		}
+
+		for total > 0 || maxRetries < retry {
+			synth = syntheticRecord(src, refUsers, refRecords, mod)
+
+			if err = RecordValueSanitization(mod, synth.Values); err != nil {
+				return
+			}
+
+			if err = dalutils.ComposeRecordCreate(ctx, svc.dal, mod, synth); err != nil {
+				return
+			}
+
+			total--
+		}
+
+		return
+	})
+}
+
+func syntheticRecord(src synteticRecordDataGen, userRefs []uint64, recRefs map[uint64][]uint64, mod *types.Module) (r *types.Record) {
+	var (
+		randUser = func() uint64 {
+			if len(userRefs) == 0 {
+				return 0
+			}
+
+			return userRefs[src.IntRange(0, len(userRefs)-1)]
+		}
+	)
+
+	r = &types.Record{
+		ID:          nextID(),
+		ModuleID:    mod.ID,
+		NamespaceID: mod.NamespaceID,
+
+		// Make sure all users are created in the past
+		CreatedAt: time.Now().Add(time.Hour * time.Duration(src.Number(100000, 1000000)*-1)),
+		CreatedBy: randUser(),
+
+		Values: syntheticRecordValues(src, userRefs, recRefs, mod),
+
+		Meta: map[string]any{"synthetic": true},
+	}
+
+	if src.Number(0, 1) > 0 {
+		aux := time.Now().Add(time.Hour * time.Duration(src.Number(100, 100000)*-1))
+		r.UpdatedAt = &aux
+		r.UpdatedBy = randUser()
+	}
+
+	return
+}
+
+func syntheticRecordValues(src synteticRecordDataGen, userRefs []uint64, recRefs map[uint64][]uint64, mod *types.Module) (rvs types.RecordValueSet) {
+	var (
+		fname          string
+		valuesPerField uint
+		val            *types.RecordValue
+
+		pickRandomID = func(vals []uint64) string {
+			if len(vals) == 0 {
+				return ""
+			}
+
+			// picks random value from vals
+			return strconv.FormatUint(vals[src.IntRange(0, len(vals)-1)], 10)
+		}
+	)
+
+fields:
+	for _, f := range mod.Fields {
+		valuesPerField = 1
+		fname = strings.ToLower(f.Name)
+
+		if f.Multi {
+			valuesPerField = uint(src.Number(0, 10))
+		}
+
+		for p := uint(0); p < valuesPerField; p++ {
+			val = &types.RecordValue{
+				Name:  f.Name,
+				Place: p,
+			}
+
+			switch strings.ToLower(f.Kind) {
+
+			case "bool":
+				val.Value = fmt.Sprintf("%d", src.Number(0, 1))
+
+			case "datetime":
+				// @todo respect present/past
+				// @todo respect date/time
+				val.Value = src.Date().Format(time.RFC3339)
+
+			case "email":
+				val.Value = src.Email()
+
+			case "file":
+				continue fields
+
+			case "string":
+				fname = strings.ToLower(f.Name)
+				switch {
+				case strings.Contains(fname, "name"),
+					strings.Contains(fname, "title"),
+					strings.Contains(fname, "label"):
+					val.Value = src.LoremIpsumSentence(src.Number(3, 5))
+				case strings.Contains(fname, "street"):
+					val.Value = src.Street()
+				case strings.Contains(fname, "city"):
+					val.Value = src.Street()
+				case strings.Contains(fname, "country"):
+					val.Value = src.Country()
+				case strings.Contains(fname, "desc"),
+					strings.Contains(fname, "note"):
+					val.Value = src.LoremIpsumSentence(src.Number(10, 100))
+				default:
+					val.Value = src.LoremIpsumSentence(src.Number(4, 40))
+				}
+
+			case "number":
+				val.Value = src.DigitN(5)
+
+			case "record":
+				refModID := f.Options.Uint64("moduleID")
+
+				if refModID == 0 && len(recRefs[refModID]) == 0 {
+					continue fields
+				}
+
+				val.Value = pickRandomID(recRefs[refModID])
+
+			case "select":
+				//val.Value = src.Select(f.Options)
+				continue fields
+
+			case "url":
+				val.Value = src.URL()
+
+			case "user":
+				val.Value = pickRandomID(userRefs)
+
+			default:
+				continue fields
+			}
+
+			rvs = append(rvs, val)
+		}
+	}
+
+	return
+}
+
+func (svc record) RemoveSynthetic(ctx context.Context, mod *types.Module) (err error) {
+	// not a mistake, we do not need or want to check if user can be deleted
+	if !svc.ac.CanCreateRecordOnModule(ctx, mod) {
+		return RecordErrNotAllowedToCreate()
+	}
+
+	var (
+		f  = types.RecordFilter{Meta: map[string]any{"synthetic": true}}
+		rr []*types.Record
+	)
+
+	f.Limit = 1000
+
+	for {
+		rr, _, err = dalutils.ComposeRecordsList(ctx, svc.dal, mod, f)
+		if err != nil || len(rr) == 0 {
+			return
+		}
+
+		if err = dalutils.ComposeRecordDelete(ctx, svc.dal, mod, rr...); err != nil {
+			return
+		}
+	}
 }
 
 func ComposeRecordFilterChecker(ctx context.Context, ac recordAccessController, m *types.Module) func(*types.Record) (bool, error) {
