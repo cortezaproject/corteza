@@ -1174,6 +1174,8 @@ func dalAttributeReplace(ctx context.Context, dmm dalModelManager, ns *types.Nam
 	}
 
 	diff := oldModel[0].Diff(newModel[0])
+
+	// TODO handle the fact that diff is a list of changes so the same field could be present more than once.
 	for _, d := range diff {
 		if err = dmm.ReplaceModelAttribute(ctx, oldModel[0], d, hasRecords); err != nil {
 			return
@@ -1314,6 +1316,8 @@ func ModuleToModel(ns *types.Namespace, mod *types.Module, inhIdent string) (mod
 		SensitivityLevelID: mod.Config.Privacy.SensitivityLevelID,
 	}
 
+	userDefinedFieldIdents := make(map[string]bool)
+
 	if model.Ident = mod.Config.DAL.Ident; model.Ident == "" {
 		// try with explicitly set ident on module's DAL config
 		// and fallback connection's default if it is empty
@@ -1341,6 +1345,11 @@ func ModuleToModel(ns *types.Namespace, mod *types.Module, inhIdent string) (mod
 	if err != nil {
 		return
 	}
+
+	for _, attr := range attrAux {
+		userDefinedFieldIdents[attr.Ident] = true
+	}
+
 	model.Attributes = append(model.Attributes, attrAux...)
 
 	// Convert system fields to attribute
@@ -1348,7 +1357,15 @@ func ModuleToModel(ns *types.Namespace, mod *types.Module, inhIdent string) (mod
 	if err != nil {
 		return
 	}
-	model.Attributes = append(model.Attributes, attrAux...)
+	for _, attr := range attrAux {
+		ok, _ := userDefinedFieldIdents[attr.Ident]
+		if !ok {
+			// make sure we're backward compatible:
+			// if, by some weird case, someone managed to get a system field name into
+			// the store, we'll turn a blind eye. We need to make sure not to include the field twice in this situation.
+			model.Attributes = append(model.Attributes, attr)
+		}
+	}
 
 	return
 }
