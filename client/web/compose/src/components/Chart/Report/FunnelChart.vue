@@ -36,6 +36,44 @@
         >
           {{ $t('edit.metric.cumulative') }}
         </b-form-checkbox>
+
+        <b-form-checkbox
+          v-model="metric.showTooltipLabel"
+          :value="true"
+          :unchecked-value="false"
+        >
+          {{ $t('edit.metric.showTooltipLabel') }}
+        </b-form-checkbox>
+
+        <b-form-checkbox
+          v-model="metric.fixTooltips"
+          :value="true"
+          :unchecked-value="false"
+        >
+          {{ $t('edit.metric.fixTooltips') }}
+        </b-form-checkbox>
+
+        <b-form-checkbox
+          v-model="metric.relativeValue"
+          :value="true"
+          :unchecked-value="false"
+        >
+          {{ $t('edit.metric.relative') }}
+        </b-form-checkbox>
+
+        <template v-if="metric.relativeValue">
+          <b-form-group
+            horizontal
+            breakpoint="md"
+            :label="$t('edit.metric.relativePrecision')"
+          >
+            <b-form-input
+              v-model="metric.relativePrecision"
+              type="number"
+              placeholder="2"
+            />
+          </b-form-group>
+        </template>
       </b-form-group>
     </template>
   </report-edit>

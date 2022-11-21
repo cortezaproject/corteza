@@ -99,9 +99,9 @@ export default class Chart extends BaseChart {
       lineTension: m.lineTension || 0,
       tooltips: {
         enabled: true,
+        showTooltipLabel: m.showTooltipLabel,
         relativeValue: !!m.relativeValue,
         relativePrecision: m.relativePrecision,
-        labelCallback: m.fixTooltips ? this.makeLabel : this.makeTooltip,
       },
     })
   }
@@ -145,8 +145,7 @@ export default class Chart extends BaseChart {
 
         callbacks: {
           label: ({ datasetIndex, index }: any, { datasets, labels }: any) => {
-            const dataset = datasets[datasetIndex]
-            return dataset.tooltips.labelCallback({ datasetIndex, index }, { datasets, labels })
+            return this.makeTooltip({ datasetIndex, index }, { datasets, labels })
           },
         },
         titleFontFamily: "'Poppins-Regular'",
@@ -198,26 +197,12 @@ export default class Chart extends BaseChart {
     )
 
     return makeDataLabel({
-      prefix: labels[index],
+      prefix: dataset.tooltips.showTooltipLabel ? labels[index] : '',
       value: dataset.data[index],
       relativeValue: dataset.tooltips.relativeValue ? percentages[index] : undefined,
     })
   }
 
-  private makeLabel ({ datasetIndex, index }: any, { datasets }: any): any {
-    const dataset = datasets[datasetIndex]
-
-    const percentages = calculatePercentages(
-      [...dataset.data],
-      dataset.tooltips.relativePrecision,
-      dataset.tooltips.relativeValue,
-    )
-
-    return makeDataLabel({
-      value: dataset.data[index],
-      relativeValue: dataset.tooltips.relativeValue ? percentages[index] : undefined,
-    })
-  }
 
   private makeYAxis (r: Report) {
     if (r.yAxis) {
@@ -264,6 +249,15 @@ export default class Chart extends BaseChart {
       rr.push(makeTipper(ChartJS.Tooltip, {}))
     }
     return rr
+  }
+
+  defMetrics (): Metric {
+    return Object.assign({}, {
+      showTooltipLabel: true,
+      fixTooltips: false,
+      relativeValue: true,
+      relativePrecision: 2,
+    })
   }
 
   baseChartType (datasets: Array<any>) {

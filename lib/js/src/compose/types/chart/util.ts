@@ -40,6 +40,7 @@ export interface Metric {
   axisType?: string;
   field?: string;
   fixTooltips?: boolean;
+  showTooltipLabel?: boolean;
   relativeValue?: boolean;
   cumulative?: boolean;
   type?: ChartType;

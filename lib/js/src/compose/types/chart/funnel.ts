@@ -120,43 +120,49 @@ export default class FunnelChart extends BaseChart {
     }
 
     options.tooltips = {
-      enabled: true,
-      displayColors: false,
       callbacks: {
-        label: this.makeLabel,
+        label: ({ datasetIndex, index }: any, { datasets, labels }: any) => {
+          return this.makeTooltip({ datasetIndex, index }, { datasets, labels })
+        },
       },
       titleFontFamily: "'Poppins-Regular'",
       bodyFontFamily: "'Poppins-Regular'",
       footerFontFamily: "'Poppins-Regular'",
+      displayColors: false,
     }
     return options
   }
 
-  private makeLabel ({ datasetIndex, index }: any, { datasets }: any): any {
+  private makeTooltip ({ datasetIndex, index }: any, { datasets, labels }: any): any {
     const dataset = datasets[datasetIndex]
 
     // We use org data here to get actual percentages and not cumulative percentages
     const percentages = calculatePercentages(
       [...dataset.orgData],
-      2,
-      true,
+      dataset.tooltips.relativePrecision,
+      dataset.tooltips.relativeValue,
       dataset.cumulative,
     )
 
     return makeDataLabel({
+      prefix: dataset.tooltips.showTooltipLabel ? labels[index] : '',
       value: dataset.data[index],
-      relativeValue: percentages[index],
+      relativeValue: dataset.tooltips.relativeValue ? percentages[index] : undefined,
     })
   }
 
-  /**
-   * @note Funel chart requires the use of chartjs-plugin-funnel.
-   * I was unable to make this work if the plugin was provided from this object,
-   * so the plugin is registered on the webapp.
-   * We should fix this at a later point in time...
-   */
-  plugins (mm: Array<Metric>) {
-    return [makeTipper(ChartJS.Tooltip, {})]
+  plugins () {
+    const mm: Array<Metric> = []
+
+    for (const r of (this.config.reports || []) as Array<Report>) {
+      mm.push(...(r.metrics || []) as Array<Metric>)
+    }
+
+    const rr: Array<any> = []
+    if (mm.find(({ fixTooltips }) => fixTooltips)) {
+      rr.push(makeTipper(ChartJS.Tooltip, {}))
+    }
+    return rr
   }
 
   baseChartType (datasets: Array<any>) {
@@ -205,11 +211,22 @@ export default class FunnelChart extends BaseChart {
       data.push(v.data)
     })
 
+    let showTooltipLabel = true
+    let relativeValue = true
+    let relativePrecision = 2
+
+
     // Determine color to render for specific value
     const colorMap: { [_: string]: string } = {}
     this.config.reports?.forEach(r => {
       for (const { value, color } of r.dimensions?.[0].meta?.fields) {
         colorMap[value] = color
+      }
+
+      if (r.metrics?.length) {
+        showTooltipLabel = !!r.metrics[0].showTooltipLabel
+        relativeValue = !!r.metrics[0].relativeValue
+        relativePrecision = r.metrics[0].relativePrecision || 2
       }
     })
 
@@ -228,6 +245,12 @@ export default class FunnelChart extends BaseChart {
         orgData,
         backgroundColor: labels.map(l => colorMap[l] || defaultBGColor),
         cumulative: this.isCumulative(),
+        tooltips: {
+          enabled: true,
+          showTooltipLabel,
+          relativeValue,
+          relativePrecision,
+        }
       }],
     }
   }
@@ -248,7 +271,14 @@ export default class FunnelChart extends BaseChart {
   }
 
   defMetrics (): Metric {
-    return Object.assign({}, { type: ChartType.funnel })
+    return Object.assign({}, {
+      type: ChartType.funnel,
+      cumulative: true,
+      showTooltipLabel: true,
+      fixTooltips: true,
+      relativeValue: true,
+      relativePrecision: 2,
+    })
   }
 
   defDimension (): Dimension {

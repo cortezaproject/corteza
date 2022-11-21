@@ -67,7 +67,7 @@ export default class GaugeChart extends BaseChart {
       backgroundColor: steps.map(({ color }: any) => color),
       tooltips: {
         enabled: true,
-        labelCallback: m.fixTooltips ? this.makeLabel : this.makeTooltip,
+        showTooltipLabel: m.showTooltipLabel,
       },
     }
   }
@@ -89,8 +89,7 @@ export default class GaugeChart extends BaseChart {
         callbacks: {
           title: () => '',
           label: ({ datasetIndex, index }: any, { datasets, labels }: any) => {
-            const dataset = datasets[datasetIndex]
-            return dataset.tooltips.labelCallback({ datasetIndex, index }, { datasets, labels })
+            return this.makeTooltip({ datasetIndex, index }, { datasets, labels })
           },
         },
         titleFontFamily: "'Poppins-Regular'",
@@ -139,17 +138,9 @@ export default class GaugeChart extends BaseChart {
   private makeTooltip ({ datasetIndex, index }: any, { datasets, labels }: any): any {
     const dataset = datasets[datasetIndex]
 
-    return makeDataLabel({
-      prefix: labels[index],
-      value: dataset.data[index],
-    })
-  }
-
-  private makeLabel ({ datasetIndex, index }: any, { datasets, labels }: any): any {
-    const dataset = datasets[datasetIndex]
 
     return makeDataLabel({
-      prefix: labels[index],
+      prefix: dataset.tooltips.showTooltipLabel ? labels[index] : '',
       value: dataset.data[index],
     })
   }
@@ -179,6 +170,10 @@ export default class GaugeChart extends BaseChart {
   }
 
   defMetrics (): Metric {
-    return Object.assign({}, { type: ChartType.gauge })
+    return Object.assign({}, {
+      type: ChartType.gauge,
+      showTooltipLabel: true,
+      fixTooltips: false,
+    })
   }
 }

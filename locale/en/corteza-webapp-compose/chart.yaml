@@ -55,6 +55,8 @@ edit:
     fieldPlaceholder: Select metric field
     fillArea: Fill area below the line
     fixTooltips: Always show tooltips
+    showTooltipLabel: Show labels in tooltips
+
     function:
       avg: AVG
       label: Function

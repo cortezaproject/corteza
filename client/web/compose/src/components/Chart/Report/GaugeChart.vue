@@ -79,17 +79,25 @@
         <b-form-input
           v-model="metric.backgroundColor"
           type="color"
-          class="p-0 border-0 color-picker"
+          class="p-0 border-0 color-picker mb-2"
         />
-      </b-form-group>
 
-      <b-form-checkbox
-        v-model="metric.fixTooltips"
-        :value="true"
-        :unchecked-value="false"
-      >
-        {{ $t('edit.metric.fixTooltips') }}
-      </b-form-checkbox>
+        <b-form-checkbox
+          v-model="metric.showTooltipLabel"
+          :value="true"
+          :unchecked-value="false"
+        >
+          {{ $t('edit.metric.showTooltipLabel') }}
+        </b-form-checkbox>
+
+        <b-form-checkbox
+          v-model="metric.fixTooltips"
+          :value="true"
+          :unchecked-value="false"
+        >
+          {{ $t('edit.metric.fixTooltips') }}
+        </b-form-checkbox>
+      </b-form-group>
     </template>
   </report-edit>
 </template>
