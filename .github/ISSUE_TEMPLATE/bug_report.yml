@@ -1,0 +1,103 @@
+name: Bug 🐞
+description: File a bug/issue with Corteza
+title: "When I try to do X I get Y"
+body:
+- type: checkboxes
+  attributes:
+    label: Is there an existing issue for this?
+    description: Please search to see if an issue already exists for the bug you encountered.
+    options:
+    - label: I have searched the existing issues
+      required: true
+
+- type: markdown
+  attributes:
+    value: |
+      Thanks for taking the time to fill out this bug report!
+
+      If this is your first time, please read the following:
+
+      Take a quick look on how Github's [markdown](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax) works. It will help you format your message and make it joy to read.
+
+      Corteza is a complex application with many moving parts. You can help us a lot
+      by respecting the following instructions for bug reports.
+
+      # Web application bugs
+
+      When issue requires a certain steps to be followed, record a video, otherwise make a screenshot. If possible resize your window to a minimum size where application is still usable or make a screenshot or recording that focuses on a problem if possible and do not capture your whole screen. This keeps the video files smaller with contents, especially
+      errors, values readable.
+
+      ## Favours and versions of your operating system and browsers
+
+      Corteza is thoroughly tested on recent versions of Chrome and Firefox. You might have some special combination that we did not cover. If possible, upgrade your system and browser first. It is usually a good thing to do. If you are not able to or the problem persists, please share the version details.
+
+      # Server errors
+
+      Sometimes the error happens between the request your browser sends and the response it gets. In such cases we would love to see all headers and parameters of that HTTP request and how the response looks like. Text form is perfect. 
+      
+      If you have full control over your server, try enabling full debug logging in your .env fil by setting `LOG_DEBUG=true` and `LOG_LEVEL=debug`, restarting your server and sharing relevant log lines.
+
+      As for logs: we usually just need the lines that are related to the request. But if your server does not start or crashes right after, make sure you share everything from first log line on. There might be some values in there you want to obfuscate before sharing.
+
+      ## Large responses or huge log files
+
+      If you want to share something that exceeds 42 lines, try [Github Gist](https://gist.github.com/) and just add a link to Gist you created. 
+
+      ## Favours and versions of your operating system, Docker and Docker Compose
+
+      A big share of issues is unrelated to any of these. You can skip this when preparing your bug report. If you did some changes and experimenting with Corteza in such a low level let us know what version you need. 
+
+- type: input
+  attributes:
+    label: Version of Corteza
+    placeholder: 202Y.X.x
+    description: "You can make sure by visiting `/version` (e.g.: http://localhost:3000/version)"
+  validations:
+    required: false
+
+- type: textarea
+  attributes:
+    label: Current Behavior
+    description: A concise description of what you're experiencing.
+  validations:
+    required: false
+
+- type: textarea
+  attributes:
+    label: Expected Behavior
+    description: A concise description of what you expected to happen.
+  validations:
+    required: false
+
+- type: textarea
+  attributes:
+    label: Steps To Reproduce
+    description: Steps to reproduce the behavior.
+    placeholder: |
+      1. In this environment...
+      2. With this config...
+      3. Run '...'
+      4. See error...
+
+  validations:
+    required: false
+
+- type: textarea
+  attributes:
+    label: Environment and versions
+    description: |
+      When it is clear that the problem is related to a browser and is not something that happens on the server (between request and response), share your operating system you are using and browser with versions for each one of them.
+
+    render: markdown
+  validations:
+    required: false
+
+- type: textarea
+  attributes:
+    label: Anything else?
+    description: |
+      Links? References? Anything that will give us more context about the issue you are encountering!
+
+      Tip: You can attach images or log files by clicking on this area to highlight it and then by dragging files in it.
+  validations:
+    required: false
