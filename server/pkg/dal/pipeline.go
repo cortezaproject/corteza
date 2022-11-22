@@ -44,13 +44,15 @@ type (
 
 	// MapProperties describe the attribute such as it's type and constraints
 	MapProperties struct {
-		Label        string
-		IsPrimary    bool
-		IsSystem     bool
-		IsFilterable bool
-		IsSortable   bool
-		Nullable     bool
-		Type         Type
+		Label               string
+		IsPrimary           bool
+		IsSystem            bool
+		IsFilterable        bool
+		IsSortable          bool
+		IsMultivalue        bool
+		MultivalueDelimiter string
+		Nullable            bool
+		Type                Type
 	}
 )
 

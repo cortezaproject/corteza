@@ -397,8 +397,13 @@ func mappingToFrameCol(m dal.AttributeMapping) FrameColumn {
 		Label: l,
 		Kind:  "String",
 
-		Primary: p.IsPrimary,
-		System:  p.IsSystem,
+		Primary:             p.IsPrimary,
+		System:              p.IsSystem,
+		Multivalue:          p.IsMultivalue,
+		MultivalueDelimiter: p.MultivalueDelimiter,
+	}
+	if out.MultivalueDelimiter == "" {
+		out.MultivalueDelimiter = "\n"
 	}
 
 	switch t := p.Type.(type) {
@@ -710,6 +715,9 @@ func attrToMapping(aa ...*dal.Attribute) (out []dal.AttributeMapping) {
 				IsSystem:  a.System,
 				Nullable:  a.Type.IsNullable(),
 				IsPrimary: a.PrimaryKey,
+				// @todo add multi value delimiter; it's currently not set on the
+				//       attribute so we might need to rethink this a bit
+				IsMultivalue: a.MultiValue,
 			},
 		})
 	}
