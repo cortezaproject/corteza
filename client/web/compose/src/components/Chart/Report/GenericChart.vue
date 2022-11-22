@@ -4,10 +4,76 @@
     :modules="modules"
   >
     <template #y-axis="{ report }">
-      <div>
-        <h4 class="mb-3">
-          {{ $t('edit.yAxis.label') }}
-        </h4>
+      <h4 class="mb-3">
+        {{ $t('edit.yAxis.label') }}
+      </h4>
+
+      <b-form-group
+        horizontal
+        :label-cols="3"
+        class="mt-2"
+        breakpoint="md"
+        :label="$t('edit.yAxis.labelLabel')"
+      >
+        <b-input-group>
+          <b-form-input
+            v-model="report.yAxis.label"
+            :placeholder="$t('edit.yAxis.labelPlaceholder')"
+          />
+          <b-input-group-append>
+            <chart-translator
+              :field.sync="report.yAxis.label"
+              :chart="chart"
+              :disabled="isNew"
+              highlight-key="yAxis.label"
+              button-variant="light"
+            />
+          </b-input-group-append>
+        </b-input-group>
+      </b-form-group>
+
+      <b-form-group
+        horizontal
+        :label-cols="3"
+        class="mt-2"
+        breakpoint="md"
+        :label="$t('edit.yAxis.labelPosition.label')"
+      >
+        <b-form-select
+          v-model="report.yAxis.labelPosition"
+          :options="axisLabelPositions"
+        />
+      </b-form-group>
+
+      <b-form-group
+        horizontal
+        :label-cols="3"
+        breakpoint="md"
+        :label="$t('edit.yAxis.minLabel')"
+      >
+        <b-form-input
+          v-model="report.yAxis.min"
+          :placeholder="$t('edit.yAxis.minPlaceholder')"
+        />
+      </b-form-group>
+
+      <b-form-group
+        horizontal
+        :label-cols="3"
+        breakpoint="md"
+        :label="$t('edit.yAxis.maxLabel')"
+      >
+        <b-form-input
+          v-model="report.yAxis.max"
+          :placeholder="$t('edit.yAxis.maxPlaceholder')"
+        />
+      </b-form-group>
+
+      <b-form-group
+        horizontal
+        :label-cols="3"
+        breakpoint="md"
+      >
         <b-form-checkbox
           v-model="report.yAxis.axisType"
           value="logarithmic"
@@ -32,63 +98,13 @@
         >
           {{ $t('edit.yAxis.axisScaleFromZero') }}
         </b-form-checkbox>
-
-        <b-form-group
-          horizontal
-          :label-cols="2"
-          class="mt-2"
-          breakpoint="md"
-          :label="$t('edit.yAxis.labelLabel')"
-        >
-          <b-input-group>
-            <b-form-input
-              v-model="report.yAxis.label"
-              :placeholder="$t('edit.yAxis.labelPlaceholder')"
-            />
-            <b-input-group-append>
-              <chart-translator
-                :field.sync="report.yAxis.label"
-                :chart="chart"
-                :disabled="isNew"
-                highlight-key="yAxis.label"
-                button-variant="light"
-              />
-            </b-input-group-append>
-          </b-input-group>
-        </b-form-group>
-
-        <b-form-group
-          horizontal
-          :label-cols="2"
-          class="mt-1"
-          breakpoint="md"
-          :label="$t('edit.yAxis.minLabel')"
-        >
-          <b-form-input
-            v-model="report.yAxis.min"
-            :placeholder="$t('edit.yAxis.minPlaceholder')"
-          />
-        </b-form-group>
-        <b-form-group
-          horizontal
-          :label-cols="2"
-          class="mt-1"
-          breakpoint="md"
-          :label="$t('edit.yAxis.maxLabel')"
-        >
-          <b-form-input
-            v-model="report.yAxis.max"
-            :placeholder="$t('edit.yAxis.maxPlaceholder')"
-          />
-        </b-form-group>
-      </div>
+      </b-form-group>
     </template>
 
     <template #metric-options="{ metric }">
       <b-form-group
         horizontal
-        :label-cols="2"
-        class="mt-1"
+        :label-cols="3"
         breakpoint="md"
         :label="$t('edit.metric.labelLabel')"
       >
@@ -110,7 +126,7 @@
 
       <b-form-group
         horizontal
-        :label-cols="2"
+        :label-cols="3"
         breakpoint="md"
         :label="$t('edit.metric.fx.label')"
         :description="$t('edit.metric.fx.description')"
@@ -123,7 +139,7 @@
 
       <b-form-group
         horizontal
-        :label-cols="2"
+        :label-cols="3"
         breakpoint="md"
         :label="$t('edit.metric.output.label')"
       >
@@ -143,7 +159,7 @@
 
       <b-form-group
         horizontal
-        :label-cols="2"
+        :label-cols="3"
         breakpoint="md"
         label=""
       >
@@ -220,6 +236,12 @@ export default {
         { value: 'left', text: this.$t('edit.metric.legend.left') },
         { value: 'bottom', text: this.$t('edit.metric.legend.bottom') },
         { value: 'right', text: this.$t('edit.metric.legend.right') },
+      ],
+
+      axisLabelPositions: [
+        { value: 'end', text: this.$t('edit.yAxis.labelPosition.top') },
+        { value: 'center', text: this.$t('edit.yAxis.labelPosition.center') },
+        { value: 'start', text: this.$t('edit.yAxis.labelPosition.bottom') },
       ],
     }
   },

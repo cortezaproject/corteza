@@ -96,8 +96,10 @@ export class BasicChartOptions extends ChartOptions {
       ]
 
       options.grid = {
-        top: this.title ? 60 : 35,
-        bottom: xLabel ? 30 : 20,
+        top: this.title ? 70 : 45,
+        bottom: xLabel ? 30 : 25,
+        left: 40,
+        right: 40,
         containLabel: true,
       }
 
@@ -105,6 +107,7 @@ export class BasicChartOptions extends ChartOptions {
         label: yLabel,
         type: yType = 'linear',
         position = 'left',
+        labelPosition = 'end',
         beginAtZero,
         min,
         max,
@@ -114,10 +117,23 @@ export class BasicChartOptions extends ChartOptions {
         name: yLabel,
         type: yType === 'linear' ? 'value' : 'log',
         position,
-        nameLocation: 'center',
-        nameGap: 30,
+        nameGap: labelPosition === 'center' ? 25 : 7,
+        nameLocation: labelPosition,
         min: beginAtZero ? 0 : min || undefined,
         max: max || undefined,
+        axisLabel: {
+          interval: 0,
+          overflow: 'truncate',
+          hideOverlap: true,
+        },
+        axisLine: {
+          show: true,
+          onZero: false,
+        },
+        nameTextStyle: {
+          align: labelPosition === 'center' ? 'center' : position,
+          padding: labelPosition !== 'center' ? (position === 'left' ? [0, 0, 2, -20] : [0, -20, 2, 0]) : undefined,
+        }
       }
 
       // If we provide undefined, log scale breaks

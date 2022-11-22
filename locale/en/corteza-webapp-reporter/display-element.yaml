@@ -35,7 +35,7 @@ chart:
       line: Line
       pie: Pie
     value:
-      max: Max
+      max: Max value
       min: Min value
     x-axis: 
       name: X-Axis
@@ -44,6 +44,11 @@ chart:
     y-axis:
       name: Y-Axis
       label: Axis label
+      labelPosition:
+        label: Label position
+        top: Top
+        center: Center
+        bottom: Bottom
 metric:
   configurator:
     color:
