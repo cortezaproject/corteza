@@ -78,16 +78,19 @@ var (
 			},
 		},
 		"ge": {
-			//Handler: makeGenericCompHandler(">="),
 			Handler: func(args ...exp.Expression) exp.Expression {
 				return exp.NewBooleanExpression(exp.GteOp, args[0], args[1])
 			},
 		},
 
 		"in": {
-			//Handler: makeGenericCompHandler(">="),
 			Handler: func(args ...exp.Expression) exp.Expression {
 				return exp.NewBooleanExpression(exp.InOp, args[0], args[1])
+			},
+		},
+		"nin": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewBooleanExpression(exp.NotInOp, args[0], args[1])
 			},
 		},
 
