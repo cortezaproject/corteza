@@ -10,6 +10,7 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/modern-go/reflect2"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/store"
@@ -551,18 +552,34 @@ func (s *Store) {{ .fnIdent }}(res *{{ .goType }}, cc ...*filter.SortExpr) *filt
 		{{- end }}
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				{{- range .fields }}
 				case {{ printf "%q" .ident }}:
-					cur.Set(c.Column, res.{{ .expIdent }}, c.Descending)
-
 					{{- if .primaryKey }}
-						pk{{ .expIdent }} = true
-					{{- else if .unique }}
-						hasUnique = true
-					{{- end }}
+	                                        pk{{ .expIdent }} = true
+	                                {{- else if .unique }}
+	                                        hasUnique = true
+	                                {{- end }}
+					return res.{{ .expIdent }}
 				{{- end }}
+				}
+				return nil
+			}
+
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}

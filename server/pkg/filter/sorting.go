@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/cortezaproject/corteza/server/pkg/slice"
@@ -19,11 +18,17 @@ type (
 
 	SortExpr struct {
 		Column     string
+		columns    []string
+		modifier   string
 		Descending bool
 		// NullsFirst bool
 	}
 
 	SortExprSet []*SortExpr
+)
+
+const (
+	COALESCE = "coalesce"
 )
 
 func NewSorting(sort string) (s Sorting, err error) {
@@ -40,16 +45,7 @@ func (s *Sorting) OrderBy() SortExprSet {
 	return s.Sort
 }
 
-// parses sort string
-//
-// We allow a simplified version of what SQL supports, so:
-//   "<name>( <direction>), ..."
-//
-// Unlike before, we do not use pkg/ql for parsing this as we do not allow
-// any complex sorting expressions
 func parseSort(in string) (set SortExprSet, err error) {
-	exprMatcher := regexp.MustCompile(`([0-9a-zA-Z_\.]+)(\s+(asc|ASC|desc|DESC))?`)
-
 	set = SortExprSet{}
 	if in == "" {
 		return
@@ -60,24 +56,89 @@ func parseSort(in string) (set SortExprSet, err error) {
 		return
 	}
 
-	for _, expr := range strings.Split(in, ",") {
-		mm := exprMatcher.FindStringSubmatch(strings.TrimSpace(expr))
+	aux := splitCommaParenthesis(in)
 
-		o := &SortExpr{}
-		switch {
-		case len(mm) == 0:
-			return nil, fmt.Errorf("invalid sort expression")
-		case len(mm) >= 2:
-			o.Column = mm[1]
-			fallthrough
-		case len(mm) >= 4:
-			o.Descending = strings.ToUpper(mm[3]) == "DESC"
+	// iterate over aux, split each part and generate SortExpr
+	// if string contains ( and ) then extract modifier before (
+	// and optional direction after the closing )
+	// if there are no parenthesis, then the whole string is the column name with the desc/asc at the end
+	for _, s := range aux {
+		var (
+			modifier string
+			columns  []string
+			sortExpr = &SortExpr{}
+
+			toLower   = strings.ToLower
+			hasSuffix = strings.HasSuffix
+			indexByte = strings.IndexByte
+		)
+
+		// extract modifier
+		if idx := indexByte(s, '('); idx > 0 {
+			modifier = s[:idx]
+			s = s[idx+1:]
 		}
 
-		set = append(set, o)
+		// extract columns
+		idx := indexByte(s, ')')
+
+		// extract desc
+		if hasSuffix(toLower(s), " desc") {
+			sortExpr.Descending = true
+			s = s[:len(s)-5]
+		} else if hasSuffix(toLower(s), " asc") {
+			sortExpr.Descending = false
+			s = s[:len(s)-4]
+		}
+
+		if idx > 0 {
+			columns = splitCommaParenthesis(s[:idx])
+			s = s[idx+1:]
+		} else {
+			columns = []string{s}
+		}
+
+		sortExpr.SetColumns(columns...)
+		err = sortExpr.SetModifier(modifier)
+		if err != nil {
+			return
+		}
+
+		set = append(set, sortExpr)
 	}
 
-	return set, nil
+	return
+}
+
+// splitCommaParenthesis can split a string into a slice of strings
+// string is separated by commas but can have parenthesis with commas inside
+// and the commas inside the parenthesis should not be considered separators
+// and the parenthesis should be removed from the output
+func splitCommaParenthesis(in string) (out []string) {
+	var (
+		depth int
+		start int
+	)
+
+	for i, r := range in {
+		switch r {
+		case '(':
+			depth++
+		case ')':
+			depth--
+		case ',':
+			if depth == 0 {
+				out = append(out, strings.TrimSpace(in[start:i]))
+				start = i + 1
+			}
+		}
+	}
+
+	if start < len(in) {
+		out = append(out, strings.TrimSpace(in[start:]))
+	}
+
+	return
 }
 
 // UnmarshalJSON parses sort expression when passed inside JSON
@@ -133,6 +194,8 @@ func (set SortExprSet) Clone() (out SortExprSet) {
 	for i := range set {
 		out[i] = &SortExpr{
 			Column:     set[i].Column,
+			columns:    set[i].columns,
+			modifier:   set[i].modifier,
 			Descending: set[i].Descending,
 		}
 	}
@@ -178,7 +241,11 @@ func (set SortExprSet) Columns() []string {
 func (set SortExprSet) String() string {
 	out := make([]string, len(set))
 	for i := range set {
-		out[i] = set[i].Column
+		if set[i].modifier != "" {
+			out[i] = fmt.Sprintf("%s(%s)", set[i].modifier, strings.Join(set[i].columns, ","))
+		} else {
+			out[i] = set[i].Column
+		}
 
 		if set[i].Descending {
 			out[i] += " DESC"
@@ -187,4 +254,43 @@ func (set SortExprSet) String() string {
 	}
 
 	return strings.Join(out, ", ")
+}
+
+func (s *SortExpr) Columns() []string {
+	if len(s.columns) == 0 && s.Column != "" {
+		s.columns = []string{s.Column}
+	}
+	return s.columns
+}
+
+func (s *SortExpr) SetColumns(columns ...string) {
+	// @todo this can be improved by supporting multiple columns even without modifier
+	// fallback to single column
+	if s.modifier == "" && len(columns) == 1 {
+		s.Column = columns[0]
+	}
+
+	s.columns = append(s.columns, columns...)
+}
+
+func (s *SortExpr) Modifier() string {
+	if s == nil {
+		return ""
+	}
+	return s.modifier
+}
+
+func (s *SortExpr) SetModifier(modifier string) error {
+	if s == nil {
+		return nil
+	}
+	switch strings.ToLower(modifier) {
+	case COALESCE:
+		s.modifier = modifier
+	default:
+		if len(s.modifier) > 0 {
+			return fmt.Errorf("invalid modifier %q", modifier)
+		}
+	}
+	return nil
 }
