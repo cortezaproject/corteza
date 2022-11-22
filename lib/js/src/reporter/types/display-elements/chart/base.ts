@@ -16,6 +16,7 @@ interface XAxisOptions {
 
 interface YAxisOptions {
   label?: string;
+  labelPosition?: string;
   type?: string;
   position?: string;
   beginAtZero?: boolean;
@@ -41,6 +42,7 @@ export class ChartOptions {
   public yAxis: YAxisOptions = {
     type: 'linear',
     position: 'left',
+    labelPosition: 'end',
     beginAtZero: true,
   }
 

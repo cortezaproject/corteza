@@ -52,6 +52,7 @@ export interface YAxis {
   axisType?: string;
   beginAtZero?: boolean;
   label?: string;
+  labelPosition?: string;
   min?: string;
   max?: string;
 }
