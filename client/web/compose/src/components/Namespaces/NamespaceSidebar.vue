@@ -41,7 +41,7 @@
           data-test-id="button-public"
           variant="light"
           class="w-100 mb-2"
-          :to="{ name: 'pages', params: { slug: namespace.slug } }"
+          :to="{ name: 'pages', params: { slug: namespace.slug || namespace.namespaceID } }"
         >
           {{ $t('publicPages') }}
         </b-button>
@@ -51,7 +51,7 @@
           data-test-id="button-admin"
           variant="light"
           class="w-100 mb-2"
-          :to="{ name: 'admin.modules', params: { slug: namespace.slug } }"
+          :to="{ name: 'admin.modules', params: { slug: namespace.slug || namespace.namespaceID } }"
         >
           {{ $t('adminPanel') }}
         </b-button>
@@ -310,14 +310,14 @@ export default {
     '$route.params.slug': {
       immediate: true,
       handler (slug = '') {
-        this.namespace = slug ? this.namespaces.find(n => n.slug === slug) : undefined
         this.query = ''
+        this.namespace = this.$store.getters['namespace/getByUrlPart'](slug)
       },
     },
   },
 
   methods: {
-    namespaceSelected ({ canManageNamespace, slug = '' }) {
+    namespaceSelected ({ namespaceID, canManageNamespace, slug = '' }) {
       let { name, params } = this.$route
 
       // Try to match page, otherwise redirect to pages root
@@ -331,7 +331,7 @@ export default {
 
       name = !params.pageID && canManageNamespace && !name.includes('namespace.') ? name : 'pages'
 
-      this.$router.push({ name, params: { slug } })
+      this.$router.push({ name, params: { slug: slug || namespaceID } })
     },
 
     pageIndex (wraps) {

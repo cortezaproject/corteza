@@ -602,9 +602,9 @@ export default {
 
     async handleApplicationSave () {
       if (this.application) {
-        this.application.name = this.namespace.slug
+        this.application.name = this.namespace.slug || this.namespace.namespaceID
         this.application.unify.name = this.namespace.name
-        this.application.unify.url = `/compose/ns/${this.namespace.slug}/pages`
+        this.application.unify.url = `/compose/ns/${this.application.name}/pages`
 
         let enabled = this.application.enabled
         if (this.isApplication && !this.application.enabled) {
@@ -626,12 +626,12 @@ export default {
       } else if (this.isApplication) {
         // If namespace not an application - create one and enable
         const application = {
-          name: this.namespace.slug,
+          name: this.namespace.slug || this.namespace.namespaceID,
           enabled: true,
           unify: {
             name: this.namespace.name,
             listed: true,
-            url: `compose/ns/${this.namespace.slug}/pages`,
+            url: `compose/ns/${this.namespace.slug || this.namespace.namespaceID}/pages`,
             icon: this.namespace.meta.icon || this.$Settings.attachment('ui.iconLogo'),
             logo: this.namespace.meta.logo || this.$Settings.attachment('ui.mainLogo'),
           },
