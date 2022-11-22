@@ -1,16 +1,13 @@
-Please take a look.
+# The following changes are implemented
+TODO: Summary
 
-<!--
-Checklist:
+# Changes in the user interface:
+TODO: Add screenshots, recordings or remove this section
 
-1. API changes have been discussed,
-2. Source code must be formatted (`go fmt`, `yarn lint`),
-3. Codegen shouldn't produce modified files,
-4. Builds pass,
-5. Tests pass,
-6. Linked to relevant issues
-
-When you are writing pull request title and describing changes, follow
-commit message format in the CONTRIBUTING.md in the codebase root.
-
--->
+# Checklist when submitting a final (!draft) PR
+ - [ ] Commits are tidied up, squashed if needed and follow guidelines in CONTRIBUTING.md
+ - [ ] Code builds
+ - [ ] All existing tests pass
+ - [ ] All new critical code is covered by tests
+ - [ ] PR is linked to the relevant issue(s)
+ - [ ] Rebased with the target branch
