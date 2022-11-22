@@ -244,11 +244,12 @@
             </b-col>
             <b-col>
               <b-form-group
-                :label="$t('display-element:chart.configurator.step-size')"
+                :label="$t('display-element:chart.configurator.y-axis.labelPosition.label')"
                 label-class="text-primary"
               >
-                <b-form-input
-                  v-model="options.yAxis.stepSize"
+                <b-form-select
+                  v-model="options.yAxis.labelPosition"
+                  :options="axisLabelPositions"
                 />
               </b-form-group>
             </b-col>
@@ -274,6 +275,16 @@
                 <b-form-input
                   v-model="options.yAxis.max"
                   type="number"
+                />
+              </b-form-group>
+            </b-col>
+            <b-col>
+              <b-form-group
+                :label="$t('display-element:chart.configurator.step-size')"
+                label-class="text-primary"
+              >
+                <b-form-input
+                  v-model="options.yAxis.stepSize"
                 />
               </b-form-group>
             </b-col>
@@ -340,6 +351,12 @@ export default {
         'String',
         'Record',
         'User',
+      ],
+
+      axisLabelPositions: [
+        { value: 'end', text: this.$t('display-element:chart.configurator.y-axis.labelPosition.top') },
+        { value: 'center', text: this.$t('display-element:chart.configurator.y-axis.labelPosition.center') },
+        { value: 'start', text: this.$t('display-element:chart.configurator.y-axis.labelPosition.bottom') },
       ],
     }
   },
