@@ -16,7 +16,7 @@ type (
 
 		// Meta holds additional node data
 		// while processing the AST
-		Meta map[string]any
+		Meta map[string]any `json:"-"`
 
 		Ref  string     `json:"ref,omitempty"`
 		Args ASTNodeSet `json:"args,omitempty"`
