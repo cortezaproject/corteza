@@ -216,6 +216,9 @@ func (mysqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err
 	case *dal.TypeUUID:
 		col.Type.Name = "CHAR(36)"
 
+	case *dal.TypeEnum:
+		col.Type.Name = "TEXT"
+
 	default:
 		return nil, fmt.Errorf("unsupported column type: %s ", t.Type())
 	}

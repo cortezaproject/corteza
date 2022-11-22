@@ -199,6 +199,9 @@ func (postgresDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, 
 	case *dal.TypeUUID:
 		col.Type.Name = "UUID"
 
+	case *dal.TypeEnum:
+		col.Type.Name = "TEXT"
+
 	default:
 		return nil, fmt.Errorf("unsupported column type: %s ", t.Type())
 	}
