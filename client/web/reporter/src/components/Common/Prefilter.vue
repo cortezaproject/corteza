@@ -70,33 +70,65 @@
                   </b-button>
                 </b-input-group-prepend>
 
-                <b-form-select
-                  v-model="group.args[0].args[argIndex].args[0].args[0].symbol"
-                  :options="columns"
-                  text-field="label"
-                  value-field="name"
-                  style="max-width: 33%;"
-                  @change="setType(groupIndex, argIndex)"
-                >
-                  <template #first>
-                    <b-form-select-option
-                      value=""
-                    >
-                      {{ $t('general:label.none') }}
-                    </b-form-select-option>
-                  </template>
-                </b-form-select>
+                <template v-if="group.args[0].args[argIndex].args[0].args[0].value && getColumnData(group.args[0].args[argIndex].args[0].args[1]).multivalue">
+                  <b-form-select
+                    :options="columns"
+                    text-field="label"
+                    value-field="name"
+                    style="max-width: 33%;"
+                    :value="group.args[0].args[argIndex].args[0].args[1].symbol"
+                    @change="(symbol) => setType(groupIndex, argIndex, symbol, group.args[0].args[argIndex].args[0].args[0].value['@value'])"
+                  >
+                    <template #first>
+                      <b-form-select-option
+                        value=""
+                      >
+                        {{ $t('general:label.none') }}
+                      </b-form-select-option>
+                    </template>
+                  </b-form-select>
 
-                <b-form-select
-                  v-model="group.args[0].args[argIndex].args[0].ref"
-                  :options="operators"
-                  style="max-width: 60px;"
-                />
+                  <b-form-select
+                    v-model="group.args[0].args[argIndex].args[0].ref"
+                    :options="getOperators(getColumnData(group.args[0].args[argIndex].args[0].args[1]))"
+                    style="max-width: 120px;"
+                  />
 
-                <b-form-input
-                  v-model="group.args[0].args[argIndex].args[0].args[1].value['@value']"
-                  :placeholder="$t('builder:value')"
-                />
+                  <b-form-input
+                    v-model="group.args[0].args[argIndex].args[0].args[0].value['@value']"
+                    :placeholder="$t('builder:value')"
+                  />
+                </template>
+
+                <template v-else>
+                  <b-form-select
+                    :options="columns"
+                    text-field="label"
+                    value-field="name"
+                    style="max-width: 33%;"
+                    :value="group.args[0].args[argIndex].args[0].args[0].symbol"
+                    @change="(symbol) => setType(groupIndex, argIndex, symbol, group.args[0].args[argIndex].args[0].args[1].value['@value'])"
+                  >
+                    <template #first>
+                      <b-form-select-option
+                        value=""
+                      >
+                        {{ $t('general:label.none') }}
+                      </b-form-select-option>
+                    </template>
+                  </b-form-select>
+
+                  <b-form-select
+                    v-model="group.args[0].args[argIndex].args[0].ref"
+                    :options="getOperators(getColumnData(group.args[0].args[argIndex].args[0].args[0]))"
+                    style="max-width: 120px;"
+                  />
+
+                  <b-form-input
+                    v-model="group.args[0].args[argIndex].args[0].args[1].value['@value']"
+                    :placeholder="$t('builder:value')"
+                  />
+                </template>
               </b-input-group>
             </td>
           </template>
@@ -223,27 +255,43 @@ export default {
       operators: [
         {
           value: 'eq',
-          text: '=',
+          text: this.$t('builder:filter.operators.equal'),
+          isMulti: false,
         },
         {
           value: 'ne',
-          text: '!=',
+          text: this.$t('builder:filter.operators.notEqual'),
+          isMulti: false,
         },
         {
           value: 'lt',
-          text: '<',
+          text: this.$t('builder:filter.operators.lessThan'),
+          isMulti: false,
         },
         {
           value: 'le',
-          text: '<=',
+          text: this.$t('builder:filter.operators.lessThanEqualTo'),
+          isMulti: false,
         },
         {
           value: 'gt',
-          text: '>',
+          text: this.$t('builder:filter.operators.greaterThan'),
+          isMulti: false,
         },
         {
           value: 'ge',
-          text: '>=',
+          text: this.$t('builder:filter.operators.greaterThanEqualTo'),
+          isMulti: false,
+        },
+        {
+          value: 'in',
+          text: this.$t('builder:filter.operators.contains'),
+          isMulti: true,
+        },
+        {
+          value: 'nin',
+          text: this.$t('builder:filter.operators.notContains'),
+          isMulti: true,
         },
       ],
     }
@@ -345,18 +393,27 @@ export default {
       }
     },
 
-    setType (groupIndex, argIndex) {
-      // Get arg
-      if (this.filter.args[groupIndex].args[0].args[argIndex]) {
-        const { symbol } = this.filter.args[groupIndex].args[0].args[argIndex].args[0].args[0]
+    setType (groupIndex, argIndex, symbol, value) {
+      if (symbol) {
+        // Get arg
+        if (this.filter.args[groupIndex].args[0].args[argIndex]) {
+          // Get type
+          const { kind, multivalue } = this.columns.find(({ name }) => name === symbol)
 
-        // Get type
-        const { kind } = this.columns.find(({ name }) => name === symbol)
-
-        // Set type
-        if (kind) {
-          this.filter.args[groupIndex].args[0].args[argIndex].args[0].args[1].value['@type'] = kind
+          // Set type
+          if (kind) {
+            if (multivalue) {
+              this.filter.args[groupIndex].args[0].args[argIndex].args[0].args[0] = { value: { '@type': kind, '@value': value } }
+              this.filter.args[groupIndex].args[0].args[argIndex].args[0].args[1] = { symbol }
+              this.filter.args[groupIndex].args[0].args[argIndex].args[0].ref = 'in'
+            } else {
+              this.filter.args[groupIndex].args[0].args[argIndex].args[0].args[0] = { symbol }
+              this.filter.args[groupIndex].args[0].args[argIndex].args[0].args[1] = { value: { '@type': kind, '@value': value } }
+              this.filter.args[groupIndex].args[0].args[argIndex].args[0].ref = 'eq'
+            }
+          }
         }
+        this.reRender()
       }
     },
 
@@ -365,6 +422,14 @@ export default {
       this.$nextTick().then(() => {
         this.render = true
       })
+    },
+
+    getColumnData (group) {
+      return this.columns.find(({ name }) => name === group.symbol)
+    },
+
+    getOperators (column) {
+      return column ? this.operators.filter(value => value.isMulti === column.multivalue) : this.operators
     },
   },
 }
