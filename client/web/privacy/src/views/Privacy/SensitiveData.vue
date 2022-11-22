@@ -106,7 +106,8 @@ export default {
     },
 
     rowClicked ({ namespace, module }) {
-      window.open(`/compose/ns/${namespace.slug}/admin/modules/${module.moduleID}/edit`, '_blank')
+      const { namespaceID, slug } = namespace
+      window.open(`/compose/ns/${slug || namespaceID}/admin/modules/${module.moduleID}/edit`, '_blank')
     },
   },
 }
