@@ -69,3 +69,15 @@ select-all: Select all
 unselect-all: Unselect all
 value: Value
 name: Name
+filter:
+  operators:
+    like: Like
+    notLike: Not Like
+    contains: Contains
+    notContains: Not contains
+    equal: Equal
+    greaterThan: Greater than
+    greaterThanEqualTo: Greater than or equal to
+    lessThanEqualTo: Less than or equal to
+    lessThan: Less than
+    notEqual: Not equal
