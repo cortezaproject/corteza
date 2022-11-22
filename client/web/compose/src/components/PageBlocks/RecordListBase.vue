@@ -1084,7 +1084,7 @@ export default {
           name: 'page.record',
           label: 'Record page',
           params: {
-            slug: this.namespace.slug,
+            slug: this.namespace.slug || this.namespace.namespaceID,
             pageID: this.recordPageID,
             recordID: recordID,
           },
@@ -1104,7 +1104,7 @@ export default {
         ...e,
         namespaceID,
         moduleID,
-        filename: `${this.namespace.slug} - ${this.recordListModule.name}`,
+        filename: `${this.namespace.slug || namespaceID} - ${this.recordListModule.name}`,
       }
 
       if (filterRaw.rangeType === 'range') {
