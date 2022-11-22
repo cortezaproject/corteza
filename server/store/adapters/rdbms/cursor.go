@@ -19,6 +19,8 @@ type (
 
 	pagingCursor interface {
 		Keys() []string
+		KK() [][]string
+		Modifiers() []string
 		Values() []interface{}
 		IsLThen() bool
 		Desc() []bool
@@ -121,6 +123,8 @@ func (c *cursorCondition) sql() (cnd string, err error) {
 
 	var (
 		cc = c.cur.Keys()
+		kk = c.cur.KK()
+		mm = c.cur.Modifiers()
 		vv = c.cur.Values()
 
 		ltOp = map[bool]string{
@@ -167,6 +171,17 @@ func (c *cursorCondition) sql() (cnd string, err error) {
 		if c.sortableCols != nil {
 			if v, ok := c.sortableCols[strings.ToLower(cc[i])]; ok {
 				colName = v
+			}
+
+			// update column name as per the modifier if needed
+			if len(kk[i]) > 0 && strings.ToLower(mm[i]) == filter.COALESCE {
+				var tmp []string
+				for _, k := range kk[i] {
+					if v, ok := c.sortableCols[strings.ToLower(k)]; ok {
+						tmp = append(tmp, v)
+					}
+				}
+				colName = fmt.Sprintf("COALESCE(%s)", strings.Join(tmp, ", "))
 			}
 		}
 
@@ -291,7 +306,7 @@ func CursorExpression(
 
 		op := ltOp[lt]
 
-		//// Typecast the value so comparison can work properly
+		// // Typecast the value so comparison can work properly
 
 		// Either BOTH (field and value) are NULL or field is grater-then value
 		base := exp.NewExpressionList(

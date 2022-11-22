@@ -17,22 +17,44 @@ func Test_parseSort(t *testing.T) {
 		{
 			"one simple column",
 			"name",
-			SortExprSet{&SortExpr{Column: "name"}},
+			SortExprSet{
+				&SortExpr{
+					columns: []string{"name"},
+					Column:  "name",
+				},
+			},
 			false,
 		},
 		{
 			"one simple column, descending",
 			"name desc",
-			SortExprSet{&SortExpr{Column: "name", Descending: true}},
+			SortExprSet{
+				&SortExpr{
+					columns:    []string{"name"},
+					Column:     "name",
+					Descending: true},
+			},
 			false,
 		},
 		{
 			"combo",
 			"name desc, email asc, age desc",
 			SortExprSet{
-				&SortExpr{Column: "name", Descending: true},
-				&SortExpr{Column: "email", Descending: false},
-				&SortExpr{Column: "age", Descending: true},
+				&SortExpr{
+					columns:    []string{"name"},
+					Column:     "name",
+					Descending: true,
+				},
+				&SortExpr{
+					columns:    []string{"email"},
+					Column:     "email",
+					Descending: false,
+				},
+				&SortExpr{
+					columns:    []string{"age"},
+					Column:     "age",
+					Descending: true,
+				},
 			},
 			false,
 		},
@@ -40,6 +62,30 @@ func Test_parseSort(t *testing.T) {
 			"empty",
 			"",
 			SortExprSet{},
+			false,
+		},
+		{
+			"COALESCE with multiple column",
+			"COALESCE(updated_at,created_at)",
+			SortExprSet{
+				&SortExpr{
+					modifier:   "COALESCE",
+					columns:    []string{"updated_at", "created_at"},
+					Descending: false,
+				},
+			},
+			false,
+		},
+		{
+			"COALESCE with multiple column, descending",
+			"COALESCE(updated_at,created_at) desc",
+			SortExprSet{
+				&SortExpr{
+					modifier:   "COALESCE",
+					columns:    []string{"updated_at", "created_at"},
+					Descending: true,
+				},
+			},
 			false,
 		},
 	}
