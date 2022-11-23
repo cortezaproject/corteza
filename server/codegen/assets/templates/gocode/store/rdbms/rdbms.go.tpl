@@ -80,8 +80,29 @@ func (s *Store) Upsert{{ .expIdent }}(ctx context.Context, {{ template "extraArg
 			return
 		}
 
-		if err = s.Exec(ctx, {{ .ident }}UpsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
-			return
+		// @todo this solution is ok for now but could be problematic when we start
+		// batching together DB operations.
+		if s.Dialect.Nuances().TwoStepUpsert {
+			var rsp sql.Result
+			rsp, err = s.ExecR(ctx, {{ .ident }}UpdateQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+			if c, err := rsp.RowsAffected(); err != nil {
+				return err
+			} else if c > 0 {
+				continue
+			}
+
+			err = s.Exec(ctx, {{ .ident }}InsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		} else {
+			err = s.Exec(ctx, {{ .ident }}UpsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
 		}
 	}
 

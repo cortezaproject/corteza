@@ -3,6 +3,7 @@ package drivers
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/ql"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
@@ -17,6 +18,13 @@ type (
 		// use of aliases inside HAVING clause and
 		// MySQL does not.
 		HavingClauseMustUseAlias bool
+
+		// TwoStepUpsert allows support for databases which don't have an upsert
+		// or we simply couldn't figure out how to make work.
+		//
+		// TwoStepUpsert uses the context from the update statement to figure out
+		// if it needs to do an insert.
+		TwoStepUpsert bool
 	}
 
 	Dialect interface {
