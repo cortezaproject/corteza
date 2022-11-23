@@ -3,7 +3,6 @@
   --primary-hover: #061E2C;
   --light: #E4E9EF;
   --danger: #E24646;
-  --body-margin: 2.6vw;
 }
 
 html {
@@ -12,9 +11,8 @@ html {
 
 
 body {
-  margin-top: var(--body-margin);
   font-family: 'Poppins', sans-serif;
-  min-height: calc(100% - var(--body-margin));
+  min-height: 100%;
   display: grid;
   grid-template-rows: auto;
 }
