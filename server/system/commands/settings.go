@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 
@@ -20,6 +21,10 @@ func Settings(ctx context.Context, app serviceInitializer) *cobra.Command {
 		cmd = &cobra.Command{
 			Use:   "settings",
 			Short: "Settings management",
+		}
+
+		restartWarning = func(cmd *cobra.Command, args []string) {
+			fmt.Print("\nYour server needs to be restarted in order to apply changes\n")
 		}
 	)
 
@@ -95,6 +100,7 @@ func Settings(ctx context.Context, app serviceInitializer) *cobra.Command {
 
 			cli.HandleError(service.DefaultSettings.Set(ctx, v))
 		},
+		PostRun: restartWarning,
 	}
 
 	set.Flags().BoolP("as-string", "s", false, "Treat input value as string (to avoid wrapping in quotes)")
@@ -138,11 +144,12 @@ func Settings(ctx context.Context, app serviceInitializer) *cobra.Command {
 				cli.HandleError(service.DefaultSettings.BulkSet(ctx, vv))
 			}
 		},
+		PostRun: restartWarning,
 	}
 
 	exp := &cobra.Command{
 		Use:     "export [file]",
-		Short:   "Import settings as JSON to stdout or file",
+		Short:   "Export settings as JSON to stdout or file",
 		Args:    cobra.MaximumNArgs(1),
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -203,6 +210,7 @@ func Settings(ctx context.Context, app serviceInitializer) *cobra.Command {
 				cli.HandleError(service.DefaultSettings.Delete(ctx, names[a], 0))
 			}
 		},
+		PostRun: restartWarning,
 	}
 
 	del.Flags().String("prefix", "", "SettingsFilter settings by prefix")
