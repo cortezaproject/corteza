@@ -103,7 +103,12 @@ func (b *reportFrameBuilder) stringifyVal(col string, val any) string {
 }
 
 func (b *reportFrameBuilder) joinMultiVal(col string, vals []string) string {
-	return strings.Join(vals, b.attrMvDel[col])
+	// @todo b.attrMvDel[col] is never actually set so it should be ALONG with this default
+	del, ok := b.attrMvDel[col]
+	if !ok {
+		del = "\n"
+	}
+	return strings.Join(vals, del)
 }
 
 func (b *reportFrameBuilder) freshFrame() {
