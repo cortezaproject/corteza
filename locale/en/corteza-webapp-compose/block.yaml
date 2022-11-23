@@ -71,6 +71,10 @@ chart:
   addGauge: Gauge chart
   addGeneric: Generic chart
   createFailed: Could not create a chart
+  columns:
+    name: Name
+    handle: Handle
+    changedAt: Last change
   configure:
     label: Configure chart
     reportLabel: Report {{l}}
