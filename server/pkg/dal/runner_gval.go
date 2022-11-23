@@ -3,9 +3,11 @@ package dal
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/PaesslerAG/gval"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/gvalfnc"
 	"github.com/cortezaproject/corteza/server/pkg/ql"
 )
@@ -121,6 +123,21 @@ var (
 		"div": {
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("%s / %s", args[0], args[1])
+			},
+			OutTypeUnknown: true,
+		},
+
+		"in": {
+			Handler: func(args ...string) string {
+				// The arguments must be reversed!!
+				return fmt.Sprintf("has(%s, %s)", args[1], args[0])
+			},
+			OutTypeUnknown: true,
+		},
+		"nin": {
+			Handler: func(args ...string) string {
+				// The arguments must be reversed!!
+				return fmt.Sprintf("!has(%s, %s)", args[1], args[0])
 			},
 			OutTypeUnknown: true,
 		},
@@ -311,7 +328,7 @@ func newRunnerGvalParsed(n *ql.ASTNode) (out *runnerGval, err error) {
 // @note the subset is limited to simplify the (eventual) offloading to the DB.
 //       At some point, more functions will be supported, and the ones which can't
 //       be offloaded will be performed in some exec. step.
-func newGval(expr string) (gval.Evaluable, error) {
+func newGval(e string) (gval.Evaluable, error) {
 	return gval.Full(
 		// Extra functions we'll need
 		// @note don't bring in all of the expr. pkg functions as we'll need to
@@ -328,7 +345,8 @@ func newGval(expr string) (gval.Evaluable, error) {
 		gval.Function("int", gvalfnc.CastInt),
 		gval.Function("string", gvalfnc.CastString),
 		gval.Function("concat", gvalfnc.ConcatStrings),
-	).NewEvaluable(expr)
+		gval.Function("has", arrHas),
+	).NewEvaluable(e)
 }
 
 func newQlParser(onIdent ...ql.IdentHandler) *ql.Parser {
@@ -408,4 +426,35 @@ func (c converterGval) refHandler(n *ql.ASTNode, args ...string) (out string, er
 		return "", fmt.Errorf("unknown ref %q", n.Ref)
 	}
 	return refToGvalExp[r].Handler(args...), nil
+}
+
+// arrHas is a helper to assure the expr.Has always gets an array (or map) as
+// the first argument
+//
+// @todo this is needed because how the ValueGetters returns multi-value fields so
+//       an edge case where a field would have [a] but here, it would be presented
+//       as a.
+//       This would become obsolete when we address the actual issue.
+func arrHas(arr interface{}, vv ...interface{}) (b bool, err error) {
+	arr = expr.UntypedValue(arr)
+
+	if isMap(arr) {
+		return expr.Has(arr, vv...)
+	}
+
+	var (
+		c = reflect.ValueOf(arr)
+	)
+
+	switch c.Kind() {
+	case reflect.Slice:
+		return expr.Has(arr, vv...)
+
+	default:
+		return expr.Has([]any{arr}, vv...)
+	}
+}
+
+func isMap(v interface{}) bool {
+	return reflect.TypeOf(v).Kind() == reflect.Map
 }

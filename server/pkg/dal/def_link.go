@@ -219,24 +219,41 @@ func (def *Link) init(ctx context.Context, left, right Iterator) (exec *linkLeft
 }
 
 func (r *rowLink) SelectGVal(ctx context.Context, k string) (interface{}, error) {
-	return r.GetValue(k, 0)
+	// @todo this way of determining multivalue is not entirely ok but we can get away with it
+	//       since we have special functions to work with those.
+	//       We need to somehow inform this bit as to what fields are multi value.
+	row, counts := r.getGetter(k)
+	if row == nil {
+		return nil, nil
+	}
+
+	cc := counts[k]
+	if cc == 0 {
+		return nil, nil
+	}
+
+	if cc == 1 {
+		return row.GetValue(k, 0)
+	}
+
+	out := make([]any, cc)
+	for i := uint(0); i < cc; i++ {
+		out[i], _ = row.GetValue(k, i)
+	}
+	return out, nil
 }
 
 func (r *rowLink) GetValue(name string, pos uint) (v any, err error) {
-	a := r.a.CountValues()
+	row, a := r.getGetter(name)
+	if row == nil {
+		return
+	}
+
 	if cc, ok := a[name]; ok {
 		if pos >= cc {
 			return nil, nil
 		}
-		return r.a.GetValue(name, pos)
-	}
-
-	b := r.b.CountValues()
-	if cc, ok := b[name]; ok {
-		if pos >= cc {
-			return nil, nil
-		}
-		return r.b.GetValue(name, pos)
+		return row.GetValue(name, pos)
 	}
 
 	return
@@ -253,4 +270,20 @@ func (r *rowLink) CountValues() (out map[string]uint) {
 	}
 
 	return
+}
+
+// getGetter returns the ValueGetter based on if the value is in a or b
+// If neither, it returns nil
+func (r *rowLink) getGetter(k string) (row ValueGetter, cc map[string]uint) {
+	cc = r.a.CountValues()
+	if _, ok := cc[k]; ok {
+		return r.a, cc
+	}
+
+	cc = r.b.CountValues()
+	if _, ok := cc[k]; ok {
+		return r.b, cc
+	}
+
+	return nil, nil
 }
