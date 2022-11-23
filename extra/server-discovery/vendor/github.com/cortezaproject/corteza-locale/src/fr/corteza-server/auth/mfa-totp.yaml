@@ -1,0 +1,28 @@
+---
+template:
+  title: Configurez votre authentification à 2 facteurs avec TOTP
+  enforced: |
+    L'authentification multi-facteurs TOTP est assurée par l'administrateur de Corteza.
+    Veuillez la configurer de suite.
+  instructions: |
+    Corteza utilise les mots de passe à usage unique dans le temps (TOTP) comme une des technologies sous-jacentes de l'authentification à  2 facteurs. Utilisez l'une des applications énumérées ci-dessous et tapez le secret ou scannez le code QR.
+    <br />
+    <br />
+    Cela permettra de renforcer la sécurité de votre compte.
+    <br />
+    <br />
+    Vous pouvez utiliser l'une des applications suivantes:
+  lastpass: <a target="_blank" href="{{ link }}">Authentifiant LastPass</a>
+  gauth: Authentifiant Google pour <a target="_blank" href="{{ android }}">Android</a>ou<a target="_blank" href="{{ iphone }}">iPhone</a>
+  authy: <a target="_blank" href="{{ link }}">Authy</a>
+  form:
+    title: "Terminez la configuration en saisissant le code de l'application d'authentification:"
+    button: Envoyez
+alerts:
+  text-MFA-enabled: Authentification à 2 facteurs avec TOTP activée
+  text-MFA-disabled: Authentification à 2 facteurs avec TOTP désactivée
+
+errors:
+  invalid-code-format: "Invalid code format"
+  invalid-code: "Invalid code"
+

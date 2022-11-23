@@ -1,0 +1,95 @@
+package: expr
+imports:
+  - io
+  - time
+  - github.com/cortezaproject/corteza/server/pkg/http
+  - net/url
+
+types:
+  Any:
+    as: 'interface{}'
+
+  Array:
+    as: '[]TypedValue'
+
+  Vars:
+    as: 'map[string]TypedValue'
+
+  Boolean:
+    as: 'bool'
+    default: 'false'
+    comparable: true
+    customComparator: true
+
+  ID:
+    as: 'uint64'
+    default: '0'
+    comparable: true
+
+  Integer:
+    as: 'int64'
+    default: '0'
+    comparable: true
+
+  UnsignedInteger:
+    as: 'uint64'
+    default: '0'
+    comparable: true
+
+  Float:
+    as: 'float64'
+    default: '0'
+    comparable: true
+
+  String:
+    as: 'string'
+    default: '""'
+    comparable: true
+
+  Bytes:
+    as: '[]byte'
+    default: 'nil'
+    comparable: false
+
+  Handle:
+    as: 'string'
+    default: '""'
+    comparable: true
+
+  DateTime:
+    as: '*time.Time'
+    comparable: true
+    customComparator: true
+
+  Duration:
+    as: 'time.Duration'
+    default: '0'
+    comparable: true
+    customComparator: true
+
+  KV:
+    as: 'map[string]string'
+    assignFn: assignToKV
+
+  KVV:
+    as: 'map[string][]string'
+    assignFn: assignToKVV
+
+  Meta:
+    as: 'map[string]any'
+
+  Reader:
+    as: 'io.Reader'
+
+  HttpRequest:
+    as: '*http.Request'
+    struct:
+      - { name: 'Method',   exprType: 'String', goType: 'string' }
+      - { name: 'URL',      exprType: 'Url',    goType: 'url.Url' }
+      - { name: 'Header',   exprType: 'KVV',    goType: 'map[string][]string' }
+      - { name: 'Body',     exprType: 'Reader', goType: '*types.BufferedReader' }
+      - { name: 'Form',     exprType: 'KVV',    goType: 'map[string][]string' }
+      - { name: 'PostForm', exprType: 'KVV',    goType: 'map[string][]string' }
+
+  Url:
+    as: '*url.URL'

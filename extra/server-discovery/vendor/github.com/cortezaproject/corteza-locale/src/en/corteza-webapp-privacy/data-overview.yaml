@@ -1,0 +1,19 @@
+title: Data Overview
+
+data-types:
+  profile-information:
+    title: Profile Information
+    description: Your contact information, names, surname, nickname, profile picture
+  application-data:
+    title: Application Data
+    description: Your personal data stored in Corteza
+
+application:
+  title: Application Data
+  connection:
+    label: Connection
+    placeholder: Select a Connection
+  no-data-available: No data available
+  private-fields: Private Fields
+  request-correction: Request Correction
+  request-deletion: Request Deletion
