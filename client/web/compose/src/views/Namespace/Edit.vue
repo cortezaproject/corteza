@@ -482,7 +482,8 @@ export default {
     },
 
     fetchApplication () {
-      this.$SystemAPI.applicationList({ name: this.namespace.slug })
+      const { namespaceID, slug } = this.namespace
+      this.$SystemAPI.applicationList({ name: slug || namespaceID })
         .then(({ set = [] }) => {
           if (set.length) {
             this.application = set[0]
