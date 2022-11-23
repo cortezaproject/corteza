@@ -388,7 +388,7 @@ func Test_has(t *testing.T) {
 				err error
 			)
 
-			loc, err = has(tc.arr, tc.val...)
+			loc, err = Has(tc.arr, tc.val...)
 			req.NoError(err)
 			req.Equal(tc.expect, loc)
 		})
