@@ -73,3 +73,5 @@ manage:
 sidebar:
   configure: Namespace pages
   hide: Hide sidebar on namespace public pages
+  slug: Short name
+  enabled: Enabled

@@ -54,8 +54,8 @@
               {{ r.meta.name }}
             </template>
 
-            <template #updatedAt="{ item }">
-              {{ (item.updatedAt || item.createdAt) | locFullDateTime }}
+            <template #changedAt="{ item }">
+              {{ (item.deletedAt || item.updatedAt || item.createdAt) | locFullDateTime }}
             </template>
 
             <template #actions="{ item: r }">
@@ -122,8 +122,8 @@ export default {
       },
 
       sorting: {
-        sortBy: 'updatedAt',
-        sortDesc: true,
+        sortBy: 'name',
+        sortDesc: false,
       },
     }
   },
@@ -145,14 +145,18 @@ export default {
       return [
         {
           key: 'name',
+          label: this.$t('columns.name'),
+          sortable: true,
           tdClass: 'text-nowrap',
         },
         {
           key: 'handle',
+          label: this.$t('columns.handle'),
           sortable: true,
         },
         {
-          key: 'updatedAt',
+          key: 'changedAt',
+          label: this.$t('columns.changedAt'),
           sortable: true,
           class: 'text-right text-nowrap',
         },
