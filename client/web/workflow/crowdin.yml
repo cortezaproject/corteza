@@ -1,5 +1,0 @@
-files:
-  - source: /src/i18n/en
-    ignore:
-      - /src/i18n/en/index.js
-    translation: /src/i18n/%locale%
