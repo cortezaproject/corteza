@@ -1,8 +1,6 @@
 <template>
-  <div class="d-flex flex-column w-100 vh-100">
-    <header
-      class="mw-100"
-    >
+  <div class="d-flex flex-column w-100 vh-100 overflow-hidden">
+    <header>
       <c-topbar
         :sidebar-pinned="pinned"
         :settings="$Settings.get('ui.topbar', {})"

@@ -17,7 +17,7 @@ export default (options = {}) => {
     el: '#app',
     name: 'privacy',
 
-    template: '<div v-if="loaded && i18nLoaded" class="h-100"><router-view/></div>',
+    template: '<router-view v-if="loaded && i18nLoaded" />',
 
     data: () => ({
       loaded: false,

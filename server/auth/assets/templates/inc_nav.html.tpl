@@ -1,5 +1,5 @@
 <div class="header card-header border-0 p-0">
-    <div class="text-center w-100 my-4">
+    <div class="text-center w-100 my-2 my-sm-4">
         <a href="{{ links.Profile }}">
             <img
 							data-test-id="img-corteza-logo"

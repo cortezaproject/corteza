@@ -14,16 +14,19 @@
 		<link href="{{ links.AuthAssets }}/style.css?{{ buildtime }}" rel="stylesheet">
         <title>Corteza</title>
 	</head>
-	<body style="background: url({{ links.Assets }}/release-background.png) no-repeat top;background-size: cover;background-attachment: fixed;">
-        {{ if .user }}
-            <div class="position-absolute user text-white m-2">
-			    <a class="font-weight-bold text-white" href="{{ links.Base }}"><i class="bi bi-grid-3x2-gap-fill text-white mr-1 align-middle" style="font-size: 1.4rem;"></i></a>
-                {{ tr "inc_header.logged-in-as" }}
-                <a  data-test-id="link-redirect-to-profile" class="font-weight-bold text-white" href="{{ links.Profile }}">{{ coalesce .user.Name .user.Handle .user.Email }}</a>
-                |
-                <a  data-test-id="link-logout" class="font-weight-bold text-white" href="{{ links.Logout }}">{{ tr "inc_header.logout" }}</a>
-            </div>
-        {{ end }}
-		<main class="auth mt-sm-5 pt-md-5">
+	<body style="background: url({{ links.Assets }}/release-background.png) no-repeat top;background-size: cover;background-attachment: fixed; margin-top: 0;">
+		{{ if .user }}
+		<header>
+			<div class="float-right text-white m-2">
+				<a class="font-weight-bold text-white" href="{{ links.Base }}"><i class="bi bi-grid-3x2-gap-fill text-white mr-1 align-middle" style="font-size: 1.4rem;"></i></a>
+					{{ tr "inc_header.logged-in-as" }}
+				<a  data-test-id="link-redirect-to-profile" class="font-weight-bold text-white" href="{{ links.Profile }}">{{ coalesce .user.Name .user.Handle .user.Email }}</a>
+				|
+				<a  data-test-id="link-logout" class="font-weight-bold text-white" href="{{ links.Logout }}">{{ tr "inc_header.logout" }}</a>
+			</div>
+		</header>
+		{{ end }}
+
+		<main class="auth mt-3">
 			<div class="card">
 			{{ template "inc_nav.html.tpl" . }}
