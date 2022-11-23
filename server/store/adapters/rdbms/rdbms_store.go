@@ -114,17 +114,28 @@ func (s Store) Healthcheck(ctx context.Context) error {
 	return s.Ping(ctx)
 }
 
+// Exec executes the SQL and drops the result
 func (s Store) Exec(ctx context.Context, q sqlizer) error {
+	_, err := s.exec(ctx, q)
+	return err
+}
+
+// ExecR executes the SQL and returns the result
+func (s Store) ExecR(ctx context.Context, q sqlizer) (rs sql.Result, _ error) {
+	return s.exec(ctx, q)
+}
+
+func (s Store) exec(ctx context.Context, q sqlizer) (rs sql.Result, _ error) {
 	var (
 		query, args, err = q.ToSQL()
 	)
 
 	if err != nil {
-		return fmt.Errorf("could not build query: %w", err)
+		return rs, fmt.Errorf("could not build query: %w", err)
 	}
 
-	_, err = s.DB.ExecContext(ctx, query, args...)
-	return store.HandleError(err, s.ErrorHandler)
+	rs, err = s.DB.ExecContext(ctx, query, args...)
+	return rs, store.HandleError(err, s.ErrorHandler)
 }
 
 func (s Store) Query(ctx context.Context, q sqlizer) (*sql.Rows, error) {
