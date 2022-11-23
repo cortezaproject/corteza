@@ -99,39 +99,48 @@ func (svc *apigwRoute) Create(ctx context.Context, new *types.ApigwRoute) (q *ty
 	return q, svc.recordAction(ctx, qProps, ApigwRouteActionCreate, err)
 }
 
-func (svc *apigwRoute) Update(ctx context.Context, upd *types.ApigwRoute) (q *types.ApigwRoute, err error) {
+func (svc *apigwRoute) Update(ctx context.Context, upd *types.ApigwRoute) (res *types.ApigwRoute, err error) {
 	var (
 		qProps = &apigwRouteActionProps{update: upd}
-		qq     *types.ApigwRoute
 		e      error
 	)
 
 	err = func() (err error) {
-		if qq, e = loadApigwRoute(ctx, svc.store, upd.ID); e != nil {
+		if res, e = loadApigwRoute(ctx, svc.store, upd.ID); e != nil {
 			return ApigwRouteErrNotFound(qProps)
 		}
 
-		if !svc.ac.CanUpdateApigwRoute(ctx, qq) {
+		var (
+			// check if old endpoint moved and attach the 404 handler
+			endpointMoved = res.Enabled != upd.Enabled || res.Method != upd.Method || res.Endpoint != upd.Endpoint
+		)
+
+		if !svc.ac.CanUpdateApigwRoute(ctx, res) {
 			return ApigwRouteErrNotAllowedToUpdate(qProps)
 		}
 
-		// temp todo - update itself with the same endpoint
-		// if qq, e = store.LookupApigwRouteByEndpoint(ctx, svc.store, upd.Endpoint); e == nil && qq == nil {
-		// 	return ApigwRouteErrExistsEndpoint(qProps)
-		// }
+		// copy (potentially) updated files from the payload
+		res.Meta = upd.Meta
+		res.Method = upd.Method
+		res.Endpoint = upd.Endpoint
+		res.Enabled = upd.Enabled
+		res.Group = upd.Group
 
-		qq.UpdatedAt = now()
-		qq.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+		// ensure we have a valid endpoint
+		res.UpdatedAt = now()
+		res.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-		if err = store.UpdateApigwRoute(ctx, svc.store, qq); err != nil {
+		if err = store.UpdateApigwRoute(ctx, svc.store, res); err != nil {
 			return
 		}
 
+		// @todo move this into struct of the service (svc),
+		//       same as we do for services for other structs
 		ags := apigw.Service()
 
-		// If method or endpoint doesn't match then attach 404 handler
-		if qq.Enabled != upd.Enabled || qq.Method != upd.Method || qq.Endpoint != upd.Endpoint {
-			ags.NotFound(ctx, qq.Method, qq.Endpoint)
+		// old endpoint moved: attach 404 handler
+		if endpointMoved {
+			ags.NotFound(ctx, res.Method, res.Endpoint)
 		}
 
 		// send the signal to reload updated route
@@ -144,7 +153,7 @@ func (svc *apigwRoute) Update(ctx context.Context, upd *types.ApigwRoute) (q *ty
 		return nil
 	}()
 
-	return qq, svc.recordAction(ctx, qProps, ApigwRouteActionUpdate, err)
+	return res, svc.recordAction(ctx, qProps, ApigwRouteActionUpdate, err)
 }
 
 func (svc *apigwRoute) DeleteByID(ctx context.Context, ID uint64) (err error) {

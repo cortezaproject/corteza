@@ -241,6 +241,34 @@ func TestApigwRouteUpdate(t *testing.T) {
 		Assert(jsonpath.Present(`$.response.routeID`)).
 		Assert(jsonpath.Equal(`$.response.endpoint`, "/test-edited")).
 		Assert(jsonpath.Equal(`$.response.enabled`, false)).
+		Assert(jsonpath.NotPresent(`$.response.deletedBy`)).
+		Assert(jsonpath.NotPresent(`$.response.deletedAt`)).
+		End()
+}
+
+func TestApigwRouteUpdateDeleted(t *testing.T) {
+	h := newHelper(t)
+	h.clearRoutes()
+
+	now := time.Now()
+	r := &types.ApigwRoute{Endpoint: "/deleted", Enabled: true, DeletedAt: &now, DeletedBy: 1}
+
+	h.createRoute(r)
+
+	helpers.AllowMe(h, types.ApigwRouteRbacResource(r.ID), "update")
+
+	h.apiInit().
+		Put(fmt.Sprintf("/apigw/route/%d", r.ID)).
+		Header("Accept", "application/json").
+		FormData("endpoint", "/deleted-and-updated").
+		FormData("enabled", "false").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Present(`$.response.routeID`)).
+		Assert(jsonpath.Equal(`$.response.endpoint`, "/deleted-and-updated")).
+		Assert(jsonpath.Present(`$.response.deletedBy`)).
+		Assert(jsonpath.Present(`$.response.deletedAt`)).
 		End()
 }
 
