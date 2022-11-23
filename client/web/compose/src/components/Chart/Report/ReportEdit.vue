@@ -76,7 +76,7 @@
         <template v-if="usesDimensionsField">
           <b-form-group
             horizontal
-            :label-cols="2"
+            :label-cols="3"
             breakpoint="md"
             :label="$t('edit.dimension.fieldLabel')"
           >
@@ -97,7 +97,7 @@
 
           <b-form-group
             horizontal
-            :label-cols="2"
+            :label-cols="3"
             breakpoint="md"
             :label="$t('edit.dimension.function.label')"
           >
@@ -119,7 +119,7 @@
           <template v-if="!unSkippable">
             <b-form-group
               horizontal
-              :label-cols="2"
+              :label-cols="3"
               breakpoint="md"
             >
               <b-form-checkbox
@@ -132,7 +132,7 @@
             <b-form-group
               v-if="!d.skipMissing"
               horizontal
-              :label-cols="2"
+              :label-cols="3"
               breakpoint="md"
               :label="$t('edit.dimension.defaultValueLabel')"
               :description="$t('edit.dimension.defaultValueFootnote')"
@@ -199,7 +199,7 @@
 
           <b-form-group
             horizontal
-            :label-cols="2"
+            :label-cols="3"
             breakpoint="md"
             :label="$t('edit.metric.fieldLabel')"
           >
@@ -220,7 +220,7 @@
 
           <b-form-group
             horizontal
-            :label-cols="2"
+            :label-cols="3"
             breakpoint="md"
             :label="$t('edit.metric.function.label')"
           >
