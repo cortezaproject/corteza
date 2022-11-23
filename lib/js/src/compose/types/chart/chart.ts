@@ -190,11 +190,13 @@ export default class Chart extends BaseChart {
           ? t.formatting
           : `{a}<br />{b} : {c}${relative ? ' ({d}%)' : ''}`
 
-        pieLegend = {
-          top: l?.position?.top || 'auto',
-          right: l?.position?.right || 'auto',
-          bottom: l?.position?.bottom || 'auto',
-          left: l?.position?.left || 'auto',
+        if (l?.isCustomized) {
+          pieLegend = {
+            top: l?.position?.top || 'auto',
+            right: l?.position?.right || 'auto',
+            bottom: l?.position?.bottom || 'auto',
+            left: l?.position?.left || 'auto',
+          }
         }
 
         return {
