@@ -1,0 +1,6 @@
+---
+template:
+  title: Désactiver l'authentification à 2 facteurs avec TOTP
+  instructions: Désactiver en entrant le code existant.
+  button:
+    remove: Supprimer

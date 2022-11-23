@@ -1,0 +1,204 @@
+# github.com/PaesslerAG/gval v1.2.1
+## explicit; go 1.15
+github.com/PaesslerAG/gval
+# github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d
+## explicit
+github.com/SentimensRG/ctx
+github.com/SentimensRG/ctx/sigctx
+# github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
+## explicit; go 1.13
+github.com/asaskevich/govalidator
+# github.com/aymerick/douceur v0.2.0
+## explicit
+github.com/aymerick/douceur/css
+github.com/aymerick/douceur/parser
+# github.com/cortezaproject/corteza-locale v0.0.0-20221108130701-3981db126651
+## explicit; go 1.16
+github.com/cortezaproject/corteza-locale
+# github.com/cortezaproject/corteza/server v0.0.0-00010101000000-000000000000 => ../../server
+## explicit; go 1.18
+github.com/cortezaproject/corteza/server/pkg/api
+github.com/cortezaproject/corteza/server/pkg/cli
+github.com/cortezaproject/corteza/server/pkg/errors
+github.com/cortezaproject/corteza/server/pkg/expr
+github.com/cortezaproject/corteza/server/pkg/filter
+github.com/cortezaproject/corteza/server/pkg/gvalfnc
+github.com/cortezaproject/corteza/server/pkg/handle
+github.com/cortezaproject/corteza/server/pkg/http
+github.com/cortezaproject/corteza/server/pkg/locale
+github.com/cortezaproject/corteza/server/pkg/logger
+github.com/cortezaproject/corteza/server/pkg/options
+github.com/cortezaproject/corteza/server/pkg/payload
+github.com/cortezaproject/corteza/server/pkg/ql
+github.com/cortezaproject/corteza/server/pkg/rand
+github.com/cortezaproject/corteza/server/pkg/slice
+github.com/cortezaproject/corteza/server/pkg/sql
+github.com/cortezaproject/corteza/server/pkg/version
+github.com/cortezaproject/corteza/server/pkg/xss
+# github.com/davecgh/go-spew v1.1.1
+## explicit
+github.com/davecgh/go-spew/spew
+# github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.0-20210816181553-5444fa50b93d
+## explicit; go 1.13
+github.com/decred/dcrd/dcrec/secp256k1/v4
+# github.com/elastic/go-elasticsearch/v7 v7.12.0
+## explicit; go 1.11
+github.com/elastic/go-elasticsearch/v7
+github.com/elastic/go-elasticsearch/v7/esapi
+github.com/elastic/go-elasticsearch/v7/estransport
+github.com/elastic/go-elasticsearch/v7/esutil
+github.com/elastic/go-elasticsearch/v7/internal/version
+# github.com/go-chi/chi/v5 v5.0.7
+## explicit; go 1.14
+github.com/go-chi/chi/v5
+github.com/go-chi/chi/v5/middleware
+# github.com/go-chi/cors v1.2.1
+## explicit; go 1.14
+github.com/go-chi/cors
+# github.com/go-chi/jwtauth v1.2.0
+## explicit; go 1.15
+github.com/go-chi/jwtauth
+# github.com/go-oauth2/oauth2/v4 v4.4.3
+## explicit; go 1.13
+github.com/go-oauth2/oauth2/v4
+github.com/go-oauth2/oauth2/v4/errors
+github.com/go-oauth2/oauth2/v4/generates
+github.com/go-oauth2/oauth2/v4/models
+# github.com/goccy/go-json v0.9.6
+## explicit; go 1.12
+github.com/goccy/go-json
+github.com/goccy/go-json/internal/decoder
+github.com/goccy/go-json/internal/encoder
+github.com/goccy/go-json/internal/encoder/vm
+github.com/goccy/go-json/internal/encoder/vm_color
+github.com/goccy/go-json/internal/encoder/vm_color_indent
+github.com/goccy/go-json/internal/encoder/vm_indent
+github.com/goccy/go-json/internal/errors
+github.com/goccy/go-json/internal/runtime
+# github.com/golang-jwt/jwt v3.2.2+incompatible
+## explicit
+github.com/golang-jwt/jwt
+# github.com/google/uuid v1.1.2
+## explicit
+github.com/google/uuid
+# github.com/gorilla/css v1.0.0
+## explicit
+github.com/gorilla/css/scanner
+# github.com/inconshreveable/mousetrap v1.0.0
+## explicit
+github.com/inconshreveable/mousetrap
+# github.com/jmoiron/sqlx v1.3.5
+## explicit; go 1.10
+github.com/jmoiron/sqlx/types
+# github.com/joho/godotenv v1.4.0
+## explicit; go 1.12
+github.com/joho/godotenv
+# github.com/lestrrat-go/backoff/v2 v2.0.8
+## explicit; go 1.16
+github.com/lestrrat-go/backoff/v2
+# github.com/lestrrat-go/blackmagic v1.0.0
+## explicit; go 1.16
+github.com/lestrrat-go/blackmagic
+# github.com/lestrrat-go/httpcc v1.0.1
+## explicit; go 1.16
+github.com/lestrrat-go/httpcc
+# github.com/lestrrat-go/iter v1.0.1
+## explicit; go 1.13
+github.com/lestrrat-go/iter/arrayiter
+github.com/lestrrat-go/iter/mapiter
+# github.com/lestrrat-go/jwx v1.2.23
+## explicit; go 1.15
+github.com/lestrrat-go/jwx
+github.com/lestrrat-go/jwx/internal/base64
+github.com/lestrrat-go/jwx/internal/ecutil
+github.com/lestrrat-go/jwx/internal/iter
+github.com/lestrrat-go/jwx/internal/json
+github.com/lestrrat-go/jwx/internal/keyconv
+github.com/lestrrat-go/jwx/internal/pool
+github.com/lestrrat-go/jwx/jwa
+github.com/lestrrat-go/jwx/jwe
+github.com/lestrrat-go/jwx/jwe/internal/aescbc
+github.com/lestrrat-go/jwx/jwe/internal/cipher
+github.com/lestrrat-go/jwx/jwe/internal/concatkdf
+github.com/lestrrat-go/jwx/jwe/internal/content_crypt
+github.com/lestrrat-go/jwx/jwe/internal/keyenc
+github.com/lestrrat-go/jwx/jwe/internal/keygen
+github.com/lestrrat-go/jwx/jwk
+github.com/lestrrat-go/jwx/jws
+github.com/lestrrat-go/jwx/jwt
+github.com/lestrrat-go/jwx/jwt/internal/types
+github.com/lestrrat-go/jwx/x25519
+# github.com/lestrrat-go/option v1.0.0
+## explicit; go 1.16
+github.com/lestrrat-go/option
+# github.com/lestrrat-go/strftime v1.0.6
+## explicit; go 1.13
+github.com/lestrrat-go/strftime
+github.com/lestrrat-go/strftime/internal/errors
+# github.com/microcosm-cc/bluemonday v1.0.18
+## explicit; go 1.16
+github.com/microcosm-cc/bluemonday
+github.com/microcosm-cc/bluemonday/css
+# github.com/modern-go/reflect2 v1.0.2
+## explicit; go 1.12
+github.com/modern-go/reflect2
+# github.com/pkg/errors v0.9.1
+## explicit
+github.com/pkg/errors
+# github.com/pmezard/go-difflib v1.0.0
+## explicit
+github.com/pmezard/go-difflib/difflib
+# github.com/shopspring/decimal v1.3.1
+## explicit; go 1.13
+github.com/shopspring/decimal
+# github.com/spf13/cast v1.4.1
+## explicit
+github.com/spf13/cast
+# github.com/spf13/cobra v1.4.0
+## explicit; go 1.15
+github.com/spf13/cobra
+# github.com/spf13/pflag v1.0.5
+## explicit; go 1.12
+github.com/spf13/pflag
+# github.com/stretchr/testify v1.7.1
+## explicit; go 1.13
+github.com/stretchr/testify/assert
+# go.uber.org/atomic v1.9.0
+## explicit; go 1.13
+go.uber.org/atomic
+# go.uber.org/multierr v1.7.0
+## explicit; go 1.14
+go.uber.org/multierr
+# go.uber.org/zap v1.21.0
+## explicit; go 1.13
+go.uber.org/zap
+go.uber.org/zap/buffer
+go.uber.org/zap/internal/bufferpool
+go.uber.org/zap/internal/color
+go.uber.org/zap/internal/exit
+go.uber.org/zap/zapcore
+# golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
+## explicit; go 1.17
+golang.org/x/crypto/curve25519
+golang.org/x/crypto/curve25519/internal/field
+golang.org/x/crypto/ed25519
+golang.org/x/crypto/pbkdf2
+# golang.org/x/net v0.2.0
+## explicit; go 1.17
+golang.org/x/net/html
+golang.org/x/net/html/atom
+# golang.org/x/text v0.4.0
+## explicit; go 1.17
+golang.org/x/text/internal/format
+golang.org/x/text/internal/language
+golang.org/x/text/internal/language/compact
+golang.org/x/text/internal/tag
+golang.org/x/text/language
+golang.org/x/text/language/display
+# gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+## explicit
+gopkg.in/yaml.v3
+# moul.io/zapfilter v1.7.0
+## explicit; go 1.13
+moul.io/zapfilter
+# github.com/cortezaproject/corteza/server => ../../server

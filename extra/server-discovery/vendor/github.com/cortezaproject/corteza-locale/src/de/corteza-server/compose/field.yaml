@@ -1,0 +1,14 @@
+system:
+  ID: Record ID
+  moduleID: Module ID
+  namespaceID: Namespace ID
+  revision: Record revision
+  meta: Meta data
+  recordID: Record ID
+  createdAt: Created at
+  createdBy: Erstellt bei
+  deletedAt: Deleted at
+  deletedBy: Deleted by
+  ownedBy: Owned by
+  updatedAt: Updated at
+  updatedBy: Updated by

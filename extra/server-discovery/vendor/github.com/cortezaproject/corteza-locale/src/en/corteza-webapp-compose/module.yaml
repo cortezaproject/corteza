@@ -1,0 +1,199 @@
+allRecords:
+  create:
+    title: Create record for module "{{name}}"
+  edit:
+    title: Edit record for module "{{name}}"
+  label: All records
+  list:
+    title: All records for module "{{name}}"
+  columns:
+    title: Configure columns
+    description: The columns picked won't be saved after you refresh the page
+  view:
+    title: View record for module "{{name}}"
+block:
+  record:
+    recordDeleted: This record was deleted
+    loadFailed: Could not load record
+createLabel: New Module
+edit:
+  create: Create module
+  edit: Edit module
+  fields:
+    label: Fields
+  federationSettings:
+    downstream:
+      allFields: All Fields
+      description: 'Match federated fields with existing ones:'
+      title: Map
+    error:
+      fetch:
+        data: Error fetching server data
+        exposed: Error fetching exposed module info
+        shared: Error fetching shared module info
+        mmap: Error fetching module mapping info
+        node: Error fetching nodes info
+      persist:
+        exposed: Error persisting exposed module info
+        shared: Error persisting shared module info
+        mmap: Error persisting module mapping info
+    general:
+      receive: Receive new records from another organization (downstream)
+      send: Send new records to the federated network (upstream)
+      title: General
+    noNodes: No federated servers available
+    noPermission: No permission to manage exposed module
+    pickModule: Pick a federated module
+    pickModuleField: Pick a module field
+    pickServer: Pick a federated server
+    specificTitle: Federation Settings ({{handle}})
+    title: Federation Settings
+    upstream:
+      copyFrom: Copy settings from
+      allFields: All Fields
+      description: Select the fields you want to share with the selected network
+      title: Expose
+  discoverySettings:
+    title: Discovery settings
+    public: Public
+    private: Private
+    protected: Protected
+  fieldPermissions: Field permissions
+  manageRecordFields: Manage record fields
+  moduleFieldSettings: Module field settings
+  moduleInfo: Module info
+  newField: Add new field
+  recordPermissions: Record permissions
+  reorderFields: Reorder fields
+  specificFieldSettings: Field settings ({{name}})
+  steps:
+    recordList: Page with record list
+    recordPage: Record page
+  systemFields: 'System fields:'
+  tooltip:
+    attributes: Select if the field can hold multiple values, if it's required field or if contains sensitive data
+    name: Should be at least 2 characters long and start with a letter. Can contain only letters, numbers, dashes, underscores and dots
+    private: Sensitive data
+    required: Required field
+    title: The name displayed in form input / data lists
+
+  issues:
+    label: Issues ({{count}})
+
+
+  config:
+    dal:
+      title: Data store
+      connection:
+        label: Database connection
+        placeholder: Select a database connection
+        description: Changing the connection will reset the sensitivity level configuration on the module and fields, if the sensitivity level is incompatible with the new connection
+      ident:
+        label: Collection or database table name
+        placeholder: compose_record
+        description: "Name of the database table or collection where records can be accessed and stored. Supports partitioning placeholders: {{module}} for module handle and {{namespace}} for namespace handle"
+
+      connections:
+        fetch-failed: Could not fetch available connections
+
+
+      module-fields:
+        label: Module field mapping and encoding
+        description: |
+          Configure how record fields are stored and read from the database. 
+          Default behaviour is to encode values into JSON and store them in a single field.
+          Alternatively you can use columns with the same name as the field name (Column) 
+          or use an Alias and store the value directly in the column.
+
+      system-fields:
+        label: System field mapping and encoding
+        description: |
+          System fields are used to store metadata about the record. 
+          Configure to skip or store them into a column with the same name (Column),
+          a different column (Alias) or encode them into JSON.
+
+      encoding-strategy:
+        ident:
+          placeholder: Field or database table column name
+
+        strategies:
+          plain:
+            label: Column
+          alias:
+            label: Alias
+          json:
+            label: JSON
+
+
+    privacy:
+      title: Privacy Settings
+      sensitivity-level:
+        label: Highest allowed allowed sensitivity level
+        placeholder: Select a sensitivity level
+        description: Highest allowed level of sensitivity for fields on this module, changing this value will reset the sensitivity level of fields if they are incompatible.
+      usage-disclosure:
+        label: Sensitive data usage disclosure (visible on data-privacy console)
+
+      sensitivity-levels:
+        fetch-failed: Could not fetch sensitivity levels
+
+    record-revisions:
+      title: Record Revisions
+      enabled: Enable record revisions
+      ident:
+        label: Identifier
+        placeholder: compose_record_revisions
+        description: 'Name of the database table or collection where revisions records can be accessed and stored. Supports partitioning placeholders: {{module}} for module handle and {{namespace}} for namespace handle'
+
+    validation:
+      title: Validation
+
+      record-duplication:
+        title: Record duplication detection
+        strict-fields:
+          label: Strict duplicate value validation
+          description: Record will not be saved when a duplicate value is detected in the selected fields in any existing record of this module
+        non-strict-fields:
+          label: Soft duplicate value validation
+          description: Record will be saved and user will be presented with a warning when a duplicate value is detected in the selected fields in any existing record of this module
+
+
+federated: Federated
+forModule:
+  recordList: Record List for module
+  recordListPage: Record List page for module
+  recordPage: Record page for module
+general:
+  fields: Module fields
+  label:
+    attributes: Attributes
+    handle: Handle
+    name: Name *
+    permissions: Permissions
+    title: Title
+    type: Type
+    saveAndClose: Save and close
+  placeholder:
+    handle: Handle
+    sample: Sample
+    invalid-handle-characters: Should be at least 2 characters long and start with a letter. Can contain only letters, numbers, dashes, underscores and dots
+import: Module import
+navigation:
+  module: Modules
+newLabel: Module Name *
+newPlaceholder: Name used on the list of modules
+noModule: No modules
+noModuleFilter: No module matches your search
+
+recordPage:
+  create: Create record page
+  edit: Edit record page
+recordListPage:
+  create: Create record list page
+  edit: Edit record list page
+related-pages: Related Pages
+searchPlaceholder: Type here to search all modules in this namespace
+title: List of Modules
+tooltip:
+  permissions: Module permissions
+

@@ -1,0 +1,28 @@
+---
+template:
+  title: Zwei-Faktor-Authentifizierung mit TOTP einrichten
+  enforced: |
+    Multi-Faktor-Authentifizierung per TOTP wird von den Corteza Administratoren erzwungen.
+    Bitte richten sie es sofort ein.
+  instructions: |
+    Corteza benutzt Zeitbasierte EInmalpasswörter (TOTP) als eine der zugrunde liegenden Technologien für Zwei-Faktor Authentifizierung. Benutzen sie eine der aufgeführten Anwendungen and geben sie das Geheimnis ein oder scannen sie den QR code.
+    <br />
+    <br />
+    Dies wird für zusätzliche Sicherheit für Ihren Account sorgen.
+    <br />
+    <br />
+    Sie können eine der folgenden Anwendungen nutzen:
+  lastpass: <a target="_blank" href="{{ link }}">LastPass Authentikator</a>
+  gauth: Google Authentikator für <a target="_blank" href="{{ android }}">Android</a> oder <a target="_blank" href="{{ iphone }}">iPhone</a>
+  authy: <a target="_blank" href="{{ link }}">Authy</a>
+  form:
+    title: "Vervollständigen Sie die Konfiguration durch Eingabe des Codes aus der Authenticator-Anwendung:"
+    button: Absenden
+alerts:
+  text-MFA-enabled: Zwei-Faktor-Authentifizierung mit TOTP ist aktiviert
+  text-MFA-disabled: Zwei-Faktor-Authentifizierung mit TOTP ist deaktiviert
+
+errors:
+  invalid-code-format: "Invalid code format"
+  invalid-code: "Invalid code"
+

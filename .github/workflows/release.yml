@@ -351,14 +351,14 @@ jobs:
 ########################################################################################################################
 # Discovery
 
-  aux-server-discovery-test:
+  extra-server-discovery-test:
     name: "Discovery Server test"
     runs-on: ubuntu-latest
     steps:
       - name: "Placeholder"
         run: echo "@todo add tests"
 
-  aux-server-discovery-release:
+  extra-server-discovery-release:
     name: "Discovery Server release ${{ matrix.os }}"
     strategy:
       fail-fast: true
@@ -367,7 +367,7 @@ jobs:
           - { runsOn: "ubuntu-latest", os: "linux" }
           - { runsOn: "macos-latest",  os: "darwin" }
     runs-on: ${{ matrix.runsOn }}
-    needs: [ aux-server-discovery-test ]
+    needs: [ extra-server-discovery-test ]
     env:
       BUILD_OS: ${{ matrix.os }}
       BUILD_VERSION: ${{ format(github.ref, 'refs/tags/', '') }}
@@ -379,12 +379,12 @@ jobs:
       - uses: actions/setup-go@v3
         with: { go-version: "${{ env.GO_VERSION }}" }
       - name: "Copy essentials"
-        run: cp *.md DCO LICENSE aux/server-discovery/
+        run: cp *.md DCO LICENSE extra/server-discovery/
       - name: "Build & release"
-        working-directory: aux/server-discovery/
+        working-directory: extra/server-discovery/
         run: make release-clean release
       - name: "Upload"
-        working-directory: aux/server-discovery/
+        working-directory: extra/server-discovery/
         run: make upload
         if: ${{ !env.ACT }}
 
@@ -399,12 +399,12 @@ jobs:
     needs:
       - server-release
       - client-web-aio-release
-      - aux-server-discovery-release
+      - extra-server-discovery-release
     strategy:
       fail-fast: true
       matrix:
         include:
-          - { context: "aux/server-discovery", image: "cortezaproject/corteza-server-discovery" }
+          - { context: "extra/server-discovery",     image: "cortezaproject/corteza-server-discovery" }
           - { context: "client/web",                 image: "cortezaproject/corteza-webapp" }
           - { context: "server",                     image: "cortezaproject/corteza-server" }
           - { context: ".",                          image: "cortezaproject/corteza" }
