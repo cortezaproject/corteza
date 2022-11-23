@@ -57,8 +57,26 @@ func (r *Row) WithValue(name string, pos uint, v any) *Row {
 	return r
 }
 
-func (r Row) SelectGVal(ctx context.Context, k string) (interface{}, error) {
-	return r.GetValue(unwrapNestedGvalIdent(k), 0)
+func (r Row) SelectGVal(ctx context.Context, wk string) (interface{}, error) {
+	// @todo this way of determining multivalue is not entirely ok but we can get away with it
+	//       since we have special functions to work with those.
+	//       We need to somehow inform this bit as to what fields are multi value.
+
+	k := unwrapNestedGvalIdent(wk)
+	cc := r.CountValues()[k]
+	if cc == 0 {
+		return nil, nil
+	}
+
+	if cc == 1 {
+		return r.GetValue(k, 0)
+	}
+
+	out := make([]any, cc)
+	for i := uint(0); i < cc; i++ {
+		out[i], _ = r.GetValue(k, i)
+	}
+	return out, nil
 }
 
 // Reset clears out the row so the same instance can be reused where possible
