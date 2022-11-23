@@ -9,3 +9,7 @@ title: Reports
 tooltip:
   permissions: Report permissions
 untitledTitle: Untitled report
+columns:
+  name: Name
+  handle: Handle
+  changedAt: Last change

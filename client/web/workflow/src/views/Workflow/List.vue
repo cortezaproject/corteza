@@ -130,8 +130,8 @@
               />
             </template>
 
-            <template #updatedAt="{ item }">
-              {{ (item.updatedAt || item.createdAt) | locFullDateTime }}
+            <template #changedAt="{ item }">
+              {{ (item.deletedAt || item.updatedAt || item.createdAt) | locFullDateTime }}
             </template>
 
             <template #actions="{ item: w }">
@@ -212,17 +212,19 @@ export default {
       return [
         {
           key: 'handle',
-          label: this.$t('general:name'),
+          label: this.$t('general:columns.name'),
           sortable: true,
           tdClass: 'text-nowrap',
         },
         {
           key: 'enabled',
+          label: this.$t('general:columns.enabled'),
           sortable: true,
           class: 'text-center',
         },
         {
           key: 'steps',
+          label: this.$t('general:columns.steps'),
           tdClass: 'align-middle',
           class: 'text-center',
           formatter: steps => {
@@ -230,7 +232,8 @@ export default {
           },
         },
         {
-          key: 'updatedAt',
+          key: 'changedAt',
+          label: this.$t('general:columns.changedAt'),
           sortable: true,
           class: 'text-right text-nowrap',
         },

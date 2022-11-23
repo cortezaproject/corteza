@@ -10,7 +10,7 @@ export default {
       filter: {},
 
       pagination: {
-        limit: 10,
+        limit: 12,
         pageCursor: undefined,
         prevPage: '',
         nextPage: '',
@@ -123,8 +123,12 @@ export default {
     }, 300),
 
     encodeListParams () {
-      const { sortBy, sortDesc } = this.sorting
+      let { sortBy, sortDesc } = this.sorting
       const { limit, pageCursor } = this.pagination
+
+      if (sortBy === 'changedAt') {
+        sortBy = 'coalesce(deletedAt, updatedAt, createdAt)'
+      }
 
       const sort = sortBy ? `${sortBy} ${sortDesc ? 'DESC' : 'ASC'}` : undefined
 
