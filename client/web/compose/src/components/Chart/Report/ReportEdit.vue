@@ -56,11 +56,6 @@
       </b-form-group>
     </div>
 
-    <slot
-      name="y-axis"
-      :report="editReport"
-    />
-
     <!-- Configure report dimensions -->
     <div v-if="!!module">
       <hr>
@@ -259,6 +254,13 @@
         </fieldset>
       </draggable>
     </div>
+
+    <hr>
+
+    <slot
+      name="y-axis"
+      :report="editReport"
+    />
 
     <slot
       name="additional-config"

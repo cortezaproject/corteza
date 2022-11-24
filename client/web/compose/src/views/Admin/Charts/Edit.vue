@@ -169,42 +169,31 @@
                 <b-col
                   md="6"
                   sm="12"
-                  style="min-height: 400px;"
                 >
-                  <b-button
-                    v-if="!error"
-                    :disabled="processing || !reportsValid"
-                    class="float-right"
-                    variant="outline-primary"
-                    @click.prevent="update"
-                  >
-                    {{ $t('edit.loadData') }}
-                  </b-button>
-                  <b-alert
-                    :show="error"
-                    variant="warning"
-                  >
-                    {{ error }}
-                  </b-alert>
-
                   <div
-                    class="chart-preview w-100 h-100 mt-5"
+                    class="d-flex flex-column position-sticky"
+                    style="top: 0;"
                   >
-                    <chart-component
-                      ref="chart"
-                      :chart="chart"
-                      :reporter="reporter"
-                      width="200"
-                      height="200"
-                      @error="error=$event"
-                      @updated="onUpdated"
-                    />
+                    <b-button
+                      :disabled="processing || !reportsValid"
+                      variant="outline-primary"
+                      @click.prevent="update"
+                    >
+                      {{ $t('edit.loadData') }}
+                    </b-button>
+
+                    <div
+                      class="chart-preview mt-5"
+                    >
+                      <chart-component
+                        ref="chart"
+                        :chart="chart"
+                        :reporter="reporter"
+                        style="min-height: 400px;"
+                        @updated="onUpdated"
+                      />
+                    </div>
                   </div>
-                  <!-- not supporting multiple reports for now
-  <b-button @click.prevent="reports.push(defaultReport)"
-          v-if="false"
-          class="float-right">+ Add report</b-button>
-  -->
                 </b-col>
               </b-row>
             </b-container>
@@ -241,6 +230,7 @@ import Reports from 'corteza-webapp-compose/src/components/Chart/Report'
 import { chartConstructor } from 'corteza-webapp-compose/src/lib/charts'
 import VueSelect from 'vue-select'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
+import { debounce } from 'lodash'
 const { colorschemes } = shared
 
 const defaultReport = {
@@ -285,7 +275,6 @@ export default {
   data () {
     return {
       chart: undefined,
-      error: null,
       processing: false,
 
       editReportIndex: undefined,
@@ -438,6 +427,15 @@ export default {
             this.onEditReport(0)
           }).catch(this.toastErrorHandler(this.$t('notification:chart.loadFailed')))
         }
+      },
+    },
+
+    'chart.config': {
+      deep: true,
+      handler () {
+        debounce(function () {
+          this.update()
+        }, 500)
       },
     },
   },

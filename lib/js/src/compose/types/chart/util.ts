@@ -76,7 +76,8 @@ export interface Position {
 
 export interface Legend {
   isHidden?: boolean;
-  isList?: boolean;
+  orientation?: string;
+  isScrollable?: boolean;
   isCustomized?: boolean;
   position?: Position;
 }
