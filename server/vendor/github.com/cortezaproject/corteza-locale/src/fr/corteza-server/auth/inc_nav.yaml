@@ -1,8 +1,0 @@
----
-template:
-  authorize-client: Finaliser l'autorisation de
-  class:
-    your-profile: Votre profil
-    security: Sécurité
-    login-session: Sessions de connexion
-    authorized-clients: Clients autorisés
