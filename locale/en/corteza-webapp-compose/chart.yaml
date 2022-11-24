@@ -57,7 +57,7 @@ edit:
     fieldLabel: Field
     fieldPlaceholder: Select metric field
     fillArea: Fill area below the line
-    fixTooltips: Show tooltips
+    fixTooltips: Always show tooltips
     function:
       avg: AVG
       label: Function
@@ -108,10 +108,10 @@ edit:
     axisScaleFromZero: Always begin axis scale at zero
     label: Y-axis
     rotate:
-      label: Rotate label
-      description: Labels can be rotated from -90 to 90 degrees. Applied to bar and line charts
+      label: Rotate labels
+      description: Labels can be rotated from -90 to 90 degrees
+    valueAppliedTo: Applied to bar and line charts
     labelLabel: Axis label
-    labelPlaceholder: Axis label
     labelPosition:
       label: Label position
       top: Top
@@ -126,7 +126,11 @@ edit:
     legend:
       label: Legend
       hide: Hide legend
-      showAsList: Show as list
+      orientation:
+        label: Orientation
+        horizontal: Horizontal
+        vertical: Vertical
+      scrollable: Scrollable
       position:
         customize: Customize position
         top: Top
@@ -139,7 +143,7 @@ edit:
       labelNextToChartPartition: Show labels next to chart partition
       formatting:
         label: Formatting
-        description: '{a} - metrics field value, {b} - dimension field value, {c} - value of dimension field, {d} - percentage'
+        description: '{a} - metrics label, {b} - dimension value, {c} - metric value, {d} - metric value percentage'
         placeholder: '{a}<br />{b} : {c} ({d}%)'
     offset:
       label: Offset

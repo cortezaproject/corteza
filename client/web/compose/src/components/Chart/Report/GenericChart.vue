@@ -4,9 +4,35 @@
     :modules="modules"
   >
     <template #y-axis="{ report }">
-      <h4 class="mb-3">
+      <h4 class="mb-0">
         {{ $t('edit.yAxis.label') }}
       </h4>
+      <small class="text-muted mb-3">
+        {{ $t('edit.yAxis.valueAppliedTo') }}
+      </small>
+
+      <b-form-group
+        horizontal
+        :label-cols="3"
+        class="mt-2"
+        breakpoint="md"
+        :label="$t('edit.yAxis.labelLabel')"
+      >
+        <b-input-group>
+          <b-form-input
+            v-model="report.yAxis.label"
+          />
+          <b-input-group-append>
+            <chart-translator
+              :field.sync="report.yAxis.label"
+              :chart="chart"
+              :disabled="isNew"
+              highlight-key="yAxis.label"
+              button-variant="light"
+            />
+          </b-input-group-append>
+        </b-input-group>
+      </b-form-group>
 
       <b-form-group
         horizontal
@@ -24,25 +50,28 @@
       <b-form-group
         horizontal
         :label-cols="3"
-        class="mt-2"
+        class="mt-1"
         breakpoint="md"
-        :label="$t('edit.yAxis.labelLabel')"
+        :label="$t('edit.yAxis.minLabel')"
       >
-        <b-input-group>
-          <b-form-input
-            v-model="report.yAxis.label"
-            :placeholder="$t('edit.yAxis.labelPlaceholder')"
-          />
-          <b-input-group-append>
-            <chart-translator
-              :field.sync="report.yAxis.label"
-              :chart="chart"
-              :disabled="isNew"
-              highlight-key="yAxis.label"
-              button-variant="light"
-            />
-          </b-input-group-append>
-        </b-input-group>
+        <b-form-input
+          v-model="report.yAxis.min"
+          type="number"
+          :placeholder="$t('edit.yAxis.minPlaceholder')"
+        />
+      </b-form-group>
+      <b-form-group
+        horizontal
+        :label-cols="3"
+        class="mt-1"
+        breakpoint="md"
+        :label="$t('edit.yAxis.maxLabel')"
+      >
+        <b-form-input
+          v-model="report.yAxis.max"
+          type="number"
+          :placeholder="$t('edit.yAxis.maxPlaceholder')"
+        />
       </b-form-group>
 
       <b-form-group
@@ -56,31 +85,6 @@
           v-model="report.yAxis.rotateLabel"
           type="number"
           placeholder="0"
-        />
-      </b-form-group>
-
-      <b-form-group
-        horizontal
-        :label-cols="3"
-        class="mt-1"
-        breakpoint="md"
-        :label="$t('edit.yAxis.minLabel')"
-      >
-        <b-form-input
-          v-model="report.yAxis.min"
-          :placeholder="$t('edit.yAxis.minPlaceholder')"
-        />
-      </b-form-group>
-      <b-form-group
-        horizontal
-        :label-cols="3"
-        class="mt-1"
-        breakpoint="md"
-        :label="$t('edit.yAxis.maxLabel')"
-      >
-        <b-form-input
-          v-model="report.yAxis.max"
-          :placeholder="$t('edit.yAxis.maxPlaceholder')"
         />
       </b-form-group>
 
@@ -107,9 +111,6 @@
 
         <b-form-checkbox
           v-model="report.yAxis.beginAtZero"
-          :value="true"
-          :unchecked-value="false"
-          checked
         >
           {{ $t('edit.yAxis.axisScaleFromZero') }}
         </b-form-checkbox>
@@ -182,8 +183,6 @@
         <template v-if="hasRelativeDisplay(metric)">
           <b-form-checkbox
             v-model="metric.relativeValue"
-            :value="true"
-            :unchecked-value="false"
           >
             {{ $t('edit.metric.relative') }}
           </b-form-checkbox>
@@ -192,71 +191,59 @@
         <template v-if="metric.type === 'line'">
           <b-form-checkbox
             v-model="metric.fill"
-            :value="true"
-            :unchecked-value="false"
           >
             {{ $t('edit.metric.fillArea') }}
           </b-form-checkbox>
         </template>
         <b-form-checkbox
           v-model="metric.fixTooltips"
-          :value="true"
-          :unchecked-value="false"
         >
           {{ $t('edit.metric.fixTooltips') }}
         </b-form-checkbox>
       </b-form-group>
     </template>
 
-    <template #additional-config="{ report, metrics }">
+    <template #additional-config="{ report }">
       <hr>
-      <div
-        v-for="(m, i) in metrics"
-        :key="i"
-      >
-        <template
-          v-if="m.type === 'pie' || m.type === 'doughnut'"
+      <template>
+        <h4 class="mb-3">
+          {{ $t('edit.additionalConfig.legend.label') }}
+        </h4>
+
+        <b-form-group
+          horizontal
+          breakpoint="md"
         >
-          <h5
-            v-if="metrics.length > 1"
-            class="d-flex align-items-center mb-3"
+          <b-form-checkbox
+            v-model="report.legend.isHidden"
           >
-            <font-awesome-icon
-              class="grab metric-handle align-baseline text-secondary mr-2"
-              :icon="['fas', 'grip-vertical']"
-            />
-            {{ $t('edit.metric.label') }} {{ i + 1 }}
-          </h5>
+            {{ $t('edit.additionalConfig.legend.hide') }}
+          </b-form-checkbox>
 
-          <h4 class="mb-3">
-            {{ $t('edit.additionalConfig.legend.label') }}
-          </h4>
-
-          <b-form-group
-            horizontal
-            breakpoint="md"
-          >
-            <b-form-checkbox
-              v-model="report.legend.isHidden"
-              :value="true"
-              :unchecked-value="false"
-            >
-              {{ $t('edit.additionalConfig.legend.hide') }}
-            </b-form-checkbox>
-            <b-form-checkbox
-              v-model="report.legend.isList"
+          <template v-if="!report.legend.isHidden">
+            <b-form-group
+              horizontal
+              class="mt-2 mb-1"
+              breakpoint="md"
+              :label-cols="3"
+              :label="$t('edit.additionalConfig.legend.orientation.label')"
               :disabled="report.legend.isHidden"
-              :value="true"
-              :unchecked-value="false"
             >
-              {{ $t('edit.additionalConfig.legend.showAsList') }}
+              <b-form-select
+                v-model="report.legend.orientation"
+                :options="orientations"
+              />
+            </b-form-group>
+            <b-form-checkbox
+              v-model="report.legend.isScrollable"
+              class="mb-1"
+              :disabled="report.legend.orientation !== 'horizontal'"
+            >
+              {{ $t('edit.additionalConfig.legend.scrollable') }}
             </b-form-checkbox>
             <b-form-checkbox
               v-model="report.legend.isCustomized"
-              :disabled="report.legend.isHidden"
               class="mb-3"
-              :value="true"
-              :unchecked-value="false"
             >
               {{ $t('edit.additionalConfig.legend.position.customize') }}
             </b-form-checkbox>
@@ -313,179 +300,107 @@
                 />
               </b-form-group>
             </template>
-          </b-form-group>
+          </template>
+        </b-form-group>
+      </template>
+      <hr>
+      <template>
+        <h4 class="mb-3">
+          {{ $t('edit.additionalConfig.tooltip.label') }}
+        </h4>
 
-          <h4 class="mb-3">
-            {{ $t('edit.additionalConfig.tooltip.label') }}
-          </h4>
-
-          <b-form-group
-            horizontal
-            breakpoint="md"
-          >
-            <b-form-checkbox
-              v-model="report.tooltip.labelsNextToPartition"
-              class="mb-3"
-              :value="true"
-              :unchecked-value="false"
-            >
-              {{ $t('edit.additionalConfig.tooltip.labelNextToChartPartition') }}
-            </b-form-checkbox>
-            <b-form-group
-              horizontal
-              :label-cols="3"
-              breakpoint="md"
-              :label="$t('edit.additionalConfig.tooltip.formatting.label')"
-              :description="$t('edit.additionalConfig.tooltip.formatting.description')"
-              class="mt-1"
-            >
-              <b-input
-                v-model="report.tooltip.formatting"
-                :placeholder="$t('edit.additionalConfig.tooltip.formatting.placeholder')"
-              />
-            </b-form-group>
-          </b-form-group>
-
-          <h4 class="mb-3">
-            {{ $t('edit.additionalConfig.offset.label') }}
-          </h4>
-
+        <b-form-group
+          horizontal
+          :label-cols="3"
+          breakpoint="md"
+          :label="$t('edit.additionalConfig.tooltip.formatting.label')"
+          :description="$t('edit.additionalConfig.tooltip.formatting.description')"
+          class="mt-1"
+        >
+          <b-input
+            v-model="report.tooltip.formatting"
+            :placeholder="$t('edit.additionalConfig.tooltip.formatting.placeholder')"
+          />
+        </b-form-group>
+        <b-form-group
+          horizontal
+          :label-cols="3"
+          breakpoint="md"
+        >
           <b-form-checkbox
-            v-model="report.offset.isDefault"
-            class="mb-3"
-            :value="true"
-            :unchecked-value="false"
+            v-model="report.tooltip.labelsNextToPartition"
           >
-            {{ $t('edit.additionalConfig.offset.default') }}
+            {{ $t('edit.additionalConfig.tooltip.labelNextToChartPartition') }}
           </b-form-checkbox>
+        </b-form-group>
+      </template>
+      <hr>
+      <template>
+        <h4 class="mb-3">
+          {{ $t('edit.additionalConfig.offset.label') }}
+        </h4>
+        <b-form-checkbox
+          v-model="report.offset.isDefault"
+          class="mb-3"
+        >
+          {{ $t('edit.additionalConfig.offset.default') }}
+        </b-form-checkbox>
+        <b-form-group
+          v-if="!report.offset.isDefault"
+          horizontal
+          breakpoint="md"
+        >
           <b-form-group
-            v-if="!report.offset.isDefault"
             horizontal
+            :label-cols="3"
             breakpoint="md"
+            :label="$t('edit.additionalConfig.offset.position.top')"
+            class="mt-1"
           >
-            <b-form-group
-              horizontal
-              :label-cols="3"
-              breakpoint="md"
-              :label="$t('edit.additionalConfig.offset.position.top')"
-              class="mt-1"
-            >
-              <b-input
-                v-model="report.offset.top"
-                placeholder="0"
-              />
-            </b-form-group>
-            <b-form-group
-              horizontal
-              :label-cols="3"
-              :label="$t('edit.additionalConfig.offset.position.right')"
-              breakpoint="md"
-              class="mt-1"
-            >
-              <b-input
-                v-model="report.offset.right"
-                placeholder="0"
-              />
-            </b-form-group>
-            <b-form-group
-              horizontal
-              :label-cols="3"
-              :label="$t('edit.additionalConfig.offset.position.bottom')"
-              breakpoint="md"
-              class="mt-1"
-            >
-              <b-input
-                v-model="report.offset.bottom"
-                placeholder="0"
-              />
-            </b-form-group>
-            <b-form-group
-              horizontal
-              :label-cols="3"
-              :label="$t('edit.additionalConfig.offset.position.left')"
-              breakpoint="md"
-              :description="$t('edit.additionalConfig.offset.valueRange')"
-              class="mt-1"
-            >
-              <b-input
-                v-model="report.offset.left"
-                placeholder="0"
-              />
-            </b-form-group>
+            <b-input
+              v-model="report.offset.top"
+              placeholder="0"
+            />
           </b-form-group>
-
-          <hr>
-        </template>
-        <template v-if="m.type === 'bar' || m.type === 'line'">
-          <h4 class="mb-3">
-            {{ $t('edit.additionalConfig.offset.label') }}
-          </h4>
-
-          <b-form-checkbox
-            v-model="report.offset.isDefault"
-            class="mb-3"
-            :value="true"
-            :unchecked-value="false"
-          >
-            {{ $t('edit.additionalConfig.offset.default') }}
-          </b-form-checkbox>
           <b-form-group
-            v-if="!report.offset.isDefault"
             horizontal
+            :label-cols="3"
+            :label="$t('edit.additionalConfig.offset.position.right')"
             breakpoint="md"
+            class="mt-1"
           >
-            <b-form-group
-              horizontal
-              :label-cols="3"
-              breakpoint="md"
-              :label="$t('edit.additionalConfig.offset.position.top')"
-              class="mt-1"
-            >
-              <b-input
-                v-model="report.offset.top"
-                placeholder="0"
-              />
-            </b-form-group>
-            <b-form-group
-              horizontal
-              :label-cols="3"
-              :label="$t('edit.additionalConfig.offset.position.right')"
-              breakpoint="md"
-              class="mt-1"
-            >
-              <b-input
-                v-model="report.offset.right"
-                placeholder="0"
-              />
-            </b-form-group>
-            <b-form-group
-              horizontal
-              :label-cols="3"
-              :label="$t('edit.additionalConfig.offset.position.bottom')"
-              breakpoint="md"
-              class="mt-1"
-            >
-              <b-input
-                v-model="report.offset.bottom"
-                placeholder="0"
-              />
-            </b-form-group>
-            <b-form-group
-              horizontal
-              :label-cols="3"
-              :label="$t('edit.additionalConfig.offset.position.left')"
-              breakpoint="md"
-              :description="$t('edit.additionalConfig.offset.valueRange')"
-              class="mt-1"
-            >
-              <b-input
-                v-model="report.offset.left"
-                placeholder="0"
-              />
-            </b-form-group>
+            <b-input
+              v-model="report.offset.right"
+              placeholder="0"
+            />
           </b-form-group>
-        </template>
-      </div>
+          <b-form-group
+            horizontal
+            :label-cols="3"
+            :label="$t('edit.additionalConfig.offset.position.bottom')"
+            breakpoint="md"
+            class="mt-1"
+          >
+            <b-input
+              v-model="report.offset.bottom"
+              placeholder="0"
+            />
+          </b-form-group>
+          <b-form-group
+            horizontal
+            :label-cols="3"
+            :label="$t('edit.additionalConfig.offset.position.left')"
+            breakpoint="md"
+            :description="$t('edit.additionalConfig.offset.valueRange')"
+            class="mt-1"
+          >
+            <b-input
+              v-model="report.offset.left"
+              placeholder="0"
+            />
+          </b-form-group>
+        </b-form-group>
+      </template>
     </template>
   </report-edit>
 </template>
@@ -537,6 +452,11 @@ export default {
         { value: 'end', text: this.$t('edit.yAxis.labelPosition.top') },
         { value: 'center', text: this.$t('edit.yAxis.labelPosition.center') },
         { value: 'start', text: this.$t('edit.yAxis.labelPosition.bottom') },
+      ],
+
+      orientations: [
+        { value: 'horizontal', text: this.$t('edit.additionalConfig.legend.orientation.horizontal') },
+        { value: 'vertical', text: this.$t('edit.additionalConfig.legend.orientation.vertical') },
       ],
     }
   },
