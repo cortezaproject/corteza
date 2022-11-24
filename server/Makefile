@@ -163,13 +163,6 @@ provision:
 webapp:
 	@ $(MAKE) --directory=webapp
 
-locale.update:
-	$(GO) get github.com/cortezaproject/corteza-locale@2022.9.x
-	$(GO) mod vendor
-	git add --all vendor/github.com/cortezaproject
-	git commit -m 'Update corteza-locale dep' vendor/github.com/cortezaproject vendor/modules.txt go.mod go.sum
-
-
 vendors.check: $(MODOUTDATED)
 	$(GO) list -mod=mod -u -m -json all | $(MODOUTDATED) -update -direct
 
@@ -215,7 +208,6 @@ test.pkg: $(GOTEST)
 
 # Test defaults to test.unit
 test: test.unit
-
 
 vet:
 	$(GO) vet ./...
