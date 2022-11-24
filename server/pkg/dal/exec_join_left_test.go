@@ -639,6 +639,81 @@ func TestStepJoinLocal(t *testing.T) {
 				expression: "l_val == 'l2 v1'",
 			},
 		},
+
+		{
+			name:            "filtering mv field single edge-case",
+			outAttributes:   append(basicAttrs, simpleAttribute{ident: "l_const", multivalue: true}),
+			leftAttributes:  append(basicLocalAttrs, simpleAttribute{ident: "l_const", multivalue: true}),
+			rightAttributes: basicForeignAttrs,
+
+			joinPred: JoinPredicate{Left: "l_pk", Right: "f_fk"},
+			lIn: []simpleRow{
+				{"l_pk": 1, "l_const": []string{"a"}, "l_val": "l1 v1"},
+				// For this row we'll use a single 'b', combined with a single value in the
+				// mv field has an edge-case in the current implementation
+				{"l_pk": 2, "l_const": []string{"bbbbbbb"}, "l_val": "l2 v1"},
+			},
+			fIn: []simpleRow{
+				{"f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+			},
+
+			out: []simpleRow{
+				{"l_pk": 1, "l_const": []string{"a"}, "l_val": "l1 v1", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+			},
+
+			f: internalFilter{
+				expression: "'a' IN l_const OR 'b' IN l_const",
+			},
+		},
+		{
+			name:            "filtering mv field on left attr",
+			outAttributes:   append(basicAttrs, simpleAttribute{ident: "l_const", multivalue: true}),
+			leftAttributes:  append(basicLocalAttrs, simpleAttribute{ident: "l_const", multivalue: true}),
+			rightAttributes: basicForeignAttrs,
+
+			joinPred: JoinPredicate{Left: "l_pk", Right: "f_fk"},
+			lIn: []simpleRow{
+				{"l_pk": 1, "l_const": []string{"a", "b"}, "l_val": "l1 v1"},
+				{"l_pk": 2, "l_const": []string{"b", "c"}, "l_val": "l2 v1"},
+			},
+			fIn: []simpleRow{
+				{"f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+				{"f_pk": 2, "f_fk": 2, "f_val": "f2 v1"},
+			},
+
+			out: []simpleRow{
+				{"l_pk": 1, "l_const": []string{"a", "b"}, "l_val": "l1 v1", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+			},
+
+			f: internalFilter{
+				expression: "'b' IN l_const AND 'c' NOT IN l_const",
+			},
+		},
+		{
+			name:            "filtering mv field on right attr",
+			outAttributes:   basicAttrs,
+			leftAttributes:  append(basicLocalAttrs, simpleAttribute{ident: "r_const", multivalue: true}),
+			rightAttributes: append(basicForeignAttrs, simpleAttribute{ident: "r_const", multivalue: true}),
+
+			joinPred: JoinPredicate{Left: "l_pk", Right: "f_fk"},
+			lIn: []simpleRow{
+				{"l_pk": 1, "l_val": "l1 v1"},
+				{"l_pk": 2, "l_val": "l2 v1"},
+			},
+			fIn: []simpleRow{
+				{"f_pk": 1, "f_fk": 1, "r_const": []string{"a", "b"}, "f_val": "f1 v1"},
+				{"f_pk": 2, "f_fk": 2, "r_const": []string{"b", "c"}, "f_val": "f2 v1"},
+			},
+
+			out: []simpleRow{
+				{"l_pk": 1, "r_const": []string{"a", "b"}, "l_val": "l1 v1", "f_pk": 1, "f_fk": 1, "f_val": "f1 v1"},
+			},
+
+			f: internalFilter{
+				expression: "'b' IN r_const AND 'c' NOT IN r_const",
+			},
+		},
 	}
 	paging := []testCase{
 		{
