@@ -453,11 +453,11 @@ func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 		switch state {
 		case filter.StateExclusive:
 			// only not-null values
-			cnd = append(cnd, exp.NewBooleanExpression(exp.IsNotOp, attrExpr, nil))
+			cnd = append(cnd, exp.NewLiteralExpression("? IS NULL", attrExpr))
 
 		case filter.StateExcluded:
 			// exclude all non-null values
-			cnd = append(cnd, exp.NewBooleanExpression(exp.IsOp, attrExpr, nil))
+			cnd = append(cnd, exp.NewLiteralExpression("? IS NULL", attrExpr))
 		}
 	}
 
