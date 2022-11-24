@@ -498,7 +498,7 @@ func (s *Store) Query{{ .expIdentPlural }}(
 					{{- end }}
 				{{- end }}
 				{{- range .nullConstraint }}
-					goqu.I({{ printf "%q" . }}).IsNull(),
+					stateNilComparison({{ printf "%q" . }}, filter.StateExcluded),
 				{{- end }}
 			).Limit(1)
 		)
