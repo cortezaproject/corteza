@@ -278,10 +278,10 @@ export default class Chart extends BaseChart {
       legend: {
         show: !l?.isHidden,
         type: l?.isScrollable ? 'scroll' : 'plain',
-        top: l?.isCustomized ? l?.position?.top : undefined,
-        right: l?.isCustomized ? l?.position?.right : undefined,
-        bottom: l?.isCustomized ? l?.position?.bottom : undefined,
-        left: l?.isCustomized ? l?.position?.left : 'center',
+        top: (l?.position?.isDefault ? l?.position?.top : undefined) || undefined,
+        right: (l?.position?.isDefault ? l?.position?.right : undefined) || undefined,
+        bottom: (l?.position?.isDefault ? l?.position?.bottom : undefined) || undefined,
+        left: (l?.position?.isDefault ? l?.position?.left : l?.align || 'center') || 'auto',
         orient: l?.orientation || 'horizontal'
       },
       ...options,

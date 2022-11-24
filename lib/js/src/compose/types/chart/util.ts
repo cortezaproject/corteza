@@ -68,6 +68,7 @@ export interface ChartOffset {
 }
 
 export interface Position {
+  isDefault?: boolean;
   top?: string;
   right?: string;
   bottom?: string;
@@ -77,8 +78,9 @@ export interface Position {
 export interface Legend {
   isHidden?: boolean;
   orientation?: string;
+  align?: string;
   isScrollable?: boolean;
-  isCustomized?: boolean;
+  isDefault?: boolean;
   position?: Position;
 }
 

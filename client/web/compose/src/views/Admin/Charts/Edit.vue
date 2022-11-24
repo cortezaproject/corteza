@@ -432,10 +432,10 @@ export default {
 
     'chart.config': {
       deep: true,
-      handler () {
-        debounce(function () {
-          this.update()
-        }, 500)
+      handler (value, oldValue) {
+        if (value && oldValue) {
+          this.onConfigUpdate()
+        }
       },
     },
   },
@@ -469,6 +469,10 @@ export default {
       this.processing = true
       this.$refs.chart.updateChart()
     },
+
+    onConfigUpdate: debounce(function () {
+      this.update()
+    }, 300),
 
     onUpdated () {
       this.processing = false

@@ -274,11 +274,13 @@ export class BaseChart {
       legend: {
         isScrollable: true,
         orientation: 'horizontal',
+        align: 'center',
         position: {
           top: '0',
           right: '0',
           bottom: '0',
           left: '0',
+          isDefault: true,
         },
       },
       offset: {

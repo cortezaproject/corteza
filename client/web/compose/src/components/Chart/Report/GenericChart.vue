@@ -7,9 +7,6 @@
       <h4 class="mb-0">
         {{ $t('edit.yAxis.label') }}
       </h4>
-      <small class="text-muted mb-3">
-        {{ $t('edit.yAxis.valueAppliedTo') }}
-      </small>
 
       <b-form-group
         horizontal
@@ -84,7 +81,6 @@
         <b-input
           v-model="report.yAxis.rotateLabel"
           type="number"
-          placeholder="0"
         />
       </b-form-group>
 
@@ -203,7 +199,7 @@
       </b-form-group>
     </template>
 
-    <template #additional-config="{ report }">
+    <template #additional-config="{ hasAxis, report }">
       <hr>
       <template>
         <h4 class="mb-3">
@@ -223,32 +219,43 @@
           <template v-if="!report.legend.isHidden">
             <b-form-group
               horizontal
-              class="mt-2 mb-1"
+              class="mt-2"
               breakpoint="md"
               :label-cols="3"
               :label="$t('edit.additionalConfig.legend.orientation.label')"
-              :disabled="report.legend.isHidden"
             >
               <b-form-select
                 v-model="report.legend.orientation"
                 :options="orientations"
               />
+              <b-form-checkbox
+                v-model="report.legend.isScrollable"
+                class="mt-2"
+                :disabled="report.legend.orientation !== 'horizontal'"
+              >
+                {{ $t('edit.additionalConfig.legend.scrollable') }}
+              </b-form-checkbox>
             </b-form-group>
-            <b-form-checkbox
-              v-model="report.legend.isScrollable"
-              class="mb-1"
-              :disabled="report.legend.orientation !== 'horizontal'"
+            <b-form-group
+              horizontal
+              breakpoint="md"
+              :label-cols="3"
+              :label="$t('edit.additionalConfig.legend.align.label')"
             >
-              {{ $t('edit.additionalConfig.legend.scrollable') }}
-            </b-form-checkbox>
-            <b-form-checkbox
-              v-model="report.legend.isCustomized"
-              class="mb-3"
-            >
-              {{ $t('edit.additionalConfig.legend.position.customize') }}
-            </b-form-checkbox>
+              <b-form-select
+                v-model="report.legend.align"
+                :options="alignments"
+                :disabled="report.legend.position.isDefault"
+              />
+              <b-form-checkbox
+                v-model="report.legend.position.isDefault"
+                class="mt-2"
+              >
+                {{ $t('edit.additionalConfig.legend.position.customize') }}
+              </b-form-checkbox>
+            </b-form-group>
             <template
-              v-if="report.legend.isCustomized"
+              v-if="report.legend.position.isDefault"
             >
               <b-form-group
                 horizontal
@@ -259,7 +266,6 @@
               >
                 <b-input
                   v-model="report.legend.position.top"
-                  placeholder="0"
                 />
               </b-form-group>
               <b-form-group
@@ -271,7 +277,6 @@
               >
                 <b-input
                   v-model="report.legend.position.right"
-                  placeholder="0"
                 />
               </b-form-group>
               <b-form-group
@@ -283,7 +288,6 @@
               >
                 <b-input
                   v-model="report.legend.position.bottom"
-                  placeholder="0"
                 />
               </b-form-group>
               <b-form-group
@@ -296,15 +300,15 @@
               >
                 <b-input
                   v-model="report.legend.position.left"
-                  placeholder="0"
                 />
               </b-form-group>
             </template>
           </template>
         </b-form-group>
       </template>
-      <hr>
-      <template>
+
+      <template v-if="!hasAxis">
+        <hr>
         <h4 class="mb-3">
           {{ $t('edit.additionalConfig.tooltip.label') }}
         </h4>
@@ -359,7 +363,6 @@
           >
             <b-input
               v-model="report.offset.top"
-              placeholder="0"
             />
           </b-form-group>
           <b-form-group
@@ -371,7 +374,6 @@
           >
             <b-input
               v-model="report.offset.right"
-              placeholder="0"
             />
           </b-form-group>
           <b-form-group
@@ -383,7 +385,6 @@
           >
             <b-input
               v-model="report.offset.bottom"
-              placeholder="0"
             />
           </b-form-group>
           <b-form-group
@@ -396,7 +397,6 @@
           >
             <b-input
               v-model="report.offset.left"
-              placeholder="0"
             />
           </b-form-group>
         </b-form-group>
@@ -454,23 +454,27 @@ export default {
         { value: 'start', text: this.$t('edit.yAxis.labelPosition.bottom') },
       ],
 
+      tensionSteps: [
+        { text: this.$t('edit.metric.lineTension.straight'), value: 0.0 },
+        { text: this.$t('edit.metric.lineTension.slight'), value: 0.2 },
+        { text: this.$t('edit.metric.lineTension.medium'), value: 0.4 },
+        { text: this.$t('edit.metric.lineTension.curvy'), value: 0.6 },
+      ],
+
       orientations: [
         { value: 'horizontal', text: this.$t('edit.additionalConfig.legend.orientation.horizontal') },
         { value: 'vertical', text: this.$t('edit.additionalConfig.legend.orientation.vertical') },
+      ],
+
+      alignments: [
+        { value: 'left', text: this.$t('edit.additionalConfig.legend.align.left') },
+        { value: 'center', text: this.$t('edit.additionalConfig.legend.align.center') },
+        { value: 'right', text: this.$t('edit.additionalConfig.legend.align.right') },
       ],
     }
   },
 
   computed: {
-    tensionSteps () {
-      return [
-        { text: this.$t('edit.metric.lineTension.straight'), value: 0.0 },
-        { text: this.$t('edit.metric.lineTension.slight'), value: 0.2 },
-        { text: this.$t('edit.metric.lineTension.medium'), value: 0.4 },
-        { text: this.$t('edit.metric.lineTension.curvy'), value: 0.6 },
-      ]
-    },
-
     isNew () {
       return this.chart.chartID === NoID
     },
