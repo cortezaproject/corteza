@@ -3,12 +3,13 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza/server/pkg/locale"
-	"github.com/cortezaproject/corteza/server/pkg/sql"
-	"github.com/spf13/cast"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza/server/pkg/locale"
+	"github.com/cortezaproject/corteza/server/pkg/sql"
+	"github.com/spf13/cast"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 )
@@ -41,6 +42,9 @@ type (
 		Metrics    []map[string]interface{} `json:"metrics,omitempty"`
 		Dimensions []map[string]interface{} `json:"dimensions,omitempty"`
 		YAxis      map[string]interface{}   `json:"yAxis,omitempty"`
+		Legend     map[string]interface{}   `json:"legend,omitempty"`
+		Tooltip    map[string]interface{}   `json:"tooltip,omitempty"`
+		Offset     map[string]interface{}   `json:"offset,omitempty"`
 		Renderer   struct {
 			Version string `json:"version,omitempty" `
 		} `json:"renderer,omitempty"`

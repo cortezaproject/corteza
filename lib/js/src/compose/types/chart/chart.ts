@@ -163,10 +163,11 @@ export default class Chart extends BaseChart {
       }
     }
 
-    let pieLegend = {}
-
     options.series = datasets.map(({ type, label, data, fill, tooltip }: any, index: number) => {
       const { fixed, relative } = tooltip
+
+      const tooltipFormatter = t?.formatting ? t.formatting : `{a}<br />{b} : {c}${relative ? ' ({d}%)' : ''}`
+      const labelFormatter = `{c}${relative ? ' ({d}%)' : ''}`
 
       if (['pie', 'doughnut'].includes(type)) {
         const startRadius = type === 'doughnut' ? 40 : 0
@@ -176,7 +177,10 @@ export default class Chart extends BaseChart {
         let lbl =  {}
 
         if (t?.labelsNextToPartition) {
-          lbl = { show: true }
+          lbl = {
+            show: true,
+            overflow: 'truncate',
+          }
         } else {
           lbl = {
             show: fixed,
@@ -186,18 +190,6 @@ export default class Chart extends BaseChart {
           }
         }
 
-        const formatter = t?.formatting 
-          ? t.formatting
-          : `{a}<br />{b} : {c}${relative ? ' ({d}%)' : ''}`
-
-        if (l?.isCustomized) {
-          pieLegend = {
-            top: l?.position?.top || 'auto',
-            right: l?.position?.right || 'auto',
-            bottom: l?.position?.bottom || 'auto',
-            left: l?.position?.left || 'auto',
-          }
-        }
 
         return {
           z: index,
@@ -207,11 +199,11 @@ export default class Chart extends BaseChart {
           center: ['50%', '55%'],
           tooltip: {
             trigger: 'item',
-            formatter,
+            formatter: tooltipFormatter,
           },
           label: {
             ...lbl,
-            fontSize: 14,
+            formatter: labelFormatter,
           },
           itemStyle: {
             borderRadius: 5,
@@ -228,10 +220,10 @@ export default class Chart extends BaseChart {
           data: labels.map((name: string, i: number) => {
             return { name, value: data[i] }
           }),
-          top: offset?.isDefault ? 45 : offset?.top,
-          right: offset?.isDefault ? 25 : offset?.right,
-          bottom: offset?.isDefault ? 40 : offset?.bottom,
-          left: offset?.isDefault ? 40 : offset?.left,
+          top: offset?.isDefault ? undefined : offset?.top,
+          right: offset?.isDefault ? undefined : offset?.right,
+          bottom: offset?.isDefault ? undefined : offset?.bottom,
+          left: offset?.isDefault ? undefined : offset?.left,
         }
       } else if (['bar', 'line'].includes(type)) {
         options.tooltip.trigger = 'axis'
@@ -253,9 +245,8 @@ export default class Chart extends BaseChart {
         options.grid = {
           top: offset?.isDefault ? 45 : offset?.top,
           right: offset?.isDefault ? 25 : offset?.right,
-          bottom: offset?.isDefault ? 40 : offset?.bottom,
-          left: offset?.isDefault ? 40 : offset?.left,
-          // prevents long labels like dates from being cut off
+          bottom: offset?.isDefault ? 25 : offset?.bottom,
+          left: offset?.isDefault ? 25 : offset?.left,
           containLabel: true,
         }
 
@@ -272,7 +263,7 @@ export default class Chart extends BaseChart {
             position: 'inside',
             align: 'center',
             verticalAlign: 'middle',
-            fontSize: 14,
+            formatter: labelFormatter,
           },
           data,
         }
@@ -286,8 +277,12 @@ export default class Chart extends BaseChart {
       },
       legend: {
         show: !l?.isHidden,
-        type: l?.isList ? 'plain' : 'scroll',
-        ...pieLegend,
+        type: l?.isScrollable ? 'scroll' : 'plain',
+        top: l?.isCustomized ? l?.position?.top : undefined,
+        right: l?.isCustomized ? l?.position?.right : undefined,
+        bottom: l?.isCustomized ? l?.position?.bottom : undefined,
+        left: l?.isCustomized ? l?.position?.left : 'center',
+        orient: l?.orientation || 'horizontal'
       },
       ...options,
     }
