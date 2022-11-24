@@ -110,7 +110,6 @@ edit:
     rotate:
       label: Rotate labels
       description: Labels can be rotated from -90 to 90 degrees
-    valueAppliedTo: Applied to bar and line charts
     labelLabel: Axis label
     labelPosition:
       label: Label position
@@ -130,6 +129,11 @@ edit:
         label: Orientation
         horizontal: Horizontal
         vertical: Vertical
+      align:
+        label: Align
+        left: Left
+        right: Right
+        center: Center
       scrollable: Scrollable
       position:
         customize: Customize position
