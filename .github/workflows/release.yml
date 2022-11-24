@@ -14,7 +14,7 @@ env:
   BUILD_OS: linux
   BUILD_ARCH: amd64
 
-  GO_VERSION: 1.18
+  GO_VERSION: 1.19
   GOFLAGS: -mod=readonly
 
   NODE_VERSION: 16

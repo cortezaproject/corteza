@@ -1,5 +1,5 @@
 # build stage
-FROM golang:1.16-buster as build-stage
+FROM golang:1.19-buster as build-stage
 
 ENV BUILD_OS=linux
 ENV BUILD_ARCH=amd64
