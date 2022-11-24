@@ -37,9 +37,6 @@
       <h5>
         {{ workflow.meta.name || $t('automation.noLabel') }}
       </h5>
-      <var>
-        {{ $t('automation.stepID', { stepID: trigger.stepID}) }}
-      </var>
     </div>
 
     <code
@@ -58,17 +55,21 @@
 
     <p
       v-if="workflow && workflow.meta"
-      class="mb-0 mt-2"
+      class="my-2"
     >
       {{ workflow.meta.description || $t('automation.noDescription') }}
     </p>
 
     <p
       v-else-if="script"
-      class="mb-0 mt-2"
+      class="my-2"
     >
       {{ script.description || $t('automation.noDescription') }}
     </p>
+
+    <var>
+      {{ $t('automation.stepID', { stepID: trigger.stepID }) }}
+    </var>
 
     <template #footer>
       <c-input-confirm

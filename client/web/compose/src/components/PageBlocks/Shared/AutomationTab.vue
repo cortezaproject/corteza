@@ -102,17 +102,24 @@
                   <code v-if="b.label && b.script">{{ b.script }}</code>
                 </div>
                 <p
-                  v-if="b.description"
-                  class="mb-0 mt-2"
+                  class="my-2"
                 >
-                  {{ b.description }}
+                  <span
+                    v-if="b.description"
+                  >
+                    {{ b.description }}
+                  </span>
+
+                  <i v-else>
+                    {{ $t('automation.noDescription') }}
+                  </i>
                 </p>
-                <p
-                  v-else
-                  class="mb-0 mt-2"
+
+                <var
+                  v-if="b.stepID"
                 >
-                  <i>{{ $t('automation.noDescription') }}</i>
-                </p>
+                  {{ $t('automation.stepID', { stepID: b.stepID }) }}
+                </var>
               </b-list-group-item>
             </b-list-group>
           </b-card>
