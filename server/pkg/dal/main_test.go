@@ -7,11 +7,12 @@ import (
 
 type (
 	simpleAttribute struct {
-		ident   string
-		source  string
-		expr    string
-		primary bool
-		t       Type
+		ident      string
+		source     string
+		expr       string
+		primary    bool
+		multivalue bool
+		t          Type
 	}
 
 	simpleRow map[string]any
@@ -48,8 +49,9 @@ func saToAggAttr(sa ...simpleAttribute) []AggregateAttr {
 
 func (sa simpleAttribute) Properties() MapProperties {
 	return MapProperties{
-		IsPrimary: sa.primary,
-		Type:      sa.t,
+		IsPrimary:    sa.primary,
+		Type:         sa.t,
+		IsMultivalue: sa.multivalue,
 	}
 }
 
