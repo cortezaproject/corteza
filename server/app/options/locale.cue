@@ -19,7 +19,12 @@ locale: schema.#optionsGroup & {
 		}
 
 		path: {
-			description: "One or more paths to locale config and translation files, separated by colon"
+			description: """
+				One or more paths to locale config and translation files, separated by colon
+
+				When with LOCALE_DEVELOPMENT_MODE=true, default value for path is ../../locale
+				"""
+			"""
 		}
 
 		query_string_param: {

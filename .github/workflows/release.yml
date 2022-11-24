@@ -31,6 +31,9 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with: { go-version: "${{ env.GO_VERSION }}" }
+      - name: "Copy language files"
+        working-directory: server/pkg/locale
+        run: make src/en
       - name: "Unit"
         working-directory: server
         run: make test.unit
@@ -87,12 +90,14 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with: { go-version: "${{ env.GO_VERSION }}" }
-#      - name: "Restore web console dist from cache"
-#        uses: actions/cache@v3
-#        with: { path: ./server/webconsole/dist, key: console-build }
-
+      - name: "Restore web console dist from cache"
+        uses: actions/cache@v3
+        with: { path: ./server/webconsole/dist, key: console-build }
       - name: "Copy essentials"
         run: cp *.md DCO LICENSE server/
+      - name: "Copy language files"
+        working-directory: server/pkg/locale
+        run: make src/en src/de src/fr
       - name: "Build"
         working-directory: server
         run: make release-clean release
@@ -392,7 +397,7 @@ jobs:
 ########################################################################################################################
 
 
-  docker-imags:
+  docker-images:
     name: "Docker image ${{ matrix.image }}"
 
     runs-on: ubuntu-latest

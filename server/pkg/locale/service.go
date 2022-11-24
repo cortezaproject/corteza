@@ -8,7 +8,6 @@ import (
 	"strings"
 	"sync"
 
-	locale "github.com/cortezaproject/corteza-locale"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"go.uber.org/zap"
 	"golang.org/x/text/language"
@@ -156,7 +155,7 @@ func (svc *service) ReloadStatic() (err error) {
 	}
 
 	// load embedded locales from the corteza-locale package
-	if ll, err = loadConfigs(locale.Languages()); err != nil {
+	if ll, err = loadConfigs(LoadEmbedded()); err != nil {
 		return fmt.Errorf("could not load embedded locales: %w", err)
 	} else {
 		// cleanup src and effectively mark the
@@ -171,6 +170,13 @@ func (svc *service) ReloadStatic() (err error) {
 		aux, err = loadConfigs(os.DirFS(p))
 		if err != nil {
 			return fmt.Errorf("could not load imported locales: %w", err)
+		}
+
+		if len(aux) == 0 {
+			svc.log.Warn(
+				"no languages found in path, future versions of Corteza will require at least one language to be present",
+				zap.String("path", p),
+			)
 		}
 
 		for _, l := range aux {
@@ -229,6 +235,11 @@ func (svc *service) ReloadStatic() (err error) {
 
 		svc.set[lang.Tag] = lang
 	}
+
+	svc.log.Debug("languages loaded",
+		zap.Strings("path", svc.src),
+		zap.Int("count", len(svc.set)),
+	)
 
 	// Do another pass and link all extended languages
 	for _, lang := range svc.set {

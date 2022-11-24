@@ -135,7 +135,10 @@ func (app *CortezaApp) Setup() (err error) {
 		}
 
 		if languages, err := locale.Service(localeLog, app.Opt.Locale); err != nil {
-			return fmt.Errorf("locale service setup: %w", err)
+			return fmt.Errorf(
+				"locale service setup: %w; "+
+					"if this is development environment set ENVIRONMENT=dev or LOCALE_DEVELOPMENT_MODE=true, "+
+					"or run make -C pkg/locale if you want to embed languages before bulding server binary", err)
 		} else {
 			locale.SetGlobal(languages)
 		}
