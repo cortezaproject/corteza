@@ -64,6 +64,13 @@ github.com/davecgh/go-spew/spew
 # github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.0-20210816181553-5444fa50b93d
 ## explicit; go 1.13
 github.com/decred/dcrd/dcrec/secp256k1/v4
+# github.com/denisenkom/go-mssqldb v0.12.3
+## explicit; go 1.13
+github.com/denisenkom/go-mssqldb
+github.com/denisenkom/go-mssqldb/internal/cp
+github.com/denisenkom/go-mssqldb/internal/decimal
+github.com/denisenkom/go-mssqldb/internal/querytext
+github.com/denisenkom/go-mssqldb/msdsn
 # github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
 ## explicit
 github.com/dgryski/dgoogauth
@@ -90,6 +97,7 @@ github.com/doug-martin/goqu/v9
 github.com/doug-martin/goqu/v9/dialect/mysql
 github.com/doug-martin/goqu/v9/dialect/postgres
 github.com/doug-martin/goqu/v9/dialect/sqlite3
+github.com/doug-martin/goqu/v9/dialect/sqlserver
 github.com/doug-martin/goqu/v9/exec
 github.com/doug-martin/goqu/v9/exp
 github.com/doug-martin/goqu/v9/internal/errors
@@ -191,6 +199,12 @@ github.com/golang-jwt/jwt
 # github.com/golang-jwt/jwt/v4 v4.4.1
 ## explicit; go 1.16
 github.com/golang-jwt/jwt/v4
+# github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe
+## explicit
+github.com/golang-sql/civil
+# github.com/golang-sql/sqlexp v0.1.0
+## explicit; go 1.16
+github.com/golang-sql/sqlexp
 # github.com/golang/mock v1.6.0
 ## explicit; go 1.11
 github.com/golang/mock/gomock
@@ -450,7 +464,7 @@ go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
 go.uber.org/zap/zaptest/observer
-# golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
+# golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
 ## explicit; go 1.17
 golang.org/x/crypto/argon2
 golang.org/x/crypto/bcrypt
@@ -459,6 +473,7 @@ golang.org/x/crypto/blowfish
 golang.org/x/crypto/curve25519
 golang.org/x/crypto/curve25519/internal/field
 golang.org/x/crypto/ed25519
+golang.org/x/crypto/md4
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/ripemd160
 golang.org/x/crypto/scrypt
