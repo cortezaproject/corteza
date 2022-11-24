@@ -147,7 +147,6 @@
               <b-input
                 v-model="d.rotateLabel"
                 type="number"
-                placeholder="0"
               />
             </b-form-group>
           </template>
@@ -255,17 +254,20 @@
       </draggable>
     </div>
 
-    <hr>
+    <template v-if="hasAxis">
+      <hr>
 
-    <slot
-      name="y-axis"
-      :report="editReport"
-    />
+      <slot
+        name="y-axis"
+        :report="editReport"
+      />
+    </template>
 
     <slot
       name="additional-config"
       :report="editReport"
       :metrics="metrics"
+      :has-axis="hasAxis"
     />
   </div>
 </template>
@@ -341,6 +343,10 @@ export default {
           .map(({ name }) => ({ value: name, text: name }))
           .sort((a, b) => a.text.localeCompare(b.text)),
       ]
+    },
+
+    hasAxis () {
+      return this.metrics.some(({ type }) => ['bar', 'line'].includes(type))
     },
 
     dimensionFields () {
