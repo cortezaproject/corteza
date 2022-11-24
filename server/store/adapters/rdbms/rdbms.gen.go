@@ -3181,7 +3181,7 @@ func (s *Store) LookupAuthClientByHandle(ctx context.Context, handle string) (_ 
 		aux    = new(auxAuthClient)
 		lookup = authClientSelectQuery(s.Dialect.GOQU()).Where(
 			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
-			goqu.I("deleted_at").IsNull(),
+			stateNilComparison("deleted_at", filter.StateExcluded),
 		).Limit(1)
 	)
 
@@ -6050,7 +6050,7 @@ func (s *Store) LookupAutomationWorkflowByHandle(ctx context.Context, handle str
 		aux    = new(auxAutomationWorkflow)
 		lookup = automationWorkflowSelectQuery(s.Dialect.GOQU()).Where(
 			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
-			goqu.I("deleted_at").IsNull(),
+			stateNilComparison("deleted_at", filter.StateExcluded),
 		).Limit(1)
 	)
 
@@ -7230,7 +7230,7 @@ func (s *Store) LookupComposeChartByNamespaceIDHandle(ctx context.Context, names
 		lookup = composeChartSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("rel_namespace").Eq(namespaceID),
 			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
-			goqu.I("deleted_at").IsNull(),
+			stateNilComparison("deleted_at", filter.StateExcluded),
 		).Limit(1)
 	)
 
@@ -7785,7 +7785,7 @@ func (s *Store) LookupComposeModuleByNamespaceIDHandle(ctx context.Context, name
 		lookup = composeModuleSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("rel_namespace").Eq(namespaceID),
 			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
-			goqu.I("deleted_at").IsNull(),
+			stateNilComparison("deleted_at", filter.StateExcluded),
 		).Limit(1)
 	)
 
@@ -7827,7 +7827,7 @@ func (s *Store) LookupComposeModuleByNamespaceIDName(ctx context.Context, namesp
 		lookup = composeModuleSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("rel_namespace").Eq(namespaceID),
 			goqu.I("name").Eq(name),
-			goqu.I("deleted_at").IsNull(),
+			stateNilComparison("deleted_at", filter.StateExcluded),
 		).Limit(1)
 	)
 
@@ -8239,7 +8239,7 @@ func (s *Store) LookupComposeModuleFieldByModuleIDName(ctx context.Context, modu
 		lookup = composeModuleFieldSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("rel_module").Eq(moduleID),
 			goqu.I("name").Eq(name),
-			goqu.I("deleted_at").IsNull(),
+			stateNilComparison("deleted_at", filter.StateExcluded),
 		).Limit(1)
 	)
 
@@ -8870,7 +8870,7 @@ func (s *Store) LookupComposeNamespaceBySlug(ctx context.Context, slug string) (
 		aux    = new(auxComposeNamespace)
 		lookup = composeNamespaceSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("slug").Eq(slug),
-			goqu.I("deleted_at").IsNull(),
+			stateNilComparison("deleted_at", filter.StateExcluded),
 		).Limit(1)
 	)
 
@@ -9493,7 +9493,7 @@ func (s *Store) LookupComposePageByNamespaceIDHandle(ctx context.Context, namesp
 		lookup = composePageSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("rel_namespace").Eq(namespaceID),
 			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
-			goqu.I("deleted_at").IsNull(),
+			stateNilComparison("deleted_at", filter.StateExcluded),
 		).Limit(1)
 	)
 
@@ -9535,7 +9535,7 @@ func (s *Store) LookupComposePageByNamespaceIDModuleID(ctx context.Context, name
 		lookup = composePageSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("rel_namespace").Eq(namespaceID),
 			goqu.I("rel_module").Eq(moduleID),
-			goqu.I("deleted_at").IsNull(),
+			stateNilComparison("deleted_at", filter.StateExcluded),
 		).Limit(1)
 	)
 
@@ -10521,7 +10521,7 @@ func (s *Store) LookupDalConnectionByHandle(ctx context.Context, handle string) 
 		aux    = new(auxDalConnection)
 		lookup = dalConnectionSelectQuery(s.Dialect.GOQU()).Where(
 			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
-			goqu.I("deleted_at").IsNull(),
+			stateNilComparison("deleted_at", filter.StateExcluded),
 		).Limit(1)
 	)
 
@@ -18136,7 +18136,7 @@ func (s *Store) LookupReportByHandle(ctx context.Context, handle string) (_ *sys
 		aux    = new(auxReport)
 		lookup = reportSelectQuery(s.Dialect.GOQU()).Where(
 			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
-			goqu.I("deleted_at").IsNull(),
+			stateNilComparison("deleted_at", filter.StateExcluded),
 		).Limit(1)
 	)
 
@@ -19573,7 +19573,7 @@ func (s *Store) LookupRoleByHandle(ctx context.Context, handle string) (_ *syste
 		aux    = new(auxRole)
 		lookup = roleSelectQuery(s.Dialect.GOQU()).Where(
 			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
-			goqu.I("deleted_at").IsNull(),
+			stateNilComparison("deleted_at", filter.StateExcluded),
 		).Limit(1)
 	)
 
@@ -19616,7 +19616,7 @@ func (s *Store) LookupRoleByName(ctx context.Context, name string) (_ *systemTyp
 		aux    = new(auxRole)
 		lookup = roleSelectQuery(s.Dialect.GOQU()).Where(
 			goqu.I("name").Eq(name),
-			goqu.I("deleted_at").IsNull(),
+			stateNilComparison("deleted_at", filter.StateExcluded),
 		).Limit(1)
 	)
 
@@ -20892,7 +20892,7 @@ func (s *Store) LookupTemplateByHandle(ctx context.Context, handle string) (_ *s
 		aux    = new(auxTemplate)
 		lookup = templateSelectQuery(s.Dialect.GOQU()).Where(
 			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
-			goqu.I("deleted_at").IsNull(),
+			stateNilComparison("deleted_at", filter.StateExcluded),
 		).Limit(1)
 	)
 
@@ -21527,7 +21527,7 @@ func (s *Store) LookupUserByEmail(ctx context.Context, email string) (_ *systemT
 		aux    = new(auxUser)
 		lookup = userSelectQuery(s.Dialect.GOQU()).Where(
 			s.Functions.LOWER(goqu.I("email")).Eq(strings.ToLower(email)),
-			goqu.I("deleted_at").IsNull(),
+			stateNilComparison("deleted_at", filter.StateExcluded),
 		).Limit(1)
 	)
 
@@ -21570,7 +21570,7 @@ func (s *Store) LookupUserByHandle(ctx context.Context, handle string) (_ *syste
 		aux    = new(auxUser)
 		lookup = userSelectQuery(s.Dialect.GOQU()).Where(
 			s.Functions.LOWER(goqu.I("handle")).Eq(strings.ToLower(handle)),
-			goqu.I("deleted_at").IsNull(),
+			stateNilComparison("deleted_at", filter.StateExcluded),
 		).Limit(1)
 	)
 
@@ -21613,7 +21613,7 @@ func (s *Store) LookupUserByUsername(ctx context.Context, username string) (_ *s
 		aux    = new(auxUser)
 		lookup = userSelectQuery(s.Dialect.GOQU()).Where(
 			s.Functions.LOWER(goqu.I("username")).Eq(strings.ToLower(username)),
-			goqu.I("deleted_at").IsNull(),
+			stateNilComparison("deleted_at", filter.StateExcluded),
 		).Limit(1)
 	)
 

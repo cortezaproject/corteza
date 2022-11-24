@@ -158,15 +158,15 @@ func DefaultFilters() (f *extendedFilters) {
 		}
 
 		if f.ExcludeDismissed {
-			ee = append(ee, goqu.C("dismissed_at").IsNull())
+			ee = append(ee, stateNilComparison("dismissed_at", filter.StateExcluded))
 		}
 
 		if !f.IncludeDeleted {
-			ee = append(ee, goqu.C("deleted_at").IsNull())
+			ee = append(ee, stateNilComparison("deleted_at", filter.StateExcluded))
 		}
 
 		if f.ScheduledOnly {
-			ee = append(ee, goqu.C("remind_at").IsNotNull())
+			ee = append(ee, stateNilComparison("remind_at", filter.StateExclusive))
 		}
 
 		if f.Resource != "" {
@@ -320,7 +320,7 @@ func DefaultFilters() (f *extendedFilters) {
 			case filter.StateExcluded:
 				ee = append(ee, goqu.Or(
 					exp.NewBooleanExpression(exp.EqOp, expr, false),
-					exp.NewBooleanExpression(exp.IsOp, expr, nil),
+					exp.NewLiteralExpression("? IS NULL", expr),
 				))
 			case filter.StateExclusive:
 				ee = append(ee,
@@ -374,7 +374,8 @@ func stateNilComparison(lit string, fs filter.State) goqu.Expression {
 	switch fs {
 	case filter.StateExclusive:
 		// only not-null values
-		return goqu.Literal(lit).IsNotNull()
+		// @todo the NULL bit might be better of obtained from the dialect
+		return exp.NewLiteralExpression("? IS NOT NULL", goqu.Literal(lit))
 
 	case filter.StateInclusive:
 		// no filter
@@ -382,7 +383,8 @@ func stateNilComparison(lit string, fs filter.State) goqu.Expression {
 
 	default:
 		// exclude all non-null values
-		return goqu.Literal(lit).IsNull()
+		// @todo the NULL bit might be better of obtained from the dialect
+		return exp.NewLiteralExpression("? IS NULL", goqu.Literal(lit))
 	}
 }
 
