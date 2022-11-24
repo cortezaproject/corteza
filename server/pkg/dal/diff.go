@@ -20,7 +20,7 @@ const (
 	AttributeMissing             modelDiffType     = "attributeMissing"
 	AttributeTypeMissmatch       modelDiffType     = "typeMissmatch"
 	AttributeSensitivityMismatch modelDiffType     = "sensitivityMismatch"
-	AttributeCodecMismatch       modelDiffType     = "sensitivityMismatch"
+	AttributeCodecMismatch       modelDiffType     = "codecMismatch"
 	AttributeDeleted             ModelModification = "deleted"
 	AttributeAdded               ModelModification = "added"
 	AttributeChanged             ModelModification = "changed"
