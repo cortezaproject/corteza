@@ -133,7 +133,7 @@ export default class Chart extends BaseChart {
           name: yLabel,
           type: yType === 'linear' ? 'value' : 'log',
           position,
-          nameGap: labelPosition === 'center' ? 25 : 7,
+          nameGap: labelPosition === 'center' ? 30 : 7,
           nameLocation: labelPosition,
           min: beginAtZero ? 0 : min || undefined,
           max: max || undefined,
@@ -149,7 +149,7 @@ export default class Chart extends BaseChart {
           },
           nameTextStyle: {
             align: labelPosition === 'center' ? 'center' : position,
-            padding: labelPosition !== 'center' ? (position === 'left' ? [0, 0, 2, -20] : [0, -20, 2, 0]) : undefined,
+            padding: labelPosition !== 'center' ? (position === 'left' ? [0, 0, 2, -3] : [0, -3, 2, 0]) : undefined,
           },
         }
 
@@ -189,7 +189,6 @@ export default class Chart extends BaseChart {
             verticalAlign: 'middle',
           }
         }
-
 
         return {
           z: index,
@@ -243,10 +242,10 @@ export default class Chart extends BaseChart {
         }
 
         options.grid = {
-          top: offset?.isDefault ? 45 : offset?.top,
-          right: offset?.isDefault ? 25 : offset?.right,
-          bottom: offset?.isDefault ? 25 : offset?.bottom,
-          left: offset?.isDefault ? 25 : offset?.left,
+          top: offset?.isDefault ? 50 : offset?.top,
+          right: offset?.isDefault ? 30 : offset?.right,
+          bottom: offset?.isDefault ? 20 : offset?.bottom,
+          left: offset?.isDefault ? 30 : offset?.left,
           containLabel: true,
         }
 

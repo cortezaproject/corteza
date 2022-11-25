@@ -434,7 +434,6 @@ export default {
       deep: true,
       handler (value, oldValue) {
         if (value && oldValue) {
-          console.log(value, oldValue)
           this.onConfigUpdate()
         }
       },
