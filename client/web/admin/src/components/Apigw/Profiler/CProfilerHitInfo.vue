@@ -1,6 +1,7 @@
 <template>
   <div>
     <b-card
+      data-test-id="card-general-info"
       class="shadow-sm"
       header-bg-variant="white"
       footer-bg-variant="white"
@@ -28,6 +29,7 @@
       >
         <b-form-input
           v-model="request.route"
+          data-test-id="input-route"
           plaintext
           disabled
         />

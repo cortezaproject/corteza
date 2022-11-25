@@ -10,6 +10,7 @@
       >
         <b-button
           v-if="canCreate"
+          data-test-id="button-add"
           variant="primary"
           :to="{ name: 'system.apigw.new' }"
         >
@@ -17,6 +18,7 @@
         </b-button>
         <b-button
           v-if="$Settings.get('apigw.profilerEnabled', false)"
+          data-test-id="button-profiler"
           class="ml-2"
           variant="info"
           :to="{ name: 'system.apigw.profiler' }"
@@ -25,6 +27,7 @@
         </b-button>
         <c-permissions-button
           v-if="canGrant"
+          data-test-id="button-permissions"
           resource="corteza::system:apigw-route/*"
           button-variant="light"
           class="ml-2"
@@ -68,6 +71,7 @@
       <template #header>
         <c-resource-list-status-filter
           v-model="filter.deleted"
+          data-test-id="filter-deleted-routes"
           :label="$t('filterForm.deleted.label')"
           :excluded-label="$t('filterForm.excluded.label')"
           :inclusive-label="$t('filterForm.inclusive.label')"

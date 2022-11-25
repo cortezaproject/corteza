@@ -1,5 +1,6 @@
 <template>
   <b-container
+    data-tets-id="profiler"
     class="py-3"
   >
     <c-content-header
@@ -8,6 +9,7 @@
 
     <b-card
       no-body
+      data-test-id="card-profiler"
       class="shadow-sm"
       footer-class="d-flex align-items-center justify-content-center"
       footer-bg-variant="white"
@@ -30,6 +32,7 @@
             </span>
             <b-button
               variant="primary"
+              data-test-id="button-refresh"
               :disabled="loading"
               class="ml-2"
               @click="loadItems()"

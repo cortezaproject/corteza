@@ -1,5 +1,6 @@
 <template>
   <b-dropdown
+    data-test-id="dropdown-add-filter"
     :text="$t('filters.addFilter')"
     class="min-content"
     variant="primary"
@@ -8,6 +9,7 @@
       <b-dropdown-item
         v-for="(filter, index) in filterList"
         :key="index"
+        :data-test-id="filterDropdownCypressId(filter.label)"
         :disabled="filter.disabled"
         href="#"
         @click="onAddFilter(filter)"
@@ -20,7 +22,10 @@
       disabled
       href="#"
     >
-      <span class="text-danger">
+      <span
+        data-test-id="filter-list-empty"
+        class="text-danger"
+      >
         {{ $t('filters.filterListEmpty') }}
       </span>
     </b-dropdown-item>
@@ -58,6 +63,10 @@ export default {
       }
 
       this.$emit('addFilter', add)
+    },
+
+    filterDropdownCypressId (filter) {
+      return filter.toLowerCase().split(' ').join('-')
     },
   },
 }

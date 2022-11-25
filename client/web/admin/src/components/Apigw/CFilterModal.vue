@@ -20,6 +20,7 @@
         />
         <b-form-checkbox
           v-model="filter.enabled"
+          data-test-id="checkbox-filter-enable"
           @change="onUpdate"
         >
           {{ $t('filters.enabled') }}

@@ -4,6 +4,7 @@
       <span class="text-nowrap">
         <b-button
           v-if="routeID && canCreate"
+          data-test-id="button-add"
           variant="primary"
           :to="{ name: 'system.apigw.new' }"
         >
