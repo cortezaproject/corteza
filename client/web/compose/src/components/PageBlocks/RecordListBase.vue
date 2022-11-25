@@ -4,30 +4,18 @@
     v-bind="$props"
     :scrollable-body="false"
     v-on="$listeners"
+    @refreshBlock="refresh"
   >
     <template
-      v-if="showHeader"
-      #header
+      v-if="isFederated"
+      #title-badge
     >
-      <h5
-        class="d-flex align-items-center text-truncate mb-0"
+      <b-badge
+        variant="primary"
+        class="d-inline-block mb-0 ml-2"
       >
-        {{ block.title }}
-        <b-badge
-          v-if="isFederated"
-          variant="primary"
-          class="d-inline-block mb-0 ml-2"
-        >
-          {{ $t('recordList.federated') }}
-        </b-badge>
-      </h5>
-
-      <b-card-text
-        v-if="block.description"
-        class="text-dark text-truncate mt-1"
-      >
-        {{ block.description }}
-      </b-card-text>
+        {{ $t('recordList.federated') }}
+      </b-badge>
     </template>
 
     <template #toolbar>
@@ -688,10 +676,6 @@ export default {
       return Object.keys(this.recordListModule.labels || {}).includes('federation')
     },
 
-    showHeader () {
-      return !!(this.block.title || this.block.description || this.isFederated)
-    },
-
     showFooter () {
       return !this.options.hidePaging && !this.inlineEditing
     },
@@ -876,6 +860,12 @@ export default {
     this.$root.$off(`record-line:collect:${this.uniqueID}`)
     this.$root.$off(`page-block:validate:${this.uniqueID}`)
     this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`)
+  },
+
+  created () {
+    if (!this.inlineEditing) {
+      this.refreshBlock(this.refresh)
+    }
   },
 
   methods: {
@@ -1288,6 +1278,7 @@ export default {
 
       let paginationOptions = {}
       if (resetPagination) {
+        this.filter.pageCursor = undefined
         const { fullPageNavigation = false, showTotalCount = false } = this.options
         paginationOptions = {
           incPageNavigation: fullPageNavigation,
@@ -1300,7 +1291,6 @@ export default {
           const records = set.map(r => new compose.Record(r, this.recordListModule))
 
           this.filter = { ...this.filter, ...filter }
-          this.filter.pageCursor = undefined
           this.filter.nextPage = filter.nextPage
           this.filter.prevPage = filter.prevPage
 

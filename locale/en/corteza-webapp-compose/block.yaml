@@ -108,6 +108,10 @@ general:
   descriptionPlaceholder: Block description
   headerStyle: Block header style (color)
   wrap: Display block as a card
+  refresh:
+    label: Block auto-refresh interval
+    description: Setting value to less than 5 seconds disables auto-refresh
+    rate: seconds
   label:
     add: Add
     back: Back

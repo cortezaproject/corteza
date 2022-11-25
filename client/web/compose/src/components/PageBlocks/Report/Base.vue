@@ -12,6 +12,7 @@
 
     <display-element
       v-else-if="displayElement"
+      :key="key"
       :display-element="displayElement"
       :labels="{
         previous: $t('recordList.pagination.prev'),
@@ -38,7 +39,6 @@ export default {
   data () {
     return {
       processing: false,
-
       report: undefined,
       displayElement: undefined,
     }
@@ -54,6 +54,10 @@ export default {
         }
       },
     },
+  },
+
+  created () {
+    this.refreshBlock(this.refresh, true)
   },
 
   methods: {
@@ -128,6 +132,10 @@ export default {
       }
 
       return scenarioDefinition
+    },
+
+    refresh () {
+      this.fetchReport(this.options.reportID)
     },
   },
 }

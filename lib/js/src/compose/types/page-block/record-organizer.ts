@@ -10,6 +10,7 @@ interface Options {
   positionField: string;
   groupField: string;
   group: string;
+  refreshRate: number;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -20,6 +21,7 @@ const defaults: Readonly<Options> = Object.freeze({
   positionField: '',
   groupField: '',
   group: '',
+  refreshRate: 0,
 })
 
 export class PageBlockRecordOrganizer extends PageBlock {
@@ -37,6 +39,7 @@ export class PageBlockRecordOrganizer extends PageBlock {
 
     Apply(this.options, o, CortezaID, 'moduleID')
     Apply(this.options, o, String, 'labelField', 'descriptionField', 'filter', 'positionField', 'groupField', 'group')
+    Apply(this.options, o, Number, 'refreshRate')
   }
 }
 

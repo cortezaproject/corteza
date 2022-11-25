@@ -2,6 +2,7 @@
   <wrap
     v-bind="$props"
     v-on="$listeners"
+    @refreshBlock="refresh"
   >
     <div
       v-if="processing"
@@ -205,9 +206,13 @@ export default {
     'record.recordID': {
       immediate: true,
       handler () {
-        this.reloadRecords()
+        this.refresh()
       },
     },
+  },
+
+  created () {
+    this.refreshBlock(this.refresh)
   },
 
   methods: {
@@ -227,7 +232,7 @@ export default {
       this.$store.dispatch('user/fetchUsers', userListID)
     },
 
-    reloadRecords () {
+    refresh () {
       if (!this.options.moduleID) {
       // Make sure block is properly configured
         throw Error(this.$t('record.moduleOrPageNotSet'))
@@ -277,7 +282,7 @@ export default {
           // clean the input and reload data
           this.newRecord.title = ''
           this.newRecord.content = ''
-          this.reloadRecords()
+          this.refresh()
         })
           .catch(this.toastErrorHandler(this.$t('notification:record.createFailed')))
       }

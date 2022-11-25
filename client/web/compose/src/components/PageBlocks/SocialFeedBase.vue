@@ -2,6 +2,7 @@
   <wrap
     v-bind="$props"
     v-on="$listeners"
+    @refreshBlock="key++"
   >
     <div
       v-if="profile"
@@ -10,6 +11,7 @@
       <timeline
         v-if="isTwitter"
         :id="profile.twitterHandle"
+        :key="key"
         class="h-100"
         :options="{ tweetLimit: 9 }"
         source-type="profile"
@@ -52,6 +54,10 @@ export default {
     isTwitter () {
       return this.profile.socialNetwork === 'Twitter'
     },
+  },
+
+  mounted () {
+    this.refreshBlock(() => {}, true)
   },
 
   methods: {

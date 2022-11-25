@@ -1,6 +1,6 @@
 import { PageBlock, PageBlockInput, Registry } from './base'
 import { dimensionFunctions } from '../chart/util'
-import { CortezaID } from '../../../cast'
+import { CortezaID, Apply } from '../../../cast'
 
 const kind = 'Metric'
 
@@ -40,10 +40,12 @@ interface Metric {
 
 interface Options {
   metrics: Array<Metric>;
+  refreshRate: number;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
   metrics: [],
+  refreshRate: 0,
 })
 
 export class PageBlockMetric extends PageBlock {
@@ -58,7 +60,7 @@ export class PageBlockMetric extends PageBlock {
 
   applyOptions (o?: Partial<Options>): void {
     if (!o) return
-
+    Apply(this.options, o, Number, 'refreshRate')
     if (o.metrics) {
       this.options.metrics = o.metrics
     }

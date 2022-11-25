@@ -2,6 +2,7 @@
   <wrap
     v-bind="$props"
     v-on="$listeners"
+    @refreshBlock="refresh"
   >
     <div
       v-if="processing"
@@ -46,7 +47,6 @@ export default {
   data () {
     return {
       processing: false,
-
       value: undefined,
       max: undefined,
     }
@@ -99,13 +99,17 @@ export default {
     'record.recordID': {
       immediate: true,
       handler () {
-        this.update()
+        this.refresh()
       },
     },
   },
 
+  created () {
+    this.refreshBlock(this.refresh)
+  },
+
   mounted () {
-    this.$root.$on(`refetch-non-record-blocks:${this.page.pageID}`, this.update)
+    this.$root.$on(`refetch-non-record-blocks:${this.page.pageID}`, this.refresh)
   },
 
   beforeDestroy () {
@@ -116,7 +120,7 @@ export default {
     /**
      * Pulls fresh data from the API
      */
-    async update () {
+    async refresh () {
       this.processing = true
 
       const { namespaceID } = this.namespace || {}

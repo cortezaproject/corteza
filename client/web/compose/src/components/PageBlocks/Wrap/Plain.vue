@@ -11,12 +11,26 @@
         <div
           v-if="!headerSet"
         >
-          <h5
+          <div
             v-if="block.title"
-            class="text-truncate mb-0"
+            class="d-flex justify-content-between align-items-center"
           >
-            {{ block.title }}
-          </h5>
+            <h5
+              class="text-truncate mb-0"
+            >
+              {{ block.title }}
+
+              <slot name="title-badge" />
+            </h5>
+
+            <font-awesome-icon
+              v-if="block.options.refreshRate >= 5"
+              :icon="['fa', 'sync']"
+              class="h6 text-secondary mb-0"
+              role="button"
+              @click="$emit('refreshBlock')"
+            />
+          </div>
 
           <b-card-text
             v-if="block.description"

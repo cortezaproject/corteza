@@ -1,6 +1,7 @@
 import { PageBlock, PageBlockInput, Registry } from './base'
 import { dimensionFunctions } from '../chart/util'
 import { Compose as ComposeAPI } from '../../../api-clients'
+import { Apply } from '../../../cast'
 
 const kind = 'Progress'
 
@@ -29,6 +30,7 @@ interface Options {
   value: ValueOptions;
   maxValue: ValueOptions;
   display: DisplayOptions;
+  refreshRate: number;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -54,6 +56,7 @@ const defaults: Readonly<Options> = Object.freeze({
     variant: 'success',
     thresholds: [],
   },
+  refreshRate: 0,
 })
 
 export class PageBlockProgress extends PageBlock {
@@ -68,6 +71,8 @@ export class PageBlockProgress extends PageBlock {
 
   applyOptions (o?: Partial<Options>): void {
     if (!o) return
+
+    Apply(this.options, o, Number, 'refreshRate')
 
     if (o.value) {
       this.options.value = o.value

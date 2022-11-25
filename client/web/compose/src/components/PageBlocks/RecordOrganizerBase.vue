@@ -231,24 +231,13 @@ export default {
           throw Error(this.$t('notification:record.moduleOrPageNotSet'))
         }
 
-        if (this.roModule) {
-          this.processing = true
-
-          this.fetchRecords(this.roModule, this.expandFilter())
-            .then(rr => {
-              this.records = rr
-              const fields = [this.labelField, this.descriptionField].filter(f => !!f)
-              this.fetchUsers(fields, this.records)
-            })
-            .catch(e => {
-              console.error(e)
-            })
-            .finally(() => {
-              this.processing = false
-            })
-        }
+        this.refresh()
       },
     },
+  },
+
+  created () {
+    this.refreshBlock(this.refresh)
   },
 
   methods: {
@@ -421,6 +410,26 @@ export default {
       return this.$ComposeAPI.recordList({ namespaceID, moduleID, query, sort })
         .then(({ set }) => set.map(r => Object.freeze(new compose.Record(module, r))))
     },
+
+    refresh () {
+      if (this.roModule) {
+        this.processing = true
+
+        this.fetchRecords(this.roModule, this.expandFilter())
+          .then(rr => {
+            this.records = rr
+            const fields = [this.labelField, this.descriptionField].filter(f => !!f)
+            this.fetchUsers(fields, this.records)
+          })
+          .catch(e => {
+            console.error(e)
+          })
+          .finally(() => {
+            this.processing = false
+          })
+      }
+    },
+
   },
 }
 </script>

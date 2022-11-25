@@ -58,6 +58,7 @@ import {
   faMapMarkedAlt,
   faKey,
   faQuestion,
+  faSync,
 } from '@fortawesome/free-solid-svg-icons'
 
 import {
@@ -162,4 +163,5 @@ library.add(
   faMapMarkedAlt,
   faKey,
   faQuestion,
+  faSync,
 )
