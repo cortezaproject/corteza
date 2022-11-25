@@ -77,13 +77,20 @@ export default class FunnelChart extends BaseChart {
       type: m.type,
       label: m.label || m.field,
       data,
+      tooltip: {
+        fixed: !!m.fixTooltips,
+        relative: !!m.relativeValue,
+      },
     }
   }
 
   makeOptions (data: any) {
     const { colorScheme } = this.config
-    const { labels, datasets = [] } = data
+    const { labels, datasets = [], tooltip } = data
     const colors = getColorschemeColors(colorScheme)
+
+    const tooltipFormatter = `{b}<br />{c} ${tooltip.relative ? ' ({d}%)' : ''}`
+    const labelFormatter = `{c}${tooltip.relative ? ' ({d}%)' : ''}`
 
     return {
       textStyle: {
@@ -92,7 +99,7 @@ export default class FunnelChart extends BaseChart {
       tooltip: {
         show: true,
         trigger: 'item',
-        formatter: '{b} : {c} ({d}%)',
+        formatter: tooltipFormatter,
         appendToBody: true,
       },
       legend: {
@@ -108,11 +115,11 @@ export default class FunnelChart extends BaseChart {
           left: '5%',
           width: '90%',
           label: {
-            show: false,
+            show: tooltip.fixed,
             position: 'inside',
             align: 'center',
             verticalAlign: 'middle',
-            formatter: '{c} ({d}%)',
+            formatter: labelFormatter,
           },
           emphasis: {
             label: {
@@ -141,15 +148,20 @@ export default class FunnelChart extends BaseChart {
     const rr = await super.fetchReports(a) as any
     const values = []
 
+    let tooltip = {}
+
     // Above provided data sets might not have their labels/values ordered
     // correctly
     const valMap: any = {}
     // Map values to their labels
     for (let ri = 0; ri < rr.length; ri++) {
       const r = rr[ri]
+
       r.labels.forEach((l: string, i: number) => {
         valMap[l] = r.datasets[0].data[i]
       })
+
+      tooltip = { ...tooltip, ...r.datasets[0].tooltip }
 
       // Construct labels & data based on provided reports
       const report = this.config.reports?.[ri]
@@ -194,6 +206,7 @@ export default class FunnelChart extends BaseChart {
       datasets: [{
         data,
       }],
+      tooltip,
     }
   }
 
@@ -213,10 +226,17 @@ export default class FunnelChart extends BaseChart {
   }
 
   defMetrics (): Metric {
-    return Object.assign({}, { type: ChartType.funnel })
+    return Object.assign({}, {
+      type: ChartType.funnel,
+      fixTooltips: false,
+      relativeValue: true,
+    })
   }
 
   defDimension (): Dimension {
-    return Object.assign({}, { conditions: {}, meta: { fields: [] } })
+    return Object.assign({}, {
+      conditions: {},
+      meta: { fields: [] }
+    })
   }
 }
