@@ -434,6 +434,7 @@ export default {
       deep: true,
       handler (value, oldValue) {
         if (value && oldValue) {
+          console.log(value, oldValue)
           this.onConfigUpdate()
         }
       },
@@ -499,7 +500,6 @@ export default {
       } else {
         this.updateChart(c).then((chart) => {
           this.chart = chartConstructor(chart)
-          this.update()
           this.toastSuccess(this.$t('notification:chart.saved'))
           if (closeOnSuccess) {
             this.redirect()

@@ -252,7 +252,11 @@ export class BaseChart {
   }
 
   defDimension (): Dimension {
-    return Object.assign({}, { conditions: {}, meta: {} })
+    return Object.assign({}, {
+      conditions: {},
+      meta: {},
+      rotateLabel: '0',
+    })
   }
 
   defMetrics (): Metric {
@@ -269,6 +273,7 @@ export class BaseChart {
         axisType: 'linear',
         axisPosition: 'left',
         labelPosition: 'end',
+        rotateLabel: '0',
       },
       tooltip: {},
       legend: {
@@ -276,10 +281,10 @@ export class BaseChart {
         orientation: 'horizontal',
         align: 'center',
         position: {
-          top: '0',
-          right: '0',
-          bottom: '0',
-          left: '0',
+          top: undefined,
+          right: undefined,
+          bottom: undefined,
+          left: undefined,
           isDefault: true,
         },
       },
