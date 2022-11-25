@@ -289,10 +289,10 @@ export class BaseChart {
         },
       },
       offset: {
-        top: '0',
-        right: '0',
-        bottom: '0',
-        left: '0',
+        top: '50',
+        right: '30',
+        bottom: '20',
+        left: '30',
         isDefault: true,
       },
     })
