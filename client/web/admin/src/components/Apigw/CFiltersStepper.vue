@@ -1,5 +1,6 @@
 <template>
   <b-card
+    data-test-id="card-filter-list"
     class="apigw shadow-sm mt-3"
     header-bg-variant="white"
     footer-bg-variant="white"
@@ -15,6 +16,7 @@
       @submit.prevent="$emit('submit', route)"
     >
       <b-tabs
+        data-test-id="filter-steps"
         active-nav-item-class="active-tab bg-white"
         class="border-0 font-weight-bold"
         content-class="border-bottom"
