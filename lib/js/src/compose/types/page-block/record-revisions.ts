@@ -17,6 +17,7 @@ interface Options {
   // referenced fields (records, users) we want to expand
   expRefFields: string[];
   refreshRate: number;
+  magnifyOption: string;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -24,6 +25,7 @@ const defaults: Readonly<Options> = Object.freeze({
   displayedFields: [],
   expRefFields: [],
   refreshRate: 0,
+  magnifyOption: '',
 })
 
 export class PageBlockRecordRevisions extends PageBlock {
@@ -41,6 +43,7 @@ export class PageBlockRecordRevisions extends PageBlock {
 
     Apply(this.options, o, Boolean, 'preload')
     Apply(this.options, o, Number, 'refreshRate')
+    Apply(this.options, o, String, 'magnifyOption')
 
     // set new values to displayed fields
     if (Array.isArray(o?.displayedFields)) {

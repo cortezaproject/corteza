@@ -5,10 +5,12 @@ const kind = 'Content'
 
 interface Options {
   body: string;
+  magnifyOption: string
 }
 
 const defaults: Readonly<Options> = Object.freeze({
   body: '',
+  magnifyOption: ''
 })
 
 export class PageBlockContent extends PageBlock {
@@ -24,7 +26,7 @@ export class PageBlockContent extends PageBlock {
   applyOptions (o?: Partial<Options>): void {
     if (!o) return
 
-    Apply(this.options, o, String, 'body')
+    Apply(this.options, o, String, 'body', 'magnifyOption')
   }
 }
 

@@ -103,6 +103,7 @@
             v-bind="{ ...$attrs, ...$props, page, block, boundingRect, blockIndex: index }"
             :record="record"
             :module="module"
+            class="p-2"
           />
         </div>
       </template>

@@ -14,6 +14,7 @@ interface Options {
   borderRadius?: number;
   margin?: number;
   backgroundColor?: string;
+  magnifyOption: string;
 }
 
 const PageBlockFileDefaultMode = 'list'
@@ -39,6 +40,7 @@ const defaults: Readonly<Options> = Object.freeze({
   borderRadius: undefined,
   margin: undefined,
   backgroundColor: undefined,
+  magnifyOption: ''
 })
 
 export class PageBlockFile extends PageBlock {
@@ -59,7 +61,7 @@ export class PageBlockFile extends PageBlock {
     }
 
     Apply(this.options, o, Boolean, 'hideFileName')
-    Apply(this.options, o, String, 'backgroundColor')
+    Apply(this.options, o, String, 'backgroundColor', 'magnifyOption')
     Apply(this.options, o, Number, 'height', 'width', 'maxHeight', 'maxWidth', 'borderRadius', 'margin')
 
     if (o.mode) {

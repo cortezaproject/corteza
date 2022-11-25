@@ -36,6 +36,7 @@ class CalendarOptions {
   public header: Partial<CalendarOptionsHeader> = {}
   public locale = 'en-gb'
   public refreshRate = 0
+  public magnifyOption = ''
 }
 
 /**
@@ -58,6 +59,9 @@ export class PageBlockCalendar extends PageBlock {
   applyOptions (o?: Partial<CalendarOptions>): void {
     if (!o) return
     Apply(this.options, o, Number, 'refreshRate')
+
+    Apply(this.options, o, String, 'magnifyOption')
+
     this.options.defaultView = PageBlockCalendar.handleLegacyView(o.defaultView) || 'dayGridMonth'
     this.options.feeds = (o.feeds || []).map(f => new Feed(f))
     this.options.header = merge(

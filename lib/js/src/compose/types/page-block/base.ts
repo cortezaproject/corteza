@@ -28,6 +28,7 @@ export class PageBlock {
   kind = ''
 
   public options = {}
+
   public style: PageBlockStyle = {
     variants: {
       headerText: 'dark',
