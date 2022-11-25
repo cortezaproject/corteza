@@ -66,6 +66,14 @@ var (
 				)
 			},
 		},
+		"week": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("TO_CHAR",
+					exp.NewLiteralExpression("?::TIMESTAMPTZ", args[0]),
+					exp.NewLiteralExpression("?", "IW"),
+				)
+			},
+		},
 		"time": {
 			Handler: func(args ...exp.Expression) exp.Expression {
 				return exp.NewLiteralExpression("DATE_TRUNC('second', ?::TIME)::TIME", args[0])
@@ -117,11 +125,11 @@ var (
 		},
 
 		// functions currently unsupported in PostgreSQL store backend
-		//"STD": {
+		// "STD": {
 		//	Handler: func(args ...exp.Expression) exp.Expression {
 		//		return exp.NewLiteralExpression("")
 		//	},
-		//},
+		// },
 	}.ExprHandlers()
 )
 
