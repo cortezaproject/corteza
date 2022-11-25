@@ -46,6 +46,11 @@ func TestConverter(t *testing.T) {
 				args: []any{"2022-07-21"},
 			},
 			{
+				qry:  `week('2022-07-21')`,
+				sql:  `STRFTIME('%W', ?)`,
+				args: []any{"2022-07-21"},
+			},
+			{
 				qry:  `datetime('2022-07-21')`,
 				sql:  `DATETIME(?)`,
 				args: []any{"2022-07-21"},

@@ -56,6 +56,14 @@ var (
 				)
 			},
 		},
+		"week": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("STRFTIME",
+					exp.NewLiteralExpression("'%W'"),
+					args[0],
+				)
+			},
+		},
 		"datetime": {
 			Handler: func(args ...exp.Expression) exp.Expression {
 				return exp.NewSQLFunctionExpression("DATETIME", args[0])
@@ -81,21 +89,21 @@ var (
 		},
 
 		// functions currently unsupported in SQLite store backend
-		//"DATE_ADD": {
+		// "DATE_ADD": {
 		//	Handler: func(args ...exp.Expression) exp.Expression {
 		//		return exp.NewLiteralExpression("")
 		//	},
-		//},
-		//"DATE_SUB": {
+		// },
+		// "DATE_SUB": {
 		//	Handler: func(args ...exp.Expression) exp.Expression {
 		//		return exp.NewLiteralExpression("")
 		//	},
-		//},
-		//"STD": {
+		// },
+		// "STD": {
 		//	Handler: func(args ...exp.Expression) exp.Expression {
 		//		return exp.NewLiteralExpression("")
 		//	},
-		//},
+		// },
 	}.ExprHandlers()
 
 	supportedSubstitutions = map[string]bool{
