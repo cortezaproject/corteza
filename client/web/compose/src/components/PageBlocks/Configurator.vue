@@ -113,6 +113,16 @@
             </b-input-group>
           </b-col>
         </b-form-group>
+
+        <b-form-group
+          v-if="block.options.magnifyOption !== undefined"
+          :label="$t('general.magnifyLabel')"
+        >
+          <b-form-select
+            v-model="block.options.magnifyOption"
+            :options="magnifyOptions"
+          />
+        </b-form-group>
       </div>
     </b-tab>
 
@@ -171,6 +181,14 @@ export default {
 
     isNew () {
       return this.block.blockID === NoID
+    },
+
+    magnifyOptions () {
+      return [
+        { value: '', text: this.$t('general.magnifyOptions.disabled') },
+        { value: 'modal', text: this.$t('general.magnifyOptions.modal') },
+        { value: 'fullscreen', text: this.$t('general.magnifyOptions.fullscreen') },
+      ]
     },
   },
 

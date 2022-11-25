@@ -112,6 +112,11 @@ general:
   descriptionLabel: Description
   descriptionPlaceholder: Block description
   headerStyle: Block header style (color)
+  magnifyLabel: Block Magnification
+  magnifyOptions:
+    disabled: Disabled
+    modal: Modal
+    fullscreen: Fullscreen
   wrap: Display block as a card
   refresh:
     label: Block auto-refresh interval
@@ -130,6 +135,7 @@ general:
     remove: Remove
     save: Save
     search: Search
+    magnify: Magnify Block
   module: Module
   style:
     danger: Danger variant

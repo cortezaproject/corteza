@@ -10,6 +10,7 @@
     >
       <page-block
         v-bind="{ ...$attrs, block, page, boundingRect, blockIndex: index }"
+        class="p-2"
         v-on="$listeners"
       />
     </template>

@@ -66,6 +66,11 @@
       :namespace="namespace"
     />
 
+    <magnification-modal
+      :namespace="namespace"
+      :page="page"
+    />
+
     <attachment-modal />
   </div>
 </template>
@@ -74,6 +79,7 @@ import { mapActions } from 'vuex'
 import Grid from 'corteza-webapp-compose/src/components/Public/Page/Grid'
 import AttachmentModal from 'corteza-webapp-compose/src/components/Public/Page/Attachment/Modal'
 import RecordModal from 'corteza-webapp-compose/src/components/Public/Record/Modal'
+import MagnificationModal from 'corteza-webapp-compose/src/components/Public/Page/Block/Modal'
 import PageTranslator from 'corteza-webapp-compose/src/components/Admin/Page/PageTranslator'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 
@@ -87,6 +93,7 @@ export default {
     AttachmentModal,
     RecordModal,
     PageTranslator,
+    MagnificationModal,
   },
 
   props: {
