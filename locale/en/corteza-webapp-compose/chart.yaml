@@ -136,12 +136,12 @@ edit:
         center: Center
       scrollable: Scrollable
       position:
-        customize: Customize position
+        customize: Default position
         top: Top
         right: Right
         bottom: Bottom
         left: Left
-      valueRange: Values can be set a pixels 20 or as percentages 20%
+      valueRange: Values can be set as pixels 20 or as percentages 20%
     tooltip:
       label: Tooltip
       labelNextToChartPartition: Show labels next to chart partition
@@ -157,7 +157,7 @@ edit:
         right: Right
         bottom: Bottom
         left: Left
-      valueRange: Values can be set a pixels 20 or as percentages 20%
+      valueRange: Values can be set as pixels 20 or as percentages 20%
 import: 'Import chart(s):'
 newLabel: 'Create a new chart:'
 name: Chart name *

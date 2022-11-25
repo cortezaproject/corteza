@@ -228,13 +228,6 @@
                 v-model="report.legend.orientation"
                 :options="orientations"
               />
-              <b-form-checkbox
-                v-model="report.legend.isScrollable"
-                class="mt-2"
-                :disabled="report.legend.orientation !== 'horizontal'"
-              >
-                {{ $t('edit.additionalConfig.legend.scrollable') }}
-              </b-form-checkbox>
             </b-form-group>
             <b-form-group
               horizontal
@@ -245,8 +238,15 @@
               <b-form-select
                 v-model="report.legend.align"
                 :options="alignments"
-                :disabled="report.legend.position.isDefault"
+                :disabled="!report.legend.position.isDefault"
               />
+              <b-form-checkbox
+                v-model="report.legend.isScrollable"
+                class="mt-2"
+                :disabled="report.legend.orientation !== 'horizontal'"
+              >
+                {{ $t('edit.additionalConfig.legend.scrollable') }}
+              </b-form-checkbox>
               <b-form-checkbox
                 v-model="report.legend.position.isDefault"
                 class="mt-2"
@@ -255,7 +255,7 @@
               </b-form-checkbox>
             </b-form-group>
             <template
-              v-if="report.legend.position.isDefault"
+              v-if="!report.legend.position.isDefault"
             >
               <b-form-group
                 horizontal
