@@ -36,6 +36,16 @@
         >
           {{ $t('edit.metric.cumulative') }}
         </b-form-checkbox>
+        <b-form-checkbox
+          v-model="metric.relativeValue"
+        >
+          {{ $t('edit.metric.relative') }}
+        </b-form-checkbox>
+        <b-form-checkbox
+          v-model="metric.fixTooltips"
+        >
+          {{ $t('edit.metric.fixTooltips') }}
+        </b-form-checkbox>
       </b-form-group>
     </template>
   </report-edit>
