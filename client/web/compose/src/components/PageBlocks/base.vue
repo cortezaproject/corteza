@@ -57,9 +57,49 @@ export default {
     },
   },
 
+  data () {
+    return {
+      refreshInterval: null,
+      key: 0,
+    }
+  },
+
   computed: {
     options () {
       return this.block.options
+    },
+
+    allowsRefresh () {
+      return this.options.refreshRate >= 5 && ['page', 'page.record'].includes(this.$route.name)
+    },
+  },
+
+  beforeDestroy () {
+    clearInterval(this.refreshInterval)
+  },
+
+  methods: {
+    /**
+     *
+     * @param {*} refreshFunction
+     * @param {*} forceRerender
+     * Key is used to force a component to re-render
+     * However, sometimes reloading data is enough
+     * Attach :key="key" if you need to re-render a component
+     *
+     */
+    refreshBlock (refreshFunction, forceRerender) {
+      if (!this.allowsRefresh || this.refreshInterval) return
+
+      const interval = setInterval(() => {
+        refreshFunction()
+
+        if (forceRerender) {
+          this.key++
+        }
+      }, this.options.refreshRate * 1000)
+
+      this.refreshInterval = interval
     },
   },
 }

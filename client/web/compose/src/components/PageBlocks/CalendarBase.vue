@@ -2,6 +2,7 @@
   <wrap
     v-bind="$props"
     v-on="$listeners"
+    @refreshBlock="refresh"
   >
     <div class="d-flex flex-column calendar-container p-2 h-100">
       <div v-if="!header.hide">
@@ -87,6 +88,7 @@
         <full-calendar
           v-show="show && !processing"
           ref="fc"
+          :key="key"
           :height="getHeight()"
           :events="events"
           v-bind="config"
@@ -155,6 +157,8 @@ export default {
         start: null,
         end: null,
       },
+
+      refreshing: false,
     }
   },
 
@@ -223,6 +227,7 @@ export default {
 
   created () {
     this.changeLocale(this.currentLanguage)
+    this.refreshBlock(this.refresh, true)
   },
 
   methods: {
@@ -268,7 +273,7 @@ export default {
         return
       }
 
-      if (start.isSame(this.loaded.start) && end.isSame(this.loaded.end)) {
+      if (start.isSame(this.loaded.start) && end.isSame(this.loaded.end) && !this.refreshing) {
         return
       }
 
@@ -313,6 +318,7 @@ export default {
       }))
         .finally(() => {
           this.processing = false
+          this.refreshing = false
           setTimeout(() => {
             this.updateSize()
           })
@@ -341,6 +347,11 @@ export default {
         return this.$refs.cc.clientHeight
       }
       return 'auto'
+    },
+
+    refresh () {
+      this.refreshing = true
+      this.api().refetchEvents()
     },
   },
 }

@@ -7,12 +7,14 @@ interface Options {
   reportID: string;
   scenarioID: string;
   elementID: string;
+  refreshRate: number;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
   reportID: NoID,
   scenarioID: NoID,
   elementID: NoID,
+  refreshRate: 0,
 })
 
 export class PageBlockReport extends PageBlock {
@@ -29,6 +31,7 @@ export class PageBlockReport extends PageBlock {
     if (!o) return
 
     Apply(this.options, o, CortezaID, 'reportID', 'scenarioID', 'elementID')
+    Apply(this.options, o, Number, 'refreshRate')
   }
 }
 

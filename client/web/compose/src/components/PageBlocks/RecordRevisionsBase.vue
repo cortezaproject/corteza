@@ -3,6 +3,7 @@
     v-bind="$props"
     :scrollable-body="true"
     v-on="$listeners"
+    @refreshBlock="refresh"
   >
     <div
       class="d-flex flex-column align-items-center h-100 overflow-hidden"
@@ -20,7 +21,7 @@
       <b-button
         v-else-if="!preloadRevisions && !loadedRevisions"
         class="my-auto"
-        @click="loadRevisions()"
+        @click="refresh()"
       >
         {{ $t('show-revisions', { revision: record.revision }) }}
       </b-button>
@@ -198,8 +199,12 @@ export default {
     },
   },
 
+  created () {
+    this.refreshBlock(this.refresh)
+  },
+
   methods: {
-    async refresh () {
+    async loadRevisions () {
       if (this.revisionsDisabledOnModule) {
         return
       }
@@ -221,9 +226,9 @@ export default {
         })
     },
 
-    loadRevisions () {
+    refresh () {
       this.loadedRevisions = true
-      this.refresh()
+      this.loadedRevisions()
     },
   },
 }

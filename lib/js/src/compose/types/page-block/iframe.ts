@@ -7,12 +7,14 @@ interface Options {
   srcField: string;
   src: string;
   wrap: PageBlockWrap;
+  refreshRate: number;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
   srcField: '',
   src: '',
   wrap: 'Plain',
+  refreshRate: 0,
 })
 
 export class PageBlockIFrame extends PageBlock {
@@ -29,6 +31,7 @@ export class PageBlockIFrame extends PageBlock {
     if (!o) return
 
     Apply(this.options, o, String, 'srcField', 'src', 'wrap')
+    Apply(this.options, o, Number, 'refreshRate')
   }
 }
 

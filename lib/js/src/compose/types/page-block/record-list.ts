@@ -27,6 +27,7 @@ interface Options {
 
   fullPageNavigation: boolean;
   showTotalCount: boolean;
+  refreshRate: number;
 
   // Record-lines
   editable: boolean;
@@ -87,6 +88,7 @@ const defaults: Readonly<Options> = Object.freeze({
   selectMode: 'multi',
 
   selectionButtons: [],
+  refreshRate: 0,
 })
 
 export class PageBlockRecordList extends PageBlock {
@@ -103,8 +105,8 @@ export class PageBlockRecordList extends PageBlock {
     if (!o) return
 
     Apply(this.options, o, CortezaID, 'moduleID')
-    Apply(this.options, o, String, 'prefilter', 'presort', 'selectMode', 'positionField', 'refField', 'recordDisplayOption')
-    Apply(this.options, o, Number, 'perPage')
+    Apply(this.options, o, String, 'prefilter', 'presort', 'selectMode', 'positionField', 'refField')
+    Apply(this.options, o, Number, 'perPage', 'refreshRate')
 
     if (o.fields) {
       this.options.fields = o.fields

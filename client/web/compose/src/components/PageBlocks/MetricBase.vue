@@ -2,6 +2,7 @@
   <wrap
     v-bind="$props"
     v-on="$listeners"
+    @refreshBlock="refresh"
   >
     <div
       v-if="processing"
@@ -61,7 +62,6 @@ export default {
   data () {
     return {
       processing: false,
-
       reports: [],
     }
   },
@@ -70,19 +70,23 @@ export default {
     'record.recordID': {
       immediate: true,
       handler () {
-        this.update()
+        this.refresh()
       },
     },
   },
 
   mounted () {
-    this.$root.$on('metric.update', this.update)
-    this.$root.$on(`refetch-non-record-blocks:${this.page.pageID}`, this.update)
+    this.$root.$on('metric.update', this.refresh)
+    this.$root.$on(`refetch-non-record-blocks:${this.page.pageID}`, this.refresh)
   },
 
   beforeDestroy () {
-    this.$root.$off('metric.update', this.update)
+    this.$root.$off('metric.update', this.refresh)
     this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`)
+  },
+
+  created () {
+    this.refreshBlock(this.refresh)
   },
 
   methods: {
@@ -114,7 +118,7 @@ export default {
     /**
      * Pulls fresh data from the API
      */
-    async update () {
+    async refresh () {
       this.processing = true
 
       try {
@@ -146,6 +150,7 @@ export default {
         this.processing = false
       }
     },
+
   },
 }
 </script>

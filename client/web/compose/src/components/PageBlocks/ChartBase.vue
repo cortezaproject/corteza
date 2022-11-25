@@ -2,9 +2,11 @@
   <wrap
     v-bind="$props"
     v-on="$listeners"
+    @refreshBlock="refresh"
   >
     <chart-component
       v-if="chart"
+      :key="key"
       :chart="chart"
       :record="record"
       :reporter="reporter"
@@ -35,22 +37,28 @@ export default {
   },
 
   mounted () {
-    const { chartID } = this.options
-
-    if (chartID === NoID) {
-      return
-    }
-
-    const { namespaceID } = this.namespace
-    this.findChartByID({ chartID, namespaceID }).then((chart) => {
-      this.chart = chart
-    }).catch(this.toastErrorHandler(this.$t('chart.loadFailed')))
+    this.fetchChart()
+    this.refreshBlock(this.refresh, true)
   },
 
   methods: {
     ...mapActions({
       findChartByID: 'chart/findByID',
     }),
+
+    fetchChart (params = {}) {
+      const { chartID } = this.options
+
+      if (chartID === NoID) {
+        return
+      }
+
+      const { namespaceID } = this.namespace
+
+      this.findChartByID({ chartID, namespaceID, ...params }).then((chart) => {
+        this.chart = chart
+      }).catch(this.toastErrorHandler(this.$t('chart.loadFailed')))
+    },
 
     reporter (r) {
       const nr = { ...r }
@@ -72,6 +80,11 @@ export default {
       const { namespaceID } = this.namespace
       return this.$ComposeAPI.recordReport({ namespaceID, ...nr })
     },
+
+    refresh () {
+      this.fetchChart({ force: true })
+    },
   },
+
 }
 </script>

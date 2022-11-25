@@ -3,6 +3,7 @@ import { PageBlock, Registry } from '../base'
 import Feed, { FeedInput } from './feed'
 import { ReminderFeed } from './feed-reminder'
 import { RecordFeed } from './feed-record'
+import { Apply } from '../../../../cast'
 
 const kind = 'Calendar'
 
@@ -34,6 +35,7 @@ class CalendarOptions {
   public feeds: Array<Feed> = []
   public header: Partial<CalendarOptionsHeader> = {}
   public locale = 'en-gb'
+  public refreshRate = 0
 }
 
 /**
@@ -55,7 +57,7 @@ export class PageBlockCalendar extends PageBlock {
 
   applyOptions (o?: Partial<CalendarOptions>): void {
     if (!o) return
-
+    Apply(this.options, o, Number, 'refreshRate')
     this.options.defaultView = PageBlockCalendar.handleLegacyView(o.defaultView) || 'dayGridMonth'
     this.options.feeds = (o.feeds || []).map(f => new Feed(f))
     this.options.header = merge(

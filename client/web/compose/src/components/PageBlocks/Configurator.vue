@@ -69,6 +69,7 @@
             </b-input-group-append>
           </b-input-group>
         </b-form-group>
+
         <b-form-group
           for="color"
           :label="$t('general.headerStyle')"
@@ -80,14 +81,38 @@
           />
         </b-form-group>
 
-        <b-form-checkbox
-          v-model="block.style.wrap.kind"
-          value="card"
-          unchecked-value="plain"
-          switch
+        <b-form-group>
+          <b-form-checkbox
+            v-model="block.style.wrap.kind"
+            value="card"
+            unchecked-value="plain"
+            switch
+          >
+            {{ $t('general.wrap') }}
+          </b-form-checkbox>
+        </b-form-group>
+
+        <b-form-group
+          v-if="block.options.refreshRate !== undefined"
+          :label="$t('general.refresh.label')"
+          :description="$t('general.refresh.description')"
         >
-          {{ $t('general.wrap') }}
-        </b-form-checkbox>
+          <b-col
+            cols="12"
+            sm="3"
+            class="pl-0"
+          >
+            <b-input-group append="s">
+              <b-form-input
+                v-model="block.options.refreshRate"
+                type="number"
+                number
+                min="0"
+                @blur="updateRefresh"
+              />
+            </b-input-group>
+          </b-col>
+        </b-form-group>
       </div>
     </b-tab>
 
@@ -146,6 +171,13 @@ export default {
 
     isNew () {
       return this.block.blockID === NoID
+    },
+  },
+
+  methods: {
+    updateRefresh (e) {
+      // If value is less than 5 but greater than 0 make it 5. Otherwise value stays the same.
+      this.block.options.refreshRate = e.target.value < 5 && e.target.value > 0 ? 5 : e.target.value
     },
   },
 }

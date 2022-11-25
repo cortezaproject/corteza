@@ -25,7 +25,7 @@
           {{ field.label || field.name }}
           <hint
             :id="field.fieldID"
-            :text="(field.options.hint || {}).view || ''"
+            :text="((field.options.hint || {}).view || '')"
             class="d-inline-block"
           />
         </label>
