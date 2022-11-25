@@ -46,6 +46,11 @@ func TestConverter(t *testing.T) {
 				args: []any{"2022-07-21"},
 			},
 			{
+				qry:  `week('2022-07-21')`,
+				sql:  `TO_CHAR($1::TIMESTAMPTZ, $2)`,
+				args: []any{"2022-07-21", "IW"},
+			},
+			{
 				qry:  `time('2022-07-21 12:41')`,
 				sql:  `DATE_TRUNC('second', $1::TIME)::TIME`,
 				args: []any{"2022-07-21 12:41"},

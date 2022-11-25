@@ -230,6 +230,11 @@ var (
 				return exp.NewSQLFunctionExpression("DAY", args[0])
 			},
 		},
+		"week": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewSQLFunctionExpression("WEEK", args[0])
+			},
+		},
 		"date": {
 			Handler: func(args ...exp.Expression) exp.Expression {
 				return exp.NewSQLFunctionExpression("DATE", args[0])
