@@ -44,6 +44,7 @@
     </b-table-simple>
     <h6
       v-if="!sortableFilters.length"
+      data-test-id="no-filters"
       class="d-flex justify-content-center align-items-center mb-3"
     >
       {{ $t('filters.list.noFilters') }}

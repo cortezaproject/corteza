@@ -1,5 +1,6 @@
 <template>
   <b-card
+    data-test-id="card-requests"
     no-body
     class="shadow-sm mb-3"
     footer-class="d-flex align-items-center justify-content-center"
@@ -20,6 +21,7 @@
           {{ autoRefreshLabel }}
         </span>
         <b-button
+          data-test-id="button-refresh"
           variant="primary"
           :disabled="loading"
           class="ml-2"
@@ -63,6 +65,7 @@
         </template>
         <template #cell(actions)="row">
           <b-button
+            data-test-id="button-edit-route"
             size="sm"
             variant="link"
             class="p-0"
