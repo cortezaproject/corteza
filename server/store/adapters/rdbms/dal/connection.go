@@ -3,6 +3,7 @@ package dal
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza/server/pkg/options"
 	"sync"
 
 	"github.com/cortezaproject/corteza/server/pkg/errors"
@@ -161,12 +162,15 @@ func (c *connection) CreateModel(ctx context.Context, mm ...*dal.Model) (err err
 	c.mux.Lock()
 	defer c.mux.Unlock()
 	for _, m := range mm {
-		err = ddl.UpdateModel(ctx, c.dataDefiner, m)
+		_, err = c.dataDefiner.TableLookup(ctx, m.Ident)
 		if errors.IsNotFound(err) {
 			if err = ddl.CreateModel(ctx, c.dataDefiner, m); err != nil {
 				return
 			}
 		} else if err != nil {
+			return
+		}
+		if err = ddl.EnsureIndexes(ctx, c.dataDefiner, m.Indexes...); err != nil {
 			return
 		}
 
@@ -220,12 +224,62 @@ func (c *connection) UpdateModel(ctx context.Context, old *dal.Model, new *dal.M
 }
 
 // UpdateModelAttribute alters column on a db table and runs data transformations
-func (c *connection) UpdateModelAttribute(ctx context.Context, sch *dal.Model, old, new *dal.Attribute, trans ...dal.TransformationFunction) error {
-	// not raising not-supported error
-	// because we do not want to break
-	// DAL service model adding procedure
+func (c *connection) UpdateModelAttribute(ctx context.Context, sch *dal.Model, diff *dal.ModelDiff, hasRecords bool, trans ...dal.TransformationFunction) error {
+	// @todo apply transformations
 
-	// @todo implement model column altering
+	var (
+		sampleAttribute *dal.Attribute
+	)
+
+	// this is mainly for messages code-paths where we don't care which attribute provides the information
+	if diff.Original != nil {
+		sampleAttribute = diff.Original
+	} else {
+		sampleAttribute = diff.Inserted
+	}
+	if diff.Type == dal.AttributeCodecMismatch {
+		return fmt.Errorf("cannot alter storage codec of attribute %s from %v to %v. ", sampleAttribute.Ident, diff.Original.Store.Type(), diff.Inserted.Store.Type())
+	}
+	// we're guaranteed by the check above that both codecs are the same
+	if sampleAttribute.Store.Type() != (&dal.CodecPlain{}).Type() {
+		// no need to alter column since this is not a normal column. It's a value column.
+		// Don't raise not-supported error in order to keep feature parity with previous implementation.
+		// i.e. we don't want to break DAL service model adding procedure
+		return nil
+	}
+	if !options.DB().AllowDestructiveSchemaChanges {
+		return fmt.Errorf("cannot modify %s. Changing physical schemas is not yet supported", sampleAttribute.Ident)
+	}
+
+	// @todo don't use a string literal. Receive the name from somewhere else
+	if sch.Ident == "compose_record" {
+		return fmt.Errorf(`issue adding %s. Cannot modify the schema of the generic "compose_record" table. Try setting your table name to a non-default value`, sampleAttribute.Ident)
+	}
+
+	switch diff.Modification {
+	case dal.AttributeChanged:
+		if diff.Modification == dal.AttributeChanged {
+			// @todo implement model column altering
+			return fmt.Errorf("cannot alter %s, physical column modification is not yet supported", sampleAttribute.Ident)
+		}
+	case dal.AttributeAdded:
+		if !diff.Inserted.Type.IsNullable() && hasRecords {
+			return fmt.Errorf("cannot add non-nullable attribute %s since there are records in the table", diff.Inserted.Ident)
+		}
+		col, err := c.dataDefiner.ConvertAttribute(diff.Inserted)
+		if err != nil {
+			return err
+		}
+		err = c.dataDefiner.ColumnAdd(ctx, sch.Ident, col)
+		if err != nil {
+			return err
+		}
+	case dal.AttributeDeleted:
+		err := c.dataDefiner.ColumnDrop(ctx, sch.Ident, diff.Original.StoreIdent())
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

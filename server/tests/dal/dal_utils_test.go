@@ -39,7 +39,8 @@ type (
 		SearchModels(ctx context.Context) (out dal.ModelSet, err error)
 		ReplaceModel(ctx context.Context, model *dal.Model) (err error)
 		RemoveModel(ctx context.Context, connectionID, ID uint64) (err error)
-		ReplaceModelAttribute(ctx context.Context, model *dal.Model, old, new *dal.Attribute, trans ...dal.TransformationFunction) (err error)
+		ReplaceModelAttribute(ctx context.Context, model *dal.Model, diff *dal.ModelDiff, hasRecords bool, trans ...dal.TransformationFunction) (err error)
+
 		FindModelByResourceID(connectionID uint64, resourceID uint64) *dal.Model
 		FindModelByResourceIdent(connectionID uint64, resourceType, resourceIdent string) *dal.Model
 		FindModelByIdent(connectionID uint64, ident string) *dal.Model
