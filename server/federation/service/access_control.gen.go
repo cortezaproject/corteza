@@ -386,7 +386,8 @@ func rbacResourceValidator(r string, oo ...string) error {
 
 // resourceLoader loads resource from store
 //
-// function assumes existence of loader functions for all resource types
+// # Notes
+// Function assumes existence of loader functions for all resource types
 //
 // This function is auto-generated
 func (svc accessControl) resourceLoader(ctx context.Context, resource string) (rbac.Resource, error) {
@@ -463,6 +464,7 @@ func rbacResourceOperations(r string) map[string]bool {
 
 // rbacNodeResourceValidator checks validity of RBAC resource and operations
 //
+// # Notes
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
@@ -507,6 +509,7 @@ func rbacNodeResourceValidator(r string, oo ...string) error {
 
 // rbacExposedModuleResourceValidator checks validity of RBAC resource and operations
 //
+// # Notes
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
@@ -552,6 +555,7 @@ func rbacExposedModuleResourceValidator(r string, oo ...string) error {
 
 // rbacSharedModuleResourceValidator checks validity of RBAC resource and operations
 //
+// # Notes
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
@@ -597,6 +601,7 @@ func rbacSharedModuleResourceValidator(r string, oo ...string) error {
 
 // rbacComponentResourceValidator checks validity of RBAC resource and operations
 //
+// # Notes
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated

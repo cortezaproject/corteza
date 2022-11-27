@@ -54,10 +54,7 @@ var (
 // Props methods
 // setReport updates reportActionProps's report
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *reportActionProps) setReport(report *types.Report) *reportActionProps {
 	p.report = report
 	return p
@@ -65,10 +62,7 @@ func (p *reportActionProps) setReport(report *types.Report) *reportActionProps {
 
 // setNew updates reportActionProps's new
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *reportActionProps) setNew(new *types.Report) *reportActionProps {
 	p.new = new
 	return p
@@ -76,10 +70,7 @@ func (p *reportActionProps) setNew(new *types.Report) *reportActionProps {
 
 // setUpdate updates reportActionProps's update
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *reportActionProps) setUpdate(update *types.Report) *reportActionProps {
 	p.update = update
 	return p
@@ -87,10 +78,7 @@ func (p *reportActionProps) setUpdate(update *types.Report) *reportActionProps {
 
 // setFilter updates reportActionProps's filter
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *reportActionProps) setFilter(filter *types.ReportFilter) *reportActionProps {
 	p.filter = filter
 	return p
@@ -99,7 +87,6 @@ func (p *reportActionProps) setFilter(filter *types.ReportFilter) *reportActionP
 // Serialize converts reportActionProps to actionlog.Meta
 //
 // This function is auto-generated.
-//
 func (p reportActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -129,7 +116,6 @@ func (p reportActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
-//
 func (p reportActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -218,7 +204,6 @@ func (p reportActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
-//
 func (a *reportAction) String() string {
 	var props = &reportActionProps{}
 
@@ -246,7 +231,6 @@ func (e *reportAction) ToAction() *actionlog.Action {
 // ReportActionSearch returns "system:report.search" action
 //
 // This function is auto-generated.
-//
 func ReportActionSearch(props ...*reportActionProps) *reportAction {
 	a := &reportAction{
 		timestamp: time.Now(),
@@ -266,7 +250,6 @@ func ReportActionSearch(props ...*reportActionProps) *reportAction {
 // ReportActionLookup returns "system:report.lookup" action
 //
 // This function is auto-generated.
-//
 func ReportActionLookup(props ...*reportActionProps) *reportAction {
 	a := &reportAction{
 		timestamp: time.Now(),
@@ -286,7 +269,6 @@ func ReportActionLookup(props ...*reportActionProps) *reportAction {
 // ReportActionCreate returns "system:report.create" action
 //
 // This function is auto-generated.
-//
 func ReportActionCreate(props ...*reportActionProps) *reportAction {
 	a := &reportAction{
 		timestamp: time.Now(),
@@ -306,7 +288,6 @@ func ReportActionCreate(props ...*reportActionProps) *reportAction {
 // ReportActionUpdate returns "system:report.update" action
 //
 // This function is auto-generated.
-//
 func ReportActionUpdate(props ...*reportActionProps) *reportAction {
 	a := &reportAction{
 		timestamp: time.Now(),
@@ -326,7 +307,6 @@ func ReportActionUpdate(props ...*reportActionProps) *reportAction {
 // ReportActionDelete returns "system:report.delete" action
 //
 // This function is auto-generated.
-//
 func ReportActionDelete(props ...*reportActionProps) *reportAction {
 	a := &reportAction{
 		timestamp: time.Now(),
@@ -346,7 +326,6 @@ func ReportActionDelete(props ...*reportActionProps) *reportAction {
 // ReportActionUndelete returns "system:report.undelete" action
 //
 // This function is auto-generated.
-//
 func ReportActionUndelete(props ...*reportActionProps) *reportAction {
 	a := &reportAction{
 		timestamp: time.Now(),
@@ -366,7 +345,6 @@ func ReportActionUndelete(props ...*reportActionProps) *reportAction {
 // ReportActionRun returns "system:report.run" action
 //
 // This function is auto-generated.
-//
 func ReportActionRun(props ...*reportActionProps) *reportAction {
 	a := &reportAction{
 		timestamp: time.Now(),
@@ -389,9 +367,7 @@ func ReportActionRun(props ...*reportActionProps) *reportAction {
 
 // ReportErrGeneric returns "system:report.generic" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ReportErrGeneric(mm ...*reportActionProps) *errors.Error {
 	var p = &reportActionProps{}
 	if len(mm) > 0 {
@@ -425,9 +401,7 @@ func ReportErrGeneric(mm ...*reportActionProps) *errors.Error {
 
 // ReportErrNotFound returns "system:report.notFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ReportErrNotFound(mm ...*reportActionProps) *errors.Error {
 	var p = &reportActionProps{}
 	if len(mm) > 0 {
@@ -459,9 +433,7 @@ func ReportErrNotFound(mm ...*reportActionProps) *errors.Error {
 
 // ReportErrInvalidID returns "system:report.invalidID" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ReportErrInvalidID(mm ...*reportActionProps) *errors.Error {
 	var p = &reportActionProps{}
 	if len(mm) > 0 {
@@ -493,9 +465,7 @@ func ReportErrInvalidID(mm ...*reportActionProps) *errors.Error {
 
 // ReportErrNotAllowedToRead returns "system:report.notAllowedToRead" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ReportErrNotAllowedToRead(mm ...*reportActionProps) *errors.Error {
 	var p = &reportActionProps{}
 	if len(mm) > 0 {
@@ -529,9 +499,7 @@ func ReportErrNotAllowedToRead(mm ...*reportActionProps) *errors.Error {
 
 // ReportErrNotAllowedToSearch returns "system:report.notAllowedToSearch" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ReportErrNotAllowedToSearch(mm ...*reportActionProps) *errors.Error {
 	var p = &reportActionProps{}
 	if len(mm) > 0 {
@@ -565,9 +533,7 @@ func ReportErrNotAllowedToSearch(mm ...*reportActionProps) *errors.Error {
 
 // ReportErrNotAllowedToListReports returns "system:report.notAllowedToListReports" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ReportErrNotAllowedToListReports(mm ...*reportActionProps) *errors.Error {
 	var p = &reportActionProps{}
 	if len(mm) > 0 {
@@ -601,9 +567,7 @@ func ReportErrNotAllowedToListReports(mm ...*reportActionProps) *errors.Error {
 
 // ReportErrNotAllowedToCreate returns "system:report.notAllowedToCreate" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ReportErrNotAllowedToCreate(mm ...*reportActionProps) *errors.Error {
 	var p = &reportActionProps{}
 	if len(mm) > 0 {
@@ -637,9 +601,7 @@ func ReportErrNotAllowedToCreate(mm ...*reportActionProps) *errors.Error {
 
 // ReportErrNotAllowedToUpdate returns "system:report.notAllowedToUpdate" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ReportErrNotAllowedToUpdate(mm ...*reportActionProps) *errors.Error {
 	var p = &reportActionProps{}
 	if len(mm) > 0 {
@@ -673,9 +635,7 @@ func ReportErrNotAllowedToUpdate(mm ...*reportActionProps) *errors.Error {
 
 // ReportErrNotAllowedToDelete returns "system:report.notAllowedToDelete" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ReportErrNotAllowedToDelete(mm ...*reportActionProps) *errors.Error {
 	var p = &reportActionProps{}
 	if len(mm) > 0 {
@@ -709,9 +669,7 @@ func ReportErrNotAllowedToDelete(mm ...*reportActionProps) *errors.Error {
 
 // ReportErrNotAllowedToUndelete returns "system:report.notAllowedToUndelete" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ReportErrNotAllowedToUndelete(mm ...*reportActionProps) *errors.Error {
 	var p = &reportActionProps{}
 	if len(mm) > 0 {
@@ -745,9 +703,7 @@ func ReportErrNotAllowedToUndelete(mm ...*reportActionProps) *errors.Error {
 
 // ReportErrNotAllowedToRun returns "system:report.notAllowedToRun" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ReportErrNotAllowedToRun(mm ...*reportActionProps) *errors.Error {
 	var p = &reportActionProps{}
 	if len(mm) > 0 {
@@ -781,9 +737,7 @@ func ReportErrNotAllowedToRun(mm ...*reportActionProps) *errors.Error {
 
 // ReportErrInvalidConfiguration returns "system:report.invalidConfiguration" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ReportErrInvalidConfiguration(mm ...*reportActionProps) *errors.Error {
 	var p = &reportActionProps{}
 	if len(mm) > 0 {
@@ -823,7 +777,6 @@ func ReportErrInvalidConfiguration(mm ...*reportActionProps) *errors.Error {
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-//
 func (svc report) recordAction(ctx context.Context, props *reportActionProps, actionFn func(...*reportActionProps) *reportAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

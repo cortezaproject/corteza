@@ -60,8 +60,6 @@ var (
 {{- range $prop := $.Props }}
 // {{ camelCase "set" $prop.Name }} updates {{ $.Service }}ActionProps's {{ $prop.Name }}
 //
-// Allows method chaining
-//
 // This function is auto-generated.
 //
 func (p *{{ $.Service }}ActionProps) {{ camelCase "set" $prop.Name }}({{ $prop.Name }} {{ $prop.Type }}) *{{ $.Service }}ActionProps {

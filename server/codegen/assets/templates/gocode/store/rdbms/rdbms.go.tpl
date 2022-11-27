@@ -513,6 +513,7 @@ func (s *Store) Query{{ .expIdentPlural }}(
 {{ with .api.sortableFields }}
 // {{ .fnIdent }} returns all {{ .expIdent }} columns flagged as sortable
 //
+// # Notes
 // With optional string arg, all columns are returned aliased
 //
 // This function is auto-generated
@@ -532,9 +533,10 @@ func (Store) {{ .fnIdent }}() map[string]string {
 // Values that are collected must come from sortable, unique or primary columns/fields
 // At least one of the collected columns must be flagged as unique, otherwise fn appends primary keys at the end
 //
-// Known issue:
-//   when collecting cursor values for query that sorts by unique column with partial index (ie: unique handle on
-//   undeleted items)
+// # Known issues:
+//
+// When collecting cursor values for query that sorts by unique column with partial index (ie: unique handle on
+// undeleted items)
 //
 // This function is auto-generated
 func (s *Store) {{ .fnIdent }}(res *{{ .goType }}, cc ...*filter.SortExpr) *filter.PagingCursor {

@@ -695,7 +695,8 @@ func rbacResourceValidator(r string, oo ...string) error {
 
 // resourceLoader loads resource from store
 //
-// function assumes existence of loader functions for all resource types
+// # Notes
+// Function assumes existence of loader functions for all resource types
 //
 // This function is auto-generated
 func (svc accessControl) resourceLoader(ctx context.Context, resource string) (rbac.Resource, error) {
@@ -824,6 +825,7 @@ func rbacResourceOperations(r string) map[string]bool {
 
 // rbacChartResourceValidator checks validity of RBAC resource and operations
 //
+// # Notes
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
@@ -869,6 +871,7 @@ func rbacChartResourceValidator(r string, oo ...string) error {
 
 // rbacModuleResourceValidator checks validity of RBAC resource and operations
 //
+// # Notes
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
@@ -914,6 +917,7 @@ func rbacModuleResourceValidator(r string, oo ...string) error {
 
 // rbacModuleFieldResourceValidator checks validity of RBAC resource and operations
 //
+// # Notes
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
@@ -960,6 +964,7 @@ func rbacModuleFieldResourceValidator(r string, oo ...string) error {
 
 // rbacNamespaceResourceValidator checks validity of RBAC resource and operations
 //
+// # Notes
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
@@ -1004,6 +1009,7 @@ func rbacNamespaceResourceValidator(r string, oo ...string) error {
 
 // rbacPageResourceValidator checks validity of RBAC resource and operations
 //
+// # Notes
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
@@ -1049,6 +1055,7 @@ func rbacPageResourceValidator(r string, oo ...string) error {
 
 // rbacRecordResourceValidator checks validity of RBAC resource and operations
 //
+// # Notes
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
@@ -1095,6 +1102,7 @@ func rbacRecordResourceValidator(r string, oo ...string) error {
 
 // rbacComponentResourceValidator checks validity of RBAC resource and operations
 //
+// # Notes
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated

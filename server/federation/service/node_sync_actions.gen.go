@@ -52,10 +52,7 @@ var (
 // Props methods
 // setNodeSync updates nodeSyncActionProps's nodeSync
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *nodeSyncActionProps) setNodeSync(nodeSync *types.NodeSync) *nodeSyncActionProps {
 	p.nodeSync = nodeSync
 	return p
@@ -63,10 +60,7 @@ func (p *nodeSyncActionProps) setNodeSync(nodeSync *types.NodeSync) *nodeSyncAct
 
 // setNodeSyncFilter updates nodeSyncActionProps's nodeSyncFilter
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *nodeSyncActionProps) setNodeSyncFilter(nodeSyncFilter *types.NodeSyncFilter) *nodeSyncActionProps {
 	p.nodeSyncFilter = nodeSyncFilter
 	return p
@@ -75,7 +69,6 @@ func (p *nodeSyncActionProps) setNodeSyncFilter(nodeSyncFilter *types.NodeSyncFi
 // Serialize converts nodeSyncActionProps to actionlog.Meta
 //
 // This function is auto-generated.
-//
 func (p nodeSyncActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -97,7 +90,6 @@ func (p nodeSyncActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
-//
 func (p nodeSyncActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -158,7 +150,6 @@ func (p nodeSyncActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
-//
 func (a *nodeSyncAction) String() string {
 	var props = &nodeSyncActionProps{}
 
@@ -186,7 +177,6 @@ func (e *nodeSyncAction) ToAction() *actionlog.Action {
 // NodeSyncActionLookup returns "federation:node_sync.lookup" action
 //
 // This function is auto-generated.
-//
 func NodeSyncActionLookup(props ...*nodeSyncActionProps) *nodeSyncAction {
 	a := &nodeSyncAction{
 		timestamp: time.Now(),
@@ -206,7 +196,6 @@ func NodeSyncActionLookup(props ...*nodeSyncActionProps) *nodeSyncAction {
 // NodeSyncActionCreate returns "federation:node_sync.create" action
 //
 // This function is auto-generated.
-//
 func NodeSyncActionCreate(props ...*nodeSyncActionProps) *nodeSyncAction {
 	a := &nodeSyncAction{
 		timestamp: time.Now(),
@@ -229,9 +218,7 @@ func NodeSyncActionCreate(props ...*nodeSyncActionProps) *nodeSyncAction {
 
 // NodeSyncErrGeneric returns "federation:node_sync.generic" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NodeSyncErrGeneric(mm ...*nodeSyncActionProps) *errors.Error {
 	var p = &nodeSyncActionProps{}
 	if len(mm) > 0 {
@@ -265,9 +252,7 @@ func NodeSyncErrGeneric(mm ...*nodeSyncActionProps) *errors.Error {
 
 // NodeSyncErrNotFound returns "federation:node_sync.notFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NodeSyncErrNotFound(mm ...*nodeSyncActionProps) *errors.Error {
 	var p = &nodeSyncActionProps{}
 	if len(mm) > 0 {
@@ -299,9 +284,7 @@ func NodeSyncErrNotFound(mm ...*nodeSyncActionProps) *errors.Error {
 
 // NodeSyncErrNodeNotFound returns "federation:node_sync.nodeNotFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NodeSyncErrNodeNotFound(mm ...*nodeSyncActionProps) *errors.Error {
 	var p = &nodeSyncActionProps{}
 	if len(mm) > 0 {
@@ -339,7 +322,6 @@ func NodeSyncErrNodeNotFound(mm ...*nodeSyncActionProps) *errors.Error {
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-//
 func (svc nodeSync) recordAction(ctx context.Context, props *nodeSyncActionProps, actionFn func(...*nodeSyncActionProps) *nodeSyncAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

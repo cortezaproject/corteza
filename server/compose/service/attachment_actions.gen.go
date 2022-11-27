@@ -60,10 +60,7 @@ var (
 // Props methods
 // setSize updates attachmentActionProps's size
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *attachmentActionProps) setSize(size int64) *attachmentActionProps {
 	p.size = size
 	return p
@@ -71,10 +68,7 @@ func (p *attachmentActionProps) setSize(size int64) *attachmentActionProps {
 
 // setName updates attachmentActionProps's name
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *attachmentActionProps) setName(name string) *attachmentActionProps {
 	p.name = name
 	return p
@@ -82,10 +76,7 @@ func (p *attachmentActionProps) setName(name string) *attachmentActionProps {
 
 // setMimetype updates attachmentActionProps's mimetype
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *attachmentActionProps) setMimetype(mimetype string) *attachmentActionProps {
 	p.mimetype = mimetype
 	return p
@@ -93,10 +84,7 @@ func (p *attachmentActionProps) setMimetype(mimetype string) *attachmentActionPr
 
 // setUrl updates attachmentActionProps's url
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *attachmentActionProps) setUrl(url string) *attachmentActionProps {
 	p.url = url
 	return p
@@ -104,10 +92,7 @@ func (p *attachmentActionProps) setUrl(url string) *attachmentActionProps {
 
 // setAttachment updates attachmentActionProps's attachment
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *attachmentActionProps) setAttachment(attachment *types.Attachment) *attachmentActionProps {
 	p.attachment = attachment
 	return p
@@ -115,10 +100,7 @@ func (p *attachmentActionProps) setAttachment(attachment *types.Attachment) *att
 
 // setFilter updates attachmentActionProps's filter
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *attachmentActionProps) setFilter(filter *types.AttachmentFilter) *attachmentActionProps {
 	p.filter = filter
 	return p
@@ -126,10 +108,7 @@ func (p *attachmentActionProps) setFilter(filter *types.AttachmentFilter) *attac
 
 // setNamespace updates attachmentActionProps's namespace
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *attachmentActionProps) setNamespace(namespace *types.Namespace) *attachmentActionProps {
 	p.namespace = namespace
 	return p
@@ -137,10 +116,7 @@ func (p *attachmentActionProps) setNamespace(namespace *types.Namespace) *attach
 
 // setRecord updates attachmentActionProps's record
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *attachmentActionProps) setRecord(record *types.Record) *attachmentActionProps {
 	p.record = record
 	return p
@@ -148,10 +124,7 @@ func (p *attachmentActionProps) setRecord(record *types.Record) *attachmentActio
 
 // setPage updates attachmentActionProps's page
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *attachmentActionProps) setPage(page *types.Page) *attachmentActionProps {
 	p.page = page
 	return p
@@ -159,10 +132,7 @@ func (p *attachmentActionProps) setPage(page *types.Page) *attachmentActionProps
 
 // setModule updates attachmentActionProps's module
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *attachmentActionProps) setModule(module *types.Module) *attachmentActionProps {
 	p.module = module
 	return p
@@ -171,7 +141,6 @@ func (p *attachmentActionProps) setModule(module *types.Module) *attachmentActio
 // Serialize converts attachmentActionProps to actionlog.Meta
 //
 // This function is auto-generated.
-//
 func (p attachmentActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -223,7 +192,6 @@ func (p attachmentActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
-//
 func (p attachmentActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -364,7 +332,6 @@ func (p attachmentActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
-//
 func (a *attachmentAction) String() string {
 	var props = &attachmentActionProps{}
 
@@ -392,7 +359,6 @@ func (e *attachmentAction) ToAction() *actionlog.Action {
 // AttachmentActionSearch returns "compose:attachment.search" action
 //
 // This function is auto-generated.
-//
 func AttachmentActionSearch(props ...*attachmentActionProps) *attachmentAction {
 	a := &attachmentAction{
 		timestamp: time.Now(),
@@ -412,7 +378,6 @@ func AttachmentActionSearch(props ...*attachmentActionProps) *attachmentAction {
 // AttachmentActionLookup returns "compose:attachment.lookup" action
 //
 // This function is auto-generated.
-//
 func AttachmentActionLookup(props ...*attachmentActionProps) *attachmentAction {
 	a := &attachmentAction{
 		timestamp: time.Now(),
@@ -432,7 +397,6 @@ func AttachmentActionLookup(props ...*attachmentActionProps) *attachmentAction {
 // AttachmentActionCreate returns "compose:attachment.create" action
 //
 // This function is auto-generated.
-//
 func AttachmentActionCreate(props ...*attachmentActionProps) *attachmentAction {
 	a := &attachmentAction{
 		timestamp: time.Now(),
@@ -452,7 +416,6 @@ func AttachmentActionCreate(props ...*attachmentActionProps) *attachmentAction {
 // AttachmentActionDelete returns "compose:attachment.delete" action
 //
 // This function is auto-generated.
-//
 func AttachmentActionDelete(props ...*attachmentActionProps) *attachmentAction {
 	a := &attachmentAction{
 		timestamp: time.Now(),
@@ -475,9 +438,7 @@ func AttachmentActionDelete(props ...*attachmentActionProps) *attachmentAction {
 
 // AttachmentErrGeneric returns "compose:attachment.generic" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrGeneric(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -511,9 +472,7 @@ func AttachmentErrGeneric(mm ...*attachmentActionProps) *errors.Error {
 
 // AttachmentErrNotFound returns "compose:attachment.notFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrNotFound(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -545,9 +504,7 @@ func AttachmentErrNotFound(mm ...*attachmentActionProps) *errors.Error {
 
 // AttachmentErrNamespaceNotFound returns "compose:attachment.namespaceNotFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrNamespaceNotFound(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -579,9 +536,7 @@ func AttachmentErrNamespaceNotFound(mm ...*attachmentActionProps) *errors.Error 
 
 // AttachmentErrModuleNotFound returns "compose:attachment.moduleNotFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrModuleNotFound(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -613,9 +568,7 @@ func AttachmentErrModuleNotFound(mm ...*attachmentActionProps) *errors.Error {
 
 // AttachmentErrPageNotFound returns "compose:attachment.pageNotFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrPageNotFound(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -647,9 +600,7 @@ func AttachmentErrPageNotFound(mm ...*attachmentActionProps) *errors.Error {
 
 // AttachmentErrRecordNotFound returns "compose:attachment.recordNotFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrRecordNotFound(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -681,9 +632,7 @@ func AttachmentErrRecordNotFound(mm ...*attachmentActionProps) *errors.Error {
 
 // AttachmentErrInvalidID returns "compose:attachment.invalidID" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrInvalidID(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -715,9 +664,7 @@ func AttachmentErrInvalidID(mm ...*attachmentActionProps) *errors.Error {
 
 // AttachmentErrInvalidNamespaceID returns "compose:attachment.invalidNamespaceID" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrInvalidNamespaceID(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -749,9 +696,7 @@ func AttachmentErrInvalidNamespaceID(mm ...*attachmentActionProps) *errors.Error
 
 // AttachmentErrInvalidModuleID returns "compose:attachment.invalidModuleID" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrInvalidModuleID(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -783,9 +728,7 @@ func AttachmentErrInvalidModuleID(mm ...*attachmentActionProps) *errors.Error {
 
 // AttachmentErrInvalidModuleField returns "compose:attachment.invalidModuleField" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrInvalidModuleField(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -817,9 +760,7 @@ func AttachmentErrInvalidModuleField(mm ...*attachmentActionProps) *errors.Error
 
 // AttachmentErrInvalidPageID returns "compose:attachment.invalidPageID" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrInvalidPageID(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -851,9 +792,7 @@ func AttachmentErrInvalidPageID(mm ...*attachmentActionProps) *errors.Error {
 
 // AttachmentErrInvalidRecordID returns "compose:attachment.invalidRecordID" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrInvalidRecordID(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -885,9 +824,7 @@ func AttachmentErrInvalidRecordID(mm ...*attachmentActionProps) *errors.Error {
 
 // AttachmentErrTooLarge returns "compose:attachment.tooLarge" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrTooLarge(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -921,9 +858,7 @@ func AttachmentErrTooLarge(mm ...*attachmentActionProps) *errors.Error {
 
 // AttachmentErrNotAllowedToUploadThisType returns "compose:attachment.notAllowedToUploadThisType" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrNotAllowedToUploadThisType(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -957,9 +892,7 @@ func AttachmentErrNotAllowedToUploadThisType(mm ...*attachmentActionProps) *erro
 
 // AttachmentErrNotAllowedToListAttachments returns "compose:attachment.notAllowedToListAttachments" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrNotAllowedToListAttachments(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -993,9 +926,7 @@ func AttachmentErrNotAllowedToListAttachments(mm ...*attachmentActionProps) *err
 
 // AttachmentErrNotAllowedToCreate returns "compose:attachment.notAllowedToCreate" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrNotAllowedToCreate(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -1029,9 +960,7 @@ func AttachmentErrNotAllowedToCreate(mm ...*attachmentActionProps) *errors.Error
 
 // AttachmentErrNotAllowedToCreateEmptyAttachment returns "compose:attachment.notAllowedToCreateEmptyAttachment" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrNotAllowedToCreateEmptyAttachment(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -1065,9 +994,7 @@ func AttachmentErrNotAllowedToCreateEmptyAttachment(mm ...*attachmentActionProps
 
 // AttachmentErrFailedToExtractMimeType returns "compose:attachment.failedToExtractMimeType" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrFailedToExtractMimeType(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -1099,9 +1026,7 @@ func AttachmentErrFailedToExtractMimeType(mm ...*attachmentActionProps) *errors.
 
 // AttachmentErrFailedToStoreFile returns "compose:attachment.failedToStoreFile" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrFailedToStoreFile(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -1133,9 +1058,7 @@ func AttachmentErrFailedToStoreFile(mm ...*attachmentActionProps) *errors.Error 
 
 // AttachmentErrFailedToProcessImage returns "compose:attachment.failedToProcessImage" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrFailedToProcessImage(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -1167,9 +1090,7 @@ func AttachmentErrFailedToProcessImage(mm ...*attachmentActionProps) *errors.Err
 
 // AttachmentErrNotAllowedToRead returns "compose:attachment.notAllowedToRead" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrNotAllowedToRead(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -1203,9 +1124,7 @@ func AttachmentErrNotAllowedToRead(mm ...*attachmentActionProps) *errors.Error {
 
 // AttachmentErrNotAllowedToSearch returns "compose:attachment.notAllowedToSearch" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrNotAllowedToSearch(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -1239,9 +1158,7 @@ func AttachmentErrNotAllowedToSearch(mm ...*attachmentActionProps) *errors.Error
 
 // AttachmentErrNotAllowedToReadNamespace returns "compose:attachment.notAllowedToReadNamespace" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrNotAllowedToReadNamespace(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -1275,9 +1192,7 @@ func AttachmentErrNotAllowedToReadNamespace(mm ...*attachmentActionProps) *error
 
 // AttachmentErrNotAllowedToReadPage returns "compose:attachment.notAllowedToReadPage" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrNotAllowedToReadPage(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -1311,9 +1226,7 @@ func AttachmentErrNotAllowedToReadPage(mm ...*attachmentActionProps) *errors.Err
 
 // AttachmentErrNotAllowedToReadRecord returns "compose:attachment.notAllowedToReadRecord" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrNotAllowedToReadRecord(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -1347,9 +1260,7 @@ func AttachmentErrNotAllowedToReadRecord(mm ...*attachmentActionProps) *errors.E
 
 // AttachmentErrNotAllowedToUpdatePage returns "compose:attachment.notAllowedToUpdatePage" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrNotAllowedToUpdatePage(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -1383,9 +1294,7 @@ func AttachmentErrNotAllowedToUpdatePage(mm ...*attachmentActionProps) *errors.E
 
 // AttachmentErrNotAllowedToCreateRecords returns "compose:attachment.notAllowedToCreateRecords" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrNotAllowedToCreateRecords(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -1419,9 +1328,7 @@ func AttachmentErrNotAllowedToCreateRecords(mm ...*attachmentActionProps) *error
 
 // AttachmentErrNotAllowedToUpdateRecord returns "compose:attachment.notAllowedToUpdateRecord" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrNotAllowedToUpdateRecord(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -1455,9 +1362,7 @@ func AttachmentErrNotAllowedToUpdateRecord(mm ...*attachmentActionProps) *errors
 
 // AttachmentErrNotAllowedToUpdateNamespace returns "compose:attachment.notAllowedToUpdateNamespace" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AttachmentErrNotAllowedToUpdateNamespace(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -1497,7 +1402,6 @@ func AttachmentErrNotAllowedToUpdateNamespace(mm ...*attachmentActionProps) *err
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-//
 func (svc attachment) recordAction(ctx context.Context, props *attachmentActionProps, actionFn func(...*attachmentActionProps) *attachmentAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

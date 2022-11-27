@@ -55,10 +55,7 @@ var (
 // Props methods
 // setMail updates notificationActionProps's mail
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *notificationActionProps) setMail(mail *types.EmailNotification) *notificationActionProps {
 	p.mail = mail
 	return p
@@ -66,10 +63,7 @@ func (p *notificationActionProps) setMail(mail *types.EmailNotification) *notifi
 
 // setRecipient updates notificationActionProps's recipient
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *notificationActionProps) setRecipient(recipient string) *notificationActionProps {
 	p.recipient = recipient
 	return p
@@ -77,10 +71,7 @@ func (p *notificationActionProps) setRecipient(recipient string) *notificationAc
 
 // setAttachmentURL updates notificationActionProps's attachmentURL
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *notificationActionProps) setAttachmentURL(attachmentURL string) *notificationActionProps {
 	p.attachmentURL = attachmentURL
 	return p
@@ -88,10 +79,7 @@ func (p *notificationActionProps) setAttachmentURL(attachmentURL string) *notifi
 
 // setAttachmentSize updates notificationActionProps's attachmentSize
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *notificationActionProps) setAttachmentSize(attachmentSize int64) *notificationActionProps {
 	p.attachmentSize = attachmentSize
 	return p
@@ -99,10 +87,7 @@ func (p *notificationActionProps) setAttachmentSize(attachmentSize int64) *notif
 
 // setAttachmentType updates notificationActionProps's attachmentType
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *notificationActionProps) setAttachmentType(attachmentType string) *notificationActionProps {
 	p.attachmentType = attachmentType
 	return p
@@ -111,7 +96,6 @@ func (p *notificationActionProps) setAttachmentType(attachmentType string) *noti
 // Serialize converts notificationActionProps to actionlog.Meta
 //
 // This function is auto-generated.
-//
 func (p notificationActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -137,7 +121,6 @@ func (p notificationActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
-//
 func (p notificationActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -196,7 +179,6 @@ func (p notificationActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
-//
 func (a *notificationAction) String() string {
 	var props = &notificationActionProps{}
 
@@ -224,7 +206,6 @@ func (e *notificationAction) ToAction() *actionlog.Action {
 // NotificationActionSend returns "compose:notification.send" action
 //
 // This function is auto-generated.
-//
 func NotificationActionSend(props ...*notificationActionProps) *notificationAction {
 	a := &notificationAction{
 		timestamp: time.Now(),
@@ -244,7 +225,6 @@ func NotificationActionSend(props ...*notificationActionProps) *notificationActi
 // NotificationActionAttachmentDownload returns "compose:notification.attachmentDownload" action
 //
 // This function is auto-generated.
-//
 func NotificationActionAttachmentDownload(props ...*notificationActionProps) *notificationAction {
 	a := &notificationAction{
 		timestamp: time.Now(),
@@ -267,9 +247,7 @@ func NotificationActionAttachmentDownload(props ...*notificationActionProps) *no
 
 // NotificationErrGeneric returns "compose:notification.generic" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NotificationErrGeneric(mm ...*notificationActionProps) *errors.Error {
 	var p = &notificationActionProps{}
 	if len(mm) > 0 {
@@ -303,9 +281,7 @@ func NotificationErrGeneric(mm ...*notificationActionProps) *errors.Error {
 
 // NotificationErrFailedToLoadUser returns "compose:notification.failedToLoadUser" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NotificationErrFailedToLoadUser(mm ...*notificationActionProps) *errors.Error {
 	var p = &notificationActionProps{}
 	if len(mm) > 0 {
@@ -337,9 +313,7 @@ func NotificationErrFailedToLoadUser(mm ...*notificationActionProps) *errors.Err
 
 // NotificationErrInvalidReceipientFormat returns "compose:notification.invalidReceipientFormat" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NotificationErrInvalidReceipientFormat(mm ...*notificationActionProps) *errors.Error {
 	var p = &notificationActionProps{}
 	if len(mm) > 0 {
@@ -371,9 +345,7 @@ func NotificationErrInvalidReceipientFormat(mm ...*notificationActionProps) *err
 
 // NotificationErrNoRecipients returns "compose:notification.noRecipients" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NotificationErrNoRecipients(mm ...*notificationActionProps) *errors.Error {
 	var p = &notificationActionProps{}
 	if len(mm) > 0 {
@@ -405,9 +377,7 @@ func NotificationErrNoRecipients(mm ...*notificationActionProps) *errors.Error {
 
 // NotificationErrFailedToDownloadAttachment returns "compose:notification.failedToDownloadAttachment" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NotificationErrFailedToDownloadAttachment(mm ...*notificationActionProps) *errors.Error {
 	var p = &notificationActionProps{}
 	if len(mm) > 0 {
@@ -445,7 +415,6 @@ func NotificationErrFailedToDownloadAttachment(mm ...*notificationActionProps) *
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-//
 func (svc notification) recordAction(ctx context.Context, props *notificationActionProps, actionFn func(...*notificationActionProps) *notificationAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
