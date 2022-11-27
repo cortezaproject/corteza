@@ -54,10 +54,7 @@ var (
 // Props methods
 // setNamespace updates namespaceActionProps's namespace
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *namespaceActionProps) setNamespace(namespace *types.Namespace) *namespaceActionProps {
 	p.namespace = namespace
 	return p
@@ -65,10 +62,7 @@ func (p *namespaceActionProps) setNamespace(namespace *types.Namespace) *namespa
 
 // setChanged updates namespaceActionProps's changed
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *namespaceActionProps) setChanged(changed *types.Namespace) *namespaceActionProps {
 	p.changed = changed
 	return p
@@ -76,10 +70,7 @@ func (p *namespaceActionProps) setChanged(changed *types.Namespace) *namespaceAc
 
 // setArchiveFormat updates namespaceActionProps's archiveFormat
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *namespaceActionProps) setArchiveFormat(archiveFormat string) *namespaceActionProps {
 	p.archiveFormat = archiveFormat
 	return p
@@ -87,10 +78,7 @@ func (p *namespaceActionProps) setArchiveFormat(archiveFormat string) *namespace
 
 // setFilter updates namespaceActionProps's filter
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *namespaceActionProps) setFilter(filter *types.NamespaceFilter) *namespaceActionProps {
 	p.filter = filter
 	return p
@@ -99,7 +87,6 @@ func (p *namespaceActionProps) setFilter(filter *types.NamespaceFilter) *namespa
 // Serialize converts namespaceActionProps to actionlog.Meta
 //
 // This function is auto-generated.
-//
 func (p namespaceActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -132,7 +119,6 @@ func (p namespaceActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
-//
 func (p namespaceActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -220,7 +206,6 @@ func (p namespaceActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
-//
 func (a *namespaceAction) String() string {
 	var props = &namespaceActionProps{}
 
@@ -248,7 +233,6 @@ func (e *namespaceAction) ToAction() *actionlog.Action {
 // NamespaceActionSearch returns "compose:namespace.search" action
 //
 // This function is auto-generated.
-//
 func NamespaceActionSearch(props ...*namespaceActionProps) *namespaceAction {
 	a := &namespaceAction{
 		timestamp: time.Now(),
@@ -268,7 +252,6 @@ func NamespaceActionSearch(props ...*namespaceActionProps) *namespaceAction {
 // NamespaceActionLookup returns "compose:namespace.lookup" action
 //
 // This function is auto-generated.
-//
 func NamespaceActionLookup(props ...*namespaceActionProps) *namespaceAction {
 	a := &namespaceAction{
 		timestamp: time.Now(),
@@ -288,7 +271,6 @@ func NamespaceActionLookup(props ...*namespaceActionProps) *namespaceAction {
 // NamespaceActionCreate returns "compose:namespace.create" action
 //
 // This function is auto-generated.
-//
 func NamespaceActionCreate(props ...*namespaceActionProps) *namespaceAction {
 	a := &namespaceAction{
 		timestamp: time.Now(),
@@ -308,7 +290,6 @@ func NamespaceActionCreate(props ...*namespaceActionProps) *namespaceAction {
 // NamespaceActionUpdate returns "compose:namespace.update" action
 //
 // This function is auto-generated.
-//
 func NamespaceActionUpdate(props ...*namespaceActionProps) *namespaceAction {
 	a := &namespaceAction{
 		timestamp: time.Now(),
@@ -328,7 +309,6 @@ func NamespaceActionUpdate(props ...*namespaceActionProps) *namespaceAction {
 // NamespaceActionClone returns "compose:namespace.clone" action
 //
 // This function is auto-generated.
-//
 func NamespaceActionClone(props ...*namespaceActionProps) *namespaceAction {
 	a := &namespaceAction{
 		timestamp: time.Now(),
@@ -348,7 +328,6 @@ func NamespaceActionClone(props ...*namespaceActionProps) *namespaceAction {
 // NamespaceActionExport returns "compose:namespace.export" action
 //
 // This function is auto-generated.
-//
 func NamespaceActionExport(props ...*namespaceActionProps) *namespaceAction {
 	a := &namespaceAction{
 		timestamp: time.Now(),
@@ -368,7 +347,6 @@ func NamespaceActionExport(props ...*namespaceActionProps) *namespaceAction {
 // NamespaceActionImportInit returns "compose:namespace.importInit" action
 //
 // This function is auto-generated.
-//
 func NamespaceActionImportInit(props ...*namespaceActionProps) *namespaceAction {
 	a := &namespaceAction{
 		timestamp: time.Now(),
@@ -388,7 +366,6 @@ func NamespaceActionImportInit(props ...*namespaceActionProps) *namespaceAction 
 // NamespaceActionImportRun returns "compose:namespace.importRun" action
 //
 // This function is auto-generated.
-//
 func NamespaceActionImportRun(props ...*namespaceActionProps) *namespaceAction {
 	a := &namespaceAction{
 		timestamp: time.Now(),
@@ -408,7 +385,6 @@ func NamespaceActionImportRun(props ...*namespaceActionProps) *namespaceAction {
 // NamespaceActionDelete returns "compose:namespace.delete" action
 //
 // This function is auto-generated.
-//
 func NamespaceActionDelete(props ...*namespaceActionProps) *namespaceAction {
 	a := &namespaceAction{
 		timestamp: time.Now(),
@@ -428,7 +404,6 @@ func NamespaceActionDelete(props ...*namespaceActionProps) *namespaceAction {
 // NamespaceActionUndelete returns "compose:namespace.undelete" action
 //
 // This function is auto-generated.
-//
 func NamespaceActionUndelete(props ...*namespaceActionProps) *namespaceAction {
 	a := &namespaceAction{
 		timestamp: time.Now(),
@@ -448,7 +423,6 @@ func NamespaceActionUndelete(props ...*namespaceActionProps) *namespaceAction {
 // NamespaceActionReorder returns "compose:namespace.reorder" action
 //
 // This function is auto-generated.
-//
 func NamespaceActionReorder(props ...*namespaceActionProps) *namespaceAction {
 	a := &namespaceAction{
 		timestamp: time.Now(),
@@ -471,9 +445,7 @@ func NamespaceActionReorder(props ...*namespaceActionProps) *namespaceAction {
 
 // NamespaceErrGeneric returns "compose:namespace.generic" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NamespaceErrGeneric(mm ...*namespaceActionProps) *errors.Error {
 	var p = &namespaceActionProps{}
 	if len(mm) > 0 {
@@ -507,9 +479,7 @@ func NamespaceErrGeneric(mm ...*namespaceActionProps) *errors.Error {
 
 // NamespaceErrNotFound returns "compose:namespace.notFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NamespaceErrNotFound(mm ...*namespaceActionProps) *errors.Error {
 	var p = &namespaceActionProps{}
 	if len(mm) > 0 {
@@ -541,9 +511,7 @@ func NamespaceErrNotFound(mm ...*namespaceActionProps) *errors.Error {
 
 // NamespaceErrInvalidID returns "compose:namespace.invalidID" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NamespaceErrInvalidID(mm ...*namespaceActionProps) *errors.Error {
 	var p = &namespaceActionProps{}
 	if len(mm) > 0 {
@@ -575,9 +543,7 @@ func NamespaceErrInvalidID(mm ...*namespaceActionProps) *errors.Error {
 
 // NamespaceErrInvalidHandle returns "compose:namespace.invalidHandle" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NamespaceErrInvalidHandle(mm ...*namespaceActionProps) *errors.Error {
 	var p = &namespaceActionProps{}
 	if len(mm) > 0 {
@@ -609,9 +575,7 @@ func NamespaceErrInvalidHandle(mm ...*namespaceActionProps) *errors.Error {
 
 // NamespaceErrHandleNotUnique returns "compose:namespace.handleNotUnique" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NamespaceErrHandleNotUnique(mm ...*namespaceActionProps) *errors.Error {
 	var p = &namespaceActionProps{}
 	if len(mm) > 0 {
@@ -645,9 +609,7 @@ func NamespaceErrHandleNotUnique(mm ...*namespaceActionProps) *errors.Error {
 
 // NamespaceErrStaleData returns "compose:namespace.staleData" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NamespaceErrStaleData(mm ...*namespaceActionProps) *errors.Error {
 	var p = &namespaceActionProps{}
 	if len(mm) > 0 {
@@ -679,9 +641,7 @@ func NamespaceErrStaleData(mm ...*namespaceActionProps) *errors.Error {
 
 // NamespaceErrUnsupportedExportFormat returns "compose:namespace.unsupportedExportFormat" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NamespaceErrUnsupportedExportFormat(mm ...*namespaceActionProps) *errors.Error {
 	var p = &namespaceActionProps{}
 	if len(mm) > 0 {
@@ -715,9 +675,7 @@ func NamespaceErrUnsupportedExportFormat(mm ...*namespaceActionProps) *errors.Er
 
 // NamespaceErrUnsupportedImportFormat returns "compose:namespace.unsupportedImportFormat" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NamespaceErrUnsupportedImportFormat(mm ...*namespaceActionProps) *errors.Error {
 	var p = &namespaceActionProps{}
 	if len(mm) > 0 {
@@ -751,9 +709,7 @@ func NamespaceErrUnsupportedImportFormat(mm ...*namespaceActionProps) *errors.Er
 
 // NamespaceErrImportMissingNamespace returns "compose:namespace.importMissingNamespace" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NamespaceErrImportMissingNamespace(mm ...*namespaceActionProps) *errors.Error {
 	var p = &namespaceActionProps{}
 	if len(mm) > 0 {
@@ -787,9 +743,7 @@ func NamespaceErrImportMissingNamespace(mm ...*namespaceActionProps) *errors.Err
 
 // NamespaceErrImportSessionNotFound returns "compose:namespace.importSessionNotFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NamespaceErrImportSessionNotFound(mm ...*namespaceActionProps) *errors.Error {
 	var p = &namespaceActionProps{}
 	if len(mm) > 0 {
@@ -823,9 +777,7 @@ func NamespaceErrImportSessionNotFound(mm ...*namespaceActionProps) *errors.Erro
 
 // NamespaceErrCloneMultiple returns "compose:namespace.cloneMultiple" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NamespaceErrCloneMultiple(mm ...*namespaceActionProps) *errors.Error {
 	var p = &namespaceActionProps{}
 	if len(mm) > 0 {
@@ -859,9 +811,7 @@ func NamespaceErrCloneMultiple(mm ...*namespaceActionProps) *errors.Error {
 
 // NamespaceErrNotAllowedToRead returns "compose:namespace.notAllowedToRead" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NamespaceErrNotAllowedToRead(mm ...*namespaceActionProps) *errors.Error {
 	var p = &namespaceActionProps{}
 	if len(mm) > 0 {
@@ -895,9 +845,7 @@ func NamespaceErrNotAllowedToRead(mm ...*namespaceActionProps) *errors.Error {
 
 // NamespaceErrNotAllowedToSearch returns "compose:namespace.notAllowedToSearch" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NamespaceErrNotAllowedToSearch(mm ...*namespaceActionProps) *errors.Error {
 	var p = &namespaceActionProps{}
 	if len(mm) > 0 {
@@ -931,9 +879,7 @@ func NamespaceErrNotAllowedToSearch(mm ...*namespaceActionProps) *errors.Error {
 
 // NamespaceErrNotAllowedToCreate returns "compose:namespace.notAllowedToCreate" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NamespaceErrNotAllowedToCreate(mm ...*namespaceActionProps) *errors.Error {
 	var p = &namespaceActionProps{}
 	if len(mm) > 0 {
@@ -967,9 +913,7 @@ func NamespaceErrNotAllowedToCreate(mm ...*namespaceActionProps) *errors.Error {
 
 // NamespaceErrNotAllowedToUpdate returns "compose:namespace.notAllowedToUpdate" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NamespaceErrNotAllowedToUpdate(mm ...*namespaceActionProps) *errors.Error {
 	var p = &namespaceActionProps{}
 	if len(mm) > 0 {
@@ -1003,9 +947,7 @@ func NamespaceErrNotAllowedToUpdate(mm ...*namespaceActionProps) *errors.Error {
 
 // NamespaceErrNotAllowedToDelete returns "compose:namespace.notAllowedToDelete" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NamespaceErrNotAllowedToDelete(mm ...*namespaceActionProps) *errors.Error {
 	var p = &namespaceActionProps{}
 	if len(mm) > 0 {
@@ -1039,9 +981,7 @@ func NamespaceErrNotAllowedToDelete(mm ...*namespaceActionProps) *errors.Error {
 
 // NamespaceErrNotAllowedToUndelete returns "compose:namespace.notAllowedToUndelete" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func NamespaceErrNotAllowedToUndelete(mm ...*namespaceActionProps) *errors.Error {
 	var p = &namespaceActionProps{}
 	if len(mm) > 0 {
@@ -1081,7 +1021,6 @@ func NamespaceErrNotAllowedToUndelete(mm ...*namespaceActionProps) *errors.Error
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-//
 func (svc namespace) recordAction(ctx context.Context, props *namespaceActionProps, actionFn func(...*namespaceActionProps) *namespaceAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

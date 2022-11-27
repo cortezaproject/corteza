@@ -93,9 +93,10 @@ func (a httpRequestSendArgs) GetBody() (bool, string, io.Reader, interface{}) {
 // Send function HTTP request
 //
 // expects implementation of send function:
-// func (h httpRequestHandler) send(ctx context.Context, args *httpRequestSendArgs) (results *httpRequestSendResults, err error) {
-//    return
-// }
+//
+//	func (h httpRequestHandler) send(ctx context.Context, args *httpRequestSendArgs) (results *httpRequestSendResults, err error) {
+//	   return
+//	}
 func (h httpRequestHandler) Send() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "httpRequestSend",

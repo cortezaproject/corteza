@@ -55,10 +55,7 @@ var (
 // Props methods
 // setEmail updates authActionProps's email
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *authActionProps) setEmail(email string) *authActionProps {
 	p.email = email
 	return p
@@ -66,10 +63,7 @@ func (p *authActionProps) setEmail(email string) *authActionProps {
 
 // setProvider updates authActionProps's provider
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *authActionProps) setProvider(provider string) *authActionProps {
 	p.provider = provider
 	return p
@@ -77,10 +71,7 @@ func (p *authActionProps) setProvider(provider string) *authActionProps {
 
 // setCredentials updates authActionProps's credentials
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *authActionProps) setCredentials(credentials *types.Credential) *authActionProps {
 	p.credentials = credentials
 	return p
@@ -88,10 +79,7 @@ func (p *authActionProps) setCredentials(credentials *types.Credential) *authAct
 
 // setRole updates authActionProps's role
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *authActionProps) setRole(role *types.Role) *authActionProps {
 	p.role = role
 	return p
@@ -99,10 +87,7 @@ func (p *authActionProps) setRole(role *types.Role) *authActionProps {
 
 // setUser updates authActionProps's user
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *authActionProps) setUser(user *types.User) *authActionProps {
 	p.user = user
 	return p
@@ -111,7 +96,6 @@ func (p *authActionProps) setUser(user *types.User) *authActionProps {
 // Serialize converts authActionProps to actionlog.Meta
 //
 // This function is auto-generated.
-//
 func (p authActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -144,7 +128,6 @@ func (p authActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
-//
 func (p authActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -231,7 +214,6 @@ func (p authActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
-//
 func (a *authAction) String() string {
 	var props = &authActionProps{}
 
@@ -259,7 +241,6 @@ func (e *authAction) ToAction() *actionlog.Action {
 // AuthActionAuthenticate returns "system:auth.authenticate" action
 //
 // This function is auto-generated.
-//
 func AuthActionAuthenticate(props ...*authActionProps) *authAction {
 	a := &authAction{
 		timestamp: time.Now(),
@@ -279,7 +260,6 @@ func AuthActionAuthenticate(props ...*authActionProps) *authAction {
 // AuthActionIssueToken returns "system:auth.issueToken" action
 //
 // This function is auto-generated.
-//
 func AuthActionIssueToken(props ...*authActionProps) *authAction {
 	a := &authAction{
 		timestamp: time.Now(),
@@ -299,7 +279,6 @@ func AuthActionIssueToken(props ...*authActionProps) *authAction {
 // AuthActionValidateToken returns "system:auth.validateToken" action
 //
 // This function is auto-generated.
-//
 func AuthActionValidateToken(props ...*authActionProps) *authAction {
 	a := &authAction{
 		timestamp: time.Now(),
@@ -319,7 +298,6 @@ func AuthActionValidateToken(props ...*authActionProps) *authAction {
 // AuthActionChangePassword returns "system:auth.changePassword" action
 //
 // This function is auto-generated.
-//
 func AuthActionChangePassword(props ...*authActionProps) *authAction {
 	a := &authAction{
 		timestamp: time.Now(),
@@ -339,7 +317,6 @@ func AuthActionChangePassword(props ...*authActionProps) *authAction {
 // AuthActionInternalSignup returns "system:auth.internalSignup" action
 //
 // This function is auto-generated.
-//
 func AuthActionInternalSignup(props ...*authActionProps) *authAction {
 	a := &authAction{
 		timestamp: time.Now(),
@@ -359,7 +336,6 @@ func AuthActionInternalSignup(props ...*authActionProps) *authAction {
 // AuthActionConfirmEmail returns "system:auth.confirmEmail" action
 //
 // This function is auto-generated.
-//
 func AuthActionConfirmEmail(props ...*authActionProps) *authAction {
 	a := &authAction{
 		timestamp: time.Now(),
@@ -379,7 +355,6 @@ func AuthActionConfirmEmail(props ...*authActionProps) *authAction {
 // AuthActionExternalSignup returns "system:auth.externalSignup" action
 //
 // This function is auto-generated.
-//
 func AuthActionExternalSignup(props ...*authActionProps) *authAction {
 	a := &authAction{
 		timestamp: time.Now(),
@@ -399,7 +374,6 @@ func AuthActionExternalSignup(props ...*authActionProps) *authAction {
 // AuthActionSendEmailConfirmationToken returns "system:auth.sendEmailConfirmationToken" action
 //
 // This function is auto-generated.
-//
 func AuthActionSendEmailConfirmationToken(props ...*authActionProps) *authAction {
 	a := &authAction{
 		timestamp: time.Now(),
@@ -419,7 +393,6 @@ func AuthActionSendEmailConfirmationToken(props ...*authActionProps) *authAction
 // AuthActionSendPasswordResetToken returns "system:auth.sendPasswordResetToken" action
 //
 // This function is auto-generated.
-//
 func AuthActionSendPasswordResetToken(props ...*authActionProps) *authAction {
 	a := &authAction{
 		timestamp: time.Now(),
@@ -439,7 +412,6 @@ func AuthActionSendPasswordResetToken(props ...*authActionProps) *authAction {
 // AuthActionExchangePasswordResetToken returns "system:auth.exchangePasswordResetToken" action
 //
 // This function is auto-generated.
-//
 func AuthActionExchangePasswordResetToken(props ...*authActionProps) *authAction {
 	a := &authAction{
 		timestamp: time.Now(),
@@ -459,7 +431,6 @@ func AuthActionExchangePasswordResetToken(props ...*authActionProps) *authAction
 // AuthActionGeneratePasswordCreateToken returns "system:auth.generatePasswordCreateToken" action
 //
 // This function is auto-generated.
-//
 func AuthActionGeneratePasswordCreateToken(props ...*authActionProps) *authAction {
 	a := &authAction{
 		timestamp: time.Now(),
@@ -479,7 +450,6 @@ func AuthActionGeneratePasswordCreateToken(props ...*authActionProps) *authActio
 // AuthActionAutoPromote returns "system:auth.autoPromote" action
 //
 // This function is auto-generated.
-//
 func AuthActionAutoPromote(props ...*authActionProps) *authAction {
 	a := &authAction{
 		timestamp: time.Now(),
@@ -499,7 +469,6 @@ func AuthActionAutoPromote(props ...*authActionProps) *authAction {
 // AuthActionUpdateCredentials returns "system:auth.updateCredentials" action
 //
 // This function is auto-generated.
-//
 func AuthActionUpdateCredentials(props ...*authActionProps) *authAction {
 	a := &authAction{
 		timestamp: time.Now(),
@@ -519,7 +488,6 @@ func AuthActionUpdateCredentials(props ...*authActionProps) *authAction {
 // AuthActionCreateCredentials returns "system:auth.createCredentials" action
 //
 // This function is auto-generated.
-//
 func AuthActionCreateCredentials(props ...*authActionProps) *authAction {
 	a := &authAction{
 		timestamp: time.Now(),
@@ -539,7 +507,6 @@ func AuthActionCreateCredentials(props ...*authActionProps) *authAction {
 // AuthActionImpersonate returns "system:auth.impersonate" action
 //
 // This function is auto-generated.
-//
 func AuthActionImpersonate(props ...*authActionProps) *authAction {
 	a := &authAction{
 		timestamp: time.Now(),
@@ -559,7 +526,6 @@ func AuthActionImpersonate(props ...*authActionProps) *authAction {
 // AuthActionTotpConfigure returns "system:auth.totpConfigure" action
 //
 // This function is auto-generated.
-//
 func AuthActionTotpConfigure(props ...*authActionProps) *authAction {
 	a := &authAction{
 		timestamp: time.Now(),
@@ -579,7 +545,6 @@ func AuthActionTotpConfigure(props ...*authActionProps) *authAction {
 // AuthActionTotpRemove returns "system:auth.totpRemove" action
 //
 // This function is auto-generated.
-//
 func AuthActionTotpRemove(props ...*authActionProps) *authAction {
 	a := &authAction{
 		timestamp: time.Now(),
@@ -599,7 +564,6 @@ func AuthActionTotpRemove(props ...*authActionProps) *authAction {
 // AuthActionTotpValidate returns "system:auth.totpValidate" action
 //
 // This function is auto-generated.
-//
 func AuthActionTotpValidate(props ...*authActionProps) *authAction {
 	a := &authAction{
 		timestamp: time.Now(),
@@ -619,7 +583,6 @@ func AuthActionTotpValidate(props ...*authActionProps) *authAction {
 // AuthActionEmailOtpVerify returns "system:auth.emailOtpVerify" action
 //
 // This function is auto-generated.
-//
 func AuthActionEmailOtpVerify(props ...*authActionProps) *authAction {
 	a := &authAction{
 		timestamp: time.Now(),
@@ -639,7 +602,6 @@ func AuthActionEmailOtpVerify(props ...*authActionProps) *authAction {
 // AuthActionAccessTokensRemoved returns "system:auth.accessTokensRemoved" action
 //
 // This function is auto-generated.
-//
 func AuthActionAccessTokensRemoved(props ...*authActionProps) *authAction {
 	a := &authAction{
 		timestamp: time.Now(),
@@ -662,9 +624,7 @@ func AuthActionAccessTokensRemoved(props ...*authActionProps) *authAction {
 
 // AuthErrGeneric returns "system:auth.generic" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrGeneric(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -698,9 +658,7 @@ func AuthErrGeneric(mm ...*authActionProps) *errors.Error {
 
 // AuthErrInvalidCredentials returns "system:auth.invalidCredentials" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrInvalidCredentials(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -734,9 +692,7 @@ func AuthErrInvalidCredentials(mm ...*authActionProps) *errors.Error {
 
 // AuthErrInvalidEmailFormat returns "system:auth.invalidEmailFormat" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrInvalidEmailFormat(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -768,9 +724,7 @@ func AuthErrInvalidEmailFormat(mm ...*authActionProps) *errors.Error {
 
 // AuthErrInvalidHandle returns "system:auth.invalidHandle" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrInvalidHandle(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -805,7 +759,6 @@ func AuthErrInvalidHandle(mm ...*authActionProps) *errors.Error {
 // Note: This error will be wrapped with safe (system:auth.invalidCredentials) error!
 //
 // This function is auto-generated.
-//
 func AuthErrFailedForUnknownUser(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -845,7 +798,6 @@ func AuthErrFailedForUnknownUser(mm ...*authActionProps) *errors.Error {
 // Note: This error will be wrapped with safe (system:auth.invalidCredentials) error!
 //
 // This function is auto-generated.
-//
 func AuthErrFailedForDeletedUser(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -885,7 +837,6 @@ func AuthErrFailedForDeletedUser(mm ...*authActionProps) *errors.Error {
 // Note: This error will be wrapped with safe (system:auth.invalidCredentials) error!
 //
 // This function is auto-generated.
-//
 func AuthErrFailedForSuspendedUser(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -925,7 +876,6 @@ func AuthErrFailedForSuspendedUser(mm ...*authActionProps) *errors.Error {
 // Note: This error will be wrapped with safe (system:auth.invalidCredentials) error!
 //
 // This function is auto-generated.
-//
 func AuthErrFailedForSystemUser(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -962,9 +912,7 @@ func AuthErrFailedForSystemUser(mm ...*authActionProps) *errors.Error {
 
 // AuthErrFailedUnconfirmedEmail returns "system:auth.failedUnconfirmedEmail" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrFailedUnconfirmedEmail(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -998,9 +946,7 @@ func AuthErrFailedUnconfirmedEmail(mm ...*authActionProps) *errors.Error {
 
 // AuthErrInternalLoginDisabledByConfig returns "system:auth.internalLoginDisabledByConfig" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrInternalLoginDisabledByConfig(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1032,9 +978,7 @@ func AuthErrInternalLoginDisabledByConfig(mm ...*authActionProps) *errors.Error 
 
 // AuthErrInternalSignupDisabledByConfig returns "system:auth.internalSignupDisabledByConfig" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrInternalSignupDisabledByConfig(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1066,9 +1010,7 @@ func AuthErrInternalSignupDisabledByConfig(mm ...*authActionProps) *errors.Error
 
 // AuthErrPasswordChangeFailedForUnknownUser returns "system:auth.passwordChangeFailedForUnknownUser" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrPasswordChangeFailedForUnknownUser(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1100,9 +1042,7 @@ func AuthErrPasswordChangeFailedForUnknownUser(mm ...*authActionProps) *errors.E
 
 // AuthErrPasswordResetFailedOldPasswordCheckFailed returns "system:auth.passwordResetFailedOldPasswordCheckFailed" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrPasswordResetFailedOldPasswordCheckFailed(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1134,9 +1074,7 @@ func AuthErrPasswordResetFailedOldPasswordCheckFailed(mm ...*authActionProps) *e
 
 // AuthErrPasswordSetFailedReusedPasswordCheckFailed returns "system:auth.passwordSetFailedReusedPasswordCheckFailed" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrPasswordSetFailedReusedPasswordCheckFailed(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1168,9 +1106,7 @@ func AuthErrPasswordSetFailedReusedPasswordCheckFailed(mm ...*authActionProps) *
 
 // AuthErrPasswordCreateFailedForUnknownUser returns "system:auth.passwordCreateFailedForUnknownUser" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrPasswordCreateFailedForUnknownUser(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1202,9 +1138,7 @@ func AuthErrPasswordCreateFailedForUnknownUser(mm ...*authActionProps) *errors.E
 
 // AuthErrPasswordResetDisabledByConfig returns "system:auth.passwordResetDisabledByConfig" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrPasswordResetDisabledByConfig(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1236,9 +1170,7 @@ func AuthErrPasswordResetDisabledByConfig(mm ...*authActionProps) *errors.Error 
 
 // AuthErrPasswordCreateDisabledByConfig returns "system:auth.passwordCreateDisabledByConfig" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrPasswordCreateDisabledByConfig(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1270,9 +1202,7 @@ func AuthErrPasswordCreateDisabledByConfig(mm ...*authActionProps) *errors.Error
 
 // AuthErrPasswordNotSecure returns "system:auth.passwordNotSecure" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrPasswordNotSecure(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1304,9 +1234,7 @@ func AuthErrPasswordNotSecure(mm ...*authActionProps) *errors.Error {
 
 // AuthErrExternalDisabledByConfig returns "system:auth.externalDisabledByConfig" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrExternalDisabledByConfig(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1340,9 +1268,7 @@ func AuthErrExternalDisabledByConfig(mm ...*authActionProps) *errors.Error {
 
 // AuthErrProfileWithoutValidEmail returns "system:auth.profileWithoutValidEmail" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrProfileWithoutValidEmail(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1376,9 +1302,7 @@ func AuthErrProfileWithoutValidEmail(mm ...*authActionProps) *errors.Error {
 
 // AuthErrCredentialsLinkedToInvalidUser returns "system:auth.credentialsLinkedToInvalidUser" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrCredentialsLinkedToInvalidUser(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1410,9 +1334,7 @@ func AuthErrCredentialsLinkedToInvalidUser(mm ...*authActionProps) *errors.Error
 
 // AuthErrInvalidToken returns "system:auth.invalidToken" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrInvalidToken(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1444,9 +1366,7 @@ func AuthErrInvalidToken(mm ...*authActionProps) *errors.Error {
 
 // AuthErrNotAllowedToImpersonate returns "system:auth.notAllowedToImpersonate" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrNotAllowedToImpersonate(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1478,9 +1398,7 @@ func AuthErrNotAllowedToImpersonate(mm ...*authActionProps) *errors.Error {
 
 // AuthErrNotAllowedToRemoveTOTP returns "system:auth.notAllowedToRemoveTOTP" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrNotAllowedToRemoveTOTP(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1512,9 +1430,7 @@ func AuthErrNotAllowedToRemoveTOTP(mm ...*authActionProps) *errors.Error {
 
 // AuthErrUnconfiguredTOTP returns "system:auth.unconfiguredTOTP" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrUnconfiguredTOTP(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1546,9 +1462,7 @@ func AuthErrUnconfiguredTOTP(mm ...*authActionProps) *errors.Error {
 
 // AuthErrNotAllowedToConfigureTOTP returns "system:auth.notAllowedToConfigureTOTP" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrNotAllowedToConfigureTOTP(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1580,9 +1494,7 @@ func AuthErrNotAllowedToConfigureTOTP(mm ...*authActionProps) *errors.Error {
 
 // AuthErrEnforcedMFAWithTOTP returns "system:auth.enforcedMFAWithTOTP" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrEnforcedMFAWithTOTP(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1614,9 +1526,7 @@ func AuthErrEnforcedMFAWithTOTP(mm ...*authActionProps) *errors.Error {
 
 // AuthErrInvalidTOTP returns "system:auth.invalidTOTP" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrInvalidTOTP(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1648,9 +1558,7 @@ func AuthErrInvalidTOTP(mm ...*authActionProps) *errors.Error {
 
 // AuthErrDisabledMFAWithTOTP returns "system:auth.disabledMFAWithTOTP" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrDisabledMFAWithTOTP(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1682,9 +1590,7 @@ func AuthErrDisabledMFAWithTOTP(mm ...*authActionProps) *errors.Error {
 
 // AuthErrDisabledMFAWithEmailOTP returns "system:auth.disabledMFAWithEmailOTP" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrDisabledMFAWithEmailOTP(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1716,9 +1622,7 @@ func AuthErrDisabledMFAWithEmailOTP(mm ...*authActionProps) *errors.Error {
 
 // AuthErrEnforcedMFAWithEmailOTP returns "system:auth.enforcedMFAWithEmailOTP" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrEnforcedMFAWithEmailOTP(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1750,9 +1654,7 @@ func AuthErrEnforcedMFAWithEmailOTP(mm ...*authActionProps) *errors.Error {
 
 // AuthErrInvalidEmailOTP returns "system:auth.invalidEmailOTP" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrInvalidEmailOTP(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1784,9 +1686,7 @@ func AuthErrInvalidEmailOTP(mm ...*authActionProps) *errors.Error {
 
 // AuthErrRateLimitExceeded returns "system:auth.rateLimitExceeded" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrRateLimitExceeded(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1820,9 +1720,7 @@ func AuthErrRateLimitExceeded(mm ...*authActionProps) *errors.Error {
 
 // AuthErrMaxUserLimitReached returns "system:auth.maxUserLimitReached" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthErrMaxUserLimitReached(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
@@ -1860,7 +1758,6 @@ func AuthErrMaxUserLimitReached(mm ...*authActionProps) *errors.Error {
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-//
 func (svc auth) recordAction(ctx context.Context, props *authActionProps, actionFn func(...*authActionProps) *authAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

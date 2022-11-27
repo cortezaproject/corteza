@@ -45,9 +45,10 @@ type (
 // Read function Read request body from integration gateway
 //
 // expects implementation of read function:
-// func (h apigwBodyHandler) read(ctx context.Context, args *apigwBodyReadArgs) (results *apigwBodyReadResults, err error) {
-//    return
-// }
+//
+//	func (h apigwBodyHandler) read(ctx context.Context, args *apigwBodyReadArgs) (results *apigwBodyReadResults, err error) {
+//	   return
+//	}
 func (h apigwBodyHandler) Read() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "apigwBodyRead",

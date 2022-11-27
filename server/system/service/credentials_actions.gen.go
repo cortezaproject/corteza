@@ -52,10 +52,7 @@ var (
 // Props methods
 // setUser updates credentialsActionProps's user
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *credentialsActionProps) setUser(user *types.User) *credentialsActionProps {
 	p.user = user
 	return p
@@ -63,10 +60,7 @@ func (p *credentialsActionProps) setUser(user *types.User) *credentialsActionPro
 
 // setCredentials updates credentialsActionProps's credentials
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *credentialsActionProps) setCredentials(credentials *types.Credential) *credentialsActionProps {
 	p.credentials = credentials
 	return p
@@ -75,7 +69,6 @@ func (p *credentialsActionProps) setCredentials(credentials *types.Credential) *
 // Serialize converts credentialsActionProps to actionlog.Meta
 //
 // This function is auto-generated.
-//
 func (p credentialsActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -98,7 +91,6 @@ func (p credentialsActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
-//
 func (p credentialsActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -161,7 +153,6 @@ func (p credentialsActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
-//
 func (a *credentialsAction) String() string {
 	var props = &credentialsActionProps{}
 
@@ -189,7 +180,6 @@ func (e *credentialsAction) ToAction() *actionlog.Action {
 // CredentialsActionSearch returns "system:credentials.search" action
 //
 // This function is auto-generated.
-//
 func CredentialsActionSearch(props ...*credentialsActionProps) *credentialsAction {
 	a := &credentialsAction{
 		timestamp: time.Now(),
@@ -209,7 +199,6 @@ func CredentialsActionSearch(props ...*credentialsActionProps) *credentialsActio
 // CredentialsActionDelete returns "system:credentials.delete" action
 //
 // This function is auto-generated.
-//
 func CredentialsActionDelete(props ...*credentialsActionProps) *credentialsAction {
 	a := &credentialsAction{
 		timestamp: time.Now(),
@@ -232,9 +221,7 @@ func CredentialsActionDelete(props ...*credentialsActionProps) *credentialsActio
 
 // CredentialsErrGeneric returns "system:credentials.generic" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func CredentialsErrGeneric(mm ...*credentialsActionProps) *errors.Error {
 	var p = &credentialsActionProps{}
 	if len(mm) > 0 {
@@ -268,9 +255,7 @@ func CredentialsErrGeneric(mm ...*credentialsActionProps) *errors.Error {
 
 // CredentialsErrNotFound returns "system:credentials.notFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func CredentialsErrNotFound(mm ...*credentialsActionProps) *errors.Error {
 	var p = &credentialsActionProps{}
 	if len(mm) > 0 {
@@ -302,9 +287,7 @@ func CredentialsErrNotFound(mm ...*credentialsActionProps) *errors.Error {
 
 // CredentialsErrInvalidID returns "system:credentials.invalidID" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func CredentialsErrInvalidID(mm ...*credentialsActionProps) *errors.Error {
 	var p = &credentialsActionProps{}
 	if len(mm) > 0 {
@@ -336,9 +319,7 @@ func CredentialsErrInvalidID(mm ...*credentialsActionProps) *errors.Error {
 
 // CredentialsErrNotAllowedToManage returns "system:credentials.notAllowedToManage" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func CredentialsErrNotAllowedToManage(mm ...*credentialsActionProps) *errors.Error {
 	var p = &credentialsActionProps{}
 	if len(mm) > 0 {
@@ -378,7 +359,6 @@ func CredentialsErrNotAllowedToManage(mm ...*credentialsActionProps) *errors.Err
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-//
 func (svc credentials) recordAction(ctx context.Context, props *credentialsActionProps, actionFn func(...*credentialsActionProps) *credentialsAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

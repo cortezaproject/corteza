@@ -54,10 +54,7 @@ var (
 // Props methods
 // setResourceTranslation updates resourceTranslationActionProps's resourceTranslation
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *resourceTranslationActionProps) setResourceTranslation(resourceTranslation *types.ResourceTranslation) *resourceTranslationActionProps {
 	p.resourceTranslation = resourceTranslation
 	return p
@@ -65,10 +62,7 @@ func (p *resourceTranslationActionProps) setResourceTranslation(resourceTranslat
 
 // setNew updates resourceTranslationActionProps's new
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *resourceTranslationActionProps) setNew(new *types.ResourceTranslation) *resourceTranslationActionProps {
 	p.new = new
 	return p
@@ -76,10 +70,7 @@ func (p *resourceTranslationActionProps) setNew(new *types.ResourceTranslation) 
 
 // setUpdate updates resourceTranslationActionProps's update
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *resourceTranslationActionProps) setUpdate(update *types.ResourceTranslation) *resourceTranslationActionProps {
 	p.update = update
 	return p
@@ -87,10 +78,7 @@ func (p *resourceTranslationActionProps) setUpdate(update *types.ResourceTransla
 
 // setFilter updates resourceTranslationActionProps's filter
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *resourceTranslationActionProps) setFilter(filter *types.ResourceTranslationFilter) *resourceTranslationActionProps {
 	p.filter = filter
 	return p
@@ -99,7 +87,6 @@ func (p *resourceTranslationActionProps) setFilter(filter *types.ResourceTransla
 // Serialize converts resourceTranslationActionProps to actionlog.Meta
 //
 // This function is auto-generated.
-//
 func (p resourceTranslationActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -139,7 +126,6 @@ func (p resourceTranslationActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
-//
 func (p resourceTranslationActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -248,7 +234,6 @@ func (p resourceTranslationActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
-//
 func (a *resourceTranslationAction) String() string {
 	var props = &resourceTranslationActionProps{}
 
@@ -276,7 +261,6 @@ func (e *resourceTranslationAction) ToAction() *actionlog.Action {
 // ResourceTranslationActionSearch returns "system:resource-translation.search" action
 //
 // This function is auto-generated.
-//
 func ResourceTranslationActionSearch(props ...*resourceTranslationActionProps) *resourceTranslationAction {
 	a := &resourceTranslationAction{
 		timestamp: time.Now(),
@@ -296,7 +280,6 @@ func ResourceTranslationActionSearch(props ...*resourceTranslationActionProps) *
 // ResourceTranslationActionLookup returns "system:resource-translation.lookup" action
 //
 // This function is auto-generated.
-//
 func ResourceTranslationActionLookup(props ...*resourceTranslationActionProps) *resourceTranslationAction {
 	a := &resourceTranslationAction{
 		timestamp: time.Now(),
@@ -316,7 +299,6 @@ func ResourceTranslationActionLookup(props ...*resourceTranslationActionProps) *
 // ResourceTranslationActionCreate returns "system:resource-translation.create" action
 //
 // This function is auto-generated.
-//
 func ResourceTranslationActionCreate(props ...*resourceTranslationActionProps) *resourceTranslationAction {
 	a := &resourceTranslationAction{
 		timestamp: time.Now(),
@@ -336,7 +318,6 @@ func ResourceTranslationActionCreate(props ...*resourceTranslationActionProps) *
 // ResourceTranslationActionUpdate returns "system:resource-translation.update" action
 //
 // This function is auto-generated.
-//
 func ResourceTranslationActionUpdate(props ...*resourceTranslationActionProps) *resourceTranslationAction {
 	a := &resourceTranslationAction{
 		timestamp: time.Now(),
@@ -356,7 +337,6 @@ func ResourceTranslationActionUpdate(props ...*resourceTranslationActionProps) *
 // ResourceTranslationActionDelete returns "system:resource-translation.delete" action
 //
 // This function is auto-generated.
-//
 func ResourceTranslationActionDelete(props ...*resourceTranslationActionProps) *resourceTranslationAction {
 	a := &resourceTranslationAction{
 		timestamp: time.Now(),
@@ -376,7 +356,6 @@ func ResourceTranslationActionDelete(props ...*resourceTranslationActionProps) *
 // ResourceTranslationActionUndelete returns "system:resource-translation.undelete" action
 //
 // This function is auto-generated.
-//
 func ResourceTranslationActionUndelete(props ...*resourceTranslationActionProps) *resourceTranslationAction {
 	a := &resourceTranslationAction{
 		timestamp: time.Now(),
@@ -399,9 +378,7 @@ func ResourceTranslationActionUndelete(props ...*resourceTranslationActionProps)
 
 // ResourceTranslationErrGeneric returns "system:resource-translation.generic" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ResourceTranslationErrGeneric(mm ...*resourceTranslationActionProps) *errors.Error {
 	var p = &resourceTranslationActionProps{}
 	if len(mm) > 0 {
@@ -435,9 +412,7 @@ func ResourceTranslationErrGeneric(mm ...*resourceTranslationActionProps) *error
 
 // ResourceTranslationErrNotFound returns "system:resource-translation.notFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ResourceTranslationErrNotFound(mm ...*resourceTranslationActionProps) *errors.Error {
 	var p = &resourceTranslationActionProps{}
 	if len(mm) > 0 {
@@ -469,9 +444,7 @@ func ResourceTranslationErrNotFound(mm ...*resourceTranslationActionProps) *erro
 
 // ResourceTranslationErrInvalidID returns "system:resource-translation.invalidID" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ResourceTranslationErrInvalidID(mm ...*resourceTranslationActionProps) *errors.Error {
 	var p = &resourceTranslationActionProps{}
 	if len(mm) > 0 {
@@ -503,9 +476,7 @@ func ResourceTranslationErrInvalidID(mm ...*resourceTranslationActionProps) *err
 
 // ResourceTranslationErrNotAllowedToRead returns "system:resource-translation.notAllowedToRead" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ResourceTranslationErrNotAllowedToRead(mm ...*resourceTranslationActionProps) *errors.Error {
 	var p = &resourceTranslationActionProps{}
 	if len(mm) > 0 {
@@ -539,9 +510,7 @@ func ResourceTranslationErrNotAllowedToRead(mm ...*resourceTranslationActionProp
 
 // ResourceTranslationErrNotAllowedToSearch returns "system:resource-translation.notAllowedToSearch" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ResourceTranslationErrNotAllowedToSearch(mm ...*resourceTranslationActionProps) *errors.Error {
 	var p = &resourceTranslationActionProps{}
 	if len(mm) > 0 {
@@ -575,9 +544,7 @@ func ResourceTranslationErrNotAllowedToSearch(mm ...*resourceTranslationActionPr
 
 // ResourceTranslationErrNotAllowedToManage returns "system:resource-translation.notAllowedToManage" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ResourceTranslationErrNotAllowedToManage(mm ...*resourceTranslationActionProps) *errors.Error {
 	var p = &resourceTranslationActionProps{}
 	if len(mm) > 0 {
@@ -617,7 +584,6 @@ func ResourceTranslationErrNotAllowedToManage(mm ...*resourceTranslationActionPr
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-//
 func (svc resourceTranslation) recordAction(ctx context.Context, props *resourceTranslationActionProps, actionFn func(...*resourceTranslationActionProps) *resourceTranslationAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

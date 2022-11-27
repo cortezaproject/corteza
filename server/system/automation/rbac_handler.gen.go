@@ -58,9 +58,10 @@ func (a rbacAllowArgs) GetRole() (bool, uint64, string, *types.Role) {
 // Allow function RBAC: Allow operation on resource to a role
 //
 // expects implementation of allow function:
-// func (h rbacHandler) allow(ctx context.Context, args *rbacAllowArgs) (err error) {
-//    return
-// }
+//
+//	func (h rbacHandler) allow(ctx context.Context, args *rbacAllowArgs) (err error) {
+//	   return
+//	}
 func (h rbacHandler) Allow() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "rbacAllow",
@@ -139,9 +140,10 @@ func (a rbacDenyArgs) GetRole() (bool, uint64, string, *types.Role) {
 // Deny function RBAC: Deny operation on resource to a role
 //
 // expects implementation of deny function:
-// func (h rbacHandler) deny(ctx context.Context, args *rbacDenyArgs) (err error) {
-//    return
-// }
+//
+//	func (h rbacHandler) deny(ctx context.Context, args *rbacDenyArgs) (err error) {
+//	   return
+//	}
 func (h rbacHandler) Deny() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "rbacDeny",
@@ -220,9 +222,10 @@ func (a rbacInheritArgs) GetRole() (bool, uint64, string, *types.Role) {
 // Inherit function RBAC: Remove allow/deny operation of a role from resource
 //
 // expects implementation of inherit function:
-// func (h rbacHandler) inherit(ctx context.Context, args *rbacInheritArgs) (err error) {
-//    return
-// }
+//
+//	func (h rbacHandler) inherit(ctx context.Context, args *rbacInheritArgs) (err error) {
+//	   return
+//	}
 func (h rbacHandler) Inherit() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "rbacInherit",
@@ -298,9 +301,10 @@ type (
 // Check function RBAC: Can user perform an operation on a resource
 //
 // expects implementation of check function:
-// func (h rbacHandler) check(ctx context.Context, args *rbacCheckArgs) (results *rbacCheckResults, err error) {
-//    return
-// }
+//
+//	func (h rbacHandler) check(ctx context.Context, args *rbacCheckArgs) (results *rbacCheckResults, err error) {
+//	   return
+//	}
 func (h rbacHandler) Check() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "rbacCheck",

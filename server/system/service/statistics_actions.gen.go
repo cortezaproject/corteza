@@ -51,7 +51,6 @@ var (
 // Serialize converts statisticsActionProps to actionlog.Meta
 //
 // This function is auto-generated.
-//
 func (p statisticsActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -63,7 +62,6 @@ func (p statisticsActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
-//
 func (p statisticsActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -84,7 +82,6 @@ func (p statisticsActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
-//
 func (a *statisticsAction) String() string {
 	var props = &statisticsActionProps{}
 
@@ -112,7 +109,6 @@ func (e *statisticsAction) ToAction() *actionlog.Action {
 // StatisticsActionServe returns "system:statistics.serve" action
 //
 // This function is auto-generated.
-//
 func StatisticsActionServe(props ...*statisticsActionProps) *statisticsAction {
 	a := &statisticsAction{
 		timestamp: time.Now(),
@@ -135,9 +131,7 @@ func StatisticsActionServe(props ...*statisticsActionProps) *statisticsAction {
 
 // StatisticsErrGeneric returns "system:statistics.generic" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func StatisticsErrGeneric(mm ...*statisticsActionProps) *errors.Error {
 	var p = &statisticsActionProps{}
 	if len(mm) > 0 {
@@ -171,9 +165,7 @@ func StatisticsErrGeneric(mm ...*statisticsActionProps) *errors.Error {
 
 // StatisticsErrNotAllowedToReadStatistics returns "system:statistics.notAllowedToReadStatistics" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func StatisticsErrNotAllowedToReadStatistics(mm ...*statisticsActionProps) *errors.Error {
 	var p = &statisticsActionProps{}
 	if len(mm) > 0 {
@@ -211,7 +203,6 @@ func StatisticsErrNotAllowedToReadStatistics(mm ...*statisticsActionProps) *erro
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-//
 func (svc statistics) recordAction(ctx context.Context, props *statisticsActionProps, actionFn func(...*statisticsActionProps) *statisticsAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

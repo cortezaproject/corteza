@@ -57,10 +57,7 @@ var (
 // Props methods
 // setMember updates roleActionProps's member
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *roleActionProps) setMember(member *types.User) *roleActionProps {
 	p.member = member
 	return p
@@ -68,10 +65,7 @@ func (p *roleActionProps) setMember(member *types.User) *roleActionProps {
 
 // setRole updates roleActionProps's role
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *roleActionProps) setRole(role *types.Role) *roleActionProps {
 	p.role = role
 	return p
@@ -79,10 +73,7 @@ func (p *roleActionProps) setRole(role *types.Role) *roleActionProps {
 
 // setNew updates roleActionProps's new
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *roleActionProps) setNew(new *types.Role) *roleActionProps {
 	p.new = new
 	return p
@@ -90,10 +81,7 @@ func (p *roleActionProps) setNew(new *types.Role) *roleActionProps {
 
 // setUpdate updates roleActionProps's update
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *roleActionProps) setUpdate(update *types.Role) *roleActionProps {
 	p.update = update
 	return p
@@ -101,10 +89,7 @@ func (p *roleActionProps) setUpdate(update *types.Role) *roleActionProps {
 
 // setExisting updates roleActionProps's existing
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *roleActionProps) setExisting(existing *types.Role) *roleActionProps {
 	p.existing = existing
 	return p
@@ -112,10 +97,7 @@ func (p *roleActionProps) setExisting(existing *types.Role) *roleActionProps {
 
 // setTarget updates roleActionProps's target
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *roleActionProps) setTarget(target *types.Role) *roleActionProps {
 	p.target = target
 	return p
@@ -123,10 +105,7 @@ func (p *roleActionProps) setTarget(target *types.Role) *roleActionProps {
 
 // setFilter updates roleActionProps's filter
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *roleActionProps) setFilter(filter *types.RoleFilter) *roleActionProps {
 	p.filter = filter
 	return p
@@ -135,7 +114,6 @@ func (p *roleActionProps) setFilter(filter *types.RoleFilter) *roleActionProps {
 // Serialize converts roleActionProps to actionlog.Meta
 //
 // This function is auto-generated.
-//
 func (p roleActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -189,7 +167,6 @@ func (p roleActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
-//
 func (p roleActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -344,7 +321,6 @@ func (p roleActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
-//
 func (a *roleAction) String() string {
 	var props = &roleActionProps{}
 
@@ -372,7 +348,6 @@ func (e *roleAction) ToAction() *actionlog.Action {
 // RoleActionSearch returns "system:role.search" action
 //
 // This function is auto-generated.
-//
 func RoleActionSearch(props ...*roleActionProps) *roleAction {
 	a := &roleAction{
 		timestamp: time.Now(),
@@ -392,7 +367,6 @@ func RoleActionSearch(props ...*roleActionProps) *roleAction {
 // RoleActionLookup returns "system:role.lookup" action
 //
 // This function is auto-generated.
-//
 func RoleActionLookup(props ...*roleActionProps) *roleAction {
 	a := &roleAction{
 		timestamp: time.Now(),
@@ -412,7 +386,6 @@ func RoleActionLookup(props ...*roleActionProps) *roleAction {
 // RoleActionCreate returns "system:role.create" action
 //
 // This function is auto-generated.
-//
 func RoleActionCreate(props ...*roleActionProps) *roleAction {
 	a := &roleAction{
 		timestamp: time.Now(),
@@ -432,7 +405,6 @@ func RoleActionCreate(props ...*roleActionProps) *roleAction {
 // RoleActionUpdate returns "system:role.update" action
 //
 // This function is auto-generated.
-//
 func RoleActionUpdate(props ...*roleActionProps) *roleAction {
 	a := &roleAction{
 		timestamp: time.Now(),
@@ -452,7 +424,6 @@ func RoleActionUpdate(props ...*roleActionProps) *roleAction {
 // RoleActionDelete returns "system:role.delete" action
 //
 // This function is auto-generated.
-//
 func RoleActionDelete(props ...*roleActionProps) *roleAction {
 	a := &roleAction{
 		timestamp: time.Now(),
@@ -472,7 +443,6 @@ func RoleActionDelete(props ...*roleActionProps) *roleAction {
 // RoleActionUndelete returns "system:role.undelete" action
 //
 // This function is auto-generated.
-//
 func RoleActionUndelete(props ...*roleActionProps) *roleAction {
 	a := &roleAction{
 		timestamp: time.Now(),
@@ -492,7 +462,6 @@ func RoleActionUndelete(props ...*roleActionProps) *roleAction {
 // RoleActionArchive returns "system:role.archive" action
 //
 // This function is auto-generated.
-//
 func RoleActionArchive(props ...*roleActionProps) *roleAction {
 	a := &roleAction{
 		timestamp: time.Now(),
@@ -512,7 +481,6 @@ func RoleActionArchive(props ...*roleActionProps) *roleAction {
 // RoleActionUnarchive returns "system:role.unarchive" action
 //
 // This function is auto-generated.
-//
 func RoleActionUnarchive(props ...*roleActionProps) *roleAction {
 	a := &roleAction{
 		timestamp: time.Now(),
@@ -532,7 +500,6 @@ func RoleActionUnarchive(props ...*roleActionProps) *roleAction {
 // RoleActionMerge returns "system:role.merge" action
 //
 // This function is auto-generated.
-//
 func RoleActionMerge(props ...*roleActionProps) *roleAction {
 	a := &roleAction{
 		timestamp: time.Now(),
@@ -552,7 +519,6 @@ func RoleActionMerge(props ...*roleActionProps) *roleAction {
 // RoleActionMembers returns "system:role.members" action
 //
 // This function is auto-generated.
-//
 func RoleActionMembers(props ...*roleActionProps) *roleAction {
 	a := &roleAction{
 		timestamp: time.Now(),
@@ -572,7 +538,6 @@ func RoleActionMembers(props ...*roleActionProps) *roleAction {
 // RoleActionMemberAdd returns "system:role.memberAdd" action
 //
 // This function is auto-generated.
-//
 func RoleActionMemberAdd(props ...*roleActionProps) *roleAction {
 	a := &roleAction{
 		timestamp: time.Now(),
@@ -592,7 +557,6 @@ func RoleActionMemberAdd(props ...*roleActionProps) *roleAction {
 // RoleActionMemberRemove returns "system:role.memberRemove" action
 //
 // This function is auto-generated.
-//
 func RoleActionMemberRemove(props ...*roleActionProps) *roleAction {
 	a := &roleAction{
 		timestamp: time.Now(),
@@ -615,9 +579,7 @@ func RoleActionMemberRemove(props ...*roleActionProps) *roleAction {
 
 // RoleErrGeneric returns "system:role.generic" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RoleErrGeneric(mm ...*roleActionProps) *errors.Error {
 	var p = &roleActionProps{}
 	if len(mm) > 0 {
@@ -651,9 +613,7 @@ func RoleErrGeneric(mm ...*roleActionProps) *errors.Error {
 
 // RoleErrNotFound returns "system:role.notFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RoleErrNotFound(mm ...*roleActionProps) *errors.Error {
 	var p = &roleActionProps{}
 	if len(mm) > 0 {
@@ -685,9 +645,7 @@ func RoleErrNotFound(mm ...*roleActionProps) *errors.Error {
 
 // RoleErrInvalidID returns "system:role.invalidID" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RoleErrInvalidID(mm ...*roleActionProps) *errors.Error {
 	var p = &roleActionProps{}
 	if len(mm) > 0 {
@@ -719,9 +677,7 @@ func RoleErrInvalidID(mm ...*roleActionProps) *errors.Error {
 
 // RoleErrInvalidHandle returns "system:role.invalidHandle" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RoleErrInvalidHandle(mm ...*roleActionProps) *errors.Error {
 	var p = &roleActionProps{}
 	if len(mm) > 0 {
@@ -753,9 +709,7 @@ func RoleErrInvalidHandle(mm ...*roleActionProps) *errors.Error {
 
 // RoleErrNotAllowedToRead returns "system:role.notAllowedToRead" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RoleErrNotAllowedToRead(mm ...*roleActionProps) *errors.Error {
 	var p = &roleActionProps{}
 	if len(mm) > 0 {
@@ -789,9 +743,7 @@ func RoleErrNotAllowedToRead(mm ...*roleActionProps) *errors.Error {
 
 // RoleErrNotAllowedToSearch returns "system:role.notAllowedToSearch" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RoleErrNotAllowedToSearch(mm ...*roleActionProps) *errors.Error {
 	var p = &roleActionProps{}
 	if len(mm) > 0 {
@@ -825,9 +777,7 @@ func RoleErrNotAllowedToSearch(mm ...*roleActionProps) *errors.Error {
 
 // RoleErrNotAllowedToCreate returns "system:role.notAllowedToCreate" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RoleErrNotAllowedToCreate(mm ...*roleActionProps) *errors.Error {
 	var p = &roleActionProps{}
 	if len(mm) > 0 {
@@ -861,9 +811,7 @@ func RoleErrNotAllowedToCreate(mm ...*roleActionProps) *errors.Error {
 
 // RoleErrNotAllowedToUpdate returns "system:role.notAllowedToUpdate" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RoleErrNotAllowedToUpdate(mm ...*roleActionProps) *errors.Error {
 	var p = &roleActionProps{}
 	if len(mm) > 0 {
@@ -897,9 +845,7 @@ func RoleErrNotAllowedToUpdate(mm ...*roleActionProps) *errors.Error {
 
 // RoleErrNotAllowedToDelete returns "system:role.notAllowedToDelete" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RoleErrNotAllowedToDelete(mm ...*roleActionProps) *errors.Error {
 	var p = &roleActionProps{}
 	if len(mm) > 0 {
@@ -933,9 +879,7 @@ func RoleErrNotAllowedToDelete(mm ...*roleActionProps) *errors.Error {
 
 // RoleErrNotAllowedToUndelete returns "system:role.notAllowedToUndelete" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RoleErrNotAllowedToUndelete(mm ...*roleActionProps) *errors.Error {
 	var p = &roleActionProps{}
 	if len(mm) > 0 {
@@ -969,9 +913,7 @@ func RoleErrNotAllowedToUndelete(mm ...*roleActionProps) *errors.Error {
 
 // RoleErrNotAllowedToArchive returns "system:role.notAllowedToArchive" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RoleErrNotAllowedToArchive(mm ...*roleActionProps) *errors.Error {
 	var p = &roleActionProps{}
 	if len(mm) > 0 {
@@ -1005,9 +947,7 @@ func RoleErrNotAllowedToArchive(mm ...*roleActionProps) *errors.Error {
 
 // RoleErrNotAllowedToUnarchive returns "system:role.notAllowedToUnarchive" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RoleErrNotAllowedToUnarchive(mm ...*roleActionProps) *errors.Error {
 	var p = &roleActionProps{}
 	if len(mm) > 0 {
@@ -1041,9 +981,7 @@ func RoleErrNotAllowedToUnarchive(mm ...*roleActionProps) *errors.Error {
 
 // RoleErrNotAllowedToCloneRules returns "system:role.notAllowedToCloneRules" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RoleErrNotAllowedToCloneRules(mm ...*roleActionProps) *errors.Error {
 	var p = &roleActionProps{}
 	if len(mm) > 0 {
@@ -1077,9 +1015,7 @@ func RoleErrNotAllowedToCloneRules(mm ...*roleActionProps) *errors.Error {
 
 // RoleErrNotAllowedToManageMembers returns "system:role.notAllowedToManageMembers" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RoleErrNotAllowedToManageMembers(mm ...*roleActionProps) *errors.Error {
 	var p = &roleActionProps{}
 	if len(mm) > 0 {
@@ -1113,9 +1049,7 @@ func RoleErrNotAllowedToManageMembers(mm ...*roleActionProps) *errors.Error {
 
 // RoleErrHandleNotUnique returns "system:role.handleNotUnique" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RoleErrHandleNotUnique(mm ...*roleActionProps) *errors.Error {
 	var p = &roleActionProps{}
 	if len(mm) > 0 {
@@ -1149,9 +1083,7 @@ func RoleErrHandleNotUnique(mm ...*roleActionProps) *errors.Error {
 
 // RoleErrNameNotUnique returns "system:role.nameNotUnique" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RoleErrNameNotUnique(mm ...*roleActionProps) *errors.Error {
 	var p = &roleActionProps{}
 	if len(mm) > 0 {
@@ -1191,7 +1123,6 @@ func RoleErrNameNotUnique(mm ...*roleActionProps) *errors.Error {
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-//
 func (svc role) recordAction(ctx context.Context, props *roleActionProps, actionFn func(...*roleActionProps) *roleAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

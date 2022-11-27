@@ -1162,7 +1162,8 @@ func rbacResourceValidator(r string, oo ...string) error {
 
 // resourceLoader loads resource from store
 //
-// function assumes existence of loader functions for all resource types
+// # Notes
+// Function assumes existence of loader functions for all resource types
 //
 // This function is auto-generated
 func (svc accessControl) resourceLoader(ctx context.Context, resource string) (rbac.Resource, error) {
@@ -1363,6 +1364,7 @@ func rbacResourceOperations(r string) map[string]bool {
 
 // rbacApplicationResourceValidator checks validity of RBAC resource and operations
 //
+// # Notes
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
@@ -1407,6 +1409,7 @@ func rbacApplicationResourceValidator(r string, oo ...string) error {
 
 // rbacApigwRouteResourceValidator checks validity of RBAC resource and operations
 //
+// # Notes
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
@@ -1451,6 +1454,7 @@ func rbacApigwRouteResourceValidator(r string, oo ...string) error {
 
 // rbacAuthClientResourceValidator checks validity of RBAC resource and operations
 //
+// # Notes
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
@@ -1495,6 +1499,7 @@ func rbacAuthClientResourceValidator(r string, oo ...string) error {
 
 // rbacDataPrivacyRequestResourceValidator checks validity of RBAC resource and operations
 //
+// # Notes
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
@@ -1539,6 +1544,7 @@ func rbacDataPrivacyRequestResourceValidator(r string, oo ...string) error {
 
 // rbacQueueResourceValidator checks validity of RBAC resource and operations
 //
+// # Notes
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
@@ -1583,6 +1589,7 @@ func rbacQueueResourceValidator(r string, oo ...string) error {
 
 // rbacReportResourceValidator checks validity of RBAC resource and operations
 //
+// # Notes
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
@@ -1627,6 +1634,7 @@ func rbacReportResourceValidator(r string, oo ...string) error {
 
 // rbacRoleResourceValidator checks validity of RBAC resource and operations
 //
+// # Notes
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
@@ -1671,6 +1679,7 @@ func rbacRoleResourceValidator(r string, oo ...string) error {
 
 // rbacTemplateResourceValidator checks validity of RBAC resource and operations
 //
+// # Notes
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
@@ -1715,6 +1724,7 @@ func rbacTemplateResourceValidator(r string, oo ...string) error {
 
 // rbacUserResourceValidator checks validity of RBAC resource and operations
 //
+// # Notes
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
@@ -1759,6 +1769,7 @@ func rbacUserResourceValidator(r string, oo ...string) error {
 
 // rbacDalConnectionResourceValidator checks validity of RBAC resource and operations
 //
+// # Notes
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated
@@ -1803,6 +1814,7 @@ func rbacDalConnectionResourceValidator(r string, oo ...string) error {
 
 // rbacComponentResourceValidator checks validity of RBAC resource and operations
 //
+// # Notes
 // Can be called without operations to check for validity of resource string only
 //
 // This function is auto-generated

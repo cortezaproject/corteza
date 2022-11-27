@@ -52,10 +52,7 @@ var (
 // Props methods
 // setFilter updates apigwFilterActionProps's filter
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *apigwFilterActionProps) setFilter(filter *types.ApigwFilter) *apigwFilterActionProps {
 	p.filter = filter
 	return p
@@ -63,10 +60,7 @@ func (p *apigwFilterActionProps) setFilter(filter *types.ApigwFilter) *apigwFilt
 
 // setSearch updates apigwFilterActionProps's search
 //
-// Allows method chaining
-//
 // This function is auto-generated.
-//
 func (p *apigwFilterActionProps) setSearch(search *types.ApigwFilterFilter) *apigwFilterActionProps {
 	p.search = search
 	return p
@@ -75,7 +69,6 @@ func (p *apigwFilterActionProps) setSearch(search *types.ApigwFilterFilter) *api
 // Serialize converts apigwFilterActionProps to actionlog.Meta
 //
 // This function is auto-generated.
-//
 func (p apigwFilterActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -94,7 +87,6 @@ func (p apigwFilterActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
-//
 func (p apigwFilterActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -148,7 +140,6 @@ func (p apigwFilterActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
-//
 func (a *apigwFilterAction) String() string {
 	var props = &apigwFilterActionProps{}
 
@@ -176,7 +167,6 @@ func (e *apigwFilterAction) ToAction() *actionlog.Action {
 // ApigwFilterActionSearch returns "system:filter.search" action
 //
 // This function is auto-generated.
-//
 func ApigwFilterActionSearch(props ...*apigwFilterActionProps) *apigwFilterAction {
 	a := &apigwFilterAction{
 		timestamp: time.Now(),
@@ -196,7 +186,6 @@ func ApigwFilterActionSearch(props ...*apigwFilterActionProps) *apigwFilterActio
 // ApigwFilterActionLookup returns "system:filter.lookup" action
 //
 // This function is auto-generated.
-//
 func ApigwFilterActionLookup(props ...*apigwFilterActionProps) *apigwFilterAction {
 	a := &apigwFilterAction{
 		timestamp: time.Now(),
@@ -216,7 +205,6 @@ func ApigwFilterActionLookup(props ...*apigwFilterActionProps) *apigwFilterActio
 // ApigwFilterActionCreate returns "system:filter.create" action
 //
 // This function is auto-generated.
-//
 func ApigwFilterActionCreate(props ...*apigwFilterActionProps) *apigwFilterAction {
 	a := &apigwFilterAction{
 		timestamp: time.Now(),
@@ -236,7 +224,6 @@ func ApigwFilterActionCreate(props ...*apigwFilterActionProps) *apigwFilterActio
 // ApigwFilterActionUpdate returns "system:filter.update" action
 //
 // This function is auto-generated.
-//
 func ApigwFilterActionUpdate(props ...*apigwFilterActionProps) *apigwFilterAction {
 	a := &apigwFilterAction{
 		timestamp: time.Now(),
@@ -256,7 +243,6 @@ func ApigwFilterActionUpdate(props ...*apigwFilterActionProps) *apigwFilterActio
 // ApigwFilterActionDelete returns "system:filter.delete" action
 //
 // This function is auto-generated.
-//
 func ApigwFilterActionDelete(props ...*apigwFilterActionProps) *apigwFilterAction {
 	a := &apigwFilterAction{
 		timestamp: time.Now(),
@@ -276,7 +262,6 @@ func ApigwFilterActionDelete(props ...*apigwFilterActionProps) *apigwFilterActio
 // ApigwFilterActionUndelete returns "system:filter.undelete" action
 //
 // This function is auto-generated.
-//
 func ApigwFilterActionUndelete(props ...*apigwFilterActionProps) *apigwFilterAction {
 	a := &apigwFilterAction{
 		timestamp: time.Now(),
@@ -299,9 +284,7 @@ func ApigwFilterActionUndelete(props ...*apigwFilterActionProps) *apigwFilterAct
 
 // ApigwFilterErrGeneric returns "system:filter.generic" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ApigwFilterErrGeneric(mm ...*apigwFilterActionProps) *errors.Error {
 	var p = &apigwFilterActionProps{}
 	if len(mm) > 0 {
@@ -335,9 +318,7 @@ func ApigwFilterErrGeneric(mm ...*apigwFilterActionProps) *errors.Error {
 
 // ApigwFilterErrNotFound returns "system:filter.notFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ApigwFilterErrNotFound(mm ...*apigwFilterActionProps) *errors.Error {
 	var p = &apigwFilterActionProps{}
 	if len(mm) > 0 {
@@ -369,9 +350,7 @@ func ApigwFilterErrNotFound(mm ...*apigwFilterActionProps) *errors.Error {
 
 // ApigwFilterErrInvalidID returns "system:filter.invalidID" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ApigwFilterErrInvalidID(mm ...*apigwFilterActionProps) *errors.Error {
 	var p = &apigwFilterActionProps{}
 	if len(mm) > 0 {
@@ -403,9 +382,7 @@ func ApigwFilterErrInvalidID(mm ...*apigwFilterActionProps) *errors.Error {
 
 // ApigwFilterErrInvalidRoute returns "system:filter.invalidRoute" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ApigwFilterErrInvalidRoute(mm ...*apigwFilterActionProps) *errors.Error {
 	var p = &apigwFilterActionProps{}
 	if len(mm) > 0 {
@@ -437,9 +414,7 @@ func ApigwFilterErrInvalidRoute(mm ...*apigwFilterActionProps) *errors.Error {
 
 // ApigwFilterErrAsyncRouteTooManyProcessers returns "system:filter.asyncRouteTooManyProcessers" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ApigwFilterErrAsyncRouteTooManyProcessers(mm ...*apigwFilterActionProps) *errors.Error {
 	var p = &apigwFilterActionProps{}
 	if len(mm) > 0 {
@@ -473,9 +448,7 @@ func ApigwFilterErrAsyncRouteTooManyProcessers(mm ...*apigwFilterActionProps) *e
 
 // ApigwFilterErrAsyncRouteTooManyAfterFilters returns "system:filter.asyncRouteTooManyAfterFilters" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ApigwFilterErrAsyncRouteTooManyAfterFilters(mm ...*apigwFilterActionProps) *errors.Error {
 	var p = &apigwFilterActionProps{}
 	if len(mm) > 0 {
@@ -515,7 +488,6 @@ func ApigwFilterErrAsyncRouteTooManyAfterFilters(mm ...*apigwFilterActionProps) 
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-//
 func (svc apigwFilter) recordAction(ctx context.Context, props *apigwFilterActionProps, actionFn func(...*apigwFilterActionProps) *apigwFilterAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
