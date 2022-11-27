@@ -8,10 +8,7 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/system/rest/request"
-	"github.com/pkg/errors"
 )
-
-var _ = errors.Wrap
 
 type (
 	DalDriver struct{}

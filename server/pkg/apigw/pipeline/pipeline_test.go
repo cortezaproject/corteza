@@ -90,7 +90,7 @@ func Test_pipelineExecErr(t *testing.T) {
 				name: "matching simple",
 				mh: types.MockHandler{
 					Handler_: func(rw http.ResponseWriter, r *http.Request) error {
-						return errors.New("triggered")
+						return fmt.Errorf("triggered")
 					}},
 				w:   &Worker{},
 				exp: `{"error":{"message":"triggered"}}` + "\n",

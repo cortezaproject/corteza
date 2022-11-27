@@ -3,13 +3,13 @@ package saml
 import (
 	"crypto/rsa"
 	"crypto/x509"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/crewjam/saml"
 	"github.com/crewjam/saml/samlsp"
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -89,7 +89,7 @@ func NewSamlSPService(log *zap.Logger, args SamlSPArgs) (s *SamlSPService, err e
 	// internal samlsp service
 	handler, err := samlsp.New(opts)
 	if err != nil {
-		err = errors.Wrap(err, "could not init SAML SP handler")
+		err = fmt.Errorf("could not init SAML SP handler", err)
 		return
 	}
 

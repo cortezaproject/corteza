@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -200,7 +199,7 @@ func (h *processerPayload) Merge(params []byte) (types.Handler, error) {
 	}
 
 	if h.params.Func == "" {
-		return nil, errors.New("could not register function, body empty")
+		return nil, fmt.Errorf("could not register function, body empty")
 	}
 
 	if h.fn, err = h.vm.RegisterFunction(h.params.Func); err != nil {

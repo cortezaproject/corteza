@@ -575,7 +575,7 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 	if imaging.JPEG == format {
 		// Rotate image if needed
 		// if preview, _, err = exiffix.Decode(original); err != nil {
-		// 	return errors.Wrapf(err, "Could not decode EXIF from JPEG")
+		// 	return fmt.Errorf("Could not decode EXIF from JPEG", err)
 		// }
 		preview, _, _ = exiffix.Decode(original)
 	}

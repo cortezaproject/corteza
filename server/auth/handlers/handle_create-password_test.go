@@ -64,7 +64,7 @@ func Test_createPasswordForm(t *testing.T) {
 						return false
 					},
 					validatePasswordCreateToken: func(ctx context.Context, token string) (user *types.User, err error) {
-						return nil, errors.New("invalid token")
+						return nil, fmt.Errorf("invalid token")
 					},
 				}
 			},
@@ -83,7 +83,7 @@ func Test_createPasswordForm(t *testing.T) {
 						return false
 					},
 					validatePasswordCreateToken: func(ctx context.Context, token string) (user *types.User, err error) {
-						return nil, errors.New("invalid token")
+						return nil, fmt.Errorf("invalid token")
 					},
 				}
 			},

@@ -80,7 +80,7 @@ func TestJwtHandler(t *testing.T) {
 			{
 				name: "proxy processer with auth headers",
 				exp:  "",
-				err:  errors.New("could not generate JWT, payload missing"),
+				err:  fmt.Errorf("could not generate JWT, payload missing"),
 				params: &jwtGenerateArgs{
 					hasHeader:  true,
 					hasPayload: false,
@@ -90,7 +90,7 @@ func TestJwtHandler(t *testing.T) {
 			{
 				name: "proxy processer with auth headers",
 				exp:  "",
-				err:  errors.New("could not generate JWT, secret or cert missing"),
+				err:  fmt.Errorf("could not generate JWT, secret or cert missing"),
 				params: &jwtGenerateArgs{
 					hasHeader:  true,
 					hasPayload: true,

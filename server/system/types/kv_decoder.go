@@ -5,8 +5,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 type (
@@ -33,11 +31,11 @@ type (
 func DecodeKV(kv SettingsKV, dst interface{}, pp ...string) (err error) {
 	valueOf := reflect.ValueOf(dst)
 	if valueOf.Kind() != reflect.Ptr {
-		return errors.New("expecting a pointer, not a value")
+		return fmt.Errorf("expecting a pointer, not a value")
 	}
 
 	if valueOf.IsNil() {
-		return errors.New("nil pointer passed")
+		return fmt.Errorf("nil pointer passed")
 	}
 
 	var prefix string

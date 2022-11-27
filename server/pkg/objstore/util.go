@@ -1,11 +1,11 @@
 package objstore
 
 import (
+	"fmt"
+	"github.com/pkg/errors"
 	"io"
 	"mime/multipart"
 	"net/url"
-
-	"github.com/pkg/errors"
 
 	"github.com/cortezaproject/corteza/server/pkg/http"
 )
@@ -14,7 +14,7 @@ func FromURL(fileURL string) (io.ReadCloser, error) {
 	if u, err := url.ParseRequestURI(fileURL); err != nil {
 		return nil, errors.WithStack(err)
 	} else if u.Scheme != "https" {
-		return nil, errors.New("Only HTTPS is supported for file uploads")
+		return nil, fmt.Errorf("Only HTTPS is supported for file uploads")
 	}
 
 	client, err := http.New(&http.Config{

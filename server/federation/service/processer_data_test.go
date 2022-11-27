@@ -226,5 +226,5 @@ func (s testRecordServiceDeleteSuccess) Find(_ context.Context, filter ct.Record
 
 // create error
 func (s testRecordServicePersistError) Create(_ context.Context, record *ct.Record) (*ct.Record, *ct.RecordValueErrorSet, error) {
-	return nil, nil, errors.New("mocked error")
+	return nil, nil, fmt.Errorf("mocked error")
 }

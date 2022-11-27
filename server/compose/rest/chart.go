@@ -8,10 +8,7 @@ import (
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/api"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/pkg/errors"
 )
-
-var _ = errors.Wrap
 
 type (
 	chartPayload struct {

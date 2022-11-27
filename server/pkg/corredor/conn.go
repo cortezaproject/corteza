@@ -9,7 +9,6 @@ import (
 	"os"
 
 	"github.com/cortezaproject/corteza/server/pkg/options"
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -69,7 +68,7 @@ func NewConnection(ctx context.Context, opt options.CorredorOpt, logger *zap.Log
 
 		// Append the client certificates from the CA
 		if ok := certPool.AppendCertsFromPEM(ca); !ok {
-			return nil, errors.New("failed to append ca certs" + expl)
+			return nil, fmt.Errorf("failed to append ca certs" + expl)
 		}
 
 		crds := credentials.NewTLS(&tls.Config{

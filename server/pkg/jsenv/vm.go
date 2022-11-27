@@ -3,7 +3,6 @@ package jsenv
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"errors"
 	"fmt"
 
 	"github.com/dop251/goja"
@@ -66,14 +65,14 @@ func (ss Vm) RegisterFunction(s string, wrapperFn ...func() string) (f *Fn, err 
 	internalF := ss.Fetch(desc)
 
 	if internalF == nil {
-		err = errors.New("could not fetch registered value")
+		err = fmt.Errorf("could not fetch registered value")
 		return
 	}
 
 	fnn, ok := goja.AssertFunction(internalF)
 
 	if !ok {
-		err = errors.New("could not assert function")
+		err = fmt.Errorf("could not assert function")
 		return
 	}
 

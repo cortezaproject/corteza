@@ -2,7 +2,7 @@ package resource
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/cortezaproject/corteza/server/system/types"
@@ -55,7 +55,7 @@ func (us *Userstamp) MarshalYAML() (interface{}, error) {
 		return us.UserID, nil
 	}
 
-	return nil, errors.New("invalid userstamp")
+	return nil, fmt.Errorf("invalid userstamp")
 }
 
 func (us *Userstamp) MarshalJSON() ([]byte, error) {
@@ -89,7 +89,7 @@ func (us *Userstamp) MarshalJSON() ([]byte, error) {
 	}
 
 	if l == "" {
-		return nil, errors.New("invalid userstamp")
+		return nil, fmt.Errorf("invalid userstamp")
 	}
 
 	return json.Marshal(l)
@@ -193,7 +193,7 @@ func (us *Userstamp) Model() (string, error) {
 		return strconv.FormatUint(us.UserID, 10), nil
 	}
 
-	return "", errors.New("invalid userstamp")
+	return "", fmt.Errorf("invalid userstamp")
 }
 
 func (ux UserstampIndex) Add(uu ...*types.User) {

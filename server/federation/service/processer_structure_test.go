@@ -176,7 +176,7 @@ func TestProcesserStructure_persist(t *testing.T) {
 }
 
 func (s testStructureSharedModuleServiceError) Find(ctx context.Context, filter types.SharedModuleFilter) (types.SharedModuleSet, types.SharedModuleFilter, error) {
-	return types.SharedModuleSet{}, types.SharedModuleFilter{}, errors.New("db error")
+	return types.SharedModuleSet{}, types.SharedModuleFilter{}, fmt.Errorf("db error")
 }
 
 func (s testStructureSharedModuleServiceCreateNewModule) Find(ctx context.Context, filter types.SharedModuleFilter) (types.SharedModuleSet, types.SharedModuleFilter, error) {
@@ -192,7 +192,7 @@ func (s testStructureSharedModuleServiceCreateNewModuleErr) Find(ctx context.Con
 }
 
 func (s testStructureSharedModuleServiceCreateNewModuleErr) Create(ctx context.Context, new *types.SharedModule) (*types.SharedModule, error) {
-	return nil, errors.New("could not create new module")
+	return nil, fmt.Errorf("could not create new module")
 }
 
 func (s testStructureSharedModuleServiceUpdateModule) Find(ctx context.Context, filter types.SharedModuleFilter) (types.SharedModuleSet, types.SharedModuleFilter, error) {
@@ -228,5 +228,5 @@ func (s testStructureSharedModuleServiceUpdateModuleErr) Find(ctx context.Contex
 }
 
 func (s testStructureSharedModuleServiceUpdateModuleErr) Update(ctx context.Context, updated *types.SharedModule) (*types.SharedModule, error) {
-	return nil, errors.New("could not update module")
+	return nil, fmt.Errorf("could not update module")
 }

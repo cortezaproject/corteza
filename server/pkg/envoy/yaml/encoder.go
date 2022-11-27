@@ -3,7 +3,6 @@ package yaml
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -74,9 +73,9 @@ type (
 )
 
 var (
-	ErrUnknownResource        = errors.New("unknown resource")
-	ErrResourceStateUndefined = errors.New("undefined resource state")
-	ErrInvalidResourceType    = errors.New("invalid resource state")
+	ErrUnknownResource        = fmt.Errorf("unknown resource")
+	ErrResourceStateUndefined = fmt.Errorf("undefined resource state")
+	ErrInvalidResourceType    = fmt.Errorf("invalid resource state")
 )
 
 // NewYamlEncoder initializes a fresh yaml encoder
@@ -173,7 +172,8 @@ func (ye *yamlEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState) 
 // to different namespaces).
 //
 // @todo improve document structuring; the base encodes each resource type into it's own document.
-//       This is good enough for now but should be expanded in the near future.
+//
+//	This is good enough for now but should be expanded in the near future.
 func (ye *yamlEncoder) Encode(ctx context.Context, p envoy.Provider) error {
 	var e *envoy.ResourceState
 	var err error

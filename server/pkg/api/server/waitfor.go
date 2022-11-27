@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"net/url"
@@ -11,7 +12,6 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -164,12 +164,12 @@ func (s server) probeService(ctx context.Context, addr string) (err error) {
 func (s server) probeServiceURL(ctx context.Context, u *url.URL) error {
 	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
-		return errors.Wrap(err, "failed to assemble service request")
+		return fmt.Errorf("failed to assemble service request", err)
 	}
 
 	rsp, err := http.DefaultClient.Do(req.WithContext(ctx))
 	if err != nil {
-		return errors.Wrap(err, "service URL request failed")
+		return fmt.Errorf("service URL request failed", err)
 	}
 
 	defer rsp.Body.Close()
@@ -177,5 +177,5 @@ func (s server) probeServiceURL(ctx context.Context, u *url.URL) error {
 		return nil
 	}
 
-	return errors.Errorf("service responded with unexpected status '%s'", rsp.Status)
+	return fmt.Errorf("service responded with unexpected status '%s'", rsp.Status)
 }

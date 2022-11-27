@@ -2,7 +2,7 @@ package envoy
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
 )
@@ -134,7 +134,7 @@ func (g *graph) Next(ctx context.Context) (s *ResourceState, err error) {
 
 	if nx == nil {
 		// This is basically impossible, unless I've messed up the algorithm
-		return nil, errors.New("could not determine non-conflicting node")
+		return nil, fmt.Errorf("could not determine non-conflicting node")
 	}
 
 	// Prepare the required context for the processing.
@@ -147,13 +147,14 @@ func (g *graph) Next(ctx context.Context) (s *ResourceState, err error) {
 // findCycleNode returns the first graph node that caused a cycle
 //
 // General outline:
-//  * DFS from a start node(s)
-//  * if a child node is already in path, return that node
-//  * else return nil and cleanup the path until the first node with
-//    unprocessed child nodes
+//   - DFS from a start node(s)
+//   - if a child node is already in path, return that node
+//   - else return nil and cleanup the path until the first node with
+//     unprocessed child nodes
 //
 // @note we could complicate this further by doing cycle enumeration algorithms.
-//       I might do it when no one is watching :)
+//
+//	I might do it when no one is watching :)
 func (g *graph) findCycleNode(nn nodeSet) *node {
 	path := make(nodeMap)
 	processed := make(nodeMap)

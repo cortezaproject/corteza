@@ -2,7 +2,6 @@ package automation
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/cortezaproject/corteza/server/compose/types"
@@ -373,7 +372,7 @@ func (h recordsHandler) fetchEdge(ctx context.Context, args interface{}, first b
 		return nil, err
 	}
 	if len(rr) == 0 {
-		return nil, errors.New("could not fetch records: no records found")
+		return nil, fmt.Errorf("could not fetch records: no records found")
 	}
 	return rr[0], nil
 }

@@ -12,10 +12,7 @@ import (
 	"github.com/cortezaproject/corteza/server/system/rest/request"
 	"github.com/cortezaproject/corteza/server/system/service"
 	"github.com/cortezaproject/corteza/server/system/types"
-	"github.com/pkg/errors"
 )
-
-var _ = errors.Wrap
 
 type (
 	attachmentPayload struct {
@@ -40,7 +37,7 @@ func (Attachment) New() *Attachment {
 
 func (ctrl Attachment) Read(ctx context.Context, r *request.AttachmentRead) (interface{}, error) {
 	if !auth.GetIdentityFromContext(ctx).Valid() {
-		return nil, errors.New("Unauthorized")
+		return nil, fmt.Errorf("Unauthorized")
 	}
 
 	a, err := ctrl.attachment.FindByID(ctx, r.AttachmentID)
@@ -49,7 +46,7 @@ func (ctrl Attachment) Read(ctx context.Context, r *request.AttachmentRead) (int
 
 func (ctrl Attachment) Delete(ctx context.Context, r *request.AttachmentDelete) (interface{}, error) {
 	if !auth.GetIdentityFromContext(ctx).Valid() {
-		return nil, errors.New("Unauthorized")
+		return nil, fmt.Errorf("Unauthorized")
 	}
 
 	_, err := ctrl.attachment.FindByID(ctx, r.AttachmentID)
@@ -83,19 +80,19 @@ func (ctrl Attachment) isAccessible(kind string, attachmentID, userID uint64, si
 	}
 
 	if signature == "" {
-		return errors.New("Unauthorized")
+		return fmt.Errorf("Unauthorized")
 	}
 
 	if userID == 0 {
-		return errors.New("missing or invalid user ID")
+		return fmt.Errorf("missing or invalid user ID")
 	}
 
 	if attachmentID == 0 {
-		return errors.New("missing or invalid attachment ID")
+		return fmt.Errorf("missing or invalid attachment ID")
 	}
 
 	if !auth.DefaultSigner.Verify(signature, userID, attachmentID) {
-		return errors.New("missing or invalid signature")
+		return fmt.Errorf("missing or invalid signature")
 	}
 
 	return nil

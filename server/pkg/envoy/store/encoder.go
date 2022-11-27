@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/cortezaproject/corteza/server/compose/types"
@@ -77,8 +76,8 @@ type (
 )
 
 var (
-	ErrUnknownResource        = errors.New("unknown resource")
-	ErrResourceStateUndefined = errors.New("undefined resource state")
+	ErrUnknownResource        = fmt.Errorf("unknown resource")
+	ErrResourceStateUndefined = fmt.Errorf("undefined resource state")
 )
 
 // NewStoreEncoder initializes a fresh store encoder

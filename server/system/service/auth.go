@@ -344,13 +344,13 @@ func (svc *auth) InternalSignUp(ctx context.Context, input *types.User, password
 		}
 
 		// if !svc.settings.internalSignUpSendEmailOnExisting {
-		// 	return nil,errors.Wrap(err, "user with this email already exists")
+		// 	return nil,fmt.Errorf("user with this email already exists", err)
 		// }
 
 		// User already exists, but we're nice and we'll send this user an
 		// email that will help him to login
 		// if !u.Valid() {
-		// 	return nil,errors.New("could not validate the user")
+		// 	return nil,fmt.Errorf("could not validate the user")
 		// }
 		//
 		// return nil,nil

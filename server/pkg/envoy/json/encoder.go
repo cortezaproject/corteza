@@ -3,7 +3,6 @@ package json
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -49,8 +48,8 @@ type (
 )
 
 var (
-	ErrUnknownResource        = errors.New("unknown resource")
-	ErrResourceStateUndefined = errors.New("undefined resource state")
+	ErrUnknownResource        = fmt.Errorf("unknown resource")
+	ErrResourceStateUndefined = fmt.Errorf("undefined resource state")
 )
 
 func NewBulkRecordEncoder(cfg *EncoderConfig) envoy.PrepareEncodeStreamer {

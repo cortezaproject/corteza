@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/pkg/errors"
-
 	"github.com/cortezaproject/corteza/server/compose/types"
 )
 
@@ -68,7 +66,7 @@ func AssertNoErrors(rsp *http.Response, _ *http.Request) (err error) {
 
 // Asserts that all expected errors are returned
 //
-// Compares each error by Kind, Message and Meta.field
+// # Compares each error by Kind, Message and Meta.field
 //
 // Note: This assertion always expects errors!
 func AssertRecordValueError(exp ...*types.RecordValueError) assertFn {
@@ -125,11 +123,11 @@ func AssertError(expectedError string) assertFn {
 		}
 
 		if tmp.Error.Message == "" {
-			return errors.Errorf("No error, expecting: %v", expectedError)
+			return fmt.Errorf("No error, expecting: %v", expectedError)
 		}
 
 		if expectedError != tmp.Error.Message {
-			return errors.Errorf("Expecting error %v, got: %v", expectedError, tmp.Error.Message)
+			return fmt.Errorf("Expecting error %v, got: %v", expectedError, tmp.Error.Message)
 		}
 
 		return nil
@@ -146,7 +144,7 @@ func AssertBody(expected string) assertFn {
 
 		got := strings.Trim(string(bb), " \n")
 		if expected != got {
-			return errors.Errorf("Expecting: %v, got: %v", expected, got)
+			return fmt.Errorf("Expecting: %v, got: %v", expected, got)
 		}
 		return nil
 	}
@@ -161,11 +159,11 @@ func AssertErrorP(expectedError string) assertFn {
 		}
 
 		if tmp.Error.Message == "" {
-			return errors.Errorf("No error, expecting error with: %v", expectedError)
+			return fmt.Errorf("No error, expecting error with: %v", expectedError)
 		}
 
 		if !strings.Contains(tmp.Error.Message, expectedError) {
-			return errors.Errorf("Expecting error with %v, got: %v", expectedError, tmp.Error.Message)
+			return fmt.Errorf("Expecting error with %v, got: %v", expectedError, tmp.Error.Message)
 		}
 
 		return nil

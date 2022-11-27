@@ -86,7 +86,7 @@ func Test_resetPasswordForm(t *testing.T) {
 
 				authService = &authServiceMocked{
 					validatePasswordResetToken: func(ctx context.Context, token string) (user *types.User, err error) {
-						return nil, errors.New("invalid token")
+						return nil, fmt.Errorf("invalid token")
 					},
 				}
 			},

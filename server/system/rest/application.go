@@ -13,10 +13,7 @@ import (
 	"github.com/cortezaproject/corteza/server/system/service"
 	"github.com/cortezaproject/corteza/server/system/service/event"
 	"github.com/cortezaproject/corteza/server/system/types"
-	"github.com/pkg/errors"
 )
-
-var _ = errors.Wrap
 
 type (
 	Application struct {

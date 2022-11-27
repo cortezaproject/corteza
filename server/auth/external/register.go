@@ -12,7 +12,6 @@ import (
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/crusttech/go-oidc"
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -61,7 +60,8 @@ func AddProvider(ctx context.Context, log *zap.Logger, s store.SettingValues, ea
 }
 
 // @todo remove dependency on github.com/crusttech/go-oidc (and github.com/coreos/go-oidc)
-//       and move client registration to corteza codebase
+//
+//	and move client registration to corteza codebase
 func DiscoverOidcProvider(ctx context.Context, log *zap.Logger, opt options.AuthOpt, name, url string) (eap *types.ExternalAuthProvider, err error) {
 	var (
 		provider    *oidc.Provider
@@ -129,7 +129,7 @@ func RegisterOidcProvider(ctx context.Context, log *zap.Logger, s store.SettingV
 	}
 
 	if opt.ExternalRedirectURL == "" {
-		return nil, errors.New("refusing to register OIDC provider without redirect url")
+		return nil, fmt.Errorf("refusing to register OIDC provider without redirect url")
 	}
 
 	p, err := parseExternalProviderUrl(providerUrl)
@@ -198,7 +198,7 @@ func parseExternalProviderUrl(in string) (p *url.URL, err error) {
 // Simple checks of external auth settings
 func staticValidateExternal(opt options.AuthOpt) error {
 	if opt.ExternalRedirectURL == "" {
-		return errors.New("redirect URL is empty")
+		return fmt.Errorf("redirect URL is empty")
 	}
 
 	const (
@@ -206,19 +206,19 @@ func staticValidateExternal(opt options.AuthOpt) error {
 	)
 	p, err := url.Parse(strings.Replace(opt.ExternalRedirectURL, "{provider}", tpt, 1))
 	if err != nil {
-		return errors.Wrap(err, "invalid redirect URL")
+		return fmt.Errorf("invalid redirect URL", err)
 	}
 
 	if !strings.Contains(p.Path, tpt+"/callback") {
-		return errors.Wrap(err, "could find injected provider in the URL, make sure you use '%s' as a placeholder")
+		return fmt.Errorf("could find injected provider in the URL, make sure you use '%%s' as a placeholder", err)
 	}
 
 	if opt.ExternalCookieSecret == "" {
-		return errors.New("AUTH_EXTERNAL_COOKIE_SECRET is empty")
+		return fmt.Errorf("AUTH_EXTERNAL_COOKIE_SECRET is empty")
 	}
 
 	if opt.SessionCookieSecure && p.Scheme != "https" {
-		return errors.New("session store is secure, redirect URL should have HTTPS")
+		return fmt.Errorf("session store is secure, redirect URL should have HTTPS")
 	}
 
 	return nil
@@ -237,7 +237,7 @@ func validateExternalRedirectURL(opt options.AuthOpt) error {
 
 	rsp, err := http.DefaultClient.Get(url)
 	if err != nil {
-		return errors.Wrap(err, "could not get response from redirect URL")
+		return fmt.Errorf("could not get response from redirect URL", err)
 	}
 
 	defer rsp.Body.Close()
@@ -247,5 +247,5 @@ func validateExternalRedirectURL(opt options.AuthOpt) error {
 		return nil
 	}
 
-	return errors.New("could not validate external auth redirection URL")
+	return fmt.Errorf("could not validate external auth redirection URL")
 }

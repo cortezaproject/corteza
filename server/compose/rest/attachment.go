@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"io"
 	"net/http"
 	"net/url"
@@ -12,10 +13,7 @@ import (
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/api"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/pkg/errors"
 )
-
-var _ = errors.Wrap
 
 type (
 	attachmentPayload struct {
@@ -41,7 +39,7 @@ func (Attachment) New() *Attachment {
 // Attachments returns list of all files attached to records
 func (ctrl Attachment) List(ctx context.Context, r *request.AttachmentList) (interface{}, error) {
 	if !auth.GetIdentityFromContext(ctx).Valid() {
-		return nil, errors.New("Unauthorized")
+		return nil, errors.Unauthorized("cannot list attachments")
 	}
 
 	f := types.AttachmentFilter{
@@ -58,7 +56,7 @@ func (ctrl Attachment) List(ctx context.Context, r *request.AttachmentList) (int
 
 func (ctrl Attachment) Read(ctx context.Context, r *request.AttachmentRead) (interface{}, error) {
 	if !auth.GetIdentityFromContext(ctx).Valid() {
-		return nil, errors.New("Unauthorized")
+		return nil, errors.Unauthorized("cannot read attachment")
 	}
 
 	a, err := ctrl.attachment.FindByID(ctx, r.NamespaceID, r.AttachmentID)
@@ -67,7 +65,7 @@ func (ctrl Attachment) Read(ctx context.Context, r *request.AttachmentRead) (int
 
 func (ctrl Attachment) Delete(ctx context.Context, r *request.AttachmentDelete) (interface{}, error) {
 	if !auth.GetIdentityFromContext(ctx).Valid() {
-		return nil, errors.New("Unauthorized")
+		return nil, errors.Unauthorized("cannot delete attachment")
 	}
 
 	_, err := ctrl.attachment.FindByID(ctx, r.NamespaceID, r.AttachmentID)
@@ -96,19 +94,19 @@ func (ctrl Attachment) Preview(ctx context.Context, r *request.AttachmentPreview
 
 func (ctrl Attachment) isAccessible(namespaceID, attachmentID, userID uint64, signature string) error {
 	if signature == "" {
-		return errors.New("Unauthorized")
+		return errors.Unauthorized("missing signature")
 	}
 
 	if userID == 0 {
-		return errors.New("missing or invalid user ID")
+		return errors.InvalidData("missing or invalid user ID")
 	}
 
 	if attachmentID == 0 {
-		return errors.New("missing or invalid attachment ID")
+		return errors.InvalidData("missing or invalid attachment ID")
 	}
 
 	if !auth.DefaultSigner.Verify(signature, userID, namespaceID, attachmentID) {
-		return errors.New("missing or invalid signature")
+		return errors.InvalidData("missing or invalid signature")
 	}
 
 	return nil

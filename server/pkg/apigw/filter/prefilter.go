@@ -3,7 +3,6 @@ package filter
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -127,7 +126,7 @@ func (h header) Handler() types.HandlerFunc {
 		}
 
 		if !b {
-			return pe.InvalidData("could not validate headers: %v", errors.New("validation failed"))
+			return pe.InvalidData("could not validate headers: %v", fmt.Errorf("validation failed"))
 		}
 
 		return nil
@@ -215,7 +214,7 @@ func (qp *queryParam) Handler() types.HandlerFunc {
 		}
 
 		if !b {
-			return pe.InvalidData("could not validate query parameters: %v", errors.New("validation failed"))
+			return pe.InvalidData("could not validate query parameters: %v", fmt.Errorf("validation failed"))
 		}
 
 		return nil
