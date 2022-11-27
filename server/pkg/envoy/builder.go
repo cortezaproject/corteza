@@ -2,7 +2,7 @@ package envoy
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"io"
 
 	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
@@ -49,7 +49,7 @@ type (
 )
 
 var (
-	BuilderErrUnresolvedReferences = errors.New("builder error: unresolved references")
+	BuilderErrUnresolvedReferences = fmt.Errorf("builder error: unresolved references")
 )
 
 func NewBuilder(pp ...Preparer) *builder {
@@ -68,11 +68,11 @@ func NewSafeBuilder(pp ...Preparer) *builder {
 // Build builds the graph that is used for structured data processing
 //
 // Outline:
-// 1. Build an initial graph so that we can do some structured preprocessing.
-// 2. Preprocess the resources based on the initial graph. The initial graph
-//    should remain unchanged. Preprocessing can request additional references and
-//    constraints.
-// 3. Build a final graph based on the preprocessing modifications.
+//  1. Build an initial graph so that we can do some structured preprocessing.
+//  2. Preprocess the resources based on the initial graph. The initial graph
+//     should remain unchanged. Preprocessing can request additional references and
+//     constraints.
+//  3. Build a final graph based on the preprocessing modifications.
 func (b *builder) Build(ctx context.Context, rr ...resource.Interface) (*graph, error) {
 	var err error
 

@@ -25,11 +25,8 @@ import (
 	"github.com/cortezaproject/corteza/server/system/service/event"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/gabriel-vasile/mimetype"
-	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 )
-
-var _ = errors.Wrap
 
 type (
 	User struct {

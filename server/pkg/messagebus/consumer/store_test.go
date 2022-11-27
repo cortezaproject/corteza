@@ -31,10 +31,10 @@ var (
 
 	unsuccessfulClient = mockClient{
 		add: func(c context.Context, q string, p []byte) error {
-			return errors.New("could not write messages")
+			return fmt.Errorf("could not write messages")
 		},
 		process: func(c context.Context, u uint64, qm types.QueueMessage) (err error) {
-			return errors.New("could not process messages")
+			return fmt.Errorf("could not process messages")
 		},
 	}
 )
@@ -55,7 +55,7 @@ func Test_handlerSqlWrite(t *testing.T) {
 			},
 			{
 				name:   "write error",
-				err:    errors.New("could not write messages"),
+				err:    fmt.Errorf("could not write messages"),
 				client: &unsuccessfulClient,
 			},
 		}

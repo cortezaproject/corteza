@@ -1,11 +1,11 @@
 package expr
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 
 	"github.com/PaesslerAG/gval"
-	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 )
 
@@ -125,18 +125,18 @@ func random(v ...float64) (out float64, err error) {
 	)
 
 	if totalArgs == 0 || totalArgs > 2 {
-		return 0, errors.Errorf("expecting 1 or 2 parameter, got %d", totalArgs)
+		return 0, fmt.Errorf("expecting 1 or 2 parameter, got %d", totalArgs)
 	}
 
 	if totalArgs > 0 {
 		if to = v[0]; to < 0 {
-			return 0, errors.New("unexpected input type of 1st parameter")
+			return 0, fmt.Errorf("unexpected input type of 1st parameter")
 		}
 	}
 
 	if totalArgs > 1 {
 		if to = v[1]; to < 0 {
-			return 0, errors.New("unexpected input type of 2nd parameter")
+			return 0, fmt.Errorf("unexpected input type of 2nd parameter")
 		}
 		from = v[0]
 	}

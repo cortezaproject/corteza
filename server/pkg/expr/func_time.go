@@ -1,7 +1,7 @@
 package expr
 
 import (
-	"errors"
+	"fmt"
 	"time"
 
 	"github.com/PaesslerAG/gval"
@@ -179,7 +179,7 @@ func sub(from interface{}, to interface{}) (out int64, err error) {
 	if t1.After(*t2) {
 		duration = t1.Sub(*t2)
 	} else {
-		return -1, errors.New("expecting 2nd input to be less than 1st input")
+		return -1, fmt.Errorf("expecting 2nd input to be less than 1st input")
 	}
 
 	return duration.Milliseconds(), nil

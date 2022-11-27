@@ -51,7 +51,7 @@ func Test_oauth2AuthorizeSuccess(t *testing.T) {
 			fn: func(_ *settings.Settings) {
 				oauthService = &oauth2ServiceMocked{
 					handleAuthorizeRequest: func(w http.ResponseWriter, r *http.Request) error {
-						return errors.New("not authorized")
+						return fmt.Errorf("not authorized")
 					},
 				}
 			},

@@ -8,10 +8,7 @@ import (
 	"github.com/cortezaproject/corteza/server/compose/rest/request"
 	"github.com/cortezaproject/corteza/server/compose/service/event"
 	"github.com/cortezaproject/corteza/server/pkg/corredor"
-	"github.com/pkg/errors"
 )
-
-var _ = errors.Wrap
 
 type (
 	Automation struct{}

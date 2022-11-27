@@ -1,7 +1,7 @@
 package eventbus
 
 import (
-	"errors"
+	"fmt"
 	"path"
 	"regexp"
 	"strings"
@@ -35,8 +35,8 @@ type (
 	constraintSet []ConstraintMatcher
 )
 
-var ErrUnsupportedOp = errors.New("operator not supported")
-var ErrUnsupportedName = errors.New("constraint name not supported")
+var ErrUnsupportedOp = fmt.Errorf("operator not supported")
+var ErrUnsupportedName = fmt.Errorf("constraint name not supported")
 
 func (c mustBeEqual) Name() string     { return c.name }
 func (c mustBeLike) Name() string      { return c.name }

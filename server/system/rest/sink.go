@@ -2,11 +2,8 @@ package rest
 
 import (
 	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/pkg/errors"
 	"net/http"
 )
-
-var _ = errors.Wrap
 
 type Sink struct {
 	svc interface {

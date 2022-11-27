@@ -9,7 +9,6 @@ import (
 	minio "github.com/minio/minio-go/v6"
 	"github.com/minio/minio-go/v6/pkg/encrypt"
 	"github.com/minio/minio-go/v6/pkg/s3utils"
-	"github.com/pkg/errors"
 )
 
 type (
@@ -82,7 +81,7 @@ func newWithClient(mc minioClient, bucket, pathPrefix, component string, opt Opt
 		return nil, err
 	} else if !e {
 		if opt.Strict {
-			return nil, errors.Errorf("bucket %q does not exist", s.bucket)
+			return nil, fmt.Errorf("bucket %q does not exist", s.bucket)
 		}
 
 		err = s.mc.MakeBucket(s.bucket, "us-east-1")
@@ -103,7 +102,7 @@ func newWithClient(mc minioClient, bucket, pathPrefix, component string, opt Opt
 
 func (s *store) check(name string) error {
 	if len(name) == 0 {
-		return errors.Errorf("Invalid name when trying to store object: '%s' (for %s)", name, s.bucket)
+		return fmt.Errorf("Invalid name when trying to store object: '%s' (for %s)", name, s.bucket)
 	}
 
 	return nil

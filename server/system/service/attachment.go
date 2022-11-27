@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"image"
 	"image/gif"
 	"io"
@@ -17,7 +18,6 @@ import (
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/disintegration/imaging"
 	"github.com/edwvee/exiffix"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -207,7 +207,7 @@ func (svc attachment) create(ctx context.Context, name string, size int64, fh io
 	att.CreatedAt = *now()
 
 	if svc.files == nil {
-		return errors.New("cannot create attachment: store handler not set")
+		return fmt.Errorf("cannot create attachment: store handler not set")
 	}
 
 	if size == 0 {
@@ -290,7 +290,7 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 	}
 
 	if format, err = imaging.FormatFromExtension(att.Meta.Original.Extension); err != nil {
-		return errors.Wrapf(err, "could not get format from extension '%s'", att.Meta.Original.Extension)
+		return fmt.Errorf("could not get format from extension '%s'", att.Meta.Original.Extension, err)
 	}
 
 	previewFormat = format
@@ -298,7 +298,7 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 	if imaging.JPEG == format {
 		// Rotate image if needed
 		// if preview, _, err = exiffix.Decode(original); err != nil {
-		// 	return errors.Wrapf(err, "Could not decode EXIF from JPEG")
+		// 	return fmt.Errorf("Could not decode EXIF from JPEG", err)
 		// }
 		preview, _, _ = exiffix.Decode(original)
 	}
@@ -311,7 +311,7 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 			// Use first image for the preview
 			preview = cfg.Image[0]
 		} else {
-			return errors.Wrapf(err, "could not decode gif config")
+			return fmt.Errorf("could not decode gif config", err)
 		}
 
 	} else {
@@ -326,7 +326,7 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 	// other cases are handled here
 	if preview == nil {
 		if preview, err = imaging.Decode(original); err != nil {
-			return errors.Wrapf(err, "could not decode original image")
+			return fmt.Errorf("could not decode original image", err)
 		}
 	}
 

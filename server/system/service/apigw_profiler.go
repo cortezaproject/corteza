@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"encoding/base64"
-	"errors"
+	"fmt"
 	"io/ioutil"
 	"math"
 	"sort"
@@ -50,7 +50,7 @@ func (svc *apigwProfiler) Hits(ctx context.Context, filter types.ApigwProfilerFi
 	filter.Path = string(uDec)
 
 	if filter.Path == "" && filter.Hit == "" {
-		err = errors.New("fetching all hits (no route and hit specified) not supported")
+		err = fmt.Errorf("fetching all hits (no route and hit specified) not supported")
 		return
 	}
 

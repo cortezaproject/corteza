@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	ErrorURIMissingToken = errors.New("uri: token missing")
+	ErrorURIMissingToken = fmt.Errorf("uri: token missing")
 )
 
 const ()

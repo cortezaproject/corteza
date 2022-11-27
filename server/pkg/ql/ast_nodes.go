@@ -2,7 +2,6 @@ package ql
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -91,7 +90,7 @@ func (t *typedValue) UnmarshalJSON(in []byte) (err error) {
 	}
 
 	if aux.Type == "" {
-		return errors.New("invalid value definition: missing @type definition")
+		return fmt.Errorf("invalid value definition: missing @type definition")
 	}
 
 	t.V, err = qlTypeRegistry(aux.Type).Cast(aux.Value)

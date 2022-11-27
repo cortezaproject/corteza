@@ -81,7 +81,7 @@ func Test_securityProc(t *testing.T) {
 
 				authService = &authServiceMocked{
 					configureEmailOTP: func(c context.Context, u uint64, b bool) (user *types.User, err error) {
-						return nil, errors.New("custom error")
+						return nil, fmt.Errorf("custom error")
 					},
 				}
 			},

@@ -1,7 +1,6 @@
 package yaml
 
 import (
-	"errors"
 	"fmt"
 
 	"gopkg.in/yaml.v3"
@@ -126,7 +125,7 @@ func seqToMap(ss *yaml.Node, k string) (*yaml.Node, error) {
 		}
 
 		if kn == nil {
-			return nil, errors.New("key field not defined")
+			return nil, fmt.Errorf("key field not defined")
 		}
 
 		mm, err = addMap(mm, kn.Value, s)

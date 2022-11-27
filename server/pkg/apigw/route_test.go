@@ -46,7 +46,7 @@ func Test_pl(t *testing.T) {
 				handler: &types.MockHandler{
 					Handler_: func(rw http.ResponseWriter, r *http.Request) error {
 						rw.WriteHeader(http.StatusTemporaryRedirect)
-						return errors.New("test error")
+						return fmt.Errorf("test error")
 					},
 				},
 				errHandler: &types.MockErrorHandler{
@@ -63,7 +63,7 @@ func Test_pl(t *testing.T) {
 				handler: &types.MockHandler{
 					Handler_: func(rw http.ResponseWriter, r *http.Request) error {
 						rw.WriteHeader(http.StatusTemporaryRedirect)
-						return errors.New("test error")
+						return fmt.Errorf("test error")
 					},
 				},
 				method:    "POST",

@@ -2,7 +2,7 @@ package renderer
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"io"
 
 	"github.com/cortezaproject/corteza/server/pkg/options"
@@ -45,7 +45,7 @@ func (r *renderer) Render(ctx context.Context, pl *RendererPayload) (io.ReadSeek
 		}
 	}
 
-	return nil, errors.New("rendering failed: driver not found")
+	return nil, fmt.Errorf("rendering failed: driver not found")
 }
 
 func (r *renderer) Drivers() []DriverDefinition {

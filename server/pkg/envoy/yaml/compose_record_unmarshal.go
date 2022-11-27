@@ -1,7 +1,6 @@
 package yaml
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -80,7 +79,7 @@ func (wrap *composeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
 			return y7s.DecodeScalar(v, "module", &wrap.refModule)
 
 		case "allow", "deny":
-			return errors.New("compose record RBAC rules not supported on resource level")
+			return fmt.Errorf("compose record RBAC rules not supported on resource level")
 
 		case "values":
 			// Use aux structure to decode record values into RVS

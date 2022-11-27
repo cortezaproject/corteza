@@ -1,7 +1,7 @@
 package types
 
 import (
-	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -544,7 +544,7 @@ var _ KVDecoder = &ExternalAuthProviderSet{}
 
 func (eap ExternalAuthProvider) EncodeKV() (vv SettingValueSet, err error) {
 	if eap.Handle == "" {
-		return nil, errors.New("cannot encode external auth provider without handle")
+		return nil, fmt.Errorf("cannot encode external auth provider without handle")
 	}
 	var (
 		prefix = "auth.external.providers." + eap.Handle + "."

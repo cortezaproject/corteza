@@ -2,7 +2,6 @@ package automation
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	. "github.com/cortezaproject/corteza/server/pkg/expr"
@@ -82,7 +81,7 @@ func (h rolesHandler) searchMembers(ctx context.Context, args *rolesSearchMember
 		return
 	}
 	if rl == nil {
-		return nil, errors.New("role not found")
+		return nil, fmt.Errorf("role not found")
 	}
 
 	// Get membership info
@@ -119,7 +118,7 @@ func (h rolesHandler) eachMember(ctx context.Context, args *rolesEachMemberArgs)
 		return
 	}
 	if rl == nil {
-		return nil, errors.New("role not found")
+		return nil, fmt.Errorf("role not found")
 	}
 
 	// Get membership info
@@ -157,7 +156,7 @@ func (h rolesHandler) addMember(ctx context.Context, args *rolesAddMemberArgs) (
 		return
 	}
 	if role == nil {
-		return errors.New("role not found")
+		return fmt.Errorf("role not found")
 	}
 
 	user, err := lookupUser(ctx, h.uSvc, &usersLookupArgs{
@@ -172,7 +171,7 @@ func (h rolesHandler) addMember(ctx context.Context, args *rolesAddMemberArgs) (
 		return
 	}
 	if role == nil {
-		return errors.New("user not found")
+		return fmt.Errorf("user not found")
 	}
 
 	return h.rSvc.MemberAdd(ctx, role.ID, user.ID)
@@ -190,7 +189,7 @@ func (h rolesHandler) removeMember(ctx context.Context, args *rolesRemoveMemberA
 		return
 	}
 	if role == nil {
-		return errors.New("role not found")
+		return fmt.Errorf("role not found")
 	}
 
 	user, err := lookupUser(ctx, h.uSvc, &usersLookupArgs{
@@ -205,7 +204,7 @@ func (h rolesHandler) removeMember(ctx context.Context, args *rolesRemoveMemberA
 		return
 	}
 	if role == nil {
-		return errors.New("user not found")
+		return fmt.Errorf("user not found")
 	}
 
 	return h.rSvc.MemberRemove(ctx, role.ID, user.ID)

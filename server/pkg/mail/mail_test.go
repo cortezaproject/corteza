@@ -37,7 +37,7 @@ func TestMailSendWithoutDialer(t *testing.T) {
 	}
 
 	defaultDialer = nil
-	defaultDialerError = errors.New("Default dialer init error")
+	defaultDialerError = fmt.Errorf("Default dialer init error")
 	{
 		err := Send(msg)
 		require.True(t, err != nil, "Send() should return an error, got %v", err)
@@ -86,7 +86,7 @@ func TestMailSendErrors(t *testing.T) {
 	msg := New()
 
 	sDailer := NewMockDialer(mockCtrl)
-	sDailer.EXPECT().DialAndSend(msg).Times(1).Return(errors.New("some-error"))
+	sDailer.EXPECT().DialAndSend(msg).Times(1).Return(fmt.Errorf("some-error"))
 
 	err := Send(msg, sDailer)
 	require.True(t, err != nil, "Send() should return an error, got: %v", err)

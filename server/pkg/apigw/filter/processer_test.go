@@ -51,7 +51,7 @@ func Test_processerWorkflow(t *testing.T) {
 						return nil
 					},
 					exec: func(ctx context.Context, workflowID uint64, p atypes.WorkflowExecParams) (*expr.Vars, uint64, atypes.Stacktrace, error) {
-						return must(expr.NewVars(map[string]interface{}{"foo": "bar"})), 0, make([]*wfexec.Frame, 0), errors.New("mocked error")
+						return must(expr.NewVars(map[string]interface{}{"foo": "bar"})), 0, make([]*wfexec.Frame, 0), fmt.Errorf("mocked error")
 					},
 				},
 			},

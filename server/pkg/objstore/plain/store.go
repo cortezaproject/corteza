@@ -7,7 +7,6 @@ import (
 	"io"
 	"path"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 )
 
@@ -48,11 +47,11 @@ func NewWithAfero(fs afero.Fs, namespace string) (*store, error) {
 
 func (s *store) check(filename string) error {
 	if len(filename) == 0 {
-		return errors.Errorf("Invalid filename when trying to store file: '%s' (for %s)", filename, s.namespace)
+		return fmt.Errorf("Invalid filename when trying to store file: '%s' (for %s)", filename, s.namespace)
 	}
 
 	if filename[:len(s.namespace)+1] != s.namespace+"/" {
-		return errors.Errorf("Invalid namespace when trying to store file: '%s' (for %s)", filename, s.namespace)
+		return fmt.Errorf("Invalid namespace when trying to store file: '%s' (for %s)", filename, s.namespace)
 	}
 
 	return nil

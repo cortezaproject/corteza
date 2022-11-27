@@ -2,7 +2,6 @@ package automation
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	. "github.com/cortezaproject/corteza/server/pkg/expr"
@@ -77,7 +76,7 @@ func (h usersHandler) searchMembership(ctx context.Context, args *usersSearchMem
 		return
 	}
 	if u == nil {
-		return nil, errors.New("user not found")
+		return nil, fmt.Errorf("user not found")
 	}
 
 	// Get the roles
@@ -118,7 +117,7 @@ func (h usersHandler) checkMembership(ctx context.Context, args *usersCheckMembe
 		return
 	}
 	if u == nil {
-		return nil, errors.New("user not found")
+		return nil, fmt.Errorf("user not found")
 	}
 
 	// Get user membershio
@@ -145,7 +144,7 @@ func (h usersHandler) checkMembership(ctx context.Context, args *usersCheckMembe
 		return
 	}
 	if r == nil {
-		return nil, errors.New("role not found")
+		return nil, fmt.Errorf("role not found")
 	}
 
 	// Check if there
