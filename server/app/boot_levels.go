@@ -413,9 +413,6 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 
 	// Initialize API GW bits
 	apigw.Setup(*options.Apigw(), app.Log, app.Store)
-	if err = apigw.Service().Reload(ctx); err != nil {
-		return fmt.Errorf("could not initialize api gateway services: %w", err)
-	}
 
 	if app.Opt.Federation.Enabled {
 		// Initializes federation services
@@ -546,6 +543,11 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 
 		// watch for queue changes and restart on update
 		messagebus.Service().Watch(ctx, service.DefaultQueue)
+	}
+
+	// Reload routes
+	if err = apigw.Service().Reload(ctx); err != nil {
+		return fmt.Errorf("could not initialize api gateway services: %w", err)
 	}
 
 	app.lvl = bootLevelActivated
