@@ -35,7 +35,7 @@ export function getFieldFilter (name, kind, query = '', operator = '=') {
     switch (op.toUpperCase()) {
       case '!=':
       case 'NOT LIKE':
-        return `${left} ${op} ${right} OR ${left} IS NULL)`
+        return `${left} ${op} ${right} OR ${left} IS NULL`
       case 'IN':
       case 'NOT IN':
         // flip left/right for IN/NOT IN
