@@ -13,32 +13,29 @@
         class="results-container"
         :class="{ 'with-map': map.show }"
       >
-        <b-form
-          @submit.prevent="onQuerySubmit()"
-        >
-          <b-form-group class="px-3">
-            <c-input-search
-              v-model="query"
-              :placeholder="$t('input-placeholder')"
-              :autocomplete="'off'"
-              submittable
-              @search="onQuerySubmit()"
-            />
+        <b-form-group class="px-3">
+          <c-input-search
+            :value="query"
+            :placeholder="$t('input-placeholder')"
+            :autocomplete="'off'"
+            :disabled="$store.state.processing"
+            submittable
+            @search="onQuerySubmit"
+          />
 
-            <div
-              class="d-flex align-items-center justify-content-between px-1 mt-1 text-muted"
+          <div
+            class="d-flex align-items-center justify-content-between px-1 mt-1 text-muted"
+          >
+            <span
+              :class="{ 'discovering': $store.state.processing }"
             >
-              <span
-                :class="{ 'discovering': $store.state.processing }"
-              >
-                {{ searchDescription }}
-              </span>
-              <span>
-                Use <samp>"text"</samp> for exact match
-              </span>
-            </div>
-          </b-form-group>
-        </b-form>
+              {{ searchDescription }}
+            </span>
+            <span>
+              Use <samp>"text"</samp> for exact match
+            </span>
+          </div>
+        </b-form-group>
 
         <b-row
           class="results w-100 m-0 mh-100 overflow-auto"
@@ -63,6 +60,7 @@
               </span>
             </h5>
           </div>
+
           <b-col
             v-for="(hit, i) in filteredHits"
             :key="i"
@@ -142,7 +140,7 @@ export default {
       pagination: {
         limit: 50,
         from: 0,
-        size: 0,
+        size: 250,
       },
 
       total: {
@@ -177,7 +175,7 @@ export default {
 
   watch: {
     '$store.state.types': {
-      handler: function () {
+      handler () {
         this.getFilteredData()
       },
     },
@@ -186,7 +184,7 @@ export default {
       handler () {
         if (this.initial) return
         this.pagination.size = this.pagination.limit
-        this.getSearchData(this.query)
+        this.getSearchData()
       },
     },
 
@@ -194,7 +192,7 @@ export default {
       handler () {
         if (this.initial) return
         this.pagination.size = this.pagination.limit
-        this.getSearchData(this.query)
+        this.getSearchData()
       },
     },
   },
@@ -202,7 +200,7 @@ export default {
   created () {
     this.initial = true
 
-    const { query = '', modules = [], namespaces = [], size = 0 } = this.$route.query
+    const { query = '', modules = [], namespaces = [], size = 250 } = this.$route.query
 
     this.query = query
     this.pagination.size = size
@@ -210,7 +208,7 @@ export default {
     this.$store.commit('updateModules', Array.isArray(modules) ? modules : [modules])
     this.$store.commit('updateNamespaces', Array.isArray(namespaces) ? namespaces : [namespaces])
 
-    this.getSearchData(this.query)
+    this.getSearchData()
 
     setTimeout(() => {
       this.initial = false
@@ -222,14 +220,14 @@ export default {
     listElm.addEventListener('scroll', e => {
       if (listElm.scrollTop + listElm.clientHeight >= listElm.scrollHeight - 10) {
         if (!this.$store.state.processing && this.total.actual < this.total.all) {
-          this.getSearchData(this.query, true)
+          this.getSearchData({ append: true })
         }
       }
     })
   },
 
   methods: {
-    getSearchData (query = '', append = false) {
+    getSearchData ({ query = this.query, append = false } = {}) {
       this.$store.commit('updateProcessing', true)
 
       if (!append) {
@@ -289,10 +287,11 @@ export default {
       this.total.actual = this.filteredHits.length
     },
 
-    onQuerySubmit () {
+    onQuerySubmit (query) {
       if (!this.$store.state.processing) {
-        this.pagination.size = this.pagination.limit
-        this.getSearchData(this.query)
+        this.query = query
+        this.pagination.size = 250
+        this.getSearchData()
       }
     },
 

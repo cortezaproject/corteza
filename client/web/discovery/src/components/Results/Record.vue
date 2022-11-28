@@ -41,7 +41,6 @@
             size="sm"
             icon="file-earmark-text"
             class="align-center bg-light text-dark"
-            style="z-index: 1;"
           />
         </span>
       </div>
