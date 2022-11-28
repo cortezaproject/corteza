@@ -16,7 +16,6 @@
           size="sm"
           icon="code-square"
           class="align-center bg-light text-dark"
-          style="z-index: 1;"
         />
       </div>
       <div class="d-flex justify-content-between small">

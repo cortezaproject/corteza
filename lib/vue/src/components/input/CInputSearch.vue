@@ -22,6 +22,7 @@
       <b-button
         v-if="showSubmittable"
         variant="link"
+        :disabled="disabled"
         :class="{
           'search-icon-border': showSubmittableAndClearable,
           'cursor-default': !isSubmittable
@@ -90,7 +91,7 @@ export default {
     },
 
     isSubmittable () {
-      return this.submittable ? 'click' : null
+      return this.submittable && !this.disabled ? 'click' : null
     },
 
     showSubmittableAndClearable () {
