@@ -33,7 +33,7 @@ export default {
     },
 
     query () {
-      return this.$route.query.query || ''
+      return [this.$route.query.query || '']
     },
   },
 

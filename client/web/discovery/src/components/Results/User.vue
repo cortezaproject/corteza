@@ -37,7 +37,7 @@
         </label>
         <div class="mt-1">
           <text-highlight
-            :queries="[$route.query.query]"
+            :queries="query"
             highlight-style="padding: 0 0.05rem;"
           >
             {{ value }}
