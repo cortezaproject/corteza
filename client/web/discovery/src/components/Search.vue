@@ -309,7 +309,7 @@ export default {
             if (isGeometry) {
               value.forEach(coordinates => {
                 coordinates = JSON.parse(coordinates || '{}').coordinates
-                if (coordinates) {
+                if (coordinates && coordinates.length) {
                   markers.push({ id, coordinates })
                 }
               })
