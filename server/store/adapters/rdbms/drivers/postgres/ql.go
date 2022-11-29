@@ -68,9 +68,8 @@ var (
 		},
 		"week": {
 			Handler: func(args ...exp.Expression) exp.Expression {
-				return exp.NewSQLFunctionExpression("TO_CHAR",
-					exp.NewLiteralExpression("?::TIMESTAMPTZ", args[0]),
-					exp.NewLiteralExpression("?", "IW"),
+				return exp.NewSQLFunctionExpression("EXTRACT",
+					exp.NewLiteralExpression("WEEK FROM ?", args[0]),
 				)
 			},
 		},
