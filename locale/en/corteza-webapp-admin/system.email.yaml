@@ -18,7 +18,7 @@ editor:
 
     from:
       label: Sender address
-      description: Optional, a default sender address (FROM header) used when sending emails.
+      description: Default sender address (FROM header) used when sending emails.
 
     tlsInsecure:
       label: Allow use of invalid certificates
