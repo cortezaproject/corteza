@@ -94,7 +94,7 @@ var (
 			OutType: &TypeBoolean{},
 		},
 		"ge": {
-			//Handler: makeGenericCompHandler(">="),
+			// Handler: makeGenericCompHandler(">="),
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("%s >= %s", args[0], args[1])
 			},
@@ -210,6 +210,12 @@ var (
 		"day": {
 			Handler: func(args ...string) string {
 				return fmt.Sprintf("day(%s)", args[0])
+			},
+			OutType: &TypeNumber{},
+		},
+		"week": {
+			Handler: func(args ...string) string {
+				return fmt.Sprintf("week(%s)", args[0])
 			},
 			OutType: &TypeNumber{},
 		},
