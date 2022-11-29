@@ -223,6 +223,7 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
+import pages from 'corteza-webapp-compose/src/mixins/pages'
 import NewBlockSelector from 'corteza-webapp-compose/src/components/Admin/Page/Builder/Selector'
 import PageTranslator from 'corteza-webapp-compose/src/components/Admin/Page/PageTranslator'
 import Grid from 'corteza-webapp-compose/src/components/Common/Grid'
@@ -245,6 +246,10 @@ export default {
     PageTranslator,
   },
 
+  mixins: [
+    pages,
+  ],
+
   props: {
     namespace: {
       type: compose.Namespace,
@@ -261,7 +266,6 @@ export default {
     return {
       editor: undefined,
       page: undefined,
-
       blocks: [],
       board: null,
     }
@@ -360,7 +364,7 @@ export default {
 
         if (pageID) {
           const { namespaceID, name } = this.namespace
-          this.findPageByID({ namespaceID, pageID: this.pageID, force: true })
+          this.findPageByID({ namespaceID, pageID, force: true })
             .then(page => {
               document.title = [page.title, name, this.$t('general:label.app-name.private')].filter(v => v).join(' | ')
 
@@ -386,6 +390,7 @@ export default {
       deletePage: 'page/delete',
       updatePageSet: 'page/updateSet',
       createPage: 'page/create',
+      loadPages: 'page/load',
     }),
 
     addBlock (block, index = undefined) {
@@ -558,23 +563,6 @@ export default {
       } else {
         this.toastErrorHandler(this.$t('notification:page.duplicateFailed'))
       }
-    },
-
-    handleClone () {
-      let page = this.page.clone()
-      page = {
-        ...page,
-        pageID: NoID,
-        title: this.$t('copyOf', { title: this.page.title }),
-        handle: '',
-      }
-
-      const { namespaceID = NoID } = this.namespace
-      this.createPage({ namespaceID, ...page })
-        .then(({ pageID }) => {
-          this.$router.push({ name: 'admin.pages.builder', params: { pageID } })
-        })
-        .catch(this.toastErrorHandler(this.$t('notification:page.cloneFailed')))
     },
   },
 }

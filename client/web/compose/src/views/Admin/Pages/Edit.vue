@@ -170,6 +170,7 @@
 import { mapGetters, mapActions } from 'vuex'
 import EditorToolbar from 'corteza-webapp-compose/src/components/Admin/EditorToolbar'
 import PageTranslator from 'corteza-webapp-compose/src/components/Admin/Page/PageTranslator'
+import pages from 'corteza-webapp-compose/src/mixins/pages'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { handle } from '@cortezaproject/corteza-vue'
 
@@ -184,6 +185,10 @@ export default {
     EditorToolbar,
     PageTranslator,
   },
+
+  mixins: [
+    pages,
+  ],
 
   props: {
     namespace: {
@@ -244,13 +249,21 @@ export default {
     showDeleteDropdown () {
       return this.hasChildren && this.page.canDeletePage && !this.page.deletedAt
     },
+
   },
 
-  created () {
-    const { namespaceID } = this.namespace
-    this.findPageByID({ namespaceID, pageID: this.pageID }).then((page) => {
-      this.page = new compose.Page(page)
-    }).catch(this.toastErrorHandler(this.$t('notification:page.loadFailed')))
+  watch: {
+    pageID: {
+      immediate: true,
+      handler (pageID) {
+        if (pageID) {
+          const { namespaceID } = this.namespace
+          this.findPageByID({ namespaceID, pageID }).then((page) => {
+            this.page = page.clone()
+          }).catch(this.toastErrorHandler(this.$t('notification:page.loadFailed')))
+        }
+      },
+    },
   },
 
   methods: {
@@ -259,6 +272,7 @@ export default {
       updatePage: 'page/update',
       deletePage: 'page/delete',
       createPage: 'page/create',
+      loadPages: 'page/load',
     }),
 
     handleSave ({ closeOnSuccess = false } = {}) {
@@ -281,25 +295,6 @@ export default {
       this.deletePage({ ...this.page, strategy }).then(() => {
         this.$router.push({ name: 'admin.pages' })
       }).catch(this.toastErrorHandler(this.$t('notification:page.deleteFailed')))
-    },
-
-    handleClone () {
-      let page = this.page.clone()
-      page = {
-        ...page,
-        pageID: NoID,
-        title: this.$t('copyOf', { title: this.page.title }),
-        handle: '',
-      }
-
-      const { namespaceID = NoID } = this.namespace
-      this.createPage({ namespaceID, ...page })
-        .then(page => {
-          this.page = new compose.Page(page)
-          const { pageID = '' } = page
-          this.$router.push({ name: 'admin.pages.edit', params: { pageID } })
-        })
-        .catch(this.toastErrorHandler(this.$t('notification:page.cloneFailed')))
     },
   },
 }
