@@ -2,15 +2,17 @@ package mysql
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ql"
-	"strings"
 
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/dialect/mysql"
 	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/doug-martin/goqu/v9/sqlgen"
 )
 
 type (
@@ -22,6 +24,7 @@ var (
 
 	dialect            = &mysqlDialect{}
 	goquDialectWrapper = goqu.Dialect("mysql")
+	goquDialectOptions = mysql.DialectOptions()
 	quoteIdent         = string(mysql.DialectOptions().QuoteRune)
 
 	nuances = drivers.Nuances{
@@ -37,8 +40,9 @@ func (mysqlDialect) Nuances() drivers.Nuances {
 	return nuances
 }
 
-func (mysqlDialect) GOQU() goqu.DialectWrapper  { return goquDialectWrapper }
-func (mysqlDialect) QuoteIdent(i string) string { return quoteIdent + i + quoteIdent }
+func (mysqlDialect) GOQU() goqu.DialectWrapper                 { return goquDialectWrapper }
+func (mysqlDialect) DialectOptions() *sqlgen.SQLDialectOptions { return goquDialectOptions }
+func (mysqlDialect) QuoteIdent(i string) string                { return quoteIdent + i + quoteIdent }
 
 func (d mysqlDialect) IndexFieldModifiers(attr *dal.Attribute, mm ...dal.IndexFieldModifier) (string, error) {
 	return drivers.IndexFieldModifiers(attr, d.QuoteIdent, mm...)

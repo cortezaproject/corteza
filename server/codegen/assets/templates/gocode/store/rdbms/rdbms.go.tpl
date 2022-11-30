@@ -377,7 +377,7 @@ func (s *Store) Query{{ .expIdentPlural }}(
 		tExpr, f, err = s.Filters.{{ .expIdent }}(s, f)
 	} else {
 		// using generated filter
-		tExpr, f, err = {{ .expIdent }}Filter(f)
+		tExpr, f, err = {{ .expIdent }}Filter(s.Dialect, f)
 	}
 
 	if err != nil {
@@ -498,7 +498,7 @@ func (s *Store) Query{{ .expIdentPlural }}(
 					{{- end }}
 				{{- end }}
 				{{- range .nullConstraint }}
-					stateNilComparison({{ printf "%q" . }}, filter.StateExcluded),
+					stateNilComparison(s.Dialect, {{ printf "%q" . }}, filter.StateExcluded),
 				{{- end }}
 			).Limit(1)
 		)

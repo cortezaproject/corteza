@@ -7,6 +7,7 @@ import (
 	{{- range $path, $alias :=  .imports }}
     {{ $alias }} {{ printf "%q" $path }}
 	{{- end }}
+	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers"
 	"github.com/doug-martin/goqu/v9"
 )
 
@@ -34,15 +35,15 @@ type (
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func {{ .expIdent }}Filter(f {{ .goFilterType }})(ee []goqu.Expression, _ {{ .goFilterType }}, err error) {
+func {{ .expIdent }}Filter(d drivers.Dialect, f {{ .goFilterType }})(ee []goqu.Expression, _ {{ .goFilterType }}, err error) {
 	{{ range .filter.byNilState }}
-		if expr := stateNilComparison({{ printf "%q" .storeIdent }}, f.{{ .expIdent }}); expr != nil {
+		if expr := stateNilComparison(d,{{ printf "%q" .storeIdent }}, f.{{ .expIdent }}); expr != nil {
 			ee = append(ee, expr)
 		}
 	{{ end }}
 
 	{{ range .filter.byFalseState }}
-		if expr := stateFalseComparison({{ printf "%q" .storeIdent }}, f.{{ .expIdent }}); expr != nil {
+		if expr := stateFalseComparison(d,{{ printf "%q" .storeIdent }}, f.{{ .expIdent }}); expr != nil {
 			ee = append(ee, expr)
 		}
 	{{ end }}

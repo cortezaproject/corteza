@@ -2,6 +2,8 @@ package sqlite
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/cortezaproject/corteza/server/pkg/cast2"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
@@ -10,7 +12,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/dialect/sqlite3"
 	"github.com/doug-martin/goqu/v9/exp"
-	"strings"
+	"github.com/doug-martin/goqu/v9/sqlgen"
 )
 
 type (
@@ -22,6 +24,7 @@ var (
 
 	dialect            = &sqliteDialect{}
 	goquDialectWrapper = goqu.Dialect("sqlite3")
+	goquDialectOptions *sqlgen.SQLDialectOptions
 	quoteIdent         = string(sqlite3.DialectOptions().QuoteRune)
 
 	nuances = drivers.Nuances{
@@ -30,13 +33,13 @@ var (
 )
 
 func init() {
-	d := sqlite3.DialectOptions()
+	goquDialectOptions = sqlite3.DialectOptions()
 
 	// https://github.com/doug-martin/goqu/v9/pull/330
-	d.TruncateClause = []byte("DELETE FROM")
+	goquDialectOptions.TruncateClause = []byte("DELETE FROM")
 
 	// Overriding vanila SQLite dialect
-	goqu.RegisterDialect("sqlite3", d)
+	goqu.RegisterDialect("sqlite3", goquDialectOptions)
 }
 
 func Dialect() *sqliteDialect {
@@ -47,8 +50,9 @@ func (sqliteDialect) Nuances() drivers.Nuances {
 	return nuances
 }
 
-func (sqliteDialect) GOQU() goqu.DialectWrapper  { return goquDialectWrapper }
-func (sqliteDialect) QuoteIdent(i string) string { return quoteIdent + i + quoteIdent }
+func (sqliteDialect) GOQU() goqu.DialectWrapper                 { return goquDialectWrapper }
+func (sqliteDialect) DialectOptions() *sqlgen.SQLDialectOptions { return goquDialectOptions }
+func (sqliteDialect) QuoteIdent(i string) string                { return quoteIdent + i + quoteIdent }
 
 func (d sqliteDialect) IndexFieldModifiers(attr *dal.Attribute, mm ...dal.IndexFieldModifier) (string, error) {
 	return drivers.IndexFieldModifiers(attr, d.QuoteIdent, mm...)
