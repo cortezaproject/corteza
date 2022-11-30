@@ -13,6 +13,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/dialect/sqlserver"
 	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/doug-martin/goqu/v9/sqlgen"
 )
 
 type (
@@ -24,6 +25,7 @@ var (
 
 	dialect            = &mssqlDialect{}
 	goquDialectWrapper = goqu.Dialect("sqlserver")
+	goquDialectOptions *sqlgen.SQLDialectOptions
 	quoteIdent         = string(sqlserver.DialectOptions().QuoteRune)
 
 	nuances = drivers.Nuances{
@@ -33,22 +35,22 @@ var (
 )
 
 func init() {
-	d := sqlserver.DialectOptions()
+	goquDialectOptions = sqlserver.DialectOptions()
 
 	// MSSQL doesn't support the classic boolean constants but we still need to
 	// boolean expressions.
 	// Disallowing boolean datatype on goqu level is too strict and it prevents most
 	// of the queries to work.
-	d.BooleanDataTypeSupported = true
+	goquDialectOptions.BooleanDataTypeSupported = true
 
 	// Use 1/0 as an alternative to booleans
-	d.True = []byte("1")
-	d.False = []byte("0")
+	goquDialectOptions.True = []byte("1")
+	goquDialectOptions.False = []byte("0")
 
 	// d.CastFragment = []byte("TRY_CONVERT")
 
 	// Overriding vanila dialect
-	goqu.RegisterDialect("sqlserver", d)
+	goqu.RegisterDialect("sqlserver", goquDialectOptions)
 }
 
 func Dialect() *mssqlDialect {
@@ -59,8 +61,9 @@ func (mssqlDialect) Nuances() drivers.Nuances {
 	return nuances
 }
 
-func (mssqlDialect) GOQU() goqu.DialectWrapper  { return goquDialectWrapper }
-func (mssqlDialect) QuoteIdent(i string) string { return quoteIdent + i + quoteIdent }
+func (mssqlDialect) GOQU() goqu.DialectWrapper                 { return goquDialectWrapper }
+func (mssqlDialect) DialectOptions() *sqlgen.SQLDialectOptions { return goquDialectOptions }
+func (mssqlDialect) QuoteIdent(i string) string                { return quoteIdent + i + quoteIdent }
 
 func (d mssqlDialect) IndexFieldModifiers(attr *dal.Attribute, mm ...dal.IndexFieldModifier) (string, error) {
 	return drivers.IndexFieldModifiers(attr, d.QuoteIdent, mm...)

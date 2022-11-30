@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers"
 
 	automationType "github.com/cortezaproject/corteza/server/automation/types"
 	composeType "github.com/cortezaproject/corteza/server/compose/types"
@@ -23,7 +24,7 @@ func DefaultFilters() (f *extendedFilters) {
 	f = &extendedFilters{}
 
 	f.Actionlog = func(s *Store, f actionlog.Filter) (ee []goqu.Expression, _ actionlog.Filter, err error) {
-		if ee, f, err = ActionlogFilter(f); err != nil {
+		if ee, f, err = ActionlogFilter(s.Dialect, f); err != nil {
 			return
 		}
 
@@ -52,7 +53,7 @@ func DefaultFilters() (f *extendedFilters) {
 	}
 
 	f.Application = func(s *Store, f systemType.ApplicationFilter) (ee []goqu.Expression, _ systemType.ApplicationFilter, err error) {
-		if ee, f, err = ApplicationFilter(f); err != nil {
+		if ee, f, err = ApplicationFilter(s.Dialect, f); err != nil {
 			return
 		}
 
@@ -64,7 +65,7 @@ func DefaultFilters() (f *extendedFilters) {
 	}
 
 	f.AutomationSession = func(s *Store, f automationType.SessionFilter) (ee []goqu.Expression, _ automationType.SessionFilter, err error) {
-		if ee, f, err = AutomationSessionFilter(f); err != nil {
+		if ee, f, err = AutomationSessionFilter(s.Dialect, f); err != nil {
 			return
 		}
 
@@ -76,7 +77,7 @@ func DefaultFilters() (f *extendedFilters) {
 	}
 
 	f.ComposeAttachment = func(s *Store, f composeType.AttachmentFilter) (ee []goqu.Expression, _ composeType.AttachmentFilter, err error) {
-		if ee, f, err = ComposeAttachmentFilter(f); err != nil {
+		if ee, f, err = ComposeAttachmentFilter(s.Dialect, f); err != nil {
 			return
 		}
 
@@ -121,7 +122,7 @@ func DefaultFilters() (f *extendedFilters) {
 	}
 
 	f.ComposePage = func(s *Store, f composeType.PageFilter) (ee []goqu.Expression, _ composeType.PageFilter, err error) {
-		if ee, f, err = ComposePageFilter(f); err != nil {
+		if ee, f, err = ComposePageFilter(s.Dialect, f); err != nil {
 			return
 		}
 
@@ -134,8 +135,8 @@ func DefaultFilters() (f *extendedFilters) {
 		return ee, f, nil
 	}
 
-	f.Label = func(store *Store, f labelsType.LabelFilter) (ee []goqu.Expression, _ labelsType.LabelFilter, err error) {
-		if ee, f, err = LabelFilter(f); err != nil {
+	f.Label = func(s *Store, f labelsType.LabelFilter) (ee []goqu.Expression, _ labelsType.LabelFilter, err error) {
+		if ee, f, err = LabelFilter(s.Dialect, f); err != nil {
 			return
 		}
 
@@ -153,20 +154,20 @@ func DefaultFilters() (f *extendedFilters) {
 	}
 
 	f.Reminder = func(s *Store, f systemType.ReminderFilter) (ee []goqu.Expression, _ systemType.ReminderFilter, err error) {
-		if ee, f, err = ReminderFilter(f); err != nil {
+		if ee, f, err = ReminderFilter(s.Dialect, f); err != nil {
 			return
 		}
 
 		if f.ExcludeDismissed {
-			ee = append(ee, stateNilComparison("dismissed_at", filter.StateExcluded))
+			ee = append(ee, stateNilComparison(s.Dialect, "dismissed_at", filter.StateExcluded))
 		}
 
 		if !f.IncludeDeleted {
-			ee = append(ee, stateNilComparison("deleted_at", filter.StateExcluded))
+			ee = append(ee, stateNilComparison(s.Dialect, "deleted_at", filter.StateExcluded))
 		}
 
 		if f.ScheduledOnly {
-			ee = append(ee, stateNilComparison("remind_at", filter.StateExclusive))
+			ee = append(ee, stateNilComparison(s.Dialect, "remind_at", filter.StateExclusive))
 		}
 
 		if f.Resource != "" {
@@ -184,7 +185,7 @@ func DefaultFilters() (f *extendedFilters) {
 	}
 
 	f.ResourceTranslation = func(s *Store, f systemType.ResourceTranslationFilter) (ee []goqu.Expression, _ systemType.ResourceTranslationFilter, err error) {
-		if ee, f, err = ResourceTranslationFilter(f); err != nil {
+		if ee, f, err = ResourceTranslationFilter(s.Dialect, f); err != nil {
 			return
 		}
 
@@ -196,7 +197,7 @@ func DefaultFilters() (f *extendedFilters) {
 	}
 
 	f.Role = func(s *Store, f systemType.RoleFilter) (ee []goqu.Expression, _ systemType.RoleFilter, err error) {
-		if ee, f, err = RoleFilter(f); err != nil {
+		if ee, f, err = RoleFilter(s.Dialect, f); err != nil {
 			return
 		}
 
@@ -212,7 +213,7 @@ func DefaultFilters() (f *extendedFilters) {
 	}
 
 	f.User = func(s *Store, f systemType.UserFilter) (ee []goqu.Expression, _ systemType.UserFilter, err error) {
-		if ee, f, err = UserFilter(f); err != nil {
+		if ee, f, err = UserFilter(s.Dialect, f); err != nil {
 			return
 		}
 
@@ -232,7 +233,7 @@ func DefaultFilters() (f *extendedFilters) {
 	}
 
 	f.SettingValue = func(s *Store, f systemType.SettingsFilter) (ee []goqu.Expression, _ systemType.SettingsFilter, err error) {
-		if ee, f, err = SettingValueFilter(f); err != nil {
+		if ee, f, err = SettingValueFilter(s.Dialect, f); err != nil {
 			return
 		}
 
@@ -244,7 +245,7 @@ func DefaultFilters() (f *extendedFilters) {
 	}
 
 	f.FederationExposedModule = func(s *Store, f types.ExposedModuleFilter) (ee []goqu.Expression, _ types.ExposedModuleFilter, err error) {
-		if ee, f, err = FederationExposedModuleFilter(f); err != nil {
+		if ee, f, err = FederationExposedModuleFilter(s.Dialect, f); err != nil {
 			return
 		}
 
@@ -264,7 +265,7 @@ func DefaultFilters() (f *extendedFilters) {
 	}
 
 	f.ResourceActivity = func(s *Store, f discoveryType.ResourceActivityFilter) (ee []goqu.Expression, _ discoveryType.ResourceActivityFilter, err error) {
-		if ee, f, err = ResourceActivityFilter(f); err != nil {
+		if ee, f, err = ResourceActivityFilter(s.Dialect, f); err != nil {
 			return
 		}
 
@@ -287,7 +288,7 @@ func DefaultFilters() (f *extendedFilters) {
 	}
 
 	f.DataPrivacyRequest = func(s *Store, f systemType.DataPrivacyRequestFilter) (ee []goqu.Expression, _ systemType.DataPrivacyRequestFilter, err error) {
-		if ee, f, err = DataPrivacyRequestFilter(f); err != nil {
+		if ee, f, err = DataPrivacyRequestFilter(s.Dialect, f); err != nil {
 			return
 		}
 
@@ -307,7 +308,7 @@ func DefaultFilters() (f *extendedFilters) {
 	}
 
 	f.AutomationWorkflow = func(s *Store, f automationType.WorkflowFilter) (ee []goqu.Expression, _ automationType.WorkflowFilter, err error) {
-		if ee, f, err = AutomationWorkflowFilter(f); err != nil {
+		if ee, f, err = AutomationWorkflowFilter(s.Dialect, f); err != nil {
 			return
 		}
 
@@ -333,7 +334,7 @@ func DefaultFilters() (f *extendedFilters) {
 	}
 
 	f.ApigwRoute = func(s *Store, f systemType.ApigwRouteFilter) (ee []goqu.Expression, _ systemType.ApigwRouteFilter, err error) {
-		if ee, f, err = ApigwRouteFilter(f); err != nil {
+		if ee, f, err = ApigwRouteFilter(s.Dialect, f); err != nil {
 			return
 		}
 
@@ -370,12 +371,12 @@ func order(sort filter.SortExprSet, sortables map[string]string) (oo []exp.Order
 	return
 }
 
-func stateNilComparison(lit string, fs filter.State) goqu.Expression {
+func stateNilComparison(d drivers.Dialect, lit string, fs filter.State) goqu.Expression {
 	switch fs {
 	case filter.StateExclusive:
 		// only not-null values
 		// @todo the NULL bit might be better of obtained from the dialect
-		return exp.NewLiteralExpression("? IS NOT NULL", goqu.Literal(lit))
+		return exp.NewLiteralExpression(fmt.Sprintf("? IS NOT %s", string(d.DialectOptions().Null)), goqu.Literal(lit))
 
 	case filter.StateInclusive:
 		// no filter
@@ -384,19 +385,19 @@ func stateNilComparison(lit string, fs filter.State) goqu.Expression {
 	default:
 		// exclude all non-null values
 		// @todo the NULL bit might be better of obtained from the dialect
-		return exp.NewLiteralExpression("? IS NULL", goqu.Literal(lit))
+		return exp.NewLiteralExpression(fmt.Sprintf("? IS %s", string(d.DialectOptions().Null)), goqu.Literal(lit))
 	}
 }
 
-func stateFalseComparison(lit string, fs filter.State) goqu.Expression {
+func stateFalseComparison(d drivers.Dialect, lit string, fs filter.State) goqu.Expression {
 	switch fs {
 	case filter.StateExcluded:
 		// only true
-		return goqu.Literal(lit).IsTrue()
+		return goqu.Literal(lit).Eq(string(d.DialectOptions().True))
 
 	case filter.StateExclusive:
 		// only false
-		return goqu.Literal(lit).IsFalse()
+		return goqu.Literal(lit).Eq(string(d.DialectOptions().False))
 
 	default:
 		return nil

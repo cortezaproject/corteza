@@ -2,6 +2,8 @@ package postgres
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers"
@@ -9,8 +11,8 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/dialect/postgres"
 	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/doug-martin/goqu/v9/sqlgen"
 	"github.com/spf13/cast"
-	"strings"
 )
 
 type (
@@ -22,6 +24,7 @@ var (
 
 	dialect            = &postgresDialect{}
 	goquDialectWrapper = goqu.Dialect("postgres")
+	goquDialectOptions = postgres.DialectOptions()
 	quoteIdent         = string(postgres.DialectOptions().QuoteRune)
 
 	nuances = drivers.Nuances{
@@ -37,8 +40,9 @@ func (postgresDialect) Nuances() drivers.Nuances {
 	return nuances
 }
 
-func (postgresDialect) GOQU() goqu.DialectWrapper  { return goquDialectWrapper }
-func (postgresDialect) QuoteIdent(i string) string { return quoteIdent + i + quoteIdent }
+func (postgresDialect) GOQU() goqu.DialectWrapper                 { return goquDialectWrapper }
+func (postgresDialect) DialectOptions() *sqlgen.SQLDialectOptions { return goquDialectOptions }
+func (postgresDialect) QuoteIdent(i string) string                { return quoteIdent + i + quoteIdent }
 
 func (d postgresDialect) IndexFieldModifiers(attr *dal.Attribute, mm ...dal.IndexFieldModifier) (string, error) {
 	return drivers.IndexFieldModifiers(attr, d.QuoteIdent, mm...)
