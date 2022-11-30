@@ -43,7 +43,7 @@
 
         <b-form-checkbox
           v-model="customFilter"
-          class="mt-1"
+          class="mt-3"
         >
           {{ $t('edit.filter.customize') }}
         </b-form-checkbox>
@@ -52,6 +52,7 @@
           v-if="customFilter"
           v-model="report.filter"
           placeholder="a = 1 AND b > 2"
+          class="mt-2"
         />
       </b-form-group>
     </div>
