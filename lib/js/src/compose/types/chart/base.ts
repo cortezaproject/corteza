@@ -164,12 +164,12 @@ export class BaseChart {
 
     // helper to choose between eight the provided value, default value or a generic 'undefined'
     const pickValue = (val: unknown, { default: dDft }: Dimension): unknown => {
-      return val ? val : dDft || 'undefined'
+      return val || val === 0 ? val : dDft || 'undefined'
     }
 
     // Skip missing values; if so requested
     if (dimension.skipMissing) {
-      results = results.filter((r: any) => r[dLabel])
+      results = results.filter((r: any) => r[dLabel] || r[dLabel] === 0)
     }
 
     // Not a time dimensions, build set of labels
