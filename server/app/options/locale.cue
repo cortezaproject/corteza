@@ -23,7 +23,6 @@ locale: schema.#optionsGroup & {
 				One or more paths to locale config and translation files, separated by colon
 
 				When with LOCALE_DEVELOPMENT_MODE=true, default value for path is ../../locale
-				"""
 			"""
 		}
 
