@@ -1785,6 +1785,7 @@ func recordReportToDalPipeline(m *types.Module, metrics, dimensions, f string) (
 			Key:        true,
 		},
 	}
+	oo := filter.SortExprSet{{Column: dim[0].Identifier}}
 
 	// Map metrics to the aggregate attrs
 	// - count is always present
@@ -1821,6 +1822,9 @@ func recordReportToDalPipeline(m *types.Module, metrics, dimensions, f string) (
 		RelSource:     "ds",
 		Group:         dim,
 		OutAttributes: mms,
+		Filter: filter.Generic(
+			filter.WithOrderBy(oo),
+		),
 	}
 
 	// Build the pipeline
