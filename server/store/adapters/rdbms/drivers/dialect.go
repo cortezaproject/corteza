@@ -9,6 +9,7 @@ import (
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/doug-martin/goqu/v9/sqlgen"
 )
 
 type (
@@ -35,6 +36,8 @@ type (
 
 		// GOQU returns goqu's dialect wrapper struct
 		GOQU() goqu.DialectWrapper
+
+		DialectOptions() *sqlgen.SQLDialectOptions
 
 		JsonQuote(exp.Expression) exp.Expression
 

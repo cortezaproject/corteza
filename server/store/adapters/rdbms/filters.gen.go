@@ -15,6 +15,7 @@ import (
 	flagType "github.com/cortezaproject/corteza/server/pkg/flag/types"
 	labelsType "github.com/cortezaproject/corteza/server/pkg/label/types"
 	rbacType "github.com/cortezaproject/corteza/server/pkg/rbac"
+	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers"
 	systemType "github.com/cortezaproject/corteza/server/system/types"
 	"github.com/doug-martin/goqu/v9"
 	"strings"
@@ -164,7 +165,7 @@ type (
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func ActionlogFilter(f actionlogType.Filter) (ee []goqu.Expression, _ actionlogType.Filter, err error) {
+func ActionlogFilter(d drivers.Dialect, f actionlogType.Filter) (ee []goqu.Expression, _ actionlogType.Filter, err error) {
 
 	if val := strings.TrimSpace(f.Action); len(val) > 0 {
 		ee = append(ee, goqu.C("action").Eq(f.Action))
@@ -192,13 +193,13 @@ func ActionlogFilter(f actionlogType.Filter) (ee []goqu.Expression, _ actionlogT
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func ApigwFilterFilter(f systemType.ApigwFilterFilter) (ee []goqu.Expression, _ systemType.ApigwFilterFilter, err error) {
+func ApigwFilterFilter(d drivers.Dialect, f systemType.ApigwFilterFilter) (ee []goqu.Expression, _ systemType.ApigwFilterFilter, err error) {
 
-	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
 	}
 
-	if expr := stateFalseComparison("enabled", f.Disabled); expr != nil {
+	if expr := stateFalseComparison(d, "enabled", f.Disabled); expr != nil {
 		ee = append(ee, expr)
 	}
 
@@ -216,13 +217,13 @@ func ApigwFilterFilter(f systemType.ApigwFilterFilter) (ee []goqu.Expression, _ 
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func ApigwRouteFilter(f systemType.ApigwRouteFilter) (ee []goqu.Expression, _ systemType.ApigwRouteFilter, err error) {
+func ApigwRouteFilter(d drivers.Dialect, f systemType.ApigwRouteFilter) (ee []goqu.Expression, _ systemType.ApigwRouteFilter, err error) {
 
-	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
 	}
 
-	if expr := stateFalseComparison("enabled", f.Disabled); expr != nil {
+	if expr := stateFalseComparison(d, "enabled", f.Disabled); expr != nil {
 		ee = append(ee, expr)
 	}
 
@@ -244,9 +245,9 @@ func ApigwRouteFilter(f systemType.ApigwRouteFilter) (ee []goqu.Expression, _ sy
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func ApplicationFilter(f systemType.ApplicationFilter) (ee []goqu.Expression, _ systemType.ApplicationFilter, err error) {
+func ApplicationFilter(d drivers.Dialect, f systemType.ApplicationFilter) (ee []goqu.Expression, _ systemType.ApplicationFilter, err error) {
 
-	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
 	}
 
@@ -278,7 +279,7 @@ func ApplicationFilter(f systemType.ApplicationFilter) (ee []goqu.Expression, _ 
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func AttachmentFilter(f systemType.AttachmentFilter) (ee []goqu.Expression, _ systemType.AttachmentFilter, err error) {
+func AttachmentFilter(d drivers.Dialect, f systemType.AttachmentFilter) (ee []goqu.Expression, _ systemType.AttachmentFilter, err error) {
 
 	if val := strings.TrimSpace(f.Kind); len(val) > 0 {
 		ee = append(ee, goqu.C("kind").Eq(f.Kind))
@@ -294,9 +295,9 @@ func AttachmentFilter(f systemType.AttachmentFilter) (ee []goqu.Expression, _ sy
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func AuthClientFilter(f systemType.AuthClientFilter) (ee []goqu.Expression, _ systemType.AuthClientFilter, err error) {
+func AuthClientFilter(d drivers.Dialect, f systemType.AuthClientFilter) (ee []goqu.Expression, _ systemType.AuthClientFilter, err error) {
 
-	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
 	}
 
@@ -318,7 +319,7 @@ func AuthClientFilter(f systemType.AuthClientFilter) (ee []goqu.Expression, _ sy
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func AuthConfirmedClientFilter(f systemType.AuthConfirmedClientFilter) (ee []goqu.Expression, _ systemType.AuthConfirmedClientFilter, err error) {
+func AuthConfirmedClientFilter(d drivers.Dialect, f systemType.AuthConfirmedClientFilter) (ee []goqu.Expression, _ systemType.AuthConfirmedClientFilter, err error) {
 
 	if f.UserID > 0 {
 		ee = append(ee, goqu.C("rel_user").Eq(f.UserID))
@@ -334,7 +335,7 @@ func AuthConfirmedClientFilter(f systemType.AuthConfirmedClientFilter) (ee []goq
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func AuthOa2tokenFilter(f systemType.AuthOa2tokenFilter) (ee []goqu.Expression, _ systemType.AuthOa2tokenFilter, err error) {
+func AuthOa2tokenFilter(d drivers.Dialect, f systemType.AuthOa2tokenFilter) (ee []goqu.Expression, _ systemType.AuthOa2tokenFilter, err error) {
 
 	if f.UserID > 0 {
 		ee = append(ee, goqu.C("user_id").Eq(f.UserID))
@@ -350,7 +351,7 @@ func AuthOa2tokenFilter(f systemType.AuthOa2tokenFilter) (ee []goqu.Expression, 
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func AuthSessionFilter(f systemType.AuthSessionFilter) (ee []goqu.Expression, _ systemType.AuthSessionFilter, err error) {
+func AuthSessionFilter(d drivers.Dialect, f systemType.AuthSessionFilter) (ee []goqu.Expression, _ systemType.AuthSessionFilter, err error) {
 
 	if f.UserID > 0 {
 		ee = append(ee, goqu.C("rel_user").Eq(f.UserID))
@@ -366,9 +367,9 @@ func AuthSessionFilter(f systemType.AuthSessionFilter) (ee []goqu.Expression, _ 
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func AutomationSessionFilter(f automationType.SessionFilter) (ee []goqu.Expression, _ automationType.SessionFilter, err error) {
+func AutomationSessionFilter(d drivers.Dialect, f automationType.SessionFilter) (ee []goqu.Expression, _ automationType.SessionFilter, err error) {
 
-	if expr := stateNilComparison("completed_at", f.Completed); expr != nil {
+	if expr := stateNilComparison(d, "completed_at", f.Completed); expr != nil {
 		ee = append(ee, expr)
 	}
 
@@ -401,13 +402,13 @@ func AutomationSessionFilter(f automationType.SessionFilter) (ee []goqu.Expressi
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func AutomationTriggerFilter(f automationType.TriggerFilter) (ee []goqu.Expression, _ automationType.TriggerFilter, err error) {
+func AutomationTriggerFilter(d drivers.Dialect, f automationType.TriggerFilter) (ee []goqu.Expression, _ automationType.TriggerFilter, err error) {
 
-	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
 	}
 
-	if expr := stateFalseComparison("enabled", f.Disabled); expr != nil {
+	if expr := stateFalseComparison(d, "enabled", f.Disabled); expr != nil {
 		ee = append(ee, expr)
 	}
 
@@ -441,13 +442,13 @@ func AutomationTriggerFilter(f automationType.TriggerFilter) (ee []goqu.Expressi
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func AutomationWorkflowFilter(f automationType.WorkflowFilter) (ee []goqu.Expression, _ automationType.WorkflowFilter, err error) {
+func AutomationWorkflowFilter(d drivers.Dialect, f automationType.WorkflowFilter) (ee []goqu.Expression, _ automationType.WorkflowFilter, err error) {
 
-	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
 	}
 
-	if expr := stateFalseComparison("enabled", f.Disabled); expr != nil {
+	if expr := stateFalseComparison(d, "enabled", f.Disabled); expr != nil {
 		ee = append(ee, expr)
 	}
 
@@ -475,7 +476,7 @@ func AutomationWorkflowFilter(f automationType.WorkflowFilter) (ee []goqu.Expres
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func ComposeAttachmentFilter(f composeType.AttachmentFilter) (ee []goqu.Expression, _ composeType.AttachmentFilter, err error) {
+func ComposeAttachmentFilter(d drivers.Dialect, f composeType.AttachmentFilter) (ee []goqu.Expression, _ composeType.AttachmentFilter, err error) {
 
 	if val := strings.TrimSpace(f.Kind); len(val) > 0 {
 		ee = append(ee, goqu.C("kind").Eq(f.Kind))
@@ -495,9 +496,9 @@ func ComposeAttachmentFilter(f composeType.AttachmentFilter) (ee []goqu.Expressi
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func ComposeChartFilter(f composeType.ChartFilter) (ee []goqu.Expression, _ composeType.ChartFilter, err error) {
+func ComposeChartFilter(d drivers.Dialect, f composeType.ChartFilter) (ee []goqu.Expression, _ composeType.ChartFilter, err error) {
 
-	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
 	}
 
@@ -534,9 +535,9 @@ func ComposeChartFilter(f composeType.ChartFilter) (ee []goqu.Expression, _ comp
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func ComposeModuleFilter(f composeType.ModuleFilter) (ee []goqu.Expression, _ composeType.ModuleFilter, err error) {
+func ComposeModuleFilter(d drivers.Dialect, f composeType.ModuleFilter) (ee []goqu.Expression, _ composeType.ModuleFilter, err error) {
 
-	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
 	}
 
@@ -573,9 +574,9 @@ func ComposeModuleFilter(f composeType.ModuleFilter) (ee []goqu.Expression, _ co
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func ComposeModuleFieldFilter(f composeType.ModuleFieldFilter) (ee []goqu.Expression, _ composeType.ModuleFieldFilter, err error) {
+func ComposeModuleFieldFilter(d drivers.Dialect, f composeType.ModuleFieldFilter) (ee []goqu.Expression, _ composeType.ModuleFieldFilter, err error) {
 
-	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
 	}
 
@@ -593,9 +594,9 @@ func ComposeModuleFieldFilter(f composeType.ModuleFieldFilter) (ee []goqu.Expres
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func ComposeNamespaceFilter(f composeType.NamespaceFilter) (ee []goqu.Expression, _ composeType.NamespaceFilter, err error) {
+func ComposeNamespaceFilter(d drivers.Dialect, f composeType.NamespaceFilter) (ee []goqu.Expression, _ composeType.NamespaceFilter, err error) {
 
-	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
 	}
 
@@ -632,9 +633,9 @@ func ComposeNamespaceFilter(f composeType.NamespaceFilter) (ee []goqu.Expression
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func ComposePageFilter(f composeType.PageFilter) (ee []goqu.Expression, _ composeType.PageFilter, err error) {
+func ComposePageFilter(d drivers.Dialect, f composeType.PageFilter) (ee []goqu.Expression, _ composeType.PageFilter, err error) {
 
-	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
 	}
 
@@ -672,9 +673,9 @@ func ComposePageFilter(f composeType.PageFilter) (ee []goqu.Expression, _ compos
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func CredentialFilter(f systemType.CredentialFilter) (ee []goqu.Expression, _ systemType.CredentialFilter, err error) {
+func CredentialFilter(d drivers.Dialect, f systemType.CredentialFilter) (ee []goqu.Expression, _ systemType.CredentialFilter, err error) {
 
-	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
 	}
 
@@ -700,9 +701,9 @@ func CredentialFilter(f systemType.CredentialFilter) (ee []goqu.Expression, _ sy
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func DalConnectionFilter(f systemType.DalConnectionFilter) (ee []goqu.Expression, _ systemType.DalConnectionFilter, err error) {
+func DalConnectionFilter(d drivers.Dialect, f systemType.DalConnectionFilter) (ee []goqu.Expression, _ systemType.DalConnectionFilter, err error) {
 
-	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
 	}
 
@@ -728,9 +729,9 @@ func DalConnectionFilter(f systemType.DalConnectionFilter) (ee []goqu.Expression
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func DalSensitivityLevelFilter(f systemType.DalSensitivityLevelFilter) (ee []goqu.Expression, _ systemType.DalSensitivityLevelFilter, err error) {
+func DalSensitivityLevelFilter(d drivers.Dialect, f systemType.DalSensitivityLevelFilter) (ee []goqu.Expression, _ systemType.DalSensitivityLevelFilter, err error) {
 
-	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
 	}
 
@@ -748,7 +749,7 @@ func DalSensitivityLevelFilter(f systemType.DalSensitivityLevelFilter) (ee []goq
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func DataPrivacyRequestFilter(f systemType.DataPrivacyRequestFilter) (ee []goqu.Expression, _ systemType.DataPrivacyRequestFilter, err error) {
+func DataPrivacyRequestFilter(d drivers.Dialect, f systemType.DataPrivacyRequestFilter) (ee []goqu.Expression, _ systemType.DataPrivacyRequestFilter, err error) {
 
 	// @todo codegen warning: filtering by Kind ([]types.RequestKind) not supported,
 	//       see rdbms.go.tpl and add an exception
@@ -777,7 +778,7 @@ func DataPrivacyRequestFilter(f systemType.DataPrivacyRequestFilter) (ee []goqu.
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func DataPrivacyRequestCommentFilter(f systemType.DataPrivacyRequestCommentFilter) (ee []goqu.Expression, _ systemType.DataPrivacyRequestCommentFilter, err error) {
+func DataPrivacyRequestCommentFilter(d drivers.Dialect, f systemType.DataPrivacyRequestCommentFilter) (ee []goqu.Expression, _ systemType.DataPrivacyRequestCommentFilter, err error) {
 
 	if len(f.RequestID) > 0 {
 		ee = append(ee, goqu.C("rel_request").In(f.RequestID))
@@ -793,7 +794,7 @@ func DataPrivacyRequestCommentFilter(f systemType.DataPrivacyRequestCommentFilte
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func FederationExposedModuleFilter(f federationType.ExposedModuleFilter) (ee []goqu.Expression, _ federationType.ExposedModuleFilter, err error) {
+func FederationExposedModuleFilter(d drivers.Dialect, f federationType.ExposedModuleFilter) (ee []goqu.Expression, _ federationType.ExposedModuleFilter, err error) {
 
 	if f.ComposeModuleID > 0 {
 		ee = append(ee, goqu.C("rel_compose_module").Eq(f.ComposeModuleID))
@@ -817,7 +818,7 @@ func FederationExposedModuleFilter(f federationType.ExposedModuleFilter) (ee []g
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func FederationModuleMappingFilter(f federationType.ModuleMappingFilter) (ee []goqu.Expression, _ federationType.ModuleMappingFilter, err error) {
+func FederationModuleMappingFilter(d drivers.Dialect, f federationType.ModuleMappingFilter) (ee []goqu.Expression, _ federationType.ModuleMappingFilter, err error) {
 
 	if f.ComposeModuleID > 0 {
 		ee = append(ee, goqu.C("rel_compose_module").Eq(f.ComposeModuleID))
@@ -841,9 +842,9 @@ func FederationModuleMappingFilter(f federationType.ModuleMappingFilter) (ee []g
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func FederationNodeFilter(f federationType.NodeFilter) (ee []goqu.Expression, _ federationType.NodeFilter, err error) {
+func FederationNodeFilter(d drivers.Dialect, f federationType.NodeFilter) (ee []goqu.Expression, _ federationType.NodeFilter, err error) {
 
-	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
 	}
 
@@ -864,7 +865,7 @@ func FederationNodeFilter(f federationType.NodeFilter) (ee []goqu.Expression, _ 
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func FederationNodeSyncFilter(f federationType.NodeSyncFilter) (ee []goqu.Expression, _ federationType.NodeSyncFilter, err error) {
+func FederationNodeSyncFilter(d drivers.Dialect, f federationType.NodeSyncFilter) (ee []goqu.Expression, _ federationType.NodeSyncFilter, err error) {
 
 	if f.NodeID > 0 {
 		ee = append(ee, goqu.C("rel_node").Eq(f.NodeID))
@@ -892,7 +893,7 @@ func FederationNodeSyncFilter(f federationType.NodeSyncFilter) (ee []goqu.Expres
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func FederationSharedModuleFilter(f federationType.SharedModuleFilter) (ee []goqu.Expression, _ federationType.SharedModuleFilter, err error) {
+func FederationSharedModuleFilter(d drivers.Dialect, f federationType.SharedModuleFilter) (ee []goqu.Expression, _ federationType.SharedModuleFilter, err error) {
 
 	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
 		ee = append(ee, goqu.C("handle").Eq(f.Handle))
@@ -927,7 +928,7 @@ func FederationSharedModuleFilter(f federationType.SharedModuleFilter) (ee []goq
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func FlagFilter(f flagType.FlagFilter) (ee []goqu.Expression, _ flagType.FlagFilter, err error) {
+func FlagFilter(d drivers.Dialect, f flagType.FlagFilter) (ee []goqu.Expression, _ flagType.FlagFilter, err error) {
 
 	if val := strings.TrimSpace(f.Kind); len(val) > 0 {
 		ee = append(ee, goqu.C("kind").Eq(f.Kind))
@@ -955,7 +956,7 @@ func FlagFilter(f flagType.FlagFilter) (ee []goqu.Expression, _ flagType.FlagFil
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func LabelFilter(f labelsType.LabelFilter) (ee []goqu.Expression, _ labelsType.LabelFilter, err error) {
+func LabelFilter(d drivers.Dialect, f labelsType.LabelFilter) (ee []goqu.Expression, _ labelsType.LabelFilter, err error) {
 
 	if val := strings.TrimSpace(f.Kind); len(val) > 0 {
 		ee = append(ee, goqu.C("kind").Eq(f.Kind))
@@ -975,9 +976,9 @@ func LabelFilter(f labelsType.LabelFilter) (ee []goqu.Expression, _ labelsType.L
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func QueueFilter(f systemType.QueueFilter) (ee []goqu.Expression, _ systemType.QueueFilter, err error) {
+func QueueFilter(d drivers.Dialect, f systemType.QueueFilter) (ee []goqu.Expression, _ systemType.QueueFilter, err error) {
 
-	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
 	}
 
@@ -998,9 +999,9 @@ func QueueFilter(f systemType.QueueFilter) (ee []goqu.Expression, _ systemType.Q
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func QueueMessageFilter(f systemType.QueueMessageFilter) (ee []goqu.Expression, _ systemType.QueueMessageFilter, err error) {
+func QueueMessageFilter(d drivers.Dialect, f systemType.QueueMessageFilter) (ee []goqu.Expression, _ systemType.QueueMessageFilter, err error) {
 
-	if expr := stateNilComparison("processed", f.Processed); expr != nil {
+	if expr := stateNilComparison(d, "processed", f.Processed); expr != nil {
 		ee = append(ee, expr)
 	}
 
@@ -1018,7 +1019,7 @@ func QueueMessageFilter(f systemType.QueueMessageFilter) (ee []goqu.Expression, 
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func RbacRuleFilter(f rbacType.RuleFilter) (ee []goqu.Expression, _ rbacType.RuleFilter, err error) {
+func RbacRuleFilter(d drivers.Dialect, f rbacType.RuleFilter) (ee []goqu.Expression, _ rbacType.RuleFilter, err error) {
 
 	return ee, f, err
 }
@@ -1030,7 +1031,7 @@ func RbacRuleFilter(f rbacType.RuleFilter) (ee []goqu.Expression, _ rbacType.Rul
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func ReminderFilter(f systemType.ReminderFilter) (ee []goqu.Expression, _ systemType.ReminderFilter, err error) {
+func ReminderFilter(d drivers.Dialect, f systemType.ReminderFilter) (ee []goqu.Expression, _ systemType.ReminderFilter, err error) {
 
 	if len(f.ReminderID) > 0 {
 		ee = append(ee, goqu.C("id").In(f.ReminderID))
@@ -1050,9 +1051,9 @@ func ReminderFilter(f systemType.ReminderFilter) (ee []goqu.Expression, _ system
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func ReportFilter(f systemType.ReportFilter) (ee []goqu.Expression, _ systemType.ReportFilter, err error) {
+func ReportFilter(d drivers.Dialect, f systemType.ReportFilter) (ee []goqu.Expression, _ systemType.ReportFilter, err error) {
 
-	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
 	}
 
@@ -1084,7 +1085,7 @@ func ReportFilter(f systemType.ReportFilter) (ee []goqu.Expression, _ systemType
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func ResourceActivityFilter(f discoveryType.ResourceActivityFilter) (ee []goqu.Expression, _ discoveryType.ResourceActivityFilter, err error) {
+func ResourceActivityFilter(d drivers.Dialect, f discoveryType.ResourceActivityFilter) (ee []goqu.Expression, _ discoveryType.ResourceActivityFilter, err error) {
 
 	return ee, f, err
 }
@@ -1096,9 +1097,9 @@ func ResourceActivityFilter(f discoveryType.ResourceActivityFilter) (ee []goqu.E
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func ResourceTranslationFilter(f systemType.ResourceTranslationFilter) (ee []goqu.Expression, _ systemType.ResourceTranslationFilter, err error) {
+func ResourceTranslationFilter(d drivers.Dialect, f systemType.ResourceTranslationFilter) (ee []goqu.Expression, _ systemType.ResourceTranslationFilter, err error) {
 
-	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
 	}
 
@@ -1124,13 +1125,13 @@ func ResourceTranslationFilter(f systemType.ResourceTranslationFilter) (ee []goq
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func RoleFilter(f systemType.RoleFilter) (ee []goqu.Expression, _ systemType.RoleFilter, err error) {
+func RoleFilter(d drivers.Dialect, f systemType.RoleFilter) (ee []goqu.Expression, _ systemType.RoleFilter, err error) {
 
-	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
 	}
 
-	if expr := stateNilComparison("archived_at", f.Archived); expr != nil {
+	if expr := stateNilComparison(d, "archived_at", f.Archived); expr != nil {
 		ee = append(ee, expr)
 	}
 
@@ -1167,7 +1168,7 @@ func RoleFilter(f systemType.RoleFilter) (ee []goqu.Expression, _ systemType.Rol
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func RoleMemberFilter(f systemType.RoleMemberFilter) (ee []goqu.Expression, _ systemType.RoleMemberFilter, err error) {
+func RoleMemberFilter(d drivers.Dialect, f systemType.RoleMemberFilter) (ee []goqu.Expression, _ systemType.RoleMemberFilter, err error) {
 
 	if f.UserID > 0 {
 		ee = append(ee, goqu.C("rel_user").Eq(f.UserID))
@@ -1187,7 +1188,7 @@ func RoleMemberFilter(f systemType.RoleMemberFilter) (ee []goqu.Expression, _ sy
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func SettingValueFilter(f systemType.SettingsFilter) (ee []goqu.Expression, _ systemType.SettingsFilter, err error) {
+func SettingValueFilter(d drivers.Dialect, f systemType.SettingsFilter) (ee []goqu.Expression, _ systemType.SettingsFilter, err error) {
 
 	if f.OwnedBy > 0 {
 		ee = append(ee, goqu.C("rel_owner").Eq(f.OwnedBy))
@@ -1203,9 +1204,9 @@ func SettingValueFilter(f systemType.SettingsFilter) (ee []goqu.Expression, _ sy
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func TemplateFilter(f systemType.TemplateFilter) (ee []goqu.Expression, _ systemType.TemplateFilter, err error) {
+func TemplateFilter(d drivers.Dialect, f systemType.TemplateFilter) (ee []goqu.Expression, _ systemType.TemplateFilter, err error) {
 
-	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
 	}
 
@@ -1250,13 +1251,13 @@ func TemplateFilter(f systemType.TemplateFilter) (ee []goqu.Expression, _ system
 // are generated and can choose to ignore or alter them.
 //
 // This function is auto-generated
-func UserFilter(f systemType.UserFilter) (ee []goqu.Expression, _ systemType.UserFilter, err error) {
+func UserFilter(d drivers.Dialect, f systemType.UserFilter) (ee []goqu.Expression, _ systemType.UserFilter, err error) {
 
-	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
 	}
 
-	if expr := stateNilComparison("suspended_at", f.Suspended); expr != nil {
+	if expr := stateNilComparison(d, "suspended_at", f.Suspended); expr != nil {
 		ee = append(ee, expr)
 	}
 
