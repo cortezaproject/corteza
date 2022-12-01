@@ -375,6 +375,14 @@
           </c-input-confirm>
 
           <b-button
+            v-if="workflow.workflowID === '0'"
+            variant="light"
+            @click="$router.back()"
+          >
+            {{ $t('editor:back') }}
+          </b-button>
+
+          <b-button
             variant="primary"
             data-test-id="button-save-workflow"
             class="ml-auto"
