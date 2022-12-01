@@ -7,7 +7,7 @@
         <b-col cols="12">
           <div
             v-for="(m, i) in metrics"
-            :key="m.label + i"
+            :key="i"
             class="mb-2"
           >
             <b-btn
@@ -31,8 +31,8 @@
           </div>
 
           <b-btn
-            v-if="canAdd"
             variant="link"
+            class="px-1"
             @click="addMetric"
           >
             + {{ $t('general.label.add') }}
@@ -40,7 +40,9 @@
         </b-col>
       </b-row>
 
-      <b-row>
+      <b-row
+        class="mt-3"
+      >
         <!-- edit metric -->
         <b-col
           v-if="edit"
@@ -263,21 +265,25 @@
         >
           <div
             v-if="metrics.length"
-            class="d-flex ml-auto"
+            class="d-flex flex-column position-sticky pt-2"
+            style="top: 0;"
           >
-            <b-btn
+            <b-button
               variant="outline-primary"
-              @click="$root.$emit('metric.update')"
+              @click.prevent="$root.$emit('metric.update')"
             >
               {{ $t('metric.edit.refreshData') }}
-            </b-btn>
-          </div>
+            </b-button>
 
-          <metric-base
-            v-bind="$props"
-            class="mt-2"
-            style="height: 500px; width: auto;"
-          />
+            <div
+              class="mt-2"
+              style="height: 400px;"
+            >
+              <metric-base
+                v-bind="$props"
+              />
+            </div>
+          </div>
         </b-col>
       </b-row>
     </b-tab>
@@ -358,11 +364,6 @@ export default {
       set (m) {
         this.options.metrics = m
       },
-    },
-
-    canAdd () {
-      // if any label is not defined, then the metric is considered invalid
-      return this.metrics.reduce((acc, m) => acc && m.label, true)
     },
   },
 
