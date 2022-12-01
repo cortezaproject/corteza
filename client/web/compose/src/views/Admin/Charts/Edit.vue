@@ -433,7 +433,7 @@ export default {
     'chart.config': {
       deep: true,
       handler (value, oldValue) {
-        if (value && oldValue) {
+        if (value && oldValue && this.isEdit) {
           this.onConfigUpdate()
         }
       },
