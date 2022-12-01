@@ -44,6 +44,8 @@ edit:
   filter:
     customize: Customize filter
     label: Filters
+    footnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {{0}}, {{1}} and {{2}} are evaluated (when available)
+    placeholder: field1 = 1 AND field2 = 232
     noFilter: Select a predefined filter or make a custom one
     recordsCreatedLastMonth: Records created last month
     recordsCreatedLastQuarter: Records created last quarter

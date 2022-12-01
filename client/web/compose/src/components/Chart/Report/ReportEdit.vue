@@ -31,29 +31,31 @@
       >
         <b-form-select
           v-model="report.filter"
-          :disabled="customFilter"
           :options="predefinedFilters"
+          class="mb-2"
         >
           <template slot="first">
-            <option value="">
+            <b-form-select-option :value="defaultFilterOption">
               {{ $t('edit.filter.noFilter') }}
-            </option>
+            </b-form-select-option>
           </template>
         </b-form-select>
 
-        <b-form-checkbox
-          v-model="customFilter"
-          class="mt-3"
-        >
-          {{ $t('edit.filter.customize') }}
-        </b-form-checkbox>
-
         <b-form-textarea
-          v-if="customFilter"
           v-model="report.filter"
-          placeholder="a = 1 AND b > 2"
-          class="mt-2"
+          :placeholder="$t('edit.filter.placeholder')"
         />
+
+        <b-form-text>
+          <i18next
+            path="edit.filter.footnote"
+            tag="label"
+          >
+            <code>${recordID}</code>
+            <code>${ownerID}</code>
+            <code>${userID}</code>
+          </i18next>
+        </b-form-text>
       </b-form-group>
     </div>
 
@@ -316,8 +318,6 @@ export default {
 
   data () {
     return {
-      customFilter: false,
-
       metricAggregates: aggregateFunctions.map(af => ({ ...af, text: this.$t(`edit.metric.function.${af.text}`) })),
       dimensionModifiers: compose.chartUtil.dimensionFunctions.map(df => ({ ...df, text: this.$t(`edit.dimension.function.${df.text}`) })),
       predefinedFilters: compose.chartUtil.predefinedFilters.map(pf => ({ ...pf, text: this.$t(`edit.filter.${pf.text}`) })),
@@ -327,6 +327,10 @@ export default {
   computed: {
     defaultValueInputType () {
       return ({ field }) => (this.module.fields.filter(f => f.name === field)[0] || {}).kind === 'DateTime' ? 'date' : 'text'
+    },
+
+    defaultFilterOption () {
+      return this.predefinedFilters.some(({ value }) => value === this.report.filter) ? '' : this.report.filter
     },
 
     canAddMetric () {
@@ -405,17 +409,6 @@ export default {
       set (v) {
         this.$emit('update:report', { ...this.report, dimensions: v })
       },
-    },
-  },
-
-  watch: {
-    'report.filter': {
-      handler: function (v) {
-        // !! is required, since :disabled="..." marks the field as disabled if '' is provided
-        this.customFilter = (!!v && !!compose.chartUtil.predefinedFilters.find(({ value }) => value === v)) ||
-          (!!v)
-      },
-      immediate: true,
     },
   },
 
