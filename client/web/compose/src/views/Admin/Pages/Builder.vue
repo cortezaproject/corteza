@@ -176,7 +176,6 @@
             size="lg"
             variant="danger"
             :text="$t('general:label.delete')"
-            class="mr-1"
           >
             <b-dropdown-item
               data-test-id="dropdown-item-delete-update-parent-of-sub-pages"
