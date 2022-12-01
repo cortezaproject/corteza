@@ -169,6 +169,9 @@ export default class Chart extends BaseChart {
       const tooltipFormatter = t?.formatting ? t.formatting : `{a}<br />{b} : {c}${relative ? ' ({d}%)' : ''}`
       const labelFormatter = `{c}${relative ? ' ({d}%)' : ''}`
 
+      // We should render the first metric in the dataset as the last
+      const z = (datasets.length - 1) - index
+
       if (['pie', 'doughnut'].includes(type)) {
         const startRadius = type === 'doughnut' ? 40 : 0
 
@@ -191,7 +194,7 @@ export default class Chart extends BaseChart {
         }
 
         return {
-          z: index,
+          z,
           name: label,
           type: 'pie',
           radius: [`${startRadius}%`, '80%'],
@@ -250,7 +253,7 @@ export default class Chart extends BaseChart {
         }
 
         return {
-          z: index,
+          z,
           name: label,
           type: type,
           smooth: true,
