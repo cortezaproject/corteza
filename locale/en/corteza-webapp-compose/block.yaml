@@ -163,6 +163,9 @@ metric:
     metricFieldLabel: Field
     metricFieldPlaceholder: Dimension field
     metricLabel: Metric
+    metricFieldSelect: Select field
+    metricSelectAggregate: Select aggregation operation
+    metricAggregateLabel: Aggregation operation
     moduleLabel: Module
     modulePlaceholder: Pick a module
     numberFormat: Number format

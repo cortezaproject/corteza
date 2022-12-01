@@ -69,8 +69,10 @@
               <h5>
                 {{ $t('metric.edit.dimensionLabel') }}
               </h5>
-              <b-form-group>
-                <label>{{ $t('metric.edit.moduleLabel') }}</label>
+
+              <b-form-group
+                :label="$t('metric.edit.moduleLabel')"
+              >
                 <b-form-select
                   v-model="edit.moduleID"
                   :options="modules"
@@ -151,6 +153,7 @@
                   placeholder="(A > B) OR (A < C)"
                   class="mb-1"
                 />
+
                 <b-form-text>
                   <i18next
                     path="metric.edit.filterFootnote"
@@ -169,54 +172,46 @@
                 {{ $t('metric.edit.metricLabel') }}
               </h5>
 
-              <b-form-group>
-                <label>{{ $t('metric.edit.metricFieldLabel') }}</label>
-                <b-form-select
+              <b-form-group
+                :label="$t('metric.edit.metricFieldLabel')"
+              >
+                <vue-select
                   v-model="edit.metricField"
+                  :placeholder="$t('metric.edit.metricFieldSelect')"
                   :options="metricFields"
-                >
-                  <template slot="first">
-                    <option
-                      disabled
-                      :value="undefined"
-                    >
-                      {{ $t('metric.edit.metricFieldPlaceholder') }}
-                    </option>
-                  </template>
-                </b-form-select>
+                  :reduce="f => f.name"
+                  class="bg-white"
+                />
               </b-form-group>
 
-              <b-form-group>
-                <label>{{ $t('metric.edit.operationLabel') }}</label>
-                <b-form-select
+              <b-form-group
+                :label="$t('metric.edit.metricAggregateLabel')"
+              >
+                <vue-select
                   v-model="edit.operation"
                   :disabled="edit.metricField === 'count'"
-                  :options="operations"
-                  class="mt-1"
-                >
-                  <template slot="first">
-                    <option
-                      :value="undefined"
-                      disabled
-                    >
-                      {{ $t('metric.edit.operationPlaceholder') }}
-                    </option>
-                  </template>
-                </b-form-select>
+                  :placeholder="$t('metric.edit.metricSelectAggregate')"
+                  :options="aggregationOperations"
+                  :reduce="a => a.operation"
+                  class="bg-white"
+                />
               </b-form-group>
 
-              <b-form-group>
-                <label>{{ $t('metric.edit.transformFunctionLabel') }}</label>
+              <b-form-group
+                :label="$t('metric.edit.transformFunctionLabel')"
+              >
                 <b-form-textarea
                   v-model="edit.transformFx"
                   placeholder="v"
                   class="mb-1"
                 />
+
                 <small>{{ $t('metric.edit.transformFunctionDescription') }}</small>
               </b-form-group>
 
-              <b-form-group>
-                <label>{{ $t('metric.edit.numberFormat') }}</label>
+              <b-form-group
+                :label="$t('metric.edit.numberFormat')"
+              >
                 <b-form-input
                   v-model="edit.numberFormat"
                   placeholder="0.00"
@@ -224,8 +219,9 @@
                 />
               </b-form-group>
 
-              <b-form-group>
-                <label>{{ $t('metric.edit.prefixLabel') }}</label>
+              <b-form-group
+                :label="$t('metric.edit.prefixLabel')"
+              >
                 <b-form-input
                   v-model="edit.prefix"
                   placeholder="$"
@@ -233,8 +229,9 @@
                 />
               </b-form-group>
 
-              <b-form-group>
-                <label>{{ $t('metric.edit.suffixLabel') }}</label>
+              <b-form-group
+                :label="$t('metric.edit.suffixLabel')"
+              >
                 <b-form-input
                   v-model="edit.suffix"
                   placeholder="USD/mo"
@@ -295,6 +292,7 @@ import base from '../base'
 import MStyle from './MStyle'
 import { mapGetters } from 'vuex'
 import MetricBase from '../MetricBase'
+import { VueSelect } from 'vue-select'
 import { compose } from '@cortezaproject/corteza-js'
 
 export default {
@@ -306,6 +304,7 @@ export default {
   components: {
     MStyle,
     MetricBase,
+    VueSelect,
   },
   extends: base,
 
@@ -313,22 +312,22 @@ export default {
     return {
       edit: undefined,
       dimensionModifiers: compose.chartUtil.dimensionFunctions.map(df => ({ ...df, text: this.$t(`chart.edit.dimension.function.${df.text}`) })),
-      operations: [
+      aggregationOperations: [
         {
-          value: 'sum',
-          text: this.$t('metric.edit.operationSum'),
+          label: this.$t('metric.edit.operationSum'),
+          operation: 'sum',
         },
         {
-          value: 'max',
-          text: this.$t('metric.edit.operationMax'),
+          label: this.$t('metric.edit.operationMax'),
+          operation: 'max',
         },
         {
-          value: 'min',
-          text: this.$t('metric.edit.operationMin'),
+          label: this.$t('metric.edit.operationMin'),
+          operation: 'min',
         },
         {
-          value: 'avg',
-          text: this.$t('metric.edit.operationAvg'),
+          label: this.$t('metric.edit.operationAvg'),
+          operation: 'avg',
         },
       ],
     }
@@ -350,10 +349,9 @@ export default {
 
     metricFields () {
       return [
-        { value: 'count', text: 'Count' },
+        { name: 'count', label: 'Count' },
         ...this.fields.filter(f => f.kind === 'Number')
-          .map(({ name }) => ({ value: name, text: name }))
-          .sort((a, b) => a.text.localeCompare(b.text)),
+          .sort((a, b) => a.label.localeCompare(b.label)),
       ]
     },
 
