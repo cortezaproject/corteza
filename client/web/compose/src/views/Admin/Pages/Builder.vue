@@ -56,12 +56,12 @@
           :class="{ 'bg-warning': !isValid(block) }"
         >
           <div
-            class="toolbox border-0 p-2 pr-3 m-0 text-light text-center"
+            class="toolbox border-0 p-2 m-0 text-light text-center"
           >
             <b-button
               :title="$t('tooltip.edit.block')"
-              variant="link"
-              class="p-1 text-light"
+              variant="outline-light"
+              class="border-0"
               @click="editBlock(index)"
             >
               <font-awesome-icon
@@ -69,8 +69,30 @@
               />
             </b-button>
 
+            <b-button
+              :title="$t('tooltip.clone.block')"
+              variant="outline-light"
+              class="border-0"
+              @click="cloneBlock(index)"
+            >
+              <font-awesome-icon
+                :icon="['far', 'clone']"
+              />
+            </b-button>
+
+            <b-button
+              :title="$t('tooltip.copy.block')"
+              variant="outline-light"
+              class="border-0"
+              @click="copyBlock(index)"
+            >
+              <font-awesome-icon
+                :icon="['far', 'copy']"
+              />
+            </b-button>
+
             <c-input-confirm
-              class="p-1"
+              class="ml-1"
               size="md"
               link
               @confirmed="deleteBlock(index)"
@@ -238,6 +260,7 @@ export default {
       page: undefined,
 
       blocks: [],
+      board: null,
     }
   },
 
@@ -343,6 +366,14 @@ export default {
         }
       },
     },
+  },
+
+  mounted () {
+    window.addEventListener('paste', this.pasteBlock)
+  },
+
+  destroyed () {
+    window.removeEventListener('paste', this.pasteBlock)
   },
 
   methods: {
@@ -473,6 +504,70 @@ export default {
       return true
     },
 
+    cloneBlock (index) {
+      this.appendBlock({ ...this.blocks[index] }, this.$t('notification:page.cloneSuccess'))
+    },
+
+    async copyBlock (index) {
+      const parsedBlock = JSON.stringify(this.blocks[index])
+      navigator.clipboard.writeText(parsedBlock).then(() => {
+        this.toastSuccess(this.$t('notification:page.copySuccess'))
+        this.toastInfo(this.$t('notification:page.blockWaiting'))
+      },
+      (err) => {
+        this.toastErrorHandler(this.$t('notification:page.copyFailed', { reason: err }))
+      })
+    },
+
+    pasteBlock (event) {
+      const active = document.activeElement
+      const inputs = document.querySelectorAll('input')
+      let inputActive = false
+
+      // Not to intrude on paste for any input field
+      // Using forEach because other array methods don't work on NodeList
+      inputs.forEach(input => {
+        if (input === active) {
+          inputActive = true
+        }
+      })
+
+      if (!inputActive) {
+        event.preventDefault()
+        const paste = (event.clipboardData || window.clipboardData).getData('text')
+        // Doing this to handle JSON parse error
+        try {
+          const block = JSON.parse(paste)
+          const valid = this.isValid(block)
+
+          if (valid) {
+            this.appendBlock(block, this.$t('notification:page.pasteSuccess'))
+          }
+        } catch (error) {
+          this.toastWarning(this.$t('notification:page.invalidBlock'))
+          console.log(error)
+        }
+      }
+    },
+
+    appendBlock (block, msg) {
+      if (this.blocks.length) {
+        // ensuring we append the block to the end of the page
+        // eslint-disable-next-line
+          const maxY = this.blocks.map((block) => block.xywh[1]).reduce((acc, val) => {
+          return acc > val ? acc : val
+        }, 0)
+        block.xywh = [0, maxY + 2, 3, 3]
+      }
+      this.editor = { index: undefined, block: compose.PageBlockMaker(block) }
+      this.updateBlocks()
+      if (!this.editor) {
+        this.toastSuccess(msg)
+      } else {
+        this.toastErrorHandler(this.$t('notification:page.duplicateFailed'))
+      }
+    },
+
     handleClone () {
       let page = this.page.clone()
       page = {
@@ -498,12 +593,17 @@ div.toolbox {
   background-color: $dark;
   bottom: 0;
   left: 0;
-  z-index: 1000;
+  z-index: 100;
   border-top-right-radius: 10px;
   opacity: 0.5;
+  pointer-events: none;
 
   &:hover {
     opacity: 1;
+  }
+
+  & * {
+    pointer-events: auto;
   }
 }
 

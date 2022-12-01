@@ -16,6 +16,14 @@ export default {
       this.toast(message, { title, variant: 'warning' })
     },
 
+    toastInfo (message, title = undefined) {
+      if (title === undefined) {
+        title = this.$t('notification:general.info')
+      }
+
+      this.toast(message, { title, variant: 'info' })
+    },
+
     toastDanger (message, title = undefined) {
       if (title === undefined) {
         title = this.$t('notification:general.error')
