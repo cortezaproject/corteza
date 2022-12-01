@@ -33,6 +33,7 @@ general:
   error: Error
   success: Success
   warning: Warning
+  info: Notice
   import:
     failed: Import failed
     readingError: Error reading file
@@ -75,6 +76,13 @@ page:
   saveFailed: Could not save this page
   saveFailedRequired: Could not save this page, all required module fields must be present
   saved: Page saved
+  copySuccess: Block has been copied successfully
+  cloneSuccess: Block has been cloned to the bottom of the page
+  pasteSuccess: Block has been pasted to the bottom of the page
+  duplicateFailed: Could not duplicate block
+  blockWaiting: There is a page-block awaiting
+  copyFailed: Could not copy block {{reason}}
+  invalidBlock: Not a valid page-block
 record:
   createFailed: Could not create record
   deleteFailed: Could not delete record

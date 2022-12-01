@@ -48,6 +48,10 @@ tooltip:
   edit:
     page: Edit page
     block: Edit block
+  copy:
+    block: Copy block
+  clone:
+    block: Clone block
   saveAsCopy: Cannot duplicate record page
 view: View
 visible: Visible
