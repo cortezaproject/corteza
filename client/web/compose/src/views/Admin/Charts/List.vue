@@ -92,8 +92,8 @@
               />
             </template>
 
-            <template #updatedAt="{ item }">
-              {{ (item.updatedAt || item.createdAt) | locFullDateTime }}
+            <template #changedAt="{ item }">
+              {{ (item.deletedAt || item.updatedAt || item.createdAt) | locFullDateTime }}
             </template>
           </c-resource-list>
         </b-col>
@@ -159,15 +159,18 @@ export default {
       return [
         {
           key: 'name',
+          label: this.$t('chart.columns.name'),
           sortable: true,
           tdClass: 'text-nowrap',
         },
         {
           key: 'handle',
+          label: this.$t('chart.columns.handle'),
           sortable: true,
         },
         {
-          key: 'updatedAt',
+          key: 'changedAt',
+          label: this.$t('chart.columns.changedAt'),
           sortable: true,
           class: 'text-right text-nowrap',
         },

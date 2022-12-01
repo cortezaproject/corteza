@@ -67,5 +67,6 @@ manage:
   table:
     columns:
       name: Name
-      handle: Handle
-      last-change: Last change
+      slug: Short name
+      enabled: Enabled
+      changedAt: Last change

@@ -193,6 +193,12 @@ newPlaceholder: Name used on the list of modules
 noModule: No modules
 noModuleFilter: No module matches your search
 
+list:
+  columns:
+    name: Name
+    handle: Handle
+    changedAt: Last change
+
 recordPage:
   create: Create record page
   edit: Edit record page

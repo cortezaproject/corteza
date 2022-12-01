@@ -46,3 +46,8 @@ resourceList:
 
 tooltip:
   permissions: Workflow permissions
+columns:
+  name: Name
+  enabled: Enabled
+  steps: Steps
+  changedAt: Last change

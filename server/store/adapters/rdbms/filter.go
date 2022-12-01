@@ -90,22 +90,22 @@ func DefaultFilters() (f *extendedFilters) {
 
 		case composeType.RecordAttachment:
 			panic("@todo pending implementation")
-			//query = query.
+			// query = query.
 			//	Join("compose_record_value AS v ON (v.ref = a.id)")
 			//
-			//if f.ModuleID > 0 {
+			// if f.ModuleID > 0 {
 			//	query = query.
 			//		Join("compose_record AS r ON (r.id = v.record_id)").
 			//		Where(squirrel.Eq{"r.module_id": f.ModuleID})
-			//}
+			// }
 			//
-			//if f.RecordID > 0 {
+			// if f.RecordID > 0 {
 			//	query = query.Where(squirrel.Eq{"v.record_id": f.RecordID})
-			//}
+			// }
 			//
-			//if f.FieldName != "" {
+			// if f.FieldName != "" {
 			//	query = query.Where(squirrel.Eq{"v.name": f.FieldName})
-			//}
+			// }
 
 		default:
 			err = fmt.Errorf("unsupported kind value")
@@ -269,7 +269,7 @@ func DefaultFilters() (f *extendedFilters) {
 		}
 
 		// Always sort by ID descending
-		//query = query.OrderBy("id DESC")
+		// query = query.OrderBy("id DESC")
 
 		if f.FromTimestamp != nil {
 			ee = append(ee, goqu.C("ts").Gte(f.ToTimestamp))
@@ -351,22 +351,19 @@ func Order(sort filter.SortExprSet, sortables map[string]string) (oo []exp.Order
 
 func order(sort filter.SortExprSet, sortables map[string]string) (oo []exp.OrderedExpression, err error) {
 	var (
-		has bool
-		col string
+		sortExpr goqu.Expression
 	)
 
 	for _, s := range sort {
-		if len(sortables) > 0 {
-			if col, has = sortables[strings.ToLower(s.Column)]; !has {
-				return nil, fmt.Errorf("column %q is not sortable", s.Column)
-			}
-			s.Column = col
+		sortExpr, err = generateSorting(sortables, s)
+		if err != nil {
+			return
 		}
 
 		if s.Descending {
-			oo = append(oo, exp.NewOrderedExpression(goqu.I(s.Column), exp.DescSortDir, exp.NoNullsSortType))
+			oo = append(oo, exp.NewOrderedExpression(sortExpr, exp.DescSortDir, exp.NoNullsSortType))
 		} else {
-			oo = append(oo, exp.NewOrderedExpression(goqu.I(s.Column), exp.AscDir, exp.NoNullsSortType))
+			oo = append(oo, exp.NewOrderedExpression(sortExpr, exp.AscDir, exp.NoNullsSortType))
 		}
 	}
 
@@ -402,4 +399,52 @@ func stateFalseComparison(lit string, fs filter.State) goqu.Expression {
 	default:
 		return nil
 	}
+}
+
+// @todo: Currently we have for support for MsSQL, MySql, PSQL, SQLite drivers,
+//  		this changes is supported by all DB but we need to move to store.driver
+// generateSorting verify and converts given sorting to literal if required
+func generateSorting(sortables map[string]string, s *filter.SortExpr) (out goqu.Expression, err error) {
+	const COALESCE string = "coalesce"
+	var (
+		val string
+		has bool
+
+		literalCols []interface{}
+
+		toLower    = strings.ToLower
+		hasSorting = func(column string) (string, bool) {
+			v, ok := sortables[toLower(column)]
+			return v, ok
+		}
+	)
+
+	if len(sortables) > 0 && s != nil {
+		for _, col := range s.Columns() {
+			val, has = hasSorting(col)
+			if has {
+				if out == nil {
+					out = goqu.I(val)
+				}
+				literalCols = append(literalCols, goqu.I(val))
+			} else {
+				if len(s.Columns()) == 1 {
+					err = fmt.Errorf("invalid column name: %s", col)
+				} else {
+					err = fmt.Errorf("column %q is not sortable in %s sorting", col, s.Columns())
+				}
+				return nil, err
+			}
+		}
+
+		if toLower(s.Modifier()) == COALESCE {
+			if len(literalCols) > 0 {
+				out = goqu.COALESCE(literalCols...)
+			} else {
+				return nil, fmt.Errorf("invalid sorting with %s modifier and columns: %s", s.Modifier(), s.Columns())
+			}
+		}
+	}
+
+	return
 }

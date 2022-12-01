@@ -26,6 +26,7 @@ import (
 	systemType "github.com/cortezaproject/corteza/server/system/types"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/modern-go/reflect2"
 )
 
 var (
@@ -332,13 +333,29 @@ func (s *Store) collectActionlogCursorValues(res *actionlogType.Action, cc ...*f
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "timestamp":
-					cur.Set(c.Column, res.Timestamp, c.Descending)
+					return res.Timestamp
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -879,25 +896,41 @@ func (s *Store) collectApigwFilterCursorValues(res *systemType.ApigwFilter, cc .
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "route":
-					cur.Set(c.Column, res.Route, c.Descending)
+					return res.Route
 				case "weight":
-					cur.Set(c.Column, res.Weight, c.Descending)
+					return res.Weight
 				case "kind":
-					cur.Set(c.Column, res.Kind, c.Descending)
+					return res.Kind
 				case "enabled":
-					cur.Set(c.Column, res.Enabled, c.Descending)
+					return res.Enabled
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -1442,25 +1475,41 @@ func (s *Store) collectApigwRouteCursorValues(res *systemType.ApigwRoute, cc ...
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "endpoint":
-					cur.Set(c.Column, res.Endpoint, c.Descending)
+					return res.Endpoint
 				case "method":
-					cur.Set(c.Column, res.Method, c.Descending)
+					return res.Method
 				case "enabled":
-					cur.Set(c.Column, res.Enabled, c.Descending)
+					return res.Enabled
 				case "group":
-					cur.Set(c.Column, res.Group, c.Descending)
+					return res.Group
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -1962,23 +2011,39 @@ func (s *Store) collectApplicationCursorValues(res *systemType.Application, cc .
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "name":
-					cur.Set(c.Column, res.Name, c.Descending)
+					return res.Name
 				case "enabled":
-					cur.Set(c.Column, res.Enabled, c.Descending)
+					return res.Enabled
 				case "weight":
-					cur.Set(c.Column, res.Weight, c.Descending)
+					return res.Weight
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -2477,21 +2542,37 @@ func (s *Store) collectAttachmentCursorValues(res *systemType.Attachment, cc ...
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "kind":
-					cur.Set(c.Column, res.Kind, c.Descending)
+					return res.Kind
 				case "name":
-					cur.Set(c.Column, res.Name, c.Descending)
+					return res.Name
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -3040,28 +3121,44 @@ func (s *Store) collectAuthClientCursorValues(res *systemType.AuthClient, cc ...
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "handle":
-					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+					return res.Handle
 				case "enabled":
-					cur.Set(c.Column, res.Enabled, c.Descending)
+					return res.Enabled
 				case "trusted":
-					cur.Set(c.Column, res.Trusted, c.Descending)
+					return res.Trusted
 				case "validFrom":
-					cur.Set(c.Column, res.ValidFrom, c.Descending)
+					return res.ValidFrom
 				case "expiresAt":
-					cur.Set(c.Column, res.ExpiresAt, c.Descending)
+					return res.ExpiresAt
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -3370,16 +3467,32 @@ func (s *Store) collectAuthConfirmedClientCursorValues(res *systemType.AuthConfi
 		pkClientID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "userID":
-					cur.Set(c.Column, res.UserID, c.Descending)
 					pkUserID = true
+					return res.UserID
 				case "clientID":
-					cur.Set(c.Column, res.ClientID, c.Descending)
 					pkClientID = true
+					return res.ClientID
 				case "confirmedAt":
-					cur.Set(c.Column, res.ConfirmedAt, c.Descending)
+					return res.ConfirmedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -3780,15 +3893,31 @@ func (s *Store) collectAuthOa2tokenCursorValues(res *systemType.AuthOa2token, cc
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "expiresAt":
-					cur.Set(c.Column, res.ExpiresAt, c.Descending)
+					return res.ExpiresAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -4066,15 +4195,31 @@ func (s *Store) collectAuthSessionCursorValues(res *systemType.AuthSession, cc .
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "expiresAt":
-					cur.Set(c.Column, res.ExpiresAt, c.Descending)
+					return res.ExpiresAt
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -4582,27 +4727,43 @@ func (s *Store) collectAutomationSessionCursorValues(res *automationType.Session
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "workflowID":
-					cur.Set(c.Column, res.WorkflowID, c.Descending)
+					return res.WorkflowID
 				case "status":
-					cur.Set(c.Column, res.Status, c.Descending)
+					return res.Status
 				case "eventType":
-					cur.Set(c.Column, res.EventType, c.Descending)
+					return res.EventType
 				case "resourceType":
-					cur.Set(c.Column, res.ResourceType, c.Descending)
+					return res.ResourceType
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "purgeAt":
-					cur.Set(c.Column, res.PurgeAt, c.Descending)
+					return res.PurgeAt
 				case "suspendedAt":
-					cur.Set(c.Column, res.SuspendedAt, c.Descending)
+					return res.SuspendedAt
 				case "completedAt":
-					cur.Set(c.Column, res.CompletedAt, c.Descending)
+					return res.CompletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -5108,25 +5269,41 @@ func (s *Store) collectAutomationTriggerCursorValues(res *automationType.Trigger
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "workflowID":
-					cur.Set(c.Column, res.WorkflowID, c.Descending)
+					return res.WorkflowID
 				case "enabled":
-					cur.Set(c.Column, res.Enabled, c.Descending)
+					return res.Enabled
 				case "resourceType":
-					cur.Set(c.Column, res.ResourceType, c.Descending)
+					return res.ResourceType
 				case "eventType":
-					cur.Set(c.Column, res.EventType, c.Descending)
+					return res.EventType
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -5670,22 +5847,38 @@ func (s *Store) collectAutomationWorkflowCursorValues(res *automationType.Workfl
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "handle":
-					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+					return res.Handle
 				case "enabled":
-					cur.Set(c.Column, res.Enabled, c.Descending)
+					return res.Enabled
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -6213,23 +6406,39 @@ func (s *Store) collectComposeAttachmentCursorValues(res *composeType.Attachment
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "ownerID":
-					cur.Set(c.Column, res.OwnerID, c.Descending)
+					return res.OwnerID
 				case "kind":
-					cur.Set(c.Column, res.Kind, c.Descending)
+					return res.Kind
 				case "name":
-					cur.Set(c.Column, res.Name, c.Descending)
+					return res.Name
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -6772,22 +6981,38 @@ func (s *Store) collectComposeChartCursorValues(res *composeType.Chart, cc ...*f
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "handle":
-					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+					return res.Handle
 				case "name":
-					cur.Set(c.Column, res.Name, c.Descending)
+					return res.Name
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -7372,22 +7597,38 @@ func (s *Store) collectComposeModuleCursorValues(res *composeType.Module, cc ...
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "handle":
-					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+					return res.Handle
 				case "name":
-					cur.Set(c.Column, res.Name, c.Descending)
+					return res.Name
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -7745,25 +7986,41 @@ func (s *Store) collectComposeModuleFieldCursorValues(res *composeType.ModuleFie
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "place":
-					cur.Set(c.Column, res.Place, c.Descending)
+					return res.Place
 				case "kind":
-					cur.Set(c.Column, res.Kind, c.Descending)
+					return res.Kind
 				case "name":
-					cur.Set(c.Column, res.Name, c.Descending)
+					return res.Name
 				case "label":
-					cur.Set(c.Column, res.Label, c.Descending)
+					return res.Label
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -8337,21 +8594,37 @@ func (s *Store) collectComposeNamespaceCursorValues(res *composeType.Namespace, 
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "slug":
-					cur.Set(c.Column, res.Slug, c.Descending)
+					return res.Slug
 				case "name":
-					cur.Set(c.Column, res.Name, c.Descending)
+					return res.Name
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -8966,26 +9239,42 @@ func (s *Store) collectComposePageCursorValues(res *composeType.Page, cc ...*fil
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "title":
-					cur.Set(c.Column, res.Title, c.Descending)
+					return res.Title
 				case "handle":
-					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+					return res.Handle
 				case "selfID":
-					cur.Set(c.Column, res.SelfID, c.Descending)
+					return res.SelfID
 				case "weight":
-					cur.Set(c.Column, res.Weight, c.Descending)
+					return res.Weight
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -9271,21 +9560,37 @@ func (s *Store) collectCredentialCursorValues(res *systemType.Credential, cc ...
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
 				case "lastUsedAt":
-					cur.Set(c.Column, res.LastUsedAt, c.Descending)
+					return res.LastUsedAt
 				case "expiresAt":
-					cur.Set(c.Column, res.ExpiresAt, c.Descending)
+					return res.ExpiresAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -9829,22 +10134,38 @@ func (s *Store) collectDalConnectionCursorValues(res *systemType.DalConnection, 
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "handle":
-					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+					return res.Handle
 				case "type":
-					cur.Set(c.Column, res.Type, c.Descending)
+					return res.Type
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -10372,22 +10693,38 @@ func (s *Store) collectDalSensitivityLevelCursorValues(res *systemType.DalSensit
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "handle":
-					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+					return res.Handle
 				case "level":
-					cur.Set(c.Column, res.Level, c.Descending)
+					return res.Level
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -10892,25 +11229,41 @@ func (s *Store) collectDataPrivacyRequestCursorValues(res *systemType.DataPrivac
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "kind":
-					cur.Set(c.Column, res.Kind, c.Descending)
+					return res.Kind
 				case "status":
-					cur.Set(c.Column, res.Status, c.Descending)
+					return res.Status
 				case "requestedAt":
-					cur.Set(c.Column, res.RequestedAt, c.Descending)
+					return res.RequestedAt
 				case "completedAt":
-					cur.Set(c.Column, res.CompletedAt, c.Descending)
+					return res.CompletedAt
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -11367,17 +11720,33 @@ func (s *Store) collectDataPrivacyRequestCommentCursorValues(res *systemType.Dat
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -11880,24 +12249,40 @@ func (s *Store) collectFederationExposedModuleCursorValues(res *federationType.E
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "handle":
-					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+					return res.Handle
 				case "name":
-					cur.Set(c.Column, res.Name, c.Descending)
+					return res.Name
 				case "nodeID":
-					cur.Set(c.Column, res.NodeID, c.Descending)
+					return res.NodeID
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -12430,17 +12815,33 @@ func (s *Store) collectFederationModuleMappingCursorValues(res *federationType.M
 		hasUnique bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "nodeID":
-					cur.Set(c.Column, res.NodeID, c.Descending)
 					hasUnique = true
+					return res.NodeID
 				case "federationModuleID":
-					cur.Set(c.Column, res.FederationModuleID, c.Descending)
+					return res.FederationModuleID
 				case "composeModuleID":
-					cur.Set(c.Column, res.ComposeModuleID, c.Descending)
+					return res.ComposeModuleID
 				case "composeNamespaceID":
-					cur.Set(c.Column, res.ComposeNamespaceID, c.Descending)
+					return res.ComposeNamespaceID
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -12819,27 +13220,43 @@ func (s *Store) collectFederationNodeCursorValues(res *federationType.Node, cc .
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "sharedNodeID":
-					cur.Set(c.Column, res.SharedNodeID, c.Descending)
+					return res.SharedNodeID
 				case "name":
-					cur.Set(c.Column, res.Name, c.Descending)
+					return res.Name
 				case "baseURL":
-					cur.Set(c.Column, res.BaseURL, c.Descending)
+					return res.BaseURL
 				case "status":
-					cur.Set(c.Column, res.Status, c.Descending)
+					return res.Status
 				case "contact":
-					cur.Set(c.Column, res.Contact, c.Descending)
+					return res.Contact
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -13386,19 +13803,35 @@ func (s *Store) collectFederationNodeSyncCursorValues(res *federationType.NodeSy
 		pkNodeID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "nodeID":
-					cur.Set(c.Column, res.NodeID, c.Descending)
 					pkNodeID = true
+					return res.NodeID
 				case "moduleID":
-					cur.Set(c.Column, res.ModuleID, c.Descending)
+					return res.ModuleID
 				case "syncType":
-					cur.Set(c.Column, res.SyncType, c.Descending)
+					return res.SyncType
 				case "syncStatus":
-					cur.Set(c.Column, res.SyncStatus, c.Descending)
+					return res.SyncStatus
 				case "timeOfAction":
-					cur.Set(c.Column, res.TimeOfAction, c.Descending)
+					return res.TimeOfAction
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -13903,26 +14336,42 @@ func (s *Store) collectFederationSharedModuleCursorValues(res *federationType.Sh
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "handle":
-					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+					return res.Handle
 				case "nodeID":
-					cur.Set(c.Column, res.NodeID, c.Descending)
+					return res.NodeID
 				case "name":
-					cur.Set(c.Column, res.Name, c.Descending)
+					return res.Name
 				case "externalFederationModuleID":
-					cur.Set(c.Column, res.ExternalFederationModuleID, c.Descending)
+					return res.ExternalFederationModuleID
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -14210,20 +14659,36 @@ func (s *Store) collectFlagCursorValues(res *flagType.Flag, cc ...*filter.SortEx
 		pkName       bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "kind":
-					cur.Set(c.Column, res.Kind, c.Descending)
 					pkKind = true
+					return res.Kind
 				case "resourceID":
-					cur.Set(c.Column, res.ResourceID, c.Descending)
 					pkResourceID = true
+					return res.ResourceID
 				case "ownedBy":
-					cur.Set(c.Column, res.OwnedBy, c.Descending)
 					pkOwnedBy = true
+					return res.OwnedBy
 				case "name":
-					cur.Set(c.Column, res.Name, c.Descending)
 					pkName = true
+					return res.Name
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -14515,17 +14980,33 @@ func (s *Store) collectLabelCursorValues(res *labelsType.Label, cc ...*filter.So
 		pkName       bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "kind":
-					cur.Set(c.Column, res.Kind, c.Descending)
 					pkKind = true
+					return res.Kind
 				case "resourceID":
-					cur.Set(c.Column, res.ResourceID, c.Descending)
 					pkResourceID = true
+					return res.ResourceID
 				case "name":
-					cur.Set(c.Column, res.Name, c.Descending)
 					pkName = true
+					return res.Name
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -15070,21 +15551,37 @@ func (s *Store) collectQueueCursorValues(res *systemType.Queue, cc ...*filter.So
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "consumer":
-					cur.Set(c.Column, res.Consumer, c.Descending)
+					return res.Consumer
 				case "queue":
-					cur.Set(c.Column, res.Queue, c.Descending)
+					return res.Queue
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -15526,17 +16023,33 @@ func (s *Store) collectQueueMessageCursorValues(res *systemType.QueueMessage, cc
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "queue":
-					cur.Set(c.Column, res.Queue, c.Descending)
+					return res.Queue
 				case "created":
-					cur.Set(c.Column, res.Created, c.Descending)
+					return res.Created
 				case "processed":
-					cur.Set(c.Column, res.Processed, c.Descending)
+					return res.Processed
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -15777,17 +16290,33 @@ func (s *Store) collectRbacRuleCursorValues(res *rbacType.Rule, cc ...*filter.So
 		pkOperation bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "roleID":
-					cur.Set(c.Column, res.RoleID, c.Descending)
 					pkRoleID = true
+					return res.RoleID
 				case "resource":
-					cur.Set(c.Column, res.Resource, c.Descending)
 					pkResource = true
+					return res.Resource
 				case "operation":
-					cur.Set(c.Column, res.Operation, c.Descending)
 					pkOperation = true
+					return res.Operation
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -16297,25 +16826,41 @@ func (s *Store) collectReminderCursorValues(res *systemType.Reminder, cc ...*fil
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "resource":
-					cur.Set(c.Column, res.Resource, c.Descending)
+					return res.Resource
 				case "assignedAt":
-					cur.Set(c.Column, res.AssignedAt, c.Descending)
+					return res.AssignedAt
 				case "dismissedAt":
-					cur.Set(c.Column, res.DismissedAt, c.Descending)
+					return res.DismissedAt
 				case "remindAt":
-					cur.Set(c.Column, res.RemindAt, c.Descending)
+					return res.RemindAt
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -16858,20 +17403,36 @@ func (s *Store) collectReportCursorValues(res *systemType.Report, cc ...*filter.
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "handle":
-					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+					return res.Handle
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -17133,13 +17694,29 @@ func (s *Store) collectResourceActivityCursorValues(res *discoveryType.ResourceA
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "timestamp":
-					cur.Set(c.Column, res.Timestamp, c.Descending)
+					return res.Timestamp
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -17625,17 +18202,33 @@ func (s *Store) collectResourceTranslationCursorValues(res *systemType.ResourceT
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -18224,24 +18817,40 @@ func (s *Store) collectRoleCursorValues(res *systemType.Role, cc ...*filter.Sort
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "name":
-					cur.Set(c.Column, res.Name, c.Descending)
+					return res.Name
 				case "handle":
-					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+					return res.Handle
 				case "archivedAt":
-					cur.Set(c.Column, res.ArchivedAt, c.Descending)
+					return res.ArchivedAt
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -18534,14 +19143,30 @@ func (s *Store) collectRoleMemberCursorValues(res *systemType.RoleMember, cc ...
 		pkRoleID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "userID":
-					cur.Set(c.Column, res.UserID, c.Descending)
 					pkUserID = true
+					return res.UserID
 				case "roleID":
-					cur.Set(c.Column, res.RoleID, c.Descending)
 					pkRoleID = true
+					return res.RoleID
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -18825,16 +19450,32 @@ func (s *Store) collectSettingValueCursorValues(res *systemType.SettingValue, cc
 		pkName    bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "ownedBy":
-					cur.Set(c.Column, res.OwnedBy, c.Descending)
 					pkOwnedBy = true
+					return res.OwnedBy
 				case "name":
-					cur.Set(c.Column, res.Name, c.Descending)
 					pkName = true
+					return res.Name
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -19385,28 +20026,44 @@ func (s *Store) collectTemplateCursorValues(res *systemType.Template, cc ...*fil
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "handle":
-					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+					return res.Handle
 				case "language":
-					cur.Set(c.Column, res.Language, c.Descending)
+					return res.Language
 				case "type":
-					cur.Set(c.Column, res.Type, c.Descending)
+					return res.Type
 				case "template":
-					cur.Set(c.Column, res.Template, c.Descending)
+					return res.Template
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
 				case "lastUsedAt":
-					cur.Set(c.Column, res.LastUsedAt, c.Descending)
+					return res.LastUsedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}
@@ -20068,32 +20725,48 @@ func (s *Store) collectUserCursorValues(res *systemType.User, cc ...*filter.Sort
 		pkID bool
 
 		collect = func(cc ...*filter.SortExpr) {
-			for _, c := range cc {
-				switch c.Column {
+			getVal := func(col string) interface{} {
+				switch col {
 				case "id":
-					cur.Set(c.Column, res.ID, c.Descending)
 					pkID = true
+					return res.ID
 				case "email":
-					cur.Set(c.Column, res.Email, c.Descending)
 					hasUnique = true
+					return res.Email
 				case "username":
-					cur.Set(c.Column, res.Username, c.Descending)
 					hasUnique = true
+					return res.Username
 				case "name":
-					cur.Set(c.Column, res.Name, c.Descending)
+					return res.Name
 				case "handle":
-					cur.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+					return res.Handle
 				case "kind":
-					cur.Set(c.Column, res.Kind, c.Descending)
+					return res.Kind
 				case "suspendedAt":
-					cur.Set(c.Column, res.SuspendedAt, c.Descending)
+					return res.SuspendedAt
 				case "createdAt":
-					cur.Set(c.Column, res.CreatedAt, c.Descending)
+					return res.CreatedAt
 				case "updatedAt":
-					cur.Set(c.Column, res.UpdatedAt, c.Descending)
+					return res.UpdatedAt
 				case "deletedAt":
-					cur.Set(c.Column, res.DeletedAt, c.Descending)
+					return res.DeletedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
 			}
 		}

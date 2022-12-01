@@ -83,18 +83,15 @@
               />
             </div>
           </template>
-          <template #name="{ item }">
-            {{ item.name }}
-            <b-badge
-              v-if="!item.enabled"
-              variant="warning"
-            >
-              {{ $t('disabled') }}
-            </b-badge>
+
+          <template #enabled="{ item }">
+            <font-awesome-icon
+              :icon="['fas', item.enabled ? 'check' : 'times']"
+            />
           </template>
 
-          <template #updatedAt="{ item }">
-            {{ (item.updatedAt || item.createdAt) | locFullDateTime }}
+          <template #changedAt="{ item }">
+            {{ (item.deletedAt || item.updatedAt || item.createdAt) | locFullDateTime }}
           </template>
         </c-resource-list>
       </b-row>
@@ -124,13 +121,17 @@ export default {
     return {
       primaryKey: 'namespaceID',
 
+      pagination: {
+        limit: 13,
+      },
+
       filter: {
         query: '',
       },
 
       sorting: {
-        sortBy: 'createdAt',
-        sortDesc: true,
+        sortBy: 'name',
+        sortDesc: false,
       },
     }
   },
@@ -172,14 +173,24 @@ export default {
         {
           key: 'slug',
           sortable: true,
+          label: this.$t('table.columns.slug'),
           class: 'text-nowrap',
-          label: this.$t('table.columns.handle'),
         },
         {
-          key: 'updatedAt',
+          key: 'enabled',
+          label: this.$t('table.columns.enabled'),
+          class: 'text-center',
+        },
+        {
+          key: 'changedAt',
           sortable: true,
-          class: 'text-nowrap',
-          label: this.$t('table.columns.last-change'),
+          label: this.$t('table.columns.changedAt'),
+          class: 'text-right text-nowrap',
+        },
+        {
+          key: 'actions',
+          label: '',
+          tdClass: 'text-right text-nowrap',
         },
       ]
     },
