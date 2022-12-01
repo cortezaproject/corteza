@@ -5,11 +5,20 @@
     >
       <b-form-select
         v-model="block.options.chartID"
-        :options="options"
+        :options="chartOptions"
         text-field="name"
         value-field="chartID"
       />
     </b-form-group>
+
+    <b-button
+      v-if="selectedChart"
+      :disabled="!selectedChart.canUpdateChart && !selectedChart.canDeleteChart"
+      variant="light"
+      :to="{ name: 'admin.charts.edit', params: { chartID: selectedChart.chartID }, query: null }"
+    >
+      {{ $t('chart.openInBuilder') }}
+    </b-button>
   </b-tab>
 </template>
 <script>
@@ -31,11 +40,19 @@ export default {
       charts: 'chart/set',
     }),
 
-    options () {
+    chartOptions () {
       return [
         { chartID: NoID, name: this.$t('chart.pick') },
         ...this.charts,
       ]
+    },
+
+    selectedChart () {
+      if (!this.options.chartID || this.options.chartID === NoID) {
+        return
+      }
+
+      return this.chartOptions.find(({ chartID }) => chartID === this.options.chartID)
     },
   },
 }

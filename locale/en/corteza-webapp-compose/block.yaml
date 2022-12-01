@@ -97,6 +97,7 @@ chart:
   preview:
     chartId: Chart preview (ID {{0}})
   searchPlaceholder: Type here to search all charts in this namespace
+  openInBuilder: Open in chart builder
 content:
   ok: Ok
   label: Content
