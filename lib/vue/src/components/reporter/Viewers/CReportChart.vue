@@ -34,6 +34,17 @@ export default {
         })
       },
     },
+
+    options: {
+      deep: true,
+      handler () {
+        this.chart = undefined
+
+        this.$nextTick(() => {
+          this.renderChart()
+        })
+      },
+    }
   },
 
   methods: {
