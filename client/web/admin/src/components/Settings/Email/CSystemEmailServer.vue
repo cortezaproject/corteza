@@ -15,6 +15,7 @@
         <b-input-group>
           <b-input
             v-model="server.host"
+            data-test-id="input-server"
             :disabled="disabled"
             placeholder="host.domain.tld"
             autocomplete="off"
@@ -26,6 +27,7 @@
           <b-input-group-append>
             <b-input
               v-model="server.port"
+              data-test-id="input-server-port"
               type="number"
               :disabled="disabled"
               step="1"
@@ -42,6 +44,7 @@
       >
         <b-input
           v-model="server.user"
+          data-test-id="input-user"
           :disabled="disabled"
           autocomplete="off"
         />
@@ -54,6 +57,7 @@
       >
         <b-input
           v-model="server.pass"
+          data-test-id="input-password"
           type="password"
           :disabled="disabled"
           autocomplete="off"
@@ -69,6 +73,7 @@
       >
         <b-input
           v-model="server.from"
+          data-test-id="input-sender-address"
           type="email"
           :disabled="disabled"
           autocomplete="off"
@@ -83,6 +88,7 @@
       >
         <b-form-checkbox
           v-model="server.tlsInsecure"
+          data-test-id="checkbox-allow-invalid-certificates"
           :disabled="disabled"
         >
           {{ $t('tlsInsecure.label') }}
@@ -96,6 +102,7 @@
       >
         <b-input
           v-model="server.tlsServerName"
+          data-test-id="input-tls-server-name"
           :disabled="disabled"
         />
       </b-form-group>
@@ -112,6 +119,7 @@
         :disabled="disabled"
         :processing="processing"
         :success="success"
+        :cypress-i-d="'button-smtp'"
         variant="light"
         class="float-left"
         @submit="smtpConnectionCheck()"
