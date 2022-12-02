@@ -122,7 +122,7 @@ export default {
       },
 
       sorting: {
-        sortBy: 'name',
+        sortBy: 'handle',
         sortDesc: false,
       },
     }
