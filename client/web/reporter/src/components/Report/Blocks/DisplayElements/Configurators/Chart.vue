@@ -1,7 +1,5 @@
 <template>
-  <div
-    v-if="options"
-  >
+  <div>
     <div
       class="mb-3"
     >
@@ -16,7 +14,7 @@
             label-class="text-primary"
           >
             <b-form-select
-              v-model="options.type"
+              :value="displayElementOptions.type"
               :options="chartTypes"
               @change="typeChanged"
             />
@@ -445,8 +443,8 @@ export default {
       this.options.colorScheme = (colorscheme || {}).value || ''
     },
 
-    typeChanged () {
-      this.options = reporter.ChartOptionsMaker(this.options) || {}
+    typeChanged (type) {
+      this.options = reporter.ChartOptionsMaker({ ...this.options, type })
     },
   },
 }
