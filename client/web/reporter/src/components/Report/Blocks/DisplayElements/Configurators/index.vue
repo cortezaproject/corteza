@@ -230,7 +230,7 @@ export default {
             this.options.datasources[this.currentConfigurableDatasourceIndex].paging = {}
           }
 
-          this.options.datasources[this.currentConfigurableDatasourceIndex].paging.limit = limit
+          this.options.datasources[this.currentConfigurableDatasourceIndex].paging.limit = limit || 0
         }
       },
     },
