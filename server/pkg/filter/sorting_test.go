@@ -117,7 +117,7 @@ func TestSortUmarshaling(t *testing.T) {
 		{
 			"one simple column",
 			`{"sort": "name DESC", "other": true}`,
-			&tmp{Sorting: Sorting{Sort: SortExprSet{&SortExpr{Column: "name", Descending: true}}}, Other: true},
+			&tmp{Sorting: Sorting{Sort: SortExprSet{&SortExpr{columns: []string{"name"}, Column: "name", Descending: true}}}, Other: true},
 		},
 	}
 	for _, tt := range tests {

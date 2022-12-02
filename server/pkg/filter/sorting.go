@@ -154,7 +154,13 @@ func (set *SortExprSet) UnmarshalJSON(in []byte) error {
 		return nil
 	}
 
-	tmp, err := parseSort(string(in))
+	// turn json marshalled string to normal str
+	var str string
+	if err := json.Unmarshal(in, &str); err != nil {
+		return err
+	}
+
+	tmp, err := parseSort(str)
 	*set = tmp
 	return err
 }
