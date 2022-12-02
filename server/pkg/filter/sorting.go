@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/cortezaproject/corteza/server/pkg/slice"
@@ -128,17 +129,22 @@ func splitCommaParenthesis(in string) (out []string) {
 			depth--
 		case ',':
 			if depth == 0 {
-				out = append(out, strings.TrimSpace(in[start:i]))
+				out = append(out, trimQuotes(strings.TrimSpace(in[start:i])))
 				start = i + 1
 			}
 		}
 	}
 
 	if start < len(in) {
-		out = append(out, strings.TrimSpace(in[start:]))
+		out = append(out, trimQuotes(strings.TrimSpace(in[start:])))
 	}
 
 	return
+}
+
+// trimQuotes removes quotes from the beginning and the end of the string
+func trimQuotes(in string) string {
+	return regexp.MustCompile(`^"(.*)"$`).ReplaceAllString(in, `$1`)
 }
 
 // UnmarshalJSON parses sort expression when passed inside JSON
