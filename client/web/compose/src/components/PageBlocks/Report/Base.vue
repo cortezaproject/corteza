@@ -78,8 +78,6 @@ export default {
     getDataframes (definition = {}) {
       const { elementID } = this.options
 
-      this.displayElement = undefined
-
       if (elementID) {
         const block = this.report.blocks.find(({ elements }) => {
           return elements.some(e => e.elementID === elementID)
