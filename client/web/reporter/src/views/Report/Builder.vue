@@ -546,12 +546,12 @@ export default {
 
     currentDisplayElement: {
       get () {
-        return this.displayElements.currentIndex !== undefined ? this.currentDisplayElements[this.displayElements.currentIndex] : undefined
+        return this.displayElements.currentIndex !== undefined ? this.currentBlock.elements[this.displayElements.currentIndex] : undefined
       },
 
       set (element) {
         if (this.displayElements.currentIndex !== undefined) {
-          this.currentDisplayElements[this.displayElements.currentIndex] = element
+          this.currentBlock.elements.splice(this.displayElements.currentIndex, 1, element)
         }
       },
     },
