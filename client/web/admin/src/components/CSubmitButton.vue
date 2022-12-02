@@ -1,6 +1,6 @@
 <template>
   <b-button
-    data-test-id="button-submit"
+    :data-test-id="cypressID"
     type="submit"
     :variant="variant"
     :disabled="disabled || processing || success"
@@ -65,6 +65,11 @@ export default {
     iconVariant: {
       type: String,
       default: 'text-white',
+    },
+
+    cypressID: {
+      type: String,
+      default: 'button-submit',
     },
   },
 }
