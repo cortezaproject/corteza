@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/cortezaproject/corteza/server/automation/automation"
 	atypes "github.com/cortezaproject/corteza/server/automation/types"
@@ -32,6 +33,7 @@ type (
 	WfExecer interface {
 		Load(ctx context.Context) error
 		Exec(ctx context.Context, workflowID uint64, p atypes.WorkflowExecParams) (*expr.Vars, uint64, atypes.Stacktrace, error)
+		Search(ctx context.Context, filter atypes.WorkflowFilter) (atypes.WorkflowSet, atypes.WorkflowFilter, error)
 	}
 
 	processerPayload struct {
@@ -85,10 +87,28 @@ func (h workflow) Meta() types.FilterMeta {
 }
 
 func (h *workflow) Merge(params []byte) (types.Handler, error) {
-	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&h.params)
+	var (
+		t = struct {
+			Workflow string `json:"workflow"`
+		}{}
+	)
 
+	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&t)
 	if err != nil {
 		return h, err
+	}
+
+	i, err := strconv.Atoi(t.Workflow)
+
+	if err == nil {
+		h.params.Workflow = uint64(i)
+		return h, h.d.Load(context.Background())
+	}
+
+	if wf, _, err := h.d.Search(context.Background(), atypes.WorkflowFilter{Query: fmt.Sprintf("handle='%s'", t.Workflow)}); err != nil {
+		return h, err
+	} else {
+		h.params.Workflow = wf[0].ID
 	}
 
 	// preload workflow cache
@@ -146,7 +166,7 @@ func (h workflow) Handler() types.HandlerFunc {
 		scope = filterScope(scope, "eventType", "resourceType", "invoker")
 
 		// update scope for next items in pipeline
-		r.WithContext(agctx.ScopeToContext(ctx, scope))
+		_ = r.WithContext(agctx.ScopeToContext(ctx, scope))
 
 		return nil
 	}

@@ -23,8 +23,9 @@ import (
 
 type (
 	wfServicer struct {
-		load func(ctx context.Context) error
-		exec func(ctx context.Context, workflowID uint64, p atypes.WorkflowExecParams) (*expr.Vars, uint64, atypes.Stacktrace, error)
+		load   func(ctx context.Context) error
+		exec   func(ctx context.Context, workflowID uint64, p atypes.WorkflowExecParams) (*expr.Vars, uint64, atypes.Stacktrace, error)
+		search func(ctx context.Context, filter atypes.WorkflowFilter) (atypes.WorkflowSet, atypes.WorkflowFilter, error)
 	}
 )
 
@@ -226,6 +227,10 @@ func (f wfServicer) Load(ctx context.Context) error {
 
 func (f wfServicer) Exec(ctx context.Context, workflowID uint64, p atypes.WorkflowExecParams) (*expr.Vars, uint64, atypes.Stacktrace, error) {
 	return f.exec(ctx, workflowID, p)
+}
+
+func (f wfServicer) Search(ctx context.Context, filter atypes.WorkflowFilter) (atypes.WorkflowSet, atypes.WorkflowFilter, error) {
+	return f.search(ctx, filter)
 }
 
 func must(v *expr.Vars, err error) *expr.Vars {
