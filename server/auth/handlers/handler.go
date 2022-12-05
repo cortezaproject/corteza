@@ -52,6 +52,13 @@ type (
 		ValidateEmailOTP(ctx context.Context, code string) (err error)
 	}
 
+	credentialsService interface {
+		List(ctx context.Context, userID uint64) (cc types.CredentialSet, err error)
+		Create(ctx context.Context, c *types.Credential) (*types.Credential, error)
+		Update(ctx context.Context, c *types.Credential) (*types.Credential, error)
+		Delete(ctx context.Context, userID, credentialsID uint64) (err error)
+	}
+
 	userService interface {
 		FindByAny(ctx context.Context, identifier interface{}) (*types.User, error)
 		Update(context.Context, *types.User) (*types.User, error)
@@ -101,18 +108,19 @@ type (
 	AuthHandlers struct {
 		Log *zap.Logger
 
-		Locale         localeService
-		Templates      templateExecutor
-		OAuth2         oauth2Service
-		SessionManager *request.SessionManager
-		AuthService    authService
-		UserService    userService
-		ClientService  clientService
-		TokenService   tokenService
-		DefaultClient  *types.AuthClient
-		Opt            options.AuthOpt
-		Settings       *settings.Settings
-		SamlSPService  *saml.SamlSPService
+		Locale             localeService
+		Templates          templateExecutor
+		OAuth2             oauth2Service
+		SessionManager     *request.SessionManager
+		AuthService        authService
+		CredentialsService credentialsService
+		UserService        userService
+		ClientService      clientService
+		TokenService       tokenService
+		DefaultClient      *types.AuthClient
+		Opt                options.AuthOpt
+		Settings           *settings.Settings
+		SamlSPService      *saml.SamlSPService
 	}
 
 	handlerFn func(req *request.AuthReq) error
@@ -342,6 +350,10 @@ func (h *AuthHandlers) enrichTmplData(req *request.AuthReq) interface{} {
 
 	for _, p := range dSettings.Providers {
 		if _, err := goth.GetProvider(p.Handle); err != nil {
+			continue
+		}
+		// Skipping the ones we don't use for identity
+		if !p.HasUsage(types.ExternalProviderUsageIdentity) {
 			continue
 		}
 

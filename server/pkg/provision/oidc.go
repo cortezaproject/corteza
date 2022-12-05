@@ -81,6 +81,7 @@ func authAddExternals(ctx context.Context, log *zap.Logger, s store.SettingValue
 			"google",
 			"linkedin",
 			"oidc",
+			"nylas",
 		}
 
 		key, name string

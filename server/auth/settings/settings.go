@@ -79,6 +79,7 @@ type (
 		RedirectUrl string
 		Secret      string
 		Scope       string
+		Usage       []string
 	}
 
 	BackgroundUI struct {
@@ -86,3 +87,13 @@ type (
 		Styles                string
 	}
 )
+
+func (p Provider) HasUsage(u string) bool {
+	for _, pu := range p.Usage {
+		if pu == u {
+			return true
+		}
+	}
+
+	return false
+}

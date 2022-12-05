@@ -620,6 +620,13 @@ func updateAuthSettings(svc authServicer, current *types.AppSettings) {
 
 	for _, p := range current.Auth.External.Providers {
 		if p.ValidConfiguration() {
+			usage := p.Usage
+
+			// By default, use as an identity provider
+			if len(p.Usage) == 0 {
+				p.Usage = []string{types.ExternalProviderUsageIdentity}
+			}
+
 			as.Providers = append(as.Providers, authSettings.Provider{
 				Handle:      p.Handle,
 				Label:       p.Label,
@@ -628,6 +635,7 @@ func updateAuthSettings(svc authServicer, current *types.AppSettings) {
 				RedirectUrl: p.RedirectUrl,
 				Secret:      p.Secret,
 				Scope:       p.Scope,
+				Usage:       usage,
 			})
 		}
 	}
