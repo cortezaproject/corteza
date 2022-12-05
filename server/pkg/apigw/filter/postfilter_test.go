@@ -175,7 +175,7 @@ func Test_jsonResponse(t *testing.T) {
 
 			r = r.WithContext(agctx.ScopeToContext(context.Background(), scope))
 
-			h := getHandler(NewJsonResponse(options.ApigwOpt{}, &mockHandlerRegistry{}))
+			h := getHandler(NewResponse(options.ApigwOpt{}, &mockHandlerRegistry{}))
 			h, err := h.Merge([]byte(tc.expr))
 
 			req.NoError(err)

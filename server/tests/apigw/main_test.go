@@ -3,13 +3,16 @@ package apigw
 import (
 	"context"
 	"errors"
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/sqlite"
+	"fmt"
 	"os"
 	"path"
 	"testing"
 
+	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/sqlite"
+
 	"github.com/cortezaproject/corteza/server/app"
+	as "github.com/cortezaproject/corteza/server/automation/service"
 	"github.com/cortezaproject/corteza/server/pkg/api/server"
 	"github.com/cortezaproject/corteza/server/pkg/apigw"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
@@ -61,8 +64,8 @@ func init() {
 
 func InitTestApp() {
 	ctx := cli.Context()
-	if testApp == nil {
 
+	if testApp == nil {
 		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
 			service.DefaultStore, err = sqlite.ConnectInMemory(ctx)
 			if err != nil {
@@ -72,6 +75,10 @@ func InitTestApp() {
 			eventbus.Set(eventBus)
 			return nil
 		})
+	}
+
+	if err := testApp.Activate(ctx); err != nil {
+		panic(fmt.Errorf("could not activate corteza: %v", err))
 	}
 
 	if r == nil {
@@ -144,9 +151,14 @@ func (h helper) apiInit() *apitest.APITest {
 func setupScenario(t *testing.T) (context.Context, helper, store.Storer) {
 	ctx, h, s := setup(t)
 	loadScenario(ctx, s, t, h)
+	loadRbacRules(ctx, s, t, h)
 	_ = apigw.Service().Reload(ctx)
 
 	return ctx, h, s
+}
+
+func loadRbacRules(ctx context.Context, s store.Storer, t *testing.T, h helper) {
+	helpers.AllowMeWorkflowSearch(h)
 }
 
 func setup(t *testing.T) (context.Context, helper, store.Storer) {
@@ -156,6 +168,7 @@ func setup(t *testing.T) (context.Context, helper, store.Storer) {
 	u := &sysTypes.User{
 		ID: id.Next(),
 	}
+
 	u.SetRoles(auth.BypassRoles().IDs()...)
 
 	ctx := auth.SetIdentityToContext(context.Background(), u)
@@ -187,11 +200,20 @@ func loadScenario(ctx context.Context, s store.Storer, t *testing.T, h helper) {
 func loadScenarioWithName(ctx context.Context, s store.Storer, t *testing.T, h helper, scenario string) {
 	cleanup(ctx, h, s)
 	parseEnvoy(ctx, s, h, path.Join("testdata", scenario))
+	loadWorkflows(ctx, h)
+}
+
+func loadWorkflows(ctx context.Context, h helper) {
+	err := as.DefaultWorkflow.Load(ctx)
+	h.a.NoError(err)
 }
 
 func cleanup(ctx context.Context, h helper, s store.Storer) {
 	h.noError(s.TruncateApigwFilters(ctx))
 	h.noError(s.TruncateApigwRoutes(ctx))
+	h.noError(s.TruncateRbacRules(ctx))
+	h.noError(s.TruncateAutomationTriggers(ctx))
+	h.noError(s.TruncateAutomationWorkflows(ctx))
 }
 
 func parseEnvoy(ctx context.Context, s store.Storer, h helper, path string) {

@@ -3,6 +3,7 @@ package helpers
 import (
 	"context"
 
+	automationTypes "github.com/cortezaproject/corteza/server/automation/types"
 	composeTypes "github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/cli"
@@ -69,6 +70,11 @@ func Grant(rr ...*rbac.Rule) {
 
 func AllowMeModuleCreate(mrg myRoleGetter) {
 	AllowMe(mrg, composeTypes.NamespaceRbacResource(0), "module.create")
+}
+
+func AllowMeWorkflowSearch(mrg myRoleGetter) {
+	AllowMe(mrg, automationTypes.WorkflowRbacResource(0), "workflows.search")
+	AllowMe(mrg, automationTypes.WorkflowRbacResource(0), "triggers.search")
 }
 
 func AllowMeModuleSearch(mrg myRoleGetter) {

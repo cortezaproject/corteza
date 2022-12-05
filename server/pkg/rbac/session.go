@@ -50,6 +50,7 @@ func ParamsToSession(ctx context.Context, user uint64, roles ...uint64) *session
 }
 
 func NewSession(ctx context.Context, i auth.Identifiable) *session {
+	// spew.Dump("IDENTIFIABLE", i.Identity(), i.Roles())
 	return &session{
 		id:  i.Identity(),
 		rr:  i.Roles(),
