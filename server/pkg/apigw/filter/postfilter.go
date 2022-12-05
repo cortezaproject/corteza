@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"reflect"
 
 	atypes "github.com/cortezaproject/corteza/server/automation/types"
 	agctx "github.com/cortezaproject/corteza/server/pkg/apigw/ctx"
@@ -31,22 +32,16 @@ type (
 		}
 	}
 
-	// support for arbitrary response
-	// obfuscation
-	customResponse struct {
-		types.FilterMeta
-		params struct {
-			Source string `json:"source"`
-		}
-	}
-
-	jsonResponse struct {
+	response struct {
 		types.FilterMeta
 
 		reg typesRegistry
 
 		params struct {
-			Exp       *atypes.Expr
+			Header http.Header `json:"header"`
+
+			Exp *atypes.Expr `json:"input"`
+
 			Evaluable expr.Evaluable
 		}
 	}
@@ -181,10 +176,10 @@ func checkStatus(typ string, status int) bool {
 	}
 }
 
-func NewJsonResponse(opts options.ApigwOpt, reg typesRegistry) (e *jsonResponse) {
-	e = &jsonResponse{}
+func NewResponse(opts options.ApigwOpt, reg typesRegistry) (e *response) {
+	e = &response{}
 
-	e.Name = "jsonResponse"
+	e.Name = "response"
 	e.Label = "JSON response"
 	e.Kind = types.PostFilter
 
@@ -194,6 +189,11 @@ func NewJsonResponse(opts options.ApigwOpt, reg typesRegistry) (e *jsonResponse)
 			Label:   "input",
 			Options: map[string]interface{}{},
 		},
+		{
+			Type:    "header",
+			Label:   "header",
+			Options: map[string]interface{}{},
+		},
 	}
 
 	e.reg = reg
@@ -201,28 +201,28 @@ func NewJsonResponse(opts options.ApigwOpt, reg typesRegistry) (e *jsonResponse)
 	return
 }
 
-func (j jsonResponse) New(opts options.ApigwOpt) types.Handler {
-	return NewJsonResponse(opts, j.reg)
+func (j response) New(opts options.ApigwOpt) types.Handler {
+	return NewResponse(opts, j.reg)
 }
 
-func (j jsonResponse) Enabled() bool {
+func (j response) Enabled() bool {
 	return true
 }
 
-func (j jsonResponse) String() string {
+func (j response) String() string {
 	return fmt.Sprintf("apigw filter %s (%s)", j.Name, j.Label)
 }
 
-func (j jsonResponse) Meta() types.FilterMeta {
+func (j response) Meta() types.FilterMeta {
 	return j.FilterMeta
 }
 
-func (j *jsonResponse) Merge(params []byte) (h types.Handler, err error) {
+func (j *response) Merge(params []byte) (h types.Handler, err error) {
 	var (
 		parser = expr.NewParser()
 	)
 
-	err = json.NewDecoder(bytes.NewBuffer(params)).Decode(&j.params.Exp)
+	err = json.NewDecoder(bytes.NewBuffer(params)).Decode(&j.params)
 
 	if err != nil {
 		return j, err
@@ -239,11 +239,12 @@ func (j *jsonResponse) Merge(params []byte) (h types.Handler, err error) {
 	return j, err
 }
 
-func (j jsonResponse) Handler() types.HandlerFunc {
+func (j response) Handler() types.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) (err error) {
 		var (
-			ctx   = r.Context()
-			scope = agctx.ScopeFromContext(ctx)
+			ctx           = r.Context()
+			scope         = agctx.ScopeFromContext(ctx)
+			hasJsonHeader = false
 
 			evald interface{}
 		)
@@ -274,15 +275,22 @@ func (j jsonResponse) Handler() types.HandlerFunc {
 			return
 		}
 
-		rw.Header().Add("Content-Type", "application/json")
+		for h, v := range j.params.Header {
+			for _, vv := range v {
+				rw.Header().Add(h, vv)
 
-		switch v := evald.(type) {
-		case string:
-			rw.Write([]byte(v))
-		default:
-			e := json.NewEncoder(rw)
-			err = e.Encode(v)
+				if h == "Content-Type" || h == "content-type" {
+					hasJsonHeader = vv == "application/json"
+				}
+			}
 		}
+
+		if reflect.ValueOf(evald).Kind() != reflect.String && hasJsonHeader {
+			err = (json.NewEncoder(rw)).Encode(expr.UntypedValue(evald))
+			return
+		}
+
+		fmt.Fprintf(rw, "%v", evald)
 
 		return
 	}
