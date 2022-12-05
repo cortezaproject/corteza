@@ -44,6 +44,7 @@
                   class="pb-2"
                 >
                   <b-td
+                    class="align-middle"
                     style="width: 1%;"
                   >
                     <h6
@@ -101,6 +102,7 @@
                   </b-td>
                   <b-td
                     v-if="getField(filter.name)"
+                    class="align-middle"
                     style="width: 1%;"
                   >
                     <b-button
@@ -489,7 +491,14 @@ export default {
           .map(({ groupCondition, filter = [] }) => {
             filter = filter.map(({ value, ...f }) => {
               f.record = new compose.Record(this.mock.module, {})
-              f.record.values[f.name] = value
+
+              // If its a system field add value to root of record
+              if (Object.keys(f.record).includes(f.name)) {
+                f.record[f.name] = value
+              } else {
+                f.record.values[f.name] = value
+              }
+
               return f
             })
 
@@ -512,7 +521,7 @@ export default {
       this.$emit('filter', this.componentFilter.map(({ groupCondition, filter = [] }) => {
         filter = filter.map(({ record, ...f }) => {
           if (record) {
-            f.value = record.values[f.name]
+            f.value = record[f.name] || record.values[f.name]
           }
 
           return f
