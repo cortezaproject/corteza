@@ -40,8 +40,6 @@ export default {
         if (err.message && err.message.startsWith('notification')) {
           err.message = this.$t(`notification:${err.message.substring('notification.'.length)}`)
         }
-        /* eslint-disable no-console */
-        console.error(err)
         // all other messages should be shown as they are
         const msg = err.message ? `${prefix}: ${err.message}` : prefix
         this.toastDanger(msg, title)

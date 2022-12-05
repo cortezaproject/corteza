@@ -94,11 +94,9 @@ export default {
           name: e.name,
           slug: e.slug,
         })
-        console.log({ out })
 
         this.$emit('imported', out)
       } catch (err) {
-        console.error(err)
         this.$emit('failed', err)
       }
 
