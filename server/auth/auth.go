@@ -183,18 +183,19 @@ func New(ctx context.Context, log *zap.Logger, oa2m oauth2def.Manager, s store.S
 	}
 
 	svc.handlers = &handlers.AuthHandlers{
-		Locale:         locale.Global(),
-		Log:            log,
-		Templates:      tpls,
-		SessionManager: sesManager,
-		OAuth2:         oauth2Server,
-		AuthService:    systemService.DefaultAuth,
-		UserService:    systemService.DefaultUser,
-		ClientService:  &clientService{s},
-		TokenService:   &tokenService{s},
-		DefaultClient:  defClient,
-		Opt:            svc.opt,
-		Settings:       svc.settings,
+		Locale:             locale.Global(),
+		Log:                log,
+		Templates:          tpls,
+		SessionManager:     sesManager,
+		OAuth2:             oauth2Server,
+		AuthService:        systemService.DefaultAuth,
+		CredentialsService: systemService.DefaultCredentials,
+		UserService:        systemService.DefaultUser,
+		ClientService:      &clientService{s},
+		TokenService:       &tokenService{s},
+		DefaultClient:      defClient,
+		Opt:                svc.opt,
+		Settings:           svc.settings,
 	}
 
 	external.Init(sesManager.Store())
