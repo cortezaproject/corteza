@@ -12,6 +12,7 @@ import (
 	atypes "github.com/cortezaproject/corteza/server/automation/types"
 	agctx "github.com/cortezaproject/corteza/server/pkg/apigw/ctx"
 	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
+	"github.com/cortezaproject/corteza/server/pkg/auth"
 	pe "github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/jsenv"
@@ -90,6 +91,9 @@ func (h *workflow) Merge(params []byte) (types.Handler, error) {
 		t = struct {
 			Workflow string `json:"workflow"`
 		}{}
+
+		// ctx = context.Background()
+		ctx = auth.SetIdentityToContext(context.Background(), auth.ServiceUser())
 	)
 
 	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&t)
@@ -101,17 +105,17 @@ func (h *workflow) Merge(params []byte) (types.Handler, error) {
 
 	if err == nil {
 		h.params.Workflow = uint64(i)
-		return h, h.d.Load(context.Background())
+		return h, h.d.Load(ctx)
 	}
 
-	if wf, _, err := h.d.Search(context.Background(), atypes.WorkflowFilter{Query: fmt.Sprintf("handle='%s'", t.Workflow)}); err != nil {
+	if wf, _, err := h.d.Search(ctx, atypes.WorkflowFilter{Query: t.Workflow}); err != nil {
 		return h, err
 	} else {
 		h.params.Workflow = wf[0].ID
 	}
 
 	// preload workflow cache
-	return h, h.d.Load(context.Background())
+	return h, h.d.Load(ctx)
 }
 
 func (h workflow) Handler() types.HandlerFunc {
