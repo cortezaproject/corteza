@@ -164,7 +164,7 @@ func TestInternalFilterMergeFilters_cursor(t *testing.T) {
 		b := internalFilter{orderBy: nil}
 
 		c := a.mergeFilters(b)
-		require.Nil(t, c.cursor)
+		require.Equal(t, &filter.PagingCursor{ROrder: true}, c.cursor)
 	})
 
 	t.Run("a no constr", func(t *testing.T) {
