@@ -28,8 +28,6 @@ export default {
       const { prefix, title } = opt
 
       return (err = {}) => {
-        /* eslint-disable no-console */
-        console.error(err)
         const msg = err.message ? (prefix + ': ' + err.message) : prefix
         this.toastDanger(msg, title)
       }

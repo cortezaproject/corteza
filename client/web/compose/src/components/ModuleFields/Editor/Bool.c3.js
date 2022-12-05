@@ -3,7 +3,6 @@ import { default as component } from './Bool.vue'
 import { compose } from '@cortezaproject/corteza-js'
 import * as fieldTypes from './loader'
 
-console.log(fieldTypes)
 // const namespace = ({
 //   canCreateChart: true,
 //   canCreateModule: true,
