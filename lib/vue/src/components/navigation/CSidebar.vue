@@ -5,6 +5,7 @@
     >
       <b-sidebar
         v-model="isExpanded"
+        data-test-id="sidebar"
         :sidebar-class="`sidebar ${isExpanded ? 'expanded' : ''}`"
         :header-class="`d-block sidebar-header ${isExpanded ? 'expanded border-bottom p-2' : ''}`"
         :body-class="`bg-white ${isExpanded ? 'py-2 px-3' : ''}`"
@@ -23,6 +24,7 @@
             style="height: 50px;"
           >
             <img
+              data-test-id="img-main-logo"
               class="logo w-auto border-0"
               :src="logo"
             >
@@ -41,11 +43,13 @@
 
             <b-button
               v-else
+              data-test-id="button-pin-icon"
               variant="outline-light border-0"
               class="d-flex align-items-center justify-content-center p-2"
               @click="togglePin()"
             >
               <font-awesome-icon
+                data-test-id="pin-icon"
                 :icon="['fas', 'thumbtack']"
                 :class="`h6 mb-0 ${isPinned ? 'text-primary' : 'text-secondary'}`"
               />
@@ -102,6 +106,7 @@
     >
       <b-button
         v-if="expandOnHover && !disabledRoutes.includes($route.name)"
+        data-test-id="button-sidebar-open"
         variant="outline-light"
         size="lg"
         class="d-flex align-items-center border-0"
