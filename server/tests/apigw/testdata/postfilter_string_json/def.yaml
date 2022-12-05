@@ -1,0 +1,38 @@
+apigateway:
+  - endpoint: /json/string
+    method: GET
+    enabled: true
+    filters:
+      - ref: response
+        kind: postfilter
+        enabled: true
+        params:
+          input:
+            expr: toJSON(test)
+            type: String
+          header:
+            Content-Type: [ application/json ]
+      - ref: workflow
+        kind: processer
+        enabled: true
+        params:
+          workflow: 'test_variable_json'
+
+workflows:
+  - id: 1
+    enabled: true
+    trace: false
+    handle: test_variable_json
+    meta:
+      name: Test variable
+    triggers:
+      - enabled: true
+        stepID: 1
+    steps:
+      - stepID: 1
+        kind: expressions
+        arguments:
+          - target: test
+            type: Any
+            expr: |
+              {"foo":"bar","baz":{"1":1, "2":2}}
