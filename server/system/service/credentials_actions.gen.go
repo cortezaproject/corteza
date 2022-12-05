@@ -11,12 +11,13 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"github.com/cortezaproject/corteza/server/system/types"
-	"strings"
-	"time"
 )
 
 type (
@@ -205,6 +206,46 @@ func CredentialsActionDelete(props ...*credentialsActionProps) *credentialsActio
 		resource:  "system:credentials",
 		action:    "delete",
 		log:       "deleted {{user}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// CredentialsActionCreate returns "system:credentials.create" action
+//
+// This function is auto-generated.
+//
+func CredentialsActionCreate(props ...*credentialsActionProps) *credentialsAction {
+	a := &credentialsAction{
+		timestamp: time.Now(),
+		resource:  "system:credentials",
+		action:    "create",
+		log:       "created {{user}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// CredentialsActionUpdate returns "system:credentials.update" action
+//
+// This function is auto-generated.
+//
+func CredentialsActionUpdate(props ...*credentialsActionProps) *credentialsAction {
+	a := &credentialsAction{
+		timestamp: time.Now(),
+		resource:  "system:credentials",
+		action:    "update",
+		log:       "updated {{user}}",
 		severity:  actionlog.Notice,
 	}
 

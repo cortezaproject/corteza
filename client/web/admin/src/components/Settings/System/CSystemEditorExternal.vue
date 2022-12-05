@@ -108,6 +108,7 @@ const idpStandard = [
   'github',
   'facebook',
   'linkedin',
+  'nylas',
 ]
 
 const idpSecurity = {
@@ -140,7 +141,7 @@ function prepareExternal (external) {
     let out = { ...base }
 
     for (let k in base) {
-      out[k] = extractKey(`providers.${provider}.${k}`, typeof out[k])
+      out[k] = extractKey(`providers.${provider}.${k}`, Array.isArray(out[k]) ? 'array' : typeof out[k])
     }
 
     return out
@@ -185,6 +186,7 @@ function prepareExternal (external) {
       secret: '',
       key: '',
       security: {},
+      usage: [],
     }),
     security: extractSec(`providers.${handle}`),
   }))
@@ -395,7 +397,7 @@ export default {
           `${prefix}.${p.handle}`,
           p,
           o.standard[i],
-          ['key', 'secret', 'enabled', 'security'],
+          ['key', 'secret', 'enabled', 'security', 'usage'],
         )
       })
 
