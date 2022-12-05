@@ -29,6 +29,7 @@
           <b-col
             v-for="role in roles"
             :key="role.ID"
+            data-test-id="button-hide-role"
             class="d-flex flex-column align-items-center justify-content-center pointer hide-role border-left p-3 overflow-hidden"
             @click="onHideRole(role)"
           >
@@ -48,6 +49,7 @@
           <b-col
             v-if="roles.length < 8"
             v-b-modal.add
+            data-test-id="button-add-role"
             class="d-flex flex-column align-items-center justify-content-center border-left p-3 overflow-hidden"
           >
             <label
@@ -124,13 +126,18 @@
           <b-row
             v-for="operation in permissions[type].ops"
             :key="operation"
+            :data-test-id="`permission-${operation}`"
             no-gutters
           >
             <b-col
               class="border-bottom text-left p-3"
               cols="4"
             >
-              <span :title="getTranslation(type, operation)">{{ getTranslation(type, operation) }}</span>
+              <span
+                :title="getTranslation(type, operation)"
+              >
+                {{ getTranslation(type, operation) }}
+              </span>
             </b-col>
             <b-col
               v-for="role in roles"
@@ -145,16 +152,19 @@
             >
               <font-awesome-icon
                 v-if="checkRule(role.ID, permissions[type].any, operation, 'unknown-context')"
+                data-test-id="permission-unknown"
                 :icon="['fas', 'question']"
                 class="text-secondary"
               />
               <font-awesome-icon
                 v-else-if="checkRule(role.ID, permissions[type].any, operation, 'allow')"
+                data-test-id="permission-allowed"
                 :icon="['fas', 'check']"
                 class="text-success"
               />
               <font-awesome-icon
                 v-else
+                data-test-id="permission-denied"
                 :icon="['fas', 'times']"
                 class="text-danger"
               />
@@ -194,6 +204,7 @@
       <b-form-group>
         <b-form-radio-group
           v-model="add.mode"
+          data-test-id="button-mode"
           :options="modeOptions"
           buttons
           button-variant="outline-primary"
@@ -213,6 +224,7 @@
         <vue-select
           key="roleID"
           v-model="add.roleID"
+          :data-test-id="`select-${add.mode}-roles`"
           :options="availableRoles"
           :multiple="add.mode === 'eval'"
           label="name"
@@ -232,6 +244,7 @@
         <vue-select
           key="userID"
           v-model="add.userID"
+          :data-test-id="`select-${add.mode}-users`"
           :disabled="!!add.roleID.length"
           :options="userOptions"
           :get-option-label="getUserLabel"
