@@ -138,8 +138,6 @@ export default {
             this.errors = new validator.Validated()
             this.errors.push(...details)
 
-            console.debug(this.errors)
-
             throw new Error(this.$t('notification:record.validationErrors'))
           }
 
@@ -302,7 +300,6 @@ export default {
       await this.dispatchUiEvent('onFormSubmitError')
       vRunner()
       if (!this.errors.valid()) {
-        console.debug(this.errors)
         throw new Error(this.$t('notification:record.validationErrors'))
       }
     },
@@ -322,7 +319,6 @@ export default {
 
       this.errors = this.validator.run(this.record)
       if (!this.errors.valid()) {
-        console.debug(this.errors)
         throw new Error(this.$t('notification:record.validationErrors'))
       }
     },

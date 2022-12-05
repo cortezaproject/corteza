@@ -2,7 +2,6 @@
 import { compose } from '@cortezaproject/corteza-js'
 import * as fieldTypes from './loader'
 
-console.error({ ...fieldTypes })
 const props = {
   namespace: new compose.Namespace(),
   module: new compose.Module(),
