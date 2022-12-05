@@ -58,7 +58,7 @@ export function getFieldFilter (name, kind, query = '', operator = '=') {
   }
 
   // Take care of special case where query is undefined and its not a Bool field
-  if (!query) {
+  if (!query && query !== 0) {
     if (operator === '=') {
       return `${name} IS NULL`
     } else if (operator === '!=') {
@@ -67,15 +67,6 @@ export function getFieldFilter (name, kind, query = '', operator = '=') {
 
     return undefined
   }
-
-  // To SQLish LIKE param
-  const strQuery = query
-    // replace * with %
-    .replace(/[*%]+/g, '%')
-    // Remove all trailing * and %
-    .replace(/[%]+$/, '')
-    // Remove all leading * and %
-    .replace(/^[%]+/, '')
 
   if (['Number'].includes(kind) && !isNaN(numQuery)) {
     return build(operator, name, numQuery)
@@ -101,6 +92,15 @@ export function getFieldFilter (name, kind, query = '', operator = '=') {
   if (['User', 'Record'].includes(kind) && !isNaN(numQuery)) {
     return build(operator, name, `'${query}'`)
   }
+
+  // To SQLish LIKE param
+  const strQuery = query
+    // replace * with %
+    .replace(/[*%]+/g, '%')
+    // Remove all trailing * and %
+    .replace(/[%]+$/, '')
+    // Remove all leading * and %
+    .replace(/^[%]+/, '')
 
   if (['String', 'Url', 'Select', 'Email'].includes(kind)) {
     if (operator === 'LIKE' || operator === 'NOT LIKE') {
@@ -132,7 +132,7 @@ export function queryToFilter (searchQuery = '', prefilter = '', fields = [], re
   searchQuery = (searchQuery || '').trim()
 
   // Create query for search string
-  if (searchQuery) {
+  if (searchQuery || searchQuery === 0) {
     searchQuery = fields
       .filter(f => !noneQueryableFieldNames.includes(f.name) && !noneQueryableFieldKinds.includes(f.kind))
       .map(f => getFieldFilter(f.name, f.kind, searchQuery, 'LIKE'))
