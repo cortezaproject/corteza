@@ -75,7 +75,7 @@ func (r *Registry) Preload() {
 
 	// postfilters
 	r.Add("redirection", filter.NewRedirection(r.opts))
-	r.Add("jsonResponse", filter.NewJsonResponse(r.opts, service.Registry()))
+	r.Add("response", filter.NewResponse(r.opts, service.Registry()))
 	r.Add("defaultJsonResponse", filter.NewDefaultJsonResponse(r.opts))
 }
 

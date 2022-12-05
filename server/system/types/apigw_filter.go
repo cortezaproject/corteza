@@ -3,8 +3,9 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"time"
+
+	"github.com/cortezaproject/corteza/server/pkg/sql"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 )
@@ -34,6 +35,9 @@ type (
 
 		Deleted  filter.State `json:"deleted"`
 		Disabled filter.State `json:"disabled"`
+
+		Kind string `json:"kind"`
+		Ref  string `json:"ref"`
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it
