@@ -27,7 +27,7 @@ func (h AuthHandlers) externalInit(w http.ResponseWriter, r *http.Request) {
 	beginUserAuth(w, r, external.NewDefaultExternalHandler())
 }
 
-func (h AuthHandlers) externalCallback(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandlers) externalCallback(w http.ResponseWriter, r *http.Request) {
 	r = copyProviderToContext(r)
 	h.Log.Info("external authentication callback")
 
@@ -42,7 +42,7 @@ func (h AuthHandlers) externalCallback(w http.ResponseWriter, r *http.Request) {
 // Handles authentication via external auth providers of
 // unknown an user + appending authentication on external providers
 // to a current user
-func (h AuthHandlers) handleSuccessfulExternalAuth(w http.ResponseWriter, r *http.Request, cred types.ExternalAuthUser) {
+func (h *AuthHandlers) handleSuccessfulExternalAuth(w http.ResponseWriter, r *http.Request, cred types.ExternalAuthUser) {
 	var (
 		user *types.User
 		err  error
