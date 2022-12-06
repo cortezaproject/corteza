@@ -51,7 +51,6 @@ func AddProvider(ctx context.Context, log *zap.Logger, s store.SettingValues, ea
 	}
 	if vv, err := eap.EncodeKV(); err != nil {
 		return fmt.Errorf("could not encode auth provider values: %w", err)
-		return err
 	} else if err = store.UpsertSettingValue(ctx, s, vv...); err != nil {
 		return fmt.Errorf("could not store auth provider values: %w", err)
 	}

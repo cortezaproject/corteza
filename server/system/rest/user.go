@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/api"
@@ -53,6 +54,21 @@ type (
 		Filter types.UserFilter `json:"filter"`
 		Set    []*userPayload   `json:"set"`
 	}
+
+	credentialPayload struct {
+		ID          uint64     `json:"credentialsID,string"`
+		OwnerID     uint64     `json:"ownerID,string"`
+		Label       string     `json:"label"`
+		Kind        string     `json:"kind"`
+		Credentials string     `json:"credentials,omitempty"`
+		LastUsedAt  *time.Time `json:"lastUsedAt,omitempty"`
+		ExpiresAt   *time.Time `json:"expiresAt,omitempty"`
+		CreatedAt   time.Time  `json:"createdAt,omitempty"`
+		UpdatedAt   *time.Time `json:"updatedAt,omitempty"`
+		DeletedAt   *time.Time `json:"deletedAt,omitempty"`
+	}
+
+	credentialSetPayload []credentialPayload
 
 	userCredentials interface {
 		List(ctx context.Context, userID uint64) (cc types.CredentialSet, err error)
@@ -302,7 +318,33 @@ func (ctrl *User) SessionsRemove(ctx context.Context, r *request.UserSessionsRem
 }
 
 func (ctrl *User) ListCredentials(ctx context.Context, r *request.UserListCredentials) (rsp interface{}, err error) {
-	return ctrl.cred.List(ctx, r.UserID)
+	cc, err := ctrl.cred.List(ctx, r.UserID)
+	if err != nil {
+		return
+	}
+
+	// @todo some credentials need to be accessible from the front-end; consider
+	// something less error prone, for now this is ok
+	out := make(credentialSetPayload, len(cc))
+	for i, c := range cc {
+		out[i] = credentialPayload{
+			ID:          c.ID,
+			OwnerID:     c.OwnerID,
+			Label:       c.Label,
+			Kind:        c.Kind,
+			Credentials: c.Credentials,
+			LastUsedAt:  c.LastUsedAt,
+			ExpiresAt:   c.ExpiresAt,
+			CreatedAt:   c.CreatedAt,
+			UpdatedAt:   c.UpdatedAt,
+			DeletedAt:   c.DeletedAt,
+		}
+		if !strings.HasPrefix(out[i].Kind, "access-") {
+			out[i].Credentials = ""
+		}
+	}
+
+	return out, nil
 }
 
 func (ctrl *User) DeleteCredentials(ctx context.Context, r *request.UserDeleteCredentials) (rsp interface{}, err error) {

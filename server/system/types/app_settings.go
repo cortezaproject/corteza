@@ -7,6 +7,9 @@ import (
 
 const (
 	oidcProviderPrefix = "openid-connect." // must match const in "github.com/cortezaproject/corteza/server/auth/external" external.go
+
+	ExternalProviderUsageIdentity = "identity"
+	ExternalProviderUsageAPI      = "api"
 )
 
 type (
@@ -74,7 +77,7 @@ type (
 
 			External struct {
 				// Is external authentication
-				Enabled bool
+				Enabled bool `json:"enabled"`
 
 				// Saml
 				Saml struct {
@@ -109,11 +112,11 @@ type (
 					} `kv:"idp"`
 
 					Security ExternalAuthProviderSecurity `json:"-" kv:"security,final"`
-				}
+				} `json:"-"`
 
 				// all external providers we know
-				Providers ExternalAuthProviderSet
-			} `json:"-"`
+				Providers ExternalAuthProviderSet `json:"providers"`
+			} `json:"external"`
 
 			MultiFactor struct {
 				EmailOTP struct {
@@ -331,6 +334,9 @@ type (
 		IssuerUrl   string `json:"-" kv:"issuer"`
 		Weight      int    `json:"-"`
 
+		// potentially just use home-brew scopes?
+		Usage []string `json:"usage" kv:"usage"`
+
 		Security ExternalAuthProviderSecurity `json:"-" kv:"security,final"`
 	}
 
@@ -428,7 +434,7 @@ func (set *ExternalAuthProviderSet) DecodeKV(kv SettingsKV, prefix string) (err 
 	}
 
 	// create standard provider set
-	permanent := map[string]bool{"github": true, "facebook": true, "google": true, "linkedin": true}
+	permanent := map[string]bool{"github": true, "facebook": true, "google": true, "linkedin": true, "nylas": true}
 	// and make a working copy
 	providers := make(map[string]bool)
 	for k, v := range permanent {
@@ -476,6 +482,8 @@ func (set *ExternalAuthProviderSet) DecodeKV(kv SettingsKV, prefix string) (err 
 			switch p.Handle {
 			case "github":
 				p.Label = "GitHub"
+			case "nylas":
+				p.Label = "Nylas"
 			case "linkedin":
 				p.Label = "LinkedIn"
 			case "corteza-iam", "corteza", "corteza-one":

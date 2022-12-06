@@ -3,6 +3,7 @@ package external
 import (
 	"strings"
 
+	"github.com/cortezaproject/corteza/server/auth/external/nylas"
 	"github.com/cortezaproject/corteza/server/auth/settings"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/providers/facebook"
@@ -75,6 +76,8 @@ func SetupGothProviders(log *zap.Logger, redirectUrl string, ep ...settings.Prov
 				provider = google.New(pc.Key, pc.Secret, redirect, "email")
 			case "linkedin":
 				provider = linkedin.New(pc.Key, pc.Secret, redirect, "email")
+			case "nylas":
+				provider = nylas.New(pc.Key, pc.Secret, redirect, "email")
 			}
 		}
 

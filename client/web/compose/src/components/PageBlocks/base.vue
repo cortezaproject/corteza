@@ -58,8 +58,14 @@ export default {
   },
 
   computed: {
-    options () {
-      return this.block.options
+    options: {
+      get () {
+        return this.block.options
+      },
+
+      set (options) {
+        this.block.options = options
+      },
     },
   },
 }

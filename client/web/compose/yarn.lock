@@ -1095,6 +1095,44 @@
     consola "^2.15.0"
     node-fetch "^2.6.1"
 
+"@nylas/components-agenda@^1.1.7-canary.6":
+  version "1.1.7-canary.6"
+  resolved "https://registry.yarnpkg.com/@nylas/components-agenda/-/components-agenda-1.1.7-canary.6.tgz#5e4b83b466b2de7e8aa72b315473d9adf1f63e88"
+  integrity sha512-L8bapefbzDsGpjkJGFYF9tgGdJlWPgpJlJsdqtU1Gssuy42fTB3/h0APIaPNV57DAGnd4OJpaWt0mraVky+LNA==
+  dependencies:
+    dompurify "^2.3.3"
+
+"@nylas/components-composer@^1.1.6-canary.20":
+  version "1.1.6-canary.20"
+  resolved "https://registry.yarnpkg.com/@nylas/components-composer/-/components-composer-1.1.6-canary.20.tgz#6c33ee5faba822bc7957dbcab982b659e837a294"
+  integrity sha512-Tgd79o3qvnFvtk6omgePrwVIePPvAmrZ3k+mWq5vPzY8n21wo5tbXxoalJbEqIeKbrGz918PDwqNkoitwbqa9Q==
+
+"@nylas/components-contact-list@^1.1.4-canary.6":
+  version "1.1.4-canary.6"
+  resolved "https://registry.yarnpkg.com/@nylas/components-contact-list/-/components-contact-list-1.1.4-canary.6.tgz#3421ad88912131f71c4fe97194153d6a2393e650"
+  integrity sha512-czCSEWk1CJo4yDHiGCM8xjkKwA6u1+obR4yDkiIhDJSoFX6TVib+oFHXrNfVRnucV20GkZD4a7H6h6BhKf7T7Q==
+
+"@nylas/components-conversation@^1.1.6-canary.6":
+  version "1.1.6-canary.6"
+  resolved "https://registry.yarnpkg.com/@nylas/components-conversation/-/components-conversation-1.1.6-canary.6.tgz#fe15b960f35a207b98efa70f451ec4aec2a65d91"
+  integrity sha512-LpXvVJPjh+/YPFQCyKToZdJU3ylGrbbMqkQcNhRNQKN+LoYHGyjrmEYVSL/hp3Lcta5SFXlquQtK2wZlIUuz4Q==
+  dependencies:
+    dompurify "^2.3.3"
+
+"@nylas/components-email@^1.1.7-canary.32":
+  version "1.1.7-canary.32"
+  resolved "https://registry.yarnpkg.com/@nylas/components-email/-/components-email-1.1.7-canary.32.tgz#feb9b801a399c59408af06b44f90a7cc30d2c47c"
+  integrity sha512-LaFWCYbMjPXQTL+n/T7fWtoogy4HmL38/0agl0nspHxIS5Eegw5L5QxRSrktWBZD+bh0tilP41/fia6zf+VF2g==
+  dependencies:
+    dompurify "^2.3.3"
+
+"@nylas/components-mailbox@^1.1.6-canary.27":
+  version "1.1.6-canary.27"
+  resolved "https://registry.yarnpkg.com/@nylas/components-mailbox/-/components-mailbox-1.1.6-canary.27.tgz#44bc96b7d50adfcc82c8be21bd8303b421e1b68b"
+  integrity sha512-dfH05mBnxLf74tJKXB4/lPq58v8ecdjyQdEXNElM7fV9xT+Ua+lD4Mi/owshOLgo/r4wvFF7K/jStPr/m27NQg==
+  dependencies:
+    dompurify "^2.3.3"
+
 "@panter/vue-i18next@^0.15.0":
   version "0.15.2"
   resolved "https://registry.yarnpkg.com/@panter/vue-i18next/-/vue-i18next-0.15.2.tgz#814f6774237e444eb9b69156e9c507d41b7fbd32"
@@ -4255,6 +4293,11 @@ domhandler@^2.3.0:
   integrity sha512-JiK04h0Ht5u/80fdLMCEmV4zkNh2BcoMFBmZ/91WtYZ8qVXSKjiw7fXMgFPnHcSZgOo3XdinHvmnDUeMf5R4wA==
   dependencies:
     domelementtype "1"
+
+dompurify@^2.3.3:
+  version "2.4.1"
+  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-2.4.1.tgz#f9cb1a275fde9af6f2d0a2644ef648dd6847b631"
+  integrity sha512-ewwFzHzrrneRjxzmK6oVz/rZn9VWspGFRDb4/rRtIsM1n36t9AKma/ye8syCpcw+XJ25kOK/hOG7t1j2I2yBqA==
 
 domutils@^1.5.1, domutils@^1.7.0:
   version "1.7.0"
