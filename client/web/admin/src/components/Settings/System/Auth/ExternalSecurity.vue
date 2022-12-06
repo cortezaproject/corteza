@@ -17,7 +17,7 @@
     </b-form-group>
 
     <b-form-group
-      :label="$t('forbidden-roles.label')"
+      :label="$t('prohibited-roles.label')"
       label-cols="3"
       class="mb-0"
     >
@@ -26,7 +26,7 @@
         class="mb-3"
       >
         <template #description>
-          {{ $t('forbidden-roles.description') }}
+          {{ $t('prohibited-roles.description') }}
         </template>
       </c-role-picker>
     </b-form-group>

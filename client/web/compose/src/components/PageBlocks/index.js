@@ -32,6 +32,8 @@ import ReportBase from './Report/Base'
 import ReportConfigurator from './Report/Configurator'
 import ProgressBase from './ProgressBase'
 import ProgressConfigurator from './ProgressConfigurator'
+import NylasBase from './Nylas/NylasBase'
+import NylasConfigurator from './Nylas/NylasConfigurator'
 
 /**
  * List of all known page block components
@@ -69,6 +71,8 @@ const Registry = {
   CommentConfigurator,
   ProgressBase,
   ProgressConfigurator,
+  NylasBase,
+  NylasConfigurator,
 }
 
 const defaultMode = 'Base'

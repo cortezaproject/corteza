@@ -139,6 +139,11 @@ export default {
           block: new compose.PageBlockProgress(),
           image: images.Progress,
         },
+        {
+          label: this.$t('nylas.label'),
+          block: new compose.PageBlockNylas(),
+          image: images.Nylas,
+        },
       ],
     }
   },
