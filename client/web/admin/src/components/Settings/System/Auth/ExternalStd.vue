@@ -9,7 +9,10 @@
         {{ $t('enabled') }}
       </b-form-checkbox>
     </b-form-group>
-    <b-form-group label-cols="3">
+    <b-form-group
+      v-if="value.handle === 'nylas'"
+      label-cols="3"
+    >
       <b-form-checkbox
         v-model="providerUsage"
         :value="true"
