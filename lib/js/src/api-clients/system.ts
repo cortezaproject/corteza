@@ -1980,6 +1980,9 @@ export default class System {
     if (!applicationID) {
       throw Error('field applicationID is empty')
     }
+    if (!name) {
+      throw Error('field name is empty')
+    }
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'put',
