@@ -116,9 +116,6 @@ editor:
       prohibited-roles:
         description: Roles from this list will be removed from security context when authenticates with this provider
         label: Prohibited roles
-      forbidden-roles:
-        description: Roles from this list will be removed from security context when authenticates with this provider
-        label: Forbidden roles
       forced-roles:
         description: Roles from this list will be always added to security context when authenticates with this provider
         label: Forced roles
