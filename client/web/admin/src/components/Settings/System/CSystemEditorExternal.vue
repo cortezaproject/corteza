@@ -4,78 +4,77 @@
     header-bg-variant="white"
     footer-bg-variant="white"
   >
-    <b-form>
-      <b-form-group>
-        <b-form-checkbox
-          v-model="external.enabled"
-          :value="true"
-          :unchecked-value="false"
-        >
-          {{ $t('enabled') }}
-        </b-form-checkbox>
-      </b-form-group>
-
-      <b-button
-        class="float-right mb-3"
-        @click="newOIDC()"
+    <b-form-group>
+      <b-form-checkbox
+        v-model="external.enabled"
+        :value="true"
+        :unchecked-value="false"
       >
-        {{ $t('oidc.add') }}
-      </b-button>
+        {{ $t('enabled') }}
+      </b-form-checkbox>
+    </b-form-group>
 
-      <b-table
-        :items="providers.items"
-        :fields="providers.fields"
-        :tbody-tr-class="(i) => i.rowBackground"
-      >
-        <template #cell(enabled)="{ item }">
-          <b-checkbox
-            :checked="item.enabled"
-            @change="item.enable($event)"
-          />
-        </template>
+    <b-button
+      class="my-3"
+      variant="primary"
+      @click="newOIDC()"
+    >
+      {{ $t('oidc.add') }}
+    </b-button>
 
-        <template #cell(provider)="{ item }">
-          {{ item.provider }}
-          <b-badge
-            v-if="item.tag"
-            class="ml-1"
-          >
-            {{ item.tag }}
-          </b-badge>
-        </template>
-
-        <template #cell(editor)="{ item }">
-          <confirmation-toggle
-            v-if="item.delete"
-            cta-class="link"
-            @confirmed="item.delete()"
-          >
-            <font-awesome-icon :icon="['far', 'trash-alt']" />
-          </confirmation-toggle>
-          <b-button
-            variant="link"
-            @click="openEditor(item.editor)"
-          >
-            <font-awesome-icon
-              :icon="['fas', 'wrench']"
-            />
-          </b-button>
-        </template>
-      </b-table>
-
-      <b-modal
-        v-model="modal.open"
-        :title="modal.title"
-        size="lg"
-        title-class="text-capitalize"
-        @ok="modal.updater(modal.data)"
-      >
-        <component
-          :is="modal.component"
-          v-model="modal.data"
+    <b-table
+      :items="providers.items"
+      :fields="providers.fields"
+      :tbody-tr-class="(i) => i.rowBackground"
+    >
+      <template #cell(enabled)="{ item }">
+        <b-checkbox
+          :checked="item.enabled"
+          @change="item.enable($event)"
         />
-      </b-modal>
-    </b-form>
+      </template>
+
+      <template #cell(provider)="{ item }">
+        {{ item.provider }}
+        <b-badge
+          v-if="item.tag"
+          class="ml-1"
+        >
+          {{ item.tag }}
+        </b-badge>
+      </template>
+
+      <template #cell(editor)="{ item }">
+        <confirmation-toggle
+          v-if="item.delete"
+          cta-class="link"
+          @confirmed="item.delete()"
+        >
+          <font-awesome-icon :icon="['far', 'trash-alt']" />
+        </confirmation-toggle>
+        <b-button
+          variant="link"
+          @click="openEditor(item.editor)"
+        >
+          <font-awesome-icon
+            :icon="['fas', 'wrench']"
+          />
+        </b-button>
+      </template>
+    </b-table>
+
+    <b-modal
+      v-model="modal.open"
+      :title="modal.title"
+      size="lg"
+      title-class="text-capitalize"
+      @ok="modal.updater(modal.data)"
+    >
+      <component
+        :is="modal.component"
+        v-model="modal.data"
+      />
+    </b-modal>
 
     <template #header>
       <h3 class="m-0">

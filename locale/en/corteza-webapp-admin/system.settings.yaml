@@ -56,9 +56,9 @@ editor:
         provider: Provider
         info: Issuer, client ID
 
-
     standard:
       enabled: Enabled
+      apiAccess: Api access
       clientKey: Client key
       clientSecret: Secret
 

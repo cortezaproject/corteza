@@ -531,3 +531,25 @@ progress:
     secondary: Secondary
     success: Success
     warning: Warning
+
+nylas:
+  label: Nylas Component
+
+  viewer:
+    connect: Connect with Nylas
+    noExternal: Nylas external provider is not configured
+    noComponentID: Nylas component ID is not configured
+
+  configurator:
+    label: Nylas
+    kind: Component kind
+    componentID: Component ID
+    kinds:
+      agenda: Agenda
+      composer: Composer
+      contactList: Contact List
+      conversation: Conversation
+      email: Email
+      mailbox: Mailbox
+
+
