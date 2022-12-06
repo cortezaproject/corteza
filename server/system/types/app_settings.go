@@ -77,7 +77,7 @@ type (
 
 			External struct {
 				// Is external authentication
-				Enabled bool
+				Enabled bool `json:"enabled"`
 
 				// Saml
 				Saml struct {
@@ -112,11 +112,11 @@ type (
 					} `kv:"idp"`
 
 					Security ExternalAuthProviderSecurity `json:"-" kv:"security,final"`
-				}
+				} `json:"-"`
 
 				// all external providers we know
-				Providers ExternalAuthProviderSet
-			} `json:"-"`
+				Providers ExternalAuthProviderSet `json:"providers"`
+			} `json:"external"`
 
 			MultiFactor struct {
 				EmailOTP struct {
