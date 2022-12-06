@@ -9,7 +9,6 @@ import (
 	"github.com/cortezaproject/corteza/server/auth/external"
 	"github.com/cortezaproject/corteza/server/auth/request"
 	"github.com/cortezaproject/corteza/server/auth/settings"
-	"github.com/cortezaproject/corteza/server/pkg/api"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/go-chi/chi/v5"
@@ -49,12 +48,16 @@ func (h *AuthHandlers) handleSuccessfulExternalAuth(w http.ResponseWriter, r *ht
 		ctx  = r.Context()
 	)
 
+	handleErr := func(err error) {
+		h.handleFailedExternalAuth(w, r, err)
+	}
+
 	h.Log.Info("login successful", zap.String("provider", cred.Provider))
 
 	// Get the provider config so we can correctly handle the provided values
 	p := h.getProviderConfig(cred.Provider, h.Settings.Providers)
 	if p == nil {
-		api.Send(w, r, fmt.Errorf("credentials for provider %s are not registered in the system", cred.Provider))
+		handleErr(fmt.Errorf("credentials for provider %s are not registered in the system", cred.Provider))
 		return
 	}
 
@@ -65,7 +68,7 @@ func (h *AuthHandlers) handleSuccessfulExternalAuth(w http.ResponseWriter, r *ht
 	if p.HasUsage(types.ExternalProviderUsageIdentity) {
 		// Try to login/sign-up external user
 		if user, err = h.AuthService.External(ctx, cred); err != nil {
-			api.Send(w, r, err)
+			handleErr(err)
 			return
 		}
 
@@ -98,7 +101,7 @@ func (h *AuthHandlers) handleSuccessfulExternalAuth(w http.ResponseWriter, r *ht
 	// Check if we're using it for an API integration; if so, note the access tokens
 	if p.HasUsage(types.ExternalProviderUsageAPI) {
 		if au.User == nil {
-			api.Send(w, r, fmt.Errorf("could not add credentials for user: not authenticated"))
+			handleErr(fmt.Errorf("could not add credentials for user: not authenticated"))
 			return
 		}
 		ctx = auth.SetIdentityToContext(ctx, au.User)
@@ -106,7 +109,7 @@ func (h *AuthHandlers) handleSuccessfulExternalAuth(w http.ResponseWriter, r *ht
 		// Look for existing
 		cc, err := h.CredentialsService.List(ctx, au.User.ID)
 		if err != nil {
-			api.Send(w, r, fmt.Errorf("couldn't fetch user credentials: %w", err))
+			handleErr(fmt.Errorf("couldn't fetch user credentials: %w", err))
 			return
 		}
 
@@ -125,7 +128,7 @@ func (h *AuthHandlers) handleSuccessfulExternalAuth(w http.ResponseWriter, r *ht
 			current.Credentials = cred.AccessToken
 			_, err = h.CredentialsService.Update(ctx, current)
 			if err != nil {
-				api.Send(w, r, fmt.Errorf("couldn't update user credentials: %w", err))
+				handleErr(fmt.Errorf("couldn't update user credentials: %w", err))
 				return
 			}
 		} else {
@@ -136,7 +139,7 @@ func (h *AuthHandlers) handleSuccessfulExternalAuth(w http.ResponseWriter, r *ht
 				Credentials: cred.AccessToken,
 			})
 			if err != nil {
-				api.Send(w, r, fmt.Errorf("couldn't create user credentials: %w", err))
+				handleErr(fmt.Errorf("couldn't create user credentials: %w", err))
 				return
 			}
 		}
