@@ -14,6 +14,7 @@ export { PageBlockMetric } from './metric'
 export { PageBlockComment } from './comment'
 export { PageBlockReport } from './report'
 export { PageBlockProgress } from './progress'
+export { PageBlockNylas } from './nylas'
 
 export function PageBlockMaker<T extends PageBlock> (i: { kind: string }): T {
   const PageBlockTemp = Registry.get(i.kind)
