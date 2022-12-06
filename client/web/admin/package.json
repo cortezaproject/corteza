@@ -2,7 +2,7 @@
   "name": "corteza-webapp-admin",
   "description": "Corteza Admin WebApp",
   "private": true,
-  "version": "2022.9.3",
+  "version": "2022.9.4-rc.1",
   "license": "Apache-2.0",
   "author": "Denis Arh <denis.arh@gmail.com>",
   "scripts": {
@@ -18,8 +18,8 @@
     "pre-commit": "yarn lint"
   },
   "dependencies": {
-    "@cortezaproject/corteza-js": "^2022.9.3",
-    "@cortezaproject/corteza-vue": "^2022.9.3",
+    "@cortezaproject/corteza-js": "^2022.9.4-rc.1",
+    "@cortezaproject/corteza-vue": "^2022.9.4-rc.1",
     "@fortawesome/fontawesome-svg-core": "1.2.27",
     "@fortawesome/free-regular-svg-icons": "^5.14.0",
     "@fortawesome/free-solid-svg-icons": "5.12.1",
