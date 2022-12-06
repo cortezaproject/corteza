@@ -336,7 +336,7 @@ jobs:
           curl --silent --location "${{ env.RELEASE_BASE_URL }}/corteza-webapp-${{ env.BUILD_VERSION }}.tar.gz" | \
             tar -xzmok -C dist/webapp
       - name: "Pack"
-        run: | 
+        run: |
           tar -C dist -czf corteza-${{ env.BUILD_VERSION }}-linux-amd64.tar.gz $(dir dist)
       - name: "Upload"
         run: |
@@ -415,12 +415,12 @@ jobs:
         id: version
         run: |
           TAG=${GITHUB_REF#refs/tags/}
-        
+
           echo "DOCKER_IMAGE_TAG=${TAG}" >> $GITHUB_ENV
 
           if [[ "$(echo ${TAG} | grep '-')" == "" ]]; then
             # when releasing patched version (YYYY.MM.PATCH) we
-            # tag alias (YYYY.MM) as well 
+            # tag alias (YYYY.MM) as well
             echo "DOCKER_IMAGE_ALIAS=$(echo ${TAG} | cut -d '.' -f -2)" >> $GITHUB_ENV
           fi
 
@@ -450,7 +450,7 @@ jobs:
           docker tag \
             ${{ matrix.image }}:${{ env.DOCKER_IMAGE_TAG }} \
             ${{ matrix.image }}:${{ env.DOCKER_IMAGE_ALIAS }}
-        
+
           docker push \
             ${{ matrix.image }}:${{ env.DOCKER_IMAGE_ALIAS }}
 
@@ -461,7 +461,7 @@ jobs:
     steps:
       - name: "Send message via Matrix on successful release"
         if: ${{ !env.ACT }}
-        id: matrix-chat-release
+        id: matrix-chat-release-successful
         uses: fadenb/matrix-chat-message@v0.0.6
         with:
           homeserver: ${{ secrets.MATRIX_HOME_SERVER }}
@@ -472,7 +472,7 @@ jobs:
 
       - name: "Send message via Matrix on failed release"
         if: ${{ !env.ACT && failure() }}
-        id: matrix-chat-release
+        id: matrix-chat-release-failed
         uses: fadenb/matrix-chat-message@v0.0.6
         with:
           homeserver: ${{ secrets.MATRIX_HOME_SERVER }}
