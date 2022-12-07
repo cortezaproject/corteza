@@ -1,7 +1,6 @@
 // eslint-disable-next-line
 import { default as component } from './Bool.vue'
 import { compose } from '@cortezaproject/corteza-js'
-import * as fieldTypes from './loader'
 
 // const namespace = ({
 //   canCreateChart: true,
