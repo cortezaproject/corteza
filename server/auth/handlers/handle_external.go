@@ -112,7 +112,8 @@ func (h *AuthHandlers) handleSuccessfulExternalGenericAuth(w http.ResponseWriter
 	au := request.GetAuthUser(h.SessionManager.Get(r))
 
 	// Check if we're using it as an identity provider; if so, use it to authenticate
-	if p.HasUsage(types.ExternalProviderUsageIdentity) {
+	// If no providers are specified, assume identity (legacy support)
+	if len(p.Usage) == 0 || p.HasUsage(types.ExternalProviderUsageIdentity) {
 		// Try to login/sign-up external user
 		if user, err = h.AuthService.External(ctx, cred); err != nil {
 			handleErr(err)
