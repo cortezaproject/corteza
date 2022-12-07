@@ -48,6 +48,7 @@ func Test_settingsExtAuthProvidersDecode(t *testing.T) {
 			"providers.openid-connect.bar.key":     sqlTypes.JSONText(`"K3Y"`),
 			"providers.google.enabled":             sqlTypes.JSONText(`true`),
 			"providers.google.key":                 sqlTypes.JSONText(`"g00gl3"`),
+			"providers.nylas.key":                  sqlTypes.JSONText(`"nylas"`),
 
 			// Values with null should not be added!
 			"providers.openid-connect.null.handle": sqlTypes.JSONText(`null`),
@@ -84,4 +85,7 @@ func Test_settingsExtAuthProvidersDecode(t *testing.T) {
 		aux.Providers.FindByHandle("facebook"),
 		&ExternalAuthProvider{Handle: "facebook", Label: "Facebook"})
 
+	require.Equal(t,
+		aux.Providers.FindByHandle("nylas"),
+		&ExternalAuthProvider{Enabled: false, Key: "nylas", Handle: "nylas", Label: "Nylas"})
 }
