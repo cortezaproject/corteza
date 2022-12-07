@@ -9,6 +9,7 @@ import (
 	"github.com/cortezaproject/corteza/server/auth/external"
 	"github.com/cortezaproject/corteza/server/auth/request"
 	"github.com/cortezaproject/corteza/server/auth/settings"
+	"github.com/cortezaproject/corteza/server/pkg/api"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/go-chi/chi/v5"
@@ -42,6 +43,54 @@ func (h *AuthHandlers) externalCallback(w http.ResponseWriter, r *http.Request) 
 // unknown an user + appending authentication on external providers
 // to a current user
 func (h *AuthHandlers) handleSuccessfulExternalAuth(w http.ResponseWriter, r *http.Request, cred types.ExternalAuthUser) {
+	h.Log.Info("login successful", zap.String("provider", cred.Provider))
+
+	switch cred.Provider {
+	case "saml":
+		h.handleSuccessfulExternalSAMLAuth(w, r, cred)
+
+	default:
+		h.handleSuccessfulExternalGenericAuth(w, r, cred)
+	}
+}
+
+// handleSuccessfulExternalSAMLAuth is a special handler just for the SAML authentication
+func (h *AuthHandlers) handleSuccessfulExternalSAMLAuth(w http.ResponseWriter, r *http.Request, cred types.ExternalAuthUser) {
+	var (
+		user *types.User
+		err  error
+		ctx  = r.Context()
+	)
+
+	// Try to login/sign-up external user
+	if user, err = h.AuthService.External(ctx, cred); err != nil {
+		api.Send(w, r, err)
+		return
+	}
+
+	h.handle(func(req *request.AuthReq) error {
+		req.AuthUser = request.NewAuthUser(
+			h.Settings,
+			user,
+
+			// external logins are never permanent!
+			false,
+		)
+
+		// auto-complete EmailOTP and TOTP when authenticating via external identity provider
+		req.AuthUser.CompleteEmailOTP()
+		req.AuthUser.CompleteTOTP()
+
+		req.AuthUser.Save(req.Session)
+
+		handleSuccessfulAuth(req)
+		return nil
+	})(w, r)
+}
+
+// handleSuccessfulExternalGenericAuth is a generic external auth handler
+// which can be used with generic auth providers to also support external API integrations
+func (h *AuthHandlers) handleSuccessfulExternalGenericAuth(w http.ResponseWriter, r *http.Request, cred types.ExternalAuthUser) {
 	var (
 		user *types.User
 		err  error
@@ -51,8 +100,6 @@ func (h *AuthHandlers) handleSuccessfulExternalAuth(w http.ResponseWriter, r *ht
 	handleErr := func(err error) {
 		h.handleFailedExternalAuth(w, r, err)
 	}
-
-	h.Log.Info("login successful", zap.String("provider", cred.Provider))
 
 	// Get the provider config so we can correctly handle the provided values
 	p := h.getProviderConfig(cred.Provider, h.Settings.Providers)
