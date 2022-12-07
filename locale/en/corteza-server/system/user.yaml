@@ -1,7 +1,7 @@
 errors:
   emailNotUnique: email not unique
   handleNotUnique: handle not unique
-  invalidEmail: Invalid email! {{resource}}
+  invalidEmail: invalid email
   invalidHandle: invalid handle
   invalidID: invalid ID
   notAllowedToCreate: not allowed to create users
