@@ -24,7 +24,7 @@ env:
 jobs:
   server-test:
     name: "Server tests"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       GOFLAGS: -mod=readonly
     steps:
@@ -48,7 +48,7 @@ jobs:
   # we'll do this in parallel with tests to gain a few seconds
   server-web-console-build:
     name: "Server Web Console Build"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -77,7 +77,7 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - { runsOn: "ubuntu-latest", os: "linux" }
+          - { runsOn: "ubuntu-20.04", os: "linux" }
           - { runsOn: "macos-latest",  os: "darwin" }
     runs-on: ${{ matrix.runsOn }}
     needs: [ server-web-console-build, server-test ]
@@ -113,7 +113,7 @@ jobs:
 
   lib-test:
     name: "Library test (${{ matrix.lib }})"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         lib: [ "js", "vue" ]
@@ -137,7 +137,7 @@ jobs:
 
   lib-build-and-publish:
     name: "Publish libraries (${{ matrix.lib }})"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: [ lib-test ]
     strategy:
       matrix:
@@ -180,7 +180,7 @@ jobs:
 
   client-web-test:
     name: "Web client test (${{ matrix.app }})"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: true
       matrix: { app: [ admin, compose, discovery, privacy, reporter, one, workflow ] }
@@ -209,7 +209,7 @@ jobs:
 
   client-web-release:
     name: "Web client (${{ matrix.app }})"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: true
       matrix: { app: [ admin, compose, discovery, privacy, reporter, one, workflow ] }
@@ -251,7 +251,7 @@ jobs:
 
   client-web-aio-release:
     name: "Web clients (all-in-one release)"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: [ client-web-release ]
     env:
       RELEASE_SFTP_KEY: ${{ secrets.RELEASE_SFTP_KEY }}
@@ -318,7 +318,7 @@ jobs:
 
   release:
     name: "Corteza (${{ matrix.os }})"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: [ server-release, client-web-aio-release ]
     strategy:
       fail-fast: true
@@ -358,7 +358,7 @@ jobs:
 
   extra-server-discovery-test:
     name: "Discovery Server test"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: "Placeholder"
         run: echo "@todo add tests"
@@ -369,7 +369,7 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - { runsOn: "ubuntu-latest", os: "linux" }
+          - { runsOn: "ubuntu-20.04", os: "linux" }
           - { runsOn: "macos-latest",  os: "darwin" }
     runs-on: ${{ matrix.runsOn }}
     needs: [ extra-server-discovery-test ]
@@ -400,7 +400,7 @@ jobs:
   docker-images:
     name: "Docker image ${{ matrix.image }}"
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs:
       - server-release
       - client-web-aio-release
@@ -461,9 +461,16 @@ jobs:
 
   notify:
     name: "Send matrix release notification"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: [ docker-images, release ]
     steps:
+      - uses: actions/checkout@v3
+      - name: "Parse version tag"
+        id: version
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          echo "DOCKER_IMAGE_TAG=${TAG}" >> $GITHUB_ENV
+
       - name: "Send message via Matrix on successful release"
         if: ${{ !env.ACT }}
         id: matrix-chat-release-successful
@@ -473,7 +480,7 @@ jobs:
           token: ${{ secrets.MATRIX_ACCESS_TOKEN }}
           channel: ${{ secrets.MATRIX_ROOM_ID }}
           message: |
-            Corteza **${{ env.DOCKER_IMAGE_TAG }}** has been successfully released 🎉🎉
+            # Corteza **${{ env.DOCKER_IMAGE_TAG }}** has been successfully released 🎉🎉
 
       - name: "Send message via Matrix on failed release"
         if: ${{ !env.ACT && failure() }}
@@ -484,4 +491,4 @@ jobs:
           token: ${{ secrets.MATRIX_ACCESS_TOKEN }}
           channel: ${{ secrets.MATRIX_ROOM_ID }}
           message: |
-            Corteza **${{ env.DOCKER_IMAGE_TAG }}** release has failed
+            # Corteza **${{ env.DOCKER_IMAGE_TAG }}** release has failed
