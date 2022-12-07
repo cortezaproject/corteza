@@ -148,9 +148,11 @@ func TestPagingCursorFromValueGetter(t *testing.T) {
 			primaries: []string{"k1"},
 			vals:      simpleGetter{"k1": {"a"}},
 			out: &PagingCursor{
-				keys:   []string{"k1"},
-				values: []any{"a"},
-				desc:   []bool{false},
+				keys:     []string{"k1"},
+				kk:       [][]string{{"k1"}},
+				values:   []any{"a"},
+				modifier: []string{""},
+				desc:     []bool{false},
 			},
 		},
 		{
@@ -158,9 +160,11 @@ func TestPagingCursorFromValueGetter(t *testing.T) {
 			primaries: []string{"k1", "k2"},
 			vals:      simpleGetter{"k1": {"a"}, "k2": {"b"}, "something": {10}},
 			out: &PagingCursor{
-				keys:   []string{"k1", "k2"},
-				values: []any{"a", "b"},
-				desc:   []bool{false, false},
+				keys:     []string{"k1", "k2"},
+				kk:       [][]string{{"k1"}, {"k2"}},
+				values:   []any{"a", "b"},
+				modifier: []string{"", ""},
+				desc:     []bool{false, false},
 			},
 		},
 
@@ -170,9 +174,11 @@ func TestPagingCursorFromValueGetter(t *testing.T) {
 			vals:      simpleGetter{"k1": {"a"}, "something": {42}},
 			ss:        SortExprSet{{Column: "something"}},
 			out: &PagingCursor{
-				keys:   []string{"something", "k1"},
-				values: []any{42, "a"},
-				desc:   []bool{false, false},
+				keys:     []string{"something", "k1"},
+				kk:       [][]string{{"something"}, {"k1"}},
+				values:   []any{42, "a"},
+				modifier: []string{"", ""},
+				desc:     []bool{false, false},
 			},
 		},
 		{
@@ -181,9 +187,11 @@ func TestPagingCursorFromValueGetter(t *testing.T) {
 			vals:      simpleGetter{"k1": {"a"}, "k2": {"b"}, "something": {10}},
 			ss:        SortExprSet{{Column: "something"}, {Column: "k2"}},
 			out: &PagingCursor{
-				keys:   []string{"something", "k2", "k1"},
-				values: []any{10, "b", "a"},
-				desc:   []bool{false, false, false},
+				keys:     []string{"something", "k2", "k1"},
+				kk:       [][]string{{"something"}, {"k2"}, {"k1"}},
+				values:   []any{10, "b", "a"},
+				modifier: []string{"", "", ""},
+				desc:     []bool{false, false, false},
 			},
 		},
 
@@ -193,10 +201,12 @@ func TestPagingCursorFromValueGetter(t *testing.T) {
 			vals:      simpleGetter{"k1": {"a"}, "k2": {"b"}, "something": {10}, "another_thing": {"qwerty"}},
 			ss:        SortExprSet{{Column: "something", Descending: true}, {Column: "k2", Descending: false}, {Column: "another_thing", Descending: true}},
 			out: &PagingCursor{
-				keys:   []string{"something", "k2", "another_thing", "k1"},
-				values: []any{10, "b", "qwerty", "a"},
-				desc:   []bool{true, false, true, false},
-				LThen:  true,
+				keys:     []string{"something", "k2", "another_thing", "k1"},
+				kk:       [][]string{{"something"}, {"k2"}, {"another_thing"}, {"k1"}},
+				values:   []any{10, "b", "qwerty", "a"},
+				modifier: []string{"", "", "", ""},
+				desc:     []bool{true, false, true, false},
+				LThen:    true,
 			},
 		},
 	}
