@@ -173,9 +173,7 @@ func (a internalFilter) mergeFilters(b internalFilter) (c internalFilter) {
 
 	// cursor
 	// always use the latest paging cursor
-	if b.cursor != nil {
-		c.cursor = b.cursor
-	}
+	c.cursor = b.cursor
 
 	return
 }
