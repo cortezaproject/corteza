@@ -35,6 +35,7 @@ func Test_settingsExtAuthProvidersDecode(t *testing.T) {
 		aux = Dst{
 			Providers: ExternalAuthProviderSet{
 				{Handle: "github"},
+				{Handle: "nylas"},
 				{Handle: "facebook"},
 				{Enabled: true, Key: "g00gl3", Handle: "google"},
 				{Handle: "linkedin"},
@@ -58,7 +59,7 @@ func Test_settingsExtAuthProvidersDecode(t *testing.T) {
 	)
 
 	require.NoError(t, DecodeKV(kv, &aux))
-	require.Len(t, aux.Providers, 5)
+	require.Len(t, aux.Providers, 6)
 
 	require.Nil(t,
 		aux.Providers.FindByHandle("foo"))
