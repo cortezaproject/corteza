@@ -115,7 +115,7 @@ func errorHandler(err error) error {
 		if implErr, ok := err.(mssql.Error); ok {
 			// https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/database-engine-events-and-errors?view=sql-server-ver16
 			switch implErr.Number {
-			case 987: // Can't write, because of unique constraint, to table '%s'
+			case 987, 2627: // Can't write, because of unique constraint, to table '%s'
 				return store.ErrNotUnique.Wrap(implErr)
 			}
 		}
