@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/mssql"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/mysql"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/postgres"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/sqlite"
@@ -32,6 +33,18 @@ func Test_RDBMS_SQLITE(t *testing.T) {
 
 func Test_RDBMS_MYSQL(t *testing.T) {
 	testAllGenerated(t, setup(t, mysql.Connect))
+}
+
+func Test_RDBMS_SQLSERVER_2022(t *testing.T) {
+	testAllGenerated(t, setup(t, mssql.Connect))
+}
+
+func Test_RDBMS_SQLSERVER_2019(t *testing.T) {
+	testAllGenerated(t, setup(t, mssql.Connect))
+}
+
+func Test_RDBMS_SQLSERVER_2017(t *testing.T) {
+	testAllGenerated(t, setup(t, mssql.Connect))
 }
 
 func Test_RDBMS_PGSQL(t *testing.T) {

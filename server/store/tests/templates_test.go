@@ -38,6 +38,7 @@ func testTemplates(t *testing.T, s store.Templates) {
 	)
 
 	t.Run("create", func(t *testing.T) {
+		req.NoError(s.TruncateTemplates(ctx))
 		template := makeNew("TemplateCRUD")
 		req.NoError(s.CreateTemplate(ctx, template))
 	})

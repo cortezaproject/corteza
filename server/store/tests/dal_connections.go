@@ -37,6 +37,7 @@ func testDalConnections(t *testing.T, s store.DalConnections) {
 	)
 
 	t.Run("create", func(t *testing.T) {
+		req.NoError(s.TruncateDalConnections(ctx))
 		dalConnection := makeNew("DalConnectionCRUD")
 		req.NoError(s.CreateDalConnection(ctx, dalConnection))
 	})

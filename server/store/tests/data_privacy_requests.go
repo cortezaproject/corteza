@@ -20,9 +20,10 @@ func testDataPrivacyRequests(t *testing.T, s store.DataPrivacyRequests) {
 		makeNew = func(handle string) *types.DataPrivacyRequest {
 			// minimum data set for new dataPrivacyRequest
 			return &types.DataPrivacyRequest{
-				ID:        id.Next(),
-				CreatedAt: time.Now(),
-				Kind:      types.RequestKindCorrect,
+				ID:          id.Next(),
+				CreatedAt:   time.Now(),
+				RequestedAt: time.Now(),
+				Kind:        types.RequestKindCorrect,
 			}
 		}
 

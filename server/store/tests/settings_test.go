@@ -77,7 +77,7 @@ func testSettingValues(t *testing.T, s store.SettingValues) {
 
 		t.Run("new", func(t *testing.T) {
 			req := require.New(t)
-			req.NoError(s.UpsertSettingValue(ctx, &types.SettingValue{Name: "foo", Value: []byte(`"foo"`)}))
+			req.NoError(s.UpsertSettingValue(ctx, &types.SettingValue{Name: "foo", Value: []byte(`"foo"`), UpdatedAt: *now()}))
 			v, err := s.LookupSettingValueByNameOwnedBy(ctx, "foo", 0)
 			req.NoError(err)
 			req.NotNil(v)
@@ -85,8 +85,8 @@ func testSettingValues(t *testing.T, s store.SettingValues) {
 		})
 
 		t.Run("existing", func(t *testing.T) {
-			req.NoError(s.CreateSettingValue(ctx, &types.SettingValue{Name: "baz", Value: []byte(`"created"`)}))
-			req.NoError(s.UpsertSettingValue(ctx, &types.SettingValue{Name: "baz", Value: []byte(`"updated"`)}))
+			req.NoError(s.CreateSettingValue(ctx, &types.SettingValue{Name: "baz", Value: []byte(`"created"`), UpdatedAt: *now()}))
+			req.NoError(s.UpsertSettingValue(ctx, &types.SettingValue{Name: "baz", Value: []byte(`"updated"`), UpdatedAt: *now()}))
 			v, err := s.LookupSettingValueByNameOwnedBy(ctx, "baz", 0)
 			req.NoError(err)
 			req.NotNil(v)

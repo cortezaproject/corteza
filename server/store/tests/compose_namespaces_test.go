@@ -2,14 +2,15 @@ package tests
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/rand"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
 func testComposeNamespaces(t *testing.T, s store.ComposeNamespaces) {
@@ -37,6 +38,7 @@ func testComposeNamespaces(t *testing.T, s store.ComposeNamespaces) {
 	)
 
 	t.Run("create", func(t *testing.T) {
+		req.NoError(s.TruncateComposeNamespaces(ctx))
 		composeNamespace := makeNew("ComposeNamespaceCRUD", "compose-namespace-crud")
 		req.NoError(s.CreateComposeNamespace(ctx, composeNamespace))
 	})
