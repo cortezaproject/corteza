@@ -44,7 +44,7 @@
             #cell(adt)="row"
           >
             <b-button
-              v-if="row.item.changes.length > 0"
+              v-if="row.item.changes && row.item.changes.length > 0"
               variant="link"
               class="py-0 m-0"
               @click="row.toggleDetails"

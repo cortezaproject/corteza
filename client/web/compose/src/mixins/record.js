@@ -10,6 +10,7 @@ export default {
       inEditing: false,
       processing: false,
       processingDelete: false,
+      processingUndelete: false,
       processingSubmit: false,
       record: undefined,
       errors: new validator.Validated(),
@@ -238,9 +239,27 @@ export default {
         })
         .then(() => this.dispatchUiEvent('afterDelete'))
         .then(() => this.updatePrompts())
+        .then(this.loadRecord)
         .catch(this.toastErrorHandler(this.$t('notification:record.deleteFailed')))
         .finally(() => {
           this.processingDelete = false
+          this.processing = false
+        })
+    }, 500),
+
+    handleUndelete: throttle(function () {
+      this.processingUndelete = true
+      this.processing = true
+
+      return this
+        .dispatchUiEvent('beforeUndelete')
+        .then(() => this.$ComposeAPI.recordUndelete(this.record))
+        .then(() => this.dispatchUiEvent('afterUndelete'))
+        .then(() => this.updatePrompts())
+        .then(this.loadRecord)
+        .catch(this.toastErrorHandler(this.$t('notification:record.undeleteFailed')))
+        .finally(() => {
+          this.processingUndelete = false
           this.processing = false
         })
     }, 500),

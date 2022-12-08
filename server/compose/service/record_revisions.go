@@ -91,6 +91,20 @@ func (svc *recordRevisions) softDeleted(ctx context.Context, del *types.Record) 
 	return svc.r.Create(ctx, svc.modelRef(del.GetModule()), rev)
 }
 
+func (svc *recordRevisions) undeleted(ctx context.Context, undel *types.Record) (err error) {
+	var (
+		invokerID = auth.GetIdentityFromContext(ctx).Identity()
+		rev       *revisions.Revision
+	)
+
+	rev = revisions.Make(revisions.Undeleted, undel.Revision, undel.ID, invokerID)
+	if err != nil {
+		return
+	}
+
+	return svc.r.Create(ctx, svc.modelRef(undel.GetModule()), rev)
+}
+
 func (svc *recordRevisions) skippedField(mod *types.Module) []string {
 	list := []string{
 		"ID",
@@ -114,21 +128,6 @@ func (svc *recordRevisions) skippedField(mod *types.Module) []string {
 
 	return list
 }
-
-// @todo uncomment when supported
-//func (svc *recordRevisions) restored(ctx context.Context, del *types.Record) (err error) {
-//	var (
-//		invokerID = auth.GetIdentityFromContext(ctx).Identity()
-//		rev       *revisions.Revision
-//	)
-//
-//	rev, err = revisions.Make(revisions.Restored, del.Revision, del.ID, invokerID, nil, nil)
-//	if err != nil {
-//		return
-//	}
-//
-//	return svc.r.Create(ctx, svc.modelRef(del.GetModule()), rev)
-//}
 
 // @todo uncomment when supported
 //func (svc *recordRevisions) hardDeleted(ctx context.Context, del *types.Record) (err error) {

@@ -97,7 +97,6 @@ func Model(m *dal.Model, c queryRunner, d drivers.Dialect) *model {
 //
 // Alternative solution would introduce a mutes on the internal model but that
 // is probably the same or worse as this.
-//
 func (d *model) parseQuery(q string) (out exp.Expression, err error) {
 	return d.QueryParser().Parse(q)
 }
@@ -108,7 +107,8 @@ func (d *model) convertQuery(n *ql.ASTNode) (out exp.Expression, err error) {
 
 // QueryParser returns ql struct that allows parsing query strings or converting AST into expression
 // @todo benchmark to see if this re-init is a bad idea; I don't think it should be
-//       since we're just initializing fairly light structs.
+//
+//	since we're just initializing fairly light structs.
 func (d *model) QueryParser() queryParser {
 	return ql.Converter(
 		ql.SymHandler(d.qlConverterGenericSymHandler()),
@@ -453,7 +453,7 @@ func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 		switch state {
 		case filter.StateExclusive:
 			// only not-null values
-			cnd = append(cnd, exp.NewLiteralExpression("? IS NULL", attrExpr))
+			cnd = append(cnd, exp.NewLiteralExpression("? IS NOT NULL", attrExpr))
 
 		case filter.StateExcluded:
 			// exclude all non-null values

@@ -31,6 +31,8 @@ type (
 		Update(context.Context, *request.RecordUpdate) (interface{}, error)
 		BulkDelete(context.Context, *request.RecordBulkDelete) (interface{}, error)
 		Delete(context.Context, *request.RecordDelete) (interface{}, error)
+		Undelete(context.Context, *request.RecordUndelete) (interface{}, error)
+		BulkUndelete(context.Context, *request.RecordBulkUndelete) (interface{}, error)
 		Upload(context.Context, *request.RecordUpload) (interface{}, error)
 		TriggerScript(context.Context, *request.RecordTriggerScript) (interface{}, error)
 		TriggerScriptOnList(context.Context, *request.RecordTriggerScriptOnList) (interface{}, error)
@@ -51,6 +53,8 @@ type (
 		Update              func(http.ResponseWriter, *http.Request)
 		BulkDelete          func(http.ResponseWriter, *http.Request)
 		Delete              func(http.ResponseWriter, *http.Request)
+		Undelete            func(http.ResponseWriter, *http.Request)
+		BulkUndelete        func(http.ResponseWriter, *http.Request)
 		Upload              func(http.ResponseWriter, *http.Request)
 		TriggerScript       func(http.ResponseWriter, *http.Request)
 		TriggerScriptOnList func(http.ResponseWriter, *http.Request)
@@ -252,6 +256,38 @@ func NewRecord(h RecordAPI) *Record {
 
 			api.Send(w, r, value)
 		},
+		Undelete: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewRecordUndelete()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Undelete(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		BulkUndelete: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewRecordBulkUndelete()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.BulkUndelete(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 		Upload: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewRecordUpload()
@@ -334,6 +370,8 @@ func (h Record) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", h.Update)
 		r.Delete("/namespace/{namespaceID}/module/{moduleID}/record/", h.BulkDelete)
 		r.Delete("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", h.Delete)
+		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/undelete", h.Undelete)
+		r.Patch("/namespace/{namespaceID}/module/{moduleID}/record/undelete", h.BulkUndelete)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/attachment", h.Upload)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/trigger", h.TriggerScript)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/trigger", h.TriggerScriptOnList)

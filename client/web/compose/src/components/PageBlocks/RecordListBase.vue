@@ -125,17 +125,19 @@
               v-bind="$props"
               @refresh="refresh()"
             />
-            <span v-if="canDeleteSelectedRecords">
+            <template v-if="canDeleteSelectedRecords && !areAllRowsDeleted">
               <c-input-confirm
                 v-if="!inlineEditing"
+                :tooltip="$t('recordList.tooltip.deleteSelected')"
                 class="ml-2"
-                variant="link-light"
                 @confirmed="handleDeleteSelectedRecords()"
               />
               <b-button
-                v-else-if="!areAllRowsDeleted"
+                v-else
                 variant="link"
                 size="md"
+                :title="$t('recordList.tooltip.deleteSelected')"
+                class="text-danger"
                 @click.prevent="handleDeleteSelectedRecords()"
               >
                 <font-awesome-icon
@@ -143,10 +145,24 @@
                   :icon="['far', 'trash-alt']"
                 />
               </b-button>
+            </template>
+
+            <template v-if="canUndeleteSelectedRecords && areAllRowsDeleted">
+              <c-input-confirm
+                v-if="!inlineEditing"
+                :tooltip="$t('recordList.tooltip.undeleteSelected')"
+                class="ml-2"
+                @confirmed="handleRestoreSelectedRecords()"
+              >
+                <font-awesome-icon
+                  :icon="['fa', 'trash-restore']"
+                />
+              </c-input-confirm>
               <b-button
                 v-else
                 variant="link"
                 size="md"
+                :title="$t('recordList.tooltip.undeleteSelected')"
                 class="text-danger"
                 @click.prevent="handleRestoreSelectedRecords()"
               >
@@ -154,7 +170,7 @@
                   :icon="['fa', 'trash-restore']"
                 />
               </b-button>
-            </span>
+            </template>
           </b-col>
         </b-row>
       </b-container>
@@ -173,7 +189,7 @@
           class="border-top mh-100 h-100 mb-0"
         >
           <b-thead>
-            <b-tr>
+            <b-tr :variant="showingDeletedRecords ? 'warning' : ''">
               <b-th v-if="options.draggable && inlineEditing" />
               <b-th
                 v-if="options.selectable"
@@ -267,7 +283,6 @@
             <b-tr
               v-for="(item, index) in items"
               :key="`${index}${item.r.recordID}`"
-              :variant="!!item.r.deletedAt ? 'danger' : undefined"
               :class="{ 'pointer': !(options.editable && editing) }"
               @click="handleRowClicked(item)"
             >
@@ -482,6 +497,7 @@
         ref="footer"
         fluid
         class="m-0 p-2"
+        :class="showingDeletedRecords ? 'bg-warning' : ''"
       >
         <b-row no-gutters>
           <b-col class="d-flex justify-content-between align-items-center">
@@ -504,6 +520,7 @@
                 </span>
               </div>
             </div>
+
             <div
               v-if="!options.hidePaging && !inlineEditing"
             >
@@ -568,6 +585,16 @@
                   <font-awesome-icon :icon="['fas', 'angle-right']" />
                 </b-button>
               </b-button-group>
+            </div>
+
+            <div v-if="options.showDeletedRecordsOption">
+              <b-button
+                variant="light"
+                class="mx-2 text-nowrap"
+                @click="handleShowDeleted()"
+              >
+                {{ showingDeletedRecords ? $t('recordList.showRecords.existing') : $t('recordList.showRecords.deleted') }}
+              </b-button>
             </div>
           </b-col>
         </b-row>
@@ -665,6 +692,7 @@ export default {
       items: [],
       idPrefix: `rl:${this.blockIndex}`,
       recordListFilter: [],
+      showingDeletedRecords: false,
     }
   },
 
@@ -807,6 +835,10 @@ export default {
       return this.items.filter(({ id, r }) => this.selected.includes(id) && r.canDeleteRecord).length
     },
 
+    canUndeleteSelectedRecords () {
+      return this.items.filter(({ id, r }) => this.selected.includes(id) && r.canUndeleteRecord).length
+    },
+
     newRecordRoute () {
       const refRecord = this.options.linkToParent ? this.record : undefined
       const pageID = this.recordPageID
@@ -921,6 +953,11 @@ export default {
       return isSorted ? { color: 'black' } : {}
     },
 
+    handleShowDeleted () {
+      this.showingDeletedRecords = !this.showingDeletedRecords
+      this.refresh(true)
+    },
+
     // Grabs errors specific to this record item
     recordErrors (item, field) {
       if (field) {
@@ -939,7 +976,6 @@ export default {
       return {
         r,
         id: id || (r.recordID !== NoID ? r.recordID : `${this.idPrefix}:${this.ctr++}`),
-        _rowVariant: r.deletedAt ? 'danger' : undefined,
       }
     },
 
@@ -1204,11 +1240,33 @@ export default {
     },
 
     handleRestoreSelectedRecords () {
-      const sel = new Set(this.selected)
-      for (let i = 0; i < this.items.length; i++) {
-        if (sel.has(this.items[i].id)) {
-          this.handleRestoreInline(this.items[i], i)
-        }
+      if (this.inlineEditing) {
+        const sel = new Set(this.selected)
+        this.items.forEach((item, index) => {
+          if (sel.has(item.id)) {
+            this.handleRestoreInline(item, index)
+          }
+        })
+      } else {
+        const { moduleID, namespaceID } = this.items[0].r
+
+        // filter undeletable records from the selected list
+        const recordIDs = this.items
+          .filter(({ id, r }) => r.canUndeleteRecord && this.selected.includes(id))
+          .map(({ id }) => id)
+
+        this.processing = true
+
+        this.$ComposeAPI
+          .recordBulkUndelete({ moduleID, namespaceID, recordIDs })
+          .then(() => {
+            this.refresh(true)
+            this.toastSuccess(this.$t('notification:record.undeleteBulkSuccess'))
+          })
+          .catch(this.toastErrorHandler(this.$t('notification:record.undeleteBulkFailed')))
+          .finally(() => {
+            this.processing = false
+          })
       }
     },
 
@@ -1290,6 +1348,9 @@ export default {
           incTotal: showTotalCount,
         }
       }
+
+      // Filter's out deleted records when filter.deleted is 2, and undeleted records when filter.deleted is 0
+      this.showingDeletedRecords ? this.filter.deleted = 2 : this.filter.deleted = 0
 
       await this.$ComposeAPI.recordList({ ...this.filter, moduleID, namespaceID, query, ...paginationOptions })
         .then(({ set, filter }) => {

@@ -738,6 +738,25 @@ func RecordActionIteratorDelete(props ...*recordActionProps) *recordAction {
 	return a
 }
 
+// RecordActionIteratorUndelete returns "compose:record.iteratorUndelete" action
+//
+// This function is auto-generated.
+func RecordActionIteratorUndelete(props ...*recordActionProps) *recordAction {
+	a := &recordAction{
+		timestamp: time.Now(),
+		resource:  "compose:record",
+		action:    "iteratorUndelete",
+		log:       "undeleted record in iteration",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors

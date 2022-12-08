@@ -76,6 +76,10 @@ func ComposeRecordSoftDelete(ctx context.Context, u updater, mod *types.Module, 
 	return u.Update(ctx, mod.ModelRef(), recUpdateOperations(mod), recToGetters(records...)...)
 }
 
+func ComposeRecordUndelete(ctx context.Context, u updater, mod *types.Module, records ...*types.Record) (err error) {
+	return u.Update(ctx, mod.ModelRef(), recUpdateOperations(mod), recToGetters(records...)...)
+}
+
 func ComposeRecordDelete(ctx context.Context, d deleter, mod *types.Module, records ...*types.Record) (err error) {
 	return d.Delete(ctx, mod.ModelRef(), recDeleteOperations(mod), recToGetters(records...)...)
 }
