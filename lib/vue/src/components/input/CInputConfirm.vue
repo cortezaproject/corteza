@@ -6,6 +6,7 @@
         :variant="variant"
         :size="size"
         :disabled="disabled"
+        :title="tooltip"
         :class="`${buttonClass} ${borderless ? 'border-0' : ''}`"
         @click.stop.prevent="onPrompt"
       >
@@ -85,6 +86,10 @@ export default {
     sizeConfirm: {
       type: String,
       default: 'sm',
+    },
+    tooltip: {
+      type: String,
+      default: '',
     },
   },
 

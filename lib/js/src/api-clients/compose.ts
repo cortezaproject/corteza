@@ -1727,6 +1727,76 @@ export default class Compose {
     return `/namespace/${namespaceID}/module/${moduleID}/record/${recordID}`
   }
 
+  // Undelete soft-deleted record from module section
+  async recordUndelete (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      namespaceID,
+      moduleID,
+      recordID,
+    } = (a as KV) || {}
+    if (!namespaceID) {
+      throw Error('field namespaceID is empty')
+    }
+    if (!moduleID) {
+      throw Error('field moduleID is empty')
+    }
+    if (!recordID) {
+      throw Error('field recordID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.recordUndeleteEndpoint({
+        namespaceID, moduleID, recordID,
+      }),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  recordUndeleteEndpoint (a: KV): string {
+    const {
+      namespaceID,
+      moduleID,
+      recordID,
+    } = a || {}
+    return `/namespace/${namespaceID}/module/${moduleID}/record/${recordID}/undelete`
+  }
+
+  // Undelete soft-deleted records from module section
+  async recordBulkUndelete (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      namespaceID,
+      moduleID,
+      recordIDs,
+    } = (a as KV) || {}
+    if (!namespaceID) {
+      throw Error('field namespaceID is empty')
+    }
+    if (!moduleID) {
+      throw Error('field moduleID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'patch',
+      url: this.recordBulkUndeleteEndpoint({
+        namespaceID, moduleID,
+      }),
+    }
+    cfg.data = {
+      recordIDs,
+    }
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  recordBulkUndeleteEndpoint (a: KV): string {
+    const {
+      namespaceID,
+      moduleID,
+    } = a || {}
+    return `/namespace/${namespaceID}/module/${moduleID}/record/undelete`
+  }
+
   // Uploads attachment and validates it against record field requirements
   async recordUpload (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {

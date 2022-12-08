@@ -1263,6 +1263,83 @@ func getEventTypeDefinitions() []eventTypeDef {
 
 		{
 			ResourceType: "compose:record",
+			EventType:    "beforeUndelete",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "record",
+					Type:      "ComposeRecord",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldRecord",
+					Type:      "ComposeRecord",
+					Immutable: true,
+				},
+
+				{
+					Name:      "module",
+					Type:      "ComposeModule",
+					Immutable: true,
+				},
+
+				{
+					Name:      "namespace",
+					Type:      "ComposeNamespace",
+					Immutable: true,
+				},
+
+				{
+					Name:      "recordValueErrors",
+					Type:      "ComposeRecordValueErrorSet",
+					Immutable: false,
+				},
+
+				{
+					Name:      "selected",
+					Type:      "",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "module.handle",
+				},
+
+				{
+					Name: "module.name",
+				},
+
+				{
+					Name: "record.created-at",
+				},
+
+				{
+					Name: "record.updated-at",
+				},
+
+				{
+					Name: "record.deleted-at",
+				},
+
+				{
+					Name: "record.values.*",
+				},
+			},
+		},
+
+		{
+			ResourceType: "compose:record",
 			EventType:    "afterCreate",
 			Properties: []eventTypePropertyDef{
 
@@ -1418,6 +1495,83 @@ func getEventTypeDefinitions() []eventTypeDef {
 		{
 			ResourceType: "compose:record",
 			EventType:    "afterDelete",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "record",
+					Type:      "ComposeRecord",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldRecord",
+					Type:      "ComposeRecord",
+					Immutable: true,
+				},
+
+				{
+					Name:      "module",
+					Type:      "ComposeModule",
+					Immutable: true,
+				},
+
+				{
+					Name:      "namespace",
+					Type:      "ComposeNamespace",
+					Immutable: true,
+				},
+
+				{
+					Name:      "recordValueErrors",
+					Type:      "ComposeRecordValueErrorSet",
+					Immutable: false,
+				},
+
+				{
+					Name:      "selected",
+					Type:      "",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "module.handle",
+				},
+
+				{
+					Name: "module.name",
+				},
+
+				{
+					Name: "record.created-at",
+				},
+
+				{
+					Name: "record.updated-at",
+				},
+
+				{
+					Name: "record.deleted-at",
+				},
+
+				{
+					Name: "record.values.*",
+				},
+			},
+		},
+
+		{
+			ResourceType: "compose:record",
+			EventType:    "afterUndelete",
 			Properties: []eventTypePropertyDef{
 
 				{

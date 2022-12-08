@@ -78,6 +78,7 @@ record: {
 			"read": {}
 			"update": {}
 			"delete": {}
+			"undelete": {}
 			"owner.manage": {}
 			"revisions.search": {}
 		}

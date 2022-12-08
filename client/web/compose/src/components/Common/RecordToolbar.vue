@@ -32,7 +32,7 @@
         class="d-flex wrap-with-vertical-gutters align-items-center ml-auto"
       >
         <c-input-confirm
-          v-if="isCreated && !settings.hideDelete"
+          v-if="(isCreated && !settings.hideDelete && !isDeleted)"
           :disabled="!canDeleteRecord"
           size="lg"
           size-confirm="lg"
@@ -48,6 +48,27 @@
 
           <span v-else>
             {{ labels.delete || $t('label.delete') }}
+          </span>
+        </c-input-confirm>
+
+        <c-input-confirm
+          v-if="isDeleted"
+          :disabled="!canUndeleteRecord"
+          size="lg"
+          size-confirm="lg"
+          variant="warning"
+          variant-ok="warning"
+          :borderless="false"
+          @confirmed="$emit('undelete')"
+        >
+          <b-spinner
+            v-if="processingUndelete"
+            small
+            type="grow"
+          />
+
+          <span v-else>
+            {{ $t('label.restore') }}
           </span>
         </c-input-confirm>
 
@@ -150,6 +171,11 @@ export default {
       default: false,
     },
 
+    processingUndelete: {
+      type: Boolean,
+      default: false,
+    },
+
     processingSubmit: {
       type: Boolean,
       default: false,
@@ -206,6 +232,14 @@ export default {
       }
 
       return !this.isDeleted && this.record.canDeleteRecord && !this.processing && this.record.recordID !== NoID
+    },
+
+    canUndeleteRecord () {
+      if (!this.module || !this.record) {
+        return false
+      }
+
+      return this.isDeleted && this.record.canUndeleteRecord && !this.processing && this.record.recordID !== NoID
     },
   },
 }

@@ -35,6 +35,7 @@
         :processing="processing"
         :processing-submit="processingSubmit"
         :processing-delete="processingDelete"
+        :processing-undelete="processingUndelete"
         :is-deleted="isDeleted"
         :in-editing="inEditing"
         :hide-clone="inCreating"
@@ -44,6 +45,7 @@
         @clone="handleClone()"
         @edit="handleEdit()"
         @delete="handleDelete()"
+        @undelete="handleUndelete()"
         @back="handleBack()"
         @submit="handleFormSubmit('page.record')"
       />
@@ -69,7 +71,7 @@ export default {
   },
 
   mixins: [
-    // The record mixin contains all of the logic for creating/editing/deleting the record
+    // The record mixin contains all of the logic for creating/editing/deleting/undeleting the record
     record,
   ],
 
