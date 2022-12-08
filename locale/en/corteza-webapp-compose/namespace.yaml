@@ -19,6 +19,7 @@ clone: Clone namespace
 cloneSuffix: copy
 cloneWarning:
   wfInclusion: Workflows and other automation are not cloned. Use the workflow editor interface to clone the ones you need.
+create: Create namespace
 export: Export namespace
 enabled:
   label: Enable namespace
@@ -66,12 +67,11 @@ manage:
 
   table:
     columns:
+      enabled: Enabled
       name: Name
-      handle: Handle
-      last-change: Last change
+      slug: Short name
+      changedAt: Last change
 
 sidebar:
   configure: Namespace pages
   hide: Hide sidebar on namespace public pages
-  slug: Short name
-  enabled: Enabled
