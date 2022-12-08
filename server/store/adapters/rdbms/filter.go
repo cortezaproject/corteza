@@ -320,12 +320,12 @@ func DefaultFilters() (f *extendedFilters) {
 			switch f.SubWorkflow {
 			case filter.StateExcluded:
 				ee = append(ee, goqu.Or(
-					exp.NewBooleanExpression(exp.EqOp, expr, false),
+					exp.NewBooleanExpression(exp.EqOp, expr, string(s.Dialect.DialectOptions().False)),
 					exp.NewLiteralExpression("? IS NULL", expr),
 				))
 			case filter.StateExclusive:
 				ee = append(ee,
-					exp.NewBooleanExpression(exp.EqOp, expr, true),
+					exp.NewBooleanExpression(exp.EqOp, expr, string(s.Dialect.DialectOptions().True)),
 				)
 			}
 		}

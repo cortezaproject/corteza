@@ -15,12 +15,14 @@ func testApigwRoutes(t *testing.T, s store.ApigwRoutes) {
 	var (
 		ctx = context.Background()
 		new = &types.ApigwRoute{
+			CreatedAt: *now(),
 			ID:        42,
 			Endpoint:  "/foo",
 			Enabled:   true,
 			CreatedBy: 1}
 
 		disabled = &types.ApigwRoute{
+			CreatedAt: *now(),
 			ID:        4242,
 			Endpoint:  "/foo_disabled",
 			Enabled:   false,

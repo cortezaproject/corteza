@@ -2,14 +2,15 @@ package tests
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/rand"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
 func testAuthClients(t *testing.T, s store.AuthClients) {
@@ -36,6 +37,7 @@ func testAuthClients(t *testing.T, s store.AuthClients) {
 	)
 
 	t.Run("create", func(t *testing.T) {
+		req.NoError(s.TruncateAuthClients(ctx))
 		authClient := makeNew("AuthClientCRUD")
 		req.NoError(s.CreateAuthClient(ctx, authClient))
 	})
