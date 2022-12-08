@@ -153,9 +153,6 @@ func (mssqlDialect) AttributeCast(attr *dal.Attribute, val exp.Expression) (expr
 	case *dal.TypeText:
 		expr = exp.NewCastExpression(val, "VARCHAR(MAX)")
 
-	case *dal.TypeBoolean:
-		return val, nil
-
 	default:
 		return attributeCast(attr, val)
 
@@ -274,7 +271,7 @@ func attributeCast(attr *dal.Attribute, val exp.Expression) (exp.Expression, err
 
 	case *dal.
 		TypeBoolean:
-		return exp.NewLiteralExpression("TRY_CONVERT(BIT,?)", val), nil
+		return exp.NewLiteralExpression("CASE ? WHEN 'true' THEN 1 WHEN 'false' THEN 0 ELSE TRY_CONVERT(BIT,?) END", val, val), nil
 
 	default:
 		return val, nil
