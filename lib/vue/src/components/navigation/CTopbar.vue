@@ -1,5 +1,5 @@
 <template>
-  <div class="header-navigation d-flex align-items-center sticky-top pr-3 pl-5">
+  <div class="header-navigation d-flex align-items-center sticky-top pr-3">
     <div
       class="spacer"
       :class="{
@@ -8,7 +8,7 @@
     />
 
     <h2
-      class="d-none d-sm-inline-block text-truncate mb-0 ml-1"
+      class="d-none d-sm-inline-block text-truncate mb-0"
     >
       <slot name="title" />
     </h2>
@@ -269,10 +269,7 @@ $nav-user-icon-size: 50px;
   width: 100vw;
   height: $header-height;
   background-color: #F3F3F5 !important;
-
-  h2 {
-    padding-left: calc(0.5rem + 2px);
-  }
+  padding-left: calc(3.5rem + 6px);
 }
 
 .topbar-dropdown-menu {
