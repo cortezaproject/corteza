@@ -21,6 +21,7 @@
           </b-col>
           <b-col
             v-if="!hideSearch"
+            class='pt-1 pt-lg-0'
           >
             <c-input-search
               v-model.trim="filter[queryField]"
