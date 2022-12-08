@@ -82,7 +82,7 @@ func (d mssqlDialect) JsonExtract(jsonDoc exp.Expression, pp ...any) (path exp.E
 	if path, err = jsonPathExpr(pp...); err != nil {
 		return
 	} else {
-		return exp.NewSQLFunctionExpression("JSON_QUERY", jsonDoc, path), nil
+		return exp.NewLiteralExpression("CASE WHEN ISJSON(?) = 1 THEN ? ELSE NULL END", jsonDoc, exp.NewSQLFunctionExpression("JSON_QUERY", jsonDoc, path)), nil
 	}
 }
 
@@ -90,7 +90,7 @@ func (d mssqlDialect) JsonExtractUnquote(jsonDoc exp.Expression, pp ...any) (pat
 	if path, err = jsonPathExpr(pp...); err != nil {
 		return
 	} else {
-		return exp.NewSQLFunctionExpression("JSON_VALUE", jsonDoc, path), nil
+		return exp.NewLiteralExpression("CASE WHEN ISJSON(?) = 1 THEN ? ELSE NULL END", jsonDoc, exp.NewSQLFunctionExpression("JSON_VALUE", jsonDoc, path)), nil
 	}
 }
 
