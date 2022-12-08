@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	sqlx "github.com/jmoiron/sqlx/types"
@@ -48,11 +49,15 @@ func (s Store) dailyMetrics(ctx context.Context, tbl exp.IdentifierExpression, e
 	)
 
 	return rval, func() (err error) {
-		daily := s.Functions.DATE(goqu.C(field))
+		daily, err := s.Dialect.AttributeCast(&dal.Attribute{Type: dal.TypeDate{}}, goqu.C(field))
+		if err != nil {
+			return
+		}
+
 		query := s.Dialect.GOQU().
 			Select(daily, goqu.COUNT(goqu.Star()).As("value")).
 			From(tbl).
-			Where(goqu.C(field).IsNotNull(), goqu.And(expr...)).
+			Where(exp.NewLiteralExpression("? IS NOT NULL", goqu.C(field)), goqu.And(expr...)).
 			GroupBy(daily).
 			Order(exp.NewOrderedExpression(daily, exp.AscDir, exp.NoNullsSortType))
 
@@ -92,7 +97,7 @@ func timestampStatExpr(fields ...string) []interface{} {
 
 		sum = func(field string) goqu.Expression {
 			return goqu.COALESCE(
-				goqu.SUM(goqu.Case().When(goqu.C(field+"_at").IsNotNull(), lit1).Else(lit0)),
+				goqu.SUM(goqu.Case().When(exp.NewLiteralExpression("? IS NOT NULL", goqu.C(field+"_at")), lit1).Else(lit0)),
 				lit0,
 			).As(field)
 		}
@@ -100,7 +105,7 @@ func timestampStatExpr(fields ...string) []interface{} {
 
 	for _, field := range fields {
 		ee = append(ee, sum(field))
-		valid = append(valid, goqu.C(field+"_at").IsNull())
+		valid = append(valid, exp.NewLiteralExpression("? IS NULL", goqu.C(field+"_at")))
 	}
 
 	return append(ee, goqu.SUM(goqu.Case().When(goqu.And(valid...), lit1).Else(lit0)).As("valid"))

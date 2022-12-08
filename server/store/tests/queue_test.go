@@ -38,13 +38,13 @@ func testQueues(t *testing.T, s store.Queues) {
 	t.Run("upsert", func(t *testing.T) {
 		req := require.New(t)
 		req.NoError(s.TruncateQueues(ctx))
-		req.NoError(s.UpsertQueue(ctx, &types.Queue{ID: 42, Queue: "test"}))
+		req.NoError(s.UpsertQueue(ctx, &types.Queue{ID: 42, Queue: "test", CreatedAt: *now()}))
 		set, _, err := s.SearchQueues(ctx, types.QueueFilter{})
 		req.NoError(err)
 		req.Len(set, 1)
 		req.True(set[0].Queue == "test")
 
-		req.NoError(s.UpsertQueue(ctx, &types.Queue{ID: 42, Queue: "foobar"}))
+		req.NoError(s.UpsertQueue(ctx, &types.Queue{ID: 42, Queue: "foobar", CreatedAt: *now()}))
 		set, _, err = s.SearchQueues(ctx, types.QueueFilter{})
 		req.NoError(err)
 		req.Len(set, 1)
