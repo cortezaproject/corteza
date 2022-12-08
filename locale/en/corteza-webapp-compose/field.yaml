@@ -222,3 +222,16 @@ valueExpr:
 label:
   required: Required
   multi: Multi value
+constraints:
+  label: Unique value constraint
+  description: Use unique value constraints for this field
+  ignoreCase: Ignore case
+  fuzzyMatch: Fuzzy match
+  soundsLike: Sounds like
+  caseSensitive: Case sensitive
+  oneOf: One of
+  none: None
+  equal: Equal
+  valueModifiers: Value modifiers
+  multiValues: Multi-field values
+  totalFieldConstraintCount: The field is used in {{total}} other unique value constraint. See "unique values" tab on module editor.
