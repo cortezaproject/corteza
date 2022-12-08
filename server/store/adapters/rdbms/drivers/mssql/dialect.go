@@ -46,6 +46,7 @@ func init() {
 	// Use 1/0 as an alternative to booleans
 	goquDialectOptions.True = []byte("1")
 	goquDialectOptions.False = []byte("0")
+	goquDialectOptions.TruncateClause = []byte("TRUNCATE TABLE")
 
 	// d.CastFragment = []byte("TRY_CONVERT")
 
