@@ -151,12 +151,17 @@ func (c *cursorCondition) sql() (cnd string, err error) {
 			return false
 		}
 
+		// Modifying this function to use expressions instead of constant boolean
+		// values because MSSQL doesn't have those.
+		//
+		// @todo rethink and redo the whole/all of the filtering logic surrounding paging
+		// cursors to make them consistent/reusable
 		isNull = func(i int, neg bool) string {
 			if (nilCheck(vv[i]) && !neg) || (!nilCheck(vv[i]) && neg) {
-				return "TRUE"
+				return "1=1"
 			}
 
-			return "FALSE"
+			return "1=0"
 		}
 	)
 
@@ -259,12 +264,17 @@ func CursorExpression(
 			return false
 		}
 
+		// Modifying this function to use expressions instead of constant boolean
+		// values because MSSQL doesn't have those.
+		//
+		// @todo rethink and redo the whole/all of the filtering logic surrounding paging
+		// cursors to make them consistent/reusable
 		isValueNull = func(i int, neg bool) exp.Expression {
 			if (nilCheck(vv[i]) && !neg) || (!nilCheck(vv[i]) && neg) {
-				return exp.NewLiteralExpression("TRUE")
+				return exp.NewLiteralExpression("1=1")
 			}
 
-			return exp.NewLiteralExpression("FALSE")
+			return exp.NewLiteralExpression("1=0")
 		}
 
 		curCond exp.ExpressionList
