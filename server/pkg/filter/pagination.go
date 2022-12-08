@@ -345,11 +345,26 @@ func (cur *PagingCursor) ToAST(identLookup func(i string) (string, error), castF
 			false: "gt",
 		}
 
-		isValueNull = func(i int, neg bool) expr.TypedValue {
-			if (reflect2.IsNil(vv[i]) && !neg) || (!reflect2.IsNil(vv[i]) && neg) {
-				return expr.Must(expr.NewBoolean(true))
+		// Modifying this function to use expressions instead of constant boolean
+		// values because MSSQL doesn't have those.
+		//
+		// @todo rethink and redo the whole/all of the filtering logic surrounding paging
+		// cursors to make them consistent/reusable
+		isValueNull = func(i int, neg bool) *ql.ASTNode {
+			out := &ql.ASTNode{
+				Ref: "eq",
+				Args: ql.ASTNodeSet{{
+					Value: ql.MakeValueOf("Integer", 1),
+				}},
 			}
-			return expr.Must(expr.NewBoolean(false))
+			if (reflect2.IsNil(vv[i]) && !neg) || (!reflect2.IsNil(vv[i]) && neg) {
+				// Makes the expr. true
+				out.Args = append(out.Args, &ql.ASTNode{Value: ql.MakeValueOf("Integer", 1)})
+			}
+			// Makes the expr false
+			out.Args = append(out.Args, &ql.ASTNode{Value: ql.MakeValueOf("Integer", 0)})
+
+			return out
 		}
 	)
 
@@ -412,9 +427,7 @@ func (cur *PagingCursor) ToAST(identLookup func(i string) (string, error), castF
 												},
 											},
 										},
-										&ql.ASTNode{
-											Value: ql.WrapValue(isValueNull(i, false)),
-										},
+										isValueNull(i, false),
 									},
 								},
 							},
@@ -465,9 +478,7 @@ func (cur *PagingCursor) ToAST(identLookup func(i string) (string, error), castF
 																			},
 																		},
 																	},
-																	&ql.ASTNode{
-																		Value: ql.WrapValue(isValueNull(i, false)),
-																	},
+																	isValueNull(i, false),
 																},
 															},
 
