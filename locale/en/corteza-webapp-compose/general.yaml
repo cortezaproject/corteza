@@ -22,6 +22,7 @@ label:
   close: Close
   create: Create
   delete: Delete
+  restore: Restore
   descending: Descending
   description: Description
   download: Download

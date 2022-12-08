@@ -8,6 +8,8 @@ const recordPageEventTypes = [
   'afterFormSubmit',
   'beforeDelete',
   'afterDelete',
+  'beforeUndelete',
+  'afterUndelete',
 ]
 
 export default {

@@ -289,6 +289,11 @@ func (svc accessControl) List() (out []map[string]string) {
 		{
 			"type": types.RecordResourceType,
 			"any":  types.RecordRbacResource(0, 0, 0),
+			"op":   "undelete",
+		},
+		{
+			"type": types.RecordResourceType,
+			"any":  types.RecordRbacResource(0, 0, 0),
 			"op":   "owner.manage",
 		},
 		{
@@ -607,6 +612,13 @@ func (svc accessControl) CanDeleteRecord(ctx context.Context, r *types.Record) b
 	return svc.can(ctx, "delete", r)
 }
 
+// CanUndeleteRecord checks if current user can undelete
+//
+// This function is auto-generated
+func (svc accessControl) CanUndeleteRecord(ctx context.Context, r *types.Record) bool {
+	return svc.can(ctx, "undelete", r)
+}
+
 // CanManageOwnerOnRecord checks if current user can owner.manage
 //
 // This function is auto-generated
@@ -806,6 +818,7 @@ func rbacResourceOperations(r string) map[string]bool {
 			"read":             true,
 			"update":           true,
 			"delete":           true,
+			"undelete":         true,
 			"owner.manage":     true,
 			"revisions.search": true,
 		}

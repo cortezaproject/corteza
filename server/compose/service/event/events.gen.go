@@ -279,6 +279,13 @@ type (
 		*recordBase
 	}
 
+	// recordBeforeUndelete
+	//
+	// This type is auto-generated.
+	recordBeforeUndelete struct {
+		*recordBase
+	}
+
 	// recordAfterCreate
 	//
 	// This type is auto-generated.
@@ -297,6 +304,13 @@ type (
 	//
 	// This type is auto-generated.
 	recordAfterDelete struct {
+		*recordBase
+	}
+
+	// recordAfterUndelete
+	//
+	// This type is auto-generated.
+	recordAfterUndelete struct {
 		*recordBase
 	}
 )
@@ -1916,6 +1930,13 @@ func (recordBeforeDelete) EventType() string {
 	return "beforeDelete"
 }
 
+// EventType on recordBeforeUndelete returns "beforeUndelete"
+//
+// This function is auto-generated.
+func (recordBeforeUndelete) EventType() string {
+	return "beforeUndelete"
+}
+
 // EventType on recordAfterCreate returns "afterCreate"
 //
 // This function is auto-generated.
@@ -1935,6 +1956,13 @@ func (recordAfterUpdate) EventType() string {
 // This function is auto-generated.
 func (recordAfterDelete) EventType() string {
 	return "afterDelete"
+}
+
+// EventType on recordAfterUndelete returns "afterUndelete"
+//
+// This function is auto-generated.
+func (recordAfterUndelete) EventType() string {
+	return "afterUndelete"
 }
 
 // RecordOnManual creates onManual for compose:record resource
@@ -2187,6 +2215,56 @@ func RecordBeforeDeleteImmutable(
 	}
 }
 
+// RecordBeforeUndelete creates beforeUndelete for compose:record resource
+//
+// This function is auto-generated.
+func RecordBeforeUndelete(
+	argRecord *types.Record,
+	argOldRecord *types.Record,
+	argModule *types.Module,
+	argNamespace *types.Namespace,
+	argRecordValueErrors *types.RecordValueErrorSet,
+	argSelected []interface{},
+) *recordBeforeUndelete {
+	return &recordBeforeUndelete{
+		recordBase: &recordBase{
+			immutable:         false,
+			record:            argRecord,
+			oldRecord:         argOldRecord,
+			module:            argModule,
+			namespace:         argNamespace,
+			recordValueErrors: argRecordValueErrors,
+			selected:          argSelected,
+		},
+	}
+}
+
+// RecordBeforeUndeleteImmutable creates beforeUndelete for compose:record resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func RecordBeforeUndeleteImmutable(
+	argRecord *types.Record,
+	argOldRecord *types.Record,
+	argModule *types.Module,
+	argNamespace *types.Namespace,
+	argRecordValueErrors *types.RecordValueErrorSet,
+	argSelected []interface{},
+) *recordBeforeUndelete {
+	return &recordBeforeUndelete{
+		recordBase: &recordBase{
+			immutable:         true,
+			record:            argRecord,
+			oldRecord:         argOldRecord,
+			module:            argModule,
+			namespace:         argNamespace,
+			recordValueErrors: argRecordValueErrors,
+			selected:          argSelected,
+		},
+	}
+}
+
 // RecordAfterCreate creates afterCreate for compose:record resource
 //
 // This function is auto-generated.
@@ -2325,6 +2403,56 @@ func RecordAfterDeleteImmutable(
 	argSelected []interface{},
 ) *recordAfterDelete {
 	return &recordAfterDelete{
+		recordBase: &recordBase{
+			immutable:         true,
+			record:            argRecord,
+			oldRecord:         argOldRecord,
+			module:            argModule,
+			namespace:         argNamespace,
+			recordValueErrors: argRecordValueErrors,
+			selected:          argSelected,
+		},
+	}
+}
+
+// RecordAfterUndelete creates afterUndelete for compose:record resource
+//
+// This function is auto-generated.
+func RecordAfterUndelete(
+	argRecord *types.Record,
+	argOldRecord *types.Record,
+	argModule *types.Module,
+	argNamespace *types.Namespace,
+	argRecordValueErrors *types.RecordValueErrorSet,
+	argSelected []interface{},
+) *recordAfterUndelete {
+	return &recordAfterUndelete{
+		recordBase: &recordBase{
+			immutable:         false,
+			record:            argRecord,
+			oldRecord:         argOldRecord,
+			module:            argModule,
+			namespace:         argNamespace,
+			recordValueErrors: argRecordValueErrors,
+			selected:          argSelected,
+		},
+	}
+}
+
+// RecordAfterUndeleteImmutable creates afterUndelete for compose:record resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func RecordAfterUndeleteImmutable(
+	argRecord *types.Record,
+	argOldRecord *types.Record,
+	argModule *types.Module,
+	argNamespace *types.Namespace,
+	argRecordValueErrors *types.RecordValueErrorSet,
+	argSelected []interface{},
+) *recordAfterUndelete {
+	return &recordAfterUndelete{
 		recordBase: &recordBase{
 			immutable:         true,
 			record:            argRecord,

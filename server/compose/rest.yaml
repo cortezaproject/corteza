@@ -828,6 +828,26 @@ endpoints:
         name: recordID
         required: true
         title: Record ID
+  - name: undelete
+    method: POST
+    title: Undelete soft-deleted record from module section
+    path: "/{recordID}/undelete"
+    parameters:
+      path:
+        - type: uint64
+          name: recordID
+          required: true
+          title: Record ID
+  - name: bulkUndelete
+    method: PATCH
+    title: Undelete soft-deleted records from module section
+    path: "/undelete"
+    parameters:
+      post:
+        - type: "[]string"
+          name: recordIDs
+          required: false
+          title: IDs of records to undelete
   - name: upload
     path: "/attachment"
     method: POST

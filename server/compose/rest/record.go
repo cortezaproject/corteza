@@ -40,6 +40,7 @@ type (
 		CanUpdateRecord        bool `json:"canUpdateRecord"`
 		CanReadRecord          bool `json:"canReadRecord"`
 		CanDeleteRecord        bool `json:"canDeleteRecord"`
+		CanUndeleteRecord      bool `json:"canUndeleteRecord"`
 		CanSearchRevisions     bool `json:"canSearchRevisions"`
 
 		CanGrant bool `json:"canGrant"`
@@ -65,6 +66,7 @@ type (
 		CanUpdateRecord(context.Context, *types.Record) bool
 		CanReadRecord(context.Context, *types.Record) bool
 		CanDeleteRecord(context.Context, *types.Record) bool
+		CanUndeleteRecord(context.Context, *types.Record) bool
 		CanManageOwnerOnRecord(context.Context, *types.Record) bool
 		CanSearchRevisionsOnRecord(context.Context, *types.Record) bool
 	}
@@ -271,6 +273,18 @@ func (ctrl *Record) BulkDelete(ctx context.Context, r *request.RecordBulkDelete)
 	}
 
 	return api.OK(), ctrl.record.DeleteByID(ctx,
+		r.NamespaceID,
+		r.ModuleID,
+		payload.ParseUint64s(r.RecordIDs)...,
+	)
+}
+
+func (ctrl *Record) Undelete(ctx context.Context, r *request.RecordUndelete) (interface{}, error) {
+	return api.OK(), ctrl.record.UndeleteByID(ctx, r.NamespaceID, r.ModuleID, r.RecordID)
+}
+
+func (ctrl *Record) BulkUndelete(ctx context.Context, r *request.RecordBulkUndelete) (interface{}, error) {
+	return api.OK(), ctrl.record.UndeleteByID(ctx,
 		r.NamespaceID,
 		r.ModuleID,
 		payload.ParseUint64s(r.RecordIDs)...,
@@ -618,6 +632,7 @@ func (ctrl Record) makeBulkPayload(ctx context.Context, m *types.Module, dd *typ
 		CanUpdateRecord:        ctrl.ac.CanUpdateRecord(ctx, rr[0]),
 		CanReadRecord:          ctrl.ac.CanReadRecord(ctx, rr[0]),
 		CanDeleteRecord:        ctrl.ac.CanDeleteRecord(ctx, rr[0]),
+		CanUndeleteRecord:      ctrl.ac.CanUndeleteRecord(ctx, rr[0]),
 		CanSearchRevisions:     ctrl.ac.CanSearchRevisionsOnRecord(ctx, rr[0]),
 	}, nil
 }
@@ -637,6 +652,7 @@ func (ctrl Record) makePayload(ctx context.Context, m *types.Module, r *types.Re
 		CanUpdateRecord:        ctrl.ac.CanUpdateRecord(ctx, r),
 		CanReadRecord:          ctrl.ac.CanReadRecord(ctx, r),
 		CanDeleteRecord:        ctrl.ac.CanDeleteRecord(ctx, r),
+		CanUndeleteRecord:      ctrl.ac.CanUndeleteRecord(ctx, r),
 		CanSearchRevisions:     ctrl.ac.CanSearchRevisionsOnRecord(ctx, r),
 	}, nil
 }

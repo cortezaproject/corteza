@@ -84,6 +84,7 @@ export class Record {
   public canUpdateRecord = false;
   public canReadRecord = false;
   public canDeleteRecord = false;
+  public canUndeleteRecord = false;
   public canManageOwnerOnRecord = false;
   public canSearchRevision = false;
   public canGrant = false;
@@ -174,6 +175,7 @@ export class Record {
       'canUpdateRecord',
       'canReadRecord',
       'canDeleteRecord',
+      'canUndeleteRecord',
       'canManageOwnerOnRecord',
       'canGrant',
     )

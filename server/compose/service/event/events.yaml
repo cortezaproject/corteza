@@ -55,7 +55,7 @@ compose:module:
 
 compose:record:
   on: ['manual', 'iteration']
-  ba: ['create', 'update', 'delete']
+  ba: ['create', 'update', 'delete', 'undelete']
   props:
     - name: 'record'
       type: '*types.Record'

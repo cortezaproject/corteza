@@ -9,6 +9,6 @@ const (
 	Created               = "created"
 	Updated               = "updated"
 	SoftDeleted           = "soft-deleted"
-	Restored              = "restored"
+	Undeleted             = "undeleted"
 	HardDeleted           = "hard-deleted"
 )
