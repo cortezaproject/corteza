@@ -1,105 +1,81 @@
 <h1 align="center">
   <img width="300px" src=".github/assets/corteza_logo.svg" />
   <br />
-  <p>Corteza Low Code Platform</p>
-
+  <br />
+  <abbr>Freedom. Flexibility. Performance. Speed.</abbr>
+  <br />
+  <br />
   <div align="center">
 
-  [![DockerHub Downloads Card](https://img.shields.io/docker/pulls/cortezaproject/corteza)](https://img.shields.io/docker/pulls/cortezaproject/corteza)
-  [![Latest Version Card](https://img.shields.io/github/v/tag/cortezaproject/corteza?label=stable%20version)](https://img.shields.io/github/v/tag/cortezaproject/corteza?label=stable%20version)
-  [![License Card](https://img.shields.io/github/license/cortezaproject/corteza)](https://img.shields.io/github/license/cortezaproject/corteza)
+  [![License Card](https://img.shields.io/github/license/cortezaproject/corteza?style=for-the-badge)](https://img.shields.io/github/license/cortezaproject/corteza?style=for-the-badge)
+  [![DockerHub Downloads Card](https://img.shields.io/docker/pulls/cortezaproject/corteza?style=for-the-badge)](https://img.shields.io/docker/pulls/cortezaproject/corteza?style=for-the-badge)
+  [![Latest Version Card](https://img.shields.io/github/v/tag/cortezaproject/corteza?label=stable%20version&style=for-the-badge)](https://img.shields.io/github/v/tag/cortezaproject/corteza?label=stable%20version&style=for-the-badge)
 
-  [![Go Report Card](https://goreportcard.com/badge/github.com/cortezaproject/corteza)](https://goreportcard.com/report/github.com/cortezaproject/corteza)
-  [![CodeCov Report Card](https://img.shields.io/codecov/c/github/cortezaproject/corteza)](https://img.shields.io/codecov/c/github/cortezaproject/corteza)
+  [![Go Report Card](https://goreportcard.com/badge/github.com/cortezaproject/corteza?style=for-the-badge)](https://goreportcard.com/report/github.com/cortezaproject/corteza?style=for-the-badge)
+  [![CodeCov Report Card](https://img.shields.io/codecov/c/github/cortezaproject/corteza-server?style=for-the-badge)](https://img.shields.io/codecov/c/github/cortezaproject/corteza-server?style=for-the-badge)
+
+  [![Community](https://img.shields.io/discourse/topics?server=https%3A%2F%2Fforum.cortezaproject.org%2F&style=for-the-badge)](https://img.shields.io/discourse/topics?server=https%3A%2F%2Fforum.cortezaproject.org%2F&style=for-the-badge)
+
 
   </div>
 </h1>
 
-<br />
-
-**Corteza server** is the **back-end** of the Corteza ecosystem.
-The core logic is written in GO, using [go-chi](https://pkg.go.dev/github.com/go-chi/chi@v3.3.4+incompatible?utm_source=gopls) for the routing.
-External communication occurs via the **REST API and web sockets**; internal communication happens via gRPC.
-
-Non-binary data is handled by the store layer and stored inside a database; currently **MySQL and PostgreSQL**.
-We will add support for additional databases in the future.
-Binary data is handled locally or on a supported cloud provider using [MinIO](https://min.io/).
-
-<br />
-
-## What is Corteza?
+The Corteza low-code platform lets you build and iterate CRM, business process and other structured data apps fast, create intelligent business process workflows and connect with almost any data source.
+All with the flexibility, freedom and control you get from a 100% open-source platform written on modern technologies maintained by [Planet Crust](https://www.planetcrust.com/), its founder.
 
 <div align="center">
-  <img style="max-height: 350px;" src=".github/assets/corteza_dashboard.png" />
+  <img src=".github/assets/hero-animation.webp">
 </div>
 
-Corteza is the only **100% free**, **open-source**, **standardized** and **enterprise-grade** Low-code platform.
-It is developed entirely in the public domain and maintained by [Crust Technology](https://www.crust.tech/), its founder.
+## Key Features
 
-With Corteza, you can quickly **build scalable cloud applications** that are **integrable** with external services and **accessible (WCAG 2.1)**.
+* **Standards oriented** by using well established data formats, technologies, and design decisions.
+* **Flexible security** provided as a flattened RBAC facility allows organizations to apply complex internal security policies to Corteza.
+* **Extensive privacy features** provide a way for organizations to configure Corteza to conform to data privacy regulations in the regions they are operating in.
+* **Accessible** conforming to the WCAG 2.1 guidelines allowing simple use for a wider audience.
+* **Integratable** into and with external services and other Corteza instances due to it's API-centric design, flexible data storage layer, and powerful automation facilities.
+* **Customizable** from translations and terminology to prebuilt low-code applications to completely new low-code applications and business processes.
 
-### Core features:
+## Getting Started
 
-* quick setup,
-* flexible and intuitive low-code configuration,
-* powerful automation system using workflows and automation scripts,
-* flexible reporting capabilities,
-* secure RBAC access control system.
+<br />
 
-## Online demo
+> **Note**
+> Planet Crust offers hosted [Corteza cloud instances](https://www.planetcrust.com/start-trial-lp-main) as the easiest way to get started.
 
-You can check out Corteza online by creating an account on our community instance https://latest.cortezaproject.org.
+<br />
 
-## Deploying Corteza
-
-Refer to the [DevOps guide](https://docs.cortezaproject.org/corteza-docs/2022.3/devops-guide/index.html) for a complete guide on how to get Corteza up and running.
+Refer to the [DevOps guide](https://docs.cortezaproject.org/corteza-docs/2022.9/devops-guide/index.html) for a complete guide on how to get Corteza up and running.
 Additionally, we've provided some [video instructions](https://forum.cortezaproject.org/t/videos-on-how-to-set-up-corteza/91).
 
 Quick references:
+* [data backup and restore](https://docs.cortezaproject.org/corteza-docs/2022.9/devops-guide/maintenance/backups.html)
+* [troubleshooting](https://docs.cortezaproject.org/corteza-docs/2022.9/devops-guide/troubleshooting/index.html)
+* [setting up an email relay](https://docs.cortezaproject.org/corteza-docs/2022.9/devops-guide/email-relay.html)
+* [setting up sink routes](https://docs.cortezaproject.org/corteza-docs/2022.9/devops-guide/sink-route.html)
+* [offline](https://docs.cortezaproject.org/corteza-docs/2022.9/devops-guide/examples/deploy-offline/index.html) and [online](https://docs.cortezaproject.org/corteza-docs/2022.9/devops-guide/examples/deploy-online/index.html) configuration examples
+* [online demo instance](https://latest.cortezaproject.org/) for a hands-on feature exploration
 
-* [data backup and restore](https://docs.cortezaproject.org/corteza-docs/2022.3/devops-guide/maintenance/backups.html)
-* [troubleshooting](https://docs.cortezaproject.org/corteza-docs/2022.3/devops-guide/troubleshooting/index.html)
-* [setting up an email relay](https://docs.cortezaproject.org/corteza-docs/2022.3/devops-guide/email-relay.html)
-* [setting up sink routes](https://docs.cortezaproject.org/corteza-docs/2022.3/devops-guide/sink-route.html)
+## Creating With Corteza
+
+Refer to the [Integrator Guide](https://docs.cortezaproject.org/corteza-docs/2022.9/integrator-guide/index.html) to learn how you can build on the core features to create virtually anything.
+
+Quick references:
+* [Corteza Compose configuration](https://docs.cortezaproject.org/corteza-docs/2022.9/integrator-guide/compose-configuration/index.html)
+* automation using [workflows](https://docs.cortezaproject.org/corteza-docs/2022.9/integrator-guide/automation/workflows/index.html) and [automation scripts](https://docs.cortezaproject.org/corteza-docs/2022.9/integrator-guide/automation/automation-scripts/index.html)
+* [using the REST API](https://docs.cortezaproject.org/corteza-docs/2022.9/integrator-guide/accessing-corteza/index.html),
 
 ## Upgrading Corteza
 
 [![Latest Version Card](https://img.shields.io/github/v/tag/cortezaproject/corteza?label=latest%20stable%20version)](https://img.shields.io/github/v/tag/cortezaproject/corteza?label=latest%20stable%20version)
 
-Refer to the [changelog](https://docs.cortezaproject.org/corteza-docs/2022.3/changelog/index.html) and the [upgrade guide](https://docs.cortezaproject.org/corteza-docs/2022.3/devops-guide/upgrade/index.html) to upgrade your Corteza instance.
-
-## Using Corteza
-
-Refer to the [End-User Guide](https://docs.cortezaproject.org/corteza-docs/2022.3/end-user-guide/index.html) to learn the built-in applications and features from the end-user perspective.
-
-Quick references:
-
-* [Corteza CRM](https://docs.cortezaproject.org/corteza-docs/2022.3/end-user-guide/crm/index.html)
-* [Corteza Case Management](https://docs.cortezaproject.org/corteza-docs/2022.3/end-user-guide/case-management/index.html)
-
-## Create with Corteza
-
-Refer to the [Integrator Guide](https://docs.cortezaproject.org/corteza-docs/2022.3/integrator-guide/index.html) to learn how you can build on the core features to create virtually anything.
-
-Quick references:
-
-* [Corteza Compose configuration](https://docs.cortezaproject.org/corteza-docs/2022.3/integrator-guide/compose-configuration/index.html)
-* automation using [workflows](https://docs.cortezaproject.org/corteza-docs/2022.3/integrator-guide/automation/workflows/index.html) and [automation scripts](https://docs.cortezaproject.org/corteza-docs/2022.3/integrator-guide/automation/automation-scripts/index.html)
-* [using the REST API](https://docs.cortezaproject.org/corteza-docs/2022.3/integrator-guide/accessing-corteza/index.html),
+Refer to the [changelog](https://docs.cortezaproject.org/corteza-docs/2022.9/changelog/index.html) and the [upgrade guide](https://docs.cortezaproject.org/corteza-docs/2022.9/devops-guide/upgrade/index.html) to upgrade your Corteza instance.
 
 ## Contributing
 
-Refer to the [Developer Guide/Corteza Server](https://docs.cortezaproject.org/corteza-docs/2022.3/developer-guide/corteza-server/index.html) document for details regarding the [development setup](https://docs.cortezaproject.org/corteza-docs/2022.3/developer-guide/corteza-server/index.html#_development_setup), the [project structure](https://docs.cortezaproject.org/corteza-docs/2022.3/developer-guide/corteza-server/structure.html), and the feature insight documents.
+Refer to the [Developer Guide/Corteza Server](https://docs.cortezaproject.org/corteza-docs/2022.9/developer-guide/corteza-server/index.html) document for details regarding the [development setup](https://docs.cortezaproject.org/corteza-docs/2022.9/developer-guide/corteza-server/index.html#_development_setup), the [project structure](https://docs.cortezaproject.org/corteza-docs/2022.9/developer-guide/corteza-server/structure.html), and the feature insight documents.
 
 Refer to the [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines and code of conduct.
-
-Quick command reference:
-
-* run server: `make watch`
-* run unit tests: `make test.unit`
-* run integration tests: `make test.integration`
-* run all tests `make test.all`
-* run MailHog (local SMTP server): `make mailhog.up` (requires Docker)
 
 ## Community
 
