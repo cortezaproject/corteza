@@ -3,7 +3,7 @@ package filter
 import (
 	"context"
 	"encoding/json"
-	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"

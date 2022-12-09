@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"errors"
+	"fmt"
 	"testing"
 
 	cs "github.com/cortezaproject/corteza/server/compose/service"

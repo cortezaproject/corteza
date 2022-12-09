@@ -2,7 +2,7 @@ package consumer
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"testing"
 	"time"
 
