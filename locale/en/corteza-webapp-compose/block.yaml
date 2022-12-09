@@ -505,6 +505,56 @@ comment:
     footnote: 'Field value will be used as reference'
 navigation:
   chart: Charts
+  label: Navigation
+  displayOptions: Display options
+  appearance: Appearance
+  alignment: Alignment
+  fillJustify: Fill and Justify
+  fieldLabel: Label
+  enabled: Enabled
+  openIn: Open in
+  navigationItems: Navigation items
+  type: Type
+  disabled: Disabled
+  color: Color
+  background: Background
+  url: URL
+  drop: Dropdown position
+  add: Add
+  composePage: Compose page
+  tabs: Tabs
+  pills: Pills
+  small: Small
+  center: Center
+  left: Left
+  right: Right
+  bottom: Bottom
+  top: Top
+  fill: Fill
+  justify: Justify
+  primary: Primary
+  secondary: Secondary
+  success: Success
+  warning: Warning
+  danger: Danger
+  info: Info
+  text: Text
+  dropdown: Dropdown
+  multi: Multiline
+  sameTab: Same tab
+  selectOpenInType: Select open in type
+  newTab: New tab
+  dropdownItems: Dropdown items
+  delimiter: Delimiter
+  none: None
+  displaySubPages: Display sub-pages
+  selectBackground: Select background
+  preview:
+    preview: Preview
+    label: Label
+    home: Home
+    dropdown: dropdown
+    about: about
 report:
   label: Report
   scenario:

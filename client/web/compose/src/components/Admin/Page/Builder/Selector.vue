@@ -149,6 +149,11 @@ export default {
           block: new compose.PageBlockGeometry(),
           image: images.Geometry,
         },
+        {
+          label: this.$t('navigation.label'),
+          block: new compose.PageBlockNavigation(),
+          image: images.Navigation,
+        },
       ],
     }
   },
