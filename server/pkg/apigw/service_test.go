@@ -2,7 +2,7 @@ package apigw
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/cortezaproject/corteza/server/pkg/apigw/registry"

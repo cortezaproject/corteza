@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"testing"
 
 	cs "github.com/cortezaproject/corteza/server/compose/service"

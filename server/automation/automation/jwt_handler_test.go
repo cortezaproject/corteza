@@ -2,7 +2,7 @@ package automation
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/cortezaproject/corteza/server/pkg/expr"

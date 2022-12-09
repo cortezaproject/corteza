@@ -1,7 +1,7 @@
 package mail
 
 import (
-	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/golang/mock/gomock"
