@@ -75,7 +75,6 @@ export default {
       get () {
         return this.block.options
       },
-
       set (options) {
         this.block.options = options
       },
