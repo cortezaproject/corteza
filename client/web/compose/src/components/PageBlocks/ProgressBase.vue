@@ -67,7 +67,7 @@ export default {
     options: {
       deep: true,
       handler () {
-        this.update()
+        this.refresh()
       },
     },
   },
