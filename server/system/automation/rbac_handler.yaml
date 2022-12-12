@@ -3,6 +3,13 @@ imports:
   - github.com/cortezaproject/corteza/server/pkg/rbac
 
 params:
+  roleLookup: &roleLookup
+    required: true
+    types:
+      - { wf: ID,     }
+      - { wf: Handle, }
+      - { wf: Role,   suffix: res }
+
   manageParams: &manageParams
     resource:
       required: true
@@ -10,12 +17,7 @@ params:
         # Note that we can not accept string here because
         # we need whole resource with all the info loaded
         - { wf: RbacResource }
-    role:
-      required: true
-      types:
-        - { wf: ID }
-        - { wf: Handle }
-        - { wf: Role,   suffix: res }
+    role: *roleLookup
     operation:
       required: true
       types:
