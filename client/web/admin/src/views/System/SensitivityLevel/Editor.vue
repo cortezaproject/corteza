@@ -28,7 +28,6 @@
       :can-create="canCreate"
       @submit="onSubmit($event)"
       @delete="onDelete($event)"
-      @undelete="onUndelete($event)"
     />
   </b-container>
 </template>
@@ -155,27 +154,29 @@ export default {
 
     onDelete (sensitivityLevelID = this.sensitivityLevelID) {
       this.incLoader()
-      this.$SystemAPI.dalSensitivityLevelDelete({ sensitivityLevelID })
-        .then(() => {
-          this.fetchSensitivityLevel()
 
-          this.toastSuccess(this.$t('notification:sensitivityLevel.delete.success'))
-          this.$router.push({ name: 'system.sensitivityLevel' })
-        })
-        .catch(this.toastErrorHandler(this.$t('notification:sensitivityLevel.delete.error')))
-        .finally(() => this.decLoader())
-    },
+      if (this.sensitivityLevel.deletedAt) {
+        // Sensitivity level is currently deleted -- undelete
+        this.$SystemAPI.dalSensitivityLevelUndelete({ sensitivityLevelID })
+          .then(() => {
+            this.fetchSensitivityLevel()
 
-    onUndelete (sensitivityLevelID = this.sensitivityLevelID) {
-      this.incLoader()
-      this.$SystemAPI.dalSensitivityLevelUndelete({ sensitivityLevelID })
-        .then(() => {
-          this.fetchSensitivityLevel()
+            this.toastSuccess(this.$t('notification:sensitivityLevel.undelete.success'))
+          })
+          .catch(this.toastErrorHandler(this.$t('notification:sensitivityLevel.undelete.error')))
+          .finally(() => this.decLoader())
+      } else {
+        // Sensitivity level is currently not deleted -- delete
+        this.$SystemAPI.dalSensitivityLevelDelete({ sensitivityLevelID })
+          .then(() => {
+            this.fetchSensitivityLevel()
 
-          this.toastSuccess(this.$t('notification:sensitivityLevel.undelete.success'))
-        })
-        .catch(this.toastErrorHandler(this.$t('notification:sensitivityLevel.undelete.error')))
-        .finally(() => this.decLoader())
+            this.toastSuccess(this.$t('notification:sensitivityLevel.delete.success'))
+            this.$router.push({ name: 'system.sensitivityLevel' })
+          })
+          .catch(this.toastErrorHandler(this.$t('notification:sensitivityLevel.delete.error')))
+          .finally(() => this.decLoader())
+      }
     },
   },
 }
