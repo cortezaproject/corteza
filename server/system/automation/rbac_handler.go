@@ -18,15 +18,11 @@ type (
 		FindByAny(ctx context.Context, identifier interface{}) (*types.User, error)
 	}
 
-	rbacRoleService interface {
-		Membership(ctx context.Context, userID uint64) (types.RoleMemberSet, error)
-	}
-
 	rbacHandler struct {
 		reg  rbacHandlerRegistry
 		rbac rbacService
 		user rbacUserService
-		role rbacRoleService
+		role roleService
 	}
 
 	auxResource struct{ res string }
@@ -38,7 +34,7 @@ func (r auxResource) RbacResource() string {
 	return r.res
 }
 
-func RbacHandler(reg rbacHandlerRegistry, rbac rbacService, user rbacUserService, role rbacRoleService) *rbacHandler {
+func RbacHandler(reg rbacHandlerRegistry, rbac rbacService, user rbacUserService, role roleService) *rbacHandler {
 	h := &rbacHandler{
 		reg:  reg,
 		rbac: rbac,
@@ -51,15 +47,48 @@ func RbacHandler(reg rbacHandlerRegistry, rbac rbacService, user rbacUserService
 }
 
 func (h rbacHandler) allow(ctx context.Context, args *rbacAllowArgs) (err error) {
-	return h.grant(ctx, rbac.AllowRule(args.roleID, args.Resource.RbacResource(), args.Operation))
+	r, err := lookupRole(ctx, h.role, rolesLookupArgs{
+		hasLookup:    args.hasRole,
+		Lookup:       args.Role,
+		lookupID:     args.roleID,
+		lookupHandle: args.roleHandle,
+		lookupRes:    args.roleRes,
+	})
+	if err != nil {
+		return
+	}
+
+	return h.grant(ctx, rbac.AllowRule(r.ID, args.Resource.RbacResource(), args.Operation))
 }
 
 func (h rbacHandler) deny(ctx context.Context, args *rbacDenyArgs) (err error) {
-	return h.grant(ctx, rbac.DenyRule(args.roleID, args.Resource.RbacResource(), args.Operation))
+	r, err := lookupRole(ctx, h.role, rolesLookupArgs{
+		hasLookup:    args.hasRole,
+		Lookup:       args.Role,
+		lookupID:     args.roleID,
+		lookupHandle: args.roleHandle,
+		lookupRes:    args.roleRes,
+	})
+	if err != nil {
+		return
+	}
+
+	return h.grant(ctx, rbac.DenyRule(r.ID, args.Resource.RbacResource(), args.Operation))
 }
 
 func (h rbacHandler) inherit(ctx context.Context, args *rbacInheritArgs) (err error) {
-	return h.grant(ctx, rbac.InheritRule(args.roleID, args.Resource.RbacResource(), args.Operation))
+	r, err := lookupRole(ctx, h.role, rolesLookupArgs{
+		hasLookup:    args.hasRole,
+		Lookup:       args.Role,
+		lookupID:     args.roleID,
+		lookupHandle: args.roleHandle,
+		lookupRes:    args.roleRes,
+	})
+	if err != nil {
+		return
+	}
+
+	return h.grant(ctx, rbac.InheritRule(r.ID, args.Resource.RbacResource(), args.Operation))
 }
 
 // verifies grant op (granter needs to be allowed to grant on the component
