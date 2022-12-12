@@ -123,6 +123,7 @@ type (
 		DefaultClient            string        `env:"AUTH_DEFAULT_CLIENT"`
 		AssetsPath               string        `env:"AUTH_ASSETS_PATH"`
 		DevelopmentMode          bool          `env:"AUTH_DEVELOPMENT_MODE"`
+		ProvisionSuperUser       string        `env:"AUTH_PROVISION_SUPER_USER"`
 	}
 
 	CorredorOpt struct {
