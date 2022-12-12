@@ -93,7 +93,7 @@ func Auth(opt AuthOptions) *auth {
 // 2.3. create credentials for that social login
 //
 // External login/signup does not:
-//  - validate provider on profile, only uses it for matching credentials
+//   - validate provider on profile, only uses it for matching credentials
 func (svc *auth) External(ctx context.Context, profile types.ExternalAuthUser) (u *types.User, err error) {
 	var (
 		authProvider = &types.AuthProvider{Provider: profile.Provider}

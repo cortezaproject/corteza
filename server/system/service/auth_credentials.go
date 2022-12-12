@@ -522,7 +522,7 @@ func (svc *auth) ChangePassword(ctx context.Context, userID uint64, oldPassword,
 	return svc.recordAction(ctx, aam, AuthActionChangePassword, err)
 }
 
-func (svc *auth) hashPassword(password string) (hash []byte, err error) {
+func hashPassword(password string) (hash []byte, err error) {
 	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 }
 
@@ -532,20 +532,25 @@ func (svc *auth) CheckPasswordStrength(password string) bool {
 
 // SetPasswordCredentials (soft) deletes old password entry and creates a new entry with new password on every change
 //
-// This way we can implement more strict password-change policies in the future
+// # This way we can implement more strict password-change policies in the future
 //
 // This method is used by auth and user procedures to unify password hashing and updating
 // credentials
 func (svc *auth) SetPasswordCredentials(ctx context.Context, userID uint64, password string) (err error) {
+	if err = svc.removePasswordCredentials(ctx, userID); err != nil {
+		return
+	}
+
+	return SetPasswordCredentials(ctx, svc.store, userID, password)
+}
+
+// SetPasswordCredentials creates a new password entry
+func SetPasswordCredentials(ctx context.Context, s store.Storer, userID uint64, password string) (err error) {
 	var (
 		hash []byte
 	)
 
-	if hash, err = svc.hashPassword(password); err != nil {
-		return
-	}
-
-	if err = svc.removePasswordCredentials(ctx, userID); err != nil {
+	if hash, err = hashPassword(password); err != nil {
 		return
 	}
 
@@ -558,7 +563,7 @@ func (svc *auth) SetPasswordCredentials(ctx context.Context, userID uint64, pass
 		Credentials: string(hash),
 	}
 
-	return store.CreateCredential(ctx, svc.store, c)
+	return store.CreateCredential(ctx, s, c)
 }
 
 //CheckPassword verifies if password matches any of the valid credentials
@@ -568,18 +573,17 @@ func (svc *auth) SetPasswordCredentials(ctx context.Context, userID uint64, pass
 
 // SetPassword sets new password for a user
 //
-// This function also records an action
+// # This function also records an action
 //
 // this method is used in 2 scenarios:
 //
-//  SELF:
-//    user forgot the password and needs to reset it
-//    there should be protocols prior to this point that
-//    authenticate and validate users
+//	SELF:
+//	  user forgot the password and needs to reset it
+//	  there should be protocols prior to this point that
+//	  authenticate and validate users
 //
-//  USER MANAGEMENT:
-//    administrator is resetting password for another user
-//
+//	USER MANAGEMENT:
+//	  administrator is resetting password for another user
 func (svc *auth) SetPassword(ctx context.Context, userID uint64, password string) (err error) {
 	var (
 		u  *types.User
@@ -1066,7 +1070,6 @@ func skipInvalid(c *types.Credential) bool {
 	return c.Valid()
 }
 
-//
 func compareHashedCredentials(password string) func(c *types.Credential) bool {
 	var (
 		p = []byte(password)
