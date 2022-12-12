@@ -231,6 +231,14 @@ auth: schema.#optionsGroup & {
 				Should be disabled in production where templates do not change between server restarts.
 				"""
 		}
+		provision_super_user: {
+			description: """
+				When set, Corteza creates one or more users with the configured values using provided email as a password.
+				It skips existing (email, handle). All new users are assigned to all bypass roles.
+
+				When set in production, Corteza stops and reports an error
+				"""
+		}
 	}
 	title: "Authentication"
 }
