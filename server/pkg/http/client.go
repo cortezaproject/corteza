@@ -103,7 +103,7 @@ func (c *Client) Request(method, url string, body interface{}) (*http.Request, e
 
 	req, err := request()
 	if err != nil {
-		return nil, fmt.Errorf("creating request failed", err)
+		return nil, fmt.Errorf("creating request failed: %w", err)
 	}
 	req.Header.Add("Content-Type", "application/json")
 	return req, nil
@@ -145,7 +145,7 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 		if c.debugLevel == INFO {
 			fmt.Println("HTTP <<< Response error", err)
 		}
-		return nil, fmt.Errorf("request failed", err)
+		return nil, fmt.Errorf("request failed: %w", err)
 	}
 	if c.debugLevel == INFO {
 		fmt.Println("HTTP <<< Response", resp.StatusCode)

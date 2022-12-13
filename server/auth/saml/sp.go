@@ -89,7 +89,7 @@ func NewSamlSPService(log *zap.Logger, args SamlSPArgs) (s *SamlSPService, err e
 	// internal samlsp service
 	handler, err := samlsp.New(opts)
 	if err != nil {
-		err = fmt.Errorf("could not init SAML SP handler", err)
+		err = fmt.Errorf("could not init SAML SP handler: %w", err)
 		return
 	}
 
