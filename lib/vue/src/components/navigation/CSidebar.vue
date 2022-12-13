@@ -120,6 +120,7 @@
 
       <b-button
         v-else-if="!disabledRoutes.includes($route.name)"
+        data-test-id="button-home"
         variant="outline-light"
         size="lg"
         class="d-flex align-items-center p-2 border-0"
