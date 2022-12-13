@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/slice"
-	"net/http"
 )
 
 type (
@@ -72,7 +73,7 @@ func triggerToHandlerOps(t *Trigger) (oo []eventbus.HandlerRegOp, err error) {
 func constraintsToHandlerOps(cc []*TConstraint) (oo []eventbus.HandlerRegOp, err error) {
 	for _, raw := range cc {
 		if c, err := eventbus.ConstraintMaker(raw.Name, raw.Op, raw.Value...); err != nil {
-			return nil, fmt.Errorf("cannot generate constraints", err)
+			return nil, fmt.Errorf("cannot generate constraints: %w", err)
 		} else {
 			oo = append(oo, eventbus.Constraint(c))
 		}

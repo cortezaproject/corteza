@@ -205,11 +205,11 @@ func staticValidateExternal(opt options.AuthOpt) error {
 	)
 	p, err := url.Parse(strings.Replace(opt.ExternalRedirectURL, "{provider}", tpt, 1))
 	if err != nil {
-		return fmt.Errorf("invalid redirect URL", err)
+		return fmt.Errorf("invalid redirect URL: %w", err)
 	}
 
 	if !strings.Contains(p.Path, tpt+"/callback") {
-		return fmt.Errorf("could find injected provider in the URL, make sure you use '%%s' as a placeholder", err)
+		return fmt.Errorf("could find injected provider in the URL, make sure you use '%%s' as a placeholder: %w", err)
 	}
 
 	if opt.ExternalCookieSecret == "" {
@@ -236,11 +236,14 @@ func validateExternalRedirectURL(opt options.AuthOpt) error {
 
 	rsp, err := http.DefaultClient.Get(url)
 	if err != nil {
-		return fmt.Errorf("could not get response from redirect URL", err)
+		return fmt.Errorf("could not get response from redirect URL: %w", err)
 	}
 
 	defer rsp.Body.Close()
 	body, err := ioutil.ReadAll(rsp.Body)
+	if err != nil {
+		return fmt.Errorf("could not read response body: %w", err)
+	}
 
 	if strings.Contains(string(body), tpt) {
 		return nil

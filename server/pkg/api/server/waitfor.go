@@ -164,12 +164,12 @@ func (s server) probeService(ctx context.Context, addr string) (err error) {
 func (s server) probeServiceURL(ctx context.Context, u *url.URL) error {
 	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
-		return fmt.Errorf("failed to assemble service request", err)
+		return fmt.Errorf("failed to assemble service request: %w", err)
 	}
 
 	rsp, err := http.DefaultClient.Do(req.WithContext(ctx))
 	if err != nil {
-		return fmt.Errorf("service URL request failed", err)
+		return fmt.Errorf("service URL request failed: %w", err)
 	}
 
 	defer rsp.Body.Close()

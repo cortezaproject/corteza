@@ -290,7 +290,7 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 	}
 
 	if format, err = imaging.FormatFromExtension(att.Meta.Original.Extension); err != nil {
-		return fmt.Errorf("could not get format from extension '%s'", att.Meta.Original.Extension, err)
+		return fmt.Errorf("could not get format from extension '%s': %w", att.Meta.Original.Extension, err)
 	}
 
 	previewFormat = format
@@ -311,7 +311,7 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 			// Use first image for the preview
 			preview = cfg.Image[0]
 		} else {
-			return fmt.Errorf("could not decode gif config", err)
+			return fmt.Errorf("could not decode gif config: %w", err)
 		}
 
 	} else {
@@ -326,7 +326,7 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 	// other cases are handled here
 	if preview == nil {
 		if preview, err = imaging.Decode(original); err != nil {
-			return fmt.Errorf("could not decode original image", err)
+			return fmt.Errorf("could not decode original image: %w", err)
 		}
 	}
 
