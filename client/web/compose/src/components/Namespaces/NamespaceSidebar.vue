@@ -4,6 +4,7 @@
       <vue-select
         v-if="!hideNamespaceList"
         key="namespaceID"
+        data-test-id="select-namespace"
         label="name"
         class="namespace-selector sticky-top bg-white mt-2"
         :clearable="false"
@@ -20,6 +21,7 @@
           >
             <router-link
               :to="{ name: 'namespace.manage' }"
+              data-test-id="button-manage-namespaces"
               class="d-block my-1 font-weight-bold text-decoration-none"
             >
               {{ $t('manageNamespaces') }}
