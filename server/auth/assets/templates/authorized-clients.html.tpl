@@ -31,13 +31,16 @@
                 {{ tr "authorized-clients.template.list.buttons.revoke" }}
             </button>
         </div>
-		<div
-            data-test-id="text-empty-list"
-            class="text-center m-3 mb-3"
-        >
-			<i>{{ tr "authorized-clients.template.list.empty" }}</i>
-		</div>
-	{{ end }}
-	</form>
+        {{ end }}
+    </form>
+
+    {{ if not .authorizedClients}}
+    <div
+        data-test-id="text-empty-list"
+        class="text-center m-3 mb-3"
+    >
+        <i>{{ tr "authorized-clients.template.list.empty" }}</i>
+    </div>
+    {{ end }}
 </div>
 {{ template "inc_footer.html.tpl" . }}
