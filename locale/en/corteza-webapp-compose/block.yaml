@@ -491,6 +491,45 @@ comment:
     footnote: 'Field value will be used as reference'
 navigation:
   chart: Charts
+  label: Navigation
+  displayOptions: Display options
+  appearance: Appearance
+  alignment: Alignment
+  fillJustify: Fill and Justify
+  listItems: List items
+  type: Type
+  disabled: Disabled
+  color: Color
+  background: Background
+  url: URL
+  newWindow: New window
+  drop: Drop
+  add: Add
+  composePage: Compose page
+  tabs: Tabs
+  pills: Pills
+  small: Small
+  center: Center
+  left: Left
+  right: Right
+  fill: Fill
+  justify: Justify
+  primary: Primary
+  secondary: Secondary
+  success: Success
+  warning: Warning
+  danger: Danger
+  info: Info
+  top: Top
+  bottom: Bottom
+  text: Text
+  dropdown: Dropdown
+  multi: Multiline
+  preview:
+    label: Label
+    home: Home
+    dropdown: dropdown
+    about: about
 report:
   label: Report
   scenario:
@@ -565,4 +604,34 @@ nylas:
       email: Email
       mailbox: Mailbox
 
-
+geometry:
+  label: Geometry
+  viewLabel: Geometry
+  feedLabel: Configure Sources
+  addSource: Add source
+  lock: Lock
+  mapHelpText: Move and scroll the map to the position that will be used as a default. You can also lock the position or zoom to prevent users from moving too far.
+  recordFeed:
+    moduleLabel: Select module
+    modulePlaceholder: (No module)
+    noMultiFields: Multi-value fields are currently not supported
+    optionLabel: Records
+    prefilterLabel: Prefilter sources
+    colorLabel: Marker color
+    geometryFieldLabel: Geometry field
+    titleLabel: Title
+    titlePlaceholder: Title
+    geometryFieldPlaceholder: Geometry field
+    displayMarker: Display marker
+    displayPolygon: Display polygon
+  centerLabel: Center
+  zoom:
+    zoomLabel: Zoom
+    zoomMinLabel: Zoom min
+    zoomMaxLabel: Zoom max
+    zoomStartingLabel: Zoom Starting
+  bounds:
+    boundsLabel: Bounds
+    lockBounds: Lock bounds
+    topLeft: Bounds top left
+    lowerRight: Bounds lower right
