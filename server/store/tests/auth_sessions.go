@@ -2,12 +2,13 @@ package tests
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza/server/pkg/rand"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
 func testAuthSessions(t *testing.T, s store.AuthSessions) {
@@ -20,6 +21,7 @@ func testAuthSessions(t *testing.T, s store.AuthSessions) {
 			return &types.AuthSession{
 				ID:        handle,
 				CreatedAt: time.Now(),
+				ExpiresAt: time.Now(),
 				Data:      []byte("..."),
 			}
 		}

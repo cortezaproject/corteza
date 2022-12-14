@@ -3,11 +3,13 @@ package drivers
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/ql"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/doug-martin/goqu/v9/sqlgen"
 )
 
 type (
@@ -17,6 +19,13 @@ type (
 		// use of aliases inside HAVING clause and
 		// MySQL does not.
 		HavingClauseMustUseAlias bool
+
+		// TwoStepUpsert allows support for databases which don't have an upsert
+		// or we simply couldn't figure out how to make work.
+		//
+		// TwoStepUpsert uses the context from the update statement to figure out
+		// if it needs to do an insert.
+		TwoStepUpsert bool
 	}
 
 	Dialect interface {
@@ -27,6 +36,8 @@ type (
 
 		// GOQU returns goqu's dialect wrapper struct
 		GOQU() goqu.DialectWrapper
+
+		DialectOptions() *sqlgen.SQLDialectOptions
 
 		JsonQuote(exp.Expression) exp.Expression
 

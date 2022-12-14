@@ -2,13 +2,14 @@ package tests
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/rand"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
 func testAuthOa2tokens(t *testing.T, s store.AuthOa2tokens) {
@@ -21,6 +22,7 @@ func testAuthOa2tokens(t *testing.T, s store.AuthOa2tokens) {
 			return &types.AuthOa2token{
 				ID:        id.Next(),
 				CreatedAt: time.Now(),
+				ExpiresAt: time.Now(),
 				Access:    string(rand.Bytes(5)),
 				Code:      string(rand.Bytes(5)),
 				Refresh:   string(rand.Bytes(5)),

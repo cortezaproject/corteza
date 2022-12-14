@@ -65,7 +65,7 @@ require (
 	github.com/valyala/fastjson v1.6.3
 	go.uber.org/atomic v1.9.0
 	go.uber.org/zap v1.21.0
-	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
+	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
 	golang.org/x/text v0.3.7
 	google.golang.org/grpc v1.46.0
@@ -87,11 +87,14 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/crewjam/httperr v0.2.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.0-20210816181553-5444fa50b93d // indirect
+	github.com/denisenkom/go-mssqldb v0.12.3 // indirect
 	github.com/dlclark/regexp2 v1.4.1-0.20201116162257-a2a8dda75c91 // indirect
 	github.com/go-chi/chi v3.3.4+incompatible // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
 	github.com/goccy/go-json v0.9.6 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
+	github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe // indirect
+	github.com/golang-sql/sqlexp v0.1.0 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
