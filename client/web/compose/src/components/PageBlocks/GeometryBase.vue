@@ -134,6 +134,7 @@ export default {
       this.colors = this.options.feeds.map(feed => feed.options.color)
 
       const {
+        bounds,
         center,
         zoomStarting,
         zoomMin,
