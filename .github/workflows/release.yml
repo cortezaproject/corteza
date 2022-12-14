@@ -80,7 +80,7 @@ jobs:
           - { runsOn: "ubuntu-latest", os: "linux" }
           - { runsOn: "macos-latest",  os: "darwin" }
     runs-on: ${{ matrix.runsOn }}
-    needs: [ server-web-console-build, server-test ]
+    needs: [ server-web-console-build ]
     env:
       BUILD_OS: ${{ matrix.os }}
       RELEASE_SFTP_KEY: ${{ secrets.RELEASE_SFTP_KEY }}
