@@ -96,6 +96,7 @@ kind:
     modulePlaceholder: Pick module
     queryFieldsLabel: Query fields on search
     moduleField: Module field
+    variantField: Variant field
     fieldFromModuleField: Label field from related module field
     pickField: Pick field
     suggestionPlaceholder: Start typing to search for records

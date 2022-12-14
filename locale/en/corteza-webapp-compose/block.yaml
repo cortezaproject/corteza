@@ -565,4 +565,34 @@ nylas:
       email: Email
       mailbox: Mailbox
 
-
+geometry:
+  label: Geometry
+  viewLabel: Geometry
+  feedLabel: Configure Sources
+  addSource: Add source
+  lock: Lock
+  mapHelpText: Move and scroll the map to the position that will be used as a default. You can also lock the position or zoom to prevent users from moving too far.
+  recordFeed:
+    moduleLabel: Select module
+    modulePlaceholder: (No module)
+    noMultiFields: Multi-value fields are currently not supported
+    optionLabel: Records
+    prefilterLabel: Prefilter sources
+    colorLabel: Marker color
+    geometryFieldLabel: Geometry field
+    titleLabel: Title
+    titlePlaceholder: Title
+    geometryFieldPlaceholder: Geometry field
+    displayMarker: Display marker
+    displayPolygon: Display polygon
+  centerLabel: Center
+  zoom:
+    zoomLabel: Zoom
+    zoomMinLabel: Zoom min
+    zoomMaxLabel: Zoom max
+    zoomStartingLabel: Zoom Starting
+  bounds:
+    boundsLabel: Bounds
+    lockBounds: Lock bounds
+    topLeft: Bounds top left
+    lowerRight: Bounds lower right
