@@ -228,7 +228,7 @@ export default {
 
     refresh () {
       this.loadedRevisions = true
-      this.loadedRevisions()
+      this.loadRevisions()
     },
   },
 }
