@@ -144,6 +144,11 @@ export default {
           block: new compose.PageBlockNylas(),
           image: images.Nylas,
         },
+        {
+          label: this.$t('geometry.label'),
+          block: new compose.PageBlockGeometry(),
+          image: images.Geometry,
+        },
       ],
     }
   },

@@ -34,6 +34,8 @@ import ProgressBase from './ProgressBase'
 import ProgressConfigurator from './ProgressConfigurator'
 import NylasBase from './Nylas/NylasBase'
 import NylasConfigurator from './Nylas/NylasConfigurator'
+import GeometryBase from './GeometryBase'
+import GeometryConfigurator from './GeometryConfigurator/index'
 
 /**
  * List of all known page block components
@@ -73,6 +75,8 @@ const Registry = {
   ProgressConfigurator,
   NylasBase,
   NylasConfigurator,
+  GeometryBase,
+  GeometryConfigurator,
 }
 
 const defaultMode = 'Base'

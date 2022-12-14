@@ -55,6 +55,12 @@ export default {
       required: false,
       default: '',
     },
+
+    editable: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
 
   data () {

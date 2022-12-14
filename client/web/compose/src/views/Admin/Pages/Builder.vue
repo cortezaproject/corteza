@@ -100,7 +100,7 @@
           </div>
 
           <page-block
-            v-bind="{ ...$attrs, ...$props, page, block, boundingRect, blockIndex: index }"
+            v-bind="{ ...$attrs, ...$props, page, block, boundingRect, blockIndex: index, editable: true }"
             :record="record"
             :module="module"
             class="p-2"
