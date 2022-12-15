@@ -64,6 +64,7 @@
           :is="getRecordComponent"
           :errors="errors"
           v-bind="{ ...bindParams, module, block, record }"
+          class="p-2"
         />
       </b-col>
     </b-row>
