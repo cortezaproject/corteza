@@ -31,6 +31,7 @@ label:
   pageBuilder: Page builder
   permissions: Permissions
   saveAndClose: Save and close
+loading: Loading
 moduleEdit: Edit module
 navigation:
   page: Pages

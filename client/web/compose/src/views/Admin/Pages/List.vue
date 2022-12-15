@@ -74,7 +74,20 @@
               </b-col>
             </b-row>
 
+            <div
+              v-if="processing"
+              class="text-center text-muted m-5"
+            >
+              <div>
+                <b-spinner
+                  class="align-middle m-2"
+                />
+              </div>
+              {{ $t('loading') }}
+            </div>
+
             <page-tree
+              v-else
               v-model="tree"
               :namespace="namespace"
               class="pb-2"
@@ -115,6 +128,7 @@ export default {
     return {
       tree: [],
       page: new compose.Page({ visible: true }),
+      processing: false,
     }
   },
 
@@ -128,10 +142,14 @@ export default {
     }),
 
     loadTree () {
+      this.processing = true
       const { namespaceID } = this.namespace
       this.$ComposeAPI.pageTree({ namespaceID }).then((tree) => {
         this.tree = tree.map(p => new compose.Page(p))
       }).catch(this.toastErrorHandler(this.$t('notification:page.loadFailed')))
+        .finally(() => {
+          this.processing = false
+        })
     },
 
     handleAddPageFormSubmit () {
