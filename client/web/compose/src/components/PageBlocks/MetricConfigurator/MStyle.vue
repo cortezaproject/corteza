@@ -10,6 +10,7 @@
         <b-form-input
           v-model="options.color"
           type="color"
+          debounce="300"
           class="mb-1"
         />
       </b-form-group>

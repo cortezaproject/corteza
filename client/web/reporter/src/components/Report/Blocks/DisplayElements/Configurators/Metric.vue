@@ -65,6 +65,7 @@
           <b-form-input
             v-model="options.color"
             type="color"
+            debounce="300"
           />
         </b-form-group>
       </b-col>
@@ -75,6 +76,7 @@
           <b-form-input
             v-model="options.backgroundColor"
             type="color"
+            debounce="300"
           />
         </b-form-group>
       </b-col>
