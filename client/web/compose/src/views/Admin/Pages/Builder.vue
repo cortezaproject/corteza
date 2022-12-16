@@ -1,7 +1,9 @@
 <template>
   <div
     v-if="!!page"
+    id="page-builder"
     class="flex-grow-1 overflow-auto d-flex px-2 w-100"
+    tabIndex="1"
   >
     <portal to="topbar-title">
       {{ title }}
@@ -521,19 +523,8 @@ export default {
     },
 
     pasteBlock (event) {
-      const active = document.activeElement
-      const inputs = document.querySelectorAll('input')
-      let inputActive = false
-
-      // Not to intrude on paste for any input field
-      // Using forEach because other array methods don't work on NodeList
-      inputs.forEach(input => {
-        if (input === active) {
-          inputActive = true
-        }
-      })
-
-      if (!inputActive) {
+      // ensuring page-builder is focused before pasting a block
+      if (document.querySelector('#page__builder') === document.activeElement) {
         event.preventDefault()
         const paste = (event.clipboardData || window.clipboardData).getData('text')
         // Doing this to handle JSON parse error
