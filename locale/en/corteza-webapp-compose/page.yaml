@@ -33,6 +33,7 @@ label:
   pageBuilder: Page builder
   permissions: Permissions
   saveAndClose: Save and close
+  delete: Delete Block
 loading: Loading
 moduleEdit: Edit module
 navigation:

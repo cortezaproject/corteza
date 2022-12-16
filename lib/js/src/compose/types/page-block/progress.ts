@@ -103,7 +103,7 @@ export class PageBlockProgress extends PageBlock {
     }
 
     if (o.display) {
-      this.options.display = { ...this.options.display, ...o.display }
+      this.options.display = o.display
     }
   }
 

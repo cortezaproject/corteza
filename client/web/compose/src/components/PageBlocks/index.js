@@ -38,6 +38,8 @@ import GeometryBase from './GeometryBase'
 import GeometryConfigurator from './GeometryConfigurator/index'
 import NavigationConfigurator from './Navigation/Configurator'
 import NavigationBase from './Navigation/Base'
+import TabsBase from './TabsBase'
+import TabsConfigurator from './TabsConfigurator'
 
 /**
  * List of all known page block components
@@ -79,6 +81,8 @@ const Registry = {
   NylasConfigurator,
   GeometryBase,
   GeometryConfigurator,
+  TabsBase,
+  TabsConfigurator,
   NavigationConfigurator,
   NavigationBase,
 }

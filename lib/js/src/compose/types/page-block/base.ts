@@ -1,5 +1,6 @@
 import { merge } from 'lodash'
 import { Apply } from '../../../cast'
+import { generateUID } from '../../helpers/idgen'
 
 interface PageBlockStyleVariants {
   [_: string]: string;
@@ -19,6 +20,11 @@ interface PageBlockStyle {
   border?: PageBlockStyleBorder;
 }
 
+interface PageBlockMeta {
+  tabbed?: boolean;
+  tempID?: string;
+}
+
 export type PageBlockInput = PageBlock | Partial<PageBlock>
 
 const defaultXYWH = [0, 2000, 3, 3]
@@ -34,6 +40,11 @@ export class PageBlock {
 
   public options = {}
 
+  public meta: PageBlockMeta = {
+    tabbed: false,
+    tempID: undefined,
+  }
+
   public style: PageBlockStyle = {
     variants: {
       headerText: 'dark',
@@ -48,6 +59,7 @@ export class PageBlock {
 
   constructor (i?: PageBlockInput) {
     this.apply(i)
+    this.setTempID()
   }
 
   apply (i?: PageBlockInput): void {
@@ -75,11 +87,28 @@ export class PageBlock {
     if (i.style) {
       this.style = merge({}, this.style, i.style)
     }
+
+    if (i.meta) {
+      this.meta = merge({}, this.meta, i.meta)
+    }
   }
 
   // Returns Page Block configuration errors
   validate (): Array<string> {
     return []
+  }
+
+  setTempID (): void {
+    this.meta.tempID = this.meta.tempID || generateUID()
+  }
+
+  clone(): PageBlockInput {
+    const clone = new PageBlock()
+    clone.kind = this.kind
+    clone.title = this.title
+    clone.style = merge({}, this.style)
+    clone.options = merge({}, this.options)
+    return clone
   }
 }
 

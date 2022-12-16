@@ -1,5 +1,7 @@
 <template>
-  <div class="d-flex flex-column align-items-center justify-content-center h-100 position-relative">
+  <div
+    class="d-flex flex-column align-items-center justify-content-center position-relative h-100"
+  >
     <div
       v-if="processing"
       class="d-flex flex-column align-items-center justify-content-center flex-fill"

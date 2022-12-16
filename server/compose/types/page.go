@@ -3,10 +3,11 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza/server/pkg/sql"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/locale"
@@ -58,6 +59,7 @@ type (
 		Style   PageBlockStyle         `json:"style,omitempty"`
 		Kind    string                 `json:"kind"`
 		XYWH    [4]int                 `json:"xywh"` // x,y,w,h
+		Meta    map[string]any         `json:"meta,omitempty"`
 
 		// Warning: value of this field is now handled via resource-translation facility
 		//          struct field is kept for the convenience for now since it allows us
