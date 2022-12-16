@@ -45,7 +45,7 @@
           :min-size="0"
           :class="{
             'overflow-hidden h-100': element.kind !== 'Text',
-            'w-100': block.elements.length === 1
+            'w-100': block.elements.length === 1,
           }"
           class="position-relative"
         >
