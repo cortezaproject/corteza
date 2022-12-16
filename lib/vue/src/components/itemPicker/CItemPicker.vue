@@ -37,6 +37,7 @@
                 {{ labels.availableItems }}
               </label>
               <b-button
+                data-test-id="link-select-all"
                 v-show="filteredAvailable.length && !disabled"
                 variant="link"
                 class="ml-auto px-0 text-muted"
@@ -124,6 +125,7 @@
                 {{ labels.selectedItems }}
               </label>
               <b-button
+                data-test-id="link-unselect-all"
                 v-show="filteredSelected.length && !disabled"
                 variant="link"
                 class="ml-auto px-0 text-muted"
