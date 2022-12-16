@@ -19,27 +19,31 @@
       :use-css-transforms="false"
       @layout-updated="handleLayoutUpdate"
     >
-      <grid-item
+      <template
         v-for="(item, index) in gridCollection"
-        :key="item.i"
-        ref="items"
-        class="grid-item"
-        :class="{
-          'h-100': isStretchable,
-        }"
-        style="touch-action: none;"
-        v-bind="{ ...item }"
-        @moved="onBlockUpdated(index)"
-        @resized="onBlockUpdated(index)"
       >
-        <slot
-          :block="blocks[item.i]"
-          :index="index"
-          :block-index="item.i"
-          :bounding-rect="boundingRects[index]"
-          v-on="$listeners"
-        />
-      </grid-item>
+        <grid-item
+          v-if="blocks[item.i].meta.tabbed !== true"
+          :key="item.i"
+          ref="items"
+          class="grid-item"
+          :class="{
+            'h-100': isStretchable,
+          }"
+          style="touch-action: none;"
+          v-bind="{ ...item }"
+          @moved="onBlockUpdated(index)"
+          @resized="onBlockUpdated(index)"
+        >
+          <slot
+            :block="blocks[item.i]"
+            :index="index"
+            :block-index="item.i"
+            :bounding-rect="boundingRects[index]"
+            v-on="$listeners"
+          />
+        </grid-item>
+      </template>
     </grid-layout>
   </div>
   <div

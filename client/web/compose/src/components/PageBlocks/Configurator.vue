@@ -148,6 +148,19 @@
             />
           </b-form-group>
         </b-col>
+
+        <b-col
+          v-if="showTabOption"
+          cols="12"
+        >
+          <b-form-checkbox
+            v-model="block.meta.tabbed"
+            switch
+            class="mb-2"
+          >
+            {{ $t('general.tabbed.label') }}
+          </b-form-checkbox>
+        </b-col>
       </b-row>
     </b-tab>
 
@@ -214,6 +227,10 @@ export default {
         { value: 'modal', text: this.$t('general.magnifyOptions.modal') },
         { value: 'fullscreen', text: this.$t('general.magnifyOptions.fullscreen') },
       ]
+    },
+
+    showTabOption () {
+      return this.block.kind !== 'Tabs' && this.block.meta !== undefined
     },
   },
 

@@ -8,7 +8,7 @@
           <b-list-group-item
             v-for="(type) in types"
             :key="type.label"
-            :disabled="!recordPage && type.recordPageOnly"
+            :disabled="isOptionDisabled(type)"
             button
             @click="$emit('select', type.block)"
             @mouseover="current = type.image"
@@ -55,6 +55,11 @@ export default {
     recordPage: {
       type: Boolean,
       default: false,
+    },
+
+    disabledKinds: {
+      type: Array,
+      default: () => [],
     },
   },
 
@@ -150,12 +155,23 @@ export default {
           image: images.Geometry,
         },
         {
+          label: this.$t('tabs.label'),
+          block: new compose.PageBlockTab(),
+          image: images.Tabs,
+        },
+        {
           label: this.$t('navigation.label'),
           block: new compose.PageBlockNavigation(),
           image: images.Navigation,
         },
       ],
     }
+  },
+
+  methods: {
+    isOptionDisabled (type) {
+      return (!this.recordPage && type.recordPageOnly) || this.disabledKinds.includes(type.block.kind)
+    },
   },
 }
 </script>
