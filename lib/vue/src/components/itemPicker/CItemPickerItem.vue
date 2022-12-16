@@ -21,6 +21,7 @@
     </b>
     <b-button
       v-if="_hideIcons"
+      :data-test-id="`button-${selected ? 'unselect' : 'select'}`"
       variant="link"
       class="text-decoration-none d-flex align-items-center align-baseline ml-auto px-2"
     >

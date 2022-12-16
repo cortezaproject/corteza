@@ -1,6 +1,7 @@
 <template>
   <div>
     <b-tab
+      data-test-id="record-list-configurator"
       :title="$t('recordList.label')"
     >
       <b-form-group
@@ -211,21 +212,27 @@
       >
         <b-form-input
           v-model.number="options.perPage"
+          data-test-id="input-records-per-page"
           type="number"
           class="mb-2"
         />
-        <b-form-checkbox v-model="options.hidePaging">
+        <b-form-checkbox
+          v-model="options.hidePaging"
+          data-test-id="hide-pagination"
+        >
           {{ $t('recordList.record.hidePaging') }}
         </b-form-checkbox>
         <b-form-checkbox
           v-if="!options.hidePaging"
           v-model="options.fullPageNavigation"
+          data-test-id="hide-page-navigation"
         >
           {{ $t('recordList.record.fullPageNavigation') }}
         </b-form-checkbox>
         <b-form-checkbox
           v-if="!options.hidePaging"
           v-model="options.showTotalCount"
+          data-test-id="show-total-record-count"
         >
           {{ $t('recordList.record.showTotalCount') }}
         </b-form-checkbox>
