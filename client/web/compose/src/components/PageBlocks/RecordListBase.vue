@@ -166,6 +166,7 @@
         :class="{ 'overflow-hidden': !items.length || processing }"
       >
         <b-table-simple
+          data-test-id="table-record-list"
           hover
           responsive
           sticky-header
@@ -489,11 +490,15 @@
                 v-if="options.showTotalCount"
                 class="ml-2 text-nowrap font-weight-bold"
               >
-                <span v-if="pagination.count > options.perPage">
+                <span
+                  v-if="pagination.count > options.perPage"
+                  data-test-id="pagination-range"
+                >
                   {{ $t('recordList.pagination.showing', getPagination) }}
                 </span>
                 <span
                   v-else
+                  data-test-id="pagination-single-number"
                 >
                   {{ $t('recordList.pagination.single', getPagination) }}
                 </span>
@@ -504,6 +509,7 @@
             >
               <b-pagination
                 v-if="options.fullPageNavigation"
+                data-test-id="pagination"
                 align="right"
                 aria-controls="record-list"
                 class="m-0 d-print-none"
@@ -534,6 +540,7 @@
               <b-button-group v-else>
                 <b-button
                   :disabled="!hasPrevPage"
+                  data-test-id="first-page"
                   variant="link"
                   class="text-dark"
                   @click="goToPage()"
@@ -542,6 +549,7 @@
                 </b-button>
                 <b-button
                   :disabled="!hasPrevPage"
+                  data-test-id="previous-page"
                   variant="link"
                   class="text-dark"
                   @click="goToPage('prevPage')"
@@ -551,6 +559,7 @@
                 </b-button>
                 <b-button
                   :disabled="!hasNextPage"
+                  data-test-id="next-page"
                   variant="link"
                   class="text-dark"
                   @click="goToPage('nextPage')"

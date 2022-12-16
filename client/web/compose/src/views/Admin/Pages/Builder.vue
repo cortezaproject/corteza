@@ -54,13 +54,16 @@
         slot-scope="{ boundingRect, block, index }"
       >
         <div
+          :data-test-id="`block-${block.kind}`"
           class="h-100 editable-block"
           :class="{ 'bg-warning': !isValid(block) }"
         >
           <div
             class="toolbox border-0 p-2 m-0 text-light text-center"
+            data-test-id="block-toolbox"
           >
             <b-button
+              data-test-id="button-edit"
               :title="$t('tooltip.edit.block')"
               variant="outline-light"
               class="border-0"
