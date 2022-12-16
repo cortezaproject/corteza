@@ -64,6 +64,7 @@
                   :namespace="namespace"
                   type="chart"
                   class="float-left mr-1"
+                  @importSuccessful="onImportSuccessful"
                 />
 
                 <export
@@ -233,6 +234,11 @@ export default {
         params: { chartID },
         query: null,
       })
+    },
+
+    onImportSuccessful () {
+      this.filterList()
+      this.toastSuccess(this.$t('notification:general.import.successful'))
     },
   },
 }

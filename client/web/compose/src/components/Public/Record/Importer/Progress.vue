@@ -63,17 +63,16 @@ export default {
 
   watch: {
     progress: {
-      handler: function ({ finishedAt, failed }) {
+      handler ({ finishedAt, failed }) {
         if (finishedAt && failed) {
           this.clearTimeout()
           this.$emit('importFailed', this.progress)
         } else if (finishedAt) {
           this.clearTimeout()
           this.$root.$emit('recordList.refresh', this.session)
+          this.$emit('importSuccessful')
         }
       },
-      deep: true,
-      immediate: true,
     },
   },
 

@@ -23,6 +23,7 @@
           :session="session"
           @fileUploaded="onFileUploaded"
           @fieldsMatched="onFieldsMatched"
+          @importSuccessful="onImportSuccessful"
           @importFailed="onImportFailed"
           @back="onBack"
           @reset="onReset"
@@ -108,6 +109,10 @@ export default {
       this.step = 2
 
       this.$ComposeAPI.recordImportRun(this.session)
+    },
+
+    onImportSuccessful () {
+      this.$emit('importSuccessful')
     },
 
     onImportFailed (e) {

@@ -50,6 +50,7 @@
                     :namespace="namespace"
                     type="module"
                     class="mr-1 float-left"
+                    @importSuccessful="onImportSuccessful"
                   />
 
                   <export
@@ -275,6 +276,11 @@ export default {
 
     items () {
       return this.procListResults(this.$ComposeAPI.moduleList(this.encodeListParams()))
+    },
+
+    onImportSuccessful () {
+      this.filterList()
+      this.toastSuccess(this.$t('notification:general.import.successful'))
     },
   },
 }
