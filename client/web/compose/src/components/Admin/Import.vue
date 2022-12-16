@@ -137,7 +137,7 @@ export default {
             break
           }
         }
-        this.toastSuccess(this.$t('notification:general.import.successful'))
+        this.$emit('importSuccessful')
       } catch (e) {
         this.toastErrorHandler(this.$t('notification:general.import.failed'))(e)
       }

@@ -199,7 +199,10 @@ export default {
   methods: {
     onImported () {
       this.$store.dispatch('namespace/load', { force: true })
-        .then(() => this.toastSuccess(this.$t('notification:namespace.imported')))
+        .then(() => {
+          this.filterList()
+          this.toastSuccess(this.$t('notification:namespace.imported'))
+        })
         .catch(this.toastErrorHandler(this.$t('notification:namespace.importFailed')))
     },
 

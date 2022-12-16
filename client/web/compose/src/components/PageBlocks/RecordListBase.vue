@@ -60,6 +60,7 @@
                     :module="recordListModule"
                     :namespace="namespace"
                     class="mr-1 float-left"
+                    @importSuccessful="onImportSuccessful"
                   />
                 </template>
               </template>
@@ -1366,6 +1367,10 @@ export default {
       } catch (e) {
         console.warning(this.$t('notification:record-list.corrupted-filter'))
       }
+    },
+
+    onImportSuccessful () {
+      this.refresh(true)
     },
   },
 }
