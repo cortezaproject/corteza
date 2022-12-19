@@ -149,6 +149,12 @@ var (
 			},
 			OutType: &TypeText{},
 		},
+		"instr": {
+			Handler: func(args ...string) string {
+				return fmt.Sprintf("instr(%s, %s)", args[0], args[1])
+			},
+			OutType: &TypeNumber{},
+		},
 
 		// @todo implement; the commented versions are not good enough
 		// "like": {
