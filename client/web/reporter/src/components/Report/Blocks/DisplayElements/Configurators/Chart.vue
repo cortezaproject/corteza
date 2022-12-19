@@ -43,6 +43,7 @@
               v-model="options.colorScheme"
               :options="colorSchemes"
               :reduce="cs => cs.value"
+              :placeholder="$t('general:label.default')"
               label="label"
               option-text="label"
               option-value="value"
@@ -108,20 +109,11 @@
         :label="$t('display-element:chart.configurator.label-column')"
         label-class="text-primary"
       >
-        <b-form-select
+        <column-selector
           v-model="options.labelColumn"
-          :options="labelColumns"
-          text-field="label"
-          value-field="name"
-        >
-          <template #first>
-            <b-form-select-option
-              value=""
-            >
-              {{ $t('display-element:chart.configurator.none') }}
-            </b-form-select-option>
-          </template>
-        </b-form-select>
+          :columns="labelColumns"
+          style="min-width: 100% !important;"
+        />
       </b-form-group>
 
       <b-form-group
@@ -323,6 +315,7 @@
 
 <script>
 import base from './base'
+import ColumnSelector from 'corteza-webapp-reporter/src/components/Common/ColumnSelector.vue'
 import ColumnPicker from 'corteza-webapp-reporter/src/components/Common/ColumnPicker'
 import VueSelect from 'vue-select'
 import { reporter, shared } from '@cortezaproject/corteza-js'
@@ -331,6 +324,7 @@ const { colorschemes } = shared
 export default {
   components: {
     VueSelect,
+    ColumnSelector,
     ColumnPicker,
   },
 

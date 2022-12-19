@@ -5,20 +5,11 @@
       :label="$t('display-element:metric.configurator.label-column')"
       label-class="text-primary"
     >
-      <b-form-select
+      <column-selector
         v-model="options.valueColumn"
-        :options="valueColumns"
-        text-field="label"
-        value-field="name"
-      >
-        <template #first>
-          <b-form-select-option
-            value=""
-          >
-            {{ $t('display-element:metric.configurator.none') }}
-          </b-form-select-option>
-        </template>
-      </b-form-select>
+        :columns="valueColumns"
+        style="min-width: 100% !important;"
+      />
     </b-form-group>
 
     <b-row>
@@ -86,8 +77,13 @@
 
 <script>
 import base from './base'
+import ColumnSelector from 'corteza-webapp-reporter/src/components/Common/ColumnSelector.vue'
 
 export default {
+  components: {
+    ColumnSelector,
+  },
+
   extends: base,
 
   computed: {
