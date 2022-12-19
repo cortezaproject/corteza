@@ -26,7 +26,7 @@
         >
           <b-form-select
             v-model="column.field"
-            :options="fields"
+            :options="availableFields"
             text-field="label"
             value-field="name"
             class="rounded"
@@ -161,8 +161,8 @@ export default {
       ]
     },
 
-    sortedFields () {
-      return [...this.fields.sort((a, b) => a.label.localeCompare(b.label))]
+    availableFields () {
+      return this.fields.map(f => ({ ...f,label: `${f.label} (${f.name})` }))
     }
   },
 

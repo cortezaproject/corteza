@@ -16,6 +16,7 @@ label:
   save: Save
   today: Today
   urlPlaceholder: https://example.tld
+  default: Default
 resourceList:
   notFound: Not found
   noItems: No items to show
