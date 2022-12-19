@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="prefilter">
     <b-table-simple
       v-if="render && filter.ref"
       responsive
@@ -23,13 +23,13 @@
               class="w-auto"
               @change="reRender()"
             />
-            <h6
+            <span
               v-else
-              class="mb-0"
+              class="px-3"
               style="min-width: 60px;"
             >
               {{ argIndex === 0 ? 'Where' : `${group.args[0].ref[0].toUpperCase() + group.args[0].ref.slice(1).toLowerCase()}` }}
-            </h6>
+            </span>
           </td>
           <template v-if="Object.keys(arg).includes('raw')">
             <td>
@@ -71,22 +71,11 @@
                 </b-input-group-prepend>
 
                 <template v-if="group.args[0].args[argIndex].args[0].args[0].value && getColumnData(group.args[0].args[argIndex].args[0].args[1]).multivalue">
-                  <b-form-select
-                    :options="columns"
-                    text-field="label"
-                    value-field="name"
-                    style="max-width: 33%;"
+                  <column-selector
+                    :columns="columns"
                     :value="group.args[0].args[argIndex].args[0].args[1].symbol"
-                    @change="(symbol) => setType(groupIndex, argIndex, symbol, group.args[0].args[argIndex].args[0].args[0].value['@value'])"
-                  >
-                    <template #first>
-                      <b-form-select-option
-                        value=""
-                      >
-                        {{ $t('general:label.none') }}
-                      </b-form-select-option>
-                    </template>
-                  </b-form-select>
+                    @input="setType(groupIndex, argIndex, $event, group.args[0].args[argIndex].args[0].args[0].value['@value'])"
+                  />
 
                   <b-form-select
                     v-model="group.args[0].args[argIndex].args[0].ref"
@@ -101,22 +90,11 @@
                 </template>
 
                 <template v-else>
-                  <b-form-select
-                    :options="columns"
-                    text-field="label"
-                    value-field="name"
-                    style="max-width: 33%;"
+                  <column-selector
                     :value="group.args[0].args[argIndex].args[0].args[0].symbol"
-                    @change="(symbol) => setType(groupIndex, argIndex, symbol, group.args[0].args[argIndex].args[0].args[1].value['@value'])"
-                  >
-                    <template #first>
-                      <b-form-select-option
-                        value=""
-                      >
-                        {{ $t('general:label.none') }}
-                      </b-form-select-option>
-                    </template>
-                  </b-form-select>
+                    :columns="columns"
+                    @input="setType(groupIndex, argIndex, $event, group.args[0].args[argIndex].args[0].args[1].value['@value'])"
+                  />
 
                   <b-form-select
                     v-model="group.args[0].args[argIndex].args[0].ref"
@@ -218,7 +196,13 @@
 </template>
 
 <script>
+import ColumnSelector from 'corteza-webapp-reporter/src/components/Common/ColumnSelector.vue'
+
 export default {
+  components: {
+    ColumnSelector,
+  },
+
   props: {
     filter: {
       type: Object,
@@ -394,27 +378,25 @@ export default {
     },
 
     setType (groupIndex, argIndex, symbol, value) {
-      if (symbol) {
-        // Get arg
-        if (this.filter.args[groupIndex].args[0].args[argIndex]) {
-          // Get type
-          const { kind, multivalue } = this.columns.find(({ name }) => name === symbol)
-
-          // Set type
-          if (kind) {
-            if (multivalue) {
-              this.filter.args[groupIndex].args[0].args[argIndex].args[0].args[0] = { value: { '@type': kind, '@value': value } }
-              this.filter.args[groupIndex].args[0].args[argIndex].args[0].args[1] = { symbol }
-              this.filter.args[groupIndex].args[0].args[argIndex].args[0].ref = 'in'
-            } else {
-              this.filter.args[groupIndex].args[0].args[argIndex].args[0].args[0] = { symbol }
-              this.filter.args[groupIndex].args[0].args[argIndex].args[0].args[1] = { value: { '@type': kind, '@value': value } }
-              this.filter.args[groupIndex].args[0].args[argIndex].args[0].ref = 'eq'
-            }
-          }
-        }
-        this.reRender()
+      if (!this.filter.args[groupIndex].args[0].args[argIndex]) {
+        return
       }
+
+      // Get type
+      const { kind = '', multivalue } = this.columns.find(({ name }) => name === symbol) || {}
+
+      // Set type
+      if (multivalue) {
+        this.filter.args[groupIndex].args[0].args[argIndex].args[0].args[0] = { value: { '@type': kind, '@value': value } }
+        this.filter.args[groupIndex].args[0].args[argIndex].args[0].args[1] = { symbol }
+        this.filter.args[groupIndex].args[0].args[argIndex].args[0].ref = 'in'
+      } else {
+        this.filter.args[groupIndex].args[0].args[argIndex].args[0].args[0] = { symbol }
+        this.filter.args[groupIndex].args[0].args[argIndex].args[0].args[1] = { value: { '@type': kind, '@value': value } }
+        this.filter.args[groupIndex].args[0].args[argIndex].args[0].ref = 'eq'
+      }
+
+      this.reRender()
     },
 
     reRender () {
@@ -454,5 +436,15 @@ export default {
   background-repeat: no-repeat;
   background-size: 100% 1px;
   background-position: center;
+}
+</style>
+
+<style lang="scss">
+.prefilter .column-selector {
+  .vs__dropdown-toggle {
+    border-right: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
 }
 </style>

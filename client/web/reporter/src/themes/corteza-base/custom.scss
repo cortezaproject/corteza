@@ -63,13 +63,18 @@ th {
   min-width: 20vw;
   max-width: 300px;
 
-  .vs__search {
-    border: none !important;
+  &:not(.vs--open) .vs__selected + .vs__search {
     width: 0;
+    padding: 0;
+    margin: 0;
+    border: none;
+    height: 0;
   }
 
   .vs__dropdown-toggle {
+    height: 100%;
     border-color: $light;
+    border-width: 2px;
   }
 
   .vs__dropdown-option {
@@ -83,11 +88,15 @@ th {
   }
 
   .vs__selected-options {
-    flex-wrap: nowrap;
+    width: 0;
   }
 
   .vs__selected {
-    word-break: break-all;
+    display: block;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    overflow: hidden;
   }
 }
 

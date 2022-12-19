@@ -68,20 +68,11 @@
           :label="$t('datasources:primary.column')"
           label-class="text-primary"
         >
-          <b-form-select
+          <column-selector
             v-model="step.join.localColumn"
-            :options="localColumns"
-            value-field="name"
-            text-field="label"
-          >
-            <template #first>
-              <b-form-select-option
-                value=""
-              >
-                {{ $t('general:label.none') }}
-              </b-form-select-option>
-            </template>
-          </b-form-select>
+            :columns="localColumns"
+            style="min-width: 100% !important;"
+          />
         </b-form-group>
       </b-col>
       <b-col cols="6">
@@ -90,20 +81,11 @@
           :label="$t('datasources:secondary.column')"
           label-class="text-primary"
         >
-          <b-form-select
+          <column-selector
             v-model="step.join.foreignColumn"
-            :options="foreignColumns"
-            value-field="name"
-            text-field="label"
-          >
-            <template #first>
-              <b-form-select-option
-                value=""
-              >
-                {{ $t('general:label.none') }}
-              </b-form-select-option>
-            </template>
-          </b-form-select>
+            :columns="foreignColumns"
+            style="min-width: 100% !important;"
+          />
         </b-form-group>
       </b-col>
     </b-row>
@@ -112,8 +94,13 @@
 
 <script>
 import base from './base.vue'
+import ColumnSelector from 'corteza-webapp-reporter/src/components/Common/ColumnSelector.vue'
 
 export default {
+  components: {
+    ColumnSelector,
+  },
+
   extends: base,
 
   props: {
