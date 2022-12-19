@@ -21,6 +21,17 @@ var (
 				return exp.NewSQLFunctionExpression("CONCAT", aa...)
 			},
 		},
+		"instr": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				// need to force text type on all arguments
+				aa := make([]any, len(args))
+				for a := range args {
+					aa[a] = exp.NewCastExpression(exp.NewLiteralExpression("?", args[a]), "TEXT")
+				}
+
+				return exp.NewSQLFunctionExpression("INSTR", args[0], args[1])
+			},
+		},
 
 		// filtering
 		"now": {
