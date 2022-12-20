@@ -27,7 +27,7 @@ export class BasicChartOptions extends ChartOptions {
       xAxis: [],
       yAxis: [],
       tooltip: {
-        show: this.showTooltips,
+        show: true,
         appendToBody: true,
       },
     }
@@ -52,11 +52,11 @@ export class BasicChartOptions extends ChartOptions {
             formatter: '{a}<br />{b} : {c} ({d}%)',
           },
           label: {
-            show: false,
+            show: this.showTooltipsAlways,
             position: 'inside',
             align: 'center',
             verticalAlign: 'middle',
-            fontSize: 14,
+            formatter: '{c} ({d}%)',
           },
           itemStyle: {
             borderRadius: 5,
@@ -73,12 +73,20 @@ export class BasicChartOptions extends ChartOptions {
           data: labels.map((name, i) => {
             return { name, value: data[i] }
           }),
+          top: this.offset.default ? undefined : this.offset.top,
+          right: this.offset.default ? undefined : this.offset.right,
+          bottom: this.offset.default ? undefined : this.offset.bottom,
+          left: this.offset.default ? undefined : this.offset.left,
         }
       })
     } else if (['bar', 'line'].includes(this.type)) {
       options.tooltip.trigger = 'axis'
 
-      const { label: xLabel, type: xType = 'category' } = this.xAxis
+      const {
+        label: xLabel,
+        type: xType = 'category',
+        labelRotation: xLabelRotation = 0
+      } = this.xAxis
 
       options.xAxis = [
         {
@@ -91,20 +99,22 @@ export class BasicChartOptions extends ChartOptions {
             interval: 0,
             overflow: 'truncate',
             hideOverlap: true,
+            rotate: xLabelRotation,
           },
         },
       ]
 
       options.grid = {
-        top: this.title ? 70 : 45,
-        bottom: xLabel ? 30 : 25,
-        left: 40,
-        right: 40,
+        top: this.offset.default ? (this.title ? 70 : 45) : this.offset.top,
+        right: this.offset.default ? 30 : this.offset.right,
+        bottom: this.offset.default ? (xLabel ? 30 : 25) : this.offset.bottom,
+        left: this.offset.default ? 30 : this.offset.left,
         containLabel: true,
       }
 
       const {
         label: yLabel,
+        labelRotation: yLabelRotation = 0,
         type: yType = 'linear',
         position = 'left',
         labelPosition = 'end',
@@ -125,6 +135,7 @@ export class BasicChartOptions extends ChartOptions {
           interval: 0,
           overflow: 'truncate',
           hideOverlap: true,
+          rotate: yLabelRotation,
         },
         axisLine: {
           show: true,
@@ -152,11 +163,10 @@ export class BasicChartOptions extends ChartOptions {
           areaStyle: {},
           left: 'left',
           label: {
-            show: false,
+            show: this.showTooltipsAlways,
             position: 'inside',
             align: 'center',
             verticalAlign: 'middle',
-            fontSize: 14,
           },
           data: xType === 'time' ? labels.map((name, i) => {
             return [moment(name).valueOf() || undefined, data[i]]
@@ -178,9 +188,13 @@ export class BasicChartOptions extends ChartOptions {
         fontFamily: 'Poppins-Regular',
       },
       legend: {
-        show: this.showLegend,
-        top: this.title ? 25 : undefined,
-        type: 'scroll',
+        show: !this.legend.hide,
+        type: this.legend.scrollable ? 'scroll' : 'plain',
+        top: (this.legend.position.default ? (this.title ? 25 : undefined) : this.legend.position.top) || undefined,
+        right: (this.legend.position.default ? undefined : this.legend.position.right) || undefined,
+        bottom: (this.legend.position.default ? undefined : this.legend.position.bottom) || undefined,
+        left: (this.legend.position.default ? this.legend.align || 'center' : this.legend.position.left) || 'auto',
+        orient: this.legend.orientation || 'horizontal'
       },
       ...options,
     }

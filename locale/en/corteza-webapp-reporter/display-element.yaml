@@ -10,16 +10,14 @@ chart:
     general: General
     label-column: Label column
     logarithmic-scale: Logarithmic scale
+    position-description: Values can be set as pixels (20) or as percentages (20%)
     none: None
     place-axis-on-right-side: Place axis on the right side
-    show:
-      tooltips: Show tooltips
-      legend: Show legend
     skip-missing-values: Skip missing values
     step-size: Step size
     time:
       label: Time
-      unit: 
+      unit:
         label: Time unit
         types:
           date: Date
@@ -37,10 +35,12 @@ chart:
     value:
       max: Max value
       min: Min value
-    x-axis: 
+    x-axis:
       name: X-Axis
       label: Axis label
       type: Axis type
+      labelRotation:
+        label: Rotate labels
     y-axis:
       name: Y-Axis
       label: Axis label
@@ -49,6 +49,39 @@ chart:
         top: Top
         center: Center
         bottom: Bottom
+      labelRotation:
+        label: Rotate labels
+    legend:
+      name: Legend
+      hide: Hide legend
+      scrollable: Scrollable
+      orientation:
+        label: Orientation
+        horizontal: Horizontal
+        vertical: Vertical
+      align:
+        label: Align
+        left: Left
+        right: Right
+        center: Center
+      position:
+        description: Values c
+        default: Default position
+        top: Top
+        right: Right
+        bottom: Bottom
+        left: Left
+    tooltips:
+      name: Tooltips
+      show:
+        always: Always show tooltips
+    offset:
+      name: Offset
+      default: Default offset
+      top: Top
+      right: Right
+      bottom: Bottom
+      left: Left
 metric:
   configurator:
     color:
@@ -70,7 +103,7 @@ table:
     light: Light
     none: None
     table:
-      options: 
+      options:
         bordered: Bordered
         borderless: Borderless
         dark: Dark
