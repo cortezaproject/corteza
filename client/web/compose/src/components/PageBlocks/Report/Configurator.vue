@@ -8,7 +8,7 @@
           <b-form-select
             v-model="options.reportID"
             :options="reportOptions"
-            text-field="handle"
+            text-field="label"
             value-field="reportID"
           />
         </b-form-group>
@@ -63,8 +63,8 @@ export default {
   computed: {
     reportOptions () {
       return [
-        { reportID: NoID, handle: this.$t('general:label.none') },
-        ...this.reports,
+        { reportID: NoID, label: this.$t('general:label.none') },
+        ...this.reports.map(r => ({ ...r, label: r.meta.name || r.handle })),
       ]
     },
 
