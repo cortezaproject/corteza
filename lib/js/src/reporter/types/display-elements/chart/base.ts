@@ -12,11 +12,13 @@ interface XAxisOptions {
   unit?: string;
   skipMissing: boolean;
   defaultValue?: any;
+  labelRotation: number;
 }
 
 interface YAxisOptions {
   label?: string;
   labelPosition?: string;
+  labelRotation: number;
   type?: string;
   position?: string;
   beginAtZero?: boolean;
@@ -25,32 +27,77 @@ interface YAxisOptions {
   max?: string;
 }
 
+interface Legend {
+  hide: boolean;
+  orientation: string;
+  align: string;
+  scrollable: boolean;
+  position: Offset;
+}
+
+interface Tooltips {
+  showAlways: boolean;
+}
+
+interface Offset {
+  default: boolean;
+  top?: string;
+  right?: string;
+  bottom?: string;
+  left?: string;
+}
+
 export class ChartOptions {
   public title = ''
   public type = 'bar'
   public colorScheme = ''
   public source = ''
   public datasources: Array<FrameDefinition> = []
-  public showTooltips = true
-  public showLegend = true
 
   public xAxis: XAxisOptions = {
     type: '',
     skipMissing: true,
+    labelRotation: 0,
   }
 
   public yAxis: YAxisOptions = {
     type: 'linear',
     position: 'left',
     labelPosition: 'end',
+    labelRotation: 0,
     beginAtZero: true,
+  }
+
+  public legend: Legend = {
+    hide: false,
+    orientation: 'horizontal',
+    align: 'center',
+    scrollable: true,
+    position: {
+      default: true,
+      top: undefined,
+      right: undefined,
+      bottom: undefined,
+      left: undefined,
+    }
+  }
+
+  public tooltips: Tooltips = {
+    showAlways: false,
+  }
+
+  public offset: Offset = {
+    default: true,
+    top: undefined,
+    right: undefined,
+    bottom: undefined,
+    left: undefined,
   }
 
   constructor (o: PartialChartOptions = {}) {
     if (!o) return
 
     Apply(this, o, String, 'title', 'type', 'colorScheme', 'source')
-    Apply(this, o, Boolean, 'showTooltips', 'showLegend')
 
     if (o.datasources) {
       this.datasources = o.datasources
@@ -62,6 +109,18 @@ export class ChartOptions {
 
     if (o.yAxis) {
       this.yAxis = { ...this.yAxis, ...o.yAxis }
+    }
+
+    if (o.legend) {
+      this.legend = { ...this.legend, ...o.legend }
+    }
+
+    if (o.tooltips) {
+      this.tooltips = { ...this.tooltips, ...o.tooltips }
+    }
+
+    if (o.offset) {
+      this.offset = { ...this.offset, ...o.offset }
     }
   }
 }

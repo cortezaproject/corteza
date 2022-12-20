@@ -36,42 +36,40 @@ export class FunnelChartOptions extends ChartOptions {
         fontFamily: 'Poppins-Regular',
       },
       tooltip: {
-        show: this.showTooltips,
+        show: true,
         trigger: 'item',
         formatter: '{b} : {c} ({d}%)',
         appendToBody: true,
       },
       legend: {
-        show: this.showLegend,
-        top: this.title ? 25 : undefined,
-        type: 'scroll',
+        show: !this.legend.hide,
+        type: this.legend.scrollable ? 'scroll' : 'plain',
+        top: (this.legend.position.default ? (this.title ? 25 : undefined) : this.legend.position.top) || undefined,
+        right: (this.legend.position.default ? undefined : this.legend.position.right) || undefined,
+        bottom: (this.legend.position.default ? undefined : this.legend.position.bottom) || undefined,
+        left: (this.legend.position.default ? this.legend.align || 'center' : this.legend.position.left) || 'auto',
+        orient: this.legend.orientation || 'horizontal'
       },
       series: [
         {
           type: 'funnel',
           name: this.labelColumn,
           sort: 'descending',
-          min: 1,
-          top: this.title ? 60 : 35,
-          left: '5%',
-          bottom: '5%',
           width: '90%',
           label: {
-            show: false,
+            show: this.showTooltipsAlways,
             position: 'inside',
             align: 'center',
             verticalAlign: 'middle',
-          },
-          emphasis: {
-            label: {
-              show: !this.showTooltips,
-              fontSize: 14,
-              formatter: '{c} ({d}%)',
-            },
+            formatter: '{c} ({d}%)',
           },
           data: labels.map((name, i) => {
             return { name, value: data[i], itemStyle: { color: colors[i] } }
           }),
+          top: this.offset.default ? (this.title ? 60 : 35) : this.offset.top,
+          right: this.offset.default ? '5%' : this.offset.right,
+          bottom: this.offset.default ? '5%' : this.offset.bottom,
+          left: this.offset.default ? '5%' : this.offset.left,
         },
       ],
     }
