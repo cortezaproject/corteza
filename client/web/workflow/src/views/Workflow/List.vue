@@ -138,8 +138,8 @@
               <c-permissions-button
                 v-if="w.canGrant"
                 :tooltip="$t('permissions:resources.automation.workflow.tooltip')"
-                :title="w.meta.name || w.handle"
-                :target="w.meta.name || w.handle"
+                :title="w.meta.name || w.handle || w.workflowID"
+                :target="w.meta.name || w.handle || w.workflowID"
                 :resource="`corteza::automation:workflow/${w.workflowID}`"
                 link
                 class="btn px-2"

@@ -118,8 +118,8 @@
               </b-button>
               <c-permissions-button
                 v-if="m.canGrant"
-                :title="m.name"
-                :target="m.name"
+                :title="m.name || m.handle || m.moduleID"
+                :target="m.name || m.handle || m.moduleID"
                 :resource="`corteza::compose:module/${m.namespaceID}/${m.moduleID}`"
                 :tooltip="$t('permissions:resources.compose.module.tooltip')"
                 class="btn px-2"

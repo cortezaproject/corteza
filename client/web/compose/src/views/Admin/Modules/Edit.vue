@@ -110,8 +110,8 @@
 
                     <b-dropdown-item>
                       <c-permissions-button
-                        :title="module.name"
-                        :target="module.name"
+                        :title="module.name || module.handle || module.moduleID"
+                        :target="module.name || module.handle || module.moduleID"
                         :resource="`corteza::compose:module/${namespace.namespaceID}/${module.moduleID}`"
                         :button-label="$t('general:label.module')"
                         :show-button-icon="false"
@@ -121,8 +121,8 @@
 
                     <b-dropdown-item>
                       <c-permissions-button
-                        :title="module.name"
-                        :target="module.name"
+                        :title="module.name || module.handle || module.moduleID"
+                        :target="module.name || module.handle || module.moduleID"
                         :resource="`corteza::compose:module-field/${namespace.namespaceID}/${module.moduleID}/*`"
                         :button-label="$t('general:label.field')"
                         :show-button-icon="false"
@@ -133,8 +133,8 @@
 
                     <b-dropdown-item>
                       <c-permissions-button
-                        :title="module.name"
-                        :target="module.name"
+                        :title="module.name || module.handle || module.moduleID"
+                        :target="module.name || module.handle || module.moduleID"
                         :resource="`corteza::compose:record/${namespace.namespaceID}/${module.moduleID}/*`"
                         :button-label="$t('general:label.record')"
                         :show-button-icon="false"
