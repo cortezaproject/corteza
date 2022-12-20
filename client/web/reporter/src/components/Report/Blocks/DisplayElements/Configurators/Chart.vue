@@ -8,7 +8,10 @@
       </h5>
 
       <b-row>
-        <b-col>
+        <b-col
+          cols="12"
+          sm="6"
+        >
           <b-form-group
             :label="$t('display-element:chart.configurator.type')"
             label-class="text-primary"
@@ -20,7 +23,11 @@
             />
           </b-form-group>
         </b-col>
-        <b-col>
+
+        <b-col
+          cols="12"
+          sm="6"
+        >
           <b-form-group
             :label="$t('display-element:chart.configurator.chart-title')"
             label-class="text-primary"
@@ -33,7 +40,10 @@
       </b-row>
 
       <b-row>
-        <b-col>
+        <b-col
+          cols="12"
+          sm="6"
+        >
           <b-form-group
             :label="$t('display-element:chart.configurator.color-scheme')"
             label-class="text-primary"
@@ -48,7 +58,8 @@
               option-text="label"
               option-value="value"
               clearable
-              class="h-100 w-100"
+              class="mw-100"
+              style="min-width: 100%;"
             >
               <template #option="option">
                 <p
@@ -64,6 +75,7 @@
                 />
               </template>
             </vue-select>
+
             <template
               v-if="currentColorScheme"
             >
@@ -75,22 +87,6 @@
               />
             </template>
           </b-form-group>
-        </b-col>
-        <b-col
-          align-self="center"
-        >
-          <b-form-checkbox
-            v-model="options.showTooltips"
-            class="pb-2"
-          >
-            {{ $t('display-element:chart.configurator.show.tooltips') }}
-          </b-form-checkbox>
-          <b-form-checkbox
-            v-model="options.showLegend"
-            class="pb-2"
-          >
-            {{ $t('display-element:chart.configurator.show.legend') }}
-          </b-form-checkbox>
         </b-col>
       </b-row>
       <hr>
@@ -194,22 +190,15 @@
             </b-col>
             <b-col>
               <b-form-group
-                v-if="options.xAxis.type === 'time'"
-                :label="$t('display-element:chart.configurator.time.unit.label')"
+                :label="$t('display-element:chart.configurator.x-axis.labelRotation.label')"
                 label-class="text-primary"
+                class="mb-1"
               >
-                <b-form-select
-                  v-model="options.xAxis.unit"
-                  :options="timeUnits"
-                >
-                  <template #first>
-                    <b-form-select-option
-                      :value="undefined"
-                    >
-                      {{ $t('display-element:chart.configurator.default') }}
-                    </b-form-select-option>
-                  </template>
-                </b-form-select>
+                <b-input
+                  v-model="options.xAxis.labelRotation"
+                  type="number"
+                  number
+                />
               </b-form-group>
             </b-col>
           </b-row>
@@ -243,6 +232,19 @@
                 />
               </b-form-group>
             </b-col>
+            <b-col>
+              <b-form-group
+                :label="$t('display-element:chart.configurator.y-axis.labelRotation.label')"
+                label-class="text-primary"
+                class="mb-1"
+              >
+                <b-input
+                  v-model="options.yAxis.labelRotation"
+                  type="number"
+                  number
+                />
+              </b-form-group>
+            </b-col>
           </b-row>
 
           <b-row>
@@ -254,6 +256,7 @@
                 <b-form-input
                   v-model="options.yAxis.min"
                   type="number"
+                  number
                 />
               </b-form-group>
             </b-col>
@@ -284,17 +287,17 @@
             <b-col>
               <b-form-group>
                 <b-form-checkbox
-                  v-model="options.yAxis.beginAtZero"
-                >
-                  {{ $t('display-element:chart.configurator.begin-axis-at-zero') }}
-                </b-form-checkbox>
-
-                <b-form-checkbox
                   v-model="options.yAxis.type"
                   value="logarithmic"
                   unchecked-value="linear"
                 >
                   {{ $t('display-element:chart.configurator.logarithmic-scale') }}
+                </b-form-checkbox>
+
+                <b-form-checkbox
+                  v-model="options.yAxis.beginAtZero"
+                >
+                  {{ $t('display-element:chart.configurator.begin-axis-at-zero') }}
                 </b-form-checkbox>
 
                 <b-form-checkbox
@@ -308,6 +311,249 @@
             </b-col>
           </b-row>
         </div>
+      </div>
+
+      <hr>
+
+      <div>
+        <h5 class="text-primary mb-2">
+          {{ $t('display-element:chart.configurator.legend.name') }}
+        </h5>
+
+        <b-form-checkbox
+          v-model="options.legend.hide"
+          class="mb-3"
+        >
+          {{ $t('display-element:chart.configurator.legend.hide') }}
+        </b-form-checkbox>
+
+        <b-row v-if="!options.legend.hide">
+          <b-col
+            cols="12"
+            sm="6"
+          >
+            <b-form-group
+              :label="$t('display-element:chart.configurator.legend.align.label')"
+              label-class="text-primary"
+              class="mb-1"
+            >
+              <b-form-select
+                v-model="options.legend.align"
+                :options="alignments"
+                :disabled="!options.legend.position.default"
+              />
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            sm="6"
+          >
+            <b-form-group
+              :label="$t('display-element:chart.configurator.legend.orientation.label')"
+              label-class="text-primary"
+              class="mb-1"
+            >
+              <b-form-select
+                v-model="options.legend.orientation"
+                :options="orientations"
+              />
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            sm="6"
+          >
+            <b-form-checkbox
+              v-model="options.legend.position.default"
+              :class="{ 'mb-3': !options.legend.position.default }"
+            >
+              {{ $t('display-element:chart.configurator.legend.position.default') }}
+            </b-form-checkbox>
+          </b-col>
+
+          <b-col
+            cols="12"
+            sm="6"
+          >
+            <b-form-checkbox
+              v-model="options.legend.scrollable"
+              :disabled="options.legend.orientation !== 'horizontal'"
+            >
+              {{ $t('display-element:chart.configurator.legend.scrollable') }}
+            </b-form-checkbox>
+          </b-col>
+
+          <template
+            v-if="!options.legend.position.default"
+          >
+            <b-col
+              cols="12"
+              sm="6"
+              xl="3"
+            >
+              <b-form-group
+                :label="$t('display-element:chart.configurator.legend.position.top')"
+                label-class="text-primary"
+              >
+                <b-input
+                  v-model="options.legend.position.top"
+                />
+              </b-form-group>
+            </b-col>
+
+            <b-col
+              cols="12"
+              sm="6"
+              xl="3"
+            >
+              <b-form-group
+                :label="$t('display-element:chart.configurator.legend.position.right')"
+                label-class="text-primary"
+              >
+                <b-input
+                  v-model="options.legend.position.right"
+                />
+              </b-form-group>
+            </b-col>
+
+            <b-col
+              cols="12"
+              sm="6"
+              xl="3"
+            >
+              <b-form-group
+                :label="$t('display-element:chart.configurator.legend.position.bottom')"
+                label-class="text-primary"
+              >
+                <b-input
+                  v-model="options.legend.position.bottom"
+                />
+              </b-form-group>
+            </b-col>
+
+            <b-col
+              cols="12"
+              sm="6"
+              xl="3"
+            >
+              <b-form-group
+                :label="$t('display-element:chart.configurator.legend.position.left')"
+                label-class="text-primary"
+              >
+                <b-input
+                  v-model="options.legend.position.left"
+                />
+              </b-form-group>
+            </b-col>
+
+            <b-col>
+              <small>{{ $t('display-element:chart.configurator.position-description') }}</small>
+            </b-col>
+          </template>
+        </b-row>
+      </div>
+
+      <hr>
+
+      <div>
+        <h5 class="text-primary mb-2">
+          {{ $t('display-element:chart.configurator.tooltips.name') }}
+        </h5>
+
+        <b-row>
+          <b-col>
+            <b-form-checkbox
+              v-model="options.showTooltipsAlways"
+            >
+              {{ $t('display-element:chart.configurator.tooltips.show.always') }}
+            </b-form-checkbox>
+          </b-col>
+        </b-row>
+      </div>
+
+      <hr>
+
+      <div class="mb-2">
+        <h5 class="text-primary mb-2">
+          {{ $t('display-element:chart.configurator.offset.name') }}
+        </h5>
+
+        <b-form-checkbox
+          v-model="options.offset.default"
+          class="mb-3"
+        >
+          {{ $t('display-element:chart.configurator.offset.default') }}
+        </b-form-checkbox>
+
+        <b-row v-if="!options.offset.default">
+          <b-col
+            cols="12"
+            sm="6"
+            xl="3"
+          >
+            <b-form-group
+              :label="$t('display-element:chart.configurator.offset.top')"
+              label-class="text-primary"
+            >
+              <b-input
+                v-model="options.offset.top"
+              />
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            sm="6"
+            xl="3"
+          >
+            <b-form-group
+              :label="$t('display-element:chart.configurator.offset.right')"
+              label-class="text-primary"
+            >
+              <b-input
+                v-model="options.offset.right"
+              />
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            sm="6"
+            xl="3"
+          >
+            <b-form-group
+              :label="$t('display-element:chart.configurator.offset.bottom')"
+              label-class="text-primary"
+            >
+              <b-input
+                v-model="options.offset.bottom"
+              />
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            sm="6"
+            xl="3"
+          >
+            <b-form-group
+              :label="$t('display-element:chart.configurator.offset.left')"
+              label-class="text-primary"
+            >
+              <b-input
+                v-model="options.offset.left"
+              />
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+          >
+            <small>{{ $t('display-element:chart.configurator.position-description') }}</small>
+          </b-col>
+        </b-row>
       </div>
     </div>
   </div>
@@ -349,6 +595,17 @@ export default {
         { value: 'end', text: this.$t('display-element:chart.configurator.y-axis.labelPosition.top') },
         { value: 'center', text: this.$t('display-element:chart.configurator.y-axis.labelPosition.center') },
         { value: 'start', text: this.$t('display-element:chart.configurator.y-axis.labelPosition.bottom') },
+      ],
+
+      orientations: [
+        { value: 'horizontal', text: this.$t('display-element:chart.configurator.legend.orientation.horizontal') },
+        { value: 'vertical', text: this.$t('display-element:chart.configurator.legend.orientation.vertical') },
+      ],
+
+      alignments: [
+        { value: 'left', text: this.$t('display-element:chart.configurator.legend.align.left') },
+        { value: 'center', text: this.$t('display-element:chart.configurator.legend.align.center') },
+        { value: 'right', text: this.$t('display-element:chart.configurator.legend.align.right') },
       ],
     }
   },
