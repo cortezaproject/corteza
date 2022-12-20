@@ -50,11 +50,11 @@
             v-for="(c, i) in tabelify.header"
             :key="i"
             class="border-0"
-            :class="{ 'pointer': c.meta.tmp_noSort }"
-            @click="c.meta.tmp_noSort ? undefined : handleSort(c.meta.sortKey)"
           >
             <div
               class="d-flex align-items-center"
+              :class="{ 'pointer': !c.meta.tmp_noSort }"
+              @click="c.meta.tmp_noSort ? undefined : handleSort(c.meta.sortKey)"
             >
               <div
                 v-if="c.column ? c.column.label : ''"
@@ -465,7 +465,7 @@ export default {
           const def = {
             ref,
           }
-  
+
           // Sorting
           const { field, descending } = this.sort
           if (field) {

@@ -1,9 +1,11 @@
 <template>
-  <c-chart
-    v-if="chart"
-    :chart="chart"
-    class="p-1"
-  />
+  <div class="d-flex h-100 position-relative">
+    <c-chart
+      v-if="chart"
+      :chart="chart"
+      class="flex-fill p-1"
+    />
+  </div>
 </template>
 <script>
 import base from './base.vue'
