@@ -3,12 +3,15 @@
     class="d-flex align-items-center"
   >
     <font-awesome-icon
-      v-if="!disabled && !disabledDragging && !disabledSorting && !hideIcons"
+      v-if="!disabled && !disabledSorting && !hideIcons"
       :icon="['fas', 'grip-vertical']"
-      class="handle align-baseline mr-3 text-primary"
+      :class="{
+        'text-muted': disabledDragging,
+      }"
+      class="align-baseline mr-3 text-primary"
     />
     <b
-      class="cursor-default text-truncate"
+      class="text-truncate"
     >
       <slot
         v-bind="item"
@@ -16,22 +19,17 @@
         {{ item[textField] }}
       </slot>
     </b>
-    <template
+    <b-button
       v-if="_hideIcons"
+      variant="link"
+      class="text-decoration-none d-flex align-items-center align-baseline ml-auto px-2"
     >
       <font-awesome-icon
-        v-if="selected"
-        :icon="['far', 'eye']"
-        class="align-baseline ml-auto text-muted pointer"
-        @click="$emit('unselect')"
+        :icon="[selected ? 'far' : 'fas', selected ? 'eye' : 'eye-slash']"
+        class="text-muted"
+        @click="$emit(selected ? 'unselect' : 'select')"
       />
-      <font-awesome-icon
-        v-else
-        :icon="['fas', 'eye-slash']"
-        class="align-baseline ml-auto text-muted pointer"
-        @click="$emit('select')"
-      />
-    </template>
+    </b-button>
   </div>
 </template>
 
@@ -78,16 +76,3 @@ export default {
   },
 }
 </script>
-<style scoped>
-.handle {
-  cursor: grab;
-}
-
-.handle:active {
-  cursor: grabbing;
-}
-
-.cursor-default {
-  cursor: default;
-}
-</style>

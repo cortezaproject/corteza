@@ -57,6 +57,7 @@
                 v-model="filteredAvailable"
                 :sort="!_disabledSorting"
                 :move="_disableDragging"
+                :disabled="query"
                 draggable=".item"
                 group="items"
                 class="overflow-auto h-100"
@@ -65,12 +66,15 @@
                   v-for="item in filteredAvailable"
                   :key="item.value"
                   class="item mb-3 border rounded"
+                  :class="{
+                    'handle': !isDraggable
+                  }"
                   @dblclick="select(item)"
                 >
                   <c-item-picker-item
                     :item="item"
                     :disabled="disabled"
-                    :disabled-dragging="disabledDragging"
+                    :disabled-dragging="isDraggable"
                     :disabled-sorting="disabledSorting"
                     :hide-icons="hideIcons"
                     @select="select(item)"
@@ -83,7 +87,7 @@
                         :name="slot"
                         :textField="textField"
                         :disabled="disabled"
-                        :disabled-dragging="disabledDragging"
+                        :disabled-dragging="isDraggable"
                         :disabled-sorting="disabledSorting"
                         :hide-icons="hideIcons"
                         v-bind="scope"
@@ -140,6 +144,7 @@
                 v-model="filteredSelected"
                 :sort="!_disabledSorting"
                 :move="_disableDragging"
+                :disabled="query"
                 draggable=".item"
                 group="items"
                 class="overflow-auto h-100"
@@ -148,12 +153,15 @@
                   v-for="item in filteredSelected"
                   :key="item.value"
                   class="item mb-3 border rounded"
+                  :class="{
+                    'handle': !isDraggable
+                  }"
                   @dblclick="unselect(item)"
                 >
                   <c-item-picker-item
                     :item="item"
                     :disabled="disabled"
-                    :disabled-dragging="disabledDragging"
+                    :disabled-dragging="isDraggable"
                     :disabled-sorting="disabledSorting"
                     :hide-icons="hideIcons"
                     selected
@@ -167,7 +175,7 @@
                         :name="slot"
                         :textField="textField"
                         :disabled="disabled"
-                        :disabled-dragging="disabledDragging"
+                        :disabled-dragging="isDraggable"
                         :disabled-sorting="disabledSorting"
                         :hide-icons="hideIcons"
                         v-bind="scope"
@@ -325,6 +333,10 @@ export default {
         this.selected = items
       },
     },
+
+    isDraggable () {
+      return this.disabledDragging || this.query.length > 0
+    },
   },
 
   watch: {
@@ -359,7 +371,7 @@ export default {
         /**
         * Make sure we do not fall into an infinite loop
         * 
-        * If we update the value thenn sync will trigger recomputation of selected
+        * If we update the value then sync will trigger recomputation of selected
         * Which then emits the update event and the loop will begin
         */
         if (value.length === oldValue.length) {
@@ -463,3 +475,12 @@ export default {
   },
 }
 </script>
+<style lang="scss" scoped>
+.handle {
+  cursor: grab;
+}
+
+.handle:active {
+  cursor: grabbing;
+}
+</style>
