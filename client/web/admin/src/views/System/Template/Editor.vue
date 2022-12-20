@@ -192,6 +192,7 @@ export default {
     },
 
     onInfoSubmit (template) {
+      this.info.processing = true
       this.incLoader()
 
       if (this.templateID) {
@@ -204,6 +205,7 @@ export default {
           .catch(this.toastErrorHandler(this.$t('notification:template.update.error')))
           .finally(() => {
             this.decLoader()
+            this.info.processing = false
           })
       } else {
         this.$SystemAPI.templateCreate(template)
@@ -216,6 +218,7 @@ export default {
           .catch(this.toastErrorHandler(this.$t('notification:template.create.error')))
           .finally(() => {
             this.decLoader()
+            this.info.processing = false
           })
       }
     },
