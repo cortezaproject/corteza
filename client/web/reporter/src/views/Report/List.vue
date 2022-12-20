@@ -78,9 +78,9 @@
               <c-permissions-button
                 v-if="r.canGrant"
                 :tooltip="$t('permissions:resources.system.report.tooltip')"
-                :title="r.handle"
-                :target="r.handle"
-                resource="corteza::system:report/*"
+                :title="r.meta.name || r.handle || r.reportID"
+                :target="r.meta.name || r.handle || r.reportID"
+                :resource="`corteza::system:report/${r.reportID}`"
                 class="btn px-2"
                 link
               />

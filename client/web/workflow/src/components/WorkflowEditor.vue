@@ -335,8 +335,8 @@
 
         <c-permissions-button
           v-if="workflow.canGrant"
-          :title="workflow.meta.name || workflow.handle"
-          :target="workflow.meta.name || workflow.handle"
+          :title="workflow.meta.name || workflow.handle || workflow.workflowID"
+          :target="workflow.meta.name || workflow.handle || workflow.workflowID"
           :resource="`corteza::automation:workflow/${workflow.workflowID}`"
           :button-label="$t('general:permissions')"
           button-variant="light"

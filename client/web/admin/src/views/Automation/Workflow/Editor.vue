@@ -17,9 +17,9 @@
         </b-button>
         <c-permissions-button
           v-if="workflowID && canGrant"
-          :title="workflow.handle"
-          :target="workflow.handle"
-          :resource="'corteza::automation:workflow/'+workflowID"
+          :title="workflow.meta.name || workflow.handle || workflowID"
+          :target="workflow.meta.name || workflow.handle || workflowID"
+          :resource="`corteza::automation:workflow/${workflowID}`"
           button-variant="light"
           class="ml-2"
         >

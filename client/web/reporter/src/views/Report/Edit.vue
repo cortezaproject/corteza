@@ -72,8 +72,8 @@
 
                   <c-permissions-button
                     v-if="canGrant"
-                    :title="report.handle"
-                    :target="report.handle"
+                    :title="report.meta.name || report.handle || report.reportID"
+                    :target="report.meta.name || report.handle || report.reportID"
                     :resource="`corteza::system:report/${report.reportID}`"
                     :button-label="$t('permissions')"
                     button-variant="light"

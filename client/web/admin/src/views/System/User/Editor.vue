@@ -21,9 +21,9 @@
         </b-button>
         <c-permissions-button
           v-if="canGrant"
-          :title="user.name || user.handle || user.email"
-          :target="user.name || user.handle || user.email"
-          :resource="'corteza::system:user/'+userID"
+          :title="user.name || user.handle || user.email || userID"
+          :target="user.name || user.handle || user.email || userID"
+          :resource="`corteza::system:user/${userID}`"
           button-variant="light"
         >
           <font-awesome-icon :icon="['fas', 'lock']" />
