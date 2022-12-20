@@ -92,8 +92,8 @@
         v-if="canGrant && exists"
         class="text-dark px-0"
         button-variant="link"
-        :title="value.name"
-        :target="value.name"
+        :title="value.label || value.name || value.fieldID"
+        :target="value.label || value.name || value.fieldID"
         :tooltip="$t('permissions:resources.compose.module-field.tooltip')"
         :resource="`corteza::compose:module-field/${module.namespaceID}/${module.moduleID}/${value.fieldID}`"
       />

@@ -19,9 +19,9 @@
         </b-button>
         <c-permissions-button
           v-if="authClientID && canGrant"
-          :title="rbacEditorTitle"
-          :target="rbacEditorTitle"
-          :resource="'corteza::system:auth-client/'+authClientID"
+          :title="authclient.meta.name || authclient.handle || authClientID"
+          :target="authclient.meta.name || authclient.handle || authClientID"
+          :resource="`corteza::system:auth-client/${authClientID}`"
           button-variant="light"
         >
           <font-awesome-icon :icon="['fas', 'lock']" />
@@ -107,15 +107,6 @@ export default {
 
     title () {
       return this.authClientID ? this.$t('title.edit') : this.$t('title.create')
-    },
-
-    rbacEditorTitle () {
-      if (this.authclient) {
-        const { meta: { name } = {}, handle } = this.authclient || {}
-        return name || handle
-      }
-
-      return ''
     },
   },
 

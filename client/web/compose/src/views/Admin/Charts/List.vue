@@ -85,8 +85,8 @@
             <template #actions="{ item: c }">
               <c-permissions-button
                 v-if="c.canGrant"
-                :title="c.name"
-                :target="c.name"
+                :title="c.name || c.handle || c.chartID"
+                :target="c.name || c.handle || c.chartID"
                 :resource="`corteza::compose:chart/${namespace.namespaceID}/${c.chartID}`"
                 link
                 class="btn px-2"

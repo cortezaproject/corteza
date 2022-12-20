@@ -21,9 +21,9 @@
 
         <c-permissions-button
           v-if="roleID && canGrant"
-          :title="role.name"
-          :target="role.name"
-          :resource="'corteza::system:role/'+roleID"
+          :title="role.name || role.handle || role.roleID"
+          :target="role.name || role.handle || role.roleID"
+          :resource="`corteza::system:role/${roleID}`"
           button-variant="light"
           class="mr-2"
         >

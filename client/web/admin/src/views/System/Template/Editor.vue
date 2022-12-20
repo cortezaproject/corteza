@@ -20,9 +20,9 @@
         </b-button>
         <c-permissions-button
           v-if="templateID && canGrant"
-          :title="template.handle"
-          :target="template.handle"
-          :resource="'corteza::system:template/'+templateID"
+          :title="template.meta.short || template.handle || template.templateID"
+          :target="template.meta.short || template.handle || template.templateID"
+          :resource="`corteza::system:template/${templateID}`"
           button-variant="light"
         >
           <font-awesome-icon :icon="['fas', 'lock']" />

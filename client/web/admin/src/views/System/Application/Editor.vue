@@ -19,9 +19,9 @@
         </b-button>
         <c-permissions-button
           v-if="applicationID && canGrant"
-          :title="application.name"
-          :target="application.name"
-          :resource="'corteza::system:application/'+applicationID"
+          :title="application.name || applicationID"
+          :target="application.name || applicationID"
+          :resource="`corteza::system:application/${applicationID}`"
           button-variant="light"
           class="ml-2"
         >

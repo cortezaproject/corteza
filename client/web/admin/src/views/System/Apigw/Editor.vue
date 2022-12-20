@@ -12,9 +12,9 @@
         </b-button>
         <c-permissions-button
           v-if="routeID && canGrant"
-          :title="route.endpoint"
-          :target="route.endpoint"
-          :resource="'corteza::system:apigw-route/'+routeID"
+          :title="route.endpoint || routeID"
+          :target="route.endpoint || routeID"
+          :resource="`corteza::system:apigw-route/${routeID}`"
           button-variant="light"
           class="ml-2"
         >

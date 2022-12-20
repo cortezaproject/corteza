@@ -66,9 +66,9 @@
           <c-permissions-button
             v-if="namespace.canGrant"
             data-test-id="button-permissions"
-            :title="namespace.name"
-            :target="namespace.name"
-            :resource="'corteza::compose:namespace/'+namespace.namespaceID"
+            :title="namespace.name || namespace.slug || namespace.namespaceID"
+            :target="namespace.name || namespace.slug || namespace.namespaceID"
+            :resource="`corteza::compose:namespace/${namespace.namespaceID}`"
             button-variant="light"
             :button-label="$t('label.permissions')"
             class="ml-1 btn-lg"
