@@ -207,10 +207,21 @@
 
         <b-form-group
           v-else-if="item.triggers.constraints[0]"
-          :label="item.triggers.eventType.replace('on', '')"
-          label-class="text-primary"
+          label-class="d-flex align-items-center text-primary"
           class="mt-0 mb-4 mx-4"
         >
+          <template #label>
+            {{ item.triggers.eventType.replace('on', '') }}
+            <a
+              :href="intervalDocumentationURL"
+              target="_blank"
+              class="d-flex align-items-center h6 mb-0 ml-1 pointer"
+            >
+              <font-awesome-icon
+                :icon="['far', 'question-circle']"
+              />
+            </a>
+          </template>
           <c-input-date-time
             v-if="item.triggers.eventType === 'onTimestamp'"
             v-model="item.triggers.constraints[0].values[0]"
@@ -373,6 +384,12 @@ export default {
         { value: 'not like', text: this.$t('steps:trigger.configurator.not-like') },
 
       ]
+    },
+
+    intervalDocumentationURL () {
+      // eslint-disable-next-line no-undef
+      const [year, month] = VERSION.split('.')
+      return `https://docs.cortezaproject.org/corteza-docs/${year}.${month}/integrator-guide/automation/workflows/index.html#deferred-interval`
     },
   },
 
