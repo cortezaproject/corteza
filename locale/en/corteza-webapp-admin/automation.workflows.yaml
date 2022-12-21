@@ -4,7 +4,7 @@ editor:
     delete: Delete
     deletedAt: Deleted at
     enabled: Enabled
-    handle: Handle *
+    handle: Handle
     invalid-handle-characters: Should be at least 2 characters long and start with a letter. Can contain only letters, numbers, dashes, underscores and dots
     id: ID
     name: Name
