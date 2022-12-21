@@ -188,10 +188,14 @@ export default {
       this.dataframes = {}
       const frames = []
 
-      this.block.elements.forEach((element) => {
+      this.block.elements.forEach((element, key) => {
         element = reporter.DisplayElementMaker(element)
 
         if (element && element.kind !== 'Text') {
+          if (element.elementID === '0') {
+            element.elementID = `${key}`
+          }
+
           const { dataframes = [] } = element.reportDefinitions(this.getScenarioDefinition(element))
 
           frames.push(...dataframes.filter(({ source }) => source))
@@ -201,7 +205,10 @@ export default {
       if (frames.length) {
         this.$SystemAPI.reportRun({ frames, reportID: this.reportID })
           .then(({ frames = [] }) => {
-            this.block.elements = this.block.elements.map(element => {
+            this.block.elements = this.block.elements.map((element, key) => {
+              if (element.elementID === '0') {
+                element.elementID = `${key}`
+              }
               const dataframes = frames.filter(({ name }) => name === element.elementID)
               return { ...element, dataframes }
             })
