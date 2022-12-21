@@ -95,6 +95,10 @@ var (
 		// str comp.
 		`LIKE`:     {name: `like`, weight: 40},
 		`NOT LIKE`: {name: `nlike`, weight: 40},
+
+		// range comp.
+		`BETWEEN`:     {name: `between`, weight: 40},
+		`NOT BETWEEN`: {name: `nbetween`, weight: 40},
 	}
 )
 
