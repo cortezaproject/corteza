@@ -84,7 +84,7 @@
                     <b-form-select
                       v-if="getField(filter.name)"
                       v-model="filter.operator"
-                      :options="getOperators(filter.kind)"
+                      :options="getOperators(filter.kind, getField(filter.name))"
                       class="d-flex field-operator w-100"
                     />
                   </b-td>
@@ -97,6 +97,7 @@
                       value-only
                       :field="getField(filter.name)"
                       :record="filter.record"
+                      :operator="filter.operator"
                       @change="onValueChange"
                     />
                   </b-td>
@@ -296,6 +297,7 @@ export default {
 
     module.fields = [
       ...[...module.fields].map(f => {
+        f.multi = f.isMulti
         f.isMulti = false
         return f
       }),
@@ -338,13 +340,13 @@ export default {
         tempFilter[groupIndex].filter[index].kind = field.kind
         tempFilter[groupIndex].filter[index].name = field.name
         tempFilter[groupIndex].filter[index].value = undefined
-        tempFilter[groupIndex].filter[index].operator = '='
+        tempFilter[groupIndex].filter[index].operator = field.multi ? 'IN' : '='
         this.componentFilter = tempFilter
       }
       this.onValueChange()
     },
 
-    getOperators (kind) {
+    getOperators (kind, field) {
       const operators = [
         {
           value: '=',
@@ -366,6 +368,7 @@ export default {
           text: this.$t('recordList.filter.operators.notContains'),
         },
       ]
+
       const lgOperators = [
         {
           value: '>',
@@ -387,9 +390,13 @@ export default {
         },
       ]
 
+      if (field.multi) {
+        return inOperators
+      }
+
       switch (kind) {
         case 'Number':
-          return [...operators, ...inOperators, ...lgOperators]
+          return [...operators, ...lgOperators]
 
         case 'DateTime':
           return [...operators, ...lgOperators]
@@ -397,7 +404,7 @@ export default {
         case 'String':
         case 'Url':
         case 'Email':
-          return [...operators, ...inOperators, ...lgOperators, ...matchOperators]
+          return [...operators, ...matchOperators]
 
         default:
           return operators
@@ -414,7 +421,7 @@ export default {
       return {
         condition,
         name: field.name,
-        operator: '=',
+        operator: field.isMulti ? 'IN' : '=',
         value: undefined,
         kind: field.kind,
         record: new compose.Record(this.mock.module, {}),
