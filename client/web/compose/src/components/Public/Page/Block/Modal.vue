@@ -60,7 +60,7 @@ export default {
     },
 
     contentClass () {
-      return this.block && this.block.options.magnifyOption === 'fullscreen' ? 'mh-100' : ''
+      return `${this.block && this.block.options.magnifyOption === 'fullscreen' ? 'mh-100' : ''} position-initial`
     },
   },
 
@@ -105,3 +105,9 @@ export default {
 }
 
 </script>
+
+<style>
+.position-initial {
+  position: initial;
+}
+</style>

@@ -214,7 +214,7 @@
                     <record-list-filter
                       v-if="field.filterable"
                       class="d-print-none"
-                      :target="block.blockID"
+                      :target="uniqueID"
                       :selected-field="field.moduleField"
                       :namespace="namespace"
                       :module="recordListModule"
@@ -852,7 +852,7 @@ export default {
           this.$root.$off(`refetch-non-record-blocks:${pageID}`)
         }
 
-        this.uniqueID = `${pageID}-${recordID}-${this.blockIndex}`
+        this.uniqueID = [pageID, recordID, this.blockIndex].map(v => v || NoID).join('-')
         this.$root.$on(`record-line:collect:${this.uniqueID}`, this.resolveRecords)
         this.$root.$on(`page-block:validate:${this.uniqueID}`, this.validatePageBlock)
         this.$root.$on(`refetch-non-record-blocks:${pageID}`, () => {
