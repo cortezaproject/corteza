@@ -3,6 +3,7 @@ package postgres
 import (
 	"fmt"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ql"
@@ -229,6 +230,23 @@ func (d postgresDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (exp
 	}
 
 	return ref2exp.RefHandler(n, args...)
+}
+
+func (d postgresDialect) ValHandler(n *ql.ASTNode) (out exp.Expression, err error) {
+	switch v := n.Value.V.(type) {
+	case *expr.Boolean:
+		// value handling for boolean is different in postgres
+		// this was done to support value parsing for (IS $3) statement
+		if cast.ToBool(v.Get()) {
+			out = drivers.LiteralTRUE
+		} else {
+			out = drivers.LiteralFALSE
+		}
+	default:
+		out = exp.NewLiteralExpression("?", n.Value.V.Get())
+	}
+
+	return
 }
 
 func (d postgresDialect) OrderedExpression(expr exp.Expression, dir exp.SortDirection, nst exp.NullSortType) exp.OrderedExpression {

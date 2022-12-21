@@ -238,6 +238,10 @@ func (d mysqlDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (expr e
 	return ql.DefaultRefHandler(n, args...)
 }
 
+func (d mysqlDialect) ValHandler(n *ql.ASTNode) (out exp.Expression, err error) {
+	return ql.DefaultValueHandler(n)
+}
+
 func (d mysqlDialect) OrderedExpression(expr exp.Expression, dir exp.SortDirection, _ exp.NullSortType) exp.OrderedExpression {
 	return exp.NewOrderedExpression(expr, dir, exp.NoNullsSortType)
 }

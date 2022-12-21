@@ -66,6 +66,9 @@ type (
 		// ExprHandler returns driver specific expression handling
 		ExprHandler(*ql.ASTNode, ...exp.Expression) (exp.Expression, error)
 
+		// ValHandler returns driver specific value expression handling
+		ValHandler(*ql.ASTNode) (exp.Expression, error)
+
 		// OrderedExpression returns compatible expression for ordering
 		//
 		// Database understand order modifiers differently. For example, MySQL does not know
