@@ -234,6 +234,10 @@ func (d sqliteDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (expr 
 	return ref2exp.RefHandler(n, args...)
 }
 
+func (d sqliteDialect) ValHandler(n *ql.ASTNode) (out exp.Expression, err error) {
+	return ql.DefaultValueHandler(n)
+}
+
 func (d sqliteDialect) OrderedExpression(expr exp.Expression, dir exp.SortDirection, nst exp.NullSortType) exp.OrderedExpression {
 	return exp.NewOrderedExpression(expr, dir, exp.NoNullsSortType)
 }
