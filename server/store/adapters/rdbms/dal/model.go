@@ -112,6 +112,7 @@ func (d *model) convertQuery(n *ql.ASTNode) (out exp.Expression, err error) {
 func (d *model) QueryParser() queryParser {
 	return ql.Converter(
 		ql.SymHandler(d.qlConverterGenericSymHandler()),
+		ql.ValHandler(d.qlConverterGenericValHandler()),
 		ql.RefHandler(d.qlConverterGenericRefHandler()),
 	)
 }
@@ -148,6 +149,12 @@ func (d *model) qlConverterGenericSymHandler() func(node *ql.ASTNode) (exp.Expre
 		}
 
 		return d.table.AttributeExpression(sym)
+	}
+}
+
+func (d *model) qlConverterGenericValHandler() func(*ql.ASTNode) (exp.Expression, error) {
+	return func(node *ql.ASTNode) (exp.Expression, error) {
+		return d.dialect.ValHandler(node)
 	}
 }
 
