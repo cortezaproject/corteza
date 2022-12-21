@@ -10,14 +10,14 @@
           class="mb-1"
         >
           <b-form-input
-            v-model="f.options.options[index].value"
+            v-model.trim="f.options.options[index].value"
             plain
             size="sm"
             :placeholder="$t('kind.select.optionValuePlaceholder')"
           />
 
           <b-form-input
-            v-model="f.options.options[index].text"
+            v-model.trim="f.options.options[index].text"
             plain
             size="sm"
             :placeholder="$t('kind.select.optionLabelPlaceholder')"
@@ -45,7 +45,7 @@
 
         <b-input-group>
           <b-form-input
-            v-model="newOption.value"
+            v-model.trim="newOption.value"
             plain
             size="sm"
             :placeholder="$t('kind.select.optionValuePlaceholder')"
@@ -54,7 +54,7 @@
           />
 
           <b-form-input
-            v-model="newOption.text"
+            v-model.trim="newOption.text"
             plain
             size="sm"
             :placeholder="$t('kind.select.optionLabelPlaceholder')"
