@@ -95,11 +95,19 @@ var (
 		// str comp.
 		`LIKE`:     {name: `like`, weight: 40},
 		`NOT LIKE`: {name: `nlike`, weight: 40},
+
+		// range comp.
+		`BETWEEN`:     {name: `between`, weight: 40},
+		`NOT BETWEEN`: {name: `nbetween`, weight: 40},
 	}
 )
 
 func isUnary(s string) bool {
 	return s == "!" || s == "not"
+}
+
+func isOperator(s string) bool {
+	return s == "and" || s == "or" || s == "xor"
 }
 
 func getOp(op string) *opDef {
