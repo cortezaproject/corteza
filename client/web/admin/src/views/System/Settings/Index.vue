@@ -117,6 +117,7 @@ export default {
         .then(() => {
           this.animateSuccess('auth')
           this.toastSuccess(this.$t('notification:settings.system.auth.success'))
+          this.$Settings.fetch()
         })
         .catch(this.toastErrorHandler(this.$t('notification:settings.system.auth.error')))
         .finally(() => {
@@ -131,6 +132,7 @@ export default {
         .then(() => {
           this.animateSuccess('external')
           this.toastSuccess(this.$t('notification:settings.system.external.success'))
+          this.$Settings.fetch()
         })
         .catch(this.toastErrorHandler(this.$t('notification:settings.system.external.error')))
         .finally(() => {
