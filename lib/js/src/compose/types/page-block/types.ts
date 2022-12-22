@@ -17,7 +17,7 @@ export class Button {
   public label?: string = undefined;
 
   // can override hook's variant
-  public variant?: string = undefined;
+  public variant?: string = 'primary';
 
   public enabled = true;
 

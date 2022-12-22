@@ -1,10 +1,10 @@
 <template>
   <b-card
-    :header="workflow ? $t('automation.editTitle.workflow') : $t('automation.editTitle.script')"
+    :header="workflow ? $t('editTitle.workflow') : $t('editTitle.script')"
     footer-class="text-right"
   >
     <b-form-group
-      :label="$t('automation.buttonLabel')"
+      :label="$t('buttonLabel')"
     >
       <b-input-group>
         <b-form-input
@@ -14,7 +14,7 @@
     </b-form-group>
 
     <b-form-group
-      :label="$t('automation.buttonVariant')"
+      :label="$t('buttonVariant')"
     >
       <b-select
         v-model="button.variant"
@@ -35,7 +35,7 @@
       v-if="workflow"
     >
       <h5>
-        {{ workflow.meta.name || $t('automation.noLabel') }}
+        {{ workflow.meta.name || $t('noLabel') }}
       </h5>
     </div>
 
@@ -50,26 +50,28 @@
       show
       variant="warning"
     >
-      {{ $t('automation.noScript' ) }}
+      {{ $t('noScript' ) }}
     </b-alert>
 
     <p
       v-if="workflow && workflow.meta"
       class="my-2"
     >
-      {{ workflow.meta.description || $t('automation.noDescription') }}
+      {{ workflow.meta.description || $t('noDescription') }}
+
+      <var
+        v-if="trigger"
+      >
+        {{ $t('stepID', { stepID: trigger.stepID }) }}
+      </var>
     </p>
 
     <p
       v-else-if="script"
       class="my-2"
     >
-      {{ script.description || $t('automation.noDescription') }}
+      {{ script.description || $t('noDescription') }}
     </p>
-
-    <var>
-      {{ $t('automation.stepID', { stepID: trigger.stepID }) }}
-    </var>
 
     <template #footer>
       <c-input-confirm
@@ -85,6 +87,7 @@ import { compose, NoID } from '@cortezaproject/corteza-js'
 export default {
   i18nOptions: {
     namespaces: 'block',
+    keyPrefix: 'automation',
   },
 
   props: {
@@ -126,7 +129,7 @@ export default {
         'success',
         'danger',
         'warning',
-      ].map(variant => ({ variant, label: this.$t(`${variant}Button`) }))
+      ].map(variant => ({ variant, label: this.$t(`variants.${variant}`) }))
     },
 
     workflow () {
