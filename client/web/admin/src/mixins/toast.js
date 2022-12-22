@@ -36,7 +36,12 @@ export default {
       const { prefix, title } = opt
 
       return (err = {}) => {
-        const msg = err.message ? (prefix + ': ' + err.message) : prefix
+        // only messages starting with 'notification:' or 'notification.' should be translated
+        if (err.message && err.message.startsWith('notification')) {
+          err.message = this.$t(`notification:${err.message.substring('notification.'.length)}`)
+        }
+        // all other messages should be shown as they are
+        const msg = err.message ? `${prefix}: ${err.message}` : prefix
         this.toastDanger(msg, title)
       }
     },
