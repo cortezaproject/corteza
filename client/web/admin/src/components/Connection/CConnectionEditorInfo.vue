@@ -70,10 +70,11 @@
             {{ $t('form.location-geometry.label') }}
             <c-location
               v-if="!disabled"
-              v-model="connection.meta.location.geometry.coordinates"
+              :value="connection.meta.location.geometry.coordinates || []"
               :placeholder="$t('form.location-geometry.placeholder')"
               class="ml-1"
               editable
+              @input="connection.meta.location.geometry.coordinates = $event"
             />
           </label>
 
