@@ -98,6 +98,7 @@
         hover
         class="mb-0 small"
         head-variant="light"
+        :busy="processing"
         :items="items"
         :fields="fields"
         tbody-tr-class="pointer"
@@ -109,11 +110,10 @@
           <div class="text-center m-5">
             <div>
               <b-spinner
-                small
                 class="align-middle m-2"
               />
             </div>
-            <div>{{ $t('loading') }}</div>
+            {{ $t('loading') }}
           </div>
         </template>
         <template #cell(timestamp)="{ item: a }">
@@ -321,6 +321,8 @@ export default {
     return {
       id: 'actionlog',
 
+      processing: true,
+
       filter: {
         from: undefined,
         to: undefined,
@@ -433,9 +435,14 @@ export default {
         this.$delete(this.filter, 'resource')
       }
 
+      this.processing = true
+
       this.procListResults(this.$SystemAPI.actionlogList({ ...this.filter, ...this.pagination }))
         .then(rr => {
           this.items.push(...rr)
+        })
+        .finally(() => {
+          this.processing = false
         })
     }, 300),
 
