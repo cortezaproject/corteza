@@ -530,7 +530,7 @@ export default {
     }),
 
     title () {
-      return this.isEdit ? this.$t('edit.edit') : this.$t('edit.create')
+      return this.$route.name === 'admin.modules.edit' ? this.$t('edit.edit') : this.$t('edit.create')
     },
 
     trModule: {
