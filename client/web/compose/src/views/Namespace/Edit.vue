@@ -568,9 +568,12 @@ export default {
             return this.$SystemAPI.applicationDelete({ applicationID })
           }
         })
+        .then(() => {
+          this.$router.push({ name: 'namespace.manage' })
+          this.toastSuccess(this.$t('notification:namespace.deleted'))
+        })
         .finally(() => {
           this.processing = false
-          this.$router.push({ name: 'namespace.manage' })
         })
     },
 

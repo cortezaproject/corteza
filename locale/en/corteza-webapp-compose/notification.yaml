@@ -59,6 +59,7 @@ namespace:
     saveFailed: Could not save namespace application
   assetUploadFailed: Could not upload attached assets
   createFailed: Could not create namespace
+  deleted: Namespace deleted
   deleteFailed: Could not delete this namespace
   disabled: Namespace disabled - redirecting
   saveFailed: Could not save this namespace
