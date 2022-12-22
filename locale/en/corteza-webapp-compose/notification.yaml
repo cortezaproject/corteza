@@ -42,6 +42,7 @@ list:
   load:
     error: Failed to load resource list
 module:
+  created: Module created
   createFailed: Could not create a module
   deleteFailed: Could not delete this module
   deleted: Module deleted
