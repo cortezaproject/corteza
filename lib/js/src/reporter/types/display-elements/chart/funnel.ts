@@ -57,7 +57,7 @@ export class FunnelChartOptions extends ChartOptions {
           sort: 'descending',
           width: '90%',
           label: {
-            show: this.showTooltipsAlways,
+            show: this.tooltips.showAlways,
             position: 'inside',
             align: 'center',
             verticalAlign: 'middle',

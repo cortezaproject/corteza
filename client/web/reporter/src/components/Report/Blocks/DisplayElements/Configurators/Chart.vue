@@ -465,7 +465,7 @@
         <b-row>
           <b-col>
             <b-form-checkbox
-              v-model="options.showTooltipsAlways"
+              v-model="options.tooltips.showAlways"
             >
               {{ $t('display-element:chart.configurator.tooltips.show.always') }}
             </b-form-checkbox>
