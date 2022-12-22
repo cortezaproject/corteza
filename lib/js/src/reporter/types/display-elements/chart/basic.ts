@@ -52,7 +52,7 @@ export class BasicChartOptions extends ChartOptions {
             formatter: '{a}<br />{b} : {c} ({d}%)',
           },
           label: {
-            show: this.showTooltipsAlways,
+            show: this.tooltips.showAlways,
             position: 'inside',
             align: 'center',
             verticalAlign: 'middle',
@@ -163,7 +163,7 @@ export class BasicChartOptions extends ChartOptions {
           areaStyle: {},
           left: 'left',
           label: {
-            show: this.showTooltipsAlways,
+            show: this.tooltips.showAlways,
             position: 'inside',
             align: 'center',
             verticalAlign: 'middle',
