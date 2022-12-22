@@ -124,7 +124,7 @@ export default {
 
       this.datasources.forEach(({ step }, index) => {
         Object.entries(step).forEach(([kind, { name }]) => {
-          if (['load', 'aggregate'].includes(kind)) {
+          if (['load', 'group'].includes(kind)) {
             options.push({ value: name || `${index}`, text: name || `${index}` })
           }
         })
