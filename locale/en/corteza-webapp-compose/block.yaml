@@ -7,26 +7,27 @@ automation:
   buttonLabel: Label
   buttonVariant: Variant
   configuredButtons: Configured buttons
-  dangerButton: Danger
-  darkButton: Dark
   dummyButtonLabel: Dummy
   editButton: Edit
   editTitle:
     script: Edit automation script button
     workflow: Edit workflow button
   label: Automation
-  lightButton: Light
   noDescription: No description
   noLabel: Unlabeled
   noScript: There is no script or workflow configured for this button
   noScripts: There are no manual scripts compatible with this page block
-  primaryButton: Primary
   removeAll: Remove all
   searchPlaceholder: Filter available scripts by label, script name and description
-  secondaryButton: Secondary
   stepID: 'Starting step ID: {{stepID}}'
-  successButton: Success
-  warningButton: Warning
+  variants:
+    primary: Primary
+    secondary: Secondary
+    light: Light
+    dark: Dark
+    success: Success
+    danger: Danger
+    warning: Warning
 calendar:
   addEventsSource: Add events source
   calendarHeader: Calendar header
