@@ -760,7 +760,7 @@ export default {
 
           this.module = new compose.Module({ ...module }, this.namespace)
 
-          this.toastSuccess(this.$t('notification:module.saved'))
+          this.toastSuccess(this.$t('notification:module.created'))
           if (closeOnSuccess) {
             this.$router.push({ name: 'admin.modules' })
           } else {
