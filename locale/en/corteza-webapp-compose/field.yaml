@@ -208,7 +208,7 @@ system:
   updatedAt: Updated at
   updatedBy: Updated by
 validators:
-  description: Set of expressions and error pairs that test validity of the input value.
+  description: Set of expressions and error pairs that test validity of the input value
   disableBuiltIn: Disable built-in validators
   error:
     placeholder: Text displayed when expression is true

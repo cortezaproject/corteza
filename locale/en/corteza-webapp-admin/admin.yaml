@@ -51,7 +51,7 @@ automation:
   list:
     column:
       label:
-        async: Async.
+        async: Async
         critical: Critical
         enabled: Enabled
         runAs: Run As

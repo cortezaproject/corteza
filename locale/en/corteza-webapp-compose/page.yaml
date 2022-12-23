@@ -23,7 +23,7 @@ edit:
   pageDescription: Page description
   visible: Page visibility
 import: 'Import page(s):'
-instructions: Drag and drop pages to adjust the order and hierarchy.
+instructions: Drag and drop pages to adjust the order and hierarchy
 invalid: Invalid configuration
 label:
   cancel: Cancel

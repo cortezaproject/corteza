@@ -313,7 +313,7 @@ recordList:
       startedAt: Started At
       title: Record import error report
       totalRecords: Total records
-    success: Import successful.
+    success: Import successful
     to: Import to {{modulename}}
     uploadFile: Upload the file you want to import (.csv or JSON format)
   label: Record list
@@ -344,9 +344,9 @@ recordList:
     searchInput: Search inputbox
     sorting: Sorting
     tableHeader: Table header
-    usersSearchThrough: Users search through the records.
-    usersSee: Users see {{0}}.
-    withPresortedRecords: with presorted ({{0}}) records.
+    usersSearchThrough: Users search through the records
+    usersSee: Users see {{0}}
+    withPresortedRecords: with presorted ({{0}}) record
   record:
     draggable: Can drag & drop records to order them
     fullPageNavigation: Full page navigation
@@ -363,7 +363,7 @@ recordList:
     prefilterHideSearch: Hide search box
     prefilterLabel: Prefilter records
     prefilterPlaceholder: field1 = 1 AND field2 = 232
-    presortFootnote: Simplified SQL condition (ORDER BY ...) syntax is supported.
+    presortFootnote: Simplified SQL condition (ORDER BY ...) syntax is supported
     presortToggleInput: Toggle input type
     presortHideSort: Hide sorting
     presortLabel: Presort records
@@ -403,13 +403,13 @@ recordOrganizer:
     footnote: Field value will be used as record label
     label: Label field
   noRecords: No records in module linked with record organizer. Drag and drop records here.
-  notConfigured: Record organizer is not configured correctly.
+  notConfigured: Record organizer is not configured correctly
   positionField:
     footnote: Records will be sorted based on this field
     label: Record sort field
   preview:
     label: 'Record Organizer block for module {{0}}. Label field {{1}}, Description field {{2}}. Value setting field: {{3}}, Sorted by position field: {{4}}.'
-    moduleNotSelected: Record Organizer module not selected.
+    moduleNotSelected: Record Organizer module not selected
   addNewRecord: + Add new record
 
 recordRevisions:
@@ -417,8 +417,8 @@ recordRevisions:
 
   viewer:
     errors:
-      no-record: No record found to display revisions for.
-      disabled-on-module: Record revisions are disabled on this module.
+      no-record: No record found to display revisions for
+      disabled-on-module: Record revisions are disabled on this module
 
     show-revisions: Show record revisions ({{ revision }})
     show-changes: "{{ count }} change(s)"
