@@ -1,5 +1,6 @@
 <template>
   <b-container
+    v-if="workflow"
     class="py-3"
   >
     <c-content-header
@@ -77,7 +78,7 @@ export default {
 
   data () {
     return {
-      workflow: {},
+      workflow: undefined,
       triggers: [],
 
       info: {
