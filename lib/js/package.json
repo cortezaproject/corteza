@@ -1,7 +1,7 @@
 {
   "name": "@cortezaproject/corteza-js",
   "description": "Corteza JavaScript/TypeScript libs",
-  "version": "2022.9.5-rc.2",
+  "version": "2022.9.5",
   "license": "Apache-2.0",
   "author": "Denis Arh <denis.arh@crust.tech>",
   "main": "dist/index.js",
