@@ -11,4 +11,4 @@ template:
   errors:
     invalid-user: Cannot continue with unauthorized email, visit <a data-test-id="link-redirect-to-profile" href="{{link}}">your profile</a> and resolve the issue.
 alerts:
-  denied: cannot authorize {{client}}, no permissions.
+  denied: cannot authorize {{client}}, no permissions

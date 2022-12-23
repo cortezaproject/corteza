@@ -16,5 +16,5 @@ template:
     buttons:
       submit: Update profile
 alerts:
-  profile-updated: Profile successfully updated.
+  profile-updated: Profile successfully updated
   profile-update-fail: Could not update profile due to input errors

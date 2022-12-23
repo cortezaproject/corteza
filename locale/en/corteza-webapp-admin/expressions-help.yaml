@@ -1,4 +1,4 @@
-calculate: Field expressions provide a way to calculate field values based on the defined expression.
+calculate: Field expressions provide a way to calculate field values based on the defined expression
 categories:
   dateTime:
     earliest: Returns earliest DateTime
@@ -89,10 +89,10 @@ formatCategories:
     v: Returns the raw value
     x: Returns the number in base 16; lower-case a-f
 formatting-parameters:
-  description: Here is a complete list of available formatting options.
+  description: Here is a complete list of available formatting options
   label: Formatting parameters
 helper-functions:
-  description: We provide a set of helper functions that extend the capabilites of field expressions.
+  description: We provide a set of helper functions that extend the capabilites of field expressions
   label: Helper functions
   note: 'NOTE: Only the "General" functions can be used on all types of fields. The other functions are limited to their respective field type.'
 instructions: 'To write the expression you can use the following operators:'
