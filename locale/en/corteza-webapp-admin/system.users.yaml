@@ -23,9 +23,9 @@ editor:
   mfa:
     TOTP:
       disabled:
-        text: User did not configure TOTP protection.
+        text: User did not configure TOTP protection
       enabled:
-        text: User configured TOTP protection auth mobile app.
+        text: User configured TOTP protection auth mobile app
       remove:
         label: Remove
     emailOTP:
@@ -33,14 +33,14 @@ editor:
         label: Disable
       disabled:
         text: |-
-          Email OTP protection is disabled for this user.
-          Email with the security code on each login will not be sent.
+          Email OTP protection is disabled for this user
+          Email with the security code on each login will not be sent
       enable:
         label: Enable
       enabled:
         text: |-
-          Email OTP protection is enabled for this user.
-          User will receive email with the security code on each login.
+          Email OTP protection is enabled for this user
+          User will receive email with the security code on each login
     title: Multi-factor authentication
   new: New
   password:

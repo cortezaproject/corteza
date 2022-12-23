@@ -1,6 +1,6 @@
 message:
-  noPages: It seems this namespace has no visible pages yet.
-  notifyAdministrator: Notify your system administrator.
+  noPages: It seems this namespace has no visible pages yet
+  notifyAdministrator: Notify your system administrator
   startBuilding: Follow these steps to start building
 label:
   pageBuilder: Page builder

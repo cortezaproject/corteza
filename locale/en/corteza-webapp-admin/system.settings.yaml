@@ -31,20 +31,20 @@ editor:
       title: Authentication email sender mail
       from-address: Sender's address
       from-name: Sender's name
-      validate-email: Please enter valid email address.
+      validate-email: Please enter valid email address
     mfa:
       title: Multi-factor authentication
       TOTP:
         enabled: Allow users to use time based one-time-password (using mobile application)
         enforced: Force users to use time based one-time-password (using mobile application)
         issuer:
-          description: Issuer name will be send to authenticator app when user configures it.
+          description: Issuer name will be send to authenticator app when user configures it
           label: Issuer
       emailOTP:
         enabled: Allow users to use one-time-password over email
         enforced: Force users to use one-time-password over email
         expires:
-          description: How long will password be valid before it expires.
+          description: How long will password be valid before it expires
           label: Valid for
 
   external:
