@@ -9,7 +9,7 @@
         :sidebar-class="`sidebar ${isExpanded ? 'expanded' : ''}`"
         :header-class="`d-block sidebar-header ${isExpanded ? 'expanded border-bottom p-2' : ''}`"
         :body-class="`bg-white ${isExpanded ? 'py-2 px-3' : ''}`"
-        :footer-class="`bg-white rounded-right ${isExpanded ? 'p-2' : ''}`"
+        :footer-class="`bg-white rounded-right ${isExpanded ? 'px-2' : ''}`"
         :no-header="!isExpanded"
         :backdrop="isMobile"
         :shadow="isExpanded"
