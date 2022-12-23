@@ -9,15 +9,15 @@ template:
     title: Multi-factor authentication
     totp:
       title: Additional security with mobile app (time-based one-time-password)
-      enforced: Configured and required on login.
-      disabled: Currently disabled.
+      enforced: Configured and required on login
+      disabled: Currently disabled
       configure: Configure
       disable: Disable
 
     email:
       title: Additional security with one-time-password over email
-      enforced: Enabled and required on login.
-      disabled: Currently disabled.
+      enforced: Enabled and required on login
+      disabled: Currently disabled
       enable: Configure
       disable: Disable
 
