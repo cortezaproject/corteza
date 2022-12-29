@@ -50,11 +50,19 @@
             :key="f.nodeID"
             href="#"
             :class="{ 'border border-primary': f.nodeID === upstream.active }"
-            class="border text-truncate"
+            class="border d-flex flex-column"
             @click="upstream.active = f.nodeID"
           >
-            {{ f.name }}<br>
-            <small>{{ f.baseURL }}</small>
+            <p
+              class="mb-0 text-truncate"
+            >
+              {{ f.name }}
+            </p>
+            <small
+              class="text-truncate"
+            >
+              {{ f.baseURL }}
+            </small>
           </b-list-group-item>
         </b-list-group>
 
@@ -142,11 +150,19 @@
             :key="f.nodeID"
             href="#"
             :class="{ 'border border-primary': f.nodeID === downstream.active }"
-            class="border text-truncate"
+            class="border d-flex flex-column"
             @click="downstream.active = f.nodeID"
           >
-            {{ f.name }}<br>
-            <small>{{ f.baseURL }}</small>
+            <p
+              class="mb-0 text-truncate"
+            >
+              {{ f.name }}
+            </p>
+            <small
+              class="text-truncate"
+            >
+              {{ f.baseURL }}
+            </small>
           </b-list-group-item>
         </b-list-group>
 
