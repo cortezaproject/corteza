@@ -290,6 +290,7 @@ export default {
           } else {
             this.toastSuccess(this.$t('notification:import.imported-workflows'))
           }
+          this.$bvModal.hide('import')
         })
         .catch(this.toastErrorHandler(this.$t('notification:import.failed-import')))
 

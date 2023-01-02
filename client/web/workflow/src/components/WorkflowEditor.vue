@@ -2497,6 +2497,7 @@ export default {
 
         this.importProcessing = false
         this.$root.$emit('change-detected')
+        this.$bvModal.hide('import')
         this.toastSuccess(this.$t('notification:imported-workflow'))
       } catch (e) {
         this.toastErrorHandler(this.$t('notification:import-failed'))(e)

@@ -9,6 +9,7 @@
     </b-button>
 
     <b-modal
+      id="import"
       v-model="show"
       size="lg"
       :title="$t('general:import.json')"
