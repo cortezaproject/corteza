@@ -45,11 +45,14 @@
         </div>
       </div>
     </div>
+
+    <attachment-modal />
   </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
+import AttachmentModal from 'corteza-webapp-compose/src/components/Public/Page/Attachment/Modal'
 
 export default {
   i18nOptions: {
@@ -57,6 +60,10 @@ export default {
   },
 
   name: 'Namespace',
+
+  components: {
+    AttachmentModal,
+  },
 
   props: {
     slug: {
