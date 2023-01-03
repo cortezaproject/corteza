@@ -1,172 +1,177 @@
+title: Integration Gateway
 list:
   export: Export
-  title: 'Integration Gateway'
-  new: 'New'
-  permissions: 'Permissions'
-  profiler: 'Profiler'
-  yaml: 'YAML'
-  loading: 'Loading routes'
+  title: Routes
+  new: New
+  permissions: Permissions
+  profiler: Profiler
+  yaml: YAML
+  loading: Loading routes
   numFound: '{{count}} route found'
   numFound_plural: '{{count}} routes found'
   filterForm:
     query:
-      label: 'Filter route list'
-      placeholder: 'Filter routes by name'
+      label: Filter route list
+      placeholder: Filter routes by name
     excluded:
-      label: 'Without'
+      label: Without
     inclusive:
-      label: 'Including'
+      label: Including
     exclusive:
-      label: 'Only'
+      label: Only
     deleted:
-      label: 'Deleted routes'
+      label: deleted routes
     handle:
-      placeholder: 'Filter endpoints by path'
+      placeholder: Filter endpoints by path
 
   columns:
-    endpoint: 'Endpoint'
-    createdAt: 'Created'
-    enabled: 'Enabled'
-    method: 'Method'
+    endpoint: Endpoint
+    createdAt: Created
+    enabled: Enabled
+    method: Method
     actions: ''
     state: State
   rows:
     filters:
       deleted: Deleted
 
+settings:
+  title: Settings
+  profiler:
+    label: Profiler
+    enabled: Enabled
+    global: Enabled globally
+  proxy:
+    label: Proxy
+    follow: Follow redirects
+
 editor:
-  title: 'Edit route'
-  new: 'New'
-  permissions: 'Permissions'
+  title: Edit route
+  new: New
+  permissions: Permissions
 
   info:
-    title: 'Basic information'
+    title: Basic information
 
-    id: 'ID'
-    endpoint: 'Endpoint'
-    method: 'Method'
-    enabled: 'Enabled'
+    id: ID
+    endpoint: Endpoint
+    method: Method
+    description: Description
+    enabled: Enabled
 
-    delete: 'Delete'
-    undelete: 'Undelete'
-    deletedAt: 'Deleted at'
+    delete: Delete
+    undelete: Undelete
+    deletedAt: Deleted at
 
-    updatedAt: 'Updated at'
-    createdAt: 'Created at'
+    updatedAt: Updated at
+    createdAt: Created at
 
-    tooltip: 'Endpoint must begin with a slash "/" and can not contain any special characters except for the underscore "_" and hyphen "-"'
+    tooltip: Endpoint must begin with a slash "/" and can not contain any special characters except for the underscore "_" and hyphen "-"
     validation:
-      slash: 'Endpoint must begin with a slash "/"'
-      minLength: 'Endpoint must contain at least one character'
-      invalidCharacters: 'Endpoint contains invalid characters'
+      slash: Endpoint must begin with a slash "/"
+      minLength: Endpoint must contain at least one character
+      invalidCharacters: Endpoint contains invalid characters
+
   filters:
-    title: 'Filter list'
-    enabled: 'Enabled'
-    disabled: 'Disabled'
+    title: Filter list
+    enabled: Enabled
+    disabled: Disabled
+    add: Add
+    addFilter: Add filter
+    addHeader: Add header
+    params: Params
+    filterListEmpty: Filter list is empty!
 
     modal:
-      title: 'Query parameters verifier'
-      ok: 'Save & Close'
+      title: Query parameters verifier
+      ok: Save & Close
 
     step_title:
-      prefilter: 'Prefiltering'
-      processer: 'Processing'
-      postfilter: 'Postfiltering'
+      prefilter: Prefiltering
+      processer: Processing
+      postfilter: Postfiltering
 
     list:
-      remove: 'Remove'
-      filters: 'Filters'
-      status: 'Status'
-      actions: 'Actions'
-      active: 'Active'
-      noFilters: 'No filters'
+      remove: Remove
+      filters: Filters
+      status: Status
+      actions: Actions
+      active: Active
+      noFilters: No filters
 
     labels:
-      expr: 'Expression'
-      location: 'URL'
-      workflow: 'Workflow'
-      status: 'HTTP Status'
-      jsfunc: 'Function'
-      input: 'Input'
+      expr: Expression
+      location: URL
+      workflow: Workflow
+      status: HTTP Status
+      jsfunc: Function
+      input: Input
+      header: Headers
+      name: Name
+      value: Value
 
     httpStatus:
-      none: 'No Status'
-      '300': '300 - Multiple Choices'
-      '301': '301 - Moved Permanently'
-      '302': '302 - Found'
-      '303': '303 - See Other'
-      '304': '304 - Not Modified'
-      '307': '307 - Temporary Redirect'
-      '308': '308 - Permanent Redirect'
+      none: No Status
+      '300': 300 - Multiple Choices
+      '301': 301 - Moved Permanently
+      '302': 302 - Found
+      '303': 303 - See Other
+      '304': 304 - Not Modified
+      '307': 307 - Temporary Redirect
+      '308': 308 - Permanent Redirect
 
     placeholders:
-      workflow: 'Select a workflow'
-
-    add: 'Add'
-    addFilter: 'Add filter'
-    params: 'Params'
-    filterListEmpty: 'Filter list is empty!'
+      workflow: Select a workflow
 
     help:
       expression:
-        example: 'Example == "match string" && match(SecondParam, "^foo\\s.*$")'
-        link: 'Documentation'
+        example: Example == "match string" && match(SecondParam, "^foo\\s.*$")
+        link: Documentation
 
 profiler:
-  label: 'Profiler'
-  title: 'Integration Gateway Profiler'
+  label: Profiler
+  title: Integration Gateway Profiler
   refreshingIn: Refreshing in {{seconds}}s
-  description: 
-    globalEnabled: 'Showing routes for all incoming requests'
-    globalDisabled: 'Showing only registered routes with profiler prefilter'
+  description:
+    globalEnabled: Showing routes for all incoming requests
+    globalDisabled: Showing only registered routes with profiler prefilter
+  purge:
+    all: Purge requests for all routes
+    this: Purge requests for this route
 
   hit:
-    title: 'Request Details'
+    title: Request Details
     general:
       label: General
-      id: 'Request ID'
-      route: 'Request Route'
-      URL: 'Request URL'
-      method: 'Request Method'
-      statusCode: 'Status Code'
-      headers: 'Request Headers'
-      remoteAddress: 'Remote Address'
-      duration: 'Duration'
-      start: 'Start'
-      end: 'End'
+      id: Request ID
+      route: Request Route
+      URL: Request URL
+      method: Request Method
+      statusCode: Status Code
+      headers: Request Headers
+      remoteAddress: Remote Address
+      duration: Duration
+      start: Start
+      end: End
       openRoute: Open Route
     headers:
-      label: 'Headers'
+      label: Headers
     body:
-      label: 'Body'
-
-
-  filterForm:
-    query:
-      label: 'Filter route list'
-      placeholder: 'Filter routes by name'
-    excluded:
-      label: 'Without'
-    inclusive:
-      label: 'Including'
-    exclusive:
-      label: 'Only'
-    deleted:
-      label: 'Deleted routes'
+      label: Body
 
   columns:
     actions: ''
-    path: 'Route'
-    count: 'Count'
-    content_length: 'Content Length'
-    http_method: 'Method'
-    http_status_code: 'Status Code'
-    size_min: 'Size (min)'
-    size_max: 'Size (max)'
-    size_avg: 'Size (avg)'
-    time_min: 'Time (min)'
-    time_max: 'Time (max)'
-    time_avg: 'Time (avg)'
-    time_start: 'Start time'
-    time_finish: 'Finish time'
-    time_duration: 'Duration'
+    path: Route
+    count: Count
+    content_length: Content Length
+    http_method: Method
+    http_status_code: Status Code
+    size_min: Size (min)
+    size_max: Size (max)
+    size_avg: Size (avg)
+    time_min: Time (min)
+    time_max: Time (max)
+    time_avg: Time (avg)
+    time_start: Start time
+    time_finish: Finish time
+    time_duration: Duration

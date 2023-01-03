@@ -12,6 +12,7 @@
         >
           <template slot="label">
             {{ $t(`filters.labels.${param.label}`) }}
+
             <template v-if="param.label === 'expr'">
               <a
                 v-if="param.label === 'expr'"
@@ -24,12 +25,13 @@
               </a>
             </template>
           </template>
+
           <!-- TODO create multi field component-->
           <b-form-checkbox
             v-if="param.type === 'bool'"
             v-model="param.value"
-            @change="onUpdate"
           />
+
           <vue-select
             v-else-if="param.label === 'workflow'"
             v-model="param.value"
@@ -37,13 +39,12 @@
             :reduce="wf => wf.workflowID"
             :placeholder="$t('filters.placeholders.workflow')"
             class="bg-white"
-            @input="onUpdate"
           />
+
           <b-form-select
             v-else-if="param.label === 'status'"
             v-model="param.value"
             :options="httpStatusOptions"
-            @change="onUpdate"
           >
             <template #first>
               <b-form-select-option
@@ -53,12 +54,70 @@
               </b-form-select-option>
             </template>
           </b-form-select>
+
+          <template v-else-if="filter.ref === 'response'">
+            <template v-if="param.type === 'input'">
+              <b-form-select
+                v-model="param.value.type"
+                :options="inputTypeOptions"
+                class="mb-2"
+              />
+
+              <b-input-group>
+                <b-input-group-prepend>
+                  <b-button variant="dark">
+                    ƒ
+                  </b-button>
+                </b-input-group-prepend>
+                <b-form-input
+                  v-model="param.value.expr"
+                  :placeholder="$t('filters.help.expression.example')"
+                />
+              </b-input-group>
+            </template>
+
+            <template v-else>
+              <b-input-group
+                v-for="(header, hIndex) in param.value"
+                :key="`header-${hIndex}`"
+                class="mb-2"
+              >
+                <b-form-input
+                  v-model="header.name"
+                  :placeholder="$t('filters.labels.name')"
+                />
+                <b-form-input
+                  v-model="header.expr"
+                  :placeholder="$t('filters.labels.value')"
+                />
+
+                <b-input-group-append>
+                  <b-button
+                    variant="danger"
+                    @click="param.value.splice(hIndex, 1)"
+                  >
+                    <font-awesome-icon
+                      :icon="['far', 'trash-alt']"
+                    />
+                  </b-button>
+                </b-input-group-append>
+              </b-input-group>
+
+              <b-button
+                variant="link"
+                class="text-decoration-none px-0"
+                @click="param.value.push({ name: '', expr: '' })"
+              >
+                + {{ $t('filters.addHeader') }}
+              </b-button>
+            </template>
+          </template>
+
           <template v-else>
             <b-form-textarea
               v-if="param.label === 'jsfunc'"
               v-model="param.value"
               max-rows="6"
-              @change="onUpdate"
             />
             <b-input-group v-else>
               <b-input-group-prepend
@@ -72,12 +131,10 @@
                 v-if="param.label === 'expr'"
                 v-model="param.value"
                 :placeholder="$t('filters.help.expression.example')"
-                @change="onUpdate"
               />
               <b-form-input
                 v-else
                 v-model="param.value"
-                @change="onUpdate"
               />
             </b-input-group>
           </template>
@@ -115,6 +172,18 @@ export default {
         { value: 307, text: this.$t('filters.httpStatus.307') },
         { value: 308, text: this.$t('filters.httpStatus.308') },
       ],
+
+      inputTypeOptions: [
+        'String',
+        'Any',
+        'Array',
+        'KV',
+        'DateTime',
+        'Float',
+        'Integer',
+        'Reader',
+        'Vars',
+      ],
     }
   },
 
@@ -135,12 +204,6 @@ export default {
           })
         })
     }
-  },
-
-  methods: {
-    onUpdate () {
-      this.$emit('update')
-    },
   },
 }
 </script>

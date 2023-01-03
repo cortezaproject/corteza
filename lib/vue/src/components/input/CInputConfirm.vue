@@ -7,7 +7,7 @@
         :size="size"
         :disabled="disabled"
         :class="`${buttonClass} ${borderless ? 'border-0' : ''}`"
-        @click.prevent="onPrompt"
+        @click.stop.prevent="onPrompt"
       >
         <slot>
           <font-awesome-icon
@@ -26,7 +26,7 @@
         class="mr-1"
         :class="[ borderless && 'border-0' ]"
         @blur.prevent="onCancel()"
-        @click.prevent="onConfirmation()"
+        @click.prevent.stop="onConfirmation()"
       >
         <slot name="yes">
           <font-awesome-icon
@@ -40,7 +40,7 @@
         :size="sizeConfirm"
         :disabled="cancelDisabled"
         :class="[ borderless && 'border-0' ]"
-        @click.prevent="onCancel()"
+        @click.prevent.stop="onCancel()"
       >
         <slot name="no">
           <font-awesome-icon

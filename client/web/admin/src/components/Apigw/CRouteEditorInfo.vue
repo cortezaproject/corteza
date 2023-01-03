@@ -30,6 +30,7 @@
         >
           <label
             label-for="endpoint"
+            class="mb-0"
           >
             {{ $t('endpoint') }}
           </label>
@@ -65,6 +66,16 @@
           data-test-id="select-method"
           :options="methods"
           required
+        />
+      </b-form-group>
+
+      <b-form-group
+        v-if="route.meta"
+        :label="$t('description')"
+        label-cols="2"
+      >
+        <b-form-textarea
+          v-model="route.meta.description"
         />
       </b-form-group>
 
