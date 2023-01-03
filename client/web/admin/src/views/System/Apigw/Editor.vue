@@ -36,6 +36,7 @@
     <c-filters-stepper
       v-if="routeID"
       ref="stepper"
+      :fetching="stepper.fetching"
       :processing="stepper.processing"
       :success="stepper.success"
       :filters.sync="filters"
@@ -91,6 +92,7 @@ export default {
         success: false,
       },
       stepper: {
+        fetching: false,
         processing: false,
         success: false,
       },
@@ -115,7 +117,7 @@ export default {
     },
 
     showProfiler () {
-      return this.$Settings.get('apigw.profilerEnabled', false) && (this.$Settings.get('apigw.profilerGlobal', false) || this.filters.some(({ ref, enabled = false }) => ref === 'profiler' && enabled))
+      return this.$Settings.get('apigw.profiler.enabled', false) && (this.$Settings.get('apigw.profiler.global', false) || this.filters.some(({ ref, enabled = false }) => ref === 'profiler' && enabled))
     },
   },
 
@@ -128,7 +130,6 @@ export default {
         if (this.routeID) {
           this.fetchSteps()
           this.fetchRoute()
-          this.fetchAllAvailableFilters()
           this.fetchFilters()
         } else {
           this.route = {
@@ -262,24 +263,29 @@ export default {
 
     fetchFilters () {
       this.incLoader()
+      this.stepper.fetching = true
+
       this.$SystemAPI.apigwFilterList({ routeID: this.routeID })
         .then(({ set = [] }) => {
-          this.setRouteFilters(set)
+          return this.setRouteFilters(set)
         })
         .catch(this.toastErrorHandler(this.$t('notification:gateway.filter.fetch.error')))
         .finally(() => {
           this.decLoader()
+          this.stepper.fetching = false
         })
     },
 
     setRouteFilters (routeFilters = []) {
-      this.filters = (routeFilters || []).map(filter => {
-        const f = { ...this.availableFilters.find((af) => af.ref === filter.ref) }
-        f.params = this.decodeParams(f, { ...filter.params })
-        f.weight = parseInt(filter.weight)
-        f.filterID = filter.filterID
-        f.enabled = !!filter.enabled
-        return { ...f }
+      return this.fetchAllAvailableFilters().then(() => {
+        this.filters = (routeFilters || []).map(filter => {
+          const f = { ...this.availableFilters.find((af) => af.ref === filter.ref) }
+          f.params = this.decodeParams(f, { ...filter.params })
+          f.weight = parseInt(filter.weight)
+          f.filterID = filter.filterID
+          f.enabled = !!filter.enabled
+          return { ...f }
+        })
       })
     },
 
@@ -303,10 +309,11 @@ export default {
 
     fetchAllAvailableFilters () {
       this.incLoader()
-      this.$SystemAPI.apigwFilterDefFilter()
+
+      return this.$SystemAPI.apigwFilterDefFilter()
         .then((api) => {
           this.availableFilters = api.map((f) => {
-            return { name, ...f, ref: f.name, enabled: true, options: { checked: false } }
+            return { ...f, ref: f.name, enabled: true, options: { checked: false } }
           })
         })
         .catch(this.toastErrorHandler(this.$t('notification:gateway.filter.fetch.error')))

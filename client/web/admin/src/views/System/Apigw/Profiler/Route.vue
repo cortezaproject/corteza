@@ -9,7 +9,7 @@
         class="text-nowrap"
       >
         <b-button
-          v-if="$Settings.get('apigw.profilerEnabled', false)"
+          v-if="$Settings.get('apigw.profiler.enabled', false)"
           class="ml-2"
           variant="info"
           :to="{ name: 'system.apigw.profiler' }"

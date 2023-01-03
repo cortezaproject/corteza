@@ -19,27 +19,36 @@
         <h3>
           {{ $t('general:label.routes') }}
         </h3>
+        <em>{{ description }}</em>
 
         <div
-          class="d-flex align-items-center justify-content-between"
+          class="d-flex align-items-center justify-content-between mt-2"
         >
-          <em>{{ description }}</em>
           <div>
-            <span
-              :class="{ 'loading': loading }"
-            >
-              {{ autoRefreshLabel }}
-            </span>
             <b-button
-              variant="primary"
               data-test-id="button-refresh"
+              variant="primary"
               :disabled="loading"
-              class="ml-2"
               @click="loadItems()"
             >
               {{ $t('general:label.refresh') }}
             </b-button>
+            <span
+              class="ml-1"
+              :class="{ 'loading': loading }"
+            >
+              {{ autoRefreshLabel }}
+            </span>
           </div>
+
+          <c-input-confirm
+            :disabled="!items.length"
+            :borderless="false"
+            variant="danger"
+            @confirmed="purgeRequests"
+          >
+            {{ $t('purge.all') }}
+          </c-input-confirm>
         </div>
       </template>
 
@@ -63,13 +72,13 @@
         >
           <template #cell(actions)="row">
             <b-button
-              size="sm"
               variant="link"
               class="p-0"
               :to="{ name: 'system.apigw.profiler.route.list', params: { routeID: row.item.routeID } }"
             >
               <font-awesome-icon
-                :icon="['fas', 'pen']"
+                :icon="['fas', 'info-circle']"
+                class="text-primary"
               />
             </b-button>
           </template>
@@ -196,7 +205,7 @@ export default {
     },
 
     description () {
-      return this.$Settings.get('apigw.profilerGlobal', false) ? this.$t('description.globalEnabled') : this.$t('description.globalDisabled')
+      return this.$Settings.get('apigw.profiler.global', false) ? this.$t('description.globalEnabled') : this.$t('description.globalDisabled')
     },
 
     hasNextPage () {
@@ -243,6 +252,15 @@ export default {
           }
           this.startRefresh()
         })
+    },
+
+    purgeRequests () {
+      this.$SystemAPI.apigwProfilerPurgeAll()
+        .then(() => {
+          this.loadItems()
+          this.toastSuccess(this.$t('notification:gateway.profiler.purge.success'))
+        })
+        .catch(this.toastErrorHandler(this.$t('notification:gateway.profiler.purge.error')))
     },
 
     resetItems (sorting = this.sorting) {

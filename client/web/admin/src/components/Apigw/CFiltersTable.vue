@@ -1,11 +1,12 @@
 <template>
   <div>
     <b-table-simple
-      class="filter-table"
       hover
+      class="mb-0"
     >
-      <b-thead>
+      <b-thead head-variant="light">
         <b-tr>
+          <b-th />
           <b-th>{{ $t('filters.list.filters') }}</b-th>
           <b-th>{{ $t('filters.list.status') }}</b-th>
           <b-th />
@@ -13,51 +14,77 @@
       </b-thead>
 
       <draggable
+        v-if="!fetching"
         v-model="sortableFilters"
+        :options="{ handle: '.handle' }"
         tag="b-tbody"
       >
         <b-tr
           v-for="(filter, index) in sortableFilters"
           :key="index"
-          class="pointer"
-          :class="[selectedRow===index ? 'row-selected' : 'row-not-selected']"
-          @click.stop="onRowClick(filter,index)"
         >
-          <b-td class="align-baseline">
+          <td
+            class="handle align-middle grab"
+            style="width: 1%"
+          >
+            <font-awesome-icon
+              :icon="['fas', 'bars']"
+              class="text-light"
+            />
+          </td>
+          <b-td class="align-middle">
             {{ filter.label }}
           </b-td>
-          <b-td class="align-baseline">
+          <b-td class="align-middle">
             {{ $t(`filters.${filter.enabled ? 'enabled' : 'disabled'}`) }}
           </b-td>
-          <b-td class="text-right align-baseline">
+          <b-td class="text-right align-middle">
             <b-button
-              variant="danger"
-              class="my-1"
               size="sm"
-              @click.stop="onRemoveFilter(filter)"
+              variant="link"
+              @click.stop="onRowClick(filter, index)"
             >
-              {{ $t('filters.list.remove') }}
+              <font-awesome-icon
+                :icon="['fas', 'pen']"
+              />
             </b-button>
+            <c-input-confirm
+              class="ml-1"
+              @confirmed="onRemoveFilter(filter)"
+              @click.stop
+            />
           </b-td>
         </b-tr>
       </draggable>
     </b-table-simple>
-    <h6
-      v-if="!sortableFilters.length"
-      data-test-id="no-filters"
-      class="d-flex justify-content-center align-items-center mb-3"
+
+    <div
+      class="d-flex flex-column align-items-center justify-content-center h-100 overflow-hidden"
     >
-      {{ $t('filters.list.noFilters') }}
-    </h6>
+      <b-spinner
+        v-if="fetching"
+        class="my-4"
+      />
+
+      <p
+        v-else-if="!sortableFilters.length"
+        data-test-id="no-filters"
+        class="my-4"
+      >
+        {{ $t('filters.list.noFilters') }}
+      </p>
+    </div>
   </div>
 </template>
 
 <script>
 import draggable from 'vuedraggable'
+
 export default {
   components: {
     draggable,
   },
+
   props: {
     filters: {
       type: Array,
@@ -67,6 +94,10 @@ export default {
       type: Number,
       default: () => 0,
     },
+    fetching: {
+      type: Boolean,
+      value: false,
+    },
   },
 
   data () {
@@ -75,6 +106,7 @@ export default {
       selectedFilter: {},
     }
   },
+
   computed: {
     sortableFilters: {
       get () {
@@ -86,6 +118,7 @@ export default {
       },
     },
   },
+
   methods: {
     onAddFilter (filter) {
       if (!this.filters.find(f => f.ref === filter.ref)) {
@@ -109,12 +142,3 @@ export default {
   },
 }
 </script>
-
-<style lang="scss">
-.filter-table .row-selected{
-  background: #F3F3F5;
-}
-.cursor-default{
-  cursor: default;
-}
-</style>

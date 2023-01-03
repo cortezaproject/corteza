@@ -96,8 +96,9 @@ export default [
 
           combo('system', 'authClient', { pkey: 'authClientID' }),
 
-          combo('system', 'apigw', { pkey: 'routeID', plural: 'routes' }),
-
+          r('system.apigw', 'apigw', 'System/Apigw/Index'),
+          r('system.apigw.new', 'apigw/new', 'System/Apigw/Editor'),
+          r('system.apigw.edit', 'apigw/edit/:routeID', 'System/Apigw/Editor'),
           r('system.apigw.profiler', 'apigw/profiler', 'System/Apigw/Profiler/Index'),
           r('system.apigw.profiler.route.list', 'apigw/profiler/route/:routeID', 'System/Apigw/Profiler/Route'),
           r('system.apigw.profiler.hit.list', 'apigw/profiler/hit/:hitID', 'System/Apigw/Profiler/Hit'),
