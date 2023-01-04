@@ -14,7 +14,6 @@ import (
 	actx "github.com/cortezaproject/corteza/server/pkg/apigw/ctx"
 	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
 	pe "github.com/cortezaproject/corteza/server/pkg/errors"
-	"github.com/cortezaproject/corteza/server/pkg/options"
 	"go.uber.org/zap"
 )
 
@@ -34,10 +33,13 @@ var (
 type (
 	proxy struct {
 		types.FilterMeta
-		a   ProxyAuthServicer
-		s   types.SecureStorager
-		c   *http.Client
+
+		a ProxyAuthServicer
+		s types.SecureStorager
+		c *http.Client
+
 		log *zap.Logger
+		cfg types.Config
 
 		params struct {
 			Location string          `json:"location"`
@@ -46,12 +48,13 @@ type (
 	}
 )
 
-func New(opts options.ApigwOpt, l *zap.Logger, c *http.Client, s types.SecureStorager) (p *proxy) {
+func New(cfg types.Config, l *zap.Logger, c *http.Client, s types.SecureStorager) (p *proxy) {
 	p = &proxy{}
 
 	p.c = c
 	p.s = s
 	p.log = l
+	p.cfg = cfg
 
 	p.Name = "proxy"
 	p.Label = "Proxy processer"
@@ -68,8 +71,8 @@ func New(opts options.ApigwOpt, l *zap.Logger, c *http.Client, s types.SecureSto
 	return
 }
 
-func (h proxy) New(opts options.ApigwOpt) types.Handler {
-	return New(opts, h.log, h.c, h.s)
+func (h proxy) New(cfg types.Config) types.Handler {
+	return New(cfg, h.log, h.c, h.s)
 }
 
 func (h proxy) Enabled() bool {
@@ -84,7 +87,9 @@ func (h proxy) Meta() types.FilterMeta {
 	return h.FilterMeta
 }
 
-func (h *proxy) Merge(params []byte) (types.Handler, error) {
+func (h *proxy) Merge(params []byte, cfg types.Config) (types.Handler, error) {
+	h.cfg = cfg
+
 	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&h.params)
 
 	if err != nil {

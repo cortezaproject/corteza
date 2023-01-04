@@ -8,22 +8,21 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/apigw/filter"
 	"github.com/cortezaproject/corteza/server/pkg/apigw/filter/proxy"
 	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
-	"github.com/cortezaproject/corteza/server/pkg/options"
 )
 
 type (
 	Registry struct {
-		opts options.ApigwOpt
-		h    map[string]types.Handler
+		cfg types.Config
+		h   map[string]types.Handler
 	}
 
 	secureStorageTodo struct{}
 )
 
-func NewRegistry(opts options.ApigwOpt) *Registry {
+func NewRegistry(cfg types.Config) *Registry {
 	return &Registry{
-		h:    map[string]types.Handler{},
-		opts: opts,
+		h:   map[string]types.Handler{},
+		cfg: cfg,
 	}
 }
 
@@ -31,8 +30,8 @@ func (r *Registry) Add(n string, h types.Handler) {
 	r.h[n] = h
 }
 
-func (r *Registry) Merge(h types.Handler, b []byte) (hh types.Handler, err error) {
-	hh, err = h.Merge(b)
+func (r *Registry) Merge(h types.Handler, b []byte, cfg types.Config) (hh types.Handler, err error) {
+	hh, err = h.Merge(b, cfg)
 	return
 }
 
@@ -46,7 +45,7 @@ func (r *Registry) Get(identifier string) (types.Handler, error) {
 		return nil, fmt.Errorf("could not get element from registry: %s", identifier)
 	}
 
-	return f.New(r.opts), nil
+	return f.New(r.cfg), nil
 }
 
 func (r *Registry) All() (list types.FilterMetaList) {
@@ -64,19 +63,19 @@ func (r *Registry) All() (list types.FilterMetaList) {
 
 func (r *Registry) Preload() {
 	// prefilters
-	r.Add("queryParam", filter.NewQueryParam(r.opts))
-	r.Add("header", filter.NewHeader(r.opts))
-	r.Add("profiler", filter.NewProfiler(r.opts))
+	r.Add("queryParam", filter.NewQueryParam(r.cfg))
+	r.Add("header", filter.NewHeader(r.cfg))
+	r.Add("profiler", filter.NewProfiler(r.cfg))
 
 	// processers
-	r.Add("workflow", filter.NewWorkflow(r.opts, NewWorkflow()))
-	r.Add("proxy", proxy.New(r.opts, service.DefaultLogger, http.DefaultClient, secureStorageTodo{}))
-	r.Add("payload", filter.NewPayload(r.opts, service.DefaultLogger))
+	r.Add("workflow", filter.NewWorkflow(r.cfg, NewWorkflow()))
+	r.Add("proxy", proxy.New(r.cfg, service.DefaultLogger, http.DefaultClient, secureStorageTodo{}))
+	r.Add("payload", filter.NewPayload(r.cfg, service.DefaultLogger))
 
 	// postfilters
-	r.Add("redirection", filter.NewRedirection(r.opts))
-	r.Add("response", filter.NewResponse(r.opts, service.Registry()))
-	r.Add("defaultJsonResponse", filter.NewDefaultJsonResponse(r.opts))
+	r.Add("redirection", filter.NewRedirection(r.cfg))
+	r.Add("response", filter.NewResponse(r.cfg, service.Registry()))
+	r.Add("defaultJsonResponse", filter.NewDefaultJsonResponse(r.cfg))
 }
 
 func NewWorkflow() (wf filter.WfExecer) {

@@ -79,10 +79,10 @@ func Test_processerWorkflow(t *testing.T) {
 				rc      = httptest.NewRecorder()
 				rq, _   = http.NewRequest("POST", "/foo", http.NoBody)
 				ar, err = h.NewRequest(rq)
-				pp      = NewWorkflow(options.ApigwOpt{}, tc.wfs)
+				pp      = NewWorkflow(types.Config{}, tc.wfs)
 			)
 
-			_, err = pp.Merge([]byte(tc.params))
+			_, err = pp.Merge([]byte(tc.params), types.Config{})
 			req.NoError(err)
 
 			scope := &types.Scp{
@@ -181,10 +181,12 @@ func Test_processerPayload(t *testing.T) {
 				req     = require.New(t)
 				rc      = httptest.NewRecorder()
 				ar, err = h.NewRequest(tc.rq)
+
+				cfg = types.Config{}
 			)
 
-			pp := NewPayload(options.ApigwOpt{}, zap.NewNop())
-			_, err = pp.Merge([]byte(tc.params))
+			pp := NewPayload(cfg, zap.NewNop())
+			_, err = pp.Merge([]byte(tc.params), cfg)
 
 			if tc.errv != "" {
 				req.EqualError(err, tc.errv)

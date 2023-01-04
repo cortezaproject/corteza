@@ -164,6 +164,7 @@ func Test_proxy(t *testing.T) {
 				req = require.New(t)
 				c   = http.DefaultClient
 				rq  = tc.rq
+				cfg = types.Config{}
 			)
 
 			if tc.fn != nil {
@@ -174,8 +175,8 @@ func Test_proxy(t *testing.T) {
 				rq = httptest.NewRequest("POST", "/foo", strings.NewReader(`custom request body`))
 			}
 
-			proxy := New(options.ApigwOpt{}, zap.NewNop(), c, struct{}{})
-			_, err := proxy.Merge([]byte(tc.params))
+			proxy := New(cfg, zap.NewNop(), c, struct{}{})
+			_, err := proxy.Merge([]byte(tc.params), cfg)
 			req.NoError(err)
 
 			scope := &types.Scp{

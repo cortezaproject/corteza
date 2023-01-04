@@ -536,11 +536,13 @@ func (svc *service) registerServerScripts(ctx context.Context, ss ...*ServerScri
 // Registers scheduled and manual iterators
 //
 // scheduled iterators
-//   registered on eventbus as onInterval or onTimestamp
-//   and triggered by/from scheduler
+//
+//	registered on eventbus as onInterval or onTimestamp
+//	and triggered by/from scheduler
 //
 // manual iterators
-//   can be invoked via API
+//
+//	can be invoked via API
 func (svc *service) processIterator(script *Script) (ptr uintptr, err error) {
 	var (
 		log = svc.log.With(zap.String("script", script.Name))
@@ -868,12 +870,6 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 
 	log.Info("executed", zap.Any("result", rsp.Result))
 
-	// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// ////
-
-	// @todo process metadata (log, errors, stacktrace)
-	//spew.Dump("grpc exec header", header)
-	//spew.Dump("grpc exec trailer", trailer)
-
 	if rsp.Result == nil {
 		// No results
 		return
@@ -954,7 +950,6 @@ func (svc *service) registerClientScripts(ss ...*ClientScript) {
 //
 // User and role caches (uc, rc args) hold list of users/roles
 // that were already loaded/checked
-//
 func (svc *service) serverScriptSecurity(ctx context.Context, script *ServerScript, s *Script) (err error) {
 	if script.Security == nil {
 		return
