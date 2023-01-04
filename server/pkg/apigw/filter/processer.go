@@ -16,14 +16,14 @@ import (
 	pe "github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/jsenv"
-	"github.com/cortezaproject/corteza/server/pkg/options"
 	"go.uber.org/zap"
 )
 
 type (
 	workflow struct {
 		types.FilterMeta
-		d WfExecer
+		d   WfExecer
+		cfg types.Config
 
 		params struct {
 			Workflow uint64 `json:"workflow,string"`
@@ -42,6 +42,7 @@ type (
 		vm  jsenv.Vm
 		fn  *jsenv.Fn
 		log *zap.Logger
+		cfg types.Config
 
 		params struct {
 			Func   string `json:"jsfunc"`
@@ -50,10 +51,11 @@ type (
 	}
 )
 
-func NewWorkflow(opts options.ApigwOpt, wf WfExecer) (p *workflow) {
+func NewWorkflow(cfg types.Config, wf WfExecer) (p *workflow) {
 	p = &workflow{}
 
 	p.d = wf
+	p.cfg = cfg
 
 	p.Name = "workflow"
 	p.Label = "Workflow processer"
@@ -70,8 +72,8 @@ func NewWorkflow(opts options.ApigwOpt, wf WfExecer) (p *workflow) {
 	return
 }
 
-func (h workflow) New(opts options.ApigwOpt) types.Handler {
-	return NewWorkflow(opts, h.d)
+func (h workflow) New(cfg types.Config) types.Handler {
+	return NewWorkflow(cfg, h.d)
 }
 
 func (h workflow) Enabled() bool {
@@ -86,15 +88,16 @@ func (h workflow) Meta() types.FilterMeta {
 	return h.FilterMeta
 }
 
-func (h *workflow) Merge(params []byte) (types.Handler, error) {
+func (h *workflow) Merge(params []byte, cfg types.Config) (types.Handler, error) {
 	var (
 		t = struct {
 			Workflow string `json:"workflow"`
 		}{}
 
-		// ctx = context.Background()
 		ctx = auth.SetIdentityToContext(context.Background(), auth.ServiceUser())
 	)
+
+	h.cfg = cfg
 
 	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&t)
 	if err != nil {
@@ -175,11 +178,12 @@ func (h workflow) Handler() types.HandlerFunc {
 	}
 }
 
-func NewPayload(opts options.ApigwOpt, l *zap.Logger) (p *processerPayload) {
+func NewPayload(cfg types.Config, l *zap.Logger) (p *processerPayload) {
 	p = &processerPayload{}
 
 	p.vm = jsenv.New(jsenv.NewTransformer(jsenv.LoaderJS, jsenv.TargetES2016))
 	p.log = l
+	p.cfg = cfg
 
 	p.Name = "payload"
 	p.Label = "Payload processer"
@@ -199,8 +203,8 @@ func NewPayload(opts options.ApigwOpt, l *zap.Logger) (p *processerPayload) {
 	return
 }
 
-func (h processerPayload) New(opts options.ApigwOpt) types.Handler {
-	return NewPayload(opts, h.log)
+func (h processerPayload) New(cfg types.Config) types.Handler {
+	return NewPayload(cfg, h.log)
 }
 
 func (h processerPayload) Enabled() bool {
@@ -215,7 +219,9 @@ func (h processerPayload) Meta() types.FilterMeta {
 	return h.FilterMeta
 }
 
-func (h *processerPayload) Merge(params []byte) (types.Handler, error) {
+func (h *processerPayload) Merge(params []byte, cfg types.Config) (types.Handler, error) {
+	h.cfg = cfg
+
 	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&h.params)
 
 	if err != nil {

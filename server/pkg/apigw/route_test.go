@@ -1,7 +1,7 @@
 package apigw
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -46,7 +46,7 @@ func Test_pl(t *testing.T) {
 				handler: &types.MockHandler{
 					Handler_: func(rw http.ResponseWriter, r *http.Request) error {
 						rw.WriteHeader(http.StatusTemporaryRedirect)
-						return fmt.Errorf("test error")
+						return errors.New("test error")
 					},
 				},
 				errHandler: &types.MockErrorHandler{
@@ -63,7 +63,7 @@ func Test_pl(t *testing.T) {
 				handler: &types.MockHandler{
 					Handler_: func(rw http.ResponseWriter, r *http.Request) error {
 						rw.WriteHeader(http.StatusTemporaryRedirect)
-						return fmt.Errorf("test error")
+						return errors.New("test error")
 					},
 				},
 				method:    "POST",

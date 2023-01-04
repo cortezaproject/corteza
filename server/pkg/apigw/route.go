@@ -10,7 +10,6 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	h "github.com/cortezaproject/corteza/server/pkg/http"
-	"github.com/cortezaproject/corteza/server/pkg/options"
 	"go.uber.org/zap"
 )
 
@@ -21,9 +20,9 @@ type (
 		method   string
 		meta     routeMeta
 
-		opts options.ApigwOpt
-		log  *zap.Logger
-		pr   *profiler.Profiler
+		cfg types.Config
+		log *zap.Logger
+		pr  *profiler.Profiler
 
 		handler    http.Handler
 		errHandler types.ErrorHandlerFunc
@@ -51,11 +50,11 @@ func (r route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		r.log.Error("could not get initial request", zap.Error(err))
 	}
 
-	scope.Set("opts", r.opts)
+	scope.Set("opts", r.cfg)
 	scope.Set("request", ar)
 
 	// use profiler, override any profiling prefilter
-	if r.opts.ProfilerEnabled && r.opts.ProfilerGlobal {
+	if r.cfg.Profiler.Enabled && r.cfg.Profiler.Global {
 		// add request to profiler
 		hit = r.pr.Hit(ar)
 		hit.Route = r.ID
@@ -70,11 +69,11 @@ func (r route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		zap.Duration("duration", time.Since(start)),
 	)
 
-	if !r.opts.ProfilerEnabled {
+	if !r.cfg.Profiler.Enabled {
 		return
 	}
 
-	if r.opts.ProfilerGlobal {
+	if r.cfg.Profiler.Global {
 		r.pr.Push(hit)
 		return
 	}

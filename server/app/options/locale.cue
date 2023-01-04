@@ -38,7 +38,9 @@ locale: schema.#optionsGroup & {
 
 		resource_translations_enabled: {
 			type:        "bool"
-			description: "When enabled, Corteza all"
+			description: """
+        When enabled, an editor for resource translations is enabled in UI
+        """
 		}
 
 		log: {

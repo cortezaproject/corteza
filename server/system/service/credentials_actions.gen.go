@@ -11,13 +11,12 @@ package service
 import (
 	"context"
 	"fmt"
-	"strings"
-	"time"
-
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"github.com/cortezaproject/corteza/server/system/types"
+	"strings"
+	"time"
 )
 
 type (
@@ -219,7 +218,6 @@ func CredentialsActionDelete(props ...*credentialsActionProps) *credentialsActio
 // CredentialsActionCreate returns "system:credentials.create" action
 //
 // This function is auto-generated.
-//
 func CredentialsActionCreate(props ...*credentialsActionProps) *credentialsAction {
 	a := &credentialsAction{
 		timestamp: time.Now(),
@@ -239,7 +237,6 @@ func CredentialsActionCreate(props ...*credentialsActionProps) *credentialsActio
 // CredentialsActionUpdate returns "system:credentials.update" action
 //
 // This function is auto-generated.
-//
 func CredentialsActionUpdate(props ...*credentialsActionProps) *credentialsAction {
 	a := &credentialsAction{
 		timestamp: time.Now(),

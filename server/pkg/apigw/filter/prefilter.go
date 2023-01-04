@@ -11,13 +11,14 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
 	pe "github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/options"
 )
 
 type (
 	header struct {
 		types.FilterMeta
-		eval   expr.Evaluable
+		eval expr.Evaluable
+		cfg  types.Config
+
 		params struct {
 			Expr string `json:"expr"`
 		}
@@ -25,7 +26,9 @@ type (
 
 	queryParam struct {
 		types.FilterMeta
-		eval   expr.Evaluable
+		eval expr.Evaluable
+		cfg  types.Config
+
 		params struct {
 			Expr string `json:"expr"`
 		}
@@ -33,19 +36,21 @@ type (
 
 	origin struct {
 		types.FilterMeta
-		eval   expr.Evaluable
+		eval expr.Evaluable
+		cfg  types.Config
+
 		params struct {
 			Expr string `json:"expr"`
 		}
 	}
 
 	profiler struct {
-		opts options.ApigwOpt
+		cfg types.Config
 		types.FilterMeta
 	}
 )
 
-func NewHeader(opts options.ApigwOpt) (v *header) {
+func NewHeader(cfg types.Config) (v *header) {
 	v = &header{}
 
 	v.Name = "header"
@@ -60,11 +65,13 @@ func NewHeader(opts options.ApigwOpt) (v *header) {
 		},
 	}
 
+	v.cfg = cfg
+
 	return
 }
 
-func (h header) New(opts options.ApigwOpt) types.Handler {
-	return NewHeader(opts)
+func (h header) New(cfg types.Config) types.Handler {
+	return NewHeader(cfg)
 }
 
 func (h header) Enabled() bool {
@@ -79,7 +86,7 @@ func (h header) Meta() types.FilterMeta {
 	return h.FilterMeta
 }
 
-func (h *header) Merge(params []byte) (types.Handler, error) {
+func (h *header) Merge(params []byte, cfg types.Config) (types.Handler, error) {
 	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&h.params)
 
 	if err != nil {
@@ -87,6 +94,8 @@ func (h *header) Merge(params []byte) (types.Handler, error) {
 	}
 
 	parser := expr.NewParser()
+
+	h.cfg = cfg
 	h.eval, err = parser.Parse(h.params.Expr)
 
 	if err != nil {
@@ -133,7 +142,7 @@ func (h header) Handler() types.HandlerFunc {
 	}
 }
 
-func NewQueryParam(opts options.ApigwOpt) (v *queryParam) {
+func NewQueryParam(cfg types.Config) (v *queryParam) {
 	v = &queryParam{}
 
 	v.Name = "queryParam"
@@ -148,11 +157,13 @@ func NewQueryParam(opts options.ApigwOpt) (v *queryParam) {
 		},
 	}
 
+	v.cfg = cfg
+
 	return
 }
 
-func (qp queryParam) New(opts options.ApigwOpt) types.Handler {
-	return NewQueryParam(opts)
+func (qp queryParam) New(cfg types.Config) types.Handler {
+	return NewQueryParam(cfg)
 }
 
 func (qp queryParam) Enabled() bool {
@@ -167,7 +178,7 @@ func (qp queryParam) Meta() types.FilterMeta {
 	return qp.FilterMeta
 }
 
-func (qp *queryParam) Merge(params []byte) (types.Handler, error) {
+func (qp *queryParam) Merge(params []byte, cfg types.Config) (types.Handler, error) {
 	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&qp.params)
 
 	if err != nil {
@@ -175,6 +186,8 @@ func (qp *queryParam) Merge(params []byte) (types.Handler, error) {
 	}
 
 	parser := expr.NewParser()
+
+	qp.cfg = cfg
 	qp.eval, err = parser.Parse(qp.params.Expr)
 
 	if err != nil {
@@ -221,10 +234,10 @@ func (qp *queryParam) Handler() types.HandlerFunc {
 	}
 }
 
-func NewProfiler(opts options.ApigwOpt) (pp *profiler) {
+func NewProfiler(cfg types.Config) (pp *profiler) {
 	pp = &profiler{}
 
-	pp.opts = opts
+	pp.cfg = cfg
 	pp.Name = "profiler"
 	pp.Label = "Profiler"
 	pp.Kind = types.PreFilter
@@ -232,23 +245,24 @@ func NewProfiler(opts options.ApigwOpt) (pp *profiler) {
 	return
 }
 
-func (pr profiler) New(opts options.ApigwOpt) types.Handler {
-	return NewProfiler(opts)
+func (pr *profiler) New(cfg types.Config) types.Handler {
+	return NewProfiler(cfg)
 }
 
-func (pr profiler) Enabled() bool {
-	return pr.opts.ProfilerEnabled
+func (pr *profiler) Enabled() bool {
+	return pr.cfg.Profiler.Enabled
 }
 
-func (pr profiler) String() string {
+func (pr *profiler) String() string {
 	return fmt.Sprintf("apigw filter %s (%s)", pr.Name, pr.Label)
 }
 
-func (pr profiler) Meta() types.FilterMeta {
+func (pr *profiler) Meta() types.FilterMeta {
 	return pr.FilterMeta
 }
 
-func (pr *profiler) Merge(params []byte) (types.Handler, error) {
+func (pr *profiler) Merge(params []byte, cfg types.Config) (types.Handler, error) {
+	pr.cfg = cfg
 	return pr, nil
 }
 
@@ -259,7 +273,7 @@ func (pr *profiler) Handler() types.HandlerFunc {
 			scope = agctx.ScopeFromContext(ctx)
 		)
 
-		if pr.opts.ProfilerGlobal {
+		if pr.cfg.Profiler.Global {
 			// profiler global overrides any profiling prefilter
 			// the hit is registered on lower level
 			return

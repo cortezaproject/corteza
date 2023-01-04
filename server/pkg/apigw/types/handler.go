@@ -3,8 +3,6 @@ package types
 import (
 	"fmt"
 	"net/http"
-
-	"github.com/cortezaproject/corteza/server/pkg/options"
 )
 
 type (
@@ -20,8 +18,8 @@ type (
 		HTTPHandler
 		fmt.Stringer
 
-		New(options.ApigwOpt) Handler
-		Merge([]byte) (Handler, error)
+		New(Config) Handler
+		Merge([]byte, Config) (Handler, error)
 		Meta() FilterMeta
 		Enabled() bool
 	}

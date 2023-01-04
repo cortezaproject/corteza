@@ -9,7 +9,6 @@ import (
 	prf "github.com/cortezaproject/corteza/server/pkg/apigw/profiler"
 	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
 	h "github.com/cortezaproject/corteza/server/pkg/http"
-	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/stretchr/testify/require"
 )
 
@@ -37,7 +36,7 @@ func Test_headerMerge(t *testing.T) {
 	)
 
 	for _, tc := range tcc {
-		t.Run(tc.name, testMerge(NewHeader(options.ApigwOpt{}), tc))
+		t.Run(tc.name, testMerge(NewHeader(types.Config{}), tc))
 	}
 }
 
@@ -83,7 +82,7 @@ func Test_headerHandle(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "/foo", http.NoBody)
 		r.Header = tc.headers
 
-		t.Run(tc.name, testHandle(NewHeader(options.ApigwOpt{}), r, tc))
+		t.Run(tc.name, testHandle(NewHeader(types.Config{}), r, tc))
 	}
 }
 
@@ -99,7 +98,7 @@ func Test_queryParamMerge(t *testing.T) {
 				name: "matching simple query parameter - invalid expression key",
 				expr: `{"expr1":"foo == \"bar\""}`,
 				url:  "https://examp.le?foo=bar",
-				err: "could not validate query parameters: parsing error: 	 - 1:1 unexpected EOF while scanning extensions",
+				err:  "could not validate query parameters: parsing error: 	 - 1:1 unexpected EOF while scanning extensions",
 			},
 			{
 				name: "matching simple query parameter - missing value",
@@ -115,7 +114,7 @@ func Test_queryParamMerge(t *testing.T) {
 	)
 
 	for _, tc := range tcc {
-		t.Run(tc.name, testMerge(NewQueryParam(options.ApigwOpt{}), tc))
+		t.Run(tc.name, testMerge(NewQueryParam(types.Config{}), tc))
 	}
 }
 
@@ -148,7 +147,7 @@ func Test_queryParamHandle(t *testing.T) {
 
 	for _, tc := range tcc {
 		r := httptest.NewRequest(http.MethodGet, tc.url, http.NoBody)
-		t.Run(tc.name, testHandle(NewQueryParam(options.ApigwOpt{}), r, tc))
+		t.Run(tc.name, testHandle(NewQueryParam(types.Config{}), r, tc))
 	}
 }
 
@@ -156,7 +155,7 @@ func Test_profilerHandle_profilerGlobal(t *testing.T) {
 	type (
 		tfp struct {
 			name string
-			opts options.ApigwOpt
+			cfg  types.Config
 			r    *http.Request
 			exp  *h.Request
 		}
@@ -167,13 +166,13 @@ func Test_profilerHandle_profilerGlobal(t *testing.T) {
 		tcc = []tfp{
 			{
 				name: "skip profiler hit on profiler global = true",
-				opts: options.ApigwOpt{ProfilerGlobal: true},
+				cfg:  types.Config{ProfilerGlobal: true},
 				r:    rr,
 				exp:  nil,
 			},
 			{
 				name: "add profiler hit on profiler global = false",
-				opts: options.ApigwOpt{ProfilerGlobal: false},
+				cfg:  types.Config{ProfilerGlobal: false},
 				r:    rr,
 				exp:  createRequest(rr),
 			},
@@ -184,7 +183,7 @@ func Test_profilerHandle_profilerGlobal(t *testing.T) {
 		var (
 			req = require.New(t)
 
-			ph  = NewProfiler(tc.opts)
+			ph  = NewProfiler(tc.cfg)
 			hfn = ph.Handler()
 
 			hr  = createRequest(tc.r)
@@ -216,7 +215,7 @@ func testMerge(h types.Handler, tc tf) func(t *testing.T) {
 			req = require.New(t)
 		)
 
-		_, err := h.Merge([]byte(tc.expr))
+		_, err := h.Merge([]byte(tc.expr), types.Config{})
 
 		if tc.err != "" {
 			req.EqualError(err, tc.err)
@@ -232,7 +231,7 @@ func testHandle(h types.Handler, r *http.Request, tc tf) func(t *testing.T) {
 			req = require.New(t)
 		)
 
-		h, err := h.Merge([]byte(tc.expr))
+		h, err := h.Merge([]byte(tc.expr), types.Config{})
 
 		req.NoError(err)
 

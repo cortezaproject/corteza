@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 	"strings"
+	"time"
 )
 
 const (
@@ -215,10 +216,7 @@ type (
 		} `kv:"federation" json:"federation"`
 
 		// Integration gateway settings
-		Apigw struct {
-			ProfilerEnabled bool `kv:"-" json:"profilerEnabled"`
-			ProfilerGlobal  bool `kv:"-" json:"profilerGlobal"`
-		} `kv:"apigw" json:"apigw"`
+		Apigw ApigwSettings `kv:"apigw" json:"apigw"`
 
 		// UserInterface settings
 		UI struct {
@@ -384,6 +382,20 @@ type (
 		From          string `json:"from"`
 		TlsInsecure   bool   `json:"tlsInsecure"`
 		TlsServerName string `json:"tlsServerName"`
+	}
+
+	ApigwSettings struct {
+		Enabled bool `kv:"enabled" json:"enabled"`
+
+		Profiler struct {
+			Enabled bool `kv:"enabled" json:"enabled"`
+			Global  bool `kv:"global" json:"global"`
+		} `kv:"profiler" json:"profiler"`
+
+		Proxy struct {
+			FollowRedirects bool          `kv:"follow-redirects" json:"follow-redirects"`
+			OutboundTimeout time.Duration `kv:"outbound-timeout" json:"outbound-timeout"`
+		} `kv:"proxy" json:"proxy"`
 	}
 
 	PasswordConstraints struct {
