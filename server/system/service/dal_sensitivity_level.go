@@ -28,6 +28,7 @@ type (
 	dalSensitivityLevelManager interface {
 		ReplaceSensitivityLevel(levels ...dal.SensitivityLevel) (err error)
 		RemoveSensitivityLevel(levels ...uint64) (err error)
+		InUseSensitivityLevel(levelID uint64) (usage dal.SensitivityLevelUsage)
 	}
 )
 
@@ -152,6 +153,10 @@ func (svc *dalSensitivityLevel) DeleteByID(ctx context.Context, ID uint64) (err 
 
 		if !svc.ac.CanManageDalSensitivityLevel(ctx) {
 			return DalSensitivityLevelErrNotAllowedToManage(qProps)
+		}
+
+		if !svc.dal.InUseSensitivityLevel(ID).Empty() {
+			return DalSensitivityLevelErrDeleteInUse()
 		}
 
 		qProps.setSensitivityLevel(q)

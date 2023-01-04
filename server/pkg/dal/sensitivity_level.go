@@ -16,6 +16,12 @@ type (
 		byHandle map[string]int
 		byID     map[uint64]int
 	}
+
+	SensitivityLevelUsage struct {
+		connections []map[string]any
+		modules     []map[string]any
+		fields      []map[string]any
+	}
 )
 
 func SensitivityLevelIndex(levels ...SensitivityLevel) *sensitivityLevelIndex {
@@ -97,3 +103,7 @@ func (sli sensitivityLevelIndex) isSubset(a, b uint64) (ok bool) {
 func (a SensitivityLevelSet) Len() int           { return len(a) }
 func (a SensitivityLevelSet) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a SensitivityLevelSet) Less(i, j int) bool { return a[i].Level < a[j].Level }
+
+func (u SensitivityLevelUsage) Empty() bool {
+	return len(u.connections)+len(u.fields)+len(u.modules) == 0
+}

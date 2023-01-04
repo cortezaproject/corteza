@@ -68,6 +68,9 @@ errors:
     message: "sensitivityLevel by that DSN already exists"
     severity: warning
 
+  - error: deleteInUse
+    message: "failed to delete sensitivity level {{sensitivityLevel}} because it is in use by other resources"
+
   - error: notAllowedToManage
     message: "not allowed to Manage a sensitivityLevel"
     log: "failed to Manage a sensitivityLevel; insufficient permissions"
