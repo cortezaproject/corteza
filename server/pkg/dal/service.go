@@ -227,6 +227,44 @@ func (svc *service) RemoveSensitivityLevel(levelIDs ...uint64) (err error) {
 	return
 }
 
+// InUseSensitivityLevel checks if and where the sensitivity level is being used
+func (svc *service) InUseSensitivityLevel(levelID uint64) (usage SensitivityLevelUsage) {
+	usage = SensitivityLevelUsage{}
+
+	// - connections
+	for _, c := range svc.connections {
+		if levelID == c.Config.SensitivityLevelID {
+			usage.connections = append(usage.connections, map[string]any{
+				// @todo add when needed
+				"ident": c.Config.Label,
+			})
+		}
+	}
+
+	// - models
+	for _, mm := range svc.models {
+		for _, m := range mm {
+			if levelID == m.SensitivityLevelID {
+				usage.modules = append(usage.modules, map[string]any{
+					// @todo add when needed
+					"ident": m.Ident,
+				})
+			}
+
+			for _, attr := range m.Attributes {
+				if levelID == attr.SensitivityLevelID {
+					usage.fields = append(usage.fields, map[string]any{
+						// @todo add when needed
+						"ident": attr.Ident,
+					})
+				}
+			}
+		}
+	}
+
+	return
+}
+
 // // // // // // // // // // // // // // // // // // // // // // // // //
 
 // // // // // // // // // // // // // // // // // // // // // // // // //

@@ -530,6 +530,40 @@ func DalSensitivityLevelErrAlreadyExists(mm ...*dalSensitivityLevelActionProps) 
 	return e
 }
 
+// DalSensitivityLevelErrDeleteInUse returns "system:dal-sensitivity-level.deleteInUse" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func DalSensitivityLevelErrDeleteInUse(mm ...*dalSensitivityLevelActionProps) *errors.Error {
+	var p = &dalSensitivityLevelActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("failed to delete sensitivity level {{sensitivityLevel}} because it is in use by other resources", nil),
+
+		errors.Meta("type", "deleteInUse"),
+		errors.Meta("resource", "system:dal-sensitivity-level"),
+
+		errors.Meta(dalSensitivityLevelPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-sensitivity-level.errors.deleteInUse"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // DalSensitivityLevelErrNotAllowedToManage returns "system:dal-sensitivity-level.notAllowedToManage" as *errors.Error
 //
 // This function is auto-generated.

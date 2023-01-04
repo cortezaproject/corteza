@@ -6,3 +6,4 @@ errors:
   invalidID: invalid ID
   notAllowedToManage: not allowed to manage sensitivity level
   notFound: sensitivity level not found
+  deleteInUse: cannot delete in use sensitivity levels
