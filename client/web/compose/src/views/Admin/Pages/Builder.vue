@@ -2,6 +2,7 @@
   <div
     v-if="!!page"
     id="page-builder"
+    ref="pageBuilder"
     class="flex-grow-1 overflow-auto d-flex px-2 w-100"
     tabIndex="1"
   >
@@ -524,6 +525,7 @@ export default {
       navigator.clipboard.writeText(parsedBlock).then(() => {
         this.toastSuccess(this.$t('notification:page.copySuccess'))
         this.toastInfo(this.$t('notification:page.blockWaiting'))
+        this.$refs.pageBuilder.focus()
       },
       (err) => {
         this.toastErrorHandler(this.$t('notification:page.copyFailed', { reason: err }))
@@ -532,7 +534,7 @@ export default {
 
     pasteBlock (event) {
       // ensuring page-builder is focused before pasting a block
-      if (document.querySelector('#page__builder') === document.activeElement) {
+      if (document.querySelector('#page-builder') === document.activeElement) {
         event.preventDefault()
         const paste = (event.clipboardData || window.clipboardData).getData('text')
         // Doing this to handle JSON parse error
@@ -553,14 +555,18 @@ export default {
     appendBlock (block, msg) {
       if (this.blocks.length) {
         // ensuring we append the block to the end of the page
-        // eslint-disable-next-line
-          const maxY = this.blocks.map((block) => block.xywh[1]).reduce((acc, val) => {
+        const maxY = this.blocks.map((block) => block.xywh[1]).reduce((acc, val) => {
           return acc > val ? acc : val
         }, 0)
+
         block.xywh = [0, maxY + 2, 3, 3]
       }
+
+      // Doing this to avoid blockID duplicates when saved
+      block.blockID = NoID
       this.editor = { index: undefined, block: compose.PageBlockMaker(block) }
       this.updateBlocks()
+
       if (!this.editor) {
         this.toastSuccess(msg)
       } else {
