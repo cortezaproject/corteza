@@ -101,7 +101,8 @@ func (i *genericIterator) Next(ctx context.Context, scope *expr.Vars) (next Step
 
 func GenericResourceNextCheck(useLimit bool, ptr, buffSize, total, limit uint, hasMore bool) bool {
 	// if we can go more (inverted)...
-	if useLimit && ptr+total >= limit {
+	// Treat limit = 0 the same as no limit (consistent with other bits of the system)
+	if (useLimit && limit != 0) && ptr+total >= limit {
 		return false
 	}
 
