@@ -216,8 +216,10 @@ type (
 
 		// Integration gateway settings
 		Apigw struct {
-			ProfilerEnabled bool `kv:"-" json:"profilerEnabled"`
-			ProfilerGlobal  bool `kv:"-" json:"profilerGlobal"`
+			Profiler struct {
+				Enabled bool `kv:"-" json:"enabled"`
+				Global  bool `kv:"-" json:"global"`
+			} `kv:"profiler" json:"profiler"`
 		} `kv:"apigw" json:"apigw"`
 
 		// UserInterface settings
