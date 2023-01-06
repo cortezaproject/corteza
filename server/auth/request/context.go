@@ -12,6 +12,11 @@ import (
 type (
 	localeService interface {
 		NS(ctx context.Context, ns string) func(key string, rr ...string) string
+		T(ctx context.Context, ns, key string, rr ...string) string
+	}
+
+	translator interface {
+		Translate(func(string, string, ...string) string) error
 	}
 
 	// auth context simplifies auth request & response handling
@@ -127,6 +132,24 @@ func (req *AuthReq) SetKV(val map[string]string) {
 	} else {
 		req.Session.Values["KV:"+req.Request.RequestURI] = val
 	}
+}
+
+// SetError translates and assigns the given error to the AuthReq
+func (req *AuthReq) SetError(err error) bool {
+	if terr, ok := err.(translator); ok {
+		err = terr.Translate(func(ns, k string, rr ...string) string {
+			return req.Locale.T(req.Context(), ns, k, rr...)
+		})
+	}
+
+	kv := req.GetKV()
+	if kv == nil {
+		kv = make(map[string]string)
+	}
+	kv["error"] = err.Error()
+	req.SetKV(kv)
+
+	return true
 }
 
 func (req *AuthReq) PopKV() map[string]string {
