@@ -30,7 +30,12 @@
       <b-form-group
         v-if="recordListModule"
         :label="$t('module:general.fields')"
+        label-class="pb-0"
       >
+        <label class="text-secondary small pb-1">
+          {{ $t('recordList.moduleFieldsFootnote') }}
+        </label>
+
         <field-picker
           :module="recordListModule"
           :fields.sync="options.fields"
