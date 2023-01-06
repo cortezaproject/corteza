@@ -67,18 +67,18 @@
                 :key="change.key"
               >
                 <b-tr>
-                  <b-td :rowspan="change.new.length">
+                  <b-td :rowspan="Math.max(change.new ? change.new.length : 0, change.old ? change.old.length : 0)">
                     {{ change.key }}
                   </b-td>
                   <b-td>{{ change.old ? change.old[0] : '-' }}</b-td>
                   <b-td>{{ change.new ? change.new[0] : '-' }}</b-td>
                 </b-tr>
                 <b-tr
-                  v-for="(val, index) in change.new.slice(1)"
+                  v-for="index in Math.max(change.new ? change.new.length - 1 : 0, change.old ? change.old.length - 1 : 0)"
                   :key="change.key + index"
                 >
-                  <b-td>{{ change.old ? change.old[index]: '-' }}</b-td>
-                  <b-td>{{ change.new ? change.new[index]: '-' }}</b-td>
+                  <b-td>{{ change.old && change.old.length > index ? change.old[index]: '-' }}</b-td>
+                  <b-td>{{ change.new && change.new.length > index ? change.new[index]: '-' }}</b-td>
                 </b-tr>
               </b-tbody>
             </b-table-simple>
