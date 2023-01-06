@@ -318,6 +318,7 @@ recordList:
     uploadFile: Upload the file you want to import (.csv or JSON format)
   label: Record list
   moduleFootnote: Modules without a {{0}} can only be used in a record list as an inline editor
+  moduleFieldsFootnote : If no fields are selected, the default fields will be shown
   noRecords: There are no records matching your request
   pagination:
     next: Next
