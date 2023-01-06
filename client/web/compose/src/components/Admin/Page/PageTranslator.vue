@@ -168,6 +168,8 @@ export default {
             }
 
             const updateBlockTranslations = block => {
+              if (block.blockID === NoID) return block
+
               block.title = (find(`pageBlock.${block.blockID}.title`) || {}).message
               block.description = (find(`pageBlock.${block.blockID}.description`) || {}).message
 
@@ -203,9 +205,9 @@ export default {
 
             if (this.block) {
               this.block = updateBlockTranslations(this.block)
+            } else {
+              this.page.blocks = this.page.blocks.map(block => updateBlockTranslations(block))
             }
-
-            this.page.blocks = this.page.blocks.map(block => updateBlockTranslations(block))
 
             return this.page
           })
