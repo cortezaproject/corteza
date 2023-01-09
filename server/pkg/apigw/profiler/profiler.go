@@ -63,6 +63,17 @@ func (p *Profiler) Hits(s Sort) Hits {
 	return ll
 }
 
+func (p *Profiler) Purge(f *PurgeFilter) {
+	if f.RouteID == 0 {
+		p.l = make(Hits, 0)
+		return
+	}
+
+	p.l = p.l.Filter(func(k string, v *Hit) bool {
+		return v.Route != f.RouteID
+	})
+}
+
 func (p *Profiler) id(r *h.Request) string {
 	return r.URL.Path
 }

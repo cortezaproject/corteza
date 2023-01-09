@@ -2084,6 +2084,15 @@ endpoints:
     title: Hit details
     path: "/hit/{hitID}"
     parameters: { path: [ { name: hitID, type: string, required: true, title: "Hit ID" } ] }
+  - name: purge all
+    method: POST
+    title: Purge all profiler hits
+    path: "/purge"
+  - name: purge
+    method: POST
+    title: Purge route profiler hits
+    path: "/purge/{routeID}"
+    parameters: { path: [ { name: routeID, type: "uint64", title: "Route ID", required: true } ] }
 
 - title: Locale
   entrypoint: locale
