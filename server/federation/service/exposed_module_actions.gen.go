@@ -57,6 +57,7 @@ var (
 // setModule updates exposedModuleActionProps's module
 //
 // This function is auto-generated.
+//
 func (p *exposedModuleActionProps) setModule(module *types.ExposedModule) *exposedModuleActionProps {
 	p.module = module
 	return p
@@ -65,6 +66,7 @@ func (p *exposedModuleActionProps) setModule(module *types.ExposedModule) *expos
 // setUpdate updates exposedModuleActionProps's update
 //
 // This function is auto-generated.
+//
 func (p *exposedModuleActionProps) setUpdate(update *types.ExposedModule) *exposedModuleActionProps {
 	p.update = update
 	return p
@@ -73,6 +75,7 @@ func (p *exposedModuleActionProps) setUpdate(update *types.ExposedModule) *expos
 // setCreate updates exposedModuleActionProps's create
 //
 // This function is auto-generated.
+//
 func (p *exposedModuleActionProps) setCreate(create *types.ExposedModule) *exposedModuleActionProps {
 	p.create = create
 	return p
@@ -81,6 +84,7 @@ func (p *exposedModuleActionProps) setCreate(create *types.ExposedModule) *expos
 // setDelete updates exposedModuleActionProps's delete
 //
 // This function is auto-generated.
+//
 func (p *exposedModuleActionProps) setDelete(delete *types.ExposedModule) *exposedModuleActionProps {
 	p.delete = delete
 	return p
@@ -89,6 +93,7 @@ func (p *exposedModuleActionProps) setDelete(delete *types.ExposedModule) *expos
 // setFilter updates exposedModuleActionProps's filter
 //
 // This function is auto-generated.
+//
 func (p *exposedModuleActionProps) setFilter(filter *types.ExposedModuleFilter) *exposedModuleActionProps {
 	p.filter = filter
 	return p
@@ -97,6 +102,7 @@ func (p *exposedModuleActionProps) setFilter(filter *types.ExposedModuleFilter) 
 // setNode updates exposedModuleActionProps's node
 //
 // This function is auto-generated.
+//
 func (p *exposedModuleActionProps) setNode(node *types.Node) *exposedModuleActionProps {
 	p.node = node
 	return p
@@ -105,6 +111,7 @@ func (p *exposedModuleActionProps) setNode(node *types.Node) *exposedModuleActio
 // Serialize converts exposedModuleActionProps to actionlog.Meta
 //
 // This function is auto-generated.
+//
 func (p exposedModuleActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -150,6 +157,7 @@ func (p exposedModuleActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
+//
 func (p exposedModuleActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -282,6 +290,7 @@ func (p exposedModuleActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
+//
 func (a *exposedModuleAction) String() string {
 	var props = &exposedModuleActionProps{}
 
@@ -309,6 +318,7 @@ func (e *exposedModuleAction) ToAction() *actionlog.Action {
 // ExposedModuleActionSearch returns "federation:exposed_module.search" action
 //
 // This function is auto-generated.
+//
 func ExposedModuleActionSearch(props ...*exposedModuleActionProps) *exposedModuleAction {
 	a := &exposedModuleAction{
 		timestamp: time.Now(),
@@ -328,6 +338,7 @@ func ExposedModuleActionSearch(props ...*exposedModuleActionProps) *exposedModul
 // ExposedModuleActionLookup returns "federation:exposed_module.lookup" action
 //
 // This function is auto-generated.
+//
 func ExposedModuleActionLookup(props ...*exposedModuleActionProps) *exposedModuleAction {
 	a := &exposedModuleAction{
 		timestamp: time.Now(),
@@ -347,6 +358,7 @@ func ExposedModuleActionLookup(props ...*exposedModuleActionProps) *exposedModul
 // ExposedModuleActionCreate returns "federation:exposed_module.create" action
 //
 // This function is auto-generated.
+//
 func ExposedModuleActionCreate(props ...*exposedModuleActionProps) *exposedModuleAction {
 	a := &exposedModuleAction{
 		timestamp: time.Now(),
@@ -366,6 +378,7 @@ func ExposedModuleActionCreate(props ...*exposedModuleActionProps) *exposedModul
 // ExposedModuleActionUpdate returns "federation:exposed_module.update" action
 //
 // This function is auto-generated.
+//
 func ExposedModuleActionUpdate(props ...*exposedModuleActionProps) *exposedModuleAction {
 	a := &exposedModuleAction{
 		timestamp: time.Now(),
@@ -385,6 +398,7 @@ func ExposedModuleActionUpdate(props ...*exposedModuleActionProps) *exposedModul
 // ExposedModuleActionDelete returns "federation:exposed_module.delete" action
 //
 // This function is auto-generated.
+//
 func ExposedModuleActionDelete(props ...*exposedModuleActionProps) *exposedModuleAction {
 	a := &exposedModuleAction{
 		timestamp: time.Now(),
@@ -404,6 +418,7 @@ func ExposedModuleActionDelete(props ...*exposedModuleActionProps) *exposedModul
 // ExposedModuleActionUndelete returns "federation:exposed_module.undelete" action
 //
 // This function is auto-generated.
+//
 func ExposedModuleActionUndelete(props ...*exposedModuleActionProps) *exposedModuleAction {
 	a := &exposedModuleAction{
 		timestamp: time.Now(),
@@ -426,7 +441,9 @@ func ExposedModuleActionUndelete(props ...*exposedModuleActionProps) *exposedMod
 
 // ExposedModuleErrGeneric returns "federation:exposed_module.generic" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ExposedModuleErrGeneric(mm ...*exposedModuleActionProps) *errors.Error {
 	var p = &exposedModuleActionProps{}
 	if len(mm) > 0 {
@@ -460,7 +477,9 @@ func ExposedModuleErrGeneric(mm ...*exposedModuleActionProps) *errors.Error {
 
 // ExposedModuleErrNotFound returns "federation:exposed_module.notFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ExposedModuleErrNotFound(mm ...*exposedModuleActionProps) *errors.Error {
 	var p = &exposedModuleActionProps{}
 	if len(mm) > 0 {
@@ -492,7 +511,9 @@ func ExposedModuleErrNotFound(mm ...*exposedModuleActionProps) *errors.Error {
 
 // ExposedModuleErrInvalidID returns "federation:exposed_module.invalidID" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ExposedModuleErrInvalidID(mm ...*exposedModuleActionProps) *errors.Error {
 	var p = &exposedModuleActionProps{}
 	if len(mm) > 0 {
@@ -524,7 +545,9 @@ func ExposedModuleErrInvalidID(mm ...*exposedModuleActionProps) *errors.Error {
 
 // ExposedModuleErrStaleData returns "federation:exposed_module.staleData" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ExposedModuleErrStaleData(mm ...*exposedModuleActionProps) *errors.Error {
 	var p = &exposedModuleActionProps{}
 	if len(mm) > 0 {
@@ -556,7 +579,9 @@ func ExposedModuleErrStaleData(mm ...*exposedModuleActionProps) *errors.Error {
 
 // ExposedModuleErrNotUnique returns "federation:exposed_module.notUnique" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ExposedModuleErrNotUnique(mm ...*exposedModuleActionProps) *errors.Error {
 	var p = &exposedModuleActionProps{}
 	if len(mm) > 0 {
@@ -590,7 +615,9 @@ func ExposedModuleErrNotUnique(mm ...*exposedModuleActionProps) *errors.Error {
 
 // ExposedModuleErrNodeNotFound returns "federation:exposed_module.nodeNotFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ExposedModuleErrNodeNotFound(mm ...*exposedModuleActionProps) *errors.Error {
 	var p = &exposedModuleActionProps{}
 	if len(mm) > 0 {
@@ -622,7 +649,9 @@ func ExposedModuleErrNodeNotFound(mm ...*exposedModuleActionProps) *errors.Error
 
 // ExposedModuleErrComposeModuleNotFound returns "federation:exposed_module.composeModuleNotFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ExposedModuleErrComposeModuleNotFound(mm ...*exposedModuleActionProps) *errors.Error {
 	var p = &exposedModuleActionProps{}
 	if len(mm) > 0 {
@@ -654,7 +683,9 @@ func ExposedModuleErrComposeModuleNotFound(mm ...*exposedModuleActionProps) *err
 
 // ExposedModuleErrComposeNamespaceNotFound returns "federation:exposed_module.composeNamespaceNotFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ExposedModuleErrComposeNamespaceNotFound(mm ...*exposedModuleActionProps) *errors.Error {
 	var p = &exposedModuleActionProps{}
 	if len(mm) > 0 {
@@ -686,7 +717,9 @@ func ExposedModuleErrComposeNamespaceNotFound(mm ...*exposedModuleActionProps) *
 
 // ExposedModuleErrRequestParametersInvalid returns "federation:exposed_module.requestParametersInvalid" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ExposedModuleErrRequestParametersInvalid(mm ...*exposedModuleActionProps) *errors.Error {
 	var p = &exposedModuleActionProps{}
 	if len(mm) > 0 {
@@ -718,7 +751,9 @@ func ExposedModuleErrRequestParametersInvalid(mm ...*exposedModuleActionProps) *
 
 // ExposedModuleErrNotAllowedToCreate returns "federation:exposed_module.notAllowedToCreate" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ExposedModuleErrNotAllowedToCreate(mm ...*exposedModuleActionProps) *errors.Error {
 	var p = &exposedModuleActionProps{}
 	if len(mm) > 0 {
@@ -752,7 +787,9 @@ func ExposedModuleErrNotAllowedToCreate(mm ...*exposedModuleActionProps) *errors
 
 // ExposedModuleErrNotAllowedToManage returns "federation:exposed_module.notAllowedToManage" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ExposedModuleErrNotAllowedToManage(mm ...*exposedModuleActionProps) *errors.Error {
 	var p = &exposedModuleActionProps{}
 	if len(mm) > 0 {
@@ -792,6 +829,7 @@ func ExposedModuleErrNotAllowedToManage(mm ...*exposedModuleActionProps) *errors
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
+//
 func (svc exposedModule) recordAction(ctx context.Context, props *exposedModuleActionProps, actionFn func(...*exposedModuleActionProps) *exposedModuleAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

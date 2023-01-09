@@ -55,6 +55,7 @@ var (
 // setModule updates sharedModuleActionProps's module
 //
 // This function is auto-generated.
+//
 func (p *sharedModuleActionProps) setModule(module *types.SharedModule) *sharedModuleActionProps {
 	p.module = module
 	return p
@@ -63,6 +64,7 @@ func (p *sharedModuleActionProps) setModule(module *types.SharedModule) *sharedM
 // setChanged updates sharedModuleActionProps's changed
 //
 // This function is auto-generated.
+//
 func (p *sharedModuleActionProps) setChanged(changed *types.SharedModule) *sharedModuleActionProps {
 	p.changed = changed
 	return p
@@ -71,6 +73,7 @@ func (p *sharedModuleActionProps) setChanged(changed *types.SharedModule) *share
 // setFilter updates sharedModuleActionProps's filter
 //
 // This function is auto-generated.
+//
 func (p *sharedModuleActionProps) setFilter(filter *types.SharedModuleFilter) *sharedModuleActionProps {
 	p.filter = filter
 	return p
@@ -79,6 +82,7 @@ func (p *sharedModuleActionProps) setFilter(filter *types.SharedModuleFilter) *s
 // setNode updates sharedModuleActionProps's node
 //
 // This function is auto-generated.
+//
 func (p *sharedModuleActionProps) setNode(node *types.Node) *sharedModuleActionProps {
 	p.node = node
 	return p
@@ -87,6 +91,7 @@ func (p *sharedModuleActionProps) setNode(node *types.Node) *sharedModuleActionP
 // Serialize converts sharedModuleActionProps to actionlog.Meta
 //
 // This function is auto-generated.
+//
 func (p sharedModuleActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -114,6 +119,7 @@ func (p sharedModuleActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
+//
 func (p sharedModuleActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -198,6 +204,7 @@ func (p sharedModuleActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
+//
 func (a *sharedModuleAction) String() string {
 	var props = &sharedModuleActionProps{}
 
@@ -225,6 +232,7 @@ func (e *sharedModuleAction) ToAction() *actionlog.Action {
 // SharedModuleActionSearch returns "federation:shared_module.search" action
 //
 // This function is auto-generated.
+//
 func SharedModuleActionSearch(props ...*sharedModuleActionProps) *sharedModuleAction {
 	a := &sharedModuleAction{
 		timestamp: time.Now(),
@@ -244,6 +252,7 @@ func SharedModuleActionSearch(props ...*sharedModuleActionProps) *sharedModuleAc
 // SharedModuleActionLookup returns "federation:shared_module.lookup" action
 //
 // This function is auto-generated.
+//
 func SharedModuleActionLookup(props ...*sharedModuleActionProps) *sharedModuleAction {
 	a := &sharedModuleAction{
 		timestamp: time.Now(),
@@ -263,6 +272,7 @@ func SharedModuleActionLookup(props ...*sharedModuleActionProps) *sharedModuleAc
 // SharedModuleActionCreate returns "federation:shared_module.create" action
 //
 // This function is auto-generated.
+//
 func SharedModuleActionCreate(props ...*sharedModuleActionProps) *sharedModuleAction {
 	a := &sharedModuleAction{
 		timestamp: time.Now(),
@@ -282,6 +292,7 @@ func SharedModuleActionCreate(props ...*sharedModuleActionProps) *sharedModuleAc
 // SharedModuleActionUpdate returns "federation:shared_module.update" action
 //
 // This function is auto-generated.
+//
 func SharedModuleActionUpdate(props ...*sharedModuleActionProps) *sharedModuleAction {
 	a := &sharedModuleAction{
 		timestamp: time.Now(),
@@ -301,6 +312,7 @@ func SharedModuleActionUpdate(props ...*sharedModuleActionProps) *sharedModuleAc
 // SharedModuleActionDelete returns "federation:shared_module.delete" action
 //
 // This function is auto-generated.
+//
 func SharedModuleActionDelete(props ...*sharedModuleActionProps) *sharedModuleAction {
 	a := &sharedModuleAction{
 		timestamp: time.Now(),
@@ -320,6 +332,7 @@ func SharedModuleActionDelete(props ...*sharedModuleActionProps) *sharedModuleAc
 // SharedModuleActionUndelete returns "federation:shared_module.undelete" action
 //
 // This function is auto-generated.
+//
 func SharedModuleActionUndelete(props ...*sharedModuleActionProps) *sharedModuleAction {
 	a := &sharedModuleAction{
 		timestamp: time.Now(),
@@ -342,7 +355,9 @@ func SharedModuleActionUndelete(props ...*sharedModuleActionProps) *sharedModule
 
 // SharedModuleErrGeneric returns "federation:shared_module.generic" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SharedModuleErrGeneric(mm ...*sharedModuleActionProps) *errors.Error {
 	var p = &sharedModuleActionProps{}
 	if len(mm) > 0 {
@@ -376,7 +391,9 @@ func SharedModuleErrGeneric(mm ...*sharedModuleActionProps) *errors.Error {
 
 // SharedModuleErrNotFound returns "federation:shared_module.notFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SharedModuleErrNotFound(mm ...*sharedModuleActionProps) *errors.Error {
 	var p = &sharedModuleActionProps{}
 	if len(mm) > 0 {
@@ -408,7 +425,9 @@ func SharedModuleErrNotFound(mm ...*sharedModuleActionProps) *errors.Error {
 
 // SharedModuleErrInvalidID returns "federation:shared_module.invalidID" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SharedModuleErrInvalidID(mm ...*sharedModuleActionProps) *errors.Error {
 	var p = &sharedModuleActionProps{}
 	if len(mm) > 0 {
@@ -440,7 +459,9 @@ func SharedModuleErrInvalidID(mm ...*sharedModuleActionProps) *errors.Error {
 
 // SharedModuleErrStaleData returns "federation:shared_module.staleData" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SharedModuleErrStaleData(mm ...*sharedModuleActionProps) *errors.Error {
 	var p = &sharedModuleActionProps{}
 	if len(mm) > 0 {
@@ -472,7 +493,9 @@ func SharedModuleErrStaleData(mm ...*sharedModuleActionProps) *errors.Error {
 
 // SharedModuleErrFederationSyncStructureChanged returns "federation:shared_module.federationSyncStructureChanged" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SharedModuleErrFederationSyncStructureChanged(mm ...*sharedModuleActionProps) *errors.Error {
 	var p = &sharedModuleActionProps{}
 	if len(mm) > 0 {
@@ -506,7 +529,9 @@ func SharedModuleErrFederationSyncStructureChanged(mm ...*sharedModuleActionProp
 
 // SharedModuleErrNotUnique returns "federation:shared_module.notUnique" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SharedModuleErrNotUnique(mm ...*sharedModuleActionProps) *errors.Error {
 	var p = &sharedModuleActionProps{}
 	if len(mm) > 0 {
@@ -540,7 +565,9 @@ func SharedModuleErrNotUnique(mm ...*sharedModuleActionProps) *errors.Error {
 
 // SharedModuleErrNodeNotFound returns "federation:shared_module.nodeNotFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SharedModuleErrNodeNotFound(mm ...*sharedModuleActionProps) *errors.Error {
 	var p = &sharedModuleActionProps{}
 	if len(mm) > 0 {
@@ -572,7 +599,9 @@ func SharedModuleErrNodeNotFound(mm ...*sharedModuleActionProps) *errors.Error {
 
 // SharedModuleErrNotAllowedToCreate returns "federation:shared_module.notAllowedToCreate" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SharedModuleErrNotAllowedToCreate(mm ...*sharedModuleActionProps) *errors.Error {
 	var p = &sharedModuleActionProps{}
 	if len(mm) > 0 {
@@ -606,7 +635,9 @@ func SharedModuleErrNotAllowedToCreate(mm ...*sharedModuleActionProps) *errors.E
 
 // SharedModuleErrNotAllowedToManage returns "federation:shared_module.notAllowedToManage" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SharedModuleErrNotAllowedToManage(mm ...*sharedModuleActionProps) *errors.Error {
 	var p = &sharedModuleActionProps{}
 	if len(mm) > 0 {
@@ -640,7 +671,9 @@ func SharedModuleErrNotAllowedToManage(mm ...*sharedModuleActionProps) *errors.E
 
 // SharedModuleErrNotAllowedToMap returns "federation:shared_module.notAllowedToMap" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SharedModuleErrNotAllowedToMap(mm ...*sharedModuleActionProps) *errors.Error {
 	var p = &sharedModuleActionProps{}
 	if len(mm) > 0 {
@@ -680,6 +713,7 @@ func SharedModuleErrNotAllowedToMap(mm ...*sharedModuleActionProps) *errors.Erro
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
+//
 func (svc sharedModule) recordAction(ctx context.Context, props *sharedModuleActionProps, actionFn func(...*sharedModuleActionProps) *sharedModuleAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

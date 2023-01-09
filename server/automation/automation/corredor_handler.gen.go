@@ -47,10 +47,9 @@ type (
 // Exec function Corredor automation script executor
 //
 // expects implementation of exec function:
-//
-//	func (h corredorHandler) exec(ctx context.Context, args *corredorExecArgs) (results *corredorExecResults, err error) {
-//	   return
-//	}
+// func (h corredorHandler) exec(ctx context.Context, args *corredorExecArgs) (results *corredorExecResults, err error) {
+//    return
+// }
 func (h corredorHandler) Exec() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "corredorExec",

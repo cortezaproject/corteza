@@ -62,10 +62,9 @@ func (a modulesLookupArgs) GetNamespace() (bool, uint64, string, *types.Namespac
 // Lookup function Compose module lookup
 //
 // expects implementation of lookup function:
-//
-//	func (h modulesHandler) lookup(ctx context.Context, args *modulesLookupArgs) (results *modulesLookupResults, err error) {
-//	   return
-//	}
+// func (h modulesHandler) lookup(ctx context.Context, args *modulesLookupArgs) (results *modulesLookupResults, err error) {
+//    return
+// }
 func (h modulesHandler) Lookup() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "composeModulesLookup",
