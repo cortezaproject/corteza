@@ -56,6 +56,7 @@ var (
 // setWorkflow updates workflowActionProps's workflow
 //
 // This function is auto-generated.
+//
 func (p *workflowActionProps) setWorkflow(workflow *types.Workflow) *workflowActionProps {
 	p.workflow = workflow
 	return p
@@ -64,6 +65,7 @@ func (p *workflowActionProps) setWorkflow(workflow *types.Workflow) *workflowAct
 // setNew updates workflowActionProps's new
 //
 // This function is auto-generated.
+//
 func (p *workflowActionProps) setNew(new *types.Workflow) *workflowActionProps {
 	p.new = new
 	return p
@@ -72,6 +74,7 @@ func (p *workflowActionProps) setNew(new *types.Workflow) *workflowActionProps {
 // setUpdate updates workflowActionProps's update
 //
 // This function is auto-generated.
+//
 func (p *workflowActionProps) setUpdate(update *types.Workflow) *workflowActionProps {
 	p.update = update
 	return p
@@ -80,6 +83,7 @@ func (p *workflowActionProps) setUpdate(update *types.Workflow) *workflowActionP
 // setTrigger updates workflowActionProps's trigger
 //
 // This function is auto-generated.
+//
 func (p *workflowActionProps) setTrigger(trigger *types.Trigger) *workflowActionProps {
 	p.trigger = trigger
 	return p
@@ -88,6 +92,7 @@ func (p *workflowActionProps) setTrigger(trigger *types.Trigger) *workflowAction
 // setFilter updates workflowActionProps's filter
 //
 // This function is auto-generated.
+//
 func (p *workflowActionProps) setFilter(filter *types.WorkflowFilter) *workflowActionProps {
 	p.filter = filter
 	return p
@@ -96,6 +101,7 @@ func (p *workflowActionProps) setFilter(filter *types.WorkflowFilter) *workflowA
 // Serialize converts workflowActionProps to actionlog.Meta
 //
 // This function is auto-generated.
+//
 func (p workflowActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -128,6 +134,7 @@ func (p workflowActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
+//
 func (p workflowActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -227,6 +234,7 @@ func (p workflowActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
+//
 func (a *workflowAction) String() string {
 	var props = &workflowActionProps{}
 
@@ -254,6 +262,7 @@ func (e *workflowAction) ToAction() *actionlog.Action {
 // WorkflowActionSearch returns "automation:workflow.search" action
 //
 // This function is auto-generated.
+//
 func WorkflowActionSearch(props ...*workflowActionProps) *workflowAction {
 	a := &workflowAction{
 		timestamp: time.Now(),
@@ -273,6 +282,7 @@ func WorkflowActionSearch(props ...*workflowActionProps) *workflowAction {
 // WorkflowActionLookup returns "automation:workflow.lookup" action
 //
 // This function is auto-generated.
+//
 func WorkflowActionLookup(props ...*workflowActionProps) *workflowAction {
 	a := &workflowAction{
 		timestamp: time.Now(),
@@ -292,6 +302,7 @@ func WorkflowActionLookup(props ...*workflowActionProps) *workflowAction {
 // WorkflowActionCreate returns "automation:workflow.create" action
 //
 // This function is auto-generated.
+//
 func WorkflowActionCreate(props ...*workflowActionProps) *workflowAction {
 	a := &workflowAction{
 		timestamp: time.Now(),
@@ -311,6 +322,7 @@ func WorkflowActionCreate(props ...*workflowActionProps) *workflowAction {
 // WorkflowActionUpdate returns "automation:workflow.update" action
 //
 // This function is auto-generated.
+//
 func WorkflowActionUpdate(props ...*workflowActionProps) *workflowAction {
 	a := &workflowAction{
 		timestamp: time.Now(),
@@ -330,6 +342,7 @@ func WorkflowActionUpdate(props ...*workflowActionProps) *workflowAction {
 // WorkflowActionDelete returns "automation:workflow.delete" action
 //
 // This function is auto-generated.
+//
 func WorkflowActionDelete(props ...*workflowActionProps) *workflowAction {
 	a := &workflowAction{
 		timestamp: time.Now(),
@@ -349,6 +362,7 @@ func WorkflowActionDelete(props ...*workflowActionProps) *workflowAction {
 // WorkflowActionUndelete returns "automation:workflow.undelete" action
 //
 // This function is auto-generated.
+//
 func WorkflowActionUndelete(props ...*workflowActionProps) *workflowAction {
 	a := &workflowAction{
 		timestamp: time.Now(),
@@ -368,6 +382,7 @@ func WorkflowActionUndelete(props ...*workflowActionProps) *workflowAction {
 // WorkflowActionExecute returns "automation:workflow.execute" action
 //
 // This function is auto-generated.
+//
 func WorkflowActionExecute(props ...*workflowActionProps) *workflowAction {
 	a := &workflowAction{
 		timestamp: time.Now(),
@@ -390,7 +405,9 @@ func WorkflowActionExecute(props ...*workflowActionProps) *workflowAction {
 
 // WorkflowErrGeneric returns "automation:workflow.generic" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func WorkflowErrGeneric(mm ...*workflowActionProps) *errors.Error {
 	var p = &workflowActionProps{}
 	if len(mm) > 0 {
@@ -424,7 +441,9 @@ func WorkflowErrGeneric(mm ...*workflowActionProps) *errors.Error {
 
 // WorkflowErrNotFound returns "automation:workflow.notFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func WorkflowErrNotFound(mm ...*workflowActionProps) *errors.Error {
 	var p = &workflowActionProps{}
 	if len(mm) > 0 {
@@ -456,7 +475,9 @@ func WorkflowErrNotFound(mm ...*workflowActionProps) *errors.Error {
 
 // WorkflowErrInvalidID returns "automation:workflow.invalidID" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func WorkflowErrInvalidID(mm ...*workflowActionProps) *errors.Error {
 	var p = &workflowActionProps{}
 	if len(mm) > 0 {
@@ -488,7 +509,9 @@ func WorkflowErrInvalidID(mm ...*workflowActionProps) *errors.Error {
 
 // WorkflowErrDisabled returns "automation:workflow.disabled" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func WorkflowErrDisabled(mm ...*workflowActionProps) *errors.Error {
 	var p = &workflowActionProps{}
 	if len(mm) > 0 {
@@ -520,7 +543,9 @@ func WorkflowErrDisabled(mm ...*workflowActionProps) *errors.Error {
 
 // WorkflowErrInvalidHandle returns "automation:workflow.invalidHandle" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func WorkflowErrInvalidHandle(mm ...*workflowActionProps) *errors.Error {
 	var p = &workflowActionProps{}
 	if len(mm) > 0 {
@@ -552,7 +577,9 @@ func WorkflowErrInvalidHandle(mm ...*workflowActionProps) *errors.Error {
 
 // WorkflowErrStaleData returns "automation:workflow.staleData" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func WorkflowErrStaleData(mm ...*workflowActionProps) *errors.Error {
 	var p = &workflowActionProps{}
 	if len(mm) > 0 {
@@ -584,7 +611,9 @@ func WorkflowErrStaleData(mm ...*workflowActionProps) *errors.Error {
 
 // WorkflowErrNotAllowedToRead returns "automation:workflow.notAllowedToRead" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func WorkflowErrNotAllowedToRead(mm ...*workflowActionProps) *errors.Error {
 	var p = &workflowActionProps{}
 	if len(mm) > 0 {
@@ -618,7 +647,9 @@ func WorkflowErrNotAllowedToRead(mm ...*workflowActionProps) *errors.Error {
 
 // WorkflowErrNotAllowedToSearch returns "automation:workflow.notAllowedToSearch" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func WorkflowErrNotAllowedToSearch(mm ...*workflowActionProps) *errors.Error {
 	var p = &workflowActionProps{}
 	if len(mm) > 0 {
@@ -652,7 +683,9 @@ func WorkflowErrNotAllowedToSearch(mm ...*workflowActionProps) *errors.Error {
 
 // WorkflowErrNotAllowedToCreate returns "automation:workflow.notAllowedToCreate" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func WorkflowErrNotAllowedToCreate(mm ...*workflowActionProps) *errors.Error {
 	var p = &workflowActionProps{}
 	if len(mm) > 0 {
@@ -686,7 +719,9 @@ func WorkflowErrNotAllowedToCreate(mm ...*workflowActionProps) *errors.Error {
 
 // WorkflowErrNotAllowedToUpdate returns "automation:workflow.notAllowedToUpdate" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func WorkflowErrNotAllowedToUpdate(mm ...*workflowActionProps) *errors.Error {
 	var p = &workflowActionProps{}
 	if len(mm) > 0 {
@@ -720,7 +755,9 @@ func WorkflowErrNotAllowedToUpdate(mm ...*workflowActionProps) *errors.Error {
 
 // WorkflowErrNotAllowedToDelete returns "automation:workflow.notAllowedToDelete" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func WorkflowErrNotAllowedToDelete(mm ...*workflowActionProps) *errors.Error {
 	var p = &workflowActionProps{}
 	if len(mm) > 0 {
@@ -754,7 +791,9 @@ func WorkflowErrNotAllowedToDelete(mm ...*workflowActionProps) *errors.Error {
 
 // WorkflowErrNotAllowedToUndelete returns "automation:workflow.notAllowedToUndelete" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func WorkflowErrNotAllowedToUndelete(mm ...*workflowActionProps) *errors.Error {
 	var p = &workflowActionProps{}
 	if len(mm) > 0 {
@@ -788,7 +827,9 @@ func WorkflowErrNotAllowedToUndelete(mm ...*workflowActionProps) *errors.Error {
 
 // WorkflowErrNotAllowedToExecute returns "automation:workflow.notAllowedToExecute" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func WorkflowErrNotAllowedToExecute(mm ...*workflowActionProps) *errors.Error {
 	var p = &workflowActionProps{}
 	if len(mm) > 0 {
@@ -822,7 +863,9 @@ func WorkflowErrNotAllowedToExecute(mm ...*workflowActionProps) *errors.Error {
 
 // WorkflowErrUnknownWorkflowStep returns "automation:workflow.unknownWorkflowStep" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func WorkflowErrUnknownWorkflowStep(mm ...*workflowActionProps) *errors.Error {
 	var p = &workflowActionProps{}
 	if len(mm) > 0 {
@@ -856,7 +899,9 @@ func WorkflowErrUnknownWorkflowStep(mm ...*workflowActionProps) *errors.Error {
 
 // WorkflowErrHandleNotUnique returns "automation:workflow.handleNotUnique" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func WorkflowErrHandleNotUnique(mm ...*workflowActionProps) *errors.Error {
 	var p = &workflowActionProps{}
 	if len(mm) > 0 {
@@ -890,7 +935,9 @@ func WorkflowErrHandleNotUnique(mm ...*workflowActionProps) *errors.Error {
 
 // WorkflowErrNotAllowedToExecuteCorredorStep returns "automation:workflow.notAllowedToExecuteCorredorStep" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func WorkflowErrNotAllowedToExecuteCorredorStep(mm ...*workflowActionProps) *errors.Error {
 	var p = &workflowActionProps{}
 	if len(mm) > 0 {
@@ -924,7 +971,9 @@ func WorkflowErrNotAllowedToExecuteCorredorStep(mm ...*workflowActionProps) *err
 
 // WorkflowErrMaximumCallStackSizeExceeded returns "automation:workflow.maximumCallStackSizeExceeded" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func WorkflowErrMaximumCallStackSizeExceeded(mm ...*workflowActionProps) *errors.Error {
 	var p = &workflowActionProps{}
 	if len(mm) > 0 {
@@ -964,6 +1013,7 @@ func WorkflowErrMaximumCallStackSizeExceeded(mm ...*workflowActionProps) *errors
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
+//
 func (svc workflow) recordAction(ctx context.Context, props *workflowActionProps, actionFn func(...*workflowActionProps) *workflowAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

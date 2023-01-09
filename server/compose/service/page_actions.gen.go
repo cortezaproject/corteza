@@ -55,6 +55,7 @@ var (
 // setPage updates pageActionProps's page
 //
 // This function is auto-generated.
+//
 func (p *pageActionProps) setPage(page *types.Page) *pageActionProps {
 	p.page = page
 	return p
@@ -63,6 +64,7 @@ func (p *pageActionProps) setPage(page *types.Page) *pageActionProps {
 // setChanged updates pageActionProps's changed
 //
 // This function is auto-generated.
+//
 func (p *pageActionProps) setChanged(changed *types.Page) *pageActionProps {
 	p.changed = changed
 	return p
@@ -71,6 +73,7 @@ func (p *pageActionProps) setChanged(changed *types.Page) *pageActionProps {
 // setFilter updates pageActionProps's filter
 //
 // This function is auto-generated.
+//
 func (p *pageActionProps) setFilter(filter *types.PageFilter) *pageActionProps {
 	p.filter = filter
 	return p
@@ -79,6 +82,7 @@ func (p *pageActionProps) setFilter(filter *types.PageFilter) *pageActionProps {
 // setNamespace updates pageActionProps's namespace
 //
 // This function is auto-generated.
+//
 func (p *pageActionProps) setNamespace(namespace *types.Namespace) *pageActionProps {
 	p.namespace = namespace
 	return p
@@ -87,6 +91,7 @@ func (p *pageActionProps) setNamespace(namespace *types.Namespace) *pageActionPr
 // Serialize converts pageActionProps to actionlog.Meta
 //
 // This function is auto-generated.
+//
 func (p pageActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -131,6 +136,7 @@ func (p pageActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
+//
 func (p pageActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -249,6 +255,7 @@ func (p pageActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
+//
 func (a *pageAction) String() string {
 	var props = &pageActionProps{}
 
@@ -276,6 +283,7 @@ func (e *pageAction) ToAction() *actionlog.Action {
 // PageActionSearch returns "compose:page.search" action
 //
 // This function is auto-generated.
+//
 func PageActionSearch(props ...*pageActionProps) *pageAction {
 	a := &pageAction{
 		timestamp: time.Now(),
@@ -295,6 +303,7 @@ func PageActionSearch(props ...*pageActionProps) *pageAction {
 // PageActionLookup returns "compose:page.lookup" action
 //
 // This function is auto-generated.
+//
 func PageActionLookup(props ...*pageActionProps) *pageAction {
 	a := &pageAction{
 		timestamp: time.Now(),
@@ -314,6 +323,7 @@ func PageActionLookup(props ...*pageActionProps) *pageAction {
 // PageActionCreate returns "compose:page.create" action
 //
 // This function is auto-generated.
+//
 func PageActionCreate(props ...*pageActionProps) *pageAction {
 	a := &pageAction{
 		timestamp: time.Now(),
@@ -333,6 +343,7 @@ func PageActionCreate(props ...*pageActionProps) *pageAction {
 // PageActionUpdate returns "compose:page.update" action
 //
 // This function is auto-generated.
+//
 func PageActionUpdate(props ...*pageActionProps) *pageAction {
 	a := &pageAction{
 		timestamp: time.Now(),
@@ -352,6 +363,7 @@ func PageActionUpdate(props ...*pageActionProps) *pageAction {
 // PageActionDelete returns "compose:page.delete" action
 //
 // This function is auto-generated.
+//
 func PageActionDelete(props ...*pageActionProps) *pageAction {
 	a := &pageAction{
 		timestamp: time.Now(),
@@ -371,6 +383,7 @@ func PageActionDelete(props ...*pageActionProps) *pageAction {
 // PageActionUndelete returns "compose:page.undelete" action
 //
 // This function is auto-generated.
+//
 func PageActionUndelete(props ...*pageActionProps) *pageAction {
 	a := &pageAction{
 		timestamp: time.Now(),
@@ -390,6 +403,7 @@ func PageActionUndelete(props ...*pageActionProps) *pageAction {
 // PageActionReorder returns "compose:page.reorder" action
 //
 // This function is auto-generated.
+//
 func PageActionReorder(props ...*pageActionProps) *pageAction {
 	a := &pageAction{
 		timestamp: time.Now(),
@@ -412,7 +426,9 @@ func PageActionReorder(props ...*pageActionProps) *pageAction {
 
 // PageErrGeneric returns "compose:page.generic" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageErrGeneric(mm ...*pageActionProps) *errors.Error {
 	var p = &pageActionProps{}
 	if len(mm) > 0 {
@@ -446,7 +462,9 @@ func PageErrGeneric(mm ...*pageActionProps) *errors.Error {
 
 // PageErrNotFound returns "compose:page.notFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageErrNotFound(mm ...*pageActionProps) *errors.Error {
 	var p = &pageActionProps{}
 	if len(mm) > 0 {
@@ -478,7 +496,9 @@ func PageErrNotFound(mm ...*pageActionProps) *errors.Error {
 
 // PageErrNamespaceNotFound returns "compose:page.namespaceNotFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageErrNamespaceNotFound(mm ...*pageActionProps) *errors.Error {
 	var p = &pageActionProps{}
 	if len(mm) > 0 {
@@ -510,7 +530,9 @@ func PageErrNamespaceNotFound(mm ...*pageActionProps) *errors.Error {
 
 // PageErrModuleNotFound returns "compose:page.moduleNotFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageErrModuleNotFound(mm ...*pageActionProps) *errors.Error {
 	var p = &pageActionProps{}
 	if len(mm) > 0 {
@@ -542,7 +564,9 @@ func PageErrModuleNotFound(mm ...*pageActionProps) *errors.Error {
 
 // PageErrInvalidID returns "compose:page.invalidID" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageErrInvalidID(mm ...*pageActionProps) *errors.Error {
 	var p = &pageActionProps{}
 	if len(mm) > 0 {
@@ -574,7 +598,9 @@ func PageErrInvalidID(mm ...*pageActionProps) *errors.Error {
 
 // PageErrInvalidHandle returns "compose:page.invalidHandle" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageErrInvalidHandle(mm ...*pageActionProps) *errors.Error {
 	var p = &pageActionProps{}
 	if len(mm) > 0 {
@@ -606,7 +632,9 @@ func PageErrInvalidHandle(mm ...*pageActionProps) *errors.Error {
 
 // PageErrHandleNotUnique returns "compose:page.handleNotUnique" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageErrHandleNotUnique(mm ...*pageActionProps) *errors.Error {
 	var p = &pageActionProps{}
 	if len(mm) > 0 {
@@ -640,7 +668,9 @@ func PageErrHandleNotUnique(mm ...*pageActionProps) *errors.Error {
 
 // PageErrStaleData returns "compose:page.staleData" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageErrStaleData(mm ...*pageActionProps) *errors.Error {
 	var p = &pageActionProps{}
 	if len(mm) > 0 {
@@ -672,7 +702,9 @@ func PageErrStaleData(mm ...*pageActionProps) *errors.Error {
 
 // PageErrInvalidNamespaceID returns "compose:page.invalidNamespaceID" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageErrInvalidNamespaceID(mm ...*pageActionProps) *errors.Error {
 	var p = &pageActionProps{}
 	if len(mm) > 0 {
@@ -704,7 +736,9 @@ func PageErrInvalidNamespaceID(mm ...*pageActionProps) *errors.Error {
 
 // PageErrDeleteAbortedForPageWithSubpages returns "compose:page.deleteAbortedForPageWithSubpages" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageErrDeleteAbortedForPageWithSubpages(mm ...*pageActionProps) *errors.Error {
 	var p = &pageActionProps{}
 	if len(mm) > 0 {
@@ -736,7 +770,9 @@ func PageErrDeleteAbortedForPageWithSubpages(mm ...*pageActionProps) *errors.Err
 
 // PageErrUnknownDeleteStrategy returns "compose:page.unknownDeleteStrategy" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageErrUnknownDeleteStrategy(mm ...*pageActionProps) *errors.Error {
 	var p = &pageActionProps{}
 	if len(mm) > 0 {
@@ -768,7 +804,9 @@ func PageErrUnknownDeleteStrategy(mm ...*pageActionProps) *errors.Error {
 
 // PageErrNotAllowedToRead returns "compose:page.notAllowedToRead" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageErrNotAllowedToRead(mm ...*pageActionProps) *errors.Error {
 	var p = &pageActionProps{}
 	if len(mm) > 0 {
@@ -802,7 +840,9 @@ func PageErrNotAllowedToRead(mm ...*pageActionProps) *errors.Error {
 
 // PageErrNotAllowedToSearch returns "compose:page.notAllowedToSearch" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageErrNotAllowedToSearch(mm ...*pageActionProps) *errors.Error {
 	var p = &pageActionProps{}
 	if len(mm) > 0 {
@@ -836,7 +876,9 @@ func PageErrNotAllowedToSearch(mm ...*pageActionProps) *errors.Error {
 
 // PageErrNotAllowedToReadNamespace returns "compose:page.notAllowedToReadNamespace" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageErrNotAllowedToReadNamespace(mm ...*pageActionProps) *errors.Error {
 	var p = &pageActionProps{}
 	if len(mm) > 0 {
@@ -870,7 +912,9 @@ func PageErrNotAllowedToReadNamespace(mm ...*pageActionProps) *errors.Error {
 
 // PageErrNotAllowedToListPages returns "compose:page.notAllowedToListPages" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageErrNotAllowedToListPages(mm ...*pageActionProps) *errors.Error {
 	var p = &pageActionProps{}
 	if len(mm) > 0 {
@@ -904,7 +948,9 @@ func PageErrNotAllowedToListPages(mm ...*pageActionProps) *errors.Error {
 
 // PageErrNotAllowedToCreate returns "compose:page.notAllowedToCreate" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageErrNotAllowedToCreate(mm ...*pageActionProps) *errors.Error {
 	var p = &pageActionProps{}
 	if len(mm) > 0 {
@@ -938,7 +984,9 @@ func PageErrNotAllowedToCreate(mm ...*pageActionProps) *errors.Error {
 
 // PageErrNotAllowedToUpdate returns "compose:page.notAllowedToUpdate" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageErrNotAllowedToUpdate(mm ...*pageActionProps) *errors.Error {
 	var p = &pageActionProps{}
 	if len(mm) > 0 {
@@ -972,7 +1020,9 @@ func PageErrNotAllowedToUpdate(mm ...*pageActionProps) *errors.Error {
 
 // PageErrNotAllowedToDelete returns "compose:page.notAllowedToDelete" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageErrNotAllowedToDelete(mm ...*pageActionProps) *errors.Error {
 	var p = &pageActionProps{}
 	if len(mm) > 0 {
@@ -1006,7 +1056,9 @@ func PageErrNotAllowedToDelete(mm ...*pageActionProps) *errors.Error {
 
 // PageErrNotAllowedToUndelete returns "compose:page.notAllowedToUndelete" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageErrNotAllowedToUndelete(mm ...*pageActionProps) *errors.Error {
 	var p = &pageActionProps{}
 	if len(mm) > 0 {
@@ -1046,6 +1098,7 @@ func PageErrNotAllowedToUndelete(mm ...*pageActionProps) *errors.Error {
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
+//
 func (svc page) recordAction(ctx context.Context, props *pageActionProps, actionFn func(...*pageActionProps) *pageAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

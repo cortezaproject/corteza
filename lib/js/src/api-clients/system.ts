@@ -533,6 +533,9 @@ export default class System {
       meta,
       labels,
     } = (a as KV) || {}
+    if (!name) {
+      throw Error('field name is empty')
+    }
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
@@ -4353,6 +4356,33 @@ export default class System {
     return `/locale/${lang}/${application}`
   }
 
+  // List connections for data privacy
+  async dataPrivacyConnectionList (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      connectionID,
+      handle,
+      type,
+      deleted,
+    } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.dataPrivacyConnectionListEndpoint(),
+    }
+    cfg.params = {
+      connectionID,
+      handle,
+      type,
+      deleted,
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  dataPrivacyConnectionListEndpoint (): string {
+    return '/data-privacy/connection/'
+  }
+
   // List data privacy requests
   async dataPrivacyRequestList (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {
@@ -4411,6 +4441,32 @@ export default class System {
     return '/data-privacy/requests/'
   }
 
+  // Get details about specific request
+  async dataPrivacyRequestRead (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      requestID,
+    } = (a as KV) || {}
+    if (!requestID) {
+      throw Error('field requestID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.dataPrivacyRequestReadEndpoint({
+        requestID,
+      }),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  dataPrivacyRequestReadEndpoint (a: KV): string {
+    const {
+      requestID,
+    } = a || {}
+    return `/data-privacy/requests/${requestID}`
+  }
+
   // Update data privacy request status
   async dataPrivacyRequestUpdateStatus (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {
@@ -4440,32 +4496,6 @@ export default class System {
       status,
     } = a || {}
     return `/data-privacy/requests/${requestID}/status/${status}`
-  }
-
-  // Get details about specific request
-  async dataPrivacyRequestRead (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      requestID,
-    } = (a as KV) || {}
-    if (!requestID) {
-      throw Error('field requestID is empty')
-    }
-    const cfg: AxiosRequestConfig = {
-      ...extra,
-      method: 'get',
-      url: this.dataPrivacyRequestReadEndpoint({
-        requestID,
-      }),
-    }
-
-    return this.api().request(cfg).then(result => stdResolve(result))
-  }
-
-  dataPrivacyRequestReadEndpoint (a: KV): string {
-    const {
-      requestID,
-    } = a || {}
-    return `/data-privacy/requests/${requestID}`
   }
 
   // List data privacy request comments
@@ -4532,33 +4562,6 @@ export default class System {
       requestID,
     } = a || {}
     return `/data-privacy/requests/${requestID}/comments/`
-  }
-
-  // List connections for data privacy
-  async dataPrivacyConnectionList (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      connectionID,
-      handle,
-      type,
-      deleted,
-    } = (a as KV) || {}
-    const cfg: AxiosRequestConfig = {
-      ...extra,
-      method: 'get',
-      url: this.dataPrivacyConnectionListEndpoint(),
-    }
-    cfg.params = {
-      connectionID,
-      handle,
-      type,
-      deleted,
-    }
-
-    return this.api().request(cfg).then(result => stdResolve(result))
-  }
-
-  dataPrivacyConnectionListEndpoint (): string {
-    return '/data-privacy/connection/'
   }
 
   // Check SMTP server configuration settings

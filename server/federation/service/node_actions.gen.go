@@ -54,6 +54,7 @@ var (
 // setNode updates nodeActionProps's node
 //
 // This function is auto-generated.
+//
 func (p *nodeActionProps) setNode(node *types.Node) *nodeActionProps {
 	p.node = node
 	return p
@@ -62,6 +63,7 @@ func (p *nodeActionProps) setNode(node *types.Node) *nodeActionProps {
 // setPairingURI updates nodeActionProps's pairingURI
 //
 // This function is auto-generated.
+//
 func (p *nodeActionProps) setPairingURI(pairingURI string) *nodeActionProps {
 	p.pairingURI = pairingURI
 	return p
@@ -70,6 +72,7 @@ func (p *nodeActionProps) setPairingURI(pairingURI string) *nodeActionProps {
 // setFilter updates nodeActionProps's filter
 //
 // This function is auto-generated.
+//
 func (p *nodeActionProps) setFilter(filter *types.NodeFilter) *nodeActionProps {
 	p.filter = filter
 	return p
@@ -78,6 +81,7 @@ func (p *nodeActionProps) setFilter(filter *types.NodeFilter) *nodeActionProps {
 // Serialize converts nodeActionProps to actionlog.Meta
 //
 // This function is auto-generated.
+//
 func (p nodeActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -101,6 +105,7 @@ func (p nodeActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
+//
 func (p nodeActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -164,6 +169,7 @@ func (p nodeActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
+//
 func (a *nodeAction) String() string {
 	var props = &nodeActionProps{}
 
@@ -191,6 +197,7 @@ func (e *nodeAction) ToAction() *actionlog.Action {
 // NodeActionSearch returns "federation:node.search" action
 //
 // This function is auto-generated.
+//
 func NodeActionSearch(props ...*nodeActionProps) *nodeAction {
 	a := &nodeAction{
 		timestamp: time.Now(),
@@ -210,6 +217,7 @@ func NodeActionSearch(props ...*nodeActionProps) *nodeAction {
 // NodeActionLookup returns "federation:node.lookup" action
 //
 // This function is auto-generated.
+//
 func NodeActionLookup(props ...*nodeActionProps) *nodeAction {
 	a := &nodeAction{
 		timestamp: time.Now(),
@@ -229,6 +237,7 @@ func NodeActionLookup(props ...*nodeActionProps) *nodeAction {
 // NodeActionCreate returns "federation:node.create" action
 //
 // This function is auto-generated.
+//
 func NodeActionCreate(props ...*nodeActionProps) *nodeAction {
 	a := &nodeAction{
 		timestamp: time.Now(),
@@ -248,6 +257,7 @@ func NodeActionCreate(props ...*nodeActionProps) *nodeAction {
 // NodeActionCreateFromPairingURI returns "federation:node.createFromPairingURI" action
 //
 // This function is auto-generated.
+//
 func NodeActionCreateFromPairingURI(props ...*nodeActionProps) *nodeAction {
 	a := &nodeAction{
 		timestamp: time.Now(),
@@ -267,6 +277,7 @@ func NodeActionCreateFromPairingURI(props ...*nodeActionProps) *nodeAction {
 // NodeActionRecreateFromPairingURI returns "federation:node.recreateFromPairingURI" action
 //
 // This function is auto-generated.
+//
 func NodeActionRecreateFromPairingURI(props ...*nodeActionProps) *nodeAction {
 	a := &nodeAction{
 		timestamp: time.Now(),
@@ -286,6 +297,7 @@ func NodeActionRecreateFromPairingURI(props ...*nodeActionProps) *nodeAction {
 // NodeActionUpdate returns "federation:node.update" action
 //
 // This function is auto-generated.
+//
 func NodeActionUpdate(props ...*nodeActionProps) *nodeAction {
 	a := &nodeAction{
 		timestamp: time.Now(),
@@ -305,6 +317,7 @@ func NodeActionUpdate(props ...*nodeActionProps) *nodeAction {
 // NodeActionDelete returns "federation:node.delete" action
 //
 // This function is auto-generated.
+//
 func NodeActionDelete(props ...*nodeActionProps) *nodeAction {
 	a := &nodeAction{
 		timestamp: time.Now(),
@@ -324,6 +337,7 @@ func NodeActionDelete(props ...*nodeActionProps) *nodeAction {
 // NodeActionUndelete returns "federation:node.undelete" action
 //
 // This function is auto-generated.
+//
 func NodeActionUndelete(props ...*nodeActionProps) *nodeAction {
 	a := &nodeAction{
 		timestamp: time.Now(),
@@ -343,6 +357,7 @@ func NodeActionUndelete(props ...*nodeActionProps) *nodeAction {
 // NodeActionOttRegenerated returns "federation:node.ottRegenerated" action
 //
 // This function is auto-generated.
+//
 func NodeActionOttRegenerated(props ...*nodeActionProps) *nodeAction {
 	a := &nodeAction{
 		timestamp: time.Now(),
@@ -362,6 +377,7 @@ func NodeActionOttRegenerated(props ...*nodeActionProps) *nodeAction {
 // NodeActionPair returns "federation:node.pair" action
 //
 // This function is auto-generated.
+//
 func NodeActionPair(props ...*nodeActionProps) *nodeAction {
 	a := &nodeAction{
 		timestamp: time.Now(),
@@ -381,6 +397,7 @@ func NodeActionPair(props ...*nodeActionProps) *nodeAction {
 // NodeActionHandshakeInit returns "federation:node.handshakeInit" action
 //
 // This function is auto-generated.
+//
 func NodeActionHandshakeInit(props ...*nodeActionProps) *nodeAction {
 	a := &nodeAction{
 		timestamp: time.Now(),
@@ -400,6 +417,7 @@ func NodeActionHandshakeInit(props ...*nodeActionProps) *nodeAction {
 // NodeActionHandshakeConfirm returns "federation:node.handshakeConfirm" action
 //
 // This function is auto-generated.
+//
 func NodeActionHandshakeConfirm(props ...*nodeActionProps) *nodeAction {
 	a := &nodeAction{
 		timestamp: time.Now(),
@@ -419,6 +437,7 @@ func NodeActionHandshakeConfirm(props ...*nodeActionProps) *nodeAction {
 // NodeActionHandshakeComplete returns "federation:node.handshakeComplete" action
 //
 // This function is auto-generated.
+//
 func NodeActionHandshakeComplete(props ...*nodeActionProps) *nodeAction {
 	a := &nodeAction{
 		timestamp: time.Now(),
@@ -441,7 +460,9 @@ func NodeActionHandshakeComplete(props ...*nodeActionProps) *nodeAction {
 
 // NodeErrGeneric returns "federation:node.generic" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func NodeErrGeneric(mm ...*nodeActionProps) *errors.Error {
 	var p = &nodeActionProps{}
 	if len(mm) > 0 {
@@ -475,7 +496,9 @@ func NodeErrGeneric(mm ...*nodeActionProps) *errors.Error {
 
 // NodeErrNotFound returns "federation:node.notFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func NodeErrNotFound(mm ...*nodeActionProps) *errors.Error {
 	var p = &nodeActionProps{}
 	if len(mm) > 0 {
@@ -507,7 +530,9 @@ func NodeErrNotFound(mm ...*nodeActionProps) *errors.Error {
 
 // NodeErrInvalidID returns "federation:node.invalidID" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func NodeErrInvalidID(mm ...*nodeActionProps) *errors.Error {
 	var p = &nodeActionProps{}
 	if len(mm) > 0 {
@@ -539,7 +564,9 @@ func NodeErrInvalidID(mm ...*nodeActionProps) *errors.Error {
 
 // NodeErrPairingURIInvalid returns "federation:node.pairingURIInvalid" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func NodeErrPairingURIInvalid(mm ...*nodeActionProps) *errors.Error {
 	var p = &nodeActionProps{}
 	if len(mm) > 0 {
@@ -571,7 +598,9 @@ func NodeErrPairingURIInvalid(mm ...*nodeActionProps) *errors.Error {
 
 // NodeErrPairingURITokenInvalid returns "federation:node.pairingURITokenInvalid" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func NodeErrPairingURITokenInvalid(mm ...*nodeActionProps) *errors.Error {
 	var p = &nodeActionProps{}
 	if len(mm) > 0 {
@@ -603,7 +632,9 @@ func NodeErrPairingURITokenInvalid(mm ...*nodeActionProps) *errors.Error {
 
 // NodeErrPairingURISourceIDInvalid returns "federation:node.pairingURISourceIDInvalid" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func NodeErrPairingURISourceIDInvalid(mm ...*nodeActionProps) *errors.Error {
 	var p = &nodeActionProps{}
 	if len(mm) > 0 {
@@ -635,7 +666,9 @@ func NodeErrPairingURISourceIDInvalid(mm ...*nodeActionProps) *errors.Error {
 
 // NodeErrPairingTokenInvalid returns "federation:node.pairingTokenInvalid" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func NodeErrPairingTokenInvalid(mm ...*nodeActionProps) *errors.Error {
 	var p = &nodeActionProps{}
 	if len(mm) > 0 {
@@ -667,7 +700,9 @@ func NodeErrPairingTokenInvalid(mm ...*nodeActionProps) *errors.Error {
 
 // NodeErrNotAllowedToCreate returns "federation:node.notAllowedToCreate" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func NodeErrNotAllowedToCreate(mm ...*nodeActionProps) *errors.Error {
 	var p = &nodeActionProps{}
 	if len(mm) > 0 {
@@ -701,7 +736,9 @@ func NodeErrNotAllowedToCreate(mm ...*nodeActionProps) *errors.Error {
 
 // NodeErrNotAllowedToSearch returns "federation:node.notAllowedToSearch" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func NodeErrNotAllowedToSearch(mm ...*nodeActionProps) *errors.Error {
 	var p = &nodeActionProps{}
 	if len(mm) > 0 {
@@ -735,7 +772,9 @@ func NodeErrNotAllowedToSearch(mm ...*nodeActionProps) *errors.Error {
 
 // NodeErrNotAllowedToManage returns "federation:node.notAllowedToManage" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func NodeErrNotAllowedToManage(mm ...*nodeActionProps) *errors.Error {
 	var p = &nodeActionProps{}
 	if len(mm) > 0 {
@@ -769,7 +808,9 @@ func NodeErrNotAllowedToManage(mm ...*nodeActionProps) *errors.Error {
 
 // NodeErrNotAllowedToPair returns "federation:node.notAllowedToPair" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func NodeErrNotAllowedToPair(mm ...*nodeActionProps) *errors.Error {
 	var p = &nodeActionProps{}
 	if len(mm) > 0 {
@@ -809,6 +850,7 @@ func NodeErrNotAllowedToPair(mm ...*nodeActionProps) *errors.Error {
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
+//
 func (svc node) recordAction(ctx context.Context, props *nodeActionProps, actionFn func(...*nodeActionProps) *nodeAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

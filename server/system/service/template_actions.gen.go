@@ -55,6 +55,7 @@ var (
 // setTemplate updates templateActionProps's template
 //
 // This function is auto-generated.
+//
 func (p *templateActionProps) setTemplate(template *types.Template) *templateActionProps {
 	p.template = template
 	return p
@@ -63,6 +64,7 @@ func (p *templateActionProps) setTemplate(template *types.Template) *templateAct
 // setNew updates templateActionProps's new
 //
 // This function is auto-generated.
+//
 func (p *templateActionProps) setNew(new *types.Template) *templateActionProps {
 	p.new = new
 	return p
@@ -71,6 +73,7 @@ func (p *templateActionProps) setNew(new *types.Template) *templateActionProps {
 // setUpdate updates templateActionProps's update
 //
 // This function is auto-generated.
+//
 func (p *templateActionProps) setUpdate(update *types.Template) *templateActionProps {
 	p.update = update
 	return p
@@ -79,6 +82,7 @@ func (p *templateActionProps) setUpdate(update *types.Template) *templateActionP
 // setFilter updates templateActionProps's filter
 //
 // This function is auto-generated.
+//
 func (p *templateActionProps) setFilter(filter *types.TemplateFilter) *templateActionProps {
 	p.filter = filter
 	return p
@@ -87,6 +91,7 @@ func (p *templateActionProps) setFilter(filter *types.TemplateFilter) *templateA
 // Serialize converts templateActionProps to actionlog.Meta
 //
 // This function is auto-generated.
+//
 func (p templateActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -122,6 +127,7 @@ func (p templateActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
+//
 func (p templateActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -222,6 +228,7 @@ func (p templateActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
+//
 func (a *templateAction) String() string {
 	var props = &templateActionProps{}
 
@@ -249,6 +256,7 @@ func (e *templateAction) ToAction() *actionlog.Action {
 // TemplateActionSearch returns "system:template.search" action
 //
 // This function is auto-generated.
+//
 func TemplateActionSearch(props ...*templateActionProps) *templateAction {
 	a := &templateAction{
 		timestamp: time.Now(),
@@ -268,6 +276,7 @@ func TemplateActionSearch(props ...*templateActionProps) *templateAction {
 // TemplateActionLookup returns "system:template.lookup" action
 //
 // This function is auto-generated.
+//
 func TemplateActionLookup(props ...*templateActionProps) *templateAction {
 	a := &templateAction{
 		timestamp: time.Now(),
@@ -287,6 +296,7 @@ func TemplateActionLookup(props ...*templateActionProps) *templateAction {
 // TemplateActionCreate returns "system:template.create" action
 //
 // This function is auto-generated.
+//
 func TemplateActionCreate(props ...*templateActionProps) *templateAction {
 	a := &templateAction{
 		timestamp: time.Now(),
@@ -306,6 +316,7 @@ func TemplateActionCreate(props ...*templateActionProps) *templateAction {
 // TemplateActionUpdate returns "system:template.update" action
 //
 // This function is auto-generated.
+//
 func TemplateActionUpdate(props ...*templateActionProps) *templateAction {
 	a := &templateAction{
 		timestamp: time.Now(),
@@ -325,6 +336,7 @@ func TemplateActionUpdate(props ...*templateActionProps) *templateAction {
 // TemplateActionDelete returns "system:template.delete" action
 //
 // This function is auto-generated.
+//
 func TemplateActionDelete(props ...*templateActionProps) *templateAction {
 	a := &templateAction{
 		timestamp: time.Now(),
@@ -344,6 +356,7 @@ func TemplateActionDelete(props ...*templateActionProps) *templateAction {
 // TemplateActionUndelete returns "system:template.undelete" action
 //
 // This function is auto-generated.
+//
 func TemplateActionUndelete(props ...*templateActionProps) *templateAction {
 	a := &templateAction{
 		timestamp: time.Now(),
@@ -363,6 +376,7 @@ func TemplateActionUndelete(props ...*templateActionProps) *templateAction {
 // TemplateActionRender returns "system:template.render" action
 //
 // This function is auto-generated.
+//
 func TemplateActionRender(props ...*templateActionProps) *templateAction {
 	a := &templateAction{
 		timestamp: time.Now(),
@@ -385,7 +399,9 @@ func TemplateActionRender(props ...*templateActionProps) *templateAction {
 
 // TemplateErrGeneric returns "system:template.generic" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func TemplateErrGeneric(mm ...*templateActionProps) *errors.Error {
 	var p = &templateActionProps{}
 	if len(mm) > 0 {
@@ -419,7 +435,9 @@ func TemplateErrGeneric(mm ...*templateActionProps) *errors.Error {
 
 // TemplateErrNotFound returns "system:template.notFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func TemplateErrNotFound(mm ...*templateActionProps) *errors.Error {
 	var p = &templateActionProps{}
 	if len(mm) > 0 {
@@ -451,7 +469,9 @@ func TemplateErrNotFound(mm ...*templateActionProps) *errors.Error {
 
 // TemplateErrInvalidID returns "system:template.invalidID" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func TemplateErrInvalidID(mm ...*templateActionProps) *errors.Error {
 	var p = &templateActionProps{}
 	if len(mm) > 0 {
@@ -483,7 +503,9 @@ func TemplateErrInvalidID(mm ...*templateActionProps) *errors.Error {
 
 // TemplateErrInvalidHandle returns "system:template.invalidHandle" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func TemplateErrInvalidHandle(mm ...*templateActionProps) *errors.Error {
 	var p = &templateActionProps{}
 	if len(mm) > 0 {
@@ -515,7 +537,9 @@ func TemplateErrInvalidHandle(mm ...*templateActionProps) *errors.Error {
 
 // TemplateErrCannotRenderPartial returns "system:template.cannotRenderPartial" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func TemplateErrCannotRenderPartial(mm ...*templateActionProps) *errors.Error {
 	var p = &templateActionProps{}
 	if len(mm) > 0 {
@@ -547,7 +571,9 @@ func TemplateErrCannotRenderPartial(mm ...*templateActionProps) *errors.Error {
 
 // TemplateErrNotAllowedToRead returns "system:template.notAllowedToRead" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func TemplateErrNotAllowedToRead(mm ...*templateActionProps) *errors.Error {
 	var p = &templateActionProps{}
 	if len(mm) > 0 {
@@ -581,7 +607,9 @@ func TemplateErrNotAllowedToRead(mm ...*templateActionProps) *errors.Error {
 
 // TemplateErrNotAllowedToSearch returns "system:template.notAllowedToSearch" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func TemplateErrNotAllowedToSearch(mm ...*templateActionProps) *errors.Error {
 	var p = &templateActionProps{}
 	if len(mm) > 0 {
@@ -615,7 +643,9 @@ func TemplateErrNotAllowedToSearch(mm ...*templateActionProps) *errors.Error {
 
 // TemplateErrNotAllowedToCreate returns "system:template.notAllowedToCreate" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func TemplateErrNotAllowedToCreate(mm ...*templateActionProps) *errors.Error {
 	var p = &templateActionProps{}
 	if len(mm) > 0 {
@@ -649,7 +679,9 @@ func TemplateErrNotAllowedToCreate(mm ...*templateActionProps) *errors.Error {
 
 // TemplateErrNotAllowedToUpdate returns "system:template.notAllowedToUpdate" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func TemplateErrNotAllowedToUpdate(mm ...*templateActionProps) *errors.Error {
 	var p = &templateActionProps{}
 	if len(mm) > 0 {
@@ -683,7 +715,9 @@ func TemplateErrNotAllowedToUpdate(mm ...*templateActionProps) *errors.Error {
 
 // TemplateErrNotAllowedToDelete returns "system:template.notAllowedToDelete" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func TemplateErrNotAllowedToDelete(mm ...*templateActionProps) *errors.Error {
 	var p = &templateActionProps{}
 	if len(mm) > 0 {
@@ -717,7 +751,9 @@ func TemplateErrNotAllowedToDelete(mm ...*templateActionProps) *errors.Error {
 
 // TemplateErrNotAllowedToUndelete returns "system:template.notAllowedToUndelete" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func TemplateErrNotAllowedToUndelete(mm ...*templateActionProps) *errors.Error {
 	var p = &templateActionProps{}
 	if len(mm) > 0 {
@@ -751,7 +787,9 @@ func TemplateErrNotAllowedToUndelete(mm ...*templateActionProps) *errors.Error {
 
 // TemplateErrNotAllowedToRender returns "system:template.notAllowedToRender" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func TemplateErrNotAllowedToRender(mm ...*templateActionProps) *errors.Error {
 	var p = &templateActionProps{}
 	if len(mm) > 0 {
@@ -791,6 +829,7 @@ func TemplateErrNotAllowedToRender(mm ...*templateActionProps) *errors.Error {
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
+//
 func (svc template) recordAction(ctx context.Context, props *templateActionProps, actionFn func(...*templateActionProps) *templateAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

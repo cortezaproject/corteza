@@ -52,6 +52,7 @@ var (
 // setSettings updates settingsActionProps's settings
 //
 // This function is auto-generated.
+//
 func (p *settingsActionProps) setSettings(settings *types.SettingValue) *settingsActionProps {
 	p.settings = settings
 	return p
@@ -60,6 +61,7 @@ func (p *settingsActionProps) setSettings(settings *types.SettingValue) *setting
 // Serialize converts settingsActionProps to actionlog.Meta
 //
 // This function is auto-generated.
+//
 func (p settingsActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -76,6 +78,7 @@ func (p settingsActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
+//
 func (p settingsActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -120,6 +123,7 @@ func (p settingsActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
+//
 func (a *settingsAction) String() string {
 	var props = &settingsActionProps{}
 
@@ -147,6 +151,7 @@ func (e *settingsAction) ToAction() *actionlog.Action {
 // SettingsActionLookup returns "system:setting.lookup" action
 //
 // This function is auto-generated.
+//
 func SettingsActionLookup(props ...*settingsActionProps) *settingsAction {
 	a := &settingsAction{
 		timestamp: time.Now(),
@@ -169,7 +174,9 @@ func SettingsActionLookup(props ...*settingsActionProps) *settingsAction {
 
 // SettingsErrGeneric returns "system:setting.generic" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SettingsErrGeneric(mm ...*settingsActionProps) *errors.Error {
 	var p = &settingsActionProps{}
 	if len(mm) > 0 {
@@ -203,7 +210,9 @@ func SettingsErrGeneric(mm ...*settingsActionProps) *errors.Error {
 
 // SettingsErrNotAllowedToRead returns "system:setting.notAllowedToRead" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SettingsErrNotAllowedToRead(mm ...*settingsActionProps) *errors.Error {
 	var p = &settingsActionProps{}
 	if len(mm) > 0 {
@@ -237,7 +246,9 @@ func SettingsErrNotAllowedToRead(mm ...*settingsActionProps) *errors.Error {
 
 // SettingsErrNotAllowedToManage returns "system:setting.notAllowedToManage" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SettingsErrNotAllowedToManage(mm ...*settingsActionProps) *errors.Error {
 	var p = &settingsActionProps{}
 	if len(mm) > 0 {
@@ -271,7 +282,9 @@ func SettingsErrNotAllowedToManage(mm ...*settingsActionProps) *errors.Error {
 
 // SettingsErrInvalidPasswordMinLength returns "system:setting.invalidPasswordMinLength" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SettingsErrInvalidPasswordMinLength(mm ...*settingsActionProps) *errors.Error {
 	var p = &settingsActionProps{}
 	if len(mm) > 0 {
@@ -303,7 +316,9 @@ func SettingsErrInvalidPasswordMinLength(mm ...*settingsActionProps) *errors.Err
 
 // SettingsErrInvalidPasswordMinUpperCase returns "system:setting.invalidPasswordMinUpperCase" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SettingsErrInvalidPasswordMinUpperCase(mm ...*settingsActionProps) *errors.Error {
 	var p = &settingsActionProps{}
 	if len(mm) > 0 {
@@ -335,7 +350,9 @@ func SettingsErrInvalidPasswordMinUpperCase(mm ...*settingsActionProps) *errors.
 
 // SettingsErrInvalidPasswordMinLowerCase returns "system:setting.invalidPasswordMinLowerCase" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SettingsErrInvalidPasswordMinLowerCase(mm ...*settingsActionProps) *errors.Error {
 	var p = &settingsActionProps{}
 	if len(mm) > 0 {
@@ -367,7 +384,9 @@ func SettingsErrInvalidPasswordMinLowerCase(mm ...*settingsActionProps) *errors.
 
 // SettingsErrInvalidPasswordMinNumCount returns "system:setting.invalidPasswordMinNumCount" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SettingsErrInvalidPasswordMinNumCount(mm ...*settingsActionProps) *errors.Error {
 	var p = &settingsActionProps{}
 	if len(mm) > 0 {
@@ -399,7 +418,9 @@ func SettingsErrInvalidPasswordMinNumCount(mm ...*settingsActionProps) *errors.E
 
 // SettingsErrInvalidPasswordMinSpecialCharCount returns "system:setting.invalidPasswordMinSpecialCharCount" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SettingsErrInvalidPasswordMinSpecialCharCount(mm ...*settingsActionProps) *errors.Error {
 	var p = &settingsActionProps{}
 	if len(mm) > 0 {
@@ -437,6 +458,7 @@ func SettingsErrInvalidPasswordMinSpecialCharCount(mm ...*settingsActionProps) *
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
+//
 func (svc settings) recordAction(ctx context.Context, props *settingsActionProps, actionFn func(...*settingsActionProps) *settingsAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

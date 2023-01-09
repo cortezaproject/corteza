@@ -48,9 +48,6 @@ func MountRoutes() func(r chi.Router) {
 			handlers.NewApigwFilter(ApigwFilter{}.New()).MountRoutes(r)
 			handlers.NewApigwProfiler(ApigwProfiler{}.New()).MountRoutes(r)
 			handlers.NewDataPrivacy(DataPrivacy{}.New()).MountRoutes(r)
-			// @todo move these two to dataPrivacy routes
-			handlers.NewDataPrivacyRequest(DataPrivacyRequest{}.New()).MountRoutes(r)
-			handlers.NewDataPrivacyRequestComment(DataPrivacyRequestComment{}.New()).MountRoutes(r)
 			handlers.NewSmtpConfigurationChecker(SmtpConfigurationChecker{}.New()).MountRoutes(r)
 		})
 	}

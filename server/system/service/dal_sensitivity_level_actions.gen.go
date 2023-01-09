@@ -55,6 +55,7 @@ var (
 // setSensitivityLevel updates dalSensitivityLevelActionProps's sensitivityLevel
 //
 // This function is auto-generated.
+//
 func (p *dalSensitivityLevelActionProps) setSensitivityLevel(sensitivityLevel *types.DalSensitivityLevel) *dalSensitivityLevelActionProps {
 	p.sensitivityLevel = sensitivityLevel
 	return p
@@ -63,6 +64,7 @@ func (p *dalSensitivityLevelActionProps) setSensitivityLevel(sensitivityLevel *t
 // setNew updates dalSensitivityLevelActionProps's new
 //
 // This function is auto-generated.
+//
 func (p *dalSensitivityLevelActionProps) setNew(new *types.DalSensitivityLevel) *dalSensitivityLevelActionProps {
 	p.new = new
 	return p
@@ -71,6 +73,7 @@ func (p *dalSensitivityLevelActionProps) setNew(new *types.DalSensitivityLevel) 
 // setUpdate updates dalSensitivityLevelActionProps's update
 //
 // This function is auto-generated.
+//
 func (p *dalSensitivityLevelActionProps) setUpdate(update *types.DalSensitivityLevel) *dalSensitivityLevelActionProps {
 	p.update = update
 	return p
@@ -79,6 +82,7 @@ func (p *dalSensitivityLevelActionProps) setUpdate(update *types.DalSensitivityL
 // setSearch updates dalSensitivityLevelActionProps's search
 //
 // This function is auto-generated.
+//
 func (p *dalSensitivityLevelActionProps) setSearch(search *types.DalSensitivityLevelFilter) *dalSensitivityLevelActionProps {
 	p.search = search
 	return p
@@ -87,6 +91,7 @@ func (p *dalSensitivityLevelActionProps) setSearch(search *types.DalSensitivityL
 // Serialize converts dalSensitivityLevelActionProps to actionlog.Meta
 //
 // This function is auto-generated.
+//
 func (p dalSensitivityLevelActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -113,6 +118,7 @@ func (p dalSensitivityLevelActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
+//
 func (p dalSensitivityLevelActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -194,6 +200,7 @@ func (p dalSensitivityLevelActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
+//
 func (a *dalSensitivityLevelAction) String() string {
 	var props = &dalSensitivityLevelActionProps{}
 
@@ -221,6 +228,7 @@ func (e *dalSensitivityLevelAction) ToAction() *actionlog.Action {
 // DalSensitivityLevelActionSearch returns "system:dal-sensitivity-level.search" action
 //
 // This function is auto-generated.
+//
 func DalSensitivityLevelActionSearch(props ...*dalSensitivityLevelActionProps) *dalSensitivityLevelAction {
 	a := &dalSensitivityLevelAction{
 		timestamp: time.Now(),
@@ -240,6 +248,7 @@ func DalSensitivityLevelActionSearch(props ...*dalSensitivityLevelActionProps) *
 // DalSensitivityLevelActionLookup returns "system:dal-sensitivity-level.lookup" action
 //
 // This function is auto-generated.
+//
 func DalSensitivityLevelActionLookup(props ...*dalSensitivityLevelActionProps) *dalSensitivityLevelAction {
 	a := &dalSensitivityLevelAction{
 		timestamp: time.Now(),
@@ -259,6 +268,7 @@ func DalSensitivityLevelActionLookup(props ...*dalSensitivityLevelActionProps) *
 // DalSensitivityLevelActionCreate returns "system:dal-sensitivity-level.create" action
 //
 // This function is auto-generated.
+//
 func DalSensitivityLevelActionCreate(props ...*dalSensitivityLevelActionProps) *dalSensitivityLevelAction {
 	a := &dalSensitivityLevelAction{
 		timestamp: time.Now(),
@@ -278,6 +288,7 @@ func DalSensitivityLevelActionCreate(props ...*dalSensitivityLevelActionProps) *
 // DalSensitivityLevelActionUpdate returns "system:dal-sensitivity-level.update" action
 //
 // This function is auto-generated.
+//
 func DalSensitivityLevelActionUpdate(props ...*dalSensitivityLevelActionProps) *dalSensitivityLevelAction {
 	a := &dalSensitivityLevelAction{
 		timestamp: time.Now(),
@@ -297,6 +308,7 @@ func DalSensitivityLevelActionUpdate(props ...*dalSensitivityLevelActionProps) *
 // DalSensitivityLevelActionDelete returns "system:dal-sensitivity-level.delete" action
 //
 // This function is auto-generated.
+//
 func DalSensitivityLevelActionDelete(props ...*dalSensitivityLevelActionProps) *dalSensitivityLevelAction {
 	a := &dalSensitivityLevelAction{
 		timestamp: time.Now(),
@@ -316,6 +328,7 @@ func DalSensitivityLevelActionDelete(props ...*dalSensitivityLevelActionProps) *
 // DalSensitivityLevelActionUndelete returns "system:dal-sensitivity-level.undelete" action
 //
 // This function is auto-generated.
+//
 func DalSensitivityLevelActionUndelete(props ...*dalSensitivityLevelActionProps) *dalSensitivityLevelAction {
 	a := &dalSensitivityLevelAction{
 		timestamp: time.Now(),
@@ -338,7 +351,9 @@ func DalSensitivityLevelActionUndelete(props ...*dalSensitivityLevelActionProps)
 
 // DalSensitivityLevelErrGeneric returns "system:dal-sensitivity-level.generic" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func DalSensitivityLevelErrGeneric(mm ...*dalSensitivityLevelActionProps) *errors.Error {
 	var p = &dalSensitivityLevelActionProps{}
 	if len(mm) > 0 {
@@ -372,7 +387,9 @@ func DalSensitivityLevelErrGeneric(mm ...*dalSensitivityLevelActionProps) *error
 
 // DalSensitivityLevelErrNotFound returns "system:dal-sensitivity-level.notFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func DalSensitivityLevelErrNotFound(mm ...*dalSensitivityLevelActionProps) *errors.Error {
 	var p = &dalSensitivityLevelActionProps{}
 	if len(mm) > 0 {
@@ -404,7 +421,9 @@ func DalSensitivityLevelErrNotFound(mm ...*dalSensitivityLevelActionProps) *erro
 
 // DalSensitivityLevelErrInvalidID returns "system:dal-sensitivity-level.invalidID" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func DalSensitivityLevelErrInvalidID(mm ...*dalSensitivityLevelActionProps) *errors.Error {
 	var p = &dalSensitivityLevelActionProps{}
 	if len(mm) > 0 {
@@ -436,7 +455,9 @@ func DalSensitivityLevelErrInvalidID(mm ...*dalSensitivityLevelActionProps) *err
 
 // DalSensitivityLevelErrInvalidEndpoint returns "system:dal-sensitivity-level.invalidEndpoint" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func DalSensitivityLevelErrInvalidEndpoint(mm ...*dalSensitivityLevelActionProps) *errors.Error {
 	var p = &dalSensitivityLevelActionProps{}
 	if len(mm) > 0 {
@@ -468,7 +489,9 @@ func DalSensitivityLevelErrInvalidEndpoint(mm ...*dalSensitivityLevelActionProps
 
 // DalSensitivityLevelErrExistsEndpoint returns "system:dal-sensitivity-level.existsEndpoint" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func DalSensitivityLevelErrExistsEndpoint(mm ...*dalSensitivityLevelActionProps) *errors.Error {
 	var p = &dalSensitivityLevelActionProps{}
 	if len(mm) > 0 {
@@ -500,7 +523,9 @@ func DalSensitivityLevelErrExistsEndpoint(mm ...*dalSensitivityLevelActionProps)
 
 // DalSensitivityLevelErrAlreadyExists returns "system:dal-sensitivity-level.alreadyExists" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func DalSensitivityLevelErrAlreadyExists(mm ...*dalSensitivityLevelActionProps) *errors.Error {
 	var p = &dalSensitivityLevelActionProps{}
 	if len(mm) > 0 {
@@ -566,7 +591,9 @@ func DalSensitivityLevelErrDeleteInUse(mm ...*dalSensitivityLevelActionProps) *e
 
 // DalSensitivityLevelErrNotAllowedToManage returns "system:dal-sensitivity-level.notAllowedToManage" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func DalSensitivityLevelErrNotAllowedToManage(mm ...*dalSensitivityLevelActionProps) *errors.Error {
 	var p = &dalSensitivityLevelActionProps{}
 	if len(mm) > 0 {
@@ -606,6 +633,7 @@ func DalSensitivityLevelErrNotAllowedToManage(mm ...*dalSensitivityLevelActionPr
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
+//
 func (svc dalSensitivityLevel) recordAction(ctx context.Context, props *dalSensitivityLevelActionProps, actionFn func(...*dalSensitivityLevelActionProps) *dalSensitivityLevelAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

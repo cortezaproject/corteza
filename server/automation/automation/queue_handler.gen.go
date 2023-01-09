@@ -50,10 +50,9 @@ func (a queueWriteArgs) GetPayload() (bool, string, io.Reader) {
 // Write function Queue message send
 //
 // expects implementation of write function:
-//
-//	func (h queueHandler) write(ctx context.Context, args *queueWriteArgs) (err error) {
-//	   return
-//	}
+// func (h queueHandler) write(ctx context.Context, args *queueWriteArgs) (err error) {
+//    return
+// }
 func (h queueHandler) Write() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "queueWrite",

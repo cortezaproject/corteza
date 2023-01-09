@@ -78,6 +78,7 @@ func (t *Attachment) AssignFieldValue(key string, val TypedValue) error {
 //
 // It allows gval lib to access Attachment's underlying value (*types.Attachment)
 // and it's fields
+//
 func (t *Attachment) SelectGVal(ctx context.Context, k string) (interface{}, error) {
 	t.mux.RLock()
 	defer t.mux.RUnlock()
@@ -278,6 +279,7 @@ func (t *ComposeModule) AssignFieldValue(key string, val TypedValue) error {
 //
 // It allows gval lib to access ComposeModule's underlying value (*types.Module)
 // and it's fields
+//
 func (t *ComposeModule) SelectGVal(ctx context.Context, k string) (interface{}, error) {
 	t.mux.RLock()
 	defer t.mux.RUnlock()
@@ -472,6 +474,7 @@ func (t *ComposeNamespace) AssignFieldValue(key string, val TypedValue) error {
 //
 // It allows gval lib to access ComposeNamespace's underlying value (*types.Namespace)
 // and it's fields
+//
 func (t *ComposeNamespace) SelectGVal(ctx context.Context, k string) (interface{}, error) {
 	t.mux.RLock()
 	defer t.mux.RUnlock()

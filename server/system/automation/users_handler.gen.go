@@ -63,10 +63,9 @@ func (a usersLookupArgs) GetLookup() (bool, uint64, string, string, *types.User)
 // Lookup function User lookup
 //
 // expects implementation of lookup function:
-//
-//	func (h usersHandler) lookup(ctx context.Context, args *usersLookupArgs) (results *usersLookupResults, err error) {
-//	   return
-//	}
+// func (h usersHandler) lookup(ctx context.Context, args *usersLookupArgs) (results *usersLookupResults, err error) {
+//    return
+// }
 func (h usersHandler) Lookup() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "usersLookup",
@@ -166,10 +165,9 @@ func (a usersSearchMembershipArgs) GetLookup() (bool, uint64, string, string, *t
 // SearchMembership function User role search
 //
 // expects implementation of searchMembership function:
-//
-//	func (h usersHandler) searchMembership(ctx context.Context, args *usersSearchMembershipArgs) (results *usersSearchMembershipResults, err error) {
-//	   return
-//	}
+// func (h usersHandler) searchMembership(ctx context.Context, args *usersSearchMembershipArgs) (results *usersSearchMembershipResults, err error) {
+//    return
+// }
 func (h usersHandler) SearchMembership() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "usersSearchMembership",
@@ -304,10 +302,9 @@ func (a usersCheckMembershipArgs) GetRole() (bool, uint64, string, *types.Role) 
 // CheckMembership function User membership check
 //
 // expects implementation of checkMembership function:
-//
-//	func (h usersHandler) checkMembership(ctx context.Context, args *usersCheckMembershipArgs) (results *usersCheckMembershipResults, err error) {
-//	   return
-//	}
+// func (h usersHandler) checkMembership(ctx context.Context, args *usersCheckMembershipArgs) (results *usersCheckMembershipResults, err error) {
+//    return
+// }
 func (h usersHandler) CheckMembership() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "usersCheckMembership",
@@ -447,10 +444,9 @@ type (
 // Search function User search
 //
 // expects implementation of search function:
-//
-//	func (h usersHandler) search(ctx context.Context, args *usersSearchArgs) (results *usersSearchResults, err error) {
-//	   return
-//	}
+// func (h usersHandler) search(ctx context.Context, args *usersSearchArgs) (results *usersSearchResults, err error) {
+//    return
+// }
 func (h usersHandler) Search() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "usersSearch",
@@ -632,10 +628,9 @@ type (
 // Each function Users
 //
 // expects implementation of each function:
-//
-//	func (h usersHandler) each(ctx context.Context, args *usersEachArgs) (results *usersEachResults, err error) {
-//	   return
-//	}
+// func (h usersHandler) each(ctx context.Context, args *usersEachArgs) (results *usersEachResults, err error) {
+//    return
+// }
 func (h usersHandler) Each() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "usersEach",
@@ -745,10 +740,9 @@ type (
 // Create function User create
 //
 // expects implementation of create function:
-//
-//	func (h usersHandler) create(ctx context.Context, args *usersCreateArgs) (results *usersCreateResults, err error) {
-//	   return
-//	}
+// func (h usersHandler) create(ctx context.Context, args *usersCreateArgs) (results *usersCreateResults, err error) {
+//    return
+// }
 func (h usersHandler) Create() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "usersCreate",
@@ -823,10 +817,9 @@ type (
 // Update function User update
 //
 // expects implementation of update function:
-//
-//	func (h usersHandler) update(ctx context.Context, args *usersUpdateArgs) (results *usersUpdateResults, err error) {
-//	   return
-//	}
+// func (h usersHandler) update(ctx context.Context, args *usersUpdateArgs) (results *usersUpdateResults, err error) {
+//    return
+// }
 func (h usersHandler) Update() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "usersUpdate",
@@ -905,10 +898,9 @@ func (a usersDeleteArgs) GetLookup() (bool, uint64, string, string, *types.User)
 // Delete function User delete
 //
 // expects implementation of delete function:
-//
-//	func (h usersHandler) delete(ctx context.Context, args *usersDeleteArgs) (err error) {
-//	   return
-//	}
+// func (h usersHandler) delete(ctx context.Context, args *usersDeleteArgs) (err error) {
+//    return
+// }
 func (h usersHandler) Delete() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "usersDelete",
@@ -974,10 +966,9 @@ func (a usersRecoverArgs) GetLookup() (bool, uint64, string, string, *types.User
 // Recover function User recover
 //
 // expects implementation of recover function:
-//
-//	func (h usersHandler) recover(ctx context.Context, args *usersRecoverArgs) (err error) {
-//	   return
-//	}
+// func (h usersHandler) recover(ctx context.Context, args *usersRecoverArgs) (err error) {
+//    return
+// }
 func (h usersHandler) Recover() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "usersRecover",
@@ -1043,10 +1034,9 @@ func (a usersSuspendArgs) GetLookup() (bool, uint64, string, string, *types.User
 // Suspend function User suspend
 //
 // expects implementation of suspend function:
-//
-//	func (h usersHandler) suspend(ctx context.Context, args *usersSuspendArgs) (err error) {
-//	   return
-//	}
+// func (h usersHandler) suspend(ctx context.Context, args *usersSuspendArgs) (err error) {
+//    return
+// }
 func (h usersHandler) Suspend() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "usersSuspend",
@@ -1112,10 +1102,9 @@ func (a usersUnsuspendArgs) GetLookup() (bool, uint64, string, string, *types.Us
 // Unsuspend function User unsuspend
 //
 // expects implementation of unsuspend function:
-//
-//	func (h usersHandler) unsuspend(ctx context.Context, args *usersUnsuspendArgs) (err error) {
-//	   return
-//	}
+// func (h usersHandler) unsuspend(ctx context.Context, args *usersUnsuspendArgs) (err error) {
+//    return
+// }
 func (h usersHandler) Unsuspend() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "usersUnsuspend",

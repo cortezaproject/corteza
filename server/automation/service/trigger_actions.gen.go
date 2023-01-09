@@ -55,6 +55,7 @@ var (
 // setTrigger updates triggerActionProps's trigger
 //
 // This function is auto-generated.
+//
 func (p *triggerActionProps) setTrigger(trigger *types.Trigger) *triggerActionProps {
 	p.trigger = trigger
 	return p
@@ -63,6 +64,7 @@ func (p *triggerActionProps) setTrigger(trigger *types.Trigger) *triggerActionPr
 // setNew updates triggerActionProps's new
 //
 // This function is auto-generated.
+//
 func (p *triggerActionProps) setNew(new *types.Trigger) *triggerActionProps {
 	p.new = new
 	return p
@@ -71,6 +73,7 @@ func (p *triggerActionProps) setNew(new *types.Trigger) *triggerActionProps {
 // setUpdate updates triggerActionProps's update
 //
 // This function is auto-generated.
+//
 func (p *triggerActionProps) setUpdate(update *types.Trigger) *triggerActionProps {
 	p.update = update
 	return p
@@ -79,6 +82,7 @@ func (p *triggerActionProps) setUpdate(update *types.Trigger) *triggerActionProp
 // setFilter updates triggerActionProps's filter
 //
 // This function is auto-generated.
+//
 func (p *triggerActionProps) setFilter(filter *types.TriggerFilter) *triggerActionProps {
 	p.filter = filter
 	return p
@@ -87,6 +91,7 @@ func (p *triggerActionProps) setFilter(filter *types.TriggerFilter) *triggerActi
 // Serialize converts triggerActionProps to actionlog.Meta
 //
 // This function is auto-generated.
+//
 func (p triggerActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -110,6 +115,7 @@ func (p triggerActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
+//
 func (p triggerActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -185,6 +191,7 @@ func (p triggerActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
+//
 func (a *triggerAction) String() string {
 	var props = &triggerActionProps{}
 
@@ -212,6 +219,7 @@ func (e *triggerAction) ToAction() *actionlog.Action {
 // TriggerActionSearch returns "automation:trigger.search" action
 //
 // This function is auto-generated.
+//
 func TriggerActionSearch(props ...*triggerActionProps) *triggerAction {
 	a := &triggerAction{
 		timestamp: time.Now(),
@@ -231,6 +239,7 @@ func TriggerActionSearch(props ...*triggerActionProps) *triggerAction {
 // TriggerActionLookup returns "automation:trigger.lookup" action
 //
 // This function is auto-generated.
+//
 func TriggerActionLookup(props ...*triggerActionProps) *triggerAction {
 	a := &triggerAction{
 		timestamp: time.Now(),
@@ -250,6 +259,7 @@ func TriggerActionLookup(props ...*triggerActionProps) *triggerAction {
 // TriggerActionCreate returns "automation:trigger.create" action
 //
 // This function is auto-generated.
+//
 func TriggerActionCreate(props ...*triggerActionProps) *triggerAction {
 	a := &triggerAction{
 		timestamp: time.Now(),
@@ -269,6 +279,7 @@ func TriggerActionCreate(props ...*triggerActionProps) *triggerAction {
 // TriggerActionUpdate returns "automation:trigger.update" action
 //
 // This function is auto-generated.
+//
 func TriggerActionUpdate(props ...*triggerActionProps) *triggerAction {
 	a := &triggerAction{
 		timestamp: time.Now(),
@@ -288,6 +299,7 @@ func TriggerActionUpdate(props ...*triggerActionProps) *triggerAction {
 // TriggerActionDelete returns "automation:trigger.delete" action
 //
 // This function is auto-generated.
+//
 func TriggerActionDelete(props ...*triggerActionProps) *triggerAction {
 	a := &triggerAction{
 		timestamp: time.Now(),
@@ -307,6 +319,7 @@ func TriggerActionDelete(props ...*triggerActionProps) *triggerAction {
 // TriggerActionUndelete returns "automation:trigger.undelete" action
 //
 // This function is auto-generated.
+//
 func TriggerActionUndelete(props ...*triggerActionProps) *triggerAction {
 	a := &triggerAction{
 		timestamp: time.Now(),
@@ -329,7 +342,9 @@ func TriggerActionUndelete(props ...*triggerActionProps) *triggerAction {
 
 // TriggerErrGeneric returns "automation:trigger.generic" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func TriggerErrGeneric(mm ...*triggerActionProps) *errors.Error {
 	var p = &triggerActionProps{}
 	if len(mm) > 0 {
@@ -363,7 +378,9 @@ func TriggerErrGeneric(mm ...*triggerActionProps) *errors.Error {
 
 // TriggerErrNotFound returns "automation:trigger.notFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func TriggerErrNotFound(mm ...*triggerActionProps) *errors.Error {
 	var p = &triggerActionProps{}
 	if len(mm) > 0 {
@@ -395,7 +412,9 @@ func TriggerErrNotFound(mm ...*triggerActionProps) *errors.Error {
 
 // TriggerErrInvalidID returns "automation:trigger.invalidID" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func TriggerErrInvalidID(mm ...*triggerActionProps) *errors.Error {
 	var p = &triggerActionProps{}
 	if len(mm) > 0 {
@@ -427,7 +446,9 @@ func TriggerErrInvalidID(mm ...*triggerActionProps) *errors.Error {
 
 // TriggerErrStaleData returns "automation:trigger.staleData" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func TriggerErrStaleData(mm ...*triggerActionProps) *errors.Error {
 	var p = &triggerActionProps{}
 	if len(mm) > 0 {
@@ -459,7 +480,9 @@ func TriggerErrStaleData(mm ...*triggerActionProps) *errors.Error {
 
 // TriggerErrNotAllowedToRead returns "automation:trigger.notAllowedToRead" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func TriggerErrNotAllowedToRead(mm ...*triggerActionProps) *errors.Error {
 	var p = &triggerActionProps{}
 	if len(mm) > 0 {
@@ -493,7 +516,9 @@ func TriggerErrNotAllowedToRead(mm ...*triggerActionProps) *errors.Error {
 
 // TriggerErrNotAllowedToSearch returns "automation:trigger.notAllowedToSearch" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func TriggerErrNotAllowedToSearch(mm ...*triggerActionProps) *errors.Error {
 	var p = &triggerActionProps{}
 	if len(mm) > 0 {
@@ -527,7 +552,9 @@ func TriggerErrNotAllowedToSearch(mm ...*triggerActionProps) *errors.Error {
 
 // TriggerErrNotAllowedToCreate returns "automation:trigger.notAllowedToCreate" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func TriggerErrNotAllowedToCreate(mm ...*triggerActionProps) *errors.Error {
 	var p = &triggerActionProps{}
 	if len(mm) > 0 {
@@ -561,7 +588,9 @@ func TriggerErrNotAllowedToCreate(mm ...*triggerActionProps) *errors.Error {
 
 // TriggerErrNotAllowedToUpdate returns "automation:trigger.notAllowedToUpdate" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func TriggerErrNotAllowedToUpdate(mm ...*triggerActionProps) *errors.Error {
 	var p = &triggerActionProps{}
 	if len(mm) > 0 {
@@ -595,7 +624,9 @@ func TriggerErrNotAllowedToUpdate(mm ...*triggerActionProps) *errors.Error {
 
 // TriggerErrNotAllowedToDelete returns "automation:trigger.notAllowedToDelete" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func TriggerErrNotAllowedToDelete(mm ...*triggerActionProps) *errors.Error {
 	var p = &triggerActionProps{}
 	if len(mm) > 0 {
@@ -629,7 +660,9 @@ func TriggerErrNotAllowedToDelete(mm ...*triggerActionProps) *errors.Error {
 
 // TriggerErrNotAllowedToUndelete returns "automation:trigger.notAllowedToUndelete" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func TriggerErrNotAllowedToUndelete(mm ...*triggerActionProps) *errors.Error {
 	var p = &triggerActionProps{}
 	if len(mm) > 0 {
@@ -669,6 +702,7 @@ func TriggerErrNotAllowedToUndelete(mm ...*triggerActionProps) *errors.Error {
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
+//
 func (svc trigger) recordAction(ctx context.Context, props *triggerActionProps, actionFn func(...*triggerActionProps) *triggerAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

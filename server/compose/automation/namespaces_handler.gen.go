@@ -52,10 +52,9 @@ func (a namespacesLookupArgs) GetNamespace() (bool, uint64, string, *types.Names
 // Lookup function Compose namespace lookup
 //
 // expects implementation of lookup function:
-//
-//	func (h namespacesHandler) lookup(ctx context.Context, args *namespacesLookupArgs) (results *namespacesLookupResults, err error) {
-//	   return
-//	}
+// func (h namespacesHandler) lookup(ctx context.Context, args *namespacesLookupArgs) (results *namespacesLookupResults, err error) {
+//    return
+// }
 func (h namespacesHandler) Lookup() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "composeNamespacesLookup",

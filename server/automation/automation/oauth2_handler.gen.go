@@ -55,10 +55,9 @@ type (
 // Authenticate function Authentication: OAUTH2
 //
 // expects implementation of authenticate function:
-//
-//	func (h oauth2Handler) authenticate(ctx context.Context, args *oauth2AuthenticateArgs) (results *oauth2AuthenticateResults, err error) {
-//	   return
-//	}
+// func (h oauth2Handler) authenticate(ctx context.Context, args *oauth2AuthenticateArgs) (results *oauth2AuthenticateResults, err error) {
+//    return
+// }
 func (h oauth2Handler) Authenticate() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "oauth2Authenticate",
