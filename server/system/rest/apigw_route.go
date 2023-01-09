@@ -112,6 +112,7 @@ func (ctrl *ApigwRoute) Update(ctx context.Context, r *request.ApigwRouteUpdate)
 			Method:   r.Method,
 			Group:    r.Group,
 			Enabled:  r.Enabled,
+			Meta:     r.Meta,
 		}
 	)
 
