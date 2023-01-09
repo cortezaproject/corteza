@@ -192,6 +192,11 @@ func (svc *apigwProfiler) HitsAggregated(ctx context.Context, filter types.Apigw
 	return
 }
 
+func (svc *apigwProfiler) Purge(ctx context.Context, f *profiler.PurgeFilter) {
+	apigw.Service().Profiler().Purge(f)
+	return
+}
+
 func sortAggregation(list *types.ApigwProfilerAggregationSet, filter *types.ApigwProfilerFilter) {
 	for _, ff := range sortAggFields {
 		fe := filter.Sort.Get(ff)
