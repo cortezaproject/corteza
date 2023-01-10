@@ -388,6 +388,13 @@ func (ctrl *User) Export(ctx context.Context, r *request.UserExport) (rsp interf
 
 			for _, m := range membership {
 				if _, ok := roleResIndex[m.RoleID]; !ok {
+					// If it's not here then it was probably deleted/archived
+					// @todo consider adding a flag to control what happens on
+					//       archived/deleted resources
+					if _, ok := roleIndex[m.RoleID]; !ok {
+						continue
+					}
+
 					roleResIndex[m.RoleID] = resource.NewRole(roleIndex[m.RoleID])
 					if r.InclRoles {
 						resources = append(resources, roleResIndex[m.RoleID])
