@@ -463,12 +463,12 @@
               v-if="processing"
             />
 
-            <h6
+            <p
               v-else-if="!items.length"
               class="mb-0 mx-2"
             >
               {{ $t('recordList.noRecords') }}
-            </h6>
+            </p>
           </div>
         </b-table-simple>
       </div>

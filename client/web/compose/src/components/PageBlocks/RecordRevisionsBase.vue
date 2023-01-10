@@ -14,10 +14,12 @@
       >
         {{ $t('errors.disabled-on-module') }}
       </span>
+
       <b-spinner
         v-else-if="noRecord || processing"
         class="my-auto"
       />
+
       <b-button
         v-else-if="!preloadRevisions && !loadedRevisions"
         class="my-auto"
@@ -26,65 +28,80 @@
         {{ $t('show-revisions', { revision: record.revision }) }}
       </b-button>
 
-      <b-table-lite
+      <template
         v-else
-        :items="revisions"
-        :fields="columns"
-        sticky-header
-        class="flex-fill mh-100 mb-0 w-100 rounded"
       >
-        <template #cell(timestamp)="row">
-          {{ row.item.timestamp | locFullDateTime }}
-        </template>
-        <template
-          #cell(adt)="row"
+        <b-table-lite
+          :items="revisions"
+          :fields="columns"
+          sticky-header
+          class="flex-fill mh-100 mb-0 w-100 rounded"
         >
-          <b-button
-            v-if="row.item.changes.length > 0"
-            variant="link"
-            class="py-0 m-0"
-            @click="row.toggleDetails"
+          <template #cell(timestamp)="row">
+            {{ row.item.timestamp | locFullDateTime }}
+          </template>
+          <template
+            #cell(adt)="row"
           >
-            {{ row.detailsShowing ? '&times;' : $t(`show-changes`, { count: row.item.changes.length }) }}
-          </b-button>
-        </template>
-        <template #row-details="row">
-          <div
-            class="pl-5"
-          >
-            <b-table-simple
-              class="bg-light"
+            <b-button
+              v-if="row.item.changes.length > 0"
+              variant="link"
+              class="py-0 m-0"
+              @click="row.toggleDetails"
             >
-              <b-thead>
-                <b-tr>
-                  <b-th>{{ $t('changes.columns.field.label') }}</b-th>
-                  <b-th>{{ $t('changes.columns.old-value.label') }}</b-th>
-                  <b-th>{{ $t('changes.columns.new-value.label') }}</b-th>
-                </b-tr>
-              </b-thead>
-              <b-tbody
-                v-for="(change) in row.item.changes"
-                :key="change.key"
+              {{ row.detailsShowing ? '&times;' : $t(`show-changes`, { count: row.item.changes.length }) }}
+            </b-button>
+          </template>
+          <template #row-details="row">
+            <div
+              class="pl-5"
+            >
+              <b-table-simple
+                class="bg-light"
               >
-                <b-tr>
-                  <b-td :rowspan="Math.max(change.new ? change.new.length : 0, change.old ? change.old.length : 0)">
-                    {{ change.key }}
-                  </b-td>
-                  <b-td>{{ change.old ? change.old[0] : '-' }}</b-td>
-                  <b-td>{{ change.new ? change.new[0] : '-' }}</b-td>
-                </b-tr>
-                <b-tr
-                  v-for="index in Math.max(change.new ? change.new.length - 1 : 0, change.old ? change.old.length - 1 : 0)"
-                  :key="change.key + index"
+                <b-thead>
+                  <b-tr>
+                    <b-th>{{ $t('changes.columns.field.label') }}</b-th>
+                    <b-th>{{ $t('changes.columns.old-value.label') }}</b-th>
+                    <b-th>{{ $t('changes.columns.new-value.label') }}</b-th>
+                  </b-tr>
+                </b-thead>
+                <b-tbody
+                  v-for="(change) in row.item.changes"
+                  :key="change.key"
                 >
-                  <b-td>{{ change.old && change.old.length > index ? change.old[index]: '-' }}</b-td>
-                  <b-td>{{ change.new && change.new.length > index ? change.new[index]: '-' }}</b-td>
-                </b-tr>
-              </b-tbody>
-            </b-table-simple>
-          </div>
-        </template>
-      </b-table-lite>
+                  <b-tr>
+                    <b-td :rowspan="Math.max(change.new ? change.new.length : 0, change.old ? change.old.length : 0)">
+                      {{ change.key }}
+                    </b-td>
+                    <b-td>{{ change.old ? change.old[0] : '-' }}</b-td>
+                    <b-td>{{ change.new ? change.new[0] : '-' }}</b-td>
+                  </b-tr>
+                  <b-tr
+                    v-for="index in Math.max(change.new ? change.new.length - 1 : 0, change.old ? change.old.length - 1 : 0)"
+                    :key="change.key + index"
+                  >
+                    <b-td>{{ change.old && change.old.length > index ? change.old[index]: '-' }}</b-td>
+                    <b-td>{{ change.new && change.new.length > index ? change.new[index]: '-' }}</b-td>
+                  </b-tr>
+                </b-tbody>
+              </b-table-simple>
+            </div>
+          </template>
+        </b-table-lite>
+
+        <div
+          v-if="!revisions.length"
+          class="position-absolute text-center mt-5 d-print-none"
+          style="left: 0; right: 0;"
+        >
+          <p
+            class="mt-3"
+          >
+            {{ $t('errors.no-revisions') }}
+          </p>
+        </div>
+      </template>
     </div>
   </wrap>
 </template>
