@@ -86,20 +86,46 @@
                       v-model="filter.operator"
                       :options="getOperators(filter.kind, getField(filter.name))"
                       class="d-flex field-operator w-100"
+                      @change="updateFilterTest(filter)"
                     />
                   </b-td>
                   <b-td
                     v-if="getField(filter.name)"
                   >
+
+                  <template v-if="filter.operator === 'BETWEEN'">
+                    <div class="d-flex">
+                      <b-input-group style="width: 150px">
+                        <b-form-input
+                        v-model="filter.record.values[filter.name].start"
+                          placeholder="Start"
+                          autocomplete="off"
+                          type="number"
+                          number
+                        />
+                        <b-form-input
+                        v-model="filter.record.values[filter.name].end"
+                          placeholder="End"
+                          autocomplete="off"
+                          type="number"
+                          number
+                        />
+                      </b-input-group>
+                    </div>
+                  </template>
+
+                  <template v-else>
                     <field-editor
                       v-bind="mock"
                       class="field-editor mb-0"
                       value-only
                       :field="getField(filter.name)"
                       :record="filter.record"
-                      :operator="filter.operator"
                       @change="onValueChange"
                     />
+                  </template>
+                    {{filter.operator}}
+                    {{filter.record.values[filter.name].start}}
                   </b-td>
                   <b-td
                     v-if="getField(filter.name)"
@@ -208,6 +234,7 @@ import FieldEditor from '../ModuleFields/Editor'
 import { compose, validator } from '@cortezaproject/corteza-js'
 import { VueSelect } from 'vue-select'
 import calculatePosition from 'corteza-webapp-compose/src/mixins/vue-select-position'
+import _ from 'lodash'
 
 export default {
   i18nOptions: {
@@ -390,13 +417,25 @@ export default {
         },
       ]
 
+
+      const betweenOperators = [
+        {
+          value: 'BETWEEN',
+          text: "BETWEEN",
+        },
+        {
+          value: 'NOT BETWEEN',
+          text: "NOT BETWEEN",
+        },
+      ]
+
       if (field.multi) {
         return inOperators
       }
 
       switch (kind) {
         case 'Number':
-          return [...operators, ...lgOperators]
+          return [...operators, ...lgOperators, ...betweenOperators]
 
         case 'DateTime':
           return [...operators, ...lgOperators]
@@ -439,6 +478,7 @@ export default {
 
     addFilter (groupIndex) {
       if ((this.componentFilter[groupIndex] || {}).filter) {
+        console.log(this.selectedField, 'this.selectedField')
         this.componentFilter[groupIndex].filter.push(this.createDefaultFilter('AND', this.selectedField))
       }
     },
@@ -537,6 +577,25 @@ export default {
         return { groupCondition, filter }
       }))
     },
+
+    updateFilterTest (filter) {
+      let field = filter.record.values[filter.name];
+
+      console.log(_.isObject(field), '_.isObject(field)', field)
+
+      if (_.isObject(field)) {
+        filter.record.values[filter.name] = undefined;
+      }
+
+      if (filter.operator === 'BETWEEN') {
+        filter.record.values[filter.name] = {
+          start: 0,
+          end: 0,
+        }
+      }
+
+      console.log(filter)
+    }
   },
 }
 </script>

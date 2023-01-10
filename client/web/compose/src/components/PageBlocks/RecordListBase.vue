@@ -1275,6 +1275,12 @@ export default {
       // Compute query based on query, prefilter and recordListFilter
       const query = queryToFilter(this.query, this.prefilter, this.recordListModule.filterFields(this.options.fields), this.recordListFilter)
 
+      console.log('query', query, typeof query);
+      console.log(this.query, 'this.query')
+      console.log(this.prefilter, 'this.prefilter')
+      console.log(this.recordListModule.filterFields(this.options.fields), 'this.recordListModule.filterFields(this.options.fields)')
+      console.log(this.recordListFilter, 'this.recordListFilter')
+
       const { moduleID, namespaceID } = this.recordListModule
       if (this.filter.pageCursor) {
         this.filter.sort = ''
