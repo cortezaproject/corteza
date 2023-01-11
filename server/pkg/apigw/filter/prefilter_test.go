@@ -166,15 +166,21 @@ func Test_profilerHandle_profilerGlobal(t *testing.T) {
 		tcc = []tfp{
 			{
 				name: "skip profiler hit on profiler global = true",
-				cfg:  types.Config{ProfilerGlobal: true},
-				r:    rr,
-				exp:  nil,
+				cfg: types.Config{Profiler: struct {
+					Enabled bool
+					Global  bool
+				}{Global: true}},
+				r:   rr,
+				exp: nil,
 			},
 			{
 				name: "add profiler hit on profiler global = false",
-				cfg:  types.Config{ProfilerGlobal: false},
-				r:    rr,
-				exp:  createRequest(rr),
+				cfg: types.Config{Profiler: struct {
+					Enabled bool
+					Global  bool
+				}{Global: false}},
+				r:   rr,
+				exp: createRequest(rr),
 			},
 		}
 	)
