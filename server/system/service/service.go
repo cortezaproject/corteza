@@ -92,6 +92,7 @@ var (
 	DefaultReport              *report
 	DefaultDataPrivacy         *dataPrivacy
 	DefaultSMTPChecker         *smtpConfigurationChecker
+	DefaultExpression          *expression
 
 	DefaultStatistics *statistics
 
@@ -218,6 +219,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultApigwFilter = Filter()
 	DefaultDataPrivacy = DataPrivacy(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
 	DefaultSMTPChecker = SmtpConfigurationChecker(CurrentSettings, DefaultRenderer, DefaultAccessControl, c.Auth)
+	DefaultExpression = Expression()
 
 	if err = initRoles(ctx, log.Named("rbac.roles"), c.RBAC, eventbus.Service(), rbac.Global()); err != nil {
 		return err
