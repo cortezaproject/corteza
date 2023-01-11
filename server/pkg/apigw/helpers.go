@@ -4,46 +4,27 @@ import (
 	"net/http"
 
 	"github.com/cortezaproject/corteza/server/pkg/apigw/profiler"
+	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
 	h "github.com/cortezaproject/corteza/server/pkg/http"
-	"github.com/cortezaproject/corteza/server/pkg/options"
 	"go.uber.org/zap"
 )
 
-const (
-	devHelperResponseBody string = `Hey developer!`
-)
-
-func helperDefaultResponse(opt options.ApigwOpt, pr *profiler.Profiler, log *zap.Logger) http.HandlerFunc {
+func helperDefaultResponse(cfg types.Config, pr *profiler.Profiler, log *zap.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		addToProfiler(opt, pr, log, r, http.StatusNotFound)
-
-		responseBody := ""
-
-		if opt.LogEnabled {
-			// Say something friendly when logging is enabled
-			responseBody = devHelperResponseBody
-		}
-
-		http.Error(w, responseBody, http.StatusNotFound)
+		addToProfiler(cfg, pr, log, r, http.StatusNotFound)
+		http.Error(w, "", http.StatusNotFound)
 	}
 }
 
-func helperMethodNotAllowed(opt options.ApigwOpt, pr *profiler.Profiler, log *zap.Logger) http.HandlerFunc {
+func helperMethodNotAllowed(cfg types.Config, pr *profiler.Profiler, log *zap.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		addToProfiler(opt, pr, log, r, http.StatusMethodNotAllowed)
-
-		if opt.LogEnabled {
-			// Say something friendly when logging is enabled
-			http.Error(w, devHelperResponseBody, http.StatusTeapot)
-		} else {
-			// Default 405 response
-			http.Error(w, "", http.StatusMethodNotAllowed)
-		}
+		addToProfiler(cfg, pr, log, r, http.StatusMethodNotAllowed)
+		http.Error(w, "", http.StatusMethodNotAllowed)
 	}
 }
 
-func addToProfiler(opt options.ApigwOpt, pr *profiler.Profiler, log *zap.Logger, r *http.Request, status int) {
-	if !(opt.ProfilerEnabled && opt.ProfilerGlobal) {
+func addToProfiler(cfg types.Config, pr *profiler.Profiler, log *zap.Logger, r *http.Request, status int) {
+	if !(cfg.Profiler.Enabled && cfg.Profiler.Global) {
 		return
 	}
 

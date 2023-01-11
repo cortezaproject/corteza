@@ -15,7 +15,6 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/apigw/registry"
 	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
 	f "github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/options"
 	st "github.com/cortezaproject/corteza/server/system/types"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
@@ -28,7 +27,6 @@ type (
 	}
 
 	apigw struct {
-		opts   options.ApigwOpt
 		log    *zap.Logger
 		reg    *registry.Registry
 		routes []*route
@@ -86,7 +84,7 @@ func (s *apigw) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(s.routes) == 0 {
-		helperDefaultResponse(s.opts, s.pr, s.log)(w, r)
+		helperDefaultResponse(s.cfg, s.pr, s.log)(w, r)
 		return
 	}
 
@@ -125,8 +123,8 @@ func (s *apigw) Reload(ctx context.Context) (err error) {
 	// profiler gets the missed hit info also
 	{
 		var (
-			defaultMethodResponse = helperMethodNotAllowed(s.opts, s.pr, s.log)
-			defaultResponse       = helperDefaultResponse(s.opts, s.pr, s.log)
+			defaultMethodResponse = helperMethodNotAllowed(s.cfg, s.pr, s.log)
+			defaultResponse       = helperDefaultResponse(s.cfg, s.pr, s.log)
 		)
 
 		s.mx.NotFound(defaultResponse)
@@ -171,8 +169,8 @@ func (s *apigw) ReloadEndpoint(ctx context.Context, method, endpoint string) (er
 	// profiler gets the missed hit info also
 	{
 		var (
-			defaultMethodResponse = helperMethodNotAllowed(s.opts, s.pr, s.log)
-			defaultResponse       = helperDefaultResponse(s.opts, s.pr, s.log)
+			defaultMethodResponse = helperMethodNotAllowed(s.cfg, s.pr, s.log)
+			defaultResponse       = helperDefaultResponse(s.cfg, s.pr, s.log)
 		)
 
 		s.mx.NotFound(defaultResponse)
@@ -310,7 +308,7 @@ func (s *apigw) NotFound(_ context.Context, method, endpoint string) {
 	}
 
 	var (
-		defaultResponse = helperDefaultResponse(s.opts, s.pr, s.log)
+		defaultResponse = helperDefaultResponse(s.cfg, s.pr, s.log)
 	)
 
 	// Attach 404 handler
@@ -448,26 +446,17 @@ func (s *apigw) loadFilters(ctx context.Context, route uint64) (ff []*st.ApigwFi
 }
 
 func (s *apigw) loadInfo() {
-	s.log.Info("loading Integration Gateway", zap.Bool("debug", s.opts.Debug), zap.Bool("log", s.opts.LogEnabled))
+	s.log.Info("loading Integration Gateway")
 
-	if s.opts.ProfilerEnabled {
-		if s.opts.LogRequestBody {
-			s.log.Info("profiler and request body logging is enabled, profiler use is prefered",
-				zap.Bool("APIGW_PROFILER_ENABLED", s.opts.ProfilerEnabled),
-				zap.Bool("APIGW_LOG_REQUEST_BODY", s.opts.LogRequestBody))
-		} else {
-			s.log.Info("request body logging is enabled, profiler use is prefered (APIGW_PROFILER_ENABLED)",
-				zap.Bool("APIGW_LOG_REQUEST_BODY", s.opts.LogRequestBody))
-		}
-
-		if !s.opts.ProfilerGlobal {
+	if s.cfg.Profiler.Enabled {
+		if !s.cfg.Profiler.Global {
 			s.log.Warn("profiler enabled only for routes with a profiler prefilter, use global setting to enable for all (APIGW_PROFILER_GLOBAL)")
 		}
 	} else {
-		if s.opts.ProfilerGlobal {
+		if s.cfg.Profiler.Global {
 			s.log.Warn("profiler global is enabled, but profiler disabled, no routes will be profiled",
-				zap.Bool("APIGW_PROFILER_ENABLED", s.opts.ProfilerEnabled),
-				zap.Bool("APIGW_PROFILER_GLOBAL", s.opts.ProfilerGlobal))
+				zap.Bool("APIGW_PROFILER_ENABLED", s.cfg.Profiler.Enabled),
+				zap.Bool("APIGW_PROFILER_GLOBAL", s.cfg.Profiler.Global))
 		}
 	}
 }
