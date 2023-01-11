@@ -9,6 +9,7 @@
     >
       <b-spinner />
     </div>
+
     <div
       v-else-if="module"
       class="px-3"
@@ -16,55 +17,58 @@
       <div
         v-for="field in fields"
         :key="field.id"
-        class="mt-3"
+        :class="{ 'mt-3': canDisplay(field) }"
       >
-        <field-editor
-          v-if="isFieldEditable(field)"
-          v-bind="{ ...$props, errors: fieldErrors(field.name) }"
-          class="field"
-          :field="field"
-        />
-        <div
-          v-else
+        <template
+          v-if="canDisplay(field)"
         >
-          <label
-            class="text-primary mb-0"
-            :class="{ 'mb-0': !!(field.options.description || {}).view || false }"
-          >
-            {{ field.label || field.name }}
-            <hint
-              :id="field.fieldID"
-              :text="((field.options.hint || {}).view || '')"
-              class="d-inline-block"
-            />
-          </label>
-
-          <small
-            class="text-muted"
-          >
-            {{ (field.options.description || {}).view }}
-          </small>
-
-          <div
-            v-if="field.canReadRecordValue"
-            class="value"
-          >
-            <field-viewer
-              :field="field"
-              v-bind="{ ...$props, errors: fieldErrors(field.name) }"
-              value-only
-            />
-          </div>
+          <field-editor
+            v-if="isFieldEditable(field)"
+            v-bind="{ ...$props, errors: fieldErrors(field.name) }"
+            class="field"
+            :field="field"
+            @change="onFieldChange()"
+          />
           <div
             v-else
           >
-            <i
-              class="text-primary"
+            <label
+              class="text-primary mb-0"
+              :class="{ 'mb-0': !!(field.options.description || {}).view || false }"
             >
-              {{ $t('field.noPermission') }}
-            </i>
+              {{ field.label || field.name }}
+              <hint
+                :id="field.fieldID"
+                :text="((field.options.hint || {}).view || '')"
+                class="d-inline-block"
+              />
+            </label>
+            <small
+              class="text-muted"
+            >
+              {{ (field.options.description || {}).view }}
+            </small>
+            <div
+              v-if="field.canReadRecordValue"
+              class="value"
+            >
+              <field-viewer
+                :field="field"
+                v-bind="{ ...$props, errors: fieldErrors(field.name) }"
+                value-only
+              />
+            </div>
+            <div
+              v-else
+            >
+              <i
+                class="text-primary"
+              >
+                {{ $t('field.noPermission') }}
+              </i>
+            </div>
           </div>
-        </div>
+        </template>
       </div>
     </div>
   </wrap>
@@ -76,6 +80,8 @@ import users from 'corteza-webapp-compose/src/mixins/users'
 import FieldEditor from 'corteza-webapp-compose/src/components/ModuleFields/Editor'
 import FieldViewer from 'corteza-webapp-compose/src/components/ModuleFields/Viewer'
 import Hint from 'corteza-webapp-compose/src/components/Common/Hint.vue'
+import conditionalFields from 'corteza-webapp-compose/src/mixins/conditionalFields'
+import { debounce } from 'lodash'
 
 export default {
   i18nOptions: {
@@ -92,6 +98,7 @@ export default {
 
   mixins: [
     users,
+    conditionalFields,
   ],
 
   props: {
@@ -127,7 +134,7 @@ export default {
     },
 
     processing () {
-      return !this.record
+      return !this.record || this.evaluating
     },
   },
 
@@ -135,7 +142,16 @@ export default {
     'record.recordID': {
       immediate: true,
       handler (recordID) {
-        if (recordID && recordID !== NoID) {
+        if (!recordID) return
+
+        this.evaluating = true
+
+        this.evaluateExpressions()
+          .finally(() => {
+            this.evaluating = false
+          })
+
+        if (recordID !== NoID) {
           this.fetchUsers(this.fields, [this.record])
         }
       },
@@ -159,17 +175,13 @@ export default {
     },
 
     isFieldEditable (field) {
-      if (!field) {
-        return false
-      }
+      if (!field) return false
 
       const { canCreateOwnedRecord } = this.module || {}
       const { createdAt, canManageOwnerOnRecord } = this.record || {}
       const { name, canUpdateRecordValue, isSystem, expressions = {} } = field || {}
 
-      if (!canUpdateRecordValue) {
-        return false
-      }
+      if (!canUpdateRecordValue) return false
 
       if (isSystem) {
         // Make ownedBy field editable if correct permissions
@@ -183,6 +195,10 @@ export default {
 
       return !expressions.value
     },
+
+    onFieldChange: debounce(function () {
+      this.evaluateExpressions()
+    }, 500),
   },
 }
 </script>

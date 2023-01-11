@@ -150,6 +150,27 @@ endpoints:
         required: true
         title: Client ID
 
+- title: Expressions
+  path: "/expressions"
+  entrypoint: expression
+  endpoint: expressions
+  authentication: []
+  apis:
+  - name: evaluate
+    method: POST
+    title: Evaluate expressions
+    path: "/evaluate"
+    parameters:
+      post:
+        - name: variables
+          type: map[string]interface{}
+          parser: parseMapStringInterface
+          title: variables
+        - name: expressions
+          type: map[string]string
+          parser: parseMapStringString
+          title: expressions
+
 - title: Settings
   path: "/settings"
   entrypoint: settings

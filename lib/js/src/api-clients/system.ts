@@ -366,6 +366,28 @@ export default class System {
     return `/auth/clients/${clientID}/secret`
   }
 
+  // Evaluate expressions
+  async expressionEvaluate (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      variables,
+      expressions,
+    } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.expressionEvaluateEndpoint(),
+    }
+    cfg.data = {
+      variables,
+      expressions,
+    }
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  expressionEvaluateEndpoint (): string {
+    return '/expressions/evaluate'
+  }
+
   // List settings
   async settingsList (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {

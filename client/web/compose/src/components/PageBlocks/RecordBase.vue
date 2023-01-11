@@ -9,6 +9,7 @@
     >
       <b-spinner />
     </div>
+
     <div
       v-else-if="module"
       class="mt-3"
@@ -16,39 +17,43 @@
       <div
         v-for="(field, index) in fields"
         :key="index"
-        class="d-flex flex-column mb-3 px-3"
+        :class="{ 'd-flex flex-column mb-3 px-3': canDisplay(field)}"
       >
-        <label
-          class="text-primary mb-0"
-          :class="{ 'mb-0': !!(field.options.description || {}).view || false }"
+        <template
+          v-if="canDisplay(field)"
         >
-          {{ field.label || field.name }}
-          <hint
-            :id="field.fieldID"
-            :text="((field.options.hint || {}).view || '')"
-            class="d-inline-block"
-          />
-        </label>
+          <label
+            class="text-primary mb-0"
+            :class="{ 'mb-0': !!(field.options.description || {}).view || false }"
+          >
+            {{ field.label || field.name }}
+            <hint
+              :id="field.fieldID"
+              :text="((field.options.hint || {}).view || '')"
+              class="d-inline-block"
+            />
+          </label>
 
-        <small
-          class="text-muted"
-        >
-          {{ (field.options.description || {}).view }}
-        </small>
-        <div
-          v-if="field.canReadRecordValue"
-          class="value mt-2"
-        >
-          <field-viewer
-            v-bind="{ ...$props, field }"
-          />
-        </div>
-        <i
-          v-else
-          class="text-primary"
-        >
-          {{ $t('field.noPermission') }}
-        </i>
+          <small
+            class="text-muted"
+          >
+            {{ (field.options.description || {}).view }}
+          </small>
+          <div
+            v-if="field.canReadRecordValue"
+            class="value mt-2"
+          >
+            <field-viewer
+              v-bind="{ ...$props, field }"
+            />
+          </div>
+          <i
+            v-else
+            class="text-primary"
+          >
+            {{ $t('field.noPermission') }}
+          </i>
+        </template>
       </div>
     </div>
   </wrap>
@@ -59,6 +64,7 @@ import base from './base'
 import FieldViewer from 'corteza-webapp-compose/src/components/ModuleFields/Viewer'
 import Hint from 'corteza-webapp-compose/src/components/Common/Hint.vue'
 import users from 'corteza-webapp-compose/src/mixins/users'
+import conditionalFields from 'corteza-webapp-compose/src/mixins/conditionalFields'
 
 export default {
   i18nOptions: {
@@ -74,6 +80,7 @@ export default {
 
   mixins: [
     users,
+    conditionalFields,
   ],
 
   computed: {
@@ -96,7 +103,7 @@ export default {
     },
 
     processing () {
-      return !this.record
+      return !this.record || this.evaluating
     },
   },
 
@@ -104,7 +111,16 @@ export default {
     'record.recordID': {
       immediate: true,
       handler (recordID) {
-        if (recordID && recordID !== NoID) {
+        if (!recordID) return
+
+        this.evaluating = true
+
+        this.evaluateExpressions()
+          .finally(() => {
+            this.evaluating = false
+          })
+
+        if (recordID !== NoID) {
           this.fetchUsers(this.fields, [this.record])
         }
       },

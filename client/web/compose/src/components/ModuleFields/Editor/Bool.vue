@@ -8,6 +8,7 @@
         class="d-inline-block text-primary"
       />
     </b-form-checkbox>
+
     <small
       class="form-text font-weight-light text-muted"
     >
@@ -30,6 +31,7 @@ export default {
 
       set (value) {
         this.record.values[this.field.name] = value ? '1' : '0'
+        this.$emit('change', value)
       },
     },
   },

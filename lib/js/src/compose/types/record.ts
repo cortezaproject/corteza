@@ -421,6 +421,12 @@ export class Record {
     this.values[name] = value
   }
 
+  public serialize (): Partial<Record> {
+    const { toJSON, ...values } = this.values
+    return { ...this, values }
+  }
+
+
   /**
    * Returns resource ID
    */
