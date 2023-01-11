@@ -430,7 +430,6 @@ export default {
     deleteBlock (index) {
       this.blocks.splice(index, 1)
       this.page.blocks = this.blocks
-      this.unsavedBlocks.add(index)
     },
 
     updatePageBlockGrid (blocks) {

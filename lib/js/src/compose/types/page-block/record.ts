@@ -2,12 +2,19 @@ import { PageBlock, PageBlockInput, Registry } from './base'
 
 const kind = 'Record'
 
+interface FieldCondition {
+  field: string;
+  condition: string;
+}
+
 interface Options {
   fields: unknown[];
+  fieldConditions: FieldCondition[];
 }
 
 const defaults: Readonly<Options> = Object.freeze({
   fields: [],
+  fieldConditions: [],
 })
 
 export class PageBlockRecord extends PageBlock {
@@ -25,6 +32,10 @@ export class PageBlockRecord extends PageBlock {
 
     if (o.fields) {
       this.options.fields = o.fields
+    }
+
+    if (o.fieldConditions) {
+      this.options.fieldConditions = o.fieldConditions
     }
   }
 }

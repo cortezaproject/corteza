@@ -225,6 +225,15 @@ record:
     fieldsFromModule: Single record block, displaying fields ({{0}}) from module {{1}}
     untitled: Untitled
   recordDeleted: This record was deleted
+  fieldConditions:
+    label: Field conditions
+    action: + Add
+    placeholder: When should this field be displayed?
+    selectPlaceholder: Select field
+    help: Example
+    field: Field
+    condition: Condition
+    error: Could not evaluate condition
 recordList:
   addRecord: Add
   cancelSelection: Cancel
