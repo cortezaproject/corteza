@@ -1,8 +1,9 @@
 <template>
   <b-modal
     id="record-modal"
-    v-model="showRecordModal"
+    v-model="showModal"
     scrollable
+    dialog-class="h-100 mw-90"
     body-class="p-0"
     footer-class="p-0"
     size="xl"
@@ -15,11 +16,12 @@
     </template>
 
     <view-record
+      v-if="showModal"
       :namespace="namespace"
       :page="page"
       :module="module"
       :record-i-d="recordID"
-      :show-record-modal="showRecordModal"
+      :show-record-modal="showModal"
     />
 
     <template #modal-footer>
@@ -61,10 +63,10 @@ export default {
 
   data () {
     return {
-      showRecordModal: false,
-      recordID: null,
-      module: null,
-      page: null,
+      showModal: false,
+      recordID: undefined,
+      module: undefined,
+      page: undefined,
     }
   },
 
@@ -75,9 +77,50 @@ export default {
     }),
   },
 
+  watch: {
+    '$route.query.recordID': {
+      immediate: true,
+      handler (recordID, oldRecordID) {
+        const { recordPageID } = this.$route.query
+
+        if (!recordID) {
+          this.showModal = false
+          return
+        }
+
+        if (this.showModal && (recordID !== oldRecordID)) {
+          this.showModal = false
+
+          setTimeout(() => {
+            this.$router.push({
+              query: {
+                ...this.$route.query,
+                recordID,
+                recordPageID,
+              },
+            })
+          }, 300)
+
+          return
+        }
+
+        setTimeout(() => {
+          this.loadModal({ recordID, recordPageID })
+        }, 100)
+      },
+    },
+  },
+
   created () {
-    this.$root.$on('show-record-modal', this.showModal)
-    this.showModal(this.$route.query)
+    this.$root.$on('show-record-modal', ({ recordID, recordPageID }) => {
+      this.$router.push({
+        query: {
+          ...this.$route.query,
+          recordID,
+          recordPageID,
+        },
+      })
+    })
   },
 
   beforeDestroy () {
@@ -85,39 +128,35 @@ export default {
   },
 
   methods: {
-    showModal ({ recordID, moduleID, recordPageID }) {
-      if (recordID && moduleID && recordPageID) {
+    loadModal ({ recordID, recordPageID }) {
+      if (recordID && recordPageID) {
         this.recordID = recordID
-        this.module = this.getModuleByID(moduleID)
         this.page = this.getPageByID(recordPageID)
 
-        this.showRecordModal = true
-
-        // persist the modal in the url
-        this.$router.replace({
-          query: {
-            recordID,
-            moduleID,
-            recordPageID: this.page.pageID,
-          },
-        })
+        if (this.page) {
+          this.module = this.getModuleByID(this.page.moduleID)
+          this.showModal = true
+        }
       }
     },
 
     hideModal () {
-      this.$router.replace({ query: { } })
-      this.recordID = null
-      this.module = null
-      this.page = null
+      this.$router.push({
+        query: {
+          ...this.$route.query,
+          recordID: undefined,
+          moduleID: undefined,
+          recordPageID: undefined,
+        },
+      })
     },
   },
 }
 
 </script>
 
-<style>
-#record-modal .modal-dialog {
-  height: 100%;
+<style lang="scss" scoped>
+.mw-90 {
   max-width: 90vw;
 }
 </style>

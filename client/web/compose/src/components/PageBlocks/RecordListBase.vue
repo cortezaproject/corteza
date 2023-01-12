@@ -1155,9 +1155,8 @@ export default {
         window.open(this.$router.resolve(route).href)
       } else if (this.options.recordDisplayOption === 'modal') {
         this.$root.$emit('show-record-modal', {
-          moduleID: this.recordListModule.moduleID,
-          recordPageID: this.recordPageID,
           recordID,
+          recordPageID: this.recordPageID,
         })
       } else {
         this.$router.push(route)
