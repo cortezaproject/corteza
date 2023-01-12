@@ -50,6 +50,7 @@
       :blocks="page.blocks"
       editable
       @change="updatePageBlockGrid"
+      @item-updated="onBlockUpdated"
     >
       <template
         slot-scope="{ boundingRect, block, index }"
@@ -63,6 +64,17 @@
             class="toolbox border-0 p-2 m-0 text-light text-center"
             data-test-id="block-toolbox"
           >
+            <div
+              v-if="unsavedBlocks.has(index)"
+              :title="$t('tooltip.unsavedChanges')"
+              class="btn border-0"
+            >
+              <font-awesome-icon
+                :icon="['fas', 'exclamation-triangle']"
+                class="text-warning"
+              />
+            </div>
+
             <b-button
               data-test-id="button-edit"
               :title="$t('tooltip.edit.block')"
@@ -96,7 +108,6 @@
                 :icon="['far', 'copy']"
               />
             </b-button>
-
             <c-input-confirm
               class="ml-1"
               size="md"
@@ -272,6 +283,7 @@ export default {
       page: undefined,
       blocks: [],
       board: null,
+      unsavedBlocks: new Set(),
     }
   },
 
@@ -365,6 +377,7 @@ export default {
       immediate: true,
       handler (pageID) {
         this.page = undefined
+        this.unsavedBlocks.clear()
 
         if (pageID) {
           const { namespaceID, name } = this.namespace
@@ -381,6 +394,14 @@ export default {
 
   mounted () {
     window.addEventListener('paste', this.pasteBlock)
+  },
+
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedBlocks(next)
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedBlocks(next)
   },
 
   destroyed () {
@@ -409,20 +430,30 @@ export default {
     deleteBlock (index) {
       this.blocks.splice(index, 1)
       this.page.blocks = this.blocks
+      this.unsavedBlocks.add(index)
     },
 
     updatePageBlockGrid (blocks) {
       this.blocks = blocks
     },
 
+    onBlockUpdated (index) {
+      this.unsavedBlocks.add(index)
+    },
+
     updateBlocks () {
       const block = compose.PageBlockMaker(this.editor.block)
       this.page.blocks = this.blocks
 
+      /**
+       * Check if an existing block has been updated or a new block has been added
+       */
       if (this.editor.index !== undefined) {
         this.page.blocks.splice(this.editor.index, 1, block)
+        this.unsavedBlocks.add(this.editor.index)
       } else {
         this.page.blocks.push(block)
+        this.unsavedBlocks.add(this.page.blocks.length - 1)
       }
 
       this.editor = undefined
@@ -461,6 +492,7 @@ export default {
           const mergedPage = new compose.Page({ namespaceID, ...page, blocks: this.blocks })
 
           this.updatePage(mergedPage).then((page) => {
+            this.unsavedBlocks.clear()
             this.toastSuccess(this.$t('notification:page.saved'))
             if (closeOnSuccess) {
               this.$router.push({ name: 'admin.pages' })
@@ -558,7 +590,6 @@ export default {
         const maxY = this.blocks.map((block) => block.xywh[1]).reduce((acc, val) => {
           return acc > val ? acc : val
         }, 0)
-
         block.xywh = [0, maxY + 2, 3, 3]
       }
 
@@ -572,6 +603,11 @@ export default {
       } else {
         this.toastErrorHandler(this.$t('notification:page.duplicateFailed'))
       }
+    },
+
+    // Trigger browser dialog on page leave to prevent unsaved changes
+    checkUnsavedBlocks (next) {
+      next(!this.unsavedBlocks.size || window.confirm(this.$t('build.unsavedChanges')))
     },
   },
 }

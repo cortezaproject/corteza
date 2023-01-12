@@ -29,6 +29,8 @@
         }"
         style="touch-action: none;"
         v-bind="{ ...item }"
+        @moved="onBlockUpdated(index)"
+        @resized="onBlockUpdated(index)"
       >
         <slot
           :block="blocks[item.i]"
@@ -186,6 +188,11 @@ export default {
         ({ x, y, w, h, i }) => new compose.PageBlockMaker({ ...this.blocks[i], xywh: [x, y, w, h] }),
       ))
       this.recalculateBoundingRect()
+    },
+
+    // emit event when block has been moved or resized
+    onBlockUpdated (index) {
+      this.$emit('item-updated', index)
     },
   },
 }
