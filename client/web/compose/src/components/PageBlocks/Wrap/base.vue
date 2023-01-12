@@ -1,6 +1,10 @@
 <script>
 import { compose } from '@cortezaproject/corteza-js'
 export default {
+  i18nOptions: {
+    namespaces: 'block',
+  },
+
   props: {
     block: {
       type: compose.PageBlock,
@@ -13,6 +17,7 @@ export default {
       default: () => true,
     },
   },
+
   computed: {
     blockClass () {
       return [
