@@ -16,6 +16,7 @@ copyOf: "Copy of {{title}}"
 build:
   addBlock: Add block
   selectBlockTitle: Select type of the new block
+  unsavedChanges: Unsaved changes will be lost. Do you wish to leave the page?
 createLabel: Create page
 edit:
   create: Create page
@@ -45,6 +46,7 @@ pageMoveFailed: Could not move this page
 reordered: Page reordered
 title: List of Pages
 tooltip:
+  unsavedChanges: Unsaved Changes
   view: View page
   edit:
     page: Edit page
