@@ -533,12 +533,6 @@ export default class System {
       meta,
       labels,
     } = (a as KV) || {}
-    if (!name) {
-      throw Error('field name is empty')
-    }
-    if (!handle) {
-      throw Error('field handle is empty')
-    }
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
