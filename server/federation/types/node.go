@@ -49,6 +49,8 @@ type (
 
 		Deleted filter.State `json:"deleted"`
 
-		Limit uint
+		// Standard helpers for paging and sorting
+		filter.Sorting
+		filter.Paging
 	}
 )
