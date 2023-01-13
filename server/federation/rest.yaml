@@ -50,6 +50,19 @@ endpoints:
             - name: status
               type: string
               title: Filter by status
+            - type: uint
+              name: limit
+              title: Limit
+            - type: bool
+              name: incTotal
+              title: Include total counter
+            - type: string
+              name: pageCursor
+              title: Page cursor
+            - type: string
+              name: sort
+              title: Sort items
+
       - name: create
         method: POST
         title: Create a new federation node
