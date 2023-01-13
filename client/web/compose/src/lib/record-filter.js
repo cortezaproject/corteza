@@ -69,7 +69,7 @@ export function getFieldFilter (name, kind, query = '', operator = '=') {
   }
 
   if (['Number'].includes(kind) && !isNaN(numQuery)) {
-    return build(operator, name, numQuery)
+    return build(operator, name, `'${numQuery}'`)
   }
 
   if (['DateTime'].includes(kind)) {
