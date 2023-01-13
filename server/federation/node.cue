@@ -7,8 +7,8 @@ import (
 node: {
 	features: {
 		labels: false
-		paging: false
-		sorting: false
+		paging: true
+		sorting: true
 	}
 
 	model: {

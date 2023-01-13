@@ -138,6 +138,10 @@ export default class Federation {
     const {
       query,
       status,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
     } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
@@ -147,6 +151,10 @@ export default class Federation {
     cfg.params = {
       query,
       status,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
