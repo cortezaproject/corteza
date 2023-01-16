@@ -10,7 +10,8 @@ interface Options {
   referenceField: string;
   sortDirection: string;
   refreshRate: number;
-  magnifyOption: string
+  refreshEnabled: boolean;
+  magnifyOption: string;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -21,7 +22,8 @@ const defaults: Readonly<Options> = Object.freeze({
   sortDirection: '',
   referenceField: '',
   refreshRate: 0,
-  magnifyOption: ''
+  refreshEnabled: false,
+  magnifyOption: '',
 })
 
 export class PageBlockComment extends PageBlock {
@@ -39,6 +41,7 @@ export class PageBlockComment extends PageBlock {
     Apply(this.options, o, CortezaID, 'moduleID')
     Apply(this.options, o, String, 'titleField', 'contentField', 'referenceField', 'filter', 'sortDirection', 'magnifyOption')
     Apply(this.options, o, Number, 'refreshRate')
+    Apply(this.options, o, Boolean, 'refreshEnabled')
   }
 }
 
