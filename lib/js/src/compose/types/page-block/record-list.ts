@@ -29,6 +29,7 @@ interface Options {
   fullPageNavigation: boolean;
   showTotalCount: boolean;
   refreshRate: number;
+  refreshEnabled: boolean;
 
   // Record-lines
   editable: boolean;
@@ -91,6 +92,7 @@ const defaults: Readonly<Options> = Object.freeze({
 
   selectionButtons: [],
   refreshRate: 0,
+  refreshEnabled: false,
 })
 
 export class PageBlockRecordList extends PageBlock {
@@ -141,6 +143,7 @@ export class PageBlockRecordList extends PageBlock {
       'editable',
       'draggable',
       'linkToParent',
+      'refreshEnabled',
     )
 
     if (o.selectionButtons) {

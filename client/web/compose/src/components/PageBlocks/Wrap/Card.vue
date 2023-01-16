@@ -6,7 +6,7 @@
       :class="blockClass"
     >
       <b-card-header
-        v-if="headerSet || block.title || block.description || hasMagnifyIcon || block.options.refreshRate >= 5"
+        v-if="showHeader"
         class="border-0 text-nowrap px-3"
         header-bg-variant="white"
         :header-text-variant="block.style.variants.headerText"
@@ -25,11 +25,11 @@
             </h5>
 
             <div
-              v-if="block.options.refreshRate >= 5 || hasMagnifyIcon"
+              v-if="showOptions"
               class="ml-auto"
             >
               <font-awesome-icon
-                v-if="block.options.refreshRate >= 5"
+                v-if="block.options.refreshEnabled"
                 :icon="['fa', 'sync']"
                 class="h6 text-secondary"
                 role="button"
@@ -37,7 +37,7 @@
               />
 
               <font-awesome-icon
-                v-if="hasMagnifyIcon"
+                v-if="block.options.magnifyOption"
                 :icon="['fas', isBlockOpened ? 'times' : 'search-plus']"
                 :title="$t(isBlockOpened ? '' : 'general.label.magnify')"
                 class="h6 text-secondary ml-2"
@@ -92,49 +92,9 @@
   </div>
 </template>
 <script>
-import { compose } from '@cortezaproject/corteza-js'
-
+import base from './base.vue'
 export default {
-  props: {
-    block: {
-      type: compose.PageBlock,
-      required: true,
-    },
-
-    scrollableBody: {
-      type: Boolean,
-      required: false,
-      default: () => true,
-    },
-  },
-
-  computed: {
-    blockClass () {
-      return [
-        'block',
-        this.block.kind,
-      ]
-    },
-
-    hasMagnifyIcon () {
-      return this.block.options.magnifyOption
-    },
-
-    isBlockOpened () {
-      return this.block.blockID === this.$route.query.blockID
-    },
-
-    headerSet () {
-      return !!this.$scopedSlots.header
-    },
-
-    toolbarSet () {
-      return !!this.$scopedSlots.toolbar
-    },
-
-    footerSet () {
-      return !!this.$scopedSlots.footer
-    },
-  },
+  name: 'CardWrap',
+  extends: base,
 }
 </script>
