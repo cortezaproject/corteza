@@ -36,6 +36,7 @@ class CalendarOptions {
   public header: Partial<CalendarOptionsHeader> = {}
   public locale = 'en-gb'
   public refreshRate = 0
+  public refreshEnabled = false
   public magnifyOption = ''
 }
 
@@ -59,6 +60,8 @@ export class PageBlockCalendar extends PageBlock {
   applyOptions (o?: Partial<CalendarOptions>): void {
     if (!o) return
     Apply(this.options, o, Number, 'refreshRate')
+
+    Apply(this.options, o, Boolean, 'refreshEnabled')
 
     Apply(this.options, o, String, 'magnifyOption')
 

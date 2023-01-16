@@ -95,10 +95,23 @@
         </b-form-group>
 
         <b-form-group
-          v-if="block.options.refreshRate !== undefined"
+          v-if="block.options.refreshEnabled !== undefined"
+          class="mt-4"
           :label="$t('general.refresh.label')"
           :description="$t('general.refresh.description')"
         >
+          <b-col
+            cols="12"
+            sm="3"
+            class="px-0 mb-2"
+          >
+            <b-form-checkbox
+              v-model="block.options.refreshEnabled"
+            >
+              {{ $t('general.refresh.enabled') }}
+            </b-form-checkbox>
+          </b-col>
+
           <b-col
             cols="12"
             sm="3"
