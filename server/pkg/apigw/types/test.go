@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/cortezaproject/corteza/server/pkg/options"
 	st "github.com/cortezaproject/corteza/server/system/types"
 )
 
@@ -33,7 +32,7 @@ type (
 	MockRoundTripper func(*http.Request) (*http.Response, error)
 )
 
-func (h MockHandler) New(opts options.ApigwOpt) Handler {
+func (h MockHandler) New(cfg Config) Handler {
 	return MockHandler{}
 }
 
@@ -49,7 +48,7 @@ func (h MockHandler) Handler() HandlerFunc {
 	return h.Handler_
 }
 
-func (h MockHandler) Merge(params []byte) (Handler, error) {
+func (h MockHandler) Merge(params []byte, cfg Config) (Handler, error) {
 	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&h)
 	return h, err
 }

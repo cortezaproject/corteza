@@ -22,6 +22,8 @@ type (
 		Aggregation(context.Context, *request.ApigwProfilerAggregation) (interface{}, error)
 		Route(context.Context, *request.ApigwProfilerRoute) (interface{}, error)
 		Hit(context.Context, *request.ApigwProfilerHit) (interface{}, error)
+		PurgeAll(context.Context, *request.ApigwProfilerPurgeAll) (interface{}, error)
+		Purge(context.Context, *request.ApigwProfilerPurge) (interface{}, error)
 	}
 
 	// HTTP API interface
@@ -29,6 +31,8 @@ type (
 		Aggregation func(http.ResponseWriter, *http.Request)
 		Route       func(http.ResponseWriter, *http.Request)
 		Hit         func(http.ResponseWriter, *http.Request)
+		PurgeAll    func(http.ResponseWriter, *http.Request)
+		Purge       func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -82,6 +86,38 @@ func NewApigwProfiler(h ApigwProfilerAPI) *ApigwProfiler {
 
 			api.Send(w, r, value)
 		},
+		PurgeAll: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewApigwProfilerPurgeAll()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.PurgeAll(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		Purge: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewApigwProfilerPurge()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Purge(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -91,5 +127,7 @@ func (h ApigwProfiler) MountRoutes(r chi.Router, middlewares ...func(http.Handle
 		r.Get("/apigw/profiler/", h.Aggregation)
 		r.Get("/apigw/profiler/route/{routeID}", h.Route)
 		r.Get("/apigw/profiler/hit/{hitID}", h.Hit)
+		r.Post("/apigw/profiler/purge", h.PurgeAll)
+		r.Post("/apigw/profiler/purge/{routeID}", h.Purge)
 	})
 }

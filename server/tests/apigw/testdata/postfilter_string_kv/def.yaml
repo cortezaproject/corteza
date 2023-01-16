@@ -1,0 +1,38 @@
+apigateway:
+  - endpoint: /json/kv
+    method: GET
+    enabled: true
+    filters:
+      - ref: response
+        kind: postfilter
+        enabled: true
+        params:
+          input:
+            expr: test
+            type: KV
+          header:
+            Content-Type: [ application/json ]
+      - ref: workflow
+        kind: processer
+        enabled: true
+        params:
+          workflow: 'test_variable_kv'
+
+workflows:
+  - id: 1
+    enabled: true
+    trace: false
+    handle: test_variable_kv
+    meta:
+      name: Test variable
+    triggers:
+      - enabled: true
+        stepID: 1
+    steps:
+      - stepID: 1
+        kind: expressions
+        arguments:
+          - target: test
+            type: KV
+            expr: |
+              {"foo":"bar","baz":123}

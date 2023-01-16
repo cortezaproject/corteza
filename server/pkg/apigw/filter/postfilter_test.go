@@ -10,7 +10,6 @@ import (
 	agctx "github.com/cortezaproject/corteza/server/pkg/apigw/ctx"
 	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/stretchr/testify/require"
 )
 
@@ -35,7 +34,7 @@ func Test_redirectionMerge(t *testing.T) {
 	)
 
 	for _, tc := range tcc {
-		t.Run(tc.name, testMerge(NewRedirection(options.ApigwOpt{}), tc))
+		t.Run(tc.name, testMerge(NewRedirection(types.Config{}), tc))
 	}
 }
 
@@ -73,10 +72,12 @@ func Test_redirection(t *testing.T) {
 				req = require.New(t)
 				r   = httptest.NewRequest(http.MethodGet, "/foo", http.NoBody)
 				rc  = httptest.NewRecorder()
+
+				cfg = types.Config{}
 			)
 
-			h := getHandler(NewRedirection(options.ApigwOpt{}))
-			h, err := h.Merge([]byte(tc.expr))
+			h := getHandler(NewRedirection(cfg))
+			h, err := h.Merge([]byte(tc.expr), cfg)
 
 			req.NoError(err)
 
@@ -114,22 +115,52 @@ func Test_jsonResponse(t *testing.T) {
 	var (
 		tcc = []tf{
 			{
-				name:  "Any response as JSON",
-				expr:  `{"expr": "records", "type": "KV"}`,
+				name:  "String response as JSON",
+				expr:  `{"header":{"content-type":["application/json"]},"input":{"expr": "records", "type": "String"}}`,
+				scope: expr.Must(expr.Any{}.Cast("foobar")),
+				exp:   `foobar`,
+			},
+			{
+				name:  "Array response as JSON",
+				expr:  `{"header":{"content-type":["application/json"]},"input":{"expr": "records", "type": "Array"}}`,
 				scope: expr.Must(expr.Any{}.Cast([]float64{3.14, 42.690})),
 				exp:   `[3.14,42.69]`,
 			},
 			{
-				name:  "KV response as JSON",
-				expr:  `{"expr": "records", "type": "KV"}`,
+				name:  "Array response as text",
+				expr:  `{"input":{"expr": "records", "type": "Array"}}`,
+				scope: expr.Must(expr.Any{}.Cast([]float64{3.14, 42.690})),
+				exp:   `[3.14 42.69]`,
+			},
+			{
+				name:  "Any response as JSON",
+				expr:  `{"header":{"content-type":["application/json"]},"input": {"expr": "records", "type": "Any"}}`,
 				scope: expr.Must(expr.Any{}.Cast(map[string]string{"foo": "bar", "baz": "bzz"})),
 				exp:   `{"baz":"bzz","foo":"bar"}`,
 			},
 			{
+				name:  "Any response as text",
+				expr:  `{"input": {"expr": "records", "type": "Any"}}`,
+				scope: expr.Must(expr.Any{}.Cast(map[string]string{"foo": "bar", "baz": "bzz"})),
+				exp:   `map[baz:bzz foo:bar]`,
+			},
+			{
 				name:  "struct array response as JSON",
-				expr:  `{"expr": "toJSON(records)", "type": "String"}`,
+				expr:  `{"input":{"expr": "toJSON(records)", "type": "String"}}`,
 				scope: []aux{{"First", "Last"}, {"Foo", "bar"}},
 				exp:   `[{"name":"First","surname":"Last"},{"name":"Foo","surname":"bar"}]`,
+			},
+			{
+				name:  "struct array response as text",
+				expr:  `{"input":{"expr": "records", "type": "String"}}`,
+				scope: []aux{{"First", "Last"}, {"Foo", "bar"}},
+				exp:   `[{First Last} {Foo bar}]`,
+			},
+			{
+				name:  "string csv response as text",
+				expr:  `{"header":{"content-type":["application/octet-stream"],"Content-Disposition":["attachment; filename=foo.txt"],"Content-Transfer-Encoding":["binary"]},"input":{"expr": "records", "type": "String"}}`,
+				scope: "\"header 1\",\"header 2\"\nvalue 1,value 2\nvalue 3, value 4",
+				exp:   "\"header 1\",\"header 2\"\nvalue 1,value 2\nvalue 3, value 4",
 			},
 		}
 	)
@@ -141,12 +172,14 @@ func Test_jsonResponse(t *testing.T) {
 				r     = httptest.NewRequest(http.MethodGet, "/foo", http.NoBody)
 				rc    = httptest.NewRecorder()
 				scope = &types.Scp{"records": tc.scope}
+
+				cfg = types.Config{}
 			)
 
 			r = r.WithContext(agctx.ScopeToContext(context.Background(), scope))
 
-			h := getHandler(NewJsonResponse(options.ApigwOpt{}, &mockHandlerRegistry{}))
-			h, err := h.Merge([]byte(tc.expr))
+			h := getHandler(NewResponse(cfg, &mockHandlerRegistry{}))
+			h, err := h.Merge([]byte(tc.expr), cfg)
 
 			req.NoError(err)
 

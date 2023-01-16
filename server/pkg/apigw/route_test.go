@@ -1,7 +1,7 @@
 package apigw
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -9,7 +9,6 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/apigw/pipeline"
 	"github.com/cortezaproject/corteza/server/pkg/apigw/pipeline/chain"
 	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
-	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
@@ -46,7 +45,7 @@ func Test_pl(t *testing.T) {
 				handler: &types.MockHandler{
 					Handler_: func(rw http.ResponseWriter, r *http.Request) error {
 						rw.WriteHeader(http.StatusTemporaryRedirect)
-						return fmt.Errorf("test error")
+						return errors.New("test error")
 					},
 				},
 				errHandler: &types.MockErrorHandler{
@@ -63,7 +62,7 @@ func Test_pl(t *testing.T) {
 				handler: &types.MockHandler{
 					Handler_: func(rw http.ResponseWriter, r *http.Request) error {
 						rw.WriteHeader(http.StatusTemporaryRedirect)
-						return fmt.Errorf("test error")
+						return errors.New("test error")
 					},
 				},
 				method:    "POST",
@@ -95,7 +94,6 @@ func Test_pl(t *testing.T) {
 				method:     tc.method,
 				endpoint:   tc.endpoint,
 				log:        zap.NewNop(),
-				opts:       *options.Apigw(),
 				handler:    pipe.Handler(),
 				errHandler: pipe.Error(),
 			}

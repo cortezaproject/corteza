@@ -111,3 +111,53 @@ func Test_ApigwProfiler_filterHit(t *testing.T) {
 	req.True(found)
 	req.Len(list[id], 1)
 }
+
+func Test_ApigwProfiler_purgeAll(t *testing.T) {
+	var (
+		pp  = New()
+		req = require.New(t)
+
+		now   = time.Date(2022, time.March, 1, 1, 1, 1, 0, time.UTC)
+		then  = now.Add(-1 * day)
+		later = now.Add(day)
+
+		hr, _  = h.NewRequest(httptest.NewRequest("POST", "/foo", strings.NewReader(`foo`)))
+		hr2, _ = h.NewRequest(httptest.NewRequest("GET", "/bar", strings.NewReader(`foo`)))
+	)
+
+	pp.Push(&Hit{R: hr, Ts: &then})
+	pp.Push(&Hit{R: hr, Ts: &now})
+	pp.Push(&Hit{R: hr2, Ts: &now})
+	pp.Push(&Hit{R: hr2, Ts: &later})
+	pp.Push(&Hit{R: hr2, Ts: &later})
+
+	req.Len(pp.l, 2)
+	pp.Purge(&PurgeFilter{})
+	req.Len(pp.l, 0)
+}
+
+func Test_ApigwProfiler_purgeRoute(t *testing.T) {
+	var (
+		pp  = New()
+		req = require.New(t)
+
+		now   = time.Date(2022, time.March, 1, 1, 1, 1, 0, time.UTC)
+		then  = now.Add(-1 * day)
+		later = now.Add(day)
+
+		hr, _  = h.NewRequest(httptest.NewRequest("POST", "/foo", strings.NewReader(`foo`)))
+		hr2, _ = h.NewRequest(httptest.NewRequest("GET", "/bar", strings.NewReader(`foo`)))
+	)
+
+	pp.Push(&Hit{Route: 1, R: hr, Ts: &then})
+	pp.Push(&Hit{Route: 1, R: hr, Ts: &now})
+	pp.Push(&Hit{Route: 2, R: hr2, Ts: &now})
+	pp.Push(&Hit{Route: 2, R: hr2, Ts: &later})
+	pp.Push(&Hit{Route: 2, R: hr2, Ts: &later})
+
+	req.Len(pp.l, 2)
+
+	pp.Purge(&PurgeFilter{RouteID: 2})
+
+	req.Len(pp.l, 1)
+}

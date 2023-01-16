@@ -18,7 +18,7 @@ props:
     fields: [ ID, ref ]
   - name: search
     type: "*types.ApigwFilterFilter"
-    fields: []
+    fields: [ kind ]
 
 actions:
   - action: search

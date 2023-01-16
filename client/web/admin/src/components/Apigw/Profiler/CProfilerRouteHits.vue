@@ -2,7 +2,7 @@
   <b-card
     data-test-id="card-requests"
     no-body
-    class="shadow-sm mb-3"
+    class="shadow-sm"
     footer-class="d-flex align-items-center justify-content-center"
     footer-bg-variant="white"
     header-bg-variant="white"
@@ -13,22 +13,33 @@
       </h3>
 
       <div
-        class="d-flex align-items-center justify-content-end"
+        class="d-flex align-items-center justify-content-between"
       >
-        <span
-          :class="{ 'loading': loading }"
+        <div>
+          <b-button
+            data-test-id="button-refresh"
+            variant="primary"
+            :disabled="loading"
+            @click="loadItems()"
+          >
+            {{ $t('general:label.refresh') }}
+          </b-button>
+          <span
+            class="ml-1"
+            :class="{ 'loading': loading }"
+          >
+            {{ autoRefreshLabel }}
+          </span>
+        </div>
+
+        <c-input-confirm
+          :disabled="!items.length"
+          :borderless="false"
+          variant="danger"
+          @confirmed="purgeRequests"
         >
-          {{ autoRefreshLabel }}
-        </span>
-        <b-button
-          data-test-id="button-refresh"
-          variant="primary"
-          :disabled="loading"
-          class="ml-2"
-          @click="loadItems()"
-        >
-          {{ $t('general:label.refresh') }}
-        </b-button>
+          {{ $t('purge.this') }}
+        </c-input-confirm>
       </div>
     </template>
 
@@ -66,13 +77,13 @@
         <template #cell(actions)="row">
           <b-button
             data-test-id="button-edit-route"
-            size="sm"
             variant="link"
             class="p-0"
             :to="{ name: 'system.apigw.profiler.hit.list', params: { hitID: row.item.hitID } }"
           >
             <font-awesome-icon
-              :icon="['fas', 'pen']"
+              :icon="['fas', 'info-circle']"
+              class="text-primary"
             />
           </b-button>
         </template>
@@ -141,12 +152,12 @@ export default {
         {
           key: 'time_start',
           sortable: true,
-          formatter: v => fmt.fullDateTime(v),
+          formatter: v => v ? fmt.fullDateTime(v) : '',
         },
         {
           key: 'time_finish',
           sortable: true,
-          formatter: v => fmt.fullDateTime(v),
+          formatter: v => v ? fmt.fullDateTime(v) : '',
         },
         {
           key: 'http_method',
@@ -161,12 +172,13 @@ export default {
         {
           key: 'content_length',
           sortable: true,
+          formatter: v => `${v || 0} bytes`,
           class: 'text-right',
         },
         {
           key: 'time_duration',
           sortable: true,
-          formatter: v => `${v.toFixed(2)} ms`,
+          formatter: v => v ? `${v.toFixed(2)} ms` : '',
           class: 'text-right',
         },
         {
@@ -231,12 +243,24 @@ export default {
           this.totalItems = append ? this.totalItems + set.length : this.totalItems
 
           return { filter, set }
-        }).finally(() => {
+        })
+        .catch(this.toastErrorHandler(this.$t('notification:gateway.profiler.purge.fetch')))
+        .finally(() => {
           if (!append) {
             this.filter.before = oldBeforeID
           }
           this.startRefresh()
         })
+    },
+
+    purgeRequests () {
+      const { routeID } = this.filter
+      this.$SystemAPI.apigwProfilerPurge({ routeID })
+        .then(() => {
+          this.loadItems()
+          this.toastSuccess(this.$t('notification:gateway.profiler.purge.success'))
+        })
+        .catch(this.toastErrorHandler(this.$t('notification:gateway.profiler.purge.error')))
     },
 
     resetItems (sorting = this.sorting) {

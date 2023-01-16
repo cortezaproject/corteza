@@ -23,8 +23,9 @@ import (
 
 type (
 	wfServicer struct {
-		load func(ctx context.Context) error
-		exec func(ctx context.Context, workflowID uint64, p atypes.WorkflowExecParams) (*expr.Vars, uint64, atypes.Stacktrace, error)
+		load   func(ctx context.Context) error
+		exec   func(ctx context.Context, workflowID uint64, p atypes.WorkflowExecParams) (*expr.Vars, uint64, atypes.Stacktrace, error)
+		search func(ctx context.Context, filter atypes.WorkflowFilter) (atypes.WorkflowSet, atypes.WorkflowFilter, error)
 	}
 )
 
@@ -78,10 +79,10 @@ func Test_processerWorkflow(t *testing.T) {
 				rc      = httptest.NewRecorder()
 				rq, _   = http.NewRequest("POST", "/foo", http.NoBody)
 				ar, err = h.NewRequest(rq)
-				pp      = NewWorkflow(options.ApigwOpt{}, tc.wfs)
+				pp      = NewWorkflow(types.Config{}, tc.wfs)
 			)
 
-			_, err = pp.Merge([]byte(tc.params))
+			_, err = pp.Merge([]byte(tc.params), types.Config{})
 			req.NoError(err)
 
 			scope := &types.Scp{
@@ -180,10 +181,12 @@ func Test_processerPayload(t *testing.T) {
 				req     = require.New(t)
 				rc      = httptest.NewRecorder()
 				ar, err = h.NewRequest(tc.rq)
+
+				cfg = types.Config{}
 			)
 
-			pp := NewPayload(options.ApigwOpt{}, zap.NewNop())
-			_, err = pp.Merge([]byte(tc.params))
+			pp := NewPayload(cfg, zap.NewNop())
+			_, err = pp.Merge([]byte(tc.params), cfg)
 
 			if tc.errv != "" {
 				req.EqualError(err, tc.errv)
@@ -226,6 +229,10 @@ func (f wfServicer) Load(ctx context.Context) error {
 
 func (f wfServicer) Exec(ctx context.Context, workflowID uint64, p atypes.WorkflowExecParams) (*expr.Vars, uint64, atypes.Stacktrace, error) {
 	return f.exec(ctx, workflowID, p)
+}
+
+func (f wfServicer) Search(ctx context.Context, filter atypes.WorkflowFilter) (atypes.WorkflowSet, atypes.WorkflowFilter, error) {
+	return f.search(ctx, filter)
 }
 
 func must(v *expr.Vars, err error) *expr.Vars {

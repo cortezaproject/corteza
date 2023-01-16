@@ -1,9 +1,10 @@
 <template>
   <b-card
     data-test-id="card-filter-list"
-    class="apigw shadow-sm mt-3"
     header-bg-variant="white"
     footer-bg-variant="white"
+    body-class="p-0"
+    class="apigw shadow-sm mt-3"
   >
     <c-filter-modal
       :visible="!!selectedFilter"
@@ -12,55 +13,53 @@
       @reset="onReset"
     />
 
-    <b-form
-      @submit.prevent="$emit('submit', route)"
+    <b-tabs
+      data-test-id="filter-steps"
+      active-nav-item-class="active-tab bg-white"
+      class="border-0"
+      content-class="border-bottom"
     >
-      <b-tabs
-        data-test-id="filter-steps"
-        active-nav-item-class="active-tab bg-white"
-        class="border-0 font-weight-bold"
-        content-class="border-bottom"
+      <b-tab
+        v-for="(step, index) in steps"
+        :key="index"
+        class="border-0"
+        :title="$t(`filters.step_title.${step}`)"
+        @click="onActivateTab(index)"
       >
-        <b-tab
-          v-for="(step, index) in steps"
-          :key="index"
-          class="border-0"
-          :title="$t(`filters.step_title.${step}`)"
-          @click="onActivateTab(index)"
-        >
-          <b-row class="d-flex flex-column w-100 m-0">
-            <c-filters-dropdown
-              class="px-1 py-2"
-              :available-filters="getAvailableFiltersByStep"
-              :filters="getSelectedFiltersByStep"
-              @addFilter="onAddFilter"
-            />
+        <c-filters-table
+          :filters="getSelectedFiltersByStep"
+          :step="index"
+          :fetching="fetching"
+          @filterSelect="onFilterSelect"
+          @removeFilter="onRemoveFilter"
+          @sortFilters="onSortFilters"
+        />
+      </b-tab>
+    </b-tabs>
 
-            <c-filters-table
-              ref="filterTable"
-              :filters="getSelectedFiltersByStep"
-              :selected-row="step.selectedRow"
-              :step="index"
-              @filterSelect="onFilterSelect"
-              @removeFilter="onRemoveFilter"
-              @sortFilters="onSortFilters"
-            />
-          </b-row>
-        </b-tab>
-      </b-tabs>
-    </b-form>
     <template #header>
       <h3 class="m-0">
         {{ $t('filters.title') }}
       </h3>
     </template>
-    <c-submit-button
-      class="float-right mt-3"
-      :processing="processing"
-      :success="success"
-      :disabled="disabled"
-      @submit="$emit('submit')"
-    />
+
+    <template #footer>
+      <div
+        class="d-flex justify-content-between"
+      >
+        <c-filters-dropdown
+          :available-filters="getAvailableFiltersByStep"
+          :filters="getSelectedFiltersByStep"
+          @addFilter="onAddFilter"
+        />
+        <c-submit-button
+          :processing="processing"
+          :success="success"
+          :disabled="disabled"
+          @submit="$emit('submit')"
+        />
+      </div>
+    </template>
   </b-card>
 </template>
 <script>
@@ -83,6 +82,10 @@ export default {
     CFiltersDropdown,
   },
   props: {
+    fetching: {
+      type: Boolean,
+      value: false,
+    },
     processing: {
       type: Boolean,
       value: false,

@@ -1,53 +1,18 @@
 <template>
-  <b-container
-    class="py-3"
+  <b-card
+    class="shadow-sm"
+    body-class="p-0"
+    header-bg-variant="white"
+    footer-bg-variant="white"
   >
-    <c-content-header
-      :title="$t('title')"
+    <template
+      #header
     >
-      <span
-        class="text-nowrap"
-      >
-        <b-button
-          v-if="canCreate"
-          data-test-id="button-add"
-          variant="primary"
-          :to="{ name: 'system.apigw.new' }"
-        >
-          {{ $t('new') }}
-        </b-button>
-        <b-button
-          v-if="$Settings.get('apigw.profilerEnabled', false)"
-          data-test-id="button-profiler"
-          class="ml-2"
-          variant="info"
-          :to="{ name: 'system.apigw.profiler' }"
-        >
-          {{ $t('profiler') }}
-        </b-button>
-        <c-permissions-button
-          v-if="canGrant"
-          data-test-id="button-permissions"
-          resource="corteza::system:apigw-route/*"
-          button-variant="light"
-          class="ml-2"
-        >
-          <font-awesome-icon :icon="['fas', 'lock']" />
-          {{ $t('permissions') }}
-        </c-permissions-button>
-      </span>
-      <b-dropdown
-        v-if="false"
-        variant="link"
-        right
-        menu-class="shadow-sm"
-        :text="$t('export')"
-      >
-        <b-dropdown-item-button variant="link">
-          {{ $t('yaml') }}
-        </b-dropdown-item-button>
-      </b-dropdown>
-    </c-content-header>
+      <h3 class="m-0">
+        {{ $t('title') }}
+      </h3>
+    </template>
+
     <c-resource-list
       :primary-key="primaryKey"
       :filter="filter"
@@ -66,9 +31,52 @@
         prevPagination: $t('admin:general.pagination.prev'),
         nextPagination: $t('admin:general.pagination.next'),
       }"
+      class="h-100"
       @search="filterList"
     >
       <template #header>
+        <b-button
+          v-if="canCreate"
+          data-test-id="button-add"
+          variant="primary"
+          :to="{ name: 'system.apigw.new' }"
+        >
+          {{ $t('new') }}
+        </b-button>
+
+        <b-button
+          v-if="$Settings.get('apigw.profiler.enabled', false)"
+          data-test-id="button-profiler"
+          class="ml-1"
+          variant="info"
+          :to="{ name: 'system.apigw.profiler' }"
+        >
+          {{ $t('profiler') }}
+        </b-button>
+
+        <c-permissions-button
+          v-if="canGrant"
+          data-test-id="button-permissions"
+          resource="corteza::system:apigw-route/*"
+          button-variant="light"
+          class="ml-1"
+        >
+          <font-awesome-icon :icon="['fas', 'lock']" />
+          {{ $t('permissions') }}
+        </c-permissions-button>
+
+        <b-dropdown
+          v-if="false"
+          variant="link"
+          right
+          menu-class="shadow-sm"
+          :text="$t('export')"
+        >
+          <b-dropdown-item-button variant="link">
+            {{ $t('yaml') }}
+          </b-dropdown-item-button>
+        </b-dropdown>
+
         <c-resource-list-status-filter
           v-model="filter.deleted"
           data-test-id="filter-deleted-routes"
@@ -76,6 +84,7 @@
           :excluded-label="$t('filterForm.excluded.label')"
           :inclusive-label="$t('filterForm.inclusive.label')"
           :exclusive-label="$t('filterForm.exclusive.label')"
+          class="mt-3"
           @change="filterList"
         />
       </template>
@@ -92,13 +101,13 @@
         </b-button>
       </template>
     </c-resource-list>
-  </b-container>
+  </b-card>
 </template>
 
 <script>
-import * as moment from 'moment'
-import listHelpers from 'corteza-webapp-admin/src/mixins/listHelpers'
 import { mapGetters } from 'vuex'
+import listHelpers from 'corteza-webapp-admin/src/mixins/listHelpers'
+import moment from 'moment'
 import { components } from '@cortezaproject/corteza-vue'
 const { CResourceList } = components
 
@@ -112,14 +121,12 @@ export default {
   ],
 
   i18nOptions: {
-    namespaces: [ 'system.apigw' ],
+    namespaces: 'system.apigw',
     keyPrefix: 'list',
   },
 
   data () {
     return {
-      id: 'routes',
-
       primaryKey: 'routeID',
       editRoute: 'system.apigw.edit',
 

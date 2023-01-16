@@ -79,6 +79,7 @@ func (p apigwFilterActionProps) Serialize() actionlog.Meta {
 		m.Set("filter.ref", p.filter.Ref, true)
 	}
 	if p.search != nil {
+		m.Set("search.kind", p.search.Kind, true)
 	}
 
 	return m
@@ -127,8 +128,11 @@ func (p apigwFilterActionProps) Format(in string, err error) string {
 		pairs = append(
 			pairs,
 			"{{search}}",
-			fns(),
+			fns(
+				p.search.Kind,
+			),
 		)
+		pairs = append(pairs, "{{search.kind}}", fns(p.search.Kind))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
