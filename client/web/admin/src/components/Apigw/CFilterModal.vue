@@ -11,17 +11,15 @@
       @hidden="onHidden"
     >
       <div
-        v-if="filter"
+        v-if="internalFilter"
         class="card-body"
       >
         <c-filter-params
-          :filter="filter"
-          @update="onUpdate"
+          :filter="internalFilter"
         />
         <b-form-checkbox
-          v-model="filter.enabled"
+          v-model="internalFilter.enabled"
           data-test-id="checkbox-filter-enable"
-          @change="onUpdate"
         >
           {{ $t('filters.enabled') }}
         </b-form-checkbox>
@@ -53,24 +51,64 @@ export default {
 
   data () {
     return {
-      updated: false,
-
-      filteredFields: [],
+      internalFilter: undefined,
     }
+  },
+
+  watch: {
+    visible: {
+      handler (visible) {
+        if (visible) {
+          // Convert to FE structure
+          this.internalFilter = {
+            ...this.filter,
+            params: this.filter.params.map(p => {
+              if (this.filter.ref === 'response') {
+                let value = p.value || {}
+
+                if (p.type === 'header') {
+                  value = Object.entries(value).map(([name, v = []]) => {
+                    return { name, expr: v.join('') }
+                  })
+                } else if (p.type === 'input') {
+                  value = { type: 'Any', expr: '', ...value }
+                }
+
+                this.$set(p, 'value', value)
+              }
+
+              return p
+            }),
+          }
+        }
+      },
+    },
   },
 
   methods: {
     onSave () {
-      this.$emit('submit', { ...this.filter, updated: this.updated })
-      this.updated = false
+      // Convert to BE structure
+      const filter = {
+        ...this.internalFilter,
+        params: this.internalFilter.params.map(p => {
+          if (this.filter.ref === 'response') {
+            if (p.type === 'header') {
+              p.value = p.value.reduce((obj, { name, expr = '' }) => {
+                return { ...obj, [name]: [expr] }
+              }, {})
+            }
+          }
+
+          return p
+        }),
+      }
+
+      this.$emit('submit', { ...filter, updated: true })
+      this.internalFilter = undefined
     },
 
     onHidden () {
       this.$emit('reset')
-    },
-
-    onUpdate () {
-      this.updated = true
     },
   },
 }

@@ -192,6 +192,10 @@ func (svc *apigwProfiler) HitsAggregated(ctx context.Context, filter types.Apigw
 	return
 }
 
+func (svc *apigwProfiler) Purge(ctx context.Context, f *profiler.PurgeFilter) {
+	apigw.Service().Profiler().Purge(f)
+}
+
 func sortAggregation(list *types.ApigwProfilerAggregationSet, filter *types.ApigwProfilerFilter) {
 	for _, ff := range sortAggFields {
 		fe := filter.Sort.Get(ff)
@@ -230,9 +234,9 @@ func sortHits(list *types.ApigwProfilerHitSet, filter *types.ApigwProfilerFilter
 
 func filterAggregation(list *types.ApigwProfilerAggregationSet, filter *types.ApigwProfilerFilter) {
 	var (
-		dec string = ""
-		i   uint   = 0
-		b          = filter.Before == ""
+		dec   string = ""
+		i     uint   = 0
+		start        = filter.Before == ""
 	)
 
 	if filter.Limit == 0 {
@@ -242,28 +246,36 @@ func filterAggregation(list *types.ApigwProfilerAggregationSet, filter *types.Ap
 	dec, _ = decodeRoutePath(filter.Before)
 
 	*list, _ = list.Filter(func(apa *types.ApigwProfilerAggregation) (bool, error) {
-		// after a specific hit and inside the limits
-		if b && i < filter.Limit {
-			i++
-			filter.Next = encodeRoutePath(apa.Path)
-			return true, nil
+		if start {
+			if i < filter.Limit {
+				i++
+				return true, nil
+			}
+
+			if i == filter.Limit {
+				filter.Next = encodeRoutePath(apa.Path)
+				i++
+				return false, nil
+			}
 		}
 
-		// after the specific hit check
-		if dec != "" && b == false {
-			b = apa.Path == dec
+		if !start {
+			start = apa.Path == dec
+
+			if start {
+				i = 1
+				return true, nil
+			}
 		}
 
 		return false, nil
 	})
-
-	return
 }
 
 func filterHits(list *types.ApigwProfilerHitSet, filter *types.ApigwProfilerFilter) {
 	var (
-		i uint = 0
-		b      = filter.Before == ""
+		i     uint = 0
+		start      = filter.Before == ""
 	)
 
 	if filter.Limit == 0 {
@@ -271,22 +283,31 @@ func filterHits(list *types.ApigwProfilerHitSet, filter *types.ApigwProfilerFilt
 	}
 
 	*list, _ = list.Filter(func(aph *types.ApigwProfilerHit) (bool, error) {
-		// after a specific hit and inside the limits
-		if b && i < filter.Limit {
-			i++
-			filter.Next = aph.ID
-			return true, nil
+
+		if start {
+			if i < filter.Limit {
+				i++
+				return true, nil
+			}
+
+			if i == filter.Limit {
+				filter.Next = aph.ID
+				i++
+				return false, nil
+			}
 		}
 
-		// after the specific hit check
-		if filter.Before != "" && b == false {
-			b = aph.ID == filter.Before
+		if !start {
+			start = aph.ID == filter.Before
+
+			if start {
+				i = 1
+				return true, nil
+			}
 		}
 
 		return false, nil
 	})
-
-	return
 }
 
 func encodeRoutePath(p string) string {

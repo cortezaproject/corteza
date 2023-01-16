@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 
+	"github.com/cortezaproject/corteza/server/pkg/apigw/profiler"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/system/rest/request"
 	"github.com/cortezaproject/corteza/server/system/service"
@@ -13,6 +14,7 @@ type (
 	profilerService interface {
 		Hits(context.Context, types.ApigwProfilerFilter) (types.ApigwProfilerHitSet, types.ApigwProfilerFilter, error)
 		HitsAggregated(context.Context, types.ApigwProfilerFilter) (types.ApigwProfilerAggregationSet, types.ApigwProfilerFilter, error)
+		Purge(context.Context, *profiler.PurgeFilter)
 	}
 
 	ApigwProfiler struct {
@@ -107,6 +109,26 @@ func (ctrl *ApigwProfiler) Hit(ctx context.Context, r *request.ApigwProfilerHit)
 	}
 
 	return ctrl.makeRoutePayload(ctx, set[0], err)
+}
+
+func (ctrl *ApigwProfiler) PurgeAll(ctx context.Context, r *request.ApigwProfilerPurgeAll) (_ interface{}, _ error) {
+	var (
+		f = &profiler.PurgeFilter{}
+	)
+
+	ctrl.svc.Purge(ctx, f)
+	return
+}
+
+func (ctrl *ApigwProfiler) Purge(ctx context.Context, r *request.ApigwProfilerPurge) (_ interface{}, _ error) {
+	var (
+		f = &profiler.PurgeFilter{
+			RouteID: r.RouteID,
+		}
+	)
+
+	ctrl.svc.Purge(ctx, f)
+	return
 }
 
 func (ctrl *ApigwProfiler) makePayload(ctx context.Context, q *types.ApigwProfilerAggregation, err error) (*profilerHitPayload, error) {

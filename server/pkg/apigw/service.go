@@ -15,7 +15,6 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/apigw/registry"
 	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
 	f "github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/options"
 	st "github.com/cortezaproject/corteza/server/system/types"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
@@ -28,13 +27,14 @@ type (
 	}
 
 	apigw struct {
-		opts   options.ApigwOpt
 		log    *zap.Logger
 		reg    *registry.Registry
 		routes []*route
 		mx     *chi.Mux
 		pr     *profiler.Profiler
 		storer storer
+
+		cfg types.Config
 	}
 )
 
@@ -48,28 +48,28 @@ func Service() *apigw {
 }
 
 // Setup handles the singleton service
-func Setup(opts options.ApigwOpt, log *zap.Logger, storer storer) {
+func Setup(cfg types.Config, log *zap.Logger, storer storer) {
 	if apiGw != nil {
 		return
 	}
 
-	apiGw = New(opts, log, storer)
+	apiGw = New(cfg, log, storer)
 }
 
-func New(opts options.ApigwOpt, logger *zap.Logger, storer storer) *apigw {
+func New(cfg types.Config, logger *zap.Logger, storer storer) *apigw {
 	var (
-		pr  = profiler.New()
-		reg = registry.NewRegistry(opts)
+		pr = profiler.New()
 	)
 
+	reg := registry.NewRegistry(cfg)
 	reg.Preload()
 
 	return &apigw{
-		opts:   opts,
 		log:    logger.Named("http.apigw"),
 		storer: storer,
 		reg:    reg,
 		pr:     pr,
+		cfg:    cfg,
 	}
 }
 
@@ -84,7 +84,7 @@ func (s *apigw) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(s.routes) == 0 {
-		helperDefaultResponse(s.opts, s.pr, s.log)(w, r)
+		helperDefaultResponse(s.cfg, s.pr, s.log)(w, r)
 		return
 	}
 
@@ -98,7 +98,7 @@ func (s *apigw) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.mx.ServeHTTP(w, r)
 }
 
-// Reload reloads routes and their filters
+// Reload reloads all routes and their filters
 //
 // The procedure constructs a new chi mux
 func (s *apigw) Reload(ctx context.Context) (err error) {
@@ -123,8 +123,8 @@ func (s *apigw) Reload(ctx context.Context) (err error) {
 	// profiler gets the missed hit info also
 	{
 		var (
-			defaultMethodResponse = helperMethodNotAllowed(s.opts, s.pr, s.log)
-			defaultResponse       = helperDefaultResponse(s.opts, s.pr, s.log)
+			defaultMethodResponse = helperMethodNotAllowed(s.cfg, s.pr, s.log)
+			defaultResponse       = helperDefaultResponse(s.cfg, s.pr, s.log)
 		)
 
 		s.mx.NotFound(defaultResponse)
@@ -169,8 +169,8 @@ func (s *apigw) ReloadEndpoint(ctx context.Context, method, endpoint string) (er
 	// profiler gets the missed hit info also
 	{
 		var (
-			defaultMethodResponse = helperMethodNotAllowed(s.opts, s.pr, s.log)
-			defaultResponse       = helperDefaultResponse(s.opts, s.pr, s.log)
+			defaultMethodResponse = helperMethodNotAllowed(s.cfg, s.pr, s.log)
+			defaultResponse       = helperDefaultResponse(s.cfg, s.pr, s.log)
 		)
 
 		s.mx.NotFound(defaultResponse)
@@ -182,82 +182,8 @@ func (s *apigw) ReloadEndpoint(ctx context.Context, method, endpoint string) (er
 
 // Init all routes
 func (s *apigw) Init(ctx context.Context, routes ...*route) {
-	var (
-		defaultPostFilter types.Handler
-	)
-
+	s.PrepRoutes(ctx, routes...)
 	s.routes = routes
-
-	s.loadInfo()
-	s.log.Debug("registering routes", zap.Int("count", len(s.routes)))
-
-	defaultPostFilter, err := s.reg.Get("defaultJsonResponse")
-
-	if err != nil {
-		s.log.Error("could not register default filter", zap.Error(err))
-	}
-
-	for _, r := range s.routes {
-		var (
-			log  = s.log.With(zap.String("route", r.String()))
-			pipe = pipeline.NewPipeline(log, chain.NewDefault())
-		)
-
-		// pipeline needs to know how to handle
-		// async processers
-		pipe.Async(r.meta.async)
-
-		r.opts = s.opts
-		r.log = log
-		r.pr = s.pr
-
-		regFilters, err := s.loadFilters(ctx, r.ID)
-
-		if err != nil {
-			log.Error("could not load filters for route", zap.Error(err))
-			continue
-		}
-
-		for _, rf := range regFilters {
-			flog := log.With(zap.String("ref", rf.Ref))
-
-			// make sure there is only one postfilter
-			// on async routes
-			if r.meta.async && rf.Kind == string(types.PostFilter) {
-				flog.Debug("not registering filter for async route")
-				continue
-			}
-
-			ff, err := s.registerFilter(rf, r)
-
-			if err != nil {
-				flog.Error("could not register filter", zap.Error(err))
-				continue
-			}
-
-			pipe.Add(ff)
-
-			flog.Debug("registered filter")
-		}
-
-		// add default postfilter on async
-		// routes if not present
-		if r.meta.async {
-			log.Info("registering default postfilter", zap.Error(err))
-
-			pipe.Add(&pipeline.Worker{
-				Handler: defaultPostFilter.Handler(),
-				Name:    defaultPostFilter.String(),
-				Type:    types.PostFilter,
-				Weight:  math.MaxInt8,
-			})
-		}
-
-		r.handler = pipe.Handler()
-		r.errHandler = pipe.Error()
-
-		log.Debug("successfully registered route")
-	}
 }
 
 func (s *apigw) PrepRoutes(ctx context.Context, routes ...*route) {
@@ -287,7 +213,7 @@ func (s *apigw) PrepRoutes(ctx context.Context, routes ...*route) {
 		// async processers
 		pipe.Async(r.meta.async)
 
-		r.opts = s.opts
+		r.cfg = s.cfg
 		r.log = log
 		r.pr = s.pr
 
@@ -382,7 +308,7 @@ func (s *apigw) NotFound(_ context.Context, method, endpoint string) {
 	}
 
 	var (
-		defaultResponse = helperDefaultResponse(s.opts, s.pr, s.log)
+		defaultResponse = helperDefaultResponse(s.cfg, s.pr, s.log)
 	)
 
 	// Attach 404 handler
@@ -403,7 +329,7 @@ func (s *apigw) registerFilter(f *st.ApigwFilter, r *route) (ff *pipeline.Worker
 		return
 	}
 
-	handler, err = s.reg.Merge(handler, enc)
+	handler, err = s.reg.Merge(handler, enc, s.cfg)
 
 	if err != nil {
 		err = fmt.Errorf("could not merge params to handler: %s", err)
@@ -436,6 +362,15 @@ func (s *apigw) Funcs(kind string) (list types.FilterMetaList) {
 func (s *apigw) ProxyAuthDef() (list []*proxy.ProxyAuthDefinition) {
 	list = proxy.ProxyAuthDef()
 	return
+}
+
+func (s *apigw) UpdateSettings(ctx context.Context, cfg types.Config) {
+	s.cfg = cfg
+
+	s.reg = registry.NewRegistry(cfg)
+	s.reg.Preload()
+
+	s.Reload(ctx)
 }
 
 func (s *apigw) loadRoutes(ctx context.Context) (rr []*route, err error) {
@@ -511,26 +446,17 @@ func (s *apigw) loadFilters(ctx context.Context, route uint64) (ff []*st.ApigwFi
 }
 
 func (s *apigw) loadInfo() {
-	s.log.Info("loading Integration Gateway", zap.Bool("debug", s.opts.Debug), zap.Bool("log", s.opts.LogEnabled))
+	s.log.Info("loading Integration Gateway")
 
-	if s.opts.ProfilerEnabled {
-		if s.opts.LogRequestBody {
-			s.log.Info("profiler and request body logging is enabled, profiler use is prefered",
-				zap.Bool("APIGW_PROFILER_ENABLED", s.opts.ProfilerEnabled),
-				zap.Bool("APIGW_LOG_REQUEST_BODY", s.opts.LogRequestBody))
-		} else {
-			s.log.Info("request body logging is enabled, profiler use is prefered (APIGW_PROFILER_ENABLED)",
-				zap.Bool("APIGW_LOG_REQUEST_BODY", s.opts.LogRequestBody))
-		}
-
-		if !s.opts.ProfilerGlobal {
+	if s.cfg.Profiler.Enabled {
+		if !s.cfg.Profiler.Global {
 			s.log.Warn("profiler enabled only for routes with a profiler prefilter, use global setting to enable for all (APIGW_PROFILER_GLOBAL)")
 		}
 	} else {
-		if s.opts.ProfilerGlobal {
+		if s.cfg.Profiler.Global {
 			s.log.Warn("profiler global is enabled, but profiler disabled, no routes will be profiled",
-				zap.Bool("APIGW_PROFILER_ENABLED", s.opts.ProfilerEnabled),
-				zap.Bool("APIGW_PROFILER_GLOBAL", s.opts.ProfilerGlobal))
+				zap.Bool("APIGW_PROFILER_ENABLED", s.cfg.Profiler.Enabled),
+				zap.Bool("APIGW_PROFILER_GLOBAL", s.cfg.Profiler.Global))
 		}
 	}
 }

@@ -88,6 +88,16 @@ type (
 		// Hit ID
 		HitID string
 	}
+
+	ApigwProfilerPurgeAll struct {
+	}
+
+	ApigwProfilerPurge struct {
+		// RouteID PATH parameter
+		//
+		// Route ID
+		RouteID uint64 `json:",string"`
+	}
 )
 
 // NewApigwProfilerAggregation request
@@ -276,6 +286,57 @@ func (r *ApigwProfilerHit) Fill(req *http.Request) (err error) {
 
 		val = chi.URLParam(req, "hitID")
 		r.HitID, err = val, nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewApigwProfilerPurgeAll request
+func NewApigwProfilerPurgeAll() *ApigwProfilerPurgeAll {
+	return &ApigwProfilerPurgeAll{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApigwProfilerPurgeAll) Auditable() map[string]interface{} {
+	return map[string]interface{}{}
+}
+
+// Fill processes request and fills internal variables
+func (r *ApigwProfilerPurgeAll) Fill(req *http.Request) (err error) {
+
+	return err
+}
+
+// NewApigwProfilerPurge request
+func NewApigwProfilerPurge() *ApigwProfilerPurge {
+	return &ApigwProfilerPurge{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApigwProfilerPurge) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"routeID": r.RouteID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApigwProfilerPurge) GetRouteID() uint64 {
+	return r.RouteID
+}
+
+// Fill processes request and fills internal variables
+func (r *ApigwProfilerPurge) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "routeID")
+		r.RouteID, err = payload.ParseUint64(val), nil
 		if err != nil {
 			return err
 		}

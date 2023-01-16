@@ -4070,6 +4070,48 @@ export default class System {
     return `/apigw/profiler/hit/${hitID}`
   }
 
+  // Purge all profiler hits
+  async apigwProfilerPurgeAll (extra: AxiosRequestConfig = {}): Promise<KV> {
+
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.apigwProfilerPurgeAllEndpoint(),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  apigwProfilerPurgeAllEndpoint (): string {
+    return '/apigw/profiler/purge'
+  }
+
+  // Purge route profiler hits
+  async apigwProfilerPurge (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      routeID,
+    } = (a as KV) || {}
+    if (!routeID) {
+      throw Error('field routeID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.apigwProfilerPurgeEndpoint({
+        routeID,
+      }),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  apigwProfilerPurgeEndpoint (a: KV): string {
+    const {
+      routeID,
+    } = a || {}
+    return `/apigw/profiler/purge/${routeID}`
+  }
+
   // List resources translations
   async localeListResource (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {

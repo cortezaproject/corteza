@@ -156,6 +156,12 @@ gateway:
   undelete:
     success: Route restored
     error: Route restore failed
+  profiler:
+    fetch:
+      error: Requests fetch failed
+    purge:
+      success: Requests purged
+      error: Requests purge failed
 workflow:
   fetch:
     error: Workflow fetch failed
@@ -238,6 +244,9 @@ settings:
     smtpCheck:
       success: SMTP configuration check  passed
       error: SMTP configuration check failed
+    apigw:
+      success: Integration gateway settings saved
+      error: Integration gateway settings update failed
   compose:
     fetch:
       error: Compose settings fetch failed

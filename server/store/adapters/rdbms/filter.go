@@ -343,6 +343,22 @@ func DefaultFilters() (f *extendedFilters) {
 		return ee, f, nil
 	}
 
+	f.ApigwFilter = func(s *Store, f systemType.ApigwFilterFilter) (ee []goqu.Expression, _ systemType.ApigwFilterFilter, err error) {
+		if ee, f, err = ApigwFilterFilter(s.Dialect, f); err != nil {
+			return
+		}
+
+		if len(f.Ref) > 0 {
+			ee = append(ee, goqu.C("ref").Eq(f.Ref))
+		}
+
+		if len(f.Kind) > 0 {
+			ee = append(ee, goqu.C("kind").Eq(f.Kind))
+		}
+
+		return ee, f, nil
+	}
+
 	return
 }
 
@@ -405,7 +421,9 @@ func stateFalseComparison(d drivers.Dialect, lit string, fs filter.State) goqu.E
 }
 
 // @todo: Currently we have for support for MsSQL, MySql, PSQL, SQLite drivers,
-//  		this changes is supported by all DB but we need to move to store.driver
+//
+//	this changes is supported by all DB but we need to move to store.driver
+//
 // generateSorting verify and converts given sorting to literal if required
 func generateSorting(sortables map[string]string, s *filter.SortExpr) (out goqu.Expression, err error) {
 	const COALESCE string = "coalesce"

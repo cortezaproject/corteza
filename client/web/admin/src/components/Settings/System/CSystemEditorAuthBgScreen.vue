@@ -1,6 +1,5 @@
 <template>
   <b-card
-    data-test-id="card-edit-authentication"
     header-bg-variant="white"
     footer-bg-variant="white"
     class="shadow-sm"

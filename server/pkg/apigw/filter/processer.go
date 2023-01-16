@@ -6,22 +6,24 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/cortezaproject/corteza/server/automation/automation"
 	atypes "github.com/cortezaproject/corteza/server/automation/types"
 	agctx "github.com/cortezaproject/corteza/server/pkg/apigw/ctx"
 	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
+	"github.com/cortezaproject/corteza/server/pkg/auth"
 	pe "github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/jsenv"
-	"github.com/cortezaproject/corteza/server/pkg/options"
 	"go.uber.org/zap"
 )
 
 type (
 	workflow struct {
 		types.FilterMeta
-		d WfExecer
+		d   WfExecer
+		cfg types.Config
 
 		params struct {
 			Workflow uint64 `json:"workflow,string"`
@@ -31,6 +33,7 @@ type (
 	WfExecer interface {
 		Load(ctx context.Context) error
 		Exec(ctx context.Context, workflowID uint64, p atypes.WorkflowExecParams) (*expr.Vars, uint64, atypes.Stacktrace, error)
+		Search(ctx context.Context, filter atypes.WorkflowFilter) (atypes.WorkflowSet, atypes.WorkflowFilter, error)
 	}
 
 	processerPayload struct {
@@ -39,6 +42,7 @@ type (
 		vm  jsenv.Vm
 		fn  *jsenv.Fn
 		log *zap.Logger
+		cfg types.Config
 
 		params struct {
 			Func   string `json:"jsfunc"`
@@ -47,10 +51,11 @@ type (
 	}
 )
 
-func NewWorkflow(opts options.ApigwOpt, wf WfExecer) (p *workflow) {
+func NewWorkflow(cfg types.Config, wf WfExecer) (p *workflow) {
 	p = &workflow{}
 
 	p.d = wf
+	p.cfg = cfg
 
 	p.Name = "workflow"
 	p.Label = "Workflow processer"
@@ -67,8 +72,8 @@ func NewWorkflow(opts options.ApigwOpt, wf WfExecer) (p *workflow) {
 	return
 }
 
-func (h workflow) New(opts options.ApigwOpt) types.Handler {
-	return NewWorkflow(opts, h.d)
+func (h workflow) New(cfg types.Config) types.Handler {
+	return NewWorkflow(cfg, h.d)
 }
 
 func (h workflow) Enabled() bool {
@@ -83,15 +88,37 @@ func (h workflow) Meta() types.FilterMeta {
 	return h.FilterMeta
 }
 
-func (h *workflow) Merge(params []byte) (types.Handler, error) {
-	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&h.params)
+func (h *workflow) Merge(params []byte, cfg types.Config) (types.Handler, error) {
+	var (
+		t = struct {
+			Workflow string `json:"workflow"`
+		}{}
 
+		ctx = auth.SetIdentityToContext(context.Background(), auth.ServiceUser())
+	)
+
+	h.cfg = cfg
+
+	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&t)
 	if err != nil {
 		return h, err
 	}
 
+	i, err := strconv.Atoi(t.Workflow)
+
+	if err == nil {
+		h.params.Workflow = uint64(i)
+		return h, h.d.Load(ctx)
+	}
+
+	if wf, _, err := h.d.Search(ctx, atypes.WorkflowFilter{Query: t.Workflow}); err != nil {
+		return h, err
+	} else {
+		h.params.Workflow = wf[0].ID
+	}
+
 	// preload workflow cache
-	return h, h.d.Load(context.Background())
+	return h, h.d.Load(ctx)
 }
 
 func (h workflow) Handler() types.HandlerFunc {
@@ -145,17 +172,18 @@ func (h workflow) Handler() types.HandlerFunc {
 		scope = filterScope(scope, "eventType", "resourceType", "invoker")
 
 		// update scope for next items in pipeline
-		r.WithContext(agctx.ScopeToContext(ctx, scope))
+		_ = r.WithContext(agctx.ScopeToContext(ctx, scope))
 
 		return nil
 	}
 }
 
-func NewPayload(opts options.ApigwOpt, l *zap.Logger) (p *processerPayload) {
+func NewPayload(cfg types.Config, l *zap.Logger) (p *processerPayload) {
 	p = &processerPayload{}
 
 	p.vm = jsenv.New(jsenv.NewTransformer(jsenv.LoaderJS, jsenv.TargetES2016))
 	p.log = l
+	p.cfg = cfg
 
 	p.Name = "payload"
 	p.Label = "Payload processer"
@@ -175,8 +203,8 @@ func NewPayload(opts options.ApigwOpt, l *zap.Logger) (p *processerPayload) {
 	return
 }
 
-func (h processerPayload) New(opts options.ApigwOpt) types.Handler {
-	return NewPayload(opts, h.log)
+func (h processerPayload) New(cfg types.Config) types.Handler {
+	return NewPayload(cfg, h.log)
 }
 
 func (h processerPayload) Enabled() bool {
@@ -191,7 +219,9 @@ func (h processerPayload) Meta() types.FilterMeta {
 	return h.FilterMeta
 }
 
-func (h *processerPayload) Merge(params []byte) (types.Handler, error) {
+func (h *processerPayload) Merge(params []byte, cfg types.Config) (types.Handler, error) {
+	h.cfg = cfg
+
 	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&h.params)
 
 	if err != nil {
