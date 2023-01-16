@@ -246,7 +246,7 @@ endpoints:
     parameters:
       post:
       - { type: "string",             name: "name",       required: true,  title: "Name of role" }
-      - { type: "string",             name: "handle",     required: true,  title: "Handle for role" }
+      - { type: "string",             name: "handle",                      title: "Handle for role" }
       - { type: "[]string",           name: "members",                     title: "role member IDs" }
       - { type: "*types.RoleMeta",    name: "meta",                        title: "Meta",           parser: "types.ParseRoleMeta" }
       - { type: "map[string]string",  name: "labels",                      title: "Labels",         parser: "label.ParseStrings" }

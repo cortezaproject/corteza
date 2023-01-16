@@ -2185,39 +2185,53 @@ export default {
       this.toastInfo(this.$t('notification:started-test'), this.$t('notification:test-in-progress'))
 
       await this.$AutomationAPI.workflowExec(testParams)
-        .then(({ sessionID }) => {
+        .then(({ sessionID, error: wfExecErr }) => {
           this.dryRun.sessionID = sessionID
           this.redrawLabel(this.graph.model.getCell(this.dryRun.cellID).mxObjectId)
+
+          const sessionHandler = ({ completedAt, status, stacktrace, error = false }) => {
+            if (completedAt) {
+              // If stacktrace exists, render it
+              if (stacktrace) {
+                this.renderTrace(testParams.stepID, stacktrace)
+
+                if (status === 'completed') {
+                  this.toastSuccess(this.$t('notification:workflow-test-completed'), this.$t('notification:test-completed'))
+                }
+              }
+
+              // Reset state and refresh the trigger label so spinner disappears
+              this.dryRun.lookup = true
+              this.dryRun.processing = false
+              this.dryRun.sessionID = undefined
+              this.redrawLabel(this.graph.model.getCell(this.dryRun.cellID).mxObjectId)
+
+              // If error or no stacktrace, raise an error/warning
+              if (error) {
+                throw new Error(error)
+              } else if (!stacktrace) {
+                this.toastWarning(this.$t('notification:trace-unavailable'), this.$t('notification:test-completed'))
+              }
+            } else {
+              setTimeout(sessionReader, 1000)
+            }
+          }
 
           // Check if session is completed/failed every second
           const sessionReader = () => {
             this.$AutomationAPI.sessionRead({ sessionID })
-              .then(({ completedAt, status, stacktrace, error = false }) => {
-                if (completedAt) {
-                  // If stacktrace exists, render it
-                  if (stacktrace) {
-                    this.renderTrace(testParams.stepID, stacktrace)
-
-                    if (status === 'completed') {
-                      this.toastSuccess(this.$t('notification:workflow-test-completed'), this.$t('notification:test-completed'))
-                    }
-                  }
-
-                  // Reset state and refresh the trigger label so spinner disappears
-                  this.dryRun.lookup = true
-                  this.dryRun.processing = false
-                  this.dryRun.sessionID = undefined
-                  this.redrawLabel(this.graph.model.getCell(this.dryRun.cellID).mxObjectId)
-
-                  // If error or no stacktrace, raise an error/warning
-                  if (error) {
-                    throw new Error(error)
-                  } else if (!stacktrace) {
-                    this.toastWarning(this.$t('notification:trace-unavailable'), this.$t('notification:test-completed'))
-                  }
-                } else {
-                  setTimeout(sessionReader, 1000)
+              .then(sessionHandler)
+              .catch(err => {
+                // In case of a workflow step crashing, the session may not always be available
+                //
+                // In this case, if the wf exec raises an error and the session is not found,
+                // make a dummy session so the UI is able to recover without needing to
+                // refresh the page.
+                if (wfExecErr) {
+                  sessionHandler({ completedAt: new Date(), status: 'failed', error: wfExecErr })
+                  return
                 }
+                throw err
               }).catch(this.toastErrorHandler(this.$t('notification:failed-test')))
           }
 

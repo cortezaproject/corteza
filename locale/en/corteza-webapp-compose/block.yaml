@@ -406,6 +406,7 @@ recordRevisions:
   viewer:
     errors:
       no-record: No record found to display revisions for
+      no-revisions: No record revisions found
       disabled-on-module: Record revisions are disabled on this module
 
     show-revisions: Show record revisions ({{ revision }})

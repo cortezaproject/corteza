@@ -43,6 +43,26 @@ type (
 		//
 		// Filter by status
 		Status string
+
+		// Limit GET parameter
+		//
+		// Limit
+		Limit uint
+
+		// IncTotal GET parameter
+		//
+		// Include total counter
+		IncTotal bool
+
+		// PageCursor GET parameter
+		//
+		// Page cursor
+		PageCursor string
+
+		// Sort GET parameter
+		//
+		// Sort items
+		Sort string
 	}
 
 	NodeCreate struct {
@@ -152,8 +172,12 @@ func NewNodeSearch() *NodeSearch {
 // Auditable returns all auditable/loggable parameters
 func (r NodeSearch) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"query":  r.Query,
-		"status": r.Status,
+		"query":      r.Query,
+		"status":     r.Status,
+		"limit":      r.Limit,
+		"incTotal":   r.IncTotal,
+		"pageCursor": r.PageCursor,
+		"sort":       r.Sort,
 	}
 }
 
@@ -165,6 +189,26 @@ func (r NodeSearch) GetQuery() string {
 // Auditable returns all auditable/loggable parameters
 func (r NodeSearch) GetStatus() string {
 	return r.Status
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NodeSearch) GetLimit() uint {
+	return r.Limit
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NodeSearch) GetIncTotal() bool {
+	return r.IncTotal
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NodeSearch) GetPageCursor() string {
+	return r.PageCursor
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NodeSearch) GetSort() string {
+	return r.Sort
 }
 
 // Fill processes request and fills internal variables
@@ -182,6 +226,30 @@ func (r *NodeSearch) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["status"]; ok && len(val) > 0 {
 			r.Status, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["limit"]; ok && len(val) > 0 {
+			r.Limit, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["incTotal"]; ok && len(val) > 0 {
+			r.IncTotal, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["pageCursor"]; ok && len(val) > 0 {
+			r.PageCursor, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["sort"]; ok && len(val) > 0 {
+			r.Sort, err = val[0], nil
 			if err != nil {
 				return err
 			}

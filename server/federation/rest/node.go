@@ -7,6 +7,7 @@ import (
 	"github.com/cortezaproject/corteza/server/federation/service"
 	"github.com/cortezaproject/corteza/server/federation/types"
 	"github.com/cortezaproject/corteza/server/pkg/api"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 )
 
 type (
@@ -50,10 +51,25 @@ func (Node) New() *Node {
 }
 
 func (ctrl Node) Search(ctx context.Context, r *request.NodeSearch) (interface{}, error) {
-	set, f, err := ctrl.svcNode.Search(ctx, types.NodeFilter{
-		Query:  r.Query,
-		Status: r.Status,
-	})
+	var (
+		err error
+		f   = types.NodeFilter{
+			Query:  r.Query,
+			Status: r.Status,
+		}
+	)
+
+	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
+		return nil, err
+	}
+
+	f.IncTotal = r.IncTotal
+
+	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
+		return nil, err
+	}
+
+	set, f, err := ctrl.svcNode.Search(ctx, f)
 
 	return ctrl.makeFilterPayload(ctx, set, f, err)
 }

@@ -109,7 +109,6 @@ import { compose, NoID } from '@cortezaproject/corteza-js'
 import { BootstrapTheme } from '@fullcalendar/bootstrap'
 import { createPlugin } from '@fullcalendar/core'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
-import { throttle } from 'lodash'
 
 /**
  * FullCalendar Corteza theme definition.
@@ -230,13 +229,13 @@ export default {
       findModuleByID: 'module/findByID',
     }),
 
-    updateSize: throttle(function () {
+    async updateSize () {
       this.show = false
 
-      this.$nextTick(() => {
+      await this.$nextTick(() => {
         this.show = true
       })
-    }, 200),
+    },
 
     /**
      * Helper method to load requested locale.
