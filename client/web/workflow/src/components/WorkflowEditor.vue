@@ -2227,7 +2227,7 @@ export default {
                 // In this case, if the wf exec raises an error and the session is not found,
                 // make a dummy session so the UI is able to recover without needing to
                 // refresh the page.
-                if (wfExecErr && err.meta && err.meta.resource === 'automation:session' && err.meta.type === 'notFound') {
+                if (wfExecErr) {
                   sessionHandler({ completedAt: new Date(), status: 'failed', error: wfExecErr })
                   return
                 }
