@@ -505,7 +505,7 @@
               </div>
             </div>
             <div
-              v-if="showPageNavigation && !options.hidePaging && !inlineEditing"
+              v-if="!options.hidePaging && !inlineEditing"
             >
               <b-pagination
                 v-if="options.fullPageNavigation"
@@ -700,7 +700,7 @@ export default {
 
       return {
         from: ((page - 1) * perPage) + 1,
-        to: Math.min((page * perPage), count),
+        to: perPage > 0 ? Math.min((page * perPage), count) : count,
         page,
         perPage,
         count,
@@ -713,10 +713,6 @@ export default {
 
     hasNextPage () {
       return this.filter.nextPage
-    },
-
-    showPageNavigation () {
-      return this.hasNextPage || this.hasPrevPage
     },
 
     editing () {
