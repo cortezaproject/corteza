@@ -647,7 +647,7 @@ func TestStepAggregate(t *testing.T) {
 			},
 
 			out: []simpleRow{
-				{"d": 2022, "users": float64(3)},
+				{"d": 2023, "users": float64(3)},
 			},
 
 			f: internalFilter{
