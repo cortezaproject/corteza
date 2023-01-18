@@ -182,7 +182,7 @@
         class="metrics mb-3"
         :list.sync="metrics"
         handle=".metric-handle"
-        :options="{ group: `metrics_${moduleID}` }"
+        :group="`metrics_${moduleID}`"
       >
         <fieldset
           v-for="(m,i) in metrics"

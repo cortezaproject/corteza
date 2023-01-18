@@ -284,7 +284,7 @@
 
                       <draggable
                         v-model="module.fields"
-                        :options="{ handle:'.handle' }"
+                        handle=".handle"
                         tag="tbody"
                       >
                         <field-row-edit
