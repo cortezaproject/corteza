@@ -30,9 +30,9 @@
         <draggable
           v-if="filteredApps.length"
           v-model="appList"
+          :disabled="!canCreateApplication || query || isMobileResolution"
           group="apps"
           class="h-100 w-100"
-          :disabled="!canCreateApplication || query || isMobileResolution"
           @end="onDrop"
         >
           <transition-group

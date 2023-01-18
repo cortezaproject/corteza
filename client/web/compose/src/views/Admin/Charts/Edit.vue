@@ -128,9 +128,9 @@
                       <div class="ml-1">
                         <draggable
                           v-model="reports"
-                          :options="{ handle:'.handle' }"
-                          class="w-100 d-inline-block"
+                          handle=".handle"
                           tag="tbody"
+                          class="w-100 d-inline-block"
                         >
                           <report-item
                             v-for="(r, i) in reports"
