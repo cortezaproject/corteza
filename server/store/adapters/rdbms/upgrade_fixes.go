@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza/server/compose/model"
 	"github.com/cortezaproject/corteza/server/compose/types"
+	discovery "github.com/cortezaproject/corteza/server/discovery/types"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
@@ -32,6 +33,7 @@ import (
 var (
 	// all enabled fix function need to be listed here
 	fixes = []func(context.Context, *Store) error{
+		fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings,
 		fix_2022_09_00_extendComposeModuleForPrivacyAndDAL,
 		fix_2022_09_00_extendComposeModuleFieldsForPrivacyAndDAL,
 		fix_2022_09_00_dropObsoleteComposeModuleFields,
@@ -45,6 +47,159 @@ var (
 		fix_2023_03_00_migrateComposeModuleConfigForRecordDeDup,
 	}
 )
+
+func fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings(ctx context.Context, s *Store) (err error) {
+	type (
+		oldS struct {
+			Public    interface{} `json:"public"`
+			Private   interface{} `json:"private"`
+			Protected interface{} `json:"protected"`
+		}
+
+		result struct {
+			Result discovery.Result `json:"result"`
+		}
+
+		updateModule struct {
+			ID        uint64 `json:"id"`
+			Discovery []byte `json:"discovery"`
+		}
+	)
+
+	var (
+		log   = s.log(ctx)
+		query string
+		auxID uint64
+		aux   []byte
+		rows  *sql.Rows
+		ss    oldS
+
+		uu []updateModule
+	)
+
+	const (
+		getModuleDiscoverySettings = `
+			SELECT id, compose_module.config -> 'discovery' AS discovery
+			FROM compose_module`
+
+		updateModuleDiscoverySettings = `
+			UPDATE compose_module 
+			SET config = jsonb_set(config, '{discovery}', '%s'::jsonb)
+			WHERE id = %d`
+	)
+
+	// 1. Check if module has discovery settings
+	// 2. If yes, migrate them to new format from json to json slice for multiple lang support
+	// 3. Save module
+
+	_, err = s.DataDefiner.TableLookup(ctx, model.Module.Ident)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Debug("skipping module config recordDeDup migration: compose_module table not found")
+			return nil
+		}
+		return err
+	}
+
+	return s.Tx(ctx, func(ctx context.Context, s store.Storer) (err error) {
+		query = fmt.Sprintf(getModuleDiscoverySettings)
+		rows, err = s.(*Store).DB.QueryContext(ctx, query)
+		if err != nil {
+			return
+		}
+
+		defer func() {
+			// assign error to return value...
+			err = rows.Close()
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return
+			}
+
+			err = rows.Scan(&auxID, &aux)
+			if err != nil {
+				continue
+			}
+
+			if aux == nil {
+				continue
+			}
+
+			err = json.Unmarshal(aux, &ss)
+			if err != nil {
+				continue
+			}
+
+			var (
+				bb             []byte
+				settings       discovery.ModuleMeta
+				migrateSetting = func(input interface{}) (out result) {
+					var (
+						ok  bool
+						ii  map[string]interface{}
+						rr  []interface{}
+						res interface{}
+					)
+
+					if input != nil {
+						ii, ok = input.(map[string]interface{})
+						if ok {
+							if ii["result"] != nil {
+								rr, ok = ii["result"].([]interface{})
+								if !ok {
+									res, ok = ii["result"].(interface{})
+									if ok {
+										rr = append(rr, res)
+									}
+								}
+								if ok {
+									for _, r := range rr {
+										out.Result.Lang = r.(map[string]interface{})["lang"].(string)
+										out.Result.Fields = []string{}
+										if _, ok = r.(map[string]interface{})["fields"].([]interface{}); ok {
+											for _, f := range r.(map[string]interface{})["fields"].([]interface{}) {
+												out.Result.Fields = append(out.Result.Fields, f.(string))
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+					return
+				}
+			)
+
+			settings.Public.Result = append(settings.Public.Result, migrateSetting(ss.Public).Result)
+			settings.Private.Result = append(settings.Private.Result, migrateSetting(ss.Private).Result)
+			settings.Protected.Result = append(settings.Protected.Result, migrateSetting(ss.Protected).Result)
+
+			bb, err = json.Marshal(settings)
+			if err != nil {
+				continue
+			}
+
+			uu = append(uu, updateModule{
+				ID:        auxID,
+				Discovery: bb,
+			})
+		}
+
+		for _, u := range uu {
+			query = fmt.Sprintf(updateModuleDiscoverySettings, u.Discovery, u.ID)
+			log.Info("saving migrated module.config.discovery settings", zap.Uint64("id", u.ID))
+			_, err = s.(*Store).DB.QueryContext(ctx, query)
+			if err != nil {
+				log.Info("error saving migrated module.config.discovery settings", zap.Uint64("id", u.ID))
+				continue
+			}
+		}
+
+		return
+	})
+}
 
 func fix_2022_09_00_extendComposeModuleForPrivacyAndDAL(ctx context.Context, s *Store) (err error) {
 	return addColumn(ctx, s,
