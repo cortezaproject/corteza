@@ -53,11 +53,7 @@ export class ModuleFieldDateTime extends ModuleField {
     }
 
     const o = this.options
-    let m = moment(value)
-
-    if (o.onlyTime) {
-      m = moment(value, ['YYYY-MM-DD HH:mm', 'YYYY-MM-DD', 'HH:mm'])
-    }
+    const m = moment(value, ['YYYY-MM-DDTHH:mm:ssZ', 'YYYY-MM-DD HH:mm', 'YYYY-MM-DD', 'HH:mm'])
 
     if (o.outputRelative) {
       return m.fromNow()
@@ -66,7 +62,7 @@ export class ModuleFieldDateTime extends ModuleField {
     } else if (o.onlyTime) {
       return fmt.time(m)
     } else if (o.onlyDate) {
-      return fmt.date(m)
+      return fmt.date(moment(value, 'YYYY-MM-DD'))
     } else {
       return fmt.fullDateTime(m)
     }

@@ -10,7 +10,11 @@ export function getDate (value: string|undefined): string | undefined {
     return undefined
   }
 
-  return moment.utc(value).local().format('YYYY-MM-DD')
+  if (moment(value, 'YYYY-MM-DDTHH:mm:ssZ', true).isValid()) {
+    return moment.utc(value).local().format('YYYY-MM-DD')
+  }
+
+  return value
 }
 
 export function getTime (value: string|undefined): string | undefined {
