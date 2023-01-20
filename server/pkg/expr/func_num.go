@@ -6,6 +6,7 @@ import (
 	"math/rand"
 
 	"github.com/PaesslerAG/gval"
+	"github.com/cortezaproject/corteza/server/pkg/gvalfnc"
 	"github.com/spf13/cast"
 )
 
@@ -24,6 +25,7 @@ func NumericFunctions() []gval.Language {
 		gval.Function("average", average),
 		gval.Function("random", random),
 		gval.Function("int", toInt64),
+		gval.Function("float", gvalfnc.CastFloat),
 	}
 }
 
