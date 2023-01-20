@@ -2,6 +2,7 @@
   <wrap
     v-bind="$props"
     v-on="$listeners"
+    @refreshBlock="refresh"
   >
     <template #default>
       <div

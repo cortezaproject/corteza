@@ -38,7 +38,7 @@ export default {
 
   mounted () {
     this.fetchChart()
-    this.refreshBlock(this.refresh, true)
+    this.refreshBlock(this.refresh)
   },
 
   methods: {
@@ -46,7 +46,7 @@ export default {
       findChartByID: 'chart/findByID',
     }),
 
-    fetchChart (params = {}) {
+    async fetchChart (params = {}) {
       const { chartID } = this.options
 
       if (chartID === NoID) {
@@ -55,7 +55,7 @@ export default {
 
       const { namespaceID } = this.namespace
 
-      this.findChartByID({ chartID, namespaceID, ...params }).then((chart) => {
+      return this.findChartByID({ chartID, namespaceID, ...params }).then((chart) => {
         this.chart = chart
       }).catch(this.toastErrorHandler(this.$t('chart.loadFailed')))
     },
@@ -82,7 +82,9 @@ export default {
     },
 
     refresh () {
-      this.fetchChart({ force: true })
+      this.fetchChart({ force: true }).then(() => {
+        this.key++
+      })
     },
   },
 

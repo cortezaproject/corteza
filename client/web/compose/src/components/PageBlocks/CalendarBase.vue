@@ -226,7 +226,7 @@ export default {
 
   created () {
     this.changeLocale(this.currentLanguage)
-    this.refreshBlock(this.refresh, true)
+    this.refreshBlock(this.refresh)
   },
 
   methods: {
@@ -350,7 +350,9 @@ export default {
 
     refresh () {
       this.refreshing = true
-      this.api().refetchEvents()
+      this.api().refetchEvents().then(() => {
+        this.key++
+      })
     },
   },
 }

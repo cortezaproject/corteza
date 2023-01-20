@@ -2,7 +2,7 @@
   <wrap
     v-bind="$props"
     v-on="$listeners"
-    @refreshBlock="key++"
+    @refreshBlock="refresh"
   >
     <div
       v-if="profile"
@@ -57,7 +57,7 @@ export default {
   },
 
   mounted () {
-    this.refreshBlock(() => {}, true)
+    this.refreshBlock(this.refresh)
   },
 
   methods: {
@@ -108,6 +108,10 @@ export default {
         socialNetwork,
         twitterHandle,
       }
+    },
+
+    refresh () {
+      this.key++
     },
   },
 }

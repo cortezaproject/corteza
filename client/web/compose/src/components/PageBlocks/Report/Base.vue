@@ -2,6 +2,7 @@
   <wrap
     v-bind="$props"
     v-on="$listeners"
+    @refreshBlock="refresh"
   >
     <div
       v-if="processing"
@@ -57,18 +58,18 @@ export default {
   },
 
   created () {
-    this.refreshBlock(this.refresh, true)
+    this.refreshBlock(this.refresh)
   },
 
   methods: {
     fetchReport (reportID) {
       this.processing = true
 
-      this.$SystemAPI.reportRead({ reportID })
+      return this.$SystemAPI.reportRead({ reportID })
         .then(report => {
           this.report = new system.Report(report)
 
-          this.getDataframes()
+          return this.getDataframes()
         }).catch(this.toastErrorHandler(this.$t('notification:report.fetchFailed')))
         .finally(() => {
           this.processing = false
@@ -97,7 +98,7 @@ export default {
           const { dataframes: frames = [] } = element.reportDefinitions({ ...definition, ...scenarioDefinition })
 
           if (frames.length) {
-            this.$SystemAPI.reportRun({ frames, reportID: this.options.reportID })
+            return this.$SystemAPI.reportRun({ frames, reportID: this.options.reportID })
               .then(({ frames: dataframes = [] }) => {
                 this.displayElement = {
                   ...element,
@@ -133,7 +134,9 @@ export default {
     },
 
     refresh () {
-      this.fetchReport(this.options.reportID)
+      this.fetchReport(this.options.reportID).then(() => {
+        this.key++
+      })
     },
   },
 }

@@ -94,21 +94,14 @@ export default {
     /**
      *
      * @param {*} refreshFunction
-     * @param {*} forceRerender
-     * Key is used to force a component to re-render
-     * However, sometimes reloading data is enough
-     * Attach :key="key" if you need to re-render a component
-     *
+     * If reloading data does not refresh the page block
+     * You should attach :key="key" to it and increment it in the refreshFunction
      */
-    refreshBlock (refreshFunction, forceRerender) {
+    refreshBlock (refreshFunction) {
       if (!this.allowsRefresh || this.refreshInterval) return
 
       const interval = setInterval(() => {
         refreshFunction()
-
-        if (forceRerender) {
-          this.key++
-        }
       }, this.options.refreshRate * 1000)
 
       this.refreshInterval = interval
