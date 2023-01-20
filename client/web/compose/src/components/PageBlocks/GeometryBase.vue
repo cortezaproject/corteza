@@ -149,7 +149,7 @@ export default {
         zoomMax,
       }
 
-      Promise.all(this.options.feeds.map((feed, idx) => {
+      Promise.all(this.options.feeds.filter(f => f.isValid()).map((feed, idx) => {
         return this.findModuleByID({ namespace: this.namespace, moduleID: feed.options.moduleID })
           .then(module => {
             // Interpolate prefilter variables
