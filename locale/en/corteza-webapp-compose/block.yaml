@@ -659,13 +659,13 @@ geometry:
   lock: Lock
   mapHelpText: Move and scroll the map to the position that will be used as a default. You can also lock the position or zoom to prevent users from moving too far.
   recordFeed:
-    moduleLabel: Select module
+    moduleLabel: Module*
     modulePlaceholder: (No module)
     noMultiFields: Multi-value fields are currently not supported
     optionLabel: Records
     prefilterLabel: Prefilter sources
     colorLabel: Marker color
-    geometryFieldLabel: Geometry field
+    geometryFieldLabel: Geometry field*
     titleLabel: Title
     titlePlaceholder: Title
     geometryFieldPlaceholder: Geometry field
