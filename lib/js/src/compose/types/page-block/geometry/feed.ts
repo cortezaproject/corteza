@@ -7,7 +7,6 @@ interface FeedOptions {
   moduleID: string;
   resource: string;
   titleField: string;
-  geometryField: string;
   displayMarker: boolean;
   displayPolygon: boolean;
 }
@@ -20,7 +19,6 @@ const defOptions = {
   prefilter: '',
   resource: 'compose:record',
   titleField: '',
-  geometryField: '',
   displayMarker: false,
   displayPolygon: true,
 }
@@ -52,5 +50,9 @@ export default class Feed {
         this.options = { ...this.options, ...i.options }
       }
     }
+  }
+
+  isValid (): boolean {
+    return this.options.moduleID !== NoID && !!this.geometryField
   }
 }
