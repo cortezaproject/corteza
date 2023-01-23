@@ -85,7 +85,7 @@ export default class FunnelChart extends BaseChart {
   }
 
   makeOptions (data: any) {
-    const { colorScheme } = this.config
+    const { colorScheme, noAnimation = false } = this.config
     const { labels, datasets = [], tooltip } = data
     const colors = getColorschemeColors(colorScheme)
 
@@ -93,6 +93,7 @@ export default class FunnelChart extends BaseChart {
     const labelFormatter = `{c}${tooltip.relative ? ' ({d}%)' : ''}`
 
     return {
+      animation: !noAnimation,
       textStyle: {
         fontFamily: 'Poppins-Regular',
       },

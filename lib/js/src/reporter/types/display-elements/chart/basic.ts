@@ -176,6 +176,7 @@ export class BasicChartOptions extends ChartOptions {
     }
 
     return {
+      animation: !this.noAnimation,
       title: {
         text: this.title,
         left: 'center',

@@ -7,7 +7,9 @@
         {{ $t('display-element:chart.configurator.general') }}
       </h5>
 
-      <b-row>
+      <b-row
+        align-v="stretch"
+      >
         <b-col
           cols="12"
           sm="6"
@@ -37,9 +39,7 @@
             />
           </b-form-group>
         </b-col>
-      </b-row>
 
-      <b-row>
         <b-col
           cols="12"
           sm="6"
@@ -87,6 +87,22 @@
               />
             </template>
           </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          sm="6"
+          class="d-flex flex-column justify-content-center"
+        >
+          <b-form-checkbox
+            v-model="options.noAnimation"
+            :value="false || undefined"
+            :unchecked-value="true"
+            switch
+            class="mt-3 pt-2"
+          >
+            {{ $t('display-element:chart.configurator.animation.enabled') }}
+          </b-form-checkbox>
         </b-col>
       </b-row>
       <hr>

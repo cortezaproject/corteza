@@ -51,6 +51,7 @@ export class ChartOptions {
   public title = ''
   public type = 'bar'
   public colorScheme = ''
+  public noAnimation = false
   public source = ''
   public datasources: Array<FrameDefinition> = []
 
@@ -98,6 +99,7 @@ export class ChartOptions {
     if (!o) return
 
     Apply(this, o, String, 'title', 'type', 'colorScheme', 'source')
+    Apply(this, o, Boolean, 'noAnimation')
 
     if (o.datasources) {
       this.datasources = o.datasources

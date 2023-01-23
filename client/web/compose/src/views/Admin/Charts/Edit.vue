@@ -106,6 +106,19 @@
                         />
                       </template>
                     </b-form-group>
+
+                    <b-form-group>
+                      <b-form-checkbox
+                        v-model="chart.config.noAnimation"
+                        :value="false"
+                        :unchecked-value="true"
+                        switch
+                      >
+                        {{ $t('edit.animation.enabled') }}
+                      </b-form-checkbox>
+                    </b-form-group>
+
+                    <hr>
                   </div>
 
                   <!-- Some charts support multiple reports -->
