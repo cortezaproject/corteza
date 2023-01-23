@@ -300,8 +300,9 @@ export class BaseChart {
 
   defConfig (): ChartConfig {
     return Object.assign({}, {
-      colorScheme: undefined,
+      colorScheme: '',
       reports: [this.defReport()],
+      noAnimation: false,
     })
   }
 

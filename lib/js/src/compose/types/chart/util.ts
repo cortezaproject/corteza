@@ -103,6 +103,7 @@ export interface Report {
 export interface ChartConfig {
   reports?: Array<Report>;
   colorScheme?: string;
+  noAnimation?: boolean;
 }
 
 export const aggregateFunctions = [

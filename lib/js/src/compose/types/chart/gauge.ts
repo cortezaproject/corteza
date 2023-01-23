@@ -66,7 +66,7 @@ export default class GaugeChart extends BaseChart {
   }
 
   makeOptions (data: any) {
-    const { colorScheme } = this.config
+    const { colorScheme, noAnimation = false } = this.config
     const { datasets = [] } = data
     const { steps = [], name, value, max, tooltip } = datasets.find(({ value }: any) => value) || datasets[0]
     const colors = getColorschemeColors(colorScheme)
@@ -76,6 +76,7 @@ export default class GaugeChart extends BaseChart {
     })
 
     return {
+      animation: !noAnimation,
       textStyle: {
         fontFamily: 'Poppins-Regular',
       },

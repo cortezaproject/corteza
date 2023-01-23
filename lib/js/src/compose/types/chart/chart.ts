@@ -91,9 +91,10 @@ export default class Chart extends BaseChart {
   }
 
   makeOptions (data: any): any {
-    const { reports = [], colorScheme } = this.config
+    const { reports = [], colorScheme, noAnimation = false } = this.config
 
     const options: any = {
+      animation: !noAnimation,
       series: [],
       xAxis: [],
       yAxis: [],

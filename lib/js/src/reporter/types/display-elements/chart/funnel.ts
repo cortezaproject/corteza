@@ -25,6 +25,7 @@ export class FunnelChartOptions extends ChartOptions {
     const colors = getColorschemeColors(this.colorScheme)
 
     return {
+      animation: !this.noAnimation,
       title: {
         text: this.title,
         left: 'center',

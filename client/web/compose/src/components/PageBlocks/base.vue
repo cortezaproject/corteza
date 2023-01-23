@@ -80,7 +80,7 @@ export default {
       },
     },
 
-    allowsRefresh () {
+    autoRefreshEnabled () {
       return this.options.refreshRate >= 5 && ['page', 'page.record'].includes(this.$route.name)
     },
   },
@@ -97,7 +97,7 @@ export default {
      * You should attach :key="key" to it and increment it in the refreshFunction
      */
     refreshBlock (refreshFunction) {
-      if (!this.allowsRefresh || this.refreshInterval) return
+      if (!this.autoRefreshEnabled || this.refreshInterval) return
 
       const interval = setInterval(() => {
         refreshFunction()
