@@ -33,6 +33,7 @@ type (
 	ChartConfig struct {
 		Reports     []*ChartConfigReport `json:"reports,omitempty"`
 		ColorScheme string               `json:"colorScheme,omitempty"`
+		NoAnimation bool                 `json:"noAnimation,omitempty"`
 	}
 
 	ChartConfigReport struct {
