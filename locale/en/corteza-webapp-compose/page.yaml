@@ -23,6 +23,15 @@ edit:
   edit: Edit page
   pageDescription: Page description
   visible: Page visibility
+icon:
+  configure: Configure page icon
+  not-set: No icon set
+  page: Page icon
+  set: Set icon
+  upload: Upload icon
+  list: List of uploaded icons
+url:
+  label: Or add URL to icon
 import: 'Import page(s):'
 instructions: Drag and drop pages to adjust the order and hierarchy
 invalid: Invalid configuration
@@ -45,6 +54,7 @@ noPages: No pages
 notVisible: Hidden
 pageMoveFailed: Could not move this page
 reordered: Page reordered
+showSubPages: Expand sub-pages in the sidebar
 title: List of Pages
 tooltip:
   unsavedChanges: Unsaved Changes
@@ -56,6 +66,7 @@ tooltip:
     block: Copy block
   clone:
     block: Clone block
+  preview-link: Preview link
   saveAsCopy: Cannot duplicate record page
 view: View
 visible: Visible

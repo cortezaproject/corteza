@@ -81,6 +81,10 @@ export default {
       required: false,
       default: () => ({}),
     },
+    paramName: {
+      type: String,
+      default: 'upload',
+    },
   },
 
   data () {
@@ -100,7 +104,7 @@ export default {
       const vm = this
 
       return {
-        paramName: 'upload',
+        paramName: this.paramName,
         maxFilesize: this.maxFilesize, // mb
         url: () => this.baseUrl + this.endpoint,
         thumbnailMethod: 'contain',

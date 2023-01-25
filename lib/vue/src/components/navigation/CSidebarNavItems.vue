@@ -13,11 +13,22 @@
         class="d-inline-block w-75 text-nowrap text-truncate"
         @click="closeSidebar()"
       >
-        <font-awesome-icon
+        <template
           v-if="page.icon"
-          class="icon"
-          :icon="page.icon"
-        />
+        >
+          <font-awesome-icon
+            v-if="Array.isArray(page.icon)"
+            class="icon"
+            :icon="page.icon"
+          />
+          <template v-else>
+            <img
+              :src="page.icon"
+              class="rounded-circle mr-1"
+              style="height: 1.5em; width: 1.5em;"
+            />
+          </template>
+        </template>
         <span
           class="title"
         >
@@ -102,9 +113,7 @@ export default {
         items.forEach(({ page }) => {
           const px = this.pageIndex(page)
           // Apply startExpanded only if page isn't currently expanded
-          if (!this.collapses[px]) {
-            this.$set(this.collapses, px, this.startExpanded)
-          }
+          this.$set(this.collapses, px, this.startExpanded || page.expanded)
         })
       },
     },

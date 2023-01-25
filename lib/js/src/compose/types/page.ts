@@ -22,6 +22,14 @@ interface PageConfig {
     clone: Button;
     back: Button;
   };
+  attachments: [];
+  navItem: {
+    icon: {
+      type: string;
+      src: string;
+    };
+    expanded: false;
+  };
 }
 
 export class Page {
@@ -51,6 +59,14 @@ export class Page {
       edit: { enabled: true },
       clone: { enabled: true },
       back: { enabled: true },
+    },
+    attachments: [],
+    navItem: {
+      icon: {
+        type: '',
+        src: '',
+      },
+      expanded: false,
     },
   }
 

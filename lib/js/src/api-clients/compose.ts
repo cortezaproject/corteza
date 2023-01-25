@@ -919,6 +919,94 @@ export default class Compose {
     return `/namespace/${namespaceID}/page/${pageID}/translation`
   }
 
+  // Update icon for page
+  async pageUpdateIcon (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      namespaceID,
+      pageID,
+      type,
+      source,
+      style,
+    } = (a as KV) || {}
+    if (!namespaceID) {
+      throw Error('field namespaceID is empty')
+    }
+    if (!pageID) {
+      throw Error('field pageID is empty')
+    }
+    if (!type) {
+      throw Error('field type is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'patch',
+      url: this.pageUpdateIconEndpoint({
+        namespaceID, pageID,
+      }),
+    }
+    cfg.data = {
+      type,
+      source,
+      style,
+    }
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  pageUpdateIconEndpoint (a: KV): string {
+    const {
+      namespaceID,
+      pageID,
+    } = a || {}
+    return `/namespace/${namespaceID}/page/${pageID}/icon`
+  }
+
+  // List icons
+  async iconList (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.iconListEndpoint(),
+    }
+    cfg.params = {
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  iconListEndpoint (): string {
+    return '/icon/'
+  }
+
+  // Upload icon
+  async iconUpload (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      icon,
+    } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.iconUploadEndpoint(),
+    }
+    cfg.data = {
+      icon,
+    }
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  iconUploadEndpoint (): string {
+    return '/icon/'
+  }
+
   // List modules
   async moduleList (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {

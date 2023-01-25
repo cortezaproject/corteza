@@ -112,6 +112,33 @@
               </b-form-group>
 
               <b-form-group
+                :label="$t('icon.page')"
+                label-class="text-primary"
+              >
+                <img
+                  v-if="icon.src"
+                  :src="pageIcon"
+                  width="50"
+                  heigth="50"
+                  class="d-block"
+                >
+                <span
+                  v-else
+                  class="d-block"
+                >
+                  {{ $t('icon.not-set') }}
+                </span>
+                <b-button
+                  variant="light"
+                  size="md"
+                  class="mt-2 text-dark"
+                  @click="showIconModal = true"
+                >
+                  {{ $t('icon.set') }}
+                </b-button>
+              </b-form-group>
+
+              <b-form-group
                 v-if="!isRecordPage"
               >
                 <b-form-checkbox
@@ -122,6 +149,118 @@
                   {{ $t('edit.visible') }}
                 </b-form-checkbox>
               </b-form-group>
+
+              <b-form-group
+                data-test-id="checkbox-show-sub-pages-in-sidebar"
+                class="d-flex"
+              >
+                <b-form-checkbox
+                  v-model="page.config.navItem.expanded"
+                  switch
+                >
+                  {{ $t('showSubPages') }}
+                </b-form-checkbox>
+              </b-form-group>
+
+              <b-modal
+                v-model="showIconModal"
+                :title="$t('icon.configure')"
+                :ok-title="$t('label.saveAndClose')"
+                ok-only
+                size="lg"
+                label-class="text-primary"
+                @show="openIconModal"
+                @close="closeIconModal"
+              >
+                <b-form-group
+                  :label="$t('icon.upload')"
+                  label-class="text-primary"
+                  class="mb-0"
+                >
+                  <uploader
+                    :endpoint="endpoint"
+                    :accepted-files="['image/*']"
+                    :param-name="'icon'"
+                    @uploaded="uploadAttachment"
+                  />
+
+                  <b-form-group
+                    :label="$t('url.label')"
+                    label-class="text-primary"
+                    class="my-2"
+                  >
+                    <b-input-group>
+                      <b-input
+                        v-model="linkUrl"
+                        :disabled="isIconSet"
+                        :style="{ 'cursor': isIconSet ? 'not-allowed' : 'default' }"
+                      />
+                      <b-input-group-append>
+                        <b-button
+                          v-b-modal.logo
+                          :title="$t('tooltip.preview-link')"
+                          :disabled="!linkUrl"
+                          variant="light"
+                          rounded
+                          class="d-flex align-items-center btn-light"
+                        >
+                          <font-awesome-icon :icon="['fas', 'external-link-alt']" />
+                        </b-button>
+                      </b-input-group-append>
+                    </b-input-group>
+                  </b-form-group>
+                </b-form-group>
+
+                <template v-if="attachments.length > 0">
+                  <hr>
+
+                  <b-form-group
+                    :label="$t('icon.list')"
+                    label-class="text-primary"
+                  >
+                    <div
+                      v-if="processing"
+                      class="d-flex align-items-center justify-content-center h-100"
+                    >
+                      <b-spinner />
+                    </div>
+
+                    <div
+                      v-else
+                      class="d-flex flex-wrap px-2"
+                    >
+                      <div
+                        v-for="a in attachments"
+                        :key="a.attachmentID"
+                        :class="[selectedIconID === a.attachmentID ? 'border-success' : '2px solid']"
+                        class="mt-2 mr-2 p-2 border rounded-circle"
+                      >
+                        <img
+                          :src="a.src"
+                          :alt="a.name"
+                          :style="{ 'cursor': !!linkUrl ? 'not-allowed' : 'pointer' }"
+                          class="rounded"
+                          style="height: 2.3em; width: 2.3em;"
+                          @click="toggleSelectedIcon(a.attachmentID)"
+                        >
+                      </div>
+                    </div>
+                  </b-form-group>
+                </template>
+              </b-modal>
+
+              <b-modal
+                id="logo"
+                hide-header
+                hide-footer
+                centered
+                body-class="p-1"
+              >
+                <b-img
+                  :src="linkUrl"
+                  fluid-grow
+                />
+              </b-modal>
             </b-form>
           </b-card>
         </b-col>
@@ -171,6 +310,7 @@ import { mapGetters, mapActions } from 'vuex'
 import EditorToolbar from 'corteza-webapp-compose/src/components/Admin/EditorToolbar'
 import PageTranslator from 'corteza-webapp-compose/src/components/Admin/Page/PageTranslator'
 import pages from 'corteza-webapp-compose/src/mixins/pages'
+import Uploader from 'corteza-webapp-compose/src/components/Public/Page/Attachment/Uploader'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { handle } from '@cortezaproject/corteza-vue'
 
@@ -184,6 +324,7 @@ export default {
   components: {
     EditorToolbar,
     PageTranslator,
+    Uploader,
   },
 
   mixins: [
@@ -206,6 +347,13 @@ export default {
     return {
       modulesList: [],
       page: new compose.Page(),
+      showIconModal: false,
+      attachments: [],
+      selectedIconID: '',
+      isSelected: false,
+      linkUrl: '',
+
+      processing: false,
     }
   },
 
@@ -250,6 +398,29 @@ export default {
       return this.hasChildren && this.page.canDeletePage && !this.page.deletedAt
     },
 
+    endpoint () {
+      return this.$ComposeAPI.iconUploadEndpoint({
+        namespaceID: this.namespace.namespaceID,
+      })
+    },
+
+    icon: {
+      get () {
+        return this.page.config.navItem.icon || {}
+      },
+
+      set (icon) {
+        this.page.config.navItem = icon
+      },
+    },
+
+    isIconSet () {
+      return !!this.attachments.find(a => a.attachmentID === this.selectedIconID)
+    },
+
+    pageIcon () {
+      return this.icon.type === 'link' ? this.icon.src : this.makeAttachmentUrl(this.icon.src)
+    },
   },
 
   watch: {
@@ -257,8 +428,7 @@ export default {
       immediate: true,
       handler (pageID) {
         if (pageID) {
-          const { namespaceID } = this.namespace
-          this.findPageByID({ namespaceID, pageID }).then((page) => {
+          this.findPageByID({ namespaceID: this.namespace.namespaceID, pageID }).then((page) => {
             this.page = page.clone()
           }).catch(this.toastErrorHandler(this.$t('notification:page.loadFailed')))
         }
@@ -275,14 +445,14 @@ export default {
       loadPages: 'page/load',
     }),
 
-    handleSave ({ closeOnSuccess = false } = {}) {
+    async handleSave ({ closeOnSuccess = false } = {}) {
       /**
        * Pass a special tag alongside payload that
        * instructs store layer to add content-language header to the API request
        */
       const resourceTranslationLanguage = this.currentLanguage
-      const { namespaceID } = this.namespace
-      this.updatePage({ namespaceID, ...this.page, resourceTranslationLanguage }).then((page) => {
+      await this.setIcon().then(icon => { this.page.config.navItem = { icon, expanded: this.page.config.navItem.expanded } })
+      this.updatePage({ namespaceID: this.namespace.namespaceID, ...this.page, resourceTranslationLanguage }).then((page) => {
         this.page = page.clone()
         this.toastSuccess(this.$t('notification:page.saved'))
         if (closeOnSuccess) {
@@ -295,6 +465,95 @@ export default {
       this.deletePage({ ...this.page, strategy }).then(() => {
         this.$router.push({ name: 'admin.pages' })
       }).catch(this.toastErrorHandler(this.$t('notification:page.deleteFailed')))
+    },
+
+    uploadAttachment () {
+      this.fetchAttachments()
+    },
+
+    fetchAttachments () {
+      this.processing = true
+
+      this.$ComposeAPI.iconList({ sort: 'id DESC' })
+        .then(({ set: attachments = [] }) => {
+          const baseURL = this.$ComposeAPI.baseURL
+          this.attachments = []
+
+          if (attachments) {
+            attachments.forEach(a => {
+              const src = !a.url.includes(baseURL) ? this.makeAttachmentUrl(a.url) : a.url
+              const currSelectedIcon = a.url === this.icon.src
+
+              if (currSelectedIcon) {
+                this.selectedIconID = a.attachmentID
+              }
+
+              this.attachments.push({ ...a, src })
+            })
+          }
+        })
+        .catch(this.toastErrorHandler(this.$t('notification:page.iconFetchFailed')))
+        .finally(() => {
+          this.processing = false
+        })
+    },
+
+    async setIcon () {
+      const selectedAttachmentUrl = this.isSelected ? this.attachments.find(att => att.attachmentID === this.selectedIconID).url : ''
+
+      let attachmentType = 'link'
+      let attachmentSource = this.linkUrl
+
+      if (!attachmentSource) {
+        attachmentType = 'attachment'
+        attachmentSource = selectedAttachmentUrl
+      }
+
+      const navItem = {
+        icon: {
+          type: '',
+          src: '',
+        },
+      }
+
+      if (attachmentType && attachmentSource) {
+        await this.$ComposeAPI.pageUpdateIcon({
+          namespaceID: this.namespace.namespaceID,
+          pageID: this.pageID,
+          type: attachmentType,
+          source: attachmentSource,
+        }).then(({ type, src }) => {
+          navItem.icon.type = type
+          navItem.icon.src = src
+        })
+      }
+
+      return !this.icon.src ? navItem.icon : this.icon
+    },
+
+    toggleSelectedIcon (attachmentID = '') {
+      if (!this.linkUrl) {
+        this.isSelected = this.selectedIconID !== attachmentID
+        this.selectedIconID = this.isSelected ? attachmentID : ''
+      }
+    },
+
+    closeIconModal () {
+      this.isSelected = this.icon.src
+      this.selectedIconID = this.isSelected ? this.isIconSet : ''
+      if (this.icon.type === 'link') {
+        this.linkUrl = this.icon.src
+      }
+    },
+
+    makeAttachmentUrl (src) {
+      return `${this.$ComposeAPI.baseURL}${src}`
+    },
+
+    openIconModal () {
+      this.linkUrl = this.icon.type === 'link' ? this.icon.src : ''
+
+      this.fetchAttachments()
     },
   },
 }
