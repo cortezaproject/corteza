@@ -340,10 +340,9 @@
               </b-tab>
 
               <b-tab
-                v-if="module.config.recordDeDup.enabled"
-                :title="$t('edit.config.validation.title')"
+                :title="$t('edit.config.uniqueValues.title')"
               >
-                <validation
+                <unique-values
                   :module="module"
                 />
               </b-tab>
@@ -458,7 +457,7 @@ import DalSettings from 'corteza-webapp-compose/src/components/Admin/Module/DalS
 import RecordRevisionsSettings from 'corteza-webapp-compose/src/components/Admin/Module/RecordRevisionsSettings'
 import DataPrivacySettings from 'corteza-webapp-compose/src/components/Admin/Module/DataPrivacySettings'
 import ModuleTranslator from 'corteza-webapp-compose/src/components/Admin/Module/ModuleTranslator'
-import Validation from 'corteza-webapp-compose/src/components/Admin/Module/Validation'
+import UniqueValues from 'corteza-webapp-compose/src/components/Admin/Module/UniqueValues'
 import RelatedPages from 'corteza-webapp-compose/src/components/Admin/Module/RelatedPages'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import EditorToolbar from 'corteza-webapp-compose/src/components/Admin/EditorToolbar'
@@ -485,8 +484,8 @@ export default {
     ModuleTranslator,
     RelatedPages,
     EditorToolbar,
-    Validation,
     Export,
+    UniqueValues,
   },
 
   props: {

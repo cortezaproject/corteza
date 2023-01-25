@@ -42,6 +42,7 @@ var (
 		fix_2022_09_00_addRevisionOnComposeRecords,
 		fix_2022_09_00_addMetaOnComposeRecords,
 		fix_2022_09_00_addMissingNodeIdOnFederationMapping,
+		fix_2023_03_00_migrateComposeModuleConfigForRecordDeDup,
 	}
 )
 
@@ -208,7 +209,7 @@ func fix_2022_09_00_migrateOldComposeRecordValues(ctx context.Context, s *Store)
 
 				err = func() (err error) {
 					query = fmt.Sprintf(recordsPerModule, mod.NamespaceID, mod.ID, sliceLastRecordID, recordSliceSize)
-					//println(query)
+					// println(query)
 					rows, err = s.DB.QueryContext(ctx, query)
 					if err != nil {
 						return
@@ -237,7 +238,7 @@ func fix_2022_09_00_migrateOldComposeRecordValues(ctx context.Context, s *Store)
 					}
 
 					query = fmt.Sprintf(recValuesPerModule, strings.Join(recordIDs, ","))
-					//println(query)
+					// println(query)
 					rows, err = s.DB.QueryContext(ctx, query)
 					if err != nil {
 						return
@@ -427,6 +428,131 @@ func fix_2022_09_00_addMissingNodeIdOnFederationMapping(ctx context.Context, s *
 		"federation_module_mapping",
 		&dal.Attribute{Ident: "node_id", Type: &dal.TypeID{}},
 	)
+}
+
+func fix_2023_03_00_migrateComposeModuleConfigForRecordDeDup(ctx context.Context, s *Store) (err error) {
+	type (
+		oldRule struct {
+			Name       string   `json:"name"`
+			Strict     bool     `json:"strict"`
+			Attributes []string `json:"attributes"`
+		}
+		rules struct {
+			Rules []oldRule `json:"rules"`
+		}
+	)
+
+	var (
+		log     = s.log(ctx)
+		query   string
+		aux     []byte
+		rr      rules
+		rows    *sql.Rows
+		modules types.ModuleSet
+	)
+
+	_, err = s.DataDefiner.TableLookup(ctx, model.Module.Ident)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Debug("skipping module config recordDeDup migration: compose_module table not found")
+			return nil
+		}
+		return err
+	}
+
+	const (
+		moduleConfigRecordDeDup = `
+			SELECT compose_module.config -> 'recordDeDup' AS recordDeDup
+			FROM compose_module 
+			WHERE compose_module.id = %d`
+	)
+
+	modules, _, err = s.SearchComposeModules(ctx, types.ModuleFilter{})
+	if err != nil {
+		return
+	}
+
+	// 1. Check if module has recordDeDup rules
+	// 2. If yes, migrate them to new format
+	// 3. Save module
+	for _, m := range modules {
+		var (
+			migratedRules types.DeDupRuleSet
+		)
+
+		if err = s.Tx(ctx, func(ctx context.Context, s store.Storer) (err error) {
+			log.Info("collecting module.config.recordDeDup for module", zap.Uint64("id", m.ID))
+
+			query = fmt.Sprintf(moduleConfigRecordDeDup, m.ID)
+			rows, err = s.(*Store).DB.QueryContext(ctx, query)
+			if err != nil {
+				return
+			}
+
+			defer func() {
+				// assign error to return value...
+				err = rows.Close()
+			}()
+
+			for rows.Next() {
+				if err = rows.Err(); err != nil {
+					log.Info("failed to scan rows to migrated module.config.recordDeDup for module",
+						zap.Uint64("id", m.ID))
+					return
+				}
+
+				err = rows.Scan(&aux)
+				if err != nil {
+					continue
+				}
+
+				err = json.Unmarshal(aux, &rr)
+				if err != nil {
+					continue
+				}
+			}
+
+			for _, r := range rr.Rules {
+				if len(r.Attributes) == 0 {
+					continue
+				}
+
+				var rcc types.DeDupRuleConstraintSet
+				for _, atr := range r.Attributes {
+					if len(atr) == 0 {
+						continue
+					}
+
+					rcc = append(rcc, &types.DeDupRuleConstraint{
+						Attribute:  atr,
+						Modifier:   "ignore-case",
+						MultiValue: "equal",
+					})
+				}
+
+				migratedRules = append(migratedRules, &types.DeDupRule{
+					Strict:        r.Strict,
+					ConstraintSet: rcc,
+				})
+			}
+
+			if len(migratedRules) > 0 {
+				m.Config.RecordDeDup.Rules = migratedRules
+
+				log.Info("saving migrated module.config.recordDeDup for module", zap.Uint64("id", m.ID))
+				if err = s.UpdateComposeModule(ctx, m); err != nil {
+					log.Info("error saving migrated module.config.recordDeDup for module", zap.Uint64("id", m.ID))
+					return
+				}
+			}
+
+			return
+		}); err != nil {
+			continue
+		}
+	}
+
+	return
 }
 
 func count(ctx context.Context, s *Store, table string, ee ...goqu.Expression) (count int) {
