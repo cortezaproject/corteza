@@ -13,8 +13,9 @@ type (
 	ExprHandlerMap map[string]*ExprHandler
 
 	ExprHandler struct {
-		Handler  func(...exp.Expression) exp.Expression
-		HandlerE func(...exp.Expression) (exp.Expression, error)
+		Handler      func(...exp.Expression) exp.Expression
+		HandlerE     func(...exp.Expression) (exp.Expression, error)
+		RangeHandler func(exp.Expression, exp.RangeVal) exp.Expression
 	}
 )
 
@@ -178,6 +179,18 @@ var (
 		"nlike": {
 			Handler: func(args ...exp.Expression) exp.Expression {
 				return exp.NewBooleanExpression(exp.NotILikeOp, args[0], args[1])
+			},
+		},
+
+		// range operation
+		"between": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewRangeExpression(exp.BetweenOp, args[0], exp.NewRangeVal(args[1], args[2]))
+			},
+		},
+		"nbetween": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				return exp.NewRangeExpression(exp.NotBetweenOp, args[0], exp.NewRangeVal(args[1], args[2]))
 			},
 		},
 

@@ -138,6 +138,7 @@ general:
     save: Save
     search: Search
     magnify: Magnify Block
+    and: And
   module: Module
   style:
     danger: Danger variant
@@ -281,6 +282,8 @@ recordList:
       greaterThan: Greater than
       lessThan: Less than
       notEqual: Not equal
+      between: Between
+      notBetween: Not between
     title: Record list filter
     update: Update filter
     where: Where
