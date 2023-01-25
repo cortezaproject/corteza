@@ -103,36 +103,6 @@ import { Portal } from 'portal-vue'
 import { VueSelect } from 'vue-select'
 const { CSidebarNavItems, CInputSearch } = components
 
-const publicPageWrap = ({ pageID, selfID, title, visible }) => ({
-  page: {
-    // name omitted as default is provided
-    pageID,
-    selfID,
-    title,
-    visible,
-  },
-  children: [],
-  params: {
-    pageID,
-  },
-})
-
-const adminPageWrap = (page) => {
-  return {
-    page: {
-      name: 'admin.pages.builder',
-      pageID: `page-${page.pageID}`,
-      selfID: page.selfID !== NoID ? `page-${page.selfID}` : 'pages',
-      rootSelfID: 'pages',
-      title: page.title || page.handle,
-      visible: true,
-    },
-    children: [],
-    params: {
-      pageID: page.pageID,
-    },
-  }
-}
 const moduleWrap = (module) => {
   return {
     page: {
@@ -241,8 +211,7 @@ export default {
     filteredPages () {
       if (this.namespace) {
         // If on admin page, show admin pages. Otherwise show public pages
-        const pages = [...(this.isAdminPage ? this.adminRoutes() : this.publicRoutes.map(publicPageWrap))]
-
+        const pages = [...(this.isAdminPage ? this.adminRoutes() : this.publicPageWrap(this.publicRoutes))]
         if (!this.query) {
           return pages
         }
@@ -259,7 +228,7 @@ export default {
 
     navItems () {
       const current = this.filteredPages
-      const ax = this.pageIndex(this.isAdminPage ? this.adminRoutes() : this.pages.map(publicPageWrap))
+      const ax = this.pageIndex(this.isAdminPage ? this.adminRoutes() : this.publicPageWrap(this.pages))
 
       // Correct potentially missing parent references
       for (const cp of current) {
@@ -374,7 +343,7 @@ export default {
           },
           children: [],
         },
-        ...this.pages.map(adminPageWrap),
+        ...this.adminPageWrap(this.pages),
         {
           page: {
             pageID: 'charts',
@@ -387,6 +356,68 @@ export default {
         },
         ...this.charts.map(chartWrap),
       ]
+    },
+
+    publicPageWrap (pages) {
+      return pages.map(({ pageID, selfID, title, visible, config }) => {
+        const { navItem = {} } = config
+        const { icon = {}, expanded = '' } = navItem
+        const { type = '', src = '' } = icon
+
+        const iconType = 'attachment'
+        let iconSrc = src
+
+        if (type === iconType) {
+          iconSrc = `${this.$ComposeAPI.baseURL}${src}`
+        }
+
+        return {
+          page: {
+            // name omitted as default is provided
+            pageID,
+            selfID,
+            title,
+            visible,
+            expanded,
+            icon: iconSrc,
+          },
+          children: [],
+          params: {
+            pageID,
+          },
+        }
+      })
+    },
+
+    adminPageWrap (pages) {
+      return pages.map(({ pageID, selfID, title, handle, config }) => {
+        const { navItem = {} } = config
+        const { icon = {} } = navItem
+        const { type = '', src = '' } = icon
+
+        const iconType = 'attachment'
+        let iconSrc = src
+
+        if (type === iconType) {
+          iconSrc = `${this.$ComposeAPI.baseURL}${src}`
+        }
+
+        return {
+          page: {
+            name: 'admin.pages.builder',
+            pageID: `page-${pageID}`,
+            selfID: selfID !== NoID ? `page-${selfID}` : 'pages',
+            rootSelfID: 'pages',
+            title: title || handle,
+            visible: true,
+            icon: iconSrc,
+          },
+          children: [],
+          params: {
+            pageID: pageID,
+          },
+        }
+      })
     },
   },
 }

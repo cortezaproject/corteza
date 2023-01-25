@@ -73,6 +73,7 @@ page:
   createFailed: Could not create a page
   cloneFailed: Could not clone this page
   deleteFailed: Could not delete this page
+  iconFetchFailed: Could not fetch list of icons
   loadFailed: Could not load the page tree
   noPages: No pages found
   saveFailed: Could not save this page
