@@ -86,20 +86,48 @@
                       v-model="filter.operator"
                       :options="getOperators(filter.kind, getField(filter.name))"
                       class="d-flex field-operator w-100"
+                      @change="updateFilterProperties(filter)"
                     />
                   </b-td>
                   <b-td
                     v-if="getField(filter.name)"
                   >
-                    <field-editor
-                      v-bind="mock"
-                      class="field-editor mb-0"
-                      value-only
-                      :field="getField(filter.name)"
-                      :record="filter.record"
-                      :operator="filter.operator"
-                      @change="onValueChange"
-                    />
+                    <template v-if="isBetweenOperator(filter.operator)">
+                      <template
+                        v-if="getField(`${filter.name}-start`)"
+                      >
+                        <field-editor
+                          v-bind="mock"
+                          class="field-editor mb-0"
+                          value-only
+                          :field="getField(`${filter.name}-start`)"
+                          :record="filter.record"
+                          @change="onValueChange"
+                        />
+                        <span class="text-center my-1 w-100">
+                          {{ $t('general.label.and') }}
+                        </span>
+                        <field-editor
+                          v-bind="mock"
+                          class="field-editor mb-0"
+                          value-only
+                          :field="getField(`${filter.name}-end`)"
+                          :record="filter.record"
+                          @change="onValueChange"
+                        />
+                      </template>
+                    </template>
+
+                    <template v-else>
+                      <field-editor
+                        v-bind="mock"
+                        class="field-editor mb-0"
+                        value-only
+                        :field="getField(filter.name)"
+                        :record="filter.record"
+                        @change="onValueChange"
+                      />
+                    </template>
                   </b-td>
                   <b-td
                     v-if="getField(filter.name)"
@@ -390,16 +418,27 @@ export default {
         },
       ]
 
+      const betweenOperators = [
+        {
+          value: 'BETWEEN',
+          text: this.$t('recordList.filter.operators.between'),
+        },
+        {
+          value: 'NOT BETWEEN',
+          text: this.$t('recordList.filter.operators.notBetween'),
+        },
+      ]
+
       if (field.multi) {
         return inOperators
       }
 
       switch (kind) {
         case 'Number':
-          return [...operators, ...lgOperators]
+          return [...operators, ...lgOperators, ...betweenOperators]
 
         case 'DateTime':
-          return [...operators, ...lgOperators]
+          return [...operators, ...lgOperators, ...betweenOperators]
 
         case 'String':
         case 'Url':
@@ -499,8 +538,21 @@ export default {
             filter = filter.map(({ value, ...f }) => {
               f.record = new compose.Record(this.mock.module, {})
 
-              // If its a system field add value to root of record
-              if (Object.keys(f.record).includes(f.name)) {
+              if (this.isBetweenOperator(f.operator)) {
+                if (this.getField(f.name).isSystem) {
+                  f.record[`${f.name}-start`] = value.start
+                  f.record[`${f.name}-end`] = value.end
+                } else {
+                  f.record.values[`${f.name}-start`] = value.start
+                  f.record.values[`${f.name}-end`] = value.end
+                }
+
+                const field = this.mock.module.fields.find(field => field.name === f.name)
+
+                this.mock.module.fields.push({ ...field, name: `${f.name}-end` })
+                this.mock.module.fields.push({ ...field, name: `${f.name}-start` })
+              } else if (Object.keys(f.record).includes(f.name)) {
+                // If its a system field add value to root of record
                 f.record[f.name] = value
               } else {
                 f.record.values[f.name] = value
@@ -531,11 +583,34 @@ export default {
             f.value = record[f.name] || record.values[f.name]
           }
 
+          if (this.isBetweenOperator(f.operator)) {
+            f.value = {
+              start: this.getField(f.name).isSystem ? record[`${f.name}-start`] : record.values[`${f.name}-start`],
+              end: this.getField(f.name).isSystem ? record[`${f.name}-end`] : record.values[`${f.name}-end`],
+            }
+          }
+
           return f
         })
 
         return { groupCondition, filter }
       }))
+    },
+
+    updateFilterProperties (filter) {
+      if (this.isBetweenOperator(filter.operator)) {
+        filter.record.values[`${filter.name}-start`] = filter.record.values[`${filter.name}-start`]
+        filter.record.values[`${filter.name}-end`] = filter.record.values[`${filter.name}-end`]
+
+        const field = this.mock.module.fields.find(f => f.name === filter.name)
+
+        this.mock.module.fields.push({ ...field, name: `${filter.name}-end` })
+        this.mock.module.fields.push({ ...field, name: `${filter.name}-start` })
+      }
+    },
+
+    isBetweenOperator (op) {
+      return ['BETWEEN', 'NOT BETWEEN'].includes(op)
     },
   },
 }
