@@ -56,7 +56,7 @@
           <b-button
             variant="link"
             class="p-0 ml-1 mr-auto"
-            @click="add()"
+            @click="field.expressions.validators.push({ test: '', error: '' })"
           >
             {{ $t('sanitizers.add') }}
           </b-button>
@@ -116,6 +116,60 @@
         {{ $t('validators.description') }}
       </b-form-text>
     </b-form-group>
+
+    <div>
+      <div>
+        <h5>{{ $t('constraints.label') }}</h5>
+        <b-form-checkbox
+          v-model="fieldConstraint.exists"
+          class="mt-3"
+          @change="toggleFieldConstraint"
+        >
+          {{ $t('constraints.description') }}
+        </b-form-checkbox>
+      </div>
+
+      <div class="mt-4">
+        <b-row>
+          <b-col
+            cols="12"
+            sm="6"
+          >
+            <b-form-group
+              :label="$t('constraints.valueModifiers')"
+            >
+              <b-form-select
+                v-model="constraint.modifier"
+                :options="modifierOptions"
+              />
+            </b-form-group>
+          </b-col>
+          <b-col
+            cols="12"
+            sm="6"
+          >
+            <b-form-group
+              :label="$t('constraints.multiValues')"
+            >
+              <b-form-select
+                v-model="constraint.multiValue"
+                :options="multiValueOptions"
+                :disabled="!field.isMulti"
+              />
+            </b-form-group>
+          </b-col>
+        </b-row>
+
+        <div
+          v-if="fieldConstraint.total"
+          class="mt-3"
+        >
+          <i>
+            {{ $t('constraints.totalFieldConstraintCount', { total: fieldConstraint.total }) }}
+          </i>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -149,6 +203,13 @@ export default {
   data () {
     return {
       loaded: false,
+      fieldConstraint: {
+        ruleIndex: null,
+        total: 0,
+        exists: false,
+        index: null,
+      },
+      rule: {},
     }
   },
 
@@ -158,9 +219,43 @@ export default {
       const [year, month] = VERSION.split('.')
       return `https://docs.cortezaproject.org/corteza-docs/${year}.${month}/integrator-guide/compose-configuration/index.html`
     },
+
+    modifierOptions () {
+      return [
+        { value: 'ignore-case', text: this.$t('constraints.ignoreCase') },
+        { value: 'fuzzy-match', text: this.$t('constraints.fuzzyMatch') },
+        { value: 'sounds-like', text: this.$t('constraints.soundsLike') },
+        { value: 'case-sensitive', text: this.$t('constraints.caseSensitive') },
+      ]
+    },
+
+    multiValueOptions () {
+      return [
+        { value: 'one-of', text: this.$t('constraints.oneOf') },
+        { value: 'equal', text: this.$t('constraints.equal') },
+      ]
+    },
+
+    constraint: {
+      get () {
+        if (this.module.config.recordDeDup.rules[this.fieldConstraint.ruleIndex]) {
+          return this.module.config.recordDeDup.rules[this.fieldConstraint.ruleIndex].constraints[this.fieldConstraint.index]
+        }
+
+        return {}
+      },
+
+      set (value) {
+        if (this.module.config.recordDeDup.rules[this.fieldConstraint.ruleIndex]) {
+          this.module.config.recordDeDup.rules[this.fieldConstraint.ruleIndex].constraints[this.fieldConstraint.index] = value
+        }
+      },
+    },
   },
 
   mounted () {
+    this.checkForFieldConstraint()
+
     if (!this.field.expressions.sanitizers) {
       this.$set(this.field.expressions, 'sanitizers', [])
     }
@@ -189,9 +284,45 @@ export default {
       return !(value.validatorID && value.validatorID !== NoID)
     },
 
-    add () {
-      this.field.expressions.validators
-        .push({ test: '', error: '' })
+    checkForFieldConstraint () {
+      this.module.config.recordDeDup.rules.forEach((rule, x) => {
+        const { constraints } = rule
+
+        constraints.forEach((constraint, i) => {
+          if (constraint.attribute === this.field.name) {
+            if (constraints.length === 1) {
+              this.fieldConstraint.exists = true
+              this.fieldConstraint.index = i
+              this.fieldConstraint.ruleIndex = x
+            }
+
+            this.fieldConstraint.total += 1
+          }
+        })
+      })
+    },
+
+    toggleFieldConstraint (value) {
+      if (!value) {
+        this.module.config.recordDeDup.rules.splice(this.fieldConstraint.ruleIndex, 1)
+
+        this.fieldConstraint.ruleIndex = null
+        this.fieldConstraint.index = null
+      } else if (this.fieldConstraint.ruleIndex == null) {
+        this.module.config.recordDeDup.rules.push({
+          name: '',
+          strict: true,
+          constraints: [{
+            attribute: this.field.name,
+            modifier: 'case-sensitive',
+            multiValue: 'equal',
+            type: this.field.kind,
+          }],
+        })
+
+        this.fieldConstraint.ruleIndex = this.module.config.recordDeDup.rules.length - 1
+        this.fieldConstraint.index = this.module.config.recordDeDup.rules[this.fieldConstraint.ruleIndex].constraints.length - 1
+      }
     },
   },
 }

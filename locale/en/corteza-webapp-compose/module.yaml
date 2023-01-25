@@ -165,6 +165,26 @@ edit:
           label: Soft duplicate value validation
           description: Record will be saved and user will be presented with a warning when a duplicate value is detected in the selected fields in any existing record of this module
 
+    uniqueValues:
+      title: Unique values
+      preventRecordsSave: Prevent record saving if duplicate values are found
+      warningLabel: Warning or error message toast when constraint matches
+      valueModifiers: Value modifiers
+      multiValues: Multi-field values
+      add: Add
+      searchFields: Search fields
+      ignoreCase: Ignore case
+      fuzzyMatch: Fuzzy match
+      soundsLike: Sounds like
+      caseSensitive: Case sensitive
+      oneOf: One of
+      equal: Equal
+      warningMessage: Warning or error message toast when constraint matches
+      field: Field
+      type: Type
+      none: None
+      addNewConstraint: Add new constraint
+      uniqueValueConstraint: Unique value constraint &#x23;{{index}}
 
 federated: Federated
 forModule:
@@ -210,4 +230,3 @@ searchPlaceholder: Type here to search all modules in this namespace
 title: List of Modules
 tooltip:
   permissions: Module permissions
-
