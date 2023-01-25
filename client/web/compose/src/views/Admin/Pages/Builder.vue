@@ -582,7 +582,7 @@ div.toolbox {
   background-color: $dark;
   bottom: 0;
   left: 0;
-  z-index: 401;
+  z-index: 1001;
   border-top-right-radius: 10px;
   opacity: 0.5;
   pointer-events: none;
