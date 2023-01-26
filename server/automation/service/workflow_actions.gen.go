@@ -575,6 +575,40 @@ func WorkflowErrInvalidHandle(mm ...*workflowActionProps) *errors.Error {
 	return e
 }
 
+// WorkflowErrMissingName returns "automation:workflow.missingName" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func WorkflowErrMissingName(mm ...*workflowActionProps) *errors.Error {
+	var p = &workflowActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("missing name", nil),
+
+		errors.Meta("type", "missingName"),
+		errors.Meta("resource", "automation:workflow"),
+
+		errors.Meta(workflowPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "workflow.errors.missingName"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // WorkflowErrStaleData returns "automation:workflow.staleData" as *errors.Error
 //
 //

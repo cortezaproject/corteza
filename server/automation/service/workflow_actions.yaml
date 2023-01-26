@@ -68,6 +68,9 @@ errors:
   - error: invalidHandle
     message: "invalid handle"
 
+  - error: missingName
+    message: "missing name"
+
   - error: staleData
     message: "stale data"
     severity: warning
