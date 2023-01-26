@@ -658,6 +658,8 @@ func (svc record) Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (r
 		// merge record value errors and strict duplication errors
 		if dd.HasStrictErrors() {
 			ee.Merge(rves, dd)
+		} else {
+			ee = rves
 		}
 
 		if !ee.IsValid() {
