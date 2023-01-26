@@ -8,6 +8,7 @@ import (
 	"path"
 	"testing"
 
+	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/sqlite"
 
@@ -28,7 +29,6 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/label"
 	ltype "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
-	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/rest"
 	"github.com/cortezaproject/corteza/server/system/service"
@@ -90,7 +90,10 @@ func InitTestApp() {
 		r.Group(rest.MountRoutes())
 
 		// API gw routes
-		apigw.Setup(*options.Apigw(), service.DefaultLogger, service.DefaultStore)
+		apigw.Setup(types.Config{Enabled: true, Profiler: struct {
+			Enabled bool
+			Global  bool
+		}{Enabled: true, Global: true}}, service.DefaultLogger, service.DefaultStore)
 		err := apigw.Service().Reload(ctx)
 		if err != nil {
 			panic(err)
