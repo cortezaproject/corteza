@@ -134,7 +134,7 @@ edit:
 
 
     privacy:
-      title: Privacy Settings
+      title: Privacy
       sensitivity-level:
         label: Highest allowed allowed sensitivity level
         placeholder: Select a sensitivity level
