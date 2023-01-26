@@ -535,6 +535,40 @@ func TemplateErrInvalidHandle(mm ...*templateActionProps) *errors.Error {
 	return e
 }
 
+// TemplateErrMissingShort returns "system:template.missingShort" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func TemplateErrMissingShort(mm ...*templateActionProps) *errors.Error {
+	var p = &templateActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("missing short name", nil),
+
+		errors.Meta("type", "missingShort"),
+		errors.Meta("resource", "system:template"),
+
+		errors.Meta(templatePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "template.errors.missingShort"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // TemplateErrCannotRenderPartial returns "system:template.cannotRenderPartial" as *errors.Error
 //
 //

@@ -453,6 +453,40 @@ func DalConnectionErrInvalidID(mm ...*dalConnectionActionProps) *errors.Error {
 	return e
 }
 
+// DalConnectionErrMissingName returns "system:dal-connection.missingName" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func DalConnectionErrMissingName(mm ...*dalConnectionActionProps) *errors.Error {
+	var p = &dalConnectionActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("missing name", nil),
+
+		errors.Meta("type", "missingName"),
+		errors.Meta("resource", "system:dal-connection"),
+
+		errors.Meta(dalConnectionPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-connection.errors.missingName"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // DalConnectionErrInvalidEndpoint returns "system:dal-connection.invalidEndpoint" as *errors.Error
 //
 //

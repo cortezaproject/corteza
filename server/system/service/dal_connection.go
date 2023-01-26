@@ -82,6 +82,10 @@ func (svc *dalConnection) Create(ctx context.Context, new *types.DalConnection) 
 	)
 
 	err = func() (err error) {
+		if new.Meta.Name == "" {
+			return DalConnectionErrMissingName()
+		}
+
 		if !svc.ac.CanCreateDalConnection(ctx) {
 			return DalConnectionErrNotAllowedToCreate(qProps)
 		}
@@ -122,6 +126,10 @@ func (svc *dalConnection) Update(ctx context.Context, upd *types.DalConnection) 
 	)
 
 	err = func() (err error) {
+		if upd.Meta.Name == "" {
+			return DalConnectionErrMissingName()
+		}
+
 		if old, err = loadDalConnection(ctx, svc.store, upd.ID); err != nil {
 			return DalConnectionErrNotFound(cProps)
 		}
