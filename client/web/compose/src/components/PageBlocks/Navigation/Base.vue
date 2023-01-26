@@ -84,7 +84,7 @@
                     :style="{ order: dIndex * 2 }"
                     :disabled="navItem.options.disabled"
                     class="dropdown-item"
-                    style="white-space: normal"
+                    style="white-space: normal;"
                   >
                     {{ dropdown.title }}
                   </b-link>
