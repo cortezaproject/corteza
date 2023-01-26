@@ -194,7 +194,7 @@ describe(__filename, () => {
 
     it('should properly serialize whole record', () => {
       r.setValues([{ simple: 'foo', multi: ['bar', 'baz'] }])
-      expect(JSON.stringify(r)).to.equal('{"recordID":"0","moduleID":"0","namespaceID":"0","revision":0,"values":[{"name":"simple","value":"foo"},{"name":"multi","value":"bar"},{"name":"multi","value":"baz"}],"valueErrors":{},"meta":{},"canUpdateRecord":false,"canReadRecord":false,"canDeleteRecord":false,"canManageOwnerOnRecord":false,"canSearchRevision":false,"canGrant":false}')
+      expect(JSON.stringify(r)).to.equal('{"recordID":"0","moduleID":"0","namespaceID":"0","revision":0,"values":[{"name":"simple","value":"foo"},{"name":"multi","value":"bar"},{"name":"multi","value":"baz"}],"valueErrors":{},"meta":{},"canUpdateRecord":false,"canReadRecord":false,"canDeleteRecord":false,"canUndeleteRecord":false,"canManageOwnerOnRecord":false,"canSearchRevision":false,"canGrant":false}')
     })
 
     it('serialization magic should sustain object manipulation', () => {
