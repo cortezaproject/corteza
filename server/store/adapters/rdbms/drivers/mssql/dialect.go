@@ -246,6 +246,10 @@ func (d mssqlDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (expr e
 	return ref2exp.RefHandler(n, args...)
 }
 
+func (d mssqlDialect) ValHandler(n *ql.ASTNode) (out exp.Expression, err error) {
+	return ql.DefaultValueHandler(n)
+}
+
 func (d mssqlDialect) OrderedExpression(expr exp.Expression, dir exp.SortDirection, _ exp.NullSortType) exp.OrderedExpression {
 	return exp.NewOrderedExpression(expr, dir, exp.NoNullsSortType)
 }
