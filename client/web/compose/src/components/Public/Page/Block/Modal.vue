@@ -145,6 +145,7 @@ export default {
 .position-initial {
   position: initial;
 }
+
 .mw-90 {
   max-width: 90vw;
 }

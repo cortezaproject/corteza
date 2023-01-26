@@ -99,7 +99,7 @@
               >
                 <thead>
                   <tr>
-                    <th style="width: auto" />
+                    <th style="width: auto;" />
                     <th>
                       {{ $t("navigation.type") }}
                     </th>
@@ -112,7 +112,7 @@
                     <th class="text-center">
                       {{ $t("navigation.enabled") }}
                     </th>
-                    <th style="width: auto;min-width: 100px" />
+                    <th style="width: auto; min-width: 100px;" />
                   </tr>
                 </thead>
                 <tbody>

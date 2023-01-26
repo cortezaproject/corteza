@@ -36,10 +36,10 @@
               <th>
                 {{ $t("type") }}
               </th>
-              <th style="width: 250px">
+              <th style="width: 250px;">
                 {{ $t("valueModifiers") }}
               </th>
-              <th style="width: 250px">
+              <th style="width: 250px;">
                 {{ $t("multiValues") }}
               </th>
             </tr>
