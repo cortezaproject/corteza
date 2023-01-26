@@ -120,8 +120,9 @@ general:
     fullscreen: Fullscreen
   wrap: Display block as a card
   refresh:
-    enabled: Enabled
     label: Refresh
+    auto: Auto refresh
+    show: Show refresh button
     description: Setting value to 5 seconds or more enables auto-refresh
     rate: seconds
   label:

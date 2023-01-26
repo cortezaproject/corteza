@@ -4,70 +4,43 @@
     v-bind="$props"
     v-on="$listeners"
   >
-    <template
-      #header
+    <split
+      v-if="showDisplayElements"
+      ref="split"
+      :direction="block.layout"
+      :gutter-size="12"
+      class="h-100"
+      @onDragEnd="setDisplayElementSizes"
     >
-      <div
-        v-if="block.title || block.description"
-        class="px-3"
-        style="padding-top: 0.75rem; padding-bottom: 0.75rem;"
+      <split-area
+        v-for="(element, displayElementIndex) in block.elements"
+        :key="displayElementIndex"
+        :size="element.meta.size"
+        :min-size="0"
+        :class="{
+          'overflow-hidden h-100': element.kind !== 'Text',
+          'w-100': block.elements.length === 1,
+        }"
+        class="position-relative"
       >
-        <h5
-          v-if="block.title"
-          class="text-primary text-truncate mb-0"
+        <div
+          v-if="processing"
+          class="d-flex align-items-center justify-content-center h-100"
         >
-          {{ block.title }}
-        </h5>
+          <b-spinner />
+        </div>
 
-        <b-card-text
-          v-if="block.description"
-          class="text-dark text-truncate"
-          :class="{ 'mt-1': block.title }"
-        >
-          {{ block.description }}
-        </b-card-text>
-      </div>
-    </template>
-
-    <template #default>
-      <split
-        v-if="showDisplayElements"
-        ref="split"
-        :direction="block.layout"
-        :gutter-size="12"
-        class="h-100"
-        @onDragEnd="setDisplayElementSizes"
-      >
-        <split-area
-          v-for="(element, displayElementIndex) in block.elements"
-          :key="displayElementIndex"
-          :size="element.meta.size"
-          :min-size="0"
-          :class="{
-            'overflow-hidden h-100': element.kind !== 'Text',
-            'w-100': block.elements.length === 1,
+        <display-element
+          v-else
+          :display-element="element"
+          :labels="{
+            previous: $t('display-element:table.view.previous'),
+            next: $t('display-element:table.view.next'),
           }"
-          class="position-relative"
-        >
-          <div
-            v-if="processing"
-            class="d-flex align-items-center justify-content-center h-100"
-          >
-            <b-spinner />
-          </div>
-
-          <display-element
-            v-else
-            :display-element="element"
-            :labels="{
-              previous: $t('display-element:table.view.previous'),
-              next: $t('display-element:table.view.next'),
-            }"
-            @update="updateDataframes({ displayElementIndex, definition: $event })"
-          />
-        </split-area>
-      </split>
-    </template>
+          @update="updateDataframes({ displayElementIndex, definition: $event })"
+        />
+      </split-area>
+    </split>
   </wrap>
 </template>
 

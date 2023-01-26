@@ -41,13 +41,13 @@ interface Metric {
 interface Options {
   metrics: Array<Metric>;
   refreshRate: number;
-  refreshEnabled: boolean;
+  showRefresh: boolean;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
   metrics: [],
   refreshRate: 0,
-  refreshEnabled: false,
+  showRefresh: false,
 })
 
 export class PageBlockMetric extends PageBlock {
@@ -63,7 +63,7 @@ export class PageBlockMetric extends PageBlock {
   applyOptions (o?: Partial<Options>): void {
     if (!o) return
     Apply(this.options, o, Number, 'refreshRate')
-    Apply(this.options, o, Boolean, 'refreshEnabled')
+    Apply(this.options, o, Boolean, 'showRefresh')
     if (o.metrics) {
       this.options.metrics = o.metrics
     }

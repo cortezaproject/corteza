@@ -48,14 +48,14 @@ export default {
         this.block.title,
         this.block.description,
         this.block.options.magnifyOption,
-        this.block.options.refreshEnabled,
+        this.block.options.showRefresh,
       ].some(c => !!c)
     },
 
     showOptions () {
       return [
         this.block.options.magnifyOption,
-        this.block.options.refreshEnabled,
+        this.block.options.showRefresh,
       ].some(c => !!c)
     },
   },
