@@ -204,6 +204,10 @@ func (svc *workflow) Create(ctx context.Context, new *types.Workflow) (wf *types
 			return WorkflowErrNotAllowedToCreate()
 		}
 
+		if new.Meta.Name == "" {
+			return WorkflowErrMissingName()
+		}
+
 		if !handle.IsValid(new.Handle) {
 			return WorkflowErrInvalidHandle()
 		}
@@ -263,6 +267,10 @@ func (svc *workflow) Create(ctx context.Context, new *types.Workflow) (wf *types
 // Update modifies existing workflow resource in the store
 func (svc *workflow) Update(ctx context.Context, upd *types.Workflow) (*types.Workflow, error) {
 	return svc.updater(ctx, upd.ID, WorkflowActionUpdate, func(ctx context.Context, res *types.Workflow) (workflowChanges, error) {
+		if upd.Meta.Name == "" {
+			return workflowUnchanged, WorkflowErrMissingName()
+		}
+
 		if !svc.ac.CanUpdateWorkflow(ctx, res) {
 			return workflowUnchanged, WorkflowErrNotAllowedToUpdate()
 		}
@@ -319,6 +327,7 @@ func (svc *workflow) updater(ctx context.Context, workflowID uint64, action func
 	)
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+
 		res, err = loadWorkflow(ctx, s, workflowID)
 		if err != nil {
 			return

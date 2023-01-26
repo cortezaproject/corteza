@@ -63,6 +63,9 @@ errors:
     message: "invalid handle"
     severity: warning
 
+  - error: missingShort
+    message: "missing short name"
+
   - error: cannotRenderPartial
     message: "cannot render partial templates"
 

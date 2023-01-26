@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"io"
 	"strconv"
 	"strings"
+
+	"github.com/cortezaproject/corteza/server/pkg/errors"
 
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	"github.com/cortezaproject/corteza/server/pkg/handle"
@@ -197,6 +198,10 @@ func (svc template) Create(ctx context.Context, new *types.Template) (tpl *types
 			return TemplateErrInvalidHandle()
 		}
 
+		if new.Meta.Short == "" {
+			return TemplateErrMissingShort()
+		}
+
 		if !svc.ac.CanCreateTemplate(ctx) {
 			return TemplateErrNotAllowedToCreate()
 		}
@@ -231,6 +236,10 @@ func (svc template) Update(ctx context.Context, upd *types.Template) (tpl *types
 	err = func() (err error) {
 		if !handle.IsValid(upd.Handle) {
 			return TemplateErrInvalidHandle()
+		}
+
+		if upd.Meta.Short == "" {
+			return TemplateErrMissingShort()
 		}
 
 		if tpl, err = loadTemplate(ctx, svc.store, upd.ID); err != nil {
