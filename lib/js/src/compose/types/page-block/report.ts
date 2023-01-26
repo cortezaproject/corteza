@@ -8,7 +8,7 @@ interface Options {
   scenarioID: string;
   elementID: string;
   refreshRate: number;
-  refreshEnabled: boolean;
+  showRefresh: boolean;
   magnifyOption: string;
 }
 
@@ -17,7 +17,7 @@ const defaults: Readonly<Options> = Object.freeze({
   scenarioID: NoID,
   elementID: NoID,
   refreshRate: 0,
-  refreshEnabled: false,
+  showRefresh: false,
   magnifyOption: '',
 })
 
@@ -36,7 +36,7 @@ export class PageBlockReport extends PageBlock {
 
     Apply(this.options, o, CortezaID, 'reportID', 'scenarioID', 'elementID')
     Apply(this.options, o, Number, 'refreshRate')
-    Apply(this.options, o, Boolean, 'refreshEnabled')
+    Apply(this.options, o, Boolean, 'showRefresh')
     Apply(this.options, o, String, 'magnifyOption')
   }
 }

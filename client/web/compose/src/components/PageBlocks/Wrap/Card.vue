@@ -29,7 +29,7 @@
               class="ml-auto"
             >
               <font-awesome-icon
-                v-if="block.options.refreshEnabled"
+                v-if="block.options.showRefresh"
                 :icon="['fa', 'sync']"
                 class="h6 text-secondary"
                 role="button"
@@ -49,7 +49,7 @@
 
           <b-card-text
             v-if="block.description"
-            class="text-dark text-truncate mt-1"
+            class="text-dark text-wrap mt-1"
           >
             {{ block.description }}
           </b-card-text>

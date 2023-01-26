@@ -17,7 +17,7 @@ interface Options {
   // referenced fields (records, users) we want to expand
   expRefFields: string[];
   refreshRate: number;
-  refreshEnabled: boolean;
+  showRefresh: boolean;
   magnifyOption: string;
 }
 
@@ -26,7 +26,7 @@ const defaults: Readonly<Options> = Object.freeze({
   displayedFields: [],
   expRefFields: [],
   refreshRate: 0,
-  refreshEnabled: false,
+  showRefresh: false,
   magnifyOption: '',
 })
 
@@ -43,7 +43,7 @@ export class PageBlockRecordRevisions extends PageBlock {
   applyOptions (o?: Partial<Options>): void {
     if (!o) return
 
-    Apply(this.options, o, Boolean, 'preload', 'refreshEnabled')
+    Apply(this.options, o, Boolean, 'preload', 'showRefresh')
     Apply(this.options, o, Number, 'refreshRate')
     Apply(this.options, o, String, 'magnifyOption')
 

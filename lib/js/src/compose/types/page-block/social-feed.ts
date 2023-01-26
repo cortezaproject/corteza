@@ -7,7 +7,7 @@ interface Options {
   fields: unknown[];
   profileSourceField: string;
   profileUrl: string;
-  refreshEnabled: boolean;
+  showRefresh: boolean;
   refreshRate: number;
 }
 
@@ -16,7 +16,7 @@ const defaults: Readonly<Options> = Object.freeze({
   fields: [],
   profileSourceField: '',
   profileUrl: '',
-  refreshEnabled: false,
+  showRefresh: false,
   refreshRate: 0,
 })
 
@@ -36,7 +36,7 @@ export class PageBlockSocialFeed extends PageBlock {
     Apply(this.options, o, CortezaID, 'moduleID')
     Apply(this.options, o, String, 'profileSourceField', 'profileUrl')
     Apply(this.options, o, Number, 'refreshRate')
-    Apply(this.options, o, Boolean, 'refreshEnabled')
+    Apply(this.options, o, Boolean, 'showRefresh')
 
     if (o.fields) {
       this.options.fields = o.fields
