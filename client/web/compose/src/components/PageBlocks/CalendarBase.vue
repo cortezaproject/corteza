@@ -350,9 +350,7 @@ export default {
 
     refresh () {
       this.refreshing = true
-      this.api().refetchEvents().then(() => {
-        this.key++
-      })
+      this.key++
     },
   },
 }
