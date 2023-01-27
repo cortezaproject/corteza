@@ -187,6 +187,10 @@ func (svc *authClient) Create(ctx context.Context, new *types.AuthClient) (res *
 	)
 
 	err = func() (err error) {
+		if new.Meta.Name == "" {
+			return AuthClientErrMissingName()
+		}
+
 		if !svc.ac.CanCreateAuthClient(ctx) {
 			return AuthClientErrNotAllowedToCreate()
 		}
@@ -259,6 +263,9 @@ func (svc *authClient) Update(ctx context.Context, upd *types.AuthClient) (res *
 	err = func() (err error) {
 		if upd.ID == 0 {
 			return AuthClientErrInvalidID()
+		}
+		if upd.Meta.Name == "" {
+			return AuthClientErrMissingName()
 		}
 
 		if res, err = loadAuthClient(ctx, svc.store, upd.ID); err != nil {

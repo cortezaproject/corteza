@@ -61,6 +61,9 @@ errors:
     message: "invalid ID"
     severity: warning
 
+  - error: missingName
+    message: "missing name"
+
   - error: unknownGrantType
     message: "unknown grant type"
 
