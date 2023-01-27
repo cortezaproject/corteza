@@ -17,6 +17,7 @@
           v-model="authClient.meta.name"
           data-test-id="input-name"
           required
+          :state="nameState"
         />
       </b-form-group>
 
@@ -634,6 +635,10 @@ export default {
       return this.secret.length > 0
     },
 
+    nameState () {
+      return this.authClient.meta.name ? null : false
+    },
+
     handleState () {
       return handle.handleState(this.authClient.handle)
     },
@@ -647,7 +652,7 @@ export default {
     },
 
     saveDisabled () {
-      return !this.editable || [this.handleState].includes(false)
+      return !this.editable || [this.nameState, this.handleState].includes(false)
     },
   },
 
