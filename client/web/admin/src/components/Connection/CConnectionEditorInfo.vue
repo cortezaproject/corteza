@@ -15,8 +15,10 @@
         >
           <b-form-input
             v-model="connection.meta.name"
+            required
             :disabled="disabled"
             :placeholder="$t('form.name.placeholder')"
+            :state="nameState"
           />
         </b-form-group>
       </b-col>
@@ -165,6 +167,10 @@ export default {
   },
 
   computed: {
+    nameState () {
+      return this.connection.meta.name ? null : false
+    },
+
     handleState () {
       return handle.handleState(this.connection.handle)
     },

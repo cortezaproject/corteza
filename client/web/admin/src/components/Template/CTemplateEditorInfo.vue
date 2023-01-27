@@ -15,6 +15,8 @@
         <b-form-input
           v-model="template.meta.short"
           data-test-id="input-short-name"
+          required
+          :state="shortState"
         />
       </b-form-group>
 
@@ -200,12 +202,16 @@ export default {
       return this.fresh ? this.canCreate : true // this.template.canUpdateRole
     },
 
+    shortState () {
+      return this.template.meta.short ? null : false
+    },
+
     handleState () {
       return handle.handleState(this.template.handle)
     },
 
     saveDisabled () {
-      return !this.editable || [this.handleState].includes(false)
+      return !this.editable || [this.shortState, this.handleState].includes(false)
     },
 
     getDeleteStatus () {

@@ -27,6 +27,7 @@
         <b-form-input
           v-model="workflow.meta.name"
           required
+          :state="nameState"
         />
       </b-form-group>
 
@@ -185,6 +186,10 @@ export default {
   computed: {
     editable () {
       return (!this.workflow.workflowID || this.workflow.workflowID === NoID) || this.workflow.canUpdateWorkflow
+    },
+
+    nameState () {
+      return this.workflow.meta.name ? null : false
     },
 
     handleState () {
