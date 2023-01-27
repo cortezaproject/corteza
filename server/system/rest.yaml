@@ -783,7 +783,7 @@ endpoints:
     path: "/"
     parameters:
       post:
-      - { name: "handle", type: "string",                        required: true }
+      - { name: "handle", type: "string",                        required: false }
       - { name: "level",  type: "int",                           required: true }
       - { name: "meta",   type: "types.DalSensitivityLevelMeta", required: true,  parser: "types.ParseDalSensitivityLevelMeta" }
   - name: update
@@ -797,7 +797,7 @@ endpoints:
         required: true
         title: Connection ID
       post:
-      - { name: "handle", type: "string",                        required: true }
+      - { name: "handle", type: "string",                        required: false }
       - { name: "level",  type: "int",                           required: true }
       - { name: "meta",   type: "types.DalSensitivityLevelMeta", required: true,  parser: "types.ParseDalSensitivityLevelMeta" }
 
