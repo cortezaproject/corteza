@@ -33,7 +33,7 @@ editor:
     title: Basic settings
     form:
       name:
-        label: Name
+        label: Name *
         placeholder: Data lake
         description: ''
       handle:

@@ -7,7 +7,7 @@ editor:
     handle: Handle
     invalid-handle-characters: Should be at least 2 characters long and start with a letter. Can contain only letters, numbers, dashes, underscores and dots
     id: ID
-    name: Name
+    name: Name *
     openBuilder: Open builder
     title: Basic information
     undelete: Undelete

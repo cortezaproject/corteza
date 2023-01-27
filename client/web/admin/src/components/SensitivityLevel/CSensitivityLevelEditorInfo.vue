@@ -17,6 +17,8 @@
           >
             <b-form-input
               v-model="sensitivityLevel.meta.name"
+              required
+              :state="nameState"
             />
           </b-form-group>
         </b-col>
@@ -183,12 +185,16 @@ export default {
       return this.fresh ? this.canCreate : true
     },
 
+    nameState () {
+      return this.sensitivityLevel.meta.name ? null : false
+    },
+
     handleState () {
       return handle.handleState(this.sensitivityLevel.handle)
     },
 
     saveDisabled () {
-      return !this.editable || [this.handleState].includes(false)
+      return !this.editable || [this.nameState, this.handleState].includes(false)
     },
 
     getDeleteStatus () {

@@ -9,7 +9,7 @@ editor:
       label: Handle
       placeholder: handle (a - z, 0 - 9, underscore, dash)
       invalid-characters: Should be at least 2 characters long and start with a letter. Can contain only letters, numbers, dashes, underscores and dots
-    name: Name
+    name: Name *
     description: Description
     level: Level {{level}}
     createdAt: Created at

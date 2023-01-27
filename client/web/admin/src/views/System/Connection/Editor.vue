@@ -132,12 +132,16 @@ export default {
       return this.fresh ? this.canCreate : true // this.user.canUpdateUser
     },
 
+    nameState () {
+      return this.connection.meta.name ? null : false
+    },
+
     handleState () {
       return handle.handleState(this.connection.handle)
     },
 
     saveDisabled () {
-      return !this.editable || [this.handleState].includes(false)
+      return !this.editable || [this.nameState, this.handleState].includes(false)
     },
 
   },

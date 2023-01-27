@@ -1559,9 +1559,6 @@ export default class System {
       level,
       meta,
     } = (a as KV) || {}
-    if (!handle) {
-      throw Error('field handle is empty')
-    }
     if (!level) {
       throw Error('field level is empty')
     }
@@ -1595,9 +1592,6 @@ export default class System {
     } = (a as KV) || {}
     if (!sensitivityLevelID) {
       throw Error('field sensitivityLevelID is empty')
-    }
-    if (!handle) {
-      throw Error('field handle is empty')
     }
     if (!level) {
       throw Error('field level is empty')
