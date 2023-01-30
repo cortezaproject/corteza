@@ -56,6 +56,9 @@ errors:
     message: "invalid ID"
     severity: warning
 
+  - error: missingName
+    message: "missing name"
+
   - error: invalidEndpoint
     message: "invalid DSN"
     severity: warning
