@@ -182,3 +182,16 @@ func renameColumn(ctx context.Context, s *Store, table string, from, to string) 
 
 	return nil
 }
+
+// tableNames returns table names that Corteza creates
+func tableNames() (tnames []string) {
+	cortezaModels := append(systemModels.Models(), composeModels.Models()...)
+	cortezaModels = append(cortezaModels, automationModels.Models()...)
+	cortezaModels = append(cortezaModels, federationModels.Models()...)
+
+	for _, m := range cortezaModels {
+		tnames = append(tnames, m.Ident)
+	}
+
+	return tnames
+}
