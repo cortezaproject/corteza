@@ -74,6 +74,9 @@ func (svc *dalSensitivityLevel) Create(ctx context.Context, new *types.DalSensit
 	)
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if new.Meta.Name == "" {
+			return DalSensitivityLevelErrMissingName()
+		}
 		if !svc.ac.CanManageDalSensitivityLevel(ctx) {
 			return DalSensitivityLevelErrNotAllowedToManage(qProps)
 		}
@@ -109,6 +112,10 @@ func (svc *dalSensitivityLevel) Update(ctx context.Context, upd *types.DalSensit
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if qq, e = store.LookupDalSensitivityLevelByID(ctx, s, upd.ID); e != nil {
 			return DalSensitivityLevelErrNotFound(qProps)
+		}
+
+		if upd.Meta.Name == "" {
+			return DalSensitivityLevelErrMissingName()
 		}
 
 		if !svc.ac.CanManageDalSensitivityLevel(ctx) {
