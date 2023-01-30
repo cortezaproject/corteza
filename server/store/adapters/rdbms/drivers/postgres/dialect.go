@@ -118,10 +118,10 @@ func (postgresDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, 
 
 	switch t := attr.Type.(type) {
 	case *dal.TypeID:
-		col.Type.Name = "BIGINT"
+		col.Type.Name = "NUMERIC"
 		col.Default = ddl.DefaultID(t.HasDefault, t.DefaultValue)
 	case *dal.TypeRef:
-		col.Type.Name = "BIGINT"
+		col.Type.Name = "NUMERIC"
 		col.Default = ddl.DefaultID(t.HasDefault, t.DefaultValue)
 
 	case *dal.TypeTimestamp:
