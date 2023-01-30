@@ -42,6 +42,7 @@ var (
 		fix_2022_09_00_addRevisionOnComposeRecords,
 		fix_2022_09_00_addMetaOnComposeRecords,
 		fix_2022_09_00_addMissingNodeIdOnFederationMapping,
+		fix_2022_09_07_changePostgresIdColumnsDatatype,
 	}
 )
 
@@ -427,6 +428,38 @@ func fix_2022_09_00_addMissingNodeIdOnFederationMapping(ctx context.Context, s *
 		"federation_module_mapping",
 		&dal.Attribute{Ident: "node_id", Type: &dal.TypeID{}},
 	)
+}
+
+func fix_2022_09_07_changePostgresIdColumnsDatatype(ctx context.Context, s *Store) (err error) {
+	var tableName string
+	if !strings.HasPrefix(s.DB.DriverName(), "postgres") {
+		return
+	}
+
+	tnames := tableNames()
+	tnamesQry := `SELECT table_name FROM INFORMATION_SCHEMA.COLUMNS  WHERE column_name = 'id' AND
+                table_name IN('` + strings.Join(tnames, "', '") + `') AND table_name NOT LIKE 'auth_sessions'`
+
+	rows, err := s.DB.QueryContext(ctx, tnamesQry)
+	if err != nil {
+		return err
+	}
+
+	for rows.Next() {
+		// Get the table name
+		err = rows.Scan(&tableName)
+		if err != nil {
+			return err
+		}
+
+		query := fmt.Sprintf("ALTER TABLE %s ALTER COLUMN id TYPE NUMERIC USING CAST(id AS NUMERIC)", tableName)
+		_, err = s.DB.ExecContext(ctx, query)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func count(ctx context.Context, s *Store, table string, ee ...goqu.Expression) (count int) {
