@@ -453,6 +453,40 @@ func DalSensitivityLevelErrInvalidID(mm ...*dalSensitivityLevelActionProps) *err
 	return e
 }
 
+// DalSensitivityLevelErrMissingName returns "system:dal-sensitivity-level.missingName" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func DalSensitivityLevelErrMissingName(mm ...*dalSensitivityLevelActionProps) *errors.Error {
+	var p = &dalSensitivityLevelActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("missing name", nil),
+
+		errors.Meta("type", "missingName"),
+		errors.Meta("resource", "system:dal-sensitivity-level"),
+
+		errors.Meta(dalSensitivityLevelPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-sensitivity-level.errors.missingName"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // DalSensitivityLevelErrInvalidEndpoint returns "system:dal-sensitivity-level.invalidEndpoint" as *errors.Error
 //
 //
