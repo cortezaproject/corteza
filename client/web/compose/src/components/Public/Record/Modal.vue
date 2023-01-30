@@ -4,6 +4,7 @@
     v-model="showModal"
     scrollable
     dialog-class="h-100 mw-90"
+    content-class="position-initial"
     body-class="p-0"
     footer-class="p-0"
     size="xl"
@@ -158,5 +159,9 @@ export default {
 <style lang="scss">
 .mw-90 {
   max-width: 90vw;
+}
+
+.position-initial {
+  position: initial;
 }
 </style>
