@@ -5,11 +5,12 @@
     class="bg-white p-3"
   >
     <b-row
+      align-v="stretch"
       no-gutters
-      class="wrap-with-vertical-gutters align-items-center"
+      class="wrap-with-vertical-gutters"
     >
-      <div
-        class="wrap-with-vertical-gutters align-items-center"
+      <b-col
+        class="d-flex align-items-center justify-content-start"
       >
         <b-button
           v-if="!settings.hideBack"
@@ -25,112 +26,149 @@
           />
           {{ showRecordModal ? $t('label.close') : labels.back || $t('label.back') }}
         </b-button>
-      </div>
+      </b-col>
 
-      <div
-        v-if="module"
-        class="d-flex wrap-with-vertical-gutters align-items-center ml-auto"
+      <b-col
+        class="d-flex align-items-center justify-content-center"
       >
-        <c-input-confirm
-          v-if="(isCreated && !settings.hideDelete && !isDeleted)"
-          :disabled="!canDeleteRecord"
-          size="lg"
-          size-confirm="lg"
-          variant="danger"
-          :borderless="false"
-          @confirmed="$emit('delete')"
-        >
-          <b-spinner
-            v-if="processingDelete"
-            small
-            type="grow"
-          />
-
-          <span v-else>
-            {{ labels.delete || $t('label.delete') }}
-          </span>
-        </c-input-confirm>
-
-        <c-input-confirm
-          v-if="isDeleted"
-          :disabled="!canUndeleteRecord"
-          size="lg"
-          size-confirm="lg"
-          variant="warning"
-          variant-ok="warning"
-          :borderless="false"
-          @confirmed="$emit('undelete')"
-        >
-          <b-spinner
-            v-if="processingUndelete"
-            small
-            type="grow"
-          />
-
-          <span v-else>
-            {{ $t('label.restore') }}
-          </span>
-        </c-input-confirm>
-
-        <b-button
-          v-if="!inEditing && module.canCreateRecord && !hideClone && isCreated && !settings.hideClone"
-          data-test-id="button-clone"
-          variant="light"
-          size="lg"
-          :disabled="!record || processing"
-          class="ml-2"
-          @click.prevent="$emit('clone')"
-        >
-          {{ labels.clone || $t('label.clone') }}
-        </b-button>
-
-        <b-button
-          v-if="!inEditing && !settings.hideEdit && isCreated"
-          data-test-id="button-edit"
-          :disabled="!record.canUpdateRecord || processing"
-          variant="light"
-          size="lg"
-          class="ml-2"
-          @click.prevent="$emit('edit')"
-        >
-          {{ labels.edit || $t('label.edit') }}
-        </b-button>
-
-        <b-button
-          v-if="module.canCreateRecord && !hideAdd && !inEditing && !settings.hideNew"
-          data-test-id="button-add-new"
-          variant="primary"
-          size="lg"
-          :disabled="processing"
-          class="ml-2"
-          @click.prevent="$emit('add')"
-        >
-          {{ labels.new || $t('label.addNew') }}
-        </b-button>
-
-        <b-button
-          v-if="inEditing && !settings.hideSubmit"
-          data-test-id="button-submit"
-          :disabled="!canSaveRecord || processing"
-          class="d-flex align-items-center justify-content-center ml-2"
-          variant="primary"
-          size="lg"
-          @click.prevent="$emit('submit')"
-        >
-          <b-spinner
-            v-if="processingSubmit"
-            small
-            type="grow"
-          />
-
-          <span
-            v-else
-            data-test-id="button-save"
+        <b-button-group v-if="recordNavigation.prev || recordNavigation.next">
+          <b-button
+            id="tooltip-target-prev-page"
+            v-b-tooltip.hover
+            pill
+            size="lg"
+            variant="outline-primary"
+            class="mr-2"
+            :disabled="!recordNavigation.prev"
+            :title="$t('recordNavigation.prev')"
+            @click="$emit('update-navigation', recordNavigation.prev)"
           >
-            {{ labels.submit || $t('label.save') }}
-          </span>
-        </b-button>
-      </div>
+            <font-awesome-icon :icon="['fas', 'angle-left']" />
+          </b-button>
+
+          <b-button
+            id="tooltip-target-next-page"
+            v-b-tooltip.hover
+            size="lg"
+            pill
+            variant="outline-primary"
+            :disabled="!recordNavigation.next"
+            :title="$t('recordNavigation.next')"
+            @click="$emit('update-navigation', recordNavigation.next)"
+          >
+            <font-awesome-icon :icon="['fas', 'angle-right']" />
+          </b-button>
+        </b-button-group>
+      </b-col>
+
+      <b-col
+        class="d-flex align-items-center justify-content-end"
+      >
+        <template
+          v-if="module"
+          class="d-flex wrap-with-vertical-gutters align-items-center"
+        >
+          <c-input-confirm
+            v-if="(isCreated && !settings.hideDelete && !isDeleted)"
+            :disabled="!canDeleteRecord"
+            size="lg"
+            size-confirm="lg"
+            variant="danger"
+            :borderless="false"
+            @confirmed="$emit('delete')"
+          >
+            <b-spinner
+              v-if="processingDelete"
+              small
+              type="grow"
+            />
+
+            <span v-else>
+              {{ labels.delete || $t('label.delete') }}
+            </span>
+          </c-input-confirm>
+
+          <c-input-confirm
+            v-if="isDeleted"
+            :disabled="!canUndeleteRecord"
+            size="lg"
+            size-confirm="lg"
+            variant="warning"
+            variant-ok="warning"
+            :borderless="false"
+            @confirmed="$emit('undelete')"
+          >
+            <b-spinner
+              v-if="processingUndelete"
+              small
+              type="grow"
+            />
+
+            <span v-else>
+              {{ $t('label.restore') }}
+            </span>
+          </c-input-confirm>
+
+          <b-button
+            v-if="!inEditing && module.canCreateRecord && !hideClone && isCreated && !settings.hideClone"
+            data-test-id="button-clone"
+            variant="light"
+            size="lg"
+            :disabled="!record || processing"
+            class="ml-2"
+            @click.prevent="$emit('clone')"
+          >
+            {{ labels.clone || $t('label.clone') }}
+          </b-button>
+
+          <b-button
+            v-if="!inEditing && !settings.hideEdit && isCreated"
+            data-test-id="button-edit"
+            :disabled="!record.canUpdateRecord || processing"
+            variant="light"
+            size="lg"
+            class="ml-2"
+            @click.prevent="$emit('edit')"
+          >
+            {{ labels.edit || $t('label.edit') }}
+          </b-button>
+
+          <b-button
+            v-if="module.canCreateRecord && !hideAdd && !inEditing && !settings.hideNew"
+            data-test-id="button-add-new"
+            variant="primary"
+            size="lg"
+            :disabled="processing"
+            class="ml-2"
+            @click.prevent="$emit('add')"
+          >
+            {{ labels.new || $t('label.addNew') }}
+          </b-button>
+
+          <b-button
+            v-if="inEditing && !settings.hideSubmit"
+            data-test-id="button-submit"
+            :disabled="!canSaveRecord || processing"
+            class="d-flex align-items-center justify-content-center ml-2"
+            variant="primary"
+            size="lg"
+            @click.prevent="$emit('submit')"
+          >
+            <b-spinner
+              v-if="processingSubmit"
+              small
+              type="grow"
+            />
+
+            <span
+              v-else
+              data-test-id="button-save"
+            >
+              {{ labels.submit || $t('label.save') }}
+            </span>
+          </b-button>
+        </template>
+      </b-col>
     </b-row>
   </b-container>
 </template>
@@ -199,6 +237,12 @@ export default {
     showRecordModal: {
       type: Boolean,
       required: false,
+    },
+
+    recordNavigation: {
+      type: Object,
+      required: false,
+      default: () => ({}),
     },
   },
 

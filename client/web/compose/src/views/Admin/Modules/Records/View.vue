@@ -78,6 +78,7 @@
         :processing-delete="processingDelete"
         :processing-undelete="processingUndelete"
         :in-editing="inEditing"
+        :record-navigation="recordNavigation"
         @add="handleAdd()"
         @clone="handleClone()"
         @edit="handleEdit()"
@@ -85,12 +86,14 @@
         @undelete="handleUndelete()"
         @back="handleBack()"
         @submit="handleFormSubmitSimple('admin.modules.record.view')"
+        @update-navigation="handleRedirectToPrevOrNext"
       />
     </portal>
   </div>
 </template>
 
 <script>
+import { mapGetters, mapActions } from 'vuex'
 import RecordToolbar from 'corteza-webapp-compose/src/components/Common/RecordToolbar'
 import users from 'corteza-webapp-compose/src/mixins/users'
 import record from 'corteza-webapp-compose/src/mixins/record'
@@ -132,6 +135,11 @@ export default {
   },
 
   computed: {
+    ...mapGetters({
+      clearRecordPageNavigation: 'ui/clearRecordPageNavigation',
+      getNextAndPrevRecord: 'ui/getNextAndPrevRecord',
+    }),
+
     title () {
       const { name, handle } = this.module
       return this.$t('allRecords.view.title', { name: name || handle, interpolation: { escapeValue: false } })
@@ -188,6 +196,12 @@ export default {
 
       return undefined
     },
+
+    recordNavigation () {
+      if (!this.record) return
+
+      return this.getNextAndPrevRecord(this.record.recordID)
+    },
   },
 
   watch: {
@@ -201,9 +215,21 @@ export default {
 
   created () {
     this.createBlocks()
+
+    if (this.clearRecordPageNavigation) {
+      this.setClearRecordPageNavigation(false)
+      this.clearRecordIds()
+    } else {
+      this.clearRecordIds()
+    }
   },
 
   methods: {
+    ...mapActions({
+      setClearRecordPageNavigation: 'ui/setClearRecordPageNavigation',
+      clearRecordIds: 'ui/clearRecordIds',
+    }),
+
     createBlocks () {
       this.fields.forEach(f => {
         const block = new compose.PageBlockRecord()
@@ -245,6 +271,23 @@ export default {
 
     handleEdit () {
       this.$router.push({ name: 'admin.modules.record.edit', params: this.$route.params })
+    },
+
+    handleRedirectToPrevOrNext (value) {
+      const recordID = value
+
+      if (!recordID) return
+
+      const route = {
+        name: 'admin.modules.record.view',
+        params: {
+          moduleID: this.$route.params.moduleID,
+          recordID,
+        },
+        query: null,
+      }
+
+      this.$router.push(route)
     },
   },
 }
