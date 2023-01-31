@@ -1,6 +1,6 @@
 <template>
   <b-container
-    class="py-3"
+    class="d-flex flex-column py-3 flex-fill"
   >
     <c-content-header
       :title="$t('title')"
@@ -13,33 +13,40 @@
         @click="dispatchCortezaSystemEvent($event)"
       />
     </c-content-header>
-    <b-row>
+
+    <b-row
+      class="flex-fill"
+    >
       <b-col
-        v-show="users.total"
         cols="12"
       >
         <b-card
-          class="shadow-sm mb-3"
+          body-class="position-relative p-0"
+          header-class="bg-white"
+          footer-class="bg-white"
+          class="shadow-sm h-100"
         >
-          <b-card-title title-tag="h3">
-            <router-link
-              class="display-3"
-              :to="{ name: 'system.user.list' }"
-              :area-label="users.valid + ' ' + $t('users.title')"
-            >
-              {{ users.valid }}
-            </router-link>
-          </b-card-title>
-          <b-card-sub-title sub-title-tag="h4">
-            {{ $t('users.title') }}
-          </b-card-sub-title>
+          <template #header>
+            <b-card-title title-tag="h3">
+              <router-link
+                :to="{ name: 'system.user.list' }"
+                :area-label="`${users.valid} ${$t('users.title')}`"
+                class="display-3 text-decoration-none"
+              >
+                {{ users.valid }}
+              </router-link>
+            </b-card-title>
+            <b-card-sub-title sub-title-tag="h4">
+              {{ $t('users.title') }}
+            </b-card-sub-title>
+          </template>
 
-          <canvas
-            ref="userChart"
-            style="height: 100px; width: 100%"
+          <c-chart
+            v-if="userChart"
+            :chart="userChart"
           />
 
-          <b-container class="mt-3">
+          <template #footer>
             <b-row>
               <b-col
                 cols="12"
@@ -49,6 +56,7 @@
                 <router-link
                   :to="{ name: 'system.user.list', query: { deleted: 1, suspended: 1 } }"
                   :aria-label="users.total + ' ' + $t('users.users') + ' ' + $t('users.total')"
+                  class="text-decoration-none"
                 >
                   {{ users.total }}
                 </router-link>
@@ -64,6 +72,7 @@
                 <router-link
                   :to="{ name: 'system.user.list', query: { deleted: 1, suspended: 2 } }"
                   :aria-label="users.suspended + ' ' + $t('users.users') + ' ' + $t('users.suspended')"
+                  class="text-decoration-none"
                 >
                   {{ users.suspended }}
                 </router-link>
@@ -79,6 +88,7 @@
                 <router-link
                   :to="{ name: 'system.user.list', query: { deleted: 2, suspended: 1 } }"
                   :aria-label="users.deleted + ' ' + $t('users.users') + ' ' + $t('users.deleted')"
+                  class="text-decoration-none"
                 >
                   {{ users.deleted }}
                 </router-link>
@@ -87,31 +97,40 @@
                 </span>
               </b-col>
             </b-row>
-          </b-container>
+          </template>
         </b-card>
       </b-col>
+    </b-row>
+
+    <b-row align-v="stretch">
       <b-col
         v-show="roles.total"
         cols="12"
         md="6"
+        class="mt-3"
       >
         <b-card
-          class="shadow-sm mb-3"
+          no-body
+          header-class="bg-white"
+          footer-class="bg-white"
+          class="shadow-sm"
         >
-          <b-card-title title-tag="h3">
-            <router-link
-              class="display-4"
-              :to="{ name: 'system.role.list' }"
-              :aria-label="roles.valid + ' ' + $t('roles.title')"
-            >
-              {{ roles.valid }}
-            </router-link>
-          </b-card-title>
-          <b-card-sub-title sub-title-tag="h4">
-            {{ $t('roles.title') }}
-          </b-card-sub-title>
+          <template #header>
+            <b-card-title title-tag="h3">
+              <router-link
+                :to="{ name: 'system.role.list' }"
+                :aria-label="roles.valid + ' ' + $t('roles.title')"
+                class="display-4 text-decoration-none"
+              >
+                {{ roles.valid }}
+              </router-link>
+            </b-card-title>
+            <b-card-sub-title sub-title-tag="h4">
+              {{ $t('roles.title') }}
+            </b-card-sub-title>
+          </template>
 
-          <b-container class="mt-3">
+          <template #footer>
             <b-row>
               <b-col
                 cols="12"
@@ -121,6 +140,7 @@
                 <router-link
                   :to="{ name: 'system.role.list', query: { deleted: 1, archived: 1 } }"
                   :aria-label="roles.total + ' ' + $t('roles.roles') + ' ' + $t('roles.total')"
+                  class="text-decoration-none"
                 >
                   {{ roles.total }}
                 </router-link>
@@ -136,6 +156,7 @@
                 <router-link
                   :to="{ name: 'system.role.list', query: { deleted: 1, archived: 2 } }"
                   :aria-label="roles.archived + ' ' + $t('roles.roles') + ' ' + $t('roles.archived')"
+                  class="text-decoration-none"
                 >
                   {{ roles.archived }}
                 </router-link>
@@ -151,6 +172,7 @@
                 <router-link
                   :to="{ name: 'system.role.list', query: { deleted: 2, archived: 1 } }"
                   :aria-label="roles.deleted + ' ' + $t('roles.roles') + ' ' + $t('roles.deleted')"
+                  class="text-decoration-none"
                 >
                   {{ roles.deleted }}
                 </router-link>
@@ -159,31 +181,38 @@
                 </span>
               </b-col>
             </b-row>
-          </b-container>
+          </template>
         </b-card>
       </b-col>
+
       <b-col
         v-show="applications.total"
         cols="12"
         md="6"
+        class="mt-3"
       >
         <b-card
-          class="shadow-sm mb-3"
+          no-body
+          header-class="bg-white"
+          footer-class="bg-white"
+          class="shadow-sm"
         >
-          <b-card-title title-tag="h3">
-            <router-link
-              class="display-4"
-              :to="{ name: 'system.application.list' }"
-              :aria-label="applications.valid + ' ' + $t('applications.title')"
-            >
-              {{ applications.valid }}
-            </router-link>
-          </b-card-title>
-          <b-card-sub-title sub-title-tag="h4">
-            {{ $t('applications.title') }}
-          </b-card-sub-title>
+          <template #header>
+            <b-card-title title-tag="h3">
+              <router-link
+                :to="{ name: 'system.application.list' }"
+                :aria-label="applications.valid + ' ' + $t('applications.title')"
+                class="display-4 text-decoration-none"
+              >
+                {{ applications.valid }}
+              </router-link>
+            </b-card-title>
+            <b-card-sub-title sub-title-tag="h4">
+              {{ $t('applications.title') }}
+            </b-card-sub-title>
+          </template>
 
-          <b-container class="mt-3">
+          <template #footer>
             <b-row>
               <b-col
                 cols="12"
@@ -193,6 +222,7 @@
                 <router-link
                   :to="{ name: 'system.application.list', query: { deleted: 1 } }"
                   :aria-label="applications.total + ' ' + $t('applications.applications') + ' ' + $t('applications.total')"
+                  class="text-decoration-none"
                 >
                   {{ applications.total }}
                 </router-link>
@@ -208,6 +238,7 @@
                 <router-link
                   :to="{ name: 'system.application.list', query: { deleted: 2 } }"
                   :aria-label="applications.deleted + ' ' + $t('applications.applications') + ' ' + $t('applications.deleted')"
+                  class="text-decoration-none"
                 >
                   {{ applications.deleted }}
                 </router-link>
@@ -216,7 +247,7 @@
                 </span>
               </b-col>
             </b-row>
-          </b-container>
+          </template>
         </b-card>
       </b-col>
     </b-row>
@@ -224,12 +255,17 @@
 </template>
 
 <script>
-import ChartJS from 'chart.js'
 import * as moment from 'moment'
+import { components } from '@cortezaproject/corteza-vue'
+const { CChart } = components
 
 export default {
   i18nOptions: {
     namespaces: 'dashboard',
+  },
+
+  components: {
+    CChart,
   },
 
   data () {
@@ -259,26 +295,6 @@ export default {
     }
   },
 
-  computed: {
-    userTimeline () {
-      const d = this.users.dailyCreated
-      const unit = this.getComfortableTimeUnit(d)
-
-      let aux = {}
-      for (let i = 0; i < d.length; i += 2) {
-        const ts = moment.unix(d[i]).startOf(unit).toISOString()
-        aux[ts] = (aux[ts] || 0) + d[i + 1]
-      }
-
-      let fmt = []
-      for (let x in aux) {
-        fmt.push({ x, y: aux[x] })
-      }
-
-      return fmt
-    },
-  },
-
   mounted () {
     this.$SystemAPI.statsList().then(({ users, roles, applications }) => {
       if (users) {
@@ -295,25 +311,7 @@ export default {
 
       this.initUserChart()
     })
-
-    // this.$nextTick(() => {
-    //   this.$EventBus.Dispatch({
-    //     resourceType: 'ui:admin:dashboard',
-    //     eventType: 'afterMount',
-    //     args: { data: this.$data, $el: this.$el },
-    //   })
-    // })
   },
-
-  // updated () {
-  //   this.$nextTick(() => {
-  //     this.$EventBus.Dispatch({
-  //       resourceType: 'ui:admin:dashboard',
-  //       eventType: 'afterUpdate',
-  //       args: { data: this.users, $el: this.$el },
-  //     })
-  //   })
-  // },
 
   methods: {
     initUserChart () {
@@ -321,51 +319,63 @@ export default {
         return
       }
 
-      const d = this.users.dailyCreated
-      const unit = this.getComfortableTimeUnit(d)
-      const ctx = this.$refs.userChart.getContext('2d')
+      const { dates, values } = this.getUserTimeline()
 
-      this.userChart = new ChartJS(ctx, {
-        type: 'line',
-        data: {
-          datasets: [
-            {
-              label: 'Created users',
-              data: this.userTimeline,
-              fill: false,
-              borderColor: 'gray',
-            },
-          ],
+      this.userChart = {
+        tooltip: {
+          trigger: 'value',
         },
-        options: {
-          layout: {
-            padding: {
-              left: 10,
-              right: 10,
-              top: 10,
+        textStyle: {
+          fontFamily: 'Poppins-Regular',
+        },
+        xAxis: {
+          type: 'category',
+          data: dates,
+          boundaryGap: false,
+        },
+        yAxis: {
+          type: 'value',
+        },
+        grid: {
+          top: 20,
+          right: 50,
+          bottom: 20,
+          left: 40,
+          containLabel: true,
+        },
+        series: [
+          {
+            name: this.$t('users.created'),
+            type: 'line',
+            data: values,
+            smooth: 0.5,
+            areaStyle: {
+              opacity: 0.5,
             },
           },
-          legend: {
-            display: false,
-          },
-          scales: {
-            xAxes: [
-              {
-                type: 'time',
-                time: {
-                  unit: unit,
-                  minUnit: unit,
-                },
-              },
-            ],
-            yAxes: [
-              {
-                display: false,
-              },
-            ],
-          },
-        },
-      })
+        ],
+      }
+    },
+
+    getUserTimeline () {
+      const data = this.users.dailyCreated
+      const unit = this.getComfortableTimeUnit(data)
+
+      let aux = {}
+      for (let i = 0; i < data.length; i += 2) {
+        const ts = moment.unix(data[i]).startOf(unit).format(unit === 'month' ? 'MMM YYYY' : 'D MMM YYYY')
+        aux[ts] = (aux[ts] || 0) + data[i + 1]
+      }
+
+      const dates = []
+      const values = []
+
+      for (let date in aux) {
+        dates.push(date)
+        values.push(aux[date])
+      }
+
+      return { dates, values }
     },
 
     /**
@@ -388,16 +398,8 @@ export default {
       const max = ts[ts.length - 1]
       const diffInDays = (max - min) / (60 * 60 * 24)
 
-      if (diffInDays > 360) {
-        return 'year'
-      }
-
       if (diffInDays > 120) {
         return 'month'
-      }
-
-      if (diffInDays > 14) {
-        return 'week'
       }
 
       return 'day'
