@@ -306,6 +306,11 @@
         >
           {{ $t('recordList.hideRecordPermissionsButton') }}
         </b-form-checkbox>
+        <b-form-checkbox
+          v-model="options.enableRecordPageNavigation"
+        >
+          {{ $t('recordList.enableRecordPageNavigation') }}
+        </b-form-checkbox>
       </b-form-group>
     </b-tab>
 

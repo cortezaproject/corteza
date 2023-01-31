@@ -144,3 +144,6 @@ resourceList:
     showing: '{{from}} - {{to}} of {{count}} items'
     single: One item
     single_plural: '{{count}} items'
+recordNavigation:
+  next: Next record
+  prev: Previous record

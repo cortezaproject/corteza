@@ -622,7 +622,7 @@
 </template>
 <script>
 import { debounce } from 'lodash'
-import { mapGetters } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 import base from './base'
 import FieldViewer from 'corteza-webapp-compose/src/components/ModuleFields/Viewer'
 import FieldEditor from 'corteza-webapp-compose/src/components/ModuleFields/Editor'
@@ -920,6 +920,10 @@ export default {
   },
 
   methods: {
+    ...mapActions({
+      loadPaginationRecords: 'ui/loadPaginationRecords',
+    }),
+
     createEvents () {
       const { pageID = NoID } = this.page
       const { recordID = NoID } = this.record || {}
@@ -1214,6 +1218,26 @@ export default {
     },
 
     handleRowClicked ({ r: { recordID } }) {
+      const { moduleID, namespaceID } = this.recordListModule
+
+      if (this.block.options.enableRecordPageNavigation) {
+        const { pageCursor, nextPage, prevPage } = this.filter
+
+        this.loadPaginationRecords({
+          recordListModule: this.recordListModule,
+          moduleID,
+          namespaceID,
+          filterCursors: [prevPage, pageCursor, nextPage],
+          filter: {
+            ...this.filter,
+            limit: Math.min(this.pagination.count, 100),
+          },
+          options: {
+            showRecordNavigationTooltip: this.block.options.showRecordNavigationTooltip,
+          },
+        })
+      }
+
       if ((this.options.editable && this.editing) || (!this.recordPageID && !this.options.rowViewUrl)) {
         return
       }

@@ -38,6 +38,7 @@
         :processing-undelete="processingUndelete"
         :in-editing="inEditing"
         :show-record-modal="showRecordModal"
+        :record-navigation="recordNavigation"
         @add="handleAdd()"
         @clone="handleClone()"
         @edit="handleEdit()"
@@ -45,11 +46,13 @@
         @undelete="handleUndelete()"
         @back="handleBack()"
         @submit="handleFormSubmit('page.record')"
+        @update-navigation="handleRedirectToPrevOrNext"
       />
     </portal>
   </div>
 </template>
 <script>
+import { mapGetters, mapActions } from 'vuex'
 import Grid from 'corteza-webapp-compose/src/components/Public/Page/Grid'
 import RecordToolbar from 'corteza-webapp-compose/src/components/Common/RecordToolbar'
 import record from 'corteza-webapp-compose/src/mixins/record'
@@ -109,6 +112,11 @@ export default {
   },
 
   computed: {
+    ...mapGetters({
+      clearRecordPageNavigation: 'ui/clearRecordPageNavigation',
+      getNextAndPrevRecord: 'ui/getNextAndPrevRecord',
+    }),
+
     portalTopbarTitle () {
       return this.showRecordModal ? 'record-modal-header' : 'topbar-title'
     },
@@ -143,6 +151,10 @@ export default {
 
       return this.$t(`page:public.record.${titlePrefix}.title`, { name: name || handle, interpolation: { escapeValue: false } })
     },
+
+    recordNavigation () {
+      return this.getNextAndPrevRecord(this.recordID)
+    },
   },
 
   watch: {
@@ -166,6 +178,13 @@ export default {
       this.loadRecord()
       this.$root.$emit(`refetch-non-record-blocks:${this.page.pageID}`)
     })
+
+    if (this.clearRecordPageNavigation) {
+      this.setClearRecordPageNavigation(false)
+      this.clearRecordIds()
+    } else {
+      this.clearRecordIds()
+    }
   },
 
   // Destroy event before route leave to ensure it doesn't destroy the newly created one
@@ -175,6 +194,11 @@ export default {
   },
 
   methods: {
+    ...mapActions({
+      setClearRecordPageNavigation: 'ui/setClearRecordPageNavigation',
+      clearRecordIds: 'ui/clearRecordIds',
+    }),
+
     async loadRecord () {
       this.record = undefined
 
@@ -240,6 +264,29 @@ export default {
         this.inEditing = true
       } else {
         this.$router.push({ name: 'page.record.edit', params: this.$route.params })
+      }
+    },
+
+    handleRedirectToPrevOrNext (value) {
+      const recordID = value
+
+      if (!recordID) return
+
+      if (this.showRecordModal) {
+        this.$router.replace({
+          query: { recordID, recordPageID: this.$route.query.recordPageID },
+        })
+      } else {
+        const route = {
+          name: 'page.record',
+          params: {
+            pageID: this.page.pageID,
+            recordID,
+          },
+          query: null,
+        }
+
+        this.$router.push(route)
       }
     },
   },

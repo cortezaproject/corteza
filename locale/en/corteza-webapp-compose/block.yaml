@@ -313,6 +313,7 @@ recordList:
   hideRecordPermissionsButton: Hide record permissions button
   hideRecordReminderButton: Hide record reminder button
   hideRecordViewButton: Hide view record button
+  enableRecordPageNavigation: Enable record page navigation
   import:
     dropzoneFileAdded: '{{name}} was uploaded and is ready for import ({{count}} record)'
     dropzoneFileAdded_plural: '{{name}} was uploaded and is ready for import ({{count}} records)'

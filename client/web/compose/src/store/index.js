@@ -7,6 +7,7 @@ import page from './page'
 import chart from './chart'
 import user from './user'
 import languages from './languages'
+import ui from './ui'
 import { store as cvStore } from '@cortezaproject/corteza-vue'
 
 Vue.use(Vuex)
@@ -21,6 +22,7 @@ export default new Vuex.Store({
     chart: chart(Vue.prototype.$ComposeAPI),
     user: user(Vue.prototype.$SystemAPI),
     languages: languages(Vue.prototype.$SystemAPI),
+    ui: ui(Vue.prototype.$ComposeAPI),
     rbac: {
       namespaced: true,
       ...cvStore.RBAC(
