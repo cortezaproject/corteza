@@ -8,6 +8,22 @@ import { components } from '@cortezaproject/corteza-vue'
 import { LMap, LTileLayer, LMarker } from 'vue2-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { Icon } from 'leaflet'
+
+// import ECharts modules manually to reduce bundle size
+import ECharts from 'vue-echarts'
+import { use } from 'echarts/core'
+import {
+  SVGRenderer,
+} from 'echarts/renderers'
+import {
+  LineChart,
+} from 'echarts/charts'
+import {
+  TitleComponent,
+  GridComponent,
+  TooltipComponent,
+} from 'echarts/components'
+
 const { CCorredorManualButtons, CPermissionsButton, CInputConfirm } = components
 
 Vue.use(PortalVue)
@@ -22,6 +38,16 @@ Vue.component('c-input-confirm', CInputConfirm)
 Vue.component('l-map', LMap)
 Vue.component('l-tile-layer', LTileLayer)
 Vue.component('l-marker', LMarker)
+
+use([
+  LineChart,
+  SVGRenderer,
+  TitleComponent,
+  GridComponent,
+  TooltipComponent,
+])
+
+Vue.component('e-charts', ECharts)
 
 delete Icon.Default.prototype._getIconUrl
 Icon.Default.mergeOptions({

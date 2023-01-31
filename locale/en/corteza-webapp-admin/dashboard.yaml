@@ -11,6 +11,7 @@ roles:
   total: Total
 title: Dashboard
 users:
+  created: Created users(s)
   deleted: Deleted
   suspended: Suspended
   title: Active user(s)
