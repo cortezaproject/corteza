@@ -323,7 +323,7 @@ export default {
 
       this.userChart = {
         tooltip: {
-          trigger: 'value',
+          trigger: 'axis',
         },
         textStyle: {
           fontFamily: 'Poppins-Regular',
