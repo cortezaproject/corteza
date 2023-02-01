@@ -1,5 +1,6 @@
 configuration: Configuration
 edge: Edge
+label: Label *
 target: Target
 tooltip:
   run-workflow: Run workflow

@@ -1,11 +1,12 @@
 <template>
   <div>
     <b-form-group
-      :label="$t('general:label')"
+      :label="$t('label')"
     >
       <b-form-input
         v-model="workflow.meta.name"
         data-test-id="input-label"
+        :state="nameState"
         @input="$root.$emit('change-detected')"
       />
     </b-form-group>
@@ -111,6 +112,10 @@ export default {
   },
 
   computed: {
+    nameState () {
+      return this.workflow.meta.name ? null : false
+    },
+
     handleState () {
       return handle.handleState(this.workflow.handle)
     },
