@@ -386,7 +386,7 @@
             variant="primary"
             data-test-id="button-save-workflow"
             class="ml-auto"
-            :disabled="!canSave"
+            :disabled="canSave"
             @click="saveWorkflow()"
           >
             {{ $t('editor:save') }}
@@ -492,6 +492,7 @@ import VueJsonEditor from 'v-jsoneditor'
 import Import from '../components/Import'
 import Export from '../components/Export'
 import { NoID } from '@cortezaproject/corteza-js'
+import { handle } from '@cortezaproject/corteza-vue'
 
 const {
   mxClient,
@@ -670,8 +671,16 @@ export default {
       return this.workflow.workflowID === '0' ? this.canCreate : this.workflow.canUpdateWorkflow
     },
 
+    nameState () {
+      return this.workflow.meta.name ? null : false
+    },
+
+    handleState () {
+      return handle.handleState(this.workflow.handle)
+    },
+
     canSave () {
-      return this.canUpdateWorkflow
+      return !this.canUpdateWorkflow || [this.nameState, this.handleState].includes(false)
     },
 
     isDeleted () {
