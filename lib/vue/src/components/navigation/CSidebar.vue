@@ -236,12 +236,6 @@ export default {
         this.checkSidebar()
       },
     },
-
-    disabledRoutes: {
-      handler () {
-        this.checkSidebar()
-      },
-    }
   },
 
   methods: {
