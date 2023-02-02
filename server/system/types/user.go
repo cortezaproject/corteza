@@ -37,8 +37,13 @@ type (
 	}
 
 	UserMeta struct {
-		// @todo remove, obsolete.
-		Avatar string `json:"avatar,omitempty"`
+		// User's profile avatar photo attachment ID
+		AvatarID   uint64 `json:"avatarID,string"`
+		AvatarKind string `json:"avatarKind,omitempty"`
+
+		// User's avatar initial text and background color
+		AvatarColor   string `json:"avatarColor,omitempty"`
+		AvatarBgColor string `json:"avatarBgColor,omitempty"`
 
 		PreferredLanguage string `json:"preferredLanguage"`
 

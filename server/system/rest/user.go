@@ -159,6 +159,18 @@ func (ctrl User) Update(ctx context.Context, r *request.UserUpdate) (interface{}
 	return ctrl.makePayload(ctx, res, err)
 }
 
+func (ctrl User) ProfileAvatar(ctx context.Context, r *request.UserProfileAvatar) (interface{}, error) {
+	return api.OK(), ctrl.user.UploadAvatar(ctx, r.UserID, r.Upload)
+}
+
+func (ctrl User) ProfileAvatarInitial(ctx context.Context, r *request.UserProfileAvatarInitial) (interface{}, error) {
+	return api.OK(), ctrl.user.GenerateAvatar(ctx, r.UserID, r.AvatarBgColor, r.AvatarColor)
+}
+
+func (ctrl User) DeleteAvatar(ctx context.Context, r *request.UserDeleteAvatar) (interface{}, error) {
+	return api.OK(), ctrl.user.DeleteAvatar(ctx, r.UserID)
+}
+
 type (
 	patchOp struct {
 		Operation string          `json:"op"`

@@ -68,6 +68,15 @@ actions:
   - action: deleteAuthSessions
     log: "deleted auth sessions of {{user}}"
 
+  - action: uploadAvatar
+    log: "uploaded avatar of {{user}}"
+
+  - action: generateAvatar
+    log: "generated avatar of {{user}}"
+
+  - action: deleteAvatar
+    log: "deleted avatar of {{user}}"
+
 errors:
   - error: notFound
     message: "user not found"
@@ -150,3 +159,7 @@ errors:
   - error: maxUserLimitReached
     message: "you have reached your user limit, contact your Corteza  administrator"
     severity: warning
+
+  - error: notAllowedToDeleteAvatar
+    message: "not allowed to delete avatar for this user"
+    log: "failed to delete {{user.handle}}'s avatar; insufficient permissions"

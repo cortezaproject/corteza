@@ -52,6 +52,18 @@
       @sessionsRevoke="onSessionsRevoke"
     />
 
+    <c-user-editor-avatar
+      v-if="user && userID && $Settings.get('auth.internal.profile-avatar.Enabled', false)"
+      :user="user"
+      :processing="info.processing"
+      :success="info.success"
+      :can-create="canCreate"
+      class="mt-3"
+      @submit="onAvatarSubmit"
+      @onUpload="onAvatarUpload"
+      @resetAttachment="onResetAvatar"
+    />
+
     <c-user-editor-roles
       v-if="user && userID"
       v-model="membership.active"
@@ -92,6 +104,7 @@
 import { NoID, system } from '@cortezaproject/corteza-js'
 import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
 import CUserEditorInfo from 'corteza-webapp-admin/src/components/User/CUserEditorInfo'
+import CUserEditorAvatar from '../../../components/User/CUserEditorAvatar'
 import CUserEditorPassword from 'corteza-webapp-admin/src/components/User/CUserEditorPassword'
 import CUserEditorMfa from 'corteza-webapp-admin/src/components/User/CUserEditorMFA'
 import CUserEditorRoles from 'corteza-webapp-admin/src/components/User/CUserEditorRoles'
@@ -103,6 +116,7 @@ export default {
     CUserEditorRoles,
     CUserEditorPassword,
     CUserEditorInfo,
+    CUserEditorAvatar,
     CUserEditorMfa,
     CUserEditorExternalAuthProviders,
   },
@@ -269,6 +283,28 @@ export default {
             this.info.processing = false
           })
       }
+    },
+
+    onAvatarSubmit (user) {
+      this.info.processing = true
+
+      const payload = {
+        userID: user.userID,
+        avatarColor: user.meta.avatarColor,
+        avatarBgColor: user.meta.avatarBgColor,
+      }
+
+      this.$SystemAPI.userProfileAvatarInitial(payload)
+        .then(() => {
+          this.fetchUser()
+          this.$auth.handle()
+          this.animateSuccess('info')
+          this.toastSuccess(this.$t('notification:user.avatarUpload.success'))
+        })
+        .catch(this.toastErrorHandler(this.$t('notification:user.avatarUpload.error')))
+        .finally(() => {
+          this.info.processing = false
+        })
     },
 
     /**
@@ -450,6 +486,22 @@ export default {
         .finally(() => {
           this.decLoader()
         })
+    },
+
+    onAvatarUpload () {
+      this.fetchUser()
+    },
+
+    onResetAvatar () {
+      const userID = this.userID
+
+      this.$SystemAPI.userDeleteAvatar({ userID })
+        .then(() => {
+          this.fetchUser()
+
+          this.toastSuccess(this.$t('notification:user.avatarDelete.success'))
+        })
+        .catch(this.toastErrorHandler(this.$t('notification:user.avatarDelete.error')))
     },
   },
 }

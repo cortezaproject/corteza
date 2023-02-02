@@ -2,13 +2,6 @@ package service
 
 import (
 	"context"
-	"io"
-	"net/mail"
-	"regexp"
-	"strconv"
-	"strings"
-	"time"
-
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	internalAuth "github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
@@ -19,6 +12,14 @@ import (
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/service/event"
 	"github.com/cortezaproject/corteza/server/system/types"
+	"io"
+	"mime/multipart"
+	"net/mail"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
+	"unicode"
 )
 
 const (
@@ -45,6 +46,8 @@ type (
 		//
 		// It also does negative caching by assigning empty User structs
 		preloaded map[string]*types.User
+
+		att AttachmentService
 	}
 
 	synteticUserDataGen interface {
@@ -99,6 +102,10 @@ type (
 
 		DeleteAuthTokensByUserID(ctx context.Context, userID uint64) (err error)
 		DeleteAuthSessionsByUserID(ctx context.Context, userID uint64) (err error)
+
+		UploadAvatar(ctx context.Context, userID uint64, Upload *multipart.FileHeader) (err error)
+		GenerateAvatar(ctx context.Context, userID uint64, bgColor string, initialColor string) (err error)
+		DeleteAvatar(ctx context.Context, id uint64) error
 	}
 )
 
@@ -116,6 +123,7 @@ func User(opt UserOptions) *user {
 		opt: opt,
 
 		preloaded: make(map[string]*types.User),
+		att:       DefaultAttachment,
 	}
 }
 
@@ -131,6 +139,14 @@ func (svc user) FindByID(ctx context.Context, userID uint64) (u *types.User, err
 		}
 
 		uaProps.setUser(u)
+
+		// If profile avatar settings is enabled and a user doesn't have an avatar image,
+		// generate one automatically when fetching their user information.
+		if svc.settings.Auth.Internal.ProfileAvatar.Enabled && u.Meta.AvatarID == 0 && u.Meta.AvatarColor == "" {
+			if err = svc.generateUserAvatarInitial(ctx, u); err != nil {
+				return err
+			}
+		}
 
 		if !svc.ac.CanReadUser(ctx, u) {
 			return UserErrNotAllowedToRead()
@@ -369,6 +385,11 @@ func (svc user) Create(ctx context.Context, new *types.User) (u *types.User, err
 			return
 		}
 
+		// Process avatar initials Image
+		if err = svc.generateUserAvatarInitial(ctx, new); err != nil {
+			return
+		}
+
 		new.ID = nextID()
 		new.CreatedAt = *now()
 
@@ -410,7 +431,7 @@ func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err
 			return UserErrInvalidEmail()
 		}
 
-		if u, err = loadUser(ctx, svc.store, upd.ID); err != nil {
+		if u, err = svc.FindByID(ctx, upd.ID); err != nil {
 			return
 		}
 
@@ -437,6 +458,10 @@ func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err
 		if upd.Meta != nil {
 			// Only update meta when set
 			u.Meta = upd.Meta
+		}
+
+		if err = svc.generateUserAvatarInitial(ctx, u); err != nil {
+			return err
 		}
 
 		if err = svc.eventbus.WaitFor(ctx, event.UserBeforeUpdate(upd, u)); err != nil {
@@ -1034,4 +1059,247 @@ func toLabeledUsers(set []*types.User) []label.LabeledResource {
 	}
 
 	return ll
+}
+
+func (svc user) UploadAvatar(ctx context.Context, userID uint64, upload *multipart.FileHeader) (err error) {
+	var (
+		u       *types.User
+		att     *types.Attachment
+		uaProps = &userActionProps{user: &types.User{ID: userID}}
+	)
+
+	err = func() (err error) {
+		if u, err = loadUser(ctx, svc.store, userID); err != nil {
+			return
+		}
+
+		if u.Meta.AvatarID != 0 {
+			if err = svc.att.DeleteByID(ctx, u.Meta.AvatarID); err != nil {
+				return
+			}
+		}
+
+		file, err := upload.Open()
+		if err != nil {
+			return err
+		}
+
+		defer file.Close()
+
+		att, err = svc.att.CreateAuthAttachment(
+			ctx,
+			upload.Filename,
+			upload.Size,
+			file,
+			map[string]string{"key": types.AttachmentKindAvatar},
+		)
+
+		if err != nil {
+			return err
+		}
+
+		u.Meta.AvatarID = att.ID
+		u.Meta.AvatarKind = types.AttachmentKindAvatar
+
+		if err = store.UpdateUser(ctx, svc.store, u); err != nil {
+			return
+		}
+
+		return nil
+	}()
+
+	return svc.recordAction(ctx, uaProps, UserActionUploadAvatar, err)
+}
+
+// DeleteAvatar will delete user's avatar
+func (svc user) DeleteAvatar(ctx context.Context, userID uint64) (err error) {
+	var (
+		u       *types.User
+		uaProps = &userActionProps{user: &types.User{ID: userID}}
+	)
+
+	err = func() (err error) {
+		if u, err = svc.FindByID(ctx, userID); err != nil {
+			return
+		}
+
+		if u.Kind == types.SystemUser {
+			return UserErrNotAllowedToDeleteAvatar()
+		}
+
+		att, err := svc.att.FindByID(ctx, u.Meta.AvatarID)
+		if err != nil {
+			return err
+		}
+
+		if att.Meta.Labels["key"] != types.AttachmentKindAvatar {
+			return nil
+		}
+
+		if !svc.ac.CanUpdateUser(ctx, u) {
+			return UserErrNotAllowedToDeleteAvatar()
+		}
+
+		if err = svc.att.DeleteByID(ctx, u.Meta.AvatarID); err != nil {
+			return err
+		}
+
+		u.Meta.AvatarID = 0
+
+		// When an uploaded avatar is deleted, generate avatar initial
+		if err = svc.generateUserAvatarInitial(ctx, u); err != nil {
+			return err
+		}
+
+		if err = store.UpdateUser(ctx, svc.store, u); err != nil {
+			return
+		}
+
+		return nil
+	}()
+
+	return svc.recordAction(ctx, uaProps, UserActionDeleteAvatar, err)
+}
+
+func processAvatarInitials(u *types.User) (initial string) {
+	var (
+		chars string
+		parts []string
+	)
+
+	if u.Name != "" {
+		parts = strings.Fields(u.Name)
+		if len(parts) > 2 {
+			chars = string(parts[0][0]) + string(parts[1][0]) + string(parts[2][0])
+		} else if len(parts) > 1 {
+			chars = string(parts[0][0]) + string(parts[1][0])
+		} else {
+			if len(parts[0]) > 1 {
+				chars = string(parts[0][0]) + string(parts[0][1])
+			} else {
+				chars = string(parts[0][0])
+			}
+		}
+	} else if u.Handle != "" {
+		if strings.ContainsAny(u.Handle, "._-") {
+			for _, del := range "._-" {
+				if strings.Contains(u.Handle, string(del)) {
+					parts = strings.Split(u.Handle, string(del))
+					break
+				}
+			}
+
+			chars = string(parts[0][0]) + string(parts[1][0])
+		} else {
+			chars = string(u.Handle[0])
+		}
+	} else {
+		email := strings.Split(u.Email, "@")
+		if strings.ContainsAny(email[0], "._-") {
+			for _, del := range "._-" {
+				if strings.Contains(email[0], string(del)) {
+					parts = strings.Split(email[0], string(del))
+					break
+				}
+			}
+
+			chars = string(parts[0][0]) + string(parts[1][0])
+		} else {
+			chars = string(email[0][0])
+		}
+	}
+
+	// Validate initials: if initials are letters if not assign a default "CU"
+	for _, c := range chars {
+		if unicode.IsLetter(c) {
+			initial += string(c)
+		}
+		continue
+	}
+	if initial == "" {
+		initial = "CU"
+	}
+
+	initial = strings.ToUpper(initial)
+
+	return
+}
+
+func (svc user) GenerateAvatar(ctx context.Context, userID uint64, bgColor string, initialColor string) (err error) {
+	var (
+		u       *types.User
+		uaProps = &userActionProps{user: &types.User{ID: userID}}
+	)
+
+	err = func() (err error) {
+		if u, err = loadUser(ctx, svc.store, userID); err != nil {
+			return
+		}
+
+		u.Meta.AvatarColor = initialColor
+		u.Meta.AvatarBgColor = bgColor
+		if err = svc.generateUserAvatarInitial(ctx, u); err != nil {
+			return err
+		}
+
+		if err = store.UpdateUser(ctx, svc.store, u); err != nil {
+			return
+		}
+
+		return nil
+	}()
+
+	return svc.recordAction(ctx, uaProps, UserActionGenerateAvatar, err)
+}
+
+func (svc user) generateUserAvatarInitial(ctx context.Context, u *types.User) (err error) {
+	var (
+		att *types.Attachment
+	)
+
+	initial := processAvatarInitials(u)
+
+	if u.Meta == nil {
+		u.Meta = &types.UserMeta{}
+	}
+
+	if u.Meta.AvatarID != 0 {
+		if att, err = svc.att.FindByID(ctx, u.Meta.AvatarID); err != nil {
+			return err
+		}
+
+		if att.Meta.Labels["key"] == types.AttachmentKindAvatar {
+			return nil
+		}
+
+		colorLogic := att.Meta.Original.Image.BackgroundColor == u.Meta.AvatarBgColor && att.Meta.Original.Image.InitialColor == u.Meta.AvatarColor
+		if att.Meta.Original.Image.Initial == initial && colorLogic {
+			return nil
+		}
+
+		if err = svc.att.DeleteByID(ctx, att.ID); err != nil {
+			return err
+		}
+	}
+
+	if att, err = svc.att.CreateAvatarInitialsAttachment(ctx, initial, u.Meta.AvatarBgColor, u.Meta.AvatarColor); err != nil {
+		return err
+	}
+
+	if u.Meta == nil {
+		u.Meta = &types.UserMeta{}
+	}
+
+	u.Meta.AvatarID = att.ID
+	u.Meta.AvatarKind = types.AttachmentKindAvatarInitials
+
+	if u.Meta.AvatarBgColor == "" {
+		u.Meta.AvatarBgColor = att.Meta.Original.Image.BackgroundColor
+	}
+
+	if u.Meta.AvatarColor == "" {
+		u.Meta.AvatarColor = att.Meta.Original.Image.InitialColor
+	}
+
+	return nil
 }

@@ -1,9 +1,11 @@
 {{ template "inc_header.html.tpl" set . "activeNav" "profile" }}
 <div class="card-body p-0">
 	<h4 class="card-title p-3 border-bottom">{{ tr "profile.template.title" }}</h4>
+
 	<form
 		method="POST"
 		action="{{ links.Profile }}"
+        enctype="multipart/form-data"
 		class="p-3"
 	>
 		{{ .csrfField }}
@@ -93,6 +95,44 @@
 			{{ end }}
 			</select>
 		</div>
+
+        {{ if .avatarEnabled }}
+        <hr/>
+        <div class="mb-3">
+            <label for="profileFormHandle">{{ tr "profile.template.form.avatar.label" }}</label>
+            <div class="d-block">
+                <img style="height: 4rem; width: 4rem;" class="rounded-circle" src="{{ .form.avatarUrl }}" alt="Profile Photo">
+                <div class="mt-3">
+                    <label for="avatar" class="p-2 bg-light text-dark rounded" style="cursor: pointer;">
+                    {{ tr "profile.template.form.avatar.upload" }}
+                    </label>
+                    <input id="avatar" name="avatar" value="avatar" type="file" class="sr-only" accept="image/*">
+
+                    {{  if .isAvatar }}
+                    <button
+                        name="avatar-delete"
+                        value="avatar-delete"
+                        class="ml-2 btn btn-danger"
+                    >
+                        {{ tr "profile.template.form.avatar.delete" }}
+                    </button>
+                    {{ end }}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row mb-3">
+            <div class="col">
+                <label for="initialColor">{{ tr "profile.template.form.avatar-initial.color" }}</label>
+                <input type="color" id="initialColor" class="form-control input-color" value="{{ .form.initialTextColor }}" name="initial-color">
+            </div>
+
+            <div class="col">
+                <label for="customColor">{{ tr "profile.template.form.avatar-initial.background-color" }}</label>
+                <input type="color" id="customColor" class="form-control input-color" value="{{ .form.initialBgColor }}" name="initial-bg">
+            </div>
+        </div>
+        {{ end }}
 
         <div>
             <button

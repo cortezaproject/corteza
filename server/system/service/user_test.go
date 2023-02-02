@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/stretchr/testify/assert"
 	"testing"
 
 	a "github.com/cortezaproject/corteza/server/pkg/auth"
@@ -92,4 +93,85 @@ func TestUser_ProtectedSearch(t *testing.T) {
 		req.NoError(err)
 		req.Len(set, 0)
 	})
+}
+
+func Test_processAvatarInitials(t *testing.T) {
+	// Define test cases
+	tests := []struct {
+		name            string
+		user            *types.User
+		expectedInitial string
+	}{
+		{
+			name: "Test with valid name",
+			user: &types.User{
+				Name: "John Doe",
+			},
+			expectedInitial: "JD",
+		},
+		{
+			name: "Test with valid handle",
+			user: &types.User{
+				Handle: "johndoe",
+			},
+			expectedInitial: "J",
+		},
+		{
+			name: "Test handle with a delimiter",
+			user: &types.User{
+				Handle: "john_doe",
+			},
+			expectedInitial: "JD",
+		},
+		{
+			name: "Test with valid handle",
+			user: &types.User{
+				Email: "johndoe@example.com",
+			},
+			expectedInitial: "J",
+		},
+		{
+			name: "Test email with a delimiter",
+			user: &types.User{
+				Email: "john-doe@example.com",
+			},
+			expectedInitial: "JD",
+		},
+		{
+			name: "Test with one letter name",
+			user: &types.User{
+				Name: "K",
+			},
+			expectedInitial: "K",
+		},
+		{
+			name: "Test with one name",
+			user: &types.User{
+				Name: "Doe",
+			},
+			expectedInitial: "DO",
+		},
+		{
+			name: "Test with three names",
+			user: &types.User{
+				Name: "John David Doe",
+			},
+			expectedInitial: "JDD",
+		},
+		{
+			name: "Test with a name that has a valid and invalid letter",
+			user: &types.User{
+				Name: "k-",
+			},
+			expectedInitial: "K",
+		},
+	}
+
+	// Run test cases
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			initial := processAvatarInitials(tc.user)
+			assert.Equal(t, tc.expectedInitial, initial)
+		})
+	}
 }

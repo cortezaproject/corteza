@@ -4,25 +4,32 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"image"
-	"image/gif"
-	"io"
-	"net/http"
-	"path"
-	"strings"
-
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza/server/pkg/auth"
 	files "github.com/cortezaproject/corteza/server/pkg/objstore"
+	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/disintegration/imaging"
 	"github.com/edwvee/exiffix"
+	"github.com/fogleman/gg"
+	"github.com/golang/freetype/truetype"
+	"golang.org/x/image/font"
+	"image"
+	"image/gif"
+	"io"
+	"net/http"
+	"os"
+	"path"
+	"path/filepath"
+	"strings"
 )
 
 const (
 	attachmentPreviewMaxWidth  = 320
 	attachmentPreviewMaxHeight = 180
+	avatarWidth                = 300
+	avatarHeight               = 300
 )
 
 type (
@@ -31,6 +38,7 @@ type (
 		files     files.Store
 		ac        attachmentAccessController
 		store     store.Storer
+		opt       options.AttachmentOpt
 	}
 
 	attachmentAccessController interface {
@@ -43,18 +51,21 @@ type (
 		Find(ctx context.Context, filter types.AttachmentFilter) (types.AttachmentSet, types.AttachmentFilter, error)
 		CreateSettingsAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker, labels map[string]string) (*types.Attachment, error)
 		CreateApplicationAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker, labels map[string]string) (*types.Attachment, error)
+		CreateAuthAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker, labels map[string]string) (*types.Attachment, error)
+		CreateAvatarInitialsAttachment(ctx context.Context, initials string, bgColor string, textColor string) (att *types.Attachment, err error)
 		OpenOriginal(att *types.Attachment) (io.ReadSeekCloser, error)
 		OpenPreview(att *types.Attachment) (io.ReadSeekCloser, error)
 		DeleteByID(ctx context.Context, ID uint64) error
 	}
 )
 
-func Attachment(store files.Store) *attachment {
+func Attachment(store files.Store, opt options.AttachmentOpt) *attachment {
 	return &attachment{
 		files:     store,
 		actionlog: DefaultActionlog,
 		ac:        DefaultAccessControl,
 		store:     DefaultStore,
+		opt:       opt,
 	}
 }
 
@@ -198,8 +209,135 @@ func (svc attachment) CreateApplicationAttachment(ctx context.Context, name stri
 	return att, svc.recordAction(ctx, aaProps, AttachmentActionCreate, err)
 }
 
+func (svc attachment) CreateAuthAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker, labels map[string]string) (att *types.Attachment, err error) {
+	var (
+		aaProps       = &attachmentActionProps{}
+		currentUserID = intAuth.GetIdentityFromContext(ctx).Identity()
+	)
+
+	// check the file type
+	ext := filepath.Ext(name)
+	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" {
+		return nil, AttachmentErrInvalidAvatarFileType()
+	}
+
+	//check the file size
+	if size > svc.opt.AvatarMaxFileSize {
+		return nil, AttachmentErrInvalidAvatarFileSize()
+	}
+
+	err = func() (err error) {
+		att = &types.Attachment{
+			OwnerID: currentUserID,
+			Name:    strings.TrimSpace(name),
+			Kind:    types.AttachmentKindAvatar,
+		}
+
+		aaProps.setAttachment(att)
+
+		if labels != nil {
+			att.Meta.Labels = labels
+		}
+
+		if err = svc.create(ctx, name, size, fh, att); err != nil {
+			return err
+		}
+
+		return err
+	}()
+
+	return att, svc.recordAction(ctx, aaProps, AttachmentActionCreate, err)
+}
+
+func (svc attachment) CreateAvatarInitialsAttachment(ctx context.Context, initials string, bgColor string, textColor string) (att *types.Attachment, err error) {
+	var (
+		aaProps       = &attachmentActionProps{}
+		currentUserID = intAuth.GetIdentityFromContext(ctx).Identity()
+	)
+
+	if bgColor == "" {
+		bgColor = svc.opt.AvatarInitialsBackgroundColor
+	}
+
+	if textColor == "" {
+		textColor = svc.opt.AvatarInitialsColor
+	}
+
+	// Set initials image background color and
+	// draw the initials text in the center of the image
+	dc := gg.NewContext(avatarWidth, avatarHeight)
+	dc.SetHexColor(bgColor)
+	dc.Clear()
+
+	// Get the font face properties
+	fontBytes, err := os.ReadFile(svc.opt.AvatarInitialsFontPath)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	f, _ := truetype.Parse(fontBytes)
+
+	face := truetype.NewFace(f, &truetype.Options{
+		Size:    120,
+		DPI:     72,
+		Hinting: font.HintingFull,
+	})
+
+	// set initials text color
+	dc.SetFontFace(face)
+	dc.SetHexColor(textColor)
+
+	textWidth, textHeight := dc.MeasureString(initials)
+	dc.DrawString(initials, (avatarWidth-textWidth)/2, (avatarHeight+textHeight)/2.2)
+
+	// Generate and save the initials image in PNG format
+	err = func() (err error) {
+		att = &types.Attachment{
+			OwnerID: currentUserID,
+			Name:    initials,
+			Kind:    types.AttachmentKindAvatarInitials,
+		}
+
+		att.ID = nextID()
+		att.CreatedAt = *now()
+		att.Meta.Original.Extension = "png"
+		att.Meta.Labels = map[string]string{"key": types.AttachmentKindAvatarInitials}
+
+		if att.Meta.Original.Image == nil {
+			att.Meta.Original.Image = &types.AttachmentImageMeta{}
+		}
+
+		att.Meta.Original.Image.Initial = initials
+		att.Meta.Original.Image.InitialColor = textColor
+		att.Meta.Original.Image.BackgroundColor = bgColor
+
+		att.Url = svc.files.Original(att.ID, att.Meta.Original.Extension)
+		aaProps.setUrl(att.Url)
+
+		aaProps.setAttachment(att)
+
+		var buf = &bytes.Buffer{}
+		if err = imaging.Encode(buf, dc.Image(), imaging.PNG); err != nil {
+			return err
+		}
+
+		if err = svc.files.Save(att.Url, buf); err != nil {
+			return AttachmentErrFailedToStoreFile(aaProps).Wrap(err)
+		}
+
+		if err = store.CreateAttachment(ctx, svc.store, att); err != nil {
+			return
+		}
+
+		return nil
+	}()
+
+	return att, nil
+}
+
 func (svc attachment) create(ctx context.Context, name string, size int64, fh io.ReadSeeker, att *types.Attachment) (err error) {
 	var (
+		avatar  image.Image
 		aaProps = &attachmentActionProps{}
 	)
 
@@ -227,6 +365,30 @@ func (svc attachment) create(ctx context.Context, name string, size int64, fh io
 
 	att.Url = svc.files.Original(att.ID, att.Meta.Original.Extension)
 	aaProps.setUrl(att.Url)
+
+	// process avatar
+	if att.Kind == types.AttachmentKindAvatar {
+		if avatar, err = imaging.Decode(fh); err != nil {
+			return fmt.Errorf("could not decode original avatar: %w", err)
+		}
+
+		avatar = imaging.Resize(avatar, avatarWidth, avatarHeight, imaging.Lanczos)
+
+		var buf = &bytes.Buffer{}
+		if err = imaging.Encode(buf, avatar, imaging.JPEG); err != nil {
+			return
+		}
+
+		if err = svc.files.Save(att.Url, buf); err != nil {
+			return AttachmentErrFailedToStoreFile(aaProps).Wrap(err)
+		}
+
+		if err = store.CreateAttachment(ctx, svc.store, att); err != nil {
+			return
+		}
+
+		return nil
+	}
 
 	if err = svc.files.Save(att.Url, fh); err != nil {
 		return AttachmentErrFailedToStoreFile(aaProps).Wrap(err)

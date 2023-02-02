@@ -11,4 +11,8 @@ $(function () {
   })
 
   $('input.mfa-code-mask').mask('000 000')
+
+  $('#avatar').change(function () {
+    $('form').submit();
+  })
 })

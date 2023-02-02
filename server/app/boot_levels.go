@@ -365,14 +365,15 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	// Note: this is a legacy approach, all services from all 3 apps
 	// will most likely be merged in the future
 	err = sysService.Initialize(ctx, app.Log, app.Store, app.WsServer, sysService.Config{
-		ActionLog: app.Opt.ActionLog,
-		Discovery: app.Opt.Discovery,
-		Storage:   app.Opt.ObjStore,
-		Template:  app.Opt.Template,
-		DB:        app.Opt.DB,
-		Auth:      app.Opt.Auth,
-		RBAC:      app.Opt.RBAC,
-		Limit:     app.Opt.Limit,
+		ActionLog:  app.Opt.ActionLog,
+		Discovery:  app.Opt.Discovery,
+		Storage:    app.Opt.ObjStore,
+		Template:   app.Opt.Template,
+		DB:         app.Opt.DB,
+		Auth:       app.Opt.Auth,
+		RBAC:       app.Opt.RBAC,
+		Limit:      app.Opt.Limit,
+		Attachment: app.Opt.Attachment,
 	})
 
 	if err != nil {
@@ -622,6 +623,7 @@ func updateAuthSettings(svc authServicer, current *types.AppSettings) {
 		PasswordCreateEnabled:     current.Auth.Internal.PasswordCreate.Enabled,
 		SplitCredentialsCheck:     current.Auth.Internal.SplitCredentialsCheck,
 		ExternalEnabled:           current.Auth.External.Enabled,
+		ProfileAvatarEnabled:      current.Auth.Internal.ProfileAvatar.Enabled,
 		MultiFactor: authSettings.MultiFactor{
 			TOTP: authSettings.TOTP{
 				Enabled:  current.Auth.MultiFactor.TOTP.Enabled,

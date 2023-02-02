@@ -69,3 +69,15 @@ errors:
 
   - error: failedToProcessImage
     message: "could not process image"
+
+  - error: invalidAvatarFileType
+    message: "invalid file type only JPEG and PNG are allowed"
+    severity: warning
+
+  - error: invalidAvatarFileSize
+    message: "file size is too large"
+    severity: warning
+
+  - error: invalidInitialsLength
+    message: "initials characters length should not exceed 3 characters"
+    severity: warning

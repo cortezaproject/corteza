@@ -28,6 +28,7 @@ type (
 		OAuth2AuthorizeClient,
 		OAuth2Token,
 		OAuth2Info,
+		OAuth2UserInfo,
 		OAuth2DefaultClient,
 		OAuth2PublicKeys,
 
@@ -81,6 +82,7 @@ func GetLinks() Links {
 		OAuth2AuthorizeClient: b + "auth/oauth2/authorize-client",
 		OAuth2Token:           b + "auth/oauth2/token",
 		OAuth2Info:            b + "auth/oauth2/info",
+		OAuth2UserInfo:        b + "auth/oauth2/userinfo",
 		OAuth2DefaultClient:   b + "auth/oauth2/default-client",
 		OAuth2PublicKeys:      b + "auth/oauth2/public-keys",
 

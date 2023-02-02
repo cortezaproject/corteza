@@ -40,6 +40,7 @@ corteza: schema.#platform & {
 		options.websocket,
 		options.workflow,
 		options.discovery,
+		options.attachment,
 	]
 
 	// platform resources

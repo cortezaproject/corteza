@@ -113,6 +113,10 @@ a:hover {
   padding: 1.25rem 0.75rem;
 }
 
+.input-color {
+  padding: 0.125rem 0.25rem;
+}
+
 select.form-control {
   padding: 0 0.5rem;
 }
