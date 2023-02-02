@@ -51,9 +51,11 @@ var (
 func fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings(ctx context.Context, s *Store) (err error) {
 	type (
 		oldS struct {
-			Public    interface{} `json:"public"`
-			Private   interface{} `json:"private"`
-			Protected interface{} `json:"protected"`
+			Discovery struct {
+				Public    interface{} `json:"public"`
+				Private   interface{} `json:"private"`
+				Protected interface{} `json:"protected"`
+			}
 		}
 
 		result struct {
@@ -75,14 +77,21 @@ func fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings(ctx context.Cont
 		ss    oldS
 
 		uu []updateModule
+
+		driver = s.DB.DriverName()
 	)
 
 	const (
 		getModuleDiscoverySettings = `
-			SELECT id, compose_module.config -> 'discovery' AS discovery
+			SELECT id, compose_module.config AS discovery
 			FROM compose_module`
 
 		updateModuleDiscoverySettings = `
+			UPDATE compose_module 
+			SET config = JSON_SET(config, '$.discovery', CAST('%s' AS JSON))
+			WHERE id = %d`
+
+		updatePSQLModuleDiscoverySettings = `
 			UPDATE compose_module 
 			SET config = jsonb_set(config, '{discovery}', '%s'::jsonb)
 			WHERE id = %d`
@@ -101,7 +110,7 @@ func fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings(ctx context.Cont
 		return err
 	}
 
-	return s.Tx(ctx, func(ctx context.Context, s store.Storer) (err error) {
+	_ = s.Tx(ctx, func(ctx context.Context, s store.Storer) (err error) {
 		query = fmt.Sprintf(getModuleDiscoverySettings)
 		rows, err = s.(*Store).DB.QueryContext(ctx, query)
 		if err != nil {
@@ -172,9 +181,9 @@ func fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings(ctx context.Cont
 				}
 			)
 
-			settings.Public.Result = append(settings.Public.Result, migrateSetting(ss.Public).Result)
-			settings.Private.Result = append(settings.Private.Result, migrateSetting(ss.Private).Result)
-			settings.Protected.Result = append(settings.Protected.Result, migrateSetting(ss.Protected).Result)
+			settings.Public.Result = append(settings.Public.Result, migrateSetting(ss.Discovery.Public).Result)
+			settings.Private.Result = append(settings.Private.Result, migrateSetting(ss.Discovery.Private).Result)
+			settings.Protected.Result = append(settings.Protected.Result, migrateSetting(ss.Discovery.Protected).Result)
 
 			bb, err = json.Marshal(settings)
 			if err != nil {
@@ -187,18 +196,24 @@ func fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings(ctx context.Cont
 			})
 		}
 
-		for _, u := range uu {
-			query = fmt.Sprintf(updateModuleDiscoverySettings, u.Discovery, u.ID)
-			log.Info("saving migrated module.config.discovery settings", zap.Uint64("id", u.ID))
-			_, err = s.(*Store).DB.QueryContext(ctx, query)
-			if err != nil {
-				log.Info("error saving migrated module.config.discovery settings", zap.Uint64("id", u.ID))
-				continue
-			}
-		}
-
 		return
 	})
+
+	for _, u := range uu {
+		if driver == "postgres" || driver == "postgres+debug" {
+			query = fmt.Sprintf(updatePSQLModuleDiscoverySettings, u.Discovery, u.ID)
+		} else {
+			query = fmt.Sprintf(updateModuleDiscoverySettings, u.Discovery, u.ID)
+		}
+		log.Debug("saving migrated module.config.discovery settings", zap.Uint64("id", u.ID))
+		_, err = s.DB.QueryContext(ctx, query)
+		if err != nil {
+			log.Debug("error saving migrated module.config.discovery settings", zap.Uint64("id", u.ID))
+			continue
+		}
+	}
+
+	return
 }
 
 func fix_2022_09_00_extendComposeModuleForPrivacyAndDAL(ctx context.Context, s *Store) (err error) {
@@ -636,7 +651,7 @@ func fix_2023_03_00_migrateComposeModuleConfigForRecordDeDup(ctx context.Context
 		)
 
 		if err = s.Tx(ctx, func(ctx context.Context, s store.Storer) (err error) {
-			log.Info("collecting module.config.recordDeDup for module", zap.Uint64("id", m.ID))
+			log.Debug("collecting module.config.recordDeDup for module", zap.Uint64("id", m.ID))
 
 			query = fmt.Sprintf(moduleConfigRecordDeDup, m.ID)
 			rows, err = s.(*Store).DB.QueryContext(ctx, query)
@@ -694,9 +709,9 @@ func fix_2023_03_00_migrateComposeModuleConfigForRecordDeDup(ctx context.Context
 			if len(migratedRules) > 0 {
 				m.Config.RecordDeDup.Rules = migratedRules
 
-				log.Info("saving migrated module.config.recordDeDup for module", zap.Uint64("id", m.ID))
+				log.Debug("saving migrated module.config.recordDeDup for module", zap.Uint64("id", m.ID))
 				if err = s.UpdateComposeModule(ctx, m); err != nil {
-					log.Info("error saving migrated module.config.recordDeDup for module", zap.Uint64("id", m.ID))
+					log.Debug("error saving migrated module.config.recordDeDup for module", zap.Uint64("id", m.ID))
 					return
 				}
 			}
