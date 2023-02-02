@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/url"
 	"testing"
@@ -22,6 +23,7 @@ func Test_profileForm(t *testing.T) {
 		}
 
 		authService  authService
+		userService  userService
 		authHandlers *AuthHandlers
 		authReq      *request.AuthReq
 
@@ -32,14 +34,28 @@ func Test_profileForm(t *testing.T) {
 		rq = require.New(t)
 	)
 
+	userService = &userServiceMocked{
+		findByAny: func(ctx context.Context, i interface{}) (*types.User, error) {
+			u := makeMockUser()
+			u.ID = i.(uint64)
+
+			return u, nil
+		},
+	}
 	authHandlers = prepareClientAuthHandlers(authService, authSettings)
+	authHandlers.UserService = userService
 	authReq = prepareClientAuthReq(authHandlers, req, user)
+
+	avatarUrl := fmt.Sprintf("/api/system/attachment/avatar/%d/original/%s", user.Meta.AvatarID, types.AttachmentKindAvatar)
 
 	userForm := map[string]string{
 		"email":             user.Email,
 		"handle":            user.Handle,
 		"name":              user.Name,
+		"avatarUrl":         avatarUrl,
 		"preferredLanguage": user.Meta.PreferredLanguage,
+		"initialTextColor":  user.Meta.AvatarColor,
+		"initialBgColor":    user.Meta.AvatarBgColor,
 	}
 
 	authReq.SetKV(map[string]string{})
@@ -69,7 +85,7 @@ func Test_profileFormProc(t *testing.T) {
 	tcc := []testingExpect{
 		{
 			name:    "success",
-			err:     "",
+			err:     "request Content-Type isn't multipart/form-data",
 			alerts:  []request.Alert{{Type: "primary", Text: "profile.alerts.profile-updated", Html: ""}},
 			link:    GetLinks().Profile,
 			payload: map[string]string(nil),
@@ -86,15 +102,29 @@ func Test_profileFormProc(t *testing.T) {
 
 						return u, nil
 					},
+					findByAny: func(ctx context.Context, i interface{}) (*types.User, error) {
+						u := makeMockUser()
+						u.ID = i.(uint64)
+
+						return u, nil
+					},
 				}
 			},
 		},
 		{
-			name:    "proc invalid ID",
-			err:     "",
-			alerts:  []request.Alert{{Type: "danger", Text: "profile.alerts.profile-update-fail", Html: ""}},
-			link:    GetLinks().Profile,
-			payload: map[string]string{"email": "mockuser@example.tld", "error": "invalid ID", "handle": "handle", "name": "name"},
+			name:   "proc invalid ID",
+			err:    "",
+			alerts: []request.Alert{{Type: "danger", Text: "profile.alerts.profile-update-fail", Html: ""}},
+			link:   GetLinks().Profile,
+			payload: map[string]string{
+				"email":            "mockuser@example.tld",
+				"error":            "invalid ID",
+				"handle":           "handle",
+				"name":             "name",
+				"initialBgColor":   "",
+				"initialTextColor": "",
+				"avatarUrl":        "/api/system/attachment/avatar/0/original/avatar",
+			},
 			fn: func(_ *settings.Settings) {
 				req.PostForm.Add("handle", "handle")
 				req.PostForm.Add("name", "name")
@@ -103,15 +133,29 @@ func Test_profileFormProc(t *testing.T) {
 					update: func(c context.Context, u *types.User) (*types.User, error) {
 						return nil, service.UserErrInvalidID()
 					},
+					findByAny: func(ctx context.Context, i interface{}) (*types.User, error) {
+						u := makeMockUser()
+						u.ID = i.(uint64)
+
+						return u, nil
+					},
 				}
 			},
 		},
 		{
-			name:    "proc invalid handle",
-			err:     "",
-			alerts:  []request.Alert{{Type: "danger", Text: "profile.alerts.profile-update-fail", Html: ""}},
-			link:    GetLinks().Profile,
-			payload: map[string]string{"email": "mockuser@example.tld", "error": "invalid handle", "handle": "handle", "name": "name"},
+			name:   "proc invalid handle",
+			err:    "",
+			alerts: []request.Alert{{Type: "danger", Text: "profile.alerts.profile-update-fail", Html: ""}},
+			link:   GetLinks().Profile,
+			payload: map[string]string{
+				"email":            "mockuser@example.tld",
+				"error":            "invalid handle",
+				"handle":           "handle",
+				"name":             "name",
+				"initialBgColor":   "",
+				"initialTextColor": "",
+				"avatarUrl":        "/api/system/attachment/avatar/0/original/avatar",
+			},
 			fn: func(_ *settings.Settings) {
 				req.PostForm.Add("handle", "handle")
 				req.PostForm.Add("name", "name")
@@ -120,15 +164,29 @@ func Test_profileFormProc(t *testing.T) {
 					update: func(c context.Context, u *types.User) (*types.User, error) {
 						return nil, service.UserErrInvalidHandle()
 					},
+					findByAny: func(ctx context.Context, i interface{}) (*types.User, error) {
+						u := makeMockUser()
+						u.ID = i.(uint64)
+
+						return u, nil
+					},
 				}
 			},
 		},
 		{
-			name:    "proc invalid email",
-			err:     "",
-			alerts:  []request.Alert{{Type: "danger", Text: "profile.alerts.profile-update-fail", Html: ""}},
-			link:    GetLinks().Profile,
-			payload: map[string]string{"email": "mockuser@example.tld", "error": "invalid email", "handle": "handle", "name": "name"},
+			name:   "proc invalid email",
+			err:    "",
+			alerts: []request.Alert{{Type: "danger", Text: "profile.alerts.profile-update-fail", Html: ""}},
+			link:   GetLinks().Profile,
+			payload: map[string]string{
+				"email":            "mockuser@example.tld",
+				"error":            "invalid email",
+				"handle":           "handle",
+				"name":             "name",
+				"initialBgColor":   "",
+				"initialTextColor": "",
+				"avatarUrl":        "/api/system/attachment/avatar/0/original/avatar",
+			},
 			fn: func(_ *settings.Settings) {
 				req.PostForm.Add("handle", "handle")
 				req.PostForm.Add("name", "name")
@@ -137,15 +195,29 @@ func Test_profileFormProc(t *testing.T) {
 					update: func(c context.Context, u *types.User) (*types.User, error) {
 						return nil, service.UserErrInvalidEmail()
 					},
+					findByAny: func(ctx context.Context, i interface{}) (*types.User, error) {
+						u := makeMockUser()
+						u.ID = i.(uint64)
+
+						return u, nil
+					},
 				}
 			},
 		},
 		{
-			name:    "proc handle not unique",
-			err:     "",
-			alerts:  []request.Alert{{Type: "danger", Text: "profile.alerts.profile-update-fail", Html: ""}},
-			link:    GetLinks().Profile,
-			payload: map[string]string{"email": "mockuser@example.tld", "error": "handle not unique", "handle": "handle", "name": "name"},
+			name:   "proc handle not unique",
+			err:    "",
+			alerts: []request.Alert{{Type: "danger", Text: "profile.alerts.profile-update-fail", Html: ""}},
+			link:   GetLinks().Profile,
+			payload: map[string]string{
+				"email":            "mockuser@example.tld",
+				"error":            "handle not unique",
+				"handle":           "handle",
+				"name":             "name",
+				"initialBgColor":   "",
+				"initialTextColor": "",
+				"avatarUrl":        "/api/system/attachment/avatar/0/original/avatar",
+			},
 			fn: func(_ *settings.Settings) {
 				req.PostForm.Add("handle", "handle")
 				req.PostForm.Add("name", "name")
@@ -154,15 +226,29 @@ func Test_profileFormProc(t *testing.T) {
 					update: func(c context.Context, u *types.User) (*types.User, error) {
 						return nil, service.UserErrHandleNotUnique()
 					},
+					findByAny: func(ctx context.Context, i interface{}) (*types.User, error) {
+						u := makeMockUser()
+						u.ID = i.(uint64)
+
+						return u, nil
+					},
 				}
 			},
 		},
 		{
-			name:    "user.errors.notAllowedToUpdate",
-			err:     "",
-			alerts:  []request.Alert{{Type: "danger", Text: "profile.alerts.profile-update-fail", Html: ""}},
-			link:    GetLinks().Profile,
-			payload: map[string]string{"email": "mockuser@example.tld", "error": "not allowed to update this user", "handle": "handle", "name": "name"},
+			name:   "user.errors.notAllowedToUpdate",
+			err:    "",
+			alerts: []request.Alert{{Type: "danger", Text: "profile.alerts.profile-update-fail", Html: ""}},
+			link:   GetLinks().Profile,
+			payload: map[string]string{
+				"email":            "mockuser@example.tld",
+				"error":            "not allowed to update this user",
+				"handle":           "handle",
+				"name":             "name",
+				"initialBgColor":   "",
+				"initialTextColor": "",
+				"avatarUrl":        "/api/system/attachment/avatar/0/original/avatar",
+			},
 			fn: func(_ *settings.Settings) {
 				req.PostForm.Add("handle", "handle")
 				req.PostForm.Add("name", "name")
@@ -170,6 +256,12 @@ func Test_profileFormProc(t *testing.T) {
 				userService = &userServiceMocked{
 					update: func(c context.Context, u *types.User) (*types.User, error) {
 						return nil, service.UserErrNotAllowedToUpdate()
+					},
+					findByAny: func(ctx context.Context, i interface{}) (*types.User, error) {
+						u := makeMockUser()
+						u.ID = i.(uint64)
+
+						return u, nil
 					},
 				}
 			},

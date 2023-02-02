@@ -107,15 +107,20 @@
       data-test-id="dropdown-profile"
       data-v-onboarding="profile"
       size="lg"
-      variant="outline-light"
+      :variant="avatarExists ? 'link' : 'outline-light'"
+      :class="{ 'avatar': avatarExists }"
       class="nav-user-icon"
       toggle-class="nav-icon text-decoration-none text-dark rounded-circle border"
+      :style="{
+        'background-image': avatarExists  ? `url(${profileAvatarUrl})` : 'none',
+      }"
       menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark font-weight-bold mt-2"
       right
       no-caret
     >
       <template #button-content>
         <div
+          v-if="!avatarExists"
           class="d-flex align-items-center justify-content-center"
         >
           <font-awesome-icon
@@ -239,6 +244,14 @@ export default {
       /* eslint-disable no-undef */
       return VERSION
     },
+
+    profileAvatarUrl () {
+      return `${this.$SystemAPI.baseURL}/attachment/avatar/${this.$auth.user.meta.avatarID}/original/profile-photo-avatar`
+    },
+
+    avatarExists () {
+      return this.$auth.user.meta.avatarID !== "0" && this.$auth.user.meta.avatarID
+    },
   }
 }
 </script>
@@ -275,6 +288,17 @@ $nav-user-icon-size: 50px;
 .topbar-dropdown-menu {
   max-height: 80vh;
   overflow-y: auto;
+}
+
+.avatar {
+  border-radius: 50%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+
+  &:hover {
+    opacity: 0.8;
+  }
 }
 
 .spacer {

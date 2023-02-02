@@ -20,6 +20,17 @@ editor:
     undelete: Undelete
     unsuspend: Unsuspend
     updatedAt: Updated at
+  avatar:
+      title: Profile avatar
+      preview:
+        label: Avatar
+        title: Avatar
+      initial:
+        color: Text color
+        backgroundColor: Background color
+      uploader:
+        instructions: Upload avatar
+        uploading: Uploading user avatar
   mfa:
     TOTP:
       disabled:

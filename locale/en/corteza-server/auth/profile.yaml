@@ -11,6 +11,14 @@ template:
     handle:
       label: Handle
       placeholder: Short name, nickname or handle
+    avatar:
+      label: Avatar
+      delete: Delete
+      upload: Upload avatar
+    avatar-initial:
+      label: Avatar initial
+      color: Avatar text color
+      background-color: Avatar background color
     preferred-language:
       label: Preferred language
     buttons:
@@ -18,3 +26,5 @@ template:
 alerts:
   profile-updated: Profile successfully updated
   profile-update-fail: Could not update profile due to input errors
+  profile-avatar-uploaded: Profile avatar successfully uploaded
+  profile-avatar-deleted: Profile avatar successfully deleted

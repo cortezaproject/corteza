@@ -74,7 +74,7 @@ func (ctrl Attachment) Preview(ctx context.Context, r *request.AttachmentPreview
 }
 
 func (ctrl Attachment) isAccessible(kind string, attachmentID, userID uint64, signature string) error {
-	if kind == types.AttachmentKindSettings {
+	if kind == types.AttachmentKindSettings || kind == types.AttachmentKindAvatar {
 		// Attachments on settings are public
 		return nil
 	}

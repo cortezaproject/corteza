@@ -41,9 +41,12 @@ type (
 	}
 
 	AttachmentImageMeta struct {
-		Width    int  `json:"width,omitempty"`
-		Height   int  `json:"height,omitempty"`
-		Animated bool `json:"animated"`
+		Width           int    `json:"width,omitempty"`
+		Height          int    `json:"height,omitempty"`
+		Animated        bool   `json:"animated"`
+		Initial         string `json:"initial,omitempty"`
+		InitialColor    string `json:"initial-color,omitempty"`
+		BackgroundColor string `json:"background-color,omitempty"`
 	}
 
 	AttachmentFileMeta struct {
@@ -61,7 +64,9 @@ type (
 )
 
 const (
-	AttachmentKindSettings string = "settings"
+	AttachmentKindSettings       string = "settings"
+	AttachmentKindAvatar         string = "avatar"
+	AttachmentKindAvatarInitials string = "avatar-initials"
 )
 
 func (a *Attachment) SetOriginalImageMeta(width, height int, animated bool) *AttachmentFileMeta {
