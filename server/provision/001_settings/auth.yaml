@@ -4,6 +4,7 @@ settings:
   auth.mail.from-name: Corteza
   auth.internal.enabled: true
   auth.internal.signup.enabled: true
+  auth.internal.profile-avatar.enabled: true
 
   # We add this through provision procedures
   # if we detect valid SMTP settings

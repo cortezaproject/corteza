@@ -100,6 +100,7 @@ func (h *AuthHandlers) MountHttpRoutes(r chi.Router) {
 			r.Post(tbp(l.OAuth2AuthorizeClient), h.handle(authOnly(h.oauth2AuthorizeClientProc)))
 			r.Get(tbp(l.OAuth2DefaultClient), h.handle(h.oauth2authorizeDefaultClient))
 			r.Post(tbp(l.OAuth2DefaultClient), h.handle(h.oauth2authorizeDefaultClientProc))
+			r.Get(tbp(l.OAuth2UserInfo), h.handle(h.oauth2authorizeDefaultClientProc))
 		})
 
 		// Wrapping SAML structs so we assure that fresh ones are always used in case

@@ -2,6 +2,7 @@ import axios, { AxiosInstance } from 'axios'
 import { Make } from '../libs/url'
 import { system } from '@cortezaproject/corteza-js'
 import { PluginFunction } from 'vue'
+import { User } from '@cortezaproject/corteza-js/dist/system'
 
 const accessToken = Symbol('accessToken')
 const user = Symbol('user')
@@ -44,6 +45,7 @@ interface OAuth2TokenResponse {
   handle?: string;
   email?: string;
   preferred_language?: string;
+  avatarID?: string;
 }
 
 interface PluginOpts {
@@ -576,6 +578,8 @@ export class Auth {
     if (oa2tkn.preferred_language) {
       u.meta.preferredLanguage = oa2tkn.preferred_language
     }
+
+    u.meta.avatarID = oa2tkn.avatarID
 
     this[accessToken] = oa2tkn.access_token
     this[user] = u

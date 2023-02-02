@@ -225,6 +225,7 @@ func (h AuthHandlers) oauth2Info(w http.ResponseWriter, r *http.Request) {
 // Responsibilities:
 //   - handles parameterless request to initialize authorization code flow
 //   - accepts redirect_uri via query string that's used to build the oauth2 authorization URL
+//
 // (for the rest of the flow, see oauth2authorizeDefaultClientProc)
 func (h AuthHandlers) oauth2authorizeDefaultClient(req *request.AuthReq) (err error) {
 	if err = h.verifyDefaultClient(); err != nil {
@@ -260,6 +261,7 @@ func (h AuthHandlers) oauth2authorizeDefaultClient(req *request.AuthReq) (err er
 // Responsibilities:
 //   - handles exchange of authorization-code for token
 //   - handles issuing of new access token requests
+//
 // (for the first part of the flow, see oauth2authorizeDefaultClient)
 func (h AuthHandlers) oauth2authorizeDefaultClientProc(req *request.AuthReq) (err error) {
 	if err = h.verifyDefaultClient(); err != nil {
@@ -436,6 +438,11 @@ func (h AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.Aut
 	ti.SetAccess(string(signed))
 
 	response := h.OAuth2.GetTokenData(ti)
+
+	// include user's avatarID
+	if user.Meta.AvatarID != 0 {
+		response["avatarID"] = strconv.FormatUint(user.Meta.AvatarID, 10)
+	}
 
 	// in case client is configured with "openid" scope,
 	// we'll add "id_token" with all required (by OIDC) details encoded

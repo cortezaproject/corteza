@@ -46,7 +46,7 @@ func fill(opt interface{}) {
 				continue
 			}
 
-			if f.Kind() == reflect.Int {
+			if f.Kind() == reflect.Int || f.Kind() == reflect.Int64 {
 				v.FieldByName(t.Name).SetInt(int64(EnvInt(tag, int(f.Int()))))
 				continue
 			}
