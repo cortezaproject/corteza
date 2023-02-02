@@ -5,6 +5,7 @@
     :ok-title="$t('general.label.saveAndClose')"
     ok-only
     ok-variant="primary"
+    scrollable
     size="lg"
     body-class="p-0 border-top-0"
     header-class="p-3 pb-0 border-bottom-0"
@@ -143,10 +144,10 @@ export default {
             this.languages.forEach(({ tag: lang }) => {
               let existingFields = new Set()
 
-              if (this.module.meta.discovery && this.module.meta.discovery[value]) {
-                const indexOfLanguage = this.module.meta.discovery[value].result.findIndex(r => r.lang === lang)
+              if (this.module.config.discovery && this.module.config.discovery[value]) {
+                const indexOfLanguage = this.module.config.discovery[value].result.findIndex(r => r.lang === lang)
                 if (indexOfLanguage >= 0) {
-                  existingFields = new Set(this.module.meta.discovery[value].result[indexOfLanguage].fields.filter(name => this.moduleFields.has(name)))
+                  existingFields = new Set(this.module.config.discovery[value].result[indexOfLanguage].fields.filter(name => this.moduleFields.has(name)))
                 }
               }
 
