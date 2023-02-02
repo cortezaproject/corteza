@@ -66,7 +66,7 @@ interface ConfigDiscoveryAccess {
   result: {
     lang: string;
     fields: string[];
-  };
+  }[]
 }
 
 interface Constraint {
@@ -143,22 +143,28 @@ export class Module {
 
     discovery: {
       public: {
-        result: {
-          lang: '',
-          fields: [],
-        },
+        result: [
+          {
+            lang: '',
+            fields: [],
+          },
+        ],
       },
       private: {
-        result: {
-          lang: '',
-          fields: [],
-        },
+        result: [
+          {
+            lang: '',
+            fields: [],
+          }
+        ],
       },
       protected: {
-        result: {
-          lang: '',
-          fields: [],
-        },
+        result: [
+          {
+            lang: '',
+            fields: [],
+          },
+        ],
       },
     },
 
