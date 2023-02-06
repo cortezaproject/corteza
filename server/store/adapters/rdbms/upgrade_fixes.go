@@ -196,22 +196,22 @@ func fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings(ctx context.Cont
 			})
 		}
 
+		for _, u := range uu {
+			if driver == "postgres" || driver == "postgres+debug" {
+				query = fmt.Sprintf(updatePSQLModuleDiscoverySettings, u.Discovery, u.ID)
+			} else {
+				query = fmt.Sprintf(updateModuleDiscoverySettings, u.Discovery, u.ID)
+			}
+			log.Debug("saving migrated module.config.discovery settings", zap.Uint64("id", u.ID))
+			_, err = s.(*Store).DB.QueryContext(ctx, query)
+			if err != nil {
+				log.Debug("error saving migrated module.config.discovery settings", zap.Uint64("id", u.ID))
+				continue
+			}
+		}
+
 		return
 	})
-
-	for _, u := range uu {
-		if driver == "postgres" || driver == "postgres+debug" {
-			query = fmt.Sprintf(updatePSQLModuleDiscoverySettings, u.Discovery, u.ID)
-		} else {
-			query = fmt.Sprintf(updateModuleDiscoverySettings, u.Discovery, u.ID)
-		}
-		log.Debug("saving migrated module.config.discovery settings", zap.Uint64("id", u.ID))
-		_, err = s.DB.QueryContext(ctx, query)
-		if err != nil {
-			log.Debug("error saving migrated module.config.discovery settings", zap.Uint64("id", u.ID))
-			continue
-		}
-	}
 
 	return
 }
