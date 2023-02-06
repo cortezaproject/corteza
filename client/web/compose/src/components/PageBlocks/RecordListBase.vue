@@ -191,6 +191,7 @@
           <b-thead>
             <b-tr :variant="showingDeletedRecords ? 'warning' : ''">
               <b-th v-if="options.draggable && inlineEditing" />
+
               <b-th
                 v-if="options.selectable"
                 style="width: 0%;"
@@ -203,6 +204,7 @@
                   @change="handleSelectAllOnPage({ isChecked: $event })"
                 />
               </b-th>
+
               <b-th v-if="isFederated" />
 
               <b-th
@@ -364,94 +366,93 @@
               </b-td>
 
               <b-td
-                class="d-flex justify-content-end align-items-top"
+                class="text-right"
                 @click.stop
               >
-                <template v-if="inlineEditing">
+                <b-button-group v-if="inlineEditing">
                   <b-button
-                    v-if="item.r.deletedAt"
-                    variant="link"
-                    size="md"
-                    :title="$t('recordList.record.tooltip.undelete')"
-                    class="border-0 text-dark mt-1 d-print-none"
-                    @click.prevent="handleRestoreInline(item, index)"
-                  >
-                    <font-awesome-icon
-                      :icon="['fa', 'trash-restore']"
-                    />
-                  </b-button>
-                  <!-- The user should be able to delete the record if it's not yet saved -->
-                  <b-button
-                    v-else-if="item.r.canDeleteRecord && !item.r.deletedAt"
-                    variant="link"
-                    size="md"
-                    class="border-0 show-when-hovered text-danger mt-1 d-print-none"
-                    @click.prevent="handleDeleteInline(item, index)"
-                  >
-                    <font-awesome-icon
-                      :icon="['far', 'trash-alt']"
-                    />
-                  </b-button>
-                </template>
-
-                <b-button
-                  v-if="!inlineEditing && !options.hideRecordReminderButton"
-                  variant="link"
-                  :title="$t('recordList.record.tooltip.reminder')"
-                  class="p-0 m-0 ml-2 text-primary d-print-none"
-                  @click.prevent="createReminder(item.r)"
-                >
-                  <font-awesome-icon
-                    :icon="['far', 'bell']"
-                  />
-                </b-button>
-
-                <template v-if="!options.hideRecordCloneButton && recordListModule.canCreateRecord && (options.rowCreateUrl || recordPageID)">
-                  <b-button
-                    v-if="!inlineEditing"
-                    variant="link"
+                    v-if="showCloneRecordButton"
                     :title="$t('recordList.record.tooltip.clone')"
-                    class="p-0 m-0 ml-2 text-secondary d-print-none"
-                    :to="{ name: options.rowCreateUrl || 'page.record.create', params: { pageID: recordPageID, values: item.r.values }, query: null }"
-                  >
-                    <font-awesome-icon
-                      :icon="['far', 'clone']"
-                    />
-                  </b-button>
-                  <b-button
-                    v-else
-                    variant="link"
-                    :title="$t('recordList.record.tooltip.clone')"
-                    class="ml-2 text-primary d-print-none"
+                    variant="outline-light"
+                    class="text-primary d-print-none border-0"
                     @click="handleCloneInline(item.r)"
                   >
                     <font-awesome-icon
                       :icon="['far', 'clone']"
                     />
                   </b-button>
-                </template>
 
-                <template v-if="!inlineEditing">
+                  <b-button
+                    v-if="item.r.deletedAt"
+                    :title="$t('recordList.record.tooltip.undelete')"
+                    variant="outline-light"
+                    class="border-0 text-dark d-print-none"
+                    @click.prevent="handleRestoreInline(item, index)"
+                  >
+                    <font-awesome-icon
+                      :icon="['fa', 'trash-restore']"
+                    />
+                  </b-button>
+
+                  <!-- The user should be able to delete the record if it's not yet saved -->
+                  <b-button
+                    v-else-if="(item.r.canDeleteRecord || item.r.recordID === '0') && !item.r.deletedAt"
+                    variant="outline-light"
+                    class="border-0 show-when-hovered text-danger d-print-none"
+                    @click.prevent="handleDeleteInline(item, index)"
+                  >
+                    <font-awesome-icon
+                      :icon="['far', 'trash-alt']"
+                    />
+                  </b-button>
+                </b-button-group>
+
+                <b-button-group v-if="!inlineEditing">
+                  <b-button
+                    v-if="!options.hideRecordViewButton && item.r.canReadRecord && (options.rowViewUrl || recordPageID)"
+                    :title="$t('recordList.record.tooltip.view')"
+                    variant="outline-light"
+                    class="text-primary d-print-none border-0"
+                    :to="{ name: options.rowViewUrl || 'page.record', params: { pageID: recordPageID, recordID: item.r.recordID }, query: null }"
+                  >
+                    <font-awesome-icon
+                      :icon="['far', 'eye']"
+                    />
+                  </b-button>
+
                   <b-button
                     v-if="!options.hideRecordEditButton && item.r.canUpdateRecord && (options.rowEditUrl || recordPageID)"
-                    variant="link"
                     :title="$t('recordList.record.tooltip.edit')"
-                    class="p-0 m-0 ml-2 text-primary d-print-none"
                     :to="{ name: options.rowEditUrl || 'page.record.edit', params: { pageID: recordPageID, recordID: item.r.recordID }, query: null }"
+                    variant="outline-light"
+                    class="text-primary d-print-none border-0"
                   >
                     <font-awesome-icon
                       :icon="['far', 'edit']"
                     />
                   </b-button>
+
                   <b-button
-                    v-if="!options.hideRecordViewButton && item.r.canReadRecord && (options.rowViewUrl || recordPageID)"
-                    variant="link"
-                    :title="$t('recordList.record.tooltip.view')"
-                    class="p-0 m-0 ml-2 text-primary d-print-none"
-                    :to="{ name: options.rowViewUrl || 'page.record', params: { pageID: recordPageID, recordID: item.r.recordID }, query: null }"
+                    v-if="showCloneRecordButton"
+                    :title="$t('recordList.record.tooltip.clone')"
+                    variant="outline-light"
+                    :to="{ name: options.rowCreateUrl || 'page.record.create', params: { pageID: recordPageID, values: item.r.values }, query: null }"
+                    class="text-primary d-print-none border-0"
                   >
                     <font-awesome-icon
-                      :icon="['far', 'eye']"
+                      :icon="['far', 'clone']"
+                    />
+                  </b-button>
+
+                  <b-button
+                    v-if="!options.hideRecordReminderButton"
+                    :title="$t('recordList.record.tooltip.reminder')"
+                    variant="outline-light"
+                    class="text-primary d-print-none border-0"
+                    @click.prevent="createReminder(item.r)"
+                  >
+                    <font-awesome-icon
+                      :icon="['far', 'bell']"
                     />
                   </b-button>
 
@@ -461,10 +462,10 @@
                     :target="item.r.recordID"
                     :title="item.r.recordID"
                     :tooltip="$t('permissions:resources.compose.record.tooltip')"
-                    button-variant="link"
-                    class="text-dark m-0 p-0 ml-2 d-print-none"
+                    button-variant="outline-light"
+                    class="text-dark d-print-none border-0"
                   />
-                </template>
+                </b-button-group>
               </b-td>
             </b-tr>
           </draggable>
@@ -504,7 +505,7 @@
             <div class="text-truncate">
               <div
                 v-if="options.showTotalCount"
-                class="ml-2 text-nowrap font-weight-bold"
+                class="ml-2 text-nowrap"
               >
                 <span
                   v-if="pagination.count > options.perPage"
@@ -522,7 +523,7 @@
             </div>
 
             <div
-              v-if="!options.hidePaging && !inlineEditing"
+              v-if="showPageNavigation"
             >
               <b-pagination
                 v-if="options.fullPageNavigation"
@@ -531,7 +532,6 @@
                 aria-controls="record-list"
                 class="m-0 d-print-none"
                 pills
-                variant="link"
                 :value="getPagination.page"
                 :per-page="getPagination.perPage"
                 :total-rows="getPagination.count"
@@ -558,8 +558,8 @@
                 <b-button
                   :disabled="!hasPrevPage"
                   data-test-id="first-page"
-                  variant="link"
-                  class="text-dark"
+                  variant="outline-light"
+                  class="d-flex align-items-center justify-content-center text-primary border-0"
                   @click="goToPage()"
                 >
                   <font-awesome-icon :icon="['fas', 'angle-double-left']" />
@@ -567,22 +567,28 @@
                 <b-button
                   :disabled="!hasPrevPage"
                   data-test-id="previous-page"
-                  variant="link"
-                  class="text-dark"
+                  variant="outline-light"
+                  class="d-flex align-items-center justify-content-center text-primary border-0"
                   @click="goToPage('prevPage')"
                 >
-                  <font-awesome-icon :icon="['fas', 'angle-left']" />
+                  <font-awesome-icon
+                    :icon="['fas', 'angle-left']"
+                    class="mr-1"
+                  />
                   {{ $t('recordList.pagination.prev') }}
                 </b-button>
                 <b-button
                   :disabled="!hasNextPage"
                   data-test-id="next-page"
-                  variant="link"
-                  class="text-dark"
+                  variant="outline-light"
+                  class="d-flex align-items-center justify-content-center text-primary border-0"
                   @click="goToPage('nextPage')"
                 >
                   {{ $t('recordList.pagination.next') }}
-                  <font-awesome-icon :icon="['fas', 'angle-right']" />
+                  <font-awesome-icon
+                    :icon="['fas', 'angle-right']"
+                    class="ml-1"
+                  />
                 </b-button>
               </b-button-group>
             </div>
@@ -747,6 +753,10 @@ export default {
       return this.mode === 'editor'
     },
 
+    showPageNavigation () {
+      return this.items.length && !this.options.hidePaging && !this.inlineEditing
+    },
+
     disableSelectAll () {
       if (this.options.hidePaging) {
         return !this.items.length
@@ -852,6 +862,10 @@ export default {
       }
 
       return undefined
+    },
+
+    showCloneRecordButton () {
+      return !this.options.hideRecordCloneButton && this.recordListModule.canCreateRecord && (this.options.rowCreateUrl || this.recordPageID)
     },
   },
 
@@ -1031,8 +1045,12 @@ export default {
     },
 
     handleDeleteInline (item, i) {
-      const r = new compose.Record(this.recordListModule, { ...item.r, deletedAt: new Date() })
-      this.items.splice(i, 1, this.wrapRecord(r, item.id))
+      if (item.r.recordID !== NoID) {
+        const r = new compose.Record(this.recordListModule, { ...item.r, deletedAt: new Date() })
+        this.items.splice(i, 1, this.wrapRecord(r, item.id))
+      } else {
+        this.items.splice(i, 1)
+      }
     },
 
     handleRestoreInline (item, i) {
