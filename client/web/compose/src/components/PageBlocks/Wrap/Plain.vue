@@ -1,7 +1,7 @@
 <template>
   <div class="h-100">
     <div
-      class="d-flex flex-column position-relative h-100 border-0"
+      class="d-flex flex-column border position-relative h-100 card bg-transparent"
       :class="blockClass"
     >
       <div
@@ -80,7 +80,7 @@
 
       <b-card-footer
         v-if="footerSet"
-        class="card-footer bg-transparent p-0 overflow-hidden"
+        class="card-footer bg-transparent p-0 overflow-hidden border-top"
       >
         <slot
           name="footer"

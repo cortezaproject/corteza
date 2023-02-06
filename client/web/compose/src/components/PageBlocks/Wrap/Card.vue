@@ -82,7 +82,7 @@
 
       <b-card-footer
         v-if="footerSet"
-        class="p-0 overflow-hidden"
+        class="p-0 overflow-hidden bg-white border-top"
       >
         <slot
           name="footer"

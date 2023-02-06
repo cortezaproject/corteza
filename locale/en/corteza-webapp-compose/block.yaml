@@ -406,7 +406,7 @@ recordOrganizer:
     footnote: Field value will be used as record description
     label: Description field
   group:
-    footnote: Value that will be set to the key field. This does not affect the filtering. Make sure to specify the prefilter where needed.
+    footnote: Value that will be set to the key field. The records will be filtered based on this value, if it's defined.
     label: Key value
   groupField:
     footnote: Field whose value will change when a record is moved into the record organizer
@@ -418,7 +418,7 @@ recordOrganizer:
   noRecords: No records in module linked with record organizer. Drag and drop records here.
   notConfigured: Record organizer is not configured correctly
   positionField:
-    footnote: Records will be sorted based on this field
+    footnote: Records will be sorted based on this field. That field value will be updated based on the position of the record.
     label: Record sort field
   preview:
     label: 'Record Organizer block for module {{0}}. Label field {{1}}, Description field {{2}}. Value setting field: {{3}}, Sorted by position field: {{4}}.'
