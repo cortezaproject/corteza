@@ -3,6 +3,8 @@
     no-body
     class="shadow-sm"
     header-bg-variant="white"
+    footer-bg-variant="white"
+    footer-class="border-top"
   >
     <template #header>
       <b-container
@@ -128,7 +130,7 @@
         >
           <div
             v-if="!hideTotal"
-            class="text-nowrap font-weight-bold"
+            class="text-nowrap"
           >
             {{ getPagination }}
           </div>
@@ -139,29 +141,35 @@
         >
           <b-button
             :disabled="!hasPrevPage"
-            variant="link"
-            class="text-dark"
+            variant="outline-light"
+            class="d-flex align-items-center justify-content-center text-primary border-0"
             @click="goToPage()"
           >
             <font-awesome-icon :icon="['fas', 'angle-double-left']" />
           </b-button>
           <b-button
             :disabled="!hasPrevPage"
-            variant="link"
-            class="text-dark"
+            variant="outline-light"
+            class="d-flex align-items-center justify-content-center text-primary border-0"
             @click="goToPage('prevPage')"
           >
-            <font-awesome-icon :icon="['fas', 'angle-left']" />
+            <font-awesome-icon
+              :icon="['fas', 'angle-left']"
+              class="mr-1"
+            />
             {{ translations.prevPagination }}
           </b-button>
           <b-button
             :disabled="!hasNextPage"
-            variant="link"
-            class="text-dark"
+            variant="outline-light"
+            class="d-flex align-items-center justify-content-center text-primary border-0"
             @click="goToPage('nextPage')"
           >
             {{ translations.nextPagination }}
-            <font-awesome-icon :icon="['fas', 'angle-right']" />
+            <font-awesome-icon
+              :icon="['fas', 'angle-right']"
+              class="ml-1"
+            />
           </b-button>
         </b-button-group>
       </div>
