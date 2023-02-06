@@ -9,7 +9,7 @@
 
   [![License Card](https://img.shields.io/github/license/cortezaproject/corteza?style=for-the-badge)](https://img.shields.io/github/license/cortezaproject/corteza?style=for-the-badge)
   [![DockerHub Downloads Card](https://img.shields.io/docker/pulls/cortezaproject/corteza?style=for-the-badge)](https://img.shields.io/docker/pulls/cortezaproject/corteza?style=for-the-badge)
-  [![Latest Version Card](https://img.shields.io/github/v/tag/cortezaproject/corteza?label=stable%20version&style=for-the-badge)](https://img.shields.io/github/v/tag/cortezaproject/corteza?label=stable%20version&style=for-the-badge)
+  [![Latest Version Card](https://img.shields.io/github/v/release/cortezaproject/corteza?label=stable%20version&style=for-the-badge)](https://img.shields.io/github/v/release/cortezaproject/corteza?label=stable%20version&style=for-the-badge)
 
   [![Go Report Card](https://goreportcard.com/badge/github.com/cortezaproject/corteza?style=for-the-badge)](https://goreportcard.com/report/github.com/cortezaproject/corteza?style=for-the-badge)
   [![CodeCov Report Card](https://img.shields.io/codecov/c/github/cortezaproject/corteza-server?style=for-the-badge)](https://img.shields.io/codecov/c/github/cortezaproject/corteza-server?style=for-the-badge)
@@ -66,8 +66,6 @@ Quick references:
 * [using the REST API](https://docs.cortezaproject.org/corteza-docs/2022.9/integrator-guide/accessing-corteza/index.html),
 
 ## Upgrading Corteza
-
-[![Latest Version Card](https://img.shields.io/github/v/tag/cortezaproject/corteza?label=latest%20stable%20version)](https://img.shields.io/github/v/tag/cortezaproject/corteza?label=latest%20stable%20version)
 
 Refer to the [changelog](https://docs.cortezaproject.org/corteza-docs/2022.9/changelog/index.html) and the [upgrade guide](https://docs.cortezaproject.org/corteza-docs/2022.9/devops-guide/upgrade/index.html) to upgrade your Corteza instance.
 
