@@ -18,6 +18,32 @@ type (
 	}
 )
 
+// provisionPartialBase check for roles and permissions
+//
+// It checks if there are any roles and any RBAC rules. If there are, we assume
+// the provision for the base dir was already done.
+func provisionPartialBase(ctx context.Context, s store.Storer, log *zap.Logger) bool {
+	rr, _, err := store.SearchRoles(ctx, s, types.RoleFilter{Deleted: filter.StateInclusive})
+	if err != nil {
+		log.Warn("could not make a partial import of base: roles", zap.Error(err))
+		return false
+	}
+	if len(rr) == 0 {
+		return true
+	}
+
+	pp, _, err := store.SearchRbacRules(ctx, s, rbac.RuleFilter{})
+	if err != nil {
+		log.Warn("could not make a partial import of base: permissions", zap.Error(err))
+		return false
+	}
+	if len(pp) == 0 {
+		return true
+	}
+
+	return false
+}
+
 // provisionPartialAuthClients checks for a specific set of auth client rbac rules
 func provisionPartialAuthClients(ctx context.Context, s store.Storer, log *zap.Logger) bool {
 	set, _, err := store.SearchRbacRules(ctx, s, rbac.RuleFilter{})
