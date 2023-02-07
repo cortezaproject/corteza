@@ -74,17 +74,20 @@ export function getFieldFilter (name, kind, query = '', operator = '=') {
 
   if (['DateTime'].includes(kind)) {
     // Build different querries if date, time or datetime
-    const date = moment(query, ['YYYY-MM-DDTHH:mm:ssZ', 'YYYY-MM-DD'])
-    const time = moment(query, ['HH:mm'])
+    const dateTime = moment(query, 'YYYY-MM-DDTHH:mm:ssZ', true)
+    const date = moment(query, 'YYYY-MM-DD', true)
+    const time = moment(query, 'HH:mm', true)
 
     // @note tweaking the template a bit:
     // * adding %f to include fractions; mysql sometimes forces them when formatting date
     // * changing Z to +00:00
     // * doing the same for time-only fields
-    if (date.isValid()) {
-      return `TIMESTAMP(DATE_FORMAT(${name}, '%Y-%m-%dT%H:%i:00.%f+00:00')) ${operator} TIMESTAMP(DATE_FORMAT('${date.format()}', '%Y-%m-%dT%H:%i:00.%f+00:00'))`
+    if (dateTime.isValid()) {
+      return build(operator, `TIMESTAMP(DATE_FORMAT(${name}, '%Y-%m-%dT%H:%i:00.%f+00:00'))`, `TIMESTAMP(DATE_FORMAT('${dateTime.format()}', '%Y-%m-%dT%H:%i:00.%f+00:00'))`)
+    } else if (date.isValid()) {
+      return build(operator, name, `DATE('${query}')`)
     } else if (time.isValid()) {
-      return `TIME(DATE_FORMAT(${name}, '%Y-%m-%dT%H:%i:00.%f+00:00')) ${operator} TIME('${query}')`
+      return build(operator, name, `TIME('${query}')`)
     }
   }
 
