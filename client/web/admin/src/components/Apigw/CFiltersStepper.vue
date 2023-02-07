@@ -41,6 +41,7 @@
               :filters="getSelectedFiltersByStep"
               :selected-row="step.selectedRow"
               :step="index"
+              :fetching="fetching"
               @filterSelect="onFilterSelect"
               @removeFilter="onRemoveFilter"
               @sortFilters="onSortFilters"
@@ -83,6 +84,10 @@ export default {
     CFiltersDropdown,
   },
   props: {
+    fetching: {
+      type: Boolean,
+      value: false,
+    },
     processing: {
       type: Boolean,
       value: false,

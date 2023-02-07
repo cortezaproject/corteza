@@ -13,6 +13,7 @@
       </b-thead>
 
       <draggable
+        v-if="!fetching"
         v-model="sortableFilters"
         tag="b-tbody"
       >
@@ -42,13 +43,23 @@
         </b-tr>
       </draggable>
     </b-table-simple>
-    <h6
-      v-if="!sortableFilters.length"
-      data-test-id="no-filters"
-      class="d-flex justify-content-center align-items-center mb-3"
+
+    <div
+      class="d-flex flex-column align-items-center justify-content-center h-100 overflow-hidden"
     >
-      {{ $t('filters.list.noFilters') }}
-    </h6>
+      <b-spinner
+        v-if="fetching"
+        class="my-4"
+      />
+
+      <p
+        v-else-if="!sortableFilters.length"
+        data-test-id="no-filters"
+        class="my-4"
+      >
+        {{ $t('filters.list.noFilters') }}
+      </p>
+    </div>
   </div>
 </template>
 
@@ -66,6 +77,10 @@ export default {
     step: {
       type: Number,
       default: () => 0,
+    },
+    fetching: {
+      type: Boolean,
+      value: false,
     },
   },
 
