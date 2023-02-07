@@ -3,9 +3,10 @@ package provision
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"path/filepath"
 	"strings"
+
+	"github.com/cortezaproject/corteza/server/pkg/dal"
 
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
 
@@ -84,7 +85,7 @@ func canImportConfig(ctx context.Context, s store.Storer) (bool, error) {
 func collectUnimportedConfigs(ctx context.Context, log *zap.Logger, s store.Storer, sources []string, dec directory.Decoder) (nn []resource.Interface, err error) {
 	var (
 		searchPartialDirectories = []uConfig{
-			{dir: "000_base", fn: nil},
+			{dir: "000_base", fn: provisionPartialBase},
 			{dir: "002_templates", fn: provisionPartialTemplates},
 			{dir: "003_auth", fn: provisionPartialAuthClients},
 			{dir: "200_federation", fn: nil},
