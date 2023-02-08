@@ -55,7 +55,12 @@ func fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings(ctx context.Cont
 				Public    interface{} `json:"public"`
 				Private   interface{} `json:"private"`
 				Protected interface{} `json:"protected"`
-			}
+			} `json:"discovery"`
+
+			DAL             interface{} `json:"dal"`
+			Privacy         interface{} `json:"privacy"`
+			RecordRevisions interface{} `json:"recordRevisions"`
+			RecordDeDup     interface{} `json:"recordDeDup"`
 		}
 
 		result struct {
@@ -63,8 +68,8 @@ func fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings(ctx context.Cont
 		}
 
 		updateModule struct {
-			ID        uint64 `json:"id"`
-			Discovery []byte `json:"discovery"`
+			ID     uint64 `json:"id"`
+			Config []byte `json:"config"`
 		}
 	)
 
@@ -88,12 +93,12 @@ func fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings(ctx context.Cont
 
 		updateModuleDiscoverySettings = `
 			UPDATE compose_module 
-			SET config = JSON_SET(config, '$.discovery', CAST('%s' AS JSON))
+			SET config = CAST('%s' AS JSON)
 			WHERE id = %d`
 
 		updatePSQLModuleDiscoverySettings = `
 			UPDATE compose_module 
-			SET config = jsonb_set(config, '{discovery}', '%s'::jsonb)
+			SET config = '%s'::jsonb
 			WHERE id = %d`
 	)
 
@@ -185,25 +190,29 @@ func fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings(ctx context.Cont
 			settings.Private.Result = append(settings.Private.Result, migrateSetting(ss.Discovery.Private).Result)
 			settings.Protected.Result = append(settings.Protected.Result, migrateSetting(ss.Discovery.Protected).Result)
 
-			bb, err = json.Marshal(settings)
+			ss.Discovery.Public = settings.Public
+			ss.Discovery.Private = settings.Private
+			ss.Discovery.Protected = settings.Protected
+
+			bb, err = json.Marshal(ss)
 			if err != nil {
 				continue
 			}
 
 			uu = append(uu, updateModule{
-				ID:        auxID,
-				Discovery: bb,
+				ID:     auxID,
+				Config: bb,
 			})
 		}
 
 		for _, u := range uu {
 			if driver == "postgres" || driver == "postgres+debug" {
-				query = fmt.Sprintf(updatePSQLModuleDiscoverySettings, u.Discovery, u.ID)
+				query = fmt.Sprintf(updatePSQLModuleDiscoverySettings, u.Config, u.ID)
 			} else {
-				query = fmt.Sprintf(updateModuleDiscoverySettings, u.Discovery, u.ID)
+				query = fmt.Sprintf(updateModuleDiscoverySettings, u.Config, u.ID)
 			}
 			log.Debug("saving migrated module.config.discovery settings", zap.Uint64("id", u.ID))
-			_, err = s.(*Store).DB.QueryContext(ctx, query)
+			_, err = s.(*Store).DB.ExecContext(ctx, query)
 			if err != nil {
 				log.Debug("error saving migrated module.config.discovery settings", zap.Uint64("id", u.ID))
 				continue
