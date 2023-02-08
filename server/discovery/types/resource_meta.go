@@ -46,7 +46,7 @@ type (
 	}
 
 	AccessJson struct {
-		Result Result `json:"result"`
+		Result []Result `json:"result"`
 	}
 
 	Result struct {
