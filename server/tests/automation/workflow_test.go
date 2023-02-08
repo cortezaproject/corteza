@@ -134,6 +134,7 @@ func TestWorkflowCreateForbidden(t *testing.T) {
 
 func TestWorkflowCreateNotUnique(t *testing.T) {
 	h := newHelper(t)
+	h.clearWorkflows()
 
 	helpers.AllowMe(h, types.ComponentRbacResource(), "workflow.create")
 
@@ -141,7 +142,7 @@ func TestWorkflowCreateNotUnique(t *testing.T) {
 	h.apiInit().
 		Post("/workflows/").
 		Header("Accept", "application/json").
-		FormData("name", rs()).
+		FormData("meta", fmt.Sprintf(`{"name": "%s"}`, rs())).
 		FormData("handle", workflow.Handle).
 		Expect(t).
 		Status(http.StatusOK).
@@ -151,12 +152,13 @@ func TestWorkflowCreateNotUnique(t *testing.T) {
 
 func TestWorkflowCreate(t *testing.T) {
 	h := newHelper(t)
+	h.clearWorkflows()
 
 	helpers.AllowMe(h, types.ComponentRbacResource(), "workflow.create")
 
 	h.apiInit().
 		Post("/workflows/").
-		FormData("name", rs()).
+		FormData("meta", fmt.Sprintf(`{"name": "%s"}`, rs())).
 		FormData("handle", "handle_"+rs()).
 		Header("Accept", "application/json").
 		Expect(t).
@@ -238,11 +240,13 @@ func TestWorkflowCreateFull(t *testing.T) {
 
 func TestWorkflowUpdateForbidden(t *testing.T) {
 	h := newHelper(t)
+	h.clearWorkflows()
 	u := h.repoMakeWorkflow()
 
 	h.apiInit().
 		Put(fmt.Sprintf("/workflows/%d", u.ID)).
 		Header("Accept", "application/json").
+		FormData("meta", fmt.Sprintf(`{"name": "%s"}`, rs())).
 		FormData("email", rs()).
 		Expect(t).
 		Status(http.StatusOK).
@@ -252,6 +256,7 @@ func TestWorkflowUpdateForbidden(t *testing.T) {
 
 func TestWorkflowUpdate(t *testing.T) {
 	h := newHelper(t)
+	h.clearWorkflows()
 	res := h.repoMakeWorkflow()
 	helpers.AllowMe(h, types.WorkflowRbacResource(0), "update")
 
@@ -260,7 +265,7 @@ func TestWorkflowUpdate(t *testing.T) {
 
 	h.apiInit().
 		Put(fmt.Sprintf("/workflows/%d", res.ID)).
-		FormData("name", newName).
+		FormData("meta", fmt.Sprintf(`{"name": "%s"}`, newName)).
 		FormData("handle", newHandle).
 		Header("Accept", "application/json").
 		Expect(t).
@@ -338,12 +343,12 @@ func TestWorkflowLabels(t *testing.T) {
 	t.Run("create", func(t *testing.T) {
 		var (
 			req     = require.New(t)
-			payload = &types.Workflow{}
+			payload = &types.Workflow{Meta: &types.WorkflowMeta{Name: rs()}}
 		)
 
 		helpers.SetLabelsViaAPI(h.apiInit(), t,
 			"/workflows/",
-			types.Workflow{Labels: map[string]string{"foo": "bar", "bar": "42"}},
+			types.Workflow{Labels: map[string]string{"foo": "bar", "bar": "42"}, Meta: &types.WorkflowMeta{Name: rs()}},
 			payload,
 		)
 		req.NotZero(payload.ID)
@@ -370,11 +375,11 @@ func TestWorkflowLabels(t *testing.T) {
 
 		helpers.SetLabelsViaAPI(h.apiInit(), t,
 			fmt.Sprintf("PUT /workflows/%d", ID),
-			&types.Workflow{Labels: map[string]string{"foo": "baz", "baz": "123"}},
+			&types.Workflow{Labels: map[string]string{"foo": "baz", "baz": "123"}, Meta: &types.WorkflowMeta{Name: rs()}},
 			payload,
 		)
 		req.NotZero(payload.ID)
-		//req.Nil(payload.UpdatedAt, "updatedAt must not change after changing labels")
+		// req.Nil(payload.UpdatedAt, "updatedAt must not change after changing labels")
 
 		req.Equal(payload.Labels["foo"], "baz",
 			"labels must contain foo with value baz")

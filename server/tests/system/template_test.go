@@ -116,6 +116,7 @@ func TestTemplateCreateForbidden(t *testing.T) {
 	h.apiInit().
 		Post("/template/").
 		Header("Accept", "application/json").
+		FormData("meta", fmt.Sprintf(`{"short": "%s"}`, rs())).
 		FormData("handle", "a"+rs()).
 		Expect(t).
 		Status(http.StatusOK).
@@ -131,6 +132,7 @@ func TestTemplateCreate(t *testing.T) {
 	h.apiInit().
 		Post("/template/").
 		Header("Accept", "application/json").
+		FormData("meta", fmt.Sprintf(`{"short": "%s"}`, rs())).
 		FormData("handle", "handle_"+rs()).
 		Expect(t).
 		Status(http.StatusOK).
@@ -146,6 +148,7 @@ func TestTemplateUpdateForbidden(t *testing.T) {
 	h.apiInit().
 		Put(fmt.Sprintf("/template/%d", u.ID)).
 		Header("Accept", "application/json").
+		FormData("meta", fmt.Sprintf(`{"short": "%s"}`, rs())).
 		FormData("handle", "handle_"+rs()).
 		Expect(t).
 		Status(http.StatusOK).
@@ -164,6 +167,7 @@ func TestTemplateUpdate(t *testing.T) {
 	h.apiInit().
 		Put(fmt.Sprintf("/template/%d", res.ID)).
 		Header("Accept", "application/json").
+		FormData("meta", fmt.Sprintf(`{"short": "%s"}`, rs())).
 		FormData("handle", newHandle).
 		Expect(t).
 		Status(http.StatusOK).
