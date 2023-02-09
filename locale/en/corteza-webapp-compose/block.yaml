@@ -125,6 +125,8 @@ general:
     show: Show refresh button
     description: Setting value to 5 seconds or more enables auto-refresh
     rate: seconds
+  border:
+    show: Show border
   label:
     add: Add
     back: Back
