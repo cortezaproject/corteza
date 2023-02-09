@@ -16,7 +16,7 @@ func ParseApigwfFilterParams(ss []string) (p ApigwFilterParams, err error) {
 
 func ParseTemplateMeta(ss []string) (p TemplateMeta, err error) {
 	p = TemplateMeta{}
-	return p, parseStringsInput(ss, p)
+	return p, parseStringsInput(ss, &p)
 }
 
 func parseStringsInput(ss []string, p interface{}) (err error) {
