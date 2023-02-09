@@ -90,6 +90,13 @@
         >
           {{ $t('general.wrap') }}
         </b-form-checkbox>
+
+        <b-form-checkbox
+          v-model="block.style.border.enabled"
+          switch
+        >
+          {{ $t('general.border') }}
+        </b-form-checkbox>
       </div>
     </b-tab>
 

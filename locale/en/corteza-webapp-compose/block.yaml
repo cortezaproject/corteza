@@ -114,6 +114,7 @@ general:
   descriptionPlaceholder: Block description
   headerStyle: Block header style (color)
   wrap: Display block as a card
+  border: Show border
   label:
     add: Add
     back: Back

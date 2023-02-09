@@ -1,7 +1,7 @@
 <template>
   <div class="h-100 p-2">
     <div
-      class="d-flex flex-column border position-relative h-100 card bg-transparent"
+      class="card bg-transparent h-100"
       :class="blockClass"
     >
       <div
@@ -83,6 +83,7 @@ export default {
     blockClass () {
       return [
         'block',
+        { border: this.block.style.border.enabled },
         this.block.kind,
       ]
     },

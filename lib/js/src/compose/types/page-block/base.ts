@@ -9,9 +9,14 @@ interface PageBlockStyleWrap {
   kind: string;
 }
 
+interface PageBlockStyleBorder {
+  enabled?: boolean;
+}
+
 interface PageBlockStyle {
   variants: PageBlockStyleVariants;
   wrap?: PageBlockStyleWrap;
+  border?: PageBlockStyleBorder;
 }
 
 export type PageBlockInput = PageBlock | Partial<PageBlock>
@@ -34,6 +39,9 @@ export class PageBlock {
     },
     wrap: {
       kind: 'card',
+    },
+    border: {
+      enabled: false,
     },
   }
 
