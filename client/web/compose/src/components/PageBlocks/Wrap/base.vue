@@ -22,6 +22,7 @@ export default {
     blockClass () {
       return [
         'block',
+        { border: this.block.style.border.enabled },
         this.block.kind,
       ]
     },

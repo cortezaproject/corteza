@@ -1,7 +1,7 @@
 <template>
   <div class="h-100">
     <div
-      class="d-flex flex-column border position-relative h-100 card bg-transparent"
+      class="card bg-transparent h-100"
       :class="blockClass"
     >
       <div
