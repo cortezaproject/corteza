@@ -329,7 +329,7 @@
         <export
           data-test-id="button-export-workflow"
           :workflows="[workflow.workflowID]"
-          :file-name="workflow.handle"
+          :file-name="workflow.meta.name || workflow.handle"
           class="ml-1"
         />
 

@@ -68,7 +68,8 @@ export default {
 
       // Save file
       const blob = new Blob([JSON.stringify({ workflows }, null, 2)], { type: 'application/json' })
-      saveAs(blob, `${this.fileName}.json`)
+      const filename = this.fileName.replace(/[/\\?%*:|"<>]/g, '')
+      saveAs(blob, `${filename}.json`)
     },
   },
 }
