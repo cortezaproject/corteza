@@ -14,7 +14,8 @@ import (
 
 type (
 	DBOpt struct {
-		DSN string `env:"DB_DSN"`
+		DSN                           string `env:"DB_DSN"`
+		AllowDestructiveSchemaChanges bool   `env:"DB_ALLOW_DESTRUCTIVE_SCHEMA_CHANGES"`
 	}
 
 	HTTPClientOpt struct {
@@ -122,6 +123,7 @@ type (
 		DefaultClient            string        `env:"AUTH_DEFAULT_CLIENT"`
 		AssetsPath               string        `env:"AUTH_ASSETS_PATH"`
 		DevelopmentMode          bool          `env:"AUTH_DEVELOPMENT_MODE"`
+		ProvisionSuperUser       string        `env:"AUTH_PROVISION_SUPER_USER"`
 	}
 
 	CorredorOpt struct {
@@ -207,10 +209,6 @@ type (
 		Path   string `env:"PROVISION_PATH"`
 	}
 
-	SeederOpt struct {
-		LogEnabled bool `env:"SEEDER_LOG_ENABLED"`
-	}
-
 	SentryOpt struct {
 		DSN              string  `env:"SENTRY_DSN"`
 		Debug            bool    `env:"SENTRY_DEBUG"`
@@ -270,7 +268,8 @@ type (
 // This function is auto-generated
 func DB() (o *DBOpt) {
 	o = &DBOpt{
-		DSN: "sqlite3://file::memory:?cache=shared&mode=memory",
+		DSN:                           "sqlite3://file::memory:?cache=shared&mode=memory",
+		AllowDestructiveSchemaChanges: false,
 	}
 
 	// Custom defaults
@@ -848,31 +847,6 @@ func Provision() (o *ProvisionOpt) {
 		Always: true,
 		Path:   "provision/*",
 	}
-
-	// Custom defaults
-	func(o interface{}) {
-		if def, ok := o.(interface{ Defaults() }); ok {
-			def.Defaults()
-		}
-	}(o)
-
-	fill(o)
-
-	// Custom cleanup
-	func(o interface{}) {
-		if def, ok := o.(interface{ Cleanup() }); ok {
-			def.Cleanup()
-		}
-	}(o)
-
-	return
-}
-
-// Seeder initializes and returns a SeederOpt with default values
-//
-// This function is auto-generated
-func Seeder() (o *SeederOpt) {
-	o = &SeederOpt{}
 
 	// Custom defaults
 	func(o interface{}) {

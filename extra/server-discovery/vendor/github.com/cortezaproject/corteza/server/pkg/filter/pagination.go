@@ -46,9 +46,11 @@ type (
 	}
 
 	PagingCursor struct {
-		keys   []string
-		values []interface{}
-		desc   []bool
+		keys     []string
+		kk       [][]string
+		values   []interface{}
+		modifier []string
+		desc     []bool
 
 		// sort in desc order
 		ROrder bool
@@ -109,6 +111,10 @@ func (p *PagingCursor) Walk(fn func(string, interface{}, bool)) {
 }
 
 func (p *PagingCursor) Set(k string, v interface{}, d bool) {
+	p.SetModifier(k, v, d, "", k)
+}
+
+func (p *PagingCursor) SetModifier(k string, v interface{}, d bool, m string, kk ...string) {
 	for i, key := range p.keys {
 		if key == k {
 			p.values[i] = v
@@ -118,6 +124,8 @@ func (p *PagingCursor) Set(k string, v interface{}, d bool) {
 
 	p.keys = append(p.keys, k)
 	p.values = append(p.values, v)
+	p.kk = append(p.kk, kk)
+	p.modifier = append(p.modifier, m)
 	p.desc = append(p.desc, d)
 }
 
@@ -127,6 +135,14 @@ func (p *PagingCursor) Keys() []string {
 
 func (p *PagingCursor) Values() []interface{} {
 	return p.values
+}
+
+func (p *PagingCursor) KK() [][]string {
+	return p.kk
+}
+
+func (p *PagingCursor) Modifiers() []string {
+	return p.modifier
 }
 
 func (p *PagingCursor) IsLThen() bool {
@@ -177,13 +193,17 @@ func (p *PagingCursor) String() string {
 func (p *PagingCursor) MarshalJSON() ([]byte, error) {
 	buf, err := json.Marshal(struct {
 		K  []string
+		KK [][]string
 		V  []interface{}
+		M  []string
 		D  []bool
 		R  bool
 		LT bool
 	}{
 		p.keys,
+		p.kk,
 		p.values,
+		p.modifier,
 		p.desc,
 		p.ROrder,
 		p.LThen,
@@ -209,7 +229,9 @@ func (p *PagingCursor) UnmarshalJSON(in []byte) error {
 	var (
 		aux struct {
 			K  []string
+			KK [][]string
 			V  []pagingCursorValue
+			M  []string
 			D  []bool
 			R  bool
 			LT bool
@@ -235,6 +257,8 @@ func (p *PagingCursor) UnmarshalJSON(in []byte) error {
 	}
 
 	p.keys = aux.K
+	p.kk = aux.KK
+	p.modifier = aux.M
 	p.desc = aux.D
 	p.ROrder = aux.R
 	p.LThen = aux.LT
@@ -277,6 +301,8 @@ func (p *PagingCursor) Sort(sort SortExprSet) (SortExprSet, error) {
 		for k := range p.keys {
 			sort = append(sort, &SortExpr{
 				Column:     p.keys[k],
+				columns:    p.kk[k],
+				modifier:   p.modifier[k],
 				Descending: p.desc[k],
 			})
 		}
@@ -319,11 +345,26 @@ func (cur *PagingCursor) ToAST(identLookup func(i string) (string, error), castF
 			false: "gt",
 		}
 
-		isValueNull = func(i int, neg bool) expr.TypedValue {
-			if (reflect2.IsNil(vv[i]) && !neg) || (!reflect2.IsNil(vv[i]) && neg) {
-				return expr.Must(expr.NewBoolean(true))
+		// Modifying this function to use expressions instead of constant boolean
+		// values because MSSQL doesn't have those.
+		//
+		// @todo rethink and redo the whole/all of the filtering logic surrounding paging
+		// cursors to make them consistent/reusable
+		isValueNull = func(i int, neg bool) *ql.ASTNode {
+			out := &ql.ASTNode{
+				Ref: "eq",
+				Args: ql.ASTNodeSet{{
+					Value: ql.MakeValueOf("Integer", 1),
+				}},
 			}
-			return expr.Must(expr.NewBoolean(false))
+			if (reflect2.IsNil(vv[i]) && !neg) || (!reflect2.IsNil(vv[i]) && neg) {
+				// Makes the expr. true
+				out.Args = append(out.Args, &ql.ASTNode{Value: ql.MakeValueOf("Integer", 1)})
+			}
+			// Makes the expr false
+			out.Args = append(out.Args, &ql.ASTNode{Value: ql.MakeValueOf("Integer", 0)})
+
+			return out
 		}
 	)
 
@@ -363,7 +404,7 @@ func (cur *PagingCursor) ToAST(identLookup func(i string) (string, error), castF
 
 		op := ltOp[lt]
 
-		//// Typecast the value so comparison can work properly
+		// // Typecast the value so comparison can work properly
 
 		// Either BOTH (field and value) are NULL or field is grater-then value
 		base := &ql.ASTNode{
@@ -386,9 +427,7 @@ func (cur *PagingCursor) ToAST(identLookup func(i string) (string, error), castF
 												},
 											},
 										},
-										&ql.ASTNode{
-											Value: ql.WrapValue(isValueNull(i, false)),
-										},
+										isValueNull(i, false),
 									},
 								},
 							},
@@ -439,9 +478,7 @@ func (cur *PagingCursor) ToAST(identLookup func(i string) (string, error), castF
 																			},
 																		},
 																	},
-																	&ql.ASTNode{
-																		Value: ql.WrapValue(isValueNull(i, false)),
-																	},
+																	isValueNull(i, false),
 																},
 															},
 
