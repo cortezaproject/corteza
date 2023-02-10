@@ -79,6 +79,18 @@
         switch
       />
     </td>
+
+    <td
+      class="align-middle text-center"
+    >
+      <b-form-checkbox
+        v-model="value.isMulti"
+        :disabled="!value.cap.multi"
+        switch
+        class="ml-2"
+      />
+    </td>
+
     <td
       class="text-right align-middle pr-2"
       style="min-width: 100px;"
