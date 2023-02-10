@@ -4,6 +4,7 @@ import {
   Report,
   Dimension,
   ChartType,
+  TemporalDataPoint,
 } from './util'
 import { getColorschemeColors } from '../../../shared'
 
@@ -36,10 +37,12 @@ export default class GaugeChart extends BaseChart {
     return (d.meta?.steps || []).map(({ label }: any) => label)
   }
 
-  makeDataset (m: Metric, d: Dimension, data: Array<number|any>, alias: string) {
+  makeDataset (m: Metric, d: Dimension, data: Array<number|TemporalDataPoint>, alias: string) {
     const steps = (d.meta?.steps || [])
 
-    const value = data.reduce((acc, cur) => {
+     data = this.datasetPostProc(data, m)
+
+     const value = data.reduce((acc: any, cur: any) => {
       return !isNaN(cur) ? acc + parseFloat(cur) : acc
     }, 0)
 
