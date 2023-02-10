@@ -274,8 +274,12 @@
                           <th />
                           <th />
 
-                          <th class="text-primary text-center">
+                          <th class="text-primary text-center pr-3">
                             {{ $t('general:label.required') }}
+                          </th>
+
+                          <th class="text-primary text-center pl-2">
+                            {{ $t('general:label.multi') }}
                           </th>
 
                           <th />

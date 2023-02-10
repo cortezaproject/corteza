@@ -7,7 +7,7 @@
   >
     <b-tab
       active
-      :title="$t('label.general')"
+      :title="$t('general:label.general')"
     >
       <basic
         :namespace="namespace"
@@ -18,7 +18,7 @@
 
     <b-tab
       v-if="fieldComponent"
-      :title="$t(`fieldKinds.${field.kind}.label`)"
+      :title="$t(`general:fieldKinds.${field.kind}.label`)"
     >
       <component
         :is="fieldComponent"
@@ -40,7 +40,7 @@
     </b-tab>
 
     <b-tab
-      :title="$t('label.validation')"
+      :title="$t('general:label.validation')"
     >
       <validation
         :namespace="namespace"
@@ -50,7 +50,7 @@
     </b-tab>
 
     <b-tab
-      :title="$t('label.privacy')"
+      :title="$t('general:label.privacy')"
     >
       <data-privacy-settings
         v-if="connection"
@@ -60,11 +60,11 @@
         :max-level="maxLevelID"
         :translations="{
           sensitivity: {
-            label: $t('field:privacy.sensitivity-level.label'),
-            placeholder: $t('field:privacy.sensitivity-level.placeholder'),
+            label: $t('privacy.sensitivity-level.label'),
+            placeholder: $t('privacy.sensitivity-level.placeholder'),
           },
           usage: {
-            label: $t('field:privacy.usage-disclosure.label'),
+            label: $t('privacy.usage-disclosure.label'),
           },
         }"
       />
@@ -82,7 +82,7 @@ import DataPrivacySettings from 'corteza-webapp-compose/src/components/Admin/Mod
 
 export default {
   i18nOptions: {
-    namespaces: 'general',
+    namespaces: 'field',
   },
 
   components: {

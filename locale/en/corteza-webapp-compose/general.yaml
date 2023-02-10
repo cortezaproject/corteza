@@ -40,7 +40,7 @@ label:
   makeDefault: Make default
   module: Module
   moduleName: Module name
-  multi: Multi value
+  multi: Multi
   name: Name
   next: Next
   no: No

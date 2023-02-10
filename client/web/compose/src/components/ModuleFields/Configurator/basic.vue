@@ -11,7 +11,7 @@
       v-model="field.isMulti"
       :disabled="!field.cap.multi"
     >
-      {{ $t('general:label.multi') }}
+      {{ $t('label.multi') }}
     </b-form-checkbox>
 
     <b-form-checkbox
