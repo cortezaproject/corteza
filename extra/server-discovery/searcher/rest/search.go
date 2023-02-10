@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza/extra/server-discovery/searcher"
 	"github.com/cortezaproject/corteza/extra/server-discovery/searcher/rest/request"
-	"github.com/jmoiron/sqlx/types"
+	types2 "github.com/cortezaproject/corteza/server/compose/types"
 	"net/http"
 )
 
@@ -19,10 +19,10 @@ type (
 				NamespaceID uint64 `json:",string"`
 				Slug        string `json:"slug"`
 
-				Name     string         `json:"name"`
-				ModuleID uint64         `json:",string"`
-				Handle   string         `json:"handle"`
-				Meta     types.JSONText `json:"meta"`
+				Name     string              `json:"name"`
+				ModuleID uint64              `json:",string"`
+				Handle   string              `json:"handle"`
+				Config   types2.ModuleConfig `json:"config"`
 			} `json:"set,omitempty"`
 		} `json:"response,omitempty"`
 	}
@@ -114,7 +114,7 @@ func (s search) SearchResources(ctx context.Context, r *request.SearchResources)
 	if len(searchString) == 0 {
 		aggregation, _, err = esSearch(ctx, log, esc, searchParams{
 			title: "aggregation",
-			//size:          size,
+			// size:          size,
 			dumpRaw:       validDumpRaw,
 			namespaceAggs: namespaceAggs,
 			aggOnly:       true,
@@ -128,7 +128,7 @@ func (s search) SearchResources(ctx context.Context, r *request.SearchResources)
 	// append all namespace agg with counts no matter what
 	nsAggregation, _, err = esSearch(ctx, log, esc, searchParams{
 		title: "nsAggregation",
-		//size:    size,
+		// size:    size,
 		dumpRaw:      validDumpRaw,
 		aggOnly:      true,
 		allowedRoles: allowedRoles,
@@ -211,7 +211,7 @@ func (s search) SearchResources(ctx context.Context, r *request.SearchResources)
 
 	mAggregation, _, err = esSearch(ctx, log, esc, searchParams{
 		title: "mAggregation",
-		//size:          size,
+		// size:          size,
 		dumpRaw:       validDumpRaw,
 		query:         searchString,
 		namespaceAggs: namespaceAggs,
@@ -269,7 +269,7 @@ func (s search) SearchResources(ctx context.Context, r *request.SearchResources)
 	}
 
 	noHits := len(searchString) == 0 && len(moduleAggs) == 0 && len(namespaceAggs) == 0
-	//if !noHits {
+	// if !noHits {
 	// @todo only fetch module from result but that requires another loop to fetch module Id from es response
 	// 			TEMP fix, I have solution use elastic for the same but different index
 	nsReq, err = searcher.DefaultApiClient.Namespaces()
@@ -321,19 +321,15 @@ func (s search) SearchResources(ctx context.Context, r *request.SearchResources)
 				}
 
 				var (
-					meta moduleMeta
-					key  = fmt.Sprintf("%d-%d", s.NamespaceID, m.ModuleID)
+					key = fmt.Sprintf("%d-%d", s.NamespaceID, m.ModuleID)
 				)
-				err = json.Unmarshal(m.Meta, &meta)
-				if err != nil {
-					return nil, fmt.Errorf("failed to unmarshal module meta: %w", err)
-				} else if len(meta.Discovery.Private.Result) > 0 && len(meta.Discovery.Private.Result[0].Fields) > 0 {
-					moduleMap[key] = meta.Discovery.Private.Result[0].Fields
+				if len(m.Config.Discovery.Private.Result) > 0 && len(m.Config.Discovery.Private.Result[0].Fields) > 0 {
+					moduleMap[key] = m.Config.Discovery.Private.Result[0].Fields
 				}
 			}
 		}
 	}
-	//}
+	// }
 
 	return conv(results, aggregation, noHits, moduleMap, nsHandleMap, mHandleMap, page)
 }
