@@ -95,7 +95,7 @@
           v-model="block.style.border.enabled"
           switch
         >
-          {{ $t('general.border') }}
+          {{ $t('general.border.show') }}
         </b-form-checkbox>
       </div>
     </b-tab>
