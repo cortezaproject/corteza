@@ -122,9 +122,9 @@ export default {
 
     scopeOptions () {
       return [
-        { value: 'public', title: this.$t('edit.discoverySettings.public') },
+        // { value: 'public', title: this.$t('edit.discoverySettings.public') },
         { value: 'private', title: this.$t('edit.discoverySettings.private') },
-        { value: 'protected', title: this.$t('edit.discoverySettings.protected') },
+        // { value: 'protected', title: this.$t('edit.discoverySettings.protected') },
       ]
     },
   },
