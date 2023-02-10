@@ -26,7 +26,7 @@
         :fields="columns"
       >
         <template #cell(kind)="{ item: field }">
-          {{ $t(`field:kind.${field.kind.toLowerCase()}.label`) }}
+          {{ $t(`field:kind.${convertToCamelCase(field.kind)}.label`) }}
           <span
             v-if="isRecord(field)"
           >
@@ -72,6 +72,7 @@
 import base from './base'
 import { NoID } from '@cortezaproject/corteza-js'
 import { mapGetters } from 'vuex'
+import _ from 'lodash'
 
 export default {
   i18nOptions: {
@@ -166,6 +167,10 @@ export default {
     refModuleName ({ options: { moduleID = NoID } }) {
       const m = moduleID === NoID ? null : this.getModuleByID(moduleID)
       return m ? m.name || m.handle : this.$t('errors.invalid-module-id')
+    },
+
+    convertToCamelCase (value) {
+      return _.camelCase(value)
     },
   },
 }
