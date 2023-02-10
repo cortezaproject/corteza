@@ -92,6 +92,11 @@ export default {
       required: true,
     },
 
+    isMulti: {
+      type: Boolean,
+      default: false,
+    },
+
     // default store-ident
     storeIdent: {
       type: String,
@@ -121,17 +126,18 @@ export default {
 
       // strategy before omit
       undoOmit: this.defaultStrategy,
-
-      // list of available strategies
-      strategies: [
-        { value: types.Plain, text: this.$t('strategies.plain.label') },
-        { value: types.Alias, text: this.$t('strategies.alias.label') },
-        { value: types.JSON, text: this.$t('strategies.json.label') },
-      ],
     }
   },
 
   computed: {
+    strategies () {
+      return [
+        { value: types.Plain, text: this.$t('strategies.plain.label'), disabled: this.isMulti },
+        { value: types.Alias, text: this.$t('strategies.alias.label'), disabled: this.isMulti },
+        { value: types.JSON, text: this.$t('strategies.json.label') },
+      ].filter(({ disabled }) => !disabled)
+    },
+
     showIdentInput () {
       return [types.JSON, types.Alias, types.Plain].includes(this.strategy)
     },
