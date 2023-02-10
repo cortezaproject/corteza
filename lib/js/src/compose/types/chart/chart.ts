@@ -7,10 +7,6 @@ import {
 } from './util'
 import { getColorschemeColors } from '../../../shared'
 
-// The default dataset post processing function to use.
-// This one simply returns the current value.
-const defaultFx = 'n'
-
 /**
  * Chart represents a generic chart, such as a bar chart, line chart, ...
  */
@@ -22,60 +18,7 @@ export default class Chart extends BaseChart {
     })
   }
 
-  /**
-   * The method performs post processing for each value in the given dataset.
-   * It works with a simple equation written in javascript (example: n + m).
-   * Available variables to use:
-   * * n - current value
-   * * m - previous value (undefined in case of the first element)
-   * * r - entire data array.
-   *
-   * @param data Array of values in the given data set
-   * @param m Metric for the given dataset
-   */
-  private datasetPostProc (data: Array<number|TemporalDataPoint>, m: Metric): Array<number|TemporalDataPoint> {
-    // Define a valid function to evaluate
-    let fxRaw = (m.fx || defaultFx).trim()
-    if (!fxRaw.startsWith('return')) {
-      fxRaw = 'return ' + fxRaw
-    }
-    const fx = new Function('n', 'm', 'r', fxRaw)
-
-    // Define a new array, so we don't alter the original one.
-    const r = [...data]
-
-    // Run postprocessing for all data in the given data set
-    // There is a slight difference between temporal data points and categorical data points.
-    if (data[0] instanceof Object) {
-      // Temporal
-      for (let i = 0; i < data.length; i++) {
-        const a = data[i] as TemporalDataPoint
-        const b = data[i - 1] as TemporalDataPoint|undefined
-
-        const n = a.y
-        let m: number|undefined
-        if (i > 0) {
-          m = b?.y
-        }
-
-        a.y = fx(n, m, r)
-      }
-    } else {
-      // Categorical
-      for (let i = 0; i < data.length; i++) {
-        const n = data[i] as number
-        let m: number|undefined
-        if (i > 0) {
-          m = data[i - 1] as number
-        }
-        data[i] = fx(n, m, r)
-      }
-    }
-
-    return data
-  }
-
-  makeDataset (m: Metric, d: Dimension, data: Array<number|any>, alias: string) {
+  makeDataset (m: Metric, d: Dimension, data: Array<number|TemporalDataPoint>, alias: string) {
     data = this.datasetPostProc(data, m)
 
     return {
