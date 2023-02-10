@@ -15,7 +15,7 @@ func ArrayFunctions() []gval.Language {
 		gval.Function("pop", pop),
 		gval.Function("shift", shift),
 		gval.Function("count", count),
-		gval.Function("has", has),
+		gval.Function("has", Has),
 		gval.Function("hasAll", hasAll),
 		gval.Function("find", find),
 		gval.Function("sort", sortSlice),
@@ -157,7 +157,7 @@ func count(arr interface{}, v ...interface{}) (count int, err error) {
 }
 
 // has finds any occurrence of the values in slice or key in a map
-func has(arr interface{}, vv ...interface{}) (b bool, err error) {
+func Has(arr interface{}, vv ...interface{}) (b bool, err error) {
 	arr = UntypedValue(arr)
 
 	if isMap(arr) {

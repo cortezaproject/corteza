@@ -3,12 +3,11 @@ package http
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"net/url"
-
-	"github.com/pkg/errors"
 )
 
 type (
@@ -84,10 +83,10 @@ func (r *BufferedReader) Seek(offset int64, whence int) (int64, error) {
 	case io.SeekEnd:
 		abs = int64(len(r.s)) + offset
 	default:
-		return 0, errors.New("bytes.Reader.Seek: invalid whence")
+		return 0, fmt.Errorf("bytes.Reader.Seek: invalid whence")
 	}
 	if abs < 0 {
-		return 0, errors.New("bytes.Reader.Seek: negative position")
+		return 0, fmt.Errorf("bytes.Reader.Seek: negative position")
 	}
 	r.i = abs
 	return abs, nil

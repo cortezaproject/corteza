@@ -12,16 +12,18 @@ github.com/asaskevich/govalidator
 ## explicit
 github.com/aymerick/douceur/css
 github.com/aymerick/douceur/parser
-# github.com/cortezaproject/corteza-locale v0.0.0-20221108130701-3981db126651
-## explicit; go 1.16
-github.com/cortezaproject/corteza-locale
 # github.com/cortezaproject/corteza/server v0.0.0-00010101000000-000000000000 => ../../server
-## explicit; go 1.18
+## explicit; go 1.19
+github.com/cortezaproject/corteza/server/compose/types
+github.com/cortezaproject/corteza/server/discovery/types
 github.com/cortezaproject/corteza/server/pkg/api
+github.com/cortezaproject/corteza/server/pkg/cast2
 github.com/cortezaproject/corteza/server/pkg/cli
+github.com/cortezaproject/corteza/server/pkg/dal
 github.com/cortezaproject/corteza/server/pkg/errors
 github.com/cortezaproject/corteza/server/pkg/expr
 github.com/cortezaproject/corteza/server/pkg/filter
+github.com/cortezaproject/corteza/server/pkg/geolocation
 github.com/cortezaproject/corteza/server/pkg/gvalfnc
 github.com/cortezaproject/corteza/server/pkg/handle
 github.com/cortezaproject/corteza/server/pkg/http
@@ -33,8 +35,10 @@ github.com/cortezaproject/corteza/server/pkg/ql
 github.com/cortezaproject/corteza/server/pkg/rand
 github.com/cortezaproject/corteza/server/pkg/slice
 github.com/cortezaproject/corteza/server/pkg/sql
+github.com/cortezaproject/corteza/server/pkg/str
 github.com/cortezaproject/corteza/server/pkg/version
 github.com/cortezaproject/corteza/server/pkg/xss
+github.com/cortezaproject/corteza/server/system/types
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
@@ -78,6 +82,9 @@ github.com/goccy/go-json/internal/runtime
 # github.com/golang-jwt/jwt v3.2.2+incompatible
 ## explicit
 github.com/golang-jwt/jwt
+# github.com/golang/protobuf v1.5.2
+## explicit; go 1.9
+github.com/golang/protobuf/proto
 # github.com/google/uuid v1.1.2
 ## explicit
 github.com/google/uuid
@@ -135,6 +142,9 @@ github.com/lestrrat-go/option
 ## explicit; go 1.13
 github.com/lestrrat-go/strftime
 github.com/lestrrat-go/strftime/internal/errors
+# github.com/markbates/goth v1.71.1
+## explicit; go 1.15
+github.com/markbates/goth
 # github.com/microcosm-cc/bluemonday v1.0.18
 ## explicit; go 1.16
 github.com/microcosm-cc/bluemonday
@@ -163,6 +173,9 @@ github.com/spf13/pflag
 # github.com/stretchr/testify v1.7.1
 ## explicit; go 1.13
 github.com/stretchr/testify/assert
+# github.com/tidwall/btree v1.3.1
+## explicit; go 1.18
+github.com/tidwall/btree
 # go.uber.org/atomic v1.9.0
 ## explicit; go 1.13
 go.uber.org/atomic
@@ -177,7 +190,7 @@ go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
-# golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
+# golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
 ## explicit; go 1.17
 golang.org/x/crypto/curve25519
 golang.org/x/crypto/curve25519/internal/field
@@ -185,8 +198,14 @@ golang.org/x/crypto/ed25519
 golang.org/x/crypto/pbkdf2
 # golang.org/x/net v0.2.0
 ## explicit; go 1.17
+golang.org/x/net/context
+golang.org/x/net/context/ctxhttp
 golang.org/x/net/html
 golang.org/x/net/html/atom
+# golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
+## explicit; go 1.11
+golang.org/x/oauth2
+golang.org/x/oauth2/internal
 # golang.org/x/text v0.4.0
 ## explicit; go 1.17
 golang.org/x/text/internal/format
@@ -195,6 +214,44 @@ golang.org/x/text/internal/language/compact
 golang.org/x/text/internal/tag
 golang.org/x/text/language
 golang.org/x/text/language/display
+# google.golang.org/appengine v1.6.7
+## explicit; go 1.11
+google.golang.org/appengine/internal
+google.golang.org/appengine/internal/base
+google.golang.org/appengine/internal/datastore
+google.golang.org/appengine/internal/log
+google.golang.org/appengine/internal/remote_api
+google.golang.org/appengine/internal/urlfetch
+google.golang.org/appengine/urlfetch
+# google.golang.org/protobuf v1.28.0
+## explicit; go 1.11
+google.golang.org/protobuf/encoding/prototext
+google.golang.org/protobuf/encoding/protowire
+google.golang.org/protobuf/internal/descfmt
+google.golang.org/protobuf/internal/descopts
+google.golang.org/protobuf/internal/detrand
+google.golang.org/protobuf/internal/encoding/defval
+google.golang.org/protobuf/internal/encoding/messageset
+google.golang.org/protobuf/internal/encoding/tag
+google.golang.org/protobuf/internal/encoding/text
+google.golang.org/protobuf/internal/errors
+google.golang.org/protobuf/internal/filedesc
+google.golang.org/protobuf/internal/filetype
+google.golang.org/protobuf/internal/flags
+google.golang.org/protobuf/internal/genid
+google.golang.org/protobuf/internal/impl
+google.golang.org/protobuf/internal/order
+google.golang.org/protobuf/internal/pragma
+google.golang.org/protobuf/internal/set
+google.golang.org/protobuf/internal/strs
+google.golang.org/protobuf/internal/version
+google.golang.org/protobuf/proto
+google.golang.org/protobuf/reflect/protodesc
+google.golang.org/protobuf/reflect/protoreflect
+google.golang.org/protobuf/reflect/protoregistry
+google.golang.org/protobuf/runtime/protoiface
+google.golang.org/protobuf/runtime/protoimpl
+google.golang.org/protobuf/types/descriptorpb
 # gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 ## explicit
 gopkg.in/yaml.v3
