@@ -36,6 +36,7 @@
       :module="module"
       :namespace="namespace"
       :block-index="0"
+      class="p-2"
       @save-fields="handleFieldsSave"
     />
   </div>
