@@ -87,7 +87,7 @@ func conv(sr *esSearchResponse, aggregation *esSearchResponse, noHits bool, modu
 	if aggregation != nil {
 		aggsRes = aggregation.Aggregations
 	}
-	//for _, bucket := range aggsRes.Resource.Buckets {
+	// for _, bucket := range aggsRes.Resource.Buckets {
 	//	bucketName := getResourceName(bucket.Key)
 	//	if bucketName == "User" {
 	//		continue
@@ -152,7 +152,7 @@ func conv(sr *esSearchResponse, aggregation *esSearchResponse, noHits bool, modu
 	//			}
 	//		}
 	//	}
-	//}
+	// }
 
 	nsAggregation := cdAggregation{
 		Name:         "Namespace",
@@ -171,10 +171,12 @@ func conv(sr *esSearchResponse, aggregation *esSearchResponse, noHits bool, modu
 			if nsHandleMap != nil {
 				name = nsHandleMap[resourceName].Name
 			}
-			nsTotalHits[resourceName] = cdAggregationHits{
-				Name:  name,
-				Label: resourceName,
-				Hits:  bucket.DocCount,
+			if len(name) > 0 {
+				nsTotalHits[resourceName] = cdAggregationHits{
+					Name:  name,
+					Label: resourceName,
+					Hits:  bucket.DocCount,
+				}
 			}
 		}
 	}
