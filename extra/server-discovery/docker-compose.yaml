@@ -64,7 +64,7 @@ services:
     expose:
       - "5601"
     environment:
-      OPENSEARCH_HOSTS: '["http://project_name-opensearch:9200","http://project_name-opensearch-node2:9200"]'
+      OPENSEARCH_HOSTS: '["http://127.0.0.1:9200"]'
       DISABLE_SECURITY_DASHBOARDS_PLUGIN: 'true' # disables security dashboards plugin in OpenSearch Dashboards
 
     networks:
