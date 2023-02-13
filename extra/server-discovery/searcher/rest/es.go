@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/go-chi/jwtauth"
@@ -408,10 +409,12 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 	//	query.Aggregations = (Aggregations{}).encodeTerms(p.aggregations)
 	// }
 
+	// spew.Dump("query: ", query)
 	if err = json.NewEncoder(&buf).Encode(query); err != nil {
 		err = fmt.Errorf("could not encode query: %q", err)
 		return
 	}
+	spew.Dump("buf: ", buf)
 
 	log.Debug("searching ",
 		zap.String("for", p.title),
