@@ -24,6 +24,7 @@
         :is="fieldComponent"
         :namespace="namespace"
         :module="module"
+        :module-default-state="moduleDefaultState"
         :field.sync="f"
       />
     </b-tab>

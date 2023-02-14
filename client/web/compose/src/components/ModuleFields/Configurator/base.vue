@@ -13,6 +13,11 @@ export default {
       required: true,
     },
 
+    moduleDefaultState: {
+      type: compose.Module,
+      required: true,
+    },
+
     field: {
       type: compose.ModuleField,
       required: true,

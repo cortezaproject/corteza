@@ -414,6 +414,7 @@
           :field.sync="updateField"
           :namespace="namespace"
           :module="module"
+          :module-default-state="moduleDefaultState"
           :connection="connection"
           :sensitivity-levels="sensitivityLevels"
         />
@@ -515,6 +516,7 @@ export default {
 
       updateField: null,
       module: undefined,
+      moduleDefaultState: undefined,
       hasRecords: true,
       processing: false,
 
@@ -664,6 +666,7 @@ export default {
           this.findModuleByID(params).then((module) => {
             // Make a copy so that we do not change store item by ref
             this.module = module.clone()
+            this.moduleDefaultState = module.clone()
 
             const { moduleID, namespaceID, issues = [] } = this.module
 
@@ -760,6 +763,7 @@ export default {
           }
 
           this.module = new compose.Module({ ...module }, this.namespace)
+          this.moduleDefaultState = this.module.clone()
 
           this.toastSuccess(this.$t('notification:module.saved'))
           if (closeOnSuccess) {
@@ -774,6 +778,8 @@ export default {
       } else {
         this.updateModule({ ...this.module, resourceTranslationLanguage }).then(module => {
           this.module = new compose.Module({ ...module }, this.namespace)
+          this.moduleDefaultState = this.module.clone()
+
           this.toastSuccess(this.$t('notification:module.saved'))
           if (closeOnSuccess) {
             this.$router.push({ name: 'admin.modules' })

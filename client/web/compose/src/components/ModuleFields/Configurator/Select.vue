@@ -30,7 +30,7 @@
               :module="module"
               :highlight-key="`meta.options.${option.value}.text`"
               size="sm"
-              :disabled="isNew || option.new"
+              :disabled="isNew || !defaultFieldOptionsState.includes(option.value)"
               button-variant="light"
             />
             <b-button
@@ -139,6 +139,16 @@ export default {
 
     isNew () {
       return this.module.moduleID === NoID || this.field.fieldID === NoID
+    },
+
+    defaultFieldOptionsState () {
+      const field = this.moduleDefaultState.fields.find(({ name }) => name === this.f.name)
+
+      if (field) {
+        return field.options.options.map(({ value }) => value)
+      }
+
+      return []
     },
   },
 
