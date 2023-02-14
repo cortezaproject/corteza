@@ -5,6 +5,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/cortezaproject/corteza/server/compose/model"
 	"github.com/cortezaproject/corteza/server/compose/types"
 	discovery "github.com/cortezaproject/corteza/server/discovery/types"
@@ -17,9 +21,6 @@ import (
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
-	"os"
-	"strings"
-	"time"
 )
 
 // RDBMS database fixes
@@ -615,9 +616,12 @@ func fix_2022_09_07_changePostgresIdColumnsDatatype(ctx context.Context, s *Stor
 		return
 	}
 
+	log := s.log(ctx)
+	log.Info("changing postgres ID columns")
+
 	tnames := tableNames()
 	tnamesQry := `SELECT table_name FROM INFORMATION_SCHEMA.COLUMNS  WHERE column_name = 'id' AND
-                table_name IN('` + strings.Join(tnames, "', '") + `') AND table_name NOT LIKE 'auth_sessions'`
+                table_name IN('` + strings.Join(tnames, "', '") + `') AND table_name NOT LIKE 'auth_sessions' AND is_updatable = 'YES'`
 
 	rows, err := s.DB.QueryContext(ctx, tnamesQry)
 	if err != nil {
