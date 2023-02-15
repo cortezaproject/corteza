@@ -21,9 +21,6 @@ export default class Chart extends BaseChart {
   makeDataset (m: Metric, d: Dimension, data: Array<number|TemporalDataPoint>, alias: string) {
     data = this.datasetPostProc(data, m)
 
-    console.log(m.relativeValue)
-    console.log(!!m.relativeValue)
-
     return {
       type: m.type,
       label: m.label || m.field,
@@ -31,7 +28,7 @@ export default class Chart extends BaseChart {
       fill: !!m.fill,
       tooltip: {
         fixed: m.fixTooltips,
-        relative: !!(m.relativeValue && m.type !== 'bar' && m.type!=='line'),
+        relative: m.relativeValue && !['bar', 'line'].includes(m.type as string),
       },
     }
   }
