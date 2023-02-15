@@ -6,6 +6,8 @@ import (
 
 auth_client: {
 	model: {
+		omitGetterSetter: true
+
 		attributes: {
 			id:     schema.IdField
 			handle: schema.HandleField

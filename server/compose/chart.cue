@@ -27,6 +27,8 @@ chart: {
 			config: {
 				goType: "types.ChartConfig"
 				dal: {}
+				omitSetter: true
+				omitGetter: true
 		  }
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField

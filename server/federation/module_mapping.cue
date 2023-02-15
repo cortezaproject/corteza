@@ -42,6 +42,8 @@ moduleMapping: {
 			field_mapping: {
 				goType: "types.ModuleFieldMappingSet"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 		}
 

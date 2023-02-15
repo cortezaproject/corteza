@@ -28,10 +28,14 @@ record: {
 			module: {
 				goType: "*types.Module",
 				store: false
+				omitSetter: true
+				omitGetter: true
 			}
 			values: {
 				goType: "types.RecordValueSet",
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			meta: {
 				goType: "map[string]any",
@@ -61,6 +65,9 @@ record: {
 			}
 		}
 	}
+
+	defaultGetter: true
+	defaultSetter: true
 
 	filter: {
 		struct: {

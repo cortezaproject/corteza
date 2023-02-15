@@ -17,10 +17,14 @@ dal_connection: {
 			config: {
 				goType: "types.ConnectionConfig"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			meta: {
 				goType: "types.ConnectionMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 
 			created_at: schema.SortableTimestampNowField

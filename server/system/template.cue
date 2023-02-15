@@ -25,6 +25,8 @@ template: {
 				sortable: true,
 				goType: "types.DocumentType"
 				dal: {}
+				omitSetter: true
+				omitGetter: true
 			}
 			partial: {
 				goType: "bool"
@@ -33,6 +35,8 @@ template: {
 			meta: {
 				goType: "types.TemplateMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			template: {
 				sortable: true,

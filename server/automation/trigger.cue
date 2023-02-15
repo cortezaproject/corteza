@@ -30,6 +30,8 @@ trigger: {
 			meta: {
 				goType: "*types.TriggerMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			resource_type: {
 				sortable: true,
@@ -44,10 +46,14 @@ trigger: {
 			constraints: {
 				goType: "types.TriggerConstraintSet"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			input: {
 				goType: "*expr.Vars"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 
 			owned_by:   schema.AttributeUserRef

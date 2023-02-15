@@ -7,6 +7,7 @@ import (
 record_revision: {
 	model: {
 		ident: "compose_record_revisions"
+		omitGetterSetter: true
 
 		attributes: {
 			id: schema.IdField

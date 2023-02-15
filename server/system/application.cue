@@ -25,6 +25,8 @@ application: {
 			unify: {
 				goType: "*types.ApplicationUnify"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			owner_id:   {
 				schema.AttributeUserRef,
