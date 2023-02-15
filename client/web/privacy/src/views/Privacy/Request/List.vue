@@ -124,6 +124,8 @@ export default {
 
   data () {
     return {
+      processing: false,
+
       isDC: null,
 
       users: {},
