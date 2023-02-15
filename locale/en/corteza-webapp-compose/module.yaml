@@ -136,7 +136,7 @@ edit:
     privacy:
       title: Privacy
       sensitivity-level:
-        label: Highest allowed allowed sensitivity level
+        label: Highest allowed sensitivity level
         placeholder: Select a sensitivity level
         description: Highest allowed level of sensitivity for fields on this module, changing this value will reset the sensitivity level of fields if they are incompatible.
       usage-disclosure:
