@@ -28,7 +28,7 @@ export default class Chart extends BaseChart {
       fill: !!m.fill,
       tooltip: {
         fixed: m.fixTooltips,
-        relative: !!m.relativeValue,
+        relative: m.relativeValue && !['bar', 'line'].includes(m.type as string),
       },
     }
   }
