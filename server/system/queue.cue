@@ -26,6 +26,8 @@ queue: {
 			meta: {
 				goType: "types.QueueMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 
 			created_at: schema.SortableTimestampNowField

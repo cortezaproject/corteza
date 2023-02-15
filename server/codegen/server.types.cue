@@ -27,4 +27,14 @@ import (
 			]
 		}
 	},
+	for cmp in app.corteza.components {
+		template: "gocode/types/$component_getters_setters.go.tpl"
+		output:   "\(cmp.ident)/types/getters_setters.gen.go"
+		payload: {
+			package: "types"
+
+			cmpIdent: cmp.ident
+			resources: [ for res in cmp.resources { res }]
+		}
+	},
 ]

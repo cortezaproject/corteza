@@ -39,6 +39,8 @@ sharedModule: {
 			fields: {
 				goType: "types.ModuleFieldSet"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 
 			created_at: schema.SortableTimestampNowField

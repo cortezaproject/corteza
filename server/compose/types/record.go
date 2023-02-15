@@ -6,8 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/cast2"
-
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/modern-go/reflect2"
 	"github.com/spf13/cast"
@@ -159,39 +157,12 @@ func (r Record) Clone() *Record {
 	return c
 }
 
-func (r *Record) GetValue(name string, pos uint) (any, error) {
-	switch name {
-	case "ID", "id", "recordID":
-		return r.ID, nil
-	case "moduleID":
-		return r.ModuleID, nil
-	case "namespaceID":
-		return r.NamespaceID, nil
-	case "revision":
-		return r.Revision, nil
-	case "meta":
-		return r.Meta, nil
-	case "createdAt":
-		return r.CreatedAt, nil
-	case "createdBy":
-		return r.CreatedBy, nil
-	case "updatedAt":
-		return r.UpdatedAt, nil
-	case "updatedBy":
-		return r.UpdatedBy, nil
-	case "deletedAt":
-		return r.DeletedAt, nil
-	case "deletedBy":
-		return r.DeletedBy, nil
-	case "ownedBy":
-		return r.OwnedBy, nil
-	default:
-		if val := r.Values.Get(name, pos); val != nil {
-			return val.Value, nil
-		}
-
-		return nil, nil
+func (r *Record) getValue(name string, pos uint) (any, error) {
+	if val := r.Values.Get(name, pos); val != nil {
+		return val.Value, nil
 	}
+
+	return nil, nil
 }
 
 // CountValues returns how many values per field are there
@@ -234,78 +205,51 @@ func (r *Record) CountValues() (pos map[string]uint) {
 	return
 }
 
-func (r *Record) SetValue(name string, pos uint, value any) (err error) {
-	switch name {
-	case "ID":
-		return cast2.Uint64(value, &r.ID)
-	case "moduleID":
-		return cast2.Uint64(value, &r.ModuleID)
-	case "namespaceID":
-		return cast2.Uint64(value, &r.NamespaceID)
-	case "createdBy":
-		return cast2.Uint64(value, &r.CreatedBy)
-	case "updatedBy":
-		return cast2.Uint64(value, &r.UpdatedBy)
-	case "deletedBy":
-		return cast2.Uint64(value, &r.DeletedBy)
-	case "ownedBy":
-		return cast2.Uint64(value, &r.OwnedBy)
-	case "revision":
-		return cast2.Uint(value, &r.Revision)
-	case "meta":
-		return cast2.Meta(value, &r.Meta)
-	case "createdAt":
-		return cast2.Time(value, &r.CreatedAt)
-	case "updatedAt":
-		return cast2.TimePtr(value, &r.UpdatedAt)
-	case "deletedAt":
-		return cast2.TimePtr(value, &r.DeletedAt)
+func (r *Record) setValue(name string, pos uint, value any) (err error) {
+	if reflect2.IsNil(value) {
+		r.Values, _ = r.Values.Filter(func(rv *RecordValue) (bool, error) {
+			if rv.Name == name && rv.Place == pos {
+				return false, nil
+			}
+
+			return true, nil
+		})
+
+		return
+	}
+
+	rv := &RecordValue{Name: name, Place: pos}
+	var auxv string
+
+	switch aux := value.(type) {
+	case *time.Time:
+		auxv = aux.Format(time.RFC3339)
+
+	case time.Time:
+		auxv = aux.Format(time.RFC3339)
+
 	default:
-		if reflect2.IsNil(value) {
-			r.Values, _ = r.Values.Filter(func(rv *RecordValue) (bool, error) {
-				if rv.Name == name && rv.Place == pos {
-					return false, nil
-				}
+		auxv, err = cast.ToStringE(aux)
+	}
 
-				return true, nil
-			})
+	if err != nil {
+		return
+	}
 
-			return
-		}
-
-		rv := &RecordValue{Name: name, Place: pos}
-		var auxv string
-
-		switch aux := value.(type) {
-		case *time.Time:
-			auxv = aux.Format(time.RFC3339)
-
-		case time.Time:
-			auxv = aux.Format(time.RFC3339)
-
-		default:
-			auxv, err = cast.ToStringE(aux)
-		}
-
-		if err != nil {
-			return
-		}
-
-		// Try to utilize the module when possible
-		// It can be omitted for some cases for easier test cases
-		if r.module != nil {
-			f := r.module.Fields.FindByName(name)
-			if f != nil {
-				switch f.Kind {
-				case "Record", "User", "File":
-					rv.Ref = cast.ToUint64(value)
-				}
+	// Try to utilize the module when possible
+	// It can be omitted for some cases for easier test cases
+	if r.module != nil {
+		f := r.module.Fields.FindByName(name)
+		if f != nil {
+			switch f.Kind {
+			case "Record", "User", "File":
+				rv.Ref = cast.ToUint64(value)
 			}
 		}
-
-		rv.Value = auxv
-		r.Values = r.Values.Set(rv)
 	}
+
+	rv.Value = auxv
+	r.Values = r.Values.Set(rv)
 
 	return
 }

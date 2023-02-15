@@ -10,6 +10,7 @@ data_privacy_request: {
 	}
 
 	model: {
+		omitGetterSetter: true
 		attributes: {
 			id: schema.IdField
 

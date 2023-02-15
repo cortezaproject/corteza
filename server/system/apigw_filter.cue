@@ -36,6 +36,8 @@ apigw_filter: {
 			params: {
 				goType: "types.ApigwFilterParams"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 
 			created_at: schema.SortableTimestampNowField

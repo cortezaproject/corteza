@@ -12,6 +12,10 @@ import (
 		[string]: #ModelAttribute
 	}
 
+	omitGetterSetter: bool | *false
+	defaultGetter: bool | *false
+	defaultSetter: bool | *false
+
 	indexes: ({
 		[name=_]: { "name": name, "modelIdent": ident } & #ModelIndex
 	} & {
@@ -29,6 +33,18 @@ import (
 
 	// Golang type (built-in or other)
 	goType: string | *"string"
+
+	goCastFnc: string | *strings.ToTitle(goType)
+
+	if goType == "*time.Time" {
+		goCastFnc: "TimePtr"
+	}
+	if goType == "time.Time" {
+		goCastFnc: "Time"
+	}
+	if goType == "map[string]any" {
+		goCastFnc: "Meta"
+	}
 
 	// lowercase (unexported, golang) identifier
 	ident: #ident | *_ident
@@ -55,6 +71,12 @@ import (
 	// #ModelAttributeJsonTag
 
 	dal?: #ModelAttributeDal
+	// specifies all of the identifiers this attribute may define when using getters/setters
+	identAlias: [...string] | *[ident, expIdent]
+
+	// enable or disable GetValue and SetValue for this attribute
+	omitSetter: bool | *false
+	omitGetter: bool | *false
 }
 
 #ModelAttributeDal: {

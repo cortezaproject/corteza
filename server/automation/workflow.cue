@@ -13,6 +13,8 @@ workflow: {
 			meta: {
 				goType: "*types.WorkflowMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			enabled: {
 				sortable: true,
@@ -30,18 +32,26 @@ workflow: {
 			scope: {
 				goType: "*expr.Vars"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			steps: {
 				goType: "types.WorkflowStepSet"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			paths: {
 				goType: "types.WorkflowPathSet"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			issues: {
 				goType: "types.WorkflowIssueSet"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 
 			run_as: schema.AttributeUserRef

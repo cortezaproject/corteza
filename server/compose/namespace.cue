@@ -21,6 +21,8 @@ namespace: {
 			meta: {
 				goType: "types.NamespaceMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			name: {
 				sortable: true

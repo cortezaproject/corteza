@@ -6,6 +6,8 @@ import (
 
 credential: {
 	model: {
+		omitGetterSetter: true
+
 		attributes: {
 			id:     schema.IdField
 			owner_id: { schema.AttributeUserRef, storeIdent: "rel_owner", ident: "ownerID" }

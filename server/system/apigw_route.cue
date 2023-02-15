@@ -28,6 +28,8 @@ apigw_route: {
 			meta: {
 				goType: "types.ApigwRouteMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			group:    {
 				sortable: true,
