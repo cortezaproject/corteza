@@ -34,10 +34,14 @@ user: {
 		  	sortable: true,
 		  	goType: "types.UserKind"
 				dal: { length: 8 }
+				omitSetter: true
+				omitGetter: true
 			}
 		  meta: {
 		  	goType: "*types.UserMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 		  suspended_at: schema.SortableTimestampNilField
 		  created_at: schema.SortableTimestampNowField

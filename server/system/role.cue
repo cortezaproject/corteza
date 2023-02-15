@@ -16,6 +16,8 @@ role: {
 			meta: {
 				goType: "*types.RoleMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 
 			archived_at: schema.SortableTimestampNilField

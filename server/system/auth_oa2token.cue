@@ -13,6 +13,8 @@ auth_oa2token: {
 	}
 
 	model: {
+		omitGetterSetter: true
+
 		attributes: {
 			id:     schema.IdField
 			code: {

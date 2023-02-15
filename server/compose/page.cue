@@ -41,13 +41,19 @@ page: {
 			config: {
 				goType: "types.PageConfig"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			blocks: {
 				goType: "types.PageBlocks"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			children: {
 				goType: "types.PageSet", store: false
+				omitSetter: true
+				omitGetter: true
 			}
 			visible: {
 				goType: "bool"

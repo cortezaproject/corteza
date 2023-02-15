@@ -13,6 +13,8 @@ auth_session: {
 	}
 
 	model: {
+		omitGetterSetter: true
+
 		attributes: {
 			id: {
 				expIdent: "ID",

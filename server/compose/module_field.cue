@@ -33,6 +33,8 @@ moduleField: {
 			options: {
 				goType: "types.ModuleFieldOptions"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			name: {
 				sortable: true
@@ -45,6 +47,8 @@ moduleField: {
 			config: {
 				goType: "types.ModuleFieldConfig"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			required: {
 				goType: "bool",
@@ -59,10 +63,14 @@ moduleField: {
 			default_value: {
 				goType: "types.RecordValueSet"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			expressions: {
 				goType: "types.ModuleFieldExpr"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField

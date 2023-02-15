@@ -28,14 +28,20 @@ module: {
 			meta: {
 				goType: "rawJson"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			config: {
 				goType: "types.ModuleConfig"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			fields: {
 				goType: "types.ModuleFieldSet",
 				store: false
+				omitSetter: true
+				omitGetter: true
 			}
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField

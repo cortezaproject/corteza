@@ -18,6 +18,8 @@ resource_translation: {
 			lang: {
 		 		goType: "types.Lang"
 				dal: { type: "Text", length: 32 }
+				omitSetter: true
+				omitGetter: true
 		 	}
 			resource: {
 				dal: { type: "Text", length: 256 }

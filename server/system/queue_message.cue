@@ -11,6 +11,8 @@ queue_message: {
 	}
 
 	model: {
+		omitGetterSetter: true
+
 		attributes: {
 		  id:        schema.IdField
 		  queue:     {
