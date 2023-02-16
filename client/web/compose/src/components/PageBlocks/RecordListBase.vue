@@ -78,7 +78,7 @@
               />
 
               <column-picker
-                v-if="options.allRecords"
+                v-if="!options.hideConfigureFieldsButton"
                 :module="recordListModule"
                 :fields="fields"
                 class="float-left"
@@ -96,27 +96,39 @@
             />
           </div>
         </b-row>
-        <b-row
-          v-if="options.selectable"
-          v-show="selected.length > 0"
-          class="mt-2 no-gutters"
+
+        <div
+          v-if="drillDownFilter"
+          class="d-flex justify-content-end mt-1"
         >
-          <b-col
-            cols="4"
-            class="pt-1 text-nowrap font-weight-bold"
+          <b-button
+            variant="outline-light"
+            size="sm"
+            class="text-nowrap text-primary border-0"
+            @click="setDrillDownFilter(undefined)"
+          >
+            {{ $t('recordList.drillDown.filter.remove') }}
+          </b-button>
+        </div>
+
+        <div
+          v-if="options.selectable && selected.length"
+          class="d-flex align-items-center mt-1"
+        >
+          <div
+            class="d-flex align-items-baseline my-auto pt-1 text-nowrap h-100"
           >
             {{ $t('recordList.selected', { count: selected.length, total: items.length }) }}
-            <a
-              href="#"
+            <b-button
+              variant="link"
+              class="p-0 text-decoration-none"
               @click.prevent="handleSelectAllOnPage({ isChecked: false })"
             >
               ({{ $t('recordList.cancelSelection') }})
-            </a>
-          </b-col>
-          <b-col
-            class="text-right"
-            cols="8"
-          >
+            </b-button>
+          </div>
+
+          <div class="ml-auto">
             <automation-buttons
               class="d-inline m-0"
               :buttons="options.selectionButtons"
@@ -171,8 +183,8 @@
                 />
               </b-button>
             </template>
-          </b-col>
-        </b-row>
+          </div>
+        </div>
       </b-container>
     </template>
 
@@ -665,7 +677,9 @@ export default {
 
       processing: false,
       // prefilter from block config
-      prefilter: null,
+      prefilter: undefined,
+      recordListFilter: [],
+      drillDownFilter: undefined,
 
       // raw query string used to build final filter
       query: null,
@@ -696,8 +710,6 @@ export default {
       // component
       ctr: 0,
       items: [],
-      idPrefix: `rl:${this.blockIndex}`,
-      recordListFilter: [],
       showingDeletedRecords: false,
     }
   },
@@ -884,23 +896,8 @@ export default {
 
     'record.recordID': {
       immediate: true,
-      handler (recordID = NoID) {
-        const { pageID = NoID } = this.page
-
-        // Set uniqueID so that events dont mix
-        if (this.uniqueID) {
-          this.$root.$off(`record-line:collect:${this.uniqueID}`)
-          this.$root.$off(`page-block:validate:${this.uniqueID}`)
-          this.$root.$off(`refetch-non-record-blocks:${pageID}`)
-        }
-
-        this.uniqueID = [pageID, recordID, this.blockIndex].map(v => v || NoID).join('-')
-        this.$root.$on(`record-line:collect:${this.uniqueID}`, this.resolveRecords)
-        this.$root.$on(`page-block:validate:${this.uniqueID}`, this.validatePageBlock)
-        this.$root.$on(`refetch-non-record-blocks:${pageID}`, () => {
-          this.refresh(true)
-        })
-
+      handler () {
+        this.createEvents()
         this.getStorageRecordListFilter()
         this.prepRecordList()
         this.refresh(true)
@@ -908,10 +905,12 @@ export default {
     },
   },
 
+  mounted () {
+    this.createEvents()
+  },
+
   beforeDestroy () {
-    this.$root.$off(`record-line:collect:${this.uniqueID}`)
-    this.$root.$off(`page-block:validate:${this.uniqueID}`)
-    this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`)
+    this.destroyEvents()
   },
 
   created () {
@@ -921,6 +920,34 @@ export default {
   },
 
   methods: {
+    createEvents () {
+      const { pageID = NoID } = this.page
+      const { recordID = NoID } = this.record || {}
+
+      // Set uniqueID so that events dont mix
+      if (this.uniqueID) {
+        this.$root.$off(`record-line:collect:${this.uniqueID}`)
+        this.$root.$off(`page-block:validate:${this.uniqueID}`)
+        this.$root.$off(`drill-down-recordList:${this.uniqueID}`)
+        this.$root.$off(`refetch-non-record-blocks:${pageID}`)
+      }
+
+      this.uniqueID = [pageID, recordID, this.block.blockID].map(v => v || NoID).join('-')
+      this.$root.$on(`record-line:collect:${this.uniqueID}`, this.resolveRecords)
+      this.$root.$on(`page-block:validate:${this.uniqueID}`, this.validatePageBlock)
+      this.$root.$on(`drill-down-recordList:${this.uniqueID}`, this.setDrillDownFilter)
+      this.$root.$on(`refetch-non-record-blocks:${pageID}`, () => {
+        this.refresh(true)
+      })
+    },
+
+    destroyEvents () {
+      this.$root.$off(`record-line:collect:${this.uniqueID}`)
+      this.$root.$off(`page-block:validate:${this.uniqueID}`)
+      this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`)
+      this.$root.$off(`drill-down-recordList:${this.uniqueID}`)
+    },
+
     onFilter (filter = []) {
       this.recordListFilter = filter
       this.setStorageRecordListFilter()
@@ -989,7 +1016,7 @@ export default {
 
       return {
         r,
-        id: id || (r.recordID !== NoID ? r.recordID : `${this.idPrefix}:${this.ctr++}`),
+        id: id || (r.recordID !== NoID ? r.recordID : `${this.uniqueID}:${this.ctr++}`),
       }
     },
 
@@ -1022,7 +1049,7 @@ export default {
         module: this.recordListModule,
         refField: this.options.refField,
         positionField: this.options.positionField,
-        idPrefix: this.idPrefix,
+        idPrefix: this.uniqueID,
       })
     },
 
@@ -1350,7 +1377,7 @@ export default {
       this.selected = []
 
       // Compute query based on query, prefilter and recordListFilter
-      const query = queryToFilter(this.query, this.prefilter, this.recordListModule.filterFields(this.options.fields), this.recordListFilter)
+      const query = queryToFilter(this.query, this.drillDownFilter || this.prefilter, this.recordListModule.filterFields(this.options.fields), this.recordListFilter)
 
       const { moduleID, namespaceID } = this.recordListModule
       if (this.filter.pageCursor) {
@@ -1454,6 +1481,11 @@ export default {
 
     onImportSuccessful () {
       this.refresh(true)
+    },
+
+    setDrillDownFilter (drillDownFilter) {
+      this.drillDownFilter = drillDownFilter
+      this.pullRecords(true)
     },
   },
 }

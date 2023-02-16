@@ -123,17 +123,14 @@ export default {
         fullPageNavigation: true,
         showTotalCount: true,
         presort: 'createdAt DESC',
+        // Set allrecords configuration
+        allRecords: true,
+        hideConfigureFieldsButton: false,
+        rowViewUrl: 'admin.modules.record.view',
+        rowEditUrl: 'admin.modules.record.edit',
+        rowCreateUrl: 'admin.modules.record.create',
       },
     })
-
-    // Set allrecords configuration
-    this.block.options = {
-      ...this.block.options,
-      allRecords: true,
-      rowViewUrl: 'admin.modules.record.view',
-      rowEditUrl: 'admin.modules.record.edit',
-      rowCreateUrl: 'admin.modules.record.create',
-    }
   },
 
   methods: {

@@ -4,6 +4,7 @@
     :theme="theme"
     autoresize
     class="position-absolute w-100 h-100 overflow-hidden"
+    v-on="$listeners"
   />
 </template>
 

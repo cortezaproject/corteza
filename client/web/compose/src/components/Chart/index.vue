@@ -11,6 +11,7 @@
       v-if="renderer"
       :chart="renderer"
       class="flex-fill p-1"
+      v-on="$listeners"
     />
   </div>
 </template>
