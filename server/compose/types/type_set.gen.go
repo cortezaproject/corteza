@@ -25,6 +25,11 @@ type (
 	// This type is auto-generated.
 	DeDupRuleSet []*DeDupRule
 
+	// IconSet slice of Icon
+	//
+	// This type is auto-generated.
+	IconSet []*Icon
+
 	// ModuleSet slice of Module
 	//
 	// This type is auto-generated.
@@ -192,6 +197,36 @@ func (set DeDupRuleSet) Walk(w func(*DeDupRule) error) (err error) {
 func (set DeDupRuleSet) Filter(f func(*DeDupRule) (bool, error)) (out DeDupRuleSet, err error) {
 	var ok bool
 	out = DeDupRuleSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(Icon) err
+//
+// This function is auto-generated.
+func (set IconSet) Walk(w func(*Icon) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(Icon) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set IconSet) Filter(f func(*Icon) (bool, error)) (out IconSet, err error) {
+	var ok bool
+	out = IconSet{}
 	for i := range set {
 		if ok, err = f(set[i]); err != nil {
 			return

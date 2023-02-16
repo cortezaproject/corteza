@@ -89,6 +89,8 @@ func DefaultFilters() (f *extendedFilters) {
 				return
 			}
 
+		case composeType.IconAttachment:
+
 		case composeType.RecordAttachment:
 			panic("@todo pending implementation")
 			// query = query.

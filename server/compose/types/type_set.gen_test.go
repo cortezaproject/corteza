@@ -250,6 +250,62 @@ func TestDeDupRuleSetFilter(t *testing.T) {
 	}
 }
 
+func TestIconSetWalk(t *testing.T) {
+	var (
+		value = make(IconSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*Icon) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*Icon) error { return fmt.Errorf("walk error") }))
+}
+
+func TestIconSetFilter(t *testing.T) {
+	var (
+		value = make(IconSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*Icon) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*Icon) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*Icon) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
 func TestModuleSetWalk(t *testing.T) {
 	var (
 		value = make(ModuleSet, 3)

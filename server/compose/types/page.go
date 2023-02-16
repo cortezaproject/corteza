@@ -95,19 +95,21 @@ type (
 	PageConfig struct {
 		// How page is presented in the navigation
 		NavItem struct {
-			Icon *PageConfigIcon `json:"icon,omitempty"`
+			// Expanded menu
+			Expanded bool            `json:"expanded"`
+			Icon     *PageConfigIcon `json:"icon,omitempty"`
 		} `json:"navItem"`
 
 		Buttons *PageButtonConfig `json:"buttons,omitempty"`
 
-		//// Example how page-config structure can evolve in the future
-		//Views []struct {
+		// // Example how page-config structure can evolve in the future
+		// Views []struct {
 		//	// what kind of output is this view intended for (screen, mobile...?)
 		//	Output string
 		//
 		//	// Migrated page blocks, might be replaced someday with a more complex structure
 		//	Blocks []PageBlock
-		//}
+		// }
 	}
 
 	PageConfigIcon struct {
@@ -129,14 +131,14 @@ type (
 		// Type: "svg"
 		// SRC contains raw SVG document
 
-		////////////////////////////////////////////////////////////////////////////////////////////////////////
+		// //////////////////////////////////////////////////////////////////////////////////////////////////////
 		// Other types that might be implemented in the future:
 		// "attachment"
 		// Reference (ID) to an existing attachment in local Corteza instance is expected
 		// This type and reference must be validated by the backend.
 
-		Type string `json:"type,omitempty"`
-		Src  string `json:"src"`
+		Type IconType `json:"type,omitempty"`
+		Src  string   `json:"src"`
 
 		// Any custom styling that should be applied to the icon
 		Style map[string]string `json:"style,omitempty"`
