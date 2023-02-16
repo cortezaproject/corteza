@@ -13,6 +13,7 @@ interface Options {
   hideHeader: boolean;
   hideAddButton: boolean;
   hideImportButton: boolean;
+  hideConfigureFieldsButton: boolean;
   hideSearch: boolean;
   hidePaging: boolean;
   hideSorting: boolean;
@@ -62,6 +63,7 @@ const defaults: Readonly<Options> = Object.freeze({
   hideHeader: false,
   hideAddButton: false,
   hideImportButton: false,
+  hideConfigureFieldsButton: true,
   hideSearch: false,
   hidePaging: false,
   hideSorting: false,
@@ -130,6 +132,7 @@ export class PageBlockRecordList extends PageBlock {
       'hideHeader',
       'hideAddButton',
       'hideImportButton',
+      'hideConfigureFieldsButton',
       'hideSearch',
       'hidePaging',
       'fullPageNavigation',

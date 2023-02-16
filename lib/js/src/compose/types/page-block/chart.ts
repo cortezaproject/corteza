@@ -3,18 +3,28 @@ import { Apply, CortezaID, NoID } from '../../../cast'
 
 const kind = 'Chart'
 
+interface DrillDown {
+  enabled: boolean;
+  blockID?: string;
+}
+
 interface Options {
   chartID: string;
   refreshRate: number;
   showRefresh: boolean;
   magnifyOption: string;
+  drillDown: DrillDown;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
-  chartID: NoID,
+  chartID: '',
   refreshRate: 0,
-  magnifyOption: '',
   showRefresh: false,
+  magnifyOption: '',
+  drillDown: {
+    enabled: false,
+    blockID: ''
+  }
 })
 
 export class PageBlockChart extends PageBlock {
@@ -30,10 +40,15 @@ export class PageBlockChart extends PageBlock {
   applyOptions (o?: Partial<Options>): void {
     if (!o) return
 
-    Apply(this.options, o, CortezaID, 'chartID')
+    o.chartID = o.chartID === NoID ? '' : o.chartID
+
+    Apply(this.options, o, String, 'chartID', 'magnifyOption')
     Apply(this.options, o, Number, 'refreshRate')
     Apply(this.options, o, Boolean, 'showRefresh')
-    Apply(this.options, o, String, 'magnifyOption')
+
+    if (o.drillDown) {
+      this.options.drillDown = o.drillDown
+    }
   }
 }
 

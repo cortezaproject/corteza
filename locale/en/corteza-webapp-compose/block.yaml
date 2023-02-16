@@ -80,7 +80,11 @@ chart:
     label: Configure chart
     reportLabel: Report {{l}}
     reportsLabel: Reports
-  display: 'Chart to display inside this block:'
+  display: Chart to display inside this block
+  drillDown:
+    label: Drill down
+    description: If a record list is selected, it will be used to display the drill down data. If no record list is selected the drill down data will be shown in a modal.
+    openInModal: Open in modal
   edit:
     label: Edit chart
     dimension:
@@ -224,6 +228,9 @@ record:
 recordList:
   addRecord: Add
   cancelSelection: Cancel
+  drillDown:
+    filter:
+      remove: Remove drill down filter
   tooltip:
     deleteSelected: Delete selected records
     undeleteSelected: Undelete selected records

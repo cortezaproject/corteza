@@ -51,6 +51,10 @@ export default {
       block: undefined,
       record: undefined,
       page: undefined,
+
+      // Used if you want to display a specific block in the modal
+      // Otherwise its retrieved based on the page and blockID
+      customBlock: undefined,
     }
   },
 
@@ -95,7 +99,9 @@ export default {
   },
 
   created () {
-    this.$root.$on('magnify-page-block', blockID => {
+    this.$root.$on('magnify-page-block', ({ blockID, block } = {}) => {
+      this.customBlock = block
+      blockID = blockID || (block || {}).blockID
       this.$router.push({ query: { ...this.$route.query, blockID } })
     })
   },
@@ -117,7 +123,7 @@ export default {
         return
       }
 
-      this.block = this.page.blocks.find(block => block.blockID === blockID)
+      this.block = this.customBlock || this.page.blocks.find(block => block.blockID === blockID)
       const { namespaceID, moduleID } = this.page
       const recordID = paramsRecordID || queryRecordID
 
