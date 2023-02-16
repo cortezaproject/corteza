@@ -30,6 +30,7 @@ type (
 		TriggerScript(context.Context, *request.PageTriggerScript) (interface{}, error)
 		ListTranslations(context.Context, *request.PageListTranslations) (interface{}, error)
 		UpdateTranslations(context.Context, *request.PageUpdateTranslations) (interface{}, error)
+		UpdateIcon(context.Context, *request.PageUpdateIcon) (interface{}, error)
 	}
 
 	// HTTP API interface
@@ -45,6 +46,7 @@ type (
 		TriggerScript      func(http.ResponseWriter, *http.Request)
 		ListTranslations   func(http.ResponseWriter, *http.Request)
 		UpdateTranslations func(http.ResponseWriter, *http.Request)
+		UpdateIcon         func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -226,6 +228,22 @@ func NewPage(h PageAPI) *Page {
 
 			api.Send(w, r, value)
 		},
+		UpdateIcon: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewPageUpdateIcon()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.UpdateIcon(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -243,5 +261,6 @@ func (h Page) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.H
 		r.Post("/namespace/{namespaceID}/page/{pageID}/trigger", h.TriggerScript)
 		r.Get("/namespace/{namespaceID}/page/{pageID}/translation", h.ListTranslations)
 		r.Patch("/namespace/{namespaceID}/page/{pageID}/translation", h.UpdateTranslations)
+		r.Patch("/namespace/{namespaceID}/page/{pageID}/icon", h.UpdateIcon)
 	})
 }

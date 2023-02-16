@@ -60,14 +60,27 @@ type (
 		Image     *AttachmentImageMeta `json:"image,omitempty"`
 	}
 
+	AttachmentIconMeta struct {
+		Name    string `json:"name"`
+		Library string `json:"library"`
+	}
+
+	AttachmentIconSvgMeta struct {
+		Src string `json:"src"`
+	}
+
 	AttachmentMeta struct {
 		Original AttachmentFileMeta  `json:"original"`
 		Preview  *AttachmentFileMeta `json:"preview,omitempty"`
+
+		Icon    *AttachmentIconMeta    `json:"icon,omitempty"`
+		IconSvg *AttachmentIconSvgMeta `json:"iconSvg,omitempty"`
 	}
 )
 
 const (
 	PageAttachment      string = "page"
+	IconAttachment      string = "icon"
 	RecordAttachment    string = "record"
 	NamespaceAttachment string = "namespace"
 )

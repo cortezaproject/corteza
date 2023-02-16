@@ -255,6 +255,8 @@ endpoints:
     - sqlxTypes github.com/jmoiron/sqlx/types
     - github.com/cortezaproject/corteza/server/pkg/locale
     - github.com/cortezaproject/corteza/server/pkg/label
+    - github.com/cortezaproject/corteza/server/pkg/str
+    - github.com/cortezaproject/corteza/server/compose/types
   parameters:
     path:
     - type: uint64
@@ -484,15 +486,70 @@ endpoints:
     path: "/{pageID}/translation"
     parameters:
       path:
-      - type: uint64
-        name: pageID
-        required: true
-        title: ID
+        - type: uint64
+          name: pageID
+          required: true
+          title: ID
       post:
-      - name: translations
-        type: locale.ResourceTranslationSet
-        title: Resource translation to upsert
-        required: true
+        - name: translations
+          type: locale.ResourceTranslationSet
+          title: Resource translation to upsert
+          required: true
+  - name: updateIcon
+    path: "/{pageID}/icon"
+    method: PATCH
+    title: Update icon for page
+    parameters:
+      path:
+        - type: uint64
+          name: pageID
+          required: true
+          title: Page ID
+      post:
+        - name: type
+          type: "types.IconType"
+          required: true
+          title: Icon type
+        - name: source
+          type: string
+          title: Icon source/library
+        - name: style
+          type: map[string]string
+          title: Icon style
+          parser: str.ParseStrings
+
+- title: icons
+  description: Compose icons
+  entrypoint: icon
+  path: "/icon"
+  apis:
+  - name: list
+    method: GET
+    title: List icons
+    path: "/"
+    parameters:
+      get:
+        - type: uint
+          name: limit
+          title: Limit
+        - type: bool
+          name: incTotal
+          title: Include total counter
+        - type: string
+          name: pageCursor
+          title: Page cursor
+        - type: string
+          name: sort
+          title: Sort items
+  - name: upload
+    path: "/"
+    method: POST
+    title: Upload icon
+    parameters:
+      post:
+        - name: icon
+          type: "*multipart.FileHeader"
+          title: Icon to upload
 
 - title: Modules
   description: Compose module definitions

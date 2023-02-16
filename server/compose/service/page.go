@@ -231,7 +231,6 @@ func (svc page) Tree(ctx context.Context, namespaceID uint64) (tree types.PageSe
 }
 
 // Reorder pages
-//
 func (svc page) Reorder(ctx context.Context, namespaceID, parentID uint64, pageIDs []uint64) (err error) {
 	var (
 		aProps = &pageActionProps{page: &types.Page{ID: parentID}}
@@ -440,6 +439,23 @@ func (svc page) UndeleteByID(ctx context.Context, namespaceID, pageID uint64) er
 		_, err = svc.updater(ctx, svc.store, ns, res, PageActionUpdate, svc.handleUndelete)
 		return
 	})
+}
+
+func (svc page) UpdateIcon(ctx context.Context, namespaceID, pageID uint64, icon *types.PageConfigIcon) (out *types.PageConfigIcon, err error) {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		ns, p, err := loadPageCombo(ctx, s, namespaceID, pageID)
+		if err != nil {
+			return
+		}
+
+		p.Config.NavItem.Icon = icon
+		p, err = svc.updater(ctx, svc.store, ns, p, PageActionUpdate, svc.handleUpdate(ctx, p))
+		out = p.Config.NavItem.Icon
+
+		return
+	})
+
+	return
 }
 
 func (svc page) updater(ctx context.Context, s store.Storer, ns *types.Namespace, res *types.Page, action func(...*pageActionProps) *pageAction, fn pageUpdateHandler) (*types.Page, error) {

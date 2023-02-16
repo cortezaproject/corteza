@@ -11,9 +11,11 @@ package request
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/label"
 	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"github.com/cortezaproject/corteza/server/pkg/payload"
+	"github.com/cortezaproject/corteza/server/pkg/str"
 	"github.com/go-chi/chi/v5"
 	sqlxTypes "github.com/jmoiron/sqlx/types"
 	"io"
@@ -321,6 +323,33 @@ type (
 		//
 		// Resource translation to upsert
 		Translations locale.ResourceTranslationSet
+	}
+
+	PageUpdateIcon struct {
+		// NamespaceID PATH parameter
+		//
+		// Namespace ID
+		NamespaceID uint64 `json:",string"`
+
+		// PageID PATH parameter
+		//
+		// Page ID
+		PageID uint64 `json:",string"`
+
+		// Type POST parameter
+		//
+		// Icon type
+		Type types.IconType
+
+		// Source POST parameter
+		//
+		// Icon source/library
+		Source string
+
+		// Style POST parameter
+		//
+		// Icon style
+		Style map[string]string
 	}
 )
 
@@ -1586,6 +1615,151 @@ func (r *PageUpdateTranslations) Fill(req *http.Request) (err error) {
 		//        return err
 		//    }
 		//}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "namespaceID")
+		r.NamespaceID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "pageID")
+		r.PageID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewPageUpdateIcon request
+func NewPageUpdateIcon() *PageUpdateIcon {
+	return &PageUpdateIcon{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageUpdateIcon) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"namespaceID": r.NamespaceID,
+		"pageID":      r.PageID,
+		"type":        r.Type,
+		"source":      r.Source,
+		"style":       r.Style,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageUpdateIcon) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageUpdateIcon) GetPageID() uint64 {
+	return r.PageID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageUpdateIcon) GetType() types.IconType {
+	return r.Type
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageUpdateIcon) GetSource() string {
+	return r.Source
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageUpdateIcon) GetStyle() map[string]string {
+	return r.Style
+}
+
+// Fill processes request and fills internal variables
+func (r *PageUpdateIcon) Fill(req *http.Request) (err error) {
+
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		// Caching 32MB to memory, the rest to disk
+		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
+			return err
+		} else if err == nil {
+			// Multipart params
+
+			if val, ok := req.MultipartForm.Value["type"]; ok && len(val) > 0 {
+				r.Type, err = types.IconType(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["source"]; ok && len(val) > 0 {
+				r.Source, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["style[]"]; ok {
+				r.Style, err = str.ParseStrings(val)
+				if err != nil {
+					return err
+				}
+			} else if val, ok := req.MultipartForm.Value["style"]; ok {
+				r.Style, err = str.ParseStrings(val)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if val, ok := req.Form["type"]; ok && len(val) > 0 {
+			r.Type, err = types.IconType(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["source"]; ok && len(val) > 0 {
+			r.Source, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["style[]"]; ok {
+			r.Style, err = str.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["style"]; ok {
+			r.Style, err = str.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	{

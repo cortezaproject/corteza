@@ -8,6 +8,8 @@ types:
     labelResourceType: compose:module:field
   Page:
     labelResourceType: compose:page
+  Icon:
+    noIdField: true
   Chart:
     labelResourceType: compose:chart
   Record: {}

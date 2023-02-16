@@ -2,12 +2,9 @@ package label
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"strings"
-
-	"github.com/cortezaproject/corteza/server/pkg/handle"
 	"github.com/cortezaproject/corteza/server/pkg/label/types"
+	"github.com/cortezaproject/corteza/server/pkg/str"
 	"github.com/cortezaproject/corteza/server/store"
 )
 
@@ -45,35 +42,7 @@ func Changed(old, new map[string]string) bool {
 
 // ParseStrings converts slice of strings with "key=val" format into
 func ParseStrings(ss []string) (m map[string]string, err error) {
-	if len(ss) == 0 {
-		return nil, nil
-	}
-
-	m = make(map[string]string)
-
-	for _, s := range ss {
-		if strings.HasPrefix(s, "{") && strings.HasSuffix(s, "}") {
-			// assume json
-			if err = json.Unmarshal([]byte(s), &m); err != nil {
-				return nil, err
-			}
-
-			continue
-		}
-
-		kv := strings.SplitN(s, "=", 2)
-		if len(kv) != 2 {
-			return nil, fmt.Errorf("invalid label format")
-		}
-
-		if !handle.IsValid(kv[0]) {
-			return nil, fmt.Errorf("invalid label key format")
-		}
-
-		m[kv[0]] = kv[1]
-	}
-
-	return m, nil
+	return str.ParseStrings(ss)
 }
 
 // Search queries all matching (by kind and key-value filter) labels
