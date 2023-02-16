@@ -89,6 +89,14 @@ import (
 		}
 	}
 
+	envoy?: #resourceEnvoy & {
+		// @todo temporary; easier development on less resources
+		use: bool | *false
+		omit: bool | *false
+
+		$resourceIdent: ident
+	}
+
 	store?: {
 		// how is this resource represented (prefixed/suffixed functions) in the store
 		"ident": #ident | *ident
@@ -133,5 +141,64 @@ import (
 	package: {
 		ident: #ident
 		import: string
+	}
+}
+
+#resourceEnvoy: {
+	$resourceIdent: string
+
+	// @todo remove use, temporary for now
+	use: bool
+	omit: bool
+
+	// Scoped resources prioritize matching with resources in the same scope.
+	// This is useful when we want to import multiple namespaces at the same time.
+	scoped: bool | *false
+
+	// YAML decode/encode configs
+	yaml: {
+		// supportMappedInput controls whether the resource can be presented in
+		// a mapping node where the key of the map is an identifier.
+		//
+		// An example:
+		//
+		// modules:
+		//   module1:
+		//     name: module 1 name
+		//
+		// Where a resource with no mapping would look like:
+		//
+		// modules:
+		//   - handle: module1
+		//     name: module 1 name
+		supportMappedInput: bool | *true
+		// mappedField controls what identifier the map key represents
+		// @todo this can probably be inferred so consider removing it.
+		mappedField: string
+
+		identKeyLabel: string | *strings.ToLower($resourceIdent)
+		identKeyAlias: [...string] | *[]
+		// identKeys defines all of the identifiers that can be used when
+		// referencing this resource
+		identKeys: [...string] | *([identKeyLabel]+identKeyAlias)
+	}
+
+	// store decode/encode configs
+	store: {
+		// enable or disable additional custom processing for determining 
+		// resource references
+		extendedRefDecoder: bool | *false
+		handleField: string | *"Handle"
+
+		customFilterBuilder: bool | *false
+		// extendedFilterBuilder is called after the built-in which you can use
+		// to append additional constraints to.
+		//
+		// Does nothing if customFilterBuilder is set to true
+		extendedFilterBuilder: bool | *false
+
+		// extendedDecoder is called after the built-in which you can use
+		// to append additional nodes into.
+		extendedDecoder: bool | *false
 	}
 }

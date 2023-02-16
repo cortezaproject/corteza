@@ -71,12 +71,43 @@ import (
 	// #ModelAttributeJsonTag
 
 	dal?: #ModelAttributeDal
+
+	envoy: {
+		$attrIdent: ident
+	} & #attributeEnvoy
+
 	// specifies all of the identifiers this attribute may define when using getters/setters
 	identAlias: [...string] | *[ident, expIdent]
 
 	// enable or disable GetValue and SetValue for this attribute
 	omitSetter: bool | *false
 	omitGetter: bool | *false
+}
+
+#attributeEnvoy: {
+	$attrIdent: string
+
+	// controls if this attribute can be used as an identifier
+	identifier: bool | *false
+
+	// YAML decode/encode configs
+	yaml: {
+		identKeyLabel: string | *strings.ToLower($attrIdent)
+		identKeyAlias: [...string] | *[]
+		// identKeys defines what identifiers this attribute supports when
+		// decoding yaml documents
+		identKeys: ([identKeyLabel]+identKeyAlias)
+
+		customDecoder: bool | *false
+		customEncoder: bool | *false
+	}
+
+	// store decode/encode configs
+	store: {
+		// defines a custom field identifier when constructing
+		// resource filters and assigning reference constraints
+		filterRefField: string | *""
+	}
 }
 
 #ModelAttributeDal: {
@@ -171,6 +202,10 @@ IdField: {
 	// @todo someday we'll replace this with the "ID" type
 	goType: "uint64"
 	dal: { type: "ID" }
+
+	envoy: #attributeEnvoy & {
+		identifier: true
+	}
 }
 HandleField: {
 	// Expecting ID field to always have name handle
@@ -180,6 +215,10 @@ HandleField: {
 
 	goType: "string"
 	dal: { type: "Text", length: 64 }
+
+	envoy: #attributeEnvoy & {
+		identifier: true
+	}
 }
 
 AttributeUserRef: {
