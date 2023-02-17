@@ -22,27 +22,30 @@
               <slot name="title-badge" />
             </h5>
 
-            <div
+            <b-button-group
               v-if="showOptions"
               class="ml-auto"
             >
-              <font-awesome-icon
+              <b-button
                 v-if="block.options.showRefresh"
-                :icon="['fa', 'sync']"
-                class="h6 text-secondary"
-                role="button"
+                :title="$t('general.label.refresh')"
+                variant="outline-light"
+                class="d-print-none border-0"
                 @click="$emit('refreshBlock')"
-              />
+              >
+                <font-awesome-icon :icon="['fa', 'sync']" />
+              </b-button>
 
-              <font-awesome-icon
+              <b-button
                 v-if="block.options.magnifyOption"
-                :icon="['fas', isBlockOpened ? 'times' : 'search-plus']"
-                :title="$t(isBlockOpened ? '' : 'general.label.magnify')"
-                class="h6 text-secondary ml-2"
-                role="button"
+                :title="$t('general.label.magnify')"
+                variant="outline-light"
+                class="d-print-none border-0"
                 @click="$root.$emit('magnify-page-block', isBlockOpened ? undefined : block.blockID)"
-              />
-            </div>
+              >
+                <font-awesome-icon :icon="['fas', isBlockOpened ? 'times' : 'search-plus']" />
+              </b-button>
+            </b-button-group>
           </div>
 
           <b-card-text
