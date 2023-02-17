@@ -140,7 +140,8 @@ general:
     remove: Remove
     save: Save
     search: Search
-    magnify: Magnify Block
+    refresh: Refresh block
+    magnify: Magnify block
     and: And
   module: Module
   style:
