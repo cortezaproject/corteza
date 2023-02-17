@@ -25,7 +25,7 @@
     "axios": "^0.24.0",
     "bootstrap-vue": "^2.21.2",
     "html-parse-stringify": "^3.0.1",
-    "i18next": "^17.0.9",
+    "i18next": "^19.8.5",
     "i18next-browser-languagedetector": "^3.0.2",
     "leaflet": "^1.7.1",
     "portal-vue": "^2.1.7",
