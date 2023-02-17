@@ -23,7 +23,7 @@
     "@fortawesome/vue-fontawesome": "^0.1.9",
     "@panter/vue-i18next": "^0.15.0",
     "bootstrap-vue": "^2.21.2",
-    "i18next": "^17.0.9",
+    "i18next": "^19.8.5",
     "i18next-browser-languagedetector": "^3.0.2",
     "leaflet": "^1.7.1",
     "portal-vue": "^2.1.7",
