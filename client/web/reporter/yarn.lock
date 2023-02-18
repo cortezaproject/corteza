@@ -11538,6 +11538,14 @@ vue-echarts@^6.2.3:
     resize-detector "^0.3.0"
     vue-demi "^0.13.2"
 
+vue-echarts@^6.5.1:
+  version "6.5.4"
+  resolved "https://registry.yarnpkg.com/vue-echarts/-/vue-echarts-6.5.4.tgz#13b75999c75a36ea78d4e66fee67d82c88417ec0"
+  integrity sha512-pLJTk2hfhauoWdmiZGXByAtcO6bpfnAS+jkJqKimSBSV5I5ckh2nka9duLlIVbTvQOEb2tFa0XiXjACQNcEfpA==
+  dependencies:
+    resize-detector "^0.3.0"
+    vue-demi "^0.13.2"
+
 vue-eslint-parser@^7.0.0:
   version "7.3.0"
   resolved "https://registry.yarnpkg.com/vue-eslint-parser/-/vue-eslint-parser-7.3.0.tgz#894085839d99d81296fa081d19643733f23d7559"
