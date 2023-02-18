@@ -31,7 +31,7 @@
     "tiptap": "^1.32.2",
     "tiptap-commands": "^1.17.1",
     "tiptap-extensions": "^1.35.2",
-    "vue": "2.6.14",
+    "vue": "2.7.14",
     "vue-echarts": "^6.2.3",
     "vue-grid-layout": "^2.3.12",
     "vue-router": "3.1.5",
