@@ -33,7 +33,7 @@
     "tiptap-extensions": "^1.35.2",
     "vue": "2.7.14",
     "vue-echarts": "^6.5.1",
-    "vue-grid-layout": "^2.3.12",
+    "vue-grid-layout": "^2.4.0",
     "vue-router": "3.6.5",
     "vue-select": "^3.20.2",
     "vue-split-panel": "^1.0.4",
