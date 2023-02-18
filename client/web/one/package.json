@@ -38,7 +38,7 @@
     "vue-native-websocket": "^2.0.15",
     "vue-plugin-load-script": "^1.2.0",
     "vue-router": "3.6.5",
-    "vue-select": "^3.18.3",
+    "vue-select": "^3.20.2",
     "vue-tour": "^2.0.0",
     "vuedraggable": "^2.23.2",
     "vuex": "3.6.2",
