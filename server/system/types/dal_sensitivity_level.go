@@ -3,8 +3,9 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"time"
+
+	"github.com/cortezaproject/corteza/server/pkg/sql"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 )
@@ -33,7 +34,8 @@ type (
 	}
 
 	DalSensitivityLevelFilter struct {
-		SensitivityLevelID []uint64 `json:"sensitivityLevelID,string"`
+		DalSensitivityLevelID []uint64 `json:"sensitivityLevelID,string"`
+		Handle                string   `json:"handle"`
 
 		Deleted filter.State `json:"deleted"`
 

@@ -3,8 +3,9 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"time"
+
+	"github.com/cortezaproject/corteza/server/pkg/sql"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 )
@@ -42,8 +43,9 @@ type (
 	}
 
 	ApplicationFilter struct {
-		Name  string `json:"name"`
-		Query string `json:"query"`
+		ApplicationID []uint64 `json:"applicationID"`
+		Name          string   `json:"name"`
+		Query         string   `json:"query"`
 
 		LabeledIDs []uint64          `json:"-"`
 		Labels     map[string]string `json:"labels,omitempty"`

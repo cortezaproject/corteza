@@ -38,4 +38,8 @@ record_revision: {
 			"primary": { attribute: "id" }
 		}
 	}
+
+	envoy: {
+		omit: true
+	}
 }

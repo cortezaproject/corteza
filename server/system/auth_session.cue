@@ -55,6 +55,10 @@ auth_session: {
 		byValue: ["user_id"]
 	}
 
+	envoy: {
+		omit: true
+	}
+
 	store: {
 		api: {
 			lookups: [

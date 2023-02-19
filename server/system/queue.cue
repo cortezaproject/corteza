@@ -22,6 +22,9 @@ queue: {
 				sortable: true,
 				goType: "string"
 				dal: {}
+				envoy: {
+					identifier: true
+				}
 			}
 			meta: {
 				goType: "types.QueueMeta"
@@ -45,12 +48,26 @@ queue: {
 
 	filter: {
 		struct: {
+			queue_id: {goType: "uint64", ident: "queueID", storeIdent: "id"}
 			query: {goType: "string"}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
 
 		query: ["queue", "consumer"]
+		byValue: ["queue_id"]
 		byNilState: ["deleted"]
+	}
+
+	envoy: {
+		scoped: true
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Queue"
+			identKeyAlias: []
+		}
+		store: {
+			handleField: ""
+		}
 	}
 
 	rbac: {

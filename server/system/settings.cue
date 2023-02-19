@@ -58,6 +58,10 @@ settings: {
 		byValue: [ "owned_by" ]
 	}
 
+	envoy: {
+		omit: true
+	}
+
 	store: {
 		api: {
 			lookups: [

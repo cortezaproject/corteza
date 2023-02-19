@@ -70,6 +70,10 @@ attachment: {
 		byValue: ["kind", "namespace_id"]
 	}
 
+	envoy: {
+		omit: true
+	}
+
 	store: {
 		ident: "composeAttachment"
 

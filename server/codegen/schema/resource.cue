@@ -90,10 +90,7 @@ import (
 	}
 
 	envoy?: #resourceEnvoy & {
-		// @todo temporary; easier development on less resources
-		use: bool | *false
 		omit: bool | *false
-
 		$resourceIdent: ident
 	}
 
@@ -147,8 +144,6 @@ import (
 #resourceEnvoy: {
 	$resourceIdent: string
 
-	// @todo remove use, temporary for now
-	use: bool
 	omit: bool
 
 	// Scoped resources prioritize matching with resources in the same scope.
@@ -174,13 +169,22 @@ import (
 		supportMappedInput: bool | *true
 		// mappedField controls what identifier the map key represents
 		// @todo this can probably be inferred so consider removing it.
-		mappedField: string
+		mappedField: string | *""
 
 		identKeyLabel: string | *strings.ToLower($resourceIdent)
 		identKeyAlias: [...string] | *[]
 		// identKeys defines all of the identifiers that can be used when
 		// referencing this resource
 		identKeys: [...string] | *([identKeyLabel]+identKeyAlias)
+
+		extendedResourceDecoders: [...{
+			ident: string
+			expIdent: string
+			identKeys: [...string]
+
+			supportMappedInput: bool | *true
+			mappedField: string | *""
+		}] | *[]
 	}
 
 	// store decode/encode configs

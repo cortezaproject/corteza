@@ -47,6 +47,15 @@ role: {
 		byNilState: ["deleted", "archived"]
 	}
 
+	envoy: {
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Handle"
+			identKeyAlias: ["roles"]
+		}
+		store: {}
+	}
+
 	rbac: {
 		operations: {
 			read: description:             "Read role"

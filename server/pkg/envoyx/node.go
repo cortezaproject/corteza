@@ -222,6 +222,16 @@ func (ii Identifiers) Add(vv ...any) (out Identifiers) {
 	return ii
 }
 
+func (ii Identifiers) IdentsAsStrings() (ids, rest []string) {
+	aux, rest := ii.Idents()
+
+	for _, a := range aux {
+		ids = append(ids, strconv.FormatUint(a, 10))
+	}
+
+	return
+}
+
 // Idents returns a slice of numeric and text identifiers
 func (ii Identifiers) Idents() (ints []uint64, rest []string) {
 	var aux uint64

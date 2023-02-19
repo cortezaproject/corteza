@@ -32,6 +32,10 @@ queue_message: {
 		}
 	}
 
+	envoy: {
+		omit: true
+	}
+
 	filter: {
 		struct: {
 			queue: {}

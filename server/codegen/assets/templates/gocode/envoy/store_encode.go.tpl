@@ -46,7 +46,7 @@ func (e StoreEncoder) Prepare(ctx context.Context, p envoyx.EncodeParams, rt str
 
 	switch rt {
 {{- range .resources }}
-  {{- if or .envoy.omit (not .envoy.use)}}
+  {{- if .envoy.omit}}
     {{continue}}
   {{end -}}
 
@@ -81,7 +81,7 @@ func (e StoreEncoder) Encode(ctx context.Context, p envoyx.EncodeParams, rt stri
 
 	switch rt {
 {{- range .resources }}
-{{- if or .envoy.omit (not .envoy.use) -}}
+{{- if .envoy.omit -}}
 	{{continue}}
 {{end}}
 	case types.{{.expIdent}}ResourceType:
@@ -93,7 +93,7 @@ func (e StoreEncoder) Encode(ctx context.Context, p envoyx.EncodeParams, rt stri
 }
 
 {{- range .resources }}
-  {{- if or .envoy.omit (not .envoy.use)}}
+  {{- if .envoy.omit}}
     {{continue}}
   {{end}}
 

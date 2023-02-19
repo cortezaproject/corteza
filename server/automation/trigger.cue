@@ -70,6 +70,16 @@ trigger: {
 		}
 	}
 
+	envoy: {
+		yaml: {
+			supportMappedInput: false
+			identKeyAlias: []
+		}
+		store: {
+			customFilterBuilder: true
+		}
+	}
+
 	filter: {
 		struct: {
 			deleted: { goType: "filter.State", storeIdent: "deleted_at" }

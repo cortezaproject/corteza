@@ -6,14 +6,14 @@ import (
 
 auth_client: {
 	model: {
-		omitGetterSetter: true
-
 		attributes: {
 			id:     schema.IdField
 			handle: schema.HandleField
 			meta: {
 				goType: "*types.AuthClientMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			secret: {
 				goType: "string"
@@ -47,6 +47,8 @@ auth_client: {
 			security: {
 				goType: "*types.AuthClientSecurity"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			owned_by:   schema.AttributeUserRef
 			created_at: schema.SortableTimestampNowField
@@ -81,6 +83,16 @@ auth_client: {
 
 	confirmed_client_filter: {
 		user_id: {goType: "uint64"}
+	}
+
+	envoy: {
+		scoped: true
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Handle"
+			identKeyAlias: ["authclients"]
+		}
+		store: {}
 	}
 
 	rbac: {
