@@ -52,6 +52,11 @@ resource_translation: {
 		}
 	}
 
+	envoy: {
+		// Special handling for i18n
+		omit: true
+	}
+
 	filter: {
 		struct: {
 			translation_id: {goType: "[]uint64", ident: "translationID" }

@@ -54,6 +54,10 @@ moduleMapping: {
 		}
 	}
 
+	envoy: {
+		omit: true
+	}
+
 	filter: {
 		struct: {
 			compose_module_id:    { goType: "uint64", ident: "composeModuleID", storeIdent: "rel_compose_module" }

@@ -60,6 +60,10 @@ credential: {
 		checkFn: false
 	}
 
+	envoy: {
+		omit: true
+	}
+
 	store: {
 		api: {
 			lookups: [

@@ -44,6 +44,10 @@ auth_confirmed_client: {
 		byValue: ["user_id"]
 	}
 
+	envoy: {
+		omit: true
+	}
+
 
 	store: {
 		api: {

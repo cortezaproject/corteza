@@ -203,6 +203,10 @@ func ApigwFilterFilter(d drivers.Dialect, f systemType.ApigwFilterFilter) (ee []
 		ee = append(ee, expr)
 	}
 
+	if f.ApigwFilterID > 0 {
+		ee = append(ee, goqu.C("id").Eq(f.ApigwFilterID))
+	}
+
 	if f.RouteID > 0 {
 		ee = append(ee, goqu.C("rel_route").Eq(f.RouteID))
 	}
@@ -225,6 +229,10 @@ func ApigwRouteFilter(d drivers.Dialect, f systemType.ApigwRouteFilter) (ee []go
 
 	if expr := stateFalseComparison(d, "enabled", f.Disabled); expr != nil {
 		ee = append(ee, expr)
+	}
+
+	if len(f.ApigwrouteID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.ApigwrouteID))
 	}
 
 	if val := strings.TrimSpace(f.Route); len(val) > 0 {
@@ -456,6 +464,10 @@ func AutomationWorkflowFilter(d drivers.Dialect, f automationType.WorkflowFilter
 		ee = append(ee, goqu.C("id").In(ss))
 	}
 
+	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
+		ee = append(ee, goqu.C("handle").Eq(f.Handle))
+	}
+
 	if len(f.LabeledIDs) > 0 {
 		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
 	}
@@ -601,7 +613,7 @@ func ComposeNamespaceFilter(d drivers.Dialect, f composeType.NamespaceFilter) (e
 	}
 
 	if len(f.NamespaceID) > 0 {
-		ee = append(ee, goqu.C("namespace_id").In(f.NamespaceID))
+		ee = append(ee, goqu.C("id").In(f.NamespaceID))
 	}
 
 	if val := strings.TrimSpace(f.Name); len(val) > 0 {
@@ -637,6 +649,10 @@ func ComposePageFilter(d drivers.Dialect, f composeType.PageFilter) (ee []goqu.E
 
 	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
+	}
+
+	if f.PageID > 0 {
+		ee = append(ee, goqu.C("id").Eq(f.PageID))
 	}
 
 	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
@@ -737,6 +753,10 @@ func DalSensitivityLevelFilter(d drivers.Dialect, f systemType.DalSensitivityLev
 
 	if len(f.SensitivityLevelID) > 0 {
 		ee = append(ee, goqu.C("id").In(f.SensitivityLevelID))
+	}
+
+	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
+		ee = append(ee, goqu.C("handle").Eq(f.Handle))
 	}
 
 	return ee, f, err
@@ -980,6 +1000,10 @@ func QueueFilter(d drivers.Dialect, f systemType.QueueFilter) (ee []goqu.Express
 
 	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
+	}
+
+	if f.QueueID > 0 {
+		ee = append(ee, goqu.C("id").Eq(f.QueueID))
 	}
 
 	if f.Query != "" {

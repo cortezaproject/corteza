@@ -57,6 +57,10 @@ node: {
 		}
 	}
 
+	envoy: {
+		omit: true
+	}
+
 	filter: {
 		struct: {
 			name: { goType: "string" }

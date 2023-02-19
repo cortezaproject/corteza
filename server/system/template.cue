@@ -77,6 +77,15 @@ template: {
 		byNilState: ["deleted"]
 	}
 
+	envoy: {
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Handle"
+			identKeyAlias: ["templates"]
+		}
+		store: {}
+	}
+
 	rbac: {
 		operations: {
 			read: description:   "Read template"

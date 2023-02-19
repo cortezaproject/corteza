@@ -13,7 +13,11 @@ moduleField: {
 	model: {
 		ident: "compose_module_field"
 		attributes: {
-			id: schema.IdField
+			id: schema.IdField & {
+				envoy: {
+					identifier: true
+				}
+			}
 			module_id: {
 			  ident: "moduleID",
 				goType: "uint64",
@@ -39,6 +43,10 @@ moduleField: {
 			name: {
 				sortable: true
 				dal: {}
+			} & {
+				envoy: {
+					identifier: true
+				}
 			}
 			label: {
 				sortable: true
@@ -102,6 +110,19 @@ moduleField: {
 		paging: false
 		sorting: false
 		checkFn: false
+	}
+
+	envoy: {
+		scoped: true
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Name"
+			identKeyAlias: ["module_fields", "modulefields", "fields"]
+		}
+		store: {
+			handleField: ""
+			customFilterBuilder: true
+		}
 	}
 
 	rbac: {

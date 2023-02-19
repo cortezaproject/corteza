@@ -48,6 +48,15 @@ report: {
 		}
 	}
 
+	envoy: {
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Handle"
+			identKeyAlias: ["reports"]
+		}
+		store: {}
+	}
+
 	filter: {
 		struct: {
 			report_id: {goType: "[]uint64", storeIdent: "id", ident: "reportID" }

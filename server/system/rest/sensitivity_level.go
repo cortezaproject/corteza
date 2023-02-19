@@ -50,7 +50,7 @@ func (ctrl SensitivityLevel) List(ctx context.Context, r *request.DalSensitivity
 		set types.DalSensitivityLevelSet
 
 		f = types.DalSensitivityLevelFilter{
-			SensitivityLevelID: payload.ParseUint64s(r.SensitivityLevelID),
+			DalSensitivityLevelID: payload.ParseUint64s(r.SensitivityLevelID),
 
 			Deleted: filter.State(r.Deleted),
 		}

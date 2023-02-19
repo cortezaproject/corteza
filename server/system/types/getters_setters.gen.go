@@ -234,6 +234,90 @@ func (r *ApigwFilter) SetValue(name string, pos uint, value any) (err error) {
 	return nil
 }
 
+func (r AuthClient) GetID() uint64 { return r.ID }
+
+func (r *AuthClient) GetValue(name string, pos uint) (any, error) {
+	switch name {
+	case "createdAt", "CreatedAt":
+		return r.CreatedAt, nil
+	case "createdBy", "CreatedBy":
+		return r.CreatedBy, nil
+	case "deletedAt", "DeletedAt":
+		return r.DeletedAt, nil
+	case "deletedBy", "DeletedBy":
+		return r.DeletedBy, nil
+	case "enabled", "Enabled":
+		return r.Enabled, nil
+	case "expiresAt", "ExpiresAt":
+		return r.ExpiresAt, nil
+	case "handle", "Handle":
+		return r.Handle, nil
+	case "id", "ID":
+		return r.ID, nil
+	case "ownedBy", "OwnedBy":
+		return r.OwnedBy, nil
+	case "redirectURI", "RedirectURI":
+		return r.RedirectURI, nil
+	case "scope", "Scope":
+		return r.Scope, nil
+	case "secret", "Secret":
+		return r.Secret, nil
+	case "trusted", "Trusted":
+		return r.Trusted, nil
+	case "updatedAt", "UpdatedAt":
+		return r.UpdatedAt, nil
+	case "updatedBy", "UpdatedBy":
+		return r.UpdatedBy, nil
+	case "validFrom", "ValidFrom":
+		return r.ValidFrom, nil
+	case "validGrant", "ValidGrant":
+		return r.ValidGrant, nil
+
+	}
+	return nil, nil
+}
+
+func (r *AuthClient) SetValue(name string, pos uint, value any) (err error) {
+	switch name {
+	case "createdAt", "CreatedAt":
+		return cast2.Time(value, &r.CreatedAt)
+	case "createdBy", "CreatedBy":
+		return cast2.Uint64(value, &r.CreatedBy)
+	case "deletedAt", "DeletedAt":
+		return cast2.TimePtr(value, &r.DeletedAt)
+	case "deletedBy", "DeletedBy":
+		return cast2.Uint64(value, &r.DeletedBy)
+	case "enabled", "Enabled":
+		return cast2.Bool(value, &r.Enabled)
+	case "expiresAt", "ExpiresAt":
+		return cast2.TimePtr(value, &r.ExpiresAt)
+	case "handle", "Handle":
+		return cast2.String(value, &r.Handle)
+	case "id", "ID":
+		return cast2.Uint64(value, &r.ID)
+	case "ownedBy", "OwnedBy":
+		return cast2.Uint64(value, &r.OwnedBy)
+	case "redirectURI", "RedirectURI":
+		return cast2.String(value, &r.RedirectURI)
+	case "scope", "Scope":
+		return cast2.String(value, &r.Scope)
+	case "secret", "Secret":
+		return cast2.String(value, &r.Secret)
+	case "trusted", "Trusted":
+		return cast2.Bool(value, &r.Trusted)
+	case "updatedAt", "UpdatedAt":
+		return cast2.TimePtr(value, &r.UpdatedAt)
+	case "updatedBy", "UpdatedBy":
+		return cast2.Uint64(value, &r.UpdatedBy)
+	case "validFrom", "ValidFrom":
+		return cast2.TimePtr(value, &r.ValidFrom)
+	case "validGrant", "ValidGrant":
+		return cast2.String(value, &r.ValidGrant)
+
+	}
+	return nil
+}
+
 func (r DataPrivacyRequestComment) GetID() uint64 { return r.ID }
 
 func (r *DataPrivacyRequestComment) GetValue(name string, pos uint) (any, error) {

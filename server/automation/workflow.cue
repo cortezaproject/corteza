@@ -70,16 +70,34 @@ workflow: {
 		}
 	}
 
+	envoy: {
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Handle"
+			identKeyAlias: ["workflows"]
+			extendedResourceDecoders: [{
+				ident: "triggers"
+				expIdent: "Triggers"
+				supportMappedInput: false
+				identKeys: ["triggers"]
+			}]
+		}
+		store: {
+			customFilterBuilder: true
+		}
+	}
+
 	filter: {
 		struct: {
 			workflow_id: { goType: "[]string", ident: "workflowID", storeIdent: "id" }
+			handle: { goType: "string" }
 			sub_workflow: { goType: "filter.State" }
 			deleted: { goType: "filter.State", storeIdent: "deleted_at" }
 			disabled: { goType: "filter.State", storeIdent: "enabled" }
 		}
 
 		query: ["handle"]
-		byValue: ["workflow_id"]
+		byValue: ["workflow_id", "handle"]
 		byNilState: ["deleted"]
 		byFalseState: ["disabled"]
 	}

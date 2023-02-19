@@ -23,7 +23,6 @@ user: {
 		  	unique: true,
 		  	ignoreCase: true
 				dal: {}
-
 			}
 		  name: {
 		  	sortable: true
@@ -84,6 +83,15 @@ user: {
 		query: ["email", "username", "handle", "name"]
 		byValue: ["user_id", "email", "username", "handle"]
 		byNilState: ["deleted", "suspended"]
+	}
+
+	envoy: {
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Handle"
+			identKeyAlias: ["users", "usr"]
+		}
+		store: {}
 	}
 
 	rbac: {

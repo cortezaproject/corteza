@@ -13,6 +13,9 @@ namespace: {
 				sortable: true,
 				goType: "string"
 				dal: {}
+				envoy: {
+					identifier: true
+				}
 			}
 			enabled: {
 				goType: "bool"
@@ -45,7 +48,7 @@ namespace: {
 
 	filter: {
 		struct: {
-			namespace_id: { goType: "[]uint64", ident: "namespaceID" }
+			namespace_id: { goType: "[]uint64", ident: "namespaceID", storeIdent: "id" }
 			slug: { goType: "string" }
 			name: { goType: "string" }
 			deleted: { goType: "filter.State", storeIdent: "deleted_at" }
@@ -54,6 +57,19 @@ namespace: {
 		query: ["name", "slug"]
 		byValue: ["namespace_id", "name", "slug"]
 		byNilState: ["deleted"]
+	}
+
+	envoy: {
+		scoped: true
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Slug"
+			identKeyAlias: ["namespaces", "ns"]
+		}
+		store: {
+			handleField: "Slug"
+			extendedFilterBuilder: true
+		}
 	}
 
 	rbac: {

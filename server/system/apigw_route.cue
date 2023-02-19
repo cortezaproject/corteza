@@ -40,6 +40,11 @@ apigw_route: {
 			  	// @todo what does this do?
 			  	refModelResType: "corteza::system:apigw-group"
 				}
+				envoy: {
+					store: {
+						omitRefFilter: true
+					}
+				}
 			}
 
 			created_at: schema.SortableTimestampNowField
@@ -55,8 +60,20 @@ apigw_route: {
 		}
 	}
 
+	envoy: {
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Endpoint"
+			identKeyAlias: ["endpoints"]
+		}
+		store: {
+			handleField: "Endpoint"
+		}
+	}
+
 	filter: {
 		struct: {
+			apigw_route_id: { goType: "[]uint64", ident: "apigwrouteID", storeIdent: "id" }
 			route: {goType: "string", storeIdent: "id"}
 			endpoint: {goType: "string"}
 			method: {goType: "string"}
@@ -65,7 +82,7 @@ apigw_route: {
 			disabled: {goType: "filter.State", storeIdent: "enabled"}
 		}
 
-		byValue: ["route", "method"]
+		byValue: ["apigw_route_id", "route", "method"]
 		byNilState: ["deleted"]
 		byFalseState: ["disabled"]
 	}

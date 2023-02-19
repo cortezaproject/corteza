@@ -68,7 +68,7 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 
 		switch kv {
 {{- range .resources -}}
-	{{- if or .envoy.omit (not .envoy.use) -}}
+	{{- if .envoy.omit -}}
 		{{continue}}
 	{{- end -}}
 
@@ -127,7 +127,7 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 
 {{ $rootRes := .resources }}
 {{- range .resources }}
-	{{- if or .envoy.omit (not .envoy.use)}}
+	{{- if .envoy.omit}}
 		{{continue}}
 	{{ end -}}
 
@@ -163,6 +163,43 @@ func (d *auxYamlDoc) unmarshal{{ .expIdent }}Map(dctx documentContext, n *yaml.N
 	var aux envoyx.NodeSet
 	err = y7s.EachMap(n, func(k, n *yaml.Node) error {
 		aux, err = d.unmarshal{{ .expIdent }}Node(dctx, n, k)
+		if err != nil {
+			return err
+		}
+		out = append(out, aux...)
+
+		return nil
+	})
+
+	return
+}
+{{ end }}
+
+{{ range .envoy.yaml.extendedResourceDecoders -}}
+// unmarshal{{.expIdent}}ExtendedSeq unmarshals {{.expIdent}} when provided as a sequence node
+func (d *auxYamlDoc) unmarshalExtended{{.expIdent}}Seq(dctx documentContext, n *yaml.Node) (out envoyx.NodeSet, err error) {
+	var aux envoyx.NodeSet
+	err = y7s.EachSeq(n, func(n *yaml.Node) error {
+		aux, err = d.unmarshal{{ .expIdent }}ExtendedNode(dctx, n)
+		if err != nil {
+			return err
+		}
+		out = append(out, aux...)
+
+		return nil
+	})
+
+	return
+}
+
+// unmarshal{{.expIdent}}ExtendedMap unmarshals {{.expIdent}} when provided as a mapping node
+//
+// When map encoded, the map key is used as a preset identifier.
+// The identifier is passed to the node function as a meta node
+func (d *auxYamlDoc) unmarshalExtended{{ .expIdent }}Map(dctx documentContext, n *yaml.Node) (out envoyx.NodeSet, err error) {
+	var aux envoyx.NodeSet
+	err = y7s.EachMap(n, func(k, n *yaml.Node) error {
+		aux, err = d.unmarshal{{ .expIdent }}ExtendedNode(dctx, n, k)
 		if err != nil {
 			return err
 		}
@@ -425,6 +462,26 @@ func (d *auxYamlDoc) unmarshal{{ .expIdent }}Node(dctx documentContext, n *yaml.
 			{{break}}
 		{{- end }}
 	{{- end -}}
+
+	{{- range .envoy.yaml.extendedResourceDecoders }}
+		{{ $identKeys := .identKeys }}
+		case {{ range $i, $l := $identKeys -}}
+		"{{ $l }}"{{if not (eq $i (sub (len $identKeys) 1))}},{{end}}
+		{{- end}}:
+		default:
+			if y7s.IsSeq(n) {
+				nestedNodes, err = d.unmarshalExtended{{.expIdent}}Seq(dctx, n)
+				if err != nil {
+					return err
+				}
+			} {{- if .supportMappedInput }} else {
+				nestedNodes, err = d.unmarshalExtended{{.expIdent}}Map(dctx, n)
+				if err != nil {
+					return err
+				}
+			}{{ end }}
+			break
+		{{ end -}}
 		}
 
 		// Iterate nested nodes and update their reference to the current resource

@@ -47,6 +47,10 @@ attachment: {
 		}
 	}
 
+	envoy: {
+		omit: true
+	}
+
 	filter: {
 		struct: {
 			kind: {}
