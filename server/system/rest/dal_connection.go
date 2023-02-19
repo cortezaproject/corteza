@@ -80,9 +80,9 @@ func (ctrl DalConnection) List(ctx context.Context, r *request.DalConnectionList
 		dalConnections types.DalConnectionSet
 
 		f = types.DalConnectionFilter{
-			ConnectionID: payload.ParseUint64s(r.ConnectionID),
-			Handle:       r.Handle,
-			Type:         r.Type,
+			DalConnectionID: payload.ParseUint64s(r.ConnectionID),
+			Handle:          r.Handle,
+			Type:            r.Type,
 
 			Deleted: filter.State(r.Deleted),
 		}
@@ -246,8 +246,8 @@ func (ctrl DalConnection) filterConnections(baseConnections types.DalConnectionS
 	for _, conn := range baseConnections {
 		include := true
 
-		if len(f.ConnectionID) > 0 {
-			include = include && ctrl.inIDSet(f.ConnectionID, conn.ID)
+		if len(f.DalConnectionID) > 0 {
+			include = include && ctrl.inIDSet(f.DalConnectionID, conn.ID)
 		}
 
 		if f.Handle != "" {

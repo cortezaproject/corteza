@@ -57,6 +57,7 @@ func (d StoreDecoder) decode(ctx context.Context, s store.Storer, dl dal.FullSer
 
 	// Get all requested scopes
 	scopedNodes := make(envoyx.NodeSet, len(p.Filter))
+	{{ if eq .componentIdent "compose" }}
 	for i, a := range wrappedFilters {
 		if a.f.Scope.ResourceType == "" {
 			continue
@@ -64,7 +65,7 @@ func (d StoreDecoder) decode(ctx context.Context, s store.Storer, dl dal.FullSer
 
 		// For now the scope can only point to namespace so this will do
 		var nn envoyx.NodeSet
-		nn, err = d.decodeNamespace(ctx, s, dl, d.identToNamespaceFilter(a.f.Scope.Identifiers))
+		nn, err = d.decodeNamespace(ctx, s, dl, d.makeNamespaceFilter(nil, nil, envoyx.ResourceFilter{Identifiers: a.f.Scope.Identifiers}))
 		if err != nil {
 			return
 		}
@@ -79,6 +80,10 @@ func (d StoreDecoder) decode(ctx context.Context, s store.Storer, dl dal.FullSer
 
 		scopedNodes[i] = nn[0]
 	}
+	{{ else }}
+	// @note skipping scope logic since it's currently only supported within
+	//       Compose resources.
+	{{ end }}
 
 	// Get all requested references
 	//
@@ -121,7 +126,7 @@ func (d StoreDecoder) decode(ctx context.Context, s store.Storer, dl dal.FullSer
 	for i, wf := range wrappedFilters {
 		switch wf.rt {
 {{- range .resources -}}
-	{{- if or .envoy.omit (not .envoy.use)}}{{continue}}{{ end -}}
+	{{- if .envoy.omit}}{{continue}}{{ end -}}
 
 	case types.{{.expIdent}}ResourceType:
 		aux, err = d.decode{{.expIdent}}(ctx, s, dl, d.make{{.expIdent}}Filter(scopedNodes[i], refNodes[i], wf.f))
@@ -142,7 +147,7 @@ func (d StoreDecoder) decode(ctx context.Context, s store.Storer, dl dal.FullSer
 }
 
 {{- range .resources }}
-  {{- if or .envoy.omit (not .envoy.use)}}
+  {{- if .envoy.omit}}
     {{continue}}
   {{ end -}}
 
@@ -248,6 +253,7 @@ func (d StoreDecoder) make{{.expIdent}}Filter(scope *envoyx.Node, refs map[strin
 	_ = ar
 	_ = ok
 		{{ range .model.attributes }}
+			{{- if .envoy.store.omitRefFilter }}{{continue}}{{ end }}
 			{{ if eq .dal.type "Ref" }}
 	ar, ok = refs["{{ .expIdent }}"]
 	if ok {

@@ -3,10 +3,11 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza/server/pkg/sql"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/locale"
@@ -141,13 +142,14 @@ type (
 	}
 
 	PageFilter struct {
-		NamespaceID uint64 `json:"namespaceID,string"`
-		ParentID    uint64 `json:"parentID,string,omitempty"`
-		ModuleID    uint64 `json:"moduleID,string,omitempty"`
-		Root        bool   `json:"root,omitempty"`
-		Handle      string `json:"handle"`
-		Title       string `json:"title"`
-		Query       string `json:"query"`
+		PageID      []uint64 `json:"pageID,string"`
+		NamespaceID uint64   `json:"namespaceID,string"`
+		ParentID    uint64   `json:"parentID,string,omitempty"`
+		ModuleID    uint64   `json:"moduleID,string,omitempty"`
+		Root        bool     `json:"root,omitempty"`
+		Handle      string   `json:"handle"`
+		Title       string   `json:"title"`
+		Query       string   `json:"query"`
 
 		LabeledIDs []uint64          `json:"-"`
 		Labels     map[string]string `json:"labels,omitempty"`

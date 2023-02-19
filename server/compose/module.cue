@@ -19,6 +19,12 @@ module: {
 				goType: "uint64",
 				storeIdent: "rel_namespace"
 				dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
+
+				envoy: {
+					yaml: {
+						identKeyAlias: ["namespace", "namespace_id", "ns", "ns_id"]
+					}
+				}
 			}
 			handle: schema.HandleField
 			name: {
@@ -36,6 +42,11 @@ module: {
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
+				envoy: {
+					yaml: {
+						customEncoder: true
+					}
+				}
 			}
 			fields: {
 				goType: "types.ModuleFieldSet",
@@ -70,6 +81,19 @@ module: {
 		query: ["handle", "name"]
 		byValue: ["handle", "module_id", "namespace_id"]
 		byNilState: ["deleted"]
+	}
+
+	envoy: {
+		scoped: true
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Handle"
+			identKeyAlias: ["modules", "mod"]
+		}
+		store: {
+			extendedFilterBuilder: true
+			extendedDecoder: true
+		}
 	}
 
 	rbac: {

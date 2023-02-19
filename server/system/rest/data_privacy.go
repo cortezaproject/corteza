@@ -38,9 +38,9 @@ func (ctrl DataPrivacy) ConnectionList(ctx context.Context, r *request.DataPriva
 		set types.PrivacyDalConnectionSet
 
 		f = types.DalConnectionFilter{
-			ConnectionID: payload.ParseUint64s(r.ConnectionID),
-			Handle:       r.Handle,
-			Type:         r.Type,
+			DalConnectionID: payload.ParseUint64s(r.ConnectionID),
+			Handle:          r.Handle,
+			Type:            r.Type,
 
 			Deleted: r.Deleted,
 		}

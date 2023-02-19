@@ -3,8 +3,9 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"time"
+
+	"github.com/cortezaproject/corteza/server/pkg/sql"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 )
@@ -30,7 +31,8 @@ type (
 	}
 
 	ApigwFilterFilter struct {
-		RouteID uint64 `json:"routeID,string"`
+		ApigwFilterID []uint64 `json:"apigwFilterID"`
+		RouteID       uint64   `json:"routeID,string"`
 
 		Deleted  filter.State `json:"deleted"`
 		Disabled filter.State `json:"disabled"`

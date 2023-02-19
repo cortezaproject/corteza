@@ -66,6 +66,11 @@ record: {
 		}
 	}
 
+	// @todo tmp
+	envoy: {
+		omit: true
+	}
+
 	defaultGetter: true
 	defaultSetter: true
 

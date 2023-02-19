@@ -3,8 +3,9 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"time"
+
+	"github.com/cortezaproject/corteza/server/pkg/sql"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/spf13/cast"
@@ -26,6 +27,7 @@ type (
 	}
 
 	QueueFilter struct {
+		QueueID []uint64     `json:"queueID"`
 		Query   string       `json:"query"`
 		Deleted filter.State `json:"deleted"`
 

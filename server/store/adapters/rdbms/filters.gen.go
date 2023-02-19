@@ -202,6 +202,10 @@ func ApigwFilterFilter(f systemType.ApigwFilterFilter) (ee []goqu.Expression, _ 
 		ee = append(ee, expr)
 	}
 
+	if f.ApigwFilterID > 0 {
+		ee = append(ee, goqu.C("id").Eq(f.ApigwFilterID))
+	}
+
 	if f.RouteID > 0 {
 		ee = append(ee, goqu.C("rel_route").Eq(f.RouteID))
 	}
@@ -224,6 +228,10 @@ func ApigwRouteFilter(f systemType.ApigwRouteFilter) (ee []goqu.Expression, _ sy
 
 	if expr := stateFalseComparison("enabled", f.Disabled); expr != nil {
 		ee = append(ee, expr)
+	}
+
+	if len(f.ApigwrouteID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.ApigwrouteID))
 	}
 
 	if val := strings.TrimSpace(f.Route); len(val) > 0 {
@@ -455,6 +463,10 @@ func AutomationWorkflowFilter(f automationType.WorkflowFilter) (ee []goqu.Expres
 		ee = append(ee, goqu.C("id").In(ss))
 	}
 
+	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
+		ee = append(ee, goqu.C("handle").Eq(f.Handle))
+	}
+
 	if len(f.LabeledIDs) > 0 {
 		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
 	}
@@ -600,7 +612,7 @@ func ComposeNamespaceFilter(f composeType.NamespaceFilter) (ee []goqu.Expression
 	}
 
 	if len(f.NamespaceID) > 0 {
-		ee = append(ee, goqu.C("namespace_id").In(f.NamespaceID))
+		ee = append(ee, goqu.C("id").In(f.NamespaceID))
 	}
 
 	if val := strings.TrimSpace(f.Name); len(val) > 0 {
@@ -636,6 +648,10 @@ func ComposePageFilter(f composeType.PageFilter) (ee []goqu.Expression, _ compos
 
 	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
+	}
+
+	if f.PageID > 0 {
+		ee = append(ee, goqu.C("id").Eq(f.PageID))
 	}
 
 	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
@@ -736,6 +752,10 @@ func DalSensitivityLevelFilter(f systemType.DalSensitivityLevelFilter) (ee []goq
 
 	if len(f.SensitivityLevelID) > 0 {
 		ee = append(ee, goqu.C("id").In(f.SensitivityLevelID))
+	}
+
+	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
+		ee = append(ee, goqu.C("handle").Eq(f.Handle))
 	}
 
 	return ee, f, err
@@ -979,6 +999,10 @@ func QueueFilter(f systemType.QueueFilter) (ee []goqu.Expression, _ systemType.Q
 
 	if expr := stateNilComparison("deleted_at", f.Deleted); expr != nil {
 		ee = append(ee, expr)
+	}
+
+	if f.QueueID > 0 {
+		ee = append(ee, goqu.C("id").Eq(f.QueueID))
 	}
 
 	if f.Query != "" {

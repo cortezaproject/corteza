@@ -4,8 +4,9 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"time"
+
+	"github.com/cortezaproject/corteza/server/pkg/sql"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 )
@@ -84,7 +85,7 @@ type (
 	}
 
 	AuthClientFilter struct {
-		ClientID []uint64 `json:"authClientID"`
+		AuthClientID []uint64 `json:"authClientID"`
 
 		Handle string `json:"handle"`
 

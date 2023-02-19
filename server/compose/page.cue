@@ -24,6 +24,11 @@ page: {
 				goType: "uint64",
 				dal: { type: "Ref", refModelResType: "corteza::compose:page" }
 				sortable: true
+				envoy: {
+					store: {
+						filterRefField: "ParentID"
+					}
+				}
 			}
 			module_id: {
 				ident: "moduleID",
@@ -87,6 +92,7 @@ page: {
 
 	filter: {
 		struct: {
+			page_id: { goType: "uint64", ident: "pageID", storeIdent: "id" }
 			namespace_id: { goType: "uint64", ident: "namespaceID", storeIdent: "rel_namespace" }
 			parent_id: { goType: "uint64", ident: "parentID" }
 			module_id: { goType: "uint64", ident: "moduleID", storeIdent: "rel_module" }
@@ -97,8 +103,20 @@ page: {
 		}
 
 		query: ["handle", "title", "description"]
-		byValue: ["handle", "namespace_id", "module_id"]
+		byValue: ["page_id", "handle", "namespace_id", "module_id"]
 		byNilState: ["deleted"]
+	}
+
+	envoy: {
+		scoped: true
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Handle"
+			identKeyAlias: ["pages", "pg"]
+		}
+		store: {
+			extendedFilterBuilder: true
+		}
 	}
 
 	rbac: {

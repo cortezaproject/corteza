@@ -44,6 +44,10 @@ reminder: {
 		}
 	}
 
+	envoy: {
+		omit: true
+	}
+
 	filter: {
 		struct: {
 			reminder_id: {goType: "[]uint64", ident: "reminderID", storeIdent: "id"}

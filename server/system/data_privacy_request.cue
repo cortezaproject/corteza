@@ -77,6 +77,10 @@ data_privacy_request: {
 		}
 	}
 
+	envoy: {
+		omit: true
+	}
+
 	store: {
 		api: {
 			lookups: [

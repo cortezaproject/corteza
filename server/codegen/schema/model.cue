@@ -107,6 +107,8 @@ import (
 		// defines a custom field identifier when constructing
 		// resource filters and assigning reference constraints
 		filterRefField: string | *""
+
+		omitRefFilter: bool | *false
 	}
 }
 
@@ -224,6 +226,11 @@ HandleField: {
 AttributeUserRef: {
 	goType: "uint64"
 	dal: { type: "Ref", refModelResType: "corteza::system:user", default: 0 }
+	envoy: {
+		store: {
+			omitRefFilter: true
+		}
+	}
 }
 
 SortableTimestampField: {

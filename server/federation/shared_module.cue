@@ -56,6 +56,10 @@ sharedModule: {
 		}
 	}
 
+	envoy: {
+		omit: true
+	}
+
 	filter: {
 		struct: {
 			node_id:  { goType: "uint64", ident: "nodeID", storeIdent: "rel_node" }

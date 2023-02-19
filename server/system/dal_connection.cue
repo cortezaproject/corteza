@@ -42,19 +42,28 @@ dal_connection: {
 
 	filter: {
 		struct: {
-			connection_id: {goType: "[]uint64", ident: "connectionID", storeIdent: "id"}
+			dal_connection_id: {goType: "[]uint64", ident: "connectionID", storeIdent: "id"}
 			handle: {goType: "string"}
 			type: {goType: "string"}
 
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
 
-		byValue: ["connection_id", "handle", "type"]
+		byValue: ["dal_connection_id", "handle", "type"]
 		byNilState: ["deleted"]
 	}
 
 	features: {
 		labels: false
+	}
+
+	envoy: {
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Handle"
+			identKeyAlias: ["connection", "connections"]
+		}
+		store: {}
 	}
 
 	rbac: {

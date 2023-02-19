@@ -51,7 +51,7 @@ func (e YamlEncoder) Encode(ctx context.Context, p envoyx.EncodeParams, rt strin
 
 	switch rt {
 {{- range .resources }}
-	{{- if or .envoy.omit (not .envoy.use)}}
+	{{- if .envoy.omit}}
 		{{continue}}
 	{{ end -}}
 
@@ -74,7 +74,7 @@ func (e YamlEncoder) Encode(ctx context.Context, p envoyx.EncodeParams, rt strin
 {{ $rootRes := .resources }}
 
 {{- range .resources }}
-	{{- if or .envoy.omit (not .envoy.use)}}
+	{{- if .envoy.omit}}
 		{{continue}}
 	{{ end -}}
 
