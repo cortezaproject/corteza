@@ -3,9 +3,9 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"time"
+
+	"github.com/cortezaproject/corteza/server/pkg/sql"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 )
@@ -117,9 +117,9 @@ const (
 	SystemUser UserKind = "sys"
 )
 
-func (u User) String() string {
-	return fmt.Sprintf("%d", u.ID)
-}
+// func (u User) String() string {
+// 	return fmt.Sprintf("%d", u.ID)
+// }
 
 func (u *User) Valid() bool {
 	return u.ID > 0 && u.SuspendedAt == nil && u.DeletedAt == nil

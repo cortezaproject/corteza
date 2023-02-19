@@ -19,6 +19,11 @@ chart: {
 				goType: "uint64",
 				storeIdent: "rel_namespace"
 				dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
+				envoy: {
+					yaml: {
+						identKeyAlias: ["namespace", "namespace_id", "ns"]
+					}
+				}
 			}
 			name: {
 				sortable: true
@@ -29,6 +34,11 @@ chart: {
 				dal: {}
 				omitSetter: true
 				omitGetter: true
+				envoy: {
+					yaml: {
+						customDecoder: true
+					}
+				}
 		  }
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
@@ -61,6 +71,18 @@ chart: {
 		query: ["handle", "name"]
 		byValue: ["handle", "chart_id", "namespace_id"]
 		byNilState: ["deleted"]
+	}
+
+	envoy: {
+		scoped: true
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Handle"
+			identKeyAlias: ["charts", "chrt"]
+		}
+		store: {
+			extendedRefDecoder: true
+		}
 	}
 
 	rbac: {

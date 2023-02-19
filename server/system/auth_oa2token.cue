@@ -68,6 +68,10 @@ auth_oa2token: {
 		byValue: ["user_id"]
 	}
 
+	envoy: {
+		omit: true
+	}
+
 	store: {
 		api: {
 			lookups: [

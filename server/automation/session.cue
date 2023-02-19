@@ -80,6 +80,10 @@ session: {
 		}
 	}
 
+	envoy: {
+		omit: true
+	}
+
 	filter: {
 		struct: {
 			session_id: { goType: "[]uint64", storeIdent: "id", ident: "sessionID" }

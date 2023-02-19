@@ -32,6 +32,11 @@ application: {
 				schema.AttributeUserRef,
 				storeIdent: "rel_owner",
 				ident: "ownerID"
+				envoy: {
+					store: {
+						omitRefFilter: true
+					}
+				}
 			}
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
@@ -60,6 +65,18 @@ application: {
 
 	features: {
 		flags: true
+	}
+
+	envoy: {
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Name"
+			identKeyAlias: ["apps"]
+		}
+		store: {
+			extendedRefDecoder: true
+			handleField: "Name"
+		}
 	}
 
 	rbac: {
