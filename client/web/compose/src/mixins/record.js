@@ -36,13 +36,10 @@ export default {
 
     /**
      * Tells if given record is deleted; If record not provided, returns undefined
-     * @returns {Boolean|undefined}
+     * @returns {Boolean}
      */
     isDeleted () {
-      if (!this.record) {
-        return
-      }
-      return !!this.record.deletedAt
+      return this.record && this.record.deletedAt
     },
   },
 
