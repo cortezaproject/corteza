@@ -15,6 +15,9 @@ export default class GaugeChart extends BaseChart {
     // Assure required fields
     for (const v of (this.config.reports || []) as Array<Report>) {
       for (const d of (v.dimensions || []) as Array<Dimension>) {
+        // Since gauge produces one value we want one dataset, deletedBy is the same for all existing records
+        d.field = 'deletedBy'
+
         if (!d.meta) {
           d.meta = {}
         }
@@ -40,11 +43,11 @@ export default class GaugeChart extends BaseChart {
   makeDataset (m: Metric, d: Dimension, data: Array<number|TemporalDataPoint>, alias: string) {
     const steps = (d.meta?.steps || [])
 
-     data = this.datasetPostProc(data, m)
+    data = this.datasetPostProc(data, m)
 
-     const value = data.reduce((acc: any, cur: any) => {
+    const value = data.reduce((acc: any, cur: any) => {
       return !isNaN(cur) ? acc + parseFloat(cur) : acc
-    }, 0)
+    }, 0).toFixed(3)
 
     const max = Math.max(...steps.map(({ value }: any) => parseFloat(value)))
 
