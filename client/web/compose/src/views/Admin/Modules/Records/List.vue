@@ -122,6 +122,7 @@ export default {
         perPage: 14,
         fullPageNavigation: true,
         showTotalCount: true,
+        showDeletedRecordsOption: true,
         presort: 'createdAt DESC',
         // Set allrecords configuration
         allRecords: true,

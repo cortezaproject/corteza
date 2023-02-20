@@ -196,11 +196,6 @@ export default {
       default: () => false,
     },
 
-    isDeleted: {
-      type: Boolean,
-      default: true,
-    },
-
     showRecordModal: {
       type: Boolean,
       required: false,
@@ -210,6 +205,10 @@ export default {
   computed: {
     isCreated () {
       return this.record && this.record.recordID !== NoID
+    },
+
+    isDeleted () {
+      return this.record && this.record.deletedAt
     },
 
     settings () {
