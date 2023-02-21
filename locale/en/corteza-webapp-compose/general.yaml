@@ -55,6 +55,7 @@ label:
   processing: Processing...
   record: Record
   recordPage: Record page
+  recordPageLink: View record
   field: Field
   remove: Remove
   removeDefault: Remove default
