@@ -92,7 +92,7 @@ page: {
 
 	filter: {
 		struct: {
-			page_id: { goType: "uint64", ident: "pageID", storeIdent: "id" }
+			page_id: { goType: "[]uint64", ident: "pageID", storeIdent: "id" }
 			namespace_id: { goType: "uint64", ident: "namespaceID", storeIdent: "rel_namespace" }
 			parent_id: { goType: "uint64", ident: "parentID" }
 			module_id: { goType: "uint64", ident: "moduleID", storeIdent: "rel_module" }

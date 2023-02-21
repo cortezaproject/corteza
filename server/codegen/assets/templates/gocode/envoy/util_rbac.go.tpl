@@ -43,7 +43,7 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
       }
 
       {{- range $cmp := $rootCmp.resources }}
-        {{ if or ($cmp.envoy.omit) (not $cmp.envoy.use) }}
+        {{ if $cmp.envoy.omit }}
           {{continue}}
         {{ end }}
 

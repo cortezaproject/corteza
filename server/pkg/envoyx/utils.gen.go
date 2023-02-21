@@ -25,12 +25,14 @@ var (
 		"corteza::federation:exposed-module": true,
 		"corteza::federation:module-mapping": true,
 
-		"corteza::federation:shared-module": true,
+		"corteza::federation:shared-module":  true,
+		"corteza::compose:record-datasource": true,
 	}
 
 	// superNeedyResources is the second level of filtering in case the first
 	// pass removes everything
 	superNeedyResources = map[string]bool{
-		"corteza::compose:module-field": true,
+		"corteza::compose:module-field":      true,
+		"corteza::compose:record-datasource": true,
 	}
 )

@@ -9,7 +9,8 @@ import (
 type (
 	// Node is a wrapper around a Corteza resource for use within Envoy
 	Node struct {
-		Resource resource
+		Resource   resource
+		Datasource Datasource
 
 		ResourceType string
 		Identifiers  Identifiers
@@ -57,6 +58,9 @@ type (
 		ResourceType string
 		Identifiers  Identifiers
 		Scope        Scope
+		// @todo consider replacing with something that indicates
+		//       it can't be fetched from the DB
+		Optional bool
 	}
 )
 

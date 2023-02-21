@@ -73,7 +73,7 @@ apigw_route: {
 
 	filter: {
 		struct: {
-			apigw_route_id: { goType: "[]uint64", ident: "apigwrouteID", storeIdent: "id" }
+			apigw_route_id: { goType: "[]uint64", ident: "apigwRouteID", storeIdent: "id" }
 			route: {goType: "string", storeIdent: "id"}
 			endpoint: {goType: "string"}
 			method: {goType: "string"}

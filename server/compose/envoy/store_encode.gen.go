@@ -54,6 +54,8 @@ func (e StoreEncoder) Prepare(ctx context.Context, p envoyx.EncodeParams, rt str
 	case types.PageResourceType:
 		return e.preparePage(ctx, p, s, nn)
 
+	default:
+		return e.prepare(ctx, p, s, rt, nn)
 	}
 
 	return
@@ -406,12 +408,32 @@ func (e StoreEncoder) encodeModule(ctx context.Context, p envoyx.EncodeParams, s
 	// @todo how can we remove the OmitPlaceholderNodes call the same way we did for
 	//       the root function calls?
 
+	nested := make(envoyx.NodeSet, 0, 10)
+
 	for rt, nn := range envoyx.NodesByResourceType(tree.Children(n)...) {
 		nn = envoyx.OmitPlaceholderNodes(nn...)
 
 		switch rt {
 
+		case types.ModuleFieldResourceType:
+			err = e.encodeModuleFields(ctx, p, s, nn, tree)
+			if err != nil {
+				return
+			}
+
+			nested = append(nested, nn...)
+
 		}
+	}
+
+	err = e.encodeModuleExtend(ctx, p, s, n, nested, tree)
+	if err != nil {
+		return
+	}
+
+	err = e.encodeModuleExtendSubResources(ctx, p, s, n, tree)
+	if err != nil {
+		return
 	}
 
 	return
@@ -770,6 +792,24 @@ func (e StoreEncoder) encodeNamespace(ctx context.Context, p envoyx.EncodeParams
 		nn = envoyx.OmitPlaceholderNodes(nn...)
 
 		switch rt {
+
+		case types.ChartResourceType:
+			err = e.encodeCharts(ctx, p, s, nn, tree)
+			if err != nil {
+				return
+			}
+
+		case types.ModuleResourceType:
+			err = e.encodeModules(ctx, p, s, nn, tree)
+			if err != nil {
+				return
+			}
+
+		case types.PageResourceType:
+			err = e.encodePages(ctx, p, s, nn, tree)
+			if err != nil {
+				return
+			}
 
 		}
 	}
