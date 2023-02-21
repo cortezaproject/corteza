@@ -177,6 +177,7 @@ import (
 		// referencing this resource
 		identKeys: [...string] | *([identKeyLabel]+identKeyAlias)
 
+		extendedResourcePostProcess: bool | *false
 		extendedResourceDecoders: [...{
 			ident: string
 			expIdent: string
@@ -189,6 +190,10 @@ import (
 
 	// store decode/encode configs
 	store: {
+		// enable or disable custom logic after the resource is imported
+		extendedEncoder: bool | *false
+		extendedSubResources: bool | *false
+
 		// enable or disable additional custom processing for determining 
 		// resource references
 		extendedRefDecoder: bool | *false

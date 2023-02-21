@@ -48,6 +48,8 @@ func (e StoreEncoder) Prepare(ctx context.Context, p envoyx.EncodeParams, rt str
 
 	case types.TriggerResourceType:
 		return e.prepareTrigger(ctx, p, s, nn)
+	default:
+		return e.prepare(ctx, p, s, rt, nn)
 	}
 
 	return

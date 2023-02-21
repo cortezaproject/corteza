@@ -137,6 +137,8 @@ func (svc *service) Decode(ctx context.Context, p DecodeParams) (nn NodeSet, err
 		return svc.decodeUri(ctx, p)
 	case DecodeTypeStore:
 		return svc.decodeStore(ctx, p)
+	default:
+		err = fmt.Errorf("unsupported decoder type %s", p.Type)
 	}
 
 	return
@@ -156,7 +158,8 @@ func (svc *service) Encode(ctx context.Context, p EncodeParams, dg *depGraph) (e
 		return svc.encodeStore(ctx, dg, p)
 	case EncodeTypeIo:
 		return svc.encodeIo(ctx, dg, p)
-
+	default:
+		err = fmt.Errorf("unsupported encoder type %s", p.Type)
 	}
 	return
 }

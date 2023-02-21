@@ -39,6 +39,11 @@ moduleField: {
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
+				envoy: {
+					yaml: {
+						customDecoder: true
+					}
+				}
 			}
 			name: {
 				sortable: true

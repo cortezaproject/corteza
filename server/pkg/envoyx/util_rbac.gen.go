@@ -275,6 +275,11 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			return
 		}
 
+		out["0"] = Ref{
+			ResourceType: "corteza::compose:namespace",
+			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
+		}
+
 		if gRef(pp, 1) == "" {
 			return
 		}
@@ -287,6 +292,11 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 
 		if gRef(pp, 0) == "" {
 			return
+		}
+
+		out["0"] = Ref{
+			ResourceType: "corteza::compose:namespace",
+			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
 		}
 
 		if gRef(pp, 1) == "" {
@@ -303,8 +313,18 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			return
 		}
 
+		out["0"] = Ref{
+			ResourceType: "corteza::compose:namespace",
+			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
+		}
+
 		if gRef(pp, 1) == "" {
 			return
+		}
+
+		out["1"] = Ref{
+			ResourceType: "corteza::compose:module",
+			Identifiers:  MakeIdentifiers(gRef(pp, 1)),
 		}
 
 		if gRef(pp, 2) == "" {
@@ -331,6 +351,11 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			return
 		}
 
+		out["0"] = Ref{
+			ResourceType: "corteza::compose:namespace",
+			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
+		}
+
 		if gRef(pp, 1) == "" {
 			return
 		}
@@ -345,8 +370,18 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			return
 		}
 
+		out["0"] = Ref{
+			ResourceType: "corteza::compose:namespace",
+			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
+		}
+
 		if gRef(pp, 1) == "" {
 			return
+		}
+
+		out["1"] = Ref{
+			ResourceType: "corteza::compose:module",
+			Identifiers:  MakeIdentifiers(gRef(pp, 1)),
 		}
 
 		if gRef(pp, 2) == "" {

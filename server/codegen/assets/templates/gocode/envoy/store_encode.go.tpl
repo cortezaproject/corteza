@@ -53,6 +53,8 @@ func (e StoreEncoder) Prepare(ctx context.Context, p envoyx.EncodeParams, rt str
 	case types.{{.expIdent}}ResourceType:
 		return e.prepare{{.expIdent}}(ctx, p, s, nn)
 {{ end -}}
+	default:
+		return e.prepare(ctx, p, s, rt, nn)
 	}
 
 	return
@@ -228,12 +230,16 @@ func (e StoreEncoder) encode{{.expIdent}}(ctx context.Context, p envoyx.EncodePa
 		@note this setup will not duplicate encode calls since we only take the
 		      most specific parent resource.
 	*/}}
+	{{ $extendedEncoder := .envoy.store.extendedEncoder}}
+	{{ if $extendedEncoder }}
+	nested := make(envoyx.NodeSet, 0, 10)
+	{{ end }}
 	for rt, nn := range envoyx.NodesByResourceType(tree.Children(n)...) {
 		nn = envoyx.OmitPlaceholderNodes(nn...)
 
 		switch rt {
 		{{- range $cmp := $rootRes }}
-			{{ if or ($cmp.envoy.omit) (not $cmp.envoy.use) }}
+			{{ if $cmp.envoy.omit }}
 				{{continue}}
 			{{ end }}
 			{{ if not $cmp.parents }}
@@ -250,12 +256,28 @@ func (e StoreEncoder) encode{{.expIdent}}(ctx context.Context, p envoyx.EncodePa
 				if err != nil {
 					return
 				}
+				{{ if $extendedEncoder }}
+				nested = append(nested, nn...)
+				{{ end }}
 
 		{{- end }}
 		}
 	}
 
-	return 
+	{{ if .envoy.store.extendedEncoder }}
+	err = e.encode{{.expIdent}}Extend(ctx, p, s, n, nested, tree)
+	if err != nil {
+		return
+	}
+	{{ end }}
+
+	{{ if .envoy.store.extendedSubResources }}
+	err = e.encode{{.expIdent}}ExtendSubResources(ctx, p, s, n, tree)
+	if err != nil {
+		return
+	}
+	{{ end }}
+	return
 }
 
 // matchup{{.expIdent}}s returns an index with indicates what resources already exist

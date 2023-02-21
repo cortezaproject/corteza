@@ -152,7 +152,7 @@ func (e YamlEncoder) encode{{.expIdent}}(ctx context.Context, p envoyx.EncodePar
 	_ = aux
 	{{ $a := . }}
 	{{- range $cmp := $rootRes }}
-		{{ if or ($cmp.envoy.omit) (not $cmp.envoy.use) }}{{continue}}{{ end }}
+		{{ if $cmp.envoy.omit }}{{continue}}{{ end }}
 		{{if not $cmp.parents}}{{continue}}{{end}}
 
 		{{/*

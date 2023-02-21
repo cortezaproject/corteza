@@ -238,6 +238,17 @@ func (e YamlEncoder) encodeModule(ctx context.Context, p envoyx.EncodeParams, no
 	var aux *yaml.Node
 	_ = aux
 
+	aux, err = e.encodeModuleFields(ctx, p, tt.ChildrenForResourceType(node, types.ModuleFieldResourceType), tt)
+	if err != nil {
+		return
+	}
+	out, err = y7s.AddMap(out,
+		"moduleField", aux,
+	)
+	if err != nil {
+		return
+	}
+
 	return
 }
 
@@ -373,6 +384,39 @@ func (e YamlEncoder) encodeNamespace(ctx context.Context, p envoyx.EncodeParams,
 	// Handle nested resources
 	var aux *yaml.Node
 	_ = aux
+
+	aux, err = e.encodeCharts(ctx, p, tt.ChildrenForResourceType(node, types.ChartResourceType), tt)
+	if err != nil {
+		return
+	}
+	out, err = y7s.AddMap(out,
+		"chart", aux,
+	)
+	if err != nil {
+		return
+	}
+
+	aux, err = e.encodeModules(ctx, p, tt.ChildrenForResourceType(node, types.ModuleResourceType), tt)
+	if err != nil {
+		return
+	}
+	out, err = y7s.AddMap(out,
+		"module", aux,
+	)
+	if err != nil {
+		return
+	}
+
+	aux, err = e.encodePages(ctx, p, tt.ChildrenForResourceType(node, types.PageResourceType), tt)
+	if err != nil {
+		return
+	}
+	out, err = y7s.AddMap(out,
+		"page", aux,
+	)
+	if err != nil {
+		return
+	}
 
 	return
 }
