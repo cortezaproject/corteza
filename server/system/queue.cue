@@ -48,7 +48,7 @@ queue: {
 
 	filter: {
 		struct: {
-			queue_id: {goType: "uint64", ident: "queueID", storeIdent: "id"}
+			queue_id: {goType: "[]uint64", ident: "queueID", storeIdent: "id"}
 			query: {goType: "string"}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}

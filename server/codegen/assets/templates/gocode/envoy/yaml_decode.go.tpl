@@ -191,7 +191,7 @@ func (d *auxYamlDoc) unmarshalExtended{{.expIdent}}Seq(dctx documentContext, n *
 
 	return
 }
-
+{{if not .supportMappedInput}}{{continue}}{{end}}
 // unmarshal{{.expIdent}}ExtendedMap unmarshals {{.expIdent}} when provided as a mapping node
 //
 // When map encoded, the map key is used as a preset identifier.
@@ -417,6 +417,7 @@ func (d *auxYamlDoc) unmarshal{{ .expIdent }}Node(dctx documentContext, n *yaml.
 	// This operation is done in the second pass of the document so we have
 	// the complete context of the current resource; such as the identifier,
 	// references, and scope.
+	var auxNestedNodes envoyx.NodeSet
 	err = y7s.EachMap(n, func(k, n *yaml.Node) error {
 		nestedNodes = nil
 
@@ -432,7 +433,7 @@ func (d *auxYamlDoc) unmarshal{{ .expIdent }}Node(dctx documentContext, n *yaml.
 	*/}}
 	{{ $a := . }}
 	{{- range $cmp := $rootRes }}
-		{{ if or ($cmp.envoy.omit) (not $cmp.envoy.use) }}
+		{{ if $cmp.envoy.omit }}
 			{{continue}}
 		{{ end }}
 
@@ -468,7 +469,6 @@ func (d *auxYamlDoc) unmarshal{{ .expIdent }}Node(dctx documentContext, n *yaml.
 		case {{ range $i, $l := $identKeys -}}
 		"{{ $l }}"{{if not (eq $i (sub (len $identKeys) 1))}},{{end}}
 		{{- end}}:
-		default:
 			if y7s.IsSeq(n) {
 				nestedNodes, err = d.unmarshalExtended{{.expIdent}}Seq(dctx, n)
 				if err != nil {
@@ -504,16 +504,29 @@ func (d *auxYamlDoc) unmarshal{{ .expIdent }}Node(dctx documentContext, n *yaml.
 				Scope: scope,
 			}
 
+			for f, ref := range a.References {
+				ref.Scope = scope
+				a.References[f] = ref
+			}
+
 			for f, ref := range refs {
 				a.References[f] = ref
 			}
 		}
-		auxOut = append(auxOut, nestedNodes...)
+		auxNestedNodes = append(auxNestedNodes, nestedNodes...)
 		return nil
 	})
 	if err != nil {
 		return
 	}
+
+	{{ if .envoy.yaml.extendedResourcePostProcess}}
+	auxNestedNodes, err = d.postProcessNested{{.expIdent}}Nodes(auxNestedNodes)
+	if err!= nil {
+		return
+	}
+	{{ end }}
+	out = append(out, auxNestedNodes...)
 
 	a := &envoyx.Node{
 		Resource: r,

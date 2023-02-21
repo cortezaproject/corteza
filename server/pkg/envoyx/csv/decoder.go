@@ -57,7 +57,7 @@ func Decoder(r io.Reader, ident string) (out *decoder, err error) {
 	}
 
 	r, err = out.flushTemp(r)
-	defer out.src.Seek(0, 0)
+	defer out.Reset()
 	if err != nil {
 		return
 	}
@@ -111,12 +111,12 @@ func (d *decoder) Reset() error {
 
 // Next returns the field: value mapping for the next row
 func (d *decoder) Next(out map[string]string) (more bool, err error) {
-	if !d.skipHead {
+	if d.skipHead {
 		_, err = d.reader.Read()
 		if err != nil {
 			return
 		}
-		d.skipHead = true
+		d.skipHead = false
 	}
 
 	aux, err := d.reader.Read()

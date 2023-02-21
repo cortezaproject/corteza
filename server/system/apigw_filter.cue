@@ -69,7 +69,7 @@ apigw_filter: {
 
 	filter: {
 		struct: {
-			apigw_filter_id: {goType: "uint64", ident: "apigwFilterID", storeIdent: "id"}
+			apigw_filter_id: {goType: "[]uint64", ident: "apigwFilterID", storeIdent: "id"}
 			route_id: {goType: "uint64", ident: "routeID", storeIdent: "rel_route"}
 			deleted:  {goType: "filter.State", storeIdent: "deleted_at"}
 			disabled: {goType: "filter.State", storeIdent: "enabled"}

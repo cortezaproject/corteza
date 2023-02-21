@@ -36,7 +36,7 @@ dal_sensitivity_level: {
 
 	filter: {
 		struct: {
-			dal_sensitivity_level_id: {goType: "[]uint64", ident: "sensitivityLevelID", storeIdent: "id"}
+			dal_sensitivity_level_id: {goType: "[]uint64", ident: "dalSensitivityLevelID", storeIdent: "id"}
 			handle: { goType: "string" }
 
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
