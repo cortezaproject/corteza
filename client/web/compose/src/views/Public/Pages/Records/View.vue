@@ -52,7 +52,7 @@
   </div>
 </template>
 <script>
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters } from 'vuex'
 import Grid from 'corteza-webapp-compose/src/components/Public/Page/Grid'
 import RecordToolbar from 'corteza-webapp-compose/src/components/Common/RecordToolbar'
 import record from 'corteza-webapp-compose/src/mixins/record'
@@ -113,7 +113,6 @@ export default {
 
   computed: {
     ...mapGetters({
-      clearRecordPageNavigation: 'ui/clearRecordPageNavigation',
       getNextAndPrevRecord: 'ui/getNextAndPrevRecord',
     }),
 
@@ -153,7 +152,8 @@ export default {
     },
 
     recordNavigation () {
-      return this.getNextAndPrevRecord(this.recordID)
+      const { recordID } = this.record || {}
+      return this.getNextAndPrevRecord(recordID)
     },
   },
 
@@ -178,13 +178,6 @@ export default {
       this.loadRecord()
       this.$root.$emit(`refetch-non-record-blocks:${this.page.pageID}`)
     })
-
-    if (this.clearRecordPageNavigation) {
-      this.setClearRecordPageNavigation(false)
-      this.clearRecordIds()
-    } else {
-      this.clearRecordIds()
-    }
   },
 
   // Destroy event before route leave to ensure it doesn't destroy the newly created one
@@ -194,11 +187,6 @@ export default {
   },
 
   methods: {
-    ...mapActions({
-      setClearRecordPageNavigation: 'ui/setClearRecordPageNavigation',
-      clearRecordIds: 'ui/clearRecordIds',
-    }),
-
     async loadRecord () {
       this.record = undefined
 
@@ -215,7 +203,9 @@ export default {
           await this.$ComposeAPI
             .recordRead({ namespaceID, moduleID, recordID: this.recordID })
             .then(record => {
-              this.record = new compose.Record(module, record)
+              setTimeout(() => {
+                this.record = new compose.Record(module, record)
+              }, 300)
             })
             .catch(this.toastErrorHandler(this.$t('notification:record.loadFailed')))
         } else {
@@ -267,26 +257,17 @@ export default {
       }
     },
 
-    handleRedirectToPrevOrNext (value) {
-      const recordID = value
-
+    handleRedirectToPrevOrNext (recordID) {
       if (!recordID) return
 
       if (this.showRecordModal) {
-        this.$router.replace({
-          query: { recordID, recordPageID: this.$route.query.recordPageID },
+        this.$router.push({
+          query: { ...this.$route.query, recordID },
         })
       } else {
-        const route = {
-          name: 'page.record',
-          params: {
-            pageID: this.page.pageID,
-            recordID,
-          },
-          query: null,
-        }
-
-        this.$router.push(route)
+        this.$router.push({
+          params: { ...this.$route.params, recordID },
+        })
       }
     },
   },

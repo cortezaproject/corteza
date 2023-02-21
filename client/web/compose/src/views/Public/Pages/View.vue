@@ -76,7 +76,7 @@
   </div>
 </template>
 <script>
-import { mapActions } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 import Grid from 'corteza-webapp-compose/src/components/Public/Page/Grid'
 import RecordModal from 'corteza-webapp-compose/src/components/Public/Record/Modal'
 import MagnificationModal from 'corteza-webapp-compose/src/components/Public/Page/Block/Modal'
@@ -114,6 +114,10 @@ export default {
   },
 
   computed: {
+    ...mapGetters({
+      recordPaginationUsable: 'ui/recordPaginationUsable',
+    }),
+
     isRecordCreatePage () {
       return this.$route.name === 'page.record.create'
     },
@@ -160,6 +164,18 @@ export default {
         document.title = [title, this.namespace.name, this.$t('general:label.app-name.public')].filter(v => v).join(' | ')
       },
     },
+
+    'page.pageID': {
+      immediate: true,
+      handler () {
+        // If the page changed we need to clear the record pagination since its not relevant anymore
+        if (this.recordPaginationUsable) {
+          this.setRecordPaginationUsable(false)
+        } else {
+          this.clearRecordIDs()
+        }
+      },
+    },
   },
 
   created () {
@@ -176,6 +192,8 @@ export default {
   methods: {
     ...mapActions({
       updatePageSet: 'page/updateSet',
+      setRecordPaginationUsable: 'ui/setRecordPaginationUsable',
+      clearRecordIDs: 'ui/clearRecordIDs',
     }),
   },
 }

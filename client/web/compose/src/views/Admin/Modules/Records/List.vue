@@ -67,6 +67,7 @@ export default {
   computed: {
     ...mapGetters({
       getModuleByID: 'module/getByID',
+      recordPaginationUsable: 'ui/recordPaginationUsable',
     }),
 
     title () {
@@ -124,6 +125,7 @@ export default {
         showTotalCount: true,
         showDeletedRecordsOption: true,
         presort: 'createdAt DESC',
+        enableRecordPageNavigation: true,
         // Set allrecords configuration
         allRecords: true,
         hideConfigureFieldsButton: false,
@@ -132,11 +134,20 @@ export default {
         rowCreateUrl: 'admin.modules.record.create',
       },
     })
+
+    // If the page changed we need to clear the record pagination since its not relevant anymore
+    if (this.recordPaginationUsable) {
+      this.setRecordPaginationUsable(false)
+    } else {
+      this.clearRecordIDs()
+    }
   },
 
   methods: {
     ...mapActions({
       updateModule: 'module/update',
+      setRecordPaginationUsable: 'ui/setRecordPaginationUsable',
+      clearRecordIDs: 'ui/clearRecordIDs',
     }),
 
     handleFieldsSave (fields = []) {

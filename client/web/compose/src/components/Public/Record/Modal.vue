@@ -35,10 +35,10 @@
 </template>
 
 <script>
-import record from 'corteza-webapp-compose/src/mixins/record'
 import { compose } from '@cortezaproject/corteza-js'
+import { mapGetters, mapActions } from 'vuex'
+import record from 'corteza-webapp-compose/src/mixins/record'
 import ViewRecord from 'corteza-webapp-compose/src/views/Public/Pages/Records/View'
-import { mapGetters } from 'vuex'
 
 export default {
   i18nOptions: {
@@ -75,6 +75,7 @@ export default {
     ...mapGetters({
       getModuleByID: 'module/getByID',
       getPageByID: 'page/getByID',
+      recordPaginationUsable: 'ui/recordPaginationUsable',
     }),
   },
 
@@ -83,26 +84,36 @@ export default {
       immediate: true,
       handler (recordID, oldRecordID) {
         const { recordPageID } = this.$route.query
+        const { pageID: oldrecordPageID } = this.page || {}
 
         if (!recordID) {
           this.showModal = false
           return
         }
 
-        if (this.showModal && (recordID !== oldRecordID)) {
-          this.showModal = false
+        if (recordPageID !== oldrecordPageID) {
+          // If the page changed we need to clear the record pagination since its not relevant anymore
+          if (this.recordPaginationUsable) {
+            this.setRecordPaginationUsable(false)
+          } else {
+            this.clearRecordIDs()
+          }
 
-          setTimeout(() => {
-            this.$router.push({
-              query: {
-                ...this.$route.query,
-                recordID,
-                recordPageID,
-              },
-            })
-          }, 300)
+          if (this.showModal && (recordID !== oldRecordID)) {
+            this.showModal = false
 
-          return
+            setTimeout(() => {
+              this.$router.push({
+                query: {
+                  ...this.$route.query,
+                  recordID,
+                  recordPageID,
+                },
+              })
+            }, 300)
+
+            return
+          }
         }
 
         setTimeout(() => {
@@ -129,6 +140,11 @@ export default {
   },
 
   methods: {
+    ...mapActions({
+      setRecordPaginationUsable: 'ui/setRecordPaginationUsable',
+      clearRecordIDs: 'ui/clearRecordIDs',
+    }),
+
     loadModal ({ recordID, recordPageID }) {
       if (recordID && recordPageID) {
         this.recordID = recordID

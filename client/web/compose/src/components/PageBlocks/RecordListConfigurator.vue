@@ -252,10 +252,16 @@
         breakpoint="md"
         class="mt-4"
       >
+        <b-form-checkbox
+          v-model="options.enableRecordPageNavigation"
+        >
+          {{ $t('recordList.enableRecordPageNavigation') }}
+        </b-form-checkbox>
         <b-form-checkbox v-model="options.allowExport">
           {{ $t('recordList.export.allow') }}
         </b-form-checkbox>
       </b-form-group>
+
       <b-form-group
         horizontal
         :label-cols="3"
@@ -305,11 +311,6 @@
           v-model="options.hideRecordPermissionsButton"
         >
           {{ $t('recordList.hideRecordPermissionsButton') }}
-        </b-form-checkbox>
-        <b-form-checkbox
-          v-model="options.enableRecordPageNavigation"
-        >
-          {{ $t('recordList.enableRecordPageNavigation') }}
         </b-form-checkbox>
       </b-form-group>
     </b-tab>
