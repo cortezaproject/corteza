@@ -13,6 +13,9 @@ record: {
 	model: {
 		ident: "compose_record"
 
+		defaultSetter: true
+		defaultGetter: true
+
 		attributes: {
 			id: schema.IdField
 			revision: {
@@ -70,9 +73,6 @@ record: {
 	envoy: {
 		omit: true
 	}
-
-	defaultGetter: true
-	defaultSetter: true
 
 	filter: {
 		struct: {

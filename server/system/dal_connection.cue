@@ -42,7 +42,7 @@ dal_connection: {
 
 	filter: {
 		struct: {
-			dal_connection_id: {goType: "[]uint64", ident: "connectionID", storeIdent: "id"}
+			dal_connection_id: {goType: "[]uint64", ident: "dalConnectionID", storeIdent: "id"}
 			handle: {goType: "string"}
 			type: {goType: "string"}
 

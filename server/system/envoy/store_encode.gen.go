@@ -69,6 +69,8 @@ func (e StoreEncoder) Prepare(ctx context.Context, p envoyx.EncodeParams, rt str
 		return e.prepareDalConnection(ctx, p, s, nn)
 	case types.DalSensitivityLevelResourceType:
 		return e.prepareDalSensitivityLevel(ctx, p, s, nn)
+	default:
+		return e.prepare(ctx, p, s, rt, nn)
 	}
 
 	return

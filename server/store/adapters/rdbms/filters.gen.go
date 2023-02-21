@@ -202,8 +202,8 @@ func ApigwFilterFilter(f systemType.ApigwFilterFilter) (ee []goqu.Expression, _ 
 		ee = append(ee, expr)
 	}
 
-	if f.ApigwFilterID > 0 {
-		ee = append(ee, goqu.C("id").Eq(f.ApigwFilterID))
+	if len(f.ApigwFilterID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.ApigwFilterID))
 	}
 
 	if f.RouteID > 0 {
@@ -230,8 +230,8 @@ func ApigwRouteFilter(f systemType.ApigwRouteFilter) (ee []goqu.Expression, _ sy
 		ee = append(ee, expr)
 	}
 
-	if len(f.ApigwrouteID) > 0 {
-		ee = append(ee, goqu.C("id").In(f.ApigwrouteID))
+	if len(f.ApigwRouteID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.ApigwRouteID))
 	}
 
 	if val := strings.TrimSpace(f.Route); len(val) > 0 {
@@ -650,8 +650,8 @@ func ComposePageFilter(f composeType.PageFilter) (ee []goqu.Expression, _ compos
 		ee = append(ee, expr)
 	}
 
-	if f.PageID > 0 {
-		ee = append(ee, goqu.C("id").Eq(f.PageID))
+	if len(f.PageID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.PageID))
 	}
 
 	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
@@ -722,8 +722,8 @@ func DalConnectionFilter(f systemType.DalConnectionFilter) (ee []goqu.Expression
 		ee = append(ee, expr)
 	}
 
-	if len(f.ConnectionID) > 0 {
-		ee = append(ee, goqu.C("id").In(f.ConnectionID))
+	if len(f.DalConnectionID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.DalConnectionID))
 	}
 
 	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
@@ -750,8 +750,8 @@ func DalSensitivityLevelFilter(f systemType.DalSensitivityLevelFilter) (ee []goq
 		ee = append(ee, expr)
 	}
 
-	if len(f.SensitivityLevelID) > 0 {
-		ee = append(ee, goqu.C("id").In(f.SensitivityLevelID))
+	if len(f.DalSensitivityLevelID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.DalSensitivityLevelID))
 	}
 
 	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
@@ -1001,8 +1001,8 @@ func QueueFilter(f systemType.QueueFilter) (ee []goqu.Expression, _ systemType.Q
 		ee = append(ee, expr)
 	}
 
-	if f.QueueID > 0 {
-		ee = append(ee, goqu.C("id").Eq(f.QueueID))
+	if len(f.QueueID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.QueueID))
 	}
 
 	if f.Query != "" {

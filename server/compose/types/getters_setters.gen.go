@@ -351,6 +351,9 @@ func (r *Record) GetValue(name string, pos uint) (any, error) {
 	case "updatedBy", "UpdatedBy":
 		return r.UpdatedBy, nil
 
+	default:
+		return r.getValue(name, pos)
+
 	}
 	return nil, nil
 }
@@ -381,6 +384,9 @@ func (r *Record) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.TimePtr(value, &r.UpdatedAt)
 	case "updatedBy", "UpdatedBy":
 		return cast2.Uint64(value, &r.UpdatedBy)
+
+	default:
+		return r.setValue(name, pos, value)
 
 	}
 	return nil

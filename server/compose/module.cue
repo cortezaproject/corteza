@@ -89,8 +89,18 @@ module: {
 			supportMappedInput: true
 			mappedField: "Handle"
 			identKeyAlias: ["modules", "mod"]
+
+			extendedResourcePostProcess: true
+			extendedResourceDecoders: [{
+				ident: "source"
+				expIdent: "Source"
+				identKeys: ["source", "datasource"]
+				supportMappedInput: false
+			}]
 		}
 		store: {
+			extendedEncoder: true
+			extendedSubResources: true
 			extendedFilterBuilder: true
 			extendedDecoder: true
 		}

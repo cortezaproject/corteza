@@ -175,25 +175,6 @@ func (d *auxYamlDoc) unmarshalExtendedTriggersSeq(dctx documentContext, n *yaml.
 	return
 }
 
-// unmarshalTriggersExtendedMap unmarshals Triggers when provided as a mapping node
-//
-// When map encoded, the map key is used as a preset identifier.
-// The identifier is passed to the node function as a meta node
-func (d *auxYamlDoc) unmarshalExtendedTriggersMap(dctx documentContext, n *yaml.Node) (out envoyx.NodeSet, err error) {
-	var aux envoyx.NodeSet
-	err = y7s.EachMap(n, func(k, n *yaml.Node) error {
-		aux, err = d.unmarshalTriggersExtendedNode(dctx, n, k)
-		if err != nil {
-			return err
-		}
-		out = append(out, aux...)
-
-		return nil
-	})
-
-	return
-}
-
 // unmarshalWorkflowNode is a cookie-cutter function to unmarshal
 // the yaml node into the corresponding Corteza type & Node
 func (d *auxYamlDoc) unmarshalWorkflowNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
@@ -359,13 +340,13 @@ func (d *auxYamlDoc) unmarshalWorkflowNode(dctx documentContext, n *yaml.Node, m
 	// This operation is done in the second pass of the document so we have
 	// the complete context of the current resource; such as the identifier,
 	// references, and scope.
+	var auxNestedNodes envoyx.NodeSet
 	err = y7s.EachMap(n, func(k, n *yaml.Node) error {
 		nestedNodes = nil
 
 		switch strings.ToLower(k.Value) {
 
 		case "triggers":
-		default:
 			if y7s.IsSeq(n) {
 				nestedNodes, err = d.unmarshalExtendedTriggersSeq(dctx, n)
 				if err != nil {
@@ -395,16 +376,23 @@ func (d *auxYamlDoc) unmarshalWorkflowNode(dctx documentContext, n *yaml.Node, m
 				Scope:        scope,
 			}
 
+			for f, ref := range a.References {
+				ref.Scope = scope
+				a.References[f] = ref
+			}
+
 			for f, ref := range refs {
 				a.References[f] = ref
 			}
 		}
-		auxOut = append(auxOut, nestedNodes...)
+		auxNestedNodes = append(auxNestedNodes, nestedNodes...)
 		return nil
 	})
 	if err != nil {
 		return
 	}
+
+	out = append(out, auxNestedNodes...)
 
 	a := &envoyx.Node{
 		Resource: r,
@@ -597,6 +585,7 @@ func (d *auxYamlDoc) unmarshalTriggerNode(dctx documentContext, n *yaml.Node, me
 	// This operation is done in the second pass of the document so we have
 	// the complete context of the current resource; such as the identifier,
 	// references, and scope.
+	var auxNestedNodes envoyx.NodeSet
 	err = y7s.EachMap(n, func(k, n *yaml.Node) error {
 		nestedNodes = nil
 
@@ -624,16 +613,23 @@ func (d *auxYamlDoc) unmarshalTriggerNode(dctx documentContext, n *yaml.Node, me
 				Scope:        scope,
 			}
 
+			for f, ref := range a.References {
+				ref.Scope = scope
+				a.References[f] = ref
+			}
+
 			for f, ref := range refs {
 				a.References[f] = ref
 			}
 		}
-		auxOut = append(auxOut, nestedNodes...)
+		auxNestedNodes = append(auxNestedNodes, nestedNodes...)
 		return nil
 	})
 	if err != nil {
 		return
 	}
+
+	out = append(out, auxNestedNodes...)
 
 	a := &envoyx.Node{
 		Resource: r,

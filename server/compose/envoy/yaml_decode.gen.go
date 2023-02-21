@@ -361,6 +361,7 @@ func (d *auxYamlDoc) unmarshalChartNode(dctx documentContext, n *yaml.Node, meta
 	// This operation is done in the second pass of the document so we have
 	// the complete context of the current resource; such as the identifier,
 	// references, and scope.
+	var auxNestedNodes envoyx.NodeSet
 	err = y7s.EachMap(n, func(k, n *yaml.Node) error {
 		nestedNodes = nil
 
@@ -388,16 +389,23 @@ func (d *auxYamlDoc) unmarshalChartNode(dctx documentContext, n *yaml.Node, meta
 				Scope:        scope,
 			}
 
+			for f, ref := range a.References {
+				ref.Scope = scope
+				a.References[f] = ref
+			}
+
 			for f, ref := range refs {
 				a.References[f] = ref
 			}
 		}
-		auxOut = append(auxOut, nestedNodes...)
+		auxNestedNodes = append(auxNestedNodes, nestedNodes...)
 		return nil
 	})
 	if err != nil {
 		return
 	}
+
+	out = append(out, auxNestedNodes...)
 
 	a := &envoyx.Node{
 		Resource: r,
@@ -462,6 +470,22 @@ func (d *auxYamlDoc) unmarshalModuleMap(dctx documentContext, n *yaml.Node) (out
 	var aux envoyx.NodeSet
 	err = y7s.EachMap(n, func(k, n *yaml.Node) error {
 		aux, err = d.unmarshalModuleNode(dctx, n, k)
+		if err != nil {
+			return err
+		}
+		out = append(out, aux...)
+
+		return nil
+	})
+
+	return
+}
+
+// unmarshalSourceExtendedSeq unmarshals Source when provided as a sequence node
+func (d *auxYamlDoc) unmarshalExtendedSourceSeq(dctx documentContext, n *yaml.Node) (out envoyx.NodeSet, err error) {
+	var aux envoyx.NodeSet
+	err = y7s.EachSeq(n, func(n *yaml.Node) error {
+		aux, err = d.unmarshalSourceExtendedNode(dctx, n)
 		if err != nil {
 			return err
 		}
@@ -615,11 +639,34 @@ func (d *auxYamlDoc) unmarshalModuleNode(dctx documentContext, n *yaml.Node, met
 	// This operation is done in the second pass of the document so we have
 	// the complete context of the current resource; such as the identifier,
 	// references, and scope.
+	var auxNestedNodes envoyx.NodeSet
 	err = y7s.EachMap(n, func(k, n *yaml.Node) error {
 		nestedNodes = nil
 
 		switch strings.ToLower(k.Value) {
 
+		case "modulefield", "module_fields", "modulefields", "fields":
+			if y7s.IsSeq(n) {
+				nestedNodes, err = d.unmarshalModuleFieldSeq(dctx, n)
+				if err != nil {
+					return err
+				}
+			} else {
+				nestedNodes, err = d.unmarshalModuleFieldMap(dctx, n)
+				if err != nil {
+					return err
+				}
+			}
+			break
+
+		case "source", "datasource":
+			if y7s.IsSeq(n) {
+				nestedNodes, err = d.unmarshalExtendedSourceSeq(dctx, n)
+				if err != nil {
+					return err
+				}
+			}
+			break
 		}
 
 		// Iterate nested nodes and update their reference to the current resource
@@ -642,16 +689,28 @@ func (d *auxYamlDoc) unmarshalModuleNode(dctx documentContext, n *yaml.Node, met
 				Scope:        scope,
 			}
 
+			for f, ref := range a.References {
+				ref.Scope = scope
+				a.References[f] = ref
+			}
+
 			for f, ref := range refs {
 				a.References[f] = ref
 			}
 		}
-		auxOut = append(auxOut, nestedNodes...)
+		auxNestedNodes = append(auxNestedNodes, nestedNodes...)
 		return nil
 	})
 	if err != nil {
 		return
 	}
+
+	auxNestedNodes, err = d.postProcessNestedModuleNodes(auxNestedNodes)
+	if err != nil {
+		return
+	}
+
+	out = append(out, auxNestedNodes...)
 
 	a := &envoyx.Node{
 		Resource: r,
@@ -802,6 +861,25 @@ func (d *auxYamlDoc) unmarshalModuleFieldNode(dctx documentContext, n *yaml.Node
 
 			break
 
+		case "options":
+
+			// Handle custom node decoder
+			//
+			// The decoder may update the passed resource with arbitrary values
+			// as well as provide additional references and identifiers for the node.
+			var (
+				auxRefs   map[string]envoyx.Ref
+				auxIdents envoyx.Identifiers
+			)
+			auxRefs, auxIdents, err = unmarshalModuleFieldOptionsNode(r, n)
+			if err != nil {
+				return err
+			}
+			refs = envoyx.MergeRefs(refs, auxRefs)
+			ii = ii.Merge(auxIdents)
+
+			break
+
 		// Handle RBAC rules
 		case "allow":
 			auxOut, err = unmarshalAllowNode(n)
@@ -862,6 +940,7 @@ func (d *auxYamlDoc) unmarshalModuleFieldNode(dctx documentContext, n *yaml.Node
 	// This operation is done in the second pass of the document so we have
 	// the complete context of the current resource; such as the identifier,
 	// references, and scope.
+	var auxNestedNodes envoyx.NodeSet
 	err = y7s.EachMap(n, func(k, n *yaml.Node) error {
 		nestedNodes = nil
 
@@ -889,16 +968,23 @@ func (d *auxYamlDoc) unmarshalModuleFieldNode(dctx documentContext, n *yaml.Node
 				Scope:        scope,
 			}
 
+			for f, ref := range a.References {
+				ref.Scope = scope
+				a.References[f] = ref
+			}
+
 			for f, ref := range refs {
 				a.References[f] = ref
 			}
 		}
-		auxOut = append(auxOut, nestedNodes...)
+		auxNestedNodes = append(auxNestedNodes, nestedNodes...)
 		return nil
 	})
 	if err != nil {
 		return
 	}
+
+	out = append(out, auxNestedNodes...)
 
 	a := &envoyx.Node{
 		Resource: r,
@@ -1096,10 +1182,67 @@ func (d *auxYamlDoc) unmarshalNamespaceNode(dctx documentContext, n *yaml.Node, 
 	// This operation is done in the second pass of the document so we have
 	// the complete context of the current resource; such as the identifier,
 	// references, and scope.
+	var auxNestedNodes envoyx.NodeSet
 	err = y7s.EachMap(n, func(k, n *yaml.Node) error {
 		nestedNodes = nil
 
 		switch strings.ToLower(k.Value) {
+
+		case "chart", "charts", "chrt":
+			if y7s.IsSeq(n) {
+				nestedNodes, err = d.unmarshalChartSeq(dctx, n)
+				if err != nil {
+					return err
+				}
+			} else {
+				nestedNodes, err = d.unmarshalChartMap(dctx, n)
+				if err != nil {
+					return err
+				}
+			}
+			break
+
+		case "module", "modules", "mod":
+			if y7s.IsSeq(n) {
+				nestedNodes, err = d.unmarshalModuleSeq(dctx, n)
+				if err != nil {
+					return err
+				}
+			} else {
+				nestedNodes, err = d.unmarshalModuleMap(dctx, n)
+				if err != nil {
+					return err
+				}
+			}
+			break
+
+		case "modulefield", "module_fields", "modulefields", "fields":
+			if y7s.IsSeq(n) {
+				nestedNodes, err = d.unmarshalModuleFieldSeq(dctx, n)
+				if err != nil {
+					return err
+				}
+			} else {
+				nestedNodes, err = d.unmarshalModuleFieldMap(dctx, n)
+				if err != nil {
+					return err
+				}
+			}
+			break
+
+		case "page", "pages", "pg":
+			if y7s.IsSeq(n) {
+				nestedNodes, err = d.unmarshalPageSeq(dctx, n)
+				if err != nil {
+					return err
+				}
+			} else {
+				nestedNodes, err = d.unmarshalPageMap(dctx, n)
+				if err != nil {
+					return err
+				}
+			}
+			break
 
 		}
 
@@ -1123,16 +1266,23 @@ func (d *auxYamlDoc) unmarshalNamespaceNode(dctx documentContext, n *yaml.Node, 
 				Scope:        scope,
 			}
 
+			for f, ref := range a.References {
+				ref.Scope = scope
+				a.References[f] = ref
+			}
+
 			for f, ref := range refs {
 				a.References[f] = ref
 			}
 		}
-		auxOut = append(auxOut, nestedNodes...)
+		auxNestedNodes = append(auxNestedNodes, nestedNodes...)
 		return nil
 	})
 	if err != nil {
 		return
 	}
+
+	out = append(out, auxNestedNodes...)
 
 	a := &envoyx.Node{
 		Resource: r,
@@ -1369,6 +1519,7 @@ func (d *auxYamlDoc) unmarshalPageNode(dctx documentContext, n *yaml.Node, meta 
 	// This operation is done in the second pass of the document so we have
 	// the complete context of the current resource; such as the identifier,
 	// references, and scope.
+	var auxNestedNodes envoyx.NodeSet
 	err = y7s.EachMap(n, func(k, n *yaml.Node) error {
 		nestedNodes = nil
 
@@ -1396,16 +1547,23 @@ func (d *auxYamlDoc) unmarshalPageNode(dctx documentContext, n *yaml.Node, meta 
 				Scope:        scope,
 			}
 
+			for f, ref := range a.References {
+				ref.Scope = scope
+				a.References[f] = ref
+			}
+
 			for f, ref := range refs {
 				a.References[f] = ref
 			}
 		}
-		auxOut = append(auxOut, nestedNodes...)
+		auxNestedNodes = append(auxNestedNodes, nestedNodes...)
 		return nil
 	})
 	if err != nil {
 		return
 	}
+
+	out = append(out, auxNestedNodes...)
 
 	a := &envoyx.Node{
 		Resource: r,
