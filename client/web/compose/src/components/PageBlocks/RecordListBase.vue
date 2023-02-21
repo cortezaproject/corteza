@@ -1217,29 +1217,18 @@ export default {
       this.processing = false
     },
 
-    handleRowClicked ({ r: { recordID } }) {
-      const { moduleID, namespaceID } = this.recordListModule
+    async handleRowClicked ({ r: { recordID } }) {
+      if ((this.options.editable && this.editing) || (!this.recordPageID && !this.options.rowViewUrl)) {
+        return
+      }
 
-      if (this.block.options.enableRecordPageNavigation) {
-        const { pageCursor, nextPage, prevPage } = this.filter
-
-        this.loadPaginationRecords({
-          recordListModule: this.recordListModule,
-          moduleID,
-          namespaceID,
-          filterCursors: [prevPage, pageCursor, nextPage],
+      if (this.options.enableRecordPageNavigation) {
+        await this.loadPaginationRecords({
           filter: {
             ...this.filter,
             limit: Math.min(this.pagination.count, 100),
           },
-          options: {
-            showRecordNavigationTooltip: this.block.options.showRecordNavigationTooltip,
-          },
         })
-      }
-
-      if ((this.options.editable && this.editing) || (!this.recordPageID && !this.options.rowViewUrl)) {
-        return
       }
 
       const pageID = this.recordPageID

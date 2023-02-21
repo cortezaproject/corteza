@@ -93,7 +93,7 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters } from 'vuex'
 import RecordToolbar from 'corteza-webapp-compose/src/components/Common/RecordToolbar'
 import users from 'corteza-webapp-compose/src/mixins/users'
 import record from 'corteza-webapp-compose/src/mixins/record'
@@ -136,7 +136,6 @@ export default {
 
   computed: {
     ...mapGetters({
-      clearRecordPageNavigation: 'ui/clearRecordPageNavigation',
       getNextAndPrevRecord: 'ui/getNextAndPrevRecord',
     }),
 
@@ -198,9 +197,8 @@ export default {
     },
 
     recordNavigation () {
-      if (!this.record) return
-
-      return this.getNextAndPrevRecord(this.record.recordID)
+      const { recordID } = this.record || {}
+      return this.getNextAndPrevRecord(recordID)
     },
   },
 
@@ -215,21 +213,9 @@ export default {
 
   created () {
     this.createBlocks()
-
-    if (this.clearRecordPageNavigation) {
-      this.setClearRecordPageNavigation(false)
-      this.clearRecordIds()
-    } else {
-      this.clearRecordIds()
-    }
   },
 
   methods: {
-    ...mapActions({
-      setClearRecordPageNavigation: 'ui/setClearRecordPageNavigation',
-      clearRecordIds: 'ui/clearRecordIds',
-    }),
-
     createBlocks () {
       this.fields.forEach(f => {
         const block = new compose.PageBlockRecord()
@@ -273,21 +259,12 @@ export default {
       this.$router.push({ name: 'admin.modules.record.edit', params: this.$route.params })
     },
 
-    handleRedirectToPrevOrNext (value) {
-      const recordID = value
-
+    handleRedirectToPrevOrNext (recordID) {
       if (!recordID) return
 
-      const route = {
-        name: 'admin.modules.record.view',
-        params: {
-          moduleID: this.$route.params.moduleID,
-          recordID,
-        },
-        query: null,
-      }
-
-      this.$router.push(route)
+      this.$router.push({
+        params: { ...this.$route.params, recordID },
+      })
     },
   },
 }

@@ -33,28 +33,24 @@
       >
         <b-button-group v-if="recordNavigation.prev || recordNavigation.next">
           <b-button
-            id="tooltip-target-prev-page"
-            v-b-tooltip.hover
             pill
             size="lg"
             variant="outline-primary"
             class="mr-2"
-            :disabled="!recordNavigation.prev"
+            :disabled="!record || processing || !recordNavigation.prev"
             :title="$t('recordNavigation.prev')"
-            @click="$emit('update-navigation', recordNavigation.prev)"
+            @click="navigateToRecord(recordNavigation.prev)"
           >
             <font-awesome-icon :icon="['fas', 'angle-left']" />
           </b-button>
 
           <b-button
-            id="tooltip-target-next-page"
-            v-b-tooltip.hover
             size="lg"
             pill
             variant="outline-primary"
-            :disabled="!recordNavigation.next"
+            :disabled="!record || processing || !recordNavigation.next"
             :title="$t('recordNavigation.next')"
-            @click="$emit('update-navigation', recordNavigation.next)"
+            @click="navigateToRecord(recordNavigation.next)"
           >
             <font-awesome-icon :icon="['fas', 'angle-right']" />
           </b-button>
@@ -175,6 +171,7 @@
 
 <script>
 import { compose, NoID } from '@cortezaproject/corteza-js'
+import { throttle } from 'lodash'
 
 export default {
   i18nOptions: {
@@ -284,6 +281,12 @@ export default {
 
       return this.isDeleted && this.record.canUndeleteRecord && !this.processing && this.record.recordID !== NoID
     },
+  },
+
+  methods: {
+    navigateToRecord: throttle(function (recordID) {
+      this.$emit('update-navigation', recordID)
+    }, 500),
   },
 }
 </script>

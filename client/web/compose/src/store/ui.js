@@ -5,8 +5,8 @@ const types = {
   completed: 'completed',
   setRecordPagination: 'setRecordPagination',
   clearRecordPagination: 'clearRecordPagination',
-  clearRecordPageNavigation: 'clearRecordPageNavigation',
-  setClearRecordPageNavigation: 'setClearRecordPageNavigation',
+  recordPaginationUsable: 'recordPaginationUsable',
+  setRecordPaginationUsable: 'setRecordPaginationUsable',
 }
 
 export default function (ComposeAPI) {
@@ -16,9 +16,8 @@ export default function (ComposeAPI) {
     state: {
       loading: false,
       pending: false,
-      recordPaginationIds: [],
-      recordPageVisited: null,
-      clearRecordPageNavigation: true,
+      recordPaginationIDs: [],
+      recordPaginationUsable: false,
     },
 
     getters: {
@@ -26,59 +25,42 @@ export default function (ComposeAPI) {
 
       pending: (state) => state.pending,
 
-      clearRecordPageNavigation: (state) => state.clearRecordPageNavigation,
+      recordPaginationUsable: (state) => state.recordPaginationUsable,
 
-      getRecordNavigationIndex: (state) => (recordID) => {
-        return state.recordPaginationIds.indexOf(recordID)
-      },
+      getNextAndPrevRecord: ({ recordPaginationIDs }) => (recordID) => {
+        const recordIndex = recordPaginationIDs.indexOf(recordID)
+        const prev = recordIndex >= 0 ? recordPaginationIDs[recordIndex - 1] : undefined
+        const next = recordIndex >= 0 ? recordPaginationIDs[recordIndex + 1] : undefined
 
-      nextRecordNavigation: ({ recordPaginationIds }, { getRecordNavigationIndex }) => (recordID) => {
-        const recordIndex = getRecordNavigationIndex(recordID)
-        const index = recordIndex !== undefined ? recordIndex : 1
-
-        return recordPaginationIds[index - 1]
-      },
-
-      prevRecordNavigation: ({ recordPaginationIds }, { getRecordNavigationIndex }) => (recordID) => {
-        const recordIndex = getRecordNavigationIndex(recordID)
-        const index = recordIndex !== undefined ? recordIndex : 1
-
-        return recordPaginationIds[index + 1]
-      },
-
-      getNextAndPrevRecord: (_, { nextRecordNavigation, prevRecordNavigation }) => (recordID) => {
-        return {
-          next: prevRecordNavigation(recordID),
-          prev: nextRecordNavigation(recordID),
-        }
+        return { next, prev }
       },
     },
 
     actions: {
-      loadPaginationRecords ({ commit }, { filter, moduleID, namespaceID, filterCursors, incTotal, incPageNavigation, options } = {}) {
+      async loadPaginationRecords ({ commit }, { filter } = {}) {
         commit(types.pending)
-        commit(types.setClearRecordPageNavigation, true)
+        commit(types.recordPaginationUsable, true)
 
-        return Promise.all(filterCursors.map((cursor) => {
-          filter.pageCursor = cursor
+        const { pageCursor, prevPage } = filter
 
-          return ComposeAPI.recordList({ ...filter, moduleID, namespaceID, incTotal, incPageNavigation })
+        return Promise.all([prevPage, pageCursor].map(pageCursor => {
+          return ComposeAPI.recordList({ ...filter, pageCursor })
             .then(({ set }) => {
               return set.map(({ recordID }) => recordID)
             })
-        })).finally(() => {
-          commit(types.completed)
-        }).then(([prevRecords, nextRecords]) => {
+        })).then(([prevRecords, nextRecords]) => {
           commit(types.setRecordPagination, [...new Set([...prevRecords, ...nextRecords])])
+        }).finally(() => {
+          commit(types.completed)
         })
       },
 
-      clearRecordIds ({ commit }) {
+      clearRecordIDs ({ commit }) {
         commit(types.clearRecordPagination)
       },
 
-      setClearRecordPageNavigation ({ commit }, value) {
-        commit(types.setClearRecordPageNavigation, value)
+      setRecordPaginationUsable ({ commit }, value) {
+        commit(types.recordPaginationUsable, value)
       },
     },
 
@@ -99,16 +81,16 @@ export default function (ComposeAPI) {
         state.pending = false
       },
 
-      [types.setRecordPagination] (state, recordIds) {
-        state.recordPaginationIds = recordIds
+      [types.setRecordPagination] (state, recordIDs) {
+        state.recordPaginationIDs = recordIDs
       },
 
       [types.clearRecordPagination] (state) {
-        state.recordPaginationIds = []
+        state.recordPaginationIDs = []
       },
 
-      [types.setClearRecordPageNavigation] (state, value) {
-        state.clearRecordPageNavigation = value
+      [types.recordPaginationUsable] (state, value) {
+        state.recordPaginationUsable = value
       },
     },
   }
