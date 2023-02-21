@@ -50,10 +50,24 @@
           v-if="reminder.payload.link"
           :label="$t('reminder.routesTo')"
         >
-          <b-form-input
-            v-model="reminder.payload.link.label"
-            data-test-id="input-link"
-          />
+          <b-input-group>
+            <b-form-input
+              v-model="reminder.payload.link.label"
+              data-test-id="input-link"
+            />
+
+            <b-input-group-append>
+              <b-button
+                :disabled="!recordViewer"
+                :to="recordViewer(reminder.payload.link.params)"
+                :title="$t('label.recordPageLink')"
+                variant="light"
+                class="d-flex align-items-center"
+              >
+                <font-awesome-icon :icon="['fas', 'external-link-alt']" />
+              </b-button>
+            </b-input-group-append>
+          </b-input-group>
         </b-form-group>
       </b-form>
     </b-list-group-item>
@@ -177,6 +191,10 @@ export default {
   },
 
   methods: {
+    recordViewer (params) {
+      return params ? { name: 'page.record', params } : undefined
+    },
+
     save () {
       // @todo support for updating times
       let r = {}

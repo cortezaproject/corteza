@@ -55,6 +55,17 @@
         />
 
         <b-button
+          v-if="r.payload.link"
+          :disabled="!recordViewer()"
+          :to="recordViewer(r.payload.link.params)"
+          :title="$t('label.recordPageLink')"
+          variant="link"
+          class="p-0 ml-2"
+        >
+          <font-awesome-icon :icon="['fas', 'external-link-alt']" />
+        </b-button>
+
+        <b-button
           data-test-id="button-edit-reminder"
           variant="link"
           class="p-1 ml-2"
@@ -126,6 +137,9 @@ export default {
 
     makeTooltip ({ remindAt }) {
       return fmt.fullDateTime(remindAt)
+    },
+    recordViewer (params) {
+      return { name: 'page.record', params }
     },
   },
 }
