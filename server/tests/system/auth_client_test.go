@@ -95,6 +95,7 @@ func TestAuthClientCreate(t *testing.T) {
 	h.apiInit().
 		Post("/auth/clients/").
 		Header("Accept", "application/json").
+		FormData("meta", fmt.Sprintf(`{"name": "%s"}`, rs())).
 		FormData("handle", handle).
 		FormData("scope", "profile api").
 		Expect(t).
@@ -112,6 +113,7 @@ func TestAuthClientUpdate(t *testing.T) {
 	h.clearAuthClients()
 
 	client := h.repoMakeAuthClient()
+	client.Meta = &types.AuthClientMeta{Name: rs()}
 	client.Handle = rs()
 
 	helpers.AllowMe(h, types.AuthClientRbacResource(0), "update")
