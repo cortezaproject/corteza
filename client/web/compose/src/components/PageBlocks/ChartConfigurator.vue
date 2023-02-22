@@ -125,7 +125,7 @@ export default {
 </script>
 
 <style lang="scss">
-.input-group > .chart-selector {
+.chart-selector {
   position: relative;
   -ms-flex: 1 1 auto;
   flex: 1 1 auto;

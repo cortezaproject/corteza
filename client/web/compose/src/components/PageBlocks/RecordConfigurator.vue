@@ -109,7 +109,7 @@
 
             <b-td
               class="align-middle"
-              style="min-width: 300px"
+              style="min-width: 300px;"
             >
               <b-input-group>
                 <b-input-group-prepend>
