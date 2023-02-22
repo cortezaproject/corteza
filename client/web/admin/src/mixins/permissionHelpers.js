@@ -66,9 +66,10 @@ export default {
         .then(({ set }) => {
           this.allRoles = set
           this.rolePermissions = []
+          const roleIDs = this.allRoles.map(({ roleID }) => roleID)
 
           // We read permissions for included roles
-          return Promise.all(getIncludedRoles().map(({ mode, name, roleID, userID }) => {
+          return Promise.all(getIncludedRoles().filter(({ roleID }) => roleIDs.includes(roleID)).map(({ mode, name, roleID, userID }) => {
             if (mode === 'edit') {
               return this.readPermissions({ name, roleID })
             } else {
