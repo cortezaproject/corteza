@@ -73,7 +73,7 @@ const defaults: Readonly<Options> = Object.freeze({
   hideRecordEditButton: false,
   hideRecordViewButton: true,
   hideRecordPermissionsButton: true,
-  enableRecordPageNavigation: true,
+  enableRecordPageNavigation: false,
   allowExport: false,
   perPage: 20,
   recordDisplayOption: 'sameTab',

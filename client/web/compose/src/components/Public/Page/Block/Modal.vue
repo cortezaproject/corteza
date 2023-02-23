@@ -68,7 +68,7 @@ export default {
     },
 
     contentClass () {
-      return `${this.block && this.block.options.magnifyOption === 'fullscreen' ? 'mh-100' : ''} position-initial`
+      return `${this.block && this.block.options.magnifyOption === 'fullscreen' ? 'mh-100 rounded-0' : 'card'} position-initial`
     },
   },
 

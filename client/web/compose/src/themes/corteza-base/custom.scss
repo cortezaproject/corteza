@@ -270,6 +270,14 @@ input[type="search"]::-webkit-search-cancel-button {
   padding-top: 0;
 }
 
+.modal-content {
+  &.card {
+    background-color: #FFF;
+    background-clip: border-box;
+    border: 0 solid rgba(0, 0, 0, 0.125);
+    border-radius: 1rem;
+  }
+}
 // Supporting CSS to improve print-to-PDF option
 @media print {
   @page {

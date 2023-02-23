@@ -129,9 +129,11 @@ export default {
 
         this.$root.$emit(`drill-down-recordList:${recordListUniqueID}`, prefilter)
       } else {
+        const { title } = this.block
+
         // Open in modal
         const block = new compose.PageBlockRecordList({
-          title: `${dimensions} = '${name}'`,
+          title: title ? `${title} - "${name}"` : name,
           blockID: `drillDown-${chartID}`,
           options: {
             moduleID,
@@ -141,11 +143,13 @@ export default {
             hideRecordViewButton: false,
             hideConfigureFieldsButton: false,
             hideImportButton: true,
+            enableRecordPageNavigation: true,
             selectable: true,
             allowExport: true,
             perPage: 14,
             showTotalCount: true,
             magnifyOption: 'modal',
+            recordDisplayOption: 'modal',
           },
         })
 

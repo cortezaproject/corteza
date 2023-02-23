@@ -31,7 +31,7 @@
                 v-if="block.options.showRefresh"
                 :title="$t('general.label.refresh')"
                 variant="outline-light"
-                class="d-print-none border-0 text-primary"
+                class="d-flex align-items-center text-primary d-print-none border-0"
                 @click="$emit('refreshBlock')"
               >
                 <font-awesome-icon :icon="['fa', 'sync']" />
@@ -39,9 +39,9 @@
 
               <b-button
                 v-if="block.options.magnifyOption"
-                :title="$t('general.label.magnify')"
+                :title="isBlockOpened ? '' : $t('general.label.magnify')"
                 variant="outline-light"
-                class="d-print-none border-0 text-primary"
+                class="d-flex align-items-center text-primary d-print-none border-0"
                 @click="$root.$emit('magnify-page-block', isBlockOpened ? undefined : { blockID: block.blockID })"
               >
                 <font-awesome-icon :icon="['fas', isBlockOpened ? 'times' : 'search-plus']" />
