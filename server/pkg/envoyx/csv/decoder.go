@@ -1,6 +1,7 @@
 package csv
 
 import (
+	"context"
 	"encoding/csv"
 	"io"
 	"io/ioutil"
@@ -57,7 +58,7 @@ func Decoder(r io.Reader, ident string) (out *decoder, err error) {
 	}
 
 	r, err = out.flushTemp(r)
-	defer out.Reset()
+	defer out.Reset(nil)
 	if err != nil {
 		return
 	}
@@ -103,14 +104,14 @@ func (d *decoder) Fields() []string {
 }
 
 // Reset resets the decoder to the start
-func (d *decoder) Reset() error {
+func (d *decoder) Reset(_ context.Context) error {
 	_, err := d.src.Seek(0, 0)
 	d.skipHead = true
 	return err
 }
 
 // Next returns the field: value mapping for the next row
-func (d *decoder) Next(out map[string]string) (more bool, err error) {
+func (d *decoder) Next(_ context.Context, out map[string]string) (more bool, err error) {
 	if d.skipHead {
 		_, err = d.reader.Read()
 		if err != nil {

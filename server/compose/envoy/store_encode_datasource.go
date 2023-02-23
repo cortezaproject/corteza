@@ -31,7 +31,7 @@ func (e StoreEncoder) prepareRecordDatasource(ctx context.Context, p envoyx.Enco
 		if err != nil {
 			return
 		}
-		err = ds.Reset()
+		err = ds.Reset(ctx)
 		if err != nil {
 			return
 		}
@@ -51,7 +51,7 @@ func (e StoreEncoder) prepareRecords(ctx context.Context, p envoyx.EncodeParams,
 	ds.refToID = make(map[string]uint64)
 
 	for {
-		ident, more, err = ds.Next(aux)
+		ident, more, err = ds.Next(ctx, aux)
 		if err != nil || !more {
 			return
 		}
@@ -149,15 +149,14 @@ func (e StoreEncoder) encodeRecordDatasource(ctx context.Context, p envoyx.Encod
 	// - second pass makes the getters
 	getters := make(map[string]*recordGetter)
 	for k := range modIndex {
-		aux := makeRecordGetter(dl, tree, n, modIndex[k], dsIndex[k])
-		getters[k] = aux
+		getters[k] = makeRecordGetter(dl, tree, n, modIndex[k], dsIndex[k])
 	}
 
 	// Iterate and encode
 	//
 	// @todo utilize batching
 	for {
-		ident, more, err = ds.Next(auxRec)
+		ident, more, err = ds.Next(ctx, auxRec)
 		if err != nil || !more {
 			return
 		}
