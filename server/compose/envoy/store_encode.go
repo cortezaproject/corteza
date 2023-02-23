@@ -90,12 +90,13 @@ func (e StoreEncoder) encodeModuleExtend(ctx context.Context, p envoyx.EncodePar
 	ns := nsNode.Resource.(*types.Namespace)
 
 	// @todo get connection and things from there
-	model, err := service.ModuleToModel(ns, mod, "compose_record")
+	models, err := service.ModulesToModelSet(dl, ns, mod)
 	if err != nil {
 		return err
 	}
 
-	return dl.ReplaceModel(ctx, model)
+	// @note there is only one model so this is ok
+	return dl.ReplaceModel(ctx, models[0])
 }
 
 func (e StoreEncoder) encodeModuleExtendSubResources(ctx context.Context, p envoyx.EncodeParams, s store.Storer, n *envoyx.Node, tree envoyx.Traverser) (err error) {

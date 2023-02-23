@@ -35,28 +35,28 @@ func TestDecoder(t *testing.T) {
 		aux := make(map[string]string)
 		var more bool
 
-		more, err = dc.Next(aux)
+		more, err = dc.Next(nil, aux)
 		req.NoError(err)
 		req.True(more)
 		req.Equal("r1f1", aux["f1"])
 		req.Equal("r1f2", aux["f2"])
 		req.Equal("r1f3", aux["f3"])
 
-		more, err = dc.Next(aux)
+		more, err = dc.Next(nil, aux)
 		req.NoError(err)
 		req.True(more)
 		req.Equal("r2f1", aux["f1"])
 		req.Equal("r2f2", aux["f2"])
 		req.Equal("r2f3", aux["f3"])
 
-		more, err = dc.Next(aux)
+		more, err = dc.Next(nil, aux)
 		req.NoError(err)
 		req.True(more)
 		req.Equal("r3f1", aux["f1"])
 		req.Equal("r3f2", aux["f2"])
 		req.Equal("r3f3", aux["f3"])
 
-		more, err = dc.Next(aux)
+		more, err = dc.Next(nil, aux)
 		req.NoError(err)
 		req.False(more)
 	})
