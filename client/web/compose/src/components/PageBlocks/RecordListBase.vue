@@ -381,12 +381,16 @@
                 class="text-right"
                 @click.stop
               >
-                <b-button-group v-if="inlineEditing">
+                <b-button-group
+                  v-if="inlineEditing"
+                  size="sm"
+                  class="ml-auto"
+                >
                   <b-button
                     v-if="showCloneRecordButton"
                     :title="$t('recordList.record.tooltip.clone')"
                     variant="outline-light"
-                    class="text-primary d-print-none border-0"
+                    class="d-flex align-items-center text-primary d-print-none border-0"
                     @click="handleCloneInline(item.r)"
                   >
                     <font-awesome-icon
@@ -398,7 +402,7 @@
                     v-if="item.r.deletedAt"
                     :title="$t('recordList.record.tooltip.undelete')"
                     variant="outline-light"
-                    class="border-0 text-dark d-print-none"
+                    class="d-flex align-items-center border-0 text-dark d-print-none"
                     @click.prevent="handleRestoreInline(item, index)"
                   >
                     <font-awesome-icon
@@ -410,7 +414,7 @@
                   <b-button
                     v-else-if="(item.r.canDeleteRecord || item.r.recordID === '0') && !item.r.deletedAt"
                     variant="outline-light"
-                    class="border-0 show-when-hovered text-danger d-print-none"
+                    class="d-flex align-items-center border-0 show-when-hovered text-danger d-print-none"
                     @click.prevent="handleDeleteInline(item, index)"
                   >
                     <font-awesome-icon
@@ -419,12 +423,16 @@
                   </b-button>
                 </b-button-group>
 
-                <b-button-group v-if="!inlineEditing">
+                <b-button-group
+                  v-if="!inlineEditing"
+                  size="sm"
+                  class="ml-auto"
+                >
                   <b-button
                     v-if="!options.hideRecordViewButton && item.r.canReadRecord && (options.rowViewUrl || recordPageID)"
                     :title="$t('recordList.record.tooltip.view')"
                     variant="outline-light"
-                    class="text-primary d-print-none border-0"
+                    class="d-flex align-items-center text-primary d-print-none border-0"
                     :to="{ name: options.rowViewUrl || 'page.record', params: { pageID: recordPageID, recordID: item.r.recordID }, query: null }"
                   >
                     <font-awesome-icon
@@ -437,7 +445,7 @@
                     :title="$t('recordList.record.tooltip.edit')"
                     :to="{ name: options.rowEditUrl || 'page.record.edit', params: { pageID: recordPageID, recordID: item.r.recordID }, query: null }"
                     variant="outline-light"
-                    class="text-primary d-print-none border-0"
+                    class="d-flex align-items-center text-primary d-print-none border-0"
                   >
                     <font-awesome-icon
                       :icon="['far', 'edit']"
@@ -449,7 +457,7 @@
                     :title="$t('recordList.record.tooltip.clone')"
                     variant="outline-light"
                     :to="{ name: options.rowCreateUrl || 'page.record.create', params: { pageID: recordPageID, values: item.r.values }, query: null }"
-                    class="text-primary d-print-none border-0"
+                    class="d-flex align-items-center text-primary d-print-none border-0"
                   >
                     <font-awesome-icon
                       :icon="['far', 'clone']"
@@ -460,7 +468,7 @@
                     v-if="!options.hideRecordReminderButton"
                     :title="$t('recordList.record.tooltip.reminder')"
                     variant="outline-light"
-                    class="text-primary d-print-none border-0"
+                    class="d-flex align-items-center text-primary d-print-none border-0"
                     @click.prevent="createReminder(item.r)"
                   >
                     <font-awesome-icon
@@ -475,7 +483,7 @@
                     :title="item.r.recordID"
                     :tooltip="$t('permissions:resources.compose.record.tooltip')"
                     button-variant="outline-light"
-                    class="text-dark d-print-none border-0"
+                    class="d-flex align-items-center text-dark d-print-none border-0"
                   />
                 </b-button-group>
               </b-td>
