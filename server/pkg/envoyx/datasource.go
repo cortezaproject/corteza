@@ -1,15 +1,17 @@
 package envoyx
 
+import "context"
+
 type (
 	Provider interface {
-		Next(out map[string]string) (more bool, err error)
-		Reset() error
+		Next(ctx context.Context, out map[string]string) (more bool, err error)
+		Reset(ctx context.Context) error
 		Ident() string
 	}
 
 	Datasource interface {
-		Next(out map[string]string) (ident string, more bool, err error)
-		Reset() error
+		Next(ctx context.Context, out map[string]string) (ident string, more bool, err error)
+		Reset(ctx context.Context) error
 		SetProvider(Provider) bool
 	}
 )
