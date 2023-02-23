@@ -1,0 +1,57 @@
+name: "Test server"
+
+# These jobs can be tested with nektos/act tool
+# https://github.com/nektos/act
+#
+# Look for "!env.ACT" in the DRY_RUN expression below
+
+on:
+  push:
+    branches:
+      - '202[2-9].[39].x'
+
+env:
+  BUILD_OS: linux
+  BUILD_ARCH: amd64
+
+  GO_VERSION: 1.19
+  GOFLAGS: -mod=readonly
+
+jobs:
+  server-test:
+    name: "Server tests"
+    runs-on: ubuntu-20.04
+    env:
+      GOFLAGS: -mod=readonly
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with: { go-version: "${{ env.GO_VERSION }}" }
+      - name: "Copy language files"
+        working-directory: server/pkg/locale
+        run: make src/en
+      - name: "Unit"
+        working-directory: server
+        run: make test.unit
+      - name: "Store"
+        working-directory: server
+        run: make test.store
+      - name: "Integration"
+        working-directory: server
+        run: make test.integration
+
+  notify:
+    name: "Send matrix testing notification"
+    runs-on: ubuntu-20.04
+    needs: [ server-test ]
+    steps:
+      - name: "Send message via Matrix on failed tests"
+        if: ${{ !env.ACT && failure() }}
+        id: matrix-chat-tests-failed
+        uses: fadenb/matrix-chat-message@v0.0.6
+        with:
+          homeserver: ${{ secrets.MATRIX_HOME_SERVER }}
+          token: ${{ secrets.MATRIX_ACCESS_TOKEN }}
+          channel: ${{ secrets.MATRIX_ROOM_ID }}
+          message: |
+            # Corteza **${GITHUB_REF##*/}** server tests have failed
