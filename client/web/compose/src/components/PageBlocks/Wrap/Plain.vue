@@ -6,7 +6,7 @@
     >
       <div
         v-if="showHeader"
-        :class="`card-header bg-transparent border-0 text-nowrap px-3 text-${block.style.variants.headerText}`"
+        :class="`card-header bg-transparent border-0 text-nowrap pl-3 pr-2 mr-1 text-${block.style.variants.headerText}`"
       >
         <div
           v-if="!headerSet"
@@ -24,13 +24,14 @@
 
             <b-button-group
               v-if="showOptions"
+              size="sm"
               class="ml-auto"
             >
               <b-button
                 v-if="block.options.showRefresh"
                 :title="$t('general.label.refresh')"
                 variant="outline-light"
-                class="d-print-none border-0"
+                class="d-print-none border-0 text-primary"
                 @click="$emit('refreshBlock')"
               >
                 <font-awesome-icon :icon="['fa', 'sync']" />
@@ -40,7 +41,7 @@
                 v-if="block.options.magnifyOption"
                 :title="$t('general.label.magnify')"
                 variant="outline-light"
-                class="d-print-none border-0"
+                class="d-print-none border-0 text-primary"
                 @click="$root.$emit('magnify-page-block', isBlockOpened ? undefined : { blockID: block.blockID })"
               >
                 <font-awesome-icon :icon="['fas', isBlockOpened ? 'times' : 'search-plus']" />

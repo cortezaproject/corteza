@@ -7,7 +7,7 @@
     >
       <b-card-header
         v-if="showHeader"
-        class="border-0 text-nowrap px-3"
+        class="border-0 text-nowrap pl-3 pr-2 mr-1"
         header-bg-variant="white"
         :header-text-variant="block.style.variants.headerText"
       >
@@ -26,6 +26,7 @@
 
             <b-button-group
               v-if="showOptions"
+              size="sm"
               class="ml-auto"
             >
               <b-button
