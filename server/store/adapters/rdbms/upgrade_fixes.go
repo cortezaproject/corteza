@@ -34,7 +34,6 @@ import (
 var (
 	// all enabled fix function need to be listed here
 	fixes = []func(context.Context, *Store) error{
-		fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings,
 		fix_2022_09_00_extendComposeModuleForPrivacyAndDAL,
 		fix_2022_09_00_extendComposeModuleFieldsForPrivacyAndDAL,
 		fix_2022_09_00_dropObsoleteComposeModuleFields,
@@ -47,6 +46,7 @@ var (
 		fix_2022_09_00_addMissingNodeIdOnFederationMapping,
 		fix_2023_03_00_migrateComposeModuleConfigForRecordDeDup,
 		fix_2022_09_07_changePostgresIdColumnsDatatype,
+		fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings,
 	}
 )
 
@@ -152,6 +152,12 @@ func fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings(ctx context.Cont
 				bb             []byte
 				settings       discovery.ModuleMeta
 				migrateSetting = func(input interface{}) (out result) {
+					out = result{
+						Result: discovery.Result{
+							Lang:   "",
+							Fields: []string{},
+						},
+					}
 					var (
 						ok  bool
 						ii  map[string]interface{}
