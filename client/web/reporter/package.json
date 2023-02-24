@@ -27,6 +27,7 @@
     "html-parse-stringify": "^3.0.1",
     "i18next": "^17.0.9",
     "i18next-browser-languagedetector": "^3.0.2",
+    "lodash": "^4.17.21",
     "portal-vue": "^2.1.7",
     "tiptap": "^1.32.2",
     "tiptap-commands": "^1.17.1",
