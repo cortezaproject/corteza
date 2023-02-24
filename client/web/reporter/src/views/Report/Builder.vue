@@ -78,7 +78,7 @@
     </portal>
 
     <grid
-      v-if="report && canRead &&showReport"
+      v-if="report && canRead && showReport"
       :blocks.sync="reportBlocks"
       editable
     >
@@ -225,17 +225,19 @@
 
     <b-modal
       v-model="datasources.showConfigurator"
-      size="xl"
-      scrollable
+      :title="$t('builder:datasources.label')"
       :ok-title="$t('builder:datasources.save')"
       ok-variant="primary"
-      :title="$t('builder:datasources.label')"
+      :ok-disabled="datasources.processing"
+      :cancel-disabled="datasources.processing"
+      scrollable
+      size="xl"
       body-class="py-3"
-      @ok="refreshReport()"
+      @ok="saveDatasources"
     >
       <configurator
         v-if="report"
-        :items="reportDatasources"
+        :items="datasources.tempItems"
         :current-index="datasources.currentIndex"
         draggable
         @select="setCurrentDatasource"
@@ -252,10 +254,10 @@
 
         <template #configurator>
           <component
-            :is="getDatasourceComponent(reportDatasources[datasources.currentIndex])"
+            :is="getDatasourceComponent(datasources.tempItems[datasources.currentIndex])"
             v-if="currentDatasourceStep"
             :index="datasources.currentIndex"
-            :datasources="reportDatasources"
+            :datasources="datasources.tempItems"
             :step.sync="currentDatasourceStep"
           />
         </template>
@@ -355,7 +357,8 @@
 </template>
 
 <script>
-import { reporter } from '@cortezaproject/corteza-js'
+import { cloneDeep } from 'lodash'
+import { system, reporter } from '@cortezaproject/corteza-js'
 import report from 'corteza-webapp-reporter/src/mixins/report'
 import Grid from 'corteza-webapp-reporter/src/components/Report/Grid'
 import Block from 'corteza-webapp-reporter/src/components/Report/Blocks'
@@ -438,7 +441,9 @@ export default {
         showSelector: false,
         showConfigurator: false,
 
+        processing: false,
         currentIndex: undefined,
+        tempItems: [],
 
         types: [
           {
@@ -512,12 +517,12 @@ export default {
 
     currentDatasourceStep: {
       get () {
-        return this.datasources.currentIndex !== undefined ? this.reportDatasources[this.datasources.currentIndex].step : undefined
+        return this.datasources.currentIndex !== undefined ? this.datasources.tempItems[this.datasources.currentIndex].step : undefined
       },
 
       set (step) {
         if (this.datasources.currentIndex !== undefined) {
-          this.reportDatasources[this.datasources.currentIndex].step = step
+          this.datasources.tempItems[this.datasources.currentIndex].step = step
         }
       },
     },
@@ -660,12 +665,19 @@ export default {
 
     openDatasourceSelector () {
       this.datasources.showSelector = true
-      this.datasources.currentIndex = this.reportDatasources.length ? 0 : undefined
+      this.datasources.currentIndex = this.datasources.tempItems.length ? 0 : undefined
     },
 
     openDatasourceConfigurator () {
       this.datasources.showConfigurator = true
-      this.datasources.currentIndex = this.reportDatasources.length ? 0 : undefined
+      this.datasources.tempItems = cloneDeep(this.reportDatasources)
+      this.datasources.currentIndex = this.datasources.tempItems.length ? 0 : undefined
+    },
+
+    hideDatasourceConfigurator () {
+      this.datasources.showConfigurator = false
+      this.datasources.tempItems = []
+      this.datasources.currentIndex = undefined
     },
 
     setCurrentDatasource (index) {
@@ -673,8 +685,8 @@ export default {
     },
 
     deleteCurrentDataSource () {
-      this.reportDatasources.splice(this.datasources.currentIndex, 1)
-      this.datasources.currentIndex = this.reportDatasources.length ? 0 : undefined
+      this.datasources.tempItems.splice(this.datasources.currentIndex, 1)
+      this.datasources.currentIndex = this.datasources.tempItems.length ? 0 : undefined
     },
 
     addDatasource (kind = '') {
@@ -730,18 +742,40 @@ export default {
             })
         }
 
-        this.reportDatasources.push({
+        this.datasources.tempItems.push({
           step,
           meta: {},
         })
       }
 
       // Select newly added datasource in configurator
-      this.datasources.currentIndex = this.reportDatasources.length - 1
+      this.datasources.currentIndex = this.datasources.tempItems.length - 1
 
       // Close selector, open configurator
       this.datasources.showSelector = false
       this.datasources.showConfigurator = true
+    },
+
+    saveDatasources (hideEvent) {
+      // Prevent closing of modal and manually close it when request is complete
+      hideEvent.preventDefault()
+      this.datasources.processing = true
+
+      const sources = this.datasources.tempItems
+      const { reportID } = this.report
+
+      // Fetch saved report and merge with datasources
+      return this.$SystemAPI.reportRead({ reportID }).then(report => {
+        return this.$SystemAPI.reportUpdate(new system.Report({ ...report, sources }))
+      }).then(({ sources }) => {
+        this.report.sources = (new system.Report({ sources })).sources
+        this.refreshReport()
+        this.datasources.showConfigurator = false
+        this.toastSuccess(this.$t('notification:report.datasources.updated'))
+      }).catch(this.toastErrorHandler(this.$t('notification:report.datasources.updateFailed')))
+        .finally(() => {
+          this.datasources.processing = false
+        })
     },
 
     // Blocks

@@ -23,3 +23,6 @@ report:
   updated: Report updated
   notAllowed:
     read: Not allowed to read report
+  datasources:
+    updated: Datasources updated
+    updateFailed: Failed to update datasources

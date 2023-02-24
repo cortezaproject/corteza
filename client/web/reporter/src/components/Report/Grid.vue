@@ -21,7 +21,11 @@
         ref="items"
         :min-w="3"
         :min-h="3"
-        v-bind="{ ...item }"
+        :i="item.i"
+        :h="item.h"
+        :w="item.w"
+        :x="item.x"
+        :y="item.y"
         :class="{ 'editable-grid-item': editable }"
         drag-ignore-from=".gutter"
       >
