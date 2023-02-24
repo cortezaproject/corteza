@@ -1353,6 +1353,16 @@ endpoints:
         name: reminderID
         required: true
         title: reminder ID
+  - name: undismiss
+    method: PATCH
+    title: Undismiss reminder
+    path: "/{reminderID}/undismiss"
+    parameters:
+      path:
+      - type: uint64
+        name: reminderID
+        required: true
+        title: reminder ID
   - name: snooze
     method: PATCH
     title: Snooze reminder

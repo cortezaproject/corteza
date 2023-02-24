@@ -45,10 +45,13 @@ actions:
     log: "deleted {{reminder}}"
 
   - action: dismiss
-    log: "deleted {{reminder}}"
+    log: "dismissed {{reminder}}"
+
+  - action: undismiss
+    log: "undismissed {{reminder}}"
 
   - action: snooze
-    log: "deleted {{reminder}}"
+    log: "snoozed {{reminder}}"
 
 errors:
   - error: notFound
@@ -64,6 +67,9 @@ errors:
 
   - error: notAllowedToDismiss
     message: "not allowed to dismiss reminders of other users"
+
+  - error: notAllowedToUndismiss
+    message: "not allowed to undo dismissed reminders of other users"
 
   - error: notAllowedToRead
     message: "not allowed to read reminders of other users"

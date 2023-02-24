@@ -39,6 +39,7 @@ type (
 		Update(context.Context, *types.Reminder) (*types.Reminder, error)
 
 		Dismiss(context.Context, uint64) error
+		Undismiss(context.Context, uint64) error
 		Snooze(context.Context, uint64, *time.Time) error
 
 		Delete(context.Context, uint64) error
@@ -221,6 +222,42 @@ func (svc reminder) Dismiss(ctx context.Context, ID uint64) (err error) {
 		n := time.Now()
 		r.DismissedAt = &n
 		r.DismissedBy = svc.currentUser(ctx)
+
+		if err = store.UpdateReminder(ctx, svc.store, r); err != nil {
+			return err
+		}
+
+		return nil
+	}()
+
+	return svc.recordAction(ctx, raProps, ReminderActionDismiss, err)
+}
+
+func (svc reminder) Undismiss(ctx context.Context, ID uint64) (err error) {
+	var (
+		r *types.Reminder
+
+		raProps = &reminderActionProps{reminder: &types.Reminder{ID: ID}}
+	)
+
+	err = func() (err error) {
+		if ID == 0 {
+			return ReminderErrInvalidID()
+		}
+
+		if r, err = store.LookupReminderByID(ctx, svc.store, ID); err != nil {
+			return ReminderErrNotFound()
+		}
+
+		if svc.checkAssignTo(ctx, r) {
+			return ReminderErrNotAllowedToUndismiss()
+		}
+
+		raProps.setReminder(r)
+
+		// Assign changed values
+		r.DismissedAt = nil
+		r.DismissedBy = 0
 
 		if err = store.UpdateReminder(ctx, svc.store, r); err != nil {
 			return err
