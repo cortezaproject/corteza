@@ -162,6 +162,13 @@ type (
 		ReminderID uint64 `json:",string"`
 	}
 
+	ReminderUndismiss struct {
+		// ReminderID PATH parameter
+		//
+		// reminder ID
+		ReminderID uint64 `json:",string"`
+	}
+
 	ReminderSnooze struct {
 		// ReminderID PATH parameter
 		//
@@ -692,6 +699,41 @@ func (r ReminderDismiss) GetReminderID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *ReminderDismiss) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "reminderID")
+		r.ReminderID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewReminderUndismiss request
+func NewReminderUndismiss() *ReminderUndismiss {
+	return &ReminderUndismiss{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ReminderUndismiss) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"reminderID": r.ReminderID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ReminderUndismiss) GetReminderID() uint64 {
+	return r.ReminderID
+}
+
+// Fill processes request and fills internal variables
+func (r *ReminderUndismiss) Fill(req *http.Request) (err error) {
 
 	{
 		var val string

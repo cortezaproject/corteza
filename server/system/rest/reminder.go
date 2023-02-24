@@ -95,6 +95,10 @@ func (ctrl *Reminder) Dismiss(ctx context.Context, r *request.ReminderDismiss) (
 	return api.OK(), ctrl.reminder.Dismiss(ctx, r.ReminderID)
 }
 
+func (ctrl *Reminder) Undismiss(ctx context.Context, r *request.ReminderUndismiss) (interface{}, error) {
+	return api.OK(), ctrl.reminder.Undismiss(ctx, r.ReminderID)
+}
+
 func (ctrl *Reminder) Snooze(ctx context.Context, r *request.ReminderSnooze) (interface{}, error) {
 	return api.OK(), ctrl.reminder.Snooze(ctx, r.ReminderID, r.RemindAt)
 }
