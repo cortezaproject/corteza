@@ -10,7 +10,7 @@ type (
 	}
 
 	Datasource interface {
-		Next(ctx context.Context, out map[string]string) (ident string, more bool, err error)
+		Next(ctx context.Context, out map[string]string) (ident []string, more bool, err error)
 		Reset(ctx context.Context) error
 		SetProvider(Provider) bool
 	}

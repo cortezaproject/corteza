@@ -231,6 +231,7 @@ func (d *auxYamlDoc) unmarshalChartNode(dctx documentContext, n *yaml.Node, meta
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
+		envoyConfig envoyx.NodeConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -252,7 +253,7 @@ func (d *auxYamlDoc) unmarshalChartNode(dctx documentContext, n *yaml.Node, meta
 				auxRefs   map[string]envoyx.Ref
 				auxIdents envoyx.Identifiers
 			)
-			auxRefs, auxIdents, err = unmarshalChartConfigNode(r, n)
+			auxRefs, auxIdents, err = d.unmarshalChartConfigNode(r, n)
 			if err != nil {
 				return err
 			}
@@ -317,6 +318,8 @@ func (d *auxYamlDoc) unmarshalChartNode(dctx documentContext, n *yaml.Node, meta
 			}
 			rbacNodes = append(rbacNodes, auxOut...)
 			auxOut = nil
+		case "(envoy)":
+			envoyConfig = d.decodeEnvoyConfig(n)
 		}
 
 		return nil
@@ -415,6 +418,8 @@ func (d *auxYamlDoc) unmarshalChartNode(dctx documentContext, n *yaml.Node, meta
 		References:   refs,
 
 		Scope: scope,
+
+		Config: envoyConfig,
 	}
 	// Update RBAC resource nodes with references regarding the resource
 	for _, rn := range rbacNodes {
@@ -528,6 +533,7 @@ func (d *auxYamlDoc) unmarshalModuleNode(dctx documentContext, n *yaml.Node, met
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
+		envoyConfig envoyx.NodeConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -595,6 +601,8 @@ func (d *auxYamlDoc) unmarshalModuleNode(dctx documentContext, n *yaml.Node, met
 			}
 			rbacNodes = append(rbacNodes, auxOut...)
 			auxOut = nil
+		case "(envoy)":
+			envoyConfig = d.decodeEnvoyConfig(n)
 		}
 
 		return nil
@@ -659,7 +667,7 @@ func (d *auxYamlDoc) unmarshalModuleNode(dctx documentContext, n *yaml.Node, met
 			}
 			break
 
-		case "source", "datasource":
+		case "source", "datasource", "records":
 			if y7s.IsSeq(n) {
 				nestedNodes, err = d.unmarshalExtendedSourceSeq(dctx, n)
 				if err != nil {
@@ -720,6 +728,8 @@ func (d *auxYamlDoc) unmarshalModuleNode(dctx documentContext, n *yaml.Node, met
 		References:   refs,
 
 		Scope: scope,
+
+		Config: envoyConfig,
 	}
 	// Update RBAC resource nodes with references regarding the resource
 	for _, rn := range rbacNodes {
@@ -817,6 +827,7 @@ func (d *auxYamlDoc) unmarshalModuleFieldNode(dctx documentContext, n *yaml.Node
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
+		envoyConfig envoyx.NodeConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -827,6 +838,44 @@ func (d *auxYamlDoc) unmarshalModuleFieldNode(dctx documentContext, n *yaml.Node
 		_ = auxNodeValue
 
 		switch strings.ToLower(k.Value) {
+
+		case "defaultvalue":
+
+			// Handle custom node decoder
+			//
+			// The decoder may update the passed resource with arbitrary values
+			// as well as provide additional references and identifiers for the node.
+			var (
+				auxRefs   map[string]envoyx.Ref
+				auxIdents envoyx.Identifiers
+			)
+			auxRefs, auxIdents, err = d.unmarshalModuleFieldDefaultValueNode(r, n)
+			if err != nil {
+				return err
+			}
+			refs = envoyx.MergeRefs(refs, auxRefs)
+			ii = ii.Merge(auxIdents)
+
+			break
+
+		case "expressions":
+
+			// Handle custom node decoder
+			//
+			// The decoder may update the passed resource with arbitrary values
+			// as well as provide additional references and identifiers for the node.
+			var (
+				auxRefs   map[string]envoyx.Ref
+				auxIdents envoyx.Identifiers
+			)
+			auxRefs, auxIdents, err = d.unmarshalModuleFieldExpressionsNode(r, n)
+			if err != nil {
+				return err
+			}
+			refs = envoyx.MergeRefs(refs, auxRefs)
+			ii = ii.Merge(auxIdents)
+
+			break
 
 		case "id":
 			// Handle identifiers
@@ -871,7 +920,7 @@ func (d *auxYamlDoc) unmarshalModuleFieldNode(dctx documentContext, n *yaml.Node
 				auxRefs   map[string]envoyx.Ref
 				auxIdents envoyx.Identifiers
 			)
-			auxRefs, auxIdents, err = unmarshalModuleFieldOptionsNode(r, n)
+			auxRefs, auxIdents, err = d.unmarshalModuleFieldOptionsNode(r, n)
 			if err != nil {
 				return err
 			}
@@ -896,6 +945,8 @@ func (d *auxYamlDoc) unmarshalModuleFieldNode(dctx documentContext, n *yaml.Node
 			}
 			rbacNodes = append(rbacNodes, auxOut...)
 			auxOut = nil
+		case "(envoy)":
+			envoyConfig = d.decodeEnvoyConfig(n)
 		}
 
 		return nil
@@ -994,6 +1045,8 @@ func (d *auxYamlDoc) unmarshalModuleFieldNode(dctx documentContext, n *yaml.Node
 		References:   refs,
 
 		Scope: scope,
+
+		Config: envoyConfig,
 	}
 	// Update RBAC resource nodes with references regarding the resource
 	for _, rn := range rbacNodes {
@@ -1091,6 +1144,7 @@ func (d *auxYamlDoc) unmarshalNamespaceNode(dctx documentContext, n *yaml.Node, 
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
+		envoyConfig envoyx.NodeConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -1138,6 +1192,8 @@ func (d *auxYamlDoc) unmarshalNamespaceNode(dctx documentContext, n *yaml.Node, 
 			}
 			rbacNodes = append(rbacNodes, auxOut...)
 			auxOut = nil
+		case "(envoy)":
+			envoyConfig = d.decodeEnvoyConfig(n)
 		}
 
 		return nil
@@ -1292,6 +1348,8 @@ func (d *auxYamlDoc) unmarshalNamespaceNode(dctx documentContext, n *yaml.Node, 
 		References:   refs,
 
 		Scope: scope,
+
+		Config: envoyConfig,
 	}
 	// Update RBAC resource nodes with references regarding the resource
 	for _, rn := range rbacNodes {
@@ -1358,6 +1416,41 @@ func (d *auxYamlDoc) unmarshalPageMap(dctx documentContext, n *yaml.Node) (out e
 	return
 }
 
+// unmarshalPagesExtendedSeq unmarshals Pages when provided as a sequence node
+func (d *auxYamlDoc) unmarshalExtendedPagesSeq(dctx documentContext, n *yaml.Node) (out envoyx.NodeSet, err error) {
+	var aux envoyx.NodeSet
+	err = y7s.EachSeq(n, func(n *yaml.Node) error {
+		aux, err = d.unmarshalPagesExtendedNode(dctx, n)
+		if err != nil {
+			return err
+		}
+		out = append(out, aux...)
+
+		return nil
+	})
+
+	return
+}
+
+// unmarshalPagesExtendedMap unmarshals Pages when provided as a mapping node
+//
+// When map encoded, the map key is used as a preset identifier.
+// The identifier is passed to the node function as a meta node
+func (d *auxYamlDoc) unmarshalExtendedPagesMap(dctx documentContext, n *yaml.Node) (out envoyx.NodeSet, err error) {
+	var aux envoyx.NodeSet
+	err = y7s.EachMap(n, func(k, n *yaml.Node) error {
+		aux, err = d.unmarshalPagesExtendedNode(dctx, n, k)
+		if err != nil {
+			return err
+		}
+		out = append(out, aux...)
+
+		return nil
+	})
+
+	return
+}
+
 // unmarshalPageNode is a cookie-cutter function to unmarshal
 // the yaml node into the corresponding Corteza type & Node
 func (d *auxYamlDoc) unmarshalPageNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
@@ -1389,6 +1482,7 @@ func (d *auxYamlDoc) unmarshalPageNode(dctx documentContext, n *yaml.Node, meta 
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
+		envoyConfig envoyx.NodeConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -1399,6 +1493,25 @@ func (d *auxYamlDoc) unmarshalPageNode(dctx documentContext, n *yaml.Node, meta 
 		_ = auxNodeValue
 
 		switch strings.ToLower(k.Value) {
+
+		case "blocks":
+
+			// Handle custom node decoder
+			//
+			// The decoder may update the passed resource with arbitrary values
+			// as well as provide additional references and identifiers for the node.
+			var (
+				auxRefs   map[string]envoyx.Ref
+				auxIdents envoyx.Identifiers
+			)
+			auxRefs, auxIdents, err = d.unmarshalPageBlocksNode(r, n)
+			if err != nil {
+				return err
+			}
+			refs = envoyx.MergeRefs(refs, auxRefs)
+			ii = ii.Merge(auxIdents)
+
+			break
 
 		case "handle":
 			// Handle identifiers
@@ -1446,7 +1559,14 @@ func (d *auxYamlDoc) unmarshalPageNode(dctx documentContext, n *yaml.Node, meta 
 
 			break
 
-		case "selfid":
+		case "selfid", "parent":
+			// Handle field alias
+			//
+			// @todo consider adding an is empty check before overwriting
+			err = y7s.DecodeScalar(n, "selfID", &r.SelfID)
+			if err != nil {
+				return err
+			}
 			// Handle references
 			err = y7s.DecodeScalar(n, "selfID", &auxNodeValue)
 			if err != nil {
@@ -1455,6 +1575,17 @@ func (d *auxYamlDoc) unmarshalPageNode(dctx documentContext, n *yaml.Node, meta 
 			refs["SelfID"] = envoyx.Ref{
 				ResourceType: "corteza::compose:page",
 				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
+			}
+
+			break
+
+		case "weight", "order":
+			// Handle field alias
+			//
+			// @todo consider adding an is empty check before overwriting
+			err = y7s.DecodeScalar(n, "weight", &r.Weight)
+			if err != nil {
+				return err
 			}
 
 			break
@@ -1475,6 +1606,8 @@ func (d *auxYamlDoc) unmarshalPageNode(dctx documentContext, n *yaml.Node, meta 
 			}
 			rbacNodes = append(rbacNodes, auxOut...)
 			auxOut = nil
+		case "(envoy)":
+			envoyConfig = d.decodeEnvoyConfig(n)
 		}
 
 		return nil
@@ -1525,6 +1658,19 @@ func (d *auxYamlDoc) unmarshalPageNode(dctx documentContext, n *yaml.Node, meta 
 
 		switch strings.ToLower(k.Value) {
 
+		case "children", "pages":
+			if y7s.IsSeq(n) {
+				nestedNodes, err = d.unmarshalExtendedPagesSeq(dctx, n)
+				if err != nil {
+					return err
+				}
+			} else {
+				nestedNodes, err = d.unmarshalExtendedPagesMap(dctx, n)
+				if err != nil {
+					return err
+				}
+			}
+			break
 		}
 
 		// Iterate nested nodes and update their reference to the current resource
@@ -1573,6 +1719,8 @@ func (d *auxYamlDoc) unmarshalPageNode(dctx documentContext, n *yaml.Node, meta 
 		References:   refs,
 
 		Scope: scope,
+
+		Config: envoyConfig,
 	}
 	// Update RBAC resource nodes with references regarding the resource
 	for _, rn := range rbacNodes {
@@ -1714,6 +1862,25 @@ func unmarshalLocaleNode(n *yaml.Node) (out envoyx.NodeSet, err error) {
 			})
 		})
 	})
+}
+
+// // // // // // // // // // // // // // // // // // // // // // // // //
+// Envoy config unmarshal logic
+// // // // // // // // // // // // // // // // // // // // // // // // //
+
+func (d *auxYamlDoc) decodeEnvoyConfig(n *yaml.Node) (out envoyx.NodeConfig) {
+	y7s.EachMap(n, func(k, v *yaml.Node) (err error) {
+		switch strings.ToLower(k.Value) {
+		case "skipif", "skip":
+			return y7s.DecodeScalar(v, "decode skip if", &out.SkipIf)
+		case "onexisting", "mergealg":
+			out.MergeAlg = envoyx.CastMergeAlg(v.Value)
+		}
+
+		return nil
+	})
+
+	return
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // //

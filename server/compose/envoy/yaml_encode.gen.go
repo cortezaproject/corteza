@@ -133,7 +133,10 @@ func (e YamlEncoder) encodeChart(ctx context.Context, p envoyx.EncodeParams, nod
 	res := node.Resource.(*types.Chart)
 
 	// Pre-compute some map values so we can omit error checking when encoding yaml nodes
-
+	auxConfig, err := e.encodeChartConfigC(ctx, p, tt, node, res, res.Config)
+	if err != nil {
+		return
+	}
 	auxCreatedAt, err := e.encodeTimestamp(p, res.CreatedAt)
 	if err != nil {
 		return
@@ -153,11 +156,11 @@ func (e YamlEncoder) encodeChart(ctx context.Context, p envoyx.EncodeParams, nod
 	}
 
 	out, err = y7s.AddMap(out,
-		"config", res.Config,
+		"config", auxConfig,
 		"createdAt", auxCreatedAt,
 		"deletedAt", auxDeletedAt,
 		"handle", res.Handle,
-		"id", res.ID,
+		"chartID", res.ID,
 		"name", res.Name,
 		"namespaceID", auxNamespaceID,
 		"updatedAt", auxUpdatedAt,
@@ -208,6 +211,10 @@ func (e YamlEncoder) encodeModule(ctx context.Context, p envoyx.EncodeParams, no
 	if err != nil {
 		return
 	}
+	auxFields, err := e.encodeModuleFieldsC(ctx, p, tt, node, res, res.Fields)
+	if err != nil {
+		return
+	}
 
 	auxNamespaceID, err := e.encodeRef(p, res.NamespaceID, "NamespaceID", node, tt)
 	if err != nil {
@@ -219,12 +226,12 @@ func (e YamlEncoder) encodeModule(ctx context.Context, p envoyx.EncodeParams, no
 	}
 
 	out, err = y7s.AddMap(out,
-		"config", e.encodeModuleConfig(p, res.Config),
+		"config", res.Config,
 		"createdAt", auxCreatedAt,
 		"deletedAt", auxDeletedAt,
-		"fields", res.Fields,
+		"fields", auxFields,
 		"handle", res.Handle,
-		"id", res.ID,
+		"moduleID", res.ID,
 		"meta", res.Meta,
 		"name", res.Name,
 		"namespaceID", auxNamespaceID,
@@ -294,6 +301,11 @@ func (e YamlEncoder) encodeModuleField(ctx context.Context, p envoyx.EncodeParam
 		return
 	}
 
+	auxOptions, err := e.encodeModuleFieldOptionsC(ctx, p, tt, node, res, res.Options)
+	if err != nil {
+		return
+	}
+
 	auxUpdatedAt, err := e.encodeTimestampNil(p, res.UpdatedAt)
 	if err != nil {
 		return
@@ -311,7 +323,7 @@ func (e YamlEncoder) encodeModuleField(ctx context.Context, p envoyx.EncodeParam
 		"moduleID", auxModuleID,
 		"multi", res.Multi,
 		"name", res.Name,
-		"options", res.Options,
+		"options", auxOptions,
 		"place", res.Place,
 		"required", res.Required,
 		"updatedAt", auxUpdatedAt,
@@ -447,6 +459,10 @@ func (e YamlEncoder) encodePage(ctx context.Context, p envoyx.EncodeParams, node
 	res := node.Resource.(*types.Page)
 
 	// Pre-compute some map values so we can omit error checking when encoding yaml nodes
+	auxBlocks, err := e.encodePageBlocksC(ctx, p, tt, node, res, res.Blocks)
+	if err != nil {
+		return
+	}
 
 	auxCreatedAt, err := e.encodeTimestamp(p, res.CreatedAt)
 	if err != nil {
@@ -476,7 +492,7 @@ func (e YamlEncoder) encodePage(ctx context.Context, p envoyx.EncodeParams, node
 	}
 
 	out, err = y7s.AddMap(out,
-		"blocks", res.Blocks,
+		"blocks", auxBlocks,
 		"children", res.Children,
 		"config", res.Config,
 		"createdAt", auxCreatedAt,

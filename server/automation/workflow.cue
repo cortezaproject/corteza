@@ -52,6 +52,11 @@ workflow: {
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
+				envoy: {
+					yaml: {
+						omitEncoder: true
+					}
+				}
 			}
 
 			run_as: schema.AttributeUserRef
@@ -81,9 +86,15 @@ workflow: {
 				supportMappedInput: false
 				identKeys: ["triggers"]
 			}]
+			extendedResourceEncoders: [{
+				ident: "trigger"
+				expIdent: "Trigger"
+				identKey: "trigger"
+			}]
 		}
 		store: {
 			customFilterBuilder: true
+			extendedDecoder: true
 		}
 	}
 

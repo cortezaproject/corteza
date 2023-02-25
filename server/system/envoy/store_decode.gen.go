@@ -84,6 +84,12 @@ func (d StoreDecoder) decode(ctx context.Context, s store.Storer, dl dal.FullSer
 			if err != nil {
 				return nil, err
 			}
+
+			// @todo consider changing this.
+			//       Currently it's required because the .decode may return some
+			//       nested nodes as well.
+			//       Consider a flag or a new function.
+			aux = envoyx.NodesForResourceType(ref.ResourceType, aux...)
 			if len(aux) == 0 {
 				return nil, fmt.Errorf("invalid reference %v", ref)
 			}
@@ -223,6 +229,16 @@ func (d StoreDecoder) decode(ctx context.Context, s store.Storer, dl dal.FullSer
 			}
 			out = append(out, aux...)
 
+		default:
+			aux, err = d.extendDecoder(ctx, s, dl, wf.rt, refNodes[i], wf.f)
+			if err != nil {
+				return
+			}
+			for _, a := range aux {
+				a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
+				a.References = envoyx.MergeRefs(a.References, refRefs[i])
+			}
+			out = append(out, aux...)
 		}
 	}
 
@@ -254,8 +270,6 @@ func (d StoreDecoder) decodeApplication(ctx context.Context, s store.Storer, dl 
 				Identifiers:  envoyx.MakeIdentifiers(r.OwnerID),
 			},
 		}
-
-		refs = envoyx.MergeRefs(refs, d.decodeApplicationRefs(r))
 
 		var scope envoyx.Scope
 
@@ -348,6 +362,12 @@ func (d StoreDecoder) decodeApigwRoute(ctx context.Context, s store.Storer, dl d
 			Scope:        scope,
 		})
 	}
+
+	aux, err := d.extendedApigwRouteDecoder(ctx, s, dl, f, out)
+	if err != nil {
+		return
+	}
+	out = append(out, aux...)
 
 	return
 }
@@ -493,6 +513,8 @@ func (d StoreDecoder) decodeAuthClient(ctx context.Context, s store.Storer, dl d
 				Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
 			},
 		}
+
+		refs = envoyx.MergeRefs(refs, d.decodeAuthClientRefs(r))
 
 		var scope envoyx.Scope
 
@@ -918,6 +940,8 @@ func (d StoreDecoder) decodeDalConnection(ctx context.Context, s store.Storer, d
 				Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
 			},
 		}
+
+		refs = envoyx.MergeRefs(refs, d.decodeDalConnectionRefs(r))
 
 		var scope envoyx.Scope
 
