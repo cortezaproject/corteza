@@ -3,6 +3,7 @@ package envoyx
 import (
 	"strconv"
 
+	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/spf13/cast"
 )
 
@@ -20,10 +21,17 @@ type (
 		// Placeholders are resources which were added to help resolve missing deps
 		Placeholder bool
 		Config      EnvoyConfig
+		Evaluated   Evaluated
 	}
+
+	Evaluated struct {
+		Skip bool
+	}
+
 	EnvoyConfig struct {
-		MergeAlg mergeAlg
-		SkipIf   string
+		MergeAlg   mergeAlg
+		SkipIf     string
+		SkipIfEval expr.Evaluable
 	}
 
 	NodeSet []*Node
