@@ -19,9 +19,9 @@ type (
 
 		// Placeholders are resources which were added to help resolve missing deps
 		Placeholder bool
-		Config      NodeConfig
+		Config      EnvoyConfig
 	}
-	NodeConfig struct {
+	EnvoyConfig struct {
 		MergeAlg mergeAlg
 		SkipIf   string
 	}
