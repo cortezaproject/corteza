@@ -64,13 +64,12 @@ type (
 	DecoderConfig struct{}
 
 	EncodeParams struct {
-		Type   encodeType
-		Params map[string]any
-		Config EncoderConfig
+		Type    encodeType
+		Params  map[string]any
+		Envoy   EnvoyConfig
+		Encoder EncoderConfig
 	}
 	EncoderConfig struct {
-		OnExisting mergeAlg
-
 		PreferredTimeLayout string
 		PreferredTimezone   string
 	}
@@ -93,7 +92,8 @@ var (
 )
 
 const (
-	OnConflictReplace mergeAlg = iota
+	OnConflictDefault mergeAlg = iota
+	OnConflictReplace
 	OnConflictSkip
 	OnConflictPanic
 	// OnConflictMergeLeft  mergeAlg = "mergeLeft"
@@ -142,6 +142,11 @@ func (svc *service) Decode(ctx context.Context, p DecodeParams) (nn NodeSet, err
 		err = fmt.Errorf("unsupported decoder type %s", p.Type)
 	}
 
+	return
+}
+
+func (svc *service) Bake(ctx context.Context, p EncodeParams, nodes ...*Node) (err error) {
+	err = svc.bakeEnvoyConfig(p.Envoy, nodes...)
 	return
 }
 
@@ -223,6 +228,31 @@ func CastMergeAlg(v string) (mergeAlg mergeAlg) {
 		mergeAlg = OnConflictSkip
 	case "panic", "error":
 		mergeAlg = OnConflictPanic
+	}
+
+	return
+}
+
+func (svc *service) bakeEnvoyConfig(dft EnvoyConfig, nodes ...*Node) (err error) {
+	for _, n := range nodes {
+		n.Config = svc.mergeEnvoyConfigs(n.Config, dft)
+	}
+
+	return
+}
+
+func (svc *service) mergeEnvoyConfigs(a, b EnvoyConfig) (c EnvoyConfig) {
+	c = a
+	if c.MergeAlg == OnConflictDefault {
+		c.MergeAlg = b.MergeAlg
+	}
+	if c.MergeAlg == OnConflictDefault {
+		c.MergeAlg = OnConflictReplace
+	}
+
+	// @todo pre eval this?
+	if c.SkipIf == "" {
+		c.SkipIf = b.SkipIf
 	}
 
 	return
