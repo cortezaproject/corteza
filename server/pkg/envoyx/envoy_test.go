@@ -42,4 +42,25 @@ func TestBake(t *testing.T) {
 		req.Equal(OnConflictReplace, c.Config.MergeAlg)
 		req.Equal("true", c.Config.SkipIf)
 	})
+
+	t.Run("precompute expressions", func(t *testing.T) {
+		a := &Node{
+			Config: EnvoyConfig{
+				MergeAlg: OnConflictDefault,
+				SkipIf:   "",
+			},
+		}
+		b := &Node{
+			Config: EnvoyConfig{
+				MergeAlg: OnConflictReplace,
+				SkipIf:   "a == b",
+			},
+		}
+
+		err := (&service{}).Bake(ctx, EncodeParams{}, a, b)
+		req.NoError(err)
+
+		req.Nil(a.Config.SkipIfEval)
+		req.NotNil(b.Config.SkipIfEval)
+	})
 }

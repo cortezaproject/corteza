@@ -12,6 +12,7 @@ import (
 	"strconv"
 
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
@@ -166,6 +167,12 @@ func (e StoreEncoder) prepareApplication(ctx context.Context, p envoyx.EncodePar
 		}
 
 		existing, hasExisting := existing[i]
+
+		// Run expressions on the nodes
+		err = e.runEvals(ctx, hasExisting, n)
+		if err != nil {
+			return
+		}
 
 		if hasExisting {
 			// On existing, we don't need to re-do identifiers and references; simply
@@ -346,6 +353,12 @@ func (e StoreEncoder) prepareApigwRoute(ctx context.Context, p envoyx.EncodePara
 
 		existing, hasExisting := existing[i]
 
+		// Run expressions on the nodes
+		err = e.runEvals(ctx, hasExisting, n)
+		if err != nil {
+			return
+		}
+
 		if hasExisting {
 			// On existing, we don't need to re-do identifiers and references; simply
 			// changing up the internal resource is enough.
@@ -525,6 +538,12 @@ func (e StoreEncoder) prepareApigwFilter(ctx context.Context, p envoyx.EncodePar
 
 		existing, hasExisting := existing[i]
 
+		// Run expressions on the nodes
+		err = e.runEvals(ctx, hasExisting, n)
+		if err != nil {
+			return
+		}
+
 		if hasExisting {
 			// On existing, we don't need to re-do identifiers and references; simply
 			// changing up the internal resource is enough.
@@ -703,6 +722,12 @@ func (e StoreEncoder) prepareAuthClient(ctx context.Context, p envoyx.EncodePara
 		}
 
 		existing, hasExisting := existing[i]
+
+		// Run expressions on the nodes
+		err = e.runEvals(ctx, hasExisting, n)
+		if err != nil {
+			return
+		}
 
 		if hasExisting {
 			// On existing, we don't need to re-do identifiers and references; simply
@@ -884,6 +909,12 @@ func (e StoreEncoder) prepareQueue(ctx context.Context, p envoyx.EncodeParams, s
 
 		existing, hasExisting := existing[i]
 
+		// Run expressions on the nodes
+		err = e.runEvals(ctx, hasExisting, n)
+		if err != nil {
+			return
+		}
+
 		if hasExisting {
 			// On existing, we don't need to re-do identifiers and references; simply
 			// changing up the internal resource is enough.
@@ -1063,6 +1094,12 @@ func (e StoreEncoder) prepareReport(ctx context.Context, p envoyx.EncodeParams, 
 		}
 
 		existing, hasExisting := existing[i]
+
+		// Run expressions on the nodes
+		err = e.runEvals(ctx, hasExisting, n)
+		if err != nil {
+			return
+		}
 
 		if hasExisting {
 			// On existing, we don't need to re-do identifiers and references; simply
@@ -1244,6 +1281,12 @@ func (e StoreEncoder) prepareRole(ctx context.Context, p envoyx.EncodeParams, s 
 
 		existing, hasExisting := existing[i]
 
+		// Run expressions on the nodes
+		err = e.runEvals(ctx, hasExisting, n)
+		if err != nil {
+			return
+		}
+
 		if hasExisting {
 			// On existing, we don't need to re-do identifiers and references; simply
 			// changing up the internal resource is enough.
@@ -1423,6 +1466,12 @@ func (e StoreEncoder) prepareTemplate(ctx context.Context, p envoyx.EncodeParams
 		}
 
 		existing, hasExisting := existing[i]
+
+		// Run expressions on the nodes
+		err = e.runEvals(ctx, hasExisting, n)
+		if err != nil {
+			return
+		}
 
 		if hasExisting {
 			// On existing, we don't need to re-do identifiers and references; simply
@@ -1604,6 +1653,12 @@ func (e StoreEncoder) prepareUser(ctx context.Context, p envoyx.EncodeParams, s 
 
 		existing, hasExisting := existing[i]
 
+		// Run expressions on the nodes
+		err = e.runEvals(ctx, hasExisting, n)
+		if err != nil {
+			return
+		}
+
 		if hasExisting {
 			// On existing, we don't need to re-do identifiers and references; simply
 			// changing up the internal resource is enough.
@@ -1783,6 +1838,12 @@ func (e StoreEncoder) prepareDalConnection(ctx context.Context, p envoyx.EncodeP
 		}
 
 		existing, hasExisting := existing[i]
+
+		// Run expressions on the nodes
+		err = e.runEvals(ctx, hasExisting, n)
+		if err != nil {
+			return
+		}
 
 		if hasExisting {
 			// On existing, we don't need to re-do identifiers and references; simply
@@ -1964,6 +2025,12 @@ func (e StoreEncoder) prepareDalSensitivityLevel(ctx context.Context, p envoyx.E
 
 		existing, hasExisting := existing[i]
 
+		// Run expressions on the nodes
+		err = e.runEvals(ctx, hasExisting, n)
+		if err != nil {
+			return
+		}
+
 		if hasExisting {
 			// On existing, we don't need to re-do identifiers and references; simply
 			// changing up the internal resource is enough.
@@ -2128,6 +2195,24 @@ func (e *StoreEncoder) grabStorer(p envoyx.EncodeParams) (s store.Storer, err er
 		err = fmt.Errorf("invalid storer provided")
 		return
 	}
+
+	return
+}
+
+func (e *StoreEncoder) runEvals(ctx context.Context, existing bool, n *envoyx.Node) (err error) {
+	// Skip if
+	if n.Config.SkipIfEval == nil {
+		return
+	}
+
+	aux, err := expr.EmptyVars().Cast(map[string]any{
+		"missing": !existing,
+	})
+	if err != nil {
+		return
+	}
+
+	n.Evaluated.Skip, err = n.Config.SkipIfEval.Test(ctx, aux.(*expr.Vars))
 
 	return
 }
