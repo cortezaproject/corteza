@@ -19,6 +19,11 @@ type (
 
 		// Placeholders are resources which were added to help resolve missing deps
 		Placeholder bool
+		Config      NodeConfig
+	}
+	NodeConfig struct {
+		MergeAlg mergeAlg
+		SkipIf   string
 	}
 
 	NodeSet []*Node

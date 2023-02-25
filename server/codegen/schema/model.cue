@@ -100,6 +100,10 @@ import (
 
 		customDecoder: bool | *false
 		customEncoder: bool | *false
+
+		identKeyEncode: string | *$attrIdent
+
+		omitEncoder: bool | *false
 	}
 
 	// store decode/encode configs

@@ -147,7 +147,6 @@ func (e YamlEncoder) encodeWorkflow(ctx context.Context, p envoyx.EncodeParams, 
 		"enabled", res.Enabled,
 		"handle", res.Handle,
 		"id", res.ID,
-		"issues", res.Issues,
 		"keepSessions", res.KeepSessions,
 		"meta", res.Meta,
 		"ownedBy", auxOwnedBy,
@@ -166,6 +165,17 @@ func (e YamlEncoder) encodeWorkflow(ctx context.Context, p envoyx.EncodeParams, 
 	// Handle nested resources
 	var aux *yaml.Node
 	_ = aux
+
+	aux, err = e.encodeTriggers(ctx, p, tt.ChildrenForResourceType(node, types.TriggerResourceType), tt)
+	if err != nil {
+		return
+	}
+	out, err = y7s.AddMap(out,
+		"trigger", aux,
+	)
+	if err != nil {
+		return
+	}
 
 	return
 }

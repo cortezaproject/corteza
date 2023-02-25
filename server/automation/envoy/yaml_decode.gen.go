@@ -206,6 +206,7 @@ func (d *auxYamlDoc) unmarshalWorkflowNode(dctx documentContext, n *yaml.Node, m
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
+		envoyConfig envoyx.NodeConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -318,6 +319,8 @@ func (d *auxYamlDoc) unmarshalWorkflowNode(dctx documentContext, n *yaml.Node, m
 			}
 			rbacNodes = append(rbacNodes, auxOut...)
 			auxOut = nil
+		case "(envoy)":
+			envoyConfig = d.decodeEnvoyConfig(n)
 		}
 
 		return nil
@@ -400,6 +403,8 @@ func (d *auxYamlDoc) unmarshalWorkflowNode(dctx documentContext, n *yaml.Node, m
 		ResourceType: types.WorkflowResourceType,
 		Identifiers:  ii,
 		References:   refs,
+
+		Config: envoyConfig,
 	}
 	// Update RBAC resource nodes with references regarding the resource
 	for _, rn := range rbacNodes {
@@ -478,6 +483,7 @@ func (d *auxYamlDoc) unmarshalTriggerNode(dctx documentContext, n *yaml.Node, me
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
+		envoyConfig envoyx.NodeConfig
 	)
 	_ = auxOut
 	_ = refs
@@ -563,6 +569,8 @@ func (d *auxYamlDoc) unmarshalTriggerNode(dctx documentContext, n *yaml.Node, me
 
 			break
 
+		case "(envoy)":
+			envoyConfig = d.decodeEnvoyConfig(n)
 		}
 
 		return nil
@@ -637,6 +645,8 @@ func (d *auxYamlDoc) unmarshalTriggerNode(dctx documentContext, n *yaml.Node, me
 		ResourceType: types.TriggerResourceType,
 		Identifiers:  ii,
 		References:   refs,
+
+		Config: envoyConfig,
 	}
 
 	// Put it all together...
@@ -760,6 +770,25 @@ func unmarshalLocaleNode(n *yaml.Node) (out envoyx.NodeSet, err error) {
 			})
 		})
 	})
+}
+
+// // // // // // // // // // // // // // // // // // // // // // // // //
+// Envoy config unmarshal logic
+// // // // // // // // // // // // // // // // // // // // // // // // //
+
+func (d *auxYamlDoc) decodeEnvoyConfig(n *yaml.Node) (out envoyx.NodeConfig) {
+	y7s.EachMap(n, func(k, v *yaml.Node) (err error) {
+		switch strings.ToLower(k.Value) {
+		case "skipif", "skip":
+			return y7s.DecodeScalar(v, "decode skip if", &out.SkipIf)
+		case "onexisting", "mergealg":
+			out.MergeAlg = envoyx.CastMergeAlg(v.Value)
+		}
+
+		return nil
+	})
+
+	return
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // //

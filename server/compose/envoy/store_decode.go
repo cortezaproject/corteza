@@ -87,38 +87,94 @@ func (d StoreDecoder) makeModuleFieldFilter(scope *envoyx.Node, refs map[string]
 }
 
 func (d StoreDecoder) extendedModuleDecoder(ctx context.Context, s store.Storer, dl dal.FullService, f types.ModuleFilter, base envoyx.NodeSet) (out envoyx.NodeSet, err error) {
-	var ff types.ModuleFieldSet
+	var ff envoyx.NodeSet
 
 	for _, b := range base {
 		mod := b.Resource.(*types.Module)
-		ff, _, err = store.SearchComposeModuleFields(ctx, s, types.ModuleFieldFilter{ModuleID: []uint64{b.Resource.GetID()}})
+
+		// Get all of the related module fields, append them to the output and
+		// the original module (so other code can have access to the related fields)
+		ff, err = d.decodeModuleField(ctx, s, dl, types.ModuleFieldFilter{ModuleID: []uint64{mod.ID}})
 		if err != nil {
 			return
 		}
 
-		// No need to assign them under the module since we're working with nodes now
 		for _, f := range ff {
-			out = append(out, &envoyx.Node{
-				Resource: f,
-
-				ResourceType: types.ModuleFieldResourceType,
-				Identifiers:  envoyx.MakeIdentifiers(f.ID, f.Name),
-				References: envoyx.MergeRefs(b.References, map[string]envoyx.Ref{
-					"ModuleID": b.ToRef(),
-				}),
-				Scope: b.Scope,
+			f.Scope = b.Scope
+			f.References = envoyx.MergeRefs(b.References, map[string]envoyx.Ref{
+				"ModuleID": b.ToRef(),
 			})
 
-			mod.Fields = append(mod.Fields, f)
+			mod.Fields = append(mod.Fields, f.Resource.(*types.ModuleField))
 		}
+
+		out = append(out, ff...)
 	}
 
 	return
 }
 
 func (d StoreDecoder) decodeChartRefs(c *types.Chart) (refs map[string]envoyx.Ref) {
+	refs = make(map[string]envoyx.Ref, len(c.Config.Reports))
 
-	// @todo
+	for i, r := range c.Config.Reports {
+		if r.ModuleID == 0 {
+			continue
+		}
+
+		refs[fmt.Sprintf("Config.Reports.%d.ModuleID", i)] = envoyx.Ref{
+			ResourceType: types.ModuleResourceType,
+			Identifiers:  envoyx.MakeIdentifiers(r.ModuleID),
+		}
+	}
+
+	return
+}
+
+func (d StoreDecoder) decodeModuleFieldRefs(c *types.ModuleField) (refs map[string]envoyx.Ref) {
+	refs = make(map[string]envoyx.Ref, 1)
+
+	id := c.Options.UInt64("moduleID")
+	if id == 0 {
+		return
+	}
+
+	refs["Options.ModuleID"] = envoyx.Ref{
+		ResourceType: types.ModuleResourceType,
+		Identifiers:  envoyx.MakeIdentifiers(id),
+	}
+
+	return
+}
+
+func (d StoreDecoder) decodePageRefs(p *types.Page) (refs map[string]envoyx.Ref) {
+	refs = make(map[string]envoyx.Ref, len(p.Blocks)/2)
+
+	for index, b := range p.Blocks {
+		switch b.Kind {
+		case "RecordList":
+			refs = envoyx.MergeRefs(refs, getPageBlockRecordListRefs(b, index))
+
+		case "Automation":
+			refs = envoyx.MergeRefs(refs, getPageBlockAutomationRefs(b, index))
+
+		case "RecordOrganizer":
+			refs = envoyx.MergeRefs(refs, getPageBlockRecordOrganizerRefs(b, index))
+
+		case "Chart":
+			refs = envoyx.MergeRefs(refs, getPageBlockChartRefs(b, index))
+
+		case "Calendar":
+			refs = envoyx.MergeRefs(refs, getPageBlockCalendarRefs(b, index))
+
+		case "Metric":
+			refs = envoyx.MergeRefs(refs, getPageBlockMetricRefs(b, index))
+
+		case "Comment":
+			refs = envoyx.MergeRefs(refs, getPageBlockCommentRefs(b, index))
+		}
+	}
+
 	return
 }
 

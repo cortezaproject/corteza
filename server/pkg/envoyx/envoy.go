@@ -3,6 +3,7 @@ package envoyx
 import (
 	"context"
 	"fmt"
+	"strings"
 )
 
 type (
@@ -210,6 +211,19 @@ func (p EncodeParams) validate() (err error) {
 	}
 
 	// @todo...
+
+	return
+}
+
+func CastMergeAlg(v string) (mergeAlg mergeAlg) {
+	switch strings.ToLower(v) {
+	case "replace", "mergeleft":
+		mergeAlg = OnConflictReplace
+	case "skip", "mergeright":
+		mergeAlg = OnConflictSkip
+	case "panic", "error":
+		mergeAlg = OnConflictPanic
+	}
 
 	return
 }

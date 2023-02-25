@@ -316,6 +316,17 @@ func (e YamlEncoder) encodeApigwRoute(ctx context.Context, p envoyx.EncodeParams
 	var aux *yaml.Node
 	_ = aux
 
+	aux, err = e.encodeApigwFilters(ctx, p, tt.ChildrenForResourceType(node, types.ApigwFilterResourceType), tt)
+	if err != nil {
+		return
+	}
+	out, err = y7s.AddMap(out,
+		"filters", aux,
+	)
+	if err != nil {
+		return
+	}
+
 	return
 }
 
@@ -454,6 +465,11 @@ func (e YamlEncoder) encodeAuthClient(ctx context.Context, p envoyx.EncodeParams
 		return
 	}
 
+	auxSecurity, err := e.encodeAuthClientSecurityC(ctx, p, tt, node, res, res.Security)
+	if err != nil {
+		return
+	}
+
 	auxUpdatedAt, err := e.encodeTimestampNil(p, res.UpdatedAt)
 	if err != nil {
 		return
@@ -481,7 +497,7 @@ func (e YamlEncoder) encodeAuthClient(ctx context.Context, p envoyx.EncodeParams
 		"redirectURI", res.RedirectURI,
 		"scope", res.Scope,
 		"secret", res.Secret,
-		"security", res.Security,
+		"security", auxSecurity,
 		"trusted", res.Trusted,
 		"updatedAt", auxUpdatedAt,
 		"updatedBy", auxUpdatedBy,
@@ -853,6 +869,7 @@ func (e YamlEncoder) encodeUser(ctx context.Context, p envoyx.EncodeParams, node
 		"kind", res.Kind,
 		"meta", res.Meta,
 		"name", res.Name,
+		"roles", res.Roles,
 		"suspendedAt", auxSuspendedAt,
 		"updatedAt", auxUpdatedAt,
 		"username", res.Username,
