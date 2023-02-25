@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"strings"
+
+	"github.com/cortezaproject/corteza/server/pkg/expr"
 )
 
 type (
@@ -89,6 +91,8 @@ type (
 
 var (
 	global *service
+
+	ex = expr.NewParser()
 )
 
 const (
@@ -147,6 +151,11 @@ func (svc *service) Decode(ctx context.Context, p DecodeParams) (nn NodeSet, err
 
 func (svc *service) Bake(ctx context.Context, p EncodeParams, nodes ...*Node) (err error) {
 	err = svc.bakeEnvoyConfig(p.Envoy, nodes...)
+	if err != nil {
+		return
+	}
+
+	err = svc.bakeExpressions(nodes...)
 	return
 }
 
@@ -236,6 +245,21 @@ func CastMergeAlg(v string) (mergeAlg mergeAlg) {
 func (svc *service) bakeEnvoyConfig(dft EnvoyConfig, nodes ...*Node) (err error) {
 	for _, n := range nodes {
 		n.Config = svc.mergeEnvoyConfigs(n.Config, dft)
+	}
+
+	return
+}
+
+func (svc *service) bakeExpressions(nodes ...*Node) (err error) {
+	for _, n := range nodes {
+		if n.Config.SkipIf == "" {
+			continue
+		}
+
+		n.Config.SkipIfEval, err = ex.Parse(n.Config.SkipIf)
+		if err != nil {
+			return
+		}
 	}
 
 	return
