@@ -172,7 +172,7 @@ func (e StoreEncoder) prepareApplication(ctx context.Context, p envoyx.EncodePar
 			// changing up the internal resource is enough.
 			//
 			// In the future, we can pass down the tree and re-do the deps like that
-			switch p.Config.OnExisting {
+			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
 				err = fmt.Errorf("resource already exists")
 				return
@@ -197,7 +197,7 @@ func (e StoreEncoder) prepareApplication(ctx context.Context, p envoyx.EncodePar
 		// We can skip validation/defaults when the resource is overwritten by
 		// the one already stored (the panic one errors out anyway) since it
 		// should already be ok.
-		if !hasExisting || p.Config.OnExisting != envoyx.OnConflictSkip {
+		if !hasExisting || n.Config.MergeAlg != envoyx.OnConflictSkip {
 			err = e.setApplicationDefaults(res)
 			if err != nil {
 				return err
@@ -351,7 +351,7 @@ func (e StoreEncoder) prepareApigwRoute(ctx context.Context, p envoyx.EncodePara
 			// changing up the internal resource is enough.
 			//
 			// In the future, we can pass down the tree and re-do the deps like that
-			switch p.Config.OnExisting {
+			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
 				err = fmt.Errorf("resource already exists")
 				return
@@ -376,7 +376,7 @@ func (e StoreEncoder) prepareApigwRoute(ctx context.Context, p envoyx.EncodePara
 		// We can skip validation/defaults when the resource is overwritten by
 		// the one already stored (the panic one errors out anyway) since it
 		// should already be ok.
-		if !hasExisting || p.Config.OnExisting != envoyx.OnConflictSkip {
+		if !hasExisting || n.Config.MergeAlg != envoyx.OnConflictSkip {
 			err = e.setApigwRouteDefaults(res)
 			if err != nil {
 				return err
@@ -530,7 +530,7 @@ func (e StoreEncoder) prepareApigwFilter(ctx context.Context, p envoyx.EncodePar
 			// changing up the internal resource is enough.
 			//
 			// In the future, we can pass down the tree and re-do the deps like that
-			switch p.Config.OnExisting {
+			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
 				err = fmt.Errorf("resource already exists")
 				return
@@ -555,7 +555,7 @@ func (e StoreEncoder) prepareApigwFilter(ctx context.Context, p envoyx.EncodePar
 		// We can skip validation/defaults when the resource is overwritten by
 		// the one already stored (the panic one errors out anyway) since it
 		// should already be ok.
-		if !hasExisting || p.Config.OnExisting != envoyx.OnConflictSkip {
+		if !hasExisting || n.Config.MergeAlg != envoyx.OnConflictSkip {
 			err = e.setApigwFilterDefaults(res)
 			if err != nil {
 				return err
@@ -709,7 +709,7 @@ func (e StoreEncoder) prepareAuthClient(ctx context.Context, p envoyx.EncodePara
 			// changing up the internal resource is enough.
 			//
 			// In the future, we can pass down the tree and re-do the deps like that
-			switch p.Config.OnExisting {
+			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
 				err = fmt.Errorf("resource already exists")
 				return
@@ -734,7 +734,7 @@ func (e StoreEncoder) prepareAuthClient(ctx context.Context, p envoyx.EncodePara
 		// We can skip validation/defaults when the resource is overwritten by
 		// the one already stored (the panic one errors out anyway) since it
 		// should already be ok.
-		if !hasExisting || p.Config.OnExisting != envoyx.OnConflictSkip {
+		if !hasExisting || n.Config.MergeAlg != envoyx.OnConflictSkip {
 			err = e.setAuthClientDefaults(res)
 			if err != nil {
 				return err
@@ -889,7 +889,7 @@ func (e StoreEncoder) prepareQueue(ctx context.Context, p envoyx.EncodeParams, s
 			// changing up the internal resource is enough.
 			//
 			// In the future, we can pass down the tree and re-do the deps like that
-			switch p.Config.OnExisting {
+			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
 				err = fmt.Errorf("resource already exists")
 				return
@@ -914,7 +914,7 @@ func (e StoreEncoder) prepareQueue(ctx context.Context, p envoyx.EncodeParams, s
 		// We can skip validation/defaults when the resource is overwritten by
 		// the one already stored (the panic one errors out anyway) since it
 		// should already be ok.
-		if !hasExisting || p.Config.OnExisting != envoyx.OnConflictSkip {
+		if !hasExisting || n.Config.MergeAlg != envoyx.OnConflictSkip {
 			err = e.setQueueDefaults(res)
 			if err != nil {
 				return err
@@ -1069,7 +1069,7 @@ func (e StoreEncoder) prepareReport(ctx context.Context, p envoyx.EncodeParams, 
 			// changing up the internal resource is enough.
 			//
 			// In the future, we can pass down the tree and re-do the deps like that
-			switch p.Config.OnExisting {
+			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
 				err = fmt.Errorf("resource already exists")
 				return
@@ -1094,7 +1094,7 @@ func (e StoreEncoder) prepareReport(ctx context.Context, p envoyx.EncodeParams, 
 		// We can skip validation/defaults when the resource is overwritten by
 		// the one already stored (the panic one errors out anyway) since it
 		// should already be ok.
-		if !hasExisting || p.Config.OnExisting != envoyx.OnConflictSkip {
+		if !hasExisting || n.Config.MergeAlg != envoyx.OnConflictSkip {
 			err = e.setReportDefaults(res)
 			if err != nil {
 				return err
@@ -1249,7 +1249,7 @@ func (e StoreEncoder) prepareRole(ctx context.Context, p envoyx.EncodeParams, s 
 			// changing up the internal resource is enough.
 			//
 			// In the future, we can pass down the tree and re-do the deps like that
-			switch p.Config.OnExisting {
+			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
 				err = fmt.Errorf("resource already exists")
 				return
@@ -1274,7 +1274,7 @@ func (e StoreEncoder) prepareRole(ctx context.Context, p envoyx.EncodeParams, s 
 		// We can skip validation/defaults when the resource is overwritten by
 		// the one already stored (the panic one errors out anyway) since it
 		// should already be ok.
-		if !hasExisting || p.Config.OnExisting != envoyx.OnConflictSkip {
+		if !hasExisting || n.Config.MergeAlg != envoyx.OnConflictSkip {
 			err = e.setRoleDefaults(res)
 			if err != nil {
 				return err
@@ -1429,7 +1429,7 @@ func (e StoreEncoder) prepareTemplate(ctx context.Context, p envoyx.EncodeParams
 			// changing up the internal resource is enough.
 			//
 			// In the future, we can pass down the tree and re-do the deps like that
-			switch p.Config.OnExisting {
+			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
 				err = fmt.Errorf("resource already exists")
 				return
@@ -1454,7 +1454,7 @@ func (e StoreEncoder) prepareTemplate(ctx context.Context, p envoyx.EncodeParams
 		// We can skip validation/defaults when the resource is overwritten by
 		// the one already stored (the panic one errors out anyway) since it
 		// should already be ok.
-		if !hasExisting || p.Config.OnExisting != envoyx.OnConflictSkip {
+		if !hasExisting || n.Config.MergeAlg != envoyx.OnConflictSkip {
 			err = e.setTemplateDefaults(res)
 			if err != nil {
 				return err
@@ -1609,7 +1609,7 @@ func (e StoreEncoder) prepareUser(ctx context.Context, p envoyx.EncodeParams, s 
 			// changing up the internal resource is enough.
 			//
 			// In the future, we can pass down the tree and re-do the deps like that
-			switch p.Config.OnExisting {
+			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
 				err = fmt.Errorf("resource already exists")
 				return
@@ -1634,7 +1634,7 @@ func (e StoreEncoder) prepareUser(ctx context.Context, p envoyx.EncodeParams, s 
 		// We can skip validation/defaults when the resource is overwritten by
 		// the one already stored (the panic one errors out anyway) since it
 		// should already be ok.
-		if !hasExisting || p.Config.OnExisting != envoyx.OnConflictSkip {
+		if !hasExisting || n.Config.MergeAlg != envoyx.OnConflictSkip {
 			err = e.setUserDefaults(res)
 			if err != nil {
 				return err
@@ -1789,7 +1789,7 @@ func (e StoreEncoder) prepareDalConnection(ctx context.Context, p envoyx.EncodeP
 			// changing up the internal resource is enough.
 			//
 			// In the future, we can pass down the tree and re-do the deps like that
-			switch p.Config.OnExisting {
+			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
 				err = fmt.Errorf("resource already exists")
 				return
@@ -1814,7 +1814,7 @@ func (e StoreEncoder) prepareDalConnection(ctx context.Context, p envoyx.EncodeP
 		// We can skip validation/defaults when the resource is overwritten by
 		// the one already stored (the panic one errors out anyway) since it
 		// should already be ok.
-		if !hasExisting || p.Config.OnExisting != envoyx.OnConflictSkip {
+		if !hasExisting || n.Config.MergeAlg != envoyx.OnConflictSkip {
 			err = e.setDalConnectionDefaults(res)
 			if err != nil {
 				return err
@@ -1969,7 +1969,7 @@ func (e StoreEncoder) prepareDalSensitivityLevel(ctx context.Context, p envoyx.E
 			// changing up the internal resource is enough.
 			//
 			// In the future, we can pass down the tree and re-do the deps like that
-			switch p.Config.OnExisting {
+			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
 				err = fmt.Errorf("resource already exists")
 				return
@@ -1994,7 +1994,7 @@ func (e StoreEncoder) prepareDalSensitivityLevel(ctx context.Context, p envoyx.E
 		// We can skip validation/defaults when the resource is overwritten by
 		// the one already stored (the panic one errors out anyway) since it
 		// should already be ok.
-		if !hasExisting || p.Config.OnExisting != envoyx.OnConflictSkip {
+		if !hasExisting || n.Config.MergeAlg != envoyx.OnConflictSkip {
 			err = e.setDalSensitivityLevelDefaults(res)
 			if err != nil {
 				return err

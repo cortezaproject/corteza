@@ -136,7 +136,7 @@ func (e StoreEncoder) prepare{{.expIdent}}(ctx context.Context, p envoyx.EncodeP
 			// changing up the internal resource is enough.
 			//
 			// In the future, we can pass down the tree and re-do the deps like that
-			switch p.Config.OnExisting {
+			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
 				err = fmt.Errorf("resource already exists")
 				return
@@ -161,7 +161,7 @@ func (e StoreEncoder) prepare{{.expIdent}}(ctx context.Context, p envoyx.EncodeP
 		// We can skip validation/defaults when the resource is overwritten by
 		// the one already stored (the panic one errors out anyway) since it
 		// should already be ok.
-		if !hasExisting || p.Config.OnExisting != envoyx.OnConflictSkip {
+		if !hasExisting || n.Config.MergeAlg != envoyx.OnConflictSkip {
 			err = e.set{{.expIdent}}Defaults(res)
 			if err != nil {
 				return err
