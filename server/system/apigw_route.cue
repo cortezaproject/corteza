@@ -65,9 +65,21 @@ apigw_route: {
 			supportMappedInput: true
 			mappedField: "Endpoint"
 			identKeyAlias: ["endpoints"]
+			extendedResourceDecoders: [{
+				ident: "filters"
+				expIdent: "Filters"
+				identKeys: ["filters"]
+				supportMappedInput: false
+			}]
+			extendedResourceEncoders: [{
+				ident: "apigwFilter"
+				expIdent: "ApigwFilter"
+				identKey: "filters"
+			}]
 		}
 		store: {
 			handleField: "Endpoint"
+			extendedDecoder: true
 		}
 	}
 

@@ -395,6 +395,8 @@ func (d StoreDecoder) decodeModuleField(ctx context.Context, s store.Storer, dl 
 			},
 		}
 
+		refs = envoyx.MergeRefs(refs, d.decodeModuleFieldRefs(r))
+
 		var scope envoyx.Scope
 
 		scope = envoyx.Scope{
@@ -523,6 +525,8 @@ func (d StoreDecoder) decodePage(ctx context.Context, s store.Storer, dl dal.Ful
 				Identifiers:  envoyx.MakeIdentifiers(r.SelfID),
 			},
 		}
+
+		refs = envoyx.MergeRefs(refs, d.decodePageRefs(r))
 
 		var scope envoyx.Scope
 

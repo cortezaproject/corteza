@@ -42,6 +42,7 @@ moduleField: {
 				envoy: {
 					yaml: {
 						customDecoder: true
+						customEncoder: true
 					}
 				}
 			}
@@ -78,12 +79,22 @@ moduleField: {
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
+				envoy: {
+					yaml: {
+						customDecoder: true
+					}
+				}
 			}
 			expressions: {
 				goType: "types.ModuleFieldExpr"
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
+				envoy: {
+					yaml: {
+						customDecoder: true
+					}
+				}
 			}
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
@@ -127,6 +138,7 @@ moduleField: {
 		store: {
 			handleField: ""
 			customFilterBuilder: true
+			extendedRefDecoder: true
 		}
 	}
 

@@ -12,7 +12,13 @@ chart: {
 	model: {
 		ident: "compose_chart"
 		attributes: {
-			id: schema.IdField
+			id: schema.IdField & {
+				envoy: {
+					yaml: {
+						identKeyEncode: "chartID"
+					}
+				}
+			}
 			handle: schema.HandleField
 			namespace_id: {
 			  ident: "namespaceID",
@@ -37,6 +43,7 @@ chart: {
 				envoy: {
 					yaml: {
 						customDecoder: true
+						customEncoder: true
 					}
 				}
 		  }

@@ -63,7 +63,9 @@ dal_connection: {
 			mappedField: "Handle"
 			identKeyAlias: ["connection", "connections"]
 		}
-		store: {}
+		store: {
+			extendedRefDecoder: true
+		}
 	}
 
 	rbac: {

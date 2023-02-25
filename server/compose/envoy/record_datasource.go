@@ -2,6 +2,7 @@ package envoy
 
 import (
 	"context"
+	"strings"
 
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
@@ -43,7 +44,7 @@ func (rd *RecordDatasource) SetProvider(s envoyx.Provider) bool {
 	return true
 }
 
-func (rd *RecordDatasource) Next(ctx context.Context, out map[string]string) (ident string, more bool, err error) {
+func (rd *RecordDatasource) Next(ctx context.Context, out map[string]string) (ident []string, more bool, err error) {
 	if rd.rowCache == nil {
 		rd.rowCache = make(map[string]string)
 	}
@@ -55,7 +56,9 @@ func (rd *RecordDatasource) Next(ctx context.Context, out map[string]string) (id
 
 	rd.applyMapping(rd.rowCache, out)
 
-	ident = out[rd.mapping.KeyField]
+	for _, k := range rd.mapping.KeyField {
+		ident = append(ident, out[k])
+	}
 
 	return
 }
@@ -66,30 +69,81 @@ func (rd *RecordDatasource) Reset(ctx context.Context) (err error) {
 
 func (rd *RecordDatasource) applyMapping(in, out map[string]string) {
 	if len(rd.mapping.Mapping.m) == 0 {
+		if !rd.mapping.Defaultable {
+			return
+		}
+
 		for k, v := range in {
 			out[k] = v
 		}
 		return
 	}
 
+	if rd.mapping.Defaultable {
+		rd.applyMappingWithDefaults(in, out)
+	} else {
+		rd.applyMappingWoDefaults(in, out)
+	}
+}
+
+func (rd *RecordDatasource) applyMappingWithDefaults(in, out map[string]string) {
+	maps := make(map[string]mapEntry)
+	for k, v := range rd.mapping.Mapping.m {
+		maps[k] = v
+	}
+
+	for k, v := range in {
+		if m, ok := maps[k]; ok {
+			if m.Skip {
+				continue
+			}
+			out[m.Field] = v
+		} else {
+			out[k] = v
+		}
+	}
+}
+
+func (rd *RecordDatasource) applyMappingWoDefaults(in, out map[string]string) {
 	for _, m := range rd.mapping.Mapping.m {
 		if m.Skip {
 			continue
 		}
 
-		// @todo expand when needed (expressions and such)
 		out[m.Field] = in[m.Column]
 	}
 }
 
-func (rd *RecordDatasource) ResolveRef(ref any) (out uint64, err error) {
-	r, err := cast.ToStringE(ref)
+func (rd *RecordDatasource) ResolveRef(ref ...any) (out uint64, err error) {
+	idents, err := cast.ToStringSliceE(ref)
 	if err != nil {
 		return
 	}
 
-	out = rd.refToID[r]
+	for i, ident := range idents {
+		idents[i] = strings.Replace(ident, "-", "_", -1)
+	}
+
+	out = rd.refToID[strings.Join(idents, "-")]
 	return
+}
+
+func (rd *RecordDatasource) ResolveRefS(ref ...string) (out uint64, err error) {
+	aux := make([]any, len(ref))
+	for i, r := range ref {
+		aux[i] = r
+	}
+
+	return rd.ResolveRef(aux...)
+}
+
+// @todo this should be replaced by some smarter structure
+func (rd *RecordDatasource) AddRef(id uint64, idents ...string) {
+	for i, ident := range idents {
+		idents[i] = strings.Replace(ident, "-", "_", -1)
+	}
+
+	rd.refToID[strings.Join(idents, "-")] = id
 }
 
 func (ar auxRecord) SetValue(name string, pos uint, value any) (err error) {

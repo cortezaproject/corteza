@@ -186,6 +186,12 @@ import (
 			supportMappedInput: bool | *true
 			mappedField: string | *""
 		}] | *[]
+
+		extendedResourceEncoders: [...{
+			ident: string
+			expIdent: string
+			identKey: string | *""
+		}] | *[]
 	}
 
 	// store decode/encode configs

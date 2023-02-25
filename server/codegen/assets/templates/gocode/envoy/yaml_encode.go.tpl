@@ -123,23 +123,29 @@ func (e YamlEncoder) encode{{.expIdent}}(ctx context.Context, p envoyx.EncodePar
 		if err != nil {
 			return
 		}
+		{{- else if .envoy.yaml.customEncoder -}}
+		aux{{.expIdent}}, err := e.encode{{$res}}{{.expIdent}}C(ctx, p, tt, node, res, res.{{.expIdent}})
+		if err != nil {
+			return
+		}
 		{{- end }}
 	{{end}}
 
 	out, err = y7s.AddMap(out,
 	{{ range .model.attributes -}}
+		{{- if .envoy.yaml.omitEncoder }}{{continue}}{{ end -}}
 		{{- if .envoy.yaml.customEncoder -}}
-		"{{.ident}}", e.encode{{$res}}{{.expIdent}}(p, res.{{.expIdent}}),
+		"{{.envoy.yaml.identKeyEncode}}", aux{{.expIdent}},
 		{{- else if eq .dal.type "Timestamp" -}}
 			{{- if .dal.nullable -}}
-		"{{.ident}}", aux{{.expIdent}},
+		"{{.envoy.yaml.identKeyEncode}}", aux{{.expIdent}},
 			{{- else -}}
-		"{{.ident}}", aux{{.expIdent}},
+		"{{.envoy.yaml.identKeyEncode}}", aux{{.expIdent}},
 			{{- end -}}
 		{{- else if eq .dal.type "Ref" -}}
-		"{{.ident}}", aux{{.expIdent}},
+		"{{.envoy.yaml.identKeyEncode}}", aux{{.expIdent}},
 		{{- else -}}
-		"{{.ident}}", res.{{.expIdent}},
+		"{{.envoy.yaml.identKeyEncode}}", res.{{.expIdent}},
 		{{- end }}
 	{{end}}
 	)
@@ -175,6 +181,20 @@ func (e YamlEncoder) encode{{.expIdent}}(ctx context.Context, p envoyx.EncodePar
 	}
 		{{ end }}
 	{{- end }}
+
+	{{- range .envoy.yaml.extendedResourceEncoders }}
+	aux, err = e.encode{{.expIdent}}s(ctx, p, tt.ChildrenForResourceType(node, types.{{.expIdent}}ResourceType), tt)
+	if err != nil {
+		return
+	}
+	out, err = y7s.AddMap(out,
+		"{{.identKey}}", aux,
+	)
+	if err != nil {
+		return
+	}
+	{{- end }}
+
 
 	return
 }
