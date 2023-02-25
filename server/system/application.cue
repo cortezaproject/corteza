@@ -74,7 +74,6 @@ application: {
 			identKeyAlias: ["apps"]
 		}
 		store: {
-			extendedRefDecoder: true
 			handleField: "Name"
 		}
 	}

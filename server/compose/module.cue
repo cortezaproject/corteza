@@ -13,7 +13,13 @@ module: {
 	model: {
 		ident: "compose_module"
 		attributes: {
-			id: schema.IdField
+			id: schema.IdField & {
+				envoy: {
+					yaml: {
+						identKeyEncode: "moduleID"
+					}
+				}
+			}
 			namespace_id: {
 				ident: "namespaceID",
 				goType: "uint64",
@@ -42,17 +48,17 @@ module: {
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
-				envoy: {
-					yaml: {
-						customEncoder: true
-					}
-				}
 			}
 			fields: {
 				goType: "types.ModuleFieldSet",
 				store: false
 				omitSetter: true
 				omitGetter: true
+				envoy: {
+					yaml: {
+						customEncoder: true
+					}
+				}
 			}
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
@@ -94,7 +100,8 @@ module: {
 			extendedResourceDecoders: [{
 				ident: "source"
 				expIdent: "Source"
-				identKeys: ["source", "datasource"]
+				// @deprecated records is what the old version used
+				identKeys: ["source", "datasource", "records"]
 				supportMappedInput: false
 			}]
 		}

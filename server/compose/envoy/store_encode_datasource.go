@@ -44,7 +44,7 @@ func (e StoreEncoder) prepareRecords(ctx context.Context, p envoyx.EncodeParams,
 	var (
 		aux   = make(map[string]string)
 		more  bool
-		ident string
+		ident []string
 		rec   types.Record
 	)
 
@@ -56,7 +56,7 @@ func (e StoreEncoder) prepareRecords(ctx context.Context, p envoyx.EncodeParams,
 			return
 		}
 
-		ds.refToID[ident] = id.Next()
+		ds.AddRef(id.Next(), ident...)
 
 		rec, err = e.auxToRecord(aux)
 		if err != nil {
@@ -93,7 +93,7 @@ func (e StoreEncoder) encodeRecordDatasource(ctx context.Context, p envoyx.Encod
 	var (
 		auxRec = make(map[string]string)
 		more   bool
-		ident  string
+		ident  []string
 		rec    types.Record
 
 		nsNode  *envoyx.Node
@@ -173,7 +173,11 @@ func (e StoreEncoder) encodeRecordDatasource(ctx context.Context, p envoyx.Encod
 		rec.CreatedAt = time.Now()
 
 		// Values and refs
-		rec.ID = ds.refToID[ident]
+		rec.ID, err = ds.ResolveRefS(ident...)
+		if err != nil {
+			return err
+		}
+
 		for i, v := range rec.Values {
 			if getters[v.Name] == nil {
 				continue

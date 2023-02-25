@@ -49,6 +49,12 @@ auth_client: {
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
+				envoy: {
+					yaml: {
+						customDecoder: true
+						customEncoder: true
+					}
+				}
 			}
 			owned_by:   schema.AttributeUserRef
 			created_at: schema.SortableTimestampNowField
@@ -92,7 +98,9 @@ auth_client: {
 			mappedField: "Handle"
 			identKeyAlias: ["authclients"]
 		}
-		store: {}
+		store: {
+			extendedRefDecoder: true
+		}
 	}
 
 	rbac: {

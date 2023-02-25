@@ -245,6 +245,7 @@ func (d *auxYamlDoc) unmarshal{{ .expIdent }}Node(dctx documentContext, n *yaml.
 		auxOut envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope envoyx.Scope
+		envoyConfig envoyx.NodeConfig
 		{{- if .rbac }}
 		rbacNodes envoyx.NodeSet
 		{{- end }}
@@ -332,7 +333,7 @@ func (d *auxYamlDoc) unmarshal{{ .expIdent }}Node(dctx documentContext, n *yaml.
 				auxRefs   map[string]envoyx.Ref
 				auxIdents envoyx.Identifiers
 			)
-			auxRefs, auxIdents, err = unmarshal{{ $resource.expIdent }}{{ $attr.expIdent }}Node(r, n)
+			auxRefs, auxIdents, err = d.unmarshal{{ $resource.expIdent }}{{ $attr.expIdent }}Node(r, n)
 			if err != nil {
 				return err
 			}
@@ -359,6 +360,8 @@ func (d *auxYamlDoc) unmarshal{{ .expIdent }}Node(dctx documentContext, n *yaml.
 			rbacNodes = append(rbacNodes, auxOut...)
 			auxOut = nil
 	{{- end }}
+		case "(envoy)":
+			envoyConfig = d.decodeEnvoyConfig(n)
 		}
 
 		return nil
@@ -537,6 +540,7 @@ func (d *auxYamlDoc) unmarshal{{ .expIdent }}Node(dctx documentContext, n *yaml.
 		{{if or .envoy.scoped}}
 		Scope: scope,
 		{{end}}
+		Config: envoyConfig,
 	}
 	{{- if .rbac }}
 	// Update RBAC resource nodes with references regarding the resource
@@ -684,6 +688,25 @@ func unmarshalLocaleNode(n *yaml.Node) (out envoyx.NodeSet, err error) {
 			})
 		})
 	})
+}
+
+// // // // // // // // // // // // // // // // // // // // // // // // //
+// Envoy config unmarshal logic
+// // // // // // // // // // // // // // // // // // // // // // // // //
+
+func (d *auxYamlDoc) decodeEnvoyConfig(n *yaml.Node) (out envoyx.NodeConfig) {
+	y7s.EachMap(n, func(k, v *yaml.Node) (err error) {
+		switch strings.ToLower(k.Value) {
+		case "skipif", "skip":
+			return y7s.DecodeScalar(v, "decode skip if", &out.SkipIf)
+		case "onexisting", "mergealg":
+			out.MergeAlg = envoyx.CastMergeAlg(v.Value)
+		}
+
+		return nil
+	})
+
+	return
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // //

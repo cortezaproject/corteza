@@ -24,6 +24,17 @@ user: {
 		  	ignoreCase: true
 				dal: {}
 			}
+			roles: {
+				goType: "[]uint64",
+				store: false
+				omitSetter: true
+				omitGetter: true
+				envoy: {
+					yaml: {
+						customDecoder: true
+					}
+				}
+			}
 		  name: {
 		  	sortable: true
 				dal: {}

@@ -28,6 +28,9 @@ page: {
 					store: {
 						filterRefField: "ParentID"
 					}
+					yaml: {
+						identKeyAlias: ["parent"]
+					}
 				}
 			}
 			module_id: {
@@ -54,6 +57,12 @@ page: {
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
+				envoy: {
+					yaml: {
+						customDecoder: true
+						customEncoder: true
+					}
+				}
 			}
 			children: {
 				goType: "types.PageSet", store: false
@@ -67,6 +76,11 @@ page: {
 			weight: {
 				goType: "int", sortable: true
 				dal: { type: "Number", default: 0, meta: { "rdbms:type": "integer" } }
+				envoy: {
+					yaml: {
+						identKeyAlias: ["order"]
+					}
+				}
 			}
 			description: {
 				goType: "string"
@@ -113,9 +127,18 @@ page: {
 			supportMappedInput: true
 			mappedField: "Handle"
 			identKeyAlias: ["pages", "pg"]
+
+			extendedResourceDecoders: [{
+				ident: "pages"
+				expIdent: "Pages"
+				identKeys: ["children", "pages"]
+				supportMappedInput: true
+				mappedField: "Handle"
+			}]
 		}
 		store: {
 			extendedFilterBuilder: true
+			extendedRefDecoder: true
 		}
 	}
 

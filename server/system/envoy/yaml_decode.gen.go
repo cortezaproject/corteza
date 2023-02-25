@@ -298,6 +298,7 @@ func (d *auxYamlDoc) unmarshalApplicationNode(dctx documentContext, n *yaml.Node
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
+		envoyConfig envoyx.NodeConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -348,6 +349,8 @@ func (d *auxYamlDoc) unmarshalApplicationNode(dctx documentContext, n *yaml.Node
 			}
 			rbacNodes = append(rbacNodes, auxOut...)
 			auxOut = nil
+		case "(envoy)":
+			envoyConfig = d.decodeEnvoyConfig(n)
 		}
 
 		return nil
@@ -422,6 +425,8 @@ func (d *auxYamlDoc) unmarshalApplicationNode(dctx documentContext, n *yaml.Node
 		ResourceType: types.ApplicationResourceType,
 		Identifiers:  ii,
 		References:   refs,
+
+		Config: envoyConfig,
 	}
 	// Update RBAC resource nodes with references regarding the resource
 	for _, rn := range rbacNodes {
@@ -488,6 +493,22 @@ func (d *auxYamlDoc) unmarshalApigwRouteMap(dctx documentContext, n *yaml.Node) 
 	return
 }
 
+// unmarshalFiltersExtendedSeq unmarshals Filters when provided as a sequence node
+func (d *auxYamlDoc) unmarshalExtendedFiltersSeq(dctx documentContext, n *yaml.Node) (out envoyx.NodeSet, err error) {
+	var aux envoyx.NodeSet
+	err = y7s.EachSeq(n, func(n *yaml.Node) error {
+		aux, err = d.unmarshalFiltersExtendedNode(dctx, n)
+		if err != nil {
+			return err
+		}
+		out = append(out, aux...)
+
+		return nil
+	})
+
+	return
+}
+
 // unmarshalApigwRouteNode is a cookie-cutter function to unmarshal
 // the yaml node into the corresponding Corteza type & Node
 func (d *auxYamlDoc) unmarshalApigwRouteNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
@@ -519,6 +540,7 @@ func (d *auxYamlDoc) unmarshalApigwRouteNode(dctx documentContext, n *yaml.Node,
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
+		envoyConfig envoyx.NodeConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -608,6 +630,8 @@ func (d *auxYamlDoc) unmarshalApigwRouteNode(dctx documentContext, n *yaml.Node,
 			}
 			rbacNodes = append(rbacNodes, auxOut...)
 			auxOut = nil
+		case "(envoy)":
+			envoyConfig = d.decodeEnvoyConfig(n)
 		}
 
 		return nil
@@ -636,6 +660,14 @@ func (d *auxYamlDoc) unmarshalApigwRouteNode(dctx documentContext, n *yaml.Node,
 
 		switch strings.ToLower(k.Value) {
 
+		case "filters":
+			if y7s.IsSeq(n) {
+				nestedNodes, err = d.unmarshalExtendedFiltersSeq(dctx, n)
+				if err != nil {
+					return err
+				}
+			}
+			break
 		}
 
 		// Iterate nested nodes and update their reference to the current resource
@@ -682,6 +714,8 @@ func (d *auxYamlDoc) unmarshalApigwRouteNode(dctx documentContext, n *yaml.Node,
 		ResourceType: types.ApigwRouteResourceType,
 		Identifiers:  ii,
 		References:   refs,
+
+		Config: envoyConfig,
 	}
 	// Update RBAC resource nodes with references regarding the resource
 	for _, rn := range rbacNodes {
@@ -760,6 +794,7 @@ func (d *auxYamlDoc) unmarshalApigwFilterNode(dctx documentContext, n *yaml.Node
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
+		envoyConfig envoyx.NodeConfig
 	)
 	_ = auxOut
 	_ = refs
@@ -832,6 +867,8 @@ func (d *auxYamlDoc) unmarshalApigwFilterNode(dctx documentContext, n *yaml.Node
 
 			break
 
+		case "(envoy)":
+			envoyConfig = d.decodeEnvoyConfig(n)
 		}
 
 		return nil
@@ -906,6 +943,8 @@ func (d *auxYamlDoc) unmarshalApigwFilterNode(dctx documentContext, n *yaml.Node
 		ResourceType: types.ApigwFilterResourceType,
 		Identifiers:  ii,
 		References:   refs,
+
+		Config: envoyConfig,
 	}
 
 	// Put it all together...
@@ -985,6 +1024,7 @@ func (d *auxYamlDoc) unmarshalAuthClientNode(dctx documentContext, n *yaml.Node,
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
+		envoyConfig envoyx.NodeConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -1055,6 +1095,25 @@ func (d *auxYamlDoc) unmarshalAuthClientNode(dctx documentContext, n *yaml.Node,
 
 			break
 
+		case "security":
+
+			// Handle custom node decoder
+			//
+			// The decoder may update the passed resource with arbitrary values
+			// as well as provide additional references and identifiers for the node.
+			var (
+				auxRefs   map[string]envoyx.Ref
+				auxIdents envoyx.Identifiers
+			)
+			auxRefs, auxIdents, err = d.unmarshalAuthClientSecurityNode(r, n)
+			if err != nil {
+				return err
+			}
+			refs = envoyx.MergeRefs(refs, auxRefs)
+			ii = ii.Merge(auxIdents)
+
+			break
+
 		case "updatedby":
 			// Handle references
 			err = y7s.DecodeScalar(n, "updatedBy", &auxNodeValue)
@@ -1084,6 +1143,8 @@ func (d *auxYamlDoc) unmarshalAuthClientNode(dctx documentContext, n *yaml.Node,
 			}
 			rbacNodes = append(rbacNodes, auxOut...)
 			auxOut = nil
+		case "(envoy)":
+			envoyConfig = d.decodeEnvoyConfig(n)
 		}
 
 		return nil
@@ -1169,6 +1230,8 @@ func (d *auxYamlDoc) unmarshalAuthClientNode(dctx documentContext, n *yaml.Node,
 		References:   refs,
 
 		Scope: scope,
+
+		Config: envoyConfig,
 	}
 	// Update RBAC resource nodes with references regarding the resource
 	for _, rn := range rbacNodes {
@@ -1266,6 +1329,7 @@ func (d *auxYamlDoc) unmarshalQueueNode(dctx documentContext, n *yaml.Node, meta
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
+		envoyConfig envoyx.NodeConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -1352,6 +1416,8 @@ func (d *auxYamlDoc) unmarshalQueueNode(dctx documentContext, n *yaml.Node, meta
 			}
 			rbacNodes = append(rbacNodes, auxOut...)
 			auxOut = nil
+		case "(envoy)":
+			envoyConfig = d.decodeEnvoyConfig(n)
 		}
 
 		return nil
@@ -1437,6 +1503,8 @@ func (d *auxYamlDoc) unmarshalQueueNode(dctx documentContext, n *yaml.Node, meta
 		References:   refs,
 
 		Scope: scope,
+
+		Config: envoyConfig,
 	}
 	// Update RBAC resource nodes with references regarding the resource
 	for _, rn := range rbacNodes {
@@ -1534,6 +1602,7 @@ func (d *auxYamlDoc) unmarshalReportNode(dctx documentContext, n *yaml.Node, met
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
+		envoyConfig envoyx.NodeConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -1633,6 +1702,8 @@ func (d *auxYamlDoc) unmarshalReportNode(dctx documentContext, n *yaml.Node, met
 			}
 			rbacNodes = append(rbacNodes, auxOut...)
 			auxOut = nil
+		case "(envoy)":
+			envoyConfig = d.decodeEnvoyConfig(n)
 		}
 
 		return nil
@@ -1707,6 +1778,8 @@ func (d *auxYamlDoc) unmarshalReportNode(dctx documentContext, n *yaml.Node, met
 		ResourceType: types.ReportResourceType,
 		Identifiers:  ii,
 		References:   refs,
+
+		Config: envoyConfig,
 	}
 	// Update RBAC resource nodes with references regarding the resource
 	for _, rn := range rbacNodes {
@@ -1804,6 +1877,7 @@ func (d *auxYamlDoc) unmarshalRoleNode(dctx documentContext, n *yaml.Node, meta 
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
+		envoyConfig envoyx.NodeConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -1851,6 +1925,8 @@ func (d *auxYamlDoc) unmarshalRoleNode(dctx documentContext, n *yaml.Node, meta 
 			}
 			rbacNodes = append(rbacNodes, auxOut...)
 			auxOut = nil
+		case "(envoy)":
+			envoyConfig = d.decodeEnvoyConfig(n)
 		}
 
 		return nil
@@ -1925,6 +2001,8 @@ func (d *auxYamlDoc) unmarshalRoleNode(dctx documentContext, n *yaml.Node, meta 
 		ResourceType: types.RoleResourceType,
 		Identifiers:  ii,
 		References:   refs,
+
+		Config: envoyConfig,
 	}
 	// Update RBAC resource nodes with references regarding the resource
 	for _, rn := range rbacNodes {
@@ -2022,6 +2100,7 @@ func (d *auxYamlDoc) unmarshalTemplateNode(dctx documentContext, n *yaml.Node, m
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
+		envoyConfig envoyx.NodeConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -2082,6 +2161,8 @@ func (d *auxYamlDoc) unmarshalTemplateNode(dctx documentContext, n *yaml.Node, m
 			}
 			rbacNodes = append(rbacNodes, auxOut...)
 			auxOut = nil
+		case "(envoy)":
+			envoyConfig = d.decodeEnvoyConfig(n)
 		}
 
 		return nil
@@ -2156,6 +2237,8 @@ func (d *auxYamlDoc) unmarshalTemplateNode(dctx documentContext, n *yaml.Node, m
 		ResourceType: types.TemplateResourceType,
 		Identifiers:  ii,
 		References:   refs,
+
+		Config: envoyConfig,
 	}
 	// Update RBAC resource nodes with references regarding the resource
 	for _, rn := range rbacNodes {
@@ -2253,6 +2336,7 @@ func (d *auxYamlDoc) unmarshalUserNode(dctx documentContext, n *yaml.Node, meta 
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
+		envoyConfig envoyx.NodeConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -2284,6 +2368,25 @@ func (d *auxYamlDoc) unmarshalUserNode(dctx documentContext, n *yaml.Node, meta 
 
 			break
 
+		case "roles":
+
+			// Handle custom node decoder
+			//
+			// The decoder may update the passed resource with arbitrary values
+			// as well as provide additional references and identifiers for the node.
+			var (
+				auxRefs   map[string]envoyx.Ref
+				auxIdents envoyx.Identifiers
+			)
+			auxRefs, auxIdents, err = d.unmarshalUserRolesNode(r, n)
+			if err != nil {
+				return err
+			}
+			refs = envoyx.MergeRefs(refs, auxRefs)
+			ii = ii.Merge(auxIdents)
+
+			break
+
 		// Handle RBAC rules
 		case "allow":
 			auxOut, err = unmarshalAllowNode(n)
@@ -2300,6 +2403,8 @@ func (d *auxYamlDoc) unmarshalUserNode(dctx documentContext, n *yaml.Node, meta 
 			}
 			rbacNodes = append(rbacNodes, auxOut...)
 			auxOut = nil
+		case "(envoy)":
+			envoyConfig = d.decodeEnvoyConfig(n)
 		}
 
 		return nil
@@ -2374,6 +2479,8 @@ func (d *auxYamlDoc) unmarshalUserNode(dctx documentContext, n *yaml.Node, meta 
 		ResourceType: types.UserResourceType,
 		Identifiers:  ii,
 		References:   refs,
+
+		Config: envoyConfig,
 	}
 	// Update RBAC resource nodes with references regarding the resource
 	for _, rn := range rbacNodes {
@@ -2471,6 +2578,7 @@ func (d *auxYamlDoc) unmarshalDalConnectionNode(dctx documentContext, n *yaml.No
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
+		envoyConfig envoyx.NodeConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -2557,6 +2665,8 @@ func (d *auxYamlDoc) unmarshalDalConnectionNode(dctx documentContext, n *yaml.No
 			}
 			rbacNodes = append(rbacNodes, auxOut...)
 			auxOut = nil
+		case "(envoy)":
+			envoyConfig = d.decodeEnvoyConfig(n)
 		}
 
 		return nil
@@ -2631,6 +2741,8 @@ func (d *auxYamlDoc) unmarshalDalConnectionNode(dctx documentContext, n *yaml.No
 		ResourceType: types.DalConnectionResourceType,
 		Identifiers:  ii,
 		References:   refs,
+
+		Config: envoyConfig,
 	}
 	// Update RBAC resource nodes with references regarding the resource
 	for _, rn := range rbacNodes {
@@ -2728,6 +2840,7 @@ func (d *auxYamlDoc) unmarshalDalSensitivityLevelNode(dctx documentContext, n *y
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
+		envoyConfig envoyx.NodeConfig
 	)
 	_ = auxOut
 	_ = refs
@@ -2797,6 +2910,8 @@ func (d *auxYamlDoc) unmarshalDalSensitivityLevelNode(dctx documentContext, n *y
 
 			break
 
+		case "(envoy)":
+			envoyConfig = d.decodeEnvoyConfig(n)
 		}
 
 		return nil
@@ -2871,6 +2986,8 @@ func (d *auxYamlDoc) unmarshalDalSensitivityLevelNode(dctx documentContext, n *y
 		ResourceType: types.DalSensitivityLevelResourceType,
 		Identifiers:  ii,
 		References:   refs,
+
+		Config: envoyConfig,
 	}
 
 	// Put it all together...
@@ -2994,6 +3111,25 @@ func unmarshalLocaleNode(n *yaml.Node) (out envoyx.NodeSet, err error) {
 			})
 		})
 	})
+}
+
+// // // // // // // // // // // // // // // // // // // // // // // // //
+// Envoy config unmarshal logic
+// // // // // // // // // // // // // // // // // // // // // // // // //
+
+func (d *auxYamlDoc) decodeEnvoyConfig(n *yaml.Node) (out envoyx.NodeConfig) {
+	y7s.EachMap(n, func(k, v *yaml.Node) (err error) {
+		switch strings.ToLower(k.Value) {
+		case "skipif", "skip":
+			return y7s.DecodeScalar(v, "decode skip if", &out.SkipIf)
+		case "onexisting", "mergealg":
+			out.MergeAlg = envoyx.CastMergeAlg(v.Value)
+		}
+
+		return nil
+	})
+
+	return
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // //
