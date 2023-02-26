@@ -15,6 +15,7 @@ apigw_filter: {
 			route:  {
 				sortable: true, goType: "uint64", storeIdent: "rel_route"
 				dal: { type: "Ref", refModelResType: "corteza::system:apigw-route" }
+				identAlias: ["route", "Route", "ApigwRouteID"]
 				envoy: {
 					store: {
 						omitRefFilter: true
@@ -61,6 +62,7 @@ apigw_filter: {
 	envoy: {
 		yaml: {
 			supportMappedInput: false
+			omitEncoder: true
 		}
 		store: {
 			handleField: ""

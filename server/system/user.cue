@@ -32,6 +32,7 @@ user: {
 				envoy: {
 					yaml: {
 						customDecoder: true
+						omitEncoder: true
 					}
 				}
 			}

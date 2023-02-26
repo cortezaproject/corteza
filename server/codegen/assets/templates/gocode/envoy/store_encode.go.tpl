@@ -11,7 +11,6 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
-
 {{- range .imports }}
     "{{ . }}"
 {{- end }}
@@ -220,6 +219,12 @@ func (e StoreEncoder) encode{{.expIdent}}(ctx context.Context, p envoyx.EncodePa
 			return
 		}
 	}
+
+	{{ if .envoy.store.sanitizeBeforeSave }}
+	// Custom resource sanitization before saving.
+	// This can be used to cleanup arbitrary config fields.
+	e.sanitize{{.expIdent}}BeforeSave(n.Resource.(*types.{{.expIdent}}))
+	{{ end }}
 
   // Flush to the DB
 	err = store.Upsert{{.store.expIdent}}(ctx, s, n.Resource.(*types.{{.expIdent}}))

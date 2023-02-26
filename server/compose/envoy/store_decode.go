@@ -101,9 +101,13 @@ func (d StoreDecoder) extendedModuleDecoder(ctx context.Context, s store.Storer,
 
 		for _, f := range ff {
 			f.Scope = b.Scope
-			f.References = envoyx.MergeRefs(b.References, map[string]envoyx.Ref{
+			f.References = envoyx.MergeRefs(f.References, b.References, map[string]envoyx.Ref{
 				"ModuleID": b.ToRef(),
 			})
+			for k, ref := range f.References {
+				ref.Scope = b.Scope
+				f.References[k] = ref
+			}
 
 			mod.Fields = append(mod.Fields, f.Resource.(*types.ModuleField))
 		}
@@ -133,6 +137,11 @@ func (d StoreDecoder) decodeChartRefs(c *types.Chart) (refs map[string]envoyx.Re
 
 func (d StoreDecoder) decodeModuleFieldRefs(c *types.ModuleField) (refs map[string]envoyx.Ref) {
 	refs = make(map[string]envoyx.Ref, 1)
+
+	refs["NamespaceID"] = envoyx.Ref{
+		ResourceType: types.NamespaceResourceType,
+		Identifiers:  envoyx.MakeIdentifiers(c.NamespaceID),
+	}
 
 	id := c.Options.UInt64("moduleID")
 	if id == 0 {

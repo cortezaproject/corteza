@@ -570,5 +570,17 @@ func (f ModuleField) IsSensitive() bool {
 	return f.Config.Privacy.SensitivityLevelID > 0
 }
 
+func (f *ModuleField) setValue(name string, pos uint, value any) (err error) {
+	switch name {
+	// @todo consider moving this to the .cue definition; figure out why it wasn't yet
+	case "NamespaceID", "namespaceID":
+		f.NamespaceID = cast.ToUint64(value)
+	case "Options.ModuleID":
+		f.Options["moduleID"] = cast.ToString(value)
+	}
+
+	return
+}
+
 func (p *ModuleFieldConfig) Scan(src any) error          { return sql.ParseJSON(src, p) }
 func (p ModuleFieldConfig) Value() (driver.Value, error) { return json.Marshal(p) }

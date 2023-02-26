@@ -59,7 +59,6 @@ queue: {
 	}
 
 	envoy: {
-		scoped: true
 		yaml: {
 			supportMappedInput: true
 			mappedField: "Queue"

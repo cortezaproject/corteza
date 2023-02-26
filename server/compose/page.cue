@@ -10,6 +10,8 @@ page: {
 	]
 
 	model: {
+		defaultSetter: true
+
 		ident: "compose_page"
 		attributes: {
 			id: schema.IdField
@@ -38,12 +40,22 @@ page: {
 				goType: "uint64",
 				storeIdent: "rel_module"
 				dal: { type: "Ref", refModelResType: "corteza::compose:module" }
+				envoy: {
+					yaml: {
+						identKeyAlias: ["module"]
+					}
+				}
 			}
 			namespace_id: {
 				ident: "namespaceID",
 				goType: "uint64",
 				storeIdent: "rel_namespace"
 				dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
+				envoy: {
+					yaml: {
+						identKeyAlias: ["namespace"]
+					}
+				}
 			}
 
 			config: {

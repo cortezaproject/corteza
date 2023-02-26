@@ -71,16 +71,7 @@ func (e YamlEncoder) Encode(ctx context.Context, p envoyx.EncodeParams, rt strin
 		if err != nil {
 			return
 		}
-	case types.ApigwFilterResourceType:
-		aux, err = e.encodeApigwFilters(ctx, p, nodes, tt)
-		if err != nil {
-			return
-		}
-		// Root level resources are always encoded as a map
-		out, err = y7s.AddMap(out, "apigwFilter", aux)
-		if err != nil {
-			return
-		}
+
 	case types.AuthClientResourceType:
 		aux, err = e.encodeAuthClients(ctx, p, nodes, tt)
 		if err != nil {
@@ -165,6 +156,10 @@ func (e YamlEncoder) Encode(ctx context.Context, p envoyx.EncodeParams, rt strin
 		if err != nil {
 			return
 		}
+	default:
+		// When this encoder doesn't handle any node it shouldn't write anything;
+		// this just removes the need for an extra check at the end.
+		return
 	}
 
 	return yaml.NewEncoder(w).Encode(out)
@@ -869,7 +864,6 @@ func (e YamlEncoder) encodeUser(ctx context.Context, p envoyx.EncodeParams, node
 		"kind", res.Kind,
 		"meta", res.Meta,
 		"name", res.Name,
-		"roles", res.Roles,
 		"suspendedAt", auxSuspendedAt,
 		"updatedAt", auxUpdatedAt,
 		"username", res.Username,
@@ -1046,7 +1040,7 @@ func (e YamlEncoder) encodeTimestamp(p envoyx.EncodeParams, t time.Time) (any, e
 		return nil, nil
 	}
 
-	tz := p.Config.PreferredTimezone
+	tz := p.Encoder.PreferredTimezone
 	if tz != "" {
 		tzL, err := time.LoadLocation(tz)
 		if err != nil {
@@ -1055,7 +1049,7 @@ func (e YamlEncoder) encodeTimestamp(p envoyx.EncodeParams, t time.Time) (any, e
 		t = t.In(tzL)
 	}
 
-	ly := p.Config.PreferredTimeLayout
+	ly := p.Encoder.PreferredTimeLayout
 	if ly == "" {
 		ly = time.RFC3339
 	}
@@ -1081,7 +1075,7 @@ func (e YamlEncoder) encodeRef(p envoyx.EncodeParams, id uint64, field string, n
 		return id, nil
 	}
 
-	return node.Identifiers.FriendlyIdentifier(), nil
+	return parent.Identifiers.FriendlyIdentifier(), nil
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // //
